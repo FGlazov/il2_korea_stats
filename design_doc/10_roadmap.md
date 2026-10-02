@@ -30,6 +30,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 ## Iteration 1.x: Easy install and polish
 - **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing).
 - Docker Compose distribution (option A) for Linux/Wine hosts.
+- **Ammo breakdown** (FR-WEB-18): per-sortie hits and damage per ammo type, and average hits-to-destroy per aircraft type, with closest-hit attribution.
 
 ## Iteration 2: Live data, languages, richer stats
 - **Tours** with configurable length (monthly by default) (TD-26).
@@ -39,7 +40,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - Score concept, then leaderboards and rankings. Configurable penalties, including for suspected early bailouts.
   - Stats by aircraft. Split rankings by aircraft class. **Gunner stats** (FR-WEB-14).
-  - Killboards. Ammo or weapon breakdown. Ironman / virtual-life stats. Rams, parachute deaths, and other rule toggles.
+  - Killboards. Ironman / virtual-life stats. Rams, parachute deaths, and other rule toggles.
 - Light charts (FR-WEB-16).
 - Sortie map page of key events (their positions are stored from v1).
 

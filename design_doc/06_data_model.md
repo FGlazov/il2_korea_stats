@@ -41,7 +41,8 @@ PlayerSortie   id, mission, player → Player, name_at_time, profile_uuid, aircr
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                kills_air, kills_ground, assists, ...  -- sortie totals for list pages
-               ammo (json: fired/hits per ammo type), damage_breakdown (json: dealt/taken per counterpart),
+               ammo (json: per ammo type: fired, hits given, hits received, damage given/received attributed by FR-WEB-18),
+               damage_breakdown (json: dealt/taken per counterpart),
                timeline (json: ordered key events with time, type, detail, position)   -- positions only on key events, no track
 Kill           id, mission, time, killer_sortie (nullable: AI/environment), killer_object → GameObject,
                victim_sortie (nullable: AI/ground), victim_object → GameObject, is_friendly,

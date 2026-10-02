@@ -86,7 +86,8 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Positions:** stored on the key events we keep (spawn, takeoff, landing, kills, death, bailout, sortie end). There's **no flight track**:
   the logs have no periodic position updates (AType 17 never appears), so positions during cruise are unknown
   ([12](12_korea_log_format.md#position-data)). That's enough for a future map of key events (FR-WEB-12).
-- **Dropped:** `AMMO:explosion` hits (97% of AType 1). Other hit and damage lines become per-sortie and per-pair aggregates.
+- **Dropped:** `AMMO:explosion` hits (97% of AType 1) are never **stored**, but replay still uses them in memory to attribute bomb and rocket
+  damage (FR-WEB-18). Other hit and damage lines become per-sortie and per-pair aggregates.
 
 ### TD-09 Archive raw logs forever — `[DECIDED]` (2026-10-02)
 - **Decision:** Compressed archive per mission (zip or zstd), **kept forever by default** (retention stays configurable). Logs
