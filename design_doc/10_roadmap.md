@@ -61,6 +61,7 @@ last, since they're the most parallel and mechanical work (LLM drafts). The rest
 - Player accounts, if people ask for them.
 - `il2ks ship` helper for remote log mode.
 - Optional self-hosted monitoring and error tracking (TD-27).
+- Playwright end-to-end tests on key flows (doc 08), nice to have.
 
 ## Iteration 3: Global stats (multi-server)
 - A central instance that receives data from many servers. Each server gets an opt-in exporter (push, or pull through a
