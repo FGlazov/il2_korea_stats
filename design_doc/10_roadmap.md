@@ -37,7 +37,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - **Tours** with configurable length (monthly by default) (TD-26).
 - **Online now**: current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
 - **Translations**: Russian, German, Spanish, French, Brazilian Portuguese (LLM draft, then human review) (TD-24).
-- **Game object names**: translated defaults plus admin overrides (TD-24, FR-ADM-5). Required for the public release.
+- **Game object names**: admin overrides (required for the public release) and translated defaults (not a release gate) (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - Score concept, then leaderboards and rankings. Configurable penalties, including for suspected early bailouts.
   - Stats by aircraft. Split rankings by aircraft class. **Gunner stats** (FR-WEB-14).
@@ -47,14 +47,16 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 
 ## Public release gate
 **Target: roughly 3 weeks from 2026-10-02, around 2026-10-23** (maintainer). These items are **required before it** (the list grows as decisions are made):
-- Game object names: project-set defaults with translations, plus admin overrides (TD-24, FR-ADM-5).
-- Translations into Russian, German, Spanish, French, and Brazilian Portuguese (TD-24).
+- Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 
-**Schedule risk** (Claude, 2026-10-02): the gate implies all of iteration 0 and 1, the Windows installer from 1.x, and two it2 items
-(translations, object names) in about 3 weeks, for one developer with AI help. That's tight. Iteration 1 alone was estimated at "weeks".
-The order that protects the date: (1) parser + replay + ingest with golden tests, (2) the five core pages, (3) the installer, (4) translations
-last, since they're the most parallel and mechanical work (LLM drafts). The rest of it2 (tours, online now, mod features) stays after the release.
+**Not gates** (ship when ready, before or after the release): translations into languages other than English (UI and object names, TD-24),
+and the ammo breakdown (FR-WEB-18).
+
+**Schedule risk** (Claude, 2026-10-02): the gate implies all of iteration 0 and 1, the Windows installer from 1.x, and object-name admin
+overrides in about 3 weeks, for one developer with AI help. Still tight, but translations no longer gate it (maintainer, 2026-10-02).
+The order that protects the date: (1) parser + replay + ingest with golden tests, (2) the five core pages, (3) the installer, (4) object-name
+overrides. Translations and the ammo breakdown follow when ready. The rest of it2 (tours, online now, mod features) stays after the release.
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
