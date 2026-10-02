@@ -151,9 +151,12 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - Every mission row still carries a `server_uid` (a UUID generated at setup), and player identity uses the game's account UUIDs. That's
   enough to merge data from several servers in a future global system (iteration 3) without migrating the core schema.
 
-### TD-18 Credit and reuse of `il2_stats` — `[DECIDED]` (credit), `[PROPOSED]` (reuse)
-- The README states the project is **inspired by `il2_stats` by =FB=Vaal and =FB=Isay**. The maintainer will talk to them directly.
-- `il2_stats` is MIT-licensed. Any regex patterns or replay rules we port keep the MIT attribution (in `NOTICE`). Port them into
+### TD-18 Credit and reuse of `il2_stats` — `[DECIDED]` (credit and MIT attribution), `[PROPOSED]` (reuse)
+- **MIT attribution is in place** (2026-10-02): the root `NOTICE` file credits =FB=Vaal and =FB=Isay (the "IL2 stats team",
+  https://github.com/vaal-/il2_stats) and reproduces their copyright line ("Copyright (c) 2015 IL2 stats team") and MIT permission notice.
+  This satisfies the MIT condition for any portions derived from `il2_stats`. Keep `NOTICE` in every distribution (installer, Docker image, sdist/wheel).
+- The project README (when written) also states the project is **inspired by `il2_stats`**. The maintainer will talk to the authors directly.
+- Any regex patterns or replay rules we port get a short source comment (`# Derived from il2_stats (MIT), see NOTICE`). Port them into
   the new structure. Don't copy whole modules.
 
 ### TD-19 Database portability rules — `[PROPOSED]`
