@@ -63,3 +63,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (game object names: project-set defaults incl. translations, admin overrides, TD-24).
   2026-10-02 (object-name overrides and translations moved to it2 and required for public release; public release gate added; installer ships unsigned).
   2026-10-02 (public release target: ~3 weeks, around 2026-10-23; schedule risk noted in roadmap).
+  2026-10-02 (tests default to SQLite everywhere; Postgres opt-in, one CI job, TD-19).

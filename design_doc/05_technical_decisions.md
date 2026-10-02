@@ -168,7 +168,9 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Case-insensitive search:** store a normalized `name_lower` column with an index.
 - **Timezones:** store UTC and let Django handle conversion. Don't rely on DB timezone functions.
 - **Tests:**
-  1. The whole test suite runs on both backends (pytest parametrized by `IL2KS_TEST_DB=sqlite|postgres`, CI matrix).
+  1. **SQLite is the default test database** everywhere: plain `uv run pytest`, the Claude Code hooks, pre-commit, and the main CI jobs
+     (maintainer, 2026-10-02). Postgres is **opt-in** with `IL2KS_TEST_DB=postgres`, and runs in one separate CI job. Postgres-only tests
+     (like the transfer test below) skip automatically when no Postgres is configured.
   2. A **migration round-trip test**: apply all migrations from zero on both backends, then `makemigrations --check`
      (no missing migrations).
   3. A **data transfer test**: ingest the fixture missions into SQLite, copy everything to Postgres with the

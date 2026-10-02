@@ -18,7 +18,8 @@ uv run pyright
 uv run il2ks run                 # web + watcher locally
 ```
 - **Two databases, both first-class** (TD-04, TD-19). SQLite is the zero-setup default. Postgres comes from Docker or a native
-  local install. CI runs the full suite on both. The DB-portability tests (migrations from zero on both backends, SQLite → Postgres
+  local install. **SQLite is the default for every test run** (local, hooks, main CI jobs). Postgres is opt-in (`IL2KS_TEST_DB=postgres`),
+  and CI runs it in one extra job. The DB-portability tests (migrations from zero on both backends, SQLite → Postgres
   copy with identical query results) live in `tests/integration/test_db_portability.py`.
 - Dependencies are split into groups in `pyproject.toml`: runtime, `dev` (pytest, ruff, pyright, import-linter, pre-commit).
 - Old Python on PATH: this machine's `python` is 3.5 (left over from `il2_stats`). Always go through `uv run`.
