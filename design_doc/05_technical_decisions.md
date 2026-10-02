@@ -146,6 +146,15 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - Store every timestamp in UTC (`USE_TZ=True`). Log file names contain the server's *local* time, so take the
   server timezone from config, defaulting to the OS timezone. Game-world date and time (the in-mission date) is a separate field.
 - Tick-based timings inside a mission get converted in `core.replay`. **Verified for Korea: 50 ticks = 1 s.**
+- **DST edge cases** `[PROPOSED]` (2026-10-02): converting the local-time file name to UTC is ambiguous in the fall-back hour and invalid in
+  the spring-forward gap. Rules:
+  - `mission_uid` stays the raw file name timestamp. It's an identifier, not a time, and two missions can't start in the same second of the
+    same server.
+  - `started_at` (UTC) resolves ambiguity using the file's modification time, which the OS stores in UTC: of the two candidate UTC times, pick the
+    one consistent with the `[0]` part's mtime (it's written seconds after the start). If the mtime isn't available (imported archive),
+    use the zip entry's timestamp, then fall back to the earlier candidate (`fold=0`) and log a warning.
+  - Nonexistent times (spring-forward gap) shift forward by the gap, with a warning.
+  - Recommend (don't require) running DServer machines on UTC in the install docs, which avoids all of this.
 - **Display in the viewer's local time** (FR-WEB-17, a stretch goal, not in the PoC; v1 shows times in UTC, labelled as UTC). `[PROPOSED]` mechanism for later: templates render every real-world timestamp as
   `<time datetime="2026-09-19T20:34:13Z">2026-09-19 20:34 UTC</time>`, and a few lines of vendored JS convert all `<time>` elements to the
   browser's timezone with `Intl.DateTimeFormat` (also after HTMX swaps). Why this way: no cookie, no account, nothing for the server to know,
@@ -220,6 +229,9 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - Kill credit, assists, sortie outcomes, capture on enemy territory, and so on start as a port of the `il2_stats` `MissionReport`
   logic (see [09_legacy_system_notes.md](09_legacy_system_notes.md)). Korea-specific adaptations: pilot fate without AType 18,
   the suspected early bailout heuristic (FR-ING-14), AType 12 re-declaration, and 2D area polygons.
+- **Abandoned aircraft and disconnects** `[DECIDED]` (2026-10-02): an aircraft destroyed by the environment after its pilot bailed out or
+  disconnected is credited to the attacker who damaged it, using the same damage-based credit (FR-ING-22). Disconnecting mid-flight counts as
+  a death (FR-ING-21). In the samples, 1,038 of 1,456 bailouts came after being attacked, so this affects many kills.
 - Every ported rule gets a scenario test that documents it (an executable rulebook).
 
 ### TD-22 Views only do simple reads — `[DECIDED]` (2026-10-02)
@@ -262,7 +274,8 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 
 ### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
 - **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, accent colors (mapped to Pico CSS
-  variables), description, and links. Most owners only need this.
+  variables), description, and links. Most owners only need this. Uploaded logos are raster-only, re-encoded, and served by a Django view, not
+  WhiteNoise (FR-ADM-2).
 - **Layer 2, `custom/` overrides** ("very important for some server owners"): `custom/templates/` and `custom/static/` live in the
   **data directory** (so upgrades never overwrite them) and come first in `TEMPLATES['DIRS']` / `STATICFILES_DIRS`. Any built-in template
   or static file can be overridden by putting a file with the same path there.
@@ -276,6 +289,9 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - Config `tours.mode`: `"monthly"` (calendar month, **default**), `"days:<N>"` (a rolling period of N days from a configurable start date), or `"manual"`
   (the admin starts a new tour, FR-ADM-8).
 - Changing the mode later means reassigning missions to tours and rebuilding the level-2 aggregates (cheap, TD-08).
+- **Which timezone draws tour boundaries** `[PROPOSED]` (2026-10-02): config `tours.timezone`, defaulting to the **server's configured
+  timezone** (where the community usually plays), not UTC and not the viewer's. A mission belongs to the tour containing its `started_at`
+  in that timezone. Viewer-local display (FR-WEB-17) never changes tour membership.
 - **Scheduled for it2** (maintainer, 2026-10-02). v1 shows all-time stats only. Adding tours later is a new level-2 table plus a rebuild,
   so v1 needs no special preparation beyond keeping `started_at` on `Mission`.
 

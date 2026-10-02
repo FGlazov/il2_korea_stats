@@ -40,7 +40,7 @@ PlayerSortie   id, mission, player → Player, name_at_time, profile_uuid, aircr
                coalition, country, role (pilot / gunner), spawned_at, took_off_at, landed_at, ended_at,
                flight_time_s, air_start (bool), spawn_type (air/runway/parking),
                outcome (landed/ditched/crashed/shot_down/in_flight/not_taken_off/...),
-               pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/unknown), pilot_fate_source (event/inferred),
+               pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/disconnected/unknown), pilot_fate_source (event/inferred),
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
@@ -48,9 +48,10 @@ PlayerSortie   id, mission, player → Player, name_at_time, profile_uuid, aircr
                ammo (json: per ammo type: fired, hits given, hits received, damage given/received attributed by FR-WEB-18),
                damage_breakdown (json: dealt/taken per counterpart),
                timeline (json: ordered key events with time, type, detail, position)   -- positions only on key events, no track
-Kill           id, mission, time, killer_sortie (nullable: AI/environment), killer_object → GameObject,
-               victim_sortie (nullable: AI/ground), victim_object → GameObject, is_friendly,
-               credit (kill/assist/shared), pos_x, pos_y, pos_z
+Kill           id, mission, time, killer_sortie → PlayerSortie, victim_sortie → PlayerSortie, is_friendly,
+               credit (kill/assist/shared), via (direct / abandoned_aircraft / disconnect), pos_x, pos_y, pos_z
+               -- **PvP only** [DECIDED 2026-10-02]: both killer and victim are player sorties. Kills of or by AI, and AI vs AI,
+               --    get no Kill rows. Player kills of AI and ground targets are counters on PlayerSortie and entries in its timeline.
 PlayerMission  player, mission, coalition, sorties, flight_time_s, kills_air, kills_ground, assists,
                deaths, planes_lost, bailouts_known, suspected_early_bailouts, captures, landings, ...
 ```
@@ -81,7 +82,7 @@ Country        code (501...), display_name, coalition                           
 IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
                attempts, next_retry_at, started_at, finished_at,
                lines_total, lines_bad, log_version, unknown_atypes (json), unknown_keys (json), warnings (json), error
-SiteSettings   singleton: title, server name, logo, accent colors, description, links  -- TD-25
+SiteSettings   singleton: title, server name, logo (path in media/, re-encoded raster), accent colors, description, links  -- TD-25
 ```
 
 ## Page → table map (every page is simple reads)
@@ -92,5 +93,5 @@ SiteSettings   singleton: title, server name, logo, accent colors, description, 
 | Mission detail | `Mission`, `PlayerSortie` where mission (+ `Player`, `GameObject`) |
 | Player profile | `Player` (all-time counters; ratios computed from them), `PlayerAircraft`, recent `PlayerSortie`. In it2: `PlayerTour` for the selected tour |
 | Player sorties | `PlayerSortie` where player [and aircraft; tour in it2] |
-| Sortie detail | one `PlayerSortie` row (timeline, damage, ammo are json on it), `Kill` where killer or victim = sortie |
+| Sortie detail | one `PlayerSortie` row (timeline, damage, ammo are json on it; AI and ground kills come from the timeline), `Kill` where killer or victim = sortie (PvP) |
 | Player search | `PlayerName` where `name_lower` contains query |

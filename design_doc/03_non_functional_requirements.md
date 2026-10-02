@@ -17,6 +17,7 @@
 | NFR-SEC-1 | Use only currently supported versions of Python, Django, SQLite, and dependencies. Document an upgrade policy. | `[DECIDED]` |
 | NFR-SEC-2 | Production defaults: `DEBUG=False`, a random `SECRET_KEY` generated at setup, a random DB password generated at setup, and no default credentials anywhere. | `[PROPOSED]` |
 | NFR-SEC-3 | Public pages are read-only. The only write paths are the Django admin and the ingester. | `[PROPOSED]` |
+| NFR-SEC-7 | **Uploads are untrusted**: only admin-uploaded raster images (logos). Type is checked by content, not extension. Re-encoded, size-limited, never SVG or HTML, and served with `nosniff` (FR-ADM-2). | `[PROPOSED]` |
 | NFR-SEC-4 | The SQLite database and archives sit in a data directory that the web server never serves. (Dev-only Postgres listens on localhost.) | `[PROPOSED]` |
 | NFR-SEC-5 | Automated dependency vulnerability checks in CI (for example `pip-audit` / `uv` audit, Dependabot). | `[PROPOSED]` |
 | NFR-SEC-6 | **HTTPS only.** HTTP only redirects. HSTS and secure cookies are on. Certificates are obtained and renewed automatically (bundled Caddy), or TLS is terminated by the admin's own proxy (TD-23). | `[DECIDED]` (HTTPS only), `[PROPOSED]` (mechanism) |
