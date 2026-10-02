@@ -78,7 +78,7 @@ An installer (Inno Setup or WiX) that bundles:
   Without a database server to bundle, it's a lot less work than first estimated.
 
 ### C. Manual / developer path
-`uv tool install il2-korea-stats` (or a `.bat` that installs uv first), then `il2ks setup` (writes config, migrates,
+`uv tool install il2ks` (or a `.bat` that installs uv first), then `il2ks setup` (writes config, migrates,
 creates the admin, and optionally registers a scheduled task or service), then `il2ks run`. Always SQLite.
 - ✅ Nearly free once `il2ks setup` exists. A good fallback, and the dev path.
 - ❌ Needs a terminal.
