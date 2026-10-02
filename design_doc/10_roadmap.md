@@ -45,6 +45,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
 - Mobile-friendly layout.
+- Times in the viewer's local timezone (FR-WEB-17). v1 shows UTC.
 - Player accounts, if people ask for them.
 - `il2ks ship` helper for remote log mode.
 - Optional self-hosted monitoring and error tracking (TD-27).
