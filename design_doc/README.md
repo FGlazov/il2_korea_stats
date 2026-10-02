@@ -60,3 +60,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (granian chosen as the web server, TD-10).
   2026-10-02 (times in the viewer's local timezone, FR-WEB-17: a stretch goal, not in the PoC).
   2026-10-02 (NOTICE file with MIT attribution to the il2_stats authors, TD-18).
+  2026-10-02 (game object names: project-set defaults incl. translations, admin overrides, TD-24).

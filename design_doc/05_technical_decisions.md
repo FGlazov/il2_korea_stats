@@ -229,7 +229,10 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   languages later doesn't mean touching every template.
 - **Iteration 2:** Russian, German, Spanish, French, and Brazilian Portuguese. First drafts get machine-translated by an LLM, then reviewed by
   human translators. Korean isn't planned.
-- Game object names (aircraft, vehicles) come from the catalog. They can get translations later through the admin-editable catalog.
+- **Game object names** (aircraft, vehicles, ships, …) `[DECIDED]` (2026-10-02): **we set the defaults, including translations**. The catalog
+  data shipped with the package (`core/catalog/data/`) holds each object's display name in English, plus the it2 languages as they're added.
+  Admins **may** edit names in the admin. Their edits are stored as overrides on top of the shipped defaults, so upgrades refresh the defaults
+  without wiping admin edits, and an override can be reset to the default. Names fall back from the viewer's language to English to the raw log name.
 
 ### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
 - **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, accent colors (mapped to Pico CSS
