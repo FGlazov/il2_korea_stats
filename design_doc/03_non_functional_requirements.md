@@ -26,7 +26,7 @@
 | ID | Requirement | Status |
 |---|---|---|
 | NFR-OFF-1 | No outbound network calls at runtime: no CDN assets, no telemetry, no external APIs. Static assets such as htmx and Pico CSS are vendored into the repo. The only exception is ACME certificate issuance and renewal (TD-13). | `[DECIDED]` |
-| NFR-OFF-2 | Runs natively on **Windows** (10/11 and Server), the DServer platform. The admin has admin rights. Linux is supported secondarily (Docker, for Wine-hosted DServers). | `[DECIDED]` |
+| NFR-OFF-2 | Runs natively on **Windows** (10/11 and Server), the DServer platform. The admin has admin rights. Linux is supported secondarily (Wine-hosted DServers) through the pip/uv install path (systemd unit), with Docker later. | `[DECIDED]` |
 
 ## Performance
 

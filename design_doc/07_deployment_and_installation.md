@@ -15,7 +15,8 @@ with one action and survive reboots, and upgrades keep the data.
   exception, handled by side-by-side installs with separate data directories, ports, and service names.
 - **The stats site can run on the game machine (normal case) or on another machine** that logs get copied to (FR-ING-16).
   Admins on managed hosts (RDP access) can install software on the game machine.
-- Linux (Docker, for Wine-hosted DServers) is a secondary target.
+- **Linux** (Wine-hosted DServers) is a secondary target, served by the **pip/uv install path (C)** from v1. Docker (A) comes later. At least one
+  Korea server admin runs Linux (2026-10-02).
 
 ### Research behind it
 - DServer is a **Windows executable** (`DServer.exe`). Community guides and forum threads describe Windows 10/Pro or
@@ -81,6 +82,12 @@ An installer (Inno Setup or WiX) that bundles:
 creates the admin, and optionally registers a scheduled task or service), then `il2ks run`. Always SQLite.
 - ✅ Nearly free once `il2ks setup` exists. A good fallback, and the dev path.
 - ❌ Needs a terminal.
+- **This is the Linux path** `[DECIDED]` (2026-10-02). Published to **PyPI** as `il2ks`, installed with `uv tool install il2ks`, `pipx install il2ks`,
+  or `pip install il2ks` inside a virtualenv (plain `pip` into the system Python is blocked on recent distros, PEP 668). Linux specifics:
+  - **Auto-start:** `il2ks setup` writes (or prints) a **systemd** unit for `il2ks run`, instead of a Windows service.
+  - **HTTPS:** Caddy from the distro or official packages, or the admin's own nginx (`https.mode = "external"`, TD-23).
+  - **Logs under Wine:** DServer logs live inside the Wine prefix (for example `~/.wine/drive_c/.../data/logs/txt`). `il2ks doctor` checks the path.
+  - CI already tests on Ubuntu.
 
 ## Recommendation `[PROPOSED]` (updated 2026-10-02)
 

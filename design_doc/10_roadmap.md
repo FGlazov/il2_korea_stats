@@ -23,7 +23,8 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - Admin: branding (`SiteSettings`), hide player or mission, ingestion status, object, country and coalition names.
 - `custom/` template and static overrides.
 - **HTTPS only**: bundled Caddy, or bring your own proxy.
-- `il2ks setup`, `doctor`, `run`, `db copy`. Documented manual install (option C, SQLite default).
+- `il2ks setup`, `doctor`, `run`, `db copy`. Documented manual install (option C, SQLite default), **published to PyPI**. It's also the
+  **Linux path** (systemd unit, Wine log paths).
 - Observability: rotating, structured log files per process (TD-27).
 
 ## Iteration 1.x: Easy install and polish
