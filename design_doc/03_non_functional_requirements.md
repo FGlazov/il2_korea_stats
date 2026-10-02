@@ -32,9 +32,9 @@
 
 | ID | Requirement | Status |
 |---|---|---|
-| NFR-PERF-1 | Ingest a typical mission (a few hours, around 50 players) in under 30 s. | `[PROPOSED]` |
-| NFR-PERF-2 | Public pages render server-side in under 300 ms (p95) with one year of data from a busy server. Achieved by design: views only do simple reads on pre-aggregated tables (TD-22). | `[PROPOSED]` |
-| NFR-PERF-4 | **Backfill speed**: reprocessing a year of archived missions (about 3,000) finishes within a few hours on the game machine, at low priority so DServer isn't affected. Mission-level work runs in parallel, and level-2 aggregates get rebuilt once at the end (TD-08). | `[PROPOSED]` |
+| NFR-PERF-1 | Ingesting one mission takes **at most about 5 minutes** on the game machine. **Performance isn't a priority** (maintainer, 2026-10-02): missions run ~3 h, so this leaves plenty of slack. Don't optimize before there's a measured problem. | `[DECIDED]` |
+| NFR-PERF-2 | Public pages feel fast (roughly under 300 ms) with the data a server actually has. The game is only a few months old, so history is small. Achieved by design: views only do simple reads on pre-aggregated tables (TD-22). Revisit only if history grows into a problem. | `[PROPOSED]` |
+| NFR-PERF-4 | **Backfill** (`reprocess`): no hard target. It runs at low priority so DServer isn't affected, and mission-level work can run in parallel (TD-08). Current history is a few months of missions, so even at the 5-minute upper bound it's an overnight-to-weekend job, and in practice expected to be much faster. | `[PROPOSED]` |
 | NFR-PERF-3 | Expected scale for one busy server (measured from samples): about 8 missions a day, about 73 player sorties per mission, so about 210k sorties a year. Raw logs are about 5.9 MB / 86k lines per mission, including about 61k hit lines and 11k damage lines. Storing hit and damage rows individually would add about 500M rows a year, so **aggregate them per sortie or per pair** (TD-08). This also keeps SQLite comfortable. | `[PROPOSED]` (from data) |
 
 ## Reliability and data integrity
