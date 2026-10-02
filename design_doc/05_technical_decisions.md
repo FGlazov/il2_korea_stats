@@ -108,6 +108,10 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 ### TD-12 Quality tooling — `[PROPOSED]`
 - pytest, pytest-django, and coverage. ruff (lint + format). pyright or mypy (pick one, probably pyright in basic mode
   to start). import-linter. pre-commit. GitHub Actions CI on Windows and Linux.
+- **Data checks without extra frameworks** `[DECIDED]` (2026-10-02): invariants are **database constraints** (`CheckConstraint` /
+  `UniqueConstraint`, for example `kills >= 0`, `0 <= damage_taken <= 1`, allowed `pilot_fate` values, one `PlayerMission` per player and mission),
+  so they hold in production too. Logic and query tests are plain pytest on fixture missions. **No dbt** (the core logic is stateful Python, and
+  it would be a second toolchain for admins; maybe reconsider for the iteration-3 warehouse) and **no pandera** for now.
 - Details in [08_development_workflow.md](08_development_workflow.md).
 
 ### TD-13 No cloud dependency — `[DECIDED]`

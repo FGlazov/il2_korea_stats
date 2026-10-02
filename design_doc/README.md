@@ -65,3 +65,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (public release target: ~3 weeks, around 2026-10-23; schedule risk noted in roadmap).
   2026-10-02 (tests default to SQLite everywhere; Postgres opt-in, one CI job, TD-19).
   2026-10-02 (payload names from korea_payloads.csv: 99.3% coverage, F-86 alias needed; OQ-25 on source and license).
+  2026-10-02 (data checks: DB constraints + pytest + opt-in sample-data distribution checks; no dbt, no pandera, TD-12).
