@@ -44,10 +44,15 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - Sortie map page of key events (their positions are stored from v1).
 
 ## Public release gate
-There's no date or iteration for the public release yet, but these items are **required before it** (the list grows as decisions are made):
+**Target: roughly 3 weeks from 2026-10-02, around 2026-10-23** (maintainer). These items are **required before it** (the list grows as decisions are made):
 - Game object names: project-set defaults with translations, plus admin overrides (TD-24, FR-ADM-5).
 - Translations into Russian, German, Spanish, French, and Brazilian Portuguese (TD-24).
 - Windows installer (option B), unsigned (doc 07).
+
+**Schedule risk** (Claude, 2026-10-02): the gate implies all of iteration 0 and 1, the Windows installer from 1.x, and two it2 items
+(translations, object names) in about 3 weeks, for one developer with AI help. That's tight. Iteration 1 alone was estimated at "weeks".
+The order that protects the date: (1) parser + replay + ingest with golden tests, (2) the five core pages, (3) the installer, (4) translations
+last, since they're the most parallel and mechanical work (LLM drafts). The rest of it2 (tours, online now, mod features) stays after the release.
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
