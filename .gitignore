@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Real server logs (contain player names/IDs) - NEVER commit
+sample_data/
