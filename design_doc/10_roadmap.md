@@ -31,6 +31,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing).
 - Docker Compose distribution (option A) for Linux/Wine hosts.
 - **Ammo breakdown** (FR-WEB-18): per-sortie hits and damage per ammo type, and average hits-to-destroy per aircraft type, with closest-hit attribution.
+  **Not a release gate**: ships when ready, before or after the public release.
 
 ## Iteration 2: Live data, languages, richer stats
 - **Tours** with configurable length (monthly by default) (TD-26).

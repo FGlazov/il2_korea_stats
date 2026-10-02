@@ -71,4 +71,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (ruff confirmed; mandatory tight type hints; pyright strict proposed, TD-12).
   2026-10-02 (Linux admins use the pip/uv path from v1: PyPI package, systemd unit, Wine log paths).
   2026-10-02 (performance not a priority: ≤ ~5 min per mission is fine; no year-of-data targets, NFR-PERF).
-  2026-10-02 (ammo breakdown in iteration 1.x with closest-hit damage attribution, FR-WEB-18).
+  2026-10-02 (ammo breakdown in iteration 1.x with closest-hit damage attribution, FR-WEB-18; not a release gate; explosion attribution checked on samples).

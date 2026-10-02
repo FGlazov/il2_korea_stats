@@ -82,8 +82,14 @@ log no ground contact afterwards, so they can't be classified and stay plain `se
 Damage lines (AType 2) carry no ammo type. Hit lines (AType 1) do. So each damage line is attributed to the ammo of the **hit closest in time**
 for the same attacker → target pair (the maintainer's improvement: the old module used the *next* hit, which was "hacky"). A tie goes to the
 hit on the same tick. Damage with no hit within a configurable window (a few ticks) stays "unattributed" instead of being guessed. Bomb and rocket
-damage arrives as `AMMO:explosion` hits right after the projectile hit, so replay uses explosion hits for attribution (in memory) even though
-they're never stored as rows (TD-08). Validate the attribution rate on `sample_data/` during implementation.
+damage arrives as `AMMO:explosion` hits **credited to the player's aircraft**, so replay uses explosion hits for attribution (in memory) even
+though they're never stored as rows (TD-08). An explosion hit only says "explosion", so it's labelled by the ordnance the attacker released most
+recently (bomb, rocket, napalm, cluster), using AType 25/26 and the store object's type.
+
+**Checked on 30 sample missions (2026-10-02):** sorties that released stores or rockets produce ~1,769 explosion hits each, versus 18–36 for
+gun-only sorties and ~0 for sorties without hits. So explosions are overwhelmingly ordnance. For 97% of player-caused damage lines the
+closest hit is an explosion, but for **about a third the closest hit of any kind is more than 1 s away**. Those stay unattributed under the
+window rule (they could be fire or secondary damage; investigate during implementation).
 
 ## Website: players (FR-WEB)
 
@@ -107,7 +113,7 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-13 | Stable, shareable URLs for missions, players, and sorties, so players can link a sortie on Discord. | v1 | `[PROPOSED]` |
 | FR-WEB-14 | **Gunner stats**: player gunners (for example IL-10 turret) as a separate stats view. | later | `[DEFERRED]` (nice to have). v1 still records gunner sorties, just doesn't show dedicated pages |
 | FR-WEB-15 | **In-progress missions and current player counts** on the main page. | it2 | `[DECIDED]` |
-| FR-WEB-18 | **Ammo breakdown** (port of the maintainer's `il2_stats` module, which players liked). Per sortie: hits **given and received per ammo type** (bullets and shells, with bombs and rockets listed separately), plus the damage attributed to each ammo type. Per aircraft type: the **average number of hits of each ammo type needed to destroy it**, counted only from kills where all damage came from one attacker (as in the old module). Attribution rule below. | **it1.x** | `[DECIDED]` (feature and iteration, 2026-10-02), `[PROPOSED]` (exact pages) |
+| FR-WEB-18 | **Ammo breakdown** (port of the maintainer's `il2_stats` module, which players liked). Per sortie: hits **given and received per ammo type** (bullets and shells, with bombs and rockets listed separately), plus the damage attributed to each ammo type. Per aircraft type: the **average number of hits of each ammo type needed to destroy it**, counted only from kills where all damage came from one attacker (as in the old module). Attribution rule below. | **it1.x**, **not a release gate** | `[DECIDED]` (feature and iteration, 2026-10-02; the public release doesn't wait for it), `[PROPOSED]` (exact pages) |
 | FR-WEB-17 | **Times shown in the viewer's local timezone**: a player in Japan and one in Europe each see mission and sortie times in their own local time, without configuring anything. Game-world time (the in-mission date and time) and durations aren't converted. Until then, pages show UTC and label it as such. | later (stretch) | `[DEFERRED]` (nice to have, not in the PoC, 2026-10-02), mechanism `[PROPOSED]` (TD-15) |
 | FR-WEB-16 | **Light charts** where they help (for example kills per tour, sorties over time). The site is mostly tables. | later | `[PROPOSED]` |
 
