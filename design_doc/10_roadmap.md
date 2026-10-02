@@ -5,7 +5,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 ## Iteration 0: Foundations and log discovery
 - ✅ Get real IL-2 Korea DServer logs: 210 missions in `sample_data/` (gitignored), 2026-10-02.
 - ✅ First version of [12_korea_log_format.md](12_korea_log_format.md).
-- ✅ Validated a bailout rule against `sample_data/` (rule v2, FR-ING-14). Still to do: maintainer review, and comparing notes with the other developer (OQ-19).
+- ✅ Validated a bailout rule against `sample_data/` (rule v2, FR-ING-14). Accepted for now and to be iterated later. The maintainer will compare notes with the other developer.
 - Repo skeleton: `pyproject.toml` (uv), Django project, `il2ks` CLI stub, ruff, pyright, import-linter, pytest
   (SQLite and Postgres), pre-commit, GitHub Actions matrix, dev `compose.yaml` with Postgres, `CLAUDE.md`, and Claude Code hooks.
 - Test harnesses from day one: DB portability (TD-19), "views only do simple reads" (TD-22), and i18n string wrapping (TD-24).

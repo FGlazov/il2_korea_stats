@@ -20,7 +20,8 @@ Priority: **v1** = first iteration (MVP), **it2** = second iteration, **later** 
 | FR-ING-11 | Record the result of each ingestion (mission, status, line counts, warnings, unknown event types and keys, duration) so the admin can see it. | v1 | `[PROPOSED]` |
 | FR-ING-12 | **Online now**: current player counts and the list of players on the server, read from the in-progress mission's logs. | it2 | `[DECIDED]` |
 | FR-ING-13 | **Import concatenated archives**: a single `.txt` or `.txt.zip` that holds a whole mission (the `il2_stats` backup format, and how `sample_data/` is stored). Used to load history and for dev/testing. | v1 | `[PROPOSED]` |
-| FR-ING-14 | **Bailout detection without AType 18.** Detect pilots who left the aircraft in flight from the signals Korea *does* log (rule below), and store pilot fate with its source (`event` / `inferred` / `unknown`). Also flag **suspected early bailouts** (left an aircraft no attacker had touched). Switch to the real AType 18 if the game adds it back. | v1 | `[PROPOSED]` (rule v2, validated on sample data; awaiting maintainer review, OQ-19) |
+| FR-ING-14 | **Bailout detection without AType 18.** Detect pilots who left the aircraft in flight from the signals Korea *does* log (rule below), and store pilot fate with its source (`event` / `inferred` / `unknown`). Also flag **suspected early bailouts** (left an aircraft no attacker had touched). Switch to the real AType 18 if the game adds it back. | v1 | `[DECIDED]` (rule v2 for now; iterate later, 2026-10-02) |
+| FR-ING-17 | **Mark self-destruction on the sortie.** Every lost aircraft gets a `loss_cause`: `attacker` (it took hits or damage from any attacker before destruction), `self` (destroyed by `AID:-1` with no attacker involvement: terrain crash, overstress, or an abandoned aircraft), or `none` (not lost). On top of that, a `suspected_structural_failure` flag: destroyed **in the air** by `AID:-1`, no attacker involvement, and the self-damage began **less than ~1 s** before destruction (sudden breakup, the F-86 pattern). Shown on the sortie page. Thresholds are config values. Validate counts on `sample_data/` during iteration 1. | v1 | `[DECIDED]` (mark it), `[PROPOSED]` (definition) |
 | FR-ING-15 | **Live sorties**: stream in-progress data so sorties appear right away, instead of after the mission ends. A stretch goal. | later (v2–v3+) | `[DEFERRED]` |
 | FR-ING-16 | **Remote log mode**: the stats site runs on a different machine than DServer. Logs get copied into the configured folder (network share, sync tool, or a later `il2ks ship` helper). Ingestion must tolerate files that are still being copied (only read parts whose size is stable, or that have a newer sibling). | v1 (folder-based); helper later | `[DECIDED]` (support it), `[PROPOSED]` (mechanism) |
 
@@ -52,6 +53,16 @@ Pilot fate per sortie becomes: `in_aircraft` (landed, despawned, or died with th
 `exited_on_ground` (`PLID:0`, not airborne or near the aircraft), `mission_ended` (the sortie was force-ended by mission end: AType 4
 within a few seconds of AType 7; about 10% of sorties), or `unknown` (no AType 4, which in the samples is 99% disconnects).
 The thresholds (100 m, 0.5 s, 30 s, 60 s) are config values.
+
+**Status (maintainer, 2026-10-02):** keep rule v2 for now and iterate later. The maintainer will compare notes with the other developer.
+
+**Known limitation: structural failure.** Overstressing an aircraft (for example tearing the wings off the F-86 by pulling too many G
+at subsonic speed) is logged as self/environment damage (`AID:-1`). That's indistinguishable from the abandoned aircraft's own crash, so rule
+condition 5 ignores it, and "broke my own aircraft, then bailed out" counts as a suspected early bailout. That's the likely reason the
+F-86 has ~12 undamaged bailouts per 100 aircraft lost versus 1–4 for other types (evidence in
+[12](12_korea_log_format.md#pilot-bailout-detection-validated-2026-10-02)). Both facts are recorded on the sortie (FR-ING-17), so the UI
+can show "suspected early bailout" and "suspected structural failure" side by side. If penalties ever depend on it, a sortie with both flags
+can be treated as structural failure instead of an early bailout.
 
 ## Website: players (FR-WEB)
 

@@ -39,6 +39,7 @@ PlayerSortie   id, mission, player → Player, name_at_time, profile_uuid, aircr
                pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/unknown), pilot_fate_source (event/inferred),
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
+               loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                kills_air, kills_ground, assists, ...  -- sortie totals for list pages
                ammo (json: fired/hits per ammo type), damage_breakdown (json: dealt/taken per counterpart),
                timeline (json: ordered key events with time, type, detail, position)   -- positions only on key events, no track

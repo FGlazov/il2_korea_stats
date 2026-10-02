@@ -127,7 +127,16 @@ With `PID:-1` it happens right at sortie end when the pilot isn't attached (pres
 
 **Results:** 1,456 bailouts (12.6% of sorties that took off) and 308 suspected early bailouts (2.7%, 174 accounts). The **F-86A-5 has about 12
 undamaged bailouts per 100 aircraft lost**, versus 2–4 for every other type. Worth watching: it could be player behavior, or something specific to
-the F-86 (for example structural failure or an ejection quirk) that the rule can't tell apart from a voluntary bailout.
+the F-86 that the rule can't tell apart from a voluntary bailout.
+- **Follow-up (2026-10-02): probably structural failure.** The maintainer's hypothesis: the F-86 can tear its own wings off by pulling too
+  many G at subsonic speed (the MiG-15 can't pull that hard at those speeds). The data fits it:
+  - In F-86 undamaged bailouts, the self/environment damage comes a median **0.3 s** before the aircraft is destroyed (sudden breakup).
+    For other types the median is 4.3 s (MiG-15: 34 s).
+  - Where the pilot's exit can be timed (pilot re-declared with `PID:<aircraft>`; only 25 of 308 cases), the F-86 pilot left **after**
+    destruction in 8 of 9 cases (breakup, then bailout), versus about half for other types.
+  - AType 27 never comes *before* destruction, so it's post-crash debris, not a "wing came off" signal.
+  - Overstress damage is logged as `AID:-1`, the same as crash damage, so the rule can't separate "broke it, then bailed" from "bailed, then
+    the abandoned aircraft was destroyed". It's recorded as a known limitation in FR-ING-14.
 
 ### AType 12 re-declares player objects at sortie end
 - Just before AType 4 (sortie end), the log re-emits AType 12 for the **player's aircraft and pilot bot**, with the same IDs
