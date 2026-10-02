@@ -8,16 +8,16 @@
 | NFR-INS-2 | No manual database admin: no pgAdmin, no hand-run SQL, no Postgres extensions to enable. | `[PROPOSED]` |
 | NFR-INS-3 | Both processes (web and ingester) start with **one action**, and restart automatically after a reboot. | `[PROPOSED]` |
 | NFR-INS-4 | Upgrading to a new version takes one action and keeps the data. Migrations run automatically. | `[PROPOSED]` |
-| NFR-INS-5 | The machine runs the game server too, so resource use must stay small: idle RAM roughly under 300 MB with SQLite (under 500 MB with Postgres), and ingestion must not starve DServer of CPU. | `[PROPOSED]` |
+| NFR-INS-5 | The machine runs the game server too, so resource use must stay small: idle RAM roughly under 300 MB, and ingestion must not starve DServer of CPU. | `[PROPOSED]` |
 
 ## Security (pain point P3)
 
 | ID | Requirement | Status |
 |---|---|---|
-| NFR-SEC-1 | Use only currently supported versions of Python, Django, Postgres, and dependencies. Document an upgrade policy. | `[DECIDED]` |
+| NFR-SEC-1 | Use only currently supported versions of Python, Django, SQLite, and dependencies. Document an upgrade policy. | `[DECIDED]` |
 | NFR-SEC-2 | Production defaults: `DEBUG=False`, a random `SECRET_KEY` generated at setup, a random DB password generated at setup, and no default credentials anywhere. | `[PROPOSED]` |
 | NFR-SEC-3 | Public pages are read-only. The only write paths are the Django admin and the ingester. | `[PROPOSED]` |
-| NFR-SEC-4 | When Postgres is used, it listens only on localhost (or the internal Docker network). It's never exposed. SQLite files sit in a data directory that the web server doesn't serve. | `[PROPOSED]` |
+| NFR-SEC-4 | The SQLite database and archives sit in a data directory that the web server never serves. (Dev-only Postgres listens on localhost.) | `[PROPOSED]` |
 | NFR-SEC-5 | Automated dependency vulnerability checks in CI (for example `pip-audit` / `uv` audit, Dependabot). | `[PROPOSED]` |
 | NFR-SEC-6 | **HTTPS only.** HTTP only redirects. HSTS and secure cookies are on. Certificates are obtained and renewed automatically (bundled Caddy), or TLS is terminated by the admin's own proxy (TD-23). | `[DECIDED]` (HTTPS only), `[PROPOSED]` (mechanism) |
 

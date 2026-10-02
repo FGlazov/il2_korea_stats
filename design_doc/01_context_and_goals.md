@@ -22,7 +22,7 @@
 Build an open source successor for IL-2 Korea with **the same three components**:
 
 1. **Ingester**: a separate scheduled job that reads DServer logs and loads parsed data into the database. `[DECIDED]`
-2. **A relational database**: SQLite or PostgreSQL, both supported, with switching between them tested. `[DECIDED]` (2026-10-02, was Postgres only; see TD-04)
+2. **A relational database**: **SQLite** for server admins. PostgreSQL is kept working on the dev side only, so switching later stays easy. `[DECIDED]` (2026-10-02, was Postgres only; see TD-04)
 3. **Django website** that serves the stats, mostly server-side rendered. `[DECIDED]`
 
 It should fix the three main pain points of the old system (below), and its design shouldn't block a

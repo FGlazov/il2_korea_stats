@@ -17,7 +17,7 @@
                                                     │ one transaction per mission
                                                     ▼
                                       ┌───────────────────────────┐
-                                      │ SQLite or PostgreSQL      │
+                                      │ SQLite                    │
                                       │ (pre-aggregated tables)   │
                                       └─────────────┬─────────────┘
                                                     │ simple SELECTs only (TD-22)

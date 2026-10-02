@@ -21,10 +21,11 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   template overriding (TD-25), and continuity with the old system.
 - **Alternatives:** FastAPI + Jinja. It's lighter, but has no admin, no migrations story, and needs more glue. Rejected.
 
-### TD-04 Database: SQLite **and** PostgreSQL, both first-class — `[DECIDED]` (2026-10-02)
-- **Decision:** The app supports both backends through the Django ORM. Dev environments and CI run against **both**.
-  Which one ships as the default for end users is decided together with packaging (TD-14). Leaning toward SQLite for the single-server
-  Windows install, and Postgres for Docker and the future global-stats server.
+### TD-04 Database: SQLite for users; PostgreSQL kept working on the dev side only — `[DECIDED]` (2026-10-02)
+- **Decision (maintainer, 2026-10-02):** **SQLite is the only database shipped to and supported for server admins**: in the Windows
+  installer, the manual install, and Docker. **PostgreSQL is not a user-facing option.** It's maintained **on the dev side only**: dev
+  environments and CI run the full test suite on both backends, and `il2ks db copy` exists, so a future switch (for example for the
+  global-stats server) stays cheap and proven (TD-19). Admin docs and installer don't mention Postgres.
 - **History:** The original plan was Postgres only. Claude raised SQLite to simplify installation. The maintainer's answer: "SQLite is also fine.
   Keep the dev environment on both, and write tests that prove switching later wouldn't be hard."
 - **Versions:** PostgreSQL 17 or 18 via **psycopg 3**. SQLite ≥ 3.45 (whatever the bundled Python ships), in WAL mode.

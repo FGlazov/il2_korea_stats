@@ -34,7 +34,7 @@ with one action and survive reboots, and upgrades keep the data.
 
 ## What has to run
 
-1. The database: **SQLite** (a file, so nothing to run) or **PostgreSQL** (a server). See TD-04.
+1. The database: **SQLite**, a file, so there's nothing to run (TD-04; Postgres is dev-side only).
 2. `il2ks web` (WSGI server).
 3. `il2ks watch` (ingester loop).
 
@@ -55,7 +55,7 @@ but the exact config keys still need checking). `il2ks doctor` should detect whe
 ## Options
 
 ### A. Docker Compose
-`compose.yaml` with an `il2ks` service (`il2ks run`) plus an optional `postgres` service, the game's log folder bind-mounted
+`compose.yaml` with an `il2ks` service (`il2ks run`, SQLite in a volume), the game's log folder bind-mounted
 read-only, a named volume for data, and `restart: unless-stopped`.
 - ✅ Cheap to build. Reproducible. Same setup in dev and prod. Fits the Linux/Wine DServer crowd.
 - ❌ Docker on Windows needs Docker Desktop with WSL2 or Hyper-V. It's often unavailable on rented Windows hosts and not supported on
@@ -70,14 +70,13 @@ An installer (Inno Setup or WiX) that bundles:
 - **Caddy** for HTTPS (TD-23), plus firewall rules for ports 80 and 443.
 - a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
 - Start menu shortcuts: "Open stats site", "Open admin", "View logs".
-- (Optional, advanced) point it at an existing Postgres server from the config file.
 - ✅ The best experience for the actual audience: Next → Next → Finish. No Docker, no terminal, no DB admin.
 - ❌ Packaging work: code signing (SmartScreen warns about unsigned installers), upgrade logic, testing on a clean Windows VM.
-  Without bundled Postgres it's a lot less work than first estimated.
+  Without a database server to bundle, it's a lot less work than first estimated.
 
 ### C. Manual / developer path
 `uv tool install il2-korea-stats` (or a `.bat` that installs uv first), then `il2ks setup` (writes config, migrates,
-creates the admin, and optionally registers a scheduled task or service), then `il2ks run`. SQLite by default. Postgres if a URL is given.
+creates the admin, and optionally registers a scheduled task or service), then `il2ks run`. Always SQLite.
 - ✅ Nearly free once `il2ks setup` exists. A good fallback, and the dev path.
 - ❌ Needs a terminal.
 
@@ -87,7 +86,7 @@ creates the admin, and optionally registers a scheduled task or service), then `
    `setup` and `doctor` commands. A, B and C share the same core.
 2. **Iteration 1 ships C** (manual path, SQLite default). It costs almost nothing, and early adopters are tech-savvy server admins.
 3. **The Windows installer (B) is the top item in iteration 1.x.** That's where the real UX win is for the main (Windows) audience.
-4. **Docker Compose (A)** for the Linux/Wine minority and as the Postgres dev environment. It's cheap, but secondary.
+4. **Docker Compose (A)** for the Linux/Wine minority (SQLite in a volume). It's cheap, but secondary. A separate dev-only compose file provides Postgres for testing (doc 08).
 
 ## Networking notes
 - **HTTPS only** `[DECIDED]` (TD-23). Public ports are **443** (site) and **80** (redirect to HTTPS + ACME certificate challenge).

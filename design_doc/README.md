@@ -56,3 +56,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   `design-doc-sync` Claude Code skill added).
   2026-10-02 (player profile links to the player's sortie list; FR-WEB-5 decided).
   2026-10-02 (streaming-ready replay interface: feed/snapshot/finish, TD-07).
+  2026-10-02 (SQLite is the only user-facing database; Postgres is kept working on the dev side only, TD-04).
