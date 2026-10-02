@@ -184,7 +184,8 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
 - `CNTRS:0:0,501:1,502:1,503:1,601:2[,602:2,603:2]`. **Coalition 1 = countries 501–503** (MiG-15bis, IL-10, Yak-9P,
   La-11 → communist side). **Coalition 2 = 601–603** (F-51D, F-80C-10, F-84E, F-86A-5 → UN side). Only 601 had player
   spawns. We don't know which nations the codes stand for, so **use generic names**: coalition 1 = **REDFOR**, coalition 2 =
-  **BLUFOR**, and countries shown as "REDFOR 501" and so on (decided 2026-10-02). They can be renamed in the admin (FR-ADM-5).
+  **BLUFOR**. Every country in a coalition displays as that plain name (501–503 → "REDFOR", 601–603 → "BLUFOR"), never "REDFOR 501"
+  (decided 2026-10-02). The country code is still stored. They can be renamed in the admin (FR-ADM-5).
 - Always read coalition membership from each mission's `CNTRS`. Never hard-code it.
 
 ## Objects seen

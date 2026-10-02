@@ -74,3 +74,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (ammo breakdown in iteration 1.x with closest-hit damage attribution, FR-WEB-18; not a release gate; explosion attribution checked on samples).
   2026-10-02 (translations other than English are not a release gate; release gate trimmed to object-name overrides + installer).
   2026-10-02 (future position source: separate live telemetry collector and storage, OQ-26).
+  2026-10-02 (countries display as plain REDFOR/BLUFOR, no country codes in the UI).

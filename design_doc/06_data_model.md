@@ -21,7 +21,9 @@ Principles (all `[DECIDED]`):
 
 ## Coalitions and countries `[DECIDED]` (generic names for now)
 - Display coalition 1 as **REDFOR** (countries 501–503, the communist side) and coalition 2 as **BLUFOR** (601–603, the UN side). We don't
-  know which nation each country code is. Countries show as generic names (for example "REDFOR 501") until someone finds out.
+  know which nation each country code is. **All of 501–503 display as plain "REDFOR" and all of 601–603 as plain "BLUFOR"**, with no
+  country code in the UI (maintainer, 2026-10-02: "REDFOR 501" is confusing). The code is still stored per sortie, so real nation names can be
+  shown later.
 - Coalition and country display names are admin-editable (FR-ADM-5), so they can be fixed without a release.
 
 ## Level 1: mission-level tables (written per mission, rebuildable per mission)
