@@ -27,8 +27,9 @@ uv run il2ks run                 # web + watcher locally
 ## Sample data and fixtures
 - `sample_data/` holds real server logs (gitignored, **never commit**). Use it for local exploration, performance tests,
   and an opt-in "big" test run (`pytest -m sample_data`, skipped when the folder is missing, so CI and other contributors still pass).
-- Committed fixtures in `tests/fixtures/logs/` are **anonymized excerpts or whole missions**: nicknames → `Player001`,
-  UUIDs → deterministic fake UUIDs. A script (`il2ks dev anonymize`) does this, and a test checks fixtures for real-looking
+- Committed fixtures in `tests/fixtures/logs/` are **anonymized excerpts or whole missions**: nicknames → `Player-<hash>`,
+  UUIDs → fake UUIDs from a keyed hash (HMAC with a secret, gitignored key), so the same player has the same fake ID in every fixture
+  and nobody can re-identify a player by hashing a known UUID. A script (`il2ks dev anonymize`) does this, and a test checks fixtures for real-looking
   UUIDs and known nicknames.
 
 ## Testing strategy `[DECIDED]` (unit test where possible) / `[PROPOSED]` (layers)

@@ -226,3 +226,6 @@ sample_data/
 
 # Local il2ks data (dev SQLite, archives, media)
 .il2ks-data/
+
+# Secret key for fixture anonymization (never commit)
+.il2ks-anon-key
