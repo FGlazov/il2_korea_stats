@@ -68,3 +68,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (data checks: DB constraints + pytest + opt-in sample-data distribution checks; no dbt, no pandera, TD-12).
   2026-10-02 (Playwright end-to-end tests deferred to a later iteration).
   2026-10-02 (repo going public within days; CI on GitHub-hosted runners is free).
+  2026-10-02 (ruff confirmed; mandatory tight type hints; pyright strict proposed, TD-12).

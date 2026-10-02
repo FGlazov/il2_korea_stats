@@ -53,8 +53,8 @@
 | ID | Requirement | Status |
 |---|---|---|
 | NFR-MNT-1 | The parsing and replay core is pure Python with no Django imports, so it can be unit tested in milliseconds. | `[PROPOSED]` |
-| NFR-MNT-2 | Type hints throughout, checked in CI. | `[PROPOSED]` |
-| NFR-MNT-3 | Lint and format with ruff, enforced in CI and pre-commit. | `[PROPOSED]` |
+| NFR-MNT-2 | **Mandatory type hints, as tight as possible**, enforced by ruff `ANN` rules and pyright strict in CI and hooks (TD-12). | `[DECIDED]` |
+| NFR-MNT-3 | Lint and format with ruff, enforced in CI and pre-commit. | `[DECIDED]` |
 | NFR-MNT-4 | Unit tests wherever possible. Parser and replay logic aim for at least 90% coverage. | `[DECIDED]` (unit testing), `[PROPOSED]` (coverage target) |
 | NFR-MNT-5 | Code, comments, and docs are in English. | `[PROPOSED]` |
 

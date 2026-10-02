@@ -105,9 +105,19 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - Settings are loaded once at startup and passed in explicitly. Modules don't read globals at import time (the old system
   read `settings.X` at import time).
 
-### TD-12 Quality tooling — `[PROPOSED]`
-- pytest, pytest-django, and coverage. ruff (lint + format). pyright or mypy (pick one, probably pyright in basic mode
-  to start). import-linter. pre-commit. GitHub Actions CI on Windows and Linux.
+### TD-12 Quality tooling — `[DECIDED]` (ruff, mandatory tight typing), `[PROPOSED]` (type checker setup)
+- pytest, pytest-django, and coverage. **ruff** for lint and format `[DECIDED]` (2026-10-02). import-linter. pre-commit. GitHub Actions CI on Windows and Linux.
+- **Type hints are mandatory and kept as tight as possible** `[DECIDED]` (maintainer, 2026-10-02):
+  - ruff `ANN` rules fail on any missing parameter or return annotation, and `ANN401` bans `Any` in annotations.
+  - Prefer precise types: frozen dataclasses for events and results, `Literal`/`Enum` for closed value sets (`pilot_fate`, `loss_cause`),
+    `NewType` for IDs (`AircraftId`, `PilotId`, `AccountUuid`) so they can't be mixed up, and no bare `dict`s across layer boundaries.
+- **Type checker: pyright in `strict` mode** for the whole project `[PROPOSED]`. It's the same engine as Pylance in VS Code, so editor and CI
+  agree, and it's fast enough for the Claude Code hooks.
+  - `core/` (parser, replay, catalog): strict with **zero** ignores.
+  - Django layers (`db`, `queries`, `web`, `ingest`): strict, with `django-types` stubs. Only targeted, commented `# pyright: ignore[rule]`
+    where the dynamic ORM can't be typed. Unnecessary ignores are errors (`reportUnnecessaryTypeIgnoreComment`).
+  - Alternative considered: mypy `--strict` + `django-stubs` (deeper Django plugin, but slower and doesn't match the editor). Astral's `ty`:
+    watch it, but don't adopt it yet.
 - **Data checks without extra frameworks** `[DECIDED]` (2026-10-02): invariants are **database constraints** (`CheckConstraint` /
   `UniqueConstraint`, for example `kills >= 0`, `0 <= damage_taken <= 1`, allowed `pilot_fate` values, one `PlayerMission` per player and mission),
   so they hold in production too. Logic and query tests are plain pytest on fixture missions. **No dbt** (the core logic is stateful Python, and

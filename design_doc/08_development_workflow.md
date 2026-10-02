@@ -14,7 +14,7 @@ IL2KS_TEST_DB=postgres uv run pytest                 # same suite on Postgres
 IL2KS_DATABASE_URL=postgres://... uv run il2ks run   # run the app on Postgres
 
 uv run ruff check --fix && uv run ruff format
-uv run pyright
+uv run pyright                    # strict mode (TD-12)
 uv run il2ks run                 # web + watcher locally
 ```
 - **Two databases, both first-class** (TD-04, TD-19). SQLite is the zero-setup default. Postgres comes from Docker or a native
@@ -82,6 +82,6 @@ The maintainer asked whether to use Claude skills or something else. Recommendat
 5. **Review**: use `/code-review` on branches before merging, and a `/security-review` pass before releases.
 
 ## Conventions `[PROPOSED]`
-- English everywhere. Type hints required. Use dataclasses or Django models; no bare dicts across layer boundaries.
+- English everywhere. **Type hints mandatory and tight** (TD-12): no missing annotations, no `Any`, `Literal`/`Enum`/`NewType` where they fit. Use dataclasses or Django models; no bare dicts across layer boundaries.
 - Requirement IDs (`FR-WEB-6`) and decision IDs (`TD-08`) are referenced in docstrings and PR descriptions where relevant.
 - Small modules. If a file goes past roughly 400 lines, consider splitting it (the old loader was 800+ lines in one function chain).
