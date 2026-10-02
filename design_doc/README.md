@@ -78,3 +78,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (review fixes: stable URLs via natural-key upserts, archive-first + reconcile, late-part re-ingest, retry backoff,
   single-writer lock, move originals after archive by default, admin-state backups; all proposed).
   2026-10-02 (disconnect mid-flight = death; abandoned-aircraft kill credit; Kill table PvP only; safe logo uploads; DST and tour-timezone rules).
+  2026-10-02 (iteration 0 done: repo skeleton, harnesses, anonymized fixtures; work happens on main).

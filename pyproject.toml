@@ -1,0 +1,82 @@
+[project]
+name = "il2ks"
+version = "0.0.1"
+description = "Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.2,<5.3",
+    "granian>=2.0",
+    "whitenoise>=6.7",
+]
+
+[project.scripts]
+il2ks = "il2ks.cli:main"
+
+[dependency-groups]
+dev = [
+    "django-types>=0.20",
+    "import-linter>=2.1",
+    "pre-commit>=4.0",
+    "psycopg[binary]>=3.2",
+    "pyright>=1.1.400",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pytest-django>=4.9",
+    "ruff>=0.12",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/il2ks"]
+
+# --- ruff: lint + format (TD-12). ANN = mandatory annotations, ANN401 bans Any.
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+src = ["src", "tests"]
+extend-exclude = ["design_doc", "sample_data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/il2ks/db/migrations/*" = ["RUF012"]
+"src/il2ks/db/models.py" = ["RUF012"]  # Django Meta attributes are class-level lists by design
+
+# --- pyright strict (TD-12): core gets zero ignores; Django layers use django-types.
+[tool.pyright]
+include = ["src", "tests"]
+exclude = ["src/il2ks/db/migrations"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+reportUnnecessaryTypeIgnoreComment = "error"
+venvPath = "."
+venv = ".venv"
+
+# --- pytest: SQLite by default (TD-19); Postgres opt-in with IL2KS_TEST_DB=postgres.
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "il2ks.settings"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["ignore:No directory at:UserWarning"]
+markers = [
+    "postgres: needs a Postgres test database (IL2KS_TEST_DB=postgres); skipped otherwise",
+    "sample_data: runs against the gitignored sample_data/ folder; skipped when it is missing",
+]
+
+# --- import-linter: the core never knows Django exists (TD-07).
+[tool.importlinter]
+root_package = "il2ks"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "core is pure Python (no Django, no outer layers)"
+type = "forbidden"
+source_modules = ["il2ks.core"]
+forbidden_modules = ["django", "il2ks.db", "il2ks.web", "il2ks.ingest", "il2ks.queries", "il2ks.settings"]

@@ -1,0 +1,16 @@
+# Dev-only Postgres for running the test suite on Postgres (TD-04, TD-19). Not for server admins.
+# Usage: docker compose -f docker/compose.dev.yaml up -d && IL2KS_TEST_DB=postgres uv run pytest
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: il2ks
+      POSTGRES_PASSWORD: il2ks
+      POSTGRES_DB: il2ks
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -1,0 +1,9 @@
+{% extends "il2ks/base.html" %}{% load i18n %}
+{% block content %}
+  <h1>{% translate "IL-2 Korea stats" %}</h1>
+  <p>{% translate "Work in progress. Stats will appear here once ingestion exists." %}</p>
+  {% if playable %}
+    <h2>{% translate "Aircraft" %}</h2>
+    <ul>{% for obj in playable %}<li>{{ obj }}</li>{% endfor %}</ul>
+  {% endif %}
+{% endblock %}

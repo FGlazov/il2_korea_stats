@@ -223,3 +223,6 @@ sample_data/
 # Local Claude Code state (per-machine)
 .claude/.design-doc-last-reviewed
 .claude/settings.local.json
+
+# Local il2ks data (dev SQLite, archives, media)
+.il2ks-data/

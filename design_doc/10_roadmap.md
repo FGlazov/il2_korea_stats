@@ -6,10 +6,14 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - ✅ Get real IL-2 Korea DServer logs: 210 missions in `sample_data/` (gitignored), 2026-10-02.
 - ✅ First version of [12_korea_log_format.md](12_korea_log_format.md).
 - ✅ Validated a bailout rule against `sample_data/` (rule v2, FR-ING-14). Accepted for now and to be iterated later. The maintainer will compare notes with the other developer.
-- Repo skeleton: `pyproject.toml` (uv), Django project, `il2ks` CLI stub, ruff, pyright, import-linter, pytest
-  (SQLite and Postgres), pre-commit, GitHub Actions matrix, dev `compose.yaml` with Postgres, `CLAUDE.md`, and Claude Code hooks.
-- Test harnesses from day one: DB portability (TD-19), "views only do simple reads" (TD-22), and i18n string wrapping (TD-24).
-- Anonymizer script for test fixture logs. Pick 3–5 representative missions as anonymized fixtures.
+- ✅ Repo skeleton (2026-10-02): `pyproject.toml` (uv, Python 3.13, Django 5.2, granian, WhiteNoise), Django project with the first model
+  (`GameObject`) and migration, `il2ks` CLI (`manage`, `db copy`, `dev anonymize`; the rest are stubs), ruff, pyright strict,
+  import-linter contract, pytest (SQLite default, Postgres opt-in), pre-commit, GitHub Actions (lint, SQLite on Ubuntu and Windows,
+  Postgres on Ubuntu), `docker/compose.dev.yaml`, `CLAUDE.md`, Claude Code hooks (ruff on edit, unit tests on stop).
+- ✅ Test harnesses: DB portability (missing migrations, constraints, no Postgres-only features, SQLite → Postgres copy), simple reads
+  (`tests/simple_reads.py`), and i18n template wrapping.
+- ✅ Anonymizer (`il2ks dev anonymize`) plus 4 anonymized fixture missions in `tests/fixtures/logs/` (typical, most bailouts, two mission
+  ends, no mission end), checked by a test.
 
 ## Iteration 1: PoC / MVP (single server, English)
 - `core.logparse`: all known Korea event types, a generic fallback for unknown ones (TD-20), with tests.
