@@ -56,7 +56,7 @@ The coverage target applies to `core/`: at least 90%, enforced in CI. Elsewhere 
 
 ## CI `[PROPOSED]`
 GitHub Actions on push and PR: ruff, pyright, import-linter, pytest (unit + integration), in this matrix:
-**SQLite on ubuntu and windows** (most target hosts run Windows) **plus Postgres on ubuntu** (as a service container). Later: build Docker image and installer artifacts on tags.
+**SQLite on ubuntu and windows** (most target hosts run Windows) **plus Postgres on ubuntu** (as a service container). The repo goes **public** within days of 2026-10-02, so GitHub-hosted Actions minutes are free and unmetered. The matrix size isn't a cost concern. Later: build Docker image and installer artifacts on tags.
 
 ## Working with Claude Code
 
