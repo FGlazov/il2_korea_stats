@@ -27,7 +27,7 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - Observability: rotating, structured log files per process (TD-27).
 
 ## Iteration 1.x: Easy install and polish
-- **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page.
+- **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing).
 - Docker Compose distribution (option A) for Linux/Wine hosts.
 - Performance pass with a year of data (backfill speed, NFR-PERF-4).
 
@@ -35,12 +35,19 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - **Tours** with configurable length (monthly by default) (TD-26).
 - **Online now**: current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
 - **Translations**: Russian, German, Spanish, French, Brazilian Portuguese (LLM draft, then human review) (TD-24).
+- **Game object names**: translated defaults plus admin overrides (TD-24, FR-ADM-5). Required for the public release.
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - Score concept, then leaderboards and rankings. Configurable penalties, including for suspected early bailouts.
   - Stats by aircraft. Split rankings by aircraft class. **Gunner stats** (FR-WEB-14).
   - Killboards. Ammo or weapon breakdown. Ironman / virtual-life stats. Rams, parachute deaths, and other rule toggles.
 - Light charts (FR-WEB-16).
 - Sortie map page of key events (their positions are stored from v1).
+
+## Public release gate
+There's no date or iteration for the public release yet, but these items are **required before it** (the list grows as decisions are made):
+- Game object names: project-set defaults with translations, plus admin overrides (TD-24, FR-ADM-5).
+- Translations into Russian, German, Spanish, French, and Brazilian Portuguese (TD-24).
+- Windows installer (option B), unsigned (doc 07).
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.

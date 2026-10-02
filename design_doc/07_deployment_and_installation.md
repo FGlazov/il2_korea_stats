@@ -71,7 +71,9 @@ An installer (Inno Setup or WiX) that bundles:
 - a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
 - Start menu shortcuts: "Open stats site", "Open admin", "View logs".
 - ✅ The best experience for the actual audience: Next → Next → Finish. No Docker, no terminal, no DB admin.
-- ❌ Packaging work: code signing (SmartScreen warns about unsigned installers), upgrade logic, testing on a clean Windows VM.
+- ❌ Packaging work: upgrade logic, testing on a clean Windows VM.
+- **No code signing** `[DECIDED]` (2026-10-02): the installer ships unsigned. The Windows SmartScreen "unknown publisher" warning is accepted.
+  The install docs tell admins to click "More info → Run anyway".
   Without a database server to bundle, it's a lot less work than first estimated.
 
 ### C. Manual / developer path
