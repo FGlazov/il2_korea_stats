@@ -100,6 +100,7 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-13 | Stable, shareable URLs for missions, players, and sorties, so players can link a sortie on Discord. | v1 | `[PROPOSED]` |
 | FR-WEB-14 | **Gunner stats**: player gunners (for example IL-10 turret) as a separate stats view. | later | `[DEFERRED]` (nice to have). v1 still records gunner sorties, just doesn't show dedicated pages |
 | FR-WEB-15 | **In-progress missions and current player counts** on the main page. | it2 | `[DECIDED]` |
+| FR-WEB-17 | **Times shown in the viewer's local timezone**: a player in Japan and one in Europe each see mission and sortie times in their own local time, without configuring anything. Game-world time (the in-mission date and time) and durations aren't converted. | v1 | `[DECIDED]` (2026-10-02), mechanism `[PROPOSED]` (TD-15) |
 | FR-WEB-16 | **Light charts** where they help (for example kills per tour, sorties over time). The site is mostly tables. | later | `[PROPOSED]` |
 
 ## Server admin (FR-ADM)

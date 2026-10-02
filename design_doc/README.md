@@ -58,3 +58,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (streaming-ready replay interface: feed/snapshot/finish, TD-07).
   2026-10-02 (SQLite is the only user-facing database; Postgres is kept working on the dev side only, TD-04).
   2026-10-02 (granian chosen as the web server, TD-10).
+  2026-10-02 (times shown in the viewer's local timezone, FR-WEB-17).

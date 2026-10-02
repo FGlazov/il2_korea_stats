@@ -123,6 +123,12 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - Store every timestamp in UTC (`USE_TZ=True`). Log file names contain the server's *local* time, so take the
   server timezone from config, defaulting to the OS timezone. Game-world date and time (the in-mission date) is a separate field.
 - Tick-based timings inside a mission get converted in `core.replay`. **Verified for Korea: 50 ticks = 1 s.**
+- **Display in the viewer's local time** (FR-WEB-17) `[PROPOSED]` mechanism: templates render every real-world timestamp as
+  `<time datetime="2026-09-19T20:34:13Z">2026-09-19 20:34 UTC</time>`, and a few lines of vendored JS convert all `<time>` elements to the
+  browser's timezone with `Intl.DateTimeFormat` (also after HTMX swaps). Why this way: no cookie, no account, nothing for the server to know,
+  and pages stay identical for every viewer (cache-friendly). Without JS, the page still shows correct UTC times. Optional extras: a "UTC/local"
+  toggle in the footer, and relative times ("2 h ago") on lists.
+- **Not converted:** game-world date and time (the mission's in-game clock, which is part of the scenario), and durations or flight times.
 
 ### TD-16 Extensibility through explicit extension points, never monkeypatching — `[PROPOSED]`
 - **Context:** The maintainer's own `mod_rating_by_type` and `mod_stats_by_aircraft` for `il2_stats` added
