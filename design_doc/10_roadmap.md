@@ -66,6 +66,7 @@ overrides. Translations and the ammo breakdown follow when ready. The rest of it
 - `il2ks ship` helper for remote log mode.
 - Optional self-hosted monitoring and error tracking (TD-27).
 - Playwright end-to-end tests on key flows (doc 08), nice to have.
+- Continuous flight tracks from a separate live telemetry source, if the game offers one (TD-08, OQ-26).
 
 ## Iteration 3: Global stats (multi-server)
 - A central instance that receives data from many servers. Each server gets an opt-in exporter (push, or pull through a

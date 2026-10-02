@@ -86,6 +86,14 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Positions:** stored on the key events we keep (spawn, takeoff, landing, kills, death, bailout, sortie end). There's **no flight track**:
   the logs have no periodic position updates (AType 17 never appears), so positions during cruise are unknown
   ([12](12_korea_log_format.md#position-data)). That's enough for a future map of key events (FR-WEB-12).
+- **Future position source** `[PROPOSED]` (2026-10-02): continuous positions may come from a **different source** later, for example a
+  Tacview-style live telemetry feed if the game offers one (not verified for Korea, OQ-26). Design rule: it's a **separate input with separate
+  storage**, not part of the log pipeline.
+  - A separate collector (an `il2ks track` process supervised by `run`) connects or polls during the mission and writes downsampled points to
+    their own table (`PositionSample`: mission, object or sortie, time, x/y/z, maybe speed and heading), or to compressed per-mission track files.
+  - It joins to sorties by mission time and object ID mapping. The mapping between telemetry IDs and log IDs is the main risk, so verify it first.
+  - `core.replay` and the stats don't depend on it. If the feed is missing or broken, stats stay correct and only the map loses detail.
+  - Volume is fine downsampled (for example one point per 5 s: ~73 sorties × ~20 min ≈ 17k rows per mission).
 - **Dropped:** `AMMO:explosion` hits (97% of AType 1) are never **stored**, but replay still uses them in memory to attribute bomb and rocket
   damage (FR-WEB-18). Other hit and damage lines become per-sortie and per-pair aggregates.
 

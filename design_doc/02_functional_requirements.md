@@ -109,7 +109,7 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-9 | Killboard (player vs player). | later | `[DEFERRED]` |
 | FR-WEB-10 | **Tours**: missions grouped into periods. Stats are shown per tour and all-time. The tour length is **configurable**, by calendar month (default), N days, or started manually by the admin. | it2 | `[DECIDED]` (tours in it2, configurable length), `[PROPOSED]` (exact modes) |
 | FR-WEB-11 | Awards / medals, squads, player accounts and registration. | later | `[DEFERRED]` |
-| FR-WEB-12 | Sortie map (key event locations: takeoff, kills, bailout, landing). v1 stores those positions; the map page comes later. Not a continuous flight path, since the logs have no periodic position updates. | later | `[DEFERRED]` (page), positions stored from v1 (TD-08) |
+| FR-WEB-12 | Sortie map (key event locations: takeoff, kills, bailout, landing). v1 stores those positions; the map page comes later. Not a continuous flight path from the logs, since they have no periodic position updates. A full flight path becomes possible if a separate telemetry source is added (TD-08, OQ-26). | later | `[DEFERRED]` (page), positions stored from v1 (TD-08) |
 | FR-WEB-13 | Stable, shareable URLs for missions, players, and sorties, so players can link a sortie on Discord. | v1 | `[PROPOSED]` |
 | FR-WEB-14 | **Gunner stats**: player gunners (for example IL-10 turret) as a separate stats view. | later | `[DEFERRED]` (nice to have). v1 still records gunner sorties, just doesn't show dedicated pages |
 | FR-WEB-15 | **In-progress missions and current player counts** on the main page. | it2 | `[DECIDED]` |

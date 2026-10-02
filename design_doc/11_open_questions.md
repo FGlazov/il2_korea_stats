@@ -7,6 +7,10 @@ IDs are never reused or renumbered, so gaps are expected.
 
 ## Lower impact
 
+**OQ-26 Live telemetry for positions (Tacview-style)**
+Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it
+reachable from the server machine, and can its object IDs be mapped to log object IDs? This only matters for a future flight-path map (TD-08).
+
 **OQ-25 Payload data: source, license, and weapon mods**
 `korea_payloads.csv` currently sits in the gitignored `sample_data/`. To ship it as catalog defaults it must be committed (for example as
 `core/catalog/data/payloads.csv`). Where does it come from (extracted from game files? a community list?), and may it be redistributed in an MIT

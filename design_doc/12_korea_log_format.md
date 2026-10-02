@@ -164,6 +164,7 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
 - So an aircraft's position is known densely during combat (gun bursts, damage) and **not at all** while cruising. Gaps of several minutes
   are normal. A continuous flight track can't be rebuilt. **Decision (2026-10-02): store positions only on the key events we keep**
   (spawn, takeoff, landing, kills, deaths, bailout, sortie end), and don't keep a breadcrumb track.
+- Continuous tracks may later come from a separate live telemetry source (for example Tacview-style), stored separately (TD-08, OQ-26).
 - `AMMO:explosion` hits (97% of AType 1) are **not stored**. Only real projectile hits are counted per ammo type, but replay uses explosion hits in
   memory to attribute bomb and rocket damage (FR-WEB-18).
 
