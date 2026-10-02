@@ -55,3 +55,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (bailout rule v2 accepted, F-86 structural-failure finding, FR-ING-17 self-destruction definition v2 tested,
   `design-doc-sync` Claude Code skill added).
   2026-10-02 (player profile links to the player's sortie list; FR-WEB-5 decided).
+  2026-10-02 (streaming-ready replay interface: feed/snapshot/finish, TD-07).

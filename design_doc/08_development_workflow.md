@@ -39,6 +39,7 @@ regression test first.
 |---|---|---|---|
 | Parser unit tests | Each event type: a valid line → the expected dataclass. Malformed, truncated, and unknown lines → a warning, not an exception. | ms | Parametrized tables of `(line, expected)` |
 | Replay scenario tests | Small hand-written logs (10–50 lines) for one rule each: "took off, shot down by player B, bailed out", "landed at friendly airfield", "disconnected mid-flight", "friendly fire", "killed by AI". | ms | Readable, one scenario per test. This is the rulebook in executable form |
+| Streaming equivalence | Feeding a fixture mission event by event, then calling `finish()`, gives exactly the same `MissionResult` as `run()`. Snapshots taken mid-mission never raise. | <1 s | Guards the live path (TD-07) |
 | Golden snapshot tests | Full real mission logs → `MissionResult` serialized to JSON, compared with a committed snapshot (for example `syrupy`). Any behavior change shows up as a reviewable diff. | <1 s each | **Anonymize** player names and UUIDs in committed fixtures (privacy). Provide a script to do it |
 | Property / fuzz tests (optional) | `hypothesis`: shuffled or garbage input never crashes the parser. | s | Nice to have |
 | Ingest integration | Real Postgres. Ingest fixture logs, then assert row counts and key facts. Ingesting twice is idempotent. A failing mission rolls back. | s | pytest-django with a Postgres test DB |

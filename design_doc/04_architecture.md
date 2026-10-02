@@ -54,7 +54,7 @@ and aggregation were mixed together in a few huge functions.
 | Layer | Responsibility | Depends on | Test style |
 |---|---|---|---|
 | `core.logparse` | Turn each log line into a frozen dataclass event (`TakeoffEvent`, `KillEvent`, and so on) with a generic key/value tokenizer, so unknown keys and ATypes are kept, not rejected (TD-20). Group log files into missions: raw `[N]` parts, or one concatenated archive (FR-ING-13). | stdlib only | Fast unit tests, one or more per event type, plus malformed-line tests |
-| `core.replay` | A state machine that consumes an event stream and produces an immutable `MissionResult` (mission metadata, sorties, kills, damage, timeline). **All game rules live here**: kill credit, sortie outcome, bailout or capture, and so on. | `logparse`, `catalog` | Scenario tests (small synthetic logs) plus golden snapshot tests (real logs → expected JSON) |
+| `core.replay` | An incremental state machine (`feed` / `snapshot` / `finish`, TD-07) that consumes an event stream and produces an immutable `MissionResult` (mission metadata, sorties, kills, damage, timeline). Provisional snapshots serve live views later. **All game rules live here**: kill credit, sortie outcome, bailout or capture, and so on. | `logparse`, `catalog` | Scenario tests (small synthetic logs) plus golden snapshot tests (real logs → expected JSON) |
 | `core.catalog` | Static reference data: object names → class (fighter, bomber, AAA…), countries → coalitions. Default data ships in the package, and admin overrides live in the DB. | stdlib | Unit tests |
 | `db` | Django models: pre-aggregated read models, level 1 per mission and level 2 across missions (TD-08), and migrations. | Django | Migration tests on both backends |
 | `ingest` | Discover complete missions, call the core, turn `MissionResult` into level-1 rows (`persist`), update level-2 aggregates, archive logs, record runs. Also `reprocess` and `rebuild-aggregates`. **All aggregation happens here.** | core, db | Integration tests on SQLite and Postgres |
@@ -87,6 +87,8 @@ on exception: record IngestRun(failed, traceback); continue to next mission
   `rebuild-aggregates` once at the end (NFR-PERF-4).
 - **New log content** (every couple of years): add an event dataclass and mapping in `logparse`, and a handler in `replay` if it
   matters. Unknown content is already kept and counted (TD-20).
+- **Streaming**: `run()` is just `feed()` for every event followed by `finish()`. The same `Replay` object will serve "online now" (it2) and live sorties
+  (later) through `snapshot()`, without a second code path (TD-07).
 - **Determinism**: `replay.run` with the same input always gives the same output. That property
   makes golden tests and `reprocess` trustworthy.
 

@@ -53,6 +53,22 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   structs if profiling shows a need). Replay gives back a plain `MissionResult`.
 - **Why:** Fast, isolated tests. Rules are easy to reason about. The future global-stats system can reuse it. An
   `import-linter` contract enforces the boundary.
+- **Streaming-ready interface** `[DECIDED]` (2026-10-02): replay is built as an incremental state machine from day one, not one big function:
+  ```python
+  r = Replay(catalog, rules)
+  r.feed(event)      # update state with one event
+  r.snapshot()       # provisional view: active sorties, running counts (for "online now" / live sorties)
+  r.finish()         # resolve pending rules, return the final MissionResult
+  run(events)        # batch mode = feed every event, then finish(); v1 only uses this
+  ```
+  - Rules that need **lookahead** (bailout: `PLID:0` end plus the pilot's final position; structural failure: did the wreck keep falling;
+    "mission ended": AType 7) keep pending state and resolve when their trigger event arrives, or on `finish()`. `snapshot()` marks
+    unresolved fields as provisional.
+  - **No persisted replay state.** After a restart, the watcher re-reads the in-progress mission from its first file (a full mission is
+    about 6 MB, which takes a second or two to parse).
+  - **Only `finish()` writes final level-1 rows.** Provisional snapshots go to a small live table or stay in memory. Final stats are therefore
+    computed the same way whether a mission was streamed or batch-processed, so golden tests and `reprocess` stay valid.
+  - Test: feeding events one at a time and calling `finish()` must give exactly the same `MissionResult` as `run()`.
 
 ### TD-08 Archived logs are the source of truth; the DB holds pre-aggregated read models — `[DECIDED]` (2026-10-02)
 - **Decision (maintainer):** "Pre-aggregate for whatever a view on the website requires, drop most of the rest. Store positions when you can."
