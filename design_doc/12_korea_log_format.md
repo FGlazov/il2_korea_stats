@@ -166,6 +166,18 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
   (spawn, takeoff, landing, kills, deaths, bailout, sortie end), and don't keep a breadcrumb track.
 - `AMMO:explosion` hits (97% of AType 1) get **dropped**. Only real projectile hits are counted per ammo type.
 
+## Payloads (loadouts)
+- AType 10 carries `PAYLOAD:<id>`, a per-aircraft loadout index, and `WM:<bitmask>` (weapon modifications).
+- **`sample_data/korea_payloads.csv`** (added by the maintainer 2026-10-02) maps `(vehicle, payload_id)` to an editor name and a readable name
+  (for example `f-51d,9,HVAR-6,6 x HVAR 5" rockets`). It has 290 rows for 11 aircraft, including non-player types (B-29, C-47B, Li-2).
+- **Coverage on the samples: 99.3% of spawns resolve** once one alias is applied: the CSV calls the Sabre `f-86a`, but logs say `F-86A-5`.
+  Match through the catalog's alias list, not by string equality. Unresolved: `Turret_IL10` (player gunners, no payload, expected) and
+  one F-51D spawn with payload 59, which is missing from the CSV.
+- `WM` (weapon modification bitmask, for example values 1–63 on the MiG-15bis) is **not** covered by the CSV. It shows as raw values until a
+  mapping exists (OQ-25).
+- Use: readable loadout on the sortie page and sortie list, and later per-loadout stats. The names belong in the catalog defaults with
+  translations, like object names (TD-24).
+
 ## Countries and coalitions
 - `CNTRS:0:0,501:1,502:1,503:1,601:2[,602:2,603:2]`. **Coalition 1 = countries 501–503** (MiG-15bis, IL-10, Yak-9P,
   La-11 → communist side). **Coalition 2 = 601–603** (F-51D, F-80C-10, F-84E, F-86A-5 → UN side). Only 601 had player

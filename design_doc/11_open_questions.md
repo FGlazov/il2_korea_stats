@@ -7,5 +7,10 @@ IDs are never reused or renumbered, so gaps are expected.
 
 ## Lower impact
 
+**OQ-25 Payload data: source, license, and weapon mods**
+`korea_payloads.csv` currently sits in the gitignored `sample_data/`. To ship it as catalog defaults it must be committed (for example as
+`core/catalog/data/payloads.csv`). Where does it come from (extracted from game files? a community list?), and may it be redistributed in an MIT
+repo? Is there a similar source for `WM` weapon-modification names? Also: payload 59 for the F-51D is missing.
+
 **OQ-1 Config keys that enable text logs in Korea's DServer `startup.cfg`** (owner: maintainer, will ask server operators)
 `il2ks doctor` needs them to detect and explain a missing setting. In BoS it was `mission_text_log = 1` and `text_log_folder`.
