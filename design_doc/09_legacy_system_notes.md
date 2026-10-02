@@ -85,10 +85,12 @@ Feature inventory (from `mod_rating_by_type/config_modules.py` and the models), 
 - **Ammo breakdown**: which ammo or weapons caused hits and kills (uses AType 1 hit data).
 - **Ironman stats**: "virtual life" based rankings (stats over one life, without dying). Includes last-mission ironman and squad ironman.
 - **Gunner stats**: separate gunner profiles, sorties, and rankings.
-- **Adjustable bonuses and penalties**, undamaged bailout penalty, flight time bonus, no parachute deaths, rams.
+- **Adjustable bonuses and penalties**, undamaged bailout penalty (Korea has no player bailout event, so v1 replaces it with the
+  suspected early bailout heuristic, FR-ING-14), flight time bonus, no parachute deaths, rams.
 - **Accuracy workarounds** for rearming and bailouts. Air streaks that ignore AI kills.
 - Tour handling (new tour on mission win), "top last mission", ITAF layout (server-specific layout).
 
 In the new design, most of these map to: **replay rules** (penalties, rams, parachute deaths, accuracy fixes),
 **aggregators** (split rankings, per-aircraft stats, ironman, gunner stats), and **web feature modules**.
-They depend on storing enough fact detail (hits by ammo type, per-life grouping), which feeds into OQ-14.
+They depend on keeping enough detail (ammo per sortie, positions, per-life grouping). TD-08 keeps per-sortie ammo and positions, and the
+raw archive (kept forever) allows backfilling anything else.

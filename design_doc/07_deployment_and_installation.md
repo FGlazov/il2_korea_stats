@@ -7,16 +7,22 @@ pgAdmin, running `CREATE EXTENSION` SQL, installing Python 3.5, editing `conf.in
 **Goal (NFR-INS-1..4):** a non-programmer gets a running site in under 15 minutes, both processes start
 with one action and survive reboots, and upgrades keep the data.
 
-## Target host OS: research (2026-10-02)
+## Target host `[DECIDED]` (2026-10-02)
 
-Summary: **Windows is the primary target.** Linux is a niche secondary target. We're waiting on confirmation from server
-operators on Discord (OQ-2).
+- **Windows**, and the admin **has admin rights** (maintainer's call, based on the research below). Installing a Windows service,
+  opening firewall ports, and binding ports 80 and 443 are all acceptable.
+- **One install per game server** (FR-OPS-5). Several DServers on one machine (for example under different Windows users) is a rare
+  exception, handled by side-by-side installs with separate data directories, ports, and service names.
+- **The stats site can run on the game machine (normal case) or on another machine** that logs get copied to (FR-ING-16).
+  Admins on managed hosts (RDP access) can install software on the game machine.
+- Linux (Docker, for Wine-hosted DServers) is a secondary target.
+
+### Research behind it
 - DServer is a **Windows executable** (`DServer.exe`). Community guides and forum threads describe Windows 10/Pro or
   Windows Server setups ([DServer system requirements thread][r1], [Steam DServer setup guide][r2], [Server Hosting wiki][r3]).
 - Linux only works through **Wine**: there's a community Docker image and a Lutris installer for Great Battles DServer
   ([Linux server thread][r4], [IL-2 DServer Docker/Linux thread, 2024][r5]). Neither mentions Korea.
-- Managed hosts (for example [Fox3 Servers][r6]) give customers **RDP access**, which means Windows. It's unclear whether customers
-  may install extra software such as a stats site on those machines (OQ-20).
+- Managed hosts (for example [Fox3 Servers][r6]) give customers **RDP access**, which means Windows.
 - The `il2_stats` install docs were also Windows-first.
 
 [r1]: https://forum.il2sturmovik.com/topic/15481-dserver-system-requirements/
@@ -32,8 +38,15 @@ operators on Discord (OQ-2).
 2. `il2ks web` (WSGI server).
 3. `il2ks watch` (ingester loop).
 
-`il2ks run` combines items 2 and 3 (see [04_architecture.md](04_architecture.md#process-model-proposed)).
-**With SQLite, the whole system is a single thing to run: `il2ks run`.** That's the main reason SQLite fits the installer.
+4. The HTTPS reverse proxy (bundled Caddy, TD-23), unless the admin brings their own.
+
+`il2ks run` supervises items 2, 3 and 4 (see [04_architecture.md](04_architecture.md#process-model-proposed)).
+**With SQLite, the whole system is a single thing to run: `il2ks run`, as one Windows service.** That's the main reason SQLite fits the installer.
+
+### Remote log mode (FR-ING-16)
+If the site runs on a different machine than DServer, `logs.path` points to a folder the logs arrive in: a network share (SMB) of the
+DServer log folder, or a folder kept in sync by a copy tool (for example a scheduled `robocopy /MIR`). Ingestion is already
+copy-tolerant (it only reads parts whose size is stable). A small `il2ks ship` helper running on the game machine may come later.
 
 There's also one game-side step that no tool can skip: turning on text mission logs in the DServer config
 (`mission_text_log = 1` and `text_log_folder` in `startup.cfg` for BoS; the Korea samples prove text logs still exist,
@@ -54,7 +67,8 @@ An installer (Inno Setup or WiX) that bundles:
   (PyInstaller, Nuitka). Decide in a packaging spike.
 - **SQLite by default**: the database is a file in `%ProgramData%\il2ks\`. No DB server, no password, no service.
 - **one Windows service** for `il2ks run` (through a service wrapper such as WinSW, or `pywin32`), starting on boot.
-- a setup page that asks for the **game server folder** (auto-detected where possible) and the **site port**, and creates the admin account.
+- **Caddy** for HTTPS (TD-23), plus firewall rules for ports 80 and 443.
+- a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
 - Start menu shortcuts: "Open stats site", "Open admin", "View logs".
 - (Optional, advanced) point it at an existing Postgres server from the config file.
 - ✅ The best experience for the actual audience: Next → Next → Finish. No Docker, no terminal, no DB admin.
@@ -76,6 +90,8 @@ creates the admin, and optionally registers a scheduled task or service), then `
 4. **Docker Compose (A)** for the Linux/Wine minority and as the Postgres dev environment. It's cheap, but secondary.
 
 ## Networking notes
-- Default site port: **8000** (the old default of 80 often clashes with other services and needs admin rights). `[PROPOSED]`
-- HTTPS is out of scope for v1. Document putting Caddy in front (automatic certificates) as an optional step (OQ-10).
-- The Windows Firewall rule for the site port could be created by the installer (with an opt-in checkbox).
+- **HTTPS only** `[DECIDED]` (TD-23). Public ports are **443** (site) and **80** (redirect to HTTPS + ACME certificate challenge).
+  The WSGI server listens on `127.0.0.1:8000` only. If 80 or 443 are already taken (for example by IIS), use the "bring your own proxy" mode.
+- The installer creates the Windows Firewall rules for 80 and 443 (with an opt-in checkbox).
+- Certificates: a domain name pointing at the server (recommended), otherwise an IP-address certificate, otherwise self-signed for testing (TD-23).
+- Admins with an existing **nginx or IIS** use `https.mode = "external"`. Sample configs are in the docs (TD-23).

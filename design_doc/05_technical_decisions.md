@@ -1,8 +1,7 @@
 # 05 — Technical Decisions (decision log)
 
-Each entry lists its status, the decision, the reasoning, and the alternatives considered. Entries are numbered in the order they were made. TD-19..21
-(added 2026-10-02, after the sample logs arrived) come right after TD-04. Version numbers
-were checked against what was current as of 2026-10. Re-check them when starting implementation.
+Each entry lists its status, the decision, the reasoning, and the alternatives considered. Numbers are stable and never reused.
+Version numbers were checked against what was current as of 2026-10. Re-check them when starting implementation.
 
 ---
 
@@ -19,7 +18,7 @@ were checked against what was current as of 2026-10. Re-check them when starting
 ### TD-03 Web framework: Django — `[DECIDED]` (Django) / `[PROPOSED]` (version)
 - **Decision:** Start on **Django 5.2 LTS** (supported until April 2028). Move to the next LTS (6.2, expected around April 2027) once it's out.
 - **Why Django:** The ORM and migrations, a free admin for the server owner (FR-ADM), mature templates and i18n,
-  and continuity with the old system.
+  template overriding (TD-25), and continuity with the old system.
 - **Alternatives:** FastAPI + Jinja. It's lighter, but has no admin, no migrations story, and needs more glue. Rejected.
 
 ### TD-04 Database: SQLite **and** PostgreSQL, both first-class — `[DECIDED]` (2026-10-02)
@@ -31,49 +30,14 @@ were checked against what was current as of 2026-10. Re-check them when starting
 - **Versions:** PostgreSQL 17 or 18 via **psycopg 3**. SQLite ≥ 3.45 (whatever the bundled Python ships), in WAL mode.
 - **No Postgres extensions** (the old system needed `hstore` and `citext`, which meant a manual SQL step). Portability rules are in TD-19.
 
-### TD-19 Database portability rules — `[PROPOSED]`
-To keep "switch SQLite ↔ Postgres" cheap and *proven*:
-- **Allowed:** standard ORM fields, `JSONField` (works on both), `db_index`, `UniqueConstraint`, `Q`/`F`/aggregations,
-  window functions (both support them), `Lower()` for case-insensitive search.
-- **Not allowed in shared code:** `ArrayField`, `HStoreField`, `CIText*`, `DISTINCT ON` (`.distinct(*fields)`),
-  `SearchVector` and other `django.contrib.postgres` features, raw SQL. If something truly needs backend-specific SQL,
-  it goes in `queries/` behind a function with an implementation and a test for **each** backend.
-- **Timezones:** store UTC and let Django handle conversion. Don't rely on DB timezone functions.
-- **Tests:**
-  1. The whole test suite runs on both backends (pytest parametrized by `IL2KS_TEST_DB=sqlite|postgres`, CI matrix).
-  2. A **migration round-trip test**: apply all migrations from zero on both backends, then `makemigrations --check`
-     (no missing migrations).
-  3. A **data transfer test**: ingest the fixture missions into SQLite, copy everything to Postgres with the
-     copy tool (below), and assert identical query results (row counts per table plus key query outputs such as player totals
-     and sortie details).
-- **Tool:** `il2ks db copy --from <url> --to <url>` copies all tables in dependency order, in batches, then resets
-  sequences on Postgres. That one command is the whole migration path, and the transfer test above covers it.
-- A lint check (a simple grep test or import-linter rule) fails CI if `django.contrib.postgres` is imported outside `queries/`.
-
-### TD-20 Parsing robustness: the game changes, the parser must not crash — `[PROPOSED]`
-Lessons from running legacy code on Korea logs ([12_korea_log_format.md](12_korea_log_format.md)):
-- Parse `KEY:value` tokens **generically**, then map them to typed events, instead of one strict regex per type. Unknown trailing
-  keys (like the new `MID:` and `TARGETS()`) get kept in an `extra` dict, not rejected.
-- Unknown ATypes become `UnknownEvent(atype, raw)`, which gets counted and kept. They never crash anything.
-- Values that can contain spaces or commas (object `TYPE`, player `NAME`, `SKIN`) are parsed by anchoring on the
-  *next known key*, never with `[^,]` style patterns.
-- Unknown object types get auto-registered (FR-ING-7). The replay never indexes a catalog dict directly.
-- Re-declaring a known object ID (AType 12) updates it. It doesn't replace it.
-- Any game version change shows up in `IngestRun` (log `VER`, counts of unknown keys and types), so admins and
-  maintainers notice format drift.
-
-### TD-21 Game rules baseline: port the `il2_stats` rules — `[DECIDED]` (2026-10-02)
-- Kill credit, assists, sortie outcomes, capture on enemy territory, and so on start as a port of the `il2_stats` `MissionReport`
-  logic (see [09_legacy_system_notes.md](09_legacy_system_notes.md)). Korea-specific adaptations: inferred bailout (no AType 18
-  for player pilots), AType 12 re-declaration, and 2D area polygons.
-- Every ported rule gets a scenario test that documents it (an executable rulebook).
-
-### TD-05 Front end: server-side rendering with Django templates + HTMX — `[DECIDED]` (SSR) / `[PROPOSED]` (HTMX)
+### TD-05 Front end: server-side rendering with Django templates + HTMX + Pico CSS — `[DECIDED]` (2026-10-02)
 - **Decision:** Django templates for every page. HTMX for partial updates (search-as-you-type, pagination,
   expandable sections). No JS build step. htmx is vendored (NFR-OFF-1).
-- **CSS:** `[OPEN]` OQ-13. Options: a classless or minimal framework such as **Pico CSS** (looks decent with zero
-  effort, and it's one file), or Bootstrap (heavier, but familiar). Leaning toward Pico or plain CSS.
-- **Alternatives considered:** React/Vue SPA (rejected: too complex for the maintainer and the goals),
+- **CSS:** **Pico CSS** (minimal, classless-friendly, one file, styles tables well). It's a stats site: mostly tables of data.
+  Branding colors map onto Pico's CSS variables (TD-25).
+- **Charts:** only light diagrams, later (FR-WEB-16). Server-rendered SVG or a small vendored chart library. Decide when needed.
+- **Mobile:** not required. Mobile-friendly layout is a stretch goal (Pico is responsive by default; wide tables scroll horizontally).
+- **Alternatives considered:** React/Vue SPA (rejected: too complex for the maintainer and the goals), Bootstrap (heavier than needed),
   Alpine.js (allowed later for tiny client-side bits), Streamlit/Dash (rejected: not a public website framework).
 
 ### TD-06 Ingester: idempotent one-shot command plus a watch loop — `[PROPOSED]`
@@ -81,6 +45,8 @@ Lessons from running legacy code on Korea logs ([12_korea_log_format.md](12_kore
 - **Why:** The maintainer asked for a "separate scheduled job". A one-shot idempotent command works with *any*
   scheduler (Task Scheduler, cron, the Docker restart policy, the `run` supervisor) and is easy to test.
   The old system was a `while True` loop with state kept in memory.
+- **Future live mode** (FR-ING-12 in it2, FR-ING-15 later): the replay is an event-stream state machine, so it can be fed
+  incrementally from the in-progress mission. Don't build anything that assumes "the whole mission is in memory before processing starts".
 
 ### TD-07 A pure-Python core for parsing and replay — `[PROPOSED]`
 - **Decision:** `core.logparse` and `core.replay` don't import Django. Events are frozen dataclasses (or `msgspec`
@@ -88,21 +54,31 @@ Lessons from running legacy code on Korea logs ([12_korea_log_format.md](12_kore
 - **Why:** Fast, isolated tests. Rules are easy to reason about. The future global-stats system can reuse it. An
   `import-linter` contract enforces the boundary.
 
-### TD-08 Facts are the source of truth and aggregates can be rebuilt — `[PROPOSED]`
-- **Decision:** Store normalized facts. Aggregates are derived (computed on query, or kept in summary tables
-  that a command can rebuild). Never maintain counters incrementally if they can't be recomputed.
-- **Event granularity** `[OPEN]` OQ-14: do we store every hit and damage event (large tables, enables future
-  features like the sortie map and ammo breakdown), or only per-sortie summaries plus kills? Middle ground:
-  store kills and damage per (attacker, target, sortie) pair, plus the per-sortie timeline. Keep raw logs in the archive
-  so finer detail can be extracted later.
+### TD-08 Archived logs are the source of truth; the DB holds pre-aggregated read models — `[DECIDED]` (2026-10-02)
+- **Decision (maintainer):** "Pre-aggregate for whatever a view on the website requires, drop most of the rest. Store positions when you can."
+  The DB isn't a normalized event store. It holds tables shaped for the pages: `Mission`, `Player`, `PlayerSortie`,
+  `PlayerMission`, `PlayerAircraft`, and in it2 `Tour` and `PlayerTour` (see [06_data_model.md](06_data_model.md)).
+- **Source of truth = the raw log archive**, kept forever (TD-09). Anything dropped can be recomputed by `il2ks reprocess` (backfill)
+  when stats logic changes.
+- **Levels of tables** (at least two to start; more get added if pages need them, under the same rule: every level rebuilds from the one below):
+  1. **Mission-level** (written when one mission is ingested, depends only on that mission): `Mission`, `PlayerSortie` (with its
+     timeline, damage breakdown, ammo, and key-event positions), `Kill`, `PlayerMission`. Can be rebuilt per mission, in parallel.
+  2. **Cross-mission** (`PlayerAircraft`, all-time totals on `Player`, and in it2 `PlayerTour`): updated **incrementally** at ingest by adding the
+     new mission's level-1 rows, and always **rebuildable from level 1** (`il2ks rebuild-aggregates`: plain sums, maxes, and ordered passes for
+     streaks). Incremental updates are safe *because* a rebuild exists. That's exactly what the old system lacked (its `fix_*` jobs and migrations).
+- **Positions:** stored on the key events we keep (spawn, takeoff, landing, kills, death, bailout, sortie end). There's **no flight track**:
+  the logs have no periodic position updates (AType 17 never appears), so positions during cruise are unknown
+  ([12](12_korea_log_format.md#position-data)). That's enough for a future map of key events (FR-WEB-12).
+- **Dropped:** `AMMO:explosion` hits (97% of AType 1). Other hit and damage lines become per-sortie and per-pair aggregates.
 
-### TD-09 Archive raw logs so we can reprocess — `[PROPOSED]`
-- **Decision:** Compressed archive per mission (zip or zstd), with configurable retention (default: keep forever,
-  since logs compress well). `il2ks reprocess` rebuilds from the archive.
+### TD-09 Archive raw logs forever — `[DECIDED]` (2026-10-02)
+- **Decision:** Compressed archive per mission (zip or zstd), **kept forever by default** (retention stays configurable). Logs
+  compress roughly 15×, so a busy server's year is about 1–2 GB. `il2ks reprocess` rebuilds from the archive (backfill after stats changes).
 
 ### TD-10 Production web server — `[PROPOSED]`
 - **Decision:** **waitress** (pure Python, works on Windows, used by the old system) or **granian** (Rust, cross-platform,
-  faster). Pick one during the PoC. Use **WhiteNoise** to serve static files from the same process.
+  faster). Pick one during the PoC. Use **WhiteNoise** to serve static files from the same process. It listens on **localhost only**,
+  behind the HTTPS proxy (TD-23).
 - **Not gunicorn**, because it doesn't run on Windows.
 
 ### TD-11 Configuration — `[PROPOSED]`
@@ -118,10 +94,12 @@ Lessons from running legacy code on Korea logs ([12_korea_log_format.md](12_kore
 
 ### TD-13 No cloud dependency — `[DECIDED]`
 - Everything runs on the server machine. No external calls at runtime.
+- **The one exception:** certificate issuance and renewal for HTTPS (ACME, TD-23). It's a certificate authority, and none of our data leaves the machine.
 
-### TD-14 Packaging and distribution — `[OPEN]` (leaning toward Windows-native first)
-- Research (2026-10-02): DServer is a Windows binary, so Windows is the primary target. See
-  [07_deployment_and_installation.md](07_deployment_and_installation.md). We're still waiting on the operators' answers on Discord (OQ-2).
+### TD-14 Packaging and distribution: Windows-native first — `[DECIDED]` (target), `[PROPOSED]` (mechanism)
+- Target hosts run **Windows**, and admins **have admin rights**, so installing Windows services and opening firewall ports are allowed
+  (maintainer, 2026-10-02; Discord confirmation is a formality).
+- One install per game server (FR-OPS-5). Details and options in [07_deployment_and_installation.md](07_deployment_and_installation.md).
 
 ### TD-15 Time handling — `[PROPOSED]`
 - Store every timestamp in UTC (`USE_TZ=True`). Log file names contain the server's *local* time, so take the
@@ -136,18 +114,119 @@ Lessons from running legacy code on Korea logs ([12_korea_log_format.md](12_kore
 - **Decision:** Optional features are first-class and toggled in config. Each one plugs in through a small number
   of defined seams:
   - **Replay rules**: rules are separate functions or strategy objects that `replay` calls (for example kill-credit policy,
-    "bailout without damage counts as death", "parachute deaths"). They're configured, not patched.
-  - **Derived stats / aggregators**: a registry of aggregator functions that turn facts into summary tables. Adding
-    one (aircraft stats, split rankings by aircraft class) doesn't touch the others.
+    the suspected early bailout heuristic, "parachute deaths"). They're configured, not patched.
+  - **Aggregators**: a registry of functions that build level-2 tables from level-1 tables (TD-08). Adding
+    one (aircraft stats, split rankings by aircraft class, gunner stats) doesn't touch the others.
   - **Web**: features add their own URLs, views, and template blocks or nav entries, through a registry or template
     `{% block %}`s. They never replace core views.
 - Don't build a general plugin system until a second feature actually needs it. Keep the seams simple.
 
-### TD-17 Design for multi-server early, cheaply — `[PROPOSED]`
-- Every mission row carries a `server_id` (a UUID generated at setup) and a stable `mission_uid`. Player identity
-  uses the game's UUIDs, never local auto-increment IDs. That's enough to merge data from several servers later
-  (iteration 3) without migrating the core schema. Nothing else for global stats gets built now.
+### TD-17 One install per server, but ready for multi-server later — `[DECIDED]` (one install per server), `[PROPOSED]` (IDs)
+- Each install serves exactly one game server (maintainer, 2026-10-02). Running several DServers on one machine is the exception, and gets handled by
+  several installs side by side (FR-OPS-5).
+- Every mission row still carries a `server_uid` (a UUID generated at setup), and player identity uses the game's account UUIDs. That's
+  enough to merge data from several servers in a future global system (iteration 3) without migrating the core schema.
 
-### TD-18 Reusing `il2_stats` code — `[PROPOSED]`
-- `il2_stats` is MIT-licensed, so we can port its regex patterns and replay rules as a *starting point*, with
-  attribution in `NOTICE`/README. Port them into the new structure. Don't copy whole modules.
+### TD-18 Credit and reuse of `il2_stats` — `[DECIDED]` (credit), `[PROPOSED]` (reuse)
+- The README states the project is **inspired by `il2_stats` by =FB=Vaal and =FB=Isay**. The maintainer will talk to them directly.
+- `il2_stats` is MIT-licensed. Any regex patterns or replay rules we port keep the MIT attribution (in `NOTICE`). Port them into
+  the new structure. Don't copy whole modules.
+
+### TD-19 Database portability rules — `[PROPOSED]`
+To keep "switch SQLite ↔ Postgres" cheap and *proven*:
+- **Allowed:** standard ORM fields, `JSONField` (works on both), `db_index`, `UniqueConstraint`, `Q`/`F` expressions, simple joins.
+  Aggregation functions are allowed only in **ingest and rebuild code**, never in views (TD-22).
+- **Not allowed:** `ArrayField`, `HStoreField`, `CIText*`, `DISTINCT ON` (`.distinct(*fields)`), `SearchVector` and other
+  `django.contrib.postgres` features, raw SQL. A test or import-linter rule fails CI if `django.contrib.postgres` is imported anywhere.
+- **Case-insensitive search:** store a normalized `name_lower` column with an index.
+- **Timezones:** store UTC and let Django handle conversion. Don't rely on DB timezone functions.
+- **Tests:**
+  1. The whole test suite runs on both backends (pytest parametrized by `IL2KS_TEST_DB=sqlite|postgres`, CI matrix).
+  2. A **migration round-trip test**: apply all migrations from zero on both backends, then `makemigrations --check`
+     (no missing migrations).
+  3. A **data transfer test**: ingest the fixture missions into SQLite, copy everything to Postgres with the
+     copy tool (below), and assert identical page data (row counts per table plus key query outputs such as player totals
+     and sortie details).
+- **Tool:** `il2ks db copy --from <url> --to <url>` copies all tables in dependency order, in batches, then resets
+  sequences on Postgres. That one command is the whole migration path, and the transfer test above covers it.
+
+### TD-20 Parsing robustness: the log format will change, the parser must not crash — `[DECIDED]` (2026-10-02)
+- **Context (maintainer):** new information shows up in the logs only occasionally, maybe every couple of years with a game update, but it
+  *will* happen. Adding support for a new event type or field must be a **local change**: one event dataclass, its key mapping,
+  an optional replay handler, and tests. Nothing else should need touching.
+- Parse `KEY:value` tokens **generically**, then map them to typed events, instead of one strict regex per type. Unknown trailing
+  keys (like `MID:` on AType 12 and `TARGETS()` on AType 8) get kept in an `extra` dict, not rejected.
+- Event types we don't use yet (AType 27, 28) and ones never seen (22, 23, 29) parse into a generic event, get counted, and are
+  otherwise ignored (maintainer: "ignore them for now"). The same goes for any future unknown AType.
+- Values that can contain spaces or commas (object `TYPE`, player `NAME`, `SKIN`) are parsed by anchoring on the
+  *next known key*, never with `[^,]` style patterns.
+- Unknown object types get auto-registered (FR-ING-7). The replay never indexes a catalog dict directly.
+- Re-declaring a known object ID (AType 12) updates it. It doesn't replace it.
+- Format drift shows up in `IngestRun` (log `VER`, counts of unknown keys and types), so admins and maintainers notice.
+
+### TD-21 Game rules baseline: port the `il2_stats` rules — `[DECIDED]` (2026-10-02)
+- Kill credit, assists, sortie outcomes, capture on enemy territory, and so on start as a port of the `il2_stats` `MissionReport`
+  logic (see [09_legacy_system_notes.md](09_legacy_system_notes.md)). Korea-specific adaptations: pilot fate without AType 18,
+  the suspected early bailout heuristic (FR-ING-14), AType 12 re-declaration, and 2D area polygons.
+- Every ported rule gets a scenario test that documents it (an executable rulebook).
+
+### TD-22 Views only do simple reads — `[DECIDED]` (2026-10-02)
+- **Decision (maintainer):** At request time, Django only runs `SELECT … FROM … WHERE … ORDER BY … LIMIT` queries, with at most
+  simple joins (FK lookups, `select_related`). No `GROUP BY`, no aggregation, no subqueries, no window functions in views. Counters
+  live in pre-aggregated tables (TD-08). Paginator `COUNT(*)` is allowed.
+- **Simple arithmetic on columns at read time is fine, and preferred over storing derived values.** Ratios like K/D (`kills / deaths`),
+  K/L, kills per hour and survival rate are computed from the stored counters, as a model property, a template filter, or an `F()`
+  expression. **Don't store ratios as columns** (maintainer, 2026-10-02). What's ruled out is business logic at serving time: rules,
+  classification, multi-step computations. Those belong in ingest.
+- **Why:** pages stay fast on SQLite, queries are trivially portable, and the code is easy to vibe-code and review.
+- **Enforcement:** every view gets a test with `django_assert_max_num_queries`, plus a test that inspects captured SQL for
+  `GROUP BY` and aggregate functions in view tests. The `queries/` layer stays thin.
+
+### TD-23 HTTPS only, through bundled Caddy or the admin's own proxy — `[DECIDED]` (2026-10-02)
+- **Decision (maintainer):** The site is served over HTTPS only. Plain HTTP only redirects. Django runs with `SECURE_SSL_REDIRECT`,
+  HSTS, secure cookies, and `SECURE_PROXY_SSL_HEADER`.
+- **Mechanism (the maintainer deferred to Claude's judgment):** bundle **Caddy** (a single static exe, Windows-native, automatic certificates via ACME, automatic
+  HTTP→HTTPS redirect) as the reverse proxy in front of the WSGI server. `il2ks run` supervises it. The WSGI server listens on localhost only.
+- **Why Caddy:** it's the least work for a non-expert. One binary, a few config lines, and it obtains and renews certificates by itself, with no certbot
+  or scheduled task. Downsides: one more process to supervise, and it needs ports 80 and 443 (also true for any other HTTPS setup).
+- **Certificate fallback order** (`il2ks setup` asks for a domain and picks the first that works):
+  1. **Domain name** pointing at the server: a normal publicly trusted certificate. This is the recommended setup. Free dynamic-DNS names work.
+  2. **No domain, public IP:** a short-lived Let's Encrypt certificate for the IP address (verify Caddy and ACME support at implementation time).
+  3. **Last resort:** Caddy's internal CA (self-signed), with browser warnings. Documented as "for testing only".
+- **Bring your own proxy (supported):** admins who already run **nginx or IIS** set `https.mode = "external"`. The bundled Caddy stays off, and
+  the docs ship sample nginx and IIS (URL Rewrite / ARR) configs that forward to `127.0.0.1:8000` with the right `X-Forwarded-Proto` header.
+- **Several installs on one machine** (FR-OPS-5) can't all own port 443. Document using different ports, or one shared Caddy.
+
+### TD-24 Internationalization — `[DECIDED]` (2026-10-02)
+- **v1:** English only, but every UI string is wrapped for translation from day one (`{% translate %}`, `gettext_lazy`), so adding
+  languages later doesn't mean touching every template.
+- **Iteration 2:** Russian, German, Spanish, French, and Brazilian Portuguese. First drafts get machine-translated by an LLM, then reviewed by
+  human translators. Korean isn't planned.
+- Game object names (aircraft, vehicles) come from the catalog. They can get translations later through the admin-editable catalog.
+
+### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
+- **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, accent colors (mapped to Pico CSS
+  variables), description, and links. Most owners only need this.
+- **Layer 2, `custom/` overrides** ("very important for some server owners"): `custom/templates/` and `custom/static/` live in the
+  **data directory** (so upgrades never overwrite them) and come first in `TEMPLATES['DIRS']` / `STATICFILES_DIRS`. Any built-in template
+  or static file can be overridden by putting a file with the same path there.
+- **Consequence:** template names, `{% block %}`s, and context variables become a **semi-public API**. Keep templates small, with named
+  blocks, and document their context. Mention breaking template changes in release notes. `il2ks doctor` warns when an overridden
+  template's original has changed since the override was made (hash comparison).
+
+### TD-26 Tours with configurable length, in iteration 2 — `[DECIDED]` (tours, it2), `[PROPOSED]` (modes)
+- Missions belong to exactly one `Tour`, assigned by mission start time. Per-tour totals (`PlayerTour`) are the main stats unit, with all-time
+  totals alongside.
+- Config `tours.mode`: `"monthly"` (calendar month, **default**), `"days:<N>"` (a rolling period of N days from a configurable start date), or `"manual"`
+  (the admin starts a new tour, FR-ADM-8).
+- Changing the mode later means reassigning missions to tours and rebuilding the level-2 aggregates (cheap, TD-08).
+- **Scheduled for it2** (maintainer, 2026-10-02). v1 shows all-time stats only. Adding tours later is a new level-2 table plus a rebuild,
+  so v1 needs no special preparation beyond keeping `started_at` on `Mission`.
+
+### TD-27 Observability: log files now, self-hosted monitoring later — `[DECIDED]` (2026-10-02)
+- **v1:** each process (`web`, `watch`, Caddy) writes **rotating log files** in the data directory, plus stdout. The level is configurable.
+  Ingestion history is visible in the admin (`IngestRun`). `il2ks doctor` checks the processes are healthy. Nothing else.
+- **Later:** optional metrics and error tracking. Datadog works but is a paid cloud service. Self-hostable open-source alternatives the
+  maintainer could run: **Grafana + Loki + Prometheus** (logs + metrics), **SigNoz** or **OpenObserve** (all-in-one, OpenTelemetry-based),
+  and **GlitchTip** (Sentry-compatible error tracking). The cheapest path is structured (JSON) logs from day one, plus OpenTelemetry later,
+  so any of these can be plugged in. Opt-in only, because it sends data off the machine (TD-13).

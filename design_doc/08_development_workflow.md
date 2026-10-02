@@ -43,7 +43,9 @@ regression test first.
 | Property / fuzz tests (optional) | `hypothesis`: shuffled or garbage input never crashes the parser. | s | Nice to have |
 | Ingest integration | Real Postgres. Ingest fixture logs, then assert row counts and key facts. Ingesting twice is idempotent. A failing mission rolls back. | s | pytest-django with a Postgres test DB |
 | Query tests | `queries/*` functions return correct totals for the fixture data. | s | |
-| View smoke tests | Every URL returns 200 against the fixture DB and contains key text. HTMX endpoints return fragments. | s | Catches template errors |
+| View smoke tests | Every URL returns 200 against the fixture DB and contains key text. HTMX endpoints return fragments. Each view stays under a query budget and its captured SQL has no `GROUP BY` or aggregates (TD-22). | s | Catches template errors and creeping read-time aggregation |
+| Aggregate rebuild tests | Incrementally built level-2 tables equal a full `rebuild-aggregates` from level 1 (TD-08). | s | Guards against counter drift, the old system's main bug class |
+| Override tests | A template in a temporary `custom/` folder overrides the built-in one. Branding settings show up in the page CSS (TD-25). | s | |
 | End-to-end (later) | Playwright on 2–3 key flows. | slow | Only if the front end grows |
 
 The coverage target applies to `core/`: at least 90%, enforced in CI. Elsewhere coverage is just reported.

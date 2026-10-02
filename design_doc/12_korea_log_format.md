@@ -11,8 +11,8 @@ Treat it as the best current knowledge and re-verify after game updates. Analysi
   Test fixtures must be *anonymized excerpts* (see [08_development_workflow.md](08_development_workflow.md)).
 - Layout: `sample_data/2026-09/missionReport(YYYY-MM-DD_HH-MM-SS)[0].txt.zip`. Each zip holds one `.txt` that
   contains the **whole mission** (all parts concatenated). The zips have been extracted in place (about 1.3 GB of `.txt`).
-- `*.weather.json` (51 files) are **not DServer output**. A server-side weather randomizer tool on that server
-  writes them. Possible later enrichment (sky, wind, temperature per mission). See OQ-21.
+- `*.weather.json` (51 files) are **not DServer output**. That server's own weather tool writes them.
+  **Ignore them** (maintainer, 2026-10-02): they're specific to one server.
 
 ## Raw vs archived logs (verified against `il2_stats`)
 
@@ -54,7 +54,7 @@ Line format is unchanged from BoS: `T:<tick> AType:<n> KEY:value ...`, ASCII, CR
 | 9 | 1.2k | Airfield | none | ok |
 | 10 | 15.3k | Player spawn: PLID, PID, IDS (profile UUID), LOGIN (account UUID), NAME, TYPE, COUNTRY, FIELD, INAIR, PAYLOAD, FUEL, SKIN, WM | none seen. INAIR: 2 = parking (97%), 1 = runway, 0 = air | ok |
 | 11 | 1.1k | Group | none | ok |
-| 12 | 2.1M | Object spawn: ID, TYPE, COUNTRY, NAME, PID, POS | **new trailing `MID:<n>`** (‑1 or an id; meaning unknown). Some TYPE names contain commas (`Landing Ship, Tank`). **Also re-emitted for the player's aircraft and pilot right before sortie end** (see below) | fails on comma names |
+| 12 | 2.1M | Object spawn: ID, TYPE, COUNTRY, NAME, PID, POS | **new trailing `MID:<n>`** (‑1, or for static block objects the group ID: it equals the first number in `TYPE:Name[<group>,<index>]`. The value on player-object re-declarations is unexplained. Kept in `extra`, not used). Some TYPE names contain commas (`Landing Ship, Tank`). **Also re-emitted for the player's aircraft and pilot right before sortie end** (see below) | fails on comma names |
 | 13 | 67k | Influence area: `BC(a,b,c)` | `BC` has **3** values (was 8) | ok |
 | 14 | 425 | Area boundary | points are **2D `(x,z)`** (was 3D) | ok (but downstream geometry must handle 2D) |
 | 15 | 145k | Log version `VER:18` | once **per log part** (header) | ok |
@@ -77,6 +77,10 @@ Line format is unchanged from BoS: `T:<tick> AType:<n> KEY:value ...`, ASCII, CR
 The meanings of 24–31 match the Discord notes from the other developer. Our sequence analysis independently confirmed
 24, 25, 26, 30 and 31, and backs the inferences for 27 and 28.
 
+**Decision (maintainer, 2026-10-02):** we won't get authoritative answers on 27, 28 and `MID` (the maintainer guessed "mission ID"; the data says block-group ID, see AType 12 row), so **ignore them for now**, along with the
+never-seen 22, 23 and 29. They get parsed into generic events, counted, and dropped (TD-20). Expect new log content now and then
+(maybe every couple of years with a game update). Supporting it must be a local change in `logparse` and `replay`.
+
 ### Typical player sortie sequences (event types, deduplicated; `b` = pilot-bot event)
 ```
 landed:     10 b10 31 [28] 30 5 31 6 12 b12 4 b4 b16
@@ -87,14 +91,43 @@ no takeoff: 10 b10 31 [28] 12 b12 4 b4 b16
 ## Known problems
 
 ### No pilot bailout / ejection event (AType 18) for players
-- Verified: **0 of 15,349** player sorties have an AType 18 for the player's pilot. That includes all 3,593 sorties where the
-  player's pilot was killed. All 799 AType 18 events belong to gunners or AI. In 60 missions there were only 17 parachute
-  objects (`CParachute`), all non-player.
-- The other developer hopes it's a game bug that'll get fixed, and currently guesses bailouts from indirect signals.
-- Design consequence (`[PROPOSED]`): bailout is an **inferred** fact with a confidence or method field, in an isolated
-  replay rule that's easy to switch to the real AType 18 if the game adds it. Candidate signals to research: the pilot bot
-  deinitializes (16) while the aircraft is airborne and far from where the aircraft ends up, the aircraft keeps flying or crashes
-  *after* the pilot's sortie ended, altitude and speed at sortie end, and AType 12 re-emission patterns. See OQ-19.
+- Verified: **0 of 15,349** player sorties have an AType 18 for the player's pilot. All 799 AType 18 events belong to gunners or
+  AI. In 60 missions there were only 17 parachute objects (`CParachute`), all non-player. The other developer hopes it's a game bug
+  that'll be fixed.
+
+### Pilot bailout detection (validated 2026-10-02)
+The data has a usable substitute signal. The resulting rule is in [02, FR-ING-14](02_functional_requirements.md#bailout-rule-v2-fr-ing-14--validated-on-210-sample-missions-2026-10-02).
+
+**How sorties end.** There are three shapes (for the 11,550 sorties that took off):
+| End shape | Count | What it means |
+|---|---|---|
+| AType 4 `PLID:<aircraft id>` | 7,576 | Pilot still in the aircraft (landed and despawned, despawned in the air, or died in it). Pilot removed right at the aircraft (median 18 m away). |
+| AType 4 **`PLID:0`**, zero position, often written **twice** (dedupe) | 2,614 | **Pilot not in an aircraft at sortie end**: bailed out (in the air) or climbed out (on the ground). |
+| No AType 4 at all, pilot just removed (AType 16) | 1,360 | **Disconnect.** 99% have an AType 21 within 30 s. Pilot fate is unknown. |
+
+**Mission end doesn't skip sortie ends** (checked because planes fly long: airborne time is a median 20 min, 90th percentile 41 min, up to 127 min,
+against ~3 h missions). 1,522 sorties (10% of all) were still running at the first AType 7. **1,519 got a normal AType 4 within 1 s of it**
+(median 0.1 s), and only 2 had none. The server force-ends every active sortie at mission end. These sorties need their own outcome,
+**`mission_ended`**, instead of being read as landed, despawned, or disconnected.
+
+**Telling bailouts from ground exits** (both are `PLID:0`):
+- Bailout: the aircraft was airborne when destroyed (or at sortie end), and the pilot's final position (AType 16) is far from it (≥ 100 m;
+  median 563 m for undamaged bailouts) and often high up (pilots quit while under the parachute, median 840 m altitude).
+- Ground exit: a player landed, waited, then climbed out. The pilot ends near the aircraft at ground level. Crash landings look similar:
+  the aircraft is "destroyed" by `AID:-1` on terrain impact while its wheels are still logged as up, then the pilot gets out next to the wreck.
+  The **distance check** separates these from bailouts (verified on spot checks, including a crash landing at 1,157 m terrain altitude).
+
+**Abandoned aircraft.** After a bailout, the aircraft is destroyed by `AID:-1` (often at altitude, a few seconds after a small `AID:-1`
+damage tick, maybe the canopy jettison). Usually the pilot re-declaration (AType 12 `BotPlanePilot_*` with `PID:<aircraft>`) happens on the
+same tick, so that's probably the ejection moment. This crash damage must **not** count as "the aircraft was damaged". Only attacker hits and
+damage (`AID` ≠ ‑1) count.
+
+**Pilot re-declarations** (AType 12 `BotPlanePilot_*`): with `PID:<aircraft>` this happens in ~99% of normal sorties (so it's not a bailout signal on its own).
+With `PID:-1` it happens right at sortie end when the pilot isn't attached (present in only about 40% of `PLID:0` cases, so don't rely on it).
+
+**Results:** 1,456 bailouts (12.6% of sorties that took off) and 308 suspected early bailouts (2.7%, 174 accounts). The **F-86A-5 has about 12
+undamaged bailouts per 100 aircraft lost**, versus 2–4 for every other type. Worth watching: it could be player behavior, or something specific to
+the F-86 (for example structural failure or an ejection quirk) that the rule can't tell apart from a voluntary bailout.
 
 ### AType 12 re-declares player objects at sortie end
 - Just before AType 4 (sortie end), the log re-emits AType 12 for the **player's aircraft and pilot bot**, with the same IDs
@@ -113,10 +146,20 @@ no takeoff: 10 b10 31 [28] 12 b12 4 b4 b16
    AType 12 re-declaration and the missing AType 18.
 3. Parse failures: all AType 8 lines, AType 12 names with commas, and new ATypes 24–31 get dropped with warnings.
 
+## Position data
+- There's **no periodic position tracking**. AType 17 (position) never appears in Korea logs. Positions only come attached to other
+  events: spawn (10), takeoff and landing (5/6), wheels off/on (30/31), damage (2), kills (3), gun bursts (24), stores and rockets (25/26),
+  and pilot removal (16).
+- So an aircraft's position is known densely during combat (gun bursts, damage) and **not at all** while cruising. Gaps of several minutes
+  are normal. A continuous flight track can't be rebuilt. **Decision (2026-10-02): store positions only on the key events we keep**
+  (spawn, takeoff, landing, kills, deaths, bailout, sortie end), and don't keep a breadcrumb track.
+- `AMMO:explosion` hits (97% of AType 1) get **dropped**. Only real projectile hits are counted per ammo type.
+
 ## Countries and coalitions
 - `CNTRS:0:0,501:1,502:1,503:1,601:2[,602:2,603:2]`. **Coalition 1 = countries 501–503** (MiG-15bis, IL-10, Yak-9P,
   La-11 → communist side). **Coalition 2 = 601–603** (F-51D, F-80C-10, F-84E, F-86A-5 → UN side). Only 601 had player
-  spawns. We don't know yet which nations the codes 501/502/503/602/603 stand for (OQ-22).
+  spawns. We don't know which nations the codes stand for, so **use generic names**: coalition 1 = **REDFOR**, coalition 2 =
+  **BLUFOR**, and countries shown as "REDFOR 501" and so on (decided 2026-10-02). They can be renamed in the admin (FR-ADM-5).
 - Always read coalition membership from each mission's `CNTRS`. Never hard-code it.
 
 ## Objects seen

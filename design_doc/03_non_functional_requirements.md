@@ -19,21 +19,22 @@
 | NFR-SEC-3 | Public pages are read-only. The only write paths are the Django admin and the ingester. | `[PROPOSED]` |
 | NFR-SEC-4 | When Postgres is used, it listens only on localhost (or the internal Docker network). It's never exposed. SQLite files sit in a data directory that the web server doesn't serve. | `[PROPOSED]` |
 | NFR-SEC-5 | Automated dependency vulnerability checks in CI (for example `pip-audit` / `uv` audit, Dependabot). | `[PROPOSED]` |
-| NFR-SEC-6 | Document how to serve over HTTPS, either behind a reverse proxy or with a bundled option. | `[OPEN]` OQ-10 |
+| NFR-SEC-6 | **HTTPS only.** HTTP only redirects. HSTS and secure cookies are on. Certificates are obtained and renewed automatically (bundled Caddy), or TLS is terminated by the admin's own proxy (TD-23). | `[DECIDED]` (HTTPS only), `[PROPOSED]` (mechanism) |
 
 ## Offline and portability
 
 | ID | Requirement | Status |
 |---|---|---|
-| NFR-OFF-1 | No outbound network calls at runtime: no CDN assets, no telemetry, no external APIs. Static assets such as htmx are vendored into the repo. | `[DECIDED]` (no cloud), `[PROPOSED]` (vendor static assets) |
-| NFR-OFF-2 | Runs natively on **Windows** (10/11 and Server), the DServer platform. Linux is supported secondarily (Docker, for Wine-hosted DServers). | `[PROPOSED]`. Research supports it; awaiting operator confirmation (OQ-2) |
+| NFR-OFF-1 | No outbound network calls at runtime: no CDN assets, no telemetry, no external APIs. Static assets such as htmx and Pico CSS are vendored into the repo. The only exception is ACME certificate issuance and renewal (TD-13). | `[DECIDED]` |
+| NFR-OFF-2 | Runs natively on **Windows** (10/11 and Server), the DServer platform. The admin has admin rights. Linux is supported secondarily (Docker, for Wine-hosted DServers). | `[DECIDED]` |
 
 ## Performance
 
 | ID | Requirement | Status |
 |---|---|---|
 | NFR-PERF-1 | Ingest a typical mission (a few hours, around 50 players) in under 30 s. | `[PROPOSED]` |
-| NFR-PERF-2 | Public pages render server-side in under 300 ms (p95) with one year of data from a busy server. | `[PROPOSED]` |
+| NFR-PERF-2 | Public pages render server-side in under 300 ms (p95) with one year of data from a busy server. Achieved by design: views only do simple reads on pre-aggregated tables (TD-22). | `[PROPOSED]` |
+| NFR-PERF-4 | **Backfill speed**: reprocessing a year of archived missions (about 3,000) finishes within a few hours on the game machine, at low priority so DServer isn't affected. Mission-level work runs in parallel, and level-2 aggregates get rebuilt once at the end (TD-08). | `[PROPOSED]` |
 | NFR-PERF-3 | Expected scale for one busy server (measured from samples): about 8 missions a day, about 73 player sorties per mission, so about 210k sorties a year. Raw logs are about 5.9 MB / 86k lines per mission, including about 61k hit lines and 11k damage lines. Storing hit and damage rows individually would add about 500M rows a year, so **aggregate them per sortie or per pair** (TD-08). This also keeps SQLite comfortable. | `[PROPOSED]` (from data) |
 
 ## Reliability and data integrity
@@ -43,8 +44,8 @@
 | NFR-REL-1 | Each mission is processed in one transaction. A crash halfway leaves no partial data. | `[PROPOSED]` |
 | NFR-REL-2 | The ingester recovers by itself after a crash or reboot. Its state lives in the DB, not in memory. | `[PROPOSED]` |
 | NFR-REL-3 | One bad mission log doesn't block later missions. It gets marked failed, shown in admin, and can be retried. | `[PROPOSED]` |
-| NFR-REL-4 | The full DB can be rebuilt from archived raw logs. | `[PROPOSED]` |
-| NFR-REL-5 | Format drift (a new game version, unknown ATypes or keys) never crashes ingestion. It shows up in admin (TD-20). | `[PROPOSED]` |
+| NFR-REL-4 | The full DB can be rebuilt from archived raw logs, which are kept forever (TD-09). | `[DECIDED]` |
+| NFR-REL-5 | Format drift (a new game version, unknown ATypes or keys; expected every couple of years) never crashes ingestion. It shows up in admin, and supporting a new event is a local code change (TD-20). | `[DECIDED]` |
 | NFR-REL-6 | Switching the database backend (SQLite ↔ Postgres) is a single documented command, covered by an automated test (TD-19). | `[DECIDED]` (tested switchability), `[PROPOSED]` (mechanism) |
 
 ## Maintainability (pain point P1)
@@ -61,11 +62,19 @@
 
 | ID | Requirement | Status |
 |---|---|---|
-| NFR-OBS-1 | Logs go to rotating files plus stdout, with a configurable level. | `[PROPOSED]` |
+| NFR-OBS-1 | **v1: log files only.** Each process (web, watcher, Caddy) writes rotating log files in the data directory plus stdout, with a configurable level. Structured (JSON) lines, so a monitoring tool can ingest them later (TD-27). | `[DECIDED]` |
 | NFR-OBS-2 | Ingestion run history is visible in admin (see FR-ING-11). | `[PROPOSED]` |
+| NFR-OBS-3 | Later: optional, opt-in metrics and error tracking with a self-hostable open-source stack (for example Grafana + Loki + Prometheus, SigNoz, GlitchTip) or Datadog (TD-27). | `[DEFERRED]` |
 
 ## Internationalization
 
 | ID | Requirement | Status |
 |---|---|---|
-| NFR-I18N-1 | Wrap UI strings for translation (Django i18n) from day one, and ship English only in v1. | `[OPEN]` OQ-8 |
+| NFR-I18N-1 | Wrap UI strings for translation (Django i18n) from day one. v1 ships English only. Iteration 2 adds Russian, German, Spanish, French, and Brazilian Portuguese (LLM draft, then human review). No Korean (TD-24). | `[DECIDED]` |
+
+## Usability
+
+| ID | Requirement | Status |
+|---|---|---|
+| NFR-UI-1 | Desktop-first, table-heavy layout (Pico CSS). Mobile-friendly layout is a stretch goal, not a requirement. | `[DECIDED]` |
+| NFR-UI-2 | Server owners can rebrand in the admin without touching files, and override any template or static file through `custom/` without forking (TD-25). | `[DECIDED]` |

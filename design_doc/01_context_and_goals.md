@@ -8,6 +8,7 @@
 - The community stats system for the earlier games, `il2_stats` (MIT license, by =FB=Vaal and =FB=Isay,
   with community forks and mods), **doesn't work with IL-2 Korea**. Verified: it crashes on every Korea mission (unknown
   objects), and even with that patched it misclassifies most sortie outcomes. Local copy: `../../il2_stats`.
+- The project is **inspired by `il2_stats`** by =FB=Vaal and =FB=Isay (TD-18).
 - At least one other community member is building a closed-source Korea stats site for their own server, using the
   same "parse logs after each mission into a DB" approach. They shared notes on the log format (see doc 12).
 - `il2_stats` has two parts: a long-running log-processing job that parses mission logs into Postgres,
@@ -40,7 +41,7 @@ future multi-server "global stats" system.
 | User | Needs | Notes |
 |---|---|---|
 | **Player** | "How did my sortie go?" View their own sorties, missions, and profile. | The main v1 use case. Arrives from a link or a search for their nickname. |
-| **Server admin** | Install once, point it at the log folder, and forget it. Occasionally hide a player or mission, or rename the site. | Often **not a programmer**. Almost always runs Windows, since DServer is a Windows program (research done; operator confirmation pending, OQ-2). |
+| **Server admin** | Install once, point it at the log folder, and forget it. Occasionally hide a player or mission, rebrand the site, or override templates. | Often **not a programmer**. Runs **Windows** with admin rights (DServer is a Windows program). One install per game server. Some owners customize templates heavily (TD-25). |
 | **Maintainer / contributors** | Understandable, testable code that's easy to extend with AI assistance. | Uses uv. Comfortable with Python and SQL. Avoids complex front-end tooling. |
 | **Future: global stats operator** | Aggregate data from many servers. | Iteration 2 or 3. Only "don't paint ourselves into a corner" matters now. |
 
@@ -53,5 +54,5 @@ future multi-server "global stats" system.
 - The maintainer's own `il2_stats` mods (`mod_rating_by_type`, `mod_stats_by_aircraft`: split rankings,
   per-aircraft stats, ironman, gunner stats, and so on) are **nice to have after the PoC**, not v1. `[DECIDED]`
   They were built by monkeypatching the core. Their replacements must use real extension points (TD-16).
-- Supporting the older Great Battles titles (BoS, BoM, and so on). `[PROPOSED]`. The log format is probably
-  similar, but supporting it isn't a goal. See OQ-12.
+- Supporting the older Great Battles titles (BoS, BoM, and so on). **Korea only** `[DECIDED]`, even though the log format is similar.
+- Player accounts or logins on the site (v1). Maybe later if people ask for it. `[DECIDED]`

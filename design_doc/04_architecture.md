@@ -5,7 +5,8 @@
 ```
  ┌──────────────────────┐   writes    ┌───────────────────────────┐
  │ IL-2 Korea DServer   │ ──────────► │ log directory (text logs) │
- └──────────────────────┘             └─────────────┬─────────────┘
+ └──────────────────────┘ (or copied └─────────────┬─────────────┘
+                           from another machine, FR-ING-16)
                                                     │ polls / scheduled
                                                     ▼
                                       ┌───────────────────────────┐
@@ -17,16 +18,17 @@
                                                     ▼
                                       ┌───────────────────────────┐
                                       │ SQLite or PostgreSQL      │
+                                      │ (pre-aggregated tables)   │
                                       └─────────────┬─────────────┘
-                                                    │ read (mostly)
+                                                    │ simple SELECTs only (TD-22)
                                                     ▼
- ┌──────────────┐    HTTP (HTML,     ┌───────────────────────────┐
- │ Browser      │ ◄────────────────► │ WEB (Django + HTMX)       │
- │ (players)    │   HTMX fragments)  │ WSGI server, static files │
- └──────────────┘                    └───────────────────────────┘
+ ┌──────────────┐  HTTPS   ┌────────────┐  HTTP    ┌───────────────────────────┐
+ │ Browser      │ ◄──────► │ Caddy      │ ◄──────► │ WEB (Django + HTMX)       │
+ │ (players)    │  :443    │ TLS, certs │ localhost│ WSGI server, static files │
+ └──────────────┘          └────────────┘          └───────────────────────────┘
 ```
 
-There are two OS processes and one database `[DECIDED]`. The ingester and the web app share the Django
+There are two application processes and one database `[DECIDED]`, plus the HTTPS proxy (TD-23). The ingester and the web app share the Django
 models (the ORM), but they never call each other. The DB is their only shared state.
 
 ## Layers inside the codebase `[PROPOSED]`
@@ -54,9 +56,9 @@ and aggregation were mixed together in a few huge functions.
 | `core.logparse` | Turn each log line into a frozen dataclass event (`TakeoffEvent`, `KillEvent`, and so on) with a generic key/value tokenizer, so unknown keys and ATypes are kept, not rejected (TD-20). Group log files into missions: raw `[N]` parts, or one concatenated archive (FR-ING-13). | stdlib only | Fast unit tests, one or more per event type, plus malformed-line tests |
 | `core.replay` | A state machine that consumes an event stream and produces an immutable `MissionResult` (mission metadata, sorties, kills, damage, timeline). **All game rules live here**: kill credit, sortie outcome, bailout or capture, and so on. | `logparse`, `catalog` | Scenario tests (small synthetic logs) plus golden snapshot tests (real logs → expected JSON) |
 | `core.catalog` | Static reference data: object names → class (fighter, bomber, AAA…), countries → coalitions. Default data ships in the package, and admin overrides live in the DB. | stdlib | Unit tests |
-| `db` | Django models (normalized facts plus rebuildable aggregates), migrations. | Django | Migration tests |
-| `ingest` | Discover complete missions, call the core, map `MissionResult` → ORM rows (`persist`), archive logs, record runs. | core, db | Integration tests on SQLite and Postgres |
-| `queries` | Named read functions such as `get_sortie_detail(id)` and `player_totals(profile_id)`. Views don't build ad-hoc ORM chains. | db | Integration tests on SQLite and Postgres |
+| `db` | Django models: pre-aggregated read models, level 1 per mission and level 2 across missions (TD-08), and migrations. | Django | Migration tests on both backends |
+| `ingest` | Discover complete missions, call the core, turn `MissionResult` into level-1 rows (`persist`), update level-2 aggregates, archive logs, record runs. Also `reprocess` and `rebuild-aggregates`. **All aggregation happens here.** | core, db | Integration tests on SQLite and Postgres |
+| `queries` | Thin, named read functions such as `get_sortie_detail(id)` and `get_player_profile(player)`. Simple SELECT/WHERE with simple joins only, no aggregation (TD-22). | db | Integration tests on SQLite and Postgres, plus query-count checks |
 | `web` | URLs, views, templates, HTMX partials, admin. Thin. | queries, db | View smoke tests (status 200, key content) |
 | `cli` | The `il2ks` entry point and config loading. | all | A few end-to-end tests |
 
@@ -71,8 +73,8 @@ discover_missions(log_dir) ─► for each COMPLETE mission not yet in DB (by mi
     events = logparse.parse_files(files)        # generator; bad lines → warnings, not exceptions
     result = replay.run(events, catalog)        # pure, deterministic
     with transaction.atomic():
-        persist(result)                         # facts
-        update_aggregates(affected players)     # or rebuild; see TD-08
+        persist(result)                         # level 1: Mission, PlayerSortie, Kill, PlayerMission
+        update_aggregates(result)               # level 2: Player, PlayerAircraft (+ PlayerTour in it2); incremental, rebuildable (TD-08)
         record IngestRun(ok, counts, warnings)
     archive(files)                              # compress to archive dir; optional delete
 on exception: record IngestRun(failed, traceback); continue to next mission
@@ -80,7 +82,11 @@ on exception: record IngestRun(failed, traceback); continue to next mission
 
 - **Mission key** `[PROPOSED]`: the log file name timestamp plus the server ID (see TD-17). Korea's logs
   don't include a mission ID (AType 0 `MID:` is empty).
-- **Completeness detection**: see FR-ING-2. This depends on the log format.
+- **Completeness detection**: see FR-ING-2. In remote log mode (FR-ING-16), only read parts whose size has stopped changing.
+- **Backfill**: `il2ks reprocess` runs the level-1 pipeline per archived mission (in parallel, at low process priority), then
+  `rebuild-aggregates` once at the end (NFR-PERF-4).
+- **New log content** (every couple of years): add an event dataclass and mapping in `logparse`, and a handler in `replay` if it
+  matters. Unknown content is already kept and counted (TD-20).
 - **Determinism**: `replay.run` with the same input always gives the same output. That property
   makes golden tests and `reprocess` trustworthy.
 
@@ -89,25 +95,31 @@ on exception: record IngestRun(failed, traceback); continue to next mission
 - `il2ks ingest`: one shot. Process everything that's ready, then exit. Suits Windows Task Scheduler or cron.
 - `il2ks watch`: a loop that runs `ingest` every N seconds (default 30) until stopped.
 - `il2ks web`: the production WSGI server (see TD-10) serving Django and static files.
-- `il2ks run`: a small supervisor that starts `web` and `watch` as child processes and restarts
-  them if they crash. **This is what installers and Docker call**, so admins have only one thing to run.
+- `il2ks run`: a small supervisor that starts `web`, `watch`, and the bundled Caddy (unless `https.mode = "external"`) as child
+  processes and restarts them if they crash. **This is what installers and Docker call**, so admins have only one thing to run.
+- Later (it2): live reading of the in-progress mission for "online now" (FR-ING-12). That's part of `watch`, using the same parser and replay.
 
-## Read side and aggregates
+## Read side and aggregates `[DECIDED]`
 
-- Facts (missions, sorties, kills, damage) are the **source of truth**.
-- Totals per player (and later per aircraft or per tour) live in summary tables that are
-  **derived and rebuildable** (`il2ks rebuild-aggregates`). They're never hand-patched.
-  If the logic changes, rebuild them. That replaces the old system's pile of "retro compute"
-  jobs and data-fix migrations. See [09_legacy_system_notes.md](09_legacy_system_notes.md).
-- For v1, compute small aggregates on the fly with SQL and add summary tables only when a page
-  measurably needs one.
+- The **raw log archive** (kept forever) is the source of truth. The DB holds **pre-aggregated tables shaped for the pages** (TD-08).
+  Anything a page doesn't need gets dropped, and can be recomputed from the archive.
+- Level 1 (per mission) is written at ingest. Level 2 (all-time, per aircraft, and per tour from it2) is updated incrementally and can always be rebuilt
+  from level 1 (`il2ks rebuild-aggregates`). Nothing is ever hand-patched. That replaces the old system's pile of "retro compute"
+  jobs and data-fix migrations (see [09_legacy_system_notes.md](09_legacy_system_notes.md)).
+- **Views never aggregate** (TD-22). Counters live in columns. Simple arithmetic on them (ratios like K/D) happens at read time, and ratios aren't stored.
+  More table levels may be added as pages need them. The page → table map is in [06_data_model.md](06_data_model.md).
 
-## Front end `[PROPOSED]`
+## Front end `[DECIDED]`
 
 - Django templates and a base layout. Pages work without JS. HTMX handles progressive
   enhancement: live player search, pagination and filtering without full reloads, and expanding the sortie timeline.
-- No Node or npm build step. `htmx.min.js` and one CSS file are vendored under `static/`.
-- Charts (later) could use server-rendered SVG or a small vendored chart library. Decide when needed.
+- **Pico CSS**, desktop-first and table-heavy. Mobile-friendly is a stretch goal (TD-05).
+- No Node or npm build step. `htmx.min.js` and `pico.min.css` are vendored under `static/`.
+- Light charts later (FR-WEB-16): server-rendered SVG or a small vendored chart library. Decide when needed.
+- **Customization (TD-25):** branding from `SiteSettings` (admin) gets injected as CSS variables. `<data dir>/custom/templates` and
+  `custom/static` come first in the template and static search paths. Templates are small, with named blocks and documented context,
+  because overrides depend on them.
+- **i18n (TD-24):** all strings are wrapped. English in v1, five more languages in it2.
 
 ## Proposed repo layout `[PROPOSED]`
 
@@ -123,7 +135,7 @@ il2_korea_stats/
 │   │   ├── replay/           # state.py, rules.py, result.py
 │   │   └── catalog/          # data/*.csv|toml, loader.py
 │   ├── db/                   # Django app: models.py, migrations/
-│   ├── ingest/               # discover.py, persist.py, archive.py, runner.py
+│   ├── ingest/               # discover.py, persist.py, aggregates.py, archive.py, runner.py
 │   ├── queries/              # missions.py, players.py, sorties.py
 │   ├── web/                  # Django app: urls.py, views/, templates/, static/
 │   ├── settings.py           # reads config file + env
@@ -133,5 +145,5 @@ il2_korea_stats/
 │   ├── integration/          # DB tests, run on SQLite and Postgres
 │   └── fixtures/logs/        # anonymized real logs + synthetic scenarios
 ├── docker/                   # Dockerfile, compose.yaml
-└── packaging/windows/        # installer scripts (if chosen)
+└── packaging/windows/        # installer scripts, bundled Caddy config
 ```

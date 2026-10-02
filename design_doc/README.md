@@ -48,3 +48,7 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
 - Prefer short, concrete statements over prose. Link to code once it exists.
 - Revisions: 2026-10-02 (initial requirements session). 2026-10-02 (sample-log analysis, SQLite + Postgres,
   Windows research, v1 player stats, rules baseline).
+  2026-10-02 (maintainer answered most open questions: tours, HTTPS only, pre-aggregated read models, customization,
+  i18n plan, Windows, one install per server).
+  2026-10-02 (bailout rule v2 validated on sample data, tours moved to it2, ratios computed at read time, observability,
+  Caddy + nginx/IIS, no flight track, mission-end sortie handling).
