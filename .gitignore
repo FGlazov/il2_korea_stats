@@ -219,3 +219,7 @@ __marimo__/
 
 # Real server logs (contain player names/IDs) - NEVER commit
 sample_data/
+
+# Local Claude Code state (per-machine)
+.claude/.design-doc-last-reviewed
+.claude/settings.local.json

@@ -135,6 +135,8 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
   - Where the pilot's exit can be timed (pilot re-declared with `PID:<aircraft>`; only 25 of 308 cases), the F-86 pilot left **after**
     destruction in 8 of 9 cases (breakup, then bailout), versus about half for other types.
   - AType 27 never comes *before* destruction, so it's post-crash debris, not a "wing came off" signal.
+  - **Independent check (FR-ING-17 test):** looking at *all* lost aircraft (not just bailouts), sudden airborne self-destruction where
+    the wreck keeps falling afterwards happens **17.6 times per 100 F-86s lost**, versus 1.5–5.2 for every other type.
   - Overstress damage is logged as `AID:-1`, the same as crash damage, so the rule can't separate "broke it, then bailed" from "bailed, then
     the abandoned aircraft was destroyed". It's recorded as a known limitation in FR-ING-14.
 

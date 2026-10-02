@@ -52,3 +52,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   i18n plan, Windows, one install per server).
   2026-10-02 (bailout rule v2 validated on sample data, tours moved to it2, ratios computed at read time, observability,
   Caddy + nginx/IIS, no flight track, mission-end sortie handling).
+  2026-10-02 (bailout rule v2 accepted, F-86 structural-failure finding, FR-ING-17 self-destruction definition v2 tested,
+  `design-doc-sync` Claude Code skill added).

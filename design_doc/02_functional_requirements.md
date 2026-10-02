@@ -21,7 +21,7 @@ Priority: **v1** = first iteration (MVP), **it2** = second iteration, **later** 
 | FR-ING-12 | **Online now**: current player counts and the list of players on the server, read from the in-progress mission's logs. | it2 | `[DECIDED]` |
 | FR-ING-13 | **Import concatenated archives**: a single `.txt` or `.txt.zip` that holds a whole mission (the `il2_stats` backup format, and how `sample_data/` is stored). Used to load history and for dev/testing. | v1 | `[PROPOSED]` |
 | FR-ING-14 | **Bailout detection without AType 18.** Detect pilots who left the aircraft in flight from the signals Korea *does* log (rule below), and store pilot fate with its source (`event` / `inferred` / `unknown`). Also flag **suspected early bailouts** (left an aircraft no attacker had touched). Switch to the real AType 18 if the game adds it back. | v1 | `[DECIDED]` (rule v2 for now; iterate later, 2026-10-02) |
-| FR-ING-17 | **Mark self-destruction on the sortie.** Every lost aircraft gets a `loss_cause`: `attacker` (it took hits or damage from any attacker before destruction), `self` (destroyed by `AID:-1` with no attacker involvement: terrain crash, overstress, or an abandoned aircraft), or `none` (not lost). On top of that, a `suspected_structural_failure` flag: destroyed **in the air** by `AID:-1`, no attacker involvement, and the self-damage began **less than ~1 s** before destruction (sudden breakup, the F-86 pattern). Shown on the sortie page. Thresholds are config values. Validate counts on `sample_data/` during iteration 1. | v1 | `[DECIDED]` (mark it), `[PROPOSED]` (definition) |
+| FR-ING-17 | **Mark self-destruction on the sortie.** Every lost aircraft gets a `loss_cause`: `attacker` (it was destroyed by a non-‑1 `AID`, or took any attacker hits or damage first) or `self` (destroyed by `AID:-1` with no attacker involvement: terrain impact, overstress, obstacle, or an abandoned aircraft). Plus a `suspected_structural_failure` flag (definition v2 below). Both show on the sortie page. | v1 | `[DECIDED]` (mark it), `[PROPOSED]` (definition v2, tested on sample data 2026-10-02) |
 | FR-ING-15 | **Live sorties**: stream in-progress data so sorties appear right away, instead of after the mission ends. A stretch goal. | later (v2–v3+) | `[DEFERRED]` |
 | FR-ING-16 | **Remote log mode**: the stats site runs on a different machine than DServer. Logs get copied into the configured folder (network share, sync tool, or a later `il2ks ship` helper). Ingestion must tolerate files that are still being copied (only read parts whose size is stable, or that have a newer sibling). | v1 (folder-based); helper later | `[DECIDED]` (support it), `[PROPOSED]` (mechanism) |
 
@@ -63,6 +63,20 @@ F-86 has ~12 undamaged bailouts per 100 aircraft lost versus 1–4 for other typ
 [12](12_korea_log_format.md#pilot-bailout-detection-validated-2026-10-02)). Both facts are recorded on the sortie (FR-ING-17), so the UI
 can show "suspected early bailout" and "suspected structural failure" side by side. If penalties ever depend on it, a sortie with both flags
 can be treated as structural failure instead of an early bailout.
+
+### Self-destruction definition v2 (FR-ING-17) — tested on 210 sample missions, 2026-10-02
+`suspected_structural_failure` is true when **all** of these hold:
+1. `loss_cause = self`,
+2. the aircraft was destroyed **airborne** (wheels-off state at its AType 3),
+3. the self-damage began **< 1 s** before destruction (sudden),
+4. the wreck **kept falling > 1 s** before its next ground contact (AType 31 or 6). This is the condition the first draft lacked.
+
+Results (6,367 aircraft lost out of 11,550 sorties that took off): `loss_cause` is **attacker 3,172 / self 3,195**. Conditions 1–3 alone (draft v1) matched
+2,675. That was far too broad: **628 were terrain impacts** (the wreck hit the ground within 1 s, and the pilot died with it in 94% of them). With condition 4:
+**391 suspected structural failures** (wreck fell a median 7.7 s from a median 424 m). **F-86A-5: 17.6 per 100 aircraft lost; every other type
+1.5–5.2.** That independently supports the maintainer's "the Sabre tears its own wings off" explanation. Limitations: 1,656 sudden airborne self-losses
+log no ground contact afterwards, so they can't be classified and stay plain `self`. About 20% of the flagged ones were destroyed below 100 m
+(probably obstacle or tree strikes). A minimum-altitude threshold is an easy later tweak. The thresholds are config values.
 
 ## Website: players (FR-WEB)
 

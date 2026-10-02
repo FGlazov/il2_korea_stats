@@ -73,6 +73,8 @@ The maintainer asked whether to use Claude skills or something else. Recommendat
    - `update-object-catalog`: add new aircraft or objects after a game patch.
    - `golden-update`: regenerate snapshot tests and summarize the behavior diff for review.
    Skills are packaged instructions loaded on demand, so they keep `CLAUDE.md` small. Write one after doing a task twice, not before.
+   - **Exists now:** `design-doc-sync` (`.claude/skills/design-doc-sync/`). It checks `design_doc/` for changes since the last review
+     (including uncommitted edits by the maintainer) before design-relevant work, and writes decisions back afterwards.
 5. **Review**: use `/code-review` on branches before merging, and a `/security-review` pass before releases.
 
 ## Conventions `[PROPOSED]`
