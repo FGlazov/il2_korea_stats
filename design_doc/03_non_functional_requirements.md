@@ -7,7 +7,7 @@
 | NFR-INS-1 | A non-programmer can install a working system **without using a terminal**, or at most by copy-pasting a single command. Target: under 15 minutes. | `[PROPOSED]` (target) |
 | NFR-INS-2 | No manual database admin: no pgAdmin, no hand-run SQL, no Postgres extensions to enable. | `[PROPOSED]` |
 | NFR-INS-3 | Both processes (web and ingester) start with **one action**, and restart automatically after a reboot. | `[PROPOSED]` |
-| NFR-INS-4 | Upgrading to a new version takes one action and keeps the data. Migrations run automatically. | `[PROPOSED]` |
+| NFR-INS-4 | Upgrading to a new version takes one action and keeps the data. Migrations run automatically, **after an automatic backup** (FR-OPS-6). | `[PROPOSED]` |
 | NFR-INS-5 | The machine runs the game server too, so resource use must stay small: idle RAM roughly under 300 MB, and ingestion must not starve DServer of CPU. | `[PROPOSED]` |
 
 ## Security (pain point P3)
@@ -34,7 +34,7 @@
 |---|---|---|
 | NFR-PERF-1 | Ingesting one mission takes **at most about 5 minutes** on the game machine. **Performance isn't a priority** (maintainer, 2026-10-02): missions run ~3 h, so this leaves plenty of slack. Don't optimize before there's a measured problem. | `[DECIDED]` |
 | NFR-PERF-2 | Public pages feel fast (roughly under 300 ms) with the data a server actually has. The game is only a few months old, so history is small. Achieved by design: views only do simple reads on pre-aggregated tables (TD-22). Revisit only if history grows into a problem. | `[PROPOSED]` |
-| NFR-PERF-4 | **Backfill** (`reprocess`): no hard target. It runs at low priority so DServer isn't affected, and mission-level work can run in parallel (TD-08). Current history is a few months of missions, so even at the 5-minute upper bound it's an overnight-to-weekend job, and in practice expected to be much faster. | `[PROPOSED]` |
+| NFR-PERF-4 | **Backfill** (`reprocess`): no hard target. It runs at low priority so DServer isn't affected, and parse/replay can run in parallel worker processes, with one writer (FR-ING-20). Current history is a few months of missions, so even at the 5-minute upper bound it's an overnight-to-weekend job, and in practice expected to be much faster. | `[PROPOSED]` |
 | NFR-PERF-3 | Expected scale for one busy server (measured from samples): about 8 missions a day, about 73 player sorties per mission, so about 210k sorties a year. Raw logs are about 5.9 MB / 86k lines per mission, including about 61k hit lines and 11k damage lines. Storing hit and damage rows individually would add about 500M rows a year, so **aggregate them per sortie or per pair** (TD-08). This also keeps SQLite comfortable. | `[PROPOSED]` (from data) |
 
 ## Reliability and data integrity

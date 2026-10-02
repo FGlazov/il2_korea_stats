@@ -17,7 +17,9 @@ Principles (all `[DECIDED]`):
   (`2026-09-19_22-34-13`). Korea's AType 0 has an empty `MID:` field, so the game provides no mission ID.
 - **In-mission object IDs** are integers that are only unique within one mission. AType 12 can re-declare an existing ID
   (Korea does this for player aircraft and pilots at sortie end). Treat that as an update, not a new object.
-- Internal integer PKs are used in URLs for brevity. Game UUIDs are kept for future cross-server merging (TD-17).
+- Internal integer PKs are used in URLs for brevity. They stay **stable across `reprocess`** because rows are upserted by natural key:
+  mission `(server_uid, mission_uid)`, sortie `(mission, account_uuid, spawn_tick)`, player `account_uuid` (FR-ING-9, FR-WEB-13).
+  Game UUIDs are kept for future cross-server merging (TD-17).
 
 ## Coalitions and countries `[DECIDED]` (generic names for now)
 - Display coalition 1 as **REDFOR** (countries 501–503, the communist side) and coalition 2 as **BLUFOR** (601–603, the UN side). We don't
@@ -76,7 +78,8 @@ are computed at read time from those counters, as model properties or template f
 GameObject     id, log_name (unique), display_name, cls (fighter/bomber/attacker/tank/aaa/ship/...),
                is_playable, is_known (false = auto-registered unknown, FR-ING-7)
 Country        code (501...), display_name, coalition                                  -- admin-editable
-IngestRun      id, mission_uid, files (json), status (ok/failed/skipped), started_at, finished_at,
+IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
+               attempts, next_retry_at, started_at, finished_at,
                lines_total, lines_bad, log_version, unknown_atypes (json), unknown_keys (json), warnings (json), error
 SiteSettings   singleton: title, server name, logo, accent colors, description, links  -- TD-25
 ```

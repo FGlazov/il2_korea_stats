@@ -68,22 +68,30 @@ The inner layers must not import `django` or `il2ks.db`. Enforce this mechanical
 ## Ingestion pipeline
 
 ```
-discover_missions(log_dir) ─► for each COMPLETE mission not yet in DB (by mission key):
+take the single-writer lock (FR-ING-20)
+reconcile: archive any ingested mission lacking a verified archive (FR-ING-8)
+discover_missions(log_dir) ─► for each COMPLETE mission that is new, or whose part-file fingerprint changed (FR-ING-18),
+                              skipping failed missions still in retry backoff (FR-ING-19):
     files  = ordered log files of the mission
+    archive(files) and verify it                # FIRST: the archive is the source of truth
     events = logparse.parse_files(files)        # generator; bad lines → warnings, not exceptions
     result = replay.run(events, catalog)        # pure, deterministic
     with transaction.atomic():
-        persist(result)                         # level 1: Mission, PlayerSortie, Kill, PlayerMission
+        upsert(result)                          # level 1, in place by natural key, so URLs stay stable (FR-ING-9)
         update_aggregates(result)               # level 2: Player, PlayerAircraft (+ PlayerTour in it2); incremental, rebuildable (TD-08)
-        record IngestRun(ok, counts, warnings)
-    archive(files)                              # compress to archive dir; optional delete
-on exception: record IngestRun(failed, traceback); continue to next mission
+        record IngestRun(ok, fingerprint, archive path + checksum, counts, warnings)
+    move originals out of the log folder        # default after verified archive (FR-ING-10)
+on exception: record IngestRun(failed, traceback, next_retry_at); continue to next mission
 ```
 
+- **Re-ingesting a mission** (late parts, retry, reprocess): before upserting, subtract the mission's *old* level-1 contribution from the
+  level-2 totals of the affected players (or recompute just those players from level 1), so incremental totals never double-count.
+  The aggregate-rebuild test (doc 08) covers it.
 - **Mission key** `[PROPOSED]`: the log file name timestamp plus the server ID (see TD-17). Korea's logs
   don't include a mission ID (AType 0 `MID:` is empty).
 - **Completeness detection**: see FR-ING-2. In remote log mode (FR-ING-16), only read parts whose size has stopped changing.
-- **Backfill**: `il2ks reprocess` runs the level-1 pipeline per archived mission (in parallel, at low process priority), then
+- **Backfill**: `il2ks reprocess` parses and replays archived missions in parallel worker processes (low priority). One writer process
+  upserts the results (SQLite has one writer), then
   `rebuild-aggregates` once at the end (NFR-PERF-4).
 - **New log content** (every couple of years): add an event dataclass and mapping in `logparse`, and a handler in `replay` if it
   matters. Unknown content is already kept and counted (TD-20).

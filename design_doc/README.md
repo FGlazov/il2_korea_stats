@@ -75,3 +75,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (translations other than English are not a release gate; release gate trimmed to object-name overrides + installer).
   2026-10-02 (future position source: separate live telemetry collector and storage, OQ-26).
   2026-10-02 (countries display as plain REDFOR/BLUFOR, no country codes in the UI).
+  2026-10-02 (review fixes: stable URLs via natural-key upserts, archive-first + reconcile, late-part re-ingest, retry backoff,
+  single-writer lock, move originals after archive by default, admin-state backups; all proposed).
