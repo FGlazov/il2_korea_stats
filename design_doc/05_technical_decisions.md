@@ -92,10 +92,11 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Decision:** Compressed archive per mission (zip or zstd), **kept forever by default** (retention stays configurable). Logs
   compress roughly 15×, so a busy server's year is about 1–2 GB. `il2ks reprocess` rebuilds from the archive (backfill after stats changes).
 
-### TD-10 Production web server — `[PROPOSED]`
-- **Decision:** **waitress** (pure Python, works on Windows, used by the old system) or **granian** (Rust, cross-platform,
-  faster). Pick one during the PoC. Use **WhiteNoise** to serve static files from the same process. It listens on **localhost only**,
+### TD-10 Production web server: granian — `[DECIDED]` (2026-10-02)
+- **Decision (maintainer):** **granian** (Rust-based, cross-platform including Windows, ships as a Python wheel so uv installs it)
+  serves Django through its WSGI interface. **WhiteNoise** serves static files from the same process. It listens on **localhost only**,
   behind the HTTPS proxy (TD-23).
+- **Alternative considered:** waitress (pure Python, used by the old system). It's slower, and was kept only as a fallback idea.
 - **Not gunicorn**, because it doesn't run on Windows.
 
 ### TD-11 Configuration — `[PROPOSED]`

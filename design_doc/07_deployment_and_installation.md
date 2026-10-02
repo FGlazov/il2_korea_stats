@@ -35,7 +35,7 @@ with one action and survive reboots, and upgrades keep the data.
 ## What has to run
 
 1. The database: **SQLite**, a file, so there's nothing to run (TD-04; Postgres is dev-side only).
-2. `il2ks web` (WSGI server).
+2. `il2ks web` (granian serving Django, TD-10).
 3. `il2ks watch` (ingester loop).
 
 4. The HTTPS reverse proxy (bundled Caddy, TD-23), unless the admin brings their own.
@@ -90,7 +90,7 @@ creates the admin, and optionally registers a scheduled task or service), then `
 
 ## Networking notes
 - **HTTPS only** `[DECIDED]` (TD-23). Public ports are **443** (site) and **80** (redirect to HTTPS + ACME certificate challenge).
-  The WSGI server listens on `127.0.0.1:8000` only. If 80 or 443 are already taken (for example by IIS), use the "bring your own proxy" mode.
+  granian listens on `127.0.0.1:8000` only. If 80 or 443 are already taken (for example by IIS), use the "bring your own proxy" mode.
 - The installer creates the Windows Firewall rules for 80 and 443 (with an opt-in checkbox).
 - Certificates: a domain name pointing at the server (recommended), otherwise an IP-address certificate, otherwise self-signed for testing (TD-23).
 - Admins with an existing **nginx or IIS** use `https.mode = "external"`. Sample configs are in the docs (TD-23).
