@@ -1,0 +1,5 @@
+{% load i18n il2ks %}{% comment %}
+  empty_row.html ({% empty_row colspan message %}): the "nothing here" row for an empty <tbody>.
+  Context: colspan (number of columns), message (optional; default "Nothing to show yet.").
+  The picture is static/il2ks/img/illustration/empty.svg.
+{% endcomment %}<tr class="empty-row"><td colspan="{{ colspan }}">{% icon "illustration/empty" "empty-row__mark" %}<div>{{ message|default:_("Nothing to show yet.") }}</div></td></tr>

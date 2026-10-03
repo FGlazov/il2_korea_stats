@@ -69,6 +69,7 @@ current_data_version  # db.site: TD-28 ETags, caller arrives with the caching mi
 bump_data_version  # db.site: TD-28, callers arrive with ingest/admin hooks; drop this line then
 check  # ops.doctor: registry decorator, checks arrive with the ops agents; drop this line then
 run_checks  # ops.doctor: called by `il2ks doctor` once the command exists; drop this line then
+_.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 _.detail  # ops.doctor.Finding
 _.fix  # ops.doctor.Finding
 _.WARN  # ops.doctor.Level

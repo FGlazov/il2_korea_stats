@@ -1,0 +1,6 @@
+{% comment %}
+  kv_list.html ({% kv_list items %}): a summary list.
+  Context: items, a list of (label, value) pairs; values may be markup such as badges.
+{% endcomment %}<dl class="kv">{% for label, value in items %}
+  <dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}
+</dl>

@@ -1,0 +1,374 @@
+"""Template filters and tags of the web UI: `{% load il2ks %}`.
+
+The tags render the files in `templates/il2ks/components/`; every component documents its context at the top of
+its template, and server owners may override any of them (TD-25). Tags that need the current URL read the request from
+the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
+
+Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent.
+Tags: icon, aircraft_icon, side, badge, coalition_badge, outcome_badge, fate_badge, status_badge, aircraft_badge,
+role_badge, stat_tile, kv_list, empty_row,
+breadcrumbs, dropdown, sort_th, pagination, filter_select, filter_text.
+Block tags: results_region, filter_bar, accordion, notice.
+"""
+
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from datetime import datetime
+
+from django import template
+from django.core.paginator import Page
+from django.http import HttpRequest, QueryDict
+from django.template import Context, Node, NodeList, TemplateSyntaxError
+from django.template.base import FilterExpression, Parser, Token, kwarg_re
+from django.template.loader import render_to_string
+from django.utils.safestring import SafeString
+
+from il2ks.web import display, icons
+from il2ks.web.display import SortFirst, Tone
+
+register = template.Library()
+
+COMPONENTS = "il2ks/components/"
+NON_FILTER_PARAMS = frozenset({"page", "sort"})
+
+type Option = tuple[object, object]
+type Crumb = tuple[object, str | None]
+
+
+# --- query string helpers -----------------------------------------------------------------------------------------
+def _request_of(context: Context) -> HttpRequest | None:
+    request = context.get("request")
+    return request if isinstance(request, HttpRequest) else None
+
+
+def _params_of(context: Context) -> QueryDict:
+    request = _request_of(context)
+    return request.GET if request is not None else QueryDict()
+
+
+def replace_query(params: QueryDict, changes: Mapping[str, object | None]) -> str:
+    """'?a=1&b=2' from `params` with `changes` applied: a None or '' value drops the key. '' when nothing is left.
+
+    Page agents building links in Python use this; templates can use Django's `{% querystring %}` (same semantics)."""
+    updated = params.copy()
+    for key, value in changes.items():
+        if value is None or value == "":
+            updated.pop(key, None)
+        else:
+            updated[key] = str(value)
+    encoded = updated.urlencode()
+    return f"?{encoded}" if encoded else "?"
+
+
+# --- filters ------------------------------------------------------------------------------------------------------
+@register.filter
+def duration(seconds: object) -> str:
+    """{{ sortie.flight_time_s|duration }} -> '1 h 23 min', '12 min', '45 s'."""
+    return display.duration(seconds)
+
+
+@register.filter
+def utc(value: datetime | None) -> str:
+    """{{ mission.started_at|utc }} -> '2026-09-19 22:34 UTC'."""
+    return display.utc(value)
+
+
+@register.filter
+def utc_date(value: datetime | None) -> str:
+    """{{ mission.started_at|utc_date }} -> '2026-09-19'."""
+    return display.utc_date(value)
+
+
+@register.filter
+def num(value: object, places: int = 0) -> str:
+    """{{ player.kills_air|num }} -> '1,234'; {{ x|num:1 }} -> one decimal."""
+    return display.num(value, places)
+
+
+@register.filter
+def ratio(numerator: object, denominator: object) -> str:
+    """{{ p.kills_air|ratio:p.deaths }} -> '2.35', or the dash when the denominator is 0 (K/D, TD-22)."""
+    return display.ratio(numerator, denominator)
+
+
+@register.filter
+def per_hour(count: object, seconds: object) -> str:
+    """{{ p.kills_air|per_hour:p.flight_time_s }} -> kills per flight hour, '2 decimals', or the dash."""
+    return display.per_hour(count, seconds)
+
+
+@register.filter
+def percent(part: object, whole: object) -> str:
+    """{{ landed|percent:sorties }} -> '87%', or the dash when `whole` is 0."""
+    return display.percent(part, whole)
+
+
+# --- coalitions and badges ----------------------------------------------------------------------------------------
+@register.simple_tag(takes_context=True)
+def side(context: Context, country: object) -> str:
+    """{% side sortie.country %} or {% side sortie.country as name %}: REDFOR/BLUFOR display name (5xx/6xx, doc 06)."""
+    site = context.get("site")
+    return display.side_name(
+        country,
+        str(getattr(site, "redfor_name", "REDFOR")),
+        str(getattr(site, "blufor_name", "BLUFOR")),
+    )
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def badge(text: object, tone: Tone = "grey", title: str = "", icon: str = "") -> dict[str, object]:
+    """{% badge "Verified" "green" icon="outcome/landed" %}: the generic pill. Tones: see badge.html."""
+    return {"text": text, "tone": tone, "title": title, "icon_html": icons.icon_markup(icon) if icon else ""}
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html", takes_context=True)
+def coalition_badge(context: Context, country: object) -> dict[str, object]:
+    """{% coalition_badge sortie.country %}: red-ish REDFOR or blue-ish BLUFOR pill (country code or side key)."""
+    key = display.side_of(country)
+    return {
+        "text": side(context, country),
+        "tone": key if key is not None else "grey",
+        "icon_html": icons.icon_markup(f"coalition/{key}") if key is not None else "",
+    }
+
+
+def _enum_badge(table: Mapping[str, display.BadgeSpec], value: object) -> dict[str, object]:
+    text, tone, icon = display.badge_spec(table, value)
+    return {"text": text, "tone": tone, "icon_html": icons.icon_markup(icon) if icon else ""}
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def outcome_badge(value: object) -> dict[str, object]:
+    """{% outcome_badge sortie.outcome %}: landed, ditched, crashed, shot_down, in_flight, not_taken_off, ..."""
+    return _enum_badge(display.OUTCOMES, value)
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def fate_badge(value: object) -> dict[str, object]:
+    """{% fate_badge sortie.pilot_fate %}: in_aircraft, bailed_out, exited_on_ground, ..."""
+    return _enum_badge(display.FATES, value)
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def status_badge(value: object) -> dict[str, object]:
+    """{% status_badge sortie.pilot_status %}: healthy, wounded, dead, captured."""
+    return _enum_badge(display.STATUSES, value)
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def aircraft_badge(value: object) -> dict[str, object]:
+    """{% aircraft_badge sortie.aircraft_status %}: unharmed, damaged, destroyed (never derive it from damage_taken)."""
+    return _enum_badge(display.AIRCRAFT_STATUSES, value)
+
+
+@register.inclusion_tag(COMPONENTS + "badge.html")
+def role_badge(value: object) -> dict[str, object]:
+    """{% role_badge sortie.combat_role %}: air_superiority, attack."""
+    return _enum_badge(display.ROLES, value)
+
+
+# --- small components ---------------------------------------------------------------------------------------------
+@register.inclusion_tag(COMPONENTS + "stat_tile.html")
+def stat_tile(value: object, label: object, sub: object = "", icon: str = "") -> dict[str, object]:
+    """{% stat_tile p.kills_air|num _("Air kills") sub=kd icon="stat/air-kills" %}; wrap tiles in .stat-tiles."""
+    return {"value": value, "label": label, "sub": sub, "icon_html": icons.icon_markup(icon) if icon else ""}
+
+
+@register.simple_tag
+def icon(name: str, css_class: str = "") -> SafeString:
+    """{% icon "event/takeoff" %} or {% icon "stat/sorties" "my-class" %}: the inline SVG from static/il2ks/img/.
+
+    It follows the text colour (currentColor) and renders nothing when the file does not exist."""
+    return icons.icon_markup(name, css_class)
+
+
+@register.simple_tag
+def aircraft_icon(aircraft: object, css_class: str = "") -> SafeString:
+    """{% aircraft_icon sortie.aircraft %} for a GameObject: aircraft/<log_name slug>.svg, else the generic jet or prop
+    (by `propulsion`), else a question-mark aircraft."""
+    name = icons.aircraft_icon_name(str(getattr(aircraft, "log_name", "")), str(getattr(aircraft, "propulsion", "")))
+    return icons.icon_markup(name, css_class)
+
+
+@register.inclusion_tag(COMPONENTS + "kv_list.html")
+def kv_list(items: Iterable[tuple[object, object]]) -> dict[str, object]:
+    """{% kv_list rows %}: a summary list from (label, value) pairs; values may be markup (badges)."""
+    return {"items": list(items)}
+
+
+@register.inclusion_tag(COMPONENTS + "empty_row.html")
+def empty_row(colspan: int, message: object = "") -> dict[str, object]:
+    """{% empty_row 6 %} inside <tbody> when there are no rows."""
+    return {"colspan": colspan, "message": message}
+
+
+@register.inclusion_tag(COMPONENTS + "breadcrumbs.html")
+def breadcrumbs(crumbs: Iterable[Crumb]) -> dict[str, object]:
+    """{% breadcrumbs crumbs %} with (label, url) pairs; the last one (url None) is the current page."""
+    return {"crumbs": list(crumbs)}
+
+
+@register.inclusion_tag(COMPONENTS + "dropdown.html")
+def dropdown(label: object, items: Iterable[tuple[object, str]], align: str = "") -> dict[str, object]:
+    """{% dropdown _("Links") links %} with (label, href) pairs: a Pico `<details class="dropdown">` menu."""
+    return {"label": label, "items": list(items), "align": align}
+
+
+# --- table, sorting, paging, filters ------------------------------------------------------------------------------
+@register.inclusion_tag(COMPONENTS + "sort_th.html", takes_context=True)
+def sort_th(
+    context: Context,
+    field: str,
+    label: object,
+    current: str | None = None,
+    numeric: bool = False,
+    first: SortFirst | None = None,
+) -> dict[str, object]:
+    """{% sort_th "kills" _("Kills") numeric=True %}: a sortable <th>.
+
+    `current` defaults to the context variable `sort` (the view's whitelisted, resolved value: 'kills' or '-kills').
+    The first click sorts descending for numeric columns and ascending otherwise (override with first="asc"/"desc")."""
+    active = current if current is not None else str(context.get("sort") or "")
+    direction = "desc" if active == f"-{field}" else "asc" if active == field else ""
+    target = display.next_sort(active, field, first or ("desc" if numeric else "asc"))
+    return {
+        "label": label,
+        "numeric": numeric,
+        "direction": direction,
+        "aria_sort": {"asc": "ascending", "desc": "descending"}.get(direction, "none"),
+        "href": replace_query(_params_of(context), {"sort": target, "page": None}),
+    }
+
+
+@register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
+def pagination(context: Context, page_obj: Page) -> dict[str, object]:
+    """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters."""
+    params = _params_of(context)
+    paginator = page_obj.paginator
+    links = [
+        {
+            "number": link.number,
+            "current": link.current,
+            "href": replace_query(params, {"page": link.number if link.number != 1 else None})
+            if link.number is not None
+            else "",
+        }
+        for link in display.page_links(page_obj.number, paginator.num_pages)
+    ]
+    return {
+        "page_obj": page_obj,
+        "total": paginator.count,
+        "first_index": page_obj.start_index(),
+        "last_index": page_obj.end_index(),
+        "multiple": paginator.num_pages > 1,
+        "links": links,
+        "prev_href": (
+            replace_query(params, {"page": page_obj.previous_page_number() if page_obj.number > 2 else None})
+            if page_obj.has_previous()
+            else ""
+        ),
+        "next_href": replace_query(params, {"page": page_obj.next_page_number()}) if page_obj.has_next() else "",
+    }
+
+
+@register.inclusion_tag(COMPONENTS + "filter_select.html", takes_context=True)
+def filter_select(
+    context: Context,
+    name: str,
+    label: object,
+    options: Iterable[Option],
+    selected: object = None,
+    all_label: object = "",
+) -> dict[str, object]:
+    """{% filter_select "aircraft" _("Aircraft") options all_label=_("All aircraft") %} inside {% filter_bar %}.
+
+    `options` are (value, label) pairs. The selected value is read from `?name=` unless `selected` is given."""
+    chosen = str(selected) if selected is not None else _params_of(context).get(name, "")
+    rows = [(str(value), label_, str(value) == chosen) for value, label_ in options]
+    return {"name": name, "label": label, "options": rows, "all_label": all_label, "chosen": chosen}
+
+
+@register.inclusion_tag(COMPONENTS + "filter_text.html", takes_context=True)
+def filter_text(
+    context: Context, name: str, label: object, placeholder: object = "", live: bool = False
+) -> dict[str, object]:
+    """{% filter_text "q" _("Name") live=True %} inside {% filter_bar %}; live=True also submits while typing."""
+    return {
+        "name": name,
+        "label": label,
+        "placeholder": placeholder,
+        "live": live,
+        "value": _params_of(context).get(name, ""),
+    }
+
+
+# --- block tags ---------------------------------------------------------------------------------------------------
+class ComponentBlockNode(Node):
+    """Renders `template_name` with the tag's arguments plus `content` (the rendered body) and `request`."""
+
+    def __init__(
+        self,
+        template_name: str,
+        nodelist: NodeList,
+        values: Mapping[str, FilterExpression],
+        extra: Callable[[Context], Mapping[str, object]] | None,
+    ) -> None:
+        self.template_name = template_name
+        self.nodelist = nodelist
+        self.values = values
+        self.extra = extra
+
+    def render(self, context: Context) -> SafeString:
+        resolved = {name: expr.resolve(context) for name, expr in self.values.items()}  # pyright: ignore[reportArgumentType]
+        data: dict[str, object] = dict(resolved)
+        data["content"] = self.nodelist.render(context)
+        data["request"] = _request_of(context)
+        if self.extra is not None:
+            data.update(self.extra(context))
+        return SafeString(render_to_string(self.template_name, data))
+
+
+def _register_block(
+    name: str,
+    template_name: str,
+    params: Sequence[str],
+    extra: Callable[[Context], Mapping[str, object]] | None = None,
+) -> None:
+    """Registers `{% name arg ... key=value %}...{% endname %}`; `params` names the positional arguments in order."""
+
+    def compile_tag(parser: Parser, token: Token) -> Node:
+        bits = token.split_contents()[1:]
+        values: dict[str, FilterExpression] = {}
+        position = 0
+        for bit in bits:
+            match = kwarg_re.match(bit)
+            key = match.group(1) if match is not None else None
+            if key is None:
+                if position >= len(params):
+                    raise TemplateSyntaxError(f"{name!r} takes at most {len(params)} positional arguments")
+                values[params[position]] = parser.compile_filter(bit)
+                position += 1
+            else:
+                values[key] = parser.compile_filter(bit.split("=", 1)[1])
+        nodelist = parser.parse((f"end{name}",))
+        parser.delete_first_token()
+        return ComponentBlockNode(template_name, nodelist, values, extra)
+
+    register.tag(name, compile_tag)
+
+
+def _filter_bar_extra(context: Context) -> dict[str, object]:
+    request = _request_of(context)
+    params = _params_of(context)
+    active = any(value for key, values in params.lists() for value in values if key not in NON_FILTER_PARAMS)
+    return {
+        "action": request.path if request is not None else "",
+        "sort": params.get("sort", ""),
+        "has_filters": active,
+        "clear_href": replace_query(QueryDict(), {"sort": params.get("sort", "")}),
+    }
+
+
+_register_block("results_region", COMPONENTS + "results_region.html", ())
+_register_block("filter_bar", COMPONENTS + "filter_bar.html", (), _filter_bar_extra)
+_register_block("accordion", COMPONENTS + "accordion.html", ("title", "hint"))
+_register_block("notice", COMPONENTS + "notice.html", ("kind", "title"))

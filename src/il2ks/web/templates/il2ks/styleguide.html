@@ -1,0 +1,223 @@
+{% extends "il2ks/base.html" %}{% load il2ks %}{% comment %}
+  Dev-only style guide (DEBUG only). English on purpose: the i18n test skips this file. Context comes from
+  il2ks.web.views.styleguide. Add ?theme=dark or ?theme=light to preview a theme.
+{% endcomment %}
+{% block content %}
+  <div class="page-head">
+    <h1>Style guide</h1>
+    <p>Every component with fake data. Switch light and dark with the half-moon button in the header, or add <code>?theme=dark</code> to the URL.
+       Template names, blocks and context are a semi-public API (TD-25): server owners override them.</p>
+  </div>
+
+  <section class="sg-section" id="tokens">
+    <h2>Colour tokens</h2>
+    <p class="sg-note">Change them in <code>static/il2ks/site.css</code> section 1. The accent comes from the admin (Site settings).</p>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><i style="background:var(--il2-accent)"></i>accent</div>
+      <div class="sg-swatch"><i style="background:var(--il2-primary)"></i>primary (text)</div>
+      <div class="sg-swatch"><i style="background:var(--il2-bg)"></i>bg</div>
+      <div class="sg-swatch"><i style="background:var(--il2-surface)"></i>surface</div>
+      <div class="sg-swatch"><i style="background:var(--il2-surface-2)"></i>surface-2</div>
+      <div class="sg-swatch"><i style="background:var(--il2-surface-hover)"></i>hover</div>
+      <div class="sg-swatch"><i style="background:var(--il2-border)"></i>border</div>
+      <div class="sg-swatch"><i style="background:var(--il2-text)"></i>text</div>
+      <div class="sg-swatch"><i style="background:var(--il2-muted)"></i>muted</div>
+    </div>
+  </section>
+
+  <section class="sg-section" id="brand">
+    <h2>Brand and texture</h2>
+    <p class="sg-note">Military palette (olive, khaki, gunmetal, muted amber), squared corners, a condensed display face for headings and big numbers.
+       The camo tile (<code>img/pattern/camo.svg</code>) and the aircraft silhouette (<code>img/brand/logo-mark.svg</code>) appear only in the header band, the hero and empty or error states, never behind data.</p>
+    <section class="hero">
+      {% icon "brand/logo-mark" "hero__mark" %}
+      <h1>Hero band</h1>
+      <p class="lead">Used on the home page. Dark in both themes, with the camo tile at very low contrast.</p>
+      <div class="button-row"><a role="button" href="#brand">Primary action</a><a role="button" class="secondary outline" href="#brand">Secondary</a></div>
+    </section>
+  </section>
+
+  <section class="sg-section" id="icons">
+    <h2>Icons and images</h2>
+    <p class="sg-note">All placeholders under <code>static/il2ks/img/</code>, inlined so they follow the text colour. A designer replaces the files and keeps the names.
+       Server owners can override any of them in <code>custom/static/il2ks/img/</code>.</p>
+<pre class="sg-code">{% verbatim %}{% icon "stat/sorties" %}   {% icon "stat/sorties" "my-class" %}   {% aircraft_icon sortie.aircraft %}   {% stat_tile v l icon="stat/deaths" %}{% endverbatim %}</pre>
+    <div class="sg-icons">
+      {% for name in icon_names %}<div class="sg-icon">{% icon name %}<span>{{ name }}</span></div>{% endfor %}
+    </div>
+    <h3>Aircraft icon fallbacks</h3>
+    <div class="sg-icons">
+      {% for aircraft in sample_aircraft %}<div class="sg-icon">{% aircraft_icon aircraft %}<span>{{ aircraft.log_name }} ({{ aircraft.propulsion|default:"unknown" }})</span></div>{% endfor %}
+    </div>
+  </section>
+
+  <section class="sg-section" id="type">
+    <h2>Typography and buttons</h2>
+    <article>
+      <h1>Heading 1</h1>
+      <h2 style="margin-top:0">Heading 2</h2>
+      <h3 style="margin-top:0">Heading 3</h3>
+      <p class="lead">Lead paragraph in muted text, for page introductions.</p>
+      <p>Body text with a <a href="#type">link</a>, <small>small print</small>, <code>inline code</code> and tabular numbers: <span class="num">1,234,567</span> 0.00 8.88.</p>
+      <div class="button-row">
+        <button type="button">Primary</button>
+        <button type="button" class="secondary">Secondary</button>
+        <button type="button" class="outline">Outline</button>
+        <a role="button" href="#type">Link button</a>
+      </div>
+    </article>
+  </section>
+
+  <section class="sg-section" id="tiles">
+    <h2>Stat tiles and key/value list</h2>
+<pre class="sg-code">{% verbatim %}&lt;div class="stat-tiles"&gt;
+  {% stat_tile player.kills_air|num _("Air kills") sub=player.kills_air|ratio:player.deaths %}
+&lt;/div&gt;
+{% kv_list rows %}{% endverbatim %}</pre>
+    <div class="stat-tiles">
+      {% stat_tile 1234|num "Sorties" sub="87 % landed" icon="stat/sorties" %}
+      {% stat_tile 482|num "Air kills" sub="K/D 2.35" icon="stat/air-kills" %}
+      {% stat_tile 97|num "Ground kills" icon="stat/ground-kills" %}
+      {% stat_tile 4980|duration "Flight time" sub="42 min per sortie" icon="stat/flight-time" %}
+      {% stat_tile 205|num "Deaths" sub="K/L 1.92" icon="stat/deaths" %}
+    </div>
+    {% kv_list kv_rows %}
+  </section>
+
+  <section class="sg-section" id="badges">
+    <h2>Badges</h2>
+<pre class="sg-code">{% verbatim %}{% coalition_badge sortie.country %}  {% outcome_badge sortie.outcome %}  {% fate_badge sortie.pilot_fate %}
+{% status_badge sortie.pilot_status %}  {% role_badge sortie.combat_role %}  {% badge "Custom" "teal" %}{% endverbatim %}</pre>
+    <h3>Coalitions</h3>
+    <p>{% coalition_badge 501 %} {% coalition_badge 601 %} {% coalition_badge 999 %}</p>
+    <h3>Sortie outcome</h3>
+    <p>{% for value in outcomes %}{% outcome_badge value %} {% endfor %}</p>
+    <h3>Pilot fate</h3>
+    <p>{% for value in fates %}{% fate_badge value %} {% endfor %}</p>
+    <h3>Pilot status</h3>
+    <p>{% for value in statuses %}{% status_badge value %} {% endfor %}</p>
+    <h3>Aircraft status</h3>
+    <p>{% for value in aircraft_statuses %}{% aircraft_badge value %} {% endfor %}</p>
+    <h3>Combat role</h3>
+    <p>{% for value in roles %}{% role_badge value %} {% endfor %}</p>
+    <h3>Generic tones</h3>
+    <p>{% badge "green" "green" %} {% badge "amber" "amber" %} {% badge "orange" "orange" %} {% badge "red" "red" %} {% badge "blue" "blue" %} {% badge "teal" "teal" %} {% badge "purple" "purple" %} {% badge "grey" "grey" %}</p>
+  </section>
+
+  <section class="sg-section" id="notices">
+    <h2>Notices and breadcrumbs</h2>
+<pre class="sg-code">{% verbatim %}{% notice "hidden" %}{% endnotice %}
+{% notice "changing" %}{% endnotice %}
+{% notice "info" title=_("Heads up") %}Own text.{% endnotice %}
+{% breadcrumbs crumbs %}   {# crumbs = [(label, url), ..., (label, None)] #}{% endverbatim %}</pre>
+    {% breadcrumbs crumbs %}
+    {% notice "hidden" %}{% endnotice %}
+    {% notice "changing" %}{% endnotice %}
+    {% notice "info" title="Heads up" %}Notices take their own text when the default does not fit.{% endnotice %}
+    {% notice "warning" %}Something needs attention.{% endnotice %}
+  </section>
+
+  <section class="sg-section" id="tables">
+    <h2>Table with sorting, filters and pagination</h2>
+    <p class="sg-note">Live demo: sort headers, dropdown filters, search and page links all work with and without JavaScript.</p>
+<pre class="sg-code">{% verbatim %}{% results_region %}
+  {% filter_bar %}
+    {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
+    {% filter_text "q" _("Callsign") live=True %}
+  {% endfilter_bar %}
+  &lt;div class="table-wrap"&gt;&lt;table class="data-table"&gt;
+    &lt;thead&gt;&lt;tr&gt;{% sort_th "callsign" _("Callsign") %}{% sort_th "kills" _("Kills") numeric=True %}&lt;/tr&gt;&lt;/thead&gt;
+    &lt;tbody&gt;{% for row in rows %}...{% empty %}{% empty_row 2 %}{% endfor %}&lt;/tbody&gt;
+  &lt;/table&gt;&lt;/div&gt;
+  {% pagination page_obj %}
+{% endresults_region %}{% endverbatim %}</pre>
+
+    {% results_region %}
+      {% filter_bar %}
+        {% filter_select "aircraft" "Aircraft" aircraft_options all_label="All aircraft" %}
+        {% filter_select "side" "Side" side_options all_label="Both sides" %}
+        {% filter_text "q" "Callsign" placeholder="Search..." live=True %}
+      {% endfilter_bar %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              {% sort_th "callsign" "Callsign" %}
+              <th scope="col">Side</th>
+              {% sort_th "aircraft" "Aircraft" %}
+              <th scope="col">Last outcome</th>
+              {% sort_th "sorties" "Sorties" numeric=True %}
+              {% sort_th "kills" "Kills" numeric=True %}
+              {% sort_th "deaths" "Deaths" numeric=True %}
+              <th scope="col" class="num">K/D</th>
+              {% sort_th "flight_time_s" "Flight time" numeric=True %}
+              <th scope="col" class="num">Last seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td><a href="#tables">{{ row.callsign }}</a></td>
+                <td>{% coalition_badge row.country %}</td>
+                <td>{{ row.aircraft }}</td>
+                <td>{% outcome_badge row.outcome %}</td>
+                <td class="num">{{ row.sorties|num }}</td>
+                <td class="num">{{ row.kills|num }}</td>
+                <td class="num">{{ row.deaths|num }}</td>
+                <td class="num">{{ row.kills|ratio:row.deaths }}</td>
+                <td class="num">{{ row.flight_time_s|duration }}</td>
+                <td class="num">{{ row.last_seen|utc }}</td>
+              </tr>
+            {% empty %}
+              {% empty_row 10 %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% pagination page_obj %}
+    {% endresults_region %}
+
+    <h3>Empty state and footer row</h3>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact">
+        <thead><tr><th scope="col">Callsign</th><th scope="col" class="num">Kills</th><th scope="col" class="num">Deaths</th></tr></thead>
+        <tbody>{% empty_row 3 %}</tbody>
+        <tfoot><tr><td>Total</td><td class="num">0</td><td class="num">0</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="sg-section" id="menus">
+    <h2>Dropdown menu and accordions</h2>
+<pre class="sg-code">{% verbatim %}{% dropdown _("Actions") items %}      {# items = [(label, href), ...] #}
+{% accordion _("Damage taken") hint=_("12 hits") open=True %}...{% endaccordion %}{% endverbatim %}</pre>
+    {% dropdown "Actions" menu_items %}
+    {% accordion "Damage taken" hint="12 hits" open=True %}
+      <p>Accordions hold secondary detail: damage, ammunition, the event timeline. They are plain <code>details</code> elements, so they work without JavaScript.</p>
+    {% endaccordion %}
+    {% accordion "Event timeline" hint="collapsed by default" %}
+      <p>Hidden until opened.</p>
+    {% endaccordion %}
+  </section>
+
+  <section class="sg-section" id="filters">
+    <h2>Formatting filters</h2>
+<pre class="sg-code">{% verbatim %}{{ sortie.flight_time_s|duration }}  {{ mission.started_at|utc }}  {{ n|num }}  {{ kills|ratio:deaths }}
+{{ kills|per_hour:flight_time_s }}  {{ landed|percent:sorties }}  {% side sortie.country %}{% endverbatim %}</pre>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact">
+        <thead><tr><th scope="col">Filter</th><th scope="col">Input</th><th scope="col">Output</th></tr></thead>
+        <tbody>
+          {% for seconds in sample_seconds %}<tr><td class="mono">duration</td><td class="mono">{{ seconds }}</td><td>{{ seconds|duration }}</td></tr>{% endfor %}
+          <tr><td class="mono">utc</td><td class="mono">datetime</td><td>{{ sample_when|utc }}</td></tr>
+          <tr><td class="mono">num</td><td class="mono">1234567</td><td>{{ 1234567|num }}</td></tr>
+          <tr><td class="mono">ratio</td><td class="mono">482 / 205</td><td>{{ 482|ratio:205 }}</td></tr>
+          <tr><td class="mono">ratio</td><td class="mono">5 / 0</td><td>{{ 5|ratio:0 }}</td></tr>
+          <tr><td class="mono">per_hour</td><td class="mono">12 kills / 18000 s</td><td>{{ 12|per_hour:18000 }}</td></tr>
+          <tr><td class="mono">percent</td><td class="mono">87 / 100</td><td>{{ 87|percent:100 }}</td></tr>
+          <tr><td class="mono">side</td><td class="mono">501</td><td>{% side 501 %}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

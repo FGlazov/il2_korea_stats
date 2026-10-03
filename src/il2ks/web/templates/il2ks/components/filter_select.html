@@ -1,0 +1,9 @@
+{% load i18n %}{% comment %}
+  filter_select.html ({% filter_select name label options %}): a labelled <select> for {% filter_bar %}.
+  Context: name (query parameter), label, options (list of (value, label, is_selected)), all_label (the empty choice).
+{% endcomment %}<label class="filter" for="f-{{ name }}">{{ label }}
+  <select name="{{ name }}" id="f-{{ name }}">
+    <option value="">{{ all_label|default:_("All") }}</option>{% for value, text, is_selected in options %}
+    <option value="{{ value }}"{% if is_selected %} selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+</label>

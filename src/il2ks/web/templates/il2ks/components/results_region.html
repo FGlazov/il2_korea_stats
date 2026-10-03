@@ -1,0 +1,8 @@
+{% comment %}
+  results_region.html ({% results_region %}...{% endresults_region %}): wraps filter bar + table + pagination.
+  The htmx pattern for every list page: links and forms inside it that carry hx-get fetch the page, pick #results out
+  of the response (hx-select), replace the region (hx-target, hx-swap) and push the URL (hx-push-url). The server needs
+  no partial templates, and without JS everything is an ordinary full-page link or form. Use it at most once per page.
+  Links that leave the list (a player name, a mission) carry no hx-get, so they navigate normally.
+  Context: content.
+{% endcomment %}<div id="results" class="results-region" hx-target="#results" hx-select="#results" hx-swap="outerHTML" hx-push-url="true" hx-indicator="#results">{{ content }}</div>

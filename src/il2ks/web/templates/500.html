@@ -1,0 +1,26 @@
+{% load i18n static il2ks %}{% comment %}
+  Django's server-error view renders this (it must be named 500.html) with no request context, so it stands alone: it
+  must not extend base.html, use the database, or read site settings. Only static files.
+{% endcomment %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% translate "Something went wrong" %}</title>
+  <link rel="stylesheet" href="{% static 'il2ks/vendor/pico.min.css' %}">
+  <link rel="stylesheet" href="{% static 'il2ks/site.css' %}">
+  <script src="{% static 'il2ks/theme-init.js' %}"></script>
+</head>
+<body>
+  <main class="page">
+    <div class="error-page">
+      {% icon "illustration/500" "error-page__mark" %}
+      <div class="error-page__code">500</div>
+      <h1>{% translate "Something went wrong" %}</h1>
+      <p class="lead">{% translate "The server hit an error while building this page. Please try again in a moment." %}</p>
+      <div class="button-row button-row--center"><a role="button" href="/">{% translate "Back to the start page" %}</a></div>
+    </div>
+  </main>
+</body>
+</html>
