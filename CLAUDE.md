@@ -26,4 +26,4 @@ IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
 - **i18n**: wrap every template string in `{% translate %}` (a test enforces it).
 - **Every bug fix gets a regression test.** Reference requirement/decision IDs (FR-ING-14, TD-08) in docstrings where relevant.
 - **Never commit `sample_data/`** (real player data). Test fixtures come from `uv run il2ks dev anonymize`; a test checks them.
-- Work and commit on `main` (no feature branches for now). Ask before pushing.
+- Work and commit on `main` (no feature branches for now). Push when you're done working.
