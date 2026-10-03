@@ -52,6 +52,30 @@ jobs:
       - run: uv sync --locked
       - run: uv run pytest
 
+  test-e2e:
+    # Browser tests (doc 08): the real app in a child process, driven by Chromium through Playwright. Opt-in locally
+    # (IL2KS_TEST_E2E=1); always on here. Traces and screenshots of failures are kept as an artifact.
+    runs-on: ubuntu-latest
+    env:
+      IL2KS_TEST_E2E: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - run: >-
+          uv run pytest -m e2e --basetemp=e2e-tmp --output=test-results
+          --tracing=retain-on-failure --screenshot=only-on-failure
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-failure-${{ github.run_id }}
+          path: |
+            test-results/
+            e2e-tmp/**/server.log
+          if-no-files-found: ignore
+          retention-days: 14
+
   package:
     # The wheel must carry templates, static files, catalog data, the example config and the migrations (PyPI path).
     runs-on: ubuntu-latest

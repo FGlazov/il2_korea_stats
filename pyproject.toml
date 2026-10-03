@@ -41,6 +41,7 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "pytest-django>=4.9",
+    "pytest-playwright>=0.9.0",
     "ruff>=0.12",
     "vulture>=2.16",
 ]
@@ -97,6 +98,8 @@ filterwarnings = ["ignore:No directory at:UserWarning"]
 markers = [
     "postgres: needs a Postgres test database (IL2KS_TEST_DB=postgres); skipped otherwise",
     "sample_data: runs against the gitignored sample_data/ folder; skipped when it is missing",
+    "e2e: browser tests (Playwright, Chromium); skipped unless IL2KS_TEST_E2E=1",
+    "allow_console_errors: e2e test that expects the browser to log errors (a 404 page)",
 ]
 
 # --- import-linter: the core never knows Django exists (TD-07).

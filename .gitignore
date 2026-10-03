@@ -235,3 +235,7 @@ sample_data/
 
 # research dumps derived from sample_data (never commit)
 *.pkl
+
+# Playwright traces/screenshots and the e2e temp dir (tests/e2e; CI uploads them on failure)
+test-results/
+e2e-tmp/
