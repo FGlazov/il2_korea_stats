@@ -1,0 +1,48 @@
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  A player's sortie list (FR-WEB-5), newest first. Filters, sorting and paging work with and without htmx (results_region).
+  Context: player, page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
+  aircraft_options / outcome_options / role_options / combat_role_options ((value, label) pairs), crumbs, page_title.
+  Blocks: content only; the row is `sorties/parts/list_row.html`.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/sorties.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+  <div class="page-head">
+    <h1>{% blocktranslate with name=player.current_name %}Sorties of {{ name }}{% endblocktranslate %}</h1>
+    <p>{% translate "Every sortie, newest first. Select one for the full report." %}</p>
+  </div>
+
+  {% results_region %}
+    {% filter_bar %}
+      {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
+      {% filter_select "outcome" _("Outcome") outcome_options all_label=_("Any outcome") %}
+      {% filter_select "role" _("Seat") role_options all_label=_("Pilot or gunner") %}
+      {% filter_select "combat_role" _("Combat role") combat_role_options all_label=_("Any role") %}
+    {% endfilter_bar %}
+    <div class="table-wrap">
+      <table class="data-table data-table--compact sortie-list">
+        <thead>
+          <tr>
+            {% sort_th "date" _("Date (UTC)") first="desc" %}
+            {% sort_th "mission" _("Mission") first="desc" %}
+            {% sort_th "aircraft" _("Aircraft") %}
+            <th scope="col">{% translate "Role" %}</th>
+            {% sort_th "outcome" _("Outcome") %}
+            <th scope="col">{% translate "Pilot fate" %}</th>
+            {% sort_th "kills_air" _("Air kills") numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+            {% sort_th "assists" _("Assists") numeric=True %}
+            {% sort_th "flight_time" _("Flight time") numeric=True %}
+            <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sortie in page_obj %}{% include "il2ks/sorties/parts/list_row.html" %}
+          {% empty %}{% empty_row 11 _("No sorties match these filters.") %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

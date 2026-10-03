@@ -154,3 +154,13 @@ _.is_staff
 _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)
+
+# --- web.sortie_view view models: fields read only by the sortie templates (il2ks/sorties/*) ---------------------
+_.share  # GroundRow: the breakdown table
+_.static_share  # GroundBreakdown: the accordion hint
+_.used_unknown  # AmmoTable: notices.html and ammo.html
+_.place  # TimelineRow: tooltip with the position
+_.air_kills  # Detail: kills.html
+_.damage_more  # Detail: damage.html
+_.timeline_more  # Detail: timeline.html
+_.timeline_events  # Detail: timeline.html
