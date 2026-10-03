@@ -43,10 +43,11 @@ def _is_friendly(credited: Credited, victim_coalition: int | None) -> bool:
 
 
 def _is_victim_object(obj: TrackedObject) -> bool:
-    """Crew deaths aren't kills; neither are bombs, drop tanks and other ordnance, or undeclared placeholders."""
+    """Crew deaths aren't kills; neither are bombs and drop tanks (ordnance), parachutes, ejection seats, spotters and
+    vehicle turrets (catalog classes `crew` and `equipment`), or undeclared placeholders."""
     if obj.is_bot or obj.object_type == "":
         return False
-    return obj.info.cls not in ("ordnance", "gunner")
+    return obj.info.cls not in ("ordnance", "gunner", "crew", "equipment")
 
 
 def _via(sortie: SortieState, verdict: Verdict, explicit: TrackedObject | None) -> KillVia:
@@ -91,7 +92,11 @@ def _victims(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRules) -
 
 
 def _gunner_kill_pilot(entry: Credited, *, friendly: bool) -> SortieState | None:
-    """E2 (`[PROPOSED]`): the player pilot whose gunner got a (non-friendly) kill shares it as an assist."""
+    """The player pilot whose gunner got a (non-friendly) kill shares it as an assist `[PROPOSED]`
+    (design_doc/13_game_rules.md, Kills and credit).
+
+    Harmless but dormant on real data: the sample logs never name a turret or gunner bot as the attacker (AID); gunner
+    fire is credited to the parent aircraft, so the pilot already gets those kills directly (research, 210 missions)."""
     party = entry.party
     if not entry.is_killer or friendly or not isinstance(party, SortieState) or party.role != "gunner":
         return None
@@ -127,7 +132,7 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
     """Every kill and assist where a player is the victim or a credited party. Sorted by tick (stable).
 
     At most one result per (victim, killer sortie): a gunner's pilot gets the extra assist only if the pilot isn't
-    credited for that victim already (E2)."""
+    credited for that victim already (design_doc/13_game_rules.md, Kills and credit)."""
     results: list[KillResult] = []
     for victim in _victims(facts, verdicts, rules):
         credited = credit_kill(victim.obj, victim.sortie, victim.explicit, victim.tick, rules.assist_min_damage)

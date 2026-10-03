@@ -46,8 +46,11 @@ OBJECTS: dict[str, ObjectClass] = {
     "IL-10": "attacker",
     "Turret_IL10": "gunner",
     "M46 Patton": "tank",
-    "BotPlanePilot_Test": "unknown",
-    "BotGunner_Test": "unknown",
+    "BotPlanePilot_Test": "crew",
+    "BotGunner_Test": "crew",
+    "CParachute": "equipment",
+    "ESeat_MiG-15bis": "equipment",
+    "VehicleTurret": "equipment",
 }
 FAR = Pos(10_000.0, 3_000.0, 10_000.0)
 GROUND = Pos(2_000.0, 100.0, 2_000.0)

@@ -319,3 +319,21 @@ def test_wreck_landing_after_destruction_is_not_a_landing() -> None:
     assert (a.takeoffs, a.landings, a.landing_tick) == (1, 0, None)
     assert a.flight_time_s == pytest.approx(95.0)
     assert "landing" not in [e.kind for e in a.timeline]
+
+
+def test_crew_and_equipment_are_never_kill_victims() -> None:
+    """Parachutes, ejection seats and vehicle turrets (catalog classes `equipment`, `crew`) aren't kills; a real AI
+    aircraft shot in the same scenario still is (design_doc/13_game_rules.md, Kills and credit)."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.declare(0, 301, "MiG-15bis", 501)
+    sc.declare(0, 310, "CParachute", 501)
+    sc.declare(0, 311, "ESeat_MiG-15bis", 501)
+    sc.declare(0, 312, "VehicleTurret", 501)
+    for t, target in ((100, 310), (101, 311), (102, 312), (103, 301)):
+        sc.damage(t, 100, target, 1.0)
+        sc.kill(t + 0.5, 100, target)
+    sc.end(200, 100, 101)
+    result = sc.result()
+    assert [k.victim_object_id for k in result.kills] == [ids(301)]
+    assert by_acct(result, 1).kills_air == 1

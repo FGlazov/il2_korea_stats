@@ -3,6 +3,7 @@ timeline (TD-08)."""
 
 from dataclasses import dataclass, field
 
+from il2ks.core.replay.fate import crew_death
 from il2ks.core.replay.judge import Verdict
 from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, party_of
 from il2ks.core.replay.result import AmmoHits, Counterpart, DamageExchange, KillResult, TimelineEntry
@@ -129,6 +130,12 @@ def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[Kill
     return {i: FriendlyFire(n_kills[i], n_hits[i], damage[i]) for i in ends}
 
 
+def _counterpart(party: Party) -> Counterpart:
+    if isinstance(party, SortieState):
+        return Counterpart(party.aircraft_type, party.index, party.coalition)
+    return Counterpart(party.object_type, None, party.coalition)
+
+
 def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> tuple[TimelineEntry, ...]:
     """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion."""
     airframe = sortie.airframe
@@ -151,15 +158,21 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
         elif kill.killer_sortie_index == sortie.index:
             entries.append(TimelineEntry(kill.tick, "friendly_fire", kill.victim_type, kill.pos))
     loss = verdict.loss
+    killer = next((k for k in kills if k.victim_sortie_index == sortie.index and k.credit == "kill"), None)
+    if killer is not None and killer.killer_type is not None:
+        counterpart = Counterpart(killer.killer_type, killer.killer_sortie_index)
+    elif verdict.killer is not None:  # no KillResult names this sortie as victim (a gunner's), so use the verdict's
+        counterpart = _counterpart(verdict.killer)
+    else:
+        counterpart = None
     if loss is not None:
-        killer = next((k for k in kills if k.victim_sortie_index == sortie.index and k.credit == "kill"), None)
-        counterpart = (
-            Counterpart(killer.killer_type, killer.killer_sortie_index)
-            if killer is not None and killer.killer_type is not None
-            else None
-        )
         kind = "shot_down" if verdict.loss_cause == "attacker" else "destroyed"
         entries.append(TimelineEntry(loss.tick, kind, pos=loss.pos, counterpart=counterpart))
+    elif verdict.died_tick is not None:  # the crew member died but the aircraft wasn't lost
+        crew = crew_death(sortie)
+        kind = "killed" if verdict.loss_cause == "attacker" else "died"
+        pos = crew.destroyed_pos if crew is not None else None
+        entries.append(TimelineEntry(verdict.died_tick, kind, pos=pos, counterpart=counterpart))
     if verdict.fate == "bailed_out":
         bot = sortie.bot
         tick = bot.bailout_tick if bot.bailout_tick is not None else bot.removed_tick

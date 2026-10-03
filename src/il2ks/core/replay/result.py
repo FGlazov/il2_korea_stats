@@ -69,7 +69,9 @@ class TimelineEntry:
     """One key event on the sortie timeline (FR-WEB-6). Positions only on key events, no track (TD-08)."""
 
     tick: int
-    kind: str  # e.g. "spawn", "takeoff", "landing", "kill", "assist", "damaged", "shot_down", "bailout", "sortie_end"
+    # e.g. "spawn", "takeoff", "landing", "kill", "assist", "damaged", "shot_down", "killed" (crew died, aircraft not
+    # lost), "died", "bailout", "sortie_end"
+    kind: str
     detail: str = ""
     pos: Pos | None = None
     counterpart: Counterpart | None = None
