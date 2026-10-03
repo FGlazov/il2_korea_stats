@@ -4,10 +4,11 @@ The tags render the files in `templates/il2ks/components/`; every component docu
 its template, and server owners may override any of them (TD-25). Tags that need the current URL read the request from
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
-Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent.
-Tags: icon, aircraft_icon, side, badge, coalition_badge, outcome_badge, fate_badge, status_badge, aircraft_badge,
-role_badge, stat_tile, kv_list, empty_row,
-breadcrumbs, dropdown, sort_th, pagination, filter_select, filter_text.
+Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent, mission_title, game_when,
+clock_since.
+Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
+status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, sort_th, pagination,
+filter_select, filter_text.
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -102,6 +103,24 @@ def percent(part: object, whole: object) -> str:
     return display.percent(part, whole)
 
 
+@register.filter
+def mission_title(mission: object) -> str:
+    """{{ mission|mission_title }} -> 'The Sinuiju Bridges 1951': a readable name from the mission file path."""
+    return display.mission_title(str(getattr(mission, "mission_file", "")))
+
+
+@register.filter
+def clock_since(when: datetime | None, start: datetime | None) -> str:
+    """{{ kill.time|clock_since:mission.started_at }} -> '12:34' (or '1:02:03'): time into the mission."""
+    return display.clock_since(when, start)
+
+
+@register.filter
+def game_when(mission: object) -> str:
+    """{{ mission|game_when }} -> '1951-09-15 13:00': the in-game date and time of a mission (not real time)."""
+    return display.game_when(str(getattr(mission, "game_date", "")), str(getattr(mission, "game_time", "")))
+
+
 # --- coalitions and badges ----------------------------------------------------------------------------------------
 @register.simple_tag(takes_context=True)
 def side(context: Context, country: object) -> str:
@@ -120,15 +139,49 @@ def badge(text: object, tone: Tone = "grey", title: str = "", icon: str = "") ->
     return {"text": text, "tone": tone, "title": title, "icon_html": icons.icon_markup(icon) if icon else ""}
 
 
+def _side_icon(context: Context, key: display.Side | None, css_class: str = "") -> SafeString:
+    """The side's emblem as chosen in the site settings (neutral by default); the neutral one if the file is missing."""
+    if key is None:
+        return SafeString("")
+    site = context.get("site")
+    name = display.coalition_icon_name(
+        key, str(getattr(site, "redfor_emblem", "")), str(getattr(site, "blufor_emblem", ""))
+    )
+    return icons.icon_markup(
+        name if icons.icon_exists(name) else f"coalition/{key}", f"tint--{key} {css_class}".strip()
+    )
+
+
 @register.inclusion_tag(COMPONENTS + "badge.html", takes_context=True)
 def coalition_badge(context: Context, country: object) -> dict[str, object]:
-    """{% coalition_badge sortie.country %}: red-ish REDFOR or blue-ish BLUFOR pill (country code or side key)."""
+    """{% coalition_badge sortie.country %}: red-ish REDFOR or blue-ish BLUFOR pill (country code or side key).
+
+    The icon is the side's emblem from the site settings (SiteSettings.redfor_emblem / blufor_emblem, doc 15)."""
     key = display.side_of(country)
     return {
         "text": side(context, country),
         "tone": key if key is not None else "grey",
-        "icon_html": icons.icon_markup(f"coalition/{key}") if key is not None else "",
+        "icon_html": _side_icon(context, key),
     }
+
+
+@register.simple_tag(takes_context=True)
+def coalition_icon(context: Context, country: object, css_class: str = "") -> SafeString:
+    """{% coalition_icon sortie.country %}: only the side's emblem (country code or side key), '' for neither."""
+    return _side_icon(context, display.side_of(country), css_class)
+
+
+@register.simple_tag(takes_context=True)
+def winner_badge(context: Context, mission: object) -> SafeString:
+    """{% winner_badge mission %}: the winning side's coalition badge, or a muted dash while the winner is unknown."""
+    key = display.coalition_side(
+        getattr(mission, "winning_coalition", None),
+        getattr(mission, "countries", None),
+    )
+    if key is None:
+        return SafeString(f'<span class="muted">{display.DASH}</span>')
+    data = {"text": side(context, key), "tone": key, "icon_html": _side_icon(context, key)}
+    return SafeString(render_to_string(COMPONENTS + "badge.html", data))
 
 
 def _enum_badge(table: Mapping[str, display.BadgeSpec], value: object) -> dict[str, object]:

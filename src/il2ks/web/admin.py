@@ -86,7 +86,13 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             {"fields": ("current_logo", "logo_upload", "remove_logo", "accent_color")},
         ),
         (_("Links"), {"fields": ("links_text",)}),
-        (_("Coalitions"), {"fields": ("redfor_name", "blufor_name"), "description": _("Names shown for 5xx / 6xx.")}),
+        (
+            _("Coalitions"),
+            {
+                "fields": ("redfor_name", "blufor_name", "redfor_emblem", "blufor_emblem"),
+                "description": _("Names and emblems shown for 5xx / 6xx. The default emblems are neutral."),
+            },
+        ),
     )
 
     def has_add_permission(self, request: HttpRequest) -> bool:

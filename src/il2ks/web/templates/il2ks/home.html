@@ -1,27 +1,92 @@
-{% extends "il2ks/base.html" %}{% load i18n il2ks %}{% comment %}
-  Home page. Context: playable (placeholder list of aircraft until the real home page lands).
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
+  pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
+  Blocks: head (page stylesheet), content.
 {% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
 {% block content %}
   <section class="hero">
     {% icon "brand/logo-mark" "hero__mark" %}
     <h1>{{ site.site_title }}</h1>
     <p class="lead">{% if site.description %}{{ site.description|linebreaksbr }}{% else %}{% translate "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server." %}{% endif %}</p>
-    <div class="button-row">
-      <a role="button" href="{% url 'web:mission-list' %}">{% translate "Browse missions" %}</a>
-      <a role="button" class="secondary outline" href="{% url 'web:player-search' %}">{% translate "Find a player" %}</a>
-    </div>
+    <form class="home-search" role="search" action="{% url 'web:player-search' %}" method="get">
+      {% translate "Find a player by name" as search_label %}
+      <input type="search" name="q" placeholder="{{ search_label }}" aria-label="{{ search_label }}" autocomplete="off">
+      <button type="submit">{% translate "Search" %}</button>
+    </form>
   </section>
 
-  {% notice "info" title=_("Work in progress") %}{% translate "Stats will appear here once the first missions have been ingested." %}{% endnotice %}
-
-  {% if playable %}
-    {% accordion _("Playable aircraft") hint=_("from the catalog") %}
-      <div class="table-wrap table-wrap--flat">
-        <table class="data-table data-table--compact">
-          <thead><tr><th scope="col">{% translate "Aircraft" %}</th></tr></thead>
-          <tbody>{% for obj in playable %}<tr><td>{{ obj }}</td></tr>{% endfor %}</tbody>
-        </table>
-      </div>
-    {% endaccordion %}
+  {% if last_mission %}
+    <section aria-labelledby="last-heading" class="last-mission">
+      <h2 id="last-heading" style="margin-top:0">{% translate "Last mission" %}</h2>
+      <article class="last-mission__card">
+        <div class="last-mission__summary">
+          <h3><a href="{% url 'web:mission-detail' last_mission.pk %}">{{ last_mission|mission_title }}</a></h3>
+          <p class="meta-line">
+            <span>{{ last_mission.started_at|utc }}</span>
+            <span>{{ last_mission.duration_s|duration }}</span>
+            <span>{% translate "Winner" %}: {% winner_badge last_mission %}</span>
+          </p>
+          <div class="stat-tiles">
+            {% stat_tile last_mission.players_total|num _("Players") %}
+            {% stat_tile last_mission.sorties_total|num _("Sorties") icon="stat/sorties" %}
+            {% stat_tile last_mission.kills_air|num _("Air kills") icon="stat/air-kills" %}
+            {% stat_tile last_mission.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
+          </div>
+          <p class="meta-line">
+            <span>{% coalition_badge "redfor" %} <strong class="num">{{ last_mission.redfor_sorties|num }}</strong> {% translate "sorties" %}</span>
+            <span>{% coalition_badge "blufor" %} <strong class="num">{{ last_mission.blufor_sorties|num }}</strong> {% translate "sorties" %}</span>
+          </p>
+        </div>
+        <div class="last-mission__pilots">
+          <h3>{% translate "Top pilots by kills" %}</h3>
+          {% if pilots %}
+            <table class="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th scope="col">{% translate "Pilot" %}</th>
+                  <th scope="col" class="num">{% translate "Air" %}</th>
+                  <th scope="col" class="num">{% translate "Ground" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pilot in pilots %}
+                  <tr>
+                    <td>{% coalition_icon pilot.side %} {% include "il2ks/missions/_player.html" with player=pilot.row.player name=pilot.row.player.current_name %}</td>
+                    <td class="num">{{ pilot.row.kills_air|num }}</td>
+                    <td class="num">{{ pilot.row.kills_ground|num }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="muted">{% translate "Nobody scored a kill in this mission." %}</p>
+          {% endif %}
+        </div>
+      </article>
+    </section>
   {% endif %}
+
+  <section aria-labelledby="latest-heading">
+    <h2 id="latest-heading">{% translate "Latest missions" %}</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Date (UTC)" %}</th>
+            <th scope="col">{% translate "Mission" %}</th>
+            <th scope="col" class="num">{% translate "Duration" %}</th>
+            <th scope="col" class="num">{% translate "Players" %}</th>
+            <th scope="col" class="num">{% translate "Sorties" %}</th>
+            <th scope="col" class="num"><span class="sides-head" title="{% translate 'Sorties per side' %}">{% coalition_icon "redfor" %}<span class="sides__sep">/</span>{% coalition_icon "blufor" %}</span></th>
+            <th scope="col" class="num">{% translate "Air kills" %}</th>
+            <th scope="col" class="num">{% translate "Ground kills" %}</th>
+            <th scope="col">{% translate "Winner" %}</th>
+          </tr>
+        </thead>
+        <tbody>{% include "il2ks/missions/_rows.html" with missions=latest empty_message=_("No missions yet.") %}</tbody>
+      </table>
+    </div>
+    <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:mission-list' %}">{% translate "All missions" %}</a></p>
+  </section>
 {% endblock %}

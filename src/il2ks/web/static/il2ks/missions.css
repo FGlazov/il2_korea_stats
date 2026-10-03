@@ -1,0 +1,56 @@
+/* Mission pages (home, list, detail): the few styles the shared theme does not cover. Tokens come from site.css. */
+.mission-when { display: block; margin-top: 0.1rem; font-weight: 400; font-size: 0.78rem; }
+.data-table tr.is-empty { opacity: 0.6; }
+
+/* "12 / 9": sorties per side, in the side colours. */
+.sides__red { color: light-dark(#b52d28, #f0716a); }
+.sides__blue { color: light-dark(#1f62b6, #70a9f4); }
+.sides__sep { margin: 0 0.3em; color: var(--il2-muted); }
+.sides-head { display: inline-flex; gap: 0.35em; align-items: center; justify-content: flex-end; }
+
+/* Page header meta line under the title. */
+.meta-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.1rem; margin: 0.35rem 0 0; color: var(--il2-muted); }
+.meta-line > span { display: inline-flex; align-items: center; gap: 0.4em; }
+
+/* A coalition's heading above its sortie table. */
+.side-heading { display: flex; align-items: center; gap: 0.6rem; }
+.side-heading .icon { width: 1.5rem; height: 1.5rem; }
+.side-heading small { font-size: 0.85rem; letter-spacing: 0; text-transform: none; font-weight: 400; }
+.side-heading--redfor { color: light-dark(#b52d28, #f0716a); }
+.side-heading--blufor { color: light-dark(#1f62b6, #70a9f4); }
+
+.pilot-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.5rem; }
+.aircraft-cell { display: inline-flex; vertical-align: middle; align-items: center; gap: 0.45em; white-space: nowrap; }
+.aircraft-cell .icon { width: 1.5em; height: 1.5em; color: var(--il2-muted); }
+.kill-who { display: flex; flex-direction: column; line-height: 1.3; }
+.kill-who .muted { font-size: 0.8rem; }
+.kill-who .icon { width: 1em; height: 1em; margin-right: 0.3em; }
+.data-table .row-link { font-weight: 700; text-decoration: none; }
+
+
+
+/* Home page */
+.home-search { display: flex; gap: 0.6rem; max-width: 34rem; margin: 1.1rem 0 0; }
+.home-search input { margin: 0; flex: 1; }
+.home-search button { margin: 0; width: auto; }
+.last-mission__card { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 0.5rem 2rem; align-items: start; }
+.last-mission__card h3 { margin-top: 0; color: var(--il2-text); font-size: 1.25rem; }
+.last-mission__card .stat-tiles { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); margin: 1rem 0; }
+.last-mission__pilots .data-table { border: 1px solid var(--il2-border); }
+@media (max-width: 900px) { .last-mission__card { grid-template-columns: minmax(0, 1fr); } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Sortie tables of one mission page share column widths so the two sides line up. */
+.sortie-table { table-layout: fixed; }
+.sortie-table th:nth-child(1) { width: 5rem; }
+.sortie-table th:nth-child(2) { width: 14%; }
+.sortie-table th:nth-child(3) { width: 11%; }
+.sortie-table th:nth-child(4), .sortie-table th:nth-child(5), .sortie-table th:nth-child(6) { width: 12.5%; }
+.sortie-table th:nth-child(7), .sortie-table th:nth-child(8), .sortie-table th:nth-child(9) { width: 4.5rem; }
+.sortie-table th:nth-child(10) { width: 6.5rem; }
+.sortie-table th:nth-child(11) { width: 3rem; }
+.sortie-table tbody th { overflow-wrap: anywhere; }
+
+/* "On this page" links (Pico lays a <nav> out with space-between). */
+.jump-links { justify-content: flex-start; gap: 0.4rem 1.6rem; margin: 0 0 0.25rem; }
+.jump-links a { font-weight: 600; }

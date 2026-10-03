@@ -1,0 +1,17 @@
+{% load i18n il2ks %}{% comment %}
+  missions/_rows.html: <tbody> rows of a mission table (home page and mission list); same columns as the list header.
+  Context: missions (an iterable of Mission), colspan (optional, columns of the empty row; default 9),
+  empty_message (optional text for the empty row).
+{% endcomment %}{% for m in missions %}
+<tr{% if not m.sorties_total %} class="is-empty"{% endif %}>
+  <td class="nowrap">{{ m.started_at|utc_date }} <span class="muted">{{ m.started_at|time:"H:i" }}</span></td>
+  <th scope="row"><a href="{% url 'web:mission-detail' m.pk %}">{{ m|mission_title }}</a><small class="mission-when">{{ m|game_when }}</small></th>
+  <td class="num">{{ m.duration_s|duration }}</td>
+  <td class="num">{{ m.players_total|num }}</td>
+  <td class="num">{{ m.sorties_total|num }}</td>
+  <td class="num"><span class="sides__red">{{ m.redfor_sorties|num }}</span><span class="sides__sep">/</span><span class="sides__blue">{{ m.blufor_sorties|num }}</span></td>
+  <td class="num">{{ m.kills_air|num }}</td>
+  <td class="num">{{ m.kills_ground|num }}</td>
+  <td>{% winner_badge m %}</td>
+</tr>{% empty %}
+{% empty_row colspan|default:9 empty_message|default:_("No missions match these filters.") %}{% endfor %}

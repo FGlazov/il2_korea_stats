@@ -1,0 +1,40 @@
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Mission list (FR-WEB-1). Context: page_obj (Page of Mission), missions (the page's rows), sort (whitelisted ?sort=),
+  period_options, winner_options, empty_options ((value, label) pairs for the filters).
+  Blocks: head (page stylesheet), content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% translate "Missions" %}</h1>
+    <p>{% translate "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them." %}</p>
+  </div>
+
+  {% results_region %}
+    {% filter_bar %}
+      {% filter_text "q" _("Mission") placeholder=_("Name contains…") live=True %}
+      {% filter_select "period" _("Period") period_options all_label=_("All time") %}
+      {% filter_select "winner" _("Winner") winner_options all_label=_("Any") %}
+      {% filter_select "empty" _("Empty missions") empty_options all_label=_("Hidden") %}
+    {% endfilter_bar %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            {% sort_th "date" _("Date (UTC)") first="desc" %}
+            {% sort_th "name" _("Mission") %}
+            {% sort_th "duration" _("Duration") numeric=True %}
+            {% sort_th "players" _("Players") numeric=True %}
+            {% sort_th "sorties" _("Sorties") numeric=True %}
+            <th scope="col" class="num"><span class="sides-head" title="{% translate 'Sorties per side' %}">{% coalition_icon "redfor" %}<span class="sides__sep">/</span>{% coalition_icon "blufor" %}</span></th>
+            {% sort_th "air_kills" _("Air kills") numeric=True %}
+            {% sort_th "ground_kills" _("Ground kills") numeric=True %}
+            <th scope="col">{% translate "Winner" %}</th>
+          </tr>
+        </thead>
+        <tbody>{% include "il2ks/missions/_rows.html" %}</tbody>
+      </table>
+    </div>
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

@@ -121,6 +121,60 @@ def side_name(value: object, redfor_name: str, blufor_name: str) -> str:
     return _("Neutral")
 
 
+def coalition_icon_name(side: Side | None, redfor_emblem: str = "", blufor_emblem: str = "") -> str:
+    """The icon of a side: the neutral `coalition/redfor|blufor`, or the chosen insignia (SiteSettings emblems, doc 15).
+
+    '' for a country that is neither. The caller checks the file exists (a custom/ override may drop an insignia)."""
+    if side is None:
+        return ""
+    emblem = redfor_emblem if side == "redfor" else blufor_emblem
+    return f"coalition/{side}" if emblem in ("", "neutral") else f"coalition/insignia/{emblem}"
+
+
+def coalition_side(coalition_number: int | None, countries: Mapping[str, int] | None = None) -> Side | None:
+    """The side of a coalition number in a mission: the side of any country in it (mission `countries`, CNTRS).
+
+    Falls back to coalition 1 = REDFOR, 2 = BLUFOR when the mission lists no countries; None for None."""
+    if coalition_number is None:
+        return None
+    for code, coalition in (countries or {}).items():
+        if coalition == coalition_number and code.isdigit():
+            return side_of_country(int(code))
+    return "redfor" if coalition_number == 1 else "blufor" if coalition_number == 2 else None
+
+
+# --- missions -----------------------------------------------------------------------------------------------------
+_SEPARATORS = re.compile(r"[\\/]")
+_EXTENSION = re.compile(r"\.[A-Za-z0-9]{1,8}$")
+
+
+def mission_title(mission_file: str) -> str:
+    r"""A readable name from the mission file path: `Dogfight\Author\The_Bridges_1951\The_Bridges_1951.msnbin`
+    becomes 'The Bridges 1951'. 'Mission' for an empty path."""
+    stem = _EXTENSION.sub("", _SEPARATORS.split(mission_file.strip())[-1])
+    return " ".join(stem.replace("_", " ").split()) or _("Mission")
+
+
+def clock_since(when: datetime | None, start: datetime | None) -> str:
+    """Time elapsed from `start` to `when` as '12:34' or '1:02:03' (mission clock); the dash when either is missing."""
+    if when is None or start is None:
+        return DASH
+    seconds = max(0, round((_as_utc(when) - _as_utc(start)).total_seconds()))
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def game_when(game_date: str, game_time: str) -> str:
+    """In-game date and time ('1951.9.15', '13:0:0') as '1951-09-15 13:00'; the raw text when it does not parse."""
+    try:
+        year, month, day = (int(part) for part in game_date.split("."))
+        hour, minute = (int(part) for part in game_time.split(":")[:2])
+    except ValueError:
+        return f"{game_date} {game_time}".strip() or DASH
+    return f"{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}"
+
+
 # --- badges -------------------------------------------------------------------------------------------------------
 type BadgeSpec = tuple[Label, Tone, str]  # label, tone, icon name under static/il2ks/img/ ('' = a plain dot)
 
