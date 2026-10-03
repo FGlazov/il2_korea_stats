@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> ›
+  <a href="{{ status_url }}">{% translate "Ingestion status" %}</a> › {% translate "Reprocess all missions" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% blocktranslate count n=missions_stored %}This re-runs the {{ n }} stored mission from its archive with the current rules, then rebuilds all statistics and ratings.{% plural %}This re-runs all {{ n }} stored missions from their archives with the current rules, then rebuilds all statistics and ratings.{% endblocktranslate %}</p>
+  <p>{% translate "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions are ingested again once it is over." %}</p>
+  <p>{% translate "The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion status page." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="submit" value="{% translate 'Yes, reprocess all missions' %}">
+    <a href="{{ status_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+</div>
+{% endblock %}

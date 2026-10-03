@@ -547,6 +547,53 @@ class IngestRun(models.Model):
         return f"{self.mission_uid} {self.status}"
 
 
+class ReprocessStatus(models.TextChoices):
+    PENDING = "pending"  # asked for in the admin; `watch` starts it at its next tick
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"  # the job itself crashed (individual failed missions still end as `done`, with counts)
+
+
+class ReprocessRequest(models.Model):
+    """An admin's request to reprocess missions (doc 14). The web process only writes this row; the `watch` loop
+    (also run by `il2ks run`) picks it up at its next tick and runs the reprocess under the writer lock.
+
+    `since` and `until` both empty means every mission. At most one request is pending at a time."""
+
+    requested_at = models.DateTimeField()
+    requested_by = models.CharField(max_length=150, blank=True)
+    since = models.DateField(null=True)  # server-local mission dates, inclusive (as `il2ks reprocess --since`)
+    until = models.DateField(null=True)
+    status = models.CharField(max_length=8, choices=ReprocessStatus.choices, default=ReprocessStatus.PENDING)
+    started_at = models.DateTimeField(null=True)
+    finished_at = models.DateTimeField(null=True)
+    missions_total = models.PositiveIntegerField(default=0)  # known once it starts
+    missions_ok = models.PositiveIntegerField(default=0)
+    missions_failed = models.PositiveIntegerField(default=0)
+    missions_missing = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ReprocessStatus.values), name="reprocessrequest_status_valid"
+            ),
+            models.UniqueConstraint(
+                fields=["status"],
+                condition=models.Q(status="pending"),
+                name="reprocessrequest_one_pending",
+            ),
+        ]
+        ordering = ["-requested_at", "-pk"]
+
+    def __str__(self) -> str:
+        return f"reprocess {self.status} ({self.requested_at:%Y-%m-%d %H:%M})"
+
+    @property
+    def is_all(self) -> bool:
+        return self.since is None and self.until is None
+
+
 class RedforEmblem(models.TextChoices):
     """Doc 15: neutral by default; period insignia are optional (drawn as simple shapes, free of copyright)."""
 

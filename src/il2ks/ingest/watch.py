@@ -3,6 +3,9 @@
 The writer lock is taken per tick, not for the whole lifetime, so an admin's `reprocess` can run while `watch` is up:
 ticks that find the lock taken are skipped with a log line. A tick that crashes is logged and the loop goes on
 (NFR-REL-2: state lives in the DB, so the next tick picks up where this one stopped).
+
+Each tick also works off the admin's "reprocess all missions" request, if one is pending (`reprocess_requests`): the
+web process never runs that long job itself. A tick that starts one is busy until it ends; a busy lock only delays it.
 """
 
 from __future__ import annotations
@@ -15,7 +18,9 @@ from datetime import datetime, timedelta
 
 from il2ks.config import Config
 from il2ks.ingest.lock import LockBusyError
-from il2ks.ingest.runner import IngestOptions, Pipeline, ingest_once, utcnow
+from il2ks.ingest.reprocess import reprocess
+from il2ks.ingest.reprocess_requests import ReprocessFn, fail_interrupted_requests, run_pending_request
+from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once, utcnow
 from il2ks.ops.backup import backup_if_due
 
 log = logging.getLogger(__name__)
@@ -52,9 +57,16 @@ def watch(
     stop: threading.Event | None = None,
     max_ticks: int | None = None,
     now: Callable[[], datetime] = utcnow,
+    reprocess_pipeline: Callable[[], Pipeline] | None = None,
+    reprocess_fn: ReprocessFn = reprocess,
 ) -> int:
     """Loop until `stop` is set, `max_ticks` ticks ran, or Ctrl+C (KeyboardInterrupt propagates). Returns ticks run."""
     stop = stop or threading.Event()
+    reprocess_pipeline = reprocess_pipeline or (lambda: default_pipeline(cfg, defer_ratings=True))
+    try:
+        fail_interrupted_requests(now())
+    except Exception:
+        log.exception("could not check for interrupted reprocess requests")
     reconciled = False
     backup_retry_at: datetime | None = None
     ticks = 0
@@ -68,6 +80,10 @@ def watch(
             log.info("skipping this tick: %s", exc)
         except Exception:
             log.exception("ingest tick failed; retrying next tick")
+        try:
+            run_pending_request(cfg, reprocess_pipeline, reprocess_fn=reprocess_fn, now=now)
+        except Exception:
+            log.exception("reprocess request tick failed; retrying next tick")
         backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
         ticks += 1
         if max_ticks is not None and ticks >= max_ticks:

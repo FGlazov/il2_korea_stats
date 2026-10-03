@@ -115,16 +115,23 @@ def reprocess(
     rebuild: Callable[[], None] | None = None,
     now: Callable[[], datetime] = utcnow,
     lock_wait: float | None = None,
+    on_start: Callable[[int], None] | None = None,
+    on_progress: Callable[[ReprocessSummary], None] | None = None,
 ) -> ReprocessSummary:
     """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken.
 
     `mission_uids`, `since`, `until` narrow the selection and combine as an intersection (see `mission_in_span`).
-    A requested UID outside the date span is simply not selected; one inside it without an archive is `missing`."""
+    A requested UID outside the date span is simply not selected; one inside it without an archive is `missing`.
+
+    `on_start(total)` is called once the lock is held and the missions are chosen; `on_progress(summary)` after each
+    mission (the admin's request row shows both)."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)
         wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}
         summary.missing = sorted(wanted - set(targets))
+        if on_start is not None:
+            on_start(len(targets))
         n_workers = workers or default_workers()
         window = n_workers * 2  # bound the results waiting in memory for the single writer
         pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
@@ -136,6 +143,7 @@ def reprocess(
                     archive = cfg.data_dir / prev.archive_path
                     if not archive_matches(archive, prev.archive_sha256):
                         _record(cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now)
+                        _progress(on_progress, summary)
                         continue
                     pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
                 if not pending:
@@ -149,12 +157,18 @@ def reprocess(
                         _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now)
                     else:
                         _record(cfg, pipeline, prev, outcome, "", summary, now)
+                    _progress(on_progress, summary)
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
                 (rebuild or partial(rebuild_aggregates, cfg.ratings))()
         log.info("%s", summary.describe())
         return summary
+
+
+def _progress(on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary) -> None:
+    if on_progress is not None:
+        on_progress(summary)
 
 
 def _record(

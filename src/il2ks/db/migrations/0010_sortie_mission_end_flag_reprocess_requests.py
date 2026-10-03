@@ -104,4 +104,48 @@ class Migration(migrations.Migration):
                 name="sortie_pilot_fate_valid",
             ),
         ),
+        migrations.CreateModel(
+            name="ReprocessRequest",
+            fields=[
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("requested_at", models.DateTimeField()),
+                ("requested_by", models.CharField(blank=True, max_length=150)),
+                ("since", models.DateField(null=True)),
+                ("until", models.DateField(null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("running", "Running"),
+                            ("done", "Done"),
+                            ("failed", "Failed"),
+                        ],
+                        default="pending",
+                        max_length=8,
+                    ),
+                ),
+                ("started_at", models.DateTimeField(null=True)),
+                ("finished_at", models.DateTimeField(null=True)),
+                ("missions_total", models.PositiveIntegerField(default=0)),
+                ("missions_ok", models.PositiveIntegerField(default=0)),
+                ("missions_failed", models.PositiveIntegerField(default=0)),
+                ("missions_missing", models.PositiveIntegerField(default=0)),
+                ("error", models.TextField(blank=True)),
+            ],
+            options={
+                "ordering": ["-requested_at", "-pk"],
+                "constraints": [
+                    models.CheckConstraint(
+                        condition=models.Q(("status__in", ["pending", "running", "done", "failed"])),
+                        name="reprocessrequest_status_valid",
+                    ),
+                    models.UniqueConstraint(
+                        condition=models.Q(("status", "pending")),
+                        fields=("status",),
+                        name="reprocessrequest_one_pending",
+                    ),
+                ],
+            },
+        ),
     ]
