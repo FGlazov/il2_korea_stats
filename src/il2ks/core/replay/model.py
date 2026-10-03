@@ -8,8 +8,9 @@ see the whole history of an object.
 import math
 import re
 from dataclasses import dataclass, field
+from typing import Literal
 
-from il2ks.core.catalog.loader import ObjectClass, ObjectInfo, canonical_type_name
+from il2ks.core.catalog.loader import Catalog, LoadoutItem, ObjectClass, ObjectInfo, canonical_type_name
 from il2ks.core.logparse.events import AccountUuid, MissionStartEvent, ObjectId, Pos, ProfileUuid
 from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.result import AmmoCounts, Role, SpawnType
@@ -70,6 +71,22 @@ class HitRecord:
     tick: int
     attacker: "TrackedObject | None"
     ammo: str
+    target: "TrackedObject | None" = None  # set for the hits a player's aircraft gave (`TrackedObject.given_hits`)
+
+
+@dataclass(slots=True)
+class Detonation:
+    """The explosion hit lines one player aircraft produced on one tick, one entry per target (FR-WEB-18).
+
+    Kept in memory only (TD-08: explosion lines are never stored or counted as hits). The log writes 1-9 lines per
+    detonation and target, so lines are collapsed to the set of targets they touched."""
+
+    tick: int
+    targets: "dict[ObjectId, TrackedObject]"
+
+
+type ReleaseClass = Literal["store", "rocket"]
+"""AType 25 (bomb, napalm, drop tank, flare, JATO) or AType 26 (a rocket salvo)."""
 
 
 @dataclass(slots=True, eq=False)
@@ -99,6 +116,13 @@ class TrackedObject:
     ground_contact_after_destroyed_tick: int | None = None  # first AType 31/6 after AType 3 (FR-ING-17)
     track: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # ground objects: (tick, position)
     releases: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # AType 25/26 by this aircraft
+    store_releases: list[tuple[int, ReleaseClass]] = field(
+        default_factory=list[tuple[int, ReleaseClass]]
+    )  # same, FR-WEB-18
+    # Player aircraft only (FR-WEB-18): what it put on others. Explosion hits collapsed per tick, and the non-explosion
+    # hit lines it gave (guns and named ordnance), both in log (= tick) order.
+    detonations: list[Detonation] = field(default_factory=list[Detonation])
+    given_hits: list[HitRecord] = field(default_factory=list[HitRecord])
     removed_tick: int | None = None  # AType 16 (bots)
     removed_pos: Pos | None = None  # None too when the logged position is garbage (`is_plausible_pos`)
     declared_tick: int | None = None  # the latest AType 12 for a bot ...
@@ -162,6 +186,7 @@ class SortieState:
     ammo_loaded: AmmoCounts
     vehicle: TrackedObject  # PLID: the aircraft for a pilot, the turret for a gunner
     bot: TrackedObject  # PID: the pilot or gunner bot
+    loadout: tuple[LoadoutItem, ...] | None = None  # from the payload file; None = payload unknown (FR-WEB-18)
     end_tick: int | None = None
     end_aircraft_id: ObjectId | None = None  # AType 4 PLID; None = no AType 4 (yet)
     end_pos: Pos | None = None
@@ -218,6 +243,7 @@ class MissionFacts:
     objects: list[TrackedObject] = field(default_factory=list[TrackedObject])  # every object ever created
     destroyed: list[TrackedObject] = field(default_factory=list[TrackedObject])  # in AType 3 order
     types_seen: dict[str, bool] = field(default_factory=dict[str, bool])  # normalized log name -> in catalog
+    catalog: Catalog = field(default_factory=Catalog)  # ordnance names for FR-WEB-18 (empty: nothing is ordnance)
 
     @property
     def first_mission_end(self) -> int | None:
