@@ -21,6 +21,7 @@ from il2ks.ops.checks import raw_config
 from il2ks.ops.doctor import Finding, Level, run_checks
 from il2ks.ops.prompt import Cancelled, ConsolePrompter, Prompter, interactive_terminal
 from il2ks.ops.setup import HTTPS_MODES, SetupOptions, run_setup
+from il2ks.serving.setup_token import discard_token
 
 DEFAULT_WEB_PORT = 8000
 
@@ -129,6 +130,7 @@ def cmd_createadmin(ns: argparse.Namespace, env: Mapping[str, str] | None = None
     except (Cancelled, KeyboardInterrupt):
         print("\nil2ks createadmin: cancelled.", file=sys.stderr)
         return EXIT_FAILED
+    discard_token(cfg.data_dir)  # an admin exists: the browser setup page is closed for good
     print(f"Admin account {username!r}: {outcome}. Log in at /admin/ on your site.")
     return EXIT_OK
 

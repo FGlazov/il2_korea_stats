@@ -1,0 +1,136 @@
+{# il2ks-template: templates/il2ks/setup.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  The first-run setup form (doc 07 option B). Only reachable from this computer with the setup token (views/setup.py).
+  Context: form (SetupForm), token, candidates [Candidate(path, reports, newest)], chosen_logs, logs_status, timezone_guessed,
+  windows, config_exists, config_path. Works without JavaScript; setup.js only preselects the browser's time zone.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/setup.css' %}">{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% translate "First-run setup" %}</h1>
+    <p class="lead">{% translate "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done." %}</p>
+  </div>
+
+  {% if form.errors %}
+    {% notice "warning" title=_("Not saved yet") %}{% translate "Please look at the marked answers below. Nothing was changed." %}{% endnotice %}
+  {% endif %}
+  {% for error in form.non_field_errors %}
+    {% notice "warning" %}{{ error }}{% endnotice %}
+  {% endfor %}
+  {% if config_exists %}
+    {% notice "info" %}{% blocktranslate with path=config_path %}A configuration file already exists ({{ path }}). Your answers are written into it; everything else in it stays, and a dated copy is kept.{% endblocktranslate %}{% endnotice %}
+  {% endif %}
+
+  <form method="post" action="{% url 'web:setup' %}" class="setup-form">
+    {% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}">
+
+    <article>
+      <h2>{% translate "1. The game server's log folder" %}</h2>
+      <p>{% translate "il2ks reads the missionReport(…)[N].txt text logs that the game server writes. These are the folders that look like it:" %}</p>
+      {% if candidates %}
+        <fieldset class="setup-choices">
+          {% for c in candidates %}
+            <label>
+              <input type="radio" name="logs_choice" value="{{ c.path }}"{% if c.path == chosen_logs %} checked{% endif %}>
+              <span class="mono">{{ c.path }}</span>
+              {% if c.reports >= 0 %}<small>{% blocktranslate count n=c.reports with newest=c.newest %}{{ n }} file, newest {{ newest }}{% plural %}{{ n }} files, newest {{ newest }}{% endblocktranslate %}</small>{% else %}<small>{% translate "set in the configuration" %}</small>{% endif %}
+            </label>
+          {% endfor %}
+          <label><input type="radio" name="logs_choice" value=""{% if not chosen_logs %} checked{% endif %}> {% translate "None of these (skip for now)" %}</label>
+        </fieldset>
+      {% else %}
+        <p class="muted">{% translate "Nothing found. The server may not write text logs yet; the final check will say what to switch on in the game server." %}</p>
+        <input type="hidden" name="logs_choice" value="{{ chosen_logs }}">
+      {% endif %}
+      <label for="{{ form.logs_custom.id_for_label }}">{% translate "Or type the folder's path" %}</label>
+      <input type="text" name="logs_custom" id="{{ form.logs_custom.id_for_label }}" value="{{ form.logs_custom.value|default:'' }}" placeholder="C:\Games\IL-2 Sturmovik\data\logs\txt"{% if form.logs_custom.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.logs_custom.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <label class="inline-check"><input type="checkbox" name="logs_allow_missing"{% if form.logs_allow_missing.value %} checked{% endif %}> {% translate "Use it anyway if it does not exist yet" %}</label>
+      {% if logs_status %}
+        {% if not logs_status.exists %}
+          <p class="setup-status setup-status--warn">{% translate "That folder does not exist yet. il2ks will start watching once it appears." %}</p>
+        {% elif logs_status.reports %}
+          <p class="setup-status setup-status--ok">{% blocktranslate count n=logs_status.reports %}Found {{ n }} mission report file there.{% plural %}Found {{ n }} mission report files there.{% endblocktranslate %}</p>
+        {% else %}
+          <p class="setup-status setup-status--warn">{% translate "The folder exists, but no mission reports are in it yet. That is fine for a new server, as long as the game server is set to write text logs there." %}</p>
+        {% endif %}
+      {% endif %}
+      <p class="muted"><small>{% translate "Is the game server on another computer? Give the folder that its logs are copied or shared to." %}</small></p>
+    </article>
+
+    <article>
+      <h2>{% translate "2. Time zone" %}</h2>
+      <p>{% translate "The game server names its log files in its own computer's local time, so il2ks has to know that time zone." %}</p>
+      <label for="{{ form.timezone.id_for_label }}">{{ form.timezone.label }}</label>
+      <select name="timezone" id="{{ form.timezone.id_for_label }}" data-guessed="{% if timezone_autofill %}1{% endif %}"{% if form.timezone.errors %} aria-invalid="true"{% endif %}>
+        {% for value, label in form.timezone.field.choices %}<option value="{{ value }}"{% if value == form.timezone.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      {% for error in form.timezone.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      {% if timezone_guessed and windows %}
+        <small>{% translate "Windows cannot tell us the name of its time zone. If your browser can, it was filled in for you; please check it." %}</small>
+      {% elif timezone_guessed %}
+        <small>{% blocktranslate with zone=detected_timezone %}Detected: {{ zone }}. Change it if the game server's computer uses another one.{% endblocktranslate %}</small>
+      {% endif %}
+    </article>
+
+    <article>
+      <h2>{% translate "3. Website address and HTTPS" %}</h2>
+      <p>{% translate "The site is served over HTTPS only, so players need an address that points to this computer." %}</p>
+      <label for="{{ form.domain.id_for_label }}">{% translate "Domain name, for example stats.example.com" %}</label>
+      <input type="text" name="domain" id="{{ form.domain.id_for_label }}" value="{{ form.domain.value|default:'' }}" placeholder="stats.example.com" autocomplete="off" autocapitalize="none" spellcheck="false"{% if form.domain.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.domain.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <small>{% translate "The name has to point at this computer (a DNS record at your domain provider), and ports 80 and 443 must be reachable from the internet. The certificate is then requested and renewed automatically." %}</small>
+
+      <details class="setup-fallbacks">
+        <summary>{% translate "I have no domain name yet" %}</summary>
+        <ul>
+          <li>{% translate "Leave the box empty. The site starts with a self-signed test certificate: browsers warn that it is “not secure”. Good for trying things out, not for your players." %}</li>
+          <li>{% translate "Or type this computer's public IP address. Certificate authorities can issue short-lived certificates (about 6 days) for an IP address and il2ks renews them by itself. The address must be public, and port 80 must be reachable." %}</li>
+          <li>{% translate "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name." %}</li>
+        </ul>
+      </details>
+
+      <fieldset class="setup-choices">
+        <legend>{{ form.https_mode.label }}</legend>
+        <label>
+          <input type="radio" name="https_mode" value="caddy"{% if form.https_mode.value == "caddy" %} checked{% endif %}>
+          <strong>{% translate "il2ks does it (recommended)" %}</strong>
+          <small>{% translate "The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this computer." %}</small>
+        </label>
+        <label>
+          <input type="radio" name="https_mode" value="external"{% if form.https_mode.value == "external" %} checked{% endif %}>
+          <strong>{% translate "I already run my own web server" %}</strong>
+          <small>{% translate "nginx, IIS or Apache in front of il2ks handles HTTPS. il2ks then only listens on this computer, and you point your server at it (see docs/reverse-proxy.md)." %}</small>
+        </label>
+        {% for error in form.https_mode.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      </fieldset>
+
+      <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+      <input type="email" name="email" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" autocomplete="email"{% if form.email.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.email.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <small>{% translate "The certificate authority writes here before a certificate would expire. Only used with the bundled Caddy." %}</small>
+    </article>
+
+    <article>
+      <h2>{% translate "4. Admin account" %}</h2>
+      <p>{% translate "The admin account opens the admin pages (site name and look, hiding players, ingestion history)." %}</p>
+      <label for="{{ form.admin_username.id_for_label }}">{{ form.admin_username.label }}</label>
+      <input type="text" name="admin_username" id="{{ form.admin_username.id_for_label }}" value="{{ form.admin_username.value|default:'' }}" autocomplete="username" required{% if form.admin_username.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.admin_username.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <label for="{{ form.admin_password.id_for_label }}">{{ form.admin_password.label }}</label>
+      <input type="password" name="admin_password" id="{{ form.admin_password.id_for_label }}" autocomplete="new-password" required{% if form.admin_password.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.admin_password.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <label for="{{ form.admin_password2.id_for_label }}">{{ form.admin_password2.label }}</label>
+      <input type="password" name="admin_password2" id="{{ form.admin_password2.id_for_label }}" autocomplete="new-password" required{% if form.admin_password2.errors %} aria-invalid="true"{% endif %}>
+      {% for error in form.admin_password2.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      <small>{% translate "At least 8 characters, not a common password, not only digits, not like the user name." %}</small>
+    </article>
+
+    <div class="button-row">
+      <button type="submit">{% translate "Finish setup" %}</button>
+    </div>
+  </form>
+{% endblock %}
+{% block scripts %}<script src="{% static 'il2ks/setup.js' %}" defer></script>{% endblock %}

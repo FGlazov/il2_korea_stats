@@ -41,6 +41,18 @@ def _django_setup() -> None:
     django.setup()
 
 
+def _setup_pending() -> bool:
+    """No admin account yet (so `web` creates the setup token); a database problem is not the setup page's business."""
+    from django.db import DatabaseError
+
+    from il2ks.ops import admin
+
+    try:
+        return not admin.admin_exists()
+    except DatabaseError:
+        return False
+
+
 def _iso_date(text: str) -> date:
     """argparse type for `YYYY-MM-DD` (strictly: not `20260401` or `2026-W14-3`)."""
     try:
@@ -287,6 +299,7 @@ def _main(argv: Sequence[str] | None) -> int:
         hooks = serving_commands.Hooks(
             django_setup=_django_setup,
             migrate=migrate_if_needed,
+            setup_pending=_setup_pending,
             contain_children=procutil.kill_children_when_we_die,
         )
         return serving_commands.dispatch(ns, hooks)

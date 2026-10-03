@@ -4,6 +4,10 @@ Asks a few questions with the answer in brackets (Enter keeps it), or takes ever
 (`non_interactive`). Then it writes `il2ks.toml` from the shipped example, creates the data folder, applies the database
 migrations and creates the admin account. It refuses to overwrite an existing config unless `force`, and then saves the
 old file next to it first. Everything after the config is written is safe to repeat.
+
+The writing half is reusable: `apply_answers` writes the config for a `SetupAnswers`, and `complete_web_setup` adds the
+admin account. The browser setup page (`il2ks.web.views.setup`, doc 07 option B) calls those, so the page and this
+command produce the same config.
 """
 
 from __future__ import annotations
@@ -21,13 +25,22 @@ from pathlib import Path
 from typing import Literal, cast, get_args
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from il2ks.config import CONFIG_FILE, ConfigError, default_data_dir, detect_os_timezone, load_config, stored_server_uid
+from il2ks.config import (
+    CONFIG_FILE,
+    Config,
+    ConfigError,
+    default_data_dir,
+    detect_os_timezone,
+    load_config,
+    stored_server_uid,
+)
 from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
 from il2ks.ingest.lock import LockBusyError
 from il2ks.ops import admin
 from il2ks.ops.detect import LogFolder, default_roots, find_log_folders
 from il2ks.ops.prompt import Prompter
-from il2ks.ops.template import Key, fill_template, template_text, toml_string
+from il2ks.ops.template import Key, fill_template, patch_config, template_text, toml_string
+from il2ks.serving.setup_token import discard_token
 
 type HttpsMode = Literal["caddy", "external"]
 HTTPS_MODES: tuple[HttpsMode, ...] = get_args(HttpsMode.__value__)
@@ -53,7 +66,34 @@ class SetupOptions:
     force: bool = False
 
 
+@dataclass(frozen=True, slots=True)
+class SetupAnswers:
+    """What the setup asks (the answers, already checked): the same set from the terminal and from the browser page."""
+
+    data_dir: Path
+    timezone: str
+    https_mode: HttpsMode
+    domain: str = ""  # normalized (see `normalize_domain`); "" = none yet
+    email: str = ""
+    logs_dir: Path | None = None  # None = not set
+
+
+@dataclass(frozen=True, slots=True)
+class ConfigApplied:
+    target: Path
+    backup: Path | None  # the config this one replaced, saved next to it
+    config: Config  # the new file loaded back, as `il2ks run` will see it
+
+
+@dataclass(frozen=True, slots=True)
+class WebSetupResult:
+    applied: ConfigApplied
+    admin: Literal["created", "reset"]
+
+
 type LogFinder = Callable[[], list[LogFolder]]
+
+_OPTIONAL_KEYS: tuple[Key, ...] = (("logs", "dir"), ("https", "domain"), ("https", "email"))
 
 
 def default_log_finder(env: Mapping[str, str], home: Path, platform: str) -> LogFinder:
@@ -82,7 +122,7 @@ def normalize_domain(text: str) -> str:
     return domain
 
 
-def _valid_timezone(name: str) -> bool:
+def valid_timezone(name: str) -> bool:
     try:
         ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError):
@@ -99,6 +139,87 @@ def _saved_server_uid(path: Path) -> uuid.UUID | None:
         return uuid.UUID(value) if isinstance(value, str) else None
     except (OSError, ValueError):
         return None
+
+
+def config_values(answers: SetupAnswers, uid: uuid.UUID) -> dict[Key, str]:
+    """The `il2ks.toml` values (TOML literals) a fresh config gets for these answers."""
+    values: dict[Key, str] = {
+        ("", "data_dir"): toml_string(answers.data_dir),
+        ("server", "timezone"): toml_string(answers.timezone),
+        ("server", "uid"): toml_string(str(uid)),
+        ("https", "mode"): toml_string(answers.https_mode),
+    }
+    if answers.logs_dir is not None:
+        values[("logs", "dir")] = toml_string(answers.logs_dir)
+    if answers.domain:
+        values[("https", "domain")] = toml_string(answers.domain)
+    if answers.email:
+        values[("https", "email")] = toml_string(answers.email)
+    return values
+
+
+def write_config_file(target: Path, text: str, now: Callable[[], datetime] = datetime.now) -> Path | None:
+    """Write `text` as the config atomically; returns the backup of the config it replaced, if any."""
+    backup: Path | None = None
+    if target.exists():
+        stamp = now().strftime("%Y%m%d-%H%M%S")
+        backup = target.with_name(f"{target.name}.bak-{stamp}")
+        shutil.copy2(target, backup)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".tmp")
+    partial.write_text(text, encoding="utf-8")
+    os.replace(partial, target)
+    return backup
+
+
+def apply_answers(
+    answers: SetupAnswers,
+    target: Path,
+    env: Mapping[str, str],
+    *,
+    patch_existing: bool = False,
+    now: Callable[[], datetime] = datetime.now,
+) -> ConfigApplied:
+    """Write `il2ks.toml` for `answers`, keeping the server's identity (TD-17), and load it back.
+
+    A new file is the shipped template with the answers switched on. An existing file is first copied to
+    `<name>.bak-<time>`, then either replaced by the template (`il2ks setup --force`) or, with `patch_existing`, changed
+    only in the answered settings so what the admin added by hand survives (the setup page). Raises `ConfigError` if
+    the result does not load (an environment override that clashes; the file itself is valid)."""
+    exists = target.exists()
+    uid = (_saved_server_uid(target) if exists else None) or stored_server_uid(answers.data_dir, create=True)
+    values = config_values(answers, uid)
+    if exists and patch_existing:
+        values.pop(("", "data_dir"))  # an existing file already says where its data is (or the environment does)
+        values.pop(("server", "uid"))
+        cleared = [key for key in _OPTIONAL_KEYS if key not in values]
+        text = patch_config(target.read_text(encoding="utf-8"), values, cleared)
+    else:
+        text = fill_template(template_text(), values)
+    backup = write_config_file(target, text, now)
+    return ConfigApplied(target, backup, load_config(target, env))
+
+
+def complete_web_setup(
+    answers: SetupAnswers,
+    target: Path,
+    env: Mapping[str, str],
+    *,
+    admin_username: str,
+    admin_password: str,
+    admin_email: str = "",
+    now: Callable[[], datetime] = datetime.now,
+) -> WebSetupResult:
+    """What the browser setup page does on submit: the config, then the admin account (Django set up, DB migrated).
+
+    The admin is created first-checked: the password goes through Django's validators before anything is written, so a
+    rejected password leaves the old configuration alone. Raises `admin.AdminError` or `ConfigError`."""
+    problems = admin.password_problems(admin_password, admin_username, admin_email)
+    if problems:
+        raise admin.AdminError("password rejected: " + " ".join(problems))
+    applied = apply_answers(answers, target, env, patch_existing=True, now=now)
+    outcome = admin.save_admin(admin_username, admin_password, admin_email)
+    return WebSetupResult(applied, outcome)
 
 
 class _Setup:
@@ -174,7 +295,7 @@ class _Setup:
     def ask_timezone(self) -> str:
         detected = detect_os_timezone(self.env)
         if self.opts.timezone is not None:
-            if not _valid_timezone(self.opts.timezone):
+            if not valid_timezone(self.opts.timezone):
                 raise ValueError(f"unknown timezone {self.opts.timezone!r}: use an IANA name such as Europe/Berlin")
             return self.opts.timezone
         if not self.interactive:
@@ -189,7 +310,7 @@ class _Setup:
             self.io.say("   (Windows cannot tell il2ks the name, so please type it.)")
         while True:
             answer = self.io.ask("   Time zone", detected)
-            if _valid_timezone(answer):
+            if valid_timezone(answer):
                 return answer
             self.io.say(f"   {answer!r} is not a known time zone name. Try again.")
 
@@ -228,20 +349,6 @@ class _Setup:
                 self.io.say(f"   {exc}")
 
     # --- doing ---------------------------------------------------------------------------------------------------
-
-    def write_config(self, target: Path, values: dict[Key, str]) -> Path | None:
-        """Write the filled template; returns the backup of the config it replaced, if any."""
-        text = fill_template(template_text(), values)
-        backup: Path | None = None
-        if target.exists():
-            stamp = self.now().strftime("%Y%m%d-%H%M%S")
-            backup = target.with_name(f"{target.name}.bak-{stamp}")
-            shutil.copy2(target, backup)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        partial = target.with_name(target.name + ".tmp")
-        partial.write_text(text, encoding="utf-8")
-        os.replace(partial, target)
-        return backup
 
     def create_admin(self, username_default: str) -> bool:
         """Create or reset the admin account and say what happened. False if it was wanted but failed."""
@@ -316,26 +423,15 @@ def run_setup(
         io.say(f"il2ks setup: {exc}")
         return EXIT_USAGE
 
-    uid = (_saved_server_uid(target) if target.exists() else None) or stored_server_uid(data_dir, create=True)
-    values: dict[Key, str] = {
-        ("", "data_dir"): toml_string(data_dir),
-        ("server", "timezone"): toml_string(timezone),
-        ("server", "uid"): toml_string(str(uid)),
-        ("https", "mode"): toml_string(mode),
-    }
-    if logs_dir is not None:
-        values[("logs", "dir")] = toml_string(logs_dir)
-    if domain:
-        values[("https", "domain")] = toml_string(domain)
-    if email:
-        values[("https", "email")] = toml_string(email)
-
-    old = s.write_config(target, values)
+    answers = SetupAnswers(
+        data_dir=data_dir, timezone=timezone, https_mode=mode, domain=domain, email=email, logs_dir=logs_dir
+    )
     try:
-        cfg = load_config(target, env)
+        applied = apply_answers(answers, target, env, now=now)
     except ConfigError as exc:  # can only be an environment override that clashes; the file itself is valid
         io.say(f"il2ks setup: the new configuration does not load: {exc}")
         return EXIT_USAGE
+    cfg, old = applied.config, applied.backup
     cfg.data_dir.mkdir(parents=True, exist_ok=True)
     io.say()
     io.say(f"Wrote {target}" + (f" (the previous file is saved as {old})" if old is not None else ""))
@@ -364,6 +460,8 @@ def run_setup(
         return EXIT_LOCKED
     io.say("Database ready.")
     admin_ok = s.create_admin(admin.DEFAULT_USERNAME)
+    if admin_ok and admin.admin_exists():
+        discard_token(cfg.data_dir)  # an admin exists: the browser setup page is closed for good
     _next_steps(io, target, cfg.data_dir, logs_dir, env)
     return EXIT_OK if admin_ok else EXIT_FAILED
 

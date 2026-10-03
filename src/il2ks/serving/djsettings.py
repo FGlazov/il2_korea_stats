@@ -37,6 +37,10 @@ must match `devtools.translations.TARGET_LANGUAGES` (a test checks). Language na
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 """Django believes this header from the proxy (Caddy sets it itself; nginx and IIS must, see docs/reverse-proxy.md)."""
+SSL_REDIRECT_EXEMPT = (r"^setup/$", r"^static/")
+"""The first-run setup page is opened on `http://localhost:<port>/setup/` before HTTPS exists: not redirected,
+and neither are its styles and scripts (`static/`, public files anyway). It is safe: the view only answers local,
+token-carrying requests while setup is pending (`il2ks.web.views.setup`)."""
 STATIC_BACKEND_DEV = "django.contrib.staticfiles.storage.StaticFilesStorage"
 STATIC_BACKEND_PROD = "il2ks.serving.storage.LenientManifestStorage"
 
@@ -96,6 +100,7 @@ class SecuritySettings:
     csrf_cookie_httponly: bool
     content_type_nosniff: bool
     referrer_policy: str
+    redirect_exempt: tuple[str, ...]
 
 
 def security_settings(cfg: Config) -> SecuritySettings:
@@ -116,6 +121,7 @@ def security_settings(cfg: Config) -> SecuritySettings:
         csrf_cookie_httponly=True,
         content_type_nosniff=True,
         referrer_policy="same-origin",
+        redirect_exempt=SSL_REDIRECT_EXEMPT if https else (),
     )
 
 

@@ -1,0 +1,23 @@
+/* il2ks-template: static/il2ks/setup.css v1 - copy this line along when you override */
+/* The first-run setup page (views/setup.py): spacing and a few status colours on top of Pico and site.css. */
+.setup-form article > h2 { margin-top: 0; }
+.setup-form label { margin-top: 0.75rem; }
+.setup-form article > p { margin-bottom: 0.5rem; }
+.setup-choices { margin: 0.5rem 0 0.75rem; padding: 0; border: 0; }
+.setup-choices legend { margin-bottom: 0.4rem; font-weight: 600; }
+.setup-choices label { display: grid; grid-template-columns: auto 1fr; column-gap: 0.6rem; align-items: baseline; margin: 0 0 0.5rem; }
+.setup-choices label > input { grid-column: 1; grid-row: 1 / span 2; }
+.setup-choices label > :not(input) { grid-column: 2; }
+.inline-check { display: block; font-size: 0.9rem; font-weight: 400; }
+.field-error { display: block; color: light-dark(#b42323, #f07c7c); font-weight: 600; }
+.setup-status { margin: 0.5rem 0 0; padding-inline-start: 0.7rem; border-inline-start: 3px solid var(--tone); }
+.setup-status--ok { --tone: light-dark(#2f7d32, #7fd17f); }
+.setup-status--warn { --tone: light-dark(#946200, #ecbb4a); }
+.setup-fallbacks { margin: 0.5rem 0 1rem; font-size: 0.92rem; }
+.setup-fallbacks ul { margin: 0.25rem 0 0.5rem; }
+.setup-findings { margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.setup-finding { margin: 0 0 0.6rem; padding: 0.55rem 0.9rem; border: 1px solid var(--il2-border); border-inline-start-width: 4px; border-radius: var(--il2-radius); background: var(--il2-surface); }
+.setup-finding--red { border-inline-start-color: light-dark(#b42323, #f07c7c); }
+.setup-finding--amber { border-inline-start-color: light-dark(#946200, #ecbb4a); }
+.setup-finding--green { border-inline-start-color: light-dark(#2f7d32, #7fd17f); }
+.setup-finding > div { margin-top: 0.15rem; font-size: 0.9rem; }

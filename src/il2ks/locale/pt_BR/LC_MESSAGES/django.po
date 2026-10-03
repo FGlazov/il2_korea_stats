@@ -78,6 +78,12 @@ msgid "%(n)s events. Times count from the spawn; the UTC time is shown next to t
 msgstr ""
 
 #, python-format
+msgid "%(n)s file, newest %(newest)s"
+msgid_plural "%(n)s files, newest %(newest)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
 msgid "%(n)s friendly kills in this sortie. They do not count as kills."
 msgstr ""
 
@@ -90,6 +96,12 @@ msgid "%(n)s ground targets"
 msgstr ""
 
 #, python-format
+msgid "%(n)s mission report file found"
+msgid_plural "%(n)s mission report files found"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
 msgid "%(n)s of them were static objects (not moving), such as parked vehicles, fences and crates."
 msgstr ""
 
@@ -99,6 +111,10 @@ msgstr ""
 
 #, python-format
 msgid "%(ok)s missions reprocessed, %(failed)s failed, %(missing)s without an archive."
+msgstr ""
+
+#, python-format
+msgid "%(path)s is a file, not a folder."
 msgstr ""
 
 #, python-format
@@ -137,13 +153,37 @@ msgstr ""
 msgid "%(value)s per sortie"
 msgstr ""
 
+msgid "(site name, logo, colours, hiding players)."
+msgstr ""
+
 msgid ", and more"
+msgstr ""
+
+msgid "1. The game server's log folder"
+msgstr ""
+
+msgid "2. Time zone"
+msgstr ""
+
+msgid "3. Website address and HTTPS"
+msgstr ""
+
+msgid "4. Admin account"
 msgstr ""
 
 msgid "<1%"
 msgstr ""
 
 msgid "A clean sheet so far. The runway thanks you."
+msgstr ""
+
+#, python-format
+msgid ""
+"A configuration file already exists (%(path)s). Your answers are written into it; everything else in it stays, and a "
+"dated copy is kept."
+msgstr ""
+
+msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
 msgstr ""
 
 msgid "A reprocess request is already waiting or running."
@@ -156,6 +196,12 @@ msgid "AI aircraft"
 msgstr ""
 
 msgid "AI gunner"
+msgstr ""
+
+msgid "Admin account"
+msgstr ""
+
+msgid "Admin user name"
 msgstr ""
 
 msgid "Air"
@@ -261,6 +307,9 @@ msgstr ""
 msgid "Assists: %(n)s"
 msgstr ""
 
+msgid "At least 8 characters, not a common password, not only digits, not like the user name."
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "At most %(max)d links."
@@ -286,6 +335,9 @@ msgstr ""
 # llm-draft
 msgid "Back to the start page"
 msgstr "Voltar à página inicial"
+
+msgid "Back up your data now and then: il2ks backup"
+msgstr ""
 
 # llm-draft
 msgid "Bailed out"
@@ -330,6 +382,12 @@ msgstr ""
 msgid "Category"
 msgstr ""
 
+msgid "Check"
+msgstr ""
+
+msgid "Check that you copied all of it. After several wrong tries this page locks for a while."
+msgstr ""
+
 # llm-draft
 msgid "Class"
 msgstr "Classe"
@@ -351,6 +409,12 @@ msgstr ""
 # llm-draft
 msgid "Community"
 msgstr "Comunidade"
+
+msgid "Configuration file"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
 
 msgid "Counterpart"
 msgstr ""
@@ -417,6 +481,10 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
+#, python-format
+msgid "Detected: %(zone)s. Change it if the game server's computer uses another one."
+msgstr ""
+
 msgid "Died"
 msgstr ""
 
@@ -428,7 +496,19 @@ msgstr "Nome exibido"
 msgid "Ditched"
 msgstr "Amerissou"
 
+msgid "Domain"
+msgstr ""
+
+msgid "Domain name"
+msgstr ""
+
+msgid "Domain name, for example stats.example.com"
+msgstr ""
+
 msgid "Duration"
+msgstr ""
+
+msgid "E-mail for certificate notices (optional)"
 msgstr ""
 
 # llm-draft
@@ -480,6 +560,9 @@ msgstr "Procurar um jogador"
 msgid "Find a player by name"
 msgstr ""
 
+msgid "Finish setup"
+msgstr ""
+
 #, python-format
 msgid "First seen %(first)s · last seen %(last)s"
 msgstr ""
@@ -487,7 +570,25 @@ msgstr ""
 msgid "First used"
 msgstr ""
 
+msgid "First-run setup"
+msgstr ""
+
+msgid "Fix"
+msgstr ""
+
+msgid "Fix the setting named above in il2ks.toml, restart il2ks and open this page again."
+msgstr ""
+
 msgid "Flight time"
+msgstr ""
+
+#, python-format
+msgid "Found %(n)s mission report file there."
+msgid_plural "Found %(n)s mission report files there."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name."
 msgstr ""
 
 msgid "Friendly"
@@ -537,7 +638,13 @@ msgstr ""
 msgid "Gunner sortie"
 msgstr ""
 
+msgid "HTTPS"
+msgstr ""
+
 msgid "Hall of shame"
+msgstr ""
+
+msgid "Health check"
 msgstr ""
 
 # llm-draft
@@ -575,6 +682,15 @@ msgstr ""
 msgid "Home"
 msgstr "Início"
 
+msgid "How should HTTPS be handled?"
+msgstr ""
+
+msgid "I already run my own web server"
+msgstr ""
+
+msgid "I have no domain name yet"
+msgstr ""
+
 # llm-draft
 msgid "In aircraft"
 msgstr "Na aeronave"
@@ -593,6 +709,9 @@ msgstr ""
 msgid "In the lobby"
 msgstr ""
 
+msgid "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead."
+msgstr ""
+
 # llm-draft
 msgid "Ingested"
 msgstr "Ingerida"
@@ -600,6 +719,9 @@ msgstr "Ingerida"
 # llm-draft
 msgid "Ingestion status"
 msgstr "Status da ingestão"
+
+msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
+msgstr ""
 
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
@@ -690,6 +812,11 @@ msgstr "Última tentativa"
 msgid "Latest missions"
 msgstr ""
 
+msgid ""
+"Leave the box empty. The site starts with a self-signed test certificate: browsers warn that it is “not secure”. Good"
+" for trying things out, not for your players."
+msgstr ""
+
 msgid "Left"
 msgstr ""
 
@@ -721,6 +848,12 @@ msgid "Links"
 msgstr "Links"
 
 msgid "Loaded"
+msgstr ""
+
+msgid "Log folder"
+msgstr ""
+
+msgid "Log in to the admin pages"
 msgstr ""
 
 msgid "Log incomplete"
@@ -798,6 +931,9 @@ msgstr "Próxima"
 msgid "Next retry"
 msgstr "Próxima tentativa"
 
+msgid "Next step"
+msgstr ""
+
 msgid "Nickname"
 msgstr ""
 
@@ -874,9 +1010,15 @@ msgstr ""
 msgid "Nobody scored a kill in this mission."
 msgstr ""
 
+msgid "None of these (skip for now)"
+msgstr ""
+
 # llm-draft
 msgid "None."
 msgstr "Nenhum."
+
+msgid "Not saved yet"
+msgstr ""
 
 # llm-draft
 msgid "Not taken off"
@@ -885,6 +1027,9 @@ msgstr "Não decolou"
 # llm-draft
 msgid "Note"
 msgstr "Observação"
+
+msgid "Nothing found. The server may not write text logs yet; the final check will say what to switch on in the game server."
+msgstr ""
 
 # llm-draft
 msgid "Nothing ingested yet."
@@ -896,6 +1041,9 @@ msgstr ""
 # llm-draft
 msgid "Nothing to show yet."
 msgstr "Ainda não há nada para mostrar."
+
+msgid "OK"
+msgstr ""
 
 msgid "On the ground"
 msgstr ""
@@ -910,12 +1058,30 @@ msgstr "Um por linha: “Rótulo | https://endereço”. Exibidos no cabeçalho 
 msgid "Online now"
 msgstr ""
 
+msgid "Open the site"
+msgstr ""
+
 msgid "Open the sortie report"
 msgstr ""
 
 # llm-draft
 msgid "Operations"
 msgstr "Operações"
+
+#, python-format
+msgid "Or open this file and copy its content: %(path)s"
+msgstr ""
+
+msgid "Or type the folder"
+msgstr ""
+
+msgid "Or type the folder's path"
+msgstr ""
+
+msgid ""
+"Or type this computer's public IP address. Certificate authorities can issue short-lived certificates (about 6 days) "
+"for an IP address and il2ks renews them by itself. The address must be public, and port 80 must be reachable."
+msgstr ""
 
 msgid "Other"
 msgstr ""
@@ -954,6 +1120,9 @@ msgid "Parking"
 msgstr ""
 
 msgid "Part of a nickname"
+msgstr ""
+
+msgid "Password"
 msgstr ""
 
 msgid "Payload"
@@ -998,6 +1167,9 @@ msgid ""
 "object, added up over all objects of that type."
 msgstr ""
 
+msgid "Please look at the marked answers below. Nothing was changed."
+msgstr ""
+
 msgid "Possible early bailout"
 msgstr ""
 
@@ -1012,6 +1184,10 @@ msgstr "Desenvolvido com il2ks %(version)s"
 # llm-draft
 msgid "Previous"
 msgstr "Anterior"
+
+#, python-format
+msgid "Previous file kept as %(path)s"
+msgstr ""
 
 # llm-draft
 msgid "Problems"
@@ -1056,6 +1232,12 @@ msgstr ""
 msgid "Reset display names to the catalog defaults"
 msgstr "Redefinir os nomes exibidos para os padrões do catálogo"
 
+msgid "Restart il2ks"
+msgstr ""
+
+msgid "Restarting"
+msgstr ""
+
 # llm-draft
 msgid "Result"
 msgstr "Resultado"
@@ -1093,6 +1275,16 @@ msgid "Seen in logs but missing from the catalog. Give them a name here, and rep
 msgstr ""
 "Vistos nos logs, mas ausentes do catálogo. Dê um nome a eles aqui e relate-os para que o catálogo possa ser "
 "atualizado."
+
+msgid "Setup finished"
+msgstr ""
+
+#, python-format
+msgid "Setup is locked for about %(minutes)s minutes after several wrong tokens. Restarting il2ks also unlocks it."
+msgstr ""
+
+msgid "Setup token"
+msgstr ""
 
 msgid "Share"
 msgstr ""
@@ -1238,9 +1430,18 @@ msgstr ""
 msgid "Taxi accidents"
 msgstr ""
 
+msgid "That folder does not exist yet. il2ks will start watching once it appears."
+msgstr ""
+
 # llm-draft
 msgid "That page does not exist, or the link is out of date."
 msgstr "Essa página não existe, ou o link está desatualizado."
+
+msgid "That token is not right"
+msgstr ""
+
+msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
+msgstr ""
 
 msgid ""
 "The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb "
@@ -1250,6 +1451,21 @@ msgstr ""
 msgid ""
 "The aircraft was destroyed in flight by something other than an enemy, shortly after it took self-inflicted damage, "
 "and kept falling afterwards. It may have broken up from overstress; this is a guess from the log."
+msgstr ""
+
+msgid ""
+"The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this "
+"computer."
+msgstr ""
+
+msgid "The certificate authority writes here before a certificate would expire. Only used with the bundled Caddy."
+msgstr ""
+
+#, python-format
+msgid "The configuration could not be saved: %(error)s"
+msgstr ""
+
+msgid "The configuration does not load"
 msgstr ""
 
 # llm-draft
@@ -1264,6 +1480,20 @@ msgstr "O arquivo é maior que %(mb)d MB."
 # llm-draft
 msgid "The file is larger than 2 MB."
 msgstr "O arquivo é maior que 2 MB."
+
+#, python-format
+msgid ""
+"The folder %(path)s does not exist. Check the spelling, or tick “use it anyway” if it will appear later (for example "
+"a network share that is not connected yet)."
+msgstr ""
+
+msgid ""
+"The folder exists, but no mission reports are in it yet. That is fine for a new server, as long as the game server is"
+" set to write text logs there."
+msgstr ""
+
+msgid "The game server names its log files in its own computer's local time, so il2ks has to know that time zone."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -1287,6 +1517,16 @@ msgid ""
 "lost."
 msgstr ""
 
+msgid ""
+"The name has to point at this computer (a DNS record at your domain provider), and ports 80 and 443 must be reachable"
+" from the internet. The certificate is then requested and renewed automatically."
+msgstr ""
+
+msgid ""
+"The new settings only take effect after a restart. Stop il2ks (Ctrl+C in its window, or restart the Windows service "
+"or systemd unit) and start it again with: il2ks run"
+msgstr ""
+
 # llm-draft
 msgid "The numbers on this page are provisional and can still be updated."
 msgstr "Os números desta página são provisórios e ainda podem mudar."
@@ -1296,11 +1536,26 @@ msgid ""
 "log and can be wrong, for example after an engine failure or a deliberate exit."
 msgstr ""
 
+msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
+msgstr ""
+
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "O servidor encontrou um erro ao montar esta página. Tente novamente em instantes."
 
 msgid "The server stopped before the mission ended; the numbers may be partial."
+msgstr ""
+
+msgid "The settings are saved and the admin account exists. This setup page is now closed for good."
+msgstr ""
+
+msgid "The site is served over HTTPS only, so players need an address that points to this computer."
+msgstr ""
+
+msgid "The site, once it is back:"
+msgstr ""
+
+msgid "The two passwords differ."
 msgstr ""
 
 # llm-draft
@@ -1344,10 +1599,22 @@ msgstr ""
 msgid "Time on target"
 msgstr ""
 
+msgid "Time zone"
+msgstr ""
+
+msgid "Time zone of the game server's computer"
+msgstr ""
+
 msgid "Timeline"
 msgstr ""
 
+msgid "To make sure it is really you, setup needs the one-time token that il2ks created for this installation."
+msgstr ""
+
 msgid "Too many failed login attempts. Try again in a few minutes."
+msgstr ""
+
+msgid "Too many wrong tokens"
 msgstr ""
 
 msgid "Took off"
@@ -1369,6 +1636,9 @@ msgid "Trains"
 msgstr ""
 
 msgid "Type"
+msgstr ""
+
+msgid "Type the password again"
 msgstr ""
 
 msgid "UTC"
@@ -1423,6 +1693,9 @@ msgstr "Enviar um novo logotipo"
 msgid "Use a colour like #1A73E8 (six hex digits), or leave it empty."
 msgstr "Use uma cor como #1A73E8 (seis dígitos hexadecimais) ou deixe em branco."
 
+msgid "Use it anyway if it does not exist yet"
+msgstr ""
+
 msgid "Used"
 msgstr ""
 
@@ -1462,6 +1735,15 @@ msgstr ""
 msgid "Warnings"
 msgstr "Avisos"
 
+msgid "What was saved"
+msgstr ""
+
+msgid "Where to find it:"
+msgstr ""
+
+msgid "Windows cannot tell us the name of its time zone. If your browser can, it was filled in for you; please check it."
+msgstr ""
+
 msgid "Winner"
 msgstr ""
 
@@ -1497,6 +1779,9 @@ msgstr ""
 msgid "by"
 msgstr ""
 
+msgid "created"
+msgstr ""
+
 msgid "current"
 msgstr ""
 
@@ -1507,7 +1792,34 @@ msgstr ""
 msgid "from a log event"
 msgstr ""
 
+msgid "il2ks does it (recommended)"
+msgstr ""
+
+msgid "il2ks handles it with the bundled Caddy"
+msgstr ""
+
+msgid ""
+"il2ks reads the missionReport(…)[N].txt text logs that the game server writes. These are the folders that look like "
+"it:"
+msgstr ""
+
+msgid ""
+"il2ks run is supervising the site: it notices the new settings and restarts everything in a few seconds. This page "
+"may stop answering for a moment. Then open the site below."
+msgstr ""
+
 msgid "inferred from the log"
+msgstr ""
+
+msgid ""
+"nginx, IIS or Apache in front of il2ks handles HTTPS. il2ks then only listens on this computer, and you point your "
+"server at it (see docs/reverse-proxy.md)."
+msgstr ""
+
+msgid "none yet (test certificate)"
+msgstr ""
+
+msgid "not set"
 msgstr ""
 
 #, python-format
@@ -1517,6 +1829,9 @@ msgstr ""
 msgid "of them static objects"
 msgstr ""
 
+msgid "password reset"
+msgstr ""
+
 #, python-format
 msgid "requested %(at)s by %(who)s; it starts at the next watch tick."
 msgstr ""
@@ -1524,6 +1839,9 @@ msgstr ""
 # llm-draft
 msgid "runs ok / failed"
 msgstr "execuções ok / com falha"
+
+msgid "set in the configuration"
+msgstr ""
 
 #, python-format
 msgid "since %(started)s: %(done)s of %(total)s missions done, %(failed)s failed."
@@ -1541,5 +1859,8 @@ msgstr ""
 
 #, python-format
 msgid "x %(x)s, z %(z)s, altitude %(y)s m"
+msgstr ""
+
+msgid "your own web server"
 msgstr ""
 

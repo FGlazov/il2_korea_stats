@@ -54,6 +54,7 @@ SESSION_COOKIE_HTTPONLY = _SECURITY.session_cookie_httponly
 CSRF_COOKIE_HTTPONLY = _SECURITY.csrf_cookie_httponly
 SECURE_CONTENT_TYPE_NOSNIFF = _SECURITY.content_type_nosniff
 SECURE_REFERRER_POLICY = _SECURITY.referrer_policy
+SECURE_REDIRECT_EXEMPT = list(_SECURITY.redirect_exempt)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

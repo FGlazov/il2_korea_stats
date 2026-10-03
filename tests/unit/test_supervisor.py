@@ -261,3 +261,31 @@ def test_clean_output_line_strips_colour_and_unprintable_characters(monkeypatch:
     monkeypatch.setattr(sys, "stdout", Stdout())
     line = "2026/10/03 15:51:31\t\x1b[33mWARN\x1b[0m\texiting; byeee!! \U0001f44b\t{}\r\n"
     assert clean_output_line(line) == "2026/10/03 15:51:31\tWARN\texiting; byeee!! ?\t{}"
+
+
+def test_run_returns_true_and_stops_everything_when_a_restart_is_requested() -> None:
+    w = World(("web", "watch"))
+    asked = {"now": False}
+    w.sup.restart_when = lambda: asked["now"]
+    original_sleep = w.sleep
+
+    def sleep(seconds: float) -> None:
+        original_sleep(seconds)
+        asked["now"] = True  # after the first tick: "the configuration changed"
+
+    w.sup.sleep = sleep
+    assert w.sup.run() is True
+    assert all(c.stop_called for kids in w.children.values() for c in kids)
+    assert {n: len(c) for n, c in w.children.items()} == {"web": 1, "watch": 1}
+
+
+def test_run_returns_false_when_stopped_normally() -> None:
+    w = World()
+    original_sleep = w.sleep
+
+    def sleep(seconds: float) -> None:
+        original_sleep(seconds)
+        w.stop.set()
+
+    w.sup.sleep = sleep
+    assert w.sup.run() is False

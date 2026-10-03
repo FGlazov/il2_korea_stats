@@ -20,9 +20,10 @@ from il2ks import cli
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config, ConfigError, load_config
 from il2ks.ingest.lock import LockBusyError, LockHolder
-from il2ks.serving import bootid, commands, custom, procutil, webserver
+from il2ks.serving import bootid, commands, custom, procutil, setup_token, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, SECRET_KEY_FILE
 from il2ks.serving.supervisor import ChildSpec
+from tests.ops_helpers import returning
 from tests.unit.test_supervisor import FakeChild
 
 ENV_KEYS = ("IL2KS_DATA_DIR", "IL2KS_CONFIG", "IL2KS_DEBUG", "IL2KS_LOGS_DIR", "IL2KS_BOOT_ID")
@@ -582,3 +583,188 @@ def test_run_prints_a_loud_notice_for_an_out_of_date_override(
     assert "templates/il2ks/base.html" in err
     assert "il2ks custom list" in err
     custom.startup_scan.cache_clear()
+
+
+# --- first-run setup page: token, restart on a changed configuration --------------------------------------------------
+
+
+def pending_hooks(calls: Calls, *, pending: bool) -> commands.Hooks:
+    hooks = hooks_for(calls)
+    hooks.setup_pending = lambda: pending
+    return hooks
+
+
+def test_web_prints_the_setup_address_and_writes_the_token_while_no_admin_exists(
+    env: Path, calls: Calls, settings: Settings, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    assert commands.dispatch(parse(["web"]), pending_hooks(calls, pending=True)) == EXIT_OK
+    token = setup_token.read_token(env / "data")
+    assert token
+    out = capsys.readouterr().out
+    assert f"http://127.0.0.1:8000/setup/?token={token}" in out
+    assert "ON THIS COMPUTER" in out
+    assert calls.events == ["migrate:web", "call_command:collectstatic", "serve_granian"]  # then it serves as usual
+
+
+def test_a_restart_keeps_the_same_setup_token(env: Path, calls: Calls, settings: Settings) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    commands.dispatch(parse(["web"]), pending_hooks(calls, pending=True))
+    first = setup_token.read_token(env / "data")
+    commands.dispatch(parse(["web"]), pending_hooks(calls, pending=True))
+    assert setup_token.read_token(env / "data") == first
+
+
+def test_web_removes_a_stale_setup_token_once_an_admin_exists(
+    env: Path, calls: Calls, settings: Settings, capsys: pytest.CaptureFixture[str]
+) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    setup_token.ensure_token(env / "data")
+    commands.dispatch(parse(["web"]), pending_hooks(calls, pending=False))
+    assert setup_token.read_token(env / "data") == ""
+    assert "setup" not in capsys.readouterr().out.lower()
+
+
+def test_web_migrate_only_does_not_create_a_token(env: Path, calls: Calls, settings: Settings) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    commands.dispatch(parse(["web", "--migrate-only"]), pending_hooks(calls, pending=True))
+    assert setup_token.read_token(env / "data") == ""
+
+
+class FakeClock:
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def __call__(self) -> float:
+        return self.now
+
+
+def test_config_watch_waits_for_the_file_to_settle_then_reports_a_loadable_change(env: Path) -> None:
+    file = env / "il2ks.toml"
+    file.write_text("[web]\nport = 8001\n", encoding="utf-8")
+    clock = FakeClock()
+    watch = commands.ConfigWatch(file, clock, settle_s=3.0, env={"IL2KS_DATA_DIR": str(env / "data")})
+    assert not watch.changed()  # nothing changed
+    file.write_text("[web]\nport = 8002\n# a longer file\n", encoding="utf-8")
+    assert not watch.changed()  # first sight of the change
+    clock.now = 2.0
+    assert not watch.changed()  # not settled yet
+    clock.now = 3.5
+    assert watch.changed()
+    assert watch.new_config is not None
+    assert watch.new_config.web.port == 8002
+
+
+def test_config_watch_restarts_its_wait_while_the_file_is_still_changing(env: Path) -> None:
+    file = env / "il2ks.toml"
+    file.write_text("", encoding="utf-8")
+    clock = FakeClock()
+    watch = commands.ConfigWatch(file, clock, settle_s=3.0, env={"IL2KS_DATA_DIR": str(env / "data")})
+    file.write_text("[web]\nport = 8002\n", encoding="utf-8")
+    watch.changed()
+    clock.now = 2.5
+    file.write_text("[web]\nport = 8003 \n", encoding="utf-8")  # written again: the wait starts over
+    assert not watch.changed()
+    clock.now = 4.0
+    assert not watch.changed()
+    clock.now = 6.0
+    assert watch.changed()
+    assert watch.new_config is not None
+    assert watch.new_config.web.port == 8003
+
+
+def test_config_watch_ignores_a_file_that_does_not_load_and_says_so_once(
+    env: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    file = env / "il2ks.toml"
+    file.write_text("", encoding="utf-8")
+    clock = FakeClock()
+    watch = commands.ConfigWatch(file, clock, settle_s=1.0, env={"IL2KS_DATA_DIR": str(env / "data")})
+    file.write_text("[web]\nport = banana\n", encoding="utf-8")
+    watch.changed()
+    for now in (2.0, 3.0, 4.0):
+        clock.now = now
+        assert not watch.changed()
+    assert caplog.text.count("does not load") == 1
+    file.write_text("[web]\nport = 8005\n", encoding="utf-8")  # fixed: picked up
+    clock.now = 5.0
+    watch.changed()
+    clock.now = 7.0
+    assert watch.changed()
+
+
+def test_config_watch_sees_a_file_that_appears_where_the_config_is_looked_for(env: Path) -> None:
+    clock = FakeClock()
+    watch = commands.ConfigWatch(None, clock, settle_s=1.0, env={"IL2KS_DATA_DIR": str(env / "data")})
+    (env / "data").mkdir()
+    (env / "data" / "il2ks.toml").write_text('[https]\nmode = "external"\n', encoding="utf-8")
+    watch.changed()
+    clock.now = 2.0
+    assert watch.changed()
+
+
+def test_missing_caddy_is_only_logged_when_the_site_must_stay_up_for_setup(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], caplog: pytest.LogCaptureFixture
+) -> None:
+    cfg = make_cfg(tmp_path, '[logs]\ndir = "x"')
+    specs = commands.build_child_specs(cfg, caddy_binary=None, env={}, caddy_optional=True)
+    assert [s.name for s in specs] == ["web", "watch"]
+    assert "Starting without HTTPS" in capsys.readouterr().err
+    assert "winget install CaddyServer.Caddy" in caplog.text
+
+
+class ReconfigWorld(RunWorld):
+    """`il2ks run` on a fresh install; after a few ticks the setup page writes the configuration file."""
+
+    def __init__(self, config_file: Path, config_text: str) -> None:
+        super().__init__()
+        self.now = 0.0
+        self.ticks = 0
+        self.config_file = config_file
+        self.config_text = config_text
+
+    def sleep(self, seconds: float) -> None:
+        self.now += seconds
+        self.ticks += 1
+        if self.ticks == 2:
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            self.config_file.write_text(self.config_text, encoding="utf-8")
+        if len(self.spawned) >= 3 or self.ticks > 60:  # the second generation is up (or something is wrong): stop
+            self.stop.set()
+
+    def hooks(self, calls: Calls) -> commands.Hooks:
+        hooks = super().hooks(calls)
+        hooks.clock = lambda: self.now
+        return hooks
+
+
+def test_run_restarts_everything_when_the_setup_page_writes_the_configuration(
+    env: Path, calls: Calls, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(commands.caddy, "find_caddy", returning(None))
+    config_file = env / "data" / "il2ks.toml"
+    world = ReconfigWorld(config_file, f'[logs]\ndir = "{env.as_posix()}"\n[https]\nmode = "external"\n')
+    assert commands.dispatch(parse(["run"]), world.hooks(calls)) == EXIT_OK
+
+    # First generation: no configuration yet, no Caddy: only the web server (so the setup page is reachable).
+    assert [c.spec.name for c in world.spawned] == ["web", "web", "watch"]
+    first, second_web, second_watch = world.spawned
+    assert first.stop_called  # the old generation was stopped, not abandoned
+    assert "--config" not in first.spec.command
+    # Second generation: the new configuration (a watcher because a log folder is set), told which file to use.
+    assert list(second_web.spec.command[-3:]) == ["--config", str(config_file), "web"]
+    assert list(second_watch.spec.command[-3:]) == ["--config", str(config_file), "watch"]
+    assert len(world.prepared) == 2  # migrated again before the restart
+    assert os.environ["IL2KS_CONFIG"] == str(config_file)  # exported for the children
+    assert procutil.read_run_state(env / "data") is None
+
+
+def test_run_keeps_running_when_nothing_changes(env: Path, calls: Calls) -> None:
+    (env / "il2ks.toml").write_text('[https]\nmode = "external"', encoding="utf-8")
+    world = RunWorld()
+    commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls))
+    assert [c.spec.name for c in world.spawned] == ["web"]

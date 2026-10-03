@@ -80,6 +80,26 @@ Use forward slashes (`/`) in paths, also on Windows. Write the name only: no `ht
 **Time zone:** DServer names its logs in its own local time. On Windows, set `[server] timezone = "Europe/Berlin"`
 (your IANA zone name) unless the machine runs on UTC.
 
+### Prefer a web page to the terminal?
+
+If il2ks is already running but nobody has set it up yet (no admin account exists), it prints an address like this
+and writes the same token to `setup-token.txt` in the data folder:
+
+```
+http://localhost:8000/setup/?token=...
+```
+
+Open that address in a browser **on the machine that runs il2ks**. The page asks for the game log folder (it lists the
+ones it finds), the time zone, the domain name and HTTPS mode, and the admin user name and password, then shows the
+same health check as `il2ks doctor`. It writes the same `il2ks.toml` that `il2ks setup` would.
+
+It is locked down on purpose: it only answers on this computer (never through the HTTPS proxy, so never from the
+internet), only with the token, and after you finish it is gone for good (the token file is deleted, the address gives
+"not found"). Several wrong tokens lock it for ten minutes. To switch it off without finishing, delete
+`setup-token.txt`; to get a new token, restart il2ks. If `il2ks run` is supervising the site, it restarts everything with
+the new settings by itself a few seconds after you finish; otherwise restart il2ks yourself. Inside Docker the page is
+not reachable from the host (the request does not come from `localhost` there): run `il2ks setup` in the container.
+
 ## 3. Install Caddy (the HTTPS part)
 
 [Caddy](https://caddyserver.com) is a small program that gets and renews your HTTPS certificate by itself and sits in

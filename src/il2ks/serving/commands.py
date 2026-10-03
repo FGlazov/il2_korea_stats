@@ -12,19 +12,22 @@ import os
 import sys
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
 from il2ks import logsetup
-from il2ks.config import Config, ConfigError, load_config
+from il2ks.config import Config, ConfigError, find_config_file, load_config
 from il2ks.ingest.lock import LockBusyError
-from il2ks.serving import bootid, caddy, custom, procutil, service, supervisor, webserver
+from il2ks.serving import bootid, caddy, custom, procutil, service, setup_token, supervisor, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, ensure_secret_key
 
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 COMMANDS = frozenset({"web", "run", "caddyfile", "service", "custom"})
 MIGRATE_WAIT_S = 60.0
+CONFIG_SETTLE_S = 3.0
+"""A changed configuration file is acted on after it stayed unchanged this long: the page that wrote it (the setup page)
+is still answering its browser, and a half-written file is never loaded."""
 
 log = logging.getLogger("il2ks.run")
 
@@ -45,6 +48,7 @@ class Hooks:
     contain_children: Callable[[], bool] = no_containment  # `run`: children die with it (cli.py wires the real one)
     clock: Callable[[], float] = time.monotonic
     sleep: Callable[[float], None] | None = None  # None: wait on the stop event
+    setup_pending: Callable[[], bool] = lambda: False  # no admin account yet? (needs Django and a migrated database)
 
 
 type SubParsers = "argparse._SubParsersAction[argparse.ArgumentParser]"  # pyright: ignore[reportPrivateUsage]
@@ -107,7 +111,7 @@ def dispatch(ns: argparse.Namespace, hooks: Hooks) -> int:
     if command == "web":
         return cmd_web(cfg, ns, hooks)
     if command == "run":
-        return cmd_run(cfg, hooks)
+        return cmd_run(cfg, hooks, ns.config)
     if command == "caddyfile":
         print(caddy.render_caddyfile(cfg), end="")
         return EXIT_OK
@@ -178,6 +182,7 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
     custom.log_problems(custom.custom_dir(cfg), log)  # the admin pages show the same warning as a red banner
     try:
         hooks.migrate(cfg, "web", MIGRATE_WAIT_S)
+        announce_setup(cfg, host, port, hooks)
         if not settings.DEBUG:
             from django.core.management import call_command
 
@@ -193,6 +198,26 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
     except KeyboardInterrupt:
         log.info("stopped")
     return EXIT_OK
+
+
+def announce_setup(cfg: Config, host: str, port: int, hooks: Hooks) -> None:
+    """While no admin account exists, create the one-time setup token and say where to open the setup page.
+
+    The page (`/setup/`, doc 07 option B) answers only while `<data dir>/setup-token.txt` exists, only on this
+    machine and only with the token. Any admin account removes the file again (the page is gone for good)."""
+    if not hooks.setup_pending():
+        setup_token.discard_token(cfg.data_dir)
+        return
+    token = setup_token.ensure_token(cfg.data_dir)
+    url = setup_token.setup_url(host, port, token)
+    log.warning("first-run setup is pending: open %s in a browser on this computer", url)
+    print(
+        "\n*** First-run setup is pending (no admin account yet).\n"
+        "*** Open this address in a browser ON THIS COMPUTER to finish it:\n"
+        f"***   {url}\n"
+        f"*** (the token is also in {setup_token.token_path(cfg.data_dir)})\n",
+        flush=True,
+    )
 
 
 def _wait(stop: threading.Event, seconds: float) -> None:
@@ -221,10 +246,14 @@ def il2ks_command(cfg: Config, *args: str, python: str | None = None) -> list[st
     return [*argv, *args]
 
 
-def build_child_specs(cfg: Config, *, caddy_binary: Path | None, env: dict[str, str]) -> list[supervisor.ChildSpec]:
+def build_child_specs(
+    cfg: Config, *, caddy_binary: Path | None, env: dict[str, str], caddy_optional: bool = False
+) -> list[supervisor.ChildSpec]:
     """The processes `run` supervises: web, watch (when a log folder is configured), Caddy (unless external or debug).
 
-    Raises `StackError` when Caddy is needed and missing."""
+    Raises `StackError` when Caddy is needed and missing, unless `caddy_optional`: then the site runs without it and the
+    problem is logged loudly (first run before setup, or right after the setup page changed the settings: the web server
+    must stay up so the admin can see what to fix)."""
     child_env = {**env, "PYTHONUNBUFFERED": "1"}
     specs = [supervisor.ChildSpec("web", il2ks_command(cfg, "web"), env=child_env)]
     if cfg.logs.dir is not None:
@@ -233,7 +262,12 @@ def build_child_specs(cfg: Config, *, caddy_binary: Path | None, env: dict[str, 
         log.warning("no log folder configured ([logs] dir): the site runs, but nothing is ingested")
     if cfg.https.mode == "caddy" and not cfg.debug:
         if caddy_binary is None:
-            raise StackError(CADDY_HELP.format(exe=".exe" if os.name == "nt" else "", bin=cfg.data_dir / "bin"))
+            help_text = CADDY_HELP.format(exe=".exe" if os.name == "nt" else "", bin=cfg.data_dir / "bin")
+            if not caddy_optional:
+                raise StackError(help_text)
+            log.error("starting without HTTPS: %s", help_text)
+            print(f"\n*** Starting without HTTPS. {help_text}\n", file=sys.stderr)
+            return specs
         setup = caddy.prepare_caddy(cfg, caddy_binary)
         warning = caddy.cert_plan_warning(setup.plan)
         if warning:
@@ -262,7 +296,71 @@ def _warn_about_overrides(cfg: Config) -> None:
 RUN_LOCK_WAIT_S = 3.0  # a doctor probe may hold the lock for a moment; a real second `run` waits this long, then fails
 
 
-def cmd_run(cfg: Config, hooks: Hooks) -> int:
+type Signature = tuple[str, int, int] | None
+"""(path, modification time, size) of the configuration file `load_config` would read now; None = there is none."""
+
+
+def config_signature(explicit: Path | None, env: Mapping[str, str]) -> Signature:
+    try:
+        file = find_config_file(explicit, env)
+        return None if file is None else (str(file), file.stat().st_mtime_ns, file.stat().st_size)
+    except (ConfigError, OSError):
+        return None
+
+
+class ConfigWatch:
+    """Notices that the configuration file changed (the setup page wrote it), for `il2ks run` to restart with it.
+
+    `changed()` is polled by the supervisor. It turns True once the file has differed from the one the stack started
+    with and then stayed unchanged for `settle_s`, and the new file loads (`new_config`); a file that does not load is
+    reported once and the stack keeps running on the old settings until the file changes again."""
+
+    def __init__(
+        self,
+        explicit: Path | None,
+        clock: Callable[[], float],
+        *,
+        settle_s: float = CONFIG_SETTLE_S,
+        env: Mapping[str, str] | None = None,
+    ) -> None:
+        self._explicit = explicit
+        self._clock = clock
+        self._settle_s = settle_s
+        self._env = os.environ if env is None else env
+        self._started_with = config_signature(explicit, self._env)
+        self._candidate: Signature = self._started_with
+        self._candidate_since = 0.0
+        self._rejected: Signature = None
+        self.new_config: Config | None = None
+
+    def changed(self) -> bool:
+        current = config_signature(self._explicit, self._env)
+        if current == self._started_with:
+            self._candidate = current
+            return False
+        now = self._clock()
+        if current != self._candidate:
+            self._candidate, self._candidate_since = current, now
+            return False
+        if now - self._candidate_since < self._settle_s or current == self._rejected:
+            return False
+        try:
+            self.new_config = load_config(self._explicit, self._env)
+        except ConfigError as exc:
+            self._rejected = current
+            log.error("the configuration file changed but does not load, so it is ignored for now: %s", exc)
+            return False
+        return True
+
+
+def _run_state_writer(data_dir: Path) -> Callable[[dict[str, int]], None]:
+    def write(pids: dict[str, int]) -> None:
+        procutil.write_run_state(data_dir, pids)
+
+    return write
+
+
+def cmd_run(cfg: Config, hooks: Hooks, config_arg: Path | None = None) -> int:
     export_config(cfg)
     prepare_data_dir(cfg)
     start_logging("run", cfg)
@@ -275,18 +373,23 @@ def cmd_run(cfg: Config, hooks: Hooks) -> int:
         print(f"il2ks run: already running for {cfg.data_dir}{who}", file=sys.stderr)
         return EXIT_LOCKED
     try:
-        return _run_locked(cfg, hooks)
+        return _run_locked(cfg, hooks, config_arg)
     finally:
         lock.release()
 
 
-def _run_locked(cfg: Config, hooks: Hooks) -> int:
+def _run_locked(cfg: Config, hooks: Hooks, config_arg: Path | None) -> int:
     if hooks.contain_children():
         log.info("children are tied to this process: they stop when it ends, however it ends")
     if not cfg.debug and not cfg.web.secret_key:
         ensure_secret_key(cfg.data_dir)  # before the children start, so they don't race to create it
+    watch = ConfigWatch(config_arg, hooks.clock)
+    if cfg.source is None:
+        log.warning("no il2ks.toml found: open the setup page when `web` prints its address (or run `il2ks setup`)")
     try:
-        specs = build_child_specs(cfg, caddy_binary=caddy.find_caddy(cfg), env=dict(os.environ))
+        specs = build_child_specs(
+            cfg, caddy_binary=caddy.find_caddy(cfg), env=dict(os.environ), caddy_optional=cfg.source is None
+        )
     except StackError as exc:
         print(f"il2ks run: {exc}", file=sys.stderr)
         return EXIT_USAGE
@@ -301,17 +404,33 @@ def _run_locked(cfg: Config, hooks: Hooks) -> int:
 
     stop = threading.Event()
     finished = hooks.install_signals(stop)
-    runner = supervisor.Supervisor(
-        specs,
-        hooks.spawn,
-        stop,
-        hooks.clock,
-        hooks.sleep or (lambda seconds: _wait(stop, seconds)),
-        on_change=lambda pids: procutil.write_run_state(cfg.data_dir, pids),
-    )
-    log.info("starting %s (data dir %s)", ", ".join(s.name for s in specs), cfg.data_dir)
     try:
-        runner.run()
+        while True:
+            runner = supervisor.Supervisor(
+                specs,
+                hooks.spawn,
+                stop,
+                hooks.clock,
+                hooks.sleep or (lambda seconds: _wait(stop, seconds)),
+                on_change=_run_state_writer(cfg.data_dir),
+                restart_when=watch.changed,
+            )
+            log.info("starting %s (data dir %s)", ", ".join(s.name for s in specs), cfg.data_dir)
+            if not runner.run():
+                break
+            assert watch.new_config is not None
+            cfg = watch.new_config
+            log.info("the configuration changed (%s): restarting with the new settings", cfg.source)
+            export_config(cfg)
+            prepare_data_dir(cfg)
+            if not cfg.debug and not cfg.web.secret_key:
+                ensure_secret_key(cfg.data_dir)
+            watch = ConfigWatch(config_arg, hooks.clock)
+            specs = build_child_specs(
+                cfg, caddy_binary=caddy.find_caddy(cfg), env=dict(os.environ), caddy_optional=True
+            )
+            if hooks.runner(il2ks_command(cfg, "web", "--migrate-only")) != 0:
+                log.error("the database could not be prepared (see above); starting anyway")
     finally:
         procutil.clear_run_state(cfg.data_dir)
         finished()
