@@ -104,6 +104,15 @@ exists, it's used as is.
   rockets or napalm** (0.7% empty or drop tanks only). 94% of those loadouts include **napalm**, which probably explains the long-delayed
   explosions (burning napalm). 1.8% of detonations sit next to cannon shell hits (23/37 mm HE/API, MiG and La), so a few are cannon fire.
 
+**Explosion lines are never counted as hits** `[DECIDED]` (maintainer, 2026-10-03). Per target, checked 2026-10-03 on 30 missions
+(1.12 M detonation × target pairs): **99.2% of targets touched by a detonation get only explosion lines**, with no named ordnance hit. A
+detonation touches a median of 3 targets (p90 8, max 66) with 1–9 explosion lines each, and only ~16% of those pairs take damage. So:
+- **Ordnance counting unit = one detonation × one target that took damage** ("targets damaged"). Raw explosion lines and harmless splash
+  count for nothing.
+- Per ordnance type, the breakdown shows: **released** (AType 25/26), **detonations**, **targets damaged**, **kills**. Guns keep counting
+  bullet and shell hit lines as hits.
+- Hits-to-destroy per aircraft type (above) uses damaging detonations for ordnance, and hit lines for guns. `[PROPOSED]`
+
 **Labelling rule for an explosion hit** `[PROPOSED]`, in order:
 1. A named ordnance or shell hit line from the same attacker within 1 s: use that ammo.
 2. The aircraft's loadout (payload file) has exactly one ordnance type: use it.
