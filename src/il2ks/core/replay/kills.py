@@ -37,6 +37,11 @@ def _party_coalition(credited: Credited) -> int | None:
     return party.coalition
 
 
+def _is_friendly(credited: Credited, victim_coalition: int | None) -> bool:
+    coalition = _party_coalition(credited)
+    return coalition is not None and coalition == victim_coalition and coalition != 0
+
+
 def _is_victim_object(obj: TrackedObject) -> bool:
     """Crew deaths aren't kills; neither are bombs, drop tanks and other ordnance, or undeclared placeholders."""
     if obj.is_bot or obj.object_type == "":
@@ -85,55 +90,85 @@ def _victims(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRules) -
     return victims
 
 
+def _gunner_kill_pilot(entry: Credited, *, friendly: bool) -> SortieState | None:
+    """E2 (`[PROPOSED]`): the player pilot whose gunner got a (non-friendly) kill shares it as an assist."""
+    party = entry.party
+    if not entry.is_killer or friendly or not isinstance(party, SortieState) or party.role != "gunner":
+        return None
+    return party.parent_sortie
+
+
+def _result(
+    victim: _Victim,
+    *,
+    killer_index: int | None,
+    killer_type: str | None,
+    credit: KillCredit,
+    via: KillVia,
+    friendly: bool,
+) -> KillResult:
+    return KillResult(
+        tick=victim.tick,
+        victim_object_id=victim.obj.object_id,
+        victim_type=victim.obj.object_type,
+        victim_kind="air" if victim.obj.info.is_air else "ground",
+        victim_coalition=victim.obj.coalition,
+        victim_sortie_index=victim.sortie.index if victim.sortie is not None else None,
+        killer_sortie_index=killer_index,
+        killer_type=killer_type,
+        credit=credit,
+        via=via,
+        is_friendly=friendly,
+        pos=victim.pos,
+    )
+
+
 def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRules) -> list[KillResult]:
-    """Every kill and assist where a player is the victim or a credited party. Sorted by tick (stable)."""
+    """Every kill and assist where a player is the victim or a credited party. Sorted by tick (stable).
+
+    At most one result per (victim, killer sortie): a gunner's pilot gets the extra assist only if the pilot isn't
+    credited for that victim already (E2)."""
     results: list[KillResult] = []
     for victim in _victims(facts, verdicts, rules):
         credited = credit_kill(victim.obj, victim.sortie, victim.explicit, victim.tick, rules.assist_min_damage)
         victim_index = victim.sortie.index if victim.sortie is not None else None
-        victim_coalition = victim.obj.coalition
-        kind = "air" if victim.obj.info.is_air else "ground"
         if not credited:
             if victim_index is not None:  # environment or self: the victim's death without credit
                 results.append(
-                    KillResult(
-                        tick=victim.tick,
-                        victim_object_id=victim.obj.object_id,
-                        victim_type=victim.obj.object_type,
-                        victim_kind=kind,
-                        victim_coalition=victim_coalition,
-                        victim_sortie_index=victim_index,
-                        killer_sortie_index=None,
-                        killer_type=None,
-                        credit="kill",
-                        via=victim.via,
-                        is_friendly=False,
-                        pos=victim.pos,
-                    )
+                    _result(victim, killer_index=None, killer_type=None, credit="kill", via=victim.via, friendly=False)
                 )
             continue
+        victim_coalition = victim.obj.coalition
         for entry in credited:
             killer_index = _party_sortie_index(entry)
             if killer_index is None and victim_index is None:
                 continue  # AI against AI
-            coalition = _party_coalition(entry)
-            friendly = coalition is not None and coalition == victim_coalition and coalition != 0
-            credit: KillCredit = "kill" if entry.is_killer else "assist"
+            friendly = _is_friendly(entry, victim_coalition)
             results.append(
-                KillResult(
-                    tick=victim.tick,
-                    victim_object_id=victim.obj.object_id,
-                    victim_type=victim.obj.object_type,
-                    victim_kind=kind,
-                    victim_coalition=victim_coalition,
-                    victim_sortie_index=victim_index,
-                    killer_sortie_index=killer_index,
+                _result(
+                    victim,
+                    killer_index=killer_index,
                     killer_type=_killer_type(entry),
-                    credit=credit,
+                    credit="kill" if entry.is_killer else "assist",
                     via=victim.via if victim_index is not None else "direct",
-                    is_friendly=friendly,
-                    pos=victim.pos,
+                    friendly=friendly,
                 )
             )
+        taken = {index for index in map(_party_sortie_index, credited) if index is not None}
+        for entry in credited:
+            friendly = _is_friendly(entry, victim_coalition)
+            pilot = _gunner_kill_pilot(entry, friendly=friendly)
+            if pilot is not None and pilot.index not in taken:
+                taken.add(pilot.index)
+                results.append(
+                    _result(
+                        victim,
+                        killer_index=pilot.index,
+                        killer_type=pilot.aircraft_type,
+                        credit="assist",
+                        via="direct",
+                        friendly=False,
+                    )
+                )
     results.sort(key=lambda k: k.tick)
     return results
