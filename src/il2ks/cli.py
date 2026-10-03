@@ -208,7 +208,11 @@ def _main(argv: Sequence[str] | None) -> int:
     ns = _build_parser().parse_args(args)
     command: str = ns.command
     if command in serving_commands.COMMANDS:
-        hooks = serving_commands.Hooks(django_setup=_django_setup, migrate=migrate_if_needed)
+        hooks = serving_commands.Hooks(
+            django_setup=_django_setup,
+            migrate=migrate_if_needed,
+            contain_children=procutil.kill_children_when_we_die,
+        )
         return serving_commands.dispatch(ns, hooks)
     if command == "watch":
         procutil.terminate_as_keyboard_interrupt()  # `il2ks run` stops its children with SIGTERM / Ctrl+Break

@@ -183,10 +183,19 @@ def test_ports_held_by_our_own_run_are_fine(tmp_path: Path, monkeypatch: pytest.
     probe_returning(monkeypatch, {8000, 80, 443})
     cfg = make(tmp_path)
     cfg.data_dir.mkdir(parents=True)
-    procutil.write_run_state(cfg.data_dir, {"web": 1})  # this test process counts as the running il2ks
-    findings = run(serving_checks.ports, cfg)
+    with procutil.run_lock(cfg.data_dir):  # this test process counts as the running il2ks
+        findings = run(serving_checks.ports, cfg)
     assert [f.level for f in findings] == [Level.OK] * 3
     assert "il2ks run" in findings[0].detail
+
+
+def test_a_stale_run_json_does_not_make_foreign_ports_ours(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    probe_returning(monkeypatch, {8000})
+    cfg = make(tmp_path)
+    cfg.data_dir.mkdir(parents=True)
+    procutil.write_run_state(cfg.data_dir, {"web": 1})  # a leftover from before a reboot: this PID is alive, no lock is
+    errors = [f for f in run(serving_checks.ports, cfg) if f.level is Level.ERROR]
+    assert len(errors) == 1
 
 
 def test_external_mode_and_debug_only_check_the_web_port(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

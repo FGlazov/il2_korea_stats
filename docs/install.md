@@ -185,7 +185,8 @@ il2ks service schtasks --install  # does it
 schtasks /Run /TN il2ks           # start it now
 ```
 
-Use `--user SYSTEM` to run it without a stored password. To stop it: `schtasks /End /TN il2ks`. To remove it:
+Use `--user SYSTEM` to run it without a stored password. To stop it: `schtasks /End /TN il2ks` (Windows then also stops the web server, the log watcher and Caddy; check
+with `il2ks doctor` that the ports are free again). To remove it:
 `schtasks /Delete /TN il2ks /F`. (A proper Windows service with the installer is planned.)
 
 **Linux** (systemd):
@@ -201,13 +202,15 @@ and 443 without running as root.
 
 ## Upgrading
 
-```
-uv tool upgrade il2ks
-```
+Stop il2ks first, then upgrade, then start it again. (Windows keeps program files locked while they run, so upgrading
+a running il2ks can fail.)
 
-Then restart il2ks (Windows: `schtasks /End /TN il2ks` then `schtasks /Run /TN il2ks`; Linux:
-`sudo systemctl restart il2ks`; in a window: Ctrl+C and `il2ks run`). Database migrations run by themselves at start,
-after an automatic backup. Your data folder (database, logs, `custom/`) is untouched.
+1. Stop it: Windows `schtasks /End /TN il2ks`; Linux `sudo systemctl stop il2ks`; in a window: Ctrl+C.
+2. Upgrade: `uv tool upgrade il2ks`
+3. Start it: Windows `schtasks /Run /TN il2ks`; Linux `sudo systemctl start il2ks`; in a window: `il2ks run`.
+
+Database migrations run by themselves at start, after an automatic backup. Your data folder (database, logs, `custom/`)
+is untouched.
 
 After an upgrade run `il2ks doctor`: it tells you if a template you customized has changed
 ([customizing.md](customizing.md)).

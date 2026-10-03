@@ -29,6 +29,10 @@ MIGRATE_WAIT_S = 60.0
 log = logging.getLogger("il2ks.run")
 
 
+def no_containment() -> bool:
+    return False
+
+
 @dataclass(slots=True)
 class Hooks:
     """What the commands need from the rest of the program; tests replace the parts that act on the machine."""
@@ -38,6 +42,7 @@ class Hooks:
     spawn: supervisor.Spawner = supervisor.spawn_subprocess
     runner: service.CommandRunner = service.real_runner
     install_signals: Callable[[threading.Event], Callable[[], None]] = procutil.stop_on_signals
+    contain_children: Callable[[], bool] = no_containment  # `run`: children die with it (cli.py wires the real one)
     clock: Callable[[], float] = time.monotonic
     sleep: Callable[[float], None] | None = None  # None: wait on the stop event
 
@@ -232,14 +237,30 @@ def build_child_specs(cfg: Config, *, caddy_binary: Path | None, env: dict[str, 
     return specs
 
 
+RUN_LOCK_WAIT_S = 3.0  # a doctor probe may hold the lock for a moment; a real second `run` waits this long, then fails
+
+
 def cmd_run(cfg: Config, hooks: Hooks) -> int:
     export_config(cfg)
     prepare_data_dir(cfg)
     start_logging("run", cfg)
-    running = procutil.running_stack(cfg.data_dir)
-    if running is not None:
-        print(f"il2ks run: already running for {cfg.data_dir} (PID {running.pid})", file=sys.stderr)
+    # One `run` per data dir, by an OS lock held until we exit (however we exit): never "stuck" after a crash or reboot.
+    lock = procutil.run_lock(cfg.data_dir, wait=RUN_LOCK_WAIT_S)
+    try:
+        lock.acquire()
+    except LockBusyError as exc:
+        who = f" ({exc.holder.describe()})" if exc.holder is not None else ""
+        print(f"il2ks run: already running for {cfg.data_dir}{who}", file=sys.stderr)
         return EXIT_LOCKED
+    try:
+        return _run_locked(cfg, hooks)
+    finally:
+        lock.release()
+
+
+def _run_locked(cfg: Config, hooks: Hooks) -> int:
+    if hooks.contain_children():
+        log.info("children are tied to this process: they stop when it ends, however it ends")
     if not cfg.debug and not cfg.web.secret_key:
         ensure_secret_key(cfg.data_dir)  # before the children start, so they don't race to create it
     try:

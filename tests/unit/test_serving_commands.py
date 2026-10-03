@@ -3,7 +3,12 @@ a server or a process replaced by a recorder."""
 
 import argparse
 import os
+import signal
+import subprocess
+import sys
+import textwrap
 import threading
+import time
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -13,7 +18,7 @@ from pytest_django.fixtures import Settings
 from il2ks import cli
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config, ConfigError, load_config
-from il2ks.ingest.lock import LockBusyError
+from il2ks.ingest.lock import LockBusyError, LockHolder
 from il2ks.serving import commands, procutil, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, SECRET_KEY_FILE
 from il2ks.serving.supervisor import ChildSpec
@@ -287,6 +292,7 @@ class RunWorld:
         self.prepare_code = 0
         self.signals_installed = 0
         self.finished = 0
+        self.contained: list[int] = []
         self.stop = threading.Event()
 
     def spawn(self, spec: ChildSpec) -> FakeChild:
@@ -310,6 +316,10 @@ class RunWorld:
     def sleep(self, seconds: float) -> None:
         self.stop.set()  # "Ctrl+C" right after the children started
 
+    def contain(self) -> bool:
+        self.contained.append(len(self.spawned))  # how many children existed when it was called
+        return True
+
     def hooks(self, calls: Calls) -> commands.Hooks:
         return commands.Hooks(
             django_setup=lambda: None,
@@ -318,6 +328,7 @@ class RunWorld:
             runner=self.runner,
             install_signals=self.install_signals,
             sleep=self.sleep,
+            contain_children=self.contain,
         )
 
 
@@ -335,6 +346,27 @@ def test_run_prepares_the_database_starts_everything_and_stops_it_cleanly(env: P
     assert world.finished == 1
     assert (env / "data" / SECRET_KEY_FILE).exists()  # created before the children, so they don't race
     assert procutil.read_run_state(env / "data") is None  # run.json is removed on exit
+    assert world.contained == [0]  # the children are tied to us before the first one starts
+    assert procutil.running_stack(env / "data") is None  # and the run lock is released
+
+
+def test_run_holds_the_run_lock_while_it_runs(env: Path, calls: Calls) -> None:
+    (env / "il2ks.toml").write_text('[https]\nmode = "external"', encoding="utf-8")
+    world = RunWorld()
+    seen: list[object] = []
+    original_sleep = world.sleep
+
+    def sleep(seconds: float) -> None:
+        seen.append(procutil.running_stack(env / "data"))
+        original_sleep(seconds)
+
+    world.sleep = sleep
+    commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls))
+    assert seen
+    holder = seen[0]
+    assert isinstance(holder, LockHolder)
+    assert holder.pid == os.getpid()
+    assert holder.command == "run"
 
 
 def test_run_writes_run_json_while_running(env: Path, calls: Calls, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -367,16 +399,19 @@ def test_run_does_not_start_if_the_database_cannot_be_prepared(
 
 
 def test_run_refuses_a_second_copy_for_the_same_data_dir(
-    env: Path, calls: Calls, capsys: pytest.CaptureFixture[str]
+    env: Path, calls: Calls, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     (env / "il2ks.toml").write_text('[https]\nmode = "external"', encoding="utf-8")
     (env / "data").mkdir()
-    procutil.write_run_state(env / "data", {"web": 1})  # this very process: alive
+    monkeypatch.setattr(commands, "RUN_LOCK_WAIT_S", 0.0)
     world = RunWorld()
-    assert commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls)) == EXIT_LOCKED
+    with procutil.run_lock(env / "data"):  # another `run` holds the lock
+        procutil.write_run_state(env / "data", {"web": 1})
+        assert commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls)) == EXIT_LOCKED
+        assert procutil.read_run_state(env / "data") is not None  # not removed by the refused copy
     assert "already running" in capsys.readouterr().err
     assert world.spawned == []
-    assert procutil.read_run_state(env / "data") is not None  # not removed by the refused copy
+    assert world.contained == []  # a refused run doesn't tie itself to a job either
 
 
 def test_run_without_caddy_exits_with_advice(env: Path, calls: Calls, capsys: pytest.CaptureFixture[str]) -> None:
@@ -387,12 +422,90 @@ def test_run_without_caddy_exits_with_advice(env: Path, calls: Calls, capsys: py
     assert world.spawned == []
 
 
-def test_a_stale_run_json_does_not_block_a_new_run(env: Path) -> None:
+def test_a_stale_run_json_does_not_block_a_new_run(env: Path, calls: Calls) -> None:
+    """After a crash or reboot run.json names a PID that may now belong to anything, even to the new `run` itself
+    (PIDs are reused). Only the OS lock counts, and the OS dropped it with the old process."""
+    (env / "il2ks.toml").write_text('[https]\nmode = "external"', encoding="utf-8")
     (env / "data").mkdir()
-    (env / "data" / procutil.RUN_STATE_FILE).write_text(
-        '{"pid": 2147483000, "started": "2026-01-01T00:00:00+00:00", "children": {}}', encoding="utf-8"
+    for pid in (os.getpid(), os.getppid(), 4):  # this process, its parent, the Windows System process: all alive
+        (env / "data" / procutil.RUN_STATE_FILE).write_text(
+            f'{{"pid": {pid}, "started": "2026-01-01T00:00:00+00:00", "children": {{"web": {pid}}}}}', encoding="utf-8"
+        )
+        (env / "data" / procutil.RUN_LOCK_FILE).write_text(  # the dead run's lock file: content, but no OS lock
+            f'{{"pid": {pid}, "host": "gone", "command": "run", "since": "2026-01-01T00:00:00+00:00"}}',
+            encoding="utf-8",
+        )
+        assert procutil.running_stack(env / "data") is None
+        world = RunWorld()
+        assert commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls)) == EXIT_OK
+        assert [c.spec.name for c in world.spawned] == ["web"]
+
+
+def test_the_run_lock_is_released_when_the_holder_is_killed(tmp_path: Path) -> None:
+    code = textwrap.dedent(
+        f"""
+        import time
+        from pathlib import Path
+        from il2ks.serving import procutil
+        lock = procutil.run_lock(Path({str(tmp_path)!r}))
+        lock.acquire()
+        print("locked", flush=True)
+        time.sleep(60)
+        """
     )
-    assert procutil.running_stack(env / "data") is None
+    child = subprocess.Popen([sys.executable, "-c", code], stdout=subprocess.PIPE, text=True)
+    try:
+        assert child.stdout is not None
+        assert child.stdout.readline().strip() == "locked"
+        holder = procutil.running_stack(tmp_path)
+        assert holder is not None
+        assert holder.pid != os.getpid()
+        with pytest.raises(LockBusyError):
+            procutil.run_lock(tmp_path).acquire()
+        os.kill(holder.pid, signal.SIGTERM)  # (child.pid may be the venv launcher, not the Python process)
+        child.wait(timeout=30)
+    finally:
+        child.kill()
+    assert procutil.running_stack(tmp_path) is None
+    with procutil.run_lock(tmp_path):
+        pass
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows job objects")
+def test_children_die_with_run_even_when_run_is_killed_without_cleanup(tmp_path: Path) -> None:
+    """`schtasks /End` / Task Manager kill `run` outright: its `finally: shutdown()` never runs. With the job object the
+    OS takes web, watch and Caddy down with it (otherwise they keep the ports and the next start restart-loops)."""
+    code = textwrap.dedent(
+        """
+        import os, subprocess, sys, time
+        from il2ks.serving import procutil
+        assert procutil.kill_children_when_we_die()
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
+        print(os.getpid(), child.pid, flush=True)
+        time.sleep(120)
+        """
+    )
+    run = subprocess.Popen([sys.executable, "-c", code], stdout=subprocess.PIPE, text=True)
+    child_pid = 0
+    try:
+        assert run.stdout is not None
+        run_pid, child_pid = (int(x) for x in run.stdout.readline().split())
+        assert procutil.pid_alive(child_pid)
+        os.kill(run_pid, signal.SIGTERM)  # TerminateProcess on Windows: no clean-up code runs
+        deadline = time.monotonic() + 10
+        while procutil.pid_alive(child_pid) and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert not procutil.pid_alive(child_pid)
+    finally:
+        run.kill()
+        if child_pid and procutil.pid_alive(child_pid):  # the test failed: don't leave a sleeper behind
+            subprocess.run(["taskkill", "/PID", str(child_pid), "/F"], capture_output=True, check=False)
+
+
+def test_containing_the_children_is_a_noop_off_windows() -> None:
+    if sys.platform == "win32":
+        pytest.skip("this is the Windows implementation")
+    assert procutil.kill_children_when_we_die() is False
 
 
 def test_pid_alive_knows_itself_and_a_dead_pid() -> None:
