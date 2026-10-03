@@ -1,0 +1,9 @@
+{# il2ks-template: templates/il2ks/sorties/parts/who.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  A counterpart: a player (name links to the profile, the aircraft to that player's sortie), a hidden player (no name,
+  no link, FR-ADM-3) or an AI or ground object (name and what it is). Context: who (sortie_view.Who).
+{% endcomment %}<span class="who">{% if who.kind == "player" %}<a href="{% url 'web:player-detail' who.player_id %}">{{ who.name }}</a>
+  <span class="who__craft">{% icon who.icon %}<a href="{% url 'web:sortie-detail' who.sortie_id %}">{{ who.aircraft }}</a></span>
+  {% elif who.kind == "hidden" %}<span class="muted">{% translate "Hidden player" %}</span>
+  <span class="who__craft">{% icon who.icon %}{{ who.aircraft }}</span>
+  {% else %}<span class="who__craft">{% icon who.icon %}{{ who.name }}</span>{% if who.label %} <small>{{ who.label }}</small>{% endif %}{% endif %}</span>

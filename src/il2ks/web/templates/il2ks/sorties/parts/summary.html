@@ -1,0 +1,30 @@
+{# il2ks-template: templates/il2ks/sorties/parts/summary.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  Summary: the flight (left) and the result (right). Context: sortie.
+  Labels follow doc 13: "left the server" is the `disconnected` flag (also set after a landing), never "disconnected in
+  flight"; damage taken is the share of the airframe's health lost and does not mean destroyed (aircraft status does).
+{% endcomment %}<h2>{% translate "Summary" %}</h2>
+<div class="split sortie-summary">
+  <dl class="kv">
+    <dt>{% translate "Spawn" %}</dt><dd>{% if sortie.spawn_type == "air" %}{% translate "Air start" %}{% elif sortie.spawn_type == "runway" %}{% translate "Runway" %}{% else %}{% translate "Parking" %}{% endif %}</dd>
+    <dt>{% translate "Took off" %}</dt><dd>{% if sortie.took_off_at %}{{ sortie.took_off_at|utc }}{% elif sortie.air_start %}{{ sortie.spawned_at|utc }} <small>({% translate "air start" %})</small>{% else %}<span class="muted">{% translate "Never" %}</span>{% endif %}</dd>
+    <dt>{% translate "Landed" %}</dt><dd>{% if sortie.landed_at %}{{ sortie.landed_at|utc }}{% else %}<span class="muted">{% translate "No landing" %}</span>{% endif %}</dd>
+    <dt>{% translate "Sortie ended" %}</dt><dd>{{ sortie.ended_at|utc }}</dd>
+    <dt>{% translate "Flight time" %}</dt><dd>{{ sortie.flight_time_s|duration }}</dd>
+    <dt>{% translate "Takeoffs / landings" %}</dt><dd>{{ sortie.takeoffs|num }} / {{ sortie.landings|num }}</dd>
+    {% if sortie.role != "gunner" %}<dt>{% translate "Payload" %}</dt><dd>{% if sortie.payload_name %}{{ sortie.payload_name }}{% else %}<span class="muted">{% blocktranslate with id=sortie.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}</dd>{% endif %}
+    {% if sortie.combat_role == "attack" and sortie.time_on_target_s is not None %}
+      <dt>{% translate "Time on target" %}</dt><dd>{% if sortie.time_on_target_s %}{{ sortie.time_on_target_s|duration }}{% else %}<span class="muted">{% translate "No qualifying attack" %}</span>{% endif %}</dd>
+    {% endif %}
+  </dl>
+  <dl class="kv">
+    <dt>{% translate "Outcome" %}</dt><dd>{% outcome_badge sortie.outcome %}</dd>
+    <dt>{% translate "Pilot fate" %}</dt><dd>{% fate_badge sortie.pilot_fate %}{% if sortie.pilot_fate_source == "inferred" %} <small>{% translate "inferred from the log" %}</small>{% elif sortie.pilot_fate_source == "event" %} <small>{% translate "from a log event" %}</small>{% endif %}</dd>
+    <dt>{% translate "Pilot status" %}</dt><dd>{% status_badge sortie.pilot_status %}{% if sortie.is_captured and sortie.pilot_status != "captured" %} {% status_badge "captured" %}{% endif %}</dd>
+    <dt>{% translate "Aircraft status" %}</dt><dd>{% aircraft_badge sortie.aircraft_status %}</dd>
+    <dt>{% translate "Damage taken" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
+    <dt>{% translate "Loss cause" %}</dt><dd>{% if sortie.loss_cause == "attacker" %}{% translate "Enemy action" %}{% elif sortie.loss_cause == "self" %}{% translate "Own doing (terrain, overstress, accident)" %}{% else %}<span class="muted">{% translate "Nothing lost" %}</span>{% endif %}</dd>
+    {% if sortie.disconnected %}<dt>{% translate "Left the server" %}</dt><dd>{% translate "Yes" %}</dd>{% endif %}
+    {% if sortie.friendly_kills or sortie.friendly_hits %}<dt>{% translate "Friendly fire" %}</dt><dd>{% blocktranslate with kills=sortie.friendly_kills|num hits=sortie.friendly_hits|num %}{{ kills }} kills, {{ hits }} hits{% endblocktranslate %}</dd>{% endif %}
+  </dl>
+</div>

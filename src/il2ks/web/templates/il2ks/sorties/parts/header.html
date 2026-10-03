@@ -1,0 +1,30 @@
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_sorties %}{% comment %}
+  Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
+  Discord screenshot). Context: sortie (player, mission, aircraft), detail.
+{% endcomment %}<header class="sortie-head">
+  <div class="sortie-head__mark">{% aircraft_icon sortie.aircraft "sortie-head__icon" %}</div>
+  <div class="sortie-head__main">
+    <h1><a href="{% url 'web:player-detail' sortie.player_id %}">{{ sortie.name_at_time }}</a></h1>
+    <p class="sortie-head__craft">{{ sortie.aircraft }}{% if sortie.payload_name %} <small>· {{ sortie.payload_name }}</small>{% endif %}</p>
+    <p class="sortie-head__badges">
+      {% coalition_badge sortie.country %}
+      {% if sortie.role == "gunner" %}{% badge _("Gunner") "purple" %}{% else %}{% badge _("Pilot") "grey" %}{% if sortie.combat_role %} {% role_badge sortie.combat_role %}{% endif %}{% endif %}
+      {% outcome_badge sortie.outcome %}
+      {% if sortie.taxi_accident %}{% badge _("Taxi accident") "orange" icon="stat/taxi-accidents" %}{% endif %}
+      {% if sortie.strafed_on_ground %}{% badge _("Strafed on the ground") "orange" icon="stat/strafed" %}{% endif %}
+    </p>
+    <p class="sortie-head__where">
+      <a href="{% url 'web:mission-detail' sortie.mission_id %}">{{ sortie.mission.mission_file|mission_name }}</a>
+      <span aria-hidden="true">·</span> {% blocktranslate with when=sortie.spawned_at|utc %}spawned {{ when }}{% endblocktranslate %}
+      {% if sortie.name_at_time != sortie.player.current_name %}<span aria-hidden="true">·</span> <small>{% blocktranslate with name=sortie.player.current_name %}now playing as {{ name }}{% endblocktranslate %}</small>{% endif %}
+    </p>
+  </div>
+</header>
+
+<div class="stat-tiles">
+  {% stat_tile sortie.kills_air|num _("Air kills") icon="stat/air-kills" %}
+  {% stat_tile sortie.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
+  {% stat_tile sortie.assists|num _("Assists") icon="stat/assists" %}
+  {% stat_tile sortie.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}
+</div>

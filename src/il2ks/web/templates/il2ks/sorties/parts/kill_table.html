@@ -1,0 +1,17 @@
+{# il2ks-template: templates/il2ks/sorties/parts/kill_table.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  A small table of kills, assists or friendly kills. Context: rows (sortie_view.KillRow: clock, utc, who, note,
+  friendly), victim_label (column heading).
+{% endcomment %}<div class="table-wrap table-wrap--flat">
+  <table class="data-table data-table--compact">
+    <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{{ victim_label }}</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td class="nowrap">{{ row.clock }} <small title="{% translate 'UTC' %}">{{ row.utc }}</small></td>
+          <td>{% include "il2ks/sorties/parts/who.html" with who=row.who %}{% if row.note %} <small>{{ row.note }}</small>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

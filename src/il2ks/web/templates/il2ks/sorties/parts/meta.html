@@ -1,0 +1,15 @@
+{# il2ks-template: templates/il2ks/sorties/parts/meta.html v1 - copy this line along when you override #}
+{% comment %}
+  Link-preview tags (Open Graph and Twitter cards) for Discord and others. Context: og (title, description, url, image).
+  The image is only added when static/il2ks/img/brand/og-default.png exists.
+{% endcomment %}<meta name="description" content="{{ og.description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site.site_title }}">
+  <meta property="og:title" content="{{ og.title }}">
+  <meta property="og:description" content="{{ og.description }}">
+  <meta property="og:url" content="{{ og.url }}">
+  {% if og.image %}<meta property="og:image" content="{{ og.image }}">{% endif %}
+  <meta name="twitter:card" content="{% if og.image %}summary_large_image{% else %}summary{% endif %}">
+  <meta name="twitter:title" content="{{ og.title }}">
+  <meta name="twitter:description" content="{{ og.description }}">
+  {% if og.image %}<meta name="twitter:image" content="{{ og.image }}">{% endif %}

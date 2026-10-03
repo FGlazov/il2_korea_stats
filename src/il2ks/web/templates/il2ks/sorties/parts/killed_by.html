@@ -1,0 +1,29 @@
+{# il2ks-template: templates/il2ks/sorties/parts/killed_by.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  "Shot down by": the kill and assist credits against this sortie. Context: sortie, detail.shot_down_by
+  (sortie_view.KillerRow: clock, utc, who, credit "kill" or "assist", note, friendly). Shown only when the aircraft or
+  pilot was lost or someone is credited. A friendly killer is marked clearly.
+{% endcomment %}{% if detail.shot_down_by or sortie.is_plane_lost %}
+<h2>{% translate "Shot down by" %}</h2>
+{% if detail.shot_down_by %}
+  <div class="table-wrap table-wrap--flat">
+    <table class="data-table data-table--compact">
+      <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Attacker" %}</th><th scope="col">{% translate "Credit" %}</th><th scope="col">{% translate "Note" %}</th></tr></thead>
+      <tbody>
+        {% for row in detail.shot_down_by %}
+          <tr>
+            <td class="nowrap">{{ row.clock }} <small title="{% translate 'UTC' %}">{{ row.utc }}</small></td>
+            <td>{% include "il2ks/sorties/parts/who.html" with who=row.who %}</td>
+            <td>{% if row.friendly %}{% badge _("Friendly fire") "red" icon="event/friendly-fire" %}{% elif row.credit == "kill" %}{% badge _("Kill") "red" %}{% else %}{% badge _("Assist") "grey" %}{% endif %}</td>
+            <td>{{ row.note }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif sortie.loss_cause == "self" %}
+  <p class="muted">{% translate "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)." %}</p>
+{% else %}
+  <p class="muted">{% translate "The log does not name an attacker." %}</p>
+{% endif %}
+{% endif %}

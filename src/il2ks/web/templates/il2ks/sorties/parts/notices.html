@@ -1,0 +1,18 @@
+{# il2ks-template: templates/il2ks/sorties/parts/notices.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  Flag notices (doc 13): what the reader should know before trusting a number. All neutral in tone: the flags are
+  heuristics. Context: sortie, detail (ammo.used_unknown says why ammo used is unknown).
+{% endcomment %}{% if sortie.role == "gunner" %}
+  {% notice "info" title=_("Gunner sortie") %}{% translate "This player manned a gun position. The game log credits a gunner's fire to the aircraft, so the pilot gets the kills and this sortie shows none. Time in flight follows the aircraft." %}{% endnotice %}
+{% endif %}
+{% if sortie.suspected_early_bailout %}
+  {% notice "info" title=_("Possible early bailout") %}{% translate "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the log and can be wrong, for example after an engine failure or a deliberate exit." %}{% endnotice %}
+{% endif %}
+{% if sortie.suspected_structural_failure %}
+  {% notice "info" title=_("Possible structural failure") %}{% translate "The aircraft was destroyed in flight by something other than an enemy, shortly after it took self-inflicted damage, and kept falling afterwards. It may have broken up from overstress; this is a guess from the log." %}{% endnotice %}
+{% endif %}
+{% if detail.ammo.used_unknown == "resupplied" %}
+  {% notice "info" title=_("Resupplied during the sortie") %}{% translate "The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb releases and rocket salvos are still exact." %}{% endnotice %}
+{% elif detail.ammo.used_unknown == "unreliable" %}
+  {% notice "info" title=_("Ammunition used unknown") %}{% translate "The log's record of ammunition left is not reliable here, for example because it was taken after the aircraft was lost." %}{% endnotice %}
+{% endif %}

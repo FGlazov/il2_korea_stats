@@ -1,0 +1,49 @@
+{# il2ks-template: templates/il2ks/sorties/parts/kills.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  Kills and assists made by this sortie. Context: sortie, detail (air_kills, ground, assists, friendly).
+  Air kills: player victims (Kill rows) and AI aircraft (timeline). Ground kills: the total and the collapsible
+  breakdown by category (kills_ground_*) with the static share (OQ-33); the single kills are in the timeline.
+  Friendly kills are never counted as kills (FR-ING-23) and are marked as such.
+{% endcomment %}<h2>{% translate "Kills and assists" %}</h2>
+<div class="split">
+  <section>
+    <h3>{% blocktranslate with n=sortie.kills_air|num %}Air kills: {{ n }}{% endblocktranslate %}</h3>
+    {% if detail.air_kills %}
+      {% translate "Victim" as victim_label %}{% include "il2ks/sorties/parts/kill_table.html" with rows=detail.air_kills victim_label=victim_label %}
+    {% else %}
+      <p class="muted">{% translate "No air kills." %}</p>
+    {% endif %}
+  </section>
+  <section>
+    <h3>{% blocktranslate with n=sortie.kills_ground|num %}Ground kills: {{ n }}{% endblocktranslate %}</h3>
+    {% if detail.ground.total %}
+      {% blocktranslate with share=detail.ground.static_share asvar static_hint %}{{ share }} static objects{% endblocktranslate %}
+      {% accordion _("Breakdown by target type") hint=static_hint open=True %}
+        <div class="table-wrap table-wrap--flat">
+          <table class="data-table data-table--compact">
+            <thead><tr><th scope="col">{% translate "Target" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num">{% translate "Share" %}</th></tr></thead>
+            <tbody>
+              {% for row in detail.ground.rows %}
+                <tr><td>{% icon row.icon %} {{ row.label }}</td><td class="num">{{ row.count|num }}</td><td class="num">{{ row.share }}</td></tr>
+              {% endfor %}
+            </tbody>
+            <tfoot><tr><td>{% translate "Total" %}</td><td class="num">{{ detail.ground.total|num }}</td><td class="num"></td></tr></tfoot>
+          </table>
+        </div>
+        <p><small>{% blocktranslate with n=detail.ground.static|num %}{{ n }} of them were static objects (not moving), such as parked vehicles, fences and crates.{% endblocktranslate %}</small></p>
+      {% endaccordion %}
+    {% else %}
+      <p class="muted">{% translate "No ground kills." %}</p>
+    {% endif %}
+  </section>
+</div>
+
+{% if detail.assists %}
+  <h3>{% blocktranslate with n=sortie.assists|num %}Assists: {{ n }}{% endblocktranslate %}</h3>
+  {% translate "Target" as victim_label %}{% include "il2ks/sorties/parts/kill_table.html" with rows=detail.assists victim_label=victim_label %}
+{% endif %}
+
+{% if detail.friendly %}
+  {% notice "warning" title=_("Friendly fire") %}{% blocktranslate with n=sortie.friendly_kills|num %}{{ n }} friendly kills in this sortie. They do not count as kills.{% endblocktranslate %}{% endnotice %}
+  {% translate "Friendly victim" as victim_label %}{% include "il2ks/sorties/parts/kill_table.html" with rows=detail.friendly victim_label=victim_label %}
+{% endif %}

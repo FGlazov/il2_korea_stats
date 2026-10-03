@@ -201,6 +201,62 @@
       "version": 1,
       "sha256": "0abbd735d15d52f49723de0f34af9276e5e7441ec949aab07ab8f3d1e6a39735"
     },
+    "templates/il2ks/sorties/parts/ammo.html": {
+      "version": 1,
+      "sha256": "0da5fa6af074c67bb947d09991956b06ccedae49581cf3ccb84dc68776b09d50"
+    },
+    "templates/il2ks/sorties/parts/damage.html": {
+      "version": 1,
+      "sha256": "529d9e68a7097d9c4f004d93ae3877facdc79ce6da563d39fcb44ced92b2549b"
+    },
+    "templates/il2ks/sorties/parts/damage_table.html": {
+      "version": 1,
+      "sha256": "2c2007419c4e92c237224c9691f5a41f81795460cb8746e4ad7ad774bde393e9"
+    },
+    "templates/il2ks/sorties/parts/header.html": {
+      "version": 1,
+      "sha256": "3fc97bb8fa46a25732907c1c2bf7cf8f345fc6231168dc0b9e8171f929f59d29"
+    },
+    "templates/il2ks/sorties/parts/kill_table.html": {
+      "version": 1,
+      "sha256": "b455038ecb6c155ca8f5a18dd3813757c8704edf72aa08ae1dc37742bdaee336"
+    },
+    "templates/il2ks/sorties/parts/killed_by.html": {
+      "version": 1,
+      "sha256": "58c8eb00bf139bb39212872a1038748ee6af3adad595bda6cf1d22e21bb56880"
+    },
+    "templates/il2ks/sorties/parts/kills.html": {
+      "version": 1,
+      "sha256": "d9ff90bf808821c55e4f8432e12fec2afc8202bed2343cde0f94d48da274a178"
+    },
+    "templates/il2ks/sorties/parts/list_row.html": {
+      "version": 1,
+      "sha256": "b1f2f04e1a85ef137bf745fe534c5354740375917fe516e5361e0eef500c0ba4"
+    },
+    "templates/il2ks/sorties/parts/meta.html": {
+      "version": 1,
+      "sha256": "77fb376c6edbd57af1b9e0511572dfcc516b1e2709d6b08273ef7c28b779fe73"
+    },
+    "templates/il2ks/sorties/parts/notices.html": {
+      "version": 1,
+      "sha256": "f0b306a85d59a02df7c360e248a54bc33479c4628f88a91f718ad1fb7f163c36"
+    },
+    "templates/il2ks/sorties/parts/summary.html": {
+      "version": 1,
+      "sha256": "093ecc601a173295e0972502ea7838d96e6c286d858dd42333052f1b1e9dffd1"
+    },
+    "templates/il2ks/sorties/parts/timeline.html": {
+      "version": 1,
+      "sha256": "4fd04458360e08ee3a64504de96418a016bbeb4896d288d4112f161d05add93c"
+    },
+    "templates/il2ks/sorties/parts/timeline_table.html": {
+      "version": 1,
+      "sha256": "e6c4e0c8b4f68d17a9b10bdd1f90677a15b7038d1ec172bf20ee3d72a84a91ca"
+    },
+    "templates/il2ks/sorties/parts/who.html": {
+      "version": 1,
+      "sha256": "d5a1795b9a074967f898c66b5938e8665de2571a0069dc21e468c3f2ae6a9486"
+    },
     "templates/il2ks/styleguide.html": {
       "version": 1,
       "sha256": "72ea04e9c9f67662bb76c65201e18617b8fb976b0430c8a0d0d7a7e77356b718"

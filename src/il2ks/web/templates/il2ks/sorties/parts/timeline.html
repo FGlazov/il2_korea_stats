@@ -1,0 +1,15 @@
+{# il2ks-template: templates/il2ks/sorties/parts/timeline.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  The event timeline, in order. Time is the flight's own clock (since spawn) with the UTC time beside it. A run of
+  ground kills is one folded row; past the first rows the rest sits in a details element ("show all"), so a sortie
+  with hundreds of events stays readable and light. Context: detail.timeline (the first rows), detail.timeline_more,
+  detail.timeline_events (all stored events). Rows: sortie_view.TimelineRow, rendered by timeline_table.html.
+{% endcomment %}<h2>{% translate "Timeline" %}</h2>
+{% include "il2ks/sorties/parts/timeline_table.html" with rows=detail.timeline %}
+{% if detail.timeline_more %}
+  <details class="more">
+    <summary>{% blocktranslate with n=detail.timeline_more|length|num %}Show the remaining {{ n }} timeline rows{% endblocktranslate %}</summary>
+    {% include "il2ks/sorties/parts/timeline_table.html" with rows=detail.timeline_more %}
+  </details>
+{% endif %}
+<p class="timeline-note"><small>{% blocktranslate with n=detail.timeline_events|num %}{{ n }} events. Times count from the spawn; the UTC time is shown next to them.{% endblocktranslate %}</small></p>

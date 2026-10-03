@@ -1,0 +1,28 @@
+{# il2ks-template: templates/il2ks/sorties/parts/damage_table.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  A damage table. Context: rows (sortie_view.DamageRow: who, dealt, taken, hits_dealt, hits_taken).
+  Players: percent of that aircraft's health. AI and ground objects: health units summed over all objects of a type.
+{% endcomment %}<div class="table-wrap table-wrap--flat">
+  <table class="data-table data-table--compact">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Counterpart" %}</th>
+        <th scope="col" class="num">{% translate "Damage dealt" %}</th>
+        <th scope="col" class="num">{% translate "Hits dealt" %}</th>
+        <th scope="col" class="num">{% translate "Damage taken" %}</th>
+        <th scope="col" class="num">{% translate "Hits taken" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{% include "il2ks/sorties/parts/who.html" with who=row.who %}</td>
+          <td class="num">{{ row.dealt }}</td>
+          <td class="num">{{ row.hits_dealt }}</td>
+          <td class="num">{{ row.taken }}</td>
+          <td class="num">{{ row.hits_taken }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

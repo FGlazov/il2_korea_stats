@@ -37,6 +37,10 @@ msgstr "%(h)d h"
 msgid "%(h)d h %(m)d min"
 msgstr "%(h)d h %(m)d min"
 
+#, python-format
+msgid "%(kills)s kills, %(hits)s hits"
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "%(m)d min"
@@ -70,7 +74,23 @@ msgid "%(n)s assists"
 msgstr ""
 
 #, python-format
+msgid "%(n)s events. Times count from the spawn; the UTC time is shown next to them."
+msgstr ""
+
+#, python-format
+msgid "%(n)s friendly kills in this sortie. They do not count as kills."
+msgstr ""
+
+#, python-format
 msgid "%(n)s ground kills"
+msgstr ""
+
+#, python-format
+msgid "%(n)s ground targets"
+msgstr ""
+
+#, python-format
+msgid "%(n)s of them were static objects (not moving), such as parked vehicles, fences and crates."
 msgstr ""
 
 #, python-format
@@ -93,6 +113,10 @@ msgstr ""
 #, python-format
 msgid "%(s)d s"
 msgstr "%(s)d s"
+
+#, python-format
+msgid "%(share)s static objects"
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -140,6 +164,10 @@ msgstr ""
 msgid "Air kills per sortie"
 msgstr ""
 
+#, python-format
+msgid "Air kills: %(n)s"
+msgstr ""
+
 msgid "Air start"
 msgstr ""
 
@@ -155,6 +183,9 @@ msgid "Aircraft"
 msgstr "Appareil"
 
 msgid "Aircraft lost"
+msgstr ""
+
+msgid "Aircraft status"
 msgstr ""
 
 # llm-draft
@@ -183,6 +214,15 @@ msgstr ""
 msgid "Also known as"
 msgstr ""
 
+msgid "Ammunition"
+msgstr ""
+
+msgid "Ammunition hit by or with"
+msgstr ""
+
+msgid "Ammunition used unknown"
+msgstr ""
+
 msgid "Anti-aircraft"
 msgstr ""
 
@@ -208,6 +248,10 @@ msgstr ""
 msgid "Assists"
 msgstr ""
 
+#, python-format
+msgid "Assists: %(n)s"
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "At most %(max)d links."
@@ -218,6 +262,9 @@ msgid "Attack"
 msgstr "Attaque"
 
 msgid "Attack sorties"
+msgstr ""
+
+msgid "Attacker"
 msgstr ""
 
 # llm-draft
@@ -247,6 +294,9 @@ msgstr ""
 # llm-draft
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
+
+msgid "Breakdown by target type"
+msgstr ""
 
 # llm-draft
 msgid "Browse missions"
@@ -293,6 +343,9 @@ msgstr ""
 msgid "Community"
 msgstr "Communauté"
 
+msgid "Counterpart"
+msgstr ""
+
 # llm-draft
 msgid "Counters (rebuilt by ingest)"
 msgstr "Compteurs (recalculés à l'ingestion)"
@@ -310,6 +363,15 @@ msgstr ""
 # llm-draft
 msgid "Current logo"
 msgstr "Logo actuel"
+
+msgid "Damage"
+msgstr ""
+
+msgid "Damage dealt"
+msgstr ""
+
+msgid "Damage taken"
+msgstr ""
 
 # llm-draft
 msgid "Damaged"
@@ -367,9 +429,15 @@ msgstr "Téléversez un nouveau logo ou supprimez l'actuel, mais pas les deux."
 msgid "Empty missions"
 msgstr ""
 
+msgid "Enemy action"
+msgstr ""
+
 # llm-draft
 msgid "Error"
 msgstr "Erreur"
+
+msgid "Event"
+msgstr ""
 
 # llm-draft
 msgid "Event type (AType)"
@@ -413,6 +481,9 @@ msgstr ""
 msgid "Flight time"
 msgstr ""
 
+msgid "Friendly"
+msgstr ""
+
 msgid "Friendly fire"
 msgstr ""
 
@@ -420,6 +491,9 @@ msgid "Friendly hits"
 msgstr ""
 
 msgid "Friendly kills"
+msgstr ""
+
+msgid "Friendly victim"
 msgstr ""
 
 # llm-draft
@@ -441,10 +515,17 @@ msgstr ""
 msgid "Ground kills per sortie"
 msgstr ""
 
+#, python-format
+msgid "Ground kills: %(n)s"
+msgstr ""
+
 msgid "Gunner"
 msgstr ""
 
 msgid "Gunner only"
+msgstr ""
+
+msgid "Gunner sortie"
 msgstr ""
 
 msgid "Hall of shame"
@@ -468,6 +549,18 @@ msgstr "Masquer les missions sélectionnées sur les pages publiques"
 # llm-draft
 msgid "Hide selected players from public pages"
 msgstr "Masquer les joueurs sélectionnés sur les pages publiques"
+
+msgid "Hits dealt"
+msgstr ""
+
+msgid "Hits given"
+msgstr ""
+
+msgid "Hits received"
+msgstr ""
+
+msgid "Hits taken"
+msgstr ""
 
 # llm-draft
 msgid "Home"
@@ -528,6 +621,9 @@ msgstr ""
 msgid "Kills"
 msgstr ""
 
+msgid "Kills and assists"
+msgstr ""
+
 # llm-draft
 msgid "Kind"
 msgstr "Genre"
@@ -572,6 +668,9 @@ msgstr "Dernière tentative"
 msgid "Latest missions"
 msgstr ""
 
+msgid "Left"
+msgstr ""
+
 # llm-draft
 msgid "Left the server"
 msgstr "A quitté le serveur"
@@ -599,6 +698,9 @@ msgstr "Lignes"
 msgid "Links"
 msgstr "Liens"
 
+msgid "Loaded"
+msgstr ""
+
 msgid "Log incomplete"
 msgstr ""
 
@@ -615,6 +717,9 @@ msgstr "Nom dans le journal"
 # llm-draft
 msgid "Look"
 msgstr "Apparence"
+
+msgid "Loss cause"
+msgstr ""
 
 msgid "Lost before the first takeoff, by their own doing"
 msgstr ""
@@ -656,6 +761,9 @@ msgstr ""
 msgid "Neutral"
 msgstr "Neutre"
 
+msgid "Never"
+msgstr ""
+
 # llm-draft
 msgid "Next"
 msgstr "Suivant"
@@ -665,6 +773,18 @@ msgid "Next retry"
 msgstr "Prochaine tentative"
 
 msgid "Nickname"
+msgstr ""
+
+msgid "No air kills."
+msgstr ""
+
+msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
+msgstr ""
+
+msgid "No ground kills."
+msgstr ""
+
+msgid "No landing"
 msgstr ""
 
 # llm-draft
@@ -696,6 +816,9 @@ msgid "No player-versus-player kills in this mission."
 msgstr ""
 
 msgid "No players yet."
+msgstr ""
+
+msgid "No qualifying attack"
 msgstr ""
 
 msgid "No sorties match these filters."
@@ -732,6 +855,9 @@ msgstr "Remarque"
 msgid "Nothing ingested yet."
 msgstr "Rien n'a encore été ingéré."
 
+msgid "Nothing lost"
+msgstr ""
+
 # llm-draft
 msgid "Nothing to show yet."
 msgstr "Rien à afficher pour l'instant."
@@ -742,6 +868,9 @@ msgstr ""
 # llm-draft
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "Un par ligne : « Libellé | https://adresse ». Affichés dans l'en-tête ou le pied de page du site. 10 au maximum."
+
+msgid "Open the sortie report"
+msgstr ""
 
 # llm-draft
 msgid "Operations"
@@ -760,6 +889,9 @@ msgid "Outcome"
 msgstr ""
 
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
+msgstr ""
+
+msgid "Own doing (terrain, overstress, accident)"
 msgstr ""
 
 # llm-draft
@@ -783,6 +915,9 @@ msgstr ""
 msgid "Part of a nickname"
 msgstr ""
 
+msgid "Payload"
+msgstr ""
+
 msgid "Period"
 msgstr ""
 
@@ -793,6 +928,9 @@ msgid "Pilot fate"
 msgstr ""
 
 msgid "Pilot or gunner"
+msgstr ""
+
+msgid "Pilot status"
 msgstr ""
 
 # llm-draft
@@ -813,6 +951,17 @@ msgstr ""
 # llm-draft
 msgid "Players"
 msgstr "Joueurs"
+
+msgid ""
+"Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole "
+"object, added up over all objects of that type."
+msgstr ""
+
+msgid "Possible early bailout"
+msgstr ""
+
+msgid "Possible structural failure"
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -870,6 +1019,9 @@ msgstr "Réinitialiser les noms d'affichage aux valeurs par défaut du catalogue
 msgid "Result"
 msgstr "Résultat"
 
+msgid "Resupplied during the sortie"
+msgstr ""
+
 msgid "Rocket salvo"
 msgstr ""
 
@@ -920,6 +1072,13 @@ msgstr ""
 msgid "Shot down"
 msgstr "Abattu"
 
+msgid "Shot down by"
+msgstr ""
+
+#, python-format
+msgid "Show %(n)s more counterparts"
+msgstr ""
+
 # llm-draft
 msgid "Show selected missions on public pages again"
 msgstr "Afficher de nouveau les missions sélectionnées sur les pages publiques"
@@ -927,6 +1086,10 @@ msgstr "Afficher de nouveau les missions sélectionnées sur les pages publiques
 # llm-draft
 msgid "Show selected players on public pages again"
 msgstr "Afficher de nouveau les joueurs sélectionnés sur les pages publiques"
+
+#, python-format
+msgid "Show the remaining %(n)s timeline rows"
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -975,6 +1138,9 @@ msgstr "Source"
 msgid "Source files"
 msgstr "Fichiers sources"
 
+msgid "Spawn"
+msgstr ""
+
 msgid "Spawned"
 msgstr ""
 
@@ -991,6 +1157,9 @@ msgstr ""
 msgid "Strafed on the ground"
 msgstr ""
 
+msgid "Summary"
+msgstr ""
+
 msgid "Survival rate"
 msgstr ""
 
@@ -1004,10 +1173,19 @@ msgstr "Basculer entre clair et sombre"
 msgid "Takeoffs"
 msgstr ""
 
+msgid "Takeoffs / landings"
+msgstr ""
+
 msgid "Tank"
 msgstr ""
 
 msgid "Tanks"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+msgid "Taxi accident"
 msgstr ""
 
 msgid "Taxi accidents"
@@ -1016,6 +1194,16 @@ msgstr ""
 # llm-draft
 msgid "That page does not exist, or the link is out of date."
 msgstr "Cette page n'existe pas, ou le lien est périmé."
+
+msgid ""
+"The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb "
+"releases and rocket salvos are still exact."
+msgstr ""
+
+msgid ""
+"The aircraft was destroyed in flight by something other than an enemy, shortly after it took self-inflicted damage, "
+"and kept falling afterwards. It may have broken up from overstress; this is a guess from the log."
+msgstr ""
 
 # llm-draft
 msgid "The file is empty."
@@ -1044,9 +1232,22 @@ msgid ""
 "status page."
 msgstr ""
 
+msgid "The log does not name an attacker."
+msgstr ""
+
+msgid ""
+"The log's record of ammunition left is not reliable here, for example because it was taken after the aircraft was "
+"lost."
+msgstr ""
+
 # llm-draft
 msgid "The numbers on this page are provisional and can still be updated."
 msgstr "Les chiffres de cette page sont provisoires et peuvent encore changer."
+
+msgid ""
+"The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
+"log and can be wrong, for example after an engine failure or a deliberate exit."
+msgstr ""
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
@@ -1077,6 +1278,11 @@ msgstr "Cette page n'est ni listée ni indexée par la recherche. Seules les per
 msgid "This player flies as a gunner only. Gunner stats come later."
 msgstr ""
 
+msgid ""
+"This player manned a gun position. The game log credits a gunner's fire to the aircraft, so the pilot gets the kills "
+"and this sortie shows none. Time in flight follows the aircraft."
+msgstr ""
+
 #, python-format
 msgid ""
 "This re-runs the %(n)s stored mission from its archive with the current rules, then rebuilds all statistics and "
@@ -1091,6 +1297,9 @@ msgid "Time"
 msgstr ""
 
 msgid "Time on target"
+msgstr ""
+
+msgid "Timeline"
 msgstr ""
 
 msgid "Took off"
@@ -1109,6 +1318,12 @@ msgid "Tours start by themselves unless [tours] mode is manual."
 msgstr ""
 
 msgid "Trains"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "UTC"
 msgstr ""
 
 # llm-draft
@@ -1135,6 +1350,19 @@ msgstr "Clés inconnues (lignes AType:KEY:)"
 msgid "Unknown object types"
 msgstr "Types d'objets inconnus"
 
+#, python-format
+msgid "Unknown payload (id %(id)s)"
+msgstr ""
+
+msgid "Unknown: the ammunition left cannot be trusted"
+msgstr ""
+
+msgid "Unknown: the log has no end-of-sortie ammunition record"
+msgstr ""
+
+msgid "Unknown: the sortie was resupplied"
+msgstr ""
+
 # llm-draft
 msgid "Upload a new logo"
 msgstr "Téléverser un nouveau logo"
@@ -1142,6 +1370,18 @@ msgstr "Téléverser un nouveau logo"
 # llm-draft
 msgid "Use a colour like #1A73E8 (six hex digits), or leave it empty."
 msgstr "Indiquez une couleur comme #1A73E8 (six chiffres hexadécimaux) ou laissez le champ vide."
+
+msgid "Used"
+msgstr ""
+
+msgid "Used is unknown: the aircraft was resupplied during the sortie."
+msgstr ""
+
+msgid "Used is unknown: the ammunition left is not reliable."
+msgstr ""
+
+msgid "Used is unknown: the log has no end-of-sortie ammunition record, for example after a disconnect."
+msgstr ""
 
 msgid "Vehicle"
 msgstr ""
@@ -1177,6 +1417,9 @@ msgstr ""
 msgid "Wounded"
 msgstr "Blessé"
 
+msgid "Yes"
+msgstr ""
+
 msgid "Yes, reprocess all missions"
 msgstr ""
 
@@ -1192,8 +1435,14 @@ msgstr ""
 msgid "air kills per plane lost"
 msgstr ""
 
+msgid "air start"
+msgstr ""
+
 #, python-format
 msgid "also known as %(name)s"
+msgstr ""
+
+msgid "by"
 msgstr ""
 
 msgid "current"
@@ -1201,6 +1450,16 @@ msgstr ""
 
 #, python-format
 msgid "flight time %(t)s"
+msgstr ""
+
+msgid "from a log event"
+msgstr ""
+
+msgid "inferred from the log"
+msgstr ""
+
+#, python-format
+msgid "now playing as %(name)s"
 msgstr ""
 
 msgid "of them static objects"
@@ -1222,6 +1481,10 @@ msgid "sorties"
 msgstr ""
 
 msgid "sorties without a death"
+msgstr ""
+
+#, python-format
+msgid "spawned %(when)s"
 msgstr ""
 
 #, python-format
