@@ -281,7 +281,7 @@ for each problem.
 | `il2ks run: Caddy ... was not found` | Install Caddy ([step 3](#3-install-caddy-the-https-part)) or set `[https] caddy_path`. |
 | Doctor: "Port 443 is already in use" | Another program uses it (IIS, nginx, Apache, another Caddy). Stop it, or use [your own proxy](reverse-proxy.md). Find it: `netstat -ano \| findstr :443` (Windows), `sudo ss -ltnp 'sport = :443'` (Linux). |
 | Certificate is never issued | DNS does not point here, or port 80 is blocked from outside. Check from your phone (mobile data): `http://stats.example.com` should redirect to https. |
-| "another il2ks writer is running" | Normal for a moment while `watch` ingests. If it persists, something else (a `reprocess`) holds the lock; wait. |
+| "another il2ks writer is running" | Normal for a moment while `watch` ingests, or while an update of the database waits for it. If it persists, something else (a `reprocess`) holds the lock; wait. The website itself keeps running during an ingest; only an `il2ks web` start that has to update the database needs the lock. |
 | The site works but is empty | `[logs] dir` is wrong or DServer's text logs are off. `il2ks doctor`, then `il2ks ingest` to see what it finds. |
 | Page has no styling | Static files were not collected. `il2ks web`/`run` do this at every start; check `logs/web-*.log`. |
 | Forgot the admin password | `il2ks createadmin` again with the same name (see `--help`), or `il2ks manage changepassword NAME`. |
