@@ -30,5 +30,5 @@ def live_fragment(request: HttpRequest) -> HttpResponse:
         return busy
     response = render(request, "il2ks/components/online_now_body.html", {"live": view})
     patch_cache_control(response, public=True, max_age=MAX_AGE)
-    patch_vary_headers(response, ("Accept-Language",))
+    patch_vary_headers(response, ("Accept-Language", "Cookie"))
     return response
