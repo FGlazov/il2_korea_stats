@@ -98,6 +98,7 @@ def test_sortie_row_values() -> None:
     assert s.ammo == {
         "loaded": {"bullets": 400, "shells": 0, "bombs": 0, "rockets": 0},
         "left": {"bullets": 200, "shells": 0, "bombs": 0, "rockets": 0},
+        "used": {"bullets": 200, "shells": 0, "bombs": 0, "rockets": 0},
         "hits": [],
     }
 
