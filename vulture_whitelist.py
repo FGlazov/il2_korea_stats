@@ -10,6 +10,7 @@ WebConfig  # INSTALLED_APPS entry (il2ks.web.apps)
 _.default_auto_field  # Django AppConfig option
 _.verbose_name  # Django AppConfig option (db.apps)
 urlpatterns  # Django URLconf (il2ks.urls, il2ks.web.urls)
+LoginThrottleMiddleware  # MIDDLEWARE entry (il2ks.settings)
 _.app_name  # Django URLconf namespace
 application  # WSGI entry point (il2ks.wsgi, used by granian/gunicorn)
 _.format  # logging.Formatter override (logsetup.JsonFormatter)

@@ -15,12 +15,12 @@ from il2ks import cli
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config, ConfigError, load_config
 from il2ks.ingest.lock import LockBusyError
-from il2ks.serving import commands, custom, procutil, webserver
+from il2ks.serving import bootid, commands, custom, procutil, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, SECRET_KEY_FILE
 from il2ks.serving.supervisor import ChildSpec
 from tests.unit.test_supervisor import FakeChild
 
-ENV_KEYS = ("IL2KS_DATA_DIR", "IL2KS_CONFIG", "IL2KS_DEBUG", "IL2KS_LOGS_DIR")
+ENV_KEYS = ("IL2KS_DATA_DIR", "IL2KS_CONFIG", "IL2KS_DEBUG", "IL2KS_LOGS_DIR", "IL2KS_BOOT_ID")
 
 
 @pytest.fixture
@@ -140,6 +140,19 @@ def test_web_creates_the_secret_key_file_before_django_starts(env: Path, calls: 
     settings.SECRET_KEY = "a-real-key-for-this-test"
     assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
     assert (env / "data" / SECRET_KEY_FILE).read_text(encoding="utf-8").strip()
+
+
+def test_web_exports_one_boot_id_for_its_workers(env: Path, calls: Calls, settings: Settings) -> None:
+    """TD-28: ETags carry the boot id; granian's workers inherit it, so they all answer a revalidation alike."""
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
+    first = os.environ[bootid.BOOT_ID_ENV]
+    assert first
+    assert bootid.current_boot_id() == first  # what a worker process would read
+
+    assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
+    assert os.environ[bootid.BOOT_ID_ENV] != first  # a restart is a new boot
 
 
 def test_web_migrates_then_collects_static_then_serves(env: Path, calls: Calls, settings: Settings) -> None:

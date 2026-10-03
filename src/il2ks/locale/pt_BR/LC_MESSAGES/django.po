@@ -1300,6 +1300,9 @@ msgstr ""
 msgid "Timeline"
 msgstr ""
 
+msgid "Too many failed login attempts. Try again in a few minutes."
+msgstr ""
+
 msgid "Took off"
 msgstr ""
 

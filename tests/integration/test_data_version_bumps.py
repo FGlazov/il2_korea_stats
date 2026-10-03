@@ -1,9 +1,12 @@
 """Where the data version is bumped (TD-28): mission saves, rebuilds, and (see test_admin) admin edits."""
 
+from datetime import UTC, datetime
+
 import pytest
 from django.db import transaction
 
-from il2ks.db.site import current_data_version
+from il2ks.db.models import DataVersion
+from il2ks.db.site import bump_data_version, current_data_version
 from il2ks.ingest.aggregates import rebuild_aggregates
 from tests.factories import mission, save, sortie
 
@@ -51,3 +54,13 @@ def test_rebuild_aggregates_bumps_the_version() -> None:
     rebuild_aggregates()
 
     assert current_data_version() > before
+
+
+def test_a_bump_advances_the_updated_at_timestamp() -> None:
+    """The footer's "Data updated" comes from `updated_at`; `QuerySet.update()` skips `auto_now` (TD-28)."""
+    bump_data_version()
+    DataVersion.objects.filter(pk=1).update(updated_at=datetime(2000, 1, 1, tzinfo=UTC))
+
+    bump_data_version()
+
+    assert DataVersion.objects.get(pk=1).updated_at > datetime(2020, 1, 1, tzinfo=UTC)

@@ -66,8 +66,8 @@
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
     "templates/il2ks/base.html": {
-      "version": 2,
-      "sha256": "82bc00d48e2f5afda0c5430b694d7cbbb301b1b13f20ca03910e0fbc09bbcd1b"
+      "version": 3,
+      "sha256": "0136dd33d888c910e333fc4c941fa1cd9efd56840637ec472566dc089e64d99b"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,

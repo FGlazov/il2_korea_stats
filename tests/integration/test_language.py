@@ -123,6 +123,8 @@ def test_a_cached_page_of_another_language_is_never_answered_304() -> None:
 
 
 def test_responses_vary_on_the_language_cookie_and_the_header(client: Client) -> None:
+    assert "Cookie" not in client.get("/")["Vary"]  # nobody chose a language: nothing to vary on
+    switch(client, "de")  # sets the cookie
     vary = {v.strip() for v in client.get("/")["Vary"].split(",")}
 
     assert {"Accept-Language", "Cookie"} <= vary

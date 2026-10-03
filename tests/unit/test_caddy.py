@@ -63,12 +63,18 @@ def test_domain_mode_is_automatic_https_with_a_reverse_proxy(tmp_path: Path) -> 
     assert "\nstats.example.com {\n" in text
     assert "\treverse_proxy 127.0.0.1:8000\n" in text
     assert "\tencode zstd gzip\n" in text
-    assert "\temail me@example.com\n" in text
+    assert '\temail "me@example.com"\n' in text
     assert "\tadmin off\n" in text
     assert "\thttp_port 80\n\thttps_port 443\n" in text
     assert "tls" not in text  # Caddy's defaults: public ACME, HTTP->HTTPS redirect
     assert "skip_install_trust" not in text
     assert "http://" not in text  # no hand-made redirect; Caddy's automatic one is right on 80/443
+
+
+def test_the_email_is_quoted_so_it_cannot_break_out_of_the_global_block(tmp_path: Path) -> None:
+    text = caddy.render_caddyfile(make(tmp_path, domain="stats.example.com", email='x"\n}\nevil'))
+
+    assert '\temail "x\\"\n}\nevil"\n' in text  # a value that slipped past the config check is still one quoted word
 
 
 def test_no_email_line_without_an_email(tmp_path: Path) -> None:

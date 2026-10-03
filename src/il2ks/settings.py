@@ -57,6 +57,7 @@ SECURE_REFERRER_POLICY = _SECURITY.referrer_policy
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "il2ks.web.throttle.LoginThrottleMiddleware",  # locks an address out after repeated failed admin logins
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -93,8 +94,23 @@ TEMPLATES = [
 ]
 
 
+# SQLite tuning (TD-04): WAL lets the website read while `watch` commits a big mission (and the other way round);
+# IMMEDIATE takes the write lock when a transaction begins, so it waits (up to `timeout` seconds) instead of failing
+# with SQLITE_BUSY when a deferred read lock cannot be upgraded; NORMAL is the safe pairing with WAL (a power cut can
+# lose the last commits, never corrupt the file). The journal mode is stored in the file: it sticks once set.
+SQLITE_OPTIONS: dict[str, object] = {
+    "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+    "transaction_mode": "IMMEDIATE",
+    "timeout": 20,
+}
+
+
 def _databases() -> dict[str, dict[str, object]]:
-    sqlite: dict[str, object] = {"ENGINE": "django.db.backends.sqlite3", "NAME": DATA_DIR / "il2ks.sqlite3"}
+    sqlite: dict[str, object] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": DATA_DIR / "il2ks.sqlite3",
+        "OPTIONS": SQLITE_OPTIONS,
+    }
     if os.environ.get("IL2KS_TEST_DB") != "postgres":
         return {"default": sqlite}
     postgres: dict[str, object] = {
@@ -111,6 +127,15 @@ def _databases() -> dict[str, dict[str, object]]:
 
 DATABASES = _databases()
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# The admin account is the one thing on the site worth guessing: Django's standard four password checks apply to every
+# password set through the admin and `il2ks createadmin`. Failed logins are throttled by `il2ks.web.throttle`.
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 LANGUAGE_CODE = "en"
 LANGUAGES = _LANGUAGES  # en + ru, de, es, fr, pt-br (TD-24)

@@ -11,6 +11,7 @@ Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rul
 """
 
 from collections.abc import Sequence
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -41,7 +42,7 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.tours import start_manual_tour
-from il2ks.web.logo import delete_logo, store_logo
+from il2ks.web.logo import prune_logos, store_logo
 from il2ks.web.object_names import default_catalog
 from il2ks.web.site_forms import SiteSettingsForm
 
@@ -128,7 +129,6 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
 
     def save_model(self, request: HttpRequest, obj: SiteSettings, form: ModelForm, change: bool) -> None:
         assert isinstance(form, SiteSettingsForm)
-        previous = obj.logo
         obj.links = form.cleaned_data["links_text"]
         media_root = Path(settings.MEDIA_ROOT)
         if form.processed_logo is not None:
@@ -138,8 +138,9 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             obj.logo = ""
         super().save_model(request, obj, form, change)
         bump_data_version()
-        if previous and previous != obj.logo:
-            delete_logo(previous, media_root)
+        # Old logo files go only once the new row is committed (a rolled-back save keeps the logo it had), and a file
+        # that cannot be deleted right now (Windows refuses while it is being served) is left for the next save.
+        transaction.on_commit(partial(prune_logos, media_root, obj.logo))
 
 
 # --- Players and missions: read-only apart from hiding (FR-ADM-3) ---

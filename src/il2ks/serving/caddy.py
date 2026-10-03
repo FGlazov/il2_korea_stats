@@ -100,6 +100,11 @@ def upstream(cfg: Config) -> str:
     return f"{host}:{cfg.web.port}"
 
 
+def _word(text: str) -> str:
+    """A value as a double-quoted Caddyfile word (config validation already rejects quotes; this is the second belt)."""
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
 def _quote(path: Path) -> str:
     """A path as a Caddyfile word: forward slashes (also on Windows), double-quoted."""
     return '"' + path.as_posix().replace('"', '\\"') + '"'
@@ -127,7 +132,7 @@ def render_caddyfile(cfg: Config) -> str:
         f"\thttps_port {https.https_port}",
     ]
     if https.email:
-        lines.append(f"\temail {https.email}")
+        lines.append(f"\temail {_word(https.email)}")
     if internal:
         lines.append("\tskip_install_trust")  # never touch the machine's trust store; this is for testing
     lines += ["\tlog {", "\t\toutput stderr", "\t\tformat console", "\t}", "}", ""]

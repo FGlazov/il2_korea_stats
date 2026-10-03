@@ -16,6 +16,7 @@ import hashlib
 import io
 import os
 import tempfile
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -98,11 +99,17 @@ def store_logo(logo: ProcessedLogo, media_root: Path) -> Path:
     return target
 
 
-def delete_logo(name: str, media_root: Path) -> None:
-    """Remove a stored logo, only if it really is a file inside `branding/` (the name comes from the DB)."""
-    if not name:
+def prune_logos(media_root: Path, keep: str) -> None:
+    """Remove every `branding/logo-*` file except the current logo `keep` (its name relative to `media_root`, or "").
+
+    Runs after a successful save: the replaced logo goes, and so does any file an earlier save could not delete (a file
+    being streamed cannot be deleted on Windows) or left behind by a rolled-back upload. Never raises: a file that is
+    still in use is simply tried again at the next save."""
+    branding = media_root / BRANDING_DIR
+    if not branding.is_dir():
         return
-    target = (media_root / name).resolve()
-    branding = (media_root / BRANDING_DIR).resolve()
-    if target.parent == branding and target.is_file():
-        target.unlink(missing_ok=True)
+    kept = Path(keep).name if keep else ""
+    for path in branding.glob("logo-*"):
+        if path.name != kept and path.is_file():
+            with suppress(OSError):
+                path.unlink()

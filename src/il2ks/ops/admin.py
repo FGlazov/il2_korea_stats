@@ -14,12 +14,6 @@ from il2ks.ops.prompt import Prompter
 PASSWORD_ENV = "IL2KS_ADMIN_PASSWORD"
 DEFAULT_USERNAME = "admin"
 MAX_PASSWORD_TRIES = 3
-_DEFAULT_VALIDATORS: list[dict[str, str]] = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]
 
 
 class AdminError(ValueError):
@@ -29,20 +23,15 @@ class AdminError(ValueError):
 def password_problems(password: str, username: str, email: str = "") -> list[str]:
     """What Django's validators dislike about `password` (empty list = fine).
 
-    Uses `AUTH_PASSWORD_VALIDATORS` from the settings; if there are none, Django's four standard validators, so an
-    admin account never gets an unchecked password."""
+    Uses `AUTH_PASSWORD_VALIDATORS` from the settings (`il2ks.settings` lists Django's four standard ones), the same
+    rules the admin's own password forms apply."""
     from django.contrib.auth import get_user_model
-    from django.contrib.auth.password_validation import (
-        get_default_password_validators,
-        get_password_validators,
-        validate_password,
-    )
+    from django.contrib.auth.password_validation import validate_password
     from django.core.exceptions import ValidationError
 
-    validators = get_default_password_validators() or get_password_validators(_DEFAULT_VALIDATORS)
     user = get_user_model()(username=username, email=email)
     try:
-        validate_password(password, user, validators)
+        validate_password(password, user)
     except ValidationError as exc:
         return [str(message) for message in exc.messages]
     return []

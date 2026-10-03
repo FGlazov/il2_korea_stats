@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -12,7 +12,7 @@
   data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
   static/il2ks/site.css (tokens first).
 {% endcomment %}<!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+{% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

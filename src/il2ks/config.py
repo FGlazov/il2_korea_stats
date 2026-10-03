@@ -16,7 +16,9 @@ the default). No file at all means defaults plus env. Relative paths in the file
 from __future__ import annotations
 
 import dataclasses
+import ipaddress
 import os
+import re
 import tomllib
 import uuid
 from collections.abc import Mapping
@@ -294,6 +296,10 @@ def _load_web(reader: _Reader) -> WebConfig:
     )
 
 
+_DNS_NAME = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.?")
+_EMAIL = re.compile(r"""[^\s@{}"'`#\\]+@[^\s@{}"'`#\\]+""")
+
+
 def normalize_domain(text: str) -> str:
     """The `[https] domain` value cleaned up: no scheme, path, port or IPv6 brackets. Raises ValueError with advice."""
     domain = text.strip()
@@ -305,7 +311,29 @@ def normalize_domain(text: str) -> str:
         domain = domain[1:-1]
     elif domain.count(":") == 1:
         raise ValueError("write the name without a port; ports go in [https] https_port")
-    return domain.lower()
+    domain = domain.lower()
+    if not _is_ip_address(domain) and _DNS_NAME.fullmatch(domain) is None:
+        raise ValueError(
+            f"{text.strip()!r} is not a host name or IP address: use letters, digits, dots and hyphens, "
+            "like stats.example.com"
+        )
+    return domain
+
+
+def _is_ip_address(text: str) -> bool:
+    try:
+        ipaddress.ip_address(text)
+    except ValueError:
+        return False
+    return True
+
+
+def normalize_email(text: str) -> str:
+    """The `[https] email` value, checked: it ends up in the Caddyfile. Raises ValueError with advice."""
+    email = text.strip()
+    if email and _EMAIL.fullmatch(email) is None:
+        raise ValueError(f"{email!r} is not an email address (no spaces, quotes, braces or # allowed)")
+    return email
 
 
 def _load_https(reader: _Reader) -> HttpsConfig:
@@ -320,10 +348,14 @@ def _load_https(reader: _Reader) -> HttpsConfig:
         domain = normalize_domain(reader.str_("https", "domain", ""))
     except ValueError as exc:
         raise ConfigError(f"https.domain: {exc}") from exc
+    try:
+        email = normalize_email(reader.str_("https", "email", ""))
+    except ValueError as exc:
+        raise ConfigError(f"https.email: {exc}") from exc
     return HttpsConfig(
         mode=mode,
         domain=domain,
-        email=reader.str_("https", "email", "").strip(),
+        email=email,
         cert=cert,
         caddy_path=reader.path("https", "caddy_path"),
         http_port=reader.port("https", "http_port", defaults.http_port),

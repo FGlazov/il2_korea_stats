@@ -12,8 +12,8 @@ from il2ks.web.logo import (
     MAX_HEIGHT,
     MAX_UPLOAD_BYTES,
     LogoError,
-    delete_logo,
     process_logo,
+    prune_logos,
     store_logo,
 )
 
@@ -200,16 +200,33 @@ def test_store_logo_writes_once_and_atomically(tmp_path: Path) -> None:
     assert [p.name for p in (tmp_path / "branding").iterdir()] == [path.name]  # no temp files left
 
 
-def test_delete_logo_only_touches_files_in_the_branding_folder(tmp_path: Path) -> None:
-    logo = process_logo(encode(Image.new("RGB", (40, 40), "red"), "PNG"))
-    stored = store_logo(logo, tmp_path)
-    outside = tmp_path / "secret.png"
-    outside.write_bytes(b"x")
+def test_prune_logos_keeps_only_the_current_logo_and_ignores_other_files(tmp_path: Path) -> None:
+    branding = tmp_path / "branding"
+    branding.mkdir()
+    for name in ("logo-aaaa.png", "logo-bbbb.png", "other.txt"):
+        (branding / name).write_bytes(b"x")
+    (tmp_path / "secret.png").write_bytes(b"x")
 
-    delete_logo("../secret.png", tmp_path)
-    delete_logo("secret.png", tmp_path)
-    delete_logo("", tmp_path)
-    assert outside.exists()
+    prune_logos(tmp_path, "branding/logo-bbbb.png")
 
-    delete_logo(logo.name, tmp_path)
-    assert not stored.exists()
+    assert sorted(p.name for p in branding.iterdir()) == ["logo-bbbb.png", "other.txt"]
+    assert (tmp_path / "secret.png").exists()
+    prune_logos(tmp_path, "")
+    assert sorted(p.name for p in branding.iterdir()) == ["other.txt"]
+    prune_logos(tmp_path / "missing", "")  # no folder: nothing to do
+
+
+def test_prune_logos_survives_a_file_that_cannot_be_deleted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A file being streamed cannot be deleted on Windows; the save must not fail because of it."""
+    branding = tmp_path / "branding"
+    branding.mkdir()
+    (branding / "logo-aaaa.png").write_bytes(b"x")
+
+    def refuse(self: Path, missing_ok: bool = False) -> None:
+        raise PermissionError("in use")
+
+    monkeypatch.setattr(Path, "unlink", refuse)
+
+    prune_logos(tmp_path, "")
+
+    assert (branding / "logo-aaaa.png").exists()

@@ -216,6 +216,27 @@ def test_restore_round_trip_brings_everything_back(tmp_path: Path) -> None:
     assert not any(p.name.startswith("restore-") for p in cfg.data_dir.iterdir())  # staging folder cleaned up
 
 
+def test_restore_leaves_no_stale_wal_files_next_to_the_restored_database(tmp_path: Path) -> None:
+    """TD-04 (WAL mode): a `-wal`/`-shm` pair left by the replaced database would be applied to the restored file."""
+    cfg = make_instance(tmp_path)
+    zip_path = backup.create_backup(cfg, now=lambda: T)
+    live = sqlite3.connect(cfg.db_path)
+    live.execute("PRAGMA journal_mode=WAL")
+    live.execute("INSERT INTO notes (text) VALUES ('only in the live wal')")
+    live.commit()
+    wal, shm = (Path(f"{cfg.db_path}{suffix}") for suffix in ("-wal", "-shm"))
+    stale = {wal: wal.read_bytes(), shm: shm.read_bytes()}
+    live.close()  # a clean close checkpoints and removes the pair; put back what a crashed process would leave
+    for path, content in stale.items():
+        path.write_bytes(content)
+
+    backup.restore_backup(cfg, zip_path, cfg.source or tmp_path / "il2ks.toml", now=lambda: T + timedelta(hours=1))
+
+    assert read_notes(cfg.db_path) == ["first"]
+    assert not wal.exists()
+    assert not shm.exists()
+
+
 def test_restore_into_a_fresh_install(tmp_path: Path) -> None:
     source = make_instance(tmp_path / "old")
     zip_path = backup.create_backup(source, now=lambda: T)
