@@ -156,7 +156,8 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   only shows missions with `sorties_total > 0`.
 - **`IngestRun` growth** `[PROPOSED]`: every reprocess adds one run per mission. Keep the newest few runs per mission (e.g. 5) and always the
   one that wrote the current archive; prune older ones at the end of `reprocess`.
-- **Verified end to end on the 210 sample missions** (2026-10-03, run twice; the second on final main): no failures, zero bad lines and unknown
+- **Verified end to end on the 210 sample missions** (2026-10-03, run three times; the last after the score inputs and Elo landed, with
+  the same results and Elo stored = Elo recomputed for every player): no failures, zero bad lines and unknown
   keys, re-import skips everything with identical rows, `rebuild-aggregates` and `reprocess` reproduce level 2 **byte for byte** and keep every
   URL PK (PlayerAircraft included), and raw parts (split at their AType 15 headers) give the same result as the whole-mission import, including
   late parts after the originals were moved. Level-2 recompute for one mission's players takes 8–30 ms; a full rebuild 0.25 s.

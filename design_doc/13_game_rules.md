@@ -251,4 +251,9 @@ time on target = sum over attacks
 - **Prop kills jet**: the killer's prop rating and the victim's jet rating move by K × `cross_pool_weight` (2.0) × (1 − E), E from those two
   ratings.
 - Games are replayed in time order (mission start, then kill time), so the result doesn't depend on import order.
+- Each pool alone isn't zero-sum: a prop-kills-jet game moves points from the jet pool into the prop pool (in the samples 36 such games
+  moved ~1,050 points; prop players average +7, jet players −3.5). Intended: it's the reward for the impressive kill.
+- Samples: 807 games (164 prop-prop, 528 jet-jet, 36 prop-kills-jet, 79 jet-kills-prop that change nothing) out of 2,327 kill credits
+  (attack sorties don't play). 150 prop and 298 jet players rated; 5 and 26 with ≥ 10 games. Ratings span 1,377–1,806; the biggest single
+  change is 37 points.
 - Stretch (not built): per-aircraft-type ratings from the same games.
