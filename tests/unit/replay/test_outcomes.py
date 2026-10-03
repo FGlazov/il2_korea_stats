@@ -304,3 +304,18 @@ def test_destroyed_ai_object_id_reused_is_a_new_object() -> None:
     result = sc.result()
     assert by_acct(result, 1).kills_ground == 2
     assert len(result.kills) == 2
+
+
+def test_wreck_landing_after_destruction_is_not_a_landing() -> None:
+    """Real logs write AType 6 for the falling wreck; flight time stops at the destruction."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(100, 200, 100, 1.0)
+    sc.kill(100, 200, 100)
+    sc.land(102, 100)
+    sc.end(110, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.takeoffs, a.landings, a.landing_tick) == (1, 0, None)
+    assert a.flight_time_s == pytest.approx(95.0)
+    assert "landing" not in [e.kind for e in a.timeline]

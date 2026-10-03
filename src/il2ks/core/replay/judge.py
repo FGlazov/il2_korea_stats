@@ -57,6 +57,7 @@ class Verdict:
     aircraft_status: AircraftStatus
     damage_taken: float
     cutoff_tick: int  # damage and hits after this tick don't belong to the sortie
+    active_end_tick: int  # the sortie end, or the loss tick when the aircraft was destroyed first (flight stops there)
 
 
 def _landing_pos(sortie: SortieState, end_tick: int) -> Pos | None:
@@ -102,6 +103,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         died = None
 
     cutoff = loss.tick if loss is not None else end
+    active_end = min(end, cutoff)
     lost = loss is not None or died is not None or bailout or disc_death
     attacker_cause = lost and (shot_down_directly or attacker_involved(sortie, cutoff))
     loss_cause: LossCause = "none" if not lost else ("attacker" if attacker_cause else "self")
@@ -131,7 +133,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         died_tick=died,
         disconnect_tick=disc_tick,
         took_off=off,
-        flight_time_s=flight_time_s(sortie, end),
+        flight_time_s=flight_time_s(sortie, active_end),
+        active_end_tick=active_end,
         fate=fate,
         fate_source=source,
         bailout=bailout,

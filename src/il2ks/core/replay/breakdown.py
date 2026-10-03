@@ -85,8 +85,9 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
     airframe = sortie.airframe
     entries: list[TimelineEntry] = [TimelineEntry(sortie.spawn_tick, "spawn", sortie.spawn_type, sortie.spawn_pos)]
     end = verdict.end_tick
-    entries += [TimelineEntry(t, "takeoff", pos=p) for t, p in airframe.takeoffs if sortie.spawn_tick <= t <= end]
-    entries += [TimelineEntry(t, "landing", pos=p) for t, p in airframe.landings if sortie.spawn_tick <= t <= end]
+    active = verdict.active_end_tick
+    entries += [TimelineEntry(t, "takeoff", pos=p) for t, p in airframe.takeoffs if sortie.spawn_tick <= t <= active]
+    entries += [TimelineEntry(t, "landing", pos=p) for t, p in airframe.landings if sortie.spawn_tick <= t <= active]
     for kill in kills:
         if kill.killer_sortie_index == sortie.index and not kill.is_friendly:
             entries.append(

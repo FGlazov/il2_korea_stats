@@ -43,8 +43,8 @@ def _build_sortie(
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
     airframe = sortie.airframe
-    takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.end_tick]
-    landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.end_tick]
+    takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
+    landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
     first_takeoff = takeoffs[0] if takeoffs else (sortie.spawn_tick if verdict.took_off else None)
     return SortieResult(
         index=sortie.index,

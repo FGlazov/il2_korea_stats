@@ -10,7 +10,10 @@ Decisions made while implementing `core.replay` that the design docs didn't spec
   `Verdict` per sortie), `fate.py` (one function per rule, TD-16), `credit.py` / `kills.py` (kill and assist credit), `breakdown.py`
   (exchanges, hits per ammo, timeline). A snapshot is O(all recorded damage lines): meant for seconds-scale polling, not per event.
 - **Object identity is the Python object, not the ID.** AType 12 for a known ID updates it (re-link, pilot `PID:-1` keeps its parent). A *different* type
-  on a known ID creates a new object, unless the old one belongs to a still-open sortie (then it's an update). Undeclared IDs seen in other
+  on a known ID creates a new object, unless the old one belongs to a still-open sortie (then it's an update). **The game recycles IDs a lot**:
+  in 7 sample missions, 15,429 re-declarations carried another type than the object they re-used (47,991 carried the same), mostly statics and
+  vehicles. So a same-type re-declaration of an object that was already destroyed (AType 3) and isn't a sortie aircraft is a new object too, and a
+  new sortie never re-uses a destroyed or differently-typed object. (Without this, ground kills of re-spawned objects were swallowed.) Undeclared IDs seen in other
   events get a placeholder object (type ""), like il2_stats did. Where: `Replay._on_object_spawn`, `_get`.
 - **Static block suffix `[g,i]` is stripped from the type** before lookup and in `object_types_seen` (`model.normalize_type`).
 - **Crew bots are not in `object_types_seen` / `unknown_object_types`** (they're `cls=unknown, is_known=True` in the catalog anyway).
@@ -20,7 +23,8 @@ Decisions made while implementing `core.replay` that the design docs didn't spec
 ## Sortie scope and mission end
 
 - **Aircraft destruction belongs to the sortie** if its AType 3 comes before the sortie end, within `post_end_destroy_window_s` = 5 s after it
-  (new config; the shot-down shape logs AType 4 before AType 3, measured: 127 of 366 aircraft kills come 0-1 s after AType 4, 3 after 60 s), or at any
+  (new config; the shot-down shape logs AType 4 before AType 3. Measured on 14 missions, for player aircraft with a normal AType 4: 236 kills
+  before it, 127 within 1 s after it, none from 1 to 60 s, 3 later), or at any
   time if the pilot left an airborne aircraft (AType 4 `PLID:0`, no AType 4, or a disconnect: the FR-ING-22 abandoned aircraft). A pilot kill
   counts within the same 5 s window. Where: `fate.aircraft_loss`, `pilot_death_tick`.
 - **`mission_ended`** needs a *normal* AType 4 (`PLID` != 0) between the first AType 7 and +5 s (`mission_end_sortie_window_s`). A `PLID:0` end or a
@@ -83,7 +87,7 @@ Decisions made while implementing `core.replay` that the design docs didn't spec
   (FR-WEB-18) and ordnance counting are **not** implemented (iteration 1.x).
 - Timeline kinds: `spawn`, `takeoff`, `landing`, `kill`, `assist`, `friendly_fire`, `shot_down`/`destroyed`, `bailout`, `disconnect`, `sortie_end`.
 - `takeoff_tick` for an air start = the spawn tick (`takeoffs` counts AType 5 only). `flight_time_s` = sum of airborne intervals (AType 5 to 6 or to the
-  end).
+  end). Both stop at the aircraft's loss tick when it was destroyed first: logs write AType 6 for the falling wreck, which isn't a landing.
 
 ## Config and contract changes
 
