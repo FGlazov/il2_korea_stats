@@ -83,6 +83,13 @@
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
 # it "used" is then unknown. false = never assume a resupply.
 #resupply_allowed = true
+# Time on target (FR-WEB-20): a bomb, napalm or rocket release counts as an attack when an enemy ground object is
+# within this many metres horizontally (releases further away, e.g. jettisoned when intercepted, don't count) ...
+#tot_target_radius_m = 3000.0
+# ... each attack also counts this many seconds before its first release (the run-in) ...
+#tot_lead_in_s = 60.0
+# ... and releases more than this many seconds apart are separate attacks (the time between them doesn't count).
+#tot_pass_gap_s = 300.0
 
 # --- This game server (TD-15, TD-17) -------------------------------------------------------------------------------
 #[server]

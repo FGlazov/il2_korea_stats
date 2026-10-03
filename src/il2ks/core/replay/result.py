@@ -23,6 +23,7 @@ type LossCause = Literal["attacker", "self", "none"]
 type KillCredit = Literal["kill", "assist", "shared"]
 type KillVia = Literal["direct", "abandoned_aircraft", "disconnect"]
 type TargetKind = Literal["air", "ground"]
+type CombatRole = Literal["air_superiority", "attack"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +132,13 @@ class SortieResult:
     friendly_hits: int = 0  # non-explosion hit lines this sortie put on friendly objects
     friendly_damage: float = 0.0  # sum of the damage this sortie did to friendly objects
     resupplied: bool = False  # FR-ING-24: a landing followed by another takeoff, and `ReplayRules.resupply_allowed`
+    # Ground losses (doc 13, OQ-32 answer): the aircraft was lost on the ground, by the sortie itself or by an attacker.
+    taxi_accident: bool = False  # lost before its first takeoff, loss_cause "self"
+    strafed_on_ground: bool = False  # lost on the ground (before takeoff, or parked after landing) to an attacker
+    # Sortie role from the loadout (FR-WEB-19/20, doc 13): None for gunners.
+    combat_role: CombatRole | None = None
+    # Time on target (FR-WEB-20, doc 13): attack sorties only (None otherwise); 0.0 when no release was near a target.
+    time_on_target_s: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
