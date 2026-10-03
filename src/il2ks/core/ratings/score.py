@@ -7,7 +7,8 @@ Two scores, because air-to-air and ground attack are different skills (maintaine
   statics like fences (`other`) are worth very little.
 - **Penalties** are subtracted from the score of the sortie's combat role: an `attack` sortie pays from its ground
   score, every other (air superiority) sortie from its air score. A penalty applies once per event: a death, a captured
-  pilot, a lost aircraft, a suspected early bailout (the pilot left an aircraft nobody had touched), each friendly kill.
+  pilot, a lost aircraft, a suspected early bailout (the pilot left an aircraft nobody had touched), each friendly
+  kill (up to a cap per sortie: a base bombed by mistake isn't a hundred offences).
   A sortie with a penalty and no kills has a negative score, and totals can go negative.
 
 Everything is computed from the stored sortie columns, so a changed `[score]` section is applied by `il2ks
@@ -42,7 +43,8 @@ class ScoreRules:
     penalty_plane_lost: float = 2.0  # the aircraft was lost (on top of a death)
     penalty_capture: float = 2.0  # the pilot was captured (on top of the lost aircraft)
     penalty_early_bailout: float = 5.0  # suspected early bailout: left an aircraft nobody had hit
-    penalty_friendly_kill: float = 20.0  # per friendly kill
+    penalty_friendly_kill: float = 3.0  # per friendly kill (statics count: bombing your own base is a mistake too)
+    penalty_friendly_kill_cap: float = 5.0  # at most this many friendly kills are penalised per sortie
 
 
 DEFAULT_SCORE_RULES: Final = ScoreRules()
@@ -100,7 +102,7 @@ def penalty(rules: ScoreRules, facts: SortieFacts) -> float:
         + rules.penalty_plane_lost * facts.is_plane_lost
         + rules.penalty_capture * facts.is_captured
         + rules.penalty_early_bailout * facts.suspected_early_bailout
-        + rules.penalty_friendly_kill * facts.friendly_kills
+        + rules.penalty_friendly_kill * min(facts.friendly_kills, rules.penalty_friendly_kill_cap)
     )
 
 

@@ -121,7 +121,7 @@ class LeaderboardConfig:
     the `[score]` section; a change shows at once (nothing is stored)."""
 
     min_sorties: int = 5  # score and kill boards: pilot sorties flown (in the tour, or all-time)
-    min_elo_games: int = 10  # Elo boards: rated games in that pool (Elo is all-time)
+    min_elo_games: int = 5  # Elo boards: rated games in that pool (Elo is all-time)
     min_attack_sorties: int = 5  # ground-per-hour board: attack sorties flown
     min_time_on_target_minutes: float = 10.0  # ground-per-hour board: time on target (FR-WEB-20)
 

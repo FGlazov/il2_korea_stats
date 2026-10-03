@@ -156,13 +156,15 @@
 #penalty_capture = 2.0
 # Points taken off for a suspected early bailout (the pilot left an aircraft that nobody had hit).
 #penalty_early_bailout = 5.0
-# Points taken off for each friendly kill.
-#penalty_friendly_kill = 20.0
+# Points taken off for each friendly kill (friendly ground objects count too).
+#penalty_friendly_kill = 3.0
+# At most this many friendly kills are penalised per sortie.
+#penalty_friendly_kill_cap = 5.0
 # Leaderboard minimums, so that one lucky sortie doesn't top a board. They change what the boards show at once (nothing
 # to rebuild). Pilot sorties needed for the score and kill boards.
 #min_sorties = 5
 # Rated games needed in a pool (propeller or jet) for the Elo boards.
-#min_elo_games = 10
+#min_elo_games = 5
 # Attack sorties needed for the ground-score-per-hour board.
 #min_attack_sorties = 5
 # Minutes on target needed for the ground-score-per-hour board.

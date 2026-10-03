@@ -53,7 +53,7 @@ def test_penalties_are_charged_to_the_air_score_of_an_air_superiority_sortie() -
     result = score_sortie(
         facts(is_death=True, is_plane_lost=True, is_captured=True, suspected_early_bailout=True, friendly_kills=1)
     )
-    assert result == SortieScore(air=-(3 + 2 + 2 + 5 + 20), ground=0.0)
+    assert result == SortieScore(air=-(3 + 2 + 2 + 5 + 3), ground=0.0)
 
 
 def test_penalties_are_charged_to_the_ground_score_of_an_attack_sortie() -> None:
@@ -70,3 +70,10 @@ def test_rules_are_applied_and_zero_switches_a_value_off() -> None:
     rules = ScoreRules(air_kill_pvp=1.0, penalty_death=0.0)
     assert score_sortie(facts(kills_air_pvp=4, is_death=True), rules) == SortieScore(4.0, 0.0)
     assert ScoreRules() == DEFAULT_SCORE_RULES
+
+
+def test_friendly_kills_are_penalised_up_to_the_cap() -> None:
+    """A sample pilot destroyed 159 friendly objects in one sortie; that must not bury their whole career."""
+    assert score_sortie(facts(friendly_kills=159)).air == -(5 * 3)
+    assert score_sortie(facts(friendly_kills=2)).air == -6
+    assert score_sortie(facts(friendly_kills=159), ScoreRules(penalty_friendly_kill_cap=10)).air == -30
