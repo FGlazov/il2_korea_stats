@@ -23,6 +23,12 @@ kill the gunner makes, and the gunner gets none. Options: (a) leave it (gunner s
 **assist for every kill its aircraft makes while the gunner is aboard** (you can't tell who fired); (c) decide later together with gunner
 stats (FR-WEB-14). **Recommendation:** (c), and record (b) as the likely rule.
 
+**OQ-32 Do crashes before takeoff count as deaths and planes lost?**
+In the end-to-end run, 777 of 5,845 lost aircraft (13%) never took off: taxi and takeoff crashes, mostly destroyed by the environment within
+~4 minutes of spawning (a few were a replay bug, being fixed). Today they count in `deaths` and `planes_lost` (outcome `crashed`), which lowers
+K/D and K/L for clumsy taxiing. Options: (a) count them (an aircraft is gone either way); (b) count them only when an attacker was involved
+(airfield strafing); (c) never count them. **Recommendation:** (b): a strafed parked aircraft is a real loss, a taxi accident is noise.
+
 ## Score and ratings (later; shapes nothing in iteration 1)
 
 **OQ-27 What makes a sortie "air superiority" or "attack"?**

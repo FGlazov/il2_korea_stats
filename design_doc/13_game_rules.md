@@ -20,6 +20,9 @@ Thresholds are `ReplayRules` fields (`core/replay/config.py`), settable in `[rep
   **new** object when the type differs, or when the old object was already destroyed and isn't a sortie aircraft. A new sortie never reuses a
   destroyed or differently typed object. IDs seen before any AType 12 get a placeholder object (as il2_stats did).
 - Static block suffixes `[g,i]` are stripped from types. Crew bots aren't reported as seen or unknown types.
+- **Parked reset** `[PROPOSED]` (2026-10-03): sometimes a player's parked aircraft gets an environment AType 3 (with a same-tick re-declaration)
+  and then takes off and flies normally, so the game evidently restored it (7 aircraft in 210 missions). A takeoff (AType 5) of an open
+  sortie's own aircraft after such a destruction **undoes it**, together with that tick's environment damage.
 - Ignored as in il2_stats: zero-damage AType 2 lines, and damage after an object's AType 3. Explosion hit lines are never counted as hits
   (TD-08); they're kept in memory only to label ordnance (FR-WEB-18, it1.x).
 
@@ -129,8 +132,8 @@ Was the aircraft lost (is_plane_lost)?
          ├─ yes → in_flight if airborne, else landed
          └─ no: Did the pilot disconnect (fate disconnected, no death)?
             ├─ yes → unknown if airborne at the end, else landed / ditched (below)
-            └─ no: Airborne at the end (despawned in the air)?
-               ├─ yes → in_flight
+            └─ no: Airborne at the end (despawned in the air, or a gunner who left a flying aircraft)?
+               ├─ yes → unknown          (in_flight is only for sorties still open in a snapshot)
                └─ no  → landed / ditched:
                         landed  if the last landing was within 4 km of a friendly airfield,
                                 or no landing / no friendly airfield was logged (can't tell)
@@ -167,13 +170,15 @@ Was the aircraft lost (is_plane_lost)?
 - Damage exchanges and hits are grouped **per counterpart** (object type + sortie, if it's a player), folded to the aircraft (crew and turrets
   count as their aircraft). Self damage is left out. Hits per ammo type count every non-explosion hit line given or received.
 - **Timeline** = the sortie page's event list. Entry kinds: `spawn`, `takeoff`, `landing`, `kill`, `assist`, `friendly_fire`,
-  `shot_down` / `destroyed`, `bailout`, `disconnect`, `sortie_end`; each with time, position and counterpart.
+  `shot_down` / `destroyed` (the aircraft), `killed` / `died` (the pilot or gunner died while the aircraft survived), `bailout`, `disconnect`,
+  `sortie_end`; each with time, position and counterpart. The killer is named for gunners too.
+- "Took off", takeoffs and flight time all stop at the aircraft's loss, so they can't disagree.
 - `takeoff` time of an air start = the spawn time (`takeoffs` counts real AType 5 only). `flight_time_s` = sum of airborne intervals. Both stop at
   the aircraft's loss: logs write a "landing" for a falling wreck.
 
 ## Ammo and resupply
 
-- v1 stores per ammo type: loaded (AType 10), left (AType 4) and hits. The damage-per-ammo attribution of FR-WEB-18 is it1.x.
+- v1 stores per ammo type: loaded (AType 10), left (AType 4), used (loaded − left, or unknown, see below) and hits. The damage-per-ammo attribution of FR-WEB-18 is it1.x.
 - **Resupply** (FR-ING-24): a player can land, rearm and take off again in one sortie, so "loaded − left" undercounts what was fired, and
   AType 24 gun bursts carry no round count. The log has **no resupply event** (doc 12), so it's inferred `[PROPOSED]`: with
   `replay.resupply_allowed = true` (default; most servers allow it), a landing followed by another takeoff in the same sortie marks the sortie

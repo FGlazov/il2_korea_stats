@@ -139,3 +139,11 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `[x, y, z]`; timeline entries carry an ISO UTC `at`.
 - Two sorties with the same `(account_uuid, spawn_tick)` in one mission would violate the unique key; the mission then fails. Replay never
   produces them.
+- **Empty missions** `[PROPOSED]` (2026-10-03): aborted server starts produce missions with no sorties (4 of 210 samples: three 3-second ones and
+  one 46-minute mission with nobody on it). They're stored like any mission (so re-ingest and reprocess stay uniform) but the mission list
+  only shows missions with `sorties_total > 0`.
+- **`IngestRun` growth** `[PROPOSED]`: every reprocess adds one run per mission. Keep the newest few runs per mission (e.g. 5) and always the
+  one that wrote the current archive; prune older ones at the end of `reprocess`.
+- **Verified end to end on the 210 sample missions** (2026-10-03): no failures, zero bad lines and unknown keys, re-import skips everything with
+  identical rows, `rebuild-aggregates` and `reprocess` reproduce level 2 exactly and keep URL PKs, and raw parts (split at their AType 15
+  headers) give the same result as the whole-mission import, including late parts after the originals were moved.

@@ -49,7 +49,7 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
                kills_air, kills_ground, assists, friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
-               ammo (json: loaded, left, hits per ammo type; FR-WEB-18 attribution in it1.x),
+               resupplied (bool, FR-ING-24), ammo (json: loaded, left, used, hits per ammo type; FR-WEB-18 attribution in it1.x),
                damage_breakdown (json: dealt/taken per counterpart),
                timeline (json: ordered key events with time, type, detail, position)   -- positions only on key events, no track
 Kill           id, mission, time, killer_sortie → PlayerSortie, victim_sortie → PlayerSortie, is_friendly,
