@@ -98,6 +98,10 @@ msgid "%(n)s of them were static objects (not moving), such as parked vehicles, 
 msgstr ""
 
 #, python-format
+msgid "%(name)s: killboard"
+msgstr ""
+
+#, python-format
 msgid "%(name)s: sorties"
 msgstr ""
 
@@ -212,6 +216,9 @@ msgstr ""
 msgid "All sorties in this aircraft"
 msgstr ""
 
+msgid "All streaks"
+msgstr ""
+
 msgid "All time"
 msgstr ""
 
@@ -289,6 +296,9 @@ msgstr "Выпрыгнул с парашютом"
 msgid "Bailouts"
 msgstr ""
 
+msgid "Best streak"
+msgstr ""
+
 msgid "Bomb release"
 msgstr ""
 
@@ -347,6 +357,9 @@ msgstr ""
 msgid "Community"
 msgstr "Сообщество"
 
+msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
+msgstr ""
+
 msgid "Counterpart"
 msgstr ""
 
@@ -367,6 +380,9 @@ msgstr ""
 # llm-draft
 msgid "Current logo"
 msgstr "Текущий логотип"
+
+msgid "Current streak"
+msgstr ""
 
 msgid "Damage"
 msgstr ""
@@ -500,6 +516,9 @@ msgstr ""
 msgid "Friendly victim"
 msgstr ""
 
+msgid "Full killboard"
+msgstr ""
+
 # llm-draft
 msgid "Given up"
 msgstr "Отброшены"
@@ -590,6 +609,12 @@ msgstr "Обработано"
 msgid "Ingestion status"
 msgstr "Состояние обработки"
 
+msgid "Ironman"
+msgstr ""
+
+msgid "Ironman streaks"
+msgstr ""
+
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
 "are ingested again once it is over."
@@ -616,6 +641,13 @@ msgstr "Ключ (AType:KEY)"
 msgid "Kill"
 msgstr ""
 
+msgid "Killboard"
+msgstr ""
+
+#, python-format
+msgid "Killboard of %(name)s"
+msgstr ""
+
 msgid "Killed"
 msgstr ""
 
@@ -639,6 +671,9 @@ msgstr "Приземлился"
 msgid "Landings"
 msgstr ""
 
+msgid "Last"
+msgstr ""
+
 # llm-draft
 msgid "Last 30 days"
 msgstr "Последние 30 дней"
@@ -647,6 +682,9 @@ msgid "Last 7 days"
 msgstr ""
 
 msgid "Last 90 days"
+msgstr ""
+
+msgid "Last encounter"
 msgstr ""
 
 msgid "Last mission"
@@ -718,6 +756,9 @@ msgstr ""
 msgid "Log name"
 msgstr "Имя в журнале"
 
+msgid "Longest ironman streaks"
+msgstr ""
+
 # llm-draft
 msgid "Look"
 msgstr "Оформление"
@@ -766,6 +807,9 @@ msgid "Neutral"
 msgstr "Нейтральная"
 
 msgid "Never"
+msgstr ""
+
+msgid "Never shot down by a player."
 msgstr ""
 
 # llm-draft
@@ -819,6 +863,9 @@ msgstr ""
 msgid "No player-versus-player kills in this mission."
 msgstr ""
 
+msgid "No player-versus-player kills yet."
+msgstr ""
+
 msgid "No players yet."
 msgstr ""
 
@@ -840,7 +887,13 @@ msgstr ""
 msgid "Nobody flew for this side."
 msgstr ""
 
+msgid "Nobody is on a streak right now."
+msgstr ""
+
 msgid "Nobody scored a kill in this mission."
+msgstr ""
+
+msgid "Nobody shot down yet."
 msgstr ""
 
 # llm-draft
@@ -879,6 +932,9 @@ msgstr ""
 # llm-draft
 msgid "Operations"
 msgstr "Операции"
+
+msgid "Opponent"
+msgstr ""
 
 msgid "Other"
 msgstr ""
@@ -940,6 +996,12 @@ msgstr ""
 # llm-draft
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
 msgstr "Статистика пилотов, вылетов и миссий нашего сервера IL-2 Sturmovik: Korea."
+
+#, python-format
+msgid ""
+"Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
+"%(days)s days are listed."
+msgstr ""
 
 msgid "Planes lost"
 msgstr ""
@@ -1038,6 +1100,9 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
+msgid "Running streaks"
+msgstr ""
+
 msgid "Runway"
 msgstr ""
 
@@ -1079,6 +1144,12 @@ msgstr "Сбит"
 msgid "Shot down by"
 msgstr ""
 
+msgid "Shot down by most"
+msgstr ""
+
+msgid "Shot down most"
+msgstr ""
+
 #, python-format
 msgid "Show %(n)s more counterparts"
 msgstr ""
@@ -1101,6 +1172,9 @@ msgid "Showing %(first)s–%(last)s of %(all)s"
 msgstr "Показано %(first)s–%(last)s из %(all)s"
 
 msgid "Shown"
+msgstr ""
+
+msgid "Since"
 msgstr ""
 
 # llm-draft
@@ -1159,6 +1233,9 @@ msgid "Static object"
 msgstr ""
 
 msgid "Strafed on the ground"
+msgstr ""
+
+msgid "Streak"
 msgstr ""
 
 msgid "Summary"
@@ -1412,6 +1489,9 @@ msgstr ""
 # llm-draft
 msgid "Warnings"
 msgstr "Предупреждения"
+
+msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
+msgstr ""
 
 msgid "Winner"
 msgstr ""

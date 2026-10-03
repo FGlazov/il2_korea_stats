@@ -16,6 +16,9 @@ recomputes every tour. Elo stays all-time (it replays all kills, `ingest.ratings
 Cost: the all-time part of a player's recompute reads all of that player's level-1 rows, so it grows with their history.
 The per-tour part is bounded by the tour.
 
+Killboard pairs (`ingest.pairs`, FR-WEB-9) and ironman streaks (`ingest.streaks`, FR-WEB-23) are recomputed per chunk
+too; a pair touching the chunk is rewritten in both mirror directions, so the opponent need not be in the chunk.
+
 Identity fields (`Player.first_seen`, `last_seen`, `current_name`, `name_lower` and the `PlayerName` history) aren't
 summed: they come from the player's sorties. A player without sorties keeps the identity values they had.
 """
@@ -39,7 +42,9 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
+from il2ks.ingest.pairs import recompute_killboard
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.streaks import recompute_streaks
 from il2ks.ingest.tours import assign_missing, retour
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
@@ -66,6 +71,8 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         _recompute_aircraft(chunk)
         _recompute_tours(chunk, tours)
         _refresh_identity(chunk)
+        recompute_killboard(chunk)  # level-2 pair rows, ingest.pairs (FR-WEB-9)
+        recompute_streaks(chunk)  # ironman streaks, ingest.streaks (FR-WEB-23)
 
 
 def rebuild_aggregates(

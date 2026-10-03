@@ -187,3 +187,4 @@ _.air_kills  # Detail: kills.html
 _.damage_more  # Detail: damage.html
 _.timeline_more  # Detail: timeline.html
 _.timeline_events  # Detail: timeline.html
+_.nemeses  # web.templatetags.il2ks_boards.Board: players/detail_killboard.html
