@@ -15,7 +15,16 @@ from pathlib import Path
 
 from il2ks.config import Config, ConfigError, load_config
 
-PLANNED = ["setup", "web", "run", "doctor", "backup", "restore"]
+PLANNED: dict[str, tuple[str, str]] = {
+    "setup": ("FR-OPS-1", "interactive first-time setup: writes il2ks.toml from the example"),
+    "web": ("FR-OPS-1", "serve the website"),
+    "run": ("FR-OPS-1", "web + watch + HTTPS proxy together"),
+    "createadmin": ("FR-OPS-1", "create an admin account"),
+    "doctor": ("FR-OPS-1", "check the configuration"),
+    "backup": ("FR-OPS-6", "snapshot of the admin state (DB, config, custom/) into a dated zip"),
+    "restore": ("FR-OPS-6", "restore a backup zip"),
+}
+"""Subcommands that exist only as stubs: name -> (requirement that plans it, one-line description)."""
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 
 log = logging.getLogger("il2ks.cli")
@@ -32,8 +41,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="il2ks", description="IL-2 Korea stats")
     parser.add_argument("--config", type=Path, help="il2ks.toml to use (default: IL2KS_CONFIG, ./il2ks.toml, data dir)")
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in PLANNED:
-        sub.add_parser(name, help="not implemented yet")
+    for name, (requirement, description) in PLANNED.items():
+        text = f"not implemented yet (planned: {requirement}): {description}"
+        sub.add_parser(name, help=text, description=text)
 
     wait_help = "if another writer holds the lock, wait up to this many seconds instead of exiting"
     ingest = sub.add_parser("ingest", help="process every complete mission once, then exit")
@@ -94,7 +104,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return EXIT_OK
     if command in {"ingest", "watch", "reprocess", "rebuild-aggregates"}:
         return _writer_command(command, ns)
-    print(f"il2ks {command}: not implemented yet (see design_doc/10_roadmap.md)", file=sys.stderr)
+    print(f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})", file=sys.stderr)
     return EXIT_USAGE
 
 

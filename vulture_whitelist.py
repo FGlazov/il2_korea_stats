@@ -36,6 +36,7 @@ _.pos_y
 _.pos_z
 
 # --- stdlib attribute assignment ---------------------------------------------------------------------------------
+_.baseFilename  # logging.FileHandler reads it when it opens the file (logsetup._DailyFileHandler)
 _.compress_type  # zipfile.ZipInfo.compress_type, read by zipfile when writing (ingest.archive)
 
 # --- parsed log fields kept for completeness (doc 12): event dataclass fields nobody reads yet ------------------

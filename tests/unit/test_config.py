@@ -23,6 +23,7 @@ def test_defaults_without_a_file(tmp_path: Path) -> None:
     assert cfg.logs.after_archive == "move"
     assert cfg.logs.remote is False
     assert cfg.ingest.watch_interval_s == 30
+    assert cfg.ingest.settle_seconds == 300  # C4: 60/120 s was too low
     assert cfg.ingest.retry_backoff == (timedelta(minutes=5), timedelta(minutes=30), timedelta(hours=2))
     assert cfg.replay == ReplayRules()
     assert cfg.log_level == "INFO"
@@ -171,3 +172,15 @@ def test_timezone_defaults_to_the_tz_env_var_else_utc(tmp_path: Path) -> None:
 def test_log_keep_days_can_come_from_the_environment(tmp_path: Path) -> None:
     cfg = load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "d"), "IL2KS_LOG_KEEP_DAYS": "7"})
     assert cfg.log_keep_days == 7
+
+
+def test_explicit_timezone_beats_the_tz_env_var(tmp_path: Path) -> None:
+    env = {"IL2KS_DATA_DIR": str(tmp_path / "d"), "TZ": "Europe/Lisbon"}
+    file = write_toml(tmp_path / "il2ks.toml", '[server]\ntimezone = "Asia/Seoul"\n')
+    assert load_config(file, env).timezone_name == "Asia/Seoul"
+    assert load_config(file, {**env, "IL2KS_SERVER_TIMEZONE": "UTC"}).timezone_name == "UTC"
+
+
+def test_an_invalid_tz_env_var_points_at_the_server_timezone_setting(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError, match=r"set \[server\] timezone"):
+        load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "d"), "TZ": "UTC+3"})

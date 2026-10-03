@@ -60,9 +60,9 @@ class IngestConfig:
     """Completeness, polling and retry settings (FR-ING-2, FR-ING-16, FR-ING-19)."""
 
     idle_minutes: float = 10.0  # complete if no part was written for this long
-    settle_seconds: float = (
-        60.0  # after AType 7: wait until no part changed for this long (cleanup lines follow AType 7)
-    )
+    # After AType 7: wait until no part changed for this long (cleanup lines follow AType 7). 300 s, not 60: a newer
+    # mission's [0] file completes a mission anyway, so a long settle only delays the last mission before a pause.
+    settle_seconds: float = 300.0
     stable_seconds: float = 60.0  # remote mode: a part counts as fully copied once unmodified this long
     watch_interval_s: float = 30.0
     retry_backoff_minutes: tuple[float, ...] = (5.0, 30.0, 120.0)  # then stop (FR-ING-19)
@@ -173,11 +173,13 @@ def load_config(
         rule_values[rule.name] = reader.non_negative("replay", rule.name, default)
     replay = ReplayRules(**rule_values)
 
-    tz_name = reader.str_("server", "timezone", "") or detect_os_timezone(env)
+    configured_tz = reader.str_("server", "timezone", "")
+    tz_name = configured_tz or detect_os_timezone(env)
     try:
         ZoneInfo(tz_name)
     except (ZoneInfoNotFoundError, ValueError) as exc:
-        raise ConfigError(f"server.timezone: unknown IANA timezone {tz_name!r}") from exc
+        origin = "server.timezone" if configured_tz else "the OS timezone (TZ or /etc/localtime); set [server] timezone"
+        raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
 
     uid_text = reader.str_("server", "uid", "")
     server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)

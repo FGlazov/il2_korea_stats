@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from il2ks import logsetup
-from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, main
+from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config
 from il2ks.ingest import runner
 from il2ks.ingest import watch as watch_mod
@@ -43,9 +43,23 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     return data, logs, steps
 
 
-def test_planned_commands_are_stubs(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["doctor"]) == EXIT_USAGE
-    assert "not implemented yet" in capsys.readouterr().err
+def test_the_planned_commands_are_the_ones_fr_ops_1_and_fr_ops_6_list() -> None:
+    assert set(PLANNED) == {"setup", "web", "run", "createadmin", "doctor", "backup", "restore"}
+
+
+@pytest.mark.parametrize("command", sorted(PLANNED))
+def test_planned_commands_are_stubs(command: str, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main([command]) == EXIT_USAGE
+    out = capsys.readouterr()
+    assert out.err.strip() == f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})"
+    assert out.out == ""
+
+
+def test_stub_help_names_the_requirement(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as info:
+        main(["createadmin", "--help"])
+    assert info.value.code == 0
+    assert "planned: FR-OPS-1" in capsys.readouterr().out
 
 
 def test_every_job_command_has_help() -> None:
