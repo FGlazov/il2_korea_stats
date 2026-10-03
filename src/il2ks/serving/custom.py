@@ -231,7 +231,8 @@ def _fix_update(key: str) -> str:
 def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) -> OverrideCheck:
     key = f"{kind}/{rel}"
     original = builtin_file(kind, rel)
-    text = override.read_text(encoding="utf-8", errors="replace")
+    versioned = templateversions.is_versioned(kind, rel)
+    text = override.read_text(encoding="utf-8", errors="replace") if versioned else ""  # images etc. have no header
     header = templateversions.find_header(text, rel)
     declared = header.version if header is not None else None
 
@@ -248,7 +249,7 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
             "il2ks no longer has a built-in file with this name, so this one is probably not used any more.",
             "Delete it, or keep it if that is deliberate (for example a page of your own).",
         )
-    built = templateversions.version_of(original) if templateversions.is_versioned(kind, rel) else None
+    built = templateversions.version_of(original) if versioned else None
     recorded_hash = record.get("original_sha256") if record else None
     copy_note = f" (copied with il2ks {record['il2ks_version']})" if record and "il2ks_version" in record else ""
     if built is None:

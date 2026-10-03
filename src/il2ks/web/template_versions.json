@@ -21,6 +21,10 @@
       "version": 1,
       "sha256": "c01c723bae95ea746a01be1604094b3565439ae73867c8bf64575988090c3ec5"
     },
+    "static/il2ks_admin/override_warning.css": {
+      "version": 1,
+      "sha256": "1a446dc1d085d10a02a06e64623c9325fe636674e81e172a0ce6d3447b5b4783"
+    },
     "templates/404.html": {
       "version": 1,
       "sha256": "95fa026a6881aee35e08264596aa60055119961e693052912a0bc9edf03b225c"
@@ -31,7 +35,7 @@
     },
     "templates/admin/base_site.html": {
       "version": 1,
-      "sha256": "39c66546df24ea680d3ad04c680e7560bda8ee3e3ce9c7264cddaca3a92afc6b"
+      "sha256": "f506e890239ed3d35ea7509447170a24f084257c130aecf61c1f4f6f5f58078e"
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,

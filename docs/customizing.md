@@ -63,8 +63,8 @@ Other things you can do:
 - **An SVG logo**: put it in `custom/static/` and use it from your template. Only people with access to the machine
   can put files there, which is why this is allowed while uploads are not.
 - **Admin look**: the admin's own templates and files (`admin/base.html`, `admin/css/base.css`, ...) can be overridden
-  in the same way. (`admin/base_site.html` carries the red warning banner below: if you replace it, copy il2ks's
-  version and keep the banner part, or you lose the warnings. `il2ks doctor` and the log still report them.)
+  in the same way. (Leave `admin/base_site.html` alone: it is il2ks's own addition that shows the red warning banner
+  described below. If you replace it, the banner is gone; `il2ks doctor` and the log still report the problems.)
 
 ### When il2ks is upgraded
 

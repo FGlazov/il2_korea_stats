@@ -1,0 +1,12 @@
+/* il2ks-template: static/il2ks_admin/override_warning.css v1 - copy this line along when you override */
+/* The red banner shown on every admin page while a file in custom/ is based on an old or unknown template version. */
+.il2ks-override-warning { margin: 0 0 20px; padding: 14px 18px; border: 3px solid #b00020; border-radius: 6px; background: #fdecea; color: #5f0010; font-size: 14px; }
+.il2ks-override-warning h2 { margin: 0 0 6px; font-size: 20px; color: #b00020; }
+.il2ks-override-warning code { background: rgba(0, 0, 0, .08); padding: 1px 4px; }
+.il2ks-override-warning li { margin: 6px 0; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .il2ks-override-warning { background: #3b0d12; color: #ffd9dd; }
+  html:not([data-theme="light"]) .il2ks-override-warning h2 { color: #ff8a98; }
+}
+html[data-theme="dark"] .il2ks-override-warning { background: #3b0d12; color: #ffd9dd; }
+html[data-theme="dark"] .il2ks-override-warning h2 { color: #ff8a98; }
