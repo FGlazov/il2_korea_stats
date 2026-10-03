@@ -232,3 +232,6 @@ sample_data/
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# research dumps derived from sample_data (never commit)
+*.pkl
