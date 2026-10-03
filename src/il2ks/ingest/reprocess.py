@@ -126,7 +126,7 @@ def _record(
     summary: ReprocessSummary,
     now: Callable[[], datetime],
 ) -> None:
-    """Save one reprocessed mission and its `IngestRun`. Failures never schedule automatic retries (admin-run command)."""
+    """Save one reprocessed mission and its `IngestRun`. Failures schedule no automatic retry (admin-run command)."""
     run = IngestRun(
         mission_uid=prev.mission_uid,
         files=list(prev.files),

@@ -2,7 +2,8 @@
 
 Layout: `<data dir>/archive/YYYY/MM/missionReport(<uid>).txt.zip` (YYYY/MM from the mission UID, the server's local
 start time). One zip entry `missionReport(<uid>).txt` holding all parts concatenated in order: the same format as the
-`il2_stats` backups and `sample_data/`, so `group_mission_files` / `read_mission_lines` read our archives like any import
+`il2_stats` backups and `sample_data/`, so `group_mission_files` / `read_mission_lines` read our archives
+like any import
 (FR-ING-13). DEFLATE: stdlib, fast, and readable by every zip tool; logs still compress ~15x.
 
 Writing goes to a temporary file in the target folder, is verified (CRC re-read and a sha256 of the uncompressed content
@@ -83,7 +84,7 @@ def write_archive(
     """Concatenate `sources` into `target` (zip, one entry) and verify it. Replaces an existing archive atomically.
 
     A line break is inserted between sources when one doesn't end with one, so parts never merge lines.
-    `entry_time` (local time, as zip stores it) defaults to now; callers pass part [0]'s mtime (TD-15 hint for imports)."""
+    `entry_time` (local time, as zip stores it) defaults to now; callers pass part [0]'s mtime (TD-15 hint)."""
     if not sources:
         raise ArchiveError(f"{mission_uid}: no source files")
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -94,19 +95,21 @@ def write_archive(
     digest = hashlib.sha256()
     size = 0
     try:
-        with zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-            with zf.open(info, "w", force_zip64=True) as out:
-                last = b"\n"
-                for source in sources:
-                    if not last.endswith(b"\n"):
-                        out.write(b"\r\n")
-                        digest.update(b"\r\n")
-                        size += 2
-                    for chunk in iter_source_bytes(source):
-                        out.write(chunk)
-                        digest.update(chunk)
-                        size += len(chunk)
-                        last = chunk
+        with (
+            zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf,
+            zf.open(info, "w", force_zip64=True) as out,
+        ):
+            last = b"\n"
+            for source in sources:
+                if not last.endswith(b"\n"):
+                    out.write(b"\r\n")
+                    digest.update(b"\r\n")
+                    size += 2
+                for chunk in iter_source_bytes(source):
+                    out.write(chunk)
+                    digest.update(chunk)
+                    size += len(chunk)
+                    last = chunk
         content_sha = digest.hexdigest()
         verify_archive(tmp, content_sha)
         zip_sha = file_sha256(tmp)

@@ -118,9 +118,6 @@ class IngestSummary:
 @dataclass(frozen=True, slots=True)
 class IngestOptions:
     source: Path | None = None  # `ingest --from`: a folder or one file; None = the configured log folder
-    after_archive: AfterArchive | None = (
-        None  # None: config for the log folder, "keep" for --from (never touch imports)
-    )
     reconcile: bool = True
     lock_wait: float | None = None
 
@@ -148,12 +145,12 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
     is_import = opts.source is not None
     if opts.source is not None:
         paths = list_log_files(opts.source) if opts.source.is_dir() else [opts.source]
-        mode: AfterArchive = opts.after_archive or "keep"
+        mode: AfterArchive = "keep"  # an import source is never moved or deleted
     else:
         if cfg.logs.dir is None:
             raise ValueError("logs.dir is not configured (il2ks.toml [logs] dir, or IL2KS_LOGS_DIR)")
         paths = list_log_files(cfg.logs.dir)
-        mode = opts.after_archive or cfg.logs.after_archive
+        mode = cfg.logs.after_archive
 
     found = discover(
         paths,
@@ -248,8 +245,8 @@ def plan_sources(item: Found, previous: IngestRun | None, data_dir: Path) -> Sou
     archive = data_dir / previous.archive_path
     if not archive_matches(archive, previous.archive_sha256):
         raise ArchiveError(
-            f"{item.mission_uid}: new parts found, but the earlier parts are gone and their archive {archive} is missing "
-            "or changed, so the whole mission can't be rebuilt"
+            f"{item.mission_uid}: new parts found, but the earlier parts are gone and their archive {archive} is "
+            "missing or changed, so the whole mission can't be rebuilt"
         )
     known = set(previous.files)
     new = tuple(p for p in current if p.name not in known)

@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
-from typing import IO, Self
+from typing import IO, Self, cast
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def read_holder(path: Path) -> LockHolder | None:
         return None
     if not isinstance(data, dict):
         return None
-    fields: dict[str, object] = {str(k): v for k, v in data.items()}  # pyright: ignore[reportUnknownVariableType]
+    fields = cast(dict[str, object], data)
     pid, host, command, since = fields.get("pid"), fields.get("host"), fields.get("command"), fields.get("since")
     if isinstance(pid, int) and isinstance(host, str) and isinstance(command, str) and isinstance(since, str):
         return LockHolder(pid, host, command, since)

@@ -1,4 +1,4 @@
-"""Find missions in the log folder and decide what to do with each one (FR-ING-1, FR-ING-2, FR-ING-16, FR-ING-18, FR-ING-19).
+"""Find missions in the log folder and decide what to do with each (FR-ING-1, 2, 16, 18, 19).
 
 Pure decisions (completeness, fingerprint, history classification) take plain values, so tests control time and files.
 Reading `IngestRun` history from the DB is the runner's job.
@@ -25,7 +25,7 @@ type Decision = Literal["new", "changed", "retry", "unchanged", "backoff", "gave
 
 INGEST_DECISIONS: frozenset[Decision] = frozenset({"new", "changed", "retry"})
 MISSION_END_SCAN_PARTS = 3
-"""AType 7 is looked for in the last this-many parts only (cleanup lines after it rarely fill more than a part or two)."""
+"""AType 7 is looked for in the last this-many parts only (cleanup lines after it fill a part or two at most)."""
 
 _MISSION_END = re.compile(rb"AType:7(?!\d)")
 
@@ -82,13 +82,13 @@ def completeness(
     - Remote mode (FR-ING-16): every part must be unmodified for `stable_seconds` first, since a newer mission existing
       doesn't prove the copy of this one finished. Late or re-copied parts are caught by the fingerprint (FR-ING-18).
     `now` is a POSIX timestamp."""
-    if log.kind == "archive":
-        return "archive"
     if not files:
         return None
     newest_age = now - max(f.mtime for f in files)
     if remote and newest_age < cfg.stable_seconds:
         return None
+    if log.kind == "archive":
+        return "archive"
     if newer_mission_exists:
         return "newer_mission"
     if newest_age >= cfg.idle_minutes * 60:

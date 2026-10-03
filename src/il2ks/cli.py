@@ -13,7 +13,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from il2ks.config import AFTER_ARCHIVE_VALUES, Config, ConfigError, load_config
+from il2ks.config import Config, ConfigError, load_config
 
 PLANNED = ["setup", "web", "run", "doctor", "backup", "restore"]
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
@@ -42,11 +42,6 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="source",
         type=Path,
         help="import from this folder or file instead of the log folder (concatenated .txt/.txt.zip archives or parts)",
-    )
-    ingest.add_argument(
-        "--after-archive",
-        choices=AFTER_ARCHIVE_VALUES,
-        help="what to do with the source files after archiving (default: config for the log folder, keep for --from)",
     )
     ingest.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
 
@@ -164,7 +159,7 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
     from il2ks.ingest import watch as watch_mod
 
     if command == "ingest":
-        opts = runner.IngestOptions(source=source, after_archive=ns.after_archive, lock_wait=wait)
+        opts = runner.IngestOptions(source=source, lock_wait=wait)
         summary = runner.ingest_once(cfg, runner.default_pipeline(cfg), opts)
         print(summary.describe())
         return EXIT_FAILED if summary.failed else EXIT_OK

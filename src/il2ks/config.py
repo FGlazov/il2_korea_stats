@@ -2,11 +2,13 @@
 
 Loaded once at startup by the CLI and passed in explicitly. No module reads it at import time (TD-11).
 
-Sources, later ones win: built-in defaults, the TOML file, `IL2KS_*` environment variables. Every setting has one env name:
+Sources, later ones win: built-in defaults, the TOML file, `IL2KS_*` environment variables. Every setting has one env
+name:
 `IL2KS_<SECTION>_<KEY>` in upper case (`[logs] dir` -> `IL2KS_LOGS_DIR`); top-level keys drop the section
 (`data_dir` -> `IL2KS_DATA_DIR`, the same variable `settings.py` reads). Lists in env vars are comma-separated.
 
-Which file: `--config`, else `IL2KS_CONFIG`, else `./il2ks.toml`, else `<data dir>/il2ks.toml` (data dir from `IL2KS_DATA_DIR` or
+Which file: `--config`, else `IL2KS_CONFIG`, else `./il2ks.toml`, else `<data dir>/il2ks.toml`
+(data dir from `IL2KS_DATA_DIR` or
 the default). No file at all means defaults plus env. Relative paths in the file resolve against the file's folder.
 """
 
@@ -147,7 +149,7 @@ def load_config(
         raise ConfigError(f"logs.after_archive must be one of {', '.join(AFTER_ARCHIVE_VALUES)}, got {after!r}")
     logs = LogsConfig(
         dir=reader.path("logs", "dir"),
-        after_archive=cast(AfterArchive, after),
+        after_archive=after,
         move_to=reader.path("logs", "move_to"),
         remote=reader.bool_("logs", "remote", False),
     )
