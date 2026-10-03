@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from il2ks.config import SERVER_UID_FILE, ConfigError, load_config
+from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 
 
@@ -83,6 +84,14 @@ def test_toml_values_and_relative_paths_resolve_against_the_file(tmp_path: Path)
     assert not (cfg.data_dir / SERVER_UID_FILE).exists()
 
 
+def test_ratings_section_and_env(tmp_path: Path) -> None:
+    env = {"IL2KS_DATA_DIR": str(tmp_path / "d")}
+    assert load_config(None, env).ratings == RatingRules(start=1500.0, k=32.0, cross_pool_weight=2.0)
+    file = write_toml(tmp_path / "il2ks.toml", "[ratings]\nstart = 1000\nk = 20\n")
+    cfg = load_config(file, {**env, "IL2KS_RATINGS_CROSS_POOL_WEIGHT": "3"})
+    assert cfg.ratings == RatingRules(start=1000.0, k=20.0, cross_pool_weight=3.0)
+
+
 def test_env_overrides_the_file(tmp_path: Path) -> None:
     file = write_toml(
         tmp_path / "il2ks.toml",
@@ -141,6 +150,8 @@ def test_missing_explicit_file_is_an_error(tmp_path: Path) -> None:
         ('[ingest]\nretry_backoff_minutes = [5, "x"]', "retry_backoff_minutes"),
         ("[ingest]\nretry_backoff_minutes = [5, 0]", "greater than 0"),
         ('[replay]\nbailout_min_distance_m = "far"', "bailout_min_distance_m"),
+        ("[ratings]\nk = -1", r"ratings\.k"),
+        ('[ratings]\ncross_pool_weight = "double"', "ratings.cross_pool_weight"),
         ('[server]\ntimezone = "Mars/Olympus"', "timezone"),
         ('[server]\nuid = "not-a-uuid"', "server.uid"),
         ("logs = 3", "must be a table"),

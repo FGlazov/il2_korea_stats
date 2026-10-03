@@ -1,10 +1,10 @@
 """`il2ks reprocess` and `il2ks rebuild-aggregates` (FR-ING-9, FR-ING-19, NFR-PERF-4, TD-08).
 
 Reprocess re-runs missions from their archives (the source of truth): parse + replay in worker processes at low
-priority, one writer (this process) upserting each mission in place, then a single `rebuild_aggregates()` at the end.
-Missions are picked from `IngestRun` history (the newest run that wrote an archive), so failed missions with an archive
-can be forced too (`--mission`, FR-ING-19). `--since/--until` pick missions by date, e.g. "the last 6 months" after
-a rule change (FR-ING-9, FR-ING-14).
+priority, one writer (this process) upserting each mission in place, then a single `rebuild_aggregates()` at the end
+(level 2 and the Elo ratings; the CLI's pipeline defers the ratings until then). Missions are picked from `IngestRun`
+history (the newest run that wrote an archive), so failed missions with an archive can be forced too (`--mission`,
+FR-ING-19). `--since/--until` pick missions by date, e.g. "the last 6 months" after a rule change (FR-ING-9, FR-ING-14).
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from concurrent.futures import FIRST_COMPLETED as _FIRST_COMPLETED
 from concurrent.futures import Executor, Future, ProcessPoolExecutor, wait
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from functools import partial
 from pathlib import Path
 
 from django.db import transaction
@@ -111,7 +112,7 @@ def reprocess(
     workers: int | None = None,
     work: WorkFn = parse_and_replay,
     executor_factory: Callable[[int], Executor] = default_executor,
-    rebuild: Callable[[], None] = rebuild_aggregates,
+    rebuild: Callable[[], None] | None = None,
     now: Callable[[], datetime] = utcnow,
     lock_wait: float | None = None,
 ) -> ReprocessSummary:
@@ -151,7 +152,7 @@ def reprocess(
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
-                rebuild()
+                (rebuild or partial(rebuild_aggregates, cfg.ratings))()
         log.info("%s", summary.describe())
         return summary
 
@@ -203,9 +204,8 @@ def _record(
     log.error("%s: reprocess failed:\n%s", prev.mission_uid, error)
 
 
-def rebuild_all(
-    cfg: Config, *, rebuild: Callable[[], None] = rebuild_aggregates, lock_wait: float | None = None
-) -> None:
-    """`il2ks rebuild-aggregates`: recompute level 2 from level 1 in one transaction, under the writer lock."""
+def rebuild_all(cfg: Config, *, rebuild: Callable[[], None] | None = None, lock_wait: float | None = None) -> None:
+    """`il2ks rebuild-aggregates`: recompute level 2 and the ratings from level 1 in one transaction, under the writer
+    lock."""
     with WriterLock(cfg.data_dir, "rebuild-aggregates", wait=lock_wait), transaction.atomic():
-        rebuild()
+        (rebuild or partial(rebuild_aggregates, cfg.ratings))()

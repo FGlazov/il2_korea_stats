@@ -37,7 +37,7 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     ) -> None:
         return None
 
-    def fake_pipeline(cfg: Config) -> runner.Pipeline:
+    def fake_pipeline(cfg: Config, *, defer_ratings: bool = False) -> runner.Pipeline:
         return make_pipeline(steps)
 
     monkeypatch.setattr(logsetup, "configure_logging", no_logging)

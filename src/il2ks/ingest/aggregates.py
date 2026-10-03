@@ -20,8 +20,10 @@ from datetime import datetime
 
 from django.db.models import Max, Min, Sum
 
+from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.db.models import Player, PlayerAircraft, PlayerMission, PlayerName, PlayerSortie
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
+from il2ks.ingest.ratings import recompute_ratings
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
 
@@ -42,9 +44,11 @@ def recompute_players(player_ids: Iterable[int]) -> None:
         _refresh_identity(chunk)
 
 
-def rebuild_aggregates() -> None:
-    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players."""
+def rebuild_aggregates(ratings: RatingRules = DEFAULT_RULES) -> None:
+    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players, then
+    the Elo ratings (`recompute_ratings`, which replays all kills)."""
     recompute_players(Player.objects.values_list("pk", flat=True))
+    recompute_ratings(ratings)
 
 
 def _recompute_totals(chunk: list[int]) -> None:

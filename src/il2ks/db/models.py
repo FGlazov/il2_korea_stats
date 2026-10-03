@@ -26,12 +26,18 @@ class ObjectClass(models.TextChoices):
     UNKNOWN = "unknown"
 
 
+class Propulsion(models.TextChoices):
+    PROP = "prop"
+    JET = "jet"
+
+
 class GameObject(models.Model):
     """A game object type from the logs (aircraft, vehicle, ...). Unknown types are auto-registered (FR-ING-7)."""
 
     log_name = models.CharField(max_length=128, unique=True)
     display_name = models.CharField(max_length=128)
     cls = models.CharField(max_length=16, choices=ObjectClass.choices, default=ObjectClass.UNKNOWN)
+    propulsion = models.CharField(max_length=4, choices=Propulsion.choices, blank=True, default="")  # aircraft only
     is_playable = models.BooleanField(default=False)
     is_known = models.BooleanField(default=True)
 
@@ -40,6 +46,10 @@ class GameObject(models.Model):
             models.CheckConstraint(
                 condition=models.Q(cls__in=ObjectClass.values),
                 name="gameobject_cls_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(propulsion__in=[*Propulsion.values, ""]),
+                name="gameobject_propulsion_valid",
             ),
             models.CheckConstraint(condition=~models.Q(log_name=""), name="gameobject_log_name_not_empty"),
         ]
@@ -118,6 +128,11 @@ class LossCause(models.TextChoices):
     NONE = "none"
 
 
+class CombatRole(models.TextChoices):
+    AIR_SUPERIORITY = "air_superiority"
+    ATTACK = "attack"
+
+
 class KillCredit(models.TextChoices):
     KILL = "kill"
     ASSIST = "assist"
@@ -149,6 +164,11 @@ class Counters(models.Model):
     friendly_kills = models.PositiveIntegerField(default=0)
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
+    # Ground losses, combat role and time on target (FR-WEB-19/20)
+    taxi_accidents = models.PositiveIntegerField(default=0)
+    strafed_on_ground = models.PositiveIntegerField(default=0)
+    attack_sorties = models.PositiveIntegerField(default=0)
+    time_on_target_s = models.FloatField(default=0.0)
 
     class Meta:
         abstract = True
@@ -166,6 +186,12 @@ class Player(Counters):
     first_seen = models.DateTimeField()
     last_seen = models.DateTimeField()
     is_hidden = models.BooleanField(default=False)
+    # Air-to-air Elo (OQ-28, FR-WEB-19). Order-dependent, so not a Counters sum: `ingest.ratings.recompute_ratings`
+    # replays all qualifying kills. Defaults are the config's `[ratings] start` and 0 games.
+    elo_prop = models.FloatField(default=1500.0)
+    elo_jet = models.FloatField(default=1500.0)
+    elo_prop_games = models.PositiveIntegerField(default=0)
+    elo_jet_games = models.PositiveIntegerField(default=0)
 
     def __str__(self) -> str:
         return self.current_name
@@ -271,6 +297,11 @@ class PlayerSortie(models.Model):
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
     resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
+    taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
+    strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
+    # None for gunners (not "": a gunner has no role, which is different from an unknown one)
+    combat_role = models.CharField(max_length=16, choices=CombatRole.choices, null=True)  # noqa: DJ001
+    time_on_target_s = models.FloatField(null=True)  # attack sorties only
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
@@ -295,6 +326,10 @@ class PlayerSortie(models.Model):
                 condition=models.Q(aircraft_status__in=AircraftStatus.values), name="sortie_aircraft_status_valid"
             ),
             models.CheckConstraint(condition=models.Q(loss_cause__in=LossCause.values), name="sortie_loss_cause_valid"),
+            models.CheckConstraint(
+                condition=models.Q(combat_role__isnull=True) | models.Q(combat_role__in=CombatRole.values),
+                name="sortie_combat_role_valid",
+            ),
             models.CheckConstraint(
                 condition=models.Q(damage_taken__gte=0) & models.Q(damage_taken__lte=1),
                 name="sortie_damage_taken_range",

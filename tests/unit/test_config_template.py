@@ -9,6 +9,7 @@ from typing import cast
 import pytest
 
 from il2ks.config import Config, IngestConfig, LogsConfig, load_config
+from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days"}
@@ -38,6 +39,7 @@ def test_template_lists_every_config_key() -> None:
         "logs": {f.name for f in dataclasses.fields(LogsConfig)},
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
+        "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "server": SERVER_KEYS,
     }
     top = {k for k, v in raw.items() if not isinstance(v, dict)}
@@ -48,7 +50,17 @@ def test_template_lists_every_config_key() -> None:
 
 def test_config_fields_are_all_covered_by_the_template() -> None:
     """A new `Config` field must be a template key or an explicit exception here."""
-    covered = {"data_dir", "log_level", "log_keep_days", "logs", "ingest", "replay", "server_uid", "timezone_name"}
+    covered = {
+        "data_dir",
+        "log_level",
+        "log_keep_days",
+        "logs",
+        "ingest",
+        "replay",
+        "ratings",
+        "server_uid",
+        "timezone_name",
+    }
     not_settings = {"source"}  # the file that was read, not a setting
     assert {f.name for f in dataclasses.fields(Config)} == covered | not_settings
 
