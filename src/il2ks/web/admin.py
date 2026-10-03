@@ -11,7 +11,7 @@ Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rul
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from django.conf import settings
 from django.contrib import admin, messages
@@ -39,16 +39,20 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.web.logo import delete_logo, store_logo
 from il2ks.web.site_forms import SiteSettingsForm
 
-# django-types makes `ModelAdmin[Model]` generic for the type checker only; make it subscriptable at runtime too
-# (what django-stubs-ext does for QuerySet and friends).
-admin.ModelAdmin.__class_getitem__ = classmethod(lambda cls, _item: cls)  # pyright: ignore
+if TYPE_CHECKING:
+    from django.contrib.admin import ModelAdmin
+else:
+    # django-types makes `ModelAdmin[Model]` generic for the type checker only. A local generic subclass gives runtime
+    # subscripting without patching Django (TD-16: no monkeypatching).
+    class ModelAdmin[M: models.Model](admin.ModelAdmin):
+        pass
 
 
 def _field_names(model: type[models.Model], *, skip: Sequence[str] = ()) -> list[str]:
     return [f.name for f in model._meta.fields if f.name != "id" and f.name not in skip]
 
 
-class ReadOnlyIngestedAdmin[M: models.Model](admin.ModelAdmin[M]):
+class ReadOnlyIngestedAdmin[M: models.Model](ModelAdmin[M]):
     """Base for rows ingest owns: only the fields in `editable` can be changed, nothing added or deleted. Every save
     bumps the data version (TD-28)."""
 
@@ -72,7 +76,7 @@ class ReadOnlyIngestedAdmin[M: models.Model](admin.ModelAdmin[M]):
 
 
 @admin.register(SiteSettings)
-class SiteSettingsAdmin(admin.ModelAdmin[SiteSettings]):
+class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
     form = SiteSettingsForm
     readonly_fields = ("current_logo",)
     fieldsets = (
@@ -292,7 +296,7 @@ class CountryAdmin(ReadOnlyIngestedAdmin[Country]):
 
 
 @admin.register(IngestRun)
-class IngestRunAdmin(admin.ModelAdmin[IngestRun]):
+class IngestRunAdmin(ModelAdmin[IngestRun]):
     list_display = (
         "mission_uid",
         "status",

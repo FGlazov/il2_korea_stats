@@ -318,6 +318,11 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   2. **Server-side cache only if measured slow:** Django's per-view cache with the data version in the key, on the local-memory or file backend.
      No Redis or memcached (one more service for admins, NFR-INS). Old entries just expire; nothing is invalidated by hand.
   3. **Static files:** WhiteNoise with hashed file names, cached for a year.
+  - **As built** (2026-10-03): a middleware (`web/caching.py`) answers a matching `If-None-Match` with 304 **before the view runs** (one
+    query), for public GET/HEAD pages only (not admin, media, static). The ETag hashes data version, language, il2ks version, a per-process
+    start ID (so a restart after editing `custom/` templates invalidates too), full path with query and `HX-Request`. Responses that set
+    cookies or their own `Cache-Control` are left alone. Bumps: inside each mission save, at the end of rebuilds, and on every admin save or
+    action on a page-visible model.
 - **Why:** correct by construction (a new version can't show stale data, and hiding a cheater takes effect at once), zero setup for admins,
   and pages are already simple reads (TD-22), so step 2 may never be needed.
 - **Live data later** (online now, FR-ING-12; live sorties, FR-ING-15): those fragments change every few seconds or minutes. They're HTMX

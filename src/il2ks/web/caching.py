@@ -3,7 +3,8 @@
 Page data only changes when a mission is saved, aggregates are rebuilt or an admin edits something the pages show; each
 of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public GET/HEAD pages the middleware:
 
-- builds a strong `ETag` from (data version, language, il2ks version, full path with query, `HX-Request`),
+- builds a strong `ETag` from (data version, language, il2ks version, process start, full path with query,
+  `HX-Request`),
 - answers a matching `If-None-Match` with `304` **before the view runs** (`process_view`): the whole cost of a
   revalidation is one tiny query for the version,
 - adds that ETag, `Cache-Control: public, max-age=60` and `Vary: HX-Request, Accept-Language` to 200 responses.
@@ -14,6 +15,7 @@ ETag from us, so a client never revalidates them against the data version).
 """
 
 import hashlib
+import secrets
 from collections.abc import Callable
 from typing import cast
 
@@ -28,6 +30,9 @@ from il2ks.db.site import current_data_version
 MAX_AGE = 60
 VARY = ("HX-Request", "Accept-Language")
 _ETAG_ATTR = "_il2ks_etag"
+# Changes per web process start. Template and static overrides in custom/ (TD-25) only take effect after a restart
+# (templates are cached in production), and a restart must also invalidate what browsers revalidate.
+_BOOT_ID = secrets.token_hex(8)
 
 type View = Callable[..., HttpResponse]
 
@@ -38,6 +43,7 @@ def make_etag(request: HttpRequest, version: int) -> str:
         str(version),
         get_language() or "",
         __version__,
+        _BOOT_ID,
         request.get_full_path(),
         request.headers.get("HX-Request", ""),
     )
