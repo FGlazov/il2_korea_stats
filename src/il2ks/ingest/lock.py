@@ -30,11 +30,11 @@ _WIN_LOCK_OFFSET = 1 << 30
 class LockBusyError(RuntimeError):
     """Another writer holds the lock."""
 
-    def __init__(self, path: Path, holder: LockHolder | None) -> None:
+    def __init__(self, path: Path, holder: LockHolder | None, *, what: str = "writer") -> None:
         self.path = path
         self.holder = holder
         who = holder.describe() if holder else "another process"
-        super().__init__(f"another il2ks writer is running ({who}); lock file {path}")
+        super().__init__(f"another il2ks {what} is running ({who}); lock file {path}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,11 +94,39 @@ def _unlock(handle: IO[bytes]) -> None:
     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-class WriterLock:
-    """Context manager. `wait=None`: fail at once with `LockBusyError`; else poll up to `wait` seconds."""
+def is_locked(path: Path) -> bool:
+    """Whether some process holds the OS lock on this lock file right now (a probe: takes and drops it at once, and
+    leaves the file content alone)."""
+    try:
+        handle = open(path, "r+b")  # noqa: SIM115 - closed in the finally below
+    except OSError:
+        return False  # no file, or none we can open: nobody we could see holds it
+    try:
+        if not _try_lock(handle):
+            return True
+        _unlock(handle)
+        return False
+    finally:
+        handle.close()
 
-    def __init__(self, data_dir: Path, command: str, wait: float | None = None, poll_s: float = 1.0) -> None:
-        self.path = data_dir / LOCK_FILE
+
+class WriterLock:
+    """Context manager. `wait=None`: fail at once with `LockBusyError`; else poll up to `wait` seconds.
+
+    `file_name` and `what` let other "only one at a time" locks (`il2ks run`) reuse the same mechanism."""
+
+    def __init__(
+        self,
+        data_dir: Path,
+        command: str,
+        wait: float | None = None,
+        poll_s: float = 1.0,
+        *,
+        file_name: str = LOCK_FILE,
+        what: str = "writer",
+    ) -> None:
+        self.path = data_dir / file_name
+        self.what = what
         self.command = command
         self.wait = wait
         self.poll_s = poll_s
@@ -112,12 +140,12 @@ class WriterLock:
         while not _try_lock(handle):
             if deadline is None or time.monotonic() >= deadline:
                 handle.close()
-                raise LockBusyError(self.path, read_holder(self.path))
+                raise LockBusyError(self.path, read_holder(self.path), what=self.what)
             time.sleep(self.poll_s)
         previous = read_holder(self.path)
         if previous is not None:
             # The OS lock was free, so whoever wrote this is gone (crash, kill, reboot).
-            log.warning("replacing stale writer lock left by %s", previous.describe())
+            log.warning("replacing stale %s lock left by %s", self.what, previous.describe())
         holder = LockHolder(
             pid=os.getpid(),
             host=socket.gethostname(),

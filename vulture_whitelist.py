@@ -188,3 +188,5 @@ _.air_kills  # Detail: kills.html
 _.damage_more  # Detail: damage.html
 _.timeline_more  # Detail: timeline.html
 _.timeline_events  # Detail: timeline.html
+_.LimitFlags  # ctypes struct field written to the Windows job object (serving.procutil.kill_children_when_we_die)
+pid_alive  # serving.procutil: liveness probe, tests only since the run lock replaced the PID check

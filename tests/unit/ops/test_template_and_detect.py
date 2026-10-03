@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tomllib
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -142,7 +143,7 @@ def test_roots_for_windows_are_the_usual_install_places(tmp_path: Path) -> None:
     (tmp_path / "PF").mkdir()
     (tmp_path / "PF86" / "Steam" / "steamapps" / "common").mkdir(parents=True)
     env = {"ProgramFiles": str(tmp_path / "PF"), "ProgramFiles(x86)": str(tmp_path / "PF86")}
-    roots = default_roots("win32", env, tmp_path / "home")
+    roots = list(default_roots("win32", env, tmp_path / "home", fixed_drive=lambda letter: False))
     assert tmp_path / "PF" in roots
     assert tmp_path / "PF86" / "Steam" / "steamapps" / "common" in roots
     assert all(r.is_dir() for r in roots)
@@ -152,7 +153,44 @@ def test_roots_for_wine_start_at_the_prefix(tmp_path: Path) -> None:
     prefix = tmp_path / "wineprefix"
     (prefix / "drive_c" / "Program Files").mkdir(parents=True)
     (tmp_path / "home" / ".wine" / "drive_c" / "Games").mkdir(parents=True)
-    roots = default_roots("linux", {"WINEPREFIX": str(prefix)}, tmp_path / "home")
+    roots = list(default_roots("linux", {"WINEPREFIX": str(prefix)}, tmp_path / "home"))
     assert prefix / "drive_c" / "Program Files" in roots
     assert tmp_path / "home" / ".wine" / "drive_c" / "Games" in roots
     assert roots.index(prefix / "drive_c" / "Program Files") < roots.index(tmp_path / "home")
+
+
+def test_only_fixed_drives_are_probed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A disconnected network drive can stall a probe for many seconds: such letters are never touched."""
+    from il2ks.ops import detect
+
+    probed: list[Path] = []
+
+    def spy(path: Path) -> bool:
+        probed.append(path)
+        return False
+
+    monkeypatch.setattr(detect, "_is_dir", spy)
+    list(default_roots("win32", {}, tmp_path / "home", fixed_drive=lambda letter: letter == "E"))
+    drives = {p.drive for p in probed if p.drive}
+    assert "E:" in drives
+    assert not drives & {"D:", "F:", "G:"}
+
+
+def test_the_clock_runs_while_the_roots_are_being_probed(tmp_path: Path) -> None:
+    root = tmp_path / "games"
+    make_reports(root / "il2" / "logs")
+    now = [0.0]
+
+    def slow_roots() -> Iterator[Path]:
+        now[0] += 100.0  # probing this root took 100 s
+        yield root
+
+    assert find_log_folders(slow_roots(), seconds=5.0, clock=lambda: now[0]) == []
+
+
+def test_a_folder_with_endless_files_is_judged_on_what_the_budget_allowed(tmp_path: Path) -> None:
+    folder = tmp_path / "logs"
+    make_reports(folder, 50)
+    hit = inspect_folder(folder, spent=iter([False] * 10 + [True] * 100).__next__)
+    assert hit is not None
+    assert hit.reports <= 10

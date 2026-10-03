@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import socket
 import sqlite3
+import sys
+import threading
 import zipfile
 from contextlib import closing
 from dataclasses import replace
@@ -124,6 +127,61 @@ def test_two_backups_in_the_same_second_do_not_overwrite_each_other(tmp_path: Pa
     assert first != second
     assert first.is_file()
     assert second.is_file()
+
+
+def test_a_backup_in_progress_keeps_its_name_and_temp_file(tmp_path: Path) -> None:
+    """A manual and the daily backup at the same moment: the one that is still writing owns its `.tmp`."""
+    cfg = make_instance(tmp_path)
+    cfg.backup_dir.mkdir()
+    running = cfg.backup_dir / "il2ks-backup-20261001-120000.zip.tmp"
+    running.write_bytes(b"half")
+
+    made = backup.create_backup(cfg, now=lambda: T)
+
+    assert made.name == "il2ks-backup-20261001-120001.zip"
+    assert running.read_bytes() == b"half"  # not truncated, not deleted
+
+
+def test_a_temp_file_left_by_a_crashed_backup_is_reused(tmp_path: Path) -> None:
+    cfg = make_instance(tmp_path)
+    cfg.backup_dir.mkdir()
+    leftover = cfg.backup_dir / "il2ks-backup-20261001-120000.zip.tmp"
+    leftover.write_bytes(b"crashed")
+    two_hours_ago = datetime.now(UTC).timestamp() - 7200
+    os.utime(leftover, (two_hours_ago, two_hours_ago))
+
+    made = backup.create_backup(cfg, now=lambda: T)
+
+    assert made.name == "il2ks-backup-20261001-120000.zip"
+    assert not leftover.exists()
+    assert "manifest.json" in zip_names(made)
+
+
+def test_simultaneous_backups_get_different_files_and_all_are_sound(tmp_path: Path) -> None:
+    cfg = replace(make_instance(tmp_path), backup=BackupConfig(keep=50))
+    start = threading.Barrier(6)
+    made: list[Path] = []
+    errors: list[BaseException] = []
+
+    def work() -> None:
+        try:
+            start.wait()
+            made.append(backup.create_backup(cfg, now=lambda: T))
+        except BaseException as exc:  # reported below, from the test thread
+            errors.append(exc)
+
+    threads = [threading.Thread(target=work) for _ in range(6)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=120)
+
+    assert not errors
+    assert len(set(made)) == 6
+    assert sorted(backup.list_backups(cfg.backup_dir)) == sorted(made)
+    for path in made:
+        assert backup.read_manifest(path).reason == "manual"
+    assert not list(cfg.backup_dir.glob("*.tmp"))
 
 
 def test_a_failed_backup_leaves_no_half_written_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -250,6 +308,126 @@ def test_restore_into_a_fresh_install(tmp_path: Path) -> None:
     assert result.safety_backup is None  # nothing there to protect
     assert target.is_file()
     assert result.restored_data_dir_differs  # the restored config names the old machine's data folder
+
+
+def _newer_state(cfg: Config) -> None:
+    """Change everything a restore replaces, so a half-done restore would show."""
+    with closing(sqlite3.connect(cfg.db_path)) as conn:
+        conn.execute("INSERT INTO notes (text) VALUES ('newer')")
+        conn.commit()
+    (cfg.data_dir / "secret_key.txt").write_text("newer-secret", encoding="utf-8")
+    (cfg.data_dir / "custom" / "extra.txt").write_text("newer", encoding="utf-8")
+    (cfg.data_dir / "media" / "logo.png").write_bytes(b"newer-logo")
+    assert cfg.source is not None
+    cfg.source.write_text("# newer config\n", encoding="utf-8")
+
+
+def _assert_newer_state_untouched(cfg: Config) -> None:
+    assert read_notes(cfg.db_path) == ["first", "newer"]
+    assert (cfg.data_dir / "secret_key.txt").read_text(encoding="utf-8") == "newer-secret"
+    assert (cfg.data_dir / "custom" / "extra.txt").read_text(encoding="utf-8") == "newer"
+    assert (cfg.data_dir / "custom" / "templates" / "base.html").read_text(encoding="utf-8") == "<p>mine</p>"
+    assert (cfg.data_dir / "media" / "logo.png").read_bytes() == b"newer-logo"
+    assert cfg.source is not None
+    assert cfg.source.read_text(encoding="utf-8") == "# newer config\n"
+    assert not [p for p in cfg.data_dir.iterdir() if ".old-" in p.name or p.name.startswith("restore-")]
+
+
+def _backup_with_secret(cfg: Config) -> Path:
+    (cfg.data_dir / "secret_key.txt").write_text("old-secret", encoding="utf-8")
+    return backup.create_backup(cfg, now=lambda: T)
+
+
+def test_a_failure_halfway_through_a_restore_puts_every_file_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The last item moved in fails: database, secret, custom/ and config were already in; all of it is undone."""
+    cfg = make_instance(tmp_path)
+    zip_path = _backup_with_secret(cfg)
+    _newer_state(cfg)
+    real_replace = os.replace
+
+    def failing_replace(src: str | Path, dst: str | Path) -> None:
+        if Path(src).parent.name.startswith("restore-") and Path(dst).name == "media":
+            raise PermissionError("simulated: a file in media/ is held open")
+        real_replace(src, dst)
+
+    monkeypatch.setattr(os, "replace", failing_replace)
+    assert cfg.source is not None
+    with pytest.raises(BackupError, match="could not replace the files"):
+        backup.restore_backup(cfg, zip_path, cfg.source, now=lambda: T + timedelta(hours=1))
+    monkeypatch.undo()
+    _assert_newer_state_untouched(cfg)
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows refuses to rename a folder with an open file in it")
+def test_a_file_held_open_in_custom_stops_a_restore_before_anything_changes(tmp_path: Path) -> None:
+    """On Windows the old `rmtree(ignore_errors=True)` half-deleted `custom/` and then the swap failed."""
+    cfg = make_instance(tmp_path)
+    zip_path = _backup_with_secret(cfg)
+    _newer_state(cfg)
+    assert cfg.source is not None
+    with (cfg.data_dir / "custom" / "templates" / "base.html").open("rb"):  # an editor, or the web server
+        with pytest.raises(BackupError, match="could not replace the files"):
+            backup.restore_backup(cfg, zip_path, cfg.source, now=lambda: T + timedelta(hours=1))
+        _assert_newer_state_untouched(cfg)
+    # once the file is closed the same restore works
+    backup.restore_backup(cfg, zip_path, cfg.source, now=lambda: T + timedelta(hours=2))
+    assert read_notes(cfg.db_path) == ["first"]
+    assert (cfg.data_dir / "secret_key.txt").read_text(encoding="utf-8") == "old-secret"
+    assert not (cfg.data_dir / "custom" / "extra.txt").exists()
+    assert not [p for p in cfg.data_dir.iterdir() if ".old-" in p.name]
+
+
+def _set_data_version(db: Path, version: int | None) -> None:
+    with closing(sqlite3.connect(db)) as conn:
+        conn.execute(
+            f"CREATE TABLE IF NOT EXISTS {backup.DATA_VERSION_TABLE} "
+            "(id INTEGER PRIMARY KEY, version INTEGER NOT NULL, updated_at TEXT NOT NULL)"
+        )
+        conn.execute(f"DELETE FROM {backup.DATA_VERSION_TABLE}")
+        if version is not None:
+            conn.execute(f"INSERT INTO {backup.DATA_VERSION_TABLE} VALUES (1, ?, '2026-01-01 00:00:00')", (version,))
+        conn.commit()
+
+
+def test_the_data_version_table_name_matches_the_model() -> None:
+    from il2ks.db.models import DataVersion
+
+    assert DataVersion._meta.db_table == backup.DATA_VERSION_TABLE
+
+
+@pytest.mark.parametrize(
+    ("in_backup", "before_restore", "expected"),
+    [
+        (7, 5000, 6000),  # the live site was further along: past that
+        (9000, 10, 10_000),  # the backup is further along: past that
+        (None, 300, 1300),  # the backup has the table but no row
+    ],
+)
+def test_restore_moves_the_data_version_past_anything_a_browser_may_have_cached(
+    tmp_path: Path, in_backup: int | None, before_restore: int, expected: int
+) -> None:
+    """TD-28: ETags are built from the data version; a restored older database must not reuse a version number a
+    browser already holds a page for."""
+    cfg = make_instance(tmp_path)
+    _set_data_version(cfg.db_path, in_backup)
+    zip_path = backup.create_backup(cfg, now=lambda: T)
+    _set_data_version(cfg.db_path, before_restore)
+    assert cfg.source is not None
+
+    backup.restore_backup(cfg, zip_path, cfg.source, now=lambda: T + timedelta(hours=1))
+
+    assert backup.read_data_version(cfg.db_path) == expected
+    assert read_notes(cfg.db_path) == ["first"]
+
+
+def test_restoring_a_backup_without_a_data_version_table_is_fine(tmp_path: Path) -> None:
+    cfg = make_instance(tmp_path)  # a backup from before migration 0006
+    zip_path = backup.create_backup(cfg, now=lambda: T)
+    assert cfg.source is not None
+    backup.restore_backup(cfg, zip_path, cfg.source, now=lambda: T + timedelta(hours=1))
+    assert backup.read_data_version(cfg.db_path) == 0
 
 
 def test_restore_refuses_while_the_writer_lock_is_held_and_changes_nothing(tmp_path: Path) -> None:

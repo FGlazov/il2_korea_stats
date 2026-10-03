@@ -1,10 +1,17 @@
-"""Small process helpers: is a PID alive, and the `run.json` file that says "`il2ks run` is up" (doctor, guard).
+"""Small process helpers: is a PID alive, "is `il2ks run` up" (the run lock), the `run.json` file with the children's
+PIDs, and the Windows job object that takes the children down with `run`.
 
-No psutil: it would be a dependency for two functions. Never use `os.kill(pid, 0)` on Windows: there it terminates
+No psutil: it would be a dependency for a few functions. Never use `os.kill(pid, 0)` on Windows: there it terminates
 the process instead of testing it.
+
+"Is `il2ks run` up" is answered by an OS file lock that `run` holds for its whole life (`run.lock`, the mechanism of the
+writer lock): the OS drops it when `run` dies however it dies, so after a crash or a reboot nothing is stale. A PID
+check could not do that: PIDs are reused, so an old PID can belong to an unrelated process or even to the new `run`.
+`run.json` is information only.
 """
 
 import json
+import logging
 import os
 import signal
 import sys
@@ -16,7 +23,12 @@ from pathlib import Path
 from types import FrameType
 from typing import cast
 
+from il2ks.ingest.lock import LockHolder, WriterLock, is_locked, read_holder
+
+log = logging.getLogger("il2ks.run")
+
 RUN_STATE_FILE = "run.json"
+RUN_LOCK_FILE = "run.lock"
 _STILL_ACTIVE = 259
 _PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
@@ -93,10 +105,19 @@ def read_run_state(data_dir: Path) -> RunState | None:
     return RunState(pid, started, kids)
 
 
-def running_stack(data_dir: Path) -> RunState | None:
-    """The `il2ks run` that is alive for this data dir, if any."""
-    state = read_run_state(data_dir)
-    return state if state is not None and pid_alive(state.pid) else None
+def run_lock(data_dir: Path, *, wait: float | None = None) -> WriterLock:
+    """The lock `il2ks run` holds while it is up. `wait`: how long to retry before giving up (a doctor probe may be
+    holding it for a moment)."""
+    return WriterLock(data_dir, "run", wait=wait, poll_s=0.2, file_name=RUN_LOCK_FILE, what="run")
+
+
+def running_stack(data_dir: Path) -> LockHolder | None:
+    """Who holds the run lock, if some `il2ks run` is up for this data dir (a holder whose info can't be read still
+    counts: it comes back with PID 0)."""
+    path = data_dir / RUN_LOCK_FILE
+    if not is_locked(path):
+        return None
+    return read_holder(path) or LockHolder(pid=0, host="", command="run", since="")
 
 
 def stop_on_signals(stop: threading.Event, *, on_close_wait_s: float = 4.5) -> Callable[[], None]:
@@ -165,3 +186,72 @@ def terminate_as_keyboard_interrupt() -> None:
     signal.signal(signal.SIGTERM, handler)
     if sys.platform == "win32":
         signal.signal(signal.SIGBREAK, handler)
+
+
+# --- Windows job object -------------------------------------------------------------------------------------------
+
+_job_keepalive: list[object] = []
+_JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+_JOB_OBJECT_EXTENDED_LIMIT_INFORMATION_CLASS = 9
+
+
+def kill_children_when_we_die() -> bool:
+    """Windows: put this process in a job object that kills every member when the job's last handle closes.
+
+    Children (and their children: web's workers, Caddy's helpers) inherit membership, so when `il2ks run` ends however
+    it ends, even `schtasks /End` or the Task Manager, which never run its clean-up, nothing is left holding the ports.
+    Doing it to ourselves before any child starts avoids the race of assigning each child after it started.
+    The handle stays open for the life of the process; the OS closes it when we die. Returns whether it worked (it does
+    on Windows 8 and later; elsewhere there is nothing to do and the answer is False)."""
+    if sys.platform != "win32":
+        return False
+    import ctypes
+    from ctypes import wintypes
+
+    class BasicLimits(ctypes.Structure):
+        _fields_ = (
+            ("PerProcessUserTimeLimit", ctypes.c_int64),
+            ("PerJobUserTimeLimit", ctypes.c_int64),
+            ("LimitFlags", wintypes.DWORD),
+            ("MinimumWorkingSetSize", ctypes.c_size_t),
+            ("MaximumWorkingSetSize", ctypes.c_size_t),
+            ("ActiveProcessLimit", wintypes.DWORD),
+            ("Affinity", ctypes.c_size_t),
+            ("PriorityClass", wintypes.DWORD),
+            ("SchedulingClass", wintypes.DWORD),
+        )
+
+    class IoCounters(ctypes.Structure):
+        _fields_ = tuple((name, ctypes.c_uint64) for name in "abcdef")
+
+    class ExtendedLimits(ctypes.Structure):
+        _fields_ = (
+            ("BasicLimitInformation", BasicLimits),
+            ("IoInfo", IoCounters),
+            ("ProcessMemoryLimit", ctypes.c_size_t),
+            ("JobMemoryLimit", ctypes.c_size_t),
+            ("PeakProcessMemoryUsed", ctypes.c_size_t),
+            ("PeakJobMemoryUsed", ctypes.c_size_t),
+        )
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
+    kernel32.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+    kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+    kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    job = kernel32.CreateJobObjectW(None, None)
+    if not job:
+        log.warning("no job object (error %d): children will not stop with `run`", ctypes.get_last_error())
+        return False
+    limits = ExtendedLimits()
+    limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    if not kernel32.SetInformationJobObject(
+        job, _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION_CLASS, ctypes.byref(limits), ctypes.sizeof(limits)
+    ) or not kernel32.AssignProcessToJobObject(job, kernel32.GetCurrentProcess()):
+        log.warning("job object setup failed (error %d): children will not stop with `run`", ctypes.get_last_error())
+        kernel32.CloseHandle(job)
+        return False
+    _job_keepalive.append(job)
+    return True

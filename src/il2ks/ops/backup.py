@@ -18,19 +18,27 @@ import os
 import re
 import shutil
 import socket
+import sqlite3
 import tempfile
 import tomllib
 import zipfile
 from collections.abc import Callable
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal, cast
+from typing import IO, Literal, cast
 
 from il2ks import __version__
 from il2ks.config import CONFIG_FILE, DB_FILE, SERVER_UID_FILE, Config
 from il2ks.ingest.lock import LockBusyError, WriterLock
-from il2ks.ops.dbfile import applied_migrations, integrity_problems, latest_migrations, snapshot_database
+from il2ks.ops.dbfile import (
+    applied_migrations,
+    integrity_problems,
+    latest_migrations,
+    open_readonly,
+    snapshot_database,
+)
 
 log = logging.getLogger(__name__)
 
@@ -87,13 +95,42 @@ def rotate(backup_dir: Path, keep: int) -> list[Path]:
 # --- making a backup -----------------------------------------------------------------------------------------------
 
 
-def _free_name(backup_dir: Path, when: datetime) -> tuple[Path, datetime]:
-    """A file name nobody has used yet: two backups in the same second get the next second."""
+_STALE_PARTIAL = timedelta(hours=1)
+
+
+def _claim_name(backup_dir: Path, when: datetime) -> tuple[Path, Path, IO[bytes], datetime]:
+    """Reserve a backup name nobody else is using: (final path, temp path, the temp file opened for writing, time).
+
+    A manual backup and the daily one (or two `il2ks backup`) can run in the same second. The temp file is created
+    exclusively (`x`), so exactly one of them gets a given name; the loser takes the next second. The final name is
+    checked again after winning the temp file, because the other backup may have finished (temp renamed away) in
+    between. A temp file left by a crashed backup (older than an hour) is cleared out of the way."""
     while True:
-        path = backup_dir / f"il2ks-backup-{when.strftime(_STAMP)}.zip"
-        if not path.exists():
-            return path, when
+        target = backup_dir / f"il2ks-backup-{when.strftime(_STAMP)}.zip"
+        partial = target.with_name(target.name + ".tmp")
+        if not target.exists():
+            try:
+                handle = partial.open("xb")
+            except FileExistsError:
+                if _remove_stale(partial):
+                    continue  # that name is free again
+            else:
+                if not target.exists():
+                    return target, partial, handle, when
+                handle.close()
+                partial.unlink(missing_ok=True)
         when += timedelta(seconds=1)
+
+
+def _remove_stale(partial: Path) -> bool:
+    """Delete a temp file nobody has written to for an hour; whether it is gone."""
+    try:
+        if datetime.now(UTC) - datetime.fromtimestamp(partial.stat().st_mtime, UTC) <= _STALE_PARTIAL:
+            return False
+        partial.unlink(missing_ok=True)
+    except OSError:
+        return False  # being finished or deleted by its owner right now: the next name is as good
+    return True
 
 
 def _tree_files(root: Path) -> list[Path]:
@@ -111,14 +148,13 @@ def create_backup(cfg: Config, reason: BackupReason = "manual", *, now: Callable
     backup_dir = cfg.backup_dir
     backup_dir.mkdir(parents=True, exist_ok=True)
     when = now()
-    target, when = _free_name(backup_dir, when)
-    partial = target.with_name(target.name + ".tmp")
+    target, partial, out, when = _claim_name(backup_dir, when)
     included = [DB_FILE]
     try:
-        with tempfile.TemporaryDirectory(dir=backup_dir, prefix="snapshot-") as scratch:
+        with out, tempfile.TemporaryDirectory(dir=backup_dir, prefix="snapshot-") as scratch:
             snapshot = Path(scratch) / DB_FILE
             snapshot_database(cfg.db_path, snapshot)
-            with zipfile.ZipFile(partial, "w", zipfile.ZIP_DEFLATED, strict_timestamps=False) as zf:
+            with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, strict_timestamps=False) as zf:
                 zf.write(snapshot, DB_FILE)
                 if cfg.source is not None and cfg.source.is_file():
                     zf.write(cfg.source, CONFIG_IN_ZIP)
@@ -288,14 +324,16 @@ def restore_backup(
             if problems:
                 raise BackupError(f"the database inside the backup is damaged: {problems[0]}")
             safety = create_backup(cfg, "pre-restore", now=now) if applied_migrations(cfg.db_path) else None
+            previous_version = read_data_version(cfg.db_path)
             try:
-                written = _swap_in(cfg, staging, config_target)
+                written = _swap_in(cfg, staging, config_target, now=now)
             except OSError as exc:
                 where = f" Your previous state is saved in {safety}." if safety is not None else ""
                 raise BackupError(
                     f"could not replace the files ({exc}). Is the website still running (il2ks run or il2ks web)? "
                     f"Stop it and try again.{where}"
                 ) from exc
+            _bump_data_version(cfg.db_path, previous_version, now())
         finally:
             shutil.rmtree(staging, ignore_errors=True)
     _verify(cfg, manifest)
@@ -303,25 +341,120 @@ def restore_backup(
     return RestoreResult(manifest, safety, written, configured is not None and configured != data_dir.resolve())
 
 
-def _swap_in(cfg: Config, staging: Path, config_target: Path) -> Path | None:
+DATA_VERSION_TABLE = "il2ks_db_dataversion"  # db.models.DataVersion (a test keeps the two in step)
+DATA_VERSION_JUMP = 1000
+
+
+def read_data_version(db_path: Path) -> int:
+    """The site's data version (TD-28: ETags are built from it) in this database file; 0 if there is none."""
+    try:
+        with closing(open_readonly(db_path)) as conn:
+            row = conn.execute(f"SELECT version FROM {DATA_VERSION_TABLE} WHERE id = 1").fetchone()
+    except sqlite3.Error:
+        return 0
+    return int(row[0]) if row is not None else 0
+
+
+def _bump_data_version(db_path: Path, previous: int, when: datetime) -> None:
+    """Move the restored database's data version past anything a browser may have cached.
+
+    The backup carries the version of its day; the live site may have been much further along, and a browser holding a
+    page ETag from that later time must not get a 304 for a page that now shows older data. So the restored version
+    becomes max(restored, previous) + 1000. Ignored when the backup predates the table (migrations create it later)."""
+    try:
+        with closing(sqlite3.connect(db_path, timeout=30)) as conn:
+            exists = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (DATA_VERSION_TABLE,)
+            ).fetchone()
+            if exists is None:
+                return
+            row = conn.execute(f"SELECT version FROM {DATA_VERSION_TABLE} WHERE id = 1").fetchone()
+            restored = int(row[0]) if row is not None else 0
+            new = max(restored, previous) + DATA_VERSION_JUMP
+            stamp = when.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S.%f")
+            if row is None:
+                conn.execute(
+                    f"INSERT INTO {DATA_VERSION_TABLE} (id, version, updated_at) VALUES (1, ?, ?)",
+                    (new, stamp),
+                )
+            else:
+                conn.execute(
+                    f"UPDATE {DATA_VERSION_TABLE} SET version = ?, updated_at = ? WHERE id = 1",
+                    (new, stamp),
+                )
+            conn.commit()
+    except sqlite3.Error as exc:
+        log.warning(
+            "restore: could not move the data version forward (%s); browsers may keep an old page for a minute", exc
+        )
+
+
+def _swap_in(cfg: Config, staging: Path, config_target: Path, *, now: Callable[[], datetime] = utcnow) -> Path | None:
+    """Replace the live files with the unpacked ones, all or nothing.
+
+    1. Rename every live target aside (`custom` -> `custom.old-<stamp>`, the database and its -wal/-shm/-journal, the
+       secrets, the config). On Windows this is what fails when something still holds a file open (the website, an
+       editor in `custom/`), and it fails before anything was changed: whatever was renamed is renamed back.
+    2. Move the restored items into place. If that fails, the restored items are moved out again and step 1 is undone.
+    3. Only then delete the `.old-<stamp>` copies (the safety backup holds the same data).
+
+    A folder the backup doesn't have is left alone."""
     data_dir = cfg.data_dir
-    for suffix in ("-wal", "-shm", "-journal"):  # leftovers of the replaced database must not meet the restored one
-        Path(str(cfg.db_path) + suffix).unlink(missing_ok=True)
-    os.replace(staging / DB_FILE, cfg.db_path)
-    for name in SINGLE_FILES:
-        if (staging / name).is_file():
-            os.replace(staging / name, data_dir / name)
-    for folder in DIRECTORIES:
-        if (staging / folder).is_dir():
-            shutil.rmtree(data_dir / folder, ignore_errors=True)
-            os.replace(staging / folder, data_dir / folder)
-    # A folder the backup doesn't have is left alone: the safety backup holds it either way.
+    stamp = now().strftime(_STAMP)
+    incoming: list[tuple[Path, Path]] = [(staging / DB_FILE, cfg.db_path)]
+    incoming += [(staging / name, data_dir / name) for name in SINGLE_FILES if (staging / name).is_file()]
+    incoming += [(staging / folder, data_dir / folder) for folder in DIRECTORIES if (staging / folder).is_dir()]
     written: Path | None = None
     if (staging / CONFIG_IN_ZIP).is_file():
         config_target.parent.mkdir(parents=True, exist_ok=True)
-        os.replace(staging / CONFIG_IN_ZIP, config_target)
+        incoming.append((staging / CONFIG_IN_ZIP, config_target))
         written = config_target
+
+    live = [dest for _, dest in incoming]
+    live += [Path(str(cfg.db_path) + suffix) for suffix in _DB_SIDE_FILES]  # must not meet the restored database
+    aside: list[tuple[Path, Path]] = []  # (live path, where it went), for the undo
+    placed: list[tuple[Path, Path]] = []  # (live path, where it came from)
+    try:
+        for path in live:
+            if path.exists():
+                moved = path.with_name(f"{path.name}.old-{stamp}")
+                if moved.exists():  # a leftover of an earlier failed restore in the same second: never merge into it
+                    _remove(moved)
+                os.replace(path, moved)
+                aside.append((path, moved))
+        for source, dest in incoming:
+            os.replace(source, dest)
+            placed.append((dest, source))
+    except OSError:
+        for dest, source in reversed(placed):
+            _move_back(dest, source)
+        for path, moved in reversed(aside):
+            _move_back(moved, path)
+        raise
+    for _, moved in aside:
+        _remove(moved)
     return written
+
+
+_DB_SIDE_FILES = ("-wal", "-shm", "-journal")
+
+
+def _move_back(source: Path, dest: Path) -> None:
+    try:
+        os.replace(source, dest)
+    except OSError as exc:
+        log.error("restore undo: could not move %s back to %s: %s", source, dest, exc)
+
+
+def _remove(path: Path) -> None:
+    """Delete a file or folder, best effort: an `.old-<stamp>` copy that stays behind is only clutter."""
+    try:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    except OSError as exc:
+        log.warning("could not delete %s (%s); it is a copy of the replaced data and can be deleted by hand", path, exc)
 
 
 def _configured_data_dir(config_file: Path) -> Path | None:
