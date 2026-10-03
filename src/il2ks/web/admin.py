@@ -200,12 +200,15 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
         "completed_cleanly",
         "is_hidden",
     )
-    list_filter = ("is_hidden", "completed_cleanly", "started_at")
+    list_filter = ("is_hidden", "completed_cleanly", "tour", "started_at")
     search_fields = ("mission_uid", "mission_file")
     ordering = ("-started_at",)
     actions = ("hide_selected", "unhide_selected")
     fieldsets = (
-        (None, {"fields": ("is_hidden", "mission_uid", "mission_file", "started_at", "ended_at", "duration_s")}),
+        (
+            None,
+            {"fields": ("is_hidden", "mission_uid", "mission_file", "tour", "started_at", "ended_at", "duration_s")},
+        ),
         (
             _("Result"),
             {
