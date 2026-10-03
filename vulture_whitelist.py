@@ -146,11 +146,13 @@ parse_line  # core.logparse.parser: single-line parse; production uses parse_lin
 FAKE_NAME_RE  # devtools.anonymize: the fixture check in tests/unit/test_anonymize.py matches names against it
 
 # --- planned, no caller yet --------------------------------------------------------------------------------------
-_.snapshot  # core.replay.state.Replay.snapshot: FR-ING-15 live sorties (streaming), tested in test_streaming.py
 _.parent_sortie_index  # core.replay.result.SortieResult: gunner -> pilot link, not persisted yet
 _.victim_object_id  # core.replay.result.KillResult: kept for a later per-victim view (tests set it)
 _.is_active  # django User flags, assigned by createadmin so a reset account is a working admin (ops.admin)
 _.is_staff
 _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
+_.redfor  # queries.live.OnlineNow: read by online_now_body.html
+_.blufor  # same
+_.unassigned  # same (players online who haven't spawned, so have no side yet)
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)

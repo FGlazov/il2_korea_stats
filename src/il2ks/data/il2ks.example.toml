@@ -54,6 +54,15 @@
 # files change or il2ks is upgraded (FR-ING-19).
 #retry_backoff_minutes = [5.0, 30.0, 120.0]
 
+# --- Online now (FR-ING-12) ---------------------------------------------------------------------------------------
+# While a mission is running, `il2ks watch` reads its log as it grows and saves who is on the server, so the website can
+# show "online now". This is a provisional view that only lives until the mission completes and is ingested normally.
+#[live]
+# false = no online-now data (the website then says no mission is running).
+#enabled = true
+# Seconds between two looks at the running mission. The website treats data older than three times this as stale.
+#interval_s = 30.0
+
 # --- Game rules for the replay (FR-ING-14, FR-ING-17, FR-ING-21, FR-ING-22) ----------------------------------------
 # A changed rule only affects missions ingested afterwards; run `il2ks reprocess` (optionally --since DATE) to apply
 # it to older ones.

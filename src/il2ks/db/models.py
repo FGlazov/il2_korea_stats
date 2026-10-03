@@ -595,3 +595,66 @@ class DataVersion(models.Model):
 
     def __str__(self) -> str:
         return str(self.version)
+
+
+# --- Online now (FR-ING-12): the running mission as `watch` last saw it. Outside the data version (TD-28). ---
+
+
+class LiveState(models.TextChoices):
+    """Values match `core.replay.live.LiveState`."""
+
+    IN_FLIGHT = "in_flight"
+    ON_GROUND = "on_ground"
+    SPAWNED = "spawned"
+    CONNECTED = "connected"  # online without an open sortie
+
+
+class LiveMission(models.Model):
+    """The in-progress mission of one server, overwritten by every live snapshot (`ingest.live`). One row per server.
+
+    Not page data in the TD-28 sense: writing it never bumps `DataVersion`; the page that shows it (`/live/`) carries
+    its own short max-age. `is_running` turns False when the mission completes (the normal ingest takes over), keeping
+    `updated_at` as "last seen". A row whose `updated_at` is older than 3 x `interval_s` is stale: `watch` isn't
+    running."""
+
+    server_uid = models.UUIDField(unique=True)
+    mission_uid = models.CharField(max_length=32)
+    mission_file = models.CharField(max_length=255, blank=True)  # MFile: the map / mission file the server loaded
+    started_at = models.DateTimeField(null=True)
+    game_date = models.CharField(max_length=32, blank=True)
+    game_time = models.CharField(max_length=32, blank=True)  # the in-game clock at the mission start
+    elapsed_s = models.FloatField(default=0.0)  # mission time passed at the snapshot
+    updated_at = models.DateTimeField()
+    interval_s = models.FloatField(default=30.0)  # `[live] interval_s` when written: lets readers judge staleness
+    is_running = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return self.mission_uid
+
+
+class LivePlayer(models.Model):
+    """One player online at the last snapshot of a `LiveMission`. Replaced wholesale with every snapshot."""
+
+    mission_id: int
+    player_id: int | None
+    mission = models.ForeignKey(LiveMission, on_delete=models.CASCADE, related_name="players")
+    # Set when the account is already known (so hiding the player takes effect at once); a first-time visitor has none.
+    player = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, related_name="+")
+    account_uuid = models.CharField(max_length=36)
+    name = models.CharField(max_length=128, blank=True)  # "" for a player who connected and never spawned
+    coalition = models.IntegerField(default=0)  # 0 = not known yet
+    country = models.IntegerField(default=0)
+    aircraft_type = models.CharField(max_length=128, blank=True)  # log name; "" without an open sortie
+    aircraft_name = models.CharField(max_length=128, blank=True)  # display name at write time
+    propulsion = models.CharField(max_length=4, choices=Propulsion.choices, blank=True, default="")
+    state = models.CharField(max_length=10, choices=LiveState.choices)
+    sortie_started_at = models.DateTimeField(null=True)
+    flight_time_s = models.FloatField(default=0.0)
+    kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["mission", "account_uuid"], name="liveplayer_unique")]
+
+    def __str__(self) -> str:
+        return self.name or self.account_uuid
