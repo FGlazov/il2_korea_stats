@@ -83,6 +83,14 @@ class IngestConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class LiveConfig:
+    """Online now (FR-ING-12): `watch` reads the in-progress mission and saves a provisional snapshot of it."""
+
+    enabled: bool = True
+    interval_s: float = 30.0  # seconds between snapshots; the website also treats data older than 3x this as stale
+
+
+@dataclass(frozen=True, slots=True)
 class BackupConfig:
     """Backups of the admin state (FR-OPS-6): how many to keep and whether `watch` makes one every day."""
 
@@ -128,6 +136,7 @@ class Config:
     https: HttpsConfig = field(default_factory=HttpsConfig)
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
+    live: LiveConfig = field(default_factory=LiveConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
     ratings: RatingRules = field(default_factory=RatingRules)
     backup: BackupConfig = field(default_factory=BackupConfig)
@@ -229,6 +238,12 @@ def load_config(
         retry_backoff_minutes=reader.float_list("ingest", "retry_backoff_minutes", defaults.retry_backoff_minutes),
     )
 
+    live_defaults = LiveConfig()
+    live = LiveConfig(
+        enabled=reader.bool_("live", "enabled", live_defaults.enabled),
+        interval_s=reader.positive("live", "interval_s", live_defaults.interval_s),
+    )
+
     rule_values: dict[str, float] = {}
     for rule in dataclasses.fields(ReplayRules):
         if rule.name != "resupply_allowed":  # the one yes/no rule; every other rule is a threshold
@@ -273,6 +288,7 @@ def load_config(
         https=https,
         logs=logs,
         ingest=ingest,
+        live=live,
         replay=replay,
         ratings=ratings,
         backup=backup,

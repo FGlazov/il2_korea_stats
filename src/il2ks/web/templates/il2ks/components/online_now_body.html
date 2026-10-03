@@ -1,0 +1,47 @@
+{# il2ks-template: templates/il2ks/components/online_now_body.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_live %}{% comment %}
+  online_now_body.html: what /live/ returns and what online_now.html shows inside its section.
+  Context: live (il2ks.queries.live.OnlineNow: running, mission_name, elapsed_s, updated_at, rows, redfor, blufor,
+  unassigned, total), site (SiteSettings, for the coalition names).
+  Hidden players show as "Hidden player"; a stale or missing snapshot shows "No mission running" and when it was last seen.
+{% endcomment %}{% if live.running %}
+<p class="online-now__summary">
+  <strong>{% blocktranslate count players=live.total %}{{ players }} player online{% plural %}{{ players }} players online{% endblocktranslate %}</strong>
+  {% if live.redfor or live.blufor %}
+    <span class="online-now__side">{% coalition_badge "redfor" %} {{ live.redfor }}</span>
+    <span class="online-now__side">{% coalition_badge "blufor" %} {{ live.blufor }}</span>
+  {% endif %}
+  <small>{% blocktranslate with name=live.mission_name running=live.elapsed_s|duration %}Mission {{ name }}, running for {{ running }}{% endblocktranslate %}</small>
+</p>
+<div class="table-wrap table-wrap--flat">
+  <table class="data-table data-table--compact online-now__table">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Player" %}</th>
+        <th scope="col">{% translate "Side" %}</th>
+        <th scope="col">{% translate "Aircraft" %}</th>
+        <th scope="col">{% translate "State" %}</th>
+        <th scope="col" class="num">{% translate "In the air" %}</th>
+        <th scope="col" class="num">{% translate "Air / ground kills" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in live.rows %}
+        <tr>
+          <td>{% if row.is_hidden %}{% translate "Hidden player" %}{% elif row.player_id and row.name %}<a href="{% url 'web:player-detail' row.player_id %}">{{ row.name }}</a>{% elif row.name %}{{ row.name }}{% else %}{% translate "Joining…" %}{% endif %}</td>
+          <td>{% if row.side %}{% coalition_badge row.side %}{% else %}—{% endif %}</td>
+          <td>{% if row.aircraft %}{% aircraft_icon row.aircraft "online-now__plane" %} {{ row.aircraft.display_name }}{% else %}—{% endif %}</td>
+          <td>{% live_state_badge row.state %}</td>
+          <td class="num">{% if row.aircraft %}{{ row.flight_time_s|duration }}{% else %}—{% endif %}</td>
+          <td class="num">{{ row.kills_air|num }} / {{ row.kills_ground|num }}</td>
+        </tr>
+      {% empty %}
+        {% empty_row 6 _("Nobody is on the server right now.") %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if live.updated_at %}<p><small>{% blocktranslate with when=live.updated_at|utc %}Updated {{ when }}{% endblocktranslate %}</small></p>{% endif %}
+{% else %}
+{% notice "info" title=_("No mission running") %}{% if live.updated_at %}{% blocktranslate with when=live.updated_at|utc %}Last seen {{ when }}.{% endblocktranslate %}{% else %}{% translate "No mission has been seen on the server yet." %}{% endif %}{% endnotice %}
+{% endif %}

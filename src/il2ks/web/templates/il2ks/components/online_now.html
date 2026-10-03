@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/components/online_now.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  online_now.html ({% load il2ks_live %}{% online_now %}): the "Online now" section for the home page.
+  Context (the tag supplies it; with a plain {% include %} pass `live` = il2ks.queries.live.current() and `site`):
+  live (OnlineNow). It renders the current snapshot on the server, so it works without JavaScript; with htmx it also
+  re-fetches the same body from the web:live URL on load and every `live.poll_s` seconds (the endpoint answers with
+  Cache-Control: max-age=15, outside the data-version ETags).
+{% endcomment %}<section class="online-now" aria-labelledby="online-now-title">
+  <h2 id="online-now-title">{% translate "Online now" %}</h2>
+  <div class="online-now__body" hx-get="{% url 'web:live' %}" hx-trigger="load, every {{ live.poll_s }}s" hx-target="this" hx-swap="innerHTML">
+    {% include "il2ks/components/online_now_body.html" %}
+  </div>
+</section>

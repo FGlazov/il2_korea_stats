@@ -57,7 +57,7 @@ from il2ks.core.replay.model import (
     owner_sortie,
 )
 from il2ks.core.replay.resolve import resolve_mission
-from il2ks.core.replay.result import AmmoCounts, MissionResult, SortieResult, SpawnType
+from il2ks.core.replay.result import AmmoCounts, MissionInfo, MissionResult, SortieResult, SpawnType
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,8 @@ class Snapshot:
 
     tick: int
     sorties: tuple[SortieResult, ...]
+    mission: MissionInfo | None = None  # None only when resolving failed
+    open_sorties: frozenset[int] = frozenset()  # `SortieResult.index` of sorties with no end (AType 4) logged yet
 
 
 class Replay:
@@ -170,7 +172,10 @@ class Replay:
         except Exception:  # pragma: no cover - defensive, a bug here must not break live views
             logger.exception("replay snapshot failed at tick %d", self._facts.last_tick)
             return Snapshot(tick=self._facts.last_tick, sorties=())
-        return Snapshot(tick=self._facts.last_tick, sorties=result.sorties)
+        open_sorties = frozenset(s.index for s in self._facts.sorties if s.is_open)
+        return Snapshot(
+            tick=self._facts.last_tick, sorties=result.sorties, mission=result.mission, open_sorties=open_sorties
+        )
 
     def finish(self) -> MissionResult:
         return resolve_mission(self._facts, self._rules, final=True)

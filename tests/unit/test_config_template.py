@@ -8,7 +8,7 @@ from typing import cast
 
 import pytest
 
-from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LogsConfig, WebConfig, load_config
+from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LiveConfig, LogsConfig, WebConfig, load_config
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 
@@ -39,6 +39,7 @@ def test_template_lists_every_config_key() -> None:
     expected_sections = {
         "logs": {f.name for f in dataclasses.fields(LogsConfig)},
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
+        "live": {f.name for f in dataclasses.fields(LiveConfig)},
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
@@ -64,6 +65,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "https",
         "logs",
         "ingest",
+        "live",
         "replay",
         "ratings",
         "backup",

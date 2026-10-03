@@ -1,5 +1,9 @@
 """`il2ks watch`: run `ingest` every N seconds until stopped (TD-06, doc 04 process model).
 
+With `[live] enabled` it also follows the in-progress mission for "online now": a live tick right after every ingest
+tick and then one every `[live] interval_s` while waiting for the next one (`ingest.live`, FR-ING-12). Live ticks take
+no writer lock and never stop the loop.
+
 The writer lock is taken per tick, not for the whole lifetime, so an admin's `reprocess` can run while `watch` is up:
 ticks that find the lock taken are skipped with a log line. A tick that crashes is logged and the loop goes on
 (NFR-REL-2: state lives in the DB, so the next tick picks up where this one stopped).
@@ -16,7 +20,10 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
+from django.db import OperationalError
+
 from il2ks.config import Config
+from il2ks.ingest.live import LiveTracker
 from il2ks.ingest.lock import LockBusyError
 from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.reprocess_requests import ReprocessFn, fail_interrupted_requests, run_pending_request
@@ -50,6 +57,16 @@ def _wait(stop: threading.Event, seconds: float) -> None:
         stop.wait(min(remaining, 0.5))
 
 
+def _wait_with_live(stop: threading.Event, seconds: float, every: float, live_tick: Callable[[], None]) -> None:
+    """`_wait(stop, seconds)`, but `live_tick()` runs after each `every` seconds of it (not at the very end: the next
+    ingest tick is followed by one anyway)."""
+    deadline = time.monotonic() + seconds
+    while not stop.is_set() and (remaining := deadline - time.monotonic()) > 0:
+        _wait(stop, min(every, remaining))
+        if not stop.is_set() and deadline - time.monotonic() > 0.01:
+            live_tick()
+
+
 def watch(
     cfg: Config,
     pipeline: Pipeline,
@@ -70,6 +87,19 @@ def watch(
     reconciled = False
     backup_retry_at: datetime | None = None
     ticks = 0
+    tracker = LiveTracker(cfg) if cfg.live.enabled and cfg.logs.dir is not None else None
+
+    def live_tick() -> None:
+        """One look at the running mission. Whatever goes wrong here is logged; ingest and the loop go on."""
+        if tracker is None:
+            return
+        try:
+            tracker.tick(now())
+        except OperationalError as exc:  # the database was busy or locked: the next live tick just tries again
+            log.warning("live tick skipped: %s", exc)
+        except Exception:
+            log.exception("live tick failed; retrying next tick")
+
     log.info("watching %s every %.0f s", cfg.logs.dir, cfg.ingest.watch_interval_s)
     while not stop.is_set():
         try:
@@ -85,8 +115,12 @@ def watch(
         except Exception:
             log.exception("reprocess request tick failed; retrying next tick")
         backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
+        live_tick()
         ticks += 1
         if max_ticks is not None and ticks >= max_ticks:
             break
-        _wait(stop, cfg.ingest.watch_interval_s)
+        if tracker is None:
+            _wait(stop, cfg.ingest.watch_interval_s)
+        else:
+            _wait_with_live(stop, cfg.ingest.watch_interval_s, cfg.live.interval_s, live_tick)
     return ticks

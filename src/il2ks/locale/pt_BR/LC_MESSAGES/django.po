@@ -102,6 +102,12 @@ msgid "%(ok)s missions reprocessed, %(failed)s failed, %(missing)s without an ar
 msgstr ""
 
 #, python-format
+msgid "%(players)s player online"
+msgid_plural "%(players)s players online"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
 msgid "%(rate)s survived"
 msgstr ""
 
@@ -153,6 +159,9 @@ msgid "AI gunner"
 msgstr ""
 
 msgid "Air"
+msgstr ""
+
+msgid "Air / ground kills"
 msgstr ""
 
 msgid "Air kills"
@@ -578,6 +587,12 @@ msgstr "Em voo"
 msgid "In game: %(when)s"
 msgstr ""
 
+msgid "In the air"
+msgstr ""
+
+msgid "In the lobby"
+msgstr ""
+
 # llm-draft
 msgid "Ingested"
 msgstr "Ingerida"
@@ -589,6 +604,9 @@ msgstr "Status da ingestão"
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
 "are ingested again once it is over."
+msgstr ""
+
+msgid "Joining…"
 msgstr ""
 
 msgid "K/D"
@@ -656,6 +674,10 @@ msgid "Last request"
 msgstr ""
 
 msgid "Last seen"
+msgstr ""
+
+#, python-format
+msgid "Last seen %(when)s."
 msgstr ""
 
 msgid "Last used"
@@ -739,6 +761,10 @@ msgstr "Ainda pode mudar"
 msgid "Mission"
 msgstr "Missão"
 
+#, python-format
+msgid "Mission %(name)s, running for %(running)s"
+msgstr ""
+
 # llm-draft
 msgid "Missions"
 msgstr "Missões"
@@ -791,6 +817,12 @@ msgstr ""
 msgid "No logo."
 msgstr "Sem logotipo."
 
+msgid "No mission has been seen on the server yet."
+msgstr ""
+
+msgid "No mission running"
+msgstr ""
+
 msgid "No missions match these filters."
 msgstr ""
 
@@ -836,6 +868,9 @@ msgstr ""
 msgid "Nobody flew for this side."
 msgstr ""
 
+msgid "Nobody is on the server right now."
+msgstr ""
+
 msgid "Nobody scored a kill in this mission."
 msgstr ""
 
@@ -862,12 +897,18 @@ msgstr ""
 msgid "Nothing to show yet."
 msgstr "Ainda não há nada para mostrar."
 
+msgid "On the ground"
+msgstr ""
+
 msgid "On this page"
 msgstr ""
 
 # llm-draft
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "Um por linha: “Rótulo | https://endereço”. Exibidos no cabeçalho ou no rodapé do site. No máximo 10."
+
+msgid "Online now"
+msgstr ""
 
 msgid "Open the sortie report"
 msgstr ""
@@ -1099,6 +1140,9 @@ msgstr "Exibindo %(first)s–%(last)s de %(all)s"
 msgid "Shown"
 msgstr ""
 
+msgid "Side"
+msgstr ""
+
 # llm-draft
 msgid "Site administration"
 msgstr "Administração do site"
@@ -1149,6 +1193,9 @@ msgstr ""
 
 #, python-format
 msgid "Started %(title)s."
+msgstr ""
+
+msgid "State"
 msgstr ""
 
 msgid "Static object"
@@ -1362,6 +1409,10 @@ msgid "Unknown: the log has no end-of-sortie ammunition record"
 msgstr ""
 
 msgid "Unknown: the sortie was resupplied"
+msgstr ""
+
+#, python-format
+msgid "Updated %(when)s"
 msgstr ""
 
 # llm-draft

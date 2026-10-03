@@ -109,6 +109,14 @@
       "version": 1,
       "sha256": "762d34c09a01acbbb3124e4f0a5f217332feb5cae6bbc85eb82a54bb7d3d9a59"
     },
+    "templates/il2ks/components/online_now.html": {
+      "version": 1,
+      "sha256": "82fff3345eeb7fcee6d39ecf88221a29121189a32a0466fc371f7689c252d851"
+    },
+    "templates/il2ks/components/online_now_body.html": {
+      "version": 1,
+      "sha256": "bfe456adf27c4acc6d8a3145e9a08bcb9304228b8365d32fd1fcda38c5f4bf2f"
+    },
     "templates/il2ks/components/pagination.html": {
       "version": 1,
       "sha256": "87422db620ed26d8559374dffb3ddf06d3daa60d3afdb9af649ef3f98830a86c"

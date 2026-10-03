@@ -198,3 +198,26 @@ def test_explicit_timezone_beats_the_tz_env_var(tmp_path: Path) -> None:
 def test_an_invalid_tz_env_var_points_at_the_server_timezone_setting(tmp_path: Path) -> None:
     with pytest.raises(ConfigError, match=r"set \[server\] timezone"):
         load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "d"), "TZ": "UTC+3"})
+
+
+def test_live_defaults_toml_and_env(tmp_path: Path) -> None:
+    """FR-ING-12: `[live] enabled` (default on) and `interval_s` (default 30)."""
+    data = {"IL2KS_DATA_DIR": str(tmp_path / "data")}
+    assert load_config(None, data).live.enabled is True
+    assert load_config(None, data).live.interval_s == 30.0
+
+    file = write_toml(tmp_path / "il2ks.toml", "[live]\nenabled = false\ninterval_s = 10\n")
+    cfg = load_config(file, data)
+    assert cfg.live.enabled is False
+    assert cfg.live.interval_s == 10.0
+
+    env = {**data, "IL2KS_LIVE_ENABLED": "yes", "IL2KS_LIVE_INTERVAL_S": "45"}
+    assert load_config(file, env).live.enabled is True
+    assert load_config(file, env).live.interval_s == 45.0
+
+
+@pytest.mark.parametrize("value", ["0", "-5", "soon"])
+def test_live_interval_must_be_a_positive_number(tmp_path: Path, value: str) -> None:
+    env = {"IL2KS_DATA_DIR": str(tmp_path / "data"), "IL2KS_LIVE_INTERVAL_S": value}
+    with pytest.raises(ConfigError, match=r"live\.interval_s"):
+        load_config(None, env)
