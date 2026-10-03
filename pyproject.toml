@@ -41,7 +41,7 @@ packages = ["src/il2ks"]
 line-length = 120
 target-version = "py313"
 src = ["src", "tests"]
-extend-exclude = ["design_doc", "sample_data"]
+extend-exclude = ["design_doc", "sample_data", ".claude/worktrees"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]

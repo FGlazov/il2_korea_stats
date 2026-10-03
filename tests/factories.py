@@ -52,17 +52,17 @@ class FakeCatalog(Catalog):
     """A small in-memory catalog: `KNOWN_OBJECTS` are known, everything else is unknown."""
 
     def __init__(self, objects: dict[str, tuple[str, ObjectClass]] | None = None) -> None:
-        self.objects = KNOWN_OBJECTS if objects is None else objects
+        self.known_objects = KNOWN_OBJECTS if objects is None else objects
 
     def lookup(self, object_type: str) -> ObjectInfo:
-        known = self.objects.get(object_type)
+        known = self.known_objects.get(object_type)
         if known is None:
             return ObjectInfo(object_type, object_type, "unknown", is_playable=False, is_known=False)
         name, cls = known
         return ObjectInfo(object_type, name, cls, is_playable=cls in AIR_CLASSES, is_known=True)
 
     def payload(self, aircraft_type: str, payload_id: int) -> PayloadInfo | None:
-        if payload_id < 0 or aircraft_type not in self.objects:
+        if payload_id < 0 or aircraft_type not in self.known_objects:
             return None
         return PayloadInfo(aircraft_type.lower(), payload_id, f"P{payload_id}", f"Payload {payload_id}")
 
