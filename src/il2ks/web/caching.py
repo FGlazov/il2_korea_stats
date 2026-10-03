@@ -9,9 +9,9 @@ of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public 
   revalidation is one tiny query for the version,
 - adds that ETag, `Cache-Control: public, max-age=60` and `Vary: HX-Request, Accept-Language` to 200 responses.
 
-Left alone: non-GET/HEAD, `/admin/`, media and static URLs, responses that set a cookie, that aren't 200, or that
-already carry their own `Cache-Control` (live fragments, FR-ING-12/15, manage their own freshness; they never get an
-ETag from us, so a client never revalidates them against the data version).
+Left alone: non-GET/HEAD, `/admin/`, `/setup/`, media and static URLs, responses that set a cookie, that aren't 200,
+or that already carry their own `Cache-Control` (live fragments, FR-ING-12/15, manage their own freshness; they never
+get an ETag from us, so a client never revalidates them against the data version).
 """
 
 import hashlib
@@ -65,7 +65,7 @@ def make_etag(request: HttpRequest, version: int) -> str:
 
 def _excluded_prefixes() -> tuple[str, ...]:
     static = "/" + settings.STATIC_URL.strip("/") + "/"
-    return ("/admin/", "/" + settings.MEDIA_URL.strip("/") + "/", static)
+    return ("/admin/", "/setup/", "/" + settings.MEDIA_URL.strip("/") + "/", static)
 
 
 def _matches(if_none_match: str, etag: str) -> bool:

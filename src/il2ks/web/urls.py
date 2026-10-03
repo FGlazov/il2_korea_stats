@@ -4,7 +4,7 @@ Paths are stable so shared links keep working (FR-WEB-13)."""
 
 from django.urls import URLPattern, path
 
-from il2ks.web.views import missions, players, sorties, styleguide
+from il2ks.web.views import missions, players, setup, sorties, styleguide
 
 app_name = "web"
 urlpatterns: list[URLPattern] = [
@@ -15,5 +15,6 @@ urlpatterns: list[URLPattern] = [
     path("players/<int:pk>/", players.player_detail, name="player-detail"),
     path("players/<int:pk>/sorties/", sorties.player_sorties, name="player-sorties"),  # ?aircraft=<GameObject pk>
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
+    path("setup/", setup.setup, name="setup"),  # first run only: local, token-gated, 404 once setup is done
     path("_styleguide/", styleguide.styleguide, name="styleguide"),  # DEBUG only: 404 otherwise
 ]

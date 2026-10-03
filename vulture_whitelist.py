@@ -141,6 +141,16 @@ _.store_id  # AType 25 TID (store-release tracking, planned with ordnance stats)
 _.rocket_id  # AType 26 TID (rocket tracking, planned with ordnance stats)
 _.editor_name  # core.catalog PayloadInfo.editor_name: payloads.csv column, kept for the payload display
 
+# --- first-run setup page (web.setup_forms, serving.djsettings): read by Django / the template by name -----------------
+_.clean_domain  # SetupForm clean_<field> hooks
+_.clean_admin_username
+logs_choice  # declared SetupForm fields, rendered by hand in templates/il2ks/setup.html and read from cleaned_data
+logs_custom
+logs_allow_missing
+admin_password2
+_.choices  # ChoiceField.choices, set per request to the time zone list
+redirect_exempt  # SecuritySettings -> SECURE_REDIRECT_EXEMPT in settings.py (excluded from the scan)
+
 # --- public API used by tests (and by the dev tools / future callers) --------------------------------------------
 parse_line  # core.logparse.parser: single-line parse; production uses parse_lines; tests use it for per-line cases
 FAKE_NAME_RE  # devtools.anonymize: the fixture check in tests/unit/test_anonymize.py matches names against it

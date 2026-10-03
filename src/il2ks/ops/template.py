@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from importlib.resources import files
 from pathlib import Path
 
@@ -67,3 +67,67 @@ def fill_template(text: str, values: Mapping[Key, str]) -> str:
     for table_name in dict.fromkeys(t for t, _ in unknown):
         lines += ["", f"[{table_name}]", *(f"{k} = {values[(t, k)]}" for t, k in unknown if t == table_name)]
     return "\n".join(lines) + "\n"
+
+
+_ANY_HEADER_RE = re.compile(r"(#?)\[([A-Za-z_][\w.]*)\]\s*(?:#.*)?")
+_ANY_SETTING_RE = re.compile(r"(#?)([A-Za-z_]\w*)\s*=")
+
+
+def patch_config(text: str, values: Mapping[Key, str], clear: Collection[Key] = ()) -> str:
+    """Change `values` (TOML literals) in an admin's existing config and switch the `clear` keys off; nothing else.
+
+    A key that has an active line (`key = old`) is rewritten there; one that only has its template line
+    (`#key = default`) is switched on there; one that has neither is added right under its table's header (a table that
+    is missing is appended, a top-level key goes in front of the first table). A cleared key's line is commented out
+    (`#key = old`). Used when the setup page finishes a config that already exists (it must not drop what the admin
+    added by hand), as opposed to `fill_template`, which starts from the template."""
+    lines = text.splitlines()
+    table = ""
+    active: dict[Key, int] = {}
+    switched_off: dict[Key, int] = {}
+    header_at: dict[str, int] = {}
+    first_active_header: int | None = None
+    for i, line in enumerate(lines):
+        header = _ANY_HEADER_RE.fullmatch(line)
+        if header is not None:
+            table = header.group(2)
+            header_at.setdefault(table, i)
+            if not header.group(1) and first_active_header is None:
+                first_active_header = i
+            continue
+        setting = _ANY_SETTING_RE.match(line)
+        if setting is not None:
+            target = switched_off if setting.group(1) else active
+            target.setdefault((table, setting.group(2)), i)
+
+    inserts: dict[int, list[str]] = {}
+    appended: dict[str, list[str]] = {}
+    for key, literal in values.items():
+        line = f"{key[1]} = {literal}"
+        table_name = key[0]
+        if key in active:
+            lines[active[key]] = line
+            continue
+        if table_name and table_name not in header_at:
+            appended.setdefault(table_name, []).append(line)
+            continue
+        if key in switched_off:
+            lines[switched_off[key]] = line
+        elif not table_name:
+            inserts.setdefault(len(lines) if first_active_header is None else first_active_header, []).append(line)
+        else:
+            inserts.setdefault(header_at[table_name] + 1, []).append(line)
+        if table_name and lines[header_at[table_name]].startswith("#"):
+            lines[header_at[table_name]] = lines[header_at[table_name]][1:]
+    for key in clear:
+        if key in active and key not in values:
+            lines[active[key]] = "#" + lines[active[key]]
+
+    out: list[str] = []
+    for i, line in enumerate(lines):
+        out.extend(inserts.get(i, []))
+        out.append(line)
+    out.extend(inserts.get(len(lines), []))
+    for table_name, new_lines in appended.items():
+        out += ["", f"[{table_name}]", *new_lines]
+    return "\n".join(out) + "\n"

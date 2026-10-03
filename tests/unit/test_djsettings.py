@@ -1,6 +1,7 @@
 """Django settings per mode (TD-11, TD-23, TD-28, NFR-SEC-2): the pure rules, and the settings module under test."""
 
 import dataclasses
+import re
 from pathlib import Path
 
 from django.conf import settings
@@ -124,3 +125,12 @@ def test_static_root_is_in_the_data_dir_and_the_storage_is_set() -> None:
 
 def test_staticfiles_w004_is_silenced_because_custom_static_may_not_exist() -> None:
     assert "staticfiles.W004" in settings.SILENCED_SYSTEM_CHECKS
+
+
+def test_only_the_setup_page_is_exempt_from_the_https_redirect(tmp_path: Path) -> None:
+    """It is opened on http://localhost:<port>/setup/ before any HTTPS exists; nothing else may skip the redirect."""
+    sec = djsettings.security_settings(make(tmp_path, domain="x.example.com"))
+    patterns = [re.compile(p) for p in sec.redirect_exempt]
+    paths = ("setup/", "setup/x", "admin/", "", "missions/", "xsetup/")
+    assert {path for path in paths if any(p.match(path) for p in patterns)} == {"setup/"}
+    assert djsettings.security_settings(make(tmp_path, debug=True)).redirect_exempt == ()

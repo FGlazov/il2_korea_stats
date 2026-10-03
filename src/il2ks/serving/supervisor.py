@@ -88,19 +88,27 @@ class Supervisor:
     grace_s: float = 15.0
     poll_s: float = 0.5
     on_change: Callable[[dict[str, int]], None] | None = None  # called with name -> PID whenever a child (re)starts
+    restart_when: Callable[[], bool] | None = None  # polled every tick; True = stop everything and return to the caller
     _states: list[_State] = field(init=False)
 
     def __post_init__(self) -> None:
         self._states = [_State(spec) for spec in self.specs]
 
-    def run(self) -> None:
-        """Supervise until `stop_event` is set, then stop every child."""
+    def run(self) -> bool:
+        """Supervise until `stop_event` is set (False) or `restart_when` says so (True), then stop every child.
+
+        True means "start over with fresh specs": `il2ks run` uses it when the configuration changed (setup page)."""
+        restart = False
         try:
             while not self.stop_event.is_set():
+                if self.restart_when is not None and self.restart_when():
+                    restart = True
+                    break
                 self.tick()
                 self.sleep(self.poll_s)
         finally:
             self.shutdown()
+        return restart
 
     def tick(self) -> None:
         """One pass: collect exits, schedule and perform (re)starts."""

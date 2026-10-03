@@ -1,0 +1,47 @@
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  The summary after a finished setup. Context: result, config_path, backup, logs_status, findings [FindingRow(tone, label,
+  title, detail, fix)], restarts_itself, site_address, mode, domain, timezone, username.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/setup.css' %}">{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% translate "Setup finished" %}</h1>
+    <p class="lead">{% translate "The settings are saved and the admin account exists. This setup page is now closed for good." %}</p>
+  </div>
+
+  <h2>{% translate "What was saved" %}</h2>
+  {% translate "Configuration file" as k_config %}{% translate "Time zone" as k_zone %}{% translate "Log folder" as k_logs %}{% translate "HTTPS" as k_https %}{% translate "Domain" as k_domain %}{% translate "Admin account" as k_admin %}
+  <dl class="kv">
+    <dt>{{ k_config }}</dt><dd class="mono">{{ config_path }}{% if backup %}<br><small>{% blocktranslate with path=backup %}Previous file kept as {{ path }}{% endblocktranslate %}</small>{% endif %}</dd>
+    <dt>{{ k_zone }}</dt><dd>{{ timezone }}</dd>
+    <dt>{{ k_logs }}</dt><dd>{% if logs_status %}<span class="mono">{{ logs_status.path }}</span>{% if logs_status.exists and logs_status.reports %}<br><small>{% blocktranslate count n=logs_status.reports %}{{ n }} mission report file found{% plural %}{{ n }} mission report files found{% endblocktranslate %}</small>{% endif %}{% else %}{% translate "not set" %}{% endif %}</dd>
+    <dt>{{ k_https }}</dt><dd>{% if mode == "caddy" %}{% translate "il2ks handles it with the bundled Caddy" %}{% else %}{% translate "your own web server" %}{% endif %}</dd>
+    <dt>{{ k_domain }}</dt><dd>{% if domain %}{{ domain }}{% else %}{% translate "none yet (test certificate)" %}{% endif %}</dd>
+    <dt>{{ k_admin }}</dt><dd>{{ username }} <small>({% if result.admin == "created" %}{% translate "created" %}{% else %}{% translate "password reset" %}{% endif %})</small></dd>
+  </dl>
+
+  <h2>{% translate "Next step" %}</h2>
+  {% if restarts_itself %}
+    {% notice "info" title=_("Restarting") %}{% translate "il2ks run is supervising the site: it notices the new settings and restarts everything in a few seconds. This page may stop answering for a moment. Then open the site below." %}{% endnotice %}
+  {% else %}
+    {% notice "warning" title=_("Restart il2ks") %}{% translate "The new settings only take effect after a restart. Stop il2ks (Ctrl+C in its window, or restart the Windows service or systemd unit) and start it again with: il2ks run" %}{% endnotice %}
+  {% endif %}
+  <ul>
+    {% if site_address %}<li>{% translate "The site, once it is back:" %} <a href="{{ site_address }}">{{ site_address }}</a></li>{% else %}<li><a href="{% url 'web:home' %}">{% translate "Open the site" %}</a></li>{% endif %}
+    <li><a href="{% url 'admin:login' %}">{% translate "Log in to the admin pages" %}</a> {% translate "(site name, logo, colours, hiding players)." %}</li>
+    <li>{% translate "Back up your data now and then: il2ks backup" %}</li>
+  </ul>
+
+  <h2>{% translate "Health check" %}</h2>
+  <p class="muted">{% translate "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart." %}</p>
+  <ul class="setup-findings">
+    {% for f in findings %}
+      <li class="setup-finding setup-finding--{{ f.tone }}">
+        {% badge f.label f.tone %} <strong>{{ f.title }}</strong>
+        {% if f.detail %}<div class="muted">{{ f.detail }}</div>{% endif %}
+        {% if f.fix %}<div>{{ f.fix }}</div>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

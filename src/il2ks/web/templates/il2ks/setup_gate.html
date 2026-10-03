@@ -1,0 +1,31 @@
+{% extends "il2ks/base.html" %}{% load i18n il2ks %}{% comment %}
+  What the setup page shows to a local visitor without a valid token. Context: state (need, wrong, locked, broken),
+  token_file (Path), problem (broken only), minutes (locked only). No form data and no secrets here.
+{% endcomment %}
+{% block nav %}{% endblock %}
+{% block content %}
+  <div class="page-head"><h1>{% translate "First-run setup" %}</h1></div>
+  {% if state == "locked" %}
+    {% notice "warning" title=_("Too many wrong tokens") %}{% blocktranslate with minutes=minutes %}Setup is locked for about {{ minutes }} minutes after several wrong tokens. Restarting il2ks also unlocks it.{% endblocktranslate %}{% endnotice %}
+  {% elif state == "broken" %}
+    {% notice "warning" title=_("The configuration does not load") %}{{ problem }}{% endnotice %}
+    <p>{% translate "Fix the setting named above in il2ks.toml, restart il2ks and open this page again." %}</p>
+  {% else %}
+    {% if state == "wrong" %}
+      {% notice "warning" title=_("That token is not right") %}{% translate "Check that you copied all of it. After several wrong tries this page locks for a while." %}{% endnotice %}
+    {% endif %}
+    <p class="lead">{% translate "To make sure it is really you, setup needs the one-time token that il2ks created for this installation." %}</p>
+    <article>
+      <p>{% translate "Where to find it:" %}</p>
+      <ul>
+        <li>{% translate "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead." %}</li>
+        <li>{% blocktranslate with path=token_file %}Or open this file and copy its content: {{ path }}{% endblocktranslate %}</li>
+      </ul>
+      <form method="get" action="{% url 'web:setup' %}">
+        <label for="token">{% translate "Setup token" %}</label>
+        <input type="text" name="token" id="token" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+        <div class="button-row"><button type="submit">{% translate "Continue" %}</button></div>
+      </form>
+    </article>
+  {% endif %}
+{% endblock %}
