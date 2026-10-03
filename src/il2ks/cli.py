@@ -7,6 +7,7 @@ Exit codes: 0 = done, 1 = done but some missions failed, 2 = usage or configurat
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import os
 import re
@@ -113,6 +114,10 @@ def _main(argv: Sequence[str] | None) -> int:
     if args and args[0] == "manage":
         # Pass everything after "manage" to Django (migrate, createsuperuser, ...).
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "il2ks.settings")
+        # A first `il2ks manage migrate` on a fresh machine: SQLite can't create the folder it lives in. Any problem
+        # here is left for Django to report in its own words.
+        with contextlib.suppress(ConfigError, OSError):
+            load_config(create_server_uid=False).data_dir.mkdir(parents=True, exist_ok=True)
         from django.core.management import execute_from_command_line
 
         execute_from_command_line(["il2ks manage", *args[1:]])

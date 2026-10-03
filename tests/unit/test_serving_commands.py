@@ -399,3 +399,10 @@ def test_pid_alive_knows_itself_and_a_dead_pid() -> None:
     assert procutil.pid_alive(os.getpid())
     assert not procutil.pid_alive(2147483000)
     assert not procutil.pid_alive(0)
+
+
+def test_manage_creates_a_missing_data_folder_so_a_first_migrate_can_create_the_database(env: Path) -> None:
+    """Regression: on a fresh machine `il2ks manage migrate` crashed because SQLite cannot create its folder."""
+    assert not (env / "data").exists()
+    assert main(["manage", "check"]) == EXIT_OK
+    assert (env / "data").is_dir()

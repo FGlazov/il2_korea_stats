@@ -1,11 +1,12 @@
 """The `il2ks.toml` configuration (TD-11, FR-OPS-2).
 
-Loaded once at startup by the CLI and passed in explicitly. No module reads it at import time (TD-11).
+Loaded once at startup by the CLI and passed in explicitly. The one module that loads it itself is `settings.py`:
+Django reads that by name, so it finds the same file through the environment (the CLI exports `IL2KS_CONFIG` and
+`IL2KS_DATA_DIR` for it and for child processes).
 
 Sources, later ones win: built-in defaults, the TOML file, `IL2KS_*` environment variables. Every setting has one env
-name:
-`IL2KS_<SECTION>_<KEY>` in upper case (`[logs] dir` -> `IL2KS_LOGS_DIR`); top-level keys drop the section
-(`data_dir` -> `IL2KS_DATA_DIR`). `settings.py` loads the same config for Django (see there). Lists in env vars are comma-separated.
+name: `IL2KS_<SECTION>_<KEY>` in upper case (`[logs] dir` -> `IL2KS_LOGS_DIR`); top-level keys drop the section
+(`data_dir` -> `IL2KS_DATA_DIR`). Lists in env vars are comma-separated.
 
 Which file: `--config`, else `IL2KS_CONFIG`, else `./il2ks.toml`, else `<data dir>/il2ks.toml`
 (data dir from `IL2KS_DATA_DIR` or
