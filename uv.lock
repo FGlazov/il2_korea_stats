@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 
 [[package]]
@@ -308,6 +308,7 @@ source = { editable = "." }
 dependencies = [
     { name = "django" },
     { name = "granian" },
+    { name = "tzdata" },
     { name = "whitenoise" },
 ]
 
@@ -328,6 +329,7 @@ dev = [
 requires-dist = [
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "granian", specifier = ">=2.0" },
+    { name = "tzdata", specifier = ">=2024.1" },
     { name = "whitenoise", specifier = ">=6.7" },
 ]
 
