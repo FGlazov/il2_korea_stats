@@ -82,3 +82,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-03 (disconnect = death only with damage in the last 2 min, any source; "explosion" never shown, ordnance name instead).
   2026-10-03 (explosion lines checked: 95% have no named ordnance line nearby, 99% come from ordnance carriers; labelling rule proposed).
   2026-10-03 (explosion lines never counted as hits; ordnance counted as damaged targets per detonation).
+  2026-10-03 (hits-to-destroy per aircraft type counts gun hits only; revisit if air-to-air missiles arrive).

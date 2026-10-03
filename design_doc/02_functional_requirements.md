@@ -111,7 +111,8 @@ detonation touches a median of 3 targets (p90 8, max 66) with 1–9 explosion li
   count for nothing.
 - Per ordnance type, the breakdown shows: **released** (AType 25/26), **detonations**, **targets damaged**, **kills**. Guns keep counting
   bullet and shell hit lines as hits.
-- Hits-to-destroy per aircraft type (above) uses damaging detonations for ordnance, and hit lines for guns. `[PROPOSED]`
+- Hits-to-destroy per aircraft type (above) counts **gun hits only** (bullet and shell hit lines) `[DECIDED]` (maintainer, 2026-10-03):
+  bombs and rockets almost never hit aircraft in Korea. Revisit if air-to-air missiles are added to the game.
 
 **Labelling rule for an explosion hit** `[PROPOSED]`, in order:
 1. A named ordnance or shell hit line from the same attacker within 1 s: use that ammo.
