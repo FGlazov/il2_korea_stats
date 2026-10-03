@@ -95,6 +95,7 @@ def _build_sortie(
         suspected_structural_failure=verdict.structural_failure,
         taxi_accident=verdict.taxi_accident,
         strafed_on_ground=verdict.strafed_on_ground,
+        ended_by_mission_end=verdict.ended_by_mission_end,
         kills_air=sum(1 for k in credited if k.victim_kind == "air"),
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),

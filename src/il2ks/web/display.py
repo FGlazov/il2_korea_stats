@@ -131,15 +131,14 @@ OUTCOMES: Mapping[str, BadgeSpec] = {
     "crashed": (gettext_lazy("Crashed"), "orange", "outcome/crashed"),
     "shot_down": (gettext_lazy("Shot down"), "red", "outcome/shot-down"),
     "in_flight": (gettext_lazy("In flight"), "teal", "outcome/in-flight"),
+    "airborne": (gettext_lazy("Airborne"), "teal", "outcome/in-flight"),  # in the air when the mission ended
     "not_taken_off": (gettext_lazy("Not taken off"), "grey", "outcome/not-taken-off"),
-    "mission_ended": (gettext_lazy("Mission ended"), "grey", "outcome/mission-ended"),
     "unknown": (gettext_lazy("Unknown"), "grey", "outcome/unknown"),
 }
 FATES: Mapping[str, BadgeSpec] = {
     "in_aircraft": (gettext_lazy("In aircraft"), "grey", ""),
     "bailed_out": (gettext_lazy("Bailed out"), "amber", "outcome/bailed-out"),
     "exited_on_ground": (gettext_lazy("Exited on ground"), "grey", "outcome/exited-on-ground"),
-    "mission_ended": (gettext_lazy("Mission ended"), "grey", "outcome/mission-ended"),
     # The flag is also set after landings and bailouts, so it never means "disconnected in flight".
     "disconnected": (gettext_lazy("Left the server"), "purple", "outcome/disconnected"),
     "unknown": (gettext_lazy("Unknown"), "grey", "outcome/unknown"),

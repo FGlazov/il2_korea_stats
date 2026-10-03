@@ -139,6 +139,7 @@ def sortie(
     ammo_left_after_loss: bool = False,
     taxi_accident: bool = False,
     strafed_on_ground: bool = False,
+    ended_by_mission_end: bool = False,
     combat_role: CombatRole | None = None,
     time_on_target_s: float | None = None,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
@@ -206,6 +207,7 @@ def sortie(
         ammo_left_after_loss=ammo_left_after_loss,
         taxi_accident=taxi_accident,
         strafed_on_ground=strafed_on_ground,
+        ended_by_mission_end=ended_by_mission_end,
         combat_role=combat_role,
         time_on_target_s=time_on_target_s,
     )

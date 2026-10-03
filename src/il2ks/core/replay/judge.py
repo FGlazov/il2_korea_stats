@@ -64,6 +64,7 @@ class Verdict:
     aircraft_status: AircraftStatus
     damage_taken: float
     cutoff_tick: int  # damage and hits after this tick don't belong to the sortie (the loss, the end, or AType 7 - 1)
+    ended_by_mission_end: bool  # the server force-ended the sortie at mission end (`outcome` is the state then)
     active_end_tick: int  # the sortie end, or the loss tick when the aircraft was destroyed first (flight stops there)
 
 
@@ -175,6 +176,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         aircraft_status=aircraft_status,
         damage_taken=damage_taken,
         cutoff_tick=damage_cutoff,
+        ended_by_mission_end=forced,
     )
 
 
@@ -194,8 +196,12 @@ def _outcome(
         return "shot_down" if attacker_cause else "crashed"
     if not off:
         return "not_taken_off"
-    if forced:
-        return "mission_ended"
+    mission_end = facts.first_mission_end
+    if forced and mission_end is not None:
+        # The aircraft's state when the mission ended: the cleanup after AType 7 is not part of the sortie
+        if airframe.airborne_at(mission_end):
+            return "airborne"
+        return _landed_or_ditched(sortie, facts, mission_end)
     if sortie.is_open:
         return "in_flight" if airframe.airborne else "landed"
     if sortie.airborne_at_end:

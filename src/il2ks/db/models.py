@@ -136,8 +136,8 @@ class Outcome(models.TextChoices):
     SHOT_DOWN = "shot_down"
     DITCHED = "ditched"
     IN_FLIGHT = "in_flight"
+    AIRBORNE = "airborne"  # still in the air when the mission ended
     NOT_TAKEN_OFF = "not_taken_off"
-    MISSION_ENDED = "mission_ended"
     UNKNOWN = "unknown"
 
 
@@ -145,7 +145,6 @@ class PilotFate(models.TextChoices):
     IN_AIRCRAFT = "in_aircraft"
     BAILED_OUT = "bailed_out"
     EXITED_ON_GROUND = "exited_on_ground"
-    MISSION_ENDED = "mission_ended"
     DISCONNECTED = "disconnected"
     UNKNOWN = "unknown"
 
@@ -361,6 +360,9 @@ class PlayerSortie(models.Model):
     resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
     taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
     strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
+    ended_by_mission_end = models.BooleanField(
+        default=False
+    )  # the server force-ended it; outcome = state at that moment
     # None for gunners (not "": a gunner has no role, which is different from an unknown one)
     combat_role = models.CharField(max_length=16, choices=CombatRole.choices, null=True)  # noqa: DJ001
     time_on_target_s = models.FloatField(null=True)  # attack sorties only
