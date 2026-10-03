@@ -100,3 +100,28 @@ def test_fire_after_the_sortie_ended_is_not_counted() -> None:
     sc.hit(150, 100, 301)
     a = by_acct(sc.result(), 1)
     assert (a.friendly_hits, a.friendly_damage) == (0, 0.0)
+
+
+def test_timeline_shot_down_counterpart_carries_the_killers_coalition() -> None:
+    """The timeline must be able to mark a friendly shoot-down: the killer's coalition equals the victim's."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.fly(600, 601, 4)  # D: same side as A
+    sc.hit(100, 100, 600)
+    sc.damage(100, 100, 600, 1.0)
+    sc.kill(101, 100, 600)
+    sc.end(101.1, 600, 601)
+    sc.damage(150, 200, 100, 1.0)
+    sc.kill(151, 200, 100)
+    sc.end(151.1, 100, 101)
+    sc.end(200, 200, 201)
+    result = sc.result()
+    a, d = by_acct(result, 1), by_acct(result, 4)
+    (friendly,) = [e for e in d.timeline if e.kind == "shot_down"]
+    assert friendly.counterpart is not None
+    assert (friendly.counterpart.sortie_index, friendly.counterpart.coalition) == (a.index, d.coalition)
+    (enemy,) = [e for e in a.timeline if e.kind == "shot_down"]
+    assert enemy.counterpart is not None
+    assert (enemy.counterpart.sortie_index, enemy.counterpart.coalition) == (by_acct(result, 2).index, 1)
+    assert enemy.counterpart.coalition != a.coalition

@@ -160,7 +160,7 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
     loss = verdict.loss
     killer = next((k for k in kills if k.victim_sortie_index == sortie.index and k.credit == "kill"), None)
     if killer is not None and killer.killer_type is not None:
-        counterpart = Counterpart(killer.killer_type, killer.killer_sortie_index)
+        counterpart = Counterpart(killer.killer_type, killer.killer_sortie_index, killer.killer_coalition)
     elif verdict.killer is not None:  # no KillResult names this sortie as victim (a gunner's), so use the verdict's
         counterpart = _counterpart(verdict.killer)
     else:

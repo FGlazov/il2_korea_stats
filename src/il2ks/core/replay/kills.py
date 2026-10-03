@@ -108,6 +108,7 @@ def _result(
     *,
     killer_index: int | None,
     killer_type: str | None,
+    killer_coalition: int | None,
     credit: KillCredit,
     via: KillVia,
     friendly: bool,
@@ -125,6 +126,7 @@ def _result(
         victim_sortie_index=victim.sortie.index if victim.sortie is not None else None,
         killer_sortie_index=killer_index,
         killer_type=killer_type,
+        killer_coalition=killer_coalition,
         credit=credit,
         via=via,
         is_friendly=friendly,
@@ -144,7 +146,15 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
         if not credited:
             if victim_index is not None:  # environment or self: the victim's death without credit
                 results.append(
-                    _result(victim, killer_index=None, killer_type=None, credit="kill", via=victim.via, friendly=False)
+                    _result(
+                        victim,
+                        killer_index=None,
+                        killer_type=None,
+                        killer_coalition=None,
+                        credit="kill",
+                        via=victim.via,
+                        friendly=False,
+                    )
                 )
             continue
         victim_coalition = victim.obj.coalition
@@ -158,6 +168,7 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
                     victim,
                     killer_index=killer_index,
                     killer_type=_killer_type(entry),
+                    killer_coalition=_party_coalition(entry),
                     credit="kill" if entry.is_killer else "assist",
                     via=victim.via if victim_index is not None else "direct",
                     friendly=friendly,
@@ -174,6 +185,7 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
                         victim,
                         killer_index=pilot.index,
                         killer_type=pilot.aircraft_type,
+                        killer_coalition=pilot.coalition,
                         credit="assist",
                         via="direct",
                         friendly=False,

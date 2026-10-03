@@ -165,6 +165,7 @@ class KillResult:
     via: KillVia
     is_friendly: bool
     pos: Pos | None
+    killer_coalition: int | None = None  # of the credited party; lets a timeline mark a friendly shoot-down
     victim_ground_category: GroundCategory | None = None  # ground victims only ("other" for an uncatalogued type)
     victim_is_static: bool = False
 
