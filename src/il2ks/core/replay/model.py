@@ -1,7 +1,8 @@
-"""Mutable replay state: tracked objects and in-progress sorties (TD-07).
+"""Mutable replay state: tracked objects, in-progress sorties and mission facts (TD-07).
 
-Everything here is internal to `core.replay`. Rules read these records at resolve time (`finish()` / `snapshot()`),
-so lookahead rules (bailout, structural failure, abandoned-aircraft credit) see the whole history of an object.
+Everything here is internal to `core.replay`. `Replay.feed()` only records facts into these records. Rules read them at
+resolve time (`finish()` / `snapshot()`), so lookahead rules (bailout, structural failure, abandoned-aircraft credit)
+see the whole history of an object.
 """
 
 import math
@@ -9,7 +10,8 @@ import re
 from dataclasses import dataclass, field
 
 from il2ks.core.catalog.loader import ObjectInfo
-from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
+from il2ks.core.logparse.events import AccountUuid, MissionStartEvent, ObjectId, Pos, ProfileUuid
+from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.result import AmmoCounts, Role, SpawnType
 
 _BLOCK_SUFFIX = re.compile(r"\[[^\]]*\]$")
@@ -38,7 +40,7 @@ def is_zero_pos(pos: Pos) -> bool:
 
 @dataclass(slots=True)
 class DamageRecord:
-    """One AType 2 line. `attacker` is resolved when the line is read (IDs can be reused later in a mission)."""
+    """One AType 2 line with damage > 0. `attacker` is resolved when the line is read (IDs can be reused later)."""
 
     tick: int
     attacker: "TrackedObject | None"  # None = environment / self (AID:-1)
@@ -69,6 +71,9 @@ class TrackedObject:
     sortie: "SortieState | None" = None
     pos: Pos | None = None  # last known position
     airborne: bool = False
+    flight_changes: list[tuple[int, bool]] = field(default_factory=list[tuple[int, bool]])  # AType 5/6, air spawns
+    takeoffs: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # AType 5
+    landings: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # AType 6
     damage_log: list[DamageRecord] = field(default_factory=list[DamageRecord])
     hit_log: list[HitRecord] = field(default_factory=list[HitRecord])
     destroyed_tick: int | None = None
@@ -102,6 +107,15 @@ class TrackedObject:
         if not is_zero_pos(pos):
             self.pos = pos
 
+    def airborne_at(self, tick: int) -> bool:
+        """Airborne state at `tick`, from AType 5/6 and air spawns (wheel events only drive the live flag)."""
+        state = False
+        for change_tick, airborne in self.flight_changes:
+            if change_tick > tick:
+                break
+            state = airborne
+        return state
+
 
 @dataclass(slots=True, eq=False)
 class SortieState:
@@ -128,11 +142,6 @@ class SortieState:
     ammo_loaded: AmmoCounts
     vehicle: TrackedObject  # PLID: the aircraft for a pilot, the turret for a gunner
     bot: TrackedObject  # PID: the pilot or gunner bot
-    takeoff_tick: int | None = None
-    landing_tick: int | None = None
-    takeoffs: int = 0
-    landings: int = 0
-    flight_changes: list[tuple[int, bool]] = field(default_factory=list[tuple[int, bool]])  # AType 5/6 (tick, airborne)
     end_tick: int | None = None
     end_aircraft_id: ObjectId | None = None  # AType 4 PLID; None = no AType 4 (yet)
     end_pos: Pos | None = None
@@ -140,7 +149,6 @@ class SortieState:
     airborne_at_end: bool = False
     ammo_left: AmmoCounts | None = None
     disconnect_ticks: list[int] = field(default_factory=list[int])  # AType 21 for this account while it was current
-    captured_pos: Pos | None = None  # last landing position, checked against enemy areas (TD-21)
 
     @property
     def airframe(self) -> TrackedObject:
@@ -163,3 +171,34 @@ def owner_sortie(obj: TrackedObject | None) -> SortieState | None:
         obj = obj.parent
         seen += 1
     return None
+
+
+type Party = SortieState | TrackedObject
+"""Who acted: a player sortie, or (for AI and the environment's machines) the root object of the actor."""
+
+
+def party_of(obj: TrackedObject) -> Party:
+    sortie = owner_sortie(obj)
+    return sortie if sortie is not None else obj.root
+
+
+@dataclass(slots=True)
+class MissionFacts:
+    """Everything `feed()` recorded about the mission so far."""
+
+    start: MissionStartEvent | None = None
+    countries: dict[int, int] = field(default_factory=dict[int, int])
+    log_version: int | None = None
+    last_tick: int = 0
+    mission_end_ticks: list[int] = field(default_factory=list[int])
+    winner: int | None = None
+    areas: dict[ObjectId, Area] = field(default_factory=dict[ObjectId, Area])
+    airfields: dict[ObjectId, Airfield] = field(default_factory=dict[ObjectId, Airfield])
+    sorties: list[SortieState] = field(default_factory=list[SortieState])
+    objects: list[TrackedObject] = field(default_factory=list[TrackedObject])  # every object ever created
+    destroyed: list[TrackedObject] = field(default_factory=list[TrackedObject])  # in AType 3 order
+    types_seen: dict[str, bool] = field(default_factory=dict[str, bool])  # normalized log name -> in catalog
+
+    @property
+    def first_mission_end(self) -> int | None:
+        return self.mission_end_ticks[0] if self.mission_end_ticks else None

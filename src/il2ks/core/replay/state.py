@@ -43,13 +43,14 @@ from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.model import (
     DamageRecord,
+    MissionFacts,
     HitRecord,
     SortieState,
     TrackedObject,
     is_bot_type,
     normalize_type,
 )
-from il2ks.core.replay.resolve import MissionFacts, resolve_mission
+from il2ks.core.replay.resolve import resolve_mission
 from il2ks.core.replay.result import AmmoCounts, MissionResult, SortieResult, SpawnType
 
 logger = logging.getLogger(__name__)
@@ -183,6 +184,7 @@ class Replay:
         )
         obj.set_parent(parent)
         self._objects[object_id] = obj
+        self._facts.objects.append(obj)
         return obj
 
     def _get(self, object_id: ObjectId) -> TrackedObject | None:
@@ -201,7 +203,9 @@ class Replay:
         object_type = normalize_type(event.object_type)
         parent = self._objects.get(event.parent_id) if event.parent_id not in (NO_OBJECT, event.object_id) else None
         existing = self._objects.get(event.object_id)
-        if existing is not None and existing.object_type in ("", object_type):
+        if existing is not None and (
+            existing.object_type in ("", object_type) or (existing.sortie is not None and existing.sortie.is_open)
+        ):
             if existing.object_type == "":
                 existing.object_type = object_type
                 existing.info = self._info(object_type)
@@ -221,7 +225,7 @@ class Replay:
         """AType 10: a new sortie. `ISPL:0` still is a player (player gunners log it, doc 12 samples)."""
         facts = self._facts
         aircraft_type = normalize_type(event.aircraft_type)
-        parent_aircraft = self._objects.get(event.parent_id) if event.parent_id != NO_OBJECT else None
+        parent_aircraft = self._get(event.parent_id)
         role = "gunner" if event.parent_id != NO_OBJECT or aircraft_type.lower().startswith("turret_") else "pilot"
         vehicle = self._fresh_for_sortie(event.aircraft_id, aircraft_type, event.country, parent_aircraft, bot=False)
         bot = self._fresh_for_sortie(event.bot_id, "", event.country, vehicle, bot=True)
@@ -231,7 +235,8 @@ class Replay:
             vehicle.set_parent(parent_aircraft)
         vehicle.update_pos(event.pos)
         spawn_type = _SPAWN_TYPES.get(event.in_air, "parking")
-        vehicle.airborne = spawn_type == "air"
+        if role == "pilot":
+            vehicle.airborne = spawn_type == "air"
         sortie = SortieState(
             index=len(facts.sorties),
             account_uuid=event.account_uuid,
@@ -255,9 +260,8 @@ class Replay:
             vehicle=vehicle,
             bot=bot,
         )
-        if spawn_type == "air":
-            sortie.takeoff_tick = event.tick
-            sortie.flight_changes.append((event.tick, True))
+        if spawn_type == "air" and role == "pilot":
+            vehicle.flight_changes.append((event.tick, True))
         vehicle.sortie = sortie
         bot.sortie = sortie
         facts.sorties.append(sortie)
@@ -324,24 +328,16 @@ class Replay:
         if obj is None:
             return
         self._on_wheels(tick, object_id, pos, airborne=True)
-        sortie = obj.sortie
-        if sortie is not None and sortie.is_open and sortie.vehicle is obj:
-            sortie.takeoffs += 1
-            if sortie.takeoff_tick is None:
-                sortie.takeoff_tick = tick
-            sortie.flight_changes.append((tick, True))
+        obj.takeoffs.append((tick, pos))
+        obj.flight_changes.append((tick, True))
 
     def _on_landing(self, tick: int, object_id: ObjectId, pos: Pos) -> None:
         obj = self._objects.get(object_id)
         if obj is None:
             return
         self._on_wheels(tick, object_id, pos, airborne=False)
-        sortie = obj.sortie
-        if sortie is not None and sortie.is_open and sortie.vehicle is obj:
-            sortie.landings += 1
-            sortie.landing_tick = tick
-            sortie.flight_changes.append((tick, False))
-            sortie.captured_pos = pos
+        obj.landings.append((tick, pos))
+        obj.flight_changes.append((tick, False))
 
     # --- combat -----------------------------------------------------------------------------------------------------
 
@@ -354,6 +350,8 @@ class Replay:
         target.hit_log.append(HitRecord(event.tick, self._get(event.attacker_id), event.ammo))
 
     def _on_damage(self, event: DamageEvent) -> None:
+        if event.damage <= 0:  # il2_stats ignored zero damage too (log bug)
+            return
         target = self._get(event.target_id)
         if target is None or target.destroyed_tick is not None:
             return  # Derived from il2_stats (MIT), see NOTICE: no damage after destruction
