@@ -170,7 +170,8 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
 
 ## Payloads (loadouts)
 - AType 10 carries `PAYLOAD:<id>`, a per-aircraft loadout index, and `WM:<bitmask>` (weapon modifications).
-- **`sample_data/korea_payloads.csv`** (added by the maintainer 2026-10-02) maps `(vehicle, payload_id)` to an editor name and a readable name
+- **`src/il2ks/core/catalog/data/payloads.csv`** (from the maintainer's `korea_payloads.csv`; may be redistributed, so it ships in the
+  repo since 2026-10-03, checked by `tests/unit/test_catalog_payloads.py`) maps `(vehicle, payload_id)` to an editor name and a readable name
   (for example `f-51d,9,HVAR-6,6 x HVAR 5" rockets`). It has 290 rows for 11 aircraft, including non-player types (B-29, C-47B, Li-2).
 - **Coverage on the samples: 99.3% of spawns resolve** once one alias is applied: the CSV calls the Sabre `f-86a`, but logs say `F-86A-5`.
   Match through the catalog's alias list, not by string equality. Unresolved: `Turret_IL10` (player gunners, no payload, expected) and
