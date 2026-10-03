@@ -95,6 +95,13 @@ How the website, the admin and the operations commands are built (iteration 1, p
   enemy type, top 10 pilots (≥ 5 sorties in the type, hidden players left out), hits to destroy per ammo, loadouts. Level-2
   `AircraftStats` / `AircraftMatchup` / `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). All-time only.
   Rules: OQ-65.
+- **Stat highlights** (FR-WEB-22, 2026-10-03, branch to merge): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90, linear
+  interpolation) per metric, all-time and per tour, over players with ≥ `[marks] min_sorties` (20) sorties, only when ≥ 20 pilots qualify;
+  recomputed per saved mission (a few ms) and by rebuild-aggregates. Percentiles, not mean + 2σ: the ratios are skewed with a floor at 0
+  and survival is capped at 100%. `{% stat_mark "key" %}` on the profile's ratios list: above p90 "Top 10%" (accent), above p75 "Top
+  25%" (muted), strict `>`; low values are never marked. Real data (216 pilots with ≥ 20 sorties, September 2026): survival p50 74% /
+  p90 87%; K/D p50 0.34 / p90 2.96; K/L 0.26 / 1.80; air kills per sortie 0.09 / 0.48, per hour 0.37 / 1.71; ground kills per sortie
+  2.9 / 13.7. +1 query on the profile. Rules: OQ-66.
 - **Tours on pages** (2026-10-03): `?tour=<Tour.pk>` on the profile (totals, tiles, ratios, ground kills, hall of shame, per-aircraft
   table and recent sorties follow it), the player sortie list and the mission list. No value or an unknown one means all time (200, so
   stale shared links keep working). Views use `queries.tours.tour_choice_from(request.GET)` (one query); templates use

@@ -81,7 +81,7 @@ the release gate.
 - 🔧 **Times in the viewer's local timezone** (FR-WEB-17), moved up from stretch (TD-15 as built; OQ-42..44). Done, merging.
 - 🔧 (done, merging; then `reprocess --all`) **Bailout rule v3** (FR-ING-14, doc 13 "as built"): test Rufus's two methods (ejection spawn with `PID:-1`, geometry with 200 m / 30 m above ground)
   against rule v2 on the sample missions and adopt what improves it (doc 13). Ships with the first public release (maintainer, 2026-10-03).
-- 🔧 Stretch, before the release: **stat highlights** (FR-WEB-22): a player's number stands out (tastefully) when it's unusually good
+- 🔧 (done, merging) Stretch, before the release: **stat highlights** (FR-WEB-22): a player's number stands out (tastefully) when it's unusually good
   compared with every player with enough sorties (for example above the 90th percentile); unusually bad gets a gentle hint at most,
   never shaming.
 

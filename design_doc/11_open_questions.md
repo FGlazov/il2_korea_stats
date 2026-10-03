@@ -156,6 +156,13 @@ Matchups count PvP pilot kill credits only (like Elo and the killboard). Top pil
 air kills (then fewer deaths). The list shows only types players flew (AI-only types, which used to show hits to destroy, are gone).
 Default sort: most sorties. Survival = sorties without a death; sorties without a role count as air superiority in the attack share.
 
+**OQ-66 Stat highlight rules** (FR-WEB-22; default applied)
+Metrics: survival, K/D, K/L, air kills per sortie and per hour, ground kills per sortie. Compared with pilots with ≥ 20 sorties (config),
+only when ≥ 20 pilots qualify; hidden players included. Two bands: **Top 10%** (above p90) and **Top 25%** (above p75); nothing for low
+values, ever. K/D and K/L of a pilot who never died or lost a plane show "—" and get no mark. Only the ratios list is marked, not the tiles.
+A pilot under the minimum sees "Ratios are compared with other pilots from 20 sorties on." With today's data, 87% survival or a K/D
+above 2.96 is "Top 10%" (doc 16 has the table).
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
