@@ -1,5 +1,6 @@
 """Resolve recorded facts into a `MissionResult`. Used by `snapshot()` (provisional) and `finish()` (final)."""
 
+from il2ks.core.replay.attack import GroundTargets, combat_role, time_on_target_s
 from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import was_resupplied
@@ -42,7 +43,9 @@ def _build_sortie(
     breakdown: tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]],
     friendly: FriendlyFire,
     rules: ReplayRules,
+    targets: GroundTargets,
 ) -> SortieResult:
+    role = combat_role(sortie)
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
     airframe = sortie.airframe
@@ -99,6 +102,12 @@ def _build_sortie(
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,
         resupplied=was_resupplied(takeoffs, landings, rules),
+        combat_role=role,
+        time_on_target_s=(
+            time_on_target_s(sortie, targets, rules, active_end_tick=verdict.active_end_tick)
+            if role == "attack"
+            else None
+        ),
     )
 
 
@@ -107,8 +116,9 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     kills = resolve_kills(facts, verdicts, rules)
     details = breakdowns(facts, verdicts)
     friendly = friendly_fire(facts, verdicts, kills)
+    targets = GroundTargets(facts, rules.tot_target_radius_m)
     sorties = tuple(
-        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules)
+        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets)
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )
     seen = frozenset(t for t in facts.types_seen if not is_bot_type(t))
