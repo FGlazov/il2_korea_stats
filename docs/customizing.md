@@ -109,6 +109,8 @@ the stats last changed), `il2ks_version`, and `page_title`.
 
 **Small building blocks** — `il2ks/components/*.html`: tables, badges, stat tiles, filters, pagination, notices. Each file
 starts with a comment that lists the variables it receives. Overriding one of these changes it on every page that uses it.
+"Online now" is two of them: `online_now.html` (the section that refreshes itself every few seconds) and
+`online_now_body.html` (the player table inside it, also what the `/live/` address returns).
 
 **Pages** — `il2ks/home.html`, `il2ks/missions/`, `il2ks/players/`, `il2ks/sorties/`, and the error pages `404.html` and
 `500.html` (the 500 page can't use your site settings: it must work even when the database doesn't).
