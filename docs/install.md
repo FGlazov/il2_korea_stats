@@ -200,6 +200,11 @@ journalctl -u il2ks -f            # follow the log
 (`sudo` may not find a tool installed by uv; `$(which il2ks)` hands it the full path.) The unit lets Caddy use ports 80
 and 443 without running as root.
 
+Run every other `il2ks` command (`doctor`, `backup`, `manage ...`) **as the service user**, e.g.
+`sudo -u il2ks il2ks doctor`, not with plain `sudo`. The database runs in WAL mode; a command run as root can leave
+root-owned `-wal` / `-shm` files next to it, and the service then fails with "attempt to write a readonly database".
+(If that already happened: stop the service and `sudo chown -R il2ks: <your data folder>`.)
+
 ## Upgrading
 
 Stop il2ks first, then upgrade, then start it again. (Windows keeps program files locked while they run, so upgrading
