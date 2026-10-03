@@ -104,11 +104,12 @@ def test_base_shows_branding_links_and_data_freshness(client: Client) -> None:
 def test_accent_colour_is_injected_only_when_valid(client: Client) -> None:
     SiteSettings.objects.create(pk=1, accent_color="#c0392b")
     assert "--il2-accent:#c0392b" in client.get("/").content.decode()
-    for bad in ["red", "#12345", "#abc}</style><script>alert(1)</script>", "url(x)"]:
+    # Stored values bypass the form here; they must fit the column (max_length 7): Postgres enforces it.
+    for bad in ["red", "#12345", "#a}<b>", "url(x)"]:
         SiteSettings.objects.filter(pk=1).update(accent_color=bad)
         html = client.get("/").content.decode()
         assert "--il2-accent:" not in html
-        assert "<script>alert" not in html
+        assert "}<b>" not in html
 
 
 @pytest.mark.django_db
