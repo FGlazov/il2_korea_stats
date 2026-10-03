@@ -61,7 +61,8 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
 - **Payloads**: 99.3% of sample spawns resolve. Missing payloads (new ones arrive with game updates) must never break a page: the sortie shows the
   raw payload ID (OQ-25 tracks extracting the rest). `payload_aliases.csv` becomes admin-overridable together with object names (it2, TD-24).
   **Rules never read the payload name**: the combat role uses the AType 10 ammo counts, which exist for every spawn (doc 13). They also show
-  that F-51D payloads 57–59 in `payloads.csv` look shifted by one row (OQ-25).
+  that F-51D payloads 54–58 in `payloads.csv` were shifted by one row: the editor list lacked `M29CLUS-2 + ATAR-6`; fixed 2026-10-03, ids
+  0–63 are now contiguous and a test keeps them so.
 
 ## Ingest jobs
 

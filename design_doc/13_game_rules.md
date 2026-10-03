@@ -48,7 +48,9 @@ Thresholds are `ReplayRules` fields (`core/replay/config.py`), settable in `[rep
 - **Mission end.** The server force-ends every running sortie right after AType 7. A sortie is **forced by mission end** when it has a
   *normal* AType 4 (the pilot was still in the aircraft, `PLID` ≠ 0) between the first AType 7 and 5 s after it
   (`mission_end_sortie_window_s`). A `PLID:0` end, or a removal without AType 4, near mission end is a real exit or disconnect, not forced.
-  For a forced sortie, destruction or death at or after AType 7 is the server's despawn cleanup, not combat, and is ignored.
+  For a forced sortie, destruction or death at or after AType 7 is the server's despawn cleanup, not combat, and is ignored, and so is
+  **damage** at or after AType 7 (`damage_taken`, wounded status, damage breakdown, hits received; 2026-10-03: the cleanup writes a 1.0
+  environment damage line, which had shown 105 surviving aircraft as fully damaged).
   A landed player sitting on the ground at mission end is forced too. Sorties still open at `finish()`: forced if AType 7 was seen, else
   left open (`in_flight` / `landed`, fate `unknown`).
 
@@ -90,8 +92,9 @@ Is it a gunner with an AType 18 (bailout event)?
 everything**; among 1,378 airborne `PLID:0` candidates the 100 m distance test only removes 9 (crash landings and mountain impacts), and any
 threshold from 25 to 100 m gives the same result ±9, so 100 m stays. Without the airborne gate, 373 ground exits would look like bailouts
 (the aircraft's last known position is stale after taxiing). A pilot position outside the map bounds (|x|, |z| > 1e6, y outside −1,000…20,000)
-counts as missing. In a live snapshot, a `PLID:0` end whose AType 16 hasn't arrived yet is pending, not `unknown`; at `finish()` a missing
-AType 16 falls back to the pilot's latest re-declaration position.
+counts as missing. In a live snapshot, a `PLID:0` end whose AType 16 hasn't arrived yet is pending (fate `in_aircraft / inferred`, like an open sortie, so no
+transient false loss); at `finish()` a missing AType 16 falls back to the pilot's AType 12 re-declaration position within
+`pilot_pos_fallback_window_s` (5 s) of the sortie end, else the final position is unknown.
 Rule: `PLID:0`, and the aircraft was airborne (at its destruction, else at sortie end), and the pilot's final position
 is ≥ 100 m from the aircraft's last known position, and the pilot didn't die within 0.5 s of the aircraft. "Last known position" = the AType 3
 position if destroyed, else the latest position recorded for the aircraft (spawn, damage, kill, wheels, takeoff, landing, re-declaration).
@@ -178,6 +181,15 @@ Was the aircraft lost (is_plane_lost)?
 - **Victims**: every destroyed object except crew, equipment (parachutes, ejection seats, spotters, vehicle turrets), gunner turrets and
   ordnance. **Static objects count as
   ground kills** (maintainer: keep everything, score them low later).
+- **Ground-kill categories** `[DECIDED]` (OQ-33, 2026-10-03): every ground object in the catalog has a category, shown as a collapsible
+  breakdown next to the total: `tank`, `vehicle` (trucks, cars, halftracks, tractors, rocket launchers), `artillery`, `aaa` (incl. flak
+  cars), `ship` (incl. static ships and boats), `train` (locomotives, wagons, static wagons), `building` (barracks, hangars, warehouses,
+  factories, bridges, towers, radars, depots, storage tanks), `parked_aircraft`, `other` (fences, crate and barrel yards, logs, camo nets,
+  small fuel tanks, carts, equipment, decorations). **Static vs. moving is a separate axis**: a static truck is a `vehicle` and static.
+  Unknown ground types count as `other`, not static. The categories always sum to the ground-kill total (tested), and
+  `kills_ground_static` counts the static ones. Samples: other 50.8%, building 27.6%, vehicle 13.0%, aaa 3.5%, train 2.8%, parked aircraft
+  0.8%, tank 0.6%, ship 0.6%, artillery 0.2%; **91.6% of ground kills are static objects** (the top player: 6,990 ground kills, 6,673
+  static). Judgement calls to review: ammo storage is `other`, storage tanks and cisterns are `building`.
 - **Coverage**: a kill record exists for every kill with a player on at least one side, PvE included (FR-WEB-21). AI-vs-AI is dropped. Only
   PvP becomes a `Kill` row; the rest feeds sortie counters and timelines.
 - **Gunners** `[PROPOSED]` (2026-10-03):
@@ -212,6 +224,10 @@ Was the aircraft lost (is_plane_lost)?
   `resupplied`, and "ammo used" is unknown for it (hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
   "Used" is also unknown for bombs when "left" exceeds "loaded" (IL-10 bomblet payloads count stations when loaded and bomblets when left).
   About 2% of sorties take off more than once.
+- **Ammo left after a loss** `[PROPOSED]` (2026-10-03): when the sortie ended more than `ammo_left_after_loss_s` (1 s) after its aircraft
+  was destroyed (the pilot bailed out, climbed out or disconnected later), AType 4's "left" is unreliable (unfired stores read as zero in
+  20–60% of such cases, and in all 107 checked bailouts and ground exits with unreleased stores), so "used" is unknown for all types
+  (2,807 sample sorties). When the pilot died with the aircraft (AType 4 within 1 s), "left" is right about 90% of the time and is used.
 
 ## Combat role, time on target and ratings
 

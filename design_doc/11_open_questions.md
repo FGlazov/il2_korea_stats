@@ -19,6 +19,19 @@ OQ-34 (insignia) is answered: neutral emblems by default, real insignia per coun
 
 OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
+**OQ-36 A disconnect long after the aircraft was destroyed: a loss?** (Claude's default applied unless you object)
+10 sample sorties end with the player's removal (no AType 4) 131–683 s after their aircraft was destroyed in the air, mostly by the
+environment: the pilot crashed, stayed in the game for minutes, then left. FR-ING-21 only counts a disconnect as a death with damage in the
+120 s before it, so today these show "no loss" although the aircraft was destroyed. **Default (gut call):** a destruction that happens
+**before** the disconnect is a normal loss of that sortie (crashed / shot down by cause, and a death unless the pilot is known to have
+left the aircraft); the 120 s rule only decides about aircraft abandoned *by* the disconnect. Small change, to be implemented with the next
+replay batch.
+
+**OQ-37 Ship Tabler Icons (MIT) as the placeholder icon set now?** (Claude's default applied unless you object)
+The icon research (doc 16) found Tabler Icons covers almost every slot in doc 15 under the same licence as the project (only a copyright
+line in NOTICE). **Default:** replace the hand-drawn placeholders with Tabler icons now (aircraft silhouettes, artillery, AA, logo and the
+header texture stay our own drawings), so the site looks finished until the designer delivers.
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
@@ -26,10 +39,7 @@ Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recor
 reachable from the server machine, and can its object IDs be mapped to log object IDs? This only matters for a future flight-path map (TD-08).
 
 **OQ-25 Payload data: weapon mods and gaps** (owner: maintainer, will extract the remaining payloads)
-Is there a source for `WM` weapon-modification names, like the payload file? Payload 59 for the F-51D is missing from the payload file (0.7%
-of spawns don't resolve). **Also check F-51D payloads 57–59**: the logged ammo says 57 = 2 bombs + 4 rockets, 58 = 2 bombs + 6 rockets, 59 =
-4 rockets only, but the CSV names 57 "napalm + 6 ATAR" and 58 "75 gal drop tanks + 4 ATAR", so the rows look shifted by one (likely 57 =
-napalm + 4 ATAR, 58 = napalm + 6 ATAR, 59 = drop tanks + 4 ATAR). Only displayed names are affected; no rule reads them. Pages must keep working with unknown payloads (they show the raw ID). (Redistribution is settled: the payload file
+Is there a source for `WM` weapon-modification names, like the payload file? Unknown payloads still occur after game updates. (The F-51D 54–58 row shift is fixed.) Pages must keep working with unknown payloads (they show the raw ID). (Redistribution is settled: the payload file
 ships in the repo, doc 12.)
 
 **OQ-1 Config keys that enable text logs in Korea's DServer `startup.cfg`** (owner: maintainer, will ask server operators)

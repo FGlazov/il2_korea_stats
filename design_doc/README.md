@@ -39,6 +39,7 @@ Every requirement and decision carries one of these tags (they're easy to grep):
 | [13_game_rules.md](13_game_rules.md) | **Replay rulebook**: objects, sortie scope, pilot fate and outcome decision trees, loss and death, kill credit, gunners, friendly fire, resupply |
 | [14_ingest_internals.md](14_ingest_internals.md) | Parser, catalog, ingest jobs (config, discovery, archive, lock, CLI) and persistence as implemented |
 | [15_visual_assets.md](15_visual_assets.md) | **Designer brief**: icons, images and textures the site uses (placeholders until a designer makes them), with file names, sizes and priorities |
+| [16_web_and_operations.md](16_web_and_operations.md) | Web foundation, admin, caching, serving (settings, `web`/`run`, Caddy), `custom/` overrides, setup/doctor/backup, packaging: **as built** |
 
 Real sample logs live in `../sample_data/`. They're gitignored and contain player data: **never commit them**.
 
@@ -93,3 +94,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-03 (OQ-27..32 answered: combat role by loadout, time on target from releases near enemy ground objects, prop/jet Elo computed at
   ingest, 300 s post-end window with a ground and gunner guard, taxi accidents and strafed-on-ground counters, gunner credit rule deferred;
   roadmap: ingestion part of iteration 1 done, frontend next).
+  2026-10-03 (frontend/ops round: doc 16 as built; OQ-33..35 answered (ground-kill categories, neutral emblems + optional insignia, hiding is
+  presentation only); AType 16 research; ground-kill categories and replay fixes in doc 13; new OQ-36, OQ-37; roadmap with status markers).
