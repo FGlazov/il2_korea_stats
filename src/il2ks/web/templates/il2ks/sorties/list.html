@@ -1,7 +1,7 @@
-{# il2ks-template: templates/il2ks/sorties/list.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/list.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's sortie list (FR-WEB-5), newest first. Filters, sorting and paging work with and without htmx (results_region).
-  Context: player, page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
+  Context: player, tour_options ((id, title) pairs for ?tour=), page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
   aircraft_options / outcome_options / role_options / combat_role_options ((value, label) pairs), crumbs, page_title.
   Blocks: content only; the row is `sorties/parts/list_row.html`.
 {% endcomment %}
@@ -15,6 +15,7 @@
 
   {% results_region %}
     {% filter_bar %}
+      {% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}
       {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
       {% filter_select "outcome" _("Outcome") outcome_options all_label=_("Any outcome") %}
       {% filter_select "role" _("Seat") role_options all_label=_("Pilot or gunner") %}

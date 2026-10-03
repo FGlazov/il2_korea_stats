@@ -4,12 +4,13 @@ Hiding (FR-ADM-3): every read starts from `Player.objects.visible()`, so a hidde
 search nor reachable by URL. Ratios are not computed here; the templates derive them from the stored counters.
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
 
-from il2ks.db.models import Player, PlayerAircraft, PlayerName, PlayerSortie, Role
+from il2ks.db.models import Player, PlayerAircraft, PlayerName, PlayerSortie, PlayerTourAircraft, Role, Tour
+from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = 50
 RECENT_SORTIES = 10
@@ -99,15 +100,21 @@ def past_names(player: Player) -> list[PlayerName]:
     return list(PlayerName.objects.filter(player=player).order_by("-last_seen", "name_lower"))
 
 
-def aircraft_rows(player: Player, sort: str) -> list[PlayerAircraft]:
-    """The per-aircraft table: one row per aircraft type the player has flown as pilot."""
-    rows = PlayerAircraft.objects.filter(player=player).select_related("aircraft")
+def aircraft_rows(player: Player, sort: str, tour: Tour | None = None) -> Sequence[PlayerAircraft | PlayerTourAircraft]:
+    """The per-aircraft table: one row per aircraft type the player has flown as pilot, all-time or in `tour`."""
+    rows = (
+        PlayerAircraft.objects.filter(player=player).select_related("aircraft")
+        if tour is None
+        else player_tour_aircraft(player.pk, tour)
+    )
     return list(rows.order_by(_order(sort, AIRCRAFT_SORTS), "pk"))
 
 
-def recent_sorties(player: Player, limit: int = RECENT_SORTIES) -> list[PlayerSortie]:
-    """The latest sorties by spawn time, any role; the mission and aircraft come along in the same query."""
+def recent_sorties(player: Player, limit: int = RECENT_SORTIES, tour: Tour | None = None) -> list[PlayerSortie]:
+    """The latest sorties by spawn time, any role (of `tour` when given); mission and aircraft come along."""
     rows = PlayerSortie.objects.filter(player=player).select_related("mission", "aircraft")
+    if tour is not None:
+        rows = rows.filter(mission__tour=tour)
     return list(rows.order_by("-spawned_at", "-pk")[:limit])
 
 

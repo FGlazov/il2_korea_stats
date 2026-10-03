@@ -5,7 +5,7 @@ its template, and server owners may override any of them (TD-25). Tags that need
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
 Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent, mission_title, game_when,
-clock_since; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name` directly).
+clock_since, tour_title; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name`).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
 pagination, filter_select, filter_text, tour_select.
@@ -28,6 +28,7 @@ from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
 
 from il2ks.db.models import Tour
+from il2ks.queries import tours as tour_reads
 from il2ks.web import display, icons, object_names
 from il2ks.web.display import SortFirst, Tone
 
@@ -124,6 +125,13 @@ def clock_since(when: datetime | None, start: datetime | None) -> str:
 def game_when(mission: object) -> str:
     """{{ mission|game_when }} -> '1951-09-15 13:00': the in-game date and time of a mission (not real time)."""
     return display.game_when(str(getattr(mission, "game_date", "")), str(getattr(mission, "game_time", "")))
+
+
+@register.filter
+def tour_title(tour: Tour | str) -> str:
+    """{{ tour|tour_title }}: the tour's name in the viewer's language ("October 2026" -> "Oktober 2026"; a title an
+    admin renamed stays as written)."""
+    return tour_reads.tour_title(tour if isinstance(tour, str) else tour.title)
 
 
 @register.filter
@@ -390,7 +398,7 @@ def filter_text(
 def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None = None) -> dict[str, object]:
     """{% tour_select tours tour %}: the tour selector (`?tour=<id>`, "All time" = no parameter), TD-26.
 
-    `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice(request.GET.get("tour"))`."""
+    `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice_from(request.GET)`."""
     request = _request_of(context)
     params = _params_of(context)
     hidden = [(key, value) for key, values in params.lists() if key not in {"tour", "page"} for value in values]

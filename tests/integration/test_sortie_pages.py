@@ -26,7 +26,7 @@ from tests.simple_reads import assert_simple_reads
 pytestmark = pytest.mark.django_db
 
 DETAIL_BUDGET = 2 + 5  # site context processor + sortie, kills made, kills suffered, counterpart sorties, game objects
-LIST_BUDGET = 2 + 4  # site context + player, aircraft choices, count, page
+LIST_BUDGET = 2 + 5  # site context + player, aircraft choices, tours (selector), count, page
 
 
 def pk_of(player: int, spawn_tick: int | None = None) -> int:

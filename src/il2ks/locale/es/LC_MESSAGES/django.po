@@ -805,6 +805,9 @@ msgstr ""
 "No habrá más reintentos automáticos. Se reintentan cuando cambian sus archivos o la versión de il2ks, o ejecuta "
 "`il2ks reprocess --mission UID` tras corregir la causa."
 
+msgid "No pilot sorties are counted for this player in the selected tour."
+msgstr ""
+
 msgid "No pilot sorties are counted for this player yet."
 msgstr ""
 
@@ -819,6 +822,9 @@ msgid "No players yet."
 msgstr ""
 
 msgid "No qualifying attack"
+msgstr ""
+
+msgid "No sorties in this tour"
 msgstr ""
 
 msgid "No sorties match these filters."
@@ -1310,6 +1316,10 @@ msgid "Total"
 msgstr ""
 
 msgid "Tour"
+msgstr ""
+
+#, python-format
+msgid "Tour %(number)s"
 msgstr ""
 
 msgid "Tours start by themselves unless [tours] mode is manual."
