@@ -1,0 +1,58 @@
+/* il2ks-template: static/il2ks/sorties.css v1 - copy this line along when you override */
+/*
+ * Sortie pages: the player's sortie list and the sortie report (templates il2ks/sorties/*).
+ * Uses the tokens of site.css; loaded from the pages' `head` block so it can be overridden on its own (TD-25).
+ */
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Sortie list */
+.sortie-list th, .sortie-list td { padding-inline: 0.45rem; }
+.sortie-list td:last-child, .sortie-list th:last-child { padding-inline-start: 0; }
+.sortie-list .cell-mission { max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sortie-list .badge { font-size: 0.7rem; }
+
+/* Report header */
+.sortie-head {
+  display: flex; align-items: center; gap: 1.5rem; margin: 0 0 1.5rem; padding: 1.2rem 1.5rem;
+  background: var(--il2-surface); border: 1px solid var(--il2-border); border-left: 4px solid var(--il2-accent);
+  border-radius: var(--il2-radius); box-shadow: 0 1px 2px var(--il2-shadow-color);
+}
+.sortie-head__mark { flex: none; color: var(--il2-border-strong); }
+.sortie-head__icon { width: 5rem; height: 5rem; }
+.sortie-head__main { min-width: 0; }
+/* Names are shown as written: capitals would turn a zero into an O. */
+.sortie-head h1 { margin: 0; font-size: 2.4rem; overflow-wrap: anywhere; text-transform: none; letter-spacing: 0.01em; }
+.sortie-head h1 a { color: var(--il2-heading); text-decoration: none; }
+.sortie-head h1 a:hover { color: var(--il2-primary); }
+.sortie-head p { margin: 0.25rem 0 0; }
+.sortie-head__craft { font-family: var(--il2-font-display); font-size: 1.35rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--il2-text); }
+.sortie-head__craft small { font-family: system-ui, sans-serif; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 0.85rem; }
+.sortie-head__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.6rem !important; }
+.sortie-head__where { color: var(--il2-muted); font-size: 0.9rem; margin-top: 0.6rem !important; }
+
+/* A counterpart: name, then the aircraft with its icon */
+.who { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.55em; }
+.who__craft { color: var(--il2-muted); white-space: nowrap; }
+.who__craft .icon { margin-inline-end: 0.3em; vertical-align: -0.25em; }
+.who__craft a { color: inherit; }
+
+/* Folded sections */
+.more { margin: 0 0 1rem; }
+.more > summary { margin-bottom: 0.6rem; font-size: 0.9rem; }
+
+/* Timeline */
+.timeline__event { display: inline-flex; align-items: center; gap: 0.5em; font-weight: 600; }
+.timeline__event .icon { width: 1.25em; height: 1.25em; color: var(--il2-muted); }
+.timeline__row--good .timeline__event .icon { color: light-dark(#17803d, #5dd08c); }
+.timeline__row--bad .timeline__event .icon { color: light-dark(#b42323, #f07c7c); }
+.timeline__row--warn .timeline__event .icon { color: light-dark(#946200, #ecbb4a); }
+.timeline__row--bad td { background: color-mix(in srgb, light-dark(#b42323, #f07c7c) 7%, transparent) !important; }
+.timeline__group { margin: 0; }
+.timeline__group > summary { margin: 0; font-size: inherit; }
+.timeline__group ul { margin: 0.5rem 0 0.2rem; padding: 0; list-style: none; columns: 2 18rem; }
+.timeline__group li { margin: 0; padding: 0.1rem 0; break-inside: avoid; }
+.timeline-note { margin-top: 0.4rem; }

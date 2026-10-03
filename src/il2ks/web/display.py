@@ -63,6 +63,15 @@ def utc(value: datetime | None) -> str:
     return DASH if value is None else _as_utc(value).strftime("%Y-%m-%d %H:%M UTC")
 
 
+def mission_name(mission_file: object) -> str:
+    """'Multiplayer/Dogfight\\Alonzo\\The_Sinuiju_Bridges_1951\\Bridges.msnbin' -> 'Bridges' (a Windows path).
+
+    The scenario's file name without folders and extension, underscores as spaces; the dash when there is none."""
+    text = "" if mission_file is None else str(mission_file)
+    base = re.split(r"[\\/]", text)[-1].rsplit(".", 1)[0].replace("_", " ").strip()
+    return base or DASH
+
+
 def utc_date(value: datetime | None) -> str:
     """'2026-09-19', the UTC date only."""
     return DASH if value is None else _as_utc(value).strftime("%Y-%m-%d")

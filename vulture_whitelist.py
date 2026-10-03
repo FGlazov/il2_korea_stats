@@ -178,3 +178,12 @@ _.missions_missing
 _.reprocess_last  # web.ingest_status.IngestOverview: read by templates/admin/il2ks_ingest_status.html
 __call__  # ingest.reprocess_requests.ReprocessFn: a Protocol, `reprocess` and the test fakes satisfy it
 _.matched_name  # queries.players.PlayerHit: read by the player search template ("also known as")
+# --- web.sortie_view view models: fields read only by the sortie templates (il2ks/sorties/*) ---------------------
+_.share  # GroundRow: the breakdown table
+_.static_share  # GroundBreakdown: the accordion hint
+_.used_unknown  # AmmoTable: notices.html and ammo.html
+_.place  # TimelineRow: tooltip with the position
+_.air_kills  # Detail: kills.html
+_.damage_more  # Detail: damage.html
+_.timeline_more  # Detail: timeline.html
+_.timeline_events  # Detail: timeline.html
