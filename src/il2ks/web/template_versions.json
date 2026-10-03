@@ -1,0 +1,117 @@
+{
+  "format": 1,
+  "files": {
+    "static/il2ks/il2ks.js": {
+      "version": 1,
+      "sha256": "49fc04710cb70a4f5b1627d4877acdfac60b392a0a4da33e8e48c03aa2098c90"
+    },
+    "static/il2ks/site.css": {
+      "version": 1,
+      "sha256": "b91d84bc3fc640f44e4eba5c657d5bfba8f703ddb1b602902b2ac1d329ae6b27"
+    },
+    "static/il2ks/theme-init.js": {
+      "version": 1,
+      "sha256": "dbb085cb12309ed6e7e59cfd076e3afafb6b6ede627c5105fe18c622311fb59f"
+    },
+    "static/il2ks_admin/accent_picker.js": {
+      "version": 1,
+      "sha256": "43a7ab96888d14c4dbc76784aebbb1737782d5b06af3d7eeb732d70578fbe994"
+    },
+    "static/il2ks_admin/ingest_status.css": {
+      "version": 1,
+      "sha256": "c01c723bae95ea746a01be1604094b3565439ae73867c8bf64575988090c3ec5"
+    },
+    "templates/404.html": {
+      "version": 1,
+      "sha256": "95fa026a6881aee35e08264596aa60055119961e693052912a0bc9edf03b225c"
+    },
+    "templates/500.html": {
+      "version": 1,
+      "sha256": "1744285361603d6983c09e78d1c0ef068d02bc64c7eef09241e81a2b76dd65b0"
+    },
+    "templates/admin/base_site.html": {
+      "version": 1,
+      "sha256": "39c66546df24ea680d3ad04c680e7560bda8ee3e3ce9c7264cddaca3a92afc6b"
+    },
+    "templates/admin/il2ks_index.html": {
+      "version": 1,
+      "sha256": "c0dd7a85e0953ccee1eb576c42211f1f1a4a7eadb729f285901bf7d7b62c36b8"
+    },
+    "templates/admin/il2ks_ingest_status.html": {
+      "version": 1,
+      "sha256": "6aa01778e8353f95576c1043e6d52ac84878c428400209813d0e16aa23a3dcf9"
+    },
+    "templates/il2ks/base.html": {
+      "version": 1,
+      "sha256": "07dd7b4f27701bba5ffe5dfe4c8ea48105dc29ae51a30b0d5f88709f1ad62a35"
+    },
+    "templates/il2ks/components/accordion.html": {
+      "version": 1,
+      "sha256": "80cff7cf97c21bacd3f37c652613c1a7884c9597b4bc8d439827a02b9f7de4f5"
+    },
+    "templates/il2ks/components/badge.html": {
+      "version": 1,
+      "sha256": "52d30f18e664988b755a8112077f449482d3323d0cbf8322b6117c705333699b"
+    },
+    "templates/il2ks/components/breadcrumbs.html": {
+      "version": 1,
+      "sha256": "5fd54228497913868dd5a90f3987c76f630e4c906926813b50069838b498d68e"
+    },
+    "templates/il2ks/components/dropdown.html": {
+      "version": 1,
+      "sha256": "284a752cb8b877160c4975d9e8a7a2551bba57e4ce35d598e7b8abc5e3f12364"
+    },
+    "templates/il2ks/components/empty_row.html": {
+      "version": 1,
+      "sha256": "ba0a928a8909d1b7719ba836603acf880fbbe4a4c17fbe64f662e16b4c2d68dc"
+    },
+    "templates/il2ks/components/filter_bar.html": {
+      "version": 1,
+      "sha256": "bbe62672cbe19b50a19300ae69c0db6e8baf4552d98e252cd9209f94a331bb62"
+    },
+    "templates/il2ks/components/filter_select.html": {
+      "version": 1,
+      "sha256": "3ae93b082ff2e888b1c6ff87e826d06b7361010e3986ebea54733ca863b1e4e4"
+    },
+    "templates/il2ks/components/filter_text.html": {
+      "version": 1,
+      "sha256": "661eb1784d4dbca9f00d803d7541685414b59b9a88d1f6391b9bebf022a35f21"
+    },
+    "templates/il2ks/components/kv_list.html": {
+      "version": 1,
+      "sha256": "32a7fce482dddf36d712e99dd58956e25829f49fa949905961bd20fd33fcc1a5"
+    },
+    "templates/il2ks/components/notice.html": {
+      "version": 1,
+      "sha256": "762d34c09a01acbbb3124e4f0a5f217332feb5cae6bbc85eb82a54bb7d3d9a59"
+    },
+    "templates/il2ks/components/pagination.html": {
+      "version": 1,
+      "sha256": "87422db620ed26d8559374dffb3ddf06d3daa60d3afdb9af649ef3f98830a86c"
+    },
+    "templates/il2ks/components/results_region.html": {
+      "version": 1,
+      "sha256": "5846925db5109d6763a471deda71e5cc2e3badab3b5c57aa5d7ad1fbad65f339"
+    },
+    "templates/il2ks/components/sort_th.html": {
+      "version": 1,
+      "sha256": "30557119a0562ff24b08e0502d6e766938a2d06dbbfb64a25e6f0b50e6d03ea1"
+    },
+    "templates/il2ks/components/stat_tile.html": {
+      "version": 1,
+      "sha256": "35019371b214c3f264a89fc1495fee6d676e917e6ce6c09402dd9665b906888b"
+    },
+    "templates/il2ks/home.html": {
+      "version": 1,
+      "sha256": "6dd0dc4c73e8fbc86859719c56e947c63bf9bd25a576101d93134ce5958cc7c2"
+    },
+    "templates/il2ks/stub.html": {
+      "version": 1,
+      "sha256": "7d55f87db32a76c324ba1c75055b106a8dc1a20af35f2cd2c06cc37a55739f85"
+    },
+    "templates/il2ks/styleguide.html": {
+      "version": 1,
+      "sha256": "72ea04e9c9f67662bb76c65201e18617b8fb976b0430c8a0d0d7a7e77356b718"
+    }
+  }
+}

@@ -82,9 +82,13 @@ def add_parsers(sub: SubParsers) -> None:
     copy = actions.add_parser("copy", help="copy a built-in template or static file into custom/ to edit it")
     copy.add_argument("path", help="like il2ks/home.html or static/css/site.css (`custom list --builtin` shows all)")
     copy.add_argument("--force", action="store_true", help="replace your existing override with a fresh copy")
-    lst = actions.add_parser("list", help="your overrides and whether the original changed since you copied it")
+    lst = actions.add_parser("list", help="your overrides and whether they are based on the current built-in version")
     lst.add_argument("--builtin", action="store_true", help="list the built-in files you can override instead")
-    accept = actions.add_parser("accept", help="you checked an override against the changed original: stop warning")
+    diff = actions.add_parser("diff", help="show how an override differs from the built-in file it replaces")
+    diff.add_argument("path", help="like il2ks/home.html or static/css/site.css")
+    accept = actions.add_parser(
+        "accept", help="you brought an override up to date with the changed built-in file: stop warning"
+    )
     accept.add_argument("path")
 
 
@@ -165,6 +169,7 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
         return EXIT_OK
     if host not in {"127.0.0.1", "localhost", "::1"} and not cfg.debug:
         log.warning("the web server listens on %s, not only on this machine: keep it behind your firewall", host)
+    custom.log_problems(custom.custom_dir(cfg), log)  # the admin pages show the same warning as a red banner
     try:
         hooks.migrate(cfg, "web", MIGRATE_WAIT_S)
         if not settings.DEBUG:
@@ -232,6 +237,22 @@ def build_child_specs(cfg: Config, *, caddy_binary: Path | None, env: dict[str, 
     return specs
 
 
+def _warn_about_overrides(cfg: Config) -> None:
+    """The server owner starts `il2ks run` from a console (or reads its log): say loudly that overrides need a look.
+    (`il2ks web`, started by `run`, writes one log line per file.)"""
+    problems = custom.startup_problems(custom.custom_dir(cfg))
+    if not problems:
+        return
+    names = ", ".join(item.key for item in problems)
+    log.warning("%d custom override(s) need attention: %s", len(problems), names)
+    print(
+        f"\n*** WARNING: {len(problems)} file(s) in {custom.custom_dir(cfg)} are based on an older il2ks version "
+        f"(or an unknown one) and may break or hide new content:\n    {names}\n"
+        "*** Run `il2ks custom list` to see them and `il2ks custom diff <path>` to see what differs.\n",
+        file=sys.stderr,
+    )
+
+
 def cmd_run(cfg: Config, hooks: Hooks) -> int:
     export_config(cfg)
     prepare_data_dir(cfg)
@@ -247,6 +268,8 @@ def cmd_run(cfg: Config, hooks: Hooks) -> int:
     except StackError as exc:
         print(f"il2ks run: {exc}", file=sys.stderr)
         return EXIT_USAGE
+
+    _warn_about_overrides(cfg)
 
     # Migrate once, before anything else starts, so `web` and `watch` don't fight over the writer lock at boot.
     log.info("checking the database")
@@ -344,23 +367,29 @@ def _service_schtasks(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
 
 # --- custom ---------------------------------------------------------------------------------------------------------
 
-_STATE_TEXT: dict[str, str] = {
-    "ok": "up to date",
-    "original-changed": "ORIGINAL CHANGED since you copied it: compare, then `il2ks custom accept`",
-    "original-missing": "the built-in file no longer exists: this override does nothing useful",
-    "override-deleted": "you deleted the override file",
+_STATE_LABEL: dict[custom.State, str] = {
+    "current": "up to date",
+    "outdated": "OUT OF DATE",
+    "newer": "NEWER",
+    "unversioned": "NO VERSION",
+    "orphan": "ORPHAN",
+    "custom-only": "yours only",
+    "unchecked": "unchecked",
 }
 
 
 def cmd_custom(cfg: Config, ns: argparse.Namespace) -> int:
     try:
         if ns.custom_command == "copy":
-            status = custom.copy_builtin(cfg, ns.path, force=ns.force)
-            print(f"copied {status.original} to {status.override}")
-            print("Edit that copy; restart il2ks to see the change. `il2ks custom list` tracks it for upgrades.")
+            placed = custom.copy_builtin(cfg, ns.path, force=ns.force)
+            print(f"copied {placed.original} to {placed.override}")
+            print("Edit that copy; restart il2ks to see the change. Keep its first line (the version): il2ks uses it")
+            print("to warn you when an upgrade changes the page your copy is based on.")
         elif ns.custom_command == "accept":
-            status = custom.accept_original(cfg, ns.path)
-            print(f"{status.key}: recorded the current original")
+            placed = custom.accept_original(cfg, ns.path)
+            print(f"{placed.kind}/{placed.rel}: marked as based on the current built-in version")
+        elif ns.custom_command == "diff":
+            print(custom.diff_override(cfg, ns.path), end="")
         elif ns.builtin:
             for kind in custom.KINDS:
                 for rel in custom.builtin_listing(kind):
@@ -374,12 +403,15 @@ def cmd_custom(cfg: Config, ns: argparse.Namespace) -> int:
 
 
 def _print_overrides(cfg: Config) -> None:
-    statuses = custom.override_statuses(cfg)
-    for status in statuses:
-        print(f"{status.key}: {_STATE_TEXT[status.state]} (copied with il2ks {status.copied_version})")
-        if status.state == "original-changed":
-            print(f"    yours:    {status.override}\n    built-in: {status.original}")
-    for kind, rel, original in custom.untracked_overrides(cfg):
-        print(f"{kind}/{rel}: not recorded (made by hand), cannot tell if the original changed; built-in: {original}")
-    if not statuses and not custom.untracked_overrides(cfg):
+    checks = custom.override_checks(cfg)
+    for item in checks:
+        versions = ""
+        if item.builtin_version is not None:
+            mine = f"v{item.override_version}" if item.override_version is not None else "unknown version"
+            versions = f"  (yours: {mine}, built-in: v{item.builtin_version})"
+        print(f"{_STATE_LABEL[item.state]:<12} {item.key}{versions}")
+        print(f"{'':<13}{item.message}")
+        if item.fix:
+            print(f"{'':<13}{item.fix}")
+    if not checks:
         print(f"no overrides yet. Copy a file with `il2ks custom copy <path>`; they live in {custom.custom_dir(cfg)}")

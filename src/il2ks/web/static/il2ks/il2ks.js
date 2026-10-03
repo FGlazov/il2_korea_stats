@@ -1,3 +1,4 @@
+/* il2ks-template: static/il2ks/il2ks.js v1 - copy this line along when you override */
 /* Small progressive enhancements. Everything works without this file (and without htmx).
  * Loaded with `defer`, after vendor/htmx.min.js. */
 (function () {

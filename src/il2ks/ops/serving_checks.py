@@ -5,7 +5,6 @@ Each check returns findings in plain words with a `fix` the admin can follow (se
 
 import socket
 from collections.abc import Callable, Iterable
-from pathlib import Path
 
 from il2ks.config import Config
 from il2ks.ops.doctor import Finding, Level, check
@@ -210,48 +209,30 @@ def external_proxy(cfg: Config) -> Iterable[Finding]:
 
 @check
 def custom_overrides(cfg: Config) -> Iterable[Finding]:
-    """TD-25: an override whose original changed (an upgrade) may be out of date; one with no original is dead."""
+    """TD-25: an override based on an older version of its built-in file (or on an unknown one) may hide new content or
+    break; one whose built-in file is gone is dead."""
     try:
-        statuses = custom.override_statuses(cfg)
-        untracked = custom.untracked_overrides(cfg)
+        custom.load_records(cfg)
     except custom.CustomError as exc:
         yield Finding(Level.WARN, "The custom/ override list is damaged", str(exc), "Delete the file named above.")
+    checks = custom.override_checks(cfg)
+    problems = [c for c in checks if c.is_problem]
+    for item in problems:
+        yield Finding(Level.WARN, _problem_title(item), f"{item.message} Yours: {item.override}", item.fix)
+    if problems:
         return
-    problems = 0
-    for status in statuses:
-        if status.state == "original-changed":
-            problems += 1
-            yield Finding(
-                Level.WARN,
-                f"Override {status.key} may be out of date",
-                f"The built-in file changed since you copied it (with il2ks {status.copied_version}). "
-                f"Yours: {status.override}  Built-in: {status.original}",
-                f"Compare the two, merge what you want, then run `il2ks custom accept {status.key}`.",
-            )
-        elif status.state == "original-missing":
-            problems += 1
-            yield Finding(
-                Level.WARN,
-                f"Override {status.key} has no built-in original any more",
-                f"{status.override} replaces a file that il2ks no longer ships, so it is probably unused.",
-                "Delete the override file, or keep it if it is deliberate (a page of your own).",
-            )
-    for kind, rel, original in untracked:
-        problems += 1
-        yield Finding(
-            Level.WARN,
-            f"Override {kind}/{rel} was not recorded",
-            f"It replaces {original}, but il2ks can't tell whether that file changes in an upgrade.",
-            f"Run `il2ks custom copy --force {kind}/{rel}` to record the original (this overwrites your file with the "
-            "built-in one, so save your version first), or ignore this.",
-        )
-    active = [s for s in statuses if s.state != "override-deleted"]
-    if active or untracked:
-        if not problems:
-            yield Finding(Level.OK, "custom/ overrides", f"{len(active)} recorded, all match their originals")
-    elif _custom_has_files(cfg.data_dir / "custom"):
+    overrides = [c for c in checks if c.state != "custom-only"]
+    if overrides:
+        yield Finding(Level.OK, "custom/ overrides", f"{len(overrides)} replacing a built-in file, none out of date")
+    elif checks:
         yield Finding(Level.OK, "custom/ overrides", "only new files, nothing replaces a built-in file")
 
 
-def _custom_has_files(root: Path) -> bool:
-    return root.is_dir() and any(p.is_file() and p.name != custom.OVERRIDES_FILE for p in root.rglob("*"))
+def _problem_title(item: custom.OverrideCheck) -> str:
+    if item.state == "orphan":
+        return f"Override {item.key} has no built-in original any more"
+    if item.state == "unversioned":
+        return f"Override {item.key} has no version line: it may be out of date"
+    if item.state == "newer":
+        return f"Override {item.key} is based on a newer version than this il2ks has"
+    return f"Override {item.key} is OUT OF DATE: the built-in file changed in an upgrade"

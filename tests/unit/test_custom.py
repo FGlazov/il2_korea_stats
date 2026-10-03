@@ -1,6 +1,8 @@
-"""`custom/` overrides (TD-25, FR-ADM-6): copy, list, accept, and the doctor check."""
+"""`custom/` overrides (TD-25, FR-ADM-6): copy, list, diff, accept, version detection, startup warning, doctor check."""
 
 import json
+import logging
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -9,20 +11,30 @@ from il2ks.cli import EXIT_OK, EXIT_USAGE, main
 from il2ks.config import Config, load_config
 from il2ks.ops import serving_checks
 from il2ks.ops.doctor import Level
-from il2ks.serving import custom
+from il2ks.serving import custom, templateversions
+from il2ks.serving.templateversions import with_header
+
+HOME = "templates/il2ks/home.html"
+SITE_CSS = "static/css/site.css"
+
+
+def write_builtin(root: Path, key: str, body: str, version: int | None) -> Path:
+    path = root / key.partition("/")[2]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body if version is None else with_header(body, key, version), encoding="utf-8")
+    return path
 
 
 @pytest.fixture
-def builtin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[custom.Kind, Path]:
+def builtin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[custom.Kind, Path]]:
     """Two fake built-in roots, so tests don't depend on the real templates."""
     roots: dict[custom.Kind, Path] = {
         "templates": tmp_path / "pkg" / "templates",
         "static": tmp_path / "pkg" / "static",
     }
-    (roots["templates"] / "il2ks").mkdir(parents=True)
-    (roots["templates"] / "il2ks" / "home.html").write_text("<h1>home v1</h1>", encoding="utf-8")
-    (roots["static"] / "css").mkdir(parents=True)
-    (roots["static"] / "css" / "site.css").write_text("body {}", encoding="utf-8")
+    write_builtin(roots["templates"], HOME, "<h1>home v1</h1>\n", 1)
+    write_builtin(roots["static"], SITE_CSS, "body {}\n", 1)
+    write_builtin(roots["static"], "static/vendor/lib.js", "var lib;\n", None)  # vendored: has no version
     (roots["templates"] / "both.txt").write_text("t", encoding="utf-8")
     (roots["static"] / "both.txt").write_text("s", encoding="utf-8")
 
@@ -30,7 +42,9 @@ def builtin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[custom.Kind
         return [roots[kind]]
 
     monkeypatch.setattr(custom, "builtin_roots", fake_roots)
-    return roots
+    custom.startup_scan.cache_clear()
+    yield roots
+    custom.startup_scan.cache_clear()
 
 
 @pytest.fixture
@@ -38,14 +52,34 @@ def cfg(tmp_path: Path) -> Config:
     return load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "data")}, create_server_uid=False)
 
 
-def test_copy_a_template_by_bare_name(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    status = custom.copy_builtin(cfg, "il2ks/home.html")
-    target = cfg.data_dir / "custom" / "templates" / "il2ks" / "home.html"
-    assert status.override == target
-    assert target.read_text(encoding="utf-8") == "<h1>home v1</h1>"
+def place(cfg: Config, key: str, content: str) -> Path:
+    path = cfg.data_dir / "custom" / key
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
+def states(cfg: Config) -> dict[str, str]:
+    return {c.key: c.state for c in custom.override_checks(cfg)}
+
+
+def upgrade_home(builtin: dict[custom.Kind, Path], version: int = 2) -> None:
+    write_builtin(builtin["templates"], HOME, f"<h1>home v{version}</h1>\n", version)
+
+
+# --- copy ------------------------------------------------------------------------------------------------------------
+
+
+def test_copy_a_template_by_bare_name_keeps_the_version_line(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    target = cfg.data_dir / "custom" / HOME
+    assert placed.override == target
+    assert target.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1 ")
+    assert target.read_bytes() == (builtin["templates"] / "il2ks" / "home.html").read_bytes()
     record = json.loads((cfg.data_dir / "custom" / ".il2ks-overrides.json").read_text(encoding="utf-8"))
-    entry = record["overrides"]["templates/il2ks/home.html"]
+    entry = record["overrides"][HOME]
     assert entry["original_sha256"] == custom.sha256_of(builtin["templates"] / "il2ks" / "home.html")
+    assert entry["template_version"] == "1"
     assert entry["il2ks_version"]
 
 
@@ -63,13 +97,13 @@ def test_a_name_that_is_both_kinds_must_be_prefixed(cfg: Config, builtin: dict[c
 
 def test_copy_refuses_to_overwrite_your_edits_without_force(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     custom.copy_builtin(cfg, "il2ks/home.html")
-    target = cfg.data_dir / "custom" / "templates" / "il2ks" / "home.html"
+    target = cfg.data_dir / "custom" / HOME
     target.write_text("my edit", encoding="utf-8")
     with pytest.raises(custom.CustomError, match="--force"):
         custom.copy_builtin(cfg, "il2ks/home.html")
     assert target.read_text(encoding="utf-8") == "my edit"
     custom.copy_builtin(cfg, "il2ks/home.html", force=True)
-    assert target.read_text(encoding="utf-8") == "<h1>home v1</h1>"
+    assert "home v1" in target.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize("bad", ["../secret.txt", "/etc/passwd", "templates/../../x", "", "nope/missing.html"])
@@ -79,121 +113,261 @@ def test_unknown_or_unsafe_paths_are_refused(cfg: Config, builtin: dict[custom.K
     assert not (cfg.data_dir / "custom").exists()
 
 
-def test_status_follows_the_original(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+# --- the states ------------------------------------------------------------------------------------------------------
+
+
+def test_a_fresh_copy_is_current(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     custom.copy_builtin(cfg, "il2ks/home.html")
     custom.copy_builtin(cfg, "css/site.css")
-    assert {s.key: s.state for s in custom.override_statuses(cfg)} == {
-        "templates/il2ks/home.html": "ok",
-        "static/css/site.css": "ok",
-    }
-
-    (builtin["templates"] / "il2ks" / "home.html").write_text("<h1>home v2</h1>", encoding="utf-8")  # an upgrade
-    (builtin["static"] / "css" / "site.css").unlink()  # an upgrade removed the file
-    states = {s.key: s.state for s in custom.override_statuses(cfg)}
-    assert states == {
-        "templates/il2ks/home.html": "original-changed",
-        "static/css/site.css": "original-missing",
-    }
+    assert states(cfg) == {HOME: "current", SITE_CSS: "current"}
 
 
-def test_your_own_edits_do_not_count_as_a_changed_original(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+def test_an_upgrade_makes_a_copy_outdated_and_names_both_versions(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
     custom.copy_builtin(cfg, "il2ks/home.html")
-    (cfg.data_dir / "custom" / "templates" / "il2ks" / "home.html").write_text("edited", encoding="utf-8")
-    assert [s.state for s in custom.override_statuses(cfg)] == ["ok"]
+    upgrade_home(builtin, 3)
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "outdated"
+    assert (check.override_version, check.builtin_version) == (1, 3)
+    assert "version 1" in check.message
+    assert "version 3" in check.message
+    assert "il2ks custom diff templates/il2ks/home.html" in check.fix
+    assert check.is_problem
 
 
-def test_accept_records_the_new_original(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    custom.copy_builtin(cfg, "il2ks/home.html")
-    (builtin["templates"] / "il2ks" / "home.html").write_text("<h1>home v2</h1>", encoding="utf-8")
-    assert custom.override_statuses(cfg)[0].state == "original-changed"
+def test_your_own_edits_do_not_count_as_an_old_version(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    placed.override.write_text(placed.override.read_text(encoding="utf-8") + "<p>mine</p>\n", encoding="utf-8")
+    assert states(cfg) == {HOME: "current"}
+
+
+def test_a_hand_copy_with_a_version_line_is_checked_without_any_record(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    place(cfg, HOME, with_header("<h1>mine</h1>\n", HOME, 1))
+    assert states(cfg) == {HOME: "current"}
+    upgrade_home(builtin)
+    assert states(cfg) == {HOME: "outdated"}
+
+
+def test_a_file_without_a_version_line_is_unversioned(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, HOME, "by hand")
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "unversioned"
+    assert check.override_version is None
+    assert check.builtin_version == 1
+    assert check.is_problem
+
+
+def test_a_deleted_version_line_is_forgiven_when_the_record_shows_the_current_original(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    placed.override.write_text("<h1>my own page</h1>", encoding="utf-8")  # header gone
+    assert states(cfg) == {HOME: "current"}
+
+
+def test_a_deleted_version_line_uses_the_version_from_the_copy_record(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    placed.override.write_text("<h1>my own page</h1>", encoding="utf-8")
+    upgrade_home(builtin, 2)
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "outdated"
+    assert (check.override_version, check.builtin_version) == (1, 2)
+
+
+def test_a_file_that_replaces_nothing_is_fine(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, "static/my-banner.png", "png")
+    place(cfg, "templates/my/page.html", "<p>mine</p>")
+    place(cfg, "static/.DS_Store", "junk")
+    assert states(cfg) == {"static/my-banner.png": "custom-only", "templates/my/page.html": "custom-only"}
+    assert not any(c.is_problem for c in custom.override_checks(cfg))
+
+
+def test_a_copy_of_a_removed_built_in_file_is_an_orphan(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, "templates/il2ks/gone.html", with_header("<p>old</p>", "templates/il2ks/gone.html", 2))
+    custom.copy_builtin(cfg, "css/site.css")
+    (builtin["static"] / "css" / "site.css").unlink()
+    assert states(cfg) == {SITE_CSS: "orphan", "templates/il2ks/gone.html": "orphan"}
+
+
+def test_a_newer_version_than_the_built_in_one_is_flagged(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, HOME, with_header("x", HOME, 5))
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "newer"
+    assert "downgraded" in check.message
+
+
+def test_files_without_a_version_use_the_copy_record_only(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, "static/vendor/lib.js", "var mine;")
+    assert states(cfg) == {"static/vendor/lib.js": "unchecked"}  # never recorded, nothing to compare
+    custom.copy_builtin(cfg, "static/vendor/lib.js", force=True)
+    assert states(cfg) == {"static/vendor/lib.js": "current"}
+    write_builtin(builtin["static"], "static/vendor/lib.js", "var lib2;\n", None)
+    assert states(cfg) == {"static/vendor/lib.js": "outdated"}
+
+
+def test_a_built_in_file_that_has_no_version_line_yet_is_not_judged(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    write_builtin(builtin["templates"], HOME, "<h1>new page, not bumped yet</h1>\n", None)
+    place(cfg, HOME, "mine")
+    assert states(cfg) == {HOME: "unchecked"}
+
+
+def test_a_damaged_record_file_does_not_hide_the_version_check(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, HOME, with_header("x", HOME, 1))
+    (cfg.data_dir / "custom" / ".il2ks-overrides.json").write_text("{not json", encoding="utf-8")
+    upgrade_home(builtin)
+    assert states(cfg) == {HOME: "outdated"}
+    with pytest.raises(custom.CustomError, match="damaged"):
+        custom.load_records(cfg)
+    assert [f.level for f in serving_checks.custom_overrides(cfg)] == [Level.WARN, Level.WARN]
+
+
+# --- accept ----------------------------------------------------------------------------------------------------------
+
+
+def test_accept_sets_the_version_line_and_keeps_your_edits(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    placed.override.write_text(placed.override.read_text(encoding="utf-8") + "<p>mine</p>\n", encoding="utf-8")
+    upgrade_home(builtin, 2)
+    assert states(cfg) == {HOME: "outdated"}
     custom.accept_original(cfg, "il2ks/home.html")
-    assert custom.override_statuses(cfg)[0].state == "ok"
+    text = placed.override.read_text(encoding="utf-8")
+    assert text.startswith("{# il2ks-template: templates/il2ks/home.html v2 ")
+    assert "home v1" in text
+    assert "<p>mine</p>" in text
+    assert states(cfg) == {HOME: "current"}
 
 
-def test_accept_needs_a_recorded_override(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    with pytest.raises(custom.CustomError, match="not a recorded override"):
+def test_accept_adds_a_missing_version_line(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = place(cfg, HOME, "by hand\n")
+    custom.accept_original(cfg, "il2ks/home.html")
+    assert placed.read_text(encoding="utf-8").endswith("\nby hand\n")
+    assert states(cfg) == {HOME: "current"}
+
+
+def test_accept_needs_an_override_file(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    with pytest.raises(custom.CustomError, match="no override"):
         custom.accept_original(cfg, "il2ks/home.html")
 
 
-def test_a_deleted_override_is_reported_not_warned(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+# --- diff ------------------------------------------------------------------------------------------------------------
+
+
+def test_diff_shows_your_file_against_the_built_in_one(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    placed.override.write_text(
+        placed.override.read_text(encoding="utf-8").replace("home v1", "my home"), encoding="utf-8"
+    )
+    upgrade_home(builtin, 2)
+    out = custom.diff_override(cfg, "il2ks/home.html")
+    assert "outdated" not in out  # the explanation is plain words, not the state name
+    assert "version 1" in out
+    assert "version 2" in out
+    assert "-<h1>my home</h1>" in out
+    assert "+<h1>home v2</h1>" in out
+    assert "does not keep old versions" in out
+    assert "il2ks custom accept templates/il2ks/home.html" in out
+
+
+def test_diff_of_identical_files_says_so(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     custom.copy_builtin(cfg, "il2ks/home.html")
-    (cfg.data_dir / "custom" / "templates" / "il2ks" / "home.html").unlink()
-    assert custom.override_statuses(cfg)[0].state == "override-deleted"
-    assert [f.level for f in serving_checks.custom_overrides(cfg)] == []
+    assert "identical" in custom.diff_override(cfg, "il2ks/home.html")
 
 
-def test_hand_placed_overrides_are_found_but_new_files_are_not(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    base = cfg.data_dir / "custom"
-    (base / "templates" / "il2ks").mkdir(parents=True)
-    (base / "templates" / "il2ks" / "home.html").write_text("by hand", encoding="utf-8")
-    (base / "static").mkdir(parents=True)
-    (base / "static" / "my-logo.png").write_bytes(b"png")  # no built-in counterpart: just a new file
-    found = custom.untracked_overrides(cfg)
-    assert [(k, r) for k, r, _ in found] == [("templates", "il2ks/home.html")]
+def test_diff_needs_an_override(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    with pytest.raises(custom.CustomError, match="no override"):
+        custom.diff_override(cfg, "il2ks/home.html")
 
 
-def test_a_damaged_record_file_is_explained(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    (cfg.data_dir / "custom").mkdir(parents=True)
-    (cfg.data_dir / "custom" / ".il2ks-overrides.json").write_text("{not json", encoding="utf-8")
-    with pytest.raises(custom.CustomError, match="damaged"):
-        custom.override_statuses(cfg)
-    findings = list(serving_checks.custom_overrides(cfg))
-    assert [f.level for f in findings] == [Level.WARN]
+# --- once per process, and the startup warning ------------------------------------------------------------------------
+
+
+def test_the_startup_scan_is_computed_once(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    root = cfg.data_dir / "custom"
+    place(cfg, HOME, with_header("x", HOME, 1))
+    assert custom.startup_problems(root) == []
+    upgrade_home(builtin)  # would be a problem now, but a running site doesn't look again
+    assert custom.startup_problems(root) == []
+    custom.startup_scan.cache_clear()
+    assert [c.key for c in custom.startup_problems(root)] == [HOME]
+
+
+def test_startup_logs_a_warning_per_problem(
+    cfg: Config, builtin: dict[custom.Kind, Path], caplog: pytest.LogCaptureFixture
+) -> None:
+    place(cfg, HOME, "by hand")
+    place(cfg, "static/my.png", "png")
+    with caplog.at_level(logging.WARNING, logger="il2ks.test"):
+        problems = custom.log_problems(cfg.data_dir / "custom", logging.getLogger("il2ks.test"))
+    assert [c.key for c in problems] == [HOME]
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) == 2  # a summary and one line for the file
+    assert HOME in warnings[1].getMessage()
+
+
+def test_startup_logs_nothing_when_all_is_well(
+    cfg: Config, builtin: dict[custom.Kind, Path], caplog: pytest.LogCaptureFixture
+) -> None:
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    with caplog.at_level(logging.WARNING, logger="il2ks.test"):
+        assert custom.log_problems(cfg.data_dir / "custom", logging.getLogger("il2ks.test")) == []
+    assert not caplog.records
 
 
 def test_real_builtin_files_can_be_copied(cfg: Config) -> None:
-    """The real lookup finds Django admin's static files and templates (so admin branding can be overridden too)."""
+    """The real lookup finds il2ks's own files and Django admin's (so admin branding can be overridden too)."""
     assert custom.builtin_file("static", "admin/css/base.css") is not None
-    status = custom.copy_builtin(cfg, "admin/base.html")
-    assert status.kind == "templates"
-    assert status.override.is_file()
+    placed = custom.copy_builtin(cfg, "il2ks/base.html")
+    assert placed.kind == "templates"
+    assert templateversions.find_header(placed.override.read_text(encoding="utf-8"), "base.html") is not None
+    assert states(cfg) == {"templates/il2ks/base.html": "current"}
 
 
 # --- the doctor check -----------------------------------------------------------------------------------------------
 
 
-def test_doctor_warns_when_an_original_changed_since_the_copy(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+def test_doctor_is_ok_for_a_current_copy_and_warns_after_an_upgrade(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
     custom.copy_builtin(cfg, "il2ks/home.html")
     assert [f.level for f in serving_checks.custom_overrides(cfg)] == [Level.OK]
-    (builtin["templates"] / "il2ks" / "home.html").write_text("<h1>home v2</h1>", encoding="utf-8")
+    upgrade_home(builtin)
     findings = list(serving_checks.custom_overrides(cfg))
     assert [f.level for f in findings] == [Level.WARN]
-    assert "may be out of date" in findings[0].title
+    assert "OUT OF DATE" in findings[0].title
+    assert "il2ks custom diff templates/il2ks/home.html" in findings[0].fix
     assert "il2ks custom accept templates/il2ks/home.html" in findings[0].fix
 
 
-def test_doctor_warns_when_the_original_is_gone(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    custom.copy_builtin(cfg, "css/site.css")
-    (builtin["static"] / "css" / "site.css").unlink()
-    findings = list(serving_checks.custom_overrides(cfg))
-    assert [f.level for f in findings] == [Level.WARN]
-    assert "no built-in original" in findings[0].title
+def test_doctor_warns_per_file(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, HOME, "by hand")
+    place(cfg, "templates/il2ks/gone.html", with_header("x", "templates/il2ks/gone.html", 1))
+    place(cfg, SITE_CSS, with_header("x", SITE_CSS, 1))
+    titles = [f.title for f in serving_checks.custom_overrides(cfg) if f.level is Level.WARN]
+    assert len(titles) == 2
+    assert any("no version line" in t for t in titles)
+    assert any("no built-in original" in t for t in titles)
 
 
 def test_doctor_is_silent_without_a_custom_folder(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     assert list(serving_checks.custom_overrides(cfg)) == []
 
 
-def test_doctor_warns_about_hand_placed_overrides(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    path = cfg.data_dir / "custom" / "templates" / "il2ks" / "home.html"
-    path.parent.mkdir(parents=True)
-    path.write_text("by hand", encoding="utf-8")
-    findings = list(serving_checks.custom_overrides(cfg))
-    assert [f.level for f in findings] == [Level.WARN]
-    assert "not recorded" in findings[0].title
-
-
 def test_doctor_notes_only_new_files(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    path = cfg.data_dir / "custom" / "static" / "my-logo.png"
-    path.parent.mkdir(parents=True)
-    path.write_bytes(b"png")
+    place(cfg, "static/my-logo.png", "png")
     assert [f.level for f in serving_checks.custom_overrides(cfg)] == [Level.OK]
 
 
 # --- through the CLI -------------------------------------------------------------------------------------------------
 
 
-def test_cli_copy_list_accept(
+def test_cli_copy_list_diff_accept(
     cfg: Config,
     builtin: dict[custom.Kind, Path],
     monkeypatch: pytest.MonkeyPatch,
@@ -210,17 +384,23 @@ def test_cli_copy_list_accept(
     assert "--force" in capsys.readouterr().err
 
     assert main(["custom", "list"]) == EXIT_OK
-    assert "templates/il2ks/home.html: up to date" in capsys.readouterr().out
+    assert "up to date   templates/il2ks/home.html  (yours: v1, built-in: v1)" in capsys.readouterr().out
 
-    (builtin["templates"] / "il2ks" / "home.html").write_text("changed", encoding="utf-8")
+    upgrade_home(builtin, 2)
     assert main(["custom", "list"]) == EXIT_OK
     listing = capsys.readouterr().out
-    assert "ORIGINAL CHANGED" in listing
-    assert "built-in:" in listing
+    assert "OUT OF DATE  templates/il2ks/home.html" in listing
+    assert "version 1" in listing
+    assert "version 2" in listing
+
+    assert main(["custom", "diff", "templates/il2ks/home.html"]) == EXIT_OK
+    assert "+<h1>home v2</h1>" in capsys.readouterr().out
 
     assert main(["custom", "accept", "templates/il2ks/home.html"]) == EXIT_OK
     assert main(["custom", "list"]) == EXIT_OK
     assert "up to date" in capsys.readouterr().out
+    assert main(["custom", "diff", "static/css/site.css"]) == EXIT_USAGE
+    assert "no override" in capsys.readouterr().err
 
 
 def test_cli_list_builtin(builtin: dict[custom.Kind, Path], capsys: pytest.CaptureFixture[str]) -> None:

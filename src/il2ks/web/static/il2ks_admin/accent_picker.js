@@ -1,3 +1,4 @@
+/* il2ks-template: static/il2ks_admin/accent_picker.js v1 - copy this line along when you override */
 // Adds a colour picker next to the "#RRGGBB" text box of the site settings form. The text box stays the source of truth.
 document.addEventListener("DOMContentLoaded", function () {
   var text = document.getElementById("id_accent_color");
