@@ -159,7 +159,7 @@ def test_aircraft_page_gives_the_average_hits_to_destroy(client: Client) -> None
     body = response.content.decode()
     assert response.status_code == 200
     assert "MiG-15bis" in body
-    row = response.context["rows"][0]
+    row = next(r for r in response.context["rows"] if r.stats.aircraft.log_name == "MiG-15bis").hits
     assert (row.kills, row.average) == ("2", "4.50")  # 9 hits in 2 kills
     assert [(a.name, a.kills, a.average) for a in row.by_ammo] == [
         ("12.7 USA API", "2", "4.00"),
@@ -169,10 +169,10 @@ def test_aircraft_page_gives_the_average_hits_to_destroy(client: Client) -> None
 
 
 def test_aircraft_page_without_data_says_so_and_stays_cheap(client: Client) -> None:
-    assert "No aircraft was shot down by a single attacker yet." in client.get("/aircraft/").content.decode()
+    assert "No aircraft has flown yet." in client.get("/aircraft/").content.decode()
 
     save(seed())
-    assert_simple_reads(client, "/aircraft/", max_queries=2 + 1)
+    assert_simple_reads(client, "/aircraft/", max_queries=2 + 2)
 
 
 def test_aircraft_page_is_reachable_from_the_navigation(client: Client) -> None:

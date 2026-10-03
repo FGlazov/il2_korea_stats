@@ -74,13 +74,6 @@ msgid "%(n)s air kills"
 msgstr ""
 
 #, python-format
-msgid "%(n)s ammunition type"
-msgid_plural "%(n)s ammunition types"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
-#, python-format
 msgid "%(n)s assists"
 msgstr ""
 
@@ -125,6 +118,10 @@ msgstr ""
 
 #, python-format
 msgid "%(players)s player aircraft, %(ai)s AI aircraft"
+msgstr ""
+
+#, python-format
+msgid "%(rate)s attack"
 msgstr ""
 
 #, python-format
@@ -219,6 +216,9 @@ msgid "All"
 msgstr "Все"
 
 msgid "All aircraft"
+msgstr ""
+
+msgid "All gun ammunition"
 msgstr ""
 
 # llm-draft
@@ -340,10 +340,11 @@ msgstr "Смотреть миссии"
 msgid "Buildings"
 msgstr ""
 
-msgid "By aircraft"
+#, python-format
+msgid "By air kills in this aircraft, pilots with at least %(min_sorties)s sorties."
 msgstr ""
 
-msgid "By ammunition"
+msgid "By aircraft"
 msgstr ""
 
 msgid "Cannon shells"
@@ -495,6 +496,9 @@ msgstr ""
 msgid "Enemy action"
 msgstr ""
 
+msgid "Enemy aircraft"
+msgstr ""
+
 # llm-draft
 msgid "Error"
 msgstr "Ошибка"
@@ -543,6 +547,13 @@ msgstr ""
 
 msgid "Flight time"
 msgstr ""
+
+#, python-format
+msgid "Flown by %(pilots)s pilot."
+msgid_plural "Flown by %(pilots)s pilots."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 msgid "Friendly"
 msgstr ""
@@ -634,13 +645,23 @@ msgstr ""
 msgid "Hits to destroy"
 msgstr ""
 
+msgid ""
+"Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack"
+" sorties: the rest are air-superiority sorties."
+msgstr ""
+
 # llm-draft
 msgid "Home"
 msgstr "Главная"
 
 msgid ""
-"How many gun hits it takes to shoot down each aircraft type. Only kills where one attacker did all the damage are "
-"counted; bombs and rockets are left out."
+"How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its "
+"matchups, best pilots and loadouts."
+msgstr ""
+
+msgid ""
+"How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
+" bombs and rockets are left out."
 msgstr ""
 
 # llm-draft
@@ -666,6 +687,9 @@ msgstr "Состояние обработки"
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
 "are ingested again once it is over."
+msgstr ""
+
+msgid "Jet"
 msgstr ""
 
 msgid "K/D"
@@ -702,9 +726,6 @@ msgid "Kills and assists"
 msgstr ""
 
 msgid "Kills by victim"
-msgstr ""
-
-msgid "Kills counted"
 msgstr ""
 
 msgid "Kills it hit in"
@@ -787,6 +808,12 @@ msgstr "Ссылки"
 msgid "Loaded"
 msgstr ""
 
+msgid "Loadout"
+msgstr ""
+
+msgid "Loadouts"
+msgstr ""
+
 msgid "Log incomplete"
 msgstr ""
 
@@ -807,6 +834,9 @@ msgstr "Оформление"
 msgid "Loss cause"
 msgstr ""
 
+msgid "Losses"
+msgstr ""
+
 msgid "Lost before the first takeoff, by their own doing"
 msgstr ""
 
@@ -819,6 +849,9 @@ msgstr ""
 # llm-draft
 msgid "Main"
 msgstr "Основное"
+
+msgid "Matchups"
+msgstr ""
 
 # llm-draft
 msgid "May still change"
@@ -867,7 +900,7 @@ msgstr ""
 msgid "No air kills."
 msgstr ""
 
-msgid "No aircraft was shot down by a single attacker yet."
+msgid "No aircraft has flown yet."
 msgstr ""
 
 msgid "No attacker (crash, terrain, accident)"
@@ -877,6 +910,9 @@ msgid "No attacker is credited: the aircraft was lost by its own doing (terrain,
 msgstr ""
 
 msgid "No ground kills."
+msgstr ""
+
+msgid "No kill of this aircraft by a single attacker yet."
 msgstr ""
 
 msgid "No landing"
@@ -900,11 +936,17 @@ msgstr ""
 "Автоматических повторов больше не будет. Повтор происходит, когда меняются их файлы или версия il2ks; либо выполните "
 "`il2ks reprocess --mission UID` после устранения причины."
 
+msgid "No pilot has enough sorties in this aircraft yet."
+msgstr ""
+
 msgid "No pilot sorties are counted for this player yet."
 msgstr ""
 
 #, python-format
 msgid "No player found for “%(query)s”."
+msgstr ""
+
+msgid "No player-versus-player air kills with this aircraft yet."
 msgstr ""
 
 msgid "No player-versus-player kills in this mission."
@@ -1041,6 +1083,9 @@ msgstr ""
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
 msgstr "Статистика пилотов, вылетов и миссий нашего сервера IL-2 Sturmovik: Korea."
 
+msgid "Pilots"
+msgstr ""
+
 msgid "Planes lost"
 msgstr ""
 
@@ -1048,6 +1093,9 @@ msgid "Player"
 msgstr ""
 
 msgid "Player aircraft"
+msgstr ""
+
+msgid "Player-versus-player air kills against each enemy aircraft type."
 msgstr ""
 
 msgid ""
@@ -1082,6 +1130,9 @@ msgstr "Назад"
 # llm-draft
 msgid "Problems"
 msgstr "Проблемы"
+
+msgid "Prop"
+msgstr ""
 
 msgid "REDFOR won"
 msgstr ""
@@ -1270,6 +1321,9 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
+msgid "Survival"
+msgstr ""
+
 msgid "Survival rate"
 msgstr ""
 
@@ -1417,6 +1471,9 @@ msgstr ""
 msgid "Took off"
 msgstr ""
 
+msgid "Top pilots"
+msgstr ""
+
 msgid "Top pilots by kills"
 msgstr ""
 
@@ -1460,6 +1517,9 @@ msgstr "Неизвестные типы событий и ключи за пос
 # llm-draft
 msgid "Unknown keys (AType:KEY: lines)"
 msgstr "Неизвестные ключи (строки AType:KEY:)"
+
+msgid "Unknown loadout"
+msgstr ""
 
 # llm-draft
 msgid "Unknown object types"

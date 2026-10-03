@@ -65,9 +65,13 @@
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
-    "templates/il2ks/aircraft/list.html": {
+    "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "f82eccae5f4dd32872b0be4e6007678da20ce93f86b7875aff38df25508f2dcd"
+      "sha256": "d477ee5504de52f8d295b7e392166c2a4e74ab1d9f5510ddfb0663db138ca6f0"
+    },
+    "templates/il2ks/aircraft/list.html": {
+      "version": 2,
+      "sha256": "c2179e2bb3346cf773f7bd471490dee59981bf6e15bc8e7270c656c68260d492"
     },
     "templates/il2ks/base.html": {
       "version": 3,

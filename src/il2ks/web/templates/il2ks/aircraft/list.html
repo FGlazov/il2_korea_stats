@@ -1,52 +1,68 @@
-{# il2ks-template: templates/il2ks/aircraft/list.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/list.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
-  Aircraft (FR-WEB-18): how many gun hits it takes to destroy each aircraft type. View: il2ks.web.views.aircraft.aircraft_list.
-  Context: rows (AircraftRow: aircraft (GameObject), kills, average, by_ammo (AmmoHits: name, kills, average)), page_title.
-  Only kills where all the damage came from one attacker are counted (as in the old il2_stats module); bombs and rockets
-  are left out. Blocks of this page: content.
+  Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown, sortable with ?sort= (a whitelist in the view). View:
+  il2ks.web.views.aircraft.aircraft_list. Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
+  (HitsToDestroy: kills, average)), sort (resolved), page_title.
+  K/D and K/L use air kills (OQ-38). The main link of a row carries `stretched-link`, which makes the whole row clickable.
+  Hits to destroy count only kills where one attacker did all the damage (as in the old il2_stats module).
+  Blocks of this page: content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
 {% block content %}
   <div class="page-head">
     <h1>{% translate "Aircraft" %}</h1>
-    <p>{% translate "How many gun hits it takes to shoot down each aircraft type. Only kills where one attacker did all the damage are counted; bombs and rockets are left out." %}</p>
+    <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
   </div>
-  <div class="table-wrap">
-    <table class="data-table aircraft-table">
-      <thead>
-        <tr>
-          <th scope="col">{% translate "Aircraft" %}</th>
-          <th scope="col" class="num">{% translate "Kills counted" %}</th>
-          <th scope="col" class="num" title="{% translate 'Average number of gun hits that destroyed it' %}">{% translate "Hits to destroy" %}</th>
-          <th scope="col">{% translate "By ammunition" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
+  {% results_region %}
+    <div class="table-wrap">
+      <table class="data-table aircraft-table">
+        <thead>
           <tr>
-            <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} {{ row.aircraft|object_name }}</td>
-            <td class="num">{{ row.kills }}</td>
-            <td class="num">{{ row.average }}</td>
-            <td>
-              {% if row.by_ammo %}
-                <details class="more">
-                  <summary>{% blocktranslate count n=row.by_ammo|length %}{{ n }} ammunition type{% plural %}{{ n }} ammunition types{% endblocktranslate %}</summary>
-                  <table class="data-table data-table--compact">
-                    <thead><tr><th scope="col">{% translate "Ammunition" %}</th><th scope="col" class="num">{% translate "Kills it hit in" %}</th><th scope="col" class="num">{% translate "Average hits" %}</th></tr></thead>
-                    <tbody>
-                      {% for ammo in row.by_ammo %}
-                        <tr><td>{{ ammo.name }}</td><td class="num">{{ ammo.kills }}</td><td class="num">{{ ammo.average }}</td></tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </details>
-              {% endif %}
-            </td>
+            {% sort_th "aircraft" _("Aircraft") %}
+            {% sort_th "sorties" _("Sorties") numeric=True %}
+            {% sort_th "pilots" _("Pilots") numeric=True %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+            {% sort_th "kills_air" _("Air kills") numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+            {% sort_th "deaths" _("Deaths") numeric=True %}
+            {% sort_th "planes_lost" _("Planes lost") numeric=True %}
+            {% sort_th "kd" _("K/D") numeric=True %}
+            {% sort_th "kl" _("K/L") numeric=True %}
+            {% sort_th "survival" _("Survival") numeric=True %}
+            {% sort_th "attack_share" _("Attack sorties") numeric=True %}
+            <th scope="col" class="num" title="{% translate 'Average number of gun hits that destroyed it' %}">{% translate "Hits to destroy" %}</th>
           </tr>
-        {% empty %}
-          {% empty_row 4 _("No aircraft was shot down by a single attacker yet.") %}
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% with stats=row.stats %}
+              <tr>
+                <td class="aircraft-table__name">
+                  {% aircraft_icon stats.aircraft "aircraft-table__icon" %}
+                  <a href="{% url 'web:aircraft-detail' stats.aircraft_id %}" class="stretched-link">{{ stats.aircraft|object_name }}</a>
+                  {% if stats.aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif stats.aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
+                  {% if stats.side %}{% coalition_icon stats.side %}{% endif %}
+                </td>
+                <td class="num">{{ stats.sorties|num }}</td>
+                <td class="num">{{ stats.pilots|num }}</td>
+                <td class="num">{{ stats.flight_time_s|duration }}</td>
+                <td class="num">{{ stats.kills_air|num }}</td>
+                <td class="num">{{ stats.kills_ground|num }}</td>
+                <td class="num">{{ stats.deaths|num }}</td>
+                <td class="num">{{ stats.planes_lost|num }}</td>
+                <td class="num">{{ stats.kills_air|ratio:stats.deaths }}</td>
+                <td class="num">{{ stats.kills_air|ratio:stats.planes_lost }}</td>
+                <td class="num">{{ row.survived|percent:stats.sorties }}</td>
+                <td class="num">{{ stats.attack_sorties|percent:stats.sorties }}</td>
+                <td class="num">{{ row.hits.average }}</td>
+              </tr>
+            {% endwith %}
+          {% empty %}
+            {% empty_row 13 _("No aircraft has flown yet.") %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">{% translate "Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack sorties: the rest are air-superiority sorties." %}</p>
+  {% endresults_region %}
 {% endblock %}

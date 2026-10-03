@@ -200,3 +200,4 @@ _.planes_lost  # web.pve.LossRow: players/detail_pve.html
 _.direct  # sortie_view.OrdnanceView: sorties/parts/ammo.html
 _.lost_to  # sortie_view.Detail: sorties/parts/summary.html
 _.average  # web.views.aircraft.AircraftRow / AmmoHits: aircraft/list.html
+_.survived  # web.views.aircraft.AircraftRow: aircraft/list.html

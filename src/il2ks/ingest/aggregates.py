@@ -40,6 +40,7 @@ from il2ks.db.models import (
     PlayerTourAircraft,
 )
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.tours import assign_missing, retour
@@ -89,6 +90,7 @@ def rebuild_aggregates(
         set(MissionAircraftAmmo.objects.values_list("aircraft_id", flat=True))
         | set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True))
     )
+    rebuild_aircraft_stats()
     recompute_ratings(ratings)
     bump_data_version()  # TD-28: pages changed
 
