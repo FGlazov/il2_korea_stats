@@ -1,7 +1,8 @@
 """The `il2ks` command (FR-OPS-1).
 
-Exit codes: 0 = done, 1 = done but some missions failed, 2 = usage or configuration error,
-3 = another writer holds the lock (FR-ING-20).
+Exit codes (`il2ks.exitcodes`): 0 = done, 1 = done but some missions failed, 2 = usage or configuration error or a
+refused action, 3 = another writer holds the lock (FR-ING-20). `il2ks doctor` reports its verdict the same way:
+0 = all OK, 1 = warnings only, 2 = at least one error.
 """
 
 from __future__ import annotations
@@ -11,23 +12,22 @@ import logging
 import os
 import re
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import date
 from pathlib import Path
 
 from il2ks.config import Config, ConfigError, load_config
+from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
+from il2ks.ops.migrate import migrate_if_needed
+from il2ks.ops.setup import HTTPS_MODES
 
 PLANNED: dict[str, tuple[str, str]] = {
-    "setup": ("FR-OPS-1", "interactive first-time setup: writes il2ks.toml from the example"),
     "web": ("FR-OPS-1", "serve the website"),
     "run": ("FR-OPS-1", "web + watch + HTTPS proxy together"),
-    "createadmin": ("FR-OPS-1", "create an admin account"),
-    "doctor": ("FR-OPS-1", "check the configuration"),
-    "backup": ("FR-OPS-6", "snapshot of the admin state (DB, config, custom/) into a dated zip"),
-    "restore": ("FR-OPS-6", "restore a backup zip"),
 }
 """Subcommands that exist only as stubs: name -> (requirement that plans it, one-line description)."""
-EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
+
+OPS_COMMANDS = frozenset({"setup", "createadmin", "doctor", "backup", "restore"})  # handlers: il2ks.ops.commands
 
 log = logging.getLogger("il2ks.cli")
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -50,6 +50,87 @@ def _iso_date(text: str) -> date:
         raise argparse.ArgumentTypeError(f"{text!r} is not a date, expected YYYY-MM-DD") from None
 
 
+type SubParsers = argparse._SubParsersAction[argparse.ArgumentParser]  # pyright: ignore[reportPrivateUsage]
+
+
+def _add_ops_parsers(sub: SubParsers) -> None:
+    """setup, createadmin, doctor, backup, restore (FR-OPS-1, FR-OPS-6); handlers in `il2ks.ops.commands`."""
+    env_note = "Every answer can also come from an environment variable; flags win."
+    setup = sub.add_parser(
+        "setup",
+        help="first-time setup: asks a few questions, writes il2ks.toml, creates the database and the admin",
+        description=(
+            "First-time setup. Asks for the data folder, DServer's text log folder, the server's time zone and the "
+            "website address, writes il2ks.toml (the example file with your answers), creates the data folder and "
+            "database and the admin account. Refuses to overwrite an existing il2ks.toml unless --force (the old "
+            "file is then saved next to it). Without a terminal, or with --non-interactive, nothing is asked. "
+            + env_note
+        ),
+    )
+    setup.add_argument("--data-dir", help="data folder [IL2KS_DATA_DIR]; default ./.il2ks-data")
+    setup.add_argument("--logs-dir", help="DServer's text log folder [IL2KS_LOGS_DIR]")
+    setup.add_argument(
+        "--timezone", help="IANA name of the server's time zone, e.g. Europe/Berlin [IL2KS_SERVER_TIMEZONE]"
+    )
+    setup.add_argument("--domain", help="the website's domain name [IL2KS_HTTPS_DOMAIN]")
+    setup.add_argument(
+        "--https", choices=HTTPS_MODES, help="caddy = bundled HTTPS proxy, external = your own [IL2KS_HTTPS_MODE]"
+    )
+    setup.add_argument("--email", help="e-mail for certificate notices (caddy mode) [IL2KS_HTTPS_EMAIL]")
+    setup.add_argument("--admin-username", help="admin account name [IL2KS_ADMIN_USERNAME]; default admin")
+    setup.add_argument(
+        "--admin-password-file", type=Path, help="file holding the admin password [IL2KS_ADMIN_PASSWORD]"
+    )
+    setup.add_argument("--no-admin", action="store_true", help="do not create an admin account")
+    setup.add_argument("--non-interactive", action="store_true", help="never ask; use flags, environment and defaults")
+    setup.add_argument("--force", action="store_true", help="replace an existing il2ks.toml (a copy is kept)")
+
+    admin_parser = sub.add_parser(
+        "createadmin",
+        help="create an admin account, or reset the password of an existing one",
+        description=(
+            "Create an admin (superuser) account, or reset an existing account's password and make it an admin. "
+            "In a terminal it asks for the password twice. For scripts give --username and the password in the "
+            "IL2KS_ADMIN_PASSWORD environment variable or --password-file."
+        ),
+    )
+    admin_parser.add_argument("--username", help="account name (asked for in a terminal, default admin)")
+    admin_parser.add_argument("--password-file", type=Path, help="file holding the password (first line break dropped)")
+    admin_parser.add_argument("--email", help="e-mail address of the account (optional)")
+    admin_parser.add_argument(
+        "--wait", type=float, default=30.0, metavar="SECONDS", help="how long to wait for another writer"
+    )
+
+    sub.add_parser(
+        "doctor",
+        help="check the setup and say what to fix",
+        description=(
+            "Checks the configuration, data folder, database, log folder, time zone, server ID, disk space, ingestion "
+            "history and backups. Exit code: 0 = all OK, 1 = warnings only, 2 = at least one error."
+        ),
+    ).add_argument("--json", action="store_true", help="machine-readable output")
+
+    sub.add_parser(
+        "backup",
+        help="write a backup zip of the database, config, custom/ and media/ to <data dir>/backups",
+        description=(
+            "Backs up what the mission logs cannot rebuild: a consistent copy of the SQLite database, il2ks.toml, "
+            "custom/, media/ and the server ID. Not the archived mission logs. Keeps the newest [backup] keep zips. "
+            "Backups are also made before database updates and, by 'il2ks watch', once a day."
+        ),
+    )
+    restore = sub.add_parser(
+        "restore",
+        help="restore a backup zip (database, config, custom/, media/)",
+        description=(
+            "Restores a backup made by 'il2ks backup'. Backs up the current state first, refuses while another "
+            "il2ks writer is running, and checks the result. SQLite only."
+        ),
+    )
+    restore.add_argument("zip", type=Path, help="the backup zip")
+    restore.add_argument("--yes", action="store_true", help="do not ask for confirmation")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="il2ks", description="IL-2 Korea stats")
     parser.add_argument("--config", type=Path, help="il2ks.toml to use (default: IL2KS_CONFIG, ./il2ks.toml, data dir)")
@@ -57,6 +138,8 @@ def _build_parser() -> argparse.ArgumentParser:
     for name, (requirement, description) in PLANNED.items():
         text = f"not implemented yet (planned: {requirement}): {description}"
         sub.add_parser(name, help=text, description=text)
+
+    _add_ops_parsers(sub)
 
     wait_help = "if another writer holds the lock, wait up to this many seconds instead of exiting"
     ingest = sub.add_parser("ingest", help="process every complete mission once, then exit")
@@ -124,6 +207,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         return EXIT_OK
     if command in {"ingest", "watch", "reprocess", "rebuild-aggregates"}:
         return _writer_command(command, ns)
+    if command in OPS_COMMANDS:
+        from il2ks.ops import commands
+
+        handlers: dict[str, Callable[[argparse.Namespace], int]] = {
+            "setup": commands.cmd_setup,
+            "createadmin": commands.cmd_createadmin,
+            "doctor": commands.cmd_doctor,
+            "backup": commands.cmd_backup,
+            "restore": commands.cmd_restore,
+        }
+        return handlers[command](ns)
     print(f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})", file=sys.stderr)
     return EXIT_USAGE
 
@@ -163,7 +257,7 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
 
     wait: float | None = getattr(ns, "wait", None)
     try:
-        _migrate_if_needed(cfg, command, wait)
+        migrate_if_needed(cfg, command, wait)  # FR-OPS-3, after a backup when the database has data (FR-OPS-6)
         return _run_job(command, ns, cfg, source, wait)
     except LockBusyError as exc:
         print(f"il2ks {command}: {exc}", file=sys.stderr)
@@ -171,21 +265,6 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
     except KeyboardInterrupt:
         log.info("stopped")
         return EXIT_OK
-
-
-def _migrate_if_needed(cfg: Config, command: str, wait: float | None) -> None:
-    """FR-OPS-3: apply pending migrations before writing, under the writer lock."""
-    from django.core.management import call_command
-    from django.db import connection
-    from django.db.migrations.executor import MigrationExecutor
-
-    from il2ks.ingest.lock import WriterLock
-
-    with WriterLock(cfg.data_dir, command, wait=wait):
-        executor = MigrationExecutor(connection)
-        if executor.migration_plan(executor.loader.graph.leaf_nodes()):
-            log.info("applying database migrations")
-            call_command("migrate", interactive=False, verbosity=0)
 
 
 def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | None, wait: float | None) -> int:

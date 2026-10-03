@@ -128,8 +128,6 @@ FAKE_NAME_RE  # devtools.anonymize: the fixture check in tests/unit/test_anonymi
 _.snapshot  # core.replay.state.Replay.snapshot: FR-ING-15 live sorties (streaming), tested in test_streaming.py
 _.parent_sortie_index  # core.replay.result.SortieResult: gunner -> pilot link, not persisted yet
 _.victim_object_id  # core.replay.result.KillResult: kept for a later per-victim view (tests set it)
-check  # ops.doctor: registry decorator, checks arrive with the ops agents; drop this line then
-run_checks  # ops.doctor: called by `il2ks doctor` once the command exists; drop this line then
-_.detail  # ops.doctor.Finding
-_.fix  # ops.doctor.Finding
-_.WARN  # ops.doctor.Level
+_.is_active  # django User flags, assigned by createadmin so a reset account is a working admin (ops.admin)
+_.is_staff
+_.is_superuser
