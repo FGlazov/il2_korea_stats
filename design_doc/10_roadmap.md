@@ -49,6 +49,9 @@ The next run starts here. The data model is final for these pages (doc 06, page 
 - **Ammo breakdown** (FR-WEB-18): per-sortie hits and damage per ammo type, and average hits-to-destroy per aircraft type, with closest-hit attribution.
   **Not a release gate**: ships when ready, before or after the public release.
 - **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
+- **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
+  image and illustrations with finished ones (a hired designer, or licensed sets). **Not a release gate, but soon after it** (maintainer,
+  2026-10-03). The site ships with placeholders under the final file names, so this is a drop-in change.
 
 ## Iteration 2: Live data, languages, richer stats
 - **Tours** with configurable length (monthly by default) (TD-26).
@@ -70,7 +73,7 @@ The next run starts here. The data model is final for these pages (doc 06, page 
 - Windows installer (option B), unsigned (doc 07).
 
 **Not gates** (ship when ready, before or after the release): translations into languages other than English (UI and object names, TD-24),
-and the ammo breakdown (FR-WEB-18).
+the ammo breakdown (FR-WEB-18), and the finished visual assets (doc 15; due soon after the release).
 
 **Schedule risk** (Claude, 2026-10-02): the gate implies all of iteration 0 and 1, the Windows installer from 1.x, and object-name admin
 overrides in about 3 weeks, for one developer with AI help. Still tight, but translations no longer gate it (maintainer, 2026-10-02).
