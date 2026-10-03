@@ -31,6 +31,11 @@ show what such a site does; their look is considered dated. Data areas (tables, 
   state symbols they are generally free of copyright (US federal works are public domain; Russian law excludes state symbols; the roundels
   are simple geometric shapes), but a particular drawing can carry its artist's licence, so redraw them or use files marked public
   domain.
+- **Optional insignia** `[DECIDED]` (maintainer, 2026-10-03): the server owner picks each side's emblem in the site settings: **REDFOR**:
+  neutral (default), Soviet VVS red star, Chinese PLAAF, North Korean KPAF; **BLUFOR**: neutral (default), US star-and-bar, South Korean
+  ROKAF taegeuk, a generic UN-style roundel. Only designs free of copyright are shipped (state insignia, drawn by us as simple shapes). The
+  default stays neutral: North Korean symbols are sensitive in South Korea, and the war's main air forces were Soviet, Chinese and American,
+  so a fixed national pair would be both touchy and inaccurate.
 - Files live in `src/il2ks/web/static/il2ks/img/<group>/<name>.svg`; server owners can replace any of them through `custom/static/`
   (TD-25). The names below are the contract: keep them.
 
@@ -59,6 +64,7 @@ Shown next to the aircraft name in tables (small icon) and in the header of a so
 | File | What | Prio |
 |---|---|---|
 | `redfor.svg`, `blufor.svg` | Neutral emblems for the two sides (communist side / UN side), used in badges next to "REDFOR" / "BLUFOR" and on the mission page | P2 |
+| `coalition/insignia/<name>.svg` | The optional insignia: `vvs`, `plaaf`, `kpaf`, `usaf`, `rokaf`, `un` (simple redrawn state insignia; placeholders drawn by us) | P2 |
 | `country/<code>.svg` | Later: real period insignia per country code (501–503, 601–603), once the codes are mapped to nations | P3 |
 
 ### Sortie outcome and pilot fate (`outcome/`)
