@@ -49,7 +49,7 @@ Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-
 - 🔧 Mission-end rules: outcome `airborne` / landed for sorties the mission end cut off, pilot fate `in_aircraft` + an "ended by mission end"
   flag (maintainer feedback, 2026-10-03); **reprocess all** as an explicit CLI option and an admin button (queued for `watch`).
 - 🔧 **Versioned templates** for `custom/` overrides: outdated overrides get a big warning in the admin (maintainer, 2026-10-03; TD-25).
-- ⏳ OQ-36 default (destruction before a late disconnect is a loss); OQ-37 default (Tabler placeholder icons).
+- 🔧 OQ-36: destruction before a disconnect is a normal loss (maintainer, 2026-10-03). ⏳ OQ-37: Tabler placeholder icons + NOTICE.
 - ⏳ Stretch: **Playwright end-to-end tests** for the key flows: a player finding their own sortie (search → profile → sortie), and someone
   opening a mission, finding themselves and drilling into a sortie (maintainer, 2026-10-03).
 

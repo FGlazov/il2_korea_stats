@@ -114,6 +114,9 @@ in the aircraft when it was lost?  fate in_aircraft, or fate disconnected with a
 disconnect death (FR-ING-21) = fate disconnected, no attacker kill line, and ANY damage (any source) on aircraft or crew
               in the 120 s before the disconnect
 fate disconnected without that damage and without an attacker kill → no loss, no death (the abandoned aircraft's later crash is ignored)
+destroyed BEFORE the disconnect (any time; OQ-36, maintainer 2026-10-03: "exit server" instead of "end sortie" is fine to press)
+              → a normal loss of the sortie (outcome, cause and credit as usual) and a death if the pilot was still in the aircraft;
+                the 120 s damage rule above only decides about aircraft that were intact when the player left
 
 is_plane_lost = loss, or died, or bailed out, or disconnect death
 loss_cause    = none      if nothing was lost

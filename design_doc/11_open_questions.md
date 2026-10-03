@@ -19,18 +19,7 @@ OQ-34 (insignia) is answered: neutral emblems by default, real insignia per coun
 
 OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
-**OQ-36 A disconnect long after the aircraft was destroyed: a loss?** (Claude's default applied unless you object)
-10 sample sorties end with the player's removal (no AType 4) 131–683 s after their aircraft was destroyed in the air, mostly by the
-environment: the pilot crashed, stayed in the game for minutes, then left. FR-ING-21 only counts a disconnect as a death with damage in the
-120 s before it, so today these show "no loss" although the aircraft was destroyed. **Default (gut call):** a destruction that happens
-**before** the disconnect is a normal loss of that sortie (crashed / shot down by cause, and a death unless the pilot is known to have
-left the aircraft); the 120 s rule only decides about aircraft abandoned *by* the disconnect. Small change, to be implemented with the next
-replay batch.
-
-**OQ-37 Ship Tabler Icons (MIT) as the placeholder icon set now?** (Claude's default applied unless you object)
-The icon research (doc 16) found Tabler Icons covers almost every slot in doc 15 under the same licence as the project (only a copyright
-line in NOTICE). **Default:** replace the hand-drawn placeholders with Tabler icons now (aircraft silhouettes, artillery, AA, logo and the
-header texture stay our own drawings), so the site looks finished until the designer delivers.
+OQ-36 (destruction before a disconnect is a normal loss, doc 13) and OQ-37 (ship Tabler Icons, doc 15) are answered.
 
 ## Lower impact
 

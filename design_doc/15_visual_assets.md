@@ -39,6 +39,10 @@ show what such a site does; their look is considered dated. Data areas (tables, 
 - Files live in `src/il2ks/web/static/il2ks/img/<group>/<name>.svg`; server owners can replace any of them through `custom/static/`
   (TD-25). The names below are the contract: keep them.
 
+**Placeholders now** `[DECIDED]` (maintainer, 2026-10-03, OQ-37): UI icons come from **Tabler Icons** (MIT, outline, 24 px grid,
+`currentColor`; credited in `NOTICE`) until the designer delivers; aircraft silhouettes, artillery, AA, the logo mark and the header texture
+stay our own drawings. Paid stock marketplaces don't fit an open-source package (doc 16).
+
 ## Asset list
 
 Priority: **P1** = the site looks unfinished without it, **P2** = clearly better with it, **P3** = nice to have / later features.
