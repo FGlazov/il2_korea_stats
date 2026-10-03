@@ -76,7 +76,8 @@ def forced_by_mission_end(sortie: SortieState, facts: MissionFacts, rules: Repla
         return False
     if sortie.end_tick is None:
         return final
-    return mission_end <= sortie.end_tick <= mission_end + ticks(rules.mission_end_sortie_window_s)
+    normal_end = sortie.end_aircraft_id is not None and sortie.end_aircraft_id != 0  # PLID:0 = the pilot left
+    return normal_end and mission_end <= sortie.end_tick <= mission_end + ticks(rules.mission_end_sortie_window_s)
 
 
 def took_off(sortie: SortieState, end_tick: int) -> bool:
@@ -106,9 +107,7 @@ def flight_time_s(sortie: SortieState, end_tick: int) -> float:
     return total / TICKS_PER_SECOND
 
 
-def bailout_v2(
-    sortie: SortieState, loss: Loss | None, died_tick: int | None, rules: ReplayRules
-) -> tuple[bool, bool]:
+def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, rules: ReplayRules) -> tuple[bool, bool]:
     """FR-ING-14 rule v2: (is_bailout, pilot_had_exit_pos). All of conditions 1-4 must hold.
 
     Returns `(False, False)` when the pilot's final position is unknown, so the caller can report `unknown`."""
@@ -153,15 +152,12 @@ def suspected_early_bailout(
 def disconnect_death(sortie: SortieState, disconnect_tick: int, rules: ReplayRules) -> bool:
     """FR-ING-21: aircraft or pilot took damage from any source in the window before the disconnect."""
     start = disconnect_tick - ticks(rules.disconnect_damage_window_s)
-    for obj in unit_objects(sortie.airframe):
-        if any(start <= r.tick <= disconnect_tick for r in obj.damage_log):
-            return True
-    return False
+    return any(
+        start <= record.tick <= disconnect_tick for obj in unit_objects(sortie.airframe) for record in obj.damage_log
+    )
 
 
-def structural_failure(
-    sortie: SortieState, loss: Loss, attacker_loss: bool, rules: ReplayRules
-) -> bool:
+def structural_failure(sortie: SortieState, loss: Loss, attacker_loss: bool, rules: ReplayRules) -> bool:
     """FR-ING-17 definition v2: self loss, destroyed airborne, sudden self damage, wreck kept falling."""
     if attacker_loss or not loss.airborne:
         return False
@@ -188,7 +184,7 @@ def pilot_fate_of(
         return "bailed_out", "event"  # AType 18 exists for gunners
     if dead:
         return "in_aircraft", "event"
-    if forced and sortie.end_aircraft_id != 0 and not sortie.ended_by_removal:
+    if forced and sortie.end_aircraft_id is not None:
         return "mission_ended", "event"
     if forced:
         return "mission_ended", "inferred"

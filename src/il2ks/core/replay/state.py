@@ -32,9 +32,9 @@ from il2ks.core.logparse.events import (
     PlayerDisconnectEvent,
     PlayerSpawnEvent,
     Pos,
+    RocketFiredEvent,
     SortieEndEvent,
     StoreReleaseEvent,
-    RocketFiredEvent,
     TakeoffEvent,
     WheelsOffEvent,
     WheelsOnEvent,
@@ -43,8 +43,8 @@ from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.model import (
     DamageRecord,
-    MissionFacts,
     HitRecord,
+    MissionFacts,
     SortieState,
     TrackedObject,
     is_bot_type,

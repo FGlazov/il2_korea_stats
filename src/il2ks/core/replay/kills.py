@@ -1,0 +1,139 @@
+"""Kills and assists: one `KillResult` per credit with a player on at least one side (TD-21, FR-ING-22).
+
+Derived from il2_stats (MIT), see NOTICE: `Object.got_killed`. Credit is damage based; explicit AID wins the kill.
+"""
+
+from dataclasses import dataclass
+
+from il2ks.core.logparse.events import Pos
+from il2ks.core.replay.config import ReplayRules
+from il2ks.core.replay.credit import Credited, credit_kill, is_self_attack
+from il2ks.core.replay.judge import Verdict
+from il2ks.core.replay.model import MissionFacts, SortieState, TrackedObject
+from il2ks.core.replay.result import KillCredit, KillResult, KillVia
+
+
+@dataclass(frozen=True, slots=True)
+class _Victim:
+    obj: TrackedObject
+    sortie: SortieState | None
+    tick: int
+    pos: Pos | None
+    explicit: TrackedObject | None
+    via: KillVia
+
+
+def _killer_type(credited: Credited) -> str:
+    party = credited.party
+    return party.aircraft_type if isinstance(party, SortieState) else party.object_type
+
+
+def _party_sortie_index(credited: Credited) -> int | None:
+    return credited.party.index if isinstance(credited.party, SortieState) else None
+
+
+def _party_coalition(credited: Credited) -> int | None:
+    party = credited.party
+    return party.coalition
+
+
+def _is_victim_object(obj: TrackedObject) -> bool:
+    """Crew deaths aren't kills; neither are bombs, drop tanks and other ordnance, or undeclared placeholders."""
+    if obj.is_bot or obj.object_type == "":
+        return False
+    return obj.info.cls not in ("ordnance", "gunner")
+
+
+def _via(sortie: SortieState, verdict: Verdict, explicit: TrackedObject | None) -> KillVia:
+    if explicit is not None and not is_self_attack(explicit, sortie.airframe, sortie):
+        return "direct"
+    if verdict.fate == "disconnected":
+        return "disconnect"
+    if verdict.fate in ("bailed_out", "exited_on_ground"):
+        return "abandoned_aircraft"
+    return "direct"
+
+
+def _victims(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRules) -> list[_Victim]:
+    victims: list[_Victim] = []
+    in_sortie: set[int] = set()
+    for sortie, verdict in zip(facts.sorties, verdicts, strict=True):
+        airframe = sortie.airframe
+        if sortie.role == "gunner":
+            continue  # a gunner's death isn't a kill of the aircraft; the pilot's sortie carries it
+        in_sortie.add(id(airframe))
+
+        loss = verdict.loss
+        if loss is not None:
+            victims.append(_Victim(airframe, sortie, loss.tick, loss.pos, loss.by, _via(sortie, verdict, loss.by)))
+        elif verdict.is_plane_lost and (verdict.disconnect_death or verdict.bailout or verdict.died_tick is not None):
+            # Lost without an AType 3 for the aircraft: pilot killed, abandoned or disconnected aircraft
+            bot = sortie.bot
+            explicit = bot.destroyed_by if verdict.died_tick is not None else None
+            tick = verdict.died_tick if verdict.died_tick is not None else verdict.end_tick
+            pos = bot.destroyed_pos if verdict.died_tick is not None else bot.removed_pos
+            victims.append(
+                _Victim(airframe, sortie, tick, pos or airframe.pos, explicit, _via(sortie, verdict, explicit))
+            )
+    for obj in facts.destroyed:
+        if id(obj) in in_sortie or not _is_victim_object(obj) or obj.destroyed_tick is None:
+            continue
+        sortie = obj.sortie
+        if sortie is not None:  # a player's aircraft that isn't a victim of its own sortie (late destruction, gunner)
+            continue
+        victims.append(_Victim(obj, None, obj.destroyed_tick, obj.destroyed_pos, obj.destroyed_by, "direct"))
+    return victims
+
+
+def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRules) -> list[KillResult]:
+    """Every kill and assist where a player is the victim or a credited party. Sorted by tick (stable)."""
+    results: list[KillResult] = []
+    for victim in _victims(facts, verdicts, rules):
+        credited = credit_kill(victim.obj, victim.sortie, victim.explicit, victim.tick, rules.assist_min_damage)
+        victim_index = victim.sortie.index if victim.sortie is not None else None
+        victim_coalition = victim.obj.coalition
+        kind = "air" if victim.obj.info.is_air else "ground"
+        if not credited:
+            if victim_index is not None:  # environment or self: the victim's death without credit
+                results.append(
+                    KillResult(
+                        tick=victim.tick,
+                        victim_object_id=victim.obj.object_id,
+                        victim_type=victim.obj.object_type,
+                        victim_kind=kind,
+                        victim_coalition=victim_coalition,
+                        victim_sortie_index=victim_index,
+                        killer_sortie_index=None,
+                        killer_type=None,
+                        credit="kill",
+                        via=victim.via,
+                        is_friendly=False,
+                        pos=victim.pos,
+                    )
+                )
+            continue
+        for entry in credited:
+            killer_index = _party_sortie_index(entry)
+            if killer_index is None and victim_index is None:
+                continue  # AI against AI
+            coalition = _party_coalition(entry)
+            friendly = coalition is not None and coalition == victim_coalition and coalition != 0
+            credit: KillCredit = "kill" if entry.is_killer else "assist"
+            results.append(
+                KillResult(
+                    tick=victim.tick,
+                    victim_object_id=victim.obj.object_id,
+                    victim_type=victim.obj.object_type,
+                    victim_kind=kind,
+                    victim_coalition=victim_coalition,
+                    victim_sortie_index=victim_index,
+                    killer_sortie_index=killer_index,
+                    killer_type=_killer_type(entry),
+                    credit=credit,
+                    via=victim.via if victim_index is not None else "direct",
+                    is_friendly=friendly,
+                    pos=victim.pos,
+                )
+            )
+    results.sort(key=lambda k: k.tick)
+    return results

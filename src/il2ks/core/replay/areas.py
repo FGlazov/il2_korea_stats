@@ -37,10 +37,8 @@ def point_in_polygon(x: float, z: float, polygon: tuple[tuple[float, float], ...
     for i in range(1, n + 1):
         p2x, p2z = polygon[i % n]
         if min(p1z, p2z) < z <= max(p1z, p2z) and x <= max(p1x, p2x):
-            if p1z == p2z:
-                crosses = x <= p1x
-            else:
-                crosses = p1x == p2x or x <= (z - p1z) * (p2x - p1x) / (p2z - p1z) + p1x
+            # p1z != p2z here: the strict bounds above can't hold for a horizontal edge
+            crosses = p1x == p2x or x <= (z - p1z) * (p2x - p1x) / (p2z - p1z) + p1x
             if crosses:
                 inside = not inside
         p1x, p1z = p2x, p2z

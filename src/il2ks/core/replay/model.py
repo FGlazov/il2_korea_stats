@@ -163,7 +163,7 @@ class SortieState:
 
 
 def owner_sortie(obj: TrackedObject | None) -> SortieState | None:
-    """The player sortie an object acts for: its own, or the nearest ancestor's (an AI turret on a player's aircraft)."""
+    """The player sortie an object acts for: its own, or the nearest ancestor's (an AI turret of a player aircraft)."""
     seen = 0
     while obj is not None and seen < 16:
         if obj.sortie is not None:

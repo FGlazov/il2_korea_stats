@@ -19,7 +19,7 @@ class ReplayRules:
     structural_fall_s: float = 1.0
     # Additive (iteration 1 replay, see design_doc/pending/replay.md)
     # A sortie's aircraft destroyed after AType 4 still counts for the sortie within this window (the shot-down shape
-    # logs AType 4 before AType 3, doc 12), or at any time if it was airborne when the sortie ended (abandoned aircraft).
+    # logs AType 4 before AType 3, doc 12), or at any time if the pilot left an airborne aircraft (FR-ING-22).
     post_end_destroy_window_s: float = 5.0
     # Damage-based credit: other damagers above this fraction of the victim get an assist (il2_stats used > 1%).
     assist_min_damage: float = 0.01

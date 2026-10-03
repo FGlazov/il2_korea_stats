@@ -1,0 +1,130 @@
+"""Per-sortie breakdowns: damage exchanges per counterpart, hits per ammo type, and the key-event timeline (TD-08)."""
+
+from dataclasses import dataclass, field
+
+from il2ks.core.replay.judge import Verdict
+from il2ks.core.replay.model import MissionFacts, Party, SortieState, party_of
+from il2ks.core.replay.result import AmmoHits, Counterpart, DamageExchange, KillResult, TimelineEntry
+
+
+@dataclass(slots=True)
+class _Exchange:
+    counterpart: Counterpart
+    dealt: float = 0.0
+    taken: float = 0.0
+    hits_dealt: int = 0
+    hits_taken: int = 0
+
+
+@dataclass(slots=True)
+class _Breakdown:
+    exchanges: dict[tuple[str, int], _Exchange] = field(default_factory=dict[tuple[str, int], _Exchange])
+    given: dict[str, int] = field(default_factory=dict[str, int])
+    received: dict[str, int] = field(default_factory=dict[str, int])
+
+    def exchange(self, party: Party) -> _Exchange:
+        index = party.index if isinstance(party, SortieState) else None
+        obj_type = party.aircraft_type if isinstance(party, SortieState) else party.object_type
+        key = (obj_type, -1 if index is None else index)
+        found = self.exchanges.get(key)
+        if found is None:
+            coalition = party.coalition
+            found = self.exchanges[key] = _Exchange(Counterpart(obj_type, index, coalition))
+        return found
+
+
+def breakdowns(
+    facts: MissionFacts, verdicts: list[Verdict]
+) -> dict[int, tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]]]:
+    """Damage and hits from each player sortie to its counterparts, and back. Self damage is left out."""
+    ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
+    cutoffs = {s.index: v.cutoff_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
+    per_sortie = {s.index: _Breakdown() for s in facts.sorties}
+    for obj in facts.objects:
+        target_party = party_of(obj)
+        for record in obj.damage_log:
+            if record.attacker is None:
+                continue
+            attacker_party = party_of(record.attacker)
+            if attacker_party is target_party:
+                continue
+            if isinstance(attacker_party, SortieState) and record.tick <= ends[attacker_party.index]:
+                per_sortie[attacker_party.index].exchange(target_party).dealt += record.amount
+            if isinstance(target_party, SortieState) and record.tick <= cutoffs[target_party.index]:
+                per_sortie[target_party.index].exchange(attacker_party).taken += record.amount
+        for hit in obj.hit_log:
+            if hit.attacker is None:
+                continue
+            attacker_party = party_of(hit.attacker)
+            if attacker_party is target_party:
+                continue
+            if isinstance(attacker_party, SortieState) and hit.tick <= ends[attacker_party.index]:
+                book = per_sortie[attacker_party.index]
+                book.exchange(target_party).hits_dealt += 1
+                book.given[hit.ammo] = book.given.get(hit.ammo, 0) + 1
+            if isinstance(target_party, SortieState) and hit.tick <= cutoffs[target_party.index]:
+                book = per_sortie[target_party.index]
+                book.exchange(attacker_party).hits_taken += 1
+                book.received[hit.ammo] = book.received.get(hit.ammo, 0) + 1
+    out: dict[int, tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]]] = {}
+    for index, book in per_sortie.items():
+        exchanges = tuple(
+            DamageExchange(e.counterpart, e.dealt, e.taken, e.hits_dealt, e.hits_taken)
+            for _, e in sorted(book.exchanges.items())
+        )
+        ammo = tuple(
+            AmmoHits(a, book.given.get(a, 0), book.received.get(a, 0))
+            for a in sorted(set(book.given) | set(book.received))
+        )
+        out[index] = (exchanges, ammo)
+    return out
+
+
+def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> tuple[TimelineEntry, ...]:
+    """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion."""
+    airframe = sortie.airframe
+    entries: list[TimelineEntry] = [TimelineEntry(sortie.spawn_tick, "spawn", sortie.spawn_type, sortie.spawn_pos)]
+    end = verdict.end_tick
+    entries += [TimelineEntry(t, "takeoff", pos=p) for t, p in airframe.takeoffs if sortie.spawn_tick <= t <= end]
+    entries += [TimelineEntry(t, "landing", pos=p) for t, p in airframe.landings if sortie.spawn_tick <= t <= end]
+    for kill in kills:
+        if kill.killer_sortie_index == sortie.index and not kill.is_friendly:
+            entries.append(
+                TimelineEntry(
+                    kill.tick,
+                    "kill" if kill.credit == "kill" else "assist",
+                    kill.victim_type,
+                    kill.pos,
+                    Counterpart(kill.victim_type, kill.victim_sortie_index, kill.victim_coalition),
+                )
+            )
+        elif kill.killer_sortie_index == sortie.index:
+            entries.append(TimelineEntry(kill.tick, "friendly_fire", kill.victim_type, kill.pos))
+    loss = verdict.loss
+    if loss is not None:
+        killer = next((k for k in kills if k.victim_sortie_index == sortie.index and k.credit == "kill"), None)
+        counterpart = (
+            Counterpart(killer.killer_type, killer.killer_sortie_index)
+            if killer is not None and killer.killer_type is not None
+            else None
+        )
+        kind = "shot_down" if verdict.loss_cause == "attacker" else "destroyed"
+        entries.append(TimelineEntry(loss.tick, kind, pos=loss.pos, counterpart=counterpart))
+    if verdict.fate == "bailed_out":
+        bot = sortie.bot
+        tick = bot.bailout_tick if bot.bailout_tick is not None else bot.removed_tick
+        entries.append(
+            TimelineEntry(tick if tick is not None else end, "bailout", pos=bot.removed_pos or bot.bailout_pos)
+        )
+    if verdict.disconnect_tick is not None or verdict.fate == "disconnected":
+        entries.append(
+            TimelineEntry(
+                verdict.disconnect_tick if verdict.disconnect_tick is not None else end, "disconnect", pos=airframe.pos
+            )
+        )
+    end_pos = sortie.end_pos or sortie.bot.removed_pos
+    entries.append(TimelineEntry(end, "sortie_end", verdict.outcome, end_pos))
+    return tuple(sorted(entries, key=lambda e: e.tick))  # sorted() is stable
+
+
+__all__ = ["breakdowns", "timeline"]

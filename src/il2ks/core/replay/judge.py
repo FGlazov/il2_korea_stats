@@ -71,8 +71,12 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     loss = aircraft_loss(sortie, facts, rules, disc_tick)
     died = pilot_death_tick(sortie, facts, rules)
     forced = forced_by_mission_end(sortie, facts, rules, final=final)
-    if forced and (loss is not None or died is not None):
-        forced = False
+    mission_end = facts.first_mission_end
+    if forced and mission_end is not None:
+        # The server despawns everything at mission end: destruction from that tick on is cleanup, not combat (doc 12)
+        loss = loss if loss is not None and loss.tick < mission_end else None
+        died = died if died is not None and died < mission_end else None
+        forced = loss is None and died is None
     off = took_off(sortie, end)
     bailout, exit_known = bailout_v2(sortie, loss, died, rules)
     shot_down_directly = loss is not None and loss.by is not None and not is_self_attack(loss.by, airframe, sortie)
