@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 import time
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -31,8 +32,42 @@ class LogFolder:
     newest_mtime: float
 
 
-def default_roots(platform: str, env: Mapping[str, str], home: Path) -> list[Path]:
-    """Where an IL-2 install is likely to be, most specific first. Only existing folders are returned."""
+_DRIVE_FIXED = 3  # GetDriveTypeW: a local disk (not removable, network, CD, RAM)
+
+
+def is_fixed_drive(letter: str) -> bool:
+    """Whether `D:` is a local fixed disk. Asked before touching a drive: probing a disconnected network drive or an
+    empty card reader can stall for many seconds, and `GetDriveTypeW` itself does not touch the medium."""
+    if sys.platform != "win32":
+        return False
+    import ctypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.GetDriveTypeW.argtypes = [ctypes.c_wchar_p]
+    return kernel32.GetDriveTypeW(f"{letter}:\\") == _DRIVE_FIXED
+
+
+def default_roots(
+    platform: str,
+    env: Mapping[str, str],
+    home: Path,
+    *,
+    fixed_drive: Callable[[str], bool] = is_fixed_drive,
+) -> Iterator[Path]:
+    """Where an IL-2 install is likely to be, most specific first. Only existing folders are produced.
+
+    Lazy: each candidate is probed when the caller asks for it, so the caller's time budget already runs while a slow
+    disk is being probed."""
+    seen: set[Path] = set()
+    for path in _candidates(platform, env, home, fixed_drive):
+        if path not in seen and _is_dir(path):
+            seen.add(path)
+            yield path
+
+
+def _candidates(
+    platform: str, env: Mapping[str, str], home: Path, fixed_drive: Callable[[str], bool]
+) -> Iterator[Path]:
     candidates: list[Path] = []
     if platform == "win32":
         for var in ("ProgramFiles", "ProgramFiles(x86)", "ProgramData", "SystemDrive"):
@@ -42,8 +77,7 @@ def default_roots(platform: str, env: Mapping[str, str], home: Path) -> list[Pat
                 if var == "ProgramFiles(x86)":
                     candidates.append(base / "Steam" / "steamapps" / "common")
         candidates += [home, home / "Desktop", home / "Documents", home / "Games"]
-        for letter in "DEFG":  # other fixed drives often hold game servers; only the top level is looked at
-            candidates.append(Path(f"{letter}:\\"))
+        candidates += [Path(f"{letter}:\\") for letter in "DEFG" if fixed_drive(letter)]  # game servers; top level only
     else:
         prefixes = [Path(env["WINEPREFIX"])] if env.get("WINEPREFIX") else []
         prefixes += sorted(home.glob(".wine*"))[:5]
@@ -58,13 +92,7 @@ def default_roots(platform: str, env: Mapping[str, str], home: Path) -> list[Pat
                 drive_c,
             ]
         candidates += [home / "Games", home / ".local" / "share" / "Steam" / "steamapps" / "common", home]
-    seen: set[Path] = set()
-    roots: list[Path] = []
-    for path in candidates:
-        if path not in seen and _is_dir(path):
-            seen.add(path)
-            roots.append(path)
-    return roots
+    yield from candidates
 
 
 def _is_dir(path: Path) -> bool:
@@ -74,13 +102,18 @@ def _is_dir(path: Path) -> bool:
         return False
 
 
-def inspect_folder(path: Path) -> LogFolder | None:
-    """`LogFolder` if `path` directly holds mission report text files, else None."""
+def inspect_folder(path: Path, spent: Callable[[], bool] | None = None) -> LogFolder | None:
+    """`LogFolder` if `path` directly holds mission report text files, else None.
+
+    `spent` (the search budget) is asked once per directory entry read; when it says the budget is used up the folder
+    is judged by what was read so far, so a folder with a huge number of files can't blow the budget."""
     reports = 0
     newest = 0.0
     try:
         with os.scandir(path) as entries:
             for entry in entries:
+                if spent is not None and spent():
+                    break
                 if entry.name.lower().endswith(".txt") and mission_uid_from_name(entry.name) is not None:
                     reports += 1
                     newest = max(newest, entry.stat().st_mtime)
@@ -126,7 +159,7 @@ def _walk(root: Path, *, max_depth: int, budget: _Budget) -> Iterator[Path]:
 
 
 def find_log_folders(
-    roots: list[Path],
+    roots: Iterable[Path],
     *,
     max_depth: int = MAX_DEPTH,
     max_entries: int = MAX_ENTRIES,
@@ -140,7 +173,7 @@ def find_log_folders(
     found: dict[Path, LogFolder] = {}
     for root in roots:
         for folder in _walk(root, max_depth=max_depth, budget=budget):
-            hit = inspect_folder(folder)
+            hit = inspect_folder(folder, budget.spent)
             if hit is not None:
                 found[hit.path] = hit
         if budget.spent():
