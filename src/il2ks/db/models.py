@@ -504,6 +504,22 @@ class IngestRun(models.Model):
         return f"{self.mission_uid} {self.status}"
 
 
+class RedforEmblem(models.TextChoices):
+    """Doc 15: neutral by default; period insignia are optional (drawn as simple shapes, free of copyright)."""
+
+    NEUTRAL = "neutral"
+    VVS = "vvs", "Soviet VVS"
+    PLAAF = "plaaf", "Chinese PLAAF"
+    KPAF = "kpaf", "North Korean KPAF"
+
+
+class BluforEmblem(models.TextChoices):
+    NEUTRAL = "neutral"
+    USAF = "usaf", "US star-and-bar"
+    ROKAF = "rokaf", "South Korean ROKAF"
+    UN = "un", "UN-style roundel"
+
+
 class SiteSettings(models.Model):
     """Branding and site texts, edited in the admin (FR-ADM-2, TD-25). A singleton: always pk=1 (`il2ks.db.site`)."""
 
@@ -518,6 +534,8 @@ class SiteSettings(models.Model):
     # Coalition display names (FR-ADM-5, doc 06): 5xx countries are REDFOR, 6xx BLUFOR.
     redfor_name = models.CharField(max_length=40, default="REDFOR")
     blufor_name = models.CharField(max_length=40, default="BLUFOR")
+    redfor_emblem = models.CharField(max_length=10, choices=RedforEmblem.choices, default=RedforEmblem.NEUTRAL)
+    blufor_emblem = models.CharField(max_length=10, choices=BluforEmblem.choices, default=BluforEmblem.NEUTRAL)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
