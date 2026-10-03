@@ -22,6 +22,7 @@ from django.db.models import Max, Min, Sum
 
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.db.models import Player, PlayerAircraft, PlayerMission, PlayerName, PlayerSortie
+from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
 
@@ -49,6 +50,7 @@ def rebuild_aggregates(ratings: RatingRules = DEFAULT_RULES) -> None:
     the Elo ratings (`recompute_ratings`, which replays all kills)."""
     recompute_players(Player.objects.values_list("pk", flat=True))
     recompute_ratings(ratings)
+    bump_data_version()  # TD-28: pages changed
 
 
 def _recompute_totals(chunk: list[int]) -> None:

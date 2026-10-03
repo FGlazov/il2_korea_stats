@@ -1,0 +1,145 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'il2ks_admin/ingest_status.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {% translate "Ingestion status" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="ingest-cards">
+    <div class="ingest-card">
+      <div class="label">{% translate "Last mission ingested" %}</div>
+      {% if overview.last_ok %}
+        <div class="value">{{ overview.last_ok.mission_uid }}</div>
+        <div class="sub">{{ overview.last_ok.finished_at|default:overview.last_ok.started_at|date:"Y-m-d H:i" }}</div>
+      {% else %}
+        <div class="value">—</div>
+        <div class="sub">{% translate "Nothing ingested yet." %}</div>
+      {% endif %}
+    </div>
+    <div class="ingest-card">
+      <div class="label">{% translate "Latest attempt" %}</div>
+      {% if overview.last_run %}
+        <div class="value {% if overview.last_run.status == 'ok' %}state-ok{% elif overview.last_run.status == 'failed' %}state-bad{% endif %}">{{ overview.last_run.get_status_display }}</div>
+        <div class="sub">{{ overview.last_run.mission_uid }}, {{ overview.last_run.started_at|date:"Y-m-d H:i" }}</div>
+      {% else %}
+        <div class="value">—</div>
+      {% endif %}
+    </div>
+    <div class="ingest-card">
+      <div class="label">{% translate "Missions stored" %}</div>
+      <div class="value">{{ overview.missions_stored }}</div>
+    </div>
+    <div class="ingest-card">
+      <div class="label">{% translate "Last 30 days" %}</div>
+      <div class="value"><span class="state-ok">{{ overview.ok_recent }}</span> / <span class="{% if overview.failed_recent %}state-bad{% endif %}">{{ overview.failed_recent }}</span></div>
+      <div class="sub">{% translate "runs ok / failed" %}</div>
+    </div>
+  </div>
+
+  <div class="ingest-section module">
+    <h2>{% translate "Failed, waiting for a retry" %} ({{ overview.waiting_retry|length }})</h2>
+    {% if overview.waiting_retry %}
+    <table>
+      <thead><tr><th>{% translate "Mission" %}</th><th>{% translate "Attempts" %}</th><th>{% translate "Next retry" %}</th><th>{% translate "Failed" %}</th><th>{% translate "Error" %}</th></tr></thead>
+      <tbody>
+      {% for run in overview.waiting_retry %}
+        <tr>
+          <td><a href="{% url 'admin:il2ks_db_ingestrun_change' run.pk %}">{{ run.mission_uid }}</a></td>
+          <td class="num">{{ run.attempts }}</td>
+          <td>{{ run.next_retry_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ run.started_at|date:"Y-m-d H:i" }}</td>
+          <td class="mono">{{ run.error|default:""|truncatechars:80 }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="ingest-empty">{% translate "None." %}</div>{% endif %}
+  </div>
+
+  <div class="ingest-section module">
+    <h2>{% translate "Given up" %} ({{ overview.gave_up|length }})</h2>
+    <p class="note">{% translate "No more automatic retries. They are retried when their files or the il2ks version change, or run `il2ks reprocess --mission <uid>` after fixing the cause." %}</p>
+    {% if overview.gave_up %}
+    <table>
+      <thead><tr><th>{% translate "Mission" %}</th><th>{% translate "Attempts" %}</th><th>{% translate "Failed" %}</th><th>{% translate "Error" %}</th></tr></thead>
+      <tbody>
+      {% for run in overview.gave_up %}
+        <tr>
+          <td><a href="{% url 'admin:il2ks_db_ingestrun_change' run.pk %}">{{ run.mission_uid }}</a></td>
+          <td class="num">{{ run.attempts }}</td>
+          <td>{{ run.started_at|date:"Y-m-d H:i" }}</td>
+          <td class="mono">{{ run.error|default:""|truncatechars:80 }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="ingest-empty">{% translate "None." %}</div>{% endif %}
+  </div>
+
+  <div class="ingest-section module">
+    <h2>{% translate "Unknown object types" %} ({{ overview.unknown_objects|length }})</h2>
+    <p class="note">{% translate "Seen in logs but missing from the catalog. Give them a name here, and report them so the catalog can be updated." %}</p>
+    {% if overview.unknown_objects %}
+    <table>
+      <thead><tr><th>{% translate "Log name" %}</th><th>{% translate "Display name" %}</th><th>{% translate "Class" %}</th></tr></thead>
+      <tbody>
+      {% for obj in overview.unknown_objects %}
+        <tr>
+          <td class="mono"><a href="{% url 'admin:il2ks_db_gameobject_change' obj.pk %}">{{ obj.log_name }}</a></td>
+          <td>{{ obj.display_name }}</td>
+          <td>{{ obj.get_cls_display }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="ingest-empty">{% translate "None." %}</div>{% endif %}
+  </div>
+
+  <div class="ingest-section module">
+    <h2>{% translate "Unknown event types and keys, last 30 days" %}</h2>
+    <p class="note">{% translate "Log lines the parser does not know. Harmless until the game changes its log format; worth reporting." %}</p>
+    {% if overview.unknown_atypes or overview.unknown_keys %}
+    <table>
+      <thead><tr><th>{% translate "Kind" %}</th><th>{% translate "Name" %}</th><th>{% translate "Lines" %}</th><th>{% translate "Missions" %}</th></tr></thead>
+      <tbody>
+      {% for item in overview.unknown_atypes %}
+        <tr><td>{% translate "Event type (AType)" %}</td><td class="mono">{{ item.name }}</td><td class="num">{{ item.count }}</td><td class="num">{{ item.missions }}</td></tr>
+      {% endfor %}
+      {% for item in overview.unknown_keys %}
+        <tr><td>{% translate "Key (AType:KEY)" %}</td><td class="mono">{{ item.name }}</td><td class="num">{{ item.count }}</td><td class="num">{{ item.missions }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="ingest-empty">{% translate "None." %}</div>{% endif %}
+  </div>
+
+  <div class="ingest-section module">
+    <h2>{% translate "Recently completed by idle timeout" %}</h2>
+    <p class="note">{% translate "These ended without a mission-end event; worth a look in case the server crashed mid-mission." %}</p>
+    {% if overview.idle_completions %}
+    <table>
+      <thead><tr><th>{% translate "Mission" %}</th><th>{% translate "Ingested" %}</th><th>{% translate "Warnings" %}</th></tr></thead>
+      <tbody>
+      {% for run in overview.idle_completions %}
+        <tr>
+          <td><a href="{% url 'admin:il2ks_db_ingestrun_change' run.pk %}">{{ run.mission_uid }}</a></td>
+          <td>{{ run.started_at|date:"Y-m-d H:i" }}</td>
+          <td class="num">{{ run.warnings|length }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="ingest-empty">{% translate "None." %}</div>{% endif %}
+  </div>
+
+  <p><a href="{% url 'admin:il2ks_db_ingestrun_changelist' %}">{% translate "All ingestion runs" %} →</a></p>
+</div>
+{% endblock %}

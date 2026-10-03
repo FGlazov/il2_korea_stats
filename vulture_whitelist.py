@@ -15,6 +15,69 @@ _.format  # logging.Formatter override (logsetup.JsonFormatter)
 exc_type  # context manager protocol (__exit__ signature, ingest.lock)
 tb  # context manager protocol (__exit__ signature, ingest.lock)
 
+# --- Django admin (web.admin, web.admin_site, web.admin_config, web.site_forms): options and hooks found by name ---
+Il2ksAdminConfig  # INSTALLED_APPS entry
+_.default_site  # AdminConfig option
+Il2ksAdminSite  # AdminConfig.default_site
+_.index_template  # AdminSite option
+SiteSettingsAdmin  # @admin.register
+PlayerAdmin
+MissionAdmin
+GameObjectAdmin
+CountryAdmin
+IngestRunAdmin
+_.list_display  # ModelAdmin options
+_.list_filter
+_.list_editable
+_.list_display_links
+_.search_fields
+_.ordering
+_.actions
+_.fieldsets
+_.readonly_fields
+_.list_per_page
+_.has_add_permission  # ModelAdmin permission hooks
+_.has_delete_permission
+_.has_change_permission
+_.changelist_view  # SiteSettingsAdmin: a singleton has no list
+extra_context  # changelist_view signature
+_.current_logo  # readonly_fields display methods
+_.warnings_count
+_.error_text
+_.warnings_list
+_.unknown_atypes_table
+_.unknown_keys_table
+_.files_list
+_.hide_selected  # admin actions
+_.unhide_selected
+_.reset_names
+_.__class_getitem__  # makes ModelAdmin[Model] work at runtime (web.admin)
+_.js  # forms.Media
+_.widgets  # ModelForm.Meta
+_.clean_accent_color  # ModelForm clean_<field> hooks
+_.clean_links_text
+_.clean_logo_upload
+_.initial  # form field attribute
+links_text  # declared form fields of SiteSettingsForm, listed in the admin fieldsets
+logo_upload
+remove_logo
+Media
+Meta
+
+# --- Django middleware / template-only data -----------------------------------------------------------------------
+DataVersionCacheMiddleware  # MIDDLEWARE entry (web.caching)
+process_view  # Django middleware hook, called with the resolved view (web.caching)
+view_func  # middleware hook signature (web.caching)
+view_args
+view_kwargs
+_.missions_stored  # web.ingest_status.IngestOverview: fields are read by the admin template il2ks_ingest_status.html
+_.last_run
+_.last_ok
+_.ok_recent
+_.failed_recent
+_.idle_completions
+_.unknown_objects
+
 # --- ORM columns assigned on model instances in ingest.persist / runner / reprocess ------------------------------
 _.finished_at  # IngestRun.finished_at, set when a run ends
 _.players_total  # MissionStats columns (db.models)
@@ -64,9 +127,6 @@ FAKE_NAME_RE  # devtools.anonymize: the fixture check in tests/unit/test_anonymi
 _.snapshot  # core.replay.state.Replay.snapshot: FR-ING-15 live sorties (streaming), tested in test_streaming.py
 _.parent_sortie_index  # core.replay.result.SortieResult: gunner -> pilot link, not persisted yet
 _.victim_object_id  # core.replay.result.KillResult: kept for a later per-victim view (tests set it)
-get_site_settings  # db.site: frontend contract (TD-25), callers arrive with the web foundation; drop this line then
-current_data_version  # db.site: TD-28 ETags, caller arrives with the caching middleware; drop this line then
-bump_data_version  # db.site: TD-28, callers arrive with ingest/admin hooks; drop this line then
 check  # ops.doctor: registry decorator, checks arrive with the ops agents; drop this line then
 run_checks  # ops.doctor: called by `il2ks doctor` once the command exists; drop this line then
 _.detail  # ops.doctor.Finding

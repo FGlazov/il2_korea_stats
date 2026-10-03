@@ -9,6 +9,7 @@ requires-python = ">=3.13"
 dependencies = [
     "django>=5.2,<5.3",
     "granian>=2.0",
+    "pillow>=12.3.0",
     "tzdata>=2024.1",  # zoneinfo needs it on Windows (TD-15)
     "whitenoise>=6.7",
 ]
@@ -51,6 +52,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
 "src/il2ks/db/migrations/*" = ["RUF012"]
 "vulture_whitelist.py" = ["F821", "B018"]
 "src/il2ks/db/models.py" = ["RUF012"]  # Django Meta attributes are class-level lists by design
+"src/il2ks/web/site_forms.py" = ["RUF012"]  # same: ModelForm.Meta
 
 # --- pyright strict (TD-12): core gets zero ignores; Django layers use django-types.
 [tool.pyright]

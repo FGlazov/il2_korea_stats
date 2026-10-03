@@ -38,6 +38,7 @@ from il2ks.db.models import (
     PlayerMission,
     PlayerSortie,
 )
+from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
@@ -87,6 +88,7 @@ def save_mission(
     recompute_players(old_player_ids | {p.pk for p in players.values()})
     if ratings is not None:
         recompute_ratings(ratings)
+    bump_data_version()  # TD-28: same transaction as the save
     return mission
 
 

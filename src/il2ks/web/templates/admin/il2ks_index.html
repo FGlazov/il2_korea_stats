@@ -1,0 +1,18 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+{% block content %}
+<div id="content-main">
+  {% if perms.il2ks_db.view_ingestrun %}
+  <div class="module">
+    <table>
+      <caption>{% translate "Operations" %}</caption>
+      <tr>
+        <th scope="row"><a href="{% url 'admin:ingest-status' %}">{% translate "Ingestion status" %}</a></th>
+        <td><a href="{% url 'admin:ingest-status' %}" class="viewlink">{% translate "View" %}</a></td>
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}

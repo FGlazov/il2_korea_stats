@@ -15,7 +15,7 @@ DEBUG = os.environ.get("IL2KS_DEBUG", "0") == "1"
 ALLOWED_HOSTS = [h for h in os.environ.get("IL2KS_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "il2ks.web.admin_config.Il2ksAdminConfig",  # django.contrib.admin with the site-settings aware AdminSite (FR-ADM-1)
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -31,6 +31,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "il2ks.web.caching.DataVersionCacheMiddleware",  # ETag/304 on the data version, before the view (TD-28)
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -85,3 +86,7 @@ TIME_ZONE = "UTC"
 STATIC_URL = "static/"
 STATIC_ROOT = DATA_DIR / "staticfiles"
 STATICFILES_DIRS = [DATA_DIR / "custom" / "static"] if (DATA_DIR / "custom" / "static").is_dir() else []
+
+# Admin uploads (the logo, FR-ADM-2) live in the data dir and are served by `il2ks.web.media`, not by WhiteNoise.
+MEDIA_ROOT = DATA_DIR / "media"
+MEDIA_URL = "/media/"
