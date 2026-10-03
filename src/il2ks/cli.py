@@ -9,8 +9,10 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import re
 import sys
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
 
 from il2ks.config import Config, ConfigError, load_config
@@ -28,6 +30,7 @@ PLANNED: dict[str, tuple[str, str]] = {
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 
 log = logging.getLogger("il2ks.cli")
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 def _django_setup() -> None:
@@ -35,6 +38,16 @@ def _django_setup() -> None:
     import django
 
     django.setup()
+
+
+def _iso_date(text: str) -> date:
+    """argparse type for `YYYY-MM-DD` (strictly: not `20260401` or `2026-W14-3`)."""
+    try:
+        if _DATE_RE.fullmatch(text) is None:
+            raise ValueError(text)
+        return date.fromisoformat(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a date, expected YYYY-MM-DD") from None
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -59,6 +72,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
     reprocess = sub.add_parser("reprocess", help="re-run missions from their archives, then rebuild aggregates")
     reprocess.add_argument("--mission", action="append", metavar="UID", help="only this mission (repeatable)")
+    span_note = "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive."
+    reprocess.add_argument(
+        "--since", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or after this date. {span_note}"
+    )
+    reprocess.add_argument(
+        "--until", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or before this date. {span_note}"
+    )
     reprocess.add_argument("--workers", type=int, help="parse/replay worker processes (default: CPUs - 1)")
     reprocess.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
 
@@ -110,6 +130,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def _writer_command(command: str, ns: argparse.Namespace) -> int:
     """Commands that write the DB: config, logging, writer lock, migrations, then the job."""
+    if ns.command == "reprocess" and ns.since is not None and ns.until is not None and ns.since > ns.until:
+        print(f"il2ks: --since {ns.since} is after --until {ns.until}", file=sys.stderr)
+        return EXIT_USAGE
     try:
         cfg = load_config(ns.config)
     except ConfigError as exc:
@@ -180,7 +203,13 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
         return EXIT_OK
     if command == "reprocess":
         result = reprocess_mod.reprocess(
-            cfg, runner.default_pipeline(cfg), ns.mission, workers=ns.workers, lock_wait=wait
+            cfg,
+            runner.default_pipeline(cfg),
+            ns.mission,
+            since=ns.since,
+            until=ns.until,
+            workers=ns.workers,
+            lock_wait=wait,
         )
         print(result.describe())
         return EXIT_FAILED if (result.failed or result.missing) else EXIT_OK

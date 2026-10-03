@@ -1,7 +1,8 @@
 """CLI smoke tests: exit codes and messages of the job commands (FR-OPS-1, FR-ING-20)."""
 
 import uuid
-from datetime import UTC, datetime
+from collections.abc import Sequence
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,7 @@ import pytest
 from il2ks import logsetup
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config
+from il2ks.ingest import reprocess as reprocess_mod
 from il2ks.ingest import runner
 from il2ks.ingest import watch as watch_mod
 from il2ks.ingest.lock import WriterLock
@@ -187,3 +189,57 @@ def test_watch_stops_cleanly_on_ctrl_c(setup: tuple[Path, Path, FakeSteps], monk
 
     monkeypatch.setattr(watch_mod, "watch", interrupted)
     assert main(["watch"]) == EXIT_OK
+
+
+@pytest.mark.django_db
+def test_reprocess_passes_the_date_span_and_missions_through(
+    setup: tuple[Path, Path, FakeSteps], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    calls: list[tuple[list[str] | None, date | None, date | None]] = []
+
+    def fake_reprocess(
+        cfg: Config,
+        pipeline: runner.Pipeline,
+        mission_uids: Sequence[str] | None = None,
+        *,
+        since: date | None = None,
+        until: date | None = None,
+        workers: int | None = None,
+        lock_wait: float | None = None,
+    ) -> reprocess_mod.ReprocessSummary:
+        calls.append((None if mission_uids is None else list(mission_uids), since, until))
+        return reprocess_mod.ReprocessSummary()
+
+    monkeypatch.setattr(reprocess_mod, "reprocess", fake_reprocess)
+    assert main(["reprocess", "--since", "2026-04-01", "--until", "2026-09-30", "--mission", A]) == EXIT_OK
+    assert main(["reprocess", "--since", "2026-04-01"]) == EXIT_OK
+    assert main(["reprocess"]) == EXIT_OK
+    assert calls == [
+        ([A], date(2026, 4, 1), date(2026, 9, 30)),
+        (None, date(2026, 4, 1), None),
+        (None, None, None),
+    ]
+
+
+def test_reprocess_since_after_until_is_a_usage_error(
+    setup: tuple[Path, Path, FakeSteps], capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["reprocess", "--since", "2026-05-01", "--until", "2026-04-01"]) == EXIT_USAGE
+    assert "--since 2026-05-01 is after --until 2026-04-01" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("text", ["yesterday", "2026-13-01", "20260401", "2026-4-1", "2026-W14-3", ""])
+def test_reprocess_rejects_anything_but_yyyy_mm_dd(text: str, capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as info:
+        main(["reprocess", "--since", text])
+    assert info.value.code == 2
+    assert "expected YYYY-MM-DD" in capsys.readouterr().err
+
+
+def test_reprocess_help_documents_the_server_local_date(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["reprocess", "--help"])
+    out = " ".join(capsys.readouterr().out.split())
+    assert "--since YYYY-MM-DD" in out
+    assert "--until YYYY-MM-DD" in out
+    assert "server's local time (not UTC)" in out

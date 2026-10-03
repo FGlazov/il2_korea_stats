@@ -3,7 +3,8 @@
 Reprocess re-runs missions from their archives (the source of truth): parse + replay in worker processes at low
 priority, one writer (this process) upserting each mission in place, then a single `rebuild_aggregates()` at the end.
 Missions are picked from `IngestRun` history (the newest run that wrote an archive), so failed missions with an archive
-can be forced too (`--mission`, FR-ING-19).
+can be forced too (`--mission`, FR-ING-19). `--since/--until` pick missions by date, e.g. "the last 6 months" after
+a rule change (FR-ING-9, FR-ING-14).
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from collections.abc import Callable, Sequence
 from concurrent.futures import FIRST_COMPLETED as _FIRST_COMPLETED
 from concurrent.futures import Executor, Future, ProcessPoolExecutor, wait
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from django.db import transaction
@@ -58,8 +59,22 @@ class ReprocessSummary:
         return text + (f", no archive for {len(self.missing)}: {', '.join(self.missing)}" if self.missing else "")
 
 
-def archived_targets(cfg: Config, mission_uids: Sequence[str] | None) -> dict[str, IngestRun]:
-    """What to reprocess, per mission UID (all missions, or just the given ones).
+def mission_in_span(mission_uid: str, since: date | None, until: date | None) -> bool:
+    """Is the mission's date within `since..until` (both inclusive, either may be None)?
+
+    The date is the one in the mission UID (`YYYY-MM-DD_HH-MM-SS`), i.e. the server's local time, which is how admins
+    think about "missions since 1 April". It is not `Mission.started_at` (UTC): near midnight the two can differ by a
+    day. ISO dates compare correctly as text, so no parsing is needed."""
+    day = mission_uid[:10]
+    return (since is None or day >= since.isoformat()) and (until is None or day <= until.isoformat())
+
+
+def archived_targets(
+    cfg: Config, mission_uids: Sequence[str] | None, since: date | None = None, until: date | None = None
+) -> dict[str, IngestRun]:
+    """What to reprocess, per mission UID (all missions, or just the given ones), limited to `since..until`.
+
+    With both a UID list and a date span, only the listed missions inside the span are chosen (the intersection).
 
     The newest archive-writing `IngestRun` of each mission. Archives on disk with no run at all (a lost or rebuilt
     database, FR-ING-9: "rebuild the DB from archived logs") are adopted as unsaved runs, so `reprocess` can bring
@@ -69,11 +84,12 @@ def archived_targets(cfg: Config, mission_uids: Sequence[str] | None) -> dict[st
         runs = runs.filter(mission_uid__in=list(mission_uids))
     targets: dict[str, IngestRun] = {}
     for run in runs.order_by("mission_uid", "-started_at", "-id"):
-        targets.setdefault(run.mission_uid, run)
+        if mission_in_span(run.mission_uid, since, until):
+            targets.setdefault(run.mission_uid, run)
     wanted = set(mission_uids or ())
     for path in sorted(cfg.archive_dir.glob("*/*/*.txt.zip")):
         uid = mission_uid_from_name(path.name)
-        if uid is None or uid in targets or (wanted and uid not in wanted):
+        if uid is None or uid in targets or (wanted and uid not in wanted) or not mission_in_span(uid, since, until):
             continue
         if IngestRun.objects.filter(mission_uid=uid).exists():
             continue  # has runs, none of which wrote this archive: not ours to adopt
@@ -90,6 +106,8 @@ def reprocess(
     pipeline: Pipeline,
     mission_uids: Sequence[str] | None = None,
     *,
+    since: date | None = None,
+    until: date | None = None,
     workers: int | None = None,
     work: WorkFn = parse_and_replay,
     executor_factory: Callable[[int], Executor] = default_executor,
@@ -97,11 +115,15 @@ def reprocess(
     now: Callable[[], datetime] = utcnow,
     lock_wait: float | None = None,
 ) -> ReprocessSummary:
-    """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken."""
+    """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken.
+
+    `mission_uids`, `since`, `until` narrow the selection and combine as an intersection (see `mission_in_span`).
+    A requested UID outside the date span is simply not selected; one inside it without an archive is `missing`."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         summary = ReprocessSummary()
-        targets = archived_targets(cfg, mission_uids)
-        summary.missing = sorted(set(mission_uids or ()) - set(targets))
+        targets = archived_targets(cfg, mission_uids, since, until)
+        wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}
+        summary.missing = sorted(wanted - set(targets))
         n_workers = workers or default_workers()
         window = n_workers * 2  # bound the results waiting in memory for the single writer
         pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
