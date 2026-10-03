@@ -27,6 +27,7 @@ from il2ks.core.replay.result import (
     CombatRole,
     KillCredit,
     KillResult,
+    LossClass,
     MissionInfo,
     MissionResult,
     Outcome,
@@ -122,12 +123,15 @@ def sortie(
     outcome: Outcome = "landed",
     pilot_fate: PilotFate = "in_aircraft",
     kills_air: int = 0,
+    kills_air_pvp: int = 0,
+    kills_air_ai: int | None = None,
     kills_ground: int = 0,
     ground_by_category: Mapping[GroundCategory, int] | None = None,
     kills_ground_static: int = 0,
     assists: int = 0,
     is_death: bool = False,
     is_plane_lost: bool = False,
+    loss_class: LossClass | None = None,
     flight_time_s: float = 600.0,
     damage_taken: float = 0.0,
     payload_id: int = 1,
@@ -147,10 +151,18 @@ def sortie(
     """One sortie by player number `player` (account `account(player)`).
 
     Ground kills: `ground_by_category` sets the breakdown (and `kills_ground` becomes its sum); without it, all
-    `kills_ground` kills are of category "other", so the breakdown always sums to `kills_ground`."""
+    `kills_ground` kills are of category "other", so the breakdown always sums to `kills_ground`.
+
+    Air kills: `kills_air_pvp` of them are of player aircraft, the rest AI (`kills_air_ai` given: `kills_air` becomes
+    pvp + ai). A lost sortie (or a death) is lost to a "player" unless `loss_class` says otherwise."""
     if ground_by_category is None:
         ground_by_category = {"other": kills_ground} if kills_ground else {}
     kills_ground = sum(ground_by_category.values())
+    if kills_air_ai is None:
+        kills_air_ai = kills_air - kills_air_pvp
+    kills_air = kills_air_pvp + kills_air_ai
+    if loss_class is None and (is_plane_lost or is_death):
+        loss_class = "player"
     spawn = 1000 * (index + 1) if spawn_tick is None else spawn_tick
     took_off = spawn + 500
     end = took_off + int(flight_time_s * 50) + 500 if end_tick is None else end_tick
@@ -193,6 +205,9 @@ def sortie(
         loss_cause="attacker" if is_plane_lost else "none",
         suspected_structural_failure=False,
         kills_air=kills_air,
+        kills_air_pvp=kills_air_pvp,
+        kills_air_ai=kills_air_ai,
+        loss_class=loss_class,
         kills_ground=kills_ground,
         kills_ground_by_category=ground_by_category,
         kills_ground_static=kills_ground_static,

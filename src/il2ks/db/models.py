@@ -175,6 +175,19 @@ class LossCause(models.TextChoices):
     NONE = "none"
 
 
+class LossClass(models.TextChoices):
+    """Who is behind a lost sortie (FR-WEB-21). Values match `core.replay.result.LossClass`."""
+
+    PLAYER = "player"
+    AI_AIRCRAFT = "ai_aircraft"
+    AI_GUNNER = "ai_gunner"
+    AAA = "aaa"
+    GROUND = "ground"
+    FRIENDLY = "friendly"
+    ENVIRONMENT = "environment"
+    UNKNOWN = "unknown"
+
+
 class CombatRole(models.TextChoices):
     AIR_SUPERIORITY = "air_superiority"
     ATTACK = "attack"
@@ -227,6 +240,26 @@ class Counters(models.Model):
     kills_ground_parked_aircraft = models.PositiveIntegerField(default=0)
     kills_ground_other = models.PositiveIntegerField(default=0)
     kills_ground_static = models.PositiveIntegerField(default=0)
+    # PvE breakdown (FR-WEB-21): deaths and lost aircraft by who is behind them (each family sums to deaths /
+    # planes_lost, tested), and air kills split by victim (kills_air_pvp + kills_air_ai == kills_air)
+    kills_air_pvp = models.PositiveIntegerField(default=0)
+    kills_air_ai = models.PositiveIntegerField(default=0)
+    deaths_by_player = models.PositiveIntegerField(default=0)
+    deaths_by_ai_aircraft = models.PositiveIntegerField(default=0)
+    deaths_by_ai_gunner = models.PositiveIntegerField(default=0)
+    deaths_by_aaa = models.PositiveIntegerField(default=0)
+    deaths_by_ground = models.PositiveIntegerField(default=0)
+    deaths_by_friendly = models.PositiveIntegerField(default=0)
+    deaths_by_environment = models.PositiveIntegerField(default=0)
+    deaths_by_unknown = models.PositiveIntegerField(default=0)
+    planes_lost_by_player = models.PositiveIntegerField(default=0)
+    planes_lost_by_ai_aircraft = models.PositiveIntegerField(default=0)
+    planes_lost_by_ai_gunner = models.PositiveIntegerField(default=0)
+    planes_lost_by_aaa = models.PositiveIntegerField(default=0)
+    planes_lost_by_ground = models.PositiveIntegerField(default=0)
+    planes_lost_by_friendly = models.PositiveIntegerField(default=0)
+    planes_lost_by_environment = models.PositiveIntegerField(default=0)
+    planes_lost_by_unknown = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -375,6 +408,10 @@ class PlayerSortie(models.Model):
     kills_ground_parked_aircraft = models.PositiveIntegerField(default=0)
     kills_ground_other = models.PositiveIntegerField(default=0)
     kills_ground_static = models.PositiveIntegerField(default=0)
+    # PvE breakdown (FR-WEB-21): who is behind the loss ("" = nothing lost) and the air kills by victim
+    loss_class = models.CharField(max_length=12, choices=LossClass.choices, blank=True, default="")
+    kills_air_pvp = models.PositiveIntegerField(default=0)
+    kills_air_ai = models.PositiveIntegerField(default=0)
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
@@ -399,6 +436,9 @@ class PlayerSortie(models.Model):
                 condition=models.Q(aircraft_status__in=AircraftStatus.values), name="sortie_aircraft_status_valid"
             ),
             models.CheckConstraint(condition=models.Q(loss_cause__in=LossCause.values), name="sortie_loss_cause_valid"),
+            models.CheckConstraint(
+                condition=models.Q(loss_class__in=[*LossClass.values, ""]), name="sortie_loss_class_valid"
+            ),
             models.CheckConstraint(
                 condition=models.Q(combat_role__isnull=True) | models.Q(combat_role__in=CombatRole.values),
                 name="sortie_combat_role_valid",
