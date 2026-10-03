@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import tomllib
 from collections.abc import Iterator
 from pathlib import Path
@@ -159,6 +160,7 @@ def test_roots_for_wine_start_at_the_prefix(tmp_path: Path) -> None:
     assert roots.index(prefix / "drive_c" / "Program Files") < roots.index(tmp_path / "home")
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="drive letters only parse as drives on Windows")
 def test_only_fixed_drives_are_probed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A disconnected network drive can stall a probe for many seconds: such letters are never touched."""
     from il2ks.ops import detect

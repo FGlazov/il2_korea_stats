@@ -16,7 +16,8 @@ def load(tmp_path: Path, toml: str = "", env: dict[str, str] | None = None) -> T
 
 
 def test_defaults_are_monthly_in_the_server_timezone(tmp_path: Path) -> None:
-    assert load(tmp_path) == TourRules(mode="monthly", timezone_name="UTC")
+    # The server timezone itself defaults to the OS zone ("UTC" on Windows, "Etc/UTC" on Ubuntu), so pin it here.
+    assert load(tmp_path, '[server]\ntimezone = "UTC"') == TourRules(mode="monthly", timezone_name="UTC")
     assert load(tmp_path, '[server]\ntimezone = "Asia/Seoul"').timezone_name == "Asia/Seoul"
 
 
