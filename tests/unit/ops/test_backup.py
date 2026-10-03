@@ -7,6 +7,7 @@ import os
 import socket
 import sqlite3
 import sys
+import threading
 import zipfile
 from contextlib import closing
 from dataclasses import replace
@@ -126,6 +127,61 @@ def test_two_backups_in_the_same_second_do_not_overwrite_each_other(tmp_path: Pa
     assert first != second
     assert first.is_file()
     assert second.is_file()
+
+
+def test_a_backup_in_progress_keeps_its_name_and_temp_file(tmp_path: Path) -> None:
+    """A manual and the daily backup at the same moment: the one that is still writing owns its `.tmp`."""
+    cfg = make_instance(tmp_path)
+    cfg.backup_dir.mkdir()
+    running = cfg.backup_dir / "il2ks-backup-20261001-120000.zip.tmp"
+    running.write_bytes(b"half")
+
+    made = backup.create_backup(cfg, now=lambda: T)
+
+    assert made.name == "il2ks-backup-20261001-120001.zip"
+    assert running.read_bytes() == b"half"  # not truncated, not deleted
+
+
+def test_a_temp_file_left_by_a_crashed_backup_is_reused(tmp_path: Path) -> None:
+    cfg = make_instance(tmp_path)
+    cfg.backup_dir.mkdir()
+    leftover = cfg.backup_dir / "il2ks-backup-20261001-120000.zip.tmp"
+    leftover.write_bytes(b"crashed")
+    two_hours_ago = datetime.now(UTC).timestamp() - 7200
+    os.utime(leftover, (two_hours_ago, two_hours_ago))
+
+    made = backup.create_backup(cfg, now=lambda: T)
+
+    assert made.name == "il2ks-backup-20261001-120000.zip"
+    assert not leftover.exists()
+    assert "manifest.json" in zip_names(made)
+
+
+def test_simultaneous_backups_get_different_files_and_all_are_sound(tmp_path: Path) -> None:
+    cfg = replace(make_instance(tmp_path), backup=BackupConfig(keep=50))
+    start = threading.Barrier(6)
+    made: list[Path] = []
+    errors: list[BaseException] = []
+
+    def work() -> None:
+        try:
+            start.wait()
+            made.append(backup.create_backup(cfg, now=lambda: T))
+        except BaseException as exc:  # reported below, from the test thread
+            errors.append(exc)
+
+    threads = [threading.Thread(target=work) for _ in range(6)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=120)
+
+    assert not errors
+    assert len(set(made)) == 6
+    assert sorted(backup.list_backups(cfg.backup_dir)) == sorted(made)
+    for path in made:
+        assert backup.read_manifest(path).reason == "manual"
+    assert not list(cfg.backup_dir.glob("*.tmp"))
 
 
 def test_a_failed_backup_leaves_no_half_written_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

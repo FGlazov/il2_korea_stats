@@ -27,7 +27,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Literal, cast
+from typing import IO, Literal, cast
 
 from il2ks import __version__
 from il2ks.config import CONFIG_FILE, DB_FILE, SERVER_UID_FILE, Config
@@ -95,13 +95,42 @@ def rotate(backup_dir: Path, keep: int) -> list[Path]:
 # --- making a backup -----------------------------------------------------------------------------------------------
 
 
-def _free_name(backup_dir: Path, when: datetime) -> tuple[Path, datetime]:
-    """A file name nobody has used yet: two backups in the same second get the next second."""
+_STALE_PARTIAL = timedelta(hours=1)
+
+
+def _claim_name(backup_dir: Path, when: datetime) -> tuple[Path, Path, IO[bytes], datetime]:
+    """Reserve a backup name nobody else is using: (final path, temp path, the temp file opened for writing, time).
+
+    A manual backup and the daily one (or two `il2ks backup`) can run in the same second. The temp file is created
+    exclusively (`x`), so exactly one of them gets a given name; the loser takes the next second. The final name is
+    checked again after winning the temp file, because the other backup may have finished (temp renamed away) in
+    between. A temp file left by a crashed backup (older than an hour) is cleared out of the way."""
     while True:
-        path = backup_dir / f"il2ks-backup-{when.strftime(_STAMP)}.zip"
-        if not path.exists():
-            return path, when
+        target = backup_dir / f"il2ks-backup-{when.strftime(_STAMP)}.zip"
+        partial = target.with_name(target.name + ".tmp")
+        if not target.exists():
+            try:
+                handle = partial.open("xb")
+            except FileExistsError:
+                if _remove_stale(partial):
+                    continue  # that name is free again
+            else:
+                if not target.exists():
+                    return target, partial, handle, when
+                handle.close()
+                partial.unlink(missing_ok=True)
         when += timedelta(seconds=1)
+
+
+def _remove_stale(partial: Path) -> bool:
+    """Delete a temp file nobody has written to for an hour; whether it is gone."""
+    try:
+        if datetime.now(UTC) - datetime.fromtimestamp(partial.stat().st_mtime, UTC) <= _STALE_PARTIAL:
+            return False
+        partial.unlink(missing_ok=True)
+    except OSError:
+        return False  # being finished or deleted by its owner right now: the next name is as good
+    return True
 
 
 def _tree_files(root: Path) -> list[Path]:
@@ -119,14 +148,13 @@ def create_backup(cfg: Config, reason: BackupReason = "manual", *, now: Callable
     backup_dir = cfg.backup_dir
     backup_dir.mkdir(parents=True, exist_ok=True)
     when = now()
-    target, when = _free_name(backup_dir, when)
-    partial = target.with_name(target.name + ".tmp")
+    target, partial, out, when = _claim_name(backup_dir, when)
     included = [DB_FILE]
     try:
-        with tempfile.TemporaryDirectory(dir=backup_dir, prefix="snapshot-") as scratch:
+        with out, tempfile.TemporaryDirectory(dir=backup_dir, prefix="snapshot-") as scratch:
             snapshot = Path(scratch) / DB_FILE
             snapshot_database(cfg.db_path, snapshot)
-            with zipfile.ZipFile(partial, "w", zipfile.ZIP_DEFLATED, strict_timestamps=False) as zf:
+            with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, strict_timestamps=False) as zf:
                 zf.write(snapshot, DB_FILE)
                 if cfg.source is not None and cfg.source.is_file():
                     zf.write(cfg.source, CONFIG_IN_ZIP)
