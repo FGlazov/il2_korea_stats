@@ -209,7 +209,9 @@ def test_pagination_links_keep_parameters_and_mark_the_current_page() -> None:
     )
     assert 'rel="prev"' not in first_page
     assert 'page=1"' not in first_page  # page 1 is the bare URL
-    assert render("{% pagination page_obj %}", page_obj=Paginator([], 10).get_page(1)) == ""
+    assert (
+        render("{% pagination page_obj %}", page_obj=Paginator([], 10).get_page(1)).strip() == ""
+    )  # (the template's version line leaves a newline)
 
 
 def test_filter_select_marks_the_choice_from_the_query_string() -> None:

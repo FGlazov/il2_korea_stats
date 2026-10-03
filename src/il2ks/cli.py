@@ -196,6 +196,15 @@ def _build_parser() -> argparse.ArgumentParser:
     anon = dev.add_parser("anonymize", help="anonymize a mission log for test fixtures")
     anon.add_argument("source", type=Path, help="mission .txt or .txt.zip")
     anon.add_argument("target", type=Path, help="output .txt.zip")
+    bump = dev.add_parser(
+        "bump-templates",
+        help="after editing built-in templates/CSS/JS: add version lines, raise versions, rewrite the registry",
+    )
+    bump.add_argument("--check", action="store_true", help="change nothing; exit 1 if something would change")
+    changes = dev.add_parser(
+        "template-changes", help="template versions that changed since a release tag (release notes)"
+    )
+    changes.add_argument("old_tag", help="a git tag or commit, like v0.2.0")
     serving_commands.add_parsers(sub)
     return parser
 
@@ -234,6 +243,14 @@ def _main(argv: Sequence[str] | None) -> int:
 
         anonymize_file(ns.source, ns.target)
         return EXIT_OK
+    if command == "dev" and ns.dev_command == "bump-templates":
+        from il2ks.devtools.templates import bump_templates
+
+        return bump_templates(check=ns.check)
+    if command == "dev" and ns.dev_command == "template-changes":
+        from il2ks.devtools.templates import template_changes
+
+        return template_changes(ns.old_tag)
     if command == "db" and ns.db_command == "copy":
         _django_setup()
         from il2ks.db.copy import copy_all

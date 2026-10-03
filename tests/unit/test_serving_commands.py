@@ -2,6 +2,7 @@
 a server or a process replaced by a recorder."""
 
 import argparse
+import logging
 import os
 import threading
 from collections.abc import Callable, Sequence
@@ -14,7 +15,7 @@ from il2ks import cli
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config, ConfigError, load_config
 from il2ks.ingest.lock import LockBusyError
-from il2ks.serving import commands, procutil, webserver
+from il2ks.serving import commands, custom, procutil, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, SECRET_KEY_FILE
 from il2ks.serving.supervisor import ChildSpec
 from tests.unit.test_supervisor import FakeChild
@@ -406,3 +407,52 @@ def test_manage_creates_a_missing_data_folder_so_a_first_migrate_can_create_the_
     assert not (env / "data").exists()
     assert main(["manage", "check"]) == EXIT_OK
     assert (env / "data").is_dir()
+
+
+# --- out-of-date custom/ overrides at startup (TD-25) -----------------------------------------------------------
+
+
+def old_override(data: Path) -> None:
+    path = data / "custom" / "templates" / "il2ks" / "base.html"
+    path.parent.mkdir(parents=True)
+    path.write_text("{# il2ks-template: templates/il2ks/base.html v0 - x #}\nmine", encoding="utf-8")
+    custom.startup_scan.cache_clear()
+
+
+def test_web_logs_a_warning_for_an_out_of_date_override(
+    env: Path, calls: Calls, settings: Settings, caplog: pytest.LogCaptureFixture
+) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    old_override(env / "data")
+    with caplog.at_level(logging.WARNING, logger="il2ks.run"):
+        assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
+    assert "templates/il2ks/base.html" in caplog.text
+    assert "il2ks custom diff" in caplog.text
+    custom.startup_scan.cache_clear()
+
+
+def test_web_is_quiet_without_overrides(
+    env: Path, calls: Calls, settings: Settings, caplog: pytest.LogCaptureFixture
+) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    custom.startup_scan.cache_clear()
+    with caplog.at_level(logging.WARNING, logger="il2ks.run"):
+        assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
+    assert "custom override" not in caplog.text
+    custom.startup_scan.cache_clear()
+
+
+def test_run_prints_a_loud_notice_for_an_out_of_date_override(
+    env: Path, calls: Calls, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (env / "il2ks.toml").write_text('[https]\nmode = "external"', encoding="utf-8")
+    old_override(env / "data")
+    world = RunWorld()
+    commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls))
+    err = capsys.readouterr().err
+    assert "WARNING" in err
+    assert "templates/il2ks/base.html" in err
+    assert "il2ks custom list" in err
+    custom.startup_scan.cache_clear()

@@ -49,8 +49,8 @@ il2ks custom copy static/admin/css/base.css   # a static file (write "static/" f
 ```
 
 Each command prints where the copy went, for example `<data folder>/custom/templates/il2ks/base.html`. Open that file in
-any text editor. Also copied: a note of what the original looked like at that moment (a "fingerprint", kept in
-`custom/.il2ks-overrides.json`: do not delete it).
+any text editor. **Keep the first line of the file**: it is the version line (see below). Also recorded: a note of what
+the original looked like at that moment (kept in `custom/.il2ks-overrides.json`: do not delete it).
 
 **Restart il2ks afterwards** (stop `il2ks run` with Ctrl+C and start it again, or restart the service; see
 [install.md](install.md#upgrading)). Template and static changes are picked up at start. Static files are collected and
@@ -63,31 +63,54 @@ Other things you can do:
 - **An SVG logo**: put it in `custom/static/` and use it from your template. Only people with access to the machine
   can put files there, which is why this is allowed while uploads are not.
 - **Admin look**: the admin's own templates and files (`admin/base.html`, `admin/css/base.css`, ...) can be overridden
-  in the same way.
+  in the same way. (Leave `admin/base_site.html` alone: it is il2ks's own addition that shows the red warning banner
+  described below. If you replace it, the banner is gone; `il2ks doctor` and the log still report the problems.)
 
 ### When il2ks is upgraded
 
-An upgrade may change a template you replaced, and your copy then no longer matches. il2ks notices:
+An upgrade may change a page you replaced. Your copy then keeps the old behaviour: the page may break, or silently miss
+new content. To make this visible, **every built-in template, stylesheet and script has a version number** in its first
+line, and the number goes up whenever the file changes:
 
 ```
-il2ks custom list
-il2ks doctor
+{# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}
 ```
 
-Both say which overrides are out of date (the built-in file changed since you copied it), which have no built-in
-original any more, and which files you placed by hand (they cannot be checked). For an out-of-date override, `custom
-list` prints both file paths. Compare them (any "compare files" tool: VS Code, WinMerge, `diff`), bring the changes you
-want into your file, and then tell il2ks you are done:
+(Stylesheets and scripts use `/* ... */` instead of `{# ... #}`. Images are replaced as a whole, so they have no
+version.) The line is copied along with the file, so your override says which version it is based on. When il2ks
+starts, it compares that number with the number in the file it ships now.
 
-```
-il2ks custom accept templates/il2ks/base.html
-```
+**The red banner.** If any override is based on an older version, on an unknown one, or on a file that no longer
+exists, every page of the admin (`/admin/`, only visible to people who can log in there) shows a red box that lists
+the files and what to do. Visitors never see it. The same list is written to the log and printed when `il2ks run`
+starts, `il2ks doctor` lists each file as a warning, and `il2ks custom list` shows a state for every file:
 
-The warning stops until the next time the built-in file changes. (`il2ks custom copy --force <path>` throws your edits
-away and copies the new built-in file again.)
+| State | Meaning |
+|---|---|
+| `up to date` | Based on the version il2ks ships now. |
+| `OUT OF DATE` | Based on an older version (both numbers are shown). The built-in page changed: yours may break or hide new things. |
+| `NO VERSION` | The version line is missing (a hand-made copy, or you deleted it), so il2ks can't tell. Treated like out of date. |
+| `NEWER` | Based on a newer version than this il2ks has (il2ks was downgraded). |
+| `ORPHAN` | il2ks no longer has a built-in file of that name. The override probably does nothing now: delete it, or keep it if it is deliberate. |
+| `yours only` | A new file of your own that replaces nothing. Nothing to worry about. |
+| `unchecked` | Replaces a built-in file that has no version (a vendored library, Django's own admin files), so il2ks can't tell. |
+
+**Bringing an override up to date**:
+
+1. See what differs: `il2ks custom diff templates/il2ks/base.html`. It compares your file with the built-in one as it is
+   now (il2ks does not keep old versions, so the differences are the upgrade's changes plus your own edits). Lines
+   starting with `-` are only in your file, lines starting with `+` only in the built-in one. For a visual comparison
+   use any "compare files" tool (VS Code, WinMerge) on the two paths `il2ks custom list` shows.
+2. Bring over what you want into your file.
+3. Tell il2ks you are done: `il2ks custom accept templates/il2ks/base.html`. It sets the version line of your file to the
+   current number (and nothing else in it). You can also edit the number by hand.
+4. Restart il2ks. The warning is gone until the next time the built-in file changes.
+
+If you don't have any edits you want to keep: `il2ks custom copy --force <path>` throws your file away and copies the
+new built-in one.
 
 Template names, their `{% block %}` areas and the variables they receive are the "API" of customizing. They change
-rarely and the release notes say when they do, but this is the reason to override as little as possible: one small
+rarely and the release notes list every file whose version went up, but this is the reason to override as little as possible: one small
 template that fills a block is easier to keep up to date than a copy of a whole page.
 
 ### What you can override

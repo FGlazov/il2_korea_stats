@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from il2ks.config import Config
 
 INSTALLED_APPS = [
+    "il2ks.web",  # first, so its `admin/base_site.html` (the override warning banner, TD-25) wins over Django's
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -18,7 +19,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "il2ks.db",
-    "il2ks.web",
 ]
 """Order matters twice: Django looks for templates and static files in this order, and `il2ks custom` follows it."""
 

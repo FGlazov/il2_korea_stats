@@ -1,0 +1,22 @@
+{# il2ks-template: templates/admin/base_site.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}{% load i18n static %}{% comment %}
+  Django's admin frame plus a warning banner (TD-25). `custom_problems` comes from Il2ksAdminSite.each_context: a list of
+  overrides in custom/ that are based on an old or unknown template version, only filled for staff. This file extends
+  the template of the same name from django.contrib.admin (Django allows that), so the rest of the admin is untouched.
+{% endcomment %}
+{% block extrastyle %}{{ block.super }}{% if custom_problems %}<link rel="stylesheet" href="{% static 'il2ks_admin/override_warning.css' %}">{% endif %}{% endblock %}
+{% block messages %}
+{% if custom_problems %}
+<div class="il2ks-override-warning" role="alert">
+  <h2>{% translate "Warning: some of your custom files are out of date" %}</h2>
+  <p>{% translate "These files in your custom/ folder replace built-in il2ks files, but are based on an older version of them (or on an unknown one). They may be broken or hide new content. Visitors can be affected." %}</p>
+  <ul>
+    {% for item in custom_problems %}
+    <li><strong><code>{{ item.key }}</code></strong>: {{ item.message }}<br>{{ item.fix }}</li>
+    {% endfor %}
+  </ul>
+  <p>{% blocktranslate %}Overview of all your overrides: <code>il2ks custom list</code>{% endblocktranslate %}</p>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}
