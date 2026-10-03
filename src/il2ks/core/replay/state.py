@@ -203,8 +203,11 @@ class Replay:
         object_type = normalize_type(event.object_type)
         parent = self._objects.get(event.parent_id) if event.parent_id not in (NO_OBJECT, event.object_id) else None
         existing = self._objects.get(event.object_id)
-        if existing is not None and (
-            existing.object_type in ("", object_type) or (existing.sortie is not None and existing.sortie.is_open)
+        reused = existing is not None and existing.sortie is None and existing.destroyed_tick is not None
+        if (
+            existing is not None
+            and not reused  # a destroyed AI object's ID comes back as a new object (15k such re-uses in the samples)
+            and (existing.object_type in ("", object_type) or (existing.sortie is not None and existing.sortie.is_open))
         ):
             if existing.object_type == "":
                 existing.object_type = object_type
@@ -274,7 +277,10 @@ class Replay:
     ) -> TrackedObject:
         """The AType 12 object a new sortie uses, or a new one if that ID still belongs to an older sortie."""
         obj = self._objects.get(object_id)
-        if obj is not None and obj.sortie is None:
+        type_matches = obj is not None and (
+            obj.object_type in ("", object_type) or (bot and not object_type and obj.is_bot)
+        )
+        if obj is not None and obj.sortie is None and obj.destroyed_tick is None and type_matches:
             if obj.object_type == "" and object_type:
                 obj.object_type = object_type
                 obj.info = self._info(object_type)

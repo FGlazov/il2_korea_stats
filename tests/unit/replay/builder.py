@@ -13,10 +13,13 @@ from il2ks.core.catalog.loader import Catalog, ObjectClass, ObjectInfo
 from il2ks.core.logparse.events import (
     NO_OBJECT,
     AccountUuid,
+    AirfieldEvent,
+    AreaBoundaryEvent,
     BailoutEvent,
     BotRemovedEvent,
     DamageEvent,
     HitEvent,
+    InfluenceAreaEvent,
     KillEvent,
     LandingEvent,
     LogEvent,
@@ -185,6 +188,14 @@ class Scenario:
                 tick=tick(t), account_uuid=AccountUuid(f"account-{acct}"), profile_uuid=ProfileUuid(f"profile-{acct}")
             )
         )
+
+    def area(self, area_id: int, country: int, polygon: tuple[tuple[float, float], ...]) -> None:
+        """An enabled influence area (AType 13) with its 2D boundary (AType 14)."""
+        self.add(InfluenceAreaEvent(tick=0, area_id=ObjectId(area_id), country=country, enabled=True, bc=(0, 0, 0)))
+        self.add(AreaBoundaryEvent(tick=0, area_id=ObjectId(area_id), points=polygon))
+
+    def airfield(self, airfield_id: int, country: int, pos: Pos) -> None:
+        self.add(AirfieldEvent(tick=0, airfield_id=ObjectId(airfield_id), country=country, pos=pos))
 
     def mission_end(self, t: float) -> None:
         self.add(MissionEndEvent(tick=tick(t)))

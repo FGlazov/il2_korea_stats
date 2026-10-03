@@ -285,3 +285,22 @@ def test_wheels_on_after_kill_is_ground_contact_only() -> None:
     a = by_acct(sc.result(), 1)
     assert a.outcome == "crashed"
     assert a.loss_cause == "self"
+
+
+def test_destroyed_ai_object_id_reused_is_a_new_object() -> None:
+    """Doc 12 samples: the game recycles IDs (15k re-declarations with another type in 7 missions, and same-type
+    ones after a destruction). A kill of the new object must not be swallowed by the old, destroyed one."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.declare(0, 401, "M46 Patton", 501)
+    sc.damage(10, 100, 401, 1.0)
+    sc.kill(11, 100, 401)
+    sc.declare(50, 401, "M46 Patton", 501)  # same ID, same type, after the first one died
+    sc.damage(60, 100, 401, 1.0)
+    sc.kill(61, 100, 401)
+    sc.declare(90, 402, "M46 Patton", 501)
+    sc.declare(95, 402, "BotPlanePilot_Test", 501)  # another type on a known ID
+    sc.end(200, 100, 101)
+    result = sc.result()
+    assert by_acct(result, 1).kills_ground == 2
+    assert len(result.kills) == 2
