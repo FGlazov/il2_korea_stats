@@ -94,8 +94,8 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   - It joins to sorties by mission time and object ID mapping. The mapping between telemetry IDs and log IDs is the main risk, so verify it first.
   - `core.replay` and the stats don't depend on it. If the feed is missing or broken, stats stay correct and only the map loses detail.
   - Volume is fine downsampled (for example one point per 5 s: ~73 sorties × ~20 min ≈ 17k rows per mission).
-- **Dropped:** `AMMO:explosion` hits (97% of AType 1) are never **stored**, but replay still uses them in memory to attribute bomb and rocket
-  damage (FR-WEB-18). Other hit and damage lines become per-sortie and per-pair aggregates.
+- **Dropped:** `AMMO:explosion` hits (97% of AType 1) are never **stored** or shown, but replay still uses them in memory to link bomb and
+  rocket damage to the released ordnance, which is the name shown (FR-WEB-18). Other hit and damage lines become per-sortie and per-pair aggregates.
 
 ### TD-09 Archive raw logs forever — `[DECIDED]` (2026-10-02)
 - **Decision:** Compressed archive per mission (zip or zstd), **kept forever by default** (retention stays configurable). Logs
@@ -230,8 +230,8 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   logic (see [09_legacy_system_notes.md](09_legacy_system_notes.md)). Korea-specific adaptations: pilot fate without AType 18,
   the suspected early bailout heuristic (FR-ING-14), AType 12 re-declaration, and 2D area polygons.
 - **Abandoned aircraft and disconnects** `[DECIDED]` (2026-10-02): an aircraft destroyed by the environment after its pilot bailed out or
-  disconnected is credited to the attacker who damaged it, using the same damage-based credit (FR-ING-22). Disconnecting mid-flight counts as
-  a death (FR-ING-21). In the samples, 1,038 of 1,456 bailouts came after being attacked, so this affects many kills.
+  disconnected is credited to the attacker who damaged it, using the same damage-based credit (FR-ING-22). Disconnecting while still in the
+  aircraft counts as a death only with damage (any source, including self) in the last 2 minutes (FR-ING-21). In the samples, 1,038 of 1,456 bailouts came after being attacked, so this affects many kills.
 - Every ported rule gets a scenario test that documents it (an executable rulebook).
 
 ### TD-22 Views only do simple reads — `[DECIDED]` (2026-10-02)

@@ -20,7 +20,7 @@ Priority: **v1** = first iteration (MVP), **it2** = second iteration, **later** 
 | FR-ING-18 | **Late parts re-ingest**: each ingested mission stores the fingerprint of its part files (names, sizes, mtimes). If discovery later finds new or changed parts for an ingested mission (for example after a copy tool stalled in remote mode), that mission is **re-ingested** (in place, FR-ING-9). Missions completed only by the idle timeout are marked `completed_cleanly = false`, and the admin sees them. | v1 | `[PROPOSED]` (2026-10-02 review) |
 | FR-ING-19 | **Retry policy for failed missions**: retry with backoff (for example after 5 min, 30 min, 2 h, then stop) and show the failure in admin. A retry also happens when the mission's file fingerprint changes or a new `il2ks` version is installed. Admins can force one with `il2ks reprocess --mission <key>`. Never retry every watch tick. | v1 | `[PROPOSED]` (2026-10-02 review) |
 | FR-ING-20 | **Single writer**: `watch`, a scheduled `ingest`, and `reprocess` take one exclusive lock (a lock file in the data directory, holding the PID, with stale-lock detection) before writing. A second writer waits or exits with a clear message. `reprocess` parallelizes only parse and replay (worker processes). One writer process does all DB writes, since SQLite allows one writer. | v1 | `[PROPOSED]` (2026-10-02 review) |
-| FR-ING-21 | **Disconnecting mid-flight counts as a death** (and an aircraft lost). This applies when a player disconnects (AType 21, or a sortie with no AType 4, which is 99% disconnects) while airborne. It isn't softened when the player wasn't under fire. Disconnecting under fire is the main case it targets: if an attacker damaged the aircraft within a configurable window before the disconnect (proposed: 60 s), that attacker gets the kill, by the same credit rules as an abandoned aircraft (FR-ING-22). A disconnect on the ground, or after landing, is neither a death nor a loss. | v1 | `[DECIDED]` (counts as death, 2026-10-02), `[PROPOSED]` (window, credit) |
+| FR-ING-21 | **Disconnecting while still in the aircraft counts as a death (and an aircraft lost) only if the aircraft or pilot took damage in the last 2 minutes** before the disconnect, **from any source, including self-damage** (overstress, crash damage, collisions). A disconnect without recent damage is neither a death nor a loss (maintainer, 2026-10-02; replaces "every airborne disconnect is a death"). Applies to a player who disconnects (AType 21, or a sortie with no AType 4, which is 99% disconnects) without having left the aircraft. Credit: if an attacker caused any of that recent damage, the attacker gets the kill by the abandoned-aircraft rules (FR-ING-22). If it was only self-damage, the death counts but `loss_cause = self`. The 2-minute window is a config value. | v1 | `[DECIDED]` (2026-10-02) |
 | FR-ING-22 | **Kill credit for abandoned aircraft**: when a player bails out (FR-ING-14) or disconnects after being damaged by an attacker, and the aircraft is then destroyed by the environment (`AID:-1`: crash, or the abandoned aircraft's own destruction), **the attacker gets the kill**, chosen by the ported `il2_stats` damage-based credit (most damage, with assists for others), TD-21. Without attacker damage the loss stays `loss_cause = self` (FR-ING-17). | v1 | `[DECIDED]` (2026-10-02) |
 | FR-ING-11 | Record the result of each ingestion (mission, status, line counts, warnings, unknown event types and keys, duration) so the admin can see it. | v1 | `[PROPOSED]` |
 | FR-ING-12 | **Online now**: current player counts and the list of players on the server, read from the in-progress mission's logs. | it2 | `[DECIDED]` |
@@ -56,7 +56,7 @@ in spirit, and replaces "no recent landing" with the `PLID:0` + airborne + dista
 
 Pilot fate per sortie becomes: `in_aircraft` (landed, despawned, or died with the aircraft), `bailed_out` (inferred, rules 1–4),
 `exited_on_ground` (`PLID:0`, not airborne or near the aircraft), `mission_ended` (the sortie was force-ended by mission end: AType 4
-within a few seconds of AType 7; about 10% of sorties), `disconnected` (no AType 4 or an AType 21 near the end; 99% of no-AType-4 cases. Counts as a **death** if airborne, FR-ING-21), or `unknown`.
+within a few seconds of AType 7; about 10% of sorties), `disconnected` (no AType 4 or an AType 21 near the end; 99% of no-AType-4 cases. Counts as a **death** only with damage in the last 2 minutes, FR-ING-21), or `unknown`.
 The thresholds (100 m, 0.5 s, 30 s, 60 s) are config values.
 
 **Status (maintainer, 2026-10-02):** keep rule v2 for now and iterate later. The maintainer will compare notes with the other developer.
@@ -86,10 +86,16 @@ log no ground contact afterwards, so they can't be classified and stay plain `se
 ### Ammo attribution rule (FR-WEB-18)
 Damage lines (AType 2) carry no ammo type. Hit lines (AType 1) do. So each damage line is attributed to the ammo of the **hit closest in time**
 for the same attacker → target pair (the maintainer's improvement: the old module used the *next* hit, which was "hacky"). A tie goes to the
-hit on the same tick. Damage with no hit within a configurable window (a few ticks) stays "unattributed" instead of being guessed. Bomb and rocket
-damage arrives as `AMMO:explosion` hits **credited to the player's aircraft**, so replay uses explosion hits for attribution (in memory) even
-though they're never stored as rows (TD-08). An explosion hit only says "explosion", so it's labelled by the ordnance the attacker released most
-recently (bomb, rocket, napalm, cluster), using AType 25/26 and the store object's type.
+hit on the same tick. Damage with no hit within a configurable window (a few ticks) stays "unattributed" instead of being guessed. **"explosion" is never shown**: the UI always names the
+ordnance ("hit: M65 1000 lb bomb", "hit: HVAR 5\" rocket"), never "hit: explosion" (maintainer, 2026-10-02).
+
+Why replay still reads `AMMO:explosion` lines (in memory only, never stored, TD-08): for bombs and rockets the logs almost never write a
+hit line with the ordnance name. In the samples there were 572 `BOMB_*` and 1,186 `RKT_*` hit lines against 1.9 M `explosion` hit lines
+(30 missions), and for 97% of player-caused damage lines the closest hit is an explosion. If explosion lines were ignored, almost all
+bomb and rocket damage would be unattributed, or wrongly matched to a gun hit seconds away. So an explosion hit is used as the **link**
+between a damage line and the ordnance: it's **labelled by the ordnance the attacker released most recently** (bomb, rocket, napalm,
+cluster), using AType 25/26 and the store object's type, and that label is what gets counted and shown. Where a direct `BOMB_*`/`RKT_*`
+hit line exists, it's used as is.
 
 **Checked on 30 sample missions (2026-10-02):** sorties that released stores or rockets produce ~1,769 explosion hits each, versus 18–36 for
 gun-only sorties and ~0 for sorties without hits. So explosions are overwhelmingly ordnance. For 97% of player-caused damage lines the
