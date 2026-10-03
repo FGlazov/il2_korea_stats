@@ -10,8 +10,8 @@
       "sha256": "b6d0cd2d30ea8fb9ee3f684f36655a87927adc348a9d8ed4a7f1952eda638d1f"
     },
     "static/il2ks/players.css": {
-      "version": 1,
-      "sha256": "bfb6e189f65f90a472a130712abf35a3ac2fdc40178697cabf0ffba328267aa3"
+      "version": 2,
+      "sha256": "def84221f5258fb9a191848db8ff9bd1dc57f061afa015567c19611163ade659"
     },
     "static/il2ks/site.css": {
       "version": 3,
@@ -121,6 +121,14 @@
       "version": 1,
       "sha256": "30557119a0562ff24b08e0502d6e766938a2d06dbbfb64a25e6f0b50e6d03ea1"
     },
+    "templates/il2ks/components/stat_mark.html": {
+      "version": 1,
+      "sha256": "6f4b02ca0d89b405403af240bf4a3b55365505c769729debda3ea366d402c61c"
+    },
+    "templates/il2ks/components/stat_mark_note.html": {
+      "version": 1,
+      "sha256": "d109daba0d3e6703fe8a0e3e79a0ac7bed7517016760574e4e025a89d9b04185"
+    },
     "templates/il2ks/components/stat_tile.html": {
       "version": 1,
       "sha256": "35019371b214c3f264a89fc1495fee6d676e917e6ce6c09402dd9665b906888b"
@@ -166,8 +174,8 @@
       "sha256": "7a771798d0df8f02d822153a6990e2d4a01a5bfa41d6dba3b268c6ce4d313c73"
     },
     "templates/il2ks/players/detail_ratios.html": {
-      "version": 2,
-      "sha256": "3d1d3b2ff4c31ddd967b41af25a0ea7b9105591e67ec6f8c42db7df2b4236b42"
+      "version": 3,
+      "sha256": "1f90673071d6feac0849105f185a8974a4f3ebaf21aece6bd7f8949ee92f6700"
     },
     "templates/il2ks/players/detail_recent.html": {
       "version": 3,

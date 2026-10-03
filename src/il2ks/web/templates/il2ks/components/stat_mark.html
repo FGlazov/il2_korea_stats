@@ -1,0 +1,6 @@
+{# il2ks-template: templates/il2ks/components/stat_mark.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  stat_mark.html ({% stat_mark "survival" %}): a small badge after a ratio that is among the best pilots (FR-WEB-22).
+  Context: band ("top" = best 10%, "high" = best 25%; empty renders nothing), min_sorties (the minimum the comparison
+  was made with). Text and tooltip, never colour alone; low values are never marked.
+{% endcomment %}{% if band == "top" %}<span class="stat-mark stat-mark--top" title="{% blocktranslate count n=min_sorties %}Better than 9 in 10 pilots with at least {{ n }} sortie{% plural %}Better than 9 in 10 pilots with at least {{ n }} sorties{% endblocktranslate %}">{% translate "Top 10%" %}</span>{% elif band == "high" %}<span class="stat-mark stat-mark--high" title="{% blocktranslate count n=min_sorties %}Better than 3 in 4 pilots with at least {{ n }} sortie{% plural %}Better than 3 in 4 pilots with at least {{ n }} sorties{% endblocktranslate %}">{% translate "Top 25%" %}</span>{% endif %}

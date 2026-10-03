@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/players.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/players.css v2 - copy this line along when you override */
 /* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
 
 /* Search */
@@ -49,3 +49,8 @@
   .ground-table__bar { display: none; }
   .shame__quip { grid-column: auto; }
 }
+
+/* Stat marks (FR-WEB-22): a small badge after a ratio that is among the best pilots. Text + tooltip, never colour alone. */
+.stat-mark { display: inline-block; margin-inline-start: 0.6rem; padding: 0.05rem 0.5rem; border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; line-height: 1.4; vertical-align: 0.1em; color: var(--il2-muted); cursor: help; }
+.stat-mark--top { color: var(--il2-primary); border-color: color-mix(in srgb, var(--il2-accent) 55%, transparent); background: color-mix(in srgb, var(--il2-accent) 16%, transparent); }
+.stat-mark-note { margin: -0.25rem 0 1rem; color: var(--il2-muted); font-size: 0.8rem; }

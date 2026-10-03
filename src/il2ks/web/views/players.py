@@ -7,6 +7,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.db.models import Counters
 from il2ks.queries import players as reads
+from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import player_tour, tour_choice_from
 from il2ks.web.ground import ground_breakdown
 
@@ -31,7 +32,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
     `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`.
     With `?tour=<id>` (queries.tours.tour_choice_from; unknown = all time): `tours`, `tour`, and `stats` is the
-    PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `aircraft` and `recent`
+    PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `marks` (stat thresholds
+    of that scope, FR-WEB-22); `aircraft` and `recent`
     are that tour's."""
     player = reads.visible_player(pk)
     if player is None:
@@ -43,6 +45,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     context: dict[str, object] = {
         **choice.context,
         "stats": stats,
+        "marks": stat_thresholds(tour),  # FR-WEB-22: one query
         "page_title": player.current_name,
         "crumbs": [(_("Players"), reverse("web:player-search")), (player.current_name, None)],
         "player": player,

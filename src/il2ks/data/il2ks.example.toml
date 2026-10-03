@@ -132,7 +132,16 @@
 # where your community usually plays. It never depends on the time zone a visitor's browser shows.
 #timezone = ""
 
-# --- Backups (FR-OPS-6) --------------------------------------------------------------------------------------------
+# --- Stat marks (FR-WEB-22) -----------------------------------------------------------------------------------------
+# A player profile marks a ratio (survival rate, K/D, K/L, air kills per sortie and per flight hour, ground kills per
+# sortie) that is among the best 10% ("Top 10%") or best 25% of the pilots who have flown enough sorties, all-time and
+# per tour. Low values are never marked. The thresholds are recomputed with every new mission and by `il2ks
+# rebuild-aggregates`.
+#[marks]
+# A pilot needs this many sorties before their ratios are compared, and only such pilots make up the comparison.
+#min_sorties = 20
+
+# --- Backups (FR-OPS-6)--------------------------------------------------------------------------------------------
 # `il2ks backup` zips what you could not rebuild from the logs: a consistent copy of the database (hidden players,
 # name overrides, branding, admin accounts), this file, the custom/ and media/ folders and the server ID. It goes to
 # <data dir>/backups/. The archived mission logs are NOT included: they are large and are kept forever on their own.

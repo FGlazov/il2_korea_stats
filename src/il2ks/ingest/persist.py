@@ -31,6 +31,7 @@ from il2ks.core.replay.result import (
     SortieResult,
     TimelineEntry,
 )
+from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import DEFAULT_TOUR_RULES, TourRules
 from il2ks.db.models import (
     Country,
@@ -45,6 +46,7 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import ensure_tour
 
 log = logging.getLogger(__name__)
@@ -68,6 +70,7 @@ def save_mission(
     catalog: Catalog,
     ratings: RatingRules | None = DEFAULT_RULES,
     tours: TourRules = DEFAULT_TOUR_RULES,
+    marks: MarkRules | None = DEFAULT_MARK_RULES,
 ) -> Mission:
     """Upsert one mission's level-1 rows by natural key, then recompute level 2 for the players involved.
 
@@ -75,7 +78,8 @@ def save_mission(
     reprocess): rows that no longer exist are deleted, PKs of rows that still exist are kept (FR-ING-9, FR-WEB-13), and
     level 2 is recomputed for the mission's old players as well as the new ones, so players that dropped out are
     corrected too. The Elo ratings are replayed from all kills afterwards (they depend on the order of games);
-    `ratings=None` skips that, for a caller that recomputes them once after many missions (`reprocess`).
+    `ratings=None` skips that, and `marks=None` skips the stat thresholds (FR-WEB-22), for a caller that recomputes them
+    once after many missions (`reprocess`).
 
     The mission goes into the tour containing `meta.started_at` under the `[tours]` rules (TD-26); the per-tour level-2
     rows are recomputed for that tour and, when a re-ingest moved the mission, the old one. Elo is all-time.
@@ -104,7 +108,10 @@ def save_mission(
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
 
-    recompute_players(old_player_ids | {p.pk for p in players.values()}, {tour.pk} | _ids(old_tour_id))
+    touched_tours = {tour.pk} | _ids(old_tour_id)
+    recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
+    if marks is not None:
+        recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:
         recompute_ratings(ratings)
     bump_data_version()  # TD-28: same transaction as the save

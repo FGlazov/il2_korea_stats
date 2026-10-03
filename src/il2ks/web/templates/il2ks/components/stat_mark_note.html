@@ -1,0 +1,5 @@
+{# il2ks-template: templates/il2ks/components/stat_mark_note.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  stat_mark_note.html ({% stat_mark_note %}): says why a pilot's ratios carry no marks yet (FR-WEB-22). Context:
+  min_sorties (the minimum number of sorties); rendered only for a pilot below it.
+{% endcomment %}{% if min_sorties %}<p class="stat-mark-note">{% blocktranslate count n=min_sorties %}Ratios are compared with other pilots from {{ n }} sortie on.{% plural %}Ratios are compared with other pilots from {{ n }} sorties on.{% endblocktranslate %}</p>{% endif %}

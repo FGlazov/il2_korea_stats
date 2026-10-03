@@ -81,7 +81,14 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
         return replay_run(events, get_catalog(), cfg.replay)
 
     def save(result: MissionResult, meta: MissionMeta) -> Mission:
-        return save_mission(result, meta, get_catalog(), None if defer_ratings else cfg.ratings, cfg.tours)
+        return save_mission(
+            result,
+            meta,
+            get_catalog(),
+            None if defer_ratings else cfg.ratings,
+            cfg.tours,
+            None if defer_ratings else cfg.marks,
+        )
 
     def group(paths: Iterable[Path], txt_as: MissionLogKind) -> list[MissionLog]:
         return group_mission_files(paths, txt_as=txt_as)

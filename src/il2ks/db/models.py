@@ -606,6 +606,38 @@ class PlayerTourAircraft(Counters):
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
 
 
+class StatThreshold(models.Model):
+    """Percentiles of one ratio over the pilots with at least `min_sorties` sorties (FR-WEB-22, `core.stat_marks`).
+
+    Level 2: `ingest.stat_marks` recomputes them after the player rows, all-time (`tour` null) and per tour, and
+    `rebuild-aggregates` rebuilds them. A scope without a row has too few pilots for a distribution. Hidden players are
+    part of the population (hiding is presentation only, FR-ADM-3)."""
+
+    tour_id: int | None
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="stat_thresholds")
+    metric = models.CharField(max_length=24)  # a `core.stat_marks.Metric`
+    min_sorties = models.PositiveIntegerField()  # the `[marks] min_sorties` these were computed with
+    population = models.PositiveIntegerField()  # pilots with a defined value
+    p10 = models.FloatField()
+    p25 = models.FloatField()
+    p50 = models.FloatField()
+    p75 = models.FloatField()
+    p90 = models.FloatField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tour", "metric"], condition=models.Q(tour__isnull=False), name="statthreshold_tour_unique"
+            ),
+            models.UniqueConstraint(
+                fields=["metric"], condition=models.Q(tour__isnull=True), name="statthreshold_alltime_unique"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
+
+
 # --- Operational ---
 
 

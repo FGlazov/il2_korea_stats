@@ -36,6 +36,7 @@ from il2ks.core.replay.result import (
     SortieResult,
     TargetKind,
 )
+from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.db.models import Mission
 from il2ks.ingest.persist import MissionMeta, save_mission
 
@@ -299,10 +300,17 @@ def save(
     mission_meta: MissionMeta | None = None,
     catalog: Catalog | None = None,
     ratings: RatingRules | None = DEFAULT_RULES,
+    marks: MarkRules | None = DEFAULT_MARK_RULES,
 ) -> Mission:
     """`save_mission` inside a transaction, the way the ingest runner calls it (`ratings=None`: no Elo replay)."""
     with transaction.atomic():
-        return save_mission(result, meta() if mission_meta is None else mission_meta, catalog or FakeCatalog(), ratings)
+        return save_mission(
+            result,
+            meta() if mission_meta is None else mission_meta,
+            catalog or FakeCatalog(),
+            ratings,
+            marks=marks,
+        )
 
 
 def rows(model: type[models.Model]) -> list[dict[str, object]]:

@@ -1,18 +1,18 @@
-{# il2ks-template: templates/il2ks/players/detail_ratios.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_ratios.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_ratios.html: ratios from the stored counters (TD-22); the dash appears where the denominator is 0.
   K/D and K/L count air kills only (see detail_tiles.html). Context: stats (the player, or their PlayerTour row with ?tour=), survived.
 {% endcomment %}<dl class="kv">
   <dt>{% translate "K/D" %} <small>{% translate "air kills per death" %}</small></dt>
-  <dd>{{ stats.kills_air|ratio:stats.deaths }}</dd>
+  <dd>{{ stats.kills_air|ratio:stats.deaths }}{% stat_mark "kd" %}</dd>
   <dt>{% translate "K/L" %} <small>{% translate "air kills per plane lost" %}</small></dt>
-  <dd>{{ stats.kills_air|ratio:stats.planes_lost }}</dd>
+  <dd>{{ stats.kills_air|ratio:stats.planes_lost }}{% stat_mark "kl" %}</dd>
   <dt>{% translate "Air kills per sortie" %}</dt>
-  <dd>{{ stats.kills_air|ratio:stats.sorties }}</dd>
+  <dd>{{ stats.kills_air|ratio:stats.sorties }}{% stat_mark "air_per_sortie" %}</dd>
   <dt>{% translate "Air kills per flight hour" %}</dt>
-  <dd>{{ stats.kills_air|per_hour:stats.flight_time_s }}</dd>
+  <dd>{{ stats.kills_air|per_hour:stats.flight_time_s }}{% stat_mark "air_per_hour" %}</dd>
   <dt>{% translate "Ground kills per sortie" %}</dt>
-  <dd>{{ stats.kills_ground|ratio:stats.sorties }}</dd>
+  <dd>{{ stats.kills_ground|ratio:stats.sorties }}{% stat_mark "ground_per_sortie" %}</dd>
   <dt>{% translate "Survival rate" %} <small>{% translate "sorties without a death" %}</small></dt>
-  <dd>{{ survived|percent:stats.sorties }}</dd>
-</dl>
+  <dd>{{ survived|percent:stats.sorties }}{% stat_mark "survival" %}</dd>
+</dl>{% stat_mark_note %}

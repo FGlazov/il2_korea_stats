@@ -285,6 +285,18 @@ msgstr "A sauté en parachute"
 msgid "Bailouts"
 msgstr ""
 
+#, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s sortie"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s sorties"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Bomb release"
 msgstr ""
 
@@ -992,6 +1004,12 @@ msgstr "Classements"
 msgid "Ratios"
 msgstr ""
 
+#, python-format
+msgid "Ratios are compared with other pilots from %(n)s sortie on."
+msgid_plural "Ratios are compared with other pilots from %(n)s sorties on."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid ""
 "Re-runs every stored mission from its archive with the current rules, then rebuilds the aggregates. It can take a "
 "long time on a big archive. The watch process starts it at its next tick; the site keeps working meanwhile."
@@ -1309,6 +1327,14 @@ msgid "Timeline"
 msgstr ""
 
 msgid "Took off"
+msgstr ""
+
+#, python-format
+msgid "Top 10%%"
+msgstr ""
+
+#, python-format
+msgid "Top 25%%"
 msgstr ""
 
 msgid "Top pilots by kills"

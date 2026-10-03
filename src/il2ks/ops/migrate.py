@@ -57,4 +57,13 @@ def _backfill_tours(cfg: Config) -> None:
     if Mission.objects.filter(tour__isnull=True).exists():
         log.info("assigning existing missions to tours")
         with transaction.atomic():
-            rebuild_aggregates(cfg.ratings, cfg.tours)
+            rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks)
+    else:
+        from il2ks.db.models import Player, StatThreshold
+        from il2ks.ingest.stat_marks import recompute_thresholds
+
+        # A database from before stat marks (FR-WEB-22): build the thresholds once, without waiting for a mission.
+        if not StatThreshold.objects.exists() and Player.objects.exists():
+            log.info("computing stat thresholds")
+            with transaction.atomic():
+                recompute_thresholds(cfg.marks)
