@@ -33,8 +33,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
 
-Some of the icons under src/il2ks/web/static/il2ks/img/ are taken from, or adapted from, Tabler Icons
-(outline set), https://github.com/tabler/tabler-icons, distributed under the following license:
+The UI icons under src/il2ks/web/static/il2ks/img/ (event, ground, outcome, role, stat and coalition icons; the list is in
+img/README.md) are taken from Tabler Icons 3.48.0 (outline set), https://github.com/tabler/tabler-icons, distributed under
+the following license:
 
 ------------------------------------------------------------------------------
 The MIT License (MIT)

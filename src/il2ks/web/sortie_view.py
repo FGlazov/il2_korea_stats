@@ -19,6 +19,7 @@ from django.utils.translation import gettext as _
 from il2ks.core.catalog.loader import GROUND_CATEGORIES
 from il2ks.db.models import GameObject, Kill, PlayerSortie
 from il2ks.web import display, icons, object_names
+from il2ks.web.ground import GROUND_ICONS
 
 type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
@@ -52,17 +53,6 @@ GROUND_LABELS: Mapping[str, str] = {
     "building": gettext_lazy("Buildings"),
     "parked_aircraft": gettext_lazy("Parked aircraft"),
     "other": gettext_lazy("Other objects"),
-}
-GROUND_ICONS: Mapping[str, str] = {
-    "tank": "ground/tank",
-    "vehicle": "ground/vehicle",
-    "artillery": "ground/artillery",
-    "aaa": "ground/aaa",
-    "ship": "ground/ship",
-    "train": "ground/train",
-    "building": "ground/building",
-    "parked_aircraft": "ground/parked-aircraft",
-    "other": "ground/other-static",
 }
 
 EVENT_LABELS: Mapping[str, str] = {
