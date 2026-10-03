@@ -187,6 +187,7 @@ def _landed_or_ditched(sortie: SortieState, facts: MissionFacts, end: int) -> Ou
     pos = _landing_pos(sortie, end)
     if pos is None:
         return "landed"
-    friendly = [a for a in facts.airfields.values() if a.coalition == sortie.coalition]
-    all_airfields = list(facts.airfields.values())
-    return "landed" if at_friendly_airfield(pos, sortie.coalition, all_airfields) or not friendly else "ditched"
+    airfields = list(facts.airfields.values())
+    if not any(a.coalition == sortie.coalition for a in airfields):
+        return "landed"  # no friendly airfield logged: can't tell, so don't call it a ditching
+    return "landed" if at_friendly_airfield(pos, sortie.coalition, airfields) else "ditched"

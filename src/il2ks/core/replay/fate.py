@@ -198,4 +198,6 @@ def pilot_fate_of(
         return "disconnected", "inferred"
     if plain_end:
         return "in_aircraft", "event"
+    if shot_down_directly:  # no AType 4, but an attacker destroyed the aircraft: the pilot went down with it
+        return "in_aircraft", "inferred"
     return "unknown", "unknown"
