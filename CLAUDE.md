@@ -13,6 +13,7 @@ uv run pytest tests/unit -q     # fast, no DB
 uv run ruff check --fix && uv run ruff format
 uv run pyright                  # strict
 uv run lint-imports             # core must not import Django
+uv run vulture                  # dead code (config in pyproject; intentional leftovers: vulture_whitelist.py, with a reason each)
 uv run il2ks manage <cmd>       # Django management (migrate, makemigrations il2ks_db, ...)
 IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
 ```
