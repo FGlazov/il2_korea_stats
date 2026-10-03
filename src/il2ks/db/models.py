@@ -470,3 +470,37 @@ class IngestRun(models.Model):
 
     def __str__(self) -> str:
         return f"{self.mission_uid} {self.status}"
+
+
+class SiteSettings(models.Model):
+    """Branding and site texts, edited in the admin (FR-ADM-2, TD-25). A singleton: always pk=1 (`il2ks.db.site`)."""
+
+    site_title = models.CharField(max_length=100, default="IL-2 Korea stats")
+    server_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)  # shown on the home page
+    # Path relative to MEDIA_ROOT of the re-encoded logo (raster only, never SVG; FR-ADM-2). Empty = no logo.
+    logo = models.CharField(max_length=200, blank=True)
+    # "#RRGGBB" mapped onto Pico's primary color; empty = the default theme
+    accent_color = models.CharField(max_length=7, blank=True)
+    links: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)  # [{"label", "url"}]
+    # Coalition display names (FR-ADM-5, doc 06): 5xx countries are REDFOR, 6xx BLUFOR.
+    redfor_name = models.CharField(max_length=40, default="REDFOR")
+    blufor_name = models.CharField(max_length=40, default="BLUFOR")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "site settings"
+        verbose_name_plural = "site settings"
+
+    def __str__(self) -> str:
+        return self.site_title
+
+
+class DataVersion(models.Model):
+    """Bumped whenever page-visible data changes (TD-28): ETags are built from it. A singleton: always pk=1."""
+
+    version = models.PositiveBigIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return str(self.version)

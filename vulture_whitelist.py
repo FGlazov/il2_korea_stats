@@ -64,3 +64,6 @@ FAKE_NAME_RE  # devtools.anonymize: the fixture check in tests/unit/test_anonymi
 _.snapshot  # core.replay.state.Replay.snapshot: FR-ING-15 live sorties (streaming), tested in test_streaming.py
 _.parent_sortie_index  # core.replay.result.SortieResult: gunner -> pilot link, not persisted yet
 _.victim_object_id  # core.replay.result.KillResult: kept for a later per-victim view (tests set it)
+get_site_settings  # db.site: frontend contract (TD-25), callers arrive with the web foundation; drop this line then
+current_data_version  # db.site: TD-28 ETags, caller arrives with the caching middleware; drop this line then
+bump_data_version  # db.site: TD-28, callers arrive with ingest/admin hooks; drop this line then
