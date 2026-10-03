@@ -1,17 +1,31 @@
 [project]
 name = "il2ks"
-version = "0.0.1"
+dynamic = ["version"]  # single source of truth: __version__ in src/il2ks/__init__.py (see [tool.hatch.version])
 description = "Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.13"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django :: 5.2",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment :: Simulation",
+]
 dependencies = [
     "django>=5.2,<5.3",
     "granian>=2.0",
     "tzdata>=2024.1",  # zoneinfo needs it on Windows (TD-15)
     "whitenoise>=6.7",
 ]
+
+[project.urls]
+Homepage = "https://github.com/FGlazov/il2_korea_stats"
+Documentation = "https://github.com/FGlazov/il2_korea_stats/tree/main/docs"
+Issues = "https://github.com/FGlazov/il2_korea_stats/issues"
 
 [project.scripts]
 il2ks = "il2ks.cli:main"
@@ -34,8 +48,18 @@ dev = [
 requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
+[tool.hatch.version]
+path = "src/il2ks/__init__.py"
+
+# The wheel carries everything under src/il2ks: templates, static files (also vendored ones), catalog CSVs, the example
+# config, migrations. `artifacts` keeps files that .gitignore would otherwise drop (hatch honours .gitignore): the
+# static tree, whose vendored libraries may sit in lib/ or *.min.* folders, and compiled translations (*.mo).
 [tool.hatch.build.targets.wheel]
 packages = ["src/il2ks"]
+artifacts = ["src/il2ks/web/static/**", "src/il2ks/**/*.mo"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["sample_data", ".claude", ".il2ks-data"]
 
 # --- ruff: lint + format (TD-12). ANN = mandatory annotations, ANN401 bans Any.
 [tool.ruff]
@@ -90,6 +114,7 @@ forbidden_modules = ["django", "il2ks.db", "il2ks.web", "il2ks.ingest", "il2ks.q
 [tool.vulture]
 paths = ["src", "vulture_whitelist.py"]
 min_confidence = 60
+ignore_decorators = ["@check"]  # doctor checks are registered by the decorator and never called by name (ops.doctor)
 exclude = [
     "src/il2ks/db/migrations/",  # Django reads these by convention
     "src/il2ks/db/models.py",  # fields/choices/Meta are the DB schema, read by Django and the ORM

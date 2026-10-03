@@ -46,7 +46,7 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
 
 
 def test_the_planned_commands_are_the_ones_fr_ops_1_and_fr_ops_6_list() -> None:
-    assert set(PLANNED) == {"setup", "web", "run", "createadmin", "doctor", "backup", "restore"}
+    assert set(PLANNED) == {"setup", "createadmin", "doctor", "backup", "restore"}
 
 
 @pytest.mark.parametrize("command", sorted(PLANNED))

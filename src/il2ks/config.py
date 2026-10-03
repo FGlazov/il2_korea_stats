@@ -5,7 +5,7 @@ Loaded once at startup by the CLI and passed in explicitly. No module reads it a
 Sources, later ones win: built-in defaults, the TOML file, `IL2KS_*` environment variables. Every setting has one env
 name:
 `IL2KS_<SECTION>_<KEY>` in upper case (`[logs] dir` -> `IL2KS_LOGS_DIR`); top-level keys drop the section
-(`data_dir` -> `IL2KS_DATA_DIR`, the same variable `settings.py` reads). Lists in env vars are comma-separated.
+(`data_dir` -> `IL2KS_DATA_DIR`). `settings.py` loads the same config for Django (see there). Lists in env vars are comma-separated.
 
 Which file: `--config`, else `IL2KS_CONFIG`, else `./il2ks.toml`, else `<data dir>/il2ks.toml`
 (data dir from `IL2KS_DATA_DIR` or
@@ -30,6 +30,10 @@ from il2ks.core.replay.config import ReplayRules
 
 type AfterArchive = Literal["move", "keep", "delete"]
 AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
+type HttpsMode = Literal["caddy", "external"]
+HTTPS_MODES: tuple[HttpsMode, ...] = ("caddy", "external")
+type CertSource = Literal["auto", "internal"]
+CERT_SOURCES: tuple[CertSource, ...] = ("auto", "internal")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
 CONFIG_FILE = "il2ks.toml"
@@ -74,12 +78,41 @@ class IngestConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class WebConfig:
+    """`il2ks web`: the granian server behind the HTTPS proxy (TD-10, NFR-INS-5)."""
+
+    host: str = "127.0.0.1"  # localhost only: the proxy is the public face (TD-10)
+    port: int = 8000
+    workers: int = 1  # worker processes; Windows supports only 1 (granian), one is plenty for a small box
+    threads: int = 4  # request threads per worker
+    allowed_hosts: tuple[str, ...] = ()  # extra Host names Django accepts besides [https] domain and localhost
+    secret_key: str = field(default="", repr=False)  # "" = generated into <data dir>/secret_key.txt (NFR-SEC-2)
+
+
+@dataclass(frozen=True, slots=True)
+class HttpsConfig:
+    """HTTPS in front of the web server (TD-23, NFR-SEC-6)."""
+
+    mode: HttpsMode = "caddy"  # "external" = the admin's own nginx/IIS terminates TLS
+    domain: str = ""  # host name or IP address the site is reached at; "" = not set
+    email: str = ""  # contact address for the certificate authority (expiry notices); optional
+    cert: CertSource = "auto"  # "internal" = Caddy's own CA (browser warnings): testing only
+    caddy_path: Path | None = None  # None: look on PATH, then <data dir>/bin
+    http_port: int = 80
+    https_port: int = 443
+    hsts_seconds: int = 86400  # Strict-Transport-Security max-age; 0 = off. Raise it once HTTPS works (TD-23)
+
+
+@dataclass(frozen=True, slots=True)
 class Config:
     data_dir: Path
     server_uid: uuid.UUID
     timezone_name: str
     log_level: str = "INFO"
     log_keep_days: int = DEFAULT_LOG_KEEP_DAYS  # daily log files of each process are kept this many days (TD-27)
+    debug: bool = False  # developer switch: Django DEBUG, plain-http cookies, dev secret key. Never on a public site
+    web: WebConfig = field(default_factory=WebConfig)
+    https: HttpsConfig = field(default_factory=HttpsConfig)
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
@@ -149,6 +182,9 @@ def load_config(
         raise ConfigError(f"log_level must be one of {', '.join(LOG_LEVELS)}, got {log_level!r}")
 
     keep_days = reader.positive_int("", "log_keep_days", DEFAULT_LOG_KEEP_DAYS)
+    debug = reader.bool_("", "debug", False)
+    web = _load_web(reader)
+    https = _load_https(reader)
 
     after = reader.str_("logs", "after_archive", "move")
     if after not in AFTER_ARCHIVE_VALUES:
@@ -200,11 +236,67 @@ def load_config(
         timezone_name=tz_name,
         log_level=log_level,
         log_keep_days=keep_days,
+        debug=debug,
+        web=web,
+        https=https,
         logs=logs,
         ingest=ingest,
         replay=replay,
         ratings=ratings,
         source=file,
+    )
+
+
+def _load_web(reader: _Reader) -> WebConfig:
+    defaults = WebConfig()
+    host = reader.str_("web", "host", defaults.host).strip()
+    if not host:
+        raise ConfigError("web.host must not be empty")
+    return WebConfig(
+        host=host,
+        port=reader.port("web", "port", defaults.port),
+        workers=reader.positive_int("web", "workers", defaults.workers),
+        threads=reader.positive_int("web", "threads", defaults.threads),
+        allowed_hosts=reader.str_list("web", "allowed_hosts", defaults.allowed_hosts),
+        secret_key=reader.str_("web", "secret_key", "").strip(),
+    )
+
+
+def normalize_domain(text: str) -> str:
+    """The `[https] domain` value cleaned up: no scheme, path, port or IPv6 brackets. Raises ValueError with advice."""
+    domain = text.strip()
+    if not domain:
+        return ""
+    if "://" in domain or "/" in domain or any(c.isspace() for c in domain):
+        raise ValueError("write only the name or IP address, like stats.example.com (no https:// and no path)")
+    if domain.startswith("[") and domain.endswith("]"):
+        domain = domain[1:-1]
+    elif domain.count(":") == 1:
+        raise ValueError("write the name without a port; ports go in [https] https_port")
+    return domain.lower()
+
+
+def _load_https(reader: _Reader) -> HttpsConfig:
+    defaults = HttpsConfig()
+    mode = reader.str_("https", "mode", defaults.mode)
+    if mode not in HTTPS_MODES:
+        raise ConfigError(f"https.mode must be one of {', '.join(HTTPS_MODES)}, got {mode!r}")
+    cert = reader.str_("https", "cert", defaults.cert)
+    if cert not in CERT_SOURCES:
+        raise ConfigError(f"https.cert must be one of {', '.join(CERT_SOURCES)}, got {cert!r}")
+    try:
+        domain = normalize_domain(reader.str_("https", "domain", ""))
+    except ValueError as exc:
+        raise ConfigError(f"https.domain: {exc}") from exc
+    return HttpsConfig(
+        mode=mode,
+        domain=domain,
+        email=reader.str_("https", "email", "").strip(),
+        cert=cert,
+        caddy_path=reader.path("https", "caddy_path"),
+        http_port=reader.port("https", "http_port", defaults.http_port),
+        https_port=reader.port("https", "https_port", defaults.https_port),
+        hsts_seconds=reader.whole_number("https", "hsts_seconds", defaults.hsts_seconds),
     )
 
 
@@ -333,6 +425,30 @@ class _Reader:
         if number == 0:
             raise ConfigError(f"{self._label(section, key)} must be greater than 0")
         return number
+
+    def whole_number(self, section: str, key: str, default: int) -> int:
+        """An integer >= 0."""
+        number = self.non_negative(section, key, float(default))
+        if number != int(number):
+            raise ConfigError(f"{self._label(section, key)} must be a whole number")
+        return int(number)
+
+    def port(self, section: str, key: str, default: int) -> int:
+        number = self.positive_int(section, key, default)
+        if number > 65535:
+            raise ConfigError(f"{self._label(section, key)} must be a port number (1 to 65535)")
+        return number
+
+    def str_list(self, section: str, key: str, default: tuple[str, ...]) -> tuple[str, ...]:
+        value, _ = self._get(section, key)
+        label = self._label(section, key)
+        if value is None:
+            return default
+        if isinstance(value, str):
+            return tuple(p for p in (part.strip() for part in value.split(",")) if p)
+        if not isinstance(value, list) or not all(isinstance(i, str) for i in cast(list[object], value)):
+            raise ConfigError(f"{label} must be a list of strings")
+        return tuple(s for s in (str(i).strip() for i in cast(list[str], value)) if s)
 
     def float_list(self, section: str, key: str, default: tuple[float, ...]) -> tuple[float, ...]:
         value, _ = self._get(section, key)

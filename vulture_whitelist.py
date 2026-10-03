@@ -15,6 +15,28 @@ _.format  # logging.Formatter override (logsetup.JsonFormatter)
 exc_type  # context manager protocol (__exit__ signature, ingest.lock)
 tb  # context manager protocol (__exit__ signature, ingest.lock)
 
+# --- serving (settings.py is not scanned, and dictConfig / Django find some names by string) -------------------------
+csrf_trusted_origins  # il2ks.settings (CSRF_TRUSTED_ORIGINS)
+security_settings  # il2ks.settings
+staticfiles_backend  # il2ks.settings (STORAGES)
+secret_key_for  # il2ks.settings (SECRET_KEY)
+_.proxy_ssl_header  # SecuritySettings fields: each becomes one Django SECURE_* / *_COOKIE_* setting in il2ks.settings
+_.ssl_redirect
+_.hsts_include_subdomains
+_.hsts_preload
+_.session_cookie_secure
+_.csrf_cookie_secure
+_.session_cookie_httponly
+_.csrf_cookie_httponly
+_.content_type_nosniff
+_.referrer_policy
+LenientManifestStorage  # STORAGES["staticfiles"] in il2ks.settings (dotted path)
+_.manifest_strict  # Django ManifestFilesMixin option
+make_file_handler  # logging dictConfig "()" factory, referenced by dotted path (logsetup.dict_config)
+make_json_formatter  # logging dictConfig "()" factory, referenced by dotted path (logsetup.dict_config)
+signum  # signal handler signature (serving.procutil)
+frame  # signal handler signature (serving.procutil)
+
 # --- ORM columns assigned on model instances in ingest.persist / runner / reprocess ------------------------------
 _.finished_at  # IngestRun.finished_at, set when a run ends
 _.players_total  # MissionStats columns (db.models)

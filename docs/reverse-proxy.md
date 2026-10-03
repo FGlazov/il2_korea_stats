@@ -1,0 +1,123 @@
+# Using your own HTTPS proxy (nginx, IIS, ...)
+
+By default `il2ks run` starts Caddy, which handles HTTPS. If ports 80 and 443 are already used by another web server
+(IIS, nginx, Apache) on the same machine, or you simply prefer your own, use **external mode**: you run the proxy,
+il2ks serves the site on the local port `8000`.
+
+```toml
+# il2ks.toml
+[https]
+mode = "external"              # il2ks does not start Caddy
+domain = "stats.example.com"   # the name your proxy serves: il2ks only accepts requests for this name
+
+[web]
+host = "127.0.0.1"             # keep it: only the proxy on this machine may reach the web server
+port = 8000
+```
+
+`il2ks run` then supervises the web server and the log watcher only. Your proxy has to:
+
+1. **Terminate HTTPS** (certificate on the proxy) and redirect plain http to https.
+2. **Forward everything** to `http://127.0.0.1:8000`.
+3. Send the header **`X-Forwarded-Proto: https`**. Without it il2ks thinks the visit is plain http and redirects
+   forever ("too many redirects"). il2ks only trusts this header, so keep port 8000 closed to the outside.
+4. Keep the original **`Host`** header (recommended) so links and the admin login work.
+
+With the proxy running, `il2ks doctor` shows whether ports and settings agree.
+
+## nginx
+
+```nginx
+# /etc/nginx/conf.d/il2ks.conf
+server {
+    listen 80;
+    server_name stats.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name stats.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/stats.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/stats.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-Proto $scheme;     # "https" here
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP         $remote_addr;
+    }
+}
+```
+
+Get the certificate with certbot (`sudo certbot --nginx -d stats.example.com` writes the two `ssl_` lines for you).
+Then `sudo nginx -t && sudo systemctl reload nginx`.
+
+## IIS (Windows)
+
+You need two IIS add-ons, free from Microsoft: **URL Rewrite** and **Application Request Routing (ARR)**. Both are in
+the *Web Platform Installer* replacement downloads at <https://www.iis.net/downloads>.
+
+1. **Turn the proxy on:** IIS Manager, click the server name (top of the left tree), open *Application Request
+   Routing Cache*, then *Server Proxy Settings* on the right, tick **Enable proxy**, *Apply*.
+2. **Keep the Host header:** in an Administrator command prompt:
+
+   ```
+   %windir%\system32\inetsrv\appcmd.exe set config -section:system.webServer/proxy /preserveHostHeader:"True" /commit:apphost
+   ```
+3. **Site and certificate:** create (or reuse) an IIS site with the host name `stats.example.com`, a binding for
+   `https` on 443 with your certificate (for a free one, use *win-acme*, <https://www.win-acme.com>), and a binding
+   on `http` port 80.
+4. **Allow the forwarded-proto header:** select the site, open *URL Rewrite*, click *View Server Variables...* on the
+   right, *Add...*, name **`HTTP_X_FORWARDED_PROTO`**, *OK*.
+5. **The rules.** Put this `web.config` into the site's folder (the first rule redirects http to https, the second
+   forwards to il2ks):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="http to https" stopProcessing="true">
+          <match url="(.*)" />
+          <conditions>
+            <add input="{HTTPS}" pattern="^OFF$" />
+          </conditions>
+          <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
+        </rule>
+        <rule name="il2ks" stopProcessing="true">
+          <match url="(.*)" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+          </serverVariables>
+          <action type="Rewrite" url="http://127.0.0.1:8000/{R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>
+```
+
+Test: `https://stats.example.com` shows the site; `http://stats.example.com` redirects to https. If the admin login
+says "CSRF verification failed", check that `[https] domain` in `il2ks.toml` is exactly the name in the browser's
+address bar.
+
+## Other proxies (Apache, Traefik, HAProxy, ...)
+
+Same four requirements. For Apache with `mod_proxy`:
+
+```apache
+RequestHeader set X-Forwarded-Proto "https"
+ProxyPreserveHost On
+ProxyPass        / http://127.0.0.1:8000/
+ProxyPassReverse / http://127.0.0.1:8000/
+```
+
+## Not on the same machine as the proxy?
+
+If the proxy runs on another machine, set `[web] host = "0.0.0.0"` (or that machine's LAN address) and **firewall the
+port** so only the proxy can connect. `il2ks doctor` warns about this on purpose: anyone who can reach the port can
+bypass your HTTPS.

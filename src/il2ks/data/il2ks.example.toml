@@ -21,6 +21,10 @@
 # this many days are deleted.
 #log_keep_days = 14
 
+# For developers only: Django debug mode, http instead of https, an insecure built-in secret key. Never switch it
+# on for a site others can reach. (`il2ks web --dev` does this for one run.)
+#debug = false
+
 # --- DServer's mission logs (FR-ING-1, FR-ING-10, FR-ING-16) -------------------------------------------------------
 #[logs]
 # The folder where DServer writes its missionReport(...)[N].txt files. "" = not set; then `il2ks ingest` and
@@ -117,3 +121,46 @@
 # This server's permanent ID (a UUID). "" = generated on first start and kept in <data dir>/server_uid.txt.
 # Keep it when you move to a new machine: it identifies the server across reinstalls and backups (TD-17).
 #uid = ""
+
+# --- The web server (TD-10, NFR-INS-5) -----------------------------------------------------------------------------
+# `il2ks web` (and `il2ks run`) serves the site on this address, for the HTTPS proxy only. Keep it on localhost.
+#[web]
+# The address to listen on. "127.0.0.1" = this machine only (the proxy in front is the public face).
+#host = "127.0.0.1"
+# The port to listen on. Change it if something else already uses 8000 (and point an external proxy at it).
+#port = 8000
+# Worker processes. 1 is plenty for a small machine; Windows supports only 1 (a higher value falls back to 1).
+#workers = 1
+# Request threads per worker.
+#threads = 4
+# Extra host names the site may be reached under, besides [https] domain and localhost. Rarely needed.
+#allowed_hosts = []
+# Django's secret key (signs login cookies). "" = generated on first start and kept in <data dir>/secret_key.txt.
+# Keep that file private; deleting it only logs everybody out.
+#secret_key = ""
+
+# --- HTTPS (TD-23, NFR-SEC-6) -----------------------------------------------------------------------------------------
+# The site is served over HTTPS only. By default `il2ks run` starts Caddy, which gets and renews the certificate
+# by itself (ports 80 and 443 must be reachable from the internet, and the domain must point at this machine).
+#[https]
+# "caddy" = il2ks starts Caddy for you. "external" = you run your own proxy (nginx, IIS, ...) in front of the web
+# server; see docs/reverse-proxy.md.
+#mode = "caddy"
+# The name the site is reached at, like "stats.example.com" (recommended), or this machine's public IP address.
+# "" = not set: Caddy then uses a self-signed certificate, which browsers warn about (testing only).
+#domain = ""
+# Your e-mail address, given to the certificate authority (Let's Encrypt) for expiry warnings. Optional.
+#email = ""
+# "auto" = a normal certificate from Let's Encrypt. "internal" = Caddy's own self-signed certificate (browser
+# warnings; for testing only).
+#cert = "auto"
+# Where Caddy is. "" = look on the PATH, then in <data dir>/bin.
+#caddy_path = ""
+# The port Caddy answers plain http on (it only redirects to https and proves to the certificate authority that
+# the domain is yours). Must be 80 for a normal certificate.
+#http_port = 80
+# The port Caddy serves the site on. Must be 443 for a normal certificate.
+#https_port = 443
+# How long (seconds) browsers must remember to use https only (HSTS). 86400 = one day: raise it (31536000 = a
+# year) once everything works, 0 = off. It can't be taken back before it expires, so start small.
+#hsts_seconds = 86400
