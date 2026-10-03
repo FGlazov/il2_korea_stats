@@ -22,20 +22,7 @@ country code (501–503, 601–603) is, and some admins or players may prefer ne
 default (a stylised red and blue mark), with real insignia possible later per country once the codes are mapped (admins can swap the
 files through `custom/static/` anyway).
 
-**OQ-35 What does hiding a player or a mission do?** (FR-ADM-3)
-Hiding exists for privacy requests and cheaters. Proposal (built so far: the admin switch and `visible()` querysets; pages follow it):
-- **Hidden player:** gone from search and mission rosters; their profile and sortie pages answer 404 (same as a non-existent ID). Where a
-  visible player's page mentions them (a kill, a timeline entry), it says "Hidden player" without a link. Their sorties still count for
-  everyone else (a kill on them stays a kill).
-- **Hidden mission:** gone from the mission list and home page, its page and its sorties' pages answer 404, its sorties disappear from
-  player sortie lists.
-- **Totals: presentation only.** Player totals and Elo are not recomputed, so a profile can show more kills than its visible sorties add
-  up to. Cheap and instantly reversible.
-
-Questions: (a) is presentation-only right for **cheaters**, or should hiding a cheater also remove their kills from victims' deaths and their
-games from Elo (needs a rebuild on every hide/unhide; a separate "exclude from stats" switch could do it)? (b) Should a hidden player's name
-also disappear from other players' pages ("Hidden player"), or only their own pages? **Recommendation:** the proposal for v1, and a separate
-"exclude from stats" switch for cheaters later if needed.
+OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
 ## Lower impact
 
