@@ -1,6 +1,6 @@
 """Resolve recorded facts into a `MissionResult`. Used by `snapshot()` (provisional) and `finish()` (final)."""
 
-from il2ks.core.replay.breakdown import breakdowns, timeline
+from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.judge import Verdict, judge
 from il2ks.core.replay.kills import resolve_kills
@@ -39,6 +39,7 @@ def _build_sortie(
     verdict: Verdict,
     kills: list[KillResult],
     breakdown: tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]],
+    friendly: FriendlyFire,
 ) -> SortieResult:
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
@@ -92,6 +93,9 @@ def _build_sortie(
         ammo_hits=breakdown[1],
         damage=breakdown[0],
         timeline=timeline(sortie, verdict, kills),
+        friendly_kills=friendly.kills,
+        friendly_hits=friendly.hits,
+        friendly_damage=friendly.damage,
     )
 
 
@@ -99,8 +103,9 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     verdicts = [judge(sortie, facts, rules, final=final) for sortie in facts.sorties]
     kills = resolve_kills(facts, verdicts, rules)
     details = breakdowns(facts, verdicts)
+    friendly = friendly_fire(facts, verdicts, kills)
     sorties = tuple(
-        _build_sortie(sortie, verdict, kills, details[sortie.index])
+        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index])
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )
     seen = frozenset(t for t in facts.types_seen if not is_bot_type(t))

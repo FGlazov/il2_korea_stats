@@ -1,9 +1,10 @@
-"""Per-sortie breakdowns: damage exchanges per counterpart, hits per ammo type, and the key-event timeline (TD-08)."""
+"""Per-sortie breakdowns: damage exchanges per counterpart, hits per ammo type, friendly fire, and the key-event
+timeline (TD-08)."""
 
 from dataclasses import dataclass, field
 
 from il2ks.core.replay.judge import Verdict
-from il2ks.core.replay.model import MissionFacts, Party, SortieState, party_of
+from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, party_of
 from il2ks.core.replay.result import AmmoHits, Counterpart, DamageExchange, KillResult, TimelineEntry
 
 
@@ -80,6 +81,54 @@ def breakdowns(
     return out
 
 
+@dataclass(frozen=True, slots=True)
+class FriendlyFire:
+    """What one sortie did to its own side. Added to `SortieResult` as `friendly_*`."""
+
+    kills: int = 0
+    hits: int = 0
+    damage: float = 0.0
+
+
+def _friendly_shooter(
+    attacker: TrackedObject | None, target: Party, tick: int, ends: dict[int, int]
+) -> SortieState | None:
+    """The player sortie behind a damage or hit line if it landed on a friendly object, else None. Friendly = same
+    non-zero coalition, and not the sortie's own aircraft, crew or turrets (`party_of` folds those into the sortie)."""
+    if attacker is None:
+        return None
+    shooter = party_of(attacker)
+    if not isinstance(shooter, SortieState) or shooter is target or tick > ends[shooter.index]:
+        return None
+    if shooter.coalition == 0 or target.coalition != shooter.coalition:
+        return None
+    return shooter
+
+
+def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[KillResult]) -> dict[int, FriendlyFire]:
+    """Friendly kills, hits and damage per player sortie (index -> totals), apart from the normal counters.
+
+    Hits and damage count up to the shooter's end tick like `breakdowns` does for hits and damage dealt."""
+    ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
+    n_kills = {i: 0 for i in ends}
+    n_hits = {i: 0 for i in ends}
+    damage = {i: 0.0 for i in ends}
+    for k in kills:
+        if k.is_friendly and k.credit == "kill" and k.killer_sortie_index in n_kills:
+            n_kills[k.killer_sortie_index] += 1
+    for obj in facts.objects:
+        target = party_of(obj)
+        for record in obj.damage_log:
+            shooter = _friendly_shooter(record.attacker, target, record.tick, ends)
+            if shooter is not None:
+                damage[shooter.index] += record.amount
+        for hit in obj.hit_log:
+            shooter = _friendly_shooter(hit.attacker, target, hit.tick, ends)
+            if shooter is not None:
+                n_hits[shooter.index] += 1
+    return {i: FriendlyFire(n_kills[i], n_hits[i], damage[i]) for i in ends}
+
+
 def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> tuple[TimelineEntry, ...]:
     """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion."""
     airframe = sortie.airframe
@@ -128,4 +177,4 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
     return tuple(sorted(entries, key=lambda e: e.tick))  # sorted() is stable
 
 
-__all__ = ["breakdowns", "timeline"]
+__all__ = ["FriendlyFire", "breakdowns", "friendly_fire", "timeline"]

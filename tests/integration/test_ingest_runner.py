@@ -356,6 +356,58 @@ def test_resolve_start_warnings_are_recorded(env: Env) -> None:
     assert env.runs(A)[0].warnings == ["ambiguous local time", "a bad line"]
 
 
+def test_completion_reason_is_recorded_per_run(env: Env, tmp_path: Path) -> None:
+    """D4 / FR-ING-18: admins can see which missions were completed only by the idle timeout."""
+    env.add(A, age_s=120)  # AType 7 and settled
+    env.ingest()
+    env.add(B, age_s=300, end=False)  # nothing marks the end, but ...
+    env.add(C, age_s=20, end=False)  # ... a newer mission has started
+    env.add("2026-09-19_17-00-00", age_s=700, end=False)  # idle for more than 10 minutes
+    env.ingest()
+
+    reasons = {r.mission_uid: r.completion_reason for r in IngestRun.objects.all()}
+    assert reasons == {
+        A: "mission_end",
+        B: "newer_mission",
+        C: "newer_mission",
+        "2026-09-19_17-00-00": "idle",
+    }
+
+    source = tmp_path / "import"
+    write_zip(source / f"{part_name('2026-09-18_10-00-00', 0)}.zip", "2026-09-18_10-00-00", "T:0 AType:15\r\n")
+    env.ingest(source=source)
+    assert env.runs("2026-09-18_10-00-00")[0].completion_reason == "import"
+
+
+def test_whole_mission_archive_in_the_log_folder_counts_as_import(env: Env) -> None:
+    write_zip(env.logs / f"{part_name(A, 0)}.zip", A, "T:0 AType:15\r\n")
+    env.ingest()
+    assert env.runs(A)[0].completion_reason == "import"
+
+
+def test_failed_run_keeps_its_completion_reason(env: Env) -> None:
+    env.steps.fail_on = {A}
+    env.add(A, age_s=120)
+    env.ingest()
+    assert env.runs(A)[0].completion_reason == "mission_end"
+
+
+def test_country_side_conflicts_are_recorded_as_warnings(env: Env) -> None:
+    """D5: a CNTRS that puts 5xx and 6xx in one coalition is recorded on the run (the mission still ingests)."""
+    env.steps.countries = {501: 1, 601: 1, 602: 2}
+    env.add(A)
+    summary = env.ingest()
+
+    assert summary.ok == [A]
+    assert env.runs(A)[0].warnings == ["coalition 1 mixes REDFOR and BLUFOR countries: [501, 601]", "a bad line"]
+
+
+def test_normal_country_codes_add_no_warning(env: Env) -> None:
+    env.add(A)
+    env.ingest()
+    assert env.runs(A)[0].warnings == ["a bad line"]
+
+
 def fast(cfg: Config) -> Config:
     return replace(cfg, ingest=replace(cfg.ingest, watch_interval_s=0.01))
 

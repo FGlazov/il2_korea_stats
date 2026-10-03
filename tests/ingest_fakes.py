@@ -12,7 +12,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import cast
 from zoneinfo import ZoneInfo
 
 from il2ks.config import AfterArchive, Config, IngestConfig, LogsConfig
@@ -25,6 +24,7 @@ from il2ks.ingest.archive import iter_source_bytes
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.runner import Pipeline
 from il2ks.ingest.timeutil import ResolvedStart
+from tests.factories import mission
 
 SERVER_UID = uuid.UUID("11111111-2222-3333-4444-555555555555")
 T0 = datetime(2026, 9, 19, 12, 0, 0, tzinfo=UTC)
@@ -76,6 +76,7 @@ class FakeSteps:
     parsed: list[tuple[str, bytes]] = field(default_factory=list[tuple[str, bytes]])  # (uid, archive content)
     saved: list[MissionMeta] = field(default_factory=list[MissionMeta])
     warnings: tuple[str, ...] = ()
+    countries: dict[int, int] = field(default_factory=lambda: {501: 1, 601: 2})  # CNTRS of the fake replay result
 
 
 def make_pipeline(steps: FakeSteps) -> Pipeline:
@@ -91,7 +92,7 @@ def make_pipeline(steps: FakeSteps) -> Pipeline:
         return iter(())
 
     def replay(events: Iterable[LogEvent]) -> MissionResult:
-        return cast(MissionResult, object())
+        return mission(countries=steps.countries)
 
     def save(result: MissionResult, meta: MissionMeta) -> Mission:
         if meta.mission_uid in steps.fail_on:

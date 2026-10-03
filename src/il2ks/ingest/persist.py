@@ -1,13 +1,14 @@
-"""MissionResult -> level-1 rows, plus the incremental level-2 update (FR-ING-5, FR-ING-6, FR-ING-9, TD-08).
+"""MissionResult -> level-1 rows, then level 2 recomputed for the affected players (FR-ING-5, 6, 9, TD-08).
 
 Order inside `save_mission` (the caller holds the transaction):
-1. upsert `Mission` by `(server_uid, mission_uid)`; if it existed, subtract its old contribution from level 2
+1. upsert `Mission` by `(server_uid, mission_uid)`; remember the players it had before
 2. register game objects and countries, upsert players
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
-4. replace PvP `Kill` rows, upsert `PlayerMission`, fill the mission counters
-5. add the new contribution to level 2
+4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
+5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`)
 """
 
+import logging
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from datetime import datetime, timedelta
 
 from django.db.models import Count
 
-from il2ks.core.catalog.loader import Catalog
+from il2ks.core.catalog.loader import Catalog, side_of_country
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.replay.result import (
     AmmoCounts,
@@ -35,12 +36,12 @@ from il2ks.db.models import (
     PlayerMission,
     PlayerSortie,
 )
-from il2ks.ingest.aggregates import add_mission, prune_player_aircraft, refresh_players, subtract_mission
-from il2ks.ingest.counters import SORTIE_COUNTERS, clean_counters, counted_sorties
+from il2ks.ingest.aggregates import recompute_players
+from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
+
+log = logging.getLogger(__name__)
 
 PAYLOAD_NAME_MAX = 128  # PlayerSortie.payload_name max_length
-REDFOR = 1
-BLUFOR = 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,11 +55,12 @@ class MissionMeta:
 
 
 def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> Mission:
-    """Upsert one mission's level-1 rows by natural key and update level-2 totals incrementally.
+    """Upsert one mission's level-1 rows by natural key, then recompute level 2 for the players involved.
 
     Must run inside the caller's `transaction.atomic()`. Safe to call again for the same mission (re-ingest,
-    reprocess): the mission's old contribution is subtracted from level 2 first, rows that no longer exist are deleted,
-    and PKs of rows that still exist are kept (FR-ING-9, FR-WEB-13).
+    reprocess): rows that no longer exist are deleted, PKs of rows that still exist are kept (FR-ING-9, FR-WEB-13), and
+    level 2 is recomputed for the mission's old players as well as the new ones, so players that dropped out are
+    corrected too.
     """
     clock = _Clock(meta.started_at)
     mission, created = Mission.objects.update_or_create(
@@ -66,7 +68,6 @@ def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> 
     )
     old_player_ids: set[int] = set()
     if not created:
-        subtract_mission(mission, prune=False)
         old_player_ids = set(PlayerSortie.objects.filter(mission=mission).values_list("player_id", flat=True))
 
     objects = register_game_objects(_object_types(result), catalog)
@@ -77,9 +78,7 @@ def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> 
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
 
-    add_mission(mission)
-    prune_player_aircraft(old_player_ids)
-    refresh_players(old_player_ids - {p.pk for p in players.values()})
+    recompute_players(old_player_ids | {p.pk for p in players.values()})
     return mission
 
 
@@ -116,11 +115,11 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
 
 
 def register_countries(countries: dict[int, int], catalog: Catalog) -> None:
-    """Create missing `Country` rows from CNTRS with the plain coalition name (doc 06). Existing rows are left alone
-    (admin-editable, FR-ADM-5)."""
+    """Create missing `Country` rows from CNTRS with the plain side name, REDFOR for 5xx and BLUFOR for 6xx, else the
+    coalition name (doc 06). Existing rows are left alone (admin-editable, FR-ADM-5)."""
     for code, coalition in sorted(countries.items()):
         Country.objects.get_or_create(
-            code=code, defaults={"coalition": coalition, "display_name": catalog.coalition_name(coalition)}
+            code=code, defaults={"coalition": coalition, "display_name": catalog.country_name(code, coalition)}
         )
 
 
@@ -172,18 +171,23 @@ def _mission_fields(result: MissionResult, meta: MissionMeta, clock: _Clock) -> 
 
 def _update_mission_counters(mission: Mission) -> None:
     """Pre-aggregated list/detail counters. Sortie and kill counts use counted (pilot) sorties like the player totals;
-    `players_total` counts every player with a sortie of any role."""
+    `players_total` counts every player with a sortie of any role. REDFOR/BLUFOR sorties are split by the sortie's
+    country code (`side_of_country`), not by coalition number."""
     counted = counted_sorties().filter(mission=mission)
-    totals = clean_counters(
-        counted.aggregate(**{k: SORTIE_COUNTERS[k] for k in ("sorties", "kills_air", "kills_ground")})
-    )
-    by_coalition = {row["coalition"]: row["n"] for row in counted.values("coalition").annotate(n=Count("pk"))}
+    names = ("sorties", "kills_air", "kills_ground", "friendly_kills")
+    totals = clean_counters(counted.aggregate(**{k: SORTIE_COUNTERS[k] for k in names}))
+    by_side: dict[str, int] = {}
+    for row in counted.values("country").annotate(n=Count("pk")):
+        side = side_of_country(row["country"])
+        if side is not None:
+            by_side[side] = by_side.get(side, 0) + row["n"]
     mission.players_total = PlayerSortie.objects.filter(mission=mission).values("player_id").distinct().count()
     mission.sorties_total = int(totals["sorties"])
-    mission.redfor_sorties = by_coalition.get(REDFOR, 0)
-    mission.blufor_sorties = by_coalition.get(BLUFOR, 0)
+    mission.redfor_sorties = by_side.get("redfor", 0)
+    mission.blufor_sorties = by_side.get("blufor", 0)
     mission.kills_air = int(totals["kills_air"])
     mission.kills_ground = int(totals["kills_ground"])
+    mission.friendly_kills = int(totals["friendly_kills"])
     mission.save(
         update_fields=[
             "players_total",
@@ -192,6 +196,7 @@ def _update_mission_counters(mission: Mission) -> None:
             "blufor_sorties",
             "kills_air",
             "kills_ground",
+            "friendly_kills",
         ]
     )
 
@@ -200,7 +205,7 @@ def _update_mission_counters(mission: Mission) -> None:
 
 
 def _upsert_players(sorties: Iterable[SortieResult], clock: _Clock) -> dict[str, Player]:
-    """Get or create a `Player` per account UUID. Identity fields are recomputed later by `refresh_players`."""
+    """Get or create a `Player` per account UUID (any role). `recompute_players` refreshes identity fields later."""
     first: dict[str, SortieResult] = {}
     for s in sorted(sorties, key=lambda s: s.spawn_tick):
         first.setdefault(s.account_uuid, s)
@@ -215,18 +220,19 @@ def _upsert_players(sorties: Iterable[SortieResult], clock: _Clock) -> dict[str,
 
 
 def _upsert_player_missions(mission: Mission, sorties: Iterable[SortieResult], players: dict[str, Player]) -> None:
-    """One row per player with a sortie of any role; counters come from counted sorties. Coalition = first sortie's."""
+    """One row per player with at least one pilot sortie (gunner-only players get none until gunner stats exist,
+    FR-WEB-14); counters come from counted sorties. Coalition = first pilot sortie's."""
     coalition: dict[int, int] = {}
     for s in sorted(sorties, key=lambda s: (s.spawn_tick, s.index)):
-        coalition.setdefault(players[s.account_uuid].pk, s.coalition)
+        if s.role in COUNTED_ROLES:
+            coalition.setdefault(players[s.account_uuid].pk, s.coalition)
     counters = {
         row["player_id"]: clean_counters(row)
         for row in counted_sorties().filter(mission=mission).values("player_id").annotate(**SORTIE_COUNTERS)
     }
     for player_id, side in coalition.items():
-        values = counters.get(player_id) or clean_counters({})
         PlayerMission.objects.update_or_create(
-            player_id=player_id, mission=mission, defaults={"coalition": side, **values}
+            player_id=player_id, mission=mission, defaults={"coalition": side, **counters[player_id]}
         )
     PlayerMission.objects.filter(mission=mission).exclude(player_id__in=list(coalition)).delete()
 
@@ -269,6 +275,9 @@ _SORTIE_FIELDS = [
     "assists",
     "takeoffs",
     "landings",
+    "friendly_kills",
+    "friendly_hits",
+    "friendly_damage",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -351,6 +360,9 @@ def _fill_sortie(
     row.assists = s.assists
     row.takeoffs = s.takeoffs
     row.landings = s.landings
+    row.friendly_kills = s.friendly_kills
+    row.friendly_hits = s.friendly_hits
+    row.friendly_damage = s.friendly_damage
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 
@@ -406,33 +418,56 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
 # --- kills ---
 
 
+def _dedupe_kills(kills: Iterable[KillResult]) -> dict[tuple[int, int], KillResult]:
+    """PvP kill results by `(victim sortie index, killer sortie index)`. If the replay ever emits two for one pair, keep
+    the `kill` over an `assist` (else the first) and log it: the natural key allows one row per pair (doc 06)."""
+    best: dict[tuple[int, int], KillResult] = {}
+    for k in kills:
+        if k.killer_sortie_index is None or k.victim_sortie_index is None:
+            continue
+        key = (k.victim_sortie_index, k.killer_sortie_index)
+        have = best.get(key)
+        if have is None:
+            best[key] = k
+            continue
+        log.warning(
+            "two kill results for victim sortie %d and killer sortie %d (%s at tick %d, %s at tick %d): keeping one",
+            *key,
+            have.credit,
+            have.tick,
+            k.credit,
+            k.tick,
+        )
+        if have.credit != "kill" and k.credit == "kill":
+            best[key] = k
+    return best
+
+
 def _replace_kills(
     mission: Mission, kills: Iterable[KillResult], clock: _Clock, sorties: dict[int, PlayerSortie]
 ) -> None:
     """`Kill` is PvP only (doc 06): rows where both killer and victim are player sorties.
 
-    Upserted by `(killer_sortie, victim_sortie, tick, credit)` so re-ingesting keeps PKs; rows not in the result are
-    deleted."""
-    existing = {
-        (k.killer_sortie_id, k.victim_sortie_id, k.tick, k.credit): k for k in Kill.objects.filter(mission=mission)
-    }
+    Upserted by `(victim_sortie, killer_sortie)` so re-ingesting keeps PKs; `credit` and `tick` are plain attributes
+    updated in place. Rows not in the result are deleted."""
+    existing = {(k.victim_sortie_id, k.killer_sortie_id): k for k in Kill.objects.filter(mission=mission)}
     changed: list[Kill] = []
     new: list[Kill] = []
-    for k in kills:
-        if k.killer_sortie_index is None or k.victim_sortie_index is None:
-            continue
-        killer, victim = sorties[k.killer_sortie_index], sorties[k.victim_sortie_index]
-        row = existing.pop((killer.pk, victim.pk, k.tick, k.credit), None)
+    for (victim_index, killer_index), k in _dedupe_kills(kills).items():
+        killer, victim = sorties[killer_index], sorties[victim_index]
+        row = existing.pop((victim.pk, killer.pk), None)
         if row is None:
-            row = Kill(mission=mission, killer_sortie=killer, victim_sortie=victim, tick=k.tick, credit=k.credit)
+            row = Kill(mission=mission, killer_sortie=killer, victim_sortie=victim)
             new.append(row)
         else:
             changed.append(row)
         pos = _pos_json(k.pos)
+        row.tick = k.tick
         row.time = clock.at(k.tick)
+        row.credit = k.credit
         row.is_friendly = k.is_friendly
         row.via = k.via
         row.pos_x, row.pos_y, row.pos_z = (None, None, None) if pos is None else pos
     Kill.objects.filter(pk__in=[k.pk for k in existing.values()]).delete()
-    Kill.objects.bulk_update(changed, ["time", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
+    Kill.objects.bulk_update(changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
     Kill.objects.bulk_create(new)

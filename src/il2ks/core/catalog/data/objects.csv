@@ -454,38 +454,38 @@ FTANK_927L_USA_F86R,F-86 drop tank 927 L (right),ordnance,false
 NAPALM_389kg_USA_110gal,Napalm tank 110 gal,ordnance,false
 RKT_127mm_USA_HVAR,"HVAR 5"" rocket",ordnance,false
 RKT_127mm_USA_HVAR_SAP,"HVAR 5"" rocket (SAP)",ordnance,false
-B29_CrewGroup1,B-29 crew,unknown,false
-B29_CrewGroup2,B-29 crew,unknown,false
-BotBoatSwain,Boatswain,unknown,false
-BotDriver1,Driver,unknown,false
-BotField_Officer_USA1950,Officer (US),unknown,false
-BotField_Officer_USSR1950,Officer (Soviet),unknown,false
-BotField_Seaman_USA1950,Seaman (US),unknown,false
-BotField_Soldier_DPRK1950,Soldier (North Korean),unknown,false
-BotField_Soldier_USA1950,Soldier (US),unknown,false
-BotField_Soldier_USSR1950,Soldier (Soviet),unknown,false
-BotField_Tankman_DPRK1950,Tank crewman (North Korean),unknown,false
-BotField_Tankman_USA1950,Tank crewman (US),unknown,false
-BotGunner,Gunner,unknown,false
-BotPilotSimpleMFPlane,Pilot,unknown,false
-BotPlaneCrew_USAF1950,Aircrew (USAF),unknown,false
-BotPlaneGunner_USAF1950,Air gunner (USAF),unknown,false
-BotPlaneGunner_USSR1950,Air gunner (Soviet),unknown,false
-BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),unknown,false
-BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),unknown,false
-BotPlanePilot_USAF1950com,Pilot (USAF),unknown,false
-BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)",unknown,false
-BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)",unknown,false
-BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)",unknown,false
-BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)",unknown,false
-BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)",unknown,false
-BotRangefinder,Rangefinder operator,unknown,false
-CParachute,Parachute,unknown,false
-ESeat_F-80C-10,F-80C-10 ejection seat,unknown,false
-ESeat_F-84E,F-84E ejection seat,unknown,false
-ESeat_F-86A-5,F-86A-5 ejection seat,unknown,false
-ESeat_KK1,MiG-15bis ejection seat,unknown,false
-ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),unknown,false
-Spotter,Spotter,unknown,false
-VehicleRangefinderTurret,Vehicle rangefinder turret,unknown,false
-VehicleTurret,Vehicle turret,unknown,false
+B29_CrewGroup1,B-29 crew,crew,false
+B29_CrewGroup2,B-29 crew,crew,false
+BotBoatSwain,Boatswain,crew,false
+BotDriver1,Driver,crew,false
+BotField_Officer_USA1950,Officer (US),crew,false
+BotField_Officer_USSR1950,Officer (Soviet),crew,false
+BotField_Seaman_USA1950,Seaman (US),crew,false
+BotField_Soldier_DPRK1950,Soldier (North Korean),crew,false
+BotField_Soldier_USA1950,Soldier (US),crew,false
+BotField_Soldier_USSR1950,Soldier (Soviet),crew,false
+BotField_Tankman_DPRK1950,Tank crewman (North Korean),crew,false
+BotField_Tankman_USA1950,Tank crewman (US),crew,false
+BotGunner,Gunner,crew,false
+BotPilotSimpleMFPlane,Pilot,crew,false
+BotPlaneCrew_USAF1950,Aircrew (USAF),crew,false
+BotPlaneGunner_USAF1950,Air gunner (USAF),crew,false
+BotPlaneGunner_USSR1950,Air gunner (Soviet),crew,false
+BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),crew,false
+BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),crew,false
+BotPlanePilot_USAF1950com,Pilot (USAF),crew,false
+BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)",crew,false
+BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)",crew,false
+BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)",crew,false
+BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)",crew,false
+BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)",crew,false
+BotRangefinder,Rangefinder operator,crew,false
+CParachute,Parachute,equipment,false
+ESeat_F-80C-10,F-80C-10 ejection seat,equipment,false
+ESeat_F-84E,F-84E ejection seat,equipment,false
+ESeat_F-86A-5,F-86A-5 ejection seat,equipment,false
+ESeat_KK1,MiG-15bis ejection seat,equipment,false
+ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),equipment,false
+Spotter,Spotter,equipment,false
+VehicleRangefinderTurret,Vehicle rangefinder turret,equipment,false
+VehicleTurret,Vehicle turret,equipment,false

@@ -99,6 +99,10 @@ def sortie(
     flight_time_s: float = 600.0,
     damage_taken: float = 0.0,
     payload_id: int = 1,
+    country: int | None = None,
+    friendly_kills: int = 0,
+    friendly_hits: int = 0,
+    friendly_damage: float = 0.0,
 ) -> SortieResult:
     """One sortie by player number `player` (account `account(player)`)."""
     spawn = 1000 * (index + 1) if spawn_tick is None else spawn_tick
@@ -112,7 +116,7 @@ def sortie(
         aircraft_type=aircraft_type,
         aircraft_id=ObjectId(10_000 + index),
         bot_id=ObjectId(20_000 + index),
-        country=501 if coalition == 1 else 601,
+        country=country if country is not None else (501 if coalition == 1 else 601),
         coalition=coalition,
         role=role,
         parent_sortie_index=None,
@@ -147,6 +151,9 @@ def sortie(
         assists=assists,
         ammo_loaded=AmmoCounts(bullets=400),
         ammo_left=AmmoCounts(bullets=200),
+        friendly_kills=friendly_kills,
+        friendly_hits=friendly_hits,
+        friendly_damage=friendly_damage,
     )
 
 
@@ -184,6 +191,7 @@ def mission(
     *,
     end_tick: int | None = None,
     extra_types: frozenset[str] = frozenset(),
+    countries: dict[int, int] | None = None,
 ) -> MissionResult:
     """A mission holding `sorties` (their `index` must match their position) and `kills`."""
     assert [s.index for s in sorties] == list(range(len(sorties))), "sortie.index must equal its position"
@@ -196,7 +204,7 @@ def mission(
             game_time="13:0:0",
             game_type=2,
             settings="0010001",
-            countries={501: 1, 601: 2},
+            countries={501: 1, 601: 2} if countries is None else countries,
             log_version=None,
             end_tick=end,
             last_tick=end,

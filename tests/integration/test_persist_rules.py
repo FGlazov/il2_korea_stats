@@ -1,0 +1,184 @@
+"""`save_mission` rules from the 2026-10 maintainer round: kill natural key (D2), PlayerMission for pilots only (D3),
+sides from country codes (D5), crew/equipment classes (D6), friendly fire counters (D7), PK-stable level 2 (D1)."""
+
+from dataclasses import replace
+from datetime import timedelta
+
+import pytest
+from django.db import IntegrityError, transaction
+
+from il2ks.core.replay.result import KillResult, MissionResult
+from il2ks.db.models import Country, GameObject, Kill, Mission, Player, PlayerAircraft, PlayerMission, PlayerSortie
+from il2ks.ingest import persist
+from tests.factories import STARTED_AT, FakeCatalog, account, kill, mission, save, sortie
+
+pytestmark = pytest.mark.django_db
+
+
+# --- kills: natural key (victim_sortie, killer_sortie) ---
+
+
+def _duel(*kills: KillResult) -> MissionResult:
+    return mission((sortie(0, 1), sortie(1, 2, aircraft_type="F-86A-5", coalition=2)), kills)
+
+
+def test_kill_is_upserted_by_victim_and_killer_keeping_its_pk() -> None:
+    """D2: credit and tick are plain attributes of the one row per (victim sortie, killer sortie)."""
+    save(_duel(kill(20_000, killer=0, victim=1, credit="assist")))
+    pk = Kill.objects.get().pk
+
+    save(_duel(kill(21_000, killer=0, victim=1, credit="kill")))
+
+    k = Kill.objects.get()
+    assert (k.pk, k.credit, k.tick) == (pk, "kill", 21_000)
+    assert k.time == STARTED_AT + timedelta(seconds=420)
+
+
+def test_two_results_for_one_pair_keep_the_kill_and_log_it(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level("WARNING", logger="il2ks.ingest.persist")
+    save(_duel(kill(20_000, killer=0, victim=1, credit="assist"), kill(21_000, killer=0, victim=1, credit="kill")))
+
+    k = Kill.objects.get()
+    assert (k.credit, k.tick) == ("kill", 21_000)
+    assert "two kill results" in caplog.text
+
+
+def test_two_results_for_one_pair_keep_the_first_when_credits_match() -> None:
+    save(_duel(kill(20_000, killer=0, victim=1), kill(21_000, killer=0, victim=1)))
+
+    assert Kill.objects.get().tick == 20_000
+
+
+def test_kill_constraint_allows_one_row_per_victim_and_killer() -> None:
+    save(_duel(kill(20_000, killer=0, victim=1)))
+    k = Kill.objects.get()
+    k.pk = None
+    k.tick += 100
+    k.credit = "assist"
+    with pytest.raises(IntegrityError), transaction.atomic():
+        k.save()
+
+
+# --- PlayerMission only for pilots ---
+
+
+def test_player_mission_only_for_players_with_a_pilot_sortie() -> None:
+    """D3: gunner-only players get no PlayerMission, but still count in `players_total` and are never deleted."""
+    save(
+        mission(
+            (
+                sortie(0, 1),
+                sortie(1, 2, aircraft_type="Turret_IL10", role="gunner", coalition=2),
+                sortie(2, 3, aircraft_type="Turret_IL10", role="gunner"),
+                sortie(3, 3, coalition=2),  # player 3 is a gunner first, then a pilot
+            )
+        )
+    )
+
+    assert set(PlayerMission.objects.values_list("player__account_uuid", flat=True)) == {account(1), account(3)}
+    assert PlayerMission.objects.get(player__account_uuid=account(3)).coalition == 2  # first pilot sortie's
+    assert Mission.objects.get().players_total == 3
+    assert Player.objects.count() == 3
+
+
+def test_player_mission_is_removed_when_a_player_becomes_gunner_only() -> None:
+    first = mission((sortie(0, 1), sortie(1, 2)))
+    save(first)
+    assert PlayerMission.objects.filter(player__account_uuid=account(2)).exists()
+
+    save(mission((first.sorties[0], replace(first.sorties[1], role="gunner", aircraft_type="Turret_IL10"))))
+
+    assert set(PlayerMission.objects.values_list("player__account_uuid", flat=True)) == {account(1)}
+    p2 = Player.objects.get(account_uuid=account(2))
+    assert (p2.sorties, p2.flight_time_s) == (0, 0.0)
+
+
+# --- sides from country codes ---
+
+
+def test_mission_sides_come_from_the_country_code_not_the_coalition_number() -> None:
+    """D5: coalition numbers are swapped here (501 is coalition 2), the sides still follow 5xx/6xx."""
+    save(
+        mission(
+            (
+                sortie(0, 1, coalition=2, country=501),
+                sortie(1, 2, coalition=2, country=502),
+                sortie(2, 3, coalition=1, country=601),
+                sortie(3, 4, coalition=1, country=999),  # no side: counted in sorties_total only
+                sortie(4, 5, aircraft_type="Turret_IL10", role="gunner", country=501),  # gunners aren't counted
+            ),
+            countries={501: 2, 502: 2, 601: 1, 999: 1},
+        )
+    )
+
+    m = Mission.objects.get()
+    assert (m.sorties_total, m.redfor_sorties, m.blufor_sorties) == (4, 2, 1)
+
+
+def test_country_rows_are_named_by_side_then_by_coalition() -> None:
+    save(mission((sortie(0, 1),), countries={502: 2, 602: 1, 700: 2, 800: 0}))
+
+    names = dict(Country.objects.values_list("code", "display_name"))
+    assert names == {502: "REDFOR", 602: "BLUFOR", 700: "BLUFOR", 800: "Neutral"}
+
+
+# --- friendly fire counters ---
+
+
+def test_friendly_fire_flows_into_every_counter_table() -> None:
+    """D7: friendly_* are counters like kills: sortie -> PlayerMission, Player, PlayerAircraft (pilots) and Mission."""
+    save(
+        mission(
+            (
+                sortie(0, 1, friendly_kills=1, friendly_hits=5, friendly_damage=0.75),
+                sortie(1, 1, aircraft_type="Il-10", friendly_hits=2, friendly_damage=0.25),
+                sortie(2, 2, friendly_kills=2, coalition=2),
+                sortie(3, 3, aircraft_type="Turret_IL10", role="gunner", friendly_hits=40, friendly_damage=9.0),
+            )
+        )
+    )
+
+    s = PlayerSortie.objects.get(account_uuid=account(1), aircraft__log_name="MiG-15bis")
+    assert (s.friendly_kills, s.friendly_hits, s.friendly_damage) == (1, 5, 0.75)
+    pm = PlayerMission.objects.get(player__account_uuid=account(1))
+    assert (pm.friendly_kills, pm.friendly_hits, pm.friendly_damage) == (1, 7, pytest.approx(1.0))
+    p1 = Player.objects.get(account_uuid=account(1))
+    assert (p1.friendly_kills, p1.friendly_hits, p1.friendly_damage) == (1, 7, pytest.approx(1.0))
+    mig = PlayerAircraft.objects.get(player=p1, aircraft__log_name="MiG-15bis")
+    assert (mig.friendly_kills, mig.friendly_hits, mig.friendly_damage) == (1, 5, 0.75)
+    assert Mission.objects.get().friendly_kills == 3  # the gunner's numbers feed nothing (FR-WEB-14)
+    assert Player.objects.get(account_uuid=account(3)).friendly_hits == 0
+
+
+# --- object classes ---
+
+
+def test_crew_and_equipment_classes_are_stored() -> None:
+    """D6: `crew` and `equipment` are valid `GameObject.cls` values (DB constraint) and follow the catalog."""
+    catalog = FakeCatalog({"BotPlanePilot_X": ("Pilot", "crew"), "CParachute": ("Parachute", "equipment")})
+
+    persist.register_game_objects(["BotPlanePilot_X", "CParachute"], catalog)
+
+    assert dict(GameObject.objects.values_list("log_name", "cls")) == {
+        "BotPlanePilot_X": "crew",
+        "CParachute": "equipment",
+    }
+
+
+# --- level 2 rows keep their PKs on re-ingest ---
+
+
+def test_reingest_keeps_player_aircraft_pks() -> None:
+    first = mission((sortie(0, 1), sortie(1, 1, aircraft_type="Il-10"), sortie(2, 2)))
+    save(first)
+    pks = {(r.player_id, r.aircraft_id): r.pk for r in PlayerAircraft.objects.all()}
+
+    # Player 1's Il-10 sortie goes away, the MiG sortie changes: that row is updated in place, never recreated.
+    save(mission((replace(first.sorties[0], kills_air=3), replace(first.sorties[2], index=1))))
+
+    after = {(r.player_id, r.aircraft_id): r for r in PlayerAircraft.objects.all()}
+    assert set(after) < set(pks)
+    assert len(after) == 2
+    for key, row in after.items():
+        assert row.pk == pks[key]
+    assert PlayerAircraft.objects.get(player__account_uuid=account(1)).kills_air == 3

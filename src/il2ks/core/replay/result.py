@@ -124,6 +124,10 @@ class SortieResult:
     ammo_hits: tuple[AmmoHits, ...] = ()
     damage: tuple[DamageExchange, ...] = ()
     timeline: tuple[TimelineEntry, ...] = ()
+    # Friendly fire, tracked apart from kills_*/assists (same non-zero coalition, never the sortie's own objects)
+    friendly_kills: int = 0  # `kill` credits (not assists) on friendly objects, from KillResult.is_friendly
+    friendly_hits: int = 0  # non-explosion hit lines this sortie put on friendly objects
+    friendly_damage: float = 0.0  # sum of the damage this sortie did to friendly objects
 
 
 @dataclass(frozen=True, slots=True)

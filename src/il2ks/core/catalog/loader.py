@@ -29,9 +29,12 @@ type ObjectClass = Literal[
     "ship",
     "static",
     "ordnance",
+    "crew",
+    "equipment",
     "unknown",
 ]
-"""Same values as `il2ks.db.models.ObjectClass`."""
+"""Same values as `il2ks.db.models.ObjectClass`. `crew` = bots and crew groups, `equipment` = parachutes, ejection
+seats, spotters and vehicle sub-objects (turrets, rangefinders)."""
 
 OBJECT_CLASSES: frozenset[ObjectClass] = frozenset(
     {
@@ -46,6 +49,8 @@ OBJECT_CLASSES: frozenset[ObjectClass] = frozenset(
         "ship",
         "static",
         "ordnance",
+        "crew",
+        "equipment",
         "unknown",
     }
 )
@@ -54,6 +59,13 @@ AIR_CLASSES: frozenset[ObjectClass] = frozenset({"fighter", "attacker", "bomber"
 COALITION_NAMES: Mapping[int, str] = {1: "REDFOR", 2: "BLUFOR"}
 """Doc 06: every country of a coalition displays as the plain coalition name."""
 NEUTRAL = "Neutral"
+
+type Side = Literal["redfor", "blufor"]
+"""The side a country is shown as: from the country code, not from the coalition number (doc 06)."""
+
+SIDE_NAMES: Mapping[Side, str] = {"redfor": "REDFOR", "blufor": "BLUFOR"}
+_SIDE_BY_HUNDREDS: Mapping[int, Side] = {5: "redfor", 6: "blufor"}
+_CONVENTIONAL_SIDE_OF_COALITION: Mapping[int, Side] = {1: "redfor", 2: "blufor"}
 
 # Static block objects carry their block group and index: `GAZ_63[64606,0]`, `Industrial storage tank D[-1,-1]`.
 _BLOCK_SUFFIX = re.compile(r"\[-?\d+,-?\d+\]$")
@@ -97,6 +109,46 @@ def canonical_type_name(object_type: str) -> str:
 
 def _key(name: str) -> str:
     return canonical_type_name(name).casefold()
+
+
+def side_of_country(code: int) -> Side | None:
+    """REDFOR/BLUFOR from the hundreds digit of a country code: 5xx = REDFOR, 6xx = BLUFOR, anything else none (doc 06).
+
+    The one place that knows this mapping. Coalition numbers (CNTRS) still decide friend or foe, not this."""
+    return _SIDE_BY_HUNDREDS.get(code // 100)
+
+
+def country_side_warnings(countries: Mapping[int, int]) -> list[str]:
+    """Where a mission's CNTRS (country -> coalition) disagrees with `side_of_country` in a way that matters.
+
+    Warns when one coalition holds both 5xx and 6xx countries (friend/foe and the shown side would contradict), when a
+    coalition's side isn't the conventional one (coalition 1 = REDFOR, 2 = BLUFOR: winner and side shown would swap),
+    and when a country in coalition 1 or 2 has no side (its sorties would count for neither). Coalition 0 is fine.
+    """
+    warnings: list[str] = []
+    by_coalition: dict[int, list[int]] = {}
+    for code, coalition in sorted(countries.items()):
+        by_coalition.setdefault(coalition, []).append(code)
+    for coalition, codes in sorted(by_coalition.items()):
+        if coalition == 0:
+            continue
+        sides = {side_of_country(c) for c in codes}
+        named = sorted(s for s in sides if s is not None)
+        if len(named) > 1:
+            warnings.append(f"coalition {coalition} mixes REDFOR and BLUFOR countries: {codes}")
+        elif (
+            named
+            and coalition in _CONVENTIONAL_SIDE_OF_COALITION
+            and named[0] != _CONVENTIONAL_SIDE_OF_COALITION[coalition]
+        ):
+            warnings.append(
+                f"coalition {coalition} holds {named[0].upper()} countries {codes}, expected "
+                f"{_CONVENTIONAL_SIDE_OF_COALITION[coalition].upper()}"
+            )
+        if None in sides:
+            nameless = [c for c in codes if side_of_country(c) is None]
+            warnings.append(f"countries {nameless} in coalition {coalition} are neither 5xx nor 6xx: no side")
+    return warnings
 
 
 def is_object_class(value: str) -> TypeIs[ObjectClass]:
@@ -153,6 +205,11 @@ class Catalog:
     def coalition_name(self, coalition: int) -> str:
         """1 -> "REDFOR", 2 -> "BLUFOR", others -> "Neutral" (doc 06)."""
         return COALITION_NAMES.get(coalition, NEUTRAL)
+
+    def country_name(self, code: int, coalition: int) -> str:
+        """Display name of a country: its side's plain name (REDFOR/BLUFOR), else the coalition's (doc 06)."""
+        side = side_of_country(code)
+        return SIDE_NAMES[side] if side is not None else self.coalition_name(coalition)
 
     def objects(self) -> tuple[ObjectInfo, ...]:
         """Every known object type, in data order (for seeding `GameObject` defaults, TD-24)."""
