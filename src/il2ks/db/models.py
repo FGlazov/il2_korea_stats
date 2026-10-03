@@ -90,6 +90,9 @@ class Country(models.Model):
     coalition = models.IntegerField()
     display_name = models.CharField(max_length=64)
 
+    class Meta:
+        verbose_name_plural = "countries"
+
     def __str__(self) -> str:
         return self.display_name
 

@@ -66,7 +66,7 @@
 
   <div class="ingest-section module">
     <h2>{% translate "Given up" %} ({{ overview.gave_up|length }})</h2>
-    <p class="note">{% translate "No more automatic retries. They are retried when their files or the il2ks version change, or run `il2ks reprocess --mission <uid>` after fixing the cause." %}</p>
+    <p class="note">{% translate "No more automatic retries. They are retried when their files or the il2ks version change, or run `il2ks reprocess --mission UID` after fixing the cause." %}</p>
     {% if overview.gave_up %}
     <table>
       <thead><tr><th>{% translate "Mission" %}</th><th>{% translate "Attempts" %}</th><th>{% translate "Failed" %}</th><th>{% translate "Error" %}</th></tr></thead>

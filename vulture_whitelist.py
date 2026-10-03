@@ -8,6 +8,7 @@ anywhere and not type-checked: vulture only counts the names. `_` is a stand-in 
 DbConfig  # INSTALLED_APPS entry (il2ks.db.apps)
 WebConfig  # INSTALLED_APPS entry (il2ks.web.apps)
 _.default_auto_field  # Django AppConfig option
+_.verbose_name  # Django AppConfig option (db.apps)
 urlpatterns  # Django URLconf (il2ks.urls, il2ks.web.urls)
 _.app_name  # Django URLconf namespace
 application  # WSGI entry point (il2ks.wsgi, used by granian/gunicorn)
