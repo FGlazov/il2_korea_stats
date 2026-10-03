@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v3 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v5 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -252,7 +252,7 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
   font-size: 0.72rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--il2-muted);
   white-space: nowrap; text-align: left;
 }
-.data-table tbody tr:last-child td { border-bottom: 0; }
+.data-table tbody tr:last-child td, .data-table tbody tr:last-child th { border-bottom: 0; }
 .data-table tbody tr:nth-child(even) td, .data-table tbody tr:nth-child(even) th { background: color-mix(in srgb, var(--il2-surface-2) 55%, transparent); }
 .data-table tbody tr:hover td, .data-table tbody tr:hover th { background: var(--il2-surface-hover); }
 .data-table tbody th { font-weight: 600; text-align: left; }
@@ -429,3 +429,17 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
   .site-search { margin-inline-start: auto; }
   .site-search input[type="search"] { width: 10rem; }
 }
+
+/* Whole-row link (FR-WEB-24): put class="stretched-link" on the row's main <a>. Its ::after covers the row, so a click
+   almost anywhere opens it, while ctrl/middle-click, the status bar and keyboard still treat it as a real link. Other
+   links in the row stay clickable above it. The row becomes the containing block via :has() (no JS, no row class). */
+.data-table tbody tr:has(.stretched-link) { position: relative; cursor: pointer; }
+.stretched-link::after { content: ""; position: absolute; inset: 0; z-index: 0; }
+.data-table tbody tr:has(.stretched-link) a:not(.stretched-link) { position: relative; z-index: 1; }
+.data-table tbody tr:has(.stretched-link:focus-visible) > * { background: var(--il2-surface-hover); }
+.stretched-link:focus-visible { outline: none; }
+.stretched-link:focus-visible::after { outline: 2px solid var(--il2-accent); outline-offset: -2px; }
+
+/* Flavor text (FR-WEB-23): an italic aside, deliberately quiet. */
+.flavor { font-style: italic; color: var(--il2-muted); }
+p.flavor--sortie { margin: 0 0 1rem; }

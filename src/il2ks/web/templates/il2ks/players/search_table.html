@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/search_table.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/search_table.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)).
   A row whose `matched_name` is set was found by an old nickname and says "also known as".
@@ -19,7 +19,7 @@
       {% for hit in page_obj.object_list %}
         <tr>
           <td>
-            <a href="{% url 'web:player-detail' hit.player.pk %}">{{ hit.player.current_name }}</a>
+            <a class="stretched-link" href="{% url 'web:player-detail' hit.player.pk %}">{{ hit.player.current_name }}</a>
             {% if hit.matched_name %}<small class="player-table__alias">{% blocktranslate with name=hit.matched_name %}also known as {{ name }}{% endblocktranslate %}</small>{% endif %}
           </td>
           <td class="num">{{ hit.player.sorties|num }}</td>

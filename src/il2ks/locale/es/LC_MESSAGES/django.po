@@ -140,6 +140,12 @@ msgstr ""
 msgid "A clean sheet so far. The runway thanks you."
 msgstr ""
 
+msgid "A creative arrival. The airframe will be remembered fondly."
+msgstr ""
+
+msgid "A quiet one. Everybody got home with their ammunition."
+msgstr ""
+
 msgid "A reprocess request is already waiting or running."
 msgstr ""
 
@@ -150,6 +156,9 @@ msgid "AI aircraft"
 msgstr ""
 
 msgid "AI gunner"
+msgstr ""
+
+msgid "Ace-in-a-day territory. Scoreboard salutes."
 msgstr ""
 
 msgid "Air"
@@ -271,6 +280,9 @@ msgstr ""
 msgid "Attempts"
 msgstr "Intentos"
 
+msgid "Aviation's first rule: the airfield is also part of the mission."
+msgstr ""
+
 msgid "BLUFOR won"
 msgstr ""
 
@@ -281,6 +293,9 @@ msgstr "Volver a la página de inicio"
 # llm-draft
 msgid "Bailed out"
 msgstr "Saltó en paracaídas"
+
+msgid "Bailed out and taken in. Hopefully the food is decent."
+msgstr ""
 
 msgid "Bailouts"
 msgstr ""
@@ -303,6 +318,9 @@ msgid "Browse missions"
 msgstr "Ver misiones"
 
 msgid "Buildings"
+msgstr ""
+
+msgid "Busy sortie. The enemy count went down noticeably."
 msgstr ""
 
 msgid "By aircraft"
@@ -436,6 +454,9 @@ msgstr ""
 msgid "Error"
 msgstr "Error"
 
+msgid "Even the best squadrons have a story about the taxiway."
+msgstr ""
+
 msgid "Event"
 msgstr ""
 
@@ -464,6 +485,9 @@ msgstr "Falló"
 msgid "Failed, waiting for a retry"
 msgstr "Falló, esperando un reintento"
 
+msgid "Fair winds, full magazines and the numbers to prove it."
+msgstr ""
+
 # llm-draft
 msgid "Find a player"
 msgstr "Buscar un jugador"
@@ -487,6 +511,9 @@ msgstr ""
 msgid "Friendly fire"
 msgstr ""
 
+msgid "Friendly fire happens to the best squadrons. The debrief will be lively."
+msgstr ""
+
 msgid "Friendly hits"
 msgstr ""
 
@@ -501,6 +528,9 @@ msgid "Given up"
 msgstr "Descartadas"
 
 msgid "Ground"
+msgstr ""
+
+msgid "Ground fire: the one opponent that never needs fuel."
 msgstr ""
 
 msgid "Ground kill"
@@ -591,6 +621,9 @@ msgid ""
 "are ingested again once it is over."
 msgstr ""
 
+msgid "It still flew, mostly out of politeness. Well landed."
+msgstr ""
+
 msgid "K/D"
 msgstr ""
 
@@ -631,6 +664,9 @@ msgstr "Tipo"
 # llm-draft
 msgid "Landed"
 msgstr "Aterrizó"
+
+msgid "Landed by parachute, collected by the other side. The war goes on without this pilot, for now."
+msgstr ""
 
 msgid "Landings"
 msgstr ""
@@ -747,6 +783,12 @@ msgstr "Misiones"
 msgid "Missions stored"
 msgstr "Misiones guardadas"
 
+msgid "More hole than airplane, and still back on the ground. Hats off."
+msgstr ""
+
+msgid "Most dangerous part of the mission: the first hundred metres."
+msgstr ""
+
 # llm-draft
 msgid "Name"
 msgstr "Nombre"
@@ -762,6 +804,9 @@ msgid "Neutral"
 msgstr "Neutral"
 
 msgid "Never"
+msgstr ""
+
+msgid "Never left the ground, still earned a story."
 msgstr ""
 
 # llm-draft
@@ -782,6 +827,9 @@ msgid "No attacker is credited: the aircraft was lost by its own doing (terrain,
 msgstr ""
 
 msgid "No ground kills."
+msgstr ""
+
+msgid "No kills this time. Somebody had to keep the airspace tidy."
 msgstr ""
 
 msgid "No landing"
@@ -836,12 +884,21 @@ msgstr ""
 msgid "Nobody flew for this side."
 msgstr ""
 
+msgid "Nobody is judging. The wreckage is merely taking notes."
+msgstr ""
+
 msgid "Nobody scored a kill in this mission."
 msgstr ""
 
 # llm-draft
 msgid "None."
 msgstr "Ninguno."
+
+msgid "Not a landing, not a crash: a firm disagreement with the ground."
+msgstr ""
+
+msgid "Not one incident on the ramp. Textbook."
+msgstr ""
 
 # llm-draft
 msgid "Not taken off"
@@ -856,6 +913,9 @@ msgid "Nothing ingested yet."
 msgstr "Todavía no se ha ingerido nada."
 
 msgid "Nothing lost"
+msgstr ""
+
+msgid "Nothing to see here, which is the best thing to see."
 msgstr ""
 
 # llm-draft
@@ -1053,6 +1113,9 @@ msgstr ""
 "Aparecen en los registros pero faltan en el catálogo. Dales un nombre aquí e infórmanos para que el catálogo pueda "
 "actualizarse."
 
+msgid "Several kills in one flight. Time to buy the squadron a round."
+msgstr ""
+
 msgid "Share"
 msgstr ""
 
@@ -1107,6 +1170,9 @@ msgstr "Administración del sitio"
 msgid "Skip to content"
 msgstr "Saltar al contenido"
 
+msgid "Someone had a very good night at the office."
+msgstr ""
+
 # llm-draft
 msgid "Something went wrong"
 msgstr "Algo salió mal"
@@ -1142,6 +1208,9 @@ msgid "Spawn"
 msgstr ""
 
 msgid "Spawned"
+msgstr ""
+
+msgid "Spotless. The ground crew is almost suspicious."
 msgstr ""
 
 msgid "Start a new tour now"
@@ -1205,6 +1274,9 @@ msgid ""
 "and kept falling afterwards. It may have broken up from overstress; this is a guess from the log."
 msgstr ""
 
+msgid "The crew chief will have opinions about this one."
+msgstr ""
+
 # llm-draft
 msgid "The file is empty."
 msgstr "El archivo está vacío."
@@ -1217,6 +1289,18 @@ msgstr "El archivo supera los %(mb)d MB."
 # llm-draft
 msgid "The file is larger than 2 MB."
 msgstr "El archivo supera los 2 MB."
+
+msgid "The flak had the final say."
+msgstr ""
+
+msgid "The gear stayed up and so did the pilot's spirits."
+msgstr ""
+
+msgid "The ground crew keeps a file on these. It is a thin, well-thumbed file."
+msgstr ""
+
+msgid "The gun camera footage on this one would be a good watch."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -1256,6 +1340,18 @@ msgstr "El servidor encontró un error al generar esta página. Inténtalo de nu
 msgid "The server stopped before the mission ended; the numbers may be partial."
 msgstr ""
 
+msgid "The silk opened, the welcoming committee was less friendly."
+msgstr ""
+
+msgid "The sky is crowded and the markings are small. It happens."
+msgstr ""
+
+msgid "The sky was empty of drama. The tea stayed hot."
+msgstr ""
+
+msgid "The war was waiting. The taxiway had other ideas."
+msgstr ""
+
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaron sin un evento de fin de misión; conviene revisarlas por si el servidor se cayó a mitad de la misión."
@@ -1291,6 +1387,9 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Those little black clouds were not decorative."
+msgstr ""
+
 msgid "Time"
 msgstr ""
 
@@ -1301,6 +1400,9 @@ msgid "Timeline"
 msgstr ""
 
 msgid "Took off"
+msgstr ""
+
+msgid "Top of the board. The rest of the sky took notes."
 msgstr ""
 
 msgid "Top pilots by kills"
@@ -1414,6 +1516,9 @@ msgstr ""
 # llm-draft
 msgid "Wounded"
 msgstr "Herido"
+
+msgid "Wrong target, right enthusiasm. The sky is crowded, mistakes happen."
+msgstr ""
 
 msgid "Yes"
 msgstr ""

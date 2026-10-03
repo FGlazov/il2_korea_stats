@@ -1,5 +1,6 @@
-{# il2ks-template: templates/il2ks/missions/_player.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/_player.html v2 - copy this line along when you override #}
 {% load i18n %}{% comment %}
   missions/_player.html: a pilot's name, linked to the player page. A hidden player is anonymised and not linked (FR-ADM-3).
-  Context: player (Player), name (the name to show, e.g. the name at the time of the sortie).
-{% endcomment %}{% if player.is_hidden %}<span class="muted">{% translate "Hidden player" %}</span>{% else %}<a href="{% url 'web:player-detail' player.pk %}">{{ name }}</a>{% endif %}
+  Context: player (Player), name (the name to show, e.g. the name at the time of the sortie),
+  stretch (optional: make this the row's whole-row link, see "stretched-link" in the style guide).
+{% endcomment %}{% if player.is_hidden %}<span class="muted">{% translate "Hidden player" %}</span>{% else %}<a{% if stretch %} class="stretched-link"{% endif %} href="{% url 'web:player-detail' player.pk %}">{{ name }}</a>{% endif %}

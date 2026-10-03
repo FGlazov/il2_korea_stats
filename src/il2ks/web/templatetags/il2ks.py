@@ -8,7 +8,7 @@ Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour,
 clock_since; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select.
+pagination, filter_select, filter_text, tour_select, flavor, sortie_flavor (flavor text, FR-WEB-23).
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -27,8 +27,9 @@ from django.utils.http import urlencode
 from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
 
-from il2ks.db.models import Tour
+from il2ks.db.models import PlayerSortie, Tour
 from il2ks.web import display, icons, object_names
+from il2ks.web import flavor as flavor_text
 from il2ks.web.display import SortFirst, Tone
 
 register = template.Library()
@@ -259,6 +260,19 @@ def aircraft_icon(aircraft: object, css_class: str = "") -> SafeString:
 def kv_list(items: Iterable[tuple[object, object]]) -> dict[str, object]:
     """{% kv_list rows %}: a summary list from (label, value) pairs; values may be markup (badges)."""
     return {"items": list(items)}
+
+
+@register.simple_tag
+def flavor(spot: str, seed: object) -> str:
+    """`{% flavor "spot" seed %}`: a stable, translated one-liner for a highlight spot (il2ks.web.flavor)."""
+    return str(flavor_text.pick(spot, seed))
+
+
+@register.simple_tag
+def sortie_flavor(sortie: PlayerSortie) -> str:
+    """`{% sortie_flavor sortie as quip %}`: the sortie's line, or '' for an ordinary sortie."""
+    spot = flavor_text.sortie_spot(sortie)
+    return "" if spot is None else flavor(spot, sortie.pk)
 
 
 @register.inclusion_tag(COMPONENTS + "empty_row.html")
