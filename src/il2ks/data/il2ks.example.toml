@@ -75,8 +75,11 @@
 #structural_fall_s = 1.0
 # An aircraft or pilot destroyed up to this many seconds after the sortie's end still counts for that sortie (the
 # shot-down shape logs the sortie end before the kill), or at any time if the pilot left an airborne aircraft
-# (FR-ING-22).
-#post_end_destroy_window_s = 5.0
+# (FR-ING-22). Applies to sorties that ended airborne.
+#post_end_destroy_window_s = 300.0
+# The same window for sorties whose aircraft was on the ground at the sortie's end (a parked aircraft destroyed later
+# is not the pilot's loss).
+#post_end_destroy_window_ground_s = 5.0
 # Kill credit (TD-21): every damager above this fraction of the victim's total damage gets an assist (0.01 = 1%).
 #assist_min_damage = 0.01
 # Resupply (FR-ING-24): the server may let a player rearm after landing and take off again in the same sortie, and no

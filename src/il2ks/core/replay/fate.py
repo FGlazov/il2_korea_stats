@@ -9,7 +9,7 @@ from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import credit_kill, damage_records, hit_records, unit_objects
 from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, distance
-from il2ks.core.replay.result import PilotFate, PilotFateSource
+from il2ks.core.replay.result import LossCause, PilotFate, PilotFateSource
 
 
 def ticks(seconds: float) -> int:
@@ -43,6 +43,17 @@ def disconnect_tick_of(sortie: SortieState, facts: MissionFacts, rules: ReplayRu
     return min(near, key=lambda t: abs(t - end)) if near else None
 
 
+def post_end_window_ticks(sortie: SortieState, rules: ReplayRules) -> int:
+    """How long after the sortie end a destruction still counts (OQ-30). The long window is for the shot-down shape
+    (the aircraft was in the air when the sortie ended); a parked or taxiing aircraft gets the short one, so a pilot who
+    landed and left isn't killed by a later destruction of the parked aircraft or of a reused log ID.
+
+    A gunner always gets the short one: the aircraft keeps flying after the gunner left it, so its destruction minutes
+    later (or its cleanup at the mission end) is not the gunner's death (2 gunner sorties in the 210 samples)."""
+    airborne = sortie.airborne_at_end and sortie.role == "pilot"
+    return ticks(rules.post_end_destroy_window_s if airborne else rules.post_end_destroy_window_ground_s)
+
+
 def aircraft_loss(
     sortie: SortieState, facts: MissionFacts, rules: ReplayRules, disconnect_tick: int | None
 ) -> Loss | None:
@@ -52,7 +63,7 @@ def aircraft_loss(
     destroyed = airframe.destroyed_tick
     if destroyed is None:
         return None
-    if sortie.end_tick is not None and destroyed > sortie.end_tick + ticks(rules.post_end_destroy_window_s):
+    if sortie.end_tick is not None and destroyed > sortie.end_tick + post_end_window_ticks(sortie, rules):
         abandoned = sortie.airborne_at_end and left_aircraft(sortie, disconnect_tick)
         if not abandoned:
             return None
@@ -89,7 +100,7 @@ def pilot_death_tick(sortie: SortieState, facts: MissionFacts, rules: ReplayRule
     died = obj.destroyed_tick if obj is not None else None
     if died is None:
         return None
-    if sortie.end_tick is not None and died > sortie.end_tick + ticks(rules.post_end_destroy_window_s):
+    if sortie.end_tick is not None and died > sortie.end_tick + post_end_window_ticks(sortie, rules):
         return None
     return died
 
@@ -111,6 +122,30 @@ def took_off(sortie: SortieState, end_tick: int) -> bool:
     if airframe.airborne_at(sortie.spawn_tick):
         return True
     return any(airborne and sortie.spawn_tick <= t <= end_tick for t, airborne in airframe.flight_changes)
+
+
+def ground_loss(sortie: SortieState, *, lost: bool, loss_cause: LossCause, cutoff_tick: int) -> tuple[bool, bool]:
+    """OQ-32: `(taxi_accident, strafed_on_ground)` for a lost pilot aircraft (crashes before takeoff still count as
+    deaths and losses; these two flags only label them). `cutoff_tick` is the loss, else the sortie end.
+
+    - taxi accident: the aircraft never took off and nobody else is to blame (`loss_cause` self). Air starts never
+      qualify.
+    - strafed on the ground: an attacker is to blame and the aircraft was on the ground, either it never took off, or it
+      had landed and not taken off again, and every attacker hit or damage on the aircraft or crew came after that
+      landing (a shot-up aircraft that crash-lands and is then destroyed was shot down, not strafed).
+
+    Gunners are never flagged: their flight state is the parent's, and gunners aren't counted."""
+    if sortie.role != "pilot" or not lost:
+        return False, False
+    airframe = sortie.airframe
+    if loss_cause == "self":
+        return not took_off(sortie, cutoff_tick), False
+    if loss_cause != "attacker" or airframe.airborne_at(cutoff_tick):
+        return False, False
+    landed_at = max((t for t, airborne in airframe.flight_changes if not airborne and t <= cutoff_tick), default=-1)
+    attacks = [r.tick for r in damage_records(airframe, sortie, cutoff_tick, attackers_only=True)]
+    attacks += [r.tick for r in hit_records(airframe, sortie, cutoff_tick, attackers_only=True)]
+    return False, all(t > landed_at for t in attacks)
 
 
 def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:

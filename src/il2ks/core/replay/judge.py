@@ -15,6 +15,7 @@ from il2ks.core.replay.fate import (
     disconnect_tick_of,
     flight_time_s,
     forced_by_mission_end,
+    ground_loss,
     killer_of,
     pilot_death_tick,
     pilot_fate_of,
@@ -54,6 +55,8 @@ class Verdict:
     loss_cause: LossCause
     killer: Party | None  # who gets the kill for the loss or crew death; None unless `loss_cause` is `attacker`
     structural_failure: bool
+    taxi_accident: bool  # OQ-32: lost before the first takeoff to nobody but itself
+    strafed_on_ground: bool  # OQ-32: lost on the ground to an attacker
     outcome: Outcome
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
@@ -117,6 +120,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     loss_cause: LossCause = "none" if not lost else ("attacker" if attacker_cause else "self")
     structural = loss is not None and lost and structural_failure(sortie, loss, attacker_cause, rules)
 
+    taxi, strafed = ground_loss(sortie, lost=lost, loss_cause=loss_cause, cutoff_tick=cutoff)
+
     dead = died is not None or disc_death
     status_pos: Pos | None = None
     if not dead and not forced:
@@ -155,6 +160,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         loss_cause=loss_cause,
         killer=killer_of(sortie, loss, died, cutoff, rules.assist_min_damage) if loss_cause == "attacker" else None,
         structural_failure=structural,
+        taxi_accident=taxi,
+        strafed_on_ground=strafed,
         outcome=outcome,
         pilot_status=pilot_status,
         aircraft_status=aircraft_status,

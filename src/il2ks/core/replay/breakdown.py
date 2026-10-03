@@ -167,7 +167,8 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
         counterpart = None
     if loss is not None:
         kind = "shot_down" if verdict.loss_cause == "attacker" else "destroyed"
-        entries.append(TimelineEntry(loss.tick, kind, pos=loss.pos, counterpart=counterpart))
+        detail = "taxi_accident" if verdict.taxi_accident else "strafed" if verdict.strafed_on_ground else ""
+        entries.append(TimelineEntry(loss.tick, kind, detail, loss.pos, counterpart))
     elif verdict.died_tick is not None:  # the crew member died but the aircraft wasn't lost
         crew = crew_death(sortie)
         kind = "killed" if verdict.loss_cause == "attacker" else "died"

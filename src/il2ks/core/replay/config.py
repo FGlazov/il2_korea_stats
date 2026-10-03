@@ -20,9 +20,12 @@ class ReplayRules:
     # Additive (iteration 1 replay, see design_doc/11_open_questions.md, section core.replay)
     # A sortie's aircraft destroyed after AType 4 still counts for the sortie within this window (the shot-down shape
     # logs AType 4 before AType 3, doc 12), or at any time if the pilot left an airborne aircraft (FR-ING-22).
-    # The same window applies to the pilot bot's own AType 3. A larger value also turns a normally ended aircraft that
-    # something destroys later into a loss and a death of that sortie (tests/unit/replay/test_post_end_window.py).
-    post_end_destroy_window_s: float = 5.0
+    # The same window applies to the pilot bot's own AType 3. Maintainer decision OQ-30: 5 minutes, to be safe. It only
+    # applies to a sortie that ended airborne; see `post_end_destroy_window_ground_s` for the others.
+    post_end_destroy_window_s: float = 300.0
+    # The same window for a sortie whose aircraft was NOT airborne at the sortie end (landed and stopped, or never took
+    # off): a pilot who landed, despawned and left must not die because the parked aircraft is destroyed minutes later.
+    post_end_destroy_window_ground_s: float = 5.0
     # Damage-based credit: other damagers above this fraction of the victim get an assist (il2_stats used > 1%).
     assist_min_damage: float = 0.01
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
