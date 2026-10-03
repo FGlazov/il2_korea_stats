@@ -121,7 +121,9 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
     cfg.data_dir.mkdir(parents=True, exist_ok=True)
     from il2ks import logsetup
 
-    logsetup.configure_logging(command, cfg.log_dir, cfg.log_level)
+    logsetup.configure_logging(
+        command, cfg.log_dir, cfg.log_level, server_uid=cfg.server_uid, keep_days=cfg.log_keep_days
+    )
     _django_setup()
 
     from il2ks.ingest.lock import LockBusyError

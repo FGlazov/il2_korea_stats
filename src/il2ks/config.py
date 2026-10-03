@@ -32,6 +32,7 @@ AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
 CONFIG_FILE = "il2ks.toml"
+DEFAULT_LOG_KEEP_DAYS = 14
 
 
 class ConfigError(ValueError):
@@ -77,6 +78,7 @@ class Config:
     server_uid: uuid.UUID
     timezone_name: str
     log_level: str = "INFO"
+    log_keep_days: int = DEFAULT_LOG_KEEP_DAYS  # daily log files of each process are kept this many days (TD-27)
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
@@ -144,6 +146,8 @@ def load_config(
     if log_level not in LOG_LEVELS:
         raise ConfigError(f"log_level must be one of {', '.join(LOG_LEVELS)}, got {log_level!r}")
 
+    keep_days = reader.positive_int("", "log_keep_days", DEFAULT_LOG_KEEP_DAYS)
+
     after = reader.str_("logs", "after_archive", "move")
     if after not in AFTER_ARCHIVE_VALUES:
         raise ConfigError(f"logs.after_archive must be one of {', '.join(AFTER_ARCHIVE_VALUES)}, got {after!r}")
@@ -183,6 +187,7 @@ def load_config(
         server_uid=server_uid,
         timezone_name=tz_name,
         log_level=log_level,
+        log_keep_days=keep_days,
         logs=logs,
         ingest=ingest,
         replay=replay,
@@ -303,6 +308,12 @@ class _Reader:
         if number < 0:
             raise ConfigError(f"{self._label(section, key)} must not be negative")
         return number
+
+    def positive_int(self, section: str, key: str, default: int) -> int:
+        number = self.positive(section, key, float(default))
+        if number != int(number):
+            raise ConfigError(f"{self._label(section, key)} must be a whole number")
+        return int(number)
 
     def positive(self, section: str, key: str, default: float) -> float:
         number = self.non_negative(section, key, default)

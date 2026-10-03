@@ -1,5 +1,6 @@
 """CLI smoke tests: exit codes and messages of the job commands (FR-OPS-1, FR-ING-20)."""
 
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -29,7 +30,9 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     monkeypatch.setenv("IL2KS_LOGS_DIR", str(logs))
     steps = FakeSteps()
 
-    def no_logging(process: str, log_dir: Path, level: str = "INFO") -> None:
+    def no_logging(
+        process: str, log_dir: Path, level: str = "INFO", *, server_uid: uuid.UUID | None = None, keep_days: int = 14
+    ) -> None:
         return None
 
     def fake_pipeline(cfg: Config) -> runner.Pipeline:
@@ -68,6 +71,27 @@ def test_ingest_processes_complete_missions_and_exits_zero(
     assert [uid for uid, _ in steps.parsed] == [A]
     assert (data / "archive" / "2026" / "09").is_dir()
     assert not any(logs.iterdir())  # moved out of the log folder (FR-ING-10)
+
+
+@pytest.mark.django_db
+def test_logging_gets_the_server_uid_and_keep_days(
+    setup: tuple[Path, Path, FakeSteps], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """TD-27: every JSON log line carries the server UID; keep_days comes from `log_keep_days`."""
+    uid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    monkeypatch.setenv("IL2KS_SERVER_UID", uid)
+    monkeypatch.setenv("IL2KS_LOG_KEEP_DAYS", "3")
+    calls: list[tuple[str, Path, str, uuid.UUID | None, int]] = []
+
+    def record(
+        process: str, log_dir: Path, level: str = "INFO", *, server_uid: uuid.UUID | None = None, keep_days: int = 14
+    ) -> None:
+        calls.append((process, log_dir, level, server_uid, keep_days))
+
+    monkeypatch.setattr(logsetup, "configure_logging", record)
+    assert main(["ingest"]) == EXIT_OK
+    data, _, _ = setup
+    assert calls == [("ingest", data / "logs", "INFO", uuid.UUID(uid), 3)]
 
 
 @pytest.mark.django_db
