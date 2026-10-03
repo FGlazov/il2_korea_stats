@@ -2,7 +2,15 @@
 
 import pytest
 
-from il2ks.core.catalog.loader import Catalog, ObjectClass, ObjectInfo, canonical_type_name, load_default_catalog
+from il2ks.core.catalog.loader import (
+    Catalog,
+    ObjectClass,
+    ObjectInfo,
+    canonical_type_name,
+    country_side_warnings,
+    load_default_catalog,
+    side_of_country,
+)
 
 
 @pytest.fixture(scope="module")
@@ -38,7 +46,7 @@ def catalog() -> Catalog:
         ("Parked MiG-15bis", "static"),
         ("NAPALM_389kg_USA_110gal", "ordnance"),
         ("FTANK_454L_USA_F86L", "ordnance"),
-        ("BotPlanePilot_USSR1950jet", "unknown"),
+        ("BotPlanePilot_USSR1950jet", "crew"),
     ],
 )
 def test_classification(catalog: Catalog, log_name: str, cls: ObjectClass) -> None:
@@ -149,3 +157,91 @@ def test_canonical_type_name(raw: str, canonical: str) -> None:
 @pytest.mark.parametrize(("coalition", "name"), [(1, "REDFOR"), (2, "BLUFOR"), (0, "Neutral"), (3, "Neutral")])
 def test_coalition_name(catalog: Catalog, coalition: int, name: str) -> None:
     assert catalog.coalition_name(coalition) == name
+
+
+@pytest.mark.parametrize(
+    "log_name",
+    [
+        "BotPlanePilot_USAF1950jet",
+        "BotGunner",
+        "BotField_Soldier_USA1950",
+        "B29_CrewGroup1",
+    ],
+)
+def test_crew_class(catalog: Catalog, log_name: str) -> None:
+    """D6: bots and crew groups are class `crew`."""
+    assert catalog.lookup(log_name).cls == "crew"
+
+
+@pytest.mark.parametrize(
+    "log_name",
+    [
+        "CParachute",
+        "CParachute_2361344",
+        "ESeat_KK1",
+        "ESeat_F-86A-5",
+        "Spotter",
+        "VehicleTurret",
+        "VehicleRangefinderTurret",
+    ],
+)
+def test_equipment_class(catalog: Catalog, log_name: str) -> None:
+    """D6: parachutes, ejection seats, spotters and vehicle sub-objects are class `equipment`."""
+    info = catalog.lookup(log_name)
+    assert (info.cls, info.is_known) == ("equipment", True)
+
+
+def test_no_shipped_object_is_left_as_unknown(catalog: Catalog) -> None:
+    assert [o.log_name for o in catalog.objects() if o.cls == "unknown"] == []
+
+
+@pytest.mark.parametrize(
+    ("code", "side"),
+    [
+        (501, "redfor"),
+        (502, "redfor"),
+        (599, "redfor"),
+        (601, "blufor"),
+        (603, "blufor"),
+        (0, None),
+        (499, None),
+        (700, None),
+        (-501, None),
+    ],
+)
+def test_side_of_country(code: int, side: str | None) -> None:
+    """D5: the side is the hundreds digit of the country code (5xx REDFOR, 6xx BLUFOR), else none."""
+    assert side_of_country(code) == side
+
+
+@pytest.mark.parametrize(
+    ("code", "coalition", "name"),
+    [(501, 1, "REDFOR"), (501, 2, "REDFOR"), (601, 1, "BLUFOR"), (700, 2, "BLUFOR"), (800, 0, "Neutral")],
+)
+def test_country_name_follows_the_side_then_the_coalition(
+    catalog: Catalog, code: int, coalition: int, name: str
+) -> None:
+    assert catalog.country_name(code, coalition) == name
+
+
+def test_normal_cntrs_give_no_side_warnings() -> None:
+    assert country_side_warnings({0: 0, 501: 1, 502: 1, 601: 2, 602: 2}) == []
+
+
+def test_a_coalition_mixing_both_sides_is_a_warning() -> None:
+    assert country_side_warnings({501: 1, 601: 1, 602: 2}) == [
+        "coalition 1 mixes REDFOR and BLUFOR countries: [501, 601]"
+    ]
+
+
+def test_swapped_coalition_numbers_are_a_warning() -> None:
+    assert country_side_warnings({501: 2, 601: 1}) == [
+        "coalition 1 holds BLUFOR countries [601], expected REDFOR",
+        "coalition 2 holds REDFOR countries [501], expected BLUFOR",
+    ]
+
+
+def test_a_country_without_a_side_in_a_real_coalition_is_a_warning() -> None:
+    assert country_side_warnings({501: 1, 700: 2, 800: 0}) == [
+        "countries [700] in coalition 2 are neither 5xx nor 6xx: no side"
+    ]
