@@ -7,7 +7,7 @@ Order inside `save_mission` (the caller holds the transaction):
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
 5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`), per-tour
-   rows only for the mission's old and new tour
+   rows only for the mission's old and new tour, plus the server-activity day(s) (`ingest.activity`)
 6. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
 """
 
@@ -42,6 +42,7 @@ from il2ks.db.models import (
     PlayerSortie,
 )
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
@@ -82,11 +83,12 @@ def save_mission(
     """
     clock = _Clock(meta.started_at)
     tour = ensure_tour(tours, meta.started_at)
-    old_tour_id = (
+    previous = (
         Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
-        .values_list("tour_id", flat=True)
+        .values_list("tour_id", "started_at")
         .first()
     )
+    old_tour_id, old_started_at = previous if previous else (None, None)
     mission, created = Mission.objects.update_or_create(
         server_uid=meta.server_uid,
         mission_uid=meta.mission_uid,
@@ -105,6 +107,7 @@ def save_mission(
     _update_mission_counters(mission)
 
     recompute_players(old_player_ids | {p.pk for p in players.values()}, {tour.pk} | _ids(old_tour_id))
+    recompute_days({day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()))
     if ratings is not None:
         recompute_ratings(ratings)
     bump_data_version()  # TD-28: same transaction as the save

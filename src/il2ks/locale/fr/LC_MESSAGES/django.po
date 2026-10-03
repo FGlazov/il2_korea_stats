@@ -152,10 +152,16 @@ msgstr ""
 msgid "AI gunner"
 msgstr ""
 
+msgid "Activity by tour"
+msgstr ""
+
 msgid "Air"
 msgstr ""
 
 msgid "Air kills"
+msgstr ""
+
+msgid "Air kills and deaths per tour"
 msgstr ""
 
 msgid "Air kills per flight hour"
@@ -284,6 +290,15 @@ msgstr "A sauté en parachute"
 
 msgid "Bailouts"
 msgstr ""
+
+msgid "Bar chart of the sorties per day over the last days. The numbers are in the table below."
+msgstr ""
+
+#, python-format
+msgid "Bar chart over %(n)d tour. The numbers are in the table below."
+msgid_plural "Bar chart over %(n)d tours. The numbers are in the table below."
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Bomb release"
 msgstr ""
@@ -937,6 +952,9 @@ msgstr ""
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
 msgstr "Statistiques de pilotes, de sorties et de missions de notre serveur IL-2 Sturmovik: Korea."
 
+msgid "Pilots"
+msgstr ""
+
 msgid "Planes lost"
 msgstr ""
 
@@ -1053,6 +1071,9 @@ msgstr ""
 "Vus dans les journaux mais absents du catalogue. Donnez-leur un nom ici et signalez-les pour que le catalogue puisse "
 "être mis à jour."
 
+msgid "Server activity"
+msgstr ""
+
 msgid "Share"
 msgstr ""
 
@@ -1086,6 +1107,9 @@ msgstr "Afficher de nouveau les missions sélectionnées sur les pages publiques
 # llm-draft
 msgid "Show selected players on public pages again"
 msgstr "Afficher de nouveau les joueurs sélectionnés sur les pages publiques"
+
+msgid "Show the numbers"
+msgstr ""
 
 #, python-format
 msgid "Show the remaining %(n)s timeline rows"
@@ -1127,7 +1151,13 @@ msgstr ""
 msgid "Sorties of %(name)s"
 msgstr ""
 
+msgid "Sorties per day"
+msgstr ""
+
 msgid "Sorties per side"
+msgstr ""
+
+msgid "Sorties per tour"
 msgstr ""
 
 # llm-draft

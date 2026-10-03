@@ -11,7 +11,8 @@ Players are handled in chunks: a few grouped queries per chunk, then writes only
 Tours (TD-26): `PlayerTour` (sum of the player's `PlayerMission` rows per `Mission.tour`) and `PlayerTourAircraft`
 (counted sorties per tour and aircraft) are recomputed the same way. `save_mission` passes the tours it touched (the
 mission's new and old tour), so the per-tour part of a recompute reads only those tours' rows; `rebuild_aggregates`
-recomputes every tour. Elo stays all-time (it replays all kills, `ingest.ratings`).
+recomputes every tour. Server activity per day (`ingest.activity`) is rebuilt for all days. Elo stays all-time (it
+replays all kills, `ingest.ratings`).
 
 Cost: the all-time part of a player's recompute reads all of that player's level-1 rows, so it grows with their history.
 The per-tour part is bounded by the tour.
@@ -38,6 +39,7 @@ from il2ks.db.models import (
     PlayerTourAircraft,
 )
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.tours import assign_missing, retour
@@ -83,6 +85,7 @@ def rebuild_aggregates(
         else:
             assign_missing(tours)
     recompute_players(Player.objects.values_list("pk", flat=True))
+    rebuild_activity()
     recompute_ratings(ratings)
     bump_data_version()  # TD-28: pages changed
 

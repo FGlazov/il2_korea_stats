@@ -8,7 +8,7 @@ Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour,
 clock_since; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select.
+pagination, filter_select, filter_text, tour_select, bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -29,6 +29,7 @@ from django.utils.translation import get_language, get_language_info
 
 from il2ks.db.models import Tour
 from il2ks.web import display, icons, object_names
+from il2ks.web.charts import ChartSpec, build_bar_chart
 from il2ks.web.display import SortFirst, Tone
 
 register = template.Library()
@@ -384,6 +385,13 @@ def filter_text(
         "live": live,
         "value": _params_of(context).get(name, ""),
     }
+
+
+@register.inclusion_tag(COMPONENTS + "bar_chart.html")
+def bar_chart(spec: ChartSpec) -> dict[str, object]:
+    """{% bar_chart spec %}: an inline-SVG bar chart (FR-WEB-16) with legend (two or more series), tooltips and a table
+    of the numbers. `spec` is a `il2ks.web.charts.ChartSpec`, usually built in `il2ks.web.chart_data`."""
+    return {"spec": spec, "chart": build_bar_chart(spec)}
 
 
 @register.inclusion_tag(COMPONENTS + "tour_select.html", takes_context=True)

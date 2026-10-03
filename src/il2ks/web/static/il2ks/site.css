@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v3 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v5 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -35,6 +35,12 @@
     color-mix(in srgb, var(--il2-accent) 82%, black),
     color-mix(in srgb, var(--il2-accent) 52%, white)
   );
+
+  /* Chart series, in this fixed order (steel blue, rust): colour-blind safe and checked against the surface in both
+     modes. Text in a chart uses --il2-muted, never a series colour. */
+  --il2-chart-1: light-dark(#2a6fa8, #4a8fd0);
+  --il2-chart-2: light-dark(#b4532a, #d06c3a);
+  --il2-chart-grid: light-dark(#e1dfd2, #272d21);
 
   /* The header band stays dark olive-gunmetal in both themes; the camo tile sits on it at very low contrast. */
   --il2-band: light-dark(#2b3326, #151a12);
@@ -400,6 +406,30 @@ details.dropdown.dropdown--right ul { right: 0; left: auto; }
 .hero__mark { position: absolute; right: 2.5rem; top: 50%; width: 11rem; height: 11rem; transform: translateY(-50%) rotate(12deg); color: rgb(255 255 255 / 0.07); pointer-events: none; }
 .empty-row__mark { display: block; width: 6rem; height: auto; margin: 0 auto 0.6rem; opacity: 0.35; }
 .error-page__mark { display: block; width: 11rem; height: auto; margin: 0 auto 1rem; color: var(--il2-accent); }
+
+/* Bar charts: inline SVG from {% bar_chart %} (FR-WEB-16). The SVG scales with its column; bars are thin with a rounded
+   data end, the grid is recessive, the numbers sit in a <details> table. */
+.chart { align-self: start; margin: 0 0 1.25rem; padding: 0.75rem 1rem 0.5rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
+.chart__title { margin-bottom: 0.25rem; font-family: var(--il2-font-display); font-size: 1.05rem; letter-spacing: 0.03em; color: var(--il2-heading); }
+.chart__svg { display: block; width: 100%; max-width: 46rem; height: auto; overflow: visible; }
+.chart__grid line { stroke: var(--il2-chart-grid); stroke-width: 1; }
+.chart__grid line.chart__axis { stroke: var(--il2-border-strong); }
+.chart__tick { fill: var(--il2-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart__bar { stroke: none; }
+.chart__bar:hover { opacity: 0.8; }
+.chart__bar--s0 { fill: var(--il2-chart-1); }
+.chart__bar--s1 { fill: var(--il2-chart-2); }
+.chart__legend { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0 0 0.25rem; padding: 0; list-style: none; font-size: 0.82rem; color: var(--il2-text); }
+.chart__legend li { margin: 0; padding: 0; list-style: none; }
+.chart__swatch { display: inline-block; width: 0.7rem; height: 0.7rem; margin-inline-end: 0.35rem; border-radius: 2px; vertical-align: -0.05rem; }
+.chart__swatch--s0 { background: var(--il2-chart-1); }
+.chart__swatch--s1 { background: var(--il2-chart-2); }
+.chart__data { margin-top: 0.4rem; font-size: 0.85rem; }
+.chart__data summary { color: var(--il2-muted); cursor: pointer; }
+.chart__data .table-wrap { max-height: 16rem; overflow: auto; margin-top: 0.4rem; }
+@media (forced-colors: active) {
+  .chart__bar { fill: CanvasText; stroke: Canvas; stroke-width: 1px; }
+}
 
 /* Error pages */
 .error-page { max-width: 34rem; margin: 4rem auto; text-align: center; }

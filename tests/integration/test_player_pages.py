@@ -260,9 +260,9 @@ def test_hidden_and_missing_players_are_404(client: Client) -> None:
 def test_profile_page_budget(client: Client) -> None:
     seed()
 
-    # context processor 2, player, names, aircraft rows, recent sorties
-    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=6)
-    assert_simple_reads(client, f"/players/{player_pk(1)}/?sort=-kills_air", max_queries=6)
+    # context processor 2, player, names, aircraft rows, recent sorties, tour history (charts)
+    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=7)
+    assert_simple_reads(client, f"/players/{player_pk(1)}/?sort=-kills_air", max_queries=7)
     # a player with zero counted sorties adds one read to tell gunner-only from empty
     assert_simple_reads(client, f"/players/{player_pk(5)}/", max_queries=7)
 

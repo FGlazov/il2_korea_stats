@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
   detail_header, detail_tiles, detail_ground, detail_ratios, detail_totals, detail_shame, detail_aircraft, detail_recent.
@@ -27,6 +27,7 @@
         {% include "il2ks/players/detail_totals.html" %}
       </section>
     </div>
+    {% include "il2ks/players/detail_charts.html" %}
     {% include "il2ks/players/detail_aircraft.html" %}
   {% elif gunner_only %}
     {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}

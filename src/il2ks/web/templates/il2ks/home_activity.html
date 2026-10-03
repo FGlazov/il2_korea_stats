@@ -1,0 +1,10 @@
+{# il2ks-template: templates/il2ks/home_activity.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  home_activity.html: server activity per day for the home page (FR-WEB-16). Context: activity (a ChartSpec from
+  il2ks.web.chart_data.activity_chart, or None before any mission).
+{% endcomment %}{% if activity %}
+  <section aria-labelledby="activity-heading">
+    <h2 id="activity-heading">{% translate "Server activity" %}</h2>
+    {% bar_chart activity %}
+  </section>
+{% endif %}

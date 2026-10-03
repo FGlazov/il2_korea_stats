@@ -187,3 +187,10 @@ _.air_kills  # Detail: kills.html
 _.damage_more  # Detail: damage.html
 _.timeline_more  # Detail: timeline.html
 _.timeline_events  # Detail: timeline.html
+# --- web.charts: chart fields read only by components/bar_chart.html ---
+_.chart_id
+_.tip
+_.plot_left
+_.plot_right
+_.legend
+_.table_head
