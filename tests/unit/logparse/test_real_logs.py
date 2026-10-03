@@ -47,12 +47,15 @@ def test_fixture_parses_without_bad_lines(path: Path) -> None:
 def check_sample_dir(root: Path, limit: int) -> None:
     logs = group_mission_files(root.iterdir(), txt_as="archive")
     assert logs
+    total = Counter[str]()
     for log in logs[:limit]:
         _, counts = check_mission(log)
-        assert counts["HitEvent"] > counts["DamageEvent"] > 0
+        # Some missions are short (a crashed or restarted server), so per-mission ratios aren't stable.
         assert counts["PlayerSpawnEvent"] > 0
         assert counts["SortieEndEvent"] > 0
         assert counts["ObjectSpawnEvent"] > counts["PlayerSpawnEvent"]
+        total.update(counts)
+    assert total["HitEvent"] > total["DamageEvent"] > 0
 
 
 @pytest.mark.sample_data
