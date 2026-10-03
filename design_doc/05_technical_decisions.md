@@ -292,6 +292,14 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff <path>` shows what changed. Never on public pages.
 
 ### TD-26 Tours with configurable length, in iteration 2 — `[DECIDED]` (tours, it2), `[PROPOSED]` (modes)
+- **As built** (2026-10-03, pulled forward by the maintainer): `[tours] mode` (`monthly` / `days:<N>` with `start` / `manual`), `timezone`
+  (defaults to `[server] timezone`). Boundaries are local midnights, half-open `[start, end)`, DST-aware; monthly titles "October 2026",
+  `days:N` titles "Tour N" counted from `start` (gaps possible). Manual mode: the stored tours are the boundaries; "start a new tour now"
+  in the admin closes the open one. `PlayerTour` and `PlayerTourAircraft` are recomputed from level 1 like all-time totals, limited to the
+  touched tours; `rebuild-aggregates --retour` reassigns all missions after a mode or timezone change (doctor warns when needed). Elo stays
+  all-time. Missions without a tour are assigned automatically after migrations. Query helpers `il2ks.queries.tours` and a
+  `{% tour_select %}` component exist; pages wire them in next. Gut calls `[PROPOSED]`: a renamed tour keeps its title only while its
+  boundaries don't change; monthly titles are stored in English (to be computed per language at display time once translations land).
 - Missions belong to exactly one `Tour`, assigned by mission start time. Per-tour totals (`PlayerTour`) are the main stats unit, with all-time
   totals alongside.
 - Config `tours.mode`: `"monthly"` (calendar month, **default**), `"days:<N>"` (a rolling period of N days from a configurable start date), or `"manual"`

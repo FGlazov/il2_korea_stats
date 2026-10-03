@@ -21,6 +21,11 @@ OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
 OQ-36 (destruction before a disconnect is a normal loss, doc 13) and OQ-37 (ship Tabler Icons, doc 15) are answered.
 
+**OQ-38 Should K/D and K/L count air kills only?** (Claude's default applied unless you object)
+The profile's K/D (kills per death), K/L (kills per plane lost) and kills per sortie / per flight hour use **air kills only**, because
+ground kills are dominated by static objects (91.6%) and would make attack pilots' ratios meaningless; ground kills get their own "per
+sortie" figure. Alternative: count air + non-static ground kills, or show a separate ground K/D.
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

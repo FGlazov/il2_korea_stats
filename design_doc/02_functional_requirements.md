@@ -57,8 +57,8 @@ isn't the same as "in the air", and damage from the abandoned aircraft's own cra
 in spirit, and replaces "no recent landing" with the `PLID:0` + airborne + distance signals.
 
 Pilot fate per sortie becomes: `in_aircraft` (landed, despawned, or died with the aircraft), `bailed_out` (inferred, rules 1–4),
-`exited_on_ground` (`PLID:0`, not airborne or near the aircraft), `mission_ended` (the sortie was force-ended by mission end: AType 4
-within a few seconds of AType 7; about 10% of sorties), `disconnected` (no AType 4 or an AType 21 near the end; 99% of no-AType-4 cases. Counts as a **death** only with damage in the last 2 minutes, FR-ING-21), or `unknown`.
+`exited_on_ground` (`PLID:0`, not airborne or near the aircraft), (a sortie force-ended by the mission end, AType 4 within a few seconds of AType 7, about 10% of sorties, keeps
+`in_aircraft` and is flagged `ended_by_mission_end`, 2026-10-03), `disconnected` (no AType 4 or an AType 21 near the end; 99% of no-AType-4 cases. Counts as a **death** only with damage in the last 2 minutes, FR-ING-21), or `unknown`.
 The thresholds (100 m, 0.5 s, 30 s, 60 s) are config values.
 
 **Status (maintainer, 2026-10-02):** keep rule v2 for now and iterate later. The maintainer will compare notes with the other developer.

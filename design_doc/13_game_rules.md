@@ -74,8 +74,8 @@ Is it a gunner with an AType 18 (bailout event)?
 └─ no: Was the pilot bot killed (its own AType 3, in scope)?
    ├─ yes → in_aircraft / event                      (killed in the aircraft, even if the player then disconnected)
    └─ no: Was the sortie forced by mission end?
-      ├─ yes, with an AType 4 → mission_ended / event
-      ├─ yes, still open      → mission_ended / inferred
+      ├─ yes, with an AType 4 → in_aircraft / event     (+ ended_by_mission_end)
+      ├─ yes, still open      → in_aircraft / inferred  (+ ended_by_mission_end)
       └─ no: How did the sortie end?
          ├─ AType 4 PLID:0 (pilot not in the aircraft)
          │  ├─ bailout rule v2 holds (FR-ING-14) → bailed_out / inferred
@@ -159,8 +159,8 @@ Was the aircraft lost (is_plane_lost)?
 ├─ yes → shot_down if loss_cause = attacker, else crashed
 └─ no: Did it ever take off?
    ├─ no  → not_taken_off
-   └─ yes: Forced by mission end?
-      ├─ yes → mission_ended
+   └─ yes: Forced by mission end?            (the state the mission end found it in; flag ended_by_mission_end)
+      ├─ yes → airborne if in the air at the first AType 7, else landed / ditched (below)
       └─ no: Is the sortie still open?
          ├─ yes → in_flight if airborne, else landed
          └─ no: Did the pilot disconnect (fate disconnected, no death)?
@@ -231,6 +231,28 @@ Was the aircraft lost (is_plane_lost)?
   was destroyed (the pilot bailed out, climbed out or disconnected later), AType 4's "left" is unreliable (unfired stores read as zero in
   20–60% of such cases, and in all 107 checked bailouts and ground exits with unreleased stores), so "used" is unknown for all types
   (2,807 sample sorties). When the pilot died with the aircraft (AType 4 within 1 s), "left" is right about 90% of the time and is used.
+
+## Mission end (as built, 2026-10-03)
+
+The maintainer's rule: a sortie the mission end cut off reports **what state it was in**: outcome `airborne` (1,235 sample sorties),
+`landed` (36) or `ditched` (6) by the usual landing rule, or `not_taken_off`; pilot fate `in_aircraft`; flag `ended_by_mission_end`;
+the timeline's `sortie_end` says "mission end". A loss before the mission end is still `shot_down` / `crashed`. Forced gunner sorties
+take the state of their aircraft. Existing databases: migration 0011 maps the old values conservatively (old outcome `mission_ended`
+→ `airborne` when the counts show the aircraft was in the air, else `unknown`); `il2ks reprocess --all` gives the exact values.
+Destruction before a disconnect (OQ-36): 10 sample sorties changed (4 shot down, 6 crashed; 10 more deaths and losses), nothing else.
+
+## PvE breakdown (FR-WEB-21, as built 2026-10-03)
+
+- Every lost sortie gets one **loss class**, from the existing verdict (never re-derived): `loss_cause = self` → `environment` (crash,
+  terrain, structural failure, own error, an abandoned aircraft nobody hit; pages label it "No attacker"); `attacker` → the class of the
+  credited killer (or of the party with the most hits when credit named nobody: 45 of 5,842 losses), checked in this order: `friendly`
+  (same non-zero coalition, player or AI), `player`, `ai_aircraft` (AI fighter / attacker), `ai_gunner` (AI bomber / transport: their only
+  weapons are defensive guns, and the log credits turret fire to the aircraft, so this goes by aircraft type), `aaa` (incl. flak cars),
+  `ground` (tanks, vehicles, ships, statics), else `unknown`.
+- Counters `deaths_by_<class>` and `planes_lost_by_<class>` (sum to `deaths` / `planes_lost` by construction), and air kills split into
+  `kills_air_pvp` + `kills_air_ai` (= `kills_air`).
+- Samples (4,385 deaths): no attacker 54.5%, player 33.6%, AAA 8.9%, ground 1.7%, friendly 1.0%, AI gunners 0.3%, AI fighters 0 (the
+  samples have no AI fighters). AAA causes 21% of F-51D and 19% of IL-10 deaths but 5% of MiG-15bis deaths. 93% of air kills are PvP.
 
 ## Combat role, time on target and ratings
 

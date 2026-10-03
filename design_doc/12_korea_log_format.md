@@ -119,8 +119,8 @@ were garbage (coordinates up to 1e25; all killed pilots), so replay ignores posi
 
 **Mission end doesn't skip sortie ends** (checked because planes fly long: airborne time is a median 20 min, 90th percentile 41 min, up to 127 min,
 against ~3 h missions). 1,522 sorties (10% of all) were still running at the first AType 7. **1,519 got a normal AType 4 within 1 s of it**
-(median 0.1 s), and only 2 had none. The server force-ends every active sortie at mission end. These sorties need their own outcome,
-**`mission_ended`**, instead of being read as landed, despawned, or disconnected.
+(median 0.1 s), and only 2 had none. The server force-ends every active sortie at mission end. These sorties must not be read as landed, despawned or disconnected:
+they are flagged `ended_by_mission_end` and their outcome is the aircraft's state at the mission end (doc 13).
 
 **Telling bailouts from ground exits** (both are `PLID:0`):
 - Bailout: the aircraft was airborne when destroyed (or at sortie end), and the pilot's final position (AType 16) is far from it (≥ 100 m;

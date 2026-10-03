@@ -42,8 +42,8 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                aircraft → GameObject, payload_name, coalition, country, role (pilot / gunner),
                spawned_at, took_off_at, landed_at, ended_at, spawn position, flight_time_s, takeoffs, landings,
                air_start (bool), spawn_type (air/runway/parking),
-               outcome (landed/ditched/crashed/shot_down/in_flight/not_taken_off/mission_ended/unknown),
-               pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/disconnected/unknown), pilot_fate_source (event/inferred/unknown),
+               outcome (landed/ditched/crashed/shot_down/airborne/in_flight/not_taken_off/unknown), ended_by_mission_end (bool),
+               pilot_fate (in_aircraft/bailed_out/exited_on_ground/disconnected/unknown), pilot_fate_source (event/inferred/unknown),
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
@@ -78,8 +78,9 @@ PlayerName     player, name, name_lower, first_seen, last_seen
 PlayerAircraft player, aircraft, + all-time counters                                     -- per-aircraft table on profile
 -- iteration 2 (TD-26):
 Tour           id, title, started_at, ended_at (null = current), mode snapshot
-PlayerTour     player, tour, + same counters as PlayerMission
-(PlayerAircraft gains a tour column in it2)
+PlayerTour     player, tour, + same counters as PlayerMission            -- built 2026-10-03 (TD-26)
+PlayerTourAircraft player, tour, aircraft, + counters   -- a separate table, so all-time PlayerAircraft reads stay untouched
+Mission.tour   FK (assigned at ingest by started_at in tours.timezone)
 ```
 **Only counters are stored.** Ratios (K/D = kills / deaths, K/L = kills / planes lost, kills per sortie, kills per flight hour, survival rate)
 are computed at read time from those counters, as model properties or template filters, with divide-by-zero handled (TD-22).

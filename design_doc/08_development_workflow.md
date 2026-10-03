@@ -51,7 +51,7 @@ regression test first.
 | Sample-data distribution checks (opt-in, `-m sample_data`) | Ingest all of `sample_data/` and assert distributions stay in expected bands: bailouts 10–15% of sorties that took off (12.6% now), payload resolution ≥ 99%, "mission ended" around 10%, unknown outcomes below a threshold per aircraft type. Plain pytest asserts, no pandera. | minutes | Catches rule or parser changes that shift totals even when single rows look fine. Skipped when `sample_data/` is missing |
 | DB constraint tests | Writing rows that violate a model constraint fails (constraints exist and are migrated on both backends). | s | |
 | Override tests | A template in a temporary `custom/` folder overrides the built-in one. Branding settings show up in the page CSS (TD-25). | s | |
-| End-to-end (later, nice to have) | Playwright on 2–3 key flows (for example search → profile → sortie). | slow | `[DEFERRED]` (2026-10-02): not before the public release, maybe in a later iteration. View smoke tests cover pages until then |
+| End-to-end | Playwright (Chromium) against the real `il2ks web --dev` on a synthetic world (factories + one anonymized fixture log through the real ingest): smoke tests for every page, dark mode, console errors; flows "player finds own sortie" and "mission → myself → sortie". Opt-in: `IL2KS_TEST_E2E=1 uv run pytest -m e2e` (once: `uv run playwright install chromium`); CI job `test-e2e`. | slow | `[PROPOSED]` (built 2026-10-03 at the maintainer's request; flow tests are marked pending until all pages are merged) |
 
 The coverage target applies to `core/`: at least 90%, enforced in CI. Elsewhere coverage is just reported.
 

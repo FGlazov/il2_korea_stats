@@ -35,7 +35,7 @@ reproduce the same rows with stable IDs. Rules in [13_game_rules.md](13_game_rul
 ### Part 2: frontend and operations (in progress, 2026-10-03)
 Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-built details in [16_web_and_operations.md](16_web_and_operations.md).
 - ✅ Web foundation: Pico CSS theme (military palette, light/dark), components, template tags, placeholder assets, style guide, 404/500.
-- 🔧 Pages: home + mission list/detail, player search + profile (ground-kill breakdown, hall of shame, per-aircraft table), player sorties
+- ✅ home, mission list/detail, player search, profile; 🔧 sortie list + detail. Pages: home + mission list/detail, player search + profile (ground-kill breakdown, hall of shame, per-aircraft table), player sorties
   + **sortie detail with timeline** (Open Graph tags for Discord).
 - ✅ Page caching keyed on a data version (TD-28).
 - ✅ Admin: branding (`SiteSettings`, safe logo upload, coalition emblems), hide player or mission, ingestion status page, object and
@@ -46,12 +46,16 @@ Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-
   (systemd / scheduled task). Install docs (`docs/install.md`), wheel packaging and a PyPI release workflow (⏳ first publish needs the
   maintainer's one-time PyPI/GitHub setup, doc 16).
 - ✅ Ground-kill breakdown by category (OQ-33), replay fixes from the end-to-end run, bailout hardening (doc 13).
-- 🔧 Mission-end rules: outcome `airborne` / landed for sorties the mission end cut off, pilot fate `in_aircraft` + an "ended by mission end"
+- ✅ Mission-end rules: outcome `airborne` / landed for sorties the mission end cut off, pilot fate `in_aircraft` + an "ended by mission end"
   flag (maintainer feedback, 2026-10-03); **reprocess all** as an explicit CLI option and an admin button (queued for `watch`).
-- 🔧 **Versioned templates** for `custom/` overrides: outdated overrides get a big warning in the admin (maintainer, 2026-10-03; TD-25).
-- 🔧 OQ-36: destruction before a disconnect is a normal loss (maintainer, 2026-10-03). ⏳ OQ-37: Tabler placeholder icons + NOTICE.
-- ⏳ Stretch: **Playwright end-to-end tests** for the key flows: a player finding their own sortie (search → profile → sortie), and someone
+- ✅ **Versioned templates** for `custom/` overrides: outdated overrides get a big warning in the admin (maintainer, 2026-10-03; TD-25).
+- ✅ OQ-36: destruction before a disconnect is a normal loss (maintainer, 2026-10-03). ⏳ OQ-37: Tabler placeholder icons + NOTICE.
+- ✅ harness + smoke tests (flows pending the sortie pages). Stretch: **Playwright end-to-end tests** for the key flows: a player finding their own sortie (search → profile → sortie), and someone
   opening a mission, finding themselves and drilling into a sortie (maintainer, 2026-10-03).
+
+- 🔧 Fixes from the Opus review (2026-10-03): Windows child processes orphaned by `schtasks /End`, a stale `run.json` blocking restarts,
+  half-swapped restores, restore while running; SQLite WAL mode, the "data updated" time, admin password validators, Caddyfile validation,
+  ETag details, logo deletion on Windows.
 
 ## Iteration 1.x: Easy install and polish
 The maintainer asked (2026-10-03) to build all of 1.x except the visual assets now, plus tours, online now and translations from it2.
@@ -60,15 +64,15 @@ The maintainer asked (2026-10-03) to build all of 1.x except the visual assets n
 - 🔧 Docker Compose distribution (option A) for Linux/Wine hosts.
 - 🔧 (data side) **Ammo breakdown** (FR-WEB-18): per-sortie hits and damage per ammo type, and average hits-to-destroy per aircraft type, with closest-hit attribution.
   **Not a release gate**: ships when ready, before or after the public release.
-- 🔧 (data side) **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
+- ✅ data side, ⏳ pages: **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
 - **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
   image and illustrations with finished ones (a hired designer, or licensed sets). **Not a release gate, but soon after it** (maintainer,
   2026-10-03). The site ships with placeholders under the final file names, so this is a drop-in change.
 
 ## Iteration 2: Live data, languages, richer stats
-- 🔧 **Tours** with configurable length (monthly by default) (TD-26). Pulled forward (maintainer, 2026-10-03); pages wire in the tour selector after.
+- ✅ data, admin, selector; ⏳ wiring into pages: **Tours** with configurable length (monthly by default) (TD-26). Pulled forward (maintainer, 2026-10-03); pages wire in the tour selector after.
 - 🔧 **Online now** (pulled forward, 2026-10-03): current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
-- ⏳ **Translations** (pulled forward, 2026-10-03; after the pages settle): Russian, German, Spanish, French, Brazilian Portuguese (LLM draft, then human review) (TD-24).
+- 🔧 **Translations** (pulled forward, 2026-10-03; after the pages settle): Russian, German, Spanish, French, Brazilian Portuguese (LLM draft, then human review) (TD-24).
 - **Game object names**: admin overrides (required for the public release) and translated defaults (not a release gate) (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early

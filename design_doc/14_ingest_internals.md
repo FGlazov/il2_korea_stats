@@ -106,6 +106,12 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
 - One `IngestRun` per attempt that did work; the OK run commits in the same transaction as the mission. Parse reads the archive, not the originals.
 - Every writer command applies pending migrations first (FR-OPS-3).
 - Exit codes: 0 ok, 1 some missions failed, 2 usage/config error, 3 lock held.
+- **`il2ks reprocess` needs an explicit selection** (2026-10-03): `--all`, `--mission`, or `--since/--until`; bare `reprocess` prints help
+  and exits 2, so nobody reprocesses a year of logs by accident. The admin's ingestion status page has a **"Reprocess all missions"**
+  button (with confirmation, `add_reprocessrequest` permission): it files a `ReprocessRequest` row (one pending at a time) that the `watch`
+  loop (also under `il2ks run`) runs at its next tick under the writer lock, updating progress and the result on the status page; a busy
+  lock leaves it pending, a crash marks it failed, a request left running by a dead process is marked failed at the next watch start. New
+  missions wait while it runs.
 - `il2ks reprocess` takes the missions from their newest archive-writing run plus archives without any run (rebuilding a lost DB). Filters:
   `--mission UID` (repeatable) and **`--since DATE` / `--until DATE`** (inclusive, by the mission UID's server-local date; maintainer use case:
   "scoring changed, reprocess the last 6 months"). Parse and replay run in low-priority worker processes; the main process is the only writer.

@@ -36,6 +36,24 @@ How the website, the admin and the operations commands are built (iteration 1, p
   doesn't fix that; only Streamline Premium explicitly allows open-source use (with attribution, ≤ 100 icons). Commissioned work under a
   licence we choose is the clean route. Candidates and a contact sheet were prepared outside the repo; adopting Tabler is **OQ-37**.
 
+## Pages (as built, 2026-10-03)
+
+- **Home**: site description, player search, the last mission (tiles, sorties per side, top 5 pilots by air then ground kills), the
+  latest 8 missions. Empty missions are left out.
+- **Mission list**: newest first, 25 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
+  come from the mission file name ("The Sinuiju Bridges 1951").
+- **Mission detail**: tiles, one sortie table per side (mission clock, pilot, aircraft, combat role, outcome, fate, kills, flight time),
+  the PvP kill list. A hidden player keeps an **anonymised row** ("Hidden player", no links) so the mission's numbers still add up (gut
+  call on FR-ADM-3's "gone from rosters").
+- **Player search**: live search on current and past names ("also known as"), recently active players when empty, sortable.
+- **Player profile**: header with past names, tiles with ratios, the collapsible ground-kill breakdown, ratios and other totals, the
+  hall of shame (taxi accidents, strafed), per-aircraft table (links to the filtered sortie list), the 10 latest sorties. Gunner-only
+  players get a notice. **K/D, K/L and kills per sortie/hour use air kills only** (ground kills include fences; they get their own
+  per-sortie figure), OQ-38. Elo isn't shown (pages deferred).
+- Query budgets: home ≤ 4, mission list 4, mission detail 5, search 4, profile 6 (incl. the 2 context-processor reads).
+- Coalition emblems: `{% coalition_badge %}` uses the site-settings choice (neutral by default, or placeholder insignia drawn as plain
+  shapes: VVS, PLAAF, KPAF, USAF, ROKAF, UN).
+
 ## Admin (FR-ADM-1..5)
 
 - The admin lives in the `web` app (`web/admin.py`): models stay in `db/`. Rows that ingest owns (players, missions, sorties, counters,
@@ -77,6 +95,13 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
 - **Own proxy** (`external`): sample nginx, IIS (URL Rewrite + ARR) and Apache configs in `docs/reverse-proxy.md`.
 
 ## Customization (TD-25, FR-ADM-6)
+
+**Template versions** (as built): every built-in template, stylesheet and script starts with `{# il2ks-template: <path> vN ... #}` (CSS/JS:
+`/* ... */`); `src/il2ks/web/template_versions.json` records version + content hash; a test fails on a change without a bump; `il2ks dev
+bump-templates` bumps; `il2ks dev template-changes <tag>` lists bumps for release notes (`docs/releasing.md`). Override states: current,
+outdated, newer, unversioned, orphan, custom-only, unchecked (no version: images, vendored, Django's own). Problems appear as a red banner
+on every admin page (staff only, never public), a start-up warning, `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff` and
+`custom accept` help update. `il2ks.web` is first in `INSTALLED_APPS` so its `admin/base_site.html` wins.
 
 `custom/templates` and `custom/static` are always first in the lookup (created by `web`). `il2ks custom copy <path>` copies a built-in file
 and records the original's hash in `custom/.il2ks-overrides.json`; `custom list` and `custom accept` complete it. Doctor warns when an
