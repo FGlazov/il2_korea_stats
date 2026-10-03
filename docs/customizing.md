@@ -92,12 +92,33 @@ template that fills a block is easier to keep up to date than a copy of a whole 
 
 ### What you can override
 
-<!-- PLACEHOLDER (lead): fill in after the web foundation lands: the list of templates, their {% block %} names,
-     and the context variables of each, plus the CSS variables the branding sets. Replace this whole section. -->
+**The page frame** — `il2ks/base.html`. Every page extends it. Blocks:
 
-> **Not written yet.** The list of templates, their blocks and the data each page offers will be documented here once
-> the page templates are final. Until then use `il2ks custom list --builtin` and read the copied file: every block is
-> named in it.
+| Block | What it holds |
+|---|---|
+| `title` | The browser tab title (default: the page title, then the site title) |
+| `head` | Extra tags in `<head>`: meta tags, an extra stylesheet |
+| `nav` | The header bar: logo, site title, menu, search box |
+| `content` | The page itself |
+| `footer` | Server name, your links, "Powered by il2ks", when the data was last updated |
+| `scripts` | Extra scripts at the end of the page |
+
+Variables available on every page: `site` (your site settings: `site.site_title`, `site.server_name`, `site.description`,
+`site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `site_links` (your links as label/URL pairs), `data_updated` (when
+the stats last changed), `il2ks_version`, and `page_title`.
+
+**Small building blocks** — `il2ks/components/*.html`: tables, badges, stat tiles, filters, pagination, notices. Each file
+starts with a comment that lists the variables it receives. Overriding one of these changes it on every page that uses it.
+
+**Pages** — `il2ks/home.html`, `il2ks/missions/`, `il2ks/players/`, `il2ks/sorties/`, and the error pages `404.html` and
+`500.html` (the 500 page can't use your site settings: it must work even when the database doesn't).
+
+**Icons and images** — `il2ks/img/` under static. Every icon has a fixed name (for example `il2ks/img/outcome/landed.svg`),
+so you can replace a single icon by putting your own SVG at `custom/static/il2ks/img/outcome/landed.svg`.
+
+**Colours** — the stylesheet `il2ks/site.css` defines every colour once as a CSS variable (`--il2-accent`, `--il2-bg`, ...).
+The accent colour from the admin overrides `--il2-accent`. For more, add your own small stylesheet through the `head` block
+instead of copying `site.css`: a few `:root { --il2-...: ... }` lines are enough and survive upgrades.
 
 ### Problems
 
