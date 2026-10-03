@@ -80,7 +80,8 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
 
 # --- pyright strict (TD-12): core gets zero ignores; Django layers use django-types.
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src", "tests", "packaging"]
+extraPaths = ["src", "packaging/windows"]  # src: the default, lost once extraPaths is set; the other: installer build tooling
 exclude = ["src/il2ks/db/migrations"]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
@@ -92,6 +93,7 @@ venv = ".venv"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "il2ks.settings"
 testpaths = ["tests"]
+pythonpath = ["packaging/windows"]  # build.py, winsw.py, zones.py: the Windows installer's build tooling
 addopts = "-ra --strict-markers"
 filterwarnings = ["ignore:No directory at:UserWarning"]
 markers = [

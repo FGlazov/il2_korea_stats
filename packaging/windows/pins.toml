@@ -1,0 +1,36 @@
+# Everything the Windows installer is built from that does not come out of this repository (see README.md here).
+# build.py downloads each `url`, refuses a file whose SHA-256 differs from `sha256`, and caches it in build/windows/downloads.
+# Bump a version: change `version`, `url` and `sha256` together (README.md says where to find the hash) and rebuild.
+
+# The Python that runs il2ks: python-build-standalone, the relocatable "install_only_stripped" CPython 3.13 for Windows.
+# Hashes: SHA256SUMS in the same GitHub release. Must satisfy `requires-python` in pyproject.toml.
+[python]
+version = "3.13.16"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261003/cpython-3.13.16%2B20261003-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+sha256 = "ec43f1a85c29f147d7ae2d13218c52c70b24a983a82ab22d6c607c0593060e10"
+
+# Caddy: the bundled HTTPS proxy (TD-23). Upstream publishes SHA-512 (caddy_<version>_checksums.txt); the SHA-256 below
+# was computed from the file after checking its SHA-512 against that list.
+[caddy]
+version = "2.11.7"
+url = "https://github.com/caddyserver/caddy/releases/download/v2.11.7/caddy_2.11.7_windows_amd64.zip"
+sha256 = "0a1edc0b799512051c57071ce0e798d3f2cf67dc98171366f1d2b326072e3b06"
+
+# WinSW: wraps `il2ks run` as a Windows service. The x64 build needs .NET Framework 4.6.1+ (part of Windows 10/Server 2016 and later).
+# Upstream publishes no checksums: the hash below is of the file as downloaded when this version was chosen.
+[winsw]
+version = "2.12.0"
+url = "https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe"
+sha256 = "05b82d46ad331cc16bdc00de5c6332c1ef818df8ceefcd49c726553209b3a0da"
+
+# Build tools only (never shipped): the Inno Setup compiler, and innounp, which unpacks Inno's own installer so ISCC can be
+# used without installing Inno Setup on the build machine. (Pass --iscc PATH to build.py to use an installed one.)
+[inno_setup]
+version = "6.7.3"
+url = "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
+sha256 = "9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732"
+
+[innounp]
+version = "2.2.11"
+url = "https://github.com/jrathlev/InnoUnpacker-Windows-GUI/releases/download/oi_2_2_11/innounp-2.zip"
+sha256 = "851772538a041229102ad9964542d49dc00c74002e3091a70469c079ae368f52"
