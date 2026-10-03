@@ -19,7 +19,7 @@ from pathlib import Path
 from il2ks import logsetup
 from il2ks.config import Config, ConfigError, load_config
 from il2ks.ingest.lock import LockBusyError
-from il2ks.serving import caddy, custom, procutil, service, supervisor, webserver
+from il2ks.serving import bootid, caddy, custom, procutil, service, supervisor, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, ensure_secret_key
 
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
@@ -139,6 +139,7 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
     if dev:
         cfg = dataclasses.replace(cfg, debug=True)
     export_config(cfg)
+    bootid.export_boot_id()  # one ETag salt for all workers of this start (TD-28)
     prepare_data_dir(cfg)
     start_logging("web", cfg)
     if not cfg.debug and not cfg.web.secret_key:

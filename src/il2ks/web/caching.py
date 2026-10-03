@@ -7,7 +7,9 @@ of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public 
   `HX-Request`),
 - answers a matching `If-None-Match` with `304` **before the view runs** (`process_view`): the whole cost of a
   revalidation is one tiny query for the version,
-- adds that ETag, `Cache-Control: public, max-age=60` and `Vary: HX-Request, Accept-Language` to 200 responses.
+- adds that ETag, `Cache-Control: max-age=0, must-revalidate` and `Vary: HX-Request, Accept-Language` to 200 responses
+  (plus `Cookie` when the request carries the language cookie). Browsers keep the page but ask before every reuse, so
+  hiding a cheater or editing the branding shows up at once (TD-28); the question costs one tiny query.
 
 Left alone: non-GET/HEAD, `/admin/`, media and static URLs, responses that set a cookie, that aren't 200, or that
 already carry their own `Cache-Control` (live fragments, FR-ING-12/15, manage their own freshness; they never get an
@@ -15,7 +17,6 @@ ETag from us, so a client never revalidates them against the data version).
 """
 
 import hashlib
-import secrets
 from collections.abc import Callable
 from typing import cast
 
@@ -26,13 +27,14 @@ from django.utils.translation import get_language
 
 from il2ks import __version__
 from il2ks.db.models import DataVersion
+from il2ks.serving.bootid import current_boot_id
 
-MAX_AGE = 60
 VARY = ("HX-Request", "Accept-Language")
 _ETAG_ATTR = "_il2ks_etag"
-# Changes per web process start. Template and static overrides in custom/ (TD-25) only take effect after a restart
-# (templates are cached in production), and a restart must also invalidate what browsers revalidate.
-_BOOT_ID = secrets.token_hex(8)
+# Changes per `il2ks web` start, the same in all its workers (`serving.bootid`). Template and static overrides in
+# custom/ (TD-25) only take effect after a restart (templates are cached in production), and a restart must also
+# invalidate what browsers revalidate.
+_BOOT_ID = current_boot_id()
 
 type View = Callable[..., HttpResponse]
 
@@ -69,15 +71,17 @@ def _excluded_prefixes() -> tuple[str, ...]:
 
 
 def _matches(if_none_match: str, etag: str) -> bool:
-    """Weak comparison (RFC 9110 for `If-None-Match`): `W/` prefixes are ignored; `*` matches anything."""
-    tags = [t.strip().removeprefix("W/") for t in if_none_match.split(",")]
-    return "*" in tags or etag in tags
+    """Weak comparison (RFC 9110 for `If-None-Match`): `W/` prefixes are ignored. `*` is deliberately not special: it
+    is for conditional writes, and answering it with 304 would hide a 404 the view would give."""
+    return etag in [t.strip().removeprefix("W/") for t in if_none_match.split(",")]
 
 
-def _decorate(response: HttpResponse, etag: str) -> None:
+def _decorate(request: HttpRequest, response: HttpResponse, etag: str) -> None:
     response["ETag"] = etag
-    patch_cache_control(response, public=True, max_age=MAX_AGE)
+    patch_cache_control(response, max_age=0, must_revalidate=True)
     patch_vary_headers(response, VARY)  # pyright: ignore[reportArgumentType]
+    if settings.LANGUAGE_COOKIE_NAME in request.COOKIES:
+        patch_vary_headers(response, ("Cookie",))  # pyright: ignore[reportArgumentType]
 
 
 class DataVersionCacheMiddleware:
@@ -94,7 +98,7 @@ class DataVersionCacheMiddleware:
             and not response.has_header("Cache-Control")
             and not response.has_header("ETag")
         ):
-            _decorate(response, etag)
+            _decorate(request, response, etag)
         return response
 
     def process_view(
@@ -107,6 +111,6 @@ class DataVersionCacheMiddleware:
         setattr(request, _ETAG_ATTR, etag)
         if _matches(request.headers.get("If-None-Match", ""), etag):
             response = HttpResponseNotModified()
-            _decorate(response, etag)
+            _decorate(request, response, etag)
             return response
         return None

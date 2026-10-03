@@ -17,6 +17,10 @@ from il2ks.web.caching import DataVersionCacheMiddleware, make_etag
 pytestmark = pytest.mark.django_db
 
 
+def _directives(response: HttpResponse) -> set[str]:
+    return {d.strip() for d in response["Cache-Control"].split(",")}
+
+
 def get_page(client: Client, url: str = "/", **headers: str) -> HttpResponse:
     return client.get(url, headers=headers or None)
 
@@ -27,8 +31,7 @@ def test_public_page_gets_etag_and_cache_headers(client: Client) -> None:
     assert response.status_code == 200
     assert re.fullmatch(r'"[0-9a-f]{32}"', response["ETag"])
     assert not response["ETag"].startswith("W/")
-    assert "public" in response["Cache-Control"]
-    assert "max-age=60" in response["Cache-Control"]
+    assert _directives(response) == {"max-age=0", "must-revalidate"}  # TD-28: a hidden player disappears at once
     vary = {v.strip() for v in response["Vary"].split(",")}
     assert {"HX-Request", "Accept-Language"} <= vary
 
@@ -45,7 +48,7 @@ def test_matching_etag_gets_304_without_running_the_view(client: Client) -> None
     assert len(queries) == 1, "the data version lookup is the only query"
     assert "il2ks_db_dataversion" in queries.captured_queries[0]["sql"]
     assert response["ETag"] == etag
-    assert "max-age=60" in response["Cache-Control"]
+    assert _directives(response) == {"max-age=0", "must-revalidate"}
 
 
 def test_weak_and_listed_etags_match(client: Client) -> None:
@@ -53,7 +56,7 @@ def test_weak_and_listed_etags_match(client: Client) -> None:
 
     assert get_page(client, **{"If-None-Match": f"W/{etag}"}).status_code == 304
     assert get_page(client, **{"If-None-Match": f'"other", {etag}'}).status_code == 304
-    assert get_page(client, **{"If-None-Match": "*"}).status_code == 304
+    assert get_page(client, **{"If-None-Match": "*"}).status_code == 200  # `*` is for conditional writes (RFC 9110)
     assert get_page(client, **{"If-None-Match": '"other"'}).status_code == 200
 
 
@@ -93,7 +96,6 @@ def test_admin_is_excluded(client: Client) -> None:
     for url in ("/admin/login/", "/admin/", "/admin/il2ks_db/sitesettings/1/change/"):
         response = client.get(url, follow=True)
         assert "ETag" not in response.headers, url
-        assert "max-age=60" not in response.get("Cache-Control", ""), url
 
     # even an If-None-Match that cannot match is ignored, and a real admin page is never answered with a 304
     assert client.get("/admin/", headers={"If-None-Match": "*"}).status_code != 304
@@ -176,4 +178,4 @@ def test_ok_response_is_decorated() -> None:
     result = run(HttpResponse("x"))
 
     assert "ETag" in result.headers
-    assert result["Cache-Control"] == "public, max-age=60"
+    assert _directives(result) == {"max-age=0", "must-revalidate"}
