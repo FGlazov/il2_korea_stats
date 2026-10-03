@@ -195,3 +195,8 @@ _.by_ammo  # queries.ammo.AircraftAmmo
 sortie_ammo_by_pk  # queries.ammo
 aircraft_ammo  # queries.ammo
 all_aircraft_ammo  # queries.ammo
+# --- ammo and PvE pages (FR-WEB-18, FR-WEB-21): fields read only by templates --------------------------------------
+_.planes_lost  # web.pve.LossRow: players/detail_pve.html
+_.direct  # sortie_view.OrdnanceView: sorties/parts/ammo.html
+_.lost_to  # sortie_view.Detail: sorties/parts/summary.html
+_.average  # web.views.aircraft.AircraftRow / AmmoHits: aircraft/list.html

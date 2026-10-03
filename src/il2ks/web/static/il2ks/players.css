@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/players.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/players.css v2 - copy this line along when you override */
 /* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
 
 /* Search */
@@ -23,6 +23,10 @@
 .ground-table progress::-moz-progress-bar { background: var(--il2-accent); }
 .ground-table tfoot td { font-weight: 500; }
 .ground-table tfoot tr:first-child td { font-weight: 650; }
+
+/* PvE breakdown */
+.pve-table .is-zero td { color: var(--il2-muted); }
+.pve-table tfoot td { font-weight: 600; }
 
 /* Hall of shame */
 .shame h2 { margin-top: 2rem; }
