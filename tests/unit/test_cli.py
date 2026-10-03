@@ -165,6 +165,8 @@ def test_reprocess_and_rebuild_aggregates_run_on_an_empty_db(
     assert "reprocessed 0" in capsys.readouterr().out
     assert main(["rebuild-aggregates"]) == EXIT_OK
     assert "rebuilt" in capsys.readouterr().out
+    assert main(["rebuild-aggregates", "--retour"]) == EXIT_OK  # TD-26: reassign missions to tours first
+    assert "reassigned to tours" in capsys.readouterr().out
 
 
 @pytest.mark.django_db

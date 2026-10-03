@@ -43,4 +43,18 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
             log.info("backed up the database before updating it: %s", backup)
         log.info("applying database migrations")
         call_command("migrate", interactive=False, verbosity=0)
+        _backfill_tours(cfg)
         return backup
+
+
+def _backfill_tours(cfg: Config) -> None:
+    """Missions saved before tours existed get their tour, and the per-tour rows are built (FR-WEB-10, TD-26)."""
+    from django.db import transaction
+
+    from il2ks.db.models import Mission
+    from il2ks.ingest.aggregates import rebuild_aggregates
+
+    if Mission.objects.filter(tour__isnull=True).exists():
+        log.info("assigning existing missions to tours")
+        with transaction.atomic():
+            rebuild_aggregates(cfg.ratings, cfg.tours)

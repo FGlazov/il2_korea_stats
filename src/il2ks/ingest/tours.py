@@ -147,12 +147,21 @@ class TourProblems:
     """What `il2ks doctor` reports: data that doesn't match the configured tour rules."""
 
     missions_without_tour: int
-    tours_of_other_mode: int
+    stale_tours: int  # made under another mode, or (calendar modes) with boundaries the rules would not draw
     missions_outside_their_tour: int  # calendar modes only: started_at not inside [started_at, ended_at)
 
     @property
     def needs_retour(self) -> bool:
-        return bool(self.missions_without_tour or self.tours_of_other_mode or self.missions_outside_their_tour)
+        return bool(self.missions_without_tour or self.stale_tours or self.missions_outside_their_tour)
+
+
+def _is_stale(rules: TourRules, tour: Tour) -> bool:
+    if tour.mode != rules.label:
+        return True
+    if rules.mode == "manual":
+        return False
+    period = period_for(rules, tour.started_at)
+    return (period.started_at, period.ended_at) != (tour.started_at, tour.ended_at)
 
 
 def tour_problems(rules: TourRules) -> TourProblems:
@@ -161,6 +170,6 @@ def tour_problems(rules: TourRules) -> TourProblems:
     )
     return TourProblems(
         missions_without_tour=Mission.objects.filter(tour__isnull=True).count(),
-        tours_of_other_mode=Tour.objects.exclude(mode=rules.label).count(),
+        stale_tours=sum(1 for tour in Tour.objects.all() if _is_stale(rules, tour)),
         missions_outside_their_tour=0 if rules.mode == "manual" else outside.count(),
     )

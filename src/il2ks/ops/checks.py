@@ -369,7 +369,7 @@ def tours_check(cfg: Config) -> Iterable[Finding]:
         f"{n} {what}"
         for n, what in (
             (problems.missions_without_tour, "mission(s) without a tour"),
-            (problems.tours_of_other_mode, "tour(s) made under another mode"),
+            (problems.stale_tours, "tour(s) made under other settings"),
             (problems.missions_outside_their_tour, "mission(s) outside their tour's dates"),
         )
         if n
