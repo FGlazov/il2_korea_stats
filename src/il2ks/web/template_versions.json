@@ -14,8 +14,8 @@
       "sha256": "bfb6e189f65f90a472a130712abf35a3ac2fdc40178697cabf0ffba328267aa3"
     },
     "static/il2ks/site.css": {
-      "version": 2,
-      "sha256": "27d3d254d537f6bcf3fd4b1dfcb8cb2386e10aea9fa4bc463b85eafe53ce8318"
+      "version": 3,
+      "sha256": "65b0cba7762af418e8eef14f0d53814fb4a6412fc1835580ddfa77ed909c4b83"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
@@ -66,8 +66,8 @@
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
     "templates/il2ks/base.html": {
-      "version": 1,
-      "sha256": "07dd7b4f27701bba5ffe5dfe4c8ea48105dc29ae51a30b0d5f88709f1ad62a35"
+      "version": 2,
+      "sha256": "82bc00d48e2f5afda0c5430b694d7cbbb301b1b13f20ca03910e0fbc09bbcd1b"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -142,8 +142,8 @@
       "sha256": "c52f6c82ad74f113a85b066b210dc8ba065f6586e98c8e03fdf3a9825f7f24b9"
     },
     "templates/il2ks/missions/detail.html": {
-      "version": 1,
-      "sha256": "f2eff443279f0368edacfb9d81f2ae174cbe62fd6065073d01fb8d9eab9efc8e"
+      "version": 2,
+      "sha256": "adae4559fd6dc829c4fd6015cd22b47dd91ef43c9c36c5375d296d7fffc5f581"
     },
     "templates/il2ks/missions/list.html": {
       "version": 1,
@@ -154,8 +154,8 @@
       "sha256": "6ec10767d3a45c783352c9f92dfae549bb0549d12312fd10c3a5fa9b04a28845"
     },
     "templates/il2ks/players/detail_aircraft.html": {
-      "version": 1,
-      "sha256": "44d70587479cb4a25797521e14ceaa72d732dd8c1f2f3efa6584ccab1b31755d"
+      "version": 2,
+      "sha256": "98b7607d3abd511bdd2d6e7c49b591a58cec4904e831da2d9431a891cf3ed61e"
     },
     "templates/il2ks/players/detail_ground.html": {
       "version": 1,
@@ -170,8 +170,8 @@
       "sha256": "ecef02442355b14814c9f1520f33cdbd7051bcbfb84afa72fd49dcfa3a90d51c"
     },
     "templates/il2ks/players/detail_recent.html": {
-      "version": 1,
-      "sha256": "99da9aaf0066f1b8d76fc29a58b6b3b401d5bfe3a9709b618efe59511a005b3d"
+      "version": 2,
+      "sha256": "535cb1398c060e54bcd55d5a530392c0ac62a6c57d3dd9b09f3f56d283bcccf3"
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,

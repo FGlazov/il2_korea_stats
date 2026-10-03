@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v2 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -6,7 +6,7 @@
     head     extra <head> content (meta tags, a page's own stylesheet).
     nav      the <ul> of header navigation links.
     content  the page itself, inside <main>.
-    footer   the footer's inner content.
+    footer   the footer's inner content (it holds the language menu, `{% language_menu %}`).
     scripts  extra scripts, after htmx and il2ks.js.
   Context from il2ks.web.context_processors.site: site (SiteSettings), site_links [(label, url)], accent_css,
   data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
@@ -72,6 +72,7 @@
         <div class="site-footer__meta">
           {% if data_updated %}<span>{% blocktranslate with when=data_updated|utc %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
           <span>{% blocktranslate with version=il2ks_version %}Powered by il2ks {{ version }}{% endblocktranslate %}</span>
+          {% language_menu as languages %}<span class="site-footer__language">{% dropdown languages.label languages.items align="right" %}</span>
         </div>
       {% endblock %}
     </div>

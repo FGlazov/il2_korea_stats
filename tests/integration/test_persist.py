@@ -176,7 +176,7 @@ def test_unknown_object_types_are_auto_registered() -> None:
 
 
 def test_game_object_admin_names_survive_and_unknowns_get_fixed_by_catalog_updates() -> None:
-    GameObject.objects.create(log_name="MiG-15bis", display_name="Admin MiG", cls="fighter")
+    GameObject.objects.create(log_name="MiG-15bis", display_name="Admin MiG", cls="fighter", name_overridden=True)
     GameObject.objects.create(log_name="F-86A-5", display_name="F-86A-5", cls="unknown", is_known=False)
 
     save(basic_result())
@@ -184,6 +184,17 @@ def test_game_object_admin_names_survive_and_unknowns_get_fixed_by_catalog_updat
     assert GameObject.objects.get(log_name="MiG-15bis").display_name == "Admin MiG"
     sabre = GameObject.objects.get(log_name="F-86A-5")
     assert (sabre.display_name, sabre.cls, sabre.is_known) == ("F-86A Sabre", "fighter", True)
+
+
+def test_shipped_names_follow_the_catalog_but_admin_overrides_stay() -> None:
+    """TD-24: a catalog update refreshes the names it shipped, and never an admin's edit."""
+    GameObject.objects.create(log_name="MiG-15bis", display_name="Old MiG", cls="fighter")
+    GameObject.objects.create(log_name="F-86A-5", display_name="My Sabre", cls="fighter", name_overridden=True)
+
+    save(basic_result())
+
+    assert GameObject.objects.get(log_name="MiG-15bis").display_name == "MiG-15bis"
+    assert GameObject.objects.get(log_name="F-86A-5").display_name == "My Sabre"
 
 
 def test_countries_created_with_coalition_names_and_not_overwritten() -> None:

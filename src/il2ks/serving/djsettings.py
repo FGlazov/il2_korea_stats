@@ -22,6 +22,18 @@ INSTALLED_APPS = [
 ]
 """Order matters twice: Django looks for templates and static files in this order, and `il2ks custom` follows it."""
 
+LANGUAGES = [
+    ("en", "English"),
+    ("ru", "Russian"),
+    ("de", "German"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("pt-br", "Brazilian Portuguese"),
+]
+"""The site's languages (TD-24); English is the source text, the others are translated in `il2ks/locale/`. The codes
+must match `devtools.translations.TARGET_LANGUAGES` (a test checks). Language names are shown in their own language
+(`get_language_info(code)["name_local"]`), so these English names only label the admin and logs."""
+
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 """Django believes this header from the proxy (Caddy sets it itself; nginx and IIS must, see docs/reverse-proxy.md)."""

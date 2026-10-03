@@ -1,0 +1,1228 @@
+# il2ks translations. Machine-drafted entries carry the comment `llm-draft`; delete that line once a human has
+# reviewed the translation (docs/translating.md).
+msgid ""
+msgstr ""
+"Project-Id-Version:  il2ks\n"
+"Report-Msgid-Bugs-To: https://github.com/FGlazov/il2_korea_stats/issues\n"
+"POT-Creation-Date: 2026-10-03 19:23+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language: de\n"
+"Language-Team: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#, python-format
+msgid "%(counter)s nickname"
+msgid_plural "%(counter)s nicknames"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%(counter)s takeoff"
+msgid_plural "%(counter)s takeoffs"
+msgstr[0] ""
+msgstr[1] ""
+
+# llm-draft
+#, python-format
+msgid "%(h)d h"
+msgstr "%(h)d Std."
+
+# llm-draft
+#, python-format
+msgid "%(h)d h %(m)d min"
+msgstr "%(h)d Std. %(m)d Min."
+
+# llm-draft
+#, python-format
+msgid "%(m)d min"
+msgstr "%(m)d Min."
+
+# llm-draft
+#, python-format
+msgid "%(n)d names reset."
+msgstr "%(n)d Namen zurückgesetzt."
+
+# llm-draft
+#, python-format
+msgid "%(n)d row hidden from public pages."
+msgid_plural "%(n)d rows hidden from public pages."
+msgstr[0] "%(n)d Zeile auf den öffentlichen Seiten ausgeblendet."
+msgstr[1] "%(n)d Zeilen auf den öffentlichen Seiten ausgeblendet."
+
+# llm-draft
+#, python-format
+msgid "%(n)d row is visible again."
+msgid_plural "%(n)d rows are visible again."
+msgstr[0] "%(n)d Zeile ist wieder sichtbar."
+msgstr[1] "%(n)d Zeilen sind wieder sichtbar."
+
+#, python-format
+msgid "%(n)s air kills"
+msgstr ""
+
+#, python-format
+msgid "%(n)s assists"
+msgstr ""
+
+#, python-format
+msgid "%(n)s ground kills"
+msgstr ""
+
+#, python-format
+msgid "%(name)s: sorties"
+msgstr ""
+
+#, python-format
+msgid "%(ok)s missions reprocessed, %(failed)s failed, %(missing)s without an archive."
+msgstr ""
+
+#, python-format
+msgid "%(rate)s survived"
+msgstr ""
+
+#, python-format
+msgid "%(red_name)s %(red)s · %(blue_name)s %(blue)s"
+msgstr ""
+
+# llm-draft
+#, python-format
+msgid "%(s)d s"
+msgstr "%(s)d s"
+
+# llm-draft
+#, python-format
+msgid "%(title)s admin"
+msgstr "%(title)s – Verwaltung"
+
+#, python-format
+msgid "%(total)s in total, %(static)s of them static objects"
+msgstr ""
+
+#, python-format
+msgid "%(value)s per sortie"
+msgstr ""
+
+msgid ", and more"
+msgstr ""
+
+msgid "<1%"
+msgstr ""
+
+msgid "A clean sheet so far. The runway thanks you."
+msgstr ""
+
+msgid "A reprocess request is already waiting or running."
+msgstr ""
+
+msgid "A reprocess request is already waiting."
+msgstr ""
+
+msgid "AI aircraft"
+msgstr ""
+
+msgid "AI gunner"
+msgstr ""
+
+msgid "Air"
+msgstr ""
+
+msgid "Air kills"
+msgstr ""
+
+msgid "Air kills per flight hour"
+msgstr ""
+
+msgid "Air kills per sortie"
+msgstr ""
+
+msgid "Air start"
+msgstr ""
+
+# llm-draft
+msgid "Air superiority"
+msgstr "Luftüberlegenheit"
+
+msgid "Airborne"
+msgstr ""
+
+# llm-draft
+msgid "Aircraft"
+msgstr "Flugzeug"
+
+msgid "Aircraft lost"
+msgstr ""
+
+# llm-draft
+msgid "All"
+msgstr "Alle"
+
+msgid "All aircraft"
+msgstr ""
+
+# llm-draft
+msgid "All ingestion runs"
+msgstr "Alle Einlesevorgänge"
+
+msgid "All missions"
+msgstr ""
+
+msgid "All sorties"
+msgstr ""
+
+msgid "All sorties in this aircraft"
+msgstr ""
+
+msgid "All time"
+msgstr ""
+
+msgid "Also known as"
+msgstr ""
+
+msgid "Anti-aircraft"
+msgstr ""
+
+msgid "Any"
+msgstr ""
+
+msgid "Any outcome"
+msgstr ""
+
+msgid "Any role"
+msgstr ""
+
+# llm-draft
+msgid "Apply"
+msgstr "Anwenden"
+
+msgid "Artillery"
+msgstr ""
+
+msgid "Assist"
+msgstr ""
+
+msgid "Assists"
+msgstr ""
+
+# llm-draft
+#, python-format
+msgid "At most %(max)d links."
+msgstr "Höchstens %(max)d Links."
+
+# llm-draft
+msgid "Attack"
+msgstr "Erdkampf"
+
+msgid "Attack sorties"
+msgstr ""
+
+# llm-draft
+msgid "Attempts"
+msgstr "Versuche"
+
+msgid "BLUFOR won"
+msgstr ""
+
+# llm-draft
+msgid "Back to the start page"
+msgstr "Zurück zur Startseite"
+
+# llm-draft
+msgid "Bailed out"
+msgstr "Mit Fallschirm ausgestiegen"
+
+msgid "Bailouts"
+msgstr ""
+
+msgid "Bomb release"
+msgstr ""
+
+msgid "Bombs"
+msgstr ""
+
+# llm-draft
+msgid "Breadcrumb"
+msgstr "Brotkrumennavigation"
+
+# llm-draft
+msgid "Browse missions"
+msgstr "Missionen durchsuchen"
+
+msgid "Buildings"
+msgstr ""
+
+msgid "By aircraft"
+msgstr ""
+
+msgid "Cannon shells"
+msgstr ""
+
+# llm-draft
+msgid "Captured"
+msgstr "Gefangen genommen"
+
+msgid "Captures"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+# llm-draft
+msgid "Class"
+msgstr "Klasse"
+
+# llm-draft
+msgid "Clear filters"
+msgstr "Filter zurücksetzen"
+
+msgid "Close the current tour and start a new one now?"
+msgstr ""
+
+# llm-draft
+msgid "Coalitions"
+msgstr "Koalitionen"
+
+msgid "Combat role"
+msgstr ""
+
+# llm-draft
+msgid "Community"
+msgstr "Community"
+
+# llm-draft
+msgid "Counters (rebuilt by ingest)"
+msgstr "Zähler (werden beim Einlesen neu berechnet)"
+
+# llm-draft
+msgid "Crashed"
+msgstr "Abgestürzt"
+
+msgid "Crashed while taxiing, before takeoff"
+msgstr ""
+
+msgid "Credit"
+msgstr ""
+
+# llm-draft
+msgid "Current logo"
+msgstr "Aktuelles Logo"
+
+# llm-draft
+msgid "Damaged"
+msgstr "Beschädigt"
+
+# llm-draft
+#, python-format
+msgid "Data updated %(when)s"
+msgstr "Daten aktualisiert: %(when)s"
+
+msgid "Date"
+msgstr ""
+
+msgid "Date (UTC)"
+msgstr ""
+
+# llm-draft
+msgid "Dead"
+msgstr "Tot"
+
+msgid "Deaths"
+msgstr ""
+
+# llm-draft
+msgid "Destroyed"
+msgstr "Zerstört"
+
+msgid "Destroyed on the ground"
+msgstr ""
+
+msgid "Destroyed while parked, by an attacker"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Died"
+msgstr ""
+
+# llm-draft
+msgid "Display name"
+msgstr "Anzeigename"
+
+# llm-draft
+msgid "Ditched"
+msgstr "Wasserlandung"
+
+msgid "Duration"
+msgstr ""
+
+# llm-draft
+msgid "Either upload a new logo or remove the current one, not both."
+msgstr "Laden Sie entweder ein neues Logo hoch oder entfernen Sie das aktuelle, nicht beides."
+
+msgid "Empty missions"
+msgstr ""
+
+# llm-draft
+msgid "Error"
+msgstr "Fehler"
+
+# llm-draft
+msgid "Event type (AType)"
+msgstr "Ereignistyp (AType)"
+
+msgid "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them."
+msgstr ""
+
+msgid "Every pilot has bad days. These are the ones the server remembers."
+msgstr ""
+
+msgid "Every sortie, newest first. Select one for the full report."
+msgstr ""
+
+# llm-draft
+msgid "Exited on ground"
+msgstr "Am Boden ausgestiegen"
+
+# llm-draft
+msgid "Failed"
+msgstr "Fehlgeschlagen"
+
+# llm-draft
+msgid "Failed, waiting for a retry"
+msgstr "Fehlgeschlagen, wartet auf einen neuen Versuch"
+
+# llm-draft
+msgid "Find a player"
+msgstr "Spieler suchen"
+
+msgid "Find a player by name"
+msgstr ""
+
+#, python-format
+msgid "First seen %(first)s · last seen %(last)s"
+msgstr ""
+
+msgid "First used"
+msgstr ""
+
+msgid "Flight time"
+msgstr ""
+
+msgid "Friendly fire"
+msgstr ""
+
+msgid "Friendly hits"
+msgstr ""
+
+msgid "Friendly kills"
+msgstr ""
+
+# llm-draft
+msgid "Given up"
+msgstr "Aufgegeben"
+
+msgid "Ground"
+msgstr ""
+
+msgid "Ground kill"
+msgstr ""
+
+msgid "Ground kills"
+msgstr ""
+
+msgid "Ground kills by category"
+msgstr ""
+
+msgid "Ground kills per sortie"
+msgstr ""
+
+msgid "Gunner"
+msgstr ""
+
+msgid "Gunner only"
+msgstr ""
+
+msgid "Hall of shame"
+msgstr ""
+
+# llm-draft
+msgid "Healthy"
+msgstr "Unverletzt"
+
+# llm-draft
+msgid "Hidden"
+msgstr "Ausgeblendet"
+
+msgid "Hidden player"
+msgstr ""
+
+# llm-draft
+msgid "Hide selected missions from public pages"
+msgstr "Ausgewählte Missionen auf den öffentlichen Seiten ausblenden"
+
+# llm-draft
+msgid "Hide selected players from public pages"
+msgstr "Ausgewählte Spieler auf den öffentlichen Seiten ausblenden"
+
+# llm-draft
+msgid "Home"
+msgstr "Startseite"
+
+# llm-draft
+msgid "In aircraft"
+msgstr "Im Flugzeug"
+
+# llm-draft
+msgid "In flight"
+msgstr "Im Flug"
+
+#, python-format
+msgid "In game: %(when)s"
+msgstr ""
+
+# llm-draft
+msgid "Ingested"
+msgstr "Eingelesen"
+
+# llm-draft
+msgid "Ingestion status"
+msgstr "Einlesestatus"
+
+msgid ""
+"It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
+"are ingested again once it is over."
+msgstr ""
+
+msgid "K/D"
+msgstr ""
+
+#, python-format
+msgid "K/D %(value)s"
+msgstr ""
+
+msgid "K/L"
+msgstr ""
+
+#, python-format
+msgid "K/L %(value)s"
+msgstr ""
+
+# llm-draft
+msgid "Key (AType:KEY)"
+msgstr "Schlüssel (AType:KEY)"
+
+msgid "Kill"
+msgstr ""
+
+msgid "Killed"
+msgstr ""
+
+msgid "Killer"
+msgstr ""
+
+msgid "Kills"
+msgstr ""
+
+# llm-draft
+msgid "Kind"
+msgstr "Art"
+
+# llm-draft
+msgid "Landed"
+msgstr "Gelandet"
+
+msgid "Landings"
+msgstr ""
+
+# llm-draft
+msgid "Last 30 days"
+msgstr "Letzte 30 Tage"
+
+msgid "Last 7 days"
+msgstr ""
+
+msgid "Last 90 days"
+msgstr ""
+
+msgid "Last mission"
+msgstr ""
+
+# llm-draft
+msgid "Last mission ingested"
+msgstr "Zuletzt eingelesene Mission"
+
+msgid "Last request"
+msgstr ""
+
+msgid "Last seen"
+msgstr ""
+
+msgid "Last used"
+msgstr ""
+
+# llm-draft
+msgid "Latest attempt"
+msgstr "Letzter Versuch"
+
+msgid "Latest missions"
+msgstr ""
+
+# llm-draft
+msgid "Left the server"
+msgstr "Server verlassen"
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: the label or the address is too long."
+msgstr "Zeile %(n)d: Beschriftung oder Adresse ist zu lang."
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: the link must be a full http:// or https:// address."
+msgstr "Zeile %(n)d: Der Link muss eine vollständige http://- oder https://-Adresse sein."
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: write it as “Label | https://example.org”."
+msgstr "Zeile %(n)d: Schreiben Sie es als „Beschriftung | https://example.org“."
+
+# llm-draft
+msgid "Lines"
+msgstr "Zeilen"
+
+# llm-draft
+msgid "Links"
+msgstr "Links"
+
+msgid "Log incomplete"
+msgstr ""
+
+# llm-draft
+msgid "Log lines the parser does not know. Harmless until the game changes its log format; worth reporting."
+msgstr ""
+"Logzeilen, die der Parser nicht kennt. Harmlos, solange das Spiel sein Logformat nicht ändert; eine Meldung ist "
+"trotzdem sinnvoll."
+
+# llm-draft
+msgid "Log name"
+msgstr "Logname"
+
+# llm-draft
+msgid "Look"
+msgstr "Aussehen"
+
+msgid "Lost before the first takeoff, by their own doing"
+msgstr ""
+
+msgid "Machine-gun rounds"
+msgstr ""
+
+# llm-draft
+msgid "Main"
+msgstr "Hauptmenü"
+
+# llm-draft
+msgid "May still change"
+msgstr "Kann sich noch ändern"
+
+# llm-draft
+msgid "Mission"
+msgstr "Mission"
+
+# llm-draft
+msgid "Missions"
+msgstr "Missionen"
+
+# llm-draft
+msgid "Missions stored"
+msgstr "Gespeicherte Missionen"
+
+# llm-draft
+msgid "Name"
+msgstr "Name"
+
+msgid "Name contains…"
+msgstr ""
+
+msgid "Names and emblems shown for 5xx / 6xx. The default emblems are neutral."
+msgstr ""
+
+# llm-draft
+msgid "Neutral"
+msgstr "Neutral"
+
+# llm-draft
+msgid "Next"
+msgstr "Weiter"
+
+# llm-draft
+msgid "Next retry"
+msgstr "Nächster Versuch"
+
+msgid "Nickname"
+msgstr ""
+
+# llm-draft
+msgid "No logo."
+msgstr "Kein Logo."
+
+msgid "No missions match these filters."
+msgstr ""
+
+msgid "No missions yet."
+msgstr ""
+
+# llm-draft
+msgid ""
+"No more automatic retries. They are retried when their files or the il2ks version change, or run `il2ks reprocess "
+"--mission UID` after fixing the cause."
+msgstr ""
+"Keine weiteren automatischen Versuche. Sie werden erneut versucht, wenn sich ihre Dateien oder die il2ks-Version "
+"ändern, oder führen Sie nach Behebung der Ursache `il2ks reprocess --mission UID` aus."
+
+msgid "No pilot sorties are counted for this player yet."
+msgstr ""
+
+#, python-format
+msgid "No player found for “%(query)s”."
+msgstr ""
+
+msgid "No player-versus-player kills in this mission."
+msgstr ""
+
+msgid "No players yet."
+msgstr ""
+
+msgid "No sorties match these filters."
+msgstr ""
+
+msgid "No sorties yet"
+msgstr ""
+
+msgid "No winner"
+msgstr ""
+
+msgid "No, take me back"
+msgstr ""
+
+msgid "Nobody flew for this side."
+msgstr ""
+
+msgid "Nobody scored a kill in this mission."
+msgstr ""
+
+# llm-draft
+msgid "None."
+msgstr "Keine."
+
+# llm-draft
+msgid "Not taken off"
+msgstr "Nicht gestartet"
+
+# llm-draft
+msgid "Note"
+msgstr "Hinweis"
+
+# llm-draft
+msgid "Nothing ingested yet."
+msgstr "Noch nichts eingelesen."
+
+# llm-draft
+msgid "Nothing to show yet."
+msgstr "Noch nichts anzuzeigen."
+
+msgid "On this page"
+msgstr ""
+
+# llm-draft
+msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
+msgstr "Eine pro Zeile: „Beschriftung | https://adresse“. Wird in der Kopf- oder Fußzeile der Seite angezeigt. Höchstens 10."
+
+# llm-draft
+msgid "Operations"
+msgstr "Betrieb"
+
+msgid "Other"
+msgstr ""
+
+msgid "Other objects"
+msgstr ""
+
+msgid "Other totals"
+msgstr ""
+
+msgid "Outcome"
+msgstr ""
+
+msgid "Overview of all your overrides: <code>il2ks custom list</code>"
+msgstr ""
+
+# llm-draft
+msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
+msgstr "PNG, JPEG oder WebP, bis zu 2 MB. Das Bild wird geprüft, neu kodiert und verkleinert; SVG wird abgelehnt."
+
+# llm-draft
+msgid "Page not found"
+msgstr "Seite nicht gefunden"
+
+# llm-draft
+msgid "Pagination"
+msgstr "Seitennavigation"
+
+msgid "Parked aircraft"
+msgstr ""
+
+msgid "Parking"
+msgstr ""
+
+msgid "Part of a nickname"
+msgstr ""
+
+msgid "Period"
+msgstr ""
+
+msgid "Pilot"
+msgstr ""
+
+msgid "Pilot fate"
+msgstr ""
+
+msgid "Pilot or gunner"
+msgstr ""
+
+# llm-draft
+msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
+msgstr "Pilot-, Einsatz- und Missionsstatistiken unseres IL-2-Sturmovik-Korea-Servers."
+
+msgid "Planes lost"
+msgstr ""
+
+msgid "Player"
+msgstr ""
+
+msgid ""
+"Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in "
+"the sortie rows above."
+msgstr ""
+
+# llm-draft
+msgid "Players"
+msgstr "Spieler"
+
+# llm-draft
+#, python-format
+msgid "Powered by il2ks %(version)s"
+msgstr "Betrieben mit il2ks %(version)s"
+
+# llm-draft
+msgid "Previous"
+msgstr "Zurück"
+
+# llm-draft
+msgid "Problems"
+msgstr "Probleme"
+
+msgid "REDFOR won"
+msgstr ""
+
+# llm-draft
+msgid "Ratings"
+msgstr "Wertungen"
+
+msgid "Ratios"
+msgstr ""
+
+msgid ""
+"Re-runs every stored mission from its archive with the current rules, then rebuilds the aggregates. It can take a "
+"long time on a big archive. The watch process starts it at its next tick; the site keeps working meanwhile."
+msgstr ""
+
+msgid "Recent sorties"
+msgstr ""
+
+# llm-draft
+msgid "Recently completed by idle timeout"
+msgstr "Kürzlich wegen Inaktivität abgeschlossen"
+
+# llm-draft
+msgid "Remove the current logo"
+msgstr "Aktuelles Logo entfernen"
+
+msgid "Reprocess all missions"
+msgstr ""
+
+msgid "Reprocess all missions…"
+msgstr ""
+
+msgid "Reprocessing of all missions is requested. It starts at the next watch tick."
+msgstr ""
+
+# llm-draft
+msgid "Reset display names to the catalog defaults"
+msgstr "Anzeigenamen auf die Katalogstandards zurücksetzen"
+
+# llm-draft
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Rocket salvo"
+msgstr ""
+
+msgid "Rockets"
+msgstr ""
+
+msgid "Role"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Runway"
+msgstr ""
+
+# llm-draft
+msgid "Search"
+msgstr "Suchen"
+
+msgid "Search by nickname. Past nicknames are found too."
+msgstr ""
+
+msgid "Seat"
+msgstr ""
+
+# llm-draft
+msgid "Seen in logs but missing from the catalog. Give them a name here, and report them so the catalog can be updated."
+msgstr ""
+"In den Logs gesehen, aber nicht im Katalog. Geben Sie ihnen hier einen Namen und melden Sie sie, damit der Katalog "
+"aktualisiert werden kann."
+
+msgid "Share"
+msgstr ""
+
+msgid "Share of ground kills"
+msgstr ""
+
+msgid "Shared kill"
+msgstr ""
+
+msgid "Ship"
+msgstr ""
+
+msgid "Ships"
+msgstr ""
+
+# llm-draft
+msgid "Shot down"
+msgstr "Abgeschossen"
+
+# llm-draft
+msgid "Show selected missions on public pages again"
+msgstr "Ausgewählte Missionen auf den öffentlichen Seiten wieder anzeigen"
+
+# llm-draft
+msgid "Show selected players on public pages again"
+msgstr "Ausgewählte Spieler auf den öffentlichen Seiten wieder anzeigen"
+
+# llm-draft
+#, python-format
+msgid "Showing %(first)s–%(last)s of %(all)s"
+msgstr "%(first)s–%(last)s von %(all)s"
+
+msgid "Shown"
+msgstr ""
+
+# llm-draft
+msgid "Site administration"
+msgstr "Website-Verwaltung"
+
+# llm-draft
+msgid "Skip to content"
+msgstr "Zum Inhalt springen"
+
+# llm-draft
+msgid "Something went wrong"
+msgstr "Etwas ist schiefgelaufen"
+
+msgid "Sortie details"
+msgstr ""
+
+msgid "Sortie ended"
+msgstr ""
+
+msgid "Sortie report"
+msgstr ""
+
+msgid "Sorties"
+msgstr ""
+
+#, python-format
+msgid "Sorties of %(name)s"
+msgstr ""
+
+msgid "Sorties per side"
+msgstr ""
+
+# llm-draft
+msgid "Source"
+msgstr "Quelle"
+
+# llm-draft
+msgid "Source files"
+msgstr "Quelldateien"
+
+msgid "Spawned"
+msgstr ""
+
+msgid "Start a new tour now"
+msgstr ""
+
+#, python-format
+msgid "Started %(title)s."
+msgstr ""
+
+msgid "Static object"
+msgstr ""
+
+msgid "Strafed on the ground"
+msgstr ""
+
+msgid "Survival rate"
+msgstr ""
+
+msgid "Suspected early bailouts"
+msgstr ""
+
+# llm-draft
+msgid "Switch between light and dark"
+msgstr "Zwischen hell und dunkel wechseln"
+
+msgid "Takeoffs"
+msgstr ""
+
+msgid "Tank"
+msgstr ""
+
+msgid "Tanks"
+msgstr ""
+
+msgid "Taxi accidents"
+msgstr ""
+
+# llm-draft
+msgid "That page does not exist, or the link is out of date."
+msgstr "Diese Seite existiert nicht, oder der Link ist veraltet."
+
+# llm-draft
+msgid "The file is empty."
+msgstr "Die Datei ist leer."
+
+# llm-draft
+#, python-format
+msgid "The file is larger than %(mb)d MB."
+msgstr "Die Datei ist größer als %(mb)d MB."
+
+# llm-draft
+msgid "The file is larger than 2 MB."
+msgstr "Die Datei ist größer als 2 MB."
+
+# llm-draft
+#, python-format
+msgid "The image has too many pixels (limit: %(px)d megapixels)."
+msgstr "Das Bild hat zu viele Pixel (Grenze: %(px)d Megapixel)."
+
+# llm-draft
+msgid "The image is damaged or truncated."
+msgstr "Das Bild ist beschädigt oder unvollständig."
+
+msgid ""
+"The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion "
+"status page."
+msgstr ""
+
+# llm-draft
+msgid "The numbers on this page are provisional and can still be updated."
+msgstr "Die Zahlen auf dieser Seite sind vorläufig und können sich noch ändern."
+
+# llm-draft
+msgid "The server hit an error while building this page. Please try again in a moment."
+msgstr "Beim Erstellen dieser Seite ist auf dem Server ein Fehler aufgetreten. Bitte versuchen Sie es gleich noch einmal."
+
+msgid "The server stopped before the mission ended; the numbers may be partial."
+msgstr ""
+
+# llm-draft
+msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
+msgstr "Diese endeten ohne Mission-Ende-Ereignis; ein Blick lohnt sich, falls der Server mitten in der Mission abgestürzt ist."
+
+msgid ""
+"These files in your custom/ folder replace built-in il2ks files, but are based on an older version of them (or on an "
+"unknown one). They may be broken or hide new content. Visitors can be affected."
+msgstr ""
+
+# llm-draft
+msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
+msgstr "Dies ist kein PNG-, JPEG- oder WebP-Bild (SVG wird nicht akzeptiert)."
+
+# llm-draft
+msgid "This page is not listed or searchable. Only people with the link can see it."
+msgstr "Diese Seite ist weder gelistet noch durchsuchbar. Nur Personen mit dem Link können sie sehen."
+
+msgid "This player flies as a gunner only. Gunner stats come later."
+msgstr ""
+
+#, python-format
+msgid ""
+"This re-runs the %(n)s stored mission from its archive with the current rules, then rebuilds all statistics and "
+"ratings."
+msgid_plural ""
+"This re-runs all %(n)s stored missions from their archives with the current rules, then rebuilds all statistics and "
+"ratings."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Time"
+msgstr ""
+
+msgid "Time on target"
+msgstr ""
+
+msgid "Took off"
+msgstr ""
+
+msgid "Top pilots by kills"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Tour"
+msgstr ""
+
+msgid "Tours start by themselves unless [tours] mode is manual."
+msgstr ""
+
+msgid "Trains"
+msgstr ""
+
+# llm-draft
+msgid "Unharmed"
+msgstr "Unbeschädigt"
+
+# llm-draft
+msgid "Unknown"
+msgstr "Unbekannt"
+
+# llm-draft
+msgid "Unknown event types (AType: lines)"
+msgstr "Unbekannte Ereignistypen (AType:-Zeilen)"
+
+# llm-draft
+msgid "Unknown event types and keys, last 30 days"
+msgstr "Unbekannte Ereignistypen und Schlüssel, letzte 30 Tage"
+
+# llm-draft
+msgid "Unknown keys (AType:KEY: lines)"
+msgstr "Unbekannte Schlüssel (AType:KEY:-Zeilen)"
+
+# llm-draft
+msgid "Unknown object types"
+msgstr "Unbekannte Objekttypen"
+
+# llm-draft
+msgid "Upload a new logo"
+msgstr "Neues Logo hochladen"
+
+# llm-draft
+msgid "Use a colour like #1A73E8 (six hex digits), or leave it empty."
+msgstr "Geben Sie eine Farbe wie #1A73E8 an (sechs Hexadezimalziffern) oder lassen Sie das Feld leer."
+
+msgid "Vehicle"
+msgstr ""
+
+msgid "Vehicles"
+msgstr ""
+
+msgid "Victim"
+msgstr ""
+
+# llm-draft
+msgid "View"
+msgstr "Ansehen"
+
+msgid "Waiting"
+msgstr ""
+
+# llm-draft
+msgid "Warning"
+msgstr "Warnung"
+
+msgid "Warning: some of your custom files are out of date"
+msgstr ""
+
+# llm-draft
+msgid "Warnings"
+msgstr "Warnungen"
+
+msgid "Winner"
+msgstr ""
+
+# llm-draft
+msgid "Wounded"
+msgstr "Verwundet"
+
+msgid "Yes, reprocess all missions"
+msgstr ""
+
+msgid "after the pilot bailed out"
+msgstr ""
+
+msgid "after the pilot left the server"
+msgstr ""
+
+msgid "air kills per death"
+msgstr ""
+
+msgid "air kills per plane lost"
+msgstr ""
+
+#, python-format
+msgid "also known as %(name)s"
+msgstr ""
+
+msgid "current"
+msgstr ""
+
+#, python-format
+msgid "flight time %(t)s"
+msgstr ""
+
+msgid "of them static objects"
+msgstr ""
+
+#, python-format
+msgid "requested %(at)s by %(who)s; it starts at the next watch tick."
+msgstr ""
+
+# llm-draft
+msgid "runs ok / failed"
+msgstr "Läufe erfolgreich / fehlgeschlagen"
+
+#, python-format
+msgid "since %(started)s: %(done)s of %(total)s missions done, %(failed)s failed."
+msgstr ""
+
+msgid "sorties"
+msgstr ""
+
+msgid "sorties without a death"
+msgstr ""
+
+#, python-format
+msgid "x %(x)s, z %(z)s, altitude %(y)s m"
+msgstr ""
+

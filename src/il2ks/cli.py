@@ -132,6 +132,55 @@ def _add_ops_parsers(sub: SubParsers) -> None:
     restore.add_argument("--yes", action="store_true", help="do not ask for confirmation")
 
 
+def _add_translation_parsers(dev: SubParsers) -> None:
+    """`il2ks dev translations ...` (TD-24, docs/translating.md): pure-Python gettext workflow."""
+    tr = dev.add_parser("translations", help="extract, merge, compile and check the translations (docs/translating.md)")
+    sub = tr.add_subparsers(dest="translations_command", required=True)
+    sub.add_parser("update", help="re-extract the strings, merge them into every language's .po, then compile")
+    sub.add_parser("compile", help="compile every .po into its .mo (after editing a .po by hand)")
+    sub.add_parser("status", help="per language: strings, translated, still llm-draft (unreviewed), untranslated")
+    missing = sub.add_parser("missing", help="print a language's untranslated strings as JSON (input for a draft)")
+    missing.add_argument("language", help="ru, de, es, fr or pt-br")
+    imp = sub.add_parser("import", help="fill untranslated strings from a JSON file {msgid: msgstr}, marked llm-draft")
+    imp.add_argument("language", help="ru, de, es, fr or pt-br")
+    imp.add_argument("file", type=Path, help="JSON object: msgid -> msgstr (a list of forms for plural messages)")
+
+
+def _translations_command(ns: argparse.Namespace) -> int:
+    import json
+
+    from il2ks.devtools import translations
+
+    try:
+        match ns.translations_command:
+            case "update":
+                for directory, count in translations.update().items():
+                    print(f"{directory}: {count} strings")
+                translations.compile_all()
+            case "compile":
+                for path in translations.compile_all():
+                    print(f"wrote {path}")
+            case "status":
+                print(f"{'language':<9}{'strings':>8}{'translated':>11}{'llm-draft':>10}{'reviewed':>9}{'missing':>8}")
+                for row in translations.status():
+                    print(
+                        f"{row.language:<9}{row.total:>8}{row.translated:>11}{row.drafts:>10}"
+                        f"{row.reviewed:>9}{row.untranslated:>8}"
+                    )
+            case "missing":
+                text = json.dumps(translations.missing(ns.language), ensure_ascii=False, indent=2)
+                sys.stdout.buffer.write(text.encode("utf-8") + b"\n")  # UTF-8 whatever the console code page is
+            case _:  # "import"
+                filled = translations.import_drafts(ns.language, translations.load_drafts(ns.file))
+                print(
+                    f"{filled} strings filled, marked {translations.DRAFT_MARK}; run `il2ks dev translations compile`"
+                )
+    except translations.TranslationError as exc:
+        print(f"il2ks dev translations: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    return EXIT_OK
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="il2ks", description="IL-2 Korea stats")
     parser.add_argument("--config", type=Path, help="il2ks.toml to use (default: IL2KS_CONFIG, ./il2ks.toml, data dir)")
@@ -205,6 +254,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "template-changes", help="template versions that changed since a release tag (release notes)"
     )
     changes.add_argument("old_tag", help="a git tag or commit, like v0.2.0")
+    _add_translation_parsers(dev)
     serving_commands.add_parsers(sub)
     return parser
 
@@ -251,6 +301,8 @@ def _main(argv: Sequence[str] | None) -> int:
         from il2ks.devtools.templates import template_changes
 
         return template_changes(ns.old_tag)
+    if command == "dev" and ns.dev_command == "translations":
+        return _translations_command(ns)
     if command == "db" and ns.db_command == "copy":
         _django_setup()
         from il2ks.db.copy import copy_all

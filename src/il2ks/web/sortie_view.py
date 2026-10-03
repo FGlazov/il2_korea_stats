@@ -13,12 +13,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Literal, cast
 
+from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
 
 from il2ks.core.catalog.loader import GROUND_CATEGORIES
 from il2ks.db.models import GameObject, Kill, PlayerSortie
-from il2ks.web import display, icons
+from il2ks.web import display, icons, object_names
 
 type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
@@ -208,7 +208,7 @@ class Lookup:
 
     def object_name(self, log_name: str) -> str:
         obj = self.objects.get(log_name)
-        return (obj.display_name or obj.log_name) if obj is not None else log_name
+        return object_names.name_of(obj, get_language() or "en") if obj is not None else log_name
 
     def object_class(self, log_name: str) -> str:
         obj = self.objects.get(log_name)
@@ -219,7 +219,7 @@ class Lookup:
         row = self.sorties.get(sortie_id) if sortie_id is not None else None
         if row is not None:
             obj = row.aircraft
-            name = obj.display_name or obj.log_name
+            name = object_names.name_of(obj, get_language() or "en")
             icon = icons.aircraft_icon_name(obj.log_name, obj.propulsion)
             if row.player.is_hidden:
                 return Who("hidden", aircraft=name, icon=icon)

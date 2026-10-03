@@ -479,6 +479,26 @@ def test_game_object_filters_find_unknown_objects(admin: Client) -> None:
     assert [o.log_name for o in searched] == ["Unknown-1"]
 
 
+def test_an_edited_game_object_name_is_an_override_until_reset_or_typed_back(admin: Client) -> None:
+    """TD-24: edits are overrides on top of the shipped (translated) defaults; the shipped name is no override."""
+    default = load_default_catalog().lookup("F-86A-5").display_name
+    obj = GameObject.objects.create(log_name="F-86A-5", display_name=default, cls=ObjectClass.FIGHTER)
+    url = f"/admin/il2ks_db/gameobject/{obj.pk}/change/"
+
+    admin.post(url, {"display_name": "My Sabre"})
+    obj.refresh_from_db()
+    assert (obj.display_name, obj.name_overridden) == ("My Sabre", True)
+
+    admin.post(url, {"display_name": default})
+    obj.refresh_from_db()
+    assert obj.name_overridden is False
+
+    admin.post(url, {"display_name": "My Sabre"})
+    admin.post("/admin/il2ks_db/gameobject/", {"action": "reset_names", "_selected_action": [obj.pk]})
+    obj.refresh_from_db()
+    assert (obj.display_name, obj.name_overridden) == (default, False)
+
+
 def test_game_object_names_can_be_reset_to_the_catalog(admin: Client) -> None:
     default = load_default_catalog().lookup("F-86A-5").display_name
     assert default

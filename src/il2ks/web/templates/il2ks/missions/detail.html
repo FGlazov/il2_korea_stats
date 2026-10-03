@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
   PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
@@ -62,7 +62,7 @@
             <tr>
               <td class="num muted" title="{{ s.spawned_at|utc }}">{{ s.spawned_at|clock_since:mission.started_at }}</td>
               <th scope="row"><span class="pilot-cell">{% include "il2ks/missions/_player.html" with player=s.player name=s.name_at_time %}{% if s.role == "gunner" %}{% badge _("Gunner") "purple" %}{% endif %}</span></th>
-              <td><span class="aircraft-cell">{% if s.role != "gunner" %}{% aircraft_icon s.aircraft %}{% endif %}{{ s.aircraft.display_name }}</span></td>
+              <td><span class="aircraft-cell">{% if s.role != "gunner" %}{% aircraft_icon s.aircraft %}{% endif %}{{ s.aircraft|object_name }}</span></td>
               <td>{% if s.combat_role %}{% role_badge s.combat_role %}{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{% outcome_badge s.outcome %}</td>
               <td>{% fate_badge s.pilot_fate %}</td>
@@ -99,13 +99,13 @@
             <td>
               <span class="kill-who">
                 <span>{% coalition_icon k.killer_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.killer_sortie.player name=k.killer_sortie.name_at_time %}</span>
-                <span class="muted">{{ k.killer_sortie.aircraft.display_name }}</span>
+                <span class="muted">{{ k.killer_sortie.aircraft|object_name }}</span>
               </span>
             </td>
             <td>
               <span class="kill-who">
                 <span>{% coalition_icon k.victim_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.victim_sortie.player name=k.victim_sortie.name_at_time %}</span>
-                <span class="muted">{{ k.victim_sortie.aircraft.display_name }}</span>
+                <span class="muted">{{ k.victim_sortie.aircraft|object_name }}</span>
               </span>
             </td>
             <td>

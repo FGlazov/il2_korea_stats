@@ -1,0 +1,437 @@
+log_name,english,display_name,review
+Multiturret_SimpleB29,B-29 turrets,Tourelles du B-29,llm-draft
+Turret_B29_1,B-29 turret 1,Tourelle du B-29 1,llm-draft
+Turret_B29_2,B-29 turret 2,Tourelle du B-29 2,llm-draft
+Turret_B29_3M,B-29 turret 3,Tourelle du B-29 3,llm-draft
+Turret_IL10,IL-10 gunner,Mitrailleur de l'IL-10,llm-draft
+Turret_Tu2_1,Tu-2 turret 1,Tourelle du Tu-2 1,llm-draft
+Turret_Tu2_2,Tu-2 turret 2,Tourelle du Tu-2 2,llm-draft
+Turret_Tu2_3,Tu-2 turret 3,Tourelle du Tu-2 3,llm-draft
+T-34-85 stowed,T-34-85 stowed,T-34-85 (en position repliée),llm-draft
+Box Car,Box Car,Wagon couvert,llm-draft
+GMC CCKW refueler,GMC CCKW refueler,GMC CCKW (ravitailleur),llm-draft
+Gondola Car,Gondola Car,Wagon tombereau,llm-draft
+M1A1 155mm howitzer,M1A1 155mm howitzer,Obusier M1A1 de 155 mm,llm-draft
+M2 155mm LongTom,M2 155mm LongTom,Canon M2 de 155 mm « Long Tom »,llm-draft
+M2 203mm Howitzer,M2 203mm Howitzer,Obusier M2 de 203 mm,llm-draft
+M2A1 105mm howitzer,M2A1 105mm howitzer,Obusier M2A1 de 105 mm,llm-draft
+M3A1 half-track,M3A1 half-track,Semi-chenillé M3A1,llm-draft
+M6 High-Speed Tractor,M6 High-Speed Tractor,Tracteur rapide M6,llm-draft
+Mail Car,Mail Car,Wagon postal,llm-draft
+ML-20 howitzer-gun,ML-20 howitzer-gun,Canon-obusier ML-20,llm-draft
+Passenger Car,Passenger Car,Voiture voyageurs,llm-draft
+Platform Car,Platform Car,Wagon plat,llm-draft
+Studebaker US6 refueler,Studebaker US6 refueler,Studebaker US6 (ravitailleur),llm-draft
+Studebaker US6 tanker,Studebaker US6 tanker,Studebaker US6 (camion-citerne),llm-draft
+Tank Car,Tank Car,Wagon-citerne,llm-draft
+Type 475.1,Type 475.1 locomotive,Locomotive Type 475.1,llm-draft
+Type 475.1 tender,Type 475.1 tender,Tender Type 475.1,llm-draft
+61-K mobile,61-K mobile,61-K (mobile),llm-draft
+61-K stowed,61-K stowed,61-K (en position repliée),llm-draft
+61-K transported,61-K transported,61-K (en transport),llm-draft
+72-K stowed,72-K stowed,72-K (en position repliée),llm-draft
+Bofors 40 mm L/60 gun,Bofors 40 mm L/60 gun,Canon Bofors de 40 mm L/60,llm-draft
+Bofors 40 mm L/60 gun mobile,Bofors 40 mm L/60 gun mobile,Canon Bofors de 40 mm L/60 (mobile),llm-draft
+Bofors 40 mm L/60 stowed,Bofors 40 mm L/60 stowed,Canon Bofors de 40 mm L/60 (en position repliée),llm-draft
+Browning M2HB-AA,Browning M2HB-AA,Browning M2HB (antiaérien),llm-draft
+DShK-AA,DShK-AA,DShK (antiaérien),llm-draft
+DShK-AA mobile,DShK-AA mobile,DShK (antiaérien) (mobile),llm-draft
+M-1919 AA,M-1919 AA,M-1919 (antiaérien),llm-draft
+M2 120mm AAA,M2 120mm AAA,Canon antiaérien M2 de 120 mm,llm-draft
+M2 90mm AAA,M2 90mm AAA,Canon antiaérien M2 de 90 mm,llm-draft
+Platform Car AA,Platform Car AA,Wagon plat antiaérien,llm-draft
+Platform Car AA 61K,Platform Car AA 61-K,Wagon plat antiaérien 61-K,llm-draft
+Platform Car AA Boforce L/60,Platform Car AA Bofors L/60,Wagon plat antiaérien Bofors L/60,llm-draft
+Platform Car AA DShK,Platform Car AA DShK,Wagon plat antiaérien DShK,llm-draft
+Platform Car AA M1919,Platform Car AA M1919,Wagon plat antiaérien M1919,llm-draft
+Platform Car AA SG,Platform Car AA SG,Wagon plat antiaérien SG,llm-draft
+Platform Car AA ZPUVz53,Platform Car AA ZPU Vz.53,Wagon plat antiaérien ZPU Vz.53,llm-draft
+SG-43 AA,SG-43 AA,SG-43 (antiaérien),llm-draft
+Cargo ship 1,Cargo ship 1,Cargo 1,llm-draft
+Cargo ship 2,Cargo ship 2,Cargo 2,llm-draft
+Gleaves class destroyer,Gleaves class destroyer,Destroyer de classe Gleaves,llm-draft
+Landing Craft LCI(L),Landing Craft LCI(L),Péniche de débarquement LCI(L),llm-draft
+Landing Craft LCVP,Landing Craft LCVP,Péniche de débarquement LCVP,llm-draft
+"Landing Ship, Tank","Landing Ship, Tank",Navire de débarquement de chars,llm-draft
+Liberty class ship,Liberty class ship,Cargo de classe Liberty,llm-draft
+Pinnace,Pinnace,Pinasse,llm-draft
+Sampan landingcraft,Sampan landingcraft,Sampan de débarquement,llm-draft
+Seiner,Seiner,Senneur,llm-draft
+Seiner gunboat,Seiner gunboat,Senneur armé,llm-draft
+Tanker ship,Tanker ship,Pétrolier,llm-draft
+Airfield caponier PSP,Airfield caponier PSP,Alvéole d'aérodrome (PSP),llm-draft
+Airfield caponier PSP A,Airfield caponier PSP A,Alvéole d'aérodrome (PSP) A,llm-draft
+Airfield caponier PSP B,Airfield caponier PSP B,Alvéole d'aérodrome (PSP) B,llm-draft
+Airfield caponier PSP C,Airfield caponier PSP C,Alvéole d'aérodrome (PSP) C,llm-draft
+Airfield caponier PSP D,Airfield caponier PSP D,Alvéole d'aérodrome (PSP) D,llm-draft
+Airfield caponier sandbags,Airfield caponier sandbags,Alvéole d'aérodrome (sacs de sable),llm-draft
+Airfield caponier sandbags A,Airfield caponier sandbags A,Alvéole d'aérodrome (sacs de sable) A,llm-draft
+Airfield caponier sandbags B,Airfield caponier sandbags B,Alvéole d'aérodrome (sacs de sable) B,llm-draft
+Airfield caponier sandbags C,Airfield caponier sandbags C,Alvéole d'aérodrome (sacs de sable) C,llm-draft
+Airfield caponier sandbags D,Airfield caponier sandbags D,Alvéole d'aérodrome (sacs de sable) D,llm-draft
+Airfield caponier sandbags E,Airfield caponier sandbags E,Alvéole d'aérodrome (sacs de sable) E,llm-draft
+Airfield crane A,Airfield crane A,Grue d'aérodrome A,llm-draft
+Airfield Equipment APU SU1950,Airfield Equipment APU SU1950,Équipement d'aérodrome : APU SU1950,llm-draft
+Airfield Equipment APU US1950,Airfield Equipment APU US1950,Équipement d'aérodrome : APU US1950,llm-draft
+Airfield Equipment Engine J33,Airfield Equipment Engine J33,Équipement d'aérodrome : moteur J33,llm-draft
+Airfield Equipment Engine VK1,Airfield Equipment Engine VK1,Équipement d'aérodrome : moteur VK1,llm-draft
+Airfield Equipment Gas Cylinders,Airfield Equipment Gas Cylinders,Équipement d'aérodrome : bouteilles de gaz,llm-draft
+Airfield hangar gateless,Airfield hangar gateless,Hangar sans porte,llm-draft
+Airfield hangar gateless A,Airfield hangar gateless A,Hangar sans porte A,llm-draft
+Airfield hangar japanese framed,Airfield hangar japanese framed,"Hangar (japonais, à ossature)",llm-draft
+Airfield hangar japanese framed A,Airfield hangar japanese framed A,"Hangar (japonais, à ossature) A",llm-draft
+Airfield hangar semi-awning,Airfield hangar semi-awning,Hangar (à demi-auvent),llm-draft
+Airfield hangar type K - opened,Airfield hangar type K - opened,Hangar type K (ouvert),llm-draft
+Airfield Tower Auxiliary,Airfield Tower Auxiliary,Tour auxiliaire d'aérodrome,llm-draft
+Ammo storage A,Ammo storage A,Dépôt de munitions A,llm-draft
+Ammo storage B,Ammo storage B,Dépôt de munitions B,llm-draft
+Apartment korean C,Apartment korean C,Immeuble d'habitation (coréen) C,llm-draft
+Barrels storage A,Barrels storage A,Dépôt de barils A,llm-draft
+Barrels storage B,Barrels storage B,Dépôt de barils B,llm-draft
+Barrels storage C,Barrels storage C,Dépôt de barils C,llm-draft
+Barrels storage D,Barrels storage D,Dépôt de barils D,llm-draft
+BlocksArray,Block array,Ensemble de blocs,llm-draft
+Bomb rack with M64 A,Bomb rack with M64 A,Rack à bombes avec M64 A,llm-draft
+Bomb rack with M64 B,Bomb rack with M64 B,Rack à bombes avec M64 B,llm-draft
+Box Car A,Box Car A,Wagon couvert A,llm-draft
+Box Car B,Box Car B,Wagon couvert B,llm-draft
+Box Car C,Box Car C,Wagon couvert C,llm-draft
+Box Car D,Box Car D,Wagon couvert D,llm-draft
+Box Car F,Box Car F,Wagon couvert F,llm-draft
+Box Car G,Box Car G,Wagon couvert G,llm-draft
+Camouflage net,Camouflage net,Filet de camouflage,llm-draft
+Camouflage net A,Camouflage net A,Filet de camouflage A,llm-draft
+Camouflage net B,Camouflage net B,Filet de camouflage B,llm-draft
+Camp cargo trailer,Camp cargo trailer,Remorque cargo du camp,llm-draft
+Camp cistern trailer,Camp cistern trailer,Remorque-citerne du camp,llm-draft
+Camp generator trailer,Camp generator trailer,Remorque générateur du camp,llm-draft
+Camp reservoir,Camp reservoir,Réservoir du camp,llm-draft
+Camp shower,Camp shower,Douches du camp,llm-draft
+Capital railroad bridge 100m,Capital railroad bridge 100m,Pont ferroviaire permanent 100 m,llm-draft
+Capital railroad bridge 150m,Capital railroad bridge 150m,Pont ferroviaire permanent 150 m,llm-draft
+Capital railroad bridge 200m,Capital railroad bridge 200m,Pont ferroviaire permanent 200 m,llm-draft
+Capital railroad bridge 50m,Capital railroad bridge 50m,Pont ferroviaire permanent 50 m,llm-draft
+Capital railroad bridge 75m,Capital railroad bridge 75m,Pont ferroviaire permanent 75 m,llm-draft
+Capital road bridge 100m,Capital road bridge 100m,Pont routier permanent 100 m,llm-draft
+Capital road bridge 150m,Capital road bridge 150m,Pont routier permanent 150 m,llm-draft
+Capital road bridge 200m,Capital road bridge 200m,Pont routier permanent 200 m,llm-draft
+Capital road bridge 250m,Capital road bridge 250m,Pont routier permanent 250 m,llm-draft
+Capital road bridge 25m,Capital road bridge 25m,Pont routier permanent 25 m,llm-draft
+Capital road bridge 50m,Capital road bridge 50m,Pont routier permanent 50 m,llm-draft
+Capital road bridge 75m,Capital road bridge 75m,Pont routier permanent 75 m,llm-draft
+Cargo Ship A,Cargo Ship A,Cargo A,llm-draft
+Cargocart M5,Cargocart M5,Chariot de fret M5,llm-draft
+Cargocart M5 with ammo,Cargocart M5 with ammo,Chariot de fret M5 avec munitions,llm-draft
+Cargocart M5 with M64,Cargocart M5 with M64,Chariot de fret M5 avec M64,llm-draft
+Control tower capital short,Control tower capital short,"Tour de contrôle (permanente, basse)",llm-draft
+Control tower temp short,Control tower temp short,"Tour de contrôle (provisoire, basse)",llm-draft
+Control tower temp tall,Control tower temp tall,"Tour de contrôle (provisoire, haute)",llm-draft
+Dam medium wall A,Dam medium wall A,Barrage (mur moyen) A,llm-draft
+Dam medium wall B,Dam medium wall B,Barrage (mur moyen) B,llm-draft
+Dam medium wall with spill,Dam medium wall with spill,"Barrage (mur moyen, avec déversoir)",llm-draft
+Dam small wall,Dam small wall,Barrage (petit mur),llm-draft
+Dam small wall with building,Dam small wall with building,"Barrage (petit mur, avec bâtiment)",llm-draft
+Disassembled MiG-15bis,Disassembled MiG-15bis,MiG-15bis démonté,llm-draft
+Dugout A,Dugout A,Abri souterrain A,llm-draft
+Dugout B,Dugout B,Abri souterrain B,llm-draft
+Empty bomb rack,Empty bomb rack,Rack à bombes vide,llm-draft
+Empty bomb stack A,Empty bomb stack A,Pile de bombes vide A,llm-draft
+Empty bomb stack B,Empty bomb stack B,Pile de bombes vide B,llm-draft
+Factory block A,Factory block A,Bâtiment d'usine A,llm-draft
+Factory block B,Factory block B,Bâtiment d'usine B,llm-draft
+Factory block C,Factory block C,Bâtiment d'usine C,llm-draft
+Factory block D,Factory block D,Bâtiment d'usine D,llm-draft
+Factory block E,Factory block E,Bâtiment d'usine E,llm-draft
+Factory block G,Factory block G,Bâtiment d'usine G,llm-draft
+Factory block J2,Factory block J2,Bâtiment d'usine J2,llm-draft
+Factory block J3,Factory block J3,Bâtiment d'usine J3,llm-draft
+Factory block J4,Factory block J4,Bâtiment d'usine J4,llm-draft
+Factory block J5,Factory block J5,Bâtiment d'usine J5,llm-draft
+fake_block,Fake block,Bloc factice,llm-draft
+Fence concrete 100m,Fence concrete 100m,Clôture en béton 100 m,llm-draft
+Fence concrete 200m,Fence concrete 200m,Clôture en béton 200 m,llm-draft
+Fence concrete 20m,Fence concrete 20m,Clôture en béton 20 m,llm-draft
+Fence concrete 50m,Fence concrete 50m,Clôture en béton 50 m,llm-draft
+Fence concrete 5m,Fence concrete 5m,Clôture en béton 5 m,llm-draft
+Fence wire 100m,Fence wire 100m,Clôture grillagée 100 m,llm-draft
+Fence wire 200m,Fence wire 200m,Clôture grillagée 200 m,llm-draft
+Fence wire 20m,Fence wire 20m,Clôture grillagée 20 m,llm-draft
+Fence wire 50m,Fence wire 50m,Clôture grillagée 50 m,llm-draft
+Fence wire 5m,Fence wire 5m,Clôture grillagée 5 m,llm-draft
+Fueltanks 120 gal A,Fueltanks 120 gal A,Réservoirs de carburant 120 gal A,llm-draft
+Fueltanks 250 L,Fueltanks 250 L,Réservoirs de carburant 250 l,llm-draft
+GE 1942A generator,GE 1942A generator,Générateur GE 1942A,llm-draft
+GE 1942A landing light,GE 1942A landing light,Projecteur d'atterrissage GE 1942A,llm-draft
+GE 1942A searchlight,GE 1942A searchlight,Projecteur GE 1942A,llm-draft
+GMC_CCKW refueler,GMC CCKW refueler,GMC CCKW (ravitailleur),llm-draft
+Gondola Car A,Gondola Car A,Wagon tombereau A,llm-draft
+Gondola Car B,Gondola Car B,Wagon tombereau B,llm-draft
+Gondola Carb D,Gondola Car D,Wagon tombereau D,llm-draft
+Gondola Carb E,Gondola Car E,Wagon tombereau E,llm-draft
+Gun caponier A,Gun caponier A,Alvéole de pièce d'artillerie A,llm-draft
+Gun caponier B,Gun caponier B,Alvéole de pièce d'artillerie B,llm-draft
+Gun caponier C,Gun caponier C,Alvéole de pièce d'artillerie C,llm-draft
+Gun caponier E,Gun caponier E,Alvéole de pièce d'artillerie E,llm-draft
+Gun caponier F,Gun caponier F,Alvéole de pièce d'artillerie F,llm-draft
+Gun caponier G,Gun caponier G,Alvéole de pièce d'artillerie G,llm-draft
+Highway bridge part - arch,Highway bridge part - arch,Partie de pont routier: arc,llm-draft
+Highway bridge part - girder,Highway bridge part - girder,Partie de pont routier: poutre,llm-draft
+Highway bridge part - low arch,Highway bridge part - low arch,Partie de pont routier: arc surbaissé,llm-draft
+Highway bridge part - lower grid,Highway bridge part - lower grid,Partie de pont routier: grille inférieure,llm-draft
+Highway bridge part - mound ramp,Highway bridge part - mound ramp,Partie de pont routier: rampe en remblai,llm-draft
+Highway bridge part - semi-arch,Highway bridge part - semi-arch,Partie de pont routier: demi-arc,llm-draft
+Highway bridge part - short stone ramp,Highway bridge part - short stone ramp,Partie de pont routier: rampe en pierre courte,llm-draft
+Highway bridge part - stone ramp,Highway bridge part - stone ramp,Partie de pont routier: rampe en pierre,llm-draft
+Highway bridge part - upper end,Highway bridge part - upper end,Partie de pont routier: extrémité supérieure,llm-draft
+Hospital korean B,Hospital korean B,Hôpital (coréen) B,llm-draft
+Hotel korean A,Hotel korean A,Hôtel (coréen) A,llm-draft
+Industrial storage A,Industrial storage A,Stockage industriel A,llm-draft
+Industrial storage B,Industrial storage B,Stockage industriel B,llm-draft
+Industrial storage C,Industrial storage C,Stockage industriel C,llm-draft
+Industrial storage D,Industrial storage D,Stockage industriel D,llm-draft
+Industrial storage E,Industrial storage E,Stockage industriel E,llm-draft
+Industrial storage tank A,Industrial storage tank A,Réservoir industriel A,llm-draft
+Industrial storage tank B,Industrial storage tank B,Réservoir industriel B,llm-draft
+Industrial storage tank B1,Industrial storage tank B1,Réservoir industriel B1,llm-draft
+Industrial storage tank B2,Industrial storage tank B2,Réservoir industriel B2,llm-draft
+Industrial storage tank C,Industrial storage tank C,Réservoir industriel C,llm-draft
+Industrial storage tank D,Industrial storage tank D,Réservoir industriel D,llm-draft
+Industrial warehouse A,Industrial warehouse A,Entrepôt industriel A,llm-draft
+Industrial warehouse B,Industrial warehouse B,Entrepôt industriel B,llm-draft
+Industrial warehouse B2,Industrial warehouse B2,Entrepôt industriel B2,llm-draft
+Industrial warehouse B6,Industrial warehouse B6,Entrepôt industriel B6,llm-draft
+Industrial warehouse B9,Industrial warehouse B9,Entrepôt industriel B9,llm-draft
+Industrial warehouse block A,Industrial warehouse block A,Bloc d'entrepôts industriels A,llm-draft
+Industrial warehouse C,Industrial warehouse C,Entrepôt industriel C,llm-draft
+Industrial warehouse D,Industrial warehouse D,Entrepôt industriel D,llm-draft
+Industrial warehouse D2,Industrial warehouse D2,Entrepôt industriel D2,llm-draft
+Industrial warehouse D4,Industrial warehouse D4,Entrepôt industriel D4,llm-draft
+Industrial warehouse D6,Industrial warehouse D6,Entrepôt industriel D6,llm-draft
+Industrial warehouse D8,Industrial warehouse D8,Entrepôt industriel D8,llm-draft
+Industrial warehouse E,Industrial warehouse E,Entrepôt industriel E,llm-draft
+Industrial warehouse F,Industrial warehouse F,Entrepôt industriel F,llm-draft
+Inflated float road bridge 050m,Inflated float road bridge 050m,Pont flottant gonflable 050 m,llm-draft
+Inflated float road bridge ramp left,Inflated float road bridge ramp left,"Pont flottant gonflable, rampe gauche",llm-draft
+Lighthouse A,Lighthouse A,Phare A,llm-draft
+Lighthouse cabin,Lighthouse cabin,Cabine du phare,llm-draft
+Manufacture korean A,Manufacture korean A,Manufacture (coréenne) A,llm-draft
+Manufacture korean C,Manufacture korean C,Manufacture (coréenne) C,llm-draft
+MiG Alley gate,MiG Alley gate,Porte de MiG Alley,llm-draft
+Military barrack A,Military barrack A,Caserne militaire A,llm-draft
+Military barrack A1,Military barrack A1,Caserne militaire A1,llm-draft
+Military barrack A2,Military barrack A2,Caserne militaire A2,llm-draft
+Military barrack B,Military barrack B,Caserne militaire B,llm-draft
+Military barrack B1,Military barrack B1,Caserne militaire B1,llm-draft
+Military barrack C,Military barrack C,Caserne militaire C,llm-draft
+Military barrack C2,Military barrack C2,Caserne militaire C2,llm-draft
+Military barrack D,Military barrack D,Caserne militaire D,llm-draft
+Military barrack D2,Military barrack D2,Caserne militaire D2,llm-draft
+Military barrack D3,Military barrack D3,Caserne militaire D3,llm-draft
+Military barrack D4,Military barrack D4,Caserne militaire D4,llm-draft
+Military barrack E,Military barrack E,Caserne militaire E,llm-draft
+Military barrack F,Military barrack F,Caserne militaire F,llm-draft
+Military barrack G,Military barrack G,Caserne militaire G,llm-draft
+Military barrack H,Military barrack H,Caserne militaire H,llm-draft
+Military barrack I,Military barrack I,Caserne militaire I,llm-draft
+Military boxes storage A,Military boxes storage A,Dépôt de caisses militaires A,llm-draft
+Military boxes storage B,Military boxes storage B,Dépôt de caisses militaires B,llm-draft
+Military boxes storage C,Military boxes storage C,Dépôt de caisses militaires C,llm-draft
+Military boxes storage D,Military boxes storage D,Dépôt de caisses militaires D,llm-draft
+Military boxes storage E,Military boxes storage E,Dépôt de caisses militaires E,llm-draft
+Military boxes storage F,Military boxes storage F,Dépôt de caisses militaires F,llm-draft
+Military cistern large B,Military cistern large B,Grande citerne militaire B,llm-draft
+Military cistern large B1,Military cistern large B1,Grande citerne militaire B1,llm-draft
+Military cistern large B2,Military cistern large B2,Grande citerne militaire B2,llm-draft
+Military cistern medium A,Military cistern medium A,Citerne militaire moyenne A,llm-draft
+Military cistern medium A1,Military cistern medium A1,Citerne militaire moyenne A1,llm-draft
+Military cistern small,Military cistern small,Petite citerne militaire,llm-draft
+Military coil,Military coil,Bobine militaire,llm-draft
+Military coil A,Military coil A,Bobine militaire A,llm-draft
+Military coil B,Military coil B,Bobine militaire B,llm-draft
+Military coil C,Military coil C,Bobine militaire C,llm-draft
+Military coil D,Military coil D,Bobine militaire D,llm-draft
+Military coils and barrles,Military coils and barrels,Bobines et barils militaires,llm-draft
+Military tent A,Military tent A,Tente militaire A,llm-draft
+Military tent A1,Military tent A1,Tente militaire A1,llm-draft
+Military tent A2,Military tent A2,Tente militaire A2,llm-draft
+Military tent A3,Military tent A3,Tente militaire A3,llm-draft
+Military tent B,Military tent B,Tente militaire B,llm-draft
+Military tent C,Military tent C,Tente militaire C,llm-draft
+Military tent D,Military tent D,Tente militaire D,llm-draft
+Military warehouse B,Military warehouse B,Entrepôt militaire B,llm-draft
+Military warehouse C,Military warehouse C,Entrepôt militaire C,llm-draft
+Military watertower,Military watertower,Château d'eau militaire,llm-draft
+Mine derrick A,Mine derrick A,Chevalement de mine A,llm-draft
+Mine derrick B,Mine derrick B,Chevalement de mine B,llm-draft
+Mine dredge,Mine dredge,Drague minière,llm-draft
+Mine logs,Mine logs,Rondins de mine,llm-draft
+Mine office,Mine office,Bureau de la mine,llm-draft
+Mine planks,Mine planks,Planches de mine,llm-draft
+Mine tipple loader,Mine tipple loader,Chargeur de trémie de la mine,llm-draft
+Mine warehouse A,Mine warehouse A,Entrepôt de la mine A,llm-draft
+Mine warehouse B,Mine warehouse B,Entrepôt de la mine B,llm-draft
+Mine warehouse C,Mine warehouse C,Entrepôt de la mine C,llm-draft
+Mine warehouse D,Mine warehouse D,Entrepôt de la mine D,llm-draft
+Mine warehouse E,Mine warehouse E,Entrepôt de la mine E,llm-draft
+Nissenhut barrack A,Nissenhut barrack A,Baraque Nissen A,llm-draft
+Nissenhut barrack A1,Nissenhut barrack A1,Baraque Nissen A1,llm-draft
+Nissenhut barrack A2,Nissenhut barrack A2,Baraque Nissen A2,llm-draft
+Nissenhut barrack A3,Nissenhut barrack A3,Baraque Nissen A3,llm-draft
+Nissenhut barrack B,Nissenhut barrack B,Baraque Nissen B,llm-draft
+Non Directional Beacon,Non Directional Beacon,Radiophare non directionnel (NDB),llm-draft
+Office building korean C,Office building korean C,Immeuble de bureaux (coréen) C,llm-draft
+P-20 Control Compartment,P-20 Control Compartment,Compartiment de contrôle P-20,llm-draft
+P-8 Control Compartment,P-8 Control Compartment,Compartiment de contrôle P-8,llm-draft
+P-8 Interrogator,P-8 Interrogator,Interrogateur P-8,llm-draft
+Parked  C-47B,Parked C-47B,C-47B stationné,llm-draft
+Parked  F-51D,Parked F-51D,F-51D stationné,llm-draft
+Parked  Tu-2,Parked Tu-2,Tu-2 stationné,llm-draft
+Parked  Yak-9P,Parked Yak-9P,Yak-9P stationné,llm-draft
+Parked F-80C-10,Parked F-80C-10,F-80C-10 stationné,llm-draft
+Parked F-84E,Parked F-84E,F-84E stationné,llm-draft
+Parked F-86A-5,Parked F-86A-5,F-86A-5 stationné,llm-draft
+Parked IL-10,Parked IL-10,IL-10 stationné,llm-draft
+Parked La-11,Parked La-11,La-11 stationné,llm-draft
+Parked Li-2T,Parked Li-2T,Li-2T stationné,llm-draft
+Parked MiG-15bis,Parked MiG-15bis,MiG-15bis stationné,llm-draft
+Part of F-86A-5,Part of F-86A-5,Partie du F-86A-5,llm-draft
+Passenger Car A,Passenger Car A,Voiture voyageurs A,llm-draft
+Passenger Car C,Passenger Car C,Voiture voyageurs C,llm-draft
+Passenger Car D,Passenger Car D,Voiture voyageurs D,llm-draft
+Pinnace A,Pinnace A,Pinasse A,llm-draft
+Platform Car A,Platform Car A,Wagon plat A,llm-draft
+Platform Car B,Platform Car B,Wagon plat B,llm-draft
+Platform Car C,Platform Car C,Wagon plat C,llm-draft
+Platform Car D,Platform Car D,Wagon plat D,llm-draft
+Platform Car E,Platform Car E,Wagon plat E,llm-draft
+Platform Car F,Platform Car F,Wagon plat F,llm-draft
+Port crane A,Port crane A,Grue portuaire A,llm-draft
+Port crane A1,Port crane A1,Grue portuaire A1,llm-draft
+Port crane B,Port crane B,Grue portuaire B,llm-draft
+Port_crane_01_4x,Port crane,Grue portuaire,llm-draft
+Power hub A,Power hub A,Centre de distribution électrique A,llm-draft
+Power station B,Power station B,Centrale électrique B,llm-draft
+Powerline large pylon,Powerline large pylon,Grand pylône électrique,llm-draft
+Radar Control Room,Radar Control Room,Salle de contrôle radar,llm-draft
+Radar Generator Room,Radar Generator Room,Salle des générateurs radar,llm-draft
+Railway bridge part - girder ramp,Railway bridge part - girder ramp,Partie de pont ferroviaire: rampe à poutres,llm-draft
+Railway bridge part - grid,Railway bridge part - grid,Partie de pont ferroviaire: grille,llm-draft
+Railway bridge part - inverted arch,Railway bridge part - inverted arch,Partie de pont ferroviaire: arc inversé,llm-draft
+Railway bridge part - short girder,Railway bridge part - short girder,Partie de pont ferroviaire: poutre courte,llm-draft
+Railway bridge part - short stone ramp,Railway bridge part - short stone ramp,Partie de pont ferroviaire: rampe en pierre courte,llm-draft
+Railway coal tower,Railway coal tower,Tour à charbon ferroviaire,llm-draft
+Railway control tower,Railway control tower,Tour de contrôle ferroviaire,llm-draft
+Railway crossing cabin,Railway crossing cabin,Cabine de passage à niveau,llm-draft
+Railway crossing gate,Railway crossing gate,Barrière de passage à niveau,llm-draft
+Railway dead end,Railway dead end,Voie en impasse,llm-draft
+Railway depot,Railway depot,Dépôt ferroviaire,llm-draft
+Railway light tower,Railway light tower,Tour d'éclairage ferroviaire,llm-draft
+Railway platform A,Railway platform A,Quai de gare A,llm-draft
+Railway platform B,Railway platform B,Quai de gare B,llm-draft
+Railway station A,Railway station A,Gare A,llm-draft
+Railway station B,Railway station B,Gare B,llm-draft
+Railway water tower,Railway water tower,Château d'eau ferroviaire,llm-draft
+RP-15-1 generator,RP-15-1 generator,Générateur RP-15-1,llm-draft
+RP-15-1 searchlight,RP-15-1 searchlight,Projecteur RP-15-1,llm-draft
+Runway lights A1,Runway lights A1,Feux de piste A1,llm-draft
+Runway lights A2,Runway lights A2,Feux de piste A2,llm-draft
+Runway lights A3,Runway lights A3,Feux de piste A3,llm-draft
+Runway lights A4,Runway lights A4,Feux de piste A4,llm-draft
+Runway lights B2,Runway lights B2,Feux de piste B2,llm-draft
+Runway lights B3,Runway lights B3,Feux de piste B3,llm-draft
+Sawmill,Sawmill,Scierie,llm-draft
+Sawmill logs,Sawmill logs,Grumes de la scierie,llm-draft
+Sawmill planks,Sawmill planks,Planches de la scierie,llm-draft
+School korean B,School korean B,École (coréenne) B,llm-draft
+School korean C,School korean C,École (coréenne) C,llm-draft
+Searchlight-beam,Searchlight beam,Faisceau de projecteur,llm-draft
+Seiner A,Seiner A,Senneur A,llm-draft
+Seoul terminal,Seoul terminal,Terminal de Séoul,llm-draft
+Shipyard,Shipyard,Chantier naval,llm-draft
+Shipyard peer,Shipyard peer,Jetée du chantier naval,llm-draft
+Sign Left,Sign Left,Panneau « gauche »,llm-draft
+Sign Stop,Sign Stop,Panneau stop,llm-draft
+Stack of FAB-100 A,Stack of FAB-100 A,Pile de FAB-100 A,llm-draft
+Stack of FAB-100 B,Stack of FAB-100 B,Pile de FAB-100 B,llm-draft
+Stack of FAB-100 C,Stack of FAB-100 C,Pile de FAB-100 C,llm-draft
+Stack of FAB-100 D,Stack of FAB-100 D,Pile de FAB-100 D,llm-draft
+Stores korean A,Stores korean A,Magasins (coréens) A,llm-draft
+Stores korean C,Stores korean C,Magasins (coréens) C,llm-draft
+Stores korean D,Stores korean D,Magasins (coréens) D,llm-draft
+Stores korean E,Stores korean E,Magasins (coréens) E,llm-draft
+Studebaker_US6 refueler,Studebaker US6 refueler,Studebaker US6 (ravitailleur),llm-draft
+Tank Car A,Tank Car A,Wagon-citerne A,llm-draft
+Tank Car B,Tank Car B,Wagon-citerne B,llm-draft
+Tank Car C,Tank Car C,Wagon-citerne C,llm-draft
+Tanker Ship A,Tanker Ship A,Pétrolier A,llm-draft
+Windsock,Windsock,Manche à air,llm-draft
+Wooden road bridge 25m,Wooden road bridge 25m,Pont routier en bois 25 m,llm-draft
+Wooden road bridge 50m,Wooden road bridge 50m,Pont routier en bois 50 m,llm-draft
+Wooden road bridge 75m,Wooden road bridge 75m,Pont routier en bois 75 m,llm-draft
+Yard boxes storage A,Yard boxes storage A,Dépôt de caisses en plein air A,llm-draft
+Yard boxes storage A1,Yard boxes storage A1,Dépôt de caisses en plein air A1,llm-draft
+Yard boxes storage A2,Yard boxes storage A2,Dépôt de caisses en plein air A2,llm-draft
+Yard boxes storage A5,Yard boxes storage A5,Dépôt de caisses en plein air A5,llm-draft
+Yard boxes storage B,Yard boxes storage B,Dépôt de caisses en plein air B,llm-draft
+Yard boxes storage B1,Yard boxes storage B1,Dépôt de caisses en plein air B1,llm-draft
+Yard boxes storage B2,Yard boxes storage B2,Dépôt de caisses en plein air B2,llm-draft
+Yard boxes storage B3,Yard boxes storage B3,Dépôt de caisses en plein air B3,llm-draft
+Yard boxes storage B4,Yard boxes storage B4,Dépôt de caisses en plein air B4,llm-draft
+Yard boxes storage C,Yard boxes storage C,Dépôt de caisses en plein air C,llm-draft
+Yard boxes storage C1,Yard boxes storage C1,Dépôt de caisses en plein air C1,llm-draft
+Yard boxes storage C2,Yard boxes storage C2,Dépôt de caisses en plein air C2,llm-draft
+Yard boxes storage C3,Yard boxes storage C3,Dépôt de caisses en plein air C3,llm-draft
+Yard boxes storage C4,Yard boxes storage C4,Dépôt de caisses en plein air C4,llm-draft
+Yard boxes storage C6,Yard boxes storage C6,Dépôt de caisses en plein air C6,llm-draft
+BOOSTER_USA_JATO,JATO booster,Fusée d'appoint JATO,llm-draft
+FTANK_1003L_USA_F80L,F-80 drop tank 1003 L (left),Réservoir largable F-80 de 1003 l (gauche),llm-draft
+FTANK_1003L_USA_F80R,F-80 drop tank 1003 L (right),Réservoir largable F-80 de 1003 l (droit),llm-draft
+FTANK_250L_RUS_MIG15L,MiG-15 drop tank 250 L (left),Réservoir largable MiG-15 de 250 l (gauche),llm-draft
+FTANK_250L_RUS_MIG15R,MiG-15 drop tank 250 L (right),Réservoir largable MiG-15 de 250 l (droit),llm-draft
+FTANK_284L_USA_F51,F-51 drop tank 284 L,Réservoir largable F-51 de 284 l,llm-draft
+FTANK_416L_USA_F51,F-51 drop tank 416 L,Réservoir largable F-51 de 416 l,llm-draft
+FTANK_454L_USA_F86L,F-86 drop tank 454 L (left),Réservoir largable F-86 de 454 l (gauche),llm-draft
+FTANK_454L_USA_F86R,F-86 drop tank 454 L (right),Réservoir largable F-86 de 454 l (droit),llm-draft
+FTANK_625L_USA_F80L,F-80 drop tank 625 L (left),Réservoir largable F-80 de 625 l (gauche),llm-draft
+FTANK_625L_USA_F80R,F-80 drop tank 625 L (right),Réservoir largable F-80 de 625 l (droit),llm-draft
+FTANK_871L_USA_F84L_WT,F-84 wingtip tank 871 L (left),Réservoir de bout d'aile F-84 de 871 l (gauche),llm-draft
+FTANK_871L_USA_F84R_WT,F-84 wingtip tank 871 L (right),Réservoir de bout d'aile F-84 de 871 l (droit),llm-draft
+FTANK_927L_USA_F86L,F-86 drop tank 927 L (left),Réservoir largable F-86 de 927 l (gauche),llm-draft
+FTANK_927L_USA_F86R,F-86 drop tank 927 L (right),Réservoir largable F-86 de 927 l (droit),llm-draft
+NAPALM_389kg_USA_110gal,Napalm tank 110 gal,Réservoir de napalm de 110 gal,llm-draft
+RKT_127mm_USA_HVAR,"HVAR 5"" rocket",Roquette HVAR de 5″,llm-draft
+RKT_127mm_USA_HVAR_SAP,"HVAR 5"" rocket (SAP)",Roquette HVAR de 5″ (SAP),llm-draft
+B29_CrewGroup1,B-29 crew,Équipage du B-29,llm-draft
+B29_CrewGroup2,B-29 crew,Équipage du B-29,llm-draft
+BotBoatSwain,Boatswain,Maître d'équipage,llm-draft
+BotDriver1,Driver,Conducteur,llm-draft
+BotField_Officer_USA1950,Officer (US),Officier (États-Unis),llm-draft
+BotField_Officer_USSR1950,Officer (Soviet),Officier (soviétique),llm-draft
+BotField_Seaman_USA1950,Seaman (US),Matelot (États-Unis),llm-draft
+BotField_Soldier_DPRK1950,Soldier (North Korean),Soldat (nord-coréen),llm-draft
+BotField_Soldier_USA1950,Soldier (US),Soldat (États-Unis),llm-draft
+BotField_Soldier_USSR1950,Soldier (Soviet),Soldat (soviétique),llm-draft
+BotField_Tankman_DPRK1950,Tank crewman (North Korean),Équipier de char (nord-coréen),llm-draft
+BotField_Tankman_USA1950,Tank crewman (US),Équipier de char (États-Unis),llm-draft
+BotGunner,Gunner,Artilleur,llm-draft
+BotPilotSimpleMFPlane,Pilot,Pilote,llm-draft
+BotPlaneCrew_USAF1950,Aircrew (USAF),Équipage (USAF),llm-draft
+BotPlaneGunner_USAF1950,Air gunner (USAF),Mitrailleur de bord (USAF),llm-draft
+BotPlaneGunner_USSR1950,Air gunner (Soviet),Mitrailleur de bord (soviétique),llm-draft
+BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),Mitrailleur de bord (soviétique),llm-draft
+BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),Mitrailleur de bord (soviétique),llm-draft
+BotPlanePilot_USAF1950com,Pilot (USAF),Pilote (USAF),llm-draft
+BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)","Pilote (USAF, à réaction)",llm-draft
+BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)","Pilote (USAF, à hélice)",llm-draft
+BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)","Pilote (soviétique, à réaction)",llm-draft
+BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)","Pilote (soviétique, à hélice)",llm-draft
+BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)","Pilote (soviétique, à hélice)",llm-draft
+BotRangefinder,Rangefinder operator,Opérateur de télémètre,llm-draft
+ESeat_F-80C-10,F-80C-10 ejection seat,Siège éjectable F-80C-10,llm-draft
+ESeat_F-84E,F-84E ejection seat,Siège éjectable F-84E,llm-draft
+ESeat_F-86A-5,F-86A-5 ejection seat,Siège éjectable F-86A-5,llm-draft
+ESeat_KK1,MiG-15bis ejection seat,Siège éjectable MiG-15bis,llm-draft
+ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),Siège éjectable MiG-15bis (blindé),llm-draft
+Spotter,Spotter,Observateur,llm-draft
+VehicleRangefinderTurret,Vehicle rangefinder turret,Tourelle télémétrique du véhicule,llm-draft
+VehicleTurret,Vehicle turret,Tourelle du véhicule,llm-draft

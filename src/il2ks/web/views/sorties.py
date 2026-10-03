@@ -12,11 +12,12 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
-from il2ks.web import display
+from il2ks.web import display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
 OG_IMAGE = "il2ks/img/brand/og-default.png"
@@ -37,6 +38,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title."""
     player = get_object_or_404(Player.objects.visible(), pk=pk)
     aircraft = reads.player_aircraft(player)
+    language = get_language() or "en"
     filters = reads.parse_filters(
         {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "role", "combat_role")},
         {row.aircraft_id for row in aircraft},
@@ -55,9 +57,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
             "player": player,
             "page_obj": page,
             "sort": sort,
-            "aircraft_options": [
-                (row.aircraft_id, row.aircraft.display_name or row.aircraft.log_name) for row in aircraft
-            ],
+            "aircraft_options": [(row.aircraft_id, object_names.name_of(row.aircraft, language)) for row in aircraft],
             "outcome_options": _options(Outcome.values, display.OUTCOMES),
             "role_options": [(Role.PILOT.value, _("Pilot")), (Role.GUNNER.value, _("Gunner"))],
             "combat_role_options": _options(CombatRole.values, display.ROLES),
@@ -95,7 +95,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     )
     detail = build_detail(sortie, made, suffered, lookup)
     outcome = display.badge_spec(display.OUTCOMES, sortie.outcome)[0]
-    aircraft = sortie.aircraft.display_name or sortie.aircraft.log_name
+    aircraft = object_names.name_of(sortie.aircraft, get_language() or "en")
     title = f"{sortie.name_at_time} — {aircraft} — {outcome}"
     image = static(OG_IMAGE) if finders.find(OG_IMAGE) else ""
     return render(

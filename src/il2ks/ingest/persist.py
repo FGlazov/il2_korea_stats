@@ -121,9 +121,9 @@ def _ids(tour_id: int | None) -> set[int]:
 def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[str, GameObject]:
     """Get or create a `GameObject` per log name (FR-ING-7). Unknown types are stored with `is_known=False`.
 
-    Existing rows: class, playable and known flags follow the catalog (so a catalog update fixes old unknowns), but the
-    display name is only replaced while it still equals the log name, i.e. the auto-registered placeholder (TD-24:
-    admins may edit names).
+    Existing rows: class, playable and known flags follow the catalog (so a catalog update fixes old unknowns), and so
+    does the display name, unless an admin edited it (`name_overridden`, TD-24): upgrades refresh the shipped names
+    without wiping admin edits.
     """
     wanted = sorted(set(log_names))
     existing = {o.log_name: o for o in GameObject.objects.filter(log_name__in=wanted)}
@@ -141,7 +141,7 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
                 is_known=info.is_known,
             )
             continue
-        display_name = info.display_name if obj.display_name == obj.log_name and info.display_name else obj.display_name
+        display_name = obj.display_name if obj.name_overridden else info.display_name or obj.display_name
         category = info.ground_category or ""
         new = (display_name, info.cls, info.propulsion or "", category, info.is_playable, info.is_known)
         if new != (obj.display_name, obj.cls, obj.propulsion, obj.ground_category, obj.is_playable, obj.is_known):

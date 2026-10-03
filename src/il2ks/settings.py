@@ -17,6 +17,9 @@ from il2ks.serving.djsettings import (
     INSTALLED_APPS as _APPS,
 )
 from il2ks.serving.djsettings import (
+    LANGUAGES as _LANGUAGES,
+)
+from il2ks.serving.djsettings import (
     allowed_hosts,
     csrf_trusted_origins,
     security_settings,
@@ -80,6 +83,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",  # LANGUAGE_CODE for <html lang> (TD-24)
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "il2ks.web.context_processors.site",
@@ -109,7 +113,10 @@ DATABASES = _databases()
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LANGUAGE_CODE = "en"
-LANGUAGES = [("en", "English")]  # it2 adds ru, de, es, fr, pt-br (TD-24)
+LANGUAGES = _LANGUAGES  # en + ru, de, es, fr, pt-br (TD-24)
+LOCALE_PATHS = [BASE_DIR / "locale"]  # inside the package, so the wheel carries the compiled .mo files
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365  # the language switcher (web.views.language) remembers the choice for a year
+LANGUAGE_COOKIE_SAMESITE = "Lax"
 USE_I18N = True
 USE_TZ = True
 TIME_ZONE = "UTC"

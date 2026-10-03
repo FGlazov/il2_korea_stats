@@ -15,6 +15,7 @@ Written for people who run a game server, not for programmers: short steps, copy
 - [Using your own proxy (nginx, IIS)](docs/reverse-proxy.md): when ports 80/443 are already taken.
 - [Customizing the site](docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
 - [Template versions and release notes](docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template.
+- [Translating il2ks](docs/translating.md): review or improve a language, keep translations in step, add a language.
 
 ## Development
 

@@ -33,6 +33,7 @@ il2ks = "il2ks.cli:main"
 
 [dependency-groups]
 dev = [
+    "babel>=2.18.0",
     "django-types>=0.20",
     "import-linter>=2.1",
     "pre-commit>=4.0",
@@ -78,6 +79,8 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
 "vulture_whitelist.py" = ["F821", "B018"]
 "src/il2ks/db/models.py" = ["RUF012"]  # Django Meta attributes are class-level lists by design
 "src/il2ks/web/site_forms.py" = ["RUF012"]  # same: ModelForm.Meta
+"tests/unit/catalog/test_object_names.py" = ["RUF001"]  # real Cyrillic expectations (translations), not typos
+"tests/integration/test_language.py" = ["RUF001"]  # same
 
 # --- pyright strict (TD-12): core gets zero ignores; Django layers use django-types.
 [tool.pyright]

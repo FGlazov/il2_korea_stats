@@ -51,9 +51,11 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Translations
+# Translations: compiled catalogs are ignored in general, but the ones under src/il2ks/locale/ are committed so the
+# wheel ships them (`il2ks dev translations compile`, docs/translating.md).
 *.mo
 *.pot
+!src/il2ks/locale/**/*.mo
 
 # Django stuff:
 *.log

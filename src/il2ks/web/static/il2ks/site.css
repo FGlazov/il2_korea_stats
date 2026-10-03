@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v2 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v3 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -200,6 +200,9 @@ body > footer.site-footer {
 .site-footer__links { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; margin: 0; padding: 0; list-style: none; }
 .site-footer__links li { margin: 0; padding: 0; }
 .site-footer__meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
+.site-footer__language details.dropdown { width: auto; min-width: 9rem; margin: 0; }
+.site-footer__language details.dropdown summary { margin: 0; padding-block: 0.3rem; font-size: 0.85rem; }
+.site-footer__language details.dropdown ul { top: auto; bottom: 100%; min-width: 11rem; margin-bottom: 0.25rem; }
 .site-footer strong { color: var(--il2-text); font-weight: 600; }
 
 /* ---- 5. Content basics ------------------------------------------------------------------------------------- */
