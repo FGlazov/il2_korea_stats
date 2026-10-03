@@ -1,9 +1,11 @@
 """Resolve recorded facts into a `MissionResult`. Used by `snapshot()` (provisional) and `finish()` (final)."""
 
+from collections import Counter
+
 from il2ks.core.replay.attack import GroundTargets, combat_role, time_on_target_s
 from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
-from il2ks.core.replay.fate import was_resupplied
+from il2ks.core.replay.fate import ticks, was_resupplied
 from il2ks.core.replay.judge import Verdict, judge
 from il2ks.core.replay.kills import resolve_kills
 from il2ks.core.replay.model import MissionFacts, SortieState, is_bot_type
@@ -48,6 +50,7 @@ def _build_sortie(
     role = combat_role(sortie)
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
+    ground = [k for k in credited if k.victim_kind == "ground"]
     airframe = sortie.airframe
     takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
     landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
@@ -93,7 +96,9 @@ def _build_sortie(
         taxi_accident=verdict.taxi_accident,
         strafed_on_ground=verdict.strafed_on_ground,
         kills_air=sum(1 for k in credited if k.victim_kind == "air"),
-        kills_ground=sum(1 for k in credited if k.victim_kind == "ground"),
+        kills_ground=len(ground),
+        kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
+        kills_ground_static=sum(1 for k in ground if k.victim_is_static),
         assists=sum(1 for k in mine if k.credit == "assist"),
         ammo_loaded=sortie.ammo_loaded,
         ammo_left=sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None,
@@ -104,6 +109,8 @@ def _build_sortie(
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,
         resupplied=was_resupplied(takeoffs, landings, rules),
+        ammo_left_after_loss=verdict.loss is not None
+        and verdict.end_tick - verdict.loss.tick > ticks(rules.ammo_left_after_loss_s),
         combat_role=role,
         time_on_target_s=(
             time_on_target_s(sortie, targets, rules, active_end_tick=verdict.active_end_tick)

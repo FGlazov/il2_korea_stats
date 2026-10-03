@@ -57,11 +57,12 @@ f-51d,50,M65-2 + ATAR-6,2 x M65 1000 lb General Purpose bombs + 6 x ATAR 6.5" ro
 f-51d,51,M26CLUS-2 + ATAR-4,2 x M26 500 lb Cluster bombs + 4 x ATAR 6.5" rockets
 f-51d,52,M26CLUS-2 + ATAR-6,2 x M26 500 lb Cluster bombs + 6 x ATAR 6.5" rockets
 f-51d,53,M29CLUS-2 + ATAR-4,2 x M29 500 lb Cluster bombs + 4 x ATAR 6.5" rockets
-f-51d,54,M26FLR-2 + ATAR-4,2 x M26 Chute Flare bombs + 4 x ATAR 6.5" rockets
-f-51d,55,M26FLR-2 + ATAR-6,2 x M26 Chute Flare bombs + 6 x ATAR 6.5" rockets
-f-51d,56,NAP_110GAL-2 + ATAR-4,2 x 110 gal napalm tanks + 4 x ATAR 6.5" rockets
-f-51d,57,NAP_110GAL-2 + ATAR-6,2 x 110 gal napalm tanks + 6 x ATAR 6.5" rockets
-f-51d,58,F51_75GAL-2 + ATAR-4,2 x 75 gal drop tanks + 4 x ATAR 6.5" rockets
+f-51d,54,M29CLUS-2 + ATAR-6,2 x M29 500 lb Cluster bombs + 6 x ATAR 6.5" rockets
+f-51d,55,M26FLR-2 + ATAR-4,2 x M26 Chute Flare bombs + 4 x ATAR 6.5" rockets
+f-51d,56,M26FLR-2 + ATAR-6,2 x M26 Chute Flare bombs + 6 x ATAR 6.5" rockets
+f-51d,57,NAP_110GAL-2 + ATAR-4,2 x 110 gal napalm tanks + 4 x ATAR 6.5" rockets
+f-51d,58,NAP_110GAL-2 + ATAR-6,2 x 110 gal napalm tanks + 6 x ATAR 6.5" rockets
+f-51d,59,F51_75GAL-2 + ATAR-4,2 x 75 gal drop tanks + 4 x ATAR 6.5" rockets
 f-51d,60,F51_75GAL-2 + ATAR-6,2 x 75 gal drop tanks + 6 x ATAR 6.5" rockets
 f-51d,61,F51_110GAL-2 + ATAR-4,2 x 110 gal drop tanks + 4 x ATAR 6.5" rockets
 f-51d,62,F51_110GAL-2 + ATAR-6,2 x 110 gal drop tanks + 6 x ATAR 6.5" rockets

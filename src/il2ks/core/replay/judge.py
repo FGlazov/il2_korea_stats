@@ -13,12 +13,14 @@ from il2ks.core.replay.fate import (
     bailout_v2,
     disconnect_death,
     disconnect_tick_of,
+    final_pos_pending,
     flight_time_s,
     forced_by_mission_end,
     ground_loss,
     killer_of,
     pilot_death_tick,
     pilot_fate_of,
+    pilot_final_pos,
     sortie_end_tick,
     structural_failure,
     suspected_early_bailout,
@@ -61,7 +63,7 @@ class Verdict:
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
     damage_taken: float
-    cutoff_tick: int  # damage and hits after this tick don't belong to the sortie
+    cutoff_tick: int  # damage and hits after this tick don't belong to the sortie (the loss, the end, or AType 7 - 1)
     active_end_tick: int  # the sortie end, or the loss tick when the aircraft was destroyed first (flight stops there)
 
 
@@ -96,6 +98,10 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     )
     if sortie.is_open and not forced:
         fate, source = ("in_aircraft", "inferred") if not final else ("unknown", "unknown")
+    elif not final and not forced and died is None and final_pos_pending(sortie, rules):
+        # Live snapshot between AType 4 `PLID:0` and the pilot's AType 16: the fate waits for the position, so it reads
+        # like an open sortie (the pilot is still assumed to be in the aircraft) instead of a final `unknown`.
+        fate, source = "in_aircraft", "inferred"
     # FR-ING-21/22: a disconnect doesn't hide an attacker's kill. The fate says `disconnected` (maintainer), but the
     # aircraft destroyed by an attacker stays a loss and the pilot died with it, exactly as for any plain sortie end.
     attacker_destroyed = fate == "disconnected" and shot_down_directly
@@ -114,6 +120,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
 
     cutoff = loss.tick if loss is not None else end
     active_end = min(end, cutoff)
+    # Damage the server logs at or after AType 7 is the despawn cleanup (doc 12, 13): a forced sortie keeps none of it.
+    damage_cutoff = min(cutoff, mission_end - 1) if forced and mission_end is not None else cutoff
     off = took_off(sortie, active_end)  # same bound as the takeoffs and flight time that `resolve` reports
     lost = loss is not None or died is not None or bailout or disc_death
     attacker_cause = lost and (shot_down_directly or attacker_involved(sortie, cutoff))
@@ -126,14 +134,14 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     status_pos: Pos | None = None
     if not dead and not forced:
         if fate in ("bailed_out", "exited_on_ground"):
-            status_pos = sortie.bot.removed_pos
+            status_pos = pilot_final_pos(sortie, rules)
         elif off and not airframe.airborne_at(end):
             status_pos = _landing_pos(sortie, end) or airframe.pos
     areas = list(facts.areas.values())
     captured = status_pos is not None and on_enemy_territory(status_pos, sortie.coalition, areas)
 
-    damage_taken = min(1.0, sum(r.amount for r in airframe.damage_log if r.tick <= cutoff))
-    bot_damage = any(r.tick <= cutoff for obj in unit_objects(sortie.bot) for r in obj.damage_log)
+    damage_taken = min(1.0, sum(r.amount for r in airframe.damage_log if r.tick <= damage_cutoff))
+    bot_damage = any(r.tick <= damage_cutoff for obj in unit_objects(sortie.bot) for r in obj.damage_log)
     pilot_status: PilotStatus = "dead" if dead else "captured" if captured else "wounded" if bot_damage else "healthy"
     aircraft_status: AircraftStatus = "destroyed" if loss is not None else "damaged" if damage_taken > 0 else "unharmed"
 
@@ -166,7 +174,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         pilot_status=pilot_status,
         aircraft_status=aircraft_status,
         damage_taken=damage_taken,
-        cutoff_tick=cutoff,
+        cutoff_tick=damage_cutoff,
     )
 
 

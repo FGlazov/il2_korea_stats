@@ -9,7 +9,7 @@ AI aircraft 300 (MiG-15bis, 501), AI tanks 400/401 (M46 Patton, 601 / 501).
 
 from types import MappingProxyType
 
-from il2ks.core.catalog.loader import Catalog, ObjectClass, ObjectInfo
+from il2ks.core.catalog.loader import Catalog, GroundCategory, ObjectClass, ObjectInfo
 from il2ks.core.logparse.events import (
     NO_OBJECT,
     AccountUuid,
@@ -46,11 +46,21 @@ OBJECTS: dict[str, ObjectClass] = {
     "IL-10": "attacker",
     "Turret_IL10": "gunner",
     "M46 Patton": "tank",
+    "GAZ_63": "static",  # a static truck: category vehicle, but static
+    "Military tent A2": "static",
+    "Cargo ship 1": "ship",
+    "Uncategorised static": "static",  # a ground object the catalog gave no category: shown as "other"
     "BotPlanePilot_Test": "crew",
     "BotGunner_Test": "crew",
     "CParachute": "equipment",
     "ESeat_MiG-15bis": "equipment",
     "VehicleTurret": "equipment",
+}
+GROUND_CATEGORIES: dict[str, GroundCategory] = {
+    "M46 Patton": "tank",
+    "GAZ_63": "vehicle",
+    "Military tent A2": "building",
+    "Cargo ship 1": "ship",
 }
 FAR = Pos(10_000.0, 3_000.0, 10_000.0)
 GROUND = Pos(2_000.0, 100.0, 2_000.0)
@@ -63,7 +73,14 @@ class FakeCatalog(Catalog):
         cls = OBJECTS.get(object_type)
         if cls is None:
             return ObjectInfo(object_type, object_type, "unknown", is_playable=False, is_known=False)
-        return ObjectInfo(object_type, object_type, cls, is_playable=cls == "fighter", is_known=True)
+        return ObjectInfo(
+            object_type,
+            object_type,
+            cls,
+            is_playable=cls == "fighter",
+            is_known=True,
+            ground_category=GROUND_CATEGORIES.get(object_type),
+        )
 
 
 def ids(n: int) -> ObjectId:

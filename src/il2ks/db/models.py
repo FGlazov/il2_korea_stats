@@ -56,6 +56,20 @@ class Propulsion(models.TextChoices):
     JET = "jet"
 
 
+class GroundCategory(models.TextChoices):
+    """What a ground kill is shown as (OQ-33). Values match `core.catalog.loader.GroundCategory`."""
+
+    TANK = "tank"
+    VEHICLE = "vehicle"
+    ARTILLERY = "artillery"
+    AAA = "aaa"
+    SHIP = "ship"
+    TRAIN = "train"
+    BUILDING = "building"
+    PARKED_AIRCRAFT = "parked_aircraft"
+    OTHER = "other"
+
+
 class GameObject(models.Model):
     """A game object type from the logs (aircraft, vehicle, ...). Unknown types are auto-registered (FR-ING-7)."""
 
@@ -63,6 +77,7 @@ class GameObject(models.Model):
     display_name = models.CharField(max_length=128)
     cls = models.CharField(max_length=16, choices=ObjectClass.choices, default=ObjectClass.UNKNOWN)
     propulsion = models.CharField(max_length=4, choices=Propulsion.choices, blank=True, default="")  # aircraft only
+    ground_category = models.CharField(max_length=16, choices=GroundCategory.choices, blank=True, default="")
     is_playable = models.BooleanField(default=False)
     is_known = models.BooleanField(default=True)
 
@@ -75,6 +90,10 @@ class GameObject(models.Model):
             models.CheckConstraint(
                 condition=models.Q(propulsion__in=[*Propulsion.values, ""]),
                 name="gameobject_propulsion_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(ground_category__in=[*GroundCategory.values, ""]),
+                name="gameobject_ground_category_valid",
             ),
             models.CheckConstraint(condition=~models.Q(log_name=""), name="gameobject_log_name_not_empty"),
         ]
@@ -197,6 +216,17 @@ class Counters(models.Model):
     strafed_on_ground = models.PositiveIntegerField(default=0)
     attack_sorties = models.PositiveIntegerField(default=0)
     time_on_target_s = models.FloatField(default=0.0)
+    # Ground kills by category (they sum to kills_ground) and how many of those were static objects (OQ-33, doc 13)
+    kills_ground_tank = models.PositiveIntegerField(default=0)
+    kills_ground_vehicle = models.PositiveIntegerField(default=0)
+    kills_ground_artillery = models.PositiveIntegerField(default=0)
+    kills_ground_aaa = models.PositiveIntegerField(default=0)
+    kills_ground_ship = models.PositiveIntegerField(default=0)
+    kills_ground_train = models.PositiveIntegerField(default=0)
+    kills_ground_building = models.PositiveIntegerField(default=0)
+    kills_ground_parked_aircraft = models.PositiveIntegerField(default=0)
+    kills_ground_other = models.PositiveIntegerField(default=0)
+    kills_ground_static = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -334,6 +364,17 @@ class PlayerSortie(models.Model):
     # None for gunners (not "": a gunner has no role, which is different from an unknown one)
     combat_role = models.CharField(max_length=16, choices=CombatRole.choices, null=True)  # noqa: DJ001
     time_on_target_s = models.FloatField(null=True)  # attack sorties only
+    # Ground kills by category (they sum to kills_ground) and how many were static objects (OQ-33, doc 13)
+    kills_ground_tank = models.PositiveIntegerField(default=0)
+    kills_ground_vehicle = models.PositiveIntegerField(default=0)
+    kills_ground_artillery = models.PositiveIntegerField(default=0)
+    kills_ground_aaa = models.PositiveIntegerField(default=0)
+    kills_ground_ship = models.PositiveIntegerField(default=0)
+    kills_ground_train = models.PositiveIntegerField(default=0)
+    kills_ground_building = models.PositiveIntegerField(default=0)
+    kills_ground_parked_aircraft = models.PositiveIntegerField(default=0)
+    kills_ground_other = models.PositiveIntegerField(default=0)
+    kills_ground_static = models.PositiveIntegerField(default=0)
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)

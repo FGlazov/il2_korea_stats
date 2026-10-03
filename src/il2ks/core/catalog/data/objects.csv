@@ -1,491 +1,491 @@
-log_name,display_name,cls,is_playable,propulsion
-F-51D,F-51D,fighter,true,prop
-F-80C-10,F-80C-10,fighter,true,jet
-F-84E,F-84E,fighter,true,jet
-F-86A-5,F-86A-5,fighter,true,jet
-La-11,La-11,fighter,true,prop
-MiG-15bis,MiG-15bis,fighter,true,jet
-Yak-9P,Yak-9P,fighter,true,prop
-IL-10,IL-10,attacker,true,prop
-B 29,B-29,bomber,false,prop
-B-29,B-29,bomber,false,prop
-Tu-2,Tu-2,bomber,false,prop
-C-47B,C-47B,transport,false,prop
-Li-2,Li-2,transport,false,prop
-Multiturret_SimpleB29,B-29 turrets,gunner,false,
-Turret_B29_1,B-29 turret 1,gunner,false,
-Turret_B29_2,B-29 turret 2,gunner,false,
-Turret_B29_3M,B-29 turret 3,gunner,false,
-Turret_IL10,IL-10 gunner,gunner,true,
-Turret_Tu2_1,Tu-2 turret 1,gunner,false,
-Turret_Tu2_2,Tu-2 turret 2,gunner,false,
-Turret_Tu2_3,Tu-2 turret 3,gunner,false,
-IS-2,IS-2,tank,false,
-ISU-122,ISU-122,tank,false,
-M40 GMC,M40 GMC,tank,false,
-M46 Patton,M46 Patton,tank,false,
-M4A3E8 Sherman,M4A3E8 Sherman,tank,false,
-M7B1 Priest,M7B1 Priest,tank,false,
-SU76M,SU-76M,tank,false,
-T-34-85,T-34-85,tank,false,
-T-34-85 stowed,T-34-85 stowed,tank,false,
-BA-64B,BA-64B,vehicle,false,
-Box Car,Box Car,vehicle,false,
-Dodge WC-52,Dodge WC-52,vehicle,false,
-Dodge WC-54,Dodge WC-54,vehicle,false,
-GAZ-55,GAZ-55,vehicle,false,
-GAZ-63,GAZ-63,vehicle,false,
-GAZ-67B,GAZ-67B,vehicle,false,
-GMC CCKW,GMC CCKW,vehicle,false,
-GMC CCKW refueler,GMC CCKW refueler,vehicle,false,
-Gondola Car,Gondola Car,vehicle,false,
-M1A1 155mm howitzer,M1A1 155mm howitzer,vehicle,false,
-M2 155mm LongTom,M2 155mm LongTom,vehicle,false,
-M2 203mm Howitzer,M2 203mm Howitzer,vehicle,false,
-M2A1 105mm howitzer,M2A1 105mm howitzer,vehicle,false,
-M3A1 half-track,M3A1 half-track,vehicle,false,
-M6 High-Speed Tractor,M6 High-Speed Tractor,vehicle,false,
-Mail Car,Mail Car,vehicle,false,
-ML-20 howitzer-gun,ML-20 howitzer-gun,vehicle,false,
-Passenger Car,Passenger Car,vehicle,false,
-Platform Car,Platform Car,vehicle,false,
-Studebaker US6,Studebaker US6,vehicle,false,
-Studebaker US6 BM-13,Studebaker US6 BM-13,vehicle,false,
-Studebaker US6 refueler,Studebaker US6 refueler,vehicle,false,
-Studebaker US6 tanker,Studebaker US6 tanker,vehicle,false,
-Tank Car,Tank Car,vehicle,false,
-Type 475.1,Type 475.1 locomotive,vehicle,false,
-Type 475.1 tender,Type 475.1 tender,vehicle,false,
-U-7144,U-7144,vehicle,false,
-Willys MB,Willys MB,vehicle,false,
-61-K,61-K,aaa,false,
-61-K mobile,61-K mobile,aaa,false,
-61-K stowed,61-K stowed,aaa,false,
-61-K transported,61-K transported,aaa,false,
-72-K,72-K,aaa,false,
-72-K stowed,72-K stowed,aaa,false,
-Bofors 40 mm L/60 gun,Bofors 40 mm L/60 gun,aaa,false,
-Bofors 40 mm L/60 gun mobile,Bofors 40 mm L/60 gun mobile,aaa,false,
-Bofors 40 mm L/60 stowed,Bofors 40 mm L/60 stowed,aaa,false,
-Browning M2HB-AA,Browning M2HB-AA,aaa,false,
-DShK,DShK,aaa,false,
-DShK-AA,DShK-AA,aaa,false,
-DShK-AA mobile,DShK-AA mobile,aaa,false,
-KS-12,KS-12,aaa,false,
-KS-19,KS-19,aaa,false,
-M-1919,M-1919,aaa,false,
-M-1919 AA,M-1919 AA,aaa,false,
-M16 MGMC,M16 MGMC,aaa,false,
-M19 MGMC,M19 MGMC,aaa,false,
-M2 120mm AAA,M2 120mm AAA,aaa,false,
-M2 90mm AAA,M2 90mm AAA,aaa,false,
-Platform Car AA,Platform Car AA,aaa,false,
-Platform Car AA 61K,Platform Car AA 61-K,aaa,false,
-Platform Car AA Boforce L/60,Platform Car AA Bofors L/60,aaa,false,
-Platform Car AA DShK,Platform Car AA DShK,aaa,false,
-Platform Car AA M1919,Platform Car AA M1919,aaa,false,
-Platform Car AA SG,Platform Car AA SG,aaa,false,
-Platform Car AA ZPUVz53,Platform Car AA ZPU Vz.53,aaa,false,
-S-60,S-60,aaa,false,
-SG-43 AA,SG-43 AA,aaa,false,
-ZPU Vz.53,ZPU Vz.53,aaa,false,
-ZPU Vz.53 transported,ZPU Vz.53 transported,aaa,false,
-Cargo ship 1,Cargo ship 1,ship,false,
-Cargo ship 2,Cargo ship 2,ship,false,
-Gleaves class destroyer,Gleaves class destroyer,ship,false,
-Landing Craft LCI(L),Landing Craft LCI(L),ship,false,
-Landing Craft LCVP,Landing Craft LCVP,ship,false,
-"Landing Ship, Tank","Landing Ship, Tank",ship,false,
-Liberty class ship,Liberty class ship,ship,false,
-Pinnace,Pinnace,ship,false,
-Sampan landingcraft,Sampan landingcraft,ship,false,
-Seiner,Seiner,ship,false,
-Seiner gunboat,Seiner gunboat,ship,false,
-Tanker ship,Tanker ship,ship,false,
-Airfield caponier PSP,Airfield caponier PSP,static,false,
-Airfield caponier PSP A,Airfield caponier PSP A,static,false,
-Airfield caponier PSP B,Airfield caponier PSP B,static,false,
-Airfield caponier PSP C,Airfield caponier PSP C,static,false,
-Airfield caponier PSP D,Airfield caponier PSP D,static,false,
-Airfield caponier sandbags,Airfield caponier sandbags,static,false,
-Airfield caponier sandbags A,Airfield caponier sandbags A,static,false,
-Airfield caponier sandbags B,Airfield caponier sandbags B,static,false,
-Airfield caponier sandbags C,Airfield caponier sandbags C,static,false,
-Airfield caponier sandbags D,Airfield caponier sandbags D,static,false,
-Airfield caponier sandbags E,Airfield caponier sandbags E,static,false,
-Airfield crane A,Airfield crane A,static,false,
-Airfield Equipment APU SU1950,Airfield Equipment APU SU1950,static,false,
-Airfield Equipment APU US1950,Airfield Equipment APU US1950,static,false,
-Airfield Equipment Engine J33,Airfield Equipment Engine J33,static,false,
-Airfield Equipment Engine VK1,Airfield Equipment Engine VK1,static,false,
-Airfield Equipment Gas Cylinders,Airfield Equipment Gas Cylinders,static,false,
-Airfield hangar gateless,Airfield hangar gateless,static,false,
-Airfield hangar gateless A,Airfield hangar gateless A,static,false,
-Airfield hangar japanese framed,Airfield hangar japanese framed,static,false,
-Airfield hangar japanese framed A,Airfield hangar japanese framed A,static,false,
-Airfield hangar semi-awning,Airfield hangar semi-awning,static,false,
-Airfield hangar type K - opened,Airfield hangar type K - opened,static,false,
-Airfield Tower Auxiliary,Airfield Tower Auxiliary,static,false,
-Ammo storage A,Ammo storage A,static,false,
-Ammo storage B,Ammo storage B,static,false,
-AN/CPS-1 Radar,AN/CPS-1 Radar,static,false,
-AN/CPS-4 Radar,AN/CPS-4 Radar,static,false,
-AN/TPS-1C Radar,AN/TPS-1C Radar,static,false,
-Apartment korean C,Apartment korean C,static,false,
-Barrels storage A,Barrels storage A,static,false,
-Barrels storage B,Barrels storage B,static,false,
-Barrels storage C,Barrels storage C,static,false,
-Barrels storage D,Barrels storage D,static,false,
-BlocksArray,Block array,static,false,
-Bomb rack with M64 A,Bomb rack with M64 A,static,false,
-Bomb rack with M64 B,Bomb rack with M64 B,static,false,
-Box Car A,Box Car A,static,false,
-Box Car B,Box Car B,static,false,
-Box Car C,Box Car C,static,false,
-Box Car D,Box Car D,static,false,
-Box Car F,Box Car F,static,false,
-Box Car G,Box Car G,static,false,
-Camouflage net,Camouflage net,static,false,
-Camouflage net A,Camouflage net A,static,false,
-Camouflage net B,Camouflage net B,static,false,
-Camp cargo trailer,Camp cargo trailer,static,false,
-Camp cistern trailer,Camp cistern trailer,static,false,
-Camp generator trailer,Camp generator trailer,static,false,
-Camp reservoir,Camp reservoir,static,false,
-Camp shower,Camp shower,static,false,
-Capital railroad bridge 100m,Capital railroad bridge 100m,static,false,
-Capital railroad bridge 150m,Capital railroad bridge 150m,static,false,
-Capital railroad bridge 200m,Capital railroad bridge 200m,static,false,
-Capital railroad bridge 50m,Capital railroad bridge 50m,static,false,
-Capital railroad bridge 75m,Capital railroad bridge 75m,static,false,
-Capital road bridge 100m,Capital road bridge 100m,static,false,
-Capital road bridge 150m,Capital road bridge 150m,static,false,
-Capital road bridge 200m,Capital road bridge 200m,static,false,
-Capital road bridge 250m,Capital road bridge 250m,static,false,
-Capital road bridge 25m,Capital road bridge 25m,static,false,
-Capital road bridge 50m,Capital road bridge 50m,static,false,
-Capital road bridge 75m,Capital road bridge 75m,static,false,
-Cargo Ship A,Cargo Ship A,static,false,
-Cargocart M5,Cargocart M5,static,false,
-Cargocart M5 with ammo,Cargocart M5 with ammo,static,false,
-Cargocart M5 with M64,Cargocart M5 with M64,static,false,
-Control tower capital short,Control tower capital short,static,false,
-Control tower temp short,Control tower temp short,static,false,
-Control tower temp tall,Control tower temp tall,static,false,
-Dam medium wall A,Dam medium wall A,static,false,
-Dam medium wall B,Dam medium wall B,static,false,
-Dam medium wall with spill,Dam medium wall with spill,static,false,
-Dam small wall,Dam small wall,static,false,
-Dam small wall with building,Dam small wall with building,static,false,
-Disassembled MiG-15bis,Disassembled MiG-15bis,static,false,
-Dugout A,Dugout A,static,false,
-Dugout B,Dugout B,static,false,
-Empty bomb rack,Empty bomb rack,static,false,
-Empty bomb stack A,Empty bomb stack A,static,false,
-Empty bomb stack B,Empty bomb stack B,static,false,
-Factory block A,Factory block A,static,false,
-Factory block B,Factory block B,static,false,
-Factory block C,Factory block C,static,false,
-Factory block D,Factory block D,static,false,
-Factory block E,Factory block E,static,false,
-Factory block G,Factory block G,static,false,
-Factory block J2,Factory block J2,static,false,
-Factory block J3,Factory block J3,static,false,
-Factory block J4,Factory block J4,static,false,
-Factory block J5,Factory block J5,static,false,
-fake_block,Fake block,static,false,
-Fence concrete 100m,Fence concrete 100m,static,false,
-Fence concrete 200m,Fence concrete 200m,static,false,
-Fence concrete 20m,Fence concrete 20m,static,false,
-Fence concrete 50m,Fence concrete 50m,static,false,
-Fence concrete 5m,Fence concrete 5m,static,false,
-Fence wire 100m,Fence wire 100m,static,false,
-Fence wire 200m,Fence wire 200m,static,false,
-Fence wire 20m,Fence wire 20m,static,false,
-Fence wire 50m,Fence wire 50m,static,false,
-Fence wire 5m,Fence wire 5m,static,false,
-Fueltanks 120 gal A,Fueltanks 120 gal A,static,false,
-Fueltanks 250 L,Fueltanks 250 L,static,false,
-GAZ_63,GAZ-63,static,false,
-GAZ_67B,GAZ-67B,static,false,
-GE 1942A generator,GE 1942A generator,static,false,
-GE 1942A landing light,GE 1942A landing light,static,false,
-GE 1942A searchlight,GE 1942A searchlight,static,false,
-GMC_CCKW,GMC CCKW,static,false,
-GMC_CCKW refueler,GMC CCKW refueler,static,false,
-Gondola Car A,Gondola Car A,static,false,
-Gondola Car B,Gondola Car B,static,false,
-Gondola Carb D,Gondola Car D,static,false,
-Gondola Carb E,Gondola Car E,static,false,
-Gun caponier A,Gun caponier A,static,false,
-Gun caponier B,Gun caponier B,static,false,
-Gun caponier C,Gun caponier C,static,false,
-Gun caponier E,Gun caponier E,static,false,
-Gun caponier F,Gun caponier F,static,false,
-Gun caponier G,Gun caponier G,static,false,
-Highway bridge part - arch,Highway bridge part - arch,static,false,
-Highway bridge part - girder,Highway bridge part - girder,static,false,
-Highway bridge part - low arch,Highway bridge part - low arch,static,false,
-Highway bridge part - lower grid,Highway bridge part - lower grid,static,false,
-Highway bridge part - mound ramp,Highway bridge part - mound ramp,static,false,
-Highway bridge part - semi-arch,Highway bridge part - semi-arch,static,false,
-Highway bridge part - short stone ramp,Highway bridge part - short stone ramp,static,false,
-Highway bridge part - stone ramp,Highway bridge part - stone ramp,static,false,
-Highway bridge part - upper end,Highway bridge part - upper end,static,false,
-Hospital korean B,Hospital korean B,static,false,
-Hotel korean A,Hotel korean A,static,false,
-Industrial storage A,Industrial storage A,static,false,
-Industrial storage B,Industrial storage B,static,false,
-Industrial storage C,Industrial storage C,static,false,
-Industrial storage D,Industrial storage D,static,false,
-Industrial storage E,Industrial storage E,static,false,
-Industrial storage tank A,Industrial storage tank A,static,false,
-Industrial storage tank B,Industrial storage tank B,static,false,
-Industrial storage tank B1,Industrial storage tank B1,static,false,
-Industrial storage tank B2,Industrial storage tank B2,static,false,
-Industrial storage tank C,Industrial storage tank C,static,false,
-Industrial storage tank D,Industrial storage tank D,static,false,
-Industrial warehouse A,Industrial warehouse A,static,false,
-Industrial warehouse B,Industrial warehouse B,static,false,
-Industrial warehouse B2,Industrial warehouse B2,static,false,
-Industrial warehouse B6,Industrial warehouse B6,static,false,
-Industrial warehouse B9,Industrial warehouse B9,static,false,
-Industrial warehouse block A,Industrial warehouse block A,static,false,
-Industrial warehouse C,Industrial warehouse C,static,false,
-Industrial warehouse D,Industrial warehouse D,static,false,
-Industrial warehouse D2,Industrial warehouse D2,static,false,
-Industrial warehouse D4,Industrial warehouse D4,static,false,
-Industrial warehouse D6,Industrial warehouse D6,static,false,
-Industrial warehouse D8,Industrial warehouse D8,static,false,
-Industrial warehouse E,Industrial warehouse E,static,false,
-Industrial warehouse F,Industrial warehouse F,static,false,
-Inflated float road bridge 050m,Inflated float road bridge 050m,static,false,
-Inflated float road bridge ramp left,Inflated float road bridge ramp left,static,false,
-Lighthouse A,Lighthouse A,static,false,
-Lighthouse cabin,Lighthouse cabin,static,false,
-Manufacture korean A,Manufacture korean A,static,false,
-Manufacture korean C,Manufacture korean C,static,false,
-MiG Alley gate,MiG Alley gate,static,false,
-Military barrack A,Military barrack A,static,false,
-Military barrack A1,Military barrack A1,static,false,
-Military barrack A2,Military barrack A2,static,false,
-Military barrack B,Military barrack B,static,false,
-Military barrack B1,Military barrack B1,static,false,
-Military barrack C,Military barrack C,static,false,
-Military barrack C2,Military barrack C2,static,false,
-Military barrack D,Military barrack D,static,false,
-Military barrack D2,Military barrack D2,static,false,
-Military barrack D3,Military barrack D3,static,false,
-Military barrack D4,Military barrack D4,static,false,
-Military barrack E,Military barrack E,static,false,
-Military barrack F,Military barrack F,static,false,
-Military barrack G,Military barrack G,static,false,
-Military barrack H,Military barrack H,static,false,
-Military barrack I,Military barrack I,static,false,
-Military boxes storage A,Military boxes storage A,static,false,
-Military boxes storage B,Military boxes storage B,static,false,
-Military boxes storage C,Military boxes storage C,static,false,
-Military boxes storage D,Military boxes storage D,static,false,
-Military boxes storage E,Military boxes storage E,static,false,
-Military boxes storage F,Military boxes storage F,static,false,
-Military cistern large B,Military cistern large B,static,false,
-Military cistern large B1,Military cistern large B1,static,false,
-Military cistern large B2,Military cistern large B2,static,false,
-Military cistern medium A,Military cistern medium A,static,false,
-Military cistern medium A1,Military cistern medium A1,static,false,
-Military cistern small,Military cistern small,static,false,
-Military coil,Military coil,static,false,
-Military coil A,Military coil A,static,false,
-Military coil B,Military coil B,static,false,
-Military coil C,Military coil C,static,false,
-Military coil D,Military coil D,static,false,
-Military coils and barrles,Military coils and barrels,static,false,
-Military tent A,Military tent A,static,false,
-Military tent A1,Military tent A1,static,false,
-Military tent A2,Military tent A2,static,false,
-Military tent A3,Military tent A3,static,false,
-Military tent B,Military tent B,static,false,
-Military tent C,Military tent C,static,false,
-Military tent D,Military tent D,static,false,
-Military warehouse B,Military warehouse B,static,false,
-Military warehouse C,Military warehouse C,static,false,
-Military watertower,Military watertower,static,false,
-Mine derrick A,Mine derrick A,static,false,
-Mine derrick B,Mine derrick B,static,false,
-Mine dredge,Mine dredge,static,false,
-Mine logs,Mine logs,static,false,
-Mine office,Mine office,static,false,
-Mine planks,Mine planks,static,false,
-Mine tipple loader,Mine tipple loader,static,false,
-Mine warehouse A,Mine warehouse A,static,false,
-Mine warehouse B,Mine warehouse B,static,false,
-Mine warehouse C,Mine warehouse C,static,false,
-Mine warehouse D,Mine warehouse D,static,false,
-Mine warehouse E,Mine warehouse E,static,false,
-Nissenhut barrack A,Nissenhut barrack A,static,false,
-Nissenhut barrack A1,Nissenhut barrack A1,static,false,
-Nissenhut barrack A2,Nissenhut barrack A2,static,false,
-Nissenhut barrack A3,Nissenhut barrack A3,static,false,
-Nissenhut barrack B,Nissenhut barrack B,static,false,
-Non Directional Beacon,Non Directional Beacon,static,false,
-Office building korean C,Office building korean C,static,false,
-P-20 Control Compartment,P-20 Control Compartment,static,false,
-P-20 Radar,P-20 Radar,static,false,
-P-8 Control Compartment,P-8 Control Compartment,static,false,
-P-8 Interrogator,P-8 Interrogator,static,false,
-P-8 Radar,P-8 Radar,static,false,
-Parked  C-47B,Parked C-47B,static,false,
-Parked  F-51D,Parked F-51D,static,false,
-Parked  Tu-2,Parked Tu-2,static,false,
-Parked  Yak-9P,Parked Yak-9P,static,false,
-Parked F-80C-10,Parked F-80C-10,static,false,
-Parked F-84E,Parked F-84E,static,false,
-Parked F-86A-5,Parked F-86A-5,static,false,
-Parked IL-10,Parked IL-10,static,false,
-Parked La-11,Parked La-11,static,false,
-Parked Li-2T,Parked Li-2T,static,false,
-Parked MiG-15bis,Parked MiG-15bis,static,false,
-Part of F-86A-5,Part of F-86A-5,static,false,
-Passenger Car A,Passenger Car A,static,false,
-Passenger Car C,Passenger Car C,static,false,
-Passenger Car D,Passenger Car D,static,false,
-Pinnace A,Pinnace A,static,false,
-Platform Car A,Platform Car A,static,false,
-Platform Car B,Platform Car B,static,false,
-Platform Car C,Platform Car C,static,false,
-Platform Car D,Platform Car D,static,false,
-Platform Car E,Platform Car E,static,false,
-Platform Car F,Platform Car F,static,false,
-Port crane A,Port crane A,static,false,
-Port crane A1,Port crane A1,static,false,
-Port crane B,Port crane B,static,false,
-Port_crane_01_4x,Port crane,static,false,
-Power hub A,Power hub A,static,false,
-Power station B,Power station B,static,false,
-Powerline large pylon,Powerline large pylon,static,false,
-Radar Control Room,Radar Control Room,static,false,
-Radar Generator Room,Radar Generator Room,static,false,
-Railway bridge part - girder ramp,Railway bridge part - girder ramp,static,false,
-Railway bridge part - grid,Railway bridge part - grid,static,false,
-Railway bridge part - inverted arch,Railway bridge part - inverted arch,static,false,
-Railway bridge part - short girder,Railway bridge part - short girder,static,false,
-Railway bridge part - short stone ramp,Railway bridge part - short stone ramp,static,false,
-Railway coal tower,Railway coal tower,static,false,
-Railway control tower,Railway control tower,static,false,
-Railway crossing cabin,Railway crossing cabin,static,false,
-Railway crossing gate,Railway crossing gate,static,false,
-Railway dead end,Railway dead end,static,false,
-Railway depot,Railway depot,static,false,
-Railway light tower,Railway light tower,static,false,
-Railway platform A,Railway platform A,static,false,
-Railway platform B,Railway platform B,static,false,
-Railway station A,Railway station A,static,false,
-Railway station B,Railway station B,static,false,
-Railway water tower,Railway water tower,static,false,
-RP-15-1 generator,RP-15-1 generator,static,false,
-RP-15-1 searchlight,RP-15-1 searchlight,static,false,
-Runway lights A1,Runway lights A1,static,false,
-Runway lights A2,Runway lights A2,static,false,
-Runway lights A3,Runway lights A3,static,false,
-Runway lights A4,Runway lights A4,static,false,
-Runway lights B2,Runway lights B2,static,false,
-Runway lights B3,Runway lights B3,static,false,
-Sampan A,Sampan A,static,false,
-Sawmill,Sawmill,static,false,
-Sawmill logs,Sawmill logs,static,false,
-Sawmill planks,Sawmill planks,static,false,
-School korean B,School korean B,static,false,
-School korean C,School korean C,static,false,
-Searchlight-beam,Searchlight beam,static,false,
-Seiner A,Seiner A,static,false,
-Seoul terminal,Seoul terminal,static,false,
-Shipyard,Shipyard,static,false,
-Shipyard peer,Shipyard peer,static,false,
-Sign Left,Sign Left,static,false,
-Sign Stop,Sign Stop,static,false,
-Stack of FAB-100 A,Stack of FAB-100 A,static,false,
-Stack of FAB-100 B,Stack of FAB-100 B,static,false,
-Stack of FAB-100 C,Stack of FAB-100 C,static,false,
-Stack of FAB-100 D,Stack of FAB-100 D,static,false,
-Stores korean A,Stores korean A,static,false,
-Stores korean C,Stores korean C,static,false,
-Stores korean D,Stores korean D,static,false,
-Stores korean E,Stores korean E,static,false,
-Studebaker_US6 refueler,Studebaker US6 refueler,static,false,
-Tank Car A,Tank Car A,static,false,
-Tank Car B,Tank Car B,static,false,
-Tank Car C,Tank Car C,static,false,
-Tanker Ship A,Tanker Ship A,static,false,
-Willys_MB,Willys MB,static,false,
-Windsock,Windsock,static,false,
-Wooden road bridge 25m,Wooden road bridge 25m,static,false,
-Wooden road bridge 50m,Wooden road bridge 50m,static,false,
-Wooden road bridge 75m,Wooden road bridge 75m,static,false,
-Yard boxes storage A,Yard boxes storage A,static,false,
-Yard boxes storage A1,Yard boxes storage A1,static,false,
-Yard boxes storage A2,Yard boxes storage A2,static,false,
-Yard boxes storage A5,Yard boxes storage A5,static,false,
-Yard boxes storage B,Yard boxes storage B,static,false,
-Yard boxes storage B1,Yard boxes storage B1,static,false,
-Yard boxes storage B2,Yard boxes storage B2,static,false,
-Yard boxes storage B3,Yard boxes storage B3,static,false,
-Yard boxes storage B4,Yard boxes storage B4,static,false,
-Yard boxes storage C,Yard boxes storage C,static,false,
-Yard boxes storage C1,Yard boxes storage C1,static,false,
-Yard boxes storage C2,Yard boxes storage C2,static,false,
-Yard boxes storage C3,Yard boxes storage C3,static,false,
-Yard boxes storage C4,Yard boxes storage C4,static,false,
-Yard boxes storage C6,Yard boxes storage C6,static,false,
-BOOSTER_USA_JATO,JATO booster,ordnance,false,
-FTANK_1003L_USA_F80L,F-80 drop tank 1003 L (left),ordnance,false,
-FTANK_1003L_USA_F80R,F-80 drop tank 1003 L (right),ordnance,false,
-FTANK_250L_RUS_MIG15L,MiG-15 drop tank 250 L (left),ordnance,false,
-FTANK_250L_RUS_MIG15R,MiG-15 drop tank 250 L (right),ordnance,false,
-FTANK_284L_USA_F51,F-51 drop tank 284 L,ordnance,false,
-FTANK_416L_USA_F51,F-51 drop tank 416 L,ordnance,false,
-FTANK_454L_USA_F86L,F-86 drop tank 454 L (left),ordnance,false,
-FTANK_454L_USA_F86R,F-86 drop tank 454 L (right),ordnance,false,
-FTANK_625L_USA_F80L,F-80 drop tank 625 L (left),ordnance,false,
-FTANK_625L_USA_F80R,F-80 drop tank 625 L (right),ordnance,false,
-FTANK_871L_USA_F84L_WT,F-84 wingtip tank 871 L (left),ordnance,false,
-FTANK_871L_USA_F84R_WT,F-84 wingtip tank 871 L (right),ordnance,false,
-FTANK_927L_USA_F86L,F-86 drop tank 927 L (left),ordnance,false,
-FTANK_927L_USA_F86R,F-86 drop tank 927 L (right),ordnance,false,
-NAPALM_389kg_USA_110gal,Napalm tank 110 gal,ordnance,false,
-RKT_127mm_USA_HVAR,"HVAR 5"" rocket",ordnance,false,
-RKT_127mm_USA_HVAR_SAP,"HVAR 5"" rocket (SAP)",ordnance,false,
-B29_CrewGroup1,B-29 crew,crew,false,
-B29_CrewGroup2,B-29 crew,crew,false,
-BotBoatSwain,Boatswain,crew,false,
-BotDriver1,Driver,crew,false,
-BotField_Officer_USA1950,Officer (US),crew,false,
-BotField_Officer_USSR1950,Officer (Soviet),crew,false,
-BotField_Seaman_USA1950,Seaman (US),crew,false,
-BotField_Soldier_DPRK1950,Soldier (North Korean),crew,false,
-BotField_Soldier_USA1950,Soldier (US),crew,false,
-BotField_Soldier_USSR1950,Soldier (Soviet),crew,false,
-BotField_Tankman_DPRK1950,Tank crewman (North Korean),crew,false,
-BotField_Tankman_USA1950,Tank crewman (US),crew,false,
-BotGunner,Gunner,crew,false,
-BotPilotSimpleMFPlane,Pilot,crew,false,
-BotPlaneCrew_USAF1950,Aircrew (USAF),crew,false,
-BotPlaneGunner_USAF1950,Air gunner (USAF),crew,false,
-BotPlaneGunner_USSR1950,Air gunner (Soviet),crew,false,
-BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),crew,false,
-BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),crew,false,
-BotPlanePilot_USAF1950com,Pilot (USAF),crew,false,
-BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)",crew,false,
-BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)",crew,false,
-BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)",crew,false,
-BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)",crew,false,
-BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)",crew,false,
-BotRangefinder,Rangefinder operator,crew,false,
-CParachute,Parachute,equipment,false,
-ESeat_F-80C-10,F-80C-10 ejection seat,equipment,false,
-ESeat_F-84E,F-84E ejection seat,equipment,false,
-ESeat_F-86A-5,F-86A-5 ejection seat,equipment,false,
-ESeat_KK1,MiG-15bis ejection seat,equipment,false,
-ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),equipment,false,
-Spotter,Spotter,equipment,false,
-VehicleRangefinderTurret,Vehicle rangefinder turret,equipment,false,
-VehicleTurret,Vehicle turret,equipment,false,
+log_name,display_name,cls,is_playable,propulsion,ground_category
+F-51D,F-51D,fighter,true,prop,
+F-80C-10,F-80C-10,fighter,true,jet,
+F-84E,F-84E,fighter,true,jet,
+F-86A-5,F-86A-5,fighter,true,jet,
+La-11,La-11,fighter,true,prop,
+MiG-15bis,MiG-15bis,fighter,true,jet,
+Yak-9P,Yak-9P,fighter,true,prop,
+IL-10,IL-10,attacker,true,prop,
+B 29,B-29,bomber,false,prop,
+B-29,B-29,bomber,false,prop,
+Tu-2,Tu-2,bomber,false,prop,
+C-47B,C-47B,transport,false,prop,
+Li-2,Li-2,transport,false,prop,
+Multiturret_SimpleB29,B-29 turrets,gunner,false,,
+Turret_B29_1,B-29 turret 1,gunner,false,,
+Turret_B29_2,B-29 turret 2,gunner,false,,
+Turret_B29_3M,B-29 turret 3,gunner,false,,
+Turret_IL10,IL-10 gunner,gunner,true,,
+Turret_Tu2_1,Tu-2 turret 1,gunner,false,,
+Turret_Tu2_2,Tu-2 turret 2,gunner,false,,
+Turret_Tu2_3,Tu-2 turret 3,gunner,false,,
+IS-2,IS-2,tank,false,,tank
+ISU-122,ISU-122,tank,false,,tank
+M40 GMC,M40 GMC,tank,false,,tank
+M46 Patton,M46 Patton,tank,false,,tank
+M4A3E8 Sherman,M4A3E8 Sherman,tank,false,,tank
+M7B1 Priest,M7B1 Priest,tank,false,,tank
+SU76M,SU-76M,tank,false,,tank
+T-34-85,T-34-85,tank,false,,tank
+T-34-85 stowed,T-34-85 stowed,tank,false,,tank
+BA-64B,BA-64B,vehicle,false,,vehicle
+Box Car,Box Car,vehicle,false,,train
+Dodge WC-52,Dodge WC-52,vehicle,false,,vehicle
+Dodge WC-54,Dodge WC-54,vehicle,false,,vehicle
+GAZ-55,GAZ-55,vehicle,false,,vehicle
+GAZ-63,GAZ-63,vehicle,false,,vehicle
+GAZ-67B,GAZ-67B,vehicle,false,,vehicle
+GMC CCKW,GMC CCKW,vehicle,false,,vehicle
+GMC CCKW refueler,GMC CCKW refueler,vehicle,false,,vehicle
+Gondola Car,Gondola Car,vehicle,false,,train
+M1A1 155mm howitzer,M1A1 155mm howitzer,vehicle,false,,artillery
+M2 155mm LongTom,M2 155mm LongTom,vehicle,false,,artillery
+M2 203mm Howitzer,M2 203mm Howitzer,vehicle,false,,artillery
+M2A1 105mm howitzer,M2A1 105mm howitzer,vehicle,false,,artillery
+M3A1 half-track,M3A1 half-track,vehicle,false,,vehicle
+M6 High-Speed Tractor,M6 High-Speed Tractor,vehicle,false,,vehicle
+Mail Car,Mail Car,vehicle,false,,train
+ML-20 howitzer-gun,ML-20 howitzer-gun,vehicle,false,,artillery
+Passenger Car,Passenger Car,vehicle,false,,train
+Platform Car,Platform Car,vehicle,false,,train
+Studebaker US6,Studebaker US6,vehicle,false,,vehicle
+Studebaker US6 BM-13,Studebaker US6 BM-13,vehicle,false,,vehicle
+Studebaker US6 refueler,Studebaker US6 refueler,vehicle,false,,vehicle
+Studebaker US6 tanker,Studebaker US6 tanker,vehicle,false,,vehicle
+Tank Car,Tank Car,vehicle,false,,train
+Type 475.1,Type 475.1 locomotive,vehicle,false,,train
+Type 475.1 tender,Type 475.1 tender,vehicle,false,,train
+U-7144,U-7144,vehicle,false,,vehicle
+Willys MB,Willys MB,vehicle,false,,vehicle
+61-K,61-K,aaa,false,,aaa
+61-K mobile,61-K mobile,aaa,false,,aaa
+61-K stowed,61-K stowed,aaa,false,,aaa
+61-K transported,61-K transported,aaa,false,,aaa
+72-K,72-K,aaa,false,,aaa
+72-K stowed,72-K stowed,aaa,false,,aaa
+Bofors 40 mm L/60 gun,Bofors 40 mm L/60 gun,aaa,false,,aaa
+Bofors 40 mm L/60 gun mobile,Bofors 40 mm L/60 gun mobile,aaa,false,,aaa
+Bofors 40 mm L/60 stowed,Bofors 40 mm L/60 stowed,aaa,false,,aaa
+Browning M2HB-AA,Browning M2HB-AA,aaa,false,,aaa
+DShK,DShK,aaa,false,,aaa
+DShK-AA,DShK-AA,aaa,false,,aaa
+DShK-AA mobile,DShK-AA mobile,aaa,false,,aaa
+KS-12,KS-12,aaa,false,,aaa
+KS-19,KS-19,aaa,false,,aaa
+M-1919,M-1919,aaa,false,,aaa
+M-1919 AA,M-1919 AA,aaa,false,,aaa
+M16 MGMC,M16 MGMC,aaa,false,,aaa
+M19 MGMC,M19 MGMC,aaa,false,,aaa
+M2 120mm AAA,M2 120mm AAA,aaa,false,,aaa
+M2 90mm AAA,M2 90mm AAA,aaa,false,,aaa
+Platform Car AA,Platform Car AA,aaa,false,,aaa
+Platform Car AA 61K,Platform Car AA 61-K,aaa,false,,aaa
+Platform Car AA Boforce L/60,Platform Car AA Bofors L/60,aaa,false,,aaa
+Platform Car AA DShK,Platform Car AA DShK,aaa,false,,aaa
+Platform Car AA M1919,Platform Car AA M1919,aaa,false,,aaa
+Platform Car AA SG,Platform Car AA SG,aaa,false,,aaa
+Platform Car AA ZPUVz53,Platform Car AA ZPU Vz.53,aaa,false,,aaa
+S-60,S-60,aaa,false,,aaa
+SG-43 AA,SG-43 AA,aaa,false,,aaa
+ZPU Vz.53,ZPU Vz.53,aaa,false,,aaa
+ZPU Vz.53 transported,ZPU Vz.53 transported,aaa,false,,aaa
+Cargo ship 1,Cargo ship 1,ship,false,,ship
+Cargo ship 2,Cargo ship 2,ship,false,,ship
+Gleaves class destroyer,Gleaves class destroyer,ship,false,,ship
+Landing Craft LCI(L),Landing Craft LCI(L),ship,false,,ship
+Landing Craft LCVP,Landing Craft LCVP,ship,false,,ship
+"Landing Ship, Tank","Landing Ship, Tank",ship,false,,ship
+Liberty class ship,Liberty class ship,ship,false,,ship
+Pinnace,Pinnace,ship,false,,ship
+Sampan landingcraft,Sampan landingcraft,ship,false,,ship
+Seiner,Seiner,ship,false,,ship
+Seiner gunboat,Seiner gunboat,ship,false,,ship
+Tanker ship,Tanker ship,ship,false,,ship
+Airfield caponier PSP,Airfield caponier PSP,static,false,,building
+Airfield caponier PSP A,Airfield caponier PSP A,static,false,,building
+Airfield caponier PSP B,Airfield caponier PSP B,static,false,,building
+Airfield caponier PSP C,Airfield caponier PSP C,static,false,,building
+Airfield caponier PSP D,Airfield caponier PSP D,static,false,,building
+Airfield caponier sandbags,Airfield caponier sandbags,static,false,,building
+Airfield caponier sandbags A,Airfield caponier sandbags A,static,false,,building
+Airfield caponier sandbags B,Airfield caponier sandbags B,static,false,,building
+Airfield caponier sandbags C,Airfield caponier sandbags C,static,false,,building
+Airfield caponier sandbags D,Airfield caponier sandbags D,static,false,,building
+Airfield caponier sandbags E,Airfield caponier sandbags E,static,false,,building
+Airfield crane A,Airfield crane A,static,false,,building
+Airfield Equipment APU SU1950,Airfield Equipment APU SU1950,static,false,,other
+Airfield Equipment APU US1950,Airfield Equipment APU US1950,static,false,,other
+Airfield Equipment Engine J33,Airfield Equipment Engine J33,static,false,,other
+Airfield Equipment Engine VK1,Airfield Equipment Engine VK1,static,false,,other
+Airfield Equipment Gas Cylinders,Airfield Equipment Gas Cylinders,static,false,,other
+Airfield hangar gateless,Airfield hangar gateless,static,false,,building
+Airfield hangar gateless A,Airfield hangar gateless A,static,false,,building
+Airfield hangar japanese framed,Airfield hangar japanese framed,static,false,,building
+Airfield hangar japanese framed A,Airfield hangar japanese framed A,static,false,,building
+Airfield hangar semi-awning,Airfield hangar semi-awning,static,false,,building
+Airfield hangar type K - opened,Airfield hangar type K - opened,static,false,,building
+Airfield Tower Auxiliary,Airfield Tower Auxiliary,static,false,,building
+Ammo storage A,Ammo storage A,static,false,,other
+Ammo storage B,Ammo storage B,static,false,,other
+AN/CPS-1 Radar,AN/CPS-1 Radar,static,false,,building
+AN/CPS-4 Radar,AN/CPS-4 Radar,static,false,,building
+AN/TPS-1C Radar,AN/TPS-1C Radar,static,false,,building
+Apartment korean C,Apartment korean C,static,false,,building
+Barrels storage A,Barrels storage A,static,false,,other
+Barrels storage B,Barrels storage B,static,false,,other
+Barrels storage C,Barrels storage C,static,false,,other
+Barrels storage D,Barrels storage D,static,false,,other
+BlocksArray,Block array,static,false,,other
+Bomb rack with M64 A,Bomb rack with M64 A,static,false,,other
+Bomb rack with M64 B,Bomb rack with M64 B,static,false,,other
+Box Car A,Box Car A,static,false,,train
+Box Car B,Box Car B,static,false,,train
+Box Car C,Box Car C,static,false,,train
+Box Car D,Box Car D,static,false,,train
+Box Car F,Box Car F,static,false,,train
+Box Car G,Box Car G,static,false,,train
+Camouflage net,Camouflage net,static,false,,other
+Camouflage net A,Camouflage net A,static,false,,other
+Camouflage net B,Camouflage net B,static,false,,other
+Camp cargo trailer,Camp cargo trailer,static,false,,other
+Camp cistern trailer,Camp cistern trailer,static,false,,other
+Camp generator trailer,Camp generator trailer,static,false,,other
+Camp reservoir,Camp reservoir,static,false,,other
+Camp shower,Camp shower,static,false,,other
+Capital railroad bridge 100m,Capital railroad bridge 100m,static,false,,building
+Capital railroad bridge 150m,Capital railroad bridge 150m,static,false,,building
+Capital railroad bridge 200m,Capital railroad bridge 200m,static,false,,building
+Capital railroad bridge 50m,Capital railroad bridge 50m,static,false,,building
+Capital railroad bridge 75m,Capital railroad bridge 75m,static,false,,building
+Capital road bridge 100m,Capital road bridge 100m,static,false,,building
+Capital road bridge 150m,Capital road bridge 150m,static,false,,building
+Capital road bridge 200m,Capital road bridge 200m,static,false,,building
+Capital road bridge 250m,Capital road bridge 250m,static,false,,building
+Capital road bridge 25m,Capital road bridge 25m,static,false,,building
+Capital road bridge 50m,Capital road bridge 50m,static,false,,building
+Capital road bridge 75m,Capital road bridge 75m,static,false,,building
+Cargo Ship A,Cargo Ship A,static,false,,ship
+Cargocart M5,Cargocart M5,static,false,,other
+Cargocart M5 with ammo,Cargocart M5 with ammo,static,false,,other
+Cargocart M5 with M64,Cargocart M5 with M64,static,false,,other
+Control tower capital short,Control tower capital short,static,false,,building
+Control tower temp short,Control tower temp short,static,false,,building
+Control tower temp tall,Control tower temp tall,static,false,,building
+Dam medium wall A,Dam medium wall A,static,false,,building
+Dam medium wall B,Dam medium wall B,static,false,,building
+Dam medium wall with spill,Dam medium wall with spill,static,false,,building
+Dam small wall,Dam small wall,static,false,,building
+Dam small wall with building,Dam small wall with building,static,false,,building
+Disassembled MiG-15bis,Disassembled MiG-15bis,static,false,,parked_aircraft
+Dugout A,Dugout A,static,false,,building
+Dugout B,Dugout B,static,false,,building
+Empty bomb rack,Empty bomb rack,static,false,,other
+Empty bomb stack A,Empty bomb stack A,static,false,,other
+Empty bomb stack B,Empty bomb stack B,static,false,,other
+Factory block A,Factory block A,static,false,,building
+Factory block B,Factory block B,static,false,,building
+Factory block C,Factory block C,static,false,,building
+Factory block D,Factory block D,static,false,,building
+Factory block E,Factory block E,static,false,,building
+Factory block G,Factory block G,static,false,,building
+Factory block J2,Factory block J2,static,false,,building
+Factory block J3,Factory block J3,static,false,,building
+Factory block J4,Factory block J4,static,false,,building
+Factory block J5,Factory block J5,static,false,,building
+fake_block,Fake block,static,false,,other
+Fence concrete 100m,Fence concrete 100m,static,false,,other
+Fence concrete 200m,Fence concrete 200m,static,false,,other
+Fence concrete 20m,Fence concrete 20m,static,false,,other
+Fence concrete 50m,Fence concrete 50m,static,false,,other
+Fence concrete 5m,Fence concrete 5m,static,false,,other
+Fence wire 100m,Fence wire 100m,static,false,,other
+Fence wire 200m,Fence wire 200m,static,false,,other
+Fence wire 20m,Fence wire 20m,static,false,,other
+Fence wire 50m,Fence wire 50m,static,false,,other
+Fence wire 5m,Fence wire 5m,static,false,,other
+Fueltanks 120 gal A,Fueltanks 120 gal A,static,false,,other
+Fueltanks 250 L,Fueltanks 250 L,static,false,,other
+GAZ_63,GAZ-63,static,false,,vehicle
+GAZ_67B,GAZ-67B,static,false,,vehicle
+GE 1942A generator,GE 1942A generator,static,false,,other
+GE 1942A landing light,GE 1942A landing light,static,false,,other
+GE 1942A searchlight,GE 1942A searchlight,static,false,,other
+GMC_CCKW,GMC CCKW,static,false,,vehicle
+GMC_CCKW refueler,GMC CCKW refueler,static,false,,vehicle
+Gondola Car A,Gondola Car A,static,false,,train
+Gondola Car B,Gondola Car B,static,false,,train
+Gondola Carb D,Gondola Car D,static,false,,train
+Gondola Carb E,Gondola Car E,static,false,,train
+Gun caponier A,Gun caponier A,static,false,,building
+Gun caponier B,Gun caponier B,static,false,,building
+Gun caponier C,Gun caponier C,static,false,,building
+Gun caponier E,Gun caponier E,static,false,,building
+Gun caponier F,Gun caponier F,static,false,,building
+Gun caponier G,Gun caponier G,static,false,,building
+Highway bridge part - arch,Highway bridge part - arch,static,false,,building
+Highway bridge part - girder,Highway bridge part - girder,static,false,,building
+Highway bridge part - low arch,Highway bridge part - low arch,static,false,,building
+Highway bridge part - lower grid,Highway bridge part - lower grid,static,false,,building
+Highway bridge part - mound ramp,Highway bridge part - mound ramp,static,false,,building
+Highway bridge part - semi-arch,Highway bridge part - semi-arch,static,false,,building
+Highway bridge part - short stone ramp,Highway bridge part - short stone ramp,static,false,,building
+Highway bridge part - stone ramp,Highway bridge part - stone ramp,static,false,,building
+Highway bridge part - upper end,Highway bridge part - upper end,static,false,,building
+Hospital korean B,Hospital korean B,static,false,,building
+Hotel korean A,Hotel korean A,static,false,,building
+Industrial storage A,Industrial storage A,static,false,,building
+Industrial storage B,Industrial storage B,static,false,,building
+Industrial storage C,Industrial storage C,static,false,,building
+Industrial storage D,Industrial storage D,static,false,,building
+Industrial storage E,Industrial storage E,static,false,,building
+Industrial storage tank A,Industrial storage tank A,static,false,,building
+Industrial storage tank B,Industrial storage tank B,static,false,,building
+Industrial storage tank B1,Industrial storage tank B1,static,false,,building
+Industrial storage tank B2,Industrial storage tank B2,static,false,,building
+Industrial storage tank C,Industrial storage tank C,static,false,,building
+Industrial storage tank D,Industrial storage tank D,static,false,,building
+Industrial warehouse A,Industrial warehouse A,static,false,,building
+Industrial warehouse B,Industrial warehouse B,static,false,,building
+Industrial warehouse B2,Industrial warehouse B2,static,false,,building
+Industrial warehouse B6,Industrial warehouse B6,static,false,,building
+Industrial warehouse B9,Industrial warehouse B9,static,false,,building
+Industrial warehouse block A,Industrial warehouse block A,static,false,,building
+Industrial warehouse C,Industrial warehouse C,static,false,,building
+Industrial warehouse D,Industrial warehouse D,static,false,,building
+Industrial warehouse D2,Industrial warehouse D2,static,false,,building
+Industrial warehouse D4,Industrial warehouse D4,static,false,,building
+Industrial warehouse D6,Industrial warehouse D6,static,false,,building
+Industrial warehouse D8,Industrial warehouse D8,static,false,,building
+Industrial warehouse E,Industrial warehouse E,static,false,,building
+Industrial warehouse F,Industrial warehouse F,static,false,,building
+Inflated float road bridge 050m,Inflated float road bridge 050m,static,false,,building
+Inflated float road bridge ramp left,Inflated float road bridge ramp left,static,false,,building
+Lighthouse A,Lighthouse A,static,false,,building
+Lighthouse cabin,Lighthouse cabin,static,false,,building
+Manufacture korean A,Manufacture korean A,static,false,,building
+Manufacture korean C,Manufacture korean C,static,false,,building
+MiG Alley gate,MiG Alley gate,static,false,,building
+Military barrack A,Military barrack A,static,false,,building
+Military barrack A1,Military barrack A1,static,false,,building
+Military barrack A2,Military barrack A2,static,false,,building
+Military barrack B,Military barrack B,static,false,,building
+Military barrack B1,Military barrack B1,static,false,,building
+Military barrack C,Military barrack C,static,false,,building
+Military barrack C2,Military barrack C2,static,false,,building
+Military barrack D,Military barrack D,static,false,,building
+Military barrack D2,Military barrack D2,static,false,,building
+Military barrack D3,Military barrack D3,static,false,,building
+Military barrack D4,Military barrack D4,static,false,,building
+Military barrack E,Military barrack E,static,false,,building
+Military barrack F,Military barrack F,static,false,,building
+Military barrack G,Military barrack G,static,false,,building
+Military barrack H,Military barrack H,static,false,,building
+Military barrack I,Military barrack I,static,false,,building
+Military boxes storage A,Military boxes storage A,static,false,,other
+Military boxes storage B,Military boxes storage B,static,false,,other
+Military boxes storage C,Military boxes storage C,static,false,,other
+Military boxes storage D,Military boxes storage D,static,false,,other
+Military boxes storage E,Military boxes storage E,static,false,,other
+Military boxes storage F,Military boxes storage F,static,false,,other
+Military cistern large B,Military cistern large B,static,false,,building
+Military cistern large B1,Military cistern large B1,static,false,,building
+Military cistern large B2,Military cistern large B2,static,false,,building
+Military cistern medium A,Military cistern medium A,static,false,,building
+Military cistern medium A1,Military cistern medium A1,static,false,,building
+Military cistern small,Military cistern small,static,false,,building
+Military coil,Military coil,static,false,,other
+Military coil A,Military coil A,static,false,,other
+Military coil B,Military coil B,static,false,,other
+Military coil C,Military coil C,static,false,,other
+Military coil D,Military coil D,static,false,,other
+Military coils and barrles,Military coils and barrels,static,false,,other
+Military tent A,Military tent A,static,false,,building
+Military tent A1,Military tent A1,static,false,,building
+Military tent A2,Military tent A2,static,false,,building
+Military tent A3,Military tent A3,static,false,,building
+Military tent B,Military tent B,static,false,,building
+Military tent C,Military tent C,static,false,,building
+Military tent D,Military tent D,static,false,,building
+Military warehouse B,Military warehouse B,static,false,,building
+Military warehouse C,Military warehouse C,static,false,,building
+Military watertower,Military watertower,static,false,,building
+Mine derrick A,Mine derrick A,static,false,,building
+Mine derrick B,Mine derrick B,static,false,,building
+Mine dredge,Mine dredge,static,false,,building
+Mine logs,Mine logs,static,false,,other
+Mine office,Mine office,static,false,,building
+Mine planks,Mine planks,static,false,,other
+Mine tipple loader,Mine tipple loader,static,false,,building
+Mine warehouse A,Mine warehouse A,static,false,,building
+Mine warehouse B,Mine warehouse B,static,false,,building
+Mine warehouse C,Mine warehouse C,static,false,,building
+Mine warehouse D,Mine warehouse D,static,false,,building
+Mine warehouse E,Mine warehouse E,static,false,,building
+Nissenhut barrack A,Nissenhut barrack A,static,false,,building
+Nissenhut barrack A1,Nissenhut barrack A1,static,false,,building
+Nissenhut barrack A2,Nissenhut barrack A2,static,false,,building
+Nissenhut barrack A3,Nissenhut barrack A3,static,false,,building
+Nissenhut barrack B,Nissenhut barrack B,static,false,,building
+Non Directional Beacon,Non Directional Beacon,static,false,,other
+Office building korean C,Office building korean C,static,false,,building
+P-20 Control Compartment,P-20 Control Compartment,static,false,,building
+P-20 Radar,P-20 Radar,static,false,,building
+P-8 Control Compartment,P-8 Control Compartment,static,false,,building
+P-8 Interrogator,P-8 Interrogator,static,false,,building
+P-8 Radar,P-8 Radar,static,false,,building
+Parked  C-47B,Parked C-47B,static,false,,parked_aircraft
+Parked  F-51D,Parked F-51D,static,false,,parked_aircraft
+Parked  Tu-2,Parked Tu-2,static,false,,parked_aircraft
+Parked  Yak-9P,Parked Yak-9P,static,false,,parked_aircraft
+Parked F-80C-10,Parked F-80C-10,static,false,,parked_aircraft
+Parked F-84E,Parked F-84E,static,false,,parked_aircraft
+Parked F-86A-5,Parked F-86A-5,static,false,,parked_aircraft
+Parked IL-10,Parked IL-10,static,false,,parked_aircraft
+Parked La-11,Parked La-11,static,false,,parked_aircraft
+Parked Li-2T,Parked Li-2T,static,false,,parked_aircraft
+Parked MiG-15bis,Parked MiG-15bis,static,false,,parked_aircraft
+Part of F-86A-5,Part of F-86A-5,static,false,,parked_aircraft
+Passenger Car A,Passenger Car A,static,false,,train
+Passenger Car C,Passenger Car C,static,false,,train
+Passenger Car D,Passenger Car D,static,false,,train
+Pinnace A,Pinnace A,static,false,,ship
+Platform Car A,Platform Car A,static,false,,train
+Platform Car B,Platform Car B,static,false,,train
+Platform Car C,Platform Car C,static,false,,train
+Platform Car D,Platform Car D,static,false,,train
+Platform Car E,Platform Car E,static,false,,train
+Platform Car F,Platform Car F,static,false,,train
+Port crane A,Port crane A,static,false,,building
+Port crane A1,Port crane A1,static,false,,building
+Port crane B,Port crane B,static,false,,building
+Port_crane_01_4x,Port crane,static,false,,building
+Power hub A,Power hub A,static,false,,building
+Power station B,Power station B,static,false,,building
+Powerline large pylon,Powerline large pylon,static,false,,other
+Radar Control Room,Radar Control Room,static,false,,building
+Radar Generator Room,Radar Generator Room,static,false,,building
+Railway bridge part - girder ramp,Railway bridge part - girder ramp,static,false,,building
+Railway bridge part - grid,Railway bridge part - grid,static,false,,building
+Railway bridge part - inverted arch,Railway bridge part - inverted arch,static,false,,building
+Railway bridge part - short girder,Railway bridge part - short girder,static,false,,building
+Railway bridge part - short stone ramp,Railway bridge part - short stone ramp,static,false,,building
+Railway coal tower,Railway coal tower,static,false,,building
+Railway control tower,Railway control tower,static,false,,building
+Railway crossing cabin,Railway crossing cabin,static,false,,building
+Railway crossing gate,Railway crossing gate,static,false,,other
+Railway dead end,Railway dead end,static,false,,building
+Railway depot,Railway depot,static,false,,building
+Railway light tower,Railway light tower,static,false,,building
+Railway platform A,Railway platform A,static,false,,building
+Railway platform B,Railway platform B,static,false,,building
+Railway station A,Railway station A,static,false,,building
+Railway station B,Railway station B,static,false,,building
+Railway water tower,Railway water tower,static,false,,building
+RP-15-1 generator,RP-15-1 generator,static,false,,other
+RP-15-1 searchlight,RP-15-1 searchlight,static,false,,other
+Runway lights A1,Runway lights A1,static,false,,other
+Runway lights A2,Runway lights A2,static,false,,other
+Runway lights A3,Runway lights A3,static,false,,other
+Runway lights A4,Runway lights A4,static,false,,other
+Runway lights B2,Runway lights B2,static,false,,other
+Runway lights B3,Runway lights B3,static,false,,other
+Sampan A,Sampan A,static,false,,ship
+Sawmill,Sawmill,static,false,,building
+Sawmill logs,Sawmill logs,static,false,,other
+Sawmill planks,Sawmill planks,static,false,,other
+School korean B,School korean B,static,false,,building
+School korean C,School korean C,static,false,,building
+Searchlight-beam,Searchlight beam,static,false,,other
+Seiner A,Seiner A,static,false,,ship
+Seoul terminal,Seoul terminal,static,false,,building
+Shipyard,Shipyard,static,false,,building
+Shipyard peer,Shipyard peer,static,false,,building
+Sign Left,Sign Left,static,false,,other
+Sign Stop,Sign Stop,static,false,,other
+Stack of FAB-100 A,Stack of FAB-100 A,static,false,,other
+Stack of FAB-100 B,Stack of FAB-100 B,static,false,,other
+Stack of FAB-100 C,Stack of FAB-100 C,static,false,,other
+Stack of FAB-100 D,Stack of FAB-100 D,static,false,,other
+Stores korean A,Stores korean A,static,false,,building
+Stores korean C,Stores korean C,static,false,,building
+Stores korean D,Stores korean D,static,false,,building
+Stores korean E,Stores korean E,static,false,,building
+Studebaker_US6 refueler,Studebaker US6 refueler,static,false,,vehicle
+Tank Car A,Tank Car A,static,false,,train
+Tank Car B,Tank Car B,static,false,,train
+Tank Car C,Tank Car C,static,false,,train
+Tanker Ship A,Tanker Ship A,static,false,,ship
+Willys_MB,Willys MB,static,false,,vehicle
+Windsock,Windsock,static,false,,other
+Wooden road bridge 25m,Wooden road bridge 25m,static,false,,building
+Wooden road bridge 50m,Wooden road bridge 50m,static,false,,building
+Wooden road bridge 75m,Wooden road bridge 75m,static,false,,building
+Yard boxes storage A,Yard boxes storage A,static,false,,other
+Yard boxes storage A1,Yard boxes storage A1,static,false,,other
+Yard boxes storage A2,Yard boxes storage A2,static,false,,other
+Yard boxes storage A5,Yard boxes storage A5,static,false,,other
+Yard boxes storage B,Yard boxes storage B,static,false,,other
+Yard boxes storage B1,Yard boxes storage B1,static,false,,other
+Yard boxes storage B2,Yard boxes storage B2,static,false,,other
+Yard boxes storage B3,Yard boxes storage B3,static,false,,other
+Yard boxes storage B4,Yard boxes storage B4,static,false,,other
+Yard boxes storage C,Yard boxes storage C,static,false,,other
+Yard boxes storage C1,Yard boxes storage C1,static,false,,other
+Yard boxes storage C2,Yard boxes storage C2,static,false,,other
+Yard boxes storage C3,Yard boxes storage C3,static,false,,other
+Yard boxes storage C4,Yard boxes storage C4,static,false,,other
+Yard boxes storage C6,Yard boxes storage C6,static,false,,other
+BOOSTER_USA_JATO,JATO booster,ordnance,false,,
+FTANK_1003L_USA_F80L,F-80 drop tank 1003 L (left),ordnance,false,,
+FTANK_1003L_USA_F80R,F-80 drop tank 1003 L (right),ordnance,false,,
+FTANK_250L_RUS_MIG15L,MiG-15 drop tank 250 L (left),ordnance,false,,
+FTANK_250L_RUS_MIG15R,MiG-15 drop tank 250 L (right),ordnance,false,,
+FTANK_284L_USA_F51,F-51 drop tank 284 L,ordnance,false,,
+FTANK_416L_USA_F51,F-51 drop tank 416 L,ordnance,false,,
+FTANK_454L_USA_F86L,F-86 drop tank 454 L (left),ordnance,false,,
+FTANK_454L_USA_F86R,F-86 drop tank 454 L (right),ordnance,false,,
+FTANK_625L_USA_F80L,F-80 drop tank 625 L (left),ordnance,false,,
+FTANK_625L_USA_F80R,F-80 drop tank 625 L (right),ordnance,false,,
+FTANK_871L_USA_F84L_WT,F-84 wingtip tank 871 L (left),ordnance,false,,
+FTANK_871L_USA_F84R_WT,F-84 wingtip tank 871 L (right),ordnance,false,,
+FTANK_927L_USA_F86L,F-86 drop tank 927 L (left),ordnance,false,,
+FTANK_927L_USA_F86R,F-86 drop tank 927 L (right),ordnance,false,,
+NAPALM_389kg_USA_110gal,Napalm tank 110 gal,ordnance,false,,
+RKT_127mm_USA_HVAR,"HVAR 5"" rocket",ordnance,false,,
+RKT_127mm_USA_HVAR_SAP,"HVAR 5"" rocket (SAP)",ordnance,false,,
+B29_CrewGroup1,B-29 crew,crew,false,,
+B29_CrewGroup2,B-29 crew,crew,false,,
+BotBoatSwain,Boatswain,crew,false,,
+BotDriver1,Driver,crew,false,,
+BotField_Officer_USA1950,Officer (US),crew,false,,
+BotField_Officer_USSR1950,Officer (Soviet),crew,false,,
+BotField_Seaman_USA1950,Seaman (US),crew,false,,
+BotField_Soldier_DPRK1950,Soldier (North Korean),crew,false,,
+BotField_Soldier_USA1950,Soldier (US),crew,false,,
+BotField_Soldier_USSR1950,Soldier (Soviet),crew,false,,
+BotField_Tankman_DPRK1950,Tank crewman (North Korean),crew,false,,
+BotField_Tankman_USA1950,Tank crewman (US),crew,false,,
+BotGunner,Gunner,crew,false,,
+BotPilotSimpleMFPlane,Pilot,crew,false,,
+BotPlaneCrew_USAF1950,Aircrew (USAF),crew,false,,
+BotPlaneGunner_USAF1950,Air gunner (USAF),crew,false,,
+BotPlaneGunner_USSR1950,Air gunner (Soviet),crew,false,,
+BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),crew,false,,
+BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),crew,false,,
+BotPlanePilot_USAF1950com,Pilot (USAF),crew,false,,
+BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)",crew,false,,
+BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)",crew,false,,
+BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)",crew,false,,
+BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)",crew,false,,
+BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)",crew,false,,
+BotRangefinder,Rangefinder operator,crew,false,,
+CParachute,Parachute,equipment,false,,
+ESeat_F-80C-10,F-80C-10 ejection seat,equipment,false,,
+ESeat_F-84E,F-84E ejection seat,equipment,false,,
+ESeat_F-86A-5,F-86A-5 ejection seat,equipment,false,,
+ESeat_KK1,MiG-15bis ejection seat,equipment,false,,
+ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),equipment,false,,
+Spotter,Spotter,equipment,false,,
+VehicleRangefinderTurret,Vehicle rangefinder turret,equipment,false,,
+VehicleTurret,Vehicle turret,equipment,false,,

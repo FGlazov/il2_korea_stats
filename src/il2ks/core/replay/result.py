@@ -5,9 +5,11 @@ Times are in **ticks** from mission start (50 ticks = 1 s). `ingest` turns them 
 `started_at` (TD-15). Field names follow doc 06 (design_doc/06_data_model.md).
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Literal
 
+from il2ks.core.catalog.loader import GroundCategory
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 
 type Role = Literal["pilot", "gunner"]
@@ -132,6 +134,9 @@ class SortieResult:
     friendly_hits: int = 0  # non-explosion hit lines this sortie put on friendly objects
     friendly_damage: float = 0.0  # sum of the damage this sortie did to friendly objects
     resupplied: bool = False  # FR-ING-24: a landing followed by another takeoff, and `ReplayRules.resupply_allowed`
+    # AType 4 came more than `ReplayRules.ammo_left_after_loss_s` after the aircraft was destroyed: `ammo_left` reads
+    # as empty stores, so "ammo used" can't be derived from it (doc 13, Ammo and resupply).
+    ammo_left_after_loss: bool = False
     # Ground losses (doc 13, OQ-32 answer): the aircraft was lost on the ground, by the sortie itself or by an attacker.
     taxi_accident: bool = False  # lost before its first takeoff, loss_cause "self"
     strafed_on_ground: bool = False  # lost on the ground (before takeoff, or parked after landing) to an attacker
@@ -139,6 +144,10 @@ class SortieResult:
     combat_role: CombatRole | None = None
     # Time on target (FR-WEB-20, doc 13): attack sorties only (None otherwise); 0.0 when no release was near a target.
     time_on_target_s: float | None = None
+    # Ground kills by what they were (OQ-33, doc 13): the categories sum to `kills_ground`; `kills_ground_static` is
+    # how many of those were static objects (a separate axis: a static truck is a "vehicle" and static).
+    kills_ground_by_category: Mapping[GroundCategory, int] = field(default_factory=dict[GroundCategory, int])
+    kills_ground_static: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +168,9 @@ class KillResult:
     via: KillVia
     is_friendly: bool
     pos: Pos | None
+    killer_coalition: int | None = None  # of the credited party; lets a timeline mark a friendly shoot-down
+    victim_ground_category: GroundCategory | None = None  # ground victims only ("other" for an uncatalogued type)
+    victim_is_static: bool = False
 
 
 @dataclass(frozen=True, slots=True)

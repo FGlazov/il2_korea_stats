@@ -175,6 +175,24 @@ def flight_time_s(sortie: SortieState, end_tick: int) -> float:
     return total / TICKS_PER_SECOND
 
 
+def pilot_final_pos(sortie: SortieState, rules: ReplayRules) -> Pos | None:
+    """Where the pilot ended up: the AType 16 position (garbage positions are already dropped, `is_plausible_pos`), else
+    the bot's latest AType 12 position near the sortie end, else unknown."""
+    bot = sortie.bot
+    if bot.removed_pos is not None:
+        return bot.removed_pos
+    end = sortie.end_tick
+    if end is None or bot.declared_tick is None or bot.declared_pos is None:
+        return None
+    return bot.declared_pos if abs(bot.declared_tick - end) <= ticks(rules.pilot_pos_fallback_window_s) else None
+
+
+def final_pos_pending(sortie: SortieState, rules: ReplayRules) -> bool:
+    """The pilot left the aircraft (AType 4 `PLID:0`) but no final position is known. AType 16 follows AType 4 within
+    0.34 s, so a live snapshot can land in the gap; at `finish()` it is a real gap."""
+    return sortie.end_aircraft_id == 0 and pilot_final_pos(sortie, rules) is None
+
+
 def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, rules: ReplayRules) -> tuple[bool, bool]:
     """FR-ING-14 rule v2: (is_bailout, pilot_had_exit_pos). All of conditions 1-4 must hold.
 
@@ -185,7 +203,7 @@ def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, ru
     airborne = loss.airborne if loss is not None else sortie.airborne_at_end  # 2.
     if not airborne:
         return False, True
-    pilot_pos = sortie.bot.removed_pos
+    pilot_pos = pilot_final_pos(sortie, rules)
     aircraft_pos = loss.pos if loss is not None and loss.pos is not None else airframe.pos
     if pilot_pos is None or aircraft_pos is None:
         return False, False

@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 
 from django.db.models import Count
 
-from il2ks.core.catalog.loader import Catalog, side_of_country
+from il2ks.core.catalog.loader import GROUND_CATEGORIES, Catalog, side_of_country
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.replay.result import (
@@ -113,15 +113,17 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
                 display_name=info.display_name or log_name,
                 cls=info.cls,
                 propulsion=info.propulsion or "",
+                ground_category=info.ground_category or "",
                 is_playable=info.is_playable,
                 is_known=info.is_known,
             )
             continue
         display_name = info.display_name if obj.display_name == obj.log_name and info.display_name else obj.display_name
-        new = (display_name, info.cls, info.propulsion or "", info.is_playable, info.is_known)
-        if new != (obj.display_name, obj.cls, obj.propulsion, obj.is_playable, obj.is_known):
-            obj.display_name, obj.cls, obj.propulsion, obj.is_playable, obj.is_known = new
-            obj.save(update_fields=["display_name", "cls", "propulsion", "is_playable", "is_known"])
+        category = info.ground_category or ""
+        new = (display_name, info.cls, info.propulsion or "", category, info.is_playable, info.is_known)
+        if new != (obj.display_name, obj.cls, obj.propulsion, obj.ground_category, obj.is_playable, obj.is_known):
+            obj.display_name, obj.cls, obj.propulsion, obj.ground_category, obj.is_playable, obj.is_known = new
+            obj.save(update_fields=["display_name", "cls", "propulsion", "ground_category", "is_playable", "is_known"])
     return existing
 
 
@@ -294,6 +296,16 @@ _SORTIE_FIELDS = [
     "strafed_on_ground",
     "combat_role",
     "time_on_target_s",
+    "kills_ground_tank",
+    "kills_ground_vehicle",
+    "kills_ground_artillery",
+    "kills_ground_aaa",
+    "kills_ground_ship",
+    "kills_ground_train",
+    "kills_ground_building",
+    "kills_ground_parked_aircraft",
+    "kills_ground_other",
+    "kills_ground_static",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -384,6 +396,9 @@ def _fill_sortie(
     row.strafed_on_ground = s.strafed_on_ground
     row.combat_role = s.combat_role
     row.time_on_target_s = s.time_on_target_s
+    for category in GROUND_CATEGORIES:
+        setattr(row, f"kills_ground_{category}", s.kills_ground_by_category.get(category, 0))
+    row.kills_ground_static = s.kills_ground_static
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 
@@ -397,10 +412,11 @@ def _counts_json(c: AmmoCounts) -> dict[str, int]:
 
 def _ammo_used(s: SortieResult) -> dict[str, int | None]:
     """Ammunition used per type = loaded - left (FR-ING-24). `None` = unknown: the sortie was resupplied (AType 4 only
-    describes the last leg), it has no AType 4, or (bombs) more is left than loaded, which the game does with some
-    payloads (IL-10 bomblets are loaded as stations and left as bomblets)."""
+    describes the last leg), it has no AType 4, the pilot left an aircraft that had been destroyed (its stores read as
+    empty), or (bombs) more is left than loaded, which the game does with some payloads (IL-10 bomblets are loaded as
+    stations and left as bomblets)."""
     loaded = _counts_json(s.ammo_loaded)
-    if s.resupplied or s.ammo_left is None:
+    if s.resupplied or s.ammo_left is None or s.ammo_left_after_loss:
         return dict.fromkeys(loaded)
     left = _counts_json(s.ammo_left)
     used: dict[str, int | None] = {}
