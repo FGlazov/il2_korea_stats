@@ -81,7 +81,7 @@ def _decorate(request: HttpRequest, response: HttpResponse, etag: str) -> None:
     patch_cache_control(response, max_age=0, must_revalidate=True)
     patch_vary_headers(response, VARY)  # pyright: ignore[reportArgumentType]
     if settings.LANGUAGE_COOKIE_NAME in request.COOKIES:
-        patch_vary_headers(response, ("Cookie",))  # pyright: ignore[reportArgumentType]
+        patch_vary_headers(response, ("Cookie",))
 
 
 class DataVersionCacheMiddleware:
