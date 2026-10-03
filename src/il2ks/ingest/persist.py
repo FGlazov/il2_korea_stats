@@ -78,7 +78,7 @@ def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> 
     _update_mission_counters(mission)
 
     add_mission(mission)
-    pass
+    prune_player_aircraft(old_player_ids)
     refresh_players(old_player_ids - {p.pk for p in players.values()})
     return mission
 

@@ -42,8 +42,10 @@ def subtract_mission(mission: Mission, *, prune: bool = True) -> None:
 
 
 def prune_player_aircraft(player_ids: Iterable[int]) -> None:
-    """Delete the players' PlayerAircraft rows that have no counted sortie left (also drops float residue)."""
-    PlayerAircraft.objects.filter(player_id__in=set(player_ids), sorties=0).delete()
+    """Delete PlayerAircraft rows left without counted sorties; zero float residue of players with none."""
+    ids = set(player_ids)
+    PlayerAircraft.objects.filter(player_id__in=ids, sorties=0).delete()
+    Player.objects.filter(pk__in=ids, sorties=0).update(flight_time_s=0.0)
 
 
 def rebuild_aggregates() -> None:
