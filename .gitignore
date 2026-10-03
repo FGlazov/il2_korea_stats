@@ -229,3 +229,6 @@ sample_data/
 
 # Secret key for fixture anonymization (never commit)
 .il2ks-anon-key
+
+# Claude Code agent worktrees
+.claude/worktrees/
