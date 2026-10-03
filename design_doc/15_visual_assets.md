@@ -26,8 +26,11 @@ show what such a site does; their look is considered dated. Data areas (tables, 
 - **Licensing:** the project is MIT-licensed and redistributed on PyPI, so assets must be original work (no game screenshots, no art traced
   from IL-2 or other games, no stock art with restrictions) and delivered under a licence that allows redistribution and modification
   (for example MIT or CC BY 4.0, with the credit line the designer wants in the `NOTICE` file).
-- **Historical insignia:** real national insignia of the period exist (red star, US star-and-bar, …). Whether to use them or neutral
-  REDFOR / BLUFOR emblems is the maintainer's call (**OQ-34**).
+- **Coalition emblems** `[DECIDED]` (maintainer, 2026-10-03, OQ-34): **neutral REDFOR / BLUFOR emblems** by default. Real period
+  insignia (red stars, the US star-and-bar, UN roundels) may follow **per country** once we know which nation each country code is. As
+  state symbols they are generally free of copyright (US federal works are public domain; Russian law excludes state symbols; the roundels
+  are simple geometric shapes), but a particular drawing can carry its artist's licence, so redraw them or use files marked public
+  domain.
 - Files live in `src/il2ks/web/static/il2ks/img/<group>/<name>.svg`; server owners can replace any of them through `custom/static/`
   (TD-25). The names below are the contract: keep them.
 
@@ -55,7 +58,8 @@ Shown next to the aircraft name in tables (small icon) and in the header of a so
 ### Coalitions (`coalition/`)
 | File | What | Prio |
 |---|---|---|
-| `redfor.svg`, `blufor.svg` | Emblems for the two sides (communist side / UN side), used in badges next to "REDFOR" / "BLUFOR" and on the mission page | P2 (style: OQ-34) |
+| `redfor.svg`, `blufor.svg` | Neutral emblems for the two sides (communist side / UN side), used in badges next to "REDFOR" / "BLUFOR" and on the mission page | P2 |
+| `country/<code>.svg` | Later: real period insignia per country code (501–503, 601–603), once the codes are mapped to nations | P3 |
 
 ### Sortie outcome and pilot fate (`outcome/`)
 Small status icons used in badges in sortie tables, on the sortie page, and on the profile. P1 for the first eight.
@@ -93,5 +97,3 @@ Later: `elo-prop`, `elo-jet` (ratings, P3).
 ### Later features (not needed for the first release)
 Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style for a future sortie map (FR-WEB-12).
 
-## Open question
-- **OQ-34** (doc 11): real historical national insignia or neutral REDFOR / BLUFOR emblems.

@@ -15,12 +15,7 @@ the post-end window and ground losses in doc 13's sortie scope and outcome secti
 
 OQ-33 (static ground kills) is answered: a ground-kill breakdown by category, FR-WEB-4.
 
-**OQ-34 Historical insignia or neutral emblems?** (for the designer brief, doc 15)
-The coalition badges and the default logo could use the real insignia of the period (Soviet / Chinese / North Korean red stars, the US
-star-and-bar, other UN roundels) or neutral REDFOR / BLUFOR emblems. Real insignia look authentic, but we don't know which nation each
-country code (501–503, 601–603) is, and some admins or players may prefer neutral symbols. **Recommendation:** neutral emblems by
-default (a stylised red and blue mark), with real insignia possible later per country once the codes are mapped (admins can swap the
-files through `custom/static/` anyway).
+OQ-34 (insignia) is answered: neutral emblems by default, real insignia per country later (doc 15).
 
 OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
