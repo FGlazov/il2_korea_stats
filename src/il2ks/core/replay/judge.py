@@ -13,12 +13,14 @@ from il2ks.core.replay.fate import (
     bailout_v2,
     disconnect_death,
     disconnect_tick_of,
+    final_pos_pending,
     flight_time_s,
     forced_by_mission_end,
     ground_loss,
     killer_of,
     pilot_death_tick,
     pilot_fate_of,
+    pilot_final_pos,
     sortie_end_tick,
     structural_failure,
     suspected_early_bailout,
@@ -96,6 +98,10 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     )
     if sortie.is_open and not forced:
         fate, source = ("in_aircraft", "inferred") if not final else ("unknown", "unknown")
+    elif not final and not forced and died is None and final_pos_pending(sortie, rules):
+        # Live snapshot between AType 4 `PLID:0` and the pilot's AType 16: the fate waits for the position, so it reads
+        # like an open sortie (the pilot is still assumed to be in the aircraft) instead of a final `unknown`.
+        fate, source = "in_aircraft", "inferred"
     # FR-ING-21/22: a disconnect doesn't hide an attacker's kill. The fate says `disconnected` (maintainer), but the
     # aircraft destroyed by an attacker stays a loss and the pilot died with it, exactly as for any plain sortie end.
     attacker_destroyed = fate == "disconnected" and shot_down_directly
@@ -128,7 +134,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     status_pos: Pos | None = None
     if not dead and not forced:
         if fate in ("bailed_out", "exited_on_ground"):
-            status_pos = sortie.bot.removed_pos
+            status_pos = pilot_final_pos(sortie, rules)
         elif off and not airframe.airborne_at(end):
             status_pos = _landing_pos(sortie, end) or airframe.pos
     areas = list(facts.areas.values())

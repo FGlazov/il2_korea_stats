@@ -31,6 +31,9 @@ class ReplayRules:
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
     # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown.
     resupply_allowed: bool = True
+    # A pilot's final position normally is the AType 16 position. Without one (AType 16 missing, or its position
+    # garbage), the bot's latest AType 12 position counts if it was logged within this many seconds of the sortie end.
+    pilot_pos_fallback_window_s: float = 5.0
     # Ammo left (AType 4) is only trustworthy when the sortie ended within this many seconds after the aircraft's
     # destruction (the pilot died with it). Later, the stores of the destroyed aircraft read as 0 (research, 210
     # samples), so "ammo used" is unknown for such a sortie.

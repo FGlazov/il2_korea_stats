@@ -50,6 +50,7 @@ from il2ks.core.replay.model import (
     SortieState,
     TrackedObject,
     is_bot_type,
+    is_plausible_pos,
     is_zero_pos,
     normalize_type,
 )
@@ -232,11 +233,20 @@ class Replay:
             if parent is not None:
                 existing.set_parent(parent)  # PID:-1 on a pilot re-declaration doesn't break the link (doc 12)
             existing.update_pos(event.pos)
+            self._note_declared_pos(existing, event)
             self._track_ground(existing, event.tick, event.pos)
             return
         obj = self._new_object(event.object_id, object_type, event.country, parent, bot=False)
         obj.update_pos(event.pos)
+        self._note_declared_pos(obj, event)
         self._track_ground(obj, event.tick, event.pos)
+
+    @staticmethod
+    def _note_declared_pos(obj: TrackedObject, event: ObjectSpawnEvent) -> None:
+        """A bot's latest AType 12 position, the fallback for a pilot's final position (`fate.pilot_final_pos`)."""
+        if obj.is_bot and not is_zero_pos(event.pos) and is_plausible_pos(event.pos):
+            obj.declared_tick = event.tick
+            obj.declared_pos = event.pos
 
     @staticmethod
     def _track_ground(obj: TrackedObject, tick: int, pos: Pos) -> None:
@@ -334,7 +344,7 @@ class Replay:
             return
         if bot.removed_tick is None:
             bot.removed_tick = event.tick
-            bot.removed_pos = event.pos
+            bot.removed_pos = event.pos if is_plausible_pos(event.pos) else None
         sortie = bot.sortie
         if sortie is not None and sortie.bot is bot and sortie.end_tick is None:
             sortie.end_tick = event.tick

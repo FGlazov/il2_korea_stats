@@ -86,6 +86,10 @@
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
 # it "used" is then unknown. false = never assume a resupply.
 #resupply_allowed = true
+# A pilot's final position (bailout rule, capture) is the one in the pilot's removal line. When that line is missing or
+# its position is garbage, the pilot's latest position from a re-declaration within this many seconds of the sortie's end
+# is used instead.
+#pilot_pos_fallback_window_s = 5.0
 # Ammo left: a pilot who leaves a destroyed aircraft (bails out, climbs out) reports its weapon stores as empty. A sortie
 # that ended more than this many seconds after its aircraft's destruction has its ammo "used" counted as unknown.
 #ammo_left_after_loss_s = 1.0

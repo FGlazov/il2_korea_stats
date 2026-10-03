@@ -43,6 +43,17 @@ def is_zero_pos(pos: Pos) -> bool:
     return pos.x == 0.0 and pos.y == 0.0 and pos.z == 0.0
 
 
+POS_MAX_ABS_XZ_M = 1_000_000.0
+POS_MIN_Y_M = -1_000.0
+POS_MAX_Y_M = 20_000.0
+
+
+def is_plausible_pos(pos: Pos) -> bool:
+    """False for a garbage position (3 AType 16 lines in the 210 samples, all of dead pilots): the map is far smaller
+    than 1,000 km and nothing flies above 20 km or below -1 km. The one place these bounds live."""
+    return abs(pos.x) <= POS_MAX_ABS_XZ_M and abs(pos.z) <= POS_MAX_ABS_XZ_M and POS_MIN_Y_M <= pos.y <= POS_MAX_Y_M
+
+
 @dataclass(slots=True)
 class DamageRecord:
     """One AType 2 line with damage > 0. `attacker` is resolved when the line is read (IDs can be reused later)."""
@@ -89,7 +100,9 @@ class TrackedObject:
     track: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # ground objects: (tick, position)
     releases: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # AType 25/26 by this aircraft
     removed_tick: int | None = None  # AType 16 (bots)
-    removed_pos: Pos | None = None
+    removed_pos: Pos | None = None  # None too when the logged position is garbage (`is_plausible_pos`)
+    declared_tick: int | None = None  # the latest AType 12 for a bot ...
+    declared_pos: Pos | None = None  # ... and where it said the bot was: the fallback when AType 16 has no position
     bailout_tick: int | None = None  # AType 18 (gunners and AI only in Korea)
     bailout_pos: Pos | None = None
 
