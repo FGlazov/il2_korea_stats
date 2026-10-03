@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/header.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v2 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
   Discord screenshot). Context: sortie (player, mission, aircraft), detail.
@@ -16,7 +16,7 @@
     </p>
     <p class="sortie-head__where">
       <a href="{% url 'web:mission-detail' sortie.mission_id %}">{{ sortie.mission.mission_file|mission_name }}</a>
-      <span aria-hidden="true">·</span> {% blocktranslate with when=sortie.spawned_at|utc %}spawned {{ when }}{% endblocktranslate %}
+      <span aria-hidden="true">·</span> {% blocktranslate with when=sortie.spawned_at|local_time %}spawned {{ when }}{% endblocktranslate %}
       {% if sortie.name_at_time != sortie.player.current_name %}<span aria-hidden="true">·</span> <small>{% blocktranslate with name=sortie.player.current_name %}now playing as {{ name }}{% endblocktranslate %}</small>{% endif %}
     </p>
   </div>

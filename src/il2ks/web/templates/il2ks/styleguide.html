@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/styleguide.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/styleguide.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load il2ks %}{% comment %}
   Dev-only style guide (DEBUG only). English on purpose: the i18n test skips this file. Context comes from
   il2ks.web.views.styleguide. Add ?theme=dark or ?theme=light to preview a theme.
@@ -167,7 +167,7 @@
                 <td class="num">{{ row.deaths|num }}</td>
                 <td class="num">{{ row.kills|ratio:row.deaths }}</td>
                 <td class="num">{{ row.flight_time_s|duration }}</td>
-                <td class="num">{{ row.last_seen|utc }}</td>
+                <td class="num">{{ row.last_seen|local_time }}</td>
               </tr>
             {% empty %}
               {% empty_row 10 %}

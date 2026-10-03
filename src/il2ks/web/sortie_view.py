@@ -10,7 +10,7 @@ Hidden players (FR-ADM-3) never reach a template by name: `Lookup.who` turns the
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Literal, cast
 
 from django.utils.translation import get_language, gettext_lazy
@@ -282,18 +282,13 @@ def since(start: datetime, moment: datetime) -> str:
     return f"+{hours}:{minutes:02d}:{secs:02d}" if hours else f"+{minutes}:{secs:02d}"
 
 
-def utc_clock(moment: datetime) -> str:
-    """'20:41:07' in UTC."""
-    return moment.astimezone(UTC).strftime("%H:%M:%S")
-
-
 # --- kills, assists, shot down by ---------------------------------------------------------------------------------
 @dataclass(frozen=True, slots=True)
 class KillRow:
-    """A kill, assist or friendly kill: when (sortie clock and UTC), who, and a note (how the victim was lost)."""
+    """A kill, assist or friendly kill: when (sortie clock, real time `at`), who, and a note (how it was lost)."""
 
     clock: str
-    utc: str
+    at: datetime | None
     who: Who
     note: str = ""
     friendly: bool = False
@@ -304,7 +299,7 @@ class KillerRow:
     """Who shot this sortie down (credit "kill") or only damaged it (credit "assist")."""
 
     clock: str
-    utc: str
+    at: datetime | None
     who: Who
     credit: str
     note: str = ""
@@ -364,7 +359,7 @@ def pvp_kills(
     for kill in made:
         row = KillRow(
             since(sortie.spawned_at, kill.time),
-            utc_clock(kill.time),
+            kill.time,
             lookup.who(kill.victim_sortie_id, ""),
             _kill_note(kill),
             kill.is_friendly,
@@ -400,7 +395,7 @@ def ai_kill_rows(sortie: PlayerSortie, lookup: Lookup) -> tuple[list[KillRow], l
         at = _when(entry.get("at"))
         row = KillRow(
             since(sortie.spawned_at, at) if at else "",
-            utc_clock(at) if at else "",
+            at,
             lookup.who(None, victim),
         )
         (air if kind == "kill" else assists).append(row)
@@ -413,7 +408,7 @@ def shot_down_by(sortie: PlayerSortie, suffered: Sequence[Kill], lookup: Lookup)
     rows = [
         KillerRow(
             since(sortie.spawned_at, kill.time),
-            utc_clock(kill.time),
+            kill.time,
             lookup.who(kill.killer_sortie_id, ""),
             "assist" if kill.credit == "assist" else "kill",
             _kill_note(kill),
@@ -428,7 +423,7 @@ def shot_down_by(sortie: PlayerSortie, suffered: Sequence[Kill], lookup: Lookup)
             who = lookup.counterpart(entry.get("counterpart"))
             at = _when(entry.get("at"))
             if who is not None and at is not None:
-                rows.insert(0, KillerRow(since(sortie.spawned_at, at), utc_clock(at), who, "kill"))
+                rows.insert(0, KillerRow(since(sortie.spawned_at, at), at, who, "kill"))
                 break
     return sorted(rows, key=lambda row: row.credit != "kill")
 
@@ -565,7 +560,8 @@ class TimelineRow:
     """One line of the timeline; a run of ground kills is one row with `children` (rendered folded).
 
     kind: the stored kind ('kill', 'takeoff', ...); tone: "good", "bad", "warn" or ''; clock: time since spawn;
-    utc: UTC clock; place: tooltip with the position; text: detail sentence ('' when none); who: the counterpart;
+    at: when it happened (viewer's time zone); place: tooltip with the position; text: detail sentence ('' when none);
+    who: the counterpart;
     count: how many events a grouped row stands for (1 otherwise)."""
 
     kind: str
@@ -573,7 +569,7 @@ class TimelineRow:
     label: str
     tone: str
     clock: str
-    utc: str
+    at: datetime
     place: str = ""
     text: str = ""
     who: Who | None = None
@@ -612,7 +608,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         label,
         EVENT_TONES.get(kind, ""),
         since(sortie.spawned_at, at),
-        utc_clock(at),
+        at,
         _pos(entry.get("pos")),
         _timeline_text(kind, detail),
         who,
@@ -637,7 +633,7 @@ def _group(rows: Sequence[TimelineRow]) -> TimelineRow:
         _("Ground kills"),
         "good",
         clock,
-        first.utc,
+        first.at,
         count=len(rows),
         summary=summary,
         children=tuple(rows),

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -7,7 +7,7 @@
     nav      the <ul> of header navigation links.
     content  the page itself, inside <main>.
     footer   the footer's inner content (it holds the language menu, `{% language_menu %}`).
-    scripts  extra scripts, after htmx and il2ks.js.
+    scripts  extra scripts, after htmx, il2ks.js and localtime.js (real-world times in the viewer's time zone, FR-WEB-17).
   Context from il2ks.web.context_processors.site: site (SiteSettings), site_links [(label, url)], accent_css,
   data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
   static/il2ks/site.css (tokens first).
@@ -70,7 +70,9 @@
           {% endif %}
         </div>
         <div class="site-footer__meta">
-          {% if data_updated %}<span>{% blocktranslate with when=data_updated|utc %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
+          {% blocktranslate with zone="__TZ__" asvar tz_local %}Times are shown in your time zone ({{ zone }}).{% endblocktranslate %}
+          <span data-il2-tz-note data-local-text="{{ tz_local }}">{% translate "Times are shown in UTC." %}</span>
+          {% if data_updated %}<span>{% blocktranslate with when=data_updated|local_time %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
           <span>{% blocktranslate with version=il2ks_version %}Powered by il2ks {{ version }}{% endblocktranslate %}</span>
           {% language_menu as languages %}<span class="site-footer__language">{% dropdown languages.label languages.items align="right" %}</span>
         </div>
@@ -80,6 +82,7 @@
 
   <script src="{% static 'il2ks/vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'il2ks/il2ks.js' %}" defer></script>
+  <script src="{% static 'il2ks/localtime.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -4,7 +4,8 @@ The tags render the files in `templates/il2ks/components/`; every component docu
 its template, and server owners may override any of them (TD-25). Tags that need the current URL read the request from
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
-Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent, mission_title, game_when,
+Filters (formatting only, TD-22): duration, utc, local_time, local_short, local_date, local_hm, local_clock, num,
+ratio, per_hour, percent, mission_title, game_when,
 clock_since; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
@@ -79,9 +80,33 @@ def utc(value: datetime | None) -> str:
 
 
 @register.filter
-def utc_date(value: datetime | None) -> str:
-    """{{ mission.started_at|utc_date }} -> '2026-09-19'."""
-    return display.utc_date(value)
+def local_time(value: datetime | None) -> SafeString | str:
+    """{{ mission.started_at|local_time }} -> <time> '2026-09-19 22:34 UTC', in the viewer's zone once JS runs."""
+    return display.time_element(value, "datetime", suffix=True)
+
+
+@register.filter
+def local_short(value: datetime | None) -> SafeString | str:
+    """Like local_time without the ' UTC' text, for table columns (the footer says which zone the times are in)."""
+    return display.time_element(value, "datetime")
+
+
+@register.filter
+def local_date(value: datetime | None) -> SafeString | str:
+    """{{ player.first_seen|local_date }} -> <time> '2026-09-19' (the viewer's date once JS runs)."""
+    return display.time_element(value, "date")
+
+
+@register.filter
+def local_hm(value: datetime | None) -> SafeString | str:
+    """{{ m.started_at|local_hm }} -> <time> '22:34'."""
+    return display.time_element(value, "time")
+
+
+@register.filter
+def local_clock(value: datetime | None) -> SafeString | str:
+    """{{ row.at|local_clock }} -> <time> '20:41:07'."""
+    return display.time_element(value, "clock")
 
 
 @register.filter

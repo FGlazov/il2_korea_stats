@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/home.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
@@ -24,7 +24,7 @@
         <div class="last-mission__summary">
           <h3><a href="{% url 'web:mission-detail' last_mission.pk %}">{{ last_mission|mission_title }}</a></h3>
           <p class="meta-line">
-            <span>{{ last_mission.started_at|utc }}</span>
+            <span>{{ last_mission.started_at|local_time }}</span>
             <span>{{ last_mission.duration_s|duration }}</span>
             <span>{% translate "Winner" %}: {% winner_badge last_mission %}</span>
           </p>
@@ -74,7 +74,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th scope="col">{% translate "Date (UTC)" %}</th>
+            <th scope="col">{% translate "Date" %}</th>
             <th scope="col">{% translate "Mission" %}</th>
             <th scope="col" class="num">{% translate "Duration" %}</th>
             <th scope="col" class="num">{% translate "Players" %}</th>
