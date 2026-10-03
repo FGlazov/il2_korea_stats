@@ -5,6 +5,10 @@
       "version": 1,
       "sha256": "49fc04710cb70a4f5b1627d4877acdfac60b392a0a4da33e8e48c03aa2098c90"
     },
+    "static/il2ks/players.css": {
+      "version": 1,
+      "sha256": "bfb6e189f65f90a472a130712abf35a3ac2fdc40178697cabf0ffba328267aa3"
+    },
     "static/il2ks/site.css": {
       "version": 1,
       "sha256": "b91d84bc3fc640f44e4eba5c657d5bfba8f703ddb1b602902b2ac1d329ae6b27"
@@ -37,13 +41,21 @@
       "version": 1,
       "sha256": "f506e890239ed3d35ea7509447170a24f084257c130aecf61c1f4f6f5f58078e"
     },
+    "templates/admin/il2ks_db/tour/change_list.html": {
+      "version": 1,
+      "sha256": "f05b80c81559a4a6460abe5d60c542410e3705a5c82530cae029cf3a5c2f07e6"
+    },
     "templates/admin/il2ks_index.html": {
       "version": 1,
       "sha256": "c0dd7a85e0953ccee1eb576c42211f1f1a4a7eadb729f285901bf7d7b62c36b8"
     },
     "templates/admin/il2ks_ingest_status.html": {
+      "version": 2,
+      "sha256": "bf0ce575af4df41ec8d0d4be9549d1f79ca133417ae206eff3bfe425c572a4df"
+    },
+    "templates/admin/il2ks_reprocess_confirm.html": {
       "version": 1,
-      "sha256": "6aa01778e8353f95576c1043e6d52ac84878c428400209813d0e16aa23a3dcf9"
+      "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
     "templates/il2ks/base.html": {
       "version": 1,
@@ -105,9 +117,57 @@
       "version": 1,
       "sha256": "35019371b214c3f264a89fc1495fee6d676e917e6ce6c09402dd9665b906888b"
     },
+    "templates/il2ks/components/tour_select.html": {
+      "version": 1,
+      "sha256": "491f9d33d54ceabefe87c2b8f33b1a93aba6fefe99d96c628e8b5e02cd4ba36a"
+    },
     "templates/il2ks/home.html": {
       "version": 1,
       "sha256": "6dd0dc4c73e8fbc86859719c56e947c63bf9bd25a576101d93134ce5958cc7c2"
+    },
+    "templates/il2ks/players/detail.html": {
+      "version": 1,
+      "sha256": "6ec10767d3a45c783352c9f92dfae549bb0549d12312fd10c3a5fa9b04a28845"
+    },
+    "templates/il2ks/players/detail_aircraft.html": {
+      "version": 1,
+      "sha256": "44d70587479cb4a25797521e14ceaa72d732dd8c1f2f3efa6584ccab1b31755d"
+    },
+    "templates/il2ks/players/detail_ground.html": {
+      "version": 1,
+      "sha256": "8d864be893ad63988304a42605c835ed592dff3cbf77bff36cb6d8acd8a1425d"
+    },
+    "templates/il2ks/players/detail_header.html": {
+      "version": 1,
+      "sha256": "7a771798d0df8f02d822153a6990e2d4a01a5bfa41d6dba3b268c6ce4d313c73"
+    },
+    "templates/il2ks/players/detail_ratios.html": {
+      "version": 1,
+      "sha256": "ecef02442355b14814c9f1520f33cdbd7051bcbfb84afa72fd49dcfa3a90d51c"
+    },
+    "templates/il2ks/players/detail_recent.html": {
+      "version": 1,
+      "sha256": "99da9aaf0066f1b8d76fc29a58b6b3b401d5bfe3a9709b618efe59511a005b3d"
+    },
+    "templates/il2ks/players/detail_shame.html": {
+      "version": 1,
+      "sha256": "c90ab7020d77fe382eaaf6b015d53d9b806fcd87b192da315793b1deeb579843"
+    },
+    "templates/il2ks/players/detail_tiles.html": {
+      "version": 1,
+      "sha256": "d59abdef23d463936e1d5d50c34bfd52c03d5f3f059e1ec7a97c6039cdd6b2bf"
+    },
+    "templates/il2ks/players/detail_totals.html": {
+      "version": 1,
+      "sha256": "d8fddffa7c2250503cde1ad602f2a382f4fe1f01fd16da3ce737b092689886aa"
+    },
+    "templates/il2ks/players/search.html": {
+      "version": 1,
+      "sha256": "98d795bb5177cbb048c4415fdab724e57f065451f44693c2b6c7ea9f94227df8"
+    },
+    "templates/il2ks/players/search_table.html": {
+      "version": 1,
+      "sha256": "071597014e809c9c35c214fc0e4e4cd93559ee24775582079e186f5f71562bd2"
     },
     "templates/il2ks/stub.html": {
       "version": 1,

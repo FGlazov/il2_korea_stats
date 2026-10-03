@@ -177,3 +177,4 @@ _.missions_failed
 _.missions_missing
 _.reprocess_last  # web.ingest_status.IngestOverview: read by templates/admin/il2ks_ingest_status.html
 __call__  # ingest.reprocess_requests.ReprocessFn: a Protocol, `reprocess` and the test fakes satisfy it
+_.matched_name  # queries.players.PlayerHit: read by the player search template ("also known as")

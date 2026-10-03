@@ -1,0 +1,23 @@
+{# il2ks-template: templates/il2ks/players/search.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Player search and the list of recently active players (FR-WEB-3). View: il2ks.web.views.players.player_search.
+  Context: q (the trimmed query, '' for the plain list), sort (resolved, e.g. '-last_seen'), page_obj (a Page of
+  PlayerHit(player, matched_name)), page_title.
+  The filter bar is live (htmx submits while typing and swaps #results); without JS the form submits normally.
+  Blocks of this page: content. The table is players/search_table.html.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% translate "Players" %}</h1>
+    <p>{% translate "Search by nickname. Past nicknames are found too." %}</p>
+  </div>
+
+  {% results_region %}
+    {% filter_bar %}
+      {% filter_text "q" _("Nickname") placeholder=_("Part of a nickname") live=True %}
+    {% endfilter_bar %}
+    {% include "il2ks/players/search_table.html" %}
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

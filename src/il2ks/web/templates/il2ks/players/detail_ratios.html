@@ -1,0 +1,18 @@
+{# il2ks-template: templates/il2ks/players/detail_ratios.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_ratios.html: ratios from the stored counters (TD-22); the dash appears where the denominator is 0.
+  K/D and K/L count air kills only (see detail_tiles.html). Context: player, survived.
+{% endcomment %}<dl class="kv">
+  <dt>{% translate "K/D" %} <small>{% translate "air kills per death" %}</small></dt>
+  <dd>{{ player.kills_air|ratio:player.deaths }}</dd>
+  <dt>{% translate "K/L" %} <small>{% translate "air kills per plane lost" %}</small></dt>
+  <dd>{{ player.kills_air|ratio:player.planes_lost }}</dd>
+  <dt>{% translate "Air kills per sortie" %}</dt>
+  <dd>{{ player.kills_air|ratio:player.sorties }}</dd>
+  <dt>{% translate "Air kills per flight hour" %}</dt>
+  <dd>{{ player.kills_air|per_hour:player.flight_time_s }}</dd>
+  <dt>{% translate "Ground kills per sortie" %}</dt>
+  <dd>{{ player.kills_ground|ratio:player.sorties }}</dd>
+  <dt>{% translate "Survival rate" %} <small>{% translate "sorties without a death" %}</small></dt>
+  <dd>{{ survived|percent:player.sorties }}</dd>
+</dl>

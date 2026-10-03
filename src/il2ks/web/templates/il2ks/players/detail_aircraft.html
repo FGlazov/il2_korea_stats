@@ -1,0 +1,42 @@
+{# il2ks-template: templates/il2ks/players/detail_aircraft.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_aircraft.html: the per-aircraft table from PlayerAircraft, sortable with ?sort= (a whitelist in the view). It is the
+  page's one results_region, so the sort links swap just this table with htmx. Each row links to the player's sortie
+  list filtered to that aircraft (?aircraft=<GameObject pk>). Context: player, aircraft (PlayerAircraft rows), sort.
+{% endcomment %}<section>
+  <h2>{% translate "By aircraft" %}</h2>
+  {% results_region %}
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table aircraft-table">
+        <thead>
+          <tr>
+            {% sort_th "aircraft" _("Aircraft") %}
+            {% sort_th "sorties" _("Sorties") numeric=True %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+            {% sort_th "kills_air" _("Air kills") numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+            {% sort_th "deaths" _("Deaths") numeric=True %}
+            <th scope="col" class="num">{% translate "K/D" %}</th>
+            <th scope="col" class="num">{% translate "K/L" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in aircraft %}
+            <tr>
+              <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} <a href="{% url 'web:player-sorties' player.pk %}?aircraft={{ row.aircraft_id }}" title="{% translate 'All sorties in this aircraft' %}">{{ row.aircraft }}</a></td>
+              <td class="num">{{ row.sorties|num }}</td>
+              <td class="num">{{ row.flight_time_s|duration }}</td>
+              <td class="num">{{ row.kills_air|num }}</td>
+              <td class="num">{{ row.kills_ground|num }}</td>
+              <td class="num">{{ row.deaths|num }}</td>
+              <td class="num">{{ row.kills_air|ratio:row.deaths }}</td>
+              <td class="num">{{ row.kills_air|ratio:row.planes_lost }}</td>
+            </tr>
+          {% empty %}
+            {% empty_row 8 %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endresults_region %}
+</section>

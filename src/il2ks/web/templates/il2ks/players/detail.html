@@ -1,0 +1,38 @@
+{# il2ks-template: templates/il2ks/players/detail.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
+  detail_header, detail_tiles, detail_ground, detail_ratios, detail_totals, detail_shame, detail_aircraft, detail_recent.
+  Context: player, names (PlayerName rows, newest first), sort (aircraft table sort, resolved), aircraft (PlayerAircraft
+  rows with .aircraft), survived (sorties without a death), ground (GroundRow list), gunner_only, recent (PlayerSortie
+  rows with .mission and .aircraft), crumbs, page_title.
+  Blocks of this page: content. A player without a counted sortie gets a notice instead of empty tables.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+
+  {% include "il2ks/players/detail_header.html" %}
+
+  {% if player.sorties %}
+    {% include "il2ks/players/detail_tiles.html" %}
+    {% include "il2ks/players/detail_ground.html" %}
+    <div class="split profile-split">
+      <section>
+        <h2>{% translate "Ratios" %}</h2>
+        {% include "il2ks/players/detail_ratios.html" %}
+        {% include "il2ks/players/detail_shame.html" %}
+      </section>
+      <section>
+        <h2>{% translate "Other totals" %}</h2>
+        {% include "il2ks/players/detail_totals.html" %}
+      </section>
+    </div>
+    {% include "il2ks/players/detail_aircraft.html" %}
+  {% elif gunner_only %}
+    {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}
+  {% else %}
+    {% notice "info" _("No sorties yet") %}{% translate "No pilot sorties are counted for this player yet." %}{% endnotice %}
+  {% endif %}
+
+  {% include "il2ks/players/detail_recent.html" %}
+{% endblock %}
