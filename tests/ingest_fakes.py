@@ -6,7 +6,6 @@ The runner takes its steps through `Pipeline`, so its tests don't depend on the 
 from __future__ import annotations
 
 import os
-import re
 import uuid
 import zipfile
 from collections.abc import Iterable
@@ -18,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 from il2ks.config import AfterArchive, Config, IngestConfig, LogsConfig
 from il2ks.core.logparse.events import LogEvent
-from il2ks.core.logparse.files import MissionLog
+from il2ks.core.logparse.files import MissionLog, MissionLogKind, group_mission_files
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import Mission
@@ -30,26 +29,10 @@ from il2ks.ingest.timeutil import ResolvedStart
 SERVER_UID = uuid.UUID("11111111-2222-3333-4444-555555555555")
 T0 = datetime(2026, 9, 19, 12, 0, 0, tzinfo=UTC)
 
-_PART = re.compile(r"^missionReport\((\d{4}-\d\d-\d\d_\d\d-\d\d-\d\d)\)\[(\d+)\]\.txt$")
-_WHOLE = re.compile(r"^missionReport\((\d{4}-\d\d-\d\d_\d\d-\d\d-\d\d)\)\.txt(\.zip)?$")
 
-
-def fake_group(paths: Iterable[Path]) -> list[MissionLog]:
-    """Same contract as `group_mission_files`, simplified (parts win over a whole-mission file)."""
-    parts: dict[str, list[tuple[int, Path]]] = {}
-    wholes: dict[str, Path] = {}
-    for path in paths:
-        if m := _PART.match(path.name):
-            parts.setdefault(m.group(1), []).append((int(m.group(2)), path))
-        elif m := _WHOLE.match(path.name):
-            wholes[m.group(1)] = path
-    logs: list[MissionLog] = []
-    for uid in sorted(parts.keys() | wholes.keys()):
-        if uid in parts:
-            logs.append(MissionLog(uid, "parts", tuple(p for _, p in sorted(parts[uid]))))
-        else:
-            logs.append(MissionLog(uid, "archive", (wholes[uid],)))
-    return logs
+def fake_group(paths: Iterable[Path], txt_as: MissionLogKind = "parts") -> list[MissionLog]:
+    """The real grouping; `txt_as="archive"` is what `ingest --from` uses."""
+    return group_mission_files(paths, txt_as=txt_as)
 
 
 def part_name(uid: str, n: int) -> str:
@@ -158,5 +141,3 @@ def make_config(
             retry_backoff_minutes=backoff_minutes,
         ),
     )
-
-

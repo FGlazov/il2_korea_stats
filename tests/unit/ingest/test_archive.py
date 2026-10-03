@@ -1,6 +1,7 @@
 """Archive: concatenate, verify, then move/keep/delete the originals (FR-ING-8, FR-ING-10, TD-09)."""
 
 import hashlib
+import os
 import zipfile
 from pathlib import Path
 
@@ -22,7 +23,7 @@ UID = "2026-09-19_22-34-13"
 
 
 def test_archive_path_uses_year_and_month(tmp_path: Path) -> None:
-    assert archive_path_for(tmp_path, UID) == tmp_path / "2026" / "09" / f"missionReport({UID}).txt.zip"
+    assert archive_path_for(tmp_path, UID) == tmp_path / "2026" / "09" / f"missionReport({UID})[0].txt.zip"
     with pytest.raises(ArchiveError):
         archive_path_for(tmp_path, "garbage")
 
@@ -41,7 +42,7 @@ def test_round_trip_concatenates_parts_in_order(tmp_path: Path) -> None:
     assert result.content_sha256 == hashlib.sha256(expected).hexdigest()
     assert result.sha256 == file_sha256(target)
     with zipfile.ZipFile(target) as zf:
-        assert zf.namelist() == [f"missionReport({UID}).txt"]
+        assert zf.namelist() == [f"missionReport({UID})[0].txt"]
     assert not list(target.parent.glob("*.tmp"))
     assert archive_matches(target, result.sha256)
 
@@ -98,7 +99,7 @@ def test_verification_failure_leaves_no_archive_and_keeps_an_old_one(
 
 def test_verify_detects_corruption(tmp_path: Path) -> None:
     src = tmp_path / "a.txt"
-    src.write_bytes(b"x" * 5000)
+    src.write_bytes(os.urandom(5000))  # incompressible, so the middle of the zip is file data
     target = tmp_path / "out.zip"
     result = write_archive([src], target, UID)
     verify_archive(target, result.content_sha256)

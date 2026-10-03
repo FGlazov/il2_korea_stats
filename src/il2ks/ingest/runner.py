@@ -24,7 +24,7 @@ from il2ks import __version__
 from il2ks.config import AfterArchive, Config
 from il2ks.core.catalog.loader import Catalog, load_default_catalog
 from il2ks.core.logparse.events import LogEvent
-from il2ks.core.logparse.files import MissionLog, group_mission_files, parse_mission
+from il2ks.core.logparse.files import MissionLog, MissionLogKind, group_mission_files, parse_mission
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.result import MissionResult
 from il2ks.core.replay.state import run as replay_run
@@ -40,7 +40,6 @@ from il2ks.ingest.discover import (
     INGEST_DECISIONS,
     Decision,
     Found,
-    Grouper,
     LastRun,
     classify,
     discover,
@@ -60,7 +59,7 @@ _IN_CHUNK = 500  # stay far below SQLite's bound-parameter limit
 class Pipeline:
     """The swappable steps. `default_pipeline` wires the real ones; tests pass fakes."""
 
-    group: Grouper
+    group: Callable[[Iterable[Path], MissionLogKind], list[MissionLog]]  # (paths, what a plain `[0].txt` is)
     parse: Callable[[MissionLog, ParseStats], Iterable[LogEvent]]
     replay: Callable[[Iterable[LogEvent]], MissionResult]
     save: Callable[[MissionResult, MissionMeta], Mission]
@@ -82,8 +81,11 @@ def default_pipeline(cfg: Config) -> Pipeline:
     def save(result: MissionResult, meta: MissionMeta) -> Mission:
         return save_mission(result, meta, get_catalog())
 
+    def group(paths: Iterable[Path], txt_as: MissionLogKind) -> list[MissionLog]:
+        return group_mission_files(paths, txt_as=txt_as)
+
     return Pipeline(
-        group=group_mission_files,
+        group=group,
         parse=parse_mission,
         replay=replay,
         save=save,
@@ -152,9 +154,14 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
         paths = list_log_files(cfg.logs.dir)
         mode = cfg.logs.after_archive
 
+    txt_as: MissionLogKind = "archive" if is_import else "parts"  # a lone `[0].txt` in an import is a whole mission
+
+    def group(files: Iterable[Path]) -> list[MissionLog]:
+        return pipeline.group(files, txt_as)
+
     found = discover(
         paths,
-        pipeline.group,
+        group,
         now=now().timestamp(),
         cfg=cfg.ingest,
         remote=cfg.logs.remote,

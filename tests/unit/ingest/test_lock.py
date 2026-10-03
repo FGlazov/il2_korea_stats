@@ -1,6 +1,7 @@
 """The single-writer lock (FR-ING-20)."""
 
 import json
+import os
 import subprocess
 import sys
 import textwrap
@@ -67,9 +68,7 @@ def test_lock_held_by_another_process_blocks_this_one(tmp_path: Path) -> None:
             sys.stdin.readline()
         """
     )
-    child = subprocess.Popen(
-        [sys.executable, "-c", code], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
-    )
+    child = subprocess.Popen([sys.executable, "-c", code], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     try:
         assert child.stdout is not None
         assert child.stdout.readline().strip() == "locked"
@@ -77,7 +76,7 @@ def test_lock_held_by_another_process_blocks_this_one(tmp_path: Path) -> None:
             pass
         assert "other" in str(info.value)
         assert info.value.holder is not None
-        assert info.value.holder.pid == child.pid
+        assert info.value.holder.pid != os.getpid()  # (child.pid may be the venv launcher, not the Python process)
     finally:
         assert child.stdin is not None
         child.stdin.write("\n")

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 from il2ks.config import IngestConfig
+from il2ks.core.logparse.files import MissionLogKind
 from il2ks.ingest.discover import (
     FileState,
     LastRun,
@@ -21,9 +22,16 @@ NOW = T0.timestamp()
 A, B = "2026-09-19_10-00-00", "2026-09-19_13-00-00"
 
 
-def run_discover(folder: Path, *, remote: bool = False, all_complete: bool = False) -> dict[str, str | None]:
+def run_discover(
+    folder: Path, *, remote: bool = False, all_complete: bool = False, txt_as: MissionLogKind = "parts"
+) -> dict[str, str | None]:
     found = discover(
-        list_log_files(folder), fake_group, now=NOW, cfg=CFG, remote=remote, treat_all_complete=all_complete
+        list_log_files(folder),
+        lambda paths: fake_group(paths, txt_as),
+        now=NOW,
+        cfg=CFG,
+        remote=remote,
+        treat_all_complete=all_complete,
     )
     return {f.mission_uid: f.complete for f in found}
 
@@ -84,11 +92,20 @@ def test_remote_mode_waits_for_stable_size_even_with_a_newer_mission(tmp_path: P
 
 
 def test_whole_mission_archives_are_complete(tmp_path: Path) -> None:
-    write_zip(tmp_path / f"missionReport({A}).txt.zip", A, "T:0 AType:0\r\n")
-    (tmp_path / f"missionReport({B}).txt").write_bytes(b"T:0 AType:0\r\n")
+    write_zip(tmp_path / f"{part_name(A, 0)}.zip", A, "T:0 AType:0\r\n")
+    (tmp_path / part_name(B, 0)).write_bytes(b"T:0 AType:0\r\n")
     for path in tmp_path.iterdir():
-        set_mtime(path, T0 - timedelta(hours=1))
-    assert run_discover(tmp_path) == {A: "archive", B: "archive"}
+        set_mtime(path, T0 - timedelta(seconds=5))
+    assert run_discover(tmp_path, txt_as="archive") == {A: "archive", B: "archive"}
+    assert run_discover(tmp_path, txt_as="parts") == {A: "archive", B: None}  # a raw `[0].txt` is a running mission
+
+
+def test_remote_mode_waits_for_a_whole_mission_archive_to_be_fully_copied(tmp_path: Path) -> None:
+    zip_path = write_zip(tmp_path / f"{part_name(A, 0)}.zip", A, "T:0 AType:0\r\n")
+    set_mtime(zip_path, T0 - timedelta(seconds=5))
+    assert run_discover(tmp_path, remote=True) == {A: None}
+    set_mtime(zip_path, T0 - timedelta(seconds=90))
+    assert run_discover(tmp_path, remote=True) == {A: "archive"}
 
 
 def test_import_treats_everything_as_complete(tmp_path: Path) -> None:
@@ -126,7 +143,9 @@ def test_fingerprint_ignores_the_folder(tmp_path: Path) -> None:
 type Status = Literal["ok", "failed", "skipped"]
 
 
-def last(status: Status, *, fp: str = "f", attempts: int = 1, retry: datetime | None = None, version: str = "1") -> LastRun:
+def last(
+    status: Status, *, fp: str = "f", attempts: int = 1, retry: datetime | None = None, version: str = "1"
+) -> LastRun:
     return LastRun(status, fp, attempts, retry, version)
 
 

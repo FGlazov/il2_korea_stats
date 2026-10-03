@@ -1,10 +1,9 @@
 """Mission log archives (FR-ING-8, FR-ING-10, TD-09).
 
-Layout: `<data dir>/archive/YYYY/MM/missionReport(<uid>).txt.zip` (YYYY/MM from the mission UID, the server's local
-start time). One zip entry `missionReport(<uid>).txt` holding all parts concatenated in order: the same format as the
-`il2_stats` backups and `sample_data/`, so `group_mission_files` / `read_mission_lines` read our archives
-like any import
-(FR-ING-13). DEFLATE: stdlib, fast, and readable by every zip tool; logs still compress ~15x.
+Layout: `<data dir>/archive/YYYY/MM/missionReport(<uid>)[0].txt.zip` (YYYY/MM from the mission UID, the server's local
+start time). One zip entry `missionReport(<uid>)[0].txt` holding all parts concatenated in order: the same format and
+names as the `il2_stats` backups and `sample_data/`, so `group_mission_files` / `read_mission_lines` read our archives
+like any import (FR-ING-13). DEFLATE: stdlib, fast, readable by every zip tool; logs still compress ~15x.
 
 Writing goes to a temporary file in the target folder, is verified (CRC re-read and a sha256 of the uncompressed content
 compared with what was written), and only then renamed over the final path. The returned `sha256` is of the zip file
@@ -43,7 +42,7 @@ class ArchiveResult:
 
 
 def mission_log_name(mission_uid: str) -> str:
-    return f"missionReport({mission_uid}).txt"
+    return f"missionReport({mission_uid})[0].txt"
 
 
 def archive_path_for(archive_dir: Path, mission_uid: str) -> Path:
@@ -54,16 +53,21 @@ def archive_path_for(archive_dir: Path, mission_uid: str) -> Path:
     return archive_dir / year / month / f"{mission_log_name(mission_uid)}.zip"
 
 
+def iter_zip_bytes(source: Path) -> Iterator[bytes]:
+    """The bytes of the single log file inside a zip."""
+    with zipfile.ZipFile(source) as zf:
+        members = [i for i in zf.infolist() if not i.is_dir()]
+        if len(members) != 1:
+            raise ArchiveError(f"{source}: expected exactly one log file inside, found {len(members)}")
+        with zf.open(members[0]) as fh:
+            while chunk := fh.read(_CHUNK):
+                yield chunk
+
+
 def iter_source_bytes(source: Path) -> Iterator[bytes]:
     """The raw bytes of one source: a part or concatenated `.txt`, or the log inside a `.txt.zip`."""
     if source.name.lower().endswith(".zip"):
-        with zipfile.ZipFile(source) as zf:
-            members = [i for i in zf.infolist() if not i.is_dir()]
-            if len(members) != 1:
-                raise ArchiveError(f"{source}: expected exactly one log file inside, found {len(members)}")
-            with zf.open(members[0]) as fh:
-                while chunk := fh.read(_CHUNK):
-                    yield chunk
+        yield from iter_zip_bytes(source)
         return
     with source.open("rb") as fh:
         while chunk := fh.read(_CHUNK):
@@ -130,7 +134,7 @@ def verify_archive(path: Path, content_sha256: str) -> None:
     except zipfile.BadZipFile as exc:
         raise ArchiveError(f"{path}: not a valid zip ({exc})") from exc
     digest = hashlib.sha256()
-    for chunk in iter_source_bytes(path):
+    for chunk in iter_zip_bytes(path):
         digest.update(chunk)
     if digest.hexdigest() != content_sha256:
         raise ArchiveError(f"{path}: content doesn't match what was written")
