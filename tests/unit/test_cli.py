@@ -161,7 +161,7 @@ def test_a_second_writer_exits_with_the_lock_code_and_a_message(
 def test_reprocess_and_rebuild_aggregates_run_on_an_empty_db(
     setup: tuple[Path, Path, FakeSteps], capsys: pytest.CaptureFixture[str]
 ) -> None:
-    assert main(["reprocess", "--workers", "1"]) == EXIT_OK
+    assert main(["reprocess", "--all", "--workers", "1"]) == EXIT_OK
     assert "reprocessed 0" in capsys.readouterr().out
     assert main(["rebuild-aggregates"]) == EXIT_OK
     assert "rebuilt" in capsys.readouterr().out
@@ -206,7 +206,7 @@ def test_reprocess_passes_the_date_span_and_missions_through(
     monkeypatch.setattr(reprocess_mod, "reprocess", fake_reprocess)
     assert main(["reprocess", "--since", "2026-04-01", "--until", "2026-09-30", "--mission", A]) == EXIT_OK
     assert main(["reprocess", "--since", "2026-04-01"]) == EXIT_OK
-    assert main(["reprocess"]) == EXIT_OK
+    assert main(["reprocess", "--all"]) == EXIT_OK
     assert calls == [
         ([A], date(2026, 4, 1), date(2026, 9, 30)),
         (None, date(2026, 4, 1), None),
@@ -236,3 +236,27 @@ def test_reprocess_help_documents_the_server_local_date(capsys: pytest.CaptureFi
     assert "--since YYYY-MM-DD" in out
     assert "--until YYYY-MM-DD" in out
     assert "server's local time (not UTC)" in out
+
+
+def test_bare_reprocess_prints_help_and_does_nothing(
+    setup: tuple[Path, Path, FakeSteps], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Reprocessing everything must be asked for (`--all`): nobody should redo a year of logs by accident."""
+
+    def forbidden(*args: object, **kwargs: object) -> reprocess_mod.ReprocessSummary:
+        raise AssertionError("reprocess must not run")
+
+    monkeypatch.setattr(reprocess_mod, "reprocess", forbidden)
+    for args in (["reprocess"], ["reprocess", "--workers", "2"]):
+        assert main(args) == EXIT_USAGE
+        err = capsys.readouterr().err
+        assert "--all" in err
+        assert "nothing was reprocessed" in err
+
+
+def test_reprocess_all_cannot_be_combined_with_a_selection(
+    setup: tuple[Path, Path, FakeSteps], capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["reprocess", "--all", "--since", "2026-04-01"]) == EXIT_USAGE
+    assert "--all cannot be combined" in capsys.readouterr().err
+    assert main(["reprocess", "--all", "--mission", A]) == EXIT_USAGE
