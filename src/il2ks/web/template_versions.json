@@ -201,10 +201,6 @@
       "version": 1,
       "sha256": "0abbd735d15d52f49723de0f34af9276e5e7441ec949aab07ab8f3d1e6a39735"
     },
-    "templates/il2ks/stub.html": {
-      "version": 1,
-      "sha256": "7d55f87db32a76c324ba1c75055b106a8dc1a20af35f2cd2c06cc37a55739f85"
-    },
     "templates/il2ks/styleguide.html": {
       "version": 1,
       "sha256": "72ea04e9c9f67662bb76c65201e18617b8fb976b0430c8a0d0d7a7e77356b718"

@@ -1,9 +1,0 @@
-{# il2ks-template: templates/il2ks/stub.html v1 - copy this line along when you override #}
-{% extends "il2ks/base.html" %}{% load i18n il2ks %}{% comment %}
-  Placeholder for pages that are being built. Context: title.
-{% endcomment %}
-{% block title %}{{ title }} · {{ site.site_title }}{% endblock %}
-{% block content %}
-  <div class="page-head"><h1>{{ title }}</h1></div>
-  {% notice "info" title=_("Coming soon") %}{% translate "This page is being built." %}{% endnotice %}
-{% endblock %}
