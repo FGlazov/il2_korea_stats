@@ -37,6 +37,16 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "strafed_on_ground": Count("pk", filter=Q(strafed_on_ground=True)),
         "attack_sorties": Count("pk", filter=Q(combat_role=CombatRole.ATTACK)),
         "time_on_target_s": Sum("time_on_target_s"),
+        "kills_ground_tank": Sum("kills_ground_tank"),
+        "kills_ground_vehicle": Sum("kills_ground_vehicle"),
+        "kills_ground_artillery": Sum("kills_ground_artillery"),
+        "kills_ground_aaa": Sum("kills_ground_aaa"),
+        "kills_ground_ship": Sum("kills_ground_ship"),
+        "kills_ground_train": Sum("kills_ground_train"),
+        "kills_ground_building": Sum("kills_ground_building"),
+        "kills_ground_parked_aircraft": Sum("kills_ground_parked_aircraft"),
+        "kills_ground_other": Sum("kills_ground_other"),
+        "kills_ground_static": Sum("kills_ground_static"),
     }
 )
 

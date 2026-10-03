@@ -4,8 +4,9 @@ Lookups never raise: an object type that isn't in the shipped data comes back wi
 (TD-20: "the replay never indexes a catalog dict directly").
 
 Shipped data (`core/catalog/data/`):
-- `objects.csv`: `log_name, display_name, cls, is_playable, propulsion`, one row per object type seen in the logs
-  (doc 12). `propulsion` is `prop` or `jet` for aircraft and empty for everything else.
+- `objects.csv`: `log_name, display_name, cls, is_playable, propulsion, ground_category`, one row per object type seen
+  in the logs (doc 12). `propulsion` is `prop` or `jet` for aircraft and empty for everything else. `ground_category`
+  (what a ground kill is shown as, doc 13) is set for every ground class (`GROUND_CLASSES`) and empty for the rest.
 - `payloads.csv`: `vehicle, payload_id, editor_name, readable_name` (doc 12 "Payloads").
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
 """
@@ -62,6 +63,27 @@ type Propulsion = Literal["prop", "jet"]
 
 PROPULSIONS: frozenset[Propulsion] = frozenset({"prop", "jet"})
 
+type GroundCategory = Literal[
+    "tank", "vehicle", "artillery", "aaa", "ship", "train", "building", "parked_aircraft", "other"
+]
+"""What a ground kill is shown as (OQ-33, doc 13). Independent of static vs dynamic: a static truck is a `vehicle`.
+Same values as `il2ks.db.models.GroundCategory`."""
+
+GROUND_CATEGORIES: tuple[GroundCategory, ...] = (
+    "tank",
+    "vehicle",
+    "artillery",
+    "aaa",
+    "ship",
+    "train",
+    "building",
+    "parked_aircraft",
+    "other",
+)
+"""In display order."""
+GROUND_CLASSES: frozenset[ObjectClass] = frozenset({"tank", "vehicle", "aaa", "ship", "static"})
+"""Object classes that count as ground kills when destroyed; each needs a ground category in `objects.csv`."""
+
 COALITION_NAMES: Mapping[int, str] = {1: "REDFOR", 2: "BLUFOR"}
 """Doc 06: every country of a coalition displays as the plain coalition name."""
 NEUTRAL = "Neutral"
@@ -87,10 +109,15 @@ class ObjectInfo:
     is_playable: bool
     is_known: bool
     propulsion: Propulsion | None = None  # aircraft only (fighter, attacker, bomber, transport); None otherwise
+    ground_category: GroundCategory | None = None  # ground classes only (`GROUND_CLASSES`); None otherwise
 
     @property
     def is_air(self) -> bool:
         return self.cls in AIR_CLASSES
+
+    @property
+    def is_static(self) -> bool:
+        return self.cls == "static"
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,6 +187,10 @@ def country_side_warnings(countries: Mapping[int, int]) -> list[str]:
 
 def is_object_class(value: str) -> TypeIs[ObjectClass]:
     return value in OBJECT_CLASSES
+
+
+def is_ground_category(value: str) -> TypeIs[GroundCategory]:
+    return value in GROUND_CATEGORIES
 
 
 def is_propulsion(value: str) -> TypeIs[Propulsion]:
@@ -236,9 +267,10 @@ def _rows(text: str, columns: list[str], source: str) -> list[dict[str, str]]:
 
 def parse_objects(text: str, source: str = "objects.csv") -> list[ObjectInfo]:
     result: list[ObjectInfo] = []
-    columns = ["log_name", "display_name", "cls", "is_playable", "propulsion"]
+    columns = ["log_name", "display_name", "cls", "is_playable", "propulsion", "ground_category"]
     for n, row in enumerate(_rows(text, columns, source), start=2):
         cls, playable, propulsion = row["cls"], row["is_playable"], row["propulsion"]
+        category = row["ground_category"]
         if not row["log_name"] or not row["display_name"]:
             raise ValueError(f"{source}:{n}: empty log_name or display_name")
         if not is_object_class(cls):
@@ -247,6 +279,12 @@ def parse_objects(text: str, source: str = "objects.csv") -> list[ObjectInfo]:
             raise ValueError(f"{source}:{n}: is_playable must be true or false, got {playable!r}")
         if propulsion and not is_propulsion(propulsion):
             raise ValueError(f"{source}:{n}: propulsion must be prop, jet or empty, got {propulsion!r}")
+        if category and not is_ground_category(category):
+            raise ValueError(f"{source}:{n}: unknown ground category {category!r}")
+        if bool(category) != (cls in GROUND_CLASSES):
+            raise ValueError(
+                f"{source}:{n}: ground_category is for ground classes only and required there: {category!r}"
+            )
         result.append(
             ObjectInfo(
                 row["log_name"],
@@ -255,6 +293,7 @@ def parse_objects(text: str, source: str = "objects.csv") -> list[ObjectInfo]:
                 playable == "true",
                 is_known=True,
                 propulsion=propulsion if is_propulsion(propulsion) else None,
+                ground_category=category if is_ground_category(category) else None,
             )
         )
     return result

@@ -5,9 +5,11 @@ Times are in **ticks** from mission start (50 ticks = 1 s). `ingest` turns them 
 `started_at` (TD-15). Field names follow doc 06 (design_doc/06_data_model.md).
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Literal
 
+from il2ks.core.catalog.loader import GroundCategory
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 
 type Role = Literal["pilot", "gunner"]
@@ -139,6 +141,10 @@ class SortieResult:
     combat_role: CombatRole | None = None
     # Time on target (FR-WEB-20, doc 13): attack sorties only (None otherwise); 0.0 when no release was near a target.
     time_on_target_s: float | None = None
+    # Ground kills by what they were (OQ-33, doc 13): the categories sum to `kills_ground`; `kills_ground_static` is
+    # how many of those were static objects (a separate axis: a static truck is a "vehicle" and static).
+    kills_ground_by_category: Mapping[GroundCategory, int] = field(default_factory=dict[GroundCategory, int])
+    kills_ground_static: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,6 +165,8 @@ class KillResult:
     via: KillVia
     is_friendly: bool
     pos: Pos | None
+    victim_ground_category: GroundCategory | None = None  # ground victims only ("other" for an uncatalogued type)
+    victim_is_static: bool = False
 
 
 @dataclass(frozen=True, slots=True)

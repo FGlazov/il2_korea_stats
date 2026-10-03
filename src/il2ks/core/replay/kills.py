@@ -112,7 +112,11 @@ def _result(
     via: KillVia,
     friendly: bool,
 ) -> KillResult:
+    info = victim.obj.info
+    is_ground = not info.is_air
     return KillResult(
+        victim_ground_category=(info.ground_category or "other") if is_ground else None,
+        victim_is_static=is_ground and info.is_static,
         tick=victim.tick,
         victim_object_id=victim.obj.object_id,
         victim_type=victim.obj.object_type,

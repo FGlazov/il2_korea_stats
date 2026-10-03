@@ -5,12 +5,21 @@ a test cares about, or `dataclasses.replace` for anything else.
 """
 
 import uuid
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
 
 from django.db import models, transaction
 
-from il2ks.core.catalog.loader import AIR_CLASSES, Catalog, ObjectClass, ObjectInfo, PayloadInfo, Propulsion
+from il2ks.core.catalog.loader import (
+    AIR_CLASSES,
+    Catalog,
+    GroundCategory,
+    ObjectClass,
+    ObjectInfo,
+    PayloadInfo,
+    Propulsion,
+)
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.replay.result import (
@@ -39,7 +48,11 @@ KNOWN_OBJECTS: dict[str, tuple[str, ObjectClass]] = {
     "Il-10": ("Il-10", "attacker"),
     "Turret_IL10": ("Il-10 turret", "gunner"),
     "M46 Patton": ("M46 Patton", "tank"),
+    "GAZ_63": ("GAZ-63", "static"),
+    "Fence wire 5m": ("Fence wire 5m", "static"),
 }
+
+GROUND_CATEGORIES: dict[str, GroundCategory] = {"M46 Patton": "tank", "GAZ_63": "vehicle", "Fence wire 5m": "other"}
 
 
 JETS = frozenset({"MiG-15bis", "F-86A-5"})
@@ -68,7 +81,15 @@ class FakeCatalog(Catalog):
         propulsion: Propulsion | None = None
         if cls in ("fighter", "attacker", "bomber", "transport"):
             propulsion = "jet" if object_type in JETS else "prop"
-        return ObjectInfo(object_type, name, cls, is_playable=cls in AIR_CLASSES, is_known=True, propulsion=propulsion)
+        return ObjectInfo(
+            object_type,
+            name,
+            cls,
+            is_playable=cls in AIR_CLASSES,
+            is_known=True,
+            propulsion=propulsion,
+            ground_category=GROUND_CATEGORIES.get(object_type),
+        )
 
     def payload(self, aircraft_type: str, payload_id: int) -> PayloadInfo | None:
         if payload_id < 0 or aircraft_type not in self.known_objects:
@@ -102,6 +123,8 @@ def sortie(
     pilot_fate: PilotFate = "in_aircraft",
     kills_air: int = 0,
     kills_ground: int = 0,
+    ground_by_category: Mapping[GroundCategory, int] | None = None,
+    kills_ground_static: int = 0,
     assists: int = 0,
     is_death: bool = False,
     is_plane_lost: bool = False,
@@ -120,7 +143,13 @@ def sortie(
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
-    """One sortie by player number `player` (account `account(player)`)."""
+    """One sortie by player number `player` (account `account(player)`).
+
+    Ground kills: `ground_by_category` sets the breakdown (and `kills_ground` becomes its sum); without it, all
+    `kills_ground` kills are of category "other", so the breakdown always sums to `kills_ground`."""
+    if ground_by_category is None:
+        ground_by_category = {"other": kills_ground} if kills_ground else {}
+    kills_ground = sum(ground_by_category.values())
     spawn = 1000 * (index + 1) if spawn_tick is None else spawn_tick
     took_off = spawn + 500
     end = took_off + int(flight_time_s * 50) + 500 if end_tick is None else end_tick
@@ -164,6 +193,8 @@ def sortie(
         suspected_structural_failure=False,
         kills_air=kills_air,
         kills_ground=kills_ground,
+        kills_ground_by_category=ground_by_category,
+        kills_ground_static=kills_ground_static,
         assists=assists,
         ammo_loaded=ammo_loaded,
         ammo_left=ammo_left,
