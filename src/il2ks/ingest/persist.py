@@ -410,10 +410,11 @@ def _counts_json(c: AmmoCounts) -> dict[str, int]:
 
 def _ammo_used(s: SortieResult) -> dict[str, int | None]:
     """Ammunition used per type = loaded - left (FR-ING-24). `None` = unknown: the sortie was resupplied (AType 4 only
-    describes the last leg), it has no AType 4, or (bombs) more is left than loaded, which the game does with some
-    payloads (IL-10 bomblets are loaded as stations and left as bomblets)."""
+    describes the last leg), it has no AType 4, the pilot left an aircraft that had been destroyed (its stores read as
+    empty), or (bombs) more is left than loaded, which the game does with some payloads (IL-10 bomblets are loaded as
+    stations and left as bomblets)."""
     loaded = _counts_json(s.ammo_loaded)
-    if s.resupplied or s.ammo_left is None:
+    if s.resupplied or s.ammo_left is None or s.ammo_left_after_loss:
         return dict.fromkeys(loaded)
     left = _counts_json(s.ammo_left)
     used: dict[str, int | None] = {}

@@ -215,3 +215,10 @@ def test_ammo_used_is_unknown_without_a_sortie_end() -> None:
     ammo = _ammo(ammo_left=None)
     assert ammo["left"] is None
     assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
+
+
+def test_ammo_used_is_unknown_when_the_pilot_left_a_destroyed_aircraft() -> None:
+    """AType 4 of a destroyed aircraft the pilot climbed out of reads as empty stores (all bombs and rockets used)."""
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 0, 2, 6), ammo_left=AmmoCounts(150, 0, 0, 0), ammo_left_after_loss=True)
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
+    assert ammo["left"] == {"bullets": 150, "shells": 0, "bombs": 0, "rockets": 0}  # the raw AType 4 stays

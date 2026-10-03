@@ -31,6 +31,10 @@ class ReplayRules:
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
     # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown.
     resupply_allowed: bool = True
+    # Ammo left (AType 4) is only trustworthy when the sortie ended within this many seconds after the aircraft's
+    # destruction (the pilot died with it). Later, the stores of the destroyed aircraft read as 0 (research, 210
+    # samples), so "ammo used" is unknown for such a sortie.
+    ammo_left_after_loss_s: float = 1.0
     # Time on target (FR-WEB-20, doc 13): a bomb, napalm or rocket release counts when an enemy ground object is within
     # this horizontal distance; each attack starts this many seconds before its first counted release; counted releases
     # further apart than the gap start a new attack.

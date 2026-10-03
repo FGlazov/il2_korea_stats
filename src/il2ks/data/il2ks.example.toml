@@ -86,6 +86,9 @@
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
 # it "used" is then unknown. false = never assume a resupply.
 #resupply_allowed = true
+# Ammo left: a pilot who leaves a destroyed aircraft (bails out, climbs out) reports its weapon stores as empty. A sortie
+# that ended more than this many seconds after its aircraft's destruction has its ammo "used" counted as unknown.
+#ammo_left_after_loss_s = 1.0
 # Time on target (FR-WEB-20): a bomb, napalm or rocket release counts as an attack when an enemy ground object is
 # within this many metres horizontally (releases further away, e.g. jettisoned when intercepted, don't count) ...
 #tot_target_radius_m = 3000.0
