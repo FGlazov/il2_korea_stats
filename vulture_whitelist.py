@@ -190,3 +190,11 @@ _.timeline_more  # Detail: timeline.html
 _.timeline_events  # Detail: timeline.html
 _.LimitFlags  # ctypes struct field written to the Windows job object (serving.procutil.kill_children_when_we_die)
 pid_alive  # serving.procutil: liveness probe, tests only since the run lock replaced the PID check
+# --- ammo breakdown reads for the sortie and aircraft pages (FR-WEB-18): the page agents call these ---------------
+_.other_hit_lines  # queries.ammo.SortieAmmo
+_.has_ordnance  # queries.ammo.SortieAmmo
+_.average_hits  # queries.ammo.AmmoToDestroy: hits / kills, divided at read time (TD-22)
+_.by_ammo  # queries.ammo.AircraftAmmo
+sortie_ammo_by_pk  # queries.ammo
+aircraft_ammo  # queries.ammo
+all_aircraft_ammo  # queries.ammo

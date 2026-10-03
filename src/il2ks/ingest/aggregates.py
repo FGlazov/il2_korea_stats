@@ -29,6 +29,8 @@ from django.db.models import Max, Min, Sum
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import (
+    AircraftAmmoStats,
+    MissionAircraftAmmo,
     Player,
     PlayerAircraft,
     PlayerMission,
@@ -72,7 +74,8 @@ def rebuild_aggregates(
     ratings: RatingRules = DEFAULT_RULES, tours: TourRules | None = None, *, reassign_tours: bool = False
 ) -> None:
     """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players (all
-    tours), then the Elo ratings (`recompute_ratings`, which replays all kills).
+    tours), the hits to destroy per aircraft type (`recompute_aircraft_ammo`), then the Elo ratings
+    (`recompute_ratings`, which replays all kills).
 
     `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
     With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
@@ -83,8 +86,40 @@ def rebuild_aggregates(
         else:
             assign_missing(tours)
     recompute_players(Player.objects.values_list("pk", flat=True))
+    recompute_aircraft_ammo(
+        set(MissionAircraftAmmo.objects.values_list("aircraft_id", flat=True))
+        | set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True))
+    )
     recompute_ratings(ratings)
     bump_data_version()  # TD-28: pages changed
+
+
+def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
+    """Hits to destroy (FR-WEB-18): `AircraftAmmoStats` for these victim aircraft types = the sum of their
+    `MissionAircraftAmmo` rows over all missions, upserted by `(aircraft, ammo)`; rows with nothing left are deleted.
+    Cheap enough to run for every type (a few dozen rows per mission), so `save_mission` and the rebuild share it."""
+    ids = sorted(set(aircraft_ids))
+    for start in range(0, len(ids), CHUNK):
+        chunk = ids[start : start + CHUNK]
+        wanted = {
+            (row["aircraft_id"], row["ammo"]): (row["kills"], row["hits"])
+            for row in MissionAircraftAmmo.objects.filter(aircraft_id__in=chunk)
+            .values("aircraft_id", "ammo")
+            .annotate(kills=Sum("kills"), hits=Sum("hits"))
+        }
+        existing = {(r.aircraft_id, r.ammo): r for r in AircraftAmmoStats.objects.filter(aircraft_id__in=chunk)}
+        changed: list[AircraftAmmoStats] = []
+        new: list[AircraftAmmoStats] = []
+        for key, (kills, hits) in wanted.items():
+            row = existing.pop(key, None)
+            if row is None:
+                new.append(AircraftAmmoStats(aircraft_id=key[0], ammo=key[1], kills=kills, hits=hits))
+            elif (row.kills, row.hits) != (kills, hits):
+                row.kills, row.hits = kills, hits
+                changed.append(row)
+        AircraftAmmoStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+        AircraftAmmoStats.objects.bulk_update(changed, ["kills", "hits"])
+        AircraftAmmoStats.objects.bulk_create(new)
 
 
 def _recompute_totals(chunk: list[int]) -> None:

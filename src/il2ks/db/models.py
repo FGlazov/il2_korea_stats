@@ -205,6 +205,10 @@ class KillVia(models.TextChoices):
     DISCONNECT = "disconnect"
 
 
+TOTAL_AMMO = "*"
+"""The `ammo` of the row that sums all gun ammo (`MissionAircraftAmmo`, `AircraftAmmoStats`)."""
+
+
 class Counters(models.Model):
     """The counters shared by PlayerMission, Player and PlayerAircraft (doc 06, FR-WEB-4). No ratios (TD-22)."""
 
@@ -545,6 +549,32 @@ class PlayerMission(Counters):
         return f"{self.player_id} @ {self.mission_id}"
 
 
+class MissionAircraftAmmo(models.Model):
+    """Level 1 (FR-WEB-18, doc 06): gun hits that destroyed aircraft of one type in one mission.
+
+    From the aircraft kills where all the damage came from one attacker (replay `SingleAttackerKill`), any victim and
+    attacker, players or AI. One row per `(mission, aircraft, ammo)`; `ammo` is a gun ammo name, or `TOTAL_AMMO` for all
+    gun ammo together. `kills` = such kills where that ammo hit at least once (every counted kill for `TOTAL_AMMO`),
+    `hits` = hit lines of that ammo on those aircraft. Rewritten whenever the mission is saved."""
+
+    mission_id: int
+    aircraft_id: int
+
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="aircraft_ammo")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="mission_ammo")
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["mission", "aircraft", "ammo"], name="missionaircraftammo_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.mission_id} / {self.aircraft_id} / {self.ammo}"
+
+
 # --- Level 2: across missions ---
 
 
@@ -604,6 +634,26 @@ class PlayerTourAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
+
+
+class AircraftAmmoStats(models.Model):
+    """Level 2 (FR-WEB-18): all-time hits to destroy per victim aircraft type and gun ammo.
+
+    The sum of `MissionAircraftAmmo` over all missions. The average hits to destroy is `hits / kills`, computed when the
+    page reads it (TD-22: no aggregation at request time). The `TOTAL_AMMO` row is all gun ammo together."""
+
+    aircraft_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="ammo_stats")
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["aircraft", "ammo"], name="aircraftammostats_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.aircraft_id} / {self.ammo}"
 
 
 # --- Operational ---

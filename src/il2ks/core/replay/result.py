@@ -50,11 +50,57 @@ class AmmoCounts:
 
 @dataclass(frozen=True, slots=True)
 class AmmoHits:
-    """Hits per ammo type (never `explosion`, TD-08). Detailed attribution (FR-WEB-18) is iteration 1.x."""
+    """Hits per ammo type (never `explosion`, TD-08), plus the damage attributed to the ammo (FR-WEB-18).
+
+    Named ordnance hit lines (`BOMB_*`, `RKT_*`, `NapalmBullet`) are listed here as hit counts like any other ammo, but
+    the damage they and the explosions around them did is reported in `OrdnanceUse`, not here."""
 
     ammo: str  # e.g. "BULLET_12-7_USA_API"
     hits_given: int = 0
     hits_received: int = 0
+    damage_dealt: float = (
+        0.0  # damage lines attributed to this ammo by the closest-hit rule (`ReplayRules.ammo_window_s`)
+    )
+    damage_taken: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class UnattributedDamage:
+    """Damage with no hit line of the same attacker and target within the window (fire, secondary damage, ...)."""
+
+    dealt: float = 0.0
+    taken: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class OrdnanceUse:
+    """One ordnance type of a pilot sortie (FR-WEB-18, doc 02 labelling rule, doc 13).
+
+    `ordnance` is an `ordnance.csv` key (`M65`, `HVAR`, `NAPALM`), a generic key (`bombs_mixed`, `rockets_mixed`: the
+    loadout holds several types and the release doesn't name one) or `UNATTRIBUTED_ORDNANCE` (explosions no rule could
+    label). Explosion hits are never counted as hits: a detonation is all the explosion lines of one aircraft on one
+    tick, and a target counts once per detonation and only if it took damage."""
+
+    ordnance: str
+    released: int = 0  # AType 25 (stores) or AType 26 (rocket salvos, not single rockets), drop tanks excluded
+    detonations: int = 0
+    targets_damaged: int = 0  # one detonation (or direct hit) x one target that took damage
+    kills: int = 0  # credited kills whose last damage line came from this ordnance
+    damage_dealt: float = 0.0
+    damage_taken: float = 0.0  # damage this sortie took from a player's ordnance of this type
+    direct_hits: int = 0  # named hit lines given (`BOMB_*`, `RKT_*`): a direct impact, never an explosion line
+
+
+UNATTRIBUTED_ORDNANCE = "unattributed"
+
+
+@dataclass(frozen=True, slots=True)
+class SingleAttackerKill:
+    """An aircraft destroyed where all the damage logged on it came from one attacker, with the gun hits that attacker
+    landed on it (FR-WEB-18: hits to destroy). Bullet and shell hit lines only, never explosions or ordnance."""
+
+    victim_type: str  # log name, e.g. "MiG-15bis"
+    hits: tuple[tuple[str, int], ...]  # (gun ammo, hits), sorted by ammo
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,6 +212,9 @@ class SortieResult:
     # The server force-ended the sortie at mission end (doc 12, 13): `outcome` then says what state the aircraft was in
     # when the mission ended (`airborne`, `landed`, `ditched`, `not_taken_off`) and the pilot fate is `in_aircraft`.
     ended_by_mission_end: bool = False
+    # Ordnance breakdown and unattributed damage (FR-WEB-18): pilot sorties; empty / zero otherwise.
+    ordnance: tuple[OrdnanceUse, ...] = ()
+    ammo_unattributed: UnattributedDamage = UnattributedDamage()
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,3 +268,4 @@ class MissionResult:
         default_factory=frozenset[str]
     )  # for auto-registering unknowns (FR-ING-7)
     unknown_object_types: frozenset[str] = field(default_factory=frozenset[str])  # not in the catalog
+    single_attacker_kills: tuple[SingleAttackerKill, ...] = ()  # FR-WEB-18: aircraft kills, any victim and attacker
