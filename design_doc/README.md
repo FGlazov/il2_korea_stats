@@ -89,3 +89,6 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-03 (iteration 1 review: OQ-I1 batch resolved into new docs 13 (game rules, fate/outcome trees) and 14 (ingest internals);
   level 2 recomputed per player; friendly fire, resupply, PvE breakdown, reprocess by date range; score split air/ground, Elo and
   time-on-target ideas; page caching TD-28; sample research on resupply, ordnance, gunners, post-end kills; new OQ-27..31).
+  2026-10-03 (OQ-27..32 answered: combat role by loadout, time on target from releases near enemy ground objects, prop/jet Elo computed at
+  ingest, 300 s post-end window with a ground and gunner guard, taxi accidents and strafed-on-ground counters, gunner credit rule deferred;
+  roadmap: ingestion part of iteration 1 done, frontend next).

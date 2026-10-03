@@ -19,6 +19,11 @@ Thresholds are `ReplayRules` fields (`core/replay/config.py`), settable in `[rep
   type than the object they reused). AType 12 for a known ID **updates** it (re-link; a pilot with `PID:-1` keeps its parent). It creates a
   **new** object when the type differs, or when the old object was already destroyed and isn't a sortie aircraft. A new sortie never reuses a
   destroyed or differently typed object. IDs seen before any AType 12 get a placeholder object (as il2_stats did).
+- **Recycled IDs after a sortie end** (2026-10-03): an AType 12 on an ended sortie's aircraft or bot ID more than
+  `post_end_destroy_window_ground_s` (5 s) after the end is a **new object**, even with the same type. The shot-down shape (AType 4, a same-type
+  re-declaration within ~0.3 s, then AType 3) stays an update. Without this, a reused ID destroyed minutes later counted as the old sortie's
+  loss (in the samples bot IDs were re-declared 507 times after a sortie end, 15 of them then destroyed within 300 s), and a gunner whose turret
+  ID was reused got linked to another aircraft.
 - Static block suffixes `[g,i]` are stripped from types. Crew bots aren't reported as seen or unknown types.
 - **Parked reset** `[PROPOSED]` (2026-10-03): sometimes a player's parked aircraft gets an environment AType 3 (with a same-tick re-declaration)
   and then takes off and flies normally, so the game evidently restored it (7 aircraft in 210 missions). A takeoff (AType 5) of an open
@@ -29,13 +34,17 @@ Thresholds are `ReplayRules` fields (`core/replay/config.py`), settable in `[rep
 ## Sortie scope and mission end
 
 - A sortie runs from AType 10 (spawn) to its AType 4 (end), or to the pilot's removal when there is no AType 4 (a disconnect).
-- **The aircraft's destruction counts for the sortie** when its AType 3 comes before the sortie end, or within `post_end_destroy_window_s`
-  after it, or at any time if the pilot left an airborne aircraft (bailout, exit or disconnect: the abandoned aircraft of FR-ING-22). The
-  window exists because a shot-down sortie logs AType 4 *before* AType 3. The same window applies to the pilot's own death.
-  - Default **5 s** for now `[PROPOSED]`. The maintainer asked for ~5 minutes to tolerate server lag, but on all 210 missions every kill line
-    after a normal AType 4 came within 1 s, and nothing came between 1 s and 5 min (doc 12, research pass). So 300 s changes no sortie in the
-    samples, and only adds risk: a pilot who lands, despawns and leaves would be marked dead if someone destroys the parked aircraft (or a
-    recycled ID) within those minutes. Decision: **OQ-30**.
+- **The aircraft's destruction counts for the sortie** when its AType 3 comes before the sortie end, or within the post-end window after it,
+  or at any time if the pilot left an airborne aircraft (bailout, exit or disconnect: the abandoned aircraft of FR-ING-22). The window exists
+  because a shot-down sortie logs AType 4 *before* AType 3. The same window applies to the pilot's own death.
+  - **300 s** (`post_end_destroy_window_s`) for a pilot sortie whose aircraft was **airborne** at the sortie end: the maintainer chose 5 minutes
+    to be safe against server lag (OQ-30, 2026-10-03).
+  - **5 s** (`post_end_destroy_window_ground_s`) for everything else: aircraft on the ground at the end (landed or never took off), and
+    **gunner** sorties. This guard is `[PROPOSED]` (Claude): it keeps a pilot who landed, despawned and left from being marked dead when the
+    parked aircraft is destroyed minutes later, and keeps a gunner who left a flying aircraft from dying with it later.
+  - Measured on 210 missions: every post-end kill line came within 1 s, and with these rules **no pilot sortie changes** against a 5 s window.
+    A plain 300 s for everyone would have changed 2 gunner sorties (one of them killed by the server's cleanup after AType 7), hence the
+    gunner rule.
 - **Mission end.** The server force-ends every running sortie right after AType 7. A sortie is **forced by mission end** when it has a
   *normal* AType 4 (the pilot was still in the aircraft, `PLID` ≠ 0) between the first AType 7 and 5 s after it
   (`mission_end_sortie_window_s`). A `PLID:0` end, or a removal without AType 4, near mission end is a real exit or disconnect, not forced.
@@ -115,6 +124,18 @@ that aircraft was destroyed, as having died with it. That's the conservative rea
 
 A pilot who crashes into a mountain with no attacker involvement is `crashed`, `loss_cause = self`, and nobody gets credit; the death is still
 recorded (a kill entry with no killer).
+
+**Losses on the ground** (`fate.ground_loss`, OQ-32, 2026-10-03). A crash before takeoff **counts as a death and an aircraft lost like any
+other** (option a: "we want to encourage players to taxi well"). Two extra flags feed a "hall of shame" on the profile:
+```
+taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
+strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss (never took off, or landed and not
+                    taken off since), and every attacker hit or damage came after that landing
+                    (shot up, crash-landed, then destroyed = shot down, not strafed)
+both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
+```
+Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
+not parked aircraft) and **19 strafed** (9 parked, 10 after landing). The timeline's `destroyed` / `shot_down` entry says which.
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).
