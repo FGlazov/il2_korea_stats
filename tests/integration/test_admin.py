@@ -66,6 +66,8 @@ def settings_form(**overrides: object) -> dict[str, object]:
         "links_text": "Discord | https://discord.gg/example\nHomepage | http://example.org/",
         "redfor_name": "Red",
         "blufor_name": "Blue",
+        "redfor_emblem": "plaaf",
+        "blufor_emblem": "rokaf",
     }
     data.update(overrides)
     return data
@@ -145,6 +147,7 @@ def test_saving_site_settings(admin: Client, media_root: Path) -> None:
         {"label": "Homepage", "url": "http://example.org/"},
     ]
     assert (row.redfor_name, row.blufor_name) == ("Red", "Blue")
+    assert (row.redfor_emblem, row.blufor_emblem) == ("plaaf", "rokaf")  # FR-ADM-2, doc 15
     assert current_data_version() > before
 
 

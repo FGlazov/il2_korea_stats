@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v2 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -250,8 +250,8 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
   white-space: nowrap; text-align: left;
 }
 .data-table tbody tr:last-child td { border-bottom: 0; }
-.data-table tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--il2-surface-2) 55%, transparent); }
-.data-table tbody tr:hover td { background: var(--il2-surface-hover); }
+.data-table tbody tr:nth-child(even) td, .data-table tbody tr:nth-child(even) th { background: color-mix(in srgb, var(--il2-surface-2) 55%, transparent); }
+.data-table tbody tr:hover td, .data-table tbody tr:hover th { background: var(--il2-surface-hover); }
 .data-table tbody th { font-weight: 600; text-align: left; }
 .data-table td a { font-weight: 500; }
 .data-table tfoot td, .data-table tfoot th { background: var(--il2-surface-2); border-top: 1px solid var(--il2-border-strong); font-weight: 600; }
@@ -346,6 +346,9 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .badge--redfor, .badge--blufor { border-radius: var(--il2-radius); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.7rem; background: color-mix(in srgb, var(--tone) 16%, transparent); }
 .badge--redfor { --tone: light-dark(#b52d28, #f0716a); }
 .badge--blufor { --tone: light-dark(#1f62b6, #70a9f4); }
+/* A neutral side emblem takes its side colour; insignia carry their own colours (coalition_icon tag). */
+.icon.tint--redfor { color: light-dark(#b52d28, #f0716a); }
+.icon.tint--blufor { color: light-dark(#1f62b6, #70a9f4); }
 
 /* Notice banner */
 .notice { display: flex; gap: 0.75rem; align-items: baseline; margin: 0 0 1.25rem; padding: 0.7rem 1rem; border-radius: var(--il2-radius); border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); background: color-mix(in srgb, var(--tone) 10%, var(--il2-surface)); font-size: 0.92rem; }

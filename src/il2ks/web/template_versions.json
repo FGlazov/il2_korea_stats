@@ -5,13 +5,17 @@
       "version": 1,
       "sha256": "49fc04710cb70a4f5b1627d4877acdfac60b392a0a4da33e8e48c03aa2098c90"
     },
+    "static/il2ks/missions.css": {
+      "version": 1,
+      "sha256": "b6d0cd2d30ea8fb9ee3f684f36655a87927adc348a9d8ed4a7f1952eda638d1f"
+    },
     "static/il2ks/players.css": {
       "version": 1,
       "sha256": "bfb6e189f65f90a472a130712abf35a3ac2fdc40178697cabf0ffba328267aa3"
     },
     "static/il2ks/site.css": {
-      "version": 1,
-      "sha256": "b91d84bc3fc640f44e4eba5c657d5bfba8f703ddb1b602902b2ac1d329ae6b27"
+      "version": 2,
+      "sha256": "27d3d254d537f6bcf3fd4b1dfcb8cb2386e10aea9fa4bc463b85eafe53ce8318"
     },
     "static/il2ks/theme-init.js": {
       "version": 1,
@@ -122,8 +126,24 @@
       "sha256": "491f9d33d54ceabefe87c2b8f33b1a93aba6fefe99d96c628e8b5e02cd4ba36a"
     },
     "templates/il2ks/home.html": {
+      "version": 2,
+      "sha256": "fd231ae2aad6dd17cc5f997b1ff21e3c75fde83fa89e6b92ecab5b062f8c03ac"
+    },
+    "templates/il2ks/missions/_player.html": {
       "version": 1,
-      "sha256": "6dd0dc4c73e8fbc86859719c56e947c63bf9bd25a576101d93134ce5958cc7c2"
+      "sha256": "edeafdea553e36474b1a9cc7a560f0c96d59ed7c4acb3f1edeb7ab733f524c49"
+    },
+    "templates/il2ks/missions/_rows.html": {
+      "version": 1,
+      "sha256": "c52f6c82ad74f113a85b066b210dc8ba065f6586e98c8e03fdf3a9825f7f24b9"
+    },
+    "templates/il2ks/missions/detail.html": {
+      "version": 1,
+      "sha256": "f2eff443279f0368edacfb9d81f2ae174cbe62fd6065073d01fb8d9eab9efc8e"
+    },
+    "templates/il2ks/missions/list.html": {
+      "version": 1,
+      "sha256": "3356bb708eeab829e0285889889f1354ec6b5c9871a4fefbd6fd7fd5e14b6201"
     },
     "templates/il2ks/players/detail.html": {
       "version": 1,

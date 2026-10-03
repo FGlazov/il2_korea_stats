@@ -73,7 +73,16 @@ class SiteSettingsForm(forms.ModelForm):
 
     class Meta:
         model = SiteSettings
-        fields = ["site_title", "server_name", "description", "accent_color", "redfor_name", "blufor_name"]
+        fields = [
+            "site_title",
+            "server_name",
+            "description",
+            "accent_color",
+            "redfor_name",
+            "blufor_name",
+            "redfor_emblem",
+            "blufor_emblem",
+        ]
         widgets = {"accent_color": AccentColorInput(), "description": forms.Textarea(attrs={"rows": 4, "cols": 70})}
 
     def __init__(self, *args: object, **kwargs: object) -> None:

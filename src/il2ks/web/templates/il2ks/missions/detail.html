@@ -1,0 +1,124 @@
+{# il2ks-template: templates/il2ks/missions/detail.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
+  PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
+  aircraft), sortie_count.
+  Crumbs: breadcrumbs. Blocks: head (page stylesheet), content. Hidden players are anonymised through missions/_player.html (FR-ADM-3).
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+
+  <div class="page-head">
+    <h1>{{ mission|mission_title }}</h1>
+    <p class="meta-line">
+      <span>{{ mission.started_at|utc }}</span>
+      <span>{% blocktranslate with when=mission|game_when %}In game: {{ when }}{% endblocktranslate %}</span>
+      <span>{% translate "Winner" %}: {% winner_badge mission %}</span>
+      {% if not mission.completed_cleanly %}<span>{% badge _("Log incomplete") "amber" title=_("The server stopped before the mission ended; the numbers may be partial.") %}</span>{% endif %}
+    </p>
+  </div>
+
+  {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
+  {% blocktranslate asvar sides_sub with red=mission.redfor_sorties blue=mission.blufor_sorties %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}
+  <div class="stat-tiles">
+    {% stat_tile mission.duration_s|duration _("Duration") icon="stat/flight-time" %}
+    {% stat_tile mission.players_total|num _("Players") %}
+    {% stat_tile mission.sorties_total|num _("Sorties") sub=sides_sub icon="stat/sorties" %}
+    {% stat_tile mission.kills_air|num _("Air kills") icon="stat/air-kills" %}
+    {% stat_tile mission.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
+  </div>
+
+  <nav class="meta-line jump-links" aria-label="{% translate 'On this page' %}">
+    {% for group in groups %}{% if group.side %}{% side group.side as jump_name %}{% else %}{% translate "Other" as jump_name %}{% endif %}<a href="#sorties-{{ group.side|default:"other" }}">{{ jump_name }} ({{ group.rows|length|num }})</a>{% endfor %}
+    <a href="#kills">{% translate "Kills" %} ({{ kills|length|num }})</a>
+  </nav>
+  <h2>{% translate "Sorties" %}</h2>
+  {% for group in groups %}
+    <h3 id="sorties-{{ group.side|default:"other" }}" class="side-heading{% if group.side %} side-heading--{{ group.side }}{% endif %}">
+      {% if group.side %}{% coalition_icon group.side %}{% side group.side as heading_name %}{% else %}{% translate "Other" as heading_name %}{% endif %}
+      <span>{{ heading_name }}</span>
+      <small class="muted">{{ group.rows|length|num }}</small>
+    </h3>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact sortie-table">
+        <thead>
+          <tr>
+            <th scope="col" class="num">{% translate "Time" %}</th>
+            <th scope="col">{% translate "Pilot" %}</th>
+            <th scope="col">{% translate "Aircraft" %}</th>
+            <th scope="col">{% translate "Role" %}</th>
+            <th scope="col">{% translate "Outcome" %}</th>
+            <th scope="col">{% translate "Pilot fate" %}</th>
+            <th scope="col" class="num">{% translate "Air" %}</th>
+            <th scope="col" class="num">{% translate "Ground" %}</th>
+            <th scope="col" class="num">{% translate "Assists" %}</th>
+            <th scope="col" class="num">{% translate "Flight time" %}</th>
+            <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in group.rows %}
+            <tr>
+              <td class="num muted" title="{{ s.spawned_at|utc }}">{{ s.spawned_at|clock_since:mission.started_at }}</td>
+              <th scope="row"><span class="pilot-cell">{% include "il2ks/missions/_player.html" with player=s.player name=s.name_at_time %}{% if s.role == "gunner" %}{% badge _("Gunner") "purple" %}{% endif %}</span></th>
+              <td><span class="aircraft-cell">{% if s.role != "gunner" %}{% aircraft_icon s.aircraft %}{% endif %}{{ s.aircraft.display_name }}</span></td>
+              <td>{% if s.combat_role %}{% role_badge s.combat_role %}{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td>{% outcome_badge s.outcome %}</td>
+              <td>{% fate_badge s.pilot_fate %}</td>
+              <td class="num">{{ s.kills_air|num }}</td>
+              <td class="num">{{ s.kills_ground|num }}</td>
+              <td class="num">{{ s.assists|num }}</td>
+              <td class="num">{{ s.flight_time_s|duration }}</td>
+              <td>{% if not s.player.is_hidden %}<a class="row-link" href="{% url 'web:sortie-detail' s.pk %}" title="{% translate 'Sortie details' %}" aria-label="{% translate 'Sortie details' %}">→</a>{% endif %}</td>
+            </tr>
+          {% empty %}
+            {% empty_row 11 _("Nobody flew for this side.") %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endfor %}
+
+  <h2 id="kills">{% translate "Kills" %}</h2>
+  <p class="muted">{% translate "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in the sortie rows above." %}</p>
+  <div class="table-wrap table-wrap--flat">
+    <table class="data-table data-table--compact">
+      <thead>
+        <tr>
+          <th scope="col" class="num">{% translate "Time" %}</th>
+          <th scope="col">{% translate "Killer" %}</th>
+          <th scope="col">{% translate "Victim" %}</th>
+          <th scope="col">{% translate "Credit" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for k in kills %}
+          <tr>
+            <td class="num muted" title="{{ k.time|utc }}">{{ k.time|clock_since:mission.started_at }}</td>
+            <td>
+              <span class="kill-who">
+                <span>{% coalition_icon k.killer_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.killer_sortie.player name=k.killer_sortie.name_at_time %}</span>
+                <span class="muted">{{ k.killer_sortie.aircraft.display_name }}</span>
+              </span>
+            </td>
+            <td>
+              <span class="kill-who">
+                <span>{% coalition_icon k.victim_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.victim_sortie.player name=k.victim_sortie.name_at_time %}</span>
+                <span class="muted">{{ k.victim_sortie.aircraft.display_name }}</span>
+              </span>
+            </td>
+            <td>
+              {% if k.is_friendly %}{% badge _("Friendly fire") "red" %}
+              {% elif k.credit == "assist" %}{% badge _("Assist") "blue" %}
+              {% elif k.credit == "shared" %}{% badge _("Shared kill") "teal" %}
+              {% else %}{% badge _("Kill") "green" %}{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          {% empty_row 4 _("No player-versus-player kills in this mission.") %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

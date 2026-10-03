@@ -119,12 +119,6 @@ def test_logo_is_served_from_media_url(client: Client) -> None:
     assert 'src="/media/branding/logo.png"' in html
 
 
-@pytest.mark.django_db
-def test_home_lists_playable_aircraft_in_the_placeholder(client: Client) -> None:
-    GameObject.objects.create(log_name="X-1", display_name="X-1 Test", cls="fighter", is_playable=True)
-    assert "X-1 Test" in client.get("/").content.decode()
-
-
 # --- style guide and error pages -----------------------------------------------------------------------------------
 @pytest.mark.django_db
 def test_styleguide_is_404_unless_debug(client: Client) -> None:
