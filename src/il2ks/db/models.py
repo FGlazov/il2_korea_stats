@@ -74,7 +74,8 @@ class GameObject(models.Model):
     """A game object type from the logs (aircraft, vehicle, ...). Unknown types are auto-registered (FR-ING-7)."""
 
     log_name = models.CharField(max_length=128, unique=True)
-    display_name = models.CharField(max_length=128)
+    display_name = models.CharField(max_length=128)  # the English name: the shipped default, or the admin's override
+    name_overridden = models.BooleanField(default=False)  # True once an admin edited `display_name` (TD-24, FR-ADM-5)
     cls = models.CharField(max_length=16, choices=ObjectClass.choices, default=ObjectClass.UNKNOWN)
     propulsion = models.CharField(max_length=4, choices=Propulsion.choices, blank=True, default="")  # aircraft only
     ground_category = models.CharField(max_length=16, choices=GroundCategory.choices, blank=True, default="")

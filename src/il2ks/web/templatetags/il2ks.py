@@ -4,10 +4,11 @@ The tags render the files in `templates/il2ks/components/`; every component docu
 its template, and server owners may override any of them (TD-25). Tags that need the current URL read the request from
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
-Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent.
+Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent; object_name (TD-24: show a
+GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, outcome_badge, fate_badge, status_badge, aircraft_badge,
 role_badge, stat_tile, kv_list, empty_row,
-breadcrumbs, dropdown, sort_th, pagination, filter_select, filter_text.
+breadcrumbs, dropdown, language_menu, sort_th, pagination, filter_select, filter_text.
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -15,14 +16,18 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
 
 from django import template
+from django.conf import settings
 from django.core.paginator import Page
 from django.http import HttpRequest, QueryDict
 from django.template import Context, Node, NodeList, TemplateSyntaxError
 from django.template.base import FilterExpression, Parser, Token, kwarg_re
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.safestring import SafeString
+from django.utils.translation import get_language, get_language_info
 
-from il2ks.web import display, icons
+from il2ks.web import display, icons, object_names
 from il2ks.web.display import SortFirst, Tone
 
 register = template.Library()
@@ -100,6 +105,14 @@ def per_hour(count: object, seconds: object) -> str:
 def percent(part: object, whole: object) -> str:
     """{{ landed|percent:sorties }} -> '87%', or the dash when `whole` is 0."""
     return display.percent(part, whole)
+
+
+@register.filter
+def object_name(game_object: object) -> str:
+    """{{ sortie.aircraft|object_name }} for a GameObject: its name in the viewer's language (TD-24).
+
+    Admin override first, then the shipped translation, then the English default, then the raw log name."""
+    return object_names.name_of(game_object, get_language() or "en")
 
 
 # --- coalitions and badges ----------------------------------------------------------------------------------------
@@ -211,6 +224,25 @@ def breadcrumbs(crumbs: Iterable[Crumb]) -> dict[str, object]:
 def dropdown(label: object, items: Iterable[tuple[object, str]], align: str = "") -> dict[str, object]:
     """{% dropdown _("Links") links %} with (label, href) pairs: a Pico `<details class="dropdown">` menu."""
     return {"label": label, "items": list(items), "align": align}
+
+
+@register.simple_tag(takes_context=True)
+def language_menu(context: Context) -> dict[str, object]:
+    """{% language_menu as languages %} then {% dropdown languages.label languages.items %}: the language switcher.
+
+    The label is the current language in its own language; the items link to `web:set-language`, which stores the
+    choice in a cookie and returns to the current page (`web.views.language`)."""
+    request = _request_of(context)
+    back = request.get_full_path() if request is not None else "/"
+    current = get_language() or settings.LANGUAGE_CODE
+    items: list[tuple[str, str]] = []
+    label = ""
+    for code, _name in settings.LANGUAGES:
+        own_name = str(get_language_info(code)["name_local"]).capitalize()
+        items.append((own_name, f"{reverse('web:set-language')}?{urlencode({'language': code, 'next': back})}"))
+        if code == current:
+            label = own_name
+    return {"label": label or items[0][0], "items": items}
 
 
 # --- table, sorting, paging, filters ------------------------------------------------------------------------------

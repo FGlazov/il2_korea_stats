@@ -14,6 +14,7 @@ Written for people who run a game server, not for programmers: short steps, copy
 - [Installing il2ks](docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
 - [Using your own proxy (nginx, IIS)](docs/reverse-proxy.md): when ports 80/443 are already taken.
 - [Customizing the site](docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
+- [Translating il2ks](docs/translating.md): review or improve a language, keep translations in step, add a language.
 
 ## Development
 

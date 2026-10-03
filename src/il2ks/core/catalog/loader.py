@@ -7,6 +7,11 @@ Shipped data (`core/catalog/data/`):
 - `objects.csv`: `log_name, display_name, cls, is_playable, propulsion, ground_category`, one row per object type seen
   in the logs (doc 12). `propulsion` is `prop` or `jet` for aircraft and empty for everything else. `ground_category`
   (what a ground kill is shown as, doc 13) is set for every ground class (`GROUND_CLASSES`) and empty for the rest.
+- `object_names_<language>.csv` (one per translated language, `pt-br` style codes):
+  `log_name, english, display_name, review`. Only objects whose name differs from English have a row (an aircraft
+  type name usually stays as it is). `english` is the `objects.csv` name, repeated so a reviewer sees both without a
+  lookup (a test keeps it in step). `review` is `llm-draft` for a machine translation nobody has checked; a reviewer
+  empties it. Names fall back from the viewer's language to English (`Catalog.translated_name`, TD-24).
 - `payloads.csv`: `vehicle, payload_id, editor_name, readable_name` (doc 12 "Payloads").
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
 """
@@ -99,6 +104,17 @@ _CONVENTIONAL_SIDE_OF_COALITION: Mapping[int, Side] = {1: "redfor", 2: "blufor"}
 _BLOCK_SUFFIX = re.compile(r"\[-?\d+,-?\d+\]$")
 # Types that carry a per-instance number: `CParachute_2361344`.
 _NUMBERED_TYPE = re.compile(r"(CParachute)_\d+", re.IGNORECASE)
+
+
+def language_chain(language: str) -> tuple[str, ...]:
+    """The languages to try for a viewer language, most specific first: `pt_BR` -> ("pt-br", "pt"), `de` -> ("de",).
+
+    English is not in the chain: it is the default name itself."""
+    code = language.strip().lower().replace("_", "-")
+    if not code or code == "en" or code.startswith("en-"):
+        return ()
+    base = code.split("-", 1)[0]
+    return (code,) if base == code else (code, base)
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,7 +224,13 @@ class Catalog:
         objects: Iterable[ObjectInfo] = (),
         payloads: Iterable[PayloadInfo] = (),
         payload_aliases: Mapping[str, str] | None = None,
+        object_names: Mapping[str, Mapping[str, str]] | None = None,
     ) -> None:
+        """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}."""
+        self._names: dict[str, dict[str, str]] = {
+            language.lower(): {_key(log_name): name for log_name, name in names.items()}
+            for language, names in (object_names or {}).items()
+        }
         self._objects: dict[str, ObjectInfo] = {}
         for obj in objects:
             key = _key(obj.log_name)
@@ -234,6 +256,17 @@ class Catalog:
             return found
         name = canonical_type_name(object_type)
         return ObjectInfo(log_name=name, display_name=name, cls="unknown", is_playable=False, is_known=False)
+
+    def translated_name(self, object_type: str, language: str) -> str | None:
+        """The shipped translation of an object's name for `language` (TD-24), or None: English, a language without
+        translations, or an object nobody translated. The caller falls back to `lookup(...).display_name` (English),
+        then the log name; admin overrides go on top of all this (`il2ks.web.object_names`)."""
+        key = _key(object_type)
+        for code in language_chain(language):
+            translated = self._names.get(code, {}).get(key)
+            if translated:
+                return translated
+        return None
 
     def payload(self, aircraft_type: str, payload_id: int) -> PayloadInfo | None:
         """Resolve AType 10 `PAYLOAD` through the alias list (log `F-86A-5` -> CSV `f-86a`, doc 12).
@@ -299,6 +332,23 @@ def parse_objects(text: str, source: str = "objects.csv") -> list[ObjectInfo]:
     return result
 
 
+def parse_object_names(text: str, source: str = "object_names.csv") -> dict[str, str]:
+    """`log_name -> translated name` from an `object_names_<language>.csv`; the `english` column is a reviewer aid."""
+    names: dict[str, str] = {}
+    seen: set[str] = set()
+    for n, row in enumerate(_rows(text, ["log_name", "english", "display_name", "review"], source), start=2):
+        log_name, name = row["log_name"], row["display_name"]
+        if row["review"] not in ("", "llm-draft"):
+            raise ValueError(f"{source}:{n}: review must be empty or llm-draft, got {row['review']!r}")
+        if not log_name or not name.strip():
+            raise ValueError(f"{source}:{n}: empty log_name or display_name")
+        if _key(log_name) in seen:
+            raise ValueError(f"{source}:{n}: duplicate object type {log_name!r}")
+        seen.add(_key(log_name))
+        names[log_name] = name
+    return names
+
+
 def parse_payloads(text: str, source: str = "payloads.csv") -> list[PayloadInfo]:
     columns = ["vehicle", "payload_id", "editor_name", "readable_name"]
     return [
@@ -311,6 +361,9 @@ def parse_payload_aliases(text: str, source: str = "payload_aliases.csv") -> dic
     return {row["log_name"]: row["vehicle"] for row in _rows(text, ["log_name", "vehicle"], source)}
 
 
+NAMES_PREFIX = "object_names_"
+
+
 def load_default_catalog() -> Catalog:
     """Load the data shipped in `core/catalog/data/`."""
     data = files("il2ks.core.catalog").joinpath("data")
@@ -318,8 +371,14 @@ def load_default_catalog() -> Catalog:
     def read(name: str) -> str:
         return data.joinpath(name).read_text(encoding="utf-8")
 
+    names = {
+        entry.name.removeprefix(NAMES_PREFIX).removesuffix(".csv"): parse_object_names(read(entry.name), entry.name)
+        for entry in sorted(data.iterdir(), key=lambda e: e.name)
+        if entry.name.startswith(NAMES_PREFIX) and entry.name.endswith(".csv")
+    }
     return Catalog(
         objects=parse_objects(read("objects.csv")),
         payloads=parse_payloads(read("payloads.csv")),
         payload_aliases=parse_payload_aliases(read("payload_aliases.csv")),
+        object_names=names,
     )

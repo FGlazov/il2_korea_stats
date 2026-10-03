@@ -1,0 +1,610 @@
+# il2ks translations. Machine-drafted entries carry the comment `llm-draft`; delete that line once a human has
+# reviewed the translation (docs/translating.md).
+msgid ""
+msgstr ""
+"Project-Id-Version:  il2ks\n"
+"Report-Msgid-Bugs-To: https://github.com/FGlazov/il2_korea_stats/issues\n"
+"POT-Creation-Date: 2026-10-03 19:23+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language: es\n"
+"Language-Team: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+# llm-draft
+#, python-format
+msgid "%(h)d h"
+msgstr "%(h)d h"
+
+# llm-draft
+#, python-format
+msgid "%(h)d h %(m)d min"
+msgstr "%(h)d h %(m)d min"
+
+# llm-draft
+#, python-format
+msgid "%(m)d min"
+msgstr "%(m)d min"
+
+# llm-draft
+#, python-format
+msgid "%(n)d names reset."
+msgstr "%(n)d nombres restablecidos."
+
+# llm-draft
+#, python-format
+msgid "%(n)d row hidden from public pages."
+msgid_plural "%(n)d rows hidden from public pages."
+msgstr[0] "%(n)d fila oculta en las páginas públicas."
+msgstr[1] "%(n)d filas ocultas en las páginas públicas."
+
+# llm-draft
+#, python-format
+msgid "%(n)d row is visible again."
+msgid_plural "%(n)d rows are visible again."
+msgstr[0] "%(n)d fila vuelve a ser visible."
+msgstr[1] "%(n)d filas vuelven a ser visibles."
+
+# llm-draft
+#, python-format
+msgid "%(s)d s"
+msgstr "%(s)d s"
+
+# llm-draft
+#, python-format
+msgid "%(title)s admin"
+msgstr "Administración de %(title)s"
+
+# llm-draft
+msgid "Air superiority"
+msgstr "Superioridad aérea"
+
+# llm-draft
+msgid "Aircraft"
+msgstr "Aeronave"
+
+# llm-draft
+msgid "All"
+msgstr "Todos"
+
+# llm-draft
+msgid "All ingestion runs"
+msgstr "Todas las ejecuciones de ingesta"
+
+# llm-draft
+msgid "Apply"
+msgstr "Aplicar"
+
+# llm-draft
+#, python-format
+msgid "At most %(max)d links."
+msgstr "Como máximo %(max)d enlaces."
+
+# llm-draft
+msgid "Attack"
+msgstr "Ataque"
+
+# llm-draft
+msgid "Attempts"
+msgstr "Intentos"
+
+# llm-draft
+msgid "Back to the start page"
+msgstr "Volver a la página de inicio"
+
+# llm-draft
+msgid "Bailed out"
+msgstr "Saltó en paracaídas"
+
+# llm-draft
+msgid "Breadcrumb"
+msgstr "Ruta de navegación"
+
+# llm-draft
+msgid "Browse missions"
+msgstr "Ver misiones"
+
+# llm-draft
+msgid "Captured"
+msgstr "Capturado"
+
+# llm-draft
+msgid "Class"
+msgstr "Clase"
+
+# llm-draft
+msgid "Clear filters"
+msgstr "Quitar filtros"
+
+# llm-draft
+msgid "Coalitions"
+msgstr "Coaliciones"
+
+# llm-draft
+msgid "Coming soon"
+msgstr "Próximamente"
+
+# llm-draft
+msgid "Community"
+msgstr "Comunidad"
+
+# llm-draft
+msgid "Counters (rebuilt by ingest)"
+msgstr "Contadores (se recalculan en la ingesta)"
+
+# llm-draft
+msgid "Crashed"
+msgstr "Se estrelló"
+
+# llm-draft
+msgid "Current logo"
+msgstr "Logotipo actual"
+
+# llm-draft
+msgid "Damaged"
+msgstr "Dañado"
+
+# llm-draft
+#, python-format
+msgid "Data updated %(when)s"
+msgstr "Datos actualizados: %(when)s"
+
+# llm-draft
+msgid "Dead"
+msgstr "Muerto"
+
+# llm-draft
+msgid "Destroyed"
+msgstr "Destruido"
+
+# llm-draft
+msgid "Display name"
+msgstr "Nombre mostrado"
+
+# llm-draft
+msgid "Ditched"
+msgstr "Amerizó"
+
+# llm-draft
+msgid "Either upload a new logo or remove the current one, not both."
+msgstr "Sube un logotipo nuevo o elimina el actual, pero no ambas cosas."
+
+# llm-draft
+msgid "Error"
+msgstr "Error"
+
+# llm-draft
+msgid "Event type (AType)"
+msgstr "Tipo de evento (AType)"
+
+# llm-draft
+msgid "Exited on ground"
+msgstr "Salió en tierra"
+
+# llm-draft
+msgid "Failed"
+msgstr "Falló"
+
+# llm-draft
+msgid "Failed, waiting for a retry"
+msgstr "Falló, esperando un reintento"
+
+# llm-draft
+msgid "Find a player"
+msgstr "Buscar un jugador"
+
+# llm-draft
+msgid "Given up"
+msgstr "Descartadas"
+
+# llm-draft
+msgid "Healthy"
+msgstr "Ileso"
+
+# llm-draft
+msgid "Hidden"
+msgstr "Oculto"
+
+# llm-draft
+msgid "Hide selected missions from public pages"
+msgstr "Ocultar las misiones seleccionadas en las páginas públicas"
+
+# llm-draft
+msgid "Hide selected players from public pages"
+msgstr "Ocultar los jugadores seleccionados en las páginas públicas"
+
+# llm-draft
+msgid "Home"
+msgstr "Inicio"
+
+# llm-draft
+msgid "In aircraft"
+msgstr "En la aeronave"
+
+# llm-draft
+msgid "In flight"
+msgstr "En vuelo"
+
+# llm-draft
+msgid "Ingested"
+msgstr "Ingerida"
+
+# llm-draft
+msgid "Ingestion status"
+msgstr "Estado de la ingesta"
+
+# llm-draft
+msgid "Key (AType:KEY)"
+msgstr "Clave (AType:KEY)"
+
+# llm-draft
+msgid "Kind"
+msgstr "Tipo"
+
+# llm-draft
+msgid "Landed"
+msgstr "Aterrizó"
+
+# llm-draft
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+# llm-draft
+msgid "Last mission ingested"
+msgstr "Última misión ingerida"
+
+# llm-draft
+msgid "Latest attempt"
+msgstr "Último intento"
+
+# llm-draft
+msgid "Left the server"
+msgstr "Salió del servidor"
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: the label or the address is too long."
+msgstr "Línea %(n)d: la etiqueta o la dirección es demasiado larga."
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: the link must be a full http:// or https:// address."
+msgstr "Línea %(n)d: el enlace debe ser una dirección completa http:// o https://."
+
+# llm-draft
+#, python-format
+msgid "Line %(n)d: write it as “Label | https://example.org”."
+msgstr "Línea %(n)d: escríbela como «Etiqueta | https://example.org»."
+
+# llm-draft
+msgid "Lines"
+msgstr "Líneas"
+
+# llm-draft
+msgid "Links"
+msgstr "Enlaces"
+
+# llm-draft
+msgid "Log lines the parser does not know. Harmless until the game changes its log format; worth reporting."
+msgstr ""
+"Líneas del registro que el analizador no conoce. Son inofensivas mientras el juego no cambie su formato de registro; "
+"conviene informar de ellas."
+
+# llm-draft
+msgid "Log name"
+msgstr "Nombre en el registro"
+
+# llm-draft
+msgid "Look"
+msgstr "Aspecto"
+
+# llm-draft
+msgid "Main"
+msgstr "Principal"
+
+# llm-draft
+msgid "May still change"
+msgstr "Puede cambiar todavía"
+
+# llm-draft
+msgid "Mission"
+msgstr "Misión"
+
+# llm-draft
+msgid "Mission ended"
+msgstr "Misión terminada"
+
+# llm-draft
+msgid "Missions"
+msgstr "Misiones"
+
+# llm-draft
+msgid "Missions stored"
+msgstr "Misiones guardadas"
+
+# llm-draft
+msgid "Name"
+msgstr "Nombre"
+
+# llm-draft
+msgid "Names shown for 5xx / 6xx."
+msgstr "Nombres que se muestran para 5xx / 6xx."
+
+# llm-draft
+msgid "Neutral"
+msgstr "Neutral"
+
+# llm-draft
+msgid "Next"
+msgstr "Siguiente"
+
+# llm-draft
+msgid "Next retry"
+msgstr "Próximo reintento"
+
+# llm-draft
+msgid "No logo."
+msgstr "Sin logotipo."
+
+# llm-draft
+msgid ""
+"No more automatic retries. They are retried when their files or the il2ks version change, or run `il2ks reprocess "
+"--mission UID` after fixing the cause."
+msgstr ""
+"No habrá más reintentos automáticos. Se reintentan cuando cambian sus archivos o la versión de il2ks, o ejecuta "
+"`il2ks reprocess --mission UID` tras corregir la causa."
+
+# llm-draft
+msgid "None."
+msgstr "Ninguno."
+
+# llm-draft
+msgid "Not taken off"
+msgstr "No despegó"
+
+# llm-draft
+msgid "Note"
+msgstr "Nota"
+
+# llm-draft
+msgid "Nothing ingested yet."
+msgstr "Todavía no se ha ingerido nada."
+
+# llm-draft
+msgid "Nothing to show yet."
+msgstr "Todavía no hay nada que mostrar."
+
+# llm-draft
+msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
+msgstr "Una por línea: «Etiqueta | https://dirección». Se muestran en la cabecera o el pie del sitio. Como máximo 10."
+
+# llm-draft
+msgid "Operations"
+msgstr "Operaciones"
+
+# llm-draft
+msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
+msgstr "PNG, JPEG o WebP, hasta 2 MB. La imagen se comprueba, se recodifica y se reduce; no se admite SVG."
+
+# llm-draft
+msgid "Page not found"
+msgstr "Página no encontrada"
+
+# llm-draft
+msgid "Pagination"
+msgstr "Paginación"
+
+# llm-draft
+msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
+msgstr "Estadísticas de pilotos, salidas y misiones de nuestro servidor de IL-2 Sturmovik: Korea."
+
+# llm-draft
+msgid "Playable aircraft"
+msgstr "Aeronaves jugables"
+
+# llm-draft
+msgid "Players"
+msgstr "Jugadores"
+
+# llm-draft
+#, python-format
+msgid "Powered by il2ks %(version)s"
+msgstr "Funciona con il2ks %(version)s"
+
+# llm-draft
+msgid "Previous"
+msgstr "Anterior"
+
+# llm-draft
+msgid "Problems"
+msgstr "Problemas"
+
+# llm-draft
+msgid "Ratings"
+msgstr "Clasificaciones"
+
+# llm-draft
+msgid "Recently completed by idle timeout"
+msgstr "Completadas recientemente por tiempo de inactividad"
+
+# llm-draft
+msgid "Remove the current logo"
+msgstr "Eliminar el logotipo actual"
+
+# llm-draft
+msgid "Reset display names to the catalog defaults"
+msgstr "Restablecer los nombres a los valores predeterminados del catálogo"
+
+# llm-draft
+msgid "Result"
+msgstr "Resultado"
+
+# llm-draft
+msgid "Search"
+msgstr "Buscar"
+
+# llm-draft
+msgid "Seen in logs but missing from the catalog. Give them a name here, and report them so the catalog can be updated."
+msgstr ""
+"Aparecen en los registros pero faltan en el catálogo. Dales un nombre aquí e infórmanos para que el catálogo pueda "
+"actualizarse."
+
+# llm-draft
+msgid "Shot down"
+msgstr "Derribado"
+
+# llm-draft
+msgid "Show selected missions on public pages again"
+msgstr "Volver a mostrar las misiones seleccionadas en las páginas públicas"
+
+# llm-draft
+msgid "Show selected players on public pages again"
+msgstr "Volver a mostrar los jugadores seleccionados en las páginas públicas"
+
+# llm-draft
+#, python-format
+msgid "Showing %(first)s–%(last)s of %(all)s"
+msgstr "Mostrando %(first)s–%(last)s de %(all)s"
+
+# llm-draft
+msgid "Site administration"
+msgstr "Administración del sitio"
+
+# llm-draft
+msgid "Skip to content"
+msgstr "Saltar al contenido"
+
+# llm-draft
+msgid "Something went wrong"
+msgstr "Algo salió mal"
+
+# llm-draft
+msgid "Source"
+msgstr "Origen"
+
+# llm-draft
+msgid "Source files"
+msgstr "Archivos de origen"
+
+# llm-draft
+msgid "Stats will appear here once the first missions have been ingested."
+msgstr "Las estadísticas aparecerán aquí cuando se hayan ingerido las primeras misiones."
+
+# llm-draft
+msgid "Switch between light and dark"
+msgstr "Cambiar entre claro y oscuro"
+
+# llm-draft
+msgid "That page does not exist, or the link is out of date."
+msgstr "Esa página no existe, o el enlace está desactualizado."
+
+# llm-draft
+msgid "The file is empty."
+msgstr "El archivo está vacío."
+
+# llm-draft
+#, python-format
+msgid "The file is larger than %(mb)d MB."
+msgstr "El archivo supera los %(mb)d MB."
+
+# llm-draft
+msgid "The file is larger than 2 MB."
+msgstr "El archivo supera los 2 MB."
+
+# llm-draft
+#, python-format
+msgid "The image has too many pixels (limit: %(px)d megapixels)."
+msgstr "La imagen tiene demasiados píxeles (límite: %(px)d megapíxeles)."
+
+# llm-draft
+msgid "The image is damaged or truncated."
+msgstr "La imagen está dañada o truncada."
+
+# llm-draft
+msgid "The numbers on this page are provisional and can still be updated."
+msgstr "Las cifras de esta página son provisionales y todavía pueden cambiar."
+
+# llm-draft
+msgid "The server hit an error while building this page. Please try again in a moment."
+msgstr "El servidor encontró un error al generar esta página. Inténtalo de nuevo en un momento."
+
+# llm-draft
+msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
+msgstr "Estas terminaron sin un evento de fin de misión; conviene revisarlas por si el servidor se cayó a mitad de la misión."
+
+# llm-draft
+msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
+msgstr "Esto no es una imagen PNG, JPEG o WebP (no se acepta SVG)."
+
+# llm-draft
+msgid "This page is being built."
+msgstr "Esta página está en construcción."
+
+# llm-draft
+msgid "This page is not listed or searchable. Only people with the link can see it."
+msgstr "Esta página no aparece en listados ni en búsquedas. Solo la ven quienes tengan el enlace."
+
+# llm-draft
+msgid "Unharmed"
+msgstr "Intacto"
+
+# llm-draft
+msgid "Unknown"
+msgstr "Desconocido"
+
+# llm-draft
+msgid "Unknown event types (AType: lines)"
+msgstr "Tipos de evento desconocidos (líneas AType:)"
+
+# llm-draft
+msgid "Unknown event types and keys, last 30 days"
+msgstr "Tipos de evento y claves desconocidos, últimos 30 días"
+
+# llm-draft
+msgid "Unknown keys (AType:KEY: lines)"
+msgstr "Claves desconocidas (líneas AType:KEY:)"
+
+# llm-draft
+msgid "Unknown object types"
+msgstr "Tipos de objeto desconocidos"
+
+# llm-draft
+msgid "Upload a new logo"
+msgstr "Subir un logotipo nuevo"
+
+# llm-draft
+msgid "Use a colour like #1A73E8 (six hex digits), or leave it empty."
+msgstr "Usa un color como #1A73E8 (seis dígitos hexadecimales) o déjalo vacío."
+
+# llm-draft
+msgid "View"
+msgstr "Ver"
+
+# llm-draft
+msgid "Warning"
+msgstr "Advertencia"
+
+# llm-draft
+msgid "Warnings"
+msgstr "Advertencias"
+
+# llm-draft
+msgid "Work in progress"
+msgstr "En desarrollo"
+
+# llm-draft
+msgid "Wounded"
+msgstr "Herido"
+
+# llm-draft
+msgid "from the catalog"
+msgstr "del catálogo"
+
+# llm-draft
+msgid "runs ok / failed"
+msgstr "ejecuciones correctas / fallidas"
+

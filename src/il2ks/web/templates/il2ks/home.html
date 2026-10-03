@@ -19,7 +19,7 @@
       <div class="table-wrap table-wrap--flat">
         <table class="data-table data-table--compact">
           <thead><tr><th scope="col">{% translate "Aircraft" %}</th></tr></thead>
-          <tbody>{% for obj in playable %}<tr><td>{{ obj }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for obj in playable %}<tr><td>{{ obj|object_name }}</td></tr>{% endfor %}</tbody>
         </table>
       </div>
     {% endaccordion %}

@@ -24,7 +24,10 @@ IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
   `tests/simple_reads.py`).
 - **Types are mandatory and tight**: no missing annotations, no `Any`; `Literal`/`Enum`/`NewType` where they fit; pyright strict.
 - **Portable SQL only**: no `django.contrib.postgres`, no raw SQL (TD-19). SQLite ships to users; Postgres is dev-side only.
-- **i18n**: wrap every template string in `{% translate %}` (a test enforces it).
+- **i18n**: wrap every template string in `{% translate %}` (a test enforces it). After adding or rewording strings run
+  `uv run il2ks dev translations update` (re-extracts, merges into the 5 languages, compiles; a test fails until you do)
+  and commit the `.po`/`.mo` changes. Show a `GameObject` as `{{ obj|object_name }}`, never `.display_name`
+  (docs/translating.md).
 - **Every bug fix gets a regression test.** Reference requirement/decision IDs (FR-ING-14, TD-08) in docstrings where relevant.
 - **Never commit `sample_data/`** (real player data). Test fixtures come from `uv run il2ks dev anonymize`; a test checks them.
 - Work and commit on `main` (no feature branches for now). Push when you're done working.

@@ -1,0 +1,470 @@
+log_name,english,display_name,review
+La-11,La-11,Ла-11,llm-draft
+MiG-15bis,MiG-15bis,МиГ-15бис,llm-draft
+Yak-9P,Yak-9P,Як-9П,llm-draft
+IL-10,IL-10,Ил-10,llm-draft
+Tu-2,Tu-2,Ту-2,llm-draft
+Li-2,Li-2,Ли-2,llm-draft
+Multiturret_SimpleB29,B-29 turrets,Турели B-29,llm-draft
+Turret_B29_1,B-29 turret 1,Турель B-29 1,llm-draft
+Turret_B29_2,B-29 turret 2,Турель B-29 2,llm-draft
+Turret_B29_3M,B-29 turret 3,Турель B-29 3,llm-draft
+Turret_IL10,IL-10 gunner,Стрелок Ил-10,llm-draft
+Turret_Tu2_1,Tu-2 turret 1,Турель Ту-2 1,llm-draft
+Turret_Tu2_2,Tu-2 turret 2,Турель Ту-2 2,llm-draft
+Turret_Tu2_3,Tu-2 turret 3,Турель Ту-2 3,llm-draft
+IS-2,IS-2,ИС-2,llm-draft
+ISU-122,ISU-122,ИСУ-122,llm-draft
+SU76M,SU-76M,СУ-76М,llm-draft
+T-34-85,T-34-85,Т-34-85,llm-draft
+T-34-85 stowed,T-34-85 stowed,Т-34-85 (в походном положении),llm-draft
+BA-64B,BA-64B,БА-64Б,llm-draft
+Box Car,Box Car,Крытый вагон,llm-draft
+GAZ-55,GAZ-55,ГАЗ-55,llm-draft
+GAZ-63,GAZ-63,ГАЗ-63,llm-draft
+GAZ-67B,GAZ-67B,ГАЗ-67Б,llm-draft
+GMC CCKW refueler,GMC CCKW refueler,GMC CCKW (топливозаправщик),llm-draft
+Gondola Car,Gondola Car,Полувагон,llm-draft
+M1A1 155mm howitzer,M1A1 155mm howitzer,Гаубица M1A1 155 мм,llm-draft
+M2 155mm LongTom,M2 155mm LongTom,Пушка M2 155 мм «Лонг Том»,llm-draft
+M2 203mm Howitzer,M2 203mm Howitzer,Гаубица M2 203 мм,llm-draft
+M2A1 105mm howitzer,M2A1 105mm howitzer,Гаубица M2A1 105 мм,llm-draft
+M3A1 half-track,M3A1 half-track,Полугусеничный бронетранспортёр M3A1,llm-draft
+M6 High-Speed Tractor,M6 High-Speed Tractor,Быстроходный тягач M6,llm-draft
+Mail Car,Mail Car,Почтовый вагон,llm-draft
+ML-20 howitzer-gun,ML-20 howitzer-gun,Гаубица-пушка МЛ-20,llm-draft
+Passenger Car,Passenger Car,Пассажирский вагон,llm-draft
+Platform Car,Platform Car,Платформа,llm-draft
+Studebaker US6,Studebaker US6,Студебеккер US6,llm-draft
+Studebaker US6 BM-13,Studebaker US6 BM-13,Студебеккер US6 БМ-13,llm-draft
+Studebaker US6 refueler,Studebaker US6 refueler,Студебеккер US6 (топливозаправщик),llm-draft
+Studebaker US6 tanker,Studebaker US6 tanker,Студебеккер US6 (цистерна),llm-draft
+Tank Car,Tank Car,Цистерна (вагон),llm-draft
+Type 475.1,Type 475.1 locomotive,Локомотив Type 475.1,llm-draft
+Type 475.1 tender,Type 475.1 tender,Тендер Type 475.1,llm-draft
+Willys MB,Willys MB,Виллис MB,llm-draft
+61-K,61-K,61-К,llm-draft
+61-K mobile,61-K mobile,61-К (передвижная),llm-draft
+61-K stowed,61-K stowed,61-К (в походном положении),llm-draft
+61-K transported,61-K transported,61-К (в транспортном положении),llm-draft
+72-K,72-K,72-К,llm-draft
+72-K stowed,72-K stowed,72-К (в походном положении),llm-draft
+Bofors 40 mm L/60 gun,Bofors 40 mm L/60 gun,40-мм пушка Bofors L/60,llm-draft
+Bofors 40 mm L/60 gun mobile,Bofors 40 mm L/60 gun mobile,40-мм пушка Bofors L/60 (передвижная),llm-draft
+Bofors 40 mm L/60 stowed,Bofors 40 mm L/60 stowed,40-мм пушка Bofors L/60 (в походном положении),llm-draft
+Browning M2HB-AA,Browning M2HB-AA,Browning M2HB (зенитный),llm-draft
+DShK,DShK,ДШК,llm-draft
+DShK-AA,DShK-AA,ДШК (зенитный),llm-draft
+DShK-AA mobile,DShK-AA mobile,ДШК (зенитный) (передвижная),llm-draft
+KS-12,KS-12,КС-12,llm-draft
+KS-19,KS-19,КС-19,llm-draft
+M-1919 AA,M-1919 AA,M-1919 (зенитный),llm-draft
+M2 120mm AAA,M2 120mm AAA,Зенитное орудие M2 120 мм,llm-draft
+M2 90mm AAA,M2 90mm AAA,Зенитное орудие M2 90 мм,llm-draft
+Platform Car AA,Platform Car AA,Платформа с зенитной установкой,llm-draft
+Platform Car AA 61K,Platform Car AA 61-K,Платформа с зенитной установкой 61-К,llm-draft
+Platform Car AA Boforce L/60,Platform Car AA Bofors L/60,Платформа с зенитной установкой Bofors L/60,llm-draft
+Platform Car AA DShK,Platform Car AA DShK,Платформа с зенитной установкой ДШК,llm-draft
+Platform Car AA M1919,Platform Car AA M1919,Платформа с зенитной установкой M1919,llm-draft
+Platform Car AA SG,Platform Car AA SG,Платформа с зенитной установкой SG,llm-draft
+Platform Car AA ZPUVz53,Platform Car AA ZPU Vz.53,Платформа с зенитной установкой ZPU Vz.53,llm-draft
+S-60,S-60,С-60,llm-draft
+SG-43 AA,SG-43 AA,СГ-43 (зенитный),llm-draft
+Cargo ship 1,Cargo ship 1,Грузовое судно 1,llm-draft
+Cargo ship 2,Cargo ship 2,Грузовое судно 2,llm-draft
+Gleaves class destroyer,Gleaves class destroyer,Эсминец типа «Гливс»,llm-draft
+Landing Craft LCI(L),Landing Craft LCI(L),Десантный катер LCI(L),llm-draft
+Landing Craft LCVP,Landing Craft LCVP,Десантный катер LCVP,llm-draft
+"Landing Ship, Tank","Landing Ship, Tank",Танкодесантный корабль,llm-draft
+Liberty class ship,Liberty class ship,Судно типа «Либерти»,llm-draft
+Pinnace,Pinnace,Баркас,llm-draft
+Sampan landingcraft,Sampan landingcraft,Сампан (десантный),llm-draft
+Seiner,Seiner,Сейнер,llm-draft
+Seiner gunboat,Seiner gunboat,Сейнер-канонерка,llm-draft
+Tanker ship,Tanker ship,Танкер,llm-draft
+Airfield caponier PSP,Airfield caponier PSP,Аэродромный капонир (PSP),llm-draft
+Airfield caponier PSP A,Airfield caponier PSP A,Аэродромный капонир (PSP) A,llm-draft
+Airfield caponier PSP B,Airfield caponier PSP B,Аэродромный капонир (PSP) B,llm-draft
+Airfield caponier PSP C,Airfield caponier PSP C,Аэродромный капонир (PSP) C,llm-draft
+Airfield caponier PSP D,Airfield caponier PSP D,Аэродромный капонир (PSP) D,llm-draft
+Airfield caponier sandbags,Airfield caponier sandbags,Аэродромный капонир (мешки с песком),llm-draft
+Airfield caponier sandbags A,Airfield caponier sandbags A,Аэродромный капонир (мешки с песком) A,llm-draft
+Airfield caponier sandbags B,Airfield caponier sandbags B,Аэродромный капонир (мешки с песком) B,llm-draft
+Airfield caponier sandbags C,Airfield caponier sandbags C,Аэродромный капонир (мешки с песком) C,llm-draft
+Airfield caponier sandbags D,Airfield caponier sandbags D,Аэродромный капонир (мешки с песком) D,llm-draft
+Airfield caponier sandbags E,Airfield caponier sandbags E,Аэродромный капонир (мешки с песком) E,llm-draft
+Airfield crane A,Airfield crane A,Аэродромный кран A,llm-draft
+Airfield Equipment APU SU1950,Airfield Equipment APU SU1950,Аэродромное оборудование: APU SU1950,llm-draft
+Airfield Equipment APU US1950,Airfield Equipment APU US1950,Аэродромное оборудование: APU US1950,llm-draft
+Airfield Equipment Engine J33,Airfield Equipment Engine J33,Аэродромное оборудование: двигатель J33,llm-draft
+Airfield Equipment Engine VK1,Airfield Equipment Engine VK1,Аэродромное оборудование: двигатель VK1,llm-draft
+Airfield Equipment Gas Cylinders,Airfield Equipment Gas Cylinders,Аэродромное оборудование: газовые баллоны,llm-draft
+Airfield hangar gateless,Airfield hangar gateless,Ангар без ворот,llm-draft
+Airfield hangar gateless A,Airfield hangar gateless A,Ангар без ворот A,llm-draft
+Airfield hangar japanese framed,Airfield hangar japanese framed,"Ангар (японский, каркасный)",llm-draft
+Airfield hangar japanese framed A,Airfield hangar japanese framed A,"Ангар (японский, каркасный) A",llm-draft
+Airfield hangar semi-awning,Airfield hangar semi-awning,"Ангар (полуоткрытый, с навесом)",llm-draft
+Airfield hangar type K - opened,Airfield hangar type K - opened,Ангар типа K (открытый),llm-draft
+Airfield Tower Auxiliary,Airfield Tower Auxiliary,Вспомогательная вышка аэродрома,llm-draft
+Ammo storage A,Ammo storage A,Склад боеприпасов A,llm-draft
+Ammo storage B,Ammo storage B,Склад боеприпасов B,llm-draft
+AN/CPS-1 Radar,AN/CPS-1 Radar,РЛС AN/CPS-1,llm-draft
+AN/CPS-4 Radar,AN/CPS-4 Radar,РЛС AN/CPS-4,llm-draft
+AN/TPS-1C Radar,AN/TPS-1C Radar,РЛС AN/TPS-1C,llm-draft
+Apartment korean C,Apartment korean C,Жилой дом (корейский) C,llm-draft
+Barrels storage A,Barrels storage A,Склад бочек A,llm-draft
+Barrels storage B,Barrels storage B,Склад бочек B,llm-draft
+Barrels storage C,Barrels storage C,Склад бочек C,llm-draft
+Barrels storage D,Barrels storage D,Склад бочек D,llm-draft
+BlocksArray,Block array,Массив блоков,llm-draft
+Bomb rack with M64 A,Bomb rack with M64 A,Стеллаж с бомбами M64 A,llm-draft
+Bomb rack with M64 B,Bomb rack with M64 B,Стеллаж с бомбами M64 B,llm-draft
+Box Car A,Box Car A,Крытый вагон A,llm-draft
+Box Car B,Box Car B,Крытый вагон B,llm-draft
+Box Car C,Box Car C,Крытый вагон C,llm-draft
+Box Car D,Box Car D,Крытый вагон D,llm-draft
+Box Car F,Box Car F,Крытый вагон F,llm-draft
+Box Car G,Box Car G,Крытый вагон G,llm-draft
+Camouflage net,Camouflage net,Маскировочная сеть,llm-draft
+Camouflage net A,Camouflage net A,Маскировочная сеть A,llm-draft
+Camouflage net B,Camouflage net B,Маскировочная сеть B,llm-draft
+Camp cargo trailer,Camp cargo trailer,Лагерный грузовой прицеп,llm-draft
+Camp cistern trailer,Camp cistern trailer,Лагерный прицеп-цистерна,llm-draft
+Camp generator trailer,Camp generator trailer,Лагерный прицеп с генератором,llm-draft
+Camp reservoir,Camp reservoir,Лагерный резервуар,llm-draft
+Camp shower,Camp shower,Лагерный душ,llm-draft
+Capital railroad bridge 100m,Capital railroad bridge 100m,Капитальный железнодорожный мост 100 м,llm-draft
+Capital railroad bridge 150m,Capital railroad bridge 150m,Капитальный железнодорожный мост 150 м,llm-draft
+Capital railroad bridge 200m,Capital railroad bridge 200m,Капитальный железнодорожный мост 200 м,llm-draft
+Capital railroad bridge 50m,Capital railroad bridge 50m,Капитальный железнодорожный мост 50 м,llm-draft
+Capital railroad bridge 75m,Capital railroad bridge 75m,Капитальный железнодорожный мост 75 м,llm-draft
+Capital road bridge 100m,Capital road bridge 100m,Капитальный автодорожный мост 100 м,llm-draft
+Capital road bridge 150m,Capital road bridge 150m,Капитальный автодорожный мост 150 м,llm-draft
+Capital road bridge 200m,Capital road bridge 200m,Капитальный автодорожный мост 200 м,llm-draft
+Capital road bridge 250m,Capital road bridge 250m,Капитальный автодорожный мост 250 м,llm-draft
+Capital road bridge 25m,Capital road bridge 25m,Капитальный автодорожный мост 25 м,llm-draft
+Capital road bridge 50m,Capital road bridge 50m,Капитальный автодорожный мост 50 м,llm-draft
+Capital road bridge 75m,Capital road bridge 75m,Капитальный автодорожный мост 75 м,llm-draft
+Cargo Ship A,Cargo Ship A,Грузовое судно A,llm-draft
+Cargocart M5,Cargocart M5,Грузовая тележка M5,llm-draft
+Cargocart M5 with ammo,Cargocart M5 with ammo,Грузовая тележка M5 с боеприпасами,llm-draft
+Cargocart M5 with M64,Cargocart M5 with M64,Грузовая тележка M5 с M64,llm-draft
+Control tower capital short,Control tower capital short,"Диспетчерская вышка (капитальная, низкая)",llm-draft
+Control tower temp short,Control tower temp short,"Диспетчерская вышка (временная, низкая)",llm-draft
+Control tower temp tall,Control tower temp tall,"Диспетчерская вышка (временная, высокая)",llm-draft
+Dam medium wall A,Dam medium wall A,Плотина (средняя стена) A,llm-draft
+Dam medium wall B,Dam medium wall B,Плотина (средняя стена) B,llm-draft
+Dam medium wall with spill,Dam medium wall with spill,"Плотина (средняя стена, с водосливом)",llm-draft
+Dam small wall,Dam small wall,Плотина (малая стена),llm-draft
+Dam small wall with building,Dam small wall with building,"Плотина (малая стена, со зданием)",llm-draft
+Disassembled MiG-15bis,Disassembled MiG-15bis,Разобранный МиГ-15бис,llm-draft
+Dugout A,Dugout A,Землянка A,llm-draft
+Dugout B,Dugout B,Землянка B,llm-draft
+Empty bomb rack,Empty bomb rack,Пустой стеллаж для бомб,llm-draft
+Empty bomb stack A,Empty bomb stack A,Пустой штабель бомб A,llm-draft
+Empty bomb stack B,Empty bomb stack B,Пустой штабель бомб B,llm-draft
+Factory block A,Factory block A,Заводской корпус A,llm-draft
+Factory block B,Factory block B,Заводской корпус B,llm-draft
+Factory block C,Factory block C,Заводской корпус C,llm-draft
+Factory block D,Factory block D,Заводской корпус D,llm-draft
+Factory block E,Factory block E,Заводской корпус E,llm-draft
+Factory block G,Factory block G,Заводской корпус G,llm-draft
+Factory block J2,Factory block J2,Заводской корпус J2,llm-draft
+Factory block J3,Factory block J3,Заводской корпус J3,llm-draft
+Factory block J4,Factory block J4,Заводской корпус J4,llm-draft
+Factory block J5,Factory block J5,Заводской корпус J5,llm-draft
+fake_block,Fake block,Ложный блок,llm-draft
+Fence concrete 100m,Fence concrete 100m,Бетонный забор 100 м,llm-draft
+Fence concrete 200m,Fence concrete 200m,Бетонный забор 200 м,llm-draft
+Fence concrete 20m,Fence concrete 20m,Бетонный забор 20 м,llm-draft
+Fence concrete 50m,Fence concrete 50m,Бетонный забор 50 м,llm-draft
+Fence concrete 5m,Fence concrete 5m,Бетонный забор 5 м,llm-draft
+Fence wire 100m,Fence wire 100m,Проволочное ограждение 100 м,llm-draft
+Fence wire 200m,Fence wire 200m,Проволочное ограждение 200 м,llm-draft
+Fence wire 20m,Fence wire 20m,Проволочное ограждение 20 м,llm-draft
+Fence wire 50m,Fence wire 50m,Проволочное ограждение 50 м,llm-draft
+Fence wire 5m,Fence wire 5m,Проволочное ограждение 5 м,llm-draft
+Fueltanks 120 gal A,Fueltanks 120 gal A,Топливные баки 120 гал A,llm-draft
+Fueltanks 250 L,Fueltanks 250 L,Топливные баки 250 л,llm-draft
+GAZ_63,GAZ-63,ГАЗ-63,llm-draft
+GAZ_67B,GAZ-67B,ГАЗ-67Б,llm-draft
+GE 1942A generator,GE 1942A generator,Генератор GE 1942A,llm-draft
+GE 1942A landing light,GE 1942A landing light,Посадочный прожектор GE 1942A,llm-draft
+GE 1942A searchlight,GE 1942A searchlight,Прожектор GE 1942A,llm-draft
+GMC_CCKW refueler,GMC CCKW refueler,GMC CCKW (топливозаправщик),llm-draft
+Gondola Car A,Gondola Car A,Полувагон A,llm-draft
+Gondola Car B,Gondola Car B,Полувагон B,llm-draft
+Gondola Carb D,Gondola Car D,Полувагон D,llm-draft
+Gondola Carb E,Gondola Car E,Полувагон E,llm-draft
+Gun caponier A,Gun caponier A,Орудийный капонир A,llm-draft
+Gun caponier B,Gun caponier B,Орудийный капонир B,llm-draft
+Gun caponier C,Gun caponier C,Орудийный капонир C,llm-draft
+Gun caponier E,Gun caponier E,Орудийный капонир E,llm-draft
+Gun caponier F,Gun caponier F,Орудийный капонир F,llm-draft
+Gun caponier G,Gun caponier G,Орудийный капонир G,llm-draft
+Highway bridge part - arch,Highway bridge part - arch,Часть шоссейного моста: арка,llm-draft
+Highway bridge part - girder,Highway bridge part - girder,Часть шоссейного моста: балка,llm-draft
+Highway bridge part - low arch,Highway bridge part - low arch,Часть шоссейного моста: низкая арка,llm-draft
+Highway bridge part - lower grid,Highway bridge part - lower grid,Часть шоссейного моста: нижняя решётка,llm-draft
+Highway bridge part - mound ramp,Highway bridge part - mound ramp,Часть шоссейного моста: насыпной пандус,llm-draft
+Highway bridge part - semi-arch,Highway bridge part - semi-arch,Часть шоссейного моста: полуарка,llm-draft
+Highway bridge part - short stone ramp,Highway bridge part - short stone ramp,Часть шоссейного моста: короткий каменный пандус,llm-draft
+Highway bridge part - stone ramp,Highway bridge part - stone ramp,Часть шоссейного моста: каменный пандус,llm-draft
+Highway bridge part - upper end,Highway bridge part - upper end,Часть шоссейного моста: верхний конец,llm-draft
+Hospital korean B,Hospital korean B,Больница (корейская) B,llm-draft
+Hotel korean A,Hotel korean A,Гостиница (корейская) A,llm-draft
+Industrial storage A,Industrial storage A,Промышленное хранилище A,llm-draft
+Industrial storage B,Industrial storage B,Промышленное хранилище B,llm-draft
+Industrial storage C,Industrial storage C,Промышленное хранилище C,llm-draft
+Industrial storage D,Industrial storage D,Промышленное хранилище D,llm-draft
+Industrial storage E,Industrial storage E,Промышленное хранилище E,llm-draft
+Industrial storage tank A,Industrial storage tank A,Промышленный резервуар A,llm-draft
+Industrial storage tank B,Industrial storage tank B,Промышленный резервуар B,llm-draft
+Industrial storage tank B1,Industrial storage tank B1,Промышленный резервуар B1,llm-draft
+Industrial storage tank B2,Industrial storage tank B2,Промышленный резервуар B2,llm-draft
+Industrial storage tank C,Industrial storage tank C,Промышленный резервуар C,llm-draft
+Industrial storage tank D,Industrial storage tank D,Промышленный резервуар D,llm-draft
+Industrial warehouse A,Industrial warehouse A,Промышленный склад A,llm-draft
+Industrial warehouse B,Industrial warehouse B,Промышленный склад B,llm-draft
+Industrial warehouse B2,Industrial warehouse B2,Промышленный склад B2,llm-draft
+Industrial warehouse B6,Industrial warehouse B6,Промышленный склад B6,llm-draft
+Industrial warehouse B9,Industrial warehouse B9,Промышленный склад B9,llm-draft
+Industrial warehouse block A,Industrial warehouse block A,Блок промышленных складов A,llm-draft
+Industrial warehouse C,Industrial warehouse C,Промышленный склад C,llm-draft
+Industrial warehouse D,Industrial warehouse D,Промышленный склад D,llm-draft
+Industrial warehouse D2,Industrial warehouse D2,Промышленный склад D2,llm-draft
+Industrial warehouse D4,Industrial warehouse D4,Промышленный склад D4,llm-draft
+Industrial warehouse D6,Industrial warehouse D6,Промышленный склад D6,llm-draft
+Industrial warehouse D8,Industrial warehouse D8,Промышленный склад D8,llm-draft
+Industrial warehouse E,Industrial warehouse E,Промышленный склад E,llm-draft
+Industrial warehouse F,Industrial warehouse F,Промышленный склад F,llm-draft
+Inflated float road bridge 050m,Inflated float road bridge 050m,Понтонный мост (надувной) 050 м,llm-draft
+Inflated float road bridge ramp left,Inflated float road bridge ramp left,"Понтонный мост (надувной), левый пандус",llm-draft
+Lighthouse A,Lighthouse A,Маяк A,llm-draft
+Lighthouse cabin,Lighthouse cabin,Домик маяка,llm-draft
+Manufacture korean A,Manufacture korean A,Производственное здание (корейское) A,llm-draft
+Manufacture korean C,Manufacture korean C,Производственное здание (корейское) C,llm-draft
+MiG Alley gate,MiG Alley gate,Ворота «МиГ-аллеи»,llm-draft
+Military barrack A,Military barrack A,Военная казарма A,llm-draft
+Military barrack A1,Military barrack A1,Военная казарма A1,llm-draft
+Military barrack A2,Military barrack A2,Военная казарма A2,llm-draft
+Military barrack B,Military barrack B,Военная казарма B,llm-draft
+Military barrack B1,Military barrack B1,Военная казарма B1,llm-draft
+Military barrack C,Military barrack C,Военная казарма C,llm-draft
+Military barrack C2,Military barrack C2,Военная казарма C2,llm-draft
+Military barrack D,Military barrack D,Военная казарма D,llm-draft
+Military barrack D2,Military barrack D2,Военная казарма D2,llm-draft
+Military barrack D3,Military barrack D3,Военная казарма D3,llm-draft
+Military barrack D4,Military barrack D4,Военная казарма D4,llm-draft
+Military barrack E,Military barrack E,Военная казарма E,llm-draft
+Military barrack F,Military barrack F,Военная казарма F,llm-draft
+Military barrack G,Military barrack G,Военная казарма G,llm-draft
+Military barrack H,Military barrack H,Военная казарма H,llm-draft
+Military barrack I,Military barrack I,Военная казарма I,llm-draft
+Military boxes storage A,Military boxes storage A,Склад военных ящиков A,llm-draft
+Military boxes storage B,Military boxes storage B,Склад военных ящиков B,llm-draft
+Military boxes storage C,Military boxes storage C,Склад военных ящиков C,llm-draft
+Military boxes storage D,Military boxes storage D,Склад военных ящиков D,llm-draft
+Military boxes storage E,Military boxes storage E,Склад военных ящиков E,llm-draft
+Military boxes storage F,Military boxes storage F,Склад военных ящиков F,llm-draft
+Military cistern large B,Military cistern large B,Большая военная цистерна B,llm-draft
+Military cistern large B1,Military cistern large B1,Большая военная цистерна B1,llm-draft
+Military cistern large B2,Military cistern large B2,Большая военная цистерна B2,llm-draft
+Military cistern medium A,Military cistern medium A,Средняя военная цистерна A,llm-draft
+Military cistern medium A1,Military cistern medium A1,Средняя военная цистерна A1,llm-draft
+Military cistern small,Military cistern small,Малая военная цистерна,llm-draft
+Military coil,Military coil,Военная катушка,llm-draft
+Military coil A,Military coil A,Военная катушка A,llm-draft
+Military coil B,Military coil B,Военная катушка B,llm-draft
+Military coil C,Military coil C,Военная катушка C,llm-draft
+Military coil D,Military coil D,Военная катушка D,llm-draft
+Military coils and barrles,Military coils and barrels,Военные катушки и бочки,llm-draft
+Military tent A,Military tent A,Военная палатка A,llm-draft
+Military tent A1,Military tent A1,Военная палатка A1,llm-draft
+Military tent A2,Military tent A2,Военная палатка A2,llm-draft
+Military tent A3,Military tent A3,Военная палатка A3,llm-draft
+Military tent B,Military tent B,Военная палатка B,llm-draft
+Military tent C,Military tent C,Военная палатка C,llm-draft
+Military tent D,Military tent D,Военная палатка D,llm-draft
+Military warehouse B,Military warehouse B,Военный склад B,llm-draft
+Military warehouse C,Military warehouse C,Военный склад C,llm-draft
+Military watertower,Military watertower,Военная водонапорная башня,llm-draft
+Mine derrick A,Mine derrick A,Шахтный копёр A,llm-draft
+Mine derrick B,Mine derrick B,Шахтный копёр B,llm-draft
+Mine dredge,Mine dredge,Драга,llm-draft
+Mine logs,Mine logs,Шахтные брёвна,llm-draft
+Mine office,Mine office,Контора шахты,llm-draft
+Mine planks,Mine planks,Шахтные доски,llm-draft
+Mine tipple loader,Mine tipple loader,Погрузочный бункер шахты,llm-draft
+Mine warehouse A,Mine warehouse A,Склад шахты A,llm-draft
+Mine warehouse B,Mine warehouse B,Склад шахты B,llm-draft
+Mine warehouse C,Mine warehouse C,Склад шахты C,llm-draft
+Mine warehouse D,Mine warehouse D,Склад шахты D,llm-draft
+Mine warehouse E,Mine warehouse E,Склад шахты E,llm-draft
+Nissenhut barrack A,Nissenhut barrack A,Казарма Ниссена A,llm-draft
+Nissenhut barrack A1,Nissenhut barrack A1,Казарма Ниссена A1,llm-draft
+Nissenhut barrack A2,Nissenhut barrack A2,Казарма Ниссена A2,llm-draft
+Nissenhut barrack A3,Nissenhut barrack A3,Казарма Ниссена A3,llm-draft
+Nissenhut barrack B,Nissenhut barrack B,Казарма Ниссена B,llm-draft
+Non Directional Beacon,Non Directional Beacon,Приводная радиостанция (NDB),llm-draft
+Office building korean C,Office building korean C,Офисное здание (корейское) C,llm-draft
+P-20 Control Compartment,P-20 Control Compartment,Кабина управления П-20,llm-draft
+P-20 Radar,P-20 Radar,РЛС П-20,llm-draft
+P-8 Control Compartment,P-8 Control Compartment,Кабина управления П-8,llm-draft
+P-8 Interrogator,P-8 Interrogator,Запросчик П-8,llm-draft
+P-8 Radar,P-8 Radar,РЛС П-8,llm-draft
+Parked  C-47B,Parked C-47B,C-47B на стоянке,llm-draft
+Parked  F-51D,Parked F-51D,F-51D на стоянке,llm-draft
+Parked  Tu-2,Parked Tu-2,Ту-2 на стоянке,llm-draft
+Parked  Yak-9P,Parked Yak-9P,Як-9П на стоянке,llm-draft
+Parked F-80C-10,Parked F-80C-10,F-80C-10 на стоянке,llm-draft
+Parked F-84E,Parked F-84E,F-84E на стоянке,llm-draft
+Parked F-86A-5,Parked F-86A-5,F-86A-5 на стоянке,llm-draft
+Parked IL-10,Parked IL-10,Ил-10 на стоянке,llm-draft
+Parked La-11,Parked La-11,Ла-11 на стоянке,llm-draft
+Parked Li-2T,Parked Li-2T,Ли-2Т на стоянке,llm-draft
+Parked MiG-15bis,Parked MiG-15bis,МиГ-15бис на стоянке,llm-draft
+Part of F-86A-5,Part of F-86A-5,Часть F-86A-5,llm-draft
+Passenger Car A,Passenger Car A,Пассажирский вагон A,llm-draft
+Passenger Car C,Passenger Car C,Пассажирский вагон C,llm-draft
+Passenger Car D,Passenger Car D,Пассажирский вагон D,llm-draft
+Pinnace A,Pinnace A,Баркас A,llm-draft
+Platform Car A,Platform Car A,Платформа A,llm-draft
+Platform Car B,Platform Car B,Платформа B,llm-draft
+Platform Car C,Platform Car C,Платформа C,llm-draft
+Platform Car D,Platform Car D,Платформа D,llm-draft
+Platform Car E,Platform Car E,Платформа E,llm-draft
+Platform Car F,Platform Car F,Платформа F,llm-draft
+Port crane A,Port crane A,Портовый кран A,llm-draft
+Port crane A1,Port crane A1,Портовый кран A1,llm-draft
+Port crane B,Port crane B,Портовый кран B,llm-draft
+Port_crane_01_4x,Port crane,Портовый кран,llm-draft
+Power hub A,Power hub A,Энергоузел A,llm-draft
+Power station B,Power station B,Электростанция B,llm-draft
+Powerline large pylon,Powerline large pylon,Большая опора ЛЭП,llm-draft
+Radar Control Room,Radar Control Room,Пост управления РЛС,llm-draft
+Radar Generator Room,Radar Generator Room,Генераторная РЛС,llm-draft
+Railway bridge part - girder ramp,Railway bridge part - girder ramp,Часть железнодорожного моста: балочный пандус,llm-draft
+Railway bridge part - grid,Railway bridge part - grid,Часть железнодорожного моста: решётка,llm-draft
+Railway bridge part - inverted arch,Railway bridge part - inverted arch,Часть железнодорожного моста: перевёрнутая арка,llm-draft
+Railway bridge part - short girder,Railway bridge part - short girder,Часть железнодорожного моста: короткая балка,llm-draft
+Railway bridge part - short stone ramp,Railway bridge part - short stone ramp,Часть железнодорожного моста: короткий каменный пандус,llm-draft
+Railway coal tower,Railway coal tower,Железнодорожная угольная башня,llm-draft
+Railway control tower,Railway control tower,Железнодорожная диспетчерская вышка,llm-draft
+Railway crossing cabin,Railway crossing cabin,Будка железнодорожного переезда,llm-draft
+Railway crossing gate,Railway crossing gate,Шлагбаум железнодорожного переезда,llm-draft
+Railway dead end,Railway dead end,Железнодорожный тупик,llm-draft
+Railway depot,Railway depot,Железнодорожное депо,llm-draft
+Railway light tower,Railway light tower,Железнодорожная осветительная вышка,llm-draft
+Railway platform A,Railway platform A,Железнодорожная платформа (перрон) A,llm-draft
+Railway platform B,Railway platform B,Железнодорожная платформа (перрон) B,llm-draft
+Railway station A,Railway station A,Железнодорожная станция A,llm-draft
+Railway station B,Railway station B,Железнодорожная станция B,llm-draft
+Railway water tower,Railway water tower,Железнодорожная водонапорная башня,llm-draft
+RP-15-1 generator,RP-15-1 generator,Генератор RP-15-1,llm-draft
+RP-15-1 searchlight,RP-15-1 searchlight,Прожектор RP-15-1,llm-draft
+Runway lights A1,Runway lights A1,Огни ВПП A1,llm-draft
+Runway lights A2,Runway lights A2,Огни ВПП A2,llm-draft
+Runway lights A3,Runway lights A3,Огни ВПП A3,llm-draft
+Runway lights A4,Runway lights A4,Огни ВПП A4,llm-draft
+Runway lights B2,Runway lights B2,Огни ВПП B2,llm-draft
+Runway lights B3,Runway lights B3,Огни ВПП B3,llm-draft
+Sampan A,Sampan A,Сампан A,llm-draft
+Sawmill,Sawmill,Лесопильный завод,llm-draft
+Sawmill logs,Sawmill logs,Брёвна лесопилки,llm-draft
+Sawmill planks,Sawmill planks,Доски лесопилки,llm-draft
+School korean B,School korean B,Школа (корейская) B,llm-draft
+School korean C,School korean C,Школа (корейская) C,llm-draft
+Searchlight-beam,Searchlight beam,Луч прожектора,llm-draft
+Seiner A,Seiner A,Сейнер A,llm-draft
+Seoul terminal,Seoul terminal,Сеульский вокзал,llm-draft
+Shipyard,Shipyard,Верфь,llm-draft
+Shipyard peer,Shipyard peer,Пирс верфи,llm-draft
+Sign Left,Sign Left,Указатель «налево»,llm-draft
+Sign Stop,Sign Stop,Знак «Стоп»,llm-draft
+Stack of FAB-100 A,Stack of FAB-100 A,Штабель бомб ФАБ-100 A,llm-draft
+Stack of FAB-100 B,Stack of FAB-100 B,Штабель бомб ФАБ-100 B,llm-draft
+Stack of FAB-100 C,Stack of FAB-100 C,Штабель бомб ФАБ-100 C,llm-draft
+Stack of FAB-100 D,Stack of FAB-100 D,Штабель бомб ФАБ-100 D,llm-draft
+Stores korean A,Stores korean A,Магазины (корейские) A,llm-draft
+Stores korean C,Stores korean C,Магазины (корейские) C,llm-draft
+Stores korean D,Stores korean D,Магазины (корейские) D,llm-draft
+Stores korean E,Stores korean E,Магазины (корейские) E,llm-draft
+Studebaker_US6 refueler,Studebaker US6 refueler,Студебеккер US6 (топливозаправщик),llm-draft
+Tank Car A,Tank Car A,Цистерна (вагон) A,llm-draft
+Tank Car B,Tank Car B,Цистерна (вагон) B,llm-draft
+Tank Car C,Tank Car C,Цистерна (вагон) C,llm-draft
+Tanker Ship A,Tanker Ship A,Танкер A,llm-draft
+Willys_MB,Willys MB,Виллис MB,llm-draft
+Windsock,Windsock,Ветроуказатель,llm-draft
+Wooden road bridge 25m,Wooden road bridge 25m,Деревянный автодорожный мост 25 м,llm-draft
+Wooden road bridge 50m,Wooden road bridge 50m,Деревянный автодорожный мост 50 м,llm-draft
+Wooden road bridge 75m,Wooden road bridge 75m,Деревянный автодорожный мост 75 м,llm-draft
+Yard boxes storage A,Yard boxes storage A,Площадка с ящиками A,llm-draft
+Yard boxes storage A1,Yard boxes storage A1,Площадка с ящиками A1,llm-draft
+Yard boxes storage A2,Yard boxes storage A2,Площадка с ящиками A2,llm-draft
+Yard boxes storage A5,Yard boxes storage A5,Площадка с ящиками A5,llm-draft
+Yard boxes storage B,Yard boxes storage B,Площадка с ящиками B,llm-draft
+Yard boxes storage B1,Yard boxes storage B1,Площадка с ящиками B1,llm-draft
+Yard boxes storage B2,Yard boxes storage B2,Площадка с ящиками B2,llm-draft
+Yard boxes storage B3,Yard boxes storage B3,Площадка с ящиками B3,llm-draft
+Yard boxes storage B4,Yard boxes storage B4,Площадка с ящиками B4,llm-draft
+Yard boxes storage C,Yard boxes storage C,Площадка с ящиками C,llm-draft
+Yard boxes storage C1,Yard boxes storage C1,Площадка с ящиками C1,llm-draft
+Yard boxes storage C2,Yard boxes storage C2,Площадка с ящиками C2,llm-draft
+Yard boxes storage C3,Yard boxes storage C3,Площадка с ящиками C3,llm-draft
+Yard boxes storage C4,Yard boxes storage C4,Площадка с ящиками C4,llm-draft
+Yard boxes storage C6,Yard boxes storage C6,Площадка с ящиками C6,llm-draft
+BOOSTER_USA_JATO,JATO booster,Стартовый ускоритель JATO,llm-draft
+FTANK_1003L_USA_F80L,F-80 drop tank 1003 L (left),"Подвесной бак F-80, 1003 л (левый)",llm-draft
+FTANK_1003L_USA_F80R,F-80 drop tank 1003 L (right),"Подвесной бак F-80, 1003 л (правый)",llm-draft
+FTANK_250L_RUS_MIG15L,MiG-15 drop tank 250 L (left),"Подвесной бак МиГ-15, 250 л (левый)",llm-draft
+FTANK_250L_RUS_MIG15R,MiG-15 drop tank 250 L (right),"Подвесной бак МиГ-15, 250 л (правый)",llm-draft
+FTANK_284L_USA_F51,F-51 drop tank 284 L,"Подвесной бак F-51, 284 л",llm-draft
+FTANK_416L_USA_F51,F-51 drop tank 416 L,"Подвесной бак F-51, 416 л",llm-draft
+FTANK_454L_USA_F86L,F-86 drop tank 454 L (left),"Подвесной бак F-86, 454 л (левый)",llm-draft
+FTANK_454L_USA_F86R,F-86 drop tank 454 L (right),"Подвесной бак F-86, 454 л (правый)",llm-draft
+FTANK_625L_USA_F80L,F-80 drop tank 625 L (left),"Подвесной бак F-80, 625 л (левый)",llm-draft
+FTANK_625L_USA_F80R,F-80 drop tank 625 L (right),"Подвесной бак F-80, 625 л (правый)",llm-draft
+FTANK_871L_USA_F84L_WT,F-84 wingtip tank 871 L (left),"Концевой бак F-84, 871 л (левый)",llm-draft
+FTANK_871L_USA_F84R_WT,F-84 wingtip tank 871 L (right),"Концевой бак F-84, 871 л (правый)",llm-draft
+FTANK_927L_USA_F86L,F-86 drop tank 927 L (left),"Подвесной бак F-86, 927 л (левый)",llm-draft
+FTANK_927L_USA_F86R,F-86 drop tank 927 L (right),"Подвесной бак F-86, 927 л (правый)",llm-draft
+NAPALM_389kg_USA_110gal,Napalm tank 110 gal,Напалмовый бак 110 гал,llm-draft
+RKT_127mm_USA_HVAR,"HVAR 5"" rocket",Ракета HVAR 5″,llm-draft
+RKT_127mm_USA_HVAR_SAP,"HVAR 5"" rocket (SAP)",Ракета HVAR 5″ (SAP),llm-draft
+B29_CrewGroup1,B-29 crew,Экипаж B-29,llm-draft
+B29_CrewGroup2,B-29 crew,Экипаж B-29,llm-draft
+BotBoatSwain,Boatswain,Боцман,llm-draft
+BotDriver1,Driver,Водитель,llm-draft
+BotField_Officer_USA1950,Officer (US),Офицер (США),llm-draft
+BotField_Officer_USSR1950,Officer (Soviet),Офицер (СССР),llm-draft
+BotField_Seaman_USA1950,Seaman (US),Матрос (США),llm-draft
+BotField_Soldier_DPRK1950,Soldier (North Korean),Солдат (КНДР),llm-draft
+BotField_Soldier_USA1950,Soldier (US),Солдат (США),llm-draft
+BotField_Soldier_USSR1950,Soldier (Soviet),Солдат (СССР),llm-draft
+BotField_Tankman_DPRK1950,Tank crewman (North Korean),Танкист (КНДР),llm-draft
+BotField_Tankman_USA1950,Tank crewman (US),Танкист (США),llm-draft
+BotGunner,Gunner,Стрелок,llm-draft
+BotPilotSimpleMFPlane,Pilot,Пилот,llm-draft
+BotPlaneCrew_USAF1950,Aircrew (USAF),Экипаж (ВВС США),llm-draft
+BotPlaneGunner_USAF1950,Air gunner (USAF),Бортстрелок (ВВС США),llm-draft
+BotPlaneGunner_USSR1950,Air gunner (Soviet),Бортстрелок (СССР),llm-draft
+BotPlaneGunner_USSR1950_leavetohatch,Air gunner (Soviet),Бортстрелок (СССР),llm-draft
+BotPlaneGunner_USSR1950_nomask,Air gunner (Soviet),Бортстрелок (СССР),llm-draft
+BotPlanePilot_USAF1950com,Pilot (USAF),Пилот (ВВС США),llm-draft
+BotPlanePilot_USAF1950jet,"Pilot (USAF, jet)","Пилот (ВВС США, реактивный)",llm-draft
+BotPlanePilot_USAF1950prop,"Pilot (USAF, prop)","Пилот (ВВС США, поршневой)",llm-draft
+BotPlanePilot_USSR1950jet,"Pilot (Soviet, jet)","Пилот (СССР, реактивный)",llm-draft
+BotPlanePilot_USSR1950prop,"Pilot (Soviet, prop)","Пилот (СССР, поршневой)",llm-draft
+BotPlanePilot_USSR1950prop_nomask,"Pilot (Soviet, prop)","Пилот (СССР, поршневой)",llm-draft
+BotRangefinder,Rangefinder operator,Дальномерщик,llm-draft
+CParachute,Parachute,Парашют,llm-draft
+ESeat_F-80C-10,F-80C-10 ejection seat,Катапультное кресло F-80C-10,llm-draft
+ESeat_F-84E,F-84E ejection seat,Катапультное кресло F-84E,llm-draft
+ESeat_F-86A-5,F-86A-5 ejection seat,Катапультное кресло F-86A-5,llm-draft
+ESeat_KK1,MiG-15bis ejection seat,Катапультное кресло МиГ-15бис,llm-draft
+ESeat_KK1_Armor,MiG-15bis ejection seat (armoured),Катапультное кресло МиГ-15бис (бронированное),llm-draft
+Spotter,Spotter,Наблюдатель,llm-draft
+VehicleRangefinderTurret,Vehicle rangefinder turret,Дальномерная башенка машины,llm-draft
+VehicleTurret,Vehicle turret,Башня машины,llm-draft

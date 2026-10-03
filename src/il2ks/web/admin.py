@@ -37,6 +37,7 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.web.logo import delete_logo, store_logo
+from il2ks.web.object_names import default_catalog
 from il2ks.web.site_forms import SiteSettingsForm
 
 if TYPE_CHECKING:
@@ -250,13 +251,21 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
 @admin.register(GameObject)
 class GameObjectAdmin(ReadOnlyIngestedAdmin[GameObject]):
     editable = ("display_name",)
-    list_display = ("log_name", "display_name", "cls", "propulsion", "is_playable", "is_known")
+    list_display = ("log_name", "display_name", "name_overridden", "cls", "propulsion", "is_playable", "is_known")
     list_editable = ("display_name",)
     list_display_links = ("log_name",)
-    list_filter = ("cls", "is_playable", "is_known", "propulsion")
+    list_filter = ("cls", "is_playable", "is_known", "propulsion", "name_overridden")
     search_fields = ("log_name", "display_name")
     ordering = ("log_name",)
     actions = ("reset_names",)
+
+    def save_model(self, request: HttpRequest, obj: GameObject, form: ModelForm, change: bool) -> None:
+        """An edited name is an override (TD-24): English-only text that then shows in every language. Typing the
+        shipped default back is no override, so the translations show again."""
+        default = default_catalog().lookup(obj.log_name).display_name or obj.log_name
+        obj.display_name = obj.display_name.strip()
+        obj.name_overridden = obj.display_name not in {default, obj.log_name}
+        super().save_model(request, obj, form, change)
 
     @admin.action(description=_("Reset display names to the catalog defaults"), permissions=["change"])
     def reset_names(self, request: HttpRequest, queryset: models.QuerySet[GameObject]) -> None:
@@ -264,8 +273,9 @@ class GameObjectAdmin(ReadOnlyIngestedAdmin[GameObject]):
         objects = list(queryset)
         for obj in objects:
             obj.display_name = catalog.lookup(obj.log_name).display_name or obj.log_name
+            obj.name_overridden = False
         with transaction.atomic():
-            GameObject.objects.bulk_update(objects, ["display_name"])
+            GameObject.objects.bulk_update(objects, ["display_name", "name_overridden"])
             bump_data_version()
         self.message_user(request, _("%(n)d names reset.") % {"n": len(objects)}, messages.SUCCESS)
 

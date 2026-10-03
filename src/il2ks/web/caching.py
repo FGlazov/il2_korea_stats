@@ -7,11 +7,16 @@ of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public 
   `HX-Request`),
 - answers a matching `If-None-Match` with `304` **before the view runs** (`process_view`): the whole cost of a
   revalidation is one tiny query for the version,
-- adds that ETag, `Cache-Control: public, max-age=60` and `Vary: HX-Request, Accept-Language` to 200 responses.
+- adds that ETag, `Cache-Control: public, max-age=60` and `Vary: HX-Request, Accept-Language, Cookie` to 200 responses.
 
 Left alone: non-GET/HEAD, `/admin/`, media and static URLs, responses that set a cookie, that aren't 200, or that
 already carry their own `Cache-Control` (live fragments, FR-ING-12/15, manage their own freshness; they never get an
 ETag from us, so a client never revalidates them against the data version).
+
+Language (TD-24): the viewer's language comes from the `django_language` cookie (the switcher, `web.views.language`) or
+else from `Accept-Language`. The ETag carries the active language, so a revalidation after a switch never gets a 304
+for the old language. `Vary: Cookie` is what makes a *browser* (or proxy) cache that is still fresh for 60 s skip its
+stored copy after the cookie changes. Public visitors carry no other cookie, so this costs nothing in practice.
 """
 
 import hashlib
@@ -28,7 +33,7 @@ from il2ks import __version__
 from il2ks.db.models import DataVersion
 
 MAX_AGE = 60
-VARY = ("HX-Request", "Accept-Language")
+VARY = ("HX-Request", "Accept-Language", "Cookie")
 _ETAG_ATTR = "_il2ks_etag"
 # Changes per web process start. Template and static overrides in custom/ (TD-25) only take effect after a restart
 # (templates are cached in production), and a restart must also invalidate what browsers revalidate.
