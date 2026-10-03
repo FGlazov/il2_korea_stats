@@ -155,4 +155,4 @@ _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)
 _.LimitFlags  # ctypes struct field written to the Windows job object (serving.procutil.kill_children_when_we_die)
-pid_alive  # serving.procutil: process-liveness probe; tests use it (run lock, job object), no production caller since the run lock
+pid_alive  # serving.procutil: liveness probe, tests only since the run lock replaced the PID check
