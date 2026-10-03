@@ -111,6 +111,11 @@ def _add_ops_parsers(sub: SubParsers) -> None:
     admin_parser.add_argument("--password-file", type=Path, help="file holding the password (first line break dropped)")
     admin_parser.add_argument("--email", help="e-mail address of the account (optional)")
     admin_parser.add_argument(
+        "--if-none",
+        action="store_true",
+        help="do nothing when an admin account already exists (for first-start scripts such as the Docker image)",
+    )
+    admin_parser.add_argument(
         "--wait", type=float, default=30.0, metavar="SECONDS", help="how long to wait for another writer"
     )
 

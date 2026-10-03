@@ -113,6 +113,9 @@ def cmd_createadmin(ns: argparse.Namespace, env: Mapping[str, str] | None = None
     _prepare_django(cfg)
     try:
         migrate.migrate_if_needed(cfg, "createadmin", wait=ns.wait)
+        if ns.if_none and admin.admin_exists():
+            print("An admin account already exists: nothing changed.")  # the Docker entrypoint relies on this
+            return EXIT_OK
         username = ns.username or io.ask("User name", admin.DEFAULT_USERNAME)
         question = f"The account {username!r} exists. Reset its password and make it an admin?"
         if interactive and admin.user_exists(username) and not io.confirm(question, False):

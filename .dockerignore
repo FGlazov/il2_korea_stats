@@ -1,0 +1,12 @@
+# The image only needs pyproject.toml, uv.lock, README.md, LICENSE, NOTICE, src/ and docker/docker-entrypoint.sh.
+# Never send the game's real logs or local state to the daemon.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!NOTICE
+!src/**
+!docker/docker-entrypoint.sh
+**/__pycache__
+**/*.pyc
