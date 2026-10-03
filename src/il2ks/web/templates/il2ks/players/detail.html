@@ -1,8 +1,11 @@
-{# il2ks-template: templates/il2ks/players/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
   detail_header, detail_tiles, detail_ground, detail_ratios, detail_totals, detail_shame, detail_aircraft, detail_recent.
-  Context: player, names (PlayerName rows, newest first), sort (aircraft table sort, resolved), aircraft (PlayerAircraft
+  Tours (TD-26): `?tour=<id>` shows the counters of that tour (`stats` is the PlayerTour row, `aircraft` the per-tour rows,
+  `recent` that tour's sorties); without it all time (`stats` is the Player). {% tour_select %} sits under the header.
+  Context: player, stats (Player or PlayerTour, None when the tour has no sortie of theirs), tour, tours, names (PlayerName
+  rows, newest first), sort (aircraft table sort, resolved), aircraft (PlayerAircraft / PlayerTourAircraft
   rows with .aircraft), survived (sorties without a death), ground (GroundRow list), gunner_only, recent (PlayerSortie
   rows with .mission and .aircraft), crumbs, page_title.
   Blocks of this page: content. A player without a counted sortie gets a notice instead of empty tables.
@@ -12,8 +15,9 @@
   {% breadcrumbs crumbs %}
 
   {% include "il2ks/players/detail_header.html" %}
+  {% tour_select tours tour %}
 
-  {% if player.sorties %}
+  {% if stats.sorties %}
     {% include "il2ks/players/detail_tiles.html" %}
     {% include "il2ks/players/detail_ground.html" %}
     <div class="split profile-split">
@@ -28,6 +32,8 @@
       </section>
     </div>
     {% include "il2ks/players/detail_aircraft.html" %}
+  {% elif tour %}
+    {% notice "info" _("No sorties in this tour") %}{% translate "No pilot sorties are counted for this player in the selected tour." %}{% endnotice %}
   {% elif gunner_only %}
     {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}
   {% else %}

@@ -1,12 +1,12 @@
-{# il2ks-template: templates/il2ks/players/detail_shame.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_shame.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_shame.html: the light-hearted "hall of shame" (doc 13): taxi accidents and times strafed on the ground.
-  Context: player.
+  Context: stats.
 {% endcomment %}<section class="shame">
   <h2>{% translate "Hall of shame" %}</h2>
   <div class="stat-tiles shame__tiles">
-    {% stat_tile player.taxi_accidents|num _("Taxi accidents") sub=_("Lost before the first takeoff, by their own doing") icon="stat/taxi-accidents" %}
-    {% stat_tile player.strafed_on_ground|num _("Strafed on the ground") sub=_("Destroyed while parked, by an attacker") icon="stat/strafed" %}
-    <p class="shame__quip">{% if player.taxi_accidents or player.strafed_on_ground %}{% translate "Every pilot has bad days. These are the ones the server remembers." %}{% else %}{% translate "A clean sheet so far. The runway thanks you." %}{% endif %}</p>
+    {% stat_tile stats.taxi_accidents|num _("Taxi accidents") sub=_("Lost before the first takeoff, by their own doing") icon="stat/taxi-accidents" %}
+    {% stat_tile stats.strafed_on_ground|num _("Strafed on the ground") sub=_("Destroyed while parked, by an attacker") icon="stat/strafed" %}
+    <p class="shame__quip">{% if stats.taxi_accidents or stats.strafed_on_ground %}{% translate "Every pilot has bad days. These are the ones the server remembers." %}{% else %}{% translate "A clean sheet so far. The runway thanks you." %}{% endif %}</p>
   </div>
 </section>
