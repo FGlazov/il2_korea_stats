@@ -82,17 +82,15 @@ def test_a_client_cannot_dodge_the_lockout_by_inventing_a_forwarded_for_header(c
 def test_forwarded_for_is_ignored_unless_the_connection_is_from_loopback(client: Client) -> None:
     """A client that reaches the web server directly must not choose its bucket with its own X-Forwarded-For."""
     User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
-    direct = {"REMOTE_ADDR": "198.51.100.7"}
+    client.defaults["REMOTE_ADDR"] = "198.51.100.7"  # a direct connection, not via the proxy
 
     for i in range(throttle.MAX_FAILURES):
         response = client.post(
-            LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": f"10.0.0.{i}"}, **direct
+            LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": f"10.0.0.{i}"}
         )
         assert response.status_code == 200
 
-    locked = client.post(
-        LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": "10.1.1.1"}, **direct
-    )
+    locked = client.post(LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": "10.1.1.1"})
     assert locked.status_code == 429
 
 
