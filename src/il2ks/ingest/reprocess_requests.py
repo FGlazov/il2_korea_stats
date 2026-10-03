@@ -55,9 +55,12 @@ def run_pending_request(
     *,
     reprocess_fn: ReprocessFn = reprocess,
     now: Callable[[], datetime] = utcnow,
+    between: Callable[[], None] | None = None,
 ) -> ReprocessRequest | None:
     """Run the oldest pending request. Returns it (finished) or None when there was nothing to do or the writer lock
-    was busy (the request stays pending). `pipeline_factory` builds the pipeline with the ratings deferred."""
+    was busy (the request stays pending). `pipeline_factory` builds the pipeline with the ratings deferred.
+    `between` is called after every reprocessed mission (watch uses it to keep live ticks going during the hours a
+    full reprocess can take); it must not raise."""
     request = pending_request()
     if request is None:
         return None
@@ -73,6 +76,8 @@ def run_pending_request(
         request.missions_ok = len(summary.ok)
         request.missions_failed = len(summary.failed)
         request.save(update_fields=["missions_ok", "missions_failed"])
+        if between is not None:
+            between()
 
     try:
         summary = reprocess_fn(

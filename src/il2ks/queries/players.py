@@ -106,11 +106,15 @@ def aircraft_rows(player: Player, sort: str) -> list[PlayerAircraft]:
 
 
 def recent_sorties(player: Player, limit: int = RECENT_SORTIES) -> list[PlayerSortie]:
-    """The latest sorties by spawn time, any role; the mission and aircraft come along in the same query."""
-    rows = PlayerSortie.objects.filter(player=player).select_related("mission", "aircraft")
+    """The latest sorties by spawn time, any role; the mission and aircraft come along in the same query.
+    Sorties of hidden missions are left out (FR-ADM-3)."""
+    rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
     return list(rows.order_by("-spawned_at", "-pk")[:limit])
 
 
 def flies_as_gunner_only(player: Player) -> bool:
     """True for a player with no pilot sortie who has gunner sorties (counters stay 0 until gunner stats exist)."""
-    return player.sorties == 0 and PlayerSortie.objects.filter(player=player, role=Role.GUNNER).exists()
+    return (
+        player.sorties == 0
+        and PlayerSortie.objects.filter(player=player, role=Role.GUNNER, mission__is_hidden=False).exists()
+    )

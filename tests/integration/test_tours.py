@@ -138,6 +138,17 @@ def test_manual_new_tour_closes_the_open_one_and_takes_later_missions() -> None:
     assert tour_of("2026-09-30_20-00-00") == first
 
 
+def test_manual_tour_title_is_not_repeated_after_a_tour_is_deleted() -> None:
+    put(mission((sortie(0, 1),)), at(2026, 9, 19, 20), MANUAL)
+    start_manual_tour(at(2026, 10, 1, 12))  # Tour 2 (no missions, so it can be deleted)
+    start_manual_tour(at(2026, 10, 3, 12))  # Tour 3
+    Tour.objects.get(title="Tour 2").delete()
+
+    fourth = start_manual_tour(at(2026, 10, 5, 12))
+
+    assert fourth.title == "Tour 4"  # a count-based number would give "Tour 3" again
+
+
 def test_manual_mission_older_than_every_tour_goes_to_the_first() -> None:
     put(mission((sortie(0, 1),)), at(2026, 9, 19, 20), MANUAL)
     put(mission((sortie(0, 1),)), at(2026, 9, 1, 20), MANUAL)

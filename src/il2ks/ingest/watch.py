@@ -8,6 +8,9 @@ The writer lock is taken per tick, not for the whole lifetime, so an admin's `re
 ticks that find the lock taken are skipped with a log line. A tick that crashes is logged and the loop goes on
 (NFR-REL-2: state lives in the DB, so the next tick picks up where this one stopped).
 
+A running reprocess lets live ticks run between missions (`run_pending_request(between=...)`), so the live data
+doesn't go stale while it works.
+
 Each tick also works off the admin's "reprocess all missions" request, if one is pending (`reprocess_requests`): the
 web process never runs that long job itself. A tick that starts one is busy until it ends; a busy lock only delays it.
 """
@@ -100,6 +103,16 @@ def watch(
         except Exception:
             log.exception("live tick failed; retrying next tick")
 
+    last_live = time.monotonic()
+
+    def live_between_missions() -> None:
+        """Called by a running reprocess after each mission: a live tick when one is due, so "online now" doesn't go
+        stale for the hours a full reprocess takes."""
+        nonlocal last_live
+        if tracker is not None and time.monotonic() - last_live >= cfg.live.interval_s:
+            live_tick()
+            last_live = time.monotonic()
+
     log.info("watching %s every %.0f s", cfg.logs.dir, cfg.ingest.watch_interval_s)
     while not stop.is_set():
         try:
@@ -111,7 +124,9 @@ def watch(
         except Exception:
             log.exception("ingest tick failed; retrying next tick")
         try:
-            run_pending_request(cfg, reprocess_pipeline, reprocess_fn=reprocess_fn, now=now)
+            run_pending_request(
+                cfg, reprocess_pipeline, reprocess_fn=reprocess_fn, now=now, between=live_between_missions
+            )
         except Exception:
             log.exception("reprocess request tick failed; retrying next tick")
         backup_retry_at = daily_backup(cfg, now(), backup_retry_at)

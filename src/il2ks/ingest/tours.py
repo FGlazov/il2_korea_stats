@@ -14,6 +14,7 @@ are unchanged, and deletes tours that end up without missions (not in manual mod
 Level-2 rows per tour are not touched here: `ingest.aggregates` recomputes them from `PlayerMission` and `Mission.tour`.
 """
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -48,6 +49,16 @@ def _manual_tour_for(rules: TourRules, started_at: datetime) -> Tour:
     return tour
 
 
+def _next_tour_number() -> int:
+    """One more than the highest "Tour N" title in use (not the row count: deleting a tour must not repeat a title)."""
+    numbers = [
+        int(match.group(1))
+        for title in Tour.objects.values_list("title", flat=True)
+        if (match := re.fullmatch(r"Tour (\d+)", title))
+    ]
+    return max(numbers, default=0) + 1
+
+
 def start_manual_tour(now: datetime | None = None, title: str = "") -> Tour:
     """FR-ADM-8: close the open tour at `now` and open a new one. Missions that started earlier stay in the old one.
 
@@ -60,7 +71,7 @@ def start_manual_tour(now: datetime | None = None, title: str = "") -> Tour:
                 raise ValueError("the open tour started at or after this moment")
             current.ended_at = moment
             current.save(update_fields=["ended_at"])
-        number = Tour.objects.count() + 1
+        number = _next_tour_number()
         return Tour.objects.create(title=title or f"Tour {number}", started_at=moment, ended_at=None, mode="manual")
 
 

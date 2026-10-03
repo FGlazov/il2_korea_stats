@@ -114,6 +114,7 @@ def test_the_fragment_has_its_own_short_cache_and_no_data_version_etag(client: C
     assert "public" in cache
     assert not response.has_header("ETag")
     assert "Accept-Language" in response["Vary"]
+    assert "Cookie" in response["Vary"]  # the language cookie changes the body
 
 
 def test_a_busy_database_gives_a_retryable_503_that_htmx_will_not_swap(
