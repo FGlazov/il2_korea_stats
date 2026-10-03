@@ -93,9 +93,23 @@ Why replay still reads `AMMO:explosion` lines (in memory only, never stored, TD-
 hit line with the ordnance name. In the samples there were 572 `BOMB_*` and 1,186 `RKT_*` hit lines against 1.9 M `explosion` hit lines
 (30 missions), and for 97% of player-caused damage lines the closest hit is an explosion. If explosion lines were ignored, almost all
 bomb and rocket damage would be unattributed, or wrongly matched to a gun hit seconds away. So an explosion hit is used as the **link**
-between a damage line and the ordnance: it's **labelled by the ordnance the attacker released most recently** (bomb, rocket, napalm,
-cluster), using AType 25/26 and the store object's type, and that label is what gets counted and shown. Where a direct `BOMB_*`/`RKT_*`
-hit line exists, it's used as is.
+between a damage line and the ordnance, and the ordnance name is what gets counted and shown. Where a direct `BOMB_*`/`RKT_*` hit line
+exists, it's used as is.
+
+**Checked 2026-10-03 (30 missions, 287k detonations = explosion hits grouped by attacker and tick):**
+- **95.4% of detonations have no bomb/rocket/napalm/shell hit line within 1 s**, so the named ordnance lines can't replace explosion lines.
+  The named lines seem to cover only direct impacts on an object. Blast and fire damage only appear as "explosion".
+- The explosions are still reliably ordnance: of the detonations without a nearby named line, **99.4% come from aircraft that released
+  stores or rockets** (59% within the previous 60 s, 40% earlier in the sortie), and the payload file confirms **98.6% carried bombs,
+  rockets or napalm** (0.7% empty or drop tanks only). 94% of those loadouts include **napalm**, which probably explains the long-delayed
+  explosions (burning napalm). 1.8% of detonations sit next to cannon shell hits (23/37 mm HE/API, MiG and La), so a few are cannon fire.
+
+**Labelling rule for an explosion hit** `[PROPOSED]`, in order:
+1. A named ordnance or shell hit line from the same attacker within 1 s: use that ammo.
+2. The aircraft's loadout (payload file) has exactly one ordnance type: use it.
+3. A store or rocket released within the previous 60 s: use that release's ordnance type (AType 25/26 plus the store object's type).
+4. Napalm was released earlier in the sortie: napalm (lingering fire).
+5. Otherwise: "unattributed" (never shown as "explosion").
 
 **Checked on 30 sample missions (2026-10-02):** sorties that released stores or rockets produce ~1,769 explosion hits each, versus 18–36 for
 gun-only sorties and ~0 for sorties without hits. So explosions are overwhelmingly ordnance. For 97% of player-caused damage lines the

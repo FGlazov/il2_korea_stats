@@ -80,3 +80,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-02 (disconnect mid-flight = death; abandoned-aircraft kill credit; Kill table PvP only; safe logo uploads; DST and tour-timezone rules).
   2026-10-02 (iteration 0 done: repo skeleton, harnesses, anonymized fixtures; work happens on main).
   2026-10-03 (disconnect = death only with damage in the last 2 min, any source; "explosion" never shown, ordnance name instead).
+  2026-10-03 (explosion lines checked: 95% have no named ordnance line nearby, 99% come from ordnance carriers; labelling rule proposed).
