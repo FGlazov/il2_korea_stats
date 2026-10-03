@@ -141,7 +141,7 @@ _.store_id  # AType 25 TID (store-release tracking, planned with ordnance stats)
 _.rocket_id  # AType 26 TID (rocket tracking, planned with ordnance stats)
 _.editor_name  # core.catalog PayloadInfo.editor_name: payloads.csv column, kept for the payload display
 
-# --- first-run setup page (web.setup_forms, serving.djsettings): read by Django / the template by name -----------------
+# --- first-run setup page (web.setup_forms, serving.djsettings): read by Django / the template by name ----------------
 _.clean_domain  # SetupForm clean_<field> hooks
 _.clean_admin_username
 logs_choice  # declared SetupForm fields, rendered by hand in templates/il2ks/setup.html and read from cleaned_data

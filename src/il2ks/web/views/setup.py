@@ -102,7 +102,14 @@ def setup(request: HttpRequest) -> HttpResponse:
             status=403,
         )
     limiter.reset()
-    return csrf_protect(_page)(request, data_dir, given)
+    response = csrf_protect(_page)(request, data_dir, given)
+    cookie = response.cookies.get(settings.CSRF_COOKIE_NAME)
+    if cookie is not None and not request.is_secure():
+        # Production marks the CSRF cookie Secure, but this page is reached over plain http://localhost (no HTTPS exists
+        # yet) and not every browser sends Secure cookies there. The cookie is only for this page; the form's token
+        # protects the submit as well.
+        cookie["secure"] = ""
+    return response
 
 
 def _page(request: HttpRequest, data_dir: Path, token: str) -> HttpResponse:

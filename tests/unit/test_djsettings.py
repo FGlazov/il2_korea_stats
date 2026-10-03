@@ -127,10 +127,10 @@ def test_staticfiles_w004_is_silenced_because_custom_static_may_not_exist() -> N
     assert "staticfiles.W004" in settings.SILENCED_SYSTEM_CHECKS
 
 
-def test_only_the_setup_page_is_exempt_from_the_https_redirect(tmp_path: Path) -> None:
+def test_only_the_setup_page_and_static_files_are_exempt_from_the_https_redirect(tmp_path: Path) -> None:
     """It is opened on http://localhost:<port>/setup/ before any HTTPS exists; nothing else may skip the redirect."""
     sec = djsettings.security_settings(make(tmp_path, domain="x.example.com"))
     patterns = [re.compile(p) for p in sec.redirect_exempt]
-    paths = ("setup/", "setup/x", "admin/", "", "missions/", "xsetup/")
-    assert {path for path in paths if any(p.match(path) for p in patterns)} == {"setup/"}
+    paths = ("setup/", "setup/x", "static/il2ks/site.css", "admin/", "", "missions/", "xsetup/", "media/a")
+    assert {path for path in paths if any(p.match(path) for p in patterns)} == {"setup/", "static/il2ks/site.css"}
     assert djsettings.security_settings(make(tmp_path, debug=True)).redirect_exempt == ()

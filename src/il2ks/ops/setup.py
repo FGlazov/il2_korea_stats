@@ -40,6 +40,7 @@ from il2ks.ops import admin
 from il2ks.ops.detect import LogFolder, default_roots, find_log_folders
 from il2ks.ops.prompt import Prompter
 from il2ks.ops.template import Key, fill_template, patch_config, template_text, toml_string
+from il2ks.serving.setup_token import discard_token
 
 type HttpsMode = Literal["caddy", "external"]
 HTTPS_MODES: tuple[HttpsMode, ...] = get_args(HttpsMode.__value__)
@@ -459,6 +460,8 @@ def run_setup(
         return EXIT_LOCKED
     io.say("Database ready.")
     admin_ok = s.create_admin(admin.DEFAULT_USERNAME)
+    if admin_ok and admin.admin_exists():
+        discard_token(cfg.data_dir)  # an admin exists: the browser setup page is closed for good
     _next_steps(io, target, cfg.data_dir, logs_dir, env)
     return EXIT_OK if admin_ok else EXIT_FAILED
 

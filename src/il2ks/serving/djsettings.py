@@ -25,9 +25,10 @@ INSTALLED_APPS = [
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 """Django believes this header from the proxy (Caddy sets it itself; nginx and IIS must, see docs/reverse-proxy.md)."""
-SSL_REDIRECT_EXEMPT = (r"^setup/$",)
-"""The first-run setup page is opened on `http://localhost:<port>/setup/` before HTTPS exists: not redirected.
-It is safe: the view only answers local, token-carrying requests while setup is pending (`il2ks.web.views.setup`)."""
+SSL_REDIRECT_EXEMPT = (r"^setup/$", r"^static/")
+"""The first-run setup page is opened on `http://localhost:<port>/setup/` before HTTPS exists: not redirected,
+and neither are its styles and scripts (`static/`, public files anyway). It is safe: the view only answers local,
+token-carrying requests while setup is pending (`il2ks.web.views.setup`)."""
 STATIC_BACKEND_DEV = "django.contrib.staticfiles.storage.StaticFilesStorage"
 STATIC_BACKEND_PROD = "il2ks.serving.storage.LenientManifestStorage"
 

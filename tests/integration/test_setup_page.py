@@ -454,3 +454,28 @@ def test_the_page_writes_the_same_config_as_il2ks_setup(
     web_text = (web_root / "il2ks.toml").read_text(encoding="utf-8")
     assert normalized(web_text, web_root / "data", web_logs) == normalized(cli_text, cli_root / "data", cli_logs)
     assert get_user_model().objects.filter(username="boss", is_superuser=True).count() == 1
+
+
+def test_finishing_il2ks_setup_in_the_terminal_also_closes_the_page(tmp_path: Path, pending: Path) -> None:
+    """The token is only for the browser setup; any way of creating the admin ends it."""
+    assert setup_token.read_token(pending)
+    options = SetupOptions(
+        config_path=tmp_path / "il2ks.toml",
+        data_dir=pending,
+        timezone="UTC",
+        https_mode="external",
+        admin_username="boss",
+        admin_password=PASSWORD,
+        non_interactive=True,
+    )
+    assert run_setup(options, ScriptedPrompter([]), env={"IL2KS_DATA_DIR": str(pending)}) == 0
+    assert setup_token.read_token(pending) == ""
+
+
+def test_the_csrf_cookie_of_the_setup_page_works_over_plain_http_even_in_production(
+    pending: Path, token: str, settings: Settings
+) -> None:
+    """Production marks the cookie Secure, but this page is opened on http://localhost before HTTPS exists."""
+    settings.CSRF_COOKIE_SECURE = True
+    response = local().get(URL, {"token": token})
+    assert response.cookies[settings.CSRF_COOKIE_NAME]["secure"] == ""
