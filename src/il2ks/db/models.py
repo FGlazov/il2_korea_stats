@@ -1,4 +1,10 @@
-"""Models. Iteration 0 ships only the object catalog, so the portability and constraint harnesses have a real table."""
+"""Models: pre-aggregated read models (TD-08, doc 06). Level 1 = per mission, level 2 = across missions.
+
+Natural keys (FR-ING-9, FR-WEB-13): mission `(server_uid, mission_uid)`, sortie `(mission, account_uuid, spawn_tick)`,
+player `account_uuid`. Rows are upserted by them so PKs (and URLs) survive `reprocess`.
+"""
+
+from __future__ import annotations
 
 from django.db import models
 
@@ -38,3 +44,366 @@ class GameObject(models.Model):
 
     def __str__(self) -> str:
         return self.display_name or self.log_name
+
+
+class Country(models.Model):
+    """A country code from `CNTRS` (doc 06). Display names are admin-editable (FR-ADM-5)."""
+
+    code = models.IntegerField(unique=True)
+    coalition = models.IntegerField()
+    display_name = models.CharField(max_length=64)
+
+    def __str__(self) -> str:
+        return self.display_name
+
+
+# --- Choices shared by level-1 tables (values match core.replay.result Literals) ---
+
+
+class Role(models.TextChoices):
+    PILOT = "pilot"
+    GUNNER = "gunner"
+
+
+class SpawnType(models.TextChoices):
+    AIR = "air"
+    RUNWAY = "runway"
+    PARKING = "parking"
+
+
+class Outcome(models.TextChoices):
+    LANDED = "landed"
+    CRASHED = "crashed"
+    SHOT_DOWN = "shot_down"
+    DITCHED = "ditched"
+    IN_FLIGHT = "in_flight"
+    NOT_TAKEN_OFF = "not_taken_off"
+    MISSION_ENDED = "mission_ended"
+    UNKNOWN = "unknown"
+
+
+class PilotFate(models.TextChoices):
+    IN_AIRCRAFT = "in_aircraft"
+    BAILED_OUT = "bailed_out"
+    EXITED_ON_GROUND = "exited_on_ground"
+    MISSION_ENDED = "mission_ended"
+    DISCONNECTED = "disconnected"
+    UNKNOWN = "unknown"
+
+
+class PilotFateSource(models.TextChoices):
+    EVENT = "event"
+    INFERRED = "inferred"
+    UNKNOWN = "unknown"
+
+
+class PilotStatus(models.TextChoices):
+    HEALTHY = "healthy"
+    WOUNDED = "wounded"
+    DEAD = "dead"
+    CAPTURED = "captured"
+
+
+class AircraftStatus(models.TextChoices):
+    UNHARMED = "unharmed"
+    DAMAGED = "damaged"
+    DESTROYED = "destroyed"
+
+
+class LossCause(models.TextChoices):
+    ATTACKER = "attacker"
+    SELF = "self"
+    NONE = "none"
+
+
+class KillCredit(models.TextChoices):
+    KILL = "kill"
+    ASSIST = "assist"
+    SHARED = "shared"
+
+
+class KillVia(models.TextChoices):
+    DIRECT = "direct"
+    ABANDONED_AIRCRAFT = "abandoned_aircraft"
+    DISCONNECT = "disconnect"
+
+
+class Counters(models.Model):
+    """The counters shared by PlayerMission, Player and PlayerAircraft (doc 06, FR-WEB-4). No ratios (TD-22)."""
+
+    sorties = models.PositiveIntegerField(default=0)
+    flight_time_s = models.FloatField(default=0.0)
+    kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+    planes_lost = models.PositiveIntegerField(default=0)
+    bailouts = models.PositiveIntegerField(default=0)
+    suspected_early_bailouts = models.PositiveIntegerField(default=0)
+    captures = models.PositiveIntegerField(default=0)
+    takeoffs = models.PositiveIntegerField(default=0)
+    landings = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        abstract = True
+
+
+# --- Level 2 identity (needed by level 1 FKs) ---
+
+
+class Player(Counters):
+    """A game account (doc 06). All-time counters are level 2: incremental at ingest, rebuildable from level 1."""
+
+    account_uuid = models.CharField(max_length=36, unique=True)
+    current_name = models.CharField(max_length=128)
+    name_lower = models.CharField(max_length=128, db_index=True)
+    first_seen = models.DateTimeField()
+    last_seen = models.DateTimeField()
+    is_hidden = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.current_name
+
+
+class PlayerName(models.Model):
+    """Nickname history, so search finds old names (FR-WEB-3)."""
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="names")
+    name = models.CharField(max_length=128)
+    name_lower = models.CharField(max_length=128, db_index=True)
+    first_seen = models.DateTimeField()
+    last_seen = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["player", "name"], name="playername_unique")]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+# --- Level 1: per mission ---
+
+
+class Mission(models.Model):
+    server_uid = models.UUIDField()
+    mission_uid = models.CharField(max_length=32)  # file name timestamp, e.g. "2026-09-19_22-34-13" (TD-15)
+    mission_file = models.CharField(max_length=255)
+    file_path = models.CharField(max_length=500, blank=True)  # archive path
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField()
+    duration_s = models.FloatField()
+    game_date = models.CharField(max_length=32)
+    game_time = models.CharField(max_length=32)
+    game_type = models.IntegerField()
+    settings: models.JSONField[dict[str, str]] = models.JSONField(default=dict)
+    countries: models.JSONField[dict[str, int]] = models.JSONField(default=dict)  # {"501": 1, ...} from CNTRS
+    log_version = models.IntegerField(null=True)
+    completed_cleanly = models.BooleanField()
+    winning_coalition = models.IntegerField(null=True)
+    is_hidden = models.BooleanField(default=False)
+    # Pre-aggregated for list/detail pages
+    players_total = models.PositiveIntegerField(default=0)
+    sorties_total = models.PositiveIntegerField(default=0)
+    redfor_sorties = models.PositiveIntegerField(default=0)
+    blufor_sorties = models.PositiveIntegerField(default=0)
+    kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["server_uid", "mission_uid"], name="mission_natural_key")]
+        indexes = [models.Index(fields=["-started_at"], name="mission_started_desc")]
+
+    def __str__(self) -> str:
+        return self.mission_uid
+
+
+class PlayerSortie(models.Model):
+    mission_id: int
+    player_id: int
+    aircraft_id: int
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="sortie_rows")
+    player = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="sortie_rows")
+    account_uuid = models.CharField(max_length=36)  # part of the natural key
+    spawn_tick = models.IntegerField()  # part of the natural key
+    name_at_time = models.CharField(max_length=128)
+    profile_uuid = models.CharField(max_length=36)
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="sortie_rows")
+    coalition = models.IntegerField()
+    country = models.IntegerField()
+    role = models.CharField(max_length=8, choices=Role.choices)
+    spawned_at = models.DateTimeField()
+    took_off_at = models.DateTimeField(null=True)
+    landed_at = models.DateTimeField(null=True)
+    ended_at = models.DateTimeField()
+    flight_time_s = models.FloatField(default=0.0)
+    air_start = models.BooleanField(default=False)
+    spawn_type = models.CharField(max_length=8, choices=SpawnType.choices)
+    payload_id = models.IntegerField(default=0)
+    payload_name = models.CharField(max_length=128, blank=True)
+    weapon_mods = models.IntegerField(default=0)
+    outcome = models.CharField(max_length=16, choices=Outcome.choices)
+    pilot_fate = models.CharField(max_length=20, choices=PilotFate.choices)
+    pilot_fate_source = models.CharField(max_length=10, choices=PilotFateSource.choices)
+    pilot_status = models.CharField(max_length=10, choices=PilotStatus.choices)
+    suspected_early_bailout = models.BooleanField(default=False)
+    aircraft_status = models.CharField(max_length=10, choices=AircraftStatus.choices)
+    damage_taken = models.FloatField(default=0.0)
+    disconnected = models.BooleanField(default=False)
+    is_death = models.BooleanField(default=False)
+    is_plane_lost = models.BooleanField(default=False)
+    is_captured = models.BooleanField(default=False)
+    loss_cause = models.CharField(max_length=10, choices=LossCause.choices)
+    suspected_structural_failure = models.BooleanField(default=False)
+    kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
+    takeoffs = models.PositiveIntegerField(default=0)
+    landings = models.PositiveIntegerField(default=0)
+    ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
+    damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
+    timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
+    pos_spawn_x = models.FloatField(null=True)
+    pos_spawn_y = models.FloatField(null=True)
+    pos_spawn_z = models.FloatField(null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["mission", "account_uuid", "spawn_tick"], name="sortie_natural_key"),
+            models.CheckConstraint(condition=models.Q(role__in=Role.values), name="sortie_role_valid"),
+            models.CheckConstraint(condition=models.Q(spawn_type__in=SpawnType.values), name="sortie_spawn_type_valid"),
+            models.CheckConstraint(condition=models.Q(outcome__in=Outcome.values), name="sortie_outcome_valid"),
+            models.CheckConstraint(condition=models.Q(pilot_fate__in=PilotFate.values), name="sortie_pilot_fate_valid"),
+            models.CheckConstraint(
+                condition=models.Q(pilot_fate_source__in=PilotFateSource.values), name="sortie_pilot_fate_source_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(pilot_status__in=PilotStatus.values), name="sortie_pilot_status_valid"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(aircraft_status__in=AircraftStatus.values), name="sortie_aircraft_status_valid"
+            ),
+            models.CheckConstraint(condition=models.Q(loss_cause__in=LossCause.values), name="sortie_loss_cause_valid"),
+            models.CheckConstraint(
+                condition=models.Q(damage_taken__gte=0) & models.Q(damage_taken__lte=1),
+                name="sortie_damage_taken_range",
+            ),
+            models.CheckConstraint(condition=models.Q(flight_time_s__gte=0), name="sortie_flight_time_nonneg"),
+        ]
+        indexes = [models.Index(fields=["player", "-spawned_at"], name="sortie_player_recent")]
+
+    def __str__(self) -> str:
+        return f"{self.name_at_time} @ {self.mission_id}"
+
+
+class Kill(models.Model):
+    """PvP only `[DECIDED]`: killer and victim are both player sorties (doc 06)."""
+
+    mission_id: int
+    killer_sortie_id: int
+    victim_sortie_id: int
+
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="kills")
+    tick = models.IntegerField()
+    time = models.DateTimeField()
+    killer_sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="kills_made")
+    victim_sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="kills_suffered")
+    is_friendly = models.BooleanField(default=False)
+    credit = models.CharField(max_length=8, choices=KillCredit.choices)
+    via = models.CharField(max_length=20, choices=KillVia.choices)
+    pos_x = models.FloatField(null=True)
+    pos_y = models.FloatField(null=True)
+    pos_z = models.FloatField(null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["killer_sortie", "victim_sortie", "tick", "credit"], name="kill_natural_key"
+            ),
+            models.CheckConstraint(condition=models.Q(credit__in=KillCredit.values), name="kill_credit_valid"),
+            models.CheckConstraint(condition=models.Q(via__in=KillVia.values), name="kill_via_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.killer_sortie_id} -> {self.victim_sortie_id}"
+
+
+class PlayerMission(Counters):
+    """Level 1: a player's totals for one mission (doc 06)."""
+
+    player_id: int
+    mission_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="missions")
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="player_missions")
+    coalition = models.IntegerField()
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "mission"], name="playermission_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} @ {self.mission_id}"
+
+
+# --- Level 2: across missions ---
+
+
+class PlayerAircraft(Counters):
+    """All-time counters per player and aircraft type (profile table, FR-WEB-4)."""
+
+    player_id: int
+    aircraft_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="aircraft_stats")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_stats")
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "aircraft"], name="playeraircraft_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.aircraft_id}"
+
+
+# --- Operational ---
+
+
+class IngestStatus(models.TextChoices):
+    OK = "ok"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class IngestRun(models.Model):
+    """One attempt to ingest one mission (FR-ING-11, FR-ING-18, FR-ING-19)."""
+
+    mission_id: int | None
+
+    mission_uid = models.CharField(max_length=32, db_index=True)
+    mission = models.ForeignKey(Mission, on_delete=models.SET_NULL, null=True, related_name="ingest_runs")
+    files: models.JSONField[list[str]] = models.JSONField(default=list)  # source file names
+    fingerprint = models.CharField(max_length=64)  # sha256 over (name, size, mtime) of the source files
+    archive_path = models.CharField(max_length=500, blank=True)
+    archive_sha256 = models.CharField(max_length=64, blank=True)
+    status = models.CharField(max_length=8, choices=IngestStatus.choices)
+    attempts = models.PositiveIntegerField(default=1)
+    next_retry_at = models.DateTimeField(null=True)
+    il2ks_version = models.CharField(max_length=32, blank=True)
+    started_at = models.DateTimeField()
+    finished_at = models.DateTimeField(null=True)
+    lines_total = models.PositiveIntegerField(default=0)
+    lines_bad = models.PositiveIntegerField(default=0)
+    log_version = models.IntegerField(null=True)
+    unknown_atypes: models.JSONField[dict[str, int]] = models.JSONField(default=dict)
+    unknown_keys: models.JSONField[dict[str, int]] = models.JSONField(default=dict)
+    warnings: models.JSONField[list[str]] = models.JSONField(default=list)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(status__in=IngestStatus.values), name="ingestrun_status_valid")
+        ]
+        indexes = [models.Index(fields=["mission_uid", "-started_at"], name="ingestrun_latest")]
+
+    def __str__(self) -> str:
+        return f"{self.mission_uid} {self.status}"
