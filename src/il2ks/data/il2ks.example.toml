@@ -118,6 +118,20 @@
 # aircraft changes nothing: it was expected).
 #cross_pool_weight = 2.0
 
+# --- Tours (TD-26, FR-WEB-10, FR-ADM-8) -----------------------------------------------------------------------------
+# Missions are grouped into tours, and the site shows stats per tour as well as all-time. A mission belongs to the tour
+# that contains its start time. Air-to-air ratings are not per tour: they stay all-time. After changing the mode, the
+# start date or the timezone, run `il2ks rebuild-aggregates --retour` to move the old missions into the new tours.
+#[tours]
+# How long a tour lasts: "monthly" = one calendar month, "days:14" = a block of that many days counted from `start`,
+# "manual" = a tour lasts until an administrator starts the next one (admin site, Tours).
+#mode = "monthly"
+# Only for "days:N": the first day of tour 1, as YYYY-MM-DD in the tour timezone. Required with "days:N".
+#start = ""
+# The timezone that decides where a tour begins and ends (midnight there). "" = the [server] timezone, which is
+# where your community usually plays. It never depends on the time zone a visitor's browser shows.
+#timezone = ""
+
 # --- Backups (FR-OPS-6) --------------------------------------------------------------------------------------------
 # `il2ks backup` zips what you could not rebuild from the logs: a consistent copy of the database (hidden players,
 # name overrides, branding, admin accounts), this file, the custom/ and media/ folders and the server ID. It goes to

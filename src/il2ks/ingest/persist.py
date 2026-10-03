@@ -1,11 +1,13 @@
 """MissionResult -> level-1 rows, then level 2 recomputed for the affected players (FR-ING-5, 6, 9, TD-08).
 
 Order inside `save_mission` (the caller holds the transaction):
-1. upsert `Mission` by `(server_uid, mission_uid)`; remember the players it had before
+1. upsert `Mission` by `(server_uid, mission_uid)` into the tour containing its start (`ingest.tours`, TD-26); remember
+   the players and the tour it had before
 2. register game objects and countries, upsert players
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
-5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`)
+5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`), per-tour
+   rows only for the mission's old and new tour
 6. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
 """
 
@@ -29,6 +31,7 @@ from il2ks.core.replay.result import (
     SortieResult,
     TimelineEntry,
 )
+from il2ks.core.tours import DEFAULT_TOUR_RULES, TourRules
 from il2ks.db.models import (
     Country,
     GameObject,
@@ -42,6 +45,7 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.tours import ensure_tour
 
 log = logging.getLogger(__name__)
 
@@ -59,7 +63,11 @@ class MissionMeta:
 
 
 def save_mission(
-    result: MissionResult, meta: MissionMeta, catalog: Catalog, ratings: RatingRules | None = DEFAULT_RULES
+    result: MissionResult,
+    meta: MissionMeta,
+    catalog: Catalog,
+    ratings: RatingRules | None = DEFAULT_RULES,
+    tours: TourRules = DEFAULT_TOUR_RULES,
 ) -> Mission:
     """Upsert one mission's level-1 rows by natural key, then recompute level 2 for the players involved.
 
@@ -68,10 +76,21 @@ def save_mission(
     level 2 is recomputed for the mission's old players as well as the new ones, so players that dropped out are
     corrected too. The Elo ratings are replayed from all kills afterwards (they depend on the order of games);
     `ratings=None` skips that, for a caller that recomputes them once after many missions (`reprocess`).
+
+    The mission goes into the tour containing `meta.started_at` under the `[tours]` rules (TD-26); the per-tour level-2
+    rows are recomputed for that tour and, when a re-ingest moved the mission, the old one. Elo is all-time.
     """
     clock = _Clock(meta.started_at)
+    tour = ensure_tour(tours, meta.started_at)
+    old_tour_id = (
+        Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
+        .values_list("tour_id", flat=True)
+        .first()
+    )
     mission, created = Mission.objects.update_or_create(
-        server_uid=meta.server_uid, mission_uid=meta.mission_uid, defaults=_mission_fields(result, meta, clock)
+        server_uid=meta.server_uid,
+        mission_uid=meta.mission_uid,
+        defaults={**_mission_fields(result, meta, clock), "tour": tour},
     )
     old_player_ids: set[int] = set()
     if not created:
@@ -85,11 +104,15 @@ def save_mission(
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
 
-    recompute_players(old_player_ids | {p.pk for p in players.values()})
+    recompute_players(old_player_ids | {p.pk for p in players.values()}, {tour.pk} | _ids(old_tour_id))
     if ratings is not None:
         recompute_ratings(ratings)
     bump_data_version()  # TD-28: same transaction as the save
     return mission
+
+
+def _ids(tour_id: int | None) -> set[int]:
+    return set() if tour_id is None else {tour_id}
 
 
 # --- reference data ---

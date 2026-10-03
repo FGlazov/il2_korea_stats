@@ -30,6 +30,9 @@ INSTALLED_APPS = ["il2ks.web.admin_config.Il2ksAdminConfig" if app == "django.co
 BASE_DIR = Path(__file__).resolve().parent
 _CFG = load_config(create_server_uid=False)  # settings must not create files; `il2ks web` does
 DATA_DIR = _CFG.data_dir
+IL2KS_TOUR_MODE = (
+    _CFG.tours.mode
+)  # "monthly", "days" or "manual": only manual mode offers "start a new tour" (FR-ADM-8)
 
 DEBUG = _CFG.debug
 SECRET_KEY = secret_key_for(_CFG)  # the dev placeholder when none exists yet; `il2ks web` refuses to serve with it

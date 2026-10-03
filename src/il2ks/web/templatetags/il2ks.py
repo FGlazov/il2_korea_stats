@@ -7,7 +7,7 @@ the context (`django.template.context_processors.request`, enabled in settings) 
 Filters (formatting only, TD-22): duration, utc, utc_date, num, ratio, per_hour, percent.
 Tags: icon, aircraft_icon, side, badge, coalition_badge, outcome_badge, fate_badge, status_badge, aircraft_badge,
 role_badge, stat_tile, kv_list, empty_row,
-breadcrumbs, dropdown, sort_th, pagination, filter_select, filter_text.
+breadcrumbs, dropdown, sort_th, pagination, filter_select, filter_text, tour_select.
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -22,6 +22,7 @@ from django.template.base import FilterExpression, Parser, Token, kwarg_re
 from django.template.loader import render_to_string
 from django.utils.safestring import SafeString
 
+from il2ks.db.models import Tour
 from il2ks.web import display, icons
 from il2ks.web.display import SortFirst, Tone
 
@@ -298,6 +299,22 @@ def filter_text(
         "placeholder": placeholder,
         "live": live,
         "value": _params_of(context).get(name, ""),
+    }
+
+
+@register.inclusion_tag(COMPONENTS + "tour_select.html", takes_context=True)
+def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None = None) -> dict[str, object]:
+    """{% tour_select tours tour %}: the tour selector (`?tour=<id>`, "All time" = no parameter), TD-26.
+
+    `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice(request.GET.get("tour"))`."""
+    request = _request_of(context)
+    params = _params_of(context)
+    hidden = [(key, value) for key, values in params.lists() if key not in {"tour", "page"} for value in values]
+    return {
+        "tours": list(tours),
+        "selected_id": selected.pk if selected is not None else "",
+        "action": request.path if request is not None else "",
+        "hidden": hidden,
     }
 
 

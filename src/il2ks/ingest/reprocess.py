@@ -152,7 +152,7 @@ def reprocess(
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
-                (rebuild or partial(rebuild_aggregates, cfg.ratings))()
+                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours))()
         log.info("%s", summary.describe())
         return summary
 
@@ -204,8 +204,15 @@ def _record(
     log.error("%s: reprocess failed:\n%s", prev.mission_uid, error)
 
 
-def rebuild_all(cfg: Config, *, rebuild: Callable[[], None] | None = None, lock_wait: float | None = None) -> None:
-    """`il2ks rebuild-aggregates`: recompute level 2 and the ratings from level 1 in one transaction, under the writer
-    lock."""
+def rebuild_all(
+    cfg: Config,
+    *,
+    reassign_tours: bool = False,
+    rebuild: Callable[[], None] | None = None,
+    lock_wait: float | None = None,
+) -> None:
+    """`il2ks rebuild-aggregates`: recompute level 2 (all tours) and the ratings from level 1 in one transaction, under
+    the writer lock. `reassign_tours` (`--retour`) first moves every mission to its tour under the configured `[tours]`
+    rules (TD-26), for after a mode, start date or timezone change."""
     with WriterLock(cfg.data_dir, "rebuild-aggregates", wait=lock_wait), transaction.atomic():
-        (rebuild or partial(rebuild_aggregates, cfg.ratings))()
+        (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, reassign_tours=reassign_tours))()

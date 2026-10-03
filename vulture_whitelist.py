@@ -27,6 +27,8 @@ MissionAdmin
 GameObjectAdmin
 CountryAdmin
 IngestRunAdmin
+TourAdmin
+PlayerTourAdmin
 _.list_display  # ModelAdmin options
 _.list_filter
 _.list_editable
@@ -43,6 +45,11 @@ _.has_change_permission
 _.changelist_view  # SiteSettingsAdmin: a singleton has no list
 extra_context  # changelist_view signature
 _.current_logo  # readonly_fields display methods
+_.missions_count  # TourAdmin display column
+_.start_view  # TourAdmin URL (admin:il2ks_db_tour_start)
+_.change_list_template  # ModelAdmin option
+_.list_select_related
+_.get_urls  # ModelAdmin hook
 _.warnings_count
 _.error_text
 _.warnings_list
@@ -63,6 +70,14 @@ logo_upload
 remove_logo
 Media
 Meta
+
+# --- il2ks.queries.tours: read helpers for the tour selector, called by the page views once they are wired (TD-26) ---
+current_tour
+tour_options
+tour_choice
+player_tour
+player_tour_aircraft
+tour_leaderboard
 
 # --- Django middleware / template-only data -----------------------------------------------------------------------
 DataVersionCacheMiddleware  # MIDDLEWARE entry (web.caching)

@@ -350,6 +350,39 @@ def ingestion_check(cfg: Config) -> Iterable[Finding]:
 
 
 @check
+def tours_check(cfg: Config) -> Iterable[Finding]:
+    """FR-WEB-10: missions must sit in the tours the `[tours]` settings give them (TD-26)."""
+    from django.db import DatabaseError
+
+    from il2ks.ingest.tours import tour_problems
+
+    if applied_migrations(cfg.db_path) is None:
+        return  # the database check reports it
+    try:
+        problems = tour_problems(cfg.tours)
+    except DatabaseError:
+        return  # a database from before tours existed: the database check asks for the update
+    if not problems.needs_retour:
+        yield Finding(Level.OK, f"Tours match the settings ({cfg.tours.label})")
+        return
+    parts = [
+        f"{n} {what}"
+        for n, what in (
+            (problems.missions_without_tour, "mission(s) without a tour"),
+            (problems.tours_of_other_mode, "tour(s) made under another mode"),
+            (problems.missions_outside_their_tour, "mission(s) outside their tour's dates"),
+        )
+        if n
+    ]
+    yield Finding(
+        Level.WARN,
+        "Tours do not match the [tours] settings",
+        ", ".join(parts),
+        "Run il2ks rebuild-aggregates --retour to move the missions into the right tours.",
+    )
+
+
+@check
 def backup_check(cfg: Config) -> Iterable[Finding]:
     newest = newest_backup_time(cfg.backup_dir)
     if newest is None:

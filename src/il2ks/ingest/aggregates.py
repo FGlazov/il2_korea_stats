@@ -8,8 +8,13 @@ construction. The counter list lives in `ingest.counters` so all paths use one d
 
 Players are handled in chunks: a few grouped queries per chunk, then writes only for rows whose values changed.
 
-Cost: a player's recompute reads all of that player's level-1 rows, so it grows with their history. Iteration 2 bounds
-it by tour (TD-26).
+Tours (TD-26): `PlayerTour` (sum of the player's `PlayerMission` rows per `Mission.tour`) and `PlayerTourAircraft`
+(counted sorties per tour and aircraft) are recomputed the same way. `save_mission` passes the tours it touched (the
+mission's new and old tour), so the per-tour part of a recompute reads only those tours' rows; `rebuild_aggregates`
+recomputes every tour. Elo stays all-time (it replays all kills, `ingest.ratings`).
+
+Cost: the all-time part of a player's recompute reads all of that player's level-1 rows, so it grows with their history.
+The per-tour part is bounded by the tour.
 
 Identity fields (`Player.first_seen`, `last_seen`, `current_name`, `name_lower` and the `PlayerName` history) aren't
 summed: they come from the player's sorties. A player without sorties keeps the identity values they had.
@@ -18,36 +23,65 @@ summed: they come from the player's sorties. A player without sorties keeps the 
 from collections.abc import Iterable
 from datetime import datetime
 
+from django.db import models
 from django.db.models import Max, Min, Sum
 
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
-from il2ks.db.models import Player, PlayerAircraft, PlayerMission, PlayerName, PlayerSortie
+from il2ks.core.tours import TourRules
+from il2ks.db.models import (
+    Player,
+    PlayerAircraft,
+    PlayerMission,
+    PlayerName,
+    PlayerSortie,
+    PlayerTour,
+    PlayerTourAircraft,
+)
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.tours import assign_missing, retour
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
 
 
-def recompute_players(player_ids: Iterable[int]) -> None:
+def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None = None) -> None:
     """Recompute level 2 for these players from level 1 (TD-08, FR-ING-9).
+
+    `tour_ids` limits the per-tour rows to these tours (None = all tours of these players, as a rebuild does); the
+    all-time rows are always recomputed.
 
     - `Player` counters = sum of the player's `PlayerMission` rows (zero when there are none).
     - `PlayerAircraft` = counted sorties grouped by aircraft, upserted by `(player, aircraft)` so existing PKs stay;
       rows without counted sorties are deleted.
+    - `PlayerTour` = the sum of the player's `PlayerMission` rows per tour; `PlayerTourAircraft` = counted sorties per
+      tour and aircraft. Rows without anything left are deleted.
     - Identity fields and the `PlayerName` history from all sorties of any role (`_refresh_identity`).
     Players are never deleted."""
     ids = sorted(set(player_ids))
+    tours = None if tour_ids is None else sorted(set(tour_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
         _recompute_totals(chunk)
         _recompute_aircraft(chunk)
+        _recompute_tours(chunk, tours)
         _refresh_identity(chunk)
 
 
-def rebuild_aggregates(ratings: RatingRules = DEFAULT_RULES) -> None:
-    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players, then
-    the Elo ratings (`recompute_ratings`, which replays all kills)."""
+def rebuild_aggregates(
+    ratings: RatingRules = DEFAULT_RULES, tours: TourRules | None = None, *, reassign_tours: bool = False
+) -> None:
+    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players (all
+    tours), then the Elo ratings (`recompute_ratings`, which replays all kills).
+
+    `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
+    With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
+    start or timezone change)."""
+    if tours is not None:
+        if reassign_tours:
+            retour(tours)
+        else:
+            assign_missing(tours)
     recompute_players(Player.objects.values_list("pk", flat=True))
     recompute_ratings(ratings)
     bump_data_version()  # TD-28: pages changed
@@ -75,21 +109,56 @@ def _recompute_aircraft(chunk: list[int]) -> None:
         .values("player_id", "aircraft_id")
         .annotate(**SORTIE_COUNTERS)
     }
-    existing = {(r.player_id, r.aircraft_id): r for r in PlayerAircraft.objects.filter(player_id__in=chunk)}
-    changed: list[PlayerAircraft] = []
-    new: list[PlayerAircraft] = []
+    _sync(PlayerAircraft, ("player_id", "aircraft_id"), wanted, PlayerAircraft.objects.filter(player_id__in=chunk))
+
+
+def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
+    """`PlayerTour` and `PlayerTourAircraft` for these players, limited to `tour_ids` unless that is None."""
+    missions = PlayerMission.objects.filter(player_id__in=chunk, mission__tour__isnull=False)
+    sorties = counted_sorties().filter(player_id__in=chunk, mission__tour__isnull=False)
+    totals = PlayerTour.objects.filter(player_id__in=chunk)
+    aircraft = PlayerTourAircraft.objects.filter(player_id__in=chunk)
+    if tour_ids is not None:
+        missions = missions.filter(mission__tour_id__in=tour_ids)
+        sorties = sorties.filter(mission__tour_id__in=tour_ids)
+        totals = totals.filter(tour_id__in=tour_ids)
+        aircraft = aircraft.filter(tour_id__in=tour_ids)
+    sums = {n: Sum(n) for n in COUNTER_FIELDS}
+    wanted_totals = {
+        (row["player_id"], row["mission__tour_id"]): clean_counters(row)
+        for row in missions.values("player_id", "mission__tour_id").annotate(**sums)
+    }
+    _sync(PlayerTour, ("player_id", "tour_id"), wanted_totals, totals)
+    wanted_aircraft = {
+        (row["player_id"], row["mission__tour_id"], row["aircraft_id"]): clean_counters(row)
+        for row in sorties.values("player_id", "mission__tour_id", "aircraft_id").annotate(**SORTIE_COUNTERS)
+    }
+    _sync(PlayerTourAircraft, ("player_id", "tour_id", "aircraft_id"), wanted_aircraft, aircraft)
+
+
+def _sync[M: models.Model](
+    model: type[M],
+    key_fields: tuple[str, ...],
+    wanted: dict[tuple[int, ...], CounterValues],
+    existing_rows: models.QuerySet[M],
+) -> None:
+    """Make the counter rows in `existing_rows` equal `wanted` (keyed by `key_fields`): insert missing rows, update
+    changed values only, delete rows that are no longer wanted. Existing PKs are kept."""
+    existing = {tuple(getattr(r, f) for f in key_fields): r for r in existing_rows}
+    changed: list[M] = []
+    new: list[M] = []
     for key, values in wanted.items():
         row = existing.pop(key, None)
         if row is None:
-            new.append(PlayerAircraft(player_id=key[0], aircraft_id=key[1], **values))
+            new.append(model(**dict(zip(key_fields, key, strict=True)), **values))
         elif _assign(row, values):
             changed.append(row)
-    PlayerAircraft.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()  # no counted sorties left
-    PlayerAircraft.objects.bulk_update(changed, list(COUNTER_FIELDS))
-    PlayerAircraft.objects.bulk_create(new)
+    model._default_manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing counted left
+    model._default_manager.bulk_update(changed, list(COUNTER_FIELDS))
+    model._default_manager.bulk_create(new)
 
 
-def _assign(row: Player | PlayerAircraft, values: CounterValues) -> bool:
+def _assign(row: models.Model, values: CounterValues) -> bool:
     """Set the counter fields on `row`; True if any value changed."""
     changed = False
     for name, value in values.items():

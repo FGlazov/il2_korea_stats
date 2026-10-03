@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}
+  tour_select.html ({% tour_select tours tour %}): the tour selector, a one-field GET form like {% filter_bar %}.
+  `?tour=<id>` picks a tour; the empty option "All time" drops the parameter. Other query parameters are kept as hidden
+  fields (never ?page=, so a new tour starts at page 1). With htmx it submits when the choice changes; without JS the
+  Apply button does. Inside an existing {% filter_bar %} use {% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}
+  instead (il2ks.queries.tours.tour_options).
+  Context: tours (newest first), selected_id (the chosen tour's id or ""), action (current path), hidden ((name, value) pairs).
+  Renders nothing while there are no tours yet.
+{% endcomment %}{% if tours %}<form class="filter-bar tour-select" method="get" action="{{ action }}" hx-get="{{ action }}" hx-trigger="submit, change from:find select">
+  {% for name, value in hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">
+  {% endfor %}<label class="filter" for="f-tour">{% translate "Tour" %}
+    <select name="tour" id="f-tour">
+      <option value="">{% translate "All time" %}</option>{% for tour in tours %}
+      <option value="{{ tour.pk }}"{% if tour.pk == selected_id %} selected{% endif %}>{{ tour.title }}</option>{% endfor %}
+    </select>
+  </label>
+  <div class="filter-bar__actions">
+    <button type="submit" class="filter-bar__apply">{% translate "Apply" %}</button>
+  </div>
+</form>{% endif %}

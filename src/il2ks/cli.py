@@ -168,6 +168,11 @@ def _build_parser() -> argparse.ArgumentParser:
     reprocess.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
 
     rebuild = sub.add_parser("rebuild-aggregates", help="recompute level-2 tables from level 1")
+    rebuild.add_argument(
+        "--retour",
+        action="store_true",
+        help="first move every mission to its tour under the [tours] config (after changing mode, start or timezone)",
+    )
     rebuild.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
 
     sub.add_parser("manage", help="run a Django management command")
@@ -312,8 +317,8 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
         )
         print(result.describe())
         return EXIT_FAILED if (result.failed or result.missing) else EXIT_OK
-    reprocess_mod.rebuild_all(cfg, lock_wait=wait)
-    print("level-2 aggregates rebuilt")
+    reprocess_mod.rebuild_all(cfg, reassign_tours=ns.retour, lock_wait=wait)
+    print("level-2 aggregates rebuilt" + (" (missions reassigned to tours)" if ns.retour else ""))
     return EXIT_OK
 
 
