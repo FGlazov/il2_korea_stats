@@ -6,7 +6,32 @@ player `account_uuid`. Rows are upserted by them so PKs (and URLs) survive `repr
 
 from __future__ import annotations
 
+from typing import ClassVar, Self
+
 from django.db import models
+
+
+class HideableQuerySet[T: models.Model](models.QuerySet[T]):
+    """Rows an admin can hide from public pages (`is_hidden`, FR-ADM-3). Page code starts from `visible()`."""
+
+    def visible(self) -> Self:
+        return self.filter(is_hidden=False)
+
+    def hidden(self) -> Self:
+        return self.filter(is_hidden=True)
+
+
+class HideableManager[T: models.Model](models.Manager[T]):
+    """`Player.objects.visible()` / `Mission.objects.visible()`: what public pages may list or link to."""
+
+    def get_queryset(self) -> HideableQuerySet[T]:
+        return HideableQuerySet(self.model, using=self._db)
+
+    def visible(self) -> HideableQuerySet[T]:
+        return self.get_queryset().visible()
+
+    def hidden(self) -> HideableQuerySet[T]:
+        return self.get_queryset().hidden()
 
 
 class ObjectClass(models.TextChoices):
@@ -64,6 +89,9 @@ class Country(models.Model):
     code = models.IntegerField(unique=True)
     coalition = models.IntegerField()
     display_name = models.CharField(max_length=64)
+
+    class Meta:
+        verbose_name_plural = "countries"
 
     def __str__(self) -> str:
         return self.display_name
@@ -193,6 +221,8 @@ class Player(Counters):
     elo_prop_games = models.PositiveIntegerField(default=0)
     elo_jet_games = models.PositiveIntegerField(default=0)
 
+    objects: ClassVar[HideableManager[Player]] = HideableManager()  # pyright: ignore[reportIncompatibleVariableOverride]
+
     def __str__(self) -> str:
         return self.current_name
 
@@ -242,6 +272,8 @@ class Mission(models.Model):
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
     friendly_kills = models.PositiveIntegerField(default=0)
+
+    objects: ClassVar[HideableManager[Mission]] = HideableManager()  # pyright: ignore[reportIncompatibleVariableOverride]
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["server_uid", "mission_uid"], name="mission_natural_key")]
