@@ -13,12 +13,7 @@ the post-end window and ground losses in doc 13's sortie scope and outcome secti
 
 ## Frontend (iteration 1, part 2)
 
-**OQ-33 How do pages show ground kills of static objects?**
-Statics count as ground kills (decided 2026-10-03, scored low later). On the samples that dominates the numbers: the top player has
-6,990 ground kills against 64 air kills, five sorties have 300+ (max 519), and one F-80C pass got 16 kills from fences and yard boxes. A
-profile showing "Ground kills: 6,990" invites ridicule. Options: (a) show the total as is; (b) add a `kills_static` counter (a subset of
-ground kills, cheap at ingest) and show "Ground kills 6,990 (of them N static objects)" or split into two columns; (c) show only non-static
-ground kills on the pages until scoring weights them. **Recommendation:** (b), it keeps the decision and makes the number honest.
+OQ-33 (static ground kills) is answered: a ground-kill breakdown by category, FR-WEB-4.
 
 ## Lower impact
 
