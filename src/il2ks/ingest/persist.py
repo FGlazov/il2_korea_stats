@@ -278,6 +278,7 @@ _SORTIE_FIELDS = [
     "friendly_kills",
     "friendly_hits",
     "friendly_damage",
+    "resupplied",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -363,6 +364,7 @@ def _fill_sortie(
     row.friendly_kills = s.friendly_kills
     row.friendly_hits = s.friendly_hits
     row.friendly_damage = s.friendly_damage
+    row.resupplied = s.resupplied
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 
@@ -374,10 +376,25 @@ def _counts_json(c: AmmoCounts) -> dict[str, int]:
     return {"bullets": c.bullets, "shells": c.shells, "bombs": c.bombs, "rockets": c.rockets}
 
 
+def _ammo_used(s: SortieResult) -> dict[str, int | None]:
+    """Ammunition used per type = loaded - left (FR-ING-24). `None` = unknown: the sortie was resupplied (AType 4 only
+    describes the last leg), it has no AType 4, or (bombs) more is left than loaded, which the game does with some
+    payloads (IL-10 bomblets are loaded as stations and left as bomblets)."""
+    loaded = _counts_json(s.ammo_loaded)
+    if s.resupplied or s.ammo_left is None:
+        return dict.fromkeys(loaded)
+    left = _counts_json(s.ammo_left)
+    used: dict[str, int | None] = {}
+    for kind, count in loaded.items():
+        used[kind] = None if kind == "bombs" and left[kind] > count else count - left[kind]
+    return used
+
+
 def _ammo_json(s: SortieResult) -> dict[str, object]:
     return {
         "loaded": _counts_json(s.ammo_loaded),
         "left": None if s.ammo_left is None else _counts_json(s.ammo_left),
+        "used": _ammo_used(s),
         "hits": [{"ammo": h.ammo, "hits_given": h.hits_given, "hits_received": h.hits_received} for h in s.ammo_hits],
     }
 

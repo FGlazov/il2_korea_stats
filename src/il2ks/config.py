@@ -169,9 +169,10 @@ def load_config(
 
     rule_values: dict[str, float] = {}
     for rule in dataclasses.fields(ReplayRules):
-        default = cast(float, rule.default)
-        rule_values[rule.name] = reader.non_negative("replay", rule.name, default)
-    replay = ReplayRules(**rule_values)
+        if rule.name != "resupply_allowed":  # the one yes/no rule; every other rule is a threshold
+            rule_values[rule.name] = reader.non_negative("replay", rule.name, cast(float, rule.default))
+    resupply_allowed = reader.bool_("replay", "resupply_allowed", ReplayRules().resupply_allowed)
+    replay = ReplayRules(resupply_allowed=resupply_allowed, **rule_values)
 
     configured_tz = reader.str_("server", "timezone", "")
     tz_name = configured_tz or detect_os_timezone(env)

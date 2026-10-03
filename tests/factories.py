@@ -103,6 +103,9 @@ def sortie(
     friendly_kills: int = 0,
     friendly_hits: int = 0,
     friendly_damage: float = 0.0,
+    resupplied: bool = False,
+    ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
+    ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
     """One sortie by player number `player` (account `account(player)`)."""
     spawn = 1000 * (index + 1) if spawn_tick is None else spawn_tick
@@ -149,11 +152,12 @@ def sortie(
         kills_air=kills_air,
         kills_ground=kills_ground,
         assists=assists,
-        ammo_loaded=AmmoCounts(bullets=400),
-        ammo_left=AmmoCounts(bullets=200),
+        ammo_loaded=ammo_loaded,
+        ammo_left=ammo_left,
         friendly_kills=friendly_kills,
         friendly_hits=friendly_hits,
         friendly_damage=friendly_damage,
+        resupplied=resupplied,
     )
 
 

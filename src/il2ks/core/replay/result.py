@@ -69,7 +69,9 @@ class TimelineEntry:
     """One key event on the sortie timeline (FR-WEB-6). Positions only on key events, no track (TD-08)."""
 
     tick: int
-    kind: str  # e.g. "spawn", "takeoff", "landing", "kill", "assist", "damaged", "shot_down", "bailout", "sortie_end"
+    # e.g. "spawn", "takeoff", "landing", "kill", "assist", "damaged", "shot_down", "killed" (crew died, aircraft not
+    # lost), "died", "bailout", "sortie_end"
+    kind: str
     detail: str = ""
     pos: Pos | None = None
     counterpart: Counterpart | None = None
@@ -128,6 +130,7 @@ class SortieResult:
     friendly_kills: int = 0  # `kill` credits (not assists) on friendly objects, from KillResult.is_friendly
     friendly_hits: int = 0  # non-explosion hit lines this sortie put on friendly objects
     friendly_damage: float = 0.0  # sum of the damage this sortie did to friendly objects
+    resupplied: bool = False  # FR-ING-24: a landing followed by another takeoff, and `ReplayRules.resupply_allowed`
 
 
 @dataclass(frozen=True, slots=True)

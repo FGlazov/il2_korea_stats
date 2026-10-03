@@ -27,7 +27,7 @@ from il2ks.core.logparse.files import mission_uid_from_name
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import IngestRun, IngestStatus
+from il2ks.db.models import CompletionReason, IngestRun, IngestStatus
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
 from il2ks.ingest.lock import WriterLock
@@ -173,6 +173,7 @@ def _record(
         archive_path=prev.archive_path,
         archive_sha256=prev.archive_sha256,
         status=IngestStatus.OK,
+        completion_reason=CompletionReason.REPROCESS,
         il2ks_version=__version__,
         started_at=now(),
     )

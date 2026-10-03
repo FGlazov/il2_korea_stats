@@ -61,7 +61,7 @@ def aircraft_loss(
 
 def crew_death(sortie: SortieState) -> TrackedObject | None:
     """The object whose AType 3 is this sortie's crew member dying: the pilot or gunner bot, and for a gunner who
-    didn't bail out also its turret (E3, `[PROPOSED]`). Earliest destruction wins."""
+    didn't bail out also its turret (design_doc/13_game_rules.md, Gunners). Earliest destruction wins."""
     candidates = [sortie.bot]
     if sortie.role == "gunner" and sortie.bot.bailout_tick is None:
         candidates.append(sortie.vehicle)
@@ -73,8 +73,8 @@ def killer_of(
     sortie: SortieState, loss: Loss | None, died_tick: int | None, upto_tick: int, assist_min_damage: float
 ) -> Party | None:
     """Who gets the kill for this sortie's loss or crew death (the same `credit_kill` as the KillResults), for naming
-    the killer on the sortie's own timeline. A gunner sortie has no KillResult of its own (E3), so this is its only
-    source. `None` when nobody but the environment or the sortie itself is responsible."""
+    the killer on the sortie's own timeline. A gunner sortie has no KillResult of its own (design_doc/13_game_rules.md,
+    Gunners), so this is its only source. `None` when nobody but the environment or the sortie itself is responsible."""
     explicit = loss.by if loss is not None else None
     if explicit is None and died_tick is not None:
         crew = crew_death(sortie)
@@ -111,6 +111,14 @@ def took_off(sortie: SortieState, end_tick: int) -> bool:
     if airframe.airborne_at(sortie.spawn_tick):
         return True
     return any(airborne and sortie.spawn_tick <= t <= end_tick for t, airborne in airframe.flight_changes)
+
+
+def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:
+    """FR-ING-24: some AType 6 is followed later by an AType 5 in this sortie (the aircraft may have been rearmed)."""
+    if not rules.resupply_allowed or not landing_ticks:
+        return False
+    first_landing = min(landing_ticks)
+    return any(t > first_landing for t in takeoff_ticks)
 
 
 def flight_time_s(sortie: SortieState, end_tick: int) -> float:
@@ -156,7 +164,8 @@ def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, ru
 def attacker_involved(sortie: SortieState, upto_tick: int) -> bool:
     """Any hit or damage from an attacker (not the environment, not the player themselves) on aircraft or pilot."""
     airframe = sortie.airframe
-    # The sortie's own crew member counts too: a player gunner's bot is a grandchild of the aircraft (E3)
+    # The sortie's own crew member counts too: a player gunner's bot is a grandchild of the aircraft
+    # (design_doc/13_game_rules.md, Gunners)
     return any(
         damage_records(victim, sortie, upto_tick, attackers_only=True)
         or hit_records(victim, sortie, upto_tick, attackers_only=True)

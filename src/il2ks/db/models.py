@@ -270,6 +270,7 @@ class PlayerSortie(models.Model):
     friendly_kills = models.PositiveIntegerField(default=0)
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
+    resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)

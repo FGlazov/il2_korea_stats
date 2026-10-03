@@ -247,7 +247,7 @@ def test_landed_player_leaving_afterwards_stays_in_aircraft() -> None:
     assert not a.is_death
 
 
-# --- disconnect fate with an attacker's kill (E1) -----------------------------------------------------------------
+# --- disconnect fate with an attacker's kill (FR-ING-21) -------------------------------------------------------
 
 
 def test_disconnect_fate_holds_when_an_attacker_destroyed_the_aircraft() -> None:
@@ -284,6 +284,23 @@ def test_disconnect_fate_holds_for_a_plain_end_shot_down_shape() -> None:
     assert (a.pilot_fate, a.pilot_fate_source) == ("disconnected", "inferred")
     assert (a.is_death, a.is_plane_lost, a.loss_cause, a.outcome) == (True, True, "attacker", "shot_down")
     assert b.kills_air == 1
+
+
+def test_pilot_killed_in_a_surviving_aircraft_gets_a_killed_entry() -> None:
+    """Only the pilot bot gets an AType 3: the timeline has a `killed` entry naming the attacker, no `shot_down`."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(100, 200, 101, 1.0)
+    sc.kill(100.2, 200, 101)
+    sc.end(100.5, 100, 101)
+    result = sc.result()
+    a, b = by_acct(result, 1), by_acct(result, 2)
+    assert (a.is_death, a.loss_cause) == (True, "attacker")
+    assert "shot_down" not in [e.kind for e in a.timeline]
+    (killed,) = [e for e in a.timeline if e.kind == "killed"]
+    assert killed.counterpart is not None
+    assert (killed.counterpart.object_type, killed.counterpart.sortie_index) == ("MiG-15bis", b.index)
 
 
 def test_killed_pilot_stays_in_aircraft_even_without_a_sortie_end() -> None:
