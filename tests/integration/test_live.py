@@ -2,8 +2,10 @@
 
 Missions are anonymized fixtures cut into raw parts that grow tick by tick in a temp log folder."""
 
+import time
+from collections.abc import Callable
 from dataclasses import replace
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -11,8 +13,11 @@ from django.db import OperationalError
 
 from il2ks.config import Config, LiveConfig
 from il2ks.db.models import LiveMission, LivePlayer, Player
+from il2ks.db.reprocess_requests import request_reprocess
 from il2ks.db.site import current_data_version
 from il2ks.ingest.live import LiveTracker, find_in_progress
+from il2ks.ingest.reprocess import ReprocessSummary
+from il2ks.ingest.runner import Pipeline
 from il2ks.ingest.watch import watch
 from tests.ingest_fakes import T0, FakeSteps, make_config, make_pipeline
 from tests.live_helpers import LIVE_UID, fixture_lines, mission_end_index, split_into_parts, write_part
@@ -298,3 +303,47 @@ def test_watch_looks_at_the_mission_every_live_interval_while_waiting(
     assert watch(cfg, pipeline, max_ticks=2, now=lambda: live.clock) == 2
 
     assert len(calls) >= 5  # one after each of the 2 ingest ticks, and several in the wait between them
+
+
+def test_live_ticks_keep_running_between_missions_of_a_long_reprocess(
+    live: Live, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A full reprocess takes hours inside one watch tick; "online now" must not go stale meanwhile."""
+    inside: list[datetime] = []
+    running = False
+
+    def record(self: LiveTracker, now: datetime) -> None:
+        if running:
+            inside.append(now)
+
+    def slow_reprocess(
+        cfg: Config,
+        pipeline: Pipeline,
+        /,
+        *,
+        since: date | None,
+        until: date | None,
+        on_start: Callable[[int], None],
+        on_progress: Callable[[ReprocessSummary], None],
+    ) -> ReprocessSummary:
+        nonlocal running
+        running = True
+        on_start(3)
+        for _ in range(3):
+            time.sleep(0.03)
+            on_progress(ReprocessSummary())
+        running = False
+        return ReprocessSummary()
+
+    monkeypatch.setattr(LiveTracker, "tick", record)
+    request_reprocess("boss", live.clock)
+
+    watch(
+        watch_cfg(live, interval_s=0.01),
+        make_pipeline(FakeSteps()),
+        max_ticks=1,
+        now=lambda: live.clock,
+        reprocess_fn=slow_reprocess,
+    )
+
+    assert len(inside) >= 2
