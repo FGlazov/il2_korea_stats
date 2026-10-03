@@ -321,7 +321,7 @@ def test_killed_pilot_stays_in_aircraft_even_without_a_sortie_end() -> None:
 
 
 def _exit_server_after_destruction(*, attacker: int = NO, bailout_at: float | None = None) -> MissionResult:
-    """The aircraft is destroyed at 200 s; the player presses "exit server" at 500 s (AType 21, bot removed, no AType 4)."""
+    """Aircraft destroyed at 200 s; the player presses "exit server" at 500 s (AType 21, bot removed, no AType 4)."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()
