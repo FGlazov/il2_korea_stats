@@ -7,8 +7,8 @@ from dataclasses import dataclass
 
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.replay.config import ReplayRules
-from il2ks.core.replay.credit import damage_records, hit_records, unit_objects
-from il2ks.core.replay.model import MissionFacts, SortieState, TrackedObject, distance
+from il2ks.core.replay.credit import credit_kill, damage_records, hit_records, unit_objects
+from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, distance
 from il2ks.core.replay.result import PilotFate, PilotFateSource
 
 
@@ -59,9 +59,34 @@ def aircraft_loss(
     return Loss(destroyed, airframe.destroyed_pos, airframe.destroyed_airborne, airframe.destroyed_by)
 
 
+def crew_death(sortie: SortieState) -> TrackedObject | None:
+    """The object whose AType 3 is this sortie's crew member dying: the pilot or gunner bot, and for a gunner who
+    didn't bail out also its turret (E3, `[PROPOSED]`). Earliest destruction wins."""
+    candidates = [sortie.bot]
+    if sortie.role == "gunner" and sortie.bot.bailout_tick is None:
+        candidates.append(sortie.vehicle)
+    dead = [obj for obj in candidates if obj.destroyed_tick is not None]
+    return min(dead, key=lambda obj: obj.destroyed_tick or 0) if dead else None
+
+
+def killer_of(
+    sortie: SortieState, loss: Loss | None, died_tick: int | None, upto_tick: int, assist_min_damage: float
+) -> Party | None:
+    """Who gets the kill for this sortie's loss or crew death (the same `credit_kill` as the KillResults), for naming
+    the killer on the sortie's own timeline. A gunner sortie has no KillResult of its own (E3), so this is its only
+    source. `None` when nobody but the environment or the sortie itself is responsible."""
+    explicit = loss.by if loss is not None else None
+    if explicit is None and died_tick is not None:
+        crew = crew_death(sortie)
+        explicit = crew.destroyed_by if crew is not None else None
+    credited = credit_kill(sortie.airframe, sortie, explicit, upto_tick, assist_min_damage)
+    return credited[0].party if credited else None
+
+
 def pilot_death_tick(sortie: SortieState, facts: MissionFacts, rules: ReplayRules) -> int | None:
-    """The pilot bot was killed (AType 3) during the sortie or right after its end."""
-    died = sortie.bot.destroyed_tick
+    """The pilot (or gunner) was killed (AType 3) during the sortie or right after its end."""
+    obj = crew_death(sortie)
+    died = obj.destroyed_tick if obj is not None else None
     if died is None:
         return None
     if sortie.end_tick is not None and died > sortie.end_tick + ticks(rules.post_end_destroy_window_s):
@@ -131,8 +156,11 @@ def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, ru
 def attacker_involved(sortie: SortieState, upto_tick: int) -> bool:
     """Any hit or damage from an attacker (not the environment, not the player themselves) on aircraft or pilot."""
     airframe = sortie.airframe
-    return bool(damage_records(airframe, sortie, upto_tick, attackers_only=True)) or bool(
-        hit_records(airframe, sortie, upto_tick, attackers_only=True)
+    # The sortie's own crew member counts too: a player gunner's bot is a grandchild of the aircraft (E3)
+    return any(
+        damage_records(victim, sortie, upto_tick, attackers_only=True)
+        or hit_records(victim, sortie, upto_tick, attackers_only=True)
+        for victim in (airframe, sortie.bot)
     )
 
 
@@ -177,9 +205,11 @@ def pilot_fate_of(
     exit_pos_known: bool,
     disconnect_tick: int | None,
     dead: bool,
-    shot_down_directly: bool,
 ) -> tuple[PilotFate, PilotFateSource]:
-    """Doc FR-ING-14 fate ladder. Returns the fate and its source (`event` / `inferred` / `unknown`)."""
+    """FR-ING-14 fate ladder: where the pilot ended up. Returns the fate and its source (`event`/`inferred`/`unknown`).
+
+    A disconnect is a disconnect even when an attacker destroyed the aircraft (maintainer, like il2_stats): the death,
+    the loss and the kill credit are decided elsewhere (FR-ING-21, -22), not by the fate."""
     if sortie.bot.bailout_tick is not None and sortie.role == "gunner":
         return "bailed_out", "event"  # AType 18 exists for gunners
     if dead:
@@ -194,10 +224,8 @@ def pilot_fate_of(
         if bailout:
             return "bailed_out", "inferred"
         return ("exited_on_ground", "inferred") if exit_pos_known else ("unknown", "unknown")
-    if disconnected and not shot_down_directly:
+    if disconnected:
         return "disconnected", "inferred"
     if plain_end:
         return "in_aircraft", "event"
-    if shot_down_directly:  # no AType 4, but an attacker destroyed the aircraft: the pilot went down with it
-        return "in_aircraft", "inferred"
-    return "unknown", "unknown"
+    return "unknown", "unknown"  # still open

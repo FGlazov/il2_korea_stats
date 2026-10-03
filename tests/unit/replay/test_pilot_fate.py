@@ -245,3 +245,56 @@ def test_landed_player_leaving_afterwards_stays_in_aircraft() -> None:
     a = by_acct(sc.result(), 1)
     assert (a.pilot_fate, a.outcome, a.disconnected) == ("in_aircraft", "landed", True)
     assert not a.is_death
+
+
+# --- disconnect fate with an attacker's kill (E1) -----------------------------------------------------------------
+
+
+def test_disconnect_fate_holds_when_an_attacker_destroyed_the_aircraft() -> None:
+    """No AType 4: the fate is `disconnected` even though an enemy destroyed the aircraft (like il2_stats). Death, loss,
+    cause and credit stay as before (FR-ING-21, -22): the kill line alone is enough, no recent damage line needed."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.kill(101, 200, 100)
+    sc.disconnect(101.5, 1)
+    sc.remove_bot(101.6, 101, FAR)
+    result = sc.result()
+    a, b = by_acct(result, 1), by_acct(result, 2)
+    assert (a.pilot_fate, a.pilot_fate_source, a.disconnected) == ("disconnected", "inferred", True)
+    assert (a.is_death, a.pilot_status, a.is_plane_lost, a.loss_cause) == (True, "dead", True, "attacker")
+    assert (a.outcome, a.aircraft_status) == ("shot_down", "destroyed")
+    (kill,) = result.kills
+    assert (kill.killer_sortie_index, kill.via, kill.credit) == (b.index, "direct", "kill")
+    assert b.kills_air == 1
+    assert "disconnect" in [e.kind for e in a.timeline]
+
+
+def test_disconnect_fate_holds_for_a_plain_end_shot_down_shape() -> None:
+    """AType 4 with the aircraft id, an AType 21 within 30 s, and the aircraft destroyed by an attacker right after."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(99.5, 200, 100, 0.5)
+    sc.end(100, 100, 101)
+    sc.kill(101, 200, 100)
+    sc.disconnect(105, 1)
+    result = sc.result()
+    a, b = by_acct(result, 1), by_acct(result, 2)
+    assert (a.pilot_fate, a.pilot_fate_source) == ("disconnected", "inferred")
+    assert (a.is_death, a.is_plane_lost, a.loss_cause, a.outcome) == (True, True, "attacker", "shot_down")
+    assert b.kills_air == 1
+
+
+def test_killed_pilot_stays_in_aircraft_even_without_a_sortie_end() -> None:
+    """The pilot bot's own AType 3 means the pilot died: that isn't a disconnect, whatever the log does next."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(100, 200, 100, 1.0)
+    sc.kill(100, 200, 100)
+    sc.kill(100.1, 200, 101)
+    sc.remove_bot(100.2, 101, FAR)  # no AType 4
+    a = by_acct(sc.result(), 1)
+    assert (a.pilot_fate, a.pilot_fate_source) == ("in_aircraft", "event")
+    assert (a.is_death, a.pilot_status, a.loss_cause) == (True, "dead", "attacker")

@@ -15,6 +15,7 @@ from il2ks.core.replay.fate import (
     disconnect_tick_of,
     flight_time_s,
     forced_by_mission_end,
+    killer_of,
     pilot_death_tick,
     pilot_fate_of,
     sortie_end_tick,
@@ -22,7 +23,7 @@ from il2ks.core.replay.fate import (
     suspected_early_bailout,
     took_off,
 )
-from il2ks.core.replay.model import MissionFacts, SortieState
+from il2ks.core.replay.model import MissionFacts, Party, SortieState
 from il2ks.core.replay.result import (
     AircraftStatus,
     LossCause,
@@ -51,6 +52,7 @@ class Verdict:
     is_plane_lost: bool
     is_captured: bool
     loss_cause: LossCause
+    killer: Party | None  # who gets the kill for the loss or crew death; None unless `loss_cause` is `attacker`
     structural_failure: bool
     outcome: Outcome
     pilot_status: PilotStatus
@@ -89,16 +91,22 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         exit_pos_known=exit_known,
         disconnect_tick=disc_tick,
         dead=died is not None,
-        shot_down_directly=shot_down_directly,
     )
     if sortie.is_open and not forced:
         fate, source = ("in_aircraft", "inferred") if not final else ("unknown", "unknown")
-    if fate == "in_aircraft" and loss is not None and not forced:
+    # FR-ING-21/22: a disconnect doesn't hide an attacker's kill. The fate says `disconnected` (maintainer), but the
+    # aircraft destroyed by an attacker stays a loss and the pilot died with it, exactly as for any plain sortie end.
+    attacker_destroyed = fate == "disconnected" and shot_down_directly
+    if (fate == "in_aircraft" or attacker_destroyed) and loss is not None and not forced:
         died = died if died is not None else loss.tick  # the pilot went down with the aircraft
 
     disconnected = disc_tick is not None or sortie.ended_by_removal
-    disc_death = fate == "disconnected" and disconnect_death(sortie, disc_tick if disc_tick is not None else end, rules)
-    if fate == "disconnected" and not disc_death:
+    disc_death = (
+        fate == "disconnected"
+        and not attacker_destroyed
+        and disconnect_death(sortie, disc_tick if disc_tick is not None else end, rules)
+    )
+    if fate == "disconnected" and not disc_death and not attacker_destroyed:
         loss = None  # FR-ING-21: a disconnect without recent damage is neither a death nor a loss
         died = None
 
@@ -147,6 +155,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         is_plane_lost=lost,
         is_captured=captured,
         loss_cause=loss_cause,
+        killer=killer_of(sortie, loss, died, cutoff, rules.assist_min_damage) if loss_cause == "attacker" else None,
         structural_failure=structural,
         outcome=outcome,
         pilot_status=pilot_status,
