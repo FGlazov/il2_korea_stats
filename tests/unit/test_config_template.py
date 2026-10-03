@@ -8,11 +8,11 @@ from typing import cast
 
 import pytest
 
-from il2ks.config import BackupConfig, Config, IngestConfig, LogsConfig, load_config
+from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LogsConfig, WebConfig, load_config
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 
-TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days"}
+TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
 SERVER_KEYS = {"timezone", "uid"}  # `Config.timezone_name` / `Config.server_uid`, stored under [server]
 
 
@@ -42,6 +42,8 @@ def test_template_lists_every_config_key() -> None:
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
         "server": SERVER_KEYS,
+        "web": {f.name for f in dataclasses.fields(WebConfig)},
+        "https": {f.name for f in dataclasses.fields(HttpsConfig)},
     }
     top = {k for k, v in raw.items() if not isinstance(v, dict)}
     assert top == TOP_LEVEL_KEYS
@@ -55,6 +57,9 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "data_dir",
         "log_level",
         "log_keep_days",
+        "debug",
+        "web",
+        "https",
         "logs",
         "ingest",
         "replay",

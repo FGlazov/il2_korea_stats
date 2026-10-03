@@ -351,6 +351,10 @@ def run_setup(
     from il2ks.ops import migrate
 
     os.environ["IL2KS_DATA_DIR"] = str(cfg.data_dir)  # settings.py reads the data folder from here
+    if not cfg.web.secret_key:
+        from il2ks.serving.secret import ensure_secret_key
+
+        ensure_secret_key(cfg.data_dir)  # NFR-SEC-2: generated once, private to this install
     migrate.django_setup()
     try:
         migrate.migrate_if_needed(cfg, "setup", wait=30.0)

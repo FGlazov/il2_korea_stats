@@ -136,3 +136,51 @@ def configure_logging(
     root.addHandler(file_handler)
     root.addHandler(stdout_handler)
     root.setLevel(numeric)
+
+
+def make_file_handler(log_dir: str, process: str, keep_days: int) -> logging.Handler:
+    """`dictConfig` factory for the daily file handler (the dict form can't carry a `Path`)."""
+    return _DailyFileHandler(Path(log_dir), process, keep_days)
+
+
+def make_json_formatter(process: str, server_uid: str | None = None) -> logging.Formatter:
+    """`dictConfig` factory for `JsonFormatter` (the dict form carries the UID as text)."""
+    return JsonFormatter(process, None if server_uid is None else uuid.UUID(server_uid))
+
+
+def dict_config(
+    process: str,
+    log_dir: Path,
+    level: str = "INFO",
+    *,
+    server_uid: uuid.UUID | None = None,
+    keep_days: int = DEFAULT_LOG_KEEP_DAYS,
+) -> dict[str, object]:
+    """The same setup as `configure_logging`, as a `logging.config.dictConfig` dict.
+
+    For servers that configure logging themselves in every worker process they spawn (granian passes this dict to each
+    worker), so the workers write the same daily JSON file."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "json": {
+                "()": "il2ks.logsetup.make_json_formatter",
+                "process": process,
+                "server_uid": None if server_uid is None else str(server_uid),
+            },
+            "console": {"format": _STDOUT_FORMAT},
+        },
+        "handlers": {
+            "file": {
+                "()": "il2ks.logsetup.make_file_handler",
+                "log_dir": str(log_dir),
+                "process": process,
+                "keep_days": keep_days,
+                "formatter": "json",
+            },
+            "console": {"class": "logging.StreamHandler", "stream": "ext://sys.stdout", "formatter": "console"},
+        },
+        "root": {"handlers": ["file", "console"], "level": level.upper()},
+    }

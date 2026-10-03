@@ -1,0 +1,110 @@
+name: Release
+
+# Pushing a tag like v0.1.0 builds il2ks, proves the wheel works in a clean environment on Linux and Windows, and
+# publishes it to PyPI with trusted publishing (no API token stored anywhere).
+#
+# One-time setup on pypi.org: Your projects -> il2ks -> Publishing -> add a trusted publisher
+#   owner: FGlazov   repository: il2_korea_stats   workflow: release.yml   environment: pypi
+# (for the very first release, add it as a "pending publisher" under Your account -> Publishing).
+# And in GitHub: Settings -> Environments -> New environment "pypi" (optionally require a reviewer there).
+#
+# Release steps: bump __version__ in src/il2ks/__init__.py (the only place), commit, `git tag v<version>`, push the tag.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+
+      - name: The tag must match the package version
+        run: |
+          version="$(uv run python -c 'import il2ks; print(il2ks.__version__)')"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match il2ks.__version__ ${version}" >&2
+            exit 1
+          fi
+
+      - name: Tests, including the wheel contents check
+        run: uv run pytest -q
+        env:
+          IL2KS_TEST_BUILD: "1"
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  smoke:
+    # Install the built wheel into a fresh virtual environment, away from the source tree, and make it do real work.
+    needs: build
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Install the wheel in a clean venv
+        run: |
+          uv venv --python 3.13 smoke-venv
+          if [ "$RUNNER_OS" = "Windows" ]; then BIN=smoke-venv/Scripts; else BIN=smoke-venv/bin; fi
+          echo "BIN=$PWD/$BIN" >> "$GITHUB_ENV"
+          uv pip install --python "$BIN/python" dist/*.whl
+
+      - name: il2ks --help and --version
+        run: |
+          "$BIN/il2ks" --help
+          "$BIN/il2ks" --version
+
+      - name: Smoke test
+        env:
+          IL2KS_DATA_DIR: ${{ github.workspace }}/smoke-data
+        run: |
+          "$BIN/il2ks" manage migrate --noinput
+          "$BIN/il2ks" custom list --builtin | grep "templates/il2ks/base.html" > /dev/null
+          "$BIN/il2ks" caddyfile | grep "reverse_proxy 127.0.0.1:8000" > /dev/null
+          "$BIN/il2ks" service systemd | grep "ExecStart=" > /dev/null
+          "$BIN/il2ks" web --dev --port 18000 > web.log 2>&1 &
+          ok=0
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:18000/ > /dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          cat web.log
+          [ "$ok" = "1" ] || { echo "the site did not answer" >&2; exit 1; }
+          curl -fsS http://127.0.0.1:18000/admin/login/ > /dev/null
+          if [ "$RUNNER_OS" = "Linux" ]; then pkill -f "il2ks web" || true; fi
+
+  publish:
+    needs: smoke
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

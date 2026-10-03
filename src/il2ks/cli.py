@@ -8,6 +8,7 @@ refused action, 3 = another writer holds the lock (FR-ING-20). `il2ks doctor` re
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import os
 import re
@@ -16,15 +17,15 @@ from collections.abc import Callable, Sequence
 from datetime import date
 from pathlib import Path
 
+from il2ks import __version__
 from il2ks.config import Config, ConfigError, load_config
 from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
 from il2ks.ops.migrate import migrate_if_needed
 from il2ks.ops.setup import HTTPS_MODES
+from il2ks.serving import commands as serving_commands
+from il2ks.serving import procutil
 
-PLANNED: dict[str, tuple[str, str]] = {
-    "web": ("FR-OPS-1", "serve the website"),
-    "run": ("FR-OPS-1", "web + watch + HTTPS proxy together"),
-}
+PLANNED: dict[str, tuple[str, str]] = {}
 """Subcommands that exist only as stubs: name -> (requirement that plans it, one-line description)."""
 
 OPS_COMMANDS = frozenset({"setup", "createadmin", "doctor", "backup", "restore"})  # handlers: il2ks.ops.commands
@@ -134,6 +135,7 @@ def _add_ops_parsers(sub: SubParsers) -> None:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="il2ks", description="IL-2 Korea stats")
     parser.add_argument("--config", type=Path, help="il2ks.toml to use (default: IL2KS_CONFIG, ./il2ks.toml, data dir)")
+    parser.add_argument("--version", action="version", version=f"il2ks {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
     for name, (requirement, description) in PLANNED.items():
         text = f"not implemented yet (planned: {requirement}): {description}"
@@ -177,14 +179,27 @@ def _build_parser() -> argparse.ArgumentParser:
     anon = dev.add_parser("anonymize", help="anonymize a mission log for test fixtures")
     anon.add_argument("source", type=Path, help="mission .txt or .txt.zip")
     anon.add_argument("target", type=Path, help="output .txt.zip")
+    serving_commands.add_parsers(sub)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the command. Ctrl+C / SIGTERM at any point (also while starting up) is a clean stop, not a traceback."""
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:
+        return EXIT_OK
+
+
+def _main(argv: Sequence[str] | None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] == "manage":
         # Pass everything after "manage" to Django (migrate, createsuperuser, ...).
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "il2ks.settings")
+        # A first `il2ks manage migrate` on a fresh machine: SQLite can't create the folder it lives in. Any problem
+        # here is left for Django to report in its own words.
+        with contextlib.suppress(ConfigError, OSError):
+            load_config(create_server_uid=False).data_dir.mkdir(parents=True, exist_ok=True)
         from django.core.management import execute_from_command_line
 
         execute_from_command_line(["il2ks manage", *args[1:]])
@@ -192,6 +207,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     ns = _build_parser().parse_args(args)
     command: str = ns.command
+    if command in serving_commands.COMMANDS:
+        hooks = serving_commands.Hooks(django_setup=_django_setup, migrate=migrate_if_needed)
+        return serving_commands.dispatch(ns, hooks)
+    if command == "watch":
+        procutil.terminate_as_keyboard_interrupt()  # `il2ks run` stops its children with SIGTERM / Ctrl+Break
     if command == "dev" and ns.dev_command == "anonymize":
         from il2ks.devtools.anonymize import anonymize_file
 

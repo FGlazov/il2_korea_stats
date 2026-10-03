@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
@@ -34,6 +35,14 @@ def daily_backup(cfg: Config, at: datetime, retry_at: datetime | None) -> dateti
         log.exception("daily backup failed; trying again in an hour")
         return at + BACKUP_RETRY
     return None
+
+
+def _wait(stop: threading.Event, seconds: float) -> None:
+    """`stop.wait(seconds)` in half-second slices. On Windows a signal handler (the Ctrl+Break `il2ks run` stops us
+    with) only runs between bytecodes, never inside one long wait."""
+    deadline = time.monotonic() + seconds
+    while not stop.is_set() and (remaining := deadline - time.monotonic()) > 0:
+        stop.wait(min(remaining, 0.5))
 
 
 def watch(
@@ -63,5 +72,5 @@ def watch(
         ticks += 1
         if max_ticks is not None and ticks >= max_ticks:
             break
-        stop.wait(cfg.ingest.watch_interval_s)
+        _wait(stop, cfg.ingest.watch_interval_s)
     return ticks

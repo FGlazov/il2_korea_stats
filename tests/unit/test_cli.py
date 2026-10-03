@@ -45,8 +45,8 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     return data, logs, steps
 
 
-def test_the_planned_commands_are_the_ones_the_serving_area_still_owes() -> None:
-    assert set(PLANNED) == {"web", "run"}
+def test_no_command_is_a_stub_any_more() -> None:
+    assert set(PLANNED) == set()
 
 
 @pytest.mark.parametrize("command", sorted(PLANNED))
@@ -55,13 +55,6 @@ def test_planned_commands_are_stubs(command: str, capsys: pytest.CaptureFixture[
     out = capsys.readouterr()
     assert out.err.strip() == f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})"
     assert out.out == ""
-
-
-def test_stub_help_names_the_requirement(capsys: pytest.CaptureFixture[str]) -> None:
-    with pytest.raises(SystemExit) as info:
-        main(["web", "--help"])
-    assert info.value.code == 0
-    assert "planned: FR-OPS-1" in capsys.readouterr().out
 
 
 def test_every_job_command_has_help() -> None:

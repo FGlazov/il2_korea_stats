@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import subprocess
 import sys
 import zipfile
@@ -18,10 +19,17 @@ from il2ks.ops import backup
 PASSWORD = "Tr1cky-Horse-Battery-9"
 
 
+def _free_port() -> int:
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
 def il2ks(cwd: Path, *args: str, check: bool = True, **env_vars: str) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("IL2KS_")}
     env["IL2KS_ADMIN_PASSWORD"] = PASSWORD
     env["PYTHONIOENCODING"] = "utf-8"
+    env["IL2KS_WEB_PORT"] = str(_free_port())  # doctor reports a busy web port; another process may own 8000
     env.update(env_vars)
     result = subprocess.run(
         [sys.executable, "-m", "il2ks.cli", *args],
@@ -45,7 +53,7 @@ def test_the_admin_story_in_real_processes(tmp_path: Path) -> None:
     # 1. setup, without asking anything
     out = il2ks(
         tmp_path, "setup", "--non-interactive", "--data-dir", str(data), "--logs-dir", str(logs),
-        "--timezone", "UTC", "--admin-username", "boss",
+        "--timezone", "UTC", "--admin-username", "boss", "--https", "external",
     ).stdout  # fmt: skip
     assert "Database ready" in out
     assert "Admin account 'boss': created" in out
