@@ -275,6 +275,18 @@ def test_object_types_seen_and_unknown() -> None:
     assert not any(t.startswith("Bot") for t in result.object_types_seen)
 
 
+def test_parachute_instance_numbers_are_one_object_type() -> None:
+    """Regression: `CParachute_<n>` registered one GameObject per parachute (e2e run, 2026-10-03). doc 14, Catalog."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.declare(1, 900, "CParachute_2361344", 501)
+    sc.declare(2, 901, "CParachute_2361999", 501)
+    sc.end(100, 100, 101)
+    seen = sc.result().object_types_seen
+    assert "CParachute" in seen
+    assert not any(t.startswith("CParachute_") for t in seen)
+
+
 def test_wheels_on_after_kill_is_ground_contact_only() -> None:
     """A wreck's AType 31 doesn't flip the destroyed aircraft to 'on the ground' (FR-ING-17 uses it as contact)."""
     sc = Scenario()

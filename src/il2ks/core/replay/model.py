@@ -9,7 +9,7 @@ import math
 import re
 from dataclasses import dataclass, field
 
-from il2ks.core.catalog.loader import ObjectInfo
+from il2ks.core.catalog.loader import ObjectInfo, canonical_type_name
 from il2ks.core.logparse.events import AccountUuid, MissionStartEvent, ObjectId, Pos, ProfileUuid
 from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.result import AmmoCounts, Role, SpawnType
@@ -18,10 +18,12 @@ _BLOCK_SUFFIX = re.compile(r"\[[^\]]*\]$")
 
 
 def normalize_type(object_type: str) -> str:
-    """Strip the static block group suffix: `Factory block E[36731,0]` -> `Factory block E` (doc 12, AType 12 `MID`).
+    """Strip per-instance parts of a log type: the static block group suffix (`Factory block E[36731,0]` ->
+    `Factory block E`, doc 12, AType 12 `MID`) and instance numbers (`CParachute_2361344` -> `CParachute`).
 
-    The suffix changes between re-declarations of the same object, so it isn't part of the object type."""
-    return _BLOCK_SUFFIX.sub("", object_type).strip()
+    They change between objects of the same kind, so they aren't part of the object type (otherwise every parachute
+    would be registered as its own `GameObject`)."""
+    return canonical_type_name(_BLOCK_SUFFIX.sub("", object_type).strip())
 
 
 def is_bot_type(object_type: str) -> bool:
