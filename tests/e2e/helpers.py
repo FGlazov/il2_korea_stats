@@ -5,11 +5,7 @@ that keeps the words keeps the tests. The one exception is `sortie_links`: a lin
 
 import re
 
-import pytest
 from playwright.sync_api import Locator, Page, expect
-
-PAGES_PENDING = pytest.mark.xfail(strict=False, reason="pages not merged yet (doc 08): remove once they are")
-"""Marks the tests that need the real pages (home aside). Grep for it when the pages land: it is the to-do list."""
 
 FULL_RELOAD_FLAG = "__il2ksNoReload"
 

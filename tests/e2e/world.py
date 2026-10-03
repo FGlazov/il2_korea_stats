@@ -45,11 +45,12 @@ class World:
     ace: str = PLAYER_ACE
     acey: str = PLAYER_ACEY
     bob: str = PLAYER_BOB
+    echo: str = PLAYER_ECHO
     charlie: str = PLAYER_CHARLIE
     delta: str = PLAYER_DELTA
     ace_aircraft: str = "MiG-15bis"
     bob_aircraft: str = "MiG-15bis"
-    delta_aircraft: str = "F-86A Sabre"
+    delta_aircraft: str = "F-86A-5"
 
 
 def build() -> World:

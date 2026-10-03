@@ -214,8 +214,8 @@
       "sha256": "2c2007419c4e92c237224c9691f5a41f81795460cb8746e4ad7ad774bde393e9"
     },
     "templates/il2ks/sorties/parts/header.html": {
-      "version": 1,
-      "sha256": "3fc97bb8fa46a25732907c1c2bf7cf8f345fc6231168dc0b9e8171f929f59d29"
+      "version": 2,
+      "sha256": "4b44efcedd0ac5e4297e684680aa41a99f1e1481ce027d00b35edd02fdb07570"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 1,
@@ -230,8 +230,8 @@
       "sha256": "d9ff90bf808821c55e4f8432e12fec2afc8202bed2343cde0f94d48da274a178"
     },
     "templates/il2ks/sorties/parts/list_row.html": {
-      "version": 1,
-      "sha256": "b1f2f04e1a85ef137bf745fe534c5354740375917fe516e5361e0eef500c0ba4"
+      "version": 2,
+      "sha256": "35262a37aa7199ddb98958873fd674f8a13dd7ed39b57cf19e9b9c938267a466"
     },
     "templates/il2ks/sorties/parts/meta.html": {
       "version": 1,

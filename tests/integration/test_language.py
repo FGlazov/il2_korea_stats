@@ -8,7 +8,7 @@ from django.template import Context, Template
 from django.test import Client, RequestFactory
 from django.utils import translation
 
-from il2ks.db.models import GameObject, Player
+from il2ks.db.models import GameObject, Player, PlayerSortie
 from il2ks.db.site import bump_data_version
 from il2ks.web.object_names import name_of
 from tests.factories import account, mission, save, sortie
@@ -180,6 +180,19 @@ def test_a_page_shows_object_names_in_the_viewers_language(client: Client) -> No
     GameObject.objects.filter(log_name="Yak-9P").update(display_name="Yak (club name)", name_overridden=True)
     bump_data_version()
     assert ">Yak (club name)</a>" in nav_text(client.get(url))
+
+
+def test_the_sortie_pages_show_the_aircraft_in_the_viewers_language(client: Client) -> None:
+    """TD-24: the sortie report's header and the player's sortie list used `str(aircraft)` (English) instead of the
+    `object_name` filter, so a Russian viewer saw "Yak-9P" there."""
+    save(mission((sortie(0, 1, name="Maverick", aircraft_type="Yak-9P"),)))
+    GameObject.objects.filter(log_name="Yak-9P").update(display_name="Yak-9P")
+    player = Player.objects.get(account_uuid=account(1))
+    sortie_pk = PlayerSortie.objects.get(player=player).pk
+    switch(client, "ru")
+
+    assert 'sortie-head__craft">Як-9П' in nav_text(client.get(f"/sorties/{sortie_pk}/"))
+    assert " Як-9П</td>" in nav_text(client.get(f"/players/{player.pk}/sorties/"))
 
 
 def test_name_of_tolerates_missing_objects() -> None:
