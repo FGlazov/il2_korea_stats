@@ -27,6 +27,7 @@ from django.db import models
 from django.db.models import Max, Min, Sum
 
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
+from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import (
     Player,
@@ -40,6 +41,7 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.scoring import rebuild_sortie_scores
 from il2ks.ingest.tours import assign_missing, retour
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
@@ -69,10 +71,16 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
 
 
 def rebuild_aggregates(
-    ratings: RatingRules = DEFAULT_RULES, tours: TourRules | None = None, *, reassign_tours: bool = False
+    ratings: RatingRules = DEFAULT_RULES,
+    tours: TourRules | None = None,
+    *,
+    reassign_tours: bool = False,
+    score: ScoreRules = DEFAULT_SCORE_RULES,
 ) -> None:
-    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players (all
-    tours), then the Elo ratings (`recompute_ratings`, which replays all kills).
+    """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): the sortie scores under the `[score]`
+    rules (`score`: how a changed score config takes effect, no reprocess), the `PlayerMission` counters that sum
+    them, `recompute_players` for all players (all tours), then the Elo ratings (`recompute_ratings`, which replays all
+    kills).
 
     `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
     With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
@@ -82,9 +90,26 @@ def rebuild_aggregates(
             retour(tours)
         else:
             assign_missing(tours)
+    if rebuild_sortie_scores(score):
+        refresh_player_missions()
     recompute_players(Player.objects.values_list("pk", flat=True))
     recompute_ratings(ratings)
     bump_data_version()  # TD-28: pages changed
+
+
+def refresh_player_missions() -> None:
+    """Rewrite the counters of every existing `PlayerMission` row from its counted sorties (after a rescoring). Only
+    rows with a differing value are written; none are created or deleted (`save_mission` owns that)."""
+    wanted = {
+        (row["player_id"], row["mission_id"]): clean_counters(row)
+        for row in counted_sorties().values("player_id", "mission_id").annotate(**SORTIE_COUNTERS)
+    }
+    changed: list[PlayerMission] = []
+    for row in PlayerMission.objects.all().iterator():
+        values = wanted.get((row.player_id, row.mission_id))
+        if values is not None and _assign(row, values):
+            changed.append(row)
+    PlayerMission.objects.bulk_update(changed, list(COUNTER_FIELDS), batch_size=200)
 
 
 def _recompute_totals(chunk: list[int]) -> None:

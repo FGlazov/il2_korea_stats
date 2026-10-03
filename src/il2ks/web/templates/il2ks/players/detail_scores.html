@@ -1,0 +1,15 @@
+{# il2ks-template: templates/il2ks/players/detail_scores.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_scores.html: the score and rating block of the profile (FR-WEB-7, 19, 20). All-time, from stored values.
+  Context: player (all-time counters and Elo). The ground score per hour needs time on target; Elo
+  once the player has rated games in that pool (otherwise the dash).
+{% endcomment %}<dl class="kv">
+  <dt>{% translate "Air score" %}</dt><dd>{{ player.score_air|num:1 }}</dd>
+  <dt>{% translate "Ground score" %}</dt><dd>{{ player.score_ground|num:1 }}</dd>
+  <dt>{% translate "Ground score per hour on target" %} <small>{% translate "attack sorties" %}</small></dt>
+  <dd>{{ player.score_ground_attack|per_hour:player.time_on_target_s }}</dd>
+  <dt>{% translate "Elo, prop" %}</dt>
+  <dd>{% if player.elo_prop_games %}{{ player.elo_prop|num }} <small>{% blocktranslate count games=player.elo_prop_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
+  <dt>{% translate "Elo, jet" %}</dt>
+  <dd>{% if player.elo_jet_games %}{{ player.elo_jet|num }} <small>{% blocktranslate count games=player.elo_jet_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
+</dl>

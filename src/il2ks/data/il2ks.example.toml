@@ -118,6 +118,56 @@
 # aircraft changes nothing: it was expected).
 #cross_pool_weight = 2.0
 
+# --- Score and leaderboards (FR-WEB-7, FR-WEB-20, FR-ADM-7) ---------------------------------------------------------
+# Every sortie earns an AIR score (air kills and assists) and a GROUND score (ground kills by category), the two skills
+# being rated apart. Penalties are charged to the score of the sortie's role: an attack sortie (it carried bombs or
+# rockets) pays from its ground score, any other sortie from its air score. A changed value is applied by `il2ks
+# rebuild-aggregates` (no reprocess needed). The values below are first guesses.
+#[score]
+# Points for shooting down another player's aircraft.
+#air_kill_pvp = 10.0
+# Points for shooting down an AI aircraft.
+#air_kill_ai = 2.0
+# Points for an assist on an aircraft.
+#air_assist = 3.0
+# Points per ground kill, by category: tanks.
+#ground_tank = 6.0
+# Trucks, cars, halftracks, tractors, rocket launchers.
+#ground_vehicle = 3.0
+# Artillery pieces.
+#ground_artillery = 5.0
+# Anti-aircraft guns, including flak cars.
+#ground_aaa = 5.0
+# Ships and boats.
+#ground_ship = 8.0
+# Locomotives and wagons.
+#ground_train = 4.0
+# Barracks, hangars, warehouses, factories, bridges, towers, radars, depots, storage tanks.
+#ground_building = 2.0
+# Aircraft parked on the ground.
+#ground_parked_aircraft = 3.0
+# Fences, crate and barrel yards, logs, camo nets, small fuel tanks and other trivial objects.
+#ground_other = 0.2
+# Points taken off when the pilot died.
+#penalty_death = 3.0
+# Points taken off when the aircraft was lost (on top of the death).
+#penalty_plane_lost = 2.0
+# Points taken off when the pilot was captured (on top of the lost aircraft).
+#penalty_capture = 2.0
+# Points taken off for a suspected early bailout (the pilot left an aircraft that nobody had hit).
+#penalty_early_bailout = 5.0
+# Points taken off for each friendly kill.
+#penalty_friendly_kill = 20.0
+# Leaderboard minimums, so that one lucky sortie doesn't top a board. They change what the boards show at once (nothing
+# to rebuild). Pilot sorties needed for the score and kill boards.
+#min_sorties = 5
+# Rated games needed in a pool (propeller or jet) for the Elo boards.
+#min_elo_games = 10
+# Attack sorties needed for the ground-score-per-hour board.
+#min_attack_sorties = 5
+# Minutes on target needed for the ground-score-per-hour board.
+#min_time_on_target_minutes = 10.0
+
 # --- Tours (TD-26, FR-WEB-10, FR-ADM-8) -----------------------------------------------------------------------------
 # Missions are grouped into tours, and the site shows stats per tour as well as all-time. A mission belongs to the tour
 # that contains its start time. Air-to-air ratings are not per tour: they stay all-time. After changing the mode, the

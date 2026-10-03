@@ -37,6 +37,8 @@ IL2KS_TOUR_MODE = (
     _CFG.tours.mode
 )  # "monthly", "days" or "manual": only manual mode offers "start a new tour" (FR-ADM-8)
 
+IL2KS_LEADERBOARDS = _CFG.leaderboards  # minimum activity for the leaderboards (FR-WEB-7)
+
 DEBUG = _CFG.debug
 SECRET_KEY = secret_key_for(_CFG)  # the dev placeholder when none exists yet; `il2ks web` refuses to serve with it
 ALLOWED_HOSTS = allowed_hosts(_CFG)

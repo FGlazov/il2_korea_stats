@@ -161,7 +161,7 @@ def reprocess(
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
-                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours))()
+                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, score=cfg.score))()
         log.info("%s", summary.describe())
         return summary
 
@@ -229,4 +229,7 @@ def rebuild_all(
     the writer lock. `reassign_tours` (`--retour`) first moves every mission to its tour under the configured `[tours]`
     rules (TD-26), for after a mode, start date or timezone change."""
     with WriterLock(cfg.data_dir, "rebuild-aggregates", wait=lock_wait), transaction.atomic():
-        (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, reassign_tours=reassign_tours))()
+        (
+            rebuild
+            or partial(rebuild_aggregates, cfg.ratings, cfg.tours, reassign_tours=reassign_tours, score=cfg.score)
+        )()

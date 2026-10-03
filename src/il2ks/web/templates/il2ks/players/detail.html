@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
   detail_header, detail_tiles, detail_ground, detail_ratios, detail_totals, detail_shame, detail_aircraft, detail_recent.
@@ -23,6 +23,8 @@
         {% include "il2ks/players/detail_shame.html" %}
       </section>
       <section>
+        <h2>{% translate "Score and rating" %}</h2>
+        {% include "il2ks/players/detail_scores.html" %}
         <h2>{% translate "Other totals" %}</h2>
         {% include "il2ks/players/detail_totals.html" %}
       </section>

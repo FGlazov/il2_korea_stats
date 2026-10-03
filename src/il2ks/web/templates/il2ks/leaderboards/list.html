@@ -1,0 +1,44 @@
+{# il2ks-template: templates/il2ks/leaderboards/list.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). View: il2ks.web.views.leaderboards.leaderboard.
+  Context: board (the queries.leaderboards.Board), title, help, tabs ((key, title, url, current) rows), sort (resolved),
+  page_obj (Page of BoardRow: rank, player, stats, per_hour), tour_options and tour (the tour selector; empty for the
+  all-time-only Elo boards), aircraft_options ((pk, name) pairs, empty where the board has no aircraft filter), rules
+  (the minimum-activity thresholds).
+  Blocks: head (page stylesheet), content. The table is leaderboards/table.html.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/leaderboards.css' %}">{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% translate "Leaderboards" %}</h1>
+    <p>{{ help }}</p>
+  </div>
+
+  <nav class="board-tabs" aria-label="{% translate 'Leaderboards' %}">
+    <ul>
+      {% for key, label, url, current in tabs %}
+        <li><a href="{{ url }}"{% if current %} aria-current="page"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  {% results_region %}
+    {% if tour_options or aircraft_options %}
+      {% filter_bar %}
+        {% if tour_options %}{% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}{% endif %}
+        {% if aircraft_options %}{% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}{% endif %}
+      {% endfilter_bar %}
+    {% endif %}
+    {% include "il2ks/leaderboards/table.html" %}
+    <p class="board-note">
+      {% if board.key == "elo-prop" or board.key == "elo-jet" %}
+        {% blocktranslate count games=rules.min_elo_games %}Pilots with at least {{ games }} rated game.{% plural %}Pilots with at least {{ games }} rated games.{% endblocktranslate %}
+      {% elif board.key == "ground-hour" %}
+        {% blocktranslate with sorties=rules.min_attack_sorties minutes=rules.min_time_on_target_minutes|num %}Pilots with at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}
+      {% else %}
+        {% blocktranslate count sorties=rules.min_sorties %}Pilots with at least {{ sorties }} sortie.{% plural %}Pilots with at least {{ sorties }} sorties.{% endblocktranslate %}
+      {% endif %}
+    </p>
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

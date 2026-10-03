@@ -8,8 +8,18 @@ from typing import cast
 
 import pytest
 
-from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LogsConfig, WebConfig, load_config
+from il2ks.config import (
+    BackupConfig,
+    Config,
+    HttpsConfig,
+    IngestConfig,
+    LeaderboardConfig,
+    LogsConfig,
+    WebConfig,
+    load_config,
+)
 from il2ks.core.ratings.elo import RatingRules
+from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
@@ -41,6 +51,8 @@ def test_template_lists_every_config_key() -> None:
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
+        "score": {f.name for f in dataclasses.fields(ScoreRules)}
+        | {f.name for f in dataclasses.fields(LeaderboardConfig)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
         "tours": TOURS_KEYS,
         "server": SERVER_KEYS,
@@ -66,6 +78,8 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "ingest",
         "replay",
         "ratings",
+        "score",
+        "leaderboards",
         "backup",
         "tours",
         "server_uid",

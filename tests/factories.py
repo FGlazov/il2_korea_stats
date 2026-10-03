@@ -22,6 +22,7 @@ from il2ks.core.catalog.loader import (
 )
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
+from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules
 from il2ks.core.replay.result import (
     AmmoCounts,
     CombatRole,
@@ -299,10 +300,17 @@ def save(
     mission_meta: MissionMeta | None = None,
     catalog: Catalog | None = None,
     ratings: RatingRules | None = DEFAULT_RULES,
+    score: ScoreRules = DEFAULT_SCORE_RULES,
 ) -> Mission:
     """`save_mission` inside a transaction, the way the ingest runner calls it (`ratings=None`: no Elo replay)."""
     with transaction.atomic():
-        return save_mission(result, meta() if mission_meta is None else mission_meta, catalog or FakeCatalog(), ratings)
+        return save_mission(
+            result,
+            meta() if mission_meta is None else mission_meta,
+            catalog or FakeCatalog(),
+            ratings,
+            score=score,
+        )
 
 
 def rows(model: type[models.Model]) -> list[dict[str, object]]:

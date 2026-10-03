@@ -1,0 +1,80 @@
+{# il2ks-template: templates/il2ks/leaderboards/table.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  table.html: the table of a leaderboard. Context: board, sort, page_obj (Page of BoardRow: rank, player, stats, per_hour).
+  `stats` is the player's counters for the board (all-time, tour or per aircraft); the columns differ per board.
+{% endcomment %}<div class="table-wrap">
+  <table class="data-table board-table">
+    <thead>
+      <tr>
+        <th scope="col" class="num">#</th>
+        {% sort_th "name" _("Player") %}
+        {% if board.key == "air" %}
+          {% sort_th "score" _("Air score") numeric=True %}
+          {% sort_th "kills_air" _("Air kills") numeric=True %}
+          {% sort_th "assists" _("Assists") numeric=True %}
+          {% sort_th "deaths" _("Deaths") numeric=True %}
+          {% sort_th "sorties" _("Sorties") numeric=True %}
+        {% elif board.key == "ground" %}
+          {% sort_th "score" _("Ground score") numeric=True %}
+          {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+          {% sort_th "attack_sorties" _("Attack sorties") numeric=True %}
+          {% sort_th "sorties" _("Sorties") numeric=True %}
+        {% elif board.key == "ground-hour" %}
+          {% sort_th "per_hour" _("Score per hour") numeric=True %}
+          {% sort_th "score" _("Attack ground score") numeric=True %}
+          {% sort_th "time_on_target_s" _("Time on target") numeric=True %}
+          {% sort_th "attack_sorties" _("Attack sorties") numeric=True %}
+        {% elif board.key == "kills" %}
+          {% sort_th "kills_air" _("Air kills") numeric=True %}
+          {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+          {% sort_th "deaths" _("Deaths") numeric=True %}
+          {% sort_th "sorties" _("Sorties") numeric=True %}
+        {% else %}
+          {% sort_th "rating" _("Elo") numeric=True %}
+          {% sort_th "games" _("Rated games") numeric=True %}
+          {% sort_th "sorties" _("Sorties") numeric=True %}
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in page_obj.object_list %}
+        <tr>
+          <td class="num">{{ row.rank|num }}</td>
+          <td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td>
+          {% if board.key == "air" %}
+            <td class="num"><strong>{{ row.stats.score_air|num:1 }}</strong></td>
+            <td class="num">{{ row.stats.kills_air|num }}</td>
+            <td class="num">{{ row.stats.assists|num }}</td>
+            <td class="num">{{ row.stats.deaths|num }}</td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
+          {% elif board.key == "ground" %}
+            <td class="num"><strong>{{ row.stats.score_ground|num:1 }}</strong></td>
+            <td class="num">{{ row.stats.kills_ground|num }}</td>
+            <td class="num">{{ row.stats.attack_sorties|num }}</td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
+          {% elif board.key == "ground-hour" %}
+            <td class="num"><strong>{{ row.per_hour|num:1 }}</strong></td>
+            <td class="num">{{ row.stats.score_ground_attack|num:1 }}</td>
+            <td class="num">{{ row.stats.time_on_target_s|duration }}</td>
+            <td class="num">{{ row.stats.attack_sorties|num }}</td>
+          {% elif board.key == "kills" %}
+            <td class="num"><strong>{{ row.stats.kills_air|num }}</strong></td>
+            <td class="num">{{ row.stats.kills_ground|num }}</td>
+            <td class="num">{{ row.stats.deaths|num }}</td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
+          {% elif board.key == "elo-prop" %}
+            <td class="num"><strong>{{ row.stats.elo_prop|num }}</strong></td>
+            <td class="num">{{ row.stats.elo_prop_games|num }}</td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
+          {% else %}
+            <td class="num"><strong>{{ row.stats.elo_jet|num }}</strong></td>
+            <td class="num">{{ row.stats.elo_jet_games|num }}</td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        {% empty_row 7 _("Nobody qualifies for this board yet.") %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -27,6 +27,12 @@ msgid_plural "%(counter)s takeoffs"
 msgstr[0] ""
 msgstr[1] ""
 
+#, python-format
+msgid "%(games)s game"
+msgid_plural "%(games)s games"
+msgstr[0] ""
+msgstr[1] ""
+
 # llm-draft
 #, python-format
 msgid "%(h)d h"
@@ -155,6 +161,9 @@ msgstr ""
 msgid "Air"
 msgstr ""
 
+msgid "Air and ground kills."
+msgstr ""
+
 msgid "Air kills"
 msgstr ""
 
@@ -168,12 +177,23 @@ msgstr ""
 msgid "Air kills: %(n)s"
 msgstr ""
 
+msgid "Air score"
+msgstr ""
+
 msgid "Air start"
 msgstr ""
 
 # llm-draft
 msgid "Air superiority"
 msgstr "Luftüberlegenheit"
+
+msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
+msgstr ""
+
+msgid ""
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
+" counts double."
+msgstr ""
 
 msgid "Airborne"
 msgstr ""
@@ -260,6 +280,9 @@ msgstr "Höchstens %(max)d Links."
 # llm-draft
 msgid "Attack"
 msgstr "Erdkampf"
+
+msgid "Attack ground score"
+msgstr ""
 
 msgid "Attack sorties"
 msgstr ""
@@ -426,6 +449,15 @@ msgstr ""
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Laden Sie entweder ein neues Logo hoch oder entfernen Sie das aktuelle, nicht beides."
 
+msgid "Elo"
+msgstr ""
+
+msgid "Elo, jet"
+msgstr ""
+
+msgid "Elo, prop"
+msgstr ""
+
 msgid "Empty missions"
 msgstr ""
 
@@ -517,6 +549,18 @@ msgstr ""
 
 #, python-format
 msgid "Ground kills: %(n)s"
+msgstr ""
+
+msgid "Ground score"
+msgstr ""
+
+msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
+msgstr ""
+
+msgid "Ground score per hour"
+msgstr ""
+
+msgid "Ground score per hour on target"
 msgstr ""
 
 msgid "Gunner"
@@ -666,6 +710,9 @@ msgid "Latest attempt"
 msgstr "Letzter Versuch"
 
 msgid "Latest missions"
+msgstr ""
+
+msgid "Leaderboards"
 msgstr ""
 
 msgid "Left"
@@ -836,6 +883,9 @@ msgstr ""
 msgid "Nobody flew for this side."
 msgstr ""
 
+msgid "Nobody qualifies for this board yet."
+msgstr ""
+
 msgid "Nobody scored a kill in this mission."
 msgstr ""
 
@@ -937,6 +987,22 @@ msgstr ""
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
 msgstr "Pilot-, Einsatz- und Missionsstatistiken unseres IL-2-Sturmovik-Korea-Servers."
 
+#, python-format
+msgid "Pilots with at least %(games)s rated game."
+msgid_plural "Pilots with at least %(games)s rated games."
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on target."
+msgstr ""
+
+#, python-format
+msgid "Pilots with at least %(sorties)s sortie."
+msgid_plural "Pilots with at least %(sorties)s sorties."
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "Planes lost"
 msgstr ""
 
@@ -955,6 +1021,12 @@ msgstr "Spieler"
 msgid ""
 "Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole "
 "object, added up over all objects of that type."
+msgstr ""
+
+msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
+msgstr ""
+
+msgid "Points for ground kills (a tank counts for far more than a fence), minus the same penalties."
 msgstr ""
 
 msgid "Possible early bailout"
@@ -977,6 +1049,9 @@ msgid "Problems"
 msgstr "Probleme"
 
 msgid "REDFOR won"
+msgstr ""
+
+msgid "Rated games"
 msgstr ""
 
 # llm-draft
@@ -1035,6 +1110,12 @@ msgid "Running"
 msgstr ""
 
 msgid "Runway"
+msgstr ""
+
+msgid "Score and rating"
+msgstr ""
+
+msgid "Score per hour"
 msgstr ""
 
 # llm-draft
@@ -1438,6 +1519,9 @@ msgstr ""
 
 #, python-format
 msgid "also known as %(name)s"
+msgstr ""
+
+msgid "attack sorties"
 msgstr ""
 
 msgid "by"

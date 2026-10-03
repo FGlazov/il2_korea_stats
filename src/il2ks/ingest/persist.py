@@ -22,6 +22,7 @@ from django.db.models import Count
 from il2ks.core.catalog.loader import GROUND_CATEGORIES, Catalog, side_of_country
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
+from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules
 from il2ks.core.replay.result import (
     AmmoCounts,
     Counterpart,
@@ -45,6 +46,7 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.tours import ensure_tour
 
 log = logging.getLogger(__name__)
@@ -68,6 +70,7 @@ def save_mission(
     catalog: Catalog,
     ratings: RatingRules | None = DEFAULT_RULES,
     tours: TourRules = DEFAULT_TOUR_RULES,
+    score: ScoreRules = DEFAULT_SCORE_RULES,
 ) -> Mission:
     """Upsert one mission's level-1 rows by natural key, then recompute level 2 for the players involved.
 
@@ -79,6 +82,7 @@ def save_mission(
 
     The mission goes into the tour containing `meta.started_at` under the `[tours]` rules (TD-26); the per-tour level-2
     rows are recomputed for that tour and, when a re-ingest moved the mission, the old one. Elo is all-time.
+    Each pilot sortie gets its air and ground score under the `[score]` rules (`score`, FR-WEB-7).
     """
     clock = _Clock(meta.started_at)
     tour = ensure_tour(tours, meta.started_at)
@@ -99,7 +103,7 @@ def save_mission(
     objects = register_game_objects(_object_types(result), catalog)
     register_countries(result.mission.countries, catalog)
     players = _upsert_players(result.sorties, clock)
-    sorties = _upsert_sorties(mission, result, clock, catalog, objects, players)
+    sorties = _upsert_sorties(mission, result, clock, catalog, objects, players, score)
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
@@ -333,6 +337,8 @@ _SORTIE_FIELDS = [
     "loss_class",
     "kills_air_pvp",
     "kills_air_ai",
+    "air_points",
+    "ground_points",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -349,6 +355,7 @@ def _upsert_sorties(
     catalog: Catalog,
     objects: dict[str, GameObject],
     players: dict[str, Player],
+    score: ScoreRules,
 ) -> dict[int, PlayerSortie]:
     """Upsert by natural key, keeping PKs; delete rows that no longer exist (FR-ING-9). Returns sortie index -> row."""
     existing = {(s.account_uuid, s.spawn_tick): s for s in PlayerSortie.objects.filter(mission=mission)}
@@ -359,7 +366,7 @@ def _upsert_sorties(
         if row is None:
             row = PlayerSortie(mission=mission, account_uuid=s.account_uuid, spawn_tick=s.spawn_tick)
             new.append(row)
-        _fill_sortie(row, s, clock, catalog, objects[s.aircraft_type], players[s.account_uuid])
+        _fill_sortie(row, s, clock, catalog, objects[s.aircraft_type], players[s.account_uuid], score)
         rows[s.index] = row
     if existing:
         PlayerSortie.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
@@ -376,7 +383,13 @@ def _upsert_sorties(
 
 
 def _fill_sortie(
-    row: PlayerSortie, s: SortieResult, clock: _Clock, catalog: Catalog, aircraft: GameObject, player: Player
+    row: PlayerSortie,
+    s: SortieResult,
+    clock: _Clock,
+    catalog: Catalog,
+    aircraft: GameObject,
+    player: Player,
+    score: ScoreRules,
 ) -> None:
     payload = catalog.payload(s.aircraft_type, s.payload_id)
     payload_name = payload.readable_name if payload is not None else ""
@@ -430,6 +443,7 @@ def _fill_sortie(
     row.loss_class = s.loss_class or ""
     row.kills_air_pvp = s.kills_air_pvp
     row.kills_air_ai = s.kills_air_ai
+    apply_score(row, score)
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 
