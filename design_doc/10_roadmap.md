@@ -80,7 +80,7 @@ Do these while merging the finished branches, before the release where they touc
 - ⏳ Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
 - ⏳ Ammo: hide the per-ammo damage columns (keep hits).
 - ⏳ Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab.
-- ⏳ Score: percentage penalties by outcome (death 80%, capture 50%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
+- ⏳ Score: percentage penalties by outcome (death 80%, capture 50%, plane lost 20%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
 - ⏳ Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
 - ⏳ Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
 - ⏳ Doc 15: list every icon file in the designer brief.

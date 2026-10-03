@@ -188,7 +188,7 @@ people ask). The main use case is **a player reviewing their sortie**.
 - **Rams (OQ-61):** test the ram signal; make sure by testing that the results are plausible before it's switched on anywhere.
 - **Scores (OQ-62, 63):** air and ground scores **stay separate**, never one combined score (old il2_stats servers rewarded ground
   pounding far more). Point values as built. Penalties: **percentages of the sortie's score by outcome**, configurable, starting at
-  **death 80%** and **capture 50%**; friendly fire and suspected early bailout stay **flat** penalties (defaults as built). OQ-67 has the
+  **death 80%**, **capture 50%** and **plane lost** (without death or capture) **20%**; friendly fire and suspected early bailout stay **flat** penalties (defaults as built). OQ-67 has the
   open details.
 - **Leaderboards (OQ-64):** highlight **Elo (jet and prop)** and **ground proficiency** most: those go on the **home page**; the other
   boards stay on the leaderboards page.

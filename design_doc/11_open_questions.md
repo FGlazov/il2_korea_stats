@@ -27,10 +27,9 @@ OQ-38 and OQ-40..66 are answered (maintainer, 2026-10-03): see doc 02 "Maintaine
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
-**OQ-67 Percentage penalties: the details** (OQ-63 follow-up; Claude's defaults, to apply when the score is changed)
-Death 80% and capture 50% of the sortie's score. Open: (a) does a **plane lost** without death or capture cost a percentage too (default:
-no)? (b) Is the percentage taken from **both** the sortie's air and ground score (default: yes, each), and only from positive scores (default:
-yes, a percentage never makes a score negative)? (c) Death and capture together: the larger one only (default), not both.
+**OQ-67 Percentage penalties: the details** (OQ-63 follow-up; (a) answered: a plane lost without death or capture costs 20%)
+Claude's defaults otherwise: the percentage is taken from **both** the sortie's air and ground score, only from positive scores (a
+percentage never makes a score negative), and death + capture together apply the larger one only.
 
 ## Lower impact
 
