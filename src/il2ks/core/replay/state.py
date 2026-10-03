@@ -42,12 +42,14 @@ from il2ks.core.logparse.events import (
 from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.model import (
+    GROUND_CLASSES,
     DamageRecord,
     HitRecord,
     MissionFacts,
     SortieState,
     TrackedObject,
     is_bot_type,
+    is_zero_pos,
     normalize_type,
 )
 from il2ks.core.replay.resolve import resolve_mission
@@ -141,10 +143,16 @@ class Replay:
             case LogVersionEvent():
                 if facts.log_version is None:
                     facts.log_version = event.version
-            case GunBurstEvent() | StoreReleaseEvent() | RocketFiredEvent():
+            case GunBurstEvent():
                 obj = self._objects.get(event.object_id)
                 if obj is not None:
                     obj.update_pos(event.pos)
+            case StoreReleaseEvent() | RocketFiredEvent():
+                obj = self._objects.get(event.object_id)
+                if obj is not None:
+                    obj.update_pos(event.pos)
+                    if not is_zero_pos(event.pos):
+                        obj.releases.append((event.tick, event.pos))  # time on target (attack.py)
             case _:
                 pass
 
@@ -218,9 +226,20 @@ class Replay:
             if parent is not None:
                 existing.set_parent(parent)  # PID:-1 on a pilot re-declaration doesn't break the link (doc 12)
             existing.update_pos(event.pos)
+            self._track_ground(existing, event.tick, event.pos)
             return
         obj = self._new_object(event.object_id, object_type, event.country, parent, bot=False)
         obj.update_pos(event.pos)
+        self._track_ground(obj, event.tick, event.pos)
+
+    @staticmethod
+    def _track_ground(obj: TrackedObject, tick: int, pos: Pos) -> None:
+        """Remember where a ground object (a possible bombing target) was and when. AType 2/3 `POS` is the target's
+        position, so these lines follow vehicles that move. A repeat of the last position isn't stored."""
+        if obj.info.cls not in GROUND_CLASSES or is_zero_pos(pos):
+            return
+        if not obj.track or obj.track[-1][1] != pos:
+            obj.track.append((tick, pos))
 
     # --- sorties ----------------------------------------------------------------------------------------------------
 
@@ -380,6 +399,7 @@ class Replay:
         if target is None or target.destroyed_tick is not None:
             return  # Derived from il2_stats (MIT), see NOTICE: no damage after destruction
         target.update_pos(event.pos)
+        self._track_ground(target, event.tick, event.pos)
         attacker = self._get(event.attacker_id)
         target.damage_log.append(DamageRecord(event.tick, attacker, event.damage))
 
@@ -388,6 +408,7 @@ class Replay:
         if target is None or target.destroyed_tick is not None:
             return
         target.update_pos(event.pos)
+        self._track_ground(target, event.tick, event.pos)
         target.destroyed_tick = event.tick
         target.destroyed_by = self._get(event.attacker_id)
         target.destroyed_pos = event.pos

@@ -9,12 +9,15 @@ import math
 import re
 from dataclasses import dataclass, field
 
-from il2ks.core.catalog.loader import ObjectInfo, canonical_type_name
+from il2ks.core.catalog.loader import ObjectClass, ObjectInfo, canonical_type_name
 from il2ks.core.logparse.events import AccountUuid, MissionStartEvent, ObjectId, Pos, ProfileUuid
 from il2ks.core.replay.areas import Airfield, Area
 from il2ks.core.replay.result import AmmoCounts, Role, SpawnType
 
 _BLOCK_SUFFIX = re.compile(r"\[[^\]]*\]$")
+
+GROUND_CLASSES: frozenset[ObjectClass] = frozenset({"tank", "vehicle", "aaa", "ship", "static"})
+"""Object classes a bomb, napalm or rocket release can be aimed at (time on target, `attack.py`)."""
 
 
 def normalize_type(object_type: str) -> str:
@@ -83,6 +86,8 @@ class TrackedObject:
     destroyed_pos: Pos | None = None
     destroyed_airborne: bool = False
     ground_contact_after_destroyed_tick: int | None = None  # first AType 31/6 after AType 3 (FR-ING-17)
+    track: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # ground objects: (tick, position)
+    releases: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])  # AType 25/26 by this aircraft
     removed_tick: int | None = None  # AType 16 (bots)
     removed_pos: Pos | None = None
     bailout_tick: int | None = None  # AType 18 (gunners and AI only in Korea)
