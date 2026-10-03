@@ -480,7 +480,8 @@ def test_reprocess_reruns_archived_missions_in_place_and_rebuilds_once(env: Env)
 
     summary, rebuilt = do_reprocess(env)
 
-    assert getattr(summary, "ok") == [A, B]  # noqa: B009
+    # workers finish in any order, so the summary order is not part of the contract
+    assert sorted(getattr(summary, "ok")) == [A, B]  # noqa: B009
     assert rebuilt == [1]
     assert set(Mission.objects.values_list("id", flat=True)) == mission_ids  # updated in place
     first_run, second_run = env.runs(A)
