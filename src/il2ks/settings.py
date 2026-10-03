@@ -51,6 +51,7 @@ SECURE_REFERRER_POLICY = _SECURITY.referrer_policy
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "il2ks.web.throttle.LoginThrottleMiddleware",  # locks an address out after repeated failed admin logins
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -119,6 +120,15 @@ def _databases() -> dict[str, dict[str, object]]:
 
 DATABASES = _databases()
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# The admin account is the one thing on the site worth guessing: Django's standard four password checks apply to every
+# password set through the admin and `il2ks createadmin`. Failed logins are throttled by `il2ks.web.throttle`.
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 LANGUAGE_CODE = "en"
 LANGUAGES = [("en", "English")]  # it2 adds ru, de, es, fr, pt-br (TD-24)
