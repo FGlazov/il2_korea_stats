@@ -12,7 +12,7 @@ from il2ks.config import AfterArchive, Config
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import IngestRun, IngestStatus, Mission
+from il2ks.db.models import CompletionReason, IngestRun, IngestStatus, Mission
 from il2ks.ingest import archive as archive_mod
 from il2ks.ingest import runner
 from il2ks.ingest.archive import iter_source_bytes
@@ -488,6 +488,8 @@ def test_reprocess_reruns_archived_missions_in_place_and_rebuilds_once(env: Env)
     assert second_run.fingerprint == first_run.fingerprint  # discovery doesn't see a change
     assert second_run.lines_total == 7
     assert second_run.archive_sha256 == first_run.archive_sha256
+    assert first_run.completion_reason != CompletionReason.REPROCESS
+    assert second_run.completion_reason == CompletionReason.REPROCESS  # FR-ING-18
 
 
 def test_reprocess_only_the_requested_missions_and_reports_missing_ones(env: Env) -> None:
@@ -519,6 +521,7 @@ def test_reprocess_records_failures_without_stopping_and_without_retry_schedule(
     assert failed.status == IngestStatus.FAILED
     assert "replay bug" in failed.error
     assert failed.next_retry_at is None
+    assert failed.completion_reason == CompletionReason.REPROCESS
     assert Mission.objects.filter(mission_uid=A).exists()  # the earlier good result stays
 
 
