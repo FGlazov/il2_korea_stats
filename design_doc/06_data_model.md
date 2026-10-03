@@ -26,6 +26,8 @@ Principles (all `[DECIDED]`):
   know which nation each country code is. **All of 501–503 display as plain "REDFOR" and all of 601–603 as plain "BLUFOR"**, with no
   country code in the UI (maintainer, 2026-10-02: "REDFOR 501" is confusing). The code is still stored per sortie, so real nation names can be
   shown later.
+- **The side comes from the country code** `[DECIDED]` (maintainer, 2026-10-03): 5xx = REDFOR, 6xx = BLUFOR, whatever coalition number `CNTRS`
+  gives it. That's stable even if a mission ever numbers the coalitions differently. Friend or foe still comes from the mission's `CNTRS`.
 - Coalition and country display names are admin-editable (FR-ADM-5), so they can be fixed without a release.
 
 ## Level 1: mission-level tables (written per mission, rebuildable per mission)
@@ -33,30 +35,35 @@ Principles (all `[DECIDED]`):
 ```
 Mission        id, server_uid, mission_uid (unique together), tour → Tour (it2), map/name, file_path,
                started_at (UTC), ended_at, duration_s, game_date, game_type, settings (json),
-               completed_cleanly (bool), winning_coalition (nullable), is_hidden,
-               -- pre-aggregated for list/detail pages:
-               players_total, sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, ...
-PlayerSortie   id, mission, player → Player, name_at_time, profile_uuid, aircraft → GameObject,
-               coalition, country, role (pilot / gunner), spawned_at, took_off_at, landed_at, ended_at,
-               flight_time_s, air_start (bool), spawn_type (air/runway/parking),
-               outcome (landed/ditched/crashed/shot_down/in_flight/not_taken_off/...),
-               pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/disconnected/unknown), pilot_fate_source (event/inferred),
+               completed_cleanly (bool, AType 7 seen), winning_coalition (nullable), is_hidden,
+               -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
+               players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground
+PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
+               aircraft → GameObject, payload_name, coalition, country, role (pilot / gunner),
+               spawned_at, took_off_at, landed_at, ended_at, spawn position, flight_time_s, takeoffs, landings,
+               air_start (bool), spawn_type (air/runway/parking),
+               outcome (landed/ditched/crashed/shot_down/in_flight/not_taken_off/mission_ended/unknown),
+               pilot_fate (in_aircraft/bailed_out/exited_on_ground/mission_ended/disconnected/unknown), pilot_fate_source (event/inferred/unknown),
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
-               kills_air, kills_ground, assists, ...  -- sortie totals for list pages
-               ammo (json: per ammo type: fired, hits given, hits received, damage given/received attributed by FR-WEB-18),
+               is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
+               kills_air, kills_ground, assists, friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
+               ammo (json: loaded, left, hits per ammo type; FR-WEB-18 attribution in it1.x),
                damage_breakdown (json: dealt/taken per counterpart),
                timeline (json: ordered key events with time, type, detail, position)   -- positions only on key events, no track
 Kill           id, mission, time, killer_sortie → PlayerSortie, victim_sortie → PlayerSortie, is_friendly,
-               credit (kill/assist/shared), via (direct / abandoned_aircraft / disconnect), pos_x, pos_y, pos_z
+               credit (kill/assist), via (direct / abandoned_aircraft / disconnect), pos_x, pos_y, pos_z
+               -- unique (victim_sortie, killer_sortie) [DECIDED 2026-10-03]: a sortie is lost once; a killer gets the kill or an assist.
                -- **PvP only** [DECIDED 2026-10-02]: both killer and victim are player sorties. Kills of or by AI, and AI vs AI,
                --    get no Kill rows. Player kills of AI and ground targets are counters on PlayerSortie and entries in its timeline.
-PlayerMission  player, mission, coalition, sorties, flight_time_s, kills_air, kills_ground, assists,
-               deaths, planes_lost, bailouts_known, suspected_early_bailouts, captures, landings, ...
+PlayerMission  player, mission, coalition, + counters     -- only for players with a pilot sortie in the mission
 ```
 
-Gunner sorties are recorded in v1 (`role = gunner`), but get no dedicated pages until gunner stats exist (FR-WEB-14).
+**Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft` (and `PlayerTour` in it2): sorties, flight
+time, air kills, ground kills, assists, deaths, planes lost, bailouts, suspected early bailouts, captures, takeoffs, landings, friendly kills,
+friendly hits, friendly damage. Only **pilot** sorties are counted; gunner sorties are recorded (`role = gunner`) but get no counters or dedicated
+pages until gunner stats exist (FR-WEB-14).
 
 ## Level 2: cross-mission tables (incremental at ingest, rebuildable from level 1)
 
@@ -76,11 +83,11 @@ are computed at read time from those counters, as model properties or template f
 ## Reference and operational tables
 
 ```
-GameObject     id, log_name (unique), display_name, cls (fighter/bomber/attacker/tank/aaa/ship/...),
-               is_playable, is_known (false = auto-registered unknown, FR-ING-7)
+GameObject     id, log_name (unique), display_name, cls (fighter/attacker/bomber/transport/gunner/tank/vehicle/aaa/ship/static/
+               ordnance/crew/equipment/unknown), is_playable, is_known (false = auto-registered unknown, FR-ING-7)
 Country        code (501...), display_name, coalition                                  -- admin-editable
 IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
-               attempts, next_retry_at, started_at, finished_at,
+               completion_reason (mission_end/newer_mission/idle/import/reprocess), attempts, next_retry_at, started_at, finished_at,
                lines_total, lines_bad, log_version, unknown_atypes (json), unknown_keys (json), warnings (json), error
 SiteSettings   singleton: title, server name, logo (path in media/, re-encoded raster), accent colors, description, links  -- TD-25
 ```

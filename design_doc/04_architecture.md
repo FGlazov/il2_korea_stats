@@ -78,15 +78,15 @@ discover_missions(log_dir) ─► for each COMPLETE mission that is new, or whos
     result = replay.run(events, catalog)        # pure, deterministic
     with transaction.atomic():
         upsert(result)                          # level 1, in place by natural key, so URLs stay stable (FR-ING-9)
-        update_aggregates(result)               # level 2: Player, PlayerAircraft (+ PlayerTour in it2); incremental, rebuildable (TD-08)
+        update_aggregates(result)               # level 2: recompute the mission's players from level 1 (+ PlayerTour in it2) (TD-08)
         record IngestRun(ok, fingerprint, archive path + checksum, counts, warnings)
     move originals out of the log folder        # default after verified archive (FR-ING-10)
 on exception: record IngestRun(failed, traceback, next_retry_at); continue to next mission
 ```
 
-- **Re-ingesting a mission** (late parts, retry, reprocess): before upserting, subtract the mission's *old* level-1 contribution from the
-  level-2 totals of the affected players (or recompute just those players from level 1), so incremental totals never double-count.
-  The aggregate-rebuild test (doc 08) covers it.
+- **Level-2 updates** `[DECIDED]` (2026-10-03): after a mission's level-1 rows are written, the affected players (old and new sorties of that
+  mission) are **recomputed from level 1**, never patched with deltas. A first ingest and a re-ingest (late parts, retry, reprocess) take the
+  same path, so totals can't double-count or drift. The aggregate-rebuild test (doc 08) covers it. Details in [14](14_ingest_internals.md#persistence-ingestpersistpy-ingestaggregatespy-td-08).
 - **Mission key** `[PROPOSED]`: the log file name timestamp plus the server ID (see TD-17). Korea's logs
   don't include a mission ID (AType 0 `MID:` is empty).
 - **Completeness detection**: see FR-ING-2. In remote log mode (FR-ING-16), only read parts whose size has stopped changing.
@@ -142,7 +142,7 @@ il2_korea_stats/
 ├── src/il2ks/
 │   ├── core/
 │   │   ├── logparse/         # events.py (dataclasses), parser.py, files.py
-│   │   ├── replay/           # state.py, rules.py, result.py
+│   │   ├── replay/           # state.py (facts), fate/judge/credit/kills.py (rules, doc 13), result.py
 │   │   └── catalog/          # data/*.csv|toml, loader.py
 │   ├── db/                   # Django app: models.py, migrations/
 │   ├── ingest/               # discover.py, persist.py, aggregates.py, archive.py, runner.py

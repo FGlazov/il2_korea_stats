@@ -1,0 +1,182 @@
+# 13 — Game Rules (replay)
+
+How `core.replay` turns a mission's events into sorties, fates, outcomes, kills and breakdowns. This is the **rulebook**: every rule here
+has a scenario test (TD-21). The requirements behind them are in [02](02_functional_requirements.md) (FR-ING-14, 17, 21, 22, 23, 24); the
+log facts they rely on are in [12](12_korea_log_format.md). Status `[DECIDED]` (maintainer review, 2026-10-03) unless tagged otherwise.
+Thresholds are `ReplayRules` fields (`core/replay/config.py`), settable in `[replay]` of `il2ks.toml`.
+
+## Structure
+
+- **`feed()` only records facts; every rule runs at resolve time.** `snapshot()` (provisional) and `finish()` (final) run the same code, so
+  streaming and batch give identical results and lookahead rules simply see the whole history (TD-07). For live sorties (FR-ING-15) the
+  running mission is resolved every few minutes and each pass replaces the previous one; pages say the result may still change.
+- Code: `state.py` records facts, `resolve.py` assembles the result, `judge.py` gives one verdict per sortie, `fate.py` holds one function per
+  rule (TD-16), `credit.py` / `kills.py` do kill credit, `breakdown.py` builds exchanges, hits and the timeline.
+
+## Objects
+
+- **Object identity is the tracked object, not the log ID.** The game recycles IDs a lot (in 7 missions, 15k re-declarations carried a different
+  type than the object they reused). AType 12 for a known ID **updates** it (re-link; a pilot with `PID:-1` keeps its parent). It creates a
+  **new** object when the type differs, or when the old object was already destroyed and isn't a sortie aircraft. A new sortie never reuses a
+  destroyed or differently typed object. IDs seen before any AType 12 get a placeholder object (as il2_stats did).
+- Static block suffixes `[g,i]` are stripped from types. Crew bots aren't reported as seen or unknown types.
+- Ignored as in il2_stats: zero-damage AType 2 lines, and damage after an object's AType 3. Explosion hit lines are never counted as hits
+  (TD-08); they're kept in memory only to label ordnance (FR-WEB-18, it1.x).
+
+## Sortie scope and mission end
+
+- A sortie runs from AType 10 (spawn) to its AType 4 (end), or to the pilot's removal when there is no AType 4 (a disconnect).
+- **The aircraft's destruction counts for the sortie** when its AType 3 comes before the sortie end, or within `post_end_destroy_window_s`
+  after it, or at any time if the pilot left an airborne aircraft (bailout, exit or disconnect: the abandoned aircraft of FR-ING-22). The
+  window exists because a shot-down sortie logs AType 4 *before* AType 3. The same window applies to the pilot's own death.
+  - Default **5 s** for now `[PROPOSED]`. The maintainer asked for ~5 minutes to tolerate server lag, but on all 210 missions every kill line
+    after a normal AType 4 came within 1 s, and nothing came between 1 s and 5 min (doc 12, research pass). So 300 s changes no sortie in the
+    samples, and only adds risk: a pilot who lands, despawns and leaves would be marked dead if someone destroys the parked aircraft (or a
+    recycled ID) within those minutes. Decision: **OQ-30**.
+- **Mission end.** The server force-ends every running sortie right after AType 7. A sortie is **forced by mission end** when it has a
+  *normal* AType 4 (the pilot was still in the aircraft, `PLID` ≠ 0) between the first AType 7 and 5 s after it
+  (`mission_end_sortie_window_s`). A `PLID:0` end, or a removal without AType 4, near mission end is a real exit or disconnect, not forced.
+  For a forced sortie, destruction or death at or after AType 7 is the server's despawn cleanup, not combat, and is ignored.
+  A landed player sitting on the ground at mission end is forced too. Sorties still open at `finish()`: forced if AType 7 was seen, else
+  left open (`in_flight` / `landed`, fate `unknown`).
+
+## Fate and outcome
+
+Two separate answers per sortie:
+- **Pilot fate** = *where the pilot ended up*: still in the aircraft, bailed out, climbed out on the ground, disconnected, or cut off by mission
+  end. It comes from how the sortie ended (AType 4 `PLID`, the pilot's last position, AType 21, AType 18, mission end, the pilot bot's own AType 3).
+- **Outcome** = *what happened to the sortie and its aircraft*: landed, ditched, crashed, shot down, still flying, never took off, mission ended.
+  It comes from whether the aircraft was lost, who caused it, takeoff and landing.
+
+They're independent: a `disconnected` pilot can have outcome `shot_down`; a `bailed_out` pilot can have outcome `crashed` (an undamaged bailout).
+Death, aircraft loss and capture are separate flags (`is_death`, `is_plane_lost`, `is_captured`), derived once here so level 2 only sums them.
+
+### Pilot fate (`fate.pilot_fate_of`)
+Checked top to bottom, the first match wins. Result is `fate / source`.
+
+```
+Is it a gunner with an AType 18 (bailout event)?
+├─ yes → bailed_out / event
+└─ no: Was the pilot bot killed (its own AType 3, in scope)?
+   ├─ yes → in_aircraft / event                      (killed in the aircraft, even if the player then disconnected)
+   └─ no: Was the sortie forced by mission end?
+      ├─ yes, with an AType 4 → mission_ended / event
+      ├─ yes, still open      → mission_ended / inferred
+      └─ no: How did the sortie end?
+         ├─ AType 4 PLID:0 (pilot not in the aircraft)
+         │  ├─ bailout rule v2 holds (FR-ING-14) → bailed_out / inferred
+         │  ├─ pilot's final position known      → exited_on_ground / inferred
+         │  └─ position missing                  → unknown / unknown
+         ├─ disconnect: no AType 4 (pilot just removed),
+         │  or a normal AType 4 with an AType 21 within ±30 s while airborne
+         │                                       → disconnected / inferred   (also when an attacker destroyed the aircraft)
+         ├─ normal AType 4 (PLID = the aircraft) → in_aircraft / event
+         └─ still open                           → unknown / unknown   (snapshot: in_aircraft / inferred)
+```
+
+**Bailout rule v2** (FR-ING-14): `PLID:0`, and the aircraft was airborne (at its destruction, else at sortie end), and the pilot's final position
+is ≥ 100 m from the aircraft's last known position, and the pilot didn't die within 0.5 s of the aircraft. "Last known position" = the AType 3
+position if destroyed, else the latest position recorded for the aircraft (spawn, damage, kill, wheels, takeoff, landing, re-declaration).
+**Suspected early bailout** adds: no hits or damage on aircraft or pilot from any attacker (environment and the sortie's own objects don't
+count), no disconnect, and the sortie didn't end within 60 s before the first AType 7.
+
+`disconnected` (the flag, not the fate) = an AType 21 within ±30 s of the sortie end, or removal without AType 4. A player who lands, despawns
+and then leaves has `disconnected = true` but fate `in_aircraft`.
+
+### Loss, death and cause (`judge.judge`)
+
+```
+loss          = the aircraft's AType 3, if in scope (see Sortie scope); dropped if forced and at/after AType 7
+died          = the pilot bot's AType 3 in scope (gunner: or its turret's, unless it bailed out); same mission-end rule
+in the aircraft when it was lost?  fate in_aircraft, or fate disconnected with an attacker's kill line
+              → the pilot died with it: died = loss tick
+disconnect death (FR-ING-21) = fate disconnected, no attacker kill line, and ANY damage (any source) on aircraft or crew
+              in the 120 s before the disconnect
+fate disconnected without that damage and without an attacker kill → no loss, no death (the abandoned aircraft's later crash is ignored)
+
+is_plane_lost = loss, or died, or bailed out, or disconnect death
+loss_cause    = none      if nothing was lost
+              = attacker  if the kill line names an attacker other than the sortie itself,
+                          or any attacker hit or damage on the aircraft or crew came before the loss
+              = self      otherwise (terrain, overstress, collision with nobody to blame, abandoned aircraft)
+is_death      = died or disconnect death
+is_captured   = alive, not forced, and the pilot's bailout / ground-exit / last landing position lies in an enabled influence area
+                (AType 13/14, 2D polygons) of another non-neutral coalition
+pilot_status  = dead > captured > wounded (pilot bot took any damage) > healthy
+aircraft_status = destroyed (loss) > damaged (damage_taken > 0) > unharmed;  damage_taken = own damage lines up to the loss, capped at 1
+```
+
+A **bailout without any AType 3** for the aircraft still counts as a loss (the aircraft was abandoned in the air), as in il2_stats. So a missing
+destruction line can't hide a bailout. A missing *bailout* signal (no `PLID:0`) means the pilot is read as having stayed in the aircraft, and if
+that aircraft was destroyed, as having died with it. That's the conservative reading.
+
+A pilot who crashes into a mountain with no attacker involvement is `crashed`, `loss_cause = self`, and nobody gets credit; the death is still
+recorded (a kill entry with no killer).
+
+**Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
+(none = not flagged).
+
+### Outcome (`judge._outcome`)
+
+```
+Was the aircraft lost (is_plane_lost)?
+├─ yes → shot_down if loss_cause = attacker, else crashed
+└─ no: Did it ever take off?
+   ├─ no  → not_taken_off
+   └─ yes: Forced by mission end?
+      ├─ yes → mission_ended
+      └─ no: Is the sortie still open?
+         ├─ yes → in_flight if airborne, else landed
+         └─ no: Did the pilot disconnect (fate disconnected, no death)?
+            ├─ yes → unknown if airborne at the end, else landed / ditched (below)
+            └─ no: Airborne at the end (despawned in the air)?
+               ├─ yes → in_flight
+               └─ no  → landed / ditched:
+                        landed  if the last landing was within 4 km of a friendly airfield,
+                                or no landing / no friendly airfield was logged (can't tell)
+                        ditched otherwise
+```
+
+## Kills and credit
+
+- **Credit is resolved for every lost player aircraft**, not only after bailouts and disconnects (so an aircraft shot up that later crashes on
+  its own is credited to the shooter, consistent with `loss_cause = attacker`): an explicit `AID` on the kill line wins unless it's the sortie
+  itself; with `AID:-1` the attacker with the **most damage** wins. Every other damager with ≥ 1% damage (`assist_min_damage`) gets an
+  assist (il2_stats gave only the second damager an assist). Damage to the pilot bot and turrets counts as damage to the aircraft. `via` =
+  `direct`, `abandoned_aircraft` (bailout or ground exit) or `disconnect`. There is no shared credit.
+- A disconnect or bailout without an AType 3 for the aircraft still creates the victim record (at sortie end), so damage-based credit applies.
+- **Victims**: every destroyed object except crew, equipment (parachutes, ejection seats, spotters, vehicle turrets), gunner turrets and
+  ordnance. **Static objects count as
+  ground kills** (maintainer: keep everything, score them low later).
+- **Coverage**: a kill record exists for every kill with a player on at least one side, PvE included (FR-WEB-21). AI-vs-AI is dropped. Only
+  PvP becomes a `Kill` row; the rest feeds sortie counters and timelines.
+- **Gunners** `[PROPOSED]` (2026-10-03):
+  - **The log credits gunner fire to the parent aircraft** (doc 12): no line ever names a turret or gunner as attacker. So in practice the
+    **pilot gets every kill their gunner makes**, and a gunner sortie gets none. The code also has the opposite rule ready (a gunner's own kill
+    gives the player pilot an assist) in case a game update starts naming turrets; it never fires on current logs. How to reward gunners: OQ-31.
+  - A player gunner can **die**: the gunner sortie records the death and its killer (when the aircraft is shot down, or the gunner bot is
+    killed). It is **not** a separate kill for the attacker, who already gets the aircraft. A gunner's flight state comes from the parent
+    aircraft.
+- **Friendly fire** (FR-ING-23): killer and victim in the same non-zero coalition → `is_friendly`. Not counted as kills or assists; counted as
+  friendly kills, plus friendly hits and damage per sortie; timeline entry `friendly_fire`. Friendly kills include own-side AI and static
+  objects (a friendly fence counts), so expect them to look high until the breakdown by class (FR-WEB-21) is on the page. Friendly hits and
+  damage stop at the shooter's sortie end and exclude the sortie's own aircraft and crew.
+
+## Breakdowns and timeline
+
+- Damage exchanges and hits are grouped **per counterpart** (object type + sortie, if it's a player), folded to the aircraft (crew and turrets
+  count as their aircraft). Self damage is left out. Hits per ammo type count every non-explosion hit line given or received.
+- **Timeline** = the sortie page's event list. Entry kinds: `spawn`, `takeoff`, `landing`, `kill`, `assist`, `friendly_fire`,
+  `shot_down` / `destroyed`, `bailout`, `disconnect`, `sortie_end`; each with time, position and counterpart.
+- `takeoff` time of an air start = the spawn time (`takeoffs` counts real AType 5 only). `flight_time_s` = sum of airborne intervals. Both stop at
+  the aircraft's loss: logs write a "landing" for a falling wreck.
+
+## Ammo and resupply
+
+- v1 stores per ammo type: loaded (AType 10), left (AType 4) and hits. The damage-per-ammo attribution of FR-WEB-18 is it1.x.
+- **Resupply** (FR-ING-24): a player can land, rearm and take off again in one sortie, so "loaded − left" undercounts what was fired, and
+  AType 24 gun bursts carry no round count. The log has **no resupply event** (doc 12), so it's inferred `[PROPOSED]`: with
+  `replay.resupply_allowed = true` (default; most servers allow it), a landing followed by another takeoff in the same sortie marks the sortie
+  `resupplied`, and "ammo used" is unknown for it (hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
+  "Used" is also unknown for bombs when "left" exceeds "loaded" (IL-10 bomblet payloads count stations when loaded and bomblets when left).
+  About 2% of sorties take off more than once.

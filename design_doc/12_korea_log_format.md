@@ -157,6 +157,46 @@ the F-86 that the rule can't tell apart from a voluntary bailout.
    AType 12 re-declaration and the missing AType 18.
 3. Parse failures: all AType 8 lines, AType 12 names with commas, and new ATypes 24–31 get dropped with warnings.
 
+## Findings from the 2026-10-03 research pass (all 210 missions)
+
+**Object IDs are recycled within a mission**, including aircraft: 79 aircraft IDs get two or more AType 10 spawns in one mission (different types and
+pilots), and bots and stores share the same ID pool. Every per-sortie analysis must window a sortie from its spawn to the next spawn of the same ID,
+and treat a re-declaration with another type as a new object (doc 13, Objects).
+
+**Resupply is not logged.** 229 of 11,364 sorties that took off (2.0%) have more than one takeoff (mostly MiG-15bis, F-86A-5, F-80C-10). Between
+a landing and the next takeoff there is no rearm, refuel, payload or re-spawn event of any kind (no AType 10/12/28, no new keys). 236 of 266 such
+landings are within 3 km of an airfield, and the gap is a median 347 s (only 5 of 158 under 2 min), consistent with rearming. **AType 4 ammo-left
+describes only the final leg**: in bomb-only sorties, releases exceed the loaded bomb count in 42% of multi-takeoff sorties (1.6% of single-takeoff
+ones, likely data noise). Separately, IL-10 bomblet payloads (PTAB, AO) report `BOMB` loaded as stations (e.g. 4) but left as bomblets (60–146): a
+units mismatch, so "loaded − left" is meaningless there.
+
+**Ordnance.** Releases are logged: AType 25 ~13.1k (bombs, napalm, drop tanks, JATO), AType 26 ~5.3k rocket salvos. **No bomb or rocket type ever
+appears as an AType 12 object** (95–98% of the TIDs were never declared; the rest are recycled IDs), so the store type can't be learned from the log
+and must come from the payload. Bombs and rockets **never act as attacker**: in 12.5M explosion hits and 2.1M damage lines the `AID` is always the
+carrier aircraft, so credit needs no store-to-carrier mapping. Named ordnance hit lines do exist for bombs (`FAB100sc`, `FAB250M43`, `M57/M64/M65`,
+PTAB/AO clusters), rockets (`HVAR`, `M13UK`, `ATAR`, `TinyTim`) and napalm, for every attack-capable type including the MiG-15bis (FAB-100); Yak-9P
+and La-11 have none. Bomb payloads are common: IL-10 97% of spawns, F-84E 65%, F-80C 62%, F-51D 39%, and some F-86A-5 and MiG-15bis.
+
+**Gunners.** 104 player gunner sorties, all `Turret_IL10`, always under a player pilot, spawning in the air. **Gunner fire is credited to the parent
+aircraft**: no hit, damage or kill line ever names a turret or gunner bot as attacker, so a gunner's kills can't be told apart from the pilot's. The
+turret object never gets an AType 3; the gunner bot does in 20 of 104 sorties. Gunner sorties end like pilot sorties (83 with AType 4 `PLID` = the
+turret, 2 with `PLID:0`, 19 without AType 4). `ISPL` is false for gunners, so identify them by type and parent, not `ISPL`.
+
+**Coalitions.** Only two `CNTRS` maps occur: `0:0,501:1,502:1,503:1,601:2` (187 missions) and the same plus `602:2,603:2` (23). No 5xx is ever in
+coalition 2 or 6xx in 1, every spawn's country is in `CNTRS`, and 602/603 are listed but never used by any object.
+
+**Kills after the sortie end.** For 10,334 sorties with a normal AType 4, the first AType 3 on the aircraft is before the AType 4 (3,241), within
+1 s after it (1,723: 71% of them are the mission-end despawn), or more than 5 minutes later (3: parked aircraft destroyed much later, or a recycled
+ID). **Nothing falls between 1 s and 5 min**, so no "lagged kill lines" were seen; of the 26 kill events later than 5 s, 20 hit a different object
+that had re-used the ID.
+
+**Disconnects.** 1,354 sorties that took off end without AType 4; 99.2% have the account's AType 21 within 30 s. 81% had no damage in the 2 minutes
+before and no destruction (fate genuinely unknown), 9.3% had attacker damage or hits in that window, 8.8% only environment damage, and 3.4% were
+destroyed by an attacker (mostly before the disconnect).
+
+**il2_stats completeness** (for comparison, `stats_whore.py:54-86`): no completeness check at all. It processed a mission once a newer `[0]` existed,
+or when the newest part's mtime was more than **120 s** old, polling every 30 s, and never waited for AType 7 (which only set a flag).
+
 ## Position data
 - There's **no periodic position tracking**. AType 17 (position) never appears in Korea logs. Positions only come attached to other
   events: spawn (10), takeoff and landing (5/6), wheels off/on (30/31), damage (2), kills (3), gun bursts (24), stores and rockets (25/26),

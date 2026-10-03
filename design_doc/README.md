@@ -36,6 +36,8 @@ Every requirement and decision carries one of these tags (they're easy to grep):
 | [10_roadmap.md](10_roadmap.md) | Iterations: MVP, follow-ups, global stats |
 | [11_open_questions.md](11_open_questions.md) | Unresolved questions, in priority order |
 | [12_korea_log_format.md](12_korea_log_format.md) | **IL-2 Korea log format as observed in real logs**: event types, changes from BoS, known game bugs, why il2_stats fails |
+| [13_game_rules.md](13_game_rules.md) | **Replay rulebook**: objects, sortie scope, pilot fate and outcome decision trees, loss and death, kill credit, gunners, friendly fire, resupply |
+| [14_ingest_internals.md](14_ingest_internals.md) | Parser, catalog, ingest jobs (config, discovery, archive, lock, CLI) and persistence as implemented |
 
 Real sample logs live in `../sample_data/`. They're gitignored and contain player data: **never commit them**.
 
@@ -84,3 +86,6 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-03 (explosion lines never counted as hits; ordnance counted as damaged targets per detonation).
   2026-10-03 (hits-to-destroy per aircraft type counts gun hits only; revisit if air-to-air missiles arrive).
   2026-10-03 (payload file may be redistributed: shipped as core/catalog/data/payloads.csv; OQ-25 reduced to WM names and gaps).
+  2026-10-03 (iteration 1 review: OQ-I1 batch resolved into new docs 13 (game rules, fate/outcome trees) and 14 (ingest internals);
+  level 2 recomputed per player; friendly fire, resupply, PvE breakdown, reprocess by date range; score split air/ground, Elo and
+  time-on-target ideas; page caching TD-28; sample research on resupply, ordnance, gunners, post-end kills; new OQ-27..31).

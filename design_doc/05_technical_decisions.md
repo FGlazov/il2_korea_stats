@@ -80,8 +80,8 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Levels of tables** (at least two to start; more get added if pages need them, under the same rule: every level rebuilds from the one below):
   1. **Mission-level** (written when one mission is ingested, depends only on that mission): `Mission`, `PlayerSortie` (with its
      timeline, damage breakdown, ammo, and key-event positions), `Kill`, `PlayerMission`. Can be rebuilt per mission, in parallel.
-  2. **Cross-mission** (`PlayerAircraft`, all-time totals on `Player`, and in it2 `PlayerTour`): updated **incrementally** at ingest by adding the
-     new mission's level-1 rows, and always **rebuildable from level 1** (`il2ks rebuild-aggregates`: plain sums, maxes, and ordered passes for
+  2. **Cross-mission** (`PlayerAircraft`, all-time totals on `Player`, and in it2 `PlayerTour`): updated at ingest by **recomputing the
+     mission's players from level 1** (2026-10-03; was "add the new mission's rows"), and always **rebuildable from level 1** (`il2ks rebuild-aggregates`: plain sums, maxes, and ordered passes for
      streaks). Incremental updates are safe *because* a rebuild exists. That's exactly what the old system lacked (its `fix_*` jobs and migrations).
 - **Positions:** stored on the key events we keep (spawn, takeoff, landing, kills, death, bailout, sortie end). There's **no flight track**:
   the logs have no periodic position updates (AType 17 never appears), so positions during cruise are unknown
@@ -127,6 +127,9 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
     where the dynamic ORM can't be typed. Unnecessary ignores are errors (`reportUnnecessaryTypeIgnoreComment`).
   - Alternative considered: mypy `--strict` + `django-stubs` (deeper Django plugin, but slower and doesn't match the editor). Astral's `ty`:
     watch it, but don't adopt it yet.
+- **Dead-code check: `vulture`** `[DECIDED]` (maintainer request, 2026-10-03), in pre-commit and CI. Code kept on purpose for a later
+  feature (streaming, PoC pages, public API used by tests) is listed in a whitelist file, each entry with the feature or requirement that
+  will use it, so "unused for now" is a visible decision instead of an accident.
 - **Data checks without extra frameworks** `[DECIDED]` (2026-10-02): invariants are **database constraints** (`CheckConstraint` /
   `UniqueConstraint`, for example `kills >= 0`, `0 <= damage_taken <= 1`, allowed `pilot_fate` values, one `PlayerMission` per player and mission),
   so they hold in production too. Logic and query tests are plain pytest on fixture missions. **No dbt** (the core logic is stateful Python, and
@@ -297,8 +300,25 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 
 ### TD-27 Observability: log files now, self-hosted monitoring later — `[DECIDED]` (2026-10-02)
 - **v1:** each process (`web`, `watch`, Caddy) writes **rotating log files** in the data directory, plus stdout. The level is configurable.
+  Files rotate **daily and are kept for a configurable number of days** (default 14), not by size (maintainer, 2026-10-03). Every JSON line
+  carries the `server_uid`, so logs from several servers can be told apart once they're collected centrally.
   Ingestion history is visible in the admin (`IngestRun`). `il2ks doctor` checks the processes are healthy. Nothing else.
 - **Later:** optional metrics and error tracking. Datadog works but is a paid cloud service. Self-hostable open-source alternatives the
   maintainer could run: **Grafana + Loki + Prometheus** (logs + metrics), **SigNoz** or **OpenObserve** (all-in-one, OpenTelemetry-based),
   and **GlitchTip** (Sentry-compatible error tracking). The cheapest path is structured (JSON) logs from day one, plus OpenTelemetry later,
   so any of these can be plugged in. Opt-in only, because it sends data off the machine (TD-13).
+
+### TD-28 Page caching: keyed on a data version — `[PROPOSED]` (2026-10-03)
+- **Context:** the maintainer asked for a front-end caching strategy. Page data only changes when the ingester commits a mission or an admin edits
+  something shown on pages (hidden players or missions, names, branding). Between those moments every page is static.
+- **Decision:** keep one **data version** (a counter in the DB, bumped in the same transaction as each mission save, `reprocess` /
+  `rebuild-aggregates`, and admin saves of page-visible models).
+  1. **HTTP revalidation first:** views send an `ETag` built from the data version, the language and the il2ks version (Django's `condition()`
+     decorator). Browsers and Discord link previews revalidate with a cheap `304 Not Modified`. `Cache-Control: public, max-age=60`.
+  2. **Server-side cache only if measured slow:** Django's per-view cache with the data version in the key, on the local-memory or file backend.
+     No Redis or memcached (one more service for admins, NFR-INS). Old entries just expire; nothing is invalidated by hand.
+  3. **Static files:** WhiteNoise with hashed file names, cached for a year.
+- **Why:** correct by construction (a new version can't show stale data, and hiding a cheater takes effect at once), zero setup for admins,
+  and pages are already simple reads (TD-22), so step 2 may never be needed.
+- **Live data later** (online now, FR-ING-12; live sorties, FR-ING-15): those fragments change every few seconds or minutes. They're HTMX
+  partials with their own short `max-age`, outside the data-version scheme.
