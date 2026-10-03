@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from il2ks.core.catalog.loader import Catalog, ObjectInfo
 from il2ks.core.logparse.events import (
     NO_OBJECT,
+    TICKS_PER_SECOND,
     AccountUuid,
     AirfieldEvent,
     AreaBoundaryEvent,
@@ -212,6 +213,11 @@ class Replay:
         parent = self._objects.get(event.parent_id) if event.parent_id not in (NO_OBJECT, event.object_id) else None
         existing = self._objects.get(event.object_id)
         reused = existing is not None and existing.sortie is None and existing.destroyed_tick is not None
+        if existing is not None and existing.sortie is not None and existing.sortie.end_tick is not None:
+            # An ended sortie's aircraft or bot ID declared again later is a new object, or a later AType 3 on it would
+            # count as the old sortie's loss or death (the shot-down shape re-declares within a second of AType 4)
+            late = existing.sortie.end_tick + round(self._rules.post_end_destroy_window_ground_s * TICKS_PER_SECOND)
+            reused = event.tick > late
         if (
             existing is not None
             and not reused  # a destroyed AI object's ID comes back as a new object (15k such re-uses in the samples)

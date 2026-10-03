@@ -238,3 +238,35 @@ def test_gunner_sortie_open_at_the_mission_end_is_closed_by_it() -> None:
     gunner = by_acct(sc.result(), 3)
     assert (gunner.outcome, gunner.pilot_fate) == ("mission_ended", "mission_ended")
     assert gunner.end_tick >= 100 * 50
+
+
+def test_parent_destroyed_minutes_after_the_gunner_left_is_not_the_gunners_death() -> None:
+    """The 300 s post-end window is for pilots: the aircraft flew on after the gunner left it (2 sample sorties)."""
+    sc = _crew()
+    sc.fly(600, 601, 4)  # an enemy F-86A-5 to do the shooting
+    sc.end(50, 500, 501)
+    sc.damage(249.5, 600, 200, 0.5)
+    sc.kill(250, 600, 200)
+    sc.end(250.1, 200, 201)
+    result = sc.result()
+    gunner = by_acct(result, 3)
+    assert (gunner.is_death, gunner.is_plane_lost, gunner.outcome) == (False, False, "unknown")
+    assert by_acct(result, 2).outcome == "shot_down"
+
+
+def test_turret_id_reused_for_another_aircraft_after_the_gunner_left_keeps_the_old_parent() -> None:
+    """Real shape: the gunner leaves, and the same turret ID is later declared again under a different aircraft for
+    the next gunner. The ended sortie must stay attached to its own aircraft (it used to be re-linked to the new)."""
+    sc = _crew()
+    sc.end(50, 500, 501)
+    sc.land(100, 200)
+    sc.end(110, 200, 201)
+    sc.fly(600, 601, 4, aircraft_type="IL-10", country=501, spawn=300, up=305)
+    sc.player(310, 500, 501, 5, aircraft_type="Turret_IL10", country=501, parent=600)
+    sc.land(400, 600)
+    sc.end(410, 600, 601)
+    sc.end(410, 500, 501)
+    result = sc.result()
+    first, pilot = by_acct(result, 3), by_acct(result, 2)
+    assert first.parent_sortie_index == pilot.index
+    assert (first.outcome, first.takeoff_tick is not None) == ("unknown", True)

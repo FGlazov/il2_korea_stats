@@ -90,6 +90,8 @@ def _build_sortie(
         suspected_early_bailout=verdict.suspected_early_bailout,
         loss_cause=verdict.loss_cause,
         suspected_structural_failure=verdict.structural_failure,
+        taxi_accident=verdict.taxi_accident,
+        strafed_on_ground=verdict.strafed_on_ground,
         kills_air=sum(1 for k in credited if k.victim_kind == "air"),
         kills_ground=sum(1 for k in credited if k.victim_kind == "ground"),
         assists=sum(1 for k in mine if k.credit == "assist"),
