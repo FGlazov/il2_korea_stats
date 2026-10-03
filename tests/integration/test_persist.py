@@ -155,10 +155,10 @@ def test_players_and_player_missions() -> None:
     p2 = Player.objects.get(account_uuid=account(2))
     assert (p2.planes_lost, p2.bailouts, p2.deaths) == (1, 1, 0)
 
-    # The gunner gets a PlayerMission row (took part) but no counted sorties (FR-WEB-14).
-    gunner = PlayerMission.objects.get(player__account_uuid=account(3))
-    assert (gunner.sorties, gunner.coalition) == (0, 1)
-    assert PlayerMission.objects.count() == 3
+    # A gunner-only player is a Player but gets no PlayerMission until gunner stats exist (FR-WEB-14).
+    assert Player.objects.filter(account_uuid=account(3)).exists()
+    assert not PlayerMission.objects.filter(player__account_uuid=account(3)).exists()
+    assert PlayerMission.objects.count() == 2
     assert list(PlayerName.objects.filter(player=p1).values_list("name", flat=True)) == ["Player-1"]
 
 
@@ -250,7 +250,7 @@ def test_new_mission_failure_leaves_nothing(monkeypatch: pytest.MonkeyPatch) -> 
     def boom(*_args: object) -> None:
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(persist, "add_mission", boom)
+    monkeypatch.setattr(persist, "recompute_players", boom)
     with pytest.raises(RuntimeError), transaction.atomic():
         persist.save_mission(basic_result(), meta(), FakeCatalog())
 

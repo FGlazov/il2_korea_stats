@@ -21,6 +21,8 @@ class ObjectClass(models.TextChoices):
     SHIP = "ship"
     STATIC = "static"
     ORDNANCE = "ordnance"
+    CREW = "crew"  # bots and crew groups
+    EQUIPMENT = "equipment"  # parachutes, ejection seats, spotters, vehicle turrets
     UNKNOWN = "unknown"
 
 
@@ -143,6 +145,10 @@ class Counters(models.Model):
     captures = models.PositiveIntegerField(default=0)
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
+    # Friendly fire is tracked apart from the counters above (never in kills_*, assists)
+    friendly_kills = models.PositiveIntegerField(default=0)
+    friendly_hits = models.PositiveIntegerField(default=0)
+    friendly_damage = models.FloatField(default=0.0)
 
     class Meta:
         abstract = True
@@ -168,6 +174,7 @@ class Player(Counters):
 class PlayerName(models.Model):
     """Nickname history, so search finds old names (FR-WEB-3)."""
 
+    player_id: int
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="names")
     name = models.CharField(max_length=128)
     name_lower = models.CharField(max_length=128, db_index=True)
@@ -208,6 +215,7 @@ class Mission(models.Model):
     blufor_sorties = models.PositiveIntegerField(default=0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
+    friendly_kills = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["server_uid", "mission_uid"], name="mission_natural_key")]
@@ -259,6 +267,9 @@ class PlayerSortie(models.Model):
     assists = models.PositiveIntegerField(default=0)
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
+    friendly_kills = models.PositiveIntegerField(default=0)
+    friendly_hits = models.PositiveIntegerField(default=0)
+    friendly_damage = models.FloatField(default=0.0)
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
@@ -296,7 +307,10 @@ class PlayerSortie(models.Model):
 
 
 class Kill(models.Model):
-    """PvP only `[DECIDED]`: killer and victim are both player sorties (doc 06)."""
+    """PvP only `[DECIDED]`: killer and victim are both player sorties (doc 06).
+
+    One row per `(victim_sortie, killer_sortie)`: a victim sortie is lost once, and a killer sortie gets either the kill
+    or an assist on it, never both. `credit` and `tick` are plain attributes, updated when the row is upserted."""
 
     mission_id: int
     killer_sortie_id: int
@@ -316,9 +330,7 @@ class Kill(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["killer_sortie", "victim_sortie", "tick", "credit"], name="kill_natural_key"
-            ),
+            models.UniqueConstraint(fields=["victim_sortie", "killer_sortie"], name="kill_natural_key"),
             models.CheckConstraint(condition=models.Q(credit__in=KillCredit.values), name="kill_credit_valid"),
             models.CheckConstraint(condition=models.Q(via__in=KillVia.values), name="kill_via_valid"),
         ]
@@ -374,6 +386,16 @@ class IngestStatus(models.TextChoices):
     SKIPPED = "skipped"
 
 
+class CompletionReason(models.TextChoices):
+    """Why a mission counted as complete when it was ingested (FR-ING-2, FR-ING-18)."""
+
+    MISSION_END = "mission_end"  # AType 7 seen, and the settle time passed
+    NEWER_MISSION = "newer_mission"  # a newer mission's [0] part exists
+    IDLE = "idle"  # no new part for the idle timeout: admins review these
+    IMPORT = "import"  # `ingest --from` or a whole-mission archive in the log folder
+    REPROCESS = "reprocess"  # rebuilt from the stored archive
+
+
 class IngestRun(models.Model):
     """One attempt to ingest one mission (FR-ING-11, FR-ING-18, FR-ING-19)."""
 
@@ -386,6 +408,7 @@ class IngestRun(models.Model):
     archive_path = models.CharField(max_length=500, blank=True)
     archive_sha256 = models.CharField(max_length=64, blank=True)
     status = models.CharField(max_length=8, choices=IngestStatus.choices)
+    completion_reason = models.CharField(max_length=16, choices=CompletionReason.choices, blank=True, default="")
     attempts = models.PositiveIntegerField(default=1)
     next_retry_at = models.DateTimeField(null=True)
     il2ks_version = models.CharField(max_length=32, blank=True)
@@ -401,7 +424,11 @@ class IngestRun(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=models.Q(status__in=IngestStatus.values), name="ingestrun_status_valid")
+            models.CheckConstraint(condition=models.Q(status__in=IngestStatus.values), name="ingestrun_status_valid"),
+            models.CheckConstraint(
+                condition=models.Q(completion_reason__in=["", *CompletionReason.values]),
+                name="ingestrun_completion_reason_valid",
+            ),
         ]
         indexes = [models.Index(fields=["mission_uid", "-started_at"], name="ingestrun_latest")]
 

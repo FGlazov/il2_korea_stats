@@ -6,7 +6,7 @@ from datetime import timedelta
 import pytest
 
 from il2ks.db.models import Counters, Player, PlayerAircraft, PlayerName
-from il2ks.ingest.aggregates import rebuild_aggregates, subtract_mission
+from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from il2ks.ingest.counters import COUNTER_FIELDS, FLOAT_COUNTERS
 from tests.factories import STARTED_AT, account, meta, mission, reindexed, save, sortie
 
@@ -110,10 +110,37 @@ def test_rebuild_repairs_drifted_counters() -> None:
     assert level2()["aircraft"] == expected["aircraft"]
 
 
-def test_subtract_then_rebuild_leaves_no_contribution() -> None:
-    m = save(mission((sortie(0, 1, kills_air=2, flight_time_s=0.1), sortie(1, 1, aircraft_type="Il-10"))))
-    subtract_mission(m)
+def test_reingest_without_a_player_zeroes_them_and_drops_their_aircraft_rows() -> None:
+    """Level 2 is recomputed for the mission's old players too: a player who vanished keeps the row, with no totals."""
+    first = mission((sortie(0, 1, kills_air=2, flight_time_s=0.1), sortie(1, 1, aircraft_type="Il-10"), sortie(2, 2)))
+    save(first)
+    p1 = Player.objects.get(account_uuid=account(1))
+    assert p1.sorties == 2
+    assert PlayerAircraft.objects.filter(player=p1).count() == 2
 
-    p = Player.objects.get()
-    assert all(getattr(p, f) == 0 for f in COUNTER_FIELDS)
-    assert not PlayerAircraft.objects.exists()
+    save(mission((replace(first.sorties[2], index=0),)))
+
+    p1.refresh_from_db()
+    assert all(getattr(p1, f) == 0 for f in COUNTER_FIELDS)
+    assert not PlayerAircraft.objects.filter(player=p1).exists()
+    assert p1.current_name == "Player-1"  # identity stays (URL stays, FR-WEB-13)
+    assert Player.objects.get(account_uuid=account(2)).sorties == 1
+
+
+def test_recompute_players_only_touches_the_given_players() -> None:
+    save(mission((sortie(0, 1, kills_air=1), sortie(1, 2, kills_air=1))))
+    Player.objects.update(kills_air=99)
+
+    recompute_players([Player.objects.get(account_uuid=account(1)).pk])
+
+    assert Player.objects.get(account_uuid=account(1)).kills_air == 1
+    assert Player.objects.get(account_uuid=account(2)).kills_air == 99
+
+
+def test_rebuild_keeps_player_aircraft_pks() -> None:
+    save(mission((sortie(0, 1), sortie(1, 1, aircraft_type="Il-10"))))
+    pks = sorted(PlayerAircraft.objects.values_list("pk", flat=True))
+
+    rebuild_aggregates()
+
+    assert sorted(PlayerAircraft.objects.values_list("pk", flat=True)) == pks

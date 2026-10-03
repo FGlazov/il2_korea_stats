@@ -22,7 +22,7 @@ from django.db import transaction
 
 from il2ks import __version__
 from il2ks.config import AfterArchive, Config
-from il2ks.core.catalog.loader import Catalog, load_default_catalog
+from il2ks.core.catalog.loader import Catalog, country_side_warnings, load_default_catalog
 from il2ks.core.logparse.events import LogEvent
 from il2ks.core.logparse.files import MissionLog, MissionLogKind, group_mission_files, parse_mission
 from il2ks.core.logparse.parser import ParseStats
@@ -289,6 +289,7 @@ def ingest_mission(
         files=[f.path.name for f in item.files],
         fingerprint=item.fingerprint,
         status=IngestStatus.OK,
+        completion_reason=item.complete or "",
         il2ks_version=__version__,
         started_at=now(),
     )
@@ -307,7 +308,8 @@ def ingest_mission(
         result = pipeline.replay(events)
         start = pipeline.resolve_start(uid, cfg.timezone, _first_part_mtime(item))
         meta = MissionMeta(cfg.server_uid, uid, start.started_at, run.archive_path)
-        fill_counters(run, stats, (*plan.warnings, *start.warnings))
+        side_warnings = country_side_warnings(result.mission.countries)
+        fill_counters(run, stats, (*plan.warnings, *start.warnings, *side_warnings))
         with transaction.atomic():
             mission = pipeline.save(result, meta)
             run.mission = mission

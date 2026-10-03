@@ -17,8 +17,10 @@ from typing import Literal
 from il2ks.config import IngestConfig
 from il2ks.core.logparse.files import MissionLog
 
-type Completeness = Literal["mission_end", "newer_mission", "idle", "archive", "import"]
-"""Why a mission counts as complete. `import`: an explicit `ingest --from`, where every mission is taken as complete."""
+type Completeness = Literal["mission_end", "newer_mission", "idle", "import"]
+"""Why a mission counts as complete; the values are `db.models.CompletionReason` (stored on `IngestRun`, FR-ING-18).
+`import`: an explicit `ingest --from`, or a whole-mission archive in the log folder (nothing to wait for).
+(`reprocess` isn't decided here: it rebuilds from the stored archive.)"""
 
 type Decision = Literal["new", "changed", "retry", "unchanged", "backoff", "gave_up"]
 """`new`/`changed`/`retry` get ingested; `unchanged`/`backoff`/`gave_up` are skipped (FR-ING-18, FR-ING-19)."""
@@ -88,7 +90,7 @@ def completeness(
     if remote and newest_age < cfg.stable_seconds:
         return None
     if log.kind == "archive":
-        return "archive"
+        return "import"
     if newer_mission_exists:
         return "newer_mission"
     if newest_age >= cfg.idle_minutes * 60:

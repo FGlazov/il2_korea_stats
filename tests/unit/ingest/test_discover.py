@@ -96,8 +96,8 @@ def test_whole_mission_archives_are_complete(tmp_path: Path) -> None:
     (tmp_path / part_name(B, 0)).write_bytes(b"T:0 AType:0\r\n")
     for path in tmp_path.iterdir():
         set_mtime(path, T0 - timedelta(seconds=5))
-    assert run_discover(tmp_path, txt_as="archive") == {A: "archive", B: "archive"}
-    assert run_discover(tmp_path, txt_as="parts") == {A: "archive", B: None}  # a raw `[0].txt` is a running mission
+    assert run_discover(tmp_path, txt_as="archive") == {A: "import", B: "import"}
+    assert run_discover(tmp_path, txt_as="parts") == {A: "import", B: None}  # a raw `[0].txt` is a running mission
 
 
 def test_remote_mode_waits_for_a_whole_mission_archive_to_be_fully_copied(tmp_path: Path) -> None:
@@ -105,7 +105,7 @@ def test_remote_mode_waits_for_a_whole_mission_archive_to_be_fully_copied(tmp_pa
     set_mtime(zip_path, T0 - timedelta(seconds=5))
     assert run_discover(tmp_path, remote=True) == {A: None}
     set_mtime(zip_path, T0 - timedelta(seconds=90))
-    assert run_discover(tmp_path, remote=True) == {A: "archive"}
+    assert run_discover(tmp_path, remote=True) == {A: "import"}
 
 
 def test_import_treats_everything_as_complete(tmp_path: Path) -> None:

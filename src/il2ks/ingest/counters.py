@@ -1,8 +1,8 @@
 """The one definition of the counters shared by PlayerMission, Player and PlayerAircraft (TD-08, TD-16, doc 06).
 
 Every counter is an ORM aggregate over `PlayerSortie` rows. PlayerMission (level 1) and PlayerAircraft (level 2) are
-built by grouping counted sorties with these aggregates; Player totals are sums of PlayerMission rows. Incremental
-updates and `rebuild-aggregates` both go through this registry, so the three tables can't drift apart.
+built by grouping counted sorties with these aggregates; Player totals are sums of PlayerMission rows. Saving a mission
+and `rebuild-aggregates` both recompute through this registry (`ingest.aggregates`), so the three tables can't drift.
 `tests/integration/test_aggregates.py` checks that the registry covers exactly the fields of `db.models.Counters`.
 """
 
@@ -30,11 +30,14 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "captures": Count("pk", filter=Q(is_captured=True)),
         "takeoffs": Sum("takeoffs"),
         "landings": Sum("landings"),
+        "friendly_kills": Sum("friendly_kills"),
+        "friendly_hits": Sum("friendly_hits"),
+        "friendly_damage": Sum("friendly_damage"),
     }
 )
 
 COUNTER_FIELDS: tuple[str, ...] = tuple(SORTIE_COUNTERS)
-FLOAT_COUNTERS: frozenset[str] = frozenset({"flight_time_s"})
+FLOAT_COUNTERS: frozenset[str] = frozenset({"flight_time_s", "friendly_damage"})
 
 type CounterValues = dict[str, int | float]
 
