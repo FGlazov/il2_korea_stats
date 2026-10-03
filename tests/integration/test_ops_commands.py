@@ -19,7 +19,7 @@ from il2ks.cli import main
 from il2ks.config import Config, ConfigError, IngestConfig, LogsConfig, load_config
 from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
 from il2ks.ingest import watch as watch_mod
-from il2ks.ingest.lock import WriterLock
+from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.ops import backup, migrate
 from il2ks.ops.detect import LogFolder
 from il2ks.ops.setup import SetupOptions, run_setup
@@ -523,3 +523,36 @@ def test_doctor_help_documents_the_exit_codes(capsys: pytest.CaptureFixture[str]
         main(["doctor", "--help"])
     out = " ".join(capsys.readouterr().out.split())
     assert "0 = all OK, 1 = warnings only, 2 = at least one error" in out
+
+
+@pytest.mark.django_db
+def test_checking_for_pending_migrations_does_not_need_the_writer_lock(instance: Config) -> None:
+    """Regression: `il2ks web` waited 60 s and exited 3 while a long ingest held the lock, only to look (FR-ING-20)."""
+    with WriterLock(instance.data_dir, "ingest"):
+        assert migrate.migrate_if_needed(instance, "web", wait=None) is None
+
+
+@pytest.mark.django_db
+def test_pending_migrations_need_the_writer_lock(instance: Config, monkeypatch: pytest.MonkeyPatch) -> None:
+    applied: list[str] = []
+    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
+    monkeypatch.setattr(management, "call_command", recording(applied, "migrate"))
+    monkeypatch.setattr(backup, "backup_before_migration", returning(None))
+    with WriterLock(instance.data_dir, "ingest"), pytest.raises(LockBusyError):
+        migrate.migrate_if_needed(instance, "web", wait=None)
+    assert applied == []
+
+
+@pytest.mark.django_db
+def test_the_plan_is_checked_again_under_the_lock(instance: Config, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Another process migrated while we waited for the lock: nothing to apply, no backup."""
+    plans: list[list[tuple[str, bool]]] = [[("fake", False)], []]
+    applied: list[str] = []
+
+    def next_plan(*args: object, **kwargs: object) -> list[tuple[str, bool]]:
+        return plans.pop(0)
+
+    monkeypatch.setattr(MigrationExecutor, "migration_plan", next_plan)
+    monkeypatch.setattr(management, "call_command", recording(applied, "migrate"))
+    assert migrate.migrate_if_needed(instance, "web", wait=None) is None
+    assert applied == []

@@ -94,7 +94,12 @@ TEMPLATES = [
 
 
 def _databases() -> dict[str, dict[str, object]]:
-    sqlite: dict[str, object] = {"ENGINE": "django.db.backends.sqlite3", "NAME": DATA_DIR / "il2ks.sqlite3"}
+    sqlite: dict[str, object] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": DATA_DIR / "il2ks.sqlite3",
+        # Wait up to 30 s for a write lock held by `ingest` instead of failing with "database is locked" (FR-ING-20).
+        "OPTIONS": {"timeout": 30},
+    }
     if os.environ.get("IL2KS_TEST_DB") != "postgres":
         return {"default": sqlite}
     postgres: dict[str, object] = {

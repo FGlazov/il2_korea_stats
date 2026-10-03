@@ -8,8 +8,12 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from il2ks.config import Config
+
+if TYPE_CHECKING:
+    from django.db.migrations.executor import MigrationExecutor
 
 log = logging.getLogger(__name__)
 
@@ -22,21 +26,32 @@ def django_setup() -> None:
     django.setup()
 
 
+def _pending(executor_cls: type[MigrationExecutor]) -> bool:
+    from django.db import connection
+
+    executor = executor_cls(connection)
+    return bool(executor.migration_plan(executor.loader.graph.leaf_nodes()))
+
+
 def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | None:
-    """Apply pending migrations under the writer lock; returns the pre-migration backup, if one was made.
+    """Apply pending migrations; returns the pre-migration backup, if one was made.
+
+    Looking for pending migrations is a read and takes no lock, so `web` runs next to a long `ingest` (FR-ING-20). Only
+    applying migrations takes the writer lock (`LockBusyError` is possible only then); the plan is checked again under
+    the lock, because another process may have migrated meanwhile.
 
     The backup is only made when migrations are pending and the database already holds data (`il2ks setup` on a fresh
     install has nothing to protect). If the backup fails, the migrations are not applied."""
     from django.core.management import call_command
-    from django.db import connection
     from django.db.migrations.executor import MigrationExecutor
 
     from il2ks.ingest.lock import WriterLock
     from il2ks.ops.backup import backup_before_migration
 
+    if not _pending(MigrationExecutor):
+        return None
     with WriterLock(cfg.data_dir, command, wait=wait):
-        executor = MigrationExecutor(connection)
-        if not executor.migration_plan(executor.loader.graph.leaf_nodes()):
+        if not _pending(MigrationExecutor):
             return None
         backup = backup_before_migration(cfg)
         if backup is not None:
