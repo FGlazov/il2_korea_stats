@@ -28,7 +28,7 @@ def test_case_insensitive(catalog: Catalog) -> None:
 
 @pytest.mark.parametrize(
     ("aircraft", "payload_id"),
-    [("F-51D", 59), ("Turret_IL10", 0), ("Su-27", 0), ("F-86A-5", -1), ("", 0)],
+    [("F-51D", 999), ("Turret_IL10", 0), ("Su-27", 0), ("F-86A-5", -1), ("", 0)],
 )
 def test_unresolved_returns_none(catalog: Catalog, aircraft: str, payload_id: int) -> None:
     assert catalog.payload(aircraft, payload_id) is None
