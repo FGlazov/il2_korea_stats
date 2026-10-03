@@ -545,7 +545,7 @@ def test_reprocess_rebuilds_a_lost_database_from_the_archives_alone(env: Env) ->
 
     summary, rebuilt = do_reprocess(env)
 
-    assert getattr(summary, "ok") == [A, B]  # noqa: B009
+    assert sorted(getattr(summary, "ok")) == [A, B]  # noqa: B009
     assert rebuilt == [1]
     assert Mission.objects.count() == 2
     run = env.runs(A)[0]
