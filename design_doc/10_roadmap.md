@@ -53,33 +53,35 @@ Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-
 - ✅ Playwright harness and smoke tests (the key flows are listed under "Before the public release").
 - 🔧 Fixes from the Opus review (2026-10-03): Windows child processes orphaned by `schtasks /End`, a stale `run.json` blocking restarts,
   half-swapped restores, restore while running; SQLite WAL mode, the "data updated" time, admin password validators, Caddyfile validation,
-  ETag details, logo deletion on Windows. Branches done, merging; left: restore refusal while running + `--force`, restore config path.
+  ETag details, logo deletion on Windows. ✅ merged; ⏳ left: restore refusal while running + `--force`, restore config path, and the Opus review #1 findings (in progress).
 
 ## Iteration 1.x: Easy install and polish
 The maintainer asked (2026-10-03) to build everything up to the end of iteration 2 except the visual assets, which move to right after
 the release gate.
-- 🔧 **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Merging.
-- 🔧 First-run **web setup page** for the installer (game folder, domain, admin account). Merging.
-- 🔧 Docker Compose distribution (option A) for Linux/Wine hosts. Merging; its https smoke test failed on Docker Desktop for Windows.
-- 🔧 **Ammo breakdown** (FR-WEB-18): data merging, ⏳ pages. Per-sortie hits and damage per ammo type, average hits-to-destroy per
+- 🔧 **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Built, **not merged yet**; needs the review fixes (service account OQ-41, password switch, `--logs-dir` quoting).
+- ✅ First-run **web setup page** for the installer (game folder, domain, admin account). Review fixes pending (config validated before writing, token not in logs, restart settle time).
+- ✅ Docker Compose distribution (option A) for Linux/Wine hosts. Its https smoke test failed on Docker Desktop for Windows; review fix pending (unset admin password env).
+- 🔧 **Ammo breakdown** (FR-WEB-18): ✅ data, pages done (merging; `/aircraft/` page). Per-sortie hits and damage per ammo type, average hits-to-destroy per
   aircraft type, closest-hit attribution. **Not a release gate**.
-- ✅ data side, ⏳ pages: **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
-- ⏳ **`web` alongside `ingest`/`watch`** (maintainer, 2026-10-03): `web` took the writer lock (waiting up to 60 s) just to *check* for
+- ✅ data side, 🔧 pages (done, merging): **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
+- 🔧 **`web` alongside `ingest`/`watch`** (maintainer, 2026-10-03): `web` took the writer lock (waiting up to 60 s) just to *check* for
   pending migrations, so it exited with code 3 while a long `ingest` or `reprocess` held the lock. It now takes the lock only when
   migrations are pending. Admin writes from the web never take the writer lock (the concurrency risk is negligible). A test runs both
   at once.
-- ⏳ **Whole-row links** in tables (FR-WEB-24, maintainer, 2026-10-03): clicking most of a row opens its main target (player, mission or sortie), not
+- 🔧 (done, merging) **Whole-row links** in tables (FR-WEB-24, maintainer, 2026-10-03): clicking most of a row opens its main target (player, mission or sortie), not
   only the name. Other links in the row keep working.
-- ⏳ **Flavor text** (FR-WEB-23; the maintainer liked the hall-of-shame quips): a few more tasteful highlight spots, each with several
+- 🔧 (done, merging) **Flavor text** (FR-WEB-23; the maintainer liked the hall-of-shame quips): a few more tasteful highlight spots, each with several
   variants. Not on every section.
-- ⏳ OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE (the sortie pages already use some).
+- 🔧 (done, merging) OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE (the sortie pages already use some).
 
 ## Before the public release (maintainer, 2026-10-03)
-- ⏳ **Playwright end-to-end tests on the key flows**, moved up from stretch: (1) a player opens their latest sortie and follows the link to
+- 🔧 **Playwright end-to-end tests on the key flows** (done, 30 tests, merging), moved up from stretch: (1) a player opens their latest sortie and follows the link to
   an enemy's sortie (one they shot down, or one that shot them down); (2) someone browses several missions and opens a couple of sorties.
   Plus the earlier flows (search → profile → sortie; mission → find yourself → sortie). Remove `PAGES_PENDING`.
-- ⏳ **Times in the viewer's local timezone** (FR-WEB-17), moved up from stretch (mechanism in TD-15).
-- ⏳ Stretch, before the release: **stat highlights** (FR-WEB-22): a player's number stands out (tastefully) when it's unusually good
+- 🔧 **Times in the viewer's local timezone** (FR-WEB-17), moved up from stretch (TD-15 as built; OQ-42..44). Done, merging.
+- 🔧 (done, merging; then `reprocess --all`) **Bailout rule v3** (FR-ING-14, doc 13 "as built"): test Rufus's two methods (ejection spawn with `PID:-1`, geometry with 200 m / 30 m above ground)
+  against rule v2 on the sample missions and adopt what improves it (doc 13). Ships with the first public release (maintainer, 2026-10-03).
+- 🔧 Stretch, before the release: **stat highlights** (FR-WEB-22): a player's number stands out (tastefully) when it's unusually good
   compared with every player with enough sorties (for example above the 90th percentile); unusually bad gets a gentle hint at most,
   never shaming.
 
@@ -88,7 +90,7 @@ the release gate.
 decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
-- Playwright tests on the key flows, and times in the viewer's local timezone (section above).
+- Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
 
 **Not gates** (ship when ready, before or after the release): translations into languages other than English (UI and object names, TD-24),
 the ammo breakdown (FR-WEB-18), stat highlights (FR-WEB-22), everything in iteration 2.
@@ -105,22 +107,22 @@ finished site and wants to release quickly. The site ships with placeholders und
 
 ## Iteration 2: Live data, languages, richer stats
 Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait for any of it.
-- ✅ data, admin, selector; ⏳ wiring into pages: **Tours** with configurable length (monthly by default) (TD-26). Localise monthly tour
+- ✅ data, admin, selector; 🔧 wiring into pages (done, merging): **Tours** with configurable length (monthly by default) (TD-26). Localise monthly tour
   titles at display time.
-- 🔧 **Online now**: current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
-  Merging; then `{% online_now %}` goes on the home page.
+- ✅ **Online now**: current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
+  ⏳ `{% online_now %}` on the home page.
 - ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ⏳ re-run once the pages
   settle, then human review.
 - ✅ **Game object names**: admin overrides and translated defaults (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
-  - ⏳ Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early
+  - 🔧 (done, merging) Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early
     bailouts. Pages for the air-to-air Elo (prop/jet pools) and ground score per hour on target (FR-WEB-19/20); their inputs are stored
     since iteration 1.
   - ⏳ Stats by aircraft (FR-WEB-8). Split rankings by aircraft class.
-  - ⏳ Killboards (FR-WEB-9). Ironman / virtual-life stats. Rams, parachute deaths, and other rule toggles.
+  - 🔧 (done, merging) Killboards (FR-WEB-9). Ironman / virtual-life stats. 🔧 (WIP: config only) Rams, parachute deaths, and other rule toggles (OQ-61).
   - Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
-- ⏳ Light charts (FR-WEB-16).
-- ⏳ Sortie map page of key events (FR-WEB-12; positions are stored from v1), on a plain grid until map images exist (doc 15).
+- 🔧 (done, merging) Light charts (FR-WEB-16).
+- 🔧 (done, merging) Sortie map of key events (FR-WEB-12; positions are stored from v1), on a plain grid until map images exist (doc 15).
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.

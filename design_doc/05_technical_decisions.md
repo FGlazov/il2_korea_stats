@@ -36,7 +36,7 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   expandable sections). No JS build step. htmx is vendored (NFR-OFF-1).
 - **CSS:** **Pico CSS** (minimal, classless-friendly, one file, styles tables well). It's a stats site: mostly tables of data.
   Branding colors map onto Pico's CSS variables (TD-25).
-- **Charts:** only light diagrams, later (FR-WEB-16). Server-rendered SVG or a small vendored chart library. Decide when needed.
+- **Charts:** only light diagrams (FR-WEB-16). `[PROPOSED]` (2026-10-03): server-rendered inline SVG from a small pure layout module, no chart library and no JS (doc 16).
 - **Mobile:** not required. Mobile-friendly layout is a stretch goal (Pico is responsive by default; wide tables scroll horizontally).
 - **Alternatives considered:** React/Vue SPA (rejected: too complex for the maintainer and the goals), Bootstrap (heavier than needed),
   Alpine.js (allowed later for tiny client-side bits), Streamlit/Dash (rejected: not a public website framework).
@@ -158,11 +158,17 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
     use the zip entry's timestamp, then fall back to the earlier candidate (`fold=0`) and log a warning.
   - Nonexistent times (spring-forward gap) shift forward by the gap, with a warning.
   - Recommend (don't require) running DServer machines on UTC in the install docs, which avoids all of this.
-- **Display in the viewer's local time** (FR-WEB-17, a stretch goal, not in the PoC; v1 shows times in UTC, labelled as UTC). `[PROPOSED]` mechanism for later: templates render every real-world timestamp as
+- **Display in the viewer's local time** (FR-WEB-17, moved before the public release by the maintainer, 2026-10-03). `[PROPOSED]` mechanism for later: templates render every real-world timestamp as
   `<time datetime="2026-09-19T20:34:13Z">2026-09-19 20:34 UTC</time>`, and a few lines of vendored JS convert all `<time>` elements to the
   browser's timezone with `Intl.DateTimeFormat` (also after HTMX swaps). Why this way: no cookie, no account, nothing for the server to know,
   and pages stay identical for every viewer (cache-friendly). Without JS, the page still shows correct UTC times. Optional extras: a "UTC/local"
   toggle in the footer, and relative times ("2 h ago") on lists.
+  **As built** (2026-10-03, before the public release): `local_time` / `local_short` / `local_date` / `local_hm` / `local_clock` filters emit
+  `<time datetime="…Z" data-il2-time="datetime|date|time|clock">` with UTC text; `static/il2ks/localtime.js` (deferred, a versioned built-in,
+  re-runs on `htmx:load`/`htmx:afterSwap`) rewrites them as `yyyy-mm-dd hh:mm` in the browser zone, puts the UTC time in a `title`, and
+  rewrites the footer note to name the zone. The plain `utc` filter stays for tooltips and Open Graph text. A test checks that the HTML is
+  byte-identical whatever the viewer's zone (TD-28). Not built: relative times, the UTC/local toggle; admin times stay UTC. Display format
+  and labels: OQ-42..44.
 - **Not converted:** game-world date and time (the mission's in-game clock, which is part of the scenario), and durations or flight times.
 
 ### TD-16 Extensibility through explicit extension points, never monkeypatching — `[PROPOSED]`
@@ -327,7 +333,7 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Decision:** keep one **data version** (a counter in the DB, bumped in the same transaction as each mission save, `reprocess` /
   `rebuild-aggregates`, and admin saves of page-visible models).
   1. **HTTP revalidation first:** views send an `ETag` built from the data version, the language and the il2ks version (Django's `condition()`
-     decorator). Browsers and Discord link previews revalidate with a cheap `304 Not Modified`. `Cache-Control: public, max-age=60`.
+     decorator). Browsers and Discord link previews revalidate with a cheap `304 Not Modified`. `Cache-Control: max-age=0, must-revalidate` (every view revalidates; a `304` is cheap), plus `Vary: Cookie` when a language cookie is in play (review fix, 2026-10-03; it was `public, max-age=60`).
   2. **Server-side cache only if measured slow:** Django's per-view cache with the data version in the key, on the local-memory or file backend.
      No Redis or memcached (one more service for admins, NFR-INS). Old entries just expire; nothing is invalidated by hand.
   3. **Static files:** WhiteNoise with hashed file names, cached for a year.

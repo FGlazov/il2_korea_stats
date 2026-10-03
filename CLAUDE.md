@@ -2,7 +2,7 @@
 
 Self-hosted stats website for IL-2 Sturmovik: Korea dedicated servers: log ingester + SQLite + Django/HTMX.
 
-**Before design-relevant work, use the `design-doc-sync` skill.** `design_doc/` is the source of truth for requirements and
+**Before design-relevant work, use the `design-doc-sync` skill.** For runs that span several features or roadmap items, follow the `orchestrate` skill. `design_doc/` is the source of truth for requirements and
 decisions (status tags `[DECIDED]` / `[PROPOSED]` / `[OPEN]` / `[DEFERRED]`). Write decisions back after working.
 
 ## Commands

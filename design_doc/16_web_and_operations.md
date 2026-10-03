@@ -34,7 +34,9 @@ How the website, the admin and the operations commands are built (iteration 1, p
   stock marketplaces (Envato, Flaticon, Freepik, Icons8, Iconfinder, IconScout, Creative Market, Shutterstock, Adobe Stock) forbid
   redistributing extractable files, which an open-source repo and a PyPI wheel always do, and a stricter licence of our own on the assets
   doesn't fix that; only Streamline Premium explicitly allows open-source use (with attribution, ≤ 100 icons). Commissioned work under a
-  licence we choose is the clean route. Candidates and a contact sheet were prepared outside the repo; adopting Tabler is **OQ-37**.
+  licence we choose is the clean route. Candidates and a contact sheet were prepared outside the repo; adopting Tabler is **OQ-37**. **Applied** (2026-10-03): 50 UI icons are Tabler Icons 3.48.0 (outline,
+  normalised to 24 px / `currentColor` / stroke 2); the file → icon table is in `static/il2ks/img/README.md`, the licence in `NOTICE`;
+  `tests/unit/test_icon_files.py` checks every referenced icon exists and is well-formed. Icon picks: OQ-60.
 
 ## Pages (as built, 2026-10-03)
 
@@ -50,7 +52,52 @@ How the website, the admin and the operations commands are built (iteration 1, p
   hall of shame (taxi accidents, strafed), per-aircraft table (links to the filtered sortie list), the 10 latest sorties. Gunner-only
   players get a notice. **K/D, K/L and kills per sortie/hour use air kills only** (ground kills include fences; they get their own
   per-sortie figure), OQ-38. Elo isn't shown (pages deferred).
-- Query budgets: home ≤ 4, mission list 4, mission detail 5, search 4, profile 6 (incl. the 2 context-processor reads).
+- **Whole-row links** (FR-WEB-24, 2026-10-03): put `class="stretched-link"` on a row's main `<a>`; pure CSS (`tr:has(.stretched-link)`,
+  the link's `::after` covers the row, every other link in the row is lifted above it automatically), hover background and an inset
+  focus outline. Needs `:has()` (Chromium, Firefox 121+, Safari 15.4+; the site already needs `light-dark()`). Used on: home missions and
+  top pilots, mission list, mission-detail sortie rows (→ sortie, the pilot name stays a profile link; hidden players get no row link),
+  player search, profile recent sorties and per-aircraft rows, player sortie list. Kill, damage and timeline tables have no single target
+  and stay as they are.
+- **Flavor text** (FR-WEB-23, 2026-10-03): `web/flavor.py` `SPOTS` maps a spot to translatable variants; `{% flavor "spot" seed %}` picks
+  one by SHA-256 of `spot:seed` (stable across restarts and languages, so caching holds); `{% sortie_flavor %}` picks the sortie spot by
+  priority taxi accident > friendly fire > captured > ditched > shot down by AA > 3+ air kills > landed with ≥ 50% damage (none for gunners
+  or ordinary sorties). Spots: hall of shame (with incidents / clean), home top pilots (doesn't name the pilot), home "nobody scored",
+  sortie page. Quiet italic `.flavor` style. Placement and wording: OQ-53.
+- **Sortie map** (FR-WEB-12, 2026-10-03): an accordion (open) on the sortie page with a server-rendered inline SVG of the key events
+  from the stored timeline (+0 queries): numbered markers with the event icons, a faint dashed line in time order (labelled "not the
+  flight path"), a km grid in absolute game coordinates, an N arrow, a legend, `<title>` tooltips; the timeline table is the textual
+  equivalent. Axes: game `x` = north, `z` = east (IL-2 convention; x checked against airfield positions in the samples, z assumed).
+  Pure geometry in `web/map_geometry.py`, view model in `web/sortie_map.py`. **Map images drop in** as
+  `static/il2ks/img/maps/<map-id>.webp|png|jpg|svg` with bounds in `maps.json` (overridable in `custom/static`); placeholder bounds for
+  `korea` are 0–512 km. Until a mission records its map, the id is `korea`. Events with missing, origin or off-map positions are skipped
+  and counted. Which events are drawn: OQ-54.
+- **Killboard and ironman streaks** (FR-WEB-9, 2026-10-03): level-2 `PlayerKillboard` (two mirror rows per pair: kills, deaths, last
+  encounter) and `PlayerStreak` (current and best streak: sorties, air kills, flight time), rebuilt per affected player in
+  `recompute_players` (incremental == rebuild, checked on 45 sample missions). Pure streak rule in `core/streaks.py`. Pages: profile
+  sections (Ironman; Killboard top 5 each way), `/players/<pk>/killboard/`, `/streaks/` (running streaks), a home block of 5. The
+  sections read through simple template tags (`il2ks_boards`), not the view context. The streak list filters on "ended within 30 days
+  of now", so between ingests a cached home page can lag by up to one ingest interval (accepted). Rules: OQ-56, OQ-57, OQ-58.
+- **Charts** (FR-WEB-16, 2026-10-03): server-rendered inline SVG bar charts, no JS: pure layout in `web/charts.py`
+  (`build_bar_chart(ChartSpec)`: 1/2/5 ticks, k/M abbreviations, legend from 2 series), `{% bar_chart spec %}` with `role="img"`, title/desc,
+  per-bar `<title>`, a "Show the numbers" table and an empty state; colours `--il2-chart-1/2` (steel blue, rust) checked for contrast in
+  both themes. Home: sorties per day for the 30 days ending at the newest active day (level-2 `ActivityDay`, UTC days by mission start,
+  hidden missions excluded and refreshed when an admin hides one). Profile: sorties per tour and air kills/deaths per tour (from
+  `PlayerTour`, with ≥ 2 tours, latest 12). +1 query on each page. Choices: OQ-59.
+- **Score and leaderboards** (FR-WEB-7/19/20, 2026-10-03): pure `score_sortie(SortieFacts, ScoreRules)` in `core/ratings/score.py` gives
+  an air and a ground score per pilot sortie (gunners 0), stored as `PlayerSortie.air_points/ground_points` and summed into the counter
+  tables (`score_air`, `score_ground`, `score_ground_attack`). Rules and leaderboard minimums are the `[score]` config section; a rule
+  change applies with `il2ks rebuild-aggregates` (scores read only stored columns; 6.6 s for 210 missions). Ground per hour on target is a
+  read-time F-expression. Boards: `/leaderboards/<air|ground|ground-hour|kills|elo-prop|elo-jet>/` with `?tour=`, `?aircraft=` (per-type
+  rows), sort and paging; hidden players never appear; ≤ 6 queries. Profile block `players/detail_scores.html` (all-time). Not built:
+  prop/jet and fighter/attack splits for the score boards (need more level-2 rows), per-type Elo. Values: OQ-62..64.
+- **Tours on pages** (2026-10-03): `?tour=<Tour.pk>` on the profile (totals, tiles, ratios, ground kills, hall of shame, per-aircraft
+  table and recent sorties follow it), the player sortie list and the mission list. No value or an unknown one means all time (200, so
+  stale shared links keep working). Views use `queries.tours.tour_choice_from(request.GET)` (one query); templates use
+  `{% tour_select %}` (swaps `#main`, works without JS) or a `filter_select` inside a filter bar. Titles are localised at display time
+  (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo and
+  scores stay all-time. Product defaults: OQ-45..48.
+- Query budgets: home ≤ 4, mission list 5, mission detail 5, search 4, profile 7 (8 with a tour), sortie list 7 (incl. the 2
+  context-processor reads; the tour list costs one).
 - Coalition emblems: `{% coalition_badge %}` uses the site-settings choice (neutral by default, or placeholder insignia drawn as plain
   shapes: VVS, PLAAF, KPAF, USAF, ROKAF, UN).
 

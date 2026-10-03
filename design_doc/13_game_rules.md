@@ -98,6 +98,43 @@ transient false loss); at `finish()` a missing AType 16 falls back to the pilot'
 Rule: `PLID:0`, and the aircraft was airborne (at its destruction, else at sortie end), and the pilot's final position
 is ≥ 100 m from the aircraft's last known position, and the pilot didn't die within 0.5 s of the aircraft. "Last known position" = the AType 3
 position if destroyed, else the latest position recorded for the aircraft (spawn, damage, kill, wheels, takeoff, landing, re-declaration).
+**Bailout rule v3 candidates (Rufus, 2026-10-03)** `[DECIDED]` (to test against v2 and adopt what improves it; must ship with the first
+public release, maintainer 2026-10-03). Rufus, who builds the other IL-2 Korea stats system, shared the two methods his system combines:
+1. **Ejection spawn.** On an ejection the log writes an ordinary AType 12 spawn for the pilot body (`TYPE:BotPlanePilot_USAF1950jet` etc.,
+   class `aircraft_pilot`) that **reuses the bot's own id** (the `PID:` of the player's AType 10 spawn line). The discriminator is the
+   parent: a real ejection announces the bot **detached, `PID:-1`**. The logger also re-announces a still-seated bot whenever it needs to
+   reference it (damage to the pilot, etc.); those carry `PID:<aircraft id>`. Gates: the aircraft must be **airborne** (took off, no landing
+   since), because the same spawn fires for a pilot climbing out after landing, aborting before take-off or disconnecting on the ground;
+   and a **bot id → sortie map from AType 10** is needed, because a jet's crew usually has no spawn line of its own before this moment.
+   Detects only about a third of bailouts: not when the pilot was damaged, or the aircraft isn't already destroyed.
+2. **Geometry at AType 16** (like v2). A bailout when all hold: the sortie's aircraft is **destroyed**; it **never landed** (a Landing
+   strictly *after* the kill tick is the falling wreck hitting the ground and still counts as "never landed"; a crash-landing resolves its
+   kill at the landing tick, so a pilot walking away from that wreck is not a bailout); **no disconnect** on the sortie (the AType 21 line
+   precedes the teardown, so it's already known); the pilot **isn't already dead**; and either the teardown position is **> 200 m** from the
+   aircraft's last logged position, **or > 30 m above ground** (heightmap at that spot). The second arm matters: the wreck's logged position
+   freezes at the kill point while the real airframe glides on, so a pilot who bails and quickly clicks "end mission" can be torn down
+   within 200 m of the "wreck" while still hanging under the canopy.
+Rufus also finds the `AType 4 PLID:0` signal that v2 uses promising and plans to add it to his system. Differences from v2 to evaluate:
+v2 doesn't require the aircraft to be destroyed (an undamaged bailout whose aircraft has no AType 3 yet), uses 100 m instead of 200 m, has
+no height arm and no ejection-spawn signal. The height arm needs terrain height per map (**OQ-39**). Credit: Rufus (IL-2 Korea stats
+developer), shared via the maintainer.
+
+**Bailout rule v3 as built** `[PROPOSED]` (2026-10-03, branch to merge; evaluated with `il2ks dev bailout-eval` on 210 missions, 11,364
+pilot sorties that took off). Bailout = `AType 4 PLID:0` and either:
+1. **Ejection spawn** (Rufus's method 1): an AType 12 of the player's bot id (from AType 10) with `PID:-1`, between spawn and sortie end
+   + 1 tick, the aircraft airborne at that tick by AType 5/6, and the pilot's AType 3 **not** within 0.5 s (`died_with_aircraft_s`) → fate
+   `bailed_out / event`; it overrides v2's airborne-flag and distance tests. The gates matter: 49 of 378 raw `PID:-1` hits are pilots killed
+   in the seat (announced detached at death), and forced mission-end cleanup also writes `PID:-1` (excluded by requiring `PLID:0`).
+2. **Rule v2 unchanged**, plus the pilot is **not already dead** at the sortie end (Rufus's "pilot isn't already dead") → `bailed_out /
+   inferred`.
+Results: `bailed_out` 1359 → 1360 (326 `event`, 1034 `inferred`); suspected early bailouts 361 → 296 (66 pilots who died in the seat
+no longer count). Ejection spawn finds ~1/3 of bailouts (327 of v2's, plus a real one v2 missed because of a stale wheels flag), as Rufus
+said. **Rufus's method 2 is not adopted**: v2 finds all but 9 of its bailouts and those 9 are crash-landing ground exits (its AType 5/6
+"airborne" is worse than the live wheels flag; "never landed" as worded drops ~17 real bailouts of aircraft that landed earlier and flew
+again). The 200 m threshold would lose ~28 real high-altitude bailouts in the 100–200 m band, so 100 m stays. A terrain-free "above
+ground" proxy (lowest known ground sample nearby) was too weak (2% false at 500 m but covering 57 of 1,359; 14% false at 2 km), so the
+height arm waits for heightmaps (OQ-39). Left: a pilot shot under the canopy after ejecting keeps fate `in_aircraft` (2 cases).
+
 **Suspected early bailout** adds: no hits or damage on aircraft or pilot from any attacker (environment and the sortie's own objects don't
 count), no disconnect, and the sortie didn't end within 60 s before the first AType 7.
 
