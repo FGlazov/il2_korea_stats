@@ -26,6 +26,7 @@ def sqlite_connections(db_file: Path) -> ConnectionHandler:
     return ConnectionHandler({"default": {**sqlite, "NAME": db_file}})
 
 
+@pytest.mark.sqlite_only
 def test_sqlite_runs_in_wal_mode_with_immediate_transactions(tmp_path: Path) -> None:
     """Readers must not hit 'database is locked' while an ingest commits, and a lock upgrade must wait."""
     connections = sqlite_connections(tmp_path / "wal.sqlite3")

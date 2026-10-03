@@ -17,6 +17,8 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     for item in items:
         if "postgres" in item.keywords and not postgres:
             item.add_marker(pytest.mark.skip(reason="Postgres tests need IL2KS_TEST_DB=postgres"))
+        if "sqlite_only" in item.keywords and postgres:
+            item.add_marker(pytest.mark.skip(reason="SQLite only (restore, WAL settings); not run against Postgres"))
         if E2E_DIR in item.path.parents:
             item.add_marker(pytest.mark.e2e)  # everything under tests/e2e is a browser test: `-m e2e` selects it
         if "e2e" in item.keywords and not e2e:

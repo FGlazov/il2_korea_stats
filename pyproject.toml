@@ -100,6 +100,7 @@ addopts = "-ra --strict-markers"
 filterwarnings = ["ignore:No directory at:UserWarning"]
 markers = [
     "postgres: needs a Postgres test database (IL2KS_TEST_DB=postgres); skipped otherwise",
+    "sqlite_only: needs the SQLite database (restore, WAL settings); skipped with IL2KS_TEST_DB=postgres",
     "sample_data: runs against the gitignored sample_data/ folder; skipped when it is missing",
     "e2e: browser tests (Playwright, Chromium); skipped unless IL2KS_TEST_E2E=1",
     "allow_console_errors: e2e test that expects the browser to log errors (a 404 page)",

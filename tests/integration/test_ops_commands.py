@@ -338,6 +338,7 @@ def test_backup_command_without_a_database_is_an_error(
     assert "il2ks setup" in capsys.readouterr().err
 
 
+@pytest.mark.sqlite_only
 def test_restore_command_round_trip_and_safety_backup(instance: Config, capsys: pytest.CaptureFixture[str]) -> None:
     assert instance.source is not None
     zip_path = backup.create_backup(instance, now=lambda: T)
@@ -356,6 +357,7 @@ def test_restore_command_round_trip_and_safety_backup(instance: Config, capsys: 
     assert "Restored and verified" in capsys.readouterr().out
 
 
+@pytest.mark.sqlite_only
 def test_restore_command_refuses_while_a_writer_runs(instance: Config, capsys: pytest.CaptureFixture[str]) -> None:
     assert instance.source is not None
     zip_path = backup.create_backup(instance, now=lambda: T)
@@ -364,6 +366,7 @@ def test_restore_command_refuses_while_a_writer_runs(instance: Config, capsys: p
     assert "another il2ks writer is running" in capsys.readouterr().err
 
 
+@pytest.mark.sqlite_only
 def test_restore_command_needs_a_confirmation(instance: Config, capsys: pytest.CaptureFixture[str]) -> None:
     assert instance.source is not None
     zip_path = backup.create_backup(instance, now=lambda: T)
@@ -371,6 +374,7 @@ def test_restore_command_needs_a_confirmation(instance: Config, capsys: pytest.C
     assert "--yes" in capsys.readouterr().err
 
 
+@pytest.mark.sqlite_only
 def test_restore_command_declined_in_a_terminal_changes_nothing(
     instance: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -387,6 +391,7 @@ def test_restore_command_declined_in_a_terminal_changes_nothing(
     assert len(backup.list_backups(instance.backup_dir)) == 1  # no safety backup was made
 
 
+@pytest.mark.sqlite_only
 def test_restore_command_warns_when_the_website_seems_to_run(instance: Config, monkeypatch: pytest.MonkeyPatch) -> None:
 
     from il2ks.ops import commands
@@ -401,6 +406,7 @@ def test_restore_command_warns_when_the_website_seems_to_run(instance: Config, m
 
 
 @pytest.mark.parametrize("what", ["missing", "garbage"])
+@pytest.mark.sqlite_only
 def test_restore_command_rejects_a_bad_zip(instance: Config, what: str, capsys: pytest.CaptureFixture[str]) -> None:
     assert instance.source is not None
     bad = instance.data_dir.parent / "bad.zip"
