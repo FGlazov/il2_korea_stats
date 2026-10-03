@@ -90,7 +90,12 @@ def test_read_parts_in_order_crlf_and_bom(tmp_path: Path) -> None:
     (tmp_path / name(UID, 0)).write_bytes(b"\xef\xbb\xbfT:0 AType:15 VER:18\r\nT:1 AType:7 \r\n")
     (tmp_path / name(UID, 1)).write_bytes(b"T:2 AType:15 VER:18\nT:3 AType:19 ")
     [log] = group_mission_files(tmp_path.iterdir())
-    assert list(read_mission_lines(log)) == ["T:0 AType:15 VER:18", "T:1 AType:7 ", "T:2 AType:15 VER:18", "T:3 AType:19 "]
+    assert list(read_mission_lines(log)) == [
+        "T:0 AType:15 VER:18",
+        "T:1 AType:7 ",
+        "T:2 AType:15 VER:18",
+        "T:3 AType:19 ",
+    ]
 
 
 def test_read_zip_without_extracting(tmp_path: Path) -> None:

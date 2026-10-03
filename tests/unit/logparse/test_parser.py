@@ -188,14 +188,17 @@ CASES: list[tuple[str, LogEvent]] = [
     (SPAWN_LINE, SPAWN_EVENT),
     (
         "T:1 AType:11 GID:1188864 IDS:443392,447488,453632 LID:443392",
-        GroupEvent(tick=1, group_id=oid(1188864), member_ids=(oid(443392), oid(447488), oid(453632)), leader_id=oid(443392)),
+        GroupEvent(
+            tick=1, group_id=oid(1188864), member_ids=(oid(443392), oid(447488), oid(453632)), leader_id=oid(443392)
+        ),
     ),
     (
         "T:1 AType:11 GID:1188864 IDS: LID:-1",
         GroupEvent(tick=1, group_id=oid(1188864), member_ids=(), leader_id=oid(-1)),
     ),
     (
-        "T:8041 AType:12 ID:8193 TYPE:F-80C-10 COUNTRY:601 NAME:noname PID:-1 POS(143635.7031,80.3416,350480.5625) MID:-1",
+        "T:8041 AType:12 ID:8193 TYPE:F-80C-10 COUNTRY:601 NAME:noname PID:-1 "
+        "POS(143635.7031,80.3416,350480.5625) MID:-1",
         ObjectSpawnEvent(
             tick=8041,
             extra=extra(MID="-1"),
@@ -222,7 +225,8 @@ CASES: list[tuple[str, LogEvent]] = [
         ),
     ),
     (
-        "T:20 AType:12 ID:40960 TYPE:Landing Ship, Tank COUNTRY:601 NAME:LST, block 2 PID:-1 POS(1.0,2.0,3.0) MID:74052",
+        "T:20 AType:12 ID:40960 TYPE:Landing Ship, Tank COUNTRY:601 NAME:LST, block 2 PID:-1 "
+        "POS(1.0,2.0,3.0) MID:74052",
         ObjectSpawnEvent(
             tick=20,
             extra=extra(MID="74052"),
