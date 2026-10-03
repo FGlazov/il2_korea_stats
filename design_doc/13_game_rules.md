@@ -86,7 +86,13 @@ Is it a gunner with an AType 18 (bailout event)?
          └─ still open                           → unknown / unknown   (snapshot: in_aircraft / inferred)
 ```
 
-**Bailout rule v2** (FR-ING-14): `PLID:0`, and the aircraft was airborne (at its destruction, else at sortie end), and the pilot's final position
+**Bailout rule v2** (FR-ING-14; re-checked 2026-10-03, doc 12 "Order of AType 4 and AType 16"): the **airborne gate decides almost
+everything**; among 1,378 airborne `PLID:0` candidates the 100 m distance test only removes 9 (crash landings and mountain impacts), and any
+threshold from 25 to 100 m gives the same result ±9, so 100 m stays. Without the airborne gate, 373 ground exits would look like bailouts
+(the aircraft's last known position is stale after taxiing). A pilot position outside the map bounds (|x|, |z| > 1e6, y outside −1,000…20,000)
+counts as missing. In a live snapshot, a `PLID:0` end whose AType 16 hasn't arrived yet is pending, not `unknown`; at `finish()` a missing
+AType 16 falls back to the pilot's latest re-declaration position.
+Rule: `PLID:0`, and the aircraft was airborne (at its destruction, else at sortie end), and the pilot's final position
 is ≥ 100 m from the aircraft's last known position, and the pilot didn't die within 0.5 s of the aircraft. "Last known position" = the AType 3
 position if destroyed, else the latest position recorded for the aircraft (spawn, damage, kill, wheels, takeoff, landing, re-declaration).
 **Suspected early bailout** adds: no hits or damage on aircraft or pilot from any attacker (environment and the sortie's own objects don't

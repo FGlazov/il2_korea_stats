@@ -92,8 +92,10 @@ no takeoff: 10 b10 31 [28] 12 b12 4 b4 b16
 
 ### No pilot bailout / ejection event (AType 18) for players
 - Verified: **0 of 15,349** player sorties have an AType 18 for the player's pilot. All 799 AType 18 events belong to gunners or
-  AI. In 60 missions there were only 17 parachute objects (`CParachute`), all non-player. The other developer hopes it's a game bug
-  that'll be fixed.
+  AI. The other developer hopes it's a game bug that'll be fixed.
+- **Parachutes and ejection seats are no substitute** (checked 2026-10-03 on 210 missions): 90 `CParachute_*` objects, all `PID:-1`, 88 of
+  them next to an AI AType 18; at most 2 plausibly belong to a player bailout (recall ~0.1% of 1,369 bailouts). The 49 `ESeat_*` objects
+  appear in the end sequence of sorties whose pilot was **killed**, never in a bailout.
 
 ### Pilot bailout detection (validated 2026-10-02)
 The data has a usable substitute signal. The resulting rule is in [02, FR-ING-14](02_functional_requirements.md#bailout-rule-v2-fr-ing-14--validated-on-210-sample-missions-2026-10-02).
@@ -104,6 +106,16 @@ The data has a usable substitute signal. The resulting rule is in [02, FR-ING-14
 | AType 4 `PLID:<aircraft id>` | 7,576 | Pilot still in the aircraft (landed and despawned, despawned in the air, or died in it). Pilot removed right at the aircraft (median 18 m away). |
 | AType 4 **`PLID:0`**, zero position, often written **twice** (dedupe) | 2,614 | **Pilot not in an aircraft at sortie end**: bailed out (in the air) or climbed out (on the ground). |
 | No AType 4 at all, pilot just removed (AType 16) | 1,360 | **Disconnect.** 99% have an AType 21 within 30 s. Pilot fate is unknown. |
+
+**Order of AType 4 and AType 16** (checked 2026-10-03 on all 15,349 player sorties, at the maintainer's request): **AType 16 is never before
+the sortie's first AType 4** (one sortie, forced by mission end, has no AType 16 at all). For a living pilot it follows within 17 ticks
+(0.34 s; median 2 ticks); for a killed pilot a median 12.9 s later (up to 187 s). A sortie without AType 4 always has exactly one AType 16,
+followed by the player's AType 21 (median +0.8 s): the disconnect shape is genuine, never an early AType 16. The second AType 4 that many
+sorties have is written at the AType 16 tick (a removal marker, not a second end); in 27 killed-pilot sorties it says `PLID:0` after a
+normal first one, and keeping the first changes nothing. The **AType 16 position** is the pilot's position at the sortie end (it matches
+the pilot's re-declaration at that moment within ~1 m), not a parachute-landing point: bailouts sit at a median 752 m altitude, ground exits
+at 26 m. It's never zero for `PLID:0` ends; it is zero for a third of the disconnects (parked aircraft that never moved), and 3 of 15,348
+were garbage (coordinates up to 1e25; all killed pilots), so replay ignores positions outside the map bounds.
 
 **Mission end doesn't skip sortie ends** (checked because planes fly long: airborne time is a median 20 min, 90th percentile 41 min, up to 127 min,
 against ~3 h missions). 1,522 sorties (10% of all) were still running at the first AType 7. **1,519 got a normal AType 4 within 1 s of it**
