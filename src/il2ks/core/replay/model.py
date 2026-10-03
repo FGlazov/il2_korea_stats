@@ -105,6 +105,8 @@ class TrackedObject:
     declared_pos: Pos | None = None  # ... and where it said the bot was: the fallback when AType 16 has no position
     bailout_tick: int | None = None  # AType 18 (gunners and AI only in Korea)
     bailout_pos: Pos | None = None
+    # AType 12 re-declarations of a sortie's bot with `PID:-1` (detached from the aircraft): ejection spawns (Rufus)
+    detached_declarations: list[tuple[int, Pos]] = field(default_factory=list[tuple[int, Pos]])
 
     @property
     def root(self) -> "TrackedObject":

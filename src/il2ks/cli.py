@@ -293,6 +293,10 @@ def _main(argv: Sequence[str] | None) -> int:
 
         anonymize_file(ns.source, ns.target)
         return EXIT_OK
+    if command == "dev" and ns.dev_command == "bailout-eval":
+        from il2ks.devtools.bailout_eval import run as run_bailout_eval
+
+        return run_bailout_eval(ns.directory, list_disagreements=ns.list)
     if command == "dev" and ns.dev_command == "bump-templates":
         from il2ks.devtools.templates import bump_templates
 

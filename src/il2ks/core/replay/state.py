@@ -158,6 +158,11 @@ class Replay:
             case _:
                 pass
 
+    @property
+    def facts(self) -> MissionFacts:
+        """The recorded facts, read-only by convention (for dev tools that evaluate rules on real missions)."""
+        return self._facts
+
     def snapshot(self) -> Snapshot:
         """Provisional sorties so far. Never raises: a live view must not stop the watcher."""
         try:
@@ -233,6 +238,8 @@ class Replay:
             if parent is not None:
                 existing.set_parent(parent)  # PID:-1 on a pilot re-declaration doesn't break the link (doc 12)
             existing.update_pos(event.pos)
+            if event.parent_id == NO_OBJECT and existing.is_bot and existing.sortie is not None:
+                existing.detached_declarations.append((event.tick, event.pos))
             self._note_declared_pos(existing, event)
             self._track_ground(existing, event.tick, event.pos)
             return
