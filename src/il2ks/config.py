@@ -1,0 +1,328 @@
+"""The `il2ks.toml` configuration (TD-11, FR-OPS-2).
+
+Loaded once at startup by the CLI and passed in explicitly. No module reads it at import time (TD-11).
+
+Sources, later ones win: built-in defaults, the TOML file, `IL2KS_*` environment variables. Every setting has one env
+name:
+`IL2KS_<SECTION>_<KEY>` in upper case (`[logs] dir` -> `IL2KS_LOGS_DIR`); top-level keys drop the section
+(`data_dir` -> `IL2KS_DATA_DIR`, the same variable `settings.py` reads). Lists in env vars are comma-separated.
+
+Which file: `--config`, else `IL2KS_CONFIG`, else `./il2ks.toml`, else `<data dir>/il2ks.toml`
+(data dir from `IL2KS_DATA_DIR` or
+the default). No file at all means defaults plus env. Relative paths in the file resolve against the file's folder.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import os
+import tomllib
+import uuid
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from datetime import timedelta
+from pathlib import Path
+from typing import Literal, cast
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from il2ks.core.replay.config import ReplayRules
+
+type AfterArchive = Literal["move", "keep", "delete"]
+AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
+LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
+SERVER_UID_FILE = "server_uid.txt"
+CONFIG_FILE = "il2ks.toml"
+
+
+class ConfigError(ValueError):
+    """The configuration is invalid. The message says which setting and why."""
+
+
+def default_data_dir(env: Mapping[str, str]) -> Path:
+    """Same default as `settings.py`: `IL2KS_DATA_DIR`, else `./.il2ks-data`."""
+    raw = env.get("IL2KS_DATA_DIR")
+    return Path(raw) if raw else Path.cwd() / ".il2ks-data"
+
+
+@dataclass(frozen=True, slots=True)
+class LogsConfig:
+    """Where DServer writes its text logs and what happens to them after archiving (FR-ING-1, FR-ING-10, FR-ING-16)."""
+
+    dir: Path | None = None  # None: not configured; `il2ks ingest` (without --from) refuses to run
+    after_archive: AfterArchive = "move"
+    move_to: Path | None = None  # None: `<data dir>/ingested-logs`
+    remote: bool = False  # FR-ING-16: logs are copied in from another machine
+
+
+@dataclass(frozen=True, slots=True)
+class IngestConfig:
+    """Completeness, polling and retry settings (FR-ING-2, FR-ING-16, FR-ING-19)."""
+
+    idle_minutes: float = 10.0  # complete if no part was written for this long
+    settle_seconds: float = (
+        60.0  # after AType 7: wait until no part changed for this long (cleanup lines follow AType 7)
+    )
+    stable_seconds: float = 60.0  # remote mode: a part counts as fully copied once unmodified this long
+    watch_interval_s: float = 30.0
+    retry_backoff_minutes: tuple[float, ...] = (5.0, 30.0, 120.0)  # then stop (FR-ING-19)
+
+    @property
+    def retry_backoff(self) -> tuple[timedelta, ...]:
+        return tuple(timedelta(minutes=m) for m in self.retry_backoff_minutes)
+
+
+@dataclass(frozen=True, slots=True)
+class Config:
+    data_dir: Path
+    server_uid: uuid.UUID
+    timezone_name: str
+    log_level: str = "INFO"
+    logs: LogsConfig = field(default_factory=LogsConfig)
+    ingest: IngestConfig = field(default_factory=IngestConfig)
+    replay: ReplayRules = field(default_factory=ReplayRules)
+    source: Path | None = None  # the TOML file that was read, if any
+
+    @property
+    def timezone(self) -> ZoneInfo:
+        return ZoneInfo(self.timezone_name)
+
+    @property
+    def archive_dir(self) -> Path:
+        return self.data_dir / "archive"
+
+    @property
+    def move_to(self) -> Path:
+        return self.logs.move_to or self.data_dir / "ingested-logs"
+
+    @property
+    def log_dir(self) -> Path:
+        """Where the processes write their own rotating log files (TD-27)."""
+        return self.data_dir / "logs"
+
+
+# --- loading -----------------------------------------------------------------------------------------------------
+
+type Raw = Mapping[str, object]
+
+
+def find_config_file(explicit: Path | None, env: Mapping[str, str]) -> Path | None:
+    if explicit is not None:
+        if not explicit.is_file():
+            raise ConfigError(f"config file not found: {explicit}")
+        return explicit
+    if env.get("IL2KS_CONFIG"):
+        path = Path(env["IL2KS_CONFIG"])
+        if not path.is_file():
+            raise ConfigError(f"IL2KS_CONFIG points to a missing file: {path}")
+        return path
+    for candidate in (Path.cwd() / CONFIG_FILE, default_data_dir(env) / CONFIG_FILE):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def load_config(
+    path: Path | None = None, env: Mapping[str, str] | None = None, *, create_server_uid: bool = True
+) -> Config:
+    """Read the config. `env` defaults to `os.environ` (tests pass their own).
+
+    `create_server_uid`: when no server UID is configured, generate one into `<data dir>/server_uid.txt` (TD-17)."""
+    env = os.environ if env is None else env
+    file = find_config_file(path, env)
+    raw: Raw = {}
+    base = Path.cwd()
+    if file is not None:
+        try:
+            raw = tomllib.loads(file.read_text(encoding="utf-8"))
+        except tomllib.TOMLDecodeError as exc:
+            raise ConfigError(f"{file}: {exc}") from exc
+        base = file.resolve().parent
+    reader = _Reader(raw, env, base)
+
+    data_dir = reader.path("", "data_dir") or default_data_dir(env)
+    log_level = reader.str_("", "log_level", "INFO").upper()
+    if log_level not in LOG_LEVELS:
+        raise ConfigError(f"log_level must be one of {', '.join(LOG_LEVELS)}, got {log_level!r}")
+
+    after = reader.str_("logs", "after_archive", "move")
+    if after not in AFTER_ARCHIVE_VALUES:
+        raise ConfigError(f"logs.after_archive must be one of {', '.join(AFTER_ARCHIVE_VALUES)}, got {after!r}")
+    logs = LogsConfig(
+        dir=reader.path("logs", "dir"),
+        after_archive=after,
+        move_to=reader.path("logs", "move_to"),
+        remote=reader.bool_("logs", "remote", False),
+    )
+
+    defaults = IngestConfig()
+    ingest = IngestConfig(
+        idle_minutes=reader.positive("ingest", "idle_minutes", defaults.idle_minutes),
+        settle_seconds=reader.non_negative("ingest", "settle_seconds", defaults.settle_seconds),
+        stable_seconds=reader.non_negative("ingest", "stable_seconds", defaults.stable_seconds),
+        watch_interval_s=reader.positive("ingest", "watch_interval_s", defaults.watch_interval_s),
+        retry_backoff_minutes=reader.float_list("ingest", "retry_backoff_minutes", defaults.retry_backoff_minutes),
+    )
+
+    rule_values: dict[str, float] = {}
+    for rule in dataclasses.fields(ReplayRules):
+        default = cast(float, rule.default)
+        rule_values[rule.name] = reader.non_negative("replay", rule.name, default)
+    replay = ReplayRules(**rule_values)
+
+    tz_name = reader.str_("server", "timezone", "") or detect_os_timezone(env)
+    try:
+        ZoneInfo(tz_name)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise ConfigError(f"server.timezone: unknown IANA timezone {tz_name!r}") from exc
+
+    uid_text = reader.str_("server", "uid", "")
+    server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)
+
+    return Config(
+        data_dir=data_dir,
+        server_uid=server_uid,
+        timezone_name=tz_name,
+        log_level=log_level,
+        logs=logs,
+        ingest=ingest,
+        replay=replay,
+        source=file,
+    )
+
+
+def _parse_uid(text: str) -> uuid.UUID:
+    try:
+        return uuid.UUID(text)
+    except ValueError as exc:
+        raise ConfigError(f"server.uid is not a UUID: {text!r}") from exc
+
+
+def stored_server_uid(data_dir: Path, *, create: bool) -> uuid.UUID:
+    """The server UID from `<data dir>/server_uid.txt`, generated on first use (TD-17).
+
+    `il2ks setup` will write it into `il2ks.toml` as `[server] uid`; until then this file keeps it stable."""
+    path = data_dir / SERVER_UID_FILE
+    if path.is_file():
+        return _parse_uid(path.read_text(encoding="utf-8").strip())
+    new = uuid.uuid4()
+    if create:
+        data_dir.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"{new}\n", encoding="utf-8")
+    return new
+
+
+def detect_os_timezone(env: Mapping[str, str]) -> str:
+    """The OS timezone as an IANA name when it can be found with the stdlib, else "UTC" (TD-15).
+
+    `TZ` env var, then the `/etc/localtime` symlink (Linux). Windows has no IANA name without extra packages,
+    so Windows admins set `[server] timezone` (or run DServer on UTC, as doc 07 recommends)."""
+    tz = env.get("TZ", "").lstrip(":")
+    if tz:
+        return tz
+    localtime = Path("/etc/localtime")
+    if localtime.is_symlink():
+        target = str(localtime.resolve())
+        marker = "zoneinfo/"
+        if marker in target:
+            return target.split(marker, 1)[1]
+    return "UTC"
+
+
+class _Reader:
+    """Typed access to `raw[section][key]` with the matching `IL2KS_*` env override."""
+
+    def __init__(self, raw: Raw, env: Mapping[str, str], base: Path) -> None:
+        self._raw = raw
+        self._env = env
+        self._base = base
+
+    @staticmethod
+    def env_name(section: str, key: str) -> str:
+        return "IL2KS_" + (f"{section}_{key}" if section else key).upper()
+
+    def _get(self, section: str, key: str) -> tuple[object, bool]:
+        """(value, from_env). Missing -> (None, False)."""
+        env_value = self._env.get(self.env_name(section, key))
+        if env_value is not None:
+            return env_value, True
+        table: object = self._raw if not section else self._raw.get(section, {})
+        if not isinstance(table, Mapping):
+            raise ConfigError(f"[{section}] must be a table")
+        return cast(Mapping[str, object], table).get(key), False
+
+    @staticmethod
+    def _label(section: str, key: str) -> str:
+        return f"{section}.{key}" if section else key
+
+    def str_(self, section: str, key: str, default: str) -> str:
+        value, _ = self._get(section, key)
+        if value is None:
+            return default
+        if not isinstance(value, str):
+            raise ConfigError(f"{self._label(section, key)} must be a string")
+        return value
+
+    def path(self, section: str, key: str) -> Path | None:
+        value, from_env = self._get(section, key)
+        if value is None or value == "":
+            return None
+        if not isinstance(value, str):
+            raise ConfigError(f"{self._label(section, key)} must be a path string")
+        path = Path(value).expanduser()
+        if not path.is_absolute():
+            path = (Path.cwd() if from_env else self._base) / path
+        return path
+
+    def bool_(self, section: str, key: str, default: bool) -> bool:
+        value, _ = self._get(section, key)
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str) and value.lower() in {"1", "true", "yes", "on", "0", "false", "no", "off"}:
+            return value.lower() in {"1", "true", "yes", "on"}
+        raise ConfigError(f"{self._label(section, key)} must be true or false")
+
+    def _float(self, label: str, value: object) -> float:
+        if isinstance(value, bool):
+            raise ConfigError(f"{label} must be a number")
+        if isinstance(value, int | float):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                pass
+        raise ConfigError(f"{label} must be a number")
+
+    def non_negative(self, section: str, key: str, default: float) -> float:
+        value, _ = self._get(section, key)
+        if value is None:
+            return default
+        number = self._float(self._label(section, key), value)
+        if number < 0:
+            raise ConfigError(f"{self._label(section, key)} must not be negative")
+        return number
+
+    def positive(self, section: str, key: str, default: float) -> float:
+        number = self.non_negative(section, key, default)
+        if number == 0:
+            raise ConfigError(f"{self._label(section, key)} must be greater than 0")
+        return number
+
+    def float_list(self, section: str, key: str, default: tuple[float, ...]) -> tuple[float, ...]:
+        value, _ = self._get(section, key)
+        label = self._label(section, key)
+        if value is None:
+            return default
+        items: list[object]
+        if isinstance(value, str):
+            items = [part for part in (p.strip() for p in value.split(",")) if part]
+        elif isinstance(value, list):
+            items = list(cast(list[object], value))
+        else:
+            raise ConfigError(f"{label} must be a list of numbers")
+        numbers = tuple(self._float(label, item) for item in items)
+        if any(n <= 0 for n in numbers):
+            raise ConfigError(f"{label}: every entry must be greater than 0")
+        return numbers
