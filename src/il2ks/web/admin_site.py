@@ -1,14 +1,16 @@
-"""The admin site: titles from `SiteSettings` and the ingestion status page (FR-ADM-1, FR-ADM-2, FR-ADM-4)."""
+"""The admin site: titles from `SiteSettings`, the ingestion status page and the "reprocess all missions" request
+(FR-ADM-1, FR-ADM-2, FR-ADM-4). The request is only filed here; the `watch` loop runs it (doc 14)."""
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
-from django.urls import URLPattern, URLResolver, path
+from django.urls import URLPattern, URLResolver, path, reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from il2ks.db.models import SiteSettings
+from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.web.ingest_status import build_overview
 
 
@@ -26,7 +28,10 @@ class Il2ksAdminSite(admin.AdminSite):
         return context
 
     def get_urls(self) -> list[URLPattern | URLResolver]:  # pyright: ignore[reportIncompatibleMethodOverride]
-        custom = [path("ingestion/", self.admin_view(self.ingest_status_view), name="ingest-status")]
+        custom = [
+            path("ingestion/", self.admin_view(self.ingest_status_view), name="ingest-status"),
+            path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
+        ]
         return [*custom, *super().get_urls()]
 
     def ingest_status_view(self, request: HttpRequest) -> HttpResponse:
@@ -38,3 +43,31 @@ class Il2ksAdminSite(admin.AdminSite):
             "overview": build_overview(timezone.now()),
         }
         return TemplateResponse(request, "admin/il2ks_ingest_status.html", context)
+
+    def reprocess_all_view(self, request: HttpRequest) -> HttpResponse:
+        """Confirmation page (GET) and the request itself (POST). Needs the permission to add a `ReprocessRequest`
+        (superusers have it; other staff only when granted). Nothing runs here: the `watch` loop picks it up."""
+        if not request.user.has_perm("il2ks_db.add_reprocessrequest"):
+            raise PermissionDenied
+        status_url = reverse(f"{self.name}:ingest-status")
+        if request.method == "POST":
+            try:
+                request_reprocess(request.user.get_username(), timezone.now())
+            except AlreadyPendingError:
+                messages.warning(request, _("A reprocess request is already waiting."))
+            else:
+                messages.success(
+                    request, _("Reprocessing of all missions is requested. It starts at the next watch tick.")
+                )
+            return HttpResponseRedirect(status_url)
+        overview = build_overview(timezone.now())
+        if not overview.can_request_reprocess:
+            messages.warning(request, _("A reprocess request is already waiting or running."))
+            return HttpResponseRedirect(status_url)
+        context = {
+            **self.each_context(request),
+            "title": _("Reprocess all missions"),
+            "missions_stored": overview.missions_stored,
+            "status_url": status_url,
+        }
+        return TemplateResponse(request, "admin/il2ks_reprocess_confirm.html", context)

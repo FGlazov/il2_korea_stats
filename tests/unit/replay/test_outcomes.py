@@ -203,29 +203,93 @@ def test_redeclaration_does_not_break_the_sortie() -> None:
     assert a.outcome == "landed"
 
 
-def test_mission_ended_sorties_are_neither_landed_nor_lost() -> None:
+def test_sortie_forced_by_mission_end_in_the_air_is_airborne() -> None:
+    """Doc 13: a forced sortie's outcome is the aircraft's state when the mission ended; the fate is in_aircraft."""
     sc = Scenario()
     sc.fly_a()
-    sc.player(0, 200, 201, 2, aircraft_type="MiG-15bis", country=501)  # never took off
     sc.mission_end(1000)
     sc.kill(1000.1, NO, 100)  # despawn cleanup is logged as destruction
     sc.end(1000.1, 100, 101)
-    sc.end(1000.2, 200, 201)
-    result = sc.result()
-    a, b = by_acct(result, 1), by_acct(result, 2)
-    assert (a.outcome, a.pilot_fate) == ("mission_ended", "mission_ended")
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.pilot_fate, a.pilot_fate_source) == ("airborne", "in_aircraft", "event")
+    assert a.ended_by_mission_end
     assert (a.is_death, a.is_plane_lost) == (False, False)
-    assert b.outcome == "not_taken_off"
-    assert result.mission.completed_cleanly
+    (end_entry,) = [e for e in a.timeline if e.kind == "sortie_end"]
+    assert end_entry.detail == "mission_end"
 
 
-def test_sortie_end_long_after_mission_end_is_not_mission_ended() -> None:
+def test_open_sortie_at_finish_after_mission_end_is_airborne_and_inferred() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.mission_end(1000)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.pilot_fate, a.pilot_fate_source) == ("airborne", "in_aircraft", "inferred")
+    assert a.ended_by_mission_end
+
+
+def test_sortie_forced_on_the_ground_after_landing_is_landed() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.land(600, 100)
+    sc.mission_end(1000)
+    sc.end(1000.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.pilot_fate) == ("landed", "in_aircraft")
+    assert a.ended_by_mission_end
+
+
+def test_sortie_forced_after_a_landing_away_from_the_airfields_is_ditched() -> None:
+    sc = Scenario()
+    sc.airfield(1, 601, GROUND)
+    sc.fly_a()
+    sc.land(600, 100, FAR)
+    sc.mission_end(1000)
+    sc.end(1000.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.pilot_fate, a.ended_by_mission_end) == ("ditched", "in_aircraft", True)
+
+
+def test_sortie_forced_before_taking_off_is_not_taken_off() -> None:
+    sc = Scenario()
+    sc.player(0, 200, 201, 2, aircraft_type="MiG-15bis", country=501)
+    sc.mission_end(1000)
+    sc.end(1000.2, 200, 201)
+    b = by_acct(sc.result(), 2)
+    assert (b.outcome, b.pilot_fate, b.ended_by_mission_end) == ("not_taken_off", "in_aircraft", True)
+
+
+def test_loss_before_the_mission_end_keeps_its_outcome_and_is_not_forced() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(300, 200, 100, 1.0)
+    sc.kill(300, 200, 100)
+    sc.mission_end(1000)
+    sc.end(1000.1, 100, 101)
+    sc.end(1000.2, 200, 201)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.is_plane_lost, a.ended_by_mission_end) == ("shot_down", True, False)
+
+
+def test_ordinary_sortie_is_not_ended_by_the_mission_end() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.land(600, 100)
+    sc.end(650, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert not a.ended_by_mission_end
+    (end_entry,) = [e for e in a.timeline if e.kind == "sortie_end"]
+    assert end_entry.detail == "landed"
+
+
+def test_sortie_end_long_after_mission_end_is_not_forced() -> None:
     sc = Scenario()
     sc.fly_a()
     sc.mission_end(1000)
     sc.land(1005, 100)
     sc.end(1020, 100, 101)
-    assert by_acct(sc.result(), 1).outcome == "landed"
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.ended_by_mission_end) == ("landed", False)
 
 
 def test_open_sortie_at_finish_without_mission_end_is_in_flight() -> None:

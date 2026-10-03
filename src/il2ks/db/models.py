@@ -136,8 +136,8 @@ class Outcome(models.TextChoices):
     SHOT_DOWN = "shot_down"
     DITCHED = "ditched"
     IN_FLIGHT = "in_flight"
+    AIRBORNE = "airborne"  # still in the air when the mission ended
     NOT_TAKEN_OFF = "not_taken_off"
-    MISSION_ENDED = "mission_ended"
     UNKNOWN = "unknown"
 
 
@@ -145,7 +145,6 @@ class PilotFate(models.TextChoices):
     IN_AIRCRAFT = "in_aircraft"
     BAILED_OUT = "bailed_out"
     EXITED_ON_GROUND = "exited_on_ground"
-    MISSION_ENDED = "mission_ended"
     DISCONNECTED = "disconnected"
     UNKNOWN = "unknown"
 
@@ -394,6 +393,9 @@ class PlayerSortie(models.Model):
     resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
     taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
     strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
+    ended_by_mission_end = models.BooleanField(
+        default=False
+    )  # the server force-ended it; outcome = state at that moment
     # None for gunners (not "": a gunner has no role, which is different from an unknown one)
     combat_role = models.CharField(max_length=16, choices=CombatRole.choices, null=True)  # noqa: DJ001
     time_on_target_s = models.FloatField(null=True)  # attack sorties only
@@ -583,6 +585,53 @@ class IngestRun(models.Model):
 
     def __str__(self) -> str:
         return f"{self.mission_uid} {self.status}"
+
+
+class ReprocessStatus(models.TextChoices):
+    PENDING = "pending"  # asked for in the admin; `watch` starts it at its next tick
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"  # the job itself crashed (individual failed missions still end as `done`, with counts)
+
+
+class ReprocessRequest(models.Model):
+    """An admin's request to reprocess missions (doc 14). The web process only writes this row; the `watch` loop
+    (also run by `il2ks run`) picks it up at its next tick and runs the reprocess under the writer lock.
+
+    `since` and `until` both empty means every mission. At most one request is pending at a time."""
+
+    requested_at = models.DateTimeField()
+    requested_by = models.CharField(max_length=150, blank=True)
+    since = models.DateField(null=True)  # server-local mission dates, inclusive (as `il2ks reprocess --since`)
+    until = models.DateField(null=True)
+    status = models.CharField(max_length=8, choices=ReprocessStatus.choices, default=ReprocessStatus.PENDING)
+    started_at = models.DateTimeField(null=True)
+    finished_at = models.DateTimeField(null=True)
+    missions_total = models.PositiveIntegerField(default=0)  # known once it starts
+    missions_ok = models.PositiveIntegerField(default=0)
+    missions_failed = models.PositiveIntegerField(default=0)
+    missions_missing = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ReprocessStatus.values), name="reprocessrequest_status_valid"
+            ),
+            models.UniqueConstraint(
+                fields=["status"],
+                condition=models.Q(status="pending"),
+                name="reprocessrequest_one_pending",
+            ),
+        ]
+        ordering = ["-requested_at", "-pk"]
+
+    def __str__(self) -> str:
+        return f"reprocess {self.status} ({self.requested_at:%Y-%m-%d %H:%M})"
+
+    @property
+    def is_all(self) -> bool:
+        return self.since is None and self.until is None
 
 
 class RedforEmblem(models.TextChoices):

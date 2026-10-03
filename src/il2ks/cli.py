@@ -155,7 +155,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("watch", help="run ingest every N seconds until Ctrl+C")
 
-    reprocess = sub.add_parser("reprocess", help="re-run missions from their archives, then rebuild aggregates")
+    reprocess = sub.add_parser(
+        "reprocess",
+        help="re-run missions from their archives, then rebuild aggregates (choose: --all, --mission, --since/--until)",
+        description=(
+            "Re-runs missions from their archives with the current rules, then rebuilds the aggregates. It can take a "
+            "long time on a big archive, so you must choose what to reprocess: --all for every mission, or narrow it "
+            "with --mission and/or --since/--until. Without any of these, nothing is done."
+        ),
+    )
+    reprocess.set_defaults(reprocess_parser=reprocess)
+    reprocess.add_argument(
+        "--all", action="store_true", help="reprocess every mission (explicit, can take a long time)"
+    )
     reprocess.add_argument("--mission", action="append", metavar="UID", help="only this mission (repeatable)")
     span_note = "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive."
     reprocess.add_argument(
@@ -244,6 +256,16 @@ def _main(argv: Sequence[str] | None) -> int:
 
 def _writer_command(command: str, ns: argparse.Namespace) -> int:
     """Commands that write the DB: config, logging, writer lock, migrations, then the job."""
+    if ns.command == "reprocess" and not (ns.all or ns.mission or ns.since is not None or ns.until is not None):
+        ns.reprocess_parser.print_help(sys.stderr)
+        print(
+            "\nil2ks: choose what to reprocess: --all, --mission UID or --since/--until (nothing was reprocessed)",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if ns.command == "reprocess" and ns.all and (ns.mission or ns.since is not None or ns.until is not None):
+        print("il2ks: --all cannot be combined with --mission, --since or --until", file=sys.stderr)
+        return EXIT_USAGE
     if ns.command == "reprocess" and ns.since is not None and ns.until is not None and ns.since > ns.until:
         print(f"il2ks: --since {ns.since} is after --until {ns.until}", file=sys.stderr)
         return EXIT_USAGE

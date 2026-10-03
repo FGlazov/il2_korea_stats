@@ -7,7 +7,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from il2ks.db.models import CompletionReason, GameObject, IngestRun, IngestStatus, Mission
+from il2ks.db.models import CompletionReason, GameObject, IngestRun, IngestStatus, Mission, ReprocessRequest
+from il2ks.db.reprocess_requests import last_finished_request, pending_request, running_request
 
 RECENT_DAYS = 30  # unknown event types/keys are summed over runs of this many days
 MAX_FAILED_SCANNED = 300
@@ -35,6 +36,13 @@ class IngestOverview:
     unknown_objects: list[GameObject] = field(default_factory=list[GameObject])
     unknown_atypes: list[UnknownCount] = field(default_factory=list[UnknownCount])
     unknown_keys: list[UnknownCount] = field(default_factory=list[UnknownCount])
+    reprocess_pending: ReprocessRequest | None = None
+    reprocess_running: ReprocessRequest | None = None
+    reprocess_last: ReprocessRequest | None = None  # the newest one that is over (done or failed)
+
+    @property
+    def can_request_reprocess(self) -> bool:
+        return self.reprocess_pending is None and self.reprocess_running is None
 
 
 def failed_missions(limit: int = MAX_FAILED_SCANNED) -> list[IngestRun]:
@@ -63,6 +71,9 @@ def _unknown_counts(per_run: list[dict[str, int]]) -> list[UnknownCount]:
 
 def build_overview(now: datetime) -> IngestOverview:
     overview = IngestOverview(missions_stored=Mission.objects.count())
+    overview.reprocess_pending = pending_request()
+    overview.reprocess_running = running_request()
+    overview.reprocess_last = last_finished_request()
     overview.last_run = IngestRun.objects.order_by("-started_at", "-pk").first()
     overview.last_ok = IngestRun.objects.filter(status=IngestStatus.OK).order_by("-started_at", "-pk").first()
 

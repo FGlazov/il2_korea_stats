@@ -294,6 +294,7 @@ _SORTIE_FIELDS = [
     "resupplied",
     "taxi_accident",
     "strafed_on_ground",
+    "ended_by_mission_end",
     "combat_role",
     "time_on_target_s",
     "kills_ground_tank",
@@ -397,6 +398,7 @@ def _fill_sortie(
     row.resupplied = s.resupplied
     row.taxi_accident = s.taxi_accident
     row.strafed_on_ground = s.strafed_on_ground
+    row.ended_by_mission_end = s.ended_by_mission_end
     row.combat_role = s.combat_role
     row.time_on_target_s = s.time_on_target_s
     for category in GROUND_CATEGORIES:

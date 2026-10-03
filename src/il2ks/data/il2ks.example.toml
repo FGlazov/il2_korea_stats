@@ -55,7 +55,7 @@
 #retry_backoff_minutes = [5.0, 30.0, 120.0]
 
 # --- Game rules for the replay (FR-ING-14, FR-ING-17, FR-ING-21, FR-ING-22) ----------------------------------------
-# A changed rule only affects missions ingested afterwards; run `il2ks reprocess` (optionally --since DATE) to apply
+# A changed rule only affects missions ingested afterwards; run `il2ks reprocess --all` (or --since DATE) to apply
 # it to older ones.
 #[replay]
 # Bailout (FR-ING-14): the pilot's final position must be at least this many metres from the aircraft's last known

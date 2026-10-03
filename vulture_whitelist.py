@@ -154,3 +154,11 @@ _.is_staff
 _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)
+
+# --- written to ReprocessRequest model fields, or read by the admin status template -----------------------------------
+_.missions_total  # ingest.reprocess_requests: model fields assigned while a reprocess runs, shown on the status page
+_.missions_ok
+_.missions_failed
+_.missions_missing
+_.reprocess_last  # web.ingest_status.IngestOverview: read by templates/admin/il2ks_ingest_status.html
+__call__  # ingest.reprocess_requests.ReprocessFn: a Protocol, `reprocess` and the test fakes satisfy it

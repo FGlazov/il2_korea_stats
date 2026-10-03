@@ -97,6 +97,7 @@ def _build_sortie(
         suspected_structural_failure=verdict.structural_failure,
         taxi_accident=verdict.taxi_accident,
         strafed_on_ground=verdict.strafed_on_ground,
+        ended_by_mission_end=verdict.ended_by_mission_end,
         kills_air=len(air),
         kills_air_pvp=sum(1 for k in air if k.victim_sortie_index is not None),
         kills_air_ai=sum(1 for k in air if k.victim_sortie_index is None),

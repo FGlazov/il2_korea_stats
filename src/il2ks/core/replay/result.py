@@ -14,10 +14,8 @@ from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 
 type Role = Literal["pilot", "gunner"]
 type SpawnType = Literal["air", "runway", "parking"]
-type Outcome = Literal[
-    "landed", "crashed", "shot_down", "ditched", "in_flight", "not_taken_off", "mission_ended", "unknown"
-]
-type PilotFate = Literal["in_aircraft", "bailed_out", "exited_on_ground", "mission_ended", "disconnected", "unknown"]
+type Outcome = Literal["landed", "crashed", "shot_down", "ditched", "in_flight", "airborne", "not_taken_off", "unknown"]
+type PilotFate = Literal["in_aircraft", "bailed_out", "exited_on_ground", "disconnected", "unknown"]
 type PilotFateSource = Literal["event", "inferred", "unknown"]
 type PilotStatus = Literal["healthy", "wounded", "dead", "captured"]
 type AircraftStatus = Literal["unharmed", "damaged", "destroyed"]
@@ -165,6 +163,9 @@ class SortieResult:
     loss_class: LossClass | None = None
     kills_air_pvp: int = 0  # air kills of a player's aircraft
     kills_air_ai: int = 0  # air kills of an AI aircraft
+    # The server force-ended the sortie at mission end (doc 12, 13): `outcome` then says what state the aircraft was in
+    # when the mission ended (`airborne`, `landed`, `ditched`, `not_taken_off`) and the pilot fate is `in_aircraft`.
+    ended_by_mission_end: bool = False
 
 
 @dataclass(frozen=True, slots=True)

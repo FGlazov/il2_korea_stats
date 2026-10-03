@@ -187,7 +187,9 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
             )
         )
     end_pos = sortie.end_pos or sortie.bot.removed_pos
-    entries.append(TimelineEntry(end, "sortie_end", verdict.outcome, end_pos))
+    entries.append(
+        TimelineEntry(end, "sortie_end", "mission_end" if verdict.ended_by_mission_end else verdict.outcome, end_pos)
+    )
     return tuple(sorted(entries, key=lambda e: e.tick))  # sorted() is stable
 
 

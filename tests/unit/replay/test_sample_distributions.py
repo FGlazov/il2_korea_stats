@@ -25,7 +25,7 @@ def test_sample_distributions_stay_in_expected_bands() -> None:
             if sortie.role != "pilot":
                 continue
             counts["pilot"] += 1
-            counts["mission_ended"] += sortie.outcome == "mission_ended"
+            counts["mission_ended"] += sortie.ended_by_mission_end and sortie.takeoff_tick is not None
             if sortie.takeoff_tick is None:
                 continue
             counts["took_off"] += 1

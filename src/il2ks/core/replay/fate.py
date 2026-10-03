@@ -35,6 +35,14 @@ def left_aircraft(sortie: SortieState, disconnect_tick: int | None) -> bool:
     return sortie.end_aircraft_id == 0 or sortie.ended_by_removal or disconnect_tick is not None
 
 
+def left_before(sortie: SortieState, tick: int) -> bool:
+    """Evidence that the pilot was out of the aircraft before `tick` (a bailout event, or the bot already removed)."""
+    bot = sortie.bot
+    return (bot.bailout_tick is not None and bot.bailout_tick <= tick) or (
+        bot.removed_tick is not None and bot.removed_tick < tick
+    )
+
+
 def disconnect_tick_of(sortie: SortieState, facts: MissionFacts, rules: ReplayRules) -> int | None:
     """The AType 21 of this account nearest to the sortie end, within `disconnect_window_s` (FR-ING-14 cond. 6)."""
     end = sortie_end_tick(sortie, facts)
@@ -106,7 +114,7 @@ def pilot_death_tick(sortie: SortieState, facts: MissionFacts, rules: ReplayRule
 
 
 def forced_by_mission_end(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final: bool) -> bool:
-    """Doc 12: the server force-ends every active sortie right after AType 7 (`mission_ended`)."""
+    """Doc 12: the server force-ends every active sortie right after AType 7 (`ended_by_mission_end`)."""
     mission_end = facts.first_mission_end
     if mission_end is None:
         return False
@@ -277,9 +285,9 @@ def pilot_fate_of(
     if dead:
         return "in_aircraft", "event"
     if forced and sortie.end_aircraft_id is not None:
-        return "mission_ended", "event"
+        return "in_aircraft", "event"  # the pilot was still in the aircraft when the server despawned it
     if forced:
-        return "mission_ended", "inferred"
+        return "in_aircraft", "inferred"
     plain_end = sortie.end_aircraft_id is not None and sortie.end_aircraft_id != 0
     disconnected = sortie.ended_by_removal or (disconnect_tick is not None and sortie.airborne_at_end and plain_end)
     if sortie.end_aircraft_id == 0:

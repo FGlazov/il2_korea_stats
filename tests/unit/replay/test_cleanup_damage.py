@@ -28,7 +28,7 @@ def cleanup_scenario(*, earlier_damage: float) -> SortieResult:
 
 def test_cleanup_damage_is_not_damage_taken() -> None:
     a = cleanup_scenario(earlier_damage=0.0)
-    assert a.outcome == "mission_ended"
+    assert (a.outcome, a.ended_by_mission_end) == ("airborne", True)
     assert (a.damage_taken, a.aircraft_status) == (0.0, "unharmed")
     assert (a.is_plane_lost, a.pilot_status) == (False, "healthy")
     assert a.damage == ()

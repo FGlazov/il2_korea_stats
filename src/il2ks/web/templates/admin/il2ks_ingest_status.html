@@ -44,6 +44,34 @@
     </div>
   </div>
 
+  <div class="ingest-section module" id="reprocess">
+    <h2>{% translate "Reprocess all missions" %}</h2>
+    <p class="note">{% translate "Re-runs every stored mission from its archive with the current rules, then rebuilds the aggregates. It can take a long time on a big archive. The watch process starts it at its next tick; the site keeps working meanwhile." %}</p>
+    {% if overview.reprocess_running %}
+      {% with job=overview.reprocess_running %}
+      <p><strong class="state-ok">{% translate "Running" %}</strong>
+        {% blocktranslate with started=job.started_at|date:"Y-m-d H:i" done=job.missions_ok failed=job.missions_failed total=job.missions_total %}since {{ started }}: {{ done }} of {{ total }} missions done, {{ failed }} failed.{% endblocktranslate %}</p>
+      {% endwith %}
+    {% elif overview.reprocess_pending %}
+      <p><strong>{% translate "Waiting" %}</strong>
+        {% blocktranslate with at=overview.reprocess_pending.requested_at|date:"Y-m-d H:i" who=overview.reprocess_pending.requested_by %}requested {{ at }} by {{ who }}; it starts at the next watch tick.{% endblocktranslate %}</p>
+    {% endif %}
+    {% if overview.reprocess_last %}
+      {% with job=overview.reprocess_last %}
+      <p>{% translate "Last request" %}:
+        <strong class="{% if job.status == 'done' %}state-ok{% else %}state-bad{% endif %}">{{ job.get_status_display }}</strong>,
+        {{ job.finished_at|date:"Y-m-d H:i" }}{% if job.status == 'done' %}:
+        {% blocktranslate with ok=job.missions_ok failed=job.missions_failed missing=job.missions_missing %}{{ ok }} missions reprocessed, {{ failed }} failed, {{ missing }} without an archive.{% endblocktranslate %}{% endif %}
+        {% if job.error %}<span class="mono">{{ job.error|truncatechars:200 }}</span>{% endif %}</p>
+      {% endwith %}
+    {% endif %}
+    {% if perms.il2ks_db.add_reprocessrequest %}
+      {% if overview.can_request_reprocess %}
+      <p><a class="button" href="{% url 'admin:reprocess-all' %}">{% translate "Reprocess all missions…" %}</a></p>
+      {% endif %}
+    {% endif %}
+  </div>
+
   <div class="ingest-section module">
     <h2>{% translate "Failed, waiting for a retry" %} ({{ overview.waiting_retry|length }})</h2>
     {% if overview.waiting_retry %}

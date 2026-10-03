@@ -236,7 +236,8 @@ def test_gunner_sortie_open_at_the_mission_end_is_closed_by_it() -> None:
     sc = _crew()
     sc.mission_end(100)
     gunner = by_acct(sc.result(), 3)
-    assert (gunner.outcome, gunner.pilot_fate) == ("mission_ended", "mission_ended")
+    assert (gunner.outcome, gunner.pilot_fate) == ("airborne", "in_aircraft")
+    assert gunner.ended_by_mission_end
     assert gunner.end_tick >= 100 * 50
 
 
