@@ -27,6 +27,7 @@ dev = [
     "pytest-cov>=6.0",
     "pytest-django>=4.9",
     "ruff>=0.12",
+    "vulture>=2.16",
 ]
 
 [build-system]
@@ -48,6 +49,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/il2ks/db/migrations/*" = ["RUF012"]
+"vulture_whitelist.py" = ["F821", "B018"]
 "src/il2ks/db/models.py" = ["RUF012"]  # Django Meta attributes are class-level lists by design
 
 # --- pyright strict (TD-12): core gets zero ignores; Django layers use django-types.
@@ -81,3 +83,15 @@ name = "core is pure Python (no Django, no outer layers)"
 type = "forbidden"
 source_modules = ["il2ks.core"]
 forbidden_modules = ["django", "il2ks.db", "il2ks.web", "il2ks.ingest", "il2ks.queries", "il2ks.settings"]
+
+# --- vulture: dead-code finder. Run over src only, so code that only tests use still shows up (C1).
+# min_confidence 60 is needed to see unused functions/classes/methods; the noise is cut by excluding Django glue
+# (settings, migrations, models, apps, urls) and by `vulture_whitelist.py` for the rest.
+[tool.vulture]
+paths = ["src", "vulture_whitelist.py"]
+min_confidence = 60
+exclude = [
+    "src/il2ks/db/migrations/",  # Django reads these by convention
+    "src/il2ks/db/models.py",  # fields/choices/Meta are the DB schema, read by Django and the ORM
+    "src/il2ks/settings.py",  # Django reads every setting by name
+]

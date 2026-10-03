@@ -43,10 +43,12 @@ from il2ks.core.logparse.events import (
 )
 from il2ks.core.logparse.parser import (
     MAX_WARNINGS,
+    MAX_WARNINGS_PER_KIND,
     RAW_FIELD,
     UNLABELLED,
     ParseError,
     ParseStats,
+    WarningKind,
     parse_line,
     parse_lines,
     tokenize,
@@ -457,11 +459,118 @@ def test_parse_lines_counts_bad_lines_and_never_raises() -> None:
     assert stats.warnings[0].startswith("line 3: missing key TID")
 
 
-def test_parse_lines_caps_warning_texts() -> None:
+def test_parse_lines_caps_warning_texts_per_kind_and_summarizes() -> None:
     stats = ParseStats()
-    assert list(parse_lines(["bad"] * (MAX_WARNINGS + 10), stats)) == []
-    assert stats.lines_bad == MAX_WARNINGS + 10
-    assert len(stats.warnings) == MAX_WARNINGS
+    assert list(parse_lines(["bad"] * (MAX_WARNINGS_PER_KIND + 10), stats)) == []
+    assert stats.lines_bad == MAX_WARNINGS_PER_KIND + 10
+    assert stats.warning_counts == {WarningKind.MALFORMED_LINE: MAX_WARNINGS_PER_KIND + 10}
+    assert len(stats.warnings) == MAX_WARNINGS_PER_KIND + 1
+    assert stats.warnings[-1] == "10 more 'malformed line' warnings suppressed"
+
+
+def test_no_summary_when_nothing_was_suppressed() -> None:
+    stats = ParseStats()
+    list(parse_lines(["bad"] * MAX_WARNINGS_PER_KIND, stats))
+    assert len(stats.warnings) == MAX_WARNINGS_PER_KIND
+    assert not any("suppressed" in w for w in stats.warnings)
+
+
+def test_a_flood_of_one_kind_does_not_hide_another_kind() -> None:
+    stats = ParseStats()
+    lines = ["bad"] * 500 + ["T:1 AType:1 AMMO:x AID:1"]  # a missing key after the flood
+    list(parse_lines(lines, stats))
+    assert stats.lines_bad == 501
+    assert any("missing key TID" in w for w in stats.warnings)
+    assert stats.warning_counts == {WarningKind.MALFORMED_LINE: 500, WarningKind.MISSING_KEY: 1}
+
+
+def test_global_cap_applies_to_repeats_but_not_to_the_first_of_a_kind() -> None:
+    stats = ParseStats()
+    # Distinct unknown keys are all news, so they pass the caps and can fill the global cap ...
+    lines = [f"T:1 AType:5 PID:1 POS(1,2,3) K{i}:1" for i in range(MAX_WARNINGS + 5)]
+    list(parse_lines(lines, stats))
+    assert len(stats.warnings) == MAX_WARNINGS + 5
+    # ... then the first of another kind still gets through, and its repeats are only summarized.
+    more = ["bad", "bad", "T:1 AType:1 AMMO:x AID:1 AID:2 TID:3", "T:1 AType:1 AMMO:x AID:1 AID:2 TID:3"]
+    list(parse_lines(more, stats))
+    texts = stats.warnings[MAX_WARNINGS + 5 :]
+    assert len(texts) == 2 + 2  # the two firsts and two summaries
+    assert "1 more 'malformed line' warnings suppressed" in texts
+    assert "1 more 'duplicate key' warnings suppressed" in texts
+
+
+@pytest.mark.parametrize(
+    ("line", "kind"),
+    [
+        ("garbage", WarningKind.MALFORMED_LINE),
+        ("T:abc AType:1 AMMO:x AID:1 TID:2", WarningKind.MALFORMED_LINE),
+        ("T:1 AType:1 AMMO:x AID:1 TID:2 stray", WarningKind.MALFORMED_TOKEN),
+        ("T:1 AType:2 DMG:0.1 AID:1 TID:2 POS(1,2,3)x", WarningKind.MALFORMED_TOKEN),
+        ("T:1 AType:2 DMG:0.1 AID:1 TID:2 POS(1.0,2.0", WarningKind.UNBALANCED_PARENTHESES),
+        ("T:1 AType:14 AID:1 BP((1.0,2.0)", WarningKind.UNBALANCED_PARENTHESES),
+        ("T:1 AType:1 AMMO:x AID:1 AID:2 TID:3", WarningKind.DUPLICATE_KEY),
+        ("T:1 AType:1 AMMO:x AID:1", WarningKind.MISSING_KEY),
+        ("T:1 AType:1", WarningKind.MISSING_KEY),
+        ("T:1 AType:1 AMMO:x AID:1.5 TID:2", WarningKind.BAD_VALUE),
+        ("T:1 AType:2 DMG:abc AID:1 TID:2 POS(1,2,3)", WarningKind.BAD_VALUE),
+        ("T:1 AType:2 DMG:0.1 AID:1 TID:2 POS(1.0,2.0)", WarningKind.BAD_VALUE),
+        ("T:1 AType:13 AID:1 COUNTRY:601 ENABLED:2 BC(0,0,0)", WarningKind.BAD_VALUE),
+    ],
+)
+def test_parse_error_kind(line: str, kind: WarningKind) -> None:
+    with pytest.raises(ParseError) as info:
+        parse_line(line)
+    assert info.value.kind is kind
+
+
+def test_each_bad_line_kind_is_warned_and_counted() -> None:
+    stats = ParseStats()
+    lines = [
+        "garbage",
+        "T:1 AType:1 AMMO:x AID:1",
+        "T:1 AType:1 AMMO:x AID:y TID:2",
+        "T:1 AType:1 AMMO:x AID:1 AID:2 TID:3",
+    ]
+    list(parse_lines(lines, stats))
+    assert stats.warning_counts == {
+        WarningKind.MALFORMED_LINE: 1,
+        WarningKind.MISSING_KEY: 1,
+        WarningKind.BAD_VALUE: 1,
+        WarningKind.DUPLICATE_KEY: 1,
+    }
+    assert len(stats.warnings) == 4
+
+
+def test_first_occurrence_of_each_unknown_key_and_atype_is_warned_even_past_the_per_kind_cap() -> None:
+    stats = ParseStats()
+    lines = [f"T:1 AType:5 PID:1 POS(1,2,3) NEW:{i}" for i in range(MAX_WARNINGS_PER_KIND * 2)]  # one key, repeated
+    lines += ["T:1 AType:5 PID:1 POS(1,2,3) OTHER:1", "T:1 AType:6 PID:1 POS(1,2,3) NEW:1"]  # new "<atype>:<KEY>"s
+    lines += ["T:1 AType:40 X:1", "T:1 AType:40 X:2", "T:1 AType:41 X:1"]
+    list(parse_lines(lines, stats))
+    texts = stats.warnings
+    assert sum("unknown key NEW in AType 5" in t for t in texts) == MAX_WARNINGS_PER_KIND
+    assert any("unknown key OTHER in AType 5" in t for t in texts)
+    assert any("unknown key NEW in AType 6" in t for t in texts)
+    assert any("unknown AType 41" in t for t in texts)
+    assert sum("unknown AType 40" in t for t in texts) == 2  # the kind is under its cap
+    assert stats.warning_counts[WarningKind.UNKNOWN_KEY] == MAX_WARNINGS_PER_KIND * 2 + 2
+    assert stats.warning_counts[WarningKind.UNKNOWN_ATYPE] == 3
+    assert stats.warnings_emitted[WarningKind.UNKNOWN_KEY] == MAX_WARNINGS_PER_KIND + 2
+
+
+def test_unknown_key_summary_counts_suppressed_ones() -> None:
+    stats = ParseStats()
+    n = MAX_WARNINGS_PER_KIND + 5
+    list(parse_lines(["T:1 AType:5 PID:1 POS(1,2,3) NEW:1"] * n, stats))
+    assert stats.warnings[-1] == "5 more 'unknown key' warnings suppressed"
+    assert len(stats.warnings) == MAX_WARNINGS_PER_KIND + 1
+    assert stats.unknown_keys == {"5:NEW": n}  # the Counter is never capped
+
+
+def test_ignored_atypes_do_not_warn() -> None:
+    stats = ParseStats()
+    list(parse_lines(["T:1 AType:27 OBJID:1 POS(1,2,3)"], stats))
+    assert stats.warnings == []
 
 
 def test_parse_lines_counts_unknown_keys_and_atypes() -> None:
@@ -487,3 +596,4 @@ def test_parse_lines_warns_on_log_version_change() -> None:
     list(parse_lines(["T:1 AType:15 VER:18", "T:2 AType:15 VER:19", "T:3 AType:15 VER:18"], stats))
     assert stats.log_version == 18
     assert stats.warnings == ["line 2: log version changed from 18 to 19"]
+    assert stats.warning_counts == {WarningKind.VERSION_CHANGE: 1}

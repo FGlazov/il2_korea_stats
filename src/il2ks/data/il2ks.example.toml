@@ -1,0 +1,92 @@
+# il2ks.toml: example configuration for il2ks (FR-OPS-2).
+#
+# Every setting is listed here with its built-in default, commented out. Uncomment and change what you need;
+# whatever you leave out keeps the default shown. `il2ks setup` will copy this file for you.
+#
+# How settings are combined (later wins): built-in defaults, then this file, then environment variables named
+# IL2KS_<SECTION>_<KEY> (for example [logs] dir is IL2KS_LOGS_DIR). Top-level keys have no section part
+# (IL2KS_DATA_DIR, IL2KS_LOG_LEVEL, IL2KS_LOG_KEEP_DAYS). Lists in environment variables are comma-separated.
+# An empty string "" means "not set". Relative paths in this file are relative to the folder of this file.
+#
+# Lines that start with "#" followed by a space are explanations; lines like "#key = value" are settings you can
+# switch on by removing the "#".
+
+# Where il2ks keeps its database, archives and logs. "" = ./.il2ks-data in the folder you run il2ks from.
+#data_dir = ""
+
+# Verbosity of il2ks' own log: DEBUG, INFO, WARNING or ERROR.
+#log_level = "INFO"
+
+# il2ks writes one log file per process and day (<data dir>/logs/<process>-YYYY-MM-DD.log); files older than
+# this many days are deleted.
+#log_keep_days = 14
+
+# --- DServer's mission logs (FR-ING-1, FR-ING-10, FR-ING-16) -------------------------------------------------------
+#[logs]
+# The folder where DServer writes its missionReport(...)[N].txt files. "" = not set; then `il2ks ingest` and
+# `il2ks watch` only work with `--from`.
+#dir = ""
+# What to do with the original files once a mission is archived and stored: "move" (to move_to), "keep" (leave
+# them where they are) or "delete".
+#after_archive = "move"
+# Where "move" puts the originals (one sub-folder per mission). "" = <data dir>/ingested-logs.
+#move_to = ""
+# true when the logs are copied in from another machine: a part only counts as complete once it has been
+# unmodified for [ingest] stable_seconds (FR-ING-16).
+#remote = false
+
+# --- When a mission counts as finished, and how often to look (FR-ING-2, FR-ING-16, FR-ING-19) ---------------------
+#[ingest]
+# A mission is complete if none of its parts was written for this many minutes.
+#idle_minutes = 10.0
+# After the mission-end marker (AType 7) wait until no part changed for this many seconds: cleanup lines still
+# follow it. A newer mission's first file completes a mission at once, so this only delays the last mission.
+#settle_seconds = 300.0
+# Only with [logs] remote = true: seconds a part must stay unmodified before it counts as fully copied.
+#stable_seconds = 60.0
+# `il2ks watch` looks for new or finished missions every this many seconds.
+#watch_interval_s = 30.0
+# After a mission fails to ingest, retry after these many minutes, one entry per retry; then give up until the
+# files change or il2ks is upgraded (FR-ING-19).
+#retry_backoff_minutes = [5.0, 30.0, 120.0]
+
+# --- Game rules for the replay (FR-ING-14, FR-ING-17, FR-ING-21, FR-ING-22) ----------------------------------------
+# A changed rule only affects missions ingested afterwards; run `il2ks reprocess` (optionally --since DATE) to apply
+# it to older ones.
+#[replay]
+# Bailout (FR-ING-14): the pilot's final position must be at least this many metres from the aircraft's last known
+# position (closer means a crash landing or climbing out next to the wreck).
+#bailout_min_distance_m = 100.0
+# Seconds: a pilot killed within this time of the aircraft's destruction died in the aircraft (no bailout).
+#died_with_aircraft_s = 0.5
+# Seconds: a player who disconnects within this time of the sortie's end counts as disconnected (no early bailout).
+#disconnect_window_s = 30.0
+# Seconds: a bailout this close to the mission's end is not a "suspected early bailout".
+#mission_end_window_s = 60.0
+# Seconds after the mission end (AType 7) in which a normal sortie end (AType 4) still counts as "mission ended".
+#mission_end_sortie_window_s = 5.0
+# A disconnect while still in the aircraft counts as a death only if the aircraft or pilot took damage within this
+# many seconds before it (FR-ING-21).
+#disconnect_damage_window_s = 120.0
+# Suspected structural failure (FR-ING-17): the self-inflicted damage began less than this many seconds before the
+# aircraft was destroyed ...
+#structural_sudden_s = 1.0
+# ... and the wreck kept falling for more than this many seconds before its next ground contact.
+#structural_fall_s = 1.0
+# An aircraft or pilot destroyed up to this many seconds after the sortie's end still counts for that sortie (the
+# shot-down shape logs the sortie end before the kill), or at any time if the pilot left an airborne aircraft
+# (FR-ING-22).
+#post_end_destroy_window_s = 5.0
+# Kill credit (TD-21): every damager above this fraction of the victim's total damage gets an assist (0.01 = 1%).
+#assist_min_damage = 0.01
+
+# --- This game server (TD-15, TD-17) -------------------------------------------------------------------------------
+#[server]
+# The timezone of the machine running DServer, as an IANA name such as "Europe/Berlin" or "Asia/Seoul". DServer
+# names its logs in local time without a UTC offset, so this decides what instant a mission started.
+# "" = detect it: the TZ environment variable, then /etc/localtime (Linux), then UTC. Windows can't be detected:
+# set it here unless DServer's machine runs on UTC.
+#timezone = ""
+# This server's permanent ID (a UUID). "" = generated on first start and kept in <data dir>/server_uid.txt.
+# Keep it when you move to a new machine: it identifies the server across reinstalls and backups (TD-17).
+#uid = ""

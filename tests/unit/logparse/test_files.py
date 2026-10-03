@@ -11,7 +11,6 @@ from il2ks.core.logparse.files import (
     group_mission_files,
     mission_uid_from_name,
     parse_mission,
-    part_index,
     read_mission_lines,
 )
 from il2ks.core.logparse.parser import ParseStats
@@ -25,22 +24,21 @@ def name(uid: str, n: int, ext: str = ".txt") -> str:
 
 
 @pytest.mark.parametrize(
-    ("file_name", "uid", "index"),
+    ("file_name", "uid"),
     [
-        (name(UID, 0), UID, 0),
-        (name(UID, 3), UID, 3),
-        (name(UID, 12), UID, 12),
-        (name(UID, 0, ".txt.zip"), UID, None),
-        (name(UID, 0, ".TXT"), UID, 0),
-        ("missionReport(2026-09-19_22-34-13).txt", None, None),  # no [N]
-        ("missionReport(2026-09-19)[0].txt", None, None),
-        (f"{name(UID, 0)}.weather.json", None, None),
-        ("notes.txt", None, None),
+        (name(UID, 0), UID),
+        (name(UID, 3), UID),
+        (name(UID, 12), UID),
+        (name(UID, 0, ".txt.zip"), UID),
+        (name(UID, 0, ".TXT"), UID),
+        ("missionReport(2026-09-19_22-34-13).txt", None),  # no [N]
+        ("missionReport(2026-09-19)[0].txt", None),
+        (f"{name(UID, 0)}.weather.json", None),
+        ("notes.txt", None),
     ],
 )
-def test_name_parsing(file_name: str, uid: str | None, index: int | None) -> None:
+def test_name_parsing(file_name: str, uid: str | None) -> None:
     assert mission_uid_from_name(file_name) == uid
-    assert part_index(file_name) == index
 
 
 def test_parts_are_grouped_and_sorted_numerically(tmp_path: Path) -> None:

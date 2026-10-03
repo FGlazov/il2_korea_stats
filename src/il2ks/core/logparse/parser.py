@@ -14,6 +14,7 @@ import re
 from collections import Counter
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
+from enum import StrEnum
 from types import MappingProxyType
 
 from il2ks.core.logparse.events import (
@@ -52,7 +53,11 @@ from il2ks.core.logparse.events import (
 )
 
 MAX_WARNINGS = 200
-"""Stop collecting warning texts after this many per mission (they're still counted in `lines_bad`)."""
+"""Global cap of detail warnings per mission (they're still counted in `lines_bad` / `warning_counts`). Warnings
+for something new (see `_warn`) and the per-kind summaries are exempt, so this is "soft" by a handful."""
+
+MAX_WARNINGS_PER_KIND = 20
+"""At most this many detail warnings per `WarningKind` and mission, apart from the always-warned new ones."""
 
 MAX_WARNING_LINE_CHARS = 200
 """A warning quotes at most this many characters of the offending line."""
@@ -72,8 +77,27 @@ type Extra = MappingProxyType[str, str]
 _NO_EXTRA: Extra = MappingProxyType({})
 
 
+class WarningKind(StrEnum):
+    """What a parser warning is about. The value is the human-readable label used in warning texts and in
+    `ParseStats.warning_counts` (FR-ING-11). The first six are the reasons a line is bad (`ParseError.kind`)."""
+
+    MALFORMED_LINE = "malformed line"  # doesn't start with `T:<tick> AType:<n>`
+    MALFORMED_TOKEN = "malformed token"  # stray text between or glued to tokens
+    UNBALANCED_PARENTHESES = "unbalanced parentheses"
+    DUPLICATE_KEY = "duplicate key"
+    MISSING_KEY = "missing required key"
+    BAD_VALUE = "bad value"  # a value that doesn't convert (not an integer, wrong coordinate count, ...)
+    UNKNOWN_ATYPE = "unknown AType"  # not a bad line: a GenericEvent
+    UNKNOWN_KEY = "unknown key"  # not a bad line: the token goes to `extra`
+    VERSION_CHANGE = "log version change"  # not a bad line
+
+
 class ParseError(ValueError):
-    """A line that can't be turned into an event (malformed or truncated)."""
+    """A line that can't be turned into an event (malformed or truncated). `kind` says why (C2)."""
+
+    def __init__(self, kind: WarningKind, message: str) -> None:
+        super().__init__(message)
+        self.kind = kind
 
 
 @dataclass(slots=True)
@@ -87,6 +111,10 @@ class ParseStats:
     unknown_keys: Counter[str] = field(default_factory=Counter[str])  # "<atype>:<KEY>"
     warnings: list[str] = field(default_factory=list[str])
     ignored_atypes: Counter[int] = field(default_factory=Counter[int])  # IGNORED_ATYPES seen (27, 28)
+    # Warnings by kind (WarningKind value): every occurrence, including the ones whose text was suppressed by the caps.
+    warning_counts: Counter[str] = field(default_factory=Counter[str])
+    warnings_emitted: Counter[str] = field(default_factory=Counter[str])  # per kind: texts actually in `warnings`
+    warned_novelties: set[str] = field(default_factory=set[str])  # what already got its always-warned first text
 
 
 # --- tokenizer ---------------------------------------------------------------------------------------------------
@@ -105,7 +133,7 @@ def _paren_end(text: str, open_at: int) -> int:
     """Index just past the `)` matching the `(` at `open_at`."""
     close = text.find(")", open_at + 1)
     if close < 0:
-        raise ParseError(f"unclosed '(' at column {open_at}")
+        raise ParseError(WarningKind.UNBALANCED_PARENTHESES, f"unclosed '(' at column {open_at}")
     if text.find("(", open_at + 1, close) < 0:
         return close + 1
     depth = 0
@@ -117,7 +145,7 @@ def _paren_end(text: str, open_at: int) -> int:
             depth -= 1
             if depth == 0:
                 return i + 1
-    raise ParseError(f"unclosed '(' at column {open_at}")
+    raise ParseError(WarningKind.UNBALANCED_PARENTHESES, f"unclosed '(' at column {open_at}")
 
 
 def _find_terminator(text: str, start: int, candidates: tuple[tuple[str, str], ...]) -> int:
@@ -156,7 +184,9 @@ def tokenize(rest: str, terminators: _Terminators = _NO_TERMINATORS) -> dict[str
         else:
             m = _KEY_RE.match(rest, pos)
             if m is None:
-                raise ParseError(f"unexpected text at column {pos}: {rest[pos : pos + 20]!r}")
+                raise ParseError(
+                    WarningKind.MALFORMED_TOKEN, f"unexpected text at column {pos}: {rest[pos : pos + 20]!r}"
+                )
             key = m.group(1)
             start = m.end()
             if m.group(2) == "(":
@@ -177,11 +207,11 @@ def tokenize(rest: str, terminators: _Terminators = _NO_TERMINATORS) -> dict[str
                         end = _match_end(_VALUE_RE, rest, word)
                 value = rest[start:end].lstrip(" ")
         if key in tokens:
-            raise ParseError(f"duplicate key {key!r}")
+            raise ParseError(WarningKind.DUPLICATE_KEY, f"duplicate key {key!r}")
         tokens[key] = value
         pos = end
         if pos < n and rest[pos] != " ":
-            raise ParseError(f"unexpected text at column {pos}: {rest[pos : pos + 20]!r}")
+            raise ParseError(WarningKind.MALFORMED_TOKEN, f"unexpected text at column {pos}: {rest[pos : pos + 20]!r}")
 
 
 def _match_end(pattern: re.Pattern[str], text: str, pos: int) -> int:
@@ -204,14 +234,14 @@ class _Fields:
         try:
             return self._tokens[key]
         except KeyError:
-            raise ParseError(f"missing key {key}") from None
+            raise ParseError(WarningKind.MISSING_KEY, f"missing key {key}") from None
 
     def integer(self, key: str) -> int:
         value = self.raw(key)
         try:
             return int(value)
         except ValueError:
-            raise ParseError(f"{key}: not an integer: {value!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: not an integer: {value!r}") from None
 
     def oid(self, key: str) -> ObjectId:
         return ObjectId(self.integer(key))
@@ -221,7 +251,7 @@ class _Fields:
         try:
             return float(value)
         except ValueError:
-            raise ParseError(f"{key}: not a number: {value!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: not a number: {value!r}") from None
 
     def flag(self, key: str) -> bool:
         value = self.raw(key)
@@ -229,23 +259,23 @@ class _Fields:
             return True
         if value == "0":
             return False
-        raise ParseError(f"{key}: not 0 or 1: {value!r}")
+        raise ParseError(WarningKind.BAD_VALUE, f"{key}: not 0 or 1: {value!r}")
 
     def _group(self, key: str) -> str:
         """Inside of a parenthesized value."""
         value = self.raw(key)
         if len(value) < 2 or value[0] != "(" or value[-1] != ")":
-            raise ParseError(f"{key}: expected '(...)': {value!r}")
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: expected '(...)': {value!r}")
         return value[1:-1]
 
     def pos(self, key: str = "POS") -> Pos:
         parts = self._group(key).split(",")
         if len(parts) != 3:
-            raise ParseError(f"{key}: expected 3 coordinates: {self.raw(key)!r}")
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: expected 3 coordinates: {self.raw(key)!r}")
         try:
             return Pos(float(parts[0]), float(parts[1]), float(parts[2]))
         except ValueError:
-            raise ParseError(f"{key}: bad coordinates: {self.raw(key)!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: bad coordinates: {self.raw(key)!r}") from None
 
     def int_group(self, key: str) -> tuple[int, ...]:
         """`BC(0,0,1)` -> (0, 0, 1)."""
@@ -253,7 +283,7 @@ class _Fields:
         try:
             return tuple(int(v) for v in inner.split(",")) if inner else ()
         except ValueError:
-            raise ParseError(f"{key}: bad integer list: {self.raw(key)!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: bad integer list: {self.raw(key)!r}") from None
 
     def id_list(self, key: str) -> tuple[ObjectId, ...]:
         """`IDS:1,2,3` -> (1, 2, 3); empty value -> ()."""
@@ -261,7 +291,7 @@ class _Fields:
         try:
             return tuple(ObjectId(int(v)) for v in value.split(",")) if value else ()
         except ValueError:
-            raise ParseError(f"{key}: bad ID list: {value!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: bad ID list: {value!r}") from None
 
     def points_2d(self, key: str) -> tuple[tuple[float, float], ...]:
         """`BP((x,z),(x,z))` -> ((x, z), (x, z))."""
@@ -269,16 +299,16 @@ class _Fields:
         if not inner:
             return ()
         if inner[0] != "(" or inner[-1] != ")":
-            raise ParseError(f"{key}: expected '((x,z),...)': {self.raw(key)!r}")
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: expected '((x,z),...)': {self.raw(key)!r}")
         points: list[tuple[float, float]] = []
         for point in inner[1:-1].split("),("):
             coords = point.split(",")
             if len(coords) != 2:
-                raise ParseError(f"{key}: expected 2D points: {self.raw(key)!r}")
+                raise ParseError(WarningKind.BAD_VALUE, f"{key}: expected 2D points: {self.raw(key)!r}")
             try:
                 points.append((float(coords[0]), float(coords[1])))
             except ValueError:
-                raise ParseError(f"{key}: bad point: {self.raw(key)!r}") from None
+                raise ParseError(WarningKind.BAD_VALUE, f"{key}: bad point: {self.raw(key)!r}") from None
         return tuple(points)
 
     def countries(self, key: str) -> MappingProxyType[int, int]:
@@ -292,7 +322,7 @@ class _Fields:
                     raise ValueError(pair)
                 result[int(country)] = int(coalition)
             except ValueError:
-                raise ParseError(f"{key}: bad country:coalition list: {value!r}") from None
+                raise ParseError(WarningKind.BAD_VALUE, f"{key}: bad country:coalition list: {value!r}") from None
         return MappingProxyType(result)
 
 
@@ -568,7 +598,7 @@ def _parse(line: str) -> tuple[int, LogEvent]:
     text = line.strip()
     head = _HEAD_RE.match(text)
     if head is None:
-        raise ParseError("line doesn't start with 'T:<tick> AType:<n>'")
+        raise ParseError(WarningKind.MALFORMED_LINE, "line doesn't start with 'T:<tick> AType:<n>'")
     tick = int(head.group(1))
     atype = int(head.group(2))
     rest = text[head.end() :]
@@ -596,16 +626,39 @@ def parse_line(line: str) -> LogEvent:
     return _parse(line)[1]
 
 
-def _warn(stats: ParseStats, text: str) -> None:
-    if len(stats.warnings) < MAX_WARNINGS:
-        stats.warnings.append(text)
+def _warn(stats: ParseStats, kind: WarningKind, text: str, novelty: str | None = None) -> None:
+    """Record one warning of `kind`, subject to the caps (C2, FR-ING-11).
+
+    Always kept: the first warning of a kind, or, when `novelty` is given, the first of each novelty (unknown keys:
+    `"<atype>:<KEY>"`, unknown ATypes: `"<atype>"`). They are exempt from the caps because they are news. Everything
+    else is kept while the kind has fewer than `MAX_WARNINGS_PER_KIND` texts and `warnings` has fewer than
+    `MAX_WARNINGS`. Every occurrence is counted in `stats.warning_counts`; `parse_lines` adds a summary of the
+    suppressed ones at the end."""
+    stats.warning_counts[kind] += 1
+    key = kind.value if novelty is None else f"{kind.value}:{novelty}"
+    if key in stats.warned_novelties:
+        if stats.warnings_emitted[kind] >= MAX_WARNINGS_PER_KIND or len(stats.warnings) >= MAX_WARNINGS:
+            return
+    else:
+        stats.warned_novelties.add(key)
+    stats.warnings_emitted[kind] += 1
+    stats.warnings.append(text)
+
+
+def _summarize_suppressed(stats: ParseStats) -> None:
+    """One warning per kind that had suppressed texts, with how many (appended once at the end of a mission)."""
+    for kind in WarningKind:
+        suppressed = stats.warning_counts[kind] - stats.warnings_emitted[kind]
+        if suppressed > 0:
+            stats.warnings.append(f"{suppressed} more '{kind.value}' warnings suppressed")
 
 
 def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
     """Parse lines lazily. Bad lines are counted and warned about in `stats`, never raised (FR-ING-3).
 
     Blank lines are skipped and not counted. `stats.log_version` is the first AType 15 `VER`; a different later
-    version adds a warning."""
+    version adds a warning. Warnings are capped per kind (see `_warn`); when the lines run out, one summary warning
+    per kind says how many were suppressed."""
     for number, line in enumerate(lines, 1):
         if not line or line.isspace():
             continue
@@ -614,21 +667,39 @@ def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
             atype, event = _parse(line)
         except ParseError as e:
             stats.lines_bad += 1
-            _warn(stats, f"line {number}: {e}: {line[:MAX_WARNING_LINE_CHARS]!r}")
+            _warn(stats, e.kind, f"line {number}: {e}: {line[:MAX_WARNING_LINE_CHARS]!r}")
             continue
         if isinstance(event, GenericEvent):
             if atype in IGNORED_ATYPES:
                 stats.ignored_atypes[atype] += 1
             else:
                 stats.unknown_atypes[atype] += 1
+                _warn(
+                    stats,
+                    WarningKind.UNKNOWN_ATYPE,
+                    f"line {number}: unknown AType {atype}: {line.strip()[:MAX_WARNING_LINE_CHARS]!r}",
+                    novelty=str(atype),
+                )
         elif event.extra:
             known_extra = _SPECS[atype].known_extra
             for key in event.extra:
                 if key not in known_extra:
-                    stats.unknown_keys[f"{atype}:{key}"] += 1
+                    unknown = f"{atype}:{key}"
+                    stats.unknown_keys[unknown] += 1
+                    _warn(
+                        stats,
+                        WarningKind.UNKNOWN_KEY,
+                        f"line {number}: unknown key {key} in AType {atype}: {line.strip()[:MAX_WARNING_LINE_CHARS]!r}",
+                        novelty=unknown,
+                    )
         if isinstance(event, LogVersionEvent):
             if stats.log_version is None:
                 stats.log_version = event.version
             elif event.version != stats.log_version:
-                _warn(stats, f"line {number}: log version changed from {stats.log_version} to {event.version}")
+                _warn(
+                    stats,
+                    WarningKind.VERSION_CHANGE,
+                    f"line {number}: log version changed from {stats.log_version} to {event.version}",
+                )
         yield event
+    _summarize_suppressed(stats)

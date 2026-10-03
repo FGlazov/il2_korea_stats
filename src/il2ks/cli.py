@@ -9,16 +9,28 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import re
 import sys
 from collections.abc import Sequence
+from datetime import date
 from pathlib import Path
 
 from il2ks.config import Config, ConfigError, load_config
 
-PLANNED = ["setup", "web", "run", "doctor", "backup", "restore"]
+PLANNED: dict[str, tuple[str, str]] = {
+    "setup": ("FR-OPS-1", "interactive first-time setup: writes il2ks.toml from the example"),
+    "web": ("FR-OPS-1", "serve the website"),
+    "run": ("FR-OPS-1", "web + watch + HTTPS proxy together"),
+    "createadmin": ("FR-OPS-1", "create an admin account"),
+    "doctor": ("FR-OPS-1", "check the configuration"),
+    "backup": ("FR-OPS-6", "snapshot of the admin state (DB, config, custom/) into a dated zip"),
+    "restore": ("FR-OPS-6", "restore a backup zip"),
+}
+"""Subcommands that exist only as stubs: name -> (requirement that plans it, one-line description)."""
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 
 log = logging.getLogger("il2ks.cli")
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
 def _django_setup() -> None:
@@ -28,12 +40,23 @@ def _django_setup() -> None:
     django.setup()
 
 
+def _iso_date(text: str) -> date:
+    """argparse type for `YYYY-MM-DD` (strictly: not `20260401` or `2026-W14-3`)."""
+    try:
+        if _DATE_RE.fullmatch(text) is None:
+            raise ValueError(text)
+        return date.fromisoformat(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a date, expected YYYY-MM-DD") from None
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="il2ks", description="IL-2 Korea stats")
     parser.add_argument("--config", type=Path, help="il2ks.toml to use (default: IL2KS_CONFIG, ./il2ks.toml, data dir)")
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in PLANNED:
-        sub.add_parser(name, help="not implemented yet")
+    for name, (requirement, description) in PLANNED.items():
+        text = f"not implemented yet (planned: {requirement}): {description}"
+        sub.add_parser(name, help=text, description=text)
 
     wait_help = "if another writer holds the lock, wait up to this many seconds instead of exiting"
     ingest = sub.add_parser("ingest", help="process every complete mission once, then exit")
@@ -49,6 +72,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
     reprocess = sub.add_parser("reprocess", help="re-run missions from their archives, then rebuild aggregates")
     reprocess.add_argument("--mission", action="append", metavar="UID", help="only this mission (repeatable)")
+    span_note = "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive."
+    reprocess.add_argument(
+        "--since", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or after this date. {span_note}"
+    )
+    reprocess.add_argument(
+        "--until", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or before this date. {span_note}"
+    )
     reprocess.add_argument("--workers", type=int, help="parse/replay worker processes (default: CPUs - 1)")
     reprocess.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
 
@@ -94,12 +124,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return EXIT_OK
     if command in {"ingest", "watch", "reprocess", "rebuild-aggregates"}:
         return _writer_command(command, ns)
-    print(f"il2ks {command}: not implemented yet (see design_doc/10_roadmap.md)", file=sys.stderr)
+    print(f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})", file=sys.stderr)
     return EXIT_USAGE
 
 
 def _writer_command(command: str, ns: argparse.Namespace) -> int:
     """Commands that write the DB: config, logging, writer lock, migrations, then the job."""
+    if ns.command == "reprocess" and ns.since is not None and ns.until is not None and ns.since > ns.until:
+        print(f"il2ks: --since {ns.since} is after --until {ns.until}", file=sys.stderr)
+        return EXIT_USAGE
     try:
         cfg = load_config(ns.config)
     except ConfigError as exc:
@@ -121,7 +154,9 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
     cfg.data_dir.mkdir(parents=True, exist_ok=True)
     from il2ks import logsetup
 
-    logsetup.configure_logging(command, cfg.log_dir, cfg.log_level)
+    logsetup.configure_logging(
+        command, cfg.log_dir, cfg.log_level, server_uid=cfg.server_uid, keep_days=cfg.log_keep_days
+    )
     _django_setup()
 
     from il2ks.ingest.lock import LockBusyError
@@ -168,7 +203,13 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
         return EXIT_OK
     if command == "reprocess":
         result = reprocess_mod.reprocess(
-            cfg, runner.default_pipeline(cfg), ns.mission, workers=ns.workers, lock_wait=wait
+            cfg,
+            runner.default_pipeline(cfg),
+            ns.mission,
+            since=ns.since,
+            until=ns.until,
+            workers=ns.workers,
+            lock_wait=wait,
         )
         print(result.describe())
         return EXIT_FAILED if (result.failed or result.missing) else EXIT_OK

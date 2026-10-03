@@ -50,14 +50,6 @@ def mission_uid_from_name(name: str) -> str | None:
     return None if m is None else m.group(1)
 
 
-def part_index(name: str) -> int | None:
-    """`missionReport(...)[3].txt` -> 3; None for archives (`.txt.zip`) and non-matching names."""
-    m = _NAME_RE.fullmatch(name)
-    if m is None or m.group(3) is not None:
-        return None
-    return int(m.group(2))
-
-
 def group_mission_files(paths: Iterable[Path], *, txt_as: MissionLogKind = "parts") -> list[MissionLog]:
     """Group files into missions, sorted by mission UID. Parts of one mission are sorted numerically by N.
 

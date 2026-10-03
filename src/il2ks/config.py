@@ -32,6 +32,7 @@ AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
 CONFIG_FILE = "il2ks.toml"
+DEFAULT_LOG_KEEP_DAYS = 14
 
 
 class ConfigError(ValueError):
@@ -59,9 +60,9 @@ class IngestConfig:
     """Completeness, polling and retry settings (FR-ING-2, FR-ING-16, FR-ING-19)."""
 
     idle_minutes: float = 10.0  # complete if no part was written for this long
-    settle_seconds: float = (
-        60.0  # after AType 7: wait until no part changed for this long (cleanup lines follow AType 7)
-    )
+    # After AType 7: wait until no part changed for this long (cleanup lines follow AType 7). 300 s, not 60: a newer
+    # mission's [0] file completes a mission anyway, so a long settle only delays the last mission before a pause.
+    settle_seconds: float = 300.0
     stable_seconds: float = 60.0  # remote mode: a part counts as fully copied once unmodified this long
     watch_interval_s: float = 30.0
     retry_backoff_minutes: tuple[float, ...] = (5.0, 30.0, 120.0)  # then stop (FR-ING-19)
@@ -77,6 +78,7 @@ class Config:
     server_uid: uuid.UUID
     timezone_name: str
     log_level: str = "INFO"
+    log_keep_days: int = DEFAULT_LOG_KEEP_DAYS  # daily log files of each process are kept this many days (TD-27)
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
@@ -144,6 +146,8 @@ def load_config(
     if log_level not in LOG_LEVELS:
         raise ConfigError(f"log_level must be one of {', '.join(LOG_LEVELS)}, got {log_level!r}")
 
+    keep_days = reader.positive_int("", "log_keep_days", DEFAULT_LOG_KEEP_DAYS)
+
     after = reader.str_("logs", "after_archive", "move")
     if after not in AFTER_ARCHIVE_VALUES:
         raise ConfigError(f"logs.after_archive must be one of {', '.join(AFTER_ARCHIVE_VALUES)}, got {after!r}")
@@ -169,11 +173,13 @@ def load_config(
         rule_values[rule.name] = reader.non_negative("replay", rule.name, default)
     replay = ReplayRules(**rule_values)
 
-    tz_name = reader.str_("server", "timezone", "") or detect_os_timezone(env)
+    configured_tz = reader.str_("server", "timezone", "")
+    tz_name = configured_tz or detect_os_timezone(env)
     try:
         ZoneInfo(tz_name)
     except (ZoneInfoNotFoundError, ValueError) as exc:
-        raise ConfigError(f"server.timezone: unknown IANA timezone {tz_name!r}") from exc
+        origin = "server.timezone" if configured_tz else "the OS timezone (TZ or /etc/localtime); set [server] timezone"
+        raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
 
     uid_text = reader.str_("server", "uid", "")
     server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)
@@ -183,6 +189,7 @@ def load_config(
         server_uid=server_uid,
         timezone_name=tz_name,
         log_level=log_level,
+        log_keep_days=keep_days,
         logs=logs,
         ingest=ingest,
         replay=replay,
@@ -303,6 +310,12 @@ class _Reader:
         if number < 0:
             raise ConfigError(f"{self._label(section, key)} must not be negative")
         return number
+
+    def positive_int(self, section: str, key: str, default: int) -> int:
+        number = self.positive(section, key, float(default))
+        if number != int(number):
+            raise ConfigError(f"{self._label(section, key)} must be a whole number")
+        return int(number)
 
     def positive(self, section: str, key: str, default: float) -> float:
         number = self.non_negative(section, key, default)
