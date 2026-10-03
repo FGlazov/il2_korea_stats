@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -42,6 +42,7 @@
           <ul>
             <li><a href="{% url 'web:mission-list' %}"{% if route == 'mission-list' or route == 'mission-detail' %} aria-current="page"{% endif %}>{% translate "Missions" %}</a></li>
             <li><a href="{% url 'web:player-search' %}"{% if route == 'player-search' or route == 'player-detail' or route == 'player-sorties' or route == 'sortie-detail' %} aria-current="page"{% endif %}>{% translate "Players" %}</a></li>
+            <li><a href="{% url 'web:aircraft-list' %}"{% if route == 'aircraft-list' %} aria-current="page"{% endif %}>{% translate "Aircraft" %}</a></li>
             {% if site_links %}<li>{% dropdown _("Community") site_links align="right" %}</li>{% endif %}
           </ul>
           {% endwith %}

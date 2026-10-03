@@ -17,8 +17,10 @@ from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
 
 from il2ks.core.catalog.loader import GROUND_CATEGORIES
+from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
-from il2ks.web import display, icons, object_names
+from il2ks.queries.ammo import parse_sortie_ammo
+from il2ks.web import display, icons, object_names, pve
 
 type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
@@ -494,17 +496,38 @@ class AmmoRow:
 
 @dataclass(frozen=True, slots=True)
 class HitRow:
-    """Hits given and received with one ammunition type (never explosions, TD-08)."""
+    """Hits given and received with one gun ammunition type (never explosions, TD-08), and the damage attributed to it
+    (FR-WEB-18: the closest hit in time, doc 02): health units, 1.0 = one whole object, the dash for none."""
 
     name: str
     given: str
     received: str
+    dealt: str
+    taken: str
+
+
+@dataclass(frozen=True, slots=True)
+class OrdnanceView:
+    """One bomb, rocket or napalm type: what was released, what went off, what it hurt (FR-WEB-18). An explosion is
+    never a "hit": detonations and damaged targets are counted instead; `direct` are the named direct-impact lines."""
+
+    name: str
+    released: str
+    detonations: str
+    targets_damaged: str
+    kills: str
+    direct: str
+    dealt: str
+    taken: str
 
 
 @dataclass(frozen=True, slots=True)
 class AmmoTable:
     rows: Sequence[AmmoRow]
     hits: Sequence[HitRow]
+    ordnance: Sequence[OrdnanceView]
+    unattributed_dealt: str  # damage no hit was close enough to be blamed on ('' when none)
+    unattributed_taken: str
     used_unknown: AmmoNote  # why "used" is unknown for some or all kinds ('' when it is known for all)
 
 
@@ -551,12 +574,51 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
                 note,
             )
         )
+    breakdown = parse_sortie_ammo(ammo)
     hits = [
-        HitRow(ammo_name(_str(entry.get("ammo"))), _count(entry.get("hits_given")), _count(entry.get("hits_received")))
-        for entry in (_dict(item) for item in _list(ammo.get("hits")))
-        if _str(entry.get("ammo"))
+        HitRow(
+            ammo_name(row.ammo),
+            display.num(row.hits_given),
+            display.num(row.hits_received),
+            _units(row.damage_dealt),
+            _units(row.damage_taken),
+        )
+        for row in breakdown.guns
+        if row.ammo
     ]
-    return AmmoTable(rows, hits, unknown)
+    ordnance = [
+        OrdnanceView(
+            _ordnance_label(row.ordnance, row.name),
+            display.num(row.released),
+            display.num(row.detonations),
+            display.num(row.targets_damaged),
+            display.num(row.kills),
+            display.num(row.direct_hits),
+            _units(row.damage_dealt),
+            _units(row.damage_taken),
+        )
+        for row in breakdown.ordnance
+    ]
+    return AmmoTable(
+        rows,
+        hits,
+        ordnance,
+        _units(breakdown.unattributed_dealt, none=""),
+        _units(breakdown.unattributed_taken, none=""),
+        unknown,
+    )
+
+
+def _units(amount: float, none: str = display.DASH) -> str:
+    """Damage as health units (1.0 = one whole object), 2 places under 10 so small amounts stay visible."""
+    if amount <= 0:
+        return none
+    return display.num(amount, 2 if amount < 10 else 1)
+
+
+def _ordnance_label(key: str, english: str) -> str:
+    """The ordnance name; the one that is not a real ordnance (`unattributed`) is translated."""
+    return str(_("Unattributed")) if key == UNATTRIBUTED_ORDNANCE else english
 
 
 # --- timeline -----------------------------------------------------------------------------------------------------
@@ -680,6 +742,7 @@ class Detail:
     damage: Sequence[DamageRow]
     damage_more: Sequence[DamageRow]
     ammo: AmmoTable
+    lost_to: str  # who is behind the loss (pve.loss_label); empty when nothing was lost
     timeline: Sequence[TimelineRow]
     timeline_more: Sequence[TimelineRow]
     timeline_events: int
@@ -699,6 +762,7 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         damage=damage[:DAMAGE_HEAD_ROWS],
         damage_more=damage[DAMAGE_HEAD_ROWS:],
         ammo=ammo_table(sortie),
+        lost_to=pve.loss_label(sortie.loss_class),
         timeline=timeline[:TIMELINE_HEAD_ROWS],
         timeline_more=timeline[TIMELINE_HEAD_ROWS:],
         timeline_events=len(sortie.timeline),

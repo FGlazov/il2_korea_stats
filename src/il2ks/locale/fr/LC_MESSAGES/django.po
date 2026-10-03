@@ -70,8 +70,20 @@ msgid "%(n)s air kills"
 msgstr ""
 
 #, python-format
+msgid "%(n)s ammunition type"
+msgid_plural "%(n)s ammunition types"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
 msgid "%(n)s assists"
 msgstr ""
+
+#, python-format
+msgid "%(n)s death, %(aaa)s to anti-aircraft"
+msgid_plural "%(n)s deaths, %(aaa)s to anti-aircraft"
+msgstr[0] ""
+msgstr[1] ""
 
 #, python-format
 msgid "%(n)s events. Times count from the spawn; the UTC time is shown next to them."
@@ -94,11 +106,19 @@ msgid "%(n)s of them were static objects (not moving), such as parked vehicles, 
 msgstr ""
 
 #, python-format
+msgid "%(n)s types"
+msgstr ""
+
+#, python-format
 msgid "%(name)s: sorties"
 msgstr ""
 
 #, python-format
 msgid "%(ok)s missions reprocessed, %(failed)s failed, %(missing)s without an archive."
+msgstr ""
+
+#, python-format
+msgid "%(players)s player aircraft, %(ai)s AI aircraft"
 msgstr ""
 
 #, python-format
@@ -271,6 +291,12 @@ msgstr ""
 msgid "Attempts"
 msgstr "Tentatives"
 
+msgid "Average hits"
+msgstr ""
+
+msgid "Average number of gun hits that destroyed it"
+msgstr ""
+
 msgid "BLUFOR won"
 msgstr ""
 
@@ -291,6 +317,9 @@ msgstr ""
 msgid "Bombs"
 msgstr ""
 
+msgid "Bombs, rockets and napalm"
+msgstr ""
+
 # llm-draft
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
@@ -308,6 +337,9 @@ msgstr ""
 msgid "By aircraft"
 msgstr ""
 
+msgid "By ammunition"
+msgstr ""
+
 msgid "Cannon shells"
 msgstr ""
 
@@ -319,6 +351,9 @@ msgid "Captures"
 msgstr ""
 
 msgid "Category"
+msgstr ""
+
+msgid "Caused by"
 msgstr ""
 
 # llm-draft
@@ -367,7 +402,14 @@ msgstr "Logo actuel"
 msgid "Damage"
 msgstr ""
 
+msgid "Damage attributed to this ammunition, in health units (1.0 = one whole object)"
+msgstr ""
+
 msgid "Damage dealt"
+msgstr ""
+
+#, python-format
+msgid "Damage no hit could be blamed on: %(dealt)s dealt, %(taken)s taken."
 msgstr ""
 
 msgid "Damage taken"
@@ -395,6 +437,9 @@ msgstr "Mort"
 msgid "Deaths"
 msgstr ""
 
+msgid "Deaths and lost aircraft by cause"
+msgstr ""
+
 # llm-draft
 msgid "Destroyed"
 msgstr "Détruit"
@@ -408,7 +453,16 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
+msgid "Detonations"
+msgstr ""
+
 msgid "Died"
+msgstr ""
+
+msgid "Direct hits"
+msgstr ""
+
+msgid "Direct impacts logged with the ordnance named"
 msgstr ""
 
 # llm-draft
@@ -420,6 +474,9 @@ msgid "Ditched"
 msgstr "Amerri"
 
 msgid "Duration"
+msgstr ""
+
+msgid "Each point of damage is attributed to the hit closest in time; damage without a hit nearby stays unattributed."
 msgstr ""
 
 # llm-draft
@@ -519,6 +576,9 @@ msgstr ""
 msgid "Ground kills: %(n)s"
 msgstr ""
 
+msgid "Ground vehicle or object"
+msgstr ""
+
 msgid "Gunner"
 msgstr ""
 
@@ -556,15 +616,26 @@ msgstr ""
 msgid "Hits given"
 msgstr ""
 
+msgid "Hits needed to destroy each aircraft type"
+msgstr ""
+
 msgid "Hits received"
 msgstr ""
 
 msgid "Hits taken"
 msgstr ""
 
+msgid "Hits to destroy"
+msgstr ""
+
 # llm-draft
 msgid "Home"
 msgstr "Accueil"
+
+msgid ""
+"How many gun hits it takes to shoot down each aircraft type. Only kills where one attacker did all the damage are "
+"counted; bombs and rockets are left out."
+msgstr ""
 
 # llm-draft
 msgid "In aircraft"
@@ -622,6 +693,15 @@ msgid "Kills"
 msgstr ""
 
 msgid "Kills and assists"
+msgstr ""
+
+msgid "Kills by victim"
+msgstr ""
+
+msgid "Kills counted"
+msgstr ""
+
+msgid "Kills it hit in"
 msgstr ""
 
 # llm-draft
@@ -724,6 +804,9 @@ msgstr ""
 msgid "Lost before the first takeoff, by their own doing"
 msgstr ""
 
+msgid "Lost to"
+msgstr ""
+
 msgid "Machine-gun rounds"
 msgstr ""
 
@@ -776,6 +859,12 @@ msgid "Nickname"
 msgstr ""
 
 msgid "No air kills."
+msgstr ""
+
+msgid "No aircraft was shot down by a single attacker yet."
+msgstr ""
+
+msgid "No attacker (crash, terrain, accident)"
 msgstr ""
 
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
@@ -865,6 +954,9 @@ msgstr "Rien à afficher pour l'instant."
 msgid "On this page"
 msgstr ""
 
+msgid "One detonation and one target that took damage"
+msgstr ""
+
 # llm-draft
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "Un par ligne : « Libellé | https://adresse ». Affichés dans l'en-tête ou le pied de page du site. 10 au maximum."
@@ -876,7 +968,13 @@ msgstr ""
 msgid "Operations"
 msgstr "Opérations"
 
+msgid "Ordnance"
+msgstr ""
+
 msgid "Other"
+msgstr ""
+
+msgid "Other ground objects"
 msgstr ""
 
 msgid "Other objects"
@@ -943,6 +1041,9 @@ msgstr ""
 msgid "Player"
 msgstr ""
 
+msgid "Player aircraft"
+msgstr ""
+
 msgid ""
 "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in "
 "the sortie rows above."
@@ -997,6 +1098,9 @@ msgstr ""
 # llm-draft
 msgid "Recently completed by idle timeout"
 msgstr "Récemment terminées par expiration du délai d'inactivité"
+
+msgid "Released"
+msgstr ""
 
 # llm-draft
 msgid "Remove the current logo"
@@ -1185,6 +1289,9 @@ msgstr ""
 msgid "Target"
 msgstr ""
 
+msgid "Targets damaged"
+msgstr ""
+
 msgid "Taxi accident"
 msgstr ""
 
@@ -1326,6 +1433,9 @@ msgstr ""
 msgid "UTC"
 msgstr ""
 
+msgid "Unattributed"
+msgstr ""
+
 # llm-draft
 msgid "Unharmed"
 msgstr "Intact"
@@ -1409,6 +1519,9 @@ msgstr ""
 # llm-draft
 msgid "Warnings"
 msgstr "Avertissements"
+
+msgid "Who kills you, and whom you kill"
+msgstr ""
 
 msgid "Winner"
 msgstr ""

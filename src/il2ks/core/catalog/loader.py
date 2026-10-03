@@ -14,6 +14,9 @@ Shipped data (`core/catalog/data/`):
   empties it. Names fall back from the viewer's language to English (`Catalog.translated_name`, TD-24).
 - `payloads.csv`: `vehicle, payload_id, editor_name, readable_name` (doc 12 "Payloads").
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
+- `ordnance.csv`: `key, kind, display_name, payload_tokens, hit_ammo`, what a payload carries and which logged ammo
+  names are that ordnance (FR-WEB-18). `payload_tokens` are the `payloads.csv` editor-name tokens (`M64`, `HVAR`),
+  `hit_ammo` the named hit-line ammo (prefix match, so `_HIT` and `_x8` variants belong to the same ordnance).
 """
 
 import csv
@@ -136,6 +139,48 @@ class ObjectInfo:
         return self.cls == "static"
 
 
+type OrdnanceKind = Literal["bomb", "rocket", "napalm", "flare", "tank", "inert"]
+"""`bomb` includes cluster bombs. `flare` bombs never damage anything. `tank` (drop tanks) and `inert` (empty, pylons)
+aren't ordnance: they are known so that every payload token is accounted for."""
+
+ORDNANCE_KINDS: frozenset[OrdnanceKind] = frozenset({"bomb", "rocket", "napalm", "flare", "tank", "inert"})
+DAMAGING_KINDS: frozenset[OrdnanceKind] = frozenset({"bomb", "rocket", "napalm"})
+"""The kinds whose detonations can damage targets (what explosion hits are labelled with)."""
+
+GENERIC_BOMBS = "bombs_mixed"
+GENERIC_ROCKETS = "rockets_mixed"
+GENERIC_ORDNANCE: Mapping[str, str] = {
+    GENERIC_BOMBS: "Bombs (mixed loadout)",
+    GENERIC_ROCKETS: "Rockets (mixed loadout)",
+}
+"""Stand-in ordnance keys for a release whose type the log can't tell apart: the loadout holds several bomb (or rocket)
+types and AType 25/26 doesn't name the store (doc 12). Display names; the page translates them like other names."""
+
+
+@dataclass(frozen=True, slots=True)
+class OrdnanceInfo:
+    key: str  # short stable id, e.g. "M65", "HVAR", "NAPALM"
+    kind: OrdnanceKind
+    display_name: str  # English default (TD-24)
+
+
+@dataclass(frozen=True, slots=True)
+class LoadoutItem:
+    """One line of a payload: `count` pieces of one ordnance type (a `tank` or `inert` item is kept too)."""
+
+    ordnance: OrdnanceInfo
+    count: int
+
+
+@dataclass(frozen=True, slots=True)
+class OrdnanceRow:
+    """One `ordnance.csv` row: the type, the payload tokens that carry it, the hit-line ammo names that are it."""
+
+    info: OrdnanceInfo
+    payload_tokens: tuple[str, ...]
+    hit_ammo: tuple[str, ...]
+
+
 @dataclass(frozen=True, slots=True)
 class PayloadInfo:
     aircraft: str  # catalog vehicle key, e.g. "f-86a"
@@ -209,6 +254,10 @@ def is_ground_category(value: str) -> TypeIs[GroundCategory]:
     return value in GROUND_CATEGORIES
 
 
+def is_ordnance_kind(value: str) -> TypeIs[OrdnanceKind]:
+    return value in ORDNANCE_KINDS
+
+
 def is_propulsion(value: str) -> TypeIs[Propulsion]:
     return value in PROPULSIONS
 
@@ -225,6 +274,7 @@ class Catalog:
         payloads: Iterable[PayloadInfo] = (),
         payload_aliases: Mapping[str, str] | None = None,
         object_names: Mapping[str, Mapping[str, str]] | None = None,
+        ordnance: Iterable[OrdnanceRow] = (),
     ) -> None:
         """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}."""
         self._names: dict[str, dict[str, str]] = {
@@ -244,6 +294,21 @@ class Catalog:
                 raise ValueError(f"duplicate payload {p.aircraft!r} #{p.payload_id} in the catalog")
             self._payloads[pkey] = p
         self._aliases: dict[str, str] = {_key(k): v.casefold() for k, v in (payload_aliases or {}).items()}
+        self._ordnance: dict[str, OrdnanceInfo] = {}
+        self._tokens: dict[str, OrdnanceInfo] = {}
+        self._ammo_prefixes: list[tuple[str, OrdnanceInfo]] = []
+        for row in ordnance:
+            if row.info.key in self._ordnance:
+                raise ValueError(f"duplicate ordnance {row.info.key!r} in the catalog")
+            self._ordnance[row.info.key] = row.info
+            for token in row.payload_tokens:
+                if token.casefold() in self._tokens:
+                    raise ValueError(f"payload token {token!r} belongs to two ordnance types")
+                self._tokens[token.casefold()] = row.info
+            self._ammo_prefixes += [(a, row.info) for a in row.hit_ammo]
+        self._ammo_prefixes.sort(key=lambda pair: -len(pair[0]))  # longest first: HVAR_SAP before HVAR
+        self._ammo_cache: dict[str, OrdnanceInfo | None] = {}
+        self._loadouts: dict[tuple[str, int], tuple[LoadoutItem, ...] | None] = {}
 
     def lookup(self, object_type: str) -> ObjectInfo:
         """Case-insensitive, alias-aware. Never raises.
@@ -277,6 +342,46 @@ class Catalog:
         vehicle = self._aliases.get(key, key)
         return self._payloads.get((vehicle, payload_id))
 
+    def ordnance(self, key: str) -> OrdnanceInfo | None:
+        """The ordnance type with this key (`M65`, `HVAR`, ...); None for unknown and for the generic stand-in keys."""
+        return self._ordnance.get(key)
+
+    def all_ordnance(self) -> tuple[OrdnanceInfo, ...]:
+        """Every ordnance type, in data order (display names for pages)."""
+        return tuple(self._ordnance.values())
+
+    def ordnance_for_ammo(self, ammo: str) -> OrdnanceInfo | None:
+        """The ordnance a logged hit-line ammo name belongs to (`BOMB_449kg_USA_M65` -> M65, `RKT_127mm_USA_HVAR_HIT`
+        -> HVAR, `NapalmBullet` -> NAPALM), or None for guns and anything else. Prefix match on the longest name."""
+        if ammo in self._ammo_cache:
+            return self._ammo_cache[ammo]
+        found = next((info for base, info in self._ammo_prefixes if ammo == base or ammo.startswith(base + "_")), None)
+        self._ammo_cache[ammo] = found
+        return found
+
+    def loadout(self, aircraft_type: str, payload_id: int) -> tuple[LoadoutItem, ...] | None:
+        """What a payload carries, from its `payloads.csv` editor name (`M64-2 + HVAR-4` -> M64 x2, HVAR x4).
+
+        None when the payload isn't in the catalog (or a token has no ordnance row): the caller must then treat the
+        loadout as unknown, not as empty."""
+        info = self.payload(aircraft_type, payload_id)
+        if info is None:
+            return None
+        cache_key = (info.aircraft, info.payload_id)
+        if cache_key not in self._loadouts:
+            self._loadouts[cache_key] = self._parse_loadout(info.editor_name)
+        return self._loadouts[cache_key]
+
+    def _parse_loadout(self, editor_name: str) -> tuple[LoadoutItem, ...] | None:
+        items: list[LoadoutItem] = []
+        for token in editor_name.split("+"):
+            name, count = _split_count(token.strip())
+            found = self._tokens.get(name.casefold())
+            if found is None:
+                return None
+            items.append(LoadoutItem(found, count))
+        return tuple(items)
+
     def coalition_name(self, coalition: int) -> str:
         """1 -> "REDFOR", 2 -> "BLUFOR", others -> "Neutral" (doc 06)."""
         return COALITION_NAMES.get(coalition, NEUTRAL)
@@ -289,6 +394,15 @@ class Catalog:
     def objects(self) -> tuple[ObjectInfo, ...]:
         """Every known object type, in data order (for seeding `GameObject` defaults, TD-24)."""
         return tuple(self._objects.values())
+
+
+_TOKEN_COUNT = re.compile(r"(.+?)-(\d+)")
+
+
+def _split_count(token: str) -> tuple[str, int]:
+    """`M64-2` -> (`M64`, 2); a token without a count (`Empty`, `PYLONS`) counts 1."""
+    m = _TOKEN_COUNT.fullmatch(token)
+    return (m.group(1), int(m.group(2))) if m else (token, 1)
 
 
 def _rows(text: str, columns: list[str], source: str) -> list[dict[str, str]]:
@@ -357,6 +471,21 @@ def parse_payloads(text: str, source: str = "payloads.csv") -> list[PayloadInfo]
     ]
 
 
+def parse_ordnance(text: str, source: str = "ordnance.csv") -> list[OrdnanceRow]:
+    columns = ["key", "kind", "display_name", "payload_tokens", "hit_ammo"]
+    result: list[OrdnanceRow] = []
+    for n, row in enumerate(_rows(text, columns, source), start=2):
+        kind = row["kind"]
+        if not row["key"] or not row["display_name"]:
+            raise ValueError(f"{source}:{n}: empty key or display_name")
+        if not is_ordnance_kind(kind):
+            raise ValueError(f"{source}:{n}: unknown kind {kind!r}")
+        tokens = tuple(t for t in row["payload_tokens"].split(";") if t)
+        ammo = tuple(a for a in row["hit_ammo"].split(";") if a)
+        result.append(OrdnanceRow(OrdnanceInfo(row["key"], kind, row["display_name"]), tokens, ammo))
+    return result
+
+
 def parse_payload_aliases(text: str, source: str = "payload_aliases.csv") -> dict[str, str]:
     return {row["log_name"]: row["vehicle"] for row in _rows(text, ["log_name", "vehicle"], source)}
 
@@ -381,4 +510,5 @@ def load_default_catalog() -> Catalog:
         payloads=parse_payloads(read("payloads.csv")),
         payload_aliases=parse_payload_aliases(read("payload_aliases.csv")),
         object_names=names,
+        ordnance=parse_ordnance(read("ordnance.csv")),
     )

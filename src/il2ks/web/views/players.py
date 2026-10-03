@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from il2ks.queries import players as reads
+from il2ks.web import pve
 from il2ks.web.ground import ground_breakdown
 
 
@@ -27,7 +28,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
     Template `il2ks/players/detail.html`. Context: `player`, `names` (PlayerName rows, newest first), `sort` (resolved),
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
-    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`."""
+    `pve_kills` / `pve_losses` (web.pve rows, FR-WEB-21), `gunner_only`,
+    `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`."""
     player = reads.visible_player(pk)
     if player is None:
         raise Http404
@@ -41,6 +43,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "aircraft": reads.aircraft_rows(player, sort),
         "survived": max(player.sorties - player.deaths, 0),
         "ground": ground_breakdown(player),
+        "pve_kills": pve.kill_breakdown(player),
+        "pve_losses": pve.loss_breakdown(player),
         "gunner_only": reads.flies_as_gunner_only(player),
         "recent": reads.recent_sorties(player),
     }

@@ -1,9 +1,11 @@
-{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Ammunition (FR-ING-24, doc 13): loaded, left, used per kind, and hits per ammunition type. "Used" is the dash when
   it is unknown, with the reason under the table. Context: detail.ammo (sortie_view.AmmoTable: rows, hits,
   used_unknown); rows are AmmoRow (label, loaded, left, used, note), hits are HitRow (name, given, received).
-{% endcomment %}{% if detail.ammo.rows or detail.ammo.hits %}
+  FR-WEB-18: the hits table also gives the damage attributed to each ammunition; bombs, rockets and napalm are listed
+  apart (detail.ammo.ordnance: OrdnanceView, plus unattributed_dealt / unattributed_taken).
+{% endcomment %}{% if detail.ammo.rows or detail.ammo.hits or detail.ammo.ordnance %}
 <h2>{% translate "Ammunition" %}</h2>
 <div class="split">
   {% if detail.ammo.rows %}
@@ -36,15 +38,34 @@
   <section>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th><th scope="col" class="num">{% translate "Hits given" %}</th><th scope="col" class="num">{% translate "Hits received" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th><th scope="col" class="num">{% translate "Hits given" %}</th><th scope="col" class="num">{% translate "Hits received" %}</th><th scope="col" class="num" title="{% translate 'Damage attributed to this ammunition, in health units (1.0 = one whole object)' %}">{% translate "Damage dealt" %}</th><th scope="col" class="num" title="{% translate 'Damage attributed to this ammunition, in health units (1.0 = one whole object)' %}">{% translate "Damage taken" %}</th></tr></thead>
         <tbody>
           {% for row in detail.ammo.hits %}
-            <tr><td>{{ row.name }}</td><td class="num">{{ row.given }}</td><td class="num">{{ row.received }}</td></tr>
+            <tr><td>{{ row.name }}</td><td class="num">{{ row.given }}</td><td class="num">{{ row.received }}</td><td class="num">{{ row.dealt }}</td><td class="num">{{ row.taken }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    <p><small>{% translate "Each point of damage is attributed to the hit closest in time; damage without a hit nearby stays unattributed." %} <a href="{% url 'web:aircraft-list' %}">{% translate "Hits needed to destroy each aircraft type" %}</a></small></p>
   </section>
   {% endif %}
 </div>
+{% if detail.ammo.ordnance %}
+  {% blocktranslate with n=detail.ammo.ordnance|length|num asvar ordnance_hint %}{{ n }} types{% endblocktranslate %}
+  {% accordion _("Bombs, rockets and napalm") ordnance_hint open=True %}
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact">
+        <thead><tr><th scope="col">{% translate "Ordnance" %}</th><th scope="col" class="num">{% translate "Released" %}</th><th scope="col" class="num">{% translate "Detonations" %}</th><th scope="col" class="num" title="{% translate 'One detonation and one target that took damage' %}">{% translate "Targets damaged" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num" title="{% translate 'Direct impacts logged with the ordnance named' %}">{% translate "Direct hits" %}</th><th scope="col" class="num">{% translate "Damage dealt" %}</th><th scope="col" class="num">{% translate "Damage taken" %}</th></tr></thead>
+        <tbody>
+          {% for row in detail.ammo.ordnance %}
+            <tr><td>{{ row.name }}</td><td class="num">{{ row.released }}</td><td class="num">{{ row.detonations }}</td><td class="num">{{ row.targets_damaged }}</td><td class="num">{{ row.kills }}</td><td class="num">{{ row.direct }}</td><td class="num">{{ row.dealt }}</td><td class="num">{{ row.taken }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endaccordion %}
+{% endif %}
+{% if detail.ammo.unattributed_dealt or detail.ammo.unattributed_taken %}
+  <p><small>{% blocktranslate with dealt=detail.ammo.unattributed_dealt|default:"0" taken=detail.ammo.unattributed_taken|default:"0" %}Damage no hit could be blamed on: {{ dealt }} dealt, {{ taken }} taken.{% endblocktranslate %}</small></p>
+{% endif %}
 {% endif %}

@@ -1,0 +1,27 @@
+key,kind,display_name,payload_tokens,hit_ammo
+M64,bomb,M64 500 lb General Purpose bomb,M64,BOMB_238kg_USA_M64
+M65,bomb,M65 1000 lb General Purpose bomb,M65,BOMB_449kg_USA_M65
+M66,bomb,M66 2000 lb General Purpose bomb,M66,
+M57,bomb,M57 250 lb General Purpose bomb,M57,BOMB_118kg_USA_M57
+M88,bomb,M88 220 lb Fragmentation bomb,M88,BOMB_99kg_USA_M88
+M26,bomb,M26 500 lb Cluster bomb,M26;M26CLUS;CLUSTC_M26,CLUSTER_9kg_USA_M41
+M29,bomb,M29 500 lb Cluster bomb,M29;M29CLUS;CLUSTC_M29,CLUSTER_2kg_USA_M83
+FAB50,bomb,FAB-50 50 kg General Purpose bomb,FAB50sc,BOMB_66kg_RUS_FAB50sc
+FAB100,bomb,FAB-100 100 kg General Purpose bomb,FAB100sc,BOMB_123kg_RUS_FAB100sc
+FAB250,bomb,FAB-250 250 kg General Purpose bomb,FAB250M43,BOMB_227kg_RUS_FAB250M43
+AO2,bomb,AO-2.5 2.5 kg Fragmentation bomb,AO2sc,CLUSTER_2kg_RUS_AO2sc
+AO10,bomb,AO-10 10 kg Fragmentation bomb,AO10sc,CLUSTER_10kg_RUS_AO10sc
+AO25,bomb,AO-25 25 kg Fragmentation bomb,AO25sl,BOMB_25kg_RUS_AO25sl
+PTAB2,bomb,PTAB-2.5-1.5 HEAT submunition,PTAB2515,CLUSTER_1kg_RUS_PTAB2
+PTAB10,bomb,PTAB-10-2.5 HEAT submunition,PTAB1025,CLUSTER_10kg_RUS_PTAB10
+NAPALM,napalm,110 gal napalm tank,NAP_110GAL,NapalmBullet;NAPALM_389kg_USA_110gal
+SAB100,flare,SAB-100 100 kg Flare bomb,SAB100sc,
+M26FLR,flare,M26 Chute Flare bomb,M26FLR,
+HVAR,rocket,"HVAR 5"" rocket",HVAR,RKT_127mm_USA_HVAR
+HVAR_SAP,rocket,"HVAR 5"" Semi-Armor Piercing rocket",HVAR_SAP,RKT_127mm_USA_HVAR_SAP
+ATAR,rocket,"ATAR 6.5"" rocket",ATAR,RKT_165mm_USA_ATAR
+TINYTIM,rocket,"Tiny Tim 12"" rocket",TINYTIM,RKT_298mm_USA_TinyTim
+M8,rocket,M-8 82 mm rocket,M8,RKT_82mm_RUS_M8
+M13,rocket,M-13UK 132 mm rocket,M13,RKT_132mm_RUS_M13UK
+TANK,tank,Drop tank,165GAL;265GAL;F51_110GAL;F51_75GAL;F84_230GAL;F86_120GAL;F86_245GAL;MIG15_250l,
+INERT,inert,Empty or pylons,Empty;Empty with pylons;Empty_with_pylons;PYLONS,
