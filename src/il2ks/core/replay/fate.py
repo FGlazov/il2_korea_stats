@@ -113,6 +113,14 @@ def took_off(sortie: SortieState, end_tick: int) -> bool:
     return any(airborne and sortie.spawn_tick <= t <= end_tick for t, airborne in airframe.flight_changes)
 
 
+def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:
+    """FR-ING-24: some AType 6 is followed later by an AType 5 in this sortie (the aircraft may have been rearmed)."""
+    if not rules.resupply_allowed or not landing_ticks:
+        return False
+    first_landing = min(landing_ticks)
+    return any(t > first_landing for t in takeoff_ticks)
+
+
 def flight_time_s(sortie: SortieState, end_tick: int) -> float:
     """Sum of airborne intervals inside the sortie (AType 5 to AType 6, or to the end)."""
     airframe = sortie.airframe

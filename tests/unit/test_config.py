@@ -54,6 +54,7 @@ def test_toml_values_and_relative_paths_resolve_against_the_file(tmp_path: Path)
         [replay]
         bailout_min_distance_m = 250
         disconnect_window_s = 45
+        resupply_allowed = false
 
         [server]
         timezone = "Europe/Lisbon"
@@ -74,6 +75,8 @@ def test_toml_values_and_relative_paths_resolve_against_the_file(tmp_path: Path)
     assert cfg.ingest.retry_backoff == (timedelta(minutes=1), timedelta(minutes=2))
     assert cfg.replay.bailout_min_distance_m == 250
     assert cfg.replay.disconnect_window_s == 45
+    assert cfg.replay.resupply_allowed is False
+    assert load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "d")}).replay.resupply_allowed is True
     assert cfg.replay.mission_end_window_s == ReplayRules().mission_end_window_s
     assert cfg.timezone_name == "Europe/Lisbon"
     assert cfg.server_uid == uuid.UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")

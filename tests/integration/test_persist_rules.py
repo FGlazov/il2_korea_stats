@@ -7,7 +7,7 @@ from datetime import timedelta
 import pytest
 from django.db import IntegrityError, transaction
 
-from il2ks.core.replay.result import KillResult, MissionResult
+from il2ks.core.replay.result import AmmoCounts, KillResult, MissionResult
 from il2ks.db.models import Country, GameObject, Kill, Mission, Player, PlayerAircraft, PlayerMission, PlayerSortie
 from il2ks.ingest import persist
 from tests.factories import STARTED_AT, FakeCatalog, account, kill, mission, save, sortie
@@ -182,3 +182,36 @@ def test_reingest_keeps_player_aircraft_pks() -> None:
     for key, row in after.items():
         assert row.pk == pks[key]
     assert PlayerAircraft.objects.get(player__account_uuid=account(1)).kills_air == 3
+
+
+# --- resupply and ammo used (FR-ING-24) ---
+
+
+def _ammo(**sortie_args: object) -> dict[str, object]:
+    save(mission((sortie(0, 1, **sortie_args),)))  # pyright: ignore[reportArgumentType]
+    return PlayerSortie.objects.get().ammo
+
+
+def test_ammo_used_is_loaded_minus_left_per_type() -> None:
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 100, 2, 8), ammo_left=AmmoCounts(150, 100, 0, 4))
+    assert ammo["used"] == {"bullets": 250, "shells": 0, "bombs": 2, "rockets": 4}
+    assert ammo["loaded"] == {"bullets": 400, "shells": 100, "bombs": 2, "rockets": 8}
+    assert PlayerSortie.objects.get().resupplied is False
+
+
+def test_ammo_used_is_unknown_after_a_resupply() -> None:
+    ammo = _ammo(resupplied=True, ammo_loaded=AmmoCounts(400, 100, 2, 8), ammo_left=AmmoCounts(150, 100, 0, 4))
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
+    assert PlayerSortie.objects.get().resupplied is True
+
+
+def test_bombs_used_is_unknown_when_more_is_left_than_loaded() -> None:
+    """IL-10 bomblet payloads load 4 (stations) and leave 60+ (bomblets): units differ, so no number."""
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 100, 4, 0), ammo_left=AmmoCounts(300, 100, 96, 0))
+    assert ammo["used"] == {"bullets": 100, "shells": 0, "bombs": None, "rockets": 0}
+
+
+def test_ammo_used_is_unknown_without_a_sortie_end() -> None:
+    ammo = _ammo(ammo_left=None)
+    assert ammo["left"] is None
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
