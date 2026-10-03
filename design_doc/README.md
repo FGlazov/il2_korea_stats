@@ -38,6 +38,7 @@ Every requirement and decision carries one of these tags (they're easy to grep):
 | [12_korea_log_format.md](12_korea_log_format.md) | **IL-2 Korea log format as observed in real logs**: event types, changes from BoS, known game bugs, why il2_stats fails |
 | [13_game_rules.md](13_game_rules.md) | **Replay rulebook**: objects, sortie scope, pilot fate and outcome decision trees, loss and death, kill credit, gunners, friendly fire, resupply |
 | [14_ingest_internals.md](14_ingest_internals.md) | Parser, catalog, ingest jobs (config, discovery, archive, lock, CLI) and persistence as implemented |
+| [15_visual_assets.md](15_visual_assets.md) | **Designer brief**: icons, images and textures the site uses (placeholders until a designer makes them), with file names, sizes and priorities |
 
 Real sample logs live in `../sample_data/`. They're gitignored and contain player data: **never commit them**.
 
