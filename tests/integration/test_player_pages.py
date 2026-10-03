@@ -5,7 +5,7 @@ from datetime import timedelta
 import pytest
 from django.test import Client
 
-from il2ks.db.models import GameObject, Player
+from il2ks.db.models import GameObject, Mission, Player
 from il2ks.queries import players as reads
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -224,6 +224,19 @@ def test_profile_recent_sorties_are_newest_first_and_capped(client: Client) -> N
     assert [s.spawn_tick for s in recent] == [12000 - 1000 * i for i in range(10)]
     assert f"/players/{player_pk(1)}/sorties/" in response.content.decode()  # link to the full list
     assert "/missions/" in response.content.decode()
+
+
+def test_hidden_mission_sorties_are_not_on_the_profile(client: Client) -> None:
+    """FR-ADM-3: a hidden mission's sorties are left out of the recent sorties (no leaked mission link)."""
+    seed()
+    hidden = Mission.objects.get(mission_uid="2026-09-20_22-34-13")
+    Mission.objects.filter(pk=hidden.pk).update(is_hidden=True)
+
+    response = client.get(f"/players/{player_pk(1)}/")
+
+    assert all(s.mission_id != hidden.pk for s in response.context["recent"])
+    assert f"/missions/{hidden.pk}/" not in response.content.decode()
+    assert response.context["recent"]
 
 
 def test_gunner_only_profile_says_so_instead_of_empty_tables(client: Client) -> None:
