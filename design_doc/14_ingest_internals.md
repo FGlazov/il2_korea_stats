@@ -55,9 +55,13 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
   are AI only; a bomber expansion is announced (maintainer, 2026-10-03), so `is_playable` is data, never hard-coded.
 - **Static copies** of vehicles and ships (`Parked <aircraft>`, `Box Car A`, `GAZ_63`, ...) are `static`, AI-driven ones (`GAZ-63`) are `vehicle`.
   Both count as ground kills (most server vehicles are static for performance; maintainer, 2026-10-03). Scoring can weight classes later.
+- **Propulsion** (2026-10-03, for the Elo pools): `prop` / `jet` for every aircraft row, blank for everything else (a test checks both). Jets:
+  F-80C-10, F-84E, F-86A-5, MiG-15bis. Props: F-51D, La-11, Yak-9P, IL-10 and the AI types (B-29, Tu-2, C-47B, Li-2).
 - Heavy artillery is `vehicle`, self-propelled guns are `tank`, AA vehicles and AA platform cars are `aaa`: best guesses, admin-editable (TD-24).
 - **Payloads**: 99.3% of sample spawns resolve. Missing payloads (new ones arrive with game updates) must never break a page: the sortie shows the
   raw payload ID (OQ-25 tracks extracting the rest). `payload_aliases.csv` becomes admin-overridable together with object names (it2, TD-24).
+  **Rules never read the payload name**: the combat role uses the AType 10 ammo counts, which exist for every spawn (doc 13). They also show
+  that F-51D payloads 57–59 in `payloads.csv` look shifted by one row (OQ-25).
 
 ## Ingest jobs
 
@@ -69,6 +73,8 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
 - **Server timezone** (TD-15): `[server] timezone` (optional, default unset) → `TZ` env → `/etc/localtime` → UTC. Windows has no IANA name, so
   Windows admins set it (or run DServer on UTC); `il2ks doctor` should warn.
 - **Server UID** (TD-17): `[server] uid`, else `<data dir>/server_uid.txt` (generated once).
+- **Ratings** (FR-WEB-19): `[ratings] start` (1500), `k` (32), `cross_pool_weight` (2.0). First guesses, to tune once real ratings exist
+  (maintainer, 2026-10-03); a change takes effect with `il2ks rebuild-aggregates`, no reprocess needed.
 
 **Discovery and completeness** (`discover.py`, FR-ING-2/16/18/19)
 - Order: in remote mode every part must be unmodified for `stable_seconds` (60); then complete if a newer mission's `[0]` exists, or no part was
@@ -124,6 +130,11 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   recomputed from their level-1 rows. `rebuild-aggregates` uses the same code for all players. Why: no delta arithmetic to get wrong, and a
   re-ingest can't drift from a rebuild. Cost grows with a player's history; in it2 the recompute is bounded to the mission's tour plus the
   all-time row.
+- **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of every qualifying kill, so
+  `ingest/ratings.py::recompute_ratings` replays all of them (ordered by mission start, kill time, row id) through the pure
+  `core/ratings/elo.py` and writes only the players whose rating changed. It runs after each mission save (same transaction), and once at the
+  end of `rebuild-aggregates` and `reprocess`. So a mission imported late lands in the right place in the order. Cost: about 0.02 s per mission
+  at sample scale, growing with the total number of kills; if it ever matters, replay only from the earliest affected mission onward.
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
 - **Players are never deleted**; one whose sorties disappear keeps the row and URL with zero counters. Players who only ever flew as gunner

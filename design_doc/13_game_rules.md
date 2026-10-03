@@ -185,3 +185,49 @@ Was the aircraft lost (is_plane_lost)?
   `resupplied`, and "ammo used" is unknown for it (hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
   "Used" is also unknown for bombs when "left" exceeds "loaded" (IL-10 bomblet payloads count stations when loaded and bomblets when left).
   About 2% of sorties take off more than once.
+
+## Combat role, time on target and ratings
+
+Inputs for the later air and ground scores (FR-WEB-7, 19, 20), computed at ingest from iteration 1 so the pages need no reprocess. Decided by the
+maintainer on 2026-10-03 (OQ-27, 28, 29); thresholds are config values and first guesses.
+
+**Combat role** (`attack.combat_role`), pilot sorties only (gunners: none):
+- `attack` if the aircraft spawned with bombs or rockets (AType 10 ammo counts; napalm tanks count as bombs, Tiny Tims as rockets), or its
+  catalog class is `attacker` (IL-10). Otherwise `air_superiority`; drop tanks carry no ammo count, so a guns + tanks loadout stays air
+  superiority. A sortie that never took off still has a role.
+- The ammo counts are used, not the payload name: they exist for every spawn (also a payload missing from the CSV) and agree with the payload
+  names on every sample spawn.
+- Samples: F-51D 70% attack, F-80C 87%, F-84E 94%, IL-10 100%, F-86A-5 36%, MiG-15bis 19%, La-11 and Yak-9P 0%.
+
+**Time on target** (`attack.time_on_target_s`), attack sorties only (others: none; no qualifying release: 0):
+```
+release      = AType 25 (store) or AType 26 (rocket salvo) by the sortie's aircraft, from spawn to the sortie end or the aircraft's loss
+qualifying   = an enemy ground object lies within tot_target_radius_m (3 km), horizontally (x, z; altitude y ignored)
+               enemy:  coalition non-zero and not the sortie's
+               ground: class tank, vehicle, aaa, ship or static
+               position: its last logged one at or before the release (AType 12 spawn, AType 2/3 lines naming it as the target)
+               it must exist and not be destroyed yet at the release
+attacks      = qualifying releases sorted by time; a gap > tot_pass_gap_s (300 s) starts a new attack
+one attack   = from (first release − tot_lead_in_s (60 s)) to its last release; the run-in never starts before the takeoff of that
+               flight (a resupplied sortie's later takeoff counts) or before the previous attack's last release
+time on target = sum over attacks
+```
+- A release far from every enemy ground object (a jettison when intercepted) counts for nothing, as the maintainer asked. A single qualifying
+  release is worth the 60 s run-in.
+- Known noise `[PROPOSED]` (accepted for now): the log can't tell a drop tank from a bomb, so a drop tank released near an enemy object counts;
+  the release position is the carrier's, not the impact point (a jet releasing high can hit 1–2 km ahead, so 3 km is generous for jets);
+  vehicles that moved without being hit are taken at their last logged position.
+- Samples, attack sorties that took off: 37.5% have 0 (shot down or turned back before attacking, or released nowhere near a target); median
+  60 s, top 10% ≥ 250 s, max 18 min; about 10% of the flight time where nonzero. 64% of releases qualify. Cost: about 2 ms per mission.
+
+**Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` across all missions, doc 14):
+- A **game** = one PvP kill credit (not an assist, not friendly) where killer and victim are both pilot sorties with role `air_superiority`.
+  Kills by AI, AA or the environment have no `Kill` row and never count. A player killing their own other sortie is ignored.
+- Each player has a **prop** and a **jet** rating (pool = the propulsion of the aircraft flown in that sortie), starting at `start` (1500).
+- Same pool: standard Elo. Expected E = 1 / (1 + 10^((R_loser − R_winner) / 400)); the winner gains K × (1 − E) and the loser loses the same
+  (K = `k`, 32).
+- **Jet kills prop**: no change and no game counted ("not impressive").
+- **Prop kills jet**: the killer's prop rating and the victim's jet rating move by K × `cross_pool_weight` (2.0) × (1 − E), E from those two
+  ratings.
+- Games are replayed in time order (mission start, then kill time), so the result doesn't depend on import order.
+- Stretch (not built): per-aircraft-type ratings from the same games.

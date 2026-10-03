@@ -138,12 +138,12 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-1 | **Mission list**: newest first, paginated. Shows name/map, date, duration, player count, and winner if known. | v1 | `[DECIDED]` |
 | FR-WEB-2 | **Mission detail**: summary and the list of all sorties in the mission, grouped by coalition. | v1 | `[DECIDED]` |
 | FR-WEB-3 | **Player search**: find a player by nickname (partial match, case-insensitive). HTMX live search. | v1 | `[PROPOSED]` |
-| FR-WEB-4 | **Player profile**: identity (current nickname and past nicknames), all-time **totals and ratios** (per tour from it2), and recent sorties with a **link to the player's full sortie list** (FR-WEB-5). Totals: sorties, flight time, air kills, ground kills, assists, deaths, planes lost, bailouts, suspected early bailouts, captures, landings. Ratios: **K/D** (kills per death), **K/L** (kills per plane lost), kills per sortie, kills per flight hour, survival rate. Also the same totals per aircraft type (small table). Each aircraft row may link to the sortie list filtered to that aircraft. | v1 | `[DECIDED]` (totals and ratios; sortie-list link, 2026-10-02). Exact list and per-aircraft links `[PROPOSED]` |
+| FR-WEB-4 | **Player profile**: identity (current nickname and past nicknames), all-time **totals and ratios** (per tour from it2), and recent sorties with a **link to the player's full sortie list** (FR-WEB-5). Totals: sorties, flight time, air kills, ground kills, assists, deaths, planes lost, bailouts, suspected early bailouts, captures, landings, plus two "hall of shame" totals: **taxi accidents** (aircraft lost on the ground before takeoff, by the player's own doing) and **times strafed on the ground** (aircraft destroyed on the ground by an attacker), maintainer 2026-10-03 (doc 13). Ratios: **K/D** (kills per death), **K/L** (kills per plane lost), kills per sortie, kills per flight hour, survival rate. Also the same totals per aircraft type (small table). Each aircraft row may link to the sortie list filtered to that aircraft. | v1 | `[DECIDED]` (totals and ratios; sortie-list link, 2026-10-02). Exact list and per-aircraft links `[PROPOSED]` |
 | FR-WEB-5 | **Player sortie list**: all sorties by a player, paginated and filterable by aircraft (and by tour from it2). Reached from the player profile (FR-WEB-4). | v1 | `[DECIDED]` (page and profile link, 2026-10-02), `[PROPOSED]` (filters) |
 | FR-WEB-6 | **Sortie detail**, the core page: aircraft, coalition, start type (air or ground), takeoff and landing times, flight time, outcome, kills and assists with victim details, damage dealt and taken (by whom), ammo used, and a chronological **event timeline**. | v1 | `[DECIDED]` (page). Exact contents `[PROPOSED]` |
 | FR-WEB-7 | Leaderboards / rankings (by score, kills, and so on). Score is **split into an air score and a ground score** (air-to-air and ground-attack skill are rated differently). See [Score and ratings](#score-and-ratings-later). | later | `[DEFERRED]` (feature), `[DECIDED]` (air/ground split, 2026-10-03) |
-| FR-WEB-19 | **Air-to-air Elo** for fighter-vs-fighter combat, with separate **prop and jet** ratings. See [Score and ratings](#score-and-ratings-later). | later | `[DEFERRED]`, concept `[PROPOSED]` (OQ-28) |
-| FR-WEB-20 | **Ground-attack proficiency**: ground score per hour **on target** for attack sorties (transit to and from the target excluded). See [Score and ratings](#score-and-ratings-later). | later | `[DEFERRED]`, concept `[PROPOSED]` (OQ-29) |
+| FR-WEB-19 | **Air-to-air Elo** for fighter-vs-fighter combat, with separate **prop and jet** ratings. See [Score and ratings](#score-and-ratings-later). | later (pages); ratings computed at ingest from it1 | `[DECIDED]` (rules, 2026-10-03; details `[PROPOSED]`), pages `[DEFERRED]` |
+| FR-WEB-20 | **Ground-attack proficiency**: ground score per hour **on target** for attack sorties (transit to and from the target excluded). See [Score and ratings](#score-and-ratings-later). | later (score, pages); time on target stored per sortie from it1 | `[DECIDED]` (time-on-target rule, 2026-10-03), score `[DEFERRED]` |
 | FR-WEB-21 | **PvE breakdown**: who killed me and whom I killed, by counterpart class (player, AI aircraft, AI gunner, AAA, ground vehicle, environment), so a player can answer "how often do AA or AI gunners get me?". AI-vs-AI is not tracked. The data is already in the replay output (`KillResult` covers every kill with a player on either side); the profile and sortie pages need the per-class counters. | it1.x | `[DECIDED]` (PvE kills and deaths matter, maintainer 2026-10-03), `[PROPOSED]` (iteration) |
 | FR-WEB-8 | Aircraft stats (performance per aircraft type). | later | `[DEFERRED]` |
 | FR-WEB-9 | Killboard (player vs player). | later | `[DEFERRED]` |
@@ -151,27 +151,32 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-11 | Awards / medals, squads, player accounts and registration. | later | `[DEFERRED]` |
 | FR-WEB-12 | Sortie map (key event locations: takeoff, kills, bailout, landing). v1 stores those positions; the map page comes later. Not a continuous flight path from the logs, since they have no periodic position updates. A full flight path becomes possible if a separate telemetry source is added (TD-08, OQ-26). | later | `[DEFERRED]` (page), positions stored from v1 (TD-08) |
 | FR-WEB-13 | Stable, shareable URLs for missions, players, and sorties, so players can link a sortie on Discord. They **survive `reprocess`** because rows are updated in place by natural key: mission = `(server_uid, mission_uid)`, sortie = mission + player account UUID + spawn tick, player = account UUID (FR-ING-9). | v1 | `[PROPOSED]` |
-| FR-WEB-14 | **Gunner stats**: player gunners (for example IL-10 turret) as a separate stats view. | later | `[DEFERRED]` (nice to have). v1 still records gunner sorties, just doesn't show dedicated pages |
+| FR-WEB-14 | **Gunner stats**: player gunners (for example IL-10 turret) as a separate stats view. **Credit rule** (maintainer, 2026-10-03, OQ-31): with an **AI gunner** the pilot gets the gunner's kills; with a **player gunner** the gunner gets the kill and the pilot an assist. The log credits all of an aircraft's fire to the aircraft (doc 12), so this needs telling the gunner's fire apart first; the ammo type is the likely handle (the IL-10 turret fires 12.7 mm, the forward guns 23 mm and 7.62 mm). | later | `[DEFERRED]` (nice to have, with the credit rule). v1 still records gunner sorties, just doesn't show dedicated pages |
 | FR-WEB-15 | **In-progress missions and current player counts** on the main page. | it2 | `[DECIDED]` |
 | FR-WEB-18 | **Ammo breakdown** (port of the maintainer's `il2_stats` module, which players liked). Per sortie: hits **given and received per ammo type** (bullets and shells, with bombs and rockets listed separately), plus the damage attributed to each ammo type. Per aircraft type: the **average number of hits of each ammo type needed to destroy it**, counted only from kills where all damage came from one attacker (as in the old module). Attribution rule below. | **it1.x**, **not a release gate** | `[DECIDED]` (feature and iteration, 2026-10-02; the public release doesn't wait for it), `[PROPOSED]` (exact pages) |
 | FR-WEB-17 | **Times shown in the viewer's local timezone**: a player in Japan and one in Europe each see mission and sortie times in their own local time, without configuring anything. Game-world time (the in-mission date and time) and durations aren't converted. Until then, pages show UTC and label it as such. | later (stretch) | `[DEFERRED]` (nice to have, not in the PoC, 2026-10-02), mechanism `[PROPOSED]` (TD-15) |
 | FR-WEB-16 | **Light charts** where they help (for example kills per tour, sorties over time). The site is mostly tables. | later | `[PROPOSED]` |
 
 ### Score and ratings (later)
-Ideas the maintainer recorded on 2026-10-03, for when the score concept is designed (FR-WEB-7, FR-ADM-7). Nothing here is in iteration 1.
+Recorded by the maintainer on 2026-10-03. The score itself (FR-WEB-7, FR-ADM-7) is designed later, but its **inputs are computed at ingest
+from iteration 1** (combat role, time on target, Elo), so pages can be added without a reprocess. The exact rules are in
+[13_game_rules.md](13_game_rules.md#combat-role-time-on-target-and-ratings).
 - **Two scores, not one**: an **air score** (air-to-air) and a **ground score** (ground attack). A good ground pounder and a good dogfighter
   are different skills.
 - **Ground kills keep every class**, including static objects (fences, storage stacks, parked vehicles: most server vehicles are static for
   performance). Each class gets its own score value, with trivial statics like fences worth very little. The kill breakdown by class is shown.
-- **Air-to-air Elo** (FR-WEB-19) `[PROPOSED]`: a rating updated per PvP kill between **air-superiority fighters** only (not attack sorties,
-  which would be easy prey). **Separate prop and jet ratings.** A jet killing a prop says little, so it moves ratings little or not at
-  all; a prop killing a jet is impressive and is rewarded heavily. Stretch: per-aircraft-type ratings derived from the same results (aircraft
-  stats aren't in the PoC). Open details: OQ-28.
-- **Ground proficiency** (FR-WEB-20) `[PROPOSED]`: ground score per hour **on target** for attack sorties, as a proxy for ground-attack skill.
-  Transit time (takeoff → target area → home) is left out, using the positions of the sortie's attacks (releases, rocket salvos, gun bursts,
-  hits on ground targets) against its takeoff position. Definition: OQ-29.
+- **Combat role per sortie** `[DECIDED]` (OQ-27): by loadout. A sortie carrying bombs, rockets or napalm is an **attack** sortie; guns only
+  (drop tanks allowed) is **air superiority**; the IL-10 is always attack. Several types fly both roles (F-51D, F-80C, F-84E, sometimes
+  MiG-15bis and F-86A-5), so a fixed role per aircraft type would be wrong.
+- **Air-to-air Elo** (FR-WEB-19) `[DECIDED]` (OQ-28): a rating updated per PvP kill between two **air-superiority** sorties only (attack
+  sorties would be easy prey). **Separate prop and jet ratings.** A jet killing a prop changes nothing; a prop killing a jet is rewarded
+  heavily (both ratings move with a double K). The K-factor and the cross-pool weight are config values, first guesses to tune with data.
+  Stretch: per-aircraft-type ratings derived from the same games.
+- **Ground proficiency** (FR-WEB-20): ground score per hour **on target** for attack sorties. **Time on target** `[DECIDED]` (OQ-29): only
+  ordnance (bombs, napalm, rockets) released **within 3 km (horizontal) of an enemy ground object** counts, plus 1 minute of run-in before
+  the first such release. Releases far from any target (jettisoned when intercepted) don't count, and neither does transit.
 - Playable roster today (2026-10): fighters and attack aircraft only; **bombers are AI only** (a bomber expansion is announced). Jets: MiG-15bis,
-  F-86A-5, F-80C-10, F-84E. Props: F-51D, Yak-9P, La-11, IL-10 (attacker). The catalog needs a prop/jet attribute for the split ratings.
+  F-86A-5, F-80C-10, F-84E. Props: F-51D, Yak-9P, La-11, IL-10 (attacker). The catalog carries the prop/jet attribute.
 
 ## Server admin (FR-ADM)
 

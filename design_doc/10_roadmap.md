@@ -16,20 +16,32 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
   ends, no mission end), checked by a test.
 
 ## Iteration 1: PoC / MVP (single server, English)
-- `core.logparse`: all known Korea event types, a generic fallback for unknown ones (TD-20), with tests.
-- `core.replay`: sorties, outcomes, kills and assists, damage, key-event positions, timeline, pilot fate (bailout rule v2, mission-ended sorties), and the suspected early bailout flag.
+
+### Part 1: ingestion ✅ (2026-10-03)
+Done and verified end to end on all 210 sample missions (NFR-PERF-5): no failures, idempotent re-runs, `rebuild-aggregates` and `reprocess`
+reproduce the same rows with stable IDs. Rules in [13_game_rules.md](13_game_rules.md), internals in [14_ingest_internals.md](14_ingest_internals.md).
+- ✅ `core.logparse`: all known Korea event types, a generic fallback for unknown ones (TD-20), warnings capped per kind.
+- ✅ `core.replay`: sorties, fates and outcomes (decision trees in doc 13), kills and assists (PvP and PvE), gunners, friendly fire, damage and
+  hit breakdowns, timeline, bailout rule v2, suspected early bailouts, disconnects, resupply, parked resets, mission-ended sorties.
   Scenario and golden tests.
-- `core.catalog`: initial Korea object catalog (aircraft, ground units). Unknown objects get auto-registered. REDFOR/BLUFOR naming.
-- Ingester: discover → parse → replay → persist (level 1) → aggregate (level 2) → archive (kept forever). `ingest`, `watch`,
-  `reprocess`, `rebuild-aggregates`. Records `IngestRun`. Remote log mode (copy-tolerant folder, FR-ING-16).
-- Web (Pico CSS): mission list and detail, player search, player profile (all-time totals, ratios computed at read time, per-aircraft table),
-  player sorties, **sortie detail with timeline**.
+- ✅ Score inputs, computed now so later pages need no reprocess: combat role per sortie (air superiority / attack, by loadout), time on
+  target, taxi accidents and strafed-on-the-ground losses, air-to-air Elo with prop and jet pools (FR-WEB-19/20).
+- ✅ `core.catalog`: Korea object catalog (classes incl. crew and equipment, prop/jet), payloads, auto-registered unknowns, REDFOR/BLUFOR by
+  country code.
+- ✅ Ingester: discover → parse → replay → persist (level 1) → recompute level 2 per affected player → archive (kept forever). `ingest`,
+  `watch`, `reprocess` (all, or `--since/--until`), `rebuild-aggregates`. `IngestRun` with completion reason. Remote log mode (FR-ING-16).
+- ✅ Config file with a commented template (`il2ks.example.toml`), daily rotating structured log files (TD-27), vulture dead-code check.
+
+### Part 2: frontend and operations (next)
+The next run starts here. The data model is final for these pages (doc 06, page → table map).
+- Web (Pico CSS): mission list and detail, player search, player profile (all-time totals, ratios computed at read time, per-aircraft table,
+  taxi accidents and times strafed), player sorties, **sortie detail with timeline** (with the "may still change" notice for live data
+  later). Page caching keyed on a data version (TD-28).
 - Admin: branding (`SiteSettings`), hide player or mission, ingestion status, object, country and coalition names.
 - `custom/` template and static overrides.
 - **HTTPS only**: bundled Caddy, or bring your own proxy.
-- `il2ks setup`, `doctor`, `run`, `db copy`. Documented manual install (option C, SQLite default), **published to PyPI**. It's also the
-  **Linux path** (systemd unit, Wine log paths).
-- Observability: rotating, structured log files per process (TD-27).
+- `il2ks setup`, `doctor`, `web`, `run`, `createadmin`, `backup` / `restore` (stubs today). Documented manual install (option C, SQLite
+  default), **published to PyPI**. It's also the **Linux path** (systemd unit, Wine log paths).
 
 ## Iteration 1.x: Easy install and polish
 - **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing).
@@ -45,8 +57,9 @@ Status: `[PROPOSED]` (ordering) with `[DECIDED]` items marked in the requirement
 - **Game object names**: admin overrides (required for the public release) and translated defaults (not a release gate) (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early
-    bailouts. Air-to-air Elo with prop/jet pools and ground score per hour on target (FR-WEB-19/20, OQ-27..29).
-  - Stats by aircraft. Split rankings by aircraft class. **Gunner stats** (FR-WEB-14).
+    bailouts. Pages for the air-to-air Elo (prop/jet pools) and ground score per hour on target (FR-WEB-19/20); their inputs are stored
+    since iteration 1.
+  - Stats by aircraft. Split rankings by aircraft class. **Gunner stats** with the gunner credit rule (FR-WEB-14).
   - Killboards. Ironman / virtual-life stats. Rams, parachute deaths, and other rule toggles.
 - Light charts (FR-WEB-16).
 - Sortie map page of key events (their positions are stored from v1).
@@ -61,8 +74,8 @@ and the ammo breakdown (FR-WEB-18).
 
 **Schedule risk** (Claude, 2026-10-02): the gate implies all of iteration 0 and 1, the Windows installer from 1.x, and object-name admin
 overrides in about 3 weeks, for one developer with AI help. Still tight, but translations no longer gate it (maintainer, 2026-10-02).
-The order that protects the date: (1) parser + replay + ingest with golden tests, (2) the five core pages, (3) the installer, (4) object-name
-overrides. Translations and the ammo breakdown follow when ready. The rest of it2 (tours, online now, mod features) stays after the release.
+The order that protects the date: (1) parser + replay + ingest with golden tests (✅ 2026-10-03), (2) the five core pages, (3) the installer,
+(4) object-name overrides. Translations and the ammo breakdown follow when ready. The rest of it2 (tours, online now, mod features) stays after the release.
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.

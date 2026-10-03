@@ -201,6 +201,10 @@ or when the newest part's mtime was more than **120 s** old, polling every 30 s,
 - There's **no periodic position tracking**. AType 17 (position) never appears in Korea logs. Positions only come attached to other
   events: spawn (10), takeoff and landing (5/6), wheels off/on (30/31), damage (2), kills (3), gun bursts (24), stores and rockets (25/26),
   and pilot removal (16).
+- **Whose position** (checked 2026-10-03): `POS` on damage (2) and kill (3) lines is the **target's** (for statics it equals the AType 12 spawn
+  position in all 76k damage lines checked); on stores and rockets (25/26) it's the **carrier aircraft's** (within ~13 m of its nearest gun
+  burst). `y` is altitude (statics sit around 30 m, ordnance at release ~1,000 m); horizontal distances use x and z.
+- **Loadout in the ammo counts**: AType 10 `BOMB` counts napalm tanks too and `RCT` counts every rocket type; drop tanks give `BOMB:0 RCT:0`.
 - So an aircraft's position is known densely during combat (gun bursts, damage) and **not at all** while cruising. Gaps of several minutes
   are normal. A continuous flight track can't be rebuilt. **Decision (2026-10-02): store positions only on the key events we keep**
   (spawn, takeoff, landing, kills, deaths, bailout, sortie end), and don't keep a breadcrumb track.

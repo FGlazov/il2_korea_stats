@@ -47,6 +47,8 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
+               taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
+               combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
                is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
                kills_air, kills_ground, assists, friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
                resupplied (bool, FR-ING-24), ammo (json: loaded, left, used, hits per ammo type; FR-WEB-18 attribution in it1.x),
@@ -62,14 +64,16 @@ PlayerMission  player, mission, coalition, + counters     -- only for players wi
 
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft` (and `PlayerTour` in it2): sorties, flight
 time, air kills, ground kills, assists, deaths, planes lost, bailouts, suspected early bailouts, captures, takeoffs, landings, friendly kills,
-friendly hits, friendly damage. Only **pilot** sorties are counted; gunner sorties are recorded (`role = gunner`) but get no counters or dedicated
+friendly hits, friendly damage, **taxi accidents, strafed on the ground, attack sorties, time on target** (2026-10-03, doc 13). Only
+**pilot** sorties are counted; gunner sorties are recorded (`role = gunner`) but get no counters or dedicated
 pages until gunner stats exist (FR-WEB-14).
 
-## Level 2: cross-mission tables (incremental at ingest, rebuildable from level 1)
+## Level 2: cross-mission tables (recomputed at ingest, rebuildable from level 1)
 
 ```
 Player         id, account_uuid (unique), current_name, name_lower (indexed, for search),
-               first_seen, last_seen, is_hidden, + all-time counters
+               first_seen, last_seen, is_hidden, + all-time counters,
+               elo_prop, elo_jet (float), elo_prop_games, elo_jet_games (int)   -- FR-WEB-19, not counters: a global replay (doc 13)
 PlayerName     player, name, name_lower, first_seen, last_seen
 PlayerAircraft player, aircraft, + all-time counters                                     -- per-aircraft table on profile
 -- iteration 2 (TD-26):
@@ -84,7 +88,8 @@ are computed at read time from those counters, as model properties or template f
 
 ```
 GameObject     id, log_name (unique), display_name, cls (fighter/attacker/bomber/transport/gunner/tank/vehicle/aaa/ship/static/
-               ordnance/crew/equipment/unknown), is_playable, is_known (false = auto-registered unknown, FR-ING-7)
+               ordnance/crew/equipment/unknown), propulsion (prop/jet/blank; aircraft only), is_playable,
+               is_known (false = auto-registered unknown, FR-ING-7)
 Country        code (501...), display_name, coalition                                  -- admin-editable
 IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
                completion_reason (mission_end/newer_mission/idle/import/reprocess), attempts, next_retry_at, started_at, finished_at,
