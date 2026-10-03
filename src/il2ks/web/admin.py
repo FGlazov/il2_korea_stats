@@ -2,7 +2,8 @@
 
 Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rules:
 
-- Rows that ingest owns (players, missions, sorties, counters, ingestion runs) are read-only apart from `is_hidden`:
+- Rows that ingest owns (players, missions, sorties, counters, tours, ingestion runs) are read-only apart from
+  `is_hidden` (and a tour's title):
   anything else would be overwritten by the next ingest or rebuild. They can't be added or deleted here.
 - Every save or action on a page-visible model bumps the data version in the same transaction (TD-28), so cached pages
   are revalidated. (`changeform_view` and the changelist's `list_editable` save run inside a transaction; the bulk
@@ -19,7 +20,8 @@ from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.forms import ModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.urls import reverse
+from django.template.response import TemplateResponse
+from django.urls import URLPattern, path, reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -33,9 +35,12 @@ from il2ks.db.models import (
     IngestRun,
     Mission,
     Player,
+    PlayerTour,
     SiteSettings,
+    Tour,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest.tours import start_manual_tour
 from il2ks.web.logo import delete_logo, store_logo
 from il2ks.web.site_forms import SiteSettingsForm
 
@@ -195,12 +200,15 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
         "completed_cleanly",
         "is_hidden",
     )
-    list_filter = ("is_hidden", "completed_cleanly", "started_at")
+    list_filter = ("is_hidden", "completed_cleanly", "tour", "started_at")
     search_fields = ("mission_uid", "mission_file")
     ordering = ("-started_at",)
     actions = ("hide_selected", "unhide_selected")
     fieldsets = (
-        (None, {"fields": ("is_hidden", "mission_uid", "mission_file", "started_at", "ended_at", "duration_s")}),
+        (
+            None,
+            {"fields": ("is_hidden", "mission_uid", "mission_file", "tour", "started_at", "ended_at", "duration_s")},
+        ),
         (
             _("Result"),
             {
@@ -242,6 +250,73 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
     @admin.action(description=_("Show selected missions on public pages again"), permissions=["change"])
     def unhide_selected(self, request: HttpRequest, queryset: models.QuerySet[Mission]) -> None:
         _set_hidden(self, request, queryset, False)
+
+
+# --- Tours (FR-ADM-8, TD-26) ---
+
+
+@admin.register(Tour)
+class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
+    """Rename tours; in manual mode, start the next one. Boundaries and mode are the ingester's."""
+
+    editable = ("title",)
+    list_display = ("title", "started_at", "ended_at", "mode", "missions_count")
+    list_display_links = ("title",)
+    ordering = ("-started_at",)
+    change_list_template = "admin/il2ks_db/tour/change_list.html"
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Tour]:
+        return super().get_queryset(request).annotate(missions_n=models.Count("missions"))
+
+    @admin.display(description=_("Missions"), ordering="missions_n")
+    def missions_count(self, obj: Tour) -> int:
+        return int(getattr(obj, "missions_n", 0))
+
+    def changelist_view(self, request: HttpRequest, extra_context: dict[str, str] | None = None) -> TemplateResponse:
+        manual = getattr(settings, "IL2KS_TOUR_MODE", "monthly") == "manual"
+        can_start = "1" if manual and self.has_change_permission(request) else ""
+        return super().changelist_view(request, {**(extra_context or {}), "can_start_tour": can_start})
+
+    def get_urls(self) -> list[URLPattern]:
+        start = path("start/", self.admin_site.admin_view(self.start_view), name="il2ks_db_tour_start")
+        return [start, *super().get_urls()]
+
+    def start_view(self, request: HttpRequest) -> HttpResponseRedirect:
+        """POST: close the open tour and start a new one now (manual mode only)."""
+        changelist = reverse("admin:il2ks_db_tour_changelist")
+        if request.method != "POST" or not self.has_change_permission(request):
+            raise PermissionDenied
+        if getattr(settings, "IL2KS_TOUR_MODE", "monthly") != "manual":
+            self.message_user(request, _("Tours start by themselves unless [tours] mode is manual."), messages.ERROR)
+            return HttpResponseRedirect(changelist)
+        with transaction.atomic():
+            tour = start_manual_tour()
+            bump_data_version()
+        self.message_user(request, _("Started %(title)s.") % {"title": tour.title}, messages.SUCCESS)
+        return HttpResponseRedirect(changelist)
+
+
+@admin.register(PlayerTour)
+class PlayerTourAdmin(ModelAdmin[PlayerTour]):
+    """A player's counters in one tour: derived data, read only."""
+
+    list_display = ("player", "tour", "sorties", "kills_air", "kills_ground", "deaths")
+    list_filter = ("tour",)
+    search_fields = ("player__current_name", "player__account_uuid")
+    list_select_related = ("player", "tour")
+    ordering = ("-tour__started_at", "-kills_air")
+
+    def get_readonly_fields(self, request: HttpRequest, obj: PlayerTour | None = None) -> list[str]:
+        return _field_names(PlayerTour)
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: PlayerTour | None = None) -> bool:
+        return False
+
+    def has_delete_permission(self, request: HttpRequest, obj: PlayerTour | None = None) -> bool:
+        return False
 
 
 # --- Catalog and country names (FR-ADM-4, FR-ADM-5, TD-24) ---

@@ -306,10 +306,43 @@ class PlayerName(models.Model):
         return self.name
 
 
+# --- Tours (TD-26): periods that group missions ---
+
+
+class Tour(models.Model):
+    """A period of missions (TD-26, FR-WEB-10): `[started_at, ended_at)`, ended_at null while it is open.
+
+    In `monthly` / `days:<N>` mode the boundaries come from the calendar (`core.tours`) and `ended_at` is set at
+    creation (it may lie in the future for the current tour). In `manual` mode the newest tour is open (`ended_at` null)
+    until an admin starts the next one (FR-ADM-8). `mode` is the `[tours] mode` the tour was created under; a tour
+    whose mode differs from the configured one is stale until `rebuild-aggregates --retour`. `title` is
+    admin-editable (renames survive rebuilds)."""
+
+    title = models.CharField(max_length=100)
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField(null=True)
+    mode = models.CharField(max_length=16)  # "monthly", "days:14", "manual"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["started_at"], name="tour_started_at_unique"),
+            models.CheckConstraint(
+                condition=models.Q(ended_at__isnull=True) | models.Q(ended_at__gt=models.F("started_at")),
+                name="tour_ends_after_start",
+            ),
+        ]
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return self.title
+
+
 # --- Level 1: per mission ---
 
 
 class Mission(models.Model):
+    tour_id: int | None
+
     server_uid = models.UUIDField()
     mission_uid = models.CharField(max_length=32)  # file name timestamp, e.g. "2026-09-19_22-34-13" (TD-15)
     mission_file = models.CharField(max_length=255)
@@ -326,6 +359,9 @@ class Mission(models.Model):
     completed_cleanly = models.BooleanField()
     winning_coalition = models.IntegerField(null=True)
     is_hidden = models.BooleanField(default=False)
+    # The tour containing `started_at` (TD-26). Null only for missions saved before tours existed, until the next
+    # `rebuild-aggregates`.
+    tour = models.ForeignKey("Tour", on_delete=models.PROTECT, null=True, related_name="missions")
     # Pre-aggregated for list/detail pages
     players_total = models.PositiveIntegerField(default=0)
     sorties_total = models.PositiveIntegerField(default=0)
@@ -526,6 +562,47 @@ class PlayerAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / {self.aircraft_id}"
+
+
+class PlayerTour(Counters):
+    """A player's counters within one tour (TD-26): the sum of their `PlayerMission` rows of that tour's missions.
+
+    Rows exist only for players with a counted sortie in the tour. Elo is not per tour (all-time on `Player`)."""
+
+    player_id: int
+    tour_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_rows")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="player_rows")
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "tour"], name="playertour_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / tour {self.tour_id}"
+
+
+class PlayerTourAircraft(Counters):
+    """`PlayerAircraft` within one tour: counted sorties grouped by (player, tour, aircraft).
+
+    A separate table rather than a nullable `tour` column on `PlayerAircraft`: all-time reads (`player.aircraft_stats`)
+    stay unfiltered, and the unique key needs no NULL special case."""
+
+    player_id: int
+    tour_id: int
+    aircraft_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_aircraft_stats")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="aircraft_rows")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="tour_player_stats")
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "tour", "aircraft"], name="playertouraircraft_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
 
 
 # --- Operational ---

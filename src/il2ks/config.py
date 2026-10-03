@@ -21,13 +21,14 @@ import tomllib
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Literal, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.tours import TourRules, parse_mode
 
 type AfterArchive = Literal["move", "keep", "delete"]
 AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
@@ -128,6 +129,7 @@ class Config:
     replay: ReplayRules = field(default_factory=ReplayRules)
     ratings: RatingRules = field(default_factory=RatingRules)
     backup: BackupConfig = field(default_factory=BackupConfig)
+    tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
     source: Path | None = None  # the TOML file that was read, if any
 
     @property
@@ -253,6 +255,8 @@ def load_config(
         origin = "server.timezone" if configured_tz else "the OS timezone (TZ or /etc/localtime); set [server] timezone"
         raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
 
+    tours = _load_tours(reader, tz_name)
+
     uid_text = reader.str_("server", "uid", "")
     server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)
 
@@ -270,6 +274,7 @@ def load_config(
         replay=replay,
         ratings=ratings,
         backup=backup,
+        tours=tours,
         source=file,
     )
 
@@ -325,6 +330,30 @@ def _load_https(reader: _Reader) -> HttpsConfig:
         https_port=reader.port("https", "https_port", defaults.https_port),
         hsts_seconds=reader.whole_number("https", "hsts_seconds", defaults.hsts_seconds),
     )
+
+
+def _load_tours(reader: _Reader, server_tz_name: str) -> TourRules:
+    """`[tours]` (TD-26): mode, the start date for `days:<N>`, and the timezone that draws the boundaries."""
+    try:
+        mode, days = parse_mode(reader.str_("tours", "mode", "monthly"))
+    except ValueError as exc:
+        raise ConfigError(f"tours.mode {exc}") from exc
+    start_text = reader.date_text("tours", "start")
+    start: date | None = None
+    if start_text:
+        try:
+            start = date.fromisoformat(start_text)
+        except ValueError as exc:
+            raise ConfigError(f"tours.start must be a date like 2026-10-01, got {start_text!r}") from exc
+    if mode == "days" and start is None:
+        raise ConfigError("tours.start is required when tours.mode is days:<N> (the first day of tour 1, YYYY-MM-DD)")
+    configured = reader.str_("tours", "timezone", "").strip()
+    tz_name = configured or server_tz_name  # default: where the community plays (TD-26)
+    try:
+        ZoneInfo(tz_name)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise ConfigError(f"tours.timezone: unknown IANA timezone {tz_name!r}") from exc
+    return TourRules(mode=mode, days=days, start=start if mode == "days" else None, timezone_name=tz_name)
 
 
 def _parse_uid(text: str) -> uuid.UUID:
@@ -398,6 +427,17 @@ class _Reader:
         if not isinstance(value, str):
             raise ConfigError(f"{self._label(section, key)} must be a string")
         return value
+
+    def date_text(self, section: str, key: str) -> str:
+        """A date setting as text: a quoted string, or an unquoted TOML date (which tomllib parses to a `date`)."""
+        value, _ = self._get(section, key)
+        if value is None:
+            return ""
+        if isinstance(value, date):
+            return value.isoformat()
+        if not isinstance(value, str):
+            raise ConfigError(f"{self._label(section, key)} must be a date like 2026-10-01")
+        return value.strip()
 
     def path(self, section: str, key: str) -> Path | None:
         value, from_env = self._get(section, key)

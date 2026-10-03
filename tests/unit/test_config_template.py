@@ -14,6 +14,7 @@ from il2ks.core.replay.config import ReplayRules
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
 SERVER_KEYS = {"timezone", "uid"}  # `Config.timezone_name` / `Config.server_uid`, stored under [server]
+TOURS_KEYS = {"mode", "start", "timezone"}  # `Config.tours` (a `TourRules`: the mode string parses into mode + days)
 
 
 def template_lines() -> list[str]:
@@ -41,6 +42,7 @@ def test_template_lists_every_config_key() -> None:
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
+        "tours": TOURS_KEYS,
         "server": SERVER_KEYS,
         "web": {f.name for f in dataclasses.fields(WebConfig)},
         "https": {f.name for f in dataclasses.fields(HttpsConfig)},
@@ -65,6 +67,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "replay",
         "ratings",
         "backup",
+        "tours",
         "server_uid",
         "timezone_name",
     }

@@ -27,7 +27,7 @@ def test_filling_keeps_every_explanation_and_only_switches_on_what_was_chosen() 
     assert "\n[server]\n" in filled
     assert 'timezone = "Asia/Seoul"' in filled
     assert "#data_dir" not in filled
-    assert "#timezone" not in filled
+    assert filled.count("#timezone") == 1  # [server]'s is switched on; [tours]' own timezone stays commented out
     assert "#[server]" not in filled
     # Tables the admin set nothing in stay commented out, with their defaults visible.
     assert "#[logs]" in filled
