@@ -479,6 +479,25 @@ def test_reprocess_fails_a_mission_whose_archive_changed(env: Env) -> None:
     assert "missing or changed" in env.runs(A)[-1].error
 
 
+def test_reprocess_rebuilds_a_lost_database_from_the_archives_alone(env: Env) -> None:
+    """FR-ING-9: archives on disk with no IngestRun history are adopted."""
+    env.add(A)
+    env.add(B)
+    env.ingest()
+    IngestRun.objects.all().delete()
+    Mission.objects.all().delete()
+
+    summary, rebuilt = do_reprocess(env)
+
+    assert getattr(summary, "ok") == [A, B]  # noqa: B009
+    assert rebuilt == [1]
+    assert Mission.objects.count() == 2
+    run = env.runs(A)[0]
+    assert run.archive_path == f"archive/2026/09/missionReport({A})[0].txt.zip"
+    assert len(run.archive_sha256) == 64
+    assert run.fingerprint == ""
+
+
 def test_reprocess_needs_the_writer_lock(env: Env) -> None:
     with WriterLock(env.data, "watch"), pytest.raises(LockBusyError):
         do_reprocess(env)

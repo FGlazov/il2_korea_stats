@@ -22,12 +22,13 @@ from django.db import transaction
 
 from il2ks import __version__
 from il2ks.config import Config
+from il2ks.core.logparse.files import mission_uid_from_name
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import IngestRun, IngestStatus
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.ingest.archive import archive_matches
+from il2ks.ingest.archive import archive_matches, file_sha256
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
@@ -57,14 +58,30 @@ class ReprocessSummary:
         return text + (f", no archive for {len(self.missing)}: {', '.join(self.missing)}" if self.missing else "")
 
 
-def archived_targets(mission_uids: Sequence[str] | None) -> dict[str, IngestRun]:
-    """Newest archive-writing run per mission UID (all missions, or just the given ones)."""
+def archived_targets(cfg: Config, mission_uids: Sequence[str] | None) -> dict[str, IngestRun]:
+    """What to reprocess, per mission UID (all missions, or just the given ones).
+
+    The newest archive-writing `IngestRun` of each mission. Archives on disk with no run at all (a lost or rebuilt
+    database, FR-ING-9: "rebuild the DB from archived logs") are adopted as unsaved runs, so `reprocess` can bring
+    a mission back from its archive alone."""
     runs = IngestRun.objects.exclude(archive_sha256="")
     if mission_uids:
         runs = runs.filter(mission_uid__in=list(mission_uids))
     targets: dict[str, IngestRun] = {}
     for run in runs.order_by("mission_uid", "-started_at", "-id"):
         targets.setdefault(run.mission_uid, run)
+    wanted = set(mission_uids or ())
+    for path in sorted(cfg.archive_dir.glob("*/*/*.txt.zip")):
+        uid = mission_uid_from_name(path.name)
+        if uid is None or uid in targets or (wanted and uid not in wanted):
+            continue
+        if IngestRun.objects.filter(mission_uid=uid).exists():
+            continue  # has runs, none of which wrote this archive: not ours to adopt
+        targets[uid] = IngestRun(
+            mission_uid=uid,
+            archive_path=path.relative_to(cfg.data_dir).as_posix(),
+            archive_sha256=file_sha256(path),
+        )
     return targets
 
 
@@ -83,7 +100,7 @@ def reprocess(
     """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         summary = ReprocessSummary()
-        targets = archived_targets(mission_uids)
+        targets = archived_targets(cfg, mission_uids)
         summary.missing = sorted(set(mission_uids or ()) - set(targets))
         n_workers = workers or default_workers()
         window = n_workers * 2  # bound the results waiting in memory for the single writer
