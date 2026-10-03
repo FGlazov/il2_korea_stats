@@ -22,6 +22,18 @@ type PilotFateSource = Literal["event", "inferred", "unknown"]
 type PilotStatus = Literal["healthy", "wounded", "dead", "captured"]
 type AircraftStatus = Literal["unharmed", "damaged", "destroyed"]
 type LossCause = Literal["attacker", "self", "none"]
+type LossClass = Literal["player", "ai_aircraft", "ai_gunner", "aaa", "ground", "friendly", "environment", "unknown"]
+LOSS_CLASSES: tuple[LossClass, ...] = (
+    "player",
+    "ai_aircraft",
+    "ai_gunner",
+    "aaa",
+    "ground",
+    "friendly",
+    "environment",
+    "unknown",
+)
+"""Display order. Same values as `il2ks.db.models.LossClass`."""
 type KillCredit = Literal["kill", "assist", "shared"]
 type KillVia = Literal["direct", "abandoned_aircraft", "disconnect"]
 type TargetKind = Literal["air", "ground"]
@@ -148,6 +160,11 @@ class SortieResult:
     # how many of those were static objects (a separate axis: a static truck is a "vehicle" and static).
     kills_ground_by_category: Mapping[GroundCategory, int] = field(default_factory=dict[GroundCategory, int])
     kills_ground_static: int = 0
+    # PvE breakdown (FR-WEB-21, doc 13): who is behind the loss, one class per lost sortie (None when nothing was
+    # lost); and the air kills split by victim: `kills_air_pvp + kills_air_ai == kills_air`.
+    loss_class: LossClass | None = None
+    kills_air_pvp: int = 0  # air kills of a player's aircraft
+    kills_air_ai: int = 0  # air kills of an AI aircraft
 
 
 @dataclass(frozen=True, slots=True)

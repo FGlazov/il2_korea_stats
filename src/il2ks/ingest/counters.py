@@ -11,6 +11,7 @@ from types import MappingProxyType
 
 from django.db.models import Aggregate, Count, Q, QuerySet, Sum
 
+from il2ks.core.replay.result import LOSS_CLASSES
 from il2ks.db.models import CombatRole, PilotFate, PlayerSortie, Role
 
 COUNTED_ROLES: tuple[str, ...] = (Role.PILOT,)
@@ -47,6 +48,10 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "kills_ground_parked_aircraft": Sum("kills_ground_parked_aircraft"),
         "kills_ground_other": Sum("kills_ground_other"),
         "kills_ground_static": Sum("kills_ground_static"),
+        "kills_air_pvp": Sum("kills_air_pvp"),
+        "kills_air_ai": Sum("kills_air_ai"),
+        **{f"deaths_by_{c}": Count("pk", filter=Q(is_death=True, loss_class=c)) for c in LOSS_CLASSES},
+        **{f"planes_lost_by_{c}": Count("pk", filter=Q(is_plane_lost=True, loss_class=c)) for c in LOSS_CLASSES},
     }
 )
 

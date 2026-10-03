@@ -306,6 +306,9 @@ _SORTIE_FIELDS = [
     "kills_ground_parked_aircraft",
     "kills_ground_other",
     "kills_ground_static",
+    "loss_class",
+    "kills_air_pvp",
+    "kills_air_ai",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -399,6 +402,9 @@ def _fill_sortie(
     for category in GROUND_CATEGORIES:
         setattr(row, f"kills_ground_{category}", s.kills_ground_by_category.get(category, 0))
     row.kills_ground_static = s.kills_ground_static
+    row.loss_class = s.loss_class or ""
+    row.kills_air_pvp = s.kills_air_pvp
+    row.kills_air_ai = s.kills_air_ai
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 

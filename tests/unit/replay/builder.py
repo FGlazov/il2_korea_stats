@@ -46,6 +46,8 @@ OBJECTS: dict[str, ObjectClass] = {
     "IL-10": "attacker",
     "Turret_IL10": "gunner",
     "M46 Patton": "tank",
+    "Flak 37": "aaa",
+    "B-29": "bomber",
     "GAZ_63": "static",  # a static truck: category vehicle, but static
     "Military tent A2": "static",
     "Cargo ship 1": "ship",
@@ -58,6 +60,7 @@ OBJECTS: dict[str, ObjectClass] = {
 }
 GROUND_CATEGORIES: dict[str, GroundCategory] = {
     "M46 Patton": "tank",
+    "Flak 37": "aaa",
     "GAZ_63": "vehicle",
     "Military tent A2": "building",
     "Cargo ship 1": "ship",

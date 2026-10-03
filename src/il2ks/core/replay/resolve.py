@@ -9,6 +9,7 @@ from il2ks.core.replay.fate import ticks, was_resupplied
 from il2ks.core.replay.judge import Verdict, judge
 from il2ks.core.replay.kills import resolve_kills
 from il2ks.core.replay.model import MissionFacts, SortieState, is_bot_type
+from il2ks.core.replay.pve import loss_class
 from il2ks.core.replay.result import (
     AmmoCounts,
     AmmoHits,
@@ -51,6 +52,7 @@ def _build_sortie(
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
     ground = [k for k in credited if k.victim_kind == "ground"]
+    air = [k for k in credited if k.victim_kind == "air"]
     airframe = sortie.airframe
     takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
     landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
@@ -95,7 +97,10 @@ def _build_sortie(
         suspected_structural_failure=verdict.structural_failure,
         taxi_accident=verdict.taxi_accident,
         strafed_on_ground=verdict.strafed_on_ground,
-        kills_air=sum(1 for k in credited if k.victim_kind == "air"),
+        kills_air=len(air),
+        kills_air_pvp=sum(1 for k in air if k.victim_sortie_index is not None),
+        kills_air_ai=sum(1 for k in air if k.victim_sortie_index is None),
+        loss_class=loss_class(sortie, verdict),
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
         kills_ground_static=sum(1 for k in ground if k.victim_is_static),
