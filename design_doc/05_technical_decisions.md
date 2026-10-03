@@ -285,6 +285,11 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Consequence:** template names, `{% block %}`s, and context variables become a **semi-public API**. Keep templates small, with named
   blocks, and document their context. Mention breaking template changes in release notes. `il2ks doctor` warns when an overridden
   template's original has changed since the override was made (hash comparison).
+- **Versioned templates** `[DECIDED]` (maintainer, 2026-10-03; mechanism `[PROPOSED]`): every built-in template, stylesheet and script
+  carries a version in a header line (`{# il2ks-template: <path> vN #}`), bumped whenever the file changes (a test enforces it; `il2ks dev
+  bump-templates` does the bump). The header travels with a copied override, so il2ks can tell an override based on an **old** version
+  even when it was copied by hand, and shows a **big warning** to the admin: a red banner on every admin page, a log warning at start-up,
+  `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff <path>` shows what changed. Never on public pages.
 
 ### TD-26 Tours with configurable length, in iteration 2 — `[DECIDED]` (tours, it2), `[PROPOSED]` (modes)
 - Missions belong to exactly one `Tour`, assigned by mission start time. Per-tour totals (`PlayerTour`) are the main stats unit, with all-time
