@@ -1,0 +1,63 @@
+# il2ks for server admins (doc 07 option A). Guide: docs/install-docker.md.
+# (docker/compose.dev.yaml is something else: a Postgres for developers running the test suite.)
+#
+#   cp docker/.env.example docker/.env      # then edit docker/.env
+#   docker compose -f docker/compose.yaml up -d --build
+#
+# All settings come from docker/.env; every il2ks.toml setting can also be added below as IL2KS_<SECTION>_<KEY>.
+name: il2ks
+
+services:
+  il2ks:
+    image: il2ks:local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    init: true # reaps zombies and forwards the stop signal
+    stop_grace_period: 30s # `il2ks run` stops its children, then exits
+    # Not root: 1000:1000 is the usual first Linux user and so usually the owner of the Wine prefix. Change it (in
+    # .env) if yours differs AND you let il2ks move or delete logs; for the default read-only mount it does not matter,
+    # as long as the log files are world-readable.
+    user: "${IL2KS_CONTAINER_UID:-1000}:${IL2KS_CONTAINER_GID:-1000}"
+    ports:
+      - "80:80" # redirects to https and answers the certificate challenge (Let's Encrypt)
+      - "443:443"
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0 # lets the non-root Caddy bind 80 and 443
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      # --- the site ---
+      IL2KS_HTTPS_DOMAIN: "${IL2KS_HTTPS_DOMAIN:-}" # stats.example.com; empty = self-signed test certificate
+      IL2KS_HTTPS_EMAIL: "${IL2KS_HTTPS_EMAIL:-}" # optional: Let's Encrypt writes here if renewal fails
+      # --- the game server ---
+      # DServer names its logs in ITS local time zone (IANA name, like Europe/Berlin or UTC). Must match the game machine.
+      IL2KS_SERVER_TIMEZONE: "${IL2KS_SERVER_TIMEZONE:?set IL2KS_SERVER_TIMEZONE in docker/.env (see docker/.env.example)}"
+      # Optional fixed server ID; empty = generated once into the data volume.
+      IL2KS_SERVER_UID: "${IL2KS_SERVER_UID:-}"
+      # --- logs: the folder below is mounted at /logs ---
+      IL2KS_LOGS_DIR: /logs
+      # "keep" leaves DServer's files alone, which is what a read-only mount needs. Use "move" (or "delete") together with a
+      # writable mount; see docs/install-docker.md.
+      IL2KS_LOGS_AFTER_ARCHIVE: "${IL2KS_LOGS_AFTER_ARCHIVE:-keep}"
+      # --- first start: the admin account (only created while none exists) ---
+      IL2KS_ADMIN_USERNAME: "${IL2KS_ADMIN_USERNAME:-}"
+      IL2KS_ADMIN_PASSWORD: "${IL2KS_ADMIN_PASSWORD:-}"
+    volumes:
+      - il2ks-data:/data # database, secret key, certificates, backups, archived mission logs
+      # DServer's log folder on THIS machine (Linux/Wine: a path inside the Wine prefix). ":ro" = il2ks cannot change it.
+      - type: bind
+        source: "${IL2KS_LOGS_HOST_DIR:?set IL2KS_LOGS_HOST_DIR in docker/.env to DServer's text log folder}"
+        target: /logs
+        read_only: "${IL2KS_LOGS_READ_ONLY:-true}"
+        bind:
+          create_host_path: false # a typo should be an error, not a new empty folder
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  il2ks-data:

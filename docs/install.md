@@ -5,6 +5,7 @@ receives its logs). It works on **Windows** (10, 11, Server) and **Linux** (also
 Expect 15 to 30 minutes, most of it waiting for DNS and the certificate.
 
 A Windows installer (double-click, no terminal) is planned. Until then, this is the way: a few copy-paste commands.
+On Linux you can also run everything in one container: see [Installing with Docker](install-docker.md).
 
 **Where to type commands:** on Windows, open **PowerShell** (Start menu, type "PowerShell"). Some steps say
 "as Administrator": right-click PowerShell and choose *Run as administrator*. On Linux, use any terminal.

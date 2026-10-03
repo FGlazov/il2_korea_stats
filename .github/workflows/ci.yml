@@ -62,3 +62,15 @@ jobs:
       - run: uv run pytest tests/unit/test_packaging.py
         env:
           IL2KS_TEST_BUILD: "1"
+
+  docker:
+    # The image of docs/install-docker.md (doc 07 option A): build it (nothing is pushed) and smoke-test it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f docker/Dockerfile -t il2ks:ci .
+      - run: docker compose -f docker/compose.yaml config --quiet
+        env:
+          IL2KS_SERVER_TIMEZONE: UTC
+          IL2KS_LOGS_HOST_DIR: /tmp
+      - run: docker/smoke-test.sh il2ks:ci

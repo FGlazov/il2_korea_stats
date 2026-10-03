@@ -249,6 +249,21 @@ def test_createadmin_creates_then_resets(
 
 
 @pytest.mark.django_db
+def test_createadmin_if_none_creates_the_first_admin_but_never_touches_an_existing_one(
+    sandbox: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The Docker image runs this on every start with the admin from env vars (docs/install-docker.md)."""
+    monkeypatch.setenv("IL2KS_ADMIN_PASSWORD", PASSWORD)
+    assert main(["createadmin", "--if-none", "--username", "first"]) == EXIT_OK
+    assert "created" in capsys.readouterr().out
+    monkeypatch.setenv("IL2KS_ADMIN_PASSWORD", "Another-Pass-Word-77")
+    assert main(["createadmin", "--if-none", "--username", "second"]) == EXIT_OK
+    assert "already exists" in capsys.readouterr().out
+    assert not get_user_model().objects.filter(username="second").exists()
+    assert get_user_model().objects.get(username="first").check_password(PASSWORD)  # not reset to the new env value
+
+
+@pytest.mark.django_db
 def test_createadmin_reads_the_password_from_a_file(sandbox: Path) -> None:
     password_file = sandbox / "pw.txt"
     password_file.write_text(PASSWORD + "\r\n", encoding="utf-8")
@@ -287,7 +302,7 @@ def test_createadmin_interactive_asks_twice_and_retries(sandbox: Path, monkeypat
 
 
 def _namespace() -> argparse.Namespace:
-    return argparse.Namespace(config=None, username=None, password_file=None, email=None, wait=5.0)
+    return argparse.Namespace(config=None, username=None, password_file=None, email=None, wait=5.0, if_none=False)
 
 
 # --- backup and restore commands ------------------------------------------------------------------------------------
