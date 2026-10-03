@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Literal, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 
 type AfterArchive = Literal["move", "keep", "delete"]
@@ -82,6 +83,7 @@ class Config:
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
+    ratings: RatingRules = field(default_factory=RatingRules)
     source: Path | None = None  # the TOML file that was read, if any
 
     @property
@@ -174,6 +176,13 @@ def load_config(
     resupply_allowed = reader.bool_("replay", "resupply_allowed", ReplayRules().resupply_allowed)
     replay = ReplayRules(resupply_allowed=resupply_allowed, **rule_values)
 
+    rating_defaults = RatingRules()
+    ratings = RatingRules(
+        start=reader.non_negative("ratings", "start", rating_defaults.start),
+        k=reader.non_negative("ratings", "k", rating_defaults.k),
+        cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
+    )
+
     configured_tz = reader.str_("server", "timezone", "")
     tz_name = configured_tz or detect_os_timezone(env)
     try:
@@ -194,6 +203,7 @@ def load_config(
         logs=logs,
         ingest=ingest,
         replay=replay,
+        ratings=ratings,
         source=file,
     )
 

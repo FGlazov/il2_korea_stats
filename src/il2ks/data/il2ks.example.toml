@@ -91,6 +91,19 @@
 # ... and releases more than this many seconds apart are separate attacks (the time between them doesn't count).
 #tot_pass_gap_s = 300.0
 
+# --- Air-to-air ratings (OQ-28, FR-WEB-19) --------------------------------------------------------------------------
+# An Elo rating per player and aircraft type (propeller or jet), earned in air-to-air kills between air superiority
+# sorties. A changed setting is applied the next time ratings are recomputed (any new mission, or `il2ks
+# rebuild-aggregates`).
+#[ratings]
+# The rating of a player who has no rated kills yet.
+#start = 1500.0
+# The most one kill can change a rating (kill and loss between two players of the same type of aircraft).
+#k = 32.0
+# A propeller aircraft that shoots down a jet changes both ratings this many times more (a jet kill on a propeller
+# aircraft changes nothing: it was expected).
+#cross_pool_weight = 2.0
+
 # --- This game server (TD-15, TD-17) -------------------------------------------------------------------------------
 #[server]
 # The timezone of the machine running DServer, as an IANA name such as "Europe/Berlin" or "Asia/Seoul". DServer

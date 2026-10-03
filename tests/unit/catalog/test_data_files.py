@@ -24,10 +24,33 @@ def read_rows(name: str) -> list[dict[str, str]]:
 
 def test_objects_columns_and_values() -> None:
     rows = read_rows("objects.csv")
-    assert list(rows[0]) == ["log_name", "display_name", "cls", "is_playable"]
+    assert list(rows[0]) == ["log_name", "display_name", "cls", "is_playable", "propulsion"]
     assert all(r["cls"] in OBJECT_CLASSES for r in rows)
     assert all(r["is_playable"] in ("true", "false") for r in rows)
     assert all(r["log_name"] == r["log_name"].strip() and r["display_name"].strip() for r in rows)
+
+
+AIRCRAFT_CLASSES = {"fighter", "attacker", "bomber", "transport"}
+
+
+def test_every_aircraft_has_a_propulsion_and_nothing_else_does() -> None:
+    """Rating pools need the propulsion of every aircraft; turrets, vehicles and the rest have none."""
+    rows = read_rows("objects.csv")
+    aircraft = [r for r in rows if r["cls"] in AIRCRAFT_CLASSES]
+    assert aircraft
+    assert all(r["propulsion"] in ("prop", "jet") for r in aircraft), [r["log_name"] for r in aircraft]
+    assert all(r["propulsion"] == "" for r in rows if r["cls"] not in AIRCRAFT_CLASSES)
+
+
+def test_the_jets_are_the_four_playable_jets() -> None:
+    jets = {r["log_name"] for r in read_rows("objects.csv") if r["propulsion"] == "jet"}
+    assert jets == {"F-80C-10", "F-84E", "F-86A-5", "MiG-15bis"}
+    catalog = load_default_catalog()
+    assert catalog.lookup("mig-15BIS").propulsion == "jet"
+    assert catalog.lookup("F-51D").propulsion == "prop"
+    assert catalog.lookup("B-29").propulsion == "prop"
+    assert catalog.lookup("Turret_IL10").propulsion is None
+    assert catalog.lookup("Something new").propulsion is None
 
 
 def test_object_names_unique_case_insensitively() -> None:
@@ -49,13 +72,15 @@ def test_loads() -> None:
 
 
 def test_parse_objects_rejects_bad_rows() -> None:
-    header = "log_name,display_name,cls,is_playable\n"
+    header = "log_name,display_name,cls,is_playable,propulsion\n"
     with pytest.raises(ValueError, match="unknown class"):
-        parse_objects(header + "X,X,spaceship,false\n")
+        parse_objects(header + "X,X,spaceship,false,\n")
     with pytest.raises(ValueError, match="is_playable"):
-        parse_objects(header + "X,X,tank,yes\n")
+        parse_objects(header + "X,X,tank,yes,\n")
     with pytest.raises(ValueError, match="empty"):
-        parse_objects(header + ",X,tank,false\n")
+        parse_objects(header + ",X,tank,false,\n")
+    with pytest.raises(ValueError, match="propulsion"):
+        parse_objects(header + "X,X,fighter,true,rocket\n")
     with pytest.raises(ValueError, match="columns"):
         parse_objects("log_name,cls\nX,tank\n")
 

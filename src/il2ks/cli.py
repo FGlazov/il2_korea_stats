@@ -204,7 +204,7 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
     if command == "reprocess":
         result = reprocess_mod.reprocess(
             cfg,
-            runner.default_pipeline(cfg),
+            runner.default_pipeline(cfg, defer_ratings=True),
             ns.mission,
             since=ns.since,
             until=ns.until,

@@ -4,7 +4,8 @@ Lookups never raise: an object type that isn't in the shipped data comes back wi
 (TD-20: "the replay never indexes a catalog dict directly").
 
 Shipped data (`core/catalog/data/`):
-- `objects.csv`: `log_name, display_name, cls, is_playable`, one row per object type seen in the logs (doc 12).
+- `objects.csv`: `log_name, display_name, cls, is_playable, propulsion`, one row per object type seen in the logs
+  (doc 12). `propulsion` is `prop` or `jet` for aircraft and empty for everything else.
 - `payloads.csv`: `vehicle, payload_id, editor_name, readable_name` (doc 12 "Payloads").
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
 """
@@ -56,6 +57,11 @@ OBJECT_CLASSES: frozenset[ObjectClass] = frozenset(
 )
 AIR_CLASSES: frozenset[ObjectClass] = frozenset({"fighter", "attacker", "bomber", "transport", "gunner"})
 
+type Propulsion = Literal["prop", "jet"]
+"""Piston-engined or jet. Same values as `il2ks.db.models.Propulsion`. Used to pool air-to-air ratings."""
+
+PROPULSIONS: frozenset[Propulsion] = frozenset({"prop", "jet"})
+
 COALITION_NAMES: Mapping[int, str] = {1: "REDFOR", 2: "BLUFOR"}
 """Doc 06: every country of a coalition displays as the plain coalition name."""
 NEUTRAL = "Neutral"
@@ -80,6 +86,7 @@ class ObjectInfo:
     cls: ObjectClass
     is_playable: bool
     is_known: bool
+    propulsion: Propulsion | None = None  # aircraft only (fighter, attacker, bomber, transport); None otherwise
 
     @property
     def is_air(self) -> bool:
@@ -155,6 +162,10 @@ def is_object_class(value: str) -> TypeIs[ObjectClass]:
     return value in OBJECT_CLASSES
 
 
+def is_propulsion(value: str) -> TypeIs[Propulsion]:
+    return value in PROPULSIONS
+
+
 class Catalog:
     """Read-only reference data. Build it once per process and pass it in (TD-11: no import-time globals).
 
@@ -225,15 +236,27 @@ def _rows(text: str, columns: list[str], source: str) -> list[dict[str, str]]:
 
 def parse_objects(text: str, source: str = "objects.csv") -> list[ObjectInfo]:
     result: list[ObjectInfo] = []
-    for n, row in enumerate(_rows(text, ["log_name", "display_name", "cls", "is_playable"], source), start=2):
-        cls, playable = row["cls"], row["is_playable"]
+    columns = ["log_name", "display_name", "cls", "is_playable", "propulsion"]
+    for n, row in enumerate(_rows(text, columns, source), start=2):
+        cls, playable, propulsion = row["cls"], row["is_playable"], row["propulsion"]
         if not row["log_name"] or not row["display_name"]:
             raise ValueError(f"{source}:{n}: empty log_name or display_name")
         if not is_object_class(cls):
             raise ValueError(f"{source}:{n}: unknown class {cls!r}")
         if playable not in ("true", "false"):
             raise ValueError(f"{source}:{n}: is_playable must be true or false, got {playable!r}")
-        result.append(ObjectInfo(row["log_name"], row["display_name"], cls, playable == "true", is_known=True))
+        if propulsion and not is_propulsion(propulsion):
+            raise ValueError(f"{source}:{n}: propulsion must be prop, jet or empty, got {propulsion!r}")
+        result.append(
+            ObjectInfo(
+                row["log_name"],
+                row["display_name"],
+                cls,
+                playable == "true",
+                is_known=True,
+                propulsion=propulsion if is_propulsion(propulsion) else None,
+            )
+        )
     return result
 
 

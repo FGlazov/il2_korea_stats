@@ -11,7 +11,7 @@ from types import MappingProxyType
 
 from django.db.models import Aggregate, Count, Q, QuerySet, Sum
 
-from il2ks.db.models import PilotFate, PlayerSortie, Role
+from il2ks.db.models import CombatRole, PilotFate, PlayerSortie, Role
 
 COUNTED_ROLES: tuple[str, ...] = (Role.PILOT,)
 """Only pilot sorties feed the counters. Gunner sorties are stored on level 1; gunner stats come later (FR-WEB-14)."""
@@ -33,11 +33,15 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "friendly_kills": Sum("friendly_kills"),
         "friendly_hits": Sum("friendly_hits"),
         "friendly_damage": Sum("friendly_damage"),
+        "taxi_accidents": Count("pk", filter=Q(taxi_accident=True)),
+        "strafed_on_ground": Count("pk", filter=Q(strafed_on_ground=True)),
+        "attack_sorties": Count("pk", filter=Q(combat_role=CombatRole.ATTACK)),
+        "time_on_target_s": Sum("time_on_target_s"),
     }
 )
 
 COUNTER_FIELDS: tuple[str, ...] = tuple(SORTIE_COUNTERS)
-FLOAT_COUNTERS: frozenset[str] = frozenset({"flight_time_s", "friendly_damage"})
+FLOAT_COUNTERS: frozenset[str] = frozenset({"flight_time_s", "friendly_damage", "time_on_target_s"})
 
 type CounterValues = dict[str, int | float]
 

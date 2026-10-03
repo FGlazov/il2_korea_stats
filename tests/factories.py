@@ -10,10 +10,12 @@ from datetime import UTC, datetime
 
 from django.db import models, transaction
 
-from il2ks.core.catalog.loader import AIR_CLASSES, Catalog, ObjectClass, ObjectInfo, PayloadInfo
+from il2ks.core.catalog.loader import AIR_CLASSES, Catalog, ObjectClass, ObjectInfo, PayloadInfo, Propulsion
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
+from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.replay.result import (
     AmmoCounts,
+    CombatRole,
     KillCredit,
     KillResult,
     MissionInfo,
@@ -40,6 +42,10 @@ KNOWN_OBJECTS: dict[str, tuple[str, ObjectClass]] = {
 }
 
 
+JETS = frozenset({"MiG-15bis", "F-86A-5"})
+"""Which of `KNOWN_OBJECTS` are jets; the other aircraft are propeller-driven, gunners and ground objects have none."""
+
+
 def account(n: int) -> AccountUuid:
     return AccountUuid(f"00000000-0000-4000-8000-{n:012d}")
 
@@ -59,7 +65,10 @@ class FakeCatalog(Catalog):
         if known is None:
             return ObjectInfo(object_type, object_type, "unknown", is_playable=False, is_known=False)
         name, cls = known
-        return ObjectInfo(object_type, name, cls, is_playable=cls in AIR_CLASSES, is_known=True)
+        propulsion: Propulsion | None = None
+        if cls in ("fighter", "attacker", "bomber", "transport"):
+            propulsion = "jet" if object_type in JETS else "prop"
+        return ObjectInfo(object_type, name, cls, is_playable=cls in AIR_CLASSES, is_known=True, propulsion=propulsion)
 
     def payload(self, aircraft_type: str, payload_id: int) -> PayloadInfo | None:
         if payload_id < 0 or aircraft_type not in self.known_objects:
@@ -104,6 +113,10 @@ def sortie(
     friendly_hits: int = 0,
     friendly_damage: float = 0.0,
     resupplied: bool = False,
+    taxi_accident: bool = False,
+    strafed_on_ground: bool = False,
+    combat_role: CombatRole | None = None,
+    time_on_target_s: float | None = None,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
@@ -158,6 +171,10 @@ def sortie(
         friendly_hits=friendly_hits,
         friendly_damage=friendly_damage,
         resupplied=resupplied,
+        taxi_accident=taxi_accident,
+        strafed_on_ground=strafed_on_ground,
+        combat_role=combat_role,
+        time_on_target_s=time_on_target_s,
     )
 
 
@@ -227,10 +244,15 @@ def reindexed(sorties: tuple[SortieResult, ...]) -> tuple[SortieResult, ...]:
     return tuple(replace(s, index=i) for i, s in enumerate(sorties))
 
 
-def save(result: MissionResult, mission_meta: MissionMeta | None = None, catalog: Catalog | None = None) -> Mission:
-    """`save_mission` inside a transaction, the way the ingest runner calls it."""
+def save(
+    result: MissionResult,
+    mission_meta: MissionMeta | None = None,
+    catalog: Catalog | None = None,
+    ratings: RatingRules | None = DEFAULT_RULES,
+) -> Mission:
+    """`save_mission` inside a transaction, the way the ingest runner calls it (`ratings=None`: no Elo replay)."""
     with transaction.atomic():
-        return save_mission(result, meta() if mission_meta is None else mission_meta, catalog or FakeCatalog())
+        return save_mission(result, meta() if mission_meta is None else mission_meta, catalog or FakeCatalog(), ratings)
 
 
 def rows(model: type[models.Model]) -> list[dict[str, object]]:

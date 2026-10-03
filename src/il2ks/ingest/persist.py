@@ -6,6 +6,7 @@ Order inside `save_mission` (the caller holds the transaction):
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
 5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`)
+6. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
 """
 
 import logging
@@ -18,6 +19,7 @@ from django.db.models import Count
 
 from il2ks.core.catalog.loader import Catalog, side_of_country
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
+from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.replay.result import (
     AmmoCounts,
     Counterpart,
@@ -38,6 +40,7 @@ from il2ks.db.models import (
 )
 from il2ks.ingest.aggregates import recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
+from il2ks.ingest.ratings import recompute_ratings
 
 log = logging.getLogger(__name__)
 
@@ -54,13 +57,16 @@ class MissionMeta:
     archive_path: str
 
 
-def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> Mission:
+def save_mission(
+    result: MissionResult, meta: MissionMeta, catalog: Catalog, ratings: RatingRules | None = DEFAULT_RULES
+) -> Mission:
     """Upsert one mission's level-1 rows by natural key, then recompute level 2 for the players involved.
 
     Must run inside the caller's `transaction.atomic()`. Safe to call again for the same mission (re-ingest,
     reprocess): rows that no longer exist are deleted, PKs of rows that still exist are kept (FR-ING-9, FR-WEB-13), and
     level 2 is recomputed for the mission's old players as well as the new ones, so players that dropped out are
-    corrected too.
+    corrected too. The Elo ratings are replayed from all kills afterwards (they depend on the order of games);
+    `ratings=None` skips that, for a caller that recomputes them once after many missions (`reprocess`).
     """
     clock = _Clock(meta.started_at)
     mission, created = Mission.objects.update_or_create(
@@ -79,6 +85,8 @@ def save_mission(result: MissionResult, meta: MissionMeta, catalog: Catalog) -> 
     _update_mission_counters(mission)
 
     recompute_players(old_player_ids | {p.pk for p in players.values()})
+    if ratings is not None:
+        recompute_ratings(ratings)
     return mission
 
 
@@ -102,15 +110,16 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
                 log_name=log_name,
                 display_name=info.display_name or log_name,
                 cls=info.cls,
+                propulsion=info.propulsion or "",
                 is_playable=info.is_playable,
                 is_known=info.is_known,
             )
             continue
         display_name = info.display_name if obj.display_name == obj.log_name and info.display_name else obj.display_name
-        new = (display_name, info.cls, info.is_playable, info.is_known)
-        if new != (obj.display_name, obj.cls, obj.is_playable, obj.is_known):
-            obj.display_name, obj.cls, obj.is_playable, obj.is_known = new
-            obj.save(update_fields=["display_name", "cls", "is_playable", "is_known"])
+        new = (display_name, info.cls, info.propulsion or "", info.is_playable, info.is_known)
+        if new != (obj.display_name, obj.cls, obj.propulsion, obj.is_playable, obj.is_known):
+            obj.display_name, obj.cls, obj.propulsion, obj.is_playable, obj.is_known = new
+            obj.save(update_fields=["display_name", "cls", "propulsion", "is_playable", "is_known"])
     return existing
 
 
@@ -279,6 +288,10 @@ _SORTIE_FIELDS = [
     "friendly_hits",
     "friendly_damage",
     "resupplied",
+    "taxi_accident",
+    "strafed_on_ground",
+    "combat_role",
+    "time_on_target_s",
     "ammo",
     "damage_breakdown",
     "timeline",
@@ -365,6 +378,10 @@ def _fill_sortie(
     row.friendly_hits = s.friendly_hits
     row.friendly_damage = s.friendly_damage
     row.resupplied = s.resupplied
+    row.taxi_accident = s.taxi_accident
+    row.strafed_on_ground = s.strafed_on_ground
+    row.combat_role = s.combat_role
+    row.time_on_target_s = s.time_on_target_s
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
 

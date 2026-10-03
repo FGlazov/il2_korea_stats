@@ -66,8 +66,10 @@ class Pipeline:
     resolve_start: Callable[[str, ZoneInfo, datetime | None], ResolvedStart]
 
 
-def default_pipeline(cfg: Config) -> Pipeline:
-    """The real steps. The catalog is loaded on first use, once per process (TD-11)."""
+def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
+    """The real steps. The catalog is loaded on first use, once per process (TD-11).
+
+    `defer_ratings`: `save` doesn't replay the Elo ratings; the caller does it once afterwards (`reprocess`)."""
     catalog: list[Catalog] = []
 
     def get_catalog() -> Catalog:
@@ -79,7 +81,7 @@ def default_pipeline(cfg: Config) -> Pipeline:
         return replay_run(events, get_catalog(), cfg.replay)
 
     def save(result: MissionResult, meta: MissionMeta) -> Mission:
-        return save_mission(result, meta, get_catalog())
+        return save_mission(result, meta, get_catalog(), None if defer_ratings else cfg.ratings)
 
     def group(paths: Iterable[Path], txt_as: MissionLogKind) -> list[MissionLog]:
         return group_mission_files(paths, txt_as=txt_as)
