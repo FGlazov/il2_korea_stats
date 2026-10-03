@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from PIL import Image
-from pytest_django.fixtures import Settings
+from pytest_django.fixtures import DjangoCaptureOnCommitCallbacks, Settings
 
 from il2ks.core.catalog.loader import load_default_catalog
 from il2ks.db.models import (
@@ -281,12 +281,19 @@ def test_bad_logo_uploads_are_refused_and_change_nothing(
     assert current_data_version() == before
 
 
-def test_replacing_the_logo_removes_the_old_file(admin: Client, media_root: Path) -> None:
+def test_replacing_the_logo_removes_the_old_file(
+    admin: Client, media_root: Path, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
+) -> None:
     get_site_settings()
-    admin.post(settings_url(), settings_form(logo_upload=upload(png(colour="red"))))
+    with django_capture_on_commit_callbacks(execute=True):
+        admin.post(settings_url(), settings_form(logo_upload=upload(png(colour="red"))))
     first = SiteSettings.objects.get(pk=1).logo
 
-    admin.post(settings_url(), settings_form(logo_upload=upload(png(colour="blue"))))
+    with django_capture_on_commit_callbacks(execute=False) as callbacks:
+        admin.post(settings_url(), settings_form(logo_upload=upload(png(colour="blue"))))
+    assert (media_root / first).exists()  # nothing is deleted before the new row is committed
+    for callback in callbacks:
+        callback()
     second = SiteSettings.objects.get(pk=1).logo
 
     assert first != second
@@ -306,12 +313,15 @@ def test_saving_without_a_new_upload_keeps_the_logo(admin: Client, media_root: P
     assert (media_root / logo).is_file()
 
 
-def test_removing_the_logo(admin: Client, media_root: Path) -> None:
+def test_removing_the_logo(
+    admin: Client, media_root: Path, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
+) -> None:
     get_site_settings()
     admin.post(settings_url(), settings_form(logo_upload=upload(png())))
     logo = SiteSettings.objects.get(pk=1).logo
 
-    response = admin.post(settings_url(), settings_form(remove_logo="on"))
+    with django_capture_on_commit_callbacks(execute=True):
+        response = admin.post(settings_url(), settings_form(remove_logo="on"))
 
     assert response.status_code == 302
     assert SiteSettings.objects.get(pk=1).logo == ""
