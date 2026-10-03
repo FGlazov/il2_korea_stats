@@ -67,8 +67,6 @@ _.victim_object_id  # core.replay.result.KillResult: kept for a later per-victim
 get_site_settings  # db.site: frontend contract (TD-25), callers arrive with the web foundation; drop this line then
 current_data_version  # db.site: TD-28 ETags, caller arrives with the caching middleware; drop this line then
 bump_data_version  # db.site: TD-28, callers arrive with ingest/admin hooks; drop this line then
-check  # ops.doctor: registry decorator, checks arrive with the ops agents; drop this line then
-run_checks  # ops.doctor: called by `il2ks doctor` once the command exists; drop this line then
-_.detail  # ops.doctor.Finding
-_.fix  # ops.doctor.Finding
-_.WARN  # ops.doctor.Level
+_.is_active  # django User flags, assigned by createadmin so a reset account is a working admin (ops.admin)
+_.is_staff
+_.is_superuser

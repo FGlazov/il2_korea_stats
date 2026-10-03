@@ -33,6 +33,7 @@ AFTER_ARCHIVE_VALUES: tuple[AfterArchive, ...] = ("move", "keep", "delete")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
 CONFIG_FILE = "il2ks.toml"
+DB_FILE = "il2ks.sqlite3"  # `settings.py` names the SQLite file the same way
 DEFAULT_LOG_KEEP_DAYS = 14
 
 
@@ -74,6 +75,14 @@ class IngestConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class BackupConfig:
+    """Backups of the admin state (FR-OPS-6): how many to keep and whether `watch` makes one every day."""
+
+    keep: int = 10
+    daily: bool = True
+
+
+@dataclass(frozen=True, slots=True)
 class Config:
     data_dir: Path
     server_uid: uuid.UUID
@@ -84,11 +93,21 @@ class Config:
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
     ratings: RatingRules = field(default_factory=RatingRules)
+    backup: BackupConfig = field(default_factory=BackupConfig)
     source: Path | None = None  # the TOML file that was read, if any
 
     @property
     def timezone(self) -> ZoneInfo:
         return ZoneInfo(self.timezone_name)
+
+    @property
+    def db_path(self) -> Path:
+        """The SQLite database file (the only user-facing database, TD-04)."""
+        return self.data_dir / DB_FILE
+
+    @property
+    def backup_dir(self) -> Path:
+        return self.data_dir / "backups"
 
     @property
     def archive_dir(self) -> Path:
@@ -183,6 +202,12 @@ def load_config(
         cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
     )
 
+    backup_defaults = BackupConfig()
+    backup = BackupConfig(
+        keep=reader.positive_int("backup", "keep", backup_defaults.keep),
+        daily=reader.bool_("backup", "daily", backup_defaults.daily),
+    )
+
     configured_tz = reader.str_("server", "timezone", "")
     tz_name = configured_tz or detect_os_timezone(env)
     try:
@@ -204,6 +229,7 @@ def load_config(
         ingest=ingest,
         replay=replay,
         ratings=ratings,
+        backup=backup,
         source=file,
     )
 

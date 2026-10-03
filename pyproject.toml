@@ -90,6 +90,7 @@ forbidden_modules = ["django", "il2ks.db", "il2ks.web", "il2ks.ingest", "il2ks.q
 [tool.vulture]
 paths = ["src", "vulture_whitelist.py"]
 min_confidence = 60
+ignore_decorators = ["@check"]  # doctor checks are registered by the decorator and never called by name (ops.doctor)
 exclude = [
     "src/il2ks/db/migrations/",  # Django reads these by convention
     "src/il2ks/db/models.py",  # fields/choices/Meta are the DB schema, read by Django and the ORM

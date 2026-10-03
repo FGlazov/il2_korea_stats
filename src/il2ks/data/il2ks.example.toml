@@ -107,6 +107,18 @@
 # aircraft changes nothing: it was expected).
 #cross_pool_weight = 2.0
 
+# --- Backups (FR-OPS-6) --------------------------------------------------------------------------------------------
+# `il2ks backup` zips what you could not rebuild from the logs: a consistent copy of the database (hidden players,
+# name overrides, branding, admin accounts), this file, the custom/ and media/ folders and the server ID. It goes to
+# <data dir>/backups/. The archived mission logs are NOT included: they are large and are kept forever on their own.
+# A backup is also made automatically before the database is updated for a new il2ks version, and by `il2ks watch`
+# and `il2ks run` once a day. Restore with `il2ks restore <zip>`. Copy the backups to another disk now and then.
+#[backup]
+# How many backups to keep in <data dir>/backups/; older ones are deleted after each new backup.
+#keep = 10
+# true = `il2ks watch` makes a backup when the newest one is more than a day old.
+#daily = true
+
 # --- This game server (TD-15, TD-17) -------------------------------------------------------------------------------
 #[server]
 # The timezone of the machine running DServer, as an IANA name such as "Europe/Berlin" or "Asia/Seoul". DServer

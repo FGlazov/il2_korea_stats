@@ -45,8 +45,8 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     return data, logs, steps
 
 
-def test_the_planned_commands_are_the_ones_fr_ops_1_and_fr_ops_6_list() -> None:
-    assert set(PLANNED) == {"setup", "web", "run", "createadmin", "doctor", "backup", "restore"}
+def test_the_planned_commands_are_the_ones_the_serving_area_still_owes() -> None:
+    assert set(PLANNED) == {"web", "run"}
 
 
 @pytest.mark.parametrize("command", sorted(PLANNED))
@@ -59,7 +59,7 @@ def test_planned_commands_are_stubs(command: str, capsys: pytest.CaptureFixture[
 
 def test_stub_help_names_the_requirement(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as info:
-        main(["createadmin", "--help"])
+        main(["web", "--help"])
     assert info.value.code == 0
     assert "planned: FR-OPS-1" in capsys.readouterr().out
 
