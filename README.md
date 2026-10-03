@@ -34,6 +34,19 @@ To publish a release: bump `__version__` in `src/il2ks/__init__.py`, tag `v<vers
 
 Postgres is only used on the dev side: `docker compose -f docker/compose.dev.yaml up -d`, then `IL2KS_TEST_DB=postgres uv run pytest`.
 
+Browser (end-to-end) tests drive the real site in Chromium with Playwright. They are opt-in, so `uv run pytest` never needs a browser:
+
+```
+uv run playwright install chromium                  # once; on a fresh Linux machine/CI: install --with-deps chromium
+IL2KS_TEST_E2E=1 uv run pytest -m e2e               # headless; add --headed --slowmo 300 to watch
+IL2KS_TEST_E2E=1 uv run pytest -m e2e --tracing=retain-on-failure --screenshot=only-on-failure   # what CI does
+uv run playwright show-trace test-results/<test>/trace.zip
+```
+
+PowerShell: `$env:IL2KS_TEST_E2E = "1"` first. The tests start `il2ks web --dev` on a free port with a throw-away data dir filled with
+made-up players and missions (`tests/e2e/world.py`), so they never touch your own data. They find things by role, label and visible
+text, so keep the words on the pages stable or update the tests with them.
+
 ## License
 
 MIT, see [LICENSE](LICENSE) and [NOTICE](NOTICE).
