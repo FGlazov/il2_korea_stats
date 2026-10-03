@@ -333,9 +333,27 @@ class Replay:
         obj = self._objects.get(object_id)
         if obj is None:
             return
+        sortie = obj.sortie
+        if obj.destroyed_tick is not None and sortie is not None and sortie.vehicle is obj and sortie.is_open:
+            self._undo_destruction(obj)  # a destroyed aircraft can't take off: that AType 3 was a reset
         self._on_wheels(tick, object_id, pos, airborne=True)
         obj.takeoffs.append((tick, pos))
         obj.flight_changes.append((tick, True))
+
+    def _undo_destruction(self, obj: TrackedObject) -> None:
+        """The game logs an AType 3 (`AID:-1`, preceded by 1.0 damage and an AType 12 re-declaration with a non-`-1`
+        `MID`) for some player aircraft on the parking spot, then lets them take off minutes later (27 aircraft in the
+        210 sample missions). A takeoff after the destruction proves it wasn't one: forget the destruction and the
+        environment damage logged on the same tick, so the sortie flies on as if nothing happened."""
+        tick = obj.destroyed_tick
+        if obj in self._facts.destroyed:
+            self._facts.destroyed.remove(obj)
+        obj.damage_log = [r for r in obj.damage_log if not (r.attacker is None and r.tick == tick)]
+        obj.destroyed_tick = None
+        obj.destroyed_by = None
+        obj.destroyed_pos = None
+        obj.destroyed_airborne = False
+        obj.ground_contact_after_destroyed_tick = None
 
     def _on_landing(self, tick: int, object_id: ObjectId, pos: Pos) -> None:
         obj = self._objects.get(object_id)

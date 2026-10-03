@@ -199,3 +199,42 @@ def test_gunner_killed_by_the_environment_gets_a_died_entry() -> None:
     assert _death_record(gunner) == (True, "dead", "self")
     (died,) = [e for e in gunner.timeline if e.kind == "died"]
     assert died.counterpart is None
+
+
+# --- a gunner sortie always closes (doc 12: AType 4, or AType 16 for the bot when there is no AType 4) --------------
+
+
+def test_gunner_without_a_sortie_end_closes_on_the_bot_removal() -> None:
+    """19 of 104 sample gunner sorties have no AType 4: the gunner bot's AType 16 ends the sortie like a pilot's."""
+    sc = _crew()
+    sc.remove_bot(50, 501, FAR)
+    sc.land(100, 200)
+    sc.end(110, 200, 201)
+    gunner = by_acct(sc.result(), 3)
+    assert (gunner.end_tick, gunner.pilot_fate, gunner.disconnected) == (50 * 50, "disconnected", True)
+    assert gunner.outcome == "unknown"  # left an aircraft that was still flying; never `in_flight` once closed
+    assert gunner.ammo_left is None
+
+
+def test_gunner_leaving_a_flying_aircraft_is_unknown_not_in_flight() -> None:
+    """AType 4 for the gunner while the pilot flies on (18 sample gunners): the sortie is closed, so not `in_flight`."""
+    sc = _crew()
+    sc.end(50, 500, 501)
+    sc.land(100, 200)
+    sc.end(110, 200, 201)
+    pilot, gunner = by_acct(sc.result(), 2), by_acct(sc.result(), 3)
+    assert (gunner.outcome, gunner.pilot_fate, gunner.is_death, gunner.is_plane_lost) == (
+        "unknown",
+        "in_aircraft",
+        False,
+        False,
+    )
+    assert pilot.outcome == "landed"
+
+
+def test_gunner_sortie_open_at_the_mission_end_is_closed_by_it() -> None:
+    sc = _crew()
+    sc.mission_end(100)
+    gunner = by_acct(sc.result(), 3)
+    assert (gunner.outcome, gunner.pilot_fate) == ("mission_ended", "mission_ended")
+    assert gunner.end_tick >= 100 * 50

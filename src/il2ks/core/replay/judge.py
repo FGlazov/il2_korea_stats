@@ -80,7 +80,6 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         loss = loss if loss is not None and loss.tick < mission_end else None
         died = died if died is not None and died < mission_end else None
         forced = loss is None and died is None
-    off = took_off(sortie, end)
     bailout, exit_known = bailout_v2(sortie, loss, died, rules)
     shot_down_directly = loss is not None and loss.by is not None and not is_self_attack(loss.by, airframe, sortie)
 
@@ -112,6 +111,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
 
     cutoff = loss.tick if loss is not None else end
     active_end = min(end, cutoff)
+    off = took_off(sortie, active_end)  # same bound as the takeoffs and flight time that `resolve` reports
     lost = loss is not None or died is not None or bailout or disc_death
     attacker_cause = lost and (shot_down_directly or attacker_involved(sortie, cutoff))
     loss_cause: LossCause = "none" if not lost else ("attacker" if attacker_cause else "self")
@@ -132,9 +132,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     pilot_status: PilotStatus = "dead" if dead else "captured" if captured else "wounded" if bot_damage else "healthy"
     aircraft_status: AircraftStatus = "destroyed" if loss is not None else "damaged" if damage_taken > 0 else "unharmed"
 
-    outcome = _outcome(
-        sortie, facts, end, lost=lost, attacker_cause=attacker_cause, off=off, forced=forced, fate=fate, final=final
-    )
+    outcome = _outcome(sortie, facts, end, lost=lost, attacker_cause=attacker_cause, off=off, forced=forced)
     return Verdict(
         end_tick=end,
         loss=loss,
@@ -174,8 +172,6 @@ def _outcome(
     attacker_cause: bool,
     off: bool,
     forced: bool,
-    fate: PilotFate,
-    final: bool,
 ) -> Outcome:
     """Derived from il2_stats (MIT), see NOTICE: Sortie.sortie_status, extended for the Korea fates."""
     airframe = sortie.airframe
@@ -187,11 +183,10 @@ def _outcome(
         return "mission_ended"
     if sortie.is_open:
         return "in_flight" if airframe.airborne else "landed"
-    airborne_at_end = sortie.airborne_at_end
-    if fate == "disconnected":
-        return "unknown" if airborne_at_end else _landed_or_ditched(sortie, facts, end)
-    if airborne_at_end:
-        return "in_flight"
+    if sortie.airborne_at_end:
+        # A closed sortie never stays `in_flight`: a disconnected pilot, or a gunner who left (AType 4, parent still
+        # flying) with the aircraft in the air. What became of them afterwards is not in this sortie's log.
+        return "unknown"
     return _landed_or_ditched(sortie, facts, end)
 
 
