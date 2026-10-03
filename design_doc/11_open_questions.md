@@ -151,6 +151,11 @@ Boards: air score (the default), ground score, ground score per hour on target, 
 Minimums to appear: 5 sorties; 5 rated Elo games (with 10, only 5 prop and 26 jet pilots qualified on the samples); 5 attack sorties and
 10 min on target for the per-hour board (its rates are high-variance, dominated by statics).
 
+**OQ-65 Aircraft stats rules** (FR-WEB-8; default applied)
+Matchups count PvP pilot kill credits only (like Elo and the killboard). Top pilots per type: at least 5 sorties in the type, top 10 by
+air kills (then fewer deaths). The list shows only types players flew (AI-only types, which used to show hits to destroy, are gone).
+Default sort: most sorties. Survival = sorties without a death; sorties without a role count as air superiority in the attack share.
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

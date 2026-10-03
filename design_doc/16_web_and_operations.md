@@ -90,6 +90,11 @@ How the website, the admin and the operations commands are built (iteration 1, p
   read-time F-expression. Boards: `/leaderboards/<air|ground|ground-hour|kills|elo-prop|elo-jet>/` with `?tour=`, `?aircraft=` (per-type
   rows), sort and paging; hidden players never appear; ≤ 6 queries. Profile block `players/detail_scores.html` (all-time). Not built:
   prop/jet and fighter/attack splits for the score boards (need more level-2 rows), per-type Elo. Values: OQ-62..64.
+- **Aircraft stats** (FR-WEB-8, 2026-10-03, branch to merge): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight
+  time, kills, deaths, losses, K/D, K/L, survival, attack share, hits to destroy; sortable); `/aircraft/<pk>/` adds matchups vs each
+  enemy type, top 10 pilots (≥ 5 sorties in the type, hidden players left out), hits to destroy per ammo, loadouts. Level-2
+  `AircraftStats` / `AircraftMatchup` / `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). All-time only.
+  Rules: OQ-65.
 - **Tours on pages** (2026-10-03): `?tour=<Tour.pk>` on the profile (totals, tiles, ratios, ground kills, hall of shame, per-aircraft
   table and recent sorties follow it), the player sortie list and the mission list. No value or an unknown one means all time (200, so
   stale shared links keep working). Views use `queries.tours.tour_choice_from(request.GET)` (one query); templates use

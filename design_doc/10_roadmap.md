@@ -118,7 +118,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
   - 🔧 (done, merging) Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early
     bailouts. Pages for the air-to-air Elo (prop/jet pools) and ground score per hour on target (FR-WEB-19/20); their inputs are stored
     since iteration 1.
-  - ⏳ Stats by aircraft (FR-WEB-8). Split rankings by aircraft class.
+  - 🔧 (done, merging) Stats by aircraft (FR-WEB-8). ⏳ Split rankings by prop/jet and fighter/attack (score boards have a per-type filter only).
   - 🔧 (done, merging) Killboards (FR-WEB-9). Ironman / virtual-life stats. 🔧 (WIP: config only) Rams, parachute deaths, and other rule toggles (OQ-61).
   - Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
 - 🔧 (done, merging) Light charts (FR-WEB-16).
