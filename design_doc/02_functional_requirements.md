@@ -160,6 +160,43 @@ people ask). The main use case is **a player reviewing their sortie**.
 | FR-WEB-24 | **Whole-row links**: in tables, clicking most of a row opens the row's main target (player, mission or sortie), not only the name link; other links in the row keep working. | it1.x | `[DECIDED]` (maintainer, 2026-10-03) |
 | FR-WEB-16 | **Light charts** where they help (for example kills per tour, sorties over time). The site is mostly tables. | later | `[PROPOSED]` |
 
+### Maintainer decisions, 2026-10-03 (answers to OQ-38..66)
+`[DECIDED]` by the maintainer unless noted. Work items they create are on the roadmap ("Decisions to apply").
+- **Ratios (OQ-38):** K/D, K/L and kills per sortie/hour count **PvP air kills** specifically. A separate ground K/D may be shown, but it's
+  not an important metric for ground pounders.
+- **Hidden players (OQ-40):** the anonymised "Hidden player" row on mission pages and online now stays (FR-ADM-3 reads that way).
+- **Local times (OQ-42..44):** use **locale-native** date/time formats (the browser's `Intl` default for the page language), not ISO-like.
+  The zone is named once in the footer only; don't repeat it in headers. Date-only values use the viewer's local date. With tours,
+  show when the **next tour starts** (on the tour page, else in the footer).
+- **Tours on pages (OQ-45..48):** default to the **current tour**, with an **all-time** toggle. Never recompute subsets of tours; later
+  maybe yearly or quarterly aggregates as extra level-2 rows. With a tour picked, the profile's sortie list shows the player's latest
+  sorties **in that tour** (reframe the heading, e.g. "Sorties in October 2026"). A tour without sorties shows a notice (a flavor-text
+  spot). The aircraft filter stays all-time.
+- **Aircraft (OQ-49, 50, 65):** a top-level **Aircraft** page with a table of all aircraft; totals include hidden players and missions.
+  Rank a type's top pilots by **skill (Elo or ground proficiency)**, not by volume ("not a grind"). **Cross-aircraft / per-type Elo** is
+  wanted.
+- **PvE (OQ-51):** the four kill rows and eight loss classes as built.
+- **Ammo damage (OQ-52):** **hide the per-ammo damage** for now: follow-up damage (structural damage, then a hard turn breaks the wing) is
+  hard to attribute. Keep hits. Benched for a post-release analysis.
+- **Flavor text (OQ-53, 47, 66):** the five spots as built; keep looking for more (empty tours, stat highlights).
+- **Sortie map (OQ-54, 55):** **benched until after the release.** The maintainer wants an interactive map and will first ask the dev
+  community what's available; no half-finished map in the release. The built grid version stays on its branch, unmerged.
+- **Killboard (OQ-56):** a config toggle to count **assists**, **off by default**.
+- **Streaks (OQ-57, 58):** the rule and the lists as built, plus a per-player tab with **the player's own best streaks**.
+- **Charts (OQ-59):** start with the charts as built; revisit after the release (roadmap reminder).
+- **Icons (OQ-60):** the placeholder picks are fine; doc 15's designer brief must list **every** icon file.
+- **Rams (OQ-61):** test the ram signal; make sure by testing that the results are plausible before it's switched on anywhere.
+- **Scores (OQ-62, 63):** air and ground scores **stay separate**, never one combined score (old il2_stats servers rewarded ground
+  pounding far more). Point values as built. Penalties: **percentages of the sortie's score by outcome**, configurable, starting at
+  **death 80%** and **capture 50%**; friendly fire and suspected early bailout stay **flat** penalties (defaults as built). OQ-67 has the
+  open details.
+- **Leaderboards (OQ-64):** highlight **Elo (jet and prop)** and **ground proficiency** most: those go on the **home page**; the other
+  boards stay on the leaderboards page.
+- **Stat highlights (OQ-66):** as built; never highlight negative stats (there's no good framing). Flavor-text potential.
+- **Windows service account (OQ-41):** `NT SERVICE\il2ks` virtual account; revisit if it causes trouble.
+- **Heightmaps (OQ-39):** the maintainer will try to get them; until then keep only the bailout logic that works without terrain height
+  (rule v3 as built).
+
 ### Score and ratings (later)
 Recorded by the maintainer on 2026-10-03. The score itself (FR-WEB-7, FR-ADM-7) is designed later, but its **inputs are computed at ingest
 from iteration 1** (combat role, time on target, Elo), so pages can be added without a reprocess. The exact rules are in

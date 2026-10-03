@@ -74,6 +74,19 @@ the release gate.
   variants. Not on every section.
 - 🔧 (done, merging) OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE (the sortie pages already use some).
 
+## Decisions to apply (maintainer answers, 2026-10-03; doc 02 "Maintainer decisions")
+Do these while merging the finished branches, before the release where they touch release items:
+- ⏳ Local time: locale-native formats; zone only in the footer; show when the next tour starts.
+- ⏳ Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
+- ⏳ Ammo: hide the per-ammo damage columns (keep hits).
+- ⏳ Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab.
+- ⏳ Score: percentage penalties by outcome (death 80%, capture 50%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
+- ⏳ Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
+- ⏳ Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
+- ⏳ Doc 15: list every icon file in the designer brief.
+- ⏳ Rams: test the ram signal on the samples and confirm the results are plausible before enabling it (OQ-61 answer).
+- ⏳ Windows installer: virtual service account `NT SERVICE\il2ks` (OQ-41).
+
 ## Before the public release (maintainer, 2026-10-03)
 - 🔧 **Playwright end-to-end tests on the key flows** (done, 30 tests, merging), moved up from stretch: (1) a player opens their latest sortie and follows the link to
   an enemy's sortie (one they shot down, or one that shot them down); (2) someone browses several missions and opens a couple of sorties.
@@ -100,6 +113,13 @@ overrides in about 3 weeks, for one developer with AI help. Still tight, but tra
 The order that protects the date: (1) parser + replay + ingest with golden tests (✅), (2) the core pages (✅), (3) the installer,
 (4) object-name overrides (✅). Translations and the ammo breakdown follow when ready.
 
+## After the release: reminders
+- Revisit the charts (which charts help; maintainer, OQ-59).
+- Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
+- Per-ammo damage attribution analysis (follow-up damage is hard to attribute; OQ-52).
+- Yearly or quarterly aggregates next to tours (OQ-45).
+- Bailout height arm once heightmaps arrive (OQ-39).
+
 ## Right after the release: visual assets
 **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
 image and illustrations with finished ones. Moved here (maintainer, 2026-10-03): the maintainer will work with a designer on a mostly
@@ -122,7 +142,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
   - 🔧 (done, merging) Killboards (FR-WEB-9). Ironman / virtual-life stats. 🔧 (WIP: config only) Rams, parachute deaths, and other rule toggles (OQ-61).
   - Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
 - 🔧 (done, merging) Light charts (FR-WEB-16).
-- 🔧 (done, merging) Sortie map of key events (FR-WEB-12; positions are stored from v1), on a plain grid until map images exist (doc 15).
+- Sortie map: **benched until after the release** (maintainer, 2026-10-03, doc 02 decisions); the grid version stays on its branch, unmerged.
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
