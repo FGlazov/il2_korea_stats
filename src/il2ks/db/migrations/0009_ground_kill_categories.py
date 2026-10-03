@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0006_site_settings_data_version"),
+        ("il2ks_db", "0008_coalition_emblems"),
     ]
 
     operations = [
