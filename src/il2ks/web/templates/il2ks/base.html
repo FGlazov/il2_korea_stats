@@ -11,7 +11,7 @@
   data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
   static/il2ks/site.css (tokens first).
 {% endcomment %}<!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+{% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

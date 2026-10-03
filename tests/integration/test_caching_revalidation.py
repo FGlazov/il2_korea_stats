@@ -52,3 +52,11 @@ def test_vary_includes_cookie_only_when_a_language_cookie_is_sent(client: Client
     assert "Cookie" not in vary_of(plain)
     assert "Cookie" in vary_of(with_cookie)
     assert plain["ETag"] == with_cookie["ETag"]  # same language, same page
+
+
+def test_the_html_lang_attribute_follows_the_active_language(client: Client, settings: Settings) -> None:
+    """The i18n context processor is not enabled, so the template asks for the language itself."""
+    settings.LANGUAGES = [("en", "English"), ("de", "German")]
+    client.cookies[settings.LANGUAGE_COOKIE_NAME] = "de"
+
+    assert b'<html lang="de">' in client.get("/").content
