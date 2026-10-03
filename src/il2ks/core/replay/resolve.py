@@ -2,6 +2,7 @@
 
 from collections import Counter
 
+from il2ks.core.replay.ammo import EMPTY_SORTIE_AMMO, AmmoAnalysis, analyse, merge_ammo_hits
 from il2ks.core.replay.attack import GroundTargets, combat_role, time_on_target_s
 from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
@@ -46,8 +47,10 @@ def _build_sortie(
     friendly: FriendlyFire,
     rules: ReplayRules,
     targets: GroundTargets,
+    ammo: AmmoAnalysis,
 ) -> SortieResult:
     role = combat_role(sortie)
+    sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
     ground = [k for k in credited if k.victim_kind == "ground"]
@@ -102,7 +105,9 @@ def _build_sortie(
         assists=sum(1 for k in mine if k.credit == "assist"),
         ammo_loaded=sortie.ammo_loaded,
         ammo_left=sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None,
-        ammo_hits=breakdown[1],
+        ammo_hits=merge_ammo_hits(breakdown[1], sortie_ammo),
+        ordnance=sortie_ammo.ordnance,
+        ammo_unattributed=sortie_ammo.unattributed,
         damage=breakdown[0],
         timeline=timeline(sortie, verdict, kills),
         friendly_kills=friendly.kills,
@@ -126,8 +131,9 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     details = breakdowns(facts, verdicts)
     friendly = friendly_fire(facts, verdicts, kills)
     targets = GroundTargets(facts, rules.tot_target_radius_m)
+    ammo = analyse(facts, verdicts, kills, rules)
     sorties = tuple(
-        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets)
+        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets, ammo)
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )
     seen = frozenset(t for t in facts.types_seen if not is_bot_type(t))
@@ -138,4 +144,5 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
         kills=tuple(kills),
         object_types_seen=seen,
         unknown_object_types=unknown,
+        single_attacker_kills=ammo.single_attacker_kills,
     )

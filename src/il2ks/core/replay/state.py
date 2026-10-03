@@ -45,6 +45,7 @@ from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.model import (
     GROUND_CLASSES,
     DamageRecord,
+    Detonation,
     HitRecord,
     MissionFacts,
     SortieState,
@@ -53,6 +54,7 @@ from il2ks.core.replay.model import (
     is_plausible_pos,
     is_zero_pos,
     normalize_type,
+    owner_sortie,
 )
 from il2ks.core.replay.resolve import resolve_mission
 from il2ks.core.replay.result import AmmoCounts, MissionResult, SortieResult, SpawnType
@@ -78,7 +80,7 @@ class Replay:
         self._rules = rules or ReplayRules()
         self._info_cache: dict[str, ObjectInfo] = {}
         self._objects: dict[ObjectId, TrackedObject] = {}
-        self._facts = MissionFacts()
+        self._facts = MissionFacts(catalog=catalog)
         self._sortie_by_bot: dict[ObjectId, SortieState] = {}
         self._sortie_by_vehicle: dict[ObjectId, SortieState] = {}
         self._sortie_by_account: dict[AccountUuid, SortieState] = {}
@@ -153,6 +155,9 @@ class Replay:
                 obj = self._objects.get(event.object_id)
                 if obj is not None:
                     obj.update_pos(event.pos)
+                    obj.store_releases.append(
+                        (event.tick, "store" if isinstance(event, StoreReleaseEvent) else "rocket")
+                    )
                     if not is_zero_pos(event.pos):
                         obj.releases.append((event.tick, event.pos))  # time on target (attack.py)
             case _:
@@ -297,6 +302,7 @@ class Replay:
             ammo_loaded=AmmoCounts(event.bullets, event.shells, event.bombs, event.rockets),
             vehicle=vehicle,
             bot=bot,
+            loadout=self._catalog.loadout(aircraft_type, event.payload_id) if role == "pilot" else None,
         )
         if spawn_type == "air" and role == "pilot":
             vehicle.flight_changes.append((event.tick, True))
@@ -401,12 +407,32 @@ class Replay:
     # --- combat -----------------------------------------------------------------------------------------------------
 
     def _on_hit(self, event: HitEvent) -> None:
-        if event.ammo.lower() == "explosion":  # never counted as a hit (TD-08, FR-WEB-18)
+        if (
+            event.ammo.lower() == "explosion"
+        ):  # never counted as a hit (TD-08); kept per player aircraft to label ordnance
+            self._note_explosion(event)
             return
         target = self._get(event.target_id)
         if target is None:
             return
-        target.hit_log.append(HitRecord(event.tick, self._get(event.attacker_id), event.ammo))
+        attacker = self._get(event.attacker_id)
+        record = HitRecord(event.tick, attacker, event.ammo, target)
+        target.hit_log.append(record)
+        if attacker is not None and owner_sortie(attacker) is not None:
+            attacker.given_hits.append(record)
+
+    def _note_explosion(self, event: HitEvent) -> None:
+        """Collapse a player aircraft's explosion lines to detonations (FR-WEB-18). Others' are dropped (97% of hit
+        lines, and only player ordnance is labelled). Undeclared IDs are skipped: no placeholder objects for them."""
+        attacker = self._objects.get(event.attacker_id)
+        target = self._objects.get(event.target_id)
+        if attacker is None or target is None or owner_sortie(attacker) is None:
+            return
+        last = attacker.detonations[-1] if attacker.detonations else None
+        if last is not None and last.tick == event.tick:
+            last.targets.setdefault(target.object_id, target)
+        else:
+            attacker.detonations.append(Detonation(event.tick, {target.object_id: target}))
 
     def _on_damage(self, event: DamageEvent) -> None:
         if event.damage <= 0:  # il2_stats ignored zero damage too (log bug)

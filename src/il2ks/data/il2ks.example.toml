@@ -104,6 +104,14 @@
 #tot_lead_in_s = 60.0
 # ... and releases more than this many seconds apart are separate attacks (the time between them doesn't count).
 #tot_pass_gap_s = 300.0
+# Ammo breakdown (FR-WEB-18): a damage line is attributed to the ammo of the attacker's hit on that target that is
+# closest in time, if one is within this many seconds (either side). Otherwise the damage stays "unattributed".
+#ammo_window_s = 1.0
+# Bombs and rockets are logged as "explosion" hits. An explosion is named after a bomb, rocket or shell hit line of the
+# same aircraft within this many seconds, else the only ordnance in its loadout, else ...
+#ordnance_hit_window_s = 1.0
+# ... the ordnance released at most this many seconds before it.
+#ordnance_release_window_s = 60.0
 
 # --- Air-to-air ratings (OQ-28, FR-WEB-19) --------------------------------------------------------------------------
 # An Elo rating per player and aircraft type (propeller or jet), earned in air-to-air kills between air superiority

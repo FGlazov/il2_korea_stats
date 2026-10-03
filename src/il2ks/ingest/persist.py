@@ -5,8 +5,10 @@ Order inside `save_mission` (the caller holds the transaction):
 2. register game objects and countries, upsert players
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
-5. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`)
-6. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
+5. rewrite the mission's `MissionAircraftAmmo` rows (gun hits per destroyed aircraft type, FR-WEB-18)
+6. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`) and for the
+   aircraft types whose ammo rows changed (`aggregates.recompute_aircraft_ammo`)
+7. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
 """
 
 import logging
@@ -26,26 +28,31 @@ from il2ks.core.replay.result import (
     DamageExchange,
     KillResult,
     MissionResult,
+    OrdnanceUse,
+    SingleAttackerKill,
     SortieResult,
     TimelineEntry,
 )
 from il2ks.db.models import (
+    TOTAL_AMMO,
     Country,
     GameObject,
     Kill,
     Mission,
+    MissionAircraftAmmo,
     Player,
     PlayerMission,
     PlayerSortie,
 )
 from il2ks.db.site import bump_data_version
-from il2ks.ingest.aggregates import recompute_players
+from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
 
 log = logging.getLogger(__name__)
 
 PAYLOAD_NAME_MAX = 128  # PlayerSortie.payload_name max_length
+DAMAGE_DIGITS = 4  # damage in the ammo JSON is a fraction of an object: 4 digits keep the row small
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,8 +91,10 @@ def save_mission(
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
+    ammo_aircraft_ids = _replace_aircraft_ammo(mission, result.single_attacker_kills, objects)
 
     recompute_players(old_player_ids | {p.pk for p in players.values()})
+    recompute_aircraft_ammo(ammo_aircraft_ids)
     if ratings is not None:
         recompute_ratings(ratings)
     bump_data_version()  # TD-28: same transaction as the save
@@ -139,6 +148,7 @@ def register_countries(countries: dict[int, int], catalog: Catalog) -> None:
 def _object_types(result: MissionResult) -> set[str]:
     types = set(result.object_types_seen) | set(result.unknown_object_types)
     types.update(s.aircraft_type for s in result.sorties)
+    types.update(k.victim_type for k in result.single_attacker_kills)
     for kill in result.kills:
         types.add(kill.victim_type)
         if kill.killer_type is not None:
@@ -425,12 +435,58 @@ def _ammo_used(s: SortieResult) -> dict[str, int | None]:
     return used
 
 
+def _ordnance_json(o: OrdnanceUse) -> dict[str, object]:
+    return {
+        "ordnance": o.ordnance,
+        "released": o.released,
+        "detonations": o.detonations,
+        "targets_damaged": o.targets_damaged,
+        "kills": o.kills,
+        "damage_dealt": round(o.damage_dealt, DAMAGE_DIGITS),
+        "damage_taken": round(o.damage_taken, DAMAGE_DIGITS),
+        "direct_hits": o.direct_hits,
+    }
+
+
 def _ammo_json(s: SortieResult) -> dict[str, object]:
+    """`PlayerSortie.ammo`, the ammo breakdown of one sortie (FR-WEB-18, doc 13). Shape (keys are only ever added, so
+    rows written by an older version still read, until the next reprocess):
+
+        {"loaded": {"bullets", "shells", "bombs", "rockets"},          # AType 10
+         "left": {... same} | null,                                    # AType 4; null = no AType 4
+         "used": {... same, each int | null},                          # loaded - left; null = unknown (resupplied...)
+         "hits": [{"ammo": "BULLET_12-7_USA_API",                      # every non-explosion hit line, per ammo name
+                   "hits_given": int, "hits_received": int,            #   (named bomb/rocket/napalm lines included)
+                   "damage_dealt": float, "damage_taken": float}],     # damage attributed to this ammo (guns only)
+         "unattributed": {"dealt": float, "taken": float},             # damage with no hit within `ammo_window_s`
+         "ordnance": [{"ordnance": "M65",                              # catalog key | "bombs_mixed" | "rockets_mixed"
+                       "released": int,                                #   | "unattributed" (unlabelled explosions)
+                       "detonations": int,                             # explosion ticks, never counted as hits
+                       "targets_damaged": int,                         # detonation x target that took damage
+                       "kills": int, "direct_hits": int,               # direct_hits = named BOMB_/RKT_ lines given
+                       "damage_dealt": float, "damage_taken": float}]} # attributed to this ordnance
+
+    Damage dealt (or taken) in the sortie = the sum of `hits[].damage_*`, `ordnance[].damage_*` and `unattributed`.
+    Only pilot sorties carry `ordnance`. Damage fractions are rounded to 4 digits to keep the row small."""
     return {
         "loaded": _counts_json(s.ammo_loaded),
         "left": None if s.ammo_left is None else _counts_json(s.ammo_left),
         "used": _ammo_used(s),
-        "hits": [{"ammo": h.ammo, "hits_given": h.hits_given, "hits_received": h.hits_received} for h in s.ammo_hits],
+        "hits": [
+            {
+                "ammo": h.ammo,
+                "hits_given": h.hits_given,
+                "hits_received": h.hits_received,
+                "damage_dealt": round(h.damage_dealt, DAMAGE_DIGITS),
+                "damage_taken": round(h.damage_taken, DAMAGE_DIGITS),
+            }
+            for h in s.ammo_hits
+        ],
+        "unattributed": {
+            "dealt": round(s.ammo_unattributed.dealt, DAMAGE_DIGITS),
+            "taken": round(s.ammo_unattributed.taken, DAMAGE_DIGITS),
+        },
+        "ordnance": [_ordnance_json(o) for o in s.ordnance],
     }
 
 
@@ -523,3 +579,33 @@ def _replace_kills(
     Kill.objects.filter(pk__in=[k.pk for k in existing.values()]).delete()
     Kill.objects.bulk_update(changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
     Kill.objects.bulk_create(new)
+
+
+# --- hits to destroy (FR-WEB-18) ---
+
+
+def aircraft_ammo_totals(kills: Iterable[SingleAttackerKill]) -> dict[tuple[str, str], tuple[int, int]]:
+    """`(victim type, ammo) -> (kills, hits)` for one mission. A kill counts for an ammo if that ammo hit at least once;
+    `TOTAL_AMMO` sums all gun ammo and counts every kill."""
+    totals: dict[tuple[str, str], tuple[int, int]] = {}
+    for kill in kills:
+        rows = [(TOTAL_AMMO, sum(n for _, n in kill.hits)), *kill.hits]
+        for ammo, hits in rows:
+            done, total = totals.get((kill.victim_type, ammo), (0, 0))
+            totals[(kill.victim_type, ammo)] = (done + 1, total + hits)
+    return totals
+
+
+def _replace_aircraft_ammo(
+    mission: Mission, kills: Iterable[SingleAttackerKill], objects: dict[str, GameObject]
+) -> set[int]:
+    """Rewrite the mission's `MissionAircraftAmmo` rows. Returns the aircraft ids whose level-2 rows may change: the
+    types the mission had before and the ones it has now."""
+    totals = aircraft_ammo_totals(kills)
+    old_ids = set(MissionAircraftAmmo.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
+    MissionAircraftAmmo.objects.filter(mission=mission).delete()
+    MissionAircraftAmmo.objects.bulk_create(
+        MissionAircraftAmmo(mission=mission, aircraft=objects[victim], ammo=ammo, kills=n, hits=hits)
+        for (victim, ammo), (n, hits) in sorted(totals.items())
+    )
+    return old_ids | {objects[victim].pk for victim, _ in totals}

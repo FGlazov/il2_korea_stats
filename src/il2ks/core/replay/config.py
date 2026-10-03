@@ -44,3 +44,11 @@ class ReplayRules:
     tot_target_radius_m: float = 3000.0
     tot_lead_in_s: float = 60.0
     tot_pass_gap_s: float = 300.0
+    # Ammo attribution (FR-WEB-18, doc 02): a damage line takes the ammo of the attacker's hit on that target closest in
+    # time, if one lies within this many seconds (either side; hits are logged a tick or two before the damage line).
+    # Otherwise the damage stays "unattributed". Measured on the 210 samples (doc 13).
+    ammo_window_s: float = 1.0
+    # Labelling an explosion (doc 02 rule): a named ordnance or shell hit line of the same attacker within this many
+    # seconds names it; else the lone ordnance of the loadout; else a release within `ordnance_release_window_s`.
+    ordnance_hit_window_s: float = 1.0
+    ordnance_release_window_s: float = 60.0

@@ -154,3 +154,12 @@ _.is_staff
 _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)
+
+# --- ammo breakdown reads for the sortie and aircraft pages (FR-WEB-18): the page agents call these ---------------
+_.other_hit_lines  # queries.ammo.SortieAmmo
+_.has_ordnance  # queries.ammo.SortieAmmo
+_.average_hits  # queries.ammo.AmmoToDestroy: hits / kills, divided at read time (TD-22)
+_.by_ammo  # queries.ammo.AircraftAmmo
+sortie_ammo_by_pk  # queries.ammo
+aircraft_ammo  # queries.ammo
+all_aircraft_ammo  # queries.ammo
