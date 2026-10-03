@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
-from django.test import Client
+from django.test import Client, RequestFactory
 
 from il2ks.web import throttle
 
@@ -77,6 +77,31 @@ def test_a_client_cannot_dodge_the_lockout_by_inventing_a_forwarded_for_header(c
         attempt(client, "wrong", forwarded=f"10.0.0.{i}, 203.0.113.5")
 
     assert attempt(client, "wrong", forwarded="10.9.9.9, 203.0.113.5").status_code == 429
+
+
+def test_forwarded_for_is_ignored_unless_the_connection_is_from_loopback(client: Client) -> None:
+    """A client that reaches the web server directly must not choose its bucket with its own X-Forwarded-For."""
+    User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
+    direct = {"REMOTE_ADDR": "198.51.100.7"}
+
+    for i in range(throttle.MAX_FAILURES):
+        response = client.post(
+            LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": f"10.0.0.{i}"}, **direct
+        )
+        assert response.status_code == 200
+
+    locked = client.post(
+        LOGIN, {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": "10.1.1.1"}, **direct
+    )
+    assert locked.status_code == 429
+
+
+def test_client_address_uses_forwarded_for_only_from_loopback(rf: RequestFactory) -> None:
+    assert throttle.client_address(rf.get("/", REMOTE_ADDR="::1", HTTP_X_FORWARDED_FOR="1.2.3.4, 5.6.7.8")) == "5.6.7.8"
+    assert throttle.client_address(rf.get("/", REMOTE_ADDR="127.0.0.1")) == "127.0.0.1"
+    assert (
+        throttle.client_address(rf.get("/", REMOTE_ADDR="203.0.113.9", HTTP_X_FORWARDED_FOR="1.2.3.4")) == "203.0.113.9"
+    )
 
 
 def test_reading_the_login_page_is_never_throttled(client: Client) -> None:

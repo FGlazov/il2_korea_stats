@@ -21,7 +21,13 @@ port = 8000
 2. **Forward everything** to `http://127.0.0.1:8000`.
 3. Send the header **`X-Forwarded-Proto: https`**. Without it il2ks thinks the visit is plain http and redirects
    forever ("too many redirects"). il2ks only trusts this header, so keep port 8000 closed to the outside.
-4. Keep the original **`Host`** header (recommended) so links and the admin login work.
+4. Send **`X-Forwarded-For`** with the visitor's address (nginx `$proxy_add_x_forwarded_for`; Apache's `mod_proxy` and
+   IIS ARR add it by default). The admin-login lockout counts failed passwords per visitor address. il2ks believes
+   this header only when the connection comes from the same machine (127.0.0.1 / ::1), so the web server must stay on
+   `host = "127.0.0.1"`: if it were reachable from outside, a visitor could invent the header. Without the header from
+   your proxy, all visitors share one lockout counter (ten wrong passwords from anyone lock everyone out for five
+   minutes).
+5. Keep the original **`Host`** header (recommended) so links and the admin login work.
 
 With the proxy running, `il2ks doctor` shows whether ports and settings agree.
 

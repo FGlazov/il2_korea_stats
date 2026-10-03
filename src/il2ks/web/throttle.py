@@ -5,11 +5,14 @@ successful one is a redirect. After `MAX_FAILURES` failures within `WINDOW_SECON
 address get `429` without the password being checked, until the window ends. A successful login clears the count.
 
 The count lives in Django's cache (per process; with `[web] workers > 1` each worker counts on its own, so the real
-limit is at most `workers` times higher). The client address is the last `X-Forwarded-For` entry, which is what the
-reverse proxy in front (Caddy, nginx) appended, falling back to the socket's address: behind a proxy that is the only
-value the client cannot choose.
+limit is at most `workers` times higher). The client address is the socket's address, except when that is a loopback
+address (the bundled Caddy or a proxy on this machine; the web server only listens on 127.0.0.1 in that setup): then it
+is the last `X-Forwarded-For` entry, which is what that proxy appended and the client cannot choose. From any other
+socket address the header is client-controlled and ignored, so a client reaching the web server directly can't pick
+its own bucket. A proxy that sends no `X-Forwarded-For` puts everyone in one bucket (docs/reverse-proxy.md).
 """
 
+import ipaddress
 from collections.abc import Callable
 
 from django.core.cache import cache
@@ -21,10 +24,20 @@ MAX_FAILURES = 10
 WINDOW_SECONDS = 300
 
 
+def _is_loopback(address: str) -> bool:
+    try:
+        return ipaddress.ip_address(address.strip("[]")).is_loopback
+    except ValueError:
+        return False
+
+
 def client_address(request: HttpRequest) -> str:
+    remote = request.META.get("REMOTE_ADDR", "")
+    if not _is_loopback(remote):
+        return remote
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
     last = forwarded.rsplit(",", 1)[-1].strip()
-    return last or request.META.get("REMOTE_ADDR", "")
+    return last or remote
 
 
 def _key(request: HttpRequest) -> str:

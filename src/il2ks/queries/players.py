@@ -114,4 +114,7 @@ def recent_sorties(player: Player, limit: int = RECENT_SORTIES) -> list[PlayerSo
 
 def flies_as_gunner_only(player: Player) -> bool:
     """True for a player with no pilot sortie who has gunner sorties (counters stay 0 until gunner stats exist)."""
-    return player.sorties == 0 and PlayerSortie.objects.filter(player=player, role=Role.GUNNER, mission__is_hidden=False).exists()
+    return (
+        player.sorties == 0
+        and PlayerSortie.objects.filter(player=player, role=Role.GUNNER, mission__is_hidden=False).exists()
+    )
