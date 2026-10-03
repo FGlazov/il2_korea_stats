@@ -44,6 +44,12 @@ SNAPSHOT_DUE_FRACTION = 0.8
 turned into 60 s by a tick that arrives after 29.9 s."""
 
 
+SNAPSHOT_MAX_DUTY = 0.025
+"""A snapshot re-resolves the whole mission so far, so it gets slower as the mission grows (about 0.7 s for a 20 MB
+log). The game server shares this machine (NFR-INS-5): the gap to the next snapshot is at least the last one's cost
+divided by this, i.e. snapshots never use more than about 2.5 % of one core, however long the mission runs."""
+
+
 @dataclass(slots=True)
 class _Running:
     uid: str
@@ -51,6 +57,7 @@ class _Running:
     replay: LiveReplay
     started_at: datetime
     last_snapshot: datetime | None = None
+    last_cost_s: float = 0.0  # how long the last snapshot took (`SNAPSHOT_MAX_DUTY` backs the interval off by it)
 
 
 def find_in_progress(cfg: Config, now: datetime) -> MissionLog | None:
@@ -111,10 +118,14 @@ class LiveTracker:
             assert running is not None
             lines = running.tail.read_new(mission.files) or []
         running.replay.feed_lines(lines)
-        interval = timedelta(seconds=self._cfg.live.interval_s * SNAPSHOT_DUE_FRACTION)
+        interval = timedelta(
+            seconds=max(self._cfg.live.interval_s * SNAPSHOT_DUE_FRACTION, running.last_cost_s / SNAPSHOT_MAX_DUTY)
+        )
         if running.last_snapshot is not None and now - running.last_snapshot < interval:
             return
+        began = time.perf_counter()
         view = running.replay.snapshot()
+        running.last_cost_s = time.perf_counter() - began
         running.last_snapshot = now
         if view.ended:
             self._finished.add(running.uid)

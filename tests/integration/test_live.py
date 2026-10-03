@@ -145,6 +145,21 @@ def test_snapshots_are_taken_every_interval_not_every_tick(live: Live) -> None:
     assert LiveMission.objects.get().updated_at == live.clock
 
 
+def test_a_slow_snapshot_backs_the_interval_off_to_keep_cpu_low(live: Live) -> None:
+    """NFR-INS-5: snapshots of a long mission are slow; the gap grows with the last one's cost (<= 2.5 % of a core)."""
+    live.write(2)
+    live.tick()
+    running = live.tracker._running  # pyright: ignore[reportPrivateUsage]
+    assert running is not None
+    running.last_cost_s = 3.0  # a 3 s snapshot -> at least 120 s to the next
+    first = live.clock
+
+    live.tick(60)  # past the plain 30 s interval, inside the backed-off one
+    assert LiveMission.objects.get().updated_at == first
+    live.tick(61)  # 121 s after the first
+    assert LiveMission.objects.get().updated_at == live.clock
+
+
 def test_live_writes_never_bump_the_data_version(live: Live) -> None:
     before = current_data_version()
     live.write(3)
