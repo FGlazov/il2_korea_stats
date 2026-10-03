@@ -86,6 +86,8 @@ Do these while merging the finished branches, before the release where they touc
 - ⏳ Doc 15: list every icon file in the designer brief.
 - ⏳ Rams: test the ram signal on the samples and confirm the results are plausible before enabling it (OQ-61 answer).
 - ⏳ Windows installer: virtual service account `NT SERVICE\il2ks` (OQ-41).
+- ⏳ **Run the tests in parallel** (maintainer, 2026-10-03): the unit + integration run takes ~7–10 min serially; try pytest-xdist
+  (watch for tests sharing data dirs, ports and the writer lock, and for Windows process spawning).
 
 ## Before the public release (maintainer, 2026-10-03)
 - 🔧 **Playwright end-to-end tests on the key flows** (done, 30 tests, merging), moved up from stretch: (1) a player opens their latest sortie and follows the link to
