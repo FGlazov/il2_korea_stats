@@ -315,3 +315,53 @@ def test_killed_pilot_stays_in_aircraft_even_without_a_sortie_end() -> None:
     a = by_acct(sc.result(), 1)
     assert (a.pilot_fate, a.pilot_fate_source) == ("in_aircraft", "event")
     assert (a.is_death, a.pilot_status, a.loss_cause) == (True, "dead", "attacker")
+
+
+# --- aircraft destroyed long before the player's exit (OQ-36) ---------------------------------------------------------
+
+
+def _exit_server_after_destruction(*, attacker: int = NO, bailout_at: float | None = None) -> MissionResult:
+    """The aircraft is destroyed at 200 s; the player presses "exit server" at 500 s (AType 21, bot removed, no AType 4)."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(199.8, attacker, 100, 1.0)
+    if bailout_at is not None:
+        sc.gunner_bailout(bailout_at, 101, 100, FAR)
+    sc.kill(200, attacker, 100)
+    sc.disconnect(500, 1)
+    sc.remove_bot(500.5, 101, FAR)
+    return sc.result()
+
+
+def test_destruction_long_before_the_disconnect_is_a_normal_loss_and_death() -> None:
+    a = by_acct(_exit_server_after_destruction(), 1)
+    assert (a.pilot_fate, a.disconnected) == ("disconnected", True)
+    assert (a.is_plane_lost, a.is_death, a.pilot_status, a.aircraft_status) == (True, True, "dead", "destroyed")
+    assert (a.outcome, a.loss_cause) == ("crashed", "self")
+
+
+def test_attacker_destruction_long_before_the_disconnect_credits_the_attacker_directly() -> None:
+    result = _exit_server_after_destruction(attacker=200)
+    a, b = by_acct(result, 1), by_acct(result, 2)
+    assert (a.outcome, a.loss_cause, a.is_death) == ("shot_down", "attacker", True)
+    (kill,) = result.kills
+    assert (kill.killer_sortie_index, kill.via, kill.tick) == (b.index, "direct", 200 * 50)
+    assert b.kills_air == 1
+
+
+def test_destruction_after_the_disconnect_without_recent_damage_stays_ignored() -> None:
+    """FR-ING-21 stays for aircraft that were intact at the disconnect: a later crash of the abandoned aircraft."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.disconnect(130, 1)
+    sc.remove_bot(131, 101, FAR)
+    sc.kill(200, NO, 100)
+    a = by_acct(sc.result(), 1)
+    assert (a.pilot_fate, a.is_plane_lost, a.is_death, a.outcome) == ("disconnected", False, False, "unknown")
+
+
+def test_pilot_who_left_before_the_destruction_loses_the_aircraft_but_does_not_die() -> None:
+    a = by_acct(_exit_server_after_destruction(bailout_at=150), 1)
+    assert (a.is_plane_lost, a.is_death, a.outcome) == (True, False, "crashed")
+    assert a.pilot_status != "dead"

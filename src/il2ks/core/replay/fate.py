@@ -35,6 +35,14 @@ def left_aircraft(sortie: SortieState, disconnect_tick: int | None) -> bool:
     return sortie.end_aircraft_id == 0 or sortie.ended_by_removal or disconnect_tick is not None
 
 
+def left_before(sortie: SortieState, tick: int) -> bool:
+    """Evidence that the pilot was out of the aircraft before `tick` (a bailout event, or the bot already removed)."""
+    bot = sortie.bot
+    return (bot.bailout_tick is not None and bot.bailout_tick <= tick) or (
+        bot.removed_tick is not None and bot.removed_tick < tick
+    )
+
+
 def disconnect_tick_of(sortie: SortieState, facts: MissionFacts, rules: ReplayRules) -> int | None:
     """The AType 21 of this account nearest to the sortie end, within `disconnect_window_s` (FR-ING-14 cond. 6)."""
     end = sortie_end_tick(sortie, facts)

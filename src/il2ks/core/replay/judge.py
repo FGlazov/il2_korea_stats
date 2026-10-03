@@ -18,6 +18,7 @@ from il2ks.core.replay.fate import (
     forced_by_mission_end,
     ground_loss,
     killer_of,
+    left_before,
     pilot_death_tick,
     pilot_fate_of,
     pilot_final_pos,
@@ -106,16 +107,21 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     # FR-ING-21/22: a disconnect doesn't hide an attacker's kill. The fate says `disconnected` (maintainer), but the
     # aircraft destroyed by an attacker stays a loss and the pilot died with it, exactly as for any plain sortie end.
     attacker_destroyed = fate == "disconnected" and shot_down_directly
-    if (fate == "in_aircraft" or attacker_destroyed) and loss is not None and not forced:
+    # OQ-36: an aircraft destroyed before the player's exit is a normal loss, however long before it was (the player
+    # pressed "exit server" instead of "end sortie"); the pilot died with it unless they had already left it.
+    destroyed_before_exit = fate == "disconnected" and loss is not None and loss.tick <= end
+    pilot_aboard = destroyed_before_exit and loss is not None and not left_before(sortie, loss.tick)
+    if (fate == "in_aircraft" or attacker_destroyed or pilot_aboard) and loss is not None and not forced:
         died = died if died is not None else loss.tick  # the pilot went down with the aircraft
 
     disconnected = disc_tick is not None or sortie.ended_by_removal
     disc_death = (
         fate == "disconnected"
         and not attacker_destroyed
+        and not destroyed_before_exit
         and disconnect_death(sortie, disc_tick if disc_tick is not None else end, rules)
     )
-    if fate == "disconnected" and not disc_death and not attacker_destroyed:
+    if fate == "disconnected" and not disc_death and not attacker_destroyed and not destroyed_before_exit:
         loss = None  # FR-ING-21: a disconnect without recent damage is neither a death nor a loss
         died = None
 

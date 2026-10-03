@@ -53,8 +53,8 @@ def _is_victim_object(obj: TrackedObject) -> bool:
 def _via(sortie: SortieState, verdict: Verdict, explicit: TrackedObject | None) -> KillVia:
     if explicit is not None and not is_self_attack(explicit, sortie.airframe, sortie):
         return "direct"
-    if verdict.fate == "disconnected":
-        return "disconnect"
+    if verdict.fate == "disconnected" and not (verdict.loss is not None and verdict.loss.tick <= verdict.end_tick):
+        return "disconnect"  # an aircraft destroyed before the player's exit is a plain loss (OQ-36)
     if verdict.fate in ("bailed_out", "exited_on_ground"):
         return "abandoned_aircraft"
     return "direct"
