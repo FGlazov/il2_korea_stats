@@ -118,6 +118,19 @@
 # aircraft changes nothing: it was expected).
 #cross_pool_weight = 2.0
 
+# --- Rule toggles from the old il2_stats mods (TD-16) ---------------------------------------------------------------
+# A changed toggle only affects missions ingested afterwards; run `il2ks reprocess --all` to apply it to older ones.
+# NOTE: loaded and validated; the replay does not act on them yet (work in progress).
+#[rules]
+# Rams: credit a mid-air collision as a kill for the other pilot (default false = nobody is credited).
+#credit_rams = false
+# Parachute deaths: a pilot killed after leaving the aircraft counts as a death (false = the "no parachute deaths" mod).
+#parachute_deaths = true
+# A ram = two aircraft destroyed in the air within this many seconds of each other, with no gun hits between them...
+#ram_window_s = 2.0
+# ... and within this many metres of each other.
+#ram_distance_m = 50.0
+
 # --- Tours (TD-26, FR-WEB-10, FR-ADM-8) -----------------------------------------------------------------------------
 # Missions are grouped into tours, and the site shows stats per tour as well as all-time. A mission belongs to the tour
 # that contains its start time. Air-to-air ratings are not per tour: they stay all-time. After changing the mode, the

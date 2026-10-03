@@ -11,6 +11,7 @@ import pytest
 from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LogsConfig, WebConfig, load_config
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.replay.toggles import RuleToggles
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
 SERVER_KEYS = {"timezone", "uid"}  # `Config.timezone_name` / `Config.server_uid`, stored under [server]
@@ -40,6 +41,7 @@ def test_template_lists_every_config_key() -> None:
         "logs": {f.name for f in dataclasses.fields(LogsConfig)},
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
+        "rules": {f.name for f in dataclasses.fields(RuleToggles)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
         "tours": TOURS_KEYS,
@@ -65,6 +67,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "logs",
         "ingest",
         "replay",
+        "rules",
         "ratings",
         "backup",
         "tours",

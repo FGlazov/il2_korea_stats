@@ -187,3 +187,5 @@ _.air_kills  # Detail: kills.html
 _.damage_more  # Detail: damage.html
 _.timeline_more  # Detail: timeline.html
 _.timeline_events  # Detail: timeline.html
+
+detect_rams  # iteration 2 WIP: ram signal, not wired into kill credit yet (core.replay.toggles); tested

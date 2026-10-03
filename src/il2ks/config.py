@@ -28,6 +28,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.replay.toggles import RuleToggles
 from il2ks.core.tours import TourRules, parse_mode
 
 type AfterArchive = Literal["move", "keep", "delete"]
@@ -127,6 +128,7 @@ class Config:
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
+    rules: RuleToggles = field(default_factory=RuleToggles)
     ratings: RatingRules = field(default_factory=RatingRules)
     backup: BackupConfig = field(default_factory=BackupConfig)
     tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
@@ -234,6 +236,14 @@ def load_config(
     resupply_allowed = reader.bool_("replay", "resupply_allowed", ReplayRules().resupply_allowed)
     replay = ReplayRules(resupply_allowed=resupply_allowed, **rule_values)
 
+    toggle_defaults = RuleToggles()
+    rules = RuleToggles(
+        credit_rams=reader.bool_("rules", "credit_rams", toggle_defaults.credit_rams),
+        parachute_deaths=reader.bool_("rules", "parachute_deaths", toggle_defaults.parachute_deaths),
+        ram_window_s=reader.positive("rules", "ram_window_s", toggle_defaults.ram_window_s),
+        ram_distance_m=reader.positive("rules", "ram_distance_m", toggle_defaults.ram_distance_m),
+    )
+
     rating_defaults = RatingRules()
     ratings = RatingRules(
         start=reader.non_negative("ratings", "start", rating_defaults.start),
@@ -272,6 +282,7 @@ def load_config(
         logs=logs,
         ingest=ingest,
         replay=replay,
+        rules=rules,
         ratings=ratings,
         backup=backup,
         tours=tours,
