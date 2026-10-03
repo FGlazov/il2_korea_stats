@@ -1,0 +1,7 @@
+{% comment %}
+  accordion.html ({% accordion title hint open=True %}...{% endaccordion %}): a collapsible <details> section.
+  Context: content, title, hint (optional small text next to the title), open (start expanded).
+{% endcomment %}<details class="accordion"{% if open %} open{% endif %}>
+  <summary>{{ title }}{% if hint %}<small class="accordion__hint">{{ hint }}</small>{% endif %}</summary>
+  <div class="accordion__body">{{ content }}</div>
+</details>

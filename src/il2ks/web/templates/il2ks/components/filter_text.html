@@ -1,0 +1,7 @@
+{% comment %}
+  filter_text.html ({% filter_text name label live=True %}): a labelled search input for {% filter_bar %}.
+  Context: name, label, placeholder, live (also submits while typing), value (current ?name=).
+  The id stays stable so htmx keeps focus and caret when it swaps the region.
+{% endcomment %}<label class="filter" for="f-{{ name }}">{{ label }}
+  <input type="search" name="{{ name }}" id="f-{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" autocomplete="off"{% if live %} data-live{% endif %}>
+</label>

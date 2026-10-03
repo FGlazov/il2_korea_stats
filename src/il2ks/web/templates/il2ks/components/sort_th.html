@@ -1,0 +1,7 @@
+{% comment %}
+  sort_th.html ({% sort_th "field" label numeric=True %}): a sortable column header. The link keeps the other query
+  parameters, drops `page`, and toggles ?sort=field / ?sort=-field. The view must whitelist sortable fields.
+  Context: label, numeric (right-aligned column), direction ("asc", "desc" or ""), aria_sort, href.
+  The hx-get makes it swap the surrounding {% results_region %} (hx-target, hx-select, hx-swap and hx-push-url are
+  inherited from it); without htmx it is a plain link.
+{% endcomment %}<th scope="col" class="sortable{% if numeric %} num{% endif %}" aria-sort="{{ aria_sort }}"><a href="{{ href }}" hx-get="{{ href }}">{{ label }}</a></th>

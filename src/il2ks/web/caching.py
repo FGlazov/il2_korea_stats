@@ -25,7 +25,7 @@ from django.utils.cache import patch_cache_control, patch_vary_headers
 from django.utils.translation import get_language
 
 from il2ks import __version__
-from il2ks.db.site import current_data_version
+from il2ks.db.models import DataVersion
 
 MAX_AGE = 60
 VARY = ("HX-Request", "Accept-Language")
@@ -35,6 +35,19 @@ _ETAG_ATTR = "_il2ks_etag"
 _BOOT_ID = secrets.token_hex(8)
 
 type View = Callable[..., HttpResponse]
+
+_ROW_ATTR = "_il2ks_data_version_row"
+_NO_ROW = DataVersion(pk=1, version=0)
+
+
+def request_data_version(request: HttpRequest) -> DataVersion | None:
+    """The `DataVersion` row (version and `updated_at`), read once per request and shared by this middleware and the
+    `site` context processor. None before the first data change."""
+    row = getattr(request, _ROW_ATTR, None)
+    if row is None:
+        row = DataVersion.objects.filter(pk=1).only("version", "updated_at").first() or _NO_ROW
+        setattr(request, _ROW_ATTR, row)
+    return None if row is _NO_ROW else cast(DataVersion, row)
 
 
 def make_etag(request: HttpRequest, version: int) -> str:
@@ -89,7 +102,8 @@ class DataVersionCacheMiddleware:
     ) -> HttpResponse | None:
         if request.method not in {"GET", "HEAD"} or request.path.startswith(_excluded_prefixes()):
             return None
-        etag = make_etag(request, current_data_version())
+        row = request_data_version(request)
+        etag = make_etag(request, row.version if row is not None else 0)
         setattr(request, _ETAG_ATTR, etag)
         if _matches(request.headers.get("If-None-Match", ""), etag):
             response = HttpResponseNotModified()

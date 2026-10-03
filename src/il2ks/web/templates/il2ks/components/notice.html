@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}
+  notice.html ({% notice "hidden" %}optional text{% endnotice %}): a banner. kind is one of
+  hidden (not shown in public lists), changing (numbers may still change), info (default), warning.
+  Context: content (body; a default text per kind when empty), kind, title (default per kind).
+{% endcomment %}<aside class="notice notice--{{ kind|default:'info' }}" role="note">
+  <strong>{% if title %}{{ title }}{% elif kind == "hidden" %}{% translate "Hidden" %}{% elif kind == "changing" %}{% translate "May still change" %}{% elif kind == "warning" %}{% translate "Warning" %}{% else %}{% translate "Note" %}{% endif %}</strong>
+  <div>{% if content %}{{ content }}{% elif kind == "hidden" %}{% translate "This page is not listed or searchable. Only people with the link can see it." %}{% elif kind == "changing" %}{% translate "The numbers on this page are provisional and can still be updated." %}{% endif %}</div>
+</aside>

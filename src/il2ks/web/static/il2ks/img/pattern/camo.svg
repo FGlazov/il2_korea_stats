@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="200" viewBox="0 0 640 200">
+  <!-- Low-contrast woodland camouflage tile for the header band and hero. Original artwork. Every shape stays inside
+       the tile so repeats never show a cut edge. Tones are translucent so the band colour (a CSS variable) rules. -->
+  <g fill="#ffffff" fill-opacity="0.045">
+    <path d="M14 44C40 16 96 20 122 48C148 76 122 100 84 104C46 108 -2 80 14 44Z"/>
+    <path d="M214 120C250 98 316 102 336 132C356 162 308 186 262 182C216 178 178 142 214 120Z"/>
+    <path d="M432 24C468 2 530 10 552 38C574 66 538 92 494 88C450 84 396 48 432 24Z"/>
+    <path d="M566 128C588 114 622 120 628 146C634 172 608 190 584 184C560 178 544 142 566 128Z"/>
+    <path d="M302 18C326 8 356 16 360 34C364 52 334 60 312 54C290 48 280 28 302 18Z"/>
+  </g>
+  <g fill="#000000" fill-opacity="0.07">
+    <path d="M132 132C160 114 204 126 206 152C208 178 168 190 140 182C112 174 104 150 132 132Z"/>
+    <path d="M364 66C398 52 446 72 442 102C438 132 394 136 368 122C342 108 336 80 364 66Z"/>
+    <path d="M24 152C52 138 84 152 84 172C84 192 52 198 30 192C8 186 -2 166 24 152Z"/>
+    <path d="M482 152C510 138 544 148 546 172C548 194 506 198 484 192C462 186 454 166 482 152Z"/>
+    <path d="M152 14C180 2 216 14 214 36C212 58 176 62 156 52C136 42 126 26 152 14Z"/>
+  </g>
+</svg>

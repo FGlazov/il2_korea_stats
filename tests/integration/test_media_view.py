@@ -13,6 +13,9 @@ from pytest_django.fixtures import Settings
 
 from il2ks.web.logo import process_logo, store_logo
 
+# A 404 renders the site's 404 page, whose header reads the branding row.
+pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def media_root(tmp_path: Path, settings: Settings) -> Path:

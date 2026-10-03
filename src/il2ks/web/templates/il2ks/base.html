@@ -1,11 +1,83 @@
-{% load i18n static %}<!doctype html>
+{% load i18n static il2ks %}{% comment %}
+  The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
+  Blocks (keep this list short and stable):
+    title    the <title> text; default: "<page_title> · <site title>". Views can set `page_title` in the context.
+    head     extra <head> content (meta tags, a page's own stylesheet).
+    nav      the <ul> of header navigation links.
+    content  the page itself, inside <main>.
+    footer   the footer's inner content.
+    scripts  extra scripts, after htmx and il2ks.js.
+  Context from il2ks.web.context_processors.site: site (SiteSettings), site_links [(label, url)], accent_css,
+  data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
+  static/il2ks/site.css (tokens first).
+{% endcomment %}<!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{% translate "IL-2 Korea stats" %}{% endblock %}</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="{% static 'il2ks/img/brand/favicon.svg' %}" type="image/svg+xml">
+  <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}{{ site.site_title }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'il2ks/vendor/pico.min.css' %}">
+  <link rel="stylesheet" href="{% static 'il2ks/site.css' %}">
+  {% if accent_css %}<style>{{ accent_css }}</style>{% endif %}
+  <script src="{% static 'il2ks/theme-init.js' %}"></script>
+  {% block head %}{% endblock %}
 </head>
 <body>
-  <main>{% block content %}{% endblock %}</main>
+  <a class="skip-link" href="#main">{% translate "Skip to content" %}</a>
+  <header class="site-header">
+    <div class="page site-header__inner">
+      <a class="brand" href="{% url 'web:home' %}">
+        {% if logo_url %}<img class="brand__logo" src="{{ logo_url }}" alt="">{% else %}{% icon "brand/logo-mark" "brand__mark" %}{% endif %}
+        <span class="brand__text">
+          <span class="brand__title">{{ site.site_title }}</span>
+          {% if site.server_name %}<span class="brand__sub">{{ site.server_name }}</span>{% endif %}
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="{% translate 'Main' %}">
+        {% block nav %}
+          {% with route=request.resolver_match.url_name %}
+          <ul>
+            <li><a href="{% url 'web:mission-list' %}"{% if route == 'mission-list' or route == 'mission-detail' %} aria-current="page"{% endif %}>{% translate "Missions" %}</a></li>
+            <li><a href="{% url 'web:player-search' %}"{% if route == 'player-search' or route == 'player-detail' or route == 'player-sorties' or route == 'sortie-detail' %} aria-current="page"{% endif %}>{% translate "Players" %}</a></li>
+            {% if site_links %}<li>{% dropdown _("Community") site_links align="right" %}</li>{% endif %}
+          </ul>
+          {% endwith %}
+        {% endblock %}
+      </nav>
+      <form class="site-search" role="search" action="{% url 'web:player-search' %}" method="get">
+        {% translate "Find a player" as search_label %}
+        <input type="search" name="q" value="{% if request.resolver_match.url_name == 'player-search' %}{{ request.GET.q }}{% endif %}" placeholder="{{ search_label }}" aria-label="{{ search_label }}" autocomplete="off">
+        <button type="submit">{% translate "Search" %}</button>
+      </form>
+      <button type="button" class="theme-toggle" data-theme-toggle title="{% translate 'Switch between light and dark' %}" aria-label="{% translate 'Switch between light and dark' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" class="page">{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="page site-footer__inner">
+      {% block footer %}
+        <div>
+          <strong>{{ site.server_name|default:site.site_title }}</strong>
+          {% if site_links %}
+            <ul class="site-footer__links">{% for label, url in site_links %}<li><a href="{{ url }}" rel="noopener">{{ label }}</a></li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        <div class="site-footer__meta">
+          {% if data_updated %}<span>{% blocktranslate with when=data_updated|utc %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
+          <span>{% blocktranslate with version=il2ks_version %}Powered by il2ks {{ version }}{% endblocktranslate %}</span>
+        </div>
+      {% endblock %}
+    </div>
+  </footer>
+
+  <script src="{% static 'il2ks/vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'il2ks/il2ks.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

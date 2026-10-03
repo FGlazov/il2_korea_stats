@@ -1,0 +1,16 @@
+{% extends "il2ks/base.html" %}{% load i18n il2ks %}{% comment %}
+  Django's page-not-found view renders this (it must be named 404.html). Context: the usual site context.
+{% endcomment %}
+{% block title %}{% translate "Page not found" %} · {{ site.site_title }}{% endblock %}
+{% block content %}
+  <div class="error-page">
+    {% icon "illustration/404" "error-page__mark" %}
+    <div class="error-page__code">404</div>
+    <h1>{% translate "Page not found" %}</h1>
+    <p class="lead">{% translate "That page does not exist, or the link is out of date." %}</p>
+    <div class="button-row button-row--center">
+      <a role="button" href="{% url 'web:home' %}">{% translate "Back to the start page" %}</a>
+      <a role="button" class="secondary outline" href="{% url 'web:mission-list' %}">{% translate "Browse missions" %}</a>
+    </div>
+  </div>
+{% endblock %}

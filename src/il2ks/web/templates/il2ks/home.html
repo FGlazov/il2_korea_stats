@@ -1,9 +1,27 @@
-{% extends "il2ks/base.html" %}{% load i18n %}
+{% extends "il2ks/base.html" %}{% load i18n il2ks %}{% comment %}
+  Home page. Context: playable (placeholder list of aircraft until the real home page lands).
+{% endcomment %}
 {% block content %}
-  <h1>{% translate "IL-2 Korea stats" %}</h1>
-  <p>{% translate "Work in progress. Stats will appear here once ingestion exists." %}</p>
+  <section class="hero">
+    {% icon "brand/logo-mark" "hero__mark" %}
+    <h1>{{ site.site_title }}</h1>
+    <p class="lead">{% if site.description %}{{ site.description|linebreaksbr }}{% else %}{% translate "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server." %}{% endif %}</p>
+    <div class="button-row">
+      <a role="button" href="{% url 'web:mission-list' %}">{% translate "Browse missions" %}</a>
+      <a role="button" class="secondary outline" href="{% url 'web:player-search' %}">{% translate "Find a player" %}</a>
+    </div>
+  </section>
+
+  {% notice "info" title=_("Work in progress") %}{% translate "Stats will appear here once the first missions have been ingested." %}{% endnotice %}
+
   {% if playable %}
-    <h2>{% translate "Aircraft" %}</h2>
-    <ul>{% for obj in playable %}<li>{{ obj }}</li>{% endfor %}</ul>
+    {% accordion _("Playable aircraft") hint=_("from the catalog") %}
+      <div class="table-wrap table-wrap--flat">
+        <table class="data-table data-table--compact">
+          <thead><tr><th scope="col">{% translate "Aircraft" %}</th></tr></thead>
+          <tbody>{% for obj in playable %}<tr><td>{{ obj }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    {% endaccordion %}
   {% endif %}
 {% endblock %}

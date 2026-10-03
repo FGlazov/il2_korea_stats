@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}
+  breadcrumbs.html ({% breadcrumbs crumbs %}).
+  Context: crumbs, a list of (label, url) pairs; the last pair has url None and marks the current page.
+{% endcomment %}<nav class="breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+  <ol>{% for label, url in crumbs %}
+    <li>{% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}</li>{% endfor %}
+  </ol>
+</nav>

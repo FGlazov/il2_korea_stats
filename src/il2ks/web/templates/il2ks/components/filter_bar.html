@@ -1,0 +1,14 @@
+{% load i18n %}{% comment %}
+  filter_bar.html ({% filter_bar %}{% filter_select ... %}{% filter_text ... %}{% endfilter_bar %}).
+  A GET form. With htmx it submits when a <select> changes, when Enter is pressed and while typing in a live text
+  field; the Apply button then hides itself (.has-htmx). Without JS the button submits it.
+  Keeps ?sort= and never carries ?page=, so a new filter starts at page 1.
+  Context: content, action (current path), sort (current ?sort=), has_filters, clear_href.
+{% endcomment %}<form class="filter-bar" method="get" action="{{ action }}" hx-get="{{ action }}" hx-trigger="submit, change from:find select, input changed delay:300ms from:find input[data-live]">
+  {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+  {{ content }}
+  <div class="filter-bar__actions">
+    {% if has_filters %}<a href="{{ clear_href }}" hx-get="{{ clear_href }}">{% translate "Clear filters" %}</a>{% endif %}
+    <button type="submit" class="filter-bar__apply">{% translate "Apply" %}</button>
+  </div>
+</form>

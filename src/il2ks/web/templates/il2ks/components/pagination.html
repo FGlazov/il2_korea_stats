@@ -1,0 +1,15 @@
+{% load i18n il2ks %}{% comment %}
+  pagination.html ({% pagination page_obj %}): summary and numbered links; links keep the other query parameters.
+  Context: page_obj, total, first_index, last_index, multiple (more than one page), links (number, current, href),
+  prev_href, next_href. Put it inside {% results_region %} so htmx swaps the region (hx-get, as in sort_th.html).
+{% endcomment %}{% if total %}<nav class="pagination" aria-label="{% translate 'Pagination' %}">
+  <p>{% blocktranslate with first=first_index|num last=last_index|num all=total|num %}Showing {{ first }}–{{ last }} of {{ all }}{% endblocktranslate %}</p>
+  {% if multiple %}
+  <ul>
+    <li>{% if prev_href %}<a href="{{ prev_href }}" hx-get="{{ prev_href }}" rel="prev">{% translate "Previous" %}</a>{% else %}<span aria-disabled="true">{% translate "Previous" %}</span>{% endif %}</li>
+    {% for link in links %}<li>{% if link.number is None %}<span class="gap" aria-hidden="true">…</span>{% elif link.current %}<span aria-current="page">{{ link.number }}</span>{% else %}<a href="{{ link.href }}" hx-get="{{ link.href }}">{{ link.number }}</a>{% endif %}</li>
+    {% endfor %}
+    <li>{% if next_href %}<a href="{{ next_href }}" hx-get="{{ next_href }}" rel="next">{% translate "Next" %}</a>{% else %}<span aria-disabled="true">{% translate "Next" %}</span>{% endif %}</li>
+  </ul>
+  {% endif %}
+</nav>{% endif %}
