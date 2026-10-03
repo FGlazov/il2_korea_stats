@@ -1,0 +1,50 @@
+/* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
+
+/* Search */
+.player-table__alias { display: block; margin-top: 0.1rem; font-size: 0.78rem; }
+
+/* Profile */
+.profile-head { margin-bottom: 0.9rem; }
+.profile-split h2:first-child { margin-top: 0; }
+.profile-split .kv { margin-bottom: 0.5rem; }
+.kv dt small { margin-inline-start: 0.4rem; font-size: 0.78rem; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.section-head a { font-size: 0.9rem; white-space: nowrap; }
+
+/* Ground-kill breakdown */
+.ground-table__icon { width: 1.25em; height: 1.25em; margin-inline-end: 0.35rem; color: var(--il2-muted); }
+.ground-table .is-zero td { color: var(--il2-muted); }
+.ground-table .is-zero .ground-table__icon { opacity: 0.45; }
+.ground-table__bar { width: 38%; }
+.ground-table progress { display: block; width: 100%; height: 0.55rem; margin: 0; background: var(--il2-surface-2); border-radius: 0; }
+.ground-table progress::-webkit-progress-bar { background: var(--il2-surface-2); border-radius: 0; }
+.ground-table progress::-webkit-progress-value { background: var(--il2-accent); border-radius: 0; }
+.ground-table progress::-moz-progress-bar { background: var(--il2-accent); }
+.ground-table tfoot td { font-weight: 500; }
+.ground-table tfoot tr:first-child td { font-weight: 650; }
+
+/* Hall of shame */
+.shame h2 { margin-top: 2rem; }
+.shame__tiles { align-items: stretch; }
+.shame .stat-tile { border-style: dashed; }
+.shame .stat-tile__value { color: var(--il2-primary); }
+.shame__quip { display: flex; align-items: center; margin: 0; font-style: italic; color: var(--il2-muted); grid-column: span 2; }
+
+/* Tables with an aircraft icon */
+.aircraft-table__icon { width: 1.6em; height: 1.6em; margin-inline-end: 0.35rem; vertical-align: -0.45em; color: var(--il2-muted); }
+.aircraft-table__name { font-weight: 500; white-space: nowrap; }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Seven headline tiles in one row on wide screens; the stock grid would wrap the last one onto its own line. */
+@media (min-width: 1100px) {
+  .profile-tiles { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.65rem; }
+  .profile-tiles .stat-tile { padding-inline: 0.9rem; }
+  .profile-tiles .stat-tile__value { font-size: 1.85rem; }
+  .profile-tiles .stat-tile__icon { display: none; } /* "54 h 25 min" needs the room */
+}
+
+@media (max-width: 700px) {
+  .ground-table__bar { display: none; }
+  .shame__quip { grid-column: auto; }
+}

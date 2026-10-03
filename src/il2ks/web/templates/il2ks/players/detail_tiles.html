@@ -1,0 +1,24 @@
+{% load i18n il2ks %}{% comment %}
+  detail_tiles.html: the headline totals as stat tiles, each with the ratio that belongs to it (computed here from the
+  stored counters, TD-22). K/D and K/L use air kills: ground kills include fences and crates (doc 13), so they have
+  their own per-sortie figure. Context: player, survived.
+{% endcomment %}<div class="stat-tiles profile-tiles">
+  {% blocktranslate with rate=survived|percent:player.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
+  {% stat_tile player.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
+
+  {% blocktranslate count counter=player.takeoffs asvar sub_time %}{{ counter }} takeoff{% plural %}{{ counter }} takeoffs{% endblocktranslate %}
+  {% stat_tile player.flight_time_s|duration _("Flight time") sub=sub_time icon="stat/flight-time" %}
+
+  {% blocktranslate with value=player.kills_air|ratio:player.deaths asvar sub_air %}K/D {{ value }}{% endblocktranslate %}
+  {% stat_tile player.kills_air|num _("Air kills") sub=sub_air icon="stat/air-kills" %}
+
+  {% blocktranslate with value=player.kills_ground|ratio:player.sorties asvar sub_ground %}{{ value }} per sortie{% endblocktranslate %}
+  {% stat_tile player.kills_ground|num _("Ground kills") sub=sub_ground icon="stat/ground-kills" %}
+
+  {% stat_tile player.assists|num _("Assists") icon="stat/assists" %}
+
+  {% stat_tile player.deaths|num _("Deaths") icon="stat/deaths" %}
+
+  {% blocktranslate with value=player.kills_air|ratio:player.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
+  {% stat_tile player.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
+</div>

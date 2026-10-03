@@ -1,0 +1,39 @@
+{% load i18n il2ks %}{% comment %}
+  detail_recent.html: the ten latest sorties (any role) with a link to the full list. Context: player, recent
+  (PlayerSortie rows with .mission and .aircraft). Links: web:sortie-detail, web:mission-detail, web:player-sorties.
+{% endcomment %}<section>
+  <div class="section-head">
+    <h2>{% translate "Recent sorties" %}</h2>
+    <a href="{% url 'web:player-sorties' player.pk %}">{% translate "All sorties" %} →</a>
+  </div>
+  <div class="table-wrap table-wrap--flat">
+    <table class="data-table recent-table">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Date" %}</th>
+          <th scope="col">{% translate "Mission" %}</th>
+          <th scope="col">{% translate "Aircraft" %}</th>
+          <th scope="col">{% translate "Outcome" %}</th>
+          <th scope="col" class="num">{% translate "Air kills" %}</th>
+          <th scope="col" class="num">{% translate "Ground kills" %}</th>
+          <th scope="col" class="num">{% translate "Flight time" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sortie in recent %}
+          <tr>
+            <td class="nowrap"><a href="{% url 'web:sortie-detail' sortie.pk %}">{{ sortie.spawned_at|utc }}</a></td>
+            <td><a href="{% url 'web:mission-detail' sortie.mission_id %}" class="mono">{{ sortie.mission.mission_uid }}</a></td>
+            <td class="nowrap">{% aircraft_icon sortie.aircraft "aircraft-table__icon" %} {{ sortie.aircraft }}{% if sortie.role == "gunner" %} {% badge _("Gunner") "grey" %}{% endif %}</td>
+            <td>{% outcome_badge sortie.outcome %}</td>
+            <td class="num">{{ sortie.kills_air|num }}</td>
+            <td class="num">{{ sortie.kills_ground|num }}</td>
+            <td class="num">{{ sortie.flight_time_s|duration }}</td>
+          </tr>
+        {% empty %}
+          {% empty_row 7 %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

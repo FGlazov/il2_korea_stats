@@ -154,3 +154,4 @@ _.is_staff
 _.is_superuser
 _.deaths  # web.views.styleguide.FakeRow: read by getattr in the demo table's sort and by the style guide template
 current_data_version  # db.site: the version alone, for ingest/admin code and tests (pages read it via web.caching)
+_.matched_name  # queries.players.PlayerHit: read by the player search template ("also known as")
