@@ -207,6 +207,19 @@ decisions are made):
 - 🔧 **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
   focus / tap).
 
+- 🔧 **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
+  online-now list and provisional sorties of a running mission; sortie and mission pages say the stats may still change; an admin toggle,
+  on by default. Defaults (provisional rows count in boards right away, Elo at the final pass, about 2 min between passes) are OQs.
+- 🔧 **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large
+  image (e.g. a map of the current situation) dominating the home page, read from a server file path and picked up within ~10 s; the
+  file is validated and re-encoded like the logo, never served directly. An embed (iframe) mode later.
+- 🔧 **Weapon mods and the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table
+  (one row per vehicle and payload id, the newest version for all sorties) and `korea_weapon_mods.csv` (WM bit k = mod k); mod names on
+  the sortie page; an aircraft-page filter by the mods that change performance a lot: MiG-15bis Anti-G suit (5), NR-23 cannons (1),
+  improved air brakes and wing (2), all combinations; F-51D 150-grade fuel (4); a mods table with effectiveness.
+- 🔧 **Aircraft page role toggle and loadout effectiveness** (maintainer, 2026-10-04): all / air superiority / attack scope for the type's
+  stats; average Elo of a loadout's pilots, kills per sortie and K/D for air-superiority loadouts, ground score per hour for attack ones.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
@@ -218,10 +231,6 @@ and the PyPI first publish (maintainer).
 - Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
 - Per-ammo damage attribution analysis (follow-up damage is hard to attribute; OQ-52).
 - Yearly or quarterly aggregates next to tours (OQ-45).
-- **"Significant modifications" filter on the aircraft page** (maintainer, 2026-10-04): the maintainer compiles a list of weapon and
-  aircraft mods that change performance a lot (e.g. the MiG-15's G-suit mod); the aircraft stats can then optionally be filtered by
-  them. Depends on the WM bit names (OQ-25) and on the per-type stats scopes (tour, then role): a mod scope as the next dimension, or
-  computed from a per-sortie WM column.
 - Bailout height arm once heightmaps arrive (OQ-39).
 
 ## Right after the release: visual assets
@@ -231,7 +240,6 @@ finished site and wants to release quickly. The site ships with placeholders und
 
 
 ## Later / stretch
-- **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
 - Mobile-friendly layout.
 - Player accounts, if people ask for them.
 - `il2ks ship` helper for remote log mode.

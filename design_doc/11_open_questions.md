@@ -36,6 +36,8 @@ Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recor
 reachable from the server machine, and can its object IDs be mapped to log object IDs? This only matters for a future flight-path map (TD-08).
 
 **OQ-25 Payload data: weapon mods and gaps** (owner: maintainer, will extract the remaining payloads)
+Progress (2026-10-04): the maintainer supplied `korea_weapon_mods.csv` (mod names; hypothesis: WM bit 0 always set, mod k = bit k) and a
+newer payload table (it replaces the old one for all sorties). Still open: confirm the bit hypothesis on real logs.
 Is there a source for `WM` weapon-modification names, like the payload file? Unknown payloads still occur after game updates. (The F-51D 54–58 row shift is fixed.) Pages must keep working with unknown payloads (they show the raw ID). (Redistribution is settled: the payload file
 ships in the repo, doc 12.)
 
