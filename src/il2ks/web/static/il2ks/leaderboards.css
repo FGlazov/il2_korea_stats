@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/leaderboards.css v4 - copy this line along when you override */
+/* il2ks-template: static/il2ks/leaderboards.css v5 - copy this line along when you override */
 /* Leaderboards. Loaded by templates/il2ks/leaderboards/*.html; colours come from the tokens in site.css. */
 
 /* The board switcher: a group (label above its icon buttons) per kind of board, side by side with a normal gap and
@@ -8,7 +8,7 @@
 .board-tabs__group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; min-width: 0; max-width: 100%; }
 .board-tabs__label { flex: none; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--il2-muted); }
 .board-tabs ul { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
-.board-tabs li { margin: 0; padding: 0; }
+.board-tabs li { margin: 0; padding: 0; list-style: none; } /* Pico gives li a square marker that beats the ul rule */
 .board-tabs a { display: inline-flex; white-space: nowrap; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; text-decoration: none; color: var(--il2-text); background: var(--il2-surface); border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); }
 .board-tabs a:hover { background: var(--il2-surface-hover); }
 .board-tabs a:focus-visible { outline: 2px solid var(--il2-accent); outline-offset: 2px; }

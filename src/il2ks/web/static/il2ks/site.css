@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v13 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v14 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -14,7 +14,7 @@
 :root {
   color-scheme: light dark;
 
-  --il2-accent: #a86a14; /* muted signal amber */
+  --il2-accent: #a56814; /* muted signal amber */
   --il2-accent-contrast: #ffffff;
 
   --il2-page-width: 1240px;
@@ -29,7 +29,7 @@
   --il2-border-strong: light-dark(#bcb9a7, #3f4837);
   --il2-text: light-dark(#24281f, #dadfce);
   --il2-heading: light-dark(#161a11, #f0f3e8);
-  --il2-muted: light-dark(#666b58, #929a82);
+  --il2-muted: light-dark(#636856, #929a82);
   --il2-shadow-color: light-dark(rgb(30 34 20 / 0.08), rgb(0 0 0 / 0.5));
   --il2-primary: light-dark(
     color-mix(in srgb, var(--il2-accent) 82%, black),
@@ -43,16 +43,16 @@
   --il2-chart-grid: light-dark(#e1dfd2, #272d21);
 
   /* Status tones (badges, notices, setup page, timeline) and the two coalitions. */
-  --il2-green: light-dark(#17803d, #5dd08c);
-  --il2-amber: light-dark(#946200, #ecbb4a);
-  --il2-orange: light-dark(#c2410c, #f29458);
-  --il2-red: light-dark(#b42323, #f07c7c);
-  --il2-blue: light-dark(#1d5fb4, #6eaaf2);
-  --il2-teal: light-dark(#0f766e, #54c9bd);
-  --il2-purple: light-dark(#7a3fb0, #bf95ee);
-  --il2-grey: light-dark(#5b6b78, #9aa8b4);
-  --il2-redfor: light-dark(#b52d28, #f0716a);
-  --il2-blufor: light-dark(#1f62b6, #70a9f4);
+  --il2-green: light-dark(#136831, #5dd08c);
+  --il2-amber: light-dark(#7b5100, #ecbb4a);
+  --il2-orange: light-dark(#9f350a, #f29458);
+  --il2-red: light-dark(#ab2121, #f07c7c);
+  --il2-blue: light-dark(#1b58a7, #6eaaf2);
+  --il2-teal: light-dark(#0d655f, #54c9bd);
+  --il2-purple: light-dark(#763dab, #bf95ee);
+  --il2-grey: light-dark(#4e5c67, #9aa8b4);
+  --il2-redfor: light-dark(#a12824, #f47a73);
+  --il2-blufor: light-dark(#1b56a0, #70a9f4);
 
   /* Achievement medal tiers (FR-WEB-26). */
   --il2-medal-bronze: light-dark(#a8642c, #d99358);
@@ -195,7 +195,7 @@ body > header.site-header {
 .site-nav ul { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
 .site-nav li { margin: 0; padding: 0; list-style: none; }
 .site-nav a {
-  display: block; padding: 0.45rem 0.85rem; border-radius: var(--il2-radius); text-decoration: none; font-weight: 600;
+  display: block; margin: 0; padding: 0.45rem 0.6rem; border-radius: var(--il2-radius); text-decoration: none; font-weight: 600;
   font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--il2-band-muted);
 }
 .site-nav a { white-space: nowrap; }
@@ -375,7 +375,7 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .stat-tile__sub { margin-top: 0.3rem; font-size: 0.82rem; color: var(--il2-muted); font-variant-numeric: tabular-nums; }
 
 /* Key/value summary list */
-.kv { display: grid; grid-template-columns: max-content 1fr; gap: 0 2rem; margin: 0 0 1.5rem; padding: 0.4rem 1.2rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); box-shadow: 0 1px 2px var(--il2-shadow-color); }
+.kv { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 0 1.25rem; margin: 0 0 1.5rem; padding: 0.4rem 1.2rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); box-shadow: 0 1px 2px var(--il2-shadow-color); }
 .kv dt, .kv dd { margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--il2-border); }
 .kv dt { color: var(--il2-muted); font-size: 0.85rem; }
 .kv dd { font-variant-numeric: tabular-nums; }
@@ -559,7 +559,7 @@ a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .medal__tier { font-size: 0.8rem; color: var(--il2-muted); }
 .medal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 1rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
 .medal-list__item { padding: 1rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
-.medal-list__item--none { opacity: 0.8; }
+.medal-list__item--none .medal__badge { opacity: 0.6; } /* dim the badge, never the text (contrast) */
 .medal-list__head { display: flex; gap: 0.8rem; align-items: flex-start; }
 .medal-list__head .medal { padding: 0; border: 0; background: none; }
 .medal-list__head h2 { margin: 0; font-size: 1.15rem; }
@@ -570,7 +570,9 @@ a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .tier-list__item--silver { --medal: var(--il2-medal-silver); }
 .tier-list__item--gold { --medal: var(--il2-medal-gold); }
 .tier-list__item--platinum { --medal: var(--il2-medal-platinum); }
-.tier-list__item--open { opacity: 0.6; }
+.tier-list__item--open strong, .tier-list__item--open > span:not(.muted) { color: var(--il2-muted); } /* not yet earned: quieter, but still readable (contrast) */
+/* Pico gives every <li> a square marker that beats the list's own list-style: none (grid/flex items keep it). */
+.medal-list > li, .tier-list > li, .site-footer__links > li { list-style: none; }
 .medal-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem; }
 .medal-tabs__tab { padding: 0.25rem 0.7rem; border: 1px solid var(--il2-border); border-bottom: 3px solid var(--medal); border-radius: var(--il2-radius); text-decoration: none; }
 .medal-tabs__tab[aria-current="page"] { background: var(--il2-surface-2); font-weight: 650; }
