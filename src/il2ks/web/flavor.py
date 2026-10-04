@@ -159,7 +159,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
     "sortie_ace": (
         gettext_lazy("Busy sortie. The enemy count went down noticeably."),
         gettext_lazy("The gun camera footage on this one would be a good watch."),
-        gettext_lazy("Several kills in one flight. Time to buy the squadron a round."),
+        gettext_lazy("Several kills in one sortie. Time to buy the squadron a round."),
     ),
     # Extreme events (thresholds above; order in `sortie_spot`).
     "sortie_ai_gunner": (

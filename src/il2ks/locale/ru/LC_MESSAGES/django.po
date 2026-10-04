@@ -412,6 +412,22 @@ msgid "Achievements"
 msgstr "Достижения"
 
 # llm-draft
+msgid ""
+"Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie "
+"show when a tier was first reached."
+msgstr ""
+"Достижения зарабатываются за всю карьеру пилота и никогда не отбираются. У каждого есть уровни; дата и вылет "
+"показывают, когда уровень был достигнут впервые."
+
+# llm-draft
+msgid ""
+"Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
+"earned once and kept. The numbers show how many pilots hold each tier."
+msgstr ""
+"Достижения за то, что пилоты делают в воздухе и на земле. У каждого достижения есть уровни, начиная с бронзы; уровень"
+" зарабатывается один раз и остаётся навсегда. Числа показывают, сколько пилотов достигли каждого уровня."
+
+# llm-draft
 #, python-format
 msgid "Achievements of %(name)s"
 msgstr "Достижения игрока %(name)s"
@@ -606,16 +622,16 @@ msgid "All aircraft"
 msgstr "Все самолёты"
 
 # llm-draft
-msgid "All fights"
-msgstr "Все бои"
-
-# llm-draft
 msgid "All gun ammunition"
 msgstr "Весь боекомплект стрелкового оружия"
 
 # llm-draft
 msgid "All ingestion runs"
 msgstr "Все запуски обработки"
+
+# llm-draft
+msgid "All kills and losses"
+msgstr "Все победы и потери"
 
 # llm-draft
 msgid "All leaderboards"
@@ -703,13 +719,13 @@ msgid "Assist"
 msgstr "Содействие"
 
 # llm-draft
-#, python-format
-msgid "Assisted on your losses: %(n)s"
-msgstr "Содействий в ваших потерях: %(n)s"
-
-# llm-draft
 msgid "Assists"
 msgstr "Содействия"
+
+# llm-draft
+#, python-format
+msgid "Assists on this pilot's losses: %(n)s"
+msgstr "Содействий в потерях этого пилота: %(n)s"
 
 # llm-draft
 #, python-format
@@ -1273,26 +1289,19 @@ msgid "Elo"
 msgstr "Эло"
 
 # llm-draft
-msgid "Elo jet"
-msgstr "Эло реактивные"
+msgid "Elo (jet)"
+msgstr "Эло (реактивные)"
 
 # llm-draft
-msgid "Elo prop"
-msgstr "Эло поршневые"
-
-# llm-draft
-msgid "Elo, jet"
-msgstr "Эло, реактивные"
-
-# llm-draft
-msgid "Elo, prop"
-msgstr "Эло, поршневые"
+msgid "Elo (prop)"
+msgstr "Эло (поршневые)"
 
 # llm-draft
 msgid "Empty missions"
 msgstr "Пустые миссии"
 
 # llm-draft
+#. Translators: Elo-rated PvP air kills between two pilots (each counts as an encounter); not all kills and losses
 msgid "Encounters"
 msgstr "Столкновения"
 
@@ -1330,11 +1339,11 @@ msgstr "Ошибка"
 
 # llm-draft
 msgid ""
-"Estimate: at least one was released, and the ammunition left was recorded after the aircraft was lost, so everything "
-"loaded is counted as used"
+"Estimate: at least one bomb or rocket was released, and the ammunition left was recorded after the aircraft was lost,"
+" so everything loaded is counted as used"
 msgstr ""
-"Оценка: сброшена или выпущена хотя бы одна единица, а остаток боезапаса записан уже после потери самолёта, поэтому "
-"весь боекомплект считается израсходованным."
+"Оценка: сброшена хотя бы одна бомба или выпущена хотя бы одна ракета, а остаток боезапаса записан уже после потери "
+"самолёта, поэтому весь боекомплект считается израсходованным."
 
 # llm-draft
 msgid "Event"
@@ -1400,10 +1409,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Мало кто знает рулёжку так же досконально. Хоть экскурсии води."
 
 # llm-draft
-msgid "Fights"
-msgstr "Боёв"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Найти игрока"
 
@@ -1452,6 +1457,14 @@ msgid_plural "Flown by %(pilots)s pilots."
 msgstr[0] "Летал %(pilots)s пилот."
 msgstr[1] "Летали %(pilots)s пилота."
 msgstr[2] "Летали %(pilots)s пилотов."
+
+# llm-draft
+#. Translators: column in a list of enemy aircraft the player shot down; the cell is the player's own aircraft type they
+#. flew in most of those kills.
+#. Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type
+#. they were flying in most of those deaths.
+msgid "Flown most"
+msgstr "Чаще всего на"
 
 # llm-draft
 msgid "Fonts"
@@ -1718,12 +1731,13 @@ msgid "High contrast (black and white)"
 msgstr "Высокий контраст (чёрный и белый)"
 
 # llm-draft
-msgid "Hit given"
-msgstr "Нанесённое попадание"
+#. Translators: timeline rows for a burst of hits: the pilot hit an enemy (dealt) or was hit (taken)
+msgid "Hit (dealt)"
+msgstr "Попадание (нанесено)"
 
 # llm-draft
-msgid "Hit taken"
-msgstr "Полученное попадание"
+msgid "Hit (taken)"
+msgstr "Попадание (получено)"
 
 # llm-draft
 msgid "Hits dealt"
@@ -1855,7 +1869,7 @@ msgid "Inside the selected tour only: a streak does not carry over from an earli
 msgstr "Только внутри выбранного тура: серия не переходит из предыдущего тура."
 
 # llm-draft
-msgid "Intercept flights only"
+msgid "Intercept sorties only"
 msgstr "Только перехваты"
 
 # llm-draft
@@ -1925,11 +1939,11 @@ msgstr "K/L %(value)s"
 # llm-draft
 #, python-format
 msgid ""
-"K/L is kills per loss against that aircraft. It is shown from %(n)s fights on; with fewer, a single mission decides "
-"the number."
+"K/L is kills per loss against that aircraft. It is shown from %(n)s kills and losses on; with fewer, a single mission"
+" decides the number."
 msgstr ""
-"K/L — число побед на одну потерю в бою с этим самолётом. Показывается начиная с %(n)s боёв: при меньшем числе "
-"результат определяет одна миссия."
+"K/L — число побед на одну потерю в бою с этим самолётом. Показывается начиная с %(n)s побед и потерь: при меньшем "
+"числе результат определяет одна миссия."
 
 # llm-draft
 msgid "Key (AType:KEY)"
@@ -1963,6 +1977,12 @@ msgstr "Сбивший"
 # llm-draft
 msgid "Kills"
 msgstr "Победы"
+
+# llm-draft
+#. Translators: column header; the number is kills plus losses between the two aircraft types (not the Elo "Encounters" of
+#. the leaderboards)
+msgid "Kills + losses"
+msgstr "Победы + потери"
 
 # llm-draft
 msgid "Kills and assists"
@@ -2194,22 +2214,6 @@ msgid "May still change"
 msgstr "Может измениться"
 
 # llm-draft
-msgid ""
-"Medals are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show "
-"when a tier was first reached."
-msgstr ""
-"Медали зарабатываются за всю карьеру пилота и никогда не отбираются. У каждой есть уровни; дата и вылет показывают, "
-"когда уровень был достигнут впервые."
-
-# llm-draft
-msgid ""
-"Medals for what pilots do in the air and on the ground. Every medal has tiers, from bronze up; a tier is earned once "
-"and kept. The numbers show how many pilots hold each tier."
-msgstr ""
-"Медали за то, что пилоты делают в воздухе и на земле. У каждой медали есть уровни, начиная с бронзы; уровень "
-"зарабатывается один раз и остаётся навсегда. Числа показывают, сколько пилотов достигли каждого уровня."
-
-# llm-draft
 msgid "Mission"
 msgstr "Миссия"
 
@@ -2244,14 +2248,6 @@ msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "Самый опасный отрезок задания: первые сто метров."
 
 # llm-draft
-#. Translators: column in a list of enemy aircraft the player shot down; the cell is the player's own aircraft type they
-#. flew in most of those kills.
-#. Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type
-#. they were flying in most of those deaths.
-msgid "Mostly flying"
-msgstr "Чаще всего на"
-
-# llm-draft
 msgid "Name"
 msgstr "Название"
 
@@ -2273,8 +2269,8 @@ msgstr "Ссылки в навигации по порядку"
 
 # llm-draft
 #, python-format
-msgid "Needs at least %(n)s fights for a reliable ratio"
-msgstr "Для надёжного соотношения нужно не менее %(n)s боёв"
+msgid "Needs at least %(n)s kills and losses for a reliable ratio"
+msgstr "Для надёжного соотношения нужно не менее %(n)s побед и потерь"
 
 # llm-draft
 msgid "Neutral"
@@ -2817,7 +2813,8 @@ msgid "Player"
 msgstr "Игрок"
 
 # llm-draft
-#. Translators: the small labels name the kind of kill: against human-flown aircraft (PvP) or AI-flown aircraft (PvE)
+#. Translators: the small labels name the kind of air kill, against human-flown aircraft (PvP) or AI-flown ones; same
+#. wording as the "Air kills (PvP)" / "Air kills (AI)" table columns
 msgid "Player aircraft"
 msgstr "Самолёты игроков"
 
@@ -2910,14 +2907,6 @@ msgstr "Тип двигателя"
 # llm-draft
 msgid "Purple"
 msgstr "Фиолетовый"
-
-# llm-draft
-msgid "PvE air kills"
-msgstr "против ИИ"
-
-# llm-draft
-msgid "PvP air kills"
-msgstr "против игроков"
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
@@ -3127,7 +3116,7 @@ msgid "Several bombers will not be making it home tonight. Fine hunting."
 msgstr "Несколько бомбардировщиков сегодня домой не вернутся. Отличная охота."
 
 # llm-draft
-msgid "Several kills in one flight. Time to buy the squadron a round."
+msgid "Several kills in one sortie. Time to buy the squadron a round."
 msgstr "Несколько побед за один вылет. Самое время поставить эскадрилье по кружке."
 
 # llm-draft
@@ -4159,8 +4148,8 @@ msgid "Where to find it:"
 msgstr "Где его найти:"
 
 # llm-draft
-msgid "Which fights to count"
-msgstr "Какие бои считать"
+msgid "Which kills and losses to count"
+msgstr "Какие победы и потери считать"
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

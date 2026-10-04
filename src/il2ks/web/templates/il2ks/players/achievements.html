@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/achievements.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/achievements.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's full medal list (FR-WEB-26). View: il2ks.web.views.achievements.player_achievements.
   Context: player, rows (ListRow: .info with key, name, description, icon; .tiers of (.tier number, name, slug, threshold;
@@ -10,7 +10,7 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% blocktranslate with name=player.current_name %}Achievements of {{ name }}{% endblocktranslate %}</h1>
-    <p>{% translate "Medals are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show when a tier was first reached." %}</p>
+    <p>{% translate "Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show when a tier was first reached." %}</p>
   </div>
   <ul class="medal-list">
     {% for row in rows %}

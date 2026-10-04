@@ -74,8 +74,9 @@ EVENT_LABELS: Mapping[str, str] = {
     "sortie_end": gettext_lazy("Sortie ended"),
     "bomb_release": gettext_lazy("Bomb release"),
     "rocket_salvo": gettext_lazy("Rocket salvo"),
-    "hit_given": gettext_lazy("Hit given"),
-    "hit_taken": gettext_lazy("Hit taken"),
+    # Translators: timeline rows for a burst of hits: the pilot hit an enemy (dealt) or was hit (taken)
+    "hit_given": gettext_lazy("Hit (dealt)"),
+    "hit_taken": gettext_lazy("Hit (taken)"),
 }
 EVENT_ICONS: Mapping[str, str] = {
     "spawn": "event/spawn",

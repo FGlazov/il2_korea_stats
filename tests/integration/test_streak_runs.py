@@ -171,8 +171,8 @@ def test_assists_received_show_as_a_detail_only_with_the_toggle(client: Client) 
     save(duel_mission(), meta("m1", STARTED_AT))
 
     html = client.get(f"/players/{pk(2)}/killboard/?tour=all").content.decode()
-    assert "Assisted on your losses: 1" in html
-    assert "Assisted on your losses" not in client.get(f"/players/{pk(3)}/killboard/?tour=all").content.decode()
+    assert "Assists on this pilot's losses: 1" in html
+    assert "Assists on this pilot's losses" not in client.get(f"/players/{pk(3)}/killboard/?tour=all").content.decode()
 
     rebuild_aggregates()  # toggle off again
-    assert "Assisted on your losses" not in client.get(f"/players/{pk(2)}/killboard/?tour=all").content.decode()
+    assert "Assists on this pilot's losses" not in client.get(f"/players/{pk(2)}/killboard/?tour=all").content.decode()

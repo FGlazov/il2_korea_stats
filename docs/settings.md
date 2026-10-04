@@ -40,7 +40,7 @@ Good to know:
   for a range of days (the server's local days), or `--mission UID` for one. It can take a long time on a big archive.
 - If another il2ks job holds the database (the log watcher is ingesting), the command stops with a message. Add
   `--wait 600` to wait up to ten minutes instead.
-- `rebuild-aggregates` is quick. Both commands also refresh the ratings, medals and tours.
+- `rebuild-aggregates` is quick. Both commands also refresh the ratings, achievements and tours.
 - `reprocess` reads the archived mission logs. If you set `[logs] after_archive = "delete"` there is no archive to
   read. The default keeps them in the data folder.
 - A changed rule only touches **new** missions until you reprocess. That is on purpose.
@@ -137,7 +137,7 @@ Install the new version as your install guide says ([Windows installer](install-
 
 1. makes a **backup** in the `backups` folder of your data folder,
 2. updates the database,
-3. fills in what the new version needs from the data you already have (new boards, medals, accuracy, ...). On a big
+3. fills in what the new version needs from the data you already have (new boards, achievements, accuracy, ...). On a big
    database this can take a few minutes. The site is not up until it is done.
 
 Afterwards run `il2ks doctor`. It lists settings that were renamed or removed, and customized pages that changed.

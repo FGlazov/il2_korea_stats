@@ -328,10 +328,10 @@ def test_intercept_flights_only(client: Client) -> None:
     body = client.get(
         reverse("web:aircraft-detail", args=[aircraft(MIG).pk]) + "?tour=all&intercept=1"
     ).content.decode()
-    assert "Intercept flights only" in body
-    assert 'aria-current="true">Intercept flights only' in body
+    assert "Intercept sorties only" in body
+    assert 'aria-current="true">Intercept sorties only' in body
     plain = client.get(reverse("web:aircraft-detail", args=[aircraft(MIG).pk]) + "?tour=all").content.decode()
-    assert 'aria-current="true">All fights' in plain
+    assert 'aria-current="true">All kills and losses' in plain
 
 
 def test_matchups_sort_and_ignore_a_bad_key(client: Client) -> None:

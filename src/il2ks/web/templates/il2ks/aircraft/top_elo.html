@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/top_elo.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/top_elo.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   top_elo.html: a type's best pilots by their Elo in it (OQ-49), on the aircraft detail page.
   Context: elo_pilots (PlayerAircraft rows with .player, .elo, .elo_games), rules (min_elo_games), primary (show the
@@ -13,6 +13,7 @@
           <th scope="col" class="num">#</th>
           <th scope="col">{% translate "Pilot" %}</th>
           <th scope="col" class="num">{% translate "Elo" %}</th>
+          {# Translators: Elo-rated PvP air kills between two pilots (each counts as an encounter); not all kills and losses #}
           <th scope="col" class="num">{% translate "Encounters" %}</th>
           <th scope="col" class="num">{% translate "Sorties" %}</th>
         </tr>
