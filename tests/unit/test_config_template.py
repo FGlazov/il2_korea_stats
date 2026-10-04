@@ -23,6 +23,7 @@ from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.stat_marks import MarkRules
+from il2ks.core.replay.toggles import RuleToggles
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
 SERVER_KEYS = {"timezone", "uid"}  # `Config.timezone_name` / `Config.server_uid`, stored under [server]
@@ -53,6 +54,7 @@ def test_template_lists_every_config_key() -> None:
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
         "live": {f.name for f in dataclasses.fields(LiveConfig)},
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
+        "rules": {f.name for f in dataclasses.fields(RuleToggles)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "marks": {f.name for f in dataclasses.fields(MarkRules)},
         "score": {f.name for f in dataclasses.fields(ScoreRules)}
@@ -82,6 +84,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "ingest",
         "live",
         "replay",
+        "rules",
         "ratings",
         "marks",
         "score",
