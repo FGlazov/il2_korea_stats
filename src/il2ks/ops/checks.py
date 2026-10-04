@@ -417,3 +417,49 @@ def config_warnings_check(cfg: Config) -> Iterable[Finding]:
     """Settings the config loader ignored (renamed keys): the site would silently use the defaults instead."""
     for message in cfg.warnings:
         yield Finding(Level.WARN, "Ignored setting in il2ks.toml", message, "Edit il2ks.toml as the message says.")
+
+
+@check
+def front_page_image_check(cfg: Config) -> Iterable[Finding]:
+    """The admin's large front-page image (FR-ADM-2): the file must exist, be readable by the account that runs il2ks
+    and be a PNG/JPEG/WebP that decodes. Silent while the feature is off."""
+    from django.db import DatabaseError
+
+    from il2ks.db.models import HomeFeature, SiteSettings
+    from il2ks.web.feature_image import FeatureImageError, inspect_source, process_feature
+
+    if applied_migrations(cfg.db_path) is None:
+        return
+    try:
+        row = SiteSettings.objects.filter(pk=1).first()
+    except DatabaseError:
+        return  # the database check reports an outdated database
+    if row is None or row.home_feature != HomeFeature.IMAGE.value:
+        return
+    fix = (
+        "Open the admin, Site settings, Front page image: fix the file location, or switch the image off. Docker: "
+        r"mount the file into the container. Windows service: give NT SERVICE\il2ks read access to the file."
+    )
+    try:
+        source = inspect_source(row.feature_image_path)
+        feature = process_feature(source)
+    except FeatureImageError as exc:
+        yield Finding(
+            Level.ERROR, "The front-page image cannot be used", f"{row.feature_image_path or '(no path)'}: {exc}", fix
+        )
+        return
+    detail = f"{row.feature_image_path}: {feature.width} x {feature.height} px after scaling"
+    if not row.feature_image:
+        yield Finding(
+            Level.WARN,
+            "The front-page image is valid but not published yet",
+            detail,
+            "The website picks it up within seconds while it runs (il2ks run or il2ks web); start it, or save the "
+            "admin's Site settings once.",
+        )
+    elif row.feature_error:
+        yield Finding(
+            Level.WARN, "The front-page image showed a problem the last time the file changed", row.feature_error, fix
+        )
+    else:
+        yield Finding(Level.OK, "Front-page image is fine", detail)

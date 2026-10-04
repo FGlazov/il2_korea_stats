@@ -2,7 +2,8 @@
 
 `python -m tests.e2e.branding '{"links": [["Discord", "https://d.example/", "discord"]], "site_title": "X"}'`
 Keys: `links` ([label, url, icon] triples), `site_title`, `server_name`, `theme`, `heading_font`, `body_font`,
-`font_files` ({"heading": path, "body": path} of .woff2 files to upload as custom fonts and select). Missing keys are
+`font_files` ({"heading": path, "body": path} of .woff2 files to upload as custom fonts and select),
+`feature_image` ({"path", "alt", "caption"}: the large front-page image, produced right away). Missing keys are
 reset to the default, so `{}` restores the shipped look. The data version is bumped (TD-28).
 """
 
@@ -39,7 +40,18 @@ def main() -> None:
         store_bytes(font.data, font.font.file, Path(settings.MEDIA_ROOT))
         row.custom_fonts.append(font.font.as_json())
         setattr(row, f"{role}_font", font.font.key)
+    feature = cast("dict[str, str] | None", spec.get("feature_image"))
+    row.home_feature = "image" if feature else "none"
+    row.feature_image_path = feature["path"] if feature else ""
+    row.feature_alt = feature.get("alt", "") if feature else ""
+    row.feature_caption = feature.get("caption", "") if feature else ""
+    row.feature_source_sig = ""
+    row.feature_image = row.feature_image_small = row.feature_error = ""
     row.save()
+    if feature:
+        from il2ks.web.feature_image import sync
+
+        sync(force=True)
     bump_data_version()
 
 

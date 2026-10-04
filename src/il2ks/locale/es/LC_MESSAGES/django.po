@@ -352,6 +352,9 @@ msgstr "Temporada nueva: el cuaderno de bitácora sigue en blanco. A escribir la
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Un alma generosa: reparte su munición con todos, incluidas sus alas."
 
+msgid "A large image, for example a map of the current situation, shown first on the front page."
+msgstr ""
+
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."
 msgstr "Un día largo en la oficina. El indicador de combustible te manda su respeto."
@@ -650,6 +653,9 @@ msgstr "Histórico"
 # llm-draft
 msgid "Also known as"
 msgstr "También conocido como"
+
+msgid "Alternative text"
+msgstr ""
 
 # llm-draft
 msgid "Ammunition"
@@ -1012,6 +1018,9 @@ msgstr "Semanas naturales seguidas (de lunes a domingo, UTC) con al menos una sa
 msgid "Cannon shells"
 msgstr "Proyectiles de cañón"
 
+msgid "Caption"
+msgstr ""
+
 # llm-draft
 msgid "Captured"
 msgstr "Capturado"
@@ -1198,6 +1207,9 @@ msgstr "Muertes y aeronaves perdidas por causa"
 msgid "Default (clears all colors below)"
 msgstr "Predeterminado (borra todos los colores de abajo)"
 
+msgid "Describe the image in a few words; screen readers read this text."
+msgstr ""
+
 # llm-draft
 msgid "Desert sand"
 msgstr "Arena del desierto"
@@ -1323,6 +1335,9 @@ msgstr "Motores calientes y cielo a la espera. ¡Abre la temporada con la primer
 # llm-draft
 msgid "Enter a full http:// or https:// address."
 msgstr "Introduce una dirección completa que empiece por http:// o https://."
+
+msgid "Enter the location of the image file."
+msgstr ""
 
 # llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
@@ -1521,9 +1536,22 @@ msgstr "Víctima aliada"
 msgid "Friendly-fire kills"
 msgstr "Derribos por fuego amigo"
 
+msgid "Front page image"
+msgstr ""
+
+msgid "Front page image: status"
+msgstr ""
+
 # llm-draft
 msgid "Full killboard"
 msgstr "Registro de derribos completo"
+
+msgid ""
+"Full path of a PNG, JPEG or WebP file on the machine that runs il2ks, for example a map that another program "
+"regenerates. il2ks checks the file every few seconds and shows the new picture within about ten seconds. The file "
+"itself is never published: a checked, re-encoded copy is (at most 2560 px wide, 40 MB and 64 megapixels). Docker: the"
+" file must be mounted into the container. Windows service: the account NT SERVICE\\il2ks needs read access."
+msgstr ""
 
 # llm-draft
 msgid "General"
@@ -1833,6 +1861,9 @@ msgstr "Ya tengo mi propio servidor web"
 msgid "I have no domain name yet"
 msgstr "Todavía no tengo nombre de dominio"
 
+msgid "Image file on the server"
+msgstr ""
+
 # llm-draft
 msgid "In aircraft"
 msgstr "En la aeronave"
@@ -2025,6 +2056,9 @@ msgstr "Aterrizajes"
 # llm-draft
 msgid "Language"
 msgstr "Idioma"
+
+msgid "Large image on the front page"
+msgstr ""
 
 # llm-draft
 msgid "Last"
@@ -2349,6 +2383,9 @@ msgstr "Sin atacante (accidente, terreno, percance)"
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
 msgstr "No se acredita a ningún atacante: la aeronave se perdió por su propia culpa (terreno, sobreesfuerzo o accidente)."
 
+msgid "No file location is set."
+msgstr ""
+
 # llm-draft
 msgid "No ground kills."
 msgstr "Sin blancos terrestres."
@@ -2392,6 +2429,9 @@ msgid ""
 msgstr ""
 "No habrá más reintentos automáticos. Se reintentan cuando cambian sus archivos o la versión de il2ks, o ejecuta "
 "`il2ks reprocess --mission UID` tras corregir la causa."
+
+msgid "No picture yet."
+msgstr ""
 
 # llm-draft
 msgid "No pilot has enough attack sorties in this aircraft yet."
@@ -2572,6 +2612,9 @@ msgstr "Todavía no hay nada que mostrar."
 msgid "OK"
 msgstr "Aceptar"
 
+msgid "Off by default: the front page then looks as usual."
+msgstr ""
+
 # llm-draft
 msgid "On the ground"
 msgstr "En tierra"
@@ -2598,6 +2641,9 @@ msgstr ""
 "Solo derribos en los que ambos pilotos volaron una salida de superioridad aérea (caza contra caza); las salidas de "
 "ataque no cuentan."
 
+msgid "Open the full-size image"
+msgstr ""
+
 # llm-draft
 msgid "Open the site"
 msgstr "Abrir el sitio"
@@ -2613,6 +2659,9 @@ msgstr "Operaciones"
 # llm-draft
 msgid "Opponent"
 msgstr "Oponente"
+
+msgid "Optional title shown under the image."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -2737,6 +2786,9 @@ msgstr "Por hora"
 # llm-draft
 msgid "Period"
 msgstr "Periodo"
+
+msgid "Picture taken from the file as of (UTC):"
+msgstr ""
 
 # llm-draft
 msgid "Pilot"
@@ -2887,6 +2939,9 @@ msgstr "Anterior"
 msgid "Previous file kept as %(path)s"
 msgstr "El archivo anterior se conservó como %(path)s"
 
+msgid "Problem:"
+msgstr ""
+
 # llm-draft
 msgid "Problems"
 msgstr "Problemas"
@@ -2995,6 +3050,9 @@ msgstr "Reprocesar todas las misiones…"
 # llm-draft
 msgid "Reprocessing of all missions is requested. It starts at the next watch tick."
 msgstr "Se ha solicitado reprocesar todas las misiones. Empezará en el siguiente ciclo de vigilancia."
+
+msgid "Required when the image is on: a short description for people who cannot see the picture."
+msgstr ""
 
 # llm-draft
 msgid "Reset display names to the catalog defaults"
@@ -3576,6 +3634,9 @@ msgstr "El jefe de mecánicos tendrá opiniones sobre este."
 msgid "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
 msgstr "Al enemigo le tocó bien. Solo que otro estaba justo en la línea de meta."
 
+msgid "The file could not be read (is the network share or drive available?)."
+msgstr ""
+
 # llm-draft
 msgid "The file is empty."
 msgstr "El archivo está vacío."
@@ -3671,6 +3732,9 @@ msgstr ""
 "La tarea se ejecuta en el proceso de vigilancia (no en esta página) y empieza en su siguiente ciclo. Puedes seguirla "
 "en la página de estado del procesamiento."
 
+msgid "The location cannot be reached (is the network share or drive available?)."
+msgstr ""
+
 # llm-draft
 msgid "The log does not name an attacker."
 msgstr "El registro no indica ningún atacante."
@@ -3746,6 +3810,11 @@ msgstr ""
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "El servidor encontró un error al generar esta página. Inténtalo de nuevo en un momento."
 
+msgid ""
+"The server is not allowed to read this file. Give the account that runs il2ks read access to the file (Windows "
+"service: NT SERVICE\\il2ks; Docker: mount the file into the container)."
+msgstr ""
+
 # llm-draft
 msgid "The server stopped before the mission ended; the numbers may be partial."
 msgstr "El servidor se detuvo antes de que acabara la misión; las cifras pueden ser parciales."
@@ -3809,6 +3878,9 @@ msgstr "La guerra esperaba, pero la calle de rodaje tenía otros planes."
 msgid "The wheels were still folding when the first kill reached the log."
 msgstr "El tren de aterrizaje aún se estaba recogiendo y el primer derribo ya estaba en el registro."
 
+msgid "There is no file at this location (the server could not find it)."
+msgstr ""
+
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaron sin un evento de fin de misión; conviene revisarlas por si el servidor se cayó a mitad de la misión."
@@ -3829,6 +3901,12 @@ msgstr "Esto no es una imagen PNG, JPEG o WebP (no se acepta SVG)."
 #, python-format
 msgid "This is not a valid %(kind)s font file."
 msgstr "Este no es un archivo de fuente %(kind)s válido."
+
+msgid "This location is a folder; enter the path of the image file itself."
+msgstr ""
+
+msgid "This location is not a regular file."
+msgstr ""
 
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
@@ -4045,6 +4123,9 @@ msgstr "Desconocido: se reabasteció durante la salida"
 # llm-draft
 msgid "Until"
 msgstr "Hasta"
+
+msgid "Updated"
+msgstr ""
 
 #, python-format
 msgid "Updated %(when)s"

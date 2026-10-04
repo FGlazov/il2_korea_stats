@@ -252,3 +252,12 @@ _.round_type  # core.catalog.loader.AmmoInfo: same
 _.compute_ratings  # pure-function wrapper over compute_all_ratings, kept for the unit tests (pools only)
 _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.archive.write_archive
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
+# --- front-page image (FR-ADM-2) ---
+_.feature_status  # ModelAdmin readonly field (SiteSettingsAdmin.readonly_fields)
+_.small_url  # web.feature_image.HomeFeatureView: read by il2ks/home_feature.html
+_.small_width
+_.caption
+_.alt
+_.help_texts  # SiteSettingsForm.Meta (Django ModelForm option)
+_.clean_home_feature  # Django form hook: SiteSettingsForm.clean_<field>
+_.required  # Django form field attribute (SiteSettingsForm.__init__: home_feature is optional in a post)

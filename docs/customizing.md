@@ -93,6 +93,28 @@ that was in use falls back to the default). A preview line shows each uploaded f
 If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
 `--il2-font-display` / `--pico-font-family` line in a small stylesheet from the `head` block (section 2).
 
+### A large image on the front page
+
+Under **Front page image** you can show a large picture first on the front page, for example a **map of the current
+situation** that another program regenerates. It is **off by default** (the front page then looks as before).
+
+- **Image file on the server**: the full path of a PNG, JPEG or WebP file on the machine that runs il2ks (a relative
+  path starts in the data folder). il2ks looks at the file's modification time and size every few seconds (this works on
+  Windows, Linux and network shares) and shows a changed picture within about ten seconds; there is nothing to restart.
+- **Caption** (optional) and **Alternative text** (required: a short description for people who cannot see the picture).
+  The page also shows "Updated" with the file's time.
+- The file itself is **never published**: il2ks checks that it really is an image (at most 40 MB and 64 megapixels),
+  decodes it and stores a clean re-encoded WebP copy (at most 2560 px wide, plus a 960 px version for phones) in
+  `<data folder>/media/branding/`. An admin cannot use the path to read other files on the server. Clicking the image
+  opens the full-size copy.
+- A wrong path (missing, a folder, not an image) is refused when you save, with the reason. If the file later breaks (for
+  example while the other program is half way through writing it), the last good picture stays and the admin page and
+  `il2ks doctor` show the problem.
+- **Docker**: the file must be inside the container: mount it (for example `- /srv/maps/situation.png:/maps/situation.png:ro`
+  under `volumes:`) and enter the path as the container sees it (`/maps/situation.png`).
+- **Windows service**: the service runs as `NT SERVICE\il2ks`, which needs read access to the file (and to a network share
+  it can use without your login). Grant it with `icacls "D:\maps" /grant "NT SERVICE\il2ks:(OI)(CI)R"`.
+
 ## 2. `custom/` overrides
 
 Inside your **data folder** (the folder with the database and `logs/`; `il2ks.toml` says where it is) il2ks keeps a

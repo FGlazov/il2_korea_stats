@@ -363,6 +363,9 @@ msgstr "Новый тур: лётная книжка пока пуста. Пор
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Щедрая душа: делится боезапасом со всеми, ведомые не исключение."
 
+msgid "A large image, for example a map of the current situation, shown first on the front page."
+msgstr ""
+
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."
 msgstr "Долгий рабочий день. Топливомер проникся уважением."
@@ -664,6 +667,9 @@ msgstr "За всё время"
 # llm-draft
 msgid "Also known as"
 msgstr "Также известен как"
+
+msgid "Alternative text"
+msgstr ""
 
 # llm-draft
 msgid "Ammunition"
@@ -1032,6 +1038,9 @@ msgstr "Календарные недели подряд (с понедельн�
 msgid "Cannon shells"
 msgstr "Снаряды пушек"
 
+msgid "Caption"
+msgstr ""
+
 # llm-draft
 msgid "Captured"
 msgstr "В плену"
@@ -1218,6 +1227,9 @@ msgstr "Гибели и потерянные самолёты по причин�
 msgid "Default (clears all colors below)"
 msgstr "По умолчанию (сбрасывает все цвета ниже)"
 
+msgid "Describe the image in a few words; screen readers read this text."
+msgstr ""
+
 # llm-draft
 msgid "Desert sand"
 msgstr "Песок пустыни"
@@ -1343,6 +1355,9 @@ msgstr "Моторы прогреты, небо ждёт. Первый выле�
 # llm-draft
 msgid "Enter a full http:// or https:// address."
 msgstr "Введите полный адрес, начинающийся с http:// или https://."
+
+msgid "Enter the location of the image file."
+msgstr ""
 
 # llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
@@ -1541,9 +1556,22 @@ msgstr "Свой пострадавший"
 msgid "Friendly-fire kills"
 msgstr "Огонь по своим: уничтожено"
 
+msgid "Front page image"
+msgstr ""
+
+msgid "Front page image: status"
+msgstr ""
+
 # llm-draft
 msgid "Full killboard"
 msgstr "Полный журнал побед"
+
+msgid ""
+"Full path of a PNG, JPEG or WebP file on the machine that runs il2ks, for example a map that another program "
+"regenerates. il2ks checks the file every few seconds and shows the new picture within about ten seconds. The file "
+"itself is never published: a checked, re-encoded copy is (at most 2560 px wide, 40 MB and 64 megapixels). Docker: the"
+" file must be mounted into the container. Windows service: the account NT SERVICE\\il2ks needs read access."
+msgstr ""
 
 # llm-draft
 msgid "General"
@@ -1855,6 +1883,9 @@ msgstr "У меня уже есть свой веб-сервер"
 msgid "I have no domain name yet"
 msgstr "У меня пока нет доменного имени"
 
+msgid "Image file on the server"
+msgstr ""
+
 # llm-draft
 msgid "In aircraft"
 msgstr "В самолёте"
@@ -2047,6 +2078,9 @@ msgstr "Посадки"
 # llm-draft
 msgid "Language"
 msgstr "Язык"
+
+msgid "Large image on the front page"
+msgstr ""
 
 # llm-draft
 msgid "Last"
@@ -2369,6 +2403,9 @@ msgstr "Без атаковавшего (падение, местность, п�
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
 msgstr "Атаковавший не указан: самолёт потерян по собственной вине (столкновение с землёй, перегрузка или происшествие)."
 
+msgid "No file location is set."
+msgstr ""
+
 # llm-draft
 msgid "No ground kills."
 msgstr "Наземных целей нет."
@@ -2412,6 +2449,9 @@ msgid ""
 msgstr ""
 "Автоматических повторов больше не будет. Повтор происходит, когда меняются их файлы или версия il2ks; либо выполните "
 "`il2ks reprocess --mission UID` после устранения причины."
+
+msgid "No picture yet."
+msgstr ""
 
 # llm-draft
 msgid "No pilot has enough attack sorties in this aircraft yet."
@@ -2592,6 +2632,9 @@ msgstr "Пока нечего показывать."
 msgid "OK"
 msgstr "OK"
 
+msgid "Off by default: the front page then looks as usual."
+msgstr ""
+
 # llm-draft
 msgid "On the ground"
 msgstr "На земле"
@@ -2618,6 +2661,9 @@ msgstr ""
 "Только победы, где оба пилота выполняли вылет на господство в воздухе (истребитель против истребителя); штурмовые "
 "вылеты не учитываются."
 
+msgid "Open the full-size image"
+msgstr ""
+
 # llm-draft
 msgid "Open the site"
 msgstr "Открыть сайт"
@@ -2633,6 +2679,9 @@ msgstr "Операции"
 # llm-draft
 msgid "Opponent"
 msgstr "Противник"
+
+msgid "Optional title shown under the image."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -2756,6 +2805,9 @@ msgstr "В час"
 # llm-draft
 msgid "Period"
 msgstr "Период"
+
+msgid "Picture taken from the file as of (UTC):"
+msgstr ""
 
 # llm-draft
 msgid "Pilot"
@@ -2908,6 +2960,9 @@ msgstr "Назад"
 msgid "Previous file kept as %(path)s"
 msgstr "Прежний файл сохранён как %(path)s"
 
+msgid "Problem:"
+msgstr ""
+
 # llm-draft
 msgid "Problems"
 msgstr "Проблемы"
@@ -3017,6 +3072,9 @@ msgstr "Заново обработать все миссии…"
 # llm-draft
 msgid "Reprocessing of all missions is requested. It starts at the next watch tick."
 msgstr "Повторная обработка всех миссий запрошена. Она начнётся на следующем такте наблюдения."
+
+msgid "Required when the image is on: a short description for people who cannot see the picture."
+msgstr ""
 
 # llm-draft
 msgid "Reset display names to the catalog defaults"
@@ -3598,6 +3656,9 @@ msgstr "У старшего техника будет что сказать по
 msgid "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
 msgstr "Противнику досталось по-настоящему. Просто на финише оказался кто-то другой."
 
+msgid "The file could not be read (is the network share or drive available?)."
+msgstr ""
+
 # llm-draft
 msgid "The file is empty."
 msgstr "Файл пуст."
@@ -3694,6 +3755,9 @@ msgstr ""
 "Задание выполняется в процессе наблюдения (не на этой странице) и начнётся на его следующем такте. Следить за ним "
 "можно на странице состояния обработки."
 
+msgid "The location cannot be reached (is the network share or drive available?)."
+msgstr ""
+
 # llm-draft
 msgid "The log does not name an attacker."
 msgstr "В журнале не указан атаковавший."
@@ -3769,6 +3833,11 @@ msgstr ""
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "При построении этой страницы на сервере произошла ошибка. Повторите попытку чуть позже."
 
+msgid ""
+"The server is not allowed to read this file. Give the account that runs il2ks read access to the file (Windows "
+"service: NT SERVICE\\il2ks; Docker: mount the file into the container)."
+msgstr ""
+
 # llm-draft
 msgid "The server stopped before the mission ended; the numbers may be partial."
 msgstr "Сервер остановился до конца миссии; цифры могут быть неполными."
@@ -3830,6 +3899,9 @@ msgstr "Война ждала, а рулёжка решила иначе."
 msgid "The wheels were still folding when the first kill reached the log."
 msgstr "Шасси ещё убирались, а первая победа уже попала в журнал."
 
+msgid "There is no file at this location (the server could not find it)."
+msgstr ""
+
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Эти миссии закончились без события завершения; стоит проверить, не упал ли сервер посреди миссии."
@@ -3850,6 +3922,12 @@ msgstr "Это не изображение PNG, JPEG или WebP (SVG не пр�
 #, python-format
 msgid "This is not a valid %(kind)s font file."
 msgstr "Это не корректный файл шрифта %(kind)s."
+
+msgid "This location is a folder; enter the path of the image file itself."
+msgstr ""
+
+msgid "This location is not a regular file."
+msgstr ""
 
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
@@ -4065,6 +4143,9 @@ msgstr "Неизвестно: в этом вылете боекомплект п
 # llm-draft
 msgid "Until"
 msgstr "До"
+
+msgid "Updated"
+msgstr ""
 
 #, python-format
 msgid "Updated %(when)s"
