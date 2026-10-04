@@ -6,7 +6,7 @@ Lighthouse are not needed).
 
 | Question | Tool | Where | Runs in CI |
 |---|---|---|---|
-| Did a page get slower or start running more queries? | server timing and query budgets | `tests/perf/` (`pytest -m perf`) | every test job |
+| Did a page get slower or start running more queries? | server timing and query budgets | `tests/perf/` (`pytest -m perf`) | own CI job `test-perf` (SQLite, then Postgres); the other test jobs run `-m "not perf"` |
 | Did a page get heavier, or start blocking rendering? | page weight, request and render-blocking budgets | `tests/e2e/test_frontend_performance.py` | `test-e2e` job |
 | Does the browser see a slow paint or a jumping layout? | LCP, CLS, TBT via `PerformanceObserver` | same file | `test-e2e` job |
 | What happens with many visitors at once? | Locust | `loadtest/` | manual only (`Load test` workflow) |
@@ -15,7 +15,7 @@ Lighthouse are not needed).
 
 ```
 uv run pytest -m perf                 # only these
-uv run pytest -m "not perf"           # everything else (they also run in a plain `uv run pytest`)
+uv run pytest -m "not perf"           # everything else (they also run in a plain `uv run pytest` locally; CI keeps them out of the functional jobs)
 IL2KS_PERF_REPORT=1 uv run pytest -m perf -s    # print the measured medians
 ```
 

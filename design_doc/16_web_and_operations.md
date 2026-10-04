@@ -55,6 +55,10 @@ How the website, the admin and the operations commands are built (iteration 1, p
 - **Mission detail**: tiles, one sortie table per side (mission clock, pilot, aircraft, combat role, outcome, fate, kills, flight time),
   the PvP kill list. A hidden player keeps an **anonymised row** ("Hidden player", no links) so the mission's numbers still add up (gut
   call on FR-ADM-3's "gone from rosters").
+- **Mission page sortie tables** (2026-10-04, OQ-113): the three sortie tables (REDFOR, BLUFOR, others) are sortable and take optional columns.
+  One `?sort=` (`queries/missions.py::SORTIE_SORT_FIELDS`, a whitelist, `-` = descending, ties by spawn time, NULLs last, hidden players' rows last)
+  orders all three; `?cols=` (`columns.MISSION_SORTIE_COLUMNS`: damage taken plus the player sortie list's extras, air / ground assists included)
+  adds columns; unknown values are ignored; the kills table takes neither. One sortie query, the sort is done in SQL.
 - **Player search**: live search on current and past names ("also known as"), recently active players when empty, sortable.
 - **Player profile** (FR-WEB-4; reworked 2026-10-04: air and ground apart, shame and latest sorties near the top). Top to bottom: the header
   (past names), the tour selector, an in-page nav (plain anchors: Recent sorties, Air-to-air, Air-to-ground, Overall), the general tiles (sorties
@@ -72,7 +76,8 @@ How the website, the admin and the operations commands are built (iteration 1, p
 - **Sortie page** (FR-WEB-6, extended 2026-10-04): the pilot fate as Dead / Captured / Survived with the stored fate as a note (`pilot_fate_badge
   sortie detail=True`); the timeline table has a **Damage** column with the signed percent of each hit row (+ given, − taken, from the `hit_given` /
   `hit_taken` rows, doc 13 "Timeline hits") and the ammo of the nearest hit; the ammo table dashes "Left" after a loss and explains why (doc 13);
-  "Earned in this sortie" lists the medals (+1 query); the quip (below).
+  "Earned in this sortie" lists the medals (+1 query); the quip (below). Timeline **hit rows are tinted**: light green for a hit given, light red for a
+  hit taken (a 9% mix of the `--il2-green` / `--il2-red` theme tokens in `sorties.css`, so both themes work). Air and ground assists are listed apart.
 - **Optional columns** (FR-WEB-27, 2026-10-04): the player search, mission list, aircraft list and a player's sortie list keep their default
   columns in their templates and offer more through a "Columns" control (`components/columns_picker.html`, a plain GET form, works without JS).
   `web/columns.py` registers per list the optional `Column(key, label, cell)`; `?cols=a,b` (comma separated or repeated) picks them, unknown keys
@@ -100,14 +105,15 @@ How the website, the admin and the operations commands are built (iteration 1, p
   and stay as they are.
 - **Flavor text** (FR-WEB-23, 2026-10-03): `web/flavor.py` `SPOTS` maps a spot to translatable variants; `{% flavor "spot" seed %}` picks
   one by SHA-256 of `spot:seed` (stable across restarts and languages, so caching holds); `{% sortie_flavor %}` picks the sortie spot with `flavor.sortie_spot`, the first match of: taxi accident, friendly kills, captured, shot down
-  by an AI gunner, ditched, shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **ace** (3+
-  air kills), **stolen kills** (assists at least 3 with no air kill, 5 with one, 6 with two or more below the ace line; maintainer 2026-10-04,
-  OQ-107), **battered victor** (landed, 50%+ damage taken, 2+ kills), limped home (the same damage, fewer kills), **ground pounder** (70+ ground
+  by an AI gunner, ditched, **strafed** (`sortie_strafed` parked, `sortie_strafed_landed` after a landing; doc 13, OQ-112), shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **ace** (3+
+  air kills), **stolen kills** (**air** assists: 2+ with no air kill, 3+ with one, 6+ with two, below the ace line; maintainer 2026-10-04, OQ-107
+  resolved, the variants reworded to fit pilots with kills), **stolen targets** (5+ **ground** assists, at least the own ground kills, under 70
+  ground kills; OQ-111), **battered victor** (landed, 50%+ damage taken, 2+ kills), limped home (the same damage, fewer kills), **ground pounder** (70+ ground
   kills), **quick first kill** (within 7 minutes of takeoff or an air start's spawn), **marathon** (1 hour or more of flight); none for gunners or
   ordinary sorties. The bomber and first-kill facts come from the timeline (`sortie_view.build_highlights`, `Highlights`); without it those two
   spots are skipped. Thresholds were read off the September 2026 archive (15,245 pilot sorties; each spot fires on 0.2% to 2% of them). Other
   spots: hall of shame (taxi only, friendly fire only, both, none, and the three warmer p90 variants), home top pilots (doesn't name the pilot),
-  home "nobody scored", an empty tour. Quiet italic `.flavor` style. Placement and wording: OQ-53, OQ-74, OQ-107.
+  home "nobody scored", an empty tour. Quiet italic `.flavor` style. Placement and wording: OQ-53, OQ-74, OQ-111, OQ-112.
 - **Sortie map** (FR-WEB-12, 2026-10-03; **not on main**: benched until after the release, OQ-54/55, the code stays on its branch): an accordion (open) on the sortie page with a server-rendered inline SVG of the key events
   from the stored timeline (+0 queries): numbered markers with the event icons, a faint dashed line in time order (labelled "not the
   flight path"), a km grid in absolute game coordinates, an N arrow, a legend, `<title>` tooltips; the timeline table is the textual
