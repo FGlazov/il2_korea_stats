@@ -367,6 +367,8 @@ def test_the_sortie_page_shows_both_scopes() -> None:
 def test_the_home_feed_lists_the_newest_uncommon_tiers_and_never_links_a_hidden_mission() -> None:
     seed()
     client = Client()
+    # a busier server: one in ten pilots holds Target-Rich (silver), so it is uncommon enough for the feed
+    AchievementHolders.objects.filter(tour=None, key="ground_sortie", tier=2).update(holders=1, pilots=10)
 
     html = client.get("/?tour=all").content.decode()
 

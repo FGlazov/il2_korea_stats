@@ -49,7 +49,7 @@ def sortie_medals(sortie: PlayerSortie) -> list[medals.Medal]:
 @register.simple_tag
 def recent_medals(tour: Tour | None = None) -> list[FeedItem]:
     """The home feed: the newest tiers earned in the scope by visible players, newest first, `FEED_SHOWN` at most.
-    Hall-of-shame entries and bronze ribbons are never in it (the query), and neither is a bronze-level medal that
+    Hall-of-shame entries and bronze ribbons are never in it (the query), and neither is any tier that
     `COMMON_FEED_FROM` percent of the pilots hold already (doc 17, `[PROPOSED]`)."""
     rows = reads.recent_rows(tour)
     if not rows:
@@ -61,7 +61,7 @@ def recent_medals(tour: Tour | None = None) -> list[FeedItem]:
         if medal is None:
             continue
         share = medal.rarity.share
-        if medal.tier == 1 and share is not None and share >= medals.COMMON_FEED_FROM:
+        if share is not None and share >= medals.COMMON_FEED_FROM:
             continue
         feed.append(FeedItem(medal, row.player_id, row.player.current_name))
         if len(feed) == FEED_SHOWN:
