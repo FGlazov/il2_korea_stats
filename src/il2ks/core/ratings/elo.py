@@ -13,6 +13,11 @@ between two air superiority sorties, named by the winner's and the loser's playe
 - Both sides of a game that changes ratings get +1 game in the pool whose rating changed. Games where winner and loser
   are the same player are ignored.
 
+The same games also feed a **per-type rating** for each `(player, aircraft type)` (OQ-49/50: rank a type's top pilots
+by skill). It follows exactly the same rules, with each side's rating being the one for the aircraft type it flew, so a
+pilot's Be 109 rating and their Spitfire rating are independent. It comes from the same pass over the games
+(`compute_all_ratings`), which stays a single replay.
+
 The result depends on the order of the games, so the caller passes them in chronological order.
 """
 
@@ -45,6 +50,8 @@ class Game:
     winner_pool: Pool
     loser: int
     loser_pool: Pool
+    winner_aircraft: int = 0  # GameObject id of the winner's aircraft type (0: unknown, only the pool ratings count)
+    loser_aircraft: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +61,15 @@ class Rating:
 
 
 type RatingKey = tuple[int, Pool]  # (player id, pool)
+type TypeKey = tuple[int, int]  # (player id, aircraft type id)
+
+
+@dataclass(frozen=True, slots=True)
+class AllRatings:
+    """The pool ratings and the per-type ratings of one replay; pairs without a rating-changing game are absent."""
+
+    pools: dict[RatingKey, Rating]
+    types: dict[TypeKey, Rating]
 
 
 def expected_score(rating: float, opponent: float) -> float:
@@ -65,21 +81,43 @@ def compute_ratings(games: Iterable[Game], rules: RatingRules) -> dict[RatingKey
     """Rating and number of games per `(player, pool)`, for every pair that played at least one rating-changing game.
 
     Pairs without a game are not in the result: their rating is `rules.start` with 0 games."""
-    ratings: dict[RatingKey, float] = {}
-    counts: dict[RatingKey, int] = {}
+    return compute_all_ratings(games, rules).pools
+
+
+def compute_all_ratings(games: Iterable[Game], rules: RatingRules) -> AllRatings:
+    """The pool ratings and the per-type ratings in one pass over the (chronological) games. A game whose side has no
+    aircraft type (id 0) leaves that side's per-type rating alone."""
+    pools = _Elo[RatingKey](rules)
+    types = _Elo[TypeKey](rules)
     for game in games:
         if game.winner == game.loser:
             continue
         if game.winner_pool == "jet" and game.loser_pool == "prop":
             continue  # a jet beating a prop aircraft is the expected result
         weight = rules.cross_pool_weight if game.winner_pool == "prop" and game.loser_pool == "jet" else 1.0
-        won: RatingKey = (game.winner, game.winner_pool)
-        lost: RatingKey = (game.loser, game.loser_pool)
-        winner_rating = ratings.get(won, rules.start)
-        loser_rating = ratings.get(lost, rules.start)
-        change = rules.k * weight * (1.0 - expected_score(winner_rating, loser_rating))
-        ratings[won] = winner_rating + change
-        ratings[lost] = loser_rating - change
-        counts[won] = counts.get(won, 0) + 1
-        counts[lost] = counts.get(lost, 0) + 1
-    return {key: Rating(rating, counts[key]) for key, rating in ratings.items()}
+        pools.play((game.winner, game.winner_pool), (game.loser, game.loser_pool), weight)
+        if game.winner_aircraft and game.loser_aircraft:
+            types.play((game.winner, game.winner_aircraft), (game.loser, game.loser_aircraft), weight)
+    return AllRatings(pools.result(), types.result())
+
+
+class _Elo[K]:
+    """Ratings and game counts of one kind of key (a pool or an aircraft type)."""
+
+    def __init__(self, rules: RatingRules) -> None:
+        self._rules = rules
+        self._ratings: dict[K, float] = {}
+        self._counts: dict[K, int] = {}
+
+    def play(self, won: K, lost: K, weight: float) -> None:
+        start = self._rules.start
+        winner_rating = self._ratings.get(won, start)
+        loser_rating = self._ratings.get(lost, start)
+        change = self._rules.k * weight * (1.0 - expected_score(winner_rating, loser_rating))
+        self._ratings[won] = winner_rating + change
+        self._ratings[lost] = loser_rating - change
+        self._counts[won] = self._counts.get(won, 0) + 1
+        self._counts[lost] = self._counts.get(lost, 0) + 1
+
+    def result(self) -> dict[K, Rating]:
+        return {key: Rating(rating, self._counts[key]) for key, rating in self._ratings.items()}

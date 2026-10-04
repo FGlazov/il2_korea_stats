@@ -98,8 +98,8 @@ def test_score_section_and_env(tmp_path: Path) -> None:
     assert load_config(None, env).score == ScoreRules()
     assert load_config(None, env).leaderboards == LeaderboardConfig()
     file = write_toml(tmp_path / "il2ks.toml", "[score]\nair_kill_pvp = 25\nground_other = 0\nmin_sorties = 2\n")
-    cfg = load_config(file, {**env, "IL2KS_SCORE_PENALTY_DEATH": "7.5", "IL2KS_SCORE_MIN_ELO_GAMES": "3"})
-    assert cfg.score == ScoreRules(air_kill_pvp=25.0, ground_other=0.0, penalty_death=7.5)
+    cfg = load_config(file, {**env, "IL2KS_SCORE_PENALTY_DEATH_PCT": "70.5", "IL2KS_SCORE_MIN_ELO_GAMES": "3"})
+    assert cfg.score == ScoreRules(air_kill_pvp=25.0, ground_other=0.0, penalty_death_pct=70.5)
     assert cfg.leaderboards == LeaderboardConfig(min_sorties=2, min_elo_games=3)
 
 
@@ -162,7 +162,7 @@ def test_missing_explicit_file_is_an_error(tmp_path: Path) -> None:
         ("[ingest]\nretry_backoff_minutes = [5, 0]", "greater than 0"),
         ('[replay]\nbailout_min_distance_m = "far"', "bailout_min_distance_m"),
         ("[ratings]\nk = -1", r"ratings\.k"),
-        ("[score]\npenalty_death = -1", r"score\.penalty_death"),
+        ("[score]\npenalty_death_pct = -1", r"score\.penalty_death_pct"),
         ('[score]\nground_tank = "lots"', r"score\.ground_tank"),
         ("[score]\nmin_sorties = 1.5", "whole number"),
         ('[ratings]\ncross_pool_weight = "double"', "ratings.cross_pool_weight"),

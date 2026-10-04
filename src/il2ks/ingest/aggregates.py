@@ -41,9 +41,12 @@ from il2ks.db.models import (
     PlayerAircraft,
     PlayerMission,
     PlayerName,
+    PlayerPool,
     PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
+    PlayerTourPool,
+    Propulsion,
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.activity import rebuild_activity
@@ -70,6 +73,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
       rows without counted sorties are deleted.
     - `PlayerTour` = the sum of the player's `PlayerMission` rows per tour; `PlayerTourAircraft` = counted sorties per
       tour and aircraft. Rows without anything left are deleted.
+    - `PlayerPool` / `PlayerTourPool` = the same grouped by the aircraft's propulsion (prop / jet) instead of the type.
     - Identity fields and the `PlayerName` history from all sorties of any role (`_refresh_identity`).
     Players are never deleted."""
     ids = sorted(set(player_ids))
@@ -78,6 +82,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         chunk = ids[start : start + CHUNK]
         _recompute_totals(chunk)
         _recompute_aircraft(chunk)
+        _recompute_pools(chunk)
         _recompute_tours(chunk, tours)
         _refresh_identity(chunk)
         recompute_killboard(chunk)  # level-2 pair rows, ingest.pairs (FR-WEB-9)
@@ -188,6 +193,18 @@ def _recompute_aircraft(chunk: list[int]) -> None:
     _sync(PlayerAircraft, ("player_id", "aircraft_id"), wanted, PlayerAircraft.objects.filter(player_id__in=chunk))
 
 
+def _recompute_pools(chunk: list[int]) -> None:
+    """`PlayerPool`: the all-time counters per propulsion (prop / jet), for the split leaderboards."""
+    wanted = {
+        (row["player_id"], row["aircraft__propulsion"]): clean_counters(row)
+        for row in counted_sorties()
+        .filter(player_id__in=chunk, aircraft__propulsion__in=Propulsion.values)
+        .values("player_id", "aircraft__propulsion")
+        .annotate(**SORTIE_COUNTERS)
+    }
+    _sync(PlayerPool, ("player_id", "propulsion"), wanted, PlayerPool.objects.filter(player_id__in=chunk))
+
+
 def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
     """`PlayerTour` and `PlayerTourAircraft` for these players, limited to `tour_ids` unless that is None."""
     missions = PlayerMission.objects.filter(player_id__in=chunk, mission__tour__isnull=False)
@@ -210,6 +227,16 @@ def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
         for row in sorties.values("player_id", "mission__tour_id", "aircraft_id").annotate(**SORTIE_COUNTERS)
     }
     _sync(PlayerTourAircraft, ("player_id", "tour_id", "aircraft_id"), wanted_aircraft, aircraft)
+    pools = PlayerTourPool.objects.filter(player_id__in=chunk)
+    if tour_ids is not None:
+        pools = pools.filter(tour_id__in=tour_ids)
+    wanted_pools = {
+        (row["player_id"], row["mission__tour_id"], row["aircraft__propulsion"]): clean_counters(row)
+        for row in sorties.filter(aircraft__propulsion__in=Propulsion.values)
+        .values("player_id", "mission__tour_id", "aircraft__propulsion")
+        .annotate(**SORTIE_COUNTERS)
+    }
+    _sync(PlayerTourPool, ("player_id", "tour_id", "propulsion"), wanted_pools, pools)
 
 
 def _sync[M: models.Model](

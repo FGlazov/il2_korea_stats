@@ -1,0 +1,36 @@
+{# il2ks-template: templates/il2ks/leaderboards/home_block.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  home_block.html: the home page's compact leaderboards (OQ-64): Elo of the jet and prop pools and ground proficiency.
+  Context: boards (a list of HomeBoard: .key "elo-jet", "elo-prop" or "ground-hour", .title, .rows of BoardRow: rank,
+  player, stats, per_hour). Links: web:player-detail, web:leaderboard, web:leaderboards.
+{% endcomment %}<section aria-labelledby="home-boards-heading">
+  <h2 id="home-boards-heading">{% translate "Top pilots" %}</h2>
+  <div class="home-boards">
+    {% for board in boards %}
+      <div>
+        <h3><a href="{% url 'web:leaderboard' board.key %}">{{ board.title }}</a></h3>
+        <table class="data-table data-table--compact board-table">
+          <thead>
+            <tr>
+              <th scope="col" class="num">#</th>
+              <th scope="col">{% translate "Player" %}</th>
+              <th scope="col" class="num">{% if board.key == "ground-hour" %}{% translate "Score per hour" %}{% else %}{% translate "Elo" %}{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in board.rows %}
+              <tr>
+                <td class="num">{{ row.rank|num }}</td>
+                <td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td>
+                <td class="num"><strong>{% if board.key == "elo-jet" %}{{ row.stats.elo_jet|num }}{% elif board.key == "elo-prop" %}{{ row.stats.elo_prop|num }}{% else %}{{ row.per_hour|num:1 }}{% endif %}</strong></td>
+              </tr>
+            {% empty %}
+              {% empty_row 3 _("Nobody qualifies for this board yet.") %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:leaderboards' %}">{% translate "All leaderboards" %}</a></p>
+</section>

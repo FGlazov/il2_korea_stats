@@ -201,3 +201,16 @@ def test_mission_list_tour_budget(client: Client) -> None:
     # context processor 2, tours, COUNT, page
     assert_simple_reads(client, "/missions/", max_queries=5)
     assert_simple_reads(client, f"/missions/?tour={tour('October 2026').pk}", max_queries=5)
+
+
+def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(client: Client) -> None:
+    """The score block shows the tour's score next to the tour's other blocks; only Elo stays all time, and says so."""
+    seed()
+    september = tour("September 2026")
+
+    in_tour = client.get(f"/players/{pk(1)}/?tour={september.pk}").content.decode()
+    all_time = client.get(f"/players/{pk(1)}/").content.decode()
+
+    assert "<dt>Ground score</dt><dd>12.0</dd>" in in_tour  # two tanks in September
+    assert "<dt>Ground score</dt><dd>24.0</dd>" in all_time  # plus four vehicles in October
+    assert "Elo, prop <small>all time</small>" in in_tour

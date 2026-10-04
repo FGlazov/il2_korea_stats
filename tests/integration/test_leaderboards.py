@@ -7,7 +7,8 @@ import pytest
 from django.test import Client, override_settings
 
 from il2ks.config import LeaderboardConfig
-from il2ks.db.models import Player, Tour
+from il2ks.db.models import GameObject, Player, PlayerPool, PlayerTourPool, Tour
+from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.leaderboards import BoardRow
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -257,3 +258,117 @@ def test_profile_shows_scores_and_elo(client: Client) -> None:
 
     assert "Air score" in html
     assert "30.0" in html  # Ace: 3 kills * 10
+
+
+@pytest.mark.parametrize("raw", ["9" * 5000, "9" * 19, "-1", "x", ""])
+def test_a_malformed_or_huge_aircraft_filter_means_all_aircraft(client: Client, raw: str) -> None:
+    """A digit string beyond Python's int() limit must not raise (500)."""
+    seed()
+
+    response = client.get("/leaderboards/air/", {"aircraft": raw})
+
+    assert response.status_code == 200
+
+
+# --- prop / jet and fighter / attack split, home page ---------------------------------------------------------------
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_score_boards_split_into_prop_and_jet_pilots(client: Client) -> None:
+    """Ace and Rookie fly the MiG-15bis (jet), Pounder and Fencer the Il-10 (prop)."""
+    seed()
+
+    assert names(client, "/leaderboards/air/?pool=jet")[:2] == ["Ace", "Rookie"]
+    assert set(names(client, "/leaderboards/air/?pool=jet")) == {"Ace", "Rookie"}
+    assert set(names(client, "/leaderboards/air/?pool=prop")) == {"Pounder", "Fencer"}
+    assert names(client, "/leaderboards/ground/?pool=prop")[:2] == ["Pounder", "Fencer"]
+    assert names(client, "/leaderboards/ground-hour/?pool=prop") == ["Pounder", "Fencer"]
+    assert names(client, "/leaderboards/ground-hour/?pool=jet") == []
+    assert "Ghost" not in names(client, "/leaderboards/air/?pool=jet")  # hidden players stay hidden
+    everyone = set(names(client, "/leaderboards/air/"))
+    assert everyone >= {"Ace", "Pounder"}
+    assert set(names(client, "/leaderboards/air/?pool=nonsense")) == everyone  # unknown value: both pools
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_the_pool_split_works_per_tour_and_the_aircraft_filter_wins(client: Client) -> None:
+    seed()
+    tour = Tour.objects.get()
+    pounder_type = GameObject.objects.get(log_name="Il-10")
+
+    assert set(names(client, f"/leaderboards/air/?tour={tour.pk}&pool=prop")) == {"Pounder", "Fencer"}
+    assert set(names(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet")) == {"Ace", "Rookie"}
+    both = names(client, f"/leaderboards/air/?pool=jet&aircraft={pounder_type.pk}")
+    assert set(both) == {"Pounder", "Fencer"}  # an aircraft type implies its own pool
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_elo_boards_are_not_split_again_and_the_pool_filter_is_offered_elsewhere(client: Client) -> None:
+    seed()
+
+    assert client.get("/leaderboards/elo-jet/").context["pool_options"] == []
+    assert [value for value, _label in client.get("/leaderboards/air/").context["pool_options"]] == ["prop", "jet"]
+    assert names(client, "/leaderboards/elo-jet/?pool=prop") == names(client, "/leaderboards/elo-jet/")
+
+
+def test_tabs_are_grouped_into_fighter_attack_and_general_boards(client: Client) -> None:
+    groups = {title: [t[0] for t in tabs] for title, tabs in client.get("/leaderboards/").context["tab_groups"]}
+
+    assert groups == {
+        "Fighters": ["air", "elo-prop", "elo-jet"],
+        "Attack": ["ground", "ground-hour"],
+        "General": ["kills"],
+    }
+    body = client.get("/leaderboards/").content.decode()
+    assert "Propeller and jet" in body
+
+
+def _without_ids(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [{k: v for k, v in row.items() if k != "id"} for row in rows]
+
+
+def test_pool_rows_are_rebuilt_like_the_other_level_2_rows() -> None:
+    seed()
+    before = {m.__name__: list(m.objects.order_by("pk").values()) for m in (PlayerPool, PlayerTourPool)}
+    assert before["PlayerPool"]
+    assert before["PlayerTourPool"]
+
+    PlayerPool.objects.update(sorties=99)
+    PlayerTourPool.objects.all().delete()
+    rebuild_aggregates()
+
+    after = {m.__name__: list(m.objects.order_by("pk").values()) for m in (PlayerPool, PlayerTourPool)}
+    assert _without_ids(after["PlayerPool"]) == _without_ids(before["PlayerPool"])
+    assert _without_ids(after["PlayerTourPool"]) == _without_ids(before["PlayerTourPool"])
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_home_highlights_elo_and_ground_proficiency(client: Client) -> None:
+    """OQ-64: Elo of both pools and ground proficiency on the home page, hidden players left out."""
+    seed()
+
+    response = client.get("/")
+
+    boards = {b.key: [r.player.current_name for r in b.rows] for b in response.context["boards"]}
+    assert list(boards) == ["elo-jet", "elo-prop", "ground-hour"]
+    assert boards["elo-jet"][0] == "Ace"
+    assert boards["ground-hour"] == ["Pounder", "Fencer"]
+    assert "Ghost" not in response.content.decode()
+    assert "/leaderboards/elo-jet/" in response.content.decode()
+
+
+def test_home_boards_show_a_message_when_nobody_qualifies(client: Client) -> None:
+    seed()  # the default minimums are higher than one sortie
+
+    html = client.get("/").content.decode()
+
+    assert "Nobody qualifies for this board yet." in html
+
+
+def test_pool_and_group_pages_stay_simple_reads(client: Client) -> None:
+    seed()
+
+    assert_simple_reads(client, "/leaderboards/air/?pool=jet", max_queries=6)
+    assert_simple_reads(client, "/leaderboards/ground-hour/?pool=prop&sort=name", max_queries=6)
+    tour = Tour.objects.get()
+    assert_simple_reads(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet", max_queries=7)

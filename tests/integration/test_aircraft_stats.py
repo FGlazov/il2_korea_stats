@@ -4,19 +4,21 @@ from datetime import timedelta
 
 import pytest
 from django.db import models
-from django.test import Client
+from django.test import Client, override_settings
 from django.urls import reverse
 
+from il2ks.config import LeaderboardConfig
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, Player
+from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, Player, PlayerAircraft
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.queries.aircraft import MIN_PILOT_SORTIES
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
 from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
 AIR = "air_superiority"
+MISSIONS = 5  # missions of the top-pilots seed
+RATED = LeaderboardConfig(min_sorties=1, min_elo_games=1, min_attack_sorties=1, min_time_on_target_minutes=1.0)
 
 
 def snapshot() -> dict[str, list[dict[str, object]]]:
@@ -120,17 +122,22 @@ def test_rebuild_repairs_drifted_rows() -> None:
 
 
 def seed_with_hidden_top_pilot() -> None:
-    """Player 1 (hidden) is the best MiG pilot; player 2 is second; player 3 flies once, under the minimum."""
-    for n in range(MIN_PILOT_SORTIES):
+    """Player 1 (hidden) is the best MiG pilot, player 2 is second; player 3 loses once to the Sabre and player 9 in
+    every later mission. Player 4 flies the Sabre and beats player 3 / 9."""
+    for n in range(MISSIONS):
         save(
             mission(
                 (
-                    sortie(0, 1, kills_air=3, kills_air_pvp=3),
-                    sortie(1, 2, kills_air=1, kills_air_pvp=1),
-                    sortie(2, 3 if n == 0 else 9, kills_air=9, kills_air_pvp=9),
-                    sortie(3, 4, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True),
+                    sortie(0, 1, kills_air=3, kills_air_pvp=3, combat_role=AIR),
+                    sortie(1, 2, kills_air=1, kills_air_pvp=1, combat_role=AIR),
+                    sortie(2, 3 if n == 0 else 9, is_death=True, is_plane_lost=True, combat_role=AIR),
+                    sortie(3, 4, aircraft_type="F-86A-5", coalition=2, combat_role=AIR),
                 ),
-                (kill(100, 0, 3), kill(200, 1, 3, victim_type="F-86A-5")),
+                (
+                    kill(100, 0, 3, victim_type="F-86A-5"),
+                    kill(200, 1, 3, victim_type="F-86A-5"),
+                    kill(300, 3, 2, killer_type="F-86A-5", victim_type="MiG-15bis"),
+                ),
             ),
             meta(f"2026-09-2{n}_10-00-00", STARTED_AT + timedelta(days=n)),
         )
@@ -167,18 +174,81 @@ def test_detail_page_matchups_loadouts_and_budget(client: Client) -> None:
     assert "Payload 1" in body
 
 
-def test_top_pilots_leave_out_hidden_players_but_totals_include_them(client: Client) -> None:
+@override_settings(IL2KS_LEADERBOARDS=RATED)
+def test_top_pilots_are_ranked_by_type_elo_and_leave_out_hidden_players(client: Client) -> None:
+    """OQ-49: skill, not volume. Hidden players are rated and counted in the totals but never named."""
     seed_with_hidden_top_pilot()
 
     body = client.get(detail_url("MiG-15bis")).content.decode()
 
+    assert "Top pilots by Elo" in body
     assert "Player-1" not in body  # hidden: not named, not linked
-    assert "Player-2" in body
-    assert "Player-3" not in body  # one sortie is under the minimum
+    assert body.index("Player-2") < body.index("Player-9")  # the winner above the pilot who lost
     mig = AircraftStats.objects.get(aircraft__log_name="MiG-15bis")
-    assert mig.kills_air == MIN_PILOT_SORTIES * (3 + 1 + 9)  # the hidden player's 15 kills are in the total
-    assert mig.sorties == MIN_PILOT_SORTIES * 3
+    assert mig.kills_air == MISSIONS * (3 + 1)  # the hidden player's kills are in the total
+    assert mig.sorties == MISSIONS * 3
     assert mig.pilots == 4  # players 1, 2, 3 and 9
+    hidden = PlayerAircraft.objects.get(player__account_uuid__endswith="000000000001", aircraft=mig.aircraft)
+    best_visible = PlayerAircraft.objects.get(player__account_uuid__endswith="000000000002", aircraft=mig.aircraft)
+    assert hidden.elo > best_visible.elo > 1500.0  # the hidden player really is the best: ranked, not shown
+
+
+def test_top_pilots_need_enough_rated_games(client: Client) -> None:
+    seed_with_hidden_top_pilot()
+
+    with override_settings(IL2KS_LEADERBOARDS=LeaderboardConfig(min_elo_games=3)):
+        body = client.get(detail_url("MiG-15bis")).content.decode()
+    assert "Player-2" in body
+    assert "Player-3" not in body  # one rated game, under the minimum
+    with override_settings(IL2KS_LEADERBOARDS=LeaderboardConfig(min_elo_games=99)):
+        body = client.get(detail_url("MiG-15bis")).content.decode()
+    assert "No pilot has enough rated games in this aircraft yet." in body
+
+
+@override_settings(IL2KS_LEADERBOARDS=RATED)
+def test_an_attack_type_ranks_its_pilots_by_ground_score_per_hour(client: Client) -> None:
+    """FR-WEB-20 / OQ-49: Pounder's 3 tanks in 10 minutes beat Fencer's 10 fences in 2 hours; the attack type lists the
+    ground ranking first."""
+    save(
+        mission(
+            (
+                sortie(
+                    0,
+                    1,
+                    name="Pounder",
+                    aircraft_type="Il-10",
+                    combat_role="attack",
+                    ground_by_category={"tank": 3},
+                    time_on_target_s=600.0,
+                ),
+                sortie(
+                    1,
+                    2,
+                    name="Fencer",
+                    aircraft_type="Il-10",
+                    combat_role="attack",
+                    ground_by_category={"other": 10},
+                    time_on_target_s=7200.0,
+                ),
+            ),
+            (),
+        )
+    )
+
+    body = client.get(detail_url("Il-10")).content.decode()
+
+    assert "Top attack pilots" in body
+    assert body.index("Pounder") < body.index("Fencer")
+    assert "Top pilots by Elo" not in body  # nobody has rated games in it: the secondary ranking is left out
+
+
+def test_a_fighter_type_without_attack_work_hides_the_ground_ranking(client: Client) -> None:
+    save(first_mission())
+
+    body = client.get(detail_url("F-86A-5")).content.decode()
+
+    assert "Top pilots by Elo" in body
+    assert "Top attack pilots" not in body
 
 
 def test_unknown_or_unflown_aircraft_is_a_404(client: Client) -> None:

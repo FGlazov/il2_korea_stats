@@ -1,10 +1,12 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average)), matchups (Matchup: enemy, kills, losses), pilots (PlayerAircraft rows
-  with .player; visible players only), min_sorties, payloads (AircraftPayload rows), crumbs, page_title.
-  The totals include hidden players; only the top-pilots table leaves them out (FR-ADM-3).
+  average, by_ammo (AmmoHits: name, kills, average)), matchups (Matchup: enemy, kills, losses), elo_pilots (PlayerAircraft rows
+  with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
+  (an attack type), rules (the leaderboard minimums), payloads (AircraftPayload rows), crumbs, page_title.
+  Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
+  The totals include hidden players; only the top-pilots tables leave them out (FR-ADM-3).
   K/D and K/L use air kills (OQ-38). Blocks of this page: content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
@@ -68,36 +70,13 @@
     </div>
   </section>
 
-  <section>
-    <h2>{% translate "Top pilots" %}</h2>
-    <p class="muted">{% blocktranslate %}By air kills in this aircraft, pilots with at least {{ min_sorties }} sorties.{% endblocktranslate %}</p>
-    <div class="table-wrap table-wrap--flat">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th scope="col">{% translate "Pilot" %}</th>
-            <th scope="col" class="num">{% translate "Sorties" %}</th>
-            <th scope="col" class="num">{% translate "Air kills" %}</th>
-            <th scope="col" class="num">{% translate "Deaths" %}</th>
-            <th scope="col" class="num">{% translate "K/D" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in pilots %}
-            <tr>
-              <td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td>
-              <td class="num">{{ row.sorties|num }}</td>
-              <td class="num">{{ row.kills_air|num }}</td>
-              <td class="num">{{ row.deaths|num }}</td>
-              <td class="num">{{ row.kills_air|ratio:row.deaths }}</td>
-            </tr>
-          {% empty %}
-            {% empty_row 5 _("No pilot has enough sorties in this aircraft yet.") %}
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+  {% if ground_first %}
+    {% include "il2ks/aircraft/top_ground.html" with primary=True %}
+    {% include "il2ks/aircraft/top_elo.html" with primary=False %}
+  {% else %}
+    {% include "il2ks/aircraft/top_elo.html" with primary=True %}
+    {% include "il2ks/aircraft/top_ground.html" with primary=False %}
+  {% endif %}
 
   <section>
     <h2>{% translate "Hits to destroy" %}</h2>
