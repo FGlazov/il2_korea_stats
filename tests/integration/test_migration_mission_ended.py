@@ -8,7 +8,7 @@ from il2ks.db.models import PlayerSortie
 from tests.factories import mission, save, sortie
 
 BEFORE = ("il2ks_db", "0010_pve_breakdown")
-AFTER = ("il2ks_db", "0011_sortie_mission_end_flag_reprocess_requests")
+AFTER = ("il2ks_db", "0011_sortie_mission_end_constraints")
 TABLE = PlayerSortie._meta.db_table
 
 

@@ -71,12 +71,16 @@ wait_for 120 "https via Caddy" -k --resolve "localhost:$HTTPS_PORT:127.0.0.1" "h
 wait_for 30 "admin login page" -k --resolve "localhost:$HTTPS_PORT:127.0.0.1" "https://localhost:$HTTPS_PORT/admin/login/"
 redirect="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:$HTTP_PORT/")"
 case "$redirect" in 301 | 302 | 307 | 308) echo "ok: http redirects ($redirect)" ;; *) fail "http answered $redirect, not a redirect" ;; esac
-docker logs "$PREFIX-full" 2>&1 | grep -q "Admin account 'smoke': created" || fail "the admin account was not created"
+# Not `docker logs | grep -q`: grep -q exits at the first match, docker logs dies of SIGPIPE, and pipefail then fails the
+# pipeline at random (the flaky "admin account was not created").
+logs="$(docker logs "$PREFIX-full" 2>&1)"
+grep -q "Admin account 'smoke': created" <<<"$logs" || fail "the admin account was not created"
 echo "ok: admin created from IL2KS_ADMIN_*"
 wait_healthy "$PREFIX-full"
 docker restart "$PREFIX-full" >/dev/null
 wait_for 120 "https after a restart" -k --resolve "localhost:$HTTPS_PORT:127.0.0.1" "https://localhost:$HTTPS_PORT/"
-docker logs "$PREFIX-full" 2>&1 | grep -q "An admin account already exists" || fail "the restart did not find the admin"
+logs="$(docker logs "$PREFIX-full" 2>&1)"
+grep -q "An admin account already exists" <<<"$logs" || fail "the restart did not find the admin"
 echo "ok: the restart kept the data"
 docker rm -f "$PREFIX-full" >/dev/null
 
@@ -85,7 +89,8 @@ docker run -d --name "$PREFIX-external" -p "$WEB_PORT:8000" \
     -e IL2KS_SERVER_TIMEZONE=UTC -e IL2KS_HTTPS_MODE=external -e IL2KS_WEB_HOST=0.0.0.0 \
     "$IMAGE" >/dev/null
 wait_for 120 "web server (as behind a proxy)" -H 'X-Forwarded-Proto: https' "http://127.0.0.1:$WEB_PORT/"
-if docker top "$PREFIX-external" | grep -q caddy; then fail "Caddy runs in external mode"; fi
+processes="$(docker top "$PREFIX-external")"
+if grep -q caddy <<<"$processes"; then fail "Caddy runs in external mode"; fi
 echo "ok: no Caddy in external mode"
 
 echo "SMOKE TEST PASSED"

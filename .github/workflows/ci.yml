@@ -9,8 +9,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run ruff check
       - run: uv run ruff format --check
@@ -26,8 +26,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run pytest
 
@@ -47,26 +47,26 @@ jobs:
     env:
       IL2KS_TEST_DB: postgres
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run pytest
 
   test-e2e:
     # Browser tests (doc 08): the real app in a child process, driven by Chromium through Playwright. Opt-in locally
     # (IL2KS_TEST_E2E=1); always on here. Traces and screenshots of failures are kept as an artifact.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwright's --with-deps apt step lags behind new Ubuntu releases (ubuntu-latest moves to 26 on 2026-10-19)
     env:
       IL2KS_TEST_E2E: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run playwright install --with-deps chromium
       - run: >-
           uv run pytest -m e2e --basetemp=e2e-tmp --output=test-results
           --tracing=retain-on-failure --screenshot=only-on-failure
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: e2e-failure-${{ github.run_id }}
@@ -80,8 +80,8 @@ jobs:
     # The wheel must carry templates, static files, catalog data, the example config and the migrations (PyPI path).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
       - run: uv run pytest tests/unit/test_packaging.py
         env:
@@ -91,7 +91,7 @@ jobs:
     # The image of docs/install-docker.md (doc 07 option A): build it (nothing is pushed) and smoke-test it.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -f docker/Dockerfile -t il2ks:ci .
       - run: docker compose -f docker/compose.yaml config --quiet
         env:
