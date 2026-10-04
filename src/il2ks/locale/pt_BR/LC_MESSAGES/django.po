@@ -58,6 +58,11 @@ msgstr "%(m)d min"
 
 # llm-draft
 #, python-format
+msgid "%(medal)s: holders"
+msgstr "%(medal)s: detentores"
+
+# llm-draft
+#, python-format
 msgid "%(n)d names reset."
 msgstr "%(n)d nomes redefinidos."
 
@@ -121,6 +126,11 @@ msgstr "%(n)s alvos terrestres"
 
 # llm-draft
 #, python-format
+msgid "%(n)s h"
+msgstr "%(n)s h"
+
+# llm-draft
+#, python-format
 msgid "%(n)s mission report file found"
 msgid_plural "%(n)s mission report files found"
 msgstr[0] "%(n)s relatório de missão encontrado"
@@ -133,8 +143,27 @@ msgstr "Desses, %(n)s eram objetos estáticos (parados), como veículos estacion
 
 # llm-draft
 #, python-format
+msgid "%(n)s pilot"
+msgid_plural "%(n)s pilots"
+msgstr[0] "%(n)s piloto"
+msgstr[1] "%(n)s pilotos"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "%(n)s tipos"
+
+# llm-draft
+#, python-format
+msgid "%(n)s week"
+msgid_plural "%(n)s weeks"
+msgstr[0] "%(n)s semana"
+msgstr[1] "%(n)s semanas"
+
+# llm-draft
+#, python-format
+msgid "%(name)s: achievements"
+msgstr "%(name)s: conquistas"
 
 # llm-draft
 #, python-format
@@ -334,6 +363,19 @@ msgid "Accent, links and buttons"
 msgstr "Destaque, links e botões"
 
 # llm-draft
+msgid "Ace of the Sortie"
+msgstr "Ás da Surtida"
+
+# llm-draft
+msgid "Achievements"
+msgstr "Conquistas"
+
+# llm-draft
+#, python-format
+msgid "Achievements of %(name)s"
+msgstr "Conquistas de %(name)s"
+
+# llm-draft
 msgid "Activity by tour"
 msgstr "Atividade por temporada"
 
@@ -376,6 +418,18 @@ msgstr "Abates aéreos e mortes por temporada"
 # llm-draft
 msgid "Air kills by victim"
 msgstr "Abates aéreos por tipo de alvo"
+
+# llm-draft
+msgid "Air kills in a single sortie."
+msgstr "Abates aéreos em uma única surtida."
+
+# llm-draft
+msgid "Air kills in one life: everything since the last death or capture, the fatal sortie included."
+msgstr "Abates aéreos em uma vida: tudo desde a última morte ou captura, incluindo a surtida fatal."
+
+# llm-draft
+msgid "Air kills in total, all sorties together."
+msgstr "Abates aéreos no total, todas as surtidas somadas."
 
 # llm-draft
 msgid "Air kills per flight hour"
@@ -484,6 +538,18 @@ msgstr "Aviões que mais derrubaram este piloto"
 # llm-draft
 msgid "All"
 msgstr "Todos"
+
+# llm-draft
+msgid "All achievements"
+msgstr "Todas as conquistas"
+
+# llm-draft
+msgid "All achievements and their holders"
+msgstr "Todas as conquistas e quem as tem"
+
+# llm-draft
+msgid "All achievements of this pilot"
+msgstr "Todas as conquistas deste piloto"
 
 # llm-draft
 msgid "All aircraft"
@@ -796,6 +862,10 @@ msgid "Bomb release"
 msgstr "Lançamento de bombas"
 
 # llm-draft
+msgid "Bomber Hunter"
+msgstr "Caçador de Bombardeiros"
+
+# llm-draft
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Caçar bombardeiros é um ofício, e esta missão foi uma aula magna."
 
@@ -832,6 +902,10 @@ msgid "Breakdown by target type"
 msgstr "Detalhamento por tipo de alvo"
 
 # llm-draft
+msgid "Bronze"
+msgstr "Bronze"
+
+# llm-draft
 msgid "Browse missions"
 msgstr "Ver missões"
 
@@ -850,6 +924,10 @@ msgstr "Por aeronave"
 # llm-draft
 msgid "By player"
 msgstr "Por jogador"
+
+# llm-draft
+msgid "Calendar weeks in a row (Monday to Sunday, UTC) with at least one sortie."
+msgstr "Semanas seguidas (de segunda a domingo, UTC) com pelo menos uma surtida."
 
 # llm-draft
 msgid "Cannon shells"
@@ -878,6 +956,10 @@ msgstr "Causado por"
 # llm-draft
 msgid "Caution (amber)"
 msgstr "Atenção (âmbar)"
+
+# llm-draft
+msgid "Charmed Life"
+msgstr "Vida Encantada"
 
 # llm-draft
 msgid "Chart grid lines"
@@ -1096,6 +1178,14 @@ msgid "E-mail for certificate notices (optional)"
 msgstr "E-mail para avisos do certificado (opcional)"
 
 # llm-draft
+msgid "Earned"
+msgstr "Conquistado"
+
+# llm-draft
+msgid "Earned in this sortie"
+msgstr "Conquistado nesta surtida"
+
+# llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Envie um novo logotipo ou remova o atual, mas não os dois."
 
@@ -1134,6 +1224,10 @@ msgstr "Ação inimiga"
 # llm-draft
 msgid "Enemy aircraft"
 msgstr "Aeronaves inimigas"
+
+# llm-draft
+msgid "Enemy bombers and attackers flown by other pilots, shot down."
+msgstr "Bombardeiros e aviões de ataque inimigos pilotados por outros jogadores, abatidos."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -1280,6 +1374,10 @@ msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain n
 msgstr "Nomes de DNS dinâmico gratuitos (DuckDNS e similares) funcionam como qualquer outro nome de domínio."
 
 # llm-draft
+msgid "Frequent Flyer"
+msgstr "Piloto Assíduo"
+
+# llm-draft
 msgid "Friendly"
 msgstr "Aliado"
 
@@ -1318,6 +1416,10 @@ msgstr "Placar de abates completo"
 # llm-draft
 msgid "Given up"
 msgstr "Desistidas"
+
+# llm-draft
+msgid "Gold"
+msgstr "Ouro"
 
 # llm-draft
 msgid "Good (green)"
@@ -1384,6 +1486,10 @@ msgstr ""
 # llm-draft
 msgid "Ground score/h"
 msgstr "Pontos de solo/h"
+
+# llm-draft
+msgid "Ground targets destroyed in a single sortie."
+msgstr "Alvos terrestres destruídos em uma única surtida."
 
 # llm-draft
 msgid "Ground vehicle or object"
@@ -1512,6 +1618,18 @@ msgstr ""
 # llm-draft
 msgid "Home"
 msgstr "Início"
+
+# llm-draft
+msgid "Hours Aloft"
+msgstr "Horas no Ar"
+
+# llm-draft
+msgid "Hours in the air in the one aircraft type flown most."
+msgstr "Horas de voo no tipo de aeronave mais voado."
+
+# llm-draft
+msgid "Hours in the air, all sorties together."
+msgstr "Horas de voo no total, todas as surtidas somadas."
 
 # llm-draft
 msgid ""
@@ -1812,6 +1930,10 @@ msgid "Light mode"
 msgstr "Modo claro"
 
 # llm-draft
+msgid "Limping Home"
+msgstr "Voltando Mancando"
+
+# llm-draft
 msgid "Lines"
 msgstr "Linhas"
 
@@ -1906,6 +2028,22 @@ msgstr "Confrontos"
 # llm-draft
 msgid "May still change"
 msgstr "Ainda pode mudar"
+
+# llm-draft
+msgid ""
+"Medals are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show "
+"when a tier was first reached."
+msgstr ""
+"As medalhas são conquistadas ao longo de todo o histórico do piloto e nunca são retiradas. Cada uma tem níveis; a "
+"data e a surtida mostram quando um nível foi alcançado pela primeira vez."
+
+# llm-draft
+msgid ""
+"Medals for what pilots do in the air and on the ground. Every medal has tiers, from bronze up; a tier is earned once "
+"and kept. The numbers show how many pilots hold each tier."
+msgstr ""
+"Medalhas pelo que os pilotos fazem no ar e em terra. Cada medalha tem níveis, do bronze para cima; um nível é "
+"conquistado uma vez e fica para sempre. Os números mostram quantos pilotos têm cada nível."
 
 # llm-draft
 msgid "Mission"
@@ -2169,6 +2307,10 @@ msgid "Nobody flew for this side."
 msgstr "Ninguém voou por este lado."
 
 # llm-draft
+msgid "Nobody holds this tier yet."
+msgstr "Ninguém alcançou este nível ainda."
+
+# llm-draft
 msgid "Nobody is judging. The wreckage is merely taking notes."
 msgstr "Ninguém está julgando. Só os destroços estão anotando."
 
@@ -2369,6 +2511,10 @@ msgid "Overall"
 msgstr "Geral"
 
 # llm-draft
+msgid "Overview"
+msgstr "Visão geral"
+
+# llm-draft
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Visão geral de todas as suas substituições: <code>il2ks custom list</code>"
 
@@ -2482,6 +2628,10 @@ msgstr[1] "Pilotos com pelo menos %(sorties)s surtidas."
 # llm-draft
 msgid "Planes lost"
 msgstr "Aviões perdidos"
+
+# llm-draft
+msgid "Platinum"
+msgstr "Platina"
 
 # llm-draft
 msgid "Player"
@@ -2642,6 +2792,10 @@ msgstr "Surtidas recentes"
 # llm-draft
 msgid "Recently completed by idle timeout"
 msgstr "Concluídas recentemente por tempo limite de inatividade"
+
+# llm-draft
+msgid "Regular"
+msgstr "Presença Garantida"
 
 # llm-draft
 msgid "Released"
@@ -2868,6 +3022,10 @@ msgid "Side"
 msgstr "Lado"
 
 # llm-draft
+msgid "Silver"
+msgstr "Prata"
+
+# llm-draft
 msgid "Since"
 msgstr "Desde"
 
@@ -2878,6 +3036,10 @@ msgstr "Administração do site"
 # llm-draft
 msgid "Skip to content"
 msgstr "Pular para o conteúdo"
+
+# llm-draft
+msgid "Sky Hunter"
+msgstr "Caçador do Céu"
 
 # llm-draft
 msgid "Slab serif"
@@ -2932,6 +3094,10 @@ msgid "Sorties"
 msgstr "Surtidas"
 
 # llm-draft
+msgid "Sorties flown: the aircraft took off."
+msgstr "Surtidas realizadas: a aeronave decolou."
+
+# llm-draft
 #, python-format
 msgid "Sorties in %(tour)s"
 msgstr "Surtidas em %(tour)s"
@@ -2973,6 +3139,14 @@ msgstr "Surtidas por temporada"
 # llm-draft
 msgid "Sorties survived"
 msgstr "Surtidas sobrevividas"
+
+# llm-draft
+msgid "Sorties survived in a row: no death, no capture. Sorties that never took off are skipped."
+msgstr "Surtidas sobrevividas seguidas: sem morte nem captura. Surtidas sem decolagem são ignoradas."
+
+# llm-draft
+msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
+msgstr "Surtidas com pelo menos um abate que terminaram em pouso com a aeronave muito danificada."
 
 # llm-draft
 msgid "Source"
@@ -3085,6 +3259,10 @@ msgid "Tank"
 msgstr "Tanque"
 
 # llm-draft
+msgid "Tank Buster"
+msgstr "Destruidor de Tanques"
+
+# llm-draft
 msgid "Tank busting"
 msgstr "Caça a tanques"
 
@@ -3101,6 +3279,10 @@ msgid "Tanks destroyed in attack sorties per hour spent on target. Transit to an
 msgstr "Tanques destruídos em surtidas de ataque por hora sobre o alvo. O trajeto de ida e volta não conta."
 
 # llm-draft
+msgid "Tanks destroyed in total."
+msgstr "Tanques destruídos no total."
+
+# llm-draft
 msgid "Tanks destroyed per hour on target"
 msgstr "Tanques destruídos por hora sobre o alvo"
 
@@ -3111,6 +3293,10 @@ msgstr "Tanques por hora"
 # llm-draft
 msgid "Target"
 msgstr "Alvo"
+
+# llm-draft
+msgid "Target-Rich"
+msgstr "Alvos à Vontade"
 
 # llm-draft
 msgid "Targets damaged"
@@ -3501,6 +3687,10 @@ msgid "Those little black clouds were not decorative."
 msgstr "Aquelas nuvenzinhas pretas não eram enfeite."
 
 # llm-draft
+msgid "Tiers"
+msgstr "Níveis"
+
+# llm-draft
 msgid "Time"
 msgstr "Hora"
 
@@ -3608,6 +3798,10 @@ msgstr "Encrenca no pátio e no ar. Pelo menos este piloto é consistente."
 # llm-draft
 msgid "Type"
 msgstr "Tipo"
+
+# llm-draft
+msgid "Type Veteran"
+msgstr "Veterano de Tipo"
 
 # llm-draft
 msgid "Type the password again"
@@ -4023,12 +4217,20 @@ msgid "no losses"
 msgstr "sem perdas"
 
 # llm-draft
+msgid "nobody yet"
+msgstr "ninguém ainda"
+
+# llm-draft
 msgid "none yet (test certificate)"
 msgstr "nenhum ainda (certificado de teste)"
 
 # llm-draft
 msgid "not set"
 msgstr "não definido"
+
+# llm-draft
+msgid "not yet"
+msgstr "ainda não"
 
 # llm-draft
 #, python-format

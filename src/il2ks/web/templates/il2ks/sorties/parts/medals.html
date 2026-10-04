@@ -1,0 +1,11 @@
+{# il2ks-template: templates/il2ks/sorties/parts/medals.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_achievements %}{% comment %}
+  medals.html: "Earned in this sortie" (FR-WEB-26): the medal tiers this sortie was the first to reach. One query
+  ({% sortie_medals sortie as medals %}). Shows nothing when there are none. Context: sortie.
+{% endcomment %}{% sortie_medals sortie as medals %}{% if medals %}<section class="medals">
+  <h2>{% translate "Earned in this sortie" %}</h2>
+  <div class="medal-row">
+    {% for m in medals %}{% include "il2ks/achievements/_medal.html" with href=None %}{% endfor %}
+  </div>
+  <p class="muted"><a href="{% url 'web:player-achievements' sortie.player_id %}">{% translate "All achievements of this pilot" %} →</a></p>
+</section>{% endif %}

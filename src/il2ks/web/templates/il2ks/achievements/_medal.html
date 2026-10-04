@@ -1,0 +1,9 @@
+{# il2ks-template: templates/il2ks/achievements/_medal.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _medal.html: one medal (FR-WEB-26): a round badge with the achievement's icon, tinted by tier (bronze, silver, gold,
+  platinum: CSS classes medal--bronze ...), its name and the tier line. Context: m (web.medals.Medal), optional href (link
+  of the whole medal). The `title` says what it takes.
+{% endcomment %}<{% if href %}a href="{{ href }}"{% else %}span{% endif %} class="medal medal--{{ m.slug }}" title="{{ m.description }} {{ m.tier_name }}: {{ m.threshold }}">
+  <span class="medal__badge">{% icon m.icon %}</span>
+  <span class="medal__text"><span class="medal__name">{{ m.name }}</span><span class="medal__tier">{{ m.tier_name }} · {{ m.threshold }}</span></span>
+</{% if href %}a{% else %}span{% endif %}>

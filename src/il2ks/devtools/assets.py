@@ -39,6 +39,7 @@ GROUPS = (
     "ground",
     "role",
     "stat",
+    "medal",
     "nav",
     "flag",
     "pattern",
@@ -53,6 +54,7 @@ GROUP_TITLES = {
     "ground": "Ground targets (`ground/`)",
     "role": "Combat role (`role/`)",
     "stat": "Stat tiles (`stat/`)",
+    "medal": "Achievement medals (`medal/`)",
     "nav": "Navigation link icons (`nav/`)",
     "flag": "Language flags (`flag/`)",
     "pattern": "Textures (`pattern/`)",
@@ -258,6 +260,30 @@ def build_manifest() -> list[Asset]:
     for name in ("elo-prop", "elo-jet", "interception"):
         add(f"stat/{name}.svg", "Leaderboard switcher button (chess pieces for the Elo boards)", ICON, "P2", True)
 
+    # achievement medals (FR-WEB-26): one icon per achievement, drawn inside a round badge that CSS tints per tier
+    for name, text in (
+        ("life-kills", "Charmed Life: air kills in one life"),
+        ("sortie-kills", "Ace of the Sortie: air kills in one sortie"),
+        ("career-kills", "Sky Hunter: air kills in total"),
+        ("strike-hunter", "Bomber Hunter: bombers and attackers shot down"),
+        ("tank-buster", "Tank Buster: tanks destroyed"),
+        ("ground-sortie", "Target-Rich: ground targets in one sortie"),
+        ("survivor", "Ironman: sorties survived in a row"),
+        ("damaged-landing", "Limping Home: badly damaged aircraft landed after a kill"),
+        ("regular", "Regular: weeks played in a row"),
+        ("frequent-flyer", "Frequent Flyer: sorties flown"),
+        ("flight-hours", "Hours Aloft: flight time in total"),
+        ("type-veteran", "Type Veteran: flight time in one aircraft type"),
+    ):
+        add(
+            f"medal/{name}.svg",
+            f"Medal row (profile, achievement pages, sortie page): {text}; CSS tints it by tier",
+            ICON,
+            "P2",
+            True,
+            dynamic=True,
+        )
+
     # navigation link icons: the admin picks one per custom link by key (web.site_forms), so the name is computed
     for name in ("discord", "forum", "patreon", "link"):
         add(f"nav/{name}.svg", "Custom navigation links in the header (`NavLink.icon`)", ICON, "P3", True, dynamic=True)
@@ -326,10 +352,10 @@ def source_of(path: str, tabler: dict[str, str]) -> str:
 # --- what the code references and what is on disk ----------------------------------------------------------------
 
 _QUOTED = re.compile(
-    r"""["']((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|pattern|illustration)/[a-z0-9][a-z0-9_/-]*)["']"""
+    r"""["']((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|medal|pattern|illustration)/[a-z0-9][a-z0-9_/-]*)["']"""
 )
 _PATHED = re.compile(
-    r"img/((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|pattern|illustration)/[a-z0-9][a-z0-9_/-]*\.(?:svg|png|webp))"
+    r"img/((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|medal|pattern|illustration)/[a-z0-9][a-z0-9_/-]*\.(?:svg|png|webp))"
 )
 
 

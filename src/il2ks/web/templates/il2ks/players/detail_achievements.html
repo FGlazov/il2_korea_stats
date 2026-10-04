@@ -1,0 +1,15 @@
+{# il2ks-template: templates/il2ks/players/detail_achievements.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_achievements %}{% comment %}
+  detail_achievements.html: the profile's medal row (FR-WEB-26): the highest tier of every achievement the player has
+  earned, each linking to the sortie that earned it, and a link to the full list. All time, in any tour view. One query
+  ({% player_medals player as medals %}). Shows nothing for a player without a medal.
+  Context: player.
+{% endcomment %}{% player_medals player as medals %}{% if medals %}<section class="medals" id="medals">
+  <div class="section-head">
+    <h2>{% translate "Achievements" %}</h2>
+    <span><a href="{% url 'web:player-achievements' player.pk %}">{% translate "All achievements" %} →</a> · <a href="{% url 'web:achievements' %}">{% translate "Overview" %} →</a></span>
+  </div>
+  <div class="medal-row">
+    {% for m in medals %}{% if m.mission_hidden %}{% include "il2ks/achievements/_medal.html" with href=None %}{% else %}{% url 'web:sortie-detail' m.sortie_id as sortie_url %}{% include "il2ks/achievements/_medal.html" with href=sortie_url %}{% endif %}{% endfor %}
+  </div>
+</section>{% endif %}

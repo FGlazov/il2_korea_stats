@@ -1004,6 +1004,49 @@ class PlayerStreak(models.Model):
         return f"{self.player_id}: {self.current_sorties} / {self.best_sorties}"
 
 
+class PlayerAchievement(models.Model):
+    """A medal tier a pilot has earned (FR-WEB-26, doc 17): level 2, recomputed per affected player by
+    `ingest.achievements` from the rules in `il2ks.core.achievements`.
+
+    One row per earned tier (a pilot at tier 3 also has the rows of tiers 1 and 2), with the sortie that first reached
+    it. All time only. Hidden players keep their rows; the pages leave them out (FR-ADM-3)."""
+
+    player_id: int
+    sortie_id: int
+    mission_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="achievements")
+    key = models.CharField(max_length=32)
+    tier = models.PositiveSmallIntegerField()
+    earned_at = models.DateTimeField()
+    sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="achievements")
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="achievements")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["player", "key", "tier"], name="achievement_unique")]
+        indexes = [models.Index(fields=["key", "tier", "-earned_at"], name="achievement_holders")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} {self.key} {self.tier}"
+
+
+class AchievementHolders(models.Model):
+    """How many visible pilots hold a medal tier (the overview page; TD-22: no counting at request time).
+
+    Level 2, rewritten whole by `ingest.achievements.recompute_holders` after the player rows, and when an admin hides
+    or shows a player. A row exists per tier somebody holds."""
+
+    key = models.CharField(max_length=32)
+    tier = models.PositiveSmallIntegerField()
+    holders = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["key", "tier"], name="achievement_holders_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.key} {self.tier}: {self.holders}"
+
+
 # --- Level 2: server activity ---
 
 

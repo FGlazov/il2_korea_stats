@@ -105,7 +105,7 @@ def test_sortie_page_says_who_the_loss_is_owed_to(client: Client) -> None:
 def test_sortie_page_budget_is_unchanged_by_the_breakdowns(client: Client) -> None:
     save(seed())
 
-    assert_simple_reads(client, f"/sorties/{pk_of(1)}/", max_queries=2 + 5)
+    assert_simple_reads(client, f"/sorties/{pk_of(1)}/", max_queries=2 + 6)  # + earned medals
 
 
 def test_hidden_player_and_mission_sorties_stay_404(client: Client) -> None:

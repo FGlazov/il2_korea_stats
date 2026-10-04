@@ -51,6 +51,7 @@ from il2ks.db.models import (
     Propulsion,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest.achievements import recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
@@ -92,6 +93,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
         recompute_type_killboard(chunk, tours)  # ... and by enemy aircraft type, ingest.type_board (FR-WEB-9)
         recompute_streaks(chunk, tours)  # ironman streaks, all-time and per tour, ingest.streaks (FR-WEB-23)
+        recompute_achievements(chunk)  # medals, all time, ingest.achievements (FR-WEB-26)
 
 
 def rebuild_aggregates(
@@ -130,6 +132,7 @@ def rebuild_aggregates(
     )
     rebuild_aircraft_stats()
     rebuild_activity()
+    recompute_holders()
     recompute_ratings(ratings)
     recompute_thresholds(marks)
     bump_data_version()  # TD-28: pages changed

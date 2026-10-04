@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/detail.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/detail.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   The sortie report (FR-WEB-6): the page a player reads after a flight and shares on Discord (FR-WEB-13).
   Context: sortie (PlayerSortie with player, mission and aircraft), detail (il2ks.web.sortie_view.Detail: air_kills,
@@ -17,6 +17,7 @@
   {% include "il2ks/sorties/parts/notices.html" %}
   {% sortie_flavor sortie detail as quip %}{% if quip %}<p class="flavor flavor--sortie">{{ quip }}</p>{% endif %}
   {% include "il2ks/sorties/parts/summary.html" %}
+  {% include "il2ks/sorties/parts/medals.html" %}
   {% include "il2ks/sorties/parts/kills.html" %}
   {% include "il2ks/sorties/parts/killed_by.html" %}
   {% include "il2ks/sorties/parts/damage.html" %}

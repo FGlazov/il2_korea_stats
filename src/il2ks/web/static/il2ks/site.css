@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v11 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v12 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -53,6 +53,12 @@
   --il2-grey: light-dark(#5b6b78, #9aa8b4);
   --il2-redfor: light-dark(#b52d28, #f0716a);
   --il2-blufor: light-dark(#1f62b6, #70a9f4);
+
+  /* Achievement medal tiers (FR-WEB-26). */
+  --il2-medal-bronze: light-dark(#a8642c, #d99358);
+  --il2-medal-silver: light-dark(#7d8790, #bcc4cb);
+  --il2-medal-gold: light-dark(#b07f06, #e9bf45);
+  --il2-medal-platinum: light-dark(#2f7f93, #7fd0e2);
 
   /* Secondary buttons. */
   --il2-secondary: light-dark(#5d6650, #a3ab92);
@@ -525,3 +531,48 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
 p.flavor--sortie { margin: 0 0 1rem; }
 .section-head h2 a.heading-link { color: inherit; text-decoration: none; }
 .section-head h2 a.heading-link:hover { text-decoration: underline; }
+
+/* Medals (FR-WEB-26): a round badge per achievement, tinted by tier through these tokens (placeholder icons, the
+   designer replaces the files under img/medal/). Text stays in the normal colours; only the badge is tinted. The tier
+   colours are the --il2-medal-* tokens in the first :root block. */
+.medal-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0 0 1.5rem; }
+.medal {
+  --medal: var(--il2-border-strong);
+  display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.8rem 0.4rem 0.4rem; color: var(--il2-text);
+  background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: 999px; text-decoration: none;
+}
+a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
+.medal--bronze { --medal: var(--il2-medal-bronze); }
+.medal--silver { --medal: var(--il2-medal-silver); }
+.medal--gold { --medal: var(--il2-medal-gold); }
+.medal--platinum { --medal: var(--il2-medal-platinum); }
+.medal--locked { opacity: 0.55; }
+.medal__badge {
+  display: inline-grid; place-items: center; flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; color: var(--medal);
+  border: 2px solid var(--medal); background: color-mix(in srgb, var(--medal) 14%, var(--il2-surface));
+}
+.medal__badge .icon { width: 1.4rem; height: 1.4rem; }
+.medal__text { display: grid; line-height: 1.2; }
+.medal__name { font-weight: 650; color: var(--il2-heading); }
+.medal__tier { font-size: 0.8rem; color: var(--il2-muted); }
+.medal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 1rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.medal-list__item { padding: 1rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
+.medal-list__item--none { opacity: 0.8; }
+.medal-list__head { display: flex; gap: 0.8rem; align-items: flex-start; }
+.medal-list__head .medal { padding: 0; border: 0; background: none; }
+.medal-list__head h2 { margin: 0; font-size: 1.15rem; }
+.medal-list__head p { margin: 0.2rem 0 0; font-size: 0.88rem; }
+.tier-list { margin: 0.8rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.25rem; }
+.tier-list__item { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; padding-left: 0.6rem; border-left: 4px solid var(--medal); font-variant-numeric: tabular-nums; }
+.tier-list__item--bronze { --medal: var(--il2-medal-bronze); }
+.tier-list__item--silver { --medal: var(--il2-medal-silver); }
+.tier-list__item--gold { --medal: var(--il2-medal-gold); }
+.tier-list__item--platinum { --medal: var(--il2-medal-platinum); }
+.tier-list__item--open { opacity: 0.6; }
+.medal-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem; }
+.medal-tabs__tab { padding: 0.25rem 0.7rem; border: 1px solid var(--il2-border); border-bottom: 3px solid var(--medal); border-radius: var(--il2-radius); text-decoration: none; }
+.medal-tabs__tab[aria-current="page"] { background: var(--il2-surface-2); font-weight: 650; }
+.medal-tabs__tab--bronze { --medal: var(--il2-medal-bronze); }
+.medal-tabs__tab--silver { --medal: var(--il2-medal-silver); }
+.medal-tabs__tab--gold { --medal: var(--il2-medal-gold); }
+.medal-tabs__tab--platinum { --medal: var(--il2-medal-platinum); }

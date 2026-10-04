@@ -1,0 +1,37 @@
+{# il2ks-template: templates/il2ks/players/achievements.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  A player's full medal list (FR-WEB-26). View: il2ks.web.views.achievements.player_achievements.
+  Context: player, rows (ListRow: .info with key, name, description, icon; .tiers of (.tier number, name, slug, threshold;
+  .earned a web.medals.Medal or None); .best = highest tier held, 0 = none), earned (tiers held), crumbs, page_title.
+  Blocks: head, content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+  <div class="page-head">
+    <h1>{% blocktranslate with name=player.current_name %}Achievements of {{ name }}{% endblocktranslate %}</h1>
+    <p>{% translate "Medals are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show when a tier was first reached." %}</p>
+  </div>
+  <ul class="medal-list">
+    {% for row in rows %}
+      <li class="medal-list__item{% if not row.best %} medal-list__item--none{% endif %}">
+        <div class="medal-list__head">
+          <span class="medal medal--{% if row.best %}{% for t in row.tiers %}{% if t.tier.number == row.best %}{{ t.tier.slug }}{% endif %}{% endfor %}{% else %}locked{% endif %}"><span class="medal__badge">{% icon row.info.icon %}</span></span>
+          <div>
+            <h2>{{ row.info.name }}</h2>
+            <p class="muted">{{ row.info.description }}</p>
+          </div>
+        </div>
+        <ol class="tier-list">
+          {% for t in row.tiers %}
+            <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if not t.earned %} tier-list__item--open{% endif %}">
+              <strong>{{ t.tier.name }}</strong> <span>{{ t.tier.threshold }}</span>
+              {% if t.earned %}<span class="muted">{% if t.earned.mission_hidden %}{{ t.earned.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' t.earned.sortie_id %}">{{ t.earned.earned_at|local_date }}</a>{% endif %}</span>{% else %}<span class="muted">{% translate "not yet" %}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ol>
+      </li>
+    {% endfor %}
+  </ul>
+  <p><a href="{% url 'web:player-detail' player.pk %}">← {% translate "Back to the profile" %}</a> · <a href="{% url 'web:achievements' %}">{% translate "All achievements and their holders" %} →</a></p>
+{% endblock %}

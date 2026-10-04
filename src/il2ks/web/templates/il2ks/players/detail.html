@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail.html v12 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v13 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/, in this
   order: detail_header, tour select, detail_nav (in-page links), detail_tiles (general), detail_shame (hall of shame),
@@ -26,6 +26,7 @@
     {% include "il2ks/players/detail_nav.html" %}
     {% include "il2ks/players/detail_tiles.html" %}
     {% include "il2ks/players/detail_shame.html" %}
+    {% include "il2ks/players/detail_achievements.html" %}
     {% include "il2ks/players/detail_recent.html" %}
     {% include "il2ks/players/detail_air_section.html" %}
     {% include "il2ks/players/detail_ground_section.html" %}
