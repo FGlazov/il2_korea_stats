@@ -52,7 +52,14 @@ from il2ks.db.models import GameObject, IngestRun, IngestStatus, LiveMission, Li
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.discover import FileState, completeness, list_log_files
 from il2ks.ingest.lock import LockBusyError, WriterLock
-from il2ks.ingest.persist import MissionMeta, Touched, apply_level2, discard_provisional_mission, save_level1
+from il2ks.ingest.persist import (
+    DuplicateSortieError,
+    MissionMeta,
+    Touched,
+    apply_level2,
+    discard_provisional_mission,
+    save_level1,
+)
 from il2ks.ingest.timeutil import resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -210,6 +217,10 @@ class LiveTracker:
             status, touched = save_provisional(self._cfg, running.uid, running.started_at, view.result, self.catalog)
         except LockBusyError:
             log.info("%s: provisional save skipped, the writer lock is taken", running.uid)
+            return 0.0
+        except DuplicateSortieError as exc:
+            log.warning("%s: no provisional saves for this mission. %s", running.uid, exc)
+            running.saving = False  # the log itself is wrong: saying so once is enough
             return 0.0
         if status == "waiting":
             # The previous mission is not finalised yet. Look again after a whole interval, and meanwhile drop

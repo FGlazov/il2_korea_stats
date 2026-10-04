@@ -707,3 +707,18 @@ def test_a_log_with_the_same_mission_twice_fails_with_a_clear_message_and_writes
     assert "IntegrityError" not in run.error
     assert not Mission.objects.exists()
     assert not PlayerSortie.objects.exists()
+
+
+def test_a_doubled_log_stops_the_provisional_saves_but_not_online_now(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    scenario = Scenario(tmp_path / "live", parts=1)
+    scenario.parts = [scenario.lines[: scenario.end_at] * 2 if scenario.end_at else scenario.lines * 2]
+    scenario.write(1)
+
+    scenario.tick()
+    scenario.tick()
+
+    assert not Mission.objects.exists()
+    assert LivePlayer.objects.exists()
+    assert sum("same sortie twice" in r.getMessage() for r in caplog.records) == 1  # said once, not every pass

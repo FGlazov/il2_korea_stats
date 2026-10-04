@@ -82,6 +82,11 @@ class MissionMeta:
     live: bool = False  # a provisional save of the running mission (FR-ING-15); the final save leaves it False
 
 
+class DuplicateSortieError(ValueError):
+    """The replay produced the same sortie (account, spawn tick) twice, which the natural key forbids. In practice the
+    log file holds the mission's text twice. The message says what to do; the runner records it without a traceback."""
+
+
 @dataclass(slots=True)
 class Touched:
     """What a level-1 save changed, i.e. what level 2 must recompute (the mission's old and new players, tours, ...).
@@ -494,6 +499,15 @@ def _upsert_sorties(
     score: ScoreRules,
 ) -> dict[int, PlayerSortie]:
     """Upsert by natural key, keeping PKs; delete rows that no longer exist (FR-ING-9). Returns sortie index -> row."""
+    seen: set[tuple[str, int]] = set()
+    for s in result.sorties:
+        if (s.account_uuid, s.spawn_tick) in seen:
+            raise DuplicateSortieError(
+                f"The log contains the same sortie twice (account {s.account_uuid}, tick {s.spawn_tick}): is the "
+                "mission's text duplicated in the file? Nothing was saved for this mission. Remove the duplicated "
+                "part of the log file, then run il2ks reprocess --mission for it."
+            )
+        seen.add((s.account_uuid, s.spawn_tick))
     existing = {(s.account_uuid, s.spawn_tick): s for s in PlayerSortie.objects.filter(mission=mission)}
     rows: dict[int, PlayerSortie] = {}
     new: list[PlayerSortie] = []
