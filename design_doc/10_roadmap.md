@@ -218,6 +218,10 @@ and the PyPI first publish (maintainer).
 - Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
 - Per-ammo damage attribution analysis (follow-up damage is hard to attribute; OQ-52).
 - Yearly or quarterly aggregates next to tours (OQ-45).
+- **"Significant modifications" filter on the aircraft page** (maintainer, 2026-10-04): the maintainer compiles a list of weapon and
+  aircraft mods that change performance a lot (e.g. the MiG-15's G-suit mod); the aircraft stats can then optionally be filtered by
+  them. Depends on the WM bit names (OQ-25) and on the per-type stats scopes (tour, then role): a mod scope as the next dimension, or
+  computed from a per-sortie WM column.
 - Bailout height arm once heightmaps arrive (OQ-39).
 
 ## Right after the release: visual assets
