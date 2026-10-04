@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/list.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/list.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission list (FR-WEB-1). Context: page_obj (Page of Mission), missions (the page's rows), sort (whitelisted ?sort=),
   period_options, winner_options, empty_options ((value, label) pairs for the filters).
@@ -22,7 +22,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            {% sort_th "date" _("Date (UTC)") first="desc" %}
+            {% sort_th "date" _("Date") first="desc" %}
             {% sort_th "name" _("Mission") %}
             {% sort_th "duration" _("Duration") numeric=True %}
             {% sort_th "players" _("Players") numeric=True %}

@@ -154,7 +154,7 @@ def test_profile_shows_totals_ratios_and_ground_breakdown(client: Client) -> Non
 
     body = response.content.decode()
     assert response.status_code == 200
-    assert "First seen 2026-09-19" in body
+    assert ">2026-09-19</time>" in body
     assert "Also known as" in body  # past names
     assert "Maverick" in body
     assert "Ground kills by category" in body

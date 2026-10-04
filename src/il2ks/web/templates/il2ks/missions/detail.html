@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
   PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
@@ -12,7 +12,7 @@
   <div class="page-head">
     <h1>{{ mission|mission_title }}</h1>
     <p class="meta-line">
-      <span>{{ mission.started_at|utc }}</span>
+      <span>{{ mission.started_at|local_time }}</span>
       <span>{% blocktranslate with when=mission|game_when %}In game: {{ when }}{% endblocktranslate %}</span>
       <span>{% translate "Winner" %}: {% winner_badge mission %}</span>
       {% if not mission.completed_cleanly %}<span>{% badge _("Log incomplete") "amber" title=_("The server stopped before the mission ended; the numbers may be partial.") %}</span>{% endif %}

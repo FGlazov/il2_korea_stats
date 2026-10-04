@@ -1,8 +1,8 @@
-{# il2ks-template: templates/il2ks/sorties/parts/list_row.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/list_row.html v3 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   One row of the player sortie list. Context: sortie (PlayerSortie with mission and aircraft).
 {% endcomment %}<tr>
-  <td class="nowrap"><a href="{% url 'web:sortie-detail' sortie.pk %}" title="{% translate 'Open the sortie report' %}">{{ sortie.spawned_at|utc_short }}</a></td>
+  <td class="nowrap"><a href="{% url 'web:sortie-detail' sortie.pk %}" title="{% translate 'Open the sortie report' %}">{{ sortie.spawned_at|local_short }}</a></td>
   <td class="cell-mission"><a href="{% url 'web:mission-detail' sortie.mission_id %}" title="{{ sortie.mission.started_at|utc }}">{{ sortie.mission.mission_file|mission_name }}</a></td>
   <td class="nowrap">{% aircraft_icon sortie.aircraft %} {{ sortie.aircraft|object_name }}</td>
   <td>{% if sortie.role == "gunner" %}{% badge _("Gunner") "purple" %}{% elif sortie.combat_role %}{% role_badge sortie.combat_role %}{% endif %}</td>

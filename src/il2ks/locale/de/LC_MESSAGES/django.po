@@ -74,7 +74,7 @@ msgid "%(n)s assists"
 msgstr ""
 
 #, python-format
-msgid "%(n)s events. Times count from the spawn; the UTC time is shown next to them."
+msgid "%(n)s events. Times count from the spawn; the time of day is shown next to them."
 msgstr ""
 
 #, python-format
@@ -456,9 +456,6 @@ msgid "Data updated %(when)s"
 msgstr "Daten aktualisiert: %(when)s"
 
 msgid "Date"
-msgstr ""
-
-msgid "Date (UTC)"
 msgstr ""
 
 # llm-draft

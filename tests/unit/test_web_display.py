@@ -34,7 +34,6 @@ def test_utc_converts_aware_datetimes_and_labels_the_zone() -> None:
     assert display.utc(datetime(2026, 9, 19, 22, 34, tzinfo=UTC)) == "2026-09-19 22:34 UTC"
     assert display.utc(datetime(2026, 9, 19, 22, 34)) == "2026-09-19 22:34 UTC"
     assert display.utc(None) == display.DASH
-    assert display.utc_date(datetime(2026, 9, 19, 22, 34, tzinfo=UTC)) == "2026-09-19"
 
 
 def test_num_groups_thousands_and_rounds() -> None:

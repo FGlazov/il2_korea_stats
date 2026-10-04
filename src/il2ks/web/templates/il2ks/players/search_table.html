@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/search_table.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/search_table.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)).
   A row whose `matched_name` is set was found by an old nickname and says "also known as".
@@ -27,7 +27,7 @@
           <td class="num">{{ hit.player.kills_air|num }}</td>
           <td class="num">{{ hit.player.kills_ground|num }}</td>
           <td class="num">{{ hit.player.deaths|num }}</td>
-          <td class="num">{{ hit.player.last_seen|utc_date }}</td>
+          <td class="num">{{ hit.player.last_seen|local_date }}</td>
         </tr>
       {% empty %}
         {% if q %}

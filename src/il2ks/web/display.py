@@ -12,6 +12,8 @@ from typing import Literal
 
 from django.utils.formats import number_format
 from django.utils.functional import Promise
+from django.utils.html import format_html
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -59,8 +61,33 @@ def _as_utc(value: datetime) -> datetime:
 
 
 def utc(value: datetime | None) -> str:
-    """'2026-09-19 22:34 UTC'. Times are shown in UTC until viewer-local time exists (FR-WEB-17)."""
+    """'2026-09-19 22:34 UTC', plain text: for tooltips, meta tags and anywhere markup cannot go (the visible times
+    use `time_element`, which the browser converts to the viewer's zone, FR-WEB-17)."""
     return DASH if value is None else _as_utc(value).strftime("%Y-%m-%d %H:%M UTC")
+
+
+type TimeKind = Literal["datetime", "date", "time", "clock"]
+_TIME_FORMATS: Mapping[TimeKind, str] = {
+    "datetime": "%Y-%m-%d %H:%M",
+    "date": "%Y-%m-%d",
+    "time": "%H:%M",
+    "clock": "%H:%M:%S",
+}
+
+
+def time_element(value: datetime | None, kind: TimeKind = "datetime", *, suffix: bool = False) -> SafeString | str:
+    """A real-world moment as `<time datetime="...Z" data-il2-time="kind">2026-09-19 22:34 UTC</time>` (FR-WEB-17).
+
+    The text is UTC (what a visitor without JavaScript sees); `static/il2ks/localtime.js` rewrites it in the viewer's
+    time zone. The markup is the same for every viewer, so cached pages and ETags never depend on the zone. `suffix`
+    appends ' UTC' to the text (for a time that stands alone, not in a column under a note). None gives the dash."""
+    if value is None:
+        return DASH
+    moment = _as_utc(value)
+    text = moment.strftime(_TIME_FORMATS[kind]) + (" UTC" if suffix else "")
+    return format_html(
+        '<time datetime="{}" data-il2-time="{}">{}</time>', moment.strftime("%Y-%m-%dT%H:%M:%SZ"), kind, text
+    )
 
 
 def mission_name(mission_file: object) -> str:
@@ -70,11 +97,6 @@ def mission_name(mission_file: object) -> str:
     text = "" if mission_file is None else str(mission_file)
     base = re.split(r"[\\/]", text)[-1].rsplit(".", 1)[0].replace("_", " ").strip()
     return base or DASH
-
-
-def utc_date(value: datetime | None) -> str:
-    """'2026-09-19', the UTC date only."""
-    return DASH if value is None else _as_utc(value).strftime("%Y-%m-%d")
 
 
 def num(value: object, places: int = 0) -> str:

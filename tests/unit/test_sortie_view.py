@@ -6,7 +6,7 @@ import pytest
 
 from il2ks.queries.sorties import DEFAULT_SORT, SortieFilters, parse_filters, resolve_sort
 from il2ks.web.display import mission_name
-from il2ks.web.sortie_view import ammo_name, since, utc_clock
+from il2ks.web.sortie_view import ammo_name, since
 
 
 @pytest.mark.parametrize(
@@ -29,10 +29,6 @@ def test_since_counts_from_the_spawn() -> None:
     assert since(start, start + timedelta(seconds=754)) == "+12:34"
     assert since(start, start + timedelta(seconds=3723)) == "+1:02:03"
     assert since(start, start - timedelta(seconds=5)) == "+0:00"
-
-
-def test_utc_clock_has_seconds() -> None:
-    assert utc_clock(datetime(2026, 9, 19, 20, 41, 7, tzinfo=UTC)) == "20:41:07"
 
 
 @pytest.mark.parametrize(

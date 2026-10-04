@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/killed_by.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/killed_by.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   "Shot down by": the kill and assist credits against this sortie. Context: sortie, detail.shot_down_by
   (sortie_view.KillerRow: clock, utc, who, credit "kill" or "assist", note, friendly). Shown only when the aircraft or
@@ -12,7 +12,7 @@
       <tbody>
         {% for row in detail.shot_down_by %}
           <tr>
-            <td class="nowrap">{{ row.clock }} <small title="{% translate 'UTC' %}">{{ row.utc }}</small></td>
+            <td class="nowrap">{{ row.clock }} <small>{{ row.at|local_clock }}</small></td>
             <td>{% include "il2ks/sorties/parts/who.html" with who=row.who %}</td>
             <td>{% if row.friendly %}{% badge _("Friendly fire") "red" icon="event/friendly-fire" %}{% elif row.credit == "kill" %}{% badge _("Kill") "red" %}{% else %}{% badge _("Assist") "grey" %}{% endif %}</td>
             <td>{{ row.note }}</td>
