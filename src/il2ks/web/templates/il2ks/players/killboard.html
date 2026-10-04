@@ -1,6 +1,7 @@
-{# il2ks-template: templates/il2ks/players/killboard.html v2 - copy this line along when you override #}
-{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+{# il2ks-template: templates/il2ks/players/killboard.html v3 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_boards %}{% comment %}
   A player's full killboard (FR-WEB-9). View: il2ks.web.views.boards.player_killboard.
+  Above the player table: the killboard by aircraft type ({% type_killboard %}, players/_type_killboard.html).
   Context: player, tours, tour (None = all time), page_obj (PlayerKillboard or PlayerTourKillboard rows with .opponent
   and .last_mission), sort (resolved), site, crumbs, page_title.
   Kills = kill credits of this player on the opponent, deaths = the opponent's on this player (PvP air). Assists (the
@@ -15,6 +16,14 @@
     <p>{% if site.killboard_assists %}{% translate "Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own column, not as kills." %}{% else %}{% translate "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted." %}{% endif %}</p>
   </div>
   {% tour_select tours tour %}
+
+  {% type_killboard player tour 60 as types %}{% if types.victims or types.nemeses %}
+  <section>
+    <h2>{% translate "By aircraft" %}</h2>
+    {% include "il2ks/players/_type_killboard.html" %}
+  </section>
+  <h2>{% translate "By player" %}</h2>
+  {% endif %}
 
   {% results_region %}
     <div class="table-wrap">

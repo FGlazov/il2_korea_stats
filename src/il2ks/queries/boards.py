@@ -8,6 +8,7 @@ numbers (hiding is presentation only), but the templates don't link them.
 """
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from django.core.paginator import Page, Paginator
@@ -19,12 +20,14 @@ from il2ks.db.models import (
     PlayerKillboard,
     PlayerStreak,
     PlayerTourKillboard,
+    PlayerTypeKillboard,
     StreakKind,
     Tour,
 )
 
 PAGE_SIZE = 50
 TOP_OPPONENTS = 5
+TOP_TYPES = 5  # enemy aircraft types per direction in the profile block
 HOME_STREAKS = 5
 ACTIVE_DAYS = 30  # a "current" streak is listed while the player's last flown sortie is at most this old
 
@@ -74,6 +77,32 @@ def top_nemeses(
 ) -> Sequence[PlayerKillboard | PlayerTourKillboard]:
     """Who shot the player down most: opponents with at least one kill on the player, most first."""
     return list(_board_rows(player, tour).filter(deaths__gt=0).order_by("-deaths", "-last_at", "pk")[:limit])
+
+
+@dataclass(frozen=True, slots=True)
+class TypeBoard:
+    """A player's killboard by aircraft type: enemy types shot down most and enemy types that killed the player most."""
+
+    victims: Sequence[PlayerTypeKillboard]  # kills > 0, most first
+    nemeses: Sequence[PlayerTypeKillboard]  # deaths > 0, most first
+
+
+def type_board(player: Player, tour: Tour | None = None, limit: int = TOP_TYPES) -> TypeBoard:
+    """The enemy aircraft types the player shot down most and the types that shot the player down most (all time, or
+    in `tour`), at most `limit` each. One SELECT of the player's rows (a few dozen: one per enemy type met), ordered
+    here; ties by type name."""
+    rows = list(
+        PlayerTypeKillboard.objects.filter(player=player, tour=tour).select_related(
+            "enemy_aircraft", "kills_with", "deaths_in"
+        )
+    )
+
+    def top(count: str) -> list[PlayerTypeKillboard]:
+        counted = [r for r in rows if getattr(r, count) > 0]
+        counted.sort(key=lambda r: (-getattr(r, count), r.enemy_aircraft.display_name, r.pk))
+        return counted[:limit]
+
+    return TypeBoard(top("kills"), top("deaths"))
 
 
 def killboard_page(player: Player, sort: str, number: str | int, tour: Tour | None = None) -> Page:

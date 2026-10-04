@@ -1,8 +1,8 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average)), matchups (Matchup: enemy, kills, losses), elo_pilots (PlayerAircraft rows
+  average, by_ammo (AmmoHits: name, kills, average)), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the matchup scope), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), payloads (AircraftPayload rows), crumbs, page_title.
   Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
@@ -43,31 +43,48 @@
 
   <section>
     <h2>{% translate "Matchups" %}</h2>
-    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type." %}</p>
+    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it. The rest of this page covers all time." %}</p>
+    {% tour_select tours tour %}
+    <p class="tour-bar">
+      <span class="tour-toggle" role="group" aria-label="{% translate 'Which fights to count' %}">
+        <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All fights" %}</a>
+        <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept flights only" %}</a>
+      </span>
+    </p>
+    {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
+    {% if matchups.best %}
+      <p>{% blocktranslate with enemy=matchups.best.enemy|object_name kills=matchups.best.kills|num losses=matchups.best.losses|num %}Best exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}
+        {% blocktranslate with enemy=matchups.worst.enemy|object_name kills=matchups.worst.kills|num losses=matchups.worst.losses|num %}Worst exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}</p>
+    {% endif %}
+    {% results_region %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table aircraft-table">
         <thead>
           <tr>
-            <th scope="col">{% translate "Enemy aircraft" %}</th>
-            <th scope="col" class="num">{% translate "Kills" %}</th>
-            <th scope="col" class="num">{% translate "Losses" %}</th>
-            <th scope="col" class="num">{% translate "K/L" %}</th>
+            {% sort_th "enemy" _("Enemy aircraft") %}
+            {% sort_th "kills" _("Kills") numeric=True %}
+            {% sort_th "losses" _("Losses") numeric=True %}
+            {% sort_th "encounters" _("Fights") numeric=True %}
+            {% sort_th "ratio" _("K/L") numeric=True %}
           </tr>
         </thead>
         <tbody>
-          {% for m in matchups %}
+          {% for m in matchups.rows %}
             <tr>
               <td class="aircraft-table__name">{% aircraft_icon m.enemy "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' m.enemy.pk %}">{{ m.enemy|object_name }}</a></td>
               <td class="num">{{ m.kills|num }}</td>
               <td class="num">{{ m.losses|num }}</td>
-              <td class="num">{{ m.kills|ratio:m.losses }}</td>
+              <td class="num">{{ m.encounters|num }}</td>
+              <td class="num">{% if not m.rated %}<span class="muted" title="{% blocktranslate with n=min_encounters %}Needs at least {{ n }} fights for a reliable ratio{% endblocktranslate %}">—</span>{% elif m.losses %}{{ m.kills|ratio:m.losses }}{% else %}{% translate "no losses" %}{% endif %}</td>
             </tr>
           {% empty %}
-            {% empty_row 4 _("No player-versus-player air kills with this aircraft yet.") %}
+            {% empty_row 5 _("No player-versus-player air kills with this aircraft here yet.") %}
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {% endresults_region %}
+    <p class="muted">{% blocktranslate with n=min_encounters %}K/L is kills per loss against that aircraft. It is shown from {{ n }} fights on; with fewer, a single mission decides the number.{% endblocktranslate %}</p>
   </section>
 
   {% if ground_first %}

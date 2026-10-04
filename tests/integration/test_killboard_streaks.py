@@ -7,7 +7,15 @@ import pytest
 from django.test import Client
 
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import Mission, Player, PlayerBestStreak, PlayerKillboard, PlayerStreak, PlayerTourKillboard
+from il2ks.db.models import (
+    Mission,
+    Player,
+    PlayerBestStreak,
+    PlayerKillboard,
+    PlayerStreak,
+    PlayerTourKillboard,
+    PlayerTypeKillboard,
+)
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
@@ -51,7 +59,10 @@ def snapshot() -> list[tuple[object, ...]]:
         "best_since",
         "best_until",
     )
-    return [*kb, *tour_kb, *best, *st]
+    types = PlayerTypeKillboard.objects.order_by("player_id", "tour_id", "enemy_aircraft_id").values_list(
+        "player_id", "tour_id", "enemy_aircraft_id", "kills", "deaths", "kills_with_id", "deaths_in_id"
+    )
+    return [*kb, *tour_kb, *types, *best, *st]
 
 
 def duel_mission() -> MissionResult:
@@ -196,8 +207,10 @@ def test_profile_budget_and_killboard_page(client: Client) -> None:
 
     assert_simple_reads(client, f"/players/{pk(1)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
     # context processor 2, player, count, rows
-    assert_simple_reads(client, f"/players/{pk(1)}/killboard/", max_queries=7)  # + tours selector
-    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=7)
+    assert_simple_reads(
+        client, f"/players/{pk(1)}/killboard/", max_queries=8
+    )  # + tours selector, + killboard by aircraft type
+    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=8)
     assert_simple_reads(client, "/streaks/", max_queries=6)
 
 

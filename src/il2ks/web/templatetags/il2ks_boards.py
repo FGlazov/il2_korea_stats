@@ -3,7 +3,8 @@
 Simple tags that fetch and hand the rows to the including template (TD-22: plain SELECTs, `il2ks.queries.boards`). They
 keep the profile and home views untouched: a section is one include line.
 
-Tags: killboard_top (-> Board), player_streak (-> PlayerStreak or None), player_tour_streak (-> PlayerBestStreak or
+Tags: killboard_top (-> Board), type_killboard (-> queries.boards.TypeBoard),
+player_streak (-> PlayerStreak or None), player_tour_streak (-> PlayerBestStreak or
 None), home_streaks (-> list of PlayerStreak). The first and the third take the selected tour (None = all time).
 """
 
@@ -32,6 +33,13 @@ def killboard_top(player: Player, tour: Tour | None = None) -> Board:
     """{% killboard_top player tour as board %}: the opponents the player shot down most, and who shot them down most
     (in `tour` when given)."""
     return Board(reads.top_victims(player, tour), reads.top_nemeses(player, tour))
+
+
+@register.simple_tag
+def type_killboard(player: Player, tour: Tour | None = None, limit: int = reads.TOP_TYPES) -> reads.TypeBoard:
+    """{% type_killboard player tour as types %}: the enemy aircraft types the player shot down most and the types
+    that shot them down most (in `tour` when given), `limit` each. One query."""
+    return reads.type_board(player, tour, limit)
 
 
 @register.simple_tag

@@ -1,9 +1,9 @@
-{# il2ks-template: templates/il2ks/players/detail.html v11 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v12 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/, in this
   order: detail_header, tour select, detail_nav (in-page links), detail_tiles (general), detail_shame (hall of shame),
   detail_recent (latest 5 sorties + "View all sorties"), detail_air_section (air-to-air: detail_air_tiles, detail_ratios,
-  detail_scores, detail_air_split, killboard), detail_ground_section (air-to-ground: detail_ground_tiles, detail_ground,
+  detail_scores, detail_air_split, detail_type_killboard, detail_killboard), detail_ground_section (air-to-ground: detail_ground_tiles, detail_ground,
   detail_ground_scores), detail_overall (detail_streaks, detail_aircraft, detail_pve, detail_totals, detail_charts).
   An empty air or ground part collapses to one line (`air_active` / `ground_active`). The streaks and killboard follow the selected tour.
   Tours (TD-26): `?tour=<id>` shows the counters of that tour (`stats` is the PlayerTour row, `aircraft` the per-tour rows,

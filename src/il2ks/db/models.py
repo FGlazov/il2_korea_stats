@@ -773,19 +773,37 @@ class AircraftMatchup(models.Model):
     """Level 2 (FR-WEB-8): player-versus-player air kills of one aircraft type against another.
 
     `kills` = `Kill` rows (credit `kill`, enemy, pilot sorties on both sides) where a `killer_aircraft` shot down a
-    `victim_aircraft`. A type's losses to another type are the reversed pair. Pairs without kills have no row."""
+    `victim_aircraft`. A type's losses to another type are the reversed pair. Pairs without kills have no row.
+
+    One row per scope: `tour` null = all time, else the kills of that tour's missions; `intercept` true = only kills
+    where both sorties had the combat role air superiority (an intercept fight, doc 13), false = every kill. So
+    every kill is counted in up to four rows (all/tour x all/intercept). Hidden players and missions count too
+    (FR-ADM-3). Recomputed per (killer type, victim type) pair by `ingest.aircraft_stats`."""
 
     killer_aircraft_id: int
     victim_aircraft_id: int
+    tour_id: int | None
 
     killer_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="matchup_kills")
     victim_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="matchup_losses")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="aircraft_matchups")
+    intercept = models.BooleanField(default=False)
     kills = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["killer_aircraft", "victim_aircraft"], name="aircraftmatchup_unique")
+            models.UniqueConstraint(
+                fields=["killer_aircraft", "victim_aircraft", "tour", "intercept"],
+                condition=models.Q(tour__isnull=False),
+                name="aircraftmatchup_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["killer_aircraft", "victim_aircraft", "intercept"],
+                condition=models.Q(tour__isnull=True),
+                name="aircraftmatchup_alltime_unique",
+            ),
         ]
+        indexes = [models.Index(fields=["killer_aircraft", "tour", "intercept"], name="matchup_by_killer")]
 
     def __str__(self) -> str:
         return f"{self.killer_aircraft_id} -> {self.victim_aircraft_id}"
@@ -872,6 +890,49 @@ class PlayerTourKillboard(models.Model):
 
     def __str__(self) -> str:
         return f"{self.player_id} vs {self.opponent_id} / tour {self.tour_id}"
+
+
+class PlayerTypeKillboard(models.Model):
+    """The killboard by aircraft type (FR-WEB-9): how often `player` shot down, and was shot down by, one enemy type.
+
+    One row per (player, scope, enemy type); `tour` null = all time, else the kills of that tour's missions. `kills` =
+    kill credits of the player on sorties flying `enemy_aircraft`, `deaths` = kill credits of pilots flying
+    `enemy_aircraft` on the player's sorties; same rules as `PlayerKillboard` (enemy PvP air kills between pilot
+    sorties of two accounts, no friendly fire, assists never counted). `kills_with` / `deaths_in` = the player's own
+    aircraft type most used in those kills / deaths (ties: the lowest id), null while there are none. Hidden opponents
+    count, no name is shown (FR-ADM-3). Level 2: `ingest.type_board`, recomputed per affected player."""
+
+    player_id: int
+    enemy_aircraft_id: int
+    tour_id: int | None
+    kills_with_id: int | None
+    deaths_in_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="type_killboard_rows")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="type_killboard_rows")
+    enemy_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="+")
+    kills = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+    kills_with = models.ForeignKey(GameObject, null=True, on_delete=models.PROTECT, related_name="+")
+    deaths_in = models.ForeignKey(GameObject, null=True, on_delete=models.PROTECT, related_name="+")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "tour", "enemy_aircraft"],
+                condition=models.Q(tour__isnull=False),
+                name="playertypekillboard_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["player", "enemy_aircraft"],
+                condition=models.Q(tour__isnull=True),
+                name="playertypekillboard_alltime_unique",
+            ),
+        ]
+        indexes = [models.Index(fields=["player", "tour"], name="typekillboard_by_player")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} vs type {self.enemy_aircraft_id}"
 
 
 class StreakKind(models.TextChoices):
