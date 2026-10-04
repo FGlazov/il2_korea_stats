@@ -54,16 +54,15 @@ def _strike_kills(chunk: list[int]) -> Counter[int]:
     return Counter(kills.iterator())
 
 
-def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
-    """Make the achievement rows of every player in `chunk` equal what their sorties say: all time, and per tour for
-    `tour_ids` (None = every tour of these players, as a rebuild does)."""
-    tours = None if tour_ids is None else set(tour_ids)
+def _load(chunk: list[int]) -> tuple[dict[int, list[AchievementSortie]], dict[int, int | None]]:
+    """The counted sorties of each player in `chunk`, in chronological order (spawn time, then id), and each sortie's
+    tour (its mission's; None outside every tour)."""
     strike = _strike_kills(chunk)
     rows = (
         counted_sorties()
         .filter(player_id__in=chunk)
         .order_by("player_id", "spawned_at", "pk")
-        .values_list(
+        .values(
             "player_id",
             "pk",
             "mission_id",
@@ -79,47 +78,62 @@ def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = No
             "outcome",
             "is_death",
             "is_captured",
+            "ground_points",
+            "elo_peak",
+            "rams",
+            "first_blood",
+            "multi_kill",
+            "taxi_accident",
+            "strafed_on_ground",
+            "friendly_kills",
+            "ended_by_mission_end",
+            "took_off_at",
         )
     )
     by_player: dict[int, list[AchievementSortie]] = {}
     tour_of: dict[int, int | None] = {}  # sortie -> its mission's tour
-    for (
-        pid,
-        pk,
-        mission_id,
-        tour_id,
-        spawned,
-        ended,
-        aircraft,
-        flight,
-        air,
-        ground,
-        tank,
-        damage,
-        outcome,
-        death,
-        cap,
-    ) in rows.iterator():
-        tour_of[pk] = tour_id
-        by_player.setdefault(pid, []).append(
+    for r in rows.iterator():
+        tour_of[r["pk"]] = r["mission__tour_id"]
+        outcome = r["outcome"]
+        by_player.setdefault(r["player_id"], []).append(
             AchievementSortie(
-                sortie_id=pk,
-                mission_id=mission_id,
-                spawned_at=spawned,
-                ended_at=ended,
-                aircraft_id=aircraft,
-                flight_time_s=flight,
-                kills_air=air,
-                kills_ground=ground,
-                kills_ground_tank=tank,
-                kills_strike_air=strike[pk],
-                damage_taken=damage,
+                sortie_id=r["pk"],
+                mission_id=r["mission_id"],
+                spawned_at=r["spawned_at"],
+                ended_at=r["ended_at"],
+                aircraft_id=r["aircraft_id"],
+                flight_time_s=r["flight_time_s"],
+                kills_air=r["kills_air"],
+                kills_ground=r["kills_ground"],
+                kills_ground_tank=r["kills_ground_tank"],
+                kills_strike_air=strike[r["pk"]],
+                damage_taken=r["damage_taken"],
                 landed=outcome == Outcome.LANDED,
-                is_death=death,
-                is_captured=cap,
+                is_death=r["is_death"],
+                is_captured=r["is_captured"],
                 not_taken_off=outcome == Outcome.NOT_TAKEN_OFF,
+                ground_points=r["ground_points"],
+                elo_peak=r["elo_peak"],
+                rams=r["rams"],
+                first_blood=r["first_blood"],
+                multi_kill=r["multi_kill"],
+                taxi_accident=r["taxi_accident"],
+                strafed_on_ground=r["strafed_on_ground"],
+                friendly_kills=r["friendly_kills"],
+                crashed=outcome == Outcome.CRASHED
+                and r["took_off_at"] is not None
+                and not (r["taxi_accident"] or r["strafed_on_ground"]),
+                ended_by_mission_end=r["ended_by_mission_end"],
             )
         )
+    return by_player, tour_of
+
+
+def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
+    """Make the achievement rows of every player in `chunk` equal what their sorties say: all time, and per tour for
+    `tour_ids` (None = every tour of these players, as a rebuild does)."""
+    tours = None if tour_ids is None else set(tour_ids)
+    by_player, tour_of = _load(chunk)
     wanted: dict[_Key, _Value] = {}
     for pid, all_sorties in by_player.items():
         scopes: dict[int | None, list[AchievementSortie]] = {None: all_sorties}

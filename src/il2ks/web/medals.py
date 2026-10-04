@@ -64,6 +64,48 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Type Veteran"),
         gettext_lazy("Hours in the air in the one aircraft type flown most."),
     ),
+    "elo_peak": (
+        gettext_lazy("Top Rated"),
+        gettext_lazy("The highest Elo rating reached, in the prop or the jet pool."),
+    ),
+    "ground_score": (gettext_lazy("Ground Pounder"), gettext_lazy("Ground score in total, all sorties together.")),
+    "ram": (gettext_lazy("Contact Sport"), gettext_lazy("Enemy aircraft downed by ramming them.")),
+    "first_blood": (
+        gettext_lazy("First Blood"),
+        gettext_lazy("Missions in which you made the first air kill against a player."),
+    ),
+    "multi_kill": (
+        gettext_lazy("Hot Streak"),
+        gettext_lazy("Air kills within two minutes in one sortie: a double, a triple, a quad."),
+    ),
+    "types_flown": (gettext_lazy("Type Collector"), gettext_lazy("Different aircraft types flown.")),
+    "types_with_kills": (
+        gettext_lazy("Versatile Hunter"),
+        gettext_lazy("Different aircraft types in which you scored an air kill."),
+    ),
+    "landing_streak": (
+        gettext_lazy("Soft Touch"),
+        gettext_lazy(
+            "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+        ),
+    ),
+    "ace_in_a_day": (gettext_lazy("Ace in a Day"), gettext_lazy("Air kills on a single day (UTC).")),
+    "shame_taxi": (
+        gettext_lazy("Ramp Rash"),
+        gettext_lazy("Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."),
+    ),
+    "shame_friendly": (
+        gettext_lazy("Wrong Team"),
+        gettext_lazy("Friendly-fire kills. The markings are small and the sky is crowded."),
+    ),
+    "shame_strafed": (
+        gettext_lazy("Sitting Duck"),
+        gettext_lazy("Aircraft destroyed on the ground by an attacker: wrong place, wrong time."),
+    ),
+    "shame_crashed": (
+        gettext_lazy("Hard Landing"),
+        gettext_lazy("Sorties that took off and ended in a crash. The ground always wins."),
+    ),
 }
 
 

@@ -10,7 +10,7 @@ from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import ticks, was_resupplied
 from il2ks.core.replay.hits import hit_entries
 from il2ks.core.replay.judge import Verdict, judge
-from il2ks.core.replay.kills import resolve_kills
+from il2ks.core.replay.kills import first_blood_sortie, max_burst, resolve_kills
 from il2ks.core.replay.model import MissionFacts, SortieState, is_bot_type
 from il2ks.core.replay.pve import loss_class
 from il2ks.core.replay.rams import ram_partners
@@ -52,6 +52,7 @@ def _build_sortie(
     targets: GroundTargets,
     ammo: AmmoAnalysis,
     roles: Mapping[int, CombatRole | None],
+    first_blood: int | None,
 ) -> SortieResult:
     role = combat_role(sortie)
     sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
@@ -135,6 +136,9 @@ def _build_sortie(
             )
         ),
         loss_class=loss_class(sortie, verdict),
+        rams=sum(1 for k in air if k.ram),
+        first_blood=sortie.index == first_blood,
+        multi_kill=max_burst([k.tick for k in air]),
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
         kills_ground_static=sum(1 for k in ground if k.victim_is_static),
@@ -176,9 +180,19 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     targets = GroundTargets(facts, rules.tot_target_radius_m)
     ammo = analyse(facts, verdicts, kills, rules)
     roles: dict[int, CombatRole | None] = {sortie.index: combat_role(sortie) for sortie in facts.sorties}
+    first_blood = first_blood_sortie(kills, frozenset(s.index for s in facts.sorties if s.role == "pilot"))
     sorties = tuple(
         _build_sortie(
-            sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets, ammo, roles
+            sortie,
+            verdict,
+            kills,
+            details[sortie.index],
+            friendly[sortie.index],
+            rules,
+            targets,
+            ammo,
+            roles,
+            first_blood,
         )
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )

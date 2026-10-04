@@ -60,6 +60,72 @@ them).
 Why `ground_sortie` thresholds are high: 91.6% of ground kills are static objects (doc 13), and the top sorties have 200 to 500; with
 single-digit thresholds a third of all pilots would hold it.
 
+## The second set (13 achievements, built 2026-10-04 for OQ-105)
+
+All `[DECIDED]` by the maintainer in the review below; names, rules and thresholds are `[PROPOSED]`. Measured on the same 210
+sample missions (1,138 pilots), pilots holding **at least** the tier. The registry has two new flags (`Achievement.kind`:
+`medal` / `ribbon`, `Achievement.shame`: hall-of-shame medals), set on the entries below only. Shame medals have three tiers.
+
+| Key | Name | Rule | Tiers (bronze / silver / gold / platinum) | Sample pilots (B / S / G / P) |
+|---|---|---|---|---|
+| `elo_peak` | Top Rated | The highest Elo reached, prop or jet pool (one achievement over both). Needs a stored per-sortie fact, see below | 1530 / 1560 / 1600 / 1700 | 77 / 25 / 11 / 2 |
+| `ground_score` | Ground Pounder | Ground score in total (sum of the sorties' `ground_points`; a penalty can lower the total, the medal never drops) | 100 / 500 / 2000 / 5000 | 156 / 40 / 10 / 1 |
+| `ram` | Contact Sport | Enemy aircraft downed by ramming them (`credit_rams`; a part of the air kills) | 1 / 2 / 3 / 5 | 18 / 2 / 0 / 0 |
+| `first_blood` | First Blood | Missions in which the pilot made the first credited PvP air kill (by tick) | 1 / 3 / 5 / 10 | 107 / 15 / 1 / 0 |
+| `multi_kill` | Hot Streak | Most air kills within 120 s in one sortie (a double, triple, quad) | 2 / 3 / 4 / 5 | 61 / 4 / 1 / 0 |
+| `types_flown` | Type Collector (**ribbon**) | Different aircraft types flown (took off) | 3 / 5 / 8 / 12 | 390 / 132 / 9 / 0 |
+| `types_with_kills` | Versatile Hunter | Different aircraft types with at least one air kill | 2 / 4 / 6 / 8 | 186 / 34 / 6 / 0 |
+| `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
+| `ace_in_a_day` | Ace in a Day | Most air kills in one UTC day (the day the sortie spawned on) | 5 / 8 / 12 / 20 | 53 / 17 / 4 / 0 |
+| `shame_taxi` | Ramp Rash (shame) | Taxi accidents | 1 / 5 / 10 | 361 / 36 / 4 |
+| `shame_friendly` | Wrong Team (shame) | Friendly-fire kills (aircraft and ground objects, `friendly_kills`) | 1 / 5 / 20 | 125 / 38 / 15 |
+| `shame_strafed` | Sitting Duck (shame) | Aircraft destroyed on the ground by an attacker | 1 / 2 / 3 | 25 / 1 / 1 |
+| `shame_crashed` | Hard Landing (shame) | Sorties that took off and ended with outcome `crashed` (not a taxi accident, not strafed on the ground) | 3 / 10 / 25 | 229 / 47 / 3 |
+
+`[PROPOSED]` rule choices and what the measurements said:
+
+- **Elo**: one achievement over both pools, so a jet pilot and a prop pilot climb the same ladder; the maintainer's wish for "jet and
+  prop separately" costs a second medal row for little extra, and a pilot who flies both can still be told apart on the Elo boards.
+  Elo is a global replay (doc 06, `ingest/ratings.py`), so the achievement reads a **stored per-sortie fact**:
+  `PlayerSortie.elo_peak`, the highest pool rating the pilot held right after a win in that sortie (0 = no rating-changing win; a loser's
+  rating only falls). `recompute_ratings` computes it in the one replay pass (`compute_all_ratings(...).peaks`, keyed by the winner's
+  sortie id) and writes the sorties whose value changed, then recomputes the medals of the pilots affected (and the holder counts). It
+  therefore follows the replay order, not the spawn order: incremental == rebuild by construction (tested, also for a mission
+  saved out of order). Thresholds: 1530 is two or three wins above the start (77 pilots), 1700 is the long-term goal (2).
+- **Ground score**: there is no ground Elo, so the milestone is the cumulative ground score (the leaderboard's own number).
+  Platinum 5000 is reached by one pilot in the sample month.
+- **Rams**: a new stored counter, `PlayerSortie.rams` (replay: `KillResult.ram`, set when the credit came from `ram_partners`;
+  `SortieResult.rams` = ram kills among the credited air kills). Only hostile rams credit anybody, so friends colliding count nothing.
+  18 pilots in the sample month (20 ram sorties); the tiers stay low on purpose.
+- **First blood**: `PlayerSortie.first_blood`, one per mission, set in the replay (`kills.first_blood_sortie`): the earliest credited
+  (`kill`, not assist) non-friendly air kill **of a player's aircraft** by a pilot sortie; kills of AI aircraft do not count (otherwise
+  it is a race to the AI bombers at the start). Ties on a tick go to the first in the replay order. Doc 17 had left it out as "rewards
+  being there first"; the maintainer decided otherwise, so the tiers are by the number of first bloods (a regular may get one every
+  few missions): 107 pilots have one, 15 three.
+- **Double / triple / quad kills**: the time gaps of consecutive air kills in one sortie (598 gaps, 445 sorties with two or more air
+  kills) are long on this server: 24 gaps within 30 s, 48 within 60 s, 104 within 120 s, 245 within 300 s. A 30 to 60 s window leaves
+  doubles only (44 sorties at 60 s, no triple); **120 s** gives 88 doubles, 3 triples and 1 quad, so all three tiers exist. Stored per
+  sortie as `multi_kill` (the best burst of air kills within `core.replay.kills.BURST_WINDOW_S` = 120 s; AI victims count like for
+  `life_kills`). Tiers by count: 2 (double) / 3 (triple) / 4 (quad) / 5. Changing the window needs a reprocess.
+- **Types**: `types_flown` is the simple variant (a **ribbon**), counted from the sortie rows (took off); `types_with_kills` is the
+  "kills in N types" variant, medal. The sample's best pilot flew 8 types, 7 with a kill.
+- **Landing streak**: a landed sortie extends the run; a death or capture ends it; so does any other sortie that took off and did not
+  land (bail-out, ditching, crash, shot down); a sortie that never took off is neutral (the ironman rule), and so is a sortie the
+  server cut off at mission end without a landing (the pilot could not finish it). A sortie cut off while landed counts as a landing.
+- **Ace in a Day**: "ace" is five kills, hence bronze at 5. It overlaps little with "Ace of the Sortie" (`sortie_kills`): of the 53
+  pilots with 5 kills in a day only 6 did it in one sortie (the others spread it over several sorties), so **no rename**.
+- **Hall of shame**: tongue-in-cheek names (Ramp Rash, Wrong Team, Sitting Duck, Hard Landing), no tier names beyond the usual,
+  descriptions in the tone of the hall-of-shame spots (`web/flavor.py`). Taxi accidents and strafed-on-the-ground count sorties that
+  never took off (the incident is before the take-off); they use the existing sortie flags (`taxi_accident`, `strafed_on_ground`,
+  `friendly_kills`) and need no new column. "Crashed landings" is the stored outcome `crashed` after a take-off (`took_off_at` set),
+  without the two ground cases above. Thresholds are higher than the positive medals because the incidents are common: 361 pilots
+  have a taxi accident, 635 a crash.
+- **Upgrade backfill** (`ops/migrate.py::_check_achievement_facts`, marker `achievement_facts`): fills the new sortie columns of an
+  existing database from stored data and asks for the usual rebuild (which replays Elo and writes the peaks and all medals).
+  `multi_kill` from the timelines (exact), `first_blood` from the `Kill` rows (exact: 163 first bloods in 206 missions on the sample,
+  the same as the ingest), `rams` approximated as mutual kills within the ram window and distance without gun hits between the two
+  (20 ram sorties on the sample, the same as the ingest). `il2ks reprocess` always gives the exact values.
+
 ## Edge cases
 
 - **Gunners**: only pilot sorties are fed in (like all counters), so a gunner sortie earns nothing and does not extend a streak or a
@@ -73,7 +139,8 @@ single-digit thresholds a third of all pilots would hold it.
   cut-off sortie is not a "landing" for `damaged_landing` (only `outcome = landed` is).
 - **Friendly kills** are not in `kills_air` (doc 13) and are excluded from `strike_hunter`; AI aircraft shot down count for the air-kill
   medals (they are in `kills_air`) but **not** for `strike_hunter`, which reads `Kill` rows between two pilots (AI victims have none).
-- **Rams**: not used (see ideas): `credit_rams` is on by default (maintainer, OQ-89) but the sortie row carries no ram flag.
+- **Rams**: `Contact Sport` counts the air kills credited to a ram of an enemy aircraft (`PlayerSortie.rams`). With `credit_rams` off
+  there are none.
 - **Death in the same sortie as the kills**: `life_kills` counts the fatal sortie's kills (a life ends with its last breath);
   `survivor` does not count the fatal sortie (the streak rule).
 - **Re-ingest / reprocess**: rows are recomputed from the sorties, so a medal built on a mission that is reprocessed with fewer
@@ -152,23 +219,21 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
 
 Further achievements, and why they are not built yet:
 
-- **Ram** ("Kamikaze"/"Brothers in Arms"): needs a stored ram flag per sortie; rams are credited by default now (maintainer, OQ-89), but no sortie stores a
-  ram flag yet. Add a `rams` counter first.
-- **First blood of a mission**: needs the first kill of each mission by tick. Doable at ingest (one query over `Kill`), but it
-  rewards being there first rather than skill and favours a busy pilot slot; left out.
-- **Double / triple kills in a short time** (several kills within N seconds): the `Kill.time` data supports it; needs a window rule
-  (OQ) and a per-sortie scan of kills. Good candidate for the next set.
+- **Ram** ("Contact Sport"): built (second set), with the stored `rams` counter. Alternative names: "Kamikaze", "Brothers in Arms".
+- **First blood of a mission**: built (second set, `first_blood`), decided by the maintainer although it rewards being there first.
+- **Double / triple kills in a short time**: built (second set, `multi_kill`, window 120 s, see the measurements there).
 - **Kills in one tour**, **best tour**, **tour champion** (top Elo / score of a tour): needs per-tour medals (below).
-- **Elo milestones** (1600 / 1700 / 1800): Elo is replayed globally, medals would have to follow that pass; also shows skill, which
-  the stat marks (FR-WEB-22) already do.
-- **Types**: "flew N different aircraft types", "kills in each of N types" (collector medals), "first kill with a jet / prop":
-  data exists (`PlayerAircraft`), no good threshold knowledge yet.
+- **Elo milestones**: built (second set, `elo_peak`), following the global Elo pass through a stored per-sortie peak. Still open: a
+  separate medal per pool, and "tour champion" (top Elo of a tour).
+- **Types**: "flew N different aircraft types" (`types_flown`, ribbon) and "kills in N types" (`types_with_kills`) are built;
+  "first kill with a jet / prop" is not.
 - **Ground**: kills of each ground category (ships, trains, AAA), "ship sinker", "train wrecker", ground targets per hour on target:
   categories exist (doc 13), counts are small outside a few pilots; wait for real tiers.
-- **Landing streak** ("landed N times in a row without damage"), **bail-outs survived**, **never captured**: from existing counters.
+- **Landing streak**: built (second set, `landing_streak`); the "without damage" variant, **bail-outs survived** and **never
+  captured** are not: from existing counters.
 - **Rescue / wingman**: needs data we do not have (who escorted whom).
-- **Hall-of-shame medals** (taxi accidents, friendly-fire incidents): possible as tongue-in-cheek "ribbons" in the shame block; kept
-  separate on purpose so medals stay a positive thing and nobody is shamed by a medal list.
+- **Hall-of-shame medals**: built (second set: `shame_taxi`, `shame_friendly`, `shame_strafed`, `shame_crashed`, flag
+  `shame=True`), shown with the hall of shame and kept apart from the positive medals so nobody is shamed by a medal list.
 - **Server days**: "first sortie", "N missions flown", "played on N different days": easy, low value.
 - **Hours of day / night**, **same mission N times**: needs mission-level data and a meaning.
 - **Hidden / secret medals** (unknown until earned) and **seasonal medals** (calendar events): purely presentation, can be added in
