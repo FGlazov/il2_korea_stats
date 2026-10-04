@@ -48,8 +48,9 @@ def search_and_open_profile(page: Page, name: str) -> None:
 
 
 def open_latest_sortie(page: Page) -> None:
-    """From a profile: the first sortie of the "Recent sorties" list (newest first)."""
-    sortie_links(page).first.click()
+    """From a profile: the first sortie of the recent-sorties block (newest first). Scoped to that block: the medal row
+    above it links to the sortie each medal was earned in, which is not the latest one."""
+    page.locator("#recent").locator("a[href^='/sorties/']").first.click()
     expect(page).to_have_url(re.compile(r"/sorties/\d+/$"))
 
 
