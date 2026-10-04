@@ -67,6 +67,22 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `nav/forum.svg` | `messages` |
 | `nav/link.svg` | `link` |
 
+## Flags (MIT)
+
+`flag/*.svg` (the footer language menu) are from **flag-icons 7.5.0** (https://github.com/lipis/flag-icons, `flags/4x3/`), MIT,
+Copyright (c) 2013 Panayiotis Lipiridis; the licence text is in `NOTICE`. Source:
+`https://cdn.jsdelivr.net/npm/flag-icons@7.5.0/flags/4x3/<code>.svg`. They are decorative (`alt=""`); the language's own
+name is the label. `flag/es.svg` is reduced by hand to the plain red-yellow-red stripes (the coat of arms alone was 80 KB).
+
+| File | Language | flag-icons code |
+|---|---|---|
+| `flag/us.svg` | English (the site's English is American English) | `us` |
+| `flag/ru.svg` | Russian | `ru` |
+| `flag/de.svg` | German | `de` |
+| `flag/es.svg` | Spanish | `es` (reduced) |
+| `flag/fr.svg` | French | `fr` |
+| `flag/br.svg` | Brazilian Portuguese | `br` |
+
 ## Ours (original drawings, MIT like the rest of the project)
 
 `aircraft/*` (silhouettes), `ground/artillery.svg`, `ground/aaa.svg`, `stat/friendly-fire.svg`, `brand/*` (logo mark, favicon), `coalition/insignia/*`,

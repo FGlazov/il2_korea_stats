@@ -1,0 +1,11 @@
+{# il2ks-template: templates/il2ks/components/language_menu.html v1 - copy this line along when you override #}
+{% comment %}
+  language_menu.html ({% language_menu %}): the footer language switcher, a button-like Pico details.dropdown (il2ks.js closes it on
+  outside click and Escape; it works without JS). The language's own name is the label, the flag is decoration (alt="").
+  Context: current (the active item), items (dicts: code, name, flag [static URL or ""], href, current).
+{% endcomment %}{% load i18n %}<details class="dropdown dropdown--right language-menu">
+  <summary role="button" class="outline secondary" title="{% translate 'Language' %}">{% if current.flag %}<img class="language-menu__flag" src="{{ current.flag }}" alt="" width="20" height="15">{% endif %}<span lang="{{ current.code }}">{{ current.name }}</span></summary>
+  <ul>{% for item in items %}
+    <li><a href="{{ item.href }}" hreflang="{{ item.code }}" lang="{{ item.code }}" rel="nofollow"{% if item.current %} aria-current="true"{% endif %}>{% if item.flag %}<img class="language-menu__flag" src="{{ item.flag }}" alt="" width="20" height="15" loading="lazy">{% endif %}<span>{{ item.name }}</span></a></li>{% endfor %}
+  </ul>
+</details>

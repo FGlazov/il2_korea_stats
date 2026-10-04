@@ -27,6 +27,7 @@ from django.http import HttpRequest, QueryDict
 from django.template import Context, Node, NodeList, TemplateSyntaxError
 from django.template.base import FilterExpression, Parser, Token, kwarg_re
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.safestring import SafeString
@@ -390,23 +391,43 @@ def dropdown(label: object, items: Iterable[tuple[object, str]], align: str = ""
     return {"label": label, "items": list(items), "align": align}
 
 
-@register.simple_tag(takes_context=True)
-def language_menu(context: Context) -> dict[str, object]:
-    """{% language_menu as languages %} then {% dropdown languages.label languages.items %}: the language switcher.
+LANGUAGE_NAMES: dict[str, str] = {"pt-br": "Português"}
+"""Menu names that differ from Django's `name_local` ("Português brasileiro"): the Brazil flag says the rest."""
 
-    The label is the current language in its own language; the items link to `web:set-language`, which stores the
-    choice in a cookie and returns to the current page (`web.views.language`)."""
+LANGUAGE_FLAGS: dict[str, str] = {
+    "en": "flag/us",  # the site's English is American English
+    "ru": "flag/ru",
+    "de": "flag/de",
+    "es": "flag/es",
+    "fr": "flag/fr",
+    "pt-br": "flag/br",
+}
+"""Language code -> flag file (no extension) under static/il2ks/img/; decorative, the language name is the label."""
+
+
+@register.inclusion_tag(COMPONENTS + "language_menu.html", takes_context=True)
+def language_menu(context: Context) -> dict[str, object]:
+    """{% language_menu %}: the language switcher, a button-like dropdown of flag + name (footer).
+
+    The summary shows the current language in its own language; the items link to `web:set-language`, which stores the
+    choice in a cookie and returns to the current page (`web.views.language`). Works without JS (a `<details>`)."""
     request = _request_of(context)
     back = request.get_full_path() if request is not None else "/"
     current = get_language() or settings.LANGUAGE_CODE
-    items: list[tuple[str, str]] = []
-    label = ""
+    items: list[dict[str, object]] = []
     for code, _name in settings.LANGUAGES:
-        own_name = str(get_language_info(code)["name_local"]).capitalize()
-        items.append((own_name, f"{reverse('web:set-language')}?{urlencode({'language': code, 'next': back})}"))
-        if code == current:
-            label = own_name
-    return {"label": label or items[0][0], "items": items}
+        flag = LANGUAGE_FLAGS.get(code)
+        items.append(
+            {
+                "code": code,
+                "name": LANGUAGE_NAMES.get(code) or str(get_language_info(code)["name_local"]).capitalize(),
+                "flag": static(f"il2ks/img/{flag}.svg") if flag else "",
+                "href": f"{reverse('web:set-language')}?{urlencode({'language': code, 'next': back})}",
+                "current": code == current,
+            }
+        )
+    active = next((item for item in items if item["current"]), items[0])
+    return {"current": active, "items": items}
 
 
 # --- table, sorting, paging, filters ------------------------------------------------------------------------------
