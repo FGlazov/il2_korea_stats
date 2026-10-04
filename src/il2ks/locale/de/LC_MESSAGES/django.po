@@ -698,11 +698,13 @@ msgstr "Getroffen durch"
 msgid "Ammunition left not recorded reliably"
 msgstr "Restmunition nicht verlässlich erfasst"
 
+# llm-draft
 msgid "Ammunition mix"
-msgstr ""
+msgstr "Munitionsmischung"
 
+# llm-draft
 msgid "Ammunition mixes"
-msgstr ""
+msgstr "Munitionsmischungen"
 
 # llm-draft
 msgid "Ammunition used unknown"
@@ -1901,10 +1903,14 @@ msgstr "Eingesteckte Treffer"
 msgid "Hits to destroy"
 msgstr "Treffer bis zur Zerstörung"
 
+# llm-draft
 msgid ""
 "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
 "left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
+"Treffer bis zur Zerstörung: Über die Gesamtzeit zählen nur Abschüsse, bei denen ein einzelner Angreifer den ganzen "
+"Schaden verursacht hat; Bomben und Raketen sind nicht dabei. Erdkampfeinsätze: alle übrigen sind "
+"Luftüberlegenheitseinsätze."
 
 # llm-draft
 msgid "Home"
@@ -1940,19 +1946,26 @@ msgstr "Flugstunden in dem Flugzeugtyp, der am meisten geflogen wurde."
 msgid "Hours in the air, all sorties together."
 msgstr "Flugstunden insgesamt, alle Einsätze zusammen."
 
+# llm-draft
 msgid ""
 "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
 " Open a type for its matchups, best pilots and loadouts."
 msgstr ""
+"So schlägt sich jeder Flugzeugtyp: Einsätze, Abschüsse, Verluste und Verhältnisse, in der gewählten Tour oder über "
+"alle gespielten Missionen. Öffne einen Typ für seine Duelle, besten Piloten und Bewaffnungen."
 
 # llm-draft
 msgid "How it ended"
 msgstr "Wie sie endete"
 
+# llm-draft
 msgid ""
 "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
 " bombs and rockets are left out. Instances are the counted kills in which the ammunition hit at least once."
 msgstr ""
+"Wie viele Treffer mit Bordwaffen nötig sind, um dieses Flugzeug abzuschießen. Es zählen nur Abschüsse, bei denen ein "
+"einzelner Angreifer den ganzen Schaden verursacht hat; Bomben und Raketen sind nicht dabei. Fälle sind die gezählten "
+"Abschüsse, in denen die Munition mindestens einmal getroffen hat."
 
 # llm-draft
 msgid "How should HTTPS be handled?"
@@ -2009,8 +2022,9 @@ msgstr "Einlesestatus"
 msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
 msgstr "Nur innerhalb der gewählten Tour: Eine Serie wird nicht aus einer früheren Tour übernommen."
 
+# llm-draft
 msgid "Instances"
-msgstr ""
+msgstr "Fälle"
 
 # llm-draft
 msgid "Intercept sorties only"
@@ -2500,8 +2514,9 @@ msgstr "In dieser Tour kein Bodenangriff: keine Bodenziele zerstört, keine Erdk
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Noch kein Bodenangriff: keine Bodenziele zerstört, keine Erdkampfeinsätze."
 
+# llm-draft
 msgid "No aircraft has flown in this tour yet."
-msgstr ""
+msgstr "In dieser Tour ist noch kein Flugzeug geflogen."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -3033,10 +3048,13 @@ msgstr "Spieler"
 msgid "Player aircraft"
 msgstr "Spielerflugzeuge"
 
+# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
+"Luftabschüsse von Spieler gegen Spieler gegen jeden gegnerischen Flugzeugtyp, in der gewählten Tour. Daran siehst du,"
+" gegen welche gegnerischen Flugzeuge dieses besteht und welche es schlagen."
 
 # llm-draft
 msgid ""
@@ -3409,11 +3427,12 @@ msgstr "Am häufigsten abgeschossen von"
 msgid "Shot down most"
 msgstr "Am häufigsten abgeschossen"
 
+# llm-draft
 #, python-format
 msgid "Show %(n)s more mix"
 msgid_plural "Show %(n)s more mixes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Noch %(n)s Mischung anzeigen"
+msgstr[1] "Noch %(n)s Mischungen anzeigen"
 
 msgid "Show quips on the site"
 msgstr ""
@@ -4098,8 +4117,11 @@ msgstr ""
 "Dieselben Prüfungen wie beim Befehl il2ks doctor, angewendet auf die neuen Einstellungen. Manche Warnungen "
 "verschwinden nach dem Neustart."
 
+# llm-draft
 msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
 msgstr ""
+"Dieselben Abschüsse, gruppiert danach, welche Munitionsarten zusammen getroffen haben, mit den durchschnittlichen "
+"Treffern jeder Art in dieser Mischung."
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
@@ -4143,8 +4165,11 @@ msgstr "Die Staffel hat gelernt, etwas weiter auseinander zu fliegen. Mutig, und
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "Auf dem Rollweg gibt es für solche Fälle eine Akte. Dünn, aber ordentlich abgegriffen."
 
+# llm-draft
 msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
 msgstr ""
+"Die Summen und die Duelle folgen der gewählten Tour. Beste Piloten, Treffer bis zur Zerstörung und Bewaffnungen "
+"gelten für die Gesamtzeit."
 
 # llm-draft
 msgid "The two passwords differ."

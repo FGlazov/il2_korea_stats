@@ -605,7 +605,10 @@ def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None =
     `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice_from(request.GET)`."""
     request = _request_of(context)
     hidden = [
-        (key, value) for key, values in _params_of(context).lists() if key not in {"tour", "page"} for value in values
+        (key, value)
+        for key, values in _params_of(context).lists()
+        if key != "tour" and key != "page" and not key.startswith("page_")  # a new tour starts every list at page 1
+        for value in values
     ]
     return {
         **_tour_context(tours, selected),
