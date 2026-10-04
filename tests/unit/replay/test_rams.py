@@ -44,10 +44,12 @@ def _kills(result: MissionResult) -> list[tuple[int | None, int | None]]:
     return [(k.killer_sortie_index, k.victim_sortie_index) for k in result.kills if k.credit == "kill"]
 
 
-def test_off_by_default_nobody_is_credited() -> None:
+def test_default_is_on_and_switching_it_off_credits_nobody() -> None:
+    """OQ-89: `credit_rams` is on by default; with `false` nobody is credited."""
+    assert ReplayRules().toggles.credit_rams is True
     sc = _two_players()
     _collision(sc)
-    result = sc.result()
+    result = sc.result(ReplayRules(toggles=RuleToggles(credit_rams=False)))
     a, b = by_acct(result, 1), by_acct(result, 2)
     assert (a.kills_air, b.kills_air) == (0, 0)
     assert (a.loss_cause, b.loss_cause) == ("self", "self")
