@@ -9,6 +9,7 @@ from il2ks.db.models import Counters
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import player_tour, tour_choice_from
+from il2ks.web import pve
 from il2ks.web.ground import ground_breakdown
 
 
@@ -30,11 +31,11 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
     Template `il2ks/players/detail.html`. Context: `player`, `names` (PlayerName rows, newest first), `sort` (resolved),
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
-    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`.
+    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `pve_kills` / `pve_losses` (web.pve rows of
+    `stats`, FR-WEB-21), `crumbs`, `page_title`.
     With `?tour=<id>` (queries.tours.tour_choice_from; unknown = all time): `tours`, `tour`, and `stats` is the
     PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `marks` (stat thresholds
-    of that scope, FR-WEB-22); `aircraft` and `recent`
-    are that tour's."""
+    of that scope, FR-WEB-22); `aircraft` and `recent` are that tour's."""
     player = reads.visible_player(pk)
     if player is None:
         raise Http404
@@ -54,6 +55,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "aircraft": reads.aircraft_rows(player, sort, tour),
         "survived": max(stats.sorties - stats.deaths, 0) if stats else 0,
         "ground": ground_breakdown(stats) if stats else [],
+        "pve_kills": pve.kill_breakdown(stats) if stats else [],
+        "pve_losses": pve.loss_breakdown(stats) if stats else [],
         "gunner_only": tour is None and reads.flies_as_gunner_only(player),
         "recent": reads.recent_sorties(player, tour=tour),
     }

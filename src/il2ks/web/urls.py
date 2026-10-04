@@ -4,7 +4,7 @@ Paths are stable so shared links keep working (FR-WEB-13)."""
 
 from django.urls import URLPattern, path
 
-from il2ks.web.views import language, live, missions, players, setup, sorties, styleguide
+from il2ks.web.views import aircraft, language, live, missions, players, setup, sorties, styleguide
 
 app_name = "web"
 urlpatterns: list[URLPattern] = [
@@ -15,6 +15,8 @@ urlpatterns: list[URLPattern] = [
     path("players/<int:pk>/", players.player_detail, name="player-detail"),
     path("players/<int:pk>/sorties/", sorties.player_sorties, name="player-sorties"),  # ?aircraft=<GameObject pk>
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
+    path("aircraft/", aircraft.aircraft_list, name="aircraft-list"),  # ?sort=: per-type stats (FR-WEB-8)
+    path("aircraft/<int:pk>/", aircraft.aircraft_detail, name="aircraft-detail"),  # pk = GameObject pk
     path("language/", language.set_language, name="set-language"),  # ?language=<code>&next=<local url> (TD-24)
     path("live/", live.live_fragment, name="live"),  # HTMX fragment: online now, its own max-age (FR-ING-12)
     path("setup/", setup.setup, name="setup"),  # first run only: local, token-gated, 404 once setup is done

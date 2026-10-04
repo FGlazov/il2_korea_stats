@@ -1,0 +1,50 @@
+{# il2ks-template: templates/il2ks/players/detail_pve.html v3 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_pve.html: the PvE breakdown (FR-WEB-21, doc 13) in a collapsed accordion under the ground-kill one: who killed this
+  player (deaths and lost aircraft by counterpart class, so "how often does AA get me?" has an answer) and whom they killed
+  (player aircraft, AI aircraft, anti-aircraft, other ground objects). Context: stats (the counters row the page shows: it
+  follows the tour when the page has a tour selector), pve_kills (web.pve.KillClassRow: label, count, share), pve_losses
+  (web.pve.LossRow: label, deaths, share, planes_lost).
+{% endcomment %}{% if stats.deaths or stats.planes_lost or stats.kills_air or stats.kills_ground %}
+  {% blocktranslate count n=stats.deaths with aaa=stats.deaths_by_aaa|percent:stats.deaths asvar pve_hint %}{{ n }} death, {{ aaa }} to anti-aircraft{% plural %}{{ n }} deaths, {{ aaa }} to anti-aircraft{% endblocktranslate %}
+  {% accordion _("Who kills you, and whom you kill") pve_hint %}
+    <div class="split">
+      <section>
+        <h3>{% translate "Deaths and lost aircraft by cause" %}</h3>
+        <div class="table-wrap table-wrap--flat">
+          <table class="data-table data-table--compact pve-table">
+            <thead><tr><th scope="col">{% translate "Caused by" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col" class="num">{% translate "Share" %}</th><th scope="col" class="num">{% translate "Aircraft lost" %}</th></tr></thead>
+            <tbody>
+              {% for row in pve_losses %}
+                <tr{% if not row.deaths and not row.planes_lost %} class="is-zero"{% endif %}>
+                  <td>{{ row.label }}</td>
+                  <td class="num">{{ row.deaths|num }}</td>
+                  <td class="num">{{ row.share }}</td>
+                  <td class="num">{{ row.planes_lost|num }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot><tr><td>{% translate "Total" %}</td><td class="num">{{ stats.deaths|num }}</td><td class="num"></td><td class="num">{{ stats.planes_lost|num }}</td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h3>{% translate "Kills by victim" %}</h3>
+        <div class="table-wrap table-wrap--flat">
+          <table class="data-table data-table--compact pve-table">
+            <thead><tr><th scope="col">{% translate "Victim" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num">{% translate "Share" %}</th></tr></thead>
+            <tbody>
+              {% for row in pve_kills %}
+                <tr{% if not row.count %} class="is-zero"{% endif %}>
+                  <td>{{ row.label }}</td>
+                  <td class="num">{{ row.count|num }}</td>
+                  <td class="num">{{ row.share }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  {% endaccordion %}
+{% endif %}

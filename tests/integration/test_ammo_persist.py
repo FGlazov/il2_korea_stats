@@ -212,7 +212,7 @@ def test_aircraft_reads_give_average_hits_per_ammo_and_the_total() -> None:
     assert mig.total is not None
     assert (mig.total.kills, mig.total.hits, mig.total.average_hits) == (2, 9, 4.5)
     assert [(a.ammo, a.kills, a.average_hits) for a in mig.by_ammo] == [(API, 2, 4.0), (INC, 1, 1.0)]
-    assert [a.log_name for a in all_aircraft_ammo()] == ["MiG-15bis", "F-86A-5"]  # the most killed first
+    assert [a.aircraft.log_name for a in all_aircraft_ammo()] == ["MiG-15bis", "F-86A-5"]  # the most killed first
     untouched = GameObject.objects.create(log_name="Zzz", display_name="Zzz")
     nothing = aircraft_ammo(untouched)
     assert (nothing.total, nothing.by_ammo) == (None, ())

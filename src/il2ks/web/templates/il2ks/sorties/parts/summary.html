@@ -1,6 +1,6 @@
-{# il2ks-template: templates/il2ks/sorties/parts/summary.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/summary.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  Summary: the flight (left) and the result (right). Context: sortie.
+  Summary: the flight (left) and the result (right). Context: sortie, detail (lost_to: who is behind the loss, FR-WEB-21).
   Labels follow doc 13: "left the server" is the `disconnected` flag (also set after a landing), never "disconnected in
   flight"; damage taken is the share of the airframe's health lost and does not mean destroyed (aircraft status does).
 {% endcomment %}<h2>{% translate "Summary" %}</h2>
@@ -24,6 +24,7 @@
     <dt>{% translate "Aircraft status" %}</dt><dd>{% aircraft_badge sortie.aircraft_status %}</dd>
     <dt>{% translate "Damage taken" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
     <dt>{% translate "Loss cause" %}</dt><dd>{% if sortie.loss_cause == "attacker" %}{% translate "Enemy action" %}{% elif sortie.loss_cause == "self" %}{% translate "Own doing (terrain, overstress, accident)" %}{% else %}<span class="muted">{% translate "Nothing lost" %}</span>{% endif %}</dd>
+    {% if detail.lost_to %}<dt>{% translate "Lost to" %}</dt><dd>{{ detail.lost_to }}</dd>{% endif %}
     {% if sortie.disconnected %}<dt>{% translate "Left the server" %}</dt><dd>{% translate "Yes" %}</dd>{% endif %}
     {% if sortie.friendly_kills or sortie.friendly_hits %}<dt>{% translate "Friendly fire" %}</dt><dd>{% blocktranslate with kills=sortie.friendly_kills|num hits=sortie.friendly_hits|num %}{{ kills }} kills, {{ hits }} hits{% endblocktranslate %}</dd>{% endif %}
   </dl>

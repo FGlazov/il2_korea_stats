@@ -112,6 +112,10 @@ msgid "%(n)s of them were static objects (not moving), such as parked vehicles, 
 msgstr ""
 
 #, python-format
+msgid "%(n)s types"
+msgstr ""
+
+#, python-format
 msgid "%(name)s: sorties"
 msgstr ""
 
@@ -257,6 +261,9 @@ msgstr "Все"
 msgid "All aircraft"
 msgstr ""
 
+msgid "All gun ammunition"
+msgstr ""
+
 # llm-draft
 msgid "All ingestion runs"
 msgstr "Все запуски обработки"
@@ -336,6 +343,12 @@ msgstr ""
 msgid "Attempts"
 msgstr "Попытки"
 
+msgid "Average hits"
+msgstr ""
+
+msgid "Average number of gun hits that destroyed it"
+msgstr ""
+
 msgid "BLUFOR won"
 msgstr ""
 
@@ -373,6 +386,9 @@ msgstr ""
 msgid "Bombs"
 msgstr ""
 
+msgid "Bombs, rockets and napalm"
+msgstr ""
+
 # llm-draft
 msgid "Breadcrumb"
 msgstr "Навигационная цепочка"
@@ -385,6 +401,10 @@ msgid "Browse missions"
 msgstr "Смотреть миссии"
 
 msgid "Buildings"
+msgstr ""
+
+#, python-format
+msgid "By air kills in this aircraft, pilots with at least %(min_sorties)s sorties."
 msgstr ""
 
 msgid "By aircraft"
@@ -461,7 +481,14 @@ msgstr "Текущий логотип"
 msgid "Damage"
 msgstr ""
 
+msgid "Damage attributed to this ammunition, in health units (1.0 = one whole object)"
+msgstr ""
+
 msgid "Damage dealt"
+msgstr ""
+
+#, python-format
+msgid "Damage no hit could be blamed on: %(dealt)s dealt, %(taken)s taken."
 msgstr ""
 
 msgid "Damage taken"
@@ -486,6 +513,9 @@ msgstr "Погиб"
 msgid "Deaths"
 msgstr ""
 
+msgid "Deaths and lost aircraft by cause"
+msgstr ""
+
 # llm-draft
 msgid "Destroyed"
 msgstr "Уничтожен"
@@ -504,6 +534,12 @@ msgid "Detected: %(zone)s. Change it if the game server's computer uses another 
 msgstr ""
 
 msgid "Died"
+msgstr ""
+
+msgid "Direct hits"
+msgstr ""
+
+msgid "Direct impacts logged with the ordnance named"
 msgstr ""
 
 # llm-draft
@@ -537,6 +573,9 @@ msgid "Empty missions"
 msgstr ""
 
 msgid "Enemy action"
+msgstr ""
+
+msgid "Enemy aircraft"
 msgstr ""
 
 # llm-draft
@@ -648,6 +687,9 @@ msgstr ""
 msgid "Ground kills: %(n)s"
 msgstr ""
 
+msgid "Ground vehicle or object"
+msgstr ""
+
 msgid "Gunner"
 msgstr ""
 
@@ -691,10 +733,21 @@ msgstr ""
 msgid "Hits given"
 msgstr ""
 
+msgid "Hits needed to destroy each aircraft type"
+msgstr ""
+
 msgid "Hits received"
 msgstr ""
 
 msgid "Hits taken"
+msgstr ""
+
+msgid "Hits to destroy"
+msgstr ""
+
+msgid ""
+"Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack"
+" sorties: the rest are air-superiority sorties."
 msgstr ""
 
 # llm-draft
@@ -781,6 +834,12 @@ msgid "Kills"
 msgstr ""
 
 msgid "Kills and assists"
+msgstr ""
+
+msgid "Kills by victim"
+msgstr ""
+
+msgid "Kills it hit in"
 msgstr ""
 
 # llm-draft
@@ -895,7 +954,13 @@ msgstr "Оформление"
 msgid "Loss cause"
 msgstr ""
 
+msgid "Losses"
+msgstr ""
+
 msgid "Lost before the first takeoff, by their own doing"
+msgstr ""
+
+msgid "Lost to"
 msgstr ""
 
 msgid "Machine-gun rounds"
@@ -904,6 +969,9 @@ msgstr ""
 # llm-draft
 msgid "Main"
 msgstr "Основное"
+
+msgid "Matchups"
+msgstr ""
 
 # llm-draft
 msgid "May still change"
@@ -959,10 +1027,19 @@ msgstr ""
 msgid "No air kills."
 msgstr ""
 
+msgid "No aircraft has flown yet."
+msgstr ""
+
+msgid "No attacker (crash, terrain, accident)"
+msgstr ""
+
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
 msgstr ""
 
 msgid "No ground kills."
+msgstr ""
+
+msgid "No kill of this aircraft by a single attacker yet."
 msgstr ""
 
 msgid "No landing"
@@ -1000,6 +1077,9 @@ msgstr ""
 
 #, python-format
 msgid "No player found for “%(query)s”."
+msgstr ""
+
+msgid "No player-versus-player air kills with this aircraft yet."
 msgstr ""
 
 msgid "No player-versus-player kills in this mission."
@@ -1076,6 +1156,9 @@ msgstr ""
 msgid "On this page"
 msgstr ""
 
+msgid "One detonation and one target that took damage"
+msgstr ""
+
 # llm-draft
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "По одной в строке: «Название | https://адрес». Показываются в шапке или подвале сайта. Не более 10."
@@ -1109,6 +1192,9 @@ msgid ""
 msgstr ""
 
 msgid "Other"
+msgstr ""
+
+msgid "Other ground objects"
 msgstr ""
 
 msgid "Other objects"
@@ -1172,10 +1258,19 @@ msgstr ""
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
 msgstr "Статистика пилотов, вылетов и миссий нашего сервера IL-2 Sturmovik: Korea."
 
+msgid "Pilots"
+msgstr ""
+
 msgid "Planes lost"
 msgstr ""
 
 msgid "Player"
+msgstr ""
+
+msgid "Player aircraft"
+msgstr ""
+
+msgid "Player-versus-player air kills against each enemy aircraft type."
 msgstr ""
 
 msgid ""
@@ -1218,6 +1313,9 @@ msgstr ""
 msgid "Problems"
 msgstr "Проблемы"
 
+msgid "Prop"
+msgstr ""
+
 msgid "REDFOR won"
 msgstr ""
 
@@ -1246,6 +1344,9 @@ msgstr ""
 # llm-draft
 msgid "Recently completed by idle timeout"
 msgstr "Недавно завершены по таймауту бездействия"
+
+msgid "Released"
+msgstr ""
 
 # llm-draft
 msgid "Remove the current logo"
@@ -1431,6 +1532,9 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
+msgid "Survival"
+msgstr ""
+
 msgid "Survival rate"
 msgstr ""
 
@@ -1454,6 +1558,9 @@ msgid "Tanks"
 msgstr ""
 
 msgid "Target"
+msgstr ""
+
+msgid "Targets damaged"
 msgstr ""
 
 msgid "Taxi accident"
@@ -1689,6 +1796,9 @@ msgstr ""
 msgid "UTC"
 msgstr ""
 
+msgid "Unattributed"
+msgstr ""
+
 # llm-draft
 msgid "Unharmed"
 msgstr "Цел"
@@ -1708,6 +1818,9 @@ msgstr "Неизвестные типы событий и ключи за пос
 # llm-draft
 msgid "Unknown keys (AType:KEY: lines)"
 msgstr "Неизвестные ключи (строки AType:KEY:)"
+
+msgid "Unknown loadout"
+msgstr ""
 
 # llm-draft
 msgid "Unknown object types"

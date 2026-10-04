@@ -50,6 +50,7 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
+from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.stat_marks import recompute_thresholds
@@ -104,8 +105,12 @@ def save_mission(
         defaults={**_mission_fields(result, meta, clock), "tour": tour},
     )
     old_player_ids: set[int] = set()
+    old_aircraft_ids: set[int] = set()
+    old_pairs: set[tuple[int, int]] = set()
     if not created:
         old_player_ids = set(PlayerSortie.objects.filter(mission=mission).values_list("player_id", flat=True))
+        old_aircraft_ids = mission_aircraft(mission.pk)
+        old_pairs = mission_pairs(mission.pk)
 
     objects = register_game_objects(_object_types(result), catalog)
     register_countries(result.mission.countries, catalog)
@@ -119,6 +124,8 @@ def save_mission(
     touched_tours = {tour.pk} | _ids(old_tour_id)
     recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
     recompute_aircraft_ammo(ammo_aircraft_ids)
+    recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk))  # after the players' PlayerAircraft rows
+    recompute_matchups(old_pairs | mission_pairs(mission.pk))
     if marks is not None:
         recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:

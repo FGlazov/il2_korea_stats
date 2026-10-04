@@ -686,6 +686,71 @@ class StatThreshold(models.Model):
 
     def __str__(self) -> str:
         return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
+class AircraftStats(Counters):
+    """Level 2 (FR-WEB-8): all-time counters per aircraft type, summed over every pilot's `PlayerAircraft` row.
+
+    Hidden players are included: hiding is presentation only (FR-ADM-3). `pilots` = distinct players who flew the type.
+    `side` is the side most of its sorties were flown for ('redfor', 'blufor' or ''). The four ratio fields are
+    fractions stored only so the list page can sort by them (TD-22); 0.0 where the denominator is 0, and the page shows
+    a dash then: `kd` = air kills per death, `kl` = air kills per plane lost, `survival` = sorties without a death per
+    sortie, `attack_share` = attack sorties per sortie (the rest are air-superiority sorties)."""
+
+    aircraft_id: int
+
+    aircraft = models.OneToOneField(GameObject, on_delete=models.PROTECT, related_name="stats")
+    pilots = models.PositiveIntegerField(default=0)
+    side = models.CharField(max_length=8, blank=True, default="")
+    kd = models.FloatField(default=0.0)
+    kl = models.FloatField(default=0.0)
+    survival = models.FloatField(default=0.0)
+    attack_share = models.FloatField(default=0.0)
+
+    class Meta(Counters.Meta):
+        abstract = False
+
+    def __str__(self) -> str:
+        return f"aircraft {self.aircraft_id}"
+
+
+class AircraftMatchup(models.Model):
+    """Level 2 (FR-WEB-8): player-versus-player air kills of one aircraft type against another.
+
+    `kills` = `Kill` rows (credit `kill`, enemy, pilot sorties on both sides) where a `killer_aircraft` shot down a
+    `victim_aircraft`. A type's losses to another type are the reversed pair. Pairs without kills have no row."""
+
+    killer_aircraft_id: int
+    victim_aircraft_id: int
+
+    killer_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="matchup_kills")
+    victim_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="matchup_losses")
+    kills = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["killer_aircraft", "victim_aircraft"], name="aircraftmatchup_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.killer_aircraft_id} -> {self.victim_aircraft_id}"
+
+
+class AircraftPayload(models.Model):
+    """Level 2 (FR-WEB-8): counted sorties per aircraft type and loadout (`PlayerSortie.payload_name`; '' = unnamed)."""
+
+    aircraft_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="payload_stats")
+    payload_name = models.CharField(max_length=128, blank=True)
+    sorties = models.PositiveIntegerField(default=0)
+    kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["aircraft", "payload_name"], name="aircraftpayload_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.aircraft_id} / {self.payload_name}"
 
 
 # --- Operational ---

@@ -80,8 +80,7 @@ class AmmoToDestroy:
 @dataclass(frozen=True, slots=True)
 class AircraftAmmo:
     aircraft_id: int
-    log_name: str
-    display_name: str
+    aircraft: GameObject  # for `{{ aircraft|object_name }}` (TD-24) and the icon
     total: AmmoToDestroy | None  # all gun ammo together; None if no kill was counted
     by_ammo: tuple[AmmoToDestroy, ...]  # most used first
 
@@ -177,8 +176,7 @@ def _group(rows: Sequence[AircraftAmmoStats]) -> list[AircraftAmmo]:
         out.append(
             AircraftAmmo(
                 aircraft_id,
-                aircraft.log_name,
-                aircraft.display_name,
+                aircraft,
                 total,
                 tuple(AmmoToDestroy(r.ammo, r.kills, r.hits) for r in guns),
             )
@@ -190,7 +188,7 @@ def aircraft_ammo(aircraft: GameObject) -> AircraftAmmo:
     """Hits to destroy this aircraft type; empty (`total` None) if no kill was counted."""
     rows = list(AircraftAmmoStats.objects.filter(aircraft=aircraft).select_related("aircraft"))
     found = _group(rows)
-    return found[0] if found else AircraftAmmo(aircraft.pk, aircraft.log_name, aircraft.display_name, None, ())
+    return found[0] if found else AircraftAmmo(aircraft.pk, aircraft, None, ())
 
 
 def all_aircraft_ammo() -> list[AircraftAmmo]:

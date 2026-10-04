@@ -14,8 +14,8 @@
       "sha256": "b6d0cd2d30ea8fb9ee3f684f36655a87927adc348a9d8ed4a7f1952eda638d1f"
     },
     "static/il2ks/players.css": {
-      "version": 2,
-      "sha256": "def84221f5258fb9a191848db8ff9bd1dc57f061afa015567c19611163ade659"
+      "version": 3,
+      "sha256": "b75affc5b202b48e62229f2ce77a133c86576df46d349637decc32d41475c349"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -77,9 +77,17 @@
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
+    "templates/il2ks/aircraft/detail.html": {
+      "version": 1,
+      "sha256": "d477ee5504de52f8d295b7e392166c2a4e74ab1d9f5510ddfb0663db138ca6f0"
+    },
+    "templates/il2ks/aircraft/list.html": {
+      "version": 2,
+      "sha256": "c2179e2bb3346cf773f7bd471490dee59981bf6e15bc8e7270c656c68260d492"
+    },
     "templates/il2ks/base.html": {
-      "version": 4,
-      "sha256": "2cbfb26b5c306942222e4cb1f0f85ebdbf5fcc2db589b6e7f5b3d1928235fdc3"
+      "version": 5,
+      "sha256": "7f267302890d27cf86fc8f064a49267117018bbc70dfbb3dbee503ed483cf06d"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -178,8 +186,8 @@
       "sha256": "b2f6073d3a71565076786e1c9f98dae1cf5f788fc9d14c61f3b94c22d5c0366a"
     },
     "templates/il2ks/players/detail.html": {
-      "version": 2,
-      "sha256": "e3f268a266f3821c45a7e07fe129cab1c7e175ccdd62019a6a1ca7116f6377e0"
+      "version": 3,
+      "sha256": "b914387b3f30357c52f694d731ad07cb36b64a59b6dfc804fbc37963a518b7e4"
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 3,
@@ -192,6 +200,10 @@
     "templates/il2ks/players/detail_header.html": {
       "version": 2,
       "sha256": "6503edf8535ee88826d380b12c81e4d523f71a5ff504056e5b5cd21baa069dbc"
+    },
+    "templates/il2ks/players/detail_pve.html": {
+      "version": 3,
+      "sha256": "192ad11f2a9948c7c63df6abd28f8537f886ef4c753f3d79a2bc75ca249cab5e"
     },
     "templates/il2ks/players/detail_ratios.html": {
       "version": 3,
@@ -242,8 +254,8 @@
       "sha256": "069a7a62d0a0ec8cbca7bd4727e5dad2a014658c1d45a69afa9a02c8fa38b8de"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
-      "version": 1,
-      "sha256": "0da5fa6af074c67bb947d09991956b06ccedae49581cf3ccb84dc68776b09d50"
+      "version": 2,
+      "sha256": "3f038c316519537893e2a07f9e99f876fab3370dad831a075332f0e030bfb7fb"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
@@ -266,8 +278,8 @@
       "sha256": "48e8beff2d9b8551f414fba05bceaa8aeec3fee1f5de7b8de214c12f8c9167d1"
     },
     "templates/il2ks/sorties/parts/kills.html": {
-      "version": 1,
-      "sha256": "d9ff90bf808821c55e4f8432e12fec2afc8202bed2343cde0f94d48da274a178"
+      "version": 2,
+      "sha256": "385a0392edaedaabf31b7f7f170f683552597dfb22094e0ddaab9f9491108782"
     },
     "templates/il2ks/sorties/parts/list_row.html": {
       "version": 3,
@@ -282,8 +294,8 @@
       "sha256": "f0b306a85d59a02df7c360e248a54bc33479c4628f88a91f718ad1fb7f163c36"
     },
     "templates/il2ks/sorties/parts/summary.html": {
-      "version": 2,
-      "sha256": "606095deaf323f309924dc4fe29c4eb24983e0df61e57d34f7dbbb290102098f"
+      "version": 3,
+      "sha256": "5228337de30b65bd97c0575f548a2d2d7fccb5b87061013b50b71f271d95e06e"
     },
     "templates/il2ks/sorties/parts/timeline.html": {
       "version": 2,
