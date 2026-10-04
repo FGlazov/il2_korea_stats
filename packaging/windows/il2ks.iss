@@ -346,8 +346,6 @@ begin
 end;
 
 procedure InitializeWizard;
-var
-  Last: TNewEdit;
 begin
   HaveConfig := FileExists(ConfigPath);
 
@@ -364,8 +362,7 @@ begin
   SitePage.Add('Domain name of the site (optional), for example stats.example.com:', False);
   SitePage.Add('E-mail for certificate notices (optional):', False);
   SitePage.Values[0] := DefaultTimeZone;
-  Last := TNewEdit(SitePage.Edits[2]);
-  AddNote(SitePage, Last.Top + Last.Height + ScaleY(10), ScaleY(110),
+  AddNote(SitePage, SitePage.Edits[2].Top + SitePage.Edits[2].Height + ScaleY(10), ScaleY(110),
     'DServer names its log files in the computer''s local time, so il2ks has to know the time zone.' + #13#10 + #13#10 +
     'The domain name must point at this computer. It gives you a normal, trusted HTTPS certificate, fetched and renewed by itself. ' +
     'Without a domain the site still works, with a self-signed test certificate: browsers show a "not secure" warning. ' +
