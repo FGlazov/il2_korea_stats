@@ -32,6 +32,7 @@ from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.replay.toggles import RuleToggles
 from il2ks.core.stat_marks import MarkRules
 from il2ks.core.tours import TourRules, parse_mode
 
@@ -162,6 +163,11 @@ class Config:
     source: Path | None = None  # the TOML file that was read, if any
 
     @property
+    def rules(self) -> RuleToggles:
+        """The `[rules]` toggles (OQ-61); they travel inside `replay`, where the replay reads them."""
+        return self.replay.toggles
+
+    @property
     def timezone(self) -> ZoneInfo:
         return ZoneInfo(self.timezone_name)
 
@@ -264,10 +270,17 @@ def load_config(
 
     rule_values: dict[str, float] = {}
     for rule in dataclasses.fields(ReplayRules):
-        if rule.name != "resupply_allowed":  # the one yes/no rule; every other rule is a threshold
+        if rule.name not in ("resupply_allowed", "toggles"):  # the yes/no rule and the [rules] toggles are read apart
             rule_values[rule.name] = reader.non_negative("replay", rule.name, cast(float, rule.default))
     resupply_allowed = reader.bool_("replay", "resupply_allowed", ReplayRules().resupply_allowed)
-    replay = ReplayRules(resupply_allowed=resupply_allowed, **rule_values)
+    toggle_defaults = RuleToggles()
+    rules = RuleToggles(
+        credit_rams=reader.bool_("rules", "credit_rams", toggle_defaults.credit_rams),
+        parachute_deaths=reader.bool_("rules", "parachute_deaths", toggle_defaults.parachute_deaths),
+        ram_window_s=reader.positive("rules", "ram_window_s", toggle_defaults.ram_window_s),
+        ram_distance_m=reader.positive("rules", "ram_distance_m", toggle_defaults.ram_distance_m),
+    )
+    replay = ReplayRules(resupply_allowed=resupply_allowed, toggles=rules, **rule_values)
 
     rating_defaults = RatingRules()
     ratings = RatingRules(

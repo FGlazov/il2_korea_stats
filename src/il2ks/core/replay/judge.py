@@ -89,6 +89,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         forced = loss is None and died is None
     found = bailout_v3(sortie, loss, died, end, rules)
     bailout = found.detected
+    if found.detected and died is not None and sortie.role == "pilot" and not rules.toggles.parachute_deaths:
+        died = None  # `[rules] parachute_deaths = false` (OQ-61): killed while out of the aircraft, the pilot survives
     shot_down_directly = loss is not None and loss.by is not None and not is_self_attack(loss.by, airframe, sortie)
 
     fate, source = pilot_fate_of(
@@ -127,13 +129,14 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         loss = None  # FR-ING-21: a disconnect without recent damage is neither a death nor a loss
         died = None
 
+    rammer = facts.ram_partners.get(id(airframe)) if loss is not None else None  # `credit_rams`, rams.ram_partners
     cutoff = loss.tick if loss is not None else end
     active_end = min(end, cutoff)
     # Damage the server logs at or after AType 7 is the despawn cleanup (doc 12, 13): a forced sortie keeps none of it.
     damage_cutoff = min(cutoff, mission_end - 1) if forced and mission_end is not None else cutoff
     off = took_off(sortie, active_end)  # same bound as the takeoffs and flight time that `resolve` reports
     lost = loss is not None or died is not None or bailout or disc_death
-    attacker_cause = lost and (shot_down_directly or attacker_involved(sortie, cutoff))
+    attacker_cause = lost and (shot_down_directly or rammer is not None or attacker_involved(sortie, cutoff))
     loss_cause: LossCause = "none" if not lost else ("attacker" if attacker_cause else "self")
     structural = loss is not None and lost and structural_failure(sortie, loss, attacker_cause, rules)
 
@@ -175,7 +178,9 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         is_plane_lost=lost,
         is_captured=captured,
         loss_cause=loss_cause,
-        killer=killer_of(sortie, loss, died, cutoff, rules.assist_min_damage) if loss_cause == "attacker" else None,
+        killer=killer_of(sortie, loss, died, cutoff, rules.assist_min_damage, rammer)
+        if loss_cause == "attacker"
+        else None,
         structural_failure=structural,
         taxi_accident=taxi,
         strafed_on_ground=strafed,

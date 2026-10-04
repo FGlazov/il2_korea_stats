@@ -245,6 +245,7 @@ class MissionFacts:
     objects: list[TrackedObject] = field(default_factory=list[TrackedObject])  # every object ever created
     destroyed: list[TrackedObject] = field(default_factory=list[TrackedObject])  # in AType 3 order
     types_seen: dict[str, bool] = field(default_factory=dict[str, bool])  # normalized log name -> in catalog
+    ram_partners: dict[int, TrackedObject] = field(default_factory=dict[int, TrackedObject])  # `rams.ram_partners`
     catalog: Catalog = field(default_factory=Catalog)  # ordnance names for FR-WEB-18 (empty: nothing is ordnance)
 
     @property

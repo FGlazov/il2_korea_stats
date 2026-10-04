@@ -9,7 +9,7 @@ from il2ks.core.logparse.events import Pos
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import Credited, credit_kill, is_self_attack
 from il2ks.core.replay.judge import Verdict
-from il2ks.core.replay.model import MissionFacts, SortieState, TrackedObject
+from il2ks.core.replay.model import MissionFacts, SortieState, TrackedObject, party_of
 from il2ks.core.replay.result import KillCredit, KillResult, KillVia
 
 
@@ -142,6 +142,9 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
     results: list[KillResult] = []
     for victim in _victims(facts, verdicts, rules):
         credited = credit_kill(victim.obj, victim.sortie, victim.explicit, victim.tick, rules.assist_min_damage)
+        rammer = facts.ram_partners.get(id(victim.obj))
+        if not credited and rammer is not None:  # `credit_rams`: a mid-air collision with an enemy (rams.ram_partners)
+            credited = [Credited(party_of(rammer), True, 0.0)]
         victim_index = victim.sortie.index if victim.sortie is not None else None
         if not credited:
             if victim_index is not None:  # environment or self: the victim's death without credit

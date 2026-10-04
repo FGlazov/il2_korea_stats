@@ -1,6 +1,8 @@
 """Replay rule thresholds. All are config values (FR-ING-14, FR-ING-17, FR-ING-21); defaults are the validated ones."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from il2ks.core.replay.toggles import RuleToggles
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,3 +54,5 @@ class ReplayRules:
     # seconds names it; else the lone ordnance of the loadout; else a release within `ordnance_release_window_s`.
     ordnance_hit_window_s: float = 1.0
     ordnance_release_window_s: float = 60.0
+    # The `[rules]` toggles (OQ-61) travel with the rules, so every replay entry point sees them.
+    toggles: RuleToggles = field(default_factory=RuleToggles)

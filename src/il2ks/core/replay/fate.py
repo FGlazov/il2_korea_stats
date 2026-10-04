@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import credit_kill, damage_records, hit_records, unit_objects
-from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, distance
+from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, distance, party_of
 from il2ks.core.replay.result import LossCause, PilotFate, PilotFateSource
 
 
@@ -89,17 +89,25 @@ def crew_death(sortie: SortieState) -> TrackedObject | None:
 
 
 def killer_of(
-    sortie: SortieState, loss: Loss | None, died_tick: int | None, upto_tick: int, assist_min_damage: float
+    sortie: SortieState,
+    loss: Loss | None,
+    died_tick: int | None,
+    upto_tick: int,
+    assist_min_damage: float,
+    rammer: TrackedObject | None = None,
 ) -> Party | None:
     """Who gets the kill for this sortie's loss or crew death (the same `credit_kill` as the KillResults), for naming
     the killer on the sortie's own timeline. A gunner sortie has no KillResult of its own (design_doc/13_game_rules.md,
-    Gunners), so this is its only source. `None` when nobody but the environment or the sortie itself is responsible."""
+    Gunners), so this is its only source. `None` when nobody but the environment or the sortie itself is responsible,
+    except that the aircraft that rammed this one (`credit_rams`, `rammer`) is then the killer."""
     explicit = loss.by if loss is not None else None
     if explicit is None and died_tick is not None:
         crew = crew_death(sortie)
         explicit = crew.destroyed_by if crew is not None else None
     credited = credit_kill(sortie.airframe, sortie, explicit, upto_tick, assist_min_damage)
-    return credited[0].party if credited else None
+    if credited:
+        return credited[0].party
+    return party_of(rammer) if rammer is not None else None
 
 
 def pilot_death_tick(sortie: SortieState, facts: MissionFacts, rules: ReplayRules) -> int | None:

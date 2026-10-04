@@ -23,6 +23,7 @@ from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.replay.toggles import RuleToggles
 from il2ks.core.stat_marks import MarkRules
 
 TOP_LEVEL_KEYS = {"data_dir", "log_level", "log_keep_days", "debug"}
@@ -53,7 +54,9 @@ def test_template_lists_every_config_key() -> None:
         "logs": {f.name for f in dataclasses.fields(LogsConfig)},
         "ingest": {f.name for f in dataclasses.fields(IngestConfig)},
         "live": {f.name for f in dataclasses.fields(LiveConfig)},
-        "replay": {f.name for f in dataclasses.fields(ReplayRules)},
+        "replay": {f.name for f in dataclasses.fields(ReplayRules)}
+        - {"toggles"},  # the toggles are the [rules] section
+        "rules": {f.name for f in dataclasses.fields(RuleToggles)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "marks": {f.name for f in dataclasses.fields(MarkRules)},
         "score": {f.name for f in dataclasses.fields(ScoreRules)}
