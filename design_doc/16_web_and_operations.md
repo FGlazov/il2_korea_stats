@@ -185,7 +185,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
-- **Aircraft stats** (FR-WEB-8, 2026-10-03; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
+- **Aircraft stats** (FR-WEB-8, 2026-10-03; the Loadouts and Modifications tables follow the tour too, OQ-122, ⏳ to build; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
   pilot count and matchups follow one selector above the tiles, from the level-2 `TourAircraftStats` (tour, aircraft) next to the all-time
   `AircraftStats`, both on an abstract `AircraftCounters`; top pilots, hits to destroy, loadouts and the side badge stay all time and the
   page says so; OQ-114): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,

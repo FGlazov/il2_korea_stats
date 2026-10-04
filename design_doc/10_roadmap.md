@@ -242,6 +242,8 @@ decisions are made):
   mission order. Today `reprocess` recomputes level 2 per mission and then rebuilds everything. Final state must equal a rebuild; small
   batches unchanged. Estimated 15-25% faster big batches.
 
+- ⏳ **Aircraft page Loadouts and Modifications per tour** (maintainer, OQ-122, 2026-10-04): both tables follow the tour selector too.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
