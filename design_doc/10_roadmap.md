@@ -147,6 +147,10 @@ decisions are made):
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
 - 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
+- 🔧 **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
+  visitors can add sortable columns (Elo, K/D, scores, …) from a small "Columns" control, kept in the URL.
+- 🔧 **Stat marks for Elo and scores** (maintainer, 2026-10-04): Top 10% / 25% next to Elo jet/prop, air score, ground score and
+  ground score per hour, like the existing ratio marks.
 - 🔧 **Killboards by aircraft type** (maintainer, 2026-10-04): on the player killboard (and the profile), the enemy types a pilot
   shot down most and the types that killed them most, above the player-vs-player table (more important than it). On the aircraft
   page, a killboard by enemy type with the exchange rate ("how do I counter this plane, what should I fly?"), with a filter for
