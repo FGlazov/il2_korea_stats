@@ -317,7 +317,7 @@ msgstr ""
 
 # llm-draft
 msgid "A big formation, a long chase, and not much left of the formation. Textbook interception."
-msgstr "Une grande formation, une longue poursuite, et pas grand-chose de la formation à la fin. Interception de manuel."
+msgstr "sgstr \"Une grosse formation, une longue poursuite, et à la fin, plus grand-chose. Interception comme à l'école."
 
 # llm-draft
 msgid "A bomber's tail gunner had a say in this. Those guns are not decoration."
@@ -327,7 +327,7 @@ msgstr ""
 
 # llm-draft
 msgid "A busy hour for the gun camera and a quiet one for the other side's wingmen."
-msgstr "Une heure bien remplie pour la caméra de tir et bien calme pour les équipiers d'en face."
+msgstr "sgstr \"La caméra de tir n'a pas chômé, et chez les ailiers d'en face, le silence radio s'est installé."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -356,7 +356,7 @@ msgstr "Une première victoire aussi rapide mérite un chronomètre et une petit
 
 # llm-draft
 msgid "A forced landing is still a landing. The log says so, and the log is never wrong."
-msgstr "Un atterrissage forcé reste un atterrissage. C'est écrit dans le livre de bord, et il n'a jamais tort."
+msgstr "sgstr \"Un atterrissage de fortune reste un atterrissage. Le décollage, en revanche, attendra."
 
 # llm-draft
 msgid "A fresh tour: the log book is still blank. Go and write the first line."
@@ -376,11 +376,11 @@ msgstr "Une longue journée au bureau. La jauge de carburant s'incline."
 
 # llm-draft
 msgid "A low pass by the other side, uninvited. The ramp is not a place for opinions."
-msgstr "Un passage à basse altitude de l'autre bord, sans invitation. Le parking n'est pas l'endroit pour discuter."
+msgstr "sgstr \"Des visiteurs inattendus, à basse altitude et sans carton d'invitation. Le parking n'était pas prêt."
 
 # llm-draft
 msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."
-msgstr "Un pilote d'une rare fidélité : le terrain n'est jamais loin de son cœur, ni de son hélice."
+msgstr "sgstr \"Un pilote casanier, très attaché à son terrain, au point de le caresser régulièrement de l'hélice."
 
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
@@ -400,7 +400,7 @@ msgstr "Une demande de retraitement est déjà en attente."
 
 # llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
-msgstr "Chapeau à l'équipier qui a pardonné. La plupart finissent par le faire."
+msgstr "sgstr \"Une pensée pour l'ailier qui a pardonné. D'habitude, la rancune ne survit pas au débriefing."
 
 # llm-draft
 msgid "A very busy day for the ground crews on the other side."
@@ -734,7 +734,7 @@ msgstr "Munitions utilisées inconnues"
 
 # llm-draft
 msgid "An Il-10 would have been proud of this one. The Shturmovik school of thought lives."
-msgstr "Un Il-10 en aurait été fier. L'école des Chtourmovik est toujours bien vivante."
+msgstr "sgstr \"L'Il-10 aurait été fier. L'école du Chtourmovik vit toujours."
 
 # llm-draft
 msgid "An all-rounder: the taxiway and the formation have both had their moments."
@@ -750,7 +750,7 @@ msgstr "Un vol d'endurance : le coussin du siège mérite une mention dans le ra
 
 # llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
-msgstr "Nouvelle nuit, nouveau nom en tête. Le mur du hangar commence à manquer de place."
+msgstr "sgstr \"Encore en haut du tableau. Il va falloir agrandir le mur du hangar."
 
 # llm-draft
 msgid "Anti-aircraft"
@@ -915,7 +915,7 @@ msgstr "À peine décollé et déjà au tableau. Voilà un départ en trombe."
 
 # llm-draft
 msgid "Before the Yalu, before the Sabres, there was the apron. It won this round."
-msgstr "Avant le Yalou et les Sabres, il y a le parking. Il a gagné cette manche."
+msgstr "sgstr \"Pas de Yalou, pas de Sabre : la bataille s'est jouée sur le taxiway."
 
 # llm-draft
 msgid "Best by"
@@ -1031,7 +1031,7 @@ msgstr "La chasse aux bombardiers est un art, et cette sortie en était la leço
 
 # llm-draft
 msgid "Bombers are not defenceless, and this one wanted it known."
-msgstr "Les bombardiers ne sont pas sans défense, et celui-ci tenait à le faire savoir."
+msgstr "sgstr \"Un bombardier n'est pas un stand de tir, et celui-ci tenait à le rappeler."
 
 msgid "Bombers, attackers and transports shot down"
 msgstr "Bombardiers, avions d'attaque et avions de transport abattus"
@@ -1058,7 +1058,7 @@ msgstr "Bordures"
 
 # llm-draft
 msgid "Brave enough to shoot first and sort out the colours afterwards. The mess salutes the nerve."
-msgstr "Assez audacieux pour tirer d'abord et vérifier les cocardes ensuite. Le mess salue ce cran."
+msgstr "sgstr \"D'abord la rafale, ensuite les cocardes. Au mess, on respecte ce sang-froid."
 
 # llm-draft
 msgid "Breadcrumb"
@@ -1141,7 +1141,7 @@ msgstr ""
 
 # llm-draft
 msgid "Chapeau. The rest of the sky is now taking requests on how to do that."
-msgstr "Chapeau bas. Le reste du ciel prend désormais les inscriptions aux cours de rattrapage."
+msgstr "sgstr \"Bravo l'artiste ! Le reste du ciel s'inscrit déjà au stage de perfectionnement."
 
 # llm-draft
 msgid "Charmed Life"
@@ -1185,7 +1185,7 @@ msgstr "Clore le tour en cours et en démarrer un nouveau maintenant ?"
 
 # llm-draft
 msgid "Closing from six o'clock on a bomber is a bold plan. The tail gunner enjoyed it too."
-msgstr "Foncer sur un bombardier par six heures est un plan audacieux. Le mitrailleur de queue l'a bien aimé aussi."
+msgstr "sgstr \"Attaquer un bombardier par l'arrière, c'est audacieux. Le mitrailleur de queue a apprécié aussi."
 
 # llm-draft
 msgid "Coalitions"
@@ -1232,7 +1232,7 @@ msgstr "Continuer"
 
 # llm-draft
 msgid "Controlled flight into a field. The farmer has questions, the pilot has a story."
-msgstr "Vol contrôlé jusque dans un champ. Le fermier a des questions, le pilote a une histoire."
+msgstr "sgstr \"Atterrissage sur le ventre au milieu d'un champ. Le fermier est perplexe, le pilote a de quoi raconter."
 
 # llm-draft
 msgid "Counterpart"
@@ -1487,7 +1487,7 @@ msgstr "Type d'événement (AType)"
 
 # llm-draft
 msgid "Every hole in it is a story, and the scoreboard backs up the better ones."
-msgstr "Chaque trou est une histoire, et le tableau d'affichage confirme les meilleures."
+msgstr "sgstr \"Chaque trou raconte une histoire, et le score atteste les plus belles."
 
 msgid "Every language"
 msgstr ""
@@ -1521,7 +1521,7 @@ msgstr "Tout le monde a déjà confondu un ailier avec un adversaire. Certains o
 
 # llm-draft
 msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."
-msgstr "Tout le monde a patrouillé vaillamment, l'ennemi a patrouillé ailleurs. Peut-être la prochaine fois."
+msgstr "sgstr \"Tout le monde a patrouillé en héros, l'ennemi aussi, mais dans un autre secteur. Ce sera pour la prochaine."
 
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
@@ -1605,11 +1605,11 @@ msgstr "Corrigez le réglage indiqué ci-dessus dans il2ks.toml, redémarrez il2
 
 # llm-draft
 msgid "Flak never misses by much, which is the whole trouble with it."
-msgstr "La flak ne rate jamais de beaucoup, et c'est tout le problème."
+msgstr "sgstr \"La DCA ne rate que d'un cheveu, et un cheveu suffit largement."
 
 # llm-draft
 msgid "Flew home through the worst of it, parked, and the worst of it followed. Nobody earns that."
-msgstr "Rentré à travers le pire, garé l'avion, et le pire l'a suivi jusque-là. Personne ne mérite ça."
+msgstr "sgstr \"Rentré de l'enfer, avion garé, et l'enfer l'a suivi. On ne souhaite ça à personne."
 
 # llm-draft
 msgid "Flight time"
@@ -1650,7 +1650,7 @@ msgstr[1] "%(n)s rapports de mission trouvés à cet endroit."
 
 # llm-draft
 msgid "Fourteen guns on the hill and one aircraft over it. The arithmetic was never on your side."
-msgstr "Quatorze canons sur la colline, un seul avion au-dessus. L'arithmétique n'a jamais joué pour vous."
+msgstr "sgstr \"Quatorze pièces contre un seul avion : pas besoin de calculette pour connaître l'issue."
 
 # llm-draft
 msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name."
@@ -1662,7 +1662,9 @@ msgstr "Grand Voyageur"
 
 # llm-draft
 msgid "Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."
-msgstr "Peinture fraîche, pleins faits, tableau vierge. La salle de briefing attend son premier pilote."
+msgstr ""
+"sgstr \"Peinture fraîche, pleins faits, tableau noir vierge. Personne n'est en retard au briefing : il n'y a encore "
+"personne."
 
 # llm-draft
 msgid "Friendly"
@@ -1807,7 +1809,7 @@ msgstr "Points sol/h"
 
 # llm-draft
 msgid "Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."
-msgstr "Vitesse au sol : modeste. Dégâts : pas du tout. Le bout d'aile a déjà déposé une plainte."
+msgstr "sgstr \"Vitesse : de tortue. Dégâts : conséquents. Le bout d'aile a déjà déposé une plainte."
 
 # llm-draft
 msgid "Ground targets destroyed in a single sortie."
@@ -1869,11 +1871,11 @@ msgstr "HTTPS"
 
 # llm-draft
 msgid "Half the convoy was already smoking when somebody else arrived to take the credit. Typical."
-msgstr "La moitié du convoi fumait déjà quand un autre est venu récolter les lauriers. Classique."
+msgstr "sgstr \"La moitié du convoi fumait déjà quand un autre est venu empocher le crédit. Classique."
 
 # llm-draft
 msgid "Half the credit, all of the effort. The claims officer has been sent a polite note."
-msgstr "La moitié du crédit pour tout l'effort. Une note polie est partie chez l'officier des homologations."
+msgstr "sgstr \"Tout le travail, la moitié du crédit. L'officier des homologations recevra une note très courtoise."
 
 # llm-draft
 msgid "Hall of shame"
@@ -1935,7 +1937,7 @@ msgstr "Détenu par moins de 0,1%% des pilotes"
 
 # llm-draft
 msgid "Held together by good luck and the crew chief's optimism. Both held out."
-msgstr "Tenu ensemble par la chance et l'optimisme du chef mécano. Les deux ont tenu."
+msgstr "sgstr \"L'appareil tenait grâce à la chance et à l'optimisme du chef mécano. Les deux ont tenu."
 
 # llm-draft
 msgid "Hidden"
@@ -2030,7 +2032,7 @@ msgstr "Heures de Vol"
 
 # llm-draft
 msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a well-earned one."
-msgstr "Des heures en l'air, et la carte météo tient désormais du journal intime. Cet atterrissage était bien mérité."
+msgstr "sgstr \"Des heures en l'air : la carte météo tient désormais du journal intime. Un atterrissage bien mérité."
 
 # llm-draft
 msgid "Hours flown: the time spent in the air in all sorties, air and ground."
@@ -2100,7 +2102,7 @@ msgstr "En vol"
 
 # llm-draft
 msgid "In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."
-msgstr "Dans le feu de l'action, un Sabre ressemble à un Sabre, jusqu'à ce qu'on découvre un camarade d'escadrille."
+msgstr "sgstr \"Dans la mêlée, tous les Sabre se ressemblent, jusqu'à ce qu'une voix familière jure à la radio."
 
 # llm-draft
 msgid "In the lobby"
@@ -2152,7 +2154,7 @@ msgstr "Le serveur de jeu est-il sur un autre ordinateur ? Indiquez le dossier 
 
 # llm-draft
 msgid "It brought the pilot home, and that is the only entry the logbook needs to read."
-msgstr "Il a ramené le pilote à la maison, et c'est la seule ligne dont le livre de bord ait besoin."
+msgstr "sgstr \"Dans le carnet de bord, une seule ligne suffit : le pilote est rentré."
 
 # llm-draft
 msgid "It came home full of holes and full of results. A fair trade."
@@ -2172,7 +2174,7 @@ msgstr "Il volait encore, surtout par politesse. Bien posé."
 
 # llm-draft
 msgid "It was a very good shot at the wrong target. The aim is not the problem here."
-msgstr "Un excellent tir sur la mauvaise cible. Ce n'est pas la visée qui pose problème."
+msgstr "sgstr \"En plein dans le mille, mais sur la mauvaise cible."
 
 # llm-draft
 msgid "Jet"
@@ -2373,7 +2375,7 @@ msgstr "A quitté le serveur"
 
 # llm-draft
 msgid "Legend has it the tower flinches whenever this callsign comes over the radio."
-msgstr "On raconte que la tour sursaute dès que cet indicatif passe à la radio."
+msgstr "sgstr \"Selon la rumeur, le contrôleur a un tic à l'œil dès que cet indicatif crépite à la radio."
 
 # llm-draft
 msgid "Light mode"
@@ -2459,7 +2461,7 @@ msgstr "Perdu face à"
 
 # llm-draft
 msgid "Low and slow near the gun line is the oldest mistake in the book. It is a very long book."
-msgstr "Bas et lent près de la ligne de canons : la plus vieille erreur du manuel. Et c'est un très gros manuel."
+msgstr "sgstr \"Bas et lent près de la DCA : tout le monde essaie une fois. Rares sont ceux qui recommencent."
 
 # llm-draft
 #, python-format
@@ -2494,11 +2496,11 @@ msgstr "Peut encore changer"
 
 # llm-draft
 msgid "Mechanic's logbook, this pilot's page: no entries. We keep it as a reference."
-msgstr "Carnet du mécano, page de ce pilote : rien à signaler. On la garde comme modèle."
+msgstr "sgstr \"Dans le carnet du mécano, la page de ce pilote est vierge. On la montre aux nouveaux."
 
 # llm-draft
 msgid "Mechanic's note: the aircraft is fine, the fence is not. Please see the fence."
-msgstr "Note du mécano : l'avion va bien, la clôture beaucoup moins. Réclamations auprès de la clôture."
+msgstr "sgstr \"Rapport du mécano : l'avion est nickel, la clôture un peu moins. Pour les détails, voyez la clôture."
 
 # llm-draft
 msgid "Mission"
@@ -2548,7 +2550,7 @@ msgstr "La partie la plus dangereuse de la mission : les cent premiers mètres."
 
 # llm-draft
 msgid "Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."
-msgstr "Mustang, voici la prairie. Prairie, voici le Mustang. Présentations brèves, mais poignée de main ferme."
+msgstr "sgstr \"Un mustang, ça aime les grands espaces. Celui-ci a juste choisi la prairie sans passer par la piste."
 
 msgid "My own only"
 msgstr ""
@@ -2575,7 +2577,9 @@ msgstr "Liens de navigation, dans l'ordre"
 
 # llm-draft
 msgid "Navigators on three continents would admire the fuel planning. The coffee flask is empty, naturally."
-msgstr "Des navigateurs sur trois continents admireraient ce calcul de carburant. Le thermos de café est vide, bien sûr."
+msgstr ""
+"sgstr \"Des navigateurs sur trois continents salueraient ce calcul de carburant. Le thermos de café est vide, "
+"évidemment."
 
 # llm-draft
 #, python-format
@@ -2896,7 +2900,7 @@ msgstr "OK"
 
 # llm-draft
 msgid "Off the squadron roster for the moment. The empty chair at the mess table stays reserved."
-msgstr "Rayé de la liste de l'escadrille pour le moment. La chaise vide au mess reste réservée."
+msgstr "sgstr \"Un blanc dans la liste de l'escadrille pour le moment. Le lit et la chaise au mess restent à son nom."
 
 msgid "On"
 msgstr ""
@@ -3222,7 +3226,7 @@ msgstr "Veuillez regarder les réponses signalées ci-dessous. Rien n'a été mo
 
 # llm-draft
 msgid "Plenty of clouds, plenty of fuel burnt, not a shot fired in anger. The weather won."
-msgstr "Beaucoup de nuages, beaucoup de carburant brûlé, pas un coup de feu pour de bon. La météo a gagné."
+msgstr "sgstr \"Du carburant brûlé, des nuages comptés, aucun coup de feu. C'est la météo qui marque le point."
 
 # llm-draft
 msgid "Plenty of ground targets carry your handiwork and somebody else's name in the log."
@@ -3286,7 +3290,7 @@ msgstr "Violet"
 
 # llm-draft
 msgid "Quicker than the kettle in the ready room. The tea is still brewing."
-msgstr "Plus vite que la bouilloire de la salle d'alerte. Le thé infuse encore."
+msgstr "sgstr \"Plus rapide que la bouilloire de la salle d'alerte. Le thé n'a pas encore infusé."
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
@@ -3328,15 +3332,15 @@ msgstr "REDFOR a gagné"
 
 # llm-draft
 msgid "Radio chatter, afterwards: 'Was that one of ours?' It was. The apologies are in the post."
-msgstr "Radio, après coup : « C'était un des nôtres ? » Oui. Les excuses sont dans le courrier."
+msgstr "sgstr \"À la radio, après coup : « Euh, c'était pas un des nôtres ? » Si. La tournée est pour vous."
 
 # llm-draft
 msgid "Radio check: that was a friendly. Yes, the voice on the other end sounded rather upset."
-msgstr "Contrôle radio : c'était un ami. Oui, la voix à l'autre bout semblait plutôt contrariée."
+msgstr "sgstr \"Message radio reçu : « Hé ! C'est moi, ton ailier ! » Il n'avait pas l'air ravi."
 
 # llm-draft
 msgid "Radio log: nothing to report. The operator has gone through two crosswords."
-msgstr "Journal radio : rien à signaler. L'opérateur en est à sa deuxième grille de mots croisés."
+msgstr "sgstr \"Radio : néant. L'opérateur a fini les mots fléchés, et le journal avec."
 
 # llm-draft
 msgid "Ramp Rash"
@@ -3344,7 +3348,7 @@ msgstr "Créneau Raté"
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
-msgstr "Rares sont les pilotes qui donnent autant à écrire à l'officier de sécurité. Un vrai coauteur."
+msgstr "sgstr \"Les rapports de l'officier de sécurité sur ce pilote font déjà un recueil. Lui, il est coauteur."
 
 # llm-draft
 msgid "Ratings"
@@ -3479,7 +3483,7 @@ msgstr "Piste"
 
 # llm-draft
 msgid "Safe on the ground, then a late guest at the party. The tower would have liked a warning too."
-msgstr "Posé sain et sauf, puis un invité tardif. La tour aurait aimé être prévenue, elle aussi."
+msgstr "sgstr \"À peine posé, à peine soulagé : visite surprise de l'ennemi. Même la tour n'était pas prévenue."
 
 msgid "Save"
 msgstr ""
@@ -3700,7 +3704,7 @@ msgstr "Il fallait bien que quelqu'un se lance. Autant que ce soit lui."
 
 # llm-draft
 msgid "Somebody has to keep the wingmen alert. This pilot volunteers every time."
-msgstr "Il faut bien que quelqu'un garde les équipiers en alerte. Ce pilote se porte volontaire à chaque fois."
+msgstr "sgstr \"Quelqu'un doit entretenir la vigilance des ailiers. Ce pilote assure les exercices surprise, gratuitement."
 
 # llm-draft
 msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
@@ -3716,7 +3720,7 @@ msgstr "Une erreur s'est produite"
 
 # llm-draft
 msgid "Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."
-msgstr "Quelque part, un intendant soupire, sans même savoir pour quel incident."
+msgstr "sgstr \"Quelque part, le magasinier soupire : il ne sait plus quel formulaire remplir en premier."
 
 # llm-draft
 msgid "Sortie details"
@@ -4032,7 +4036,7 @@ msgstr "Sarcelle"
 
 # llm-draft
 msgid "Technically the most experienced pilot on the apron. Nobody has spent more time there."
-msgstr "Techniquement le pilote le plus expérimenté du parking : personne n'y a passé plus de temps."
+msgstr "sgstr \"Si les heures de parking comptaient comme des heures de vol, ce pilote serait un vétéran du ciel."
 
 # llm-draft
 msgid "Text"
@@ -4066,7 +4070,7 @@ msgstr ""
 
 # llm-draft
 msgid "The aircraft is lost, the pilot is still in the story. Sequels have started worse."
-msgstr "L'avion est perdu, le pilote reste dans l'histoire. Il y a eu de pires débuts de suite."
+msgstr "sgstr \"L'avion est perdu, pas le héros. La suite au prochain épisode."
 
 # llm-draft
 msgid ""
@@ -4078,7 +4082,7 @@ msgstr ""
 
 # llm-draft
 msgid "The aircraft took the beating, somebody else took the bow. That is formation flying for you."
-msgstr "L'avion a encaissé, un autre a salué. Voilà ce que c'est, de voler en formation."
+msgstr "sgstr \"Ce pilote a bien malmené l'adversaire, un autre est venu saluer. Les joies du vol en formation."
 
 # llm-draft
 msgid ""
@@ -4094,7 +4098,7 @@ msgstr "L'aérodrome fait aussi partie de la mission. Certains pilotes le prenne
 
 # llm-draft
 msgid "The airframe came home smelling of cordite and looking like a colander. Mission accomplished."
-msgstr "La cellule est rentrée sentant la poudre, percée comme une passoire. Mission accomplie."
+msgstr "sgstr \"Rentré en passoire et sentant la poudre. Mission accomplie."
 
 # llm-draft
 msgid "The airframe took a beating and handed one back."
@@ -4102,7 +4106,7 @@ msgstr "L'appareil a pris cher et a rendu les coups."
 
 # llm-draft
 msgid "The armourer is already counting the missing rounds, and smiling while he does it."
-msgstr "L'armurier compte déjà les cartouches manquantes, et il sourit en le faisant."
+msgstr "sgstr \"L'armurier fait déjà le compte des cartouches manquantes. Il sourit en le faisant."
 
 # llm-draft
 msgid "The big, slow ones had a bad day, and this pilot had a good one."
@@ -4110,7 +4114,7 @@ msgstr "Les gros lents ont passé une sale journée, ce pilote une excellente."
 
 # llm-draft
 msgid "The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0."
-msgstr "Les freins et le pilote n'étaient pas d'accord. Freins : 1, pilote : 0."
+msgstr "sgstr \"Les freins et le pilote ne se sont pas mis d'accord. La physique a tranché."
 
 # llm-draft
 msgid ""
@@ -4139,7 +4143,7 @@ msgstr "Le chef mécano aura son mot à dire sur celui-ci."
 
 # llm-draft
 msgid "The enemy had just finished its own takeoff checklist. A pity, really."
-msgstr "L'ennemi venait à peine de finir sa check-list de décollage. Dommage, vraiment."
+msgstr "sgstr \"L'adversaire venait de finir sa check-list de décollage. Dommage."
 
 # llm-draft
 msgid "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
@@ -4147,7 +4151,7 @@ msgstr "L'ennemi était sérieusement amoché. Quelqu'un d'autre se trouvait sim
 
 # llm-draft
 msgid "The engine never got to say a word. The ground crew would like it noted that the aircraft was ready."
-msgstr "Le moteur n'a pas eu le temps de dire un mot. Les mécanos tiennent à préciser que l'avion était prêt."
+msgstr "sgstr \"Le moteur n'a même pas eu le temps de tousser. Les mécanos le certifient : l'avion était parfait."
 
 # llm-draft
 msgid "The file is empty."
@@ -4214,7 +4218,7 @@ msgstr "Le train est resté rentré, mais le moral est resté au beau fixe."
 
 # llm-draft
 msgid "The ground below was well tended, and the harvest went to a neighbour's barn."
-msgstr "Le sol avait été bien labouré, et la récolte est partie dans la grange du voisin."
+msgstr "sgstr \"Ce pilote a labouré le champ, la récolte est allée dans la grange du voisin."
 
 # llm-draft
 msgid "The ground below will remember this one for a while."
@@ -4226,7 +4230,7 @@ msgstr "Les mécanos et l'escadrille ont chacun un dossier sur ce pilote. Les do
 
 # llm-draft
 msgid "The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."
-msgstr "Les mécanos gardent un bout d'aile de rechange au nom de ce pilote. On ne sait jamais."
+msgstr "sgstr \"Les mécanos ont commandé un saumon d'aile d'avance, au nom de ce pilote. Ce sont des gens prévoyants."
 
 # llm-draft
 msgid "The ground crew mourns the airframe, and quietly polishes the next one."
@@ -4246,7 +4250,7 @@ msgstr "Le classement Elo le plus haut atteint, dans le groupe à hélice ou à 
 
 # llm-draft
 msgid "The hydraulics sent their regards, the engine coughed, and the runway came up anyway."
-msgstr "L'hydraulique a envoyé ses amitiés, le moteur a toussé, et la piste est quand même apparue."
+msgstr "sgstr \"L'hydraulique a transmis ses amitiés, le moteur a toussé, et la piste est quand même arrivée."
 
 # llm-draft
 #, python-format
@@ -4336,7 +4340,7 @@ msgstr "Le mitrailleur arrière a eu le dernier mot, et il n'a pas chuchoté."
 
 # llm-draft
 msgid "The record books call it a pattern. The squadron calls it character."
-msgstr "Dans les registres, on parle de tendance. À l'escadrille, on parle de caractère."
+msgstr "sgstr \"Dans le rapport, ça s'appelle une « récidive ». À l'escadrille, c'est une signature."
 
 # llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
@@ -4390,15 +4394,15 @@ msgstr "L'escadrille a appris à voler un peu plus écartée. Sage décision."
 
 # llm-draft
 msgid "The squadron's emergency drills have, thanks to this pilot, never been short of material."
-msgstr "Grâce à ce pilote, les exercices d'alerte de l'escadrille n'ont jamais manqué de matière."
+msgstr "sgstr \"L'escadrille n'a jamais besoin d'inventer de scénarios pour ses exercices d'urgence : ce pilote les fournit."
 
 # llm-draft
 msgid "The target list is shorter and the ammunition list is longer. A sound exchange."
-msgstr "La liste des cibles est plus courte, celle des munitions plus longue. Un échange honnête."
+msgstr "sgstr \"La liste des cibles raccourcit, celle des munitions s'allonge. Échange honnête."
 
 # llm-draft
 msgid "The target list said bombers, plural. The pilot read it literally."
-msgstr "La liste des cibles disait bombardiers, au pluriel. Le pilote l'a pris au pied de la lettre."
+msgstr "sgstr \"L'ordre disait « bombardiers », au pluriel. Le pilote a fait du zèle."
 
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
@@ -4502,7 +4506,7 @@ msgstr "Ces petits nuages noirs n'étaient pas là pour la déco."
 
 # llm-draft
 msgid "Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."
-msgstr "Trois d'un coup, ou plus ? Les habitués de la MiG Alley auraient haussé un sourcil, puis levé un verre."
+msgstr "sgstr \"Trois d'un coup, voire plus ? Les anciens de MiG Alley lèveraient un sourcil, puis leur verre."
 
 # llm-draft
 msgid "Tiers"
@@ -4614,15 +4618,19 @@ msgstr "Les tours démarrent d'eux-mêmes, sauf si [tours] mode vaut manual."
 
 # llm-draft
 msgid "Tower to pilot: the war is the other way, but thank you for the thorough survey of the apron."
-msgstr "Tour à pilote : la guerre, c'est de l'autre côté, mais merci d'avoir inspecté le parking avec autant de zèle."
+msgstr ""
+"sgstr \"Tour à pilote : le front est dans l'autre sens, mais bravo pour la reconnaissance en profondeur de l'aire de "
+"stationnement."
 
 # llm-draft
 msgid "Tower: 'Say condition.' Pilot: 'Mostly air.' And with a good score on the board."
-msgstr "Tour : « État ? » Pilote : « Surtout de l'air. » Et avec un beau tableau de chasse."
+msgstr "sgstr \"Tour : « État de l'appareil ? » Pilote : « Principalement de l'air. » Mais le score est bon."
 
 # llm-draft
 msgid "Tracers going the other way for once. The bomber crew will tell this one for years."
-msgstr "Pour une fois, les traçantes allaient dans l'autre sens. L'équipage du bombardier le racontera pendant des années."
+msgstr ""
+"sgstr \"Pour une fois, les traçantes allaient dans l'autre sens. L'équipage du bombardier en parlera encore à ses "
+"petits-enfants."
 
 # llm-draft
 msgid "Trains"
@@ -4634,7 +4642,7 @@ msgstr "Des ennuis sur le parking et en l'air. Au moins, ce pilote est constant.
 
 # llm-draft
 msgid "Two departments, one pilot. The paperwork is going to need a bigger folder."
-msgstr "Deux services, un seul pilote. Le dossier va demander un classeur plus épais."
+msgstr "sgstr \"Entre le bureau du sol et celui de l'escadrille, ce pilote a de quoi remplir une armoire."
 
 # llm-draft
 msgid "Type"
@@ -4719,7 +4727,7 @@ msgstr "Inconnu : la sortie a été réapprovisionnée"
 
 # llm-draft
 msgid "Unscheduled landing in unfamiliar territory. The flight plan did not cover this chapter."
-msgstr "Atterrissage imprévu en terrain inconnu. Le plan de vol ne prévoyait pas ce chapitre."
+msgstr "sgstr \"Escale non prévue en territoire inconnu. La compagnie s'excuse pour la gêne occasionnée."
 
 msgid "Untick to turn all quips off, whatever the settings below say."
 msgstr ""
@@ -4930,7 +4938,7 @@ msgstr ""
 
 # llm-draft
 msgid "Zero scrapes, zero misfires at friends. Wingmen sleep well around this one."
-msgstr "Pas une égratignure, pas un tir sur un ami. Les équipiers dorment sur leurs deux oreilles."
+msgstr "sgstr \"Zéro accrochage, zéro tir sur les copains. Voler à côté de ce pilote, c'est le calme absolu."
 
 # llm-draft
 msgid "after the pilot bailed out"
