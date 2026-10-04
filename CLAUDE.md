@@ -9,7 +9,8 @@ decisions (status tags `[DECIDED]` / `[PROPOSED]` / `[OPEN]` / `[DEFERRED]`). Wr
 ```
 uv sync                         # Python 3.13 + deps (the system `python` here is 3.5: always use `uv run`)
 uv run pytest                   # all tests, SQLite (default)
-uv run pytest tests/unit -q     # fast, no DB
+uv run pytest tests/unit -q     # fast, no DB (add `-n 8 --dist worksteal` to parallelize)
+uv run il2ks dev check          # EVERYTHING below + guards, in one go: run before every commit (--fast / --full / --fix)
 uv run ruff check --fix && uv run ruff format
 uv run pyright                  # strict
 uv run lint-imports             # core must not import Django
@@ -17,6 +18,29 @@ uv run vulture                  # dead code (config in pyproject; intentional le
 uv run il2ks manage <cmd>       # Django management (migrate, makemigrations il2ks_db, ...)
 IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
 ```
+
+## Before you commit (imperative; hooks and CI enforce it)
+1. Run `uv run il2ks dev check` (quick, ~1-2 min: ruff, format, pyright, import-linter, vulture, `makemigrations --check`,
+   released-migration freeze + single leaf, `bump-templates --check`, translations check, template compile, all unit tests).
+   It prints what failed and the command that fixes it. `uv run il2ks dev check --fix` applies the auto-fixable parts
+   (format, lint, template versions, translations). Add `--fast` for a ~30 s pass without the unit suite.
+2. Before you report a task done or hand a branch over, run `uv run il2ks dev check --full` (adds integration/page tests, which
+   carry the query budgets). Touched models, migrations or SQL? Also `--postgres` (`docker compose -f docker/compose.dev.yaml up -d db`).
+   Touched pages or JS? Also `--e2e`.
+3. Never edit, split, rename or delete a migration that exists on `main`/`origin/main`: add a new one. A hook blocks the edit
+   and the check fails.
+4. Stage explicit paths only (never `git add -A`/`.`, never `sample_data/`), never `--no-verify`, never a bare `git stash`
+   (shared by all worktrees; hooks block these). Install the commit hook once: `uv run pre-commit install`.
+5. Merging agent branches? Use the `merge-branch` skill. After pushing, use `watch-ci`.
+
+Regression lessons (each one cost a red `main` or a broken database):
+- Splitting an applied migration gave InconsistentMigrationHistory on every existing DB: released migrations are frozen.
+- Parallel branches each add `0020_*`: after merging there must be exactly one leaf; renumber the later one and fix its dependency.
+- A template used a filter that no longer existed (`utc_date`) and only a page test noticed: `test_template_compile` compiles every template.
+- Changed templates/CSS/JS without `bump-templates`, or strings without `translations update`: the check fails until you run them.
+- Query budgets drift when features merge: run `--full` after merging, and never raise a budget without a reason in the test.
+- SQLite hides Postgres failures (varchar `max_length`, deferred trigger events in migrations): run `--postgres` when you touch models/migrations.
+- CI stayed red for hours unnoticed: watch the run after every push (`watch-ci`).
 
 ## Rules
 - **Layers**: `il2ks.core` (logparse, replay, catalog) is pure Python and never imports Django or outer layers (import-linter).
