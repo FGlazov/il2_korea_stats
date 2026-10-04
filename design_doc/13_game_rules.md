@@ -420,6 +420,27 @@ the ratios and the air and ground scores need `[marks] min_sorties` (20) sorties
 `min_time_on_target_s` on target; **interception per hour** needs `min_air_superiority_s` of air superiority flight. `StatThreshold.min_sorties`
 stores that minimum in the metric's own unit (sorties, games, seconds).
 
+## Accuracy (as built, 2026-10-04)
+
+- **Accuracy** = gun hits per round fired. **Rounds fired** = AType 10 `BUL`+`SH` loaded − AType 4 left (`SH` is always 0 in Korea logs;
+  `BUL` counts every gun round, cannon shells included). Unknown (NULL) when the sortie was **resupplied** (maintainer: only sorties
+  without a resupply), has no AType 4, has "left" recorded after the loss, has more left than loaded, or has more gun hits than rounds;
+  always unknown for gunner sorties. AType 24 bursts carry no round count.
+- **Gun hits** = non-explosion `BULLET_*` / `SHELL_*` hit lines given (AType 1; `AMMO:explosion`, bombs, rockets and napalm excluded), split
+  by target: **air** = any aircraft (crew and turrets folded in, AI or player), **ground** = everything else, **static scenery included**
+  `[DECIDED]` (maintainer, 2026-10-04: statics are ground targets, as for ground kills). Friendly targets count.
+- Fired rounds have no target, so the **air / ground split is by combat role** `[DECIDED]` (maintainer: "two different kinds of
+  targets"): **air accuracy** = air hits / rounds fired over air-superiority sorties; **ground accuracy** = ground hits / rounds fired over
+  attack sorties; **overall gun accuracy** = all gun hits / all rounds. Every ratio sums hits and rounds **only over sorties with known
+  rounds**, so numerator and denominator come from the same sorties; level 2 stores both parts (`accuracy_rounds/hits`,
+  `accuracy_air_rounds/hits`, `accuracy_ground_rounds/hits`) and the percentage is computed on read.
+- Gunner fire is credited to the pilot's aircraft, so an IL-10 pilot's hits include the gunner's (≈6% of IL-10 sorties; hits > rounds
+  makes the sortie unknown).
+- Samples (210 missions): 66% of took-off sorties have known rounds (2,299 "left" after a loss, 1,354 no AType 4, 201 resupplied);
+  overall 6.3%, air 2.8%, ground 7.0% (2.4% without statics); about half of the sorties that fired hit nothing, so accuracy is meaningful
+  aggregated, not per sortie. Upgraded databases get the figures from the stored ammo JSON (`accuracy` backfill); `il2ks reprocess` gives
+  the exact values.
+
 ## Rule toggles (`[rules]`, as built 2026-10-04, OQ-61)
 
 The ram toggle applies via `il2ks reprocess --all` (it changes kills and deaths, not only aggregates).
