@@ -221,6 +221,20 @@ def test_doctor_warns_when_ammo_rows_have_no_mixes_and_is_quiet_otherwise(tmp_pa
     assert "il2ks reprocess --all" in findings[0].fix
 
 
+def test_doctor_checks_each_mission_for_mixes_and_ignores_kills_without_gun_hits(tmp_path: Path) -> None:
+    """An old mission without mixes keeps warning after a new mission is ingested; kills with no gun hits (no mix rows
+    by design) never warn."""
+    cfg = make_instance(tmp_path)
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ())), meta("nohits"))  # a kill, no gun hit
+    assert list(ammo_mix_check(cfg)) == []
+
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 4),))), meta("old"))
+    MissionAircraftAmmoMix.objects.filter(mission__mission_uid="old").delete()  # that mission predates the mixes
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 2),))), meta("new"))
+
+    assert [f.level for f in ammo_mix_check(cfg)] == [Level.WARN]
+
+
 # --- the reads for the aircraft page --------------------------------------------------------------------------------
 
 
