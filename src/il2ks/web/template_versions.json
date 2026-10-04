@@ -370,8 +370,8 @@
       "sha256": "8fbf6af1398677dcfb91279a381dc879e5a77b4e0989ce88ffec41f1b91ebbfc"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
-      "version": 5,
-      "sha256": "86d3016e6b8881ed4fc1fe2dc1d09fbf0f67dd96c5d303c6a8b174405cf01c19"
+      "version": 6,
+      "sha256": "3fb85d787208120bd393829e7a700affc59a5cb347ecdc536f81a4ff4a559f78"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
@@ -406,8 +406,8 @@
       "sha256": "77fb376c6edbd57af1b9e0511572dfcc516b1e2709d6b08273ef7c28b779fe73"
     },
     "templates/il2ks/sorties/parts/notices.html": {
-      "version": 1,
-      "sha256": "f0b306a85d59a02df7c360e248a54bc33479c4628f88a91f718ad1fb7f163c36"
+      "version": 2,
+      "sha256": "63467b856c854caa6521555b843862fb09aac4dafed0606ab8f709b800da3c42"
     },
     "templates/il2ks/sorties/parts/summary.html": {
       "version": 5,

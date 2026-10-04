@@ -518,6 +518,10 @@ msgid "Ammunition hit by or with"
 msgstr "Чем поражён"
 
 # llm-draft
+msgid "Ammunition left not recorded reliably"
+msgstr "Остаток боекомплекта записан ненадёжно"
+
+# llm-draft
 msgid "Ammunition used unknown"
 msgstr "Расход боеприпасов неизвестен"
 
@@ -3098,6 +3102,16 @@ msgstr ""
 "часовой пояс."
 
 # llm-draft
+msgid ""
+"The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example "
+"after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets "
+"that were released, the amount used is unknown."
+msgstr ""
+"Игра записывает остаток боекомплекта в конце вылета, а здесь он пришёлся на время после потери самолёта (например, "
+"после прыжка с парашютом). Бомбы и ракеты, которые не сбрасывались и не пускались, считаются неизрасходованными; "
+"расход пушечного боекомплекта, а также сброшенных бомб и пущенных ракет неизвестен."
+
+# llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
 msgstr "Шасси остались убранными, а настроение пилота не опустилось."
 
@@ -3132,9 +3146,11 @@ msgstr "В журнале не указан атаковавший."
 
 # llm-draft
 msgid ""
-"The log's record of ammunition left is not reliable here, for example because it was taken after the aircraft was "
-"lost."
-msgstr "Записи журнала об оставшемся боекомплекте здесь ненадёжны, например потому, что сделаны уже после потери самолёта."
+"The log's record of ammunition left does not match what was loaded, for example because a payload is counted in "
+"different units when loaded and at the end (cluster bomblets)."
+msgstr ""
+"Записанный в журнале остаток боекомплекта не сходится с загруженным, например потому, что боевая нагрузка при "
+"загрузке и в конце считается в разных единицах (кассетные боеприпасы)."
 
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
@@ -3462,6 +3478,10 @@ msgid "Unknown: the ammunition left cannot be trusted"
 msgstr "Неизвестно: данным об оставшемся боекомплекте верить нельзя"
 
 # llm-draft
+msgid "Unknown: the ammunition left was recorded after the aircraft was lost"
+msgstr "Неизвестно: остаток боекомплекта записан после потери самолёта"
+
+# llm-draft
 msgid "Unknown: the log has no end-of-sortie ammunition record"
 msgstr "Неизвестно: в журнале нет записи о боекомплекте в конце вылета"
 
@@ -3500,6 +3520,14 @@ msgstr "Использовать загруженный шрифт для"
 # llm-draft
 msgid "Used"
 msgstr "Израсходовано"
+
+# llm-draft
+msgid ""
+"Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the "
+"aircraft was lost."
+msgstr ""
+"Расход неизвестен для пушек и пулемётов, а также для сброшенных бомб и пущенных ракет: остаток боекомплекта записан "
+"после потери самолёта."
 
 # llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."

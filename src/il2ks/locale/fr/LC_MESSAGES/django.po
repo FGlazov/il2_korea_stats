@@ -506,6 +506,10 @@ msgid "Ammunition hit by or with"
 msgstr "Munition ayant touché ou utilisée"
 
 # llm-draft
+msgid "Ammunition left not recorded reliably"
+msgstr "Munitions restantes enregistrées de façon peu fiable"
+
+# llm-draft
 msgid "Ammunition used unknown"
 msgstr "Munitions utilisées inconnues"
 
@@ -3081,6 +3085,16 @@ msgstr ""
 "connaître ce fuseau horaire."
 
 # llm-draft
+msgid ""
+"The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example "
+"after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets "
+"that were released, the amount used is unknown."
+msgstr ""
+"Le jeu enregistre les munitions restantes à la fin de la sortie, ce qui s'est produit ici après la perte de "
+"l'appareil (par exemple après un saut en parachute). Les bombes et roquettes jamais larguées ou tirées comptent comme"
+" non utilisées ; la consommation des armes de bord, des bombes larguées et des roquettes tirées est inconnue."
+
+# llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
 msgstr "Le train est resté rentré, et le moral du pilote aussi."
 
@@ -3115,9 +3129,11 @@ msgstr "Le journal ne nomme aucun attaquant."
 
 # llm-draft
 msgid ""
-"The log's record of ammunition left is not reliable here, for example because it was taken after the aircraft was "
-"lost."
-msgstr "Le relevé des munitions restantes n'est pas fiable ici, par exemple parce qu'il date d'après la perte de l'appareil."
+"The log's record of ammunition left does not match what was loaded, for example because a payload is counted in "
+"different units when loaded and at the end (cluster bomblets)."
+msgstr ""
+"Les munitions restantes enregistrées ne correspondent pas à ce qui était chargé, par exemple parce qu'une charge est "
+"comptée dans des unités différentes au chargement et à la fin (bombes à sous-munitions)."
 
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
@@ -3451,6 +3467,10 @@ msgid "Unknown: the ammunition left cannot be trusted"
 msgstr "Inconnu : les munitions restantes ne sont pas fiables"
 
 # llm-draft
+msgid "Unknown: the ammunition left was recorded after the aircraft was lost"
+msgstr "Inconnu : les munitions restantes ont été enregistrées après la perte de l'appareil"
+
+# llm-draft
 msgid "Unknown: the log has no end-of-sortie ammunition record"
 msgstr "Inconnu : le journal ne contient aucun relevé de munitions en fin de sortie"
 
@@ -3489,6 +3509,14 @@ msgstr "Utiliser la police importée pour"
 # llm-draft
 msgid "Used"
 msgstr "Utilisé"
+
+# llm-draft
+msgid ""
+"Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the "
+"aircraft was lost."
+msgstr ""
+"La consommation est inconnue pour les armes de bord, les bombes larguées et les roquettes tirées : les munitions "
+"restantes ont été enregistrées après la perte de l'appareil."
 
 # llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."

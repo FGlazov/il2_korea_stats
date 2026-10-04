@@ -189,9 +189,34 @@ def test_ammo_left_after_loss_and_missing_end_record_have_their_own_reasons(clie
     after_loss = detail(client, pk_of(1))
     no_record = detail(client, pk_of(2))
 
-    assert "Ammunition used unknown" in after_loss
-    assert "not reliable" in after_loss
+    assert "Ammunition left not recorded reliably" in after_loss
+    assert "after the aircraft was lost" in after_loss
     assert "no end-of-sortie ammunition record" in no_record
+
+
+def test_after_a_loss_unreleased_bombs_show_zero_used_and_the_left_column_is_dashed(client: Client) -> None:
+    save(
+        mission(
+            (
+                sortie(
+                    0,
+                    1,
+                    ammo_loaded=AmmoCounts(bullets=400, bombs=4),
+                    ammo_left=AmmoCounts(bullets=150),
+                    ammo_left_after_loss=True,
+                    is_plane_lost=True,
+                    outcome="shot_down",
+                ),
+            )
+        )
+    )
+
+    html = detail(client, pk_of(1))
+
+    assert re.search(r"<td class=\"num\">4</td>\s*<td class=\"num\">—</td>\s*<td class=\"num\">0</td>", html)  # bombs
+    assert re.search(
+        r"<td class=\"num\">400</td>\s*<td class=\"num\">—</td>\s*<td class=\"num\"><span[^>]*>—</span>", html
+    )
 
 
 def test_gunner_sortie_has_a_notice_and_no_combat_role(client: Client) -> None:

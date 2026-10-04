@@ -106,6 +106,8 @@ class _SortieAmmo:
     ordnance: dict[str, _Ordnance] = field(default_factory=dict[str, _Ordnance])
     unattributed_dealt: float = 0.0
     unattributed_taken: float = 0.0
+    store_releases: int = 0  # AType 25 up to the sortie end: bombs, napalm, flares and drop tanks alike
+    rocket_salvos: int = 0  # AType 26 up to the sortie end
     counted_units: set[tuple[int, int, str]] = field(default_factory=set[tuple[int, int, str]])
 
     def ord(self, key: str) -> _Ordnance:
@@ -129,6 +131,8 @@ class SortieAmmoResult:
     gun_damage_taken: Mapping[str, float]
     ordnance: tuple[OrdnanceUse, ...]
     unattributed: UnattributedDamage
+    store_releases: int = 0
+    rocket_salvos: int = 0
 
 
 EMPTY_SORTIE_AMMO = SortieAmmoResult({}, {}, (), UnattributedDamage())
@@ -394,6 +398,7 @@ class _Analysis:
     def _count_releases(self, sortie: SortieState, book: _SortieAmmo, end: int) -> None:
         stores = sum(1 for t, kind in sortie.airframe.store_releases if kind == "store" and t <= end)
         salvos = sum(1 for t, kind in sortie.airframe.store_releases if kind == "rocket" and t <= end)
+        book.store_releases, book.rocket_salvos = stores, salvos
         if stores:
             key = release_key(sortie, "store")
             if key is not None:
@@ -455,6 +460,8 @@ class _Analysis:
                 book.gun_taken,
                 ordnance,
                 UnattributedDamage(book.unattributed_dealt, book.unattributed_taken),
+                book.store_releases,
+                book.rocket_salvos,
             )
         return out
 

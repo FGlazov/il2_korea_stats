@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v5 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v6 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Ammunition (FR-ING-24, doc 13): loaded, left, used per kind, and hits per ammunition type. "Used" is the dash when
   it is unknown, with the reason under the table. Context: detail.ammo (sortie_view.AmmoTable: rows, hits,
@@ -22,7 +22,7 @@
               <td>{{ row.label }}</td>
               <td class="num">{{ row.loaded }}</td>
               <td class="num">{{ row.left }}</td>
-              <td class="num">{% if row.note %}<span title="{% if row.note == 'resupplied' %}{% translate 'Unknown: the sortie was resupplied' %}{% elif row.note == 'no_end_record' %}{% translate 'Unknown: the log has no end-of-sortie ammunition record' %}{% else %}{% translate 'Unknown: the ammunition left cannot be trusted' %}{% endif %}">{{ row.used }}</span>{% else %}{{ row.used }}{% endif %}</td>
+              <td class="num">{% if row.note %}<span title="{% if row.note == 'resupplied' %}{% translate 'Unknown: the sortie was resupplied' %}{% elif row.note == 'no_end_record' %}{% translate 'Unknown: the log has no end-of-sortie ammunition record' %}{% elif row.note == 'after_loss' %}{% translate 'Unknown: the ammunition left was recorded after the aircraft was lost' %}{% else %}{% translate 'Unknown: the ammunition left cannot be trusted' %}{% endif %}">{{ row.used }}</span>{% else %}{{ row.used }}{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -32,6 +32,7 @@
       <p><small>
         {% if detail.ammo.used_unknown == "resupplied" %}{% translate "Used is unknown: the aircraft was resupplied during the sortie." %}
         {% elif detail.ammo.used_unknown == "no_end_record" %}{% translate "Used is unknown: the log has no end-of-sortie ammunition record, for example after a disconnect." %}
+        {% elif detail.ammo.used_unknown == "after_loss" %}{% translate "Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the aircraft was lost." %}
         {% else %}{% translate "Used is unknown: the ammunition left is not reliable." %}{% endif %}
       </small></p>
     {% endif %}

@@ -493,14 +493,21 @@ def _ammo_used(s: SortieResult) -> dict[str, int | None]:
     """Ammunition used per type = loaded - left (FR-ING-24). `None` = unknown: the sortie was resupplied (AType 4 only
     describes the last leg), it has no AType 4, the pilot left an aircraft that had been destroyed (its stores read as
     empty), or (bombs) more is left than loaded, which the game does with some payloads (IL-10 bomblets are loaded as
-    stations and left as bomblets)."""
+    stations and left as bomblets).
+
+    Where that leaves bombs or rockets unknown, **no release event** in the whole sortie means none was used (doc 13).
+    Where "left" is trusted it is kept, also if it disagrees with the releases. Release events are no counts (one event
+    is a release command that can drop a pair, a rocket event is a salvo): a positive number gives no "used"."""
     loaded = _counts_json(s.ammo_loaded)
-    if s.resupplied or s.ammo_left is None or s.ammo_left_after_loss:
-        return dict.fromkeys(loaded)
-    left = _counts_json(s.ammo_left)
+    unreleased = {"bombs": s.store_releases == 0, "rockets": s.rocket_salvos == 0}
+    trusted = not (s.resupplied or s.ammo_left is None or s.ammo_left_after_loss)
+    left = _counts_json(s.ammo_left) if s.ammo_left is not None else loaded
     used: dict[str, int | None] = {}
     for kind, count in loaded.items():
-        used[kind] = None if kind == "bombs" and left[kind] > count else count - left[kind]
+        if trusted and not (kind == "bombs" and left[kind] > count):
+            used[kind] = count - left[kind]
+        else:
+            used[kind] = 0 if unreleased.get(kind, False) else None
     return used
 
 
@@ -523,7 +530,10 @@ def _ammo_json(s: SortieResult) -> dict[str, object]:
 
         {"loaded": {"bullets", "shells", "bombs", "rockets"},          # AType 10
          "left": {... same} | null,                                    # AType 4; null = no AType 4
-         "used": {... same, each int | null},                          # loaded - left; null = unknown (resupplied...)
+         "used": {... same, each int | null},                          # loaded - left; null = unknown (resupplied...);
+                                                                       #   bombs, rockets: 0 when none was released
+         "left_after_loss": bool,                                      # AType 4 came long after the loss: unreliable
+         "releases": {"stores": int, "rocket_salvos": int},            # AType 25 / 26 events (commands, not counts)
          "hits": [{"ammo": "BULLET_12-7_USA_API",                      # every non-explosion hit line, per ammo name
                    "hits_given": int, "hits_received": int,            #   (named bomb/rocket/napalm lines included)
                    "damage_dealt": float, "damage_taken": float}],     # damage attributed to this ammo (guns only)
@@ -541,6 +551,8 @@ def _ammo_json(s: SortieResult) -> dict[str, object]:
         "loaded": _counts_json(s.ammo_loaded),
         "left": None if s.ammo_left is None else _counts_json(s.ammo_left),
         "used": _ammo_used(s),
+        "left_after_loss": s.ammo_left_after_loss,
+        "releases": {"stores": s.store_releases, "rocket_salvos": s.rocket_salvos},
         "hits": [
             {
                 "ammo": h.ammo,
