@@ -52,6 +52,9 @@ from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
 
 log = logging.getLogger(__name__)
 
+PROTECTED_LOG_DIR = "sample_data"
+"""A log folder with this name in its path is never ingested with `after_archive` move or delete."""
+
 _IN_CHUNK = 500  # stay far below SQLite's bound-parameter limit
 
 
@@ -160,8 +163,14 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
     else:
         if cfg.logs.dir is None:
             raise ValueError("logs.dir is not configured (il2ks.toml [logs] dir, or IL2KS_LOGS_DIR)")
-        paths = list_log_files(cfg.logs.dir)
         mode = cfg.logs.after_archive
+        if mode != "keep" and PROTECTED_LOG_DIR in cfg.logs.dir.resolve().parts:
+            # The repo's `sample_data/` is real player data kept for tests: moving or deleting it once cost a morning.
+            raise ValueError(
+                f"logs.dir {cfg.logs.dir} is inside a '{PROTECTED_LOG_DIR}' folder: use after_archive = \"keep\" "
+                "or copy the logs elsewhere (ingest would move or delete the originals)"
+            )
+        paths = list_log_files(cfg.logs.dir)
 
     txt_as: MissionLogKind = "archive" if is_import else "parts"  # a lone `[0].txt` in an import is a whole mission
 

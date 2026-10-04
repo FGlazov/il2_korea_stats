@@ -10,6 +10,7 @@ after a performance change and compare. `--profile FILE` also writes a cProfile 
 import contextlib
 import cProfile
 import os
+import shutil
 import statistics
 import tempfile
 import time
@@ -105,6 +106,12 @@ def bench_ingest(
         from il2ks.ingest.discover import Decision, Found
 
         cfg = load_config(None, {"IL2KS_DATA_DIR": tmp})
+        # Always work on a copy of the input, so the benchmark can never move, delete or lock the originals.
+        copy = Path(stack.enter_context(tempfile.TemporaryDirectory(prefix="il2ks-bench-input-")))
+        for file in sorted(source.iterdir()):
+            if file.is_file() and ".txt" in file.name:
+                shutil.copy2(file, copy / file.name)
+        source = copy
         timer = PhaseTimer()
         real = runner.default_pipeline(cfg)
 

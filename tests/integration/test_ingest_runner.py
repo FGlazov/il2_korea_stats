@@ -566,3 +566,14 @@ def test_rebuild_all_runs_under_the_lock(env: Env) -> None:
     with WriterLock(env.data, "watch"), pytest.raises(LockBusyError):
         rebuild_all(env.cfg, rebuild=lambda: calls.append(2))
     assert calls == [1]
+
+
+def test_move_or_delete_refuses_a_sample_data_log_folder(tmp_path: Path) -> None:
+    """Real player data lives in `sample_data/`; an ingest with `move` must never touch it."""
+    logs = tmp_path / "sample_data" / "2026-09"
+    logs.mkdir(parents=True)
+    cfg = make_config(tmp_path / "data", logs, after_archive="move")
+    with pytest.raises(ValueError, match="sample_data"):
+        ingest_once(cfg, make_pipeline(FakeSteps()))
+    keep = make_config(tmp_path / "data", logs, after_archive="keep")
+    assert ingest_once(keep, make_pipeline(FakeSteps())).ok == []
