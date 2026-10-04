@@ -213,7 +213,11 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
   pilots hold** (bronze Charmed Life on a busy server would drown the rest). The achievement links to its sortie unless the mission
   is hidden; hidden players are not listed. The block is full width under the board grid, so the 3x2 boards are untouched.
   Cost: 2 reads (the newest 40 candidate rows; the holder counts of the scope), 1 when nothing was earned.
-- **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour.
+- **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour. A tour
+  tier that is also reached all time in the same sortie is listed once (the first tour starts with the server, everything
+  would show twice), and hall-of-shame tiers are not listed there (QA on the real sample, 2026-10-04).
+- **Shame and rarity**: a hall-of-shame tier shows its rarity text but never the ring or glow (a rare "Hard Landing" must not
+  look like a trophy).
 
 ## Ideas and alternatives
 
