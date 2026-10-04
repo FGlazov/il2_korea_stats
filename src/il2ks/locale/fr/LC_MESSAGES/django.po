@@ -342,6 +342,14 @@ msgid "Air kills"
 msgstr "Victoires aériennes"
 
 # llm-draft
+msgid "Air kills (AI)"
+msgstr "Victoires aériennes (IA)"
+
+# llm-draft
+msgid "Air kills (PvP)"
+msgstr "Victoires aériennes (PvP)"
+
+# llm-draft
 msgid "Air kills and deaths per tour"
 msgstr "Victoires aériennes et morts par tour"
 
@@ -356,6 +364,10 @@ msgstr "Victoires aériennes par heure de vol"
 # llm-draft
 msgid "Air kills per sortie"
 msgstr "Victoires aériennes par sortie"
+
+# llm-draft
+msgid "Air kills/h"
+msgstr "Victoires aériennes/h"
 
 # llm-draft
 #, python-format
@@ -406,6 +418,10 @@ msgid ""
 msgstr ""
 "Elo air-air des avions à hélice, d'après les victoires entre sorties de supériorité aérienne. Tous temps confondus. "
 "Une victoire d'un avion à hélice sur un jet compte double."
+
+# llm-draft
+msgid "Air-to-air rating, all time"
+msgstr "Classement air-air, toutes périodes"
 
 # llm-draft
 #. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
@@ -573,6 +589,10 @@ msgid "Attempts"
 msgstr "Tentatives"
 
 # llm-draft
+msgid "Average flight time per sortie"
+msgstr "Temps de vol moyen par sortie"
+
+# llm-draft
 msgid "Average hits"
 msgstr "Impacts en moyenne"
 
@@ -587,6 +607,10 @@ msgstr "BLUFOR"
 # llm-draft
 msgid "BLUFOR labels"
 msgstr "étiquettes BLUFOR"
+
+# llm-draft
+msgid "BLUFOR sorties"
+msgstr "Sorties BLUFOR"
 
 # llm-draft
 msgid "BLUFOR won"
@@ -832,6 +856,10 @@ msgid "Colors"
 msgstr "Couleurs"
 
 # llm-draft
+msgid "Columns"
+msgstr "Colonnes"
+
+# llm-draft
 msgid "Combat role"
 msgstr "Rôle de combat"
 
@@ -1004,6 +1032,14 @@ msgid "Elo"
 msgstr "Elo"
 
 # llm-draft
+msgid "Elo jet"
+msgstr "Elo jet"
+
+# llm-draft
+msgid "Elo prop"
+msgstr "Elo hélice"
+
+# llm-draft
 msgid "Elo, jet"
 msgstr "Elo, réaction"
 
@@ -1014,6 +1050,10 @@ msgstr "Elo, hélice"
 # llm-draft
 msgid "Empty missions"
 msgstr "Missions vides"
+
+# llm-draft
+msgid "Ended"
+msgstr "Fin"
 
 # llm-draft
 msgid "Enemy action"
@@ -1106,6 +1146,10 @@ msgstr "Trouver un joueur par son nom"
 # llm-draft
 msgid "Finish setup"
 msgstr "Terminer la configuration"
+
+# llm-draft
+msgid "First seen"
+msgstr "Première vue"
 
 # llm-draft
 #, python-format
@@ -1260,6 +1304,10 @@ msgid ""
 msgstr ""
 "Points sol par heure sur cible avec cet appareil. Pilotes ayant au moins %(sorties)s sorties d'attaque et %(minutes)s"
 " minutes sur cible."
+
+# llm-draft
+msgid "Ground score/h"
+msgstr "Points sol/h"
 
 # llm-draft
 msgid "Ground vehicle or object"
@@ -2426,6 +2474,10 @@ msgid "REDFOR labels"
 msgstr "étiquettes REDFOR"
 
 # llm-draft
+msgid "REDFOR sorties"
+msgstr "Sorties REDFOR"
+
+# llm-draft
 msgid "REDFOR won"
 msgstr "REDFOR a gagné"
 
@@ -2721,6 +2773,10 @@ msgid "Sortie ended"
 msgstr "Fin de la sortie"
 
 # llm-draft
+msgid "Sortie length"
+msgstr "Durée de sortie"
+
+# llm-draft
 msgid "Sortie report"
 msgstr "Rapport de sortie"
 
@@ -2750,6 +2806,14 @@ msgstr "Sorties de %(name)s dans %(tour)s"
 # llm-draft
 msgid "Sorties per day"
 msgstr "Sorties par jour"
+
+# llm-draft
+msgid "Sorties per pilot"
+msgstr "Sorties par pilote"
+
+# llm-draft
+msgid "Sorties per player"
+msgstr "Sorties par joueur"
 
 # llm-draft
 msgid "Sorties per side"

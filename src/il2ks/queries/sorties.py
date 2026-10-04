@@ -21,11 +21,12 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
+from il2ks.queries.sorting import Rated, SortSpec, order_by
 
 PAGE_SIZE = 25
 
 # `?sort=` whitelist: public field name -> ORM ordering. Ties are broken by the primary key, so paging is stable.
-SORT_FIELDS: dict[str, str] = {
+SORT_FIELDS: dict[str, SortSpec] = {
     "date": "spawned_at",
     "mission": "mission__started_at",
     "aircraft": "aircraft__display_name",
@@ -34,6 +35,17 @@ SORT_FIELDS: dict[str, str] = {
     "kills_ground": "kills_ground",
     "assists": "assists",
     "flight_time": "flight_time_s",
+    "damage_taken": "damage_taken",
+    # the optional columns (`?cols=`, `web.columns.SORTIE_COLUMNS`; a test keeps the two in step)
+    "kills_air_pvp": "kills_air_pvp",
+    "kills_air_ai": "kills_air_ai",
+    "friendly_kills": "friendly_kills",
+    "air_points": "air_points",
+    "ground_points": "ground_points",
+    "time_on_target": Rated("time_on_target_s", "time_on_target_s"),  # NULL / 0 (not an attack sortie) sorts last
+    "payload": "payload_name",
+    "takeoffs": "takeoffs",
+    "landings": "landings",
 }
 DEFAULT_SORT = "-date"
 
@@ -87,8 +99,7 @@ def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) 
         rows = rows.filter(role=filters.role)
     if filters.combat_role:
         rows = rows.filter(combat_role=filters.combat_role)
-    field = SORT_FIELDS[sort.removeprefix("-")]
-    rows = rows.order_by(f"-{field}" if sort.startswith("-") else field, "-pk" if sort.startswith("-") else "pk")
+    rows = rows.order_by(order_by(SORT_FIELDS[sort.removeprefix("-")], sort), "-pk" if sort.startswith("-") else "pk")
     return Paginator(rows, PAGE_SIZE).get_page(number)
 
 

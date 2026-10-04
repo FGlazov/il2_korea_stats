@@ -8,6 +8,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
+from django.db.models import Expression, OrderBy
 
 from il2ks.db.models import (
     HEAVY_SORTIE_COLUMNS,
@@ -20,6 +21,7 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
+from il2ks.queries.sorting import Rated, Ratio, SortSpec, order_by
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = 50
@@ -27,8 +29,10 @@ RECENT_SORTIES = 5
 TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64
 
-# Public `?sort=` key -> the Player column it orders by. Anything else falls back to the default (a whitelist).
-PLAYER_SORTS: Mapping[str, str] = {
+# Public `?sort=` key -> what it orders by (a Player column or a NULL-safe ratio, see `queries.sorting`). Anything else
+# falls back to the default (a whitelist). The first block is the default columns, the second the optional ones a
+# visitor can add with `?cols=` (`web.columns.PLAYER_COLUMNS`; a test keeps the two in step).
+PLAYER_SORTS: Mapping[str, SortSpec] = {
     "name": "name_lower",
     "sorties": "sorties",
     "flight_time_s": "flight_time_s",
@@ -36,11 +40,24 @@ PLAYER_SORTS: Mapping[str, str] = {
     "kills_ground": "kills_ground",
     "deaths": "deaths",
     "last_seen": "last_seen",
+    "elo_jet": Rated("elo_jet", "elo_jet_games"),
+    "elo_prop": Rated("elo_prop", "elo_prop_games"),
+    "kd": Ratio("kills_air", "deaths"),
+    "kl": Ratio("kills_air", "planes_lost"),
+    "survival": Ratio("sorties", "sorties", minus="deaths"),
+    "kills_air_pvp": "kills_air_pvp",
+    "score_air": "score_air",
+    "score_ground": "score_ground",
+    "ground_hour": Ratio("score_ground_attack", "time_on_target_s", scale=3600.0),
+    "planes_lost": "planes_lost",
+    "assists": "assists",
+    "friendly_kills": "friendly_kills",
+    "first_seen": "first_seen",
 }
 DEFAULT_PLAYER_SORT = "-last_seen"
 
 # The same for the per-aircraft table on the profile (PlayerAircraft columns, the aircraft by its display name).
-AIRCRAFT_SORTS: Mapping[str, str] = {
+AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "aircraft": "aircraft__display_name",
     "sorties": "sorties",
     "flight_time_s": "flight_time_s",
@@ -51,14 +68,13 @@ AIRCRAFT_SORTS: Mapping[str, str] = {
 DEFAULT_AIRCRAFT_SORT = "-sorties"
 
 
-def resolve_sort(raw: str, allowed: Mapping[str, str], default: str) -> str:
+def resolve_sort(raw: str, allowed: Mapping[str, SortSpec], default: str) -> str:
     """The `?sort=` value to use and to hand back to the sort headers: 'kills_air' or '-kills_air', else `default`."""
     return raw if raw.removeprefix("-") in allowed else default
 
 
-def _order(sort: str, allowed: Mapping[str, str], prefix: str = "") -> str:
-    column = allowed[sort.removeprefix("-")]
-    return f"{'-' if sort.startswith('-') else ''}{prefix}{column}"
+def _order(sort: str, allowed: Mapping[str, SortSpec], prefix: str = "") -> Expression | OrderBy:
+    return order_by(allowed[sort.removeprefix("-")], sort, prefix)
 
 
 @dataclass(frozen=True, slots=True)

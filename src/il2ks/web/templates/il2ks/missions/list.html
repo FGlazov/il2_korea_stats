@@ -1,7 +1,8 @@
-{# il2ks-template: templates/il2ks/missions/list.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/list.html v5 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission list (FR-WEB-1). Context: page_obj (Page of Mission), quiet_tour (a tour is picked and nothing is listed: the empty-tour flavor line replaces the message), missions (the page's rows), sort (whitelisted ?sort=),
-  tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), period_options, winner_options, empty_options ((value, label) pairs for the filters).
+  tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), period_options, winner_options, empty_options ((value, label) pairs for the filters),
+  optional_columns (the columns a visitor can add), columns (the chosen ones, ?cols=), colspan.
   Blocks: head (page stylesheet), content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
@@ -18,6 +19,7 @@
       {% filter_select "period" _("Period") period_options all_label=_("All time") %}
       {% filter_select "winner" _("Winner") winner_options all_label=_("Any") %}
       {% filter_select "empty" _("Empty missions") empty_options all_label=_("Hidden") %}
+      {% columns_picker optional_columns %}
     {% endfilter_bar %}
     <div class="table-wrap">
       <table class="data-table">
@@ -32,9 +34,10 @@
             {% sort_th "air_kills" _("Air kills") numeric=True %}
             {% sort_th "ground_kills" _("Ground kills") numeric=True %}
             <th scope="col">{% translate "Winner" %}</th>
+            {% for column in columns %}{% sort_th column.key column.label numeric=True %}{% endfor %}
           </tr>
         </thead>
-        <tbody>{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% include "il2ks/missions/_rows.html" with empty_message=quiet_line %}{% else %}{% include "il2ks/missions/_rows.html" %}{% endif %}</tbody>
+        <tbody>{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% include "il2ks/missions/_rows.html" with empty_message=quiet_line columns=columns colspan=colspan %}{% else %}{% include "il2ks/missions/_rows.html" with columns=columns colspan=colspan %}{% endif %}</tbody>
       </table>
     </div>
     {% pagination page_obj %}

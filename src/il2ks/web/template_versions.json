@@ -30,8 +30,8 @@
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 8,
-      "sha256": "e9cc752da7166c3d5d8ffd9b4ce4d1f5d26a577e7c6c043235c5575f8fad8dc5"
+      "version": 10,
+      "sha256": "827feb391cd5b96e92d1b47e571fe38540a200aa2ed048e4aacf6c682472d826"
     },
     "static/il2ks/sorties.css": {
       "version": 2,
@@ -90,8 +90,8 @@
       "sha256": "cf59d5c0a3441ed4f34d630dcec76484cb157385b62e2e306a535148eeff78d6"
     },
     "templates/il2ks/aircraft/list.html": {
-      "version": 2,
-      "sha256": "c2179e2bb3346cf773f7bd471490dee59981bf6e15bc8e7270c656c68260d492"
+      "version": 3,
+      "sha256": "399acaac6311695fa2df88c96af181471a85c01a11ddfb84ac65a2741a2c2966"
     },
     "templates/il2ks/aircraft/top_elo.html": {
       "version": 1,
@@ -121,6 +121,10 @@
       "version": 1,
       "sha256": "5fd54228497913868dd5a90f3987c76f630e4c906926813b50069838b498d68e"
     },
+    "templates/il2ks/components/columns_picker.html": {
+      "version": 1,
+      "sha256": "54d940104cf6c9bf1be15786b782ec15e175a8400e9297e3697b0448a3289a5f"
+    },
     "templates/il2ks/components/dropdown.html": {
       "version": 1,
       "sha256": "284a752cb8b877160c4975d9e8a7a2551bba57e4ce35d598e7b8abc5e3f12364"
@@ -130,8 +134,8 @@
       "sha256": "ba0a928a8909d1b7719ba836603acf880fbbe4a4c17fbe64f662e16b4c2d68dc"
     },
     "templates/il2ks/components/filter_bar.html": {
-      "version": 1,
-      "sha256": "bbe62672cbe19b50a19300ae69c0db6e8baf4552d98e252cd9209f94a331bb62"
+      "version": 2,
+      "sha256": "06383253f833bce4ca07e3a68b69af1e9eec6fe31079831ba51a55d0ccfa8113"
     },
     "templates/il2ks/components/filter_select.html": {
       "version": 1,
@@ -218,16 +222,16 @@
       "sha256": "c2ee4688bc98a4e8de9012c447ed0a509666c4eb69025c24f2b59749a74674e7"
     },
     "templates/il2ks/missions/_rows.html": {
-      "version": 3,
-      "sha256": "aff89f3ec9db1177b8e4572bae3338e1f0f02194d494e1d27ecd0cc5985c28b1"
+      "version": 4,
+      "sha256": "c794f07677cbf46001fae2739c00ec0573fcbe192941131060ed77ba76fbac78"
     },
     "templates/il2ks/missions/detail.html": {
       "version": 4,
       "sha256": "ab6d0073a43c59c7937b23e5b77a3418f5ed3f76412e959112694779c03acc4b"
     },
     "templates/il2ks/missions/list.html": {
-      "version": 4,
-      "sha256": "ea5fc05788f7e31a704dcfc9e46d6e0d13cfeeeef2b49b47d5c0e7aae4bb7334"
+      "version": 5,
+      "sha256": "c3124cfda7cffd4b51057081305ea37ee4db57bf3156ff1f4eefef4741846511"
     },
     "templates/il2ks/players/_killboard_rows.html": {
       "version": 3,
@@ -302,8 +306,8 @@
       "sha256": "eff45019208d6000676b62a0483c0d69ee1ab35f8cddb76c0ecb100e2a182c85"
     },
     "templates/il2ks/players/detail_recent.html": {
-      "version": 7,
-      "sha256": "c4199f37815828a038ff962b4fc4e771b6294d5e7c05525de368f8448414b490"
+      "version": 8,
+      "sha256": "6713a930984dc90fbe9d1721249f0bb1c3168e0ef5b19439def3a53290f3df70"
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 4,
@@ -334,12 +338,12 @@
       "sha256": "5553b0bb3c410e9ea0da1146aa7903bb0b4689396de62f5c5ea9faf6e6e9bd34"
     },
     "templates/il2ks/players/search.html": {
-      "version": 1,
-      "sha256": "98d795bb5177cbb048c4415fdab724e57f065451f44693c2b6c7ea9f94227df8"
+      "version": 2,
+      "sha256": "307e5ef36f6cf32491f762ed4e464670e4816216a79015a6fb7d4d3300558058"
     },
     "templates/il2ks/players/search_table.html": {
-      "version": 3,
-      "sha256": "d5b29e2ac0391f73e65718a29e887f3a4476044689990f21249e816fc561f6e2"
+      "version": 4,
+      "sha256": "67238a2c917ca4dfea94e283e83a51c441ea06d0cbef41683f6782d669348fa1"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 2,
@@ -362,8 +366,8 @@
       "sha256": "7090d40292e139431e7c3a09ff217bf986166c412dd81eb036c3031e07de5e9f"
     },
     "templates/il2ks/sorties/list.html": {
-      "version": 4,
-      "sha256": "fbccf68365f40179e0d4d8a8b2788b5108b423719fb84a6144ad1d9034527ceb"
+      "version": 5,
+      "sha256": "8fbf6af1398677dcfb91279a381dc879e5a77b4e0989ce88ffec41f1b91ebbfc"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 5,
@@ -394,8 +398,8 @@
       "sha256": "385a0392edaedaabf31b7f7f170f683552597dfb22094e0ddaab9f9491108782"
     },
     "templates/il2ks/sorties/parts/list_row.html": {
-      "version": 4,
-      "sha256": "ec2dbcf5b295326ae7bb0795c56d37c287523c3b57e33ccd12c1a2b4a5eaf7b8"
+      "version": 5,
+      "sha256": "6131e1b2c8bc7969656932ca75344cd9d855173174dd564118700dfe3910bd79"
     },
     "templates/il2ks/sorties/parts/meta.html": {
       "version": 1,

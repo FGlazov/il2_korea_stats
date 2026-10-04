@@ -132,5 +132,5 @@ def tour_leaderboard(tour: Tour) -> QuerySet[PlayerTour]:
 def is_quiet_tour(selected: Tour | None, params: Mapping[str, str], rows: int) -> bool:
     """Whether a list page explains an empty result with the empty-tour flavor text (FR-WEB-23): a tour is picked,
     nothing is listed and no other filter is active (so the tour itself is the reason)."""
-    others = (value for key, value in params.items() if key not in {TOUR_PARAM, "page", "sort"})
+    others = (value for key, value in params.items() if key not in {TOUR_PARAM, "page", "sort", "cols"})
     return selected is not None and rows == 0 and not any(others)

@@ -1,6 +1,7 @@
-{# il2ks-template: templates/il2ks/players/search_table.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/search_table.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)).
+  search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)), columns (the optional columns chosen with
+  ?cols=, after the default ones; all-time values), colspan.
   A row whose `matched_name` is set was found by an old nickname and says "also known as".
 {% endcomment %}<div class="table-wrap">
   <table class="data-table player-table">
@@ -13,6 +14,7 @@
         {% sort_th "kills_ground" _("Ground kills") numeric=True %}
         {% sort_th "deaths" _("Deaths") numeric=True %}
         {% sort_th "last_seen" _("Last seen") numeric=True %}
+        {% for column in columns %}{% sort_th column.key column.label numeric=True %}{% endfor %}
       </tr>
     </thead>
     <tbody>
@@ -28,13 +30,14 @@
           <td class="num">{{ hit.player.kills_ground|num }}</td>
           <td class="num">{{ hit.player.deaths|num }}</td>
           <td class="num">{{ hit.player.last_seen|local_date }}</td>
+          {% for column in columns %}<td class="num">{{ column|cell:hit.player }}</td>{% endfor %}
         </tr>
       {% empty %}
         {% if q %}
           {% blocktranslate with query=q asvar nothing %}No player found for “{{ query }}”.{% endblocktranslate %}
-          {% empty_row 7 nothing %}
+          {% empty_row colspan nothing %}
         {% else %}
-          {% empty_row 7 _("No players yet.") %}
+          {% empty_row colspan _("No players yet.") %}
         {% endif %}
       {% endfor %}
     </tbody>

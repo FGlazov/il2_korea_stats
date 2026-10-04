@@ -20,9 +20,12 @@ from django.db.models import Q
 from il2ks.config import LeaderboardConfig
 from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, PlayerAircraft, Tour
 from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
+from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
-# Public `?sort=` key -> the AircraftStats column it orders by (a whitelist; anything else falls back to the default).
-AIRCRAFT_SORTS: Mapping[str, str] = {
+# Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio (a whitelist; anything else
+# falls back to the default). The first block is the default columns, the second the optional ones a visitor can add
+# with `?cols=` (`web.columns.AIRCRAFT_COLUMNS`; a test keeps the two in step).
+AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "aircraft": "aircraft__display_name",
     "sorties": "sorties",
     "pilots": "pilots",
@@ -35,6 +38,16 @@ AIRCRAFT_SORTS: Mapping[str, str] = {
     "kl": "kl",
     "survival": "survival",
     "attack_share": "attack_share",
+    "kills_air_pvp": "kills_air_pvp",
+    "assists": "assists",
+    "bailouts": "bailouts",
+    "friendly_kills": "friendly_kills",
+    "score_air": "score_air",
+    "score_ground": "score_ground",
+    "ground_hour": Ratio("score_ground_attack", "time_on_target_s", scale=3600.0),
+    "sortie_length": Ratio("flight_time_s", "sorties"),
+    "kills_per_hour": Ratio("kills_air", "flight_time_s", scale=3600.0),
+    "sorties_per_pilot": Ratio("sorties", "pilots"),
 }
 DEFAULT_AIRCRAFT_SORT = "-sorties"
 
@@ -43,8 +56,7 @@ TOP_PILOTS = 10
 
 def stats_list(sort: str) -> list[AircraftStats]:
     """Every flown type, ordered by a resolved `sort` ('kills_air' or '-kills_air', see `players.resolve_sort`)."""
-    column = AIRCRAFT_SORTS[sort.removeprefix("-")]
-    order = f"{'-' if sort.startswith('-') else ''}{column}"
+    order = order_by(AIRCRAFT_SORTS[sort.removeprefix("-")], sort)
     return list(AircraftStats.objects.select_related("aircraft").order_by(order, "aircraft__display_name", "pk"))
 
 

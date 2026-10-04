@@ -13,9 +13,12 @@ from django.db.models import QuerySet
 from django.http import QueryDict
 
 from il2ks.db.models import HEAVY_SORTIE_COLUMNS, Kill, Mission, PlayerMission, PlayerSortie, Tour
+from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
-# What the mission list can be sorted by: ?sort= value -> model field (the whitelist: anything else is ignored).
-SORT_FIELDS: Final[dict[str, str]] = {
+# What the mission list can be sorted by: ?sort= value -> model field or NULL-safe ratio (the whitelist: anything else
+# is ignored). The first block is the default columns, the second the optional ones a visitor can add with `?cols=`
+# (`web.columns.MISSION_COLUMNS`; a test keeps the two in step).
+SORT_FIELDS: Final[dict[str, SortSpec]] = {
     "date": "started_at",
     "name": "mission_file",
     "duration": "duration_s",
@@ -23,6 +26,12 @@ SORT_FIELDS: Final[dict[str, str]] = {
     "sorties": "sorties_total",
     "air_kills": "kills_air",
     "ground_kills": "kills_ground",
+    "friendly_kills": "friendly_kills",
+    "tour": "tour__started_at",
+    "ended": "ended_at",
+    "redfor_sorties": "redfor_sorties",
+    "blufor_sorties": "blufor_sorties",
+    "sorties_per_player": Ratio("sorties_total", "players_total"),
 }
 DEFAULT_SORT: Final = "-date"
 PERIOD_DAYS: Final = (7, 30, 90)
@@ -57,9 +66,12 @@ def parse_filters(params: QueryDict) -> MissionFilters:
     )
 
 
-def mission_list(filters: MissionFilters, sort: str, now: datetime) -> QuerySet[Mission]:
-    """Visible missions, filtered and sorted. Empty missions (no sorties) are left out unless asked for."""
+def mission_list(filters: MissionFilters, sort: str, now: datetime, *, with_tour: bool = False) -> QuerySet[Mission]:
+    """Visible missions, filtered and sorted. Empty missions (no sorties) are left out unless asked for. `with_tour`
+    loads each mission's tour in the same query (the optional tour column)."""
     missions = Mission.objects.visible()
+    if with_tour:
+        missions = missions.select_related("tour")
     if not filters.include_empty:
         missions = missions.filter(sorties_total__gt=0)
     if filters.tour is not None:
@@ -76,9 +88,7 @@ def mission_list(filters: MissionFilters, sort: str, now: datetime) -> QuerySet[
     if filters.name:
         # File names use underscores where the title shows spaces.
         missions = missions.filter(mission_file__icontains=filters.name.replace(" ", "_"))
-    field = SORT_FIELDS[sort.removeprefix("-")]
-    order = f"-{field}" if sort.startswith("-") else field
-    return missions.order_by(order, "-started_at", "-pk")
+    return missions.order_by(order_by(SORT_FIELDS[sort.removeprefix("-")], sort), "-started_at", "-pk")
 
 
 def latest_missions(limit: int) -> list[Mission]:
