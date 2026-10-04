@@ -257,7 +257,7 @@ def build_manifest() -> list[Asset]:
     }
     for name, text in stat_uses.items():
         add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", name not in UNUSED_STATS)
-    for name in ("elo-prop", "elo-jet", "interception"):
+    for name in ("elo-prop", "elo-jet", "interception", "play-time"):
         add(f"stat/{name}.svg", "Leaderboard switcher button (chess pieces for the Elo boards)", ICON, "P2", True)
 
     # achievement medals (FR-WEB-26): one icon per achievement, drawn inside a round badge that CSS tints per tier

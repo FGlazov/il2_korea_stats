@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/leaderboards.css v4 - copy this line along when you override */
+/* il2ks-template: static/il2ks/leaderboards.css v5 - copy this line along when you override */
 /* Leaderboards. Loaded by templates/il2ks/leaderboards/*.html; colours come from the tokens in site.css. */
 
 /* The board switcher: a group (label above its icon buttons) per kind of board, side by side with a normal gap and
@@ -16,7 +16,9 @@
 .board-table td:first-child, .board-table th:first-child { width: 3rem; color: var(--il2-muted); }
 .board-note { margin: 0.5rem 0; font-size: 0.85rem; color: var(--il2-muted); }
 
-/* The home page's compact boards: Elo of both pools and ground proficiency (OQ-64). */
-.home-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem 1.5rem; }
+/* The home page's six compact boards as a 3x2 grid (OQ-64, OQ-79): 2 columns on a tablet, 1 on a phone. */
+.home-boards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 1.5rem; }
+@media (max-width: 62rem) { .home-boards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 40rem) { .home-boards { grid-template-columns: minmax(0, 1fr); } }
 .home-boards h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .home-boards .board-note { margin: 0 0 0.5rem; }

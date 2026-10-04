@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/leaderboards/table.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/table.html v5 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   table.html: the table of a leaderboard. Context: board, sort, page_obj (Page of BoardRow: rank, player, stats, per_hour).
   Per-hour boards: ground-hour, interception, tank-busting. `stats` is the player's counters for the board (all-time, tour or per aircraft); the columns differ per board.
@@ -34,9 +34,12 @@
           {% sort_th "score" _("Attack ground score") numeric=True %}
           {% sort_th "time_on_target_s" _("Time on target") numeric=True %}
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True %}
+        {% elif board.key == "play-time" %}
+          {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+          {% sort_th "sorties" _("Sorties") numeric=True %}
         {% else %}
           {% sort_th "rating" _("Elo") numeric=True %}
-          {% sort_th "games" _("Rated games") numeric=True %}
+          {% sort_th "games" _("Encounters") numeric=True %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
         {% endif %}
       </tr>
@@ -72,6 +75,9 @@
             <td class="num">{{ row.stats.score_ground_attack|num:1 }}</td>
             <td class="num">{{ row.stats.time_on_target_s|duration }}</td>
             <td class="num">{{ row.stats.attack_sorties|num }}</td>
+          {% elif board.key == "play-time" %}
+            <td class="num"><strong>{{ row.stats.flight_time_s|duration }}</strong></td>
+            <td class="num">{{ row.stats.sorties|num }}</td>
           {% elif board.key == "elo-prop" %}
             <td class="num"><strong>{{ row.stats.elo_prop|num }}</strong></td>
             <td class="num">{{ row.stats.elo_prop_games|num }}</td>

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/leaderboards/list.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/list.html v5 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). View: il2ks.web.views.leaderboards.leaderboard.
   Context: board (the queries.leaderboards.Board), title, help, tab_groups ((group title, tab rows) pairs; a tab row is
@@ -39,7 +39,9 @@
     {% include "il2ks/leaderboards/table.html" %}
     <p class="board-note">
       {% if board.key == "elo-prop" or board.key == "elo-jet" %}
-        {% blocktranslate count games=rules.min_elo_games %}Pilots with at least {{ games }} rated game.{% plural %}Pilots with at least {{ games }} rated games.{% endblocktranslate %}
+        {% blocktranslate count games=rules.min_elo_games %}Pilots with at least {{ games }} encounter.{% plural %}Pilots with at least {{ games }} encounters.{% endblocktranslate %}
+      {% elif board.key == "play-time" %}
+        {% translate "Pilots with any flight time." %}
       {% elif board.key == "interception" %}
         {% blocktranslate with sorties=rules.min_air_superiority_sorties minutes=rules.min_air_superiority_minutes|num %}Pilots with at least {{ sorties }} air superiority sorties and {{ minutes }} minutes of air superiority flight.{% endblocktranslate %}
       {% elif board.key == "ground-hour" or board.key == "tank-busting" %}

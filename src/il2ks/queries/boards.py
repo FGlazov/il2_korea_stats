@@ -150,6 +150,16 @@ def streak_page(sort: str, number: str | int, now: datetime) -> Page:
     return Paginator(_running(now).order_by(_order(sort, STREAK_SORTS), "pk"), PAGE_SIZE).get_page(number)
 
 
+def longest_tour_streaks(tour: Tour, limit: int = HOME_STREAKS) -> list[PlayerBestStreak]:
+    """The home page's short list for a tour (OQ-79): the longest streaks by sorties inside that tour (a streak does not
+    span tours there), visible players only."""
+    return list(
+        PlayerBestStreak.objects.filter(tour=tour, kind=StreakKind.SORTIES, player__is_hidden=False)
+        .select_related("player")
+        .order_by("-sorties", "-kills_air", "pk")[:limit]
+    )
+
+
 def longest_current_streaks(now: datetime, limit: int = HOME_STREAKS) -> list[PlayerStreak]:
     """The home page's short list: the longest running streaks."""
     return list(_running(now).order_by("-current_sorties", "-current_kills_air", "pk")[:limit])

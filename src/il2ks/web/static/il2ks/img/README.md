@@ -63,6 +63,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `stat/elo-jet.svg` | `chess-knight` |
 | `stat/elo-prop.svg` | `chess-queen` |
 | `stat/interception.svg` | `radar-2` |
+| `stat/play-time.svg` | `hourglass` |
 | `coalition/redfor.svg` | `star` |
 | `coalition/blufor.svg` | `shield` |
 | `nav/discord.svg` | `brand-discord` |

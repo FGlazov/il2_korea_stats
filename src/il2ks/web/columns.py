@@ -58,7 +58,7 @@ def chosen[T](params: QueryDict, available: Sequence[Column[T]]) -> list[Column[
 
 # --- players (all time: the `Player` row; Elo and the per-tour split exist only there) --------------------------------
 def _elo(rating: float, games: int) -> str:
-    return display.num(rating) if games else display.DASH  # 1500 with no rated game is only the starting value
+    return display.num(rating) if games else display.DASH  # 1500 with no encounter is only the starting value
 
 
 def _accuracy(hits: int, rounds: int) -> str:

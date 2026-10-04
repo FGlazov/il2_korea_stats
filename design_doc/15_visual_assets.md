@@ -115,7 +115,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by any page yet), 25 planned.
+Total: 119 files in 13 groups; 94 shipped as placeholders (3 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -228,7 +228,7 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `role/air-superiority.svg` | Sortie role badge (guns only) | SVG 24 x 24, currentColor | Tabler `swords` | yes | P2 | shipped |
 | `role/attack.svg` | Sortie role badge (bombs / rockets / napalm) | SVG 24 x 24, currentColor | Tabler `bomb` | yes | P2 | shipped |
 
-### Stat tiles (`stat/`): 15 files (15 shipped)
+### Stat tiles (`stat/`): 16 files (16 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
@@ -247,6 +247,7 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `stat/elo-prop.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-queen` | yes | P2 | shipped |
 | `stat/elo-jet.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-knight` | yes | P2 | shipped |
 | `stat/interception.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `radar-2` | yes | P2 | shipped |
+| `stat/play-time.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `hourglass` | yes | P2 | shipped |
 
 ### Achievement medals (`medal/`): 12 files (12 shipped)
 

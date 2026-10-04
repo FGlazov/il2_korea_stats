@@ -3,8 +3,8 @@
 Elo is stored on `Player`. The only arithmetic is the per-hour rate of the skill boards: two stored columns divided.
 
 Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, `interception`, then `ground-hour`, `tank-busting`,
-`ground`, in an air group and a
-ground group (`GROUPS`; maintainer decision 2026-10-04: no kills board). Per tour
+`ground`, then `play-time`, in an air group, a ground group and a general group (`GROUPS`; maintainer decision
+2026-10-04: no kills board). Per tour
 (`?tour=`, TD-26) the rows are `PlayerTour`, all-time `Player`; with an aircraft chosen (`?aircraft=<GameObject pk>`)
 they are the per-aircraft rows `PlayerTourAircraft` / `PlayerAircraft`, so a player appears once per aircraft type; with
 a pool chosen (`?pool=prop|jet`) they are the per-propulsion rows `PlayerTourPool` / `PlayerPool` (a chosen aircraft
@@ -48,7 +48,7 @@ class Board:
     per_tour: bool = True  # False: all-time only (Elo)
     per_aircraft: bool = True
     per_pool: bool = True  # False: the board is a pool already (Elo) or has none
-    group: str = "air"  # the tab group: "air" or "ground"
+    group: str = "air"  # the tab group: "air", "ground" or "general"
 
 
 _COMMON: Final[Mapping[str, str]] = {"sorties": "sorties", "name": "player__name_lower"}
@@ -116,13 +116,26 @@ BOARDS: Final[Mapping[str, Board]] = {
         "-score",
         group="ground",
     ),
+    "play-time": Board(
+        "play-time",
+        {**_COMMON, "flight_time_s": "flight_time_s"},
+        "-flight_time_s",
+        group="general",
+    ),
 }
 DEFAULT_BOARD: Final = "air"
-GROUPS: Final[tuple[str, ...]] = ("air", "ground")
+GROUPS: Final[tuple[str, ...]] = ("air", "ground", "general")
 POOLS: Final[tuple[str, ...]] = ("prop", "jet")
-HOME_BOARDS: Final[tuple[str, ...]] = ("elo-jet", "elo-prop", "interception", "ground-hour", "tank-busting")
-"""The boards the home page highlights (maintainer, OQ-64): Elo of both pools and the skill boards (interception, ground
-score per hour, tank busting)."""
+HOME_BOARDS: Final[tuple[str, ...]] = (
+    "elo-jet",
+    "elo-prop",
+    "interception",
+    "ground-hour",
+    "tank-busting",
+    "play-time",
+)
+"""The boards the home page highlights (maintainer, OQ-64, OQ-79): Elo of both pools, the skill boards (interception,
+ground score per hour, tank busting) and play time, laid out as a 3x2 grid."""
 HOME_ROWS = 5
 MAX_PK_DIGITS = 18  # int() of a longer digit string is slow or raises (4300-digit limit): not a pk
 
@@ -173,6 +186,8 @@ def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: Leaderboar
             return rows.filter(elo_prop_games__gte=rules.min_elo_games)
         case "elo-jet":
             return rows.filter(elo_jet_games__gte=rules.min_elo_games)
+        case "play-time":
+            return rows.filter(flight_time_s__gt=0)  # no sortie minimum: the board is hours flown
         case "ground-hour" | "tank-busting":
             return _per_hour(
                 rows.filter(
@@ -219,11 +234,15 @@ def board_page(
 
 
 def top_rows(
-    board: Board, rules: LeaderboardConfig, limit: int = HOME_ROWS, aircraft: GameObject | None = None
+    board: Board,
+    rules: LeaderboardConfig,
+    limit: int = HOME_ROWS,
+    aircraft: GameObject | None = None,
+    tour: Tour | None = None,
 ) -> list[BoardRow]:
-    """The first `limit` rows of a board in its default order, all time (the home page's compact boards, the top pilots
-    of an aircraft type). One SELECT."""
-    rows = _ordered(board, _apply_minimums(board, _source(board, None, aircraft, None), rules), board.default_sort)
+    """The first `limit` rows of a board in its default order, all time or in `tour` (ignored by the all-time Elo
+    boards): the home page's compact boards, the top pilots of an aircraft type. One SELECT."""
+    rows = _ordered(board, _apply_minimums(board, _source(board, tour, aircraft, None), rules), board.default_sort)
     return [_row(i + 1, stats) for i, stats in enumerate(rows[:limit])]
 
 

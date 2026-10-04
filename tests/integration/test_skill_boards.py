@@ -170,7 +170,7 @@ def test_sorting_whitelist_and_tours(client: Client) -> None:
 def test_home_block_lists_both_skill_boards_with_all_time_links(client: Client) -> None:
     seed()
 
-    response = client.get("/")
+    response = client.get("/?tour=all")
 
     boards = {b.key: [(r.player.current_name, r.per_hour) for r in b.rows] for b in response.context["boards"]}
     assert boards["interception"][0] == ("Sniper", pytest.approx(6.0))
