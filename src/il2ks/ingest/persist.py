@@ -53,8 +53,8 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
-from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
+from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
@@ -298,11 +298,21 @@ def _upsert_player_missions(mission: Mission, sorties: Iterable[SortieResult], p
         row["player_id"]: clean_counters(row)
         for row in counted_sorties().filter(mission=mission).values("player_id").annotate(**SORTIE_COUNTERS)
     }
+    existing = {row.player_id: row for row in PlayerMission.objects.filter(mission=mission)}
+    changed: list[PlayerMission] = []
+    new: list[PlayerMission] = []
     for player_id, side in coalition.items():
-        PlayerMission.objects.update_or_create(
-            player_id=player_id, mission=mission, defaults={"coalition": side, **counters[player_id]}
-        )
-    PlayerMission.objects.filter(mission=mission).exclude(player_id__in=list(coalition)).delete()
+        values = {"coalition": side, **counters[player_id]}
+        row = existing.pop(player_id, None)
+        if row is None:
+            new.append(PlayerMission(player_id=player_id, mission=mission, **values))
+        elif any(getattr(row, name) != value for name, value in values.items()):
+            for name, value in values.items():
+                setattr(row, name, value)
+            changed.append(row)
+    PlayerMission.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()  # no pilot sortie any more
+    update_rows(PlayerMission, changed, ["coalition", *COUNTER_FIELDS])
+    PlayerMission.objects.bulk_create(new)
 
 
 # --- sorties ---
@@ -412,7 +422,8 @@ def _upsert_sorties(
     # New rows were just inserted with every other field, so only the links are written; existing rows get everything.
     new_ids = {id(row) for row in new}
     update_rows(PlayerSortie, [r for r in rows.values() if id(r) not in new_ids], _SORTIE_FIELDS)
-    update_rows(PlayerSortie, [r for r in new if r.damage_breakdown or r.timeline], _LINK_FIELDS)
+    # Just the two JSON columns of rows we hold completely: a plain UPDATE, an upsert would send all ~65 columns again.
+    update_partial_rows(PlayerSortie, [r for r in new if r.damage_breakdown or r.timeline], _LINK_FIELDS)
     return rows
 
 
