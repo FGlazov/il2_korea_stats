@@ -3,16 +3,21 @@
     stats_list(sort)         -> list[AircraftStats]      # one row per flown type; one query
     stats_for(aircraft_id)   -> AircraftStats | None     # one query
     matchups(aircraft)       -> list[Matchup]            # kills and losses against each enemy type; two queries
-    top_pilots(aircraft)     -> list[PlayerAircraft]     # visible players only (FR-ADM-3); one query
+    top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
+    top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
     payloads(aircraft)       -> list[AircraftPayload]    # one query
 
-The totals include hidden players; only the named top pilots leave them out.
+The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
+volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
+by `ingest.ratings`) and, for attack work, the ground score per hour on target.
 """
 
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from il2ks.config import LeaderboardConfig
 from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, PlayerAircraft
+from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
 
 # Public `?sort=` key -> the AircraftStats column it orders by (a whitelist; anything else falls back to the default).
 AIRCRAFT_SORTS: Mapping[str, str] = {
@@ -32,8 +37,6 @@ AIRCRAFT_SORTS: Mapping[str, str] = {
 DEFAULT_AIRCRAFT_SORT = "-sorties"
 
 TOP_PILOTS = 10
-MIN_PILOT_SORTIES = 5
-"""A pilot needs this many sorties in the type to be named among its top pilots (one lucky sortie is no ranking)."""
 
 
 def stats_list(sort: str) -> list[AircraftStats]:
@@ -79,12 +82,18 @@ def matchups(aircraft: GameObject) -> list[Matchup]:
     return sorted(out, key=lambda m: (-m.encounters, m.enemy.display_name))
 
 
-def top_pilots(aircraft: GameObject) -> list[PlayerAircraft]:
-    """The best pilots in the type by air kills (then fewer deaths), visible players with enough sorties only."""
+def top_elo(aircraft: GameObject, rules: LeaderboardConfig) -> list[PlayerAircraft]:
+    """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first."""
     rows = PlayerAircraft.objects.filter(
-        aircraft=aircraft, player__is_hidden=False, sorties__gte=MIN_PILOT_SORTIES
+        aircraft=aircraft, player__is_hidden=False, elo_games__gte=max(rules.min_elo_games, 1)
     ).select_related("player")
-    return list(rows.order_by("-kills_air", "deaths", "-sorties", "pk")[:TOP_PILOTS])
+    return list(rows.order_by("-elo", "-elo_games", "player__name_lower", "pk")[:TOP_PILOTS])
+
+
+def top_ground(aircraft: GameObject, rules: LeaderboardConfig) -> list[BoardRow]:
+    """The type's best attack pilots by ground score per hour on target (FR-WEB-20), under the same minimums as the
+    ground-per-hour board."""
+    return top_rows(BOARDS["ground-hour"], rules, TOP_PILOTS, aircraft)
 
 
 def payloads(aircraft: GameObject) -> list[AircraftPayload]:

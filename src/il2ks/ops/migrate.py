@@ -60,6 +60,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         call_command("migrate", interactive=False, verbosity=0)
         _backfill_tours(cfg)
         _backfill_scores(cfg)
+        _backfill_type_ratings(cfg)
         return backup
 
 
@@ -69,6 +70,21 @@ def _rebuild_all(cfg: Config) -> None:
     from il2ks.ingest.aggregates import rebuild_aggregates
 
     rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+
+def _backfill_type_ratings(cfg: Config) -> None:
+    """A database from before the per-type Elo (OQ-49) and the prop / jet pools has no rated games in any
+    `PlayerAircraft` row and no `PlayerPool` rows: rebuild level 2 once, which also applies the current `[score]` rules
+    (the penalty rules changed in the same release)."""
+    from django.db import transaction
+
+    from il2ks.db.models import PlayerAircraft, PlayerPool
+
+    rows = PlayerAircraft.objects.all()
+    if rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists()):
+        log.info("rating aircraft types and rescoring sorties")
+        with transaction.atomic():
+            _rebuild_all(cfg)
 
 
 def _backfill_scores(cfg: Config) -> None:

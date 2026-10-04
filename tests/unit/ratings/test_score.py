@@ -1,7 +1,7 @@
 """Air and ground score of one sortie (FR-WEB-7, FR-ADM-7)."""
 
 from il2ks.core.catalog.loader import GroundCategory
-from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules, SortieFacts, SortieScore, score_sortie
+from il2ks.core.ratings.score import ScoreRules, SortieFacts, SortieScore, score_sortie
 
 RULES = ScoreRules()
 
@@ -49,27 +49,50 @@ def test_ground_kills_are_valued_by_category_and_fences_are_trivial() -> None:
     assert RULES.ground_other < RULES.ground_vehicle < RULES.ground_tank
 
 
-def test_penalties_are_charged_to_the_air_score_of_an_air_superiority_sortie() -> None:
-    result = score_sortie(
-        facts(is_death=True, is_plane_lost=True, is_captured=True, suspected_early_bailout=True, friendly_kills=1)
+def test_a_death_costs_80_percent_of_both_scores() -> None:
+    """OQ-62/63: percentages of the sortie's score by outcome (death 80%)."""
+    result = score_sortie(facts(kills_air_pvp=2, kills_ground={"tank": 1}, is_death=True, is_plane_lost=True))
+    assert result == SortieScore(air=4.0, ground=1.2)
+
+
+def test_a_capture_costs_50_percent_and_a_lost_plane_alone_20_percent() -> None:
+    captured = score_sortie(facts(kills_air_pvp=1, is_captured=True, is_plane_lost=True))
+    assert captured == SortieScore(air=5.0, ground=0.0)
+    ditched = score_sortie(facts(kills_air_pvp=1, is_plane_lost=True))  # OQ-67 (a)
+    assert ditched == SortieScore(air=8.0, ground=0.0)
+
+
+def test_outcomes_do_not_add_up_the_largest_percentage_counts() -> None:
+    """OQ-67: a death, a capture and the lost aircraft together cost 80%, not 150%."""
+    result = score_sortie(facts(kills_air_pvp=1, is_death=True, is_captured=True, is_plane_lost=True))
+    assert result.air == 2.0
+
+
+def test_a_percentage_never_makes_a_score_negative() -> None:
+    assert score_sortie(facts(is_death=True, is_plane_lost=True)) == SortieScore(0.0, 0.0)
+    assert score_sortie(facts(attack=True, is_captured=True, is_plane_lost=True)) == SortieScore(0.0, 0.0)
+
+
+def test_flat_penalties_come_off_after_the_percentage_from_the_role_score() -> None:
+    fighter = score_sortie(
+        facts(kills_air_pvp=1, is_death=True, is_plane_lost=True, suspected_early_bailout=True, friendly_kills=1)
     )
-    assert result == SortieScore(air=-(3 + 2 + 2 + 5 + 3), ground=0.0)
+    assert fighter == SortieScore(air=10 * 0.2 - 5 - 3, ground=0.0)
+    attacker = score_sortie(
+        facts(
+            attack=True,
+            kills_air_pvp=1,
+            kills_ground={"tank": 2},
+            is_death=True,
+            is_plane_lost=True,
+            suspected_early_bailout=True,
+        )
+    )
+    assert attacker == SortieScore(air=2.0, ground=-2.6)
 
 
-def test_penalties_are_charged_to_the_ground_score_of_an_attack_sortie() -> None:
-    result = score_sortie(facts(attack=True, is_death=True, is_plane_lost=True, kills_air_pvp=1))
-    assert result == SortieScore(air=10.0, ground=-5.0)
-
-
-def test_ground_kills_in_a_fighter_sortie_still_count_for_the_ground_score() -> None:
-    result = score_sortie(facts(kills_ground={"vehicle": 2}, is_death=True))
-    assert result == SortieScore(air=-3.0, ground=6.0)
-
-
-def test_rules_are_applied_and_zero_switches_a_value_off() -> None:
-    rules = ScoreRules(air_kill_pvp=1.0, penalty_death=0.0)
-    assert score_sortie(facts(kills_air_pvp=4, is_death=True), rules) == SortieScore(4.0, 0.0)
-    assert ScoreRules() == DEFAULT_SCORE_RULES
+def test_a_surviving_sortie_loses_nothing_to_the_percentages() -> None:
+    assert score_sortie(facts(kills_air_pvp=1, kills_ground={"tank": 1})) == SortieScore(10.0, 6.0)
 
 
 def test_friendly_kills_are_penalised_up_to_the_cap() -> None:

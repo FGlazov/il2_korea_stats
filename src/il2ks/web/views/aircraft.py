@@ -15,6 +15,7 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import AircraftStats
 from il2ks.queries import aircraft as reads
 from il2ks.queries import ammo as ammo_reads
+from il2ks.queries import leaderboards as board_reads
 from il2ks.queries.players import resolve_sort
 from il2ks.web import display, object_names
 
@@ -45,6 +46,8 @@ class AircraftRow:
     survived: int  # sorties without a death
 
 
+ATTACK_TYPE_SHARE = 0.5
+"""A type with at least this share of attack sorties lists its ground proficiency ranking before its Elo."""
 NO_HITS = HitsToDestroy(display.DASH, display.DASH, ())
 
 
@@ -91,16 +94,19 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
 
 def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """`/aircraft/<GameObject pk>/`: the type's totals and ratios, hits to destroy per ammunition, matchups against
-    each enemy type, top pilots (visible players with enough sorties) and common loadouts. 404 for a type nobody flew.
+    each enemy type, its top pilots by skill (per-type Elo, and ground score per hour on target; visible players
+    who meet the leaderboard minimums) and common loadouts. 404 for a type nobody flew.
 
     Template `il2ks/aircraft/detail.html`. Context: stats (`AircraftStats`), aircraft (its GameObject), survived,
-    hits (`HitsToDestroy`), matchups (`queries.aircraft.Matchup`), pilots (`PlayerAircraft` rows with .player),
-    min_sorties, payloads (`AircraftPayload`), crumbs, page_title.
-    Reads: six queries (plus the 2 of the context processor)."""
+    hits (`HitsToDestroy`), matchups (`queries.aircraft.Matchup`), elo_pilots (`PlayerAircraft` rows with .player),
+    ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground first), rules
+    (the leaderboard minimums), payloads (`AircraftPayload`), crumbs, page_title.
+    Reads: seven queries (plus the 2 of the context processor)."""
     stats = reads.stats_for(pk)
     if stats is None:
         raise Http404
     aircraft = stats.aircraft
+    rules = board_reads.rules()
     name = object_names.name_of(aircraft, get_language() or "en")
     context = {
         "page_title": name,
@@ -110,8 +116,10 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "survived": max(stats.sorties - stats.deaths, 0),
         "hits": _hits(ammo_reads.aircraft_ammo(aircraft)),
         "matchups": reads.matchups(aircraft),
-        "pilots": reads.top_pilots(aircraft),
-        "min_sorties": reads.MIN_PILOT_SORTIES,
+        "elo_pilots": reads.top_elo(aircraft, rules),
+        "ground_pilots": reads.top_ground(aircraft, rules),
+        "ground_first": stats.attack_share >= ATTACK_TYPE_SHARE,
+        "rules": rules,
         "payloads": reads.payloads(aircraft),
     }
     return render(request, "il2ks/aircraft/detail.html", context)

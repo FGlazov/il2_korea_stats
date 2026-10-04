@@ -283,3 +283,16 @@ def test_a_tour_without_missions_shows_flavor_text_not_the_filter_message(client
         assert "No sorties match these filters." not in body
         assert any(str(line) in body for line in SPOTS["tour_empty"])
     assert "No missions match these filters." in filtered.content.decode()  # another filter: no quip
+
+
+def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(client: Client) -> None:
+    """The score block shows the tour's score next to the tour's other blocks; only Elo stays all time, and says so."""
+    seed()
+    september = tour("September 2026")
+
+    in_tour = client.get(f"/players/{pk(1)}/?tour={september.pk}").content.decode()
+    all_time = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
+
+    assert "<dt>Ground score</dt><dd>12.0</dd>" in in_tour  # two tanks in September
+    assert "<dt>Ground score</dt><dd>24.0</dd>" in all_time  # plus four vehicles in October
+    assert "Elo, prop <small>all time</small>" in in_tour

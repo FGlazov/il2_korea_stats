@@ -298,3 +298,20 @@ def test_component_poll_period_follows_the_snapshot_interval_but_not_below_the_c
     LiveMission.objects.all().delete()
     make_mission(interval_s=5.0)
     assert 'hx-trigger="load, every 15s"' in render_component()
+
+
+def test_home_page_embeds_online_now_and_the_fragment_stays_outside_the_data_version_cache(client: Client) -> None:
+    """FR-ING-12 / FR-WEB-15: the home page carries the component (a static snapshot plus htmx polling); the polled
+    /live/ fragment has its own short cache lifetime, so a data-version 304 never freezes it."""
+    mission = make_mission()
+    make_player(mission, "Alpha")
+
+    home = client.get("/")
+    fragment = client.get("/live/")
+
+    html = home.content.decode()
+    assert 'hx-get="/live/"' in html
+    assert "Alpha" in html  # the snapshot works without JavaScript
+    assert "Alpha" in fragment.content.decode()
+    assert "max-age=15" in fragment["Cache-Control"]
+    assert not fragment.has_header("ETag")

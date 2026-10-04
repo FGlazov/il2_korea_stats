@@ -1,10 +1,11 @@
-{# il2ks-template: templates/il2ks/home.html v7 - copy this line along when you override #}
-{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+{# il2ks-template: templates/il2ks/home.html v8 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_live %}{% comment %}
   Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
-  activity (ChartSpec or None), pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
+  activity (ChartSpec or None), boards (HomeBoard: .key, .title, .rows of BoardRow: rank, player, stats, per_hour),
+  pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
   Blocks: head (page stylesheet), content.
 {% endcomment %}
-{% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}"><link rel="stylesheet" href="{% static 'il2ks/leaderboards.css' %}">{% endblock %}
 {% block content %}
   <section class="hero">
     {% icon "brand/logo-mark" "hero__mark" %}
@@ -69,6 +70,8 @@
     </section>
   {% endif %}
 
+  {% include "il2ks/leaderboards/home_block.html" %}
+  {% online_now %}
   {% include "il2ks/streaks/home_block.html" %}
   {% include "il2ks/home_activity.html" %}
 

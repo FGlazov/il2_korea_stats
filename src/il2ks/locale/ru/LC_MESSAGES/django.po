@@ -154,12 +154,13 @@ msgstr ""
 msgid "%(players)s player aircraft, %(ai)s AI aircraft"
 msgstr ""
 
+# llm-draft
 #, python-format
 msgid "%(players)s player online"
 msgid_plural "%(players)s players online"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(players)s игрок на сервере"
+msgstr[1] "%(players)s игрока на сервере"
+msgstr[2] "%(players)s игроков на сервере"
 
 #, python-format
 msgid "%(rate)s attack"
@@ -265,8 +266,9 @@ msgstr ""
 msgid "Air"
 msgstr ""
 
+# llm-draft
 msgid "Air / ground kills"
-msgstr ""
+msgstr "Воздух / земля"
 
 msgid "Air and ground kills."
 msgstr ""
@@ -287,8 +289,9 @@ msgstr ""
 msgid "Air kills: %(n)s"
 msgstr ""
 
+# llm-draft
 msgid "Air score"
-msgstr ""
+msgstr "Воздушные очки"
 
 msgid "Air start"
 msgstr ""
@@ -296,6 +299,24 @@ msgstr ""
 # llm-draft
 msgid "Air superiority"
 msgstr "Господство в воздухе"
+
+# llm-draft
+#, python-format
+msgid ""
+"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
+"game."
+msgid_plural ""
+"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
+"games."
+msgstr[0] ""
+"Эло в воздушных боях на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты минимум с %(games)s "
+"учтённым боем."
+msgstr[1] ""
+"Эло в воздушных боях на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты минимум с %(games)s "
+"учтёнными боями."
+msgstr[2] ""
+"Эло в воздушных боях на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты минимум с %(games)s "
+"учтёнными боями."
 
 msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
 msgstr ""
@@ -331,6 +352,10 @@ msgstr ""
 # llm-draft
 msgid "All ingestion runs"
 msgstr "Все запуски обработки"
+
+# llm-draft
+msgid "All leaderboards"
+msgstr "Все рейтинги"
 
 msgid "All missions"
 msgstr ""
@@ -415,8 +440,9 @@ msgstr "Штурмовка"
 msgid "Attack ground score"
 msgstr ""
 
+# llm-draft
 msgid "Attack sorties"
-msgstr ""
+msgstr "Штурмовые вылеты"
 
 msgid "Attacker"
 msgstr ""
@@ -518,10 +544,6 @@ msgid "Buildings"
 msgstr ""
 
 msgid "Busy sortie. The enemy count went down noticeably."
-msgstr ""
-
-#, python-format
-msgid "By air kills in this aircraft, pilots with at least %(min_sorties)s sorties."
 msgstr ""
 
 msgid "By aircraft"
@@ -688,14 +710,17 @@ msgstr ""
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Загрузите новый логотип или удалите текущий, но не то и другое сразу."
 
+# llm-draft
 msgid "Elo"
-msgstr ""
+msgstr "Эло"
 
+# llm-draft
 msgid "Elo, jet"
-msgstr ""
+msgstr "Эло, реактивные"
 
+# llm-draft
 msgid "Elo, prop"
-msgstr ""
+msgstr "Эло, поршневые"
 
 msgid "Empty missions"
 msgstr ""
@@ -755,6 +780,9 @@ msgstr ""
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Рулёжку этот пилот знает как свои пять пальцев. Хоть экскурсии води."
+
+msgid "Fighters"
+msgstr ""
 
 # llm-draft
 msgid "Find a player"
@@ -832,6 +860,10 @@ msgid "Full killboard"
 msgstr ""
 
 # llm-draft
+msgid "General"
+msgstr "Общее"
+
+# llm-draft
 msgid "Given up"
 msgstr "Отброшены"
 
@@ -869,6 +901,12 @@ msgstr ""
 msgid "Ground score per hour on target"
 msgstr ""
 
+#, python-format
+msgid ""
+"Ground score per hour on target in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s "
+"minutes on target."
+msgstr ""
+
 msgid "Ground vehicle or object"
 msgstr ""
 
@@ -898,8 +936,9 @@ msgstr "Здоров"
 msgid "Hidden"
 msgstr "Скрыто"
 
+# llm-draft
 msgid "Hidden player"
-msgstr ""
+msgstr "Скрытый игрок"
 
 # llm-draft
 msgid "Hide selected missions from public pages"
@@ -967,11 +1006,13 @@ msgstr "В полёте"
 msgid "In game: %(when)s"
 msgstr ""
 
+# llm-draft
 msgid "In the air"
-msgstr ""
+msgstr "В воздухе"
 
+# llm-draft
 msgid "In the lobby"
-msgstr ""
+msgstr "В лобби"
 
 msgid "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead."
 msgstr ""
@@ -1005,11 +1046,13 @@ msgstr ""
 msgid "It still flew, mostly out of politeness. Well landed."
 msgstr ""
 
+# llm-draft
 msgid "Jet"
-msgstr ""
+msgstr "Реактивные"
 
+# llm-draft
 msgid "Joining…"
-msgstr ""
+msgstr "Подключается…"
 
 msgid "K/D"
 msgstr ""
@@ -1045,8 +1088,9 @@ msgstr ""
 msgid "Killer"
 msgstr ""
 
+# llm-draft
 msgid "Kills"
-msgstr ""
+msgstr "Победы"
 
 msgid "Kills and assists"
 msgstr ""
@@ -1100,9 +1144,10 @@ msgstr ""
 msgid "Last seen"
 msgstr ""
 
+# llm-draft
 #, python-format
 msgid "Last seen %(when)s."
-msgstr ""
+msgstr "Последний раз замечена: %(when)s."
 
 msgid "Last used"
 msgstr ""
@@ -1217,9 +1262,10 @@ msgstr "Может измениться"
 msgid "Mission"
 msgstr "Миссия"
 
+# llm-draft
 #, python-format
 msgid "Mission %(name)s, running for %(running)s"
-msgstr ""
+msgstr "Миссия %(name)s, идёт уже %(running)s"
 
 # llm-draft
 msgid "Missions"
@@ -1310,11 +1356,13 @@ msgstr ""
 msgid "No logo."
 msgstr "Логотипа нет."
 
+# llm-draft
 msgid "No mission has been seen on the server yet."
-msgstr ""
+msgstr "На сервере ещё не было замечено ни одной миссии."
 
+# llm-draft
 msgid "No mission running"
-msgstr ""
+msgstr "Миссия не идёт"
 
 msgid "No missions match these filters."
 msgstr ""
@@ -1330,8 +1378,13 @@ msgstr ""
 "Автоматических повторов больше не будет. Повтор происходит, когда меняются их файлы или версия il2ks; либо выполните "
 "`il2ks reprocess --mission UID` после устранения причины."
 
-msgid "No pilot has enough sorties in this aircraft yet."
-msgstr ""
+# llm-draft
+msgid "No pilot has enough attack sorties in this aircraft yet."
+msgstr "Ни у одного пилота на этом самолёте пока не набралось достаточно штурмовых вылетов."
+
+# llm-draft
+msgid "No pilot has enough rated games in this aircraft yet."
+msgstr "Ни у одного пилота на этом самолёте пока не набралось достаточно учтённых боёв."
 
 msgid "No pilot sorties are counted for this player in the selected tour."
 msgstr ""
@@ -1386,11 +1439,13 @@ msgstr ""
 msgid "Nobody is on a streak right now."
 msgstr ""
 
+# llm-draft
 msgid "Nobody is on the server right now."
-msgstr ""
+msgstr "Сейчас на сервере никого нет."
 
+# llm-draft
 msgid "Nobody qualifies for this board yet."
-msgstr ""
+msgstr "В этом рейтинге пока никого нет."
 
 msgid "Nobody scored a kill in this mission."
 msgstr ""
@@ -1450,8 +1505,9 @@ msgstr "Пока нечего показывать."
 msgid "OK"
 msgstr ""
 
+# llm-draft
 msgid "On the ground"
-msgstr ""
+msgstr "На земле"
 
 msgid "On this page"
 msgstr ""
@@ -1463,8 +1519,9 @@ msgstr ""
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "По одной в строке: «Название | https://адрес». Показываются в шапке или подвале сайта. Не более 10."
 
+# llm-draft
 msgid "Online now"
-msgstr ""
+msgstr "Сейчас на сервере"
 
 msgid "Open the site"
 msgstr ""
@@ -1551,8 +1608,9 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
+# llm-draft
 msgid "Pilot"
-msgstr ""
+msgstr "Пилот"
 
 msgid "Pilot fate"
 msgstr ""
@@ -1597,8 +1655,9 @@ msgstr[2] ""
 msgid "Planes lost"
 msgstr ""
 
+# llm-draft
 msgid "Player"
-msgstr ""
+msgstr "Игрок"
 
 msgid "Player aircraft"
 msgstr ""
@@ -1652,8 +1711,21 @@ msgstr ""
 msgid "Problems"
 msgstr "Проблемы"
 
+# llm-draft
 msgid "Prop"
-msgstr ""
+msgstr "Поршневой"
+
+# llm-draft
+msgid "Propeller"
+msgstr "Поршневые"
+
+# llm-draft
+msgid "Propeller and jet"
+msgstr "Поршневые и реактивные"
+
+# llm-draft
+msgid "Propulsion"
+msgstr "Тип двигателя"
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
@@ -1662,8 +1734,9 @@ msgstr "Пока в небе тихо. Аэродром в вашем распо
 msgid "REDFOR won"
 msgstr ""
 
+# llm-draft
 msgid "Rated games"
-msgstr ""
+msgstr "Учтённых боёв"
 
 # llm-draft
 msgid "Ratings"
@@ -1745,8 +1818,9 @@ msgstr ""
 msgid "Score and rating"
 msgstr ""
 
+# llm-draft
 msgid "Score per hour"
-msgstr ""
+msgstr "Очков в час"
 
 # llm-draft
 msgid "Search"
@@ -1835,8 +1909,9 @@ msgstr "Показано %(first)s–%(last)s из %(all)s"
 msgid "Shown"
 msgstr ""
 
+# llm-draft
 msgid "Side"
-msgstr ""
+msgstr "Сторона"
 
 msgid "Since"
 msgstr ""
@@ -1912,8 +1987,9 @@ msgstr "Исходные файлы"
 msgid "Spawn"
 msgstr ""
 
+# llm-draft
 msgid "Spawned"
-msgstr ""
+msgstr "Появился"
 
 msgid "Spotless. The ground crew is almost suspicious."
 msgstr ""
@@ -1925,8 +2001,9 @@ msgstr ""
 msgid "Started %(title)s."
 msgstr ""
 
+# llm-draft
 msgid "State"
-msgstr ""
+msgstr "Состояние"
 
 msgid "Static object"
 msgstr ""
@@ -2209,8 +2286,9 @@ msgstr ""
 msgid "Time"
 msgstr ""
 
+# llm-draft
 msgid "Time on target"
-msgstr ""
+msgstr "Время над целью"
 
 msgid "Time zone"
 msgstr ""
@@ -2248,6 +2326,10 @@ msgstr ""
 msgid "Top 25%%"
 msgstr ""
 
+# llm-draft
+msgid "Top attack pilots"
+msgstr "Лучшие штурмовики"
+
 msgid "Top of the board. The rest of the sky took notes."
 msgstr ""
 
@@ -2256,7 +2338,11 @@ msgid "Top of the charts where no one aims to be. The mess bar has a tab open in
 msgstr "Первое место там, где никто не стремится быть первым. В офицерской столовой на этого пилота открыт счёт."
 
 msgid "Top pilots"
-msgstr ""
+msgstr "Лучшие пилоты"
+
+# llm-draft
+msgid "Top pilots by Elo"
+msgstr "Лучшие пилоты по Эло"
 
 msgid "Top pilots by kills"
 msgstr ""
@@ -2336,7 +2422,7 @@ msgstr "До"
 
 #, python-format
 msgid "Updated %(when)s"
-msgstr ""
+msgstr "Обновлено: %(when)s"
 
 # llm-draft
 msgid "Upload a new logo"
@@ -2445,6 +2531,10 @@ msgstr ""
 
 msgid "air start"
 msgstr ""
+
+# llm-draft
+msgid "all time"
+msgstr "за всё время"
 
 #, python-format
 msgid "also known as %(name)s"

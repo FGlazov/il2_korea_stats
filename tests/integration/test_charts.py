@@ -13,7 +13,7 @@ from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.activity import ACTIVITY_DAYS
 from il2ks.web.chart_data import activity_chart, player_charts
 from tests.factories import STARTED_AT, meta, mission, rows, save, sortie
-from tests.simple_reads import PROFILE_READS_TOUR, assert_simple_reads
+from tests.simple_reads import HOME_READS, PROFILE_READS_TOUR, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -134,9 +134,7 @@ def test_home_without_missions_has_no_chart(client: Client) -> None:
 def test_home_shows_the_activity_chart_with_a_table_and_accessible_names(client: Client) -> None:
     seed_days()
 
-    assert_simple_reads(
-        client, "/", max_queries=7
-    )  # context processor 2, latest, top pilots, activity, streaks, one spare
+    assert_simple_reads(client, "/", max_queries=HOME_READS)
     html = client.get("/").content.decode()
 
     assert 'class="chart"' in html

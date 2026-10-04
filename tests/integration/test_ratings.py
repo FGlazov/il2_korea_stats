@@ -1,15 +1,19 @@
 """Air-to-air Elo on `Player` (OQ-28, FR-WEB-19): which kills count, rebuild == incremental, idempotence."""
 
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
+from django.core import management
+from django.db.migrations.executor import MigrationExecutor
 
-from il2ks.core.ratings.elo import Game, Rating, RatingKey, RatingRules, compute_ratings
+from il2ks.core.ratings.elo import Game, Rating, RatingKey, RatingRules, compute_all_ratings, compute_ratings
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import GameObject, Player
+from il2ks.db.models import GameObject, Player, PlayerAircraft, PlayerPool
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ops.migrate import migrate_if_needed
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
@@ -176,3 +180,81 @@ def test_save_mission_recomputes_ratings_unless_deferred() -> None:
     recompute_ratings()
 
     assert ratings_by_account() == compute_ratings(games1, RatingRules())
+
+
+# --- per-type ratings (OQ-49) ---
+
+
+def type_ratings() -> dict[tuple[int, int], Rating]:
+    """`PlayerAircraft` Elo of every row with a rated game, keyed by (player number, aircraft pk)."""
+    return {
+        (int(row.player.account_uuid[-12:]), row.aircraft_id): Rating(row.elo, row.elo_games)
+        for row in PlayerAircraft.objects.select_related("player").filter(elo_games__gt=0)
+    }
+
+
+def aircraft_pk(log_name: str) -> int:
+    return GameObject.objects.get(log_name=log_name).pk
+
+
+def test_ratings_are_also_kept_per_player_and_aircraft_type() -> None:
+    save(first_mission()[0])
+    mig, sabre, mustang = aircraft_pk("MiG-15bis"), aircraft_pk("F-86A-5"), aircraft_pk("F-51D")
+    games = [
+        Game(1, "jet", 2, "jet", mig, sabre),
+        Game(3, "prop", 4, "prop", mustang, mustang),
+        Game(3, "prop", 2, "jet", mustang, sabre),
+    ]
+
+    assert type_ratings() == compute_all_ratings(games, RatingRules()).types
+    assert type_ratings()[(3, mustang)].games == 2
+    untouched = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft_id=mig)
+    assert untouched.elo > 1500.0  # the winner's rating in the type moved
+
+
+def test_type_ratings_rebuild_equals_incremental_and_drift_is_repaired() -> None:
+    save(first_mission()[0])
+    save(second_mission()[0], second_started())
+    incremental = type_ratings()
+    assert incremental
+
+    rebuild_aggregates()
+    assert type_ratings() == incremental
+
+    PlayerAircraft.objects.update(elo=1.0, elo_games=77)
+    recompute_ratings()
+    assert type_ratings() == incremental
+
+
+def test_a_changed_start_reaches_type_rows_without_games() -> None:
+    m1, _ = first_mission()
+    save(m1)
+    save(mission((sortie(0, 20, coalition=1),)), meta("2026-09-21_01-00-00", STARTED_AT + timedelta(days=2)))
+
+    rebuild_aggregates(RatingRules(start=1000.0))
+
+    idle = PlayerAircraft.objects.get(player__account_uuid=account(20))
+    assert (idle.elo, idle.elo_games) == (1000.0, 0)
+    rated = PlayerAircraft.objects.get(player__account_uuid=account(3), aircraft__log_name="F-51D")
+    assert rated.elo_games == 2
+
+
+def test_migrating_a_database_from_before_type_ratings_builds_them(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """After the schema update the new Elo columns are default and the pool tables empty; `migrate_if_needed`
+    rebuilds them."""
+    from tests.ops_helpers import make_instance, recording, returning
+
+    save(first_mission()[0])
+    expected = type_ratings()
+    assert expected
+    PlayerAircraft.objects.update(elo=1500.0, elo_games=0)
+    PlayerPool.objects.all().delete()
+    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
+    monkeypatch.setattr(management, "call_command", recording([], "migrate"))
+
+    migrate_if_needed(make_instance(tmp_path), "ingest", wait=None)
+
+    assert type_ratings() == expected
+    assert PlayerPool.objects.exists()

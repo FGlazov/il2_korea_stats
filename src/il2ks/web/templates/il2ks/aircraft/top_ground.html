@@ -1,0 +1,36 @@
+{# il2ks-template: templates/il2ks/aircraft/top_ground.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  top_ground.html: a type's best attack pilots by ground score per hour on target (FR-WEB-20, OQ-49), on the aircraft
+  detail page. Context: ground_pilots (BoardRow: rank, player, stats, per_hour), rules (min_attack_sorties,
+  min_time_on_target_minutes), primary (show the empty message when nobody qualifies; the secondary ranking is left
+  out instead).
+{% endcomment %}{% if ground_pilots or primary %}<section>
+  <h2>{% translate "Top attack pilots" %}</h2>
+  <p class="muted">{% blocktranslate with sorties=rules.min_attack_sorties minutes=rules.min_time_on_target_minutes|num %}Ground score per hour on target in this aircraft. Pilots with at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}</p>
+  <div class="table-wrap table-wrap--flat">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col" class="num">#</th>
+          <th scope="col">{% translate "Pilot" %}</th>
+          <th scope="col" class="num">{% translate "Score per hour" %}</th>
+          <th scope="col" class="num">{% translate "Time on target" %}</th>
+          <th scope="col" class="num">{% translate "Attack sorties" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in ground_pilots %}
+          <tr>
+            <td class="num">{{ row.rank|num }}</td>
+            <td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td>
+            <td class="num"><strong>{{ row.per_hour|num:1 }}</strong></td>
+            <td class="num">{{ row.stats.time_on_target_s|duration }}</td>
+            <td class="num">{{ row.stats.attack_sorties|num }}</td>
+          </tr>
+        {% empty %}
+          {% empty_row 5 _("No pilot has enough attack sorties in this aircraft yet.") %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>{% endif %}

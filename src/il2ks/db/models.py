@@ -599,6 +599,10 @@ class PlayerAircraft(Counters):
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="aircraft_stats")
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_stats")
+    # The player's air-to-air Elo in this aircraft type (OQ-49): same games and rules as `Player.elo_*`, one rating per
+    # type. Order-dependent like them: written by `ingest.ratings.recompute_ratings`, not a Counters sum.
+    elo = models.FloatField(default=1500.0)
+    elo_games = models.PositiveIntegerField(default=0)
 
     class Meta(Counters.Meta):
         abstract = False
@@ -647,6 +651,42 @@ class PlayerTourAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
+
+
+class PlayerPool(Counters):
+    """A player's all-time counters in one propulsion pool (`prop` / `jet`): counted sorties grouped by the aircraft's
+    propulsion, so the leaderboards can be split into prop and jet without aggregating at request time (FR-WEB-7).
+    Sorties in an aircraft of unknown propulsion are in no pool."""
+
+    player_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="pool_rows")
+    propulsion = models.CharField(max_length=4, choices=Propulsion.choices)
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "propulsion"], name="playerpool_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.propulsion}"
+
+
+class PlayerTourPool(Counters):
+    """`PlayerPool` within one tour (TD-26): counted sorties grouped by (player, tour, propulsion)."""
+
+    player_id: int
+    tour_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_pool_rows")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="pool_rows")
+    propulsion = models.CharField(max_length=4, choices=Propulsion.choices)
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["player", "tour", "propulsion"], name="playertourpool_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / tour {self.tour_id} / {self.propulsion}"
 
 
 class AircraftAmmoStats(models.Model):

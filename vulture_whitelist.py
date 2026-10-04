@@ -229,3 +229,4 @@ _.air_points  # PlayerSortie model fields: set by ingest.scoring, summed by name
 _.ground_points
 _.calibre  # core.catalog.loader.AmmoInfo: ammo.csv columns kept for later pages (grouping/sorting by calibre); tested
 _.round_type  # core.catalog.loader.AmmoInfo: same
+_.compute_ratings  # pure-function wrapper over compute_all_ratings, kept for the unit tests (pools only)

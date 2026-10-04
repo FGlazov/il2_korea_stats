@@ -146,11 +146,12 @@ msgstr ""
 msgid "%(players)s player aircraft, %(ai)s AI aircraft"
 msgstr ""
 
+# llm-draft
 #, python-format
 msgid "%(players)s player online"
 msgid_plural "%(players)s players online"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(players)s jogador online"
+msgstr[1] "%(players)s jogadores online"
 
 #, python-format
 msgid "%(rate)s attack"
@@ -256,8 +257,9 @@ msgstr ""
 msgid "Air"
 msgstr ""
 
+# llm-draft
 msgid "Air / ground kills"
-msgstr ""
+msgstr "Abates ar / solo"
 
 msgid "Air and ground kills."
 msgstr ""
@@ -278,8 +280,9 @@ msgstr ""
 msgid "Air kills: %(n)s"
 msgstr ""
 
+# llm-draft
 msgid "Air score"
-msgstr ""
+msgstr "Pontos aéreos"
 
 msgid "Air start"
 msgstr ""
@@ -287,6 +290,21 @@ msgstr ""
 # llm-draft
 msgid "Air superiority"
 msgstr "Superioridade aérea"
+
+# llm-draft
+#, python-format
+msgid ""
+"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
+"game."
+msgid_plural ""
+"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
+"games."
+msgstr[0] ""
+"Elo ar-ar nesta aeronave, a partir de abates entre surtidas de superioridade aérea. Pilotos com pelo menos %(games)s "
+"partida ranqueada."
+msgstr[1] ""
+"Elo ar-ar nesta aeronave, a partir de abates entre surtidas de superioridade aérea. Pilotos com pelo menos %(games)s "
+"partidas ranqueadas."
 
 msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
 msgstr ""
@@ -322,6 +340,10 @@ msgstr ""
 # llm-draft
 msgid "All ingestion runs"
 msgstr "Todas as execuções de ingestão"
+
+# llm-draft
+msgid "All leaderboards"
+msgstr "Todos os rankings"
 
 msgid "All missions"
 msgstr ""
@@ -406,8 +428,9 @@ msgstr "Ataque"
 msgid "Attack ground score"
 msgstr ""
 
+# llm-draft
 msgid "Attack sorties"
-msgstr ""
+msgstr "Surtidas de ataque"
 
 msgid "Attacker"
 msgstr ""
@@ -506,10 +529,6 @@ msgid "Buildings"
 msgstr ""
 
 msgid "Busy sortie. The enemy count went down noticeably."
-msgstr ""
-
-#, python-format
-msgid "By air kills in this aircraft, pilots with at least %(min_sorties)s sorties."
 msgstr ""
 
 msgid "By aircraft"
@@ -676,14 +695,17 @@ msgstr ""
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Envie um novo logotipo ou remova o atual, mas não os dois."
 
+# llm-draft
 msgid "Elo"
-msgstr ""
+msgstr "Elo"
 
+# llm-draft
 msgid "Elo, jet"
-msgstr ""
+msgstr "Elo, jato"
 
+# llm-draft
 msgid "Elo, prop"
-msgstr ""
+msgstr "Elo, hélice"
 
 msgid "Empty missions"
 msgstr ""
@@ -743,6 +765,9 @@ msgstr ""
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Daria até para fazer visita guiada."
+
+msgid "Fighters"
+msgstr ""
 
 # llm-draft
 msgid "Find a player"
@@ -818,6 +843,10 @@ msgid "Full killboard"
 msgstr ""
 
 # llm-draft
+msgid "General"
+msgstr "Geral"
+
+# llm-draft
 msgid "Given up"
 msgstr "Desistidas"
 
@@ -855,6 +884,12 @@ msgstr ""
 msgid "Ground score per hour on target"
 msgstr ""
 
+#, python-format
+msgid ""
+"Ground score per hour on target in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s "
+"minutes on target."
+msgstr ""
+
 msgid "Ground vehicle or object"
 msgstr ""
 
@@ -884,8 +919,9 @@ msgstr "Ileso"
 msgid "Hidden"
 msgstr "Oculto"
 
+# llm-draft
 msgid "Hidden player"
-msgstr ""
+msgstr "Jogador oculto"
 
 # llm-draft
 msgid "Hide selected missions from public pages"
@@ -953,11 +989,13 @@ msgstr "Em voo"
 msgid "In game: %(when)s"
 msgstr ""
 
+# llm-draft
 msgid "In the air"
-msgstr ""
+msgstr "No ar"
 
+# llm-draft
 msgid "In the lobby"
-msgstr ""
+msgstr "No lobby"
 
 msgid "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead."
 msgstr ""
@@ -991,11 +1029,13 @@ msgstr ""
 msgid "It still flew, mostly out of politeness. Well landed."
 msgstr ""
 
+# llm-draft
 msgid "Jet"
-msgstr ""
+msgstr "A jato"
 
+# llm-draft
 msgid "Joining…"
-msgstr ""
+msgstr "Entrando…"
 
 msgid "K/D"
 msgstr ""
@@ -1031,8 +1071,9 @@ msgstr ""
 msgid "Killer"
 msgstr ""
 
+# llm-draft
 msgid "Kills"
-msgstr ""
+msgstr "Abates"
 
 msgid "Kills and assists"
 msgstr ""
@@ -1086,9 +1127,10 @@ msgstr ""
 msgid "Last seen"
 msgstr ""
 
+# llm-draft
 #, python-format
 msgid "Last seen %(when)s."
-msgstr ""
+msgstr "Vista pela última vez: %(when)s."
 
 msgid "Last used"
 msgstr ""
@@ -1203,9 +1245,10 @@ msgstr "Ainda pode mudar"
 msgid "Mission"
 msgstr "Missão"
 
+# llm-draft
 #, python-format
 msgid "Mission %(name)s, running for %(running)s"
-msgstr ""
+msgstr "Missão %(name)s, em andamento há %(running)s"
 
 # llm-draft
 msgid "Missions"
@@ -1296,11 +1339,13 @@ msgstr ""
 msgid "No logo."
 msgstr "Sem logotipo."
 
+# llm-draft
 msgid "No mission has been seen on the server yet."
-msgstr ""
+msgstr "Nenhuma missão foi vista no servidor ainda."
 
+# llm-draft
 msgid "No mission running"
-msgstr ""
+msgstr "Nenhuma missão em andamento"
 
 msgid "No missions match these filters."
 msgstr ""
@@ -1316,8 +1361,13 @@ msgstr ""
 "Sem mais novas tentativas automáticas. Elas são repetidas quando seus arquivos ou a versão do il2ks mudam, ou execute"
 " `il2ks reprocess --mission UID` depois de corrigir a causa."
 
-msgid "No pilot has enough sorties in this aircraft yet."
-msgstr ""
+# llm-draft
+msgid "No pilot has enough attack sorties in this aircraft yet."
+msgstr "Nenhum piloto tem surtidas de ataque suficientes nesta aeronave ainda."
+
+# llm-draft
+msgid "No pilot has enough rated games in this aircraft yet."
+msgstr "Nenhum piloto tem partidas ranqueadas suficientes nesta aeronave ainda."
 
 msgid "No pilot sorties are counted for this player in the selected tour."
 msgstr ""
@@ -1372,11 +1422,13 @@ msgstr ""
 msgid "Nobody is on a streak right now."
 msgstr ""
 
+# llm-draft
 msgid "Nobody is on the server right now."
-msgstr ""
+msgstr "Ninguém está no servidor agora."
 
+# llm-draft
 msgid "Nobody qualifies for this board yet."
-msgstr ""
+msgstr "Ninguém se qualificou para este ranking ainda."
 
 msgid "Nobody scored a kill in this mission."
 msgstr ""
@@ -1436,8 +1488,9 @@ msgstr "Ainda não há nada para mostrar."
 msgid "OK"
 msgstr ""
 
+# llm-draft
 msgid "On the ground"
-msgstr ""
+msgstr "No solo"
 
 msgid "On this page"
 msgstr ""
@@ -1449,8 +1502,9 @@ msgstr ""
 msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
 msgstr "Um por linha: “Rótulo | https://endereço”. Exibidos no cabeçalho ou no rodapé do site. No máximo 10."
 
+# llm-draft
 msgid "Online now"
-msgstr ""
+msgstr "Online agora"
 
 msgid "Open the site"
 msgstr ""
@@ -1537,8 +1591,9 @@ msgstr ""
 msgid "Period"
 msgstr ""
 
+# llm-draft
 msgid "Pilot"
-msgstr ""
+msgstr "Piloto"
 
 msgid "Pilot fate"
 msgstr ""
@@ -1581,8 +1636,9 @@ msgstr[1] ""
 msgid "Planes lost"
 msgstr ""
 
+# llm-draft
 msgid "Player"
-msgstr ""
+msgstr "Jogador"
 
 msgid "Player aircraft"
 msgstr ""
@@ -1636,8 +1692,21 @@ msgstr ""
 msgid "Problems"
 msgstr "Problemas"
 
+# llm-draft
 msgid "Prop"
-msgstr ""
+msgstr "Hélice"
+
+# llm-draft
+msgid "Propeller"
+msgstr "Hélice"
+
+# llm-draft
+msgid "Propeller and jet"
+msgstr "Hélice e jato"
+
+# llm-draft
+msgid "Propulsion"
+msgstr "Propulsão"
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
@@ -1646,8 +1715,9 @@ msgstr "Céu tranquilo por enquanto. O aeródromo é todo seu."
 msgid "REDFOR won"
 msgstr ""
 
+# llm-draft
 msgid "Rated games"
-msgstr ""
+msgstr "Partidas ranqueadas"
 
 # llm-draft
 msgid "Ratings"
@@ -1728,8 +1798,9 @@ msgstr ""
 msgid "Score and rating"
 msgstr ""
 
+# llm-draft
 msgid "Score per hour"
-msgstr ""
+msgstr "Pontos por hora"
 
 # llm-draft
 msgid "Search"
@@ -1818,8 +1889,9 @@ msgstr "Exibindo %(first)s–%(last)s de %(all)s"
 msgid "Shown"
 msgstr ""
 
+# llm-draft
 msgid "Side"
-msgstr ""
+msgstr "Lado"
 
 msgid "Since"
 msgstr ""
@@ -1895,8 +1967,9 @@ msgstr "Arquivos de origem"
 msgid "Spawn"
 msgstr ""
 
+# llm-draft
 msgid "Spawned"
-msgstr ""
+msgstr "Surgiu"
 
 msgid "Spotless. The ground crew is almost suspicious."
 msgstr ""
@@ -1908,8 +1981,9 @@ msgstr ""
 msgid "Started %(title)s."
 msgstr ""
 
+# llm-draft
 msgid "State"
-msgstr ""
+msgstr "Estado"
 
 msgid "Static object"
 msgstr ""
@@ -2191,8 +2265,9 @@ msgstr ""
 msgid "Time"
 msgstr ""
 
+# llm-draft
 msgid "Time on target"
-msgstr ""
+msgstr "Tempo sobre o alvo"
 
 msgid "Time zone"
 msgstr ""
@@ -2230,6 +2305,10 @@ msgstr ""
 msgid "Top 25%%"
 msgstr ""
 
+# llm-draft
+msgid "Top attack pilots"
+msgstr "Melhores pilotos de ataque"
+
 msgid "Top of the board. The rest of the sky took notes."
 msgstr ""
 
@@ -2238,7 +2317,11 @@ msgid "Top of the charts where no one aims to be. The mess bar has a tab open in
 msgstr "No topo de um ranking em que ninguém quer estar. No bar do rancho tem uma conta aberta em nome deste piloto."
 
 msgid "Top pilots"
-msgstr ""
+msgstr "Melhores pilotos"
+
+# llm-draft
+msgid "Top pilots by Elo"
+msgstr "Melhores pilotos por Elo"
 
 msgid "Top pilots by kills"
 msgstr ""
@@ -2318,7 +2401,7 @@ msgstr "Até"
 
 #, python-format
 msgid "Updated %(when)s"
-msgstr ""
+msgstr "Atualizado: %(when)s"
 
 # llm-draft
 msgid "Upload a new logo"
@@ -2427,6 +2510,10 @@ msgstr ""
 
 msgid "air start"
 msgstr ""
+
+# llm-draft
+msgid "all time"
+msgstr "todo o período"
 
 #, python-format
 msgid "also known as %(name)s"

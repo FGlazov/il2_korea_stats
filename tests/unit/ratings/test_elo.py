@@ -2,7 +2,7 @@
 
 import pytest
 
-from il2ks.core.ratings.elo import Game, Rating, RatingRules, compute_ratings, expected_score
+from il2ks.core.ratings.elo import Game, Pool, Rating, RatingRules, compute_all_ratings, compute_ratings, expected_score
 
 RULES = RatingRules(start=1500.0, k=32.0, cross_pool_weight=2.0)
 
@@ -93,3 +93,42 @@ def test_same_input_same_output() -> None:
 
 def test_a_player_beating_themselves_is_ignored() -> None:
     assert compute_ratings([prop(1, 1)], RULES) == {}
+
+
+# --- per-type ratings (OQ-49) ---
+
+
+def typed(winner: int, winner_type: int, loser: int, loser_type: int, pool: Pool = "prop") -> Game:
+    return Game(winner, pool, loser, pool, winner_type, loser_type)
+
+
+def test_per_type_ratings_follow_the_same_rules_per_player_and_type() -> None:
+    result = compute_all_ratings([typed(1, 10, 2, 20)], RULES)
+    assert result.types == {(1, 10): Rating(1516.0, 1), (2, 20): Rating(1484.0, 1)}
+    assert result.pools == compute_ratings([typed(1, 10, 2, 20)], RULES)
+
+
+def test_a_pilots_types_are_rated_independently() -> None:
+    games = [typed(1, 10, 2, 20), typed(1, 11, 2, 20), typed(2, 21, 1, 10)]
+    types = compute_all_ratings(games, RULES).types
+    # Player 1 in type 11 starts at 1500 again; player 2 in type 21 has no earlier rating either.
+    assert types[(1, 11)].games == 1
+    assert types[(1, 10)].games == 2  # won once, then lost to type 21
+    # Type 21 (fresh 1500) beat type 10 (1516): a bit more than the 16 points between equals, and it is zero-sum.
+    gain = types[(2, 21)].rating - 1500.0
+    assert gain > 16.0
+    assert types[(1, 10)].rating == pytest.approx(1516.0 - gain)
+
+
+def test_per_type_ratings_apply_the_pool_rules() -> None:
+    jet_on_prop = Game(1, "jet", 2, "prop", 10, 20)
+    prop_on_jet = Game(3, "prop", 4, "jet", 30, 40)
+    types = compute_all_ratings([jet_on_prop, prop_on_jet], RULES).types
+    assert (1, 10) not in types
+    assert types == {(3, 30): Rating(1532.0, 1), (4, 40): Rating(1468.0, 1)}
+
+
+def test_a_game_without_aircraft_types_only_moves_the_pools() -> None:
+    result = compute_all_ratings([prop(1, 2), typed(1, 10, 3, 0)], RULES)
+    assert result.types == {}
+    assert result.pools[(1, "prop")].games == 2

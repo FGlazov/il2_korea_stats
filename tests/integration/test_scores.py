@@ -71,10 +71,10 @@ def sortie_score(player: int) -> tuple[float, float]:
 def test_scores_are_stored_per_sortie() -> None:
     seed()
 
-    # fighter: 2 * 10 + 2 + 3 = 25 air, minus death 3, plane lost 2, capture 2 = 18; ground 6 + 5 * 0.2 = 7
-    assert sortie_score(1) == (18.0, 7.0)
-    # attacker: no air points, ground 2 * 6 + 3 * 3 = 21 minus 3 + 2 = 16
-    assert sortie_score(2) == (0.0, 16.0)
+    # fighter: 2 * 10 + 2 + 3 = 25 air and ground 6 + 5 * 0.2 = 7; death, capture and lost plane cost 80% (the largest)
+    assert sortie_score(1) == (5.0, 1.4)
+    # attacker: no air points, ground 2 * 6 + 3 * 3 = 21; a death costs 80%
+    assert sortie_score(2) == (0.0, 4.2)
     assert sortie_score(3) == (0.0, 0.0)  # gunners score nothing, whatever the log credits them with
 
 
@@ -82,12 +82,12 @@ def test_scores_are_summed_on_every_level() -> None:
     seed()
 
     fighter, attacker = (Player.objects.get(account_uuid=account(n)) for n in (1, 2))
-    assert (fighter.score_air, fighter.score_ground, fighter.score_ground_attack) == (18.0, 7.0, 0.0)
-    assert (attacker.score_air, attacker.score_ground, attacker.score_ground_attack) == (0.0, 16.0, 16.0)
-    assert PlayerMission.objects.get(player=attacker).score_ground_attack == 16.0
-    assert PlayerAircraft.objects.get(player=fighter).score_air == 18.0
-    assert PlayerTour.objects.get(player=attacker).score_ground == 16.0
-    assert PlayerTourAircraft.objects.get(player=fighter).score_air == 18.0
+    assert (fighter.score_air, fighter.score_ground, fighter.score_ground_attack) == (5.0, 1.4, 0.0)
+    assert (attacker.score_air, attacker.score_ground, attacker.score_ground_attack) == (0.0, 4.2, 4.2)
+    assert PlayerMission.objects.get(player=attacker).score_ground_attack == 4.2
+    assert PlayerAircraft.objects.get(player=fighter).score_air == 5.0
+    assert PlayerTour.objects.get(player=attacker).score_ground == 4.2
+    assert PlayerTourAircraft.objects.get(player=fighter).score_air == 5.0
     assert Player.objects.get(account_uuid=account(3)).score_air == 0.0
 
 
@@ -113,16 +113,16 @@ def test_scores_accumulate_over_missions_and_tours() -> None:
 def test_a_changed_rule_is_applied_by_rebuild_without_reprocessing() -> None:
     seed()
     sorties_before = [r.pk for r in PlayerSortie.objects.order_by("pk")]
-    rules = ScoreRules(air_kill_pvp=100.0, ground_tank=0.0, penalty_death=0.0, penalty_plane_lost=0.0)
+    rules = ScoreRules(air_kill_pvp=100.0, ground_tank=0.0, penalty_death_pct=0.0, penalty_plane_lost_pct=0.0)
 
     rebuild_aggregates(score=rules)
 
-    # fighter: 200 + 2 + 3 = 205 minus capture 2; ground 0 + 1.0
-    assert sortie_score(1) == (203.0, 1.0)
+    # fighter: 200 + 2 + 3 = 205 and ground 0 + 1.0, minus the 50% for the capture (the death percentage is off)
+    assert sortie_score(1) == (102.5, 0.5)
     assert sortie_score(2) == (0.0, 9.0)  # attacker: 3 vehicles, no penalties left
-    assert Player.objects.get(account_uuid=account(1)).score_air == 203.0
+    assert Player.objects.get(account_uuid=account(1)).score_air == 102.5
     assert PlayerMission.objects.get(player__account_uuid=account(2)).score_ground_attack == 9.0
-    assert PlayerAircraft.objects.get(player__account_uuid=account(1)).score_air == 203.0
+    assert PlayerAircraft.objects.get(player__account_uuid=account(1)).score_air == 102.5
     assert PlayerTour.objects.get(player__account_uuid=account(2)).score_ground == 9.0
     assert PlayerTourAircraft.objects.get(player__account_uuid=account(2)).score_ground_attack == 9.0
     assert [r.pk for r in PlayerSortie.objects.order_by("pk")] == sorties_before
@@ -138,7 +138,7 @@ def test_rebuild_with_the_same_rules_changes_nothing_and_equals_incremental() ->
 
 
 def test_rebuild_after_a_rule_change_equals_saving_under_those_rules() -> None:
-    rules = ScoreRules(air_kill_ai=7.5, ground_other=0.3, penalty_capture=1.1)
+    rules = ScoreRules(air_kill_ai=7.5, ground_other=0.3, penalty_death_pct=10.0)
     seed(rules)
     saved_under_rules = _comparable()
     Mission.objects.all().delete()  # sorties, kills and player-mission rows go with it
@@ -187,7 +187,7 @@ def test_the_score_config_reaches_save_and_rebuild_through_the_pipeline(tmp_path
 
     rebuild_all(cfg)
 
-    assert sortie_score(1)[0] == 50 * 2 + 2 + 3 - 3 - 2 - 2
+    assert sortie_score(1)[0] == (50 * 2 + 2 + 3) * 0.2
 
 
 def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

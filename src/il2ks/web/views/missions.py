@@ -16,10 +16,12 @@ from django.utils.translation import gettext_lazy as _
 from il2ks.core.catalog.loader import Side
 from il2ks.db.models import PlayerMission, PlayerSortie
 from il2ks.queries import activity as activity_reads
+from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import missions as reads
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from
 from il2ks.web import display
 from il2ks.web.chart_data import activity_chart
+from il2ks.web.views.leaderboards import BOARD_TITLES
 
 HOME_MISSIONS = 8
 HOME_PILOTS = 5
@@ -43,6 +45,15 @@ class TopPilot:
     side: Side | None
 
 
+@dataclass(frozen=True, slots=True)
+class HomeBoard:
+    """One compact leaderboard on the home page: the board's key (for its link and columns), title and top rows."""
+
+    key: str
+    title: str
+    rows: list[board_reads.BoardRow]
+
+
 def home(request: HttpRequest) -> HttpResponse:
     latest = reads.latest_missions(HOME_MISSIONS)
     last = latest[0] if latest else None
@@ -59,8 +70,19 @@ def home(request: HttpRequest) -> HttpResponse:
         "last_mission": last,
         "pilots": pilots,
         "activity": activity_chart(activity_reads.recent_activity()),
+        "boards": _home_boards(),
     }
     return render(request, "il2ks/home.html", context)
+
+
+def _home_boards() -> list[HomeBoard]:
+    """The boards the maintainer wants on the home page (OQ-64): Elo of both pools and ground proficiency. One read
+    each."""
+    rules = board_reads.rules()
+    return [
+        HomeBoard(key, str(BOARD_TITLES[key]), board_reads.top_rows(board_reads.BOARDS[key], rules))
+        for key in board_reads.HOME_BOARDS
+    ]
 
 
 def mission_list(request: HttpRequest) -> HttpResponse:
