@@ -160,7 +160,7 @@ def test_someone_finds_himself_in_a_mission_and_opens_his_sortie(page: Page, wor
     # 1. the list is newest first: the first mission is the story's
     page.goto("/")
     link_or_button(page, "All missions").click()
-    expect(page).to_have_url(re.compile(r"/missions/[?]tour=all$"))
+    expect(page).to_have_url(re.compile(r"/missions/[?]tour=[0-9]+$"))
     open_mission_row(page, 1)
     expect(page).to_have_url(re.compile(rf"/missions/{world.featured_mission_pk}/$"))
 

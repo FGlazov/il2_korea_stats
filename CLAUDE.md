@@ -29,7 +29,8 @@ IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
    Touched models, migrations, SQL or a query in `src/il2ks/queries/`? Also `--postgres` (`docker compose -f docker/compose.dev.yaml up -d db`;
    if port 5432 is taken, run any `postgres:17` container on another port and set `IL2KS_PG_PORT`). Postgres plans queries
    differently from SQLite (stale statistics, no index = seq scan), and CI's Postgres job is where a slow query shows up.
-   Touched pages or JS? Also `--e2e`.
+   Touched pages or JS? Also `--e2e`. UI changes (templates, CSS, JS, views) must run `uv run il2ks dev check --e2e` before
+   you hand over: features merged in parallel broke e2e on `main` because nobody ran it.
 3. Never edit, split, rename or delete a migration that exists on `main`/`origin/main`: add a new one. A hook blocks the edit
    and the check fails.
 4. Stage explicit paths only (never `git add -A`/`.`, never `sample_data/`), never `--no-verify`, never a bare `git stash`
