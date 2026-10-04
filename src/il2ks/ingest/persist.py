@@ -605,7 +605,10 @@ def _damage_json(d: DamageExchange, pks: dict[int, int]) -> dict[str, object]:
 
 
 def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict[str, object]:
-    return {
+    """One `PlayerSortie.timeline` entry. The hit rows (`hit_given` / `hit_taken`, doc 14) add `damage` (summed
+    DMG fraction, 4 digits), `lines` and, when a hit lay near, `ammo` (log name, or ordnance key with `ammo_kind`
+    "ordnance"); other rows and rows from before the hit rows have none of these keys."""
+    entry: dict[str, object] = {
         "tick": t.tick,
         "at": clock.at(t.tick).isoformat(),
         "kind": t.kind,
@@ -613,6 +616,14 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
         "pos": _pos_json(t.pos),
         "counterpart": None if t.counterpart is None else _counterpart_json(t.counterpart, pks),
     }
+    if t.damage is not None:
+        entry["damage"] = round(t.damage, DAMAGE_DIGITS)
+        entry["lines"] = t.lines
+        if t.ammo:
+            entry["ammo"] = t.ammo
+            if t.ammo_kind != "gun":
+                entry["ammo_kind"] = t.ammo_kind
+    return entry
 
 
 # --- kills ---

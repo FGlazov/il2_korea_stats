@@ -7,6 +7,7 @@ from il2ks.core.replay.attack import GroundTargets, combat_role, time_on_target_
 from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import ticks, was_resupplied
+from il2ks.core.replay.hits import hit_entries
 from il2ks.core.replay.judge import Verdict, judge
 from il2ks.core.replay.kills import resolve_kills
 from il2ks.core.replay.model import MissionFacts, SortieState, is_bot_type
@@ -118,7 +119,7 @@ def _build_sortie(
         rocket_salvos=sortie_ammo.rocket_salvos,
         ammo_unattributed=sortie_ammo.unattributed,
         damage=breakdown[0],
-        timeline=timeline(sortie, verdict, kills),
+        timeline=timeline(sortie, verdict, kills, hit_entries(sortie_ammo.damage_events, rules)),
         friendly_kills=friendly.kills,
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,

@@ -8,7 +8,7 @@ from il2ks.db.models import GameObject, PlayerSortie
 from il2ks.queries.sorties import DEFAULT_SORT, SortieFilters, parse_filters, resolve_sort
 from il2ks.web.display import mission_name
 from il2ks.web.flavor import Highlights
-from il2ks.web.sortie_view import Lookup, build_highlights, since, timeline_text
+from il2ks.web.sortie_view import Lookup, build_highlights, damage_percent, hit_ammo, hit_damage, since, timeline_text
 
 
 def test_since_counts_from_the_spawn() -> None:
@@ -91,3 +91,31 @@ def test_highlights_count_bomber_kills_and_time_to_the_first_air_kill() -> None:
     got = build_highlights(sortie, Lookup({7: victim}, objects))
     assert got == Highlights(bomber_kills=3, first_kill_s=240.0)
     assert build_highlights(PlayerSortie(spawned_at=start, timeline=[]), Lookup({}, {})) == Highlights(0, None)
+
+
+@pytest.mark.parametrize(
+    ("fraction", "expected"),
+    [(0.0004, "0.04%"), (0.0035, "0.35%"), (0.01, "1.0%"), (0.125, "12.5%"), (0.4, "40.0%"), (1.0, "100.0%")],
+)
+def test_damage_percent_has_two_decimals_under_one_percent_and_one_above(fraction: float, expected: str) -> None:
+    assert damage_percent(fraction) == expected
+
+
+def test_hit_rows_show_the_sign_of_who_took_the_damage() -> None:
+    assert hit_damage("hit_given", {"damage": 0.125}) == "+12.5%"
+    assert hit_damage("hit_taken", {"damage": 0.125}) == "\N{MINUS SIGN}12.5%"
+
+
+def test_rows_without_the_hit_fields_render_empty() -> None:
+    """Timelines stored before the hit rows existed (and every non-hit row) have no damage or ammo."""
+    assert hit_damage("kill", {}) == ""
+    assert hit_damage("hit_given", {}) == ""  # a hit row whose damage is missing
+    assert hit_damage("kill", {"damage": 0.5}) == ""  # only hit rows show a percentage
+    assert hit_ammo({}) == ("", "")
+
+
+def test_hit_ammo_is_the_plain_name_with_the_designation_for_a_tooltip() -> None:
+    name, designation = hit_ammo({"ammo": "BULLET_12-7_USA_API"})
+    assert name == ".50 BMG API"
+    assert designation
+    assert hit_ammo({"ammo": "M64", "ammo_kind": "ordnance"})[0].startswith("M64")

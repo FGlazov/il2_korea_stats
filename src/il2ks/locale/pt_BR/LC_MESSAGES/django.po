@@ -1436,6 +1436,14 @@ msgid "High contrast (black and white)"
 msgstr "Alto contraste (preto e branco)"
 
 # llm-draft
+msgid "Hit given"
+msgstr "Acerto causado"
+
+# llm-draft
+msgid "Hit taken"
+msgstr "Acerto sofrido"
+
+# llm-draft
 msgid "Hits dealt"
 msgstr "Acertos desferidos"
 

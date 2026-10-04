@@ -35,7 +35,6 @@ from bisect import bisect_left
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from itertools import islice
-from typing import Literal
 
 from il2ks.core.catalog.loader import (
     DAMAGING_KINDS,
@@ -47,9 +46,11 @@ from il2ks.core.catalog.loader import (
     OrdnanceKind,
 )
 from il2ks.core.logparse.events import TICKS_PER_SECOND, ObjectId
+from il2ks.core.replay.breakdown import counterpart_of
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import damage_records, hit_records, is_self_attack
 from il2ks.core.replay.fate import ticks, was_resupplied
+from il2ks.core.replay.hits import DamageEvent, Label
 from il2ks.core.replay.judge import Verdict
 from il2ks.core.replay.model import (
     Detonation,
@@ -69,10 +70,6 @@ from il2ks.core.replay.result import (
     SingleAttackerKill,
     UnattributedDamage,
 )
-
-type AmmoKind = Literal["gun", "ordnance", "other"]
-type Label = tuple[AmmoKind, str]
-"""What a hit or detonation is: a gun ammo name, an ordnance key or another named ammo (flares)."""
 
 AIRCRAFT_CLASSES = frozenset({"fighter", "attacker", "bomber", "transport"})
 _SHELL_PREFIXES = ("SHELL_", "NPC_SHELL_")
@@ -109,6 +106,7 @@ class _SortieAmmo:
     store_releases: int = 0  # AType 25 up to the sortie end: bombs, napalm, flares and drop tanks alike
     rocket_salvos: int = 0  # AType 26 up to the sortie end
     counted_units: set[tuple[int, int, str]] = field(default_factory=set[tuple[int, int, str]])
+    events: list[DamageEvent] = field(default_factory=list[DamageEvent])  # every damage line, for the timeline hits
 
     def ord(self, key: str) -> _Ordnance:
         found = self.ordnance.get(key)
@@ -133,6 +131,7 @@ class SortieAmmoResult:
     unattributed: UnattributedDamage
     store_releases: int = 0
     rocket_salvos: int = 0
+    damage_events: tuple[DamageEvent, ...] = ()  # damage lines given and taken, in log order (timeline hits)
 
 
 EMPTY_SORTIE_AMMO = SortieAmmoResult({}, {}, (), UnattributedDamage())
@@ -360,6 +359,29 @@ class _Analysis:
                 if shooter is None and victim is None:
                     continue
                 found = self.closest(record.tick, target, attacker)
+                label = None if found is None else found[0]
+                if shooter is not None and not _is_scenery(target_party):
+                    shooter.events.append(
+                        DamageEvent(
+                            record.tick,
+                            True,
+                            _party_id(target_party),
+                            counterpart_of(target_party),
+                            record.amount,
+                            label,
+                        )
+                    )
+                if victim is not None:
+                    victim.events.append(
+                        DamageEvent(
+                            record.tick,
+                            False,
+                            _party_id(attacker_party),
+                            counterpart_of(attacker_party),
+                            record.amount,
+                            label,
+                        )
+                    )
                 if found is None:
                     if shooter is not None:
                         shooter.unattributed_dealt += record.amount
@@ -466,6 +488,7 @@ class _Analysis:
                 UnattributedDamage(book.unattributed_dealt, book.unattributed_taken),
                 book.store_releases,
                 book.rocket_salvos,
+                tuple(book.events),
             )
         return out
 
@@ -483,6 +506,16 @@ def _tally(book: _SortieAmmo | None, label: Label, amount: float, *, dealt: bool
     else:
         target = book.gun_dealt if dealt else book.gun_taken
         target[name] = target.get(name, 0.0) + amount
+
+
+def _is_scenery(party: SortieState | TrackedObject) -> bool:
+    """Static scenery (fences, tents, sandbags, stacks): strafing airfields makes thousands of damage lines on them
+    (30,000 rows over 1,200 sorties at 0.5%), none worth a timeline row."""
+    return isinstance(party, TrackedObject) and party.info.cls == "static"
+
+
+def _party_id(party: SortieState | TrackedObject) -> int:
+    return party.index if isinstance(party, SortieState) else id(party)
 
 
 def _descendants(obj: TrackedObject) -> list[TrackedObject]:

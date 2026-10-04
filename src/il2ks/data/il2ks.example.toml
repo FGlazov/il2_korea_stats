@@ -121,6 +121,13 @@
 #ordnance_hit_window_s = 1.0
 # ... the ordnance released at most this many seconds before it.
 #ordnance_release_window_s = 60.0
+# Sortie timeline hits: damage lines of one attacker on one target form one row while each line follows the one before
+# within this many seconds ...
+#hit_burst_gap_s = 3.0
+# ... and a row spans at most this many seconds (a longer burst is cut) ...
+#hit_burst_max_s = 15.0
+# ... and a row shows only when its damage adds up to at least this fraction of an object (0.002 = 0.2%).
+#hit_min_damage = 0.002
 
 # --- Air-to-air ratings (OQ-28, FR-WEB-19) --------------------------------------------------------------------------
 # An Elo rating per player and aircraft type (propeller or jet), earned in air-to-air kills between air superiority

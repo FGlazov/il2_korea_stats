@@ -1438,6 +1438,14 @@ msgid "High contrast (black and white)"
 msgstr "Hoher Kontrast (Schwarz und Weiß)"
 
 # llm-draft
+msgid "Hit given"
+msgstr "Treffer erzielt"
+
+# llm-draft
+msgid "Hit taken"
+msgstr "Treffer erhalten"
+
+# llm-draft
 msgid "Hits dealt"
 msgstr "Verteilte Treffer"
 
