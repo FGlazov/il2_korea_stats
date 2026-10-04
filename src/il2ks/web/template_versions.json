@@ -82,8 +82,8 @@
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
     "templates/il2ks/aircraft/detail.html": {
-      "version": 1,
-      "sha256": "d477ee5504de52f8d295b7e392166c2a4e74ab1d9f5510ddfb0663db138ca6f0"
+      "version": 2,
+      "sha256": "189145c18c721c7ae9f5239ed6fd5c5b1ac94d39d7d1efe0e784a1cf1698d1f9"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 2,
@@ -298,8 +298,8 @@
       "sha256": "069a7a62d0a0ec8cbca7bd4727e5dad2a014658c1d45a69afa9a02c8fa38b8de"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
-      "version": 2,
-      "sha256": "3f038c316519537893e2a07f9e99f876fab3370dad831a075332f0e030bfb7fb"
+      "version": 3,
+      "sha256": "926a8ab16d101f0d33fa2badd5c8aa156e00aad3cf0ded6d2a9748d3e0953796"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,

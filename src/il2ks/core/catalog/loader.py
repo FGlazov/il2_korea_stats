@@ -13,6 +13,11 @@ Shipped data (`core/catalog/data/`):
   lookup (a test keeps it in step). `review` is `llm-draft` for a machine translation nobody has checked; a reviewer
   empties it. Names fall back from the viewer's language to English (`Catalog.translated_name`, TD-24).
 - `payloads.csv`: `vehicle, payload_id, editor_name, readable_name` (doc 12 "Payloads").
+- `ammo.csv`: `log_name, name, calibre, round_type, designation`, the plain-text name of every ammo (bullet, shell,
+  rocket, bomb, flare) the logs name (FR-WEB-18): `.50 BMG API`, `23x115 mm HEI-T` (a multiplication sign in the data),
+  `HVAR 5 in`. `designation` is the
+  real-world one for a tooltip (`M8 API`). The names are proper technical designations, so they are not translated.
+  `_HIT` and `_xN` sub-objects belong to their parent (`Catalog.ammo`); an ammo missing here gets a cleaned-up log name.
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
 - `ordnance.csv`: `key, kind, display_name, payload_tokens, hit_ammo`, what a payload carries and which logged ammo
   names are that ordnance (FR-WEB-18). `payload_tokens` are the `payloads.csv` editor-name tokens (`M64`, `HVAR`),
@@ -165,6 +170,19 @@ class OrdnanceInfo:
 
 
 @dataclass(frozen=True, slots=True)
+class AmmoInfo:
+    """The plain-text name of one logged ammo. `is_known` is False for an unlisted name (its `name` is then
+    a cleaned-up log name and the other fields are empty)."""
+
+    log_name: str
+    name: str  # `.50 BMG API`
+    calibre: str  # `.50 BMG`, `23x115 mm`, `5 in`; empty for bombs and flares
+    round_type: str  # `API`, `HEI-T`, `ball`; empty when there is none to tell apart
+    designation: str  # real-world designation, for a tooltip (`M8 API`)
+    is_known: bool = True
+
+
+@dataclass(frozen=True, slots=True)
 class LoadoutItem:
     """One line of a payload: `count` pieces of one ordnance type (a `tank` or `inert` item is kept too)."""
 
@@ -275,6 +293,7 @@ class Catalog:
         payload_aliases: Mapping[str, str] | None = None,
         object_names: Mapping[str, Mapping[str, str]] | None = None,
         ordnance: Iterable[OrdnanceRow] = (),
+        ammo: Iterable[AmmoInfo] = (),
     ) -> None:
         """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}."""
         self._names: dict[str, dict[str, str]] = {
@@ -309,6 +328,11 @@ class Catalog:
         self._ammo_prefixes.sort(key=lambda pair: -len(pair[0]))  # longest first: HVAR_SAP before HVAR
         self._ammo_cache: dict[str, OrdnanceInfo | None] = {}
         self._loadouts: dict[tuple[str, int], tuple[LoadoutItem, ...] | None] = {}
+        self._ammo: dict[str, AmmoInfo] = {}
+        for item in ammo:
+            if item.log_name in self._ammo:
+                raise ValueError(f"duplicate ammo {item.log_name!r} in the catalog")
+            self._ammo[item.log_name] = item
 
     def lookup(self, object_type: str) -> ObjectInfo:
         """Case-insensitive, alias-aware. Never raises.
@@ -359,6 +383,21 @@ class Catalog:
         self._ammo_cache[ammo] = found
         return found
 
+    def ammo(self, log_name: str) -> AmmoInfo:
+        """The plain name of a logged ammo (`BULLET_12-7_USA_API` -> `.50 BMG API`). Never raises: `_HIT` and `_xN`
+        sub-objects take their parent's entry (`RKT_127mm_USA_HVAR_HIT`), an unlisted name comes back cleaned up
+        (`clean_ammo_name`) with `is_known=False`."""
+        name = log_name
+        while True:
+            found = self._ammo.get(name)
+            if found is not None:
+                return found
+            stripped = _SUB_OBJECT.sub("", name)
+            if stripped == name or not stripped:
+                break
+            name = stripped
+        return AmmoInfo(log_name, clean_ammo_name(log_name), "", "", "", is_known=False)
+
     def loadout(self, aircraft_type: str, payload_id: int) -> tuple[LoadoutItem, ...] | None:
         """What a payload carries, from its `payloads.csv` editor name (`M64-2 + HVAR-4` -> M64 x2, HVAR x4).
 
@@ -397,6 +436,26 @@ class Catalog:
 
 
 _TOKEN_COUNT = re.compile(r"(.+?)-(\d+)")
+
+
+_SUB_OBJECT = re.compile(r"_(?:HIT|x\d+)$")
+"""The part of a log ammo name that marks a sub-object of the same weapon (`..._HIT`, bomblets `..._x8`)."""
+
+
+def clean_ammo_name(raw: str) -> str:
+    """Readable stand-in for an ammo `ammo.csv` doesn't know: 'BULLET_12-7_USA_API' -> '12.7 USA API' (the generic
+    prefix dropped, the calibre's dash is a decimal point). Never empty: the raw name if nothing is left."""
+    parts = raw.split("_")
+    if parts and parts[0].upper() in ("BULLET", "SHELL", "BOMB", "RKT", "ROCKET"):
+        parts = parts[1:]
+    text = " ".join(parts)
+    out: list[str] = []
+    for index, char in enumerate(text):
+        is_decimal = (
+            char == "-" and 0 < index < len(text) - 1 and text[index - 1].isdigit() and text[index + 1].isdigit()
+        )
+        out.append("." if is_decimal else char)
+    return "".join(out) or raw
 
 
 def _split_count(token: str) -> tuple[str, int]:
@@ -486,6 +545,16 @@ def parse_ordnance(text: str, source: str = "ordnance.csv") -> list[OrdnanceRow]
     return result
 
 
+def parse_ammo(text: str, source: str = "ammo.csv") -> list[AmmoInfo]:
+    columns = ["log_name", "name", "calibre", "round_type", "designation"]
+    result: list[AmmoInfo] = []
+    for n, row in enumerate(_rows(text, columns, source), start=2):
+        if not row["log_name"] or not row["name"].strip():
+            raise ValueError(f"{source}:{n}: empty log_name or name")
+        result.append(AmmoInfo(row["log_name"], row["name"], row["calibre"], row["round_type"], row["designation"]))
+    return result
+
+
 def parse_payload_aliases(text: str, source: str = "payload_aliases.csv") -> dict[str, str]:
     return {row["log_name"]: row["vehicle"] for row in _rows(text, ["log_name", "vehicle"], source)}
 
@@ -511,4 +580,5 @@ def load_default_catalog() -> Catalog:
         payload_aliases=parse_payload_aliases(read("payload_aliases.csv")),
         object_names=names,
         ordnance=parse_ordnance(read("ordnance.csv")),
+        ammo=parse_ammo(read("ammo.csv")),
     )

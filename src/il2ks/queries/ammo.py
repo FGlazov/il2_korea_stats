@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import cast
 
-from il2ks.core.catalog.loader import GENERIC_ORDNANCE, Catalog, load_default_catalog
+from il2ks.core.catalog.loader import GENERIC_ORDNANCE, AmmoInfo, Catalog, load_default_catalog
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import TOTAL_AMMO, AircraftAmmoStats, GameObject, PlayerSortie
 
@@ -29,7 +29,7 @@ UNATTRIBUTED_NAME = "Unattributed"
 class GunAmmoRow:
     """A bullet or shell type: hit lines given and received, and the damage attributed to it (closest-hit rule)."""
 
-    ammo: str  # log name, e.g. "BULLET_12-7_USA_API"
+    ammo: str  # log name (show it through `ammo_info`), e.g. "BULLET_12-7_USA_API"
     hits_given: int
     hits_received: int
     damage_dealt: float  # fractions of an object, summed (1.0 = one object destroyed)
@@ -100,6 +100,12 @@ def ordnance_name(key: str) -> str:
     if key == UNATTRIBUTED_ORDNANCE:
         return UNATTRIBUTED_NAME
     return _ordnance_names().get(key, key)
+
+
+def ammo_info(log_name: str) -> AmmoInfo:
+    """The plain-text name of a logged ammo (`BULLET_12-7_USA_API` -> `.50 BMG API`, `ammo.csv`); never raises, an
+    unknown name comes back cleaned up. Proper technical designations: not translated."""
+    return _catalog().ammo(log_name)
 
 
 def _number(row: Mapping[str, object], key: str) -> float:

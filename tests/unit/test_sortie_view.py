@@ -6,21 +6,7 @@ import pytest
 
 from il2ks.queries.sorties import DEFAULT_SORT, SortieFilters, parse_filters, resolve_sort
 from il2ks.web.display import mission_name
-from il2ks.web.sortie_view import ammo_name, since
-
-
-@pytest.mark.parametrize(
-    ("raw", "expected"),
-    [
-        ("BULLET_12-7_USA_API", "12.7 USA API"),
-        ("SHELL_20_USA_HEI", "20 USA HEI"),
-        ("NapalmBullet", "NapalmBullet"),
-        ("BULLET_7-62_RUS", "7.62 RUS"),
-        ("RKT_HVAR-5", "HVAR-5"),
-    ],
-)
-def test_ammo_name_is_readable(raw: str, expected: str) -> None:
-    assert ammo_name(raw) == expected
+from il2ks.web.sortie_view import since
 
 
 def test_since_counts_from_the_spawn() -> None:

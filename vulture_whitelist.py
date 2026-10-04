@@ -227,3 +227,5 @@ _.legend
 _.table_head
 _.air_points  # PlayerSortie model fields: set by ingest.scoring, summed by name in the score counters (ingest.counters)
 _.ground_points
+_.calibre  # core.catalog.loader.AmmoInfo: ammo.csv columns kept for later pages (grouping/sorting by calibre); tested
+_.round_type  # core.catalog.loader.AmmoInfo: same

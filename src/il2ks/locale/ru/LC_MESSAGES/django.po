@@ -579,14 +579,7 @@ msgstr ""
 msgid "Damage"
 msgstr ""
 
-msgid "Damage attributed to this ammunition, in health units (1.0 = one whole object)"
-msgstr ""
-
 msgid "Damage dealt"
-msgstr ""
-
-#, python-format
-msgid "Damage no hit could be blamed on: %(dealt)s dealt, %(taken)s taken."
 msgstr ""
 
 msgid "Damage taken"
@@ -661,9 +654,6 @@ msgid "Duration"
 msgstr ""
 
 msgid "E-mail for certificate notices (optional)"
-msgstr ""
-
-msgid "Each point of damage is attributed to the hit closest in time; damage without a hit nearby stays unattributed."
 msgstr ""
 
 # llm-draft

@@ -1,0 +1,59 @@
+log_name,name,calibre,round_type,designation
+BULLET_12-7_USA_API,.50 BMG API,.50 BMG,API,M8 API
+BULLET_12-7_USA_INC,.50 BMG INC,.50 BMG,INC,M1 incendiary
+BULLET_12-7_USA_APIT,.50 BMG API-T,.50 BMG,API-T,M20 API-T
+BULLET_7-62_RUS_API,7.62×54R API,7.62×54R,API,B-32 API
+BULLET_7-62_RUS_HEI,7.62×54R HEI,7.62×54R,HEI,"PZ incendiary-tracer (inferred, not confirmed)"
+BULLET_7-62_RUS_APIT_smk,7.62×54R API-T,7.62×54R,API-T,ZB-46 API-T (smoke-trail tracer)
+BULLET_7-62_RUS_APIT_short,7.62×54R API-T,7.62×54R,API-T,ZB-46 API-T (tank machine gun)
+BULLET_7-62_RUS_FMJ_short,7.62×54R ball,7.62×54R,ball,Ball (ground machine gun)
+BULLET_7-62_USA_AP_short,.30-06 AP,.30-06,AP,M2 AP (ground machine gun)
+BULLET_9-01_GER_FMJ,9 mm ball,9×19 mm,ball,9×19 mm FMJ
+BULLET_12-7_RUS_HEI,12.7×108 mm HEI,12.7×108 mm,HEI,"MDZ instant-action incendiary (inferred, not confirmed)"
+BULLET_12-7_RUS_API,12.7×108 mm API,12.7×108 mm,API,B-32 API
+BULLET_12-7_RUS_APIT_smk,12.7×108 mm API-T,12.7×108 mm,API-T,BZT-44 API-T (smoke trail)
+BULLET_12-7_RUS_APIT,12.7×108 mm API-T,12.7×108 mm,API-T,BZT-44 API-T
+SHELL_20_RUS_API,20×99 mm API,20×99 mm,API,BZ API
+SHELL_20_RUS_HEI,20×99 mm HEI,20×99 mm,HEI,OZ high-explosive fragmentation incendiary
+SHELL_20_RUS_HET,20×99 mm HEI-T,20×99 mm,HEI-T,OZT high-explosive fragmentation tracer
+SHELL_20_RUS_HE,20×99 mm HE,20×99 mm,HE,OZ high-explosive fragmentation
+SHELL_23_RUS_HET,23×115 mm HEI-T,23×115 mm,HEI-T,OZT high-explosive fragmentation tracer
+SHELL_23_RUS_API,23×115 mm API,23×115 mm,API,BZ API
+SHELL_37_RUS_HEIT,37×155 mm HEI-T,37×155 mm,HEI-T,OZT high-explosive tracer
+SHELL_37_RUS_APIT,37×155 mm API-T,37×155 mm,API-T,BZT API-T
+SHELL_25_RUS_HE,25×218 mm HE,25×218 mm,HE,72-K anti-aircraft gun shell
+SHELL_25_RUS_AP,25×218 mm AP,25×218 mm,AP,72-K anti-aircraft gun shell
+SHELL_57_RUS_CV,57×348 mm,57×348 mm,,S-60 anti-aircraft gun shell (type unclear)
+SHELL_57_RUS_HE,57 mm HE,57 mm,HE,S-60 anti-aircraft gun shell
+SHELL_85_RUS_HE,85 mm HE,85 mm,HE,KS-12 anti-aircraft gun shell
+SHELL_100_RUS_HE,100 mm HE,100 mm,HE,KS-19 anti-aircraft gun shell
+SHELL_90_USA_HE,90 mm HE,90 mm,HE,M2 90 mm anti-aircraft gun shell
+SHELL_127_USA_HE,5 in HE,5 in,HE,5 in naval gun shell
+SHELL_ENG_20_HE,20 mm HE,20 mm,HE,Oerlikon 20 mm naval gun shell (probable)
+NPC_SHELL_ENG_40_HE,40 mm HE,40×311R,HE,Bofors 40 mm shell
+NPC_SHELL_ENG_40_AP,40 mm AP,40×311R,AP,Bofors 40 mm shell
+FlareWhite,White flare,,,Signal flare
+FlareGreen,Green flare,,,Signal flare
+FlareRed,Red flare,,,Signal flare
+RKT_127mm_USA_HVAR,HVAR 5 in,5 in,,5 in High-Velocity Aircraft Rocket
+RKT_127mm_USA_HVAR_SAP,HVAR 5 in SAP,5 in,SAP,5 in HVAR with semi-armor-piercing warhead
+RKT_165mm_USA_ATAR,ATAR 6.5 in,6.5 in,,6.5 in Anti-Tank Aircraft Rocket
+RKT_298mm_USA_TinyTim,Tiny Tim 11.75 in,11.75 in,,Tiny Tim rocket
+RKT_132mm_RUS_M13UK,M-13UK 132 mm,132 mm,,M-13UK rocket
+RKT_82mm_RUS_M8,M-8 82 mm,82 mm,,M-8 rocket
+BOMB_449kg_USA_M65,AN-M65 1000 lb,,,AN-M65 general-purpose bomb
+BOMB_238kg_USA_M64,AN-M64 500 lb,,,AN-M64 general-purpose bomb
+BOMB_118kg_USA_M57,AN-M57 250 lb,,,AN-M57 general-purpose bomb
+BOMB_99kg_USA_M88,AN-M88 220 lb frag,,,AN-M88 fragmentation bomb
+CLUSTER_9kg_USA_M41,M26 cluster,,,M41 fragmentation bomblets from an M26 cluster bomb
+CLUSTER_2kg_USA_M83,M29 cluster,,,M83 bomblets from an M29 cluster bomb
+NapalmBullet,Napalm 110 gal,,,110 gal napalm tank
+NAPALM_389kg_USA_110gal,Napalm 110 gal,,,110 gal napalm tank
+BOMB_123kg_RUS_FAB100sc,FAB-100,,,FAB-100 general-purpose bomb
+BOMB_227kg_RUS_FAB250M43,FAB-250,,,FAB-250M43 general-purpose bomb
+BOMB_66kg_RUS_FAB50sc,FAB-50,,,FAB-50 general-purpose bomb
+BOMB_25kg_RUS_AO25sl,AO-25,,,AO-25 fragmentation bomb
+CLUSTER_2kg_RUS_AO2sc,AO-2.5,,,AO-2.5 fragmentation bomblets
+CLUSTER_10kg_RUS_AO10sc,AO-10,,,AO-10 fragmentation bomblets
+CLUSTER_1kg_RUS_PTAB2,PTAB-2.5,,,PTAB-2.5-1.5 HEAT bomblets
+CLUSTER_10kg_RUS_PTAB10,PTAB-10,,,PTAB-10-2.5 HEAT bomblets
