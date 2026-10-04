@@ -1,9 +1,11 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   The event timeline, in order. Time is the flight's own clock (since spawn) with the real time of day beside it. A run of
   ground kills is one folded row; past the first rows the rest sits in a details element ("show all"), so a sortie
   with hundreds of events stays readable and light. Context: detail.timeline (the first rows), detail.timeline_more,
   detail.timeline_events (all stored events). Rows: sortie_view.TimelineRow, rendered by timeline_table.html.
+  Hit rows (kinds hit_given / hit_taken) show the damage of a burst of hits in the last column, with the ammunition matched to
+  the burst; sorties processed before these rows existed simply have none.
 {% endcomment %}<h2>{% translate "Timeline" %}</h2>
 {% include "il2ks/sorties/parts/timeline_table.html" with rows=detail.timeline %}
 {% if detail.timeline_more %}

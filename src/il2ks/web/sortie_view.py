@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 from il2ks.core.catalog.loader import GROUND_CATEGORIES
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
-from il2ks.queries.ammo import GunAmmoRow, ammo_info, parse_sortie_ammo
+from il2ks.queries.ammo import GunAmmoRow, ammo_info, ordnance_name, parse_sortie_ammo
 from il2ks.web import display, icons, object_names, pve
 from il2ks.web.ground import GROUND_ICONS
 
@@ -74,6 +74,8 @@ EVENT_LABELS: Mapping[str, str] = {
     "sortie_end": gettext_lazy("Sortie ended"),
     "bomb_release": gettext_lazy("Bomb release"),
     "rocket_salvo": gettext_lazy("Rocket salvo"),
+    "hit_given": gettext_lazy("Hit given"),
+    "hit_taken": gettext_lazy("Hit taken"),
 }
 EVENT_ICONS: Mapping[str, str] = {
     "spawn": "event/spawn",
@@ -92,6 +94,8 @@ EVENT_ICONS: Mapping[str, str] = {
     "sortie_end": "event/sortie-end",
     "bomb_release": "event/bomb-release",
     "rocket_salvo": "event/rocket-salvo",
+    "hit_given": "event/damaged",
+    "hit_taken": "event/damaged",
 }
 # Row accent in the timeline: "good" for what the pilot achieved, "bad" for what was lost or went wrong.
 EVENT_TONES: Mapping[str, str] = {
@@ -598,7 +602,9 @@ class TimelineRow:
     kind: the stored kind ('kill', 'takeoff', ...); tone: "good", "bad", "warn" or ''; clock: time since spawn;
     at: when it happened (viewer's time zone); place: tooltip with the position; text: detail sentence ('' when none);
     who: the counterpart;
-    count: how many events a grouped row stands for (1 otherwise)."""
+    count: how many events a grouped row stands for (1 otherwise);
+    damage: "+12.5%" (hit given) or "-12.5%" with a minus sign (hit taken), empty on other rows and old rows
+    (stored before the hit rows); ammo / ammo_title: plain name and real designation of a hit row's ammunition."""
 
     kind: str
     icon: str
@@ -611,6 +617,9 @@ class TimelineRow:
     who: Who | None = None
     count: int = 1
     summary: str = ""
+    damage: str = ""
+    ammo: str = ""
+    ammo_title: str = ""
     children: Sequence["TimelineRow"] = field(default_factory=tuple)
 
 
@@ -627,6 +636,30 @@ def _timeline_text(kind: str, detail: str) -> str:
     return ""
 
 
+def damage_percent(fraction: float) -> str:
+    """A damage fraction as a percentage: two decimals under 1% (`0.35%`), one from there (`12.5%`)."""
+    percent = fraction * 100
+    return f"{display.num(percent, 2 if percent < 1 else 1)}%"
+
+
+def hit_ammo(entry: Json) -> tuple[str, str]:
+    """(plain name, designation) of the ammunition a hit row was matched to, or empty strings."""
+    key = _str(entry.get("ammo"))
+    if not key:
+        return "", ""
+    if _str(entry.get("ammo_kind")) == "ordnance":
+        return ordnance_name(key), ""
+    info = ammo_info(key)
+    return info.name, info.designation
+
+
+def hit_damage(kind: str, entry: Json) -> str:
+    fraction = display.to_float(entry.get("damage"))
+    if kind not in ("hit_given", "hit_taken") or fraction is None:
+        return ""
+    return ("+" if kind == "hit_given" else "\N{MINUS SIGN}") + damage_percent(fraction)
+
+
 def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> TimelineRow:
     kind = _str(entry.get("kind"))
     detail = _str(entry.get("detail"))
@@ -638,6 +671,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         who = lookup.who(None, detail)  # an AI or ground victim (a friendly victim has no counterpart)
         if kind == "kill" and not _is_air_object(lookup, detail):
             icon, label = "event/kill-ground", str(_("Ground kill"))
+    ammo, ammo_title = hit_ammo(entry)
     return TimelineRow(
         kind,
         icon,
@@ -648,6 +682,9 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         _pos(entry.get("pos")),
         _timeline_text(kind, detail),
         who,
+        damage=hit_damage(kind, entry),
+        ammo=ammo,
+        ammo_title=ammo_title,
     )
 
 

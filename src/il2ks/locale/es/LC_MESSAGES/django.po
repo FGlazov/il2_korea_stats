@@ -1400,6 +1400,14 @@ msgid "High contrast (black and white)"
 msgstr "Alto contraste (blanco y negro)"
 
 # llm-draft
+msgid "Hit given"
+msgstr "Impacto causado"
+
+# llm-draft
+msgid "Hit taken"
+msgstr "Impacto recibido"
+
+# llm-draft
 msgid "Hits dealt"
 msgstr "Impactos dados"
 

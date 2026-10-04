@@ -296,6 +296,57 @@ def test_timeline_rows_carry_icons_and_both_clocks(client: Client) -> None:
     assert html.count("<svg") > 10
 
 
+def test_hit_rows_show_damage_given_and_taken_with_the_ammo(client: Client) -> None:
+    entries = (
+        TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)),
+        TimelineEntry(
+            2000,
+            "hit_given",
+            counterpart=Counterpart("MiG-15bis"),
+            damage=0.125,
+            lines=6,
+            ammo="BULLET_12-7_USA_API",
+            ammo_kind="gun",
+        ),
+        TimelineEntry(2500, "hit_taken", counterpart=Counterpart("MiG-15bis"), damage=0.0035, lines=3),
+        TimelineEntry(
+            3000,
+            "hit_given",
+            counterpart=Counterpart("M46 Patton"),
+            damage=0.6,
+            lines=2,
+            ammo="M64",
+            ammo_kind="ordnance",
+        ),
+        TimelineEntry(5000, "sortie_end", "landed"),
+    )
+    save(mission((replace(sortie(0, 1), timeline=entries),), extra_types=frozenset({"M46 Patton"})))
+
+    html = detail(client, pk_of(1))
+
+    assert "+12.5%" in html
+    assert "\N{MINUS SIGN}0.35%" in html
+    assert ".50 BMG API" in html
+    assert "M64" in html
+    assert html.count("timeline__damage--given") == 2
+    assert html.count("timeline__damage--taken") == 1
+    assert "Hit given" in html
+    assert "Hit taken" in html
+
+
+def test_a_timeline_stored_before_the_hit_rows_still_renders(client: Client) -> None:
+    """No hit rows and no `damage` / `ammo` keys in the stored JSON (as written before this feature)."""
+    save(duel())
+    pk = pk_of(1)
+    row = PlayerSortie.objects.get(pk=pk)
+    assert all("damage" not in e and "ammo" not in e for e in row.timeline)
+
+    html = detail(client, pk)
+
+    assert "timeline__damage" not in html
+    assert "Kill" in html
+
+
 # --- detail: link preview ------------------------------------------------------------------------------------------
 def test_open_graph_and_twitter_tags_for_discord(client: Client) -> None:
     save(mission((sortie(0, 1, name="Alpha", kills_air=2, kills_ground=5, assists=1, flight_time_s=600),)))

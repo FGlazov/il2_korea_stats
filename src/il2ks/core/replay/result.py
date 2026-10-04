@@ -134,6 +134,12 @@ class TimelineEntry:
     detail: str = ""
     pos: Pos | None = None
     counterpart: Counterpart | None = None
+    # `hit_given` / `hit_taken` rows only (hits.py): the summed DMG fraction of a burst of damage lines, how many lines,
+    # and the ammo of the closest hit (`ammo_kind` "gun" / "ordnance" / "other"; both empty when no hit was near).
+    damage: float | None = None
+    lines: int = 0
+    ammo: str = ""
+    ammo_kind: str = ""
 
 
 @dataclass(frozen=True, slots=True)

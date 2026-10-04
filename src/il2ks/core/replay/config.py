@@ -54,5 +54,11 @@ class ReplayRules:
     # seconds names it; else the lone ordnance of the loadout; else a release within `ordnance_release_window_s`.
     ordnance_hit_window_s: float = 1.0
     ordnance_release_window_s: float = 60.0
+    # Timeline hits (FR-WEB-6, hits.py): damage lines of one attacker on one target form a burst while each is within
+    # `hit_burst_gap_s` of the previous one (a burst lasts at most `hit_burst_max_s`); a burst under `hit_min_damage`
+    # (a fraction of an object) is not shown.
+    hit_burst_gap_s: float = 3.0
+    hit_burst_max_s: float = 15.0
+    hit_min_damage: float = 0.002
     # The `[rules]` toggles (OQ-61) travel with the rules, so every replay entry point sees them.
     toggles: RuleToggles = field(default_factory=RuleToggles)

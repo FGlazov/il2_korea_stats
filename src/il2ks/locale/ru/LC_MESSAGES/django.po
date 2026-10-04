@@ -1419,6 +1419,14 @@ msgid "High contrast (black and white)"
 msgstr "Высокий контраст (чёрный и белый)"
 
 # llm-draft
+msgid "Hit given"
+msgstr "Нанесённое попадание"
+
+# llm-draft
+msgid "Hit taken"
+msgstr "Полученное попадание"
+
+# llm-draft
 msgid "Hits dealt"
 msgstr "Нанесено попаданий"
 

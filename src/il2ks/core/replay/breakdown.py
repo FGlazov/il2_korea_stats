@@ -1,6 +1,7 @@
 """Per-sortie breakdowns: damage exchanges per counterpart, hits per ammo type, friendly fire, and the key-event
 timeline (TD-08)."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from il2ks.core.replay.fate import crew_death
@@ -130,16 +131,20 @@ def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[Kill
     return {i: FriendlyFire(n_kills[i], n_hits[i], damage[i]) for i in ends}
 
 
-def _counterpart(party: Party) -> Counterpart:
+def counterpart_of(party: Party) -> Counterpart:
     if isinstance(party, SortieState):
         return Counterpart(party.aircraft_type, party.index, party.coalition)
     return Counterpart(party.object_type, None, party.coalition)
 
 
-def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> tuple[TimelineEntry, ...]:
+def timeline(
+    sortie: SortieState, verdict: Verdict, kills: list[KillResult], hits: Sequence[TimelineEntry] = ()
+) -> tuple[TimelineEntry, ...]:
     """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion."""
     airframe = sortie.airframe
+    # The hits come right after the spawn, so on one tick a hit sorts before the kill or loss it led to.
     entries: list[TimelineEntry] = [TimelineEntry(sortie.spawn_tick, "spawn", sortie.spawn_type, sortie.spawn_pos)]
+    entries += hits
     end = verdict.end_tick
     active = verdict.active_end_tick
     entries += [TimelineEntry(t, "takeoff", pos=p) for t, p in airframe.takeoffs if sortie.spawn_tick <= t <= active]
@@ -162,7 +167,7 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
     if killer is not None and killer.killer_type is not None:
         counterpart = Counterpart(killer.killer_type, killer.killer_sortie_index, killer.killer_coalition)
     elif verdict.killer is not None:  # no KillResult names this sortie as victim (a gunner's), so use the verdict's
-        counterpart = _counterpart(verdict.killer)
+        counterpart = counterpart_of(verdict.killer)
     else:
         counterpart = None
     if loss is not None:
@@ -193,4 +198,4 @@ def timeline(sortie: SortieState, verdict: Verdict, kills: list[KillResult]) -> 
     return tuple(sorted(entries, key=lambda e: e.tick))  # sorted() is stable
 
 
-__all__ = ["FriendlyFire", "breakdowns", "friendly_fire", "timeline"]
+__all__ = ["FriendlyFire", "breakdowns", "counterpart_of", "friendly_fire", "timeline"]
