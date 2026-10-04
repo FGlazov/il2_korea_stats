@@ -31,6 +31,8 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "captures": Count("pk", filter=Q(is_captured=True)),
         "takeoffs": Sum("takeoffs"),
         "landings": Sum("landings"),
+        # Before "friendly_kills": the annotation of that name would shadow the sortie field this filter reads.
+        "friendly_fire_incidents": Count("pk", filter=Q(friendly_kills__gt=0)),
         "friendly_kills": Sum("friendly_kills"),
         "friendly_hits": Sum("friendly_hits"),
         "friendly_damage": Sum("friendly_damage"),

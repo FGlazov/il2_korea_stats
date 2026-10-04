@@ -71,6 +71,14 @@ def test_metric_values_follow_the_page_ratios() -> None:
     assert metric_value("ground_per_sortie", TOTALS) == 1.5
 
 
+def test_incident_rates_are_per_sortie() -> None:
+    assert metric_value("taxi_per_sortie", TOTALS) == 0.0
+    busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_fire_incidents=2)
+    assert metric_value("taxi_per_sortie", busy) == 0.1
+    assert metric_value("friendly_fire_per_sortie", busy) == 0.05
+    assert metric_value("friendly_fire_per_sortie", Totals(0, 0, 0, 0, 0, 0.0)) is None
+
+
 def test_undefined_where_the_page_shows_a_dash() -> None:
     flawless = Totals(sorties=30, deaths=0, planes_lost=0, kills_air=5, kills_ground=0, flight_time_s=0.0)
     assert metric_value("kd", flawless) is None

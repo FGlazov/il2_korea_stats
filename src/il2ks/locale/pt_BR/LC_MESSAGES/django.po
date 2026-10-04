@@ -217,6 +217,10 @@ msgstr ""
 msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
 msgstr ""
 
+# llm-draft
+msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
+msgstr "Alma generosa: divide a munição com todo mundo, inclusive com os alas."
+
 msgid "A quiet one. Everybody got home with their ammunition."
 msgstr ""
 
@@ -338,6 +342,14 @@ msgstr ""
 msgid "Ammunition used unknown"
 msgstr ""
 
+# llm-draft
+msgid "An all-rounder: the taxiway and the formation have both had their moments."
+msgstr "Um coringa: o taxiway e a formação já tiveram seus momentos."
+
+# llm-draft
+msgid "An ambassador for chaos, on the ground and in the air. The squadron would not swap them."
+msgstr "Embaixador do caos, no chão e no ar. O esquadrão não trocaria por ninguém."
+
 msgid "Anti-aircraft"
 msgstr ""
 
@@ -396,9 +408,6 @@ msgid "Average hits"
 msgstr ""
 
 msgid "Average number of gun hits that destroyed it"
-msgstr ""
-
-msgid "Aviation's first rule: the airfield is also part of the mission."
 msgstr ""
 
 msgid "BLUFOR won"
@@ -600,9 +609,6 @@ msgstr "Destruído"
 msgid "Destroyed on the ground"
 msgstr ""
 
-msgid "Destroyed while parked, by an attacker"
-msgstr ""
-
 msgid "Details"
 msgstr ""
 
@@ -671,11 +677,12 @@ msgid "Enemy aircraft"
 msgstr ""
 
 # llm-draft
+msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
+msgstr "Igualdade de oportunidades: este piloto não tem preferidos, nem entre os lados."
+
+# llm-draft
 msgid "Error"
 msgstr "Erro"
-
-msgid "Even the best squadrons have a story about the taxiway."
-msgstr ""
 
 msgid "Event"
 msgstr ""
@@ -694,6 +701,10 @@ msgid "Every sortie, newest first. Select one for the full report."
 msgstr ""
 
 # llm-draft
+msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
+msgstr "Todo mundo já confundiu um ala uma vez. Alguns só têm um histórico maior."
+
+# llm-draft
 msgid "Exited on ground"
 msgstr "Saiu em solo"
 
@@ -707,6 +718,10 @@ msgstr "Falhou, aguardando nova tentativa"
 
 msgid "Fair winds, full magazines and the numbers to prove it."
 msgstr ""
+
+# llm-draft
+msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
+msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Daria até para fazer visita guiada."
 
 # llm-draft
 msgid "Find a player"
@@ -761,6 +776,10 @@ msgstr ""
 msgid "Friendly fire happens to the best squadrons. The debrief will be lively."
 msgstr ""
 
+# llm-draft
+msgid "Friendly fire: proof that the guns work."
+msgstr "Fogo amigo: prova de que as armas funcionam."
+
 msgid "Friendly hits"
 msgstr ""
 
@@ -769,6 +788,10 @@ msgstr ""
 
 msgid "Friendly victim"
 msgstr ""
+
+# llm-draft
+msgid "Friendly-fire incidents"
+msgstr "Incidentes de fogo amigo"
 
 msgid "Full killboard"
 msgstr ""
@@ -1758,6 +1781,10 @@ msgstr "Administração do site"
 msgid "Skip to content"
 msgstr "Pular para o conteúdo"
 
+# llm-draft
+msgid "Some chase kills. This one chases the perfect parking spot, and keeps looking."
+msgstr "Uns correm atrás de abates. Este corre atrás da vaga de estacionamento perfeita, e continua procurando."
+
 msgid "Someone had a very good night at the office."
 msgstr ""
 
@@ -1776,6 +1803,10 @@ msgstr ""
 
 msgid "Sorties"
 msgstr ""
+
+# llm-draft
+msgid "Sorties in which they killed a friendly"
+msgstr "Surtidas em que abateu um aliado"
 
 #, python-format
 msgid "Sorties of %(name)s"
@@ -1820,8 +1851,9 @@ msgstr ""
 msgid "Static object"
 msgstr ""
 
+# llm-draft
 msgid "Strafed on the ground"
-msgstr ""
+msgstr "Metralhado no solo"
 
 msgid "Streak"
 msgstr ""
@@ -1866,6 +1898,10 @@ msgstr ""
 msgid "Taxi accidents"
 msgstr ""
 
+# llm-draft
+msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
+msgstr "Taxiway ou formação, tanto faz: onde este piloto passa, rende história."
+
 msgid "That folder does not exist yet. il2ks will start watching once it appears."
 msgstr ""
 
@@ -1888,6 +1924,10 @@ msgid ""
 "The aircraft was destroyed in flight by something other than an enemy, shortly after it took self-inflicted damage, "
 "and kept falling afterwards. It may have broken up from overstress; this is a guess from the log."
 msgstr ""
+
+# llm-draft
+msgid "The airfield is also part of the mission. Some pilots just take that very seriously."
+msgstr "O aeródromo também faz parte da missão. Tem piloto que leva isso muito a sério."
 
 msgid ""
 "The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this "
@@ -1940,8 +1980,9 @@ msgstr ""
 msgid "The gear stayed up and so did the pilot's spirits."
 msgstr ""
 
-msgid "The ground crew keeps a file on these. It is a thin, well-thumbed file."
-msgstr ""
+# llm-draft
+msgid "The ground crew and the squadron both have a file on this one. The files have met."
+msgstr "A equipe de solo e o esquadrão têm, cada um, uma ficha deste piloto. As fichas já se conhecem."
 
 msgid "The gun camera footage on this one would be a good watch."
 msgstr ""
@@ -1968,6 +2009,10 @@ msgid ""
 "lost."
 msgstr ""
 
+# llm-draft
+msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
+msgstr "As marcações são pequenas e o céu está lotado. Acontece até com os melhores."
+
 msgid ""
 "The name has to point at this computer (a DNS record at your domain provider), and ports 80 and 443 must be reachable"
 " from the internet. The certificate is then requested and renewed automatically."
@@ -1986,6 +2031,10 @@ msgid ""
 "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
 "log and can be wrong, for example after an engine failure or a deliberate exit."
 msgstr ""
+
+# llm-draft
+msgid "The ramp crew has named a bollard after this pilot. Fondly."
+msgstr "A equipe de solo batizou um balizador com o nome deste piloto. Com carinho."
 
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
@@ -2015,8 +2064,20 @@ msgstr ""
 msgid "The sky was empty of drama. The tea stayed hot."
 msgstr ""
 
+# llm-draft
+msgid "The squadron has learned to fly a little wider. Bold of them, and well chosen."
+msgstr "O esquadrão aprendeu a voar um pouco mais aberto. Corajoso, e bem pensado."
+
+# llm-draft
+msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
+msgstr "O taxiway guarda uma ficha sobre esses casos. É fininha, mas bem manuseada."
+
 msgid "The two passwords differ."
 msgstr ""
+
+# llm-draft
+msgid "The war was waiting. The ramp had other ideas."
+msgstr "A guerra esperava. O pátio tinha outros planos."
 
 msgid "The war was waiting. The taxiway had other ideas."
 msgstr ""
@@ -2104,6 +2165,10 @@ msgstr ""
 msgid "Top of the board. The rest of the sky took notes."
 msgstr ""
 
+# llm-draft
+msgid "Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honour."
+msgstr "No topo de um ranking em que ninguém quer estar. No bar do rancho tem uma conta aberta em nome deste piloto."
+
 msgid "Top pilots"
 msgstr ""
 
@@ -2125,6 +2190,10 @@ msgstr ""
 
 msgid "Trains"
 msgstr ""
+
+# llm-draft
+msgid "Trouble on the ramp and in the air. At least this pilot is consistent."
+msgstr "Confusão no pátio e no ar. Pelo menos este piloto é consistente."
 
 msgid "Type"
 msgstr ""
@@ -2250,6 +2319,10 @@ msgstr ""
 # llm-draft
 msgid "Wounded"
 msgstr "Ferido"
+
+# llm-draft
+msgid "Wrong target, right enthusiasm. The debrief will be lively."
+msgstr "Alvo errado, entusiasmo certo. O debriefing vai ser animado."
 
 msgid "Wrong target, right enthusiasm. The sky is crowded, mistakes happen."
 msgstr ""
