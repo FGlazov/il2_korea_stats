@@ -222,6 +222,57 @@ def bailout_v2(sortie: SortieState, loss: Loss | None, died_tick: int | None, ru
     return True, True
 
 
+def ejection_spawn_tick(sortie: SortieState, end_tick: int, rules: ReplayRules) -> int | None:
+    """Ejection spawn (method 1 by Rufus, developer of another IL-2 Korea stats system, shared via the maintainer): the
+    log writes an AType 12 for the pilot body that reuses the player's bot ID (the AType 10 `PID:`) with `PID:-1`, i.e.
+    detached from the aircraft (re-announcements of a seated bot carry the aircraft ID). Returns its tick, or `None`.
+
+    Gates: the aircraft is airborne by AType 5/6 state (the same spawn fires for a pilot climbing out after landing),
+    and the pilot didn't die at that moment (a pilot killed in the seat is announced detached too: 49 of 378 in the
+    210 samples, every one of them with the pilot's AType 3 within 0.5 s)."""
+    if sortie.role != "pilot":
+        return None
+    died = sortie.bot.destroyed_tick
+    for tick, _ in sortie.bot.detached_declarations:
+        if not sortie.spawn_tick <= tick <= end_tick + 1 or not sortie.airframe.airborne_at(tick):
+            continue
+        if died is not None and died - tick <= ticks(rules.died_with_aircraft_s):
+            continue
+        return tick
+    return None
+
+
+@dataclass(frozen=True, slots=True)
+class Bailout:
+    detected: bool
+    exit_pos_known: bool  # False only when a `PLID:0` end has no usable pilot position (the fate is then `unknown`)
+    by_ejection_spawn: bool  # the log itself shows the ejection (AType 12 `PID:-1`), so the fate source is `event`
+
+
+def bailout_v3(
+    sortie: SortieState, loss: Loss | None, died_tick: int | None, end_tick: int, rules: ReplayRules
+) -> Bailout:
+    """FR-ING-14 rule v3 (design_doc/13_game_rules.md): a bailout is an AType 4 `PLID:0` end and either
+    1. an ejection spawn (`ejection_spawn_tick`, Rufus's method 1): the log shows the pilot leaving the airborne
+       aircraft, whatever the geometry says (the live wheels flag can be stale, and a quick end-mission under the
+       canopy can put the pilot within 100 m of the aircraft's last logged position), or
+    2. rule v2 (`bailout_v2`) and the pilot was not already dead at the sortie end (a pilot killed in the seat is
+       written as `PLID:0` at the moment of death, 296 such sorties in the 210 samples, 67 of them were suspected early
+       bailouts; Rufus's method 2 has the same "pilot isn't already dead" gate).
+
+    Rufus's method 2 as a whole (aircraft destroyed, never landed, > 200 m or > 30 m above ground) is not used: v2
+    finds all but 9 of its bailouts, those 9 are ground exits after a crash landing, and the height arm needs a
+    heightmap (OQ-39). See `devtools.bailout_eval`."""
+    if sortie.end_aircraft_id != 0:
+        return Bailout(False, True, False)
+    if ejection_spawn_tick(sortie, end_tick, rules) is not None:
+        return Bailout(True, True, True)
+    detected, known = bailout_v2(sortie, loss, died_tick, rules)
+    if detected and died_tick is not None and died_tick <= end_tick + ticks(rules.died_with_aircraft_s):
+        return Bailout(False, True, False)
+    return Bailout(detected, known, False)
+
+
 def attacker_involved(sortie: SortieState, upto_tick: int) -> bool:
     """Any hit or damage from an attacker (not the environment, not the player themselves) on aircraft or pilot."""
     airframe = sortie.airframe
@@ -273,6 +324,7 @@ def pilot_fate_of(
     forced: bool,
     bailout: bool,
     exit_pos_known: bool,
+    by_ejection_spawn: bool,
     disconnect_tick: int | None,
     dead: bool,
 ) -> tuple[PilotFate, PilotFateSource]:
@@ -292,7 +344,7 @@ def pilot_fate_of(
     disconnected = sortie.ended_by_removal or (disconnect_tick is not None and sortie.airborne_at_end and plain_end)
     if sortie.end_aircraft_id == 0:
         if bailout:
-            return "bailed_out", "inferred"
+            return "bailed_out", "event" if by_ejection_spawn else "inferred"
         return ("exited_on_ground", "inferred") if exit_pos_known else ("unknown", "unknown")
     if disconnected:
         return "disconnected", "inferred"

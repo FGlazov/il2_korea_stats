@@ -10,7 +10,7 @@ from il2ks.core.replay.fate import (
     Loss,
     aircraft_loss,
     attacker_involved,
-    bailout_v2,
+    bailout_v3,
     disconnect_death,
     disconnect_tick_of,
     final_pos_pending,
@@ -87,14 +87,16 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         loss = loss if loss is not None and loss.tick < mission_end else None
         died = died if died is not None and died < mission_end else None
         forced = loss is None and died is None
-    bailout, exit_known = bailout_v2(sortie, loss, died, rules)
+    found = bailout_v3(sortie, loss, died, end, rules)
+    bailout = found.detected
     shot_down_directly = loss is not None and loss.by is not None and not is_self_attack(loss.by, airframe, sortie)
 
     fate, source = pilot_fate_of(
         sortie=sortie,
         forced=forced,
         bailout=bailout,
-        exit_pos_known=exit_known,
+        exit_pos_known=found.exit_pos_known,
+        by_ejection_spawn=found.by_ejection_spawn,
         disconnect_tick=disc_tick,
         dead=died is not None,
     )
