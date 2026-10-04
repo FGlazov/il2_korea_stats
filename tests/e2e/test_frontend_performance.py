@@ -89,6 +89,10 @@ def measure(page: Page, url: str, base: str) -> Weight:
 MAX_REQUESTS = 16
 MAX_TOTAL_KB = 390
 MAX_HTML_KB = 70
+HTML_BUDGET_KB_BY_PAGE = {"sortie from a real log": 90}
+"""Maintainer decision (2026-10-04): a detail page gets a higher HTML budget than a list. The sortie page's timeline is
+no longer paginated (every event of the sortie is on the page) and the column headers carry descriptions; the real-log
+sortie measured 71 KB against the global 70. The global budget stays; only this page may be heavier."""
 MAX_SPRITE_KB = 50
 MAX_CSS_KB = 140
 MAX_JS_KB = 75
@@ -108,7 +112,8 @@ def test_page_weight_budget(page: Page, world: World, base_url: str, name: str) 
     assert not weight.failed, f"requests failed: {weight.failed}"
     assert weight.requests <= MAX_REQUESTS, f"{weight.requests} requests (budget {MAX_REQUESTS})"
     assert weight.total() <= MAX_TOTAL_KB * KB, f"{weight.total() / KB:.0f} KB in total (budget {MAX_TOTAL_KB} KB)"
-    assert weight.of("document") <= MAX_HTML_KB * KB, f"HTML {weight.of('document') / KB:.0f} KB (budget {MAX_HTML_KB})"
+    html_budget = HTML_BUDGET_KB_BY_PAGE.get(name, MAX_HTML_KB)
+    assert weight.of("document") <= html_budget * KB, f"HTML {weight.of('document') / KB:.0f} KB (budget {html_budget})"
     assert weight.of("other") <= MAX_SPRITE_KB * KB, (
         f"icon sprite {weight.of('other') / KB:.0f} KB (budget {MAX_SPRITE_KB})"
     )

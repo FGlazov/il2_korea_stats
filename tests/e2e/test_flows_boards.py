@@ -81,8 +81,9 @@ def test_a_player_scans_the_boards_and_finds_himself_on_each(page: Page, world: 
     open_board(page, "Interception", "interception")
     rows = board(page)
     assert players(page)[0] == world.ace
-    assert number(rows[0]["Bombers and attackers shot down"]) == 12
-    assert number(row_for(rows, world.rival, "Player")["Bombers and attackers shot down"]) == 0
+    shot_down = "Bombers, attackers and transports shot down"
+    assert number(rows[0][shot_down]) == 12
+    assert number(row_for(rows, world.rival, "Player")[shot_down]) == 0
 
     # Ground boards: only the attack pilot is on the per-hour and tank boards, and Ace shows on the plain ground board
     open_board(page, "Ground score per hour", "ground-hour")

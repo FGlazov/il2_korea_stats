@@ -15,7 +15,13 @@ PATIENT_MS = 20_000
 
 TABLE_ROWS = r"""table => {
   const text = el => el.textContent.replace(/\s+/g, " ").trim();
-  const headers = [...table.querySelectorAll("thead th")].map(t => text(t).replace(/\s+[^\w\s]$/, ""));
+  // a header's description (role=tooltip) and its "?" marker are not part of its label
+  const label = th => {
+    const copy = th.cloneNode(true);
+    copy.querySelectorAll("[role=tooltip], .col-hint__marker").forEach(e => e.remove());
+    return text(copy).replace(/\s+[^\w\s]$/, "");
+  };
+  const headers = [...table.querySelectorAll("thead th")].map(label);
   return [...table.querySelectorAll('tbody tr')].map(tr => {
     const row = {};
     [...tr.children].forEach((cell, i) => { row[headers[i] ?? String(i)] = text(cell); });
@@ -42,9 +48,10 @@ def table_with(page: Page, *headers: str) -> Locator:
 
 def header_name(label: str) -> re.Pattern[str]:
     """A sortable column header's accessible name is its label plus a one-character sort arrow ("Pilots ↕"): match
-    the label exactly, with or without the arrow (so "Air kills" does not match "Air kills (PvP)")."""
+    the label exactly, with or without the arrow (so "Air kills" does not match "Air kills (PvP)"). While the pointer or
+    focus is on a header with a description, the shown description is part of the name too: allowed after the arrow."""
     escaped = re.escape(label).replace("/", "\\/")  # Playwright prints a regex into its selector without escaping "/"
-    return re.compile(rf"^{escaped}(\s+\S)?\s*$")
+    return re.compile(rf"^{escaped}(\s+[↕▲▼](\s.*)?)?\s*$", re.S)
 
 
 def settle(page: Page) -> None:
