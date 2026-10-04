@@ -1,13 +1,14 @@
-{# il2ks-template: templates/il2ks/streaks/home_block.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/streaks/home_block.html v2 - copy this line along when you override #}
 {% load i18n il2ks il2ks_boards %}{% comment %}
   home_block.html: the home page's "Longest ironman streaks" list (FR-WEB-23). Reads its own rows with
-  {% home_streaks as streaks %}; shows nothing when nobody is on a streak. Links: web:player-detail, web:streak-list.
-{% endcomment %}{% home_streaks as streaks %}{% if streaks %}<section aria-labelledby="streaks-heading">
-  <h2 id="streaks-heading">{% translate "Longest ironman streaks" %}</h2>
+  {% home_streaks tour as streaks %} (running streaks all time; with a tour, the longest streaks inside it, OQ-79); shows nothing
+  when there are none. Context: tour. Links: web:player-detail, web:streak-list.
+{% endcomment %}{% home_streaks tour as streaks %}{% if streaks %}<section aria-labelledby="streaks-heading">
+  <h2 id="streaks-heading">{% if tour %}{% translate "Longest ironman streaks in this tour" %}{% else %}{% translate "Longest ironman streaks" %}{% endif %}</h2>
   <div class="table-wrap">
     <table class="data-table data-table--compact">
       <thead><tr><th scope="col">{% translate "Pilot" %}</th><th scope="col" class="num">{% translate "Sorties" %}</th><th scope="col" class="num">{% translate "Air kills" %}</th><th scope="col" class="num">{% translate "Flight time" %}</th></tr></thead>
-      <tbody>{% for row in streaks %}<tr><td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td><td class="num">{{ row.current_sorties|num }}</td><td class="num">{{ row.current_kills_air|num }}</td><td class="num">{{ row.current_flight_time_s|duration }}</td></tr>{% endfor %}</tbody>
+      <tbody>{% for row in streaks %}<tr><td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td><td class="num">{{ row.sorties|num }}</td><td class="num">{{ row.kills_air|num }}</td><td class="num">{{ row.flight_time_s|duration }}</td></tr>{% endfor %}</tbody>
     </table>
   </div>
   <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:streak-list' %}">{% translate "All streaks" %}</a></p>

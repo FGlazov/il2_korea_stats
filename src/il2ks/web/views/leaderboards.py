@@ -26,10 +26,12 @@ BOARD_TITLES = {
     "tank-busting": _("Tank busting"),
     "elo-prop": _("Elo, prop"),
     "elo-jet": _("Elo, jet"),
+    "play-time": _("Play time"),
 }
 GROUP_TITLES = {
     "air": _("Air"),
     "ground": _("Ground"),
+    "general": _("General"),
 }
 BOARD_ICONS = {  # the icon set (static/il2ks/img): chess pieces for the Elo boards, the roles for the scores
     "elo-jet": "stat/elo-jet",
@@ -39,6 +41,7 @@ BOARD_ICONS = {  # the icon set (static/il2ks/img): chess pieces for the Elo boa
     "ground-hour": "stat/ground-hour",
     "tank-busting": "ground/tank",
     "ground": "role/attack",
+    "play-time": "stat/play-time",
 }
 RETIRED_BOARDS = frozenset({"kills"})  # removed 2026-10-04; old links go to the index
 POOL_OPTIONS = (("prop", _("Propeller")), ("jet", _("Jet")))
@@ -60,6 +63,7 @@ BOARD_HELP = {
         "A propeller kill on a jet counts double."
     ),
     "elo-jet": _("Air-to-air Elo of jets, from kills between air superiority sorties. All time."),
+    "play-time": _("Hours flown: the time spent in the air in all sorties, air and ground."),
 }
 
 

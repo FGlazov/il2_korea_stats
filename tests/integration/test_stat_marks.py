@@ -172,9 +172,9 @@ def test_elo_mark_renders_on_all_time_and_tour_profiles(client: Client) -> None:
     seed_scores_and_ratings()
     for query in ("?tour=all", f"?tour={tour('September 2026').pk}"):
         best = client.get(f"/players/{pk(25)}/{query}").content.decode()
-        assert "Better than 9 in 10 pilots with at least 3 rated games in this pool" in best, query
+        assert "Better than 9 in 10 pilots with at least 3 encounters in this pool" in best, query
         low = client.get(f"/players/{pk(2)}/{query}").content.decode()  # below the Elo minimum: no Elo mark
-        assert "rated games in this pool" not in low, query
+        assert "encounters in this pool" not in low, query
 
 
 def test_score_hour_mark_text_names_the_minutes(client: Client) -> None:

@@ -14,7 +14,7 @@ Rules:
 - `taxi_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the profile's hall of
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
-  and ratios need `min_sorties` sorties; Elo needs `min_elo_games` rated games in that pool (all time, shown against
+  and ratios need `min_sorties` sorties; Elo needs `min_elo_games` encounters in that pool (all time, shown against
   the all-time population on a tour profile too); ground score and tanks per hour need
   `min_time_on_target_s` on target; interception per hour needs `min_air_superiority_s` of air superiority flight. The
   stored `StatThreshold.min_sorties` holds that minimum in the metric's unit (sorties, games, seconds).
@@ -72,7 +72,7 @@ class MarkRules:
     """The `[marks]` config section."""
 
     min_sorties: int = 20  # a pilot (and a distribution) needs at least this many counted sorties
-    min_elo_games: int = 5  # Elo marks: rated games in that pool (the `[score]` minimum of the Elo boards)
+    min_elo_games: int = 5  # Elo marks: encounters in that pool (the `[score]` minimum of the Elo boards)
     min_time_on_target_s: float = 600.0  # ground score / tanks per hour: time on target (the boards' minimum)
     min_air_superiority_s: float = 3600.0  # interception per hour: air superiority flight time (the board's minimum)
 
@@ -134,7 +134,7 @@ def unit(metric: Metric) -> Unit:
 
 
 def amount(metric: Metric, totals: Totals) -> float:
-    """The pilot's figure the minimum of `metric` is compared with (sorties, rated games in the pool, seconds)."""
+    """The pilot's figure the minimum of `metric` is compared with (sorties, encounters in the pool, seconds)."""
     match metric:
         case "elo_prop":
             return totals.elo_prop_games

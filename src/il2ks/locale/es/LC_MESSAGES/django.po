@@ -51,10 +51,10 @@ msgstr[1] "%(counter)s despegues"
 
 # llm-draft
 #, python-format
-msgid "%(games)s game"
-msgid_plural "%(games)s games"
-msgstr[0] "%(games)s partida"
-msgstr[1] "%(games)s partidas"
+msgid "%(games)s encounter"
+msgid_plural "%(games)s encounters"
+msgstr[0] "%(games)s encuentro"
+msgstr[1] "%(games)s encuentros"
 
 # llm-draft
 #, python-format
@@ -514,18 +514,16 @@ msgstr "Combate aéreo"
 
 # llm-draft
 #, python-format
-msgid ""
-"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
-"game."
+msgid "Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s encounter."
 msgid_plural ""
-"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s rated "
-"games."
+"Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s "
+"encounters."
 msgstr[0] ""
-"Elo aire-aire con esta aeronave, a partir de derribos entre salidas de superioridad aérea. Pilotos con al menos "
-"%(games)s partida puntuada."
+"Elo aire-aire con este avión, a partir de derribos entre salidas de superioridad aérea. Pilotos con al menos "
+"%(games)s encuentro."
 msgstr[1] ""
-"Elo aire-aire con esta aeronave, a partir de derribos entre salidas de superioridad aérea. Pilotos con al menos "
-"%(games)s partidas puntuadas."
+"Elo aire-aire con este avión, a partir de derribos entre salidas de superioridad aérea. Pilotos con al menos "
+"%(games)s encuentros."
 
 # llm-draft
 msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
@@ -843,6 +841,13 @@ msgstr "Mejores rachas de %(name)s"
 
 # llm-draft
 #, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s encounter in this pool"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s encounters in this pool"
+msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s encuentro en este grupo"
+msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s encuentros en este grupo"
+
+# llm-draft
+#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s minute of air superiority flight"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes of air superiority flight"
 msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minuto de vuelo en superioridad aérea"
@@ -857,17 +862,17 @@ msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minutos sobre el obj
 
 # llm-draft
 #, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s rated game in this pool"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s rated games in this pool"
-msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s partida clasificada en esta categoría"
-msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s partidas clasificadas en esta categoría"
-
-# llm-draft
-#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
 msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salida"
 msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salidas"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s encounter in this pool"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s encounters in this pool"
+msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s encuentro en este grupo"
+msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s encuentros en este grupo"
 
 # llm-draft
 #, python-format
@@ -882,13 +887,6 @@ msgid "Better than 9 in 10 pilots with at least %(n)s minute on target"
 msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes on target"
 msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minuto sobre el objetivo"
 msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minutos sobre el objetivo"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s rated game in this pool"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s rated games in this pool"
-msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s partida clasificada en esta categoría"
-msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s partidas clasificadas en esta categoría"
 
 # llm-draft
 #, python-format
@@ -1275,6 +1273,10 @@ msgid "Empty missions"
 msgstr "Misiones vacías"
 
 # llm-draft
+msgid "Encounters"
+msgstr "Encuentros"
+
+# llm-draft
 msgid "Ended"
 msgstr "Fin"
 
@@ -1494,6 +1496,10 @@ msgstr "Derribos por fuego amigo"
 # llm-draft
 msgid "Full killboard"
 msgstr "Registro de derribos completo"
+
+# llm-draft
+msgid "General"
+msgstr "General"
 
 # llm-draft
 msgid "Given up"
@@ -1740,6 +1746,10 @@ msgstr "Por fin en casa, y ni siquiera la rampa era segura. El equipo de tierra 
 # llm-draft
 msgid "Hours Aloft"
 msgstr "Horas en el aire"
+
+# llm-draft
+msgid "Hours flown: the time spent in the air in all sorties, air and ground."
+msgstr "Horas de vuelo: el tiempo en el aire en todas las salidas, aire y tierra."
 
 # llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
@@ -2113,6 +2123,10 @@ msgid "Longest ironman streaks"
 msgstr "Rachas Ironman más largas"
 
 # llm-draft
+msgid "Longest ironman streaks in this tour"
+msgstr "Rachas Ironman más largas de esta temporada"
+
+# llm-draft
 msgid "Loss cause"
 msgstr "Causa de la pérdida"
 
@@ -2364,8 +2378,8 @@ msgid "No pilot has enough attack sorties in this aircraft yet."
 msgstr "Ningún piloto tiene aún suficientes salidas de ataque con esta aeronave."
 
 # llm-draft
-msgid "No pilot has enough rated games in this aircraft yet."
-msgstr "Ningún piloto tiene aún suficientes partidas puntuadas con esta aeronave."
+msgid "No pilot has enough encounters in this aircraft yet."
+msgstr "Todavía ningún piloto tiene suficientes encuentros con este avión."
 
 # llm-draft
 msgid "No pilot sorties are counted for this player in the selected tour."
@@ -2738,11 +2752,15 @@ msgstr ""
 "últimos %(days)s días."
 
 # llm-draft
+msgid "Pilots with any flight time."
+msgstr "Pilotos con algo de tiempo de vuelo."
+
+# llm-draft
 #, python-format
-msgid "Pilots with at least %(games)s rated game."
-msgid_plural "Pilots with at least %(games)s rated games."
-msgstr[0] "Pilotos con al menos %(games)s partida puntuada."
-msgstr[1] "Pilotos con al menos %(games)s partidas puntuadas."
+msgid "Pilots with at least %(games)s encounter."
+msgid_plural "Pilots with at least %(games)s encounters."
+msgstr[0] "Pilotos con al menos %(games)s encuentro."
+msgstr[1] "Pilotos con al menos %(games)s encuentros."
 
 # llm-draft
 #, python-format
@@ -2768,6 +2786,10 @@ msgstr "Aviones perdidos"
 # llm-draft
 msgid "Platinum"
 msgstr "Platino"
+
+# llm-draft
+msgid "Play time"
+msgstr "Tiempo de juego"
 
 # llm-draft
 msgid "Player"
@@ -2895,10 +2917,6 @@ msgstr "Salidas REDFOR"
 # llm-draft
 msgid "REDFOR won"
 msgstr "Ganó REDFOR"
-
-# llm-draft
-msgid "Rated games"
-msgstr "Partidas puntuadas"
 
 # llm-draft
 msgid "Ratings"

@@ -221,7 +221,7 @@ def test_top_pilots_need_enough_rated_games(client: Client) -> None:
     assert "Player-3" not in body  # one rated game, under the minimum
     with override_settings(IL2KS_LEADERBOARDS=LeaderboardConfig(min_elo_games=99)):
         body = client.get(detail_url("MiG-15bis")).content.decode()
-    assert "No pilot has enough rated games in this aircraft yet." in body
+    assert "No pilot has enough encounters in this aircraft yet." in body
 
 
 @override_settings(IL2KS_LEADERBOARDS=RATED)

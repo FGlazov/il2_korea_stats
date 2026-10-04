@@ -318,6 +318,7 @@ def test_the_board_switcher_lists_the_air_boards_then_the_ground_boards(client: 
     assert groups == {
         "Air": ["elo-jet", "elo-prop", "air", "interception"],
         "Ground": ["ground-hour", "tank-busting", "ground"],
+        "General": ["play-time"],  # OQ-79
     }
     body = client.get("/leaderboards/").content.decode()
     assert "Propeller and jet" in body
@@ -376,7 +377,7 @@ def test_home_highlights_elo_and_ground_proficiency(client: Client) -> None:
     response = client.get("/")
 
     boards = {b.key: [r.player.current_name for r in b.rows] for b in response.context["boards"]}
-    assert list(boards) == ["elo-jet", "elo-prop", "interception", "ground-hour", "tank-busting"]
+    assert list(boards) == ["elo-jet", "elo-prop", "interception", "ground-hour", "tank-busting", "play-time"]
     assert boards["elo-jet"][0] == "Ace"
     assert boards["ground-hour"] == ["Pounder", "Fencer"]
     assert boards["tank-busting"] == ["Pounder", "Fencer"]
@@ -421,11 +422,16 @@ def test_leaderboard_selector_offers_all_time_as_all_and_filters_keep_it(client:
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
-def test_home_ground_board_links_to_the_all_time_board(client: Client) -> None:
-    """The home block lists the all-time top 5, so its title and player links must open the all-time view."""
+def test_home_ground_board_links_keep_the_home_pages_tour(client: Client) -> None:
+    """The home block lists the selected tour's top 5 (OQ-79), so its title and player links open that tour; the Elo
+    boards are all time and link to all time."""
     seed()
+    tour = Tour.objects.get()
+    default = client.get("/").content.decode()
+    assert f'href="/leaderboards/ground-hour/?tour={tour.pk}"' in default
+    assert f"/players/{Player.objects.get(current_name='Pounder').pk}/?tour={tour.pk}" in default
 
-    html = client.get("/").content.decode()
+    html = client.get("/?tour=all").content.decode()
 
     assert 'href="/leaderboards/ground-hour/?tour=all"' in html
     assert 'href="/leaderboards/elo-jet/"' in html

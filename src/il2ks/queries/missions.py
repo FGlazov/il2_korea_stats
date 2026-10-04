@@ -93,9 +93,12 @@ def mission_list(filters: MissionFilters, sort: str, now: datetime, *, with_tour
     return missions.order_by(order_by(SORT_FIELDS[sort.removeprefix("-")], sort), "-started_at", "-pk")
 
 
-def latest_missions(limit: int) -> list[Mission]:
-    """The newest visible missions that have at least one sortie (home page)."""
-    return list(Mission.objects.visible().filter(sorties_total__gt=0).order_by("-started_at", "-pk")[:limit])
+def latest_missions(limit: int, tour: Tour | None = None) -> list[Mission]:
+    """The newest visible missions that have at least one sortie (home page), in `tour` when given (OQ-79)."""
+    missions = Mission.objects.visible().filter(sorties_total__gt=0)
+    if tour is not None:
+        missions = missions.filter(tour=tour)
+    return list(missions.order_by("-started_at", "-pk")[:limit])
 
 
 def top_pilots(mission: Mission, limit: int) -> list[PlayerMission]:

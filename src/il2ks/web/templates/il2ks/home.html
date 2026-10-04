@@ -1,6 +1,8 @@
-{# il2ks-template: templates/il2ks/home.html v8 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v9 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_live %}{% comment %}
-  Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
+  Home page (OQ-79: tour-aware, no ?tour = the current tour, ?tour=all = all time; online now is live). Context: tours / tour
+  (the tour selector), tour_query ("?tour=<id>" or "?tour=all", for links that keep the scope),
+  latest (the newest missions that have sorties, in the tour), last_mission (the first of them, or None),
   activity (ChartSpec or None), boards (HomeBoard: .key, .title, .rows of BoardRow: rank, player, stats, per_hour),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
   Blocks: head (page stylesheet), content.
@@ -17,6 +19,8 @@
       <button type="submit">{% translate "Search" %}</button>
     </form>
   </section>
+
+  {% tour_select tours tour %}
 
   {% if last_mission %}
     <section aria-labelledby="last-heading" class="last-mission">
@@ -95,6 +99,6 @@
         <tbody>{% include "il2ks/missions/_rows.html" with missions=latest empty_message=_("No missions yet.") %}</tbody>
       </table>
     </div>
-    <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:mission-list' %}?tour=all">{% translate "All missions" %}</a></p>
+    <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:mission-list' %}{{ tour_query }}">{% translate "All missions" %}</a></p>
   </section>
 {% endblock %}

@@ -14,11 +14,11 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from il2ks.core.catalog.loader import Side
-from il2ks.db.models import PlayerMission, PlayerSortie
+from il2ks.db.models import PlayerMission, PlayerSortie, Tour
 from il2ks.queries import activity as activity_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import missions as reads
-from il2ks.queries.tours import is_quiet_tour, tour_choice_from
+from il2ks.queries.tours import is_quiet_tour, tour_choice_from, tour_query
 from il2ks.web import columns, display
 from il2ks.web.chart_data import activity_chart
 from il2ks.web.views.leaderboards import BOARD_TITLES
@@ -55,7 +55,11 @@ class HomeBoard:
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    latest = reads.latest_missions(HOME_MISSIONS)
+    """`/?tour=`: the home page (OQ-79). Like every tour-aware page (TD-26) no `tour` is the current tour and
+    `?tour=all` is all time: the last mission, its top pilots, the latest missions, the activity chart, the streak list
+    and the compact boards follow the choice (the Elo boards are all-time only); "online now" stays live."""
+    choice = tour_choice_from(request.GET)
+    latest = reads.latest_missions(HOME_MISSIONS, choice.selected)
     last = latest[0] if latest else None
     pilots = (
         [
@@ -69,18 +73,20 @@ def home(request: HttpRequest) -> HttpResponse:
         "latest": latest,
         "last_mission": last,
         "pilots": pilots,
-        "activity": activity_chart(activity_reads.recent_activity()),
-        "boards": _home_boards(),
+        "activity": activity_chart(activity_reads.recent_activity(tour=choice.selected)),
+        "boards": _home_boards(choice.selected),
+        "tour_query": tour_query(choice.selected),
+        **choice.context,
     }
     return render(request, "il2ks/home.html", context)
 
 
-def _home_boards() -> list[HomeBoard]:
-    """The boards the maintainer wants on the home page (OQ-64): Elo of both pools and ground proficiency. One read
-    each."""
+def _home_boards(tour: Tour | None) -> list[HomeBoard]:
+    """The boards the maintainer wants on the home page (OQ-64, OQ-79): Elo of both pools, the skill boards and play
+    time, in `tour` (Elo is all time). One read each."""
     rules = board_reads.rules()
     return [
-        HomeBoard(key, str(BOARD_TITLES[key]), board_reads.top_rows(board_reads.BOARDS[key], rules))
+        HomeBoard(key, str(BOARD_TITLES[key]), board_reads.top_rows(board_reads.BOARDS[key], rules, tour=tour))
         for key in board_reads.HOME_BOARDS
     ]
 

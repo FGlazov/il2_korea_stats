@@ -5,7 +5,8 @@ keep the profile and home views untouched: a section is one include line.
 
 Tags: killboard_top (-> Board), type_killboard (-> queries.boards.TypeBoard),
 player_streak (-> PlayerStreak or None), player_tour_streak (-> PlayerBestStreak or
-None), home_streaks (-> list of PlayerStreak). The first and the third take the selected tour (None = all time).
+None), home_streaks (-> list of HomeStreak). The first, the third and home_streaks take the selected tour (None = all
+time; home_streaks then lists the longest streaks inside the tour, OQ-79).
 """
 
 from collections.abc import Sequence
@@ -54,7 +55,23 @@ def player_tour_streak(player: Player, tour: Tour) -> PlayerBestStreak | None:
     return reads.best_streak_of(player, tour)
 
 
+@dataclass(frozen=True, slots=True)
+class HomeStreak:
+    """A row of the home page's streak list: the player and the streak's totals."""
+
+    player: Player
+    sorties: int
+    kills_air: int
+    flight_time_s: float
+
+
 @register.simple_tag
-def home_streaks() -> list[PlayerStreak]:
-    """{% home_streaks as streaks %}: the longest running streaks of visible players (the home page block)."""
-    return reads.longest_current_streaks(datetime.now(UTC))
+def home_streaks(tour: Tour | None = None) -> list[HomeStreak]:
+    """{% home_streaks tour as streaks %}: the longest running streaks of visible players (the home page block), or,
+    with a tour (OQ-79), the longest streaks inside that tour."""
+    if tour is not None:
+        return [HomeStreak(r.player, r.sorties, r.kills_air, r.flight_time_s) for r in reads.longest_tour_streaks(tour)]
+    return [
+        HomeStreak(r.player, r.current_sorties, r.current_kills_air, r.current_flight_time_s)
+        for r in reads.longest_current_streaks(datetime.now(UTC))
+    ]

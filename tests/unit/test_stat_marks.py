@@ -207,12 +207,12 @@ def test_each_metric_has_its_own_minimum() -> None:
 
 def test_elo_mark_uses_the_player_also_when_stats_is_a_tour_row() -> None:
     marks = {"elo_jet": _threshold("elo_jet", p10=1400.0, p25=1450.0, p50=1500.0, p75=1550.0, p90=1600.0)}
-    marks["elo_jet"].min_sorties = 5  # rated games for an Elo row
+    marks["elo_jet"].min_sorties = 5  # encounters for an Elo row
     player = Player(sorties=1, elo_jet=1700.0, elo_jet_games=6)
     source = '{% load il2ks %}{% stat_mark "elo_jet" %}'
     html = Template(source).render(Context({"stats": PlayerTour(sorties=1), "player": player, "marks": marks}))
     assert "Top 10%" in html
-    assert "at least 5 rated games" in html
+    assert "at least 5 encounters" in html
     few = Player(sorties=1, elo_jet=1700.0, elo_jet_games=4)
     assert Template(source).render(Context({"stats": few, "player": few, "marks": marks})).strip() == ""
 

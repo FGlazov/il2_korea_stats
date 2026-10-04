@@ -73,7 +73,7 @@ def _write(
     pilots = [Totals(**dict(zip(fields, values, strict=True))) for values in rows.filter(eligible).values_list(*fields)]
     wanted: dict[Metric, Thresholds] = {}
     for metric in metrics:
-        minimum = rules.minimum(metric)  # each metric has its own population: sorties, rated games or time on target
+        minimum = rules.minimum(metric)  # each metric has its own population: sorties, encounters or time on target
         found = thresholds(metric_value(metric, totals) for totals in pilots if amount(metric, totals) >= minimum)
         if found is not None:
             wanted[metric] = found
