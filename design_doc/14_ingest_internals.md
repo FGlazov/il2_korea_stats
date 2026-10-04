@@ -231,6 +231,17 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   the owner is the carrier), so a replay **drop-filter** (skip explosion lines of AI attackers early) saves almost nothing and was **not adopted**.
   **Burst coalescing** (merging consecutive same-tick explosion lines of one attacker into one parser event; estimated 25-30% less parse + replay)
   is **in progress, not built**; the roadmap tracks it.
+  **Non-std tokenizer libraries** (measured 2026-10-04 against the parser after bursts; 12 sample missions, 1.0M lines, 327K non-burst; best of 3-5, noisy
+  machine; maintainer rule: allowed if it gives more than 10% on tokenizing). **Nothing adopted.** The per-AType regex step (head match + `fullmatch`
+  + `groups()`) is only about **10% of parse** (0.125 s of 1.3 s); event construction is about 45%, burst detection about 22%. Engines on that step:
+  stdlib `re` 0.125 s, `regex` 0.28 s (2x slower), `google-re2` 4.3 s (35x slower, str->bytes copy per call; its win_amd64 and manylinux wheels exist,
+  0.5-0.6 MB), `pyre2` (wheels exist, but `import re2` fails on Windows here), `hyperscan` (wheels, 2-2.8 MB, but no capture groups, so no tokenizing).
+  Bulk string kernels (`polars` 1.44, wheels for win/linux x86_64+aarch64, **~52 MB** with `polars-runtime-32`; `pyarrow` 28-53 MB): a prototype that
+  finds the explosion bursts in bulk (extract groups, run boundaries, group by) took 0.46-0.51 s per 1.0M lines against about 0.5 s for today's string
+  operations, so parse went from 2.1-2.2 s to 1.9-2.15 s: 0-10%, inside the noise, for a dependency that doubles the installer. No lexer library fits
+  (`lark`/`ply` are pure Python and slower than `re`); our own C/Rust extension would need CI-built wheels for win_amd64 and linux x86_64/aarch64
+  (cibuildwheel, three more jobs, a release step per Python bump) and could at most save the 10% regex share. Revisit only if event construction is
+  moved out of Python.
   Tools: `il2ks dev bench-ingest <dir> [--cpu]` (copies its input to a temp dir, times each phase; `--cpu` times process CPU instead of the wall
   clock so antivirus and other jobs do not skew it, but Windows resolves CPU time to about 15 ms, fine for sums and medians) and
   `il2ks dev dump-db` (every table as sorted JSON lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is
