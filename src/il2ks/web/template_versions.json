@@ -111,11 +111,11 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "93d7f660fedb403fd90f0d1ec725c369e36205960db6f23e6d72ee9072edc377"
+      "sha256": "9ee4e7d8e5bfe37bd31defb1a4e64089ac111b4c71de67ea96057954ec0008e7"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
-      "sha256": "13542edc92ddbd744a47aef8a59fb762cdcd4d9634f806afdaea4996312ff605"
+      "sha256": "ffd1ada7cee584f705cf68c1827d34cd4d5140fe65d1f5854e1df45f0bab9835"
     },
     "templates/il2ks/aircraft/parts/ammo_mix_row.html": {
       "version": 1,
@@ -205,9 +205,13 @@
       "version": 1,
       "sha256": "5846925db5109d6763a471deda71e5cc2e3badab3b5c57aa5d7ad1fbad65f339"
     },
+    "templates/il2ks/components/role_toggle.html": {
+      "version": 1,
+      "sha256": "5bbf274f1ba21076bfa0ea7fc8735715d564ae66c869fe7df3a7d3b0a8e1ebcb"
+    },
     "templates/il2ks/components/sort_th.html": {
       "version": 1,
-      "sha256": "30557119a0562ff24b08e0502d6e766938a2d06dbbfb64a25e6f0b50e6d03ea1"
+      "sha256": "aaba9d981fab1cdb716c58eefe356cfe5b1ad112a2f82eb4c9f4c3e4b3a7d1d7"
     },
     "templates/il2ks/components/stat_mark.html": {
       "version": 1,

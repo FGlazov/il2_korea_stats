@@ -186,6 +186,15 @@ def _fill_gun_hits() -> None:
     SortieGunHits.objects.bulk_create(new, batch_size=500)
 
 
+def _check_tour_aircraft() -> bool:
+    """A database from before the aircraft stats per tour and combat role (FR-WEB-8, TD-26) has counted sorties with a
+    role but no role row in `TourAircraftStats`: level 2 must be rebuilt (the loadout roles and Elo come with it)."""
+    from il2ks.db.models import AircraftRole, PlayerSortie, TourAircraftStats
+
+    has_roles = PlayerSortie.objects.filter(role="pilot", combat_role__isnull=False).exists()
+    return has_roles and not TourAircraftStats.objects.exclude(role=AircraftRole.ALL).exists()
+
+
 def _check_streak_runs() -> bool:
     """A database from before the streak history (OQ-82) and the assists received (OQ-81) has pilot sorties but no
     `PlayerStreakRun` row: level 2 must be rebuilt. A database with no pilot sorties returns False;

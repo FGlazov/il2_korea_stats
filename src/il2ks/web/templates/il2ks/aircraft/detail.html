@@ -4,9 +4,10 @@
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
   selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
   (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
+  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters the tiles, the pilot count, the loadouts and the top pilots; matchups follow it as the intercept scope), matchup_role_note (attack: the matchups ignore the role), show_elo / show_ground (which top-pilots tables), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
-  (an attack type), rules (the leaderboard minimums), payloads (AircraftPayload rows), crumbs, page_title.
+  (an attack type), rules (the leaderboard minimums), loadouts (Loadout: payload (AircraftPayload), elo, kills_per_sortie, kd,
+  ground_hour; None = a dash), loadout_sort (?lsort=), crumbs, page_title.
   Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
   The totals include hidden players; only the top-pilots tables leave them out (FR-ADM-3).
   K/D and K/L use air kills (OQ-38). Blocks of this page: content.
@@ -23,7 +24,8 @@
   </div>
 
   {% tour_select tours tour %}
-  <p class="muted">{% translate "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time." %}</p>
+  {% role_toggle role %}
+  <p class="muted">{% translate "The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts cover all time, and hits to destroy always count every role (it is about kills of this aircraft)." %}</p>
 
   <div class="stat-tiles profile-tiles">
     {% blocktranslate with rate=survived|percent:tile.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
@@ -54,12 +56,15 @@
   <section>
     <h2>{% translate "Matchups" %}</h2>
     <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
+    {% if role != "air_superiority" %}
     <p class="tour-bar">
       <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
         <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All kills and losses" %}</a>
         <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept sorties only" %}</a>
       </span>
     </p>
+    {% endif %}
+    {% if matchup_role_note %}<p class="muted">{% translate "The role filter does not apply to matchups: they show every kill and loss of this aircraft." %}</p>{% endif %}
     {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
     {% if matchups.best %}
       <p>{% blocktranslate with enemy=matchups.best.enemy|object_name kills=matchups.best.kills|num losses=matchups.best.losses|num %}Best exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}
@@ -98,11 +103,11 @@
   </section>
 
   {% if ground_first %}
-    {% include "il2ks/aircraft/top_ground.html" with primary=True %}
-    {% include "il2ks/aircraft/top_elo.html" with primary=False %}
+    {% if show_ground %}{% include "il2ks/aircraft/top_ground.html" with primary=True %}{% endif %}
+    {% if show_elo %}{% include "il2ks/aircraft/top_elo.html" with primary=False %}{% endif %}
   {% else %}
-    {% include "il2ks/aircraft/top_elo.html" with primary=True %}
-    {% include "il2ks/aircraft/top_ground.html" with primary=False %}
+    {% if show_elo %}{% include "il2ks/aircraft/top_elo.html" with primary=True %}{% endif %}
+    {% if show_ground %}{% include "il2ks/aircraft/top_ground.html" with primary=False %}{% endif %}
   {% endif %}
 
   <section>
@@ -161,31 +166,45 @@
 
   <section>
     <h2>{% translate "Loadouts" %}</h2>
+    <p class="muted">{% translate "Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
           <tr>
-            <th scope="col">{% translate "Loadout" %}</th>
-            <th scope="col" class="num">{% translate "Sorties" %}</th>
-            <th scope="col" class="num">{% translate "Air kills" %}</th>
-            <th scope="col" class="num">{% translate "Ground kills" %}</th>
-            <th scope="col" class="num">{% translate "Deaths" %}</th>
+            {% sort_th "loadout" _("Loadout") current=loadout_sort param="lsort" %}
+            {% sort_th "sorties" _("Sorties") current=loadout_sort param="lsort" numeric=True %}
+            {% sort_th "kills_air" _("Air kills") current=loadout_sort param="lsort" numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") current=loadout_sort param="lsort" numeric=True %}
+            {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
+            {# Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects their skill, not only the loadout) #}
+            {% sort_th "elo" _("Average pilot Elo") current=loadout_sort param="lsort" numeric=True %}
+            {% sort_th "kills_per_sortie" _("Air kills per sortie") current=loadout_sort param="lsort" numeric=True %}
+            {# Translators: column header; player-versus-player air kills per death with this loadout #}
+            {% sort_th "kd" _("PvP K/D") current=loadout_sort param="lsort" numeric=True %}
+            {% sort_th "ground_hour" _("Ground score per hour on target") current=loadout_sort param="lsort" numeric=True %}
           </tr>
         </thead>
         <tbody>
-          {% for p in payloads %}
+          {% for row in loadouts %}
+            {% with p=row.payload %}
             <tr>
-              <td>{% if p.payload_name %}{{ p.payload_name }}{% else %}<span class="muted">{% translate "Unknown loadout" %}</span>{% endif %}</td>
+              <td>{% if p.payload_name %}{{ p.payload_name }}{% else %}<span class="muted">{% translate "Unknown loadout" %}</span>{% endif %}{% if role == "all" and p.combat_role %} {% role_badge p.combat_role %}{% endif %}</td>
               <td class="num">{{ p.sorties|num }}</td>
               <td class="num">{{ p.kills_air|num }}</td>
               <td class="num">{{ p.kills_ground|num }}</td>
               <td class="num">{{ p.deaths|num }}</td>
+              <td class="num">{{ row.elo|num }}</td>
+              <td class="num">{{ row.kills_per_sortie|num:2 }}</td>
+              <td class="num">{{ row.kd|num:2 }}</td>
+              <td class="num">{{ row.ground_hour|num:1 }}</td>
             </tr>
+            {% endwith %}
           {% empty %}
-            {% empty_row 5 %}
+            {% empty_row 9 %}
           {% endfor %}
         </tbody>
       </table>
     </div>
+    <p class="muted">{% blocktranslate with sorties=rules.min_air_superiority_sorties|num attack=rules.min_attack_sorties|num minutes=rules.min_time_on_target_minutes|num %}Rates are shown from {{ sorties }} air superiority sorties, or {{ attack }} attack sorties with {{ minutes }} minutes on target, as on the leaderboards.{% endblocktranslate %}</p>
   </section>
 {% endblock %}
