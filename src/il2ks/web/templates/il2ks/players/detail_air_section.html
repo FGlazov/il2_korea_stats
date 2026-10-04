@@ -8,7 +8,7 @@
   <h2 id="air-heading" class="profile-part__title">{% translate "Air-to-air" %}</h2>
   {% if air_active %}
     {% include "il2ks/players/detail_air_tiles.html" %}
-    <div class="split profile-split">
+    <div class="profile-cols">
       <section>
         <h3>{% translate "Ratios" %}</h3>
         {% include "il2ks/players/detail_ratios.html" %}
@@ -16,6 +16,8 @@
       <section>
         <h3>{% translate "Score and rating" %}</h3>
         {% include "il2ks/players/detail_scores.html" %}
+      </section>
+      <section>
         <h3>{% translate "Air kills by victim" %}</h3>
         {% include "il2ks/players/detail_air_split.html" %}
       </section>

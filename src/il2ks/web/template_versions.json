@@ -19,7 +19,7 @@
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "695ab4eeb772c081181cc5d2e707ae8a7f4d4089ad2188fb2af6b10ab35013f8"
+      "sha256": "3cc76feecf15b092bc64ee4f040c32cee8bd6539f267cd624dc37eb80084aed3"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -279,11 +279,11 @@
     },
     "templates/il2ks/players/detail_air_section.html": {
       "version": 1,
-      "sha256": "11073ecee61a93d4c1058a15d1936151c23a03b16152551b97c27daa67f1c7c2"
+      "sha256": "8ef88febf370cc7b3727bb9b56ec16dc93cb77cf9c876461ced48d3c9430b9a1"
     },
     "templates/il2ks/players/detail_air_split.html": {
       "version": 1,
-      "sha256": "74731a4e5998078439c0fc4306210317d1955ffb962e7beb4097fbef74596630"
+      "sha256": "2bbd5c53ac815b2214ea6338bf3c274c20955769d29c5538efd34485713a65d3"
     },
     "templates/il2ks/players/detail_air_tiles.html": {
       "version": 1,
@@ -303,7 +303,7 @@
     },
     "templates/il2ks/players/detail_ground_scores.html": {
       "version": 1,
-      "sha256": "3c697996938cc2903e69ad724a17a19da63360cf30c187747ba23d11aff08c89"
+      "sha256": "41d093ca071ab641eb1d950c480ec3a51973b5e236ad8c871821d72eb076ad44"
     },
     "templates/il2ks/players/detail_ground_section.html": {
       "version": 1,
@@ -335,7 +335,7 @@
     },
     "templates/il2ks/players/detail_ratios.html": {
       "version": 1,
-      "sha256": "eff45019208d6000676b62a0483c0d69ee1ab35f8cddb76c0ecb100e2a182c85"
+      "sha256": "1b184bbb1251352775d1e5ff8a447ea32ff9ed57ac9d4c2abbfd283c355634f3"
     },
     "templates/il2ks/players/detail_recent.html": {
       "version": 1,
@@ -343,7 +343,7 @@
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 1,
-      "sha256": "1682f255046a8d29fd730b49cb65db475b647c510d8b1670c3a2e408496811d8"
+      "sha256": "95cfe1bfd6fdb8f36fbaeb14faa134d294c9f0ee9163683db4e5df3de656fb79"
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,

@@ -41,10 +41,11 @@
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Four general headline tiles in one row on wide screens; the air and ground parts have two each. */
+/* Four general headline tiles in one row on wide screens; the air and ground parts (--part) keep the auto-fit row of site.css,
+   so 3 or 4 tiles fill the width without wrapping. */
 @media (min-width: 1100px) {
-  .profile-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.65rem; }
-  .profile-tiles--part { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 50%; }
+  .profile-tiles:not(.profile-tiles--part) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .profile-tiles { gap: 0.65rem; }
   .profile-tiles .stat-tile { padding-inline: 0.9rem; }
   .profile-tiles .stat-tile__value { font-size: 1.85rem; }
   .profile-tiles .stat-tile__icon { display: none; } /* "54 h 25 min" needs the room */
@@ -70,3 +71,33 @@
 .stat-mark { display: inline-block; margin-inline-start: 0.6rem; padding: 0.05rem 0.5rem; border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; line-height: 1.4; vertical-align: 0.1em; color: var(--il2-muted); cursor: help; }
 .stat-mark--top { color: var(--il2-primary); border-color: color-mix(in srgb, var(--il2-accent) 55%, transparent); background: color-mix(in srgb, var(--il2-accent) 16%, transparent); }
 .stat-mark-note { margin: -0.25rem 0 1rem; color: var(--il2-muted); font-size: 0.8rem; }
+
+/* Part tiles: as many as fit, none wider than 17rem (two tiles must not stretch over the whole page). */
+.profile-tiles--part { grid-template-columns: repeat(auto-fit, minmax(10.5rem, 17rem)); }
+
+/* Compact key-value boxes (profile parts): label left, number right-aligned in a narrow column so the figures line up;
+   the hint sits small under the label. Modifier of .kv (site.css), which other pages keep as is. */
+.kv--compact { grid-template-columns: minmax(0, 1fr) auto; gap: 0; padding: 0.1rem 1rem; margin-bottom: 0; }
+.kv--compact dt, .kv--compact dd { padding: 0.4rem 0; }
+.kv--compact dd { padding-inline-start: 1rem; text-align: end; white-space: nowrap; }
+.kv--compact dt small { display: block; margin-inline-start: 0; font-size: 0.74rem; line-height: 1.25; }
+.kv--compact dd small { font-size: 0.74rem; color: var(--il2-muted); }
+.kv--compact .stat-mark { margin-inline-start: 0.4rem; }
+/* Ground figures: two label/value pairs per row on wide screens. */
+@media (min-width: 760px) {
+  .kv--pairs { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; }
+  .kv--pairs dt:nth-last-of-type(-n+2), .kv--pairs dd:nth-last-of-type(-n+2) { border-bottom: 0; }
+  .kv--pairs dd:nth-of-type(odd) { padding-inline-end: 1rem; margin-inline-end: 1rem; border-inline-end: 1px solid var(--il2-border); }
+}
+
+/* Air part: Ratios / Score and rating / Air kills by victim side by side (three, then two, then one column). */
+.profile-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.25rem; align-items: start; }
+.profile-cols > section { min-width: 0; }
+.profile-cols h3 { margin-top: 1.2rem; }
+@media (max-width: 1099px) { .profile-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } .profile-cols > section:first-child { grid-row: span 2; } } /* Ratios is tall: the other two stack beside it */
+@media (max-width: 700px) { .profile-cols { grid-template-columns: minmax(0, 1fr); } .profile-cols > section:first-child { grid-row: auto; } }
+
+/* Empty states inside the profile's tables and side-by-side columns: one muted line, no illustration. The big illustrated
+   empty state stays for whole-page lists. */
+.profile-part .empty-row td, .profile-recent .empty-row td { padding: 0.6rem 1rem; text-align: start; }
+.profile-part .empty-row__mark, .profile-recent .empty-row__mark { display: none; }
