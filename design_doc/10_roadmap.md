@@ -55,7 +55,7 @@ Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-
   half-swapped restores, restore while running (refused unless `--force`, OQ-71), restore config path; SQLite WAL mode, the "data
   updated" time, admin password validators, Caddyfile validation, ETag details, logo deletion on Windows; Opus review #1 findings
   (installer, setup page, Docker; merged 2026-10-04).
-- 🔧 Fixes from the Opus review of 2026-10-04 (everything merged since ac9bada): chart axes in non-English languages, score backfill
+- ✅ Fixes from the Opus review of 2026-10-04 (everything merged since ac9bada): chart axes in non-English languages, score backfill
   ignoring `[marks]`, migration 0011 atomic again (✅), deprecated `utc_date`/`utc_short` aliases, huge `?tour=` values, hidden-player
   sort order on the killboard, heavy JSON columns in list queries, tour-aware scores on the profile.
 
@@ -64,8 +64,9 @@ The maintainer asked (2026-10-03) to build everything up to the end of iteration
 the release gate.
 - ✅ **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Merged
   2026-10-04 with the review fixes: service account `NT SERVICE\il2ks` (OQ-41, OQ-68), password via a locked temp file and
-  `/ADMINPASSWORDFILE=` (OQ-69), argument quoting, `python -P`. ⏳ Not yet compiled with Inno Setup on a real machine: the Windows CI job
-  is the first check.
+  `/ADMINPASSWORDFILE=` (OQ-69), argument quoting, `python -P`; on upgrade it warns in a message box about outdated customized
+  templates (log only when silent). 🔧 First CI compile (2026-10-04) builds, but the installer crashes in `InitializeWizard`: fix in
+  progress.
 - ✅ First-run **web setup page** for the installer (game folder, domain, admin account): config written write-validate-replace, token not
   in logs, restart after the response.
 - ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). ⏳ Docker https smoke on Windows.
@@ -78,9 +79,11 @@ the release gate.
 - ✅ OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE.
 - ✅ **Regression guards for agent work** (maintainer, 2026-10-04): `il2ks dev check` (fast / quick / `--full`) is the one pre-commit gate
   for agents, hooks, pre-commit and CI; released migrations can't be edited; template compile test; Claude Code hooks (doc 08).
-- 🔧 **Ingest speed** (maintainer, 2026-10-04): a faster, non-pure-Python tokenizer if it keeps good error messages, then profile and
-  fix the hot spots; target hundreds of milliseconds per mission. A repeatable benchmark command.
-- 🔧 **Performance tests for the pages** (maintainer, 2026-10-04): server-side timing budgets next to the query budgets, a Locust load
+- ✅ **Ingest speed, round 1** (maintainer, 2026-10-04): compiled-regex tokenizer fast path (the generic tokenizer stays the fallback
+  and reference), per-row UPDATEs instead of `bulk_update`, fewer WAL checkpoints: the 210 samples went from 842 s to 344 s (median
+  3.4 s → 1.3 s per mission), identical rows. `il2ks dev bench-ingest` / `dump-db`. 🔧 Round 2 (parse, replay, level 2, archive);
+  target hundreds of milliseconds per mission.
+- ✅ **Performance tests for the pages** (maintainer, 2026-10-04): server-side timing budgets next to the query budgets, a Locust load
   test (manual), front-end budgets (page weight, requests, LCP/CLS) in the Playwright job.
 
 ## Maintainer requests (2026-10-04)
@@ -95,15 +98,16 @@ the release gate.
 
 ## Decisions to apply (maintainer answers, 2026-10-03; doc 02 "Maintainer decisions")
 Do these while merging the finished branches, before the release where they touch release items:
-- 🔧 Local time: locale-native formats; zone only in the footer; show when the next tour starts.
-- 🔧 Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
+- ✅ Local time: locale-native formats; zone only in the footer; show when the next tour starts.
+- ✅ Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
 - ✅ Ammo: hide the per-ammo damage columns (keep hits).
-- 🔧 Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab. Per-tour killboard and streaks.
-- 🔧 Score: percentage penalties by outcome (death 80%, capture 50%, plane lost 20%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
-- 🔧 Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
-- 🔧 Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
-- ⏳ Doc 15: list every icon file in the designer brief.
-- 🔧 Rams: test the ram signal on the samples and confirm the results are plausible before enabling it (OQ-61 answer).
+- ✅ Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab. Per-tour killboard and streaks.
+- ✅ Score: percentage penalties by outcome (death 80%, capture 50%, plane lost 20%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
+- ✅ Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
+- ✅ Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
+- ✅ Doc 15: list every icon file in the designer brief (generated by `il2ks dev assets`; a test fails on drift).
+- ✅ Rams: tested on the samples (17 rams, 13 between enemies, no false positive found); `credit_rams` stays off until the
+  maintainer decides (OQ in doc 11).
 - ✅ Windows installer: virtual service account `NT SERVICE\il2ks` (OQ-41).
 - ✅ **Run the tests in parallel** (maintainer, 2026-10-03): pytest-xdist in `il2ks dev check`; the full suite went from ~11 min to ~2 min.
 
@@ -120,15 +124,16 @@ Do these while merging the finished branches, before the release where they touc
 Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait for any of it.
 - ✅ **Tours** with configurable length (monthly by default) (TD-26), on the profile, sortie and mission lists; localised titles.
 - ✅ **Online now**: current player counts and the list of players, plus in-progress missions (FR-ING-12, FR-WEB-15).
-  🔧 `{% online_now %}` on the home page.
+  ✅ `{% online_now %}` on the home page.
 - ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ⏳ re-run once the pages
   settle (idiomatic, not literal), then human review.
 - ✅ **Game object names**: admin overrides and translated defaults (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - ✅ Score concept (separate air and ground scores), leaderboards and rankings; pages for the air-to-air Elo (prop/jet pools) and ground
-    score per hour on target (FR-WEB-19/20). 🔧 Percentage penalties (above).
-  - ✅ Stats by aircraft (FR-WEB-8). 🔧 Split rankings by prop/jet and fighter/attack.
-  - ✅ Killboards (FR-WEB-9) and ironman streaks. 🔧 Rams, parachute deaths, and other rule toggles (OQ-61).
+    score per hour on target (FR-WEB-19/20); percentage penalties; per-type Elo.
+  - ✅ Stats by aircraft (FR-WEB-8). ✅ Split rankings by prop/jet (filter) and fighter/attack (grouped boards).
+  - ✅ Killboards (FR-WEB-9), per tour, and ironman streaks with best streaks. ✅ Rams and parachute deaths as `[rules]` toggles
+    (OQ-61).
 - ✅ Light charts (FR-WEB-16).
 
 ## Public release gate
@@ -137,12 +142,13 @@ decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 - Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
-- ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the release: a new
+- ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
+  only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
   released-migration guard's maintainer override (`IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1`); development databases are recreated
   afterwards (or marked applied with `migrate --fake-initial` after checking the schema matches). Backfills in `ops/migrate.py`
   that only exist for pre-release databases can go at the same time.
-- 🔧 **More branding for server admins** (maintainer, 2026-10-04): any number of extra links in the top navigation row after the built-in
+- ✅ **More branding for server admins** (maintainer, 2026-10-04; 🔧 `.woff2` font upload in progress): any number of extra links in the top navigation row after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
 
