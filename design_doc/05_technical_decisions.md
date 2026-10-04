@@ -317,6 +317,11 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   bump-templates` does the bump). The header travels with a copied override, so il2ks can tell an override based on an **old** version
   even when it was copied by hand, and shows a **big warning** to the admin: a red banner on every admin page, a log warning at start-up,
   `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff <path>` shows what changed. Never on public pages.
+  **Before the first release** (maintainer, 2026-10-04): every version stays at **v1**; `bump-templates` only refreshes the hashes
+  (`FIRST_RELEASE_DONE = False` in `serving/templateversions.py`, a constant flipped at the first release; docs/releasing.md has the
+  checklist). An override whose recorded original hash differs from the built-in file counts as `outdated` even at the same version.
+  The first release's baseline is v1 for every file. `[PROPOSED]` (technical): `release.yml` fails on a `vX.Y.Z` tag while the switch
+  is still off, so the flip can't be forgotten.
 
 ### TD-26 Tours with configurable length, in iteration 2 — `[DECIDED]` (tours, it2), `[PROPOSED]` (modes)
 - **As built** (2026-10-03, pulled forward by the maintainer): `[tours] mode` (`monthly` / `days:<N>` with `start` / `manual`), `timezone`

@@ -189,6 +189,7 @@ decisions are made):
 - ✅ **Pagination** (OQ-96): 10 missions, 20 rows per page. Exception (maintainer, 2026-10-04): the sortie page's timeline is not paginated (a detail page; a higher
   time and query budget is fine). 🔧 ✅ SVG icon sprite (one cached `/sprite.svg`; real-log mission page 87 → 55 KB).
 - ✅ **Home page** tour-aware with six boards (3×2, incl. play time) (OQ-79, OQ-104); Elo "encounters".
+- ⏳ **Flip `FIRST_RELEASE_DONE`** (template versions start counting from v1; TD-25), together with the squash below.
 - ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the

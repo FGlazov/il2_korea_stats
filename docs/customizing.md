@@ -142,10 +142,12 @@ Other things you can do:
 
 An upgrade may change a page you replaced. Your copy then keeps the old behaviour: the page may break, or silently miss
 new content. To make this visible, **every built-in template, stylesheet and script has a version number** in its first
-line, and the number goes up whenever the file changes:
+line, and the number goes up whenever the file changes (from the first public release on; before it every file is `v1`,
+and il2ks then also compares a fingerprint of the original that `il2ks custom copy` recorded, so a changed file is still
+noticed):
 
 ```
-{# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v1 - copy this line along when you override #}
 ```
 
 (Stylesheets and scripts use `/* ... */` instead of `{# ... #}`. Images are replaced as a whole, so they have no

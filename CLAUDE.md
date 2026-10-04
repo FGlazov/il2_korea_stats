@@ -57,7 +57,7 @@ Regression lessons (each one cost a red `main` or a broken database):
   and commit the `.po`/`.mo` changes. Show a `GameObject` as `{{ obj|object_name }}`, never `.display_name`
   (docs/translating.md).
 - **Changed a built-in template, CSS or JS file?** Run `uv run il2ks dev bump-templates` and commit the result (version
-  line + `src/il2ks/web/template_versions.json`); a test fails otherwise. Owners' `custom/` overrides get warned by it (TD-25).
+  line + `src/il2ks/web/template_versions.json`; before the first release versions stay at v1 and only the hash moves, see docs/releasing.md); a test fails otherwise. Owners' `custom/` overrides get warned by it (TD-25).
 - **Every bug fix gets a regression test.** Reference requirement/decision IDs (FR-ING-14, TD-08) in docstrings where relevant.
 - **Never commit `sample_data/`** (real player data). Test fixtures come from `uv run il2ks dev anonymize`; a test checks them.
 - Work and commit on `main` (no feature branches for now). Push when you're done working.
