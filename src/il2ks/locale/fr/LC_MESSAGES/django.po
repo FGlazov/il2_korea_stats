@@ -346,6 +346,10 @@ msgid "Air kills"
 msgstr "Victoires aériennes"
 
 # llm-draft
+msgid "Air kills (AI)"
+msgstr "Victoires aériennes (IA)"
+
+# llm-draft
 msgid "Air kills (PvP)"
 msgstr "Victoires aériennes (PvP)"
 

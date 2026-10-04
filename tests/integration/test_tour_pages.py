@@ -89,7 +89,7 @@ def test_profile_without_tour_opens_on_the_current_tour_and_offers_the_selector(
     assert 'name="tour"' in body
     assert f'<option value="{tour("October 2026").pk}" selected>October 2026</option>' in body
     assert '<option value="all">All time</option>' in body
-    assert "<h2>Sorties in October 2026</h2>" in body
+    assert ">Sorties in October 2026</a></h2>" in body
     assert "Shot down most" not in body  # killboard and streaks stay all-time only
 
 
@@ -104,7 +104,7 @@ def test_profile_all_time_is_the_explicit_all_parameter(client: Client) -> None:
     assert len(response.context["aircraft"]) == 2
     body = response.content.decode()
     assert '<option value="all" selected>All time</option>' in body
-    assert "<h2>Recent sorties</h2>" in body
+    assert ">Recent sorties</a></h2>" in body
     assert f"/players/{pk(1)}/sorties/?tour=all" in body  # the list link keeps the all-time view
     assert "&amp;tour=all" in body
 
@@ -148,7 +148,7 @@ def test_profile_with_a_tour_shows_that_tour_only(client: Client) -> None:
     assert [(g.key, g.count) for g in response.context["ground"] if g.count] == [("tank", 2)]
     body = response.content.decode()
     assert f'<option value="{september.pk}" selected>September 2026</option>' in body
-    assert "<h2>Sorties in September 2026</h2>" in body
+    assert ">Sorties in September 2026</a></h2>" in body
     assert f"/players/{pk(1)}/sorties/?tour={september.pk}" in body  # "All sorties" keeps the tour
     assert f"&amp;tour={september.pk}" in body  # so do the per-aircraft links
 

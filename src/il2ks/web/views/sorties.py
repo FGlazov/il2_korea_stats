@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from
-from il2ks.web import display, object_names
+from il2ks.web import columns, display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
 OG_IMAGE = "il2ks/img/brand/og-default.png"
@@ -40,7 +40,8 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     Context: player, tours, tour (None = all time), quiet_tour, page_obj (PlayerSortie rows with mission
     and aircraft), sort (resolved),
     aircraft_options,
-    outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title."""
+    outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title, optional_columns
+    (every column a visitor can add) and columns (the ones `?cols=` chose; all sortable)."""
     player = get_object_or_404(Player.objects.visible(), pk=pk)
     aircraft = reads.player_aircraft(player)
     language = get_language() or "en"
@@ -53,6 +54,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
         tour=choice.selected,
     )
     sort = reads.resolve_sort(request.GET.get("sort", ""))
+    shown = columns.chosen(request.GET, columns.SORTIE_COLUMNS)
     page = reads.sortie_page(player, filters, sort, request.GET.get("page", "1"))
     crumbs = [
         (_("Players"), reverse("web:player-search")),
@@ -67,7 +69,10 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
             **choice.context,
             "page_obj": page,
             "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
+            "colspan": 12 + len(shown),
             "sort": sort,
+            "optional_columns": columns.SORTIE_COLUMNS,
+            "columns": shown,
             "aircraft_options": [(row.aircraft_id, object_names.name_of(row.aircraft, language)) for row in aircraft],
             "outcome_options": _options(Outcome.values, display.OUTCOMES),
             "role_options": [(Role.PILOT.value, _("Pilot")), (Role.GUNNER.value, _("Gunner"))],

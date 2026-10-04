@@ -16,7 +16,7 @@ from django.http import QueryDict
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftStats, Mission, Player
+from il2ks.db.models import AircraftStats, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import display
 from il2ks.web.display import Label
@@ -35,6 +35,7 @@ class Column[T]:
     label: Label
     cell: Callable[[T], str | SafeString]
     hint: Label = ""
+    numeric: bool = True
 
 
 def requested_keys(params: QueryDict) -> frozenset[str]:
@@ -88,6 +89,24 @@ MISSION_COLUMNS: tuple[Column[Mission], ...] = (
     Column("redfor_sorties", _("REDFOR sorties"), lambda m: display.num(m.redfor_sorties)),
     Column("blufor_sorties", _("BLUFOR sorties"), lambda m: display.num(m.blufor_sorties)),
     Column("sorties_per_player", _("Sorties per player"), lambda m: display.ratio(m.sorties_total, m.players_total, 1)),
+)
+
+
+# --- a player's sortie list ----------------------------------------------------------------------------------------
+SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
+    Column("kills_air_pvp", _("Air kills (PvP)"), lambda s: display.num(s.kills_air_pvp)),
+    Column("kills_air_ai", _("Air kills (AI)"), lambda s: display.num(s.kills_air_ai)),
+    Column("friendly_kills", _("Friendly kills"), lambda s: display.num(s.friendly_kills)),
+    Column("air_points", _("Air score"), lambda s: display.num(s.air_points)),
+    Column("ground_points", _("Ground score"), lambda s: display.num(s.ground_points)),
+    Column(
+        "time_on_target",
+        _("Time on target"),
+        lambda s: display.duration(s.time_on_target_s) if s.time_on_target_s else display.DASH,
+    ),
+    Column("payload", _("Loadout"), lambda s: s.payload_name or display.DASH, numeric=False),
+    Column("takeoffs", _("Takeoffs"), lambda s: display.num(s.takeoffs)),
+    Column("landings", _("Landings"), lambda s: display.num(s.landings)),
 )
 
 

@@ -348,6 +348,10 @@ msgid "Air kills"
 msgstr "Luftsiege"
 
 # llm-draft
+msgid "Air kills (AI)"
+msgstr "Luftsiege (KI)"
+
+# llm-draft
 msgid "Air kills (PvP)"
 msgstr "Luftsiege (PvP)"
 

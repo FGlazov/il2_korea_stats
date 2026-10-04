@@ -1,11 +1,11 @@
-{# il2ks-template: templates/il2ks/players/detail_recent.html v6 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_recent.html v7 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_recent.html: the ten latest sorties (any role) with a link to the full list. Context: player, recent
   (PlayerSortie rows with .mission and .aircraft). Links: web:sortie-detail, web:mission-detail, web:player-sorties.
 {% endcomment %}<section>
   <div class="section-head">
-    <h2>{% if tour %}{% blocktranslate with tour=tour|tour_title %}Sorties in {{ tour }}{% endblocktranslate %}{% else %}{% translate "Recent sorties" %}{% endif %}</h2>
-    <a href="{% url 'web:player-sorties' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% if tour %}{% translate "All sorties in this tour" %}{% else %}{% translate "All sorties" %}{% endif %} →</a>
+    {% url 'web:player-sorties' player.pk as all_href %}<h2><a class="heading-link" href="{{ all_href }}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% if tour %}{% blocktranslate with tour=tour|tour_title %}Sorties in {{ tour }}{% endblocktranslate %}{% else %}{% translate "Recent sorties" %}{% endif %}</a></h2>
+    <a href="{{ all_href }}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% if tour %}{% translate "All sorties in this tour" %}{% else %}{% translate "All sorties" %}{% endif %} →</a>
   </div>
   <div class="table-wrap table-wrap--flat">
     <table class="data-table recent-table">

@@ -30,8 +30,8 @@
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 9,
-      "sha256": "5e4bddd8ca89d2994e86778e63b5567a35e43c88cd1d01e3267ab04cbade53e6"
+      "version": 10,
+      "sha256": "827feb391cd5b96e92d1b47e571fe38540a200aa2ed048e4aacf6c682472d826"
     },
     "static/il2ks/sorties.css": {
       "version": 2,
@@ -270,8 +270,8 @@
       "sha256": "1f90673071d6feac0849105f185a8974a4f3ebaf21aece6bd7f8949ee92f6700"
     },
     "templates/il2ks/players/detail_recent.html": {
-      "version": 6,
-      "sha256": "07ed61a1291915418f82dc1aa92d2b2d72bb72fdd2fe404c177d4f33cef6368e"
+      "version": 7,
+      "sha256": "e9db0e2ed77dcb05218ac5ea178715b65b482c0ef38b6facee969429da3d5cb6"
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 2,
@@ -326,8 +326,8 @@
       "sha256": "7090d40292e139431e7c3a09ff217bf986166c412dd81eb036c3031e07de5e9f"
     },
     "templates/il2ks/sorties/list.html": {
-      "version": 4,
-      "sha256": "fbccf68365f40179e0d4d8a8b2788b5108b423719fb84a6144ad1d9034527ceb"
+      "version": 5,
+      "sha256": "8fbf6af1398677dcfb91279a381dc879e5a77b4e0989ce88ffec41f1b91ebbfc"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 5,
@@ -358,8 +358,8 @@
       "sha256": "385a0392edaedaabf31b7f7f170f683552597dfb22094e0ddaab9f9491108782"
     },
     "templates/il2ks/sorties/parts/list_row.html": {
-      "version": 4,
-      "sha256": "ec2dbcf5b295326ae7bb0795c56d37c287523c3b57e33ccd12c1a2b4a5eaf7b8"
+      "version": 5,
+      "sha256": "6131e1b2c8bc7969656932ca75344cd9d855173174dd564118700dfe3910bd79"
     },
     "templates/il2ks/sorties/parts/meta.html": {
       "version": 1,

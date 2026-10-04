@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v9 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v10 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -517,3 +517,5 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
 /* Flavor text (FR-WEB-23): an italic aside, deliberately quiet. */
 .flavor { font-style: italic; color: var(--il2-muted); }
 p.flavor--sortie { margin: 0 0 1rem; }
+.section-head h2 a.heading-link { color: inherit; text-decoration: none; }
+.section-head h2 a.heading-link:hover { text-decoration: underline; }

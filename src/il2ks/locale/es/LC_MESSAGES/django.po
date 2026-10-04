@@ -346,6 +346,10 @@ msgid "Air kills"
 msgstr "Derribos aéreos"
 
 # llm-draft
+msgid "Air kills (AI)"
+msgstr "Derribos aéreos (IA)"
+
+# llm-draft
 msgid "Air kills (PvP)"
 msgstr "Derribos aéreos (PvP)"
 

@@ -355,6 +355,10 @@ msgid "Air kills"
 msgstr "Воздушные победы"
 
 # llm-draft
+msgid "Air kills (AI)"
+msgstr "Воздушные победы (ИИ)"
+
+# llm-draft
 msgid "Air kills (PvP)"
 msgstr "Воздушные победы (PvP)"
 

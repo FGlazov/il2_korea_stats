@@ -13,6 +13,7 @@ from il2ks.db.models import AircraftStats, Mission, Player, PlayerName, Tour
 from il2ks.queries import aircraft as aircraft_reads
 from il2ks.queries import missions as mission_reads
 from il2ks.queries import players as player_reads
+from il2ks.queries import sorties as sortie_reads
 from il2ks.web import columns
 from tests.factories import SERVER_UID, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -341,3 +342,50 @@ def test_aircraft_page_columns_form_and_budget(client: Client) -> None:
     assert re.search(r'<th[^>]*><a href="[^"]*sort=-?sortie_length', chosen)
     assert 'value="assists" checked' in chosen
     assert_simple_reads(client, f"{url}?cols={ALL_AIRCRAFT_COLS}&sort=-score_air", max_queries=4)
+
+
+# --- a player's sortie list (optional columns, sortable like the others) -----------------------------------
+ALL_SORTIE_COLS = ",".join(c.key for c in columns.SORTIE_COLUMNS)
+
+
+def test_sortie_list_shows_damage_taken_by_default_and_optional_columns_on_request(client: Client) -> None:
+    save(mission((sortie(0, 1, kills_air=1, kills_air_pvp=1, damage_taken=0.42),)))
+    player = Player.objects.get()
+    url = reverse("web:player-sorties", args=[player.pk]) + "?tour=all"
+
+    default = client.get(url).content.decode()
+    assert "Damage taken" in default
+    assert "42%" in default
+    assert not re.search(r"sort=-?payload", default)
+    assert 'name="cols"' in default
+
+    chosen = client.get(f"{url}&cols=payload,air_points,bogus").content.decode()
+    assert re.search(r"sort=-?payload", chosen)
+    assert 'value="payload" checked' in chosen
+    assert re.search(r'<th[^>]*><a href="[^"]*sort=-?air_points', chosen)
+    assert re.search(r'<th[^>]*><a href="[^"]*sort=-?damage_taken', default)
+
+
+def test_sortie_list_budget_is_unchanged_with_every_column(client: Client) -> None:
+    save(mission((sortie(0, 1),)))
+    player = Player.objects.get()
+
+    base = reverse("web:player-sorties", args=[player.pk]) + "?tour=all"
+    assert_simple_reads(client, base, max_queries=8)
+    assert_simple_reads(client, f"{base}&cols={ALL_SORTIE_COLS}", max_queries=8)
+
+
+def test_every_sortie_column_is_sortable_and_sorts_both_ways(client: Client) -> None:
+    assert {c.key for c in columns.SORTIE_COLUMNS} <= set(sortie_reads.SORT_FIELDS)
+    save(mission((sortie(0, 1, damage_taken=0.2), sortie(1, 1, damage_taken=0.9, time_on_target_s=60.0))))
+    url = reverse("web:player-sorties", args=[Player.objects.get().pk])
+    for key in ("damage_taken", *(c.key for c in columns.SORTIE_COLUMNS)):
+        for sort in (key, f"-{key}"):
+            response = client.get(url, {"tour": "all", "sort": sort, "cols": key})
+            assert response.status_code == 200, sort
+            assert response.context["sort"] == sort
+    rows = client.get(url, {"tour": "all", "sort": "-damage_taken"}).context["page_obj"].object_list
+    assert [r.damage_taken for r in rows] == [0.9, 0.2]
+    for sort in ("time_on_target", "-time_on_target"):  # a sortie without time on target is last either way
+        page = client.get(url, {"tour": "all", "sort": sort, "cols": "time_on_target"}).context["page_obj"]
+        assert next(r.time_on_target_s for r in page.object_list) == 60.0, sort
