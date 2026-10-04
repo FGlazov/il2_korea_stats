@@ -21,6 +21,7 @@ from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
 from il2ks.queries.ammo import GunAmmoRow, ammo_info, parse_sortie_ammo
 from il2ks.web import display, icons, object_names, pve
+from il2ks.web.flavor import Highlights
 from il2ks.web.ground import GROUND_ICONS
 
 type Json = Mapping[str, object]
@@ -30,6 +31,7 @@ TIMELINE_GROUP_MIN = 3  # consecutive ground kills folded into one row from this
 TIMELINE_HEAD_ROWS = 80  # rows shown at once; the rest sits in a "show all" element
 DAMAGE_HEAD_ROWS = 15
 AIR_CLASSES = frozenset({"fighter", "attacker", "bomber", "transport"})
+BOMBER_CLASSES = frozenset({"attacker", "bomber", "transport"})  # the targets of a "bomber hunter" (flavor.py)
 
 # What an AI counterpart is, by catalog class (the log name alone says little).
 CLASS_LABELS: Mapping[str, str] = {
@@ -614,7 +616,7 @@ class TimelineRow:
     children: Sequence["TimelineRow"] = field(default_factory=tuple)
 
 
-def _timeline_text(kind: str, detail: str) -> str:
+def timeline_text(sortie: PlayerSortie, kind: str, detail: str) -> str:
     if kind == "spawn":
         return str(SPAWN_LABELS.get(detail, detail))
     if kind in ("shot_down", "destroyed"):
@@ -622,8 +624,9 @@ def _timeline_text(kind: str, detail: str) -> str:
             return _("Crashed while taxiing, before takeoff")
         if detail == "strafed":
             return _("Destroyed on the ground")
-    if kind == "sortie_end":
-        return display.badge_spec(display.OUTCOMES, detail)[0]
+    if kind == "sortie_end":  # the outcome and the pilot's displayed fate: "Landed · Survived"
+        fate = display.badge_spec(display.PILOT_FATES, display.pilot_fate_key(sortie))[0]
+        return f"{display.badge_spec(display.OUTCOMES, detail)[0]} · {fate}"
     return ""
 
 
@@ -646,7 +649,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         since(sortie.spawned_at, at),
         at,
         _pos(entry.get("pos")),
-        _timeline_text(kind, detail),
+        timeline_text(sortie, kind, detail),
         who,
     )
 
@@ -716,6 +719,30 @@ class Detail:
     timeline: Sequence[TimelineRow]
     timeline_more: Sequence[TimelineRow]
     timeline_events: int
+    highlights: Highlights
+
+
+def build_highlights(sortie: PlayerSortie, lookup: Lookup) -> Highlights:
+    """The facts flavor text needs from the timeline: air kills on bomber-type aircraft (bomber, attacker, transport)
+    and the seconds from takeoff (the spawn of an air start) to the first air kill."""
+    start = sortie.took_off_at or (sortie.spawned_at if sortie.air_start else None)
+    bombers = 0
+    first: float | None = None
+    for entry in timeline_entries(sortie):
+        if _str(entry.get("kind")) != "kill":
+            continue
+        victim_sortie = lookup.sorties.get(_int(_dict(entry.get("counterpart")).get("sortie_id")) or 0)
+        if victim_sortie is not None:
+            victim_class = victim_sortie.aircraft.cls
+        else:
+            victim_class = lookup.object_class(_str(entry.get("detail")))
+        if victim_class not in AIR_CLASSES:
+            continue
+        bombers += victim_class in BOMBER_CLASSES
+        at = _when(entry.get("at"))
+        if first is None and at is not None and start is not None:
+            first = max(0.0, (at - start).total_seconds())
+    return Highlights(bombers, first)
 
 
 def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[Kill], lookup: Lookup) -> Detail:
@@ -736,4 +763,5 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         timeline=timeline[:TIMELINE_HEAD_ROWS],
         timeline_more=timeline[TIMELINE_HEAD_ROWS:],
         timeline_events=len(sortie.timeline),
+        highlights=build_highlights(sortie, lookup),
     )

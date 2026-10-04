@@ -10,6 +10,7 @@ from django.utils import translation
 from il2ks.db.models import Player, PlayerSortie, PlayerTour, StatThreshold
 from il2ks.devtools import translations
 from il2ks.web import flavor
+from il2ks.web.flavor import Highlights
 
 
 def test_the_same_seed_always_picks_the_same_variant() -> None:
@@ -86,6 +87,83 @@ def sortie_with(**fields: object) -> PlayerSortie:
 )
 def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
     assert flavor.sortie_spot(sortie_with(**fields)) == spot
+
+
+@pytest.mark.parametrize(
+    ("fields", "highlights", "spot"),
+    [
+        ({"outcome": "shot_down", "loss_class": "ai_gunner"}, None, "sortie_ai_gunner"),
+        ({"outcome": "landed", "loss_class": "ai_gunner"}, None, None),  # only a loss is "shot down by"
+        ({"kills_air": 2}, Highlights(bomber_kills=2), "sortie_bomber_hunter"),
+        ({"kills_air": 2}, Highlights(bomber_kills=1), None),  # one bomber is not a hunt
+        ({"kills_air": 2}, None, None),  # the spot needs the timeline facts
+        ({"assists": 6}, None, "sortie_stolen_kills"),
+        ({"assists": 5}, None, None),
+        ({"assists": 9, "kills_air": 1}, None, None),  # a kill of their own: nothing was stolen
+        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
+        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
+        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
+        ({"kills_ground": 70}, None, "sortie_ground_pounder"),
+        ({"kills_ground": 69}, None, None),
+        ({}, Highlights(first_kill_s=420.0), "sortie_quick_kill"),
+        ({}, Highlights(first_kill_s=421.0), None),
+        ({}, Highlights(first_kill_s=None), None),
+        ({"flight_time_s": 3600.0}, None, "sortie_marathon"),
+        ({"flight_time_s": 3599.0}, None, None),
+    ],
+)
+def test_extreme_event_spots(fields: dict[str, object], highlights: Highlights | None, spot: str | None) -> None:
+    assert flavor.sortie_spot(sortie_with(**fields), highlights) == spot
+
+
+ACHIEVEMENTS: dict[str, object] = {
+    "kills_air": 4,
+    "assists": 8,
+    "kills_ground": 90,
+    "aircraft_status": "damaged",
+    "damage_taken": 0.8,
+    "flight_time_s": 4000.0,
+}
+HUNTER = Highlights(bomber_kills=3, first_kill_s=100.0)
+QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
+
+
+@pytest.mark.parametrize(
+    ("fields", "highlights", "spot"),
+    [  # every row has all the conditions of the rows below it too: the first of the documented order wins
+        (
+            {
+                "taxi_accident": True,
+                "friendly_kills": 1,
+                "is_captured": True,
+                "outcome": "shot_down",
+                "loss_class": "ai_gunner",
+            },
+            HUNTER,
+            "sortie_taxi",
+        ),
+        (
+            {"friendly_kills": 1, "is_captured": True, "outcome": "shot_down", "loss_class": "ai_gunner"},
+            HUNTER,
+            "sortie_friendly_fire",
+        ),
+        ({"is_captured": True, "outcome": "shot_down", "loss_class": "ai_gunner"}, HUNTER, "sortie_captured"),
+        ({"outcome": "shot_down", "loss_class": "ai_gunner"}, HUNTER, "sortie_ai_gunner"),
+        ({"outcome": "ditched"}, HUNTER, "sortie_ditched"),
+        ({"outcome": "shot_down", "loss_class": "aaa"}, HUNTER, "sortie_aa"),
+        ({}, HUNTER, "sortie_bomber_hunter"),
+        ({}, QUICK, "sortie_ace"),
+        ({"kills_air": 0}, QUICK, "sortie_stolen_kills"),
+        ({"kills_air": 0, "assists": 0}, QUICK, "sortie_battered_victor"),
+        ({"kills_air": 0, "assists": 0, "kills_ground": 0}, QUICK, "sortie_limped_home"),
+        ({"kills_air": 0, "assists": 0, "aircraft_status": "unharmed"}, QUICK, "sortie_ground_pounder"),
+        ({"kills_air": 0, "assists": 0, "kills_ground": 0, "aircraft_status": "unharmed"}, QUICK, "sortie_quick_kill"),
+        ({"kills_air": 0, "assists": 0, "kills_ground": 0, "aircraft_status": "unharmed"}, None, "sortie_marathon"),
+    ],
+)
+def test_spot_precedence(fields: dict[str, object], highlights: Highlights, spot: str) -> None:
+    """Accidents and losses first, then the rarest achievements, then the broader ones (`flavor.sortie_spot`)."""
+    assert flavor.sortie_spot(sortie_with(**{**ACHIEVEMENTS, **fields}), highlights) == spot
 
 
 def test_templates_only_use_known_spots() -> None:

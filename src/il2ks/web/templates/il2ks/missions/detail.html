@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v5 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
   PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
@@ -65,7 +65,7 @@
               <td><span class="aircraft-cell">{% if s.role != "gunner" %}{% aircraft_icon s.aircraft %}{% endif %}{{ s.aircraft|object_name }}</span></td>
               <td>{% if s.combat_role %}{% role_badge s.combat_role %}{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{% outcome_badge s.outcome %}</td>
-              <td>{% fate_badge s.pilot_fate %}</td>
+              <td>{% pilot_fate_badge s %}</td>
               <td class="num">{{ s.kills_air|num }}</td>
               <td class="num">{{ s.kills_ground|num }}</td>
               <td class="num">{{ s.assists|num }}</td>

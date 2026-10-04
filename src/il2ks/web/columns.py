@@ -13,6 +13,8 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from django.http import QueryDict
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
@@ -93,7 +95,14 @@ MISSION_COLUMNS: tuple[Column[Mission], ...] = (
 
 
 # --- a player's sortie list ----------------------------------------------------------------------------------------
+def _mission_link(s: PlayerSortie) -> SafeString:
+    """The mission's name linking to its page (the mission is loaded with the row: no extra query)."""
+    url = reverse("web:mission-detail", args=[s.mission_id])
+    return format_html('<a href="{}">{}</a>', url, display.mission_name(s.mission.mission_file))
+
+
 SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
+    Column("mission", _("Mission"), _mission_link, numeric=False),
     Column("kills_air_pvp", _("Air kills (PvP)"), lambda s: display.num(s.kills_air_pvp)),
     Column("kills_air_ai", _("Air kills (AI)"), lambda s: display.num(s.kills_air_ai)),
     Column("friendly_kills", _("Friendly kills"), lambda s: display.num(s.friendly_kills)),

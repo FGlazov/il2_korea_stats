@@ -11,6 +11,7 @@ new string needs `uv run il2ks dev translations update`); add a spot by adding i
 
 import hashlib
 from collections.abc import Mapping
+from dataclasses import dataclass
 
 from django.utils.translation import gettext_lazy
 
@@ -20,6 +21,24 @@ from il2ks.web.display import Label
 
 MULTI_KILL_MIN = 3  # air kills in one sortie that earn a line
 BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landing worth a remark
+# Thresholds of the extreme-event spots, read off the September 2026 archive (15,245 pilot sorties; share of those
+# sorties that reach the threshold, before the precedence in `sortie_spot` takes some away):
+BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
+STOLEN_ASSISTS_MIN = 6  # assists without a single air kill: 2.4%
+QUICK_KILL_S = 420.0  # first air kill within 7 min of takeoff: 1.1%
+MARATHON_S = 3600.0  # flight time of 1 h or more: 1.0%
+BATTERED_KILLS_MIN = 2  # kills (air + ground) of a landing with BADLY_DAMAGED damage: 1.1%
+GROUND_KILLS_MIN = 70  # ground kills in one sortie: 2.0%
+
+
+@dataclass(frozen=True, slots=True)
+class Highlights:
+    """What a sortie's spots need beyond its own columns, read from its timeline (`sortie_view.build_highlights`):
+    air kills on bomber-type aircraft, and seconds from takeoff (or the spawn of an air start) to the first air kill."""
+
+    bomber_kills: int = 0
+    first_kill_s: float | None = None
+
 
 SPOTS: Mapping[str, tuple[Label, ...]] = {
     # Player profile, hall of shame: runway or taxi accidents only.
@@ -118,6 +137,51 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The gun camera footage on this one would be a good watch."),
         gettext_lazy("Several kills in one flight. Time to buy the squadron a round."),
     ),
+    # Extreme events (thresholds above; order in `sortie_spot`).
+    "sortie_ai_gunner": (
+        gettext_lazy("A bomber's tail gunner had a say in this. Those guns are not decoration."),
+        gettext_lazy("Outshot by a gunner who never gets a break. Respect the tail."),
+        gettext_lazy("The rear gunner had the last word, and it was a loud one."),
+    ),
+    "sortie_bomber_hunter": (
+        gettext_lazy("Several bombers will not be making it home tonight. Fine hunting."),
+        gettext_lazy("The big, slow ones had a bad day, and this pilot had a good one."),
+        gettext_lazy("Bomber hunting is a craft, and this sortie was a masterclass."),
+        gettext_lazy("Somebody's bombing run ended early. Somebody else is buying the next round."),
+    ),
+    "sortie_stolen_kills": (
+        gettext_lazy("Ah, all your kills got stolen! The wingmen send their thanks, and nothing else."),
+        gettext_lazy("So many assists, so few credits. The kill counter is a cruel bookkeeper."),
+        gettext_lazy(
+            "Softened them up beautifully and the flight collected the trophies. Next time, the last shot is yours."
+        ),
+        gettext_lazy(
+            "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
+        ),
+    ),
+    "sortie_battered_victor": (
+        gettext_lazy("Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."),
+        gettext_lazy("It came home full of holes and full of results. A fair trade."),
+        gettext_lazy("The airframe took a beating and handed one back."),
+    ),
+    "sortie_ground_pounder": (
+        gettext_lazy("Not much was left standing down there. The map needs a fresh coat of paint."),
+        gettext_lazy("Everything with a motor, a barrel or a roof took a hit. Thorough work."),
+        gettext_lazy("A very busy day for the ground crews on the other side."),
+        gettext_lazy("The ground below will remember this one for a while."),
+    ),
+    "sortie_quick_kill": (
+        gettext_lazy("Barely off the runway and already on the scoreboard. That is a fast start."),
+        gettext_lazy("The wheels were still folding when the first kill reached the log."),
+        gettext_lazy("No time wasted. The coffee in the tower was still warm."),
+        gettext_lazy("A first kill that quick deserves a stopwatch and a small medal."),
+    ),
+    "sortie_marathon": (
+        gettext_lazy("A long day at the office. The fuel gauge is full of respect."),
+        gettext_lazy("Over an hour in the air. The ground crew nearly sent out a search party."),
+        gettext_lazy("An endurance flight: the seat cushion deserves a mention in the report."),
+        gettext_lazy("Some pilots sprint. This one went the distance."),
+    ),
     "sortie_limped_home": (
         gettext_lazy("It still flew, mostly out of politeness. Well landed."),
         gettext_lazy("More hole than airplane, and still back on the ground. Hats off."),
@@ -134,9 +198,16 @@ def pick(spot: str, seed: object) -> Label:
     return variants[int.from_bytes(digest[:8], "big") % len(variants)]
 
 
-def sortie_spot(sortie: PlayerSortie) -> str | None:
-    """The spot for a sortie that deserves a line, most notable first; None for the ordinary ones (and for gunner
-    sorties, whose numbers the log credits to the pilot)."""
+def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> str | None:
+    """The spot for a sortie that deserves a line; None for the ordinary ones (and for gunner sorties, whose numbers
+    the log credits to the pilot). The first match wins, in this order (accidents and losses first, then the rarest
+    achievements, then the broader ones):
+
+    taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, flak, bomber hunter, ace, stolen kills,
+    battered victor, limped home, ground pounder, quick first kill, marathon.
+
+    `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
+    spots are skipped."""
     if sortie.role == "gunner":
         return None
     if sortie.taxi_accident:
@@ -145,14 +216,31 @@ def sortie_spot(sortie: PlayerSortie) -> str | None:
         return "sortie_friendly_fire"
     if sortie.is_captured or sortie.pilot_status == "captured":
         return "sortie_captured"
+    if sortie.outcome == "shot_down" and sortie.loss_class == "ai_gunner":
+        return "sortie_ai_gunner"
     if sortie.outcome == "ditched":
         return "sortie_ditched"
     if sortie.outcome == "shot_down" and sortie.loss_class == "aaa":
         return "sortie_aa"
+    if highlights is not None and highlights.bomber_kills >= BOMBER_KILLS_MIN:
+        return "sortie_bomber_hunter"
     if sortie.kills_air >= MULTI_KILL_MIN:
         return "sortie_ace"
-    if sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED:
+    if sortie.assists >= STOLEN_ASSISTS_MIN and sortie.kills_air == 0:
+        return "sortie_stolen_kills"
+    landed_damaged = (
+        sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED
+    )
+    if landed_damaged and sortie.kills_air + sortie.kills_ground >= BATTERED_KILLS_MIN:
+        return "sortie_battered_victor"
+    if landed_damaged:
         return "sortie_limped_home"
+    if sortie.kills_ground >= GROUND_KILLS_MIN:
+        return "sortie_ground_pounder"
+    if highlights is not None and highlights.first_kill_s is not None and highlights.first_kill_s <= QUICK_KILL_S:
+        return "sortie_quick_kill"
+    if sortie.flight_time_s >= MARATHON_S:
+        return "sortie_marathon"
     return None
 
 

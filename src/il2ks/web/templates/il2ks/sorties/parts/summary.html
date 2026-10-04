@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/summary.html v5 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/summary.html v6 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Summary: the flight (left) and the result (right). Context: sortie, detail (lost_to: who is behind the loss, FR-WEB-21).
   Labels follow doc 13: "left the server" is the `disconnected` flag (also set after a landing), never "disconnected in
@@ -21,8 +21,8 @@
   </dl>
   <dl class="kv">
     <dt>{% translate "Outcome" %}</dt><dd>{% outcome_badge sortie.outcome %}</dd>
-    <dt>{% translate "Pilot fate" %}</dt><dd>{% fate_badge sortie.pilot_fate %}{% if sortie.pilot_fate_source == "inferred" %} <small>{% translate "inferred from the log" %}</small>{% elif sortie.pilot_fate_source == "event" %} <small>{% translate "from a log event" %}</small>{% endif %}</dd>
-    <dt>{% translate "Pilot status" %}</dt><dd>{% status_badge sortie.pilot_status %}{% if sortie.is_captured and sortie.pilot_status != "captured" %} {% status_badge "captured" %}{% endif %}</dd>
+    <dt>{% translate "Pilot fate" %}</dt><dd>{% pilot_fate_badge sortie detail=True %}{% if sortie.pilot_fate_source == "inferred" %} <small>{% translate "inferred from the log" %}</small>{% elif sortie.pilot_fate_source == "event" %} <small>{% translate "from a log event" %}</small>{% endif %}</dd>
+    {% if not sortie.is_death and not sortie.is_captured and sortie.pilot_status != "dead" and sortie.pilot_status != "captured" %}<dt>{% translate "Pilot status" %}</dt><dd>{% status_badge sortie.pilot_status %}</dd>{% endif %}
     <dt>{% translate "Aircraft status" %}</dt><dd>{% aircraft_badge sortie.aircraft_status %}</dd>
     <dt>{% translate "Damage taken" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
     <dt>{% translate "Loss cause" %}</dt><dd>{% if sortie.loss_cause == "attacker" %}{% translate "Enemy action" %}{% elif sortie.loss_cause == "self" %}{% translate "Own doing (terrain, overstress, accident)" %}{% else %}<span class="muted">{% translate "Nothing lost" %}</span>{% endif %}</dd>

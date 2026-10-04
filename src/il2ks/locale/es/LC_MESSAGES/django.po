@@ -257,6 +257,10 @@ msgstr ""
 "sitio; no se carga nada desde otras webs."
 
 # llm-draft
+msgid "A bomber's tail gunner had a say in this. Those guns are not decoration."
+msgstr "El artillero de cola del bombardero tuvo algo que decir. Esas armas no son de adorno."
+
+# llm-draft
 msgid "A clean sheet so far. The runway thanks you."
 msgstr "Hoja limpia hasta ahora. La pista te lo agradece."
 
@@ -278,12 +282,20 @@ msgid "A few questions, then the site is ready. This page only opens on this com
 msgstr "Unas preguntas y el sitio estará listo. Esta página solo se abre en este equipo y desaparece cuando terminas."
 
 # llm-draft
+msgid "A first kill that quick deserves a stopwatch and a small medal."
+msgstr "Un primer derribo tan rápido merece un cronómetro y una medallita."
+
+# llm-draft
 msgid "A fresh tour: the log book is still blank. Go and write the first line."
 msgstr "Temporada nueva: el cuaderno de bitácora sigue en blanco. A escribir la primera línea."
 
 # llm-draft
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Un alma generosa: reparte su munición con todos, incluidas sus alas."
+
+# llm-draft
+msgid "A long day at the office. The fuel gauge is full of respect."
+msgstr "Un día largo en la oficina. El indicador de combustible te manda su respeto."
 
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
@@ -296,6 +308,10 @@ msgstr "Ya hay una solicitud de reprocesado en espera o en curso."
 # llm-draft
 msgid "A reprocess request is already waiting."
 msgstr "Ya hay una solicitud de reprocesado en espera."
+
+# llm-draft
+msgid "A very busy day for the ground crews on the other side."
+msgstr "Un día muy movido para los equipos de tierra del otro lado."
 
 # llm-draft
 msgid "AI aircraft"
@@ -328,6 +344,10 @@ msgstr "Cuenta de administrador"
 # llm-draft
 msgid "Admin user name"
 msgstr "Nombre de usuario del administrador"
+
+# llm-draft
+msgid "Ah, all your kills got stolen! The wingmen send their thanks, and nothing else."
+msgstr "¡Ay, te robaron todos los derribos! Tus compañeros te dan las gracias, y nada más."
 
 # llm-draft
 msgid "Air"
@@ -522,6 +542,10 @@ msgid "An ambassador for chaos, on the ground and in the air. The squadron would
 msgstr "Embajador del caos, en tierra y en el aire. La escuadrilla no lo cambiaría por nada."
 
 # llm-draft
+msgid "An endurance flight: the seat cushion deserves a mention in the report."
+msgstr "Un vuelo de resistencia: el cojín del asiento merece una mención en el informe."
+
+# llm-draft
 msgid "Anti-aircraft"
 msgstr "Antiaérea"
 
@@ -662,6 +686,10 @@ msgstr[0] "Gráfico de barras de %(n)d temporada. Las cifras están en la tabla 
 msgstr[1] "Gráfico de barras de %(n)d temporadas. Las cifras están en la tabla de abajo."
 
 # llm-draft
+msgid "Barely off the runway and already on the scoreboard. That is a fast start."
+msgstr "Apenas despegaste y ya estás en el marcador. Menudo arranque."
+
+# llm-draft
 msgid "Best by"
 msgstr "Mejores por"
 
@@ -744,6 +772,10 @@ msgstr "Texto principal"
 # llm-draft
 msgid "Bomb release"
 msgstr "Lanzamiento de bombas"
+
+# llm-draft
+msgid "Bomber hunting is a craft, and this sortie was a masterclass."
+msgstr "Cazar bombarderos es un oficio, y esta salida fue una clase magistral."
 
 # llm-draft
 msgid "Bombs"
@@ -1110,6 +1142,10 @@ msgstr "Todas las salidas, de la más reciente a la más antigua. Elige una para
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
 msgstr "A todos se nos confunde el ala alguna vez. Algunos tienen un historial más largo."
+
+# llm-draft
+msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
+msgstr "Todo lo que tenía motor, cañón o techo recibió su ración. Trabajo concienzudo."
 
 # llm-draft
 msgid "Exited on ground"
@@ -1521,6 +1557,10 @@ msgstr "Rachas Ironman"
 # llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr "¿El servidor de juego está en otro equipo? Indica la carpeta a la que se copian o comparten sus registros."
+
+# llm-draft
+msgid "It came home full of holes and full of results. A fair trade."
+msgstr "Volvió lleno de agujeros y lleno de resultados. Un trato justo."
 
 # llm-draft
 msgid ""
@@ -2059,6 +2099,10 @@ msgid "No streak yet: no sortie survived."
 msgstr "Aún sin racha: ninguna salida sobrevivida."
 
 # llm-draft
+msgid "No time wasted. The coffee in the tower was still warm."
+msgstr "Sin perder un minuto. El café de la torre aún estaba caliente."
+
+# llm-draft
 msgid "No uploaded fonts."
 msgstr "No hay fuentes subidas."
 
@@ -2113,6 +2157,10 @@ msgstr "Ni aterrizaje ni accidente: un desacuerdo firme con el suelo."
 # llm-draft
 msgid "Not a single contrail yet. Somebody has to be first."
 msgstr "Ni una sola estela todavía. Alguien tiene que ser el primero."
+
+# llm-draft
+msgid "Not much was left standing down there. The map needs a fresh coat of paint."
+msgstr "Ahí abajo casi no quedó nada en pie. Habrá que repintar el mapa."
 
 # llm-draft
 msgid "Not one incident on the ramp. Textbook."
@@ -2255,6 +2303,14 @@ msgstr "Fuera del combate, pero no de la historia."
 # llm-draft
 msgid "Outcome"
 msgstr "Resultado"
+
+# llm-draft
+msgid "Outshot by a gunner who never gets a break. Respect the tail."
+msgstr "Te ganó a disparos un artillero que no descansa nunca. Respeto a la cola."
+
+# llm-draft
+msgid "Over an hour in the air. The ground crew nearly sent out a search party."
+msgstr "Más de una hora en el aire. El equipo de tierra casi organiza una partida de búsqueda."
 
 # llm-draft
 #. Translators: heading of the profile part with everything that is neither air-to-air nor air-to-ground (streaks,
@@ -2579,6 +2635,10 @@ msgid "Resupplied during the sortie"
 msgstr "Reabastecido durante la salida"
 
 # llm-draft
+msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."
+msgstr "Acribillado, abollado y aun así sumando. El jefe de mecánicos quiere hablar contigo, y luego darte la mano."
+
+# llm-draft
 msgid "Rocket salvo"
 msgstr "Salva de cohetes"
 
@@ -2666,6 +2726,10 @@ msgstr ""
 # llm-draft
 msgid "Setup token"
 msgstr "Token de configuración"
+
+# llm-draft
+msgid "Several bombers will not be making it home tonight. Fine hunting."
+msgstr "Varios bombarderos no volverán a casa esta noche. Buena caza."
 
 # llm-draft
 msgid "Several kills in one flight. Time to buy the squadron a round."
@@ -2759,8 +2823,24 @@ msgid "Slab serif"
 msgstr "Serifa de remate rectangular"
 
 # llm-draft
+msgid "So many assists, so few credits. The kill counter is a cruel bookkeeper."
+msgstr "Tantas asistencias y tan pocos derribos acreditados. El contador es un contable cruel."
+
+# llm-draft
+msgid "Softened them up beautifully and the flight collected the trophies. Next time, the last shot is yours."
+msgstr "Los dejaste ablandados y la formación se llevó los trofeos. La próxima vez, el último disparo es tuyo."
+
+# llm-draft
 msgid "Some chase kills. This one chases the perfect parking spot, and keeps looking."
 msgstr "Unos persiguen derribos. Este persigue el aparcamiento perfecto, y sigue buscando."
+
+# llm-draft
+msgid "Some pilots sprint. This one went the distance."
+msgstr "Algunos pilotos hacen sprints. Este hizo todo el recorrido."
+
+# llm-draft
+msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
+msgstr "A alguien se le acabó antes de tiempo la pasada de bombardeo. Y otro invita a la próxima ronda."
 
 # llm-draft
 msgid "Someone had a very good night at the office."
@@ -2908,6 +2988,10 @@ msgid "Survival rate"
 msgstr "Tasa de supervivencia"
 
 # llm-draft
+msgid "Survived"
+msgstr "Sobrevivió"
+
+# llm-draft
 msgid "Suspected early bailouts"
 msgstr "Posibles saltos prematuros"
 
@@ -3018,6 +3102,14 @@ msgid "The airfield is also part of the mission. Some pilots just take that very
 msgstr "La pista también forma parte de la misión. Hay quien se lo toma muy en serio."
 
 # llm-draft
+msgid "The airframe took a beating and handed one back."
+msgstr "La célula recibió una paliza y la devolvió con intereses."
+
+# llm-draft
+msgid "The big, slow ones had a bad day, and this pilot had a good one."
+msgstr "Los grandes y lentos tuvieron un mal día, y este piloto uno buenísimo."
+
+# llm-draft
 msgid ""
 "The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this "
 "computer."
@@ -3041,6 +3133,10 @@ msgstr "La configuración no se carga"
 # llm-draft
 msgid "The crew chief will have opinions about this one."
 msgstr "El jefe de mecánicos tendrá opiniones sobre este."
+
+# llm-draft
+msgid "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
+msgstr "Al enemigo le tocó bien. Solo que otro estaba justo en la línea de meta."
 
 # llm-draft
 msgid "The file is empty."
@@ -3099,6 +3195,10 @@ msgstr ""
 # llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
 msgstr "El tren quedó arriba, y el ánimo del piloto también."
+
+# llm-draft
+msgid "The ground below will remember this one for a while."
+msgstr "El suelo de ahí abajo se acordará de esta salida durante un buen rato."
 
 # llm-draft
 msgid "The ground crew and the squadron both have a file on this one. The files have met."
@@ -3187,6 +3287,10 @@ msgid "The ramp crew has named a bollard after this pilot. Fondly."
 msgstr "El personal de rampa ha bautizado un bolardo con el nombre de este piloto. Con cariño."
 
 # llm-draft
+msgid "The rear gunner had the last word, and it was a loud one."
+msgstr "La última palabra la tuvo el artillero de cola, y sonó fuerte."
+
+# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "Las mismas comprobaciones que el comando il2ks doctor, aplicadas a los nuevos ajustes. Algunos avisos desaparecen "
@@ -3254,6 +3358,10 @@ msgstr "La guerra esperaba, pero la plataforma tenía otros planes."
 # llm-draft
 msgid "The war was waiting. The taxiway had other ideas."
 msgstr "La guerra esperaba, pero la calle de rodaje tenía otros planes."
+
+# llm-draft
+msgid "The wheels were still folding when the first kill reached the log."
+msgstr "El tren de aterrizaje aún se estaba recogiendo y el primer derribo ya estaba en el registro."
 
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
@@ -3687,6 +3795,10 @@ msgid "automatic"
 msgstr "automático"
 
 # llm-draft
+msgid "bailed out"
+msgstr "saltó en paracaídas"
+
+# llm-draft
 msgid "blue badges"
 msgstr "insignias azules"
 
@@ -3725,6 +3837,10 @@ msgstr "oscuro"
 # llm-draft
 msgid "dark mode"
 msgstr "modo oscuro"
+
+# llm-draft
+msgid "exited on ground"
+msgstr "salió en tierra"
 
 # llm-draft
 #, python-format
@@ -3786,6 +3902,10 @@ msgstr ""
 # llm-draft
 msgid "inferred from the log"
 msgstr "deducido del registro"
+
+# llm-draft
+msgid "left the server"
+msgstr "salió del servidor"
 
 # llm-draft
 msgid "light"

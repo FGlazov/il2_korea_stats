@@ -8,8 +8,9 @@ Filters (formatting only, TD-22): duration, utc, local_time, local_short, local_
 num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title; object_name (TD-24: show a GameObject
 in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
-status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select, tour_filter, stat_mark, stat_mark_note, flavor, sortie_flavor
+pilot_fate_badge, status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown,
+language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, stat_mark,
+stat_mark_note, flavor, sortie_flavor
 (flavor text, FR-WEB-23), bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
 """
@@ -256,6 +257,21 @@ def fate_badge(value: object) -> dict[str, object]:
     return _enum_badge(display.FATES, value)
 
 
+@register.inclusion_tag(COMPONENTS + "pilot_fate.html")
+def pilot_fate_badge(sortie: PlayerSortie, detail: bool = False) -> dict[str, object]:
+    """{% pilot_fate_badge sortie %}: Dead, Captured or Survived (dead > captured > the rest).
+    Unknown counts as survived. The stored fate (bailed out, ...) is the badge's tooltip,
+    or with `detail=True` is written next to it."""
+    text, tone, icon = display.badge_spec(display.PILOT_FATES, display.pilot_fate_key(sortie))
+    return {
+        "text": text,
+        "tone": tone,
+        "icon_html": icons.icon_markup(icon) if icon else "",
+        "detail": display.pilot_fate_detail(sortie),
+        "show_detail": detail,
+    }
+
+
 @register.inclusion_tag(COMPONENTS + "badge.html")
 def status_badge(value: object) -> dict[str, object]:
     """{% status_badge sortie.pilot_status %}: healthy, wounded, dead, captured."""
@@ -367,9 +383,11 @@ def shame_flavor(context: Context, stats: Counters, seed: object) -> str:
 
 
 @register.simple_tag
-def sortie_flavor(sortie: PlayerSortie) -> str:
-    """`{% sortie_flavor sortie as quip %}`: the sortie's line, or '' for an ordinary sortie."""
-    spot = flavor_text.sortie_spot(sortie)
+def sortie_flavor(sortie: PlayerSortie, detail: object = None) -> str:
+    """`{% sortie_flavor sortie detail as quip %}`: the sortie's line, or '' for an ordinary sortie. `detail` is the
+    page's `sortie_view.Detail`; its `highlights` unlock the spots that need the timeline."""
+    highlights = getattr(detail, "highlights", None)
+    spot = flavor_text.sortie_spot(sortie, highlights if isinstance(highlights, flavor_text.Highlights) else None)
     return "" if spot is None else flavor(spot, sortie.pk)
 
 
