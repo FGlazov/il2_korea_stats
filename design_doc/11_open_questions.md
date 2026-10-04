@@ -148,7 +148,7 @@ Default applied: a ram kill is an ordinary kill (`attacker` / `shot_down`, `via 
 Default applied: with `parachute_deaths = false` the pilot killed after a bailout is not a death, and the shooter's kill of that pilot is
 removed too (the aircraft was already lost and credited). Alternative: keep the shooter's kill and only spare the victim's death.
 
-**OQ-92 Ram detection thresholds**
+**OQ-92 Ram detection thresholds** — **answered** (maintainer, 2026-10-04): the tighter 0.5 s / 15 m (being applied).
 Default applied: 2 s and 50 m (`ram_window_s`, `ram_distance_m`). Tightening to 0.5 s / 15 m drops the 4 looser cases of the 17 rams in the samples. Alternative: the tighter values.
 
 **OQ-93 Installer: what the upgrade check reports**
@@ -169,16 +169,16 @@ outcome value or drop it; commission a proper friendly-fire icon.
 Real-log mission and sortie pages are 107 to 122 KB of HTML (other pages about 20 KB). Default applied: the HTML budget is 150 KB
 (NFR-PERF-6) and the lists are not trimmed or paginated. Alternative: paginate or trim the sortie lists on those pages.
 
-**OQ-97 Page performance tests: in every test job**
+**OQ-97 Page performance tests: in every test job** — **answered** (maintainer, 2026-10-04): a separate CI job (being applied).
 Default applied: the `perf` tests (about 40 s of seeding each) run in every test job instead of a job of their own. Alternative: a separate CI job,
 or run only on SQLite/ubuntu.
 
-**OQ-98 Aircraft stats store four ratio fractions**
+**OQ-98 Aircraft stats store four ratio fractions** — **answered** (maintainer, 2026-10-04): don't store ratios whose numerator and denominator are stored anyway; compute them at read time (being applied).
 `AircraftStats.kd`, `kl`, `survival` and `attack_share` are columns, which departs from "don't store ratios" (TD-22, maintainer 2026-10-02): the
 aircraft list sorts and paginates in SQL, which needs a column to sort by. Default applied: keep the columns as the one documented exception
 (doc 06). Alternative: compute ratios in the view and sort the (few dozen) rows in Python, which keeps TD-22 literal.
 
-**OQ-99 Parachute deaths off: a pilot killed in the parachute can become "captured"**
+**OQ-99 Parachute deaths off: a pilot killed in the parachute can become "captured"** — **answered** (maintainer, 2026-10-04): a pilot killed while parachuting is a death (being applied).
 With `[rules] parachute_deaths = false` the pilot killed after a bailout is not a death, so the pilot's final position decides capture: over enemy
 territory the sortie becomes captured (50% score penalty, streak broken). Default applied: that behaviour (the pilot survived, the capture rules
 apply). Alternative: treat such pilots as neither dead nor captured.
