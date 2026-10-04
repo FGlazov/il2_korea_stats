@@ -286,6 +286,14 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
             built=built,
         )
     if declared == built:
+        if recorded_hash is not None and recorded_hash != sha256_of(original):
+            # Same number, different content: before the first release every file is v1, so only the hash tells.
+            return result(
+                "outdated",
+                f"The built-in file changed since you copied it{copy_note} (its version number is still {built}).",
+                _fix_update(key),
+                built=built,
+            )
         return result("current", f"Based on the current version ({built}).", built=built)
     if declared < built:
         return result(

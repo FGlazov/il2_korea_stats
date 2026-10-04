@@ -257,6 +257,34 @@ def test_accept_needs_an_override_file(cfg: Config, builtin: dict[custom.Kind, P
         custom.accept_original(cfg, "il2ks/home.html")
 
 
+# --- before the first release: every file is v1, the recorded hash tells ----------------------------------------------
+
+
+def test_with_every_version_at_v1_a_changed_original_is_found_by_its_hash(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    write_builtin(builtin["templates"], HOME, "<h1>home, changed</h1>\n", 1)  # new content, still v1
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "outdated"
+    assert (check.override_version, check.builtin_version) == (1, 1)
+    assert check.is_problem
+    assert "changed since you copied it" in check.message
+    assert "il2ks custom diff templates/il2ks/home.html" in check.fix
+    assert "home, changed" in custom.diff_override(cfg, "il2ks/home.html")
+    custom.accept_original(cfg, "il2ks/home.html")  # refreshes the record
+    assert states(cfg) == {HOME: "current"}
+    assert placed.override.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1 ")
+
+
+def test_with_every_version_at_v1_an_untouched_original_stays_current(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    custom.copy_builtin(cfg, "css/site.css")
+    assert states(cfg) == {HOME: "current", SITE_CSS: "current"}
+
+
 # --- diff ------------------------------------------------------------------------------------------------------------
 
 

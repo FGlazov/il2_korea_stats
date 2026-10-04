@@ -144,6 +144,12 @@ def web(tmp_path: Path) -> Path:
     return root
 
 
+@pytest.fixture
+def released(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The behaviour after the first public release: changed files get a higher version."""
+    monkeypatch.setattr(tv, "FIRST_RELEASE_DONE", True)
+
+
 def test_first_run_adds_headers_at_v1_and_registers_everything_versioned(web: Path) -> None:
     actions = tv.bump_templates(web)
     assert {a.key for a in actions} == {
@@ -174,6 +180,7 @@ def test_a_second_run_changes_nothing(web: Path) -> None:
     assert {p: p.read_bytes() for p in web.rglob("*") if p.is_file()} == before
 
 
+@pytest.mark.usefixtures("released")
 def test_a_changed_file_is_bumped_and_the_others_are_left_alone(web: Path) -> None:
     tv.bump_templates(web)
     a, b = web / "templates" / "il2ks" / "a.html", web / "templates" / "il2ks" / "b.html"
@@ -196,6 +203,7 @@ def test_a_changed_file_is_bumped_and_the_others_are_left_alone(web: Path) -> No
     assert [x.new_version for x in tv.bump_templates(web)] == [3]
 
 
+@pytest.mark.usefixtures("released")
 def test_a_version_raised_by_hand_is_not_bumped_twice(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"
@@ -207,6 +215,7 @@ def test_a_version_raised_by_hand_is_not_bumped_twice(web: Path) -> None:
     assert tv.bump_templates(web) == []
 
 
+@pytest.mark.usefixtures("released")
 def test_a_lost_header_is_restored_at_the_registered_version(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"
@@ -233,6 +242,58 @@ def test_crlf_files_keep_their_line_endings(web: Path) -> None:
     data = a.read_bytes()
     assert data.count(b"\r\n") == 3
     assert data.count(b"\n") == 3
+    assert tv.bump_templates(web) == []
+
+
+# --- before the first release: everything stays at v1 -----------------------------------------------------------------
+
+
+def test_the_real_files_are_all_at_v1_until_the_first_release() -> None:
+    if tv.FIRST_RELEASE_DONE:
+        pytest.skip("versions count up after the first release")
+    assert {e.version for e in tv.load_registry().values()} == {1}
+    assert {tv.version_of(path) for path in tv.versioned_files().values()} == {1}
+
+
+def test_a_changed_file_stays_at_v1_and_only_its_hash_moves(web: Path) -> None:
+    assert not tv.FIRST_RELEASE_DONE
+    tv.bump_templates(web)
+    a, b = web / "templates" / "il2ks" / "a.html", web / "templates" / "il2ks" / "b.html"
+    b_before = b.read_bytes()
+    old_hash = tv.load_registry(web)["templates/il2ks/a.html"].sha256
+    a.write_text(a.read_text(encoding="utf-8") + "<p>more</p>\n", encoding="utf-8")
+
+    assert [(x.key, x.kind, x.new_version) for x in tv.bump_templates(web, write=False)] == [
+        ("templates/il2ks/a.html", "rehash", 1)
+    ]
+    assert [x.kind for x in tv.bump_templates(web)] == ["rehash"]
+    assert tv.version_of(a) == 1
+    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 1
+    assert tv.load_registry(web)["templates/il2ks/a.html"].sha256 != old_hash
+    assert b.read_bytes() == b_before
+    assert tv.bump_templates(web) == []
+
+
+def test_higher_versions_are_reset_to_v1_before_the_first_release(web: Path) -> None:
+    tv.bump_templates(web)
+    a = web / "templates" / "il2ks" / "a.html"
+    a.write_text(tv.with_header(a.read_text(encoding="utf-8"), "templates/il2ks/a.html", 4), encoding="utf-8")
+    registry = tv.load_registry(web)
+    registry["templates/il2ks/a.html"] = tv.Entry(4, registry["templates/il2ks/a.html"].sha256)
+    tv.save_registry(registry, web)
+
+    assert [x.kind for x in tv.bump_templates(web)] == ["fix-header"]
+    assert tv.version_of(a) == 1
+    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 1
+    assert tv.bump_templates(web) == []
+
+
+def test_a_lost_header_comes_back_as_v1_before_the_first_release(web: Path) -> None:
+    tv.bump_templates(web)
+    a = web / "templates" / "il2ks" / "a.html"
+    a.write_text("<p>a</p>\n<p>2</p>\n", encoding="utf-8")
+    assert [x.kind for x in tv.bump_templates(web)] == ["add-header"]
+    assert tv.version_of(a) == 1
     assert tv.bump_templates(web) == []
 
 
@@ -268,6 +329,7 @@ def test_parse_registry_reads_the_saved_format(web: Path) -> None:
     assert tv.parse_registry('{"format": 1}') == {}
 
 
+@pytest.mark.usefixtures("released")
 def test_template_changes_compares_with_the_registry_at_a_tag(
     web: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

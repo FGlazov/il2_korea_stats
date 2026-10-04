@@ -13,6 +13,10 @@ line. A test compares it with the files, so a developer who changes a template c
 `il2ks dev bump-templates` does the bookkeeping (adds missing headers, raises versions of changed files, rewrites the
 registry). This module is that bookkeeping plus the header parsing the detection in `il2ks.serving.custom` needs.
 
+Before the first public release nobody can have an override based on an older version, so the numbers would only be
+noise: while `FIRST_RELEASE_DONE` is False every file stays at v1 and `bump-templates` only refreshes the content
+hashes in the registry. Flip the constant when the first release is tagged; from then on versions count up.
+
 Which files are versioned: HTML/TXT templates and CSS/JS static files of the `il2ks.web` package, except vendored
 libraries (`vendor/`). Images and fonts are replaced as a whole, so they have no versions.
 """
@@ -41,7 +45,13 @@ UNVERSIONED_DIRS = frozenset({"vendor"})
 _DJANGO_HEADER = re.compile(r"^\s*\{#\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?#\}\s*$")
 _C_HEADER = re.compile(r"^\s*/\*\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?\*/\s*$")
 
-type ActionKind = Literal["register", "add-header", "bump", "fix-header", "drop"]
+# Flip to True in the commit that tags the first public release (docs/releasing.md). Until then every built-in file
+# stays at version 1 and a changed file only gets a new hash in the registry. An explicit constant rather than something
+# derived (a git tag, `il2ks.__version__`): tags are missing in shallow clones and sdists, `__version__` also moves for
+# pre-releases, and the switch should be a visible, reviewed change in the release commit.
+FIRST_RELEASE_DONE = False
+
+type ActionKind = Literal["register", "add-header", "bump", "fix-header", "rehash", "drop"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,9 +200,29 @@ class _Plan:
     entry: Entry
 
 
+def _plan_prerelease(key: str, text: str, entry: Entry | None, header: Header | None, digest: str) -> _Plan:
+    """Before the first release: the version is 1 for every file; only the hash follows the content."""
+    new_entry = Entry(1, digest)
+    new_text = None if header is not None and header.version == 1 else with_header(text, key, 1)
+    if entry is None:
+        kind: ActionKind = "register" if header is not None else "add-header"
+        return _Plan(Action(key, kind, None, 1, "new file, not in the registry"), new_text, new_entry)
+    if header is None:
+        return _Plan(Action(key, "add-header", None, 1, "the version line is missing"), new_text, new_entry)
+    if header.version != 1:
+        why = f"the version line says v{header.version}; versions stay at v1 until the first release"
+        return _Plan(Action(key, "fix-header", header.version, 1, why), new_text, new_entry)
+    if entry.version != 1 or entry.sha256 != digest:
+        why = "the content changed (versions stay at v1 before the first release)"
+        return _Plan(Action(key, "rehash", 1, 1, why), None, new_entry)
+    return _Plan(None, None, entry)
+
+
 def _plan_file(key: str, text: str, entry: Entry | None) -> _Plan:
     header, body = split_header(text, key)
     digest = content_hash(body)
+    if not FIRST_RELEASE_DONE:
+        return _plan_prerelease(key, text, entry, header, digest)
     if entry is None:
         version = header.version if header is not None else 1
         kind: ActionKind = "register" if header is not None else "add-header"
@@ -219,8 +249,9 @@ def _plan_file(key: str, text: str, entry: Entry | None) -> _Plan:
 
 def bump_templates(root: Path | None = None, *, write: bool = True) -> list[Action]:
     """Bring headers and registry in line with the files: add missing version lines (v1), raise the version of changed
-    files, add new files to the registry, drop vanished ones. Unchanged files are left alone. Returns what was (or,
-    with `write=False`, would be) done; an empty list means everything is in order."""
+    files (before the first release: keep v1, only refresh the hash), add new files to the registry, drop vanished
+    ones. Unchanged files are left alone. Returns what was (or, with `write=False`, would be) done; an empty list
+    means everything is in order."""
     registry = load_registry(root)
     updated = dict(registry)
     actions: list[Action] = []
@@ -249,6 +280,7 @@ def describe(action: Action) -> str:
         "add-header": f"add version line v{action.new_version}",
         "bump": f"v{action.old_version} -> v{action.new_version}",
         "fix-header": f"set version line to v{action.new_version}",
+        "rehash": f"update the registry hash, stays v{action.new_version}",
         "drop": "remove from the registry",
     }[action.kind]
     return f"{action.key}: {versions} ({action.message})"
