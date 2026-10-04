@@ -1,0 +1,48 @@
+{# il2ks-template: templates/il2ks/players/streak_runs.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Every ironman streak of a player (FR-WEB-25, OQ-82), newest first. View: il2ks.web.views.boards.player_streak_runs.
+  Context: player, tours, tour (None = all time), page_obj (PlayerStreakRun rows: .sorties, .kills_air, .flight_time_s,
+  .since, .until, .ended_by = death / captured / open, .ended_sortie with .mission, None while open), min_run, crumbs,
+  page_title. A hidden mission's sortie is not linked (FR-ADM-3). With a tour selected a run stays inside that tour.
+  Blocks: head, content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+  <div class="page-head">
+    <h1>{% blocktranslate with name=player.current_name %}All streaks of {{ name }}{% endblocktranslate %}</h1>
+    <p>{% blocktranslate with count=min_run %}Every run of {{ count }} or more consecutive sorties survived (no death, no capture; sorties that never took off are skipped), newest first, and how each one ended.{% endblocktranslate %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% endif %}</p>
+  </div>
+  {% tour_select tours tour %}
+
+  {% results_region %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Since" %}</th>
+            <th scope="col">{% translate "Until" %}</th>
+            <th scope="col" class="num">{% translate "Sorties" %}</th>
+            <th scope="col" class="num">{% translate "Air kills" %}</th>
+            <th scope="col" class="num">{% translate "Flight time" %}</th>
+            <th scope="col">{% translate "How it ended" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in page_obj %}
+            <tr>
+              <td class="nowrap">{{ run.since|local_date }}</td>
+              <td class="nowrap">{{ run.until|local_date }}</td>
+              <td class="num">{{ run.sorties|num }}</td>
+              <td class="num">{{ run.kills_air|num }}</td>
+              <td class="num">{{ run.flight_time_s|duration }}</td>
+              <td>{% if run.ended_by == "open" %}{% translate "Still going" %}{% else %}{% if run.ended_sortie and not run.ended_sortie.mission.is_hidden %}<a href="{% url 'web:sortie-detail' run.ended_sortie_id %}">{% endif %}{% if run.ended_by == "captured" %}{% translate "Captured" %}{% else %}{% translate "Died" %}{% endif %}{% if run.ended_sortie and not run.ended_sortie.mission.is_hidden %}</a>{% endif %}{% endif %}</td>
+            </tr>
+          {% empty %}{% empty_row 6 _("No streak yet: no run of consecutive sorties survived.") %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% pagination page_obj %}
+  {% endresults_region %}
+  <p><a href="{% url 'web:player-streaks' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">← {% translate "Best streaks" %}</a></p>
+{% endblock %}

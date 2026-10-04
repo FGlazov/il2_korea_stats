@@ -1,8 +1,9 @@
 """Ironman streak rule (FR-WEB-23, doc 13): which sorties extend, break or skip a streak. Pure core, no database."""
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
-from il2ks.core.streaks import StreakSortie, summarize
+from il2ks.core.streaks import RunEnd, StreakSortie, runs, summarize
 
 T0 = datetime(2026, 9, 1, tzinfo=UTC)
 
@@ -122,3 +123,26 @@ def test_best_can_be_the_running_streak() -> None:
 
     assert result.best == result.current
     assert result.best.sorties == 3
+
+
+def test_runs_lists_every_run_of_two_or_more_with_how_it_ended() -> None:
+    """OQ-82: all runs, not just the best; a one-sortie run is not listed; the ending sortie is named."""
+    flown = [
+        s(0, kills=1),
+        s(1),
+        replace(s(2, death=True), ref=12),
+        s(3),  # a run of one: not listed
+        replace(s(4, captured=True), ref=14),
+        s(5, kills=2),
+        s(6, grounded=True),  # neutral: skipped
+        s(7),
+        s(8, flight=100.0),
+    ]
+    result = runs(flown)
+    assert [(r.streak.sorties, r.streak.kills_air, r.end, r.ended_by_ref) for r in result] == [
+        (2, 1, RunEnd.DEATH, 12),
+        (3, 2, RunEnd.OPEN, None),
+    ]
+    assert result[1].streak.flight_time_s == 600.0 * 2 + 100.0
+    assert [r.streak.sorties for r in runs(flown, minimum=1)] == [2, 1, 3]
+    assert runs([]) == []

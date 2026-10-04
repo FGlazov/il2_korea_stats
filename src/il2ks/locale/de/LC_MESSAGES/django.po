@@ -187,6 +187,11 @@ msgstr "%(name)s: Auszeichnungen"
 
 # llm-draft
 #, python-format
+msgid "%(name)s: all streaks"
+msgstr "%(name)s: alle Serien"
+
+# llm-draft
+#, python-format
 msgid "%(name)s: best streaks"
 msgstr "%(name)s: Beste Serien"
 
@@ -621,6 +626,11 @@ msgid "All streaks"
 msgstr "Alle Serien"
 
 # llm-draft
+#, python-format
+msgid "All streaks of %(name)s"
+msgstr "Alle Serien von %(name)s"
+
+# llm-draft
 msgid "All time"
 msgstr "Gesamtzeit"
 
@@ -683,6 +693,11 @@ msgstr "Artillerie"
 # llm-draft
 msgid "Assist"
 msgstr "Assist"
+
+# llm-draft
+#, python-format
+msgid "Assisted on your losses: %(n)s"
+msgstr "Hat bei deinen Abschüssen mitgeholfen: %(n)s"
 
 # llm-draft
 msgid "Assists"
@@ -1307,6 +1322,15 @@ msgid "Every pilot has bad days. These are the ones the server remembers."
 msgstr "Jeder Pilot hat mal einen schlechten Tag. Das hier sind die, an die sich der Server erinnert."
 
 # llm-draft
+#, python-format
+msgid ""
+"Every run of %(count)s or more consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), newest first, and how each one ended."
+msgstr ""
+"Alle Serien von %(count)s oder mehr überlebten Einsätzen in Folge (kein Tod, keine Gefangennahme; Einsätze ohne Start"
+" werden übersprungen), neueste zuerst, und wie jede endete."
+
+# llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Alle Einsätze, die neuesten zuerst. Wähle einen für den vollständigen Bericht."
 
@@ -1720,6 +1744,10 @@ msgid ""
 msgstr ""
 "Wie sich jeder Flugzeugtyp schlägt: Einsätze, Abschüsse, Verluste und Verhältnisse über alle gespielten Missionen. "
 "Öffne einen Typ für Duelle, beste Piloten und Bewaffnungen."
+
+# llm-draft
+msgid "How it ended"
+msgstr "Wie sie endete"
 
 # llm-draft
 msgid ""
@@ -2373,6 +2401,10 @@ msgstr "Keine Einsätze passen zu diesen Filtern."
 # llm-draft
 msgid "No sorties yet"
 msgstr "Noch keine Einsätze"
+
+# llm-draft
+msgid "No streak yet: no run of consecutive sorties survived."
+msgstr "Noch keine Serie: keine mehreren überlebten Einsätze in Folge."
 
 # llm-draft
 msgid "No streak yet: no sortie survived."
@@ -3295,6 +3327,10 @@ msgstr "Statusfarben (Abzeichen, Hinweise)"
 # llm-draft
 msgid "Steel blue"
 msgstr "Stahlblau"
+
+# llm-draft
+msgid "Still going"
+msgstr "Läuft noch"
 
 # llm-draft
 msgid "Strafed on the ground"

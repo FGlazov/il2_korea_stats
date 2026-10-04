@@ -197,6 +197,11 @@ msgstr "%(name)s: достижения"
 
 # llm-draft
 #, python-format
+msgid "%(name)s: all streaks"
+msgstr "%(name)s: все серии"
+
+# llm-draft
+#, python-format
 msgid "%(name)s: best streaks"
 msgstr "%(name)s: лучшие серии"
 
@@ -631,6 +636,11 @@ msgid "All streaks"
 msgstr "Все серии"
 
 # llm-draft
+#, python-format
+msgid "All streaks of %(name)s"
+msgstr "Все серии пилота %(name)s"
+
+# llm-draft
 msgid "All time"
 msgstr "За всё время"
 
@@ -693,6 +703,11 @@ msgstr "Артиллерия"
 # llm-draft
 msgid "Assist"
 msgstr "Содействие"
+
+# llm-draft
+#, python-format
+msgid "Assisted on your losses: %(n)s"
+msgstr "Содействовал в ваших потерях: %(n)s"
 
 # llm-draft
 msgid "Assists"
@@ -1326,6 +1341,15 @@ msgid "Every pilot has bad days. These are the ones the server remembers."
 msgstr "У каждого пилота бывают плохие дни. Просто эти сервер запомнил."
 
 # llm-draft
+#, python-format
+msgid ""
+"Every run of %(count)s or more consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), newest first, and how each one ended."
+msgstr ""
+"Все серии из %(count)s и более вылетов подряд, пережитых без гибели и плена (вылеты без взлёта пропускаются), сначала"
+" новые, и чем каждая закончилась."
+
+# llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Все вылеты, сначала новые. Выберите вылет, чтобы открыть полный отчёт."
 
@@ -1738,6 +1762,10 @@ msgid ""
 msgstr ""
 "Как показывает себя каждый тип самолёта: вылеты, победы, потери и соотношения за все сыгранные миссии. Откройте тип, "
 "чтобы увидеть его противников, лучших пилотов и варианты вооружения."
+
+# llm-draft
+msgid "How it ended"
+msgstr "Чем закончилась"
 
 # llm-draft
 msgid ""
@@ -2387,6 +2415,10 @@ msgstr "Нет вылетов, подходящих под эти фильтры
 # llm-draft
 msgid "No sorties yet"
 msgstr "Вылетов пока нет"
+
+# llm-draft
+msgid "No streak yet: no run of consecutive sorties survived."
+msgstr "Серий пока нет: нет нескольких пережитых вылетов подряд."
 
 # llm-draft
 msgid "No streak yet: no sortie survived."
@@ -3311,6 +3343,10 @@ msgstr "Цвета статусов (значки, уведомления)"
 # llm-draft
 msgid "Steel blue"
 msgstr "Стальной синий"
+
+# llm-draft
+msgid "Still going"
+msgstr "Продолжается"
 
 # llm-draft
 msgid "Strafed on the ground"

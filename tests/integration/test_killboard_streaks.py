@@ -13,6 +13,7 @@ from il2ks.db.models import (
     PlayerBestStreak,
     PlayerKillboard,
     PlayerStreak,
+    PlayerStreakRun,
     PlayerTourKillboard,
     PlayerTypeKillboard,
 )
@@ -38,10 +39,18 @@ def board() -> dict[tuple[int, int], tuple[int, int]]:
 
 def snapshot() -> list[tuple[object, ...]]:
     kb = PlayerKillboard.objects.order_by("player_id", "opponent_id").values_list(
-        "player_id", "opponent_id", "kills", "deaths", "assists", "last_at", "last_mission_id"
+        "player_id", "opponent_id", "kills", "deaths", "assists", "assists_received", "last_at", "last_mission_id"
     )
     tour_kb = PlayerTourKillboard.objects.order_by("player_id", "tour_id", "opponent_id").values_list(
-        "player_id", "tour_id", "opponent_id", "kills", "deaths", "assists", "last_at", "last_mission_id"
+        "player_id",
+        "tour_id",
+        "opponent_id",
+        "kills",
+        "deaths",
+        "assists",
+        "assists_received",
+        "last_at",
+        "last_mission_id",
     )
     best = PlayerBestStreak.objects.order_by("player_id", "tour_id", "kind").values_list(
         "player_id", "tour_id", "kind", "sorties", "kills_air", "flight_time_s", "since", "until"
@@ -62,7 +71,10 @@ def snapshot() -> list[tuple[object, ...]]:
     types = PlayerTypeKillboard.objects.order_by("player_id", "tour_id", "enemy_aircraft_id").values_list(
         "player_id", "tour_id", "enemy_aircraft_id", "kills", "deaths", "kills_with_id", "deaths_in_id"
     )
-    return [*kb, *tour_kb, *types, *best, *st]
+    runs = PlayerStreakRun.objects.order_by("player_id", "tour_id", "since").values_list(
+        "player_id", "tour_id", "sorties", "kills_air", "flight_time_s", "since", "until", "ended_by", "ended_sortie_id"
+    )
+    return [*kb, *tour_kb, *types, *best, *st, *runs]
 
 
 def duel_mission() -> MissionResult:

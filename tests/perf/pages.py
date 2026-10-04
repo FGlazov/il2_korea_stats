@@ -34,6 +34,7 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("player-sorties", lambda w: f"/players/{w.player_pk}/sorties/", 8),
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
     PageSpec("player-streaks", lambda w: f"/players/{w.player_pk}/streaks/", 8),
+    PageSpec("player-streak-runs", lambda w: f"/players/{w.player_pk}/streaks/history/", 6),
     PageSpec("streak-list", lambda w: "/streaks/", 5),
     PageSpec("leaderboard", lambda w: "/leaderboards/air/", 8),
     PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 7),  # + earned medals (FR-WEB-26)

@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/players/_killboard_rows.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/_killboard_rows.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   _killboard_rows.html: the cells of one killboard row. Context: row (PlayerKillboard or PlayerTourKillboard with
-  .opponent and .last_mission), site (the assists cell shows when site.killboard_assists). A hidden opponent is anonymised, a hidden mission is not linked (FR-ADM-3); the counts include both.
-{% endcomment %}<td>{% include "il2ks/missions/_player.html" with player=row.opponent name=row.opponent.current_name %}</td>
+  .opponent and .last_mission), site (the assists cell, and under the opponent a small line with the opponent's assists on this player's losses, row.assists_received, show when site.killboard_assists). A hidden opponent is anonymised, a hidden mission is not linked (FR-ADM-3); the counts include both.
+{% endcomment %}<td>{% include "il2ks/missions/_player.html" with player=row.opponent name=row.opponent.current_name %}{% if site.killboard_assists and row.assists_received %}<br>
+  <small class="muted">{% blocktranslate with n=row.assists_received|num %}Assisted on your losses: {{ n }}{% endblocktranslate %}</small>{% endif %}</td>
 <td class="num">{{ row.kills|num }}</td>
 <td class="num">{{ row.deaths|num }}</td>
 {% if site.killboard_assists %}<td class="num">{{ row.assists|num }}</td>

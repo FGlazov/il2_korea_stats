@@ -8,14 +8,17 @@ the rows that changed. A player with no survived sortie has no row.
 - `PlayerBestStreak`: the best streak by sorties, by air kills and by flight time, over the whole history (`tour` null)
   and within each tour (the tour's sorties only, so a streak never spans two tours there). One read of the sorties
   fills both; `tour_ids` limits which tours' rows are rewritten (None = all), the all-time rows always are.
+- `PlayerStreakRun`: every run of at least `MIN_LISTED_RUN` survived sorties (OQ-82), all time and within each tour,
+  with the sortie that ended it; synced like the best rows (same read, same tour limit).
 """
 
 from collections.abc import Iterable
+from datetime import datetime
 
 from django.db.models import Q, QuerySet
 
-from il2ks.core.streaks import Streak, StreakSortie, StreakSummary, summarize
-from il2ks.db.models import Outcome, PlayerBestStreak, PlayerSortie, PlayerStreak, StreakKind
+from il2ks.core.streaks import Streak, StreakRun, StreakSortie, StreakSummary, runs, summarize
+from il2ks.db.models import Outcome, PlayerBestStreak, PlayerSortie, PlayerStreak, PlayerStreakRun, StreakKind
 from il2ks.ingest.counters import counted_sorties
 from il2ks.ingest.dbutil import update_rows
 
@@ -43,7 +46,8 @@ def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -
     tours = None if tour_ids is None else set(tour_ids)
     by_player: dict[int, list[StreakSortie]] = {}
     by_player_tour: dict[tuple[int, int], list[StreakSortie]] = {}
-    for pid, tour_id, spawned, ended, kills, flight, death, captured, outcome in sorties.values_list(
+    for sortie_id, pid, tour_id, spawned, ended, kills, flight, death, captured, outcome in sorties.values_list(
+        "pk",
         "player_id",
         "mission__tour_id",
         "spawned_at",
@@ -54,25 +58,29 @@ def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -
         "is_captured",
         "outcome",
     ).iterator():
-        row = StreakSortie(spawned, ended, kills, flight, death, captured, outcome == Outcome.NOT_TAKEN_OFF)
+        row = StreakSortie(spawned, ended, kills, flight, death, captured, outcome == Outcome.NOT_TAKEN_OFF, sortie_id)
         by_player.setdefault(pid, []).append(row)
         if tour_id is not None and (tours is None or tour_id in tours):
             by_player_tour.setdefault((pid, tour_id), []).append(row)
 
     wanted: dict[int, tuple[object, ...]] = {}
     wanted_best: dict[_BestKey, _BestValues] = {}
+    wanted_runs: dict[tuple[int, int | None], list[StreakRun]] = {}
     for pid, rows in by_player.items():
         summary = summarize(rows)
         if summary.best.sorties:
             wanted[pid] = (*_values(summary.current), *_values(summary.best))
             wanted_best.update(_best_rows(pid, None, summary))
+            wanted_runs[(pid, None)] = runs(rows)
     for (pid, tour_id), rows in by_player_tour.items():
         summary = summarize(rows)
         if summary.best.sorties:
             wanted_best.update(_best_rows(pid, tour_id, summary))
+            wanted_runs[(pid, tour_id)] = runs(rows)
 
     _sync_streaks(chunk, wanted)
     _sync_best(chunk, tours, wanted_best)
+    _sync_runs(chunk, tours, wanted_runs)
 
 
 def _sync_streaks(chunk: list[int], wanted: dict[int, tuple[object, ...]]) -> None:
@@ -113,6 +121,53 @@ def _sync_best(chunk: list[int], tours: set[int] | None, wanted: dict[_BestKey, 
     PlayerBestStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
     update_rows(PlayerBestStreak, changed, list(fields))
     PlayerBestStreak.objects.bulk_create(new)
+
+
+type _RunKey = tuple[int, int | None, datetime | None]  # player, tour (None = all time), first spawn
+type _RunValues = tuple[
+    int, int, float, datetime | None, str, int | None
+]  # sorties, kills_air, flight, until, ended_by, sortie
+
+
+def _sync_runs(
+    chunk: list[int], tours: set[int] | None, wanted_runs: dict[tuple[int, int | None], list[StreakRun]]
+) -> None:
+    """Make the `PlayerStreakRun` rows of the chunk (all-time and the touched tours) equal the runs found."""
+    fields = ("sorties", "kills_air", "flight_time_s", "until", "ended_by", "ended_sortie_id")
+    wanted: dict[_RunKey, _RunValues] = {}
+    for (pid, tour_id), found in wanted_runs.items():
+        for run in found:
+            streak = run.streak
+            wanted[(pid, tour_id, streak.since)] = (
+                streak.sorties,
+                streak.kills_air,
+                streak.flight_time_s,
+                streak.until,
+                run.end.value,
+                run.ended_by_ref,
+            )
+    rows = PlayerStreakRun.objects.filter(player_id__in=chunk)
+    if tours is not None:
+        rows = rows.filter(Q(tour_id__isnull=True) | Q(tour_id__in=tours))
+    existing: dict[_RunKey, PlayerStreakRun] = {(r.player_id, r.tour_id, r.since): r for r in rows}
+    changed: list[PlayerStreakRun] = []
+    new: list[PlayerStreakRun] = []
+    for key, values in wanted.items():
+        pid, tour_id, since = key
+        row: PlayerStreakRun | None = existing.pop(key, None)
+        if row is None:
+            new.append(
+                PlayerStreakRun(player_id=pid, tour_id=tour_id, since=since, **dict(zip(fields, values, strict=True)))
+            )
+        elif tuple(getattr(row, f) for f in fields) != values:
+            for field, value in zip(fields, values, strict=True):
+                setattr(row, field, value)
+            changed.append(row)
+    PlayerStreakRun.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    update_rows(
+        PlayerStreakRun, changed, ["sorties", "kills_air", "flight_time_s", "until", "ended_by", "ended_sortie"]
+    )
+    PlayerStreakRun.objects.bulk_create(new)
 
 
 def _best_rows(player_id: int, tour_id: int | None, summary: StreakSummary) -> dict[_BestKey, _BestValues]:
