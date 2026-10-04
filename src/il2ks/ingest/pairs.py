@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from django.db.models import F, Q
+from django.db.models.manager import BaseManager
 
 from il2ks.db.models import Kill, KillCredit, PlayerKillboard, PlayerTourKillboard, Role
 from il2ks.db.site import get_site_settings
@@ -90,7 +91,7 @@ def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None)
     touching = Q(player_id__in=chunk) | Q(opponent_id__in=chunk)
     all_time = {key: values for key, values in wanted.items() if key[2] is None}
     _sync(
-        PlayerKillboard,
+        PlayerKillboard.objects,
         {(p, o): v for (p, o, _), v in all_time.items()},
         {(r.player_id, r.opponent_id): r for r in PlayerKillboard.objects.filter(touching)},
         lambda key: {"player_id": key[0], "opponent_id": key[1]},
@@ -99,7 +100,7 @@ def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None)
     if tours is not None:
         per_tour = per_tour.filter(tour_id__in=tours)
     _sync(
-        PlayerTourKillboard,
+        PlayerTourKillboard.objects,
         {key: v for key, v in wanted.items() if key[2] is not None},
         {(r.player_id, r.opponent_id, r.tour_id): r for r in per_tour},
         lambda key: {"player_id": key[0], "opponent_id": key[1], "tour_id": key[2]},
@@ -107,7 +108,7 @@ def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None)
 
 
 def _sync[M: PlayerKillboard | PlayerTourKillboard, K](
-    model: type[M],
+    manager: BaseManager[M],
     wanted: dict[K, _Values],
     existing: dict[K, M],
     identity: Callable[[K], dict[str, int | None]],
@@ -119,7 +120,7 @@ def _sync[M: PlayerKillboard | PlayerTourKillboard, K](
         row = existing.pop(key, None)
         if row is None:
             new.append(
-                model(
+                manager.model(
                     **identity(key),
                     kills=kills,
                     deaths=deaths,
@@ -138,7 +139,6 @@ def _sync[M: PlayerKillboard | PlayerTourKillboard, K](
             row.kills, row.deaths, row.assists = kills, deaths, assists
             row.last_at, row.last_mission_id = last_at, last_mission_id
             changed.append(row)
-    manager = model._default_manager
     manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing left to count
     manager.bulk_update(changed, ["kills", "deaths", "assists", "last_at", "last_mission"])
     manager.bulk_create(new)
