@@ -147,6 +147,10 @@ decisions are made):
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
 - 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
+- 🔧 **Killboards by aircraft type** (maintainer, 2026-10-04): on the player killboard (and the profile), the enemy types a pilot
+  shot down most and the types that killed them most, above the player-vs-player table (more important than it). On the aircraft
+  page, a killboard by enemy type with the exchange rate ("how do I counter this plane, what should I fly?"), with a filter for
+  intercept flights only (air superiority vs air superiority).
 - ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
