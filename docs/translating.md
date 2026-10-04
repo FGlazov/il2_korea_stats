@@ -42,6 +42,9 @@ Terms used in the game are chosen on purpose: *sortie* (one flight from take-off
 stay as they are** (the server owner can rename them in the admin), and so do aircraft type names (F-86A, MiG-15bis).
 Page text is read by pilots, not by lawyers: short and plain beats formal.
 
+**How the site addresses the reader** (maintainer, 2026-10-04): German **du**; French the polite **vous**; Russian **вы**
+(lowercase, the usual UI convention); Spanish **tú**; Brazilian Portuguese **você**. Keep it consistent within a language.
+
 **Translate for meaning in context, not word for word.** The goal is a GUI a native-speaking flight-sim player understands at a
 glance, not literal fidelity.
 
