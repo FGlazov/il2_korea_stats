@@ -127,8 +127,10 @@ def _databases() -> dict[str, dict[str, object]]:
         "HOST": os.environ.get("IL2KS_PG_HOST", "127.0.0.1"),
         "PORT": os.environ.get("IL2KS_PG_PORT", "5432"),
     }
-    # Postgres is the default under test; SQLite stays available as "sqlite" for the transfer test (TD-19).
-    return {"default": postgres, "sqlite": sqlite}
+    # Postgres is the default under test; SQLite stays available as "sqlite" for the transfer test (TD-19). Its test
+    # database is built from the models, not by running the migrations: data migrations query through the default
+    # router, i.e. the already migrated Postgres, and fail there (a column a later migration dropped).
+    return {"default": postgres, "sqlite": {**sqlite, "TEST": {"MIGRATE": False}}}
 
 
 DATABASES = _databases()

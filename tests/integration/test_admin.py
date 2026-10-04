@@ -78,7 +78,8 @@ def settings_form(**overrides: object) -> dict[str, object]:
 
 def nav_formset(links: list[tuple[str, str, str]], *, initial: int = 0) -> dict[str, object]:
     """POST data for the navigation-link inline: `links` are (label, url, icon) in row order; the first `initial` rows
-    are existing ones (their ids are 1..initial, which holds on a fresh test database)."""
+    are existing ones (read back from the database: Postgres does not restart its id sequences between tests)."""
+    ids = list(NavLink.objects.order_by("position", "id").values_list("pk", flat=True))[:initial]
     data: dict[str, object] = {
         "nav_links-TOTAL_FORMS": len(links),
         "nav_links-INITIAL_FORMS": initial,
@@ -91,7 +92,7 @@ def nav_formset(links: list[tuple[str, str, str]], *, initial: int = 0) -> dict[
         data[f"nav_links-{number}-icon"] = icon
         data[f"nav_links-{number}-position"] = number + 1
         if number < initial:
-            data[f"nav_links-{number}-id"] = number + 1
+            data[f"nav_links-{number}-id"] = ids[number]
             data[f"nav_links-{number}-site"] = 1
     return data
 

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v8 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v9 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -329,7 +329,9 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .tour-toggle a { padding: 0.35rem 0.8rem; text-decoration: none; color: var(--il2-text); background: var(--il2-surface-2); }
 .tour-toggle a + a { border-inline-start: 1px solid var(--il2-border-strong); }
 .tour-toggle a[aria-current="true"] { background: var(--il2-accent); color: var(--il2-accent-contrast); font-weight: 650; }
-.tour-next[hidden] { display: none; }
+/* localtime.js hides an ended tour's "next tour" line after first paint; keeping its box (visibility, not display) means the
+   filter bar and everything below it do not jump (CLS). */
+.tour-next[hidden] { display: inline !important; visibility: hidden; } /* !important: Pico hides [hidden] with it */
 .has-htmx .filter-bar__apply { display: none; }
 
 /* Pagination */
