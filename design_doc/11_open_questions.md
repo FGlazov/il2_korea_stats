@@ -6,6 +6,27 @@ When a question is answered, write the answer into the relevant doc (requirement
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
 Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78 right after it).
 
+
+**Answers (maintainer, 2026-10-04, batch 3; to fold into the spec and remove):**
+- **OQ-79** `[DECIDED]`: the current tour is the default everywhere, **the home page included** (it gets the tour filter; being applied).
+- **OQ-80** `[DECIDED]`: as built: a new tour starts only once its first mission is ingested.
+- **OQ-81** `[DECIDED]`: no "assists received" column; show it as a **detail** instead (queued).
+- **OQ-82** `[DECIDED]`: a detail page with **all of a player's streaks**, linked from the player's sortie page (queued).
+- **OQ-83** `[DECIDED]`: tie-breaks as built.
+- **OQ-86** `[DECIDED]`: a type is an attack type when it has more attack sorties than air-superiority sorties (as built).
+- **OQ-87** `[DECIDED]`: navigation link URLs may be long (detail pages); the rest as built (being applied).
+- **OQ-88** `[DECIDED]`: the "Default" preset is the original military theme; admins must be able to build a theme from scratch (every
+  token is editable, as built); the contrast check stays simple (warn after save).
+- **OQ-89** `[DECIDED]`: `credit_rams` on by default (being applied).
+- **OQ-90** `[DECIDED]`: a ram between enemies credits a kill to both (as built).
+- **OQ-93** `[DECIDED]`: never fail the install; the pop-up lists the templates to check and points to `il2ks doctor` (being applied).
+- **OQ-94** `[DECIDED]`: no visual asset is a release gate.
+- **OQ-95** `[DECIDED]`: find more fitting icons, other icon sets allowed; doesn't have to be 100% cohesive (queued).
+- **OQ-96** `[DECIDED]`: paginate: about 10 missions and 20 sorties at a time (being applied).
+- **OQ-100** `[DECIDED]`: ignore the old keys with a warning, as built.
+- **OQ-101** `[DECIDED]`: show the estimate for bombs and rockets after a loss where release events exist; guns stay unknown (being applied).
+- Also: Elo "rated games" reads confusing → call them **encounters** in the UI; the home page gets a sixth board (**play time**) in a
+  3×2 grid (being applied).
 ## Needs outside input
 
 **OQ-39 Terrain height for the bailout "> 30 m above ground" test** (owner: maintainer, will try to get heightmaps)
