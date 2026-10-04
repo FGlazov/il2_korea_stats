@@ -133,7 +133,8 @@ def save_mission(
     recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
     recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(ammo_aircraft_ids)
-    recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk))  # after the players' PlayerAircraft rows
+    # after the players' PlayerAircraft / PlayerTourAircraft rows
+    recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk), touched_tours)
     recompute_matchups(old_pairs | mission_pairs(mission.pk))
     recompute_days({day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()))
     if marks is not None:

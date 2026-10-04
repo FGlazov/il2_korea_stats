@@ -1741,13 +1741,10 @@ msgstr "Impactos encajados"
 msgid "Hits to destroy"
 msgstr "Impactos para destruir"
 
-# llm-draft
 msgid ""
-"Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack"
-" sorties: the rest are air-superiority sorties."
+"Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
+"left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
-"Impactos para destruir: solo cuentan los derribos en los que un único atacante causó todo el daño; no se incluyen "
-"bombas ni cohetes. Salidas de ataque: el resto son salidas de superioridad aérea."
 
 # llm-draft
 msgid "Home"
@@ -1773,13 +1770,10 @@ msgstr "Horas de vuelo en el tipo de avión más volado."
 msgid "Hours in the air, all sorties together."
 msgstr "Horas de vuelo en total, todas las salidas juntas."
 
-# llm-draft
 msgid ""
-"How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its "
-"matchups, best pilots and loadouts."
+"How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
+" Open a type for its matchups, best pilots and loadouts."
 msgstr ""
-"Cómo rinde cada tipo de aeronave: salidas, derribos, pérdidas y proporciones en todas las misiones jugadas. Abre un "
-"tipo para ver sus enfrentamientos, mejores pilotos y configuraciones de armamento."
 
 # llm-draft
 msgid "How it ended"
@@ -2313,6 +2307,9 @@ msgstr "Sin ataques a tierra en esta temporada: ni blancos terrestres ni salidas
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Aún sin ataques a tierra: ni blancos terrestres ni salidas de ataque."
 
+msgid "No aircraft has flown in this tour yet."
+msgstr ""
+
 # llm-draft
 msgid "No aircraft has flown yet."
 msgstr "Todavía no ha volado ninguna aeronave."
@@ -2797,13 +2794,10 @@ msgstr "Jugador"
 msgid "Player aircraft"
 msgstr "Aeronaves de jugadores"
 
-# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
-"aircraft this one beats and which beat it. The rest of this page covers all time."
+"aircraft this one beats and which beat it."
 msgstr ""
-"Derribos aéreos entre jugadores contra cada tipo de avión enemigo en la gira elegida. Sirve para ver a qué enemigos "
-"vence este avión y cuáles lo vencen. El resto de la página abarca todo el tiempo."
 
 # llm-draft
 msgid ""
@@ -3756,6 +3750,9 @@ msgstr "La escuadrilla ha aprendido a volar algo más abierta. Valiente, y bien 
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "La calle de rodaje lleva un archivo de estos casos. Es finito, pero está muy manoseado."
+
+msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+msgstr ""
 
 # llm-draft
 msgid "The two passwords differ."

@@ -1,4 +1,5 @@
-"""Level-2 stats per aircraft type (FR-WEB-8): `AircraftStats`, `AircraftMatchup`, `AircraftPayload`. Aggregation in
+"""Level-2 stats per aircraft type (FR-WEB-8): `AircraftStats`, `TourAircraftStats`, `AircraftMatchup`,
+`AircraftPayload`. Aggregation in
 `ingest` only (TD-22); the aircraft pages just read these rows.
 
 Like the player aggregates they are always recomputed from lower rows, never adjusted by deltas, so incremental ==
@@ -7,19 +8,23 @@ rebuild by construction:
 - `AircraftStats` = the sum of the type's `PlayerAircraft` rows (every player, hidden ones too), plus the pilot count,
   the side most sorties were flown for. No ratio is stored: K/D and the like are computed at read time (OQ-98).
   Recompute it after `recompute_players` (it reads their rows).
+- `TourAircraftStats` = the same per tour (TD-26), summed from the type's `PlayerTourAircraft` rows; the pilot count
+  and the side are of that tour. Only the tours a saved mission touched are recomputed; a rebuild does them all.
 - `AircraftPayload` = counted sorties grouped by loadout name.
 - `AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type) and scope
   (all time / tour, all kills / intercept fights where both sorties were air superiority).
 
-`save_mission` passes the types and pairs a mission touched (old and new); `rebuild_aggregates` passes everything.
+`save_mission` passes the types, tours and pairs a mission touched (old and new); `rebuild_aggregates` passes
+everything.
 """
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Mapping
 
 from django.db.models import Count, Q, QuerySet, Sum
 
 from il2ks.core.catalog.loader import side_of_country
 from il2ks.db.models import (
+    AircraftCounters,
     AircraftMatchup,
     AircraftPayload,
     AircraftStats,
@@ -27,7 +32,9 @@ from il2ks.db.models import (
     Kill,
     KillCredit,
     PlayerAircraft,
+    PlayerTourAircraft,
     Role,
+    TourAircraftStats,
 )
 from il2ks.ingest.counters import COUNTER_FIELDS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_rows
@@ -64,45 +71,83 @@ def mission_aircraft(mission_id: int) -> set[int]:
     return set(counted_sorties().filter(mission_id=mission_id).values_list("aircraft_id", flat=True))
 
 
-def recompute_aircraft_stats(aircraft_ids: Iterable[int]) -> None:
-    """`AircraftStats` and `AircraftPayload` for these types; rows of types without counted sorties are deleted."""
+def recompute_aircraft_stats(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
+    """`AircraftStats` and `AircraftPayload` for these types, and their `TourAircraftStats` in `tour_ids` (None = every
+    tour); rows of types without counted sorties are deleted."""
     ids = sorted(set(aircraft_ids))
+    tours = None if tour_ids is None else sorted(set(tour_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
         groups = _sortie_groups(chunk)
         _recompute_stats(chunk, _sides(groups))
         _recompute_payloads(chunk, groups)
+        if tours is None or tours:
+            _recompute_tour_stats(chunk, tours)
+
+
+type _Wanted[K] = dict[K, dict[str, int | float | str]]
 
 
 def _recompute_stats(chunk: list[int], sides: dict[int, str]) -> None:
     sums = {name: Sum(name) for name in COUNTER_FIELDS}
-    totals = {
-        row["aircraft_id"]: row
+    wanted: _Wanted[int] = {
+        row["aircraft_id"]: _stat_values(row, sides.get(row["aircraft_id"], ""))
         for row in PlayerAircraft.objects.filter(aircraft_id__in=chunk)
         .values("aircraft_id")
         .annotate(pilots=Count("pk"), **sums)
     }
     existing = {row.aircraft_id: row for row in AircraftStats.objects.filter(aircraft_id__in=chunk)}
-    changed: list[AircraftStats] = []
-    new: list[AircraftStats] = []
-    for aircraft_id, total in totals.items():
-        values = clean_counters(total)
-        wanted: dict[str, int | float | str] = {
-            **values,
-            "pilots": int(total["pilots"]),
-            "side": sides.get(aircraft_id, ""),
-        }
-        row = existing.pop(aircraft_id, None)
+    _sync_stats(AircraftStats, wanted, existing, lambda aircraft_id: {"aircraft_id": aircraft_id})
+
+
+def _recompute_tour_stats(chunk: list[int], tour_ids: list[int] | None) -> None:
+    """`TourAircraftStats` of these types in these tours (None = all), from the players' per-tour aircraft rows."""
+    rows = PlayerTourAircraft.objects.filter(aircraft_id__in=chunk)
+    sorties = counted_sorties().filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+    existing_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk)
+    if tour_ids is not None:
+        rows = rows.filter(tour_id__in=tour_ids)
+        sorties = sorties.filter(mission__tour_id__in=tour_ids)
+        existing_rows = existing_rows.filter(tour_id__in=tour_ids)
+    by_side: dict[tuple[int, int], dict[str, int]] = {}
+    for found in sorties.values("aircraft_id", "mission__tour_id", "country").annotate(n=Count("pk")):
+        side = side_of_country(found["country"])
+        if side is not None:
+            counts = by_side.setdefault((found["aircraft_id"], found["mission__tour_id"]), {})
+            counts[side] = counts.get(side, 0) + found["n"]
+    sides = _majority_sides(by_side)
+    sums = {name: Sum(name) for name in COUNTER_FIELDS}
+    wanted: _Wanted[tuple[int, int]] = {
+        (row["aircraft_id"], row["tour_id"]): _stat_values(row, sides.get((row["aircraft_id"], row["tour_id"]), ""))
+        for row in rows.values("aircraft_id", "tour_id").annotate(pilots=Count("pk"), **sums)
+    }
+    existing = {(row.aircraft_id, row.tour_id): row for row in existing_rows}
+    _sync_stats(TourAircraftStats, wanted, existing, lambda key: {"aircraft_id": key[0], "tour_id": key[1]})
+
+
+def _stat_values(total: Mapping[str, object], side: str) -> dict[str, int | float | str]:
+    """The stored values of one stats row from an aggregate row: counters, pilots (one source row per player), side."""
+    pilots = total["pilots"]
+    return {**clean_counters(total), "pilots": pilots if isinstance(pilots, int) else 0, "side": side}
+
+
+def _sync_stats[K, M: AircraftCounters](
+    model: type[M], wanted: _Wanted[K], existing: dict[K, M], identity: Callable[[K], dict[str, int]]
+) -> None:
+    """Make the rows equal `wanted` (new ones created, changed ones updated, the others deleted)."""
+    changed: list[M] = []
+    new: list[M] = []
+    for key, values in wanted.items():
+        row = existing.pop(key, None)
         if row is None:
-            new.append(AircraftStats(aircraft_id=aircraft_id, **wanted))
-        elif any(getattr(row, name) != value for name, value in wanted.items()):
-            for name, value in wanted.items():
+            new.append(model(**identity(key), **values))
+        elif any(getattr(row, name) != value for name, value in values.items()):
+            for name, value in values.items():
                 setattr(row, name, value)
             changed.append(row)
-    AircraftStats.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    fields = [*COUNTER_FIELDS, "pilots", "side"]
-    update_rows(AircraftStats, changed, fields)
-    AircraftStats.objects.bulk_create(new)
+    model.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
+    update_rows(model, changed, [*COUNTER_FIELDS, "pilots", "side"])
+    model.objects.bulk_create(new)
 
 
 type _Group = tuple[int, int, str, int, int, int, int]  # aircraft, country, payload name, sorties, air, ground, deaths
@@ -136,7 +181,11 @@ def _sides(groups: list[_Group]) -> dict[int, str]:
         if side is not None:
             counts = by_side.setdefault(aircraft_id, {})
             counts[side] = counts.get(side, 0) + n
-    return {aircraft_id: min(counts, key=lambda s: (-counts[s], s)) for aircraft_id, counts in by_side.items()}
+    return _majority_sides(by_side)
+
+
+def _majority_sides[K](by_side: dict[K, dict[str, int]]) -> dict[K, str]:
+    return {key: min(counts, key=lambda s: (-counts[s], s)) for key, counts in by_side.items()}
 
 
 def _recompute_payloads(chunk: list[int], groups: list[_Group]) -> None:
@@ -247,7 +296,8 @@ def rebuild_aircraft_stats() -> None:
     ids = (
         set(PlayerAircraft.objects.values_list("aircraft_id", flat=True))
         | set(AircraftStats.objects.values_list("aircraft_id", flat=True))
+        | set(TourAircraftStats.objects.values_list("aircraft_id", flat=True))
         | set(AircraftPayload.objects.values_list("aircraft_id", flat=True))
     )
-    recompute_aircraft_stats(ids)
+    recompute_aircraft_stats(ids, None)
     recompute_matchups(None)

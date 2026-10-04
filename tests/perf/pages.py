@@ -42,7 +42,7 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("achievements", lambda w: "/achievements/", 4),
     PageSpec("achievement-holders", lambda w: "/achievements/flight_hours/", 6),
     PageSpec("aircraft-list", lambda w: "/aircraft/", 5),
-    PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 9),
+    PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 10),
     PageSpec("live", lambda w: "/live/", 4, max_ms=250.0),
 )
 
