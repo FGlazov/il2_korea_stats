@@ -183,7 +183,8 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Decision:** Optional features are first-class and toggled in config. Each one plugs in through a small number
   of defined seams:
   - **Replay rules**: rules are separate functions or strategy objects that `replay` calls (for example kill-credit policy,
-    the suspected early bailout heuristic, "parachute deaths"). They're configured, not patched.
+    the suspected early bailout heuristic, rams). They're configured, not patched. (The "parachute deaths" toggle was removed on 2026-10-04: a pilot
+    killed under the parachute is always a death, OQ-99.)
   - **Aggregators**: a registry of functions that build level-2 tables from level-1 tables (TD-08). Adding
     one (aircraft stats, split rankings by aircraft class, gunner stats) doesn't touch the others.
   - **Web**: features add their own URLs, views, and template blocks or nav entries, through a registry or template
@@ -254,15 +255,17 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   live in pre-aggregated tables (TD-08). Paginator `COUNT(*)` is allowed.
 - **Simple arithmetic on columns at read time is fine, and preferred over storing derived values.** Ratios like K/D (`kills / deaths`),
   K/L, kills per hour and survival rate are computed from the stored counters, as a model property, a template filter, or an `F()`
-  expression. **Don't store ratios as columns** (maintainer, 2026-10-02), with one exception `[PROPOSED]` (2026-10-04, OQ-98):
-  `AircraftStats` stores `kd`, `kl`, `survival` and `attack_share` as fractions, only so the aircraft list can sort by them (the list is
-  paginated and sorted in SQL; the page shows a dash where the denominator is 0). What's ruled out is business logic at serving time: rules,
+  expression. **Don't store ratios as columns** (maintainer, 2026-10-02), without exception: the one exception made on 2026-10-04 (`AircraftStats`
+  stored `kd`, `kl`, `survival` and `attack_share`) was withdrawn the same day by the maintainer (OQ-98, migration 0032). Lists that sort by a ratio
+  order by an expression of the stored counters, `queries.sorting.Ratio` (`numerator * scale / denominator`, NULL while the denominator is 0, NULLs
+  last in both directions on SQLite and Postgres), and the page shows a dash. What's ruled out is business logic at serving time: rules,
   classification, multi-step computations. Those belong in ingest.
 - **Why:** pages stay fast on SQLite, queries are trivially portable, and the code is easy to vibe-code and review.
 - **Enforcement:** every view gets a test with `django_assert_max_num_queries`, plus a test that inspects captured SQL for
   `GROUP BY` and aggregate functions in view tests. The `queries/` layer stays thin. **As built** (2026-10-04): `tests/simple_reads.py` holds the
   harness (`assert_simple_reads`: query budget, no `GROUP BY` / `HAVING` / aggregates / window functions, no subquery) and the shared budgets;
-  `tests/perf/` adds a per-page budget over a larger seeded world as an N+1 guard (doc 08, NFR-PERF-2).
+  `tests/perf/` adds a per-page budget over a larger seeded world as an N+1 guard (doc 08, NFR-PERF-2). The shared budgets are constants in
+  `tests/simple_reads.py` (`PROFILE_READS_ALL_TIME`, `PROFILE_READS_TOUR`, `HOME_READS`, `HOME_READS_EMPTY`; doc 16 lists the numbers).
 
 ### TD-23 HTTPS only, through bundled Caddy or the admin's own proxy — `[DECIDED]` (2026-10-02)
 - **Decision (maintainer):** The site is served over HTTPS only. Plain HTTP only redirects. Django runs with `SECURE_SSL_REDIRECT`,
@@ -289,6 +292,14 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   data shipped with the package (`core/catalog/data/`) holds each object's display name in English, plus the it2 languages as they're added.
   Admins **may** edit names in the admin. Their edits are stored as overrides on top of the shipped defaults, so upgrades refresh the defaults
   without wiping admin edits, and an override can be reset to the default. Names fall back from the viewer's language to English to the raw log name.
+- **As built** (2026-10-04): the site speaks English, Russian, German, Spanish, French and Brazilian Portuguese (LLM drafts, `# llm-draft` marks the
+  unreviewed ones; guide for reviewers: `docs/translating.md`). **Choosing the language**: with no choice made, `LocaleMiddleware` picks the
+  browser's `Accept-Language` (a regional variant maps to the shipped language: Portuguese variants become Brazilian Portuguese; no match means
+  English); the footer menu (`web.views.language.set_language`, works without JavaScript) sets a one-year cookie, which wins over the browser. The
+  menu shows each language by its own name with a country flag (flag-icons 7.5.0, MIT, self-hosted SVGs in `img/flag/`, licence in `NOTICE`; the US
+  flag stands for English, Brazil's for Portuguese, which reads plain "Português"). The switch is a `GET /language/?language=&next=` that only stores a display preference (Django's own view needs a POST and a CSRF cookie, which would take every public page out of the shared cache); pages `Vary` on the cookie and the ETag includes the language (TD-28). **How the site addresses
+  the reader** (maintainer): German *du*, French *vous*, Russian *вы*, Spanish *tú*, Brazilian Portuguese *você*, consistently within a language
+  (`docs/translating.md`). Every template string is wrapped (a test enforces it) and `il2ks dev translations update` is part of the commit gate (doc 08).
 
 ### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
 - **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, description, a color theme (overrides of
@@ -315,7 +326,12 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   recomputed from level 1 like all-time totals, limited to the touched tours; `rebuild-aggregates --retour` reassigns all missions after a
   mode or timezone change (doctor warns when needed). Elo stays all-time. Missions without a tour are assigned automatically after
   migrations. Query helpers `il2ks.queries.tours` and a `{% tour_select %}` component serve the pages, which open on the current tour
-  (doc 16, OQ-78..80). Gut calls `[PROPOSED]`: a renamed tour keeps its title only while its
+  (doc 16, OQ-78..80).
+- **The `?tour=` convention and the all-time link rule** (2026-10-04): no `?tour` (or an unknown or stale one) means the **current tour**,
+  `?tour=<id>` that tour, `?tour=all` all time (`queries.tours.TOUR_ALL`). Because a bare link means the current tour, **a link from an
+  all-time context must say `?tour=all`**, or it silently changes scope: the profile's links to its killboard and sortie list, the home page's
+  top-board links (player names, the skill boards' titles) and the leaderboard rows carry the page's scope through `queries.tours.tour_query(selected)`
+  (`?tour=<id>` or `?tour=all`). Elo boards are all-time only and take no `?tour`. Gut calls `[PROPOSED]`: a renamed tour keeps its title only while its
   boundaries don't change; monthly titles are stored in English (to be computed per language at display time once translations land).
 - Missions belong to exactly one `Tour`, assigned by mission start time. Per-tour totals (`PlayerTour`) are the main stats unit, with all-time
   totals alongside.

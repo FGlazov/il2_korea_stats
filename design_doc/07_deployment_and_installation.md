@@ -75,6 +75,25 @@ An installer (Inno Setup or WiX) that bundles:
   --problems --fail-on-problems` (exit code 4 = an override needs attention; `custom list --json` is the machine-readable form). Interactive installs show
   a message box naming the affected files and the `il2ks custom diff` / `custom accept` workflow, with a pointer to `docs/customizing.md`; silent installs
   write the report to the installer log and to `<data>\logs\installer-custom-check.log`. It never fails the install. Scope and wording: OQ-93.
+- **As built and CI-verified (2026-10-04)** `[PROPOSED]`: `packaging/windows/il2ks.iss` (Inno Setup), built by `packaging/windows/build.py` from
+  pinned, SHA-256-checked inputs (a bundled relocatable CPython with il2ks installed from `uv.lock`, Caddy, WinSW; `packaging/windows/README.md`).
+  Program files in `%ProgramFiles%\il2ks`, everything that is the admin's in `%ProgramData%\il2ks`; the service runs as the virtual account
+  `NT SERVICE\il2ks` (OQ-41, OQ-68). The workflow `windows-installer.yml` (tags `v*` or by hand) builds the installer and runs, on a clean
+  `windows-latest` runner: a **silent install** (`/VERYSILENT /NOSERVICE /NOFIREWALL /ADMINPASSWORDFILE=...`, which must delete the password
+  file), `il2ks --version` and **`doctor`** from the installed copy (errors fail the job; exit 1 for warnings is fine), the **site answers**
+  (`il2ks web --dev`), the **upgrade check** (an outdated override reported in the log and in `installer-custom-check.log`, exit code 0 for the
+  install), and an uninstall that **keeps the data**. A second job, `service-test`, installs the **real service** in own-proxy mode
+  (`/HTTPS=external`, so no port 80 or 443 is needed), checks it runs as `NT SERVICE\il2ks` and answers, stops it the way Windows does (a
+  clean `stopped` in the log, no stray python or caddy), and checks the uninstall removes the service; it is informational
+  (`continue-on-error`) until it has passed a few more times. A tag then attaches the installer and its `SHA256SUMS.txt` to the release.
+  Silent switches: `/LOGDIR= /TIMEZONE= /DOMAIN= /EMAIL= /HTTPS=caddy|external /ADMINUSER= /ADMINPASSWORDFILE= /NOSETUP /NOSERVICE /NOFIREWALL
+  /MERGETASKS="!firewall" /DELETEDATA`; `/ADMINPASSWORD=` still works but shows the password in process lists and the log (OQ-69).
+  **Silent mode skips the custom wizard pages and never validates their edits** (the empty admin-password page made the silent wizard wait
+  forever after the files were copied; a silent install that waits for input hung the job for 30 minutes). Hang guards: installer children run
+  with stdin from NUL and their command lines are logged; CI runs the installer through `.github/scripts/run-installer.ps1` (a 900 s timeout, then
+  it prints the setup log, the il2ks logs and the process tree and kills the installer) and every job has a 30-minute limit.
+  **Port 80 is busy on GitHub's runners** (something already listens there): `doctor` reports it as an error, which CI accepts and prints;
+  any other doctor error fails the job.
 - ✅ The best experience for the actual audience: Next → Next → Finish. No Docker, no terminal, no DB admin.
 - ❌ Packaging work: upgrade logic, testing on a clean Windows VM.
 - **No code signing** `[DECIDED]` (2026-10-02): the installer ships unsigned. The Windows SmartScreen "unknown publisher" warning is accepted.
@@ -98,7 +117,8 @@ creates the admin, and optionally registers a scheduled task or service), then `
 1. **Write the app to work with any packaging**: one CLI (`il2ks`), one config file plus env vars, no hard-coded paths,
    `setup` and `doctor` commands. A, B and C share the same core.
 2. **Iteration 1 ships C** (manual path, SQLite default). It costs almost nothing, and early adopters are tech-savvy server admins.
-3. **The Windows installer (B) is the top item in iteration 1.x.** That's where the real UX win is for the main (Windows) audience.
+3. **The Windows installer (B) is the top item in iteration 1.x.** That's where the real UX win is for the main (Windows) audience. **Built and
+   CI-verified** (2026-10-04, above).
 4. **Docker Compose (A)** for the Linux/Wine minority (SQLite in a volume). It's cheap, but secondary. A separate dev-only compose file provides Postgres for testing (doc 08).
 
 ## Networking notes
@@ -106,4 +126,6 @@ creates the admin, and optionally registers a scheduled task or service), then `
   granian listens on `127.0.0.1:8000` only. If 80 or 443 are already taken (for example by IIS), use the "bring your own proxy" mode.
 - The installer creates the Windows Firewall rules for 80 and 443 (with an opt-in checkbox).
 - Certificates: a domain name pointing at the server (recommended), otherwise an IP-address certificate, otherwise self-signed for testing (TD-23).
-- Admins with an existing **nginx or IIS** use `https.mode = "external"`. Sample configs are in the docs (TD-23).
+- Admins with an existing **nginx or IIS** use `https.mode = "external"`. Sample configs are in the docs (TD-23). The installer offers it as
+  `/HTTPS=external` (and as a wizard choice): the service then starts only `web` and `watch` on `127.0.0.1:8000` and Caddy is not run.
+- **Port 80** can be taken (IIS, another service, and GitHub's Windows runners): `il2ks doctor` names it, and own-proxy mode avoids the need.

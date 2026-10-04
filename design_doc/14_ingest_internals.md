@@ -42,6 +42,13 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
 - **Fast path** (2026-10-04, `[PROPOSED]`): one compiled regex per AType matches the whole token part of a line; an exact match skips the Python
   tokenizer, anything else takes the generic tokenizer, which stays the definition of the semantics and the errors. A test compares both routes
   on the fixtures and on mutated lines. Speed: see "Speed" below (before the fast path: 210 sample missions parsed in 155 s, ~8 MB/s).
+- **Direct event builders** (2026-10-04, speed round 2, `[PROPOSED]`): for the ATypes that make up 98% of a log (hits, damage, kills, object
+  declarations, gun bursts) the fast path's regex groups feed the event constructor directly, without the token dictionary. A value that does not
+  convert raises `ValueError` and hands the line to the generic builder, which stays the definition of the exact error. The test that compares the
+  routes covers the direct builders too.
+- **Chunked line splitting** (`files._decode_lines`): files are read in 1 MB chunks, decoded incrementally (`errors="replace"`) and split with C-level
+  string methods; `\n`, `\r\n` and `\r` end a line, nothing else does (not `str.splitlines`), and a `\r\n` split by a chunk boundary is rejoined.
+  The result is the same lines as `TextIOWrapper(newline=None)` gave, with less per-line Python.
 
 ## Catalog (`core.catalog`, TD-24)
 
@@ -79,8 +86,9 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
 - **Ratings** (FR-WEB-19): `[ratings] start` (1500), `k` (32), `cross_pool_weight` (2.0). First guesses, to tune once real ratings exist
   (maintainer, 2026-10-03); a change takes effect with `il2ks rebuild-aggregates`, no reprocess needed.
 - **Other level-2 rule sections**, also applied with `il2ks rebuild-aggregates`: `[score]` (points, `penalty_*_pct`, flat penalties, leaderboard
-  minimums; doc 13), `[marks]` (stat highlights), `[killboard] assists`. `[rules]` (`credit_rams`, `parachute_deaths`, doc 13) changes kills and
-  deaths themselves, so it needs `il2ks reprocess --all` (or `--since`).
+  minimums; doc 13), `[marks]` (stat highlights), `[killboard] assists`. `[rules]` (`credit_rams`, the ram thresholds, doc 13) changes kills and
+  deaths themselves, so it needs `il2ks reprocess --all` (or `--since`). Replaced or removed keys (`[score] penalty_*`, `[rules] parachute_deaths`) are
+  ignored with a warning (`Config.warnings`: logged on load and shown by `il2ks doctor`).
 
 **Discovery and completeness** (`discover.py`, FR-ING-2/16/18/19)
 - Order: in remote mode every part must be unmodified for `stable_seconds` (60); then complete if a newer mission's `[0]` exists, or no part was
@@ -142,12 +150,15 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo`. Then level 2, always after the rows it reads:
   1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, identity and names, then the killboard rows (`PlayerKillboard` /
-     `PlayerTourKillboard`, `ingest.pairs`) and the streaks (`PlayerStreak` / `PlayerBestStreak`, `ingest.streaks`);
+     `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
+     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17);
+  1b. `recompute_holders` (`AchievementHolders`, after the players' medal rows);
   2. `recompute_aircraft_ammo` (`AircraftAmmoStats`);
   3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
-     after step 1) and `recompute_matchups` (`AircraftMatchup`, old and new pairs);
+     after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the four scopes, all time and per tour, all kills
+     and intercept kills only);
   4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
-  5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time; skipped by `reprocess`, which recomputes once at the end);
+  5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum; skipped by `reprocess`, which recomputes once at the end);
   6. `recompute_ratings` (Elo per pool and per type, all kills replayed; same skip);
   7. `bump_data_version` (TD-28).
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in
@@ -174,8 +185,12 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
 - `Mission.settings` stores the raw `SETTS` string (not parsed yet).
 - `Kill` (PvP only) is keyed by **`(victim_sortie, killer_sortie)`**: a sortie is lost once, and a killer sortie gets either the kill or an assist
   on it. `credit`, `tick` and `via` are attributes.
-- `PlayerSortie` JSON: `ammo` = `{loaded, left, hits}`; `damage_breakdown` and `timeline` link counterpart player sorties by DB id; positions are
-  `[x, y, z]`; timeline entries carry an ISO UTC `at`.
+- `PlayerSortie` JSON: `ammo` = `{loaded, left, used, left_after_loss, releases, hits, unattributed, ordnance}` (keys are only ever added; the
+  docstring of `ingest/persist.py::_ammo_json` is the schema; rules in doc 13); `damage_breakdown` and `timeline` link counterpart player sorties by
+  DB id; positions are `[x, y, z]`; timeline entries carry an ISO UTC `at`. **Timeline keys**: `tick`, `at`, `kind`, `detail`, `pos`,
+  `counterpart`, and on the hit rows (`kind` `hit_given` / `hit_taken`, doc 13 "Timeline hits") also `damage` (summed DMG fraction, 4 digits),
+  `lines` (damage lines in the burst), `ammo` (log name of the gun ammo, or the ordnance key; absent when no hit lay near) and `ammo_kind`
+  (`ordnance` or `other`; absent for a gun). Other rows, and rows written before the hit rows existed, have none of these keys; the page copes.
 - Two sorties with the same `(account_uuid, spawn_tick)` in one mission would violate the unique key; the mission then fails. Replay never
   produces them.
 - **Empty missions** `[PROPOSED]` (2026-10-03): aborted server starts produce missions with no sorties (4 of 210 samples: three 3-second ones and
@@ -183,13 +198,32 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   only shows missions with `sorties_total > 0`.
 - **`IngestRun` growth** `[PROPOSED]`: every reprocess adds one run per mission. Keep the newest few runs per mission (e.g. 5) and always the
   one that wrote the current archive; prune older ones at the end of `reprocess`.
-- **Speed** (measured 2026-10-04, 210 sample missions, 18M lines, one Windows dev machine): `ingest --from` 344 s (median 1.3 s per mission, p95
-  3.5 s; before the speed-up: 842 s, median 3.4 s). Per mission: parse 31%, replay 18%, level 2 15%, archive 15%, persist level 1 8%, commit and
-  other 12%. What changed `[PROPOSED]`: the parser fast path (above); `ingest.dbutil.update_rows` (one `UPDATE` per row) instead of
-  `bulk_update`, whose `CASE WHEN` expressions cost about half of the ingest; SQLite `wal_autocheckpoint=10000` (a mission commit is far bigger
-  than the default 4 MB); a `closest()` fix in the replay. Revisit the per-row updates if Postgres over a network ever becomes a production path.
-  Tools: `il2ks dev bench-ingest <dir>` (copies its input to a temp dir, times each phase) and `il2ks dev dump-db` (every table as sorted JSON
-  lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is inside `sample_data/` (real player data).
+- **Speed** (measured 2026-10-04, 210 sample missions, 18M lines, one Windows dev machine). **Round 1:** `ingest --from` 344 s (median 1.3 s per
+  mission, p95 3.5 s; before the speed-up: 842 s, median 3.4 s). Per mission: parse 31%, replay 18%, level 2 15%, archive 15%, persist level 1 8%,
+  commit and other 12%. What changed `[PROPOSED]`: the parser fast path (above); `ingest.dbutil.update_rows` instead of `bulk_update`, whose
+  `CASE WHEN` expressions cost about half of the ingest; SQLite `wal_autocheckpoint=10000` (a mission commit is far bigger than the default 4 MB); a
+  `closest()` fix in the replay.
+  **Round 2** (same day, about **25-40% less CPU per mission**, identical rows: `dump-db` diffs and the equivalence tests): the direct event
+  builders and chunked line splitting (parser, above); replay dispatch by event class (`state.feed` handles hit and damage events, 87% of a log,
+  before the general `match`, and returns early for AI attackers with no player owner); `closest()` is tightened (no work for empty hit logs, bounds computed once); the archive
+  is written at **DEFLATE level 3** (`ingest.archive.COMPRESS_LEVEL`: 18 ms instead of 43 ms for a 4.7 MB log, 349 KB instead of 265 KB, readable
+  by any zip tool); and the batched writes below. `[PROPOSED]`
+  **Batched writes:** `update_rows(model, rows, fields)` is `bulk_create(update_conflicts=True)`, an `INSERT ... ON CONFLICT (pk) DO UPDATE`
+  with many rows per statement (SQLite 3.24+ and Postgres; the rows must be complete, loaded without `only`/`defer`); `update_partial_rows` stays
+  one `UPDATE ... WHERE pk` per row for rows that carry only their pk and the changed fields (a rescoring of every sortie, the two link columns of
+  new sorties). `PlayerMission` rows and the aircraft sides and payloads of a mission come from batched writes and one grouped query instead of
+  `update_or_create` per player. Revisit the per-row updates if Postgres over a network ever becomes a production path.
+  Tools: `il2ks dev bench-ingest <dir> [--cpu]` (copies its input to a temp dir, times each phase; `--cpu` times process CPU instead of the wall
+  clock so antivirus and other jobs do not skew it, but Windows resolves CPU time to about 15 ms, fine for sums and medians) and
+  `il2ks dev dump-db` (every table as sorted JSON lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is
+  inside `sample_data/` (real player data).
+- **Upgrade backfills** (`ops/migrate.py`, FR-OPS-3): after `migrate`, an upgraded database gets the data the new tables and columns need, once
+  each: tours (`tours`), sortie scores (`scores`), per-type Elo and the prop/jet pools (`type_ratings`), the killboard by aircraft type and the
+  per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`) and medals (`achievements`).
+  Each is recorded by name in `SiteSettings.backfills_done` after it ran (or was found unnecessary), because the data trigger alone cannot tell
+  "never filled" from "legitimately empty" (a database with only zero scores, or no rated games) and would rebuild after every later migration.
+  Where a backfill needs a level-2 rebuild it calls `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`.
+  These exist for pre-release databases and may go when the migrations are squashed before the first release (roadmap).
 - **Verified end to end on the 210 sample missions** (2026-10-03, run three times; the last after the score inputs and Elo landed, with
   the same results and Elo stored = Elo recomputed for every player): no failures, zero bad lines and unknown
   keys, re-import skips everything with identical rows, `rebuild-aggregates` and `reprocess` reproduce level 2 **byte for byte** and keep every

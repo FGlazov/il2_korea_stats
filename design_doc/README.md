@@ -40,6 +40,7 @@ Every requirement and decision carries one of these tags (they're easy to grep):
 | [14_ingest_internals.md](14_ingest_internals.md) | Parser, catalog, ingest jobs (config, discovery, archive, lock, CLI) and persistence as implemented |
 | [15_visual_assets.md](15_visual_assets.md) | **Designer brief**: icons, images and textures the site uses (placeholders until a designer makes them), with file names, sizes and priorities |
 | [16_web_and_operations.md](16_web_and_operations.md) | Web foundation, admin, caching, serving (settings, `web`/`run`, Caddy), `custom/` overrides, setup/doctor/backup, packaging: **as built** |
+| [17_achievements.md](17_achievements.md) | **Achievements / medals** (FR-WEB-26): how they are computed and shown, the first set of 12 with tiers and sample counts, edge cases, ideas; for the maintainer's review |
 
 Real sample logs live in `../sample_data/`. They're gitignored and contain player data: **never commit them**.
 
@@ -99,3 +100,7 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-04 (doc sync after the second merge wave: data model (doc 06) brought up to the models, ingest speed and save order (14), score, rule toggles
   and per-type Elo (13), branding, query budgets and new pages (16), regression guards and perf tests (08, 03), installer upgrade check (07); new OQ-78..98;
   OQ-67 decided with defaults applied).
+  2026-10-04 (doc sync after the third merge wave: leaderboards reworked (board order, no kills board, icon switcher, `?tour=all` link rule), interception and tank-busting
+  boards, stat marks for Elo and scores, killboards by aircraft type and matchups per tour, profile layout, pilot fate display, optional list columns, achievements,
+  timeline hits, ammo after a loss, sortie quips, language menu and browser default, custom font upload, ingest speed rounds 1-2, perf tests in their own CI job,
+  upgrade backfills, installer CI-verified; OQ-84, 92, 97, 98, 99 answered by the maintainer and tidied; new OQ-102..110 for the product choices agents made).

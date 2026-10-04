@@ -65,6 +65,11 @@ Two separate answers per sortie:
 They're independent: a `disconnected` pilot can have outcome `shot_down`; a `bailed_out` pilot can have outcome `crashed` (an undamaged bailout).
 Death, aircraft loss and capture are separate flags (`is_death`, `is_plane_lost`, `is_captured`), derived once here so level 2 only sums them.
 
+**What pages show as the pilot's fate** (maintainer, 2026-10-04, display only; OQ-106): **Dead** if `is_death` (or status dead), else **Captured**
+if `is_captured` (or status captured), else **Survived**, whatever the stored `pilot_fate` says (`unknown` reads Survived). The stored fate
+(`bailed_out`, `exited_on_ground`, `disconnected`; nothing for `in_aircraft` and `unknown`) is only the detail: a tooltip on the lists, a note on
+the sortie page. Nothing here changes how the replay decides (`web/display.py::pilot_fate_key`).
+
 ### Pilot fate (`fate.pilot_fate_of`)
 Checked top to bottom, the first match wins. Result is `fate / source`.
 
@@ -171,6 +176,9 @@ A **bailout without any AType 3** for the aircraft still counts as a loss (the a
 destruction line can't hide a bailout. A missing *bailout* signal (no `PLID:0`) means the pilot is read as having stayed in the aircraft, and if
 that aircraft was destroyed, as having died with it. That's the conservative reading.
 
+A pilot killed under the parachute (the pilot bot's AType 3 after a detected bailout) is **always a death** (maintainer, OQ-99, 2026-10-04); the
+aircraft was already lost and credited, and the shooter keeps the kill. The old `[rules] parachute_deaths` toggle is gone.
+
 A pilot who crashes into a mountain with no attacker involvement is `crashed`, `loss_cause = self`, and nobody gets credit; the death is still
 recorded (a kill entry with no killer).
 
@@ -250,7 +258,23 @@ Was the aircraft lost (is_plane_lost)?
   count as their aircraft). Self damage is left out. Hits per ammo type count every non-explosion hit line given or received.
 - **Timeline** = the sortie page's event list. Entry kinds: `spawn`, `takeoff`, `landing`, `kill`, `assist`, `friendly_fire`,
   `shot_down` / `destroyed` (the aircraft), `killed` / `died` (the pilot or gunner died while the aircraft survived), `bailout`, `disconnect`,
-  `sortie_end`; each with time, position and counterpart. The killer is named for gunners too.
+  `sortie_end`, and the **hit rows** `hit_given` / `hit_taken` (below); each with time, position and counterpart. The killer is named for
+  gunners too.
+
+### Timeline hits (2026-10-04, `core/replay/hits.py`, OQ-108) `[PROPOSED]`
+The significant damage a sortie gave and took, as timeline rows (maintainer: a damage % column, significant hits as rows, ammo matched to the nearest
+hit). Input: every damage line (AType 2) that touched a player sortie, each already labelled with the ammo of the **closest hit** (the ammo
+attribution rule, `ammo_window_s` 1 s).
+- **Burst**: the lines of one direction (given or taken) and one counterpart form a burst while each is within `hit_burst_gap_s` (3 s) of the one
+  before, and a burst lasts at most `hit_burst_max_s` (15 s). A burst becomes one row at its first line's time.
+- **Significant** = the burst's summed damage is at least `hit_min_damage` (0.002 of an object, **0.2%**; the maintainer suggested "e.g. over
+  0.1%"). Static scenery (class `static`: fences, tents, stacks) as a target never gives a row: strafing an airfield makes thousands of tiny lines
+  (30,000 rows over 1,200 sorties at 0.5%). At most 150 rows per sortie, the heaviest kept (the busiest of 1,182 measured sorties had 77).
+- **Ammo of a row** = the label with the most damage among its lines (the earlier wins a tie); a line with no hit in the window has none and does not
+  vote, a row where no line has one shows no ammo. So the rows agree with the ammo breakdown, which tallies the same labels. Gun ammo, ordnance
+  (bombs, rockets) or other named ammo (flares).
+- Row fields: `damage` (summed DMG fraction), `lines`, `ammo`, `ammo_kind` (doc 14). The page shows a signed damage % column (+ given, − taken).
+  Applies on `il2ks reprocess` (older sorties have no hit rows).
 - "Took off", takeoffs and flight time all stop at the aircraft's loss, so they can't disagree.
 - `takeoff` time of an air start = the spawn time (`takeoffs` counts real AType 5 only). `flight_time_s` = sum of airborne intervals. Both stop at
   the aircraft's loss: logs write a "landing" for a falling wreck.
@@ -261,13 +285,21 @@ Was the aircraft lost (is_plane_lost)?
 - **Resupply** (FR-ING-24): a player can land, rearm and take off again in one sortie, so "loaded − left" undercounts what was fired, and
   AType 24 gun bursts carry no round count. The log has **no resupply event** (doc 12), so it's inferred `[PROPOSED]`: with
   `replay.resupply_allowed = true` (default; most servers allow it), a landing followed by another takeoff in the same sortie marks the sortie
-  `resupplied`, and "ammo used" is unknown for it (hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
+  `resupplied`, and "ammo used" is unknown for it, bombs and rockets with no release event aside (below; hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
   "Used" is also unknown for bombs when "left" exceeds "loaded" (IL-10 bomblet payloads count stations when loaded and bomblets when left).
   About 2% of sorties take off more than once.
-- **Ammo left after a loss** `[PROPOSED]` (2026-10-03): when the sortie ended more than `ammo_left_after_loss_s` (1 s) after its aircraft
-  was destroyed (the pilot bailed out, climbed out or disconnected later), AType 4's "left" is unreliable (unfired stores read as zero in
-  20–60% of such cases, and in all 107 checked bailouts and ground exits with unreleased stores), so "used" is unknown for all types
-  (2,807 sample sorties). When the pilot died with the aircraft (AType 4 within 1 s), "left" is right about 90% of the time and is used.
+- **Ammo left after a loss** `[PROPOSED]` (2026-10-03, extended 2026-10-04): when the sortie ended more than `ammo_left_after_loss_s` (1 s) after its
+  aircraft was destroyed (the pilot bailed out, climbed out or disconnected later), AType 4's "left" is unreliable (unfired stores read as zero in
+  20-60% of such cases, and in all 107 checked bailouts and ground exits with unreleased stores). The sortie is flagged `left_after_loss`, "left" is
+  shown as a dash and "used" is no longer computed as loaded - left (2,807 sample sorties). When the pilot died with the aircraft (AType 4 within
+  1 s), "left" is right about 90% of the time and is used.
+- **Used where "left" cannot be trusted** (after a loss, resupplied, no AType 4, or bombs with more left than loaded), for **bombs and rockets**
+  (`ingest/persist.py::_ammo_used`): AType 25 (store) and AType 26 (rocket salvo) events are release *commands*, not counts (one event can drop a pair
+  of bombs, a rocket event is a salvo), so they cannot give the number used. But **no release event in the whole sortie means none was used**: used = 0.
+  One or more releases leave "used" unknown (OQ-101: right in 87-90% of comparable sorties; a "~all loaded" estimate was the alternative). **Gun
+  ammo** (bullets, shells) stays unknown in these cases. Where "left" is trusted it is kept even if it disagrees with the releases. The counts are
+  stored as `ammo.releases` (`stores`, `rocket_salvos`) and `ammo.left_after_loss`; the sortie page words it "the ammunition left was recorded after
+  the aircraft was lost" (the game writes the record when the sortie ends).
 
 ## Mission end (as built, 2026-10-03)
 
@@ -325,6 +357,19 @@ time on target = sum over attacks
 - Samples, attack sorties that took off: 37.5% have 0 (shot down or turned back before attacking, or released nowhere near a target); median
   60 s, top 10% ≥ 250 s, max 18 min; about 10% of the flight time where nonzero. 64% of releases qualify. Cost: about 2 ms per mission.
 
+**Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[PROPOSED]`,
+OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read time; the counters are sums over a pilot's sorties.
+- **Interception** = kills of bombers and attackers **per hour of air superiority flight**. A kill counts when it is a credited air kill (not an
+  assist, not friendly; PvP or AI) whose victim is an **interception victim** (`attack.is_interception_victim`): an AI aircraft of catalog class
+  `bomber` or `attacker`, or a player sortie with the combat role `attack` (a fighter carrying bombs or rockets). Transports are not victims.
+  `PlayerSortie.kills_air_intercept` is a part of `kills_air`. The counters `kills_intercept` (the kills made **in air superiority sorties**),
+  `flight_time_air_s` and `air_superiority_sorties` sum the pilot's air superiority sorties; an attacker shooting a bomber from an attack sortie does
+  not count. Board minimum: `[score] min_air_superiority_sorties` (5) and `min_air_superiority_minutes` (60).
+- **Tank busting** = **tanks destroyed in attack sorties per hour on target** (`kills_tank_attack` / `time_on_target_s`). A tank is a ground kill of
+  category `tank` (static or moving). Board minimum: the ground-per-hour minimums (`min_attack_sorties` 5, `min_time_on_target_minutes` 10).
+- Upgraded databases: `ops/migrate.py::_backfill_interception` derives `kills_air_intercept` once from the stored sortie timelines (victim types and
+  victim sortie roles), then rebuilds level 2 (marker `interception` in `SiteSettings.backfills_done`); `il2ks reprocess` gives the same.
+
 **Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` across all missions, doc 14):
 - A **game** = one PvP kill credit (not an assist, not friendly) where killer and victim are both pilot sorties with role `air_superiority`.
   Kills by AI, AA or the environment have no `Kill` row and never count. A player killing their own other sortie is ignored.
@@ -355,18 +400,28 @@ section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess
   positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
 - **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
   early bailout (5) and each friendly kill (3, up to 5 kills per sortie). A sortie with a flat penalty and no kills can be negative.
-- **Leaderboard minimums** (`[score] min_sorties`, `min_elo_games`, `min_attack_sorties`, `min_time_on_target_minutes`) apply at read time.
+- **Leaderboard minimums** (`[score] min_sorties` 5, `min_elo_games` 5, `min_attack_sorties` 5, `min_time_on_target_minutes` 10,
+  `min_air_superiority_sorties` 5, `min_air_superiority_minutes` 60) apply at read time. Old flat penalty keys warn at load (FR-OPS-2).
+
+### Stat marks (FR-WEB-22, `core/stat_marks.py`, as built 2026-10-04)
+A mark says where a figure stands among the pilots, by the percentiles stored in `StatThreshold` (strictly above p90 = "Top 10%", above p75 = "Top
+25%"; low values never marked; no distribution under 20 pilots). Which pilots form a metric's population follows the board the figure sits next to:
+the ratios and the air and ground scores need `[marks] min_sorties` (20) sorties; **Elo jet / Elo prop** need `min_elo_games` rated games in that pool
+(all time only, shown against the all-time population on a tour profile too); **ground score per hour and tanks per hour** need
+`min_time_on_target_s` on target; **interception per hour** needs `min_air_superiority_s` of air superiority flight. `StatThreshold.min_sorties`
+stores that minimum in the metric's own unit (sorties, games, seconds).
 
 ## Rule toggles (`[rules]`, as built 2026-10-04, OQ-61)
 
-Both toggles apply via `il2ks reprocess --all` (they change kills and deaths, not only aggregates).
+The ram toggle applies via `il2ks reprocess --all` (it changes kills and deaths, not only aggregates).
 - **Rams** `[PROPOSED]`: the log has no collision event. A ram is two aircraft destroyed while airborne, before the first AType 7, within
-  `ram_window_s` (2 s) and `ram_distance_m` (50 m) of each other, where neither has an attacker to blame and neither hit the other with
+  `ram_window_s` (**0.5 s**) and `ram_distance_m` (**15 m**) of each other (maintainer, OQ-92, 2026-10-04: the tighter values; the first values
+  2 s / 50 m let 4 looser cases through among the 17 below), where neither has an attacker to blame and neither hit the other with
   guns. With `[rules] credit_rams = true` (default **false**) each aircraft of an enemy pair is credited a kill for the other (the victim's
   loss is then `attacker` / `shot_down`, `via direct`). A collision between friends credits nobody and has no friendly-kill penalty.
-  Validated on the 210 sample missions: 17 rams, 13 between enemies (26 kills), 4 between friends, no false positive identified; about 35
+  Validated on the 210 sample missions (at 2 s / 50 m): 17 rams, 13 between enemies (26 kills), 4 between friends, no false positive identified; about 35
   debris collisions correctly excluded; about 10 to 15 rams with prior third-party damage missed (damage-based credit already gives them to
   someone). Low-altitude ground crashes can't be told apart without terrain height (OQ-39). Code: `core/replay/rams.py`.
-- **Parachute deaths** `[PROPOSED]`: with `[rules] parachute_deaths = false` (default true), a pilot killed after a detected bailout (rule v3)
-  is not a death; the aircraft is still lost and the fate stays `bailed_out` (2 sorties in the samples).
-- Product choices behind both: OQ-89..92, OQ-99.
+- **Parachute deaths: no toggle** (maintainer, OQ-99, 2026-10-04): the toggle `parachute_deaths` was removed; a pilot killed while parachuting is
+  always a death. An `il2ks.toml` that still sets it gets a warning at load (the key is ignored).
+- Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99.

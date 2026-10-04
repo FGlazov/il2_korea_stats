@@ -90,7 +90,8 @@ Feature inventory (from `mod_rating_by_type/config_modules.py` and the models), 
 - **Accuracy workarounds** for rearming and bailouts. Air streaks that ignore AI kills.
 - Tour handling (new tour on mission win), "top last mission", ITAF layout (server-specific layout).
 
-In the new design, most of these map to: **replay rules** (penalties, rams, parachute deaths, accuracy fixes),
+In the new design, most of these map to: **replay rules** (penalties, rams, accuracy fixes; "no parachute deaths" was built as a toggle and then dropped
+on 2026-10-04: a pilot killed under the parachute is always a death, OQ-99),
 **aggregators** (split rankings, per-aircraft stats, ironman, gunner stats), and **web feature modules**.
 They depend on keeping enough detail (ammo per sortie, positions, per-life grouping). TD-08 keeps per-sortie ammo and positions, and the
 raw archive (kept forever) allows backfilling anything else.
