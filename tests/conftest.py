@@ -1,7 +1,9 @@
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from django.utils import translation
 from pytest_django.fixtures import Settings
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -44,3 +46,13 @@ def _plain_http_in_tests(settings: Settings) -> None:
         **settings.STORAGES,
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
+
+
+@pytest.fixture(autouse=True)
+def _reset_active_language(settings: Settings) -> Iterator[None]:
+    """`LocaleMiddleware` activates the request's language on the thread and never switches it off (each real request
+    activates its own, so production is fine), so a test client call with `Accept-Language: de` would leave German
+    active for the next test on the same worker (it showed under xdist as "Filter zurücksetzen" in unrelated tests)."""
+    translation.activate(settings.LANGUAGE_CODE)
+    yield
+    translation.activate(settings.LANGUAGE_CODE)

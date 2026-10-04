@@ -2,11 +2,13 @@
 
 Missions are anonymized fixtures cut into raw parts that grow tick by tick in a temp log folder."""
 
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from django.db import OperationalError
@@ -15,6 +17,7 @@ from il2ks.config import Config, LiveConfig
 from il2ks.db.models import LiveMission, LivePlayer, Player
 from il2ks.db.reprocess_requests import request_reprocess
 from il2ks.db.site import current_data_version
+from il2ks.ingest import watch as watch_module
 from il2ks.ingest.live import LiveTracker, find_in_progress
 from il2ks.ingest.reprocess import ReprocessSummary
 from il2ks.ingest.runner import Pipeline
@@ -305,19 +308,27 @@ def test_watch_keeps_going_when_a_live_tick_fails(live: Live, monkeypatch: pytes
 def test_watch_looks_at_the_mission_every_live_interval_while_waiting(
     live: Live, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """A fake clock: waiting advances it instead of sleeping, so a loaded machine cannot change the count."""
     calls: list[datetime] = []
+    fake_now = [1000.0]
 
     def record(self: LiveTracker, now: datetime) -> None:
         calls.append(now)
 
+    def fake_wait(stop: threading.Event, seconds: float) -> None:
+        fake_now[0] += seconds
+
     monkeypatch.setattr(LiveTracker, "tick", record)
+    monkeypatch.setattr(watch_module, "_wait", fake_wait)
+    monkeypatch.setattr(watch_module, "time", SimpleNamespace(monotonic=lambda: fake_now[0]))
     cfg = watch_cfg(live, interval_s=0.02)
     cfg = replace(cfg, ingest=replace(cfg.ingest, watch_interval_s=0.2))
     pipeline = make_pipeline(FakeSteps())
 
     assert watch(cfg, pipeline, max_ticks=2, now=lambda: live.clock) == 2
 
-    assert len(calls) >= 5  # one after each of the 2 ingest ticks, and several in the wait between them
+    # one after each of the 2 ingest ticks, and the wait between them (0.2 s at 0.02 s steps) looks 9 times
+    assert len(calls) == 2 + 9
 
 
 def test_live_ticks_keep_running_between_missions_of_a_long_reprocess(
