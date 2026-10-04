@@ -42,6 +42,21 @@ Terms used in the game are chosen on purpose: *sortie* (one flight from take-off
 stay as they are** (the server owner can rename them in the admin), and so do aircraft type names (F-86A, MiG-15bis).
 Page text is read by pilots, not by lawyers: short and plain beats formal.
 
+**Translate for meaning in context, not word for word.** The goal is a GUI a native-speaking flight-sim player understands at a
+glance, not literal fidelity.
+
+- Before you translate a string, find where it is used (search the templates and `web/*.py` for the English text). A column
+  header, a nav label, a button, a tooltip, a notice and the admin help text each need a different register and length;
+  one-word strings such as *Kills*, *Lost*, *Air*, *Ground*, *Left*, *Used*, *Credit*, *Spawn*, *Seat* are ambiguous
+  without that context.
+- Use the wording a player expects on a stats site (what the column really means). Keep column headers and navigation
+  labels short, so tables and the header do not break.
+- Flavor lines (`web/flavor.py`) are jokes: rewrite them the way a native player would say them, do not render them.
+- If an English source string is ambiguous, fix it at the source rather than guessing: add `{# Translators: ... #}` right
+  before the `{% translate %}` in a template, or `# Translators: ...` right before the gettext call in Python; when the same
+  English word needs different translations in different places use `pgettext` / `{% translate "..." context "..." %}`.
+  Then run `uv run il2ks dev translations update` (and `bump-templates` if you touched a template).
+
 See how much is left:
 
 ```

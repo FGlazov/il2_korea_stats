@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/ammo.html v5 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Ammunition (FR-ING-24, doc 13): loaded, left, used per kind, and hits per ammunition type. "Used" is the dash when
   it is unknown, with the reason under the table. Context: detail.ammo (sortie_view.AmmoTable: rows, hits,
@@ -13,7 +13,9 @@
   <section>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Type" %}</th><th scope="col" class="num">{% translate "Loaded" %}</th><th scope="col" class="num">{% translate "Left" %}</th><th scope="col" class="num">{% translate "Used" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% translate "Type" %}</th>
+{# Translators: ammunition table columns, rounds loaded at take-off / rounds still left at the end / rounds fired (used) #}
+<th scope="col" class="num">{% translate "Loaded" %}</th><th scope="col" class="num">{% translate "Left" %}</th><th scope="col" class="num">{% translate "Used" %}</th></tr></thead>
         <tbody>
           {% for row in detail.ammo.rows %}
             <tr>

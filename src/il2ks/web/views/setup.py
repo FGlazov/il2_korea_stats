@@ -193,6 +193,7 @@ def _finding_rows(cfg: Config) -> list[FindingRow]:
         return []
     own_port = f"Port {cfg.web.port} (the web server)"
     shown = [f for f in findings if not f.title.startswith(own_port)]
+    # Translators: setup check badges. "Fix" = a problem the admin must fix, "Check" = a warning worth a look.
     tones = {Level.ERROR: ("red", _("Fix")), Level.WARN: ("amber", _("Check")), Level.OK: ("green", _("OK"))}
     ordered = sorted(shown, key=lambda f: -f.level)
     return [FindingRow(*tones[f.level], f.title, f.detail, f.fix) for f in ordered]

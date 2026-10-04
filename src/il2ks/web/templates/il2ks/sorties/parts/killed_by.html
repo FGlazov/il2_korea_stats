@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/killed_by.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/killed_by.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   "Shot down by": the kill and assist credits against this sortie. Context: sortie, detail.shot_down_by
   (sortie_view.KillerRow: clock, utc, who, credit "kill" or "assist", note, friendly). Shown only when the aircraft or
@@ -8,7 +8,9 @@
 {% if detail.shot_down_by %}
   <div class="table-wrap table-wrap--flat">
     <table class="data-table data-table--compact">
-      <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Attacker" %}</th><th scope="col">{% translate "Credit" %}</th><th scope="col">{% translate "Note" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Attacker" %}</th>
+{# Translators: how the kill is credited to the attacker (sole kill, shared kill, assist), a short column header #}
+<th scope="col">{% translate "Credit" %}</th><th scope="col">{% translate "Note" %}</th></tr></thead>
       <tbody>
         {% for row in detail.shot_down_by %}
           <tr>
