@@ -9,7 +9,7 @@ from collections.abc import Callable
 import pytest
 from playwright.sync_api import Page, expect
 
-from tests.e2e.helpers import PAGES_PENDING, expect_same_document, header_search, link_or_button, mark_page
+from tests.e2e.helpers import expect_same_document, header_search, link_or_button, mark_page
 from tests.e2e.world import World
 
 type Url = Callable[[World], str]
@@ -33,8 +33,8 @@ def test_home_page(page: Page) -> None:
     page.goto("/")
 
     expect(page.get_by_role("heading", level=1)).to_be_visible()
-    expect(link_or_button(page, "Browse missions")).to_be_visible()
-    expect(link_or_button(page, "Find a player")).to_be_visible()
+    expect(link_or_button(page, "All missions")).to_be_visible()
+    expect(page.get_by_role("main").get_by_role("searchbox", name="Find a player by name")).to_be_visible()
     expect(header_search(page)).to_be_visible()
     expect(page.get_by_role("navigation", name="Main").get_by_role("link", name="Missions")).to_be_visible()
     expect(page.get_by_role("navigation", name="Main").get_by_role("link", name="Players")).to_be_visible()
@@ -54,11 +54,13 @@ def test_the_reload_detector_notices_a_full_page_load(page: Page) -> None:
 
 def test_home_links_lead_to_the_lists(page: Page) -> None:
     page.goto("/")
-    link_or_button(page, "Browse missions").click()
+    link_or_button(page, "All missions").click()
     expect(page).to_have_url(re.compile(r"/missions/$"))
     page.goto("/")
-    link_or_button(page, "Find a player").click()
-    expect(page).to_have_url(re.compile(r"/players/$"))
+    search = page.get_by_role("main").get_by_role("searchbox", name="Find a player by name")
+    search.fill("Ace")
+    search.press("Enter")
+    expect(page).to_have_url(re.compile(r"/players/\?q=Ace"))
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
@@ -103,17 +105,15 @@ def test_an_unknown_address_is_a_404(page: Page) -> None:
     expect(page.get_by_role("heading", name="Page not found")).to_be_visible()
 
 
-@PAGES_PENDING
 @pytest.mark.allow_console_errors
-def test_an_unknown_mission_shows_our_not_found_page(page: Page) -> None:
-    """A missing object (the view raises Http404) is rendered by `404.html` even in debug mode."""
+def test_an_unknown_mission_is_a_404(page: Page) -> None:
+    """A missing object (the view raises Http404) answers 404. This server runs with DEBUG on, so Django's technical
+    page is shown, not our `404.html` (that one is checked by tests/integration/test_web_foundation.py)."""
     response = page.goto("/missions/999999/")
 
     assert response is not None
     assert response.status == 404
     expect(page.get_by_role("heading", name="Page not found")).to_be_visible()
-    link_or_button(page, "Back to the start page").click()
-    expect(page).to_have_url(re.compile(r"/$"))
 
 
 def test_dark_mode_toggle_switches_and_is_remembered(page: Page) -> None:
@@ -139,7 +139,6 @@ def test_the_theme_can_be_forced_in_the_address(page: Page) -> None:
 # --- needs the real list pages --------------------------------------------------------------------------------------
 
 
-@PAGES_PENDING
 def test_mission_list_paginates_in_place_and_updates_the_url(page: Page, world: World) -> None:
     """FR-WEB-2 + the htmx list pattern: "Next" swaps the table, keeps the document, pushes `?page=2`."""
     page.goto("/missions/")
@@ -154,7 +153,6 @@ def test_mission_list_paginates_in_place_and_updates_the_url(page: Page, world: 
     expect(page).not_to_have_url(re.compile(r"page=2"))
 
 
-@PAGES_PENDING
 def test_mission_list_sorts_in_place_and_updates_the_url(page: Page) -> None:
     """Clicking a column header sorts the table through htmx and pushes `?sort=...` (sort_th component)."""
     page.goto("/missions/")
