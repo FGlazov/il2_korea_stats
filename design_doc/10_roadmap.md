@@ -220,6 +220,10 @@ decisions are made):
 - 🔧 **Aircraft page role toggle and loadout effectiveness** (maintainer, 2026-10-04): all / air superiority / attack scope for the type's
   stats; average Elo of a loadout's pilots, kills per sortie and K/D for air-superiority loadouts, ground score per hour for attack ones.
 
+- 🔧 **More e2e user flows** (maintainer, 2026-10-04): aircraft weaknesses from a shot-down-by-type row, leaderboard comparison, aircraft
+  filters, achievements to the earned-in sortie, columns + sort + reload, deep links and OG tags, admin hide removes a player everywhere,
+  past tours, rivalry to killboard, streak history, phone viewport, no-JS sorting and filtering, keyboard-only row open.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 

@@ -1,0 +1,45 @@
+{# il2ks-template: templates/il2ks/players/detail_aircraft_build.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_aircraft_build.html: the extra row under one row of the per-aircraft table (detail_aircraft.html): the favourite
+  loadout with its share of sorties and a <details> with all loadouts, the weapon-modification sets and the gun ammo mix.
+  Context: build (queries.builds.AircraftBuild or None; nothing is shown for None). Hits by ammo are NOT the belt the
+  player picked (the log has no belt field), and the WM values have no names yet (OQ-25).
+{% endcomment %}{% if build and build.loadouts %}
+  {% with fav=build.loadouts.0 %}
+  <tr class="aircraft-table__build">
+    <td colspan="8">
+      <details class="build-detail">
+        <summary>
+          <span class="muted">{% translate "Favourite loadout" %}:</span>
+          {% if fav.name %}{{ fav.name }}{% else %}<span class="muted">{% blocktranslate with id=fav.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}
+          · {{ fav.percent }}%
+        </summary>
+        <div class="build-detail__body">
+          <h4>{% translate "Loadouts" %}</h4>
+          <ul class="build-detail__list">
+            {% for p in build.loadouts %}
+              <li>{% if p.name %}{{ p.name }}{% else %}<span class="muted">{% blocktranslate with id=p.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %} · {{ p.percent }}% <span class="muted">({{ p.sorties|num }})</span></li>
+            {% endfor %}
+          </ul>
+          <h4>{% translate "Weapon modifications" %}</h4>
+          <ul class="build-detail__list">
+            {% for m in build.mods %}
+              <li>{% blocktranslate with value=m.mods %}Set {{ value }}{% endblocktranslate %} · {{ m.percent }}% <span class="muted">({{ m.sorties|num }})</span></li>
+            {% endfor %}
+          </ul>
+          <p class="muted"><small>{% translate "Modification names are not known yet: the numbers are the raw values from the log." %}</small></p>
+          {% if build.ammo %}
+            <h4>{% translate "Hits by ammo" %}</h4>
+            <ul class="build-detail__list">
+              {% for a in build.ammo %}
+                <li><span title="{{ a.designation }}">{{ a.name }}</span> · {{ a.percent }}% <span class="muted">({{ a.hits|num }})</span></li>
+              {% endfor %}
+            </ul>
+            <p class="muted"><small>{% translate "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that." %}</small></p>
+          {% endif %}
+        </div>
+      </details>
+    </td>
+  </tr>
+  {% endwith %}
+{% endif %}

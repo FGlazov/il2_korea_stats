@@ -56,6 +56,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
+from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_rows
 from il2ks.ingest.pairs import recompute_killboard
@@ -91,6 +92,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         _recompute_aircraft(chunk)
         _recompute_pools(chunk)
         _recompute_tours(chunk, tours)
+        recompute_builds(chunk, tours)  # favourite loadout, weapon mods, gun ammo mix per aircraft (ingest.builds)
         _refresh_identity(chunk)
         recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
         recompute_type_killboard(chunk, tours)  # ... and by enemy aircraft type, ingest.type_board (FR-WEB-9)

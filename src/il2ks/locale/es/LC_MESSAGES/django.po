@@ -1408,6 +1408,10 @@ msgid "Fair winds, full magazines and the numbers to prove it."
 msgstr "Viento en popa, cargadores llenos y las cifras que lo demuestran."
 
 # llm-draft
+msgid "Favourite loadout"
+msgstr "Carga favorita"
+
+# llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Pocos pilotos conocen la calle de rodaje tan a fondo. Podría hacer de guía turístico."
 
@@ -1746,6 +1750,10 @@ msgstr "Impacto (causado)"
 # llm-draft
 msgid "Hit (taken)"
 msgstr "Impacto (recibido)"
+
+# llm-draft
+msgid "Hits by ammo"
+msgstr "Impactos por munición"
 
 # llm-draft
 msgid "Hits dealt"
@@ -2234,6 +2242,10 @@ msgstr "Misiones de %(tour)s"
 # llm-draft
 msgid "Missions stored"
 msgstr "Misiones guardadas"
+
+# llm-draft
+msgid "Modification names are not known yet: the numbers are the raw values from the log."
+msgstr "Aún no se conocen los nombres de las modificaciones: los números son los valores en bruto del registro."
 
 # llm-draft
 msgid "Monospace"
@@ -3103,6 +3115,11 @@ msgid "Server activity"
 msgstr "Actividad del servidor"
 
 # llm-draft
+#, python-format
+msgid "Set %(value)s"
+msgstr "Conjunto %(value)s"
+
+# llm-draft
 msgid "Setup finished"
 msgstr "Configuración terminada"
 
@@ -3826,6 +3843,10 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "El tren de aterrizaje aún se estaba recogiendo y el primer derribo ya estaba en el registro."
 
 # llm-draft
+msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
+msgstr "Son los impactos que el jugador logró con cada munición, no la cinta que eligió: el registro del juego no lo guarda."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaron sin un evento de fin de misión; conviene revisarlas por si el servidor se cayó a mitad de la misión."
 
@@ -4162,6 +4183,10 @@ msgstr[0] ""
 msgstr[1] ""
 "Recomendamos como máximo %(n)d enlaces adicionales con etiquetas cortas (una o dos palabras): más también funcionan, "
 "pero el menú pasa entonces a una segunda fila de la cabecera."
+
+# llm-draft
+msgid "Weapon modifications"
+msgstr "Modificaciones de armamento"
 
 # llm-draft
 msgid "What was saved"

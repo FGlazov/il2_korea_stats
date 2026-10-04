@@ -50,12 +50,14 @@ from il2ks.db.models import (
     Player,
     PlayerMission,
     PlayerSortie,
+    SortieGunHits,
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
+from il2ks.ingest.builds import gun_hit_rows
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.ratings import recompute_ratings
@@ -126,6 +128,7 @@ def save_mission(
     register_countries(result.mission.countries, catalog)
     players = _upsert_players(result.sorties, clock)
     sorties = _upsert_sorties(mission, result, clock, catalog, objects, players, score)
+    _replace_gun_hits(mission, result, sorties, created=created)
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
@@ -771,3 +774,15 @@ def _replace_aircraft_ammo(
         for (victim, mix, ammo), (n, hits) in sorted(mixes.items())
     )
     return old_ids | {objects[victim].pk for victim, _ in totals} | {objects[victim].pk for victim, _, _ in mixes}
+
+
+def _replace_gun_hits(mission: Mission, result: MissionResult, rows: dict[int, PlayerSortie], *, created: bool) -> None:
+    """Rewrite the mission's `SortieGunHits` (level 1): the gun hits per ammo of its counted (pilot) sorties."""
+    if not created:
+        SortieGunHits.objects.filter(sortie__mission=mission).delete()
+    pilots = [s for s in result.sorties if s.role in COUNTED_ROLES]
+    SortieGunHits.objects.bulk_create(
+        SortieGunHits(sortie=rows[index], ammo=ammo, hits=hits)
+        for index, by_ammo in gun_hit_rows(pilots).items()
+        for ammo, hits in sorted(by_ammo.items())
+    )

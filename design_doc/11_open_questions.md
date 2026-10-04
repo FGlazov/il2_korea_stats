@@ -29,6 +29,15 @@ Defaults applied: the "Hits to destroy" count column is called "Instances" (same
 shown with per-ammo average hits, the rest folded; per-ammo average = that ammo's hits / the mix's instances; mixes are all time.
 Existing databases need `il2ks reprocess --all` (level-1 rows).
 
+**OQ-117 Favourite loadout on the profile** (built 2026-10-04 on the maintainer's request, "see what a skilled player uses")
+Defaults applied: the per-aircraft row shows only the favourite loadout (ties: the lower payload id) with its share; weapon-mod sets and
+hits by ammo sit in an expandable detail ("hits by ammo, not the belt they chose": belts are not logged); mod sets show the raw WM value
+with a "names not known yet" hint until the weapon-mods catalog lands; shares under 1% show as 1%.
+
+**OQ-118 Front-page image: display** (built 2026-10-04, FR-ADM-9)
+Defaults applied: "updated" is the file's modification time; the image is at most 75% of the viewport height, scaled to fit and framed;
+a click opens it full size in a new tab; the caption is one bold line.
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

@@ -73,6 +73,7 @@ BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
+BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
 
 
 def _already_done(name: str) -> bool:
@@ -122,6 +123,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_ACCURACY, _check_accuracy),
         (BACKFILL_STREAK_RUNS, _check_streak_runs),
         (BACKFILL_TOUR_AIRCRAFT, _check_tour_aircraft),
+        (BACKFILL_BUILDS, _check_builds),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -144,6 +146,38 @@ def _check_tour_aircraft() -> bool:
     from il2ks.db.models import PlayerTourAircraft, TourAircraftStats
 
     return PlayerTourAircraft.objects.exists() and not TourAircraftStats.objects.exists()
+
+
+def _check_builds() -> bool:
+    """A database from before the favourite loadout has pilot sorties but no `SortieGunHits` row: they follow from the
+    stored ammo JSON (the gun hit lines given per ammo, as at save time) and level 2 must be rebuilt, which
+    also builds `PlayerAircraftBuild`. `il2ks reprocess` gives the same rows."""
+    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+
+    if not PlayerSortie.objects.filter(role=Role.PILOT).exists() or SortieGunHits.objects.exists():
+        return False
+    log.info("deriving the gun hits per ammo from the stored ammo")
+    _fill_gun_hits()
+    return True
+
+
+def _fill_gun_hits() -> None:
+    """Write the `SortieGunHits` rows from the stored ammo JSON of every pilot sortie (streamed)."""
+    from il2ks.core.replay.model import is_gun_ammo
+    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+
+    new: list[SortieGunHits] = []
+    for pk, ammo in PlayerSortie.objects.filter(role=Role.PILOT).values_list("pk", "ammo").iterator(chunk_size=500):
+        raw = cast("dict[str, object]", ammo).get("hits") if isinstance(ammo, dict) else None
+        if not isinstance(raw, list):
+            continue
+        by_ammo: dict[str, int] = {}
+        for row in cast("list[dict[str, object]]", raw):
+            name, given = row.get("ammo"), row.get("hits_given")
+            if isinstance(name, str) and isinstance(given, int) and given > 0 and is_gun_ammo(name):
+                by_ammo[name] = by_ammo.get(name, 0) + given
+        new.extend(SortieGunHits(sortie_id=pk, ammo=name, hits=hits) for name, hits in sorted(by_ammo.items()))
+    SortieGunHits.objects.bulk_create(new, batch_size=500)
 
 
 def _check_streak_runs() -> bool:

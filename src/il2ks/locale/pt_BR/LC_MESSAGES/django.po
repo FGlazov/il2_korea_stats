@@ -1407,6 +1407,10 @@ msgid "Fair winds, full magazines and the numbers to prove it."
 msgstr "Bons ventos, carregadores cheios e os números para provar."
 
 # llm-draft
+msgid "Favourite loadout"
+msgstr "Carga favorita"
+
+# llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Podia até oferecer visita guiada."
 
@@ -1745,6 +1749,10 @@ msgstr "Acerto (causado)"
 # llm-draft
 msgid "Hit (taken)"
 msgstr "Acerto (sofrido)"
+
+# llm-draft
+msgid "Hits by ammo"
+msgstr "Acertos por munição"
 
 # llm-draft
 msgid "Hits dealt"
@@ -2229,6 +2237,10 @@ msgstr "Missões em %(tour)s"
 # llm-draft
 msgid "Missions stored"
 msgstr "Missões armazenadas"
+
+# llm-draft
+msgid "Modification names are not known yet: the numbers are the raw values from the log."
+msgstr "Os nomes das modificações ainda não são conhecidos: os números são os valores brutos do registro."
 
 # llm-draft
 msgid "Monospace"
@@ -3100,6 +3112,11 @@ msgid "Server activity"
 msgstr "Atividade do servidor"
 
 # llm-draft
+#, python-format
+msgid "Set %(value)s"
+msgstr "Conjunto %(value)s"
+
+# llm-draft
 msgid "Setup finished"
 msgstr "Configuração concluída"
 
@@ -3824,6 +3841,10 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "O trem de pouso ainda estava recolhendo e o primeiro abate já estava no registro."
 
 # llm-draft
+msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
+msgstr "São os acertos que o jogador fez com cada munição, não a fita que ele escolheu: o registro do jogo não guarda isso."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaram sem um evento de fim de missão; vale conferir caso o servidor tenha travado no meio da missão."
 
@@ -4158,6 +4179,10 @@ msgstr[0] ""
 msgstr[1] ""
 "Recomendamos no máximo %(n)d links extras com rótulos curtos (uma ou duas palavras): mais também funcionam, mas o "
 "menu passa a ocupar uma segunda linha do cabeçalho."
+
+# llm-draft
+msgid "Weapon modifications"
+msgstr "Modificações de armamento"
 
 # llm-draft
 msgid "What was saved"

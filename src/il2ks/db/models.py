@@ -591,6 +591,25 @@ class PlayerMission(Counters):
         return f"{self.player_id} @ {self.mission_id}"
 
 
+class SortieGunHits(models.Model):
+    """Level 1: the gun hit lines a pilot sortie gave, per ammo (`PlayerSortie.ammo` "hits" without ordnance lines).
+
+    One row per `(sortie, gun ammo)` with at least one hit, written when the sortie is saved, so the player's ammo mix
+    per aircraft type (`PlayerAircraftBuild`) is a plain GROUP BY instead of a parse of every sortie's JSON."""
+
+    sortie_id: int
+
+    sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="gun_hit_rows")
+    ammo = models.CharField(max_length=128)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["sortie", "ammo"], name="sortiegunhits_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.sortie_id} / {self.ammo}"
+
+
 class MissionAircraftAmmo(models.Model):
     """Level 1 (FR-WEB-18, doc 06): gun hits that destroyed aircraft of one type in one mission.
 
@@ -711,6 +730,54 @@ class PlayerTourAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
+
+
+class BuildKind(models.TextChoices):
+    PAYLOAD = "payload", "Loadout"
+    MODS = "mods", "Weapon modifications"
+    AMMO = "ammo", "Gun ammo hits"
+
+
+class PlayerAircraftBuild(models.Model):
+    """Level 2 (FR-WEB-4, doc 16 "Aircraft stats" loadouts): what a player flies an aircraft type with, all time
+    (`tour` NULL) or within one tour (same scoping as `PlayerAircraft` / `PlayerTourAircraft`).
+
+    Counted sorties grouped by `kind`: `PAYLOAD` = (`value` = `PlayerSortie.payload_id`, `label` = its name, '' when
+    unknown), `MODS` = (`value` = the `WM` bitmask, no names known, OQ-25), `AMMO` = (`label` = gun ammo log name,
+    `hits` = hit lines given with it in those sorties; ordnance lines excluded). `sorties` counts the sorties for
+    PAYLOAD and MODS and the sorties that hit with it for AMMO. A nullable `tour` needs two partial unique
+    constraints."""
+
+    player_id: int
+    aircraft_id: int
+    tour_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="build_rows")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_build_rows")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, null=True, related_name="build_rows")
+    kind = models.CharField(max_length=8, choices=BuildKind.choices)
+    value = models.BigIntegerField(default=0)
+    label = models.CharField(max_length=128, blank=True)
+    sorties = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "aircraft", "kind", "value", "label"],
+                condition=models.Q(tour__isnull=True),
+                name="playeraircraftbuild_unique_all",
+            ),
+            models.UniqueConstraint(
+                fields=["player", "aircraft", "tour", "kind", "value", "label"],
+                condition=models.Q(tour__isnull=False),
+                name="playeraircraftbuild_unique_tour",
+            ),
+        ]
+        indexes = [models.Index(fields=["player", "tour"], name="playeraircraftbuild_by_player")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.aircraft_id} / {self.kind} {self.value} {self.label}"
 
 
 class PlayerPool(Counters):

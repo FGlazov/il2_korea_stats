@@ -9,8 +9,9 @@ from django.test.utils import CaptureQueriesContext
 # Aggregation, window functions and grouping are ingest-time work. COUNT(*) stays allowed for the paginator.
 # The player profile's query budgets, shared by every test that checks them (keep them here, not per file).
 # All time (`?tour=all`): context processor 2, player, names, tours, stat thresholds, aircraft rows, recent sorties,
-# streak, killboard by aircraft type, killboard top victims and nemeses, tour history (charts), medals (FR-WEB-26).
-PROFILE_READS_ALL_TIME = 14
+# streak, killboard by aircraft type, killboard top victims and nemeses, tour history (charts), medals (FR-WEB-26), the
+# favourite loadout and ammo mix per aircraft type (PlayerAircraftBuild, one query).
+PROFILE_READS_ALL_TIME = 15
 PROFILE_READS_TOUR = PROFILE_READS_ALL_TIME + 1  # a tour, incl. the default current tour: + the PlayerTour row
 
 FORBIDDEN_SQL = re.compile(r"\bGROUP\s+BY\b|\bHAVING\b|\b(SUM|AVG|MIN|MAX)\s*\(|\bOVER\s*\(", re.IGNORECASE)

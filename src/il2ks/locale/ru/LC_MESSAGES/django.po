@@ -1426,6 +1426,10 @@ msgid "Fair winds, full magazines and the numbers to prove it."
 msgstr "Попутный ветер, полные магазины и цифры в подтверждение."
 
 # llm-draft
+msgid "Favourite loadout"
+msgstr "Любимая подвеска"
+
+# llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Мало кто знает рулёжку так же досконально. Хоть экскурсии води."
 
@@ -1768,6 +1772,10 @@ msgstr "Попадание (нанесено)"
 # llm-draft
 msgid "Hit (taken)"
 msgstr "Попадание (получено)"
+
+# llm-draft
+msgid "Hits by ammo"
+msgstr "Попадания по боеприпасам"
 
 # llm-draft
 msgid "Hits dealt"
@@ -2254,6 +2262,10 @@ msgstr "Миссии: %(tour)s"
 # llm-draft
 msgid "Missions stored"
 msgstr "Сохранено миссий"
+
+# llm-draft
+msgid "Modification names are not known yet: the numbers are the raw values from the log."
+msgstr "Названия модификаций пока неизвестны: числа это исходные значения из лога."
 
 # llm-draft
 msgid "Monospace"
@@ -3125,6 +3137,11 @@ msgid "Server activity"
 msgstr "Активность сервера"
 
 # llm-draft
+#, python-format
+msgid "Set %(value)s"
+msgstr "Набор %(value)s"
+
+# llm-draft
 msgid "Setup finished"
 msgstr "Настройка завершена"
 
@@ -3848,6 +3865,10 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "Шасси ещё убирались, а первая победа уже попала в журнал."
 
 # llm-draft
+msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
+msgstr "Это попадания игрока каждым видом боеприпасов, а не выбранная им лента: игровой лог этого не записывает."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Эти миссии закончились без события завершения; стоит проверить, не упал ли сервер посреди миссии."
 
@@ -4184,6 +4205,10 @@ msgstr[1] ""
 msgstr[2] ""
 "Рекомендуем не более %(n)d дополнительных ссылок с короткими подписями (одно-два слова): больше тоже можно, но тогда "
 "меню переносится на вторую строку шапки."
+
+# llm-draft
+msgid "Weapon modifications"
+msgstr "Модификации вооружения"
 
 # llm-draft
 msgid "What was saved"
