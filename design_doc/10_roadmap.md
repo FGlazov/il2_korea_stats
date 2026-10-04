@@ -169,6 +169,9 @@ decisions are made):
 - ✅ **Ammo used after a loss** (maintainer question, 2026-10-04; release events are commands, not counts: no release = 0 used, else unknown, OQ-101): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
+- ⏳ **Strafed after landing** (maintainer, 2026-10-04): an aircraft that landed and is then destroyed by an attacker on the ground counts as
+  strafed even if it was damaged in the air before the landing (today only when every hit came after the landing); crash-landings stay
+  "shot down". Plus quips for being strafed on the sortie page. Starts after the assist split (same files).
 - ⏳ **Explosion bursts in one event** (2026-10-04): 99.96% of explosion hits come from player aircraft, so skipping lines saves nothing; merging consecutive same-tick explosion lines of one attacker into one parser event would cut parse + replay by an estimated 25–30%.
 - ⏳ **Sortable sorties with optional columns on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
   columns (pilot, aircraft, outcome, fate, kills, damage, flight time, …) and with the same optional "Columns" control as the other lists.
