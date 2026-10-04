@@ -189,6 +189,13 @@ The flat `penalty_death`, `penalty_plane_lost` and `penalty_capture` keys became
 gets the new defaults until it edits `il2ks.toml`; needs a line in the release notes. Alternative: convert old values automatically, or fail the
 config load.
 
+**OQ-101 Bombs and rockets used after a loss: show an estimate?**
+After a bailout or other late sortie end the "ammo left" record can't be trusted. Release events are release *commands* (a pair of bombs
+often leaves in one event; a rocket event is a salvo), so they don't give exact counts. Default applied: no release event in the sortie means
+0 used (right in ~87–90% of comparable sorties); one or more releases leave "used" unknown. Alternative: show "~all loaded" as an estimate
+(marked "~" with a tooltip) when at least one release happened; it matches the trusted record in 92% of bomb and 87% of rocket sorties and would
+fill ~970 bomb and ~450 rocket sorties in the samples.
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

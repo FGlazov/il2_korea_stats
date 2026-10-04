@@ -145,7 +145,7 @@ decisions are made):
 - ⏳ **Accuracy** (maintainer, 2026-10-04): hit percentage for air-to-air and for ground fire (per sortie, per player, per aircraft
   type). Needs research first: which log fields give the rounds fired (ammo counts at spawn/landing/end, resupply) next to the hits
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
-- 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
+- ✅ **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
 - 🔧 **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
   superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
@@ -156,21 +156,21 @@ decisions are made):
   (Portuguese variants → Brazilian Portuguese), else English; an explicit choice wins.
 - 🔧 **Pilot fate shown as Dead / Captured / Survived** (maintainer, 2026-10-04): Dead and Captured override every other fate,
   "unknown" reads as Survived; fate next to the outcome on the sortie previews; Mission is no longer a default column there.
-- ⏳ **Sortie timeline: damage and hits** (maintainer, 2026-10-04): a column for percent damage taken / given (empty unless the
+- 🔧 **Sortie timeline: damage and hits** (maintainer, 2026-10-04): a column for percent damage taken / given (empty unless the
   event carries it); significant hits (e.g. over 0.1% damage) as timeline rows; ammo used matched to the nearest significant damage
   event. Starts after the ammo-after-loss work lands (same attribution code).
 - 🔧 **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
   or attackers shot down, lots of assists but no kills ("the kills went to the rest of the flight", in the usual warm tone), and
   other standouts (a very quick first kill, a very long sortie, heavy damage brought home with kills, many ground targets, shot down
   by an AI gunner, a ram). Most notable event wins, several variants each, idiomatic translations.
-- 🔧 **Ammo used after a loss** (maintainer question, 2026-10-04): when the end-of-sortie ammo record comes after the aircraft was
+- ✅ **Ammo used after a loss** (maintainer question, 2026-10-04; release events are commands, not counts: no release = 0 used, else unknown, OQ-101): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
-- 🔧 **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
+- ✅ **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
   visitors can add sortable columns (Elo, K/D, scores, …) from a small "Columns" control, kept in the URL.
-- 🔧 **Stat marks for Elo and scores** (maintainer, 2026-10-04): Top 10% / 25% next to Elo jet/prop, air score, ground score and
+- ✅ **Stat marks for Elo and scores** (maintainer, 2026-10-04): Top 10% / 25% next to Elo jet/prop, air score, ground score and
   ground score per hour, like the existing ratio marks.
-- 🔧 **Killboards by aircraft type** (maintainer, 2026-10-04): on the player killboard (and the profile), the enemy types a pilot
+- ✅ **Killboards by aircraft type** (maintainer, 2026-10-04): on the player killboard (and the profile), the enemy types a pilot
   shot down most and the types that killed them most, above the player-vs-player table (more important than it). On the aircraft
   page, a killboard by enemy type with the exchange rate ("how do I counter this plane, what should I fly?"), with a filter for
   intercept flights only (air superiority vs air superiority).
