@@ -1888,10 +1888,6 @@ msgid "Hit (taken)"
 msgstr "Acerto (sofrido)"
 
 # llm-draft
-msgid "Hits by ammo"
-msgstr "Acertos por munição"
-
-# llm-draft
 msgid "Hits dealt"
 msgstr "Acertos desferidos"
 
@@ -4219,10 +4215,6 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "O trem de pouso ainda estava recolhendo quando o primeiro abate entrou no registro."
 
 # llm-draft
-msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
-msgstr "São os acertos que o jogador fez com cada munição, não a fita que ele escolheu: o registro do jogo não guarda isso."
-
-# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaram sem um evento de fim de missão; vale conferir caso o servidor tenha travado no meio da missão."
 
@@ -4584,10 +4576,6 @@ msgstr[0] ""
 msgstr[1] ""
 "Recomendamos no máximo %(n)d links extras com rótulos curtos (uma ou duas palavras): mais também funcionam, mas o "
 "menu passa a ocupar uma segunda linha do cabeçalho."
-
-# llm-draft
-msgid "Weapon modifications"
-msgstr "Modificações de armamento"
 
 # llm-draft
 msgid "What was saved"

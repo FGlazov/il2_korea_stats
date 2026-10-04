@@ -1893,10 +1893,6 @@ msgid "Hit (taken)"
 msgstr "Touche (subie)"
 
 # llm-draft
-msgid "Hits by ammo"
-msgstr "Coups au but par munition"
-
-# llm-draft
 msgid "Hits dealt"
 msgstr "Impacts infligés"
 
@@ -4237,12 +4233,6 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "Le train rentrait encore quand la première victoire est arrivée au journal."
 
 # llm-draft
-msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
-msgstr ""
-"Ce sont les coups au but que le joueur a obtenus avec chaque munition, pas la bande qu'il a choisie : le journal du "
-"jeu ne l'enregistre pas."
-
-# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr ""
 "Celles-ci se sont terminées sans événement de fin de mission ; à vérifier au cas où le serveur aurait planté en "
@@ -4609,10 +4599,6 @@ msgstr[0] ""
 msgstr[1] ""
 "Nous recommandons au plus %(n)d liens supplémentaires avec des étiquettes courtes (un ou deux mots) : davantage "
 "fonctionne aussi, mais le menu passe alors sur une deuxième ligne de l'en-tête."
-
-# llm-draft
-msgid "Weapon modifications"
-msgstr "Modifications d'armement"
 
 # llm-draft
 msgid "What was saved"

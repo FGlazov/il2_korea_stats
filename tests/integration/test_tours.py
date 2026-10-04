@@ -264,7 +264,8 @@ def tour_state() -> dict[str, list[dict[str, object]]]:
         ],
         "missions": list(Mission.objects.order_by("mission_uid").values_list("mission_uid", "tour_id")),
         "aircraft_stats": [
-            norm(r) for r in TourAircraftStats.objects.order_by("tour_id", "aircraft_id", "role").values()
+            norm(r)
+            for r in TourAircraftStats.objects.order_by("tour_id", "aircraft_id", "role", "mod_pattern").values()
         ],
     }
 
@@ -285,7 +286,7 @@ def aircraft_by_title() -> dict[tuple[str, str], dict[str, object]]:
             "pilots": row.pilots,
             "side": row.side,
         }
-        for row in TourAircraftStats.objects.filter(role="all").select_related("tour", "aircraft")
+        for row in TourAircraftStats.objects.filter(role="all", mod_pattern="").select_related("tour", "aircraft")
     }
 
 
@@ -755,14 +756,18 @@ def test_aircraft_stats_per_tour_sum_the_tours_pilots_and_sides() -> None:
         ("F-51D", "October 2026"),
         ("MiG-15bis", "October 2026"),
     }  # the gunner sortie is no row
-    mig_october = TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour__title="October 2026", role="all")
+    mig_october = TourAircraftStats.objects.get(
+        aircraft__log_name="MiG-15bis", tour__title="October 2026", role="all", mod_pattern=""
+    )
     assert (mig_october.sorties, mig_october.pilots, mig_october.side) == (2, 2, "redfor")  # players 1 and 4
-    sabre = TourAircraftStats.objects.get(aircraft__log_name="F-86A-5", tour__title="August 2026", role="all")
+    sabre = TourAircraftStats.objects.get(
+        aircraft__log_name="F-86A-5", tour__title="August 2026", role="all", mod_pattern=""
+    )
     assert (sabre.pilots, sabre.deaths, sabre.side) == (1, 1, "blufor")
     # the all-time row is the sum of its tours
     all_time = {s.aircraft.log_name: s.sorties for s in AircraftStats.objects.select_related("aircraft")}
     per_tour: dict[str, int] = defaultdict(int)
-    for stat in TourAircraftStats.objects.filter(role="all").select_related("aircraft"):
+    for stat in TourAircraftStats.objects.filter(role="all", mod_pattern="").select_related("aircraft"):
         per_tour[stat.aircraft.log_name] += stat.sorties
     assert dict(per_tour) == all_time
 
@@ -787,9 +792,14 @@ def test_aircraft_stats_per_tour_incremental_touches_only_the_given_tours() -> N
 
     recompute_aircraft_stats(mig, [sept.pk])
 
-    assert TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour=sept, role="all").sorties == 1
     assert (
-        TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour__title="October 2026", role="all").sorties
+        TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour=sept, role="all", mod_pattern="").sorties
+        == 1
+    )
+    assert (
+        TourAircraftStats.objects.get(
+            aircraft__log_name="MiG-15bis", tour__title="October 2026", role="all", mod_pattern=""
+        ).sorties
         == 99
     )
 

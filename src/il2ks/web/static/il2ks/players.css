@@ -104,7 +104,3 @@
 
 /* Favourite loadout row under an aircraft row of the per-aircraft table (detail_aircraft_build.html) */
 .aircraft-table__build > td { padding-top: 0; }
-.build-detail > summary { cursor: pointer; font-size: 0.9em; }
-.build-detail__body { padding: 0.4rem 0 0.2rem 1rem; }
-.build-detail__body h4 { margin: 0.5rem 0 0.2rem; font-size: 0.95em; }
-.build-detail__list { margin: 0; padding-left: 1.2rem; }

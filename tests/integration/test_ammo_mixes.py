@@ -19,7 +19,7 @@ API = "BULLET_12-7_USA_API"
 INC = "BULLET_12-7_USA_INC"
 SHELL = "SHELL_23_RUS_HET"
 
-AIRCRAFT_DETAIL_READS = 11  # + the tour tiles (TourAircraftStats)
+AIRCRAFT_DETAIL_READS = 12  # + the tour tiles (TourAircraftStats), the mods table (AircraftMods)
 """Budget of /aircraft/<pk>/ with kills: the page's own reads plus the ammo rows and the ammo mixes (one query each)."""
 
 

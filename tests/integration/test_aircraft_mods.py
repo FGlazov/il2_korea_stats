@@ -16,6 +16,7 @@ from il2ks.db.models import (
     AircraftPayload,
     AircraftStats,
     GameObject,
+    Player,
     PlayerSortie,
     Tour,
     TourAircraftStats,
@@ -346,14 +347,13 @@ def test_filter_page_budgets_and_simple_reads(client: Client) -> None:
     assert_simple_reads(client, f"{base}?tour=all&msort=-elo", max_queries=10)
 
 
-def test_profile_names_the_mod_sets(client: Client) -> None:
+def test_profile_shows_no_mod_sets_any_more(client: Client) -> None:
+    """OQ-117: the profile keeps only the favourite loadout; the mod sets live on the aircraft page."""
     history()
-    from il2ks.db.models import Player
-
     player = Player.objects.get(account_uuid__endswith="000000000001")
+
     body = client.get(f"/players/{player.pk}/?tour=all").content.decode()
 
-    assert "Anti-G suit" in body
-    assert "No modifications" in body
+    assert "Favourite loadout" in body
+    assert "Anti-G suit" not in body
     assert "Set 33" not in body
-    assert "Modification names are not known yet" not in body

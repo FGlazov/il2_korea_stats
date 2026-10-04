@@ -19,7 +19,7 @@
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "2987ff54f4da7a9585cdf47d857d4c2d464309796912fdec24b40bdb4945700c"
+      "sha256": "bc141868526b2535fe9882b9985f1d40a653d6da7321ab44baa98e428f3a79bd"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -319,7 +319,7 @@
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,
-      "sha256": "160400163b57f0142afdd0a8d5c9bcaf749ad48e4ec385129cbe0c18575f5b15"
+      "sha256": "97d1c48cae59ac8a13f831c4cc0cdb74af5c132f04daa426255d43baef515a4d"
     },
     "templates/il2ks/players/detail_charts.html": {
       "version": 1,

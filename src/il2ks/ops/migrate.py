@@ -76,7 +76,7 @@ BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, T
 BACKFILL_MOD_FILTERS = "mod_filters"  # weapon-mod sets and filter scopes of the aircraft stats (FR-WEB-8)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
-BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
+BACKFILL_BUILDS = "builds"  # the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
@@ -181,35 +181,11 @@ def _check_mod_filters() -> bool:
 
 
 def _check_builds() -> bool:
-    """A database from before the favourite loadout has pilot sorties but no `SortieGunHits` row: they follow from the
-    stored ammo JSON (the gun hit lines given per ammo, as at save time) and level 2 must be rebuilt, which
-    also builds `PlayerAircraftBuild`. `il2ks reprocess` gives the same rows."""
-    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+    """A database from before the favourite loadout has pilot sorties but no `PlayerAircraftBuild` row: level 2 must be
+    rebuilt."""
+    from il2ks.db.models import PlayerAircraftBuild, PlayerSortie, Role
 
-    if not PlayerSortie.objects.filter(role=Role.PILOT).exists() or SortieGunHits.objects.exists():
-        return False
-    log.info("deriving the gun hits per ammo from the stored ammo")
-    _fill_gun_hits()
-    return True
-
-
-def _fill_gun_hits() -> None:
-    """Write the `SortieGunHits` rows from the stored ammo JSON of every pilot sortie (streamed)."""
-    from il2ks.core.replay.model import is_gun_ammo
-    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
-
-    new: list[SortieGunHits] = []
-    for pk, ammo in PlayerSortie.objects.filter(role=Role.PILOT).values_list("pk", "ammo").iterator(chunk_size=500):
-        raw = cast("dict[str, object]", ammo).get("hits") if isinstance(ammo, dict) else None
-        if not isinstance(raw, list):
-            continue
-        by_ammo: dict[str, int] = {}
-        for row in cast("list[dict[str, object]]", raw):
-            name, given = row.get("ammo"), row.get("hits_given")
-            if isinstance(name, str) and isinstance(given, int) and given > 0 and is_gun_ammo(name):
-                by_ammo[name] = by_ammo.get(name, 0) + given
-        new.extend(SortieGunHits(sortie_id=pk, ammo=name, hits=hits) for name, hits in sorted(by_ammo.items()))
-    SortieGunHits.objects.bulk_create(new, batch_size=500)
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftBuild.objects.exists()
 
 
 def _check_tour_aircraft() -> bool:
