@@ -258,7 +258,11 @@ upgrading, run `il2ks reprocess --all` once (a few minutes per thousand missions
 - sortie timeline hit rows that list an aircraft and its pilot / crew separately (older rows can read "+200%");
 - the exact **strafed** and **crashed** outcomes (a parked or landed aircraft destroyed by enemy fire is "strafed", a
   crash after a fault is "crashed", not "shot down"), and the exact state of sorties the mission end cut off;
-- transports counted as victims of interceptions (the automatic fill-in covers most of it; reprocess gives the rest).
+- transports counted as victims of interceptions (the automatic fill-in covers most of it; reprocess gives the rest);
+- exact **rams** (the "Contact Sport" medal): the automatic fill-in only approximates them from the kills (two enemies
+  who credit each other at the same moment and place), because the stored data has no collision event;
+- correct **ordnance names** in the stored ammunition of old sorties: they were typed with the old payload table.
+  Only the reprocess makes both of these exact.
 
 Skip it if you only want new missions to have these. The old ones keep working, just without the new details.
 
