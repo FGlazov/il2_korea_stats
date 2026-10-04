@@ -15,7 +15,7 @@ def header_search(page: Page) -> Locator:
     return page.get_by_role("banner").get_by_role("searchbox", name="Find a player")
 
 
-def link_or_button(page: Page, name: str) -> Locator:
+def link_or_button(page: Page, name: str | re.Pattern[str]) -> Locator:
     """A call to action: the theme styles some links as buttons (`role="button"`); a visitor can't tell them apart."""
     return page.get_by_role("link", name=name).or_(page.get_by_role("button", name=name))
 
