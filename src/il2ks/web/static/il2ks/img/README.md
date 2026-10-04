@@ -65,6 +65,6 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 
 ## Ours (original drawings, MIT like the rest of the project)
 
-`aircraft/*` (silhouettes), `ground/artillery.svg`, `ground/aaa.svg`, `brand/*` (logo mark, favicon), `coalition/insignia/*`,
-`pattern/*`, `illustration/*`. A test (`tests/unit/test_icon_files.py`) checks that every icon named in a template or in
+`aircraft/*` (silhouettes), `ground/artillery.svg`, `ground/aaa.svg`, `stat/friendly-fire.svg`, `brand/*` (logo mark, favicon), `coalition/insignia/*`,
+`pattern/*`, `illustration/*`. The complete inventory (every file, where it is used, required for the release or not) is generated into design_doc/15 by `uv run il2ks dev assets --write`; `tests/unit/test_asset_inventory.py` fails when it drifts. A test (`tests/unit/test_icon_files.py`) checks that every icon named in a template or in
 the code exists and that every icon is a well-formed 24 px `currentColor` SVG.

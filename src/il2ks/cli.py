@@ -292,6 +292,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     dump.add_argument("data_dir", type=Path, help="a data dir with il2ks.sqlite3")
     dump.add_argument("target", type=Path, help="output file (.jsonl)")
+    assets = dev.add_parser(
+        "assets", help="inventory of every image the site uses or ships (design_doc/15, the designer brief)"
+    )
+    assets.add_argument("--check", action="store_true", help="exit 1 when the brief, the code and static/ disagree")
+    assets.add_argument("--write", action="store_true", help="rewrite the generated inventory in design_doc/15")
     _add_translation_parsers(dev)
     chk = dev.add_parser(
         "check",
@@ -374,6 +379,11 @@ def _main(argv: Sequence[str] | None) -> int:
         from il2ks.devtools.templates import bump_templates
 
         return bump_templates(check=ns.check)
+    if command == "dev" and ns.dev_command == "assets":
+        _django_setup()
+        from il2ks.devtools.assets import run as run_assets
+
+        return run_assets(check=ns.check, write=ns.write)
     if command == "dev" and ns.dev_command == "template-changes":
         from il2ks.devtools.templates import template_changes
 
