@@ -1,5 +1,6 @@
 """Charts (FR-WEB-16): the daily activity table at ingest, the home and profile charts, hidden rows, query counts."""
 
+import re
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
@@ -199,3 +200,23 @@ def test_styleguide_shows_the_charts(client: Client, settings: Settings) -> None
 
     assert html.count('class="chart"') == 4
     assert "Nothing to show yet." in html  # the all-zero sample
+
+
+# --- localized numbers (regression: floatformat localizes in de/ru/fr/pt-br/es) ---------------------------------
+@pytest.mark.parametrize("path", ["home", "profile"])
+def test_chart_coordinates_stay_dot_decimals_in_german(client: Client, path: str) -> None:
+    """SVG lengths must use '.' whatever the language: '134,0' is an invalid length."""
+    if path == "home":
+        seed_days()
+        url = "/"
+    else:
+        url = f"/players/{fly_tours()}/"
+    client.get("/language/", {"language": "de", "next": "/"})
+
+    html = client.get(url).content.decode()
+
+    svg = html[html.index('<svg class="chart__svg"') :].split("</svg>")[0]
+    numeric = re.findall(r'\b(?:x|y|x1|x2|y1|y2|dx|dy)="([^"]*)"', svg)
+    assert numeric
+    assert not [v for v in numeric if "," in v]
+    assert re.search(r'y1="\d+\.\d"', svg)

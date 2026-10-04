@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/components/bar_chart.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/components/bar_chart.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   bar_chart.html ({% bar_chart spec %}, spec = il2ks.web.charts.ChartSpec): an inline-SVG bar chart (FR-WEB-16).
   Context: spec (title, desc, chart_id, ...), chart (the BarChart layout: bars with SVG paths, y_ticks, x_labels,
@@ -19,11 +19,11 @@
       <desc id="{{ spec.chart_id }}-d">{{ spec.desc }}</desc>
       <g class="chart__grid" aria-hidden="true">
         {% for tick in chart.y_ticks %}
-          <line x1="{{ chart.plot_left|floatformat:1 }}" x2="{{ chart.plot_right|floatformat:1 }}" y1="{{ tick.y|floatformat:1 }}" y2="{{ tick.y|floatformat:1 }}"{% if forloop.first %} class="chart__axis"{% endif %}/>
-          <text class="chart__tick" x="{{ chart.plot_left|floatformat:1 }}" dx="-6" y="{{ tick.y|floatformat:1 }}" dy="3.5" text-anchor="end">{{ tick.label }}</text>
+          <line x1="{{ chart.plot_left|floatformat:"1u" }}" x2="{{ chart.plot_right|floatformat:"1u" }}" y1="{{ tick.y|floatformat:"1u" }}" y2="{{ tick.y|floatformat:"1u" }}"{% if forloop.first %} class="chart__axis"{% endif %}/>
+          <text class="chart__tick" x="{{ chart.plot_left|floatformat:"1u" }}" dx="-6" y="{{ tick.y|floatformat:"1u" }}" dy="3.5" text-anchor="end">{{ tick.label }}</text>
         {% endfor %}
         {% for label in chart.x_labels %}
-          <text class="chart__tick" x="{{ label.x|floatformat:1 }}" y="{{ chart.baseline|floatformat:1 }}" dy="15" text-anchor="middle">{{ label.text }}</text>
+          <text class="chart__tick" x="{{ label.x|floatformat:"1u" }}" y="{{ chart.baseline|floatformat:"1u" }}" dy="15" text-anchor="middle">{{ label.text }}</text>
         {% endfor %}
       </g>
       {% for bar in chart.bars %}<path class="chart__bar chart__bar--s{{ bar.series }}" d="{{ bar.path }}"><title>{{ bar.tip }}</title></path>{% endfor %}

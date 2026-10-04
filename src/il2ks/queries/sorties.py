@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from django.core.paginator import Page, Paginator
 
 from il2ks.db.models import (
+    HEAVY_SORTIE_COLUMNS,
     CombatRole,
     GameObject,
     Kill,
@@ -75,6 +76,7 @@ def player_aircraft(player: Player) -> list[PlayerAircraft]:
 def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) -> Page:
     """One page of a player's sorties in visible missions: filtered, sorted (`sort` already resolved) and paginated."""
     rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
+    rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if filters.tour is not None:
         rows = rows.filter(mission__tour=filters.tour)
     if filters.aircraft is not None:
@@ -114,7 +116,7 @@ def sorties_by_id(ids: Iterable[int]) -> dict[int, PlayerSortie]:
     wanted = sorted(set(ids))
     if not wanted:
         return {}
-    rows = PlayerSortie.objects.filter(pk__in=wanted).select_related("player", "aircraft")
+    rows = PlayerSortie.objects.filter(pk__in=wanted).select_related("player", "aircraft").defer(*HEAVY_SORTIE_COLUMNS)
     return {row.pk: row for row in rows}
 
 

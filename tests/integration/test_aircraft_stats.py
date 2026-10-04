@@ -11,6 +11,7 @@ from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, Player
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.aircraft import MIN_PILOT_SORTIES
+from il2ks.web import object_names
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
 from tests.simple_reads import assert_simple_reads
 
@@ -154,6 +155,24 @@ def test_list_page_sorts_links_and_stays_within_budget(client: Client) -> None:
     ascending = client.get(reverse("web:aircraft-list") + "?sort=kills_air").content.decode()
     assert ascending.index("F-86A Sabre") < ascending.index("MiG-15bis")
     assert client.get(reverse("web:aircraft-list") + "?sort=password").status_code == 200  # whitelist: falls back
+
+
+def test_list_sorted_by_aircraft_follows_the_localized_name(client: Client, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`?sort=aircraft` orders by the name the page shows (viewer's language), not the English `display_name`."""
+    save(first_mission())
+    names = {"MiG-15bis": "Alpha-localized", "F-86A-5": "Zulu-localized"}
+
+    def fake_name_of(obj: object, language: str, catalog: object = None) -> str:
+        return names.get(str(getattr(obj, "log_name", "")), "Other")
+
+    monkeypatch.setattr(object_names, "name_of", fake_name_of)
+    url = reverse("web:aircraft-list")
+
+    ascending = client.get(url + "?sort=aircraft").content.decode()
+    descending = client.get(url + "?sort=-aircraft").content.decode()
+
+    assert ascending.index("Alpha-localized") < ascending.index("Zulu-localized")
+    assert descending.index("Zulu-localized") < descending.index("Alpha-localized")
 
 
 def test_detail_page_matchups_loadouts_and_budget(client: Client) -> None:

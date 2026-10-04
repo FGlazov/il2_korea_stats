@@ -79,6 +79,13 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
         AircraftRow(s, _hits(destroyed.get(s.aircraft_id)), max(s.sorties - s.deaths, 0))
         for s in reads.stats_list(sort)
     ]
+    if sort.removeprefix("-") == "aircraft":
+        # The database orders by the English `display_name`; the page shows the localized name, so sort by that
+        # (a few dozen rows; the stable sort keeps the database's tie order).
+        language = get_language() or "en"
+        rows.sort(
+            key=lambda r: object_names.name_of(r.stats.aircraft, language).casefold(), reverse=sort.startswith("-")
+        )
     return render(request, "il2ks/aircraft/list.html", {"rows": rows, "sort": sort, "page_title": _("Aircraft")})
 
 
