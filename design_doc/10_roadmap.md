@@ -151,7 +151,11 @@ decisions are made):
   superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
   target). On the leaderboards next to Elo and ground per hour, and in the home page's top boards. Queued after the leaderboard
   rework lands.
-- ⏳ **Ammo used after a loss** (maintainer question, 2026-10-04): when the end-of-sortie ammo record comes after the aircraft was
+- ⏳ **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
+  or attackers shot down, lots of assists but no kills ("the kills went to the rest of the flight", in the usual warm tone), and
+  other standouts (a very quick first kill, a very long sortie, heavy damage brought home with kills, many ground targets, shot down
+  by an AI gunner, a ram). Most notable event wins, several variants each, idiomatic translations.
+- 🔧 **Ammo used after a loss** (maintainer question, 2026-10-04): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
 - 🔧 **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
