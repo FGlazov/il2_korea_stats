@@ -20,7 +20,7 @@ M26FLR,flare,M26 Chute Flare bomb,M26FLR,
 HVAR,rocket,"HVAR 5"" rocket",HVAR,RKT_127mm_USA_HVAR
 HVAR_SAP,rocket,"HVAR 5"" Semi-Armor Piercing rocket",HVAR_SAP,RKT_127mm_USA_HVAR_SAP
 ATAR,rocket,"ATAR 6.5"" rocket",ATAR,RKT_165mm_USA_ATAR
-TINYTIM,rocket,"Tiny Tim 12"" rocket",TINYTIM,RKT_298mm_USA_TinyTim
+TINYTIM,rocket,"Tiny Tim 11.75"" rocket",TINYTIM,RKT_298mm_USA_TinyTim
 M8,rocket,M-8 82 mm rocket,M8,RKT_82mm_RUS_M8
 M13,rocket,M-13UK 132 mm rocket,M13,RKT_132mm_RUS_M13UK
 TANK,tank,Drop tank,165GAL;265GAL;F51_110GAL;F51_75GAL;F84_230GAL;F86_120GAL;F86_245GAL;MIG15_250l,

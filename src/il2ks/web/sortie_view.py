@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 from il2ks.core.catalog.loader import GROUND_CATEGORIES
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
-from il2ks.queries.ammo import parse_sortie_ammo
+from il2ks.queries.ammo import GunAmmoRow, ammo_info, parse_sortie_ammo
 from il2ks.web import display, icons, object_names, pve
 
 type Json = Mapping[str, object]
@@ -491,14 +491,14 @@ class AmmoRow:
 
 @dataclass(frozen=True, slots=True)
 class HitRow:
-    """Hits given and received with one gun ammunition type (never explosions, TD-08), and the damage attributed to it
-    (FR-WEB-18: the closest hit in time, doc 02): health units, 1.0 = one whole object, the dash for none."""
+    """Hits given and received with one ammunition type (never explosions, TD-08). `name` is the plain name
+    (`.50 BMG API`), `designation` the real one for a tooltip. The damage attributed to each ammunition is not shown
+    (OQ-52: follow-up damage is hard to attribute); it is still stored."""
 
     name: str
+    designation: str
     given: str
     received: str
-    dealt: str
-    taken: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -512,8 +512,6 @@ class OrdnanceView:
     targets_damaged: str
     kills: str
     direct: str
-    dealt: str
-    taken: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -521,8 +519,6 @@ class AmmoTable:
     rows: Sequence[AmmoRow]
     hits: Sequence[HitRow]
     ordnance: Sequence[OrdnanceView]
-    unattributed_dealt: str  # damage no hit was close enough to be blamed on ('' when none)
-    unattributed_taken: str
     used_unknown: AmmoNote  # why "used" is unknown for some or all kinds ('' when it is known for all)
 
 
@@ -531,19 +527,19 @@ def _count(value: object) -> str:
     return display.num(number) if number is not None else display.DASH
 
 
-def ammo_name(raw: str) -> str:
-    """'BULLET_12-7_USA_API' -> '12.7 USA API' (the generic prefix dropped, the calibre's dash is a decimal point)."""
-    parts = raw.split("_")
-    if parts and parts[0].upper() in ("BULLET", "SHELL", "BOMB", "RKT", "ROCKET"):
-        parts = parts[1:]
-    text = " ".join(parts)
-    out: list[str] = []
-    for index, char in enumerate(text):
-        is_decimal = (
-            char == "-" and 0 < index < len(text) - 1 and text[index - 1].isdigit() and text[index + 1].isdigit()
-        )
-        out.append("." if is_decimal else char)
-    return "".join(out) or raw
+def _hit_rows(guns: Sequence[GunAmmoRow]) -> list[HitRow]:
+    """One row per plain name: two log names that share it (a smoke-trail and a plain tracer) add up."""
+    totals: dict[str, tuple[str, int, int]] = {}
+    for row in guns:
+        if not row.ammo:
+            continue
+        info = ammo_info(row.ammo)
+        _, given, received = totals.get(info.name, (info.designation, 0, 0))
+        totals[info.name] = (info.designation, given + row.hits_given, received + row.hits_received)
+    return [
+        HitRow(name, designation, display.num(given), display.num(received))
+        for name, (designation, given, received) in totals.items()
+    ]
 
 
 def ammo_table(sortie: PlayerSortie) -> AmmoTable:
@@ -570,17 +566,7 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
             )
         )
     breakdown = parse_sortie_ammo(ammo)
-    hits = [
-        HitRow(
-            ammo_name(row.ammo),
-            display.num(row.hits_given),
-            display.num(row.hits_received),
-            _units(row.damage_dealt),
-            _units(row.damage_taken),
-        )
-        for row in breakdown.guns
-        if row.ammo
-    ]
+    hits = _hit_rows(breakdown.guns)
     ordnance = [
         OrdnanceView(
             _ordnance_label(row.ordnance, row.name),
@@ -589,8 +575,6 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
             display.num(row.targets_damaged),
             display.num(row.kills),
             display.num(row.direct_hits),
-            _units(row.damage_dealt),
-            _units(row.damage_taken),
         )
         for row in breakdown.ordnance
     ]
@@ -598,17 +582,8 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
         rows,
         hits,
         ordnance,
-        _units(breakdown.unattributed_dealt, none=""),
-        _units(breakdown.unattributed_taken, none=""),
         unknown,
     )
-
-
-def _units(amount: float, none: str = display.DASH) -> str:
-    """Damage as health units (1.0 = one whole object), 2 places under 10 so small amounts stay visible."""
-    if amount <= 0:
-        return none
-    return display.num(amount, 2 if amount < 10 else 1)
 
 
 def _ordnance_label(key: str, english: str) -> str:

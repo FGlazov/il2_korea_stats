@@ -217,3 +217,5 @@ _.lost_to  # sortie_view.Detail: sorties/parts/summary.html
 _.average  # web.views.aircraft.AircraftRow / AmmoHits: aircraft/list.html
 _.survived  # web.views.aircraft.AircraftRow: aircraft/list.html
 _.nemeses  # web.templatetags.il2ks_boards.Board: players/detail_killboard.html
+_.calibre  # core.catalog.loader.AmmoInfo: ammo.csv columns kept for later pages (grouping/sorting by calibre); tested
+_.round_type  # core.catalog.loader.AmmoInfo: same

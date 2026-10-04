@@ -61,19 +61,22 @@ def player_pk(n: int) -> int:
 
 
 # --- sortie page: ammo ---
-def test_sortie_page_lists_hits_with_damage_and_the_ordnance_apart(client: Client) -> None:
+def test_sortie_page_lists_hits_by_plain_name_without_damage_and_the_ordnance_apart(client: Client) -> None:
     save(seed())
 
     body = client.get(f"/sorties/{pk_of(1)}/").content.decode()
 
-    assert "Damage dealt" in body
-    assert "12.7 USA API" in body
-    assert "0.80" in body  # damage attributed to the API rounds
+    assert "Damage attributed to this ammunition" not in body  # OQ-52: the per-ammo damage is hidden, hits stay
+    assert "Hits given" in body
+    assert "BULLET_12-7_USA_API" not in body
+    assert ">.50 BMG API<" in body
+    assert 'title="M8 API"' in body  # the real designation as a tooltip
+    assert "0.80" not in body
     assert "Bombs, rockets and napalm" in body
     assert "M64 500 lb General Purpose bomb" in body
     assert "Unattributed" in body
     assert "explosion" not in body.lower()
-    assert "Damage no hit could be blamed on: 0.25 dealt, 0.50 taken." in body
+    assert "Damage no hit could be blamed on" not in body
 
 
 def test_sortie_page_without_ordnance_has_no_ordnance_section(client: Client) -> None:
@@ -140,7 +143,9 @@ def test_profile_deaths_by_class_follow_the_counters(client: Client) -> None:
 def test_profile_budget_is_unchanged_by_the_breakdown(client: Client) -> None:
     save(seed())
 
-    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=11)  # as test_player_pages (tours, stat marks, streak, killboard)
+    assert_simple_reads(
+        client, f"/players/{player_pk(1)}/", max_queries=11
+    )  # as test_player_pages (tours, stat marks, streak, killboard)
 
 
 def test_hidden_player_profile_stays_404(client: Client) -> None:
@@ -162,8 +167,8 @@ def test_aircraft_page_gives_the_average_hits_to_destroy(client: Client) -> None
     row = next(r for r in response.context["rows"] if r.stats.aircraft.log_name == "MiG-15bis").hits
     assert (row.kills, row.average) == ("2", "4.50")  # 9 hits in 2 kills
     assert [(a.name, a.kills, a.average) for a in row.by_ammo] == [
-        ("12.7 USA API", "2", "4.00"),
-        ("12.7 USA INC", "1", "1.00"),
+        (".50 BMG API", "2", "4.00"),
+        (".50 BMG INC", "1", "1.00"),
     ]
     assert "Aircraft" in body
 

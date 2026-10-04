@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
@@ -115,7 +115,7 @@
           {% if hits.by_ammo %}
             <tr><th scope="row">{% translate "All gun ammunition" %}</th><td class="num">{{ hits.kills }}</td><td class="num">{{ hits.average }}</td></tr>
             {% for ammo in hits.by_ammo %}
-              <tr><td>{{ ammo.name }}</td><td class="num">{{ ammo.kills }}</td><td class="num">{{ ammo.average }}</td></tr>
+              <tr><td>{% if ammo.designation %}<span title="{{ ammo.designation }}">{{ ammo.name }}</span>{% else %}{{ ammo.name }}{% endif %}</td><td class="num">{{ ammo.kills }}</td><td class="num">{{ ammo.average }}</td></tr>
             {% endfor %}
           {% else %}
             {% empty_row 3 _("No kill of this aircraft by a single attacker yet.") %}

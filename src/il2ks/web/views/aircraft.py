@@ -17,14 +17,14 @@ from il2ks.queries import aircraft as reads
 from il2ks.queries import ammo as ammo_reads
 from il2ks.queries.players import resolve_sort
 from il2ks.web import display, object_names
-from il2ks.web.sortie_view import ammo_name
 
 
 @dataclass(frozen=True, slots=True)
 class AmmoHits:
     """One gun ammunition: in how many counted kills it hit, and the average number of hits in those kills."""
 
-    name: str
+    name: str  # plain name (`.50 BMG API`)
+    designation: str  # real designation, for a tooltip
     kills: str
     average: str
 
@@ -52,13 +52,18 @@ def _average(value: float) -> str:
     return display.num(value, 1 if value >= 10 else 2)
 
 
+def _ammo_hits(row: ammo_reads.AmmoToDestroy) -> AmmoHits:
+    info = ammo_reads.ammo_info(row.ammo)
+    return AmmoHits(info.name, info.designation, display.num(row.kills), _average(row.average_hits))
+
+
 def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
     if found is None or found.total is None:
         return NO_HITS
     return HitsToDestroy(
         display.num(found.total.kills),
         _average(found.total.average_hits),
-        tuple(AmmoHits(ammo_name(a.ammo), display.num(a.kills), _average(a.average_hits)) for a in found.by_ammo),
+        tuple(_ammo_hits(a) for a in found.by_ammo),
     )
 
 
