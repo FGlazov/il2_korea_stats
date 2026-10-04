@@ -1,22 +1,14 @@
-{# il2ks-template: templates/il2ks/players/detail_tiles.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_tiles.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_tiles.html: the headline totals as stat tiles, each with the ratio that belongs to it (computed here from the
-  stored counters, TD-22). K/D and K/L use air kills: ground kills include fences and crates (doc 13), so they have
-  their own per-sortie figure. Context: stats (the player, or their PlayerTour row with ?tour=), survived.
+  detail_tiles.html: the general headline totals (sorties, flight time, deaths, planes lost) as stat tiles. The kill tiles
+  moved to detail_air_tiles.html and detail_ground_tiles.html (the air / ground split of the page). Computed here from the
+  stored counters, TD-22. Context: stats (the player, or their PlayerTour row with ?tour=), survived.
 {% endcomment %}<div class="stat-tiles profile-tiles">
   {% blocktranslate with rate=survived|percent:stats.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
   {% stat_tile stats.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
 
   {% blocktranslate count counter=stats.takeoffs asvar sub_time %}{{ counter }} takeoff{% plural %}{{ counter }} takeoffs{% endblocktranslate %}
   {% stat_tile stats.flight_time_s|duration _("Flight time") sub=sub_time icon="stat/flight-time" %}
-
-  {% blocktranslate with value=stats.kills_air|ratio:stats.deaths asvar sub_air %}K/D {{ value }}{% endblocktranslate %}
-  {% stat_tile stats.kills_air|num _("Air kills") sub=sub_air icon="stat/air-kills" %}
-
-  {% blocktranslate with value=stats.kills_ground|ratio:stats.sorties asvar sub_ground %}{{ value }} per sortie{% endblocktranslate %}
-  {% stat_tile stats.kills_ground|num _("Ground kills") sub=sub_ground icon="stat/ground-kills" %}
-
-  {% stat_tile stats.assists|num _("Assists") icon="stat/assists" %}
 
   {% stat_tile stats.deaths|num _("Deaths") icon="stat/deaths" %}
 

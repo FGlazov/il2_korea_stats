@@ -1,0 +1,28 @@
+{# il2ks-template: templates/il2ks/players/detail_air_section.html v3 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_air_section.html: the air-to-air part of the profile: kills (PvP and AI), K/D and the other ratios with their
+  stat marks, air score and Elo, the killboards. Without any air activity in the scope it is one muted line (the
+  killboard still shows whoever shot the pilot down). Context: stats, player, marks, survived, tour, air_active.
+{% endcomment %}<section class="profile-part" id="air" aria-labelledby="air-heading">
+  {# Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking ground targets #}
+  <h2 id="air-heading" class="profile-part__title">{% translate "Air-to-air" %}</h2>
+  {% if air_active %}
+    {% include "il2ks/players/detail_air_tiles.html" %}
+    <div class="split profile-split">
+      <section>
+        <h3>{% translate "Ratios" %}</h3>
+        {% include "il2ks/players/detail_ratios.html" %}
+      </section>
+      <section>
+        <h3>{% translate "Score and rating" %}</h3>
+        {% include "il2ks/players/detail_scores.html" %}
+        <h3>{% translate "Air kills by victim" %}</h3>
+        {% include "il2ks/players/detail_air_split.html" %}
+      </section>
+    </div>
+  {% else %}
+    <p class="muted">{% if tour %}{% translate "No air-to-air activity in this tour: no air kills or assists." %}{% else %}{% translate "No air-to-air activity yet: no air kills or assists." %}{% endif %}</p>
+  {% endif %}
+  {# type killboard goes here (the killboard-by-aircraft-type partial is not on this branch yet) #}
+  {% include "il2ks/players/detail_killboard.html" %}
+</section>

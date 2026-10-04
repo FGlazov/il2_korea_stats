@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/players/detail_ground_scores.html v2 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_ground_scores.html: the air-to-ground figures: ground score, score per hour on target (needs time on target),
+  ground kills per sortie, attack sorties, time on target. Context: stats, marks.
+{% endcomment %}<dl class="kv">
+  <dt>{% translate "Ground score" %}</dt><dd>{{ stats.score_ground|num:1 }}</dd>
+  <dt>{% translate "Ground score per hour on target" %} <small>{% translate "attack sorties" %}</small></dt>
+  <dd>{{ stats.score_ground_attack|per_hour:stats.time_on_target_s }}</dd>
+  <dt>{% translate "Ground kills per sortie" %}</dt>
+  <dd>{{ stats.kills_ground|ratio:stats.sorties }}{% stat_mark "ground_per_sortie" %}</dd>
+  <dt>{% translate "Attack sorties" %}</dt><dd>{{ stats.attack_sorties|num }}</dd>
+  <dt>{% translate "Time on target" %}</dt><dd>{{ stats.time_on_target_s|duration }}</dd>
+</dl>

@@ -287,6 +287,10 @@ msgstr ""
 msgid "Air kills and deaths per tour"
 msgstr ""
 
+# llm-draft
+msgid "Air kills by victim"
+msgstr "Abates aéreos por tipo de alvo"
+
 msgid "Air kills per flight hour"
 msgstr ""
 
@@ -307,6 +311,12 @@ msgstr ""
 # llm-draft
 msgid "Air superiority"
 msgstr "Superioridade aérea"
+
+# llm-draft
+#. Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking
+#. ground targets
+msgid "Air-to-air"
+msgstr "Combate aéreo"
 
 # llm-draft
 #, python-format
@@ -330,6 +340,12 @@ msgid ""
 "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
 " counts double."
 msgstr ""
+
+# llm-draft
+#. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
+#. fighting aircraft
+msgid "Air-to-ground"
+msgstr "Ataque ao solo"
 
 msgid "Airborne"
 msgstr ""
@@ -365,15 +381,8 @@ msgstr "Todos os rankings"
 msgid "All missions"
 msgstr ""
 
-msgid "All sorties"
-msgstr ""
-
 msgid "All sorties in this aircraft"
 msgstr ""
-
-# llm-draft
-msgid "All sorties in this tour"
-msgstr "Todas as missões desta turnê"
 
 msgid "All streaks"
 msgstr ""
@@ -990,6 +999,10 @@ msgstr ""
 msgid "Ground score"
 msgstr ""
 
+# llm-draft
+msgid "Ground score and attack sorties"
+msgstr "Pontos de solo e surtidas de ataque"
+
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
 msgstr ""
 
@@ -1491,6 +1504,22 @@ msgstr ""
 msgid "No air kills."
 msgstr ""
 
+# llm-draft
+msgid "No air-to-air activity in this tour: no air kills or assists."
+msgstr "Sem atividade de combate aéreo neste tour: nem abates nem assistências."
+
+# llm-draft
+msgid "No air-to-air activity yet: no air kills or assists."
+msgstr "Ainda sem atividade de combate aéreo: nem abates nem assistências."
+
+# llm-draft
+msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
+msgstr "Sem ataques ao solo neste tour: nem destruições terrestres nem surtidas de ataque."
+
+# llm-draft
+msgid "No air-to-ground activity yet: no ground kills or attack sorties."
+msgstr "Ainda sem ataques ao solo: nem destruições terrestres nem surtidas de ataque."
+
 msgid "No aircraft has flown yet."
 msgstr ""
 
@@ -1732,6 +1761,12 @@ msgstr ""
 msgid "Outcome"
 msgstr ""
 
+# llm-draft
+#. Translators: heading of the profile part with everything that is neither air-to-air nor air-to-ground (streaks,
+#. aircraft, totals, charts)
+msgid "Overall"
+msgstr "Geral"
+
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr ""
 
@@ -1821,6 +1856,7 @@ msgstr ""
 msgid "Player"
 msgstr "Jogador"
 
+#. Translators: the small labels name the kind of kill: against human-flown aircraft (PvP) or AI-flown aircraft (PvE)
 msgid "Player aircraft"
 msgstr ""
 
@@ -1894,6 +1930,14 @@ msgid "Purple"
 msgstr "Roxo"
 
 # llm-draft
+msgid "PvE air kills"
+msgstr "contra IA"
+
+# llm-draft
+msgid "PvP air kills"
+msgstr "contra jogadores"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Céu tranquilo por enquanto. O aeródromo é todo seu."
 
@@ -1930,6 +1974,7 @@ msgid ""
 "long time on a big archive. The watch process starts it at its next tick; the site keeps working meanwhile."
 msgstr ""
 
+#. Translators: these link names scroll to the page sections with the same names
 msgid "Recent sorties"
 msgstr ""
 
@@ -2703,6 +2748,10 @@ msgstr ""
 # llm-draft
 msgid "View"
 msgstr "Ver"
+
+# llm-draft
+msgid "View all sorties"
+msgstr "Ver todas as surtidas"
 
 msgid "Waiting"
 msgstr ""

@@ -220,8 +220,8 @@ def test_profile_recent_sorties_are_newest_first_and_capped(client: Client) -> N
     response = client.get(f"/players/{player_pk(1)}/")
 
     recent = response.context["recent"]
-    assert len(recent) == reads.RECENT_SORTIES == 10
-    assert [s.spawn_tick for s in recent] == [12000 - 1000 * i for i in range(10)]
+    assert len(recent) == reads.RECENT_SORTIES == 5
+    assert [s.spawn_tick for s in recent] == [12000 - 1000 * i for i in range(5)]
     assert f"/players/{player_pk(1)}/sorties/" in response.content.decode()  # link to the full list
     assert "/missions/" in response.content.decode()
 
@@ -298,3 +298,62 @@ def test_resolve_sort_whitelist() -> None:
     assert reads.resolve_sort("--kills_air", allowed, "-x") == "-x"
     assert reads.resolve_sort("", allowed, "-x") == "-x"
     assert reads.resolve_sort("pk", allowed, "-x") == "-x"
+
+
+def test_profile_sections_come_in_order_header_shame_recent_air_ground_overall(client: Client) -> None:
+    """FR-WEB-4: general header, hall of shame and the latest sorties first, then air-to-air, air-to-ground, overall."""
+    seed()
+
+    body = client.get(f"/players/{player_pk(1)}/?tour=all").content.decode()
+
+    markers = [
+        "profile-head",
+        "profile-nav",
+        'class="shame"',
+        'id="recent"',
+        'id="air"',
+        'id="ground"',
+        'id="overall"',
+    ]
+    positions = [body.index(marker) for marker in markers]
+    assert positions == sorted(positions)
+    assert body.index("Ground kills by category") > body.index('id="ground"')
+    assert body.index("Shot down most") > body.index('id="air"') if "Shot down most" in body else True
+    assert body.index("By aircraft") > body.index('id="overall"')
+
+
+def test_profile_view_all_sorties_button_keeps_the_tour_scope(client: Client) -> None:
+    seed()
+    pk = player_pk(1)
+
+    all_time = client.get(f"/players/{pk}/?tour=all").content.decode()
+    current = client.get(f"/players/{pk}/")
+    tour = current.context["tour"]
+
+    assert "View all sorties" in all_time
+    assert f'href="/players/{pk}/sorties/?tour=all"' in all_time
+    assert "View all sorties" in current.content.decode()
+    assert f'href="/players/{pk}/sorties/?tour={tour.pk}"' in current.content.decode()
+
+
+def test_profile_without_ground_activity_collapses_the_ground_part(client: Client) -> None:
+    seed()
+
+    response = client.get(f"/players/{player_pk(3)}/?tour=all")
+
+    body = response.content.decode()
+    assert response.context["ground_active"] is False
+    assert 'id="ground"' in body
+    assert "No air-to-ground activity yet" in body
+    assert "Ground score per hour on target" not in body
+    assert "Ground kills by category" not in body
+
+
+def test_profile_without_air_activity_collapses_the_air_part(client: Client) -> None:
+    seed()
+    Player.objects.filter(pk=player_pk(3)).update(kills_air=0, kills_air_pvp=0, kills_air_ai=0, assists=0)
+
+    response = client.get(f"/players/{player_pk(3)}/?tour=all")
+
+    assert response.context["air_active"] is False
+    assert "No air-to-air activity yet" in response.content.decode()

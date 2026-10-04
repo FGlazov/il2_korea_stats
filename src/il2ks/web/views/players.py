@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from il2ks.db.models import Counters
+from il2ks.db.models import Counters, Player
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import player_tour, tour_choice_from
@@ -26,13 +26,29 @@ def player_search(request: HttpRequest) -> HttpResponse:
     return render(request, "il2ks/players/search.html", context)
 
 
+def _air_active(player: Player, stats: Counters | None) -> bool:
+    """Whether the air-to-air part has anything to show: air kills, assists or a rated Elo game (all time)."""
+    if stats is None:
+        return False
+    return bool(stats.kills_air or stats.assists or player.elo_prop_games or player.elo_jet_games)
+
+
+def _ground_active(stats: Counters | None) -> bool:
+    """Whether the air-to-ground part has anything to show: ground kills, attack sorties or a ground score."""
+    if stats is None:
+        return False
+    return bool(stats.kills_ground or stats.attack_sorties or stats.score_ground)
+
+
 def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
-    """`/players/<pk>/`: header, totals and ratios, ground-kill breakdown, hall of shame, per-aircraft table (sortable
-    with `?sort=`), the ten latest sorties. 404 for a missing or hidden player (FR-ADM-3).
+    """`/players/<pk>/`: header, general tiles, hall of shame, the five latest sorties, then the air-to-air part, the
+    air-to-ground part and an overall part (streaks, per-aircraft table sortable with `?sort=`, PvE, totals, charts).
+    404 for a missing or hidden player (FR-ADM-3).
 
     Template `il2ks/players/detail.html`. Context: `player`, `names` (PlayerName rows, newest first), `sort` (resolved),
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
-    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `pve_kills` / `pve_losses` (web.pve rows of
+    `gunner_only`, `air_active` / `ground_active` (the part has anything to show in this scope; else it collapses to a
+    line), `recent` (PlayerSortie rows with mission and aircraft), `pve_kills` / `pve_losses` (web.pve rows of
     `stats`, FR-WEB-21), `charts` (per-tour ChartSpecs, all tours, FR-WEB-16), `crumbs`, `page_title`.
     With `?tour=<id>` (queries.tours.tour_choice_from; unknown = all time): `tours`, `tour`, and `stats` is the
     PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `marks` (stat thresholds
@@ -54,6 +70,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "names": reads.past_names(player),
         "sort": sort,
         "aircraft": reads.aircraft_rows(player, sort, tour),
+        "air_active": _air_active(player, stats),
+        "ground_active": _ground_active(stats),
         "survived": max(stats.sorties - stats.deaths, 0) if stats else 0,
         "ground": ground_breakdown(stats) if stats else [],
         "pve_kills": pve.kill_breakdown(stats) if stats else [],
