@@ -363,6 +363,10 @@ msgstr "Новый тур: лётная книжка пока пуста. Пор
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Щедрая душа: делится боезапасом со всеми, ведомые не исключение."
 
+#, python-format
+msgid "A hidden built-in line that no longer exists (it was reworded in an update), so the hide does nothing: %(key)s"
+msgstr ""
+
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."
 msgstr "Долгий рабочий день. Топливомер проникся уважением."
@@ -370,6 +374,10 @@ msgstr "Долгий рабочий день. Топливомер проник�
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
 msgstr "Тихая миссия. Все вернулись домой с полным боекомплектом."
+
+#, python-format
+msgid "A quip is longer than %(max)d characters: %(start)s..."
+msgstr ""
 
 # llm-draft
 msgid "A reprocess request is already waiting or running."
@@ -438,6 +446,9 @@ msgstr "Достижения игрока %(name)s"
 # llm-draft
 msgid "Activity by tour"
 msgstr "Активность по турам"
+
+msgid "Add a line"
+msgstr ""
 
 # llm-draft
 msgid "Admin account"
@@ -750,6 +761,17 @@ msgstr "Не менее 8 символов, не из числа распрос�
 msgid "At most %(max)d navigation links."
 msgstr "Не более %(max)d ссылок в навигации."
 
+#, python-format
+msgid "At most %(max)d own quip per spot (%(spot)s)."
+msgid_plural "At most %(max)d own quips per spot (%(spot)s)."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#, python-format
+msgid "At most %(max)d own quips in total."
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "At most %(max)d uploaded fonts: tick one under “Remove uploaded fonts” first."
@@ -1018,6 +1040,15 @@ msgstr "Смотреть миссии"
 msgid "Buildings"
 msgstr "Здания"
 
+msgid "Built-in and my own"
+msgstr ""
+
+msgid "Built-in lines"
+msgstr ""
+
+msgid "Built-in quips only"
+msgstr ""
+
 # llm-draft
 msgid "Busy sortie. The enemy count went down noticeably."
 msgstr "Горячий вылет. Врагов заметно поубавилось."
@@ -1061,6 +1092,9 @@ msgstr "Причина"
 # llm-draft
 msgid "Caution (amber)"
 msgstr "Внимание (янтарный)"
+
+msgid "Change"
+msgstr ""
 
 # llm-draft
 msgid "Charmed Life"
@@ -1224,6 +1258,9 @@ msgstr "Гибели и потерянные самолёты по причин�
 msgid "Default (clears all colors below)"
 msgstr "По умолчанию (сбрасывает все цвета ниже)"
 
+msgid "Delete"
+msgstr ""
+
 # llm-draft
 msgid "Desert sand"
 msgstr "Песок пустыни"
@@ -1374,6 +1411,9 @@ msgstr "Событие"
 msgid "Event type (AType)"
 msgstr "Тип события (AType)"
 
+msgid "Every language"
+msgstr ""
+
 # llm-draft
 msgid "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them."
 msgstr ""
@@ -1498,6 +1538,9 @@ msgstr "Шрифты"
 # llm-draft
 msgid "Fonts come from the visitor's system or are shipped with il2ks; nothing is loaded from other websites."
 msgstr "Шрифты берутся из системы посетителя или поставляются вместе с il2ks; с других сайтов ничего не загружается."
+
+msgid "Forget"
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -1752,6 +1795,9 @@ msgstr "Скрыто"
 msgid "Hidden player"
 msgstr "Скрытый игрок"
 
+msgid "Hide"
+msgstr ""
+
 # llm-draft
 msgid "Hide selected missions from public pages"
 msgstr "Скрыть выбранные миссии на публичных страницах"
@@ -1813,6 +1859,12 @@ msgstr "Главная"
 # llm-draft
 msgid "Home at last, and the ramp was not safe either. The ground crew mourns the airframe."
 msgstr "Наконец-то дома, а на стоянке тоже небезопасно. Наземная команда скорбит по планеру."
+
+msgid "Home page: the last mission had no kills"
+msgstr ""
+
+msgid "Home page: under the top pilots of the last mission"
+msgstr ""
 
 # llm-draft
 msgid "Hours Aloft"
@@ -2149,6 +2201,9 @@ msgstr "Строк"
 msgid "Links"
 msgstr "Ссылки"
 
+msgid "Lists of a tour without sorties: fresh start"
+msgstr ""
+
 # llm-draft
 #. Translators: ammunition table columns, rounds loaded at take-off / rounds still left at the end / rounds fired (used)
 msgid "Loaded"
@@ -2279,6 +2334,9 @@ msgstr "Дырок больше, чем самолёта, а на землю в�
 msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "Самый опасный отрезок задания: первые сто метров."
 
+msgid "My own only"
+msgstr ""
+
 # llm-draft
 msgid "Name"
 msgstr "Название"
@@ -2323,6 +2381,9 @@ msgstr "С земли не оторвался, а история всё равн
 # llm-draft
 msgid "Never shot down by a player."
 msgstr "Ни разу не сбит игроком."
+
+msgid "New quip text"
+msgstr ""
 
 # llm-draft
 msgid "Next"
@@ -2465,6 +2526,9 @@ msgstr "Игроков пока нет."
 msgid "No qualifying attack"
 msgstr "Нет подходящей атаки"
 
+msgid "No quip here"
+msgstr ""
+
 # llm-draft
 msgid "No sorties in this tour"
 msgstr "В этом туре вылетов нет"
@@ -2602,6 +2666,9 @@ msgstr "Пока нечего показывать."
 # llm-draft
 msgid "OK"
 msgstr "OK"
+
+msgid "On"
+msgstr ""
 
 # llm-draft
 msgid "On the ground"
@@ -2788,6 +2855,30 @@ msgstr "Судьба пилота"
 msgid "Pilot or gunner"
 msgstr "Пилот или стрелок"
 
+#, python-format
+msgid "Pilot profile, hall of shame: both, among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: clean sheet"
+msgstr ""
+
+#, python-format
+msgid "Pilot profile, hall of shame: friendly fire among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: friendly fire only"
+msgstr ""
+
+#, python-format
+msgid "Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: taxi accidents and friendly fire"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: taxi accidents only"
+msgstr ""
+
 # llm-draft
 msgid "Pilot status"
 msgstr "Состояние пилота"
@@ -2952,6 +3043,24 @@ msgstr "Фиолетовый"
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Пока в небе тихо. Аэродром в вашем распоряжении."
 
+msgid "Quip text"
+msgstr ""
+
+msgid "Quips"
+msgstr ""
+
+msgid ""
+"Quips are the short light-hearted lines the site shows at a few highlight spots (a clean hall of shame, a notable "
+"sortie, a quiet mission). They are on by default. Here you can hide the built-in lines, add your own, or turn quips "
+"off."
+msgstr ""
+
+msgid "Quips here"
+msgstr ""
+
+msgid "Quips saved."
+msgstr ""
+
 # llm-draft
 msgid "REDFOR"
 msgstr "REDFOR"
@@ -3090,6 +3199,9 @@ msgstr "Текущие серии"
 msgid "Runway"
 msgstr "ВПП"
 
+msgid "Save"
+msgstr ""
+
 # llm-draft
 msgid "Score and rating"
 msgstr "Очки и рейтинг"
@@ -3210,6 +3322,9 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+msgid "Show quips on the site"
+msgstr ""
+
 # llm-draft
 msgid "Show selected missions on public pages again"
 msgstr "Снова показывать выбранные миссии на публичных страницах"
@@ -3231,6 +3346,13 @@ msgstr "Показано %(first)s–%(last)s из %(all)s"
 msgid "Shown"
 msgstr "Показано"
 
+#, python-format
+msgid "Shows %(n)s line now."
+msgid_plural "Shows %(n)s lines now."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 # llm-draft
 msgid "Side"
 msgstr "Сторона"
@@ -3249,6 +3371,9 @@ msgstr "С"
 # llm-draft
 msgid "Site administration"
 msgstr "Администрирование сайта"
+
+msgid "Site texts"
+msgstr ""
 
 # llm-draft
 msgid "Skip to content"
@@ -3305,6 +3430,57 @@ msgstr "Длительность вылета"
 # llm-draft
 msgid "Sortie report"
 msgstr "Отчёт о вылете"
+
+msgid "Sortie: 70 or more ground kills"
+msgstr ""
+
+msgid "Sortie: an hour or more in the air"
+msgstr ""
+
+msgid "Sortie: destroyed on the ramp before takeoff"
+msgstr ""
+
+msgid "Sortie: ditched (forced landing)"
+msgstr ""
+
+msgid "Sortie: first kill within seven minutes of takeoff"
+msgstr ""
+
+msgid "Sortie: friendly fire"
+msgstr ""
+
+msgid "Sortie: landed badly damaged"
+msgstr ""
+
+msgid "Sortie: landed badly damaged, with kills"
+msgstr ""
+
+msgid "Sortie: landed, then destroyed on the ground"
+msgstr ""
+
+msgid "Sortie: many air assists, few kills"
+msgstr ""
+
+msgid "Sortie: many ground assists, few ground kills"
+msgstr ""
+
+msgid "Sortie: shot down by a bomber's AI gunner"
+msgstr ""
+
+msgid "Sortie: shot down by flak"
+msgstr ""
+
+msgid "Sortie: taxi accident"
+msgstr ""
+
+msgid "Sortie: the pilot was captured"
+msgstr ""
+
+msgid "Sortie: three or more air kills"
+msgstr ""
+
+msgid "Sortie: two or more bomber kills"
+msgstr ""
 
 # llm-draft
 msgid "Sorties"
@@ -4071,9 +4247,16 @@ msgstr "Неизвестные типы событий и ключи за пос
 msgid "Unknown keys (AType:KEY: lines)"
 msgstr "Неизвестные ключи (строки AType:KEY:)"
 
+#, python-format
+msgid "Unknown language: %(code)s"
+msgstr ""
+
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Неизвестное вооружение"
+
+msgid "Unknown mode for a spot."
+msgstr ""
 
 # llm-draft
 msgid "Unknown object types"
@@ -4099,6 +4282,9 @@ msgstr "Неизвестно: в журнале нет записи о боек�
 # llm-draft
 msgid "Unknown: the sortie was resupplied"
 msgstr "Неизвестно: в этом вылете боекомплект пополнялся"
+
+msgid "Untick to turn all quips off, whatever the settings below say."
+msgstr ""
 
 # llm-draft
 msgid "Until"
@@ -4284,6 +4470,16 @@ msgstr "Да, заново обработать все миссии"
 # llm-draft
 msgid "You wore those targets down and somebody else finished them. Next time, the last shot is yours."
 msgstr "Вы изрядно потрепали эти цели, а добил их кто-то другой. В следующий раз последний выстрел ваш."
+
+msgid "Your own lines"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your own quips are plain text (no HTML or formatting, at most %(max_length)s characters) and have no placeholders: "
+"they cannot show a name or a number. Leave the language empty to show a quip in every language, or pick one to show "
+"it only there. A built-in line is shown in the language of the page; hiding it hides it in every language."
+msgstr ""
 
 # llm-draft
 msgid "after the pilot bailed out"

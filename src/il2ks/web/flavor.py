@@ -222,6 +222,38 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
 }
 
 
+# Where each spot shows, for the admin's Quips page (plain words; translatable). Every spot of SPOTS needs one (a test).
+SPOT_DESCRIPTIONS: Mapping[str, Label] = {
+    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi accidents only"),
+    "shame_friendly": gettext_lazy("Pilot profile, hall of shame: friendly fire only"),
+    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi accidents and friendly fire"),
+    "shame_taxi_p90": gettext_lazy("Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"),
+    "shame_friendly_p90": gettext_lazy("Pilot profile, hall of shame: friendly fire among the top 10% of pilots"),
+    "shame_both_p90": gettext_lazy("Pilot profile, hall of shame: both, among the top 10% of pilots"),
+    "shame_clean": gettext_lazy("Pilot profile, hall of shame: clean sheet"),
+    "top_pilot": gettext_lazy("Home page: under the top pilots of the last mission"),
+    "nobody_scored": gettext_lazy("Home page: the last mission had no kills"),
+    "tour_empty": gettext_lazy("Lists of a tour without sorties: fresh start"),
+    "sortie_captured": gettext_lazy("Sortie: the pilot was captured"),
+    "sortie_ditched": gettext_lazy("Sortie: ditched (forced landing)"),
+    "sortie_strafed": gettext_lazy("Sortie: destroyed on the ramp before takeoff"),
+    "sortie_strafed_landed": gettext_lazy("Sortie: landed, then destroyed on the ground"),
+    "sortie_aa": gettext_lazy("Sortie: shot down by flak"),
+    "sortie_friendly_fire": gettext_lazy("Sortie: friendly fire"),
+    "sortie_taxi": gettext_lazy("Sortie: taxi accident"),
+    "sortie_ace": gettext_lazy("Sortie: three or more air kills"),
+    "sortie_ai_gunner": gettext_lazy("Sortie: shot down by a bomber's AI gunner"),
+    "sortie_bomber_hunter": gettext_lazy("Sortie: two or more bomber kills"),
+    "sortie_stolen_kills": gettext_lazy("Sortie: many air assists, few kills"),
+    "sortie_stolen_ground": gettext_lazy("Sortie: many ground assists, few ground kills"),
+    "sortie_battered_victor": gettext_lazy("Sortie: landed badly damaged, with kills"),
+    "sortie_ground_pounder": gettext_lazy("Sortie: 70 or more ground kills"),
+    "sortie_quick_kill": gettext_lazy("Sortie: first kill within seven minutes of takeoff"),
+    "sortie_marathon": gettext_lazy("Sortie: an hour or more in the air"),
+    "sortie_limped_home": gettext_lazy("Sortie: landed badly damaged"),
+}
+
+
 def pick(spot: str, seed: object) -> Label:
     """The variant of `spot` that `seed` selects, always the same for the same pair (SHA-256, not Python's per-process
     `hash`). Raises `KeyError` for an unknown spot, so a typo in a template fails loudly."""

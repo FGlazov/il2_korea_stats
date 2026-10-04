@@ -46,7 +46,7 @@
         </div>
         <div class="last-mission__pilots">
           <h3>{% translate "Top pilots by kills" %}</h3>
-          {% if pilots %}<p class="flavor">{% flavor "top_pilot" last_mission.pk %}</p>{% endif %}
+          {% if pilots %}{% flavor "top_pilot" last_mission.pk as top_quip %}{% if top_quip %}<p class="flavor">{{ top_quip }}</p>{% endif %}{% endif %}
           {% if pilots %}
             <table class="data-table data-table--compact">
               <thead>

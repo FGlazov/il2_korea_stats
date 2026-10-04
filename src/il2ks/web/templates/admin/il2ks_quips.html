@@ -1,0 +1,74 @@
+{# il2ks-template: templates/admin/il2ks_quips.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {% translate "Quips" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% translate "Quips are the short light-hearted lines the site shows at a few highlight spots (a clean hall of shame, a notable sortie, a quiet mission). They are on by default. Here you can hide the built-in lines, add your own, or turn quips off." %}</p>
+  <p>{% blocktranslate %}Your own quips are plain text (no HTML or formatting, at most {{ max_length }} characters) and have no placeholders: they cannot show a name or a number. Leave the language empty to show a quip in every language, or pick one to show it only there. A built-in line is shown in the language of the page; hiding it hides it in every language.{% endblocktranslate %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+      <div class="form-row">
+        <label for="quips-enabled" class="vCheckboxLabel">{% translate "Show quips on the site" %}</label>
+        <input type="checkbox" name="enabled" id="quips-enabled"{% if enabled %} checked{% endif %}>
+        <div class="help">{% translate "Untick to turn all quips off, whatever the settings below say." %}</div>
+      </div>
+    </fieldset>
+    {% for row in rows %}
+    <fieldset class="module aligned" id="spot-{{ row.spot }}">
+      <h2>{{ row.description }}</h2>
+      <div class="form-row">
+        <label for="mode-{{ row.spot }}">{% translate "Quips here" %}</label>
+        <select name="mode-{{ row.spot }}" id="mode-{{ row.spot }}">
+          {% for value, label in mode_options %}<option value="{{ value }}"{% if value == row.mode %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <div class="help">{% blocktranslate count n=row.effective %}Shows {{ n }} line now.{% plural %}Shows {{ n }} lines now.{% endblocktranslate %}</div>
+      </div>
+      <div class="form-row">
+        <label>{% translate "Built-in lines" %}</label>
+        <div>
+          {% for d in row.defaults %}
+          <p><label><input type="checkbox" name="hide-{{ row.spot }}" value="{{ d.key }}"{% if d.hidden %} checked{% endif %}> {% translate "Hide" %}</label> {{ d.text }}</p>
+          {% endfor %}
+          {% for key in row.stale_hides %}
+          <p class="help"><label><input type="checkbox" name="forget-{{ row.spot }}" value="{{ key }}"> {% translate "Forget" %}</label> {% blocktranslate %}A hidden built-in line that no longer exists (it was reworded in an update), so the hide does nothing: {{ key }}{% endblocktranslate %}</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-row">
+        <label>{% translate "Your own lines" %}</label>
+        <div>
+          {% for c in row.custom %}
+          <p>
+            <input type="hidden" name="c{{ c.index }}-spot" value="{{ row.spot }}">
+            <input type="text" name="c{{ c.index }}-text" value="{{ c.text }}" maxlength="{{ max_length }}" size="70" aria-label="{% translate 'Quip text' %}">
+            <select name="c{{ c.index }}-lang" aria-label="{% translate 'Language' %}">
+              <option value=""{% if not c.language %} selected{% endif %}>{% translate "Every language" %}</option>
+              {% for code, name in languages %}<option value="{{ code }}"{% if code == c.language %} selected{% endif %}>{{ name }}</option>{% endfor %}
+            </select>
+            <label><input type="checkbox" name="c{{ c.index }}-on"{% if c.enabled %} checked{% endif %}> {% translate "On" %}</label>
+            <label><input type="checkbox" name="c{{ c.index }}-del"> {% translate "Delete" %}</label>
+          </p>
+          {% endfor %}
+          <p>
+            <input type="text" name="new-{{ row.spot }}-text" value="" maxlength="{{ max_length }}" size="70" placeholder="{% translate 'Add a line' %}" aria-label="{% translate 'New quip text' %}">
+            <select name="new-{{ row.spot }}-lang" aria-label="{% translate 'Language' %}">
+              <option value="" selected>{% translate "Every language" %}</option>
+              {% for code, name in languages %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+            </select>
+          </p>
+        </div>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <div class="submit-row"><input type="submit" value="{% translate 'Save' %}" class="default"></div>
+  </form>
+</div>
+{% endblock %}

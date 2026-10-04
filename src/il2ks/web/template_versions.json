@@ -75,11 +75,15 @@
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,
-      "sha256": "c0dd7a85e0953ccee1eb576c42211f1f1a4a7eadb729f285901bf7d7b62c36b8"
+      "sha256": "2111b4473c296c4907dd45e545600f28c374b896f40fa81538c6e2f3c76931d9"
     },
     "templates/admin/il2ks_ingest_status.html": {
       "version": 1,
       "sha256": "bf0ce575af4df41ec8d0d4be9549d1f79ca133417ae206eff3bfe425c572a4df"
+    },
+    "templates/admin/il2ks_quips.html": {
+      "version": 1,
+      "sha256": "9e4e3b399b5667ade1e470d0c7de4db7739929da0629da45a2de17ddd46ee882"
     },
     "templates/admin/il2ks_reprocess_confirm.html": {
       "version": 1,
@@ -223,7 +227,7 @@
     },
     "templates/il2ks/home.html": {
       "version": 1,
-      "sha256": "3d994ce1dd6e78b631aeb38175fa765c9abf913c6e7c8f1ecdf777aaddba2213"
+      "sha256": "c5cc64175f63c93546e0e4ae9b143fd14526cebb23ca0266906560e34790ad0d"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,
@@ -351,7 +355,7 @@
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,
-      "sha256": "ef911685224597f1f6cd2a444953ac7854f20a4dfbdcaec49a68ff1f39a91e3d"
+      "sha256": "ca1382b3474f250c334594676d906a034b424c93e687222a9976b377d4303e11"
     },
     "templates/il2ks/players/detail_streaks.html": {
       "version": 1,
