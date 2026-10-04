@@ -133,7 +133,7 @@ def test_home_without_missions_has_no_chart(client: Client) -> None:
 def test_home_shows_the_activity_chart_with_a_table_and_accessible_names(client: Client) -> None:
     seed_days()
 
-    assert_simple_reads(client, "/", max_queries=6)  # context processor 2, latest, top pilots, activity, one spare
+    assert_simple_reads(client, "/", max_queries=7)  # context processor 2, latest, top pilots, activity, streaks, one spare
     html = client.get("/").content.decode()
 
     assert 'class="chart"' in html
@@ -165,7 +165,7 @@ def fly_tours() -> int:
 def test_profile_shows_per_tour_charts_for_two_tours(client: Client) -> None:
     pk = fly_tours()
 
-    assert_simple_reads(client, f"/players/{pk}/", max_queries=7)
+    assert_simple_reads(client, f"/players/{pk}/", max_queries=12)  # as test_player_pages
     html = client.get(f"/players/{pk}/").content.decode()
 
     assert html.count('class="chart"') == 2

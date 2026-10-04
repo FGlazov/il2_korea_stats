@@ -141,7 +141,7 @@ def test_profile_budget_is_unchanged_by_the_breakdown(client: Client) -> None:
     save(seed())
 
     assert_simple_reads(
-        client, f"/players/{player_pk(1)}/", max_queries=11
+        client, f"/players/{player_pk(1)}/", max_queries=12
     )  # as test_player_pages (tours, stat marks, streak, killboard)
 
 

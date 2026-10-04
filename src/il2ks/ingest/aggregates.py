@@ -45,8 +45,8 @@ from il2ks.db.models import (
     PlayerTourAircraft,
 )
 from il2ks.db.site import bump_data_version
-from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.activity import rebuild_activity
+from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.pairs import recompute_killboard
 from il2ks.ingest.ratings import recompute_ratings

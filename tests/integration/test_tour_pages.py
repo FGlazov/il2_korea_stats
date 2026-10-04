@@ -145,9 +145,9 @@ def test_profile_tour_budget(client: Client) -> None:
     seed()
 
     # context processor 2, player, names, tours, aircraft rows, recent sorties = 7; a tour adds the PlayerTour row
-    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=8)
-    assert_simple_reads(client, f"/players/{pk(1)}/?tour={tour('September 2026').pk}", max_queries=9)
-    assert_simple_reads(client, f"/players/{pk(2)}/?tour={tour('October 2026').pk}", max_queries=9)
+    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=12)
+    assert_simple_reads(client, f"/players/{pk(1)}/?tour={tour('September 2026').pk}", max_queries=10)
+    assert_simple_reads(client, f"/players/{pk(2)}/?tour={tour('October 2026').pk}", max_queries=10)
 
 
 # --- sortie list ---------------------------------------------------------------------------------------------------

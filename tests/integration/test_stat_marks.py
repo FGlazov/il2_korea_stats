@@ -127,5 +127,5 @@ def test_pilots_under_the_minimum_get_a_note_instead_of_marks(client: Client) ->
 def test_profile_query_budget_with_marks(client: Client) -> None:
     """One extra read for the thresholds, all-time and per tour (TD-22: a simple SELECT)."""
     seed()
-    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=8)
-    assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=9)
+    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=12)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=10)

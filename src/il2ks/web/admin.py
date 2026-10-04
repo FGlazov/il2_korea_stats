@@ -11,8 +11,8 @@ Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rul
 """
 
 from collections.abc import Sequence
-from functools import partial
 from datetime import date
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
