@@ -437,7 +437,7 @@ def _check_interception() -> bool:
     sorties = PlayerSortie.objects.filter(kills_air__gt=0)
     if not PlayerSortie.objects.exists() or sorties.filter(kills_air_intercept__gt=0).exists():
         return False
-    log.info("counting kills of bombers and attackers")
+    log.info("counting kills of bombers, attackers and transports")
     classes = dict(GameObject.objects.values_list("log_name", "cls"))
     roles = dict(PlayerSortie.objects.exclude(combat_role=None).values_list("pk", "combat_role"))
     changed: list[PlayerSortie] = []

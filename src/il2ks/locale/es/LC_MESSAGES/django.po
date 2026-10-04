@@ -993,18 +993,16 @@ msgstr "Cazabombarderos"
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Cazar bombarderos es un oficio, y esta salida fue una clase magistral."
 
-# llm-draft
-msgid "Bombers and attackers shot down"
-msgstr "Bombarderos y aviones de ataque derribados"
+msgid "Bombers, attackers and transports shot down"
+msgstr "Bombarderos, aviones de ataque y aviones de transporte derribados"
 
-# llm-draft
 msgid ""
-"Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
-"flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+"Bombers, attackers and transports shot down per hour of air superiority flight: AI bombers, attackers and transports,"
+" and player aircraft flying an attack sortie (bombs or rockets). Only air superiority sorties count."
 msgstr ""
-"Bombarderos y aviones de ataque derribados por hora de vuelo en superioridad aérea: bombarderos y aviones de ataque "
-"de la IA, y aviones de jugadores en una salida de ataque (bombas o cohetes). Solo cuentan las salidas de superioridad"
-" aérea."
+"Bombarderos, aviones de ataque y aviones de transporte derribados por hora de vuelo en superioridad aérea: "
+"bombarderos, aviones de ataque y aviones de transporte de la IA, y aviones de jugadores en una salida de ataque "
+"(bombas o cohetes). Solo cuentan las salidas de superioridad aérea."
 
 # llm-draft
 msgid "Bombs"
@@ -1396,9 +1394,8 @@ msgstr "Aeronaves enemigas"
 msgid "Enemy aircraft downed by ramming them."
 msgstr "Aviones enemigos derribados embistiéndolos."
 
-# llm-draft
-msgid "Enemy bombers and attackers flown by other pilots, shot down."
-msgstr "Bombarderos y aviones de ataque enemigos, pilotados por otros jugadores, derribados."
+msgid "Enemy bombers, attackers and transports flown by other pilots, shot down."
+msgstr "Bombarderos, aviones de ataque y aviones de transporte enemigos pilotados por otros jugadores, derribados."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -4705,9 +4702,8 @@ msgstr "texto principal en tarjetas y tablas"
 msgid "body text on the page background"
 msgstr "texto principal sobre el fondo de la página"
 
-# llm-draft
-msgid "bomber and attacker kills, air superiority sorties"
-msgstr "derribos de bombarderos y aviones de ataque, salidas de superioridad aérea"
+msgid "bomber, attacker and transport kills, air superiority sorties"
+msgstr "derribos de bombarderos, aviones de ataque y aviones de transporte, salidas de superioridad aérea"
 
 # llm-draft
 msgid "by"

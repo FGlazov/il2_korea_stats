@@ -54,7 +54,7 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
-               kills_air_intercept   -- air kills of bombers and attackers (part of kills_air; doc 13 "Interception and tank busting")
+               kills_air_intercept   -- air kills of bombers, attackers and transports (part of kills_air; doc 13 "Interception and tank busting")
                is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
                loss_class (who is behind the loss; '' = nothing lost), kills_air_pvp, kills_air_ai   -- FR-WEB-21, doc 13
                kills_ground_<category> (9 categories) + kills_ground_static                           -- they sum to kills_ground (OQ-33)

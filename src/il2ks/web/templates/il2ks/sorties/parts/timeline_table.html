@@ -7,7 +7,7 @@
     <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Event" %}</th><th scope="col">{% translate "Details" %}</th><th scope="col" class="num">{% translate "Damage" %}</th></tr></thead>
     <tbody>
       {% for row in rows %}
-        <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}{% if row.kind == "hit_given" %} timeline__row--hit-given{% elif row.kind == "hit_taken" %} timeline__row--hit-taken{% endif %}">
+        <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}{% if row.kind == "hit_given" %} timeline__row--hit-given{% elif row.kind == "hit_taken" %} timeline__row--hit-taken{% elif row.kind == "kill" or row.kind == "kill_group" %} timeline__row--kill{% elif row.kind == "assist" %} timeline__row--assist{% elif row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" or row.kind == "captured" %} timeline__row--death{% endif %}">
           <td class="nowrap"><span{% if row.place %} title="{{ row.place }}"{% endif %}>{{ row.clock }}</span> <small>{{ row.at|local_clock }}</small></td>
           <td class="nowrap"><span class="timeline__event">{% icon row.icon %}{{ row.label }}</span></td>
           <td>

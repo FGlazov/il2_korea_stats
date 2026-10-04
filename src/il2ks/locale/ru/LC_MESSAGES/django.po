@@ -1014,17 +1014,16 @@ msgstr "Охотник на бомберов"
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Охота на бомберов — это ремесло, а этот вылет был мастер-классом."
 
-# llm-draft
-msgid "Bombers and attackers shot down"
-msgstr "Сбито бомбардировщиков и штурмовиков"
+msgid "Bombers, attackers and transports shot down"
+msgstr "Сбито бомбардировщиков, штурмовиков и транспортных самолётов"
 
-# llm-draft
 msgid ""
-"Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
-"flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+"Bombers, attackers and transports shot down per hour of air superiority flight: AI bombers, attackers and transports,"
+" and player aircraft flying an attack sortie (bombs or rockets). Only air superiority sorties count."
 msgstr ""
-"Сбитые бомбардировщики и штурмовики за час налёта на господстве в воздухе: бомбардировщики и штурмовики ИИ, а также "
-"самолёты игроков в штурмовом вылете (бомбы или ракеты). Считаются только вылеты на господство в воздухе."
+"Сбитые бомбардировщики, штурмовики и транспортные самолёты за час налёта на господстве в воздухе: бомбардировщики, "
+"штурмовики и транспортные самолёты ИИ, а также самолёты игроков в штурмовом вылете (бомбы или ракеты). Считаются "
+"только вылеты на господство в воздухе."
 
 # llm-draft
 msgid "Bombs"
@@ -1416,9 +1415,8 @@ msgstr "Самолёты противника"
 msgid "Enemy aircraft downed by ramming them."
 msgstr "Вражеские самолёты, сбитые тараном."
 
-# llm-draft
-msgid "Enemy bombers and attackers flown by other pilots, shot down."
-msgstr "Сбитые вражеские бомбардировщики и штурмовики, которыми управляли другие пилоты."
+msgid "Enemy bombers, attackers and transports flown by other pilots, shot down."
+msgstr "Сбитые вражеские бомбардировщики, штурмовики и транспортные самолёты, которыми управляли другие пилоты."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -4727,9 +4725,8 @@ msgstr "основной текст на карточках и в таблица
 msgid "body text on the page background"
 msgstr "основной текст на фоне страницы"
 
-# llm-draft
-msgid "bomber and attacker kills, air superiority sorties"
-msgstr "сбитые бомбардировщики и штурмовики, вылеты на господство в воздухе"
+msgid "bomber, attacker and transport kills, air superiority sorties"
+msgstr "сбитые бомбардировщики, штурмовики и транспортные самолёты, вылеты на господство в воздухе"
 
 # llm-draft
 msgid "by"

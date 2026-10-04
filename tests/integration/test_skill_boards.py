@@ -126,7 +126,7 @@ def test_interception_ranks_kills_per_air_superiority_hour(client: Client) -> No
         ("Plain", 0.0),
     ]  # Rider flew no air superiority sortie, Pounder neither
     page = client.get("/leaderboards/interception/").content.decode()
-    assert "Bombers and attackers shot down" in page
+    assert "Bombers, attackers and transports shot down" in page
     assert [n for n, _ in rows(client, "/leaderboards/interception/?pool=jet")][:2] == ["Sniper", "Hunter"]
     assert [n for n, _ in rows(client, "/leaderboards/interception/?pool=prop")] == []
 

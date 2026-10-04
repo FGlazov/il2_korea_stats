@@ -230,7 +230,8 @@ class SortieResult:
     loss_class: LossClass | None = None
     kills_air_pvp: int = 0  # air kills of a player's aircraft
     kills_air_ai: int = 0  # air kills of an AI aircraft
-    # Interception (doc 13): air kills of bombers and attackers (`attack.is_interception_victim`), a part of kills_air
+    # Interception (doc 13): air kills of bombers, attackers and transports (`attack.is_interception_victim`),
+    # part of kills_air
     kills_air_intercept: int = 0
     # Achievements (doc 17): air kills by ramming an enemy aircraft (`credit_rams`, a part of kills_air); whether this
     # sortie made the first credited PvP air kill of the mission (by tick, friendly kills excluded); and the most air

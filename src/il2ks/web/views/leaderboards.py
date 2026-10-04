@@ -52,8 +52,9 @@ BOARD_HELP = {
         "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
     ),
     "interception": _(
-        "Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player "
-        "aircraft flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+        "Bombers, attackers and transports shot down per hour of air superiority flight: AI bombers, "
+        "attackers and transports, and player aircraft flying an attack sortie (bombs or rockets). "
+        "Only air superiority sorties count."
     ),
     "tank-busting": _(
         "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."

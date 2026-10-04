@@ -42,7 +42,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills in total, all sorties together.")),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
-        gettext_lazy("Enemy bombers and attackers flown by other pilots, shot down."),
+        gettext_lazy("Enemy bombers, attackers and transports flown by other pilots, shot down."),
     ),
     "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed in total.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),

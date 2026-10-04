@@ -2,11 +2,11 @@
 sorties, in the same pass as the ironman streaks (`recompute_players`).
 
 The rules are `il2ks.core.achievements`; this module reads the sorties in chronological order (spawn time, then id),
-adds the one fact the sortie row does not hold (bombers and attackers shot down, from the `Kill` rows) and writes the
-rows that changed. The same definitions run twice per player: over all sorties (`tour` null, all time) and over each
-tour's sorties alone (a life, a streak or a run of weeks starts fresh in a tour). A player with no tier has no row.
-`recompute_holders` then rewrites the per-scope, per-tier holder counts and the pilot count (the rarity denominator)
-that the overview page and every medal's hover text show (visible players only).
+adds the one fact the sortie row does not hold (bombers, attackers and transports shot down, from the `Kill` rows) and
+writes the rows that changed. The same definitions run twice per player: over all sorties (`tour` null, all time) and
+over each tour's sorties alone (a life, a streak or a run of weeks starts fresh in a tour). A player with no tier has no
+row. `recompute_holders` then rewrites the per-scope, per-tier holder counts and the pilot count (the rarity
+denominator) that the overview page and every medal's hover text show (visible players only).
 """
 
 from collections import Counter
@@ -30,7 +30,7 @@ from il2ks.ingest.counters import counted_sorties
 from il2ks.ingest.dbutil import update_rows
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
-STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER)
+STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER, ObjectClass.TRANSPORT)
 _FIELDS = ("earned_at", "sortie_id", "mission_id")
 
 type _Key = tuple[int, int | None, str, int]  # player, tour (None = all time), achievement key, tier
@@ -38,7 +38,8 @@ type _Value = tuple[object, int, int]  # earned_at, sortie, mission
 
 
 def _strike_kills(chunk: list[int]) -> Counter[int]:
-    """Per killer sortie id: credited kills of other pilots' bombers and attackers (not friendly, not own aircraft)."""
+    """Per killer sortie id: credited kills of other pilots' bombers, attackers and transports (not friendly, not own
+    aircraft)."""
     kills = (
         Kill.objects.filter(
             killer_sortie__player_id__in=chunk,

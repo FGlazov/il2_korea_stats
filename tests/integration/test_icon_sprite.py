@@ -1,6 +1,7 @@
 """The icon sprite: icons are `<use>` references to one cached sprite file (doc 15, TD-25, TD-28)."""
 
 import re
+import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -69,3 +70,33 @@ def test_custom_static_override_replaces_the_icon_in_the_sprite(tmp_path: Path, 
     assert digest != before
     assert '<symbol id="stat.sorties" viewBox="0 0 24 24" stroke="currentColor"><path d="M1 1h22"/></symbol>' in text
     assert 'id="stat.mine"' in text
+
+
+def test_the_built_sprite_is_valid_xml_even_with_messy_custom_files(
+    tmp_path: Path, settings: Settings, client: Client
+) -> None:
+    """A designer's Inkscape / Illustrator export must not break the sprite; an unusable file counts as missing."""
+    from tests.unit.test_svg_symbol import MESSY
+
+    folder = tmp_path / "il2ks" / "img" / "stat"
+    folder.mkdir(parents=True)
+    for key, text in MESSY.items():
+        (folder / f"messy-{key.replace(' ', '-')}.svg").write_bytes(text.encode("utf-8"))
+    (folder / "broken.svg").write_text("<svg><path></svg>", encoding="utf-8")
+    settings.STATICFILES_DIRS = [tmp_path, *settings.STATICFILES_DIRS]
+    icons._sprite_cached.cache_clear()  # pyright: ignore[reportPrivateUsage]
+    icons._read_cached.cache_clear()  # pyright: ignore[reportPrivateUsage]
+
+    response = client.get(icons.sprite_url())
+
+    root = ET.fromstring(response.content)  # the whole document, built-in icons included
+    ids = {symbol.get("id") for symbol in root}
+    assert len(root) == len(ids) > 50
+    assert {"stat.messy-prolog", "stat.messy-bom", "stat.messy-xlink", "event.takeoff"} <= ids
+    assert "stat.broken" not in ids
+    assert not icons.icon_exists("stat/broken")
+    assert icons.icon_markup("stat/broken") == ""
+    assert icons.icon_exists("stat/messy-bom")
+    assert "brand.logo-mark" in ids
+    assert "brand.favicon" not in ids
+    assert response["Content-Security-Policy"] == "default-src 'none'; style-src 'unsafe-inline'"

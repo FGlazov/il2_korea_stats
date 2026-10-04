@@ -190,11 +190,17 @@ strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground 
                     (a) it never took off (strafed whatever hit it), or
                     (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and other objects did
                         significant damage after the landing (>= 5% of DMG summed, `[replay] strafed_min_damage`; maintainer, OQ-112,
-                        2026-10-04). With no attacker damage in the log at all, a kill line naming an attacker or an attacker hit after
-                        the landing counts (damage lines can be missing) [PROPOSED].
+                        2026-10-04; a threshold of 0 means "any damage", never "none"). Only when the log has **no attacker damage at
+                        all**, a kill line naming an attacker or an attacker hit after the landing counts (damage lines can be missing);
+                        attacker damage of 2% after the landing plus a kill line is not strafing [PROPOSED].
 A damaged aircraft that fails its landing (a crash-landing resolved at the landing tick, or a landed wreck with the attackers' damage all
 before the landing) is not strafed and not shot down: it is `crashed`, loss_cause `self` (skipped when another aircraft rammed it). Kill
-credit is unchanged: the earlier attacker keeps the air kill. The timeline shows `destroyed`.
+credit is unchanged: the earlier attacker keeps the air kill. The timeline shows `destroyed`. It is not a failed landing, and stays shot down,
+when the pilot was already out of the picture: killed (bot AType 3) more than `died_with_aircraft_s` before the loss (the wreck then lands and
+crashes on its own), or bailed out / ejected / removed before the landing (the empty aircraft belly-lands) [PROPOSED]. Known differences
+[PROPOSED]: a **gunner** sortie on the same aircraft keeps the plain rule (shot down, `attacker`) while the pilot's is crashed / `self` (gunners
+are never flagged and have no strafing evidence of their own); and in **PvE** (no player attacker) a failed landing is an `environment` loss
+like any crash.
 both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
 ```
 Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
@@ -375,7 +381,7 @@ time on target = sum over attacks
 
 **Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[DECIDED]`,
 OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read time; the counters are sums over a pilot's sorties.
-- **Interception** = kills of bombers and attackers **per hour of air superiority flight**. A kill counts when it is a credited air kill (not an
+- **Interception** = kills of bombers, attackers and transports **per hour of air superiority flight**. A kill counts when it is a credited air kill (not an
   assist, not friendly; PvP or AI) whose victim is an **interception victim** (`attack.is_interception_victim`): an AI aircraft of catalog class
   `bomber`, `attacker` or `transport` (maintainer, OQ-102: **transports count too**), or a player sortie with the combat role `attack` (a fighter
   carrying bombs or rockets). AI and player victims both count; only credited kills count (no assists, no friendly fire).

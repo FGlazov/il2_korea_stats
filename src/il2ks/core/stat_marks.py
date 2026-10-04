@@ -113,7 +113,7 @@ class Totals:
     elo_jet: float = 0.0
     elo_jet_games: int = 0
     flight_time_air_s: float = 0.0  # flight time of air superiority sorties
-    kills_intercept: int = 0  # air kills of bombers and attackers in air superiority sorties
+    kills_intercept: int = 0  # air kills of bombers, attackers and transports in air superiority sorties
     kills_tank_attack: int = 0  # tanks destroyed in attack sorties
 
 

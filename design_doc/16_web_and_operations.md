@@ -55,8 +55,9 @@ How the website, the admin and the operations commands are built (iteration 1, p
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
   every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
-  each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage and timeline rows
-  (`?page_damage=`, `?page_timeline=`); links keep every other parameter. Real-log mission and sortie pages fell from 107-122 KB of HTML to
+  each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage rows
+  (`?page_damage=`); links keep every other parameter. **Exception** (maintainer, 2026-10-04): the sortie page's timeline is not paginated, every row
+  is shown (it is a detail page, so it gets a higher server-time and query budget; the HTML stays lean because icons are a sprite). Real-log mission and sortie pages fell from 107-122 KB of HTML to
   87-95 KB (NFR-PERF-6).
 - **Mission list**: newest first, 25 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
   come from the mission file name ("The Sinuiju Bridges 1951").
