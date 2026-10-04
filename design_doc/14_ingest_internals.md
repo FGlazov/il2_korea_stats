@@ -242,6 +242,24 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   (`lark`/`ply` are pure Python and slower than `re`); our own C/Rust extension would need CI-built wheels for win_amd64 and linux x86_64/aarch64
   (cibuildwheel, three more jobs, a release step per Python bump) and could at most save the 10% regex share. Revisit only if event construction is
   moved out of Python.
+  **Speed round 4: measurement, nothing adopted** (2026-10-04, 42 of the 210 sample missions = every 5th, 17 MB zipped, `bench-ingest --cpu`, after bursts).
+  Per mission median **250-265 ms** CPU, p95 about 650 ms, 12.3-12.8 s for the 42 (the hundreds-of-milliseconds goal holds for the median).
+  Phases (share of CPU): parse 30%, replay 29-30%, level-2 recompute 22-23%, persist level 1 10-11%, archive 5%, Elo ratings 1%, rest 2%.
+  Query count: about 240 statements per mission; 64 are the per-sortie `UPDATE` that links the JSON columns (`update_partial_rows`, 1% of the
+  time), 18 new-player `INSERT`s, 13 sortie `SELECT`s, the rest one or two statements per level-2 table. cProfile top (inflated by call
+  overhead, shares of the profiled run): `ammo._Analysis.closest` 10% (12.7 s of 130 s; `_damage_pass` 12%, the whole ammo analysis 16%),
+  `parse_lines` self time 4.7%, SQLite `commit` 6% (wall clock only: 190 ms per mission through the filesystem, not CPU),
+  `bulk_create` SQL compilation 7%, zip `open`/`write` 7% (wall clock, antivirus). Tried and **rejected** (each needs >= 5% end to end):
+  (1) memoising `closest` per (tick, unit, attacker), the many damage lines of one tick share an answer: replay 2.91 -> 2.70 s (best of 4, in-process A/B),
+  7% of replay, about 2% end to end; (2) `orjson` for the JSON columns: all JSON encoding is 0.3 s of the 130 s profiled run (0.2%); (3) GC off or
+  thresholds raised during parse + replay: 5.27 / 5.50 s against 5.33 s default (best of 6), 1-3%; (4) bigger `bulk_create` batches: Django caps a
+  SQLite batch at 999 bound parameters (15 sortie rows) and the time is the ORM's value preparation, not the statement count (3351 inserts for 42
+  missions, 80 per mission); (5) SQLite pragmas: WAL + `synchronous=NORMAL` already, a commit is no fsync. **Not tried, the only lever left of
+  size:** parse + replay (60% of CPU, pure Python, no database) in a process pool one mission ahead of the persisting process. It needs
+  `MissionResult` pickling, spawn on Windows and frozen builds, and an ordering rule for missions that share players, so it is a design decision,
+  not a tweak; it would help `reprocess` and history imports, not the live one-mission-every-few-hours path. Measuring note: with other jobs on
+  the machine the same run varied 1.9x in CPU time (23.9 s, 12.8 s, 7.6 s), so compare two variants in one process, alternating, best of N, and
+  diff `dump-db` (it differs only by the random `server_uid` of each fresh data dir).
   Tools: `il2ks dev bench-ingest <dir> [--cpu]` (copies its input to a temp dir, times each phase; `--cpu` times process CPU instead of the wall
   clock so antivirus and other jobs do not skew it, but Windows resolves CPU time to about 15 ms, fine for sums and medians) and
   `il2ks dev dump-db` (every table as sorted JSON lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is
