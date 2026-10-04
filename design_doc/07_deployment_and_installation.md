@@ -71,6 +71,10 @@ An installer (Inno Setup or WiX) that bundles:
 - **Caddy** for HTTPS (TD-23), plus firewall rules for ports 80 and 443.
 - a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
 - Start menu shortcuts: "Open stats site", "Open admin", "View logs".
+- **Upgrade check for `custom/` overrides** `[PROPOSED]` (2026-10-04, TD-25): on an upgrade (not a fresh install) the installer runs `il2ks custom list
+  --problems --fail-on-problems` (exit code 4 = an override needs attention; `custom list --json` is the machine-readable form). Interactive installs show
+  a message box naming the affected files and the `il2ks custom diff` / `custom accept` workflow, with a pointer to `docs/customizing.md`; silent installs
+  write the report to the installer log and to `<data>\logs\installer-custom-check.log`. It never fails the install. Scope and wording: OQ-93.
 - ✅ The best experience for the actual audience: Next → Next → Finish. No Docker, no terminal, no DB admin.
 - ❌ Packaging work: upgrade logic, testing on a clean Windows VM.
 - **No code signing** `[DECIDED]` (2026-10-02): the installer ships unsigned. The Windows SmartScreen "unknown publisher" warning is accepted.

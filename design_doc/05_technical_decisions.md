@@ -35,7 +35,7 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Decision:** Django templates for every page. HTMX for partial updates (search-as-you-type, pagination,
   expandable sections). No JS build step. htmx is vendored (NFR-OFF-1).
 - **CSS:** **Pico CSS** (minimal, classless-friendly, one file, styles tables well). It's a stats site: mostly tables of data.
-  Branding colors map onto Pico's CSS variables (TD-25).
+  Every color is a `--il2-*` token layered over Pico's variables; admins retheme through the tokens (TD-25).
 - **Charts:** only light diagrams (FR-WEB-16). `[PROPOSED]` (2026-10-03): server-rendered inline SVG from a small pure layout module, no chart library and no JS (doc 16).
 - **Mobile:** not required. Mobile-friendly layout is a stretch goal (Pico is responsive by default; wide tables scroll horizontally).
 - **Alternatives considered:** React/Vue SPA (rejected: too complex for the maintainer and the goals), Bootstrap (heavier than needed),
@@ -169,6 +169,10 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   rewrites the footer note to name the zone. The plain `utc` filter stays for tooltips and Open Graph text. A test checks that the HTML is
   byte-identical whatever the viewer's zone (TD-28). Not built: relative times, the UTC/local toggle; admin times stay UTC. Display format
   and labels: OQ-42..44.
+  **Update 2026-10-04:** the script now formats with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle: short`; date-only values `medium`)
+  in the page language and the browser's zone (maintainer, OQ-42: locale-native, not ISO-like); the zone is named only in the footer, UTC stays in
+  the tooltip. The removed `utc_date` / `utc_short` filters stay as deprecated aliases of `local_date` / `local_short` so old `custom/` overrides
+  still compile. The `utc` filter remains for tooltips and Open Graph text.
 - **Not converted:** game-world date and time (the mission's in-game clock, which is part of the scenario), and durations or flight times.
 
 ### TD-16 Extensibility through explicit extension points, never monkeypatching — `[PROPOSED]`
@@ -205,7 +209,8 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Allowed:** standard ORM fields, `JSONField` (works on both), `db_index`, `UniqueConstraint`, `Q`/`F` expressions, simple joins.
   Aggregation functions are allowed only in **ingest and rebuild code**, never in views (TD-22).
 - **Not allowed:** `ArrayField`, `HStoreField`, `CIText*`, `DISTINCT ON` (`.distinct(*fields)`), `SearchVector` and other
-  `django.contrib.postgres` features, raw SQL. A test or import-linter rule fails CI if `django.contrib.postgres` is imported anywhere.
+  `django.contrib.postgres` features, raw SQL. **One exception** `[PROPOSED]` (2026-10-04): migrations 0011 and 0027 run `SET CONSTRAINTS ALL
+  IMMEDIATE` on Postgres after their data step to fire deferred FK checks before the schema step (the only raw SQL; SQLite skips it). A test or import-linter rule fails CI if `django.contrib.postgres` is imported anywhere.
 - **Case-insensitive search:** store a normalized `name_lower` column with an index.
 - **Timezones:** store UTC and let Django handle conversion. Don't rely on DB timezone functions.
 - **Tests:**
@@ -249,11 +254,15 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   live in pre-aggregated tables (TD-08). Paginator `COUNT(*)` is allowed.
 - **Simple arithmetic on columns at read time is fine, and preferred over storing derived values.** Ratios like K/D (`kills / deaths`),
   K/L, kills per hour and survival rate are computed from the stored counters, as a model property, a template filter, or an `F()`
-  expression. **Don't store ratios as columns** (maintainer, 2026-10-02). What's ruled out is business logic at serving time: rules,
+  expression. **Don't store ratios as columns** (maintainer, 2026-10-02), with one exception `[PROPOSED]` (2026-10-04, OQ-98):
+  `AircraftStats` stores `kd`, `kl`, `survival` and `attack_share` as fractions, only so the aircraft list can sort by them (the list is
+  paginated and sorted in SQL; the page shows a dash where the denominator is 0). What's ruled out is business logic at serving time: rules,
   classification, multi-step computations. Those belong in ingest.
 - **Why:** pages stay fast on SQLite, queries are trivially portable, and the code is easy to vibe-code and review.
 - **Enforcement:** every view gets a test with `django_assert_max_num_queries`, plus a test that inspects captured SQL for
-  `GROUP BY` and aggregate functions in view tests. The `queries/` layer stays thin.
+  `GROUP BY` and aggregate functions in view tests. The `queries/` layer stays thin. **As built** (2026-10-04): `tests/simple_reads.py` holds the
+  harness (`assert_simple_reads`: query budget, no `GROUP BY` / `HAVING` / aggregates / window functions, no subquery) and the shared budgets;
+  `tests/perf/` adds a per-page budget over a larger seeded world as an N+1 guard (doc 08, NFR-PERF-2).
 
 ### TD-23 HTTPS only, through bundled Caddy or the admin's own proxy — `[DECIDED]` (2026-10-02)
 - **Decision (maintainer):** The site is served over HTTPS only. Plain HTTP only redirects. Django runs with `SECURE_SSL_REDIRECT`,
@@ -282,8 +291,9 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   without wiping admin edits, and an override can be reset to the default. Names fall back from the viewer's language to English to the raw log name.
 
 ### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
-- **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, accent colors (mapped to Pico CSS
-  variables), description, and links. Most owners only need this. Uploaded logos are raster-only, re-encoded, and served by a Django view, not
+- **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, description, a color theme (overrides of
+  the `--il2-*` tokens per light and dark mode, with presets), heading and body fonts, and an ordered list of navigation links
+  (`NavLink`). Most owners only need this. **As built** (2026-10-04): doc 16 "Branding"; every branding save bumps the data version (TD-28). Uploaded logos are raster-only, re-encoded, and served by a Django view, not
   WhiteNoise (FR-ADM-2).
 - **Layer 2, `custom/` overrides** ("very important for some server owners"): `custom/templates/` and `custom/static/` live in the
   **data directory** (so upgrades never overwrite them) and come first in `TEMPLATES['DIRS']` / `STATICFILES_DIRS`. Any built-in template
@@ -301,10 +311,11 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **As built** (2026-10-03, pulled forward by the maintainer): `[tours] mode` (`monthly` / `days:<N>` with `start` / `manual`), `timezone`
   (defaults to `[server] timezone`). Boundaries are local midnights, half-open `[start, end)`, DST-aware; monthly titles "October 2026",
   `days:N` titles "Tour N" counted from `start` (gaps possible). Manual mode: the stored tours are the boundaries; "start a new tour now"
-  in the admin closes the open one. `PlayerTour` and `PlayerTourAircraft` are recomputed from level 1 like all-time totals, limited to the
-  touched tours; `rebuild-aggregates --retour` reassigns all missions after a mode or timezone change (doctor warns when needed). Elo stays
-  all-time. Missions without a tour are assigned automatically after migrations. Query helpers `il2ks.queries.tours` and a
-  `{% tour_select %}` component exist; pages wire them in next. Gut calls `[PROPOSED]`: a renamed tour keeps its title only while its
+  in the admin closes the open one. `PlayerTour`, `PlayerTourAircraft`, `PlayerTourPool`, `PlayerTourKillboard` and the per-tour best streaks are
+  recomputed from level 1 like all-time totals, limited to the touched tours; `rebuild-aggregates --retour` reassigns all missions after a
+  mode or timezone change (doctor warns when needed). Elo stays all-time. Missions without a tour are assigned automatically after
+  migrations. Query helpers `il2ks.queries.tours` and a `{% tour_select %}` component serve the pages, which open on the current tour
+  (doc 16, OQ-78..80). Gut calls `[PROPOSED]`: a renamed tour keeps its title only while its
   boundaries don't change; monthly titles are stored in English (to be computed per language at display time once translations land).
 - Missions belong to exactly one `Tour`, assigned by mission start time. Per-tour totals (`PlayerTour`) are the main stats unit, with all-time
   totals alongside.
