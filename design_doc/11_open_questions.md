@@ -31,6 +31,43 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 Claude's defaults otherwise: the percentage is taken from **both** the sortie's air and ground score, only from positive scores (a
 percentage never makes a score negative), and death + capture together apply the larger one only.
 
+### Decisions made during the 2026-10-04 run (defaults applied; answer by ID)
+
+**OQ-68 Installer: grant the service account access to the game log folder**
+The service now runs as `NT SERVICE\il2ks` (OQ-41), which can't read the game's log folder the way SYSTEM could. Default applied: the
+installer grants it Modify on the log folder chosen in the wizard (read access, plus `after_archive = move`). This changes ACLs outside
+il2ks's own folders. Network-drive log folders still don't work under the service.
+
+**OQ-69 Installer: keep `/ADMINPASSWORD=` for silent installs?**
+Default applied: kept for compatibility, documented as visible in process lists and the installer log; the new `/ADMINPASSWORDFILE=`
+(the file is deleted after use) is the recommended switch. Alternative: remove `/ADMINPASSWORD=`.
+
+**OQ-70 Docker: no browser setup page**
+A container never sees a loopback peer, so the setup page can't work there. Default applied: the image disables it
+(`IL2KS_SETUP_PAGE=off`) and the logs explain `il2ks createadmin` when no admin exists.
+
+**OQ-71 `restore` refuses while the site runs**
+Default applied: `il2ks restore` exits with code 3 when `il2ks run` holds its lock or the web port answers; `--force` overrides. Scripts that
+restored against a live site now need `--force`.
+
+**OQ-72 Hall of shame: what counts as a friendly-fire incident**
+Default applied: a counted pilot sortie with at least one friendly kill (`friendly_fire_incidents`, on every counters table). Hits and damage
+alone don't count (collateral hits on own-side objects would swamp the tile); this matches the sortie-page badge.
+
+**OQ-73 Hall of shame: where "Strafed on the ground" went**
+Default applied: the "Other totals" list on the profile (it isn't the pilot's own fault and sits next to friendly kills and hits). The
+sortie-page badge stays.
+
+**OQ-74 Hall of shame: quips and the p90 rule**
+Default applied: one quip spot per case (taxi only, friendly fire only, both, none), 3–4 variants each, written by Claude; a separate,
+warmer variant when a rate per sortie is strictly above the 90th percentile of pilots with at least `[marks] min_sorties` sorties in the
+same scope (all time or the selected tour). Only the elevated kind is named; no ranking is shown. The lines need the maintainer's review
+(`src/il2ks/web/flavor.py`).
+
+**OQ-75 Two flavor lines replaced**
+As asked (2026-10-03), the POW "food" joke and "Ace-in-a-day territory" are gone. Replacements: "Out of the fight, but not out of the
+story." (sortie captured) and "Best showing of the mission. Well flown." (top pilot).
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
