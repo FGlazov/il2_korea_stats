@@ -13,6 +13,8 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
 - **At most 8 concurrent Sonnet agents** do the work (`model: "sonnet"`), plus **one Opus agent** (`model: "opus"`, read-only,
   no worktree) as an independent code reviewer of what lands on `main`: security, correctness, Windows breakage, doc
   mismatches, ranked findings with confidence. Feed its findings to fix agents.
+- **Keep at least 5 agents running** while there is real work (maintainer, 2026-10-04): no busy work, but more in parallel.
+  Start the reviewer early, as soon as merged work piles up, rather than late.
 - You may veto an agent's technical choice and do it a better way. Make gut-feeling calls; stop only when something is truly
   blocking.
 
@@ -26,6 +28,7 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
 - Merging: `git merge --no-ff`, renumber migrations, `uv run il2ks dev bump-templates`, `uv run il2ks dev translations update`,
   full checks (ruff, pyright, lint-imports, vulture, pytest). Stage explicit paths only; never stage `sample_data/`.
 - Commit and push on `main` freely (no feature branches); never force-push.
+- Never split or rename a migration that may already be applied: existing databases fail with InconsistentMigrationHistory.
 
 ## Decisions
 A *decision* is anything you or an agent decided that the design doc didn't already specify. Making them is allowed, to keep
