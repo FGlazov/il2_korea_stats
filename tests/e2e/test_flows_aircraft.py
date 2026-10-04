@@ -194,19 +194,22 @@ def test_the_role_toggle_splits_air_superiority_from_attack(page: Page) -> None:
     """Role toggle (all / air superiority / attack): attack shows the aircraft that flew attack sorties (the F-51D of
     Gunther Groundpounder), not the MiG-15bis; air superiority shows the duelling types."""
     page.goto("/aircraft/?tour=all")
-    air = link_or_button(page, re.compile(r"^Air superiority$", re.IGNORECASE)).first
-    attack = link_or_button(page, re.compile(r"^Attack$", re.IGNORECASE)).first
-    if air.count() == 0 or attack.count() == 0:
-        pytest.skip(reason="lands with the role-toggle branch")
+    toggle = main_region(page).get_by_role("group", name="Which sorties to count")
+    air = toggle.get_by_role("link", name="Air superiority", exact=True)
+    attack = toggle.get_by_role("link", name="Attack", exact=True)
+    everything = toggle.get_by_role("link", name="All roles", exact=True)
 
     attack.click()
+    expect(attack).to_have_attribute("aria-current", "true")
     names = names_in(aircraft_table(page), "Aircraft")
     assert "F-51D" in names
     assert MIG not in names
     air.click()
+    expect(air).to_have_attribute("aria-current", "true")
     names = names_in(aircraft_table(page), "Aircraft")
     assert {MIG, SABRE} <= set(names)
-    link_or_button(page, re.compile(r"^All$", re.IGNORECASE)).first.click()
+    everything.click()
+    expect(everything).to_have_attribute("aria-current", "true")
     assert {MIG, SABRE, "F-51D"} <= set(names_in(aircraft_table(page), "Aircraft"))
 
 

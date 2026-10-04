@@ -22,3 +22,5 @@
 @media (max-width: 40rem) { .home-boards { grid-template-columns: minmax(0, 1fr); } }
 .home-boards h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .home-boards .board-note { margin: 0 0 0.5rem; }
+/* A phone is narrow: the compact boards' headers ("Score per hour" plus the description marker) may wrap, or a wider font (Linux's DejaVu) pushes the table past the page edge and the page scrolls sideways. */
+.home-boards .data-table thead th { white-space: normal; }
