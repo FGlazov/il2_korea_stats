@@ -52,7 +52,13 @@ class Step:
 
 
 def _workers() -> str:
-    return str(max(2, min(8, (os.cpu_count() or 4) // 2)))
+    """xdist workers for the unit and the integration step. All steps run at once, so those two (plus pyright, perf,
+    e2e and Postgres) share the machine: a quarter of the cores each (16 cores: 4 each) keeps the timing-sensitive
+    tests (perf budgets, browser tests, live snapshots) from starving; `IL2KS_CHECK_WORKERS` overrides."""
+    forced = os.environ.get("IL2KS_CHECK_WORKERS")
+    if forced and forced.isdigit():
+        return forced
+    return str(max(2, min(6, (os.cpu_count() or 4) // 4)))
 
 
 def _workflow_files() -> tuple[str, ...]:

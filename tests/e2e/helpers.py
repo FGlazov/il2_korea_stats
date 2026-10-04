@@ -29,6 +29,20 @@ def sortie_links(page: Page) -> Locator:
     return page.locator("a[href^='/sorties/']")
 
 
+SETTLED_JS = (
+    "document.readyState === 'complete' && document.fonts.status === 'loaded'"
+    " && !document.querySelector('.htmx-request')"
+)
+
+
+def wait_until_settled(page: Page) -> None:
+    """The page is loaded, its fonts are in and no htmx request is in flight (the "online now" fragment, a swap).
+
+    Use instead of `wait_until="networkidle"`: that waits for 500 ms without any request, which a loaded machine (or a
+    polling fragment) can keep from ever happening within the timeout. This waits for the actual state."""
+    page.wait_for_function(SETTLED_JS)
+
+
 def mark_page(page: Page) -> None:
     """Remember this document; `expect_same_document` fails when htmx (or anything) replaced it with a full load."""
     page.evaluate(f"window.{FULL_RELOAD_FLAG} = true")
