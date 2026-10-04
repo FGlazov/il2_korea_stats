@@ -108,15 +108,26 @@ def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
 
 
 LOADOUT_SORT_PARAM = "lsort"  # the loadouts table sorts apart from the matchups table (`sort`)
+MOD_SORT_PARAM = "msort"  # ... and so does the weapon-mods table
 INTERCEPT_PARAM = "intercept"  # `?intercept=1`: only fights where both sorties were air superiority
+
+
+@dataclass(frozen=True, slots=True)
+class ModFilter:
+    """One significant modification and the visitor's choice: `state` is `any`, `with` or `without`."""
+
+    mod_id: int
+    name: str
+    state: str
 
 
 def _query_url(request: HttpRequest, *, intercept: bool) -> str:
     """The page's own URL with the intercept filter set or cleared, keeping the tour and the matchup sort."""
     params: dict[str, str] = {}
-    for key in ("tour", "sort", reads.ROLE_PARAM, LOADOUT_SORT_PARAM):
-        value = request.GET.get(key)
-        if value is not None:
+    for key, value in request.GET.items():
+        if key in {"tour", "sort", reads.ROLE_PARAM, LOADOUT_SORT_PARAM, MOD_SORT_PARAM} or key.startswith(
+            reads.MOD_PARAM_PREFIX
+        ):
             params[key] = value
     if intercept:
         params[INTERCEPT_PARAM] = "1"
@@ -182,7 +193,11 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
     first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, crumbs,
     page_title.
-    Reads: seven queries plus the tours (eight with a tour or role selected) (plus the 2 of the context processor)."""
+    `?mod<id>=with|without` (one per significant weapon modification of the type, absent = any; none are offered for
+    a type without) scopes the tiles, pilot count, loadouts and the new weapon-mods table (`?msort=`) the same way:
+    one stored row per filter pattern, so still one read each. Matchups, top pilots and hits to destroy ignore it.
+    Reads: eight queries plus the tours (nine with a tour, role or filter selected), plus the 2 of the context
+    processor."""
     stats = reads.stats_for(pk)
     if stats is None:
         raise Http404
@@ -193,14 +208,20 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     matchup_sort = resolve_sort(
         request.GET.get("sort", ""), dict.fromkeys(reads.MATCHUP_SORTS, ""), reads.DEFAULT_MATCHUP_SORT
     )
+    mod_sort = resolve_sort(
+        request.GET.get(MOD_SORT_PARAM, ""), dict.fromkeys(reads.MOD_SORTS, ""), reads.DEFAULT_MOD_SORT
+    )
     loadout_sort = resolve_sort(
         request.GET.get(LOADOUT_SORT_PARAM, ""), dict.fromkeys(reads.LOADOUT_SORTS, ""), reads.DEFAULT_LOADOUT_SORT
     )
     aircraft = stats.aircraft
+    significant = reads.significant_mods(aircraft)
+    states = reads.mod_states(request.GET, significant)
+    mod_pattern = reads.mod_pattern_of(states)
     tile: StatsRow = (
         stats
-        if choice.selected is None and role == AircraftRole.ALL
-        else reads.scoped_stats(aircraft, choice.selected, role)
+        if choice.selected is None and role == AircraftRole.ALL and not mod_pattern
+        else reads.scoped_stats(aircraft, choice.selected, role, mod_pattern)
     )
     rules = board_reads.rules()
     name = object_names.name_of(aircraft, get_language() or "en")
@@ -232,7 +253,11 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
             role == AircraftRole.ALL and stats.sorties > 0 and stats.attack_sorties >= ATTACK_TYPE_SHARE * stats.sorties
         ),
         "rules": rules,
-        "loadouts": reads.payloads(aircraft, role, rules, loadout_sort),
+        "mod_filters": tuple(ModFilter(m.mod_id, m.name, state) for m, state in zip(significant, states, strict=True)),
+        "mod_filtered": bool(mod_pattern),
+        "loadouts": reads.payloads(aircraft, role, rules, loadout_sort, mod_pattern),
         "loadout_sort": loadout_sort,
+        "mod_sets": reads.mod_sets(aircraft, role, rules, mod_sort, mod_pattern),
+        "mod_sort": mod_sort,
     }
     return render(request, "il2ks/aircraft/detail.html", context)

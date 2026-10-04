@@ -9,8 +9,8 @@ num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title
 in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 pilot_fate_badge, status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown,
-language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, role_toggle, stat_mark,
-stat_mark_note, flavor, sortie_flavor
+language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, role_toggle, mod_filter,
+stat_mark, stat_mark_note, flavor, sortie_flavor
 (flavor text, FR-WEB-23), bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
 """
@@ -19,7 +19,7 @@ import dataclasses
 import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
-from typing import Never, cast
+from typing import Never, Protocol, cast
 
 from django import template
 from django.conf import settings
@@ -631,6 +631,46 @@ def role_toggle(context: Context, selected: str = "all") -> dict[str, object]:
         for value, label in labels.items()
     ]
     return {"options": options}
+
+
+class ModChoice(Protocol):
+    """What `mod_filter` reads of a significant modification (`web.views.aircraft.ModFilter`)."""
+
+    @property
+    def mod_id(self) -> int: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def state(self) -> str: ...
+
+
+@register.inclusion_tag(COMPONENTS + "mod_filter.html", takes_context=True)
+def mod_filter(context: Context, filters: Iterable[ModChoice]) -> dict[str, object]:
+    """{% mod_filter mod_filters %}: one any / with / without switch per significant weapon modification of the aircraft
+    page (`?mod<id>=with|without`, absent = any), each three links in the style of the role toggle. `filters` are the
+    page's `ModFilter`s (mod_id, name, state). Every other query parameter is kept, a new choice starts at page 1."""
+    params = _params_of(context)
+    request = _request_of(context)
+    path = request.path if request is not None else ""
+    labels = (("any", _("Any")), ("with", _("With")), ("without", _("Without")))
+    rows = [
+        (
+            f.name,
+            [
+                (
+                    label,
+                    path
+                    + replace_query(
+                        params, {f"mod{f.mod_id}": None if state == "any" else state, **_page_resets(params)}
+                    ),
+                    state == f.state,
+                )
+                for state, label in labels
+            ],
+        )
+        for f in filters
+    ]
+    return {"rows": rows}
 
 
 @register.inclusion_tag(COMPONENTS + "tour_filter.html", takes_context=True)

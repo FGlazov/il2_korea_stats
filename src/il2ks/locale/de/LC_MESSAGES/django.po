@@ -1462,6 +1462,15 @@ msgstr "Lieblings-Bewaffnung"
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Kaum ein Pilot kennt den Rollweg so gut wie dieser. Der könnte Führungen anbieten."
 
+#, python-format
+msgid "Filter by modification %(name)s"
+msgstr ""
+
+msgid ""
+"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
+"hits to destroy still cover every modification."
+msgstr ""
+
 # llm-draft
 msgid "Find a player"
 msgstr "Spieler suchen"
@@ -2336,10 +2345,6 @@ msgstr "Missionen, in denen du den ersten Luftsieg gegen einen Spieler erzielt h
 msgid "Missions stored"
 msgstr "Gespeicherte Missionen"
 
-# llm-draft
-msgid "Modification names are not known yet: the numbers are the raw values from the log."
-msgstr "Die Namen der Modifikationen sind noch nicht bekannt: die Zahlen sind die Rohwerte aus dem Log."
-
 msgid "Modifications"
 msgstr "Modifikationen"
 
@@ -2492,6 +2497,9 @@ msgstr "Keine Missionen passen zu diesen Filtern."
 # llm-draft
 msgid "No missions yet."
 msgstr "Noch keine Missionen."
+
+msgid "No modifications"
+msgstr ""
 
 # llm-draft
 msgid ""
@@ -3241,11 +3249,6 @@ msgid "Server activity"
 msgstr "Serveraktivität"
 
 # llm-draft
-#, python-format
-msgid "Set %(value)s"
-msgstr "Satz %(value)s"
-
-# llm-draft
 msgid "Setup finished"
 msgstr "Einrichtung abgeschlossen"
 
@@ -3924,6 +3927,12 @@ msgstr ""
 msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
 msgstr ""
 
+msgid ""
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
+"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
+"means the measure does not apply or there are too few sorties."
+msgstr ""
+
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "Beim Erstellen dieser Seite ist auf dem Server ein Fehler aufgetreten. Versuch es gleich noch einmal."
@@ -4425,6 +4434,12 @@ msgstr ""
 # llm-draft
 msgid "Winner"
 msgstr "Sieger"
+
+msgid "With"
+msgstr ""
+
+msgid "Without"
+msgstr ""
 
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."

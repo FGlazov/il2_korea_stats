@@ -1461,6 +1461,15 @@ msgstr "Carga favorita"
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Pocos pilotos conocen la calle de rodaje tan a fondo. Podría hacer de guía turístico."
 
+#, python-format
+msgid "Filter by modification %(name)s"
+msgstr ""
+
+msgid ""
+"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
+"hits to destroy still cover every modification."
+msgstr ""
+
 # llm-draft
 msgid "Find a player"
 msgstr "Buscar un jugador"
@@ -2333,10 +2342,6 @@ msgstr "Misiones en las que lograste el primer derribo aéreo contra un jugador.
 msgid "Missions stored"
 msgstr "Misiones guardadas"
 
-# llm-draft
-msgid "Modification names are not known yet: the numbers are the raw values from the log."
-msgstr "Aún no se conocen los nombres de las modificaciones: los números son los valores en bruto del registro."
-
 msgid "Modifications"
 msgstr "Modificaciones"
 
@@ -2489,6 +2494,9 @@ msgstr "Ninguna misión coincide con estos filtros."
 # llm-draft
 msgid "No missions yet."
 msgstr "Todavía no hay misiones."
+
+msgid "No modifications"
+msgstr ""
 
 # llm-draft
 msgid ""
@@ -3236,11 +3244,6 @@ msgid "Server activity"
 msgstr "Actividad del servidor"
 
 # llm-draft
-#, python-format
-msgid "Set %(value)s"
-msgstr "Conjunto %(value)s"
-
-# llm-draft
 msgid "Setup finished"
 msgstr "Configuración terminada"
 
@@ -3917,6 +3920,12 @@ msgstr ""
 msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
 msgstr ""
 
+msgid ""
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
+"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
+"means the measure does not apply or there are too few sorties."
+msgstr ""
+
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "El servidor encontró un error al generar esta página. Inténtalo de nuevo en un momento."
@@ -4416,6 +4425,12 @@ msgstr "Windows no nos dice el nombre de su zona horaria. Si tu navegador lo sab
 # llm-draft
 msgid "Winner"
 msgstr "Ganador"
+
+msgid "With"
+msgstr ""
+
+msgid "Without"
+msgstr ""
 
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."

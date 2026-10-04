@@ -7,7 +7,9 @@
   average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters the tiles, the pilot count, the loadouts and the top pilots; matchups follow it as the intercept scope), matchup_role_note (attack: the matchups ignore the role), show_elo / show_ground (which top-pilots tables), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), loadouts (Loadout: payload (AircraftPayload), elo, kills_per_sortie, kd,
-  ground_hour; None = a dash), loadout_sort (?lsort=), crumbs, page_title.
+  ground_hour; None = a dash), loadout_sort (?lsort=), mod_filters (ModFilter: mod_id, name, state "any" / "with" / "without"; only a type with
+  significant weapon modifications has any), mod_filtered, mod_sets (ModSet: stats (AircraftMods), names, label, elo,
+  kills_per_sortie, kd, ground_hour), mod_sort (?msort=), crumbs, page_title.
   Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
   The totals include hidden players; only the top-pilots tables leave them out (FR-ADM-3).
   K/D and K/L use air kills (OQ-38). Blocks of this page: content.
@@ -25,6 +27,10 @@
 
   {% tour_select tours tour %}
   {% role_toggle role %}
+  {% if mod_filters %}
+    {% mod_filter mod_filters %}
+    {% if mod_filtered %}<p class="muted">{% translate "Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and hits to destroy still cover every modification." %}</p>{% endif %}
+  {% endif %}
   <p class="muted">{% translate "The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts cover all time, and hits to destroy always count every role (it is about kills of this aircraft)." %}</p>
 
   <div class="stat-tiles profile-tiles">
@@ -206,5 +212,46 @@
       </table>
     </div>
     <p class="muted">{% blocktranslate with sorties=rules.min_air_superiority_sorties|num attack=rules.min_attack_sorties|num minutes=rules.min_time_on_target_minutes|num %}Rates are shown from {{ sorties }} air superiority sorties, or {{ attack }} attack sorties with {{ minutes }} minutes on target, as on the leaderboards.{% endblocktranslate %}</p>
+  </section>
+
+  <section>
+    <h2>{% translate "Modifications" %}</h2>
+    <p class="muted">{% translate "The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table">
+        <thead>
+          <tr>
+            {% sort_th "mods" _("Modifications") current=mod_sort param="msort" %}
+            {% sort_th "sorties" _("Sorties") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "kills_air" _("Air kills") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "deaths" _("Deaths") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "elo" _("Average pilot Elo") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "kills_per_sortie" _("Air kills per sortie") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "kd" _("PvP K/D") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "ground_hour" _("Ground score per hour on target") current=mod_sort param="msort" numeric=True %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in mod_sets %}
+            {% with p=row.stats %}
+            <tr>
+              <td>{% if row.names %}{{ row.label }}{% else %}{% translate "No modifications" %}{% endif %}{% if role == "all" and p.combat_role %} {% role_badge p.combat_role %}{% endif %}</td>
+              <td class="num">{{ p.sorties|num }}</td>
+              <td class="num">{{ p.kills_air|num }}</td>
+              <td class="num">{{ p.kills_ground|num }}</td>
+              <td class="num">{{ p.deaths|num }}</td>
+              <td class="num">{{ row.elo|num }}</td>
+              <td class="num">{{ row.kills_per_sortie|num:2 }}</td>
+              <td class="num">{{ row.kd|num:2 }}</td>
+              <td class="num">{{ row.ground_hour|num:1 }}</td>
+            </tr>
+            {% endwith %}
+          {% empty %}
+            {% empty_row 9 %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 {% endblock %}

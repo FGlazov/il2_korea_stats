@@ -18,8 +18,10 @@ Shipped data (`core/catalog/data/`):
   `HVAR 5 in`. `designation` is the
   real-world one for a tooltip (`M8 API`). The names are proper technical designations, so they are not translated.
   `_HIT` and `_xN` sub-objects belong to their parent (`Catalog.ammo`); an ammo missing here gets a cleaned-up log name.
-- `weapon_mods.csv`: `vehicle, mod_id, name`, the modifications a pilot can pick for a type; the spawn line's `WM` is
-  a bitmask: bit 0 is always set, mod `k` is bit `k` (`weapon_mod_ids`).
+- `weapon_mods.csv`: `vehicle, mod_id, name, significant`, the modifications a pilot can pick for a type;
+  `significant` (`true`/`false`) marks the ones that change performance a lot: the aircraft page offers a with/without
+  filter for each (a change applies with `il2ks rebuild-aggregates`). The spawn line's `WM` is a bitmask:
+  bit 0 is always set, mod `k` is bit `k` (`weapon_mod_ids`).
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` / `weapon_mods.csv` vehicle key
   (`F-86A-5` -> `f-86a-5`).
 - `ordnance.csv`: `key, kind, display_name, payload_tokens, hit_ammo`, what a payload carries and which logged ammo
@@ -30,9 +32,10 @@ Shipped data (`core/catalog/data/`):
 import csv
 import io
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from importlib.resources import files
+from itertools import product
 from typing import Literal, TypeIs
 
 type ObjectClass = Literal[
@@ -215,6 +218,7 @@ class WeaponModInfo:
     aircraft: str  # catalog vehicle key, e.g. "mig-15bis"
     mod_id: int
     name: str
+    significant: bool = False  # changes performance a lot: the aircraft page can filter by it
 
 
 def weapon_mod_ids(weapon_mods: int) -> tuple[int, ...]:
@@ -233,6 +237,25 @@ def weapon_mod_mask(mod_ids: Iterable[int]) -> int:
     for mod_id in mod_ids:
         mask |= 1 << mod_id
     return mask
+
+
+MOD_ANY, MOD_WITH, MOD_WITHOUT = "*", "+", "-"
+"""One character of a filter pattern: any / with / without the significant modification at that position."""
+
+
+def mod_filter_patterns(weapon_mods: int, significant: Sequence[int]) -> tuple[str, ...]:
+    """The stored filter patterns a sortie with this `WM` belongs to: one character per significant modification of its
+    type (`significant`, ascending ids), each `*` (any) or the sortie's own state (`+` has it, `-` has not), every
+    combination except all-`*` (that is the unfiltered scope, pattern ''). A type without significant mods has none:
+    2**n - 1 patterns of the 3**n - 1 filters, ascending. The ONE place that knows the pattern format."""
+    own = [MOD_WITH if weapon_mods >> mod_id & 1 else MOD_WITHOUT for mod_id in significant]
+    combos = product(*[(MOD_ANY, state) for state in own])
+    return tuple(sorted(pattern for pattern in ("".join(c) for c in combos) if set(pattern) != {MOD_ANY} and pattern))
+
+
+def mod_filter_pattern(states: Sequence[str]) -> str:
+    """The pattern of per-mod states (`*`, `+`, `-`); '' (unfiltered) when all are any or there are none."""
+    return "" if all(s == MOD_ANY for s in states) else "".join(states)
 
 
 def canonical_type_name(object_type: str) -> str:
@@ -412,6 +435,14 @@ class Catalog:
             result.append((mod_id, found.name if found is not None else None))
         return tuple(result)
 
+    def significant_mods(self, aircraft_type: str) -> tuple[WeaponModInfo, ...]:
+        """The significant modifications of the type (`weapon_mods.csv`) by ascending id; none for most types. Same
+        alias handling as `payload`."""
+        key = _key(aircraft_type)
+        vehicle = self._aliases.get(key, key)
+        found = [m for (v, _), m in self._weapon_mods.items() if v == vehicle and m.significant]
+        return tuple(sorted(found, key=lambda m: m.mod_id))
+
     def ordnance(self, key: str) -> OrdnanceInfo | None:
         """The ordnance type with this key (`M65`, `HVAR`, ...); None for unknown and for the generic stand-in keys."""
         return self._ordnance.get(key)
@@ -578,11 +609,13 @@ def parse_payloads(text: str, source: str = "payloads.csv") -> list[PayloadInfo]
 
 def parse_weapon_mods(text: str, source: str = "weapon_mods.csv") -> list[WeaponModInfo]:
     result: list[WeaponModInfo] = []
-    for n, row in enumerate(_rows(text, ["vehicle", "mod_id", "name"], source), start=2):
+    for n, row in enumerate(_rows(text, ["vehicle", "mod_id", "name", "significant"], source), start=2):
         mod_id = int(row["mod_id"])
         if mod_id < 1 or not row["name"].strip():
             raise ValueError(f"{source}:{n}: mod_id must be 1 or more and the name filled")
-        result.append(WeaponModInfo(row["vehicle"], mod_id, row["name"]))
+        if row["significant"] not in ("true", "false"):
+            raise ValueError(f"{source}:{n}: significant must be true or false, got {row['significant']!r}")
+        result.append(WeaponModInfo(row["vehicle"], mod_id, row["name"], row["significant"] == "true"))
     return result
 
 

@@ -122,7 +122,8 @@ def test_profile_shows_favourite_loadout_and_honest_labels(client: Client) -> No
     assert "50%" in body
     assert "Hits by ammo" in body
     assert "not the belt they chose" in body
-    assert "Modification names are not known yet" in body
+    assert "Modification names are not known yet" not in body
+    assert "No modifications" in body
 
 
 def test_unknown_payload_shows_the_raw_id(client: Client) -> None:

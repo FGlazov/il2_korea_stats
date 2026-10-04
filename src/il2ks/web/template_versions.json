@@ -111,7 +111,7 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "9ee4e7d8e5bfe37bd31defb1a4e64089ac111b4c71de67ea96057954ec0008e7"
+      "sha256": "3cf0e055315e3ef9dd44d2778c888dcb1c149bfbb36c4025c96acb6fcf437077"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
@@ -180,6 +180,10 @@
     "templates/il2ks/components/language_menu.html": {
       "version": 1,
       "sha256": "8d243fb35f934adb0f53185d9b067078dcf44636178d1ae1d13994bd28d810e4"
+    },
+    "templates/il2ks/components/mod_filter.html": {
+      "version": 1,
+      "sha256": "68b13a93a969fbce2daf622332728ac5ff401f35258deca1f2cf645b405ec112"
     },
     "templates/il2ks/components/notice.html": {
       "version": 1,
@@ -311,7 +315,7 @@
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,
-      "sha256": "78ad4926b461194c57af8cc7b2be3af69d7276e5200ba4ca235dbd2330962c3a"
+      "sha256": "160400163b57f0142afdd0a8d5c9bcaf749ad48e4ec385129cbe0c18575f5b15"
     },
     "templates/il2ks/players/detail_charts.html": {
       "version": 1,

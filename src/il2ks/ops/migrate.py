@@ -73,6 +73,7 @@ BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
+BACKFILL_MOD_FILTERS = "mod_filters"  # weapon-mod sets and filter scopes of the aircraft stats (FR-WEB-8)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
@@ -130,6 +131,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_BUILDS, _check_builds),
         (BACKFILL_ACHIEVEMENT_FACTS, _check_achievement_facts),
         (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
+        (BACKFILL_MOD_FILTERS, _check_mod_filters),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -170,12 +172,12 @@ def _check_payload_names() -> bool:
     return changed
 
 
-def _check_tour_aircraft() -> bool:
-    """A database from before the aircraft stats per tour (FR-WEB-8, TD-26) has per-tour player aircraft rows but no
-    `TourAircraftStats` row: level 2 must be rebuilt."""
-    from il2ks.db.models import PlayerTourAircraft, TourAircraftStats
+def _check_mod_filters() -> bool:
+    """A database from before the weapon-mod tables of the aircraft page has pilot sorties but no `AircraftMods` row:
+    level 2 must be rebuilt (the mod-filter scopes of the types with significant mods come with it)."""
+    from il2ks.db.models import AircraftMods, PlayerSortie, Role
 
-    return PlayerTourAircraft.objects.exists() and not TourAircraftStats.objects.exists()
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not AircraftMods.objects.exists()
 
 
 def _check_builds() -> bool:

@@ -1478,6 +1478,15 @@ msgstr "Любимая подвеска"
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Мало кто знает рулёжку так же досконально. Хоть экскурсии води."
 
+#, python-format
+msgid "Filter by modification %(name)s"
+msgstr ""
+
+msgid ""
+"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
+"hits to destroy still cover every modification."
+msgstr ""
+
 # llm-draft
 msgid "Find a player"
 msgstr "Найти игрока"
@@ -2350,10 +2359,6 @@ msgstr "Миссии, в которых вы одержали первую во�
 msgid "Missions stored"
 msgstr "Сохранено миссий"
 
-# llm-draft
-msgid "Modification names are not known yet: the numbers are the raw values from the log."
-msgstr "Названия модификаций пока неизвестны: числа это исходные значения из лога."
-
 msgid "Modifications"
 msgstr "Модификации"
 
@@ -2506,6 +2511,9 @@ msgstr "Нет миссий, подходящих под эти фильтры."
 # llm-draft
 msgid "No missions yet."
 msgstr "Миссий пока нет."
+
+msgid "No modifications"
+msgstr ""
 
 # llm-draft
 msgid ""
@@ -3255,11 +3263,6 @@ msgid "Server activity"
 msgstr "Активность сервера"
 
 # llm-draft
-#, python-format
-msgid "Set %(value)s"
-msgstr "Набор %(value)s"
-
-# llm-draft
 msgid "Setup finished"
 msgstr "Настройка завершена"
 
@@ -3938,6 +3941,12 @@ msgstr ""
 msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
 msgstr ""
 
+msgid ""
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
+"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
+"means the measure does not apply or there are too few sorties."
+msgstr ""
+
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "При построении этой страницы на сервере произошла ошибка. Повторите попытку чуть позже."
@@ -4434,6 +4443,12 @@ msgstr ""
 # llm-draft
 msgid "Winner"
 msgstr "Победитель"
+
+msgid "With"
+msgstr ""
+
+msgid "Without"
+msgstr ""
 
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."

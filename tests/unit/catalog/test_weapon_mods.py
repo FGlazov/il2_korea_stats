@@ -52,9 +52,11 @@ def test_unknown_ids_and_types_keep_the_raw_id(catalog: Catalog) -> None:
 
 
 def test_parse_and_duplicates() -> None:
-    mods = parse_weapon_mods("vehicle,mod_id,name\nyak-9p,1,Artificial horizon\n")
-    assert mods == [WeaponModInfo("yak-9p", 1, "Artificial horizon")]
+    mods = parse_weapon_mods("vehicle,mod_id,name,significant\nyak-9p,1,Artificial horizon,false\n")
+    assert mods == [WeaponModInfo("yak-9p", 1, "Artificial horizon", False)]
     with pytest.raises(ValueError, match="duplicate"):
         Catalog(weapon_mods=[*mods, *mods])
     with pytest.raises(ValueError, match="mod_id"):
-        parse_weapon_mods("vehicle,mod_id,name\nyak-9p,0,Base\n")
+        parse_weapon_mods("vehicle,mod_id,name,significant\nyak-9p,0,Base,false\n")
+    with pytest.raises(ValueError, match="significant"):
+        parse_weapon_mods("vehicle,mod_id,name,significant\nyak-9p,1,Base,maybe\n")

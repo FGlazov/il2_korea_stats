@@ -48,8 +48,8 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
 
     return {
         "stats": rows(AircraftStats, "aircraft_id"),
-        "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role"),
-        "payloads": rows(AircraftPayload, "aircraft_id", "payload_name", "combat_role"),
+        "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
+        "payloads": rows(AircraftPayload, "aircraft_id", "payload_name", "combat_role", "mod_pattern"),
     }
 
 
@@ -111,7 +111,7 @@ def history() -> tuple[Tour, Tour]:
 
 
 def role_row(log_name: str, tour: Tour | None, role: str) -> TourAircraftStats:
-    return TourAircraftStats.objects.get(aircraft__log_name=log_name, tour=tour, role=role)
+    return TourAircraftStats.objects.get(aircraft__log_name=log_name, tour=tour, role=role, mod_pattern="")
 
 
 def test_role_rows_per_tour_and_all_time_with_distinct_pilots() -> None:
@@ -130,7 +130,7 @@ def test_role_rows_per_tour_and_all_time_with_distinct_pilots() -> None:
     assert role_row("MiG-15bis", None, ATTACK).pilots == 2
     # the `all` role stays what the per-tour player rows sum to; the all-time `all` row is AircraftStats alone
     assert role_row("MiG-15bis", september, "all").sorties == air.sorties + attack.sorties
-    assert not TourAircraftStats.objects.filter(tour__isnull=True, role="all").exists()
+    assert not TourAircraftStats.objects.filter(tour__isnull=True, role="all", mod_pattern="").exists()
     assert AircraftStats.objects.get(aircraft__log_name="MiG-15bis").sorties == 4
 
 
@@ -188,16 +188,17 @@ def test_loadout_average_elo_is_sortie_weighted_with_type_then_pool_elo() -> Non
             weighted += value * sorties
             sorties_rated += sorties
     assert sorties_rated > 0
-    stored = AircraftPayload.objects.get(aircraft=sabre, payload_name="Payload 1", combat_role=AIR)
+    stored = AircraftPayload.objects.get(aircraft=sabre, payload_name="Payload 1", combat_role=AIR, mod_pattern="")
     assert stored.elo_avg == pytest.approx(weighted / sorties_rated, abs=0.001)
     # attack loadouts have no Elo; neither has the other type's attack loadout
-    assert AircraftPayload.objects.get(aircraft=mig, payload_name="Payload 2", combat_role=ATTACK).elo_avg is None
+    attack = AircraftPayload.objects.get(aircraft=mig, payload_name="Payload 2", combat_role=ATTACK, mod_pattern="")
+    assert attack.elo_avg is None
 
 
 def test_loadout_without_a_rated_pilot_has_no_average_elo() -> None:
     save(mission((sortie(0, 1, payload_id=1, combat_role=AIR),), ()))
 
-    assert AircraftPayload.objects.get().elo_avg is None
+    assert AircraftPayload.objects.get(mod_pattern="").elo_avg is None
 
 
 def detail(log_name: str) -> str:
@@ -392,8 +393,8 @@ def test_role_page_budgets(client: Client) -> None:
     mig = detail("MiG-15bis")
 
     # tours + the stats row + the scoped row + hits + matchups + two top-pilot tables + loadouts + 2 context
-    assert_simple_reads(client, f"{mig}?tour={september.pk}&role=attack", max_queries=10)
-    assert_simple_reads(client, f"{mig}?tour=all&role=air_superiority", max_queries=10)
-    assert_simple_reads(client, f"{mig}?tour=all&role=air_superiority&lsort=-elo", max_queries=10)
-    assert_simple_reads(client, f"{mig}?tour=all", max_queries=9)
+    assert_simple_reads(client, f"{mig}?tour={september.pk}&role=attack", max_queries=11)
+    assert_simple_reads(client, f"{mig}?tour=all&role=air_superiority", max_queries=11)
+    assert_simple_reads(client, f"{mig}?tour=all&role=air_superiority&lsort=-elo", max_queries=11)
+    assert_simple_reads(client, f"{mig}?tour=all", max_queries=10)
     assert_simple_reads(client, reverse("web:aircraft-list") + "?tour=all&role=attack", max_queries=5)

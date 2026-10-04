@@ -1,34 +1,34 @@
-vehicle,mod_id,name
-yak-9p,1,Artificial horizon
-yak-9p,2,PKI gunsight
-yak-9p,3,Rearview mirror
-yak-9p,4,Smoke generators
-la-11,1,Blind landing system and instrumentation
-la-11,2,ASP-3N gunsight
-la-11,3,Photographic equipment
-la-11,4,Smoke generators
-mig-15bis,1,NR-23 cannons
-mig-15bis,2,Improved air brakes and wing
-mig-15bis,3,Warning system
-mig-15bis,4,Additional armor protection
-mig-15bis,5,Anti-G suit
-mig-15bis,6,Aerobatic
-f-51d,1,K-14C gyroscopic gunsight
-f-51d,2,AN/APS-13 tail warning radar
-f-51d,3,Rearview mirror
-f-51d,4,150-grade fuel
-f-51d,5,Aerobatic
-f-84e,1,JATO
-f-84e,2,Aerobatic
-f-80c-10,1,Aerobatic
-f-80c-10,2,JATO
-f-86a-5,1,A-1CM Gunsight
-f-86a-5,2,Aerobatic
-il-10,1,Aerobatic
-b-29,1,13 x .50 cal machine guns
-b-29,2,Flame dampers
-li-2,1,Cargo
-li-2,2,Ambulance
-c-47b,1,Cargo
-c-47b,2,Ambulance
-c-47b,4,Parachute flares
+vehicle,mod_id,name,significant
+yak-9p,1,Artificial horizon,false
+yak-9p,2,PKI gunsight,false
+yak-9p,3,Rearview mirror,false
+yak-9p,4,Smoke generators,false
+la-11,1,Blind landing system and instrumentation,false
+la-11,2,ASP-3N gunsight,false
+la-11,3,Photographic equipment,false
+la-11,4,Smoke generators,false
+mig-15bis,1,NR-23 cannons,true
+mig-15bis,2,Improved air brakes and wing,true
+mig-15bis,3,Warning system,false
+mig-15bis,4,Additional armor protection,false
+mig-15bis,5,Anti-G suit,true
+mig-15bis,6,Aerobatic,false
+f-51d,1,K-14C gyroscopic gunsight,false
+f-51d,2,AN/APS-13 tail warning radar,false
+f-51d,3,Rearview mirror,false
+f-51d,4,150-grade fuel,true
+f-51d,5,Aerobatic,false
+f-84e,1,JATO,false
+f-84e,2,Aerobatic,false
+f-80c-10,1,Aerobatic,false
+f-80c-10,2,JATO,false
+f-86a-5,1,A-1CM Gunsight,false
+f-86a-5,2,Aerobatic,false
+il-10,1,Aerobatic,false
+b-29,1,13 x .50 cal machine guns,false
+b-29,2,Flame dampers,false
+li-2,1,Cargo,false
+li-2,2,Ambulance,false
+c-47b,1,Cargo,false
+c-47b,2,Ambulance,false
+c-47b,4,Parachute flares,false

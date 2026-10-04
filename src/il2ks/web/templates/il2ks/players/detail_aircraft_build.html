@@ -3,7 +3,7 @@
   detail_aircraft_build.html: the extra row under one row of the per-aircraft table (detail_aircraft.html): the favourite
   loadout with its share of sorties and a <details> with all loadouts, the weapon-modification sets and the gun ammo mix.
   Context: build (queries.builds.AircraftBuild or None; nothing is shown for None). Hits by ammo are NOT the belt the
-  player picked (the log has no belt field), and the WM values have no names yet (OQ-25).
+  player picked (the log has no belt field), and the WM bitmasks are shown by the names of weapon_mods.csv ("No modifications" for none, #id for an unlisted one).
 {% endcomment %}{% if build and build.loadouts %}
   {% with fav=build.loadouts.0 %}
   <tr class="aircraft-table__build">
@@ -24,10 +24,9 @@
           <h4>{% translate "Weapon modifications" %}</h4>
           <ul class="build-detail__list">
             {% for m in build.mods %}
-              <li>{% blocktranslate with value=m.mods %}Set {{ value }}{% endblocktranslate %} · {{ m.percent }}% <span class="muted">({{ m.sorties|num }})</span></li>
+              <li>{% if m.names %}{{ m.names|join:" + " }}{% else %}{% translate "No modifications" %}{% endif %} ·{{ m.percent }}% <span class="muted">({{ m.sorties|num }})</span></li>
             {% endfor %}
           </ul>
-          <p class="muted"><small>{% translate "Modification names are not known yet: the numbers are the raw values from the log." %}</small></p>
           {% if build.ammo %}
             <h4>{% translate "Hits by ammo" %}</h4>
             <ul class="build-detail__list">

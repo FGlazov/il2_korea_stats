@@ -10,6 +10,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from il2ks.db.models import BuildKind, Player, PlayerAircraftBuild, Tour
+from il2ks.queries.aircraft import mod_names
 from il2ks.queries.ammo import ammo_info
 
 
@@ -26,9 +27,11 @@ class LoadoutShare:
 
 @dataclass(frozen=True, slots=True)
 class ModShare:
-    """One `WM` value (weapon-modification bitmask) and its share of the sorties."""
+    """One `WM` value (weapon-modification bitmask) and its share of the sorties. `names` are the modifications of the
+    set by id (`weapon_mods.csv`), empty = none chosen."""
 
     mods: int
+    names: tuple[str, ...]
     sorties: int
     percent: int
 
@@ -58,7 +61,7 @@ def _percent(part: int, whole: int) -> int:
 
 def player_builds(player: Player, tour: Tour | None = None) -> dict[int, AircraftBuild]:
     """The builds of the player's aircraft types, all time or within `tour`; empty for a type without rows."""
-    rows = PlayerAircraftBuild.objects.filter(player=player)
+    rows = PlayerAircraftBuild.objects.filter(player=player).select_related("aircraft")
     rows = rows.filter(tour_id__isnull=True) if tour is None else rows.filter(tour=tour)
     by_type: dict[int, list[PlayerAircraftBuild]] = defaultdict(list)
     for row in rows.order_by("aircraft_id", "-sorties", "-hits", "value", "label"):
@@ -67,6 +70,7 @@ def player_builds(player: Player, tour: Tour | None = None) -> dict[int, Aircraf
 
 
 def _build(aircraft_id: int, rows: list[PlayerAircraftBuild]) -> AircraftBuild:
+    log_name = rows[0].aircraft.log_name
     payloads = [r for r in rows if r.kind == BuildKind.PAYLOAD.value]
     mods = [r for r in rows if r.kind == BuildKind.MODS.value]
     total = sum(r.sorties for r in payloads)
@@ -82,6 +86,6 @@ def _build(aircraft_id: int, rows: list[PlayerAircraftBuild]) -> AircraftBuild:
         aircraft_id,
         total,
         tuple(LoadoutShare(r.value, r.label, r.sorties, _percent(r.sorties, total)) for r in payloads),
-        tuple(ModShare(r.value, r.sorties, _percent(r.sorties, total)) for r in mods),
+        tuple(ModShare(r.value, mod_names(log_name, r.value), r.sorties, _percent(r.sorties, total)) for r in mods),
         tuple(AmmoShare(name, designation, hits, _percent(hits, hits_total)) for name, (designation, hits) in ammo),
     )
