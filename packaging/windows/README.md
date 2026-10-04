@@ -82,6 +82,17 @@ Python dependencies are not pinned here: they come from `uv.lock` (`uv lock --up
 
 Tests: `tests/unit/test_windows_packaging.py`.
 
+## Upgrade check of customized pages
+
+After an upgrade (`il2ks.toml` existed) `FinishInstall` calls `CheckCustomOverrides`, which runs
+`python -P -m il2ks --config <toml> custom list --problems --fail-on-problems` (as the installer's own, elevated user; it only reads).
+Exit code 4 (`EXIT_PROBLEMS`) means some override in `custom\` is out of date: an interactive install shows a message box (first 8
+files, the three commands to run, docs/customizing.md); a silent one (`WizardSilent`, which includes `/SUPPRESSMSGBOXES` runs) only
+logs. Both write the full report to the installer log and to `%ProgramData%\il2ks\logs\installer-custom-check.log`. Any other exit
+code is logged and ignored: the check never fails an install. A fresh install skips it. `il2ks custom list --json` is the
+machine-readable form. CI (`windows-installer.yml`, smoke job) makes an override outdated, installs over it silently and asserts the
+report; the message box itself is only checked by hand.
+
 ## Follow-up: the first-run web setup page
 
 The wizard asks everything itself and runs `il2ks setup --non-interactive`, so the web setup page
