@@ -73,13 +73,15 @@ def measure(page: Page, url: str, base: str) -> Weight:
     return weight
 
 
-# Budgets: measured on 2026-10-04 on the e2e world, ~25% headroom. Worst page then: 11 requests, 336 KB (the mission
-# and sortie pages of the anonymized real log, with 107-122 KB of HTML). The rest is the same on every page and mostly
+# Budgets: measured on 2026-10-04 on the e2e world, ~25% headroom. Worst page then: 11 requests, ~310 KB (the mission
+# and sortie pages of the anonymized real log). Their HTML was 107-122 KB until the lists were paginated (OQ-96: 10
+# missions, 20 sorties, kills and timeline rows a page); now 87-95 KB, about half of it inline SVG icons.
+# The rest is the same on every page and mostly
 # vendored: CSS 113 KB (pico 81, site 28), JS 57 KB (htmx 51), fonts 22-44 KB, one image. Uncompressed: production
 # serves these gzip/brotli-compressed by WhiteNoise, roughly a quarter of the size.
 MAX_REQUESTS = 16
-MAX_TOTAL_KB = 420
-MAX_HTML_KB = 150
+MAX_TOTAL_KB = 390
+MAX_HTML_KB = 120
 MAX_CSS_KB = 140
 MAX_JS_KB = 75
 MAX_FONT_KB = 60

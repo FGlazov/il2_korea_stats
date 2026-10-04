@@ -25,9 +25,10 @@ from il2ks.db.models import (
     StreakKind,
     Tour,
 )
+from il2ks.queries.paging import ROW_PAGE_SIZE
 
-PAGE_SIZE = 50
-RUNS_PAGE_SIZE = 20  # streak runs per page (OQ-82)
+PAGE_SIZE = ROW_PAGE_SIZE
+RUNS_PAGE_SIZE = ROW_PAGE_SIZE  # streak runs per page (OQ-82)
 TOP_OPPONENTS = 5
 TOP_TYPES = 5  # enemy aircraft types per direction in the profile block
 HOME_STREAKS = 5

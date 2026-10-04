@@ -33,8 +33,9 @@ from il2ks.db.models import (
     PlayerTourPool,
     Tour,
 )
+from il2ks.queries.paging import ROW_PAGE_SIZE
 
-PAGE_SIZE = 25
+PAGE_SIZE = ROW_PAGE_SIZE
 SECONDS_PER_HOUR = 3600.0
 
 

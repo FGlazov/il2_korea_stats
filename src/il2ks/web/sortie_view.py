@@ -28,8 +28,6 @@ type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
 
 TIMELINE_GROUP_MIN = 3  # consecutive ground kills folded into one row from this many on
-TIMELINE_HEAD_ROWS = 80  # rows shown at once; the rest sits in a "show all" element
-DAMAGE_HEAD_ROWS = 15
 AIR_CLASSES = frozenset({"fighter", "attacker", "bomber", "transport"})
 BOMBER_CLASSES = frozenset({"attacker", "bomber", "transport"})  # the targets of a "bomber hunter" (flavor.py)
 
@@ -759,12 +757,10 @@ class Detail:
     friendly: Sequence[KillRow]
     ground: GroundBreakdown
     shot_down_by: Sequence[KillerRow]
-    damage: Sequence[DamageRow]
-    damage_more: Sequence[DamageRow]
+    damage: Sequence[DamageRow]  # every row; the view paginates them (`web.views.sorties`, 20 a page)
     ammo: AmmoTable
     lost_to: str  # who is behind the loss (pve.loss_label); empty when nothing was lost
-    timeline: Sequence[TimelineRow]
-    timeline_more: Sequence[TimelineRow]
+    timeline: Sequence[TimelineRow]  # every row; the view paginates them
     timeline_events: int
     highlights: Highlights
 
@@ -803,12 +799,10 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         friendly=friendly,
         ground=ground_breakdown(sortie),
         shot_down_by=shot_down_by(sortie, suffered, lookup),
-        damage=damage[:DAMAGE_HEAD_ROWS],
-        damage_more=damage[DAMAGE_HEAD_ROWS:],
+        damage=damage,
         ammo=ammo_table(sortie),
         lost_to=pve.loss_label(sortie.loss_class),
-        timeline=timeline[:TIMELINE_HEAD_ROWS],
-        timeline_more=timeline[TIMELINE_HEAD_ROWS:],
+        timeline=timeline,
         timeline_events=len(sortie.timeline),
         highlights=build_highlights(sortie, lookup),
     )

@@ -1,7 +1,7 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v5 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Timeline rows as a table. Context: rows (sortie_view.TimelineRow: kind, icon, label, tone, clock, utc, place, text,
-  who, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element.
+  who, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element, the first 20 listed (OQ-96).
 {% endcomment %}<div class="table-wrap table-wrap--flat">
   <table class="data-table data-table--compact timeline">
     <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Event" %}</th><th scope="col">{% translate "Details" %}</th><th scope="col" class="num">{% translate "Damage" %}</th></tr></thead>
@@ -14,7 +14,7 @@
             {% if row.children %}
               <details class="timeline__group">
                 <summary>{% blocktranslate with n=row.count|num %}{{ n }} ground targets{% endblocktranslate %}: <small>{{ row.summary }}</small></summary>
-                <ul>{% for child in row.children %}<li><small class="nowrap">{{ child.clock }}</small> {% include "il2ks/sorties/parts/who.html" with who=child.who %}</li>{% endfor %}</ul>
+                <ul>{% for child in row.children|slice:":20" %}<li><small class="nowrap">{{ child.clock }}</small> {% include "il2ks/sorties/parts/who.html" with who=child.who %}</li>{% endfor %}{% if row.count > 20 %}<li class="muted">{% blocktranslate with n=row.count|add:"-20"|num %}…and {{ n }} more (the breakdown by target type above counts them all){% endblocktranslate %}</li>{% endif %}</ul>
               </details>
             {% else %}
               {% if row.text %}{{ row.text }}{% endif %}

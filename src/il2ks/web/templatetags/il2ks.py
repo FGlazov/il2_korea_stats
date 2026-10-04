@@ -63,6 +63,11 @@ def _params_of(context: Context) -> QueryDict:
     return request.GET if request is not None else QueryDict()
 
 
+def _page_resets(params: QueryDict) -> dict[str, None]:
+    """Every paging parameter ('page', 'page_redfor', ...) set to None: a new sort starts every table at page 1."""
+    return {key: None for key in {"page", *params} if key == "page" or key.startswith("page_")}
+
+
 def replace_query(params: QueryDict, changes: Mapping[str, object | None]) -> str:
     """'?a=1&b=2' from `params` with `changes` applied: a None or '' value drops the key. '' when nothing is left.
 
@@ -478,20 +483,24 @@ def sort_th(
         "numeric": numeric,
         "direction": direction,
         "aria_sort": {"asc": "ascending", "desc": "descending"}.get(direction, "none"),
-        "href": replace_query(_params_of(context), {"sort": target, "page": None}),
+        "href": replace_query(_params_of(context), {"sort": target, **_page_resets(_params_of(context))}),
     }
 
 
 @register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
-def pagination(context: Context, page_obj: Page) -> dict[str, object]:
-    """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters."""
+def pagination(context: Context, page_obj: Page, param: str = "page") -> dict[str, object]:
+    """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters,
+    every value of a repeated one (`cols`) included.
+
+    A page with several paginated tables gives each its own query parameter, named 'page_...':
+    {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1)."""
     params = _params_of(context)
     paginator = page_obj.paginator
     links = [
         {
             "number": link.number,
             "current": link.current,
-            "href": replace_query(params, {"page": link.number if link.number != 1 else None})
+            "href": replace_query(params, {param: link.number if link.number != 1 else None})
             if link.number is not None
             else "",
         }
@@ -505,11 +514,11 @@ def pagination(context: Context, page_obj: Page) -> dict[str, object]:
         "multiple": paginator.num_pages > 1,
         "links": links,
         "prev_href": (
-            replace_query(params, {"page": page_obj.previous_page_number() if page_obj.number > 2 else None})
+            replace_query(params, {param: page_obj.previous_page_number() if page_obj.number > 2 else None})
             if page_obj.has_previous()
             else ""
         ),
-        "next_href": replace_query(params, {"page": page_obj.next_page_number()}) if page_obj.has_next() else "",
+        "next_href": replace_query(params, {param: page_obj.next_page_number()}) if page_obj.has_next() else "",
     }
 
 
