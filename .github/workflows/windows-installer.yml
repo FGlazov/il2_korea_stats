@@ -55,6 +55,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30  # a silent install that waits for input would otherwise hang for 6 hours
     steps:
+      - uses: actions/checkout@v7  # only for .github/scripts/run-installer.ps1
       - uses: actions/download-artifact@v8
         with:
           name: il2ks-windows-installer
@@ -73,10 +74,8 @@ jobs:
           $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=$app", "/LOG=$env:RUNNER_TEMP\setup.log",
                     '/NOSERVICE', '/NOFIREWALL', '/MERGETASKS=!firewall', "/LOGDIR=$logs", '/TIMEZONE=UTC',
                     '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
-          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          .github\scripts\run-installer.ps1 -Exe $exe -LogFile "$env:RUNNER_TEMP\setup.log" -Arguments $args
           if (Test-Path "$pw") { throw "the installer did not delete the password file" }
-          if (Test-Path "$env:RUNNER_TEMP\setup.log") { Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 60 }
-          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
 
       - name: il2ks --version and doctor from the installed copy
         shell: pwsh
@@ -122,9 +121,7 @@ jobs:
           $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
           $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=$env:APP", "/LOG=$env:RUNNER_TEMP\upgrade.log",
                     '/NOSERVICE', '/NOFIREWALL', '/MERGETASKS=!firewall')
-          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
-          Get-Content "$env:RUNNER_TEMP\upgrade.log" | Select-Object -Last 40
-          if ($p.ExitCode -ne 0) { throw "the upgrade failed with exit code $($p.ExitCode)" }
+          .github\scripts\run-installer.ps1 -Exe $exe -LogFile "$env:RUNNER_TEMP\upgrade.log" -Arguments $args
           $report = "$env:ProgramData\il2ks\logs\installer-custom-check.log"
           if (-not (Test-Path $report)) { throw "no ${report}: the upgrade did not check the customized templates" }
           Get-Content $report
@@ -149,6 +146,7 @@ jobs:
     timeout-minutes: 30
     continue-on-error: true
     steps:
+      - uses: actions/checkout@v7  # only for .github/scripts/run-installer.ps1
       - uses: actions/download-artifact@v8
         with:
           name: il2ks-windows-installer
@@ -165,9 +163,7 @@ jobs:
           $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\setup.log", '/NOFIREWALL',
                     '/HTTPS=external', '/DOMAIN=stats.example.org', "/LOGDIR=$logs", '/TIMEZONE=UTC',
                     '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
-          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
-          Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 80
-          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+          .github\scripts\run-installer.ps1 -Exe $exe -LogFile "$env:RUNNER_TEMP\setup.log" -Arguments $args
 
       - name: The service is running and the site answers
         shell: pwsh
