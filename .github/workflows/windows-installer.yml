@@ -82,9 +82,16 @@ jobs:
         run: |
           & "$env:APP\il2ks.cmd" --version
           if ($LASTEXITCODE -ne 0) { throw "il2ks --version failed" }
-          & "$env:APP\il2ks.cmd" doctor
-          # 0 = all OK, 1 = warnings (no missions yet, no domain), 2 = errors: only that fails the job
-          if ($LASTEXITCODE -ge 2) { throw "il2ks doctor reported errors (exit code $LASTEXITCODE)" }
+          $report = & "$env:APP\il2ks.cmd" doctor 2>&1 | Out-String
+          $code = $LASTEXITCODE
+          Write-Output $report
+          # 0 = all OK, 1 = warnings (no missions yet, no domain), 2 = errors: only that fails the job. The GitHub
+          # runner has something listening on port 80 already (shown below), which is the runner's, not ours.
+          Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue |
+            ForEach-Object { Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue } | Format-Table Id, ProcessName
+          $errors = ([regex]::Matches($report, '\[ERROR\] ([^\r\n]*)') | ForEach-Object { $_.Groups[1].Value })
+          $unexpected = @($errors | Where-Object { $_ -notmatch '^Port 80 ' })
+          if ($code -ge 2 -and $unexpected.Count -gt 0) { throw "il2ks doctor reported errors: $($unexpected -join '; ')" }
           if (-not (Test-Path "$env:APP\service\il2ks-service.exe")) { throw "the service wrapper is missing" }
           if (-not (Test-Path "$env:APP\bin\caddy.exe")) { throw "caddy.exe is missing" }
           & "$env:APP\bin\caddy.exe" version
