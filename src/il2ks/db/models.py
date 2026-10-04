@@ -1532,6 +1532,13 @@ class SiteSettings(models.Model):
     # row, which every page reads already, so a quip costs no extra query.
     quips_enabled = models.BooleanField(default=True)
     quips: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    # Admin-configurable achievements: `achievements` is the admin's choice `{"off": [key], "thresholds": {key: [n]},
+    # "names": {key: {language: text}}, "descriptions": {...}}` (`il2ks.web.achievement_config`; empty = the built-in
+    # set, unchanged). `achievements_applied` is what the stored `PlayerAchievement` rows were last computed with
+    # (`{"off", "thresholds"}`, written only by `ingest.achievements`); the two differ while a recompute is pending.
+    # Both live on the settings row every page reads already, so they cost no query.
+    achievements: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    achievements_applied: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     # "Show sorties of the running mission" (FR-ING-15): `watch` saves the running mission provisionally every few
     # minutes, so its sorties show on the pages and move the counters before the mission ends. Off = online now only.
     show_live_sorties = models.BooleanField(default=True)

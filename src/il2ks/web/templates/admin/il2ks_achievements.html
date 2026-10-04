@@ -1,0 +1,60 @@
+{# il2ks-template: templates/admin/il2ks_achievements.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {% translate "Achievements" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% translate "Achievements are the medals, ribbons and hall-of-shame entries pilots earn. They are all on by default with the built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or change the number each tier needs." %}</p>
+  <p>{% blocktranslate %}Names, descriptions and the on/off switch apply to the pages at once. An achievement that is switched off disappears from profiles, sortie pages, the overview, the holder lists, the home feed and the rarity figures. Your own texts are plain text (no HTML), at most {{ max_name }} characters for a name and {{ max_description }} for a description; leave a language blank to show the built-in text translated into it.{% endblocktranslate %}</p>
+  <p>{% translate "Thresholds are different: who holds which tier is worked out when sorties are ingested. After you change a threshold, or switch an achievement back on, the site recomputes every pilot's achievements in the background (the watch process does it within a minute or so, or the next rebuild-aggregates does). Until then the pages keep showing the old thresholds, and afterwards the holders, the dates and the rarity percentages change. Every tier needs a number: increasing, whole numbers, as many tiers as the built-in achievement has." %}</p>
+  {% if pending %}
+  <p class="errornote">{% translate "A recompute is pending: the saved thresholds or switches are not applied to the pilots' achievements yet. It runs on its own as soon as the watch process is free (the site shows the old thresholds until then)." %}</p>
+  {% else %}
+  <p>{% translate "No recompute is pending: the pilots' achievements match the saved thresholds and switches." %}</p>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {% for row in rows %}
+    <fieldset class="module aligned" id="achievement-{{ row.key }}">
+      <h2>{{ row.title }}{% if row.customised %} ({% translate "changed" %}){% endif %}</h2>
+      <div class="form-row">
+        <label for="on-{{ row.key }}" class="vCheckboxLabel">{% translate "Switched on" %}</label>
+        <input type="checkbox" name="on-{{ row.key }}" id="on-{{ row.key }}"{% if row.on %} checked{% endif %}>
+        <div class="help">{{ row.default_description }}</div>
+      </div>
+      <div class="form-row">
+        <label>{% translate "Tier thresholds" %}</label>
+        <div>
+          {% for value in row.thresholds %}
+          <input type="number" name="thr-{{ row.key }}-{{ forloop.counter }}" value="{{ value }}" min="1" step="1" style="width:7em" aria-label="{% blocktranslate with n=forloop.counter %}Tier {{ n }}{% endblocktranslate %}">
+          {% endfor %}
+          <div class="help">{% blocktranslate with values=row.default_thresholds|join:", " %}Built-in: {{ values }}. Leave all blank to use them.{% endblocktranslate %}{% if row.changes_rows %} {% translate "Differs from what the pilots' achievements were computed with: a recompute is pending." %}{% endif %}</div>
+        </div>
+      </div>
+      <details>
+        <summary>{% translate "Own name and description per language" %}</summary>
+        {% for t in row.texts %}
+        <div class="form-row">
+          <label for="name-{{ row.key }}-{{ t.code }}">{{ t.language }}</label>
+          <input type="text" name="name-{{ row.key }}-{{ t.code }}" id="name-{{ row.key }}-{{ t.code }}" value="{{ t.name }}" maxlength="{{ max_name }}" size="30" placeholder="{% translate 'Name (blank: built-in)' %}" aria-label="{% blocktranslate with language=t.language %}Name in {{ language }}{% endblocktranslate %}">
+          <input type="text" name="desc-{{ row.key }}-{{ t.code }}" value="{{ t.description }}" maxlength="{{ max_description }}" size="70" placeholder="{% translate 'Description (blank: built-in)' %}" aria-label="{% blocktranslate with language=t.language %}Description in {{ language }}{% endblocktranslate %}">
+        </div>
+        {% endfor %}
+      </details>
+      <div class="form-row">
+        <label for="reset-{{ row.key }}" class="vCheckboxLabel">{% translate "Reset to default" %}</label>
+        <input type="checkbox" name="reset" value="{{ row.key }}" id="reset-{{ row.key }}">
+        <div class="help">{% translate "Tick and save: this achievement goes back to switched on, with the built-in words and thresholds, whatever is typed above." %}</div>
+      </div>
+    </fieldset>
+    {% endfor %}
+    <div class="submit-row"><input type="submit" value="{% translate 'Save' %}" class="default"></div>
+  </form>
+</div>
+{% endblock %}

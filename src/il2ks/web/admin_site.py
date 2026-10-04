@@ -18,7 +18,9 @@ from il2ks.db.models import SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.serving import custom
+from il2ks.web import admin_achievements as achievement_forms
 from il2ks.web import quips
+from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig
 from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
 from il2ks.web.ingest_status import build_overview
 from il2ks.web.quips import QuipConfig
@@ -44,6 +46,7 @@ class Il2ksAdminSite(admin.AdminSite):
         extra = [
             path("ingestion/", self.admin_view(self.ingest_status_view), name="ingest-status"),
             path("quips/", self.admin_view(self.quips_view), name="quips"),
+            path("achievements/", self.admin_view(self.achievements_view), name="achievements"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
         ]
         return [*extra, *super().get_urls()]
@@ -85,6 +88,37 @@ class Il2ksAdminSite(admin.AdminSite):
             "status_url": status_url,
         }
         return TemplateResponse(request, "admin/il2ks_reprocess_confirm.html", context)
+
+    def achievements_view(self, request: HttpRequest) -> HttpResponse:
+        """The Achievements page (FR-WEB-26): switch, words and thresholds of every achievement. Words and switches
+        apply at once; thresholds (and switching one back on) when `watch` has recomputed the rows (the page says)."""
+        if not request.user.has_perm("il2ks_db.change_sitesettings"):
+            raise PermissionDenied
+        row = get_site_settings()
+        config = AchievementConfig.from_row(row)
+        pending = config.wanted != config.applied  # of the stored choice, not of a rejected form
+        typed: dict[str, tuple[str, ...]] = {}
+        if request.method == "POST":
+            posted, errors, typed = achievement_forms.parse_form(request.POST, config)
+            if not errors:
+                with transaction.atomic():
+                    row.achievements = posted.to_json()
+                    row.save(update_fields=["achievements", "updated_at"])
+                    bump_data_version()  # cached pages refresh (TD-28)
+                messages.success(request, _("Achievements saved."))
+                return HttpResponseRedirect(reverse(f"{self.name}:achievements"))
+            for error in errors:
+                messages.error(request, error)
+            config = posted  # the form comes back as typed (nothing is lost)
+        context = {
+            **self.each_context(request),
+            "title": _("Achievements"),
+            "rows": achievement_forms.build_rows(config, typed),
+            "pending": pending,
+            "max_name": MAX_NAME,
+            "max_description": MAX_DESCRIPTION,
+        }
+        return TemplateResponse(request, "admin/il2ks_achievements.html", context)
 
     def quips_view(self, request: HttpRequest) -> HttpResponse:
         """The Quips page (FR-WEB-23): the global switch, every spot's mode, built-in lines (hide) and own lines."""

@@ -333,12 +333,18 @@ def earn(achievement: Achievement, sorties: Sequence[AchievementSortie]) -> list
     return earned
 
 
-def earn_all(sorties: Sequence[AchievementSortie], *, all_time: bool = True) -> list[EarnedTier]:
-    """Every tier of every registered achievement the pilot's sorties (chronological) reach. `all_time=False` (the
-    sorties are one tour's) leaves out the achievements that are `all_time_only`."""
+def earn_all(
+    sorties: Sequence[AchievementSortie],
+    *,
+    all_time: bool = True,
+    achievements: Sequence[Achievement] = ACHIEVEMENTS,
+) -> list[EarnedTier]:
+    """Every tier of every achievement in `achievements` (default: the whole registry; the admin's rules pass the
+    switched-on ones with their thresholds, `core.achievement_rules`) the pilot's sorties (chronological) reach.
+    `all_time=False` (the sorties are one tour's) leaves out the achievements that are `all_time_only`."""
     return [
         e
-        for achievement in ACHIEVEMENTS
+        for achievement in achievements
         if all_time or not achievement.all_time_only
         for e in earn(achievement, sorties)
     ]

@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from django.template import Context
 from django.test import Client
 
 from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings, Tour
@@ -350,13 +351,13 @@ def test_the_sortie_page_lists_a_tier_once_and_leaves_shame_to_the_hall_of_shame
     first = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t1").get()
     second = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t2").get()
 
-    in_first = [(m.key, m.tier, m.scope) for m in sortie_medals(first)]
+    in_first = [(m.key, m.tier, m.scope) for m in sortie_medals(Context(), first)]
     assert in_first.count(("career_kills", 1, None)) == 1
     assert not [m for m in in_first if m[0] == "career_kills" and m[2] is not None]  # not again for the tour
-    in_second = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(second)]
+    in_second = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(Context(), second)]
     assert ("career_kills", 1, True) in in_second  # first of the second tour, earlier all time
     assert ("career_kills", 1, False) not in in_second
-    assert all(not m.shame for m in sortie_medals(first))
+    assert all(not m.shame for m in sortie_medals(Context(), first))
 
 
 def test_a_medal_row_and_a_ribbon_rack_split_by_kind() -> None:

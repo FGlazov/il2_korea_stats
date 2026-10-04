@@ -26,6 +26,7 @@ from datetime import datetime, timedelta
 from django.db import OperationalError
 
 from il2ks.config import Config
+from il2ks.ingest.achievements import recompute_with_wanted_rules
 from il2ks.ingest.live import LiveTracker
 from il2ks.ingest.lock import LockBusyError
 from il2ks.ingest.reprocess import reprocess
@@ -129,6 +130,10 @@ def watch(
             )
         except Exception:
             log.exception("reprocess request tick failed; retrying next tick")
+        try:
+            recompute_with_wanted_rules(cfg)  # the admin changed an achievement threshold or switch
+        except Exception:
+            log.exception("achievement recompute failed; retrying next tick")
         backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
         live_tick()
         ticks += 1

@@ -9,6 +9,7 @@ row itself (`links`, `theme`), so they add no query.
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import cast
 
 from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
@@ -54,6 +55,19 @@ def nav_items(raw: object) -> list[NavItem]:
     return items
 
 
+_SITE_ATTR = "_il2ks_site_row"
+
+
+def site_row(request: HttpRequest) -> SiteSettings:
+    """The `SiteSettings` row (unsaved defaults when none exists), read once per request: the `site` context processor
+    and a view that needs a setting (the achievements' switches and words) share it, so the setting costs no query."""
+    row = getattr(request, _SITE_ATTR, None)
+    if row is None:
+        row = SiteSettings.objects.filter(pk=1).first() or SiteSettings()
+        setattr(request, _SITE_ATTR, row)
+    return cast(SiteSettings, row)
+
+
 def site(request: HttpRequest) -> dict[str, object]:
     """Adds `site`, `logo_url`, `nav_links`, `site_links`, `theme_css`, `data_updated`, `il2ks_version` to the context.
 
@@ -69,7 +83,7 @@ def site(request: HttpRequest) -> dict[str, object]:
     - `home_feature`: the large front-page image (`HomeFeatureView`) when the admin turned it on and it is usable,
       else None (`web.feature_image`; no query: it comes from the settings row).
     """
-    row = SiteSettings.objects.filter(pk=1).first() or SiteSettings()
+    row = site_row(request)
     version_row = request_data_version(request)  # shared with the caching middleware: one read per request
     data_updated: datetime | None = version_row.updated_at if version_row is not None else None
     logo_url = f"{django_settings.MEDIA_URL or '/media/'}{row.logo}" if row.logo else ""
