@@ -4,6 +4,7 @@ afterwards. Security first: every test of "refused" checks that nothing was crea
 import os
 import re
 import tomllib
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,7 @@ from pytest_django.fixtures import Settings
 from il2ks.config import load_config
 from il2ks.ops import admin, serving_checks
 from il2ks.ops.detect import LogFolder
-from il2ks.ops.setup import SetupAnswers, SetupOptions, complete_web_setup, run_setup
+from il2ks.ops.setup import SetupAnswers, SetupOptions, WebSetupResult, complete_web_setup, run_setup
 from il2ks.ops.template import toml_string
 from il2ks.serving import procutil, setup_token
 from il2ks.web.views import setup as setup_view
@@ -241,6 +242,35 @@ def test_a_bad_domain_is_explained(pending: Path, token: str) -> None:
     html = submit(local(), token, domain="stats.example.com:8443")
     assert "stats.example.com:8443" in html or "no port" in html
     assert no_admin()
+
+
+@pytest.mark.parametrize("email", ["not-an-address", "a@b", 'x"y@example.com', "a@example.com b@example.com"])
+def test_a_bad_email_is_refused_by_the_same_check_as_il2ks_setup(pending: Path, token: str, email: str) -> None:
+    html = submit(local(), token, email=email, domain="stats.example.com")
+    assert "not an e-mail address" in html
+    assert no_admin()
+    assert not target(pending).exists()
+
+
+def test_the_finishing_marker_is_there_while_the_answer_is_made_and_gone_afterwards(
+    pending: Path, token: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`il2ks run` must not restart the stack for the new config until the summary page has been rendered."""
+    seen: list[bool] = []
+    original = setup_view.complete_web_setup
+
+    def spy(
+        answers: SetupAnswers, path: Path, env: Mapping[str, str], *, admin_username: str, admin_password: str
+    ) -> WebSetupResult:
+        seen.append(setup_token.finishing(pending))
+        return original(answers, path, env, admin_username=admin_username, admin_password=admin_password)
+
+    monkeypatch.setattr(setup_view, "complete_web_setup", spy)
+    assert "Setup finished" in submit(local(), token)
+    assert seen == [True]
+    assert not setup_token.finishing(pending)  # cleared again, also when the submit is refused:
+    submit(local(), token, admin_password2="nope")
+    assert not setup_token.finishing(pending)
 
 
 def test_an_unknown_time_zone_is_refused(pending: Path, token: str) -> None:

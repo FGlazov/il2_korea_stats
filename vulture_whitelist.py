@@ -160,6 +160,7 @@ _.editor_name  # core.catalog PayloadInfo.editor_name: payloads.csv column, kept
 # --- first-run setup page (web.setup_forms, serving.djsettings): read by Django / the template by name ----------------
 _.clean_domain  # SetupForm clean_<field> hooks
 _.clean_admin_username
+_.clean_email
 logs_choice  # declared SetupForm fields, rendered by hand in templates/il2ks/setup.html and read from cleaned_data
 logs_custom
 logs_allow_missing

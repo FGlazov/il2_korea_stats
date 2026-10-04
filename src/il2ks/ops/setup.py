@@ -46,6 +46,9 @@ type HttpsMode = Literal["caddy", "external"]
 HTTPS_MODES: tuple[HttpsMode, ...] = get_args(HttpsMode.__value__)
 DEFAULT_HTTPS_MODE: HttpsMode = "caddy"
 _DOMAIN_RE = re.compile(r"[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?")
+_EMAIL_RE = re.compile(r"[^@\s\"'<>(),;:\\]+@[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,}")
+MAX_DOMAIN_LENGTH = 253
+MAX_EMAIL_LENGTH = 254
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,9 +120,20 @@ def config_target(explicit: Path | None, env: Mapping[str, str]) -> Path:
 def normalize_domain(text: str) -> str:
     """`https://Stats.Example.com/` -> `stats.example.com`; raises ValueError if it can't be a host name."""
     domain = re.sub(r"^[a-z][a-z0-9+.-]*://", "", text.strip(), flags=re.IGNORECASE).split("/")[0].lower()
-    if domain and _DOMAIN_RE.fullmatch(domain) is None:
+    if domain and (_DOMAIN_RE.fullmatch(domain) is None or len(domain) > MAX_DOMAIN_LENGTH):
         raise ValueError(f"{text!r} is not a domain name or IP address (no spaces, no port)")
     return domain
+
+
+def normalize_email(text: str) -> str:
+    """The certificate-notice address, trimmed; "" is allowed (it is optional). Raises ValueError if it is not one.
+
+    The one check behind `il2ks setup` and the setup page. The address ends up in the config and in Caddy's
+    configuration, so anything that could break out of a value (quotes, spaces, line breaks) is refused."""
+    email = text.strip()
+    if email and (_EMAIL_RE.fullmatch(email) is None or len(email) > MAX_EMAIL_LENGTH):
+        raise ValueError(f"{text!r} is not an e-mail address")
+    return email
 
 
 def valid_timezone(name: str) -> bool:
@@ -158,17 +172,30 @@ def config_values(answers: SetupAnswers, uid: uuid.UUID) -> dict[Key, str]:
     return values
 
 
-def write_config_file(target: Path, text: str, now: Callable[[], datetime] = datetime.now) -> Path | None:
-    """Write `text` as the config atomically; returns the backup of the config it replaced, if any."""
-    backup: Path | None = None
-    if target.exists():
-        stamp = now().strftime("%Y%m%d-%H%M%S")
-        backup = target.with_name(f"{target.name}.bak-{stamp}")
-        shutil.copy2(target, backup)
+def write_config_file(
+    target: Path, text: str, env: Mapping[str, str], now: Callable[[], datetime] = datetime.now
+) -> Path | None:
+    """Replace the config by `text` atomically, but only if `text` loads: it is written to `<name>.tmp` next to the
+    target first and checked with `load_config`; a file that does not load is deleted and `ConfigError` raised, so a
+    bad answer never replaces a working config. Returns the backup of the config it replaced, if any."""
     target.parent.mkdir(parents=True, exist_ok=True)
     partial = target.with_name(target.name + ".tmp")
     partial.write_text(text, encoding="utf-8")
-    os.replace(partial, target)
+    try:
+        load_config(partial, env, create_server_uid=False)
+    except ConfigError:
+        partial.unlink(missing_ok=True)
+        raise
+    backup: Path | None = None
+    try:
+        if target.exists():
+            stamp = now().strftime("%Y%m%d-%H%M%S")
+            backup = target.with_name(f"{target.name}.bak-{stamp}")
+            shutil.copy2(target, backup)
+        os.replace(partial, target)
+    except OSError:
+        partial.unlink(missing_ok=True)
+        raise
     return backup
 
 
@@ -185,7 +212,7 @@ def apply_answers(
     A new file is the shipped template with the answers switched on. An existing file is first copied to
     `<name>.bak-<time>`, then either replaced by the template (`il2ks setup --force`) or, with `patch_existing`, changed
     only in the answered settings so what the admin added by hand survives (the setup page). Raises `ConfigError` if
-    the result does not load (an environment override that clashes; the file itself is valid)."""
+    the result does not load; it is checked in a temporary file first, so the existing config is left untouched."""
     exists = target.exists()
     uid = (_saved_server_uid(target) if exists else None) or stored_server_uid(answers.data_dir, create=True)
     values = config_values(answers, uid)
@@ -196,7 +223,7 @@ def apply_answers(
         text = patch_config(target.read_text(encoding="utf-8"), values, cleared)
     else:
         text = fill_template(template_text(), values)
-    backup = write_config_file(target, text, now)
+    backup = write_config_file(target, text, env, now)
     return ConfigApplied(target, backup, load_config(target, env))
 
 
@@ -321,7 +348,7 @@ class _Setup:
             return (
                 o.https_mode or DEFAULT_HTTPS_MODE,
                 normalize_domain(o.domain or ""),
-                (o.email or "").strip(),
+                normalize_email(o.email or ""),
             )
         self.io.say()
         self.io.say("4. Website address and HTTPS")
@@ -335,8 +362,16 @@ class _Setup:
             mode = "external" if self.io.ask("   Choose 1 or 2", "1") == "2" else "caddy"
         email = o.email or ""
         if mode == "caddy" and domain and o.email is None:
-            email = self.io.ask("   E-mail for certificate notices (optional, Enter to skip)", "")
-        return mode, domain, email.strip()
+            email = self._ask_email()
+        return mode, domain, normalize_email(email)
+
+    def _ask_email(self) -> str:
+        while True:
+            answer = self.io.ask("   E-mail for certificate notices (optional, Enter to skip)", "")
+            try:
+                return normalize_email(answer)
+            except ValueError as exc:
+                self.io.say(f"   {exc}")
 
     def _ask_domain(self) -> str:
         if self.opts.domain is not None:
@@ -429,7 +464,7 @@ def run_setup(
     try:
         applied = apply_answers(answers, target, env, now=now)
     except ConfigError as exc:  # can only be an environment override that clashes; the file itself is valid
-        io.say(f"il2ks setup: the new configuration does not load: {exc}")
+        io.say(f"il2ks setup: the new configuration does not load, so nothing was written: {exc}")
         return EXIT_USAGE
     cfg, old = applied.config, applied.backup
     cfg.data_dir.mkdir(parents=True, exist_ok=True)

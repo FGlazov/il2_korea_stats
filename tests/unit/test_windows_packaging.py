@@ -6,6 +6,7 @@ anywhere: the pinned inputs, the WinSW service definition, the time zone table, 
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -17,6 +18,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from build import BuildError, crlf, numeric_version, parse_pins, read_version, sha256_of
+from quoting import quote_arg
 from winsw import RESTART_DELAYS, STOP_TIMEOUT, ServiceSpec, render_service_xml
 from zones import WINDOWS_TO_IANA, render_pascal
 
@@ -114,7 +116,7 @@ def test_service_runs_il2ks_run_with_the_installed_config() -> None:
     assert root.findtext("id") == "il2ks"
     assert root.findtext("executable") == "%BASE%\\..\\python\\python.exe"
     arguments = root.findtext("arguments") or ""
-    assert arguments.startswith("-m il2ks ")
+    assert arguments.startswith("-P -m il2ks ")  # -P: the data folder (the working directory) is not on sys.path
     assert '--config "%ProgramData%\\il2ks\\il2ks.toml"' in arguments
     assert arguments.endswith(" run")  # the global --config comes before the subcommand (argparse)
     assert root.findtext("workingdirectory") == "%ProgramData%\\il2ks"
@@ -189,7 +191,7 @@ def test_zones_render_as_a_pascal_function() -> None:
 def test_installer_switches_used_in_code_are_documented_in_its_header() -> None:
     header = ISS_TEXT.split("[Setup]", 1)[0]
     used = set(re.findall(r"\bParam\('([A-Z]+)'\)", ISS_TEXT)) | set(re.findall(r"SwitchGiven\('([A-Z]+)'\)", ISS_TEXT))
-    assert {"LOGDIR", "TIMEZONE", "DOMAIN", "EMAIL", "HTTPS", "ADMINUSER", "ADMINPASSWORD", "NOSERVICE"} <= used
+    assert {"LOGDIR", "TIMEZONE", "DOMAIN", "EMAIL", "HTTPS", "ADMINUSER", "ADMINPASSWORDFILE", "NOSERVICE"} <= used
     for name in used:
         assert f"/{name}" in header, name
 
@@ -211,6 +213,68 @@ def test_installer_detection_snippet_runs_against_the_real_detection_code(tmp_pa
     )
     assert done.returncode == 0, done.stderr
     assert done.stdout.strip() == ""  # nothing to find in an empty home folder
+
+
+@pytest.mark.parametrize(
+    ("value", "quoted"),
+    [
+        ("D:\\IL-2\\logs", '"D:\\IL-2\\logs"'),
+        ("D:\\IL-2\\logs\\", '"D:\\IL-2\\logs\\\\"'),  # the trailing backslash is doubled: it must not escape the quote
+        ("D:\\x\\\\", '"D:\\x\\\\\\\\"'),
+        ("C:\\Program Files (x86)\\il2ks", '"C:\\Program Files (x86)\\il2ks"'),
+        ('a"b', '"ab"'),  # a quote cannot be part of a Windows path
+        ("", '""'),
+    ],
+)
+def test_quote_arg(value: str, quoted: str) -> None:
+    assert quote_arg(value) == quoted
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows' own argument parser")
+@pytest.mark.parametrize(
+    "value",
+    ["D:\\IL-2\\logs\\", "D:\\IL 2 (x86)\\logs\\\\", "C:\\", "D:\\a b\\c", "Europe/Berlin", "O'Brien & Sons <x>"],
+)
+def test_quote_arg_survives_the_real_windows_parser(value: str) -> None:
+    """`il2ks setup --logs-dir D:\\logs\\ --timezone UTC` arrives as two arguments, not one swallowed command line."""
+    code = "import sys, json; print(json.dumps(sys.argv[1:]))"
+    command = f'"{sys.executable}" -c "{code}" {quote_arg(value)} {quote_arg("next")}'
+    done = subprocess.run(command, capture_output=True, text=True, timeout=60, check=True)
+    assert json.loads(done.stdout) == [value.replace('"', ""), "next"]
+
+
+def test_installer_quotes_every_path_it_passes_and_never_puts_the_password_on_a_command_line() -> None:
+    assert "function QuoteArg" in ISS_TEXT
+    # no hand-quoted "--option "..." arguments left (those break on a trailing backslash)
+    assert not re.search(r"--[a-z-]+ \"'", ISS_TEXT)
+    assert not re.search(r"config \"' \+", ISS_TEXT)
+    # the password goes through a locked-down file, not through the environment or the command line
+    assert "IL2KS_ADMIN_PASSWORD'" not in ISS_TEXT
+    assert "SetEnvironmentVariable" not in ISS_TEXT
+    assert "--admin-password-file" in ISS_TEXT
+    assert "ADMINPASSWORDFILE" in ISS_TEXT.split("[Setup]", 1)[0]
+
+
+def test_installer_runs_python_in_safe_path_mode_and_the_service_as_its_virtual_account() -> None:
+    """Python with -P never imports from the current folder; the service has no rights beyond its own data (OQ-41)."""
+    for call in re.findall(r"RunCaptured\(PythonExe, ([^;]+)\)", ISS_TEXT):
+        assert call.startswith("PythonSafeFlag") or call.startswith("Args"), call
+    assert "Args := PythonSafeFlag + " in ISS_TEXT
+    assert "PythonSafeFlag = '-P '" in ISS_TEXT
+    assert "ServiceAccount = 'NT SERVICE\\il2ks'" in ISS_TEXT
+    assert "obj= \"' + ServiceAccount" in ISS_TEXT  # sc config il2ks obj= "NT SERVICE\il2ks"
+    assert "(OI)(CI)M" in ISS_TEXT  # Modify on the data folder, inherited
+
+
+def test_batch_files_use_safe_python_and_quote_safely() -> None:
+    run = (PACKAGING / "files" / "il2ks.cmd").read_text(encoding="utf-8")
+    assert 'python.exe" -P -m il2ks %*' in run
+    admin = (PACKAGING / "files" / "il2ks-admin.cmd").read_text(encoding="utf-8")
+    assert "-ArgumentList '%*'" not in admin  # an apostrophe or quote in the arguments broke the PowerShell command
+    assert "'%~f0'" not in admin  # so did one in the folder name
+    assert "$env:IL2KS_ADMIN_ARGS" in admin
+    code_lines = [line for line in admin.splitlines() if not line.lower().startswith("rem")]
+    assert not any(line.rstrip().endswith("(") or line.strip() == ")" for line in code_lines)  # no (...) blocks
 
 
 def test_windows_batch_files_have_no_unix_line_endings_after_the_build_step() -> None:

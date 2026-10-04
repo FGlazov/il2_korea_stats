@@ -13,14 +13,15 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import cast
 
-from il2ks.config import CONFIG_FILE, Config, ConfigError, load_config
+from il2ks.config import Config, ConfigError, load_config
 from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
 from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.ops import admin, backup, migrate, report
 from il2ks.ops.checks import raw_config
 from il2ks.ops.doctor import Finding, Level, run_checks
 from il2ks.ops.prompt import Cancelled, ConsolePrompter, Prompter, interactive_terminal
-from il2ks.ops.setup import HTTPS_MODES, SetupOptions, run_setup
+from il2ks.ops.setup import HTTPS_MODES, SetupOptions, config_target, run_setup
+from il2ks.serving import procutil
 from il2ks.serving.setup_token import discard_token
 
 DEFAULT_WEB_PORT = 8000
@@ -214,6 +215,23 @@ def web_port(cfg: Config, env: Mapping[str, str]) -> int:
         return DEFAULT_WEB_PORT
 
 
+def restore_config_target(cfg: Config, explicit: Path | None, env: Mapping[str, str]) -> Path:
+    """Where the restored `il2ks.toml` goes: the file this run was configured from, else where `il2ks setup` would put
+    it (`--config`, `IL2KS_CONFIG`, then the current folder), so the next start reads what was restored."""
+    return cfg.source.resolve() if cfg.source is not None else config_target(explicit, env)
+
+
+def _running_description(cfg: Config, port: int) -> str:
+    """Why il2ks seems to be running ("" if not): the `il2ks run` lock, or something answering on the web port."""
+    stack = procutil.running_stack(cfg.data_dir)
+    if stack is not None:
+        who = f" ({stack.describe()})" if stack.pid else ""
+        return f"il2ks run is running for {cfg.data_dir}{who}"
+    if backup.web_probably_running(port):
+        return f"something is answering on port {port}: the website is probably running"
+    return ""
+
+
 def cmd_restore(ns: argparse.Namespace, env: Mapping[str, str] | None = None, io: Prompter | None = None) -> int:
     env = os.environ if env is None else env
     io = io or ConsolePrompter()
@@ -238,8 +256,12 @@ def cmd_restore(ns: argparse.Namespace, env: Mapping[str, str] | None = None, io
     io.say(f"  made {manifest.created_at} by il2ks {manifest.il2ks_version} ({manifest.reason})")
     io.say(f"Restoring replaces the database, config, custom/ and media/ in {cfg.data_dir}.")
     port = web_port(cfg, env)
-    if backup.web_probably_running(port):
-        io.say(f"WARNING: something is answering on port {port}: the website is probably running. Stop it first.")
+    running = _running_description(cfg, port)
+    if running:
+        if not ns.force:
+            _say_error("restore", f"{running}.\nStop it first, then restore (or add --force).")
+            return EXIT_LOCKED
+        io.say(f"WARNING: {running}. Restoring anyway (--force): it can fail or confuse the running site.")
     io.say("The current state is backed up first, so this can be undone.")
     if not ns.yes:
         if not interactive_terminal():
@@ -251,7 +273,7 @@ def cmd_restore(ns: argparse.Namespace, env: Mapping[str, str] | None = None, io
                 return EXIT_OK
         except (Cancelled, KeyboardInterrupt):
             return EXIT_FAILED
-    target = cfg.source or Path.cwd() / CONFIG_FILE
+    target = restore_config_target(cfg, ns.config, env)
     try:
         result = backup.restore_backup(cfg, zip_path, target)
     except LockBusyError as exc:

@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from il2ks.ops import admin
 from il2ks.ops.detect import LogFolder, inspect_folder
-from il2ks.ops.setup import DEFAULT_HTTPS_MODE, HTTPS_MODES, SetupAnswers, normalize_domain
+from il2ks.ops.setup import DEFAULT_HTTPS_MODE, HTTPS_MODES, SetupAnswers, normalize_domain, normalize_email
 
 _HIDDEN_ZONE_PREFIXES = ("posix/", "right/")
 _HIDDEN_ZONES = frozenset({"Factory", "localtime", "posixrules"})
@@ -84,7 +84,9 @@ class SetupForm(forms.Form):
         initial=DEFAULT_HTTPS_MODE,
     )
     domain = forms.CharField(label=_("Domain name"), required=False, max_length=253)
-    email = forms.EmailField(label=_("E-mail for certificate notices (optional)"), required=False)
+    email = forms.CharField(
+        label=_("E-mail for certificate notices (optional)"), required=False, max_length=254, widget=forms.EmailInput
+    )
     admin_username = forms.CharField(label=_("Admin user name"), max_length=150, initial=admin.DEFAULT_USERNAME)
     admin_password = forms.CharField(
         label=_("Password"), widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "new-password"})
@@ -107,6 +109,12 @@ class SetupForm(forms.Form):
         except ValueError as exc:
             raise ValidationError(str(exc), code="domain") from exc
         return self.normalized_domain
+
+    def clean_email(self) -> str:
+        try:
+            return normalize_email(cast(str, self.cleaned_data["email"]))
+        except ValueError as exc:
+            raise ValidationError(str(exc), code="email") from exc
 
     def clean_admin_username(self) -> str:
         username = cast(str, self.cleaned_data["admin_username"]).strip()

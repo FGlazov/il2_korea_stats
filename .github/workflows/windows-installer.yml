@@ -65,12 +65,15 @@ jobs:
           $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
           $app = Join-Path $env:RUNNER_TEMP 'il2ks-app'
           $logs = Join-Path $env:RUNNER_TEMP 'dserver-logs'
+          $pw = Join-Path $env:RUNNER_TEMP 'il2ks-admin-password.txt'
+          Set-Content -Path $pw -Value 'Correct-Horse-Battery-9' -Encoding ascii
           New-Item -ItemType Directory -Force $logs | Out-Null
           "APP=$app" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=$app", "/LOG=$env:RUNNER_TEMP\setup.log",
                     '/NOSERVICE', '/NOFIREWALL', '/MERGETASKS=!firewall', "/LOGDIR=$logs", '/TIMEZONE=UTC',
-                    '/ADMINUSER=ci', '/ADMINPASSWORD=Correct-Horse-Battery-9')
+                    '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
           $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          if (Test-Path "$pw") { throw "the installer did not delete the password file" }
           if (Test-Path "$env:RUNNER_TEMP\setup.log") { Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 60 }
           if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
 
@@ -127,10 +130,12 @@ jobs:
         run: |
           $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
           $logs = Join-Path $env:RUNNER_TEMP 'dserver-logs'
+          $pw = Join-Path $env:RUNNER_TEMP 'il2ks-admin-password.txt'
+          Set-Content -Path $pw -Value 'Correct-Horse-Battery-9' -Encoding ascii
           New-Item -ItemType Directory -Force $logs | Out-Null
           $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\setup.log", '/NOFIREWALL',
                     '/HTTPS=external', '/DOMAIN=stats.example.org', "/LOGDIR=$logs", '/TIMEZONE=UTC',
-                    '/ADMINUSER=ci', '/ADMINPASSWORD=Correct-Horse-Battery-9')
+                    '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
           $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
           Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 80
           if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
@@ -140,6 +145,8 @@ jobs:
         run: |
           $svc = Get-Service il2ks
           if ($svc.Status -ne 'Running') { throw "service status: $($svc.Status)" }
+          $account = (Get-CimInstance Win32_Service -Filter "Name='il2ks'").StartName
+          if ($account -ne 'NT SERVICE\il2ks') { throw "the service runs as '$account', not as its virtual account" }
           $ok = $false
           foreach ($i in 1..90) {
             try {

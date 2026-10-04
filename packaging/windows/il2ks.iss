@@ -12,7 +12,8 @@
 ; files, register the service again, start it. Database migrations run when the service starts (after their own backup).
 ;
 ; Silent installs (CI, scripted rollouts) take the answers from switches, see the "Command line" part of [Code]:
-;   /LOGDIR= /TIMEZONE= /DOMAIN= /EMAIL= /HTTPS=caddy|external /ADMINUSER= /ADMINPASSWORD=
+;   /LOGDIR= /TIMEZONE= /DOMAIN= /EMAIL= /HTTPS=caddy|external /ADMINUSER= /ADMINPASSWORDFILE=<file with the password; deleted after use>
+;   (/ADMINPASSWORD= still works but puts the password on the installer command line and in its log: prefer the file)
 ;   /NOSETUP (copy files only)   /NOSERVICE (no service, no start)   /NOFIREWALL   /MERGETASKS="!firewall"   /DELETEDATA (uninstall)
 
 #ifndef AppVersion
@@ -90,6 +91,7 @@ Filename: "{autoprograms}\il2ks\Open stats site.url"; Description: "Open the sta
 [Code]
 const
   ServiceId = 'il2ks';
+  ServiceAccount = 'NT SERVICE\il2ks';  // the service's virtual account (OQ-41)
   FirewallHttp = 'il2ks HTTP (80)';
   FirewallHttps = 'il2ks HTTPS (443)';
   // Runs with the installed Python: the folders that hold missionReport files, newest first, one per line (il2ks.ops.detect).
@@ -103,9 +105,35 @@ var
   Progress: TOutputProgressWizardPage;
   HaveConfig: Boolean;
   Finished: Boolean;
+  LogFolderChosen: String;  // the game log folder the service account is given rights on (GrantServiceAccount)
 
-function SetEnvironmentVariableW(Name, Value: String): Boolean;
-  external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+// Every program the installer starts with the installed Python gets -P first: the current folder (and the folder of a
+// script) is then not put on sys.path, so a stray file named like a module cannot be imported by a service that runs
+// with the rights of an account. Same flag in il2ks.cmd and the service definition (winsw.py).
+const
+  PythonSafeFlag = '-P ';
+
+// One command-line argument for Windows' standard parser (the one Python uses): in double quotes, and the backslashes
+// before the closing quote doubled, so 'C:\Games\Logs\' does not turn the closing quote into a literal one. Quotes inside
+// the value cannot occur in a Windows path and are dropped. Mirrors packaging/windows/quoting.py, which a test checks.
+function QuoteArg(const Value: String): String;
+var
+  Text: String;
+  Trailing: Integer;
+begin
+  Text := Value;
+  StringChangeEx(Text, '"', '', True);
+  Trailing := 0;
+  while (Length(Text) > Trailing) and (Text[Length(Text) - Trailing] = '\') do
+    Trailing := Trailing + 1;
+  Result := '"' + Text;
+  while Trailing > 0 do
+  begin
+    Result := Result + '\';
+    Trailing := Trailing - 1;
+  end;
+  Result := Result + '"';
+end;
 
 // function WindowsToIana(const WindowsName: String): String, generated from zones.py by build.py (ISCC /I<work folder>)
 #include "windows_zones.inc"
@@ -375,7 +403,7 @@ begin
   if WizardSilent or not FileExists(PythonExe) then
     Exit;
   WizardForm.StatusLabel.Caption := 'Looking for your game server logs...';
-  if RunCaptured(PythonExe, '-c "' + DetectCode + '"', Output) = 0 then
+  if RunCaptured(PythonExe, PythonSafeFlag + '-c "' + DetectCode + '"', Output) = 0 then
   begin
     Output := Trim(Output);
     if Output <> '' then
@@ -393,32 +421,79 @@ procedure RestrictDataDir;
 var
   Icacls: String;
 begin
-  // Only SYSTEM (the service) and administrators may read the database, secret key and configuration.
+  // Only SYSTEM and administrators may read the database, secret key and configuration. The service's own account gets
+  // its rights in GrantServiceAccount, once the service exists (its name cannot be resolved before that).
   Icacls := ExpandConstant('{sys}\icacls.exe');
-  RunQuiet(Icacls, '"' + DataDir + '" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F');
+  RunQuiet(Icacls, QuoteArg(DataDir) + ' /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F');
+end;
+
+// The service runs as its own virtual account NT SERVICE\il2ks (decision OQ-41): no password, no rights anywhere except
+// where it is granted. It needs to change everything in the data folder (database, logs, certificates, backups). The
+// program folder stays read-only for it (Program Files is readable by every user).
+procedure GrantServiceAccount;
+var
+  Icacls, Output: String;
+  Code: Integer;
+begin
+  Icacls := ExpandConstant('{sys}\icacls.exe');
+  Code := RunCaptured(Icacls, QuoteArg(DataDir) + ' /grant "' + ServiceAccount + ':(OI)(CI)M" /T /C /Q', Output);
+  Log('icacls grant ' + ServiceAccount + ': exit code ' + IntToStr(Code) + #13#10 + Output);
+  // Best effort: files made by an older install (which ran as SYSTEM) or by this installer belong to administrators.
+  // Owning them lets the service repair its own permissions later.
+  Code := RunCaptured(Icacls, QuoteArg(DataDir) + ' /setowner "' + ServiceAccount + '" /T /C /Q', Output);
+  Log('icacls setowner ' + ServiceAccount + ': exit code ' + IntToStr(Code) + #13#10 + Output);
+  // The game's log folder: il2ks reads the reports and (after_archive = "move", the default) moves them away. A local
+  // folder only; an upgrade does not ask again (the rights given at the first install stay).
+  if (LogFolderChosen <> '') and DirExists(LogFolderChosen) then
+  begin
+    Code := RunCaptured(Icacls, QuoteArg(LogFolderChosen) + ' /grant "' + ServiceAccount + ':(OI)(CI)M" /C /Q', Output);
+    Log('icacls grant on the log folder: exit code ' + IntToStr(Code) + #13#10 + Output);
+  end;
+end;
+
+// The admin password reaches `il2ks setup` through a file, never through its command line or environment (both can be
+// read by other programs, and Inno's own log records the installer's command line). The file is created empty, locked to
+// administrators and SYSTEM, and only then filled; the caller deletes it. 'il2ks setup' reads it as UTF-8 (BOM allowed).
+function WritePasswordFile(const Password: String): String;
+var
+  Lines: TArrayOfString;
+begin
+  Result := ExpandConstant('{tmp}\il2ks-admin-password.txt');
+  DeleteFile(Result);
+  SaveStringToFile(Result, '', False);
+  RunQuiet(ExpandConstant('{sys}\icacls.exe'), QuoteArg(Result) + ' /inheritance:r /grant:r *S-1-5-18:F *S-1-5-32-544:F');
+  SetArrayLength(Lines, 1);
+  Lines[0] := Password;
+  SaveStringsToUTF8File(Result, Lines, False);
 end;
 
 function RunSetup(const Domain, Email, Mode, LogDir, TimeZone, AdminUser, AdminPassword: String): Boolean;
 var
-  Args, Output: String;
+  Args, Output, PasswordFile: String;
   Code: Integer;
 begin
-  Args := '-m il2ks --config "' + ConfigPath + '" setup --non-interactive --data-dir "' + DataDir + '" --https ' + Mode;
+  LogFolderChosen := LogDir;
+  Args := PythonSafeFlag + '-m il2ks --config ' + QuoteArg(ConfigPath) + ' setup --non-interactive --data-dir ' + QuoteArg(DataDir) + ' --https ' + Mode;
   if LogDir <> '' then
-    Args := Args + ' --logs-dir "' + LogDir + '"';
+    Args := Args + ' --logs-dir ' + QuoteArg(LogDir);
   if TimeZone <> '' then
-    Args := Args + ' --timezone "' + TimeZone + '"';
+    Args := Args + ' --timezone ' + QuoteArg(TimeZone);
   if Domain <> '' then
-    Args := Args + ' --domain "' + Domain + '"';
+    Args := Args + ' --domain ' + QuoteArg(Domain);
   if Email <> '' then
-    Args := Args + ' --email "' + Email + '"';
-  if AdminPassword <> '' then
-    Args := Args + ' --admin-username "' + AdminUser + '"'
+    Args := Args + ' --email ' + QuoteArg(Email);
+  PasswordFile := Param('ADMINPASSWORDFILE');  // silent installs: the caller's own file (deleted after use)
+  if (PasswordFile = '') and (AdminPassword <> '') then
+  begin
+    PasswordFile := WritePasswordFile(AdminPassword);
+  end;
+  if PasswordFile <> '' then
+    Args := Args + ' --admin-username ' + QuoteArg(AdminUser) + ' --admin-password-file ' + QuoteArg(PasswordFile)
   else
     Args := Args + ' --no-admin';
-  SetEnvironmentVariableW('IL2KS_ADMIN_PASSWORD', AdminPassword);  // not on the command line: nobody can see it in a process list
   Code := RunCaptured(PythonExe, Args, Output);
-  SetEnvironmentVariableW('IL2KS_ADMIN_PASSWORD', '');
+  if PasswordFile <> '' then
+    DeleteFile(PasswordFile);
   Log('il2ks setup exit code ' + IntToStr(Code) + #13#10 + Output);
   Result := (Code = 0) and FileExists(ConfigPath);
   if Code = 1 then
@@ -447,6 +522,16 @@ begin
     Warn('The Windows service could not be installed (exit code ' + IntToStr(Code) + '):' + #13#10 + LastLines(Output, 5));
     Exit;
   end;
+  // WinSW registers the service as LocalSystem; switch it to the virtual account (no password: Windows manages it).
+  Code := RunCaptured(ExpandConstant('{sys}\sc.exe'), 'config ' + ServiceId + ' obj= "' + ServiceAccount + '"', Output);
+  Log('sc config obj: ' + IntToStr(Code) + #13#10 + Output);
+  if Code <> 0 then
+  begin
+    Warn('The service account ' + ServiceAccount + ' could not be set (exit code ' + IntToStr(Code) + '):' + #13#10 + LastLines(Output, 5));
+    Result := False;
+    Exit;
+  end;
+  GrantServiceAccount;
   Code := RunCaptured(ServiceExe, 'start', Output);
   Log('il2ks-service start: ' + IntToStr(Code) + #13#10 + Output);
   Result := Code = 0;
@@ -601,7 +686,7 @@ begin
   if FileExists(ConfigPath) and FileExists(PythonExe) then
   begin
     WizardForm.StatusLabel.Caption := 'Backing up your data...';
-    Code := RunCaptured(PythonExe, '-m il2ks --config "' + ConfigPath + '" backup', Output);
+    Code := RunCaptured(PythonExe, PythonSafeFlag + '-m il2ks --config ' + QuoteArg(ConfigPath) + ' backup', Output);
     Log('il2ks backup before the upgrade: exit code ' + IntToStr(Code) + #13#10 + Output);
     if Code <> 0 then
     begin

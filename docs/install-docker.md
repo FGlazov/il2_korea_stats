@@ -27,6 +27,12 @@ Set at least these (the file explains every line):
 | `IL2KS_LOGS_HOST_DIR` | DServer's text log folder on this machine, the one holding `missionReport(...)[0].txt` ([Wine](#dserver-under-wine)) |
 | `IL2KS_ADMIN_USERNAME`, `IL2KS_ADMIN_PASSWORD` | the admin account, created on the first start |
 
+There is no browser setup page in Docker (it only opens for a browser on the same machine, which a container's never is).
+If you leave the admin variables out, the container log says so in a framed notice and shows the command to run instead:
+`docker compose -f docker/compose.yaml exec il2ks il2ks createadmin`. After the first start the password is removed from
+the server's own environment; only Docker's configuration (`docker/.env`, `docker inspect`) still holds it, so protect that
+file or use a Docker secret (`IL2KS_ADMIN_PASSWORD_FILE`).
+
 ## 2. Start it
 
 ```bash

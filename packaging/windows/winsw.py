@@ -64,7 +64,7 @@ def render_service_xml(spec: ServiceSpec | None = None) -> str:
     add("name", spec.display_name)
     add("description", spec.description)
     add("executable", spec.python)
-    add("arguments", f'-m il2ks --config "{spec.config}" run')
+    add("arguments", f'-P -m il2ks --config "{spec.config}" run')  # -P: no current folder on sys.path
     add("workingdirectory", spec.working_dir)
     add("env", name="PATH", value=f"{spec.bin_dir};%PATH%")
     add("env", name="PYTHONUNBUFFERED", value="1")

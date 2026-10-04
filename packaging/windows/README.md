@@ -45,7 +45,7 @@ stopped the way WinSW stops a service (see below) with a clean exit in under a s
 %ProgramData%\il2ks\           the admin's: il2ks.toml, database, secret key, logs\, backups\, custom\ (kept on uninstall)
 ```
 
-The service (`il2ks`) runs `python.exe -m il2ks --config %ProgramData%\il2ks\il2ks.toml run` as LocalSystem, delayed automatic start,
+The service (`il2ks`) runs `python.exe -m il2ks --config %ProgramData%\il2ks\il2ks.toml run` as the virtual account `NT SERVICE\il2ks` (set with `sc config ... obj=` after WinSW registers it; Modify on the data folder and the chosen log folder via `icacls`), `python -P` (safe path), delayed automatic start,
 priority below normal, restart after a crash (5 s, 10 s, 30 s, then every 60 s), `stoptimeout` 30 s.
 
 **How the service stops** (`il2ks.serving.procutil`, `supervisor`): WinSW attaches to the console of `il2ks run` and sends Ctrl+C.

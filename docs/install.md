@@ -246,7 +246,7 @@ After an upgrade run `il2ks doctor`: it tells you if a template you customized h
 ## Backups
 
 `il2ks backup` writes a dated zip with everything that cannot be rebuilt from the game logs (database, configuration,
-`custom/`), and `il2ks restore <zip>` brings it back. Details: `il2ks backup --help`. The original game logs are kept
+`custom/`), and `il2ks restore <zip>` brings it back (stop il2ks first: restore refuses while `il2ks run` or the website is running, unless you add `--force`). Details: `il2ks backup --help`. The original game logs are kept
 (archived) in the data folder as well: keep that folder safe.
 
 ## Linux, DServer under Wine

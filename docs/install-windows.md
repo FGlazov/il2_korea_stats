@@ -75,7 +75,7 @@ reachable from outside.
 | Configuration | `C:\ProgramData\il2ks\il2ks.toml` (a commented text file; change settings there, then restart the service) |
 | Log files (one per program per day, 14 days kept) | `C:\ProgramData\il2ks\logs` |
 | Backups | `C:\ProgramData\il2ks\backups` |
-| The Windows service | `il2ks` (display name "il2ks stats site"), runs as the local SYSTEM account, slightly below normal priority |
+| The Windows service | `il2ks` (display name "il2ks stats site"), runs as its own low-rights account `NT SERVICE\il2ks` (no password; it may change only the data folder and your game log folder), slightly below normal priority |
 
 `C:\ProgramData` is a hidden folder: type the path into the Explorer address bar. It is readable by administrators and the
 service only (it holds the database and the secret key). Open `il2ks.toml` with Notepad **run as administrator**.
@@ -106,14 +106,14 @@ For rollouts or testing, the installer takes its answers from switches. Run it f
 
 ```
 il2ks-setup-<version>.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOGDIR="D:\IL-2\logs" /TIMEZONE=Europe/Berlin ^
-    /DOMAIN=stats.example.com /EMAIL=you@example.com /ADMINUSER=admin /ADMINPASSWORD="a long password"
+    /DOMAIN=stats.example.com /EMAIL=you@example.com /ADMINUSER=admin /ADMINPASSWORDFILE="C:\temp\il2ks-password.txt"
 ```
 
 | Switch | Meaning |
 |---|---|
 | `/LOGDIR=`, `/TIMEZONE=`, `/DOMAIN=`, `/EMAIL=` | the answers of the pages above |
 | `/HTTPS=caddy` or `/HTTPS=external` | bundled Caddy (default) or your own proxy |
-| `/ADMINUSER=`, `/ADMINPASSWORD=` | the admin account (without a password, none is created: `il2ks createadmin` later) |
+| `/ADMINUSER=`, `/ADMINPASSWORDFILE=` | the admin account; the password is read from that file (UTF-8, one line), and the file is deleted afterwards. Without a password none is created: `il2ks createadmin` later. `/ADMINPASSWORD=` still works but is visible in process lists and in the installer log: avoid it |
 | `/NOSETUP` | copy the files only; run `il2ks setup` yourself |
 | `/NOSERVICE` | no Windows service, nothing started (also no firewall rules) |
 | `/NOFIREWALL` or `/MERGETASKS="!firewall"` | do not open ports 80 and 443 |
@@ -135,7 +135,7 @@ the service started the parts; `web-`, `watch-` and `caddy`-lines show the rest)
 | The service is "Stopped" right after the install | Run doctor. Usually a port is taken (IIS or another web server on 80/443: choose *own web server* mode, see [reverse-proxy.md](reverse-proxy.md)) or the configuration has an error. After fixing: `net start il2ks`. |
 | Site not reachable from outside | DNS not pointing here, router or provider firewall closing 80/443, or the firewall task was unticked. See [install.md, step 4](install.md#4-domain-ports-and-firewall). |
 | Browser: "not secure" | No domain was entered (test certificate), or the real certificate is not issued yet (look for `caddy` lines in `logs\run-*.log`). Add `[https] domain` to `il2ks.toml`, then `net stop il2ks` and `net start il2ks`. |
-| Site is empty | The log folder is wrong or DServer's text logs are off. Doctor says which. The service must be able to read (and, with the default `after_archive = "move"`, change) that folder: it runs as SYSTEM, which cannot reach network drives that need your login. |
+| Site is empty | The log folder is wrong or DServer's text logs are off. Doctor says which. The service must be able to read (and, with the default `after_archive = "move"`, change) that folder: it runs as `NT SERVICE\il2ks`, which cannot reach network drives that need your login. The installer gave it rights on the log folder you chose; if you point il2ks at another local folder later, run (as administrator) `icacls "D:\new\logs" /grant "NT SERVICE\il2ks:(OI)(CI)M"`. |
 | Forgot the admin password | In the **il2ks command prompt**: `il2ks createadmin --username NAME` (asks for a new password). |
 | Admin account was not created during the install | The password was refused (too common?). Create it in the **il2ks command prompt**: `il2ks createadmin`. |
 | Antivirus quarantines a file | The installer is unsigned and bundles Python, Caddy and a service wrapper, which some scanners dislike. Allow-list `C:\Program Files\il2ks` and report the false positive. |
