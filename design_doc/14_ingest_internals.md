@@ -222,6 +222,10 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   by any zip tool); and the batched writes below. `[PROPOSED]`
   **Round 3** (explosion bursts, above; `--cpu`, 210 missions, noisy machine, same rows: `dump-db` equal but `server_uid`): parse phase 35-42 s
   before, 30 s after; in-process parse + replay of 30 missions, back to back: 6.1-7.0 s before, 4.3-4.7 s after (parse -35%, replay about -5%).
+  **Event construction** (2026-10-04, repos-dd): events are **statically frozen only** (pyright, `@event_class` =
+  `dataclass_transform(frozen_default=True)`), at runtime plain `dataclass(slots=True, kw_only=True)`: frozen construction was about 2.5x
+  slower. `_oid` is a `cast` instead of the NewType call and `Pos` tuples skip NamedTuple's Python `__new__`. `parse_lines` -19% on 6 logs,
+  bench parse phase -10..-12%; `dump-db` identical. Events stay comparable, no longer hashable (nothing hashes them). `[PROPOSED]`
   **Batched writes:** `update_rows(model, rows, fields)` is `bulk_create(update_conflicts=True)`, an `INSERT ... ON CONFLICT (pk) DO UPDATE`
   with many rows per statement (SQLite 3.24+ and Postgres; the rows must be complete, loaded without `only`/`defer`); `update_partial_rows` stays
   one `UPDATE ... WHERE pk` per row for rows that carry only their pk and the changed fields (a rescoring of every sortie, the two link columns of
