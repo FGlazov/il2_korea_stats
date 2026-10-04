@@ -13,6 +13,8 @@ from django.db.models import Sum
 
 from il2ks.config import Config, LiveConfig
 from il2ks.db.models import (
+    IngestRun,
+    IngestStatus,
     Kill,
     KillCredit,
     LiveMission,
@@ -24,8 +26,9 @@ from il2ks.db.models import (
     SiteSettings,
 )
 from il2ks.db.site import current_data_version
+from il2ks.ingest import live as live_module
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.ingest.live import LiveTracker
+from il2ks.ingest.live import LiveTracker, discard_stale_provisional
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.runner import default_pipeline, ingest_once
 from il2ks.ingest.watch import watch
@@ -168,7 +171,8 @@ def test_final_save_equals_a_one_shot_ingest_and_urls_stay(tmp_path: Path) -> No
     assert not mission.is_live
     assert mission.completed_cleanly
     after = {(s.account_uuid, s.spawn_tick): s.pk for s in PlayerSortie.objects.filter(mission=mission)}
-    assert all(after[key] == pk for key, pk in before.items() if key in after)  # (b) sortie URLs stable
+    assert set(before) <= set(after)  # (b) no sortie of the last provisional pass is lost ...
+    assert all(after[key] == pk for key, pk in before.items())  # ... and every one keeps its URL
     assert Mission.objects.count() == 1
     assert diff_dumps(canonical_dump(), reference) == []  # (a)
 
@@ -188,7 +192,7 @@ def test_passes_with_nothing_new_change_nothing(scenario: Scenario) -> None:
 
     assert diff_dumps(canonical_dump(), first) == []
     assert sorted(PlayerSortie.objects.values_list("pk", flat=True)) == pks
-    assert current_data_version() > version  # every pass bumps it, so cached pages refresh (TD-28)
+    assert current_data_version() == version  # nothing changed, so cached pages stay valid (TD-28)
 
 
 def test_level2_after_the_final_save_equals_a_rebuild(scenario: Scenario) -> None:
@@ -521,3 +525,112 @@ def test_live_disabled_in_the_config_saves_nothing(tmp_path: Path) -> None:
     watch(cfg, make_pipeline(FakeSteps()), max_ticks=1, now=lambda: scenario.clock)
     assert not Mission.objects.exists()
     assert not LiveMission.objects.exists()
+
+
+# --- review round: a failed final ingest, races, pending level 2, quiet passes, one duty budget --------------------
+
+
+def test_a_failed_final_ingest_does_not_block_the_next_mission_for_ever(scenario: Scenario) -> None:
+    scenario.write(3)
+    scenario.tick()
+    old = scenario.mission()
+    assert old.is_live
+    IngestRun.objects.create(
+        mission_uid=scenario.uid, status=IngestStatus.FAILED, fingerprint="x", started_at=scenario.clock, files=[]
+    )  # the normal ingest of the first mission failed and will never succeed
+
+    other = "2026-09-19_23-30-00"
+    write_part(scenario.logs, other, 0, scenario.parts[0], scenario.clock + timedelta(minutes=5))
+    scenario.clock += timedelta(minutes=10)
+    scenario.tracker.tick(scenario.clock)
+
+    assert Mission.objects.get(mission_uid=other).is_live  # not stuck "waiting"
+    assert not Mission.objects.filter(mission_uid=scenario.uid).exists()  # no stale "Live" mission left behind
+
+
+def test_waiting_for_the_old_mission_does_not_retry_at_every_tick(scenario: Scenario) -> None:
+    scenario.write(3)
+    scenario.tick()
+    other = "2026-09-19_23-30-00"
+    write_part(scenario.logs, other, 0, scenario.parts[0], scenario.clock + timedelta(minutes=5))
+    scenario.clock += timedelta(minutes=10)
+    scenario.tracker.tick(scenario.clock)  # waits: the old mission has no failed run, it is just not finalised yet
+    running = scenario.tracker._running  # pyright: ignore[reportPrivateUsage]
+    assert running is not None
+    assert running.last_persist == scenario.clock  # asked again after an interval, not at the very next tick
+
+
+class _RacingLock(WriterLock):
+    """Takes the lock, then does what a concurrent `il2ks ingest` would have done just before: the final save."""
+
+    def __enter__(self) -> "_RacingLock":
+        super().__enter__()
+        Mission.objects.update(is_live=False)
+        return self
+
+
+def test_discarding_stale_missions_rechecks_under_the_lock(scenario: Scenario, monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario.write(3)
+    scenario.tick()
+    for path in scenario.logs.iterdir():
+        path.unlink()  # looks stale ...
+    monkeypatch.setattr(live_module, "WriterLock", _RacingLock)  # ... but the final save lands before we get the lock
+
+    discard_stale_provisional(scenario.cfg, keep=None)
+
+    assert Mission.objects.filter(mission_uid=scenario.uid).exists()  # a final-saved mission is never discarded
+
+
+def test_a_final_save_by_another_process_stops_the_saves_but_not_online_now(scenario: Scenario) -> None:
+    scenario.write(2)
+    scenario.tick()
+    Mission.objects.update(is_live=False)  # `il2ks ingest` finalised it while the mission kept going
+    updated = LiveMission.objects.get().updated_at
+    scenario.write(4, last_half=True)
+    scenario.tick()
+    scenario.tick()
+
+    assert not scenario.mission().is_live  # never turned back
+    assert LiveMission.objects.get().updated_at > updated  # online now keeps following
+    assert scenario.tracker.following == scenario.uid
+
+
+def test_pending_level_two_work_is_applied_when_the_mission_ends(tmp_path: Path) -> None:
+    scenario = Scenario(
+        tmp_path / "live",
+        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=100000.0),
+    )
+    scenario.write(2)
+    scenario.tick()
+    scenario.write(3)
+    scenario.tick()  # level 1 only: level 2 is not due for a long time
+    assert Player.objects.aggregate(n=Sum("sorties"))["n"] < PlayerSortie.objects.filter(role="pilot").count()
+    scenario.write(len(scenario.parts))  # the whole log, AType 7 included, but not settled yet
+    scenario.tick()
+    assert scenario.tracker.following is None  # the end was seen
+
+    level1 = PlayerSortie.objects.filter(role="pilot").count()
+    assert Player.objects.aggregate(n=Sum("sorties"))["n"] == level1  # nothing owed to level 2 is dropped
+
+
+def test_a_pass_with_no_new_lines_writes_nothing_and_leaves_the_caches_alone(scenario: Scenario) -> None:
+    scenario.write(3)
+    scenario.tick()
+    version = current_data_version()
+    scenario.tick()
+    scenario.tick()
+    assert current_data_version() == version
+
+
+def test_all_three_kinds_of_pass_share_one_cpu_budget(scenario: Scenario) -> None:
+    """NFR-INS-5: online snapshot, level-1 save and level-2 recompute together stay below 2.5 % of a core."""
+    scenario.tracker = LiveTracker(scenario.cfg, cost_clock=SteppingClock(2.0))
+    scenario.write(2)
+    scenario.tick()  # every kind runs once: about 6 s of work, so the next one is 240 s away
+    updated = LiveMission.objects.get().updated_at
+    scenario.write(4, last_half=True)
+
+    scenario.tick(timedelta(seconds=100))
+    assert LiveMission.objects.get().updated_at == updated
+    scenario.tick(timedelta(seconds=200))
+    assert LiveMission.objects.get().updated_at > updated
