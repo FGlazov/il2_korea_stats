@@ -257,35 +257,6 @@ def badge_spec(table: Mapping[str, BadgeSpec], value: object) -> tuple[str, Tone
     return key.replace("_", " ").capitalize(), "grey", ""
 
 
-# --- accent colour (SiteSettings.accent_color, TD-25) -------------------------------------------------------------
-_HEX_COLOR = re.compile(r"#[0-9A-Fa-f]{6}")
-
-
-def valid_accent(color: str) -> str | None:
-    """The colour lower-cased when it is exactly '#RRGGBB', else None. Only validated values reach the page's CSS."""
-    return color.lower() if _HEX_COLOR.fullmatch(color) else None
-
-
-def _luminance(color: str) -> float:
-    """WCAG relative luminance of '#rrggbb'."""
-    channels: list[float] = []
-    for start in (1, 3, 5):
-        value = int(color[start : start + 2], 16) / 255
-        channels.append(value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4)
-    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
-
-
-def accent_css(color: str) -> str:
-    """CSS that points the theme's accent variables at `color`; '' when it is not a valid '#RRGGBB'.
-
-    The text colour on accent-filled buttons is white or near-black, whichever contrasts more."""
-    valid = valid_accent(color)
-    if valid is None:
-        return ""
-    contrast = "#ffffff" if _luminance(valid) < 0.4 else "#10161c"
-    return f":root{{--il2-accent:{valid};--il2-accent-contrast:{contrast}}}"
-
-
 # --- sorting and paging -------------------------------------------------------------------------------------------
 def next_sort(current: str, field: str, first: SortFirst = "asc") -> str:
     """The `?sort=` value a column header link should carry: a click on the active column flips its direction."""

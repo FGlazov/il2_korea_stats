@@ -54,7 +54,7 @@ def test_contract_names_exist() -> None:
     assert not missing, f"doc 15 file names with no file: {missing}"
 
 
-@pytest.mark.parametrize("group", ["event", "outcome", "ground", "stat", "role", "coalition"])
+@pytest.mark.parametrize("group", ["event", "outcome", "ground", "stat", "role", "coalition", "nav"])
 def test_icons_are_currentcolor_24px_svgs(group: str) -> None:
     files = [path for path in (IMG / group).glob("*.svg")]
     assert files
@@ -65,3 +65,10 @@ def test_icons_are_currentcolor_24px_svgs(group: str) -> None:
         assert 'stroke="currentColor"' in svg, path
         assert "class=" not in svg, f"{path}: the icon tag adds the class"
         assert not re.search(r"#[0-9a-fA-F]{3,6}\b", svg), f"{path}: hard-coded colour"
+
+
+def test_every_navigation_link_icon_has_a_file() -> None:
+    """The admin's choice list for custom navigation links (`NavIcon`) and `static/il2ks/img/nav/` agree."""
+    from il2ks.db.models import NavIcon
+
+    assert {value for value in NavIcon.values if value} == {path.stem for path in (IMG / "nav").glob("*.svg")}

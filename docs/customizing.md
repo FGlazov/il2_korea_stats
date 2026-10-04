@@ -15,11 +15,64 @@ settings** you can change:
 - **Description**: a short text shown on the home page,
 - **Logo**: upload a PNG, JPEG or WebP picture. (SVG is not accepted for uploads, because an SVG file can carry
   scripts. See the next section if you need SVG.)
-- **Accent color**: one color, as `#RRGGBB`, used for links and buttons. Empty = the default look.
-- **Links**: for example your Discord or forum, as a label and an address.
+- **Fonts**: one for headings and one for the text (see below),
+- **Colors**: every color of the site, separately for the light and the dark theme (see below),
+- **Navigation links**: your own links (Discord, forum, Patreon, ...) in the top menu (see below),
 - **Coalition names**: what "REDFOR" and "BLUFOR" are called on your pages.
 
 Changes show on the site at once.
+
+### Navigation links
+
+Add as many links as you like under **Navigation links, in order**: a label, an address, an optional icon (Discord,
+forum, Patreon or a generic link chain) and a number that sets the order (lower numbers first; il2ks renumbers them 1, 2,
+3 ... when you save). They appear in the top menu **after** the built-in ones (Missions, Players, Aircraft,
+Leaderboards) and, as a plain list, in the footer. Only full `http://` and `https://` addresses are accepted
+(`javascript:`, `mailto:`, relative paths and the like are refused). The links open in a new tab, with `rel="noopener
+noreferrer"`, so the other site cannot reach back into yours or learn where the visitor came from; screen readers are
+told that the link opens a new tab. Tick **Delete** on a row to remove a link. (Links you had under the old "Links" setting
+were moved here by the upgrade, in the same order.)
+
+**How many fit?** The menu never overflows: when it is full, the extra links wrap onto a second row (the header gets
+taller, nothing is cut off, there is never a horizontal scroll bar). We measured the header with Chromium at 360, 768, 1280
+and 1920 px wide (the page content is at most 1240 px wide, so 1920 looks like 1280):
+
+| Labels | 1280 and 1920 px | 768 px | 360 px (phone) |
+|---|---|---|---|
+| Short (`Discord`, `Forum`, `Patreon`, `Wiki`, ...) | 3 links stay on the same row; the 4th wraps | up to 5 | 2 (the built-in four already take two rows) |
+| Long (`Join our Discord server`, `Support us on Patreon`) | 1 link; the 2nd wraps | 1 | 0 |
+
+So we recommend **at most 3 links with short labels (one or two words)**; longer labels fit fewer. The admin form says
+the same. More links still work, they just make the header two or three rows tall. (The test that measures this is
+`tests/e2e/test_nav_layout.py`.)
+
+### Colors
+
+Under **Colors** you can change every color the site uses, in two columns: **Light mode** and **Dark mode** (visitors
+switch with the sun/moon button in the header; the site follows their system setting until they do). The groups are
+backgrounds, text, borders, the header band and the home banner, the accent (buttons, links), the two coalitions, the
+status colors of badges and notices, and the charts. Each box takes `#RRGGBB`; an **empty box means the default color**.
+The **×** button next to a box (and the colour picker, with JavaScript on) resets it. "Automatic" boxes (the link
+color and the text on the accent) follow the accent unless you fill them in.
+
+**Start from a color scheme** replaces all colors with one of a few ready-made schemes (Steel blue, Desert sand, High
+contrast) or with "Default" (clears everything) when you save. You can adjust single colors afterwards.
+
+il2ks checks the readability of the colors you saved (WCAG contrast ratios: body text, links, buttons, badges, the
+header). Poor combinations produce a yellow warning after saving; **nothing is blocked**, so a deliberate choice stays
+possible. The one accent color of older versions became the accent in both modes.
+
+Only exact `#RRGGBB` values are ever written into the page: nothing else can get through, even from a hand-edited
+database. The colors are one small `<style>` block that sets the `--il2-*` variables (see "Colours" below).
+
+### Fonts
+
+**Heading font** and **Body font** pick from a fixed list: the condensed headline font that ships with il2ks, and
+system fonts (system sans-serif, humanist sans-serif, serif, slab serif, monospace). They use fonts the visitor's device
+already has (each choice lists fallbacks, so it always shows something readable), and **nothing is loaded from another
+website**, so your visitors' privacy is not touched. Uploading your own font file is not supported; if you want one,
+put the `.woff2` in `custom/static/` and add an `@font-face` and a `--il2-font-display` / `--pico-font-family` line in a
+small stylesheet from the `head` block (section 2).
 
 ## 2. `custom/` overrides
 
@@ -127,8 +180,10 @@ template that fills a block is easier to keep up to date than a copy of a whole 
 | `scripts` | Extra scripts at the end of the page |
 
 Variables available on every page: `site` (your site settings: `site.site_title`, `site.server_name`, `site.description`,
-`site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `site_links` (your links as label/URL pairs), `data_updated` (when
-the stats last changed), `il2ks_version`, and `page_title`.
+`site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `nav_links` (your navigation links: `label`, `url`, `icon`; the
+default `nav` block lists them after the built-in ones), `site_links` (the same as label/URL pairs, used by the footer),
+`theme_css` (the color and font overrides of the admin as one `:root{...}` rule, already safe: print it inside
+`<style>`), `data_updated` (when the stats last changed), `il2ks_version`, and `page_title`.
 
 **Small building blocks** — `il2ks/components/*.html`: tables, badges, stat tiles, filters, pagination, notices. Each file
 starts with a comment that lists the variables it receives. Overriding one of these changes it on every page that uses it.
@@ -141,9 +196,12 @@ starts with a comment that lists the variables it receives. Overriding one of th
 **Icons and images** — `il2ks/img/` under static. Every icon has a fixed name (for example `il2ks/img/outcome/landed.svg`),
 so you can replace a single icon by putting your own SVG at `custom/static/il2ks/img/outcome/landed.svg`.
 
-**Colours** — the stylesheet `il2ks/site.css` defines every colour once as a CSS variable (`--il2-accent`, `--il2-bg`, ...).
-The accent colour from the admin overrides `--il2-accent`. For more, add your own small stylesheet through the `head` block
-instead of copying `site.css`: a few `:root { --il2-...: ... }` lines are enough and survive upgrades.
+**Colours** — the stylesheet `il2ks/site.css` defines every colour once as a CSS variable in its first section
+(`--il2-accent`, `--il2-bg`, ...; light and dark side by side with `light-dark()`), and nothing else in the stylesheets
+contains a colour. The colors from the admin (section 1) are written after the stylesheet and override those variables.
+For more than the admin offers, add your own small stylesheet through the `head` block instead of copying `site.css`: a
+few `:root { --il2-...: ... }` lines are enough and survive upgrades. (The camouflage pattern of the header and the favicon
+are images with their own colors: replace `il2ks/img/pattern/camo.svg` and `il2ks/img/brand/favicon.svg` to change them.)
 
 ### Problems
 

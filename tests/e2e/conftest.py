@@ -17,7 +17,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
@@ -111,6 +111,30 @@ def base_url(_e2e_data_dir: tuple[Path, World]) -> Iterator[str]:
                 process.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 process.kill()
+
+
+@pytest.fixture
+def set_branding(_e2e_data_dir: tuple[Path, World], base_url: str) -> Iterator[Callable[[dict[str, object]], None]]:
+    """`set_branding({"links": [...], "theme": {...}})` changes the running site's branding (see `tests.e2e.branding`);
+    the shipped look is restored after the test. `base_url` makes sure the server is up."""
+    data_dir = _e2e_data_dir[0]
+
+    def apply(spec: dict[str, object]) -> None:
+        done = subprocess.run(
+            [sys.executable, "-m", "tests.e2e.branding", json.dumps(spec)],
+            cwd=data_dir.parent,
+            env=_child_env(data_dir),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=120,
+        )
+        assert done.returncode == 0, f"setting the branding failed:\n{done.stdout}\n{done.stderr}"
+
+    try:
+        yield apply
+    finally:
+        apply({})
 
 
 @pytest.fixture(autouse=True)

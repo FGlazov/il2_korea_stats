@@ -18,6 +18,19 @@ exc_type  # context manager protocol (__exit__ signature, ingest.lock)
 tb  # context manager protocol (__exit__ signature, ingest.lock)
 
 # --- Django admin (web.admin, web.admin_site, web.admin_config, web.site_forms): options and hooks found by name ---
+_.formset  # InlineModelAdmin option (NavLinkInline)
+_.max_num  # InlineModelAdmin option
+_.verbose_name_plural  # InlineModelAdmin option
+_.inlines  # ModelAdmin option (SiteSettingsAdmin)
+_.nav_links_help  # ModelAdmin readonly field (SiteSettingsAdmin.readonly_fields)
+_.value_from_datadict  # Django Widget hook (site_forms.ThemeWidget)
+_.attrs  # Django Widget.render signature (site_forms.ThemeWidget)
+_.renderer  # Django Widget.render signature
+_.widget  # Django Field option (site_forms.ThemeField)
+_.to_python  # Django Field hook (site_forms.ThemeField)
+_.theme_preset  # form field read by the admin form (site_forms.SiteSettingsForm.clean)
+_.foreground  # web.theme.ContrastWarning: kept for the admin message and tests
+_.background  # web.theme.ContrastWarning: same
 Il2ksAdminConfig  # INSTALLED_APPS entry
 _.default_site  # AdminConfig option
 Il2ksAdminSite  # AdminConfig.default_site

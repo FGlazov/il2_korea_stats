@@ -1,11 +1,11 @@
-/* il2ks-template: static/il2ks/missions.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/missions.css v2 - copy this line along when you override */
 /* Mission pages (home, list, detail): the few styles the shared theme does not cover. Tokens come from site.css. */
 .mission-when { display: block; margin-top: 0.1rem; font-weight: 400; font-size: 0.78rem; }
 .data-table tr.is-empty { opacity: 0.6; }
 
 /* "12 / 9": sorties per side, in the side colours. */
-.sides__red { color: light-dark(#b52d28, #f0716a); }
-.sides__blue { color: light-dark(#1f62b6, #70a9f4); }
+.sides__red { color: var(--il2-redfor); }
+.sides__blue { color: var(--il2-blufor); }
 .sides__sep { margin: 0 0.3em; color: var(--il2-muted); }
 .sides-head { display: inline-flex; gap: 0.35em; align-items: center; justify-content: flex-end; }
 
@@ -17,8 +17,8 @@
 .side-heading { display: flex; align-items: center; gap: 0.6rem; }
 .side-heading .icon { width: 1.5rem; height: 1.5rem; }
 .side-heading small { font-size: 0.85rem; letter-spacing: 0; text-transform: none; font-weight: 400; }
-.side-heading--redfor { color: light-dark(#b52d28, #f0716a); }
-.side-heading--blufor { color: light-dark(#1f62b6, #70a9f4); }
+.side-heading--redfor { color: var(--il2-redfor); }
+.side-heading--blufor { color: var(--il2-blufor); }
 
 .pilot-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.5rem; }
 .aircraft-cell { display: inline-flex; vertical-align: middle; align-items: center; gap: 0.45em; white-space: nowrap; }

@@ -115,7 +115,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 95 files in 10 groups; 68 shipped as placeholders (3 of them not used by any page yet), 27 planned.
+Total: 99 files in 11 groups; 72 shipped as placeholders (3 of them not used by any page yet), 27 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -246,6 +246,15 @@ Total: 95 files in 10 groups; 68 shipped as placeholders (3 of them not used by 
 | `stat/friendly-fire.svg` | Profile hall of shame: sorties with a friendly kill (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | own drawing | yes | P2 | shipped |
 | `stat/elo-prop.svg` | Rating tile (ratings are not shown yet) | SVG 24 x 24, currentColor | none yet | no | P3 | planned |
 | `stat/elo-jet.svg` | Rating tile (ratings are not shown yet) | SVG 24 x 24, currentColor | none yet | no | P3 | planned |
+
+### Navigation link icons (`nav/`): 4 files (4 shipped)
+
+| File | Used in | Size / format | Placeholder source | Release | Prio | State |
+|---|---|---|---|---|---|---|
+| `nav/discord.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-discord` | yes | P3 | shipped |
+| `nav/forum.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `messages` | yes | P3 | shipped |
+| `nav/patreon.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-patreon` | yes | P3 | shipped |
+| `nav/link.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `link` | yes | P3 | shipped |
 
 ### Textures (`pattern/`): 1 files (1 shipped)
 

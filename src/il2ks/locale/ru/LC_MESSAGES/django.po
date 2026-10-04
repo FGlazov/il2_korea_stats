@@ -188,6 +188,11 @@ msgstr ""
 msgid "%(title)s admin"
 msgstr "Администрирование: %(title)s"
 
+# llm-draft
+#, python-format
+msgid "%(token)s (%(mode)s): use a color like #1A73E8 (six hex digits), or leave it empty."
+msgstr "%(token)s (%(mode)s): укажите цвет вида #1A73E8 (шесть шестнадцатеричных цифр) или оставьте поле пустым."
+
 #, python-format
 msgid "%(total)s in total, %(static)s of them static objects"
 msgstr ""
@@ -253,6 +258,18 @@ msgstr ""
 
 msgid "AI gunner"
 msgstr ""
+
+# llm-draft
+msgid "About the links"
+msgstr "О ссылках"
+
+# llm-draft
+msgid "Accent (buttons, markers)"
+msgstr "Акцент (кнопки, метки)"
+
+# llm-draft
+msgid "Accent, links and buttons"
+msgstr "Акцент, ссылки и кнопки"
 
 msgid "Activity by tour"
 msgstr ""
@@ -430,8 +447,8 @@ msgstr ""
 
 # llm-draft
 #, python-format
-msgid "At most %(max)d links."
-msgstr "Не более %(max)d ссылок."
+msgid "At most %(max)d navigation links."
+msgstr "Не более %(max)d ссылок в навигации."
 
 # llm-draft
 msgid "Attack"
@@ -457,6 +474,14 @@ msgstr ""
 msgid "Average number of gun hits that destroyed it"
 msgstr ""
 
+# llm-draft
+msgid "BLUFOR"
+msgstr "BLUFOR"
+
+# llm-draft
+msgid "BLUFOR labels"
+msgstr "подписи BLUFOR"
+
 msgid "BLUFOR won"
 msgstr ""
 
@@ -470,6 +495,14 @@ msgstr "На главную страницу"
 
 msgid "Back up your data now and then: il2ks backup"
 msgstr ""
+
+# llm-draft
+msgid "Backgrounds"
+msgstr "Фоны"
+
+# llm-draft
+msgid "Bad (red)"
+msgstr "Плохо (красный)"
 
 # llm-draft
 msgid "Bailed out"
@@ -520,6 +553,18 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+# llm-draft
+msgid "Blue"
+msgstr "Синий"
+
+# llm-draft
+msgid "Body font"
+msgstr "Шрифт основного текста"
+
+# llm-draft
+msgid "Body text"
+msgstr "Основной текст"
+
 msgid "Bomb release"
 msgstr ""
 
@@ -528,6 +573,10 @@ msgstr ""
 
 msgid "Bombs, rockets and napalm"
 msgstr ""
+
+# llm-draft
+msgid "Borders"
+msgstr "Границы"
 
 # llm-draft
 msgid "Breadcrumb"
@@ -559,11 +608,35 @@ msgstr "В плену"
 msgid "Captures"
 msgstr ""
 
+# llm-draft
+msgid "Cards, tables, inputs"
+msgstr "Карточки, таблицы, поля ввода"
+
 msgid "Category"
 msgstr ""
 
 msgid "Caused by"
 msgstr ""
+
+# llm-draft
+msgid "Caution (amber)"
+msgstr "Внимание (янтарный)"
+
+# llm-draft
+msgid "Chart grid lines"
+msgstr "Линии сетки диаграмм"
+
+# llm-draft
+msgid "Chart series 1"
+msgstr "Ряд диаграммы 1"
+
+# llm-draft
+msgid "Chart series 2"
+msgstr "Ряд диаграммы 2"
+
+# llm-draft
+msgid "Charts"
+msgstr "Диаграммы"
 
 msgid "Check"
 msgstr ""
@@ -586,12 +659,20 @@ msgstr ""
 msgid "Coalitions"
 msgstr "Коалиции"
 
+# llm-draft
+msgid "Color"
+msgstr "Цвет"
+
+# llm-draft
+msgid "Colors"
+msgstr "Цвета"
+
 msgid "Combat role"
 msgstr ""
 
 # llm-draft
-msgid "Community"
-msgstr "Сообщество"
+msgid "Condensed (default)"
+msgstr "Узкий (по умолчанию)"
 
 msgid "Configuration file"
 msgstr ""
@@ -640,6 +721,10 @@ msgid "Damaged"
 msgstr "Повреждён"
 
 # llm-draft
+msgid "Dark mode"
+msgstr "Тёмная тема"
+
+# llm-draft
 #, python-format
 msgid "Data updated %(when)s"
 msgstr "Данные обновлены: %(when)s"
@@ -656,6 +741,14 @@ msgstr ""
 
 msgid "Deaths and lost aircraft by cause"
 msgstr ""
+
+# llm-draft
+msgid "Default (clears all colors below)"
+msgstr "По умолчанию (сбрасывает все цвета ниже)"
+
+# llm-draft
+msgid "Desert sand"
+msgstr "Песок пустыни"
 
 # llm-draft
 msgid "Destroyed"
@@ -735,6 +828,10 @@ msgid "Engines are warm and the sky is waiting. Start the first sortie of the to
 msgstr ""
 
 # llm-draft
+msgid "Enter a full http:// or https:// address."
+msgstr "Введите полный адрес, начинающийся с http:// или https://."
+
+# llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
 msgstr "Равные возможности для всех: у этого пилота нет любимчиков, даже между сторонами."
 
@@ -765,6 +862,10 @@ msgstr "Ведомого путает каждый хоть раз. У кого-
 # llm-draft
 msgid "Exited on ground"
 msgstr "Покинул самолёт на земле"
+
+# llm-draft
+msgid "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), shown after the built-in ones."
+msgstr "Дополнительные ссылки в верхнем меню (Discord, форум, Patreon и т. д.); они показываются после встроенных."
 
 # llm-draft
 msgid "Failed"
@@ -820,6 +921,14 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+# llm-draft
+msgid "Fonts"
+msgstr "Шрифты"
+
+# llm-draft
+msgid "Fonts come from the visitor's system or are shipped with il2ks; nothing is loaded from other websites."
+msgstr "Шрифты берутся из системы посетителя или поставляются вместе с il2ks; с других сайтов ничего не загружается."
+
 #, python-format
 msgid "Found %(n)s mission report file there."
 msgid_plural "Found %(n)s mission report files there."
@@ -866,6 +975,10 @@ msgstr "Общее"
 # llm-draft
 msgid "Given up"
 msgstr "Отброшены"
+
+# llm-draft
+msgid "Good (green)"
+msgstr "Хорошо (зелёный)"
 
 msgid "Ground"
 msgstr ""
@@ -925,6 +1038,34 @@ msgstr ""
 msgid "Hall of shame"
 msgstr ""
 
+# llm-draft
+msgid "Header band"
+msgstr "Полоса шапки"
+
+# llm-draft
+msgid "Header band and home banner"
+msgstr "Полоса шапки и баннер главной страницы"
+
+# llm-draft
+msgid "Header menu text"
+msgstr "Текст меню в шапке"
+
+# llm-draft
+msgid "Header text"
+msgstr "Текст в шапке"
+
+# llm-draft
+msgid "Header text on hover"
+msgstr "Текст в шапке при наведении"
+
+# llm-draft
+msgid "Heading font"
+msgstr "Шрифт заголовков"
+
+# llm-draft
+msgid "Headings"
+msgstr "Заголовки"
+
 msgid "Health check"
 msgstr ""
 
@@ -947,6 +1088,10 @@ msgstr "Скрыть выбранные миссии на публичных с�
 # llm-draft
 msgid "Hide selected players from public pages"
 msgstr "Скрыть выбранных игроков на публичных страницах"
+
+# llm-draft
+msgid "High contrast (black and white)"
+msgstr "Высокий контраст (чёрный и белый)"
 
 msgid "Hits dealt"
 msgstr ""
@@ -987,6 +1132,10 @@ msgstr ""
 
 msgid "How should HTTPS be handled?"
 msgstr ""
+
+# llm-draft
+msgid "Humanist sans-serif"
+msgstr "Гуманистический гротеск"
 
 msgid "I already run my own web server"
 msgstr ""
@@ -1162,6 +1311,14 @@ msgstr ""
 msgid "Leaderboards"
 msgstr ""
 
+# llm-draft
+msgid ""
+"Leave a box empty to keep the default color. “Light” and “dark” are the two modes of the theme toggle. “Automatic” "
+"colors follow the accent."
+msgstr ""
+"Пустое поле оставляет цвет по умолчанию. «Светлая» и «тёмная» — два режима переключателя темы. «Автоматические» цвета"
+" следуют за акцентом."
+
 msgid ""
 "Leave the box empty. The site starts with a self-signed test certificate: browsers warn that it is “not secure”. Good"
 " for trying things out, not for your players."
@@ -1175,19 +1332,8 @@ msgid "Left the server"
 msgstr "Покинул сервер"
 
 # llm-draft
-#, python-format
-msgid "Line %(n)d: the label or the address is too long."
-msgstr "Строка %(n)d: название или адрес слишком длинные."
-
-# llm-draft
-#, python-format
-msgid "Line %(n)d: the link must be a full http:// or https:// address."
-msgstr "Строка %(n)d: ссылка должна быть полным адресом http:// или https://."
-
-# llm-draft
-#, python-format
-msgid "Line %(n)d: write it as “Label | https://example.org”."
-msgstr "Строка %(n)d: запишите в виде «Название | https://example.org»."
+msgid "Light mode"
+msgstr "Светлая тема"
 
 # llm-draft
 msgid "Lines"
@@ -1225,12 +1371,12 @@ msgstr ""
 msgid "Log name"
 msgstr "Имя в журнале"
 
+# llm-draft
+msgid "Logo"
+msgstr "Логотип"
+
 msgid "Longest ironman streaks"
 msgstr ""
-
-# llm-draft
-msgid "Look"
-msgstr "Оформление"
 
 msgid "Loss cause"
 msgstr ""
@@ -1243,6 +1389,19 @@ msgstr ""
 
 msgid "Lost to"
 msgstr ""
+
+# llm-draft
+#, python-format
+msgid ""
+"Low contrast in %(mode)s mode: %(what)s has a contrast ratio of %(ratio)s:1; aim for at least %(minimum)s:1 so it "
+"stays readable."
+msgstr ""
+"Низкий контраст в режиме «%(mode)s»: у элемента «%(what)s» контраст %(ratio)s:1; для удобного чтения нужно не менее "
+"%(minimum)s:1."
+
+# llm-draft
+msgid "Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."
+msgstr "Меньшие номера идут первыми. Ссылки открываются в новой вкладке; допустимы только адреса http:// и https://."
 
 msgid "Machine-gun rounds"
 msgstr ""
@@ -1280,6 +1439,10 @@ msgstr "Миссии: %(tour)s"
 msgid "Missions stored"
 msgstr "Сохранено миссий"
 
+# llm-draft
+msgid "Monospace"
+msgstr "Моноширинный"
+
 msgid "More hole than airplane, and still back on the ground. Hats off."
 msgstr ""
 
@@ -1297,8 +1460,20 @@ msgid "Names and emblems shown for 5xx / 6xx. The default emblems are neutral."
 msgstr ""
 
 # llm-draft
+msgid "Navigation links"
+msgstr "Ссылки в навигации"
+
+# llm-draft
+msgid "Navigation links, in order"
+msgstr "Ссылки в навигации по порядку"
+
+# llm-draft
 msgid "Neutral"
 msgstr "Нейтральная"
+
+# llm-draft
+msgid "Neutral (grey)"
+msgstr "Нейтральный (серый)"
 
 msgid "Never"
 msgstr ""
@@ -1516,10 +1691,6 @@ msgid "One detonation and one target that took damage"
 msgstr ""
 
 # llm-draft
-msgid "One per line: “Label | https://address”. Shown in the site header or footer. At most 10."
-msgstr "По одной в строке: «Название | https://адрес». Показываются в шапке или подвале сайта. Не более 10."
-
-# llm-draft
 msgid "Online now"
 msgstr "Сейчас на сервере"
 
@@ -1551,6 +1722,10 @@ msgid ""
 "for an IP address and il2ks renews them by itself. The address must be public, and port 80 must be reachable."
 msgstr ""
 
+# llm-draft
+msgid "Orange"
+msgstr "Оранжевый"
+
 msgid "Ordnance"
 msgstr ""
 
@@ -1581,6 +1756,10 @@ msgstr ""
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
 msgstr "PNG, JPEG или WebP, до 2 МБ. Изображение проверяется, перекодируется и уменьшается; SVG не принимается."
+
+# llm-draft
+msgid "Page background"
+msgstr "Фон страницы"
 
 # llm-draft
 msgid "Page not found"
@@ -1728,8 +1907,20 @@ msgid "Propulsion"
 msgstr "Тип двигателя"
 
 # llm-draft
+msgid "Purple"
+msgstr "Фиолетовый"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Пока в небе тихо. Аэродром в вашем распоряжении."
+
+# llm-draft
+msgid "REDFOR"
+msgstr "REDFOR"
+
+# llm-draft
+msgid "REDFOR labels"
+msgstr "подписи REDFOR"
 
 msgid "REDFOR won"
 msgstr ""
@@ -1771,6 +1962,10 @@ msgstr ""
 msgid "Remove the current logo"
 msgstr "Удалить текущий логотип"
 
+# llm-draft
+msgid "Replaces the colors below with that scheme when you save. You can then adjust single colors."
+msgstr "При сохранении заменяет цвета ниже этой схемой. Затем можно подправить отдельные цвета."
+
 msgid "Reprocess all missions"
 msgstr ""
 
@@ -1783,6 +1978,10 @@ msgstr ""
 # llm-draft
 msgid "Reset display names to the catalog defaults"
 msgstr "Сбросить названия на значения из каталога"
+
+# llm-draft
+msgid "Reset to the default color"
+msgstr "Сбросить на цвет по умолчанию"
 
 msgid "Restart il2ks"
 msgstr ""
@@ -1805,6 +2004,10 @@ msgstr ""
 
 msgid "Role"
 msgstr ""
+
+# llm-draft
+msgid "Row and menu hover"
+msgstr "Строка и меню при наведении"
 
 msgid "Running"
 msgstr ""
@@ -1833,10 +2036,26 @@ msgid "Seat"
 msgstr ""
 
 # llm-draft
+msgid "Secondary button"
+msgstr "Второстепенная кнопка"
+
+# llm-draft
+msgid "Secondary button text"
+msgstr "Текст второстепенной кнопки"
+
+# llm-draft
+msgid "Secondary text"
+msgstr "Второстепенный текст"
+
+# llm-draft
 msgid "Seen in logs but missing from the catalog. Give them a name here, and report them so the catalog can be updated."
 msgstr ""
 "Встречаются в журналах, но отсутствуют в каталоге. Задайте им название здесь и сообщите о них, чтобы каталог можно "
 "было обновить."
+
+# llm-draft
+msgid "Serif"
+msgstr "С засечками"
 
 msgid "Server activity"
 msgstr ""
@@ -1925,6 +2144,10 @@ msgid "Skip to content"
 msgstr "Перейти к содержимому"
 
 # llm-draft
+msgid "Slab serif"
+msgstr "Брусковый шрифт"
+
+# llm-draft
 msgid "Some chase kills. This one chases the perfect parking spot, and keeps looking."
 msgstr "Одни гонятся за победами, этот ищет идеальное место для парковки. И продолжает искать."
 
@@ -1997,6 +2220,10 @@ msgstr ""
 msgid "Start a new tour now"
 msgstr ""
 
+# llm-draft
+msgid "Start from a color scheme"
+msgstr "Начать с готовой цветовой схемы"
+
 #, python-format
 msgid "Started %(title)s."
 msgstr ""
@@ -2009,11 +2236,23 @@ msgid "Static object"
 msgstr ""
 
 # llm-draft
+msgid "Status colors (badges, notices)"
+msgstr "Цвета статусов (значки, уведомления)"
+
+# llm-draft
+msgid "Steel blue"
+msgstr "Стальной синий"
+
+# llm-draft
 msgid "Strafed on the ground"
 msgstr "Обстрелян на земле"
 
 msgid "Streak"
 msgstr ""
+
+# llm-draft
+msgid "Strong borders"
+msgstr "Выраженные границы"
 
 msgid "Summary"
 msgstr ""
@@ -2030,6 +2269,18 @@ msgstr ""
 # llm-draft
 msgid "Switch between light and dark"
 msgstr "Переключить светлую и тёмную тему"
+
+# llm-draft
+msgid "System sans-serif"
+msgstr "Системный гротеск"
+
+# llm-draft
+msgid "System sans-serif (default)"
+msgstr "Системный гротеск (по умолчанию)"
+
+# llm-draft
+msgid "Table headers, quiet panels"
+msgstr "Заголовки таблиц, спокойные панели"
 
 msgid "Takeoffs"
 msgstr ""
@@ -2058,6 +2309,22 @@ msgstr ""
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
 msgstr "Рулёжка или строй, без разницы: где этот пилот, там и история."
+
+# llm-draft
+msgid "Teal"
+msgstr "Бирюзовый"
+
+# llm-draft
+msgid "Text"
+msgstr "Текст"
+
+# llm-draft
+msgid "Text on the accent"
+msgstr "Текст на акценте"
+
+# llm-draft
+msgid "Text on the secondary button"
+msgstr "Текст на второстепенной кнопке"
 
 msgid "That folder does not exist yet. il2ks will start watching once it appears."
 msgstr ""
@@ -2428,10 +2695,6 @@ msgstr "Обновлено: %(when)s"
 msgid "Upload a new logo"
 msgstr "Загрузить новый логотип"
 
-# llm-draft
-msgid "Use a colour like #1A73E8 (six hex digits), or leave it empty."
-msgstr "Укажите цвет вида #1A73E8 (шесть шестнадцатеричных цифр) или оставьте поле пустым."
-
 msgid "Use it anyway if it does not exist yet"
 msgstr ""
 
@@ -2473,6 +2736,24 @@ msgstr ""
 # llm-draft
 msgid "Warnings"
 msgstr "Предупреждения"
+
+# llm-draft
+#, python-format
+msgid ""
+"We recommend at most %(n)d extra link with a short label (one or two words): more still work, but the menu then wraps"
+" onto a second row of the header."
+msgid_plural ""
+"We recommend at most %(n)d extra links with short labels (one or two words): more still work, but the menu then wraps"
+" onto a second row of the header."
+msgstr[0] ""
+"Рекомендуем не более %(n)d дополнительной ссылки с короткой подписью (одно-два слова): больше тоже можно, но тогда "
+"меню переносится на вторую строку шапки."
+msgstr[1] ""
+"Рекомендуем не более %(n)d дополнительных ссылок с короткими подписями (одно-два слова): больше тоже можно, но тогда "
+"меню переносится на вторую строку шапки."
+msgstr[2] ""
+"Рекомендуем не более %(n)d дополнительных ссылок с короткими подписями (одно-два слова): больше тоже можно, но тогда "
+"меню переносится на вторую строку шапки."
 
 msgid "What was saved"
 msgstr ""
@@ -2540,11 +2821,39 @@ msgstr "за всё время"
 msgid "also known as %(name)s"
 msgstr ""
 
+# llm-draft
+msgid "amber badges"
+msgstr "янтарные значки"
+
 msgid "attack sorties"
 msgstr ""
 
+# llm-draft
+msgid "automatic"
+msgstr "автоматически"
+
+# llm-draft
+msgid "blue badges"
+msgstr "синие значки"
+
+# llm-draft
+msgid "body text on cards and tables"
+msgstr "основной текст на карточках и в таблицах"
+
+# llm-draft
+msgid "body text on the page background"
+msgstr "основной текст на фоне страницы"
+
 msgid "by"
 msgstr ""
+
+# llm-draft
+msgid "chart series 1"
+msgstr "ряд диаграммы 1"
+
+# llm-draft
+msgid "chart series 2"
+msgstr "ряд диаграммы 2"
 
 msgid "created"
 msgstr ""
@@ -2552,12 +2861,44 @@ msgstr ""
 msgid "current"
 msgstr ""
 
+# llm-draft
+msgid "dark"
+msgstr "тёмная"
+
+# llm-draft
+msgid "dark mode"
+msgstr "тёмная тема"
+
 #, python-format
 msgid "flight time %(t)s"
 msgstr ""
 
 msgid "from a log event"
 msgstr ""
+
+# llm-draft
+msgid "green badges"
+msgstr "зелёные значки"
+
+# llm-draft
+msgid "grey badges"
+msgstr "серые значки"
+
+# llm-draft
+msgid "header menu text"
+msgstr "текст меню в шапке"
+
+# llm-draft
+msgid "header text"
+msgstr "текст в шапке"
+
+# llm-draft
+msgid "header text on hover"
+msgstr "текст в шапке при наведении"
+
+# llm-draft
+msgid "headings on the page background"
+msgstr "заголовки на фоне страницы"
 
 msgid "il2ks does it (recommended)"
 msgstr ""
@@ -2578,6 +2919,26 @@ msgstr ""
 msgid "inferred from the log"
 msgstr ""
 
+# llm-draft
+msgid "light"
+msgstr "светлая"
+
+# llm-draft
+msgid "light mode"
+msgstr "светлая тема"
+
+# llm-draft
+msgid "links on cards and tables"
+msgstr "ссылки на карточках и в таблицах"
+
+# llm-draft
+msgid "links on the page background"
+msgstr "ссылки на фоне страницы"
+
+# llm-draft
+msgid "navigation link"
+msgstr "ссылка в навигации"
+
 msgid ""
 "nginx, IIS or Apache in front of il2ks handles HTTPS. il2ks then only listens on this computer, and you point your "
 "server at it (see docs/reverse-proxy.md)."
@@ -2596,8 +2957,24 @@ msgstr ""
 msgid "of them static objects"
 msgstr ""
 
+# llm-draft
+msgid "opens in a new tab"
+msgstr "откроется в новой вкладке"
+
+# llm-draft
+msgid "orange badges"
+msgstr "оранжевые значки"
+
 msgid "password reset"
 msgstr ""
+
+# llm-draft
+msgid "purple badges"
+msgstr "фиолетовые значки"
+
+# llm-draft
+msgid "red badges"
+msgstr "красные значки"
 
 #, python-format
 msgid "requested %(at)s by %(who)s; it starts at the next watch tick."
@@ -2606,6 +2983,14 @@ msgstr ""
 # llm-draft
 msgid "runs ok / failed"
 msgstr "запусков успешно / с ошибкой"
+
+# llm-draft
+msgid "secondary text on cards and tables"
+msgstr "второстепенный текст на карточках и в таблицах"
+
+# llm-draft
+msgid "secondary text on the page background"
+msgstr "второстепенный текст на фоне страницы"
 
 msgid "set in the configuration"
 msgstr ""
@@ -2624,10 +3009,26 @@ msgstr ""
 msgid "spawned %(when)s"
 msgstr ""
 
+# llm-draft
+msgid "teal badges"
+msgstr "бирюзовые значки"
+
+# llm-draft
+msgid "text on accent buttons"
+msgstr "текст на акцентных кнопках"
+
+# llm-draft
+msgid "text on secondary buttons"
+msgstr "текст на второстепенных кнопках"
+
 #, python-format
 msgid "x %(x)s, z %(z)s, altitude %(y)s m"
 msgstr ""
 
 msgid "your own web server"
 msgstr ""
+
+# llm-draft
+msgid "— keep the colors below —"
+msgstr "— оставить цвета ниже —"
 

@@ -30,7 +30,19 @@ type Status = Literal["shipped", "planned", "missing", "unused"]
 type Priority = Literal["P1", "P2", "P3"]
 
 ICON = "SVG 24 x 24, currentColor"
-GROUPS = ("brand", "aircraft", "coalition", "outcome", "event", "ground", "role", "stat", "pattern", "illustration")
+GROUPS = (
+    "brand",
+    "aircraft",
+    "coalition",
+    "outcome",
+    "event",
+    "ground",
+    "role",
+    "stat",
+    "nav",
+    "pattern",
+    "illustration",
+)
 GROUP_TITLES = {
     "brand": "Brand (`brand/`)",
     "aircraft": "Aircraft (`aircraft/`)",
@@ -40,6 +52,7 @@ GROUP_TITLES = {
     "ground": "Ground targets (`ground/`)",
     "role": "Combat role (`role/`)",
     "stat": "Stat tiles (`stat/`)",
+    "nav": "Navigation link icons (`nav/`)",
     "pattern": "Textures (`pattern/`)",
     "illustration": "Illustrations (`illustration/`)",
 }
@@ -241,6 +254,10 @@ def build_manifest() -> list[Asset]:
         add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", name not in UNUSED_STATS)
     for name in ("elo-prop", "elo-jet"):
         add(f"stat/{name}.svg", "Rating tile (ratings are not shown yet)", ICON, "P3", False)
+
+    # navigation link icons: the admin picks one per custom link by key (web.site_forms), so the name is computed
+    for name in ("discord", "forum", "patreon", "link"):
+        add(f"nav/{name}.svg", "Custom navigation links in the header (`NavLink.icon`)", ICON, "P3", True, dynamic=True)
 
     # textures and illustrations
     add(

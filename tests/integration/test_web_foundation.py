@@ -13,7 +13,7 @@ from django.test.utils import CaptureQueriesContext, override_settings
 
 from il2ks import __version__
 from il2ks.db.models import DataVersion, GameObject, SiteSettings
-from il2ks.web.context_processors import safe_links, site
+from il2ks.web.context_processors import nav_items, site
 
 
 def render(source: str, request: HttpRequest | None = None, **context: object) -> str:
@@ -41,17 +41,22 @@ def test_context_processor_costs_two_reads_and_never_writes() -> None:
 
 @pytest.mark.django_db
 def test_context_processor_reads_branding_and_data_version() -> None:
-    SiteSettings.objects.create(pk=1, site_title="Test Wing", logo="logo/x.png", accent_color="#336699")
+    SiteSettings.objects.create(
+        pk=1,
+        site_title="Test Wing",
+        logo="logo/x.png",
+        theme={"light": {"accent": "#336699"}, "dark": {"accent": "#336699"}},
+    )
     DataVersion.objects.create(pk=1, version=3)
     result = site(RequestFactory().get("/"))
     assert result["logo_url"].endswith("logo/x.png")  # type: ignore[union-attr]
-    assert result["accent_css"] == ":root{--il2-accent:#336699;--il2-accent-contrast:#ffffff}"
+    assert result["theme_css"] == ":root{--il2-accent:#336699;--il2-accent-contrast:#ffffff;}"
     assert isinstance(result["data_updated"], datetime)
 
 
-def test_safe_links_drops_unsafe_schemes_and_junk() -> None:
+def test_nav_items_keep_only_full_http_urls_and_known_icons() -> None:
     raw = [
-        {"label": "Discord", "url": "https://discord.example/x"},
+        {"label": "Discord", "url": "https://discord.example/x", "icon": "discord"},
         {"label": "Local", "url": "/about/"},
         {"label": "Mail", "url": "mailto:a@example.org"},
         {"label": "Bad", "url": "javascript:alert(1)"},
@@ -59,13 +64,15 @@ def test_safe_links_drops_unsafe_schemes_and_junk() -> None:
         {"label": "NoUrl"},
         "junk",
         {"label": 5, "url": "https://x.example"},
+        {"label": "Odd icon", "url": "http://ok.example/", "icon": "../../etc/passwd"},
+        {"label": "", "url": "http://nolabel.example/"},
     ]
-    assert safe_links(raw) == [
-        ("Discord", "https://discord.example/x"),
-        ("Local", "/about/"),
-        ("Mail", "mailto:a@example.org"),
+    assert [(i.label, i.url, i.icon) for i in nav_items(raw)] == [
+        ("Discord", "https://discord.example/x", "nav/discord"),
+        ("Odd icon", "http://ok.example/", ""),
+        ("http://nolabel.example/", "http://nolabel.example/", ""),
     ]
-    assert safe_links("not a list") == []
+    assert nav_items("not a list") == []
 
 
 # --- base layout ---------------------------------------------------------------------------------------------------
@@ -101,15 +108,49 @@ def test_base_shows_branding_links_and_data_freshness(client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_accent_colour_is_injected_only_when_valid(client: Client) -> None:
-    SiteSettings.objects.create(pk=1, accent_color="#c0392b")
-    assert "--il2-accent:#c0392b" in client.get("/").content.decode()
-    # Stored values bypass the form here; they must fit the column (max_length 7): Postgres enforces it.
-    for bad in ["red", "#12345", "#a}<b>", "url(x)"]:
-        SiteSettings.objects.filter(pk=1).update(accent_color=bad)
-        html = client.get("/").content.decode()
-        assert "--il2-accent:" not in html
-        assert "}<b>" not in html
+def test_theme_is_injected_only_when_valid(client: Client) -> None:
+    SiteSettings.objects.create(
+        pk=1, theme={"light": {"accent": "#C0392B"}, "dark": {"accent": "#C0392B", "bg": "#101010"}}
+    )
+    html = client.get("/").content.decode()
+    assert "--il2-accent:#c0392b;" in html
+    assert "--il2-bg:light-dark(#e9e8e0, #101010);" in html
+    # Stored values bypass the form here; whatever is not exactly #RRGGBB for a known token must never reach the page.
+    evil = {"light": {"accent": "red", "bg": "#a}<b>", "text": "url(x)", "nope": "#ffffff"}, "dark": "x"}
+    SiteSettings.objects.filter(pk=1).update(theme=evil)
+    html = client.get("/").content.decode()
+    assert "--il2-accent:" not in html
+    assert "}<b>" not in html
+    assert "url(x)" not in html
+
+
+@pytest.mark.django_db
+def test_nav_links_follow_the_built_in_ones_in_order_and_open_safely(client: Client) -> None:
+    SiteSettings.objects.create(
+        pk=1,
+        links=[
+            {"label": "Discord", "url": "https://discord.example/x", "icon": "discord"},
+            {"label": "Forum <b>", "url": "https://forum.example/", "icon": ""},
+        ],
+    )
+    html = client.get("/").content.decode()
+    nav = html[html.index('class="site-nav"') : html.index("</nav>")]
+    assert nav.index("Leaderboards") < nav.index("Discord") < nav.index("Forum &lt;b&gt;")
+    assert 'href="https://discord.example/x" target="_blank" rel="noopener noreferrer"' in nav
+    assert nav.count('<svg class="icon"') == 1  # only the Discord link has an icon
+    assert "<b>" not in nav
+
+
+@pytest.mark.django_db
+def test_fonts_are_chosen_by_key_only(client: Client) -> None:
+    SiteSettings.objects.create(pk=1, heading_font="serif", body_font="mono")
+    html = client.get("/").content.decode()
+    assert "--il2-font-display:Charter," in html
+    assert "--pico-font-family:ui-monospace," in html
+    SiteSettings.objects.filter(pk=1).update(heading_font="x;}</style><script>", body_font="nope")
+    html = client.get("/").content.decode()
+    assert "--il2-font-display" not in html
+    assert "<script>alert" not in html
 
 
 @pytest.mark.django_db

@@ -1,0 +1,22 @@
+{# il2ks-template: templates/il2ks_admin/theme_editor.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  The colour table of the site settings form (ThemeWidget). Context: groups = [{label, rows: [{label, key, light, dark}]}],
+  where light and dark are {name, value, default}. The inputs are plain text boxes (#RRGGBB); theme_editor.js adds a
+  colour picker and a reset button to each. An empty box means "use the default".
+{% endcomment %}<div class="il2-theme" data-theme-editor data-reset-title="{% translate 'Reset to the default color' %}">
+{% for group in groups %}
+  <table class="il2-theme__group">
+    <caption>{{ group.label }}</caption>
+    <thead><tr><th scope="col">{% translate "Color" %}</th><th scope="col">{% translate "Light mode" %}</th><th scope="col">{% translate "Dark mode" %}</th></tr></thead>
+    <tbody>
+    {% for row in group.rows %}
+      <tr>
+        <th scope="row">{{ row.label }}</th>
+        <td><input type="text" class="il2-theme__input" name="{{ row.light.name }}" value="{{ row.light.value }}" maxlength="7" size="9" pattern="#[0-9A-Fa-f]{6}" placeholder="{% if row.light.default %}{{ row.light.default }}{% else %}{% translate 'automatic' %}{% endif %}" data-default="{{ row.light.default }}" aria-label="{{ row.label }}: {% translate 'light mode' %}"></td>
+        <td><input type="text" class="il2-theme__input" name="{{ row.dark.name }}" value="{{ row.dark.value }}" maxlength="7" size="9" pattern="#[0-9A-Fa-f]{6}" placeholder="{% if row.dark.default %}{{ row.dark.default }}{% else %}{% translate 'automatic' %}{% endif %}" data-default="{{ row.dark.default }}" aria-label="{{ row.label }}: {% translate 'dark mode' %}"></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endfor %}
+</div>

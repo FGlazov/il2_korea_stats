@@ -62,6 +62,10 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `stat/strafed.svg` | `target-arrow` |
 | `coalition/redfor.svg` | `star` |
 | `coalition/blufor.svg` | `shield` |
+| `nav/discord.svg` | `brand-discord` |
+| `nav/patreon.svg` | `brand-patreon` |
+| `nav/forum.svg` | `messages` |
+| `nav/link.svg` | `link` |
 
 ## Ours (original drawings, MIT like the rest of the project)
 

@@ -20,6 +20,7 @@ from il2ks.db.models import (
     IngestRun,
     IngestStatus,
     Mission,
+    NavLink,
     ObjectClass,
     Player,
     PlayerName,
@@ -62,14 +63,35 @@ def settings_form(**overrides: object) -> dict[str, object]:
         "site_title": "Korea Fighters",
         "server_name": "Fighter Server",
         "description": "Welcome",
-        "accent_color": "#1a73e8",
-        "links_text": "Discord | https://discord.gg/example\nHomepage | http://example.org/",
         "redfor_name": "Red",
         "blufor_name": "Blue",
         "redfor_emblem": "plaaf",
         "blufor_emblem": "rokaf",
     }
+    data.update(
+        nav_formset([("Discord", "https://discord.gg/example", "discord"), ("Homepage", "http://example.org/", "")])
+    )
     data.update(overrides)
+    return data
+
+
+def nav_formset(links: list[tuple[str, str, str]], *, initial: int = 0) -> dict[str, object]:
+    """POST data for the navigation-link inline: `links` are (label, url, icon) in row order; the first `initial` rows
+    are existing ones (their ids are 1..initial, which holds on a fresh test database)."""
+    data: dict[str, object] = {
+        "nav_links-TOTAL_FORMS": len(links),
+        "nav_links-INITIAL_FORMS": initial,
+        "nav_links-MIN_NUM_FORMS": 0,
+        "nav_links-MAX_NUM_FORMS": 1000,
+    }
+    for number, (label, url, icon) in enumerate(links):
+        data[f"nav_links-{number}-label"] = label
+        data[f"nav_links-{number}-url"] = url
+        data[f"nav_links-{number}-icon"] = icon
+        data[f"nav_links-{number}-position"] = number + 1
+        if number < initial:
+            data[f"nav_links-{number}-id"] = number + 1
+            data[f"nav_links-{number}-site"] = 1
     return data
 
 
@@ -135,88 +157,216 @@ def test_saving_site_settings(admin: Client, media_root: Path) -> None:
     get_site_settings()
     before = current_data_version()
 
-    response = admin.post(settings_url(), settings_form())
+    response = admin.post(settings_url(), settings_form(heading_font="serif", body_font="humanist"))
 
     assert response.status_code == 302, getattr(response, "context", None) and response.context["adminform"].form.errors
     row = SiteSettings.objects.get(pk=1)
     assert row.site_title == "Korea Fighters"
     assert row.server_name == "Fighter Server"
-    assert row.accent_color == "#1A73E8"
+    assert (row.heading_font, row.body_font) == ("serif", "humanist")
     assert row.links == [
-        {"label": "Discord", "url": "https://discord.gg/example"},
-        {"label": "Homepage", "url": "http://example.org/"},
+        {"label": "Discord", "url": "https://discord.gg/example", "icon": "discord"},
+        {"label": "Homepage", "url": "http://example.org/", "icon": ""},
+    ]
+    assert [(link.label, link.position) for link in NavLink.objects.order_by("position")] == [
+        ("Discord", 1),
+        ("Homepage", 2),
     ]
     assert (row.redfor_name, row.blufor_name) == ("Red", "Blue")
     assert (row.redfor_emblem, row.blufor_emblem) == ("plaaf", "rokaf")  # FR-ADM-2, doc 15
     assert current_data_version() > before
 
 
-def test_the_form_shows_the_links_one_per_line(admin: Client) -> None:
-    row = get_site_settings()
-    row.links = [{"label": "Discord", "url": "https://discord.gg/example"}]
-    row.save()
+def test_the_form_lists_the_links_and_recommends_a_number(admin: Client) -> None:
+    site = get_site_settings()
+    NavLink.objects.create(site=site, label="Our Discord", url="https://discord.gg/example", icon="discord", position=1)
 
     body = admin.get(settings_url()).content.decode()
 
-    assert "Discord | https://discord.gg/example" in body
+    assert 'value="Our Discord"' in body
+    assert "We recommend at most 3 extra links" in body
 
 
-@pytest.mark.parametrize("colour", ["red", "#12345", "#1234567", "#GGGGGG", "123456", "#12 456"])
-def test_bad_accent_colours_are_refused(admin: Client, colour: str) -> None:
-    get_site_settings()
-    before = current_data_version()
+def test_links_are_reordered_and_renumbered(admin: Client) -> None:
+    site = get_site_settings()
+    NavLink.objects.create(site=site, label="A", url="https://a.example/", position=1)
+    NavLink.objects.create(site=site, label="B", url="https://b.example/", position=2)
+    data = settings_form(
+        **nav_formset(
+            [("A", "https://a.example/", ""), ("B", "https://b.example/", ""), ("C", "https://c.example/", "forum")],
+            initial=2,
+        )
+    )
+    data["nav_links-0-position"] = 30  # move A behind B; the new C stays last
+    data["nav_links-1-position"] = 10
+    data["nav_links-2-position"] = 40
 
-    response = admin.post(settings_url(), settings_form(accent_color=colour))
+    assert admin.post(settings_url(), data).status_code == 302
 
-    assert response.status_code == 200
-    assert "accent_color" in response.context["adminform"].form.errors
-    assert SiteSettings.objects.get(pk=1).accent_color == ""
-    assert current_data_version() == before
+    assert [link["label"] for link in SiteSettings.objects.get(pk=1).links] == ["B", "A", "C"]
+    assert list(NavLink.objects.order_by("position").values_list("label", "position")) == [("B", 1), ("A", 2), ("C", 3)]
 
 
-def test_an_empty_accent_colour_means_the_default_theme(admin: Client) -> None:
-    get_site_settings()
+def test_a_link_can_be_deleted(admin: Client) -> None:
+    site = get_site_settings()
+    NavLink.objects.create(site=site, label="A", url="https://a.example/", position=1)
+    data = settings_form(**nav_formset([("A", "https://a.example/", "")], initial=1))
+    data["nav_links-0-DELETE"] = "on"
 
-    assert admin.post(settings_url(), settings_form(accent_color="")).status_code == 302
-    assert SiteSettings.objects.get(pk=1).accent_color == ""
+    assert admin.post(settings_url(), data).status_code == 302
+    assert SiteSettings.objects.get(pk=1).links == []
+    assert not NavLink.objects.exists()
 
 
 @pytest.mark.parametrize(
-    "links",
+    "url",
     [
         "javascript:alert(1)",
-        "Click | javascript:alert(1)",
-        "Click | JaVaScRiPt:alert(1)",
-        "Click | data:text/html,<script>alert(1)</script>",
-        "Files | ftp://example.org/",
-        "Mail | mailto:someone@example.org",
-        "Relative | /admin/",
-        "Protocol relative | //example.org/",
-        "No host | https://",
-        "Spaces | https://example.org/a b",
-        " | https://example.org/",
-        "Label |",
-        "\n".join(f"L{i} | https://example.org/{i}" for i in range(11)),
-        "X" * 70 + " | https://example.org/",
+        "JaVaScRiPt:alert(1)",
+        "data:text/html,<script>alert(1)</script>",
+        "ftp://example.org/",
+        "mailto:someone@example.org",
+        "/admin/",
+        "//example.org/",
+        "https://",
+        "https://example.org/a b",
+        "https://example.org/\nx",
+        "https://[bad",
+        "x" * 301,
     ],
 )
-def test_bad_links_are_refused(admin: Client, links: str) -> None:
+def test_bad_link_addresses_are_refused(admin: Client, url: str) -> None:
     get_site_settings()
+    before = current_data_version()
 
-    response = admin.post(settings_url(), settings_form(links_text=links))
+    response = admin.post(settings_url(), settings_form(**nav_formset([("Click", url, "")])))
 
     assert response.status_code == 200
-    assert "links_text" in response.context["adminform"].form.errors
+    assert response.context["inline_admin_formsets"][0].formset.errors[0]
     assert SiteSettings.objects.get(pk=1).links == []
+    assert not NavLink.objects.exists()
+    assert current_data_version() == before
 
 
-def test_blank_links_clear_the_list(admin: Client) -> None:
+def test_a_link_needs_a_label_and_a_known_icon(admin: Client) -> None:
+    get_site_settings()
+
+    response = admin.post(settings_url(), settings_form(**nav_formset([("", "https://a.example/", "")])))
+    assert response.status_code == 200
+    response = admin.post(settings_url(), settings_form(**nav_formset([("A", "https://a.example/", "../x")])))
+    assert response.status_code == 200
+    assert not NavLink.objects.exists()
+
+
+def test_too_many_links_are_refused(admin: Client) -> None:
+    get_site_settings()
+    links = [(f"L{i}", f"https://example.org/{i}", "") for i in range(31)]
+
+    response = admin.post(settings_url(), settings_form(**nav_formset(links)))
+
+    assert response.status_code == 200
+    assert not NavLink.objects.exists()
+
+
+# --- colours and fonts ---
+
+
+def test_saving_colours_stores_only_the_boxes_that_are_filled(admin: Client) -> None:
+    get_site_settings()
+
+    response = admin.post(
+        settings_url(),
+        settings_form(
+            **{"theme__accent__light": "#1a73e8", "theme__accent__dark": "#8ab4f8", "theme__surface-2__dark": "#202020"}
+        ),
+    )
+
+    assert response.status_code == 302
+    assert SiteSettings.objects.get(pk=1).theme == {
+        "light": {"accent": "#1A73E8"},
+        "dark": {"accent": "#8AB4F8", "surface-2": "#202020"},
+    }
+
+
+@pytest.mark.parametrize(
+    "colour", ["red", "#12345", "#1234567", "#GGGGGG", "123456", "#12 456", "#fff", "#abc}body{x:y"]
+)
+def test_bad_colours_are_refused(admin: Client, colour: str) -> None:
+    get_site_settings()
+    before = current_data_version()
+
+    response = admin.post(settings_url(), settings_form(**{"theme__bg__dark": colour}))
+
+    assert response.status_code == 200
+    assert "theme" in response.context["adminform"].form.errors
+    assert SiteSettings.objects.get(pk=1).theme == {}
+    assert current_data_version() == before
+
+
+def test_emptying_the_boxes_resets_to_the_default(admin: Client) -> None:
     row = get_site_settings()
-    row.links = [{"label": "x", "url": "https://example.org/"}]
+    row.theme = {"light": {"accent": "#112233"}, "dark": {}}
     row.save()
 
-    assert admin.post(settings_url(), settings_form(links_text="  \n\n")).status_code == 302
-    assert SiteSettings.objects.get(pk=1).links == []
+    assert admin.post(settings_url(), settings_form()).status_code == 302
+    assert SiteSettings.objects.get(pk=1).theme == {"light": {}, "dark": {}}
+
+
+def test_a_preset_replaces_the_colours_and_default_clears_them(admin: Client) -> None:
+    get_site_settings()
+
+    assert (
+        admin.post(settings_url(), settings_form(theme_preset="steel", **{"theme__bg__dark": "#000001"})).status_code
+        == 302
+    )
+    theme = SiteSettings.objects.get(pk=1).theme
+    assert theme["light"]["accent"] == "#2F6DB3"
+    assert theme["dark"]["bg"] == "#0F141B"
+
+    assert admin.post(settings_url(), settings_form(theme_preset="default")).status_code == 302
+    assert SiteSettings.objects.get(pk=1).theme == {"light": {}, "dark": {}}
+
+
+def test_poor_contrast_warns_but_still_saves(admin: Client) -> None:
+    get_site_settings()
+
+    response = admin.post(
+        settings_url(),
+        settings_form(**{"theme__text__light": "#EEEEEE", "theme__bg__light": "#FFFFFF"}),
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert "Low contrast in light mode: body text on the page background" in response.content.decode()
+    assert SiteSettings.objects.get(pk=1).theme["light"]["text"] == "#EEEEEE"
+
+
+def test_good_contrast_gives_no_warning(admin: Client) -> None:
+    get_site_settings()
+
+    body = admin.post(settings_url(), settings_form(theme_preset="desert"), follow=True).content.decode()
+
+    assert "Low contrast" not in body
+
+
+def test_unknown_fonts_are_refused(admin: Client) -> None:
+    get_site_settings()
+
+    response = admin.post(settings_url(), settings_form(heading_font="Comic Sans;}</style>"))
+
+    assert response.status_code == 200
+    assert "heading_font" in response.context["adminform"].form.errors
+    assert SiteSettings.objects.get(pk=1).heading_font == ""
+
+
+def test_saving_branding_changes_the_page_etag(admin: Client, client: Client) -> None:
+    """TD-28: pages are cached by the data version, so a branding save must bump it."""
+    get_site_settings()
+    first = Client().get("/")["ETag"]
+
+    admin.post(settings_url(), settings_form(**{"theme__accent__light": "#112233"}))
+
+    assert Client().get("/")["ETag"] != first
 
 
 # --- logo ---

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v7 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v8 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -42,12 +42,30 @@
   --il2-chart-2: light-dark(#b4532a, #d06c3a);
   --il2-chart-grid: light-dark(#e1dfd2, #272d21);
 
+  /* Status tones (badges, notices, setup page, timeline) and the two coalitions. */
+  --il2-green: light-dark(#17803d, #5dd08c);
+  --il2-amber: light-dark(#946200, #ecbb4a);
+  --il2-orange: light-dark(#c2410c, #f29458);
+  --il2-red: light-dark(#b42323, #f07c7c);
+  --il2-blue: light-dark(#1d5fb4, #6eaaf2);
+  --il2-teal: light-dark(#0f766e, #54c9bd);
+  --il2-purple: light-dark(#7a3fb0, #bf95ee);
+  --il2-grey: light-dark(#5b6b78, #9aa8b4);
+  --il2-redfor: light-dark(#b52d28, #f0716a);
+  --il2-blufor: light-dark(#1f62b6, #70a9f4);
+
+  /* Secondary buttons. */
+  --il2-secondary: light-dark(#5d6650, #a3ab92);
+  --il2-secondary-bg: light-dark(#5d6650, #454e3b);
+  --il2-secondary-contrast: #ffffff;
+
   /* The header band stays dark olive-gunmetal in both themes; the camo tile sits on it at very low contrast. */
   --il2-band: light-dark(#2b3326, #151a12);
   --il2-band-text: #e9ecdd;
   --il2-band-muted: #aab294;
-  --il2-band-hover: rgb(255 255 255 / 0.09);
-  --il2-band-border: rgb(255 255 255 / 0.16);
+  --il2-band-strong: #ffffff; /* hovered / current nav link, hero heading */
+  --il2-band-hover: color-mix(in srgb, var(--il2-band-text) 9%, transparent);
+  --il2-band-border: color-mix(in srgb, var(--il2-band-text) 16%, transparent);
   --il2-camo: url("img/pattern/camo.svg");
 
   --il2-font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
@@ -107,15 +125,23 @@
   --pico-dropdown-border-color: var(--il2-border);
   --pico-dropdown-color: var(--il2-text);
   --pico-dropdown-hover-background-color: var(--il2-surface-hover);
-  --pico-secondary: light-dark(#5d6650, #a3ab92);
-  --pico-secondary-background: light-dark(#5d6650, #454e3b);
-  --pico-secondary-border: light-dark(#5d6650, #454e3b);
-  --pico-secondary-hover: light-dark(#454e3b, #c3cab2);
-  --pico-secondary-hover-background: light-dark(#4a5340, #515b46);
-  --pico-secondary-hover-border: light-dark(#4a5340, #515b46);
+  --pico-secondary: var(--il2-secondary);
+  --pico-secondary-background: var(--il2-secondary-bg);
+  --pico-secondary-border: var(--il2-secondary-bg);
+  --pico-secondary-hover: color-mix(in srgb, var(--il2-secondary) 70%, var(--il2-heading));
+  --pico-secondary-hover-background: color-mix(in srgb, var(--il2-secondary-bg) 84%, var(--il2-heading));
+  --pico-secondary-hover-border: color-mix(in srgb, var(--il2-secondary-bg) 84%, var(--il2-heading));
   --pico-secondary-underline: color-mix(in srgb, var(--pico-secondary) 45%, transparent);
   --pico-secondary-focus: color-mix(in srgb, var(--pico-secondary) 35%, transparent);
-  --pico-secondary-inverse: #ffffff;
+  --pico-secondary-inverse: var(--il2-secondary-contrast);
+  --pico-contrast: var(--il2-heading);
+  --pico-contrast-background: var(--il2-heading);
+  --pico-contrast-border: var(--il2-heading);
+  --pico-contrast-inverse: var(--il2-bg);
+  --pico-form-element-invalid-border-color: var(--il2-red);
+  --pico-form-element-invalid-active-border-color: var(--il2-red);
+  --pico-form-element-valid-border-color: var(--il2-green);
+  --pico-form-element-valid-active-border-color: var(--il2-green);
   --pico-table-border-color: var(--il2-border);
   --pico-table-row-stripped-background-color: transparent;
   --pico-code-background-color: var(--il2-surface-2);
@@ -148,10 +174,10 @@ body > header.site-header {
   background-size: 640px 200px;
   border-bottom: 3px solid var(--il2-accent);
 }
-.site-header__inner { display: flex; align-items: center; gap: 1.75rem; min-height: 3.9rem; flex-wrap: wrap; }
+.site-header__inner { display: flex; align-items: center; gap: 1.75rem; min-height: 3.9rem; padding-block: 0.4rem; flex-wrap: wrap; }
 
 .brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--il2-band-text); }
-.brand:hover { color: #fff; }
+.brand:hover { color: var(--il2-band-strong); }
 .brand__mark { width: 1.9rem; height: 1.9rem; flex: none; color: var(--il2-accent); }
 .brand__logo { height: 2.3rem; width: auto; max-width: 8rem; object-fit: contain; }
 .brand__text { display: flex; flex-direction: column; line-height: 1.1; }
@@ -159,20 +185,23 @@ body > header.site-header {
 .brand__sub { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--il2-band-muted); }
 
 .site-nav { flex: 1; min-width: 0; }
-.site-nav ul { display: flex; align-items: center; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
+/* Many links (built-in plus the admin's own) wrap onto a second row instead of overflowing; docs/customizing.md. */
+.site-nav ul { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; margin: 0; padding: 0; list-style: none; }
 .site-nav li { margin: 0; padding: 0; list-style: none; }
 .site-nav a {
   display: block; padding: 0.45rem 0.85rem; border-radius: var(--il2-radius); text-decoration: none; font-weight: 600;
   font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--il2-band-muted);
 }
-.site-nav a:hover { color: #fff; background: var(--il2-band-hover); }
-.site-nav a[aria-current="page"] { color: #fff; background: var(--il2-band-hover); box-shadow: inset 0 -2px 0 var(--il2-accent); }
+.site-nav a { white-space: nowrap; }
+.site-nav a .icon { width: 1.05em; height: 1.05em; margin-inline-end: 0.4em; vertical-align: -0.2em; }
+.site-nav a:hover { color: var(--il2-band-strong); background: var(--il2-band-hover); }
+.site-nav a[aria-current="page"] { color: var(--il2-band-strong); background: var(--il2-band-hover); box-shadow: inset 0 -2px 0 var(--il2-accent); }
 .site-nav details.dropdown { margin: 0; }
 .site-nav details.dropdown summary {
   margin: 0; padding: 0.45rem 2rem 0.45rem 0.85rem; border: 0; background-color: transparent; color: var(--il2-band-muted);
   font-weight: 600; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; width: auto;
 }
-.site-nav details.dropdown summary:hover, .site-nav details.dropdown[open] summary { color: #fff; background-color: var(--il2-band-hover); }
+.site-nav details.dropdown summary:hover, .site-nav details.dropdown[open] summary { color: var(--il2-band-strong); background-color: var(--il2-band-hover); }
 .site-nav details.dropdown summary::after { margin-inline-start: 0.35rem; filter: brightness(2.2); }
 .site-nav details.dropdown ul { min-width: 12rem; flex-direction: column; align-items: stretch; gap: 0; padding: 0.3rem; }
 .site-nav details.dropdown ul a { color: var(--il2-text); font-size: 0.9rem; letter-spacing: 0; text-transform: none; font-weight: 500; }
@@ -180,22 +209,22 @@ body > header.site-header {
 
 form.site-search[role="search"] { display: flex; align-items: center; width: auto; margin: 0; gap: 0; box-shadow: none; }
 .site-search input[type="search"] {
-  margin: 0; flex: 0 0 auto; height: 2.2rem; width: 14rem; padding: 0 0.8rem 0 2.1rem; font-size: 0.9rem;
+  margin: 0; flex: 0 0 auto; height: 2.2rem; width: 14rem; background-image: none; padding: 0 0.8rem 0 2.1rem; font-size: 0.9rem;
   color: var(--il2-band-text); background-color: rgb(0 0 0 / 0.28); border: 1px solid var(--il2-band-border);
   border-radius: var(--il2-radius);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aab294' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: 0.75rem center; background-size: 1rem;
 }
 .site-search input[type="search"]::placeholder { color: var(--il2-band-muted); opacity: 1; }
 .site-search input[type="search"]:focus { background-color: rgb(0 0 0 / 0.4); border-color: var(--il2-accent); }
 .site-search button { display: none; }
+form.site-search[role="search"] { position: relative; }
+.site-search__icon { position: absolute; left: 0.75rem; width: 1rem; height: 1rem; color: var(--il2-band-muted); pointer-events: none; }
 
 .theme-toggle {
   display: none; align-items: center; justify-content: center; width: 2.2rem; height: 2.2rem; padding: 0; margin: 0;
   border-radius: var(--il2-radius); background: transparent; border: 1px solid var(--il2-band-border); color: var(--il2-band-muted);
 }
 .js .theme-toggle { display: inline-flex; }
-.theme-toggle:hover { color: #fff; background: var(--il2-band-hover); border-color: var(--il2-band-muted); }
+.theme-toggle:hover { color: var(--il2-band-strong); background: var(--il2-band-hover); border-color: var(--il2-band-muted); }
 .theme-toggle svg { width: 1.1rem; height: 1.1rem; }
 
 body > footer.site-footer {
@@ -340,7 +369,7 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 
 /* Badges: --tone drives text, tint and border. */
 .badge {
-  --tone: light-dark(#5b6b78, #9aa8b4);
+  --tone: var(--il2-grey);
   display: inline-flex; align-items: center; gap: 0.4em; padding: 0.08em 0.62em 0.1em; border-radius: var(--il2-radius);
   font-size: 0.74rem; font-weight: 650; line-height: 1.5; white-space: nowrap; color: var(--tone);
   background: color-mix(in srgb, var(--tone) 13%, transparent); border: 1px solid color-mix(in srgb, var(--tone) 32%, transparent);
@@ -350,28 +379,28 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .badge .icon { width: 1.05em; height: 1.05em; }
 /* Inline icons (components/icon tag): follow the text colour, sit on the text baseline. */
 .icon { width: 1.1em; height: 1.1em; flex: none; vertical-align: -0.2em; }
-.badge--green { --tone: light-dark(#17803d, #5dd08c); }
-.badge--amber { --tone: light-dark(#946200, #ecbb4a); }
-.badge--orange { --tone: light-dark(#c2410c, #f29458); }
-.badge--red { --tone: light-dark(#b42323, #f07c7c); }
-.badge--blue { --tone: light-dark(#1d5fb4, #6eaaf2); }
-.badge--teal { --tone: light-dark(#0f766e, #54c9bd); }
-.badge--purple { --tone: light-dark(#7a3fb0, #bf95ee); }
-.badge--grey { --tone: light-dark(#5b6b78, #9aa8b4); }
+.badge--green { --tone: var(--il2-green); }
+.badge--amber { --tone: var(--il2-amber); }
+.badge--orange { --tone: var(--il2-orange); }
+.badge--red { --tone: var(--il2-red); }
+.badge--blue { --tone: var(--il2-blue); }
+.badge--teal { --tone: var(--il2-teal); }
+.badge--purple { --tone: var(--il2-purple); }
+.badge--grey { --tone: var(--il2-grey); }
 /* Coalitions are squarer and uppercase, so they never read as an outcome. */
 .badge--redfor, .badge--blufor { border-radius: var(--il2-radius); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.7rem; background: color-mix(in srgb, var(--tone) 16%, transparent); }
-.badge--redfor { --tone: light-dark(#b52d28, #f0716a); }
-.badge--blufor { --tone: light-dark(#1f62b6, #70a9f4); }
+.badge--redfor { --tone: var(--il2-redfor); }
+.badge--blufor { --tone: var(--il2-blufor); }
 /* A neutral side emblem takes its side colour; insignia carry their own colours (coalition_icon tag). */
-.icon.tint--redfor { color: light-dark(#b52d28, #f0716a); }
-.icon.tint--blufor { color: light-dark(#1f62b6, #70a9f4); }
+.icon.tint--redfor { color: var(--il2-redfor); }
+.icon.tint--blufor { color: var(--il2-blufor); }
 
 /* Notice banner */
 .notice { display: flex; gap: 0.75rem; align-items: baseline; margin: 0 0 1.25rem; padding: 0.7rem 1rem; border-radius: var(--il2-radius); border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); background: color-mix(in srgb, var(--tone) 10%, var(--il2-surface)); font-size: 0.92rem; }
 .notice { --tone: var(--il2-primary); }
-.notice--hidden { --tone: light-dark(#7a3fb0, #bf95ee); }
-.notice--changing { --tone: light-dark(#946200, #ecbb4a); }
-.notice--warning { --tone: light-dark(#b42323, #f07c7c); }
+.notice--hidden { --tone: var(--il2-purple); }
+.notice--changing { --tone: var(--il2-amber); }
+.notice--warning { --tone: var(--il2-red); }
 .notice strong { color: var(--tone); white-space: nowrap; }
 .notice p { margin: 0; }
 
@@ -406,11 +435,11 @@ details.dropdown.dropdown--right ul { right: 0; left: auto; }
   background-color: var(--il2-band); background-image: var(--il2-camo); background-size: 640px 200px;
   border-left: 4px solid var(--il2-accent); border-radius: var(--il2-radius);
 }
-.hero h1 { font-size: 2.8rem; margin-bottom: 0.5rem; color: #fff; }
+.hero h1 { font-size: 2.8rem; margin-bottom: 0.5rem; color: var(--il2-band-strong); }
 .hero .lead { margin-bottom: 0; color: var(--il2-band-muted); }
 .hero [role="button"].outline { color: var(--il2-band-text); border-color: var(--il2-band-border); background: transparent; }
 .hero [role="button"].outline:hover { background: var(--il2-band-hover); border-color: var(--il2-band-muted); }
-.hero__mark { position: absolute; right: 2.5rem; top: 50%; width: 11rem; height: 11rem; transform: translateY(-50%) rotate(12deg); color: rgb(255 255 255 / 0.07); pointer-events: none; }
+.hero__mark { position: absolute; right: 2.5rem; top: 50%; width: 11rem; height: 11rem; transform: translateY(-50%) rotate(12deg); color: color-mix(in srgb, var(--il2-band-text) 7%, transparent); pointer-events: none; }
 .empty-row__mark { display: block; width: 6rem; height: auto; margin: 0 auto 0.6rem; opacity: 0.35; }
 .error-page__mark { display: block; width: 11rem; height: auto; margin: 0 auto 1rem; color: var(--il2-accent); }
 
@@ -455,6 +484,7 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
 
 /* ---- 8. Utilities ------------------------------------------------------------------------------------------ */
 .nowrap { white-space: nowrap; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .mono { font-family: var(--il2-font-mono); font-size: 0.92em; }
 .right { text-align: right; }
 .stack > * + * { margin-top: 1rem; }
