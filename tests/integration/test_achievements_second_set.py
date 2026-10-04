@@ -198,3 +198,30 @@ def test_the_upgrade_backfill_derives_the_facts_from_stored_data() -> None:
     assert (rows[pk(1)].multi_kill, rows[pk(2)].multi_kill) == (3, 0)
     assert held(1)["multi_kill"] == 2  # the rebuild computed the medals from the derived facts
     assert held(1)["ram"] == 1
+
+
+def test_the_backfill_first_blood_skips_gunner_kills() -> None:
+    """The replay's first blood ignores gunners (`first_blood_sortie`); the backfill must agree (doc 17)."""
+    save(
+        mission(
+            (
+                sortie(0, 1, kills_air=1, first_blood=True),
+                sortie(1, 4, role="gunner", aircraft_type="Turret_IL10"),
+                sortie(2, 3, coalition=2, is_death=True),
+                sortie(3, 5, coalition=2, is_death=True),
+            ),
+            (kill(50, 1, 2), kill(100, 0, 3)),  # the gunner kills first, then the pilot
+        ),
+        meta("m1", STARTED_AT),
+    )
+    ingested = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
+    assert ingested[pk(1)] and not ingested[pk(4)]
+    PlayerSortie.objects.update(rams=0, first_blood=False, multi_kill=0)
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
+    config = Config(data_dir=Path("."), server_uid=SERVER_UID, timezone_name="UTC")
+
+    migrate._run_backfills(config, [migrate.BACKFILL_ACHIEVEMENT_FACTS])  # pyright: ignore[reportPrivateUsage]
+
+    rows = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
+    assert rows[pk(1)]
+    assert not rows[pk(4)]
