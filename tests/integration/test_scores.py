@@ -153,7 +153,11 @@ def test_rebuild_after_a_rule_change_equals_saving_under_those_rules() -> None:
 def _comparable() -> dict[str, list[dict[str, object]]]:
     """All score-bearing tables without the ids and keys that differ between two seedings."""
     skip = {"id", "player_id", "mission_id", "tour_id", "aircraft_id", "killer_sortie_id", "victim_sortie_id"}
-    return {t.__name__: [{k: _rounded(v) for k, v in row.items() if k not in skip} for row in rows(t)] for t in TABLES}
+    tables: dict[str, list[dict[str, object]]] = {}
+    for t in TABLES:
+        cleaned = [{k: _rounded(v) for k, v in row.items() if k not in skip} for row in rows(t)]
+        tables[t.__name__] = sorted(cleaned, key=repr)  # no row order to rely on once the ids are gone (Postgres)
+    return tables
 
 
 def _rounded(value: object) -> object:
