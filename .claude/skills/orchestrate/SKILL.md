@@ -31,6 +31,9 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
   `.claude/settings.json` block edits of released migrations and `sample_data/`.
 - Commit and push on `main` freely (no feature branches); never force-push.
 - Never split or rename a migration that may already be applied: existing databases fail with InconsistentMigrationHistory.
+- `sample_data/` holds the only copy of the real logs: tell every agent to copy the zips to a temp dir before ingesting (the default
+  `after_archive = move` empties the logs folder) and never to link to it from a worktree. Check worktrees for junctions before
+  `git worktree remove --force` (it deletes through them on Windows). If it is ever wiped, restore from an `archive/2026/09` copy.
 
 ## Decisions
 A *decision* is anything you or an agent decided that the design doc didn't already specify. Making them is allowed, to keep
