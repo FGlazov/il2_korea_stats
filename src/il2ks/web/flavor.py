@@ -57,6 +57,8 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The taxiway keeps a file on these. It is a thin, well-thumbed file."),
         gettext_lazy("The war was waiting. The ramp had other ideas."),
         gettext_lazy("Nobody is judging. The wreckage is merely taking notes."),
+        gettext_lazy("Tower to pilot: the war is the other way, but thank you for the thorough survey of the apron."),
+        gettext_lazy("Mechanic's note: the aircraft is fine, the fence is not. Please see the fence."),
     ),
     # ... friendly fire only.
     "shame_friendly": (
@@ -64,6 +66,8 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Wrong target, right enthusiasm. The debrief will be lively."),
         gettext_lazy("Friendly fire: proof that the guns work."),
         gettext_lazy("Everybody gets a wingman mixed up once. Some just have a longer record."),
+        gettext_lazy("Radio check: that was a friendly. Yes, the voice on the other end sounded rather upset."),
+        gettext_lazy("A tip of the hat to the wingman who forgave it. Most of them do, eventually."),
     ),
     # ... both.
     "shame_both": (
@@ -71,22 +75,33 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The ground crew and the squadron both have a file on this one. The files have met."),
         gettext_lazy("Every pilot has bad days. These are the ones the server remembers."),
         gettext_lazy("An all-rounder: the taxiway and the formation have both had their moments."),
+        gettext_lazy("Two departments, one pilot. The paperwork is going to need a bigger folder."),
+        gettext_lazy("Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."),
     ),
     # Above the 90th percentile of pilots with enough sorties: gentle ribbing, nobody is shamed.
     "shame_taxi_p90": (
         gettext_lazy("Few pilots know the taxiway as intimately as this one. It could give guided tours."),
         gettext_lazy("The ramp crew has named a bollard after this pilot. Fondly."),
         gettext_lazy("Some chase kills. This one chases the perfect parking spot, and keeps looking."),
+        gettext_lazy("Technically the most experienced pilot on the apron. Nobody has spent more time there."),
+        gettext_lazy("The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."),
+        gettext_lazy("A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."),
     ),
     "shame_friendly_p90": (
         gettext_lazy("A generous soul: this pilot shares the ammunition with everyone, wingmen included."),
         gettext_lazy("The squadron has learned to fly a little wider. Bold of them, and well chosen."),
         gettext_lazy("Equal-opportunity gunnery: this pilot never plays favourites between sides."),
+        gettext_lazy("Somebody has to keep the wingmen alert. This pilot volunteers every time."),
+        gettext_lazy("The squadron's emergency drills have, thanks to this pilot, never been short of material."),
+        gettext_lazy("Brave enough to shoot first and sort out the colours afterwards. The mess salutes the nerve."),
     ),
     "shame_both_p90": (
         gettext_lazy("An ambassador for chaos, on the ground and in the air. The squadron would not swap them."),
         gettext_lazy("Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."),
         gettext_lazy("Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honour."),
+        gettext_lazy("The record books call it a pattern. The squadron calls it character."),
+        gettext_lazy("Legend has it the tower flinches whenever this callsign comes over the radio."),
+        gettext_lazy("Rarely does one pilot give the safety officer so much to write about. A true collaborator."),
     ),
     # Player profile, hall of shame (nothing on record).
     "shame_clean": (
@@ -94,6 +109,8 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Spotless. The ground crew is almost suspicious."),
         gettext_lazy("Not one incident on the ramp. Textbook."),
         gettext_lazy("Nothing to see here, which is the best thing to see."),
+        gettext_lazy("Mechanic's logbook, this pilot's page: no entries. We keep it as a reference."),
+        gettext_lazy("Zero scrapes, zero misfires at friends. Wingmen sleep well around this one."),
     ),
     # Home page, under the top pilots of the last mission.
     "top_pilot": (
@@ -101,12 +118,17 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Best showing of the mission. Well flown."),
         gettext_lazy("Someone had a very good night at the office."),
         gettext_lazy("Fair winds, full magazines and the numbers to prove it."),
+        gettext_lazy("Another night, another name at the top. The hangar wall is running out of space for it."),
+        gettext_lazy("Chapeau. The rest of the sky is now taking requests on how to do that."),
     ),
     # Home page, a mission where nobody scored.
     "nobody_scored": (
         gettext_lazy("A quiet one. Everybody got home with their ammunition."),
         gettext_lazy("The sky was empty of drama. The tea stayed hot."),
         gettext_lazy("No kills this time. Somebody had to keep the airspace tidy."),
+        gettext_lazy("Radio log: nothing to report. The operator has gone through two crosswords."),
+        gettext_lazy("Plenty of clouds, plenty of fuel burnt, not a shot fired in anger. The weather won."),
+        gettext_lazy("Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."),
     ),
     # A tour with no sorties to show (profile, mission and sortie lists): a fresh start, never a reproach.
     "tour_empty": (
@@ -115,17 +137,24 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Nothing here yet. The ground crew just finished polishing the aircraft."),
         gettext_lazy("Engines are warm and the sky is waiting. Start the first sortie of the tour!"),
         gettext_lazy("Not a single contrail yet. Somebody has to be first."),
+        gettext_lazy("Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."),
     ),
     # Sortie page, one per notable outcome (see `sortie_spot`).
     "sortie_captured": (
         gettext_lazy("The silk opened, the welcoming committee was less friendly."),
         gettext_lazy("Landed by parachute, collected by the other side. The war goes on without this pilot, for now."),
         gettext_lazy("Out of the fight, but not out of the story."),
+        gettext_lazy("Unscheduled landing in unfamiliar territory. The flight plan did not cover this chapter."),
+        gettext_lazy("The aircraft is lost, the pilot is still in the story. Sequels have started worse."),
+        gettext_lazy("Off the squadron roster for the moment. The empty chair at the mess table stays reserved."),
     ),
     "sortie_ditched": (
         gettext_lazy("Not a landing, not a crash: a firm disagreement with the ground."),
         gettext_lazy("The gear stayed up and so did the pilot's spirits."),
         gettext_lazy("A creative arrival. The airframe will be remembered fondly."),
+        gettext_lazy("Controlled flight into a field. The farmer has questions, the pilot has a story."),
+        gettext_lazy("Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."),
+        gettext_lazy("A forced landing is still a landing. The log says so, and the log is never wrong."),
     ),
     # Destroyed on the ground by an attacker: never took off (parked) ...
     "sortie_strafed": (
@@ -133,6 +162,10 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Not even the engine had warmed up yet. Sometimes the war simply comes to you."),
         gettext_lazy("Bad luck, not bad flying: the airframe never got a chance to prove itself."),
         gettext_lazy("The ground crew mourns the airframe, and quietly polishes the next one."),
+        gettext_lazy(
+            "The engine never got to say a word. The ground crew would like it noted that the aircraft was ready."
+        ),
+        gettext_lazy("A low pass by the other side, uninvited. The ramp is not a place for opinions."),
     ),
     # ... or landed first and was caught on the ground.
     "sortie_strafed_landed": (
@@ -140,38 +173,57 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Wheels down, engine barely cooling, and then the enemy arrived. Rotten luck."),
         gettext_lazy("Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."),
         gettext_lazy("Landing was the easy part. The taxiway had a visitor with other plans."),
+        gettext_lazy("Safe on the ground, then a late guest at the party. The tower would have liked a warning too."),
+        gettext_lazy("Flew home through the worst of it, parked, and the worst of it followed. Nobody earns that."),
     ),
     "sortie_aa": (
         gettext_lazy("The flak had the final say."),
         gettext_lazy("Those little black clouds were not decorative."),
         gettext_lazy("Ground fire: the one opponent that never needs fuel."),
+        gettext_lazy("Fourteen guns on the hill and one aircraft over it. The arithmetic was never on your side."),
+        gettext_lazy("Low and slow near the gun line is the oldest mistake in the book. It is a very long book."),
+        gettext_lazy("Flak never misses by much, which is the whole trouble with it."),
     ),
     "sortie_friendly_fire": (
         gettext_lazy("Wrong target, right enthusiasm. The sky is crowded, mistakes happen."),
         gettext_lazy("The sky is crowded and the markings are small. It happens."),
         gettext_lazy("Friendly fire happens to the best squadrons. The debrief will be lively."),
+        gettext_lazy("Radio chatter, afterwards: 'Was that one of ours?' It was. The apologies are in the post."),
+        gettext_lazy("In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."),
+        gettext_lazy("It was a very good shot at the wrong target. The aim is not the problem here."),
     ),
     "sortie_taxi": (
         gettext_lazy("The war was waiting. The taxiway had other ideas."),
         gettext_lazy("Never left the ground, still earned a story."),
         gettext_lazy("Most dangerous part of the mission: the first hundred metres."),
+        gettext_lazy("Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."),
+        gettext_lazy("Before the Yalu, before the Sabres, there was the apron. It won this round."),
+        gettext_lazy("The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0."),
     ),
     "sortie_ace": (
         gettext_lazy("Busy sortie. The enemy count went down noticeably."),
         gettext_lazy("The gun camera footage on this one would be a good watch."),
         gettext_lazy("Several kills in one sortie. Time to buy the squadron a round."),
+        gettext_lazy("Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."),
+        gettext_lazy("The armourer is already counting the missing rounds, and smiling while he does it."),
+        gettext_lazy("A busy hour for the gun camera and a quiet one for the other side's wingmen."),
     ),
     # Extreme events (thresholds above; order in `sortie_spot`).
     "sortie_ai_gunner": (
         gettext_lazy("A bomber's tail gunner had a say in this. Those guns are not decoration."),
         gettext_lazy("Outshot by a gunner who never gets a break. Respect the tail."),
         gettext_lazy("The rear gunner had the last word, and it was a loud one."),
+        gettext_lazy("Closing from six o'clock on a bomber is a bold plan. The tail gunner enjoyed it too."),
+        gettext_lazy("Tracers going the other way for once. The bomber crew will tell this one for years."),
+        gettext_lazy("Bombers are not defenceless, and this one wanted it known."),
     ),
     "sortie_bomber_hunter": (
         gettext_lazy("Several bombers will not be making it home tonight. Fine hunting."),
         gettext_lazy("The big, slow ones had a bad day, and this pilot had a good one."),
         gettext_lazy("Bomber hunting is a craft, and this sortie was a masterclass."),
         gettext_lazy("Somebody's bombing run ended early. Somebody else is buying the next round."),
+        gettext_lazy("A big formation, a long chase, and not much left of the formation. Textbook interception."),
+        gettext_lazy("The target list said bombers, plural. The pilot read it literally."),
     ),
     "sortie_first_blood": (
         gettext_lazy("First blood of the mission goes to this pilot. Somebody had to open the scoring."),
@@ -190,6 +242,8 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy(
             "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
         ),
+        gettext_lazy("Half the credit, all of the effort. The claims officer has been sent a polite note."),
+        gettext_lazy("The aircraft took the beating, somebody else took the bow. That is formation flying for you."),
     ),
     "sortie_stolen_ground": (
         gettext_lazy("You wore those targets down and somebody else finished them. Next time, the last shot is yours."),
@@ -198,34 +252,50 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
             "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
         ),
         gettext_lazy("The ground crews on the other side know exactly whose work this was, even if the log does not."),
+        gettext_lazy("Half the convoy was already smoking when somebody else arrived to take the credit. Typical."),
+        gettext_lazy("The ground below was well tended, and the harvest went to a neighbour's barn."),
     ),
     "sortie_battered_victor": (
         gettext_lazy("Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."),
         gettext_lazy("It came home full of holes and full of results. A fair trade."),
         gettext_lazy("The airframe took a beating and handed one back."),
+        gettext_lazy("The airframe came home smelling of cordite and looking like a colander. Mission accomplished."),
+        gettext_lazy("Tower: 'Say condition.' Pilot: 'Mostly air.' And with a good score on the board."),
+        gettext_lazy("Every hole in it is a story, and the scoreboard backs up the better ones."),
     ),
     "sortie_ground_pounder": (
         gettext_lazy("Not much was left standing down there. The map needs a fresh coat of paint."),
         gettext_lazy("Everything with a motor, a barrel or a roof took a hit. Thorough work."),
         gettext_lazy("A very busy day for the ground crews on the other side."),
         gettext_lazy("The ground below will remember this one for a while."),
+        gettext_lazy("An Il-10 would have been proud of this one. The Shturmovik school of thought lives."),
+        gettext_lazy("The target list is shorter and the ammunition list is longer. A sound exchange."),
     ),
     "sortie_quick_kill": (
         gettext_lazy("Barely off the runway and already on the scoreboard. That is a fast start."),
         gettext_lazy("The wheels were still folding when the first kill reached the log."),
         gettext_lazy("No time wasted. The coffee in the tower was still warm."),
         gettext_lazy("A first kill that quick deserves a stopwatch and a small medal."),
+        gettext_lazy("Quicker than the kettle in the ready room. The tea is still brewing."),
+        gettext_lazy("The enemy had just finished its own takeoff checklist. A pity, really."),
     ),
     "sortie_marathon": (
         gettext_lazy("A long day at the office. The fuel gauge is full of respect."),
         gettext_lazy("Over an hour in the air. The ground crew nearly sent out a search party."),
         gettext_lazy("An endurance flight: the seat cushion deserves a mention in the report."),
         gettext_lazy("Some pilots sprint. This one went the distance."),
+        gettext_lazy("Hours aloft and the weather chart is now mostly a diary. Landing was a well-earned one."),
+        gettext_lazy(
+            "Navigators on three continents would admire the fuel planning. The coffee flask is empty, naturally."
+        ),
     ),
     "sortie_limped_home": (
         gettext_lazy("It still flew, mostly out of politeness. Well landed."),
         gettext_lazy("More hole than airplane, and still back on the ground. Hats off."),
         gettext_lazy("The crew chief will have opinions about this one."),
+        gettext_lazy("The hydraulics sent their regards, the engine coughed, and the runway came up anyway."),
+        gettext_lazy("It brought the pilot home, and that is the only entry the logbook needs to read."),
+        gettext_lazy("Held together by good luck and the crew chief's optimism. Both held out."),
     ),
 }
 

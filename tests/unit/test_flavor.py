@@ -31,11 +31,23 @@ def test_different_seeds_reach_every_variant() -> None:
         assert len(chosen) == len(variants), spot
 
 
+MIN_VARIANTS = 6  # maintainer, 2026-10-04: every default spot has at least six variants
+
+
 def test_every_spot_has_several_distinct_variants() -> None:
     for spot, variants in flavor.SPOTS.items():
         texts = [str(v) for v in variants]
-        assert len(texts) >= 3, spot
+        assert len(texts) >= MIN_VARIANTS, spot
         assert len(set(texts)) == len(texts), spot
+
+
+def test_no_two_variants_of_a_spot_are_identical_in_any_language() -> None:
+    """A translation must not collapse two variants into one line (the pick would then repeat it more often)."""
+    for code, _directory, _plural in translations.TARGET_LANGUAGES:
+        with translation.override(code):
+            for spot, variants in flavor.SPOTS.items():
+                texts = [str(v) for v in variants]
+                assert len(set(texts)) == len(texts), (code, spot)
 
 
 def test_unknown_spot_fails_loudly() -> None:
