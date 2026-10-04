@@ -142,7 +142,7 @@ def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = No
             if tour_id is not None and (tours is None or tour_id in tours):
                 scopes.setdefault(tour_id, []).append(sortie)
         for tour_id, sorties in scopes.items():
-            earned: list[EarnedTier] = earn_all(sorties)
+            earned: list[EarnedTier] = earn_all(sorties, all_time=tour_id is None)
             for e in earned:
                 s = sorties[e.index]
                 wanted[(pid, tour_id, e.key, e.tier)] = (s.ended_at, s.sortie_id, s.mission_id)
