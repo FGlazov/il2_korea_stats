@@ -199,6 +199,7 @@ class SiteSettingsForm(forms.ModelForm):
             "blufor_name",
             "redfor_emblem",
             "blufor_emblem",
+            "show_live_sorties",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 4, "cols": 70}),

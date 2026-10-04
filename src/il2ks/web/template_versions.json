@@ -267,11 +267,11 @@
     },
     "templates/il2ks/missions/_rows.html": {
       "version": 1,
-      "sha256": "c794f07677cbf46001fae2739c00ec0573fcbe192941131060ed77ba76fbac78"
+      "sha256": "68d0ea977bccfecee5e4fb7207337c700b5e4418d476a20bfd88c769a5c02bd7"
     },
     "templates/il2ks/missions/detail.html": {
       "version": 1,
-      "sha256": "648524ffdcb311f7e85be035a6d6561a1bc780af9d41fe6f0c0336317b273e92"
+      "sha256": "aad57f8c73b7bc94104f252a15846ffa96caca7c77436bce49a27c8ad5276e8d"
     },
     "templates/il2ks/missions/list.html": {
       "version": 1,
@@ -471,7 +471,7 @@
     },
     "templates/il2ks/sorties/parts/notices.html": {
       "version": 1,
-      "sha256": "bb55bcd706b4613ce2a4c6af1a91993f894486c8ed7d7fb236c1804d894a7500"
+      "sha256": "82d710f5bf9620e100b7b45ba9ce35d1d4f7ba3327a3ac96ff7933d4ea066293"
     },
     "templates/il2ks/sorties/parts/summary.html": {
       "version": 1,
