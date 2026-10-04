@@ -237,14 +237,20 @@ class _Fields:
             raise ParseError(WarningKind.MISSING_KEY, f"missing key {key}") from None
 
     def integer(self, key: str) -> int:
-        value = self.raw(key)
         try:
-            return int(value)
+            return int(self._tokens[key])
+        except KeyError:
+            raise ParseError(WarningKind.MISSING_KEY, f"missing key {key}") from None
         except ValueError:
-            raise ParseError(WarningKind.BAD_VALUE, f"{key}: not an integer: {value!r}") from None
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: not an integer: {self._tokens[key]!r}") from None
 
     def oid(self, key: str) -> ObjectId:
-        return ObjectId(self.integer(key))
+        try:
+            return ObjectId(int(self._tokens[key]))
+        except KeyError:
+            raise ParseError(WarningKind.MISSING_KEY, f"missing key {key}") from None
+        except ValueError:
+            raise ParseError(WarningKind.BAD_VALUE, f"{key}: not an integer: {self._tokens[key]!r}") from None
 
     def number(self, key: str) -> float:
         value = self.raw(key)
@@ -331,6 +337,80 @@ class _Fields:
 type _Builder = Callable[[int, _Fields, Extra], LogEvent]
 
 
+# --- fast path ---------------------------------------------------------------------------------------------------
+# The generic tokenizer above walks every line token by token in Python. Almost all lines have exactly the shape
+# their spec lists (keys in log order, single spaces), so each AType also gets one compiled regex that matches the
+# whole remainder at once (the `re` engine is C), and `groups()` are the token values. A line that doesn't match
+# *exactly* goes through `tokenize`, which stays the one place that defines the semantics, produces the errors (line
+# column, offending text) and handles unknown and unusual lines. The fast path must give the tokens `tokenize` would;
+# `tests/unit/logparse/test_fast_path.py` compares both on the real fixtures and on mutated lines. To remove the
+# fast path: delete this section, `_Spec.fast`/`fast_line` and the `fast_line` use in `_parse`.
+
+_PAREN_KEYS = frozenset({"POS", "BC"})
+"""Keys written `KEY(...)` in the specs that get a fast path (no nested parentheses)."""
+
+_PAREN_VALUE = r"(\([^()]*\))"
+
+
+@dataclass(frozen=True, slots=True)
+class _FastLine:
+    """`pattern` matches a whole line remainder; group i is the value of `token_keys[i]` (None: optional key absent).
+    `guards`: (group, (" NEXT:", " NEXT(")) for free-text values, which must not contain the terminator of their
+    key, or `tokenize` would have ended them earlier."""
+
+    pattern: re.Pattern[str]
+    token_keys: tuple[str, ...]
+    guards: tuple[tuple[int, str, str], ...]
+    has_optional: bool
+
+
+def _fast_line_for(keys: tuple[str, ...], free_text: frozenset[str], known_extra: tuple[str, ...]) -> _FastLine | None:
+    pieces: list[str] = []
+    token_keys: list[str] = []
+    guards: list[tuple[int, str, str]] = []
+    for i, key in enumerate(keys):
+        if key == UNLABELLED:
+            pieces.append(_PAREN_VALUE)
+        elif key in _PAREN_KEYS:
+            pieces.append(key + _PAREN_VALUE)
+        elif key in free_text:
+            following = keys[i + 1] if i + 1 < len(keys) else None
+            if following is None:
+                if known_extra:
+                    return None  # the value could end at an optional key: leave it to `tokenize`
+                pieces.append(f"{key}:(.*)")
+            elif following == UNLABELLED:
+                return None
+            else:
+                guards.append((len(token_keys), f" {following}:", f" {following}("))
+                pieces.append(f"{key}:(.*?)")
+        else:
+            pieces.append(f"{key}:(\\S+)")
+        token_keys.append(key)
+    pattern = " ".join(pieces)
+    for key in known_extra:
+        pattern += f"(?: {key}:(\\S+))?"
+        token_keys.append(key)
+    pattern += r"\s*"
+    return _FastLine(re.compile(pattern), tuple(token_keys), tuple(guards), bool(known_extra))
+
+
+def _fast_tokens(fast: _FastLine, line: str, pos: int) -> dict[str, str] | None:
+    """The tokens of `line[pos:]` (after the `T:<tick> AType:<n>` head) if it has exactly the expected shape, else None
+    (then `tokenize` decides). Trailing whitespace is allowed, as `_parse` strips the line."""
+    m = fast.pattern.fullmatch(line, pos)
+    if m is None:
+        return None
+    values = m.groups()
+    for group, colon_form, paren_form in fast.guards:
+        value = values[group]
+        if colon_form in value or paren_form in value:
+            return None
+    if fast.has_optional:
+        return {k: v for k, v in zip(fast.token_keys, values, strict=True) if v is not None}
+    return dict(zip(fast.token_keys, values, strict=True))
+
+
 @dataclass(frozen=True, slots=True)
 class _Spec:
     """How one AType's tokens become an event.
@@ -342,8 +422,10 @@ class _Spec:
     build: _Builder
     free_text: frozenset[str] = frozenset()
     known_extra: tuple[str, ...] = ()
+    fast: bool = True  # False: no fast path for this AType (see "fast path" below)
     key_set: frozenset[str] = field(init=False)
     terminators: _Terminators = field(init=False)
+    fast_line: _FastLine | None = field(init=False)
 
     def __post_init__(self) -> None:
         order = [k for k in (*self.keys, *self.known_extra) if k != UNLABELLED]
@@ -352,6 +434,8 @@ class _Spec:
         }
         object.__setattr__(self, "key_set", frozenset(self.keys))
         object.__setattr__(self, "terminators", MappingProxyType(terminators))
+        fast_line = _fast_line_for(self.keys, self.free_text, self.known_extra) if self.fast else None
+        object.__setattr__(self, "fast_line", fast_line)
 
 
 def _mission_start(t: int, f: _Fields, x: Extra) -> MissionStartEvent:
@@ -447,6 +531,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
             _mission_start,
             free_text=frozenset({"MFile"}),
             known_extra=("ROUNDS", "POINTS"),
+            fast=False,  # once per mission
         ),
         1: _Spec(
             ("AMMO", "AID", "TID"),
@@ -477,6 +562,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
             ("OBJID", "POS", "COAL", "TYPE", "RES", "ICTYPE"),
             _objective,
             known_extra=("TARGETS", "OBJECTS", "PLANES", "MTARGETS", "MOBJETS"),
+            fast=False,
         ),
         9: _Spec(
             ("AID", "COUNTRY", "POS"),
@@ -484,6 +570,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
                 tick=t, extra=x, airfield_id=f.oid("AID"), country=f.integer("COUNTRY"), pos=f.pos()
             ),
             known_extra=("IDS",),
+            fast=False,
         ),
         10: _Spec(
             (
@@ -539,6 +626,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
         14: _Spec(
             ("AID", "BP"),
             lambda t, f, x: AreaBoundaryEvent(tick=t, extra=x, area_id=f.oid("AID"), points=f.points_2d("BP")),
+            fast=False,  # nested parentheses
         ),
         15: _Spec(("VER",), lambda t, f, x: LogVersionEvent(tick=t, extra=x, version=f.integer("VER"))),
         16: _Spec(
@@ -593,8 +681,18 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
 # --- public API --------------------------------------------------------------------------------------------------
 
 
-def _parse(line: str) -> tuple[int, LogEvent]:
-    """Parse one line into (AType, event)."""
+def _parse(line: str, *, fast: bool = True) -> tuple[int, LogEvent]:
+    """Parse one line into (AType, event). `fast=False` skips the regex fast path (for the tests that compare)."""
+    if fast:
+        head = _HEAD_RE.match(line)
+        if head is not None:
+            atype = int(head.group(2))
+            spec = _SPECS.get(atype)
+            if spec is not None and spec.fast_line is not None:
+                tokens = _fast_tokens(spec.fast_line, line, head.end())
+                if tokens is not None:
+                    extra = _NO_EXTRA if not spec.fast_line.has_optional else _extra_of(tokens, spec.key_set)
+                    return atype, spec.build(int(head.group(1)), _Fields(tokens), extra)
     text = line.strip()
     head = _HEAD_RE.match(text)
     if head is None:
@@ -610,12 +708,14 @@ def _parse(line: str) -> tuple[int, LogEvent]:
             fields = {RAW_FIELD: rest}
         return atype, GenericEvent(tick=tick, atype=atype, fields=MappingProxyType(fields))
     tokens = tokenize(rest, spec.terminators)
-    key_set = spec.key_set
+    return atype, spec.build(tick, _Fields(tokens), _extra_of(tokens, spec.key_set))
+
+
+def _extra_of(tokens: dict[str, str], key_set: frozenset[str]) -> Extra:
+    """The tokens the spec doesn't map."""
     if len(tokens) == len(key_set) and all(k in key_set for k in tokens):
-        extra = _NO_EXTRA
-    else:
-        extra = MappingProxyType({k: v for k, v in tokens.items() if k not in key_set})
-    return atype, spec.build(tick, _Fields(tokens), extra)
+        return _NO_EXTRA
+    return MappingProxyType({k: v for k, v in tokens.items() if k not in key_set})
 
 
 def parse_line(line: str) -> LogEvent:
