@@ -184,15 +184,14 @@ def test_passes_with_nothing_new_change_nothing(scenario: Scenario) -> None:
     pks = sorted(PlayerSortie.objects.values_list("pk", flat=True))
     version = current_data_version()
 
-    scenario.tick()  # (c) a second pass over the same lines
-    scenario.tracker = LiveTracker(
-        scenario.cfg, cost_clock=free_clock
-    )  # ... and one after a restart that re-reads everything
+    scenario.tick()  # (c) a second pass over the same lines writes nothing and keeps the caches valid (TD-28)
+    assert current_data_version() == version
+
+    scenario.tracker = LiveTracker(scenario.cfg, cost_clock=free_clock)  # a restart re-reads and saves once more ...
     scenario.tick()
 
-    assert diff_dumps(canonical_dump(), first) == []
+    assert diff_dumps(canonical_dump(), first) == []  # ... with exactly the same rows
     assert sorted(PlayerSortie.objects.values_list("pk", flat=True)) == pks
-    assert current_data_version() == version  # nothing changed, so cached pages stay valid (TD-28)
 
 
 def test_level2_after_the_final_save_equals_a_rebuild(scenario: Scenario) -> None:
@@ -276,9 +275,6 @@ def test_level_one_and_level_two_run_on_their_own_intervals(tmp_path: Path) -> N
     scenario.tick()  # the first pass does both
     first_total = Player.objects.aggregate(n=Sum("sorties"))["n"]
     assert first_total
-    running = scenario.tracker._running  # pyright: ignore[reportPrivateUsage]
-    assert running is not None
-    running.last_level2_cost_s = running.last_persist_cost_s = 0.0  # a loaded machine would back the intervals off
 
     scenario.write(4, last_half=True)
     scenario.tick(timedelta(seconds=150))  # level 1 is due, level 2 is not
@@ -287,7 +283,6 @@ def test_level_one_and_level_two_run_on_their_own_intervals(tmp_path: Path) -> N
     assert Player.objects.aggregate(n=Sum("sorties"))["n"] == first_total
     assert scenario.mission().sorties_total == level1  # the mission page's own counters follow level 1
 
-    running.last_level2_cost_s = running.last_persist_cost_s = 0.0
     scenario.tick(
         timedelta(seconds=300)
     )  # 450 s since level 2 last ran (the mission is not idle yet: 10 min): it picks up everything touched since
@@ -455,22 +450,6 @@ def test_hidden_players_and_missions_stay_hidden(scenario: Scenario) -> None:
 
 
 # --- cost and the CPU cap ------------------------------------------------------------------------------------------
-
-
-def test_a_slow_pass_backs_the_next_one_off(scenario: Scenario) -> None:
-    """NFR-INS-5: the gap between provisional saves is at least the last pass's cost / 2.5 % of a core."""
-    scenario.write(3)
-    scenario.tick()
-    running = scenario.tracker._running  # pyright: ignore[reportPrivateUsage]
-    assert running is not None
-    running.last_persist_cost_s = 10.0  # a 10 s pass: at least 400 s to the next
-    saved_at = scenario.mission().ended_at
-    scenario.write(4, last_half=True)
-
-    scenario.tick(timedelta(seconds=300))
-    assert scenario.mission().ended_at == saved_at  # not due yet
-    scenario.tick(timedelta(seconds=101))
-    assert scenario.mission().ended_at != saved_at
 
 
 def test_the_cpu_cap_follows_the_measured_cost_not_the_speed_of_the_machine(scenario: Scenario) -> None:

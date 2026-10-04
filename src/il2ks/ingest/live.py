@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
-from django.db import transaction
+from django.db import OperationalError, transaction
 
 from il2ks.config import Config
 from il2ks.core.catalog.loader import Catalog, load_default_catalog
@@ -48,7 +48,7 @@ from il2ks.core.logparse.files import MissionLog, group_mission_files
 from il2ks.core.logparse.tail import PartTail
 from il2ks.core.replay.live import LiveReplay, LiveView, OnlinePlayer
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import GameObject, LiveMission, LivePlayer, Mission, Player, SiteSettings
+from il2ks.db.models import GameObject, IngestRun, IngestStatus, LiveMission, LivePlayer, Mission, Player, SiteSettings
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.discover import FileState, completeness, list_log_files
 from il2ks.ingest.lock import LockBusyError, WriterLock
@@ -63,10 +63,11 @@ turned into 60 s by a tick that arrives after 29.9 s."""
 
 
 SNAPSHOT_MAX_DUTY = 0.025
-"""A snapshot re-resolves the whole mission so far, so it gets slower as the mission grows (about 0.7 s for a 20 MB
-log). The game server shares this machine (NFR-INS-5): the gap to the next snapshot is at least the last one's cost
-divided by this, i.e. snapshots never use more than about 2.5 % of one core, however long the mission runs. A
-provisional save of the sorties follows the same rule with its whole cost (snapshot plus save)."""
+"""A snapshot re-resolves the whole mission so far, so it gets slower as the mission grows (about 0.8 s for a 20 MB
+log). The game server shares this machine (NFR-INS-5): everything the tracker does in a tick (the snapshot, the
+provisional level-1 save, the level-2 recompute) is added up, and nothing starts again before that total divided by
+this has passed. One shared budget: all of it together uses at most about 2.5 % of one core, however long the mission
+runs."""
 
 
 @dataclass(slots=True)
@@ -76,12 +77,11 @@ class _Running:
     replay: LiveReplay
     started_at: datetime
     last_snapshot: datetime | None = None
-    last_cost_s: float = 0.0  # how long the last snapshot took (`SNAPSHOT_MAX_DUTY` backs the interval off by it)
-    last_persist: datetime | None = None  # the last provisional save of the sorties (or an attempt that found no lock)
-    last_persist_cost_s: float = 0.0  # snapshot + level-1 save, for the same back-off
+    last_persist: datetime | None = None  # the last provisional save of the sorties (or an attempt that did not save)
+    saved_lines: int | None = None  # lines the replay had read at the last level-1 save: nothing new = no new save
+    saving: bool = True  # False once the mission has a final save from another process: only online now goes on
     pending: Touched = field(default_factory=Touched)  # touched by level-1 passes, not yet recomputed in level 2
     last_level2: datetime | None = None
-    last_level2_cost_s: float = 0.0
 
 
 def find_in_progress(cfg: Config, now: datetime) -> MissionLog | None:
@@ -120,6 +120,7 @@ class LiveTracker:
         self._running: _Running | None = None
         self._finished: set[str] = set()  # missions whose AType 7 we saw: not resumed (that would re-read them)
         self._published_running: bool | None = None  # what the DB says; None until the first tick has looked
+        self._quiet_until: datetime | None = None  # the shared CPU budget: no work before this
         self._swept_for: str | None = "-"  # the followed UID the stale provisional missions were last swept for
 
     @property
@@ -152,77 +153,98 @@ class LiveTracker:
             lines = running.tail.read_new(mission.files) or []
         running.replay.feed_lines(lines)
         self._sweep(running.uid)
+        if self._quiet_until is not None and now < self._quiet_until:
+            return
         live = self._cfg.live
-        online_interval = timedelta(
-            seconds=max(live.interval_s * SNAPSHOT_DUE_FRACTION, running.last_cost_s / SNAPSHOT_MAX_DUTY)
+        online_due = running.last_snapshot is None or now - running.last_snapshot >= timedelta(
+            seconds=live.interval_s * SNAPSHOT_DUE_FRACTION
         )
-        online_due = running.last_snapshot is None or now - running.last_snapshot >= online_interval
-        persist_interval = timedelta(
-            seconds=max(
-                live.sorties_interval_s * SNAPSHOT_DUE_FRACTION, running.last_persist_cost_s / SNAPSHOT_MAX_DUTY
-            )
+        persist_due = running.saving and (
+            running.last_persist is None
+            or now - running.last_persist >= timedelta(seconds=live.sorties_interval_s * SNAPSHOT_DUE_FRACTION)
         )
-        persist_due = running.last_persist is None or now - running.last_persist >= persist_interval
         if persist_due and not sorties_enabled():
             persist_due = False
             running.last_persist = now  # asked again after one more interval, not at every tick
+            running.saved_lines = None  # switched back on later: saved again, even without new lines
             discard_stale_provisional(self._cfg, keep="")  # the switch is off: no provisional mission stays
-        if not (online_due or persist_due):
+        if persist_due and running.saved_lines == running.replay.lines:
+            persist_due = False  # nothing new since the last save: no rewrite, no new data version (TD-28)
+            running.last_persist = now
+        if not (online_due or persist_due or self._level2_due(running, now)):
             return
-        began = self._cost_clock()
-        view = running.replay.snapshot()
-        running.last_cost_s = self._cost_clock() - began
-        running.last_snapshot = now
-        if view.ended:
-            self._finished.add(running.uid)
-            self._running = None
-        if online_due or view.ended:
-            self._publish(running, view, now)
-        if persist_due and not view.ended:
-            self._persist_sorties(running, view, now, began)
+        spent = 0.0
+        if online_due or persist_due:
+            began = self._cost_clock()
+            view = running.replay.snapshot()
+            spent += self._cost_clock() - began
+            running.last_snapshot = now
+            if view.ended:
+                self._finished.add(running.uid)
+                self._running = None
+                self._flush_pending(running)
+                self._publish(running, view, now)
+                self._quiet_until = now + timedelta(seconds=spent / SNAPSHOT_MAX_DUTY)
+                return
+            if online_due:
+                self._publish(running, view, now)
+            if persist_due:
+                spent += self._persist_sorties(running, view, now)
+        if self._level2_due(running, now):
+            began = self._cost_clock()
+            if self._flush_pending(running):
+                running.last_level2 = now
+            spent += self._cost_clock() - began
+        self._quiet_until = now + timedelta(seconds=spent / SNAPSHOT_MAX_DUTY)
 
     # --- provisional sorties ----------------------------------------------------------------------------------------
 
-    def _persist_sorties(self, running: _Running, view: LiveView, now: datetime, began: float) -> None:
-        """Save the running mission provisionally (FR-ING-15): level 1 now, level 2 when its own interval is due. A
-        busy writer lock skips the pass, nothing else (level 2 keeps what it still has to do)."""
+    def _persist_sorties(self, running: _Running, view: LiveView, now: datetime) -> float:
+        """Save the running mission provisionally, level 1 (FR-ING-15). A busy writer lock skips the pass, nothing
+        else. Returns what it cost."""
+        began = self._cost_clock()
         running.last_persist = now
         if view.result is None:
-            return  # the snapshot failed to resolve (logged by the replay): the next one tries again
+            return 0.0  # the snapshot failed to resolve (logged by the replay): the next one tries again
         try:
             status, touched = save_provisional(self._cfg, running.uid, running.started_at, view.result, self.catalog)
         except LockBusyError:
             log.info("%s: provisional save skipped, the writer lock is taken", running.uid)
-            return
+            return 0.0
         if status == "waiting":
-            running.last_persist = None  # the previous mission is not finalised yet: look again at the next tick
-            return
-        if status == "final_exists":  # ingest ran from another process: stop following this one
-            self._finished.add(running.uid)
-            self._running = None
-            return
-        running.last_persist_cost_s = self._cost_clock() - began
-        running.pending.update(touched)
-        log.debug(
-            "provisional level 1 of %s took %.0f ms (with the snapshot)",
-            running.uid,
-            1000 * running.last_persist_cost_s,
-        )
+            # The previous mission is not finalised yet. Look again after a whole interval, and meanwhile drop
+            # provisional missions nothing will finalise (their files are gone).
+            discard_stale_provisional(self._cfg, keep=None)
+        elif status == "final_exists":  # `il2ks ingest` finalised it: stop saving, online now goes on
+            running.saving = False
+            self._flush_pending(running)
+        else:
+            running.pending.update(touched)
+            running.saved_lines = running.replay.lines
+        cost = self._cost_clock() - began
+        log.debug("provisional level 1 of %s: %s, %.0f ms", running.uid, status, 1000 * cost)
+        return cost
+
+    def _level2_due(self, running: _Running, now: datetime) -> bool:
         every = self._cfg.live.aggregates_interval_s
         if every <= 0 or not running.pending:
-            return  # 0: totals only move at the final save
-        wait = timedelta(seconds=max(every, running.last_level2_cost_s / SNAPSHOT_MAX_DUTY))
-        if running.last_level2 is not None and now - running.last_level2 < wait:
-            return  # (the first pass after a start does it at once, which also catches up after a restart)
-        level2_began = self._cost_clock()
+            return False  # 0: the totals only move at the final save
+        return running.last_level2 is None or now - running.last_level2 >= timedelta(
+            seconds=every * SNAPSHOT_DUE_FRACTION
+        )
+
+    def _flush_pending(self, running: _Running) -> bool:
+        """Recompute level 2 for what the passes touched since the last time (best effort: a busy lock or database
+        keeps it pending for the next time). Also called before the work is dropped (end of the mission)."""
+        if not running.pending:
+            return True
         try:
             apply_provisional_level2(self._cfg, running.pending)
-        except LockBusyError:
-            return
-        running.last_level2_cost_s = self._cost_clock() - level2_began
-        running.last_level2 = now
+        except (LockBusyError, OperationalError):
+            log.info("%s: level-2 update postponed", running.uid)
+            return False
         running.pending = Touched()
-        log.debug("provisional level 2 of %s took %.0f ms", running.uid, 1000 * running.last_level2_cost_s)
+        return True
 
     def _sweep(self, following: str | None) -> None:
         """Once per followed mission (and once when none is): delete provisional missions that no log file backs any
@@ -239,10 +261,16 @@ class LiveTracker:
         first = mission.files[0] if mission.files else None
         hint = datetime.fromtimestamp(first.stat().st_mtime, UTC) if first is not None and first.exists() else None
         started = resolve_mission_start(mission.mission_uid, self._cfg.timezone, hint).started_at
+        if self._running is not None:
+            self._flush_pending(self._running)  # work owed to level 2 is not dropped with the old replay
         self._running = _Running(mission.mission_uid, PartTail(), LiveReplay(self.catalog, self._cfg.replay), started)
 
     def _stop(self) -> None:
         """Nothing is running (any more): forget the replay and tell the database, once."""
+        if self._running is not None:
+            self._flush_pending(
+                self._running
+            )  # the mission is complete: ingest finalises it, level 2 is not left behind
         self._running = None
         if self._published_running is not False:
             clear_live(self._cfg.server_uid)
@@ -289,12 +317,19 @@ def save_provisional(
 
     `final_exists`: the mission has a final save already, nothing is written. `waiting`: another mission is still
     provisional, i.e. the previous one is not finalised yet; its final save (full level 2 and Elo) goes first, so
-    nothing is written for this one until it is done."""
+    nothing is written for this one until it is done. A provisional mission whose last ingest attempt failed is
+    discarded instead (it would otherwise block every later mission); its retry, if any, saves it again."""
     with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
-        others = Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).exclude(mission_uid=mission_uid)
         if Mission.objects.filter(server_uid=cfg.server_uid, mission_uid=mission_uid, is_live=False).exists():
             return "final_exists", Touched()
-        if others.exists():
+        waiting = False
+        for other in Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).exclude(mission_uid=mission_uid):
+            newest = IngestRun.objects.filter(mission_uid=other.mission_uid).order_by("-started_at", "-id").first()
+            if newest is not None and newest.status == IngestStatus.FAILED:
+                discard_provisional_mission(other)  # its final save failed: nothing will replace it, don't wait for it
+            else:
+                waiting = True
+        if waiting:
             return "waiting", Touched()
         meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True)
         _, touched = save_level1(result, meta, catalog, cfg.tours, cfg.score)
@@ -312,24 +347,28 @@ def apply_provisional_level2(cfg: Config, touched: Touched) -> None:
 
 def discard_stale_provisional(cfg: Config, *, keep: str | None) -> int:
     """Delete the provisional missions of this server that no log file backs any more. `keep=None`: those whose files
-    are not in the log folder; `keep=""` (the switch is off): all of them. Returns how many were deleted."""
-    wanted = list(Mission.objects.filter(server_uid=cfg.server_uid, is_live=True))
-    if not wanted:
+    are not in the log folder; `keep=""` (the switch is off): all of them. Returns how many were deleted.
+
+    The candidates are chosen first, but the rows are looked up again under the writer lock: a concurrent `il2ks
+    ingest` may have final-saved one meanwhile (and moved its files), and that one must never be deleted."""
+    candidates = list(Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).values_list("pk", "mission_uid"))
+    if not candidates:
         return 0
     if keep is None:
         if cfg.logs.dir is None or not cfg.logs.dir.is_dir():
             return 0  # no readable log folder: can't tell, keep them
         present = {m.mission_uid for m in group_mission_files(list_log_files(cfg.logs.dir), txt_as="parts")}
-        wanted = [m for m in wanted if m.mission_uid not in present]
-        if not wanted:
+        candidates = [(pk, uid) for pk, uid in candidates if uid not in present]
+        if not candidates:
             return 0
     try:
         with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
-            for mission in wanted:
+            missions = list(Mission.objects.filter(pk__in=[pk for pk, _ in candidates], is_live=True))
+            for mission in missions:
                 discard_provisional_mission(mission)
     except LockBusyError:
         return 0
-    return len(wanted)
+    return len(missions)
 
 
 def clear_live(server_uid: object) -> None:

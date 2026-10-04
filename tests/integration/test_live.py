@@ -24,7 +24,15 @@ from il2ks.ingest.reprocess import ReprocessSummary
 from il2ks.ingest.runner import Pipeline
 from il2ks.ingest.watch import watch
 from tests.ingest_fakes import T0, FakeSteps, make_config, make_pipeline
-from tests.live_helpers import LIVE_UID, fixture_lines, free_clock, mission_end_index, split_into_parts, write_part
+from tests.live_helpers import (
+    LIVE_UID,
+    SteppingClock,
+    fixture_lines,
+    free_clock,
+    mission_end_index,
+    split_into_parts,
+    write_part,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -160,11 +168,9 @@ def test_snapshots_are_taken_every_interval_not_every_tick(live: Live) -> None:
 
 def test_a_slow_snapshot_backs_the_interval_off_to_keep_cpu_low(live: Live) -> None:
     """NFR-INS-5: snapshots of a long mission are slow; the gap grows with the last one's cost (<= 2.5 % of a core)."""
+    live.tracker = LiveTracker(live.cfg, cost_clock=SteppingClock(3.0))  # every snapshot "costs" 3 s: 120 s to the next
     live.write(2)
     live.tick()
-    running = live.tracker._running  # pyright: ignore[reportPrivateUsage]
-    assert running is not None
-    running.last_cost_s = 3.0  # a 3 s snapshot -> at least 120 s to the next
     first = live.clock
 
     live.tick(60)  # past the plain 30 s interval, inside the backed-off one
