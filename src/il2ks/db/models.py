@@ -264,6 +264,11 @@ class Counters(models.Model):
     planes_lost_by_friendly = models.PositiveIntegerField(default=0)
     planes_lost_by_environment = models.PositiveIntegerField(default=0)
     planes_lost_by_unknown = models.PositiveIntegerField(default=0)
+    # Score (FR-WEB-7): sums of the sorties' air and ground scores (`core.ratings.score`), and the part of the ground
+    # score earned in attack sorties, which divided by `time_on_target_s` is the ground proficiency (FR-WEB-20)
+    score_air = models.FloatField(default=0.0)
+    score_ground = models.FloatField(default=0.0)
+    score_ground_attack = models.FloatField(default=0.0)
 
     class Meta:
         abstract = True
@@ -455,6 +460,10 @@ class PlayerSortie(models.Model):
     loss_class = models.CharField(max_length=12, choices=LossClass.choices, blank=True, default="")
     kills_air_pvp = models.PositiveIntegerField(default=0)
     kills_air_ai = models.PositiveIntegerField(default=0)
+    # Air and ground score of this sortie (pilots; gunners 0). Named `*_points` so the counters `score_*` can sum them.
+    # Computed from the columns above and the `[score]` rules; a changed rule is applied by `il2ks rebuild-aggregates`.
+    air_points = models.FloatField(default=0.0)
+    ground_points = models.FloatField(default=0.0)
     ammo: models.JSONField[dict[str, object]] = models.JSONField(default=dict)
     damage_breakdown: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)
     timeline: models.JSONField[list[dict[str, object]]] = models.JSONField(default=list)

@@ -133,7 +133,9 @@ def test_home_without_missions_has_no_chart(client: Client) -> None:
 def test_home_shows_the_activity_chart_with_a_table_and_accessible_names(client: Client) -> None:
     seed_days()
 
-    assert_simple_reads(client, "/", max_queries=7)  # context processor 2, latest, top pilots, activity, streaks, one spare
+    assert_simple_reads(
+        client, "/", max_queries=7
+    )  # context processor 2, latest, top pilots, activity, streaks, one spare
     html = client.get("/").content.decode()
 
     assert 'class="chart"' in html

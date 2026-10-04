@@ -87,7 +87,8 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
             get_catalog(),
             None if defer_ratings else cfg.ratings,
             cfg.tours,
-            None if defer_ratings else cfg.marks,
+            marks=None if defer_ratings else cfg.marks,
+            score=cfg.score,
         )
 
     def group(paths: Iterable[Path], txt_as: MissionLogKind) -> list[MissionLog]:

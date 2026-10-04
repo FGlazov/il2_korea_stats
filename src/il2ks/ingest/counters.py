@@ -52,11 +52,16 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "kills_air_ai": Sum("kills_air_ai"),
         **{f"deaths_by_{c}": Count("pk", filter=Q(is_death=True, loss_class=c)) for c in LOSS_CLASSES},
         **{f"planes_lost_by_{c}": Count("pk", filter=Q(is_plane_lost=True, loss_class=c)) for c in LOSS_CLASSES},
+        "score_air": Sum("air_points"),
+        "score_ground": Sum("ground_points"),
+        "score_ground_attack": Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
     }
 )
 
 COUNTER_FIELDS: tuple[str, ...] = tuple(SORTIE_COUNTERS)
-FLOAT_COUNTERS: frozenset[str] = frozenset({"flight_time_s", "friendly_damage", "time_on_target_s"})
+FLOAT_COUNTERS: frozenset[str] = frozenset(
+    {"flight_time_s", "friendly_damage", "time_on_target_s", "score_air", "score_ground", "score_ground_attack"}
+)
 
 type CounterValues = dict[str, int | float]
 
@@ -76,5 +81,14 @@ def clean_counters(row: Mapping[str, object]) -> CounterValues:
     for name in COUNTER_FIELDS:
         value = row.get(name)
         if isinstance(value, int | float):
-            values[name] = float(value) if name in FLOAT_COUNTERS else int(value)
+            values[name] = _clean_float(name, value) if name in FLOAT_COUNTERS else int(value)
     return values
+
+
+SCORE_COUNTERS: frozenset[str] = frozenset({"score_air", "score_ground", "score_ground_attack"})
+SCORE_DECIMALS = 4
+
+
+def _clean_float(name: str, value: float) -> float:
+    """Scores are rounded so that float summation order can't make a rebuild differ from an incremental update."""
+    return round(float(value), SCORE_DECIMALS) if name in SCORE_COUNTERS else float(value)

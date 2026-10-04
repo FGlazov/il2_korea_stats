@@ -27,6 +27,12 @@ msgid_plural "%(counter)s takeoffs"
 msgstr[0] ""
 msgstr[1] ""
 
+#, python-format
+msgid "%(games)s game"
+msgid_plural "%(games)s games"
+msgstr[0] ""
+msgstr[1] ""
+
 # llm-draft
 #, python-format
 msgid "%(h)d h"
@@ -254,12 +260,23 @@ msgstr ""
 msgid "Air kills: %(n)s"
 msgstr ""
 
+msgid "Air score"
+msgstr ""
+
 msgid "Air start"
 msgstr ""
 
 # llm-draft
 msgid "Air superiority"
 msgstr "Supériorité aérienne"
+
+msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
+msgstr ""
+
+msgid ""
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
+" counts double."
+msgstr ""
 
 msgid "Airborne"
 msgstr ""
@@ -355,6 +372,9 @@ msgstr "%(max)d liens au maximum."
 # llm-draft
 msgid "Attack"
 msgstr "Attaque"
+
+msgid "Attack ground score"
+msgstr ""
 
 msgid "Attack sorties"
 msgstr ""
@@ -616,6 +636,15 @@ msgstr ""
 # llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Téléversez un nouveau logo ou supprimez l'actuel, mais pas les deux."
+
+msgid "Elo"
+msgstr ""
+
+msgid "Elo, jet"
+msgstr ""
+
+msgid "Elo, prop"
+msgstr ""
 
 msgid "Empty missions"
 msgstr ""
@@ -1488,6 +1517,9 @@ msgstr ""
 msgid "REDFOR won"
 msgstr ""
 
+msgid "Rated games"
+msgstr ""
+
 # llm-draft
 msgid "Ratings"
 msgstr "Classements"
@@ -1562,6 +1594,12 @@ msgid "Running streaks"
 msgstr ""
 
 msgid "Runway"
+msgstr ""
+
+msgid "Score and rating"
+msgstr ""
+
+msgid "Score per hour"
 msgstr ""
 
 # llm-draft
@@ -2183,6 +2221,9 @@ msgstr ""
 
 #, python-format
 msgid "also known as %(name)s"
+msgstr ""
+
+msgid "attack sorties"
 msgstr ""
 
 msgid "by"

@@ -29,6 +29,7 @@ from typing import Literal, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from il2ks.core.ratings.elo import RatingRules
+from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.stat_marks import MarkRules
 from il2ks.core.tours import TourRules, parse_mode
@@ -126,6 +127,17 @@ class HttpsConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class LeaderboardConfig:
+    """Minimum activity to appear on the leaderboards, so one lucky sortie doesn't top a board (FR-WEB-7). Read from
+    the `[score]` section; a change shows at once (nothing is stored)."""
+
+    min_sorties: int = 5  # score and kill boards: pilot sorties flown (in the tour, or all-time)
+    min_elo_games: int = 5  # Elo boards: rated games in that pool (Elo is all-time)
+    min_attack_sorties: int = 5  # ground-per-hour board: attack sorties flown
+    min_time_on_target_minutes: float = 10.0  # ground-per-hour board: time on target (FR-WEB-20)
+
+
+@dataclass(frozen=True, slots=True)
 class Config:
     data_dir: Path
     server_uid: uuid.UUID
@@ -141,6 +153,8 @@ class Config:
     replay: ReplayRules = field(default_factory=ReplayRules)
     ratings: RatingRules = field(default_factory=RatingRules)
     marks: MarkRules = field(default_factory=MarkRules)
+    score: ScoreRules = field(default_factory=ScoreRules)
+    leaderboards: LeaderboardConfig = field(default_factory=LeaderboardConfig)
     backup: BackupConfig = field(default_factory=BackupConfig)
     tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
     source: Path | None = None  # the TOML file that was read, if any
@@ -261,6 +275,18 @@ def load_config(
     )
 
     marks = MarkRules(min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties))
+    score = ScoreRules(
+        **{f.name: reader.non_negative("score", f.name, cast(float, f.default)) for f in dataclasses.fields(ScoreRules)}
+    )
+    board_defaults = LeaderboardConfig()
+    leaderboards = LeaderboardConfig(
+        min_sorties=reader.whole_number("score", "min_sorties", board_defaults.min_sorties),
+        min_elo_games=reader.whole_number("score", "min_elo_games", board_defaults.min_elo_games),
+        min_attack_sorties=reader.whole_number("score", "min_attack_sorties", board_defaults.min_attack_sorties),
+        min_time_on_target_minutes=reader.non_negative(
+            "score", "min_time_on_target_minutes", board_defaults.min_time_on_target_minutes
+        ),
+    )
 
     backup_defaults = BackupConfig()
     backup = BackupConfig(
@@ -296,6 +322,8 @@ def load_config(
         replay=replay,
         ratings=ratings,
         marks=marks,
+        score=score,
+        leaderboards=leaderboards,
         backup=backup,
         tours=tours,
         source=file,
