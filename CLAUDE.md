@@ -25,7 +25,10 @@ IL2KS_TEST_DB=postgres uv run pytest   # opt-in, needs docker/compose.dev.yaml
    It prints what failed and the command that fixes it. `uv run il2ks dev check --fix` applies the auto-fixable parts
    (format, lint, template versions, translations). Add `--fast` for a ~30 s pass without the unit suite.
 2. Before you report a task done or hand a branch over, run `uv run il2ks dev check --full` (adds integration/page tests, which
-   carry the query budgets). Touched models, migrations or SQL? Also `--postgres` (`docker compose -f docker/compose.dev.yaml up -d db`).
+   carry the query budgets, and `tests/perf`: query and time budgets of every public page over a seeded world, ~1-2 min).
+   Touched models, migrations, SQL or a query in `src/il2ks/queries/`? Also `--postgres` (`docker compose -f docker/compose.dev.yaml up -d db`;
+   if port 5432 is taken, run any `postgres:17` container on another port and set `IL2KS_PG_PORT`). Postgres plans queries
+   differently from SQLite (stale statistics, no index = seq scan), and CI's Postgres job is where a slow query shows up.
    Touched pages or JS? Also `--e2e`.
 3. Never edit, split, rename or delete a migration that exists on `main`/`origin/main`: add a new one. A hook blocks the edit
    and the check fails.

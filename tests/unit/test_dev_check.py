@@ -29,6 +29,8 @@ def test_tiers_grow() -> None:
     assert "unit-tests" in names("quick")
     assert "integration-tests" not in names("quick")
     assert "integration-tests" in names("full")
+    assert "perf-tests" not in names("quick")
+    assert "perf-tests" in names("full")
 
 
 def test_extras_need_their_flag() -> None:
