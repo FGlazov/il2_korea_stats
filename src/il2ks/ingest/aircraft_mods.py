@@ -1,0 +1,118 @@
+"""Weapon-modification scopes of the aircraft-type stats (FR-WEB-8, doc 12): the significant mods and the level-2 rows
+per filter pattern.
+
+A type's *significant* modifications are the ones in `weapon_mods.csv` with `significant = true` (a change applies with
+`il2ks rebuild-aggregates`). For such a type the aircraft page can filter every table by "with / without / any" of each
+of them, so the stored rows exist per **filter pattern**: one character per significant mod in ascending id order, `*`
+any, `+` with it, `-` without it (`core.catalog.loader.mod_filter_patterns`; '' = unfiltered, the rows every type
+has). 3**n - 1 patterns beyond the unfiltered one: 26 for a type with three significant mods, 2 for one. The page reads
+exactly one row of the scope it shows; nothing is summed at read time (TD-22).
+
+Everything here is recomputed from the counted sorties, never adjusted by deltas (incremental == rebuild): one grouped
+query per type chunk over (type, tour, role, WM, player, country), folded in Python into per (type, tour, role, WM)
+*cells*, and each cell is added to every pattern its WM belongs to. The pilot count of a pattern is the size of the
+union of the cells' pilot sets (a pilot who flew with and without a mod counts in both patterns, once in each).
+"""
+
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from functools import cache
+
+from il2ks.core.catalog.loader import Catalog, load_default_catalog, mod_filter_patterns, side_of_country
+from il2ks.db.models import AircraftRole, GameObject
+from il2ks.ingest.counters import COUNTER_FIELDS, FLOAT_COUNTERS, SORTIE_COUNTERS, counted_sorties
+
+ALL = AircraftRole.ALL.value
+
+type CellKey = tuple[int, int | None, str, int]  # aircraft, tour (None = all time), role (`AircraftRole`), WM
+type PatternKey = tuple[int, int | None, str, str]  # aircraft, tour (None = all time), role, pattern
+type Totals = dict[str, int | float]
+
+
+@cache
+def _catalog() -> Catalog:
+    return load_default_catalog()
+
+
+def significant_mods(aircraft_ids: Iterable[int]) -> dict[int, tuple[int, ...]]:
+    """The significant mod ids (ascending) of each of these types that has any; types without are absent."""
+    catalog = _catalog()
+    found: dict[int, tuple[int, ...]] = {}
+    for pk, log_name in GameObject.objects.filter(pk__in=list(aircraft_ids)).values_list("pk", "log_name"):
+        ids = tuple(mod.mod_id for mod in catalog.significant_mods(log_name))
+        if ids:
+            found[pk] = ids
+    return found
+
+
+@dataclass(slots=True)
+class _Cell:
+    totals: Totals = field(
+        default_factory=lambda: {name: 0.0 if name in FLOAT_COUNTERS else 0 for name in COUNTER_FIELDS}
+    )
+    players: set[int] = field(default_factory=set[int])
+    sides: dict[str, int] = field(default_factory=dict[str, int])  # side -> sorties
+
+
+def _fold(sums: Totals, row: dict[str, object]) -> None:
+    for name in COUNTER_FIELDS:
+        value = row[name]
+        if isinstance(value, int | float):
+            sums[name] += value
+
+
+def pattern_stats(
+    significant: dict[int, tuple[int, ...]], tour_ids: list[int] | None
+) -> dict[PatternKey, tuple[Totals, int, str]]:
+    """(counters, pilots, side) of every filter pattern scope of the types in `significant`: per tour (only those in
+    `tour_ids`, None = every tour) and all time, per role (`all` and each combat role that has sorties)."""
+    if not significant:
+        return {}
+    wanted_tours = None if tour_ids is None else set(tour_ids)
+    rows = (
+        counted_sorties()
+        .filter(aircraft_id__in=sorted(significant))
+        .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
+        .annotate(**SORTIE_COUNTERS)
+        .order_by("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
+    )
+    cells: dict[CellKey, _Cell] = {}
+    for row in rows:
+        aircraft, tour, mods = row["aircraft_id"], row["mission__tour_id"], row["weapon_mods"]
+        side = side_of_country(row["country"])
+        roles = (ALL,) if row["combat_role"] is None else (ALL, row["combat_role"])
+        scopes: tuple[int | None, ...] = (None,) if tour is None else (None, tour)
+        for scope in scopes:
+            if scope is not None and wanted_tours is not None and scope not in wanted_tours:
+                continue
+            for role in roles:
+                cell = cells.setdefault((aircraft, scope, role, mods), _Cell())
+                _fold(cell.totals, row)
+                cell.players.add(row["player_id"])
+                if side is not None:
+                    cell.sides[side] = cell.sides.get(side, 0) + row["sorties"]
+    return _fold_patterns(cells, significant)
+
+
+def _fold_patterns(
+    cells: dict[CellKey, _Cell], significant: dict[int, tuple[int, ...]]
+) -> dict[PatternKey, tuple[Totals, int, str]]:
+    merged: dict[PatternKey, _Cell] = {}
+    for (aircraft, tour, role, mods), cell in sorted(cells.items(), key=_cell_order):
+        for pattern in mod_filter_patterns(mods, significant[aircraft]):
+            target = merged.setdefault((aircraft, tour, role, pattern), _Cell())
+            for name, value in cell.totals.items():
+                target.totals[name] += value
+            target.players |= cell.players
+            for side, n in cell.sides.items():
+                target.sides[side] = target.sides.get(side, 0) + n
+    return {
+        key: (cell.totals, len(cell.players), min(cell.sides, key=lambda s: (-cell.sides[s], s)) if cell.sides else "")
+        for key, cell in merged.items()
+    }
+
+
+def _cell_order(item: tuple[CellKey, _Cell]) -> tuple[int, int, str, int]:
+    """A fixed order to add the cells in (all time first): a rebuild sums floats like an incremental run."""
+    aircraft, tour, role, mods = item[0]
+    return aircraft, -1 if tour is None else tour, role, mods

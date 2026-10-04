@@ -213,11 +213,11 @@ decisions are made):
 - ✅ **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large
   image (e.g. a map of the current situation) dominating the home page, read from a server file path and picked up within ~10 s; the
   file is validated and re-encoded like the logo, never served directly. An embed (iframe) mode later.
-- 🔧 **Weapon mods** ✅ foundation (payload table, `weapon_mods.csv`, WM bit k = mod k verified on 30.7k spawns, Modifications row); 🔧 **the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table
+- ✅ **Weapon mods** ✅ foundation (payload table, `weapon_mods.csv`, WM bit k = mod k verified on 30.7k spawns, Modifications row); ✅ **the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table
   (one row per vehicle and payload id, the newest version for all sorties) and `weapon_mods.csv`; mod names on
   the sortie page; an aircraft-page filter by the mods that change performance a lot: MiG-15bis Anti-G suit (5), NR-23 cannons (1),
   improved air brakes and wing (2), all combinations; F-51D 150-grade fuel (4); a mods table with effectiveness.
-- 🔧 **Aircraft page role toggle and loadout effectiveness** (maintainer, 2026-10-04): all / air superiority / attack scope for the type's
+- ✅ **Aircraft page role toggle and loadout effectiveness** (maintainer, 2026-10-04): all / air superiority / attack scope for the type's
   stats; average Elo of a loadout's pilots, kills per sortie and K/D for air-superiority loadouts, ground score per hour for attack ones.
 
 - 🔧 **More e2e user flows** (maintainer, 2026-10-04): aircraft weaknesses from a shot-down-by-type row, leaderboard comparison, aircraft
@@ -229,7 +229,13 @@ decisions are made):
 
 - 🔧 **Pilot health and aircraft damage on the sortie page** (maintainer, 2026-10-04, OQ-115 follow-up): remaining pilot health and
   aircraft damage, 0% health when the pilot died, 100% damage when the aircraft was destroyed.
-- 🔧 **Favourite loadout only** on the profile's per-aircraft rows (OQ-117, changed 2026-10-04): the mod-set and hits-by-ammo detail goes.
+- ✅ **Favourite loadout only** on the profile's per-aircraft rows (OQ-117, changed 2026-10-04): the mod-set and hits-by-ammo detail goes.
+
+- ⏳ **Admin-configurable achievements** (maintainer, 2026-10-04, before the release): like the admin quips, an admin page to switch
+  each achievement and shame medal on or off, rename it and edit its description per language (blank = the built-in default), and change
+  tier thresholds; defaults unchanged; changed thresholds apply through the level-2 recompute (`rebuild-aggregates`, or an admin
+  "recompute achievements" button queued for `watch`), with a note that holders and rarity change. Custom conditions belong with the
+  post-release scripting item.
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.

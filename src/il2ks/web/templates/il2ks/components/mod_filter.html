@@ -1,0 +1,12 @@
+{# il2ks-template: templates/il2ks/components/mod_filter.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  mod_filter.html ({% mod_filter mod_filters %}): one any / with / without switch per significant weapon modification of
+  an aircraft type, three links styled like the role toggle (`.tour-toggle`). Plain links that keep the other query
+  parameters, so it works with or without JS. Context: rows ((modification name, [(label, href, current)]) pairs).
+{% endcomment %}{% for name, options in rows %}<p class="tour-bar">
+  <span class="muted">{{ name }}</span>
+  <span class="tour-toggle" role="group" aria-label="{% blocktranslate %}Filter by modification {{ name }}{% endblocktranslate %}">{% for label, href, current in options %}
+    <a href="{{ href }}"{% if current %} aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+  </span>
+</p>
+{% endfor %}

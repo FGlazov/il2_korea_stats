@@ -1,0 +1,10 @@
+{# il2ks-template: templates/il2ks/components/role_toggle.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  role_toggle.html ({% role_toggle role %}): the combat role switch of the aircraft pages, three links styled like the
+  intercept toggle (`.tour-toggle`): all roles, air superiority, attack. Plain links that keep the other query
+  parameters (the tour, the sorts), so it works with or without JS. Context: options ((label, href, current) triples).
+{% endcomment %}<p class="tour-bar">
+  <span class="tour-toggle" role="group" aria-label="{% translate 'Which sorties to count' %}">{% for label, href, current in options %}
+    <a href="{{ href }}"{% if current %} aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+  </span>
+</p>

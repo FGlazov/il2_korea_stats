@@ -5,7 +5,10 @@
     matchups(aircraft, tour, intercept, sort) -> MatchupTable  # kills and losses against each enemy type; one query
     top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
     top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
-    payloads(aircraft)       -> list[AircraftPayload]    # one query
+    scoped_stats(aircraft, tour, role, mod_pattern) -> TourAircraftStats  # a tour / role / mod filter scope; one query
+    payloads(aircraft, role, rules, sort, mod_pattern) -> list[Loadout]   # loadouts with effectiveness; one query
+    mod_sets(aircraft, role, rules, sort, mod_pattern) -> list[ModSet]    # weapon-mod sets, same measures; one query
+    significant_mods(aircraft) -> tuple[SignificantMod, ...]  # the mods the page can filter by (catalog, no query)
 
 The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
 volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
@@ -14,20 +17,32 @@ by `ingest.ratings`) and, for attack work, the ground score per hour on target.
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from functools import cache
+from typing import Final
 
 from django.db.models import Q
 
 from il2ks.config import LeaderboardConfig
+from il2ks.core.catalog.loader import (
+    MOD_ANY,
+    MOD_WITH,
+    MOD_WITHOUT,
+    Catalog,
+    load_default_catalog,
+    mod_filter_pattern,
+)
 from il2ks.db.models import (
     AircraftMatchup,
+    AircraftMods,
     AircraftPayload,
+    AircraftRole,
     AircraftStats,
     GameObject,
     PlayerAircraft,
     Tour,
     TourAircraftStats,
 )
-from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
+from il2ks.queries.leaderboards import BOARDS, SECONDS_PER_HOUR, BoardRow, top_rows
 from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
 # Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio of two columns (no ratio is
@@ -69,11 +84,24 @@ type StatsRow = AircraftStats | TourAircraftStats
 TOP_PILOTS = 10
 
 
-def stats_list(sort: str, tour: Tour | None = None) -> list[StatsRow]:
-    """Every type flown in `tour` (None = all time), ordered by a resolved `sort` ('kills_air' or '-kills_air', see
-    `players.resolve_sort`). One query."""
+ROLE_PARAM = "role"
+ROLES: Final[tuple[AircraftRole, ...]] = (AircraftRole.ALL, AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK)
+
+
+def parse_role(raw: str | None) -> AircraftRole:
+    """`?role=air_superiority|attack`; absent or anything else means every role."""
+    return next((role for role in ROLES if role.value == raw), AircraftRole.ALL)
+
+
+def stats_list(sort: str, tour: Tour | None = None, role: AircraftRole = AircraftRole.ALL) -> list[StatsRow]:
+    """Every type flown in `tour` (None = all time) in `role` (`all` = every sortie), ordered by a resolved `sort`
+    ('kills_air' or '-kills_air', see `players.resolve_sort`). One query."""
     order = order_by(AIRCRAFT_SORTS[sort.removeprefix("-")], sort)
-    rows = AircraftStats.objects.all() if tour is None else TourAircraftStats.objects.filter(tour=tour)
+    if role == AircraftRole.ALL and tour is None:
+        rows = AircraftStats.objects.all()
+    else:
+        # tour None: the all-time role rows (null tour); never a modification-filter row (those are `scoped_stats`)
+        rows = TourAircraftStats.objects.filter(tour=tour, role=role, mod_pattern="")
     return list(rows.select_related("aircraft").order_by(order, "aircraft__display_name", "pk"))
 
 
@@ -81,10 +109,59 @@ def stats_for(aircraft_id: int) -> AircraftStats | None:
     return AircraftStats.objects.select_related("aircraft").filter(aircraft_id=aircraft_id).first()
 
 
-def tour_stats_for(aircraft: GameObject, tour: Tour) -> TourAircraftStats:
-    """The type's counters in `tour`; all zero (an unsaved row) when nobody flew it there. One query."""
-    found = TourAircraftStats.objects.filter(aircraft=aircraft, tour=tour).first()
-    return found or TourAircraftStats(aircraft=aircraft, tour=tour)
+def scoped_stats(
+    aircraft: GameObject, tour: Tour | None, role: AircraftRole, mod_pattern: str = ""
+) -> TourAircraftStats:
+    """The type's counters in `tour` (None = all time), `role` and modification filter `mod_pattern` ('' = none); all
+    zero (an unsaved row) when nobody flew it there. Not for all time, every role and no filter: that is
+    `AircraftStats`. One query."""
+    found = TourAircraftStats.objects.filter(aircraft=aircraft, tour=tour, role=role, mod_pattern=mod_pattern).first()
+    return found or TourAircraftStats(aircraft=aircraft, tour=tour, role=role, mod_pattern=mod_pattern)
+
+
+@cache
+def _catalog() -> Catalog:
+    return load_default_catalog()
+
+
+@dataclass(frozen=True, slots=True)
+class SignificantMod:
+    """A modification the aircraft page can filter by (`weapon_mods.csv`, `significant`)."""
+
+    mod_id: int
+    name: str
+
+
+MOD_PARAM_PREFIX = "mod"
+"""`?mod5=with|without` filters the page by one significant modification (absent = any)."""
+MOD_STATES: Final[Mapping[str, str]] = {"any": MOD_ANY, "with": MOD_WITH, "without": MOD_WITHOUT}
+
+
+def significant_mods(aircraft: GameObject) -> tuple[SignificantMod, ...]:
+    """The type's significant modifications, by id; empty for most types (no filter is offered then)."""
+    return tuple(SignificantMod(m.mod_id, m.name) for m in _catalog().significant_mods(aircraft.log_name))
+
+
+def mod_names(log_name: str, weapon_mods: int) -> tuple[str, ...]:
+    """The names of the modifications a `WM` bitmask selects for the aircraft type with this log name, by id (the
+    catalog's name; an id it doesn't know shows as `#id`); empty = no modification."""
+    return tuple(
+        name if name is not None else f"#{mod_id}" for mod_id, name in _catalog().weapon_mods(log_name, weapon_mods)
+    )
+
+
+def mod_param(mod_id: int) -> str:
+    return f"{MOD_PARAM_PREFIX}{mod_id}"
+
+
+def mod_states(params: Mapping[str, str], significant: tuple[SignificantMod, ...]) -> tuple[str, ...]:
+    """The state of each significant mod from the query (`any` / `with` / `without`); anything else means any."""
+    return tuple(raw if (raw := params.get(mod_param(m.mod_id), "any")) in MOD_STATES else "any" for m in significant)
+
+
+def mod_pattern_of(states: tuple[str, ...]) -> str:
+    """The stored pattern of these states ('' = unfiltered), see `TourAircraftStats.mod_pattern`."""
+    return mod_filter_pattern([MOD_STATES[s] for s in states])
 
 
 MIN_ENCOUNTERS = 10
@@ -183,6 +260,176 @@ def top_ground(aircraft: GameObject, rules: LeaderboardConfig) -> list[BoardRow]
     return top_rows(BOARDS["ground-hour"], rules, TOP_PILOTS, aircraft)
 
 
-def payloads(aircraft: GameObject) -> list[AircraftPayload]:
-    """Loadouts flown in the type, most used first."""
-    return list(AircraftPayload.objects.filter(aircraft=aircraft).order_by("-sorties", "payload_name"))
+LOADOUT_SORTS: tuple[str, ...] = (
+    "loadout",
+    "sorties",
+    "kills_air",
+    "kills_ground",
+    "deaths",
+    "elo",
+    "kills_per_sortie",
+    "kd",
+    "ground_hour",
+)
+DEFAULT_LOADOUT_SORT = "-sorties"
+
+
+@dataclass(frozen=True, slots=True)
+class Loadout:
+    """One loadout row of the aircraft page with its effectiveness measures (None = does not apply or too few sorties:
+    shown as a dash). Air superiority loadouts carry the average pilot Elo, air kills per sortie and K/D (PvP air
+    kills per death, a loadout without a death counting its kills); attack loadouts the ground score per hour on
+    target. Every measure is a division of stored columns (TD-22); the Elo average is stored
+    (`AircraftPayload.elo_avg`)."""
+
+    payload: AircraftPayload
+    elo: float | None
+    kills_per_sortie: float | None
+    kd: float | None
+    ground_hour: float | None
+
+
+type EffectivenessRow = AircraftPayload | AircraftMods
+"""A stored "effectiveness by X" row: loadouts or weapon-mod sets (the shared columns of `AircraftEffectiveness`);
+`measures_of` reads nothing else. A new grouping adds its model to this union."""
+
+
+@dataclass(frozen=True, slots=True)
+class Measures:
+    """The effectiveness measures of one row (None = a dash): average pilot Elo, air kills per sortie, K/D (PvP air
+    kills per death, a row without a death counting its kills) for air superiority; ground score per hour on target
+    for attack."""
+
+    elo: float | None = None
+    kills_per_sortie: float | None = None
+    kd: float | None = None
+    ground_hour: float | None = None
+
+
+def measures_of(row: EffectivenessRow, rules: LeaderboardConfig) -> Measures:
+    """The one definition of the effectiveness measures, shared by every table (loadouts, later weapon mods): each
+    only above the leaderboard minimums of the row's role (one lucky sortie must not top the table): air superiority
+    sorties as the interception board asks, attack sorties and time on target as the ground-per-hour board does."""
+    if row.combat_role == AircraftRole.AIR_SUPERIORITY:
+        if row.sorties < max(rules.min_air_superiority_sorties, 1):
+            return Measures()
+        return Measures(row.elo_avg, row.kills_air / row.sorties, row.kills_air_pvp / max(row.deaths, 1))
+    if row.combat_role == AircraftRole.ATTACK:
+        enough = row.sorties >= max(rules.min_attack_sorties, 1) and row.time_on_target_s >= max(
+            rules.min_time_on_target_minutes * 60.0, 1.0
+        )
+        hour = row.score_ground_attack * SECONDS_PER_HOUR / row.time_on_target_s if enough else None
+        return Measures(ground_hour=hour)
+    return Measures()
+
+
+def _loadout(row: AircraftPayload, rules: LeaderboardConfig) -> Loadout:
+    m = measures_of(row, rules)
+    return Loadout(row, m.elo, m.kills_per_sortie, m.kd, m.ground_hour)
+
+
+def payloads(
+    aircraft: GameObject,
+    role: AircraftRole = AircraftRole.ALL,
+    rules: LeaderboardConfig | None = None,
+    sort: str = DEFAULT_LOADOUT_SORT,
+    mod_pattern: str = "",
+) -> list[Loadout]:
+    """Loadouts flown in the type (all time; only those of `role` unless `all`; within the modification filter
+    `mod_pattern`, '' = none) with their effectiveness measures, ordered by a resolved `sort` (a `LOADOUT_SORTS` name,
+    `-` for descending; a dash measure sorts last either way, ties by sorties, then name). One query."""
+    rows = AircraftPayload.objects.filter(aircraft=aircraft, mod_pattern=mod_pattern)
+    if role != AircraftRole.ALL:
+        rows = rows.filter(combat_role=role)
+    used = rules or LeaderboardConfig()
+    return _ordered(
+        [_loadout(row, used) for row in rows],
+        sort,
+        lambda m: m.payload,
+        lambda m: Measures(m.elo, m.kills_per_sortie, m.kd, m.ground_hour),
+        lambda m: m.payload.payload_name.casefold(),
+        "loadout",
+    )
+
+
+MOD_SORTS: tuple[str, ...] = ("mods", *LOADOUT_SORTS[1:])
+DEFAULT_MOD_SORT = "-sorties"
+
+
+@dataclass(frozen=True, slots=True)
+class ModSet:
+    """One weapon-mod set row of the aircraft page with its effectiveness measures (see `Loadout`). `names` are the
+    modifications of the set by id (`weapon_mods.csv`; an id the catalog doesn't know shows as `#id`), empty = none
+    chosen."""
+
+    stats: AircraftMods
+    names: tuple[str, ...]
+    elo: float | None
+    kills_per_sortie: float | None
+    kd: float | None
+    ground_hour: float | None
+
+    @property
+    def label(self) -> str:
+        return " + ".join(self.names)
+
+
+def mod_sets(
+    aircraft: GameObject,
+    role: AircraftRole = AircraftRole.ALL,
+    rules: LeaderboardConfig | None = None,
+    sort: str = DEFAULT_MOD_SORT,
+    mod_pattern: str = "",
+) -> list[ModSet]:
+    """The weapon-mod sets flown in the type, as `payloads` does for loadouts (same role, filter, measures and sort
+    rules; `sort` a `MOD_SORTS` name). One query; the names come from the shipped catalog."""
+    rows = AircraftMods.objects.filter(aircraft=aircraft, mod_pattern=mod_pattern)
+    if role != AircraftRole.ALL:
+        rows = rows.filter(combat_role=role)
+    used = rules or LeaderboardConfig()
+    found: list[ModSet] = []
+    for row in rows:
+        m = measures_of(row, used)
+        found.append(
+            ModSet(row, mod_names(aircraft.log_name, row.weapon_mods), m.elo, m.kills_per_sortie, m.kd, m.ground_hour)
+        )
+    return _ordered(
+        found,
+        sort,
+        lambda m: m.stats,
+        lambda m: Measures(m.elo, m.kills_per_sortie, m.kd, m.ground_hour),
+        lambda m: m.label.casefold(),
+        "mods",
+    )
+
+
+def _ordered[R](
+    found: list[R],
+    sort: str,
+    stats: Callable[[R], EffectivenessRow],
+    measures: Callable[[R], Measures],
+    label: Callable[[R], str],
+    label_sort: str,
+) -> list[R]:
+    """The effectiveness rows in the order of a resolved `sort`: by the row's label (`label_sort`) or a counter or
+    measure; a dash measure sorts last either way, the tie order is sorties (most first), then the label."""
+    found.sort(key=label)
+    found.sort(key=lambda r: stats(r).sorties, reverse=True)  # the tie order of every sort
+    key = sort.removeprefix("-")
+    descending = sort.startswith("-")
+    if key == label_sort:
+        found.sort(key=label, reverse=descending)
+        return found
+    values: dict[str, Callable[[R], float | None]] = {
+        "sorties": lambda r: stats(r).sorties,
+        "kills_air": lambda r: stats(r).kills_air,
+        "kills_ground": lambda r: stats(r).kills_ground,
+        "deaths": lambda r: stats(r).deaths,
+        "elo": lambda r: measures(r).elo,
+        "kills_per_sortie": lambda r: measures(r).kills_per_sortie,
+        "kd": lambda r: measures(r).kd,
+        "ground_hour": lambda r: measures(r).ground_hour,
+    }
+    value = values[key]
+    defined = sorted((r for r in found if value(r) is not None), key=lambda r: value(r) or 0.0, reverse=descending)
+    return defined + [r for r in found if value(r) is None]

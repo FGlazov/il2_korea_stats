@@ -13,6 +13,15 @@ Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summ
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
+## Needs the maintainer's review
+
+**OQ-122 Aircraft page: role toggle and weapon-mod filter** (built 2026-10-04)
+Defaults applied: the Loadouts and Modifications tables are all time and follow the role toggle and the mod filter, not the tour;
+matchups, top pilots and hits to destroy are not filtered by role or mods (a note says so); the Modifications table has one row per
+(weapon-mod set, role), "No modifications" for none, unknown ids as "#id"; mod names are not translated (like ordnance); URLs use
+`?role=air_superiority|attack` and `?mod<id>=with|without`. Real data (September): MiG-15bis with the Anti-G suit 181 sorties, PvP K/D 1.42
+vs 1.30 without; NR-23 1.44 vs 1.01; F-51D 150-grade fuel air superiority K/D 0.77 vs 0.59.
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

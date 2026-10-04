@@ -10,7 +10,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from il2ks.db.models import BuildKind, Player, PlayerAircraftBuild, Tour
-from il2ks.queries.ammo import ammo_info
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,31 +24,10 @@ class LoadoutShare:
 
 
 @dataclass(frozen=True, slots=True)
-class ModShare:
-    """One `WM` value (weapon-modification bitmask) and its share of the sorties."""
-
-    mods: int
-    sorties: int
-    percent: int
-
-
-@dataclass(frozen=True, slots=True)
-class AmmoShare:
-    """A gun ammo (plain display name, `ammo_info`) and its share of the player's gun hits in this type."""
-
-    name: str
-    designation: str
-    hits: int
-    percent: int
-
-
-@dataclass(frozen=True, slots=True)
 class AircraftBuild:
     aircraft_id: int
     sorties: int
     loadouts: tuple[LoadoutShare, ...]  # most flown first, the favourite first
-    mods: tuple[ModShare, ...]
-    ammo: tuple[AmmoShare, ...]  # most hits first; hits by ammo, not the belt the player picked
 
 
 def _percent(part: int, whole: int) -> int:
@@ -61,27 +39,16 @@ def player_builds(player: Player, tour: Tour | None = None) -> dict[int, Aircraf
     rows = PlayerAircraftBuild.objects.filter(player=player)
     rows = rows.filter(tour_id__isnull=True) if tour is None else rows.filter(tour=tour)
     by_type: dict[int, list[PlayerAircraftBuild]] = defaultdict(list)
-    for row in rows.order_by("aircraft_id", "-sorties", "-hits", "value", "label"):
+    for row in rows.order_by("aircraft_id", "-sorties", "value", "label"):
         by_type[row.aircraft_id].append(row)
     return {aircraft_id: _build(aircraft_id, group) for aircraft_id, group in by_type.items()}
 
 
 def _build(aircraft_id: int, rows: list[PlayerAircraftBuild]) -> AircraftBuild:
     payloads = [r for r in rows if r.kind == BuildKind.PAYLOAD.value]
-    mods = [r for r in rows if r.kind == BuildKind.MODS.value]
     total = sum(r.sorties for r in payloads)
-    merged: dict[str, tuple[str, int]] = {}  # two log names with one plain name (a tracer variant) add up
-    for r in rows:
-        if r.kind == BuildKind.AMMO.value:
-            info = ammo_info(r.label)
-            _, hits = merged.get(info.name, (info.designation, 0))
-            merged[info.name] = (info.designation, hits + r.hits)
-    hits_total = sum(hits for _, hits in merged.values())
-    ammo = sorted(merged.items(), key=lambda item: (-item[1][1], item[0]))
     return AircraftBuild(
         aircraft_id,
         total,
         tuple(LoadoutShare(r.value, r.label, r.sorties, _percent(r.sorties, total)) for r in payloads),
-        tuple(ModShare(r.value, r.sorties, _percent(r.sorties, total)) for r in mods),
-        tuple(AmmoShare(name, designation, hits, _percent(hits, hits_total)) for name, (designation, hits) in ammo),
     )

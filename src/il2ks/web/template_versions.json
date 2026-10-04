@@ -19,7 +19,7 @@
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "172186569e969e70fbcf1e8b661123aff2e983c0a270650539482a97789e4d71"
+      "sha256": "bc141868526b2535fe9882b9985f1d40a653d6da7321ab44baa98e428f3a79bd"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -115,11 +115,11 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "93d7f660fedb403fd90f0d1ec725c369e36205960db6f23e6d72ee9072edc377"
+      "sha256": "3cf0e055315e3ef9dd44d2778c888dcb1c149bfbb36c4025c96acb6fcf437077"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
-      "sha256": "13542edc92ddbd744a47aef8a59fb762cdcd4d9634f806afdaea4996312ff605"
+      "sha256": "ffd1ada7cee584f705cf68c1827d34cd4d5140fe65d1f5854e1df45f0bab9835"
     },
     "templates/il2ks/aircraft/parts/ammo_mix_row.html": {
       "version": 1,
@@ -185,6 +185,10 @@
       "version": 1,
       "sha256": "8d243fb35f934adb0f53185d9b067078dcf44636178d1ae1d13994bd28d810e4"
     },
+    "templates/il2ks/components/mod_filter.html": {
+      "version": 1,
+      "sha256": "68b13a93a969fbce2daf622332728ac5ff401f35258deca1f2cf645b405ec112"
+    },
     "templates/il2ks/components/notice.html": {
       "version": 1,
       "sha256": "762d34c09a01acbbb3124e4f0a5f217332feb5cae6bbc85eb82a54bb7d3d9a59"
@@ -209,9 +213,13 @@
       "version": 1,
       "sha256": "5846925db5109d6763a471deda71e5cc2e3badab3b5c57aa5d7ad1fbad65f339"
     },
+    "templates/il2ks/components/role_toggle.html": {
+      "version": 1,
+      "sha256": "5bbf274f1ba21076bfa0ea7fc8735715d564ae66c869fe7df3a7d3b0a8e1ebcb"
+    },
     "templates/il2ks/components/sort_th.html": {
       "version": 1,
-      "sha256": "30557119a0562ff24b08e0502d6e766938a2d06dbbfb64a25e6f0b50e6d03ea1"
+      "sha256": "aaba9d981fab1cdb716c58eefe356cfe5b1ad112a2f82eb4c9f4c3e4b3a7d1d7"
     },
     "templates/il2ks/components/stat_mark.html": {
       "version": 1,
@@ -315,7 +323,7 @@
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,
-      "sha256": "2f7002eab406186987c2de510a994f129f571542f84eb3450339ef1a3b55e41a"
+      "sha256": "97d1c48cae59ac8a13f831c4cc0cdb74af5c132f04daa426255d43baef515a4d"
     },
     "templates/il2ks/players/detail_charts.html": {
       "version": 1,

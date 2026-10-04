@@ -73,11 +73,12 @@ BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
+BACKFILL_MOD_FILTERS = "mod_filters"  # weapon-mod sets and filter scopes of the aircraft stats (FR-WEB-8)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_AIRCRAFT_CASE = "aircraft_case"  # `Il-10` / `IL-10` rows merged into one GameObject
 BACKFILL_AIRCRAFT_ALIASES = "aircraft_aliases"  # `B 29` / `B-29` rows merged through object_aliases.csv (OQ-120)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
-BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
+BACKFILL_BUILDS = "builds"  # the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
@@ -134,6 +135,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
         (BACKFILL_AIRCRAFT_CASE, _check_aircraft_case),
         (BACKFILL_AIRCRAFT_ALIASES, _check_aircraft_case),  # the same merge, now that the catalog knows aliases
+        (BACKFILL_MOD_FILTERS, _check_mod_filters),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -221,44 +223,29 @@ def _check_aircraft_case() -> bool:
     return merged
 
 
-def _check_tour_aircraft() -> bool:
-    """A database from before the aircraft stats per tour (FR-WEB-8, TD-26) has per-tour player aircraft rows but no
-    `TourAircraftStats` row: level 2 must be rebuilt."""
-    from il2ks.db.models import PlayerTourAircraft, TourAircraftStats
+def _check_mod_filters() -> bool:
+    """A database from before the weapon-mod tables of the aircraft page has pilot sorties but no `AircraftMods` row:
+    level 2 must be rebuilt (the mod-filter scopes of the types with significant mods come with it)."""
+    from il2ks.db.models import AircraftMods, PlayerSortie, Role
 
-    return PlayerTourAircraft.objects.exists() and not TourAircraftStats.objects.exists()
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not AircraftMods.objects.exists()
 
 
 def _check_builds() -> bool:
-    """A database from before the favourite loadout has pilot sorties but no `SortieGunHits` row: they follow from the
-    stored ammo JSON (the gun hit lines given per ammo, as at save time) and level 2 must be rebuilt, which
-    also builds `PlayerAircraftBuild`. `il2ks reprocess` gives the same rows."""
-    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+    """A database from before the favourite loadout has pilot sorties but no `PlayerAircraftBuild` row: level 2 must be
+    rebuilt."""
+    from il2ks.db.models import PlayerAircraftBuild, PlayerSortie, Role
 
-    if not PlayerSortie.objects.filter(role=Role.PILOT).exists() or SortieGunHits.objects.exists():
-        return False
-    log.info("deriving the gun hits per ammo from the stored ammo")
-    _fill_gun_hits()
-    return True
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftBuild.objects.exists()
 
 
-def _fill_gun_hits() -> None:
-    """Write the `SortieGunHits` rows from the stored ammo JSON of every pilot sortie (streamed)."""
-    from il2ks.core.replay.model import is_gun_ammo
-    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+def _check_tour_aircraft() -> bool:
+    """A database from before the aircraft stats per tour and combat role (FR-WEB-8, TD-26) has counted sorties with a
+    role but no role row in `TourAircraftStats`: level 2 must be rebuilt (the loadout roles and Elo come with it)."""
+    from il2ks.db.models import AircraftRole, PlayerSortie, TourAircraftStats
 
-    new: list[SortieGunHits] = []
-    for pk, ammo in PlayerSortie.objects.filter(role=Role.PILOT).values_list("pk", "ammo").iterator(chunk_size=500):
-        raw = cast("dict[str, object]", ammo).get("hits") if isinstance(ammo, dict) else None
-        if not isinstance(raw, list):
-            continue
-        by_ammo: dict[str, int] = {}
-        for row in cast("list[dict[str, object]]", raw):
-            name, given = row.get("ammo"), row.get("hits_given")
-            if isinstance(name, str) and isinstance(given, int) and given > 0 and is_gun_ammo(name):
-                by_ammo[name] = by_ammo.get(name, 0) + given
-        new.extend(SortieGunHits(sortie_id=pk, ammo=name, hits=hits) for name, hits in sorted(by_ammo.items()))
-    SortieGunHits.objects.bulk_create(new, batch_size=500)
+    has_roles = PlayerSortie.objects.filter(role="pilot", combat_role__isnull=False).exists()
+    return has_roles and not TourAircraftStats.objects.exclude(role=AircraftRole.ALL).exists()
 
 
 def _check_streak_runs() -> bool:

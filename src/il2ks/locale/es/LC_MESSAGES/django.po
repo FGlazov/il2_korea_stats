@@ -689,6 +689,10 @@ msgid "All missions"
 msgstr "Todas las misiones"
 
 # llm-draft
+msgid "All roles"
+msgstr "Todos los roles"
+
+# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Todas las salidas con esta aeronave"
 
@@ -855,6 +859,12 @@ msgstr "Impactos de media"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Promedio de impactos de armas que bastaron para destruirlo"
+
+# llm-draft
+#. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
+#. their skill, not only the loadout)
+msgid "Average pilot Elo"
+msgstr "Elo medio de los pilotos"
 
 # llm-draft
 msgid "BLUFOR"
@@ -1572,6 +1582,15 @@ msgstr "Carga favorita"
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Pocos pilotos conocen la calle de rodaje tan bien como este. Podría dar visitas guiadas."
 
+#, python-format
+msgid "Filter by modification %(name)s"
+msgstr ""
+
+msgid ""
+"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
+"hits to destroy still cover every modification."
+msgstr ""
+
 # llm-draft
 msgid "Find a player"
 msgstr "Buscar un jugador"
@@ -1992,10 +2011,6 @@ msgstr "Impacto (causado)"
 # llm-draft
 msgid "Hit (taken)"
 msgstr "Impacto (recibido)"
-
-# llm-draft
-msgid "Hits by ammo"
-msgstr "Impactos por munición"
 
 # llm-draft
 msgid "Hits dealt"
@@ -2556,10 +2571,6 @@ msgid "Missions stored"
 msgstr "Misiones guardadas"
 
 # llm-draft
-msgid "Modification names are not known yet: the numbers are the raw values from the log."
-msgstr "Aún no se conocen los nombres de las modificaciones: los números son los valores en bruto del registro."
-
-# llm-draft
 msgid "Modifications"
 msgstr "Modificaciones"
 
@@ -2729,6 +2740,9 @@ msgstr "Ninguna misión coincide con estos filtros."
 # llm-draft
 msgid "No missions yet."
 msgstr "Todavía no hay misiones."
+
+msgid "No modifications"
+msgstr ""
 
 # llm-draft
 msgid ""
@@ -3329,6 +3343,10 @@ msgid "Purple"
 msgstr "Morado"
 
 # llm-draft
+#. Translators: column header; player-versus-player air kills per death with this loadout
+msgid "PvP K/D"
+msgstr "K/D en PvP"
+
 msgid "Quicker than the kettle in the ready room. The tea is still brewing."
 msgstr "Más rápido que el hervidor de la sala de alerta. El té aún se está haciendo."
 
@@ -3389,6 +3407,12 @@ msgstr "Rayón en Pista"
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
 msgstr "Pocos pilotos le dan tanto que escribir al oficial de seguridad. Un auténtico coautor."
+
+#, python-format
+msgid ""
+"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
+"target, as on the leaderboards."
+msgstr ""
 
 # llm-draft
 msgid "Ratings"
@@ -3574,11 +3598,6 @@ msgstr "Con serifa"
 # llm-draft
 msgid "Server activity"
 msgstr "Actividad del servidor"
-
-# llm-draft
-#, python-format
-msgid "Set %(value)s"
-msgstr "Conjunto %(value)s"
 
 # llm-draft
 msgid "Setup finished"
@@ -4385,9 +4404,12 @@ msgstr "Los mecánicos han puesto el nombre de este piloto a un bolardo. Con car
 msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "El artillero de cola tuvo la última palabra, y fue bien alta."
 
-# llm-draft
 msgid "The record books call it a pattern. The squadron calls it character."
 msgstr "En los registros lo llaman patrón. En el escuadrón lo llaman carácter."
+
+# llm-draft
+msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
+msgstr "El filtro de rol no se aplica a los enfrentamientos: muestran todos los derribos y pérdidas de esta aeronave."
 
 # llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
@@ -4400,6 +4422,12 @@ msgid "The same kills grouped by which ammunition types hit together, with the a
 msgstr ""
 "Las mismas victorias agrupadas según qué tipos de munición impactaron juntos, con el promedio de impactos de cada "
 "tipo en esa mezcla."
+
+msgid ""
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
+"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
+"means the measure does not apply or there are too few sorties."
+msgstr ""
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
@@ -4461,10 +4489,13 @@ msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "La calle de rodaje tiene un expediente de estos casos. Es delgado, pero está muy manoseado."
 
 # llm-draft
-msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+msgid ""
+"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
+"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
 msgstr ""
-"Los totales y los enfrentamientos siguen la temporada elegida. Los mejores pilotos, los impactos para destruir y las "
-"configuraciones de armamento abarcan todo el histórico."
+"Los totales siguen la gira y el rol seleccionados; los enfrentamientos siguen la gira. Los mejores pilotos, los "
+"impactos para destruir y las configuraciones de armamento abarcan todo el tiempo, y los impactos para destruir "
+"cuentan siempre todos los roles (tratan de los derribos de esta aeronave)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -4493,10 +4524,6 @@ msgstr "El tren aún se estaba recogiendo cuando el primer derribo llegó al reg
 
 msgid "There is no file at this location (the server could not find it)."
 msgstr ""
-
-# llm-draft
-msgid "These are the hits the player made with each ammunition, not the belt they chose: the game log does not record that."
-msgstr "Son los impactos que el jugador logró con cada munición, no la cinta que eligió: el registro del juego no lo guarda."
 
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
@@ -4897,10 +4924,6 @@ msgstr[1] ""
 "pero el menú pasa entonces a una segunda fila de la cabecera."
 
 # llm-draft
-msgid "Weapon modifications"
-msgstr "Modificaciones de armamento"
-
-# llm-draft
 msgid "What was saved"
 msgstr "Qué se guardó"
 
@@ -4915,6 +4938,25 @@ msgstr "Dónde encontrarlo:"
 # llm-draft
 msgid "Which kills and losses to count"
 msgstr "Qué derribos y pérdidas contar"
+
+# llm-draft
+msgid ""
+"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
+"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
+"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
+"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
+"apply or there are too few sorties."
+msgstr ""
+"Qué configuraciones de armamento funcionan mejor, en el rol seleccionado. Las de superioridad aérea muestran el Elo "
+"medio de los pilotos que las volaron (en cada aeronave si tienen partidas puntuadas en ella; si no, el de su grupo), "
+"los derribos aéreos por salida y el K/D de los derribos contra otros jugadores; las de ataque muestran los puntos de "
+"tierra por hora sobre el objetivo. El Elo medio refleja la habilidad de los pilotos, no solo la de la configuración: "
+"los buenos pilotos pueden preferir una configuración por otros motivos. Un guion significa que la medida no se aplica"
+" o que hay muy pocas salidas."
+
+# llm-draft
+msgid "Which sorties to count"
+msgstr "Qué salidas contar"
 
 # llm-draft
 msgid "Who kills you, and whom you kill"
@@ -4941,6 +4983,12 @@ msgstr "Windows no nos dice el nombre de su zona horaria. Si tu navegador lo sab
 # llm-draft
 msgid "Winner"
 msgstr "Ganador"
+
+msgid "With"
+msgstr ""
+
+msgid "Without"
+msgstr ""
 
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."

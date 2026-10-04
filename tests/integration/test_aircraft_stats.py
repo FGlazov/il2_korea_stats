@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from django.db import models
+from django.http import HttpResponse
 from django.test import Client, override_settings
 from django.urls import reverse
 
@@ -35,15 +36,15 @@ RATED = LeaderboardConfig(min_sorties=1, min_elo_games=1, min_attack_sorties=1, 
 
 
 def snapshot() -> dict[str, list[dict[str, object]]]:
-    def rows(model: type[models.Model]) -> list[dict[str, object]]:
-        found = list(model.objects.order_by("pk").values())
+    def rows(model: type[models.Model], *order: str) -> list[dict[str, object]]:
+        found = list(model.objects.order_by(*(order or ("pk",))).values())
         for row in found:
             row.pop("id")
         return found
 
     return {
         "stats": rows(AircraftStats),
-        "tour_stats": rows(TourAircraftStats),
+        "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
         "matchups": rows(AircraftMatchup),
         "payloads": rows(AircraftPayload),
     }
@@ -89,7 +90,8 @@ def test_totals_matchups_and_payloads_from_one_mission() -> None:
     }
     assert pairs == {("MiG-15bis", "F-86A-5"): 1, ("F-86A-5", "MiG-15bis"): 1}
     payloads = {
-        (p.aircraft.log_name, p.payload_name): p.sorties for p in AircraftPayload.objects.select_related("aircraft")
+        (p.aircraft.log_name, p.payload_name): p.sorties
+        for p in AircraftPayload.objects.filter(mod_pattern="").select_related("aircraft")
     }
     assert payloads[("MiG-15bis", "Payload 1")] == 1
     assert payloads[("MiG-15bis", "Payload 2")] == 1
@@ -202,7 +204,9 @@ def test_list_sorted_by_aircraft_follows_the_localized_name(client: Client, monk
 def test_detail_page_matchups_loadouts_and_budget(client: Client) -> None:
     save(first_mission())
 
-    assert_simple_reads(client, detail_url("MiG-15bis"), max_queries=10)  # 9 + the current tour's counters
+    assert_simple_reads(
+        client, detail_url("MiG-15bis"), max_queries=11
+    )  # 9 + the current tour's counters + the mods table
 
     body = client.get(detail_url("MiG-15bis")).content.decode()
     assert "Matchups" in body
@@ -321,6 +325,14 @@ def two_tours() -> tuple[Tour, Tour]:
     return september, october
 
 
+def loadout_sorties(response: HttpResponse) -> dict[str, int]:
+    """Sorties per loadout name of a detail page (a loadout flown in two roles has a row per role)."""
+    found: dict[str, int] = {}
+    for row in response.context["loadouts"]:
+        found[row.payload.payload_name] = found.get(row.payload.payload_name, 0) + row.payload.sorties
+    return found
+
+
 def listed(client: Client, query: str = "") -> dict[str, int]:
     response = client.get(reverse("web:aircraft-list") + query)
     assert response.status_code == 200
@@ -382,7 +394,7 @@ def test_detail_tiles_follow_the_tour_but_the_rest_stays_all_time(client: Client
     assert [in_september.context["survived"], in_october.context["survived"]] == [1, 1]  # 2 sorties 1 death; 1 and 0
     assert all_time.context["stats"].sorties == 3  # the all-time row is always loaded (side badge)
     for response in (in_september, in_october, all_time):  # loadouts stay all time
-        assert {p.payload_name: p.sorties for p in response.context["payloads"]} == {
+        assert loadout_sorties(response) == {
             "Payload 1": 2,
             "Payload 2": 1,
         }
@@ -409,18 +421,22 @@ def test_detail_budget_with_a_tour(client: Client) -> None:
     september, _ = two_tours()
     mig = GameObject.objects.get(log_name="MiG-15bis")
 
-    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + f"?tour={september.pk}", max_queries=10)
-    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + "?tour=all", max_queries=9)
+    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + f"?tour={september.pk}", max_queries=11)
+    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + "?tour=all", max_queries=10)
 
 
 def test_reingest_into_another_tour_moves_the_per_tour_rows() -> None:
     """A re-ingest whose start time moves the mission to another tour recomputes the old and the new tour."""
     save(mission((sortie(0, 1, kills_air=1),)), meta("m1", STARTED_AT))
-    assert list(TourAircraftStats.objects.values_list("tour__title", "sorties")) == [("September 2026", 1)]
+    assert list(TourAircraftStats.objects.filter(role="all", mod_pattern="").values_list("tour__title", "sorties")) == [
+        ("September 2026", 1)
+    ]
 
     save(mission((sortie(0, 1, kills_air=1),)), meta("m1", OCTOBER))
 
-    assert list(TourAircraftStats.objects.values_list("tour__title", "sorties")) == [("October 2026", 1)]
+    assert list(TourAircraftStats.objects.filter(role="all", mod_pattern="").values_list("tour__title", "sorties")) == [
+        ("October 2026", 1)
+    ]
 
 
 def test_the_migration_backfill_builds_the_tour_rows_of_an_old_database(tmp_path: Path) -> None:

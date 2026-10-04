@@ -4,7 +4,8 @@
   tour, `all` = all time; context tours / tour), sortable with ?sort= (a whitelist in the view). View:
   il2ks.web.views.aircraft.aircraft_list. Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
   (HitsToDestroy: kills, average)), sort (resolved), page_title, optional_columns (the columns a visitor can add),
-  columns (the chosen ones, ?cols=), colspan.
+  columns (the chosen ones, ?cols=), colspan, role (?role=: "all", "air_superiority" or "attack": the rows count only
+  sorties of that combat role; hits to destroy stay all roles).
   K/D and K/L use air kills (OQ-38). The main link of a row carries `stretched-link`, which makes the whole row clickable.
   Hits to destroy count only kills where one attacker did all the damage (as in the old il2_stats module).
   Blocks of this page: content.
@@ -15,6 +16,7 @@
     <h1>{% translate "Aircraft" %}</h1>
     <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
   </div>
+  {% role_toggle role %}
   {% results_region %}
     {% filter_bar %}
       {% tour_filter tours tour %}

@@ -352,9 +352,9 @@ def test_aircraft_page_budget_with_the_matchup_scopes(client: Client) -> None:
     seed_matchups()
     url = reverse("web:aircraft-detail", args=[aircraft(MIG).pk])
 
-    assert_simple_reads(client, url, max_queries=10)  # 9 + the current tour's tiles
+    assert_simple_reads(client, url, max_queries=11)  # 9 + the current tour's tiles + the mods table
 
-    assert_simple_reads(client, url + "?tour=all&intercept=1&sort=-ratio", max_queries=9)
+    assert_simple_reads(client, url + "?tour=all&intercept=1&sort=-ratio", max_queries=10)
 
 
 def test_the_migration_backfill_builds_the_type_rows_of_an_old_database(tmp_path: Path) -> None:

@@ -17,6 +17,7 @@ from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_all_ratings
 from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, PlayerSortie, Role
 from il2ks.ingest.achievements import recompute_achievements, recompute_holders
+from il2ks.ingest.aircraft_stats import recompute_payload_elo
 from il2ks.ingest.dbutil import update_partial_rows
 
 CHUNK = 400  # players per achievement batch (SQLite's bound-parameter limit)
@@ -65,6 +66,7 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
             changed_types.append(PlayerAircraft(pk=pk, elo=wanted_type[0], elo_games=wanted_type[1]))
     update_partial_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
     _store_peaks(computed.peaks, {g.winner_sortie: g.winner for g in games})
+    recompute_payload_elo()  # the loadouts' average pilot Elo follows the new ratings
     return len(games)
 
 
