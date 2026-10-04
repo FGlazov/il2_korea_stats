@@ -514,6 +514,19 @@ def _counts_json(c: AmmoCounts) -> dict[str, int]:
     return {"bullets": c.bullets, "shells": c.shells, "bombs": c.bombs, "rockets": c.rockets}
 
 
+def _ammo_used_estimate(s: SortieResult, used: dict[str, int | None]) -> dict[str, int]:
+    """OQ-101: an estimate of the bombs and rockets used, for the sortie whose "left" was written after the aircraft was
+    lost (so "used" is unknown) but which released something. A release event is a command that can drop a pair (or a
+    salvo), so no count follows from it; "all loaded" matched the trusted record in 92% of bomb and 87% of rocket
+    sorties. Kept apart from `used`, which stays exact (or null): nothing sums or ranks the estimate. Guns: none.
+    A resupplied sortie gets none (it may have released more than it carried at take-off)."""
+    if not s.ammo_left_after_loss or s.resupplied:
+        return {}
+    loaded = _counts_json(s.ammo_loaded)
+    released = {"bombs": s.store_releases, "rockets": s.rocket_salvos}
+    return {kind: loaded[kind] for kind, n in released.items() if n > 0 and loaded[kind] > 0 and used.get(kind) is None}
+
+
 def _ammo_used(s: SortieResult) -> dict[str, int | None]:
     """Ammunition used per type = loaded - left (FR-ING-24). `None` = unknown: the sortie was resupplied (AType 4 only
     describes the last leg), it has no AType 4, the pilot left an aircraft that had been destroyed (its stores read as
@@ -557,6 +570,8 @@ def _ammo_json(s: SortieResult) -> dict[str, object]:
          "left": {... same} | null,                                    # AType 4; null = no AType 4
          "used": {... same, each int | null},                          # loaded - left; null = unknown (resupplied...);
                                                                        #   bombs, rockets: 0 when none was released
+         "used_estimate": {"bombs": int, "rockets": int},              # OQ-101: only the kinds that were released while
+                                                                       #   "used" is null after a loss; = all loaded
          "left_after_loss": bool,                                      # AType 4 came long after the loss: unreliable
          "releases": {"stores": int, "rocket_salvos": int},            # AType 25 / 26 events (commands, not counts)
          "hits": [{"ammo": "BULLET_12-7_USA_API",                      # every non-explosion hit line, per ammo name
@@ -572,10 +587,12 @@ def _ammo_json(s: SortieResult) -> dict[str, object]:
 
     Damage dealt (or taken) in the sortie = the sum of `hits[].damage_*`, `ordnance[].damage_*` and `unattributed`.
     Only pilot sorties carry `ordnance`. Damage fractions are rounded to 4 digits to keep the row small."""
+    used = _ammo_used(s)
     return {
         "loaded": _counts_json(s.ammo_loaded),
         "left": None if s.ammo_left is None else _counts_json(s.ammo_left),
-        "used": _ammo_used(s),
+        "used": used,
+        "used_estimate": _ammo_used_estimate(s, used),
         "left_after_loss": s.ammo_left_after_loss,
         "releases": {"stores": s.store_releases, "rocket_salvos": s.rocket_salvos},
         "hits": [

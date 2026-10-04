@@ -1308,6 +1308,14 @@ msgid "Error"
 msgstr "Ошибка"
 
 # llm-draft
+msgid ""
+"Estimate: at least one was released, and the ammunition left was recorded after the aircraft was lost, so everything "
+"loaded is counted as used"
+msgstr ""
+"Оценка: сброшена или выпущена хотя бы одна единица, а остаток боезапаса записан уже после потери самолёта, поэтому "
+"весь боекомплект считается израсходованным."
+
+# llm-draft
 msgid "Event"
 msgstr "Событие"
 
@@ -3570,12 +3578,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example "
-"after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets "
-"that were released, the amount used is unknown."
+"after a bailout). Bombs and rockets that were never released count as unused; for guns the amount used is unknown, "
+"and for bombs and rockets that were released it is estimated as everything loaded (marked ~)."
 msgstr ""
-"Игра записывает остаток боекомплекта в конце вылета, а здесь он пришёлся на время после потери самолёта (например, "
-"после прыжка с парашютом). Бомбы и ракеты, которые не сбрасывались и не пускались, считаются неизрасходованными; "
-"расход пушечного боекомплекта, а также сброшенных бомб и пущенных ракет неизвестен."
+"Игра записывает остаток боезапаса при завершении вылета, а здесь это произошло после потери самолёта (например, после"
+" прыжка с парашютом). Бомбы и ракеты, которые не сбрасывали и не пускали, считаются неизрасходованными. Расход по "
+"пушкам и пулемётам неизвестен, а для сброшенных бомб и выпущенных ракет он оценивается как весь боекомплект (помечено"
+" ~)."
 
 # llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
@@ -4017,11 +4026,11 @@ msgstr "Израсходовано"
 
 # llm-draft
 msgid ""
-"Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the "
-"aircraft was lost."
+"Used is unknown for guns, and only estimated (~, everything loaded) for bombs and rockets that were released: the "
+"ammunition left was recorded after the aircraft was lost."
 msgstr ""
-"Расход неизвестен для пушек и пулемётов, а также для сброшенных бомб и пущенных ракет: остаток боекомплекта записан "
-"после потери самолёта."
+"Расход по пушкам и пулемётам неизвестен, а для сброшенных бомб и выпущенных ракет это лишь оценка (~, весь "
+"боекомплект): остаток боезапаса записан после потери самолёта."
 
 # llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."
