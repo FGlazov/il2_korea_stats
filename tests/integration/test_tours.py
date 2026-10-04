@@ -18,7 +18,9 @@ from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.replay.result import MissionResult
 from il2ks.core.tours import TourRules
 from il2ks.db.models import (
+    AircraftStats,
     Counters,
+    GameObject,
     Mission,
     Player,
     PlayerAircraft,
@@ -26,9 +28,11 @@ from il2ks.db.models import (
     PlayerTour,
     PlayerTourAircraft,
     Tour,
+    TourAircraftStats,
 )
 from il2ks.db.site import current_data_version
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
+from il2ks.ingest.aircraft_stats import recompute_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, FLOAT_COUNTERS
 from il2ks.ingest.persist import save_mission
 from il2ks.ingest.tours import assign_missing, retour, start_manual_tour, tour_problems
@@ -259,6 +263,7 @@ def tour_state() -> dict[str, list[dict[str, object]]]:
             norm(r) for r in PlayerTourAircraft.objects.order_by("player_id", "tour_id", "aircraft_id").values()
         ],
         "missions": list(Mission.objects.order_by("mission_uid").values_list("mission_uid", "tour_id")),
+        "aircraft_stats": [norm(r) for r in TourAircraftStats.objects.order_by("tour_id", "aircraft_id").values()],
     }
 
 
@@ -267,6 +272,18 @@ def by_title() -> dict[tuple[int, str], dict[str, object]]:
     return {
         (row.player_id, row.tour.title): {f: pytest.approx(getattr(row, f)) for f in COUNTER_FIELDS}
         for row in PlayerTour.objects.select_related("tour")
+    }
+
+
+def aircraft_by_title() -> dict[tuple[str, str], dict[str, object]]:
+    """TourAircraftStats rows keyed by (aircraft log name, tour title), with pilots and side."""
+    return {
+        (row.aircraft.log_name, row.tour.title): {
+            **{f: pytest.approx(getattr(row, f)) for f in COUNTER_FIELDS},
+            "pilots": row.pilots,
+            "side": row.side,
+        }
+        for row in TourAircraftStats.objects.select_related("tour", "aircraft")
     }
 
 
@@ -294,6 +311,7 @@ def test_a_reingest_that_moves_a_mission_to_another_tour_recomputes_both_tours()
 
     rows = {r.tour.title: r.kills_air for r in PlayerTour.objects.filter(player=p1).select_related("tour")}
     assert rows == {"October 2026": 2}  # the September row is gone, not stale
+    assert {t: n for (_, t), n in ((k, v["sorties"]) for k, v in aircraft_by_title().items())} == {"October 2026": 1}
     assert_tour_rows_consistent()
 
 
@@ -336,7 +354,7 @@ def test_rebuild_repairs_drifted_tour_rows_and_keeps_pks() -> None:
 
 def test_per_tour_counters_registry_matches_the_counters_base() -> None:
     names = [f.name for f in Counters._meta.get_fields()]
-    for model in (PlayerTour, PlayerTourAircraft):
+    for model in (PlayerTour, PlayerTourAircraft, TourAircraftStats):
         assert {n for n in names} <= {f.name for f in model._meta.get_fields()}
 
 
@@ -371,18 +389,20 @@ def test_retour_after_a_mode_change_matches_ingesting_under_the_new_mode() -> No
 
     rebuild_aggregates(DEFAULT_RULES, biweekly, reassign_tours=True)
     retoured = by_title()
+    retoured_aircraft = aircraft_by_title()
     # 14-day blocks from 30 August: the September missions are in block 1, the October ones in block 3
     assert titles() == ["Tour 1", "Tour 3"]
     assert not tour_problems(biweekly).needs_retour
     assert_tour_rows_consistent()
 
     # A fresh database fed under the new mode ends up the same.
-    for model in (PlayerTourAircraft, PlayerTour, PlayerMission):
+    for model in (TourAircraftStats, PlayerTourAircraft, PlayerTour, PlayerMission):
         model.objects.all().delete()
     Mission.objects.all().delete()
     Tour.objects.all().delete()
     three_tour_history(biweekly)
     assert by_title() == retoured
+    assert aircraft_by_title() == retoured_aircraft
 
 
 def test_retour_keeps_unchanged_tours_with_their_renamed_titles() -> None:
@@ -518,6 +538,18 @@ def test_tour_select_renders_all_time_and_marks_the_chosen_tour() -> None:
     assert 'name="sort" value="-kills"' in html
     assert 'name="page"' not in html  # a new tour starts at page 1
     assert 'action="/players/"' in html
+
+
+def test_tour_select_drops_every_page_parameter() -> None:
+    """A tour switch must not carry `page_best` / `page_running` / `page_*` into the new tour (page 1 of each list)."""
+    three_tour_history()
+
+    html = render_selector("/players/?q=bob&page=2&page_best=3&page_running=4&page_missions=5&pager=x")
+
+    assert 'name="q" value="bob"' in html
+    assert 'name="pager" value="x"' in html  # only `page` and `page_*` are pagination
+    for key in ("page", "page_best", "page_running", "page_missions"):
+        assert f'name="{key}"' not in html
 
 
 def test_tour_select_without_a_tour_selects_the_current_one_and_renders_nothing_without_tours() -> None:
@@ -703,3 +735,68 @@ def test_is_quiet_tour_ignores_paging_and_view_parameters_but_not_filters() -> N
     assert not is_quiet_tour(tour, {"tour": "1", "aircraft": "5"}, 0)
     assert not is_quiet_tour(tour, {"tour": "1"}, 4)
     assert not is_quiet_tour(None, {}, 0)
+
+
+# --- aircraft stats per tour (FR-WEB-8, TD-26) ---
+
+
+def test_aircraft_stats_per_tour_sum_the_tours_pilots_and_sides() -> None:
+    three_tour_history()
+
+    rows = aircraft_by_title()
+
+    assert set(rows) == {
+        ("MiG-15bis", "August 2026"),
+        ("F-86A-5", "August 2026"),
+        ("MiG-15bis", "September 2026"),
+        ("Il-10", "September 2026"),
+        ("F-51D", "October 2026"),
+        ("MiG-15bis", "October 2026"),
+    }  # the gunner sortie is no row
+    mig_october = TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour__title="October 2026")
+    assert (mig_october.sorties, mig_october.pilots, mig_october.side) == (2, 2, "redfor")  # players 1 and 4
+    sabre = TourAircraftStats.objects.get(aircraft__log_name="F-86A-5", tour__title="August 2026")
+    assert (sabre.pilots, sabre.deaths, sabre.side) == (1, 1, "blufor")
+    # the all-time row is the sum of its tours
+    all_time = {s.aircraft.log_name: s.sorties for s in AircraftStats.objects.select_related("aircraft")}
+    per_tour: dict[str, int] = defaultdict(int)
+    for stat in TourAircraftStats.objects.select_related("aircraft"):
+        per_tour[stat.aircraft.log_name] += stat.sorties
+    assert dict(per_tour) == all_time
+
+
+def test_aircraft_stats_per_tour_count_hidden_players_and_missions() -> None:
+    """FR-ADM-3: hiding is presentation only, as for the all-time row."""
+    three_tour_history()
+    before = aircraft_by_title()
+    Player.objects.filter(account_uuid=account(1)).update(is_hidden=True)
+    Mission.objects.filter(tour__title="September 2026").update(is_hidden=True)
+
+    rebuild_aggregates(DEFAULT_RULES, MONTHLY)
+
+    assert aircraft_by_title() == before
+
+
+def test_aircraft_stats_per_tour_incremental_touches_only_the_given_tours() -> None:
+    three_tour_history()
+    sept = Tour.objects.get(title="September 2026")
+    TourAircraftStats.objects.update(sorties=99)
+    mig = list(AircraftStats.objects.values_list("aircraft_id", flat=True))
+
+    recompute_aircraft_stats(mig, [sept.pk])
+
+    assert TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour=sept).sorties == 1
+    assert TourAircraftStats.objects.get(aircraft__log_name="MiG-15bis", tour__title="October 2026").sorties == 99
+
+
+def test_rebuild_repairs_drifted_aircraft_stats_per_tour() -> None:
+    three_tour_history()
+    good = tour_state()
+    TourAircraftStats.objects.update(kills_air=42, pilots=7)
+    TourAircraftStats.objects.filter(pk=TourAircraftStats.objects.values_list("pk", flat=True)[0]).delete()
+    sabre = GameObject.objects.get(log_name="F-86A-5")  # no sortie in October: a stale row must go
+    TourAircraftStats.objects.create(aircraft=sabre, tour=Tour.objects.get(title="October 2026"), sorties=3)
+
+    rebuild_aggregates(DEFAULT_RULES, MONTHLY)
+
+    assert tour_state() == good

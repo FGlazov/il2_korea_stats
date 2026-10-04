@@ -18,7 +18,7 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftStats, CombatRole, Mission, Player, PlayerSortie
+from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import display
 from il2ks.web.display import Label
@@ -178,8 +178,8 @@ MISSION_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 )
 
 
-# --- aircraft (all time) -------------------------------------------------------------------------------------------
-AIRCRAFT_COLUMNS: tuple[Column[AircraftStats], ...] = (
+# --- aircraft (all time or one tour: both stats rows have the same counters) ---------------------------------------
+AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
     Column("kills_air_pvp", _("Air kills (PvP)"), lambda a: display.num(a.kills_air_pvp)),
     Column("kills_per_hour", _("Air kills/h"), lambda a: display.per_hour(a.kills_air, a.flight_time_s)),
     Column("assists", _("Assists"), lambda a: display.num(a.assists)),

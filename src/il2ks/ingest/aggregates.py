@@ -37,8 +37,10 @@ from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import (
+    AircraftAmmoMixStats,
     AircraftAmmoStats,
     MissionAircraftAmmo,
+    MissionAircraftAmmoMix,
     Player,
     PlayerAircraft,
     PlayerMission,
@@ -54,6 +56,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
+from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_rows
 from il2ks.ingest.pairs import recompute_killboard
@@ -89,11 +92,12 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         _recompute_aircraft(chunk)
         _recompute_pools(chunk)
         _recompute_tours(chunk, tours)
+        recompute_builds(chunk, tours)  # favourite loadout, weapon mods, gun ammo mix per aircraft (ingest.builds)
         _refresh_identity(chunk)
         recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
         recompute_type_killboard(chunk, tours)  # ... and by enemy aircraft type, ingest.type_board (FR-WEB-9)
         recompute_streaks(chunk, tours)  # ironman streaks, all-time and per tour, ingest.streaks (FR-WEB-23)
-        recompute_achievements(chunk)  # medals, all time, ingest.achievements (FR-WEB-26)
+        recompute_achievements(chunk, tours)  # medals, all time and per tour, ingest.achievements (FR-WEB-26)
 
 
 def rebuild_aggregates(
@@ -129,6 +133,8 @@ def rebuild_aggregates(
     recompute_aircraft_ammo(
         set(MissionAircraftAmmo.objects.values_list("aircraft_id", flat=True))
         | set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True))
+        | set(MissionAircraftAmmoMix.objects.values_list("aircraft_id", flat=True))
+        | set(AircraftAmmoMixStats.objects.values_list("aircraft_id", flat=True))
     )
     rebuild_aircraft_stats()
     rebuild_activity()
@@ -171,6 +177,33 @@ def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
         AircraftAmmoStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
         update_rows(AircraftAmmoStats, changed, ["kills", "hits"])
         AircraftAmmoStats.objects.bulk_create(new)
+        _recompute_ammo_mixes(chunk)
+
+
+def _recompute_ammo_mixes(aircraft_ids: list[int]) -> None:
+    """`AircraftAmmoMixStats` for these victim types = the sum of their `MissionAircraftAmmoMix` rows, upserted by
+    `(aircraft, mix, ammo)`; rows with nothing left are deleted (same shape as `recompute_aircraft_ammo`)."""
+    wanted = {
+        (row["aircraft_id"], row["mix"], row["ammo"]): (row["kills"], row["hits"])
+        for row in MissionAircraftAmmoMix.objects.filter(aircraft_id__in=aircraft_ids)
+        .values("aircraft_id", "mix", "ammo")
+        .annotate(kills=Sum("kills"), hits=Sum("hits"))
+    }
+    existing = {
+        (r.aircraft_id, r.mix, r.ammo): r for r in AircraftAmmoMixStats.objects.filter(aircraft_id__in=aircraft_ids)
+    }
+    changed: list[AircraftAmmoMixStats] = []
+    new: list[AircraftAmmoMixStats] = []
+    for key, (kills, hits) in wanted.items():
+        row = existing.pop(key, None)
+        if row is None:
+            new.append(AircraftAmmoMixStats(aircraft_id=key[0], mix=key[1], ammo=key[2], kills=kills, hits=hits))
+        elif (row.kills, row.hits) != (kills, hits):
+            row.kills, row.hits = kills, hits
+            changed.append(row)
+    AircraftAmmoMixStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    update_rows(AircraftAmmoMixStats, changed, ["kills", "hits"])
+    AircraftAmmoMixStats.objects.bulk_create(new)
 
 
 def refresh_player_missions() -> None:

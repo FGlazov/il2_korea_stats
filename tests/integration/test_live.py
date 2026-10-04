@@ -17,6 +17,7 @@ from il2ks.config import Config, LiveConfig
 from il2ks.db.models import LiveMission, LivePlayer, Player
 from il2ks.db.reprocess_requests import request_reprocess
 from il2ks.db.site import current_data_version
+from il2ks.ingest import live as live_module
 from il2ks.ingest import watch as watch_module
 from il2ks.ingest.live import LiveTracker, find_in_progress
 from il2ks.ingest.reprocess import ReprocessSummary
@@ -68,7 +69,11 @@ def rows() -> list[Row]:
 
 
 @pytest.fixture
-def live(tmp_path: Path) -> Live:
+def live(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Live:
+    """The tracker backs the snapshot interval off by the wall-clock cost of the last snapshot (NFR-INS-5). On a loaded
+    machine a 1 s snapshot would push the next one past the simulated ticks and skip it, so the cost reads 0 here;
+    the back-off test sets `last_cost_s` by hand."""
+    monkeypatch.setattr(live_module, "time", SimpleNamespace(perf_counter=lambda: 0.0))
     return Live(tmp_path)
 
 

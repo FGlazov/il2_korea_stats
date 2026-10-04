@@ -42,7 +42,7 @@ Mission        id, server_uid, mission_uid (unique together), tour → Tour, mis
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
                players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills
 PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
-               aircraft → GameObject, payload_name, coalition, country, role (pilot / gunner),
+               aircraft → GameObject, payload_id, payload_name, weapon_mods (int, the log's `WM` bitmask: bit 0 always set, bit k = mod k of `weapon_mods.csv`), coalition, country, role (pilot / gunner),
                spawned_at, took_off_at, landed_at, ended_at, spawn position, flight_time_s, takeoffs, landings,
                air_start (bool), spawn_type (air/runway/parking),
                outcome (landed/ditched/crashed/shot_down/airborne/in_flight/not_taken_off/unknown), ended_by_mission_end (bool),
@@ -54,7 +54,9 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
-               kills_air_intercept   -- air kills of bombers and attackers (part of kills_air; doc 13 "Interception and tank busting")
+               rams, first_blood (bool), multi_kill, elo_peak   -- achievement facts (doc 17): air kills by ramming, first credited PvP air kill of the mission,
+                                                   -- most air kills in one burst window, highest Elo held after a win in the sortie (`ingest.ratings`)
+               kills_air_intercept   -- air kills of bombers, attackers and transports (part of kills_air; doc 13 "Interception and tank busting")
                is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
                loss_class (who is behind the loss; '' = nothing lost), kills_air_pvp, kills_air_ai   -- FR-WEB-21, doc 13
                kills_ground_<category> (9 categories) + kills_ground_static                           -- they sum to kills_ground (OQ-33)
@@ -74,12 +76,13 @@ Kill           id, mission, tick, time, killer_sortie → PlayerSortie, victim_s
                -- **PvP only** [DECIDED 2026-10-02]: both killer and victim are player sorties. Kills of or by AI, and AI vs AI,
                --    get no Kill rows. Player kills of AI and ground targets are counters on PlayerSortie and entries in its timeline.
 PlayerMission  player, mission, coalition, + counters     -- only for players with a pilot sortie in the mission
+SortieGunHits  sortie, ammo, hits                           -- one row per (pilot sortie, gun ammo) with a hit: the source of the ammo mix per type
 MissionAircraftAmmo  mission, aircraft, ammo, kills, hits  -- FR-WEB-18: gun hits that destroyed aircraft of a type in one mission;
                                                            -- `TOTAL_AMMO` = all gun ammo together
 ```
 
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour`, `PlayerTourAircraft`,
-`PlayerPool`, `PlayerTourPool` and `AircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
+`PlayerPool`, `PlayerTourPool`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
 suspected early bailouts, captures, takeoffs, landings, friendly kills, friendly hits, friendly damage, **taxi accidents, strafed on the
 ground, attack sorties, time on target** (2026-10-03, doc 13). Added since, all sums of sortie columns: the ground-kill categories and `kills_ground_static`
 (OQ-33), the PvE families `kills_air_pvp` / `kills_air_ai`, `deaths_by_<class>` and `planes_lost_by_<class>` (8 classes each, FR-WEB-21), and
@@ -109,6 +112,9 @@ PlayerAircraft player, aircraft, + all-time counters, elo, elo_games    -- per-a
 Tour           id, title, started_at, ended_at (null = current), mode snapshot   -- TD-26
 PlayerTour     player, tour, + same counters as PlayerMission
 PlayerTourAircraft player, tour, aircraft, + counters   -- a separate table, so all-time PlayerAircraft reads stay untouched
+PlayerAircraftBuild player, aircraft, tour (null = all time), kind (payload / mods / ammo), value, label, sorties, hits
+               -- the favourite loadout on the profile: payload = (`payload_id`, name), mods = the `WM` bitmask, ammo = (gun ammo log name, hit lines);
+               -- `sorties` counts the sorties with that payload / mods, or those that hit with that ammo. Recomputed per affected player
 PlayerPool     player, propulsion (prop/jet), + counters         -- counters of the sorties in prop or jet aircraft: the leaderboards'
 PlayerTourPool player, tour, propulsion, + counters              -- `?pool=` filter; unknown propulsion is in no pool
 Mission.tour   FK (assigned at ingest by started_at in tours.timezone)
@@ -123,11 +129,15 @@ StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25
 AircraftStats  aircraft (1:1 → GameObject), pilots, side (redfor/blufor/''), + counters
                -- FR-WEB-8: all-time sum of the type's PlayerAircraft rows; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come
                -- from the counters at read time and sort with `queries.sorting.Ratio`
+TourAircraftStats tour, aircraft, pilots, side, + counters   -- the same as AircraftStats within one tour (sum of the `PlayerTourAircraft` rows); the
+               -- aircraft list and detail follow `?tour=` (OQ-114); rows without a counted sortie are deleted
 AircraftMatchup killer_aircraft, victim_aircraft, tour (null = all time), intercept (bool), kills
                -- PvP kill credits type vs type; a type's losses are the reversed pair. One row per scope: all time or one tour, all kills or only
                -- `intercept` kills (both sorties air superiority), so a kill is counted in up to four rows (FR-WEB-8, OQ-110)
 AircraftPayload aircraft, payload_name ('' = unnamed), sorties, kills_air, kills_ground, deaths
 AircraftAmmoStats aircraft, ammo, kills, hits               -- FR-WEB-18: sum of MissionAircraftAmmo; average hits to destroy = hits / kills
+MissionAircraftAmmoMix mission, aircraft, mix, ammo, kills, hits -- level 1 per saved mission; mix = sorted ammo log names joined by "|"
+AircraftAmmoMixStats aircraft, mix, ammo, kills, hits       -- level 2 sum (all time); the aircraft page's ammo mixes (OQ-116)
 PlayerKillboard player, opponent, kills, deaths, assists, assists_received, last_at, last_mission
                -- FR-WEB-9: two mirror rows per pair (one per perspective), so a board is one indexed read; `assists` is 0 unless
                -- `[killboard] assists` is on; a pair with only assists has kills = deaths = 0
@@ -143,8 +153,8 @@ PlayerBestStreak player, tour (null = all time), kind (sorties / air_kills / fli
 PlayerStreakRun player, tour (null = all time), sorties, kills_air, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
                -- FR-WEB-25, OQ-82: every streak of at least `MIN_LISTED_RUN` survived sorties, finished or running; `ended_sortie` is the fatal or
                -- capturing sortie (null while open); `open` also covers a tour that ran out. A tour's runs stay inside the tour. Built by `ingest.streaks`
-PlayerAchievement player, key, tier, earned_at, sortie, mission   -- FR-WEB-26, doc 17: one row per earned tier, unique (player, key, tier); all time
-AchievementHolders key, tier, holders   -- visible pilots holding each tier, for the overview page (no counting at request time)
+PlayerAchievement player, tour (null = all time), key, tier, earned_at, sortie, mission   -- FR-WEB-26, doc 17: one row per earned tier, unique (player, tour, key, tier) as two conditional constraints (tour set / null); a tour's rows come from that tour's sorties only
+AchievementHolders tour (null = all time), key, tier, holders, pilots   -- visible pilots holding each tier in the scope and the scope's visible pilots with a sortie in it (the rarity denominator), for the overview, the hover text and the home feed (no counting at request time)
 ActivityDay    day (UTC, unique), missions, sorties, pilots, kills_air   -- FR-WEB-16: the home chart; visible missions only, by start time
 ```
 **Only counters are stored.** Ratios (K/D = kills / deaths, K/L = kills / planes lost, kills per sortie, kills per flight hour, survival rate)
@@ -153,8 +163,8 @@ are computed at read time from those counters, as model properties or template f
 ## Reference and operational tables
 
 ```
-GameObject     id, log_name (unique), display_name, cls (fighter/attacker/bomber/transport/gunner/tank/vehicle/aaa/ship/static/
-               ordnance/crew/equipment/unknown), propulsion (prop/jet/blank; aircraft only), is_playable,
+GameObject     id, log_name (unique), display_name, name_overridden (bool: an admin edited display_name), cls (fighter/attacker/bomber/transport/gunner/tank/vehicle/aaa/ship/static/
+               ordnance/crew/equipment/unknown), propulsion (prop/jet/blank; aircraft only), ground_category (ground-kill category of the type, blank = none), is_playable,
                is_known (false = auto-registered unknown, FR-ING-7)
 Country        code (501...), display_name, coalition                                  -- admin-editable
 IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
@@ -178,14 +188,14 @@ ReprocessRequest, LiveMission, LivePlayer   -- admin reprocess queue (doc 14) an
 |---|---|
 | Mission list | `Mission` |
 | Mission detail | `Mission`, `PlayerSortie` where mission (+ `Player`, `GameObject`) |
-| Player profile | `Player` (all-time counters; ratios computed from them), `PlayerAircraft`, recent `PlayerSortie`. In it2: `PlayerTour` for the selected tour |
+| Player profile | `Player` (all-time counters; ratios computed from them), `PlayerAircraft`, `PlayerAircraftBuild` (favourite loadout), recent `PlayerSortie`. In it2: `PlayerTour` for the selected tour |
 | Player sorties | `PlayerSortie` where player [and aircraft; tour in it2] |
 | Sortie detail | one `PlayerSortie` row (timeline, damage, ammo are json on it; AI and ground kills come from the timeline), `Kill` where killer or victim = sortie (PvP) |
 | Player search | `PlayerName` where `name_lower` contains query |
 | Home | `?tour=` filter (OQ-79; none = current tour, `all` = all time): `Mission` (latest; the last mission's top pilots via `PlayerSortie`), `ActivityDay`, streaks (`PlayerStreak` all time; `PlayerBestStreak` of the tour), top 5 of Elo jet, Elo prop (all time only), interception, ground per hour, tank busting and play time (`Player` / `PlayerTour`, one read each), `LiveMission` / `LivePlayer` (always live) |
 | Leaderboards | `Player` / `PlayerTour` (+ `PlayerPool` / `PlayerTourPool` for `?pool=`, `PlayerAircraft` / `PlayerTourAircraft` for `?aircraft=`; Elo boards from `Player.elo_*`; the per-hour skill boards divide two stored counters), `Tour` |
-| Aircraft list | `AircraftStats` + `GameObject` |
-| Aircraft detail | `AircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, top pilots from `PlayerAircraft` |
+| Aircraft list | `AircraftStats` (`TourAircraftStats` for `?tour=`) + `GameObject` |
+| Aircraft detail | `AircraftStats` / `TourAircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, `AircraftAmmoMixStats`, top pilots from `PlayerAircraft` |
 | Killboard | `PlayerTypeKillboard` (by aircraft type), `PlayerKillboard` / `PlayerTourKillboard` where player; `SiteSettings.killboard_assists` |
 | Achievements | `PlayerAchievement` (profile medal row, `/players/<id>/achievements/`, holders page), `AchievementHolders` (`/achievements/`) |
 | Streaks | `PlayerBestStreak` of the selected tour or all time (best list) and `PlayerStreak` (running streaks, not on a past tour), `/streaks/`; a player's best streaks: `PlayerBestStreak` (`/players/<id>/streaks/`); all of a player's runs: `PlayerStreakRun` (`/players/<id>/streaks/history/`) |

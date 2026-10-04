@@ -106,6 +106,10 @@ view_args
 view_kwargs
 _.threshold  # web.medals.Tier / Medal: shown by the achievement templates (_medal.html, overview.html)
 _.mission_hidden  # web.medals.Medal: read by the profile and sortie medal templates (no link to a hidden mission)
+_.more_mixes  # web.views.aircraft.HitsToDestroy: the "show more mixes" fold of aircraft/detail.html
+_.style  # web.medals.Medal: the ribbon stripe pattern (ribbon--sN class) read by _ribbon.html and the home feed
+_.tier_range  # web.medals.Medal: one pip per tier, looped over by _ribbon.html and the home feed
+_.player_name  # web.templatetags.il2ks_achievements.FeedItem: shown by achievements/home_feed.html
 _.missions_stored  # web.ingest_status.IngestOverview: fields are read by the admin template il2ks_ingest_status.html
 _.last_run
 _.last_ok
@@ -250,6 +254,7 @@ _.ground_points
 _.calibre  # core.catalog.loader.AmmoInfo: ammo.csv columns kept for later pages (grouping/sorting by calibre); tested
 _.round_type  # core.catalog.loader.AmmoInfo: same
 _.compute_ratings  # pure-function wrapper over compute_all_ratings, kept for the unit tests (pools only)
+_.shame  # core.achievements.Achievement: hall-of-shame flag, read by the profile / medal views and tested
 _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.archive.write_archive
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
 # --- front-page image (FR-ADM-2) ---
@@ -261,3 +266,6 @@ _.alt
 _.help_texts  # SiteSettingsForm.Meta (Django ModelForm option)
 _.clean_home_feature  # Django form hook: SiteSettingsForm.clean_<field>
 _.required  # Django form field attribute (SiteSettingsForm.__init__: home_feature is optional in a post)
+_.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html
+weapon_mod_mask  # core.catalog.loader: inverse of weapon_mod_ids, for the aircraft page mod filter (next); tested
+_.stale_hides  # web.admin_quips.SpotRow: read by admin/il2ks_quips.html

@@ -3,11 +3,15 @@
   detail_shame.html: the light-hearted "hall of shame" (doc 13): taxi accidents and friendly-fire kills (friendly objects
   the pilot destroyed; OQ-72). Context: player, stats, marks (stat thresholds of the scope, FR-WEB-22). The quip is flavor
   text (FR-WEB-23), stable per player; it depends on which incidents the pilot has and whether their rate is in the top 10%.
+  Hall-of-shame achievements (kind ribbon, flag shame; doc 17) sit under the tiles as ribbons: medal_set.shame.
 {% endcomment %}<section class="shame">
   <h2>{% translate "Hall of shame" %}</h2>
   <div class="stat-tiles shame__tiles">
     {% stat_tile stats.taxi_accidents|num _("Taxi accidents") sub=_("Lost before the first takeoff, by their own doing") icon="stat/taxi-accidents" %}
     {% stat_tile stats.friendly_kills|num _("Friendly-fire kills") sub=_("Friendly aircraft and ground objects they destroyed") icon="stat/friendly-fire" %}
-    <p class="shame__quip">{% shame_flavor stats player.pk %}</p>
+    {% shame_flavor stats player.pk as shame_quip %}{% if shame_quip %}<p class="shame__quip">{{ shame_quip }}</p>{% endif %}
   </div>
+  {% if medal_set.shame %}<div class="ribbon-rack">
+    {% for m in medal_set.shame %}{% include "il2ks/achievements/_ribbon.html" with href=m.href %}{% endfor %}
+  </div>{% endif %}
 </section>

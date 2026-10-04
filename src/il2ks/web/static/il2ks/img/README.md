@@ -92,6 +92,19 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/frequent-flyer.svg` | `plane-departure` |
 | `medal/flight-hours.svg` | `clock` |
 | `medal/type-veteran.svg` | `award` |
+| `medal/elo-peak.svg` | `trending-up` |
+| `medal/ground-score.svg` | `chart-bar` |
+| `medal/ram.svg` | `arrows-diagonal-minimize-2` |
+| `medal/first-blood.svg` | `droplet` |
+| `medal/multi-kill.svg` | `chevrons-right` |
+| `medal/types-flown.svg` | `stack-2` |
+| `medal/types-with-kills.svg` | `list-check` |
+| `medal/landing-streak.svg` | `plane-arrival` |
+| `medal/ace-in-a-day.svg` | `sun` |
+| `medal/shame-taxi.svg` | `traffic-cone` |
+| `medal/shame-friendly.svg` | `user-x` |
+| `medal/shame-strafed.svg` | `flame` |
+| `medal/shame-crashed.svg` | `alert-triangle` |
 
 ## Flags (MIT)
 

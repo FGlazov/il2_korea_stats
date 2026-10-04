@@ -39,21 +39,25 @@ from il2ks.core.replay.result import (
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import DEFAULT_TOUR_RULES, TourRules
 from il2ks.db.models import (
+    MIX_SEPARATOR,
     TOTAL_AMMO,
     Country,
     GameObject,
     Kill,
     Mission,
     MissionAircraftAmmo,
+    MissionAircraftAmmoMix,
     Player,
     PlayerMission,
     PlayerSortie,
+    SortieGunHits,
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
+from il2ks.ingest.builds import gun_hit_rows
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.ratings import recompute_ratings
@@ -124,6 +128,7 @@ def save_mission(
     register_countries(result.mission.countries, catalog)
     players = _upsert_players(result.sorties, clock)
     sorties = _upsert_sorties(mission, result, clock, catalog, objects, players, score)
+    _replace_gun_hits(mission, result, sorties, created=created)
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
@@ -133,13 +138,14 @@ def save_mission(
     recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
     recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(ammo_aircraft_ids)
-    recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk))  # after the players' PlayerAircraft rows
+    # after the players' PlayerAircraft / PlayerTourAircraft rows
+    recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk), touched_tours)
     recompute_matchups(old_pairs | mission_pairs(mission.pk))
     recompute_days({day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()))
-    if marks is not None:
-        recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:
         recompute_ratings(ratings)
+    if marks is not None:  # FR-WEB-22: after the player rows and the Elo replay (the Elo marks read the ratings)
+        recompute_thresholds(marks, touched_tours)
     bump_data_version()  # TD-28: same transaction as the save
     return mission
 
@@ -383,6 +389,9 @@ _SORTIE_FIELDS = [
     "kills_air_pvp",
     "kills_air_ai",
     "kills_air_intercept",
+    "rams",
+    "first_blood",
+    "multi_kill",
     "air_points",
     "ground_points",
     "ammo",
@@ -502,6 +511,9 @@ def _fill_sortie(
     row.kills_air_pvp = s.kills_air_pvp
     row.kills_air_ai = s.kills_air_ai
     row.kills_air_intercept = s.kills_air_intercept
+    row.rams = s.rams
+    row.first_blood = s.first_blood
+    row.multi_kill = s.multi_kill
     apply_score(row, score)
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos
@@ -638,7 +650,8 @@ def _damage_json(d: DamageExchange, pks: dict[int, int]) -> dict[str, object]:
 def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict[str, object]:
     """One `PlayerSortie.timeline` entry. The hit rows (`hit_given` / `hit_taken`, doc 14) add `damage` (summed
     DMG fraction, 4 digits), `lines` and, when a hit lay near, `ammo` (log name, or ordnance key with `ammo_kind`
-    "ordnance"); other rows and rows from before the hit rows have none of these keys."""
+    "ordnance"), and `target_role` "crew" when the damaged object was a pilot / crew bot; other rows and rows from
+    before the hit rows have none of these keys."""
     entry: dict[str, object] = {
         "tick": t.tick,
         "at": clock.at(t.tick).isoformat(),
@@ -654,6 +667,8 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
             entry["ammo"] = t.ammo
             if t.ammo_kind != "gun":
                 entry["ammo_kind"] = t.ammo_kind
+        if t.target_role:
+            entry["target_role"] = t.target_role
     return entry
 
 
@@ -730,11 +745,26 @@ def aircraft_ammo_totals(kills: Iterable[SingleAttackerKill]) -> dict[tuple[str,
     return totals
 
 
+def aircraft_ammo_mix_totals(kills: Iterable[SingleAttackerKill]) -> dict[tuple[str, str, str], tuple[int, int]]:
+    """`(victim type, mix key, ammo) -> (instances, hits)` for one mission: kills grouped by the set of gun ammo that
+    hit. Each mix has a row per member ammo (its hits) and a `TOTAL_AMMO` row (all hits)."""
+    totals: dict[tuple[str, str, str], tuple[int, int]] = {}
+    for kill in kills:
+        if not kill.hits:
+            continue
+        mix = MIX_SEPARATOR.join(sorted(ammo for ammo, _ in kill.hits))
+        for ammo, hits in ((TOTAL_AMMO, sum(n for _, n in kill.hits)), *kill.hits):
+            done, total = totals.get((kill.victim_type, mix, ammo), (0, 0))
+            totals[(kill.victim_type, mix, ammo)] = (done + 1, total + hits)
+    return totals
+
+
 def _replace_aircraft_ammo(
     mission: Mission, kills: Iterable[SingleAttackerKill], objects: dict[str, GameObject]
 ) -> set[int]:
     """Rewrite the mission's `MissionAircraftAmmo` rows. Returns the aircraft ids whose level-2 rows may change: the
     types the mission had before and the ones it has now."""
+    kills = tuple(kills)
     totals = aircraft_ammo_totals(kills)
     old_ids = set(MissionAircraftAmmo.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
     MissionAircraftAmmo.objects.filter(mission=mission).delete()
@@ -742,4 +772,23 @@ def _replace_aircraft_ammo(
         MissionAircraftAmmo(mission=mission, aircraft=objects[victim], ammo=ammo, kills=n, hits=hits)
         for (victim, ammo), (n, hits) in sorted(totals.items())
     )
-    return old_ids | {objects[victim].pk for victim, _ in totals}
+    mixes = aircraft_ammo_mix_totals(kills)
+    old_ids |= set(MissionAircraftAmmoMix.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
+    MissionAircraftAmmoMix.objects.filter(mission=mission).delete()
+    MissionAircraftAmmoMix.objects.bulk_create(
+        MissionAircraftAmmoMix(mission=mission, aircraft=objects[victim], mix=mix, ammo=ammo, kills=n, hits=hits)
+        for (victim, mix, ammo), (n, hits) in sorted(mixes.items())
+    )
+    return old_ids | {objects[victim].pk for victim, _ in totals} | {objects[victim].pk for victim, _, _ in mixes}
+
+
+def _replace_gun_hits(mission: Mission, result: MissionResult, rows: dict[int, PlayerSortie], *, created: bool) -> None:
+    """Rewrite the mission's `SortieGunHits` (level 1): the gun hits per ammo of its counted (pilot) sorties."""
+    if not created:
+        SortieGunHits.objects.filter(sortie__mission=mission).delete()
+    pilots = [s for s in result.sorties if s.role in COUNTED_ROLES]
+    SortieGunHits.objects.bulk_create(
+        SortieGunHits(sortie=rows[index], ammo=ammo, hits=hits)
+        for index, by_ammo in gun_hit_rows(pilots).items()
+        for ammo, hits in sorted(by_ammo.items())
+    )

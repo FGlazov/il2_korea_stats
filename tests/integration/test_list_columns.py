@@ -346,7 +346,9 @@ def seed_aircraft() -> None:
 
 
 def aircraft_order(client: Client, sort: str, cols: str) -> list[str]:
-    response = client.get(reverse("web:aircraft-list"), {"sort": sort, "cols": cols})
+    response = client.get(
+        reverse("web:aircraft-list"), {"sort": sort, "cols": cols, "tour": "all"}
+    )  # AircraftStats rows
     assert response.status_code == 200
     return [row.stats.aircraft.log_name for row in response.context["rows"]]
 
@@ -406,7 +408,9 @@ def test_aircraft_page_columns_form_and_budget(client: Client) -> None:
     chosen = client.get(url + "?cols=sortie_length,assists").content.decode()
     assert re.search(r'<th[^>]*><a href="[^"]*sort=-?sortie_length', chosen)
     assert 'value="assists" checked' in chosen
-    assert_simple_reads(client, f"{url}?cols={ALL_AIRCRAFT_COLS}&sort=-score_air", max_queries=4)
+    assert_simple_reads(
+        client, f"{url}?cols={ALL_AIRCRAFT_COLS}&sort=-score_air", max_queries=5
+    )  # 4 + the tours of the selector
 
 
 # --- a player's sortie list (optional columns, sortable like the others) -----------------------------------

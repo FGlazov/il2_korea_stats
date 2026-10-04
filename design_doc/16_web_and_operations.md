@@ -55,10 +55,10 @@ How the website, the admin and the operations commands are built (iteration 1, p
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
   every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
-  each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage and timeline rows
-  (`?page_damage=`, `?page_timeline=`); links keep every other parameter. Real-log mission and sortie pages fell from 107-122 KB of HTML to
+  each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage rows
+  (`?page_damage=`); links keep every other parameter. **Not paginated, by design** (short or bounded lists): the aircraft list (one row per flown type) and the matchup, ammo and loadout tables on the aircraft page, the by-aircraft killboard tables (at most 60 enemy types), a player's best streaks and achievements pages and the achievements overview, the profile's fixed top-5 and latest-5 blocks, the sortie page's other tables, and the home page's blocks. **Exception** (maintainer, 2026-10-04): the sortie page's timeline is not paginated, every row is shown (a detail page, so it gets a higher server-time and query budget; the HTML stays lean because icons are a sprite). Real-log mission and sortie pages fell from 107-122 KB of HTML to
   87-95 KB (NFR-PERF-6).
-- **Mission list**: newest first, 25 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
+- **Mission list**: newest first, 10 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
   come from the mission file name ("The Sinuiju Bridges 1951").
 - **Mission detail**: tiles, one sortie table per side (mission clock, pilot, aircraft, combat role, outcome, fate, kills, flight time),
   the PvP kill list. A hidden player keeps an **anonymised row** ("Hidden player", no links) so the mission's numbers still add up (gut
@@ -98,9 +98,9 @@ How the website, the admin and the operations commands are built (iteration 1, p
   assists, bailouts, friendly kills, scores, ground per hour, sortie length, sorties per pilot. Player sorties: **Mission** (optional, `[DECIDED]` OQ-109), PvP and AI air
   kills, friendly kills, air and ground score, time on target, loadout, takeoffs, landings. The sortie list shows **damage taken by default** and
   the pilot fate next to the outcome (also on the mission page and the profile's latest sorties).
-- **Achievements** (FR-WEB-26, doc 17): `/players/<pk>/achievements/` (every tier with its date, open tiers dimmed), `/achievements/` (all
-  achievements with holder counts per tier), `/achievements/<key>/?tier=N` (visible holders, newest first); the medal row on the profile and
-  the sortie page; icons in `static/il2ks/img/medal/` tinted per tier by `--il2-medal-*` tokens; words and display rows in `web/medals.py`.
+- **Achievements** (FR-WEB-26, doc 17; per tour since 2026-10-04, OQ-105): `/players/<pk>/achievements/` (every tier with its date, open tiers dimmed), `/achievements/` (all
+  achievements with holder counts and the rarity per tier), `/achievements/<key>/?tier=N` (visible holders, newest first), all with the tour dropdown; medals and ribbons on the profile (shame entries in
+  the hall of shame), "Earned in this sortie" on the sortie page, and the home page's **Recently earned** feed; icons in `static/il2ks/img/medal/` tinted per tier by `--il2-medal-*` tokens; words and display rows in `web/medals.py`.
 - **Language menu** (FR-WEB-28, TD-24): a footer dropdown (`components/language_menu.html`, a Pico `details.dropdown`, closes on outside click
   and Escape through `il2ks.js`, works without JS) with the flag (decoration, `alt=""`) and the language's own name in its own `lang`; each language is a plain link,
   a GET to `/language/?language=<code>&next=<local url>`, which sets the cookie and redirects. Flags: flag-icons 7.5.0 (MIT),
@@ -169,15 +169,25 @@ How the website, the admin and the operations commands are built (iteration 1, p
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
-- **Aircraft stats** (FR-WEB-8, 2026-10-03): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
+- **Aircraft stats** (FR-WEB-8, 2026-10-03; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
+  pilot count and matchups follow one selector above the tiles, from the level-2 `TourAircraftStats` (tour, aircraft) next to the all-time
+  `AircraftStats`, both on an abstract `AircraftCounters`; top pilots, hits to destroy, loadouts and the side badge stay all time and the
+  page says so; OQ-114): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
   losses, K/D, K/L, survival, attack share, hits to destroy; sortable); `/aircraft/<pk>/` adds **matchups vs each enemy type** (below), **top pilots** (hidden
   players left out; by per-type Elo, and ground score per hour on target for attack work, under the leaderboard minimums; types with an attack
   share of 50% or more list the ground ranking first), hits to destroy per ammo, loadouts. Level-2 `AircraftStats` / `AircraftMatchup` /
   `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **Matchups follow the tour selector** and a toggle "All fights /
   Intercept flights only" (`?tour=`, `?intercept=1`; `AircraftMatchup.tour` / `.intercept`, an intercept fight being two air superiority sorties),
   sortable by enemy, kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights
-  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). The rest of the page (tiles, top pilots, hits to destroy, loadouts) is all time. **No ratio is stored** (OQ-98):
+  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). Top pilots, hits to destroy and loadouts are all time (the tiles follow the tour, OQ-114). **No ratio is stored** (OQ-98):
   the list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
+- **Ammunition mixes and loadouts** (FR-WEB-18, 2026-10-04, OQ-116; FR-WEB-4): the aircraft detail's hits-to-destroy table has an **Instances**
+  column (counted kills in which the ammunition hit at least once) and below it **Ammunition mixes**: the same single-attacker kills grouped by
+  which gun ammo types hit together (`MissionAircraftAmmoMix` per mission, `AircraftAmmoMixStats` summed, all time) with the average hits of each
+  type in the mix. The player profile's per-aircraft table gets an extra row per type with the **favourite loadout** (its share of the pilot's
+  sorties) and a `<details>` with all loadouts, the weapon-modification sets and the gun ammo mix, all from `PlayerAircraftBuild` (one read;
+  all time or the selected tour; the log has no belt field, so ammo is what hit, not what was picked). The sortie page's summary has a
+  **Modifications** row (names from `weapon_mods.csv`, "Unknown modification (id k)" without a name, "None").
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next
   to: ≥ `[marks] min_sorties` (20) sorties for the ratios, air score and ground score; ≥ `min_elo_games` encounters in the pool for **Elo jet and
@@ -199,10 +209,8 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
-  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the aircraft list is all time (its figures are
-  `AircraftStats` rows; per-tour aircraft aggregates are not built, and the detail page's matchups are the only per-tour part);
-  the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
-  milestones (FR-WEB-26); the Elo boards are all time (see above). `/streaks/` follows the tour. A tour dropdown appears on a page
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; the Elo boards are all time (see above). Achievements follow the tour now (OQ-105: the profile, `/players/<pk>/achievements/`,
+  `/achievements/` and `/achievements/<key>/`, plus the home page's "Recently earned" strip; doc 17). `/streaks/` follows the tour. A tour dropdown appears on a page
   only where its numbers exist per tour.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:
   short`) in the page language and the browser's zone; the zone is named only in the footer; the UTC time stays in the tooltip.
@@ -211,12 +219,12 @@ How the website, the admin and the operations commands are built (iteration 1, p
   check, guesses counted, then locked out). On submit it writes the config via `ops.setup.complete_web_setup`, creates the admin and deletes the
   token; from then on 404. The image disables it (`IL2KS_SETUP_PAGE=off`; the logs explain `il2ks createadmin` when no admin exists, documented in `docs/install-docker.md`; `[DECIDED]` maintainer, 2026-10-04, OQ-70). Code: `web/views/setup.py`, `serving/setup_token.py`.
 - **Query budgets** (TD-22; a test per page, shared constants in `tests/simple_reads.py`; every number includes the 2 context-processor reads;
-  never raise one without a reason in the test). Home **12** (11 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 6 extras are the five compact
-  boards and the online-now snapshot), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **14** all
-  time (`PROFILE_READS_ALL_TIME`) and **15** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
-  player sortie list 8 (with or without optional columns), sortie detail **8** (+ the earned medals), killboard 8, best streaks 5, streak list 8 (best + running, each with its count),
-  leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 4, aircraft detail 9, achievements: a player's list 5, the overview 3, a
-  holders page 5, live fragment 3 to 5. The `tests/perf/` suite (doc 08) has its own, looser per-page limits over a larger seeded world (N+1 guard);
+  never raise one without a reason in the test). Home **16** (15 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 10 extras are the six compact
+  boards, the tour list of the selector, the online-now snapshot and the "Recently earned" feed, 2 reads), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **16** all
+  time (`PROFILE_READS_ALL_TIME`, incl. the medals with their rarity and the favourite loadout `PlayerAircraftBuild`) and **17** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
+  player sortie list 7 (with or without optional columns; the column and fate tests allow 8), sortie detail **9** (+ the earned medals and their rarity), killboard 8, best streaks 5, streak history 6, streak list 8 (best + running, each with its count; 6 on a past tour, which has no running list),
+  leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 5 (+ the tours of the selector), aircraft detail **11** (9 + the tour's tiles + the ammo mixes), achievements: a player's list 6, the overview 4, a
+  holders page 6, live fragment 3 to 5. The `tests/perf/` suite (doc 08) has its own, looser per-page limits over a larger seeded world (N+1 guard);
   `uv run il2ks dev check --full` runs it, and CI runs it as the separate job `test-perf` (SQLite, then Postgres; OQ-97). On Postgres the perf
   database gets `ANALYZE` after seeding: without it stale planner statistics made the mission page take 59 s.
 - Coalition emblems: `{% coalition_badge %}` uses the site-settings choice (neutral by default, or placeholder insignia drawn as plain
@@ -293,6 +301,18 @@ on every admin page (staff only, never public), a start-up warning, `il2ks docto
 `custom/templates` and `custom/static` are always first in the lookup (created by `web`). `il2ks custom copy <path>` copies a built-in file
 and records the original's hash in `custom/.il2ks-overrides.json`; `custom list` and `custom accept` complete it. Doctor warns when an
 original changed since it was copied, disappeared, or when a hand-placed file shadows a built-in one it can't check.
+
+## Accessibility `[PROPOSED]`
+
+Target: WCAG 2.1 AA for every public page, in light and dark, at phone and desktop width. `tests/e2e/test_accessibility.py` runs
+axe-core (tags wcag2a/2aa/21a/21aa + best-practice; the bundled `axe.min.js` of the dev-only `axe-playwright-python`, injected by the
+test, never shipped, no CDN) on every page of `test_visual_qa.PAGES` (menus opened too) and on home/leaderboards/mission in each language
+(also checks `<html lang>`); its waiver list `ALLOWED` is empty. `tests/e2e/test_keyboard.py` drives the column picker, tour select,
+board switcher and pagination with the keyboard only. Conventions the tests protect: icons are `aria-hidden` and always sit beside text
+or inside a control with an `aria-label`; several paginations on one page get distinct names (`{% pagination ... label=%}`); a scrolling
+`.table-wrap` gets `tabindex="0"` from `il2ks.js` (only while it overflows) so its columns are reachable by keyboard. The first run found
+only two rules (scrollable-region-focusable on narrow tables, landmark-unique for the second pagination on a page); contrast, labels and
+`lang` were already clean. Not covered by axe (needs a person): reading order with a screen reader, zoom to 200 %, the admin pages.
 
 ## Operations (FR-OPS-1, 2, 6)
 

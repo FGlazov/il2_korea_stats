@@ -166,3 +166,35 @@ def test_a_hit_sorts_before_the_kill_it_led_to_and_the_row_count_is_small() -> N
     sc.kill(100.9, 100, 300)
     kinds = [e.kind for e in by_acct(finish(sc), 1).timeline]
     assert kinds.index(HIT_GIVEN) < kinds.index("kill")
+
+
+# --- one row per damaged object, capped at 100% ----------
+
+
+def test_an_aircraft_and_its_pilot_are_two_rows_and_a_row_never_exceeds_100_percent() -> None:
+    """Real case shape: four lines on the aircraft summing to 1.0001, then the pilot bot at 1.0 in the same burst."""
+    sc = scenario()
+    for i, amount in enumerate((0.0253, 0.4896, 0.0002, 0.4850)):
+        sc.damage(100 + 0.1 * i, 100, 200, amount)
+    sc.damage(100.5, 100, 201, 1.0)  # B's pilot bot
+    rows = hits(by_acct(finish(sc), 1))
+    aircraft, pilot = rows
+    assert (aircraft.target_role, pilot.target_role) == ("", "crew")
+    assert (aircraft.damage, aircraft.lines) == (1.0, 4)  # 1.0001 capped
+    assert (pilot.damage, pilot.lines) == (1.0, 1)
+    assert aircraft.counterpart == pilot.counterpart == Counterpart("MiG-15bis", 1, 1)
+
+
+def test_taken_hits_on_our_pilot_are_a_separate_crew_row() -> None:
+    sc = scenario()
+    sc.damage(100, 200, 100, 0.6)
+    sc.damage(100.2, 200, 101, 0.5)  # our pilot
+    aircraft, pilot = hits(by_acct(finish(sc), 1))
+    assert (aircraft.kind, aircraft.target_role, aircraft.damage) == (HIT_TAKEN, "", 0.6)
+    assert (pilot.kind, pilot.target_role, pilot.damage) == (HIT_TAKEN, "crew", 0.5)
+
+
+def test_the_cap_applies_to_the_summed_burst() -> None:
+    events = [DamageEvent(tick(100 + i), True, 1, Counterpart("MiG-15bis"), 0.6, None, 7) for i in range(2)]
+    (row,) = hit_entries(events, ReplayRules())
+    assert row.damage == 1.0

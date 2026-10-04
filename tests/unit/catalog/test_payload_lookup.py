@@ -13,7 +13,7 @@ def catalog() -> Catalog:
 def test_alias_resolves_sabre(catalog: Catalog) -> None:
     p = catalog.payload("F-86A-5", 0)
     assert p is not None
-    assert p.aircraft == "f-86a"
+    assert p.aircraft == "f-86a-5"
     assert p.payload_id == 0
 
 
@@ -46,3 +46,16 @@ def test_alias_without_csv_fallback() -> None:
     assert c.payload("F-86A-5", 1) == p
     assert c.payload("f-86a", 1) == p  # the vehicle key itself also matches
     assert Catalog(payloads=[p]).payload("F-86A-5", 1) is None  # no alias, no match
+
+
+def test_f86_alias_is_the_new_vehicle_key(catalog: Catalog) -> None:
+    """The payload table renamed the Sabre to `f-86a-5`; the shipped alias must follow."""
+    assert catalog.payload("F-86A-5", 1) is not None
+    assert catalog.payload("F-86A-5", 1) == catalog.payload("f-86a-5", 1)
+
+
+def test_il10_uses_the_renumbered_ids(catalog: Catalog) -> None:
+    """One row per (vehicle, id), the latest table: il-10 id 25 is PTAB + 2 x FAB-100 (it was 128 x AO-2.5)."""
+    p = catalog.payload("IL-10", 25)
+    assert p is not None
+    assert p.editor_name == "PTAB1025-60 + FAB100sc-2"

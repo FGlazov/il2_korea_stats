@@ -66,7 +66,12 @@ def test_uploaded_fonts_are_applied_and_loaded(page: Page, set_branding: SetBran
             }
         }
     )
-    page.goto("/", wait_until="networkidle")
+    page.goto("/")
+    # the browser fetches a font when first used: wait until both generated families are loaded (not for "idle")
+    page.wait_for_function(
+        "(() => { const f = Array.from(document.fonts).filter(f => f.family.includes('il2-font-'));"
+        " return f.length === 2 && f.every(x => x.status === 'loaded'); })()"
+    )
 
     assert "il2-font-" in computed(page, "h1", "fontFamily")
     assert "il2-font-" in computed(page, "main", "fontFamily")

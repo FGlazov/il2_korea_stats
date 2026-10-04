@@ -1,0 +1,5 @@
+{# il2ks-template: templates/il2ks/achievements/_award.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _award.html: one earned tier as a medal or as a ribbon, whichever its achievement is (kind). Context: m
+  (web.medals.Medal), link (true: the whole thing links to the sortie that earned it, unless its mission is hidden).
+{% endcomment %}{% if m.kind == "ribbon" %}{% if link %}{% include "il2ks/achievements/_ribbon.html" with href=m.href %}{% else %}{% include "il2ks/achievements/_ribbon.html" with href=None %}{% endif %}{% else %}{% if link %}{% include "il2ks/achievements/_medal.html" with href=m.href %}{% else %}{% include "il2ks/achievements/_medal.html" with href=None %}{% endif %}{% endif %}

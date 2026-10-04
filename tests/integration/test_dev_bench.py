@@ -3,6 +3,7 @@
 They run in a child process: the benchmark points `IL2KS_DATA_DIR` at a throw-away folder and calls `django.setup()`,
 which must not leak into the test process."""
 
+import os
 import shutil
 import subprocess
 import sys
@@ -23,8 +24,12 @@ def logs_dir(tmp_path: Path) -> Path:
 
 
 def run_dev(*args: str) -> subprocess.CompletedProcess[str]:
+    """The child works on a throw-away SQLite data dir. Under `--postgres` the parent's `IL2KS_TEST_DB=postgres` would
+    point it at the shared dev Postgres instead (migrating and filling that database, racing every parallel run), and
+    `dump-db` could no longer read the data dir: so the variable is dropped."""
+    env = {k: v for k, v in os.environ.items() if k != "IL2KS_TEST_DB"}
     return subprocess.run(
-        [sys.executable, "-m", "il2ks", "dev", *args], capture_output=True, text=True, timeout=300, check=False
+        [sys.executable, "-m", "il2ks", "dev", *args], capture_output=True, text=True, timeout=900, check=False, env=env
     )
 
 

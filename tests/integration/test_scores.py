@@ -22,7 +22,7 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.reprocess import rebuild_all
 from il2ks.ingest.scoring import FACT_COLUMNS, facts_of
-from il2ks.ops.migrate import migrate_if_needed
+from il2ks.ops.migrate import _check_payload_names, migrate_if_needed  # pyright: ignore[reportPrivateUsage]
 from tests.factories import STARTED_AT, account, meta, mission, rows, save, sortie
 from tests.ops_helpers import make_instance, recording, returning
 
@@ -168,6 +168,7 @@ def test_migrating_a_database_from_before_scores_scores_the_old_sorties(
 ) -> None:
     """After the schema update (new columns all 0), existing sorties get their scores under the configured rules."""
     seed()
+    _check_payload_names()  # the upgrade also renames the (fake) loadouts: keep that out of the comparison
     expected = _comparable()
     PlayerSortie.objects.update(air_points=0.0, ground_points=0.0)
     for table in (Player, PlayerMission, PlayerAircraft, PlayerTour, PlayerTourAircraft):

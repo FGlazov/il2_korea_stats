@@ -1,7 +1,7 @@
 {# il2ks-template: templates/il2ks/players/detail_air_split.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_air_split.html: air kills by victim: other players (PvP) and AI aircraft. Context: stats.
-{% endcomment %}<dl class="kv">
+{% endcomment %}<dl class="kv kv--compact">
   {# Translators: the small labels name the kind of air kill, against human-flown aircraft (PvP) or AI-flown ones; same wording as the "Air kills (PvP)" / "Air kills (AI)" table columns #}
   <dt>{% translate "Player aircraft" %} <small>{% translate "Air kills (PvP)" %}</small></dt><dd>{{ stats.kills_air_pvp|num }}</dd>
   <dt>{% translate "AI aircraft" %} <small>{% translate "Air kills (AI)" %}</small></dt><dd>{{ stats.kills_air_ai|num }}</dd>

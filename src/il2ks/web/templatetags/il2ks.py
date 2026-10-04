@@ -35,9 +35,9 @@ from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
 
 from il2ks.core import stat_marks
-from il2ks.db.models import Counters, PlayerSortie, StatThreshold, Tour
+from il2ks.db.models import Counters, PlayerSortie, SiteSettings, StatThreshold, Tour
 from il2ks.queries import tours as tour_reads
-from il2ks.web import columns, display, icons, object_names
+from il2ks.web import columns, display, icons, object_names, quips
 from il2ks.web import flavor as flavor_text
 from il2ks.web.charts import ChartSpec, build_bar_chart
 from il2ks.web.display import SortFirst, Tone
@@ -186,6 +186,13 @@ def object_name(game_object: object) -> str:
 
     Admin override first, then the shipped translation, then the English default, then the raw log name."""
     return object_names.name_of(game_object, get_language() or "en")
+
+
+@register.filter
+def weapon_mods(sortie: PlayerSortie) -> tuple[tuple[int, str | None], ...]:
+    """{% for id, name in sortie|weapon_mods %}: the modifications chosen for a sortie, as (id, name); the name is None
+    for an id the catalog doesn't list (show the raw id, OQ-25). Names are the game's, so they stay English."""
+    return object_names.default_catalog().weapon_mods(sortie.aircraft.log_name, sortie.weapon_mods)
 
 
 # --- coalitions and badges ----------------------------------------------------------------------------------------
@@ -381,10 +388,20 @@ def stat_mark_note(context: Context) -> dict[str, object]:
     return {"min_sorties": first.min_sorties}
 
 
-@register.simple_tag
-def flavor(spot: str, seed: object) -> str:
-    """`{% flavor "spot" seed %}`: a stable, translated one-liner for a highlight spot (il2ks.web.flavor)."""
-    return str(flavor_text.pick(spot, seed))
+def quip_config(context: Context) -> quips.QuipConfig:
+    """The admin's quip choices, from the `site` row the context processor already read (no query); the built-in
+    quips on, when a template is rendered without it."""
+    site = context.get("site")
+    if isinstance(site, SiteSettings):
+        return quips.QuipConfig.from_row(site.quips_enabled, site.quips)
+    return quips.QuipConfig()
+
+
+@register.simple_tag(takes_context=True)
+def flavor(context: Context, spot: str, seed: object) -> str:
+    """`{% flavor "spot" seed %}`: a stable one-liner for a highlight spot, '' when the admin turned it off
+    (il2ks.web.flavor, il2ks.web.quips). Guard surrounding markup with `as quip` and `{% if quip %}`."""
+    return quips.pick(quip_config(context), spot, seed, get_language() or "en")
 
 
 @register.simple_tag(takes_context=True)
@@ -392,16 +409,16 @@ def shame_flavor(context: Context, stats: Counters, seed: object) -> str:
     """`{% shame_flavor stats player.pk %}`: the hall-of-shame quip, by which incidents the pilot has and whether
     their rate is in the top 10% (`marks` from the view; il2ks.web.flavor.shame_spot)."""
     marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
-    return flavor(flavor_text.shame_spot(stats, marks), seed)
+    return flavor(context, flavor_text.shame_spot(stats, marks), seed)
 
 
-@register.simple_tag
-def sortie_flavor(sortie: PlayerSortie, detail: object = None) -> str:
+@register.simple_tag(takes_context=True)
+def sortie_flavor(context: Context, sortie: PlayerSortie, detail: object = None) -> str:
     """`{% sortie_flavor sortie detail as quip %}`: the sortie's line, or '' for an ordinary sortie. `detail` is the
     page's `sortie_view.Detail`; its `highlights` unlock the spots that need the timeline."""
     highlights = getattr(detail, "highlights", None)
     spot = flavor_text.sortie_spot(sortie, highlights if isinstance(highlights, flavor_text.Highlights) else None)
-    return "" if spot is None else flavor(spot, sortie.pk)
+    return "" if spot is None else flavor(context, spot, sortie.pk)
 
 
 @register.inclusion_tag(COMPONENTS + "empty_row.html")
@@ -488,12 +505,13 @@ def sort_th(
 
 
 @register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
-def pagination(context: Context, page_obj: Page, param: str = "page") -> dict[str, object]:
+def pagination(context: Context, page_obj: Page, param: str = "page", label: str = "") -> dict[str, object]:
     """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters,
     every value of a repeated one (`cols`) included.
 
     A page with several paginated tables gives each its own query parameter, named 'page_...':
-    {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1)."""
+    {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1).
+    Several on one page need distinct landmark names: pass `label` (axe rule landmark-unique)."""
     params = _params_of(context)
     paginator = page_obj.paginator
     links = [
@@ -508,6 +526,7 @@ def pagination(context: Context, page_obj: Page, param: str = "page") -> dict[st
     ]
     return {
         "page_obj": page_obj,
+        "label": label,
         "total": paginator.count,
         "first_index": page_obj.start_index(),
         "last_index": page_obj.end_index(),
@@ -586,7 +605,10 @@ def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None =
     `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice_from(request.GET)`."""
     request = _request_of(context)
     hidden = [
-        (key, value) for key, values in _params_of(context).lists() if key not in {"tour", "page"} for value in values
+        (key, value)
+        for key, values in _params_of(context).lists()
+        if key != "tour" and key != "page" and not key.startswith("page_")  # a new tour starts every list at page 1
+        for value in values
     ]
     return {
         **_tour_context(tours, selected),

@@ -4,7 +4,7 @@ Simple reads only (TD-22): the numbers were aggregated at ingest, here they are 
 
     sortie_ammo(sortie)          -> SortieAmmo         # a `PlayerSortie` row (its `ammo` JSON, shape in ingest.persist)
     sortie_ammo_by_pk(pk)        -> SortieAmmo | None  # one query
-    aircraft_ammo(aircraft)      -> AircraftAmmo       # a `GameObject`; one query
+    aircraft_ammo(aircraft)      -> AircraftAmmo       # a `GameObject`; two queries (per ammo, and the ammo mixes)
     all_aircraft_ammo()          -> list[AircraftAmmo] # every aircraft type that was destroyed by gun hits; one query
 
 `SortieAmmo.guns` and `.ordnance` are what the page lists: gun rows have hits and the damage attributed to them,
@@ -13,13 +13,13 @@ ordnance is always named: `ordnance_name`). Damage the closest-hit rule couldn't
 """
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from typing import cast
 
 from il2ks.core.catalog.loader import GENERIC_ORDNANCE, AmmoInfo, Catalog, load_default_catalog
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
-from il2ks.db.models import TOTAL_AMMO, AircraftAmmoStats, GameObject, PlayerSortie
+from il2ks.db.models import MIX_SEPARATOR, TOTAL_AMMO, AircraftAmmoMixStats, AircraftAmmoStats, GameObject, PlayerSortie
 
 UNATTRIBUTED_NAME = "Unattributed"
 """English default shown for `UNATTRIBUTED_ORDNANCE` (explosions no labelling rule could name). Translate it."""
@@ -78,11 +78,27 @@ class AmmoToDestroy:
 
 
 @dataclass(frozen=True, slots=True)
+class AmmoMix:
+    """A set of gun ammo types that together destroyed this aircraft type in single-attacker kills: how often, and the
+    average hits of each member (`parts`, sorted by ammo name) and of all of them together."""
+
+    ammos: tuple[str, ...]  # log names, sorted
+    instances: int
+    total_hits: int
+    parts: tuple[AmmoToDestroy, ...]  # `kills` = instances; `hits` = hits of that ammo over all instances
+
+    @property
+    def average_hits(self) -> float:
+        return self.total_hits / self.instances if self.instances else 0.0
+
+
+@dataclass(frozen=True, slots=True)
 class AircraftAmmo:
     aircraft_id: int
     aircraft: GameObject  # for `{{ aircraft|object_name }}` (TD-24) and the icon
     total: AmmoToDestroy | None  # all gun ammo together; None if no kill was counted
     by_ammo: tuple[AmmoToDestroy, ...]  # most used first
+    mixes: tuple[AmmoMix, ...] = ()  # most instances first (`aircraft_ammo` only)
 
 
 @cache
@@ -190,11 +206,30 @@ def _group(rows: Sequence[AircraftAmmoStats]) -> list[AircraftAmmo]:
     return sorted(out, key=lambda a: -(a.total.kills if a.total else 0))
 
 
+def _mixes(rows: Sequence[AircraftAmmoMixStats]) -> tuple[AmmoMix, ...]:
+    by_mix: dict[str, list[AircraftAmmoMixStats]] = {}
+    for row in rows:
+        by_mix.setdefault(row.mix, []).append(row)
+    out: list[AmmoMix] = []
+    for mix, group in by_mix.items():
+        total = next((r for r in group if r.ammo == TOTAL_AMMO), None)
+        if total is None:
+            continue
+        parts = tuple(
+            AmmoToDestroy(r.ammo, r.kills, r.hits) for r in sorted(group, key=lambda r: r.ammo) if r.ammo != TOTAL_AMMO
+        )
+        out.append(AmmoMix(tuple(mix.split(MIX_SEPARATOR)), total.kills, total.hits, parts))
+    return tuple(sorted(out, key=lambda m: (-m.instances, m.ammos)))
+
+
 def aircraft_ammo(aircraft: GameObject) -> AircraftAmmo:
     """Hits to destroy this aircraft type; empty (`total` None) if no kill was counted."""
     rows = list(AircraftAmmoStats.objects.filter(aircraft=aircraft).select_related("aircraft"))
     found = _group(rows)
-    return found[0] if found else AircraftAmmo(aircraft.pk, aircraft, None, ())
+    if not found:
+        return AircraftAmmo(aircraft.pk, aircraft, None, ())
+    mixes = _mixes(list(AircraftAmmoMixStats.objects.filter(aircraft=aircraft)))
+    return replace(found[0], mixes=mixes)
 
 
 def all_aircraft_ammo() -> list[AircraftAmmo]:

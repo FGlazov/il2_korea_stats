@@ -1,31 +1,34 @@
 {# il2ks-template: templates/il2ks/achievements/overview.html v1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Every achievement, its tiers and how many pilots hold each (FR-WEB-26). View: il2ks.web.views.achievements.achievement_overview.
-  Context: rows (OverviewRow: .info with key, name, description, icon; .tiers of (.tier number, name, slug, threshold; .holders)),
-  crumbs, page_title. Hidden players are not counted. Blocks: head, content.
+  Context: rows (OverviewRow: .info with key, name, description, icon, kind, shame; .tiers of (.tier number, name, slug,
+  threshold; .holders; .rarity text, level)), tours, tour (the scope, TD-26: none = all time), tour_query, crumbs,
+  page_title. Medals come first, then ribbons, then the hall-of-shame ribbons. Hidden players are not counted.
+  Blocks: head, content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
 {% block content %}
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% translate "Achievements" %}</h1>
-    <p>{% translate "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is earned once and kept. The numbers show how many pilots hold each tier." %}</p>
+    <p>{% translate "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the numbers show how many pilots hold it. Everything starts afresh with each tour." %}</p>
   </div>
+  {% tour_select tours tour %}
   <ul class="medal-list">
     {% for row in rows %}
       <li class="medal-list__item">
         <div class="medal-list__head">
           <span class="medal medal--gold"><span class="medal__badge">{% icon row.info.icon %}</span></span>
           <div>
-            <h2><a href="{% url 'web:achievement-holders' row.info.key %}">{{ row.info.name }}</a></h2>
+            <h2><a href="{% url 'web:achievement-holders' row.info.key %}{{ tour_query }}">{{ row.info.name }}</a>{% if row.info.kind == "ribbon" %} <small class="muted">{% translate "Ribbon" %}</small>{% endif %}</h2>
             <p class="muted">{{ row.info.description }}</p>
           </div>
         </div>
         <ol class="tier-list">
           {% for t in row.tiers %}
-            <li class="tier-list__item tier-list__item--{{ t.tier.slug }}">
+            <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if t.rarity.level %} rarity--{{ t.rarity.level }}{% endif %}">
               <strong>{{ t.tier.name }}</strong> <span>{{ t.tier.threshold }}</span>
-              <span class="muted">{% if t.holders %}<a href="{% url 'web:achievement-holders' row.info.key %}?tier={{ t.tier.number }}">{% blocktranslate count n=t.holders %}{{ n }} pilot{% plural %}{{ n }} pilots{% endblocktranslate %}</a>{% else %}{% translate "nobody yet" %}{% endif %}</span>
+              <span class="muted">{% if t.holders %}<a href="{% url 'web:achievement-holders' row.info.key %}{{ tour_query }}&amp;tier={{ t.tier.number }}">{% blocktranslate count n=t.holders %}{{ n }} pilot{% plural %}{{ n }} pilots{% endblocktranslate %}</a>{% if t.rarity.text %} · {{ t.rarity.text }}{% endif %}{% else %}{% translate "nobody yet" %}{% endif %}</span>
             </li>
           {% endfor %}
         </ol>

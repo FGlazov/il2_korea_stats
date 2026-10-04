@@ -1,18 +1,27 @@
 """Medal names, descriptions and the display rows built from `PlayerAchievement` (FR-WEB-26, doc 17).
 
 The rules and thresholds live in `il2ks.core.achievements`; this module only adds the words (translatable) and shapes
-rows for the templates. No database access here: callers pass the rows.
+rows for the templates. No database access here: callers pass the rows and the holder counts.
+
+Rarity (doc 17): the share of pilots holding a tier in a scope, from `AchievementHolders` (`Holding`: holders and the
+scope's pilots). It is shown as hover text and, below `RARE_BELOW` / `EPIC_BELOW` percent, as a ring / glow on the medal
+or ribbon (`[PROPOSED]` thresholds; not on a server with fewer than `MIN_PILOTS_FOR_RARITY` pilots in the scope, where
+everything would glow).
 """
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal
 
+from django.urls import reverse
+from django.utils.formats import number_format
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, ngettext
 
-from il2ks.core.achievements import ACHIEVEMENTS, BY_KEY, Achievement
+from il2ks.core.achievements import ACHIEVEMENTS, BY_KEY, Achievement, Kind
 from il2ks.db.models import PlayerAchievement
+from il2ks.queries.achievements import Holding, HoldingKey
 from il2ks.web.display import Label
 
 TIER_NAMES: tuple[Label, ...] = (
@@ -33,7 +42,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills in total, all sorties together.")),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
-        gettext_lazy("Enemy bombers and attackers flown by other pilots, shot down."),
+        gettext_lazy("Enemy bombers, attackers and transports flown by other pilots, shot down."),
     ),
     "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed in total.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),
@@ -55,7 +64,92 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Type Veteran"),
         gettext_lazy("Hours in the air in the one aircraft type flown most."),
     ),
+    "elo_peak": (
+        gettext_lazy("Top Rated"),
+        gettext_lazy("The highest Elo rating reached, in the prop or the jet pool."),
+    ),
+    "ground_score": (gettext_lazy("Ground Pounder"), gettext_lazy("Ground score in total, all sorties together.")),
+    "ram": (gettext_lazy("Contact Sport"), gettext_lazy("Enemy aircraft downed by ramming them.")),
+    "first_blood": (
+        gettext_lazy("First Blood"),
+        gettext_lazy("Missions in which you made the first air kill against a player."),
+    ),
+    "multi_kill": (
+        gettext_lazy("Hot Streak"),
+        gettext_lazy("Air kills within two minutes in one sortie: a double, a triple, a quad."),
+    ),
+    "types_flown": (gettext_lazy("Type Collector"), gettext_lazy("Different aircraft types flown.")),
+    "types_with_kills": (
+        gettext_lazy("Versatile Hunter"),
+        gettext_lazy("Different aircraft types in which you scored an air kill."),
+    ),
+    "landing_streak": (
+        gettext_lazy("Soft Touch"),
+        gettext_lazy(
+            "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+        ),
+    ),
+    "ace_in_a_day": (gettext_lazy("Ace in a Day"), gettext_lazy("Air kills on a single day (UTC).")),
+    "shame_taxi": (
+        gettext_lazy("Ramp Rash"),
+        gettext_lazy("Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."),
+    ),
+    "shame_friendly": (
+        gettext_lazy("Wrong Team"),
+        gettext_lazy("Friendly-fire kills. The markings are small and the sky is crowded."),
+    ),
+    "shame_strafed": (
+        gettext_lazy("Sitting Duck"),
+        gettext_lazy("Aircraft destroyed on the ground by an attacker: wrong place, wrong time."),
+    ),
+    "shame_crashed": (
+        gettext_lazy("Hard Landing"),
+        gettext_lazy("Sorties that took off and ended in a crash. The ground always wins."),
+    ),
 }
+
+
+RARE_BELOW = 5.0
+"""Percent of pilots below which a tier counts as rare (a ring)."""
+EPIC_BELOW = 1.0
+"""... and as very rare (a glow)."""
+COMMON_FEED_FROM = 20.0
+"""Percent of pilots from which a bronze-level medal tier is too common for the home feed."""
+MIN_PILOTS_FOR_RARITY = 20
+"""Fewer pilots in the scope and nobody is "rare": the emphasis would be on every medal."""
+RIBBON_STYLES = 4
+"""How many stripe patterns the CSS draws (`.ribbon--s0` to `.ribbon--s3`); a ribbon takes `registry index % 4`."""
+
+type RarityLevel = Literal["", "rare", "epic"]
+
+
+@dataclass(frozen=True, slots=True)
+class Rarity:
+    """How rare a tier is in a scope: `share` in percent (None = unknown), the emphasis `level` and the hover `text`."""
+
+    share: float | None
+    level: RarityLevel
+    text: str
+
+
+NO_RARITY = Rarity(None, "", "")
+
+
+def rarity(holding: Holding | None, *, shame: bool = False) -> Rarity:
+    """The rarity of a tier from its holder row. Unknown (no row, or a row from before the pilot counts existed) gives
+    `NO_RARITY`: no text, no emphasis. A hall-of-shame entry keeps the text but never gets the ring or glow (a rare
+    shame tier is not a trophy)."""
+    if holding is None or holding.pilots <= 0 or holding.holders <= 0:
+        return NO_RARITY
+    share = 100 * holding.holders / holding.pilots
+    if share < 0.1:
+        text = _("Held by less than 0.1%% of pilots") % {}
+    else:
+        text = _("Held by %(share)s%% of pilots") % {"share": number_format(share, decimal_pos=1 if share < 10 else 0)}
+    level: RarityLevel = ""
+    if holding.pilots >= MIN_PILOTS_FOR_RARITY and not shame:
+        level = "epic" if share < EPIC_BELOW else "rare" if share < RARE_BELOW else ""
+    return Rarity(share, level, text)
 
 
 def tier_name(tier: int) -> Label:
@@ -97,11 +191,14 @@ class MedalInfo:
     description: Label
     icon: str
     tiers: tuple[Tier, ...]
+    kind: Kind = "medal"
+    shame: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class Medal:
-    """A medal tier a pilot holds, with the sortie that earned it."""
+    """A medal or ribbon tier a pilot holds, with the sortie that earned it. `scope` is the tour id (None = all time),
+    `style` the ribbon's stripe pattern (see `RIBBON_STYLES`)."""
 
     key: str
     name: Label
@@ -116,6 +213,39 @@ class Medal:
     sortie_id: int
     mission_id: int
     mission_hidden: bool
+    kind: Kind
+    shame: bool
+    scope: int | None
+    style: int
+    rarity: Rarity
+
+    @property
+    def href(self) -> str | None:
+        """The sortie that earned it, None while its mission is hidden (a hidden mission is never linked)."""
+        return None if self.mission_hidden else reverse("web:sortie-detail", args=[self.sortie_id])
+
+    @property
+    def tier_range(self) -> range:
+        """One step per tier reached, for the ribbon's stripes."""
+        return range(self.tier)
+
+    @property
+    def hint(self) -> str:
+        """The hover text: what it measures, the tier and threshold, the rarity (also read out to screen readers)."""
+        parts = [str(self.description), f"{self.tier_name}: {self.threshold}.", self.rarity.text]
+        return " ".join(p for p in parts if p)
+
+
+@dataclass(frozen=True, slots=True)
+class MedalSet:
+    """What a profile shows, in three groups: medals, the ribbon rack and the hall-of-shame ribbons."""
+
+    medals: list[Medal]
+    ribbons: list[Medal]
+    shame: list[Medal]
+
+    def __bool__(self) -> bool:
+        return bool(self.medals or self.ribbons or self.shame)
 
 
 def info(achievement: Achievement) -> MedalInfo:
@@ -123,14 +253,20 @@ def info(achievement: Achievement) -> MedalInfo:
     tiers = tuple(
         Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n)) for n in range(1, achievement.top_tier + 1)
     )
-    return MedalInfo(achievement.key, name, description, icon_name(achievement.key), tiers)
+    return MedalInfo(
+        achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind, achievement.shame
+    )
 
 
 def all_info() -> list[MedalInfo]:
     return [info(a) for a in ACHIEVEMENTS]
 
 
-def _medal(row: PlayerAchievement, achievement: Achievement) -> Medal:
+def _style(key: str) -> int:
+    return next(n for n, a in enumerate(ACHIEVEMENTS) if a.key == key) % RIBBON_STYLES
+
+
+def _medal(row: PlayerAchievement, achievement: Achievement, holdings: Mapping[HoldingKey, Holding]) -> Medal:
     name, description = TEXTS[achievement.key]
     return Medal(
         key=row.key,
@@ -146,18 +282,35 @@ def _medal(row: PlayerAchievement, achievement: Achievement) -> Medal:
         sortie_id=row.sortie_id,
         mission_id=row.mission_id,
         mission_hidden=row.mission.is_hidden,
+        kind=achievement.kind,
+        shame=achievement.shame,
+        scope=row.tour_id,
+        style=_style(row.key),
+        rarity=rarity(holdings.get((row.tour_id, row.key, row.tier)), shame=achievement.shame),
     )
 
 
-def medals_of(rows: Iterable[PlayerAchievement], *, highest_only: bool) -> list[Medal]:
-    """Display rows in registry order (then tier). `highest_only`: just the best tier of each achievement (the profile's
-    medal row); rows of achievements no longer registered are skipped."""
+def medals_of(
+    rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding], *, highest_only: bool
+) -> list[Medal]:
+    """Display rows in registry order (then scope, all time first, then tier). `highest_only`: just the best tier of
+    each achievement in each scope (the profile's rows); rows of achievements no longer registered are skipped."""
     order = {a.key: n for n, a in enumerate(ACHIEVEMENTS)}
-    medals = [_medal(r, BY_KEY[r.key]) for r in rows if r.key in BY_KEY]
-    medals.sort(key=lambda m: (order[m.key], m.tier))
+    medals = [_medal(r, BY_KEY[r.key], holdings) for r in rows if r.key in BY_KEY]
+    medals.sort(key=lambda m: (order[m.key], m.scope is not None, m.scope or 0, m.tier))
     if highest_only:
-        best: dict[str, Medal] = {}
+        best: dict[tuple[str, int | None], Medal] = {}
         for m in medals:
-            best[m.key] = m
+            best[(m.key, m.scope)] = m
         medals = list(best.values())
     return medals
+
+
+def medal_set(rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding]) -> MedalSet:
+    """A profile's best tier of each achievement split into medals, ribbons and hall-of-shame ribbons."""
+    best = medals_of(rows, holdings, highest_only=True)
+    return MedalSet(
+        medals=[m for m in best if m.kind == "medal" and not m.shame],
+        ribbons=[m for m in best if m.kind == "ribbon" and not m.shame],
+        shame=[m for m in best if m.shame],
+    )

@@ -1,10 +1,11 @@
 {# il2ks-template: templates/il2ks/players/detail_aircraft.html v1 - copy this line along when you override #}
-{% load i18n il2ks %}{% comment %}
+{% load i18n il2ks il2ks_boards %}{% comment %}
   detail_aircraft.html: the per-aircraft table from PlayerAircraft, sortable with ?sort= (a whitelist in the view). It is the
   page's one results_region, so the sort links swap just this table with htmx. Each row links to the player's sortie
   list filtered to that aircraft (?aircraft=<GameObject pk>). Context: player, aircraft (PlayerAircraft or PlayerTourAircraft rows), sort, tour (the chosen Tour or None).
 {% endcomment %}<section>
   <h2>{% translate "By aircraft" %}</h2>
+  {% player_builds player tour as builds %}
   {% results_region %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table aircraft-table">
@@ -32,6 +33,7 @@
               <td class="num">{{ row.kills_air|ratio:row.deaths }}</td>
               <td class="num">{{ row.kills_air|ratio:row.planes_lost }}</td>
             </tr>
+            {% with build=builds|build_of:row.aircraft_id %}{% include "il2ks/players/detail_aircraft_build.html" %}{% endwith %}
           {% empty %}
             {% empty_row 8 %}
           {% endfor %}

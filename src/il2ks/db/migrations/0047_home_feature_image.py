@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0039_navlink_url_2000"),
+        ("il2ks_db", "0046_site_quips"),
     ]
 
     operations = [

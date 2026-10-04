@@ -170,6 +170,13 @@ If 80 and 443 are taken (nginx, Traefik, ...), let that proxy do HTTPS and use *
       IL2KS_WEB_HOST: 0.0.0.0     # inside the container; the port is published on 127.0.0.1 only
 ```
 
+**Low ports need a sysctl.** The bundled Caddy runs as a normal user without the capability to bind ports below 1024. The
+shipped `docker/compose.yaml` therefore sets `net.ipv4.ip_unprivileged_port_start: 0` for the container. Docker refuses
+that setting with `network_mode: host`, and Kubernetes only allows it if the cluster permits that "unsafe" sysctl
+(`allowedUnsafeSysctls`). If you run il2ks that way, caddy fails with "permission denied" on 80 or 443: use
+`IL2KS_HTTPS_MODE: external` (above) and let a proxy of yours, or the platform's ingress, serve HTTPS, or set the
+sysctl on the host (`sysctl -w net.ipv4.ip_unprivileged_port_start=0`).
+
 ## Troubleshooting
 
 | What you see | Likely reason and fix |

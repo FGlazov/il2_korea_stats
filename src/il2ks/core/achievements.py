@@ -21,7 +21,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
 
-type Unit = Literal["count", "hours", "weeks"]
+type Unit = Literal["count", "hours", "weeks", "points", "elo"]
+type Kind = Literal["medal", "ribbon"]
 
 BADLY_DAMAGED = 0.5
 """`damage_taken` (0 to 1) from which a landed aircraft counts as "badly damaged" (`damaged_landing`)."""
@@ -41,12 +42,28 @@ class AchievementSortie:
     kills_ground: int
     kills_ground_tank: int
     kills_strike_air: int
-    """Bombers and attackers shot down (credited kills of other pilots' aircraft of those classes)."""
+    """Bombers, attackers and transports shot down (credited kills of other pilots' aircraft of those classes)."""
     damage_taken: float
     landed: bool
     is_death: bool
     is_captured: bool
     not_taken_off: bool
+    # Facts of the second set (doc 17); defaults keep the first set's callers valid.
+    ground_points: float = 0.0
+    elo_peak: float = 0.0
+    """The highest Elo (prop or jet) held after a win in this sortie; 0 when it had none (`ingest.ratings`)."""
+    rams: int = 0
+    """Air kills by ramming an enemy aircraft (a part of `kills_air`)."""
+    first_blood: bool = False
+    """The sortie made the first credited PvP air kill of its mission."""
+    multi_kill: int = 0
+    """The most air kills within `core.replay.kills.BURST_WINDOW_S` seconds."""
+    taxi_accident: bool = False
+    strafed_on_ground: bool = False
+    friendly_kills: int = 0
+    crashed: bool = False
+    """The sortie ended with outcome `crashed` after a take-off (not a taxi accident, not strafed on the ground)."""
+    ended_by_mission_end: bool = False
 
     @property
     def is_broken(self) -> bool:
@@ -67,6 +84,10 @@ class Achievement:
     thresholds: tuple[int, ...]
     unit: Unit
     progress: Progress
+    kind: Kind = "medal"
+    """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
+    shame: bool = False
+    """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
 
     @property
     def top_tier(self) -> int:
@@ -100,6 +121,20 @@ def _cumulative(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
         out: list[float] = []
         for s in sorties:
             total += per_sortie(s) if s.counts else 0.0
+            out.append(total)
+        return out
+
+    return progress
+
+
+def _total(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
+    """Like `_cumulative`, but a sortie that never took off counts too (a taxi accident happens before take-off)."""
+
+    def progress(sorties: Sequence[AchievementSortie]) -> list[float]:
+        total = 0.0
+        out: list[float] = []
+        for s in sorties:
+            total += per_sortie(s)
             out.append(total)
         return out
 
@@ -174,6 +209,75 @@ def type_veteran(sorties: Sequence[AchievementSortie]) -> list[float]:
     return values
 
 
+def highest_elo(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """The highest Elo (prop or jet) reached: the peak after a win, a running maximum over the sorties."""
+    return _running_max([s.elo_peak for s in sorties])
+
+
+def ground_score(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """The ground score in total (sortie ground points added up). Penalties can lower it, the medal never drops."""
+    total = 0.0
+    values: list[float] = []
+    for s in sorties:
+        total += s.ground_points
+        values.append(total)
+    return _running_max(values)
+
+
+def types_flown(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """Different aircraft types flown (took off)."""
+    seen: set[int] = set()
+    values: list[float] = []
+    for s in sorties:
+        if s.counts:
+            seen.add(s.aircraft_id)
+        values.append(float(len(seen)))
+    return values
+
+
+def types_with_kills(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """Different aircraft types with at least one air kill."""
+    seen: set[int] = set()
+    values: list[float] = []
+    for s in sorties:
+        if s.counts and s.kills_air > 0:
+            seen.add(s.aircraft_id)
+        values.append(float(len(seen)))
+    return values
+
+
+def landings_in_a_row(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """Landings in a row. A landed sortie extends the run; a death or capture, or any other sortie that took off and
+    did not land, ends it. Like the ironman streak, a sortie that never took off neither extends nor breaks it; a
+    sortie the server cut off at mission end without a landing is neutral too (the pilot could not finish it)."""
+    current = 0
+    values: list[float] = []
+    for s in sorties:
+        if s.is_broken:
+            current = 0
+        elif not s.counts:
+            pass
+        elif s.landed:
+            current += 1
+        elif not s.ended_by_mission_end:
+            current = 0
+        values.append(float(current))
+    return _running_max(values)
+
+
+def kills_in_a_day(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """The most air kills in one UTC day (the day a sortie spawned on)."""
+    per_day: dict[int, int] = {}
+    best = 0
+    values: list[float] = []
+    for s in sorties:
+        day = s.spawned_at.toordinal()
+        per_day[day] = per_day.get(day, 0) + s.kills_air
+        best = max(best, per_day[day])
+        values.append(float(best))
+    return values
+
+
 def _is_damaged_landing(s: AchievementSortie) -> bool:
     return s.landed and s.damage_taken >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
 
@@ -183,16 +287,33 @@ def _is_damaged_landing(s: AchievementSortie) -> bool:
 ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("life_kills", (5, 10, 20, 50), "count", life_kills),
     Achievement("sortie_kills", (2, 3, 5, 7), "count", _best_in_one(lambda s: s.kills_air)),
-    Achievement("career_kills", (1, 10, 50, 250), "count", _cumulative(lambda s: s.kills_air)),
+    Achievement("career_kills", (1, 10, 50, 250), "count", _cumulative(lambda s: s.kills_air), kind="ribbon"),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
     Achievement("tank_buster", (3, 10, 25, 100), "count", _cumulative(lambda s: s.kills_ground_tank)),
     Achievement("ground_sortie", (20, 50, 100, 200), "count", _best_in_one(lambda s: s.kills_ground)),
     Achievement("survivor", (5, 10, 25, 50), "count", survived_in_a_row),
     Achievement("damaged_landing", (1, 3, 10), "count", _cumulative(lambda s: 1.0 if _is_damaged_landing(s) else 0.0)),
-    Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks),
-    Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0)),
-    Achievement("flight_hours", (1, 10, 50, 200), "hours", _cumulative(lambda s: s.flight_time_s / 3600)),
+    Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks, kind="ribbon"),
+    Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0), kind="ribbon"),
+    Achievement(
+        "flight_hours", (1, 10, 50, 200), "hours", _cumulative(lambda s: s.flight_time_s / 3600), kind="ribbon"
+    ),
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
+    # The second set (doc 17, OQ-105).
+    Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
+    Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
+    Achievement("ram", (1, 2, 3, 5), "count", _cumulative(lambda s: s.rams)),
+    Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
+    Achievement("multi_kill", (2, 3, 4, 5), "count", _best_in_one(lambda s: s.multi_kill)),
+    Achievement("types_flown", (3, 5, 8, 12), "count", types_flown, kind="ribbon"),
+    Achievement("types_with_kills", (2, 4, 6, 8), "count", types_with_kills),
+    Achievement("landing_streak", (3, 6, 10, 20), "count", landings_in_a_row),
+    Achievement("ace_in_a_day", (5, 8, 12, 20), "count", kills_in_a_day),
+    # Hall of shame (tongue in cheek, shown with the hall of shame).
+    Achievement("shame_taxi", (1, 5, 10), "count", _total(lambda s: 1.0 if s.taxi_accident else 0.0), shame=True),
+    Achievement("shame_friendly", (1, 5, 20), "count", _total(lambda s: s.friendly_kills), shame=True),
+    Achievement("shame_strafed", (1, 2, 3), "count", _total(lambda s: 1.0 if s.strafed_on_ground else 0.0), shame=True),
+    Achievement("shame_crashed", (3, 10, 25), "count", _total(lambda s: 1.0 if s.crashed else 0.0), shame=True),
 )
 BY_KEY: dict[str, Achievement] = {a.key: a for a in ACHIEVEMENTS}
 

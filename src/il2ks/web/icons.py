@@ -9,6 +9,7 @@ the sprite (TD-25).
 """
 
 import hashlib
+import logging
 import re
 from functools import cache
 from time import monotonic
@@ -16,40 +17,31 @@ from time import monotonic
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.urls import reverse
-from django.utils.html import escape
 from django.utils.safestring import SafeString, mark_safe
 
+from il2ks.web.svg_symbol import NOT_ICONS, SVG_NS, SvgError, symbol_markup
+
+logger = logging.getLogger(__name__)
+
 IMG_ROOT = "il2ks/img/"
-NOT_ICONS = ("pattern/",)  # textures for CSS backgrounds, not icons: kept out of the sprite
 _NAME = re.compile(r"[a-z0-9][a-z0-9_-]*(/[a-z0-9][a-z0-9_-]*)*")
 _CLASS = re.compile(r"[A-Za-z0-9_ -]*")
-_SVG = re.compile(r"\s*<svg\b([^>]*)>(.*)</svg>\s*", re.DOTALL)
-_ATTR = re.compile(r"""([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
-# Root attributes that stay on the sprite's <symbol> (the drawing's defaults, inherited by its shapes); the rest of the
-# root is the file's own sizing and identity.
-_SYMBOL_ATTRS = frozenset(
-    {
-        "viewBox",
-        "fill",
-        "stroke",
-        "stroke-width",
-        "stroke-linecap",
-        "stroke-linejoin",
-        "fill-rule",
-        "clip-rule",
-        "opacity",
-    }
-)
 _SLUG = re.compile(r"[^a-z0-9]+")
 
 
 def _read(name: str) -> str | None:
+    """The sprite `<symbol>` of an icon file; None when there is no such file or it is not a usable SVG (logged), so the
+    icon counts as missing and the callers' fallbacks (generic aircraft icon, no `<use>` to nothing) work."""
     found = finders.find(f"{IMG_ROOT}{name}.svg")
     path = found if isinstance(found, str) else None
     if path is None:
         return None
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
+    try:
+        with open(path, "rb") as handle:
+            return symbol_markup(_symbol_id(name), handle.read())
+    except (SvgError, OSError) as exc:
+        logger.warning("Icon %s left out of the sprite: %s (%s)", name, exc, path)
+        return None
 
 
 @cache
@@ -70,18 +62,6 @@ def _symbol_id(name: str) -> str:
     return name.replace("/", ".")
 
 
-def _symbol(name: str, source: str) -> str:
-    """The sprite's <symbol> for one icon file, '' when the file is not a plain <svg>...</svg>."""
-    found = _SVG.fullmatch(source)
-    if found is None:
-        return ""
-    attrs = {m[1]: m[2] or m[3] for m in _ATTR.finditer(found[1])}
-    if "viewBox" not in attrs and "width" in attrs and "height" in attrs:
-        attrs["viewBox"] = f"0 0 {attrs['width']} {attrs['height']}"
-    kept = "".join(f' {key}="{escape(value)}"' for key, value in attrs.items() if key in _SYMBOL_ATTRS)
-    return f'<symbol id="{_symbol_id(name)}"{kept}>{found[2].strip()}</symbol>'
-
-
 def _icon_names() -> list[str]:
     """Every icon name (built-in and custom/), sorted, from all static finders."""
     names: set[str] = set()
@@ -96,8 +76,8 @@ def _icon_names() -> list[str]:
 
 
 def _build_sprite() -> tuple[str, str]:
-    symbols = "".join(_symbol(name, source) for name in _icon_names() if (source := _source(name)) is not None)
-    sprite = f'<svg xmlns="http://www.w3.org/2000/svg">{symbols}</svg>\n'
+    symbols = "".join(source for name in _icon_names() if (source := _source(name)) is not None)
+    sprite = f'<svg xmlns="{SVG_NS}">{symbols}</svg>\n'
     return sprite, hashlib.sha256(sprite.encode()).hexdigest()[:10]
 
 
@@ -134,7 +114,8 @@ def sprite_url() -> str:
 def icon_markup(name: str, css_class: str = "") -> SafeString:
     """The `<svg><use>` for `name` ('event/takeoff'), '' when the name is invalid or the file is missing.
 
-    The file content is trusted (the repo's or the server owner's `custom/static`); only the name is validated."""
+    The file content is trusted (the repo's or the server owner's `custom/static`) but parsed and cleaned, see
+    `web.svg_symbol`; a file that fails to parse is missing."""
     if not _NAME.fullmatch(name) or not _CLASS.fullmatch(css_class) or _source(name) is None:
         return SafeString("")
     classes = f"icon {css_class}".strip()  # validated above

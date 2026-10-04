@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # il2ks for Docker (doc 07 option A): `il2ks run` (web + watch + bundled Caddy) as one container, data in /data.
 # Build from the repository root:   docker build -f docker/Dockerfile -t il2ks:local .
 # Admin guide: docs/install-docker.md. Nothing here is pushed anywhere; the image is built on the admin's machine.

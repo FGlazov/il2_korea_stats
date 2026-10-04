@@ -5,6 +5,7 @@
   latest (the newest missions that have sorties, in the tour), last_mission (the first of them, or None),
   activity (ChartSpec or None), boards (HomeBoard: .key, .title, .rows of BoardRow: rank, player, stats, per_hour),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
+  The "Recently earned" strip (achievements/home_feed.html, doc 17) reads its own rows for the scope.
   Blocks: head (page stylesheet), content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}"><link rel="stylesheet" href="{% static 'il2ks/leaderboards.css' %}">{% endblock %}
@@ -47,7 +48,7 @@
         </div>
         <div class="last-mission__pilots">
           <h3>{% translate "Top pilots by kills" %}</h3>
-          {% if pilots %}<p class="flavor">{% flavor "top_pilot" last_mission.pk %}</p>{% endif %}
+          {% if pilots %}{% flavor "top_pilot" last_mission.pk as top_quip %}{% if top_quip %}<p class="flavor">{{ top_quip }}</p>{% endif %}{% endif %}
           {% if pilots %}
             <table class="data-table data-table--compact">
               <thead>
@@ -78,6 +79,7 @@
   {% include "il2ks/leaderboards/home_block.html" %}
   {% online_now %}
   {% include "il2ks/streaks/home_block.html" %}
+  {% include "il2ks/achievements/home_feed.html" %}
   {% include "il2ks/home_activity.html" %}
 
   <section aria-labelledby="latest-heading">

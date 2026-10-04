@@ -14,7 +14,8 @@
     <dt>{% translate "Sortie ended" %}</dt><dd>{{ sortie.ended_at|local_time }}</dd>
     <dt>{% translate "Flight time" %}</dt><dd>{{ sortie.flight_time_s|duration }}</dd>
     <dt>{% translate "Takeoffs / landings" %}</dt><dd>{{ sortie.takeoffs|num }} / {{ sortie.landings|num }}</dd>
-    {% if sortie.role != "gunner" %}<dt>{% translate "Payload" %}</dt><dd>{% if sortie.payload_name %}{{ sortie.payload_name }}{% else %}<span class="muted">{% blocktranslate with id=sortie.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}</dd>{% endif %}
+    {% if sortie.role != "gunner" %}<dt>{% translate "Payload" %}</dt><dd>{% if sortie.payload_name %}{{ sortie.payload_name }}{% else %}<span class="muted">{% blocktranslate with id=sortie.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}</dd>
+    <dt>{% translate "Modifications" %}</dt><dd>{% for mod_id, mod_name in sortie|weapon_mods %}{% if not forloop.first %} · {% endif %}{% if mod_name %}{{ mod_name }}{% else %}{% blocktranslate with id=mod_id %}Unknown modification (id {{ id }}){% endblocktranslate %}{% endif %}{% empty %}<span class="muted">{% translate "None" %}</span>{% endfor %}</dd>{% endif %}
     {% if sortie.combat_role == "attack" and sortie.time_on_target_s is not None %}
       <dt>{% translate "Time on target" %}</dt><dd>{% if sortie.time_on_target_s %}{{ sortie.time_on_target_s|duration }}{% else %}<span class="muted">{% translate "No qualifying attack" %}</span>{% endif %}</dd>
     {% endif %}

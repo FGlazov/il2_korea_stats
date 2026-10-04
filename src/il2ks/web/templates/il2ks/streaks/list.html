@@ -37,7 +37,8 @@
         </tbody>
       </table>
     </div>
-    {% pagination best_page param="page_best" %}
+    {% translate "Best streaks" as best_name %}{% blocktranslate asvar best_pages with name=best_name %}Pagination: {{ name }}{% endblocktranslate %}
+    {% pagination best_page param="page_best" label=best_pages %}
 
     {% if running_page is not None %}
       <h2>{% translate "Running streaks" %}</h2>
@@ -66,7 +67,8 @@
           </tbody>
         </table>
       </div>
-      {% pagination running_page param="page_running" %}
+      {% translate "Running streaks" as running_name %}{% blocktranslate asvar running_pages with name=running_name %}Pagination: {{ name }}{% endblocktranslate %}
+      {% pagination running_page param="page_running" label=running_pages %}
     {% endif %}
   {% endresults_region %}
 {% endblock %}

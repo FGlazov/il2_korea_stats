@@ -139,6 +139,7 @@ def sortie(
     flight_time_s: float = 600.0,
     damage_taken: float = 0.0,
     payload_id: int = 1,
+    weapon_mods: int = 0,
     country: int | None = None,
     friendly_kills: int = 0,
     friendly_hits: int = 0,
@@ -155,6 +156,9 @@ def sortie(
     ended_by_mission_end: bool = False,
     combat_role: CombatRole | None = None,
     time_on_target_s: float | None = None,
+    rams: int = 0,
+    first_blood: bool = False,
+    multi_kill: int = 0,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
@@ -192,7 +196,7 @@ def sortie(
         spawn_type="parking",
         spawn_pos=Pos(100.0, 50.0, 200.0),
         payload_id=payload_id,
-        weapon_mods=0,
+        weapon_mods=weapon_mods,
         fuel=1.0,
         skin="",
         takeoff_tick=took_off,
@@ -242,6 +246,9 @@ def sortie(
         ended_by_mission_end=ended_by_mission_end,
         combat_role=combat_role,
         time_on_target_s=time_on_target_s,
+        rams=rams,
+        first_blood=first_blood,
+        multi_kill=multi_kill,
     )
 
 

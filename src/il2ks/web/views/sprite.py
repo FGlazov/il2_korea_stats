@@ -16,6 +16,8 @@ from il2ks.web import icons
 def icon_sprite(request: HttpRequest) -> HttpResponse:
     text, digest = icons.sprite()
     response = HttpResponse(text, content_type="image/svg+xml")
+    # Opening /sprite.svg directly must never run anything, whatever a custom icon file contains.
+    response["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'"
     if request.GET.get("v") == digest:
         response["Cache-Control"] = "public, max-age=31536000, immutable"
     else:

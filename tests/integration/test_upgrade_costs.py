@@ -102,6 +102,7 @@ def test_an_old_shaped_database_rebuilds_the_aggregates_once(monkeypatch: pytest
         migrate.BACKFILL_INTERCEPTION,
         migrate.BACKFILL_ASSIST_SPLIT,
         migrate.BACKFILL_ACHIEVEMENTS,
+        migrate.BACKFILL_ACHIEVEMENT_TOURS,
     ):
         assert name in done
     assert PlayerSortie.objects.filter(assists_air__gt=0).exists()  # level 1 was fixed before the (patched) rebuild
@@ -125,15 +126,16 @@ def test_the_holder_counts_come_from_one_aggregate_query() -> None:
     save(mission(tuple(sortie(i, i + 1, kills_air=3, kills_ground=60) for i in range(6))))
     Player.objects.filter(account_uuid=account(1)).update(is_hidden=True)
     expected: dict[tuple[str, int], int] = {}
-    for key, tier in PlayerAchievement.objects.filter(player__is_hidden=False).values_list("key", "tier"):
+    for key, tier in PlayerAchievement.objects.filter(player__is_hidden=False, tour=None).values_list("key", "tier"):
         expected[(key, tier)] = expected.get((key, tier), 0) + 1
     assert expected
 
     with CaptureQueriesContext(connection) as queries:
         recompute_holders()
 
-    assert {(r.key, r.tier): r.holders for r in AchievementHolders.objects.all()} == expected
-    assert sum("COUNT(" in q["sql"] for q in queries) == 1
+    assert {(r.key, r.tier): r.holders for r in AchievementHolders.objects.filter(tour=None)} == expected
+    # the holder counts of every scope in one query, plus the two pilot counts (all time, per tour)
+    assert sum("COUNT(" in q["sql"] for q in queries) == 3
 
 
 # --- stat thresholds ---------------------------------------------------------------------------------------------

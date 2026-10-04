@@ -6,7 +6,8 @@ keep the profile and home views untouched: a section is one include line.
 Tags: killboard_top (-> Board), type_killboard (-> queries.boards.TypeBoard),
 player_streak (-> PlayerStreak or None), player_tour_streak (-> PlayerBestStreak or
 None), home_streaks (-> list of HomeStreak). The first, the third and home_streaks take the selected tour (None = all
-time; home_streaks then lists the longest streaks inside the tour, OQ-79).
+time; home_streaks then lists the longest streaks inside the tour, OQ-79). Also player_builds (-> dict of
+AircraftBuild, with the filter build_of: the profile's favourite loadout per aircraft type).
 """
 
 from collections.abc import Sequence
@@ -17,6 +18,8 @@ from django import template
 
 from il2ks.db.models import Player, PlayerBestStreak, PlayerKillboard, PlayerStreak, PlayerTourKillboard, Tour
 from il2ks.queries import boards as reads
+from il2ks.queries import builds as builds_reads
+from il2ks.queries.builds import AircraftBuild
 
 register = template.Library()
 
@@ -75,3 +78,15 @@ def home_streaks(tour: Tour | None = None) -> list[HomeStreak]:
         HomeStreak(r.player, r.current_sorties, r.current_kills_air, r.current_flight_time_s)
         for r in reads.longest_current_streaks(datetime.now(UTC))
     ]
+
+
+@register.simple_tag
+def player_builds(player: Player, tour: Tour | None = None) -> dict[int, AircraftBuild]:
+    """{% player_builds player tour as builds %}: what the player flies each aircraft type with (favourite loadout,
+    weapon mods, gun ammo mix), all time or within `tour`. ONE query; look a type up with `builds|build_of:id`."""
+    return builds_reads.player_builds(player, tour)
+
+
+@register.filter
+def build_of(builds: dict[int, AircraftBuild], aircraft_id: int) -> AircraftBuild | None:
+    return builds.get(aircraft_id)

@@ -278,7 +278,8 @@ class Counters(models.Model):
     score_air = models.FloatField(default=0.0)
     score_ground = models.FloatField(default=0.0)
     score_ground_attack = models.FloatField(default=0.0)
-    # Skill boards (doc 13): air-superiority sorties and their kills of bombers and attackers (interception per
+    # Skill boards (doc 13): air-superiority sorties and their kills of
+    # bombers, attackers and transports (interception per
     # hour of their flight time, `flight_time_air_s`, declared before `flight_time_s` like in the registry: an
     # annotation shadows the field of the same name); tanks destroyed in attack sorties (`kills_tank_attack`)
     air_superiority_sorties = models.PositiveIntegerField(default=0)
@@ -493,6 +494,13 @@ class PlayerSortie(models.Model):
     kills_air_pvp = models.PositiveIntegerField(default=0)
     kills_air_ai = models.PositiveIntegerField(default=0)
     kills_air_intercept = models.PositiveIntegerField(default=0)  # air kills of bombers / attackers (part of kills_air)
+    # Achievement facts (doc 17): air kills by ramming an enemy (part of kills_air); the sortie made the first credited
+    # PvP air kill of its mission; the most air kills within `core.replay.kills.BURST_WINDOW_S` seconds; and the highest
+    # Elo (prop or jet) the pilot held after a win in this sortie, 0 without one (written by `ingest.ratings`).
+    rams = models.PositiveIntegerField(default=0)
+    first_blood = models.BooleanField(default=False)
+    multi_kill = models.PositiveIntegerField(default=0)
+    elo_peak = models.FloatField(default=0.0)
     # Air and ground score of this sortie (pilots; gunners 0). Named `*_points` so the counters `score_*` can sum them.
     # Computed from the columns above and the `[score]` rules; a changed rule is applied by `il2ks rebuild-aggregates`.
     air_points = models.FloatField(default=0.0)
@@ -591,6 +599,25 @@ class PlayerMission(Counters):
         return f"{self.player_id} @ {self.mission_id}"
 
 
+class SortieGunHits(models.Model):
+    """Level 1: the gun hit lines a pilot sortie gave, per ammo (`PlayerSortie.ammo` "hits" without ordnance lines).
+
+    One row per `(sortie, gun ammo)` with at least one hit, written when the sortie is saved, so the player's ammo mix
+    per aircraft type (`PlayerAircraftBuild`) is a plain GROUP BY instead of a parse of every sortie's JSON."""
+
+    sortie_id: int
+
+    sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="gun_hit_rows")
+    ammo = models.CharField(max_length=128)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["sortie", "ammo"], name="sortiegunhits_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.sortie_id} / {self.ammo}"
+
+
 class MissionAircraftAmmo(models.Model):
     """Level 1 (FR-WEB-18, doc 06): gun hits that destroyed aircraft of one type in one mission.
 
@@ -615,6 +642,37 @@ class MissionAircraftAmmo(models.Model):
 
     def __str__(self) -> str:
         return f"{self.mission_id} / {self.aircraft_id} / {self.ammo}"
+
+
+MIX_SEPARATOR = "|"
+"""Joins the sorted gun ammo log names of an ammo mix into its key (`AmmoMixKey`); no ammo name contains it."""
+
+MIX_KEY_LENGTH = 512
+
+
+class MissionAircraftAmmoMix(models.Model):
+    """Level 1 (FR-WEB-18, doc 06): the same single-attacker kills as `MissionAircraftAmmo`, grouped by the set of gun
+    ammo types that hit (an ammo mix). `mix` is the sorted ammo log names joined by `MIX_SEPARATOR`. One row per
+    `(mission, aircraft, mix, ammo)`: `ammo` is a member of the mix with the hits it landed, or `TOTAL_AMMO` with the
+    total hits. `kills` = instances of the mix (equal on all rows of one mix). Rewritten when the mission is saved."""
+
+    mission_id: int
+    aircraft_id: int
+
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="aircraft_ammo_mixes")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="mission_ammo_mixes")
+    mix = models.CharField(max_length=MIX_KEY_LENGTH)
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["mission", "aircraft", "mix", "ammo"], name="missionaircraftammomix_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.mission_id} / {self.aircraft_id} / {self.mix} / {self.ammo}"
 
 
 # --- Level 2: across missions ---
@@ -680,6 +738,54 @@ class PlayerTourAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
+
+
+class BuildKind(models.TextChoices):
+    PAYLOAD = "payload", "Loadout"
+    MODS = "mods", "Weapon modifications"
+    AMMO = "ammo", "Gun ammo hits"
+
+
+class PlayerAircraftBuild(models.Model):
+    """Level 2 (FR-WEB-4, doc 16 "Aircraft stats" loadouts): what a player flies an aircraft type with, all time
+    (`tour` NULL) or within one tour (same scoping as `PlayerAircraft` / `PlayerTourAircraft`).
+
+    Counted sorties grouped by `kind`: `PAYLOAD` = (`value` = `PlayerSortie.payload_id`, `label` = its name, '' when
+    unknown), `MODS` = (`value` = the `WM` bitmask, no names known, OQ-25), `AMMO` = (`label` = gun ammo log name,
+    `hits` = hit lines given with it in those sorties; ordnance lines excluded). `sorties` counts the sorties for
+    PAYLOAD and MODS and the sorties that hit with it for AMMO. A nullable `tour` needs two partial unique
+    constraints."""
+
+    player_id: int
+    aircraft_id: int
+    tour_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="build_rows")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_build_rows")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, null=True, related_name="build_rows")
+    kind = models.CharField(max_length=8, choices=BuildKind.choices)
+    value = models.BigIntegerField(default=0)
+    label = models.CharField(max_length=128, blank=True)
+    sorties = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "aircraft", "kind", "value", "label"],
+                condition=models.Q(tour__isnull=True),
+                name="playeraircraftbuild_unique_all",
+            ),
+            models.UniqueConstraint(
+                fields=["player", "aircraft", "tour", "kind", "value", "label"],
+                condition=models.Q(tour__isnull=False),
+                name="playeraircraftbuild_unique_tour",
+            ),
+        ]
+        indexes = [models.Index(fields=["player", "tour"], name="playeraircraftbuild_by_player")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.aircraft_id} / {self.kind} {self.value} {self.label}"
 
 
 class PlayerPool(Counters):
@@ -770,24 +876,53 @@ class StatThreshold(models.Model):
         return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
 
 
-class AircraftStats(Counters):
+class AircraftCounters(Counters):
+    """The counters of one aircraft type plus `pilots` and `side`: what `AircraftStats` (all time) and
+    `TourAircraftStats` (one tour) share, so the aircraft pages read either one the same way."""
+
+    aircraft_id: int
+
+    pilots = models.PositiveIntegerField(default=0)
+    side = models.CharField(max_length=8, blank=True, default="")
+
+    class Meta(Counters.Meta):
+        abstract = True
+
+
+class AircraftStats(AircraftCounters):
     """Level 2 (FR-WEB-8): all-time counters per aircraft type, summed over every pilot's `PlayerAircraft` row.
 
     Hidden players are included: hiding is presentation only (FR-ADM-3). `pilots` = distinct players who flew the type.
     `side` is the side most of its sorties were flown for ('redfor', 'blufor' or ''). No ratio is stored (OQ-98): K/D,
     K/L, survival and the attack share are shown from the counters and sorted with `queries.sorting.Ratio`."""
 
-    aircraft_id: int
-
     aircraft = models.OneToOneField(GameObject, on_delete=models.PROTECT, related_name="stats")
-    pilots = models.PositiveIntegerField(default=0)
-    side = models.CharField(max_length=8, blank=True, default="")
 
-    class Meta(Counters.Meta):
+    class Meta(AircraftCounters.Meta):
         abstract = False
 
     def __str__(self) -> str:
         return f"aircraft {self.aircraft_id}"
+
+
+class TourAircraftStats(AircraftCounters):
+    """Level 2 (FR-WEB-8, TD-26): `AircraftStats` within one tour, summed over the pilots' `PlayerTourAircraft` rows
+    of that tour; `pilots` = distinct players who flew the type in it, `side` the side most of its sorties in the tour
+    were flown for. A sibling table rather than a nullable `tour` column on `AircraftStats` (the pattern of
+    `PlayerTourAircraft`): the all-time reads stay unfiltered and the unique key needs no NULL special case.
+    Hidden players and missions count too (FR-ADM-3). Rows without a counted sortie are deleted."""
+
+    tour_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="tour_stats")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="aircraft_stats")
+
+    class Meta(AircraftCounters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["tour", "aircraft"], name="touraircraftstats_unique")]
+
+    def __str__(self) -> str:
+        return f"aircraft {self.aircraft_id} / tour {self.tour_id}"
 
 
 class AircraftMatchup(models.Model):
@@ -1061,17 +1196,21 @@ class PlayerStreak(models.Model):
 
 
 class PlayerAchievement(models.Model):
-    """A medal tier a pilot has earned (FR-WEB-26, doc 17): level 2, recomputed per affected player by
+    """A medal or ribbon tier a pilot has earned (FR-WEB-26, doc 17): level 2, recomputed per affected player by
     `ingest.achievements` from the rules in `il2ks.core.achievements`.
 
     One row per earned tier (a pilot at tier 3 also has the rows of tiers 1 and 2), with the sortie that first reached
-    it. All time only. Hidden players keep their rows; the pages leave them out (FR-ADM-3)."""
+    it. `tour` null = all time; with a tour, the same definitions ran over that tour's sorties only (a life, a streak, a
+    run of weeks starts fresh in a tour), so a tier can be earned again in every tour. Hidden players keep their rows;
+    the pages leave them out (FR-ADM-3)."""
 
     player_id: int
     sortie_id: int
     mission_id: int
+    tour_id: int | None
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="achievements")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="achievements")
     key = models.CharField(max_length=32)
     tier = models.PositiveSmallIntegerField()
     earned_at = models.DateTimeField()
@@ -1079,25 +1218,53 @@ class PlayerAchievement(models.Model):
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="achievements")
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["player", "key", "tier"], name="achievement_unique")]
-        indexes = [models.Index(fields=["key", "tier", "-earned_at"], name="achievement_holders")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "tour", "key", "tier"],
+                condition=models.Q(tour__isnull=False),
+                name="achievement_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["player", "key", "tier"], condition=models.Q(tour__isnull=True), name="achievement_unique"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["tour", "key", "tier", "-earned_at"], name="achievement_holders_tour"),
+            models.Index(fields=["tour", "-earned_at"], name="achievement_feed"),
+        ]
 
     def __str__(self) -> str:
         return f"{self.player_id} {self.key} {self.tier}"
 
 
 class AchievementHolders(models.Model):
-    """How many visible pilots hold a medal tier (the overview page; TD-22: no counting at request time).
+    """How many visible pilots hold a medal tier in a scope, and out of how many (the overview page and the rarity
+    shown on every medal; TD-22: no counting at request time). `tour` null = all time.
 
     Level 2, rewritten whole by `ingest.achievements.recompute_holders` after the player rows, and when an admin hides
-    or shows a player. A row exists per tier somebody holds."""
+    or shows a player. A row exists per tier somebody holds. `pilots` is the scope's denominator, the same on every row
+    of a scope: visible players with at least one counted pilot sortie in it (`[PROPOSED]`, doc 17); the rarity is
+    `holders / pilots`. 0 on rows from before it existed (until the upgrade backfill rewrites them)."""
 
+    tour_id: int | None
+
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="achievement_holders")
     key = models.CharField(max_length=32)
     tier = models.PositiveSmallIntegerField()
     holders = models.PositiveIntegerField(default=0)
+    pilots = models.PositiveIntegerField(default=0)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["key", "tier"], name="achievement_holders_unique")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tour", "key", "tier"],
+                condition=models.Q(tour__isnull=False),
+                name="achievement_holders_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["key", "tier"], condition=models.Q(tour__isnull=True), name="achievement_holders_unique"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.key} {self.tier}: {self.holders}"
@@ -1298,6 +1465,12 @@ class SiteSettings(models.Model):
     # Not branding: the `[killboard] assists` setting the level-2 rows were last rebuilt with (`ingest.aggregates`,
     # `rebuild-aggregates`), so the pages can show the assists column without reading the config file.
     killboard_assists = models.BooleanField(default=False)
+    # Flavor text (FR-WEB-23, admin-configurable quips): the global switch, and the per-spot choices as one JSON object
+    # `{"modes": {spot: mode}, "hidden": {spot: [english default text, ...]}, "custom": [{"spot", "text", "language",
+    # "enabled"}]}` (parsed and validated by `il2ks.web.quips`; empty = every default quip on). Kept on the settings
+    # row, which every page reads already, so a quip costs no extra query.
+    quips_enabled = models.BooleanField(default=True)
+    quips: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)
@@ -1416,3 +1589,23 @@ class LivePlayer(models.Model):
 
     def __str__(self) -> str:
         return self.name or self.account_uuid
+
+
+class AircraftAmmoMixStats(models.Model):
+    """Level 2 (FR-WEB-18): all-time ammo mixes per victim aircraft type, the sum of `MissionAircraftAmmoMix` over all
+    missions (rows as there: one per member ammo plus the `TOTAL_AMMO` row). Average hits of a member =
+    `hits / kills`, divided when the page reads it (TD-22)."""
+
+    aircraft_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="ammo_mix_stats")
+    mix = models.CharField(max_length=MIX_KEY_LENGTH)
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["aircraft", "mix", "ammo"], name="aircraftammomixstats_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.aircraft_id} / {self.mix} / {self.ammo}"

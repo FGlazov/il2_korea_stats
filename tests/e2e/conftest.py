@@ -27,8 +27,11 @@ from tests.conftest import REPO_ROOT
 from tests.e2e.world import World
 
 SEED_TIMEOUT_S = 600
-START_TIMEOUT_S = 90
-EXPECT_TIMEOUT_MS = 5_000
+START_TIMEOUT_S = 180
+EXPECT_TIMEOUT_MS = 15_000
+"""Generous on purpose: assertions return the moment they hold, so a long limit costs nothing when the machine is
+idle. Several `il2ks dev check --e2e` runs share one PC and a page that takes 0.3 s alone took 5+ s under load."""
+NAVIGATION_TIMEOUT_MS = 30_000
 
 
 def _free_port() -> int:
@@ -139,10 +142,10 @@ def set_branding(_e2e_data_dir: tuple[Path, World], base_url: str) -> Iterator[C
 
 @pytest.fixture(autouse=True)
 def _default_timeouts(page: Page) -> None:
-    """Fail within seconds, not Playwright's 30: the server is local and the data tiny."""
+    """Playwright's own default is 30 s; a loaded machine needs more than the 5 s this used to set (see above)."""
     expect.set_options(timeout=EXPECT_TIMEOUT_MS)
     page.set_default_timeout(EXPECT_TIMEOUT_MS)
-    page.set_default_navigation_timeout(EXPECT_TIMEOUT_MS)
+    page.set_default_navigation_timeout(NAVIGATION_TIMEOUT_MS)
 
 
 @pytest.fixture(autouse=True)

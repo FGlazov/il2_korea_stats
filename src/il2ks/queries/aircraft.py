@@ -18,7 +18,15 @@ from dataclasses import dataclass
 from django.db.models import Q
 
 from il2ks.config import LeaderboardConfig
-from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, PlayerAircraft, Tour
+from il2ks.db.models import (
+    AircraftMatchup,
+    AircraftPayload,
+    AircraftStats,
+    GameObject,
+    PlayerAircraft,
+    Tour,
+    TourAircraftStats,
+)
 from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
 from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
@@ -55,17 +63,28 @@ AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
 }
 DEFAULT_AIRCRAFT_SORT = "-sorties"
 
+type StatsRow = AircraftStats | TourAircraftStats
+"""A row of the aircraft list: the all-time counters or the selected tour's (same counters, `AircraftCounters`)."""
+
 TOP_PILOTS = 10
 
 
-def stats_list(sort: str) -> list[AircraftStats]:
-    """Every flown type, ordered by a resolved `sort` ('kills_air' or '-kills_air', see `players.resolve_sort`)."""
+def stats_list(sort: str, tour: Tour | None = None) -> list[StatsRow]:
+    """Every type flown in `tour` (None = all time), ordered by a resolved `sort` ('kills_air' or '-kills_air', see
+    `players.resolve_sort`). One query."""
     order = order_by(AIRCRAFT_SORTS[sort.removeprefix("-")], sort)
-    return list(AircraftStats.objects.select_related("aircraft").order_by(order, "aircraft__display_name", "pk"))
+    rows = AircraftStats.objects.all() if tour is None else TourAircraftStats.objects.filter(tour=tour)
+    return list(rows.select_related("aircraft").order_by(order, "aircraft__display_name", "pk"))
 
 
 def stats_for(aircraft_id: int) -> AircraftStats | None:
     return AircraftStats.objects.select_related("aircraft").filter(aircraft_id=aircraft_id).first()
+
+
+def tour_stats_for(aircraft: GameObject, tour: Tour) -> TourAircraftStats:
+    """The type's counters in `tour`; all zero (an unsaved row) when nobody flew it there. One query."""
+    found = TourAircraftStats.objects.filter(aircraft=aircraft, tour=tour).first()
+    return found or TourAircraftStats(aircraft=aircraft, tour=tour)
 
 
 MIN_ENCOUNTERS = 10

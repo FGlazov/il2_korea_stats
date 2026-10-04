@@ -365,6 +365,8 @@ class _Analysis:
                             counterpart_of(target_party),
                             record.amount,
                             label,
+                            id(target),
+                            target.is_bot,
                         )
                     )
                 if victim is not None:
@@ -376,6 +378,8 @@ class _Analysis:
                             counterpart_of(attacker_party),
                             record.amount,
                             label,
+                            id(target),
+                            target.is_bot,
                         )
                     )
                 if found is None:

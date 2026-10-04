@@ -33,6 +33,7 @@ il2ks = "il2ks.cli:main"
 
 [dependency-groups]
 dev = [
+    "axe-playwright-python>=0.1.8",
     "babel>=2.18.0",
     "check-jsonschema>=0.38.2",
     "django-types>=0.20",

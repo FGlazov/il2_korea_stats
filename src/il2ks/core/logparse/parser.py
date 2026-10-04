@@ -15,7 +15,9 @@ from collections import Counter
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
+from functools import partial
 from types import MappingProxyType
+from typing import cast
 
 from il2ks.core.logparse.events import (
     AccountUuid,
@@ -539,14 +541,21 @@ def _object_spawn(t: int, f: _Fields, x: Extra) -> ObjectSpawnEvent:
 # above; `tests/unit/logparse/test_fast_path.py` compares both on the real fixtures and on mutated lines.
 
 
+_oid = cast("Callable[[str], ObjectId]", int)
+"""`ObjectId(int(text))` without the `NewType` call (~75 ns per ID on the hot paths); an ObjectId is an int."""
+_tuple_new = cast("Callable[[type[Pos], tuple[float, float, float]], Pos]", tuple[float, float, float].__new__)
+_new_pos = partial(_tuple_new, Pos)
+"""`Pos(x, y, z)` from a tuple without the NamedTuple's Python-level `__new__` (~2x faster)."""
+
+
 def _pos_of(group: str) -> Pos:
     """`(x,y,z)` -> Pos. Raises ValueError (unpacking, float) when it is not three numbers."""
     x, y, z = group[1:-1].split(",")
-    return Pos(float(x), float(y), float(z))
+    return _new_pos((float(x), float(y), float(z)))
 
 
 def _direct_hit(t: int, v: tuple[str, ...]) -> LogEvent:
-    return HitEvent(tick=t, extra=_NO_EXTRA, ammo=v[0], attacker_id=ObjectId(int(v[1])), target_id=ObjectId(int(v[2])))
+    return HitEvent(tick=t, extra=_NO_EXTRA, ammo=v[0], attacker_id=_oid(v[1]), target_id=_oid(v[2]))
 
 
 def _direct_damage(t: int, v: tuple[str, ...]) -> LogEvent:
@@ -554,16 +563,14 @@ def _direct_damage(t: int, v: tuple[str, ...]) -> LogEvent:
         tick=t,
         extra=_NO_EXTRA,
         damage=float(v[0]),
-        attacker_id=ObjectId(int(v[1])),
-        target_id=ObjectId(int(v[2])),
+        attacker_id=_oid(v[1]),
+        target_id=_oid(v[2]),
         pos=_pos_of(v[3]),
     )
 
 
 def _direct_kill(t: int, v: tuple[str, ...]) -> LogEvent:
-    return KillEvent(
-        tick=t, extra=_NO_EXTRA, attacker_id=ObjectId(int(v[0])), target_id=ObjectId(int(v[1])), pos=_pos_of(v[2])
-    )
+    return KillEvent(tick=t, extra=_NO_EXTRA, attacker_id=_oid(v[0]), target_id=_oid(v[1]), pos=_pos_of(v[2]))
 
 
 def _direct_object_spawn(t: int, v: tuple[str, ...]) -> LogEvent:
@@ -571,17 +578,17 @@ def _direct_object_spawn(t: int, v: tuple[str, ...]) -> LogEvent:
     return ObjectSpawnEvent(
         tick=t,
         extra=_NO_EXTRA if mid is None else MappingProxyType({"MID": mid}),  # pyright: ignore[reportUnnecessaryComparison]
-        object_id=ObjectId(int(v[0])),
+        object_id=_oid(v[0]),
         object_type=v[1],
         country=int(v[2]),
         name=v[3],
-        parent_id=ObjectId(int(v[4])),
+        parent_id=_oid(v[4]),
         pos=_pos_of(v[5]),
     )
 
 
 def _direct_gun_burst(t: int, v: tuple[str, ...]) -> LogEvent:
-    return GunBurstEvent(tick=t, extra=_NO_EXTRA, object_id=ObjectId(int(v[0])), pos=_pos_of(v[1]))
+    return GunBurstEvent(tick=t, extra=_NO_EXTRA, object_id=_oid(v[0]), pos=_pos_of(v[1]))
 
 
 _SPECS: Mapping[int, _Spec] = MappingProxyType(
@@ -863,8 +870,8 @@ def _burst(tick: str, attacker: str, targets: list[str]) -> ExplosionBurstEvent:
     return ExplosionBurstEvent(
         tick=int(tick),
         extra=_NO_EXTRA,
-        attacker_id=ObjectId(int(attacker)),
-        target_ids=tuple([ObjectId(int(t)) for t in targets]),
+        attacker_id=_oid(attacker),
+        target_ids=tuple(map(_oid, targets)),
     )
 
 

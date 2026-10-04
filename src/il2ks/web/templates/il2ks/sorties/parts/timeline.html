@@ -1,12 +1,10 @@
 {# il2ks-template: templates/il2ks/sorties/parts/timeline.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   The event timeline, in order. Time is the flight's own clock (since spawn) with the real time of day beside it. A run of
-  ground kills is one folded row; the rows are paginated (20 a page, ?page_timeline=, OQ-96), so a sortie with
-  hundreds of events stays readable and light. Context: timeline_page (a Page of rows), timeline_param,
-  detail.timeline_events (all stored events). Rows: sortie_view.TimelineRow, rendered by timeline_table.html.
+  ground kills is one folded row. All rows are shown, not paginated (maintainer, 2026-10-04: a detail page).
+  Context: detail.timeline (every row), detail.timeline_events (all stored events). Rows: sortie_view.TimelineRow, rendered by timeline_table.html.
   Hit rows (kinds hit_given / hit_taken) show the damage of a burst of hits in the last column, with the ammunition matched to
   the burst; sorties processed before these rows existed simply have none.
 {% endcomment %}<h2 id="timeline">{% translate "Timeline" %}</h2>
-{% include "il2ks/sorties/parts/timeline_table.html" with rows=timeline_page %}
-{% pagination timeline_page param=timeline_param %}
+{% include "il2ks/sorties/parts/timeline_table.html" with rows=detail.timeline %}
 <p class="timeline-note"><small>{% blocktranslate with n=detail.timeline_events|num %}{{ n }} events. Times count from the spawn; the time of day is shown next to them.{% endblocktranslate %}</small></p>

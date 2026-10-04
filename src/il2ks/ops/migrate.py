@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Callable, Sequence
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -71,7 +72,12 @@ BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sorti
 BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
+BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
+BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
+BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
+BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
+BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
 def _already_done(name: str) -> bool:
@@ -120,6 +126,10 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_ASSIST_SPLIT, _check_assist_split),
         (BACKFILL_ACCURACY, _check_accuracy),
         (BACKFILL_STREAK_RUNS, _check_streak_runs),
+        (BACKFILL_TOUR_AIRCRAFT, _check_tour_aircraft),
+        (BACKFILL_BUILDS, _check_builds),
+        (BACKFILL_ACHIEVEMENT_FACTS, _check_achievement_facts),
+        (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -134,6 +144,70 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         _mark_done(*(name for name, _ in wanted))
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
+        if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
+            _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
+
+
+def _check_payload_names() -> bool:
+    """The loadout table was replaced (renumbered IL-10 ids, F-86A-5 now resolves, new rows): every sortie's
+    `payload_name` is looked up again from its stored `payload_id` and aircraft type. `weapon_mods` needs nothing (the
+    raw `WM` was always stored, names are looked up when a page is shown). Returns whether a name changed, which means
+    the per-loadout aircraft stats (level 2) must be rebuilt. Unknown ids keep the empty name (OQ-25)."""
+    from il2ks.core.catalog.loader import load_default_catalog
+    from il2ks.db.models import PlayerSortie
+    from il2ks.ingest.persist import PAYLOAD_NAME_MAX
+
+    catalog = load_default_catalog()
+    groups = PlayerSortie.objects.values_list("aircraft__log_name", "payload_id").distinct()
+    changed = False
+    for aircraft_type, payload_id in list(groups):
+        payload = catalog.payload(aircraft_type, payload_id)
+        name = payload.readable_name[:PAYLOAD_NAME_MAX] if payload is not None else ""
+        rows = PlayerSortie.objects.filter(aircraft__log_name=aircraft_type, payload_id=payload_id).exclude(
+            payload_name=name
+        )
+        changed = bool(rows.update(payload_name=name)) or changed
+    return changed
+
+
+def _check_tour_aircraft() -> bool:
+    """A database from before the aircraft stats per tour (FR-WEB-8, TD-26) has per-tour player aircraft rows but no
+    `TourAircraftStats` row: level 2 must be rebuilt."""
+    from il2ks.db.models import PlayerTourAircraft, TourAircraftStats
+
+    return PlayerTourAircraft.objects.exists() and not TourAircraftStats.objects.exists()
+
+
+def _check_builds() -> bool:
+    """A database from before the favourite loadout has pilot sorties but no `SortieGunHits` row: they follow from the
+    stored ammo JSON (the gun hit lines given per ammo, as at save time) and level 2 must be rebuilt, which
+    also builds `PlayerAircraftBuild`. `il2ks reprocess` gives the same rows."""
+    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+
+    if not PlayerSortie.objects.filter(role=Role.PILOT).exists() or SortieGunHits.objects.exists():
+        return False
+    log.info("deriving the gun hits per ammo from the stored ammo")
+    _fill_gun_hits()
+    return True
+
+
+def _fill_gun_hits() -> None:
+    """Write the `SortieGunHits` rows from the stored ammo JSON of every pilot sortie (streamed)."""
+    from il2ks.core.replay.model import is_gun_ammo
+    from il2ks.db.models import PlayerSortie, Role, SortieGunHits
+
+    new: list[SortieGunHits] = []
+    for pk, ammo in PlayerSortie.objects.filter(role=Role.PILOT).values_list("pk", "ammo").iterator(chunk_size=500):
+        raw = cast("dict[str, object]", ammo).get("hits") if isinstance(ammo, dict) else None
+        if not isinstance(raw, list):
+            continue
+        by_ammo: dict[str, int] = {}
+        for row in cast("list[dict[str, object]]", raw):
+            name, given = row.get("ammo"), row.get("hits_given")
+            if isinstance(name, str) and isinstance(given, int) and given > 0 and is_gun_ammo(name):
+                by_ammo[name] = by_ammo.get(name, 0) + given
+        new.extend(SortieGunHits(sortie_id=pk, ammo=name, hits=hits) for name, hits in sorted(by_ammo.items()))
+    SortieGunHits.objects.bulk_create(new, batch_size=500)
 
 
 def _check_streak_runs() -> bool:
@@ -143,6 +217,101 @@ def _check_streak_runs() -> bool:
     from il2ks.db.models import PlayerSortie, PlayerStreakRun, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerStreakRun.objects.exists()
+
+
+def _close(a: tuple[float, float, float] | None, b: tuple[float, float, float] | None, metres: float) -> bool:
+    """Whether two kill positions are within `metres` of each other (unknown positions are not held against a ram)."""
+    if a is None or b is None:
+        return True
+    return sum((p - q) ** 2 for p, q in zip(a, b, strict=True)) <= metres**2
+
+
+def _hits_dealt(pairs: list[tuple[int, int]]) -> dict[int, set[int]]:
+    """Sortie id -> the player sorties it landed gun hits on, read from the stored damage breakdown, for the sorties
+    in `pairs` only (the JSON is big)."""
+    from il2ks.db.models import PlayerSortie
+
+    ids = sorted({pk for pair in pairs for pk in pair})
+    hit: dict[int, set[int]] = {}
+    for start in range(0, len(ids), 400):
+        rows = PlayerSortie.objects.filter(pk__in=ids[start : start + 400]).values_list("pk", "damage_breakdown")
+        for pk, breakdown in rows:
+            for entry in cast("list[dict[str, object]]", breakdown or []):
+                other, dealt = entry.get("counterpart"), entry.get("hits_dealt")
+                if isinstance(other, dict) and isinstance(dealt, int) and dealt > 0:
+                    target = cast("dict[str, object]", other).get("sortie_id")
+                    if isinstance(target, int):
+                        hit.setdefault(pk, set()).add(target)
+    return hit
+
+
+def _check_achievement_facts() -> bool:
+    """A database from before the second set of achievements (doc 17) has no `rams`, `first_blood`, `multi_kill` or
+    `elo_peak` on its sorties. Derived from what is stored; the rebuild this asks for replays the Elo games (the peaks)
+    and computes every medal:
+
+    - `multi_kill`: the timeline's air `kill` entries (a victim that is a player's aircraft, or of an air class), the
+      replay's own window (`max_burst`).
+    - `first_blood`: the first PvP air kill of each mission in `Kill` (earliest tick, then id); AI victims have no row,
+      which is the rule (doc 17).
+    - `rams`: only approximated. The log has no collision event and the timelines do not mark rams, so a kill counts as
+      a ram when its victim killed the killer back within the ram window (`[rules] ram_window_s`): two enemies that
+      credit each other at the same moment and place (`ram_distance_m`). `il2ks reprocess` gives the exact value.
+    """
+    from il2ks.core.catalog.loader import AIR_CLASSES
+    from il2ks.core.replay.kills import max_burst
+    from il2ks.core.replay.toggles import RuleToggles
+    from il2ks.db.models import GameObject, Kill, KillCredit, PlayerSortie, Role
+    from il2ks.ingest.dbutil import update_partial_rows
+
+    pilots = PlayerSortie.objects.filter(role=Role.PILOT)
+    if not pilots.exists() or pilots.filter(first_blood=True).exists() or pilots.filter(multi_kill__gt=0).exists():
+        return False
+    log.info("deriving rams, first bloods and multi-kills")
+    classes = dict(GameObject.objects.values_list("log_name", "cls"))
+    bursts: dict[int, int] = {}
+    for pk, timeline in pilots.filter(kills_air__gt=0).values_list("pk", "timeline").iterator(chunk_size=500):
+        ticks: list[int] = []
+        for entry in timeline:
+            other = entry.get("counterpart")
+            tick = entry.get("tick")
+            if entry.get("kind") != "kill" or not isinstance(other, dict) or not isinstance(tick, int):
+                continue
+            victim = cast("dict[str, object]", other)
+            if victim.get("sortie_id") is not None or classes.get(str(victim.get("object_type"))) in AIR_CLASSES:
+                ticks.append(tick)
+        if ticks:
+            bursts[pk] = max_burst(ticks)
+
+    first: dict[int, int] = {}
+    mutual: dict[tuple[int, int], tuple[datetime, tuple[float, float, float] | None]] = {}
+    toggles = RuleToggles()
+    window = timedelta(seconds=toggles.ram_window_s)
+    kills = Kill.objects.filter(credit=KillCredit.KILL, is_friendly=False).order_by("mission_id", "tick", "pk")
+    rams: dict[int, int] = {}
+    pairs: list[tuple[int, int]] = []
+    for mission_id, killer, victim, when, x, y, z in kills.values_list(
+        "mission_id", "killer_sortie_id", "victim_sortie_id", "time", "pos_x", "pos_y", "pos_z"
+    ).iterator():
+        first.setdefault(mission_id, killer)
+        where = (x, y, z) if x is not None and y is not None and z is not None else None
+        back = mutual.get((victim, killer))
+        if back is not None and abs(when - back[0]) <= window and _close(where, back[1], toggles.ram_distance_m):
+            pairs.append((killer, victim))
+        mutual[(killer, victim)] = (when, where)
+    shots = _hits_dealt(pairs)
+    for killer, victim in pairs:
+        if victim not in shots.get(killer, ()) and killer not in shots.get(victim, ()):  # a ram: no guns either way
+            rams[killer] = rams.get(killer, 0) + 1
+            rams[victim] = rams.get(victim, 0) + 1
+
+    first_ids = set(first.values())
+    changed = [
+        PlayerSortie(pk=pk, multi_kill=bursts.get(pk, 0), rams=rams.get(pk, 0), first_blood=pk in first_ids)
+        for pk in sorted(bursts.keys() | rams.keys() | first_ids)
+    ]
+    update_partial_rows(PlayerSortie, changed, ["multi_kill", "rams", "first_blood"])
+    return True
 
 
 def _check_accuracy() -> bool:
@@ -268,7 +437,7 @@ def _check_interception() -> bool:
     sorties = PlayerSortie.objects.filter(kills_air__gt=0)
     if not PlayerSortie.objects.exists() or sorties.filter(kills_air_intercept__gt=0).exists():
         return False
-    log.info("counting kills of bombers and attackers")
+    log.info("counting kills of bombers, attackers and transports")
     classes = dict(GameObject.objects.values_list("log_name", "cls"))
     roles = dict(PlayerSortie.objects.exclude(combat_role=None).values_list("pk", "combat_role"))
     changed: list[PlayerSortie] = []
@@ -356,3 +525,24 @@ def _backfill_achievements() -> None:
             log.info("computing medals")
             rebuild_achievements()
         _mark_done(BACKFILL_ACHIEVEMENTS)
+
+
+def _backfill_achievement_tours() -> None:
+    """A database from before per-tour medals (doc 17) has all-time medal rows only (and holder rows without the rarity
+    denominator): run the medal pass again, which adds the tour rows and rewrites the holder counts. Skipped when tour
+    rows exist already (the plain backfill above just computed everything)."""
+    from django.db import transaction
+
+    from il2ks.db.models import PlayerAchievement, PlayerSortie, Role
+    from il2ks.ingest.achievements import rebuild_achievements
+
+    if _already_done(BACKFILL_ACHIEVEMENT_TOURS):
+        return
+    with transaction.atomic():
+        if (
+            PlayerSortie.objects.filter(role=Role.PILOT).exists()
+            and not PlayerAchievement.objects.filter(tour__isnull=False).exists()
+        ):
+            log.info("computing medals per tour")
+            rebuild_achievements()
+        _mark_done(BACKFILL_ACHIEVEMENT_TOURS)
