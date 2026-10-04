@@ -147,6 +147,10 @@ decisions are made):
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
 - 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
+- ⏳ **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
+  superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
+  target). On the leaderboards next to Elo and ground per hour, and in the home page's top boards. Queued after the leaderboard
+  rework lands.
 - 🔧 **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
   visitors can add sortable columns (Elo, K/D, scores, …) from a small "Columns" control, kept in the URL.
 - 🔧 **Stat marks for Elo and scores** (maintainer, 2026-10-04): Top 10% / 25% next to Elo jet/prop, air score, ground score and
