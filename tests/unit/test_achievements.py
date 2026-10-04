@@ -239,3 +239,13 @@ def test_rarity_text_and_emphasis_follow_the_share_of_pilots() -> None:
     assert rarity(Holding(40, 200)).text == "Held by 20% of pilots"
     assert rarity(Holding(1, 10)).level == ""  # too few pilots to call anything rare
     assert rarity(Holding(1, 5000)).text == "Held by less than 0.1% of pilots"
+
+
+def test_a_shame_tier_is_never_emphasised_as_rare() -> None:
+    """A rare Hard Landing is not a trophy: the text stays, the ring and glow do not (doc 17, QA 2026-10-04)."""
+    from il2ks.queries.achievements import Holding
+    from il2ks.web.medals import rarity
+
+    assert rarity(Holding(1, 5000), shame=True).level == ""
+    assert rarity(Holding(1, 5000), shame=True).text == "Held by less than 0.1% of pilots"
+    assert rarity(Holding(1, 5000)).level == "epic"

@@ -278,7 +278,8 @@ class Counters(models.Model):
     score_air = models.FloatField(default=0.0)
     score_ground = models.FloatField(default=0.0)
     score_ground_attack = models.FloatField(default=0.0)
-    # Skill boards (doc 13): air-superiority sorties and their kills of bombers and attackers (interception per
+    # Skill boards (doc 13): air-superiority sorties and their kills of
+    # bombers, attackers and transports (interception per
     # hour of their flight time, `flight_time_air_s`, declared before `flight_time_s` like in the registry: an
     # annotation shadows the field of the same name); tanks destroyed in attack sorties (`kills_tank_attack`)
     air_superiority_sorties = models.PositiveIntegerField(default=0)

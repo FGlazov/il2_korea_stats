@@ -73,7 +73,7 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
 
 def _overview_tier(key: str, tier: medals.Tier, counts: dict[tuple[str, int], reads.Holding]) -> OverviewTier:
     holding = counts.get((key, tier.number))
-    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding))
+    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding, shame=BY_KEY[key].shame))
 
 
 def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
@@ -129,7 +129,11 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
     rows: list[ListRow] = []
     for info in medals.all_info():
         tiers = tuple(
-            ListTier(t, held.get((info.key, t.number)), medals.rarity(holdings.get((scope, info.key, t.number))))
+            ListTier(
+                t,
+                held.get((info.key, t.number)),
+                medals.rarity(holdings.get((scope, info.key, t.number)), shame=info.shame),
+            )
             for t in info.tiers
         )
         rows.append(ListRow(info, tiers, max((t.tier.number for t in tiers if t.earned), default=0)))

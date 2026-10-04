@@ -341,6 +341,24 @@ def test_rarity_is_hover_text_and_screen_reader_text() -> None:
     assert "rarity--" not in html  # a three-pilot server does not glow
 
 
+def test_the_sortie_page_lists_a_tier_once_and_leaves_shame_to_the_hall_of_shame() -> None:
+    """QA 2026-10-04: all time and the first tour reached the same tiers, so the sortie page listed everything twice;
+    a hall-of-shame tier showed up there as a shiny award."""
+    from il2ks.web.templatetags.il2ks_achievements import sortie_medals
+
+    seed_two_tours()
+    first = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t1").get()
+    second = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t2").get()
+
+    in_first = [(m.key, m.tier, m.scope) for m in sortie_medals(first)]
+    assert in_first.count(("career_kills", 1, None)) == 1
+    assert not [m for m in in_first if m[0] == "career_kills" and m[2] is not None]  # not again for the tour
+    in_second = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(second)]
+    assert ("career_kills", 1, True) in in_second  # first of the second tour, earlier all time
+    assert ("career_kills", 1, False) not in in_second
+    assert all(not m.shame for m in sortie_medals(first))
+
+
 def test_a_medal_row_and_a_ribbon_rack_split_by_kind() -> None:
     seed()
     html = Client().get(f"/players/{pk(1)}/?tour=all").content.decode()
@@ -361,7 +379,12 @@ def test_the_sortie_page_shows_both_scopes() -> None:
     assert "Earned in this sortie" in html
     assert "All time" in html
     assert "medal-scope" in html
-    assert html.count("Sky Hunter") == 2  # the all-time first kill and the tour's
+    assert html.count("Sky Hunter") == 1  # the all-time first kill and the tour's are the same news: listed once
+
+    second = PlayerSortie.objects.get(player_id=pk(1), mission__mission_uid="t2")
+    later = Client().get(f"/sorties/{second.pk}/").content.decode()
+    assert "Sky Hunter" in later  # the first kill of the second tour, not of the career
+    assert ">Tour<" in later
 
 
 def test_the_home_feed_lists_the_newest_uncommon_tiers_and_never_links_a_hidden_mission() -> None:

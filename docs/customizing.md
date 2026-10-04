@@ -251,6 +251,23 @@ starts with a comment that lists the variables it receives. Overriding one of th
 **Icons and images** — `il2ks/img/` under static. Every icon has a fixed name (for example `il2ks/img/outcome/landed.svg`),
 so you can replace a single icon by putting your own SVG at `custom/static/il2ks/img/outcome/landed.svg`.
 
+*Your own SVG icons.* The site merges all icon files into one sprite (`/sprite.svg`), so a custom file must be a plain,
+self-contained SVG:
+
+- A single `<svg>` root, drawn on a grid with a `viewBox` (for example `viewBox="0 0 24 24"`). Without one, a numeric
+  `width` and `height` (`24` or `24px`) are used; `%` or `em` sizes cannot be.
+- Colour with `currentColor` (`fill="currentColor"` or `stroke="currentColor"` on the root or the shapes), so the icon
+  follows the light or dark theme. No text inside the icon.
+- No `<style>` blocks, and no ids or gradients that other icons could also use: all icons share one document, so a
+  clashing id changes another icon.
+- The editor's extras are fine and are removed automatically: the `<?xml?>` line, comments, a DOCTYPE, `metadata`,
+  Inkscape / Sodipodi / Illustrator elements and attributes, and a UTF-8 BOM. `xlink:href="#id"` works; links to other
+  files do not. Scripts, `foreignObject` and event attributes are removed.
+- A file that still cannot be read as XML (a broken tag, a declared entity) is left out of the sprite and logged, and
+  the site behaves as if the file did not exist (an aircraft falls back to the generic jet or propeller icon). `il2ks
+  doctor` lists such files.
+- `brand/favicon.svg` and `pattern/` are not icons: they are used as separate image files and are not in the sprite.
+
 **Colours** — the stylesheet `il2ks/site.css` defines every colour once as a CSS variable in its first section
 (`--il2-accent`, `--il2-bg`, ...; light and dark side by side with `light-dark()`), and nothing else in the stylesheets
 contains a colour. The colors from the admin (section 1) are written after the stylesheet and override those variables.

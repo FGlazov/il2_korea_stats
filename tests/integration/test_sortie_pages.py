@@ -310,21 +310,37 @@ def test_consecutive_ground_kills_fold_into_one_row(client: Client) -> None:
     assert_simple_reads(client, f"/sorties/{pk}/", max_queries=DETAIL_BUDGET)
 
 
-def test_a_long_timeline_is_paginated_and_keeps_the_other_parameters(client: Client) -> None:
-    """OQ-96: 20 timeline rows a page (`?page_timeline=`); the links keep every other parameter, repeats too."""
+def test_a_long_timeline_shows_every_row_and_is_not_paginated(client: Client) -> None:
+    """Maintainer, 2026-10-04: the sortie page's timeline shows all rows (the damage table stays paginated, OQ-96)."""
     save(mission((long_timeline(ground_kills=0, singles=ROW_PAGE_SIZE * 2 + 5),)))
     pk = pk_of(1)
 
-    first = detail(client, pk)
-    second = client.get(f"/sorties/{pk}/?page_timeline=2&cols=a&cols=b").content.decode()
+    html = detail(client, pk)
 
-    assert first.count('class="timeline__row') == ROW_PAGE_SIZE
-    assert second.count('class="timeline__row') == ROW_PAGE_SIZE
-    assert "Show the remaining" not in first
-    link = re.search(r'<a href="([^"]*)" hx-get="[^"]*" rel="next"', second)
-    assert link is not None
-    assert "cols=a&amp;cols=b" in link.group(1) or "cols=a&cols=b" in link.group(1)
-    assert "page_timeline=3" in link.group(1)
+    assert html.count('class="timeline__row') > ROW_PAGE_SIZE * 2 + 5
+    assert "page_timeline" not in html
+    assert_simple_reads(client, f"/sorties/{pk}/", max_queries=DETAIL_BUDGET)
+
+
+def test_kill_death_and_assist_rows_carry_their_prominent_classes(client: Client) -> None:
+    """Maintainer, 2026-10-04: kills and deaths stand out more than hits; neutral rows carry none of the classes."""
+    entries = (
+        TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)),
+        TimelineEntry(3000, "kill", "MiG-15bis", Pos(1, 2, 3), Counterpart("MiG-15bis")),
+        TimelineEntry(3500, "assist", "MiG-15bis", Pos(1, 2, 3), Counterpart("MiG-15bis")),
+        TimelineEntry(4000, "destroyed", "", Pos(1, 2, 3)),
+        TimelineEntry(4000, "died", "", Pos(1, 2, 3)),
+        TimelineEntry(5000, "sortie_end", "crashed", Pos(1, 2, 3)),
+    )
+    save(mission((replace(sortie(0, 1, kills_air=1), timeline=entries),)))
+
+    html = detail(client, pk_of(1))
+
+    rows = re.findall(r'<tr class="(timeline__row[^"]*)"', html)
+    assert len(rows) == len(entries)
+    assert ["--kill" in r for r in rows] == [False, True, False, False, False, False]
+    assert ["--assist" in r for r in rows] == [False, False, True, False, False, False]
+    assert ["--death" in r for r in rows] == [False, False, False, True, True, False]
 
 
 def test_timeline_rows_carry_icons_and_both_clocks(client: Client) -> None:

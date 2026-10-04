@@ -160,8 +160,8 @@ def ground_loss(
         did **significant damage after the landing** (`damage_after_landing`, at least `strafed_min_damage` of the
         aircraft's DMG summed). A damaged aircraft that fails its landing, or burns down after it, is not strafed
         (maintainer, 2026-10-04): `judge` reads it as crashed. The kill line naming an attacker is no evidence on its
-        own when the log shows attacker damage before the landing; it is when the log shows no attacker damage at all
-        (missing damage lines), as is an attacker's hit after the landing.
+        own when the log shows any attacker damage; it is when the log shows no attacker damage at all (missing damage
+        lines), as is an attacker's hit after the landing.
       - A crash-landing resolves its loss at the landing tick, so it is no landing here.
 
     Gunners are never flagged: their flight state is the parent's, and gunners aren't counted."""
@@ -177,11 +177,11 @@ def ground_loss(
     landed_at = landing_before(sortie, cutoff_tick)
     if landed_at is None:
         return False, False
-    if damage_after_landing(sortie, landed_at, cutoff_tick) >= strafed_min_damage:
+    after_landing = damage_after_landing(sortie, landed_at, cutoff_tick)
+    if after_landing > 0 and after_landing >= strafed_min_damage:  # a threshold of 0 still needs some damage
         return False, True
-    attacks = damage_records(airframe, sortie, cutoff_tick, attackers_only=True)
-    if any(r.tick <= landed_at for r in attacks):
-        return False, False  # the attacker's damage was all (or mostly) before the landing: it failed its landing
+    if damage_records(airframe, sortie, cutoff_tick, attackers_only=True):
+        return False, False  # attacker damage in the log, but not enough after the landing: it failed its landing
     after = [r.tick for r in hit_records(airframe, sortie, cutoff_tick, attackers_only=True) if r.tick > landed_at]
     return False, killed_by_attacker or bool(after)
 
@@ -199,16 +199,22 @@ def damage_after_landing(sortie: SortieState, landed_at: int, cutoff_tick: int) 
     return sum(r.amount for r in records if r.tick > landed_at)
 
 
-def failed_landing(sortie: SortieState, loss: Loss | None, *, strafed: bool, off: bool) -> bool:
+def failed_landing(
+    sortie: SortieState, loss: Loss | None, *, strafed: bool, off: bool, died: int | None, rules: ReplayRules
+) -> bool:
     """A damaged aircraft that was lost on the ground after taking off, and was not strafed: it failed its landing or
-    burned down after it. That is a crash, not a shot down (maintainer, 2026-10-04, OQ-112); the kill credit stays."""
-    return (
-        loss is not None
-        and off
-        and not strafed
-        and not sortie.airframe.airborne_at(loss.tick)
-        and sortie.role == "pilot"
-    )
+    burned down after it. That is a crash, not a shot down (maintainer, 2026-10-04, OQ-112); the kill credit stays.
+
+    Not when the pilot was already out of the picture: killed before the loss (`died` earlier than the loss by more than
+    `died_with_aircraft_s`: the wreck then lands or crashes on its own), or gone from the aircraft (bailout, ejection,
+    bot removed) before its landing (the empty plane belly-lands). Those stay shot down."""
+    if loss is None or not off or strafed or sortie.airframe.airborne_at(loss.tick) or sortie.role != "pilot":
+        return False
+    if died is not None and died < loss.tick - ticks(rules.died_with_aircraft_s):
+        return False
+    landed_at = landing_before(sortie, loss.tick) or loss.tick
+    ejected = ejection_spawn_tick(sortie, loss.tick, rules)
+    return not left_before(sortie, landed_at) and not (ejected is not None and ejected <= landed_at)
 
 
 def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:

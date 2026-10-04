@@ -279,7 +279,7 @@ def build_manifest() -> list[Asset]:
         ("life-kills", "Charmed Life: air kills in one life"),
         ("sortie-kills", "Ace of the Sortie: air kills in one sortie"),
         ("career-kills", "Sky Hunter: air kills in total"),
-        ("strike-hunter", "Bomber Hunter: bombers and attackers shot down"),
+        ("strike-hunter", "Bomber Hunter: bombers, attackers and transports shot down"),
         ("tank-buster", "Tank Buster: tanks destroyed"),
         ("ground-sortie", "Target-Rich: ground targets in one sortie"),
         ("survivor", "Ironman: sorties survived in a row"),

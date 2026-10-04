@@ -55,8 +55,19 @@
 .timeline__damage--given { color: var(--il2-green); }
 .timeline__damage--taken { color: var(--il2-red); }
 /* Hits given / taken: a light green / red tint (maintainer), from the theme tokens so dark mode and custom themes follow */
-.timeline__row--hit-given td { background: color-mix(in srgb, var(--il2-green) 9%, transparent) !important; }
-.timeline__row--hit-taken td { background: color-mix(in srgb, var(--il2-red) 9%, transparent) !important; }
+.timeline__row--hit-given td { background: color-mix(in srgb, var(--il2-green) 4%, transparent) !important; }
+.timeline__row--hit-taken td { background: color-mix(in srgb, var(--il2-red) 4%, transparent) !important; }
+/* Kills and deaths are the prominent rows (maintainer: more than hits): a strong tint, bold label and a left accent bar; assists get
+   a lighter kill tint. Hits stay a faint hint. Theme tokens only, so light, dark and custom themes follow. */
+.timeline__row--kill td { background: color-mix(in srgb, var(--il2-green) 24%, transparent) !important; }
+.timeline__row--assist td { background: color-mix(in srgb, var(--il2-green) 12%, transparent) !important; }
+.timeline__row--death td { background: color-mix(in srgb, var(--il2-red) 24%, transparent) !important; }
+.timeline__row--kill td:first-child { box-shadow: inset 4px 0 0 var(--il2-green); }
+.timeline__row--death td:first-child { box-shadow: inset 4px 0 0 var(--il2-red); }
+.timeline__row--kill .timeline__event, .timeline__row--death .timeline__event { font-weight: 700; }
+/* muted text must stay readable (4.5:1) on the stronger tints */
+.timeline__row--kill, .timeline__row--assist, .timeline__row--death { --il2-muted: var(--il2-text); }
+.timeline__row--kill details.timeline__group > summary, .timeline__row--kill details.timeline__group > summary small { color: var(--il2-text) !important; }
 .timeline__group { margin: 0; }
 .timeline__group > summary { margin: 0; font-size: inherit; }
 .timeline__group li { list-style: none; }

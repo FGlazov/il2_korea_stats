@@ -42,7 +42,7 @@ class AchievementSortie:
     kills_ground: int
     kills_ground_tank: int
     kills_strike_air: int
-    """Bombers and attackers shot down (credited kills of other pilots' aircraft of those classes)."""
+    """Bombers, attackers and transports shot down (credited kills of other pilots' aircraft of those classes)."""
     damage_taken: float
     landed: bool
     is_death: bool

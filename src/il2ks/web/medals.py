@@ -42,7 +42,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills in total, all sorties together.")),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
-        gettext_lazy("Enemy bombers and attackers flown by other pilots, shot down."),
+        gettext_lazy("Enemy bombers, attackers and transports flown by other pilots, shot down."),
     ),
     "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed in total.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),
@@ -135,9 +135,10 @@ class Rarity:
 NO_RARITY = Rarity(None, "", "")
 
 
-def rarity(holding: Holding | None) -> Rarity:
+def rarity(holding: Holding | None, *, shame: bool = False) -> Rarity:
     """The rarity of a tier from its holder row. Unknown (no row, or a row from before the pilot counts existed) gives
-    `NO_RARITY`: no text, no emphasis."""
+    `NO_RARITY`: no text, no emphasis. A hall-of-shame entry keeps the text but never gets the ring or glow (a rare
+    shame tier is not a trophy)."""
     if holding is None or holding.pilots <= 0 or holding.holders <= 0:
         return NO_RARITY
     share = 100 * holding.holders / holding.pilots
@@ -146,7 +147,7 @@ def rarity(holding: Holding | None) -> Rarity:
     else:
         text = _("Held by %(share)s%% of pilots") % {"share": number_format(share, decimal_pos=1 if share < 10 else 0)}
     level: RarityLevel = ""
-    if holding.pilots >= MIN_PILOTS_FOR_RARITY:
+    if holding.pilots >= MIN_PILOTS_FOR_RARITY and not shame:
         level = "epic" if share < EPIC_BELOW else "rare" if share < RARE_BELOW else ""
     return Rarity(share, level, text)
 
@@ -285,7 +286,7 @@ def _medal(row: PlayerAchievement, achievement: Achievement, holdings: Mapping[H
         shame=achievement.shame,
         scope=row.tour_id,
         style=_style(row.key),
-        rarity=rarity(holdings.get((row.tour_id, row.key, row.tier))),
+        rarity=rarity(holdings.get((row.tour_id, row.key, row.tier)), shame=achievement.shame),
     )
 
 

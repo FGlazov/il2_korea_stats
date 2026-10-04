@@ -10,6 +10,7 @@ from il2ks.config import Config
 from il2ks.ops.doctor import Finding, Level, check
 from il2ks.serving import caddy, custom, procutil
 from il2ks.serving.secret import DEV_SECRET_KEY, read_stored_secret_key
+from il2ks.web.svg_symbol import NOT_ICONS, SvgError, symbol_markup
 
 MIN_SECRET_KEY_LENGTH = 32
 LOCAL_NAME_SUFFIXES = (".local", ".lan", ".localhost", ".internal", ".home", ".localdomain")
@@ -226,6 +227,34 @@ def custom_overrides(cfg: Config) -> Iterable[Finding]:
         yield Finding(Level.OK, "custom/ overrides", f"{len(overrides)} replacing a built-in file, none out of date")
     elif checks:
         yield Finding(Level.OK, "custom/ overrides", "only new files, nothing replaces a built-in file")
+
+
+@check
+def custom_icons(cfg: Config) -> Iterable[Finding]:
+    """A custom SVG under custom/static/il2ks/img/ that cannot become a sprite symbol is left out of the icon sprite
+    (the built-in or generic icon, or nothing, shows instead). Same parser as the sprite (`web.svg_symbol`)."""
+    root = custom.custom_dir(cfg) / "static" / "il2ks" / "img"
+    bad: list[Finding] = []
+    count = 0
+    for path in sorted(root.rglob("*.svg")) if root.is_dir() else []:
+        rel = path.relative_to(root).as_posix()
+        if rel.startswith(NOT_ICONS):
+            continue
+        count += 1
+        try:
+            symbol_markup(rel.removesuffix(".svg").replace("/", "."), path.read_bytes())
+        except (SvgError, OSError) as exc:
+            bad.append(
+                Finding(
+                    Level.WARN,
+                    f"The custom icon {rel} is not used",
+                    f"{exc}. It is left out of the icon sprite. File: {path}",
+                    "Save it as plain SVG (docs/customizing.md, 'Your own SVG icons') or delete it.",
+                )
+            )
+    yield from bad
+    if count and not bad:
+        yield Finding(Level.OK, "custom/ icons", f"{count} custom SVG file(s), all usable in the icon sprite")
 
 
 def _problem_title(item: custom.OverrideCheck) -> str:

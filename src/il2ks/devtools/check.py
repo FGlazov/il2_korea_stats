@@ -266,8 +266,18 @@ def fix_first(root: Path) -> None:
             continue
         env = {**os.environ, "PYTHONUTF8": "1"}
         env.pop("VIRTUAL_ENV", None)
-        done = subprocess.run(resolved, cwd=root, env=env, capture_output=True, text=True, check=False)
+        done = subprocess.run(
+            resolved, cwd=root, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
+        )
         print(f"fix: {label}: {'ok' if done.returncode == 0 else 'left problems for you'}")
+
+
+def _utf8_streams() -> None:
+    """Tool output (ruff's arrows and boxes) is UTF-8; a Windows console on cp1252 would crash `print` on it."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
 
 
 def check(
@@ -282,6 +292,7 @@ def check(
     verbose: bool = False,
     list_only: bool = False,
 ) -> int:
+    _utf8_streams()
     root = repo_root()
     chosen = select(tier, no_tests=no_tests, postgres=postgres, e2e=e2e, only=only)
     if list_only:

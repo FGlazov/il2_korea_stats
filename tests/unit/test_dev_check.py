@@ -116,3 +116,17 @@ def test_check_accepts_windows_line_endings(locale: Path) -> None:
 
 def test_check_reports_a_missing_catalog(locale: Path) -> None:
     assert any("is missing" in p for p in translations.check([DE]))
+
+
+def test_output_with_non_ascii_does_not_crash_a_cp1252_console(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ruff prints arrows and boxes; `print` on a Windows console that is not UTF-8 raised UnicodeEncodeError."""
+    import io
+
+    raw = io.BytesIO()
+    console = io.TextIOWrapper(raw, encoding="cp1252", errors="strict")
+    monkeypatch.setattr(sys, "stdout", console)
+    monkeypatch.setattr(sys, "stderr", io.TextIOWrapper(io.BytesIO(), encoding="cp1252", errors="strict"))
+    dev_check._utf8_streams()  # pyright: ignore[reportPrivateUsage]
+    print("→ ╭─ ✓")
+    console.flush()
+    assert "→ ╭─ ✓" in raw.getvalue().decode("utf-8")

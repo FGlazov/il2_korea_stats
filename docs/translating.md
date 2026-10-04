@@ -72,7 +72,7 @@ uv run il2ks dev translations status
 
 ```
 language  strings translated llm-draft reviewed missing
-de            141        141       141        0       0
+de           1070       1070      1054       16       0
 ```
 
 `reviewed` is what a human has checked; `llm-draft` is what is still waiting for one; `missing` has no translation yet.

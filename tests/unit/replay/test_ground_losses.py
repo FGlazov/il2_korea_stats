@@ -10,6 +10,7 @@ They only label losses that already count as deaths and lost planes (option (a):
 Ids: player A (aircraft 100, bot 101), enemy B (aircraft 200, bot 201), see `builder.py`.
 """
 
+from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult, SortieResult
 from tests.unit.replay.builder import FAR, GROUND, NO, Scenario, by_acct
 
@@ -301,3 +302,75 @@ def test_significant_damage_after_the_landing_is_strafed_even_with_a_threshold_a
     sc.end(120.1, 100, 101)
     a = by_acct(sc.result(), 1)
     assert (a.outcome, _flags(a)) == ("shot_down", (False, True))
+
+
+# --- OQ-112 side effects: failed landing needs a pilot who was still in the aircraft ----------------------------------
+
+
+def _eject(sc: Scenario, t: float) -> None:
+    """The pilot body AType 12 for bot 101 with `PID:-1`: the log shows the ejection."""
+    sc.declare(t, 101, "BotPlanePilot_Test", 601, parent=-1, pos=FAR)
+
+
+def test_a_pilot_killed_in_the_air_is_shot_down_even_if_the_wreck_lands_before_it_is_destroyed() -> None:
+    """B kills A's pilot (AType 3 on the bot), the wreck logs AType 6, then AType 3 names B: not a failed landing."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(80, 200, 100, 0.6)
+    sc.kill(85, 200, 101)
+    sc.land(100, 100)
+    sc.kill(120, 200, 100, pos=GROUND)
+    sc.end(120.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.loss_cause, a.is_death) == ("shot_down", "attacker", True)
+
+
+def test_a_pilot_who_bailed_out_before_the_empty_plane_landed_is_not_a_failed_landing() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(80, 200, 100, 0.6)
+    _eject(sc, 90)
+    sc.end(90.5, 0, 101)
+    sc.remove_bot(91, 101, FAR)
+    sc.land(100, 100)
+    sc.kill(120, 200, 100, pos=GROUND)
+    a = by_acct(sc.result(), 1)
+    assert (a.pilot_fate, a.loss_cause) == ("bailed_out", "attacker")
+    assert a.outcome == "shot_down"
+
+
+def test_a_kill_line_after_a_little_damage_after_the_landing_is_not_strafing() -> None:
+    """OQ-112: the kill line counts as evidence only with no attacker damage at all in the log (doc 13)."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.land(100, 100)
+    sc.damage(110, 200, 100, 0.02, pos=GROUND)
+    sc.kill(120, 200, 100, pos=GROUND)
+    sc.end(120.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.loss_cause, _flags(a)) == ("crashed", "self", (False, False))
+
+
+def test_a_zero_threshold_still_needs_damage_after_the_landing() -> None:
+    """`strafed_min_damage = 0`: any damage after the landing counts, but no damage at all does not."""
+    rules = ReplayRules(strafed_min_damage=0.0)
+    quiet = Scenario()
+    quiet.fly_a()
+    quiet.fly_b()
+    quiet.damage(80, 200, 100, 0.6)
+    quiet.land(100, 100)
+    quiet.kill(120, 200, 100, pos=GROUND)
+    quiet.end(120.1, 100, 101)
+    assert _flags(by_acct(quiet.result(rules), 1)) == (False, False)
+    loud = Scenario()
+    loud.fly_a()
+    loud.fly_b()
+    loud.damage(80, 200, 100, 0.6)
+    loud.land(100, 100)
+    loud.damage(110, 200, 100, 0.01, pos=GROUND)
+    loud.kill(120, 200, 100, pos=GROUND)
+    loud.end(120.1, 100, 101)
+    assert _flags(by_acct(loud.result(rules), 1)) == (False, True)

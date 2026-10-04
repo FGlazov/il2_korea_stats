@@ -1032,20 +1032,19 @@ msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Bomberjagd ist ein Handwerk, und das hier war ein Meisterstück."
 
 # llm-draft
-msgid "Bombers and attackers shot down"
-msgstr "Abgeschossene Bomber und Erdkampfflugzeuge"
-
-# llm-draft
-msgid ""
-"Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
-"flying an attack sortie (bombs or rockets). Only air superiority sorties count."
-msgstr ""
-"Abgeschossene Bomber und Erdkampfflugzeuge pro Flugstunde in Luftüberlegenheit: KI-Bomber und -Erdkampfflugzeuge "
-"sowie Flugzeuge von Spielern im Erdkampfeinsatz (Bomben oder Raketen). Nur Luftüberlegenheitseinsätze zählen."
-
-# llm-draft
 msgid "Bombers are not defenceless, and this one wanted it known."
 msgstr "Bomber sind nicht wehrlos, und dieser wollte das klarstellen."
+
+msgid "Bombers, attackers and transports shot down"
+msgstr "Abgeschossene Bomber, Erdkampfflugzeuge und Transportflugzeuge"
+
+msgid ""
+"Bombers, attackers and transports shot down per hour of air superiority flight: AI bombers, attackers and transports,"
+" and player aircraft flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+msgstr ""
+"Abgeschossene Bomber, Erdkampfflugzeuge und Transportflugzeuge pro Flugstunde in Luftüberlegenheit: KI-Bomber, "
+"-Erdkampfflugzeuge und -Transportflugzeuge sowie Flugzeuge von Spielern im Erdkampfeinsatz (Bomben oder Raketen). Nur"
+" Luftüberlegenheitseinsätze zählen."
 
 # llm-draft
 msgid "Bombs"
@@ -1453,9 +1452,8 @@ msgstr "Feindliche Flugzeuge"
 msgid "Enemy aircraft downed by ramming them."
 msgstr "Gegnerische Flugzeuge, die durch Rammen abgeschossen wurden."
 
-# llm-draft
-msgid "Enemy bombers and attackers flown by other pilots, shot down."
-msgstr "Abgeschossene gegnerische Bomber und Schlachtflugzeuge, die von anderen Piloten geflogen wurden."
+msgid "Enemy bombers, attackers and transports flown by other pilots, shot down."
+msgstr "Abgeschossene feindliche Bomber, Erdkampfflugzeuge und Transportflugzeuge, die von anderen Piloten geflogen wurden."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -4981,9 +4979,8 @@ msgstr "Fließtext auf Karten und Tabellen"
 msgid "body text on the page background"
 msgstr "Fließtext auf dem Seitenhintergrund"
 
-# llm-draft
-msgid "bomber and attacker kills, air superiority sorties"
-msgstr "Abschüsse von Bombern und Erdkampfflugzeugen, Luftüberlegenheitseinsätze"
+msgid "bomber, attacker and transport kills, air superiority sorties"
+msgstr "Abschüsse von Bombern, Erdkampf- und Transportflugzeugen, Luftüberlegenheitseinsätze"
 
 # llm-draft
 msgid "by"

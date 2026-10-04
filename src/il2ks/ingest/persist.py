@@ -142,10 +142,10 @@ def save_mission(
     recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk), touched_tours)
     recompute_matchups(old_pairs | mission_pairs(mission.pk))
     recompute_days({day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()))
-    if marks is not None:
-        recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:
         recompute_ratings(ratings)
+    if marks is not None:  # FR-WEB-22: after the player rows and the Elo replay (the Elo marks read the ratings)
+        recompute_thresholds(marks, touched_tours)
     bump_data_version()  # TD-28: same transaction as the save
     return mission
 
