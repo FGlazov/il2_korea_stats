@@ -530,13 +530,13 @@ msgid_plural ""
 "Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s "
 "encounters."
 msgstr[0] ""
-"Воздушное Elo на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
+"Воздушное Эло на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
 "%(games)s столкновения."
 msgstr[1] ""
-"Воздушное Elo на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
+"Воздушное Эло на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
 "%(games)s столкновений."
 msgstr[2] ""
-"Воздушное Elo на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
+"Воздушное Эло на этом самолёте, по победам между вылетами на господство в воздухе. Пилоты, у которых не менее "
 "%(games)s столкновений."
 
 # llm-draft
@@ -705,7 +705,7 @@ msgstr "Содействие"
 # llm-draft
 #, python-format
 msgid "Assisted on your losses: %(n)s"
-msgstr "Содействовал в ваших потерях: %(n)s"
+msgstr "Содействий в ваших потерях: %(n)s"
 
 # llm-draft
 msgid "Assists"
@@ -1274,11 +1274,11 @@ msgstr "Эло"
 
 # llm-draft
 msgid "Elo jet"
-msgstr "Elo реактивные"
+msgstr "Эло реактивные"
 
 # llm-draft
 msgid "Elo prop"
-msgstr "Elo поршневые"
+msgstr "Эло поршневые"
 
 # llm-draft
 msgid "Elo, jet"
@@ -1511,7 +1511,7 @@ msgstr "Свой пострадавший"
 
 # llm-draft
 msgid "Friendly-fire kills"
-msgstr "Огонь по своим: сбито"
+msgstr "Огонь по своим: уничтожено"
 
 # llm-draft
 msgid "Full killboard"
@@ -1945,7 +1945,7 @@ msgstr "Журнал побед"
 
 # llm-draft
 msgid "Killboard by aircraft"
-msgstr "Килборд по самолётам"
+msgstr "Журнал побед по самолётам"
 
 # llm-draft
 #, python-format
@@ -2274,7 +2274,7 @@ msgstr "Ссылки в навигации по порядку"
 # llm-draft
 #, python-format
 msgid "Needs at least %(n)s fights for a reliable ratio"
-msgstr "Для надёжного отношения нужно не менее %(n)s боёв"
+msgstr "Для надёжного соотношения нужно не менее %(n)s боёв"
 
 # llm-draft
 msgid "Neutral"
@@ -2323,19 +2323,19 @@ msgstr "Воздушных побед нет."
 
 # llm-draft
 msgid "No air-to-air activity in this tour: no air kills or assists."
-msgstr "В этом туре воздушных боёв не было: ни побед, ни помощи."
+msgstr "В этом туре воздушных боёв не было: ни побед, ни содействий."
 
 # llm-draft
 msgid "No air-to-air activity yet: no air kills or assists."
-msgstr "Воздушных боёв пока не было: ни побед, ни помощи."
+msgstr "Воздушных боёв пока не было: ни побед, ни содействий."
 
 # llm-draft
 msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
-msgstr "В этом туре не было работы по земле: ни наземных побед, ни штурмовых вылетов."
+msgstr "В этом туре не было работы по земле: ни уничтоженных наземных целей, ни штурмовых вылетов."
 
 # llm-draft
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
-msgstr "Работы по земле пока не было: ни наземных побед, ни штурмовых вылетов."
+msgstr "Работы по земле пока не было: ни уничтоженных наземных целей, ни штурмовых вылетов."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -2595,7 +2595,7 @@ msgstr "Принимаются только файлы шрифтов .woff2 и 
 # llm-draft
 msgid "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out."
 msgstr ""
-"Только победы, где оба пилота летели на вылете воздушного превосходства (истребитель против истребителя); штурмовые "
+"Только победы, где оба пилота выполняли вылет на господство в воздухе (истребитель против истребителя); штурмовые "
 "вылеты не учитываются."
 
 # llm-draft
@@ -2913,7 +2913,7 @@ msgstr "Фиолетовый"
 
 # llm-draft
 msgid "PvE air kills"
-msgstr "против ботов"
+msgstr "против ИИ"
 
 # llm-draft
 msgid "PvP air kills"
@@ -3398,7 +3398,7 @@ msgstr "Выжил"
 
 # llm-draft
 msgid "Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."
-msgstr "Пережили небо, а попались на стоянке. По дороге в ангар никого не должны обстреливать."
+msgstr "Небо вы пережили, а на стоянке вас подловили. По дороге в ангар никого не должны обстреливать."
 
 # llm-draft
 msgid "Suspected early bailouts"
@@ -3981,7 +3981,7 @@ msgstr "Тип"
 
 # llm-draft
 msgid "Type Veteran"
-msgstr "Ветеран типа"
+msgstr "Ветеран одного типа"
 
 # llm-draft
 msgid "Type the password again"
@@ -4530,7 +4530,8 @@ msgstr "— оставить цвета ниже —"
 msgid "— nothing yet (choose it in the lists below) —"
 msgstr "— пока ничего (выберите её в списках ниже) —"
 
+# llm-draft
 #, python-format
 msgid "…and %(n)s more (the breakdown by target type above counts them all)"
-msgstr ""
+msgstr "…и ещё %(n)s (разбивка по типам целей выше учитывает все)"
 
