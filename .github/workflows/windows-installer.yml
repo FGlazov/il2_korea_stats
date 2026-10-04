@@ -26,8 +26,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
       - run: uv sync --locked
 
       - name: The tag must match the package version
@@ -43,7 +43,7 @@ jobs:
       - name: Build the installer (pinned inputs, SHA-256 checked)
         run: uv run python packaging/windows/build.py
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: il2ks-windows-installer
           path: dist/il2ks-setup-*.exe
@@ -54,7 +54,7 @@ jobs:
     needs: build
     runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: il2ks-windows-installer
           path: installer
@@ -120,12 +120,12 @@ jobs:
     runs-on: windows-latest
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: il2ks-windows-installer
           path: installer
 
-      - name: Install with the service (own-proxy mode: no ports 80/443 needed)
+      - name: "Install with the service (own-proxy mode: no ports 80/443 needed)"
         shell: pwsh
         run: |
           $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
@@ -185,7 +185,7 @@ jobs:
     permissions:
       contents: write # attach the installer to the GitHub release
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: il2ks-windows-installer
           path: installer
