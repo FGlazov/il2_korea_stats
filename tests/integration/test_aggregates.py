@@ -48,7 +48,7 @@ def test_incremental_equals_rebuild_over_overlapping_missions() -> None:
     )
     m2 = mission(
         (
-            sortie(0, 1, name="Player-1-renamed", assists=1, flight_time_s=333.3),
+            sortie(0, 1, name="Player-1-renamed", assists=1, assists_ground=2, flight_time_s=333.3),
             sortie(1, 2, aircraft_type="F-86A-5", coalition=2, pilot_fate="bailed_out", outcome="crashed"),
             sortie(2, 4, aircraft_type="Brand-New Jet", coalition=2, kills_air=1, flight_time_s=0.02),
         )
@@ -82,7 +82,8 @@ def test_incremental_equals_rebuild_over_overlapping_missions() -> None:
     assert level2() == incremental
     p1 = Player.objects.get(account_uuid=account(1))
     assert p1.current_name == "Player-1-renamed"
-    assert (p1.sorties, p1.kills_air, p1.kills_ground, p1.assists, p1.deaths) == (3, 2, 1, 1, 1)
+    assert (p1.sorties, p1.kills_air, p1.kills_ground, p1.assists, p1.deaths) == (3, 2, 1, 3, 1)
+    assert (p1.assists_air, p1.assists_ground) == (1, 2)
     p2 = Player.objects.get(account_uuid=account(2))
     assert p2.current_name == "Player-2"  # Player-2-old was the earliest mission
     assert set(PlayerName.objects.filter(player=p2).values_list("name", flat=True)) == {"Player-2", "Player-2-old"}

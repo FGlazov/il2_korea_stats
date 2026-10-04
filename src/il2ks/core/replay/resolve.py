@@ -61,6 +61,9 @@ def _build_sortie(
     credited = [k for k in mine if k.credit == "kill"]
     ground = [k for k in credited if k.victim_kind == "ground"]
     air = [k for k in credited if k.victim_kind == "air"]
+    assisted = [k for k in mine if k.credit == "assist"]
+    assists_air = [k for k in assisted if k.victim_kind == "air"]
+    assists_ground = [k for k in assisted if k.victim_kind == "ground"]
     airframe = sortie.airframe
     takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
     landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
@@ -120,7 +123,9 @@ def _build_sortie(
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
         kills_ground_static=sum(1 for k in ground if k.victim_is_static),
-        assists=sum(1 for k in mine if k.credit == "assist"),
+        assists=len(assists_air) + len(assists_ground),
+        assists_air=len(assists_air),
+        assists_ground=len(assists_ground),
         ammo_loaded=sortie.ammo_loaded,
         ammo_left=sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None,
         ammo_hits=merge_ammo_hits(breakdown[1], sortie_ammo),

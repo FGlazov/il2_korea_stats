@@ -78,6 +78,8 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     ),
     Column("planes_lost", _("Planes lost"), lambda p: display.num(p.planes_lost)),
     Column("assists", _("Assists"), lambda p: display.num(p.assists)),
+    Column("assists_air", _("Air assists"), lambda p: display.num(p.assists_air)),
+    Column("assists_ground", _("Ground assists"), lambda p: display.num(p.assists_ground)),
     Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
 )
@@ -105,6 +107,8 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
     Column("mission", _("Mission"), _mission_link, numeric=False),
     Column("kills_air_pvp", _("Air kills (PvP)"), lambda s: display.num(s.kills_air_pvp)),
     Column("kills_air_ai", _("Air kills (AI)"), lambda s: display.num(s.kills_air_ai)),
+    Column("assists_air", _("Air assists"), lambda s: display.num(s.assists_air)),
+    Column("assists_ground", _("Ground assists"), lambda s: display.num(s.assists_ground)),
     Column("friendly_kills", _("Friendly kills"), lambda s: display.num(s.friendly_kills)),
     Column("air_points", _("Air score"), lambda s: display.num(s.air_points)),
     Column("ground_points", _("Ground score"), lambda s: display.num(s.ground_points)),

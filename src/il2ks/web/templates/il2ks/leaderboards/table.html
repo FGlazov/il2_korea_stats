@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/leaderboards/table.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/table.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   table.html: the table of a leaderboard. Context: board, sort, page_obj (Page of BoardRow: rank, player, stats, per_hour).
   Per-hour boards: ground-hour, interception, tank-busting. `stats` is the player's counters for the board (all-time, tour or per aircraft); the columns differ per board.
@@ -49,7 +49,7 @@
           {% if board.key == "air" %}
             <td class="num"><strong>{{ row.stats.score_air|num:1 }}</strong></td>
             <td class="num">{{ row.stats.kills_air|num }}</td>
-            <td class="num">{{ row.stats.assists|num }}</td>
+            <td class="num">{{ row.stats.assists_air|num }}</td>
             <td class="num">{{ row.stats.deaths|num }}</td>
             <td class="num">{{ row.stats.sorties|num }}</td>
           {% elif board.key == "ground" %}

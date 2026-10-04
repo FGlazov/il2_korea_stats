@@ -97,12 +97,21 @@ def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
         ({"kills_air": 2}, Highlights(bomber_kills=2), "sortie_bomber_hunter"),
         ({"kills_air": 2}, Highlights(bomber_kills=1), None),  # one bomber is not a hunt
         ({"kills_air": 2}, None, None),  # the spot needs the timeline facts
-        ({"assists": 3}, None, "sortie_stolen_kills"),  # no air kill: 3 assists
-        ({"assists": 2}, None, None),
-        ({"assists": 5, "kills_air": 1}, None, "sortie_stolen_kills"),  # one air kill: 5 assists
-        ({"assists": 4, "kills_air": 1}, None, None),
-        ({"assists": 6, "kills_air": 2}, None, "sortie_stolen_kills"),  # two air kills: 6 assists
-        ({"assists": 5, "kills_air": 2}, None, None),
+        ({"assists_air": 3}, None, "sortie_stolen_kills"),  # no air kill: 3 assists
+        ({"assists_air": 2}, None, None),
+        ({"assists_air": 5, "kills_air": 1}, None, "sortie_stolen_kills"),  # one air kill: 5 assists
+        ({"assists_air": 4, "kills_air": 1}, None, None),
+        ({"assists_air": 6, "kills_air": 2}, None, "sortie_stolen_kills"),  # two air kills: 6 assists
+        ({"assists_air": 5, "kills_air": 2}, None, None),
+        # ground assists: 5+ and at least as many as the own ground kills, fewer than 70 of those
+        ({"assists_ground": 5}, None, "sortie_stolen_ground"),
+        ({"assists_ground": 4}, None, None),
+        ({"assists_ground": 9, "kills_ground": 9}, None, "sortie_stolen_ground"),
+        ({"assists_ground": 9, "kills_ground": 10}, None, None),
+        ({"assists_ground": 80, "kills_ground": 70}, None, "sortie_ground_pounder"),
+        ({"assists_ground": 5, "assists_air": 3}, None, "sortie_stolen_kills"),  # the air line comes first
+        ({"assists_ground": 5, "kills_air": 3}, None, "sortie_ace"),
+        ({"assists_air": 2, "assists_ground": 4}, None, None),  # air and ground assists don't add up
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
@@ -121,7 +130,8 @@ def test_extreme_event_spots(fields: dict[str, object], highlights: Highlights |
 
 ACHIEVEMENTS: dict[str, object] = {
     "kills_air": 4,
-    "assists": 8,
+    "assists_air": 8,
+    "assists_ground": 90,
     "kills_ground": 90,
     "aircraft_status": "damaged",
     "damage_taken": 0.8,
@@ -157,11 +167,24 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
         ({}, HUNTER, "sortie_bomber_hunter"),
         ({}, QUICK, "sortie_ace"),
         ({"kills_air": 0}, QUICK, "sortie_stolen_kills"),
-        ({"kills_air": 0, "assists": 0}, QUICK, "sortie_battered_victor"),
-        ({"kills_air": 0, "assists": 0, "kills_ground": 0}, QUICK, "sortie_limped_home"),
-        ({"kills_air": 0, "assists": 0, "aircraft_status": "unharmed"}, QUICK, "sortie_ground_pounder"),
-        ({"kills_air": 0, "assists": 0, "kills_ground": 0, "aircraft_status": "unharmed"}, QUICK, "sortie_quick_kill"),
-        ({"kills_air": 0, "assists": 0, "kills_ground": 0, "aircraft_status": "unharmed"}, None, "sortie_marathon"),
+        ({"kills_air": 0, "assists_air": 0, "kills_ground": 5}, QUICK, "sortie_stolen_ground"),
+        ({"kills_air": 0, "assists_air": 0, "assists_ground": 0}, QUICK, "sortie_battered_victor"),
+        ({"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0}, QUICK, "sortie_limped_home"),
+        (
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "aircraft_status": "unharmed"},
+            QUICK,
+            "sortie_ground_pounder",
+        ),
+        (
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "aircraft_status": "unharmed"},
+            QUICK,
+            "sortie_quick_kill",
+        ),
+        (
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "aircraft_status": "unharmed"},
+            None,
+            "sortie_marathon",
+        ),
     ],
 )
 def test_spot_precedence(fields: dict[str, object], highlights: Highlights, spot: str) -> None:

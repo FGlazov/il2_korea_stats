@@ -153,7 +153,7 @@
 #air_kill_pvp = 10.0
 # Points for shooting down an AI aircraft.
 #air_kill_ai = 2.0
-# Points for an assist on an aircraft.
+# Points for an assist on an aircraft (assists on ground targets score nothing).
 #air_assist = 3.0
 # Points per ground kill, by category: tanks.
 #ground_tank = 6.0

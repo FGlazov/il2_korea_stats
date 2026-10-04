@@ -26,6 +26,8 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "kills_air": Sum("kills_air"),
         "kills_ground": Sum("kills_ground"),
         "assists": Sum("assists"),
+        "assists_air": Sum("assists_air"),
+        "assists_ground": Sum("assists_ground"),
         "deaths": Count("pk", filter=Q(is_death=True)),
         "planes_lost": Count("pk", filter=Q(is_plane_lost=True)),
         "bailouts": Count("pk", filter=Q(pilot_fate=PilotFate.BAILED_OUT)),

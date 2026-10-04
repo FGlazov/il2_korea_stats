@@ -11,7 +11,7 @@ def facts(
     attack: bool = False,
     kills_air_pvp: int = 0,
     kills_air_ai: int = 0,
-    assists: int = 0,
+    assists_air: int = 0,
     kills_ground: dict[GroundCategory, int] | None = None,
     is_death: bool = False,
     is_plane_lost: bool = False,
@@ -23,7 +23,7 @@ def facts(
         attack=attack,
         kills_air_pvp=kills_air_pvp,
         kills_air_ai=kills_air_ai,
-        assists=assists,
+        assists_air=assists_air,
         kills_ground=kills_ground or {},
         is_death=is_death,
         is_plane_lost=is_plane_lost,
@@ -38,7 +38,7 @@ def test_an_empty_sortie_scores_nothing() -> None:
 
 
 def test_air_kills_and_assists_make_the_air_score() -> None:
-    result = score_sortie(facts(kills_air_pvp=2, kills_air_ai=3, assists=1))
+    result = score_sortie(facts(kills_air_pvp=2, kills_air_ai=3, assists_air=1))
     assert result == SortieScore(air=2 * 10 + 3 * 2 + 3, ground=0.0)
 
 
@@ -100,3 +100,8 @@ def test_friendly_kills_are_penalised_up_to_the_cap() -> None:
     assert score_sortie(facts(friendly_kills=159)).air == -(5 * 3)
     assert score_sortie(facts(friendly_kills=2)).air == -6
     assert score_sortie(facts(friendly_kills=159), ScoreRules(penalty_friendly_kill_cap=10)).air == -30
+
+
+def test_ground_assists_score_nothing() -> None:
+    """Only assists on air victims earn `air_assist`; the facts don't even carry the ground ones."""
+    assert score_sortie(facts(assists_air=2)) == SortieScore(air=2 * RULES.air_assist, ground=0.0)

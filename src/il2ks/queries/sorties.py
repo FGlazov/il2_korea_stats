@@ -34,6 +34,8 @@ SORT_FIELDS: dict[str, SortSpec] = {
     "kills_air": "kills_air",
     "kills_ground": "kills_ground",
     "assists": "assists",
+    "assists_air": "assists_air",
+    "assists_ground": "assists_ground",
     "flight_time": "flight_time_s",
     "damage_taken": "damage_taken",
     # the optional columns (`?cols=`, `web.columns.SORTIE_COLUMNS`; a test keeps the two in step)

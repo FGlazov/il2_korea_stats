@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/kills.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/kills.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Kills and assists made by this sortie. Context: sortie, detail (air_kills, ground, assists, friendly).
   Air kills: player victims (Kill rows) and AI aircraft (timeline). Ground kills: the total and the collapsible
@@ -41,6 +41,7 @@
 
 {% if detail.assists %}
   <h3>{% blocktranslate with n=sortie.assists|num %}Assists: {{ n }}{% endblocktranslate %}</h3>
+  <p class="muted">{% blocktranslate with air=sortie.assists_air|num ground=sortie.assists_ground|num %}{{ air }} on aircraft, {{ ground }} on ground targets{% endblocktranslate %}</p>
   {% translate "Target" as victim_label %}{% include "il2ks/sorties/parts/kill_table.html" with rows=detail.assists victim_label=victim_label %}
 {% endif %}
 

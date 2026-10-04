@@ -185,7 +185,9 @@ class SortieResult:
     suspected_structural_failure: bool  # FR-ING-17 definition v2
     kills_air: int
     kills_ground: int
-    assists: int
+    assists: int  # assist credits on air and ground victims; always assists_air + assists_ground
+    assists_air: int
+    assists_ground: int
     ammo_loaded: AmmoCounts
     ammo_left: AmmoCounts | None  # None when the sortie had no AType 4
     ammo_hits: tuple[AmmoHits, ...] = ()

@@ -45,7 +45,7 @@ def test_gunner_kill_gives_the_pilot_an_assist() -> None:
     assert (assist.credit, assist.via, assist.is_friendly, assist.killer_type) == ("assist", "direct", False, "IL-10")
     assert (assist.tick, assist.victim_object_id) == (kill.tick, kill.victim_object_id)
     assert (gunner.kills_air, gunner.assists) == (1, 0)
-    assert (pilot.kills_air, pilot.assists) == (0, 1)
+    assert (pilot.kills_air, pilot.assists, pilot.assists_air, pilot.assists_ground) == (0, 1, 1, 0)
     assert "assist" in [e.kind for e in pilot.timeline]
 
 
