@@ -65,6 +65,8 @@ MAX_WARNING_LINE_CHARS = 200
 UNLABELLED = "()"
 """Token key of the unlabelled `(x,y,z)` group (AType 4 and 10)."""
 
+LOG_VERSION_ATYPE = 15
+
 RAW_FIELD = "#raw"
 """`GenericEvent.fields` key holding the whole line remainder when an unknown AType's tokens can't be split."""
 
@@ -335,6 +337,9 @@ class _Fields:
 # --- per-AType mapping -------------------------------------------------------------------------------------------
 
 type _Builder = Callable[[int, _Fields, Extra], LogEvent]
+type _Direct = Callable[[int, tuple[str, ...]], LogEvent]
+"""Builds an event from the fast path's values (an absent optional key is None there). A value that does not convert
+raises `ValueError`: `_parse` then falls back to `_Spec.build`."""
 
 
 # --- fast path ---------------------------------------------------------------------------------------------------
@@ -395,20 +400,21 @@ def _fast_line_for(keys: tuple[str, ...], free_text: frozenset[str], known_extra
     return _FastLine(re.compile(pattern), tuple(token_keys), tuple(guards), bool(known_extra))
 
 
-def _fast_tokens(fast: _FastLine, line: str, pos: int) -> dict[str, str] | None:
-    """The tokens of `line[pos:]` (after the `T:<tick> AType:<n>` head) if it has exactly the expected shape, else None
-    (then `tokenize` decides). Trailing whitespace is allowed, as `_parse` strips the line."""
-    m = fast.pattern.fullmatch(line, pos)
-    if m is None:
-        return None
-    values = m.groups()
+type _Values = tuple[str | None, ...]
+"""The regex groups of a fast-path match, in `_FastLine.token_keys` order (None: an optional key that is absent)."""
+
+
+def _guards_hold(fast: _FastLine, values: _Values) -> bool:
+    """False when a free-text value contains the terminator of its key (then `tokenize` would have ended it earlier)."""
     for group, colon_form, paren_form in fast.guards:
         value = values[group]
-        if colon_form in value or paren_form in value:
-            return None
-    if fast.has_optional:
-        return {k: v for k, v in zip(fast.token_keys, values, strict=True) if v is not None}
-    return dict(zip(fast.token_keys, values, strict=True))
+        if colon_form in value or paren_form in value:  # pyright: ignore[reportOperatorIssue]
+            return False
+    return True
+
+
+def _fast_tokens(fast: _FastLine, values: _Values) -> dict[str, str]:
+    return {k: v for k, v in zip(fast.token_keys, values, strict=True) if v is not None}
 
 
 @dataclass(frozen=True, slots=True)
@@ -423,6 +429,7 @@ class _Spec:
     free_text: frozenset[str] = frozenset()
     known_extra: tuple[str, ...] = ()
     fast: bool = True  # False: no fast path for this AType (see "fast path" below)
+    direct: _Direct | None = None  # event straight from the fast path's values: the hot ATypes (see "fast path")
     key_set: frozenset[str] = field(init=False)
     terminators: _Terminators = field(init=False)
     fast_line: _FastLine | None = field(init=False)
@@ -524,6 +531,58 @@ def _object_spawn(t: int, f: _Fields, x: Extra) -> ObjectSpawnEvent:
     )
 
 
+# --- direct builders (the hot ATypes) ----------------------------------------------------------------------------
+# `_Spec.build` goes through a token dict and `_Fields`. For the ATypes that make up 98% of a log (hits, damage, kills,
+# object declarations, gun bursts) the fast path's regex groups feed the event directly: same events, and a line with a
+# bad value raises ValueError, which hands the line to `build` for the exact error. Keep them in step with the builders
+# above; `tests/unit/logparse/test_fast_path.py` compares both on the real fixtures and on mutated lines.
+
+
+def _pos_of(group: str) -> Pos:
+    """`(x,y,z)` -> Pos. Raises ValueError (unpacking, float) when it is not three numbers."""
+    x, y, z = group[1:-1].split(",")
+    return Pos(float(x), float(y), float(z))
+
+
+def _direct_hit(t: int, v: tuple[str, ...]) -> LogEvent:
+    return HitEvent(tick=t, extra=_NO_EXTRA, ammo=v[0], attacker_id=ObjectId(int(v[1])), target_id=ObjectId(int(v[2])))
+
+
+def _direct_damage(t: int, v: tuple[str, ...]) -> LogEvent:
+    return DamageEvent(
+        tick=t,
+        extra=_NO_EXTRA,
+        damage=float(v[0]),
+        attacker_id=ObjectId(int(v[1])),
+        target_id=ObjectId(int(v[2])),
+        pos=_pos_of(v[3]),
+    )
+
+
+def _direct_kill(t: int, v: tuple[str, ...]) -> LogEvent:
+    return KillEvent(
+        tick=t, extra=_NO_EXTRA, attacker_id=ObjectId(int(v[0])), target_id=ObjectId(int(v[1])), pos=_pos_of(v[2])
+    )
+
+
+def _direct_object_spawn(t: int, v: tuple[str, ...]) -> LogEvent:
+    mid: str | None = v[6]  # the optional `MID` (the one known extra key); None when absent
+    return ObjectSpawnEvent(
+        tick=t,
+        extra=_NO_EXTRA if mid is None else MappingProxyType({"MID": mid}),  # pyright: ignore[reportUnnecessaryComparison]
+        object_id=ObjectId(int(v[0])),
+        object_type=v[1],
+        country=int(v[2]),
+        name=v[3],
+        parent_id=ObjectId(int(v[4])),
+        pos=_pos_of(v[5]),
+    )
+
+
+def _direct_gun_burst(t: int, v: tuple[str, ...]) -> LogEvent:
+    return GunBurstEvent(tick=t, extra=_NO_EXTRA, object_id=ObjectId(int(v[0])), pos=_pos_of(v[1]))
+
+
 _SPECS: Mapping[int, _Spec] = MappingProxyType(
     {
         0: _Spec(
@@ -538,6 +597,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
             lambda t, f, x: HitEvent(
                 tick=t, extra=x, ammo=f.raw("AMMO"), attacker_id=f.oid("AID"), target_id=f.oid("TID")
             ),
+            direct=_direct_hit,
         ),
         2: _Spec(
             ("DMG", "AID", "TID", "POS"),
@@ -549,10 +609,12 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
                 target_id=f.oid("TID"),
                 pos=f.pos(),
             ),
+            direct=_direct_damage,
         ),
         3: _Spec(
             ("AID", "TID", "POS"),
             lambda t, f, x: KillEvent(tick=t, extra=x, attacker_id=f.oid("AID"), target_id=f.oid("TID"), pos=f.pos()),
+            direct=_direct_kill,
         ),
         4: _Spec(("PLID", "PID", "BUL", "SH", "BOMB", "RCT", UNLABELLED), _sortie_end),
         5: _Spec(("PID", "POS"), lambda t, f, x: TakeoffEvent(tick=t, extra=x, object_id=f.oid("PID"), pos=f.pos())),
@@ -611,6 +673,7 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
             _object_spawn,
             free_text=frozenset({"TYPE", "NAME"}),
             known_extra=("MID",),
+            direct=_direct_object_spawn,
         ),
         13: _Spec(
             ("AID", "COUNTRY", "ENABLED", "BC"),
@@ -658,7 +721,9 @@ _SPECS: Mapping[int, _Spec] = MappingProxyType(
             ),
         ),
         24: _Spec(
-            ("OBJID", "POS"), lambda t, f, x: GunBurstEvent(tick=t, extra=x, object_id=f.oid("OBJID"), pos=f.pos())
+            ("OBJID", "POS"),
+            lambda t, f, x: GunBurstEvent(tick=t, extra=x, object_id=f.oid("OBJID"), pos=f.pos()),
+            direct=_direct_gun_burst,
         ),
         25: _Spec(
             ("OBJID", "POS", "TID"),
@@ -689,10 +754,19 @@ def _parse(line: str, *, fast: bool = True) -> tuple[int, LogEvent]:
             atype = int(head.group(2))
             spec = _SPECS.get(atype)
             if spec is not None and spec.fast_line is not None:
-                tokens = _fast_tokens(spec.fast_line, line, head.end())
-                if tokens is not None:
-                    extra = _NO_EXTRA if not spec.fast_line.has_optional else _extra_of(tokens, spec.key_set)
-                    return atype, spec.build(int(head.group(1)), _Fields(tokens), extra)
+                fast_line = spec.fast_line
+                m = fast_line.pattern.fullmatch(line, head.end())
+                values = None if m is None else m.groups()
+                if values is not None and (not fast_line.guards or _guards_hold(fast_line, values)):
+                    tick = int(head.group(1))
+                    if spec.direct is not None:
+                        try:
+                            return atype, spec.direct(tick, values)
+                        except ValueError:
+                            pass  # a value doesn't convert: `build` below reports exactly what is wrong
+                    tokens = _fast_tokens(fast_line, values)
+                    extra = _NO_EXTRA if not fast_line.has_optional else _extra_of(tokens, spec.key_set)
+                    return atype, spec.build(tick, _Fields(tokens), extra)
     text = line.strip()
     head = _HEAD_RE.match(text)
     if head is None:
@@ -769,7 +843,9 @@ def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
             stats.lines_bad += 1
             _warn(stats, e.kind, f"line {number}: {e}: {line[:MAX_WARNING_LINE_CHARS]!r}")
             continue
-        if isinstance(event, GenericEvent):
+        # `is`, not isinstance: the event classes are final, and this runs for every line
+        cls = type(event)
+        if cls is GenericEvent:
             if atype in IGNORED_ATYPES:
                 stats.ignored_atypes[atype] += 1
             else:
@@ -792,7 +868,7 @@ def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
                         f"line {number}: unknown key {key} in AType {atype}: {line.strip()[:MAX_WARNING_LINE_CHARS]!r}",
                         novelty=unknown,
                     )
-        if isinstance(event, LogVersionEvent):
+        if atype == LOG_VERSION_ATYPE and isinstance(event, LogVersionEvent):
             if stats.log_version is None:
                 stats.log_version = event.version
             elif event.version != stats.log_version:

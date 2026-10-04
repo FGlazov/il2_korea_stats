@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from il2ks.core.logparse import files
 from il2ks.core.logparse.events import LogVersionEvent, MissionEndEvent
 from il2ks.core.logparse.files import (
     MissionLog,
@@ -118,3 +119,29 @@ def test_zip_must_hold_exactly_one_txt(tmp_path: Path, members: dict[str, str]) 
     log = MissionLog(UID, "archive", (write_zip(tmp_path / name(UID, 0, ".txt.zip"), members),))
     with pytest.raises(ValueError, match=r"exactly one \.txt"):
         list(read_mission_lines(log))
+
+
+@pytest.mark.parametrize("chunk", [1, 2, 3, 5, 7, 64, 1 << 20])
+def test_chunked_reading_equals_universal_newlines(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, chunk: int) -> None:
+    """The chunked decoder gives what `io.TextIOWrapper(newline=None)` gives, whatever the chunk size: `\r\n` split by
+    a chunk boundary, lone `\r`, characters `str.splitlines` would split on, multi-byte characters cut by a boundary,
+    undecodable bytes, no final line ending."""
+    monkeypatch.setattr(files, "_READ_SIZE", chunk)
+    raw = (
+        b"T:0 AType:15 VER:18\r\nT:1 NAME:caf\xc3\xa9 \xe2\x82\xac\r\rT:2 x\x0b\x0c\x1c\xc2\x85\xe2\x80\xa8y\n\n"
+        b"\r\nT:3 bad:\xff\xfe\r\nlast line with no ending"
+    )
+    path = tmp_path / name(UID, 0)
+    path.write_bytes(raw)
+    with path.open(encoding="utf-8", errors="replace", newline=None) as stream:
+        expected = [line.rstrip("\r\n") for line in stream]
+    [log] = group_mission_files([path], txt_as="parts")
+    assert list(read_mission_lines(log)) == expected
+
+
+def test_a_bom_only_file_and_an_empty_file(tmp_path: Path) -> None:
+    (tmp_path / name(UID, 0)).write_bytes(b"\xef\xbb\xbf")
+    (tmp_path / name(UID, 1)).write_bytes(b"")
+    (tmp_path / name(UID, 2)).write_bytes(b"\xef\xbb\xbfT:0 AType:7\n")
+    [log] = group_mission_files(tmp_path.iterdir())
+    assert list(read_mission_lines(log)) == ["", "T:0 AType:7"]

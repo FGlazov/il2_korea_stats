@@ -16,7 +16,7 @@ from collections.abc import Iterator
 from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_all_ratings
 from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, Role
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import update_partial_rows
 
 
 def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
@@ -50,7 +50,7 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
                     elo_jet_games=wanted[3],
                 )
             )
-    update_rows(Player, changed, ["elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games"])
+    update_partial_rows(Player, changed, ["elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games"])
 
     changed_types: list[PlayerAircraft] = []
     for pk, player_id, aircraft_id, elo, elo_games in PlayerAircraft.objects.values_list(
@@ -60,7 +60,7 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
         wanted_type = (rules.start, 0) if found is None else (found.rating, found.games)
         if wanted_type != (elo, elo_games):
             changed_types.append(PlayerAircraft(pk=pk, elo=wanted_type[0], elo_games=wanted_type[1]))
-    update_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
+    update_partial_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
     return len(games)
 
 
