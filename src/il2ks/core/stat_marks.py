@@ -11,6 +11,8 @@ Rules:
   nothing else. Strictly above: with ties at a threshold nobody gets a mark they would share with half the field, so
   the claim "better than 9 in 10" stays true. Low values are never marked (nobody is shamed, FR-WEB-22); p10 and p25
   are stored anyway, for the owner's judgement and for later.
+- `taxi_per_sortie` and `friendly_fire_per_sortie` are no "better" metrics and never get a badge: the profile's hall of
+  shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - A population smaller than `MIN_POPULATION` has no thresholds (a percentile of a handful of pilots means nothing).
 """
 
@@ -18,10 +20,28 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Final, Literal
 
-type Metric = Literal["survival", "kd", "kl", "air_per_sortie", "air_per_hour", "ground_per_sortie"]
+type Metric = Literal[
+    "survival",
+    "kd",
+    "kl",
+    "air_per_sortie",
+    "air_per_hour",
+    "ground_per_sortie",
+    "taxi_per_sortie",
+    "friendly_fire_per_sortie",
+]
 type Band = Literal["top", "high"]
 
-METRICS: Final[tuple[Metric, ...]] = ("survival", "kd", "kl", "air_per_sortie", "air_per_hour", "ground_per_sortie")
+METRICS: Final[tuple[Metric, ...]] = (
+    "survival",
+    "kd",
+    "kl",
+    "air_per_sortie",
+    "air_per_hour",
+    "ground_per_sortie",
+    "taxi_per_sortie",
+    "friendly_fire_per_sortie",
+)
 MIN_POPULATION: Final = 20  # pilots needed before a distribution is worth showing
 SECONDS_PER_HOUR: Final = 3600.0
 
@@ -46,6 +66,8 @@ class Totals:
     kills_air: int  # air kills only: ground kills include fences and crates (OQ-38)
     kills_ground: int
     flight_time_s: float
+    taxi_accidents: int = 0
+    friendly_fire_incidents: int = 0  # sorties with a friendly kill
 
 
 def metric_value(metric: Metric, totals: Totals) -> float | None:
@@ -63,6 +85,10 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return _div(totals.kills_air * SECONDS_PER_HOUR, totals.flight_time_s)
         case "ground_per_sortie":
             return _div(totals.kills_ground, totals.sorties)
+        case "taxi_per_sortie":
+            return _div(totals.taxi_accidents, totals.sorties)
+        case "friendly_fire_per_sortie":
+            return _div(totals.friendly_fire_incidents, totals.sorties)
 
 
 def _div(numerator: float, denominator: float) -> float | None:

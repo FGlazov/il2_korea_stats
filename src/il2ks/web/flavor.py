@@ -14,20 +14,50 @@ from collections.abc import Mapping
 
 from django.utils.translation import gettext_lazy
 
-from il2ks.db.models import PlayerSortie
+from il2ks.core import stat_marks
+from il2ks.db.models import Counters, PlayerSortie, StatThreshold
 from il2ks.web.display import Label
 
 MULTI_KILL_MIN = 3  # air kills in one sortie that earn a line
 BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landing worth a remark
 
 SPOTS: Mapping[str, tuple[Label, ...]] = {
-    # Player profile, hall of shame (some taxi accidents or strafings on record).
-    "shame_some": (
-        gettext_lazy("Every pilot has bad days. These are the ones the server remembers."),
-        gettext_lazy("The ground crew keeps a file on these. It is a thin, well-thumbed file."),
-        gettext_lazy("Aviation's first rule: the airfield is also part of the mission."),
+    # Player profile, hall of shame: runway or taxi accidents only.
+    "shame_taxi": (
+        gettext_lazy("The airfield is also part of the mission. Some pilots just take that very seriously."),
+        gettext_lazy("The taxiway keeps a file on these. It is a thin, well-thumbed file."),
+        gettext_lazy("The war was waiting. The ramp had other ideas."),
         gettext_lazy("Nobody is judging. The wreckage is merely taking notes."),
-        gettext_lazy("Even the best squadrons have a story about the taxiway."),
+    ),
+    # ... friendly fire only.
+    "shame_friendly": (
+        gettext_lazy("The markings are small and the sky is crowded. It happens to the best squadrons."),
+        gettext_lazy("Wrong target, right enthusiasm. The debrief will be lively."),
+        gettext_lazy("Friendly fire: proof that the guns work."),
+        gettext_lazy("Everybody gets a wingman mixed up once. Some just have a longer record."),
+    ),
+    # ... both.
+    "shame_both": (
+        gettext_lazy("Trouble on the ramp and in the air. At least this pilot is consistent."),
+        gettext_lazy("The ground crew and the squadron both have a file on this one. The files have met."),
+        gettext_lazy("Every pilot has bad days. These are the ones the server remembers."),
+        gettext_lazy("An all-rounder: the taxiway and the formation have both had their moments."),
+    ),
+    # Above the 90th percentile of pilots with enough sorties: gentle ribbing, nobody is shamed.
+    "shame_taxi_p90": (
+        gettext_lazy("Few pilots know the taxiway as intimately as this one. It could give guided tours."),
+        gettext_lazy("The ramp crew has named a bollard after this pilot. Fondly."),
+        gettext_lazy("Some chase kills. This one chases the perfect parking spot, and keeps looking."),
+    ),
+    "shame_friendly_p90": (
+        gettext_lazy("A generous soul: this pilot shares the ammunition with everyone, wingmen included."),
+        gettext_lazy("The squadron has learned to fly a little wider. Bold of them, and well chosen."),
+        gettext_lazy("Equal-opportunity gunnery: this pilot never plays favourites between sides."),
+    ),
+    "shame_both_p90": (
+        gettext_lazy("An ambassador for chaos, on the ground and in the air. The squadron would not swap them."),
+        gettext_lazy("Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."),
+        gettext_lazy("Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honour."),
     ),
     # Player profile, hall of shame (nothing on record).
     "shame_clean": (
@@ -116,3 +146,52 @@ def sortie_spot(sortie: PlayerSortie) -> str | None:
     if sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED:
         return "sortie_limped_home"
     return None
+
+
+def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
+    """The counters the stat-mark metrics are made of, from a `Player` / `PlayerTour` row."""
+    return stat_marks.Totals(
+        sorties=stats.sorties,
+        deaths=stats.deaths,
+        planes_lost=stats.planes_lost,
+        kills_air=stats.kills_air,
+        kills_ground=stats.kills_ground,
+        flight_time_s=stats.flight_time_s,
+        taxi_accidents=stats.taxi_accidents,
+        friendly_fire_incidents=stats.friendly_fire_incidents,
+    )
+
+
+def _is_top(metric: stat_marks.Metric, stats: Counters, marks: Mapping[str, StatThreshold]) -> bool:
+    """Above the p90 of the pilots with enough sorties (never for a pilot under that minimum, or a scope without
+    thresholds)."""
+    limits = marks.get(metric)
+    if limits is None or stats.sorties < limits.min_sorties:
+        return False
+    value = stat_marks.metric_value(metric, stat_marks_totals(stats))
+    found = stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population)
+    return stat_marks.band(value, found) == "top"
+
+
+def shame_spot(stats: Counters, marks: Mapping[str, StatThreshold]) -> str:
+    """The profile's hall-of-shame spot (doc 13): which incidents the pilot has (taxi accidents, friendly-fire
+    sorties), and a separate, gentler spot for those whose rate per sortie is above the p90 of the pilots with enough
+    sorties (`marks`, the thresholds of the scope `stats` belongs to). Only the incident kinds the pilot is in the top
+    10% for are named in a p90 spot."""
+    taxi = stats.taxi_accidents > 0
+    friendly = stats.friendly_fire_incidents > 0
+    top_taxi = taxi and _is_top("taxi_per_sortie", stats, marks)
+    top_friendly = friendly and _is_top("friendly_fire_per_sortie", stats, marks)
+    if top_taxi and top_friendly:
+        return "shame_both_p90"
+    if top_taxi:
+        return "shame_taxi_p90"
+    if top_friendly:
+        return "shame_friendly_p90"
+    if taxi and friendly:
+        return "shame_both"
+    if taxi:
+        return "shame_taxi"
+    if friendly:
+        return "shame_friendly"
+    return "shame_clean"

@@ -14,7 +14,16 @@ from django.db.models import QuerySet
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, METRICS, MarkRules, Thresholds, Totals, metric_value, thresholds
 from il2ks.db.models import Player, PlayerTour, StatThreshold, Tour
 
-_FIELDS = ("sorties", "deaths", "planes_lost", "kills_air", "kills_ground", "flight_time_s")
+_FIELDS = (
+    "sorties",
+    "deaths",
+    "planes_lost",
+    "kills_air",
+    "kills_ground",
+    "flight_time_s",
+    "taxi_accidents",
+    "friendly_fire_incidents",
+)
 
 
 def recompute_thresholds(rules: MarkRules = DEFAULT_MARK_RULES, tour_ids: Iterable[int] | None = None) -> None:

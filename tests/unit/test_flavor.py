@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from django.utils import translation
 
-from il2ks.db.models import PlayerSortie
+from il2ks.db.models import Player, PlayerSortie, PlayerTour, StatThreshold
 from il2ks.devtools import translations
 from il2ks.web import flavor
 
@@ -93,3 +93,46 @@ def test_templates_only_use_known_spots() -> None:
     used = {m for p in root.rglob("*.html") for m in re.findall(r'\{% flavor "(\w+)"', p.read_text(encoding="utf-8"))}
     assert used
     assert used <= set(flavor.SPOTS)
+
+
+# --- hall of shame (doc 13): which incidents, and above the p90 ------------------------------------------------------
+def _limits(metric: str, p90: float, min_sorties: int = 20) -> StatThreshold:
+    return StatThreshold(metric=metric, min_sorties=min_sorties, population=100, p10=0, p25=0, p50=0, p75=0, p90=p90)
+
+
+# 5% of sorties end in a taxi accident / a friendly kill at the 90th percentile.
+MARKS = {
+    "taxi_per_sortie": _limits("taxi_per_sortie", 0.05),
+    "friendly_fire_per_sortie": _limits("friendly_fire_per_sortie", 0.05),
+}
+
+
+@pytest.mark.parametrize(
+    ("sorties", "taxi", "friendly", "marks", "spot"),
+    [
+        (50, 0, 0, MARKS, "shame_clean"),
+        (50, 1, 0, MARKS, "shame_taxi"),  # 2%: not above the p90
+        (50, 0, 1, MARKS, "shame_friendly"),
+        (50, 1, 1, MARKS, "shame_both"),
+        (50, 3, 0, MARKS, "shame_taxi_p90"),  # 6%
+        (50, 0, 3, MARKS, "shame_friendly_p90"),
+        (50, 3, 3, MARKS, "shame_both_p90"),
+        (50, 3, 1, MARKS, "shame_taxi_p90"),  # only the elevated kind is named
+        (50, 1, 3, MARKS, "shame_friendly_p90"),
+        (50, 0, 0, {}, "shame_clean"),
+        (50, 5, 5, {}, "shame_both"),  # no thresholds (too few pilots): no p90 spot
+        (10, 5, 5, MARKS, "shame_both"),  # under the minimum sorties: never "top"
+        (50, 0, 0, {"taxi_per_sortie": _limits("taxi_per_sortie", 0.0)}, "shame_clean"),  # zero is not above a p90 of 0
+        (50, 3, 0, {"taxi_per_sortie": _limits("taxi_per_sortie", 0.05, min_sorties=60)}, "shame_taxi"),
+    ],
+)
+def test_shame_spot(sorties: int, taxi: int, friendly: int, marks: dict[str, StatThreshold], spot: str) -> None:
+    stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_fire_incidents=friendly)
+    assert flavor.shame_spot(stats, marks) == spot
+    assert spot in flavor.SPOTS
+
+
+def test_shame_spot_on_a_tour_row() -> None:
+    """The profile shows a PlayerTour with `?tour=`: the same counters, so the same rules."""
+    stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_fire_incidents=0)
+    assert flavor.shame_spot(stats, MARKS) == "shame_taxi_p90"

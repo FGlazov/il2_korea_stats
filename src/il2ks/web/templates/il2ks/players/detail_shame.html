@@ -1,12 +1,13 @@
-{# il2ks-template: templates/il2ks/players/detail_shame.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_shame.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_shame.html: the light-hearted "hall of shame" (doc 13): taxi accidents and times strafed on the ground.
-  Context: player, stats. The quip is flavor text (FR-WEB-23), stable per player.
+  detail_shame.html: the light-hearted "hall of shame" (doc 13): taxi accidents and friendly-fire incidents (sorties in which
+  the pilot killed a friendly). Context: player, stats, marks (stat thresholds of the scope, FR-WEB-22). The quip is flavor
+  text (FR-WEB-23), stable per player; it depends on which incidents the pilot has and whether their rate is in the top 10%.
 {% endcomment %}<section class="shame">
   <h2>{% translate "Hall of shame" %}</h2>
   <div class="stat-tiles shame__tiles">
     {% stat_tile stats.taxi_accidents|num _("Taxi accidents") sub=_("Lost before the first takeoff, by their own doing") icon="stat/taxi-accidents" %}
-    {% stat_tile stats.strafed_on_ground|num _("Strafed on the ground") sub=_("Destroyed while parked, by an attacker") icon="stat/strafed" %}
-    <p class="shame__quip">{% if stats.taxi_accidents or stats.strafed_on_ground %}{% flavor "shame_some" player.pk %}{% else %}{% flavor "shame_clean" player.pk %}{% endif %}</p>
+    {% stat_tile stats.friendly_fire_incidents|num _("Friendly-fire incidents") sub=_("Sorties in which they killed a friendly") icon="stat/friendly-fire" %}
+    <p class="shame__quip">{% shame_flavor stats player.pk %}</p>
   </div>
 </section>

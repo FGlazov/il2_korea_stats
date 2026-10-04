@@ -36,6 +36,7 @@ from il2ks.queries import tours as tour_reads
 from il2ks.web import display, icons, object_names
 from il2ks.web import flavor as flavor_text
 from il2ks.web.display import SortFirst, Tone
+from il2ks.web.flavor import stat_marks_totals
 
 register = template.Library()
 
@@ -308,7 +309,7 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
     limits = marks.get(metric)
     if stats is None or limits is None or stats.sorties < limits.min_sorties:
         return {}
-    value = stat_marks.metric_value(cast(stat_marks.Metric, metric), _totals(stats))
+    value = stat_marks.metric_value(cast(stat_marks.Metric, metric), stat_marks_totals(stats))
     found = stat_marks.band(
         value, stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population)
     )
@@ -326,21 +327,18 @@ def stat_mark_note(context: Context) -> dict[str, object]:
     return {"min_sorties": first.min_sorties}
 
 
-def _totals(stats: Counters) -> stat_marks.Totals:
-    return stat_marks.Totals(
-        sorties=stats.sorties,
-        deaths=stats.deaths,
-        planes_lost=stats.planes_lost,
-        kills_air=stats.kills_air,
-        kills_ground=stats.kills_ground,
-        flight_time_s=stats.flight_time_s,
-    )
-
-
 @register.simple_tag
 def flavor(spot: str, seed: object) -> str:
     """`{% flavor "spot" seed %}`: a stable, translated one-liner for a highlight spot (il2ks.web.flavor)."""
     return str(flavor_text.pick(spot, seed))
+
+
+@register.simple_tag(takes_context=True)
+def shame_flavor(context: Context, stats: Counters, seed: object) -> str:
+    """`{% shame_flavor stats player.pk %}`: the hall-of-shame quip, by which incidents the pilot has and whether
+    their rate is in the top 10% (`marks` from the view; il2ks.web.flavor.shame_spot)."""
+    marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
+    return flavor(flavor_text.shame_spot(stats, marks), seed)
 
 
 @register.simple_tag
