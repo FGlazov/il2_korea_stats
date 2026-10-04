@@ -193,6 +193,11 @@ class SortieResult:
     # AType 4 came more than `ReplayRules.ammo_left_after_loss_s` after the aircraft was destroyed: `ammo_left` reads
     # as empty stores, so "ammo used" can't be derived from it (doc 13, Ammo and resupply).
     ammo_left_after_loss: bool = False
+    # Release events up to the sortie end (pilot sorties): AType 25 stores (bombs, napalm, drop tanks) and AType 26
+    # rocket salvos. An event is a release command, not one bomb or rocket (measured: it equals the number used in 37%
+    # of sorties), so zero events prove "none used" but a positive count gives no number (doc 13, Ammo and resupply).
+    store_releases: int = 0
+    rocket_salvos: int = 0
     # Ground losses (doc 13, OQ-32 answer): the aircraft was lost on the ground, by the sortie itself or by an attacker.
     taxi_accident: bool = False  # lost before its first takeoff, loss_cause "self"
     strafed_on_ground: bool = False  # lost on the ground (before takeoff, or parked after landing) to an attacker

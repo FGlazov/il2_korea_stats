@@ -99,6 +99,8 @@ def test_sortie_row_values() -> None:
         "loaded": {"bullets": 400, "shells": 0, "bombs": 0, "rockets": 0},
         "left": {"bullets": 200, "shells": 0, "bombs": 0, "rockets": 0},
         "used": {"bullets": 200, "shells": 0, "bombs": 0, "rockets": 0},
+        "left_after_loss": False,
+        "releases": {"stores": 0, "rocket_salvos": 0},
         "hits": [],
         "unattributed": {"dealt": 0.0, "taken": 0.0},
         "ordnance": [],

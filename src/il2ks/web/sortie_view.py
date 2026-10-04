@@ -465,7 +465,7 @@ def _damage(amount: float, who: Who) -> str:
 
 
 # --- ammo ---------------------------------------------------------------------------------------------------------
-AmmoNote = Literal["", "resupplied", "no_end_record", "unreliable"]
+AmmoNote = Literal["", "resupplied", "no_end_record", "after_loss", "unreliable"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -536,6 +536,7 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
     ammo = _dict(sortie.ammo)
     loaded, left, used = _dict(ammo.get("loaded")), _dict(ammo.get("left")), _dict(ammo.get("used"))
     has_end_record = ammo.get("left") is not None
+    after_loss = ammo.get("left_after_loss") is True  # AType 4 was written after the aircraft was lost: "left" is junk
     rows: list[AmmoRow] = []
     unknown: AmmoNote = ""
     for kind, label in AMMO_LABELS.items():
@@ -544,13 +545,21 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
         is_unknown = _int(used.get(kind)) is None
         note: AmmoNote = ""
         if is_unknown:
-            note = "resupplied" if sortie.resupplied else "no_end_record" if not has_end_record else "unreliable"
+            note = (
+                "resupplied"
+                if sortie.resupplied
+                else "no_end_record"
+                if not has_end_record
+                else "after_loss"
+                if after_loss
+                else "unreliable"
+            )
             unknown = unknown or note
         rows.append(
             AmmoRow(
                 str(label),
                 _count(loaded.get(kind)),
-                _count(left.get(kind)) if has_end_record else display.DASH,
+                _count(left.get(kind)) if has_end_record and not after_loss else display.DASH,
                 display.DASH if is_unknown else _count(used.get(kind)),
                 note,
             )

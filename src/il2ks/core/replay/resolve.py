@@ -114,6 +114,8 @@ def _build_sortie(
         ammo_left=sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None,
         ammo_hits=merge_ammo_hits(breakdown[1], sortie_ammo),
         ordnance=sortie_ammo.ordnance,
+        store_releases=sortie_ammo.store_releases,
+        rocket_salvos=sortie_ammo.rocket_salvos,
         ammo_unattributed=sortie_ammo.unattributed,
         damage=breakdown[0],
         timeline=timeline(sortie, verdict, kills),

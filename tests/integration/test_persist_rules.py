@@ -200,28 +200,71 @@ def test_ammo_used_is_loaded_minus_left_per_type() -> None:
 
 
 def test_ammo_used_is_unknown_after_a_resupply() -> None:
-    ammo = _ammo(resupplied=True, ammo_loaded=AmmoCounts(400, 100, 2, 8), ammo_left=AmmoCounts(150, 100, 0, 4))
+    ammo = _ammo(
+        resupplied=True,
+        ammo_loaded=AmmoCounts(400, 100, 2, 8),
+        ammo_left=AmmoCounts(150, 100, 0, 4),
+        store_releases=1,
+        rocket_salvos=1,
+    )
     assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
     assert PlayerSortie.objects.get().resupplied is True
 
 
 def test_bombs_used_is_unknown_when_more_is_left_than_loaded() -> None:
     """IL-10 bomblet payloads load 4 (stations) and leave 60+ (bomblets): units differ, so no number."""
-    ammo = _ammo(ammo_loaded=AmmoCounts(400, 100, 4, 0), ammo_left=AmmoCounts(300, 100, 96, 0))
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 100, 4, 0), ammo_left=AmmoCounts(300, 100, 96, 0), store_releases=2)
     assert ammo["used"] == {"bullets": 100, "shells": 0, "bombs": None, "rockets": 0}
 
 
 def test_ammo_used_is_unknown_without_a_sortie_end() -> None:
-    ammo = _ammo(ammo_left=None)
+    ammo = _ammo(ammo_left=None, ammo_loaded=AmmoCounts(400, 0, 2, 6), store_releases=1, rocket_salvos=1)
     assert ammo["left"] is None
     assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
 
 
-def test_ammo_used_is_unknown_when_the_pilot_left_a_destroyed_aircraft() -> None:
-    """AType 4 of a destroyed aircraft the pilot climbed out of reads as empty stores (all bombs and rockets used)."""
-    ammo = _ammo(ammo_loaded=AmmoCounts(400, 0, 2, 6), ammo_left=AmmoCounts(150, 0, 0, 0), ammo_left_after_loss=True)
+def test_after_a_loss_guns_and_released_stores_are_unknown() -> None:
+    """AType 4 of a destroyed aircraft the pilot climbed out of reads as empty stores, whatever was dropped. Release
+    events are commands, not bomb counts: dropping 2 of 4 bombs leaves the number unknown."""
+    ammo = _ammo(
+        ammo_loaded=AmmoCounts(400, 0, 4, 6),
+        ammo_left=AmmoCounts(150, 0, 0, 0),
+        ammo_left_after_loss=True,
+        store_releases=2,
+        rocket_salvos=1,
+    )
     assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
     assert ammo["left"] == {"bullets": 150, "shells": 0, "bombs": 0, "rockets": 0}  # the raw AType 4 stays
+    assert ammo["left_after_loss"] is True
+    assert ammo["releases"] == {"stores": 2, "rocket_salvos": 1}
+
+
+def test_after_a_loss_bombs_and_rockets_never_released_were_not_used() -> None:
+    """A bailout with all 4 bombs and 6 rockets still on board: AType 4 says 0 left, the missing releases say 0 used."""
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 0, 4, 6), ammo_left=AmmoCounts(150, 0, 0, 0), ammo_left_after_loss=True)
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": 0, "rockets": 0}
+
+
+def test_bombs_with_more_left_than_loaded_and_no_release_were_not_used() -> None:
+    ammo = _ammo(ammo_loaded=AmmoCounts(400, 0, 4, 0), ammo_left=AmmoCounts(300, 0, 96, 0))
+    assert ammo["used"] == {"bullets": 100, "shells": 0, "bombs": 0, "rockets": 0}
+
+
+def test_a_resupplied_sortie_without_releases_used_no_bombs_or_rockets() -> None:
+    ammo = _ammo(resupplied=True, ammo_loaded=AmmoCounts(400, 0, 2, 8), ammo_left=AmmoCounts(150, 0, 0, 0))
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": 0, "rockets": 0}
+
+
+def test_trusted_ammo_left_beats_the_release_events() -> None:
+    """When AType 4 is trusted, loaded - left stays the answer even if it disagrees with the events (measured on the
+    samples: one event can drop a pair of bombs, and a rocket event is a salvo)."""
+    ammo = _ammo(
+        ammo_loaded=AmmoCounts(400, 0, 4, 8),
+        ammo_left=AmmoCounts(150, 0, 0, 0),
+        store_releases=1,
+        rocket_salvos=2,
+    )
+    assert ammo["used"] == {"bullets": 250, "shells": 0, "bombs": 4, "rockets": 8}
 
 
 def test_ended_by_mission_end_is_persisted_with_the_airborne_outcome() -> None:
