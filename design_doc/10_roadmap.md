@@ -69,7 +69,7 @@ the release gate.
   real service test (`windows-installer.yml`, workflow_dispatch).
 - ✅ First-run **web setup page** for the installer (game folder, domain, admin account): config written write-validate-replace, token not
   in logs, restart after the response.
-- ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). 🔧 Docker https smoke on Windows.
+- ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). ✅ Docker https smoke on Windows (2026-10-04): Caddy could not start under the compose hardening (file capability + `cap_drop: ALL`); fixed in the image, the smoke test now runs with the same hardening and ingests a fixture.
 - ✅ **Ammo breakdown** (FR-WEB-18): per-sortie hits per ammo type, average hits-to-destroy per aircraft type, `/aircraft/` pages; per-ammo
   damage columns hidden (OQ-52). Real caliber names required before the release (maintainer, 2026-10-04).
 - ✅ **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").

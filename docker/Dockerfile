@@ -45,9 +45,13 @@ RUN groupadd --gid 1000 il2ks \
  && chown 1000:1000 /data
 
 COPY --from=build /opt/venv /opt/venv
-COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh
+# The official Caddy binary carries a file capability (cap_net_bind_service). compose.yaml drops ALL capabilities, and
+# exec of a binary whose file capability is outside the bounding set fails with "operation not permitted". Copying the
+# bytes with `cat` (not COPY, which keeps the xattr) gives a plain binary; low ports come from the net.ipv4 sysctl.
+RUN --mount=type=bind,from=caddy,source=/usr/bin/caddy,target=/tmp/caddy \
+    cat /tmp/caddy > /usr/local/bin/caddy \
+ && chmod 0755 /usr/local/bin/caddy /usr/local/bin/docker-entrypoint.sh
 
 ENV PATH="/opt/venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
