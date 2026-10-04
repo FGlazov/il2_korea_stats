@@ -3,6 +3,7 @@ save. Real anonymized fixture missions are cut into raw parts that grow tick by 
 ingest runs the real pipeline, and its rows must be exactly those of a one-shot ingest of the complete mission."""
 
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
@@ -30,6 +31,8 @@ from il2ks.ingest import live as live_module
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.live import LiveTracker, discard_stale_provisional
 from il2ks.ingest.lock import WriterLock
+from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.runner import default_pipeline, ingest_once
 from il2ks.ingest.watch import watch
 from tests.db_canon import canonical_dump, diff_dumps
@@ -229,10 +232,77 @@ def test_elo_is_untouched_by_provisional_passes_and_applied_at_the_final_save(tm
     other.write(len(other.parts))
     other.finish()
     assert live.mission().is_live
+    with_live = elo_state()
+    # the reference: the same database without the running mission (earlier + other only), ratings replayed
+    SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": False})
+    discard_stale_provisional(live.cfg, keep="")
+    assert not Mission.objects.filter(is_live=True).exists()
+    recompute_ratings(live.cfg.ratings)
+    assert elo_state() == with_live  # the live kills never entered the ratings another ingest worked out
+    SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": True})
 
+    live.tick()  # saved again
     live.finish()
     assert not live.mission().is_live
     assert elo_state() != before  # the final save applied the ratings
+
+
+def test_rebuild_and_reprocess_leave_a_running_mission_and_the_ratings_alone(tmp_path: Path) -> None:
+    earlier = Scenario(tmp_path / "earlier", fixture="most_bailouts", uid="2026-09-18_20-00-00")
+    earlier.write(len(earlier.parts))
+    earlier.finish()
+    live = Scenario(tmp_path / "live", fixture="most_bailouts", uid="2026-09-19_21-00-00")
+    live.cfg = replace(live.cfg, data_dir=earlier.cfg.data_dir)
+    live.tracker = LiveTracker(live.cfg, cost_clock=free_clock)
+    ratings = elo_state()
+    live.write(len(live.parts), last_half=True)
+    live.tick()
+    live.tracker._flush_pending(live.tracker._running)  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    cfg = live.cfg
+
+    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+    assert live.mission().is_live
+    assert elo_state() == ratings
+
+    reprocess(
+        cfg,
+        default_pipeline(cfg, defer_ratings=True),
+        workers=1,
+        executor_factory=ThreadPoolExecutor,
+    )  # every archived mission: the running one has no archive and is not touched
+    assert live.mission().is_live
+    assert Mission.objects.get(mission_uid=earlier.uid).pk
+    assert elo_state() == ratings
+
+
+def test_level_two_in_the_middle_of_a_live_mission_equals_a_rebuild(tmp_path: Path) -> None:
+    """On top of an earlier mission, with level 2 slower than level 1 (pending work merges between its passes). The
+    stat thresholds are the one thing a rebuild adds: they wait for the final save by design."""
+    earlier = Scenario(tmp_path / "earlier", fixture="most_bailouts", uid="2026-09-18_20-00-00")
+    earlier.write(len(earlier.parts))
+    earlier.finish()
+    live = Scenario(
+        tmp_path / "live",
+        fixture="most_bailouts",
+        uid="2026-09-19_21-00-00",
+        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=100.0, aggregates_interval_s=100000.0),
+    )
+    live.cfg = replace(live.cfg, data_dir=earlier.cfg.data_dir)
+    live.tracker = LiveTracker(live.cfg, cost_clock=free_clock)
+    for count in (1, 2, 3, 4):
+        live.write(count, last_half=True)
+        live.tick()
+    running = live.tracker._running  # pyright: ignore[reportPrivateUsage]
+    assert running is not None
+    assert live.tracker._flush_pending(running)  # pyright: ignore[reportPrivateUsage]
+    incremental = canonical_dump()
+
+    cfg = live.cfg
+    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+    rebuilt = canonical_dump()
+    differing = diff_dumps(incremental, rebuilt)
+    assert [d for d in differing if not d.startswith(("StatThreshold", "TourStatThreshold"))] == [], differing
 
 
 def test_toggle_off_behaves_as_before(scenario: Scenario) -> None:

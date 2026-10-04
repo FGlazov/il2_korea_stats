@@ -416,7 +416,7 @@ def live_check(cfg: Config) -> Iterable[Finding]:
         return
     try:
         enabled = sorties_enabled()
-        running = Mission.objects.filter(is_live=True).count()
+        running = Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).count()
     except DatabaseError:
         return  # an old database without the column: the database check says to migrate
     if not cfg.live.enabled:
