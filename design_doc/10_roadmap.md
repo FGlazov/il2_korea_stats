@@ -142,6 +142,11 @@ decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 - Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
+- ⏳ **Accuracy** (maintainer, 2026-10-04): hit percentage for air-to-air and for ground fire (per sortie, per player, per aircraft
+  type). Needs research first: which log fields give the rounds fired (ammo counts at spawn/landing/end, resupply) next to the hits
+  we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
+- 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
+  the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
 - ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
