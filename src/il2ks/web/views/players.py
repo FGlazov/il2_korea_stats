@@ -9,7 +9,7 @@ from il2ks.db.models import Counters
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import player_tour, tour_choice_from
-from il2ks.web import pve
+from il2ks.web import columns, pve
 from il2ks.web.chart_data import player_charts
 from il2ks.web.ground import ground_breakdown
 
@@ -18,11 +18,21 @@ def player_search(request: HttpRequest) -> HttpResponse:
     """`/players/?q=&sort=&page=`: search by current or past nickname; the list of recently active players without `q`.
 
     Template `il2ks/players/search.html`. Context: `q` (the trimmed query), `sort` (resolved, e.g. '-last_seen'),
-    `page_obj` (a Django Page of `PlayerHit(player, matched_name)`), `page_title`."""
+    `page_obj` (a Django Page of `PlayerHit(player, matched_name)`), `page_title`, `optional_columns` (every column a
+    visitor can add) and `columns` (the ones `?cols=` chose, in that order; all-time values from the Player row)."""
     query = request.GET.get("q", "").strip()[: reads.MAX_QUERY_LENGTH]
     sort = reads.resolve_sort(request.GET.get("sort", ""), reads.PLAYER_SORTS, reads.DEFAULT_PLAYER_SORT)
     page = reads.player_page(query, sort, request.GET.get("page", 1))
-    context = {"page_title": _("Players"), "q": query, "sort": sort, "page_obj": page}
+    shown = columns.chosen(request.GET, columns.PLAYER_COLUMNS)
+    context = {
+        "page_title": _("Players"),
+        "q": query,
+        "sort": sort,
+        "page_obj": page,
+        "optional_columns": columns.PLAYER_COLUMNS,
+        "columns": shown,
+        "colspan": 7 + len(shown),
+    }
     return render(request, "il2ks/players/search.html", context)
 
 

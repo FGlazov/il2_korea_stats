@@ -17,7 +17,7 @@ from il2ks.queries import aircraft as reads
 from il2ks.queries import ammo as ammo_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries.players import resolve_sort
-from il2ks.web import display, object_names
+from il2ks.web import columns, display, object_names
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +74,8 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
     """`/aircraft/?sort=`: one row per aircraft type flown, with its totals, ratios and the average gun hits it took to
     destroy it. Sortable (a whitelist in `queries.aircraft`); each row links to the type's page.
 
-    Template `il2ks/aircraft/list.html`. Context: rows (`AircraftRow`), sort (resolved), page_title.
+    Template `il2ks/aircraft/list.html`. Context: rows (`AircraftRow`), sort (resolved), page_title, optional_columns
+    (every column a visitor can add) and columns (the ones `?cols=` chose).
     Reads: two queries (plus the 2 of the context processor)."""
     sort = resolve_sort(request.GET.get("sort", ""), reads.AIRCRAFT_SORTS, reads.DEFAULT_AIRCRAFT_SORT)
     destroyed = {a.aircraft_id: a for a in ammo_reads.all_aircraft_ammo()}
@@ -89,7 +90,16 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
         rows.sort(
             key=lambda r: object_names.name_of(r.stats.aircraft, language).casefold(), reverse=sort.startswith("-")
         )
-    return render(request, "il2ks/aircraft/list.html", {"rows": rows, "sort": sort, "page_title": _("Aircraft")})
+    shown = columns.chosen(request.GET, columns.AIRCRAFT_COLUMNS)
+    context = {
+        "rows": rows,
+        "sort": sort,
+        "page_title": _("Aircraft"),
+        "optional_columns": columns.AIRCRAFT_COLUMNS,
+        "columns": shown,
+        "colspan": 13 + len(shown),
+    }
+    return render(request, "il2ks/aircraft/list.html", context)
 
 
 def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:

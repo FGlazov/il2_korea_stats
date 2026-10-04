@@ -355,6 +355,10 @@ msgid "Air kills"
 msgstr "Воздушные победы"
 
 # llm-draft
+msgid "Air kills (PvP)"
+msgstr "Воздушные победы (PvP)"
+
+# llm-draft
 msgid "Air kills and deaths per tour"
 msgstr "Воздушные победы и гибели по турам"
 
@@ -365,6 +369,10 @@ msgstr "Воздушных побед за час полёта"
 # llm-draft
 msgid "Air kills per sortie"
 msgstr "Воздушных побед за вылет"
+
+# llm-draft
+msgid "Air kills/h"
+msgstr "Воздушные победы/ч"
 
 # llm-draft
 #, python-format
@@ -412,6 +420,10 @@ msgid ""
 msgstr ""
 "Эло поршневых самолётов в воздушных боях, по победам между вылетами на господство в воздухе. За всё время. Победа "
 "поршневого над реактивным засчитывается вдвойне."
+
+# llm-draft
+msgid "Air-to-air rating, all time"
+msgstr "Рейтинг в воздушных боях, за всё время"
 
 # llm-draft
 msgid "Airborne"
@@ -569,6 +581,10 @@ msgid "Attempts"
 msgstr "Попытки"
 
 # llm-draft
+msgid "Average flight time per sortie"
+msgstr "Среднее время в полёте за вылет"
+
+# llm-draft
 msgid "Average hits"
 msgstr "Среднее число попаданий"
 
@@ -583,6 +599,10 @@ msgstr "BLUFOR"
 # llm-draft
 msgid "BLUFOR labels"
 msgstr "подписи BLUFOR"
+
+# llm-draft
+msgid "BLUFOR sorties"
+msgstr "Вылеты BLUFOR"
 
 # llm-draft
 msgid "BLUFOR won"
@@ -794,6 +814,10 @@ msgid "Colors"
 msgstr "Цвета"
 
 # llm-draft
+msgid "Columns"
+msgstr "Столбцы"
+
+# llm-draft
 msgid "Combat role"
 msgstr "Боевая роль"
 
@@ -966,6 +990,14 @@ msgid "Elo"
 msgstr "Эло"
 
 # llm-draft
+msgid "Elo jet"
+msgstr "Elo реактивные"
+
+# llm-draft
+msgid "Elo prop"
+msgstr "Elo поршневые"
+
+# llm-draft
 msgid "Elo, jet"
 msgstr "Эло, реактивные"
 
@@ -976,6 +1008,10 @@ msgstr "Эло, поршневые"
 # llm-draft
 msgid "Empty missions"
 msgstr "Пустые миссии"
+
+# llm-draft
+msgid "Ended"
+msgstr "Окончание"
 
 # llm-draft
 msgid "Enemy action"
@@ -1066,6 +1102,10 @@ msgstr "Найти игрока по имени"
 # llm-draft
 msgid "Finish setup"
 msgstr "Завершить настройку"
+
+# llm-draft
+msgid "First seen"
+msgstr "Впервые замечен"
 
 # llm-draft
 #, python-format
@@ -1224,6 +1264,10 @@ msgid ""
 msgstr ""
 "Очков за землю в час над целью на этом самолёте. Пилоты минимум с %(sorties)s штурмовыми вылетами и %(minutes)s "
 "минутами над целью."
+
+# llm-draft
+msgid "Ground score/h"
+msgstr "Очки за землю/ч"
 
 # llm-draft
 msgid "Ground vehicle or object"
@@ -2316,6 +2360,10 @@ msgid "REDFOR labels"
 msgstr "подписи REDFOR"
 
 # llm-draft
+msgid "REDFOR sorties"
+msgstr "Вылеты REDFOR"
+
+# llm-draft
 msgid "REDFOR won"
 msgstr "Победила REDFOR"
 
@@ -2609,6 +2657,10 @@ msgid "Sortie ended"
 msgstr "Вылет завершён"
 
 # llm-draft
+msgid "Sortie length"
+msgstr "Длительность вылета"
+
+# llm-draft
 msgid "Sortie report"
 msgstr "Отчёт о вылете"
 
@@ -2638,6 +2690,14 @@ msgstr "Вылеты пилота %(name)s: %(tour)s"
 # llm-draft
 msgid "Sorties per day"
 msgstr "Вылетов в день"
+
+# llm-draft
+msgid "Sorties per pilot"
+msgstr "Вылетов на пилота"
+
+# llm-draft
+msgid "Sorties per player"
+msgstr "Вылетов на игрока"
 
 # llm-draft
 msgid "Sorties per side"

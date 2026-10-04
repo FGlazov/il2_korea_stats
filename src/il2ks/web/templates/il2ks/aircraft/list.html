@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/aircraft/list.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/list.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown, sortable with ?sort= (a whitelist in the view). View:
   il2ks.web.views.aircraft.aircraft_list. Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
-  (HitsToDestroy: kills, average)), sort (resolved), page_title.
+  (HitsToDestroy: kills, average)), sort (resolved), page_title, optional_columns (the columns a visitor can add),
+  columns (the chosen ones, ?cols=), colspan.
   K/D and K/L use air kills (OQ-38). The main link of a row carries `stretched-link`, which makes the whole row clickable.
   Hits to destroy count only kills where one attacker did all the damage (as in the old il2_stats module).
   Blocks of this page: content.
@@ -14,6 +15,9 @@
     <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
   </div>
   {% results_region %}
+    {% filter_bar %}
+      {% columns_picker optional_columns %}
+    {% endfilter_bar %}
     <div class="table-wrap">
       <table class="data-table aircraft-table">
         <thead>
@@ -31,6 +35,7 @@
             {% sort_th "survival" _("Survival") numeric=True %}
             {% sort_th "attack_share" _("Attack sorties") numeric=True %}
             <th scope="col" class="num" title="{% translate 'Average number of gun hits that destroyed it' %}">{% translate "Hits to destroy" %}</th>
+            {% for column in columns %}{% sort_th column.key column.label numeric=True %}{% endfor %}
           </tr>
         </thead>
         <tbody>
@@ -55,10 +60,11 @@
                 <td class="num">{{ row.survived|percent:stats.sorties }}</td>
                 <td class="num">{{ stats.attack_sorties|percent:stats.sorties }}</td>
                 <td class="num">{{ row.hits.average }}</td>
+                {% for column in columns %}<td class="num">{{ column|cell:stats }}</td>{% endfor %}
               </tr>
             {% endwith %}
           {% empty %}
-            {% empty_row 13 _("No aircraft has flown yet.") %}
+            {% empty_row colspan _("No aircraft has flown yet.") %}
           {% endfor %}
         </tbody>
       </table>

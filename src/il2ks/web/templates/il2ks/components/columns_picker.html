@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/components/columns_picker.html v1 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  columns_picker.html ({% columns_picker optional_columns %}): the "Columns" dropdown of a list page, for inside a
+  {% filter_bar %}. One checkbox per optional column, all named `cols`: the form submits ?cols=a&cols=b (the page also
+  reads ?cols=a,b). Works without JS (the Apply button submits); with htmx a change refreshes the results.
+  hx-preserve keeps the dropdown open while the region is swapped.
+  Context: options (list of (key, label, hint, checked)).
+{% endcomment %}<details class="dropdown columns-picker" id="columns-picker" hx-preserve>
+  <summary>{% translate "Columns" %}</summary>
+  <ul>{% for key, label, hint, checked in options %}
+    <li><label{% if hint %} title="{{ hint }}"{% endif %}><input type="checkbox" name="cols" value="{{ key }}"{% if checked %} checked{% endif %}>{{ label }}</label></li>{% endfor %}
+  </ul>
+</details>

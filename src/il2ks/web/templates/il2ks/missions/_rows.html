@@ -1,7 +1,8 @@
-{# il2ks-template: templates/il2ks/missions/_rows.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/_rows.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   missions/_rows.html: <tbody> rows of a mission table (home page and mission list); same columns as the list header.
-  Context: missions (an iterable of Mission), colspan (optional, columns of the empty row; default 9),
+  Context: missions (an iterable of Mission), columns (optional: the extra columns chosen with ?cols= on the mission
+  list, after Winner), colspan (optional, columns of the empty row; default 9),
   empty_message (optional text for the empty row).
 {% endcomment %}{% for m in missions %}
 <tr{% if not m.sorties_total %} class="is-empty"{% endif %}>
@@ -14,5 +15,6 @@
   <td class="num">{{ m.kills_air|num }}</td>
   <td class="num">{{ m.kills_ground|num }}</td>
   <td>{% winner_badge m %}</td>
+  {% for column in columns %}<td class="num">{{ column|cell:m }}</td>{% endfor %}
 </tr>{% empty %}
 {% empty_row colspan|default:9 empty_message|default:_("No missions match these filters.") %}{% endfor %}

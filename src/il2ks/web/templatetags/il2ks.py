@@ -16,7 +16,7 @@ Block tags: results_region, filter_bar, accordion, notice.
 
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
-from typing import cast
+from typing import Never, cast
 
 from django import template
 from django.conf import settings
@@ -33,7 +33,7 @@ from django.utils.translation import get_language, get_language_info
 from il2ks.core import stat_marks
 from il2ks.db.models import Counters, PlayerSortie, StatThreshold, Tour
 from il2ks.queries import tours as tour_reads
-from il2ks.web import display, icons, object_names
+from il2ks.web import columns, display, icons, object_names
 from il2ks.web import flavor as flavor_text
 from il2ks.web.charts import ChartSpec, build_bar_chart
 from il2ks.web.display import SortFirst, Tone
@@ -42,7 +42,7 @@ from il2ks.web.flavor import stat_marks_totals
 register = template.Library()
 
 COMPONENTS = "il2ks/components/"
-NON_FILTER_PARAMS = frozenset({"page", "sort"})
+NON_FILTER_PARAMS = frozenset({"page", "sort", columns.COLS_PARAM})  # a column choice is not a filter
 
 type Option = tuple[object, object]
 type Crumb = tuple[object, str | None]
@@ -530,6 +530,22 @@ def tour_filter(context: Context, tours: Iterable[Tour], selected: Tour | None =
     return _tour_context(context, tours, selected, main=False)
 
 
+@register.inclusion_tag(COMPONENTS + "columns_picker.html", takes_context=True)
+def columns_picker(context: Context, available: Sequence[columns.Column[Never]]) -> dict[str, object]:
+    """{% columns_picker optional_columns %} inside {% filter_bar %}: the "Columns" dropdown of checkboxes (`?cols=`).
+
+    `available` is the page's registry of optional columns (`il2ks.web.columns`); the checked ones are read from the
+    query string, so the control and the table can never disagree."""
+    wanted = columns.requested_keys(_params_of(context))
+    return {"options": [(column.key, column.label, column.hint, column.key in wanted) for column in available]}
+
+
+@register.filter
+def cell(column: object, row: object) -> str:
+    """{{ column|cell:row }}: the text of an optional column (`il2ks.web.columns.Column`) for one row."""
+    return cast("columns.Column[object]", column).cell(row)
+
+
 # --- block tags ---------------------------------------------------------------------------------------------------
 class ComponentBlockNode(Node):
     """Renders `template_name` with the tag's arguments plus `content` (the rendered body) and `request`."""
@@ -585,6 +601,13 @@ def _register_block(
     register.tag(name, compile_tag)
 
 
+def _kept_params(params: QueryDict) -> QueryDict:
+    """What "Clear filters" keeps besides the sort: the chosen columns."""
+    kept = QueryDict(mutable=True)
+    kept.setlist(columns.COLS_PARAM, params.getlist(columns.COLS_PARAM))
+    return kept
+
+
 def _filter_bar_extra(context: Context) -> dict[str, object]:
     request = _request_of(context)
     params = _params_of(context)
@@ -593,7 +616,7 @@ def _filter_bar_extra(context: Context) -> dict[str, object]:
         "action": request.path if request is not None else "",
         "sort": params.get("sort", ""),
         "has_filters": active,
-        "clear_href": replace_query(QueryDict(), {"sort": params.get("sort", "")}),
+        "clear_href": replace_query(_kept_params(params), {"sort": params.get("sort", "")}),
     }
 
 

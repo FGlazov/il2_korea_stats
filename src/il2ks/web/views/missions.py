@@ -19,7 +19,7 @@ from il2ks.queries import activity as activity_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import missions as reads
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from
-from il2ks.web import display
+from il2ks.web import columns, display
 from il2ks.web.chart_data import activity_chart
 from il2ks.web.views.leaderboards import BOARD_TITLES
 
@@ -89,11 +89,16 @@ def mission_list(request: HttpRequest) -> HttpResponse:
     sort = reads.resolve_sort(request.GET.get("sort", ""))
     choice = tour_choice_from(request.GET)
     filters = replace(reads.parse_filters(request.GET), tour=choice.selected)
-    page = Paginator(reads.mission_list(filters, sort, datetime.now(UTC)), PAGE_SIZE).get_page(request.GET.get("page"))
+    shown = columns.chosen(request.GET, columns.MISSION_COLUMNS)
+    missions = reads.mission_list(filters, sort, datetime.now(UTC), with_tour=any(c.key == "tour" for c in shown))
+    page = Paginator(missions, PAGE_SIZE).get_page(request.GET.get("page"))
     context: dict[str, object] = {
         "page_title": _("Missions"),
         "page_obj": page,
         "missions": page.object_list,
+        "optional_columns": columns.MISSION_COLUMNS,
+        "columns": shown,
+        "colspan": 9 + len(shown),
         "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
         **choice.context,
         "sort": sort,
