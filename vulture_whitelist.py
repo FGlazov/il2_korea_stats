@@ -227,5 +227,3 @@ _.legend
 _.table_head
 _.air_points  # PlayerSortie model fields: set by ingest.scoring, summed by name in the score counters (ingest.counters)
 _.ground_points
-
-detect_rams  # iteration 2 WIP: ram signal, not wired into kill credit yet (core.replay.toggles); tested

@@ -11,6 +11,7 @@ from il2ks.core.replay.judge import Verdict, judge
 from il2ks.core.replay.kills import resolve_kills
 from il2ks.core.replay.model import MissionFacts, SortieState, is_bot_type
 from il2ks.core.replay.pve import loss_class
+from il2ks.core.replay.rams import ram_partners
 from il2ks.core.replay.result import (
     AmmoCounts,
     AmmoHits,
@@ -132,6 +133,7 @@ def _build_sortie(
 
 
 def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> MissionResult:
+    facts.ram_partners = ram_partners(facts, rules)
     verdicts = [judge(sortie, facts, rules, final=final) for sortie in facts.sorties]
     kills = resolve_kills(facts, verdicts, rules)
     details = breakdowns(facts, verdicts)
