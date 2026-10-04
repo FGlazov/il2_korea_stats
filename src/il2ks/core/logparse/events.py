@@ -1,4 +1,4 @@
-"""Typed log events: one frozen dataclass per known AType (TD-07, TD-20).
+"""Typed log events: one (statically frozen) dataclass per known AType (TD-07, TD-20).
 
 Every event keeps the tick it happened at and an `extra` mapping with any keys the parser didn't map to a field
 (for example `MID:` on AType 12 or `TARGETS()` on AType 8), so new log content is kept instead of rejected.
@@ -9,7 +9,7 @@ Field names follow doc 12 (design_doc/12_korea_log_format.md); the raw log key i
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import NamedTuple, NewType
+from typing import NamedTuple, NewType, dataclass_transform
 
 ObjectId = NewType("ObjectId", int)
 """In-mission object ID (aircraft, bot, vehicle, store, ...). Only unique within one mission. -1 means none."""
@@ -36,7 +36,23 @@ def _empty_extra() -> MappingProxyType[str, str]:
     return MappingProxyType({})
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass_transform(kw_only_default=True, frozen_default=True)
+def event_class[T](cls: type[T]) -> type[T]:
+    """Class decorator for every event: a keyword-only, slotted dataclass that pyright treats as frozen.
+
+    Speed (doc 14 "Speed"): a real `frozen=True` dataclass assigns every field in `__init__` through
+    `object.__setattr__`, which makes construction ~2.5x slower, and event construction was ~45% of parse time. So at
+    runtime this is `dataclass(slots=True, kw_only=True)` (not frozen), while `dataclass_transform(frozen_default=True)`
+    makes pyright (strict) report any assignment to an event field as an error: immutability is enforced statically
+    only (`tests/unit/logparse/test_event_immutability.py` proves it). Nothing at runtime hashes, mutates or copies
+    events (replay and ingest only read them), so the lost `FrozenInstanceError` and the `__hash__` that `frozen=True`
+    plus `eq=True` generated are not needed; `eq` stays on, so events still compare by value (tests rely on it) and are
+    now unhashable.
+    """
+    return dataclass(slots=True, kw_only=True)(cls)
+
+
+@event_class
 class Event:
     """Base class. `extra` holds unmapped `KEY:value` tokens, verbatim."""
 
@@ -44,7 +60,7 @@ class Event:
     extra: MappingProxyType[str, str] = field(default_factory=_empty_extra)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class MissionStartEvent(Event):
     """AType 0."""
 
@@ -60,7 +76,7 @@ class MissionStartEvent(Event):
     aqm_id: int  # AQMID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class HitEvent(Event):
     """AType 1. `ammo` is e.g. `BULLET_12-7_USA_API` or `explosion` (97% of hits; never stored, TD-08)."""
 
@@ -69,7 +85,7 @@ class HitEvent(Event):
     target_id: ObjectId  # TID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class ExplosionBurstEvent(Event):
     """Consecutive AType 1 `AMMO:explosion` lines with the same tick and attacker, in log order (speed: they are 72% of
     all lines). Only `parse_lines` yields it, for lines of exactly the shape `T:<tick> AType:1 AMMO:explosion AID:<n>
@@ -79,7 +95,7 @@ class ExplosionBurstEvent(Event):
     target_ids: tuple[ObjectId, ...]  # TID of each line (at least one)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class DamageEvent(Event):
     """AType 2. `damage` is the fraction of the target destroyed by this hit (0..1)."""
 
@@ -89,7 +105,7 @@ class DamageEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class KillEvent(Event):
     """AType 3."""
 
@@ -98,7 +114,7 @@ class KillEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class SortieEndEvent(Event):
     """AType 4. `aircraft_id == 0` (PLID:0) means the pilot wasn't in an aircraft at sortie end (doc 12)."""
 
@@ -111,7 +127,7 @@ class SortieEndEvent(Event):
     pos: Pos  # unlabelled "(x,y,z)"
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class TakeoffEvent(Event):
     """AType 5."""
 
@@ -119,7 +135,7 @@ class TakeoffEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class LandingEvent(Event):
     """AType 6."""
 
@@ -127,12 +143,12 @@ class LandingEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class MissionEndEvent(Event):
     """AType 7. Can appear twice, or not at all (doc 12, Timing)."""
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class MissionObjectiveEvent(Event):
     """AType 8. Korea adds trailing `TARGETS() OBJECTS() ...` fields; they go to `extra`."""
 
@@ -144,7 +160,7 @@ class MissionObjectiveEvent(Event):
     icon_type: int  # ICTYPE
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class AirfieldEvent(Event):
     """AType 9."""
 
@@ -153,7 +169,7 @@ class AirfieldEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class PlayerSpawnEvent(Event):
     """AType 10. `in_air`: 0 = air start, 1 = runway, 2 = parking (doc 12)."""
 
@@ -181,7 +197,7 @@ class PlayerSpawnEvent(Event):
     weapon_mods: int  # WM (bitmask)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class GroupEvent(Event):
     """AType 11."""
 
@@ -190,7 +206,7 @@ class GroupEvent(Event):
     leader_id: ObjectId  # LID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class ObjectSpawnEvent(Event):
     """AType 12. A known `object_id` re-declared is an update, not a new object (TD-20, doc 12)."""
 
@@ -202,7 +218,7 @@ class ObjectSpawnEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class InfluenceAreaEvent(Event):
     """AType 13. Korea's `BC` has 3 values."""
 
@@ -212,7 +228,7 @@ class InfluenceAreaEvent(Event):
     bc: tuple[int, ...]  # BC(a,b,c)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class AreaBoundaryEvent(Event):
     """AType 14. Korea's boundary points are 2D `(x, z)`."""
 
@@ -220,14 +236,14 @@ class AreaBoundaryEvent(Event):
     points: tuple[tuple[float, float], ...]  # BP((x,z),...)
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class LogVersionEvent(Event):
     """AType 15. Header line of every log part."""
 
     version: int  # VER
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class BotRemovedEvent(Event):
     """AType 16. Bot (crew) deinitialization. For a pilot, `pos` is their final position (bailout rule v2)."""
 
@@ -235,7 +251,7 @@ class BotRemovedEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class BailoutEvent(Event):
     """AType 18. Only for gunners and AI in Korea, never for player pilots (doc 12)."""
 
@@ -244,12 +260,12 @@ class BailoutEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class RoundEndEvent(Event):
     """AType 19."""
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class PlayerConnectEvent(Event):
     """AType 20."""
 
@@ -257,7 +273,7 @@ class PlayerConnectEvent(Event):
     profile_uuid: ProfileUuid  # USERNICKID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class PlayerDisconnectEvent(Event):
     """AType 21."""
 
@@ -265,7 +281,7 @@ class PlayerDisconnectEvent(Event):
     profile_uuid: ProfileUuid  # USERNICKID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class GunBurstEvent(Event):
     """AType 24. New in Korea."""
 
@@ -273,7 +289,7 @@ class GunBurstEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class StoreReleaseEvent(Event):
     """AType 25. External store released (bomb, napalm, drop tank). `store_id` is the newly spawned store object."""
 
@@ -282,7 +298,7 @@ class StoreReleaseEvent(Event):
     store_id: ObjectId  # TID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class RocketFiredEvent(Event):
     """AType 26. `rocket_id` is the rocket object."""
 
@@ -291,7 +307,7 @@ class RocketFiredEvent(Event):
     rocket_id: ObjectId  # TID
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class WheelsOffEvent(Event):
     """AType 30. Fires about 4 s before AType 5."""
 
@@ -299,7 +315,7 @@ class WheelsOffEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class WheelsOnEvent(Event):
     """AType 31. Fires at spawn and before AType 6."""
 
@@ -307,7 +323,7 @@ class WheelsOnEvent(Event):
     pos: Pos  # POS
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@event_class
 class GenericEvent(Event):
     """Any AType without a typed event (17, 22, 23, 27, 28, 29, future ones). All tokens are in `fields` (TD-20)."""
 
