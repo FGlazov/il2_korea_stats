@@ -11,7 +11,7 @@ def delete_extra_kinds(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0048_mod_filters"),
+        ("il2ks_db", "0049_mod_filters"),
     ]
 
     operations = [migrations.RunPython(delete_extra_kinds, migrations.RunPython.noop)]

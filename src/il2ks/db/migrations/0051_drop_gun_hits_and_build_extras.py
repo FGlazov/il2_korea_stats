@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0049_delete_build_mods_ammo_rows"),
+        ("il2ks_db", "0050_delete_build_mods_ammo_rows"),
     ]
 
     operations = [

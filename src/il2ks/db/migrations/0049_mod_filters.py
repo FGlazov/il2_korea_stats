@@ -15,7 +15,7 @@ def drop_filter_rows(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0047_aircraft_roles"),
+        ("il2ks_db", "0048_aircraft_roles"),
     ]
 
     operations = [
