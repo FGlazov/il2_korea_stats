@@ -13,14 +13,15 @@ settings** you can change:
 
 - **Site title** and **server name** (the name of your game server),
 - **Description**: a short text shown on the home page,
-- **Logo**: upload a PNG, JPEG or WebP picture. (SVG is not accepted for uploads, because an SVG file can carry
+- **Logo**: upload a PNG, JPEG or WebP picture (up to 2 MB). (SVG is not accepted for uploads, because an SVG file can carry
   scripts. See the next section if you need SVG.)
 - **Fonts**: one for headings and one for the text (see below),
 - **Colors**: every color of the site, separately for the light and the dark theme (see below),
 - **Navigation links**: your own links (Discord, forum, Patreon, ...) in the top menu (see below),
-- **Coalition names**: what "REDFOR" and "BLUFOR" are called on your pages.
+- **Coalition names and emblems**: what "REDFOR" and "BLUFOR" are called on your pages, and which emblem each side shows (neutral by default).
 
-Changes show on the site at once.
+Changes show on the site at once. Not what you were looking for? Hiding players, renaming tours and game objects are in
+[settings.md](settings.md#the-admin-area); the scoring rules are in [settings.md](settings.md).
 
 ### Navigation links
 
@@ -43,8 +44,7 @@ and 1920 px wide (the page content is at most 1240 px wide, so 1920 looks like 1
 | Long (`Join our Discord server`, `Support us on Patreon`) | 1 link; the 2nd wraps | 1 | 0 |
 
 So we recommend **at most 3 links with short labels (one or two words)**; longer labels fit fewer. The admin form says
-the same. More links still work, they just make the header two or three rows tall. (The test that measures this is
-`tests/e2e/test_nav_layout.py`.)
+the same. More links still work, they just make the header two or three rows tall.
 
 ### Colors
 
@@ -62,8 +62,8 @@ il2ks checks the readability of the colors you saved (WCAG contrast ratios: body
 header). Poor combinations produce a yellow warning after saving; **nothing is blocked**, so a deliberate choice stays
 possible. The one accent color of older versions became the accent in both modes.
 
-Only exact `#RRGGBB` values are ever written into the page: nothing else can get through, even from a hand-edited
-database. The colors are one small `<style>` block that sets the `--il2-*` variables (see "Colours" below).
+Only exact `#RRGGBB` values are written into the page. The colors are one small `<style>` block that sets the
+`--il2-*` variables (see "Colours" below).
 
 ### Fonts
 
@@ -87,8 +87,7 @@ that was in use falls back to the default). A preview line shows each uploaded f
   the file has only one weight; upload a font with the weights you need (a variable font covers all of them).
 - **Size matters.** Every visitor downloads the file once. The shipped site loads about 45 KB of fonts; a subset
   `.woff2` (Latin plus the scripts you need) is usually 15-40 KB, a full font with every script can be several hundred.
-  il2ks warns when a file is over 150 KB; aim for under 100 KB. The built-in page-weight limit
-  (`tests/e2e/test_frontend_performance.py`, 60 KB of fonts) applies to the shipped look and to two typical subset fonts.
+  il2ks warns when a file is over 150 KB; aim for under 100 KB.
 - Check that the font's **license allows web use** (embedding on a website); many desktop-only licenses do not.
 
 If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
@@ -168,6 +167,10 @@ starts, `il2ks doctor` lists each file as a warning, and `il2ks custom list` sho
 | `yours only` | A new file of your own that replaces nothing. Nothing to worry about. |
 | `unchecked` | Replaces a built-in file that has no version (a vendored library, Django's own admin files), so il2ks can't tell. |
 
+To see only the files that need attention, run `il2ks custom list --problems`. For scripts, `--json` prints the same
+as machine-readable text, and `--fail-on-problems` ends with exit code 4 when something needs attention (the Windows
+installer uses this at the end of an upgrade).
+
 **Bringing an override up to date**:
 
 1. See what differs: `il2ks custom diff templates/il2ks/base.html`. It compares your file with the built-in one as it is
@@ -210,7 +213,8 @@ starts with a comment that lists the variables it receives. Overriding one of th
 "Online now" is two of them: `online_now.html` (the section that refreshes itself every few seconds) and
 `online_now_body.html` (the player table inside it, also what the `/live/` address returns).
 
-**Pages** — `il2ks/home.html`, `il2ks/missions/`, `il2ks/players/`, `il2ks/sorties/`, and the error pages `404.html` and
+**Pages** — `il2ks/home.html`, `il2ks/missions/`, `il2ks/players/`, `il2ks/sorties/`, `il2ks/aircraft/`,
+`il2ks/leaderboards/`, `il2ks/achievements/`, `il2ks/streaks/`, and the error pages `404.html` and
 `500.html` (the 500 page can't use your site settings: it must work even when the database doesn't).
 
 **Icons and images** — `il2ks/img/` under static. Every icon has a fixed name (for example `il2ks/img/outcome/landed.svg`),

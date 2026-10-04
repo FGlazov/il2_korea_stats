@@ -65,7 +65,8 @@ il2ks setup
 
 It asks where DServer writes its logs, which domain to use, and creates the configuration file `il2ks.toml`, the
 database, and your admin account. The file is commented; open it any time to change a setting. All settings and what
-they do are listed in the example config that ships with il2ks (`il2ks.example.toml`).
+they do are listed in the example config that ships with il2ks (`il2ks.example.toml`). Rules, scores and tours:
+[settings.md](settings.md).
 
 The settings you are most likely to touch:
 
@@ -237,17 +238,24 @@ a running il2ks can fail.)
 2. Upgrade: `uv tool upgrade il2ks`
 3. Start it: Windows `schtasks /Run /TN il2ks`; Linux `sudo systemctl start il2ks`; in a window: `il2ks run`.
 
-Database migrations run by themselves at start, after an automatic backup. Your data folder (database, logs, `custom/`)
-is untouched.
+Database migrations run by themselves at start, after an automatic backup, and so does filling in what a new version needs
+from your existing data (a few minutes on a big database). Your data folder (database, logs, `custom/`) is untouched.
 
-After an upgrade run `il2ks doctor`: it tells you if a template you customized has changed
+After an upgrade run `il2ks doctor`: it tells you about renamed settings and if a template you customized has changed
 ([customizing.md](customizing.md)).
+
+Old missions are **not** recalculated by themselves. If the release notes say a rule or score changed, run
+`il2ks reprocess --all` (or `il2ks rebuild-aggregates` for scores). Which command fits which change:
+[Rules, scoring and tours](settings.md#what-to-run-after-a-change).
 
 ## Backups
 
-`il2ks backup` writes a dated zip with everything that cannot be rebuilt from the game logs (database, configuration,
-`custom/`), and `il2ks restore <zip>` brings it back (stop il2ks first: restore refuses while `il2ks run` or the website is running, unless you add `--force`). Details: `il2ks backup --help`. The original game logs are kept
-(archived) in the data folder as well: keep that folder safe.
+`il2ks backup` writes a dated zip into the `backups` folder of the data folder, with everything that cannot be rebuilt from
+the game logs (database, configuration, `custom/`, uploaded logo and fonts). il2ks also makes one every day, before every
+database update, and keeps the newest 10 (`[backup] keep`). `il2ks restore <zip>` brings one back. Stop il2ks first: restore
+refuses while `il2ks run`, the website or the log watcher is running, unless you add `--force`. Details:
+`il2ks backup --help`. The original game logs are archived in the data folder as well and are not part of the zip: keep that
+folder safe, and copy the backups to another disk now and then.
 
 ## Linux, DServer under Wine
 
@@ -286,7 +294,7 @@ for each problem.
 | "another il2ks writer is running" | Normal for a moment while `watch` ingests, or while an update of the database waits for it. If it persists, something else (a `reprocess`) holds the lock; wait. The website itself keeps running during an ingest; only an `il2ks web` start that has to update the database needs the lock. |
 | The site works but is empty | `[logs] dir` is wrong or DServer's text logs are off. `il2ks doctor`, then `il2ks ingest` to see what it finds. |
 | Page has no styling | Static files were not collected. `il2ks web`/`run` do this at every start; check `logs/web-*.log`. |
-| Forgot the admin password | `il2ks createadmin` again with the same name (see `--help`), or `il2ks manage changepassword NAME`. |
+| Forgot the admin password | `il2ks createadmin --username NAME` again (it asks for a new password), or `il2ks manage changepassword NAME`. |
 
 Still stuck? Open an issue at <https://github.com/FGlazov/il2_korea_stats/issues> and paste the output of
 `il2ks doctor` and the last lines of the newest files in `logs/`. **Do not paste `secret_key.txt` or your config if it

@@ -3,18 +3,40 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: early development.** The design lives in [design_doc/](design_doc/README.md). Nothing is ready for server admins yet.
+**Status: getting ready for the first public release.** The design lives in [design_doc/](design_doc/README.md).
+
+## What it does
+
+il2ks reads the text mission logs your DServer writes and builds a stats website from them. It is made for IL-2
+Sturmovik: Korea servers.
+
+- **Missions, players and sorties**: every mission with its kills and losses, a page per player and a timeline per flight.
+- **Tours**: stats per tour (a month by default) or all-time. The site opens on the current tour.
+- **Leaderboards**: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
+  and play time. Scoring is yours to tune.
+- **Achievements** (medals), streaks, killboards (who shot whom), accuracy, assists, and a "top 10%" mark on a
+  player's best ratios.
+- **Online now**: who is on the server while a mission runs.
+- **Your branding**: title, logo, colors (light and dark), fonts (also your own font file), menu links, all in the
+  admin without touching files. Templates can be replaced for more.
+- **Six languages**: English, Russian, German, Spanish, French, Brazilian Portuguese. Visitors get their browser's
+  language and can change it in the footer.
+- **Rules you can switch**: for example whether ramming earns a kill, how many points a kill is worth, and what a
+  death costs. See [Rules, scoring and tours](docs/settings.md).
+- **Safe by default**: HTTPS with a free certificate, daily backups, a `doctor` command that checks your setup.
 
 Inspired by [IL2 stats](https://github.com/vaal-/il2_stats) by =FB=Vaal and =FB=Isay. See [NOTICE](NOTICE).
 
 ## For server admins
 
 Written for people who run a game server, not for programmers: short steps, copy-paste commands.
+On Windows, use the installer. On Linux, use Docker or the manual steps.
 
 - [Installing il2ks on Windows](docs/install-windows.md): the double-click installer (no terminal), service, upgrades.
 - [Installing il2ks by hand](docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
 - [Installing with Docker](docs/install-docker.md): one Compose file for Linux hosts (also DServer under Wine).
 - [Using your own proxy (nginx, IIS)](docs/reverse-proxy.md): when ports 80/443 are already taken.
+- [Rules, scoring and tours](docs/settings.md): change a rule or a score, and which command to run afterwards (`reprocess` or `rebuild-aggregates`); upgrading; the admin area.
 - [Customizing the site](docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
 - [Template versions and release notes](docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template.
 - [Translating il2ks](docs/translating.md): review or improve a language, keep translations in step, add a language.
