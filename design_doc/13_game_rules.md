@@ -281,7 +281,7 @@ attribution rule, `ammo_window_s` 1 s).
   before, and a burst lasts at most `hit_burst_max_s` (15 s). A burst becomes one row at its first line's time.
 - **Significant** = the burst's summed damage is at least `hit_min_damage` (0.002 of an object, **0.2%**; the maintainer suggested "e.g. over
   0.1%"). Static scenery (class `static`: fences, tents, stacks) as a target never gives a row: strafing an airfield makes thousands of tiny lines
-  (30,000 rows over 1,200 sorties at 0.5%). At most 150 rows per sortie, the heaviest kept (the busiest of 1,182 measured sorties had 77).
+  (30,000 rows over 1,200 sorties at 0.5%). At most 150 rows per sortie, the heaviest kept (the busiest of 1,182 measured sorties had 77; re-measured 2026-10-04 after the aircraft / crew split, uncapped, over all 15,349 sorties of the 210 archived missions: the busiest has 88, then 79 and 72, none above 150, so the cap stays).
 - **Ammo of a row** = the label with the most damage among its lines (the earlier wins a tie); a line with no hit in the window has none and does not
   vote, a row where no line has one shows no ammo. So the rows agree with the ammo breakdown, which tallies the same labels. Gun ammo, ordnance
   (bombs, rockets) or other named ammo (flares).
