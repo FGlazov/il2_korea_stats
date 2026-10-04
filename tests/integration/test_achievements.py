@@ -52,9 +52,9 @@ def seed() -> None:
             (
                 sortie(0, 1, kills_air=1, outcome="shot_down", is_death=True, is_plane_lost=True),
                 sortie(1, 2, outcome="not_taken_off", flight_time_s=0.0),
-                sortie(2, 3, aircraft_type="Il-10", ground_by_category={"tank": 6}),
+                sortie(2, 3, aircraft_type="IL-10", ground_by_category={"tank": 6}),
             ),
-            (kill(100, 0, 2, victim_type="Il-10"),),
+            (kill(100, 0, 2, victim_type="IL-10"),),
         ),
         meta("m2", DAY2),
     )
@@ -93,8 +93,8 @@ def test_bomber_and_attacker_kills_count_for_the_killer() -> None:
 def test_friendly_fire_is_not_a_strike_kill() -> None:
     save(
         mission(
-            (sortie(0, 1), sortie(1, 2, aircraft_type="Il-10")),
-            (kill(100, 0, 1, victim_type="Il-10", is_friendly=True),),
+            (sortie(0, 1), sortie(1, 2, aircraft_type="IL-10")),
+            (kill(100, 0, 1, victim_type="IL-10", is_friendly=True),),
         )
     )
     assert not PlayerAchievement.objects.filter(key="strike_hunter").exists()

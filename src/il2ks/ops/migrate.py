@@ -210,7 +210,7 @@ def _check_aircraft_case() -> bool:
                         except IntegrityError:  # the same mission had both spellings: the kept row's counts stand
                             row.delete()
                 else:
-                    model._default_manager.filter(**{field: dup.pk}).delete()
+                    cast("models.Manager[models.Model]", model._default_manager).filter(**{field: dup.pk}).delete()
             dup.delete()
             merged = True
         if keep.log_name != canonical:

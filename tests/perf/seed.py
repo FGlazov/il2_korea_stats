@@ -14,8 +14,8 @@ import random
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 
-AIRCRAFT = ("MiG-15bis", "F-86A-5", "F-51D", "Il-10")
-SIDE_OF = {"MiG-15bis": 1, "Il-10": 1, "F-86A-5": 2, "F-51D": 2}
+AIRCRAFT = ("MiG-15bis", "F-86A-5", "F-51D", "IL-10")
+SIDE_OF = {"MiG-15bis": 1, "IL-10": 1, "F-86A-5": 2, "F-51D": 2}
 
 DEFAULT_MISSIONS = 60
 DEFAULT_PLAYERS = 250
@@ -71,7 +71,7 @@ def fill(
                     aircraft_type=aircraft,
                     coalition=SIDE_OF[aircraft],
                     kills_air=0 if lost else rng.randrange(3),
-                    kills_ground=rng.randrange(4) if aircraft == "Il-10" else 0,
+                    kills_ground=rng.randrange(4) if aircraft == "IL-10" else 0,
                     outcome="shot_down" if lost else "landed",
                     pilot_fate="bailed_out" if lost and fate < 0.2 else "in_aircraft",
                     is_plane_lost=lost,

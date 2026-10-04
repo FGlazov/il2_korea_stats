@@ -69,7 +69,7 @@ def seed() -> None:
                     5,
                     5,
                     name="Pounder",
-                    aircraft_type="Il-10",
+                    aircraft_type="IL-10",
                     combat_role="attack",
                     ground_by_category={"tank": 3},
                     time_on_target_s=600.0,

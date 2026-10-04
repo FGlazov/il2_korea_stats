@@ -51,7 +51,7 @@ def seed(rules: ScoreRules = DEFAULT_SCORE_RULES) -> None:
     attacker = sortie(
         1,
         2,
-        aircraft_type="Il-10",
+        aircraft_type="IL-10",
         combat_role="attack",
         ground_by_category={"tank": 2, "vehicle": 3},
         time_on_target_s=300.0,

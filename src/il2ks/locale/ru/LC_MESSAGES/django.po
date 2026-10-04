@@ -3725,6 +3725,9 @@ msgstr "Состояние"
 msgid "Static object"
 msgstr "Неподвижный объект"
 
+msgid "Statistics of this aircraft"
+msgstr "Статистика этого самолёта"
+
 # llm-draft
 msgid "Status colors (badges, notices)"
 msgstr "Цвета статусов (значки, уведомления)"

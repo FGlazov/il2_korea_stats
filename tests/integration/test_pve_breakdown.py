@@ -21,7 +21,7 @@ def pve_mission() -> MissionResult:
     return mission(
         (
             sortie(0, 1, kills_air=3, kills_air_pvp=1),  # 1 player + 2 AI aircraft
-            sortie(1, 1, aircraft_type="Il-10", is_death=True, is_plane_lost=True, loss_class="aaa"),
+            sortie(1, 1, aircraft_type="IL-10", is_death=True, is_plane_lost=True, loss_class="aaa"),
             sortie(2, 1, is_death=True, is_plane_lost=True, loss_class="aaa"),
             sortie(3, 1, is_death=True, is_plane_lost=True, loss_class="ai_gunner"),
             sortie(4, 1, is_plane_lost=True, loss_class="aaa"),  # bailed out of an AAA hit: a loss, no death
@@ -79,7 +79,7 @@ def test_counters_on_player_mission_and_aircraft() -> None:
         }
         assert class_counts(row, "planes_lost")["aaa"] == 3
         assert (row.kills_air, row.kills_air_pvp, row.kills_air_ai) == (3, 1, 2)
-    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="Il-10")
+    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="IL-10")
     assert (il10.deaths, il10.deaths_by_aaa, il10.planes_lost_by_aaa) == (1, 1, 1)
     p2 = Player.objects.get(account_uuid=account(2))
     assert (p2.deaths_by_player, p2.kills_air_ai) == (1, 4)

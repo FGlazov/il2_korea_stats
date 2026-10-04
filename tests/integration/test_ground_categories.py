@@ -20,8 +20,8 @@ def ground_mission() -> MissionResult:
     return mission(
         (
             sortie(0, 1, ground_by_category={"tank": 2, "vehicle": 3, "other": 10}, kills_ground_static=12),
-            sortie(1, 1, aircraft_type="Il-10", ground_by_category={"building": 4, "parked_aircraft": 1}),
-            sortie(2, 1, aircraft_type="Il-10", kills_ground=2, kills_ground_static=2),  # all "other"
+            sortie(1, 1, aircraft_type="IL-10", ground_by_category={"building": 4, "parked_aircraft": 1}),
+            sortie(2, 1, aircraft_type="IL-10", kills_ground=2, kills_ground_static=2),  # all "other"
             sortie(3, 2, coalition=2, aircraft_type="F-86A-5", ground_by_category={"aaa": 1, "ship": 1, "train": 1}),
             sortie(4, 3, aircraft_type="Turret_IL10", role="gunner", ground_by_category={"tank": 9}),
             sortie(5, 4, kills_air=3),
@@ -76,7 +76,7 @@ def test_counters_on_player_mission_and_aircraft() -> None:
         assert (row.kills_ground_parked_aircraft, row.kills_ground_other, row.kills_ground_static) == (1, 12, 14)
     mig = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="MiG-15bis")
     assert (mig.kills_ground, mig.kills_ground_other, mig.kills_ground_static) == (15, 10, 12)
-    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="Il-10")
+    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="IL-10")
     assert (il10.kills_ground, il10.kills_ground_building, il10.kills_ground_other) == (7, 4, 2)
     assert Player.objects.get(account_uuid=account(4)).kills_ground == 0
 

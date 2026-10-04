@@ -193,6 +193,7 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
             obj.save(update_fields=["display_name", "cls", "propulsion", "ground_category", "is_playable", "is_known"])
     return {name: rows[key] for name, key in stored.items()}
 
+
 def register_countries(countries: dict[int, int], catalog: Catalog) -> None:
     """Create missing `Country` rows from CNTRS with the plain side name, REDFOR for 5xx and BLUFOR for 6xx, else the
     coalition name (doc 06). Existing rows are left alone (admin-editable, FR-ADM-5)."""

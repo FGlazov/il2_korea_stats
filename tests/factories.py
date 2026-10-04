@@ -48,7 +48,7 @@ KNOWN_OBJECTS: dict[str, tuple[str, ObjectClass]] = {
     "MiG-15bis": ("MiG-15bis", "fighter"),
     "F-86A-5": ("F-86A Sabre", "fighter"),
     "F-51D": ("P-51D Mustang", "fighter"),
-    "Il-10": ("Il-10", "attacker"),
+    "IL-10": ("IL-10", "attacker"),
     "Turret_IL10": ("Il-10 turret", "gunner"),
     "M46 Patton": ("M46 Patton", "tank"),
     "GAZ_63": ("GAZ-63", "static"),

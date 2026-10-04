@@ -273,7 +273,7 @@ def test_hidden_players_count_in_the_matchups() -> None:
 def seed_matchups() -> None:
     """September: MiG vs Sabre 6:4 (10 fights), vs F-51D 1:9 (10), vs Il-10 3:0 (3 fights, too few). October: MiG vs
     Sabre 1:0, of which the attack-role part is no intercept."""
-    save(duels([(SABRE, 6, 4), ("F-51D", 1, 9), ("Il-10", 3, 0)]), meta("m1", STARTED_AT))
+    save(duels([(SABRE, 6, 4), ("F-51D", 1, 9), ("IL-10", 3, 0)]), meta("m1", STARTED_AT))
     save(duels([(SABRE, 1, 0)], enemy_role=ATTACK), meta("m2", OCTOBER))
 
 
@@ -286,7 +286,7 @@ def test_the_page_opens_on_the_current_tour_and_all_time_is_one_click_away(clien
     assert {m.enemy.log_name: (m.kills, m.losses) for m in everything.rows} == {
         SABRE: (7, 4),
         "F-51D": (1, 9),
-        "Il-10": (3, 0),
+        "IL-10": (3, 0),
     }
     september = Tour.objects.get(title="September 2026")
     assert len(matchup_table(client, f"?tour={september.pk}").rows) == 3
@@ -298,7 +298,7 @@ def test_ratio_needs_enough_fights_and_the_hint_names_best_and_worst(client: Cli
 
     table = matchup_table(client, "?tour=all")
     rated = {m.enemy.log_name: m.rated for m in table.rows}
-    assert rated == {SABRE: True, "F-51D": True, "Il-10": False}  # 11, 10 and 3 fights
+    assert rated == {SABRE: True, "F-51D": True, "IL-10": False}  # 11, 10 and 3 fights
     assert table.best is not None
     assert table.worst is not None
     assert (table.best.enemy.log_name, table.worst.enemy.log_name) == (SABRE, "F-51D")  # Il-10: too few to name
@@ -310,7 +310,7 @@ def test_ratio_needs_enough_fights_and_the_hint_names_best_and_worst(client: Cli
 
 
 def test_no_hint_with_a_single_rated_matchup(client: Client) -> None:
-    save(duels([(SABRE, 6, 4), ("Il-10", 3, 0)]), meta("m1", STARTED_AT))
+    save(duels([(SABRE, 6, 4), ("IL-10", 3, 0)]), meta("m1", STARTED_AT))
 
     table = matchup_table(client, "?tour=all")
 
@@ -323,7 +323,7 @@ def test_intercept_flights_only(client: Client) -> None:
     assert {m.enemy.log_name: (m.kills, m.losses) for m in matchup_table(client, "?tour=all&intercept=1").rows} == {
         SABRE: (6, 4),  # October's attack-role kill is left out
         "F-51D": (1, 9),
-        "Il-10": (3, 0),
+        "IL-10": (3, 0),
     }
     body = client.get(
         reverse("web:aircraft-detail", args=[aircraft(MIG).pk]) + "?tour=all&intercept=1"
@@ -338,9 +338,9 @@ def test_matchups_sort_and_ignore_a_bad_key(client: Client) -> None:
     seed_matchups()
 
     by_kills = matchup_table(client, "?tour=all&sort=-kills")
-    assert [m.enemy.log_name for m in by_kills.rows] == [SABRE, "Il-10", "F-51D"]
+    assert [m.enemy.log_name for m in by_kills.rows] == [SABRE, "IL-10", "F-51D"]
     by_ratio = matchup_table(client, "?tour=all&sort=-ratio")
-    assert [m.enemy.log_name for m in by_ratio.rows] == [SABRE, "F-51D", "Il-10"]  # unrated last
+    assert [m.enemy.log_name for m in by_ratio.rows] == [SABRE, "F-51D", "IL-10"]  # unrated last
     by_name = matchup_table(client, "?tour=all&sort=enemy")
     names = [m.enemy.display_name.casefold() for m in by_name.rows]
     assert names == sorted(names)

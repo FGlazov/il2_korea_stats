@@ -35,8 +35,8 @@ def seed() -> None:
     save(
         mission(
             (
-                sortie(0, 1, name="Mav", aircraft_type="Il-10", kills_ground=4, taxi_accident=True),
-                sortie(1, 1, name="Mav", aircraft_type="Il-10", strafed_on_ground=True),
+                sortie(0, 1, name="Mav", aircraft_type="IL-10", kills_ground=4, taxi_accident=True),
+                sortie(1, 1, name="Mav", aircraft_type="IL-10", strafed_on_ground=True),
             )
         ),
         meta("2026-09-20_22-34-13", STARTED_AT + timedelta(days=1)),
@@ -189,12 +189,12 @@ def test_profile_of_a_player_with_zero_kills_has_no_ground_accordion(client: Cli
 def test_profile_per_aircraft_rows_link_to_the_filtered_sortie_list(client: Client) -> None:
     seed()
     pk = player_pk(1)
-    il10 = GameObject.objects.get(log_name="Il-10")
+    il10 = GameObject.objects.get(log_name="IL-10")
 
     response = client.get(f"/players/{pk}/?tour=all")
 
     rows = response.context["aircraft"]
-    assert {r.aircraft.log_name for r in rows} == {"MiG-15bis", "Il-10"}
+    assert {r.aircraft.log_name for r in rows} == {"MiG-15bis", "IL-10"}
     assert f'href="/players/{pk}/sorties/?aircraft={il10.pk}&amp;tour=all"' in response.content.decode()
 
 
@@ -206,7 +206,7 @@ def test_profile_aircraft_table_sorts_and_whitelists(client: Client) -> None:
     default = client.get(f"/players/{pk}/?sort=drop_table").context
     by_name = client.get(f"/players/{pk}/?sort=aircraft").context["aircraft"]
 
-    assert [r.aircraft.log_name for r in by_air_kills] == ["MiG-15bis", "Il-10"]
+    assert [r.aircraft.log_name for r in by_air_kills] == ["MiG-15bis", "IL-10"]
     assert default["sort"] == reads.DEFAULT_AIRCRAFT_SORT
     assert [r.aircraft.display_name for r in by_name] == sorted(r.aircraft.display_name for r in by_name)
 

@@ -3708,6 +3708,9 @@ msgstr "Status"
 msgid "Static object"
 msgstr "Statisches Objekt"
 
+msgid "Statistics of this aircraft"
+msgstr "Statistik dieses Flugzeugs"
+
 # llm-draft
 msgid "Status colors (badges, notices)"
 msgstr "Statusfarben (Abzeichen, Hinweise)"
