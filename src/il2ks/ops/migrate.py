@@ -70,6 +70,7 @@ BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-to
 BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
 BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
+BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 
 
@@ -118,6 +119,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_INTERCEPTION, _check_interception),
         (BACKFILL_ASSIST_SPLIT, _check_assist_split),
         (BACKFILL_ACCURACY, _check_accuracy),
+        (BACKFILL_STREAK_RUNS, _check_streak_runs),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -132,6 +134,14 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         _mark_done(*(name for name, _ in wanted))
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
+
+
+def _check_streak_runs() -> bool:
+    """A database from before the streak history (OQ-82) and the assists received (OQ-81) has pilot sorties but no
+    `PlayerStreakRun` row: level 2 must be rebuilt (it is not marked done on a database with no sorties)."""
+    from il2ks.db.models import PlayerSortie, PlayerStreakRun, Role
+
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerStreakRun.objects.exists()
 
 
 def _check_accuracy() -> bool:

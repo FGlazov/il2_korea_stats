@@ -855,7 +855,8 @@ class PlayerKillboard(models.Model):
     Every pair has two mirror rows, one per perspective, so a player's board is one indexed read: `kills` = times
     `player` got the kill credit on `opponent`, `deaths` = times `opponent` got it on `player`. Only kill credits count
     (not friendly fire) between two pilot sorties of different accounts; assists count only in `assists` and only with
-    `[killboard] assists` on (otherwise 0): `assists` = times `player` got an assist credit on a sortie of `opponent`.
+    `[killboard] assists` on (otherwise 0): `assists` = times `player` got an assist credit on a sortie of `opponent`,
+    `assists_received` = times `opponent` got one on a sortie of `player` (OQ-81: shown as a detail, not a column).
     `last_at` / `last_mission` = the latest such kill (or assist, when counted) in either direction. A pair with only
     assists has `kills = deaths = 0`. Level 2: recomputed per affected player by `ingest.pairs`."""
 
@@ -868,6 +869,7 @@ class PlayerKillboard(models.Model):
     kills = models.PositiveIntegerField(default=0)
     deaths = models.PositiveIntegerField(default=0)
     assists = models.PositiveIntegerField(default=0)
+    assists_received = models.PositiveIntegerField(default=0)
     last_at = models.DateTimeField()
     last_mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="+")
 
@@ -897,6 +899,7 @@ class PlayerTourKillboard(models.Model):
     kills = models.PositiveIntegerField(default=0)
     deaths = models.PositiveIntegerField(default=0)
     assists = models.PositiveIntegerField(default=0)
+    assists_received = models.PositiveIntegerField(default=0)
     last_at = models.DateTimeField()
     last_mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="+")
 
@@ -994,6 +997,40 @@ class PlayerBestStreak(models.Model):
 
     def __str__(self) -> str:
         return f"{self.player_id} {self.kind}: {self.sorties}"
+
+
+class StreakEnd(models.TextChoices):
+    DEATH = "death"
+    CAPTURED = "captured"
+    OPEN = "open"
+
+
+class PlayerStreakRun(models.Model):
+    """One ironman streak of a player (FR-WEB-25, OQ-82): a run of at least `core.streaks.MIN_LISTED_RUN` survived
+    sorties, finished or still going, with what ended it. `tour` null = all time, else the run within that tour's
+    sorties only. `ended_sortie` = the fatal or capturing sortie (null while `ended_by` is open). Level 2: recomputed
+    per affected player by `ingest.streaks`."""
+
+    player_id: int
+    tour_id: int | None
+    ended_sortie_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="streak_runs")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="streak_runs")
+    sorties = models.PositiveIntegerField(default=0)
+    kills_air = models.PositiveIntegerField(default=0)
+    flight_time_s = models.FloatField(default=0.0)
+    since = models.DateTimeField()
+    until = models.DateTimeField()
+    ended_by = models.CharField(max_length=8, choices=StreakEnd.choices)
+    ended_sortie = models.ForeignKey(PlayerSortie, null=True, on_delete=models.SET_NULL, related_name="+")
+
+    class Meta:
+        indexes = [models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour")]
+        constraints = [models.CheckConstraint(condition=models.Q(ended_by__in=StreakEnd.values), name="runs_end_valid")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id}: {self.sorties} sorties ({self.ended_by})"
 
 
 class PlayerStreak(models.Model):

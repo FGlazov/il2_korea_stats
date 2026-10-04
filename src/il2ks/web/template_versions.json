@@ -254,8 +254,8 @@
       "sha256": "c3124cfda7cffd4b51057081305ea37ee4db57bf3156ff1f4eefef4741846511"
     },
     "templates/il2ks/players/_killboard_rows.html": {
-      "version": 3,
-      "sha256": "1298c5d5206ecccaaed025aaad79ca52369a214121a60f04312cd9dac0f2d997"
+      "version": 4,
+      "sha256": "a3cdb1ee0116909e9362fc533d26dc8187c630f259d9a051a929000707f423cf"
     },
     "templates/il2ks/players/_type_killboard.html": {
       "version": 2,
@@ -373,9 +373,13 @@
       "version": 4,
       "sha256": "67238a2c917ca4dfea94e283e83a51c441ea06d0cbef41683f6782d669348fa1"
     },
+    "templates/il2ks/players/streak_runs.html": {
+      "version": 1,
+      "sha256": "852e095bf9f9cd591db5302e32497515dd78fc20e5f19f02ddd5d3413fe0414b"
+    },
     "templates/il2ks/players/streaks.html": {
-      "version": 2,
-      "sha256": "e8896437cc448044ba257fb8aa2aae726ba3b97decbd7782a8525aa07fe9b0d4"
+      "version": 3,
+      "sha256": "27849fb33a670d25a8d6a772f73c1ec6206b99f040902d4e678b2f512dcbd586"
     },
     "templates/il2ks/setup.html": {
       "version": 1,
@@ -394,8 +398,8 @@
       "sha256": "caa3e4e0e2d5043fc8d74b4dfd233185875b8ba768f603fd0a570ab3c2b94a16"
     },
     "templates/il2ks/sorties/list.html": {
-      "version": 6,
-      "sha256": "78f08a89f1f41391f46e2be75ba542d6843d3e829000553759be3743319978d7"
+      "version": 7,
+      "sha256": "620c865812542648dbc9b22eda38eedcf9314bc00e6463bc16635e7e6b25540a"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 6,

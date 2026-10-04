@@ -19,6 +19,7 @@ from il2ks.db.models import (
     PlayerBestStreak,
     PlayerKillboard,
     PlayerStreak,
+    PlayerStreakRun,
     PlayerTourKillboard,
     PlayerTypeKillboard,
     StreakKind,
@@ -26,6 +27,7 @@ from il2ks.db.models import (
 )
 
 PAGE_SIZE = 50
+RUNS_PAGE_SIZE = 20  # streak runs per page (OQ-82)
 TOP_OPPONENTS = 5
 TOP_TYPES = 5  # enemy aircraft types per direction in the profile block
 HOME_STREAKS = 5
@@ -135,6 +137,18 @@ def best_streaks(player: Player, tour: Tour | None = None) -> list[PlayerBestStr
     )
     order = {str(kind): n for n, kind in enumerate(StreakKind.values)}
     return sorted(rows, key=lambda row: order[row.kind])
+
+
+def streak_runs_page(player: Player, number: str | int, tour: Tour | None = None) -> Page:
+    """One page of the player's streak runs (OQ-82), newest first, all-time or within `tour`; the sortie that ended
+    each run is pre-loaded with its mission (the template links it unless the mission is hidden)."""
+    rows = (
+        PlayerStreakRun.objects.filter(player=player, tour=tour)
+        if tour
+        else PlayerStreakRun.objects.filter(player=player, tour__isnull=True)
+    )
+    ordered = rows.select_related("ended_sortie__mission").order_by("-since", "-pk")
+    return Paginator(ordered, RUNS_PAGE_SIZE).get_page(number)
 
 
 def _running(now: datetime) -> QuerySet[PlayerStreak]:

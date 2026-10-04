@@ -30,6 +30,7 @@ urlpatterns: list[URLPattern] = [
     path("players/<int:pk>/sorties/", sorties.player_sorties, name="player-sorties"),  # ?aircraft=<GameObject pk>
     path("players/<int:pk>/killboard/", boards.player_killboard, name="player-killboard"),
     path("players/<int:pk>/streaks/", boards.player_streaks, name="player-streaks"),  # ?tour=: best streaks
+    path("players/<int:pk>/streaks/history/", boards.player_streak_runs, name="player-streak-runs"),  # ?tour=
     path("streaks/", boards.streak_list, name="streak-list"),
     path("players/<int:pk>/achievements/", achievements.player_achievements, name="player-achievements"),
     path("achievements/", achievements.achievement_overview, name="achievements"),

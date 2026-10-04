@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from il2ks.core.streaks import MIN_LISTED_RUN
 from il2ks.queries import boards as reads
 from il2ks.queries import players as player_reads
 from il2ks.queries.tours import tour_choice_from, tour_query
@@ -79,3 +80,29 @@ def streak_list(request: HttpRequest) -> HttpResponse:
         "active_days": reads.ACTIVE_DAYS,
     }
     return render(request, "il2ks/streaks/list.html", context)
+
+
+def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
+    """`/players/<pk>/streaks/history/?tour=&page=`: every streak of the player (a run of at least two survived
+    sorties, finished or running), newest first, 20 per page, all-time or within the selected tour (OQ-82).
+
+    Template `il2ks/players/streak_runs.html`. Context: `player`, `tours`, `tour`, `page_obj` (PlayerStreakRun rows with
+    `ended_sortie` and its mission), `min_run`, `crumbs`, `page_title`."""
+    player = player_reads.visible_player(pk)
+    if player is None:
+        raise Http404
+    choice = tour_choice_from(request.GET)
+    context = {
+        **choice.context,
+        "page_title": _("%(name)s: all streaks") % {"name": player.current_name},
+        "crumbs": [
+            (_("Players"), reverse("web:player-search")),
+            (player.current_name, reverse("web:player-detail", args=[player.pk]) + tour_query(choice.selected)),
+            (_("Best streaks"), reverse("web:player-streaks", args=[player.pk]) + tour_query(choice.selected)),
+            (_("All streaks"), None),
+        ],
+        "player": player,
+        "min_run": MIN_LISTED_RUN,
+        "page_obj": reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected),
+    }
+    return render(request, "il2ks/players/streak_runs.html", context)

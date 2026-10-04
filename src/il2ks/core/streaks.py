@@ -19,6 +19,7 @@ The **current** streak is the run after the last broken sortie (zero sorties whe
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
+from enum import StrEnum
 from typing import Self
 
 
@@ -33,6 +34,7 @@ class StreakSortie:
     is_death: bool
     is_captured: bool
     not_taken_off: bool
+    ref: int = 0  # the caller's id for the sortie (the database id), handed back as `StreakRun.ended_by_ref`
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,3 +98,39 @@ def summarize(sorties: Iterable[StreakSortie]) -> StreakSummary:
             if current.time_key() > best_time.time_key():
                 best_time = current
     return StreakSummary(current, best, best_kills, best_time)
+
+
+MIN_LISTED_RUN = 2
+"""The history of runs lists only runs of at least this many survived sorties (OQ-82: a single survived sortie is
+every pilot's normal day and would bury the real streaks)."""
+
+
+class RunEnd(StrEnum):
+    DEATH = "death"
+    CAPTURED = "captured"
+    OPEN = "open"  # no broken sortie after it: the run is still going (or the scope, a tour, ran out)
+
+
+@dataclass(frozen=True, slots=True)
+class StreakRun:
+    """One finished or running streak and what ended it (`ended_by_ref`: the broken sortie's `ref`, None when open)."""
+
+    streak: Streak
+    end: RunEnd
+    ended_by_ref: int | None
+
+
+def runs(sorties: Iterable[StreakSortie], minimum: int = MIN_LISTED_RUN) -> list[StreakRun]:
+    """Every run of at least `minimum` survived sorties, chronological (OQ-82); same rule as `summarize`."""
+    found: list[StreakRun] = []
+    current = Streak()
+    for s in sorties:
+        if is_broken(s):
+            if current.sorties >= minimum:
+                found.append(StreakRun(current, RunEnd.DEATH if s.is_death else RunEnd.CAPTURED, s.ref))
+            current = Streak()
+        elif not s.not_taken_off:
+            current = current.extended(s)
+    if current.sorties >= minimum:
+        found.append(StreakRun(current, RunEnd.OPEN, None))
+    return found
