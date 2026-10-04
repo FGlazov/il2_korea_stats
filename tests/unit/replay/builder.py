@@ -48,6 +48,8 @@ OBJECTS: dict[str, ObjectClass] = {
     "M46 Patton": "tank",
     "Flak 37": "aaa",
     "B-29": "bomber",
+    "C-47B": "transport",
+    "Li-2": "transport",
     "GAZ_63": "static",  # a static truck: category vehicle, but static
     "Military tent A2": "static",
     "Cargo ship 1": "ship",

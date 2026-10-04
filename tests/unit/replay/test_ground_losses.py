@@ -3,7 +3,8 @@
 They only label losses that already count as deaths and lost planes (option (a): a crash before takeoff still counts).
 - taxi accident = lost, the aircraft never took off before the loss, `loss_cause` self (an air start never qualifies);
 - strafed on the ground = lost to an attacker while on the ground: never took off, or landed and not airborne since,
-  with every attacker hit or damage coming after that landing (a shot-up aircraft that crash-lands was shot down);
+  with significant attacker damage (>= 5% of DMG) after that landing; a damaged aircraft that fails its landing, or
+  burns down after it, is crashed (OQ-112, maintainer 2026-10-04) while the kill credit stays;
 - gunners are never flagged.
 
 Ids: player A (aircraft 100, bot 101), enemy B (aircraft 200, bot 201), see `builder.py`.
@@ -166,8 +167,9 @@ def test_landed_after_being_shot_up_in_the_air_then_destroyed_is_strafed() -> No
     assert _flags(a) == (False, True)
 
 
-def test_crash_landing_after_being_shot_up_is_shot_down_not_strafed() -> None:
-    """A crash-landing resolves the loss at the landing tick: not a landing, so shot down."""
+def test_crash_landing_after_being_shot_up_is_crashed_not_strafed() -> None:
+    """A crash-landing resolves the loss at the landing tick: not a landing. A damaged plane failing its landing is
+    damage not done by someone else: crashed (OQ-112); the earlier attacker keeps the kill."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()
@@ -178,7 +180,8 @@ def test_crash_landing_after_being_shot_up_is_shot_down_not_strafed() -> None:
     sc.land(100, 100)
     sc.end(100.1, 100, 101)
     a = by_acct(sc.result(), 1)
-    assert (a.outcome, a.loss_cause) == ("shot_down", "attacker")
+    assert (a.outcome, a.loss_cause) == ("crashed", "self")
+    assert by_acct(sc.result(), 2).kills_air == 1
     assert _flags(a) == (False, False)
 
 
@@ -194,9 +197,9 @@ def test_a_hit_on_the_pilot_before_a_real_landing_does_not_stop_the_strafing() -
     assert _flags(by_acct(sc.result(), 1)) == (False, True)
 
 
-def test_shot_up_then_landed_then_destroyed_by_the_environment_is_not_flagged() -> None:
-    """An earlier attacker hit makes the loss an attacker loss, but the destruction is after the landing by the
-    environment, and no attacker line follows the landing: not strafing."""
+def test_shot_up_then_landed_then_destroyed_by_the_environment_is_crashed() -> None:
+    """The attacker's damage was all before the landing and the destruction is by the environment: not strafing, and
+    the aircraft was not destroyed by another object on the ground, so it is crashed (OQ-112)."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()
@@ -205,7 +208,7 @@ def test_shot_up_then_landed_then_destroyed_by_the_environment_is_not_flagged() 
     sc.kill(120, NO, 100, pos=GROUND)
     sc.end(120.1, 100, 101)
     a = by_acct(sc.result(), 1)
-    assert a.loss_cause == "attacker"
+    assert (a.outcome, a.loss_cause) == ("crashed", "self")
     assert _flags(a) == (False, False)
 
 
@@ -254,3 +257,47 @@ def test_strafed_flag_is_independent_of_the_post_end_window() -> None:
     sc.kill(33, 200, 100, pos=GROUND)
     a = by_acct(sc.result(), 1)
     assert (a.is_plane_lost, _flags(a)) == (True, (False, True))
+
+
+def test_kill_line_naming_an_earlier_attacker_alone_does_not_make_a_landed_aircraft_strafed() -> None:
+    """OQ-112: the attacker's damage was all before the landing and the kill line after it only names him: the
+    damaged plane failed its landing (crashed). The kill credit is unchanged."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(80, 200, 100, 0.6)
+    sc.land(100, 100)
+    sc.kill(120, 200, 100, pos=GROUND)
+    sc.end(120.1, 100, 101)
+    result = sc.result()
+    a = by_acct(result, 1)
+    assert (a.outcome, a.loss_cause, a.is_plane_lost, a.is_death) == ("crashed", "self", True, True)
+    assert _flags(a) == (False, False)
+    assert next(e for e in a.timeline if e.kind == "destroyed").detail == ""
+    assert by_acct(result, 2).kills_air == 1
+
+
+def test_small_damage_after_the_landing_is_not_significant() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(80, 200, 100, 0.6)
+    sc.land(100, 100)
+    sc.damage(110, 200, 100, 0.02, pos=GROUND)
+    sc.kill(120, 200, 100, pos=GROUND)
+    sc.end(120.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, _flags(a)) == ("crashed", (False, False))
+
+
+def test_significant_damage_after_the_landing_is_strafed_even_with_a_threshold_amount() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(80, 200, 100, 0.6)
+    sc.land(100, 100)
+    sc.damage(110, 200, 100, 0.05, pos=GROUND)
+    sc.kill(120, 200, 100, pos=GROUND)
+    sc.end(120.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, _flags(a)) == ("shot_down", (False, True))
