@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0047_home_feature_image"),
+        ("il2ks_db", "0048_merge_aircraft_case"),
     ]
 
     operations = [
