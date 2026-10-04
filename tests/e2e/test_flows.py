@@ -159,7 +159,7 @@ def test_someone_finds_himself_in_a_mission_and_opens_his_sortie(page: Page, wor
     # 1. the list is newest first: the first mission is the story's
     page.goto("/")
     link_or_button(page, "All missions").click()
-    expect(page).to_have_url(re.compile(r"/missions/$"))
+    expect(page).to_have_url(re.compile(r"/missions/[?]tour=all$"))
     open_mission_row(page, 1)
     expect(page).to_have_url(re.compile(rf"/missions/{world.featured_mission_pk}/$"))
 
@@ -181,7 +181,7 @@ def test_someone_finds_himself_in_a_mission_and_opens_his_sortie(page: Page, wor
 
 def test_someone_browses_several_missions_and_opens_sorties(page: Page, world: World) -> None:
     """List -> mission -> back -> next page (in place) -> another mission -> sorties; every page tells its own facts."""
-    page.goto("/missions/")
+    page.goto("/missions/?tour=all")
     expect(page.get_by_role("navigation", name="Pagination")).to_contain_text(f"of {world.mission_count + 1}")
 
     # 1. the newest mission, then back to the list
@@ -190,7 +190,7 @@ def test_someone_browses_several_missions_and_opens_sorties(page: Page, world: W
     expect(page).to_have_url(re.compile(rf"/missions/{world.featured_mission_pk}/$"))
     expect(main_region(page).get_by_role("link", name=world.delta, exact=True).first).to_be_visible()
     page.go_back()
-    expect(page).to_have_url(re.compile(r"/missions/$"))
+    expect(page).to_have_url(re.compile(r"/missions/[?]tour=all$"))
 
     # 2. page two of the list (htmx), then an older mission from it
     mark_page(page)
@@ -247,3 +247,18 @@ def test_a_players_sortie_list_sorts_in_place(page: Page, world: World) -> None:
 
     expect(page).to_have_url(re.compile(r"[?&]sort="))
     expect_same_document(page)
+
+
+def test_the_tour_toggle_switches_to_all_time_in_place(page: Page, world: World) -> None:
+    """TD-26: a profile opens on the current tour; the toggle (and the select) swap <main> to the all-time view."""
+    page.goto(f"/players/{world.ace_pk}/")
+    mark_page(page)
+    toggle = page.get_by_role("group", name="Tour")
+    expect(toggle.get_by_role("link", name="All time")).not_to_have_attribute("aria-current", "true")
+
+    toggle.get_by_role("link", name="All time").click()
+
+    expect(page).to_have_url(re.compile(r"[?&]tour=all"))
+    expect(toggle.get_by_role("link", name="All time")).to_have_attribute("aria-current", "true")
+    expect_same_document(page)
+    expect_heading(page, "Recent sorties", level=2)

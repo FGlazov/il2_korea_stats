@@ -1,10 +1,11 @@
-{# il2ks-template: templates/il2ks/players/detail.html v7 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v10 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
   detail_header, detail_tiles, detail_ground, detail_pve, detail_ratios, detail_totals, detail_shame, detail_aircraft,
   detail_streaks, detail_killboard, detail_recent. The streaks and killboard sections follow the selected tour.
   Tours (TD-26): `?tour=<id>` shows the counters of that tour (`stats` is the PlayerTour row, `aircraft` the per-tour rows,
-  `recent` that tour's sorties); without it all time (`stats` is the Player). {% tour_select %} sits under the header.
+  `recent` that tour's sorties). No `?tour` = the current tour (newest, queries.tours), `?tour=all` = all time (`stats` is the
+  Player). {% tour_select %} sits under the header.
   Context: player, stats (Player or PlayerTour, None when the tour has no sortie of theirs), tour, tours, names (PlayerName
   rows, newest first), sort (aircraft table sort, resolved), pve_kills / pve_losses (of `stats`), aircraft (PlayerAircraft / PlayerTourAircraft
   rows with .aircraft), survived (sorties without a death), ground (GroundRow list), gunner_only, recent (PlayerSortie
@@ -39,10 +40,10 @@
     {% include "il2ks/players/detail_aircraft.html" %}
     {% include "il2ks/players/detail_streaks.html" %}
     {% include "il2ks/players/detail_killboard.html" %}
-  {% elif tour %}
-    {% notice "info" _("No sorties in this tour") %}{% translate "No pilot sorties are counted for this player in the selected tour." %}{% endnotice %}
   {% elif gunner_only %}
     {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}
+  {% elif tour %}
+    {% notice "info" _("No sorties in this tour") %}{% translate "No pilot sorties are counted for this player in the selected tour." %} {% flavor "tour_empty" tour.pk %}{% endnotice %}
   {% else %}
     {% notice "info" _("No sorties yet") %}{% translate "No pilot sorties are counted for this player yet." %}{% endnotice %}
   {% endif %}

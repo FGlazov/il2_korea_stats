@@ -187,7 +187,7 @@ def test_tour_selector_shows_the_tours_own_scores(client: Client) -> None:
     )
     september = Tour.objects.get(started_at__lt=STARTED_AT + timedelta(days=10), ended_at__gt=STARTED_AT)
 
-    all_time = client.get("/leaderboards/air/").context["page_obj"].object_list
+    all_time = client.get("/leaderboards/air/?tour=all").context["page_obj"].object_list
     in_september = client.get(f"/leaderboards/air/?tour={september.pk}").context
     assert [(r.player.current_name, r.stats.score_air) for r in all_time] == [("Ace", 60.0), ("Other", 20.0)]
     assert [(r.player.current_name, r.stats.score_air) for r in in_september["page_obj"].object_list] == [

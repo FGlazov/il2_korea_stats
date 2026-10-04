@@ -14,28 +14,38 @@ def viewer(browser: Browser, base_url: str, timezone_id: str, locale: str = "en-
     return context, context.new_page()
 
 
-def expected(iso: str, zone: str, fmt: str = "%Y-%m-%d %H:%M") -> str:
-    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(ZoneInfo(zone)).strftime(fmt)
+def local_dt(iso: str, zone: str) -> datetime:
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(ZoneInfo(zone))
 
 
-def test_mission_start_follows_the_viewer_zone(browser: Browser, base_url: str, world: World) -> None:
+def test_mission_start_follows_the_viewer_zone_and_locale(browser: Browser, base_url: str, world: World) -> None:
+    """Locale-native formats (FR-WEB-17): US English reads "Sep 19, 2026, 10:34 PM", German "19.09.2026, 22:34"; the
+    zone is named in the footer only, never next to the times."""
     url = f"/missions/{world.featured_mission_pk}/"
     seen: dict[str, str] = {}
-    for zone in ("Asia/Tokyo", "Europe/Berlin"):
-        context, page = viewer(browser, base_url, zone)
+    for zone, locale in (("Asia/Tokyo", "en-US"), ("Europe/Berlin", "de-DE")):
+        context, page = viewer(browser, base_url, zone, locale)
         try:
             page.goto(url)
             first = page.locator("time[data-il2-time='datetime']").first
             expect(first).to_have_attribute("data-il2-local", zone)
             iso = first.get_attribute("datetime")
             assert iso is not None
-            expect(first).to_have_text(expected(iso, zone))
+            moment = local_dt(iso, zone)
+            text = first.inner_text().replace("\u202f", " ").replace("\u00a0", " ")
+            if locale == "en-US":
+                assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}, \d{4}, \d{1,2}:\d{2} [AP]M", text), text
+                assert text.endswith(moment.strftime("%I:%M %p").lstrip("0"))
+            else:
+                assert re.fullmatch(r"\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}", text), text
+                assert text.endswith(moment.strftime("%H:%M"))
             assert "UTC" in (first.get_attribute("title") or "")
             expect(page.locator("[data-il2-tz-note]")).to_contain_text(zone)
-            seen[zone] = first.inner_text()
+            assert zone not in page.locator("main").inner_text()  # the zone is the footer's business
+            seen[zone] = text
         finally:
             context.close()
-    assert seen["Asia/Tokyo"] != seen["Europe/Berlin"]  # 7 or 8 hours apart, never the same text
+    assert seen["Asia/Tokyo"] != seen["Europe/Berlin"]
 
 
 def test_without_javascript_the_page_says_utc(browser: Browser, base_url: str, world: World) -> None:
@@ -52,7 +62,7 @@ def test_without_javascript_the_page_says_utc(browser: Browser, base_url: str, w
 def test_times_in_a_list_swapped_in_by_htmx_are_converted(browser: Browser, base_url: str) -> None:
     context, page = viewer(browser, base_url, "Asia/Tokyo")
     try:
-        page.goto("/missions/")
+        page.goto("/missions/?tour=all")
         first = page.locator("tbody time[data-il2-time='date']").first
         expect(first).to_have_attribute("data-il2-local", "Asia/Tokyo")
         page.get_by_role("link", name=re.compile(r"^2$")).first.click()  # page 2: an htmx swap

@@ -55,7 +55,7 @@ def test_the_reload_detector_notices_a_full_page_load(page: Page) -> None:
 def test_home_links_lead_to_the_lists(page: Page) -> None:
     page.goto("/")
     link_or_button(page, "All missions").click()
-    expect(page).to_have_url(re.compile(r"/missions/$"))
+    expect(page).to_have_url(re.compile(r"/missions/[?]tour=all$"))
     page.goto("/")
     search = page.get_by_role("main").get_by_role("searchbox", name="Find a player by name")
     search.fill("Ace")
@@ -141,7 +141,7 @@ def test_the_theme_can_be_forced_in_the_address(page: Page) -> None:
 
 def test_mission_list_paginates_in_place_and_updates_the_url(page: Page, world: World) -> None:
     """FR-WEB-2 + the htmx list pattern: "Next" swaps the table, keeps the document, pushes `?page=2`."""
-    page.goto("/missions/")
+    page.goto("/missions/?tour=all")
     mark_page(page)
 
     page.get_by_role("link", name="Next").click()

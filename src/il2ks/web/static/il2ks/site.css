@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v6 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v7 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -294,6 +294,13 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .filter select { padding-inline-end: 2.2rem; }
 .filter-bar__actions { display: flex; align-items: center; gap: 0.9rem; margin-inline-start: auto; font-size: 0.85rem; }
 .filter-bar__actions button { margin: 0; height: 2.3rem; padding-block: 0; font-size: 0.85rem; }
+/* Tour switch (TD-26): the current tour and "All time" as a segmented pair, and when the next tour starts. */
+.tour-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; font-size: 0.85rem; }
+.tour-toggle { display: inline-flex; border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); overflow: hidden; }
+.tour-toggle a { padding: 0.35rem 0.8rem; text-decoration: none; color: var(--il2-text); background: var(--il2-surface-2); }
+.tour-toggle a + a { border-inline-start: 1px solid var(--il2-border-strong); }
+.tour-toggle a[aria-current="true"] { background: var(--il2-accent); color: var(--il2-accent-contrast); font-weight: 650; }
+.tour-next[hidden] { display: none; }
 .has-htmx .filter-bar__apply { display: none; }
 
 /* Pagination */

@@ -40,7 +40,7 @@ def pk(n: int) -> int:
     return Player.objects.get(account_uuid=account(n)).pk
 
 
-def page(client: Client, n: int, query: str = "") -> str:
+def page(client: Client, n: int, query: str = "?tour=all") -> str:
     return client.get(f"/players/{pk(n)}/{query}").content.decode()
 
 

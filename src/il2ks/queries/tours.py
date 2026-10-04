@@ -1,15 +1,17 @@
 """Tour reads for the pages (TD-26, FR-WEB-10): simple reads only (TD-22), no aggregation.
 
-How a page uses them (the `?tour=<id>` convention; no `tour` parameter or `tour=` means all time):
+How a page uses them (the `?tour=<id>` convention, TD-26): no `tour` parameter (or an unknown value) means the
+**current tour** (`current_tour_of`: the newest tour row, so it changes only when the data does and cached pages stay
+valid, TD-28); `?tour=all` (`TOUR_ALL`) is the explicit all-time view; `?tour=<id>` is that tour.
 
-    choice = tour_choice_from(request.GET)                # TourChoice(tours, selected), one query
-    context = {**choice.context, ...}                     # "tours" and "tour" for {% tour_select tours tour %}
+    choice = tour_choice_from(request.GET)                # TourChoice(tours, selected, ...), one query
+    context = {**choice.context, ...}                     # "tours", "tour", "tour_all" for {% tour_toggle %}
     stats = choice.selected and player_tour(player.pk, choice.selected)   # PlayerTour or None -> all-time `Player`
     aircraft = player_tour_aircraft(player.pk, choice.selected) if choice.selected else player.aircraft_stats...
 
-and in the template `{% tour_select tours tour %}` (a select with "All time", see `components/tour_select.html`) or,
-inside a `{% filter_bar %}`, `{% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}` with
-`tour_options = tour_options(choice.tours)`.
+and in the template `{% tour_select tours tour %}` (a select plus the all-time toggle,
+see `components/tour_select.html`)
+or, inside a `{% filter_bar %}`, `{% tour_filter tours tour %}` (the same select and toggle without a form).
 
 Mission lists filter with `Mission.objects.visible().filter(tour=selected)`. Hidden players and missions are the
 page's job as everywhere else (`Player.objects.visible()`); `PlayerTour` rows of hidden players are not filtered here.
@@ -29,7 +31,9 @@ from django.utils.translation import gettext as _
 from il2ks.core.tours import MONTH_NAMES
 from il2ks.db.models import PlayerTour, PlayerTourAircraft, Tour
 
-TOUR_PARAM = "tour"  # the one query parameter every tour-aware page uses: `?tour=<Tour.pk>`, absent = all time
+TOUR_PARAM = "tour"  # the one query parameter every tour-aware page uses: `?tour=<Tour.pk>`, absent = current tour
+MAX_TOUR_DIGITS = 18  # longer ids are unknown (fits a 64-bit pk, and keeps int() away from 4300+ digit strings)
+TOUR_ALL = "all"  # `?tour=all`: the explicit all-time view
 _MONTHLY_TITLE = re.compile(rf"^({'|'.join(MONTH_NAMES)}) (\d{{4}})$")
 _DAYS_TITLE = re.compile(r"^Tour (\d+)$")
 
@@ -37,11 +41,16 @@ _DAYS_TITLE = re.compile(r"^Tour (\d+)$")
 @dataclass(frozen=True, slots=True)
 class TourChoice:
     tours: list[Tour]  # newest first, for the selector
-    selected: Tour | None  # None = all time
+    selected: Tour | None  # None = all time (`?tour=all`, or no tour exists yet)
+
+    @property
+    def current(self) -> Tour | None:
+        """The tour pages open on when `?tour` is absent: the newest one (see `current_tour_of`)."""
+        return current_tour_of(self.tours)
 
     @property
     def context(self) -> dict[str, object]:
-        """The template context `{% tour_select tours tour %}` needs: `tours` and `tour` (the chosen one or None)."""
+        """The template context the tour components need: `tours`, `tour` (the chosen one or None for all time)."""
         return {"tours": self.tours, "tour": self.selected}
 
 
@@ -50,6 +59,13 @@ def current_tour(now: datetime | None = None) -> Tour | None:
     current calendar period once it has a mission, else the latest earlier one). None before any mission."""
     moment = now or datetime.now(UTC)
     return Tour.objects.filter(started_at__lte=moment).order_by("-started_at").first()
+
+
+def current_tour_of(tours: list[Tour]) -> Tour | None:
+    """The default tour of a page: the newest tour row of `tours` (newest first). It depends on the data only, never
+    on the request time, so a page's bytes stay a function of the data version (TD-28). The price: the first day of a
+    new month still opens on last month until the first mission of the new tour is ingested."""
+    return tours[0] if tours else None
 
 
 def list_tours() -> list[Tour]:
@@ -70,17 +86,21 @@ def tour_title(title: str) -> str:
 
 
 def tour_options(tours: list[Tour]) -> list[tuple[int, str]]:
-    """(id, localised title) pairs for `{% filter_select %}`."""
+    """(id, localised title) pairs, newest first."""
     return [(tour.pk, tour_title(tour.title)) for tour in tours]
 
 
 def tour_choice(raw: str | None) -> TourChoice:
-    """The selector state for `?tour=<raw>`: an unknown, malformed or empty value means all time (never an error:
-    a stale shared link still shows a page). One query. Prefer `tour_choice_from` in views."""
+    """The selector state for `?tour=<raw>`: `all` is all time, a tour id that exists is that tour, anything else
+    (absent, empty, malformed, a stale shared link) is the current tour: never an error, a link always shows a page.
+    One query. Prefer `tour_choice_from` in views."""
     tours = list_tours()
-    wanted = int(raw) if raw is not None and raw.isdecimal() else None
+    if raw == TOUR_ALL:
+        return TourChoice(tours, None)
+    # isdecimal() also accepts non-ASCII digits, and int() of thousands of digits raises: cap the length first
+    wanted = int(raw) if raw is not None and raw.isdecimal() and len(raw) <= MAX_TOUR_DIGITS else None
     selected = next((tour for tour in tours if tour.pk == wanted), None)
-    return TourChoice(tours, selected)
+    return TourChoice(tours, selected or current_tour_of(tours))
 
 
 def tour_choice_from(params: Mapping[str, str]) -> TourChoice:
@@ -101,3 +121,10 @@ def player_tour_aircraft(player_id: int, tour: Tour) -> QuerySet[PlayerTourAircr
 def tour_leaderboard(tour: Tour) -> QuerySet[PlayerTour]:
     """The tour's player rows of visible players, players pre-loaded; the page orders and paginates them."""
     return PlayerTour.objects.filter(tour=tour, player__is_hidden=False).select_related("player")
+
+
+def is_quiet_tour(selected: Tour | None, params: Mapping[str, str], rows: int) -> bool:
+    """Whether a list page explains an empty result with the empty-tour flavor text (FR-WEB-23): a tour is picked,
+    nothing is listed and no other filter is active (so the tour itself is the reason)."""
+    others = (value for key, value in params.items() if key not in {TOUR_PARAM, "page", "sort"})
+    return selected is not None and rows == 0 and not any(others)

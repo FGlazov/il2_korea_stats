@@ -10,7 +10,7 @@ from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import Mission, Player, PlayerBestStreak, PlayerKillboard, PlayerStreak, PlayerTourKillboard
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -183,7 +183,7 @@ def seed_pages() -> None:
 def test_profile_shows_killboard_and_streak(client: Client) -> None:
     seed_pages()
 
-    html = client.get(f"/players/{pk(1)}/").content.decode()
+    html = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
 
     assert "Shot down most" in html
     assert "Player-2" in html
@@ -194,7 +194,7 @@ def test_profile_shows_killboard_and_streak(client: Client) -> None:
 def test_profile_budget_and_killboard_page(client: Client) -> None:
     seed_pages()
 
-    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=12)  # as test_player_pages
+    assert_simple_reads(client, f"/players/{pk(1)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
     # context processor 2, player, count, rows
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/", max_queries=7)  # + tours selector
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=7)

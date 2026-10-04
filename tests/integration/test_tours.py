@@ -487,8 +487,11 @@ def test_tour_choice_reads_the_query_parameter_forgivingly() -> None:
 
     assert tour_choice(str(september.pk)).selected == september
     assert [t.title for t in tour_choice(None).tours] == ["October 2026", "September 2026", "August 2026"]
-    for raw in (None, "", "abc", "-1", "999999", "1.5"):
-        assert tour_choice(raw).selected is None  # all time, never an error
+    october = Tour.objects.get(title="October 2026")
+    for raw in (None, "", "abc", "-1", "999999", "1.5", "9" * 5000, "٣" * 40):
+        assert tour_choice(raw).selected == october  # the current tour, never an error (a 5000-digit id included)
+    assert tour_choice("all").selected is None  # the explicit all-time view
+    assert tour_choice(None).current == october
     assert tour_options(tour_choice(None).tours)[0] == (Tour.objects.get(title="October 2026").pk, "October 2026")
 
 
@@ -507,6 +510,7 @@ def test_tour_select_renders_all_time_and_marks_the_chosen_tour() -> None:
 
     assert 'name="tour"' in html
     assert ">All time</option>" in html
+    assert 'value="all"' in html
     assert f'<option value="{september.pk}" selected>September 2026</option>' in html
     assert 'name="q" value="bob"' in html
     assert 'name="sort" value="-kills"' in html
@@ -514,11 +518,18 @@ def test_tour_select_renders_all_time_and_marks_the_chosen_tour() -> None:
     assert 'action="/players/"' in html
 
 
-def test_tour_select_without_a_tour_selects_all_time_and_renders_nothing_without_tours() -> None:
+def test_tour_select_without_a_tour_selects_the_current_one_and_renders_nothing_without_tours() -> None:
     assert render_selector("/players/").strip() == ""
     three_tour_history()
 
-    assert " selected" not in render_selector("/players/")
+    html = render_selector("/players/")
+    assert html.count(" selected") == 1  # no parameter = the current tour
+    assert '<option value="all">' in html
+    assert "selected>October 2026</option>" in html
+    all_time = render_selector("/players/?tour=all")
+    assert '<option value="all" selected>All time</option>' in all_time
+    assert 'aria-current="true">All time</a>' in all_time
+    assert "?tour=all" in html
 
 
 # --- admin (FR-ADM-8) ---

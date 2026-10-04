@@ -15,7 +15,7 @@ from il2ks.core.replay.result import (
 )
 from il2ks.db.models import Mission, Player, PlayerSortie
 from tests.factories import mission, save, sortie
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -144,7 +144,7 @@ def test_profile_budget_is_unchanged_by_the_breakdown(client: Client) -> None:
     save(seed())
 
     assert_simple_reads(
-        client, f"/players/{player_pk(1)}/", max_queries=12
+        client, f"/players/{player_pk(1)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME
     )  # as test_player_pages (tours, stat marks, streak, killboard)
 
 

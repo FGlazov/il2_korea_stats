@@ -13,7 +13,7 @@ from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.activity import ACTIVITY_DAYS
 from il2ks.web.chart_data import activity_chart, player_charts
 from tests.factories import STARTED_AT, meta, mission, rows, save, sortie
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_TOUR, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -168,7 +168,7 @@ def fly_tours() -> int:
 def test_profile_shows_per_tour_charts_for_two_tours(client: Client) -> None:
     pk = fly_tours()
 
-    assert_simple_reads(client, f"/players/{pk}/", max_queries=12)  # as test_player_pages
+    assert_simple_reads(client, f"/players/{pk}/", max_queries=PROFILE_READS_TOUR)
     html = client.get(f"/players/{pk}/").content.decode()
 
     assert html.count('class="chart"') == 2

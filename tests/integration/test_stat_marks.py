@@ -13,7 +13,7 @@ from il2ks.db.models import Player, StatThreshold, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.stat_marks import recompute_thresholds
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_ALL_TIME, PROFILE_READS_TOUR, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -117,15 +117,16 @@ def test_marks_follow_the_selected_tour(client: Client) -> None:
 
 def test_pilots_under_the_minimum_get_a_note_instead_of_marks(client: Client) -> None:
     seed(TWO)
-    page = client.get(f"/players/{pk(24)}/").content.decode()  # one sortie all-time
+    page = client.get(f"/players/{pk(24)}/?tour=all").content.decode()  # one sortie all-time
     assert "from 2 sorties on" in page
     assert "stat-mark--" not in page
-    flown_twice = client.get(f"/players/{pk(1)}/").content.decode()
+    flown_twice = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
     assert "from 2 sorties on" not in flown_twice
 
 
 def test_profile_query_budget_with_marks(client: Client) -> None:
     """One extra read for the thresholds, all-time and per tour (TD-22: a simple SELECT)."""
     seed()
-    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=12)  # as test_player_pages
-    assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=13)
+    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=PROFILE_READS_TOUR)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=PROFILE_READS_TOUR)

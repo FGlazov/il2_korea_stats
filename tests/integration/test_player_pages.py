@@ -8,7 +8,7 @@ from django.test import Client
 from il2ks.db.models import GameObject, Mission, Player
 from il2ks.queries import players as reads
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_ALL_TIME, PROFILE_READS_TOUR, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -191,11 +191,11 @@ def test_profile_per_aircraft_rows_link_to_the_filtered_sortie_list(client: Clie
     pk = player_pk(1)
     il10 = GameObject.objects.get(log_name="Il-10")
 
-    response = client.get(f"/players/{pk}/")
+    response = client.get(f"/players/{pk}/?tour=all")
 
     rows = response.context["aircraft"]
     assert {r.aircraft.log_name for r in rows} == {"MiG-15bis", "Il-10"}
-    assert f'href="/players/{pk}/sorties/?aircraft={il10.pk}"' in response.content.decode()
+    assert f'href="/players/{pk}/sorties/?aircraft={il10.pk}&amp;tour=all"' in response.content.decode()
 
 
 def test_profile_aircraft_table_sorts_and_whitelists(client: Client) -> None:
@@ -257,7 +257,7 @@ def test_profile_without_any_sortie_is_not_called_gunner_only(client: Client) ->
     seed()
     Player.objects.filter(account_uuid=account(2)).update(sorties=0)
 
-    response = client.get(f"/players/{player_pk(2)}/")
+    response = client.get(f"/players/{player_pk(2)}/?tour=all")
 
     assert response.context["gunner_only"] is False
     assert "No pilot sorties are counted" in response.content.decode()
@@ -273,12 +273,12 @@ def test_hidden_and_missing_players_are_404(client: Client) -> None:
 def test_profile_page_budget(client: Client) -> None:
     seed()
 
-    # context processor 2, player, names, tours (selector), stat thresholds, aircraft rows, recent sorties, streak,
-    # top victims, top nemeses, tour history (charts)
-    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=12)
-    assert_simple_reads(client, f"/players/{player_pk(1)}/?sort=-kills_air", max_queries=12)
-    # a player with zero counted sorties adds one read to tell gunner-only from empty
-    assert_simple_reads(client, f"/players/{player_pk(5)}/", max_queries=9)
+    # see tests/simple_reads.py for what the profile budgets count
+    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=PROFILE_READS_TOUR)
+    assert_simple_reads(client, f"/players/{player_pk(1)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
+    all_time_sorted = f"/players/{player_pk(1)}/?tour=all&sort=-kills_air"
+    assert_simple_reads(client, all_time_sorted, max_queries=PROFILE_READS_ALL_TIME)
+    assert_simple_reads(client, f"/players/{player_pk(5)}/", max_queries=PROFILE_READS_TOUR)
 
 
 def test_profile_name_is_escaped(client: Client) -> None:

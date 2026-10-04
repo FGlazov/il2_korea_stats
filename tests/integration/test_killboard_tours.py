@@ -21,12 +21,11 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
 from tests.integration.test_killboard_streaks import board, duel_mission, pk, snapshot
-from tests.simple_reads import assert_simple_reads
+from tests.simple_reads import PROFILE_READS_TOUR, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
 OCTOBER = datetime(2026, 10, 5, 12, tzinfo=UTC)
-PROFILE_BUDGET = 12  # the same in test_player_pages, test_stat_marks, test_ammo_pve_pages and test_killboard_streaks
 ASSISTS_ON = KillboardRules(assists=True)
 
 
@@ -234,7 +233,7 @@ def test_profile_shows_killboard_and_streaks_of_the_selected_tour(client: Client
     assert f"/players/{pk(2)}/streaks/?tour={october.pk}" in two
     assert "Best streak" in two
     assert "Current streak" not in two  # a current streak is not per tour
-    assert "Current streak" in client.get(f"/players/{pk(1)}/").content.decode()
+    assert "Current streak" in client.get(f"/players/{pk(1)}/?tour=all").content.decode()
     nobody = client.get(f"/players/{pk(2)}/?tour={october.pk}").content.decode()
     assert "Never shot down by a player." in nobody  # player 2 flew in October and nobody shot them down
 
@@ -247,8 +246,10 @@ def test_killboard_page_follows_the_tour(client: Client) -> None:
 
     assert response.context["tour"] == october
     assert [(r.kills, r.deaths) for r in response.context["page_obj"]] == [(0, 1)]
-    assert [(r.kills, r.deaths) for r in client.get(f"/players/{pk(1)}/killboard/").context["page_obj"]] == [(2, 2)]
-    assert client.get(f"/players/{pk(1)}/killboard/?tour=999999").context["tour"] is None  # unknown: all time
+    all_time = client.get(f"/players/{pk(1)}/killboard/?tour=all").context["page_obj"]
+    assert [(r.kills, r.deaths) for r in all_time] == [(2, 2)]
+    assert client.get(f"/players/{pk(1)}/killboard/").context["tour"] == october  # no ?tour: the current (newest) tour
+    assert client.get(f"/players/{pk(1)}/killboard/?tour=999999").context["tour"] == october  # unknown: current tour
 
 
 def test_best_streaks_page(client: Client) -> None:
@@ -291,7 +292,7 @@ def test_tour_budgets(client: Client) -> None:
     october = tour_named("October 2026").pk
 
     assert_simple_reads(
-        client, f"/players/{pk(1)}/?tour={october}", max_queries=PROFILE_BUDGET + 1
+        client, f"/players/{pk(1)}/?tour={october}", max_queries=PROFILE_READS_TOUR
     )  # the tour adds its PlayerTour row
     # context processor 2, player, tours, count, rows
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?tour={october}", max_queries=7)

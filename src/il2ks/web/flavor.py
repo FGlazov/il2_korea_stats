@@ -79,6 +79,14 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The sky was empty of drama. The tea stayed hot."),
         gettext_lazy("No kills this time. Somebody had to keep the airspace tidy."),
     ),
+    # A tour with no sorties to show (profile, mission and sortie lists): a fresh start, never a reproach.
+    "tour_empty": (
+        gettext_lazy("A fresh tour: the log book is still blank. Go and write the first line."),
+        gettext_lazy("Quiet skies so far. The airfield is yours."),
+        gettext_lazy("Nothing here yet. The ground crew just finished polishing the aircraft."),
+        gettext_lazy("Engines are warm and the sky is waiting. Start the first sortie of the tour!"),
+        gettext_lazy("Not a single contrail yet. Somebody has to be first."),
+    ),
     # Sortie page, one per notable outcome (see `sortie_spot`).
     "sortie_captured": (
         gettext_lazy("The silk opened, the welcoming committee was less friendly."),

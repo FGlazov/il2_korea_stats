@@ -231,6 +231,9 @@ msgstr ""
 msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
 msgstr ""
 
+msgid "A fresh tour: the log book is still blank. Go and write the first line."
+msgstr ""
+
 # llm-draft
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Щедрая душа: делится боеприпасами со всеми, ведомые не исключение."
@@ -337,6 +340,10 @@ msgstr ""
 
 msgid "All sorties in this aircraft"
 msgstr ""
+
+# llm-draft
+msgid "All sorties in this tour"
+msgstr "Все вылеты этого тура"
 
 msgid "All streaks"
 msgstr ""
@@ -697,6 +704,9 @@ msgid "Enemy action"
 msgstr ""
 
 msgid "Enemy aircraft"
+msgstr ""
+
+msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
 msgstr ""
 
 # llm-draft
@@ -1216,6 +1226,11 @@ msgid "Missions"
 msgstr "Миссии"
 
 # llm-draft
+#, python-format
+msgid "Missions in %(tour)s"
+msgstr "Миссии: %(tour)s"
+
+# llm-draft
 msgid "Missions stored"
 msgstr "Сохранено миссий"
 
@@ -1258,6 +1273,11 @@ msgstr "Следующая попытка"
 
 msgid "Next step"
 msgstr ""
+
+# llm-draft
+#, python-format
+msgid "Next tour starts %(when)s"
+msgstr "Следующий тур начнётся: %(when)s"
 
 msgid "Nickname"
 msgstr ""
@@ -1388,6 +1408,10 @@ msgstr "Нет."
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
 msgstr ""
 
+# llm-draft
+msgid "Not a single contrail yet. Somebody has to be first."
+msgstr "Ни одного следа в небе. Кому-то же надо быть первым."
+
 msgid "Not one incident on the ramp. Textbook."
 msgstr ""
 
@@ -1404,6 +1428,10 @@ msgstr "Примечание"
 
 msgid "Nothing found. The server may not write text logs yet; the final check will say what to switch on in the game server."
 msgstr ""
+
+# llm-draft
+msgid "Nothing here yet. The ground crew just finished polishing the aircraft."
+msgstr "Здесь пока ничего нет. Наземная команда только закончила полировать самолёты."
 
 # llm-draft
 msgid "Nothing ingested yet."
@@ -1627,6 +1655,10 @@ msgstr "Проблемы"
 msgid "Prop"
 msgstr ""
 
+# llm-draft
+msgid "Quiet skies so far. The airfield is yours."
+msgstr "Пока в небе тихо. Аэродром в вашем распоряжении."
+
 msgid "REDFOR won"
 msgstr ""
 
@@ -1840,12 +1872,20 @@ msgstr ""
 msgid "Sorties"
 msgstr ""
 
+#, python-format
+msgid "Sorties in %(tour)s"
+msgstr ""
+
 # llm-draft
 msgid "Sorties in which they killed a friendly"
 msgstr "Вылеты, в которых сбит свой"
 
 #, python-format
 msgid "Sorties of %(name)s"
+msgstr ""
+
+#, python-format
+msgid "Sorties of %(name)s in %(tour)s"
 msgstr ""
 
 msgid "Sorties per day"
