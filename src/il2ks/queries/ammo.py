@@ -4,7 +4,7 @@ Simple reads only (TD-22): the numbers were aggregated at ingest, here they are 
 
     sortie_ammo(sortie)          -> SortieAmmo         # a `PlayerSortie` row (its `ammo` JSON, shape in ingest.persist)
     sortie_ammo_by_pk(pk)        -> SortieAmmo | None  # one query
-    aircraft_ammo(aircraft)      -> AircraftAmmo       # a `GameObject`; two queries (per ammo, and the ammo mixes)
+    aircraft_ammo(aircraft, tour, role, mod_pattern) -> AircraftAmmo  # a `GameObject` in a scope; two queries
     all_aircraft_ammo()          -> list[AircraftAmmo] # every aircraft type that was destroyed by gun hits; one query
 
 `SortieAmmo.guns` and `.ordnance` are what the page lists: gun rows have hits and the damage attributed to them,
@@ -19,7 +19,16 @@ from typing import cast
 
 from il2ks.core.catalog.loader import GENERIC_ORDNANCE, AmmoInfo, Catalog, load_default_catalog
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
-from il2ks.db.models import MIX_SEPARATOR, TOTAL_AMMO, AircraftAmmoMixStats, AircraftAmmoStats, GameObject, PlayerSortie
+from il2ks.db.models import (
+    MIX_SEPARATOR,
+    TOTAL_AMMO,
+    AircraftAmmoMixStats,
+    AircraftAmmoStats,
+    AircraftRole,
+    GameObject,
+    PlayerSortie,
+    Tour,
+)
 
 UNATTRIBUTED_NAME = "Unattributed"
 """English default shown for `UNATTRIBUTED_ORDNANCE` (explosions no labelling rule could name). Translate it."""
@@ -222,16 +231,22 @@ def _mixes(rows: Sequence[AircraftAmmoMixStats]) -> tuple[AmmoMix, ...]:
     return tuple(sorted(out, key=lambda m: (-m.instances, m.ammos)))
 
 
-def aircraft_ammo(aircraft: GameObject) -> AircraftAmmo:
-    """Hits to destroy this aircraft type; empty (`total` None) if no kill was counted."""
-    rows = list(AircraftAmmoStats.objects.filter(aircraft=aircraft).select_related("aircraft"))
+def aircraft_ammo(
+    aircraft: GameObject, tour: Tour | None = None, role: AircraftRole = AircraftRole.ALL, mod_pattern: str = ""
+) -> AircraftAmmo:
+    """Hits to destroy this aircraft type in a scope: its destroyed aircraft's tour (None = all time), combat role and
+    modification pattern ('' = none, see `TourAircraftStats.mod_pattern`); empty (`total` None) if no kill was counted
+    there. Two queries (one stored row per ammo, one per mix member)."""
+    scope = {"aircraft": aircraft, "tour": tour, "role": role, "mod_pattern": mod_pattern}
+    rows = list(AircraftAmmoStats.objects.filter(**scope).select_related("aircraft"))
     found = _group(rows)
     if not found:
         return AircraftAmmo(aircraft.pk, aircraft, None, ())
-    mixes = _mixes(list(AircraftAmmoMixStats.objects.filter(aircraft=aircraft)))
+    mixes = _mixes(list(AircraftAmmoMixStats.objects.filter(**scope)))
     return replace(found[0], mixes=mixes)
 
 
 def all_aircraft_ammo() -> list[AircraftAmmo]:
-    """Every aircraft type with counted kills, the most-killed first."""
-    return _group(list(AircraftAmmoStats.objects.select_related("aircraft")))
+    """Every aircraft type with counted kills (all time, every role, no filter), the most-killed first."""
+    rows = AircraftAmmoStats.objects.filter(tour=None, role=AircraftRole.ALL, mod_pattern="")
+    return _group(list(rows.select_related("aircraft")))

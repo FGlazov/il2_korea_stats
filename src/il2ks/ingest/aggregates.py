@@ -25,11 +25,11 @@ Identity fields (`Player.first_seen`, `last_seen`, `current_name`, `name_lower` 
 summed: they come from the player's sorties. A player without sorties keeps the identity values they had.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 
 from django.db import models
-from django.db.models import Max, Min, Sum
+from django.db.models import Max, Min, QuerySet, Sum
 
 from il2ks.core.killboard import DEFAULT_KILLBOARD_RULES, KillboardRules
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
@@ -55,6 +55,7 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
+from il2ks.ingest.aircraft_mods import scopes_of, significant_mods
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
@@ -151,59 +152,100 @@ def _store_board_rules(board: KillboardRules) -> None:
         settings.save(update_fields=["killboard_assists"])
 
 
+type _AmmoKey = tuple[int, int | None, str, str, str, str]  # aircraft, tour, role, pattern, mix ('' = per ammo), ammo
+
+
 def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
-    """Hits to destroy (FR-WEB-18): `AircraftAmmoStats` for these victim aircraft types = the sum of their
-    `MissionAircraftAmmo` rows over all missions, upserted by `(aircraft, ammo)`; rows with nothing left are deleted.
-    Cheap enough to run for every type (a few dozen rows per mission), so `save_mission` and the rebuild share it."""
+    """Hits to destroy (FR-WEB-18): `AircraftAmmoStats` and `AircraftAmmoMixStats` for these victim aircraft types =
+    the sums of their `MissionAircraftAmmo` / `MissionAircraftAmmoMix` rows over the missions of every scope (all time
+    and each tour, every role and each combat role, no filter and each modification pattern of the types with
+    significant mods: the role and mods are those of the destroyed aircraft's sortie, a victim that was not a player
+    sortie counts for `all` roles without a filter only); rows with nothing left are deleted. Cheap enough to run for
+    every type (a few dozen rows per mission), so `save_mission` and the rebuild share it."""
     ids = sorted(set(aircraft_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
-        wanted = {
-            (row["aircraft_id"], row["ammo"]): (row["kills"], row["hits"])
-            for row in MissionAircraftAmmo.objects.filter(aircraft_id__in=chunk)
-            .values("aircraft_id", "ammo")
-            .annotate(kills=Sum("kills"), hits=Sum("hits"))
-        }
-        existing = {(r.aircraft_id, r.ammo): r for r in AircraftAmmoStats.objects.filter(aircraft_id__in=chunk)}
-        changed: list[AircraftAmmoStats] = []
-        new: list[AircraftAmmoStats] = []
-        for key, (kills, hits) in wanted.items():
-            row = existing.pop(key, None)
-            if row is None:
-                new.append(AircraftAmmoStats(aircraft_id=key[0], ammo=key[1], kills=kills, hits=hits))
-            elif (row.kills, row.hits) != (kills, hits):
-                row.kills, row.hits = kills, hits
-                changed.append(row)
-        AircraftAmmoStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-        update_rows(AircraftAmmoStats, changed, ["kills", "hits"])
-        AircraftAmmoStats.objects.bulk_create(new)
-        _recompute_ammo_mixes(chunk)
+        significant = significant_mods(chunk)
+        singles = _scoped_ammo(
+            MissionAircraftAmmo.objects.filter(aircraft_id__in=chunk)
+            .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "ammo")
+            .annotate(n=Sum("kills"), h=Sum("hits")),
+            significant,
+            None,
+        )
+        _sync_ammo(AircraftAmmoStats, AircraftAmmoStats.objects.filter(aircraft_id__in=chunk), singles, "")
+        mixes = _scoped_ammo(
+            MissionAircraftAmmoMix.objects.filter(aircraft_id__in=chunk)
+            .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "mix", "ammo")
+            .annotate(n=Sum("kills"), h=Sum("hits")),
+            significant,
+            "mix",
+        )
+        _sync_ammo(AircraftAmmoMixStats, AircraftAmmoMixStats.objects.filter(aircraft_id__in=chunk), mixes, "mix")
 
 
-def _recompute_ammo_mixes(aircraft_ids: list[int]) -> None:
-    """`AircraftAmmoMixStats` for these victim types = the sum of their `MissionAircraftAmmoMix` rows, upserted by
-    `(aircraft, mix, ammo)`; rows with nothing left are deleted (same shape as `recompute_aircraft_ammo`)."""
-    wanted = {
-        (row["aircraft_id"], row["mix"], row["ammo"]): (row["kills"], row["hits"])
-        for row in MissionAircraftAmmoMix.objects.filter(aircraft_id__in=aircraft_ids)
-        .values("aircraft_id", "mix", "ammo")
-        .annotate(kills=Sum("kills"), hits=Sum("hits"))
-    }
+def _scoped_ammo(
+    rows: Iterable[Mapping[str, object]], significant: dict[int, tuple[int, ...]], mix_field: str | None
+) -> dict[_AmmoKey, tuple[int, int]]:
+    """The (kills, hits) of every scope: the level-1 rows summed per (type, tour, role, WM, mix, ammo), each added to
+    every scope its destroyed aircraft's sortie belongs to (`aircraft_mods.scopes_of`)."""
+    wanted: dict[_AmmoKey, tuple[int, int]] = {}
+    for row in rows:
+        aircraft, tour_id = int(str(row["aircraft_id"])), row["mission__tour_id"]
+        mix = str(row[mix_field]) if mix_field else ""
+        scopes = scopes_of(
+            None if tour_id is None else int(str(tour_id)),
+            str(row["combat_role"]),
+            int(str(row["weapon_mods"])),
+            significant.get(aircraft, ()),
+        )
+        for tour, role, pattern in scopes:
+            key = (aircraft, tour, role, pattern, mix, str(row["ammo"]))
+            kills, hits = wanted.get(key, (0, 0))
+            wanted[key] = (kills + int(str(row["n"])), hits + int(str(row["h"])))
+    return wanted
+
+
+def _sync_ammo[M: models.Model](
+    model: type[M], existing_rows: QuerySet[M], wanted: dict[_AmmoKey, tuple[int, int]], mix_field: str
+) -> None:
+    """Make the scoped hits-to-destroy rows equal `wanted` (new created, changed updated, the others deleted)."""
     existing = {
-        (r.aircraft_id, r.mix, r.ammo): r for r in AircraftAmmoMixStats.objects.filter(aircraft_id__in=aircraft_ids)
+        (
+            getattr(r, "aircraft_id"),  # noqa: B009
+            getattr(r, "tour_id"),  # noqa: B009
+            getattr(r, "role"),  # noqa: B009
+            getattr(r, "mod_pattern"),  # noqa: B009
+            getattr(r, mix_field) if mix_field else "",
+            getattr(r, "ammo"),  # noqa: B009
+        ): r
+        for r in existing_rows
     }
-    changed: list[AircraftAmmoMixStats] = []
-    new: list[AircraftAmmoMixStats] = []
-    for key, (kills, hits) in wanted.items():
+    changed: list[M] = []
+    new: list[M] = []
+    for key, (kills, hits) in sorted(wanted.items(), key=lambda item: (item[0][0], item[0][1] or 0, *item[0][2:])):
         row = existing.pop(key, None)
         if row is None:
-            new.append(AircraftAmmoMixStats(aircraft_id=key[0], mix=key[1], ammo=key[2], kills=kills, hits=hits))
-        elif (row.kills, row.hits) != (kills, hits):
-            row.kills, row.hits = kills, hits
+            extra = {mix_field: key[4]} if mix_field else {}
+            new.append(
+                model(
+                    aircraft_id=key[0],
+                    tour_id=key[1],
+                    role=key[2],
+                    mod_pattern=key[3],
+                    ammo=key[5],
+                    kills=kills,
+                    hits=hits,
+                    **extra,
+                )
+            )
+        elif (getattr(row, "kills"), getattr(row, "hits")) != (kills, hits):  # noqa: B009
+            setattr(row, "kills", kills)  # noqa: B010
+            setattr(row, "hits", hits)  # noqa: B010
             changed.append(row)
-    AircraftAmmoMixStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    update_rows(AircraftAmmoMixStats, changed, ["kills", "hits"])
-    AircraftAmmoMixStats.objects.bulk_create(new)
+    model.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    update_rows(model, changed, ["kills", "hits"])
+    model.objects.bulk_create(new)
 
 
 def refresh_player_missions() -> None:

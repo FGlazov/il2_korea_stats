@@ -4,7 +4,7 @@
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
   selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
   (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters the tiles, the pilot count, the loadouts and the top pilots; matchups follow it as the intercept scope), matchup_role_note (attack: the matchups ignore the role), show_elo / show_ground (which top-pilots tables), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
+  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters every section with the tour and the modification filter), show_elo / show_ground (which top-pilots tables), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), loadouts (Loadout: payload (AircraftPayload), elo, kills_per_sortie, kd,
   ground_hour; None = a dash), loadout_sort (?lsort=), mod_filters (ModFilter: mod_id, name, state "any" / "with" / "without"; only a type with
@@ -29,9 +29,8 @@
   {% role_toggle role %}
   {% if mod_filters %}
     {% mod_filter mod_filters %}
-    {% if mod_filtered %}<p class="muted">{% translate "Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and hits to destroy still cover every modification." %}</p>{% endif %}
   {% endif %}
-  <p class="muted">{% translate "The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts cover all time, and hits to destroy always count every role (it is about kills of this aircraft)." %}</p>
+  <p class="muted">{% translate "Everything on this page follows the selected tour, role and modifications; choose all time to see every tour. Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was shot down." %}</p>
 
   <div class="stat-tiles profile-tiles">
     {% blocktranslate with rate=survived|percent:tile.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
@@ -61,16 +60,13 @@
 
   <section>
     <h2>{% translate "Matchups" %}</h2>
-    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
-    {% if role != "air_superiority" %}
+    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
     <p class="tour-bar">
       <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
         <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All kills and losses" %}</a>
         <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept sorties only" %}</a>
       </span>
     </p>
-    {% endif %}
-    {% if matchup_role_note %}<p class="muted">{% translate "The role filter does not apply to matchups: they show every kill and loss of this aircraft." %}</p>{% endif %}
     {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
     {% if matchups.best %}
       <p>{% blocktranslate with enemy=matchups.best.enemy|object_name kills=matchups.best.kills|num losses=matchups.best.losses|num %}Best exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}
@@ -172,7 +168,7 @@
 
   <section>
     <h2>{% translate "Loadouts" %}</h2>
-    <p class="muted">{% translate "Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
+    <p class="muted">{% translate "Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
@@ -216,7 +212,7 @@
 
   <section>
     <h2>{% translate "Modifications" %}</h2>
-    <p class="muted">{% translate "The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
+    <p class="muted">{% translate "The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role. Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>

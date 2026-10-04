@@ -40,6 +40,7 @@ from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import DEFAULT_TOUR_RULES, TourRules
 from il2ks.db.models import (
     MIX_SEPARATOR,
+    NO_MODS_RECORDED,
     TOTAL_AMMO,
     Country,
     GameObject,
@@ -210,7 +211,7 @@ def save_level1(
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
-    ammo_aircraft_ids = _replace_aircraft_ammo(mission, result.single_attacker_kills, objects)
+    ammo_aircraft_ids = _replace_aircraft_ammo(mission, result.single_attacker_kills, objects, sorties)
 
     touched = Touched(
         players=old_player_ids | {p.pk for p in players.values()},
@@ -871,24 +872,61 @@ def aircraft_ammo_mix_totals(kills: Iterable[SingleAttackerKill]) -> dict[tuple[
     return totals
 
 
+def _victim_scope(kill: SingleAttackerKill, sorties: dict[int, PlayerSortie]) -> tuple[str, int]:
+    """The (combat role, weapon mods) of the destroyed aircraft's own sortie, when it was a counted player sortie (the
+    stats scopes of the aircraft page follow them); else ('', `NO_MODS_RECORDED`): an AI aircraft has no pattern."""
+    sortie = None if kill.victim_sortie_index is None else sorties.get(kill.victim_sortie_index)
+    if sortie is None or sortie.role not in COUNTED_ROLES:
+        return "", NO_MODS_RECORDED
+    return sortie.combat_role or "", sortie.weapon_mods
+
+
 def _replace_aircraft_ammo(
-    mission: Mission, kills: Iterable[SingleAttackerKill], objects: dict[str, GameObject]
+    mission: Mission,
+    kills: Iterable[SingleAttackerKill],
+    objects: dict[str, GameObject],
+    sorties: dict[int, PlayerSortie],
 ) -> set[int]:
-    """Rewrite the mission's `MissionAircraftAmmo` rows. Returns the aircraft ids whose level-2 rows may change: the
-    types the mission had before and the ones it has now."""
-    kills = tuple(kills)
-    totals = aircraft_ammo_totals(kills)
+    """Rewrite the mission's `MissionAircraftAmmo` rows, per victim role and mods. Returns the aircraft ids whose
+    level-2 rows may change: the types the mission had before and the ones it has now."""
+    by_scope: dict[tuple[str, int], list[SingleAttackerKill]] = {}
+    for kill in kills:
+        by_scope.setdefault(_victim_scope(kill, sorties), []).append(kill)
     old_ids = set(MissionAircraftAmmo.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
-    MissionAircraftAmmo.objects.filter(mission=mission).delete()
-    MissionAircraftAmmo.objects.bulk_create(
-        MissionAircraftAmmo(mission=mission, aircraft=objects[victim], ammo=ammo, kills=n, hits=hits)
-        for (victim, ammo), (n, hits) in sorted(totals.items())
-    )
-    mixes = aircraft_ammo_mix_totals(kills)
     old_ids |= set(MissionAircraftAmmoMix.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
+    MissionAircraftAmmo.objects.filter(mission=mission).delete()
     MissionAircraftAmmoMix.objects.filter(mission=mission).delete()
-    MissionAircraftAmmoMix.objects.bulk_create(
-        MissionAircraftAmmoMix(mission=mission, aircraft=objects[victim], mix=mix, ammo=ammo, kills=n, hits=hits)
-        for (victim, mix, ammo), (n, hits) in sorted(mixes.items())
-    )
-    return old_ids | {objects[victim].pk for victim, _ in totals} | {objects[victim].pk for victim, _, _ in mixes}
+    new_ids: set[int] = set()
+    single: list[MissionAircraftAmmo] = []
+    mixed: list[MissionAircraftAmmoMix] = []
+    for (role, mods), group in sorted(by_scope.items()):
+        for (victim, ammo), (n, hits) in sorted(aircraft_ammo_totals(group).items()):
+            single.append(
+                MissionAircraftAmmo(
+                    mission=mission,
+                    aircraft=objects[victim],
+                    combat_role=role,
+                    weapon_mods=mods,
+                    ammo=ammo,
+                    kills=n,
+                    hits=hits,
+                )
+            )
+            new_ids.add(objects[victim].pk)
+        for (victim, mix, ammo), (n, hits) in sorted(aircraft_ammo_mix_totals(group).items()):
+            mixed.append(
+                MissionAircraftAmmoMix(
+                    mission=mission,
+                    aircraft=objects[victim],
+                    combat_role=role,
+                    weapon_mods=mods,
+                    mix=mix,
+                    ammo=ammo,
+                    kills=n,
+                    hits=hits,
+                )
+            )
+            new_ids.add(objects[victim].pk)
+    MissionAircraftAmmo.objects.bulk_create(single)
+    MissionAircraftAmmoMix.objects.bulk_create(mixed)
+    return old_ids | new_ids

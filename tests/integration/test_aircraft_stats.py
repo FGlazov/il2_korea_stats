@@ -219,7 +219,7 @@ def test_top_pilots_are_ranked_by_type_elo_and_leave_out_hidden_players(client: 
     """OQ-49: skill, not volume. Hidden players are rated and counted in the totals but never named."""
     seed_with_hidden_top_pilot()
 
-    body = client.get(detail_url("MiG-15bis")).content.decode()
+    body = client.get(detail_url("MiG-15bis") + "?tour=all").content.decode()
 
     assert "Top pilots by Elo" in body
     assert "Player-1" not in body  # hidden: not named, not linked
@@ -379,7 +379,7 @@ def test_list_of_a_tour_nobody_flew_in_is_empty(client: Client) -> None:
     assert "No aircraft has flown in this tour yet." in response.content.decode()
 
 
-def test_detail_tiles_follow_the_tour_but_the_rest_stays_all_time(client: Client) -> None:
+def test_detail_tiles_and_tables_follow_the_tour_and_all_time_stays_available(client: Client) -> None:
     september, october = two_tours()
     mig = GameObject.objects.get(log_name="MiG-15bis")
     url = reverse("web:aircraft-detail", args=[mig.pk])
@@ -393,11 +393,9 @@ def test_detail_tiles_follow_the_tour_but_the_rest_stays_all_time(client: Client
     assert [r.context["tile"].kills_air for r in (in_september, in_october, all_time)] == [2, 1, 3]
     assert [in_september.context["survived"], in_october.context["survived"]] == [1, 1]  # 2 sorties 1 death; 1 and 0
     assert all_time.context["stats"].sorties == 3  # the all-time row is always loaded (side badge)
-    for response in (in_september, in_october, all_time):  # loadouts stay all time
-        assert loadout_sorties(response) == {
-            "Payload 1": 2,
-            "Payload 2": 1,
-        }
+    for response in (in_september, in_october, all_time):  # the loadouts follow the tour too (maintainer 2026-10-04)
+        assert sum(loadout_sorties(response).values()) == response.context["tile"].sorties
+    assert loadout_sorties(all_time) == {"Payload 1": 2, "Payload 2": 1}
     # the matchups follow the same tour
     assert [m.enemy.log_name for m in in_september.context["matchups"].rows] == ["F-86A-5"]
     assert [m.enemy.log_name for m in in_october.context["matchups"].rows] == ["F-51D"]

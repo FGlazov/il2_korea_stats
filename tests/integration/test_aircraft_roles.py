@@ -11,11 +11,13 @@ from django.urls import reverse
 
 from il2ks.config import LeaderboardConfig
 from il2ks.db.models import (
+    AircraftMatchup,
     AircraftPayload,
     AircraftStats,
     GameObject,
     Player,
     PlayerAircraft,
+    PlayerAircraftScope,
     Tour,
     TourAircraftStats,
 )
@@ -49,7 +51,18 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
     return {
         "stats": rows(AircraftStats, "aircraft_id"),
         "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
-        "payloads": rows(AircraftPayload, "aircraft_id", "payload_name", "combat_role", "mod_pattern"),
+        "payloads": rows(AircraftPayload, "aircraft_id", "tour_id", "payload_name", "combat_role", "mod_pattern"),
+        "matchups": rows(
+            AircraftMatchup,
+            "killer_aircraft_id",
+            "victim_aircraft_id",
+            "tour_id",
+            "intercept",
+            "scoped_side",
+            "combat_role",
+            "mod_pattern",
+        ),
+        "player_scopes": rows(PlayerAircraftScope, "aircraft_id", "player_id", "tour_id", "role", "mod_pattern"),
     }
 
 
@@ -188,17 +201,21 @@ def test_loadout_average_elo_is_sortie_weighted_with_type_then_pool_elo() -> Non
             weighted += value * sorties
             sorties_rated += sorties
     assert sorties_rated > 0
-    stored = AircraftPayload.objects.get(aircraft=sabre, payload_name="Payload 1", combat_role=AIR, mod_pattern="")
+    stored = AircraftPayload.objects.get(
+        aircraft=sabre, payload_name="Payload 1", combat_role=AIR, mod_pattern="", tour=None
+    )
     assert stored.elo_avg == pytest.approx(weighted / sorties_rated, abs=0.001)
     # attack loadouts have no Elo; neither has the other type's attack loadout
-    attack = AircraftPayload.objects.get(aircraft=mig, payload_name="Payload 2", combat_role=ATTACK, mod_pattern="")
+    attack = AircraftPayload.objects.get(
+        aircraft=mig, payload_name="Payload 2", combat_role=ATTACK, mod_pattern="", tour=None
+    )
     assert attack.elo_avg is None
 
 
 def test_loadout_without_a_rated_pilot_has_no_average_elo() -> None:
     save(mission((sortie(0, 1, payload_id=1, combat_role=AIR),), ()))
 
-    assert AircraftPayload.objects.get(mod_pattern="").elo_avg is None
+    assert AircraftPayload.objects.get(mod_pattern="", tour=None).elo_avg is None
 
 
 def detail(log_name: str) -> str:
@@ -251,25 +268,24 @@ def test_unknown_role_means_all_roles(client: Client) -> None:
     assert response.context["tile"].sorties == 4
 
 
-def test_matchups_follow_air_superiority_as_the_intercept_scope_and_ignore_attack(client: Client) -> None:
+def test_matchups_follow_the_role_of_this_aircrafts_sortie_and_combine_with_intercept(client: Client) -> None:
+    """Maintainer 2026-10-04: every section follows the role. The role is that of the page's own sortie: the killer's
+    for the kills, the victim's for the losses."""
     history()
     url = f"{detail('MiG-15bis')}?tour=all"
 
-    all_fights = client.get(url)
-    air = client.get(url + "&role=air_superiority")
-    attack = client.get(url + "&role=attack")
+    def exchange(query: str) -> list[tuple[int, int]]:
+        response = client.get(url + query)
+        assert "The role filter does not apply" not in response.content.decode()
+        return [(m.kills, m.losses) for m in response.context["matchups"].rows]
 
-    assert all_fights.context["intercept"] is False
-    assert air.context["intercept"] is True
-    assert "Only kills where both pilots flew an air superiority sortie" in air.content.decode()
-    assert "All kills and losses" not in air.content.decode()  # the intercept toggle is implied by the role
-    assert attack.context["intercept"] is False
-    assert attack.context["matchup_role_note"] is True
-    assert "The role filter does not apply to matchups" in attack.content.decode()
-    assert "The role filter does not apply to matchups" not in all_fights.content.decode()
-    assert [m.enemy.log_name for m in attack.context["matchups"].rows] == [
-        m.enemy.log_name for m in all_fights.context["matchups"].rows
-    ]
+    assert exchange("") == [(1, 2)]
+    assert exchange("&role=air_superiority") == [(1, 1)]  # the MiG's air sortie won once, its October air sortie lost
+    assert exchange("&role=attack") == [(0, 1)]  # an attack sortie of the MiG was shot down; none of them killed
+    assert exchange("&role=air_superiority&intercept=1") == [(1, 1)]  # both sides air superiority in both fights
+    assert exchange("&role=attack&intercept=1") == []  # intercept needs both sorties air superiority
+    page = client.get(url + "&role=air_superiority").content.decode()
+    assert "All kills and losses" in page  # the toggle stays: the role no longer implies it
 
 
 @override_settings(IL2KS_LEADERBOARDS=SOME)

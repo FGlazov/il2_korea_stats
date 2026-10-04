@@ -12,11 +12,13 @@ from django.test import Client
 from django.urls import reverse
 
 from il2ks.db.models import (
+    AircraftMatchup,
     AircraftMods,
     AircraftPayload,
     AircraftStats,
     GameObject,
     Player,
+    PlayerAircraftScope,
     PlayerSortie,
     Tour,
     TourAircraftStats,
@@ -50,8 +52,19 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
     return {
         "stats": rows(AircraftStats, "aircraft_id"),
         "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
-        "payloads": rows(AircraftPayload, "aircraft_id", "payload_name", "combat_role", "mod_pattern"),
-        "mods": rows(AircraftMods, "aircraft_id", "weapon_mods", "combat_role", "mod_pattern"),
+        "payloads": rows(AircraftPayload, "aircraft_id", "tour_id", "payload_name", "combat_role", "mod_pattern"),
+        "matchups": rows(
+            AircraftMatchup,
+            "killer_aircraft_id",
+            "victim_aircraft_id",
+            "tour_id",
+            "intercept",
+            "scoped_side",
+            "combat_role",
+            "mod_pattern",
+        ),
+        "player_scopes": rows(PlayerAircraftScope, "aircraft_id", "player_id", "tour_id", "role", "mod_pattern"),
+        "mods": rows(AircraftMods, "aircraft_id", "tour_id", "weapon_mods", "combat_role", "mod_pattern"),
     }
 
 
@@ -198,7 +211,10 @@ def test_mods_table_equals_the_loadout_style_computation() -> None:
     for s in PlayerSortie.objects.filter(aircraft=mig(), role="pilot"):
         groups.setdefault((s.weapon_mods, s.combat_role or ""), []).append(s)
 
-    stored = {(r.weapon_mods, r.combat_role): r for r in AircraftMods.objects.filter(aircraft=mig(), mod_pattern="")}
+    stored = {
+        (r.weapon_mods, r.combat_role): r
+        for r in AircraftMods.objects.filter(aircraft=mig(), mod_pattern="", tour=None)
+    }
     assert set(stored) == set(groups)
     for key, found in groups.items():
         assert stored[key].sorties == len(found)
@@ -207,7 +223,7 @@ def test_mods_table_equals_the_loadout_style_computation() -> None:
         assert stored[key].deaths == sum(s.is_death for s in found)
         assert stored[key].kills_air_pvp == sum(s.kills_air_pvp for s in found)
     # the loadouts of the same sorties add up to the same total as the mods
-    assert sum(p.sorties for p in AircraftPayload.objects.filter(aircraft=mig(), mod_pattern="")) == sum(
+    assert sum(p.sorties for p in AircraftPayload.objects.filter(aircraft=mig(), mod_pattern="", tour=None)) == sum(
         r.sorties for r in stored.values()
     )
 

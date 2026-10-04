@@ -203,6 +203,22 @@ class AircraftRole(models.TextChoices):
     ATTACK = "attack"
 
 
+NO_MODS_RECORDED = -1
+"""`MissionAircraftAmmo.weapon_mods` of a destroyed aircraft that was not a counted player sortie (AI, or a row from
+before the role and mods were stored): it belongs to no modification pattern."""
+
+
+def scoped_unique(name: str, fields: list[str]) -> list[models.UniqueConstraint]:
+    """A unique key over `fields` plus a nullable `tour` (null = all time): SQL treats NULLs as distinct, so one
+    conditional constraint covers the rows with a tour and one the all-time rows (the `AircraftMatchup` pattern)."""
+    return [
+        models.UniqueConstraint(
+            fields=["tour", *fields], condition=models.Q(tour__isnull=False), name=f"{name}_tour_unique"
+        ),
+        models.UniqueConstraint(fields=fields, condition=models.Q(tour__isnull=True), name=f"{name}_alltime_unique"),
+    ]
+
+
 class KillCredit(models.TextChoices):
     KILL = "kill"
     ASSIST = "assist"
@@ -631,13 +647,20 @@ class MissionAircraftAmmo(models.Model):
 
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="aircraft_ammo")
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="mission_ammo")
+    # The destroyed aircraft's own sortie, when it was a counted player sortie: its combat role ('' = none or not a
+    # player) and weapon mods (`NO_MODS_RECORDED` = not a player sortie). The stats scopes of the aircraft page follow
+    # them.
+    combat_role = models.CharField(max_length=16, blank=True, default="")
+    weapon_mods = models.IntegerField(default=NO_MODS_RECORDED)
     ammo = models.CharField(max_length=128)
     kills = models.PositiveIntegerField(default=0)
     hits = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["mission", "aircraft", "ammo"], name="missionaircraftammo_unique")
+            models.UniqueConstraint(
+                fields=["mission", "aircraft", "combat_role", "weapon_mods", "ammo"], name="missionaircraftammo_unique"
+            )
         ]
 
     def __str__(self) -> str:
@@ -661,6 +684,8 @@ class MissionAircraftAmmoMix(models.Model):
 
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="aircraft_ammo_mixes")
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="mission_ammo_mixes")
+    combat_role = models.CharField(max_length=16, blank=True, default="")  # as on `MissionAircraftAmmo`
+    weapon_mods = models.IntegerField(default=NO_MODS_RECORDED)
     mix = models.CharField(max_length=MIX_KEY_LENGTH)
     ammo = models.CharField(max_length=128)
     kills = models.PositiveIntegerField(default=0)
@@ -668,7 +693,10 @@ class MissionAircraftAmmoMix(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["mission", "aircraft", "mix", "ammo"], name="missionaircraftammomix_unique")
+            models.UniqueConstraint(
+                fields=["mission", "aircraft", "combat_role", "weapon_mods", "mix", "ammo"],
+                name="missionaircraftammomix_unique",
+            )
         ]
 
     def __str__(self) -> str:
@@ -738,6 +766,32 @@ class PlayerTourAircraft(Counters):
 
     def __str__(self) -> str:
         return f"{self.player_id} / tour {self.tour_id} / {self.aircraft_id}"
+
+
+class PlayerAircraftScope(Counters):
+    """Level 2 (FR-WEB-8): one player's counters in one aircraft type within a scope of the aircraft page, for its top
+    pilots: `tour` (null = all time), combat `role` (`AircraftRole`) and weapon-mod `mod_pattern` (see
+    `TourAircraftStats`, which has the same scopes per type). Every scope has rows except the all-time, every role,
+    unfiltered one, which is `PlayerAircraft` itself. Counted from the sorties in each scope, hidden players too
+    (hiding is presentation only; the page leaves them out). `all` rows include sorties without a combat role."""
+
+    player_id: int
+    aircraft_id: int
+    tour_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="aircraft_scopes")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_scopes")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="+")
+    role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
+    mod_pattern = models.CharField(max_length=16, blank=True, default="")
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = scoped_unique("playeraircraftscope", ["aircraft", "player", "role", "mod_pattern"])
+        indexes = [models.Index(fields=["aircraft", "tour", "role", "mod_pattern"], name="aircraftscope_by_aircraft")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.aircraft_id} / {self.tour_id} / {self.role} / {self.mod_pattern or '*'}"
 
 
 class BuildKind(models.TextChoices):
@@ -819,20 +873,27 @@ class PlayerTourPool(Counters):
 
 
 class AircraftAmmoStats(models.Model):
-    """Level 2 (FR-WEB-18): all-time hits to destroy per victim aircraft type and gun ammo.
+    """Level 2 (FR-WEB-18): hits to destroy per victim aircraft type and gun ammo, per scope of the aircraft page.
 
-    The sum of `MissionAircraftAmmo` over all missions. The average hits to destroy is `hits / kills`, computed when the
-    page reads it (TD-22: no aggregation at request time). The `TOTAL_AMMO` row is all gun ammo together."""
+    The sum of `MissionAircraftAmmo` over the missions of the scope: `tour` null = all time, `role` (`AircraftRole`,
+    `all` = every destroyed aircraft, AI included) and `mod_pattern` ('' = unfiltered, see `TourAircraftStats`) are
+    those of the DESTROYED aircraft's sortie. The all-time `all` unfiltered rows are what the aircraft list reads. The
+    average hits to destroy is `hits / kills`, computed when the page reads it (TD-22: no aggregation at request time).
+    The `TOTAL_AMMO` row is all gun ammo together."""
 
     aircraft_id: int
+    tour_id: int | None
 
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="ammo_stats")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="ammo_stats")
+    role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
+    mod_pattern = models.CharField(max_length=16, blank=True, default="")
     ammo = models.CharField(max_length=128)
     kills = models.PositiveIntegerField(default=0)
     hits = models.PositiveIntegerField(default=0)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["aircraft", "ammo"], name="aircraftammostats_unique")]
+        constraints = scoped_unique("aircraftammostats", ["aircraft", "role", "mod_pattern", "ammo"])
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / {self.ammo}"
@@ -949,7 +1010,8 @@ class AircraftMatchup(models.Model):
     """Level 2 (FR-WEB-8): player-versus-player air kills of one aircraft type against another.
 
     `kills` = `Kill` rows (credit `kill`, enemy, pilot sorties on both sides) where a `killer_aircraft` shot down a
-    `victim_aircraft`. A type's losses to another type are the reversed pair. Pairs without kills have no row.
+    `victim_aircraft` (the unscoped rows; the role / modification scopes repeat the kills of their side's sortie). A
+    type's losses to another type are the reversed pair. Pairs without kills have no row.
 
     One row per scope: `tour` null = all time, else the kills of that tour's missions; `intercept` true = only kills
     where both sorties had the combat role air superiority (an intercept fight, doc 13), false = every kill. So
@@ -964,21 +1026,21 @@ class AircraftMatchup(models.Model):
     victim_aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="matchup_losses")
     tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="aircraft_matchups")
     intercept = models.BooleanField(default=False)
+    # The role / modification scope of one side's sortie: `scoped_side` '' = unscoped (every kill, `combat_role` `all`
+    # and no pattern); 'killer' or 'victim' = only the kills where that side's sortie had `combat_role` (`AircraftRole`,
+    # never `all` with an empty pattern) and weapon mods matching `mod_pattern` (of that side's type, see
+    # `TourAircraftStats.mod_pattern`). The page of type A reads its kills as the killer side and its losses as the
+    # victim side of its own scope.
+    scoped_side = models.CharField(max_length=6, blank=True, default="")
+    combat_role = models.CharField(max_length=16, default=AircraftRole.ALL)
+    mod_pattern = models.CharField(max_length=16, blank=True, default="")
     kills = models.PositiveIntegerField(default=0)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["killer_aircraft", "victim_aircraft", "tour", "intercept"],
-                condition=models.Q(tour__isnull=False),
-                name="aircraftmatchup_tour_unique",
-            ),
-            models.UniqueConstraint(
-                fields=["killer_aircraft", "victim_aircraft", "intercept"],
-                condition=models.Q(tour__isnull=True),
-                name="aircraftmatchup_alltime_unique",
-            ),
-        ]
+        constraints = scoped_unique(
+            "aircraftmatchup",
+            ["killer_aircraft", "victim_aircraft", "intercept", "scoped_side", "combat_role", "mod_pattern"],
+        )
         indexes = [models.Index(fields=["killer_aircraft", "tour", "intercept"], name="matchup_by_killer")]
 
     def __str__(self) -> str:
@@ -987,11 +1049,15 @@ class AircraftMatchup(models.Model):
 
 class AircraftEffectiveness(models.Model):
     """The columns every "effectiveness by X" table of the aircraft page shares (doc 13): counted sorties of a type in
-    one group (a loadout, a weapon-mod set), the combat role of the sorties and the modification filter scope
+    one group (a loadout, a weapon-mod set) in one tour (`tour` null = all time), the combat role of the sorties and the
+    modification filter scope
     (`TourAircraftStats.mod_pattern`; '' = unfiltered), with what the effectiveness columns are made of."""
 
     aircraft_id: int
 
+    tour_id: int | None
+
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="+")  # null = all time
     combat_role = models.CharField(max_length=16, blank=True, default="")  # of its sorties; '' = none recorded
     mod_pattern = models.CharField(max_length=16, blank=True, default="")
     sorties = models.PositiveIntegerField(default=0)
@@ -1023,11 +1089,7 @@ class AircraftPayload(AircraftEffectiveness):
 
     class Meta(AircraftEffectiveness.Meta):
         abstract = False
-        constraints = [
-            models.UniqueConstraint(
-                fields=["aircraft", "payload_name", "combat_role", "mod_pattern"], name="aircraftpayload_unique"
-            )
-        ]
+        constraints = scoped_unique("aircraftpayload", ["aircraft", "payload_name", "combat_role", "mod_pattern"])
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / {self.payload_name}"
@@ -1043,11 +1105,7 @@ class AircraftMods(AircraftEffectiveness):
 
     class Meta(AircraftEffectiveness.Meta):
         abstract = False
-        constraints = [
-            models.UniqueConstraint(
-                fields=["aircraft", "weapon_mods", "combat_role", "mod_pattern"], name="aircraftmods_unique"
-            )
-        ]
+        constraints = scoped_unique("aircraftmods", ["aircraft", "weapon_mods", "combat_role", "mod_pattern"])
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / mods {self.weapon_mods}"
@@ -1664,20 +1722,24 @@ class LivePlayer(models.Model):
 
 
 class AircraftAmmoMixStats(models.Model):
-    """Level 2 (FR-WEB-18): all-time ammo mixes per victim aircraft type, the sum of `MissionAircraftAmmoMix` over all
-    missions (rows as there: one per member ammo plus the `TOTAL_AMMO` row). Average hits of a member =
-    `hits / kills`, divided when the page reads it (TD-22)."""
+    """Level 2 (FR-WEB-18): ammo mixes per victim aircraft type, the sum of `MissionAircraftAmmoMix` over the missions
+    of the scope (rows as there: one per member ammo plus the `TOTAL_AMMO` row); `tour`, `role` and `mod_pattern` as on
+    `AircraftAmmoStats`. Average hits of a member = `hits / kills`, divided when the page reads it (TD-22)."""
 
     aircraft_id: int
+    tour_id: int | None
 
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="ammo_mix_stats")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="ammo_mix_stats")
+    role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
+    mod_pattern = models.CharField(max_length=16, blank=True, default="")
     mix = models.CharField(max_length=MIX_KEY_LENGTH)
     ammo = models.CharField(max_length=128)
     kills = models.PositiveIntegerField(default=0)
     hits = models.PositiveIntegerField(default=0)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["aircraft", "mix", "ammo"], name="aircraftammomixstats_unique")]
+        constraints = scoped_unique("aircraftammomixstats", ["aircraft", "role", "mod_pattern", "mix", "ammo"])
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / {self.mix} / {self.ammo}"

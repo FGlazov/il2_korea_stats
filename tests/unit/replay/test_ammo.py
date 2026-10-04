@@ -475,3 +475,18 @@ def test_a_player_victim_counts_too() -> None:
     (kill,) = finish(sc).single_attacker_kills
     assert kill.victim_type == "MiG-15bis"
     assert kill.hits == ((API, 1),)
+
+
+def test_single_attacker_kill_names_the_victims_sortie_only_for_a_player() -> None:
+    """The stats scopes of the aircraft page follow the destroyed aircraft's own role and mods, so a kill of a player's
+    aircraft carries that sortie's index; an AI aircraft has none."""
+    sc = scenario()
+    sc.hit(100.0, 100, 200, API)  # B (a player) is the victim ...
+    sc.damage(100.0, 100, 200, 1.0)
+    sc.kill(100.0, 100, 200)
+    sc.hit(110.0, 100, 300, API)  # ... then the AI MiG
+    sc.damage(110.0, 100, 300, 1.0)
+    sc.kill(110.0, 100, 300)
+    result = finish(sc)
+    victim = next(s for s in result.sorties if s.account_uuid.endswith("2"))
+    assert [k.victim_sortie_index for k in result.single_attacker_kills] == [victim.index, None]
