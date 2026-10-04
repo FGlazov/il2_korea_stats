@@ -90,7 +90,7 @@ def test_the_backfill_derives_the_split_from_the_timelines_and_rebuilds_level_2(
     SiteSettings.objects.filter(pk=1).update(backfills_done=[])
     cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
 
-    migrate._backfill_assist_split(cfg)  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg, [migrate.BACKFILL_ASSIST_SPLIT])  # pyright: ignore[reportPrivateUsage]
 
     mixed.refresh_from_db()
     lost.refresh_from_db()

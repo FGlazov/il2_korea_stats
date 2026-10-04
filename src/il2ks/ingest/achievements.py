@@ -9,7 +9,7 @@ the overview page shows (visible players only).
 
 from collections import Counter
 
-from django.db.models import F
+from django.db.models import Count, F
 
 from il2ks.core.achievements import AchievementSortie, EarnedTier, earn_all
 from il2ks.db.models import (
@@ -138,9 +138,13 @@ def _sync(chunk: list[int], wanted: dict[_Key, _Value]) -> None:
 
 def recompute_holders() -> None:
     """Rewrite the holder counts: per achievement tier, the visible players who hold it (FR-ADM-3)."""
-    counts: Counter[tuple[str, int]] = Counter(
-        PlayerAchievement.objects.filter(player__is_hidden=False).values_list("key", "tier").iterator()
-    )
+    counts: dict[tuple[str, int], int] = {
+        (row["key"], row["tier"]): row["n"]
+        for row in PlayerAchievement.objects.filter(player__is_hidden=False)
+        .values("key", "tier")
+        .annotate(n=Count("pk"))
+        .order_by()
+    }
     existing = {(r.key, r.tier): r for r in AchievementHolders.objects.all()}
     changed: list[AchievementHolders] = []
     new: list[AchievementHolders] = []

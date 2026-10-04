@@ -9,7 +9,7 @@ Hidden players count (hiding is presentation only, FR-ADM-3). A scope with too f
 
 from collections.abc import Iterable
 
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from il2ks.core.stat_marks import (
     DEFAULT_MARK_RULES,
@@ -43,6 +43,13 @@ _FIELDS = (
     "kills_intercept",
     "kills_tank_attack",
 )
+_AMOUNT_FIELD: dict[Metric, str] = {  # the column `core.stat_marks.amount` compares with a metric's minimum
+    "elo_prop": "elo_prop_games",
+    "elo_jet": "elo_jet_games",
+    "ground_score_hour": "time_on_target_s",
+    "tank_hour": "time_on_target_s",
+    "interception_hour": "flight_time_air_s",
+}
 _ELO_FIELDS = ("elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")  # Player only: ratings are all time
 
 
@@ -57,11 +64,15 @@ def recompute_thresholds(rules: MarkRules = DEFAULT_MARK_RULES, tour_ids: Iterab
 def _write(
     tour_id: int | None, rules: MarkRules, rows: QuerySet[Player] | QuerySet[PlayerTour], fields: tuple[str, ...]
 ) -> None:
-    pilots = [Totals(**dict(zip(fields, values, strict=True))) for values in rows.values_list(*fields)]
+    # The Elo marks compare with the all-time population on a tour profile too
+    metrics: list[Metric] = [m for m in METRICS if tour_id is None or m not in ELO_METRICS]
+    # Only rows that reach at least one metric's minimum can count: load those (the OR of the per-metric minimums).
+    eligible = Q(pk__in=[])
+    for metric in metrics:
+        eligible |= Q(**{f"{_AMOUNT_FIELD.get(metric, 'sorties')}__gte": rules.minimum(metric)})
+    pilots = [Totals(**dict(zip(fields, values, strict=True))) for values in rows.filter(eligible).values_list(*fields)]
     wanted: dict[Metric, Thresholds] = {}
-    for metric in METRICS:
-        if tour_id is not None and metric in ELO_METRICS:
-            continue  # the Elo marks compare with the all-time population on a tour profile too
+    for metric in metrics:
         minimum = rules.minimum(metric)  # each metric has its own population: sorties, rated games or time on target
         found = thresholds(metric_value(metric, totals) for totals in pilots if amount(metric, totals) >= minimum)
         if found is not None:

@@ -365,6 +365,6 @@ def test_the_migration_backfill_builds_the_type_rows_of_an_old_database(tmp_path
     PlayerTypeKillboard.objects.all().delete()
     AircraftMatchup.objects.exclude(tour=None, intercept=False).delete()
 
-    migrate._backfill_type_killboard(make_instance(tmp_path))  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_TYPE_KILLBOARD])  # pyright: ignore[reportPrivateUsage]
 
     assert snapshot() == good
