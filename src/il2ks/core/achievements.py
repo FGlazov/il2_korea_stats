@@ -87,8 +87,8 @@ class Achievement:
     kind: Kind = "medal"
     """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
     all_time_only: bool = False
-    """Earned over the whole history only, never per tour: the fact it reads is not a function of the tour's sorties (the
-    Elo is global, so a pilot above a tier would earn it with the first win of every new tour)."""
+    """Earned over the whole history only, never per tour: the fact it reads is not a function of the tour's sorties
+    (the Elo is global, so a pilot above a tier would earn it with the first win of every new tour)."""
     shame: bool = False
     """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
 
@@ -337,5 +337,8 @@ def earn_all(sorties: Sequence[AchievementSortie], *, all_time: bool = True) -> 
     """Every tier of every registered achievement the pilot's sorties (chronological) reach. `all_time=False` (the
     sorties are one tour's) leaves out the achievements that are `all_time_only`."""
     return [
-        e for achievement in ACHIEVEMENTS if all_time or not achievement.all_time_only for e in earn(achievement, sorties)
+        e
+        for achievement in ACHIEVEMENTS
+        if all_time or not achievement.all_time_only
+        for e in earn(achievement, sorties)
     ]

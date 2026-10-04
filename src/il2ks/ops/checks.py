@@ -384,9 +384,9 @@ def tours_check(cfg: Config) -> Iterable[Finding]:
 
 @check
 def ammo_mix_check(cfg: Config) -> Iterable[Finding]:
-    """A mission with gun hits on kills but no mix rows: a database from before ammo mixes (no backfill, only a reprocess
-    builds them). Checked per mission, so newer missions do not hide the old ones; kills without gun hits have no mix
-    rows by design and are ignored."""
+    """A mission with gun hits on kills but no mix rows: a database from before ammo mixes (no backfill, only a
+    reprocess builds them). Checked per mission, so newer missions do not hide the old ones; kills without gun hits have
+    no mix rows by design and are ignored."""
     from django.db import DatabaseError
     from django.db.models import Exists, OuterRef
 

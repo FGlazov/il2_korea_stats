@@ -208,7 +208,7 @@ def test_a_too_long_line_or_unknown_language_saves_nothing(admin: Client) -> Non
 
 
 def test_a_rejected_new_line_comes_back_in_its_field_with_the_error(admin: Client) -> None:
-    """The page re-renders the posted text, not the stored configuration, so the admin can fix it instead of retyping."""
+    """The page re-renders the posted text, not the stored configuration, so the admin can fix it, not retype."""
     too_long = "Typed with care " + "x" * quips.MAX_LEN
     body = post(admin, **{"new-top_pilot-text": too_long})
     assert f'name="new-top_pilot-text" value="{too_long}"' in body

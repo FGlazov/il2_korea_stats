@@ -71,7 +71,8 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
 def _store_peaks(peaks: dict[int, float], winners: dict[int, int]) -> None:
     """Write `PlayerSortie.elo_peak` (the Elo medal reads it) where it differs, then recompute the medals of every pilot
     whose sorties changed. The holder counts are the caller's to recompute afterwards
-    (`recompute_holders`, once per save or rebuild). Incremental == rebuild: the peaks are a pure function of the replayed games."""
+    (`recompute_holders`, once per save or rebuild). Incremental == rebuild: the peaks are a pure function of the
+    replayed games."""
     stored = dict(PlayerSortie.objects.filter(elo_peak__gt=0).values_list("pk", "elo_peak"))
     changed: list[PlayerSortie] = []
     players: set[int] = set()

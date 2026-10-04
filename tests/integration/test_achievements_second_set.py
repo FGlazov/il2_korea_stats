@@ -219,7 +219,8 @@ def test_the_backfill_first_blood_skips_gunner_kills() -> None:
         meta("m1", STARTED_AT),
     )
     ingested = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
-    assert ingested[pk(1)] and not ingested[pk(4)]
+    assert ingested[pk(1)]
+    assert not ingested[pk(4)]
     PlayerSortie.objects.update(rams=0, first_blood=False, multi_kill=0)
     SiteSettings.objects.filter(pk=1).update(backfills_done=[])
     config = Config(data_dir=Path("."), server_uid=SERVER_UID, timezone_name="UTC")
