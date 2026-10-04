@@ -289,7 +289,6 @@ def load_config(
         cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
     )
 
-    marks = MarkRules(min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties))
     score = ScoreRules(
         **{f.name: reader.non_negative("score", f.name, cast(float, f.default)) for f in dataclasses.fields(ScoreRules)}
     )
@@ -301,6 +300,12 @@ def load_config(
         min_time_on_target_minutes=reader.non_negative(
             "score", "min_time_on_target_minutes", board_defaults.min_time_on_target_minutes
         ),
+    )
+    # The Elo and ground-per-hour marks use the minimums of the boards they sit next to, so marks and boards agree.
+    marks = MarkRules(
+        min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties),
+        min_elo_games=leaderboards.min_elo_games,
+        min_time_on_target_s=leaderboards.min_time_on_target_minutes * 60.0,
     )
 
     board = KillboardRules(assists=reader.bool_("killboard", "assists", KillboardRules().assists))

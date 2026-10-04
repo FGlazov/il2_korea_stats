@@ -124,6 +124,73 @@ def test_pilots_under_the_minimum_get_a_note_instead_of_marks(client: Client) ->
     assert "from 2 sorties on" not in flown_twice
 
 
+RULES = MarkRules(min_sorties=1, min_elo_games=3, min_time_on_target_s=600.0)
+
+
+def seed_scores_and_ratings() -> None:
+    """Pilot n (1..25): 10 n air score, Elo 1400 + 10 n with n // 2 jet games (3+ from pilot 6) and n // 8 prop games,
+    n * 100 s on target (10 minutes from pilot 6) with 5 n * n attack score."""
+    seed()
+    for n in range(1, 26):
+        Player.objects.filter(account_uuid=account(n)).update(
+            score_air=n * 10.0,
+            score_ground=n * 2.0,
+            elo_jet=1400.0 + 10 * n,
+            elo_jet_games=n // 2,  # 3+ games from pilot 6: 20 pilots, the minimum population
+            elo_prop=1400.0 + 10 * n,
+            elo_prop_games=n // 8,  # 3+ games from pilot 24: two pilots, too few for a distribution
+            time_on_target_s=n * 100.0,
+            score_ground_attack=n * 5.0 * n,
+        )
+    recompute_thresholds(RULES)
+
+
+def test_score_elo_and_ground_hour_populations() -> None:
+    seed_scores_and_ratings()
+    alltime = {r.metric: r for r in StatThreshold.objects.filter(tour=None)}
+    assert alltime["air_score"].population == 25
+    assert alltime["air_score"].min_sorties == 1
+    jet = alltime["elo_jet"]  # rated games, whatever the sorties: pilots 6..25
+    assert (jet.population, jet.min_sorties) == (20, 3)
+    assert jet.p50 == pytest.approx(1400 + 10 * 15.5)
+    assert "elo_prop" not in alltime  # two pilots with enough rated games: too few for a distribution
+    hour = alltime["ground_score_hour"]  # 600 s on target or more: pilots 6..25
+    assert (hour.population, hour.min_sorties) == (20, 600)
+    assert hour.p50 == pytest.approx(180.0 * 15.5)  # pilot n: 5 n * n score over n * 100 s = 180 n per hour
+
+
+def test_elo_thresholds_are_all_time_only_and_tours_have_the_other_scores() -> None:
+    seed_scores_and_ratings()
+    september = StatThreshold.objects.filter(tour=tour("September 2026"))
+    assert not september.filter(metric__in=["elo_jet", "elo_prop"]).exists()
+    assert september.filter(metric="air_score").exists()  # PlayerTour carries the scores (zero here, still defined)
+    recompute_thresholds(RULES)  # again: the same rows, no churn
+    assert StatThreshold.objects.filter(metric="elo_jet").count() == 1
+
+
+def test_elo_mark_renders_on_all_time_and_tour_profiles(client: Client) -> None:
+    seed_scores_and_ratings()
+    for query in ("?tour=all", f"?tour={tour('September 2026').pk}"):
+        best = client.get(f"/players/{pk(25)}/{query}").content.decode()
+        assert "Better than 9 in 10 pilots with at least 3 rated games in this pool" in best, query
+        low = client.get(f"/players/{pk(2)}/{query}").content.decode()  # below the Elo minimum: no Elo mark
+        assert "rated games in this pool" not in low, query
+
+
+def test_score_hour_mark_text_names_the_minutes(client: Client) -> None:
+    seed_scores_and_ratings()
+    StatThreshold.objects.filter(tour=None, metric="ground_score_hour").update(p75=100.0, p90=150.0)
+    page = client.get(f"/players/{pk(25)}/?tour=all").content.decode()
+    assert "Better than 9 in 10 pilots with at least 10 minutes on target" in page
+
+
+def test_profile_query_budget_with_score_marks(client: Client) -> None:
+    seed_scores_and_ratings()
+    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=PROFILE_READS_TOUR)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=PROFILE_READS_TOUR)
+
+
 def test_profile_query_budget_with_marks(client: Client) -> None:
     """One extra read for the thresholds, all-time and per tour (TD-22: a simple SELECT)."""
     seed()

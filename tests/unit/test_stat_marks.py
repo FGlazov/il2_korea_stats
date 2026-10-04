@@ -1,18 +1,23 @@
 """Stat marks (FR-WEB-22): percentiles, bands and the `{% stat_mark %}` tag, without a database."""
 
+from dataclasses import replace
+
 import pytest
 from django.template import Context, Template
 
 from il2ks.core.stat_marks import (
+    METRICS,
     MIN_POPULATION,
+    MarkRules,
     Thresholds,
     Totals,
+    amount,
     band,
     metric_value,
     percentile,
     thresholds,
 )
-from il2ks.db.models import Player, StatThreshold
+from il2ks.db.models import Player, PlayerTour, StatThreshold
 
 LIMITS = Thresholds(p10=0.1, p25=0.2, p50=0.5, p75=0.7, p90=0.9, population=100)
 
@@ -158,3 +163,72 @@ def test_no_stats_renders_nothing() -> None:
         Context({"stats": None, "marks": MARKS})
     )
     assert html.strip() == ""
+
+
+# --- score and Elo marks (2026-10-04) --------------------------------------------------------------------------------
+def test_score_and_elo_metric_values() -> None:
+    totals = Totals(
+        sorties=10,
+        deaths=0,
+        planes_lost=0,
+        kills_air=0,
+        kills_ground=0,
+        flight_time_s=0,
+        score_air=120.0,
+        score_ground=80.0,
+        score_ground_attack=60.0,
+        time_on_target_s=1800.0,
+        elo_prop=1620.0,
+        elo_prop_games=7,
+    )
+    assert metric_value("air_score", totals) == 120.0
+    assert metric_value("ground_score", totals) == 80.0
+    assert metric_value("ground_score_hour", totals) == 120.0
+    assert metric_value("elo_prop", totals) == 1620.0
+    assert metric_value("elo_jet", totals) is None  # no rated jet games: the dash
+    assert metric_value("ground_score_hour", replace(totals, time_on_target_s=0.0)) is None
+
+
+def test_every_metric_key_fits_the_column() -> None:
+    assert all(len(metric) <= 24 for metric in METRICS)
+
+
+def test_each_metric_has_its_own_minimum() -> None:
+    rules = MarkRules(min_sorties=20, min_elo_games=5, min_time_on_target_s=600.0)
+    assert rules.minimum("air_score") == 20
+    assert (rules.minimum("elo_jet"), rules.minimum("elo_prop")) == (5, 5)
+    assert rules.minimum("ground_score_hour") == 600
+    assert MarkRules(min_elo_games=0).minimum("elo_jet") == 1  # like the boards: at least one rated game
+    totals = Totals(0, 0, 0, 0, 0, 0.0, time_on_target_s=599.0, elo_jet_games=5)
+    assert amount("ground_score_hour", totals) < rules.minimum("ground_score_hour")
+    assert amount("elo_jet", totals) >= rules.minimum("elo_jet")
+    assert amount("elo_prop", totals) < rules.minimum("elo_prop")
+
+
+def test_elo_mark_uses_the_player_also_when_stats_is_a_tour_row() -> None:
+    marks = {"elo_jet": _threshold("elo_jet", p10=1400.0, p25=1450.0, p50=1500.0, p75=1550.0, p90=1600.0)}
+    marks["elo_jet"].min_sorties = 5  # rated games for an Elo row
+    player = Player(sorties=1, elo_jet=1700.0, elo_jet_games=6)
+    source = '{% load il2ks %}{% stat_mark "elo_jet" %}'
+    html = Template(source).render(Context({"stats": PlayerTour(sorties=1), "player": player, "marks": marks}))
+    assert "Top 10%" in html
+    assert "at least 5 rated games" in html
+    few = Player(sorties=1, elo_jet=1700.0, elo_jet_games=4)
+    assert Template(source).render(Context({"stats": few, "player": few, "marks": marks})).strip() == ""
+
+
+def test_ground_score_hour_mark_needs_the_time_on_target() -> None:
+    marks = {"ground_score_hour": _threshold("ground_score_hour", p10=10.0, p25=20.0, p50=30.0, p75=40.0, p90=50.0)}
+    marks["ground_score_hour"].min_sorties = 600  # seconds on target
+    source = '{% load il2ks %}{% stat_mark "ground_score_hour" %}'
+    good = Player(sorties=1, score_ground_attack=100.0, time_on_target_s=1800.0)  # 200 per hour
+    assert "at least 10 minutes on target" in Template(source).render(Context({"stats": good, "marks": marks}))
+    brief = Player(sorties=1, score_ground_attack=100.0, time_on_target_s=300.0)
+    assert Template(source).render(Context({"stats": brief, "marks": marks})).strip() == ""
+
+
+def test_note_ignores_elo_and_time_rows() -> None:
+    elo = _threshold("elo_jet")
+    elo.min_sorties = 5
+    marks = {"elo_jet": elo, "air_score": _threshold("air_score")}
+    assert "from 20 sorties on" in _render("{% stat_mark_note %}", _player(sorties=3, deaths=0), marks)

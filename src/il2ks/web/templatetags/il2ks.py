@@ -14,6 +14,8 @@ pagination, filter_select, filter_text, tour_select, tour_filter, stat_mark, sta
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
+import dataclasses
+import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
 from typing import cast
@@ -308,13 +310,33 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
     stats = context.get("stats")
     marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
     limits = marks.get(metric)
-    if stats is None or limits is None or stats.sorties < limits.min_sorties:
+    if stats is None or limits is None:
         return {}
-    value = stat_marks.metric_value(cast(stat_marks.Metric, metric), stat_marks_totals(stats))
+    kind = cast(stat_marks.Metric, metric)
+    totals = stat_marks_totals(stats)
+    if kind in stat_marks.ELO_METRICS:  # ratings are all time and live on the player, also on a tour profile
+        player = context.get("player")
+        if player is None:
+            return {}
+        totals = dataclasses.replace(
+            totals,
+            elo_prop=player.elo_prop,
+            elo_prop_games=player.elo_prop_games,
+            elo_jet=player.elo_jet,
+            elo_jet_games=player.elo_jet_games,
+        )
+    if stat_marks.amount(kind, totals) < limits.min_sorties:
+        return {}
     found = stat_marks.band(
-        value, stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population)
+        stat_marks.metric_value(kind, totals),
+        stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population),
     )
-    return {"band": found, "min_sorties": limits.min_sorties}
+    return {
+        "band": found,
+        "min_sorties": limits.min_sorties,
+        "unit": stat_marks.unit(kind),
+        "minutes": max(1, math.ceil(limits.min_sorties / 60)),  # for the time on target (stored in seconds)
+    }
 
 
 @register.inclusion_tag(COMPONENTS + "stat_mark_note.html", takes_context=True)
@@ -322,7 +344,8 @@ def stat_mark_note(context: Context) -> dict[str, object]:
     """{% stat_mark_note %} under the ratios: why a pilot with too few sorties has no marks (FR-WEB-22)."""
     stats = context.get("stats")
     marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
-    first = next(iter(marks.values()), None)
+    # The sortie-based marks only: Elo and time-on-target rows carry other minimums
+    first = next((m for key, m in marks.items() if stat_marks.unit(cast(stat_marks.Metric, key)) == "sorties"), None)
     if stats is None or first is None or stats.sorties >= first.min_sorties:
         return {}
     return {"min_sorties": first.min_sorties}
