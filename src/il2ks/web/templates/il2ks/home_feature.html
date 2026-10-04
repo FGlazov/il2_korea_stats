@@ -1,0 +1,17 @@
+{# il2ks-template: templates/il2ks/home_feature.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  The large front-page image (FR-ADM-2, off by default). Context: home_feature (HomeFeatureView: url, small_url, width, height,
+  small_width, caption, alt, updated) or None, which renders nothing. The picture links to the full-size file.
+{% endcomment %}{% if home_feature %}
+  <figure class="home-feature">
+    <a class="home-feature__link" href="{{ home_feature.url }}" target="_blank" rel="noopener" aria-label="{% translate 'Open the full-size image' %}">
+      <img class="home-feature__img" src="{{ home_feature.url }}"{% if home_feature.small_url %} srcset="{{ home_feature.small_url }} {{ home_feature.small_width }}w, {{ home_feature.url }} {{ home_feature.width }}w" sizes="(max-width: 700px) 100vw, 1200px"{% endif %} width="{{ home_feature.width }}" height="{{ home_feature.height }}" alt="{{ home_feature.alt }}" fetchpriority="high">
+    </a>
+    {% if home_feature.caption or home_feature.updated %}
+      <figcaption class="home-feature__caption">
+        {% if home_feature.caption %}<strong>{{ home_feature.caption }}</strong>{% endif %}
+        {% if home_feature.updated %}<span class="muted">{% translate "Updated" %} {{ home_feature.updated|local_time }}</span>{% endif %}
+      </figcaption>
+    {% endif %}
+  </figure>
+{% endif %}

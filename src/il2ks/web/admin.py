@@ -47,6 +47,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
+from il2ks.web.feature_image import prune_feature_files, store_result
 from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
 from il2ks.web.logo import prune_logos, store_bytes, store_logo
 from il2ks.web.object_names import default_catalog
@@ -115,7 +116,7 @@ def _contrast_message(item: ContrastWarning) -> str:
 class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
     form = SiteSettingsForm
     inlines = (NavLinkInline,)
-    readonly_fields = ("current_logo", "uploaded_fonts", "nav_links_help")
+    readonly_fields = ("current_logo", "uploaded_fonts", "nav_links_help", "feature_status")
     fieldsets = (
         (None, {"fields": ("site_title", "server_name", "description")}),
         (_("Logo"), {"fields": ("current_logo", "logo_upload", "remove_logo")}),
@@ -133,6 +134,15 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             },
         ),
         (_("Colors"), {"fields": ("theme_preset", "theme")}),
+        (
+            _("Front page image"),
+            {
+                "fields": ("home_feature", "feature_image_path", "feature_caption", "feature_alt", "feature_status"),
+                "description": _(
+                    "A large image, for example a map of the current situation, shown first on the front page."
+                ),
+            },
+        ),
         (_("Navigation links"), {"fields": ("nav_links_help",)}),
         (
             _("Coalitions"),
@@ -184,6 +194,31 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         )
         return format_html("<style>{}</style>{}", mark_safe(font_face_css(fonts, settings.MEDIA_URL)), rows)
 
+    @admin.display(description=_("Front page image: status"))
+    def feature_status(self, obj: SiteSettings) -> str:
+        parts: list[str] = []
+        if obj.feature_image:
+            parts.append(
+                format_html(
+                    '<img src="{}{}" alt="" style="max-height:120px;max-width:320px;background:#ddd;padding:4px">',
+                    settings.MEDIA_URL,
+                    obj.feature_image,
+                )
+            )
+            if obj.feature_image_updated is not None:
+                parts.append(
+                    format_html(
+                        "{} {}",
+                        _("Picture taken from the file as of (UTC):"),
+                        obj.feature_image_updated.strftime("%Y-%m-%d %H:%M"),
+                    )
+                )
+        else:
+            parts.append(_("No picture yet."))
+        if obj.feature_error:
+            parts.append(format_html("<strong>{}</strong> {}", _("Problem:"), obj.feature_error))
+        return format_html_join(mark_safe("<br>"), "{}", ((part,) for part in parts))
+
     @admin.display(description=_("About the links"))
     def nav_links_help(self, obj: SiteSettings) -> str:
         return format_html(
@@ -227,6 +262,16 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             obj.logo = form.processed_logo.name
         elif form.cleaned_data["remove_logo"]:
             obj.logo = ""
+        if form.processed_feature is not None:
+            source, feature = form.processed_feature
+            store_result(feature, media_root)
+            obj.feature_image = feature.full_name
+            obj.feature_image_small = feature.small_name
+            obj.feature_image_width = feature.width
+            obj.feature_image_height = feature.height
+            obj.feature_image_updated = source.modified
+            obj.feature_source_sig = source.signature
+            obj.feature_error = ""
         fonts = form.kept_fonts
         if form.processed_font is not None:
             store_bytes(form.processed_font.data, form.processed_font.font.file, media_root)
@@ -245,6 +290,7 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         # Old logo files go only once the new row is committed (a rolled-back save keeps the logo it had), and a file
         # that cannot be deleted right now (Windows refuses while it is being served) is left for the next save.
         transaction.on_commit(partial(prune_logos, media_root, obj.logo))
+        transaction.on_commit(partial(prune_feature_files, media_root, (obj.feature_image, obj.feature_image_small)))
         transaction.on_commit(partial(prune_fonts, media_root, [font.file for font in fonts]))
 
 

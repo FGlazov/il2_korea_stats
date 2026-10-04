@@ -19,6 +19,7 @@ from il2ks import __version__
 from il2ks.db.models import NavIcon, SiteSettings
 from il2ks.db.validators import validate_http_url
 from il2ks.web.caching import request_data_version
+from il2ks.web.feature_image import HomeFeatureView, home_feature_view
 from il2ks.web.theme import theme_css
 
 
@@ -65,6 +66,8 @@ def site(request: HttpRequest) -> dict[str, object]:
       construction (`il2ks.web.theme`), meant for `<style>{{ theme_css }}</style>`.
     - `data_updated`: aware datetime of the last data change, or None before the first one.
     - `il2ks_version`: the installed il2ks version.
+    - `home_feature`: the large front-page image (`HomeFeatureView`) when the admin turned it on and it is usable,
+      else None (`web.feature_image`; no query: it comes from the settings row).
     """
     row = SiteSettings.objects.filter(pk=1).first() or SiteSettings()
     version_row = request_data_version(request)  # shared with the caching middleware: one read per request
@@ -74,8 +77,10 @@ def site(request: HttpRequest) -> dict[str, object]:
     css: SafeString = theme_css(
         row.theme, row.heading_font, row.body_font, row.custom_fonts, django_settings.MEDIA_URL or "/media/"
     )
+    feature: HomeFeatureView | None = home_feature_view(row)
     return {
         "site": row,
+        "home_feature": feature,
         "logo_url": logo_url,
         "nav_links": links,
         "site_links": [(link.label, link.url) for link in links],

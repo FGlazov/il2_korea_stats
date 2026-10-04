@@ -257,6 +257,15 @@ _.compute_ratings  # pure-function wrapper over compute_all_ratings, kept for th
 _.shame  # core.achievements.Achievement: hall-of-shame flag, read by the profile / medal views and tested
 _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.archive.write_archive
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
+# --- front-page image (FR-ADM-2) ---
+_.feature_status  # ModelAdmin readonly field (SiteSettingsAdmin.readonly_fields)
+_.small_url  # web.feature_image.HomeFeatureView: read by il2ks/home_feature.html
+_.small_width
+_.caption
+_.alt
+_.help_texts  # SiteSettingsForm.Meta (Django ModelForm option)
+_.clean_home_feature  # Django form hook: SiteSettingsForm.clean_<field>
+_.required  # Django form field attribute (SiteSettingsForm.__init__: home_feature is optional in a post)
 _.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html
 weapon_mod_mask  # core.catalog.loader: inverse of weapon_mod_ids, for the aircraft page mod filter (next); tested
 _.stale_hides  # web.admin_quips.SpotRow: read by admin/il2ks_quips.html

@@ -56,3 +56,10 @@
 /* "On this page" links (Pico lays a <nav> out with space-between). */
 .jump-links { justify-content: flex-start; gap: 0.4rem 1.6rem; margin: 0 0 0.25rem; }
 .jump-links a { font-weight: 600; }
+
+/* The large front-page image (FR-ADM-2, off by default): first on the page, full container width, never taller than most of a screen. */
+.home-feature { margin: 0 0 2rem; padding: 0; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); overflow: hidden; }
+.home-feature__link { display: block; line-height: 0; background: var(--il2-surface); }
+.home-feature__img { display: block; width: 100%; height: auto; max-height: 75vh; object-fit: contain; margin: 0 auto; }
+.home-feature__caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; padding: 0.6rem 1rem; border-top: 1px solid var(--il2-border); font-size: 0.9rem; }
+.home-feature__caption .muted { color: var(--il2-muted); }

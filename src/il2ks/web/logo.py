@@ -45,26 +45,7 @@ class ProcessedLogo:
 
 def process_logo(raw: bytes) -> ProcessedLogo:
     """Validate and re-encode an uploaded logo. Raises `LogoError` for anything that isn't a clean raster image."""
-    if not raw:
-        raise LogoError(_("The file is empty."))
-    if len(raw) > MAX_UPLOAD_BYTES:
-        raise LogoError(_("The file is larger than %(mb)d MB.") % {"mb": MAX_UPLOAD_BYTES // (1024 * 1024)})
-    try:
-        image = Image.open(io.BytesIO(raw), formats=ALLOWED_FORMATS)
-    except Image.DecompressionBombError as exc:
-        raise _too_many_pixels() from exc
-    except (UnidentifiedImageError, OSError, ValueError, SyntaxError) as exc:
-        raise LogoError(_("This is not a PNG, JPEG or WebP image (SVG is not accepted).")) from exc
-    with image:
-        if image.width * image.height > MAX_PIXELS:
-            raise _too_many_pixels()
-        try:
-            image.seek(0)  # animated PNG/WebP: first frame only
-            image.load()
-            upright = ImageOps.exif_transpose(image)
-        except (OSError, ValueError, SyntaxError, EOFError, Image.DecompressionBombError) as exc:
-            raise LogoError(_("The image is damaged or truncated.")) from exc
-        pixels = _normalize_mode(upright)
+    pixels = decode_raster(raw, max_bytes=MAX_UPLOAD_BYTES, max_pixels=MAX_PIXELS)
     pixels.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.Resampling.LANCZOS)  # only ever shrinks
     out = io.BytesIO()
     pixels.save(out, format="PNG", optimize=True)  # no exif/pnginfo is passed, so no metadata is written
@@ -73,8 +54,34 @@ def process_logo(raw: bytes) -> ProcessedLogo:
     return ProcessedLogo(data, f"{BRANDING_DIR}/logo-{digest}.png", pixels.width, pixels.height)
 
 
-def _too_many_pixels() -> LogoError:
-    return LogoError(_("The image has too many pixels (limit: %(px)d megapixels).") % {"px": MAX_PIXELS // 10**6})
+def decode_raster(raw: bytes, *, max_bytes: int, max_pixels: int) -> Image.Image:
+    """Steps 1 to 4 of the module docstring: the fully decoded, upright pixels of a PNG/JPEG/WebP (first frame), as RGB
+    or RGBA. Shared with the front-page image (`web.feature_image`). Raises `LogoError`; its messages never quote the
+    file's content."""
+    if not raw:
+        raise LogoError(_("The file is empty."))
+    if len(raw) > max_bytes:
+        raise LogoError(_("The file is larger than %(mb)d MB.") % {"mb": max_bytes // (1024 * 1024)})
+    try:
+        image = Image.open(io.BytesIO(raw), formats=ALLOWED_FORMATS)
+    except Image.DecompressionBombError as exc:
+        raise _too_many_pixels(max_pixels) from exc
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError) as exc:
+        raise LogoError(_("This is not a PNG, JPEG or WebP image (SVG is not accepted).")) from exc
+    with image:
+        if image.width * image.height > max_pixels:
+            raise _too_many_pixels(max_pixels)
+        try:
+            image.seek(0)  # animated PNG/WebP: first frame only
+            image.load()
+            upright = ImageOps.exif_transpose(image)
+        except (OSError, ValueError, SyntaxError, EOFError, Image.DecompressionBombError) as exc:
+            raise LogoError(_("The image is damaged or truncated.")) from exc
+        return _normalize_mode(upright)
+
+
+def _too_many_pixels(max_pixels: int) -> LogoError:
+    return LogoError(_("The image has too many pixels (limit: %(px)d megapixels).") % {"px": max_pixels // 10**6})
 
 
 def _normalize_mode(image: Image.Image) -> Image.Image:
