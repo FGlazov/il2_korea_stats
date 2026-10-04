@@ -15,6 +15,7 @@ from datetime import datetime
 from django.db.models import F, Q
 
 from il2ks.db.models import Kill, KillCredit, PlayerKillboard, Role
+from il2ks.ingest.dbutil import update_rows
 
 
 @dataclass(slots=True)
@@ -78,5 +79,5 @@ def recompute_killboard(chunk: list[int]) -> None:
             row.kills, row.deaths, row.last_at, row.last_mission_id = kills_n, deaths_n, last_at, last_mission_id
             changed.append(row)
     PlayerKillboard.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()  # no kills left
-    PlayerKillboard.objects.bulk_update(changed, ["kills", "deaths", "last_at", "last_mission"])
+    update_rows(PlayerKillboard, changed, ["kills", "deaths", "last_at", "last_mission"])
     PlayerKillboard.objects.bulk_create(new)

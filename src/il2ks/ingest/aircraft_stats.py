@@ -28,6 +28,7 @@ from il2ks.db.models import (
     Role,
 )
 from il2ks.ingest.counters import COUNTER_FIELDS, clean_counters, counted_sorties
+from il2ks.ingest.dbutil import update_rows
 
 CHUNK = 400
 PAIR_CHUNK = 60  # pairs per OR-ed query: far below SQLite's expression depth limit
@@ -106,7 +107,7 @@ def _recompute_stats(chunk: list[int]) -> None:
             changed.append(row)
     AircraftStats.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
     fields = [*COUNTER_FIELDS, "pilots", "side", "kd", "kl", "survival", "attack_share"]
-    AircraftStats.objects.bulk_update(changed, fields)
+    update_rows(AircraftStats, changed, fields)
     AircraftStats.objects.bulk_create(new)
 
 
@@ -147,7 +148,7 @@ def _recompute_payloads(chunk: list[int]) -> None:
                 setattr(row, name, value)
             changed.append(row)
     AircraftPayload.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    AircraftPayload.objects.bulk_update(changed, ["sorties", "kills_air", "kills_ground", "deaths"])
+    update_rows(AircraftPayload, changed, ["sorties", "kills_air", "kills_ground", "deaths"])
     AircraftPayload.objects.bulk_create(new)
 
 
@@ -197,7 +198,7 @@ def _sync_matchups(counts: dict[Pair, int], existing: dict[Pair, AircraftMatchup
             row.kills = kills
             changed.append(row)
     AircraftMatchup.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    AircraftMatchup.objects.bulk_update(changed, ["kills"])
+    update_rows(AircraftMatchup, changed, ["kills"])
     AircraftMatchup.objects.bulk_create(new)
 
 

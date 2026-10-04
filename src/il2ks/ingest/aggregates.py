@@ -46,6 +46,7 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
+from il2ks.ingest.dbutil import update_rows
 from il2ks.ingest.pairs import recompute_killboard
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.stat_marks import recompute_thresholds
@@ -134,7 +135,7 @@ def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
                 row.kills, row.hits = kills, hits
                 changed.append(row)
         AircraftAmmoStats.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-        AircraftAmmoStats.objects.bulk_update(changed, ["kills", "hits"])
+        update_rows(AircraftAmmoStats, changed, ["kills", "hits"])
         AircraftAmmoStats.objects.bulk_create(new)
 
 
@@ -149,7 +150,7 @@ def _recompute_totals(chunk: list[int]) -> None:
         values = clean_counters(totals.get(player.pk, {}))
         if _assign(player, values):
             changed.append(player)
-    Player.objects.bulk_update(changed, list(COUNTER_FIELDS))
+    update_rows(Player, changed, list(COUNTER_FIELDS))
 
 
 def _recompute_aircraft(chunk: list[int]) -> None:
@@ -205,7 +206,7 @@ def _sync[M: models.Model](
         elif _assign(row, values):
             changed.append(row)
     model._default_manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing counted left
-    model._default_manager.bulk_update(changed, list(COUNTER_FIELDS))
+    update_rows(model, changed, list(COUNTER_FIELDS))
     model._default_manager.bulk_create(new)
 
 
@@ -261,6 +262,6 @@ def _refresh_identity(chunk: list[int]) -> None:
                 changed_names.append(row)
     # Names left over belong to players with sorties that no longer use them; players without sorties keep theirs.
     PlayerName.objects.filter(pk__in=[n.pk for (pid, _), n in names.items() if pid in by_player]).delete()
-    Player.objects.bulk_update(changed_players, ["current_name", "name_lower", "first_seen", "last_seen"])
-    PlayerName.objects.bulk_update(changed_names, ["first_seen", "last_seen"])
+    update_rows(Player, changed_players, ["current_name", "name_lower", "first_seen", "last_seen"])
+    update_rows(PlayerName, changed_names, ["first_seen", "last_seen"])
     PlayerName.objects.bulk_create(new_names)

@@ -52,6 +52,7 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
+from il2ks.ingest.dbutil import update_rows
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import ensure_tour
@@ -366,6 +367,9 @@ _SORTIE_FIELDS = [
 ]
 
 
+_LINK_FIELDS = ["damage_breakdown", "timeline"]  # JSON fields that name other sorties by PK, filled after the insert
+
+
 def _upsert_sorties(
     mission: Mission,
     result: MissionResult,
@@ -395,7 +399,10 @@ def _upsert_sorties(
         row = rows[s.index]
         row.damage_breakdown = [_damage_json(d, pks) for d in s.damage]
         row.timeline = [_timeline_json(t, clock, pks) for t in s.timeline]
-    PlayerSortie.objects.bulk_update(list(rows.values()), _SORTIE_FIELDS)
+    # New rows were just inserted with every other field, so only the links are written; existing rows get everything.
+    new_ids = {id(row) for row in new}
+    update_rows(PlayerSortie, [r for r in rows.values() if id(r) not in new_ids], _SORTIE_FIELDS)
+    update_rows(PlayerSortie, [r for r in new if r.damage_breakdown or r.timeline], _LINK_FIELDS)
     return rows
 
 
@@ -622,7 +629,7 @@ def _replace_kills(
         row.via = k.via
         row.pos_x, row.pos_y, row.pos_z = (None, None, None) if pos is None else pos
     Kill.objects.filter(pk__in=[k.pk for k in existing.values()]).delete()
-    Kill.objects.bulk_update(changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
+    update_rows(Kill, changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
     Kill.objects.bulk_create(new)
 
 

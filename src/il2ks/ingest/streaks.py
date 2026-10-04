@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from il2ks.core.streaks import Streak, StreakSortie, summarize
 from il2ks.db.models import Outcome, PlayerSortie, PlayerStreak
 from il2ks.ingest.counters import counted_sorties
+from il2ks.ingest.dbutil import update_rows
 
 _FIELDS = (
     "current_sorties",
@@ -53,7 +54,7 @@ def recompute_streaks(chunk: list[int]) -> None:
                 setattr(row, field, value)
             changed.append(row)
     PlayerStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    PlayerStreak.objects.bulk_update(changed, list(_FIELDS))
+    update_rows(PlayerStreak, changed, list(_FIELDS))
     PlayerStreak.objects.bulk_create(new)
 
 

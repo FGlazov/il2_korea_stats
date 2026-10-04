@@ -16,8 +16,7 @@ from collections.abc import Iterator
 from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_ratings
 from il2ks.db.models import CombatRole, Kill, KillCredit, Player, Role
-
-CHUNK = 400  # players per bulk_update
+from il2ks.ingest.dbutil import update_rows
 
 
 def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
@@ -49,7 +48,7 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
                     elo_jet_games=wanted[3],
                 )
             )
-    Player.objects.bulk_update(changed, ["elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games"], batch_size=CHUNK)
+    update_rows(Player, changed, ["elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games"])
     return len(games)
 
 
