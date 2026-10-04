@@ -1294,6 +1294,13 @@ class NavIcon(models.TextChoices):
     DISCORD = "discord", "Discord"
     FORUM = "forum", "Forum"
     PATREON = "patreon", "Patreon"
+    YOUTUBE = "youtube", "YouTube"
+    TWITCH = "twitch", "Twitch"
+    GITHUB = "github", "GitHub"
+    TELEGRAM = "telegram", "Telegram"
+    STEAM = "steam", "Steam"
+    MAIL = "mail", "E-mail"
+    BOOK = "book", "Rules / wiki"
     LINK = "link", "Generic link"
 
 

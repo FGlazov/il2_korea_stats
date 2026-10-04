@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_air_tiles.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_air_tiles.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_air_tiles.html: the air-to-air headline tiles (air kills with K/D, assists on aircraft). Context: stats.
 {% endcomment %}<div class="stat-tiles profile-tiles profile-tiles--part">
@@ -9,6 +9,6 @@
 
   {% if stats.accuracy_air_rounds %}
     {% blocktranslate with rounds=stats.accuracy_air_rounds|num asvar sub_accuracy %}{{ rounds }} rounds fired{% endblocktranslate %}
-    {% stat_tile stats.accuracy_air_hits|accuracy:stats.accuracy_air_rounds _("Air accuracy") sub=sub_accuracy %}
+    {% stat_tile stats.accuracy_air_hits|accuracy:stats.accuracy_air_rounds _("Air accuracy") sub=sub_accuracy icon="stat/accuracy" %}
   {% endif %}
 </div>

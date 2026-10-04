@@ -36,7 +36,7 @@ BOARD_ICONS = {  # the icon set (static/il2ks/img): chess pieces for the Elo boa
     "elo-prop": "stat/elo-prop",
     "air": "role/air-superiority",
     "interception": "stat/interception",
-    "ground-hour": "stat/flight-time",
+    "ground-hour": "stat/ground-hour",
     "tank-busting": "ground/tank",
     "ground": "role/attack",
 }

@@ -91,10 +91,10 @@ unversioned, orphan) triggers the message box, which has an OK button only; sile
 Default applied: the final `og-default.png` and the PNG favicon set are marked not required (the site works without them) although the designer
 brief rates them P1. Alternative: make them release gates.
 
-**OQ-95 Visual assets: icon gaps** (doc 15)
-Default applied: no tiles for bailouts and captures are added; `mission-ended` has no outcome value (the icon stays unused); the own-drawn
-`friendly-fire` stat icon stays as a placeholder. Alternative: add the two tiles or drop the icons from the brief; give `mission-ended` an
-outcome value or drop it; commission a proper friendly-fire icon.
+**OQ-95 Visual assets: icon gaps** (doc 15) `[DECIDED]` (maintainer, 2026-10-04: find more fitting icons, other sets allowed, need not be fully cohesive)
+Done with Tabler only (no other set was needed): bailout and capture tiles on the profile, a gun-accuracy icon, a ground-score-per-hour icon, a
+distinct `mission-ended` icon (still no outcome value uses it), the friendly-fire stat icon now Tabler instead of hand-drawn, and seven more
+navigation link icons (YouTube, Twitch, GitHub, Telegram, Steam, e-mail, rules/wiki; migration 0036 widens the choices).
 
 **OQ-96 Page weight of mission and sortie pages**
 Real-log mission and sortie pages are 107 to 122 KB of HTML (other pages about 20 KB). Default applied: the HTML budget is 150 KB

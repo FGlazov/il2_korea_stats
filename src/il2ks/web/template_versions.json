@@ -98,8 +98,8 @@
       "sha256": "77eb3f8967f8baac2e5186d95ad73e20ff6fe2b073ba064e4009779691cf61f1"
     },
     "templates/il2ks/aircraft/detail.html": {
-      "version": 5,
-      "sha256": "16b99088081f8d9ac8a198b7b40baf3af3f9852bb7b7bc7aba60e91da4ba8af6"
+      "version": 6,
+      "sha256": "b9140221405a28469ff305c72314d180cafdd3a4666d44aff79d31d575a1489a"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 3,
@@ -282,8 +282,8 @@
       "sha256": "0ce4f05c3749f73bcdec4ccab60643e1f4eecf744f94d357219fa0d324649da8"
     },
     "templates/il2ks/players/detail_air_tiles.html": {
-      "version": 3,
-      "sha256": "463f718bab983a3dad7fd4906945a02eb9f71e8487eacc38a89d36db7b0bd769"
+      "version": 4,
+      "sha256": "74c952f466ad51b2707dbe645ea5f66dab0d8c7792a9ab78c65eeef22a352bfa"
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 5,
@@ -306,8 +306,8 @@
       "sha256": "96987b27d345b604e9e302674030cbef6266775177f5b7f556b24c569e4452fb"
     },
     "templates/il2ks/players/detail_ground_tiles.html": {
-      "version": 3,
-      "sha256": "c6b5cc4d192a13fd0a485a9abdcbda117c742303a29b9bbbc5e22987d66e17f4"
+      "version": 4,
+      "sha256": "30d238bcfcf64d0ad59d92ed5310290dc0765841e9a7ddfb30e744eaf7b4ca76"
     },
     "templates/il2ks/players/detail_header.html": {
       "version": 2,
@@ -350,8 +350,8 @@
       "sha256": "32c264c920cdeaad0bd5f8a212e10ff2b9f9e975be6287b08833d1a3ca7b9ad7"
     },
     "templates/il2ks/players/detail_tiles.html": {
-      "version": 3,
-      "sha256": "7f1c2c4874edb69fa7673ff3f11df426409a29f3174854b06941b354001d7557"
+      "version": 4,
+      "sha256": "7fc95a3907f5969e1f6a216334e38748493a4e87b74325508017e7468575c823"
     },
     "templates/il2ks/players/detail_totals.html": {
       "version": 5,
@@ -414,8 +414,8 @@
       "sha256": "2c2007419c4e92c237224c9691f5a41f81795460cb8746e4ad7ad774bde393e9"
     },
     "templates/il2ks/sorties/parts/header.html": {
-      "version": 5,
-      "sha256": "831948fb019a8265c5bad667494aede082443b52f49ad72e17c56c4f9744751f"
+      "version": 6,
+      "sha256": "fa67b2d90ebb86c4273b97b742f348c00ce8a7f0351586536db27a2882c41e36"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 2,

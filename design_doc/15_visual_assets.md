@@ -115,7 +115,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by any page yet), 25 planned.
+Total: 127 files in 13 groups; 102 shipped as placeholders (1 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -182,7 +182,7 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `outcome/exited-on-ground.svg` | Badge: pilot fate `exited_on_ground` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `logout` | yes | P1 | shipped |
 | `outcome/in-flight.svg` | Badge: sortie outcome `in_flight`; sortie outcome `airborne` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `plane-inflight` | yes | P1 | shipped |
 | `outcome/landed.svg` | Badge: sortie outcome `landed` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `plane-arrival` | yes | P1 | shipped |
-| `outcome/mission-ended.svg` | Badge: listed in the brief, no outcome value uses it yet (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `flag-check` | no | P1 | unused |
+| `outcome/mission-ended.svg` | Badge: reserved for a mission-ended outcome, no outcome value uses it yet (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `clock-stop` | no | P1 | unused |
 | `outcome/not-taken-off.svg` | Badge: sortie outcome `not_taken_off` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `parking` | yes | P1 | shipped |
 | `outcome/shot-down.svg` | Badge: sortie outcome `shot_down` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `plane-off` | yes | P1 | shipped |
 | `outcome/unknown.svg` | Badge: sortie outcome `unknown`; pilot fate `unknown` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `help` | yes | P1 | shipped |
@@ -228,7 +228,7 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `role/air-superiority.svg` | Sortie role badge (guns only) | SVG 24 x 24, currentColor | Tabler `swords` | yes | P2 | shipped |
 | `role/attack.svg` | Sortie role badge (bombs / rockets / napalm) | SVG 24 x 24, currentColor | Tabler `bomb` | yes | P2 | shipped |
 
-### Stat tiles (`stat/`): 15 files (15 shipped)
+### Stat tiles (`stat/`): 17 files (17 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
@@ -238,15 +238,17 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `stat/ground-kills.svg` | Profile, aircraft, mission and home tiles (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `tank` | yes | P2 | shipped |
 | `stat/assists.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `users` | yes | P2 | shipped |
 | `stat/deaths.svg` | Profile and aircraft tiles (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `skull` | yes | P2 | shipped |
+| `stat/accuracy.svg` | Gun accuracy tiles (profile air / ground, aircraft, sortie) (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `target` | yes | P2 | shipped |
 | `stat/planes-lost.svg` | Profile and aircraft tiles (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `plane-tilt` | yes | P2 | shipped |
-| `stat/bailouts.svg` | No tile yet (shipped, unused) (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `parachute` | no | P2 | unused |
-| `stat/captures.svg` | No tile yet (shipped, unused) (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `prison` | no | P2 | unused |
+| `stat/bailouts.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `parachute` | yes | P2 | shipped |
+| `stat/captures.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `prison` | yes | P2 | shipped |
 | `stat/taxi-accidents.svg` | Profile hall of shame (humorous): crashed before taking off (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `car-crash` | yes | P2 | shipped |
 | `stat/strafed.svg` | Profile hall of shame (humorous): destroyed while parked (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `target-arrow` | yes | P2 | shipped |
-| `stat/friendly-fire.svg` | Profile hall of shame: sorties with a friendly kill (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | own drawing | yes | P2 | shipped |
+| `stat/friendly-fire.svg` | Profile hall of shame: sorties with a friendly kill (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `friends-off` | yes | P2 | shipped |
 | `stat/elo-prop.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-queen` | yes | P2 | shipped |
 | `stat/elo-jet.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-knight` | yes | P2 | shipped |
 | `stat/interception.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `radar-2` | yes | P2 | shipped |
+| `stat/ground-hour.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `clock-bolt` | yes | P2 | shipped |
 
 ### Achievement medals (`medal/`): 12 files (12 shipped)
 
@@ -265,13 +267,20 @@ Total: 118 files in 13 groups; 93 shipped as placeholders (3 of them not used by
 | `medal/flight-hours.svg` | Medal row (profile, achievement pages, sortie page): Hours Aloft: flight time in total; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `clock` | yes | P2 | shipped |
 | `medal/type-veteran.svg` | Medal row (profile, achievement pages, sortie page): Type Veteran: flight time in one aircraft type; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `award` | yes | P2 | shipped |
 
-### Navigation link icons (`nav/`): 4 files (4 shipped)
+### Navigation link icons (`nav/`): 11 files (11 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
 | `nav/discord.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-discord` | yes | P3 | shipped |
 | `nav/forum.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `messages` | yes | P3 | shipped |
 | `nav/patreon.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-patreon` | yes | P3 | shipped |
+| `nav/youtube.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-youtube` | yes | P3 | shipped |
+| `nav/twitch.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-twitch` | yes | P3 | shipped |
+| `nav/github.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-github` | yes | P3 | shipped |
+| `nav/telegram.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-telegram` | yes | P3 | shipped |
+| `nav/steam.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-steam` | yes | P3 | shipped |
+| `nav/mail.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `mail` | yes | P3 | shipped |
+| `nav/book.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `book` | yes | P3 | shipped |
 | `nav/link.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `link` | yes | P3 | shipped |
 
 ### Language flags (`flag/`): 6 files (6 shipped)
