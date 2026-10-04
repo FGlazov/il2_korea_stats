@@ -137,6 +137,9 @@ decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 - Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
+- 🔧 **More branding for server admins** (maintainer, 2026-10-04): any number of extra links in the top navigation row after the built-in
+  ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
+  where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
 
 **Not gates** (ship when ready, before or after the release): translations into languages other than English (UI and object names, TD-24),
 the ammo breakdown (FR-WEB-18), stat highlights (FR-WEB-22), everything in iteration 2.
