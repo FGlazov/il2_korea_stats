@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Timeline rows as a table. Context: rows (sortie_view.TimelineRow: kind, icon, label, tone, clock, utc, place, text,
   who, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element.
@@ -7,7 +7,7 @@
     <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Event" %}</th><th scope="col">{% translate "Details" %}</th><th scope="col" class="num">{% translate "Damage" %}</th></tr></thead>
     <tbody>
       {% for row in rows %}
-        <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}">
+        <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}{% if row.kind == "hit_given" %} timeline__row--hit-given{% elif row.kind == "hit_taken" %} timeline__row--hit-taken{% endif %}">
           <td class="nowrap"><span{% if row.place %} title="{{ row.place }}"{% endif %}>{{ row.clock }}</span> <small>{{ row.at|local_clock }}</small></td>
           <td class="nowrap"><span class="timeline__event">{% icon row.icon %}{{ row.label }}</span></td>
           <td>

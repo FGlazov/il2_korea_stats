@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/sorties.css v4 - copy this line along when you override */
+/* il2ks-template: static/il2ks/sorties.css v5 - copy this line along when you override */
 /*
  * Sortie pages: the player's sortie list and the sortie report (templates il2ks/sorties/*).
  * Uses the tokens of site.css; loaded from the pages' `head` block so it can be overridden on its own (TD-25).
@@ -54,6 +54,9 @@
 .timeline__damage { font-weight: 600; font-variant-numeric: tabular-nums; }
 .timeline__damage--given { color: var(--il2-green); }
 .timeline__damage--taken { color: var(--il2-red); }
+/* Hits given / taken: a light green / red tint (maintainer), from the theme tokens so dark mode and custom themes follow */
+.timeline__row--hit-given td { background: color-mix(in srgb, var(--il2-green) 9%, transparent) !important; }
+.timeline__row--hit-taken td { background: color-mix(in srgb, var(--il2-red) 9%, transparent) !important; }
 .timeline__group { margin: 0; }
 .timeline__group > summary { margin: 0; font-size: inherit; }
 .timeline__group ul { margin: 0.5rem 0 0.2rem; padding: 0; list-style: none; columns: 2 18rem; }
