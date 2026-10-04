@@ -16,12 +16,13 @@ from typing import Literal
 
 from django.urls import reverse
 from django.utils.formats import number_format
+from django.utils.translation import get_language, gettext_lazy, ngettext
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy, ngettext
 
-from il2ks.core.achievements import ACHIEVEMENTS, BY_KEY, Achievement, Kind
+from il2ks.core.achievements import ACHIEVEMENTS, Achievement, Kind
 from il2ks.db.models import PlayerAchievement
 from il2ks.queries.achievements import Holding, HoldingKey
+from il2ks.web.achievement_config import AchievementConfig
 from il2ks.web.display import Label
 
 TIER_NAMES: tuple[Label, ...] = (
@@ -248,8 +249,16 @@ class MedalSet:
         return bool(self.medals or self.ribbons or self.shame)
 
 
-def info(achievement: Achievement) -> MedalInfo:
-    name, description = TEXTS[achievement.key]
+def words(config: AchievementConfig, key: str) -> tuple[Label, Label]:
+    """The name and description of `key`: the admin's text for the active language when there is one (plain text, the
+    templates escape it), else the built-in translated text."""
+    name, description = TEXTS[key]
+    language = get_language() or "en"
+    return config.name(key, language) or name, config.description(key, language) or description
+
+
+def info(achievement: Achievement, config: AchievementConfig) -> MedalInfo:
+    name, description = words(config, achievement.key)
     tiers = tuple(
         Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n)) for n in range(1, achievement.top_tier + 1)
     )
@@ -258,17 +267,20 @@ def info(achievement: Achievement) -> MedalInfo:
     )
 
 
-def all_info(*, in_tour: bool = False) -> list[MedalInfo]:
-    """Every achievement; `in_tour` (a tour is selected) leaves out the all-time-only ones (Top Rated, doc 17)."""
-    return [info(a) for a in ACHIEVEMENTS if not (in_tour and a.all_time_only)]
+def all_info(config: AchievementConfig, *, in_tour: bool = False) -> list[MedalInfo]:
+    """Every switched-on achievement; `in_tour` (a tour is selected) leaves out the all-time-only ones (Top Rated,
+    doc 17)."""
+    return [info(a, config) for a in config.active() if not (in_tour and a.all_time_only)]
 
 
 def _style(key: str) -> int:
     return next(n for n, a in enumerate(ACHIEVEMENTS) if a.key == key) % RIBBON_STYLES
 
 
-def _medal(row: PlayerAchievement, achievement: Achievement, holdings: Mapping[HoldingKey, Holding]) -> Medal:
-    name, description = TEXTS[achievement.key]
+def _medal(
+    row: PlayerAchievement, achievement: Achievement, holdings: Mapping[HoldingKey, Holding], config: AchievementConfig
+) -> Medal:
+    name, description = words(config, achievement.key)
     return Medal(
         key=row.key,
         name=name,
@@ -292,12 +304,18 @@ def _medal(row: PlayerAchievement, achievement: Achievement, holdings: Mapping[H
 
 
 def medals_of(
-    rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding], *, highest_only: bool
+    rows: Iterable[PlayerAchievement],
+    holdings: Mapping[HoldingKey, Holding],
+    config: AchievementConfig,
+    *,
+    highest_only: bool,
 ) -> list[Medal]:
     """Display rows in registry order (then scope, all time first, then tier). `highest_only`: just the best tier of
-    each achievement in each scope (the profile's rows); rows of achievements no longer registered are skipped."""
+    each achievement in each scope (the profile's rows); rows of achievements no longer registered or switched off by
+    the admin are skipped."""
     order = {a.key: n for n, a in enumerate(ACHIEVEMENTS)}
-    medals = [_medal(r, BY_KEY[r.key], holdings) for r in rows if r.key in BY_KEY]
+    active = {a.key: a for a in config.active()}
+    medals = [_medal(r, active[r.key], holdings, config) for r in rows if r.key in active]
     medals.sort(key=lambda m: (order[m.key], m.scope is not None, m.scope or 0, m.tier))
     if highest_only:
         best: dict[tuple[str, int | None], Medal] = {}
@@ -307,9 +325,11 @@ def medals_of(
     return medals
 
 
-def medal_set(rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding]) -> MedalSet:
+def medal_set(
+    rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding], config: AchievementConfig
+) -> MedalSet:
     """A profile's best tier of each achievement split into medals, ribbons and hall-of-shame ribbons."""
-    best = medals_of(rows, holdings, highest_only=True)
+    best = medals_of(rows, holdings, config, highest_only=True)
     return MedalSet(
         medals=[m for m in best if m.kind == "medal" and not m.shame],
         ribbons=[m for m in best if m.kind == "ribbon" and not m.shame],

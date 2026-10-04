@@ -12,11 +12,12 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from il2ks.core.achievements import BY_KEY
 from il2ks.queries import achievements as reads
 from il2ks.queries import players as player_reads
 from il2ks.queries.tours import tour_choice_from, tour_query
 from il2ks.web import medals
+from il2ks.web.achievement_config import AchievementConfig
+from il2ks.web.context_processors import site_row
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,13 +53,14 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
     Template `il2ks/achievements/overview.html`. Context: `rows` (OverviewRow), `tours`, `tour`, `tour_query`,
     `page_title`. Medals first, then ribbons, then the hall-of-shame ribbons (each group in registry order)."""
     choice = tour_choice_from(request.GET)
+    config = AchievementConfig.from_row(site_row(request))
     counts = reads.holder_counts(choice.selected)
     rows = [
         OverviewRow(
             info,
-            tuple(_overview_tier(info.key, t, counts) for t in info.tiers),
+            tuple(_overview_tier(info, t, counts) for t in info.tiers),
         )
-        for info in medals.all_info(in_tour=choice.selected is not None)
+        for info in medals.all_info(config, in_tour=choice.selected is not None)
     ]
     rows.sort(key=lambda r: (r.info.shame, r.info.kind == "ribbon"))
     context = {
@@ -71,9 +73,11 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
     return render(request, "il2ks/achievements/overview.html", context)
 
 
-def _overview_tier(key: str, tier: medals.Tier, counts: dict[tuple[str, int], reads.Holding]) -> OverviewTier:
-    holding = counts.get((key, tier.number))
-    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding, shame=BY_KEY[key].shame))
+def _overview_tier(
+    info: medals.MedalInfo, tier: medals.Tier, counts: dict[tuple[str, int], reads.Holding]
+) -> OverviewTier:
+    holding = counts.get((info.key, tier.number))
+    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding, shame=info.shame))
 
 
 def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
@@ -83,14 +87,15 @@ def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
     Template `il2ks/achievements/holders.html`. Context: `info`, `tier` (the shown Tier), `tiers` (OverviewTier,
     to switch), `rarity` (of the shown tier), `page_obj` (PlayerAchievement rows with `player` and `mission`), `tours`,
     `tour`, `tour_query`, `crumbs`, `page_title`."""
-    achievement = BY_KEY.get(key)
+    config = AchievementConfig.from_row(site_row(request))
+    achievement = config.achievement(key)  # None: unknown, or switched off by the admin
     if achievement is None:
         raise Http404
-    info = medals.info(achievement)
+    info = medals.info(achievement, config)
     choice = tour_choice_from(request.GET)
     scope_tour = None if achievement.all_time_only else choice.selected  # Top Rated has no per-tour rows: all time
     counts = reads.holder_counts(scope_tour)
-    tiers = tuple(_overview_tier(key, t, counts) for t in info.tiers)
+    tiers = tuple(_overview_tier(info, t, counts) for t in info.tiers)
     try:
         wanted = int(request.GET.get("tier", ""))
     except ValueError:
@@ -121,14 +126,15 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
     if player is None:
         raise Http404
     choice = tour_choice_from(request.GET)
+    config = AchievementConfig.from_row(site_row(request))
     scope = choice.selected.pk if choice.selected else None
     holdings = reads.holdings([scope])
     held = {
         (m.key, m.tier): m
-        for m in medals.medals_of(reads.player_rows(player.pk, choice.selected), holdings, highest_only=False)
+        for m in medals.medals_of(reads.player_rows(player.pk, choice.selected), holdings, config, highest_only=False)
     }
     rows: list[ListRow] = []
-    for info in medals.all_info(in_tour=choice.selected is not None):
+    for info in medals.all_info(config, in_tour=choice.selected is not None):
         tiers = tuple(
             ListTier(
                 t,

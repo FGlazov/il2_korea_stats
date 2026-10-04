@@ -53,7 +53,7 @@ from il2ks.db.models import (
     Propulsion,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
-from il2ks.ingest.achievements import recompute_achievements, recompute_holders
+from il2ks.ingest.achievements import adopt_wanted_rules, recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.builds import recompute_builds
@@ -122,6 +122,7 @@ def rebuild_aggregates(
     `board` (the `[killboard]` rules) is stored first (`SiteSettings.killboard_assists`): the killboard rows follow it,
     here and in the incremental updates until the next rebuild."""
     _store_board_rules(board)
+    adopt_wanted_rules()  # the achievement rows below are computed with the admin's current thresholds and switches
     if tours is not None:
         if reassign_tours:
             retour(tours)

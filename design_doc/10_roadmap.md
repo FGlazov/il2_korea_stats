@@ -231,7 +231,7 @@ decisions are made):
   aircraft damage, 0% health when the pilot died, 100% damage when the aircraft was destroyed.
 - ✅ **Favourite loadout only** on the profile's per-aircraft rows (OQ-117, changed 2026-10-04): the mod-set and hits-by-ammo detail goes.
 
-- ⏳ **Admin-configurable achievements** (maintainer, 2026-10-04, before the release): like the admin quips, an admin page to switch
+- ✅ **Admin-configurable achievements** (maintainer, 2026-10-04, before the release): like the admin quips, an admin page to switch
   each achievement and shame medal on or off, rename it and edit its description per language (blank = the built-in default), and change
   tier thresholds; defaults unchanged; changed thresholds apply through the level-2 recompute (`rebuild-aggregates`, or an admin
   "recompute achievements" button queued for `watch`), with a note that holders and rarity change. Custom conditions belong with the

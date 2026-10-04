@@ -13,6 +13,14 @@ Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summ
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
+## Needs the maintainer's review
+
+**OQ-124 Admin-configurable achievements: defaults** (built 2026-10-04, `/admin/achievements/`)
+Defaults applied: thresholds keep the built-in tier count, whole numbers, strictly increasing, at most 1,000,000; names at most 60 and
+descriptions at most 300 characters per language, blank = the built-in (translated) text, no "every language" text; no global switch;
+no manual "recompute" button: `watch` applies changed thresholds or re-enabled achievements on its next tick (without `watch`, only
+`il2ks rebuild-aggregates` applies them); names, descriptions and on/off apply at once.
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

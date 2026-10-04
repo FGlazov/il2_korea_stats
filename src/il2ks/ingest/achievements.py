@@ -9,11 +9,15 @@ row. `recompute_holders` then rewrites the per-scope, per-tier holder counts and
 denominator) that the overview page and every medal's hover text show (visible players only).
 """
 
+import logging
 from collections import Counter
 from collections.abc import Iterable
 
+from django.db import transaction
 from django.db.models import Count, F, Q
 
+from il2ks.config import Config
+from il2ks.core.achievement_rules import Rules
 from il2ks.core.achievements import AchievementSortie, EarnedTier, earn_all
 from il2ks.db.models import (
     AchievementHolders,
@@ -25,9 +29,14 @@ from il2ks.db.models import (
     PlayerAchievement,
     PlayerTour,
     Role,
+    SiteSettings,
 )
+from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import counted_sorties
 from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.lock import LockBusyError, WriterLock
+
+log = logging.getLogger(__name__)
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
 STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER, ObjectClass.TRANSPORT)
@@ -130,10 +139,15 @@ def _load(chunk: list[int]) -> tuple[dict[int, list[AchievementSortie]], dict[in
     return by_player, tour_of
 
 
-def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
+def recompute_achievements(
+    chunk: list[int], tour_ids: Iterable[int] | None = None, *, rules: Rules | None = None
+) -> None:
     """Make the achievement rows of every player in `chunk` equal what their sorties say: all time, and per tour for
-    `tour_ids` (None = every tour of these players, as a rebuild does)."""
+    `tour_ids` (None = every tour of these players, as a rebuild does). `rules`: the admin's thresholds and switches
+    (`core.achievement_rules`); the default are the *applied* ones, so an incremental update stays consistent with the
+    rows already stored until the pending change is recomputed in full (`recompute_with_wanted_rules`)."""
     tours = None if tour_ids is None else set(tour_ids)
+    active = (applied_rules() if rules is None else rules).active()
     by_player, tour_of = _load(chunk)
     wanted: dict[_Key, _Value] = {}
     for pid, all_sorties in by_player.items():
@@ -143,7 +157,7 @@ def recompute_achievements(chunk: list[int], tour_ids: Iterable[int] | None = No
             if tour_id is not None and (tours is None or tour_id in tours):
                 scopes.setdefault(tour_id, []).append(sortie)
         for tour_id, sorties in scopes.items():
-            earned: list[EarnedTier] = earn_all(sorties, all_time=tour_id is None)
+            earned: list[EarnedTier] = earn_all(sorties, all_time=tour_id is None, achievements=active)
             for e in earned:
                 s = sorties[e.index]
                 wanted[(pid, tour_id, e.key, e.tier)] = (s.ended_at, s.sortie_id, s.mission_id)
@@ -212,10 +226,55 @@ def recompute_holders() -> None:
     AchievementHolders.objects.bulk_create(new)
 
 
-def rebuild_achievements() -> None:
+def rebuild_achievements(rules: Rules | None = None) -> None:
     """Recompute every player's medals and the holder counts (the upgrade backfill; `rebuild_aggregates` does the same
-    through `recompute_players`)."""
+    through `recompute_players`), with `rules` (default: the applied ones)."""
     ids = sorted(Player.objects.values_list("pk", flat=True))
     for start in range(0, len(ids), CHUNK):
-        recompute_achievements(ids[start : start + CHUNK])
+        recompute_achievements(ids[start : start + CHUNK], rules=rules)
     recompute_holders()
+
+
+def applied_rules() -> Rules:
+    """The rules the stored rows were computed with (`SiteSettings.achievements_applied`; none = the built-in set)."""
+    raw = SiteSettings.objects.filter(pk=1).values_list("achievements_applied", flat=True).first()
+    return Rules.from_json(raw)
+
+
+def wanted_rules() -> Rules:
+    """The rules the admin chose (`SiteSettings.achievements`): what the next recompute applies."""
+    raw = SiteSettings.objects.filter(pk=1).values_list("achievements", flat=True).first()
+    return Rules.from_json(raw)
+
+
+def recompute_pending() -> bool:
+    """The admin changed a threshold or switched an achievement on or off since the last recompute."""
+    return wanted_rules() != applied_rules()
+
+
+def adopt_wanted_rules() -> Rules:
+    """Make the wanted rules the applied ones, for a full rebuild that computes every row with them anyway."""
+    rules = wanted_rules()
+    SiteSettings.objects.filter(pk=1).update(achievements_applied=rules.to_json())
+    return rules
+
+
+def recompute_with_wanted_rules(cfg: Config) -> bool:
+    """Work off a pending change of the admin's achievement rules (`watch` calls this every tick): under the writer lock
+    recompute every player's rows with the wanted rules and the holder counts, then record them as applied and bump
+    the data version. False when nothing was pending or the lock was busy (the next tick tries again). A crash midway
+    leaves the change pending, so the next tick starts over."""
+    if not recompute_pending():
+        return False
+    try:
+        with WriterLock(cfg.data_dir, "achievements"):
+            rules = wanted_rules()
+            log.info("recomputing achievements with the changed rules")
+            rebuild_achievements(rules)
+            with transaction.atomic():
+                SiteSettings.objects.filter(pk=1).update(achievements_applied=rules.to_json())
+                bump_data_version()
+    except LockBusyError as exc:
+        log.info("achievement recompute waits: %s", exc)
+        return False
+    return True

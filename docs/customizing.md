@@ -144,6 +144,29 @@ notable sortie (taxi accident, many kills, a long flight), the top pilots of the
 
 Saving refreshes the cached pages at once.
 
+### Achievements
+
+The medals, ribbons and hall-of-shame entries pilots earn are all **on by default** with their built-in names and
+thresholds. Open **Admin > Site texts > Achievements** (needs the permission to change the site settings). Each
+achievement has:
+
+- **Switched on**. An achievement you switch off disappears from profiles, sortie pages, the overview, the holder lists,
+  the home feed and the rarity figures, at once.
+- **Own name and description per language** (hidden under "Own name and description per language"). Leave a language
+  blank to show the built-in text, translated into that language. Texts are plain text (no HTML), at most 60 characters
+  for a name and 300 for a description.
+- **Tier thresholds**: the number each tier needs (for example 5, 10, 20, 50 air kills in one life). Whole numbers, each
+  larger than the one before, and as many tiers as the built-in achievement has. Blank = the built-in numbers.
+- **Reset to default**: tick it and save; the achievement goes back to on, with the built-in words and thresholds.
+
+Names, descriptions and the on/off switch apply immediately. **Thresholds, and switching an achievement back on, need a
+recompute**: who holds which tier is worked out when sorties are ingested. After you save, the page says "A recompute is
+pending"; the watch process (`il2ks watch`, or `il2ks run`) then recomputes every pilot's achievements by itself at its
+next tick, and `il2ks rebuild-aggregates` does it too. Until it ran the pages show the old thresholds; afterwards the
+holders, the dates earned and the rarity percentages change. A switched-off achievement keeps no rows after a recompute
+(switching it on again brings them back with the next one). There is no separate global switch: switch the individual
+achievements off.
+
 ## 2. `custom/` overrides
 
 Inside your **data folder** (the folder with the database and `logs/`; `il2ks.toml` says where it is) il2ks keeps a

@@ -12,7 +12,7 @@ from typing import NamedTuple
 from django.core.paginator import Page, Paginator
 from django.db.models import Q
 
-from il2ks.core.achievements import ACHIEVEMENTS
+from il2ks.core.achievements import Achievement
 from il2ks.db.models import AchievementHolders, PlayerAchievement, PlayerSortie, Tour
 from il2ks.queries.paging import ROW_PAGE_SIZE
 
@@ -71,11 +71,12 @@ def holders_page(key: str, tier: int, number: str | int, tour: Tour | None) -> P
     return Paginator(rows, PAGE_SIZE).get_page(number)
 
 
-def recent_rows(tour: Tour | None) -> list[PlayerAchievement]:
+def recent_rows(tour: Tour | None, achievements: Iterable[Achievement]) -> list[PlayerAchievement]:
     """The newest tiers earned in the scope by visible players (the home feed's candidates, one query): no hall-of-shame
-    entry, and ribbons only from `FEED_MIN_RIBBON_TIER`. The caller drops the common ones (it knows the rarity)."""
-    medal_keys = [a.key for a in ACHIEVEMENTS if not a.shame and a.kind == "medal"]
-    ribbon_keys = [a.key for a in ACHIEVEMENTS if not a.shame and a.kind == "ribbon"]
+    entry, and ribbons only from `FEED_MIN_RIBBON_TIER`; only the given (switched-on) achievements. The caller drops the
+    common ones (it knows the rarity)."""
+    medal_keys = [a.key for a in achievements if not a.shame and a.kind == "medal"]
+    ribbon_keys = [a.key for a in achievements if not a.shame and a.kind == "ribbon"]
     wanted = Q(key__in=medal_keys) | Q(key__in=ribbon_keys, tier__gte=FEED_MIN_RIBBON_TIER)
     return list(
         PlayerAchievement.objects.filter(wanted, tour=tour, player__is_hidden=False)

@@ -180,6 +180,10 @@ msgid_plural "%(n)s weeks"
 msgstr[0] "%(n)s semana"
 msgstr[1] "%(n)s semanas"
 
+#, python-format
+msgid "%(name)s: a text is longer than %(max)d characters: %(start)s..."
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "%(name)s: achievements"
@@ -195,6 +199,14 @@ msgstr "%(name)s: todas las rachas"
 msgid "%(name)s: best streaks"
 msgstr "%(name)s: mejores rachas"
 
+#, python-format
+msgid "%(name)s: each threshold must be larger than the one before."
+msgstr ""
+
+#, python-format
+msgid "%(name)s: give a threshold for every tier, or leave them all blank for the built-in ones."
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "%(name)s: killboard"
@@ -204,6 +216,14 @@ msgstr "%(name)s: registro de derribos"
 #, python-format
 msgid "%(name)s: sorties"
 msgstr "%(name)s: salidas"
+
+#, python-format
+msgid "%(name)s: thresholds can be at most %(max)d."
+msgstr ""
+
+#, python-format
+msgid "%(name)s: thresholds must be whole numbers of at least 1."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -391,6 +411,11 @@ msgstr "Una misión tranquila. Todos han vuelto con la munición intacta."
 msgid "A quip is longer than %(max)d characters: %(start)s..."
 msgstr ""
 
+msgid ""
+"A recompute is pending: the saved thresholds or switches are not applied to the pilots' achievements yet. It runs on "
+"its own as soon as the watch process is free (the site shows the old thresholds until then)."
+msgstr ""
+
 # llm-draft
 msgid "A reprocess request is already waiting or running."
 msgstr "Ya hay una solicitud de reprocesado en espera o en curso."
@@ -451,6 +476,12 @@ msgstr ""
 "primera vez. Elige una temporada para ver lo que el piloto consiguió en ella, o el histórico. Pasa el cursor por un "
 "nivel para ver lo poco común que es."
 
+msgid ""
+"Achievements are the medals, ribbons and hall-of-shame entries pilots earn. They are all on by default with the "
+"built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or "
+"change the number each tier needs."
+msgstr ""
+
 # llm-draft
 msgid ""
 "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
@@ -466,6 +497,9 @@ msgstr ""
 #, python-format
 msgid "Achievements of %(name)s"
 msgstr "Logros de %(name)s"
+
+msgid "Achievements saved."
+msgstr ""
 
 # llm-draft
 msgid "Activity by tour"
@@ -1219,6 +1253,10 @@ msgstr ""
 msgid "Built-in quips only"
 msgstr ""
 
+#, python-format
+msgid "Built-in: %(values)s. Leave all blank to use them."
+msgstr ""
+
 # llm-draft
 msgid "Busy sortie. The enemy count went down noticeably."
 msgstr "Salida movida. El recuento enemigo bajó bastante."
@@ -1503,6 +1541,13 @@ msgstr ""
 msgid "Describe the image in a few words; screen readers read this text."
 msgstr ""
 
+msgid "Description (blank: built-in)"
+msgstr ""
+
+#, python-format
+msgid "Description in %(language)s"
+msgstr ""
+
 # llm-draft
 msgid "Desert sand"
 msgstr "Arena del desierto"
@@ -1543,6 +1588,9 @@ msgstr "Tipos de avión distintos que has volado."
 # llm-draft
 msgid "Different aircraft types in which you scored an air kill."
 msgstr "Tipos de avión distintos con los que lograste un derribo aéreo."
+
+msgid "Differs from what the pilots' achievements were computed with: a recompute is pending."
+msgstr ""
 
 # llm-draft
 msgid "Direct hits"
@@ -2854,13 +2902,28 @@ msgstr ""
 msgid "Name"
 msgstr "Nombre"
 
+msgid "Name (blank: built-in)"
+msgstr ""
+
 # llm-draft
 msgid "Name contains…"
 msgstr "El nombre contiene…"
 
+#, python-format
+msgid "Name in %(language)s"
+msgstr ""
+
 # llm-draft
 msgid "Names and emblems shown for 5xx / 6xx. The default emblems are neutral."
 msgstr "Nombres y emblemas que se muestran para 5xx / 6xx. Los emblemas predeterminados son neutrales."
+
+#, python-format
+msgid ""
+"Names, descriptions and the on/off switch apply to the pages at once. An achievement that is switched off disappears "
+"from profiles, sortie pages, the overview, the holder lists, the home feed and the rarity figures. Your own texts are"
+" plain text (no HTML), at most %(max_name)s characters for a name and %(max_description)s for a description; leave a "
+"language blank to show the built-in text translated into it."
+msgstr ""
 
 # llm-draft
 msgid "Navigation links"
@@ -3054,6 +3117,9 @@ msgid "No qualifying attack"
 msgstr "Sin ataque válido"
 
 msgid "No quip here"
+msgstr ""
+
+msgid "No recompute is pending: the pilots' achievements match the saved thresholds and switches."
 msgstr ""
 
 # llm-draft
@@ -3350,6 +3416,9 @@ msgstr "Resumen de todas tus sustituciones: <code>il2ks custom list</code>"
 # llm-draft
 msgid "Own doing (terrain, overstress, accident)"
 msgstr "Culpa propia (terreno, sobreesfuerzo, accidente)"
+
+msgid "Own name and description per language"
+msgstr ""
 
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
@@ -3778,6 +3847,9 @@ msgstr ""
 # llm-draft
 msgid "Reset display names to the catalog defaults"
 msgstr "Restablecer los nombres a los valores predeterminados del catálogo"
+
+msgid "Reset to default"
+msgstr ""
 
 # llm-draft
 msgid "Reset to the default color"
@@ -4328,6 +4400,9 @@ msgstr "Posibles saltos prematuros"
 # llm-draft
 msgid "Switch between light and dark"
 msgstr "Cambiar entre claro y oscuro"
+
+msgid "Switched on"
+msgstr ""
 
 # llm-draft
 msgid "System sans-serif"
@@ -4938,6 +5013,26 @@ msgstr "Esas nubecitas negras no eran decorativas."
 msgid "Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."
 msgstr "sgstr \"¿Tres o más de una tacada? Los veteranos de MiG Alley levantarían una ceja y luego la copa."
 
+msgid ""
+"Thresholds are different: who holds which tier is worked out when sorties are ingested. After you change a threshold,"
+" or switch an achievement back on, the site recomputes every pilot's achievements in the background (the watch "
+"process does it within a minute or so, or the next rebuild-aggregates does). Until then the pages keep showing the "
+"old thresholds, and afterwards the holders, the dates and the rarity percentages change. Every tier needs a number: "
+"increasing, whole numbers, as many tiers as the built-in achievement has."
+msgstr ""
+
+msgid ""
+"Tick and save: this achievement goes back to switched on, with the built-in words and thresholds, whatever is typed "
+"above."
+msgstr ""
+
+#, python-format
+msgid "Tier %(n)s"
+msgstr ""
+
+msgid "Tier thresholds"
+msgstr ""
+
 # llm-draft
 msgid "Tiers"
 msgstr "Niveles"
@@ -5489,6 +5584,9 @@ msgstr "derribos de bombarderos, aviones de ataque y aviones de transporte, sali
 # llm-draft
 msgid "by"
 msgstr "por"
+
+msgid "changed"
+msgstr ""
 
 # llm-draft
 msgid "chart series 1"

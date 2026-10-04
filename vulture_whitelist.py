@@ -269,3 +269,7 @@ _.required  # Django form field attribute (SiteSettingsForm.__init__: home_featu
 _.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html
 weapon_mod_mask  # core.catalog.loader: inverse of weapon_mod_ids, for the aircraft page mod filter (next); tested
 _.stale_hides  # web.admin_quips.SpotRow: read by admin/il2ks_quips.html
+_.default_description  # web.admin_achievements.AchievementRow: read by admin/il2ks_achievements.html
+_.default_thresholds
+_.customised
+_.changes_rows
