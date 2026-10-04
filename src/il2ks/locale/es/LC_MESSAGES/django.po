@@ -396,6 +396,9 @@ msgstr "Acento, enlaces y botones"
 msgid "Ace of the Sortie"
 msgstr "As de la salida"
 
+msgid "Achievement medals"
+msgstr "Medallas de logros"
+
 # llm-draft
 msgid "Achievements"
 msgstr "Logros"
@@ -978,6 +981,9 @@ msgstr "Desglose por tipo de objetivo"
 msgid "Bronze"
 msgstr "Bronce"
 
+msgid "Bronze medal"
+msgstr "Medalla de bronce"
+
 # llm-draft
 msgid "Browse missions"
 msgstr "Ver misiones"
@@ -1531,6 +1537,9 @@ msgstr "Descartadas"
 msgid "Gold"
 msgstr "Oro"
 
+msgid "Gold medal"
+msgstr "Medalla de oro"
+
 # llm-draft
 msgid "Good (green)"
 msgstr "Bueno (verde)"
@@ -1625,9 +1634,15 @@ msgstr "Impactos de armas"
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
 msgstr "Impactos de armas en aviones por disparo, en salidas de superioridad aérea"
 
+msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
+msgstr "Impactos de armas en aviones por disparo; solo salidas de superioridad aérea con disparos conocidos"
+
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
 msgstr "Impactos de armas en blancos terrestres por disparo, en salidas de ataque"
+
+msgid "Gun hits on ground targets per round fired; attack sorties with known rounds only"
+msgstr "Impactos de armas en blancos terrestres por disparo; solo salidas de ataque con disparos conocidos"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
@@ -2789,6 +2804,9 @@ msgstr "Aviones perdidos"
 msgid "Platinum"
 msgstr "Platino"
 
+msgid "Platinum medal"
+msgstr "Medalla de platino"
+
 # llm-draft
 msgid "Play time"
 msgstr "Tiempo de juego"
@@ -3030,9 +3048,6 @@ msgstr "En curso"
 msgid "Running streaks"
 msgstr "Rachas en marcha"
 
-msgid "Running streaks, all time"
-msgstr "Rachas en curso, de todos los tiempos"
-
 # llm-draft
 msgid "Runway"
 msgstr "Pista"
@@ -3106,6 +3121,9 @@ msgstr "Varios bombarderos no volverán a casa esta noche. Buena caza."
 msgid "Several kills in one sortie. Time to buy the squadron a round."
 msgstr "Varios derribos en una sola salida. Toca invitar una ronda a la escuadrilla."
 
+msgid "Shadows"
+msgstr "Sombras"
+
 # llm-draft
 msgid "Share"
 msgstr "Proporción"
@@ -3170,6 +3188,9 @@ msgstr "Bando"
 # llm-draft
 msgid "Silver"
 msgstr "Plata"
+
+msgid "Silver medal"
+msgstr "Medalla de plata"
 
 # llm-draft
 msgid "Since"

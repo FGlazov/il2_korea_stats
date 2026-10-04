@@ -199,6 +199,11 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the aircraft list is all time (its figures are
+  `AircraftStats` rows; per-tour aircraft aggregates are not built, and the detail page's matchups are the only per-tour part);
+  the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
+  milestones (FR-WEB-26); the Elo boards are all time (see above). `/streaks/` follows the tour. A tour dropdown appears on a page
+  only where its numbers exist per tour.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:
   short`) in the page language and the browser's zone; the zone is named only in the footer; the UTC time stays in the tooltip.
 - **Setup page** (`/setup/`, installer path): answers 404 unless a setup token file exists (`il2ks web` / `run` write it while no admin exists),
@@ -235,7 +240,7 @@ and an ordered list of extra navigation links. Navigation links are `NavLink` ro
 edited inline; the save renumbers them and publishes a copy into `SiteSettings.links` (no extra query). The old "Links" setting is folded in
 and migrated. Links open in a new tab with `rel="noopener noreferrer"`. The menu wraps instead of overflowing; we recommend at most 3
 short-labelled links (measured: 3 fit at >= 1280 px, 5 at 768 px, 2 at 360 px). Every color in the CSS is a `--il2-*` token in `site.css`
-`:root` (light and dark via `light-dark()`); a unit test forbids colors elsewhere. `SiteSettings.theme` stores only overrides per mode;
+`:root` (light and dark via `light-dark()`); a unit test forbids colors elsewhere and fails when a `:root` color has no entry in `web.theme.TOKENS`, so every color is editable in the admin (the medal tiers and the shadow color included; the camouflage image is not a color; derived values such as hover mixes follow their base token). `SiteSettings.theme` stores only overrides per mode;
 `il2ks.web.theme.theme_css` emits them from validated `#RRGGBB` values and fixed font stacks (no CSS injection). The admin warns (never
 blocks) on WCAG contrast below 4.5:1 (charts 3:1). Presets: Steel blue, Desert sand, High contrast, Default. Fonts: chosen by key from bundled
 and system stacks or from the admin's **uploaded fonts**, no third-party font host. **Custom fonts** (2026-10-04, `web/fonts.py`): the

@@ -61,6 +61,28 @@ When a budget fails, the message says which number and by how much. If the growt
 the top of the test file in the same commit. Lighthouse was left out on purpose: it needs Node and Chrome flags in CI and
 its score is noisy, while these checks read the same Performance API numbers directly.
 
+## Import benchmark (`il2ks dev bench-ingest`)
+
+Times an import of a log folder split by phase (group, parse, replay, persist level 1, level 2, ratings, archive), for
+checking that a change to the ingester did not make it slower:
+
+```
+uv run il2ks dev bench-ingest <folder with .txt / .txt.zip logs> [--limit N] [--cpu] [--profile out.prof] [--data-dir DIR]
+```
+
+It works on a copy of the logs in a throw-away data directory, so your real data and the originals are never touched.
+`--limit N` takes only the first N missions, `--cpu` measures process CPU time instead of wall-clock time (steadier on a
+busy machine), `--profile FILE` writes a cProfile dump of the whole run, and `--data-dir DIR` keeps the resulting database
+(the folder must be new or empty). To prove that a speed-up changed no data, keep the data directory of a run before and
+after the change and compare them:
+
+```
+uv run il2ks dev dump-db <data dir> before.jsonl      # every table, sorted by primary key, one JSON object per line
+```
+
+then `diff before.jsonl after.jsonl` (columns that hold the time of the import itself are left out). A smoke test
+(`tests/integration/test_dev_bench.py`) runs both commands on the small fixture logs.
+
 ## 3. Load test with Locust (`loadtest/`)
 
 Locust is the right tool here: it is pure Python (installed with the dev group, nothing else to download), the flows are

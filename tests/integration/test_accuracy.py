@@ -182,3 +182,29 @@ def test_backfill_writes_only_the_sorties_whose_figures_change(monkeypatch: pyte
     assert written == [[flown.pk]]  # the other sortie stays (None, 0, 0): not written
     flown.refresh_from_db()
     assert flown.rounds_fired == 40
+
+
+def test_sortie_lists_offer_air_and_ground_accuracy_per_combat_role(client: Client) -> None:
+    """Doc 13 "Accuracy": a sortie's air accuracy is its air hits per round in an air-superiority sortie, ground
+    accuracy the ground hits per round in an attack sortie; any other sortie (or unknown rounds) shows a dash and
+    sorts last, as the overall column does."""
+    save(
+        mission(
+            (
+                sortie(0, 1, combat_role="air_superiority", rounds_fired=200, gun_hits_air=10, gun_hits_ground=2),
+                sortie(1, 1, combat_role="air_superiority", rounds_fired=100, gun_hits_air=40),
+                sortie(2, 1, combat_role="attack", rounds_fired=300, gun_hits_air=1, gun_hits_ground=30),
+                sortie(3, 1, combat_role="air_superiority", rounds_fired=None, gun_hits_air=50),
+            )
+        )
+    )
+    pk = Player.objects.get().pk
+
+    html = client.get(f"/players/{pk}/sorties/?cols=accuracy_air,accuracy_ground&sort=-accuracy_air").content.decode()
+    assert "Air accuracy" in html
+    assert "Ground accuracy" in html
+    assert html.index("40.0%") < html.index("5.0%")  # 40 of 100 before 10 of 200
+    assert "10.0%" in html  # the attack sortie: 30 ground hits of 300 rounds
+
+    html = client.get(f"/players/{pk}/sorties/?cols=accuracy_ground&sort=accuracy_air").content.decode()
+    assert html.count("10.0%") == 1

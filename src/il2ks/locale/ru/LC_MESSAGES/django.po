@@ -407,6 +407,9 @@ msgstr "Акцент, ссылки и кнопки"
 msgid "Ace of the Sortie"
 msgstr "Ас вылета"
 
+msgid "Achievement medals"
+msgstr "Медали за достижения"
+
 # llm-draft
 msgid "Achievements"
 msgstr "Достижения"
@@ -998,6 +1001,9 @@ msgstr "Разбивка по типам целей"
 msgid "Bronze"
 msgstr "Бронза"
 
+msgid "Bronze medal"
+msgstr "Бронзовая медаль"
+
 # llm-draft
 msgid "Browse missions"
 msgstr "Смотреть миссии"
@@ -1551,6 +1557,9 @@ msgstr "Отброшены"
 msgid "Gold"
 msgstr "Золото"
 
+msgid "Gold medal"
+msgstr "Золотая медаль"
+
 # llm-draft
 msgid "Good (green)"
 msgstr "Хорошо (зелёный)"
@@ -1647,9 +1656,15 @@ msgstr "Попадания из пушек и пулемётов"
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
 msgstr "Попадания по самолётам на один выстрел, в вылетах на господство в воздухе"
 
+msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
+msgstr "Попадания по самолётам на один выстрел; только вылеты на господство в воздухе с известным числом выстрелов"
+
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
 msgstr "Попадания по наземным целям на один выстрел, в штурмовых вылетах"
+
+msgid "Gun hits on ground targets per round fired; attack sorties with known rounds only"
+msgstr "Попадания по наземным целям на один выстрел; только штурмовые вылеты с известным числом выстрелов"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
@@ -2810,6 +2825,9 @@ msgstr "Потеряно самолётов"
 msgid "Platinum"
 msgstr "Платина"
 
+msgid "Platinum medal"
+msgstr "Платиновая медаль"
+
 # llm-draft
 msgid "Play time"
 msgstr "Время игры"
@@ -3052,9 +3070,6 @@ msgstr "Выполняется"
 msgid "Running streaks"
 msgstr "Текущие серии"
 
-msgid "Running streaks, all time"
-msgstr "Текущие серии за всё время"
-
 # llm-draft
 msgid "Runway"
 msgstr "ВПП"
@@ -3128,6 +3143,9 @@ msgstr "Несколько бомбардировщиков сегодня до�
 msgid "Several kills in one sortie. Time to buy the squadron a round."
 msgstr "Несколько побед за один вылет. Самое время поставить эскадрилье по кружке."
 
+msgid "Shadows"
+msgstr "Тени"
+
 # llm-draft
 msgid "Share"
 msgstr "Доля"
@@ -3192,6 +3210,9 @@ msgstr "Сторона"
 # llm-draft
 msgid "Silver"
 msgstr "Серебро"
+
+msgid "Silver medal"
+msgstr "Серебряная медаль"
 
 # llm-draft
 msgid "Since"

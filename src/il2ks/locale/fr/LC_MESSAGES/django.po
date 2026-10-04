@@ -396,6 +396,9 @@ msgstr "Accent, liens et boutons"
 msgid "Ace of the Sortie"
 msgstr "As de la sortie"
 
+msgid "Achievement medals"
+msgstr "Médailles de succès"
+
 # llm-draft
 msgid "Achievements"
 msgstr "Succès"
@@ -977,6 +980,9 @@ msgstr "Répartition par type de cible"
 msgid "Bronze"
 msgstr "Bronze"
 
+msgid "Bronze medal"
+msgstr "Médaille de bronze"
+
 # llm-draft
 msgid "Browse missions"
 msgstr "Parcourir les missions"
@@ -1530,6 +1536,9 @@ msgstr "Abandonnées"
 msgid "Gold"
 msgstr "Or"
 
+msgid "Gold medal"
+msgstr "Médaille d'or"
+
 # llm-draft
 msgid "Good (green)"
 msgstr "Bon (vert)"
@@ -1624,9 +1633,19 @@ msgstr "Impacts de tir"
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
 msgstr "Impacts de tir sur des avions par coup tiré, en sorties de supériorité aérienne"
 
+msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
+msgstr ""
+"Impacts de tir sur des avions par coup tiré ; uniquement les sorties de supériorité aérienne dont le nombre de coups "
+"est connu"
+
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
 msgstr "Impacts de tir sur des cibles au sol par coup tiré, en sorties d'attaque"
+
+msgid "Gun hits on ground targets per round fired; attack sorties with known rounds only"
+msgstr ""
+"Impacts de tir sur des cibles au sol par coup tiré ; uniquement les sorties d'attaque dont le nombre de coups est "
+"connu"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
@@ -2790,6 +2809,9 @@ msgstr "Avions perdus"
 msgid "Platinum"
 msgstr "Platine"
 
+msgid "Platinum medal"
+msgstr "Médaille de platine"
+
 # llm-draft
 msgid "Play time"
 msgstr "Temps de jeu"
@@ -3035,9 +3057,6 @@ msgstr "En cours"
 msgid "Running streaks"
 msgstr "Séries en cours"
 
-msgid "Running streaks, all time"
-msgstr "Séries en cours, tous temps confondus"
-
 # llm-draft
 msgid "Runway"
 msgstr "Piste"
@@ -3111,6 +3130,9 @@ msgstr "Plusieurs bombardiers ne rentreront pas ce soir. Belle chasse."
 msgid "Several kills in one sortie. Time to buy the squadron a round."
 msgstr "Plusieurs victoires en une seule sortie. Il est temps de payer sa tournée à l'escadrille."
 
+msgid "Shadows"
+msgstr "Ombres"
+
 # llm-draft
 msgid "Share"
 msgstr "Part"
@@ -3175,6 +3197,9 @@ msgstr "Camp"
 # llm-draft
 msgid "Silver"
 msgstr "Argent"
+
+msgid "Silver medal"
+msgstr "Médaille d'argent"
 
 # llm-draft
 msgid "Since"

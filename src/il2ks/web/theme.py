@@ -55,6 +55,7 @@ GROUPS: Final[tuple[tuple[str, str], ...]] = (
     ("coalitions", _("Coalitions")),
     ("status", _("Status colors (badges, notices)")),
     ("charts", _("Charts")),
+    ("medals", _("Achievement medals")),
 )
 
 
@@ -72,6 +73,7 @@ TOKENS: Final[tuple[Token, ...]] = (
     _t("muted", "text", _("Secondary text"), "#636856", "#929a82"),
     _t("border", "borders", _("Borders"), "#d5d3c5", "#2d3427"),
     _t("border-strong", "borders", _("Strong borders"), "#bcb9a7", "#3f4837"),
+    _t("shadow", "borders", _("Shadows"), "#1e2214", "#000000"),
     _t("band", "header", _("Header band"), "#2b3326", "#151a12"),
     _t("band-text", "header", _("Header text"), "#e9ecdd", "#e9ecdd"),
     _t("band-muted", "header", _("Header menu text"), "#aab294", "#aab294"),
@@ -95,6 +97,10 @@ TOKENS: Final[tuple[Token, ...]] = (
     _t("chart-1", "charts", _("Chart series 1"), "#2a6fa8", "#4a8fd0"),
     _t("chart-2", "charts", _("Chart series 2"), "#b4532a", "#d06c3a"),
     _t("chart-grid", "charts", _("Chart grid lines"), "#e1dfd2", "#272d21"),
+    _t("medal-bronze", "medals", _("Bronze medal"), "#a8642c", "#d99358"),
+    _t("medal-silver", "medals", _("Silver medal"), "#7d8790", "#bcc4cb"),
+    _t("medal-gold", "medals", _("Gold medal"), "#b07f06", "#e9bf45"),
+    _t("medal-platinum", "medals", _("Platinum medal"), "#2f7f93", "#7fd0e2"),
 )
 TOKEN_KEYS: Final[frozenset[str]] = frozenset(token.key for token in TOKENS)
 _BY_KEY: Final[dict[str, Token]] = {token.key: token for token in TOKENS}

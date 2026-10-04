@@ -51,7 +51,7 @@ the same. More links still work, they just make the header two or three rows tal
 Under **Colors** you can change every color the site uses, in two columns: **Light mode** and **Dark mode** (visitors
 switch with the sun/moon button in the header; the site follows their system setting until they do). The groups are
 backgrounds, text, borders, the header band and the home banner, the accent (buttons, links), the two coalitions, the
-status colors of badges and notices, and the charts. Each box takes `#RRGGBB`; an **empty box means the default color**.
+status colors of badges and notices, the charts, the shadows and the achievement medals (bronze to platinum). Each box takes `#RRGGBB`; an **empty box means the default color**.
 The **×** button next to a box (and the colour picker, with JavaScript on) resets it. "Automatic" boxes (the link
 color and the text on the accent) follow the accent unless you fill them in.
 

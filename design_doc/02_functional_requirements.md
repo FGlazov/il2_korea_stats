@@ -177,7 +177,8 @@ people ask). The main use case is **a player reviewing their sortie**.
 - **Tours on pages (OQ-45..48):** default to the **current tour**, with an **all-time** toggle. Never recompute subsets of tours; later
   maybe yearly or quarterly aggregates as extra level-2 rows. With a tour picked, the profile's sortie list shows the player's latest
   sorties **in that tour** (reframe the heading, e.g. "Sorties in October 2026"). A tour without sorties shows a notice (a flavor-text
-  spot). The aircraft filter stays all-time.
+  spot). The aircraft filter stays all-time. **Exceptions without a tour dropdown (`[PROPOSED]`):** the aircraft list (all time, per
+  doc 16; no per-tour aircraft aggregates), the player search (a name search), achievements (lifetime) and the Elo boards (all time).
 - **Aircraft (OQ-49, 50, 65):** a top-level **Aircraft** page with a table of all aircraft; totals include hidden players and missions.
   Rank a type's top pilots by **skill (Elo or ground proficiency)**, not by volume ("not a grind"). **Cross-aircraft / per-type Elo** is
   wanted.

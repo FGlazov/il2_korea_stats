@@ -170,6 +170,8 @@ SORTIE_SORT_FIELDS: Final[dict[str, SortSpec]] = {
             "takeoffs",
             "landings",
             "accuracy",
+            "accuracy_air",
+            "accuracy_ground",
         )
     },
     "payload": _nullable("payload_name"),

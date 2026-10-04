@@ -49,14 +49,6 @@ def test_no_command_is_a_stub_any_more() -> None:
     assert set(PLANNED) == set()
 
 
-@pytest.mark.parametrize("command", sorted(PLANNED))
-def test_planned_commands_are_stubs(command: str, capsys: pytest.CaptureFixture[str]) -> None:
-    assert main([command]) == EXIT_USAGE
-    out = capsys.readouterr()
-    assert out.err.strip() == f"il2ks {command}: not implemented yet (planned: {PLANNED[command][0]})"
-    assert out.out == ""
-
-
 def test_every_job_command_has_help() -> None:
     for command in ("ingest", "watch", "reprocess", "rebuild-aggregates"):
         with pytest.raises(SystemExit) as info:

@@ -18,7 +18,7 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftStats, Mission, Player, PlayerSortie
+from il2ks.db.models import AircraftStats, CombatRole, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import display
 from il2ks.web.display import Label
@@ -146,6 +146,24 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
         _("Gun accuracy"),
         lambda s: _accuracy(s.gun_hits_air + s.gun_hits_ground, s.rounds_fired or 0),
         _("Gun hits per round fired; a dash when the rounds fired are unknown"),
+    ),
+    Column(
+        "accuracy_air",
+        _("Air accuracy"),
+        lambda s: (
+            _accuracy(s.gun_hits_air, s.rounds_fired or 0)
+            if s.combat_role == CombatRole.AIR_SUPERIORITY
+            else display.DASH
+        ),
+        _("Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"),
+    ),
+    Column(
+        "accuracy_ground",
+        _("Ground accuracy"),
+        lambda s: (
+            _accuracy(s.gun_hits_ground, s.rounds_fired or 0) if s.combat_role == CombatRole.ATTACK else display.DASH
+        ),
+        _("Gun hits on ground targets per round fired; attack sorties with known rounds only"),
     ),
 )
 

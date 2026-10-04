@@ -398,6 +398,9 @@ msgstr "Akzent, Links und Schaltflächen"
 msgid "Ace of the Sortie"
 msgstr "Ass des Einsatzes"
 
+msgid "Achievement medals"
+msgstr "Erfolgsmedaillen"
+
 # llm-draft
 msgid "Achievements"
 msgstr "Auszeichnungen"
@@ -979,6 +982,9 @@ msgstr "Aufschlüsselung nach Zieltyp"
 msgid "Bronze"
 msgstr "Bronze"
 
+msgid "Bronze medal"
+msgstr "Bronzemedaille"
+
 # llm-draft
 msgid "Browse missions"
 msgstr "Missionen durchsuchen"
@@ -1534,6 +1540,9 @@ msgstr "Aufgegeben"
 msgid "Gold"
 msgstr "Gold"
 
+msgid "Gold medal"
+msgstr "Goldmedaille"
+
 # llm-draft
 msgid "Good (green)"
 msgstr "Gut (Grün)"
@@ -1628,9 +1637,15 @@ msgstr "Bordwaffen-Treffer"
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
 msgstr "Bordwaffen-Treffer an Flugzeugen pro abgefeuertem Schuss, in Luftüberlegenheitseinsätzen"
 
+msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
+msgstr "Bordwaffen-Treffer an Flugzeugen pro abgefeuertem Schuss; nur Luftüberlegenheitseinsätze mit bekannter Schusszahl"
+
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
 msgstr "Bordwaffen-Treffer an Bodenzielen pro abgefeuertem Schuss, in Erdkampfeinsätzen"
+
+msgid "Gun hits on ground targets per round fired; attack sorties with known rounds only"
+msgstr "Bordwaffen-Treffer an Bodenzielen pro abgefeuertem Schuss; nur Erdkampfeinsätze mit bekannter Schusszahl"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
@@ -2794,6 +2809,9 @@ msgstr "Verlorene Flugzeuge"
 msgid "Platinum"
 msgstr "Platin"
 
+msgid "Platinum medal"
+msgstr "Platinmedaille"
+
 # llm-draft
 msgid "Play time"
 msgstr "Spielzeit"
@@ -3037,9 +3055,6 @@ msgstr "Läuft"
 msgid "Running streaks"
 msgstr "Laufende Serien"
 
-msgid "Running streaks, all time"
-msgstr "Laufende Serien, gesamte Zeit"
-
 # llm-draft
 msgid "Runway"
 msgstr "Piste"
@@ -3113,6 +3128,9 @@ msgstr "Mehrere Bomber kommen heute Nacht nicht mehr nach Hause. Gute Jagd."
 msgid "Several kills in one sortie. Time to buy the squadron a round."
 msgstr "Mehrere Abschüsse in einem Einsatz. Zeit, der Staffel eine Runde auszugeben."
 
+msgid "Shadows"
+msgstr "Schatten"
+
 # llm-draft
 msgid "Share"
 msgstr "Anteil"
@@ -3177,6 +3195,9 @@ msgstr "Seite"
 # llm-draft
 msgid "Silver"
 msgstr "Silber"
+
+msgid "Silver medal"
+msgstr "Silbermedaille"
 
 # llm-draft
 msgid "Since"

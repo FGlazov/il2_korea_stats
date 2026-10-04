@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
 from django.db.models import Case, ExpressionWrapper, F, FloatField, When
-from django.db.models.expressions import Expression
+from django.db.models.expressions import Combinable, Expression
 
 from il2ks.db.models import (
     HEAVY_SORTIE_COLUMNS,
@@ -29,19 +29,35 @@ from il2ks.queries.sorting import Computed, Rated, SortSpec, order_by
 PAGE_SIZE = ROW_PAGE_SIZE
 
 
-def _accuracy(prefix: str) -> Expression:
-    """Gun hits per round fired of a sortie; NULL where the rounds are unknown or zero."""
+def _ratio(prefix: str, hits: Combinable, role: CombatRole | None) -> Expression:
+    """`hits` per round fired of a sortie (restricted to one combat role, or any); NULL where the rounds are unknown or
+    zero, or the sortie has another role (design_doc/13 "Accuracy": the same sorties feed numerator and denominator)."""
+    conditions: dict[str, object] = {f"{prefix}rounds_fired__gt": 0}
+    if role is not None:
+        conditions[f"{prefix}combat_role"] = role
     return Case(
         When(
-            **{f"{prefix}rounds_fired__gt": 0},
-            then=ExpressionWrapper(
-                (F(prefix + "gun_hits_air") + F(prefix + "gun_hits_ground")) * 1.0 / F(prefix + "rounds_fired"),
-                output_field=FloatField(),
-            ),
+            **conditions,
+            then=ExpressionWrapper(hits * 1.0 / F(prefix + "rounds_fired"), output_field=FloatField()),
         ),
         default=None,
         output_field=FloatField(),
     )
+
+
+def _accuracy(prefix: str) -> Expression:
+    """Gun hits per round fired of a sortie; NULL where the rounds are unknown or zero."""
+    return _ratio(prefix, F(prefix + "gun_hits_air") + F(prefix + "gun_hits_ground"), None)
+
+
+def _accuracy_air(prefix: str) -> Expression:
+    """Hits on aircraft per round fired, air-superiority sorties only; NULL otherwise."""
+    return _ratio(prefix, F(prefix + "gun_hits_air"), CombatRole.AIR_SUPERIORITY)
+
+
+def _accuracy_ground(prefix: str) -> Expression:
+    """Hits on ground targets per round fired, attack sorties only; NULL otherwise."""
+    return _ratio(prefix, F(prefix + "gun_hits_ground"), CombatRole.ATTACK)
 
 
 # `?sort=` whitelist: public field name -> ORM ordering. Ties are broken by the primary key, so paging is stable.
@@ -68,6 +84,8 @@ SORT_FIELDS: dict[str, SortSpec] = {
     "takeoffs": "takeoffs",
     "landings": "landings",
     "accuracy": Computed(_accuracy),  # NULL (rounds fired unknown or none) sorts last
+    "accuracy_air": Computed(_accuracy_air),  # NULL (not an air-superiority sortie, or no rounds known) sorts last
+    "accuracy_ground": Computed(_accuracy_ground),  # NULL (not an attack sortie, or no rounds known) sorts last
 }
 DEFAULT_SORT = "-date"
 

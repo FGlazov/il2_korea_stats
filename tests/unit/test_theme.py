@@ -73,6 +73,32 @@ def test_every_colour_in_the_css_is_a_token() -> None:
     assert not offenders, f"colours outside the :root tokens (add a token and use var()): {offenders}"
 
 
+# `:root` variables that hold a colour but are mixed from tokens (no colour literal of their own): the admin changes
+# them through their base token.
+DERIVED_COLOURS = {"--il2-shadow-color", "--il2-band-hover", "--il2-band-border"}
+
+
+def test_every_colour_variable_in_the_root_block_is_a_token() -> None:
+    """FR-ADM-2 / TD-25: the admin can edit every colour. A `--il2-*` variable in `:root` whose value is a colour
+    (hex, rgb(), light-dark()) must be in `TOKENS`; a mix of tokens (`color-mix`, no literal) may be listed in
+    `DERIVED_COLOURS`. Images (`url(...)`) and sizes are not colours."""
+    css = re.sub(r"/\*.*?\*/", "", root_block(), flags=re.DOTALL)
+    token_vars = {token.css_var for token in TOKENS}
+    missing: list[str] = []
+    for name, value in re.findall(r"(--il2-[a-z0-9-]+):\s*(.+?);", css, flags=re.DOTALL):
+        is_colour = bool(HEX.search(value) or re.search(r"rgba?\(|light-dark\(|color-mix\(", value))
+        if not is_colour or name in token_vars:
+            continue
+        if name in DERIVED_COLOURS:
+            assert not HEX.search(value), f"{name} has its own colour literal: make it a token"
+            continue
+        missing.append(name)
+    assert not missing, (
+        f"colours in :root that the theme editor cannot change (add them to web.theme.TOKENS): {missing}"
+    )
+    assert set(re.findall(r"(--il2-[a-z0-9-]+):", css)) >= DERIVED_COLOURS, "stale DERIVED_COLOURS entry"
+
+
 def test_token_keys_are_unique_and_css_vars_exist() -> None:
     assert len(TOKEN_KEYS) == len(TOKENS)
     for token in TOKENS:

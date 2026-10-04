@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v15 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v16 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -30,7 +30,11 @@
   --il2-text: light-dark(#24281f, #dadfce);
   --il2-heading: light-dark(#161a11, #f0f3e8);
   --il2-muted: light-dark(#636856, #929a82);
-  --il2-shadow-color: light-dark(rgb(30 34 20 / 0.08), rgb(0 0 0 / 0.5));
+  --il2-shadow: light-dark(#1e2214, #000000);
+  --il2-shadow-color: light-dark(
+    color-mix(in srgb, var(--il2-shadow) 8%, transparent),
+    color-mix(in srgb, var(--il2-shadow) 50%, transparent)
+  );
   --il2-primary: light-dark(
     color-mix(in srgb, var(--il2-accent) 82%, black),
     color-mix(in srgb, var(--il2-accent) 52%, white)
