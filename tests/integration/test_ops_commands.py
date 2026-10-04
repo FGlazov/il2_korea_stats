@@ -384,7 +384,7 @@ def test_restore_command_declined_in_a_terminal_changes_nothing(
     zip_path = backup.create_backup(instance, now=lambda: T)
     monkeypatch.setattr(commands, "interactive_terminal", returning(True))
 
-    ns = argparse.Namespace(config=instance.source, zip=zip_path, yes=False)
+    ns = argparse.Namespace(config=instance.source, zip=zip_path, yes=False, force=False)
     io = ScriptedPrompter(answers=[], confirms=[False])
     assert commands.cmd_restore(ns, env={}, io=io) == EXIT_OK
     assert "Nothing changed" in io.transcript
@@ -392,17 +392,58 @@ def test_restore_command_declined_in_a_terminal_changes_nothing(
 
 
 @pytest.mark.sqlite_only
-def test_restore_command_warns_when_the_website_seems_to_run(instance: Config, monkeypatch: pytest.MonkeyPatch) -> None:
-
+def test_restore_command_refuses_while_the_website_seems_to_run_unless_forced(
+    instance: Config, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     from il2ks.ops import commands
 
     assert instance.source is not None
     zip_path = backup.create_backup(instance, now=lambda: T)
     monkeypatch.setattr(backup, "web_probably_running", returning(True))
     io = ScriptedPrompter(answers=[])
-    ns = argparse.Namespace(config=instance.source, zip=zip_path, yes=True)
-    assert commands.cmd_restore(ns, env={}, io=io) == EXIT_OK
-    assert "website is probably running" in io.transcript
+    ns = argparse.Namespace(config=instance.source, zip=zip_path, yes=True, force=False)
+    assert commands.cmd_restore(ns, env={}, io=io) == EXIT_LOCKED
+    assert "website is probably running" in capsys.readouterr().err
+    assert len(backup.list_backups(instance.backup_dir)) == 1  # nothing was touched: no safety backup either
+
+    forced = argparse.Namespace(config=instance.source, zip=zip_path, yes=True, force=True)
+    assert commands.cmd_restore(forced, env={}, io=io) == EXIT_OK
+    assert "website is probably running" in io.transcript  # still said, then done anyway
+
+
+@pytest.mark.sqlite_only
+def test_restore_command_refuses_while_il2ks_run_holds_the_run_lock(
+    instance: Config, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The web server no longer holds the writer lock, so the run lock is what shows that the stack is up."""
+    from il2ks.ops import commands
+    from il2ks.serving import procutil
+
+    assert instance.source is not None
+    zip_path = backup.create_backup(instance, now=lambda: T)
+    monkeypatch.setattr(backup, "web_probably_running", returning(False))
+    ns = argparse.Namespace(config=instance.source, zip=zip_path, yes=True, force=False)
+    with procutil.run_lock(instance.data_dir):
+        assert commands.cmd_restore(ns, env={}, io=ScriptedPrompter(answers=[])) == EXIT_LOCKED
+    assert "il2ks run is running" in capsys.readouterr().err
+
+
+@pytest.mark.sqlite_only
+def test_restore_writes_the_config_where_the_next_start_reads_it(
+    instance: Config, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Without a loaded config file the target is `--config`, then IL2KS_CONFIG, then the current folder."""
+    from il2ks.ops import commands
+
+    assert instance.source is not None
+    assert commands.restore_config_target(instance, None, {}) == instance.source.resolve()
+    bare = replace(instance, source=None)
+    explicit = tmp_path / "explicit.toml"
+    assert commands.restore_config_target(bare, explicit, {"IL2KS_CONFIG": "ignored.toml"}) == explicit.resolve()
+    from_env = tmp_path / "from-env.toml"
+    assert commands.restore_config_target(bare, None, {"IL2KS_CONFIG": str(from_env)}) == from_env.resolve()
+    monkeypatch.chdir(tmp_path)
+    assert commands.restore_config_target(bare, None, {}) == (tmp_path / "il2ks.toml").resolve()
 
 
 @pytest.mark.parametrize("what", ["missing", "garbage"])

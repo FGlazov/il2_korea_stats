@@ -4,8 +4,10 @@ This guide gets the stats site running on the machine that hosts your IL-2 Korea
 receives its logs). It works on **Windows** (10, 11, Server) and **Linux** (also when DServer runs under Wine).
 Expect 15 to 30 minutes, most of it waiting for DNS and the certificate.
 
-A Windows installer (double-click, no terminal) is planned. Until then, this is the way: a few copy-paste commands.
-On Linux you can also run everything in one container: see [Installing with Docker](install-docker.md).
+**On Windows there is a double-click installer** (no terminal, no Python, a real Windows service): see
+[install-windows.md](install-windows.md). This page is the manual way: a few copy-paste commands. It is also the way on Linux,
+and for several servers on one machine. On Linux you can also run everything in one container: see
+[Installing with Docker](install-docker.md).
 
 **Where to type commands:** on Windows, open **PowerShell** (Start menu, type "PowerShell"). Some steps say
 "as Administrator": right-click PowerShell and choose *Run as administrator*. On Linux, use any terminal.
@@ -208,7 +210,7 @@ schtasks /Run /TN il2ks           # start it now
 
 Use `--user SYSTEM` to run it without a stored password. To stop it: `schtasks /End /TN il2ks` (Windows then also stops the web server, the log watcher and Caddy; check
 with `il2ks doctor` that the ports are free again). To remove it:
-`schtasks /Delete /TN il2ks /F`. (A proper Windows service with the installer is planned.)
+`schtasks /Delete /TN il2ks /F`. (The [Windows installer](install-windows.md) sets up a proper Windows service instead.)
 
 **Linux** (systemd):
 
@@ -244,7 +246,7 @@ After an upgrade run `il2ks doctor`: it tells you if a template you customized h
 ## Backups
 
 `il2ks backup` writes a dated zip with everything that cannot be rebuilt from the game logs (database, configuration,
-`custom/`), and `il2ks restore <zip>` brings it back. Details: `il2ks backup --help`. The original game logs are kept
+`custom/`), and `il2ks restore <zip>` brings it back (stop il2ks first: restore refuses while `il2ks run` or the website is running, unless you add `--force`). Details: `il2ks backup --help`. The original game logs are kept
 (archived) in the data folder as well: keep that folder safe.
 
 ## Linux, DServer under Wine

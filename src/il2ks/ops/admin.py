@@ -38,11 +38,11 @@ def password_problems(password: str, username: str, email: str = "") -> list[str
 
 
 def read_password(env: Mapping[str, str], password_file: Path | None) -> str | None:
-    """The password for a script: from `--password-file` (only the line break at the end is dropped), else the
-    `IL2KS_ADMIN_PASSWORD` environment variable, else None."""
+    """The password for a script: from `--password-file` (only the line break at the end is dropped, a UTF-8 BOM is
+    ignored), else the `IL2KS_ADMIN_PASSWORD` environment variable, else None."""
     if password_file is not None:
         try:
-            text = password_file.read_text(encoding="utf-8")
+            text = password_file.read_text(encoding="utf-8-sig")  # the Windows installer's writer may add a BOM
         except OSError as exc:
             raise AdminError(f"cannot read the password file: {exc}") from exc
         password = text.rstrip("\r\n")

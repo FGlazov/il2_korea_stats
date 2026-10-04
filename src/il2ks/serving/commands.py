@@ -18,14 +18,14 @@ from pathlib import Path
 
 from il2ks import logsetup
 from il2ks.config import Config, ConfigError, find_config_file, load_config
-from il2ks.ingest.lock import LockBusyError
+from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.serving import bootid, caddy, custom, procutil, service, setup_token, supervisor, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, ensure_secret_key
 
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 COMMANDS = frozenset({"web", "run", "caddyfile", "service", "custom"})
 MIGRATE_WAIT_S = 60.0
-CONFIG_SETTLE_S = 3.0
+CONFIG_SETTLE_S = 5.0
 """A changed configuration file is acted on after it stayed unchanged this long: the page that wrote it (the setup page)
 is still answering its browser, and a half-written file is never loaded."""
 
@@ -205,12 +205,17 @@ def announce_setup(cfg: Config, host: str, port: int, hooks: Hooks) -> None:
 
     The page (`/setup/`, doc 07 option B) answers only while `<data dir>/setup-token.txt` exists, only on this
     machine and only with the token. Any admin account removes the file again (the page is gone for good)."""
-    if not hooks.setup_pending():
+    if setup_token.page_disabled(os.environ) or not hooks.setup_pending():
         setup_token.discard_token(cfg.data_dir)
         return
     token = setup_token.ensure_token(cfg.data_dir)
     url = setup_token.setup_url(host, port, token)
-    log.warning("first-run setup is pending: open %s in a browser on this computer", url)
+    # The token is a credential: it goes to the console and its own private file, never into the log files.
+    log.warning(
+        "first-run setup is pending: the address of the setup page (with its one-time token) is printed on the console "
+        "and kept in %s",
+        setup_token.token_path(cfg.data_dir),
+    )
     print(
         "\n*** First-run setup is pending (no admin account yet).\n"
         "*** Open this address in a browser ON THIS COMPUTER to finish it:\n"
@@ -313,7 +318,9 @@ class ConfigWatch:
 
     `changed()` is polled by the supervisor. It turns True once the file has differed from the one the stack started
     with and then stayed unchanged for `settle_s`, and the new file loads (`new_config`); a file that does not load is
-    reported once and the stack keeps running on the old settings until the file changes again."""
+    reported once and the stack keeps running on the old settings until the file changes again. While `hold()` is true
+    (a setup page submit is in flight, `setup_token.finishing`) nothing restarts, and `settle_s` counts from its end, so
+    the browser always gets its answer before the web server is stopped."""
 
     def __init__(
         self,
@@ -322,9 +329,11 @@ class ConfigWatch:
         *,
         settle_s: float = CONFIG_SETTLE_S,
         env: Mapping[str, str] | None = None,
+        hold: Callable[[], bool] | None = None,
     ) -> None:
         self._explicit = explicit
         self._clock = clock
+        self._hold = hold
         self._settle_s = settle_s
         self._env = os.environ if env is None else env
         self._started_with = config_signature(explicit, self._env)
@@ -342,6 +351,9 @@ class ConfigWatch:
         if current != self._candidate:
             self._candidate, self._candidate_since = current, now
             return False
+        if self._hold is not None and self._hold():
+            self._candidate_since = now  # the setup page is still answering: the settle time starts when it is done
+            return False
         if now - self._candidate_since < self._settle_s or current == self._rejected:
             return False
         try:
@@ -351,6 +363,11 @@ class ConfigWatch:
             log.error("the configuration file changed but does not load, so it is ignored for now: %s", exc)
             return False
         return True
+
+
+def _config_watch(config_arg: Path | None, hooks: Hooks, cfg: Config) -> ConfigWatch:
+    data_dir = cfg.data_dir
+    return ConfigWatch(config_arg, hooks.clock, hold=lambda: setup_token.finishing(data_dir))
 
 
 def _run_state_writer(data_dir: Path) -> Callable[[dict[str, int]], None]:
@@ -365,25 +382,55 @@ def cmd_run(cfg: Config, hooks: Hooks, config_arg: Path | None = None) -> int:
     prepare_data_dir(cfg)
     start_logging("run", cfg)
     # One `run` per data dir, by an OS lock held until we exit (however we exit): never "stuck" after a crash or reboot.
-    lock = procutil.run_lock(cfg.data_dir, wait=RUN_LOCK_WAIT_S)
+    lock = RunLock()
     try:
-        lock.acquire()
+        lock.take(cfg.data_dir)
     except LockBusyError as exc:
-        who = f" ({exc.holder.describe()})" if exc.holder is not None else ""
-        print(f"il2ks run: already running for {cfg.data_dir}{who}", file=sys.stderr)
+        _print_run_busy(cfg.data_dir, exc)
         return EXIT_LOCKED
     try:
-        return _run_locked(cfg, hooks, config_arg)
+        return _run_locked(cfg, hooks, config_arg, lock)
     finally:
         lock.release()
 
 
-def _run_locked(cfg: Config, hooks: Hooks, config_arg: Path | None) -> int:
+def _print_run_busy(data_dir: Path, exc: LockBusyError) -> None:
+    who = f" ({exc.holder.describe()})" if exc.holder is not None else ""
+    print(f"il2ks run: already running for {data_dir}{who}", file=sys.stderr)
+
+
+class RunLock:
+    """The run lock of the data folder `il2ks run` currently serves. A configuration change may name another data
+    folder (the setup page, or an edit by hand): `take` then locks the new one before the old one is let go, so a
+    folder that is busy leaves the old lock in place."""
+
+    def __init__(self) -> None:
+        self._lock: WriterLock | None = None
+        self.data_dir: Path | None = None
+
+    def take(self, data_dir: Path) -> None:
+        """Hold the run lock of `data_dir`. Raises `LockBusyError` if another `il2ks run` holds it."""
+        if self._lock is not None and self.data_dir == data_dir:
+            return
+        new = procutil.run_lock(data_dir, wait=RUN_LOCK_WAIT_S)
+        new.acquire()
+        old = self._lock
+        self._lock, self.data_dir = new, data_dir
+        if old is not None:
+            old.release()
+
+    def release(self) -> None:
+        if self._lock is not None:
+            self._lock.release()
+            self._lock = None
+
+
+def _run_locked(cfg: Config, hooks: Hooks, config_arg: Path | None, lock: RunLock) -> int:
     if hooks.contain_children():
         log.info("children are tied to this process: they stop when it ends, however it ends")
     if not cfg.debug and not cfg.web.secret_key:
         ensure_secret_key(cfg.data_dir)  # before the children start, so they don't race to create it
-    watch = ConfigWatch(config_arg, hooks.clock)
+    watch = _config_watch(config_arg, hooks, cfg)
     if cfg.source is None:
         log.warning("no il2ks.toml found: open the setup page when `web` prints its address (or run `il2ks setup`)")
     try:
@@ -419,13 +466,22 @@ def _run_locked(cfg: Config, hooks: Hooks, config_arg: Path | None) -> int:
             if not runner.run():
                 break
             assert watch.new_config is not None
+            old_dir = cfg.data_dir
             cfg = watch.new_config
             log.info("the configuration changed (%s): restarting with the new settings", cfg.source)
+            if cfg.data_dir != old_dir:
+                log.info("the data folder changed: %s -> %s", old_dir, cfg.data_dir)
+                try:
+                    lock.take(cfg.data_dir)  # one `run` per data folder, also after a change of folder
+                except LockBusyError as exc:
+                    _print_run_busy(cfg.data_dir, exc)
+                    return EXIT_LOCKED
+                procutil.clear_run_state(old_dir)
             export_config(cfg)
             prepare_data_dir(cfg)
             if not cfg.debug and not cfg.web.secret_key:
                 ensure_secret_key(cfg.data_dir)
-            watch = ConfigWatch(config_arg, hooks.clock)
+            watch = _config_watch(config_arg, hooks, cfg)
             specs = build_child_specs(
                 cfg, caddy_binary=caddy.find_caddy(cfg), env=dict(os.environ), caddy_optional=True
             )

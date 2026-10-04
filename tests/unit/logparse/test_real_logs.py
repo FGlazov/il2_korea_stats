@@ -36,7 +36,7 @@ def check_mission(log: MissionLog) -> tuple[ParseStats, Counter[str]]:
 
 
 def test_all_fixtures_present() -> None:
-    assert len(FIXTURES) == 4
+    assert len(FIXTURES) == 5
 
 
 @pytest.mark.parametrize("path", FIXTURES, ids=[p.name for p in FIXTURES])

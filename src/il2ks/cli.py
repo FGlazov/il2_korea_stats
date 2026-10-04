@@ -142,11 +142,15 @@ def _add_ops_parsers(sub: SubParsers) -> None:
         help="restore a backup zip (database, config, custom/, media/)",
         description=(
             "Restores a backup made by 'il2ks backup'. Backs up the current state first, refuses while another "
-            "il2ks writer is running, and checks the result. SQLite only."
+            "il2ks writer (watch, ingest) or the stack (il2ks run) is running unless --force, and checks the result. "
+            "SQLite only."
         ),
     )
     restore.add_argument("zip", type=Path, help="the backup zip")
     restore.add_argument("--yes", action="store_true", help="do not ask for confirmation")
+    restore.add_argument(
+        "--force", action="store_true", help="restore even though il2ks seems to be running (stop it first if you can)"
+    )
 
 
 def _add_translation_parsers(dev: SubParsers) -> None:
@@ -315,6 +319,10 @@ def _main(argv: Sequence[str] | None) -> int:
 
         anonymize_file(ns.source, ns.target)
         return EXIT_OK
+    if command == "dev" and ns.dev_command == "bailout-eval":
+        from il2ks.devtools.bailout_eval import run as run_bailout_eval
+
+        return run_bailout_eval(ns.directory, list_disagreements=ns.list)
     if command == "dev" and ns.dev_command == "bump-templates":
         from il2ks.devtools.templates import bump_templates
 
