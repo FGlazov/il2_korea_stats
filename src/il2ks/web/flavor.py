@@ -127,6 +127,20 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The gear stayed up and so did the pilot's spirits."),
         gettext_lazy("A creative arrival. The airframe will be remembered fondly."),
     ),
+    # Destroyed on the ground by an attacker: never took off (parked) ...
+    "sortie_strafed": (
+        gettext_lazy("Destroyed before it ever left the ramp. The ground crew is holding a very short memorial."),
+        gettext_lazy("Not even the engine had warmed up yet. Sometimes the war simply comes to you."),
+        gettext_lazy("Bad luck, not bad flying: the airframe never got a chance to prove itself."),
+        gettext_lazy("The ground crew mourns the airframe, and quietly polishes the next one."),
+    ),
+    # ... or landed first and was caught on the ground.
+    "sortie_strafed_landed": (
+        gettext_lazy("Home at last, and the ramp was not safe either. The ground crew mourns the airframe."),
+        gettext_lazy("Wheels down, engine barely cooling, and then the enemy arrived. Rotten luck."),
+        gettext_lazy("Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."),
+        gettext_lazy("Landing was the easy part. The taxiway had a visitor with other plans."),
+    ),
     "sortie_aa": (
         gettext_lazy("The flak had the final say."),
         gettext_lazy("Those little black clouds were not decorative."),
@@ -221,7 +235,8 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
     the log credits to the pilot). The first match wins, in this order (accidents and losses first, then the rarest
     achievements, then the broader ones):
 
-    taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, flak, bomber hunter, ace, stolen kills,
+    taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground (after a landing
+    or before takeoff), flak, bomber hunter, ace, stolen kills,
     stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
 
     `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
@@ -238,6 +253,8 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
         return "sortie_ai_gunner"
     if sortie.outcome == "ditched":
         return "sortie_ditched"
+    if sortie.strafed_on_ground:
+        return "sortie_strafed_landed" if sortie.landings else "sortie_strafed"
     if sortie.outcome == "shot_down" and sortie.loss_class == "aaa":
         return "sortie_aa"
     if highlights is not None and highlights.bomber_kills >= BOMBER_KILLS_MIN:

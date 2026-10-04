@@ -138,7 +138,9 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     loss_cause: LossCause = "none" if not lost else ("attacker" if attacker_cause else "self")
     structural = loss is not None and lost and structural_failure(sortie, loss, attacker_cause, rules)
 
-    taxi, strafed = ground_loss(sortie, lost=lost, loss_cause=loss_cause, cutoff_tick=cutoff)
+    taxi, strafed = ground_loss(
+        sortie, lost=lost, loss_cause=loss_cause, cutoff_tick=cutoff, killed_by_attacker=shot_down_directly
+    )
 
     dead = died is not None or disc_death
     status_pos: Pos | None = None

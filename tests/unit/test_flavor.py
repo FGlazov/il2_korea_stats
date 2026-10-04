@@ -77,6 +77,9 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({"friendly_kills": 1, "kills_air": 5}, "sortie_friendly_fire"),
         ({"is_captured": True, "pilot_fate": "bailed_out"}, "sortie_captured"),
         ({"outcome": "ditched"}, "sortie_ditched"),
+        ({"outcome": "shot_down", "strafed_on_ground": True, "takeoffs": 0}, "sortie_strafed"),
+        ({"outcome": "shot_down", "strafed_on_ground": True, "takeoffs": 1, "landings": 1}, "sortie_strafed_landed"),
+        ({"outcome": "shot_down", "takeoffs": 1, "landings": 1}, None),  # landed but not strafed
         ({"outcome": "shot_down", "loss_class": "aaa"}, "sortie_aa"),
         ({"outcome": "shot_down", "loss_class": "player"}, None),
         ({"kills_air": 3}, "sortie_ace"),
@@ -163,6 +166,8 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
         ({"is_captured": True, "outcome": "shot_down", "loss_class": "ai_gunner"}, HUNTER, "sortie_captured"),
         ({"outcome": "shot_down", "loss_class": "ai_gunner"}, HUNTER, "sortie_ai_gunner"),
         ({"outcome": "ditched"}, HUNTER, "sortie_ditched"),
+        ({"strafed_on_ground": True, "loss_class": "aaa"}, HUNTER, "sortie_strafed"),
+        ({"strafed_on_ground": True, "landings": 1, "loss_class": "aaa"}, HUNTER, "sortie_strafed_landed"),
         ({"outcome": "shot_down", "loss_class": "aaa"}, HUNTER, "sortie_aa"),
         ({}, HUNTER, "sortie_bomber_hunter"),
         ({}, QUICK, "sortie_ace"),
