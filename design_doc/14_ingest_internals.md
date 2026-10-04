@@ -230,7 +230,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   **Explosion lines** (measured 2026-10-04): **99.96% of explosion hits have a player-owned attacker** (bombs and rockets never act as attacker, doc 12;
   the owner is the carrier), so a replay **drop-filter** (skip explosion lines of AI attackers early) saves almost nothing and was **not adopted**.
   **Burst coalescing** (merging consecutive same-tick explosion lines of one attacker into one parser event; estimated 25-30% less parse + replay)
-  is **in progress, not built**; the roadmap tracks it.
+  is **built** (round 3, "Explosion bursts" above).
   **Non-std tokenizer libraries** (measured 2026-10-04 against the parser after bursts; 12 sample missions, 1.0M lines, 327K non-burst; best of 3-5, noisy
   machine; maintainer rule: allowed if it gives more than 10% on tokenizing). **Nothing adopted.** The per-AType regex step (head match + `fullmatch`
   + `groups()`) is only about **10% of parse** (0.125 s of 1.3 s); event construction is about 45%, burst detection about 22%. Engines on that step:
