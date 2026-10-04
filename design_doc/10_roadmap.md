@@ -186,7 +186,8 @@ decisions are made):
 - ✅ **Assists received as a killboard detail (OQ-81) and a page with all of a player's streaks, linked from their sortie page (OQ-82)** (maintainer, 2026-10-04).
 - ✅ **More fitting icons** for the gaps in doc 15, other icon sets allowed (OQ-95).
 - ✅ **Interception counts transports; strafing needs significant damage by another object after landing (a failed landing of a damaged plane = crashed)** (OQ-102, OQ-112, maintainer 2026-10-04).
-- ✅ **Pagination** (OQ-96): 10 missions, 20 rows per page. ✅ SVG icon sprite (one cached `/sprite.svg`; real-log mission page 87 → 55 KB).
+- ✅ **Pagination** (OQ-96): 10 missions, 20 rows per page. Exception (maintainer, 2026-10-04): the sortie page's timeline is not paginated (a detail page; a higher
+  time and query budget is fine). 🔧 ✅ SVG icon sprite (one cached `/sprite.svg`; real-log mission page 87 → 55 KB).
 - ✅ **Home page** tour-aware with six boards (3×2, incl. play time) (OQ-79, OQ-104); Elo "encounters".
 - ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
@@ -197,6 +198,13 @@ decisions are made):
 - ✅ **More branding for server admins** (maintainer, 2026-10-04; incl. `.woff2` font upload): extra links in the top navigation row (up to 30) after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
+
+- 🔧 **Achievements v2** (maintainer review of doc 17, 2026-10-04, OQ-105): per-tour achievements (reset at tour start, "All time"
+  shows all), new achievements (Elo and ground-score milestones, ram, first blood, double/triple/quad kills, aircraft types, landing
+  streak, Ace in a Day, hall-of-shame medals), rarity percentage on hover, rarer medals stand out, a recently-earned feed on the home
+  page, ribbons for the simpler achievements.
+- 🔧 **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
+  focus / tap).
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.

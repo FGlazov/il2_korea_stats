@@ -1,8 +1,7 @@
 # 17 — Achievements / medals (FR-WEB-26)
 
 Built 2026-10-04 on the maintainer's request ("beyond quips": tiered achievements such as 5/10/20/50 air kills in one life or
-weeks played in a row, shown prominently on the profile). Everything here is `[PROPOSED]`: names, thresholds and the display are
-for the maintainer's review. Requirement: [02](02_functional_requirements.md) FR-WEB-26. Rules code: `core/achievements.py`
+weeks played in a row, shown prominently on the profile). Reviewed by the maintainer on 2026-10-04 (OQ-105, section "Maintainer review" below). Requirement: [02](02_functional_requirements.md) FR-WEB-26. Rules code: `core/achievements.py`
 (pure), ingest: `ingest/achievements.py`, words and display rows: `web/medals.py`, pages: `web/views/achievements.py`.
 
 ## How it works
@@ -84,6 +83,28 @@ single-digit thresholds a third of all pilots would hold it.
 - **PRODUCT** One place for everything on the Players side of the site; the overview is linked from the profile's medal section
   (no new main-nav entry; the streak list is not in the nav either).
 - **PRODUCT** "Ironman" is the name of both the streak block and the `survivor` medal on purpose (same rule).
+
+## Maintainer review (2026-10-04, OQ-105)
+
+"I think the achievements as given are good!" The first set, its names and thresholds are `[DECIDED]`. Additions, all to build
+before the release (details `[PROPOSED]` where the maintainer did not specify them):
+
+- **Per tour** `[DECIDED]`: achievements reset when a tour starts; "All time" in the tour dropdown shows the all-time set. Pages follow
+  the site's tour rule (TD-26: no `?tour` = current tour, `?tour=all` = all time). `[PROPOSED]`: `PlayerAchievement.tour` (null = all
+  time), the same definitions run over the tour's sorties (a life, a streak, a run of weeks starts fresh in a tour);
+  `AchievementHolders` per tour too.
+- **New achievements** `[DECIDED]` (rules and thresholds `[PROPOSED]`, from the sample distributions):
+  - **Elo**: an "Ace Hunter"-style achievement for a high Elo (jet and prop), and the same for the ground score.
+  - **Ram**, **First blood** (the first credited air kill of a mission), **double / triple / quad kills** (several air kills
+    within a short window), **types** (different aircraft types flown, which encourages flying more kinds of planes), **landing
+    streak** (landings in a row).
+  - **Ace in a Day**: the maintainer's name for the many-kills achievement.
+  - **Hall of shame medals**: tongue-in-cheek, never demeaning (the hall-of-shame rule), shown with the hall of shame.
+- **Rarity** `[DECIDED]`: show the share of pilots holding a tier, as hover text (and on the overview). `[PROPOSED]` denominator: pilots
+  with at least one sortie in the selected scope.
+- **Rarer medals stand out more** `[DECIDED]`, especially in the feed.
+- **A global feed** of recently earned achievements on the home page `[DECIDED]`.
+- **Ribbons** for the simpler achievements `[DECIDED]` (a ribbon bar, like service ribbons); medals stay for the hard ones.
 
 ## Ideas and alternatives
 
