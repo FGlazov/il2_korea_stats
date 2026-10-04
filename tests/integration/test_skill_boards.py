@@ -104,7 +104,11 @@ def test_player_tour_and_pool_rows_carry_them_and_rebuild_equals_incremental() -
     seed()
     fields = ("air_superiority_sorties", "flight_time_air_s", "kills_intercept", "kills_tank_attack")
     before = [list(m.objects.order_by("pk").values(*fields)) for m in (Player, PlayerTour, PlayerPool)]
-    assert before[1][0]["kills_intercept"] + before[1][1]["kills_intercept"] > 0
+    # not "the first two rows": which player's tour row comes first by pk depends on the ids (Postgres sequences go on
+    # across tests), so look at all of them
+    assert sum(r["kills_intercept"] for r in before[1]) > 0
+    assert sum(r["kills_tank_attack"] for r in before[1]) > 0
+    assert sum(r["kills_intercept"] for r in before[2]) > 0
 
     rebuild_aggregates()
 
