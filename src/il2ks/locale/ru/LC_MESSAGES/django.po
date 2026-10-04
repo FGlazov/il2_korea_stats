@@ -388,8 +388,8 @@ msgid "A low pass by the other side, uninvited. The ramp is not a place for opin
 msgstr "sgstr \"Гости на бреющем без приглашения, и принимающая сторона к такому не готова."
 
 # llm-draft
-msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."
-msgstr "sgstr \"Влюблённый в родной аэродром пилот: расставаться с ним не хочет ни сердцем, ни винтом."
+msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or from its landing gear."
+msgstr "Пилот с душой домоседа: от родного аэродрома его не оторвать ни сердцем, ни шасси."
 
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
@@ -657,6 +657,10 @@ msgstr "Состояние самолёта"
 # llm-draft
 msgid "Aircraft that shot down this pilot most"
 msgstr "Самолёты, которые чаще всего сбивали этого пилота"
+
+# llm-draft
+msgid "Aircraft, meet meadow. Meadow, aircraft. It was short, but the introductions were firm."
+msgstr "Луг, это самолёт. Самолёт, это луг. Знакомство вышло недолгим, зато запоминающимся."
 
 # llm-draft
 msgid "All"
@@ -927,8 +931,8 @@ msgid "Barely off the runway and already on the scoreboard. That is a fast start
 msgstr "От полосы едва оторвался, а победа уже в таблице. Вот это старт."
 
 # llm-draft
-msgid "Before the Yalu, before the Sabres, there was the apron. It won this round."
-msgstr "sgstr \"До Ялуцзяна и «Сейбров» дело не дошло: бой закончился на рулёжке."
+msgid "Before the Yalu, before the enemy, there was the apron. It won this round."
+msgstr "До Ялуцзяна и до врага дело не дошло: бой закончился на рулёжке."
 
 # llm-draft
 msgid "Best by"
@@ -2116,8 +2120,8 @@ msgid "In the air"
 msgstr "В воздухе"
 
 # llm-draft
-msgid "In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."
-msgstr "sgstr \"В горячке боя все «Сейбры» на одно лицо, пока в наушниках не раздастся знакомый голос."
+msgid "In the heat of the moment every enemy looks the same, until it turns out to be a squadron-mate."
+msgstr "В горячке боя все противники на одно лицо, пока в наушниках не раздастся знакомый голос."
 
 # llm-draft
 msgid "In the lobby"
@@ -2560,10 +2564,6 @@ msgstr "Дырок больше, чем самолёта, а на земле. Ш
 # llm-draft
 msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "Самая опасная часть миссии: первые сто метров."
-
-# llm-draft
-msgid "Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."
-msgstr "sgstr \"Мустангам положено скакать по степи. «Мустанг» просто не стал дожидаться полосы."
 
 msgid "My own only"
 msgstr ""

@@ -379,8 +379,8 @@ msgid "A low pass by the other side, uninvited. The ramp is not a place for opin
 msgstr "sgstr \"Ungeladene Gäste im Tiefflug. Auf dem Vorfeld ist man auf Besuch nicht vorbereitet."
 
 # llm-draft
-msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."
-msgstr "sgstr \"Heimatverbunden bis zur Propellerspitze: Dieser Pilot kann sich vom Flugplatz einfach nicht lösen."
+msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or from its landing gear."
+msgstr "Heimatverbunden bis ins Fahrwerk: Dieser Pilot kann sich vom Flugplatz einfach nicht lösen."
 
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
@@ -650,6 +650,10 @@ msgid "Aircraft that shot down this pilot most"
 msgstr "Flugzeuge, die diesen Piloten am häufigsten abgeschossen haben"
 
 # llm-draft
+msgid "Aircraft, meet meadow. Meadow, aircraft. It was short, but the introductions were firm."
+msgstr "Flugzeug, das ist die Wiese. Wiese, das ist das Flugzeug. Kurzes Kennenlernen, aber ein fester Händedruck."
+
+# llm-draft
 msgid "All"
 msgstr "Alle"
 
@@ -916,8 +920,8 @@ msgid "Barely off the runway and already on the scoreboard. That is a fast start
 msgstr "Kaum von der Piste und schon auf der Anzeigetafel. Das war ein Blitzstart."
 
 # llm-draft
-msgid "Before the Yalu, before the Sabres, there was the apron. It won this round."
-msgstr "sgstr \"Der Yalu, die Sabres, das alles kam gar nicht mehr dran: Der Kampf endete auf dem Rollweg."
+msgid "Before the Yalu, before the enemy, there was the apron. It won this round."
+msgstr "Der Yalu, der Feind, das alles kam gar nicht mehr dran: Der Kampf endete auf dem Rollweg."
 
 # llm-draft
 msgid "Best by"
@@ -2099,8 +2103,8 @@ msgid "In the air"
 msgstr "In der Luft"
 
 # llm-draft
-msgid "In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."
-msgstr "sgstr \"Im Kampfgetümmel sehen alle Sabres gleich aus, bis im Funk eine vertraute Stimme flucht."
+msgid "In the heat of the moment every enemy looks the same, until it turns out to be a squadron-mate."
+msgstr "Im Kampfgetümmel sehen alle Gegner gleich aus, bis im Funk eine vertraute Stimme flucht."
 
 # llm-draft
 msgid "In the lobby"
@@ -2547,10 +2551,6 @@ msgstr "Mehr Loch als Flugzeug, und trotzdem wieder unten. Hut ab."
 # llm-draft
 msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "Der gefährlichste Teil der Mission: die ersten hundert Meter."
-
-# llm-draft
-msgid "Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."
-msgstr "sgstr \"Ein Mustang gehört auf die Weide, dachte sich der Pilot. Zum Glück ist Gras weich."
 
 msgid "My own only"
 msgstr ""
