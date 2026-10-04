@@ -639,7 +639,8 @@ def _damage_json(d: DamageExchange, pks: dict[int, int]) -> dict[str, object]:
 def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict[str, object]:
     """One `PlayerSortie.timeline` entry. The hit rows (`hit_given` / `hit_taken`, doc 14) add `damage` (summed
     DMG fraction, 4 digits), `lines` and, when a hit lay near, `ammo` (log name, or ordnance key with `ammo_kind`
-    "ordnance"); other rows and rows from before the hit rows have none of these keys."""
+    "ordnance"), and `target_role` "crew" when the damaged object was a pilot / crew bot; other rows and rows from
+    before the hit rows have none of these keys."""
     entry: dict[str, object] = {
         "tick": t.tick,
         "at": clock.at(t.tick).isoformat(),
@@ -655,6 +656,8 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
             entry["ammo"] = t.ammo
             if t.ammo_kind != "gun":
                 entry["ammo_kind"] = t.ammo_kind
+        if t.target_role:
+            entry["target_role"] = t.target_role
     return entry
 
 

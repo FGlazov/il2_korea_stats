@@ -277,7 +277,7 @@ Was the aircraft lost (is_plane_lost)?
 The significant damage a sortie gave and took, as timeline rows (maintainer: a damage % column, significant hits as rows, ammo matched to the nearest
 hit). Input: every damage line (AType 2) that touched a player sortie, each already labelled with the ammo of the **closest hit** (the ammo
 attribution rule, `ammo_window_s` 1 s).
-- **Burst**: the lines of one direction (given or taken) and one counterpart form a burst while each is within `hit_burst_gap_s` (3 s) of the one
+- **Burst**: the lines of one direction (given or taken), one counterpart sortie and **one damaged object** form a burst while each is within `hit_burst_gap_s` (3 s) of the one
   before, and a burst lasts at most `hit_burst_max_s` (15 s). A burst becomes one row at its first line's time.
 - **Significant** = the burst's summed damage is at least `hit_min_damage` (0.002 of an object, **0.2%**; the maintainer suggested "e.g. over
   0.1%"). Static scenery (class `static`: fences, tents, stacks) as a target never gives a row: strafing an airfield makes thousands of tiny lines
@@ -287,6 +287,9 @@ attribution rule, `ammo_window_s` 1 s).
   (bombs, rockets) or other named ammo (flares).
 - Row fields: `damage` (summed DMG fraction), `lines`, `ammo`, `ammo_kind` (doc 14). The page shows a signed damage % column (+ given, − taken).
   Applies on `il2ks reprocess` (older sorties have no hit rows).
+- **Aircraft and crew are separate rows** (2026-10-04, fixing "+200%" rows where the damage to an aircraft and to its pilot were summed):
+  every bot (pilot, gunners, AI pilots) counts as crew and its row reads "Pilot / crew"; a row's damage is capped at 100% when built,
+  and the page caps old stored rows too. Existing databases need `il2ks reprocess --all` for the new rows. Defaults applied, OQ-115.
 - "Took off", takeoffs and flight time all stop at the aircraft's loss, so they can't disagree.
 - `takeoff` time of an air start = the spawn time (`takeoffs` counts real AType 5 only). `flight_time_s` = sum of airborne intervals. Both stop at
   the aircraft's loss: logs write a "landing" for a falling wreck.

@@ -20,6 +20,10 @@ Defaults applied: `/aircraft/` and `/aircraft/<pk>/` default to the **current to
 existing links to an aircraft page show; a tour with no flights shows "No aircraft has flown in this tour yet."; a type not flown in
 the selected tour shows zero tiles, not a 404; top pilots, hits to destroy, loadouts and the side badge stay all time (noted on the page).
 
+**OQ-115 Timeline hits: aircraft and crew** (fix of the "+200%" rows, 2026-10-04)
+Defaults applied: the aircraft and its pilot/crew are separate hit rows; every bot (pilot, gunners, AI pilots) counts as crew, labelled
+"Pilot / crew"; damage capped at 100% per row (doc 13 "Timeline hits").
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

@@ -669,7 +669,7 @@ def hit_damage(kind: str, entry: Json) -> str:
     fraction = display.to_float(entry.get("damage"))
     if kind not in ("hit_given", "hit_taken") or fraction is None:
         return ""
-    return ("+" if kind == "hit_given" else "\N{MINUS SIGN}") + damage_percent(fraction)
+    return ("+" if kind == "hit_given" else "\N{MINUS SIGN}") + damage_percent(min(fraction, 1.0))
 
 
 def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> TimelineRow:
@@ -692,7 +692,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         since(sortie.spawned_at, at),
         at,
         _pos(entry.get("pos")),
-        timeline_text(sortie, kind, detail),
+        _("Pilot / crew") if _str(entry.get("target_role")) == "crew" else timeline_text(sortie, kind, detail),
         who,
         damage=hit_damage(kind, entry),
         ammo=ammo,

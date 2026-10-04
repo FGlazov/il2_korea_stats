@@ -2,8 +2,9 @@
 
 `ammo.analyse` hands over every damage line (AType 2) that touched a player sortie as a `DamageEvent`, already labelled
 with the ammo of the closest hit (the rule behind the ammo breakdown, `ammo._Analysis.closest`). Here the lines of one
-burst (same direction, same counterpart, each line within `ReplayRules.hit_burst_gap_s` of the one before, a burst at
-most `hit_burst_max_s` long) become one row; rows whose summed damage is under `ReplayRules.hit_min_damage` are dropped;
+burst (same direction, same counterpart, same damaged object, so an aircraft and its pilot are two rows; each
+line within `ReplayRules.hit_burst_gap_s` of the one before, a burst at most `hit_burst_max_s` long) become one row;
+rows whose summed damage is under `ReplayRules.hit_min_damage` are dropped;
 at most `TIMELINE_MAX_HITS` rows are kept (the heaviest). Each row is a `TimelineEntry` of kind `hit_given`
 or `hit_taken` with the damage fraction, the number of lines and the ammo.
 
@@ -26,6 +27,9 @@ type Label = tuple[AmmoKind, str]
 
 HIT_GIVEN = "hit_given"
 HIT_TAKEN = "hit_taken"
+CREW = "crew"
+MAX_ROW_DAMAGE = 1.0
+"""A row never shows more than 100%: the log's fractions for one object can sum slightly over 1 (1.0001)."""
 TIMELINE_MAX_HITS = 150
 """Rows per sortie (the heaviest are kept). Measured on 14 missions (1,182 sorties): the busiest sortie had 77 rows."""
 
@@ -40,6 +44,8 @@ class DamageEvent:
     counterpart: Counterpart
     amount: float  # the DMG fraction of the line
     label: Label | None  # None: no hit within the ammo window
+    target: int = 0  # identity of the damaged object (our aircraft or crew bot when taken; theirs when dealt)
+    crew: bool = False  # the damaged object is a pilot or crew bot, not an aircraft or vehicle
 
 
 @dataclass(slots=True)
@@ -67,10 +73,11 @@ class Burst:
             self.first.tick,
             HIT_GIVEN if self.first.dealt else HIT_TAKEN,
             counterpart=self.first.counterpart,
-            damage=self.total,
+            damage=min(self.total, MAX_ROW_DAMAGE),
             lines=self.lines,
             ammo=label[1] if label else "",
             ammo_kind=label[0] if label else "",
+            target_role=CREW if self.first.crew else "",
         )
 
 
@@ -78,10 +85,10 @@ def bursts(events: Iterable[DamageEvent], rules: ReplayRules) -> list[Burst]:
     """Group the lines (in tick order) into bursts, in order of their first line."""
     gap = round(rules.hit_burst_gap_s * TICKS_PER_SECOND)
     span = round(rules.hit_burst_max_s * TICKS_PER_SECOND)
-    open_: dict[tuple[bool, int], Burst] = {}
+    open_: dict[tuple[bool, int, int], Burst] = {}
     done: list[Burst] = []
     for event in sorted(events, key=lambda e: e.tick):
-        key = (event.dealt, event.party)
+        key = (event.dealt, event.party, event.target)
         burst = open_.get(key)
         if burst is not None and (event.tick - burst.last_tick > gap or event.tick - burst.first.tick > span):
             burst = None

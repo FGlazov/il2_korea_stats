@@ -2739,6 +2739,9 @@ msgstr "Periodo"
 msgid "Pilot"
 msgstr "Piloto"
 
+msgid "Pilot / crew"
+msgstr "Piloto / tripulación"
+
 # llm-draft
 msgid "Pilot fate"
 msgstr "Suerte del piloto"

@@ -2744,6 +2744,9 @@ msgstr "Zeitraum"
 msgid "Pilot"
 msgstr "Pilot"
 
+msgid "Pilot / crew"
+msgstr "Pilot / Besatzung"
+
 # llm-draft
 msgid "Pilot fate"
 msgstr "Schicksal des Piloten"

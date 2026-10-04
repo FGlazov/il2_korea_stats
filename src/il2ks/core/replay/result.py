@@ -140,6 +140,9 @@ class TimelineEntry:
     lines: int = 0
     ammo: str = ""
     ammo_kind: str = ""
+    target_role: str = (
+        ""  # hit rows: "crew" when the damaged object was a pilot / crew bot (else the aircraft or vehicle)
+    )
 
 
 @dataclass(frozen=True, slots=True)

@@ -119,3 +119,9 @@ def test_hit_ammo_is_the_plain_name_with_the_designation_for_a_tooltip() -> None
     assert name == ".50 BMG API"
     assert designation
     assert hit_ammo({"ammo": "M64", "ammo_kind": "ordnance"})[0].startswith("M64")
+
+
+def test_a_row_stored_with_more_than_100_percent_is_shown_capped() -> None:
+    """Rows stored before the cap (a pilot and its aircraft summed: 2.0001) never show over 100%."""
+    assert hit_damage("hit_given", {"damage": 2.0001}) == "+100.0%"
+    assert hit_damage("hit_taken", {"damage": 1.0001}) == "\N{MINUS SIGN}100.0%"
