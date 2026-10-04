@@ -12,103 +12,115 @@ f-51d,5,M26FLR-2,2 x M26 Chute Flare bombs
 f-51d,6,NAP_110GAL-2,2 x 110 gal napalm tanks
 f-51d,7,F51_75GAL-2,2 x 75 gal drop tanks
 f-51d,8,F51_110GAL-2,2 x 110 gal drop tanks
-f-51d,9,HVAR-6,6 x HVAR 5" rockets
-f-51d,10,HVAR-10,10 x HVAR 5" rockets
-f-51d,11,M64-2 + HVAR-4,2 x M64 500 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-51d,12,M64-2 + HVAR-6,2 x M64 500 lb General Purpose bombs + 6 x HVAR 5" rockets
-f-51d,13,M65-2 + HVAR-4,2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-51d,14,M65-2 + HVAR-6,2 x M65 1000 lb General Purpose bombs + 6 x HVAR 5" rockets
-f-51d,15,M26CLUS-2 + HVAR-4,2 x M26 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-51d,16,M26CLUS-2 + HVAR-6,2 x M26 500 lb Cluster bombs + 6 x HVAR 5" rockets
-f-51d,17,M29CLUS-2 + HVAR-4,2 x M29 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-51d,18,M29CLUS-2 + HVAR-6,2 x M29 500 lb Cluster bombs + 6 x HVAR 5" rockets
-f-51d,19,M26FLR-2 + HVAR-4,2 x M26 Chute Flare bombs + 4 x HVAR 5" rockets
-f-51d,20,M26FLR-2 + HVAR-6,2 x M26 Chute Flare bombs + 6 x HVAR 5" rockets
-f-51d,21,NAP_110GAL-2 + HVAR-4,2 x 110 gal napalm tanks + 4 x HVAR 5" rockets
-f-51d,22,NAP_110GAL-2 + HVAR-6,2 x 110 gal napalm tanks + 6 x HVAR 5" rockets
-f-51d,23,F51_75GAL-2 + HVAR-4,2 x 75 gal drop tanks + 4 x HVAR 5" rockets
-f-51d,24,F51_75GAL-2 + HVAR-6,2 x 75 gal drop tanks + 6 x HVAR 5" rockets
-f-51d,25,F51_110GAL-2 + HVAR-4,2 x 110 gal drop tanks + 4 x HVAR 5" rockets
-f-51d,26,F51_110GAL-2 + HVAR-6,2 x 110 gal drop tanks + 6 x HVAR 5" rockets
-f-51d,27,HVAR_SAP-6,6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,28,HVAR_SAP-10,10 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,29,M64-2 + HVAR_SAP-4,2 x M64 500 lb General Purpose bombs + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,30,M64-2 + HVAR_SAP-6,2 x M64 500 lb General Purpose bombs + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,31,M65-2 + HVAR_SAP-4,2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,32,M65-2 + HVAR_SAP-6,2 x M65 1000 lb General Purpose bombs + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,33,M26CLUS-2 + HVAR_SAP-4,2 x M26 500 lb Cluster bombs + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,34,M26CLUS-2 + HVAR_SAP-6,2 x M26 500 lb Cluster bombs + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,35,M29CLUS-2 + HVAR_SAP-4,2 x M29 500 lb Cluster bombs + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,36,M29CLUS-2 + HVAR_SAP-6,2 x M29 500 lb Cluster bombs + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,37,M26FLR-2 + HVAR_SAP-4,2 x M26 Chute Flare bombs + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,38,M26FLR-2 + HVAR_SAP-6,2 x M26 Chute Flare bombs + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,39,NAP_110GAL-2 + HVAR_SAP-4,2 x 110 gal napalm tanks + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,40,NAP_110GAL-2 + HVAR_SAP-6,2 x 110 gal napalm tanks + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,41,F51_75GAL-2 + HVAR_SAP-4,2 x 75 gal drop tanks + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,42,F51_75GAL-2 + HVAR_SAP-6,2 x 75 gal drop tanks + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,43,F51_110GAL-2 + HVAR_SAP-4,2 x 110 gal drop tanks + 4 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,44,F51_110GAL-2 + HVAR_SAP-6,2 x 110 gal drop tanks + 6 x HVAR 5" Semi-Armor Piercing rockets
-f-51d,45,ATAR-6,6 x ATAR 6.5" rockets
-f-51d,46,ATAR-10,10 x ATAR 6.5" rockets
-f-51d,47,M64-2 + ATAR-4,2 x M64 500 lb General Purpose bombs + 4 x ATAR 6.5" rockets
-f-51d,48,M64-2 + ATAR-6,2 x M64 500 lb General Purpose bombs + 6 x ATAR 6.5" rockets
-f-51d,49,M65-2 + ATAR-4,2 x M65 1000 lb General Purpose bombs + 4 x ATAR 6.5" rockets
-f-51d,50,M65-2 + ATAR-6,2 x M65 1000 lb General Purpose bombs + 6 x ATAR 6.5" rockets
-f-51d,51,M26CLUS-2 + ATAR-4,2 x M26 500 lb Cluster bombs + 4 x ATAR 6.5" rockets
-f-51d,52,M26CLUS-2 + ATAR-6,2 x M26 500 lb Cluster bombs + 6 x ATAR 6.5" rockets
-f-51d,53,M29CLUS-2 + ATAR-4,2 x M29 500 lb Cluster bombs + 4 x ATAR 6.5" rockets
-f-51d,54,M29CLUS-2 + ATAR-6,2 x M29 500 lb Cluster bombs + 6 x ATAR 6.5" rockets
-f-51d,55,M26FLR-2 + ATAR-4,2 x M26 Chute Flare bombs + 4 x ATAR 6.5" rockets
-f-51d,56,M26FLR-2 + ATAR-6,2 x M26 Chute Flare bombs + 6 x ATAR 6.5" rockets
-f-51d,57,NAP_110GAL-2 + ATAR-4,2 x 110 gal napalm tanks + 4 x ATAR 6.5" rockets
-f-51d,58,NAP_110GAL-2 + ATAR-6,2 x 110 gal napalm tanks + 6 x ATAR 6.5" rockets
-f-51d,59,F51_75GAL-2 + ATAR-4,2 x 75 gal drop tanks + 4 x ATAR 6.5" rockets
-f-51d,60,F51_75GAL-2 + ATAR-6,2 x 75 gal drop tanks + 6 x ATAR 6.5" rockets
-f-51d,61,F51_110GAL-2 + ATAR-4,2 x 110 gal drop tanks + 4 x ATAR 6.5" rockets
-f-51d,62,F51_110GAL-2 + ATAR-6,2 x 110 gal drop tanks + 6 x ATAR 6.5" rockets
+f-51d,9,HVAR-6,"6 x HVAR 5"" rockets"
+f-51d,10,HVAR-10,"10 x HVAR 5"" rockets"
+f-51d,11,M64-2 + HVAR-4,"2 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-51d,12,M64-2 + HVAR-6,"2 x M64 500 lb General Purpose bombs + 6 x HVAR 5"" rockets"
+f-51d,13,M65-2 + HVAR-4,"2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-51d,14,M65-2 + HVAR-6,"2 x M65 1000 lb General Purpose bombs + 6 x HVAR 5"" rockets"
+f-51d,15,M26CLUS-2 + HVAR-4,"2 x M26 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-51d,16,M26CLUS-2 + HVAR-6,"2 x M26 500 lb Cluster bombs + 6 x HVAR 5"" rockets"
+f-51d,17,M29CLUS-2 + HVAR-4,"2 x M29 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-51d,18,M29CLUS-2 + HVAR-6,"2 x M29 500 lb Cluster bombs + 6 x HVAR 5"" rockets"
+f-51d,19,M26FLR-2 + HVAR-4,"2 x M26 Chute Flare bombs + 4 x HVAR 5"" rockets"
+f-51d,20,M26FLR-2 + HVAR-6,"2 x M26 Chute Flare bombs + 6 x HVAR 5"" rockets"
+f-51d,21,NAP_110GAL-2 + HVAR-4,"2 x 110 gal napalm tanks + 4 x HVAR 5"" rockets"
+f-51d,22,NAP_110GAL-2 + HVAR-6,"2 x 110 gal napalm tanks + 6 x HVAR 5"" rockets"
+f-51d,23,F51_75GAL-2 + HVAR-4,"2 x 75 gal drop tanks + 4 x HVAR 5"" rockets"
+f-51d,24,F51_75GAL-2 + HVAR-6,"2 x 75 gal drop tanks + 6 x HVAR 5"" rockets"
+f-51d,25,F51_110GAL-2 + HVAR-4,"2 x 110 gal drop tanks + 4 x HVAR 5"" rockets"
+f-51d,26,F51_110GAL-2 + HVAR-6,"2 x 110 gal drop tanks + 6 x HVAR 5"" rockets"
+f-51d,27,HVAR_SAP-6,"6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,28,HVAR_SAP-10,"10 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,29,M64-2 + HVAR_SAP-4,"2 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,30,M64-2 + HVAR_SAP-6,"2 x M64 500 lb General Purpose bombs + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,31,M65-2 + HVAR_SAP-4,"2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,32,M65-2 + HVAR_SAP-6,"2 x M65 1000 lb General Purpose bombs + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,33,M26CLUS-2 + HVAR_SAP-4,"2 x M26 500 lb Cluster bombs + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,34,M26CLUS-2 + HVAR_SAP-6,"2 x M26 500 lb Cluster bombs + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,35,M29CLUS-2 + HVAR_SAP-4,"2 x M29 500 lb Cluster bombs + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,36,M29CLUS-2 + HVAR_SAP-6,"2 x M29 500 lb Cluster bombs + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,37,M26FLR-2 + HVAR_SAP-4,"2 x M26 Chute Flare bombs + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,38,M26FLR-2 + HVAR_SAP-6,"2 x M26 Chute Flare bombs + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,39,NAP_110GAL-2 + HVAR_SAP-4,"2 x 110 gal napalm tanks + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,40,NAP_110GAL-2 + HVAR_SAP-6,"2 x 110 gal napalm tanks + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,41,F51_75GAL-2 + HVAR_SAP-4,"2 x 75 gal drop tanks + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,42,F51_75GAL-2 + HVAR_SAP-6,"2 x 75 gal drop tanks + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,43,F51_110GAL-2 + HVAR_SAP-4,"2 x 110 gal drop tanks + 4 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,44,F51_110GAL-2 + HVAR_SAP-6,"2 x 110 gal drop tanks + 6 x HVAR 5"" Semi-Armor Piercing rockets"
+f-51d,45,ATAR-6,"6 x ATAR 6.5"" rockets"
+f-51d,46,ATAR-10,"10 x ATAR 6.5"" rockets"
+f-51d,47,M64-2 + ATAR-4,"2 x M64 500 lb General Purpose bombs + 4 x ATAR 6.5"" rockets"
+f-51d,48,M64-2 + ATAR-6,"2 x M64 500 lb General Purpose bombs + 6 x ATAR 6.5"" rockets"
+f-51d,49,M65-2 + ATAR-4,"2 x M65 1000 lb General Purpose bombs + 4 x ATAR 6.5"" rockets"
+f-51d,50,M65-2 + ATAR-6,"2 x M65 1000 lb General Purpose bombs + 6 x ATAR 6.5"" rockets"
+f-51d,51,M26CLUS-2 + ATAR-4,"2 x M26 500 lb Cluster bombs + 4 x ATAR 6.5"" rockets"
+f-51d,52,M26CLUS-2 + ATAR-6,"2 x M26 500 lb Cluster bombs + 6 x ATAR 6.5"" rockets"
+f-51d,53,M29CLUS-2 + ATAR-4,"2 x M29 500 lb Cluster bombs + 4 x ATAR 6.5"" rockets"
+f-51d,54,M29CLUS-2 + ATAR-6,"2 x M29 500 lb Cluster bombs + 6 x ATAR 6.5"" rockets"
+f-51d,55,M26FLR-2 + ATAR-4,"2 x M26 Chute Flare bombs + 4 x ATAR 6.5"" rockets"
+f-51d,56,M26FLR-2 + ATAR-6,"2 x M26 Chute Flare bombs + 6 x ATAR 6.5"" rockets"
+f-51d,57,NAP_110GAL-2 + ATAR-4,"2 x 110 gal napalm tanks + 4 x ATAR 6.5"" rockets"
+f-51d,58,NAP_110GAL-2 + ATAR-6,"2 x 110 gal napalm tanks + 6 x ATAR 6.5"" rockets"
+f-51d,59,F51_75GAL-2 + ATAR-4,"2 x 75 gal drop tanks + 4 x ATAR 6.5"" rockets"
+f-51d,60,F51_75GAL-2 + ATAR-6,"2 x 75 gal drop tanks + 6 x ATAR 6.5"" rockets"
+f-51d,61,F51_110GAL-2 + ATAR-4,"2 x 110 gal drop tanks + 4 x ATAR 6.5"" rockets"
+f-51d,62,F51_110GAL-2 + ATAR-6,"2 x 110 gal drop tanks + 6 x ATAR 6.5"" rockets"
 f-51d,63,Empty with pylons,Empty with pylons
+f-51d,64,SmokeGenWhiteOne,White smoke generator
+f-51d,65,SmokeGenWhiteTwo,2 x White smoke generators
+f-51d,66,SmokeGenBlueOne,Blue smoke generator
+f-51d,67,SmokeGenBlueTwo,2 x Blue smoke generators
+f-51d,68,SmokeGenRedOne,Red smoke generator
+f-51d,69,SmokeGenRedTwo,2 x Red smoke generators
+f-51d,70,SmokeGenGreenOne,Green smoke generator
+f-51d,71,SmokeGenGreenTwo,2 x Green smoke generators
+f-51d,72,SmokeGenYellowOne,Yellow smoke generator
+f-51d,73,SmokeGenYellowTwo,2 x Yellow smoke generators
+f-51d,74,SmokeGenBlackOne,Black smoke generator
+f-51d,75,SmokeGenBlackTwo,2 x Black smoke generators
 f-80c-10,0,Empty,Empty
 f-80c-10,1,Empty_with_pylons,Empty with pylons
 f-80c-10,2,165GAL-2,2 x 165 gal drop tanks
-f-80c-10,3,165GAL-2 + HVAR-4,2 x 165 gal drop tanks + 4 x HVAR 5" rockets
-f-80c-10,4,165GAL-2 + HVAR-8,2 x 165 gal drop tanks + 8 x HVAR 5" rockets
+f-80c-10,3,165GAL-2 + HVAR-4,"2 x 165 gal drop tanks + 4 x HVAR 5"" rockets"
+f-80c-10,4,165GAL-2 + HVAR-8,"2 x 165 gal drop tanks + 8 x HVAR 5"" rockets"
 f-80c-10,5,165GAL-2 + M64-2,2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs
-f-80c-10,6,165GAL-2 + M64-2 + HVAR-4,2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-80c-10,7,165GAL-2 + M64-2 + HVAR-8,2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5" rockets
+f-80c-10,6,165GAL-2 + M64-2 + HVAR-4,"2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-80c-10,7,165GAL-2 + M64-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5"" rockets"
 f-80c-10,8,165GAL-2 + M64-2 + M57-4,2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,9,165GAL-2 + M64-2 + M88-4,2 x 165 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,10,165GAL-2 + M65-2,2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs
-f-80c-10,11,165GAL-2 + M65-2 + HVAR-4,2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-80c-10,12,165GAL-2 + M65-2 + HVAR-8,2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 8 x HVAR 5" rockets
+f-80c-10,11,165GAL-2 + M65-2 + HVAR-4,"2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-80c-10,12,165GAL-2 + M65-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 8 x HVAR 5"" rockets"
 f-80c-10,13,165GAL-2 + M65-2 + M57-4,2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,14,165GAL-2 + M65-2 + M88-4,2 x 165 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,15,165GAL-2 + CLUSTC_M29-2,2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs
-f-80c-10,16,165GAL-2 + CLUSTC_M29-2 + HVAR-4,2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,17,165GAL-2 + CLUSTC_M29-2 + HVAR-8,2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,16,165GAL-2 + CLUSTC_M29-2 + HVAR-4,"2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,17,165GAL-2 + CLUSTC_M29-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,18,165GAL-2 + CLUSTC_M26-2,2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs
-f-80c-10,19,165GAL-2 + CLUSTC_M26-2 + HVAR-4,2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,20,165GAL-2 + CLUSTC_M26-2 + HVAR-8,2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,19,165GAL-2 + CLUSTC_M26-2 + HVAR-4,"2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,20,165GAL-2 + CLUSTC_M26-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,21,165GAL-2 + CLUSTC_M29-2 + M57-4,2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,22,165GAL-2 + CLUSTC_M29-2 + M88-4,2 x 165 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,23,165GAL-2 + CLUSTC_M26-2 + M57-4,2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,24,165GAL-2 + CLUSTC_M26-2 + M88-4,2 x 165 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,25,165GAL-2 + NAP_110GAL-2,2 x 165 gal drop tanks + 2 x 110 gal napalm tanks
-f-80c-10,26,165GAL-2 + NAP_110GAL-2 + HVAR-4,2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 4 x HVAR 5" rockets
-f-80c-10,27,165GAL-2 + NAP_110GAL-2 + HVAR-8,2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 8 x HVAR 5" rockets
+f-80c-10,26,165GAL-2 + NAP_110GAL-2 + HVAR-4,"2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 4 x HVAR 5"" rockets"
+f-80c-10,27,165GAL-2 + NAP_110GAL-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 8 x HVAR 5"" rockets"
 f-80c-10,28,165GAL-2 + NAP_110GAL-2 + M57-4,2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 4 x M57 250 lb General Purpose bombs
 f-80c-10,29,165GAL-2 + NAP_110GAL-2 + M88-4,2 x 165 gal drop tanks + 2 x 110 gal napalm tanks + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,30,265GAL-2,2 x 265 gal drop tanks
-f-80c-10,31,265GAL-2 + HVAR-4,2 x 265 gal drop tanks + 4 x HVAR 5" rockets
-f-80c-10,32,265GAL-2 + HVAR-8,2 x 265 gal drop tanks + 8 x HVAR 5" rockets
+f-80c-10,31,265GAL-2 + HVAR-4,"2 x 265 gal drop tanks + 4 x HVAR 5"" rockets"
+f-80c-10,32,265GAL-2 + HVAR-8,"2 x 265 gal drop tanks + 8 x HVAR 5"" rockets"
 f-80c-10,33,265GAL-2 + M64-2,2 x 265 gal drop tanks + 2 x M64 500 lb General Purpose bombs
-f-80c-10,34,265GAL-2 + M64-2 + HVAR-4,2 x 265 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-80c-10,35,265GAL-2 + M64-2 + HVAR-8,2 x 265 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5" rockets
+f-80c-10,34,265GAL-2 + M64-2 + HVAR-4,"2 x 265 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-80c-10,35,265GAL-2 + M64-2 + HVAR-8,"2 x 265 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5"" rockets"
 f-80c-10,36,265GAL-2 + CLUSTC_M29-2,2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs
-f-80c-10,37,265GAL-2 + CLUSTC_M29-2 + HVAR-4,2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,38,265GAL-2 + CLUSTC_M29-2 + HVAR-8,2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,37,265GAL-2 + CLUSTC_M29-2 + HVAR-4,"2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,38,265GAL-2 + CLUSTC_M29-2 + HVAR-8,"2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,39,265GAL-2 + CLUSTC_M26-2,2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs
-f-80c-10,40,265GAL-2 + CLUSTC_M26-2 + HVAR-4,2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,41,265GAL-2 + CLUSTC_M26-2 + HVAR-8,2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,40,265GAL-2 + CLUSTC_M26-2 + HVAR-4,"2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,41,265GAL-2 + CLUSTC_M26-2 + HVAR-8,"2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,42,265GAL-2 + CLUSTC_M29-2 + M57-4,2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,43,265GAL-2 + CLUSTC_M29-2 + M88-4,2 x 265 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,44,265GAL-2 + CLUSTC_M26-2 + M57-4,2 x 265 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
@@ -118,28 +130,40 @@ f-80c-10,47,265GAL-2 + M64-2 + M88-4,2 x 265 gal drop tanks + 2 x M64 500 lb Gen
 f-80c-10,48,265GAL-2 + M65-2,2 x 265 gal drop tanks + 2 x M65 1000 lb General Purpose bombs
 f-80c-10,49,265GAL-2 + NAP_110GAL-2,2 x 265 gal drop tanks + 2 x 110 gal napalm tanks
 f-80c-10,50,M64-4,4 x M64 500 lb General Purpose bombs
-f-80c-10,51,M64-4 + HVAR-4,4 x M64 500 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-80c-10,52,M64-4 + HVAR-8,4 x M64 500 lb General Purpose bombs + 8 x HVAR 5" rockets
+f-80c-10,51,M64-4 + HVAR-4,"4 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-80c-10,52,M64-4 + HVAR-8,"4 x M64 500 lb General Purpose bombs + 8 x HVAR 5"" rockets"
 f-80c-10,53,M64-4 + M57-4,4 x M64 500 lb General Purpose bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,54,M64-4 + M88-4,4 x M64 500 lb General Purpose bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,55,CLUSTC_M29-4,4 x M29 500 lb Cluster bombs
-f-80c-10,56,CLUSTC_M29-4 + HVAR-4,4 x M29 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,57,CLUSTC_M29-4 + HVAR-8,4 x M29 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,56,CLUSTC_M29-4 + HVAR-4,"4 x M29 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,57,CLUSTC_M29-4 + HVAR-8,"4 x M29 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,58,CLUSTC_M29-4 + M57-4,4 x M29 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,59,CLUSTC_M29-4 + M88-4,4 x M29 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,60,CLUSTC_M26-4,4 x M26 500 lb Cluster bombs
-f-80c-10,61,CLUSTC_M26-4 + HVAR-4,4 x M26 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-80c-10,62,CLUSTC_M26-4 + HVAR-8,4 x M26 500 lb Cluster bombs + 8 x HVAR 5" rockets
+f-80c-10,61,CLUSTC_M26-4 + HVAR-4,"4 x M26 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-80c-10,62,CLUSTC_M26-4 + HVAR-8,"4 x M26 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
 f-80c-10,63,CLUSTC_M26-4 + M57-4,4 x M26 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-80c-10,64,CLUSTC_M26-4 + M88-4,4 x M26 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-80c-10,65,M64-2 + M65-2,2 x M64 500 lb General Purpose bombs + 2 x M65 1000 lb General Purpose bombs
 f-80c-10,66,M65-4,4 x M65 1000 lb General Purpose bombs
 f-80c-10,67,NAP_110GAL-4,4 x 110 gal napalm tanks
-f-80c-10,68,NAP_110GAL-4 + HVAR-4,4 x 110 gal napalm tanks + 4 x HVAR 5" rockets
-f-80c-10,69,NAP_110GAL-4 + HVAR-8,4 x 110 gal napalm tanks + 8 x HVAR 5" rockets
+f-80c-10,68,NAP_110GAL-4 + HVAR-4,"4 x 110 gal napalm tanks + 4 x HVAR 5"" rockets"
+f-80c-10,69,NAP_110GAL-4 + HVAR-8,"4 x 110 gal napalm tanks + 8 x HVAR 5"" rockets"
 f-80c-10,70,NAP_110GAL-4 + M57-4,4 x 110 gal napalm tanks + 4 x M57 250 lb General Purpose bombs
 f-80c-10,71,NAP_110GAL-4 + M88-4,4 x 110 gal napalm tanks + 4 x M88 220 lb Fragmentation bombs
-f-80c-10,72,165GAL-2 + M26FLR-2 + HVAR-8,2 x 165 gal drop tanks + 2 x M26 Chute Flare bombs + 8 x HVAR 5" rockets
+f-80c-10,72,165GAL-2 + M26FLR-2 + HVAR-8,"2 x 165 gal drop tanks + 2 x M26 Chute Flare bombs + 8 x HVAR 5"" rockets"
+f-80c-10,73,SmokeGenWhiteOne-1,White smoke generator
+f-80c-10,74,SmokeGenWhiteTwo-2,2 x White smoke generators
+f-80c-10,75,SmokeGenBlueOne-1,Blue smoke generator
+f-80c-10,76,SmokeGenBlueTwo-2,2 x Blue smoke generators
+f-80c-10,77,SmokeGenRedOne-1,Red smoke generator
+f-80c-10,78,SmokeGenRedTwo-2,2 x Red smoke generators
+f-80c-10,79,SmokeGenGreenOne-1,Green smoke generator
+f-80c-10,80,SmokeGenGreenTwo-2,2 x Green smoke generators
+f-80c-10,81,SmokeGenYellow-1,Yellow smoke generator
+f-80c-10,82,SmokeGenYellowTwo-2,2 x Yellow smoke generators
+f-80c-10,83,SmokeGenBlackOne-1,Black smoke generator
+f-80c-10,84,SmokeGenBlackTwo-2,2 x Black smoke generators
 f-84e,0,Empty,Empty
 f-84e,1,F84_230GAL-2,2 x 230 gal drop tanks
 f-84e,2,F84_230GAL-2+PYLONS,2 x 230 gal drop tanks + pylons
@@ -149,45 +173,45 @@ f-84e,5,F84_230GAL-2 + M65-2,2 x 230 gal drop tanks + 2 x M65 1000 lb General Pu
 f-84e,6,F84_230GAL-2 + CLUSTC_M29-2,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs
 f-84e,7,F84_230GAL-2 + CLUSTC_M26-2,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs
 f-84e,8,F84_230GAL-2 + NAP_110GAL-2,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks
-f-84e,9,F84_230GAL-2 + TINYTIM-2,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets
-f-84e,10,F84_230GAL-2 + HVAR-4,2 x 230 gal drop tanks + 4 x HVAR 5" rockets
-f-84e,11,F84_230GAL-4 + HVAR-4,4 x 230 gal drop tanks + 4 x HVAR 5" rockets
-f-84e,12,F84_230GAL-2 + M64-2 + HVAR-4,2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-84e,13,F84_230GAL-2 + M65-2 + HVAR-4,2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5" rockets
-f-84e,14,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-4,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-84e,15,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-4,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5" rockets
-f-84e,16,F84_230GAL-2 + NAP_110GAL-2 + HVAR-4,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 4 x HVAR 5" rockets
-f-84e,17,F84_230GAL-2 + TINYTIM-2 + HVAR-4,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets + 4 x HVAR 5" rockets
-f-84e,18,F84_230GAL-2 + HVAR-8,2 x 230 gal drop tanks + 8 x HVAR 5" rockets
-f-84e,19,F84_230GAL-2 + HVAR-16,2 x 230 gal drop tanks + 16 x HVAR 5" rockets
-f-84e,20,F84_230GAL-2 + M64-2 + HVAR-8,2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5" rockets
-f-84e,21,F84_230GAL-2 + M65-2 + HVAR-8,2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 8 x HVAR 5" rockets
-f-84e,22,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-8,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5" rockets
-f-84e,23,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-8,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5" rockets
-f-84e,24,F84_230GAL-2 + NAP_110GAL-2 + HVAR-8,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 8 x HVAR 5" rockets
-f-84e,25,F84_230GAL-2 + TINYTIM-2 + HVAR-8,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets + 8 x HVAR 5" rockets
-f-84e,26,F84_230GAL-2 + HVAR-12,2 x 230 gal drop tanks + 12 x HVAR 5" rockets
-f-84e,27,F84_230GAL-2 + HVAR-20,2 x 230 gal drop tanks + 20 x HVAR 5" rockets
-f-84e,28,F84_230GAL-2 + M64-2 + HVAR-12,2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 12 x HVAR 5" rockets
-f-84e,29,F84_230GAL-2 + M65-2 + HVAR-12,2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 12 x HVAR 5" rockets
-f-84e,30,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-12,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 12 x HVAR 5" rockets
-f-84e,31,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-12,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 12 x HVAR 5" rockets
-f-84e,32,F84_230GAL-2 + NAP_110GAL-2 + HVAR-12,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 12 x HVAR 5" rockets
-f-84e,33,F84_230GAL-2 + TINYTIM-2 + HVAR-12,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets + 12 x HVAR 5" rockets
-f-84e,34,HVAR-24,24 x HVAR 5" rockets
-f-84e,35,HVAR-16 + M64-2,16 x HVAR 5" rockets + 2 x M64 500 lb General Purpose bombs
-f-84e,36,HVAR-16 + M65-2,16 x HVAR 5" rockets + 2 x M65 1000 lb General Purpose bombs
-f-84e,37,HVAR-16 + CLUSTC_M29-2,16 x HVAR 5" rockets + 2 x M29 500 lb Cluster bombs
-f-84e,38,HVAR-16 + CLUSTC_M26-2,16 x HVAR 5" rockets + 2 x M26 500 lb Cluster bombs
-f-84e,39,HVAR-16 + NAP_110GAL-2,16 x HVAR 5" rockets + 2 x 110 gal napalm tanks
-f-84e,40,HVAR-16 + TINYTIM-2,16 x HVAR 5" rockets + 2 x Tiny Tim 12" rockets
-f-84e,41,HVAR-32,32 x HVAR 5" rockets
-f-84e,42,HVAR-24 + M64-2,24 x HVAR 5" rockets + 2 x M64 500 lb General Purpose bombs
-f-84e,43,HVAR-24 + M65-2,24 x HVAR 5" rockets + 2 x M65 1000 lb General Purpose bombs
-f-84e,44,HVAR-24 + CLUSTC_M29-2,24 x HVAR 5" rockets + 2 x M29 500 lb Cluster bombs
-f-84e,45,HVAR-24 + CLUSTC_M26-2,24 x HVAR 5" rockets + 2 x M26 500 lb Cluster bombs
-f-84e,46,HVAR-24 + NAP_110GAL-2,24 x HVAR 5" rockets + 2 x 110 gal napalm tanks
-f-84e,47,HVAR-24 + TINYTIM-2,24 x HVAR 5" rockets + 2 x Tiny Tim 12" rockets
+f-84e,9,F84_230GAL-2 + TINYTIM-2,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets"
+f-84e,10,F84_230GAL-2 + HVAR-4,"2 x 230 gal drop tanks + 4 x HVAR 5"" rockets"
+f-84e,11,F84_230GAL-4 + HVAR-4,"4 x 230 gal drop tanks + 4 x HVAR 5"" rockets"
+f-84e,12,F84_230GAL-2 + M64-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-84e,13,F84_230GAL-2 + M65-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 4 x HVAR 5"" rockets"
+f-84e,14,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-84e,15,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x HVAR 5"" rockets"
+f-84e,16,F84_230GAL-2 + NAP_110GAL-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 4 x HVAR 5"" rockets"
+f-84e,17,F84_230GAL-2 + TINYTIM-2 + HVAR-4,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets + 4 x HVAR 5"" rockets"
+f-84e,18,F84_230GAL-2 + HVAR-8,"2 x 230 gal drop tanks + 8 x HVAR 5"" rockets"
+f-84e,19,F84_230GAL-2 + HVAR-16,"2 x 230 gal drop tanks + 16 x HVAR 5"" rockets"
+f-84e,20,F84_230GAL-2 + M64-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 8 x HVAR 5"" rockets"
+f-84e,21,F84_230GAL-2 + M65-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 8 x HVAR 5"" rockets"
+f-84e,22,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
+f-84e,23,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 8 x HVAR 5"" rockets"
+f-84e,24,F84_230GAL-2 + NAP_110GAL-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 8 x HVAR 5"" rockets"
+f-84e,25,F84_230GAL-2 + TINYTIM-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets + 8 x HVAR 5"" rockets"
+f-84e,26,F84_230GAL-2 + HVAR-12,"2 x 230 gal drop tanks + 12 x HVAR 5"" rockets"
+f-84e,27,F84_230GAL-2 + HVAR-20,"2 x 230 gal drop tanks + 20 x HVAR 5"" rockets"
+f-84e,28,F84_230GAL-2 + M64-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 12 x HVAR 5"" rockets"
+f-84e,29,F84_230GAL-2 + M65-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x M65 1000 lb General Purpose bombs + 12 x HVAR 5"" rockets"
+f-84e,30,F84_230GAL-2 + CLUSTC_M29-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 12 x HVAR 5"" rockets"
+f-84e,31,F84_230GAL-2 + CLUSTC_M26-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 12 x HVAR 5"" rockets"
+f-84e,32,F84_230GAL-2 + NAP_110GAL-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 12 x HVAR 5"" rockets"
+f-84e,33,F84_230GAL-2 + TINYTIM-2 + HVAR-12,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets + 12 x HVAR 5"" rockets"
+f-84e,34,HVAR-24,"24 x HVAR 5"" rockets"
+f-84e,35,HVAR-16 + M64-2,"16 x HVAR 5"" rockets + 2 x M64 500 lb General Purpose bombs"
+f-84e,36,HVAR-16 + M65-2,"16 x HVAR 5"" rockets + 2 x M65 1000 lb General Purpose bombs"
+f-84e,37,HVAR-16 + CLUSTC_M29-2,"16 x HVAR 5"" rockets + 2 x M29 500 lb Cluster bombs"
+f-84e,38,HVAR-16 + CLUSTC_M26-2,"16 x HVAR 5"" rockets + 2 x M26 500 lb Cluster bombs"
+f-84e,39,HVAR-16 + NAP_110GAL-2,"16 x HVAR 5"" rockets + 2 x 110 gal napalm tanks"
+f-84e,40,HVAR-16 + TINYTIM-2,"16 x HVAR 5"" rockets + 2 x Tiny Tim 12"" rockets"
+f-84e,41,HVAR-32,"32 x HVAR 5"" rockets"
+f-84e,42,HVAR-24 + M64-2,"24 x HVAR 5"" rockets + 2 x M64 500 lb General Purpose bombs"
+f-84e,43,HVAR-24 + M65-2,"24 x HVAR 5"" rockets + 2 x M65 1000 lb General Purpose bombs"
+f-84e,44,HVAR-24 + CLUSTC_M29-2,"24 x HVAR 5"" rockets + 2 x M29 500 lb Cluster bombs"
+f-84e,45,HVAR-24 + CLUSTC_M26-2,"24 x HVAR 5"" rockets + 2 x M26 500 lb Cluster bombs"
+f-84e,46,HVAR-24 + NAP_110GAL-2,"24 x HVAR 5"" rockets + 2 x 110 gal napalm tanks"
+f-84e,47,HVAR-24 + TINYTIM-2,"24 x HVAR 5"" rockets + 2 x Tiny Tim 12"" rockets"
 f-84e,48,F84_230GAL-2 + M57-4,2 x 230 gal drop tanks + 4 x M57 250 lb General Purpose bombs
 f-84e,49,F84_230GAL-4 + M57-4,4 x 230 gal drop tanks + 4 x M57 250 lb General Purpose bombs
 f-84e,50,F84_230GAL-2 + M64-2 + M57-4,2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x M57 250 lb General Purpose bombs
@@ -195,10 +219,10 @@ f-84e,51,F84_230GAL-2 + M65-2 + M57-4,2 x 230 gal drop tanks + 2 x M65 1000 lb G
 f-84e,52,F84_230GAL-2 + CLUSTC_M29-2 + M57-4,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-84e,53,F84_230GAL-2 + CLUSTC_M26-2 + M57-4,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x M57 250 lb General Purpose bombs
 f-84e,54,F84_230GAL-2 + NAP_110GAL-2 + M57-4,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 4 x M57 250 lb General Purpose bombs
-f-84e,55,F84_230GAL-2 + TINYTIM-2 + M57-4,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets + 4 x M57 250 lb General Purpose bombs
-f-84e,56,F84_230GAL-2 + HVAR-8 + M57-4,2 x 230 gal drop tanks + 8 x HVAR 5" rockets + 4 x M57 250 lb General Purpose bombs
-f-84e,57,HVAR-16 + M57-4,16 x HVAR 5" rockets + 4 x M57 250 lb General Purpose bombs
-f-84e,58,HVAR-20 + M57-4,20 x HVAR 5" rockets + 4 x M57 250 lb General Purpose bombs
+f-84e,55,F84_230GAL-2 + TINYTIM-2 + M57-4,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets + 4 x M57 250 lb General Purpose bombs"
+f-84e,56,F84_230GAL-2 + HVAR-8 + M57-4,"2 x 230 gal drop tanks + 8 x HVAR 5"" rockets + 4 x M57 250 lb General Purpose bombs"
+f-84e,57,HVAR-16 + M57-4,"16 x HVAR 5"" rockets + 4 x M57 250 lb General Purpose bombs"
+f-84e,58,HVAR-20 + M57-4,"20 x HVAR 5"" rockets + 4 x M57 250 lb General Purpose bombs"
 f-84e,59,F84_230GAL-2 + M88-4,2 x 230 gal drop tanks + 4 x M88 220 lb Fragmentation bombs
 f-84e,60,F84_230GAL-4 + M88-4,4 x 230 gal drop tanks + 4 x M88 220 lb Fragmentation bombs
 f-84e,61,F84_230GAL-2 + M64-2 + M88-4,2 x 230 gal drop tanks + 2 x M64 500 lb General Purpose bombs + 4 x M88 220 lb Fragmentation bombs
@@ -206,24 +230,48 @@ f-84e,62,F84_230GAL-2 + M65-2 + M88-4,2 x 230 gal drop tanks + 2 x M65 1000 lb G
 f-84e,63,F84_230GAL-2 + CLUSTC_M29-2 + M88-4,2 x 230 gal drop tanks + 2 x M29 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-84e,64,F84_230GAL-2 + CLUSTC_M26-2 + M88-4,2 x 230 gal drop tanks + 2 x M26 500 lb Cluster bombs + 4 x M88 220 lb Fragmentation bombs
 f-84e,65,F84_230GAL-2 + NAP_110GAL-2 + M88-4,2 x 230 gal drop tanks + 2 x 110 gal napalm tanks + 4 x M88 220 lb Fragmentation bombs
-f-84e,66,F84_230GAL-2 + TINYTIM-2 + M88-4,2 x 230 gal drop tanks + 2 x Tiny Tim 12" rockets + 4 x M88 220 lb Fragmentation bombs
-f-84e,67,F84_230GAL-2 + HVAR-8 + M88-4,2 x 230 gal drop tanks + 8 x HVAR 5" rockets + 4 x M88 220 lb Fragmentation bombs
-f-84e,68,HVAR-16 + M88-4,16 x HVAR 5" rockets + 4 x M88 220 lb Fragmentation bombs
-f-84e,69,HVAR-20 + M88-4,20 x HVAR 5" rockets + 4 x M88 220 lb Fragmentation bombs
-f-84e,70,F84_230GAL-2 + M26FLR-2 + HVAR-8,2 x 230 gal drop tanks + 2 x M26 Chute Flare bombs + 8 x HVAR 5" rockets
-f-86a,0,Empty,Empty
-f-86a,1,F86_120GAL-2,2 x 120 gal drop tanks
-f-86a,2,F86_120GAL-2 + HVAR-2,2 x 120 gal drop tanks + 2 x HVAR 5" rockets
-f-86a,3,F86_120GAL-2 + HVAR-4,2 x 120 gal drop tanks + 4 x HVAR 5" rockets
-f-86a,4,F86_245GAL-2,2 x 245 gal drop tanks
-f-86a,5,HVAR-8,8 x HVAR 5" rockets
-f-86a,6,HVAR-16,16 x HVAR 5" rockets
-f-86a,7,M64-2,2 x M64 500 lb General Purpose bombs
-f-86a,8,M26-2,2 x M26 500 lb Cluster bombs
-f-86a,9,M29-2,2 x M29 500 lb Cluster bombs
-f-86a,10,M65-2,2 x M65 1000 lb General Purpose bombs
-f-86a,11,NAP_110GAL-2,2 x 110 gal napalm tanks
-f-86a,12,M26FLR-2,2 x M26 Chute Flare bombs
+f-84e,66,F84_230GAL-2 + TINYTIM-2 + M88-4,"2 x 230 gal drop tanks + 2 x Tiny Tim 12"" rockets + 4 x M88 220 lb Fragmentation bombs"
+f-84e,67,F84_230GAL-2 + HVAR-8 + M88-4,"2 x 230 gal drop tanks + 8 x HVAR 5"" rockets + 4 x M88 220 lb Fragmentation bombs"
+f-84e,68,HVAR-16 + M88-4,"16 x HVAR 5"" rockets + 4 x M88 220 lb Fragmentation bombs"
+f-84e,69,HVAR-20 + M88-4,"20 x HVAR 5"" rockets + 4 x M88 220 lb Fragmentation bombs"
+f-84e,70,F84_230GAL-2 + M26FLR-2 + HVAR-8,"2 x 230 gal drop tanks + 2 x M26 Chute Flare bombs + 8 x HVAR 5"" rockets"
+f-84e,71,SmokeGenWhiteOne-1,White smoke generator
+f-84e,72,SmokeGenWhiteTwo-2,2 x White smoke generators
+f-84e,73,SmokeGenBlueOne-1,Blue smoke generator
+f-84e,74,SmokeGenBlueTwo-2,2 x Blue smoke generators
+f-84e,75,SmokeGenRedOne-1,Red smoke generator
+f-84e,76,SmokeGenRedTwo-2,2 x Red smoke generators
+f-84e,77,SmokeGenGreenOne-1,Green smoke generator
+f-84e,78,SmokeGenGreenTwo-2,2 x Green smoke generators
+f-84e,79,SmokeGenYellowOne-1,Yellow smoke generator
+f-84e,80,SmokeGenYellowTwo-2,2 x Yellow smoke generators
+f-84e,81,SmokeGenBlackOne-1,Black smoke generator
+f-84e,82,SmokeGenBlackTwo-2,2 x Black smoke generators
+f-86a-5,0,Empty,Empty
+f-86a-5,1,F86_120GAL-2,2 x 120 gal drop tanks
+f-86a-5,2,F86_120GAL-2 + HVAR-2,"2 x 120 gal drop tanks + 2 x HVAR 5"" rockets"
+f-86a-5,3,F86_120GAL-2 + HVAR-4,"2 x 120 gal drop tanks + 4 x HVAR 5"" rockets"
+f-86a-5,4,F86_245GAL-2,2 x 245 gal drop tanks
+f-86a-5,5,HVAR-8,"8 x HVAR 5"" rockets"
+f-86a-5,6,HVAR-16,"16 x HVAR 5"" rockets"
+f-86a-5,7,M64-2,2 x M64 500 lb General Purpose bombs
+f-86a-5,8,M26-2,2 x M26 500 lb Cluster bombs
+f-86a-5,9,M29-2,2 x M29 500 lb Cluster bombs
+f-86a-5,10,M65-2,2 x M65 1000 lb General Purpose bombs
+f-86a-5,11,NAP_110GAL-2,2 x 110 gal napalm tanks
+f-86a-5,12,M26FLR-2,2 x M26 Chute Flare bombs
+f-86a-5,13,SmokeGenWhite-1,White smoke generator
+f-86a-5,14,SmokeGenWhite-2,2 x White smoke generators
+f-86a-5,15,SmokeGenBlue-1,Blue smoke generator
+f-86a-5,16,SmokeGenBlue-2,2 x Blue smoke generators
+f-86a-5,17,SmokeGenRed-1,Red smoke generator
+f-86a-5,18,SmokeGenRed-2,2 x Red smoke generators
+f-86a-5,19,SmokeGenGreen-1,Green smoke generator
+f-86a-5,20,SmokeGenGreen-2,2 x Green smoke generators
+f-86a-5,21,SmokeGenYellow-1,Yellow smoke generator
+f-86a-5,22,SmokeGenYellow-2,2 x Yellow smoke generators
+f-86a-5,23,SmokeGenBlack-1,Black smoke generator
+f-86a-5,24,SmokeGenBlack-2,2 x Black smoke generators
 il-10,0,Empty,Empty
 il-10,1,FAB50sc-2,2 x FAB-50 50 kg General Purpose bombs
 il-10,2,FAB50sc-2 + M8-4,2 x FAB-50 50 kg General Purpose bombs + 4 x M-8 82 mm rockets
@@ -246,48 +294,123 @@ il-10,18,PTAB2515-144 + M13-4,144 x PTAB-2.5-1.5 HEAT submunitions + 4 x M-13UK 
 il-10,19,PTAB2515-144 + FAB100sc-2,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs
 il-10,20,PTAB2515-144 + FAB100sc-2 + M8-4,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-8 82 mm rockets
 il-10,21,PTAB2515-144 + FAB100sc-2 + M13-4,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-13UK 132 mm rockets
-il-10,22,PTAB1025-60 + FAB100sc-2,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs
-il-10,23,PTAB1025-60 + FAB100sc-2 + M8-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-8 82 mm rockets
-il-10,24,PTAB1025-60 + FAB100sc-2 + M13-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-13UK 132 mm rockets
-il-10,25,AO2sc-128,128 x AO-2.5 2.5 kg Fragmentation bombs
-il-10,26,AO10sc-48,48 x AO-10 10 kg Fragmentation bombs
-il-10,27,AO25sl-12,12 x AO-25 25 kg Fragmentation bombs
-il-10,28,AO2sc-128 + M8-4,128 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-8 82 mm rockets
-il-10,29,AO2sc-128 + M13-4,128 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
-il-10,30,AO10sc-48 + M8-4,48 x AO-10 10 kg Fragmentation bombs + 4 x M-8 82 mm rockets
-il-10,31,AO10sc-48 + M13-4,48 x AO-10 10 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
-il-10,32,AO25sl-12 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 4 x M-8 82 mm rockets
-il-10,33,AO25sl-12 + M13-4,12 x AO-25 25 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
-il-10,34,AO2sc-128 + FAB100sc-2,128 x AO-2.5 2.5 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
-il-10,35,AO10sc-48 + FAB100sc-2,48 x AO-10 10 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
-il-10,36,AO25sl-12 + FAB100sc-2,12 x AO-25 25 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
-il-10,37,AO25sl-12 + FAB100sc-2 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-8 82 mm rockets
-il-10,38,AO2sc-160,160 x AO-2.5 2.5 kg Fragmentation bombs
-il-10,39,AO2sc-160 + M8-4,160 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-8 82 mm rockets
-il-10,40,AO10sc-60,60 x AO-10 10 kg Fragmentation bombs
-il-10,41,AO10sc-60 + M8-4,60 x AO-10 10 kg Fragmentation bombs + 4 x M-8 82 mm rockets
-il-10,42,SAB100sc-2,2 x SAB-100 100 kg Flare bombs
-il-10,43,SAB100sc-2 + M8-4,2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
-il-10,44,SAB100sc-2 + M13-4,2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
-il-10,45,FAB50sc-2 + SAB100sc-2,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs
-il-10,46,FAB50sc-2 + SAB100sc-2 + M8-4,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
-il-10,47,FAB50sc-2 + SAB100sc-2 + M13-4,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
-il-10,48,FAB100sc-2 + SAB100sc-2,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs
-il-10,49,FAB100sc-2 + SAB100sc-2 + M8-4,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
-il-10,50,FAB100sc-2 + SAB100sc-2 + M13-4,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
-il-10,51,PTAB2515-144 + SAB100sc-2,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs
-il-10,52,PTAB2515-144 + SAB100sc-2 + M13-4,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
-il-10,53,PTAB1025-60 + SAB100sc-2,60 x PTAB-10-2.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs
-il-10,54,PTAB1025-60 + SAB100sc-2 + M13-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
-il-10,55,AO2sc-128 + SAB100sc-2,128 x AO-2.5 2.5 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
-il-10,56,AO10sc-48 + SAB100sc-2,48 x AO-10 10 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
-il-10,57,AO25sl-12 + SAB100sc-2,12 x AO-25 25 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
-il-10,58,AO25sl-12 + SAB100sc-2 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
+il-10,22,PTAB1025-60,60 x PTAB-10-2.5 HEAT submunitions
+il-10,23,PTAB1025-60 + M8-4,60 x PTAB-10-2.5 HEAT submunitions + 4 x M-8 82 mm rockets
+il-10,24,PTAB1025-60 + M13-4,60 x PTAB-10-2.5 HEAT submunitions + 4 x M-13UK 132 mm rockets
+il-10,25,PTAB1025-60 + FAB100sc-2,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs
+il-10,26,PTAB1025-60 + FAB100sc-2 + M8-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-8 82 mm rockets
+il-10,27,PTAB1025-60 + FAB100sc-2 + M13-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-13UK 132 mm rockets
+il-10,28,AO2sc-128,128 x AO-2.5 2.5 kg Fragmentation bombs
+il-10,29,AO10sc-48,48 x AO-10 10 kg Fragmentation bombs
+il-10,30,AO25sl-12,12 x AO-25 25 kg Fragmentation bombs
+il-10,31,AO2sc-128 + M8-4,128 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-8 82 mm rockets
+il-10,32,AO2sc-128 + M13-4,128 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
+il-10,33,AO10sc-48 + M8-4,48 x AO-10 10 kg Fragmentation bombs + 4 x M-8 82 mm rockets
+il-10,34,AO10sc-48 + M13-4,48 x AO-10 10 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
+il-10,35,AO25sl-12 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 4 x M-8 82 mm rockets
+il-10,36,AO25sl-12 + M13-4,12 x AO-25 25 kg Fragmentation bombs + 4 x M-13UK 132 mm rockets
+il-10,37,AO2sc-128 + FAB100sc-2,128 x AO-2.5 2.5 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
+il-10,38,AO10sc-48 + FAB100sc-2,48 x AO-10 10 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
+il-10,39,AO25sl-12 + FAB100sc-2,12 x AO-25 25 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs
+il-10,40,AO25sl-12 + FAB100sc-2 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 2 x FAB-100 100 kg General Purpose bombs + 4 x M-8 82 mm rockets
+il-10,41,AO2sc-160,160 x AO-2.5 2.5 kg Fragmentation bombs
+il-10,42,AO2sc-160 + M8-4,160 x AO-2.5 2.5 kg Fragmentation bombs + 4 x M-8 82 mm rockets
+il-10,43,AO10sc-60,60 x AO-10 10 kg Fragmentation bombs
+il-10,44,AO10sc-60 + M8-4,60 x AO-10 10 kg Fragmentation bombs + 4 x M-8 82 mm rockets
+il-10,45,SAB100sc-2,2 x SAB-100 100 kg Flare bombs
+il-10,46,SAB100sc-2 + M8-4,2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
+il-10,47,SAB100sc-2 + M13-4,2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
+il-10,48,FAB50sc-2 + SAB100sc-2,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs
+il-10,49,FAB50sc-2 + SAB100sc-2 + M8-4,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
+il-10,50,FAB50sc-2 + SAB100sc-2 + M13-4,2 x FAB-50 50 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
+il-10,51,FAB100sc-2 + SAB100sc-2,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs
+il-10,52,FAB100sc-2 + SAB100sc-2 + M8-4,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
+il-10,53,FAB100sc-2 + SAB100sc-2 + M13-4,2 x FAB-100 100 kg General Purpose bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
+il-10,54,PTAB2515-144 + SAB100sc-2,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs
+il-10,55,PTAB2515-144 + SAB100sc-2 + M13-4,144 x PTAB-2.5-1.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
+il-10,56,PTAB1025-60 + SAB100sc-2,60 x PTAB-10-2.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs
+il-10,57,PTAB1025-60 + SAB100sc-2 + M13-4,60 x PTAB-10-2.5 HEAT submunitions + 2 x SAB-100 100 kg Flare bombs + 4 x M-13UK 132 mm rockets
+il-10,58,AO2sc-128 + SAB100sc-2,128 x AO-2.5 2.5 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
+il-10,59,AO10sc-48 + SAB100sc-2,48 x AO-10 10 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
+il-10,60,AO25sl-12 + SAB100sc-2,12 x AO-25 25 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs
+il-10,61,AO25sl-12 + SAB100sc-2 + M8-4,12 x AO-25 25 kg Fragmentation bombs + 2 x SAB-100 100 kg Flare bombs + 4 x M-8 82 mm rockets
+il-10,62,SmokeGenWhiteOne-1,White smoke generator
+il-10,63,SmokeGenWhiteTwo-2,2 x White smoke generators
+il-10,64,SmokeGenBlueOne-1,Blue smoke generator
+il-10,65,SmokeGenBlueTwo-2,2 x Blue smoke generators
+il-10,66,SmokeGenRedOne-1,Red smoke generator
+il-10,67,SmokeGenRedTwo-2,2 x Red smoke generators
+il-10,68,SmokeGenGreenOne-1,Green smoke generator
+il-10,69,SmokeGenGreenTwo-2,2 x Green smoke generators
+il-10,70,SmokeGenYellowOne-1,Yellow smoke generator
+il-10,71,SmokeGenYellowTwo-2,2 x Yellow smoke generators
+il-10,72,SmokeGenBlackOne-1,Black smoke generator
+il-10,73,SmokeGenBlackTwo-2,2 x Black smoke generators
 c-47b,0,Empty,Empty
+c-47b,1,Cargo-2215,2215 kg cargo
+c-47b,2,Litters-18,18 x litters
+c-47b,3,CargoContainers-14,14 x cargo containers
+c-47b,4,FLARE_9kg_USA_MK8_nolgt-70,70 x Mk 8 flares
 li-2,0,Empty,Empty
+li-2,1,Cargo-1500,1500 kg cargo
+li-2,2,Litters-18,18 x litters
+li-2,3,CargoContainers-14,14 x cargo containers
 yak-9p,0,Empty,Empty
+yak-9p,1,SmokeGenWhiteOne,White smoke generator
+yak-9p,2,SmokeGenWhiteTwo,2 x White smoke generators
+yak-9p,3,SmokeGenBlueOne,Blue smoke generator
+yak-9p,4,SmokeGenBlueTwo,2 x Blue smoke generators
+yak-9p,5,SmokeGenRedOne,Red smoke generator
+yak-9p,6,SmokeGenRedTwo,2 x Red smoke generators
+yak-9p,7,SmokeGenGreenOne,Green smoke generator
+yak-9p,8,SmokeGenGreenTwo,2 x Green smoke generators
+yak-9p,9,SmokeGenYellowOne,Yellow smoke generator
+yak-9p,10,SmokeGenYellowTwo,2 x Yellow smoke generators
+yak-9p,11,SmokeGenBlackOne,Black smoke generator
+yak-9p,12,SmokeGenBlackTwo,2 x Black smoke generators
 la-11,0,Empty,Empty
+la-11,1,SmokeGenWhiteOne-1,White smoke generator
+la-11,2,SmokeGenWhiteTwo-2,2 x White smoke generators
+la-11,3,SmokeGenBlueOne-1,Blue smoke generator
+la-11,4,SmokeGenBlueTwo-2,2 x Blue smoke generators
+la-11,5,SmokeGenRedOne-1,Red smoke generator
+la-11,6,SmokeGenRedTwo-2,2 x Red smoke generators
+la-11,7,SmokeGenGreenOne-1,Green smoke generator
+la-11,8,SmokeGenGreenTwo-2,2 x Green smoke generators
+la-11,9,SmokeGenYellowOne-1,Yellow smoke generator
+la-11,10,SmokeGenYellowTwo-2,2 x Yellow smoke generators
+la-11,11,SmokeGenBlackOne-1,Black smoke generator
+la-11,12,SmokeGenBlackTwo-2,2 x Black smoke generators
 mig-15bis,0,Empty,Empty
 mig-15bis,1,MIG15_250l-2,2 x 250 L drop tanks
 mig-15bis,2,FAB100sc-2,2 x FAB-100 100 kg General Purpose bombs
 mig-15bis,3,SAB100sc-2,2 x SAB-100 100 kg Flare bombs
+mig-15bis,4,SmokeGenWhiteOne-1,White smoke generator
+mig-15bis,5,SmokeGenWhiteTwo-2,2 x White smoke generators
+mig-15bis,6,SmokeGenBlueOne-1,Blue smoke generator
+mig-15bis,7,SmokeGenBlueTwo-2,2 x Blue smoke generators
+mig-15bis,8,SmokeGenRedOne-1,Red smoke generator
+mig-15bis,9,SmokeGenRedTwo-2,2 x Red smoke generators
+mig-15bis,10,SmokeGenGreenOne-1,Green smoke generator
+mig-15bis,11,SmokeGenGreenTwo-2,2 x Green smoke generators
+mig-15bis,12,SmokeGenYellowOne-1,Yellow smoke generator
+mig-15bis,13,SmokeGenYellowTwo-2,2 x Yellow smoke generators
+mig-15bis,14,SmokeGenBlackOne-1,Black smoke generator
+mig-15bis,15,SmokeGenBlackTwo-2,2 x Black smoke generators
+tu-2,0,Empty,Empty
+tu-2,1,FAB100sc-9,9 x FAB-100 100 kg General Purpose bombs
+tu-2,2,FAB100sc-9 + FAB250M43-2,9 x FAB-100 100 kg General Purpose bombs + 2 x FAB-250 250 kg General Purpose bombs
+tu-2,3,FAB250M43-4,4 x FAB-250 250 kg General Purpose bombs
+tu-2,4,FAB250M43-6,6 x FAB-250 250 kg General Purpose bombs
+tu-2,5,FAB250M43-8,8 x FAB-250 250 kg General Purpose bombs
+tu-2,6,FAB500M44-2,2 x FAB-500 500 kg General Purpose bombs
+tu-2,7,FAB500M44-4,4 x FAB-500 500 kg General Purpose bombs
+tu-2,8,FAB500M44-6,6 x FAB-500 500 kg General Purpose bombs
+tu-2,9,FAB1000M43-1,1 x FAB-1000 1000 kg General Purpose bombs
+tu-2,10,FAB1000M43-2,2 x FAB-1000 1000 kg General Purpose bombs
+tu-2,11,FAB1000M43-3,3 x FAB-1000 1000 kg General Purpose bombs
+tu-2,12,FAB2000M44-1,1 x FAB-2000 2000 kg General Purpose bombs
+tu-2,13,FAB2000M44-2,2 x FAB-2000 2000 kg General Purpose bombs
+tu-2,14,SAB100sc-9,9 x SAB-100 100 kg Flare bombs
+b 29,0,Empty,Empty
+b 29,1,M65-12,12 x M65 1000 lb General Purpose bombs

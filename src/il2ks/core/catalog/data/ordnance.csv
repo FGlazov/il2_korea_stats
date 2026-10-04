@@ -24,4 +24,10 @@ TINYTIM,rocket,"Tiny Tim 11.75"" rocket",TINYTIM,RKT_298mm_USA_TinyTim
 M8,rocket,M-8 82 mm rocket,M8,RKT_82mm_RUS_M8
 M13,rocket,M-13UK 132 mm rocket,M13,RKT_132mm_RUS_M13UK
 TANK,tank,Drop tank,165GAL;265GAL;F51_110GAL;F51_75GAL;F84_230GAL;F86_120GAL;F86_245GAL;MIG15_250l,
+FAB500,bomb,FAB-500 500 kg General Purpose bomb,FAB500M44,
+FAB1000,bomb,FAB-1000 1000 kg General Purpose bomb,FAB1000M43,
+FAB2000,bomb,FAB-2000 2000 kg General Purpose bomb,FAB2000M44,
+MK8FLR,flare,Mk 8 Parachute flare,FLARE_9kg_USA_MK8_nolgt,
 INERT,inert,Empty or pylons,Empty;Empty with pylons;Empty_with_pylons;PYLONS,
+SMOKE,inert,Smoke generator,SmokeGenWhite;SmokeGenWhiteOne;SmokeGenWhiteTwo;SmokeGenBlue;SmokeGenBlueOne;SmokeGenBlueTwo;SmokeGenRed;SmokeGenRedOne;SmokeGenRedTwo;SmokeGenGreen;SmokeGenGreenOne;SmokeGenGreenTwo;SmokeGenYellow;SmokeGenYellowOne;SmokeGenYellowTwo;SmokeGenBlack;SmokeGenBlackOne;SmokeGenBlackTwo,
+CARGO,inert,Cargo or passengers,Cargo;Litters;CargoContainers,

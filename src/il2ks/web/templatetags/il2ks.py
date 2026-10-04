@@ -189,6 +189,13 @@ def object_name(game_object: object) -> str:
     return object_names.name_of(game_object, get_language() or "en")
 
 
+@register.filter
+def weapon_mods(sortie: PlayerSortie) -> tuple[tuple[int, str | None], ...]:
+    """{% for id, name in sortie|weapon_mods %}: the modifications chosen for a sortie, as (id, name); the name is None
+    for an id the catalog doesn't list (show the raw id, OQ-25). Names are the game's, so they stay English."""
+    return object_names.default_catalog().weapon_mods(sortie.aircraft.log_name, sortie.weapon_mods)
+
+
 # --- coalitions and badges ----------------------------------------------------------------------------------------
 @register.simple_tag(takes_context=True)
 def side(context: Context, country: object) -> str:

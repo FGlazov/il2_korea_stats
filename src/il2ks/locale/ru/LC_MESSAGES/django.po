@@ -2354,6 +2354,9 @@ msgstr "Сохранено миссий"
 msgid "Modification names are not known yet: the numbers are the raw values from the log."
 msgstr "Названия модификаций пока неизвестны: числа это исходные значения из лога."
 
+msgid "Modifications"
+msgstr "Модификации"
+
 # llm-draft
 msgid "Monospace"
 msgstr "Моноширинный"
@@ -2620,6 +2623,10 @@ msgstr "В этой миссии никто не одержал побед."
 # llm-draft
 msgid "Nobody shot down yet."
 msgstr "Пока никто никого не сбил."
+
+# llm-draft
+msgid "None"
+msgstr "Нет"
 
 # llm-draft
 msgid "None of these (skip for now)"
@@ -4223,6 +4230,11 @@ msgstr "Неизвестные ключи (строки AType:KEY:)"
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Неизвестное вооружение"
+
+# llm-draft
+#, python-format
+msgid "Unknown modification (id %(id)s)"
+msgstr "Неизвестная модификация (id %(id)s)"
 
 # llm-draft
 msgid "Unknown object types"

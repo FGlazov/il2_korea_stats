@@ -524,3 +524,41 @@ def test_list_paginates_and_survives_a_bad_page(client: Client) -> None:
     assert "Showing 21\N{EN DASH}30 of 30" in client.get(list_url(1, "?page=2")).content.decode()
     assert client.get(list_url(1, "?page=junk")).status_code == 200
     assert client.get(list_url(1, "?page=99")).status_code == 200
+
+
+def test_modifications_are_shown_by_name(client: Client) -> None:
+    """WM 0b101011 = base + mods 1, 3, 5 (MiG-15bis); base alone is "None"; an unlisted bit keeps its id."""
+    save(
+        mission((sortie(0, 1, weapon_mods=0b101011), sortie(1, 2, weapon_mods=1), sortie(2, 3, weapon_mods=1 | 1 << 9)))
+    )
+
+    named = detail(client, pk_of(1))
+    assert "NR-23 cannons · Warning system · Anti-G suit" in named
+    assert "Unknown modification" not in named
+    assert re.search(r"Modifications</dt><dd><span class=\"muted\">None</span>", detail(client, pk_of(2)))
+    assert "Unknown modification (id 9)" in detail(client, pk_of(3))
+
+
+def test_upgrade_backfill_rederives_payload_names_from_the_stored_ids() -> None:
+    """The loadout table was replaced: stored names follow the stored payload ids (IL-10 id 25 was renumbered); an id
+    the table lacks gets no name (OQ-25)."""
+    from il2ks.ops import migrate
+
+    save(
+        mission(
+            (
+                sortie(0, 1, aircraft_type="IL-10", payload_id=25),
+                sortie(1, 2, aircraft_type="F-86A-5", payload_id=1),
+                sortie(2, 3, aircraft_type="IL-10", payload_id=9999),
+            )
+        )
+    )
+    PlayerSortie.objects.update(payload_name="stale")
+
+    assert migrate._check_payload_names()  # pyright: ignore[reportPrivateUsage]
+
+    names = {s.name_at_time: s.payload_name for s in PlayerSortie.objects.all()}
+    assert names["Player-1"].startswith("60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100")
+    assert names["Player-2"] not in ("", "stale")
+    assert names["Player-3"] == ""
+    assert not migrate._check_payload_names()  # pyright: ignore[reportPrivateUsage]
