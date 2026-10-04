@@ -46,6 +46,15 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
   declarations, gun bursts) the fast path's regex groups feed the event constructor directly, without the token dictionary. A value that does not
   convert raises `ValueError` and hands the line to the generic builder, which stays the definition of the exact error. The test that compares the
   routes covers the direct builders too.
+- **Explosion bursts** (2026-10-04, speed round 3, `[PROPOSED]`): `AType:1 ... AMMO:explosion` lines are 72% of all lines, and 99.96% have a player-owned
+  attacker, so they cannot be dropped. `parse_lines` merges consecutive ones with the same tick and attacker into one
+  `ExplosionBurstEvent(tick, attacker_id, target_ids)`, found with plain string operations (`startswith` against the open burst's prefix, no regex,
+  one event per burst). Only lines of exactly `T:<tick> AType:1 AMMO:explosion AID:<n> TID:<n>` (single spaces, ASCII digits, nothing around) take part;
+  any other line, however close, goes through `_parse` unchanged and ends the burst, so warnings, `lines_total` and `lines_bad` are the same. The open
+  burst is flushed before any other event and at the end of the line iterable (a live batch never holds one back; a burst spanning two batches gives two
+  bursts, which `Replay` merges because a detonation is keyed by tick). `Replay._on_explosion_burst` checks the attacker once and loops over the
+  targets. `parse_line` / `_parse` still return a `HitEvent`. Tests: `tests/unit/logparse/test_explosion_burst.py` (bursts expanded == per-line
+  parsing == generic tokenizer, stats and warnings equal, mutated inputs, random batch splits, replay results and detonations equal).
 - **Chunked line splitting** (`files._decode_lines`): files are read in 1 MB chunks, decoded incrementally (`errors="replace"`) and split with C-level
   string methods; `\n`, `\r\n` and `\r` end a line, nothing else does (not `str.splitlines`), and a `\r\n` split by a chunk boundary is rejoined.
   The result is the same lines as `TextIOWrapper(newline=None)` gave, with less per-line Python.
@@ -211,6 +220,8 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   before the general `match`, and returns early for AI attackers with no player owner); `closest()` is tightened (no work for empty hit logs, bounds computed once); the archive
   is written at **DEFLATE level 3** (`ingest.archive.COMPRESS_LEVEL`: 18 ms instead of 43 ms for a 4.7 MB log, 349 KB instead of 265 KB, readable
   by any zip tool); and the batched writes below. `[PROPOSED]`
+  **Round 3** (explosion bursts, above; `--cpu`, 210 missions, noisy machine, same rows: `dump-db` equal but `server_uid`): parse phase 35-42 s
+  before, 30 s after; in-process parse + replay of 30 missions, back to back: 6.1-7.0 s before, 4.3-4.7 s after (parse -35%, replay about -5%).
   **Batched writes:** `update_rows(model, rows, fields)` is `bulk_create(update_conflicts=True)`, an `INSERT ... ON CONFLICT (pk) DO UPDATE`
   with many rows per statement (SQLite 3.24+ and Postgres; the rows must be complete, loaded without `only`/`defer`); `update_partial_rows` stays
   one `UPDATE ... WHERE pk` per row for rows that carry only their pk and the changed fields (a rescoring of every sortie, the two link columns of

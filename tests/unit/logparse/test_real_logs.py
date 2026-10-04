@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from il2ks.core.logparse.events import LogEvent
+from il2ks.core.logparse.events import ExplosionBurstEvent, LogEvent
 from il2ks.core.logparse.files import MissionLog, group_mission_files, parse_mission
 from il2ks.core.logparse.parser import ParseStats
 from tests.conftest import FIXTURE_LOGS, SAMPLE_DATA
@@ -18,7 +18,10 @@ def parse_counts(log: MissionLog) -> tuple[ParseStats, Counter[str]]:
     counts = Counter[str]()
     event: LogEvent
     for event in parse_mission(log, stats):
-        counts[type(event).__name__] += 1
+        if isinstance(event, ExplosionBurstEvent):
+            counts["HitEvent"] += len(event.target_ids)  # one hit line per target entry
+        else:
+            counts[type(event).__name__] += 1
     return stats, counts
 
 

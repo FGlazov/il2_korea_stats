@@ -24,6 +24,7 @@ from il2ks.core.logparse.events import (
     BailoutEvent,
     BotRemovedEvent,
     DamageEvent,
+    ExplosionBurstEvent,
     GenericEvent,
     GroupEvent,
     GunBurstEvent,
@@ -827,16 +828,75 @@ def _summarize_suppressed(stats: ParseStats) -> None:
             stats.warnings.append(f"{suppressed} more '{kind.value}' warnings suppressed")
 
 
-def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
+# --- explosion bursts --------------------------------------------------------------------------------------------
+# 72% of all lines are `T:<tick> AType:1 AMMO:explosion AID:<n> TID:<n>`. `parse_lines` merges consecutive ones with
+# the same tick and attacker into one `ExplosionBurstEvent`, found with plain string operations (no regex, no event per
+# line). Only lines of *exactly* this shape take part (single spaces, ASCII digits, nothing before or after): every
+# other line, however close, goes through `_parse` as before and ends the burst, so the warnings and counters of odd
+# lines are the generic path's. `tests/unit/logparse/test_fast_path.py` compares bursts with per-line parsing.
+
+_EXPLOSION_MARK = " AType:1 AMMO:explosion AID:"
+_EXPLOSION_TID = " TID:"
+_MAX_TICK_DIGITS = 12  # a longer tick is not merged (it still parses, as a HitEvent)
+
+
+def _is_number(text: str) -> bool:
+    """Only ASCII digits (`str.isdigit` alone also accepts other scripts, which `int` reads too: not our business)."""
+    return text.isdigit() and text.isascii()
+
+
+def _explosion_line(line: str) -> tuple[str, str, str, str] | None:
+    """(prefix up to and including ` TID:`, tick, attacker, target) of a line of exactly the explosion shape."""
+    if not line.startswith("T:"):
+        return None
+    at = line.find(_EXPLOSION_MARK, 2, 2 + _MAX_TICK_DIGITS + len(_EXPLOSION_MARK))
+    if at < 0:
+        return None
+    tick = line[2:at]
+    attacker, sep, target = line[at + len(_EXPLOSION_MARK) :].partition(_EXPLOSION_TID)
+    if not sep or not _is_number(tick) or not _is_number(attacker) or not _is_number(target):
+        return None
+    return line[: len(line) - len(target)], tick, attacker, target
+
+
+def _burst(tick: str, attacker: str, targets: list[str]) -> ExplosionBurstEvent:
+    return ExplosionBurstEvent(
+        tick=int(tick),
+        extra=_NO_EXTRA,
+        attacker_id=ObjectId(int(attacker)),
+        target_ids=tuple([ObjectId(int(t)) for t in targets]),
+    )
+
+
+def parse_lines(lines: Iterable[str], stats: ParseStats, *, _coalesce: bool = True) -> Iterator[LogEvent]:
     """Parse lines lazily. Bad lines are counted and warned about in `stats`, never raised (FR-ING-3).
 
     Blank lines are skipped and not counted. `stats.log_version` is the first AType 15 `VER`; a different later
     version adds a warning. Warnings are capped per kind (see `_warn`); when the lines run out, one summary warning
-    per kind says how many were suppressed."""
+    per kind says how many were suppressed.
+
+    Consecutive explosion hit lines of one tick and attacker come out as one `ExplosionBurstEvent` (see above); the
+    open burst is flushed before any other event and at the end of `lines` (so a live batch never holds one back)."""
+    open_prefix = ""  # of the open burst: `T:<tick> AType:1 AMMO:explosion AID:<n> TID:`; "" when none is open
+    open_tick = open_attacker = ""
+    open_targets: list[str] = []
     for number, line in enumerate(lines, 1):
         if not line or line.isspace():
             continue
         stats.lines_total += 1
+        if open_prefix and line.startswith(open_prefix):
+            target = line[len(open_prefix) :]
+            if _is_number(target):
+                open_targets.append(target)
+                continue
+        shape = _explosion_line(line) if _coalesce else None
+        if open_prefix:
+            yield _burst(open_tick, open_attacker, open_targets)
+            open_prefix = ""
+        if shape is not None:
+            open_prefix, open_tick, open_attacker, first = shape
+            open_targets = [first]
+            continue
         try:
             atype, event = _parse(line)
         except ParseError as e:
@@ -878,4 +938,6 @@ def parse_lines(lines: Iterable[str], stats: ParseStats) -> Iterator[LogEvent]:
                     f"line {number}: log version changed from {stats.log_version} to {event.version}",
                 )
         yield event
+    if open_prefix:
+        yield _burst(open_tick, open_attacker, open_targets)
     _summarize_suppressed(stats)
