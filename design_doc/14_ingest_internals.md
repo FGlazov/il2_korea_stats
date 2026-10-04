@@ -152,13 +152,13 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, identity and names, then the killboard rows (`PlayerKillboard` /
      `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
      `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17);
-  1b. `recompute_holders` (`AchievementHolders`, after the players' medal rows);
+  1b. `recompute_holders` (`AchievementHolders`, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
   2. `recompute_aircraft_ammo` (`AircraftAmmoStats`);
   3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
      after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the four scopes, all time and per tour, all kills
      and intercept kills only);
   4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
-  5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum; skipped by `reprocess`, which recomputes once at the end);
+  5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum; skipped by `reprocess`, which recomputes once at the end);
   6. `recompute_ratings` (Elo per pool and per type, all kills replayed; same skip);
   7. `bump_data_version` (TD-28).
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in
@@ -183,6 +183,9 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
 - **REDFOR / BLUFOR** come from the country code: 5xx = REDFOR, 6xx = BLUFOR (maintainer, 2026-10-03). Coalition numbers from `CNTRS` still
   decide friend or foe. A mission whose `CNTRS` mixes 5xx and 6xx countries in one coalition gets a warning on its run.
 - `Mission.settings` stores the raw `SETTS` string (not parsed yet).
+- **Assists are stored split** (2026-10-04): `PlayerSortie.assists_air` / `assists_ground` (`assists` is their sum), summed by `ingest.counters`
+  into the same two columns on every counter table (`PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour*`, the pools, `AircraftStats`); the
+  score reads `assists_air` only (doc 13). Migration 0034 adds the columns; the `assist_split` backfill fills them (below).
 - `Kill` (PvP only) is keyed by **`(victim_sortie, killer_sortie)`**: a sortie is lost once, and a killer sortie gets either the kill or an assist
   on it. `credit`, `tick` and `via` are attributes.
 - `PlayerSortie` JSON: `ammo` = `{loaded, left, used, left_after_loss, releases, hits, unattributed, ordnance}` (keys are only ever added; the
@@ -213,13 +216,22 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   one `UPDATE ... WHERE pk` per row for rows that carry only their pk and the changed fields (a rescoring of every sortie, the two link columns of
   new sorties). `PlayerMission` rows and the aircraft sides and payloads of a mission come from batched writes and one grouped query instead of
   `update_or_create` per player. Revisit the per-row updates if Postgres over a network ever becomes a production path.
+  **Explosion lines** (measured 2026-10-04): **99.96% of explosion hits have a player-owned attacker** (bombs and rockets never act as attacker, doc 12;
+  the owner is the carrier), so a replay **drop-filter** (skip explosion lines of AI attackers early) saves almost nothing and was **not adopted**.
+  **Burst coalescing** (merging consecutive same-tick explosion lines of one attacker into one parser event; estimated 25-30% less parse + replay)
+  is **in progress, not built**; the roadmap tracks it.
   Tools: `il2ks dev bench-ingest <dir> [--cpu]` (copies its input to a temp dir, times each phase; `--cpu` times process CPU instead of the wall
   clock so antivirus and other jobs do not skew it, but Windows resolves CPU time to about 15 ms, fine for sums and medians) and
   `il2ks dev dump-db` (every table as sorted JSON lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is
   inside `sample_data/` (real player data).
 - **Upgrade backfills** (`ops/migrate.py`, FR-OPS-3): after `migrate`, an upgraded database gets the data the new tables and columns need, once
   each: tours (`tours`), sortie scores (`scores`), per-type Elo and the prop/jet pools (`type_ratings`), the killboard by aircraft type and the
-  per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`) and medals (`achievements`).
+  per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`), the air / ground assist
+  split from the timelines (`assist_split`) and medals (`achievements`). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
+  the level-1 sortie columns it owns (level 1) and returns whether level 2 needs a rebuild**; `rebuild_aggregates` then runs **at most once per
+  upgrade** (it used to run once per step, up to three times) and all the markers are written together. Level-1 writes use `update_partial_rows`
+  (rows with only the pk and the changed columns, one `UPDATE` per sortie instead of about 70 queries per sortie, Opus review #4), and
+  timelines are streamed in chunks of 500.
   Each is recorded by name in `SiteSettings.backfills_done` after it ran (or was found unnecessary), because the data trigger alone cannot tell
   "never filled" from "legitimately empty" (a database with only zero scores, or no rated games) and would rebuild after every later migration.
   Where a backfill needs a level-2 rebuild it calls `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`.

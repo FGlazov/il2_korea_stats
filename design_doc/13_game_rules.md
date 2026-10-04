@@ -186,13 +186,17 @@ recorded (a kill entry with no killer).
 other** (option a: "we want to encourage players to taxi well"). Two extra flags feed a "hall of shame" on the profile:
 ```
 taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
-strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss (never took off, or landed and not
-                    taken off since), and every attacker hit or damage came after that landing
-                    (shot up, crash-landed, then destroyed = shot down, not strafed)
+strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss, and either
+                    (a) it never took off (then it is strafed whatever hit it), or
+                    (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and the destroyer is an attacker:
+                        the kill line names one, or an attacker hit or damaged it after the landing. Air damage before the landing
+                        does not matter any more (2026-10-04, maintainer; before: every attacker line had to follow the landing).
+                    Not strafed: a crash-landing (its loss resolves at the landing tick, so it is no landing here: shot up, crash-landed,
+                    destroyed = shot down), and a landed wreck that burned down with no attacker line after the landing (= shot down)
 both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
 ```
 Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
-not parked aircraft) and **19 strafed** (9 parked, 10 after landing). The timeline's `destroyed` / `shot_down` entry says which.
+not parked aircraft) and **28 strafed** (10 parked, 18 after landing; the 2026-10-04 rule change added 9, all after landing). The timeline's `destroyed` / `shot_down` entry says which.
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).
@@ -223,7 +227,12 @@ Was the aircraft lost (is_plane_lost)?
 - **Credit is resolved for every lost player aircraft**, not only after bailouts and disconnects (so an aircraft shot up that later crashes on
   its own is credited to the shooter, consistent with `loss_cause = attacker`): an explicit `AID` on the kill line wins unless it's the sortie
   itself; with `AID:-1` the attacker with the **most damage** wins. Every other damager with ≥ 1% damage (`assist_min_damage`) gets an
-  assist (il2_stats gave only the second damager an assist). Damage to the pilot bot and turrets counts as damage to the aircraft. `via` =
+  assist (il2_stats gave only the second damager an assist). **Assists are split by victim kind** (2026-10-04): `assists_air` (the victim is an
+  aircraft) and `assists_ground`, and `assists` is always their sum. **Only air assists score** (`air_assist` in `[score]`); ground assists score
+  nothing and are shown in the profile's air-to-ground part (air assists in the air part); the sortie page lists both. The split is stored per
+  sortie and on every counter table. Upgraded databases: `ops/migrate.py::_check_assist_split` (marker `assist_split`) derives it once from the
+  stored timelines' `assist` entries with the replay's own rule (a player's aircraft or an air-class object is air; an assist the timeline lost
+  counts as ground), then level 2 is rebuilt (rescoring); `il2ks reprocess` gives the same. Damage to the pilot bot and turrets counts as damage to the aircraft. `via` =
   `direct`, `abandoned_aircraft` (bailout or ground exit) or `disconnect`. There is no shared credit.
 - A disconnect or bailout without an AType 3 for the aircraft still creates the victim record (at sortie end), so damage-based credit applies.
 - **Victims**: every destroyed object except crew, equipment (parachutes, ejection seats, spotters, vehicle turrets), gunner turrets and

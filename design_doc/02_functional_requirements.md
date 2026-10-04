@@ -106,6 +106,8 @@ exists, it's used as is.
   rockets or napalm** (0.7% empty or drop tanks only). 94% of those loadouts include **napalm**, which probably explains the long-delayed
   explosions (burning napalm). 1.8% of detonations sit next to cannon shell hits (23/37 mm HE/API, MiG and La), so a few are cannon fire.
 
+**Explosion filter measured, not adopted** (2026-10-04): 99.96% of explosion hits come from player aircraft, so dropping the AI ones early saves nothing; coalescing same-tick bursts is in progress (doc 14 "Speed").
+
 **Explosion lines are never counted as hits** `[DECIDED]` (maintainer, 2026-10-03). Per target, checked 2026-10-03 on 30 missions
 (1.12 M detonation × target pairs): **99.2% of targets touched by a detonation get only explosion lines**, with no named ordnance hit. A
 detonation touches a median of 3 targets (p90 8, max 66) with 1–9 explosion lines each, and only ~16% of those pairs take damage. So:

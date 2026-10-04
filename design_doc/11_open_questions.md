@@ -21,6 +21,7 @@ OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
 
 OQ-36 (destruction before a disconnect is a normal loss, doc 13) and OQ-37 (ship Tabler Icons, doc 15) are answered.
 
+OQ-107 (stolen-kills quip) is answered: 2+ air assists with no air kill, 3+ with one, 6+ with two, four reworded variants (doc 16 "Flavor text").
 OQ-38 and OQ-40..66 are answered (maintainer, 2026-10-03): see doc 02 "Maintainer decisions, 2026-10-03".
 
 **OQ-39 Terrain height for the bailout "> 30 m above ground" test** (owner: maintainer, will try to get heightmaps)
@@ -220,12 +221,6 @@ ground, left the server) is a tooltip on the lists and a note in brackets on the
 badges (amber "Bailed out", purple "Left the server") are no longer used on the lists. Alternative: other colours (captured purple like the status
 badge), or show the stored fate as the headline again.
 
-**OQ-107 Stolen-kills quip: the variants do not fit the new thresholds**
-The rule (maintainer, 2026-10-04): 3+ assists with no air kill, 5+ with one, 6+ with two. The first of the four variants still says "all your kills got
-stolen!", which is wrong for a pilot with one or two kills. Default applied: the variants unchanged, flagged here. Suggested fix: a separate spot for
-pilots with kills ("the flight collected the trophies you softened up") and the current wording only for sorties with no kill. Needs the maintainer's
-words (and the translations follow).
-
 **OQ-108 Timeline hits: the 0.2% burst threshold and what is left out**
 The maintainer suggested "e.g. over 0.1%" per hit. Default applied: damage lines of one attacker on one target form a burst while each is within 3 s of
 the last (a burst lasts at most 15 s); a burst needs **0.2% damage in total** (`[replay] hit_min_damage`, 0.002) to become a timeline row, because
@@ -236,6 +231,27 @@ sortie (the heaviest). Alternative: 0.1%, scenery included, or a per-line rather
 Default applied (maintainer, 2026-10-04: "Mission is no longer a default column"): on the player's sortie list the mission is one of the optional
 columns (`?cols=mission`); the default shows the time, aircraft, role, outcome, fate, damage taken, kills, assists and flight time. The sortie page and
 the mission page still name the mission. Alternative: keep Mission as a default column on wide screens.
+
+**OQ-111 Stolen-targets quip (ground assists): the thresholds**
+Default applied (2026-10-04, Claude): the line fires for a pilot with **5+ ground assists, at least as many as the sortie's own ground kills, and fewer than 70 ground kills**
+(70+ is the ground-pounder line). Read off the September 2026 archive: 5 is the p75 and 10 the p90 of the 1,684 sorties (11%) with any ground assist;
+the line fires on 1.5% of attack sorties (0.8% of all). Ground assists score nothing and appear only in the profile's air-to-ground part and on the
+sortie page. Alternative: 10+, a share of all ground damage instead of the count, or no ground line at all.
+
+**OQ-112 Strafed on the ground: the edge cases**
+Default applied (maintainer, 2026-10-04, for the headline rule; Claude for the edges): a landed aircraft (an AType 6 strictly before the loss, no takeoff
+since) destroyed by an attacker is **strafed even after air damage**; an aircraft that never took off is strafed whatever hit it. Not strafed: a
+**crash-landing** (shot down), and a landed wreck that **burned down with no attacker line after the landing** (shot down). A landed aircraft hit by
+an attacker only before it landed and destroyed with no attacker named on the kill line counts as shot down too. The quip is `sortie_strafed_landed`
+when the sortie has a landing, else `sortie_strafed` (parked); both sit after "ditched" and before "flak". Samples: 28 sorties (10 parked, 18 after
+landing). Alternative: count a burned-down wreck as strafed, or one quip for both.
+
+**OQ-113 Mission page: the default columns of the sortie tables**
+Default applied (Claude, 2026-10-04; the maintainer asked for sortable tables with optional columns): the default columns stay as before (time,
+pilot, aircraft, role, outcome, fate, air and ground kills, assists, flight time); `?cols=` adds damage taken and the sortie list's other extras
+(not Mission, which is this page); one `?sort=` orders all three tables (the two coalitions and the others), ties by spawn time, NULLs and
+gunners' empty cells last, hidden players' anonymised rows last. The PvP kill list is not sortable. Alternative: damage taken as a default
+column, sort per table, or hidden players sorted in by their numbers.
 
 **OQ-110 Aircraft matchups: the minimum of 10 fights and the "intercept flights only" filter**
 Default applied: a matchup row on the aircraft page shows its exchange share (kills out of kills plus losses) and can be named best or worst only with

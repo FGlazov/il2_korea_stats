@@ -104,3 +104,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   boards, stat marks for Elo and scores, killboards by aircraft type and matchups per tour, profile layout, pilot fate display, optional list columns, achievements,
   timeline hits, ammo after a loss, sortie quips, language menu and browser default, custom font upload, ingest speed rounds 1-2, perf tests in their own CI job,
   upgrade backfills, installer CI-verified; OQ-84, 92, 97, 98, 99 answered by the maintainer and tidied; new OQ-102..110 for the product choices agents made).
+  2026-10-04 (doc sync 2: assists split into air and ground, stolen-kills and stolen-targets quips, strafed after landing and its quips, sortable mission
+  sortie tables, hit-row tints, one-rebuild upgrade backfills, CI test-DB notes, explosion filter measured; OQ-107 resolved, new OQ-111..113).

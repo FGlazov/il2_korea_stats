@@ -60,7 +60,7 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                kills_ground_<category> (9 categories) + kills_ground_static                           -- they sum to kills_ground (OQ-33)
                air_points, ground_points (float)   -- the sortie's score under the `[score]` rules (FR-WEB-7, doc 13); a changed rule
                                                    -- applies with `rebuild-aggregates`, no reprocess
-               kills_air, kills_ground, assists, friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
+               kills_air, kills_ground, assists (= assists_air + assists_ground), assists_air, assists_ground (2026-10-04; only air assists score), friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
                resupplied (bool, FR-ING-24), ammo (json: loaded, left, used, left_after_loss, releases {stores, rocket_salvos}, hits per ammo type,
                ordnance, unattributed; shape in `ingest/persist.py::_ammo_json`, rules in doc 13 "Ammo and resupply"),
                damage_breakdown (json: dealt/taken per counterpart),
@@ -77,7 +77,7 @@ MissionAircraftAmmo  mission, aircraft, ammo, kills, hits  -- FR-WEB-18: gun hit
 ```
 
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour`, `PlayerTourAircraft`,
-`PlayerPool`, `PlayerTourPool` and `AircraftStats`: sorties, flight time, air kills, ground kills, assists, deaths, planes lost, bailouts,
+`PlayerPool`, `PlayerTourPool` and `AircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
 suspected early bailouts, captures, takeoffs, landings, friendly kills, friendly hits, friendly damage, **taxi accidents, strafed on the
 ground, attack sorties, time on target** (2026-10-03, doc 13). Added since, all sums of sortie columns: **`friendly_fire_incidents`**
 (sorties with at least one friendly kill; hits and damage alone don't count, OQ-72), the ground-kill categories and `kills_ground_static`
