@@ -195,6 +195,51 @@ def test_player_links_and_form_keep_the_column_choice(client: Client) -> None:
     assert 'value="kl" checked' in repeated
 
 
+# --- several columns at once (maintainer bug 2026-10-04: only the first ticked column worked in the browser) ----------
+@pytest.mark.parametrize("query", ["cols=kd,kl,survival", "cols=kd&cols=kl&cols=survival", "cols=kd,kl&cols=survival"])
+def test_every_ticked_column_is_shown_in_both_url_forms(client: Client, query: str) -> None:
+    seed_players()
+
+    html = client.get(f"/players/?{query}").content.decode()
+
+    heads = re.findall(r"<th[^>]*>.*?</th>", html, re.S)
+    for label in ("K/D", "K/L", "Survival"):
+        assert any(label in head for head in heads), label
+    for key in ("kd", "kl", "survival"):
+        assert f'value="{key}" checked' in html
+
+
+def test_sort_links_keep_every_chosen_column(client: Client) -> None:
+    seed_players()
+
+    html = client.get("/players/?cols=kd&cols=kl&cols=survival&sort=-kd").content.decode()
+
+    sort_links = re.findall(r'<th[^>]*><a href="(\?[^"]*)"', html)
+    assert sort_links
+    for href in sort_links:
+        assert QueryDict(href.removeprefix("?").replace("&amp;", "&")).getlist("cols") == ["kd", "kl", "survival"]
+
+
+def test_replace_query_keeps_repeated_keys() -> None:
+    from il2ks.web.templatetags.il2ks import replace_query
+
+    params = QueryDict("cols=a&cols=b&page=3&cols=c")
+
+    for changes in ({"page": None}, {"page": 2}, {"sort": "-kd", "page": None}):
+        assert QueryDict(replace_query(params, changes).removeprefix("?")).getlist("cols") == ["a", "b", "c"]
+
+
+def test_the_form_reacts_to_any_column_checkbox_even_after_a_swap(client: Client) -> None:
+    """Regression: `change from:find input[name=cols]` bound to the checkboxes present at load time; `hx-preserve` moves
+    the old dropdown (with its old checkboxes) into the swapped form, so only the first tick ever submitted."""
+    seed_players()
+
+    html = client.get("/players/").content.decode()
+
+    assert "from:find input[name=cols]" not in html
+    assert "change[target.name=='cols']" in html
+
+
 def test_htmx_column_change_returns_the_results_region(client: Client) -> None:
     seed_players()
 
@@ -203,7 +248,7 @@ def test_htmx_column_change_returns_the_results_region(client: Client) -> None:
     html = response.content.decode()
     assert 'id="results"' in html
     assert 'id="columns-picker"' in html
-    assert "change from:find input[name=cols]" in html
+    assert "change[target.name=='cols']" in html
 
 
 def test_player_list_budget_is_unchanged_with_every_column(client: Client) -> None:

@@ -146,8 +146,8 @@
       "sha256": "ba0a928a8909d1b7719ba836603acf880fbbe4a4c17fbe64f662e16b4c2d68dc"
     },
     "templates/il2ks/components/filter_bar.html": {
-      "version": 2,
-      "sha256": "06383253f833bce4ca07e3a68b69af1e9eec6fe31079831ba51a55d0ccfa8113"
+      "version": 3,
+      "sha256": "61a070e15695f578d7b9a21741d4aa61031c7bd777f6846d6a7aa16b519ad13d"
     },
     "templates/il2ks/components/filter_select.html": {
       "version": 1,
