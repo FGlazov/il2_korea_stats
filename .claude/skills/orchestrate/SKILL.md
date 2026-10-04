@@ -27,8 +27,10 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
   `worktree-agent-*` branches from earlier runs.
 - Merging: follow the `merge-branch` skill (`git merge --no-ff`, renumber migrations, regenerate po/mo/template versions,
   `uv run il2ks dev check --full`). Stage explicit paths only; never stage `sample_data/`.
-- Every agent prompt: "run `uv run il2ks dev check` before each commit and `--full` before you report"; the hooks in
-  `.claude/settings.json` block edits of released migrations and `sample_data/`.
+- Every agent prompt (maintainer, 2026-10-04): "run `uv run il2ks dev check` (quick) before each commit, plus only the unit and
+  integration test files for what you touch, and list them in your report. Do **not** run `dev check --full`, `--e2e` or `--postgres`":
+  parallel full runs stall the machine. The orchestrator runs the full suite once at merge (with `--e2e` for UI changes and `--postgres`
+  when models, migrations or queries changed). The hooks in `.claude/settings.json` block edits of released migrations and `sample_data/`.
 - Commit and push on `main` freely (no feature branches); never force-push.
 - Never split or rename a migration that may already be applied: existing databases fail with InconsistentMigrationHistory.
 - `sample_data/` holds the only copy of the real logs: tell every agent to copy the zips to a temp dir before ingesting (the default
