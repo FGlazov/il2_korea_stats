@@ -1,0 +1,15 @@
+{# il2ks-template: templates/il2ks/players/detail_overall.html v3 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_overall.html: what belongs to neither part: the ironman streaks, the per-aircraft table, who kills the pilot and
+  whom they kill (PvE, doc 13: it mixes air and ground victims, so it stays here), the other totals (with strafed on the ground) and the per-tour
+  charts. Context: see the partials it includes.
+{% endcomment %}<section class="profile-part" id="overall" aria-labelledby="overall-heading">
+  {# Translators: heading of the profile part with everything that is neither air-to-air nor air-to-ground (streaks, aircraft, totals, charts) #}
+  <h2 id="overall-heading" class="profile-part__title">{% translate "Overall" %}</h2>
+  {% include "il2ks/players/detail_streaks.html" %}
+  {% include "il2ks/players/detail_aircraft.html" %}
+  {% include "il2ks/players/detail_pve.html" %}
+  <h3>{% translate "Other totals" %}</h3>
+  {% include "il2ks/players/detail_totals.html" %}
+  {% include "il2ks/players/detail_charts.html" %}
+</section>

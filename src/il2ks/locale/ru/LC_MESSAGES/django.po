@@ -359,6 +359,10 @@ msgid "Air kills and deaths per tour"
 msgstr "Воздушные победы и гибели по турам"
 
 # llm-draft
+msgid "Air kills by victim"
+msgstr "Воздушные победы по типу цели"
+
+# llm-draft
 msgid "Air kills per flight hour"
 msgstr "Воздушных побед за час полёта"
 
@@ -382,6 +386,12 @@ msgstr "Старт в воздухе"
 # llm-draft
 msgid "Air superiority"
 msgstr "Господство в воздухе"
+
+# llm-draft
+#. Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking
+#. ground targets
+msgid "Air-to-air"
+msgstr "Воздушный бой"
 
 # llm-draft
 #, python-format
@@ -412,6 +422,12 @@ msgid ""
 msgstr ""
 "Эло поршневых самолётов в воздушных боях, по победам между вылетами на господство в воздухе. За всё время. Победа "
 "поршневого над реактивным засчитывается вдвойне."
+
+# llm-draft
+#. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
+#. fighting aircraft
+msgid "Air-to-ground"
+msgstr "Работа по земле"
 
 # llm-draft
 msgid "Airborne"
@@ -454,16 +470,8 @@ msgid "All missions"
 msgstr "Все миссии"
 
 # llm-draft
-msgid "All sorties"
-msgstr "Все вылеты"
-
-# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Все вылеты на этом самолёте"
-
-# llm-draft
-msgid "All sorties in this tour"
-msgstr "Все вылеты этого тура"
 
 # llm-draft
 msgid "All streaks"
@@ -1203,6 +1211,10 @@ msgid "Ground score"
 msgstr "Очки за землю"
 
 # llm-draft
+msgid "Ground score and attack sorties"
+msgstr "Очки за наземные цели и штурмовые вылеты"
+
+# llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
 msgstr ""
 "Очки за наземные цели, набранные во время штурмовых вылетов, в пересчёте на час над целью. Перелёт к цели и обратно "
@@ -1804,6 +1816,22 @@ msgid "No air kills."
 msgstr "Воздушных побед нет."
 
 # llm-draft
+msgid "No air-to-air activity in this tour: no air kills or assists."
+msgstr "В этом туре воздушных боёв не было: ни побед, ни помощи."
+
+# llm-draft
+msgid "No air-to-air activity yet: no air kills or assists."
+msgstr "Воздушных боёв пока не было: ни побед, ни помощи."
+
+# llm-draft
+msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
+msgstr "В этом туре не было работы по земле: ни наземных побед, ни штурмовых вылетов."
+
+# llm-draft
+msgid "No air-to-ground activity yet: no ground kills or attack sorties."
+msgstr "Работы по земле пока не было: ни наземных побед, ни штурмовых вылетов."
+
+# llm-draft
 msgid "No aircraft has flown yet."
 msgstr "Пока ни один самолёт не летал."
 
@@ -2108,6 +2136,12 @@ msgid "Outcome"
 msgstr "Исход"
 
 # llm-draft
+#. Translators: heading of the profile part with everything that is neither air-to-air nor air-to-ground (streaks,
+#. aircraft, totals, charts)
+msgid "Overall"
+msgstr "Общее"
+
+# llm-draft
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Обзор всех ваших переопределений: <code>il2ks custom list</code>"
 
@@ -2218,6 +2252,7 @@ msgid "Player"
 msgstr "Игрок"
 
 # llm-draft
+#. Translators: the small labels name the kind of kill: against human-flown aircraft (PvP) or AI-flown aircraft (PvE)
 msgid "Player aircraft"
 msgstr "Самолёты игроков"
 
@@ -2304,6 +2339,14 @@ msgid "Purple"
 msgstr "Фиолетовый"
 
 # llm-draft
+msgid "PvE air kills"
+msgstr "против ботов"
+
+# llm-draft
+msgid "PvP air kills"
+msgstr "против игроков"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Пока в небе тихо. Аэродром в вашем распоряжении."
 
@@ -2349,6 +2392,7 @@ msgstr ""
 "продолжает работать."
 
 # llm-draft
+#. Translators: these link names scroll to the page sections with the same names
 msgid "Recent sorties"
 msgstr "Недавние вылеты"
 
@@ -3335,6 +3379,10 @@ msgstr "Жертва"
 # llm-draft
 msgid "View"
 msgstr "Открыть"
+
+# llm-draft
+msgid "View all sorties"
+msgstr "Все вылеты"
 
 # llm-draft
 msgid "Waiting"

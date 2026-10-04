@@ -350,6 +350,10 @@ msgid "Air kills and deaths per tour"
 msgstr "Derribos aéreos y muertes por temporada"
 
 # llm-draft
+msgid "Air kills by victim"
+msgstr "Derribos aéreos por tipo de víctima"
+
+# llm-draft
 msgid "Air kills per flight hour"
 msgstr "Derribos aéreos por hora de vuelo"
 
@@ -373,6 +377,12 @@ msgstr "Inicio en el aire"
 # llm-draft
 msgid "Air superiority"
 msgstr "Superioridad aérea"
+
+# llm-draft
+#. Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking
+#. ground targets
+msgid "Air-to-air"
+msgstr "Combate aéreo"
 
 # llm-draft
 #, python-format
@@ -400,6 +410,12 @@ msgid ""
 msgstr ""
 "Elo aire-aire de las aeronaves de hélice, a partir de derribos entre salidas de superioridad aérea. Histórico. "
 "Derribar un jet con una de hélice cuenta doble."
+
+# llm-draft
+#. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
+#. fighting aircraft
+msgid "Air-to-ground"
+msgstr "Ataque a tierra"
 
 # llm-draft
 msgid "Airborne"
@@ -442,16 +458,8 @@ msgid "All missions"
 msgstr "Todas las misiones"
 
 # llm-draft
-msgid "All sorties"
-msgstr "Todas las salidas"
-
-# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Todas las salidas con esta aeronave"
-
-# llm-draft
-msgid "All sorties in this tour"
-msgstr "Todas las salidas de esta temporada"
 
 # llm-draft
 msgid "All streaks"
@@ -1190,6 +1198,10 @@ msgid "Ground score"
 msgstr "Puntos de tierra"
 
 # llm-draft
+msgid "Ground score and attack sorties"
+msgstr "Puntos de tierra y salidas de ataque"
+
+# llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
 msgstr "Puntos de tierra ganados en salidas de ataque por hora sobre el objetivo. El trayecto de ida y vuelta no cuenta."
 
@@ -1791,6 +1803,22 @@ msgid "No air kills."
 msgstr "Sin derribos aéreos."
 
 # llm-draft
+msgid "No air-to-air activity in this tour: no air kills or assists."
+msgstr "Sin actividad de combate aéreo en este tour: ni derribos ni asistencias."
+
+# llm-draft
+msgid "No air-to-air activity yet: no air kills or assists."
+msgstr "Aún sin actividad de combate aéreo: ni derribos ni asistencias."
+
+# llm-draft
+msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
+msgstr "Sin ataques a tierra en este tour: ni destrucciones terrestres ni salidas de ataque."
+
+# llm-draft
+msgid "No air-to-ground activity yet: no ground kills or attack sorties."
+msgstr "Aún sin ataques a tierra: ni destrucciones terrestres ni salidas de ataque."
+
+# llm-draft
 msgid "No aircraft has flown yet."
 msgstr "Todavía no ha volado ninguna aeronave."
 
@@ -2096,6 +2124,12 @@ msgid "Outcome"
 msgstr "Resultado"
 
 # llm-draft
+#. Translators: heading of the profile part with everything that is neither air-to-air nor air-to-ground (streaks,
+#. aircraft, totals, charts)
+msgid "Overall"
+msgstr "General"
+
+# llm-draft
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Resumen de todas tus sustituciones: <code>il2ks custom list</code>"
 
@@ -2204,6 +2238,7 @@ msgid "Player"
 msgstr "Jugador"
 
 # llm-draft
+#. Translators: the small labels name the kind of kill: against human-flown aircraft (PvP) or AI-flown aircraft (PvE)
 msgid "Player aircraft"
 msgstr "Aeronaves de jugadores"
 
@@ -2290,6 +2325,14 @@ msgid "Purple"
 msgstr "Morado"
 
 # llm-draft
+msgid "PvE air kills"
+msgstr "contra IA"
+
+# llm-draft
+msgid "PvP air kills"
+msgstr "contra jugadores"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Cielos tranquilos por ahora. El aeródromo es tuyo."
 
@@ -2334,6 +2377,7 @@ msgstr ""
 "funcionando mientras tanto."
 
 # llm-draft
+#. Translators: these link names scroll to the page sections with the same names
 msgid "Recent sorties"
 msgstr "Salidas recientes"
 
@@ -3325,6 +3369,10 @@ msgstr "Víctima"
 # llm-draft
 msgid "View"
 msgstr "Ver"
+
+# llm-draft
+msgid "View all sorties"
+msgstr "Ver todas las salidas"
 
 # llm-draft
 msgid "Waiting"

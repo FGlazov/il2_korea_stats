@@ -1,0 +1,12 @@
+{# il2ks-template: templates/il2ks/players/detail_nav.html v2 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_nav.html: the in-page navigation of the profile (plain anchors, no JavaScript): recent sorties, the air-to-air
+  part, the air-to-ground part, the overall part. Context: none (the ids are those of detail_air_section.html,
+  detail_ground_section.html, detail_overall.html and detail_recent.html).
+{% endcomment %}<nav class="profile-nav" aria-label="{% translate 'On this page' %}">
+  {# Translators: these link names scroll to the page sections with the same names #}
+  <a href="#recent">{% translate "Recent sorties" %}</a>
+  <a href="#air">{% translate "Air-to-air" %}</a>
+  <a href="#ground">{% translate "Air-to-ground" %}</a>
+  <a href="#overall">{% translate "Overall" %}</a>
+</nav>

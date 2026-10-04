@@ -1,0 +1,17 @@
+{# il2ks-template: templates/il2ks/players/detail_ground_section.html v2 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_ground_section.html: the air-to-ground part of the profile: ground kills with the per-category breakdown
+  (detail_ground.html), ground score, score per hour on target, attack sorties. Without any ground activity in the scope
+  it is one muted line. Context: stats, marks, ground, tour, ground_active.
+{% endcomment %}<section class="profile-part" id="ground" aria-labelledby="ground-heading">
+  {# Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to fighting aircraft #}
+  <h2 id="ground-heading" class="profile-part__title">{% translate "Air-to-ground" %}</h2>
+  {% if ground_active %}
+    {% include "il2ks/players/detail_ground_tiles.html" %}
+    {% include "il2ks/players/detail_ground.html" %}
+    <h3>{% translate "Ground score and attack sorties" %}</h3>
+    {% include "il2ks/players/detail_ground_scores.html" %}
+  {% else %}
+    <p class="muted">{% if tour %}{% translate "No air-to-ground activity in this tour: no ground kills or attack sorties." %}{% else %}{% translate "No air-to-ground activity yet: no ground kills or attack sorties." %}{% endif %}</p>
+  {% endif %}
+</section>

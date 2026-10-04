@@ -23,7 +23,7 @@ from il2ks.db.models import (
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = 50
-RECENT_SORTIES = 10
+RECENT_SORTIES = 5
 TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64
 
