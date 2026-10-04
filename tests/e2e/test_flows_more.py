@@ -67,7 +67,7 @@ def test_the_achievement_overview_leads_to_the_holders_of_a_tier(page: Page, wor
     holders = main_region(page).locator("a[href*='/achievements/'][href*='tier=']").filter(has_text=re.compile("pilot"))
     assert holders.count() >= 3
     holders.first.click()
-    expect(page).to_have_url(re.compile(r"/achievements/[\w-]+/\?tier=\d"))
+    expect(page).to_have_url(re.compile(r"/achievements/[\w-]+/\?(.*&)?tier=\d"))  # the tour may come first
     pilots = main_region(page).locator("a[href^='/players/']")
     assert pilots.count() >= 1
     name = pilots.first.inner_text()
