@@ -11,7 +11,7 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
   value reached **up to and including each sortie** (a running maximum). Tier `n` is first reached at the first sortie whose value
   is at least `thresholds[n-1]`. A tier is never lost, and the same history always gives the same rows.
 - **Level 2, computed at ingest** (TD-08, TD-22): `recompute_players` calls `recompute_achievements(chunk)` next to the streaks. One
-  extra read for the one fact the sortie row lacks (bombers and attackers shot down, from `Kill`). `PlayerAchievement(player, tour, key,
+  extra read for the one fact the sortie row lacks (bombers, attackers and transports shot down, from `Kill`). `PlayerAchievement(player, tour, key,
   tier, earned_at, sortie, mission)` has **one row per earned tier** (a gold holder also has the bronze and silver rows), unique per
   `(player, tour, key, tier)` (two conditional constraints, because `tour` is null for all time); `earned_at` is the end time of
   the sortie that reached it. **Per tour** (OQ-105): the same definitions run twice per player, over all their sorties (`tour` null)
@@ -47,7 +47,7 @@ them).
 | `life_kills` | Charmed Life | Air kills in one life: the kills of every sortie since the last death or capture, the fatal sortie included | 5 / 10 / 20 / 50 | 55 / 11 / 2 / 0 |
 | `sortie_kills` | Ace of the Sortie | Most air kills in a single sortie | 2 / 3 / 5 / 7 | 162 / 52 / 5 / 0 |
 | `career_kills` | Sky Hunter | Air kills in total | 1 / 10 / 50 / 250 | 419 / 63 / 4 / 0 |
-| `strike_hunter` | Bomber Hunter | Bombers and attackers flown by **other pilots** shot down (credited kills, not friendly, not own earlier sortie) | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
+| `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** flown by **other pilots** shot down (credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
 | `ground_sortie` | Target-Rich | Most ground kills in a single sortie (static objects count, like the profile's ground kills) | 20 / 50 / 100 / 200 | 271 / 123 / 57 / 13 |
 | `survivor` | Ironman | Sorties survived in a row: the ironman streak (`core/streaks.py`) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
@@ -190,7 +190,7 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
 
 - **Medals and ribbons** `[DECIDED]` (split by `Achievement.kind`, default `medal`): the **hard** achievements are medals (round
   badge with an icon: `life_kills`, `sortie_kills`, `strike_hunter`, `tank_buster`, `ground_sortie`, `survivor`,
-  `damaged_landing`, `type_veteran`); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`,
+  `damaged_landing`, `type_veteran` and the second set's other medals); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`, `types_flown`,
   `regular`): things that mostly need time. A ribbon is a small bar of CSS stripes (a colour pair from the status tokens, one of four
   patterns per achievement) with one pip per tier reached, tinted in the tier colour, plus the name: no new colour tokens. The
   profile shows the medals first and the ribbon rack under them; the lists and the overview show medals first, then ribbons.
@@ -213,7 +213,11 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
   pilots hold** (bronze Charmed Life on a busy server would drown the rest). The achievement links to its sortie unless the mission
   is hidden; hidden players are not listed. The block is full width under the board grid, so the 3x2 boards are untouched.
   Cost: 2 reads (the newest 40 candidate rows; the holder counts of the scope), 1 when nothing was earned.
-- **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour.
+- **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour. A tour
+  tier that is also reached all time in the same sortie is listed once (the first tour starts with the server, everything
+  would show twice), and hall-of-shame tiers are not listed there (QA on the real sample, 2026-10-04).
+- **Shame and rarity**: a hall-of-shame tier shows its rarity text but never the ring or glow (a rare "Hard Landing" must not
+  look like a trophy).
 
 ## Ideas and alternatives
 

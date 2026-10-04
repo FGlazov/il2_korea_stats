@@ -3,11 +3,13 @@
 September: 25 pilots with one sortie each, pilot n has n - 1 air kills (so p50 = 12, p90 = 21.6) and every fifth pilot
 dies. October: pilots 1-22 fly again without kills."""
 
+from collections.abc import Iterable
 from datetime import timedelta
 
 import pytest
 from django.test import Client
 
+from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.stat_marks import METRICS, MarkRules
 from il2ks.db.models import Player, StatThreshold, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
@@ -19,6 +21,30 @@ pytestmark = pytest.mark.django_db
 
 ONE = MarkRules(min_sorties=1)
 TWO = MarkRules(min_sorties=2)
+
+
+def test_thresholds_are_computed_after_the_elo_replay(monkeypatch: pytest.MonkeyPatch) -> None:
+    """QA 2026-10-04: the Elo percentiles were taken before the mission's ratings were written and lagged one mission
+    behind a rebuild (the real sample's elo_jet p50 differed)."""
+    from il2ks.ingest import persist
+
+    order: list[str] = []
+    real_ratings, real_marks = persist.recompute_ratings, persist.recompute_thresholds
+
+    def ratings(rules: RatingRules) -> int:
+        order.append("ratings")
+        return real_ratings(rules)
+
+    def marks(rules: MarkRules, tour_ids: Iterable[int] | None = None) -> None:
+        order.append("marks")
+        real_marks(rules, tour_ids)
+
+    monkeypatch.setattr(persist, "recompute_ratings", ratings)
+    monkeypatch.setattr(persist, "recompute_thresholds", marks)
+
+    save(mission((sortie(0, 1),)), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)
+
+    assert order == ["ratings", "marks"]
 
 
 def seed(marks: MarkRules = ONE) -> None:

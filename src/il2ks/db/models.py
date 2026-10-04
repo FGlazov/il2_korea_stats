@@ -286,7 +286,8 @@ class Counters(models.Model):
     score_air = models.FloatField(default=0.0)
     score_ground = models.FloatField(default=0.0)
     score_ground_attack = models.FloatField(default=0.0)
-    # Skill boards (doc 13): air-superiority sorties and their kills of bombers and attackers (interception per
+    # Skill boards (doc 13): air-superiority sorties and their kills of
+    # bombers, attackers and transports (interception per
     # hour of their flight time, `flight_time_air_s`, declared before `flight_time_s` like in the registry: an
     # annotation shadows the field of the same name); tanks destroyed in attack sorties (`kills_tank_attack`)
     air_superiority_sorties = models.PositiveIntegerField(default=0)
@@ -1523,6 +1524,12 @@ class SiteSettings(models.Model):
     # Not branding: the `[killboard] assists` setting the level-2 rows were last rebuilt with (`ingest.aggregates`,
     # `rebuild-aggregates`), so the pages can show the assists column without reading the config file.
     killboard_assists = models.BooleanField(default=False)
+    # Flavor text (FR-WEB-23, admin-configurable quips): the global switch, and the per-spot choices as one JSON object
+    # `{"modes": {spot: mode}, "hidden": {spot: [english default text, ...]}, "custom": [{"spot", "text", "language",
+    # "enabled"}]}` (parsed and validated by `il2ks.web.quips`; empty = every default quip on). Kept on the settings
+    # row, which every page reads already, so a quip costs no extra query.
+    quips_enabled = models.BooleanField(default=True)
+    quips: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)

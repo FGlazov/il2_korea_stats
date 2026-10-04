@@ -4,7 +4,7 @@ Page data only changes when a mission is saved, aggregates are rebuilt or an adm
 of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public GET/HEAD pages the middleware:
 
 - builds a strong `ETag` from (data version, language, il2ks version, process start, full path with query,
-  `HX-Request`),
+  `HX-Request`; under DEBUG also the icon sprite's hash, so an edited icon shows up),
 - answers a matching `If-None-Match` with `304` **before the view runs** (`process_view`): the whole cost of a
   revalidation is one tiny query for the version,
 - adds that ETag, `Cache-Control: max-age=0, must-revalidate` and `Vary: HX-Request, Accept-Language` to 200 responses
@@ -33,6 +33,7 @@ from django.utils.translation import get_language
 from il2ks import __version__
 from il2ks.db.models import DataVersion
 from il2ks.serving.bootid import current_boot_id
+from il2ks.web import icons
 
 VARY = ("HX-Request", "Accept-Language")
 _ETAG_ATTR = "_il2ks_etag"
@@ -66,6 +67,8 @@ def make_etag(request: HttpRequest, version: int) -> str:
         _BOOT_ID,
         request.get_full_path(),
         request.headers.get("HX-Request", ""),
+        # Under DEBUG an edited icon changes the sprite hash inside every page's markup without a restart.
+        icons.sprite()[1] if settings.DEBUG else "",
     )
     return '"' + hashlib.sha256("\x1f".join(parts).encode()).hexdigest()[:32] + '"'
 

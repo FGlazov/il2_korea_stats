@@ -15,7 +15,7 @@ def header_search(page: Page) -> Locator:
     return page.get_by_role("banner").get_by_role("searchbox", name="Find a player")
 
 
-def link_or_button(page: Page, name: str) -> Locator:
+def link_or_button(page: Page, name: str | re.Pattern[str]) -> Locator:
     """A call to action: the theme styles some links as buttons (`role="button"`); a visitor can't tell them apart."""
     return page.get_by_role("link", name=name).or_(page.get_by_role("button", name=name))
 
@@ -27,6 +27,20 @@ def main_region(page: Page) -> Locator:
 def sortie_links(page: Page) -> Locator:
     """Links to sortie pages (`/sorties/<id>/`), wherever they are shown (a table row's date, an aircraft name...)."""
     return page.locator("a[href^='/sorties/']")
+
+
+SETTLED_JS = (
+    "document.readyState === 'complete' && document.fonts.status === 'loaded'"
+    " && !document.querySelector('.htmx-request')"
+)
+
+
+def wait_until_settled(page: Page) -> None:
+    """The page is loaded, its fonts are in and no htmx request is in flight (the "online now" fragment, a swap).
+
+    Use instead of `wait_until="networkidle"`: that waits for 500 ms without any request, which a loaded machine (or a
+    polling fragment) can keep from ever happening within the timeout. This waits for the actual state."""
+    page.wait_for_function(SETTLED_JS)
 
 
 def mark_page(page: Page) -> None:

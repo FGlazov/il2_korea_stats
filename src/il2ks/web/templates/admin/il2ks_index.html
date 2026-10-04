@@ -14,6 +14,17 @@
     </table>
   </div>
   {% endif %}
+  {% if perms.il2ks_db.change_sitesettings %}
+  <div class="module">
+    <table>
+      <caption>{% translate "Site texts" %}</caption>
+      <tr>
+        <th scope="row"><a href="{% url 'admin:quips' %}">{% translate "Quips" %}</a></th>
+        <td><a href="{% url 'admin:quips' %}" class="changelink">{% translate "Change" %}</a></td>
+      </tr>
+    </table>
+  </div>
+  {% endif %}
   {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
 </div>
 {% endblock %}

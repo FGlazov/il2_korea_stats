@@ -170,6 +170,8 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
         ({"strafed_on_ground": True, "landings": 1, "loss_class": "aaa"}, HUNTER, "sortie_strafed_landed"),
         ({"outcome": "shot_down", "loss_class": "aaa"}, HUNTER, "sortie_aa"),
         ({}, HUNTER, "sortie_bomber_hunter"),
+        ({"first_blood": True}, HUNTER, "sortie_bomber_hunter"),  # extreme events come before first blood
+        ({"first_blood": True}, QUICK, "sortie_first_blood"),  # ... and first blood before the ace line
         ({}, QUICK, "sortie_ace"),
         ({"kills_air": 0}, QUICK, "sortie_stolen_kills"),
         ({"kills_air": 0, "assists_air": 0, "kills_ground": 5}, QUICK, "sortie_stolen_ground"),

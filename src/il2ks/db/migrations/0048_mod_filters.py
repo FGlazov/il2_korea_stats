@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0046_payload_names_refresh"),
+        ("il2ks_db", "0047_aircraft_roles"),
     ]
 
     operations = [

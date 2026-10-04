@@ -99,6 +99,29 @@ that was in use falls back to the default). A preview line shows each uploaded f
 If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
 `--il2-font-display` / `--pico-font-family` line in a small stylesheet from the `head` block (section 2).
 
+### Quips
+
+The site shows a short, light-hearted line ("quip") at a few highlight spots: the hall of shame on a pilot's profile, a
+notable sortie (taxi accident, many kills, a long flight), the top pilots of the last mission, an empty tour. They are
+**on by default** and you change nothing until you edit them. Open **Admin > Site texts > Quips**:
+
+- **Show quips on the site** is the master switch. Untick it and no quip appears anywhere.
+- Every spot has a description of when it shows (for example "Sortie: taxi accident"), and a choice:
+  *Built-in quips only* (the default), *Built-in and my own*, *My own only*, or *No quip here*.
+- Each built-in line has a **Hide** box. A page picks one line of the remaining ones, always the same line for the same
+  pilot, sortie or mission (so a page does not change when reloaded).
+- **Your own lines**: type a line, choose a language (empty = every language) and save; a saved line can be edited,
+  switched off with *On* or removed with *Delete*. A line for one language is used only on pages in that language, so a
+  site with players in several languages usually adds the same joke once per language, or leaves the language empty.
+  If a spot is set to *My own only* and has no line for the page's language, it shows no quip there.
+- Your lines are plain text: no HTML or formatting (it is always shown as typed), at most 200 characters, up to 20 per
+  spot. There are no placeholders for now: a quip cannot contain a pilot name or a number.
+- A hidden built-in line is remembered by its English text. If an il2ks update rewords that line, your hide no longer
+  matches anything; the page then lists it as "no longer exists" with a **Forget** box, and the new wording shows up
+  again until you hide it.
+
+Saving refreshes the cached pages at once.
+
 ## 2. `custom/` overrides
 
 Inside your **data folder** (the folder with the database and `logs/`; `il2ks.toml` says where it is) il2ks keeps a
@@ -227,6 +250,23 @@ starts with a comment that lists the variables it receives. Overriding one of th
 
 **Icons and images** — `il2ks/img/` under static. Every icon has a fixed name (for example `il2ks/img/outcome/landed.svg`),
 so you can replace a single icon by putting your own SVG at `custom/static/il2ks/img/outcome/landed.svg`.
+
+*Your own SVG icons.* The site merges all icon files into one sprite (`/sprite.svg`), so a custom file must be a plain,
+self-contained SVG:
+
+- A single `<svg>` root, drawn on a grid with a `viewBox` (for example `viewBox="0 0 24 24"`). Without one, a numeric
+  `width` and `height` (`24` or `24px`) are used; `%` or `em` sizes cannot be.
+- Colour with `currentColor` (`fill="currentColor"` or `stroke="currentColor"` on the root or the shapes), so the icon
+  follows the light or dark theme. No text inside the icon.
+- No `<style>` blocks, and no ids or gradients that other icons could also use: all icons share one document, so a
+  clashing id changes another icon.
+- The editor's extras are fine and are removed automatically: the `<?xml?>` line, comments, a DOCTYPE, `metadata`,
+  Inkscape / Sodipodi / Illustrator elements and attributes, and a UTF-8 BOM. `xlink:href="#id"` works; links to other
+  files do not. Scripts, `foreignObject` and event attributes are removed.
+- A file that still cannot be read as XML (a broken tag, a declared entity) is left out of the sprite and logged, and
+  the site behaves as if the file did not exist (an aircraft falls back to the generic jet or propeller icon). `il2ks
+  doctor` lists such files.
+- `brand/favicon.svg` and `pattern/` are not icons: they are used as separate image files and are not in the sprite.
 
 **Colours** — the stylesheet `il2ks/site.css` defines every colour once as a CSS variable in its first section
 (`--il2-accent`, `--il2-bg`, ...; light and dark side by side with `light-dark()`), and nothing else in the stylesheets

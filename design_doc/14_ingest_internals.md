@@ -156,14 +156,14 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `PlayerAircraft`; a test checks it matches the model.
 - **Save order** (`persist.save_mission`, one transaction, `[PROPOSED]`): the tour (`ensure_tour`), the `Mission` row, game objects and countries,
   `Player` rows, the sorties (each gets its air and ground score from `ingest.scoring.apply_score` under the `[score]` rules, as it is written),
-  the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo`. Then level 2, always after the rows it reads:
+  `SortieGunHits` (the gun hit lines per sortie and ammo), the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo mix of each destroyed aircraft). Then level 2, always after the rows it reads:
   1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
-     (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, identity and names, then the killboard rows (`PlayerKillboard` /
+     (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: payloads, weapon mods, gun ammo; `ingest.builds`, from the sorties and `SortieGunHits`), identity and names, then the killboard rows (`PlayerKillboard` /
      `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
      `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per touched tour);
   1b. `recompute_holders` (`AchievementHolders` per scope with the pilot count, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
-  2. `recompute_aircraft_ammo` (`AircraftAmmoStats`);
-  3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
+  2. `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables);
+  3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `TourAircraftStats` for the touched tours, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
      after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the four scopes, all time and per tour, all kills
      and intercept kills only);
   4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
@@ -271,7 +271,10 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
 - **Upgrade backfills** (`ops/migrate.py`, FR-OPS-3): after `migrate`, an upgraded database gets the data the new tables and columns need, once
   each: tours (`tours`), sortie scores (`scores`), per-type Elo and the prop/jet pools (`type_ratings`), the killboard by aircraft type and the
   per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`), the air / ground assist
-  split from the timelines (`assist_split`) and medals (`achievements`). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
+  split from the timelines (`assist_split`), rounds fired and gun hits from the stored ammo (`accuracy`), the streak history (`streak_runs`),
+  `TourAircraftStats` (`tour_aircraft`), `SortieGunHits` and the favourite loadouts (`builds`), the achievement facts rams, first blood, multi-kills
+  and Elo peaks (`achievement_facts`), the loadout names looked up again from the payload ids (`payload_names`) and medals (`achievements`, then
+  `achievement_tours` for the per-tour medals and rarity counts, after the rebuild). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
   the level-1 sortie columns it owns (level 1) and returns whether level 2 needs a rebuild**; `rebuild_aggregates` then runs **at most once per
   upgrade** (it used to run once per step, up to three times) and all the markers are written together. Level-1 writes use `update_partial_rows`
   (rows with only the pk and the changed columns, one `UPDATE` per sortie instead of about 70 queries per sortie, Opus review #4), and

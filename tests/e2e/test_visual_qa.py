@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page
 
+from tests.e2e.helpers import wait_until_settled
 from tests.e2e.world import QA_ADMIN, World
 
 WIDTHS = (360, 768, 1280)
@@ -261,7 +262,7 @@ def audit_page(page: Page, name: str, url: str, shots: Path) -> list[str]:
         for width in WIDTHS:
             page.set_viewport_size({"width": width, "height": 900})
             page.goto(with_theme(url, scheme))
-            page.wait_for_load_state("networkidle")
+            wait_until_settled(page)
             tag = f"{name}-{width}-{scheme}"
             page.screenshot(path=str(shots / f"{tag}.png"), full_page=True)
             for problem in page.evaluate(AUDIT_JS, {"checkOverlap": True}):
@@ -320,7 +321,7 @@ def test_admin_page_layout(page: Page, name: str) -> None:
         for width in WIDTHS:
             page.set_viewport_size({"width": width, "height": 900})
             page.goto(ADMIN_PAGES[name])
-            page.wait_for_load_state("networkidle")
+            wait_until_settled(page)
             page.screenshot(path=str(shots / f"{name}-{width}-{scheme}.png"), full_page=True)
             violations += [
                 f"[{name} {width}px {scheme}] {p['kind']}: {p['msg']}"

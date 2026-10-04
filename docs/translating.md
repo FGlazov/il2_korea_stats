@@ -48,6 +48,10 @@ Page text is read by pilots, not by lawyers: short and plain beats formal.
 **Translate for meaning in context, not word for word.** The goal is a GUI a native-speaking flight-sim player understands at a
 glance, not literal fidelity.
 
+**Quips, flavor lines and medal one-liners: idiomatic first** (maintainer, 2026-10-04). A quip does not have to be a translation of
+the English line. Write the best line for that language and situation in the same tone, with the language's own humour, idioms and
+aviation slang; translate literally only as a last resort.
+
 - Before you translate a string, find where it is used (search the templates and `web/*.py` for the English text). A column
   header, a nav label, a button, a tooltip, a notice and the admin help text each need a different register and length;
   one-word strings such as *Kills*, *Lost*, *Air*, *Ground*, *Left*, *Used*, *Credit*, *Spawn*, *Seat* are ambiguous
@@ -68,7 +72,7 @@ uv run il2ks dev translations status
 
 ```
 language  strings translated llm-draft reviewed missing
-de            141        141       141        0       0
+de           1070       1070      1054       16       0
 ```
 
 `reviewed` is what a human has checked; `llm-draft` is what is still waiting for one; `missing` has no translation yet.

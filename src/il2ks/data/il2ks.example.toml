@@ -96,7 +96,8 @@
 # Kill credit (TD-21): every damager above this fraction of the victim's total damage gets an assist (0.01 = 1%).
 #assist_min_damage = 0.01
 # Strafed on the ground: a landed aircraft is strafed only if other objects did at least this fraction of its damage after
-# the landing (0.05 = 5%); a damaged aircraft that fails its landing is a crash, not a strafing.
+# the landing (0.05 = 5%); a damaged aircraft that fails its landing is a crash, not a strafing. 0 means "any damage
+# after the landing" (no damage at all never counts).
 #strafed_min_damage = 0.05
 # Resupply (FR-ING-24): the server may let a player rearm after landing and take off again in the same sortie, and no
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
@@ -197,7 +198,7 @@
 #min_attack_sorties = 5
 # Minutes on target needed for the ground-score-per-hour and tank-busting boards.
 #min_time_on_target_minutes = 10.0
-# Air superiority sorties needed for the interception board (kills of bombers and attackers per hour).
+# Air superiority sorties needed for the interception board (kills of bombers, attackers and transports per hour).
 #min_air_superiority_sorties = 5
 # Minutes of air superiority flight time needed for the interception board.
 #min_air_superiority_minutes = 60.0

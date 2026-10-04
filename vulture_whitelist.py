@@ -259,3 +259,4 @@ _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.arch
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
 _.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html
 weapon_mod_mask  # core.catalog.loader: inverse of weapon_mod_ids, for the aircraft page mod filter (next); tested
+_.stale_hides  # web.admin_quips.SpotRow: read by admin/il2ks_quips.html

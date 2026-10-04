@@ -147,7 +147,11 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         killed_by_attacker=shot_down_directly,
         strafed_min_damage=rules.strafed_min_damage,
     )
-    if attacker_cause and rammer is None and failed_landing(sortie, loss, strafed=strafed, off=off):
+    if (
+        attacker_cause
+        and rammer is None
+        and failed_landing(sortie, loss, strafed=strafed, off=off, died=died, rules=rules)
+    ):
         # OQ-112: a damaged aircraft that fails its landing is a crash; kill credit is decided by credit_kill
         attacker_cause = False
         loss_cause = "self"

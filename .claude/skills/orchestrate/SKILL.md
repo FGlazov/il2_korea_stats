@@ -34,6 +34,11 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
 - `sample_data/` holds the only copy of the real logs: tell every agent to copy the zips to a temp dir before ingesting (the default
   `after_archive = move` empties the logs folder) and never to link to it from a worktree. Check worktrees for junctions before
   `git worktree remove --force` (it deletes through them on Windows). If it is ever wiped, restore from an `archive/2026/09` copy.
+- Every **new** error seen anywhere (real-data runs, CI, reviews, logs, manual checks) gets its own regression test, test first
+  (maintainer, 2026-10-04): reproduce the exact error, confirm the test fails, commit the failing test alone, then fix in a
+  separate commit. The orchestrator checks red → green at merge.
+- Translations in agent prompts: German du, French vous, Russian вы (lowercase), Spanish tú, Brazilian Portuguese você; UI
+  strings understandable in context; quips and medal names idiomatic first (a native line, not a translation).
 
 ## Decisions
 A *decision* is anything you or an agent decided that the design doc didn't already specify. Making them is allowed, to keep

@@ -6,8 +6,11 @@
   Keeps ?sort= and never carries ?page=, so a new filter starts at page 1.
   A column checkbox is caught by a `change` filter on the form itself, not `from:find`: hx-preserve moves the old
   dropdown into the swapped form, and `from:find` would stay bound to the old, detached checkboxes (v3 fix).
+  Every <select> of the bar submits it: `change from:find select` bound the first select only (the second and third
+  dropdowns, e.g. propulsion and aircraft on the leaderboards, did nothing until Apply, which JS hides), so the form
+  catches the bubbling `change` of any select instead.
   Context: content, action (current path), sort (current ?sort=), has_filters, clear_href.
-{% endcomment %}<form class="filter-bar" method="get" action="{{ action }}" hx-get="{{ action }}" hx-trigger="submit, change from:find select, input changed delay:300ms from:find input[data-live], change[target.name=='cols']">
+{% endcomment %}<form class="filter-bar" method="get" action="{{ action }}" hx-get="{{ action }}" hx-trigger="submit, change[target.tagName=='SELECT'], input changed delay:300ms from:find input[data-live], change[target.name=='cols']">
   {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
   {{ content }}
   <div class="filter-bar__actions">

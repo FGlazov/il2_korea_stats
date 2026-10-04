@@ -21,7 +21,8 @@ hash from the merged files. (Same for a template that two branches changed: reso
 
 1. In the release commit, set `FIRST_RELEASE_DONE = True` in `src/il2ks/serving/templateversions.py`.
 2. Run `uv run il2ks dev bump-templates --check`: it must say everything is in order (all files stay at v1, which is the
-   first release's baseline). Tag the release.
+   first release's baseline). Tag the release. The release workflow refuses a tag such as `v1.0.0` while the switch is
+   still False; pre-release tags (`v1.0.0a1`, `b1`, `rc1`) pass with it off, so you can test the pipeline first.
 3. From then on the rules below apply: every content change raises the version.
 
 ## When you change a built-in template, CSS or JS file (after the first release)

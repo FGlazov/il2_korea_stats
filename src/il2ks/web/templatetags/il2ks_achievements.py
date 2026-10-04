@@ -42,7 +42,12 @@ def player_medals(player: Player, tour: Tour | None = None) -> medals.MedalSet:
 def sortie_medals(sortie: PlayerSortie) -> list[medals.Medal]:
     rows = reads.sortie_rows(sortie)
     holdings = reads.holdings({r.tour_id for r in rows}) if rows else {}
-    found = medals.medals_of(rows, holdings, highest_only=False)
+    found = [
+        m for m in medals.medals_of(rows, holdings, highest_only=False) if not m.shame
+    ]  # shame: hall of shame only
+    all_time = {(m.key, m.tier) for m in found if m.scope is None}
+    # The same tier in the tour is the same news (the first tour starts with the server): list it once.
+    found = [m for m in found if m.scope is None or (m.key, m.tier) not in all_time]
     return sorted(found, key=lambda m: m.scope is not None)  # all time first; `regroup` needs the scopes together
 
 

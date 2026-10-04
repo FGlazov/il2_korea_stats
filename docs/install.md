@@ -248,6 +248,20 @@ Old missions are **not** recalculated by themselves. If the release notes say a 
 `il2ks reprocess --all` (or `il2ks rebuild-aggregates` for scores). Which command fits which change:
 [Rules, scoring and tours](settings.md#what-to-run-after-a-change).
 
+### Upgrading from a pre-release build
+
+If your database was filled by a pre-release (alpha/beta/rc) build, some figures only exist for missions ingested by
+the new version. Migrations and the automatic fill-in cannot rebuild them, because they need the original logs. After
+upgrading, run `il2ks reprocess --all` once (a few minutes per thousand missions; the site stays up) to get:
+
+- the **ammunition mixes** table on the aircraft pages (until then it is hidden; `il2ks doctor` warns about it);
+- sortie timeline hit rows that list an aircraft and its pilot / crew separately (older rows can read "+200%");
+- the exact **strafed** and **crashed** outcomes (a parked or landed aircraft destroyed by enemy fire is "strafed", a
+  crash after a fault is "crashed", not "shot down"), and the exact state of sorties the mission end cut off;
+- transports counted as victims of interceptions (the automatic fill-in covers most of it; reprocess gives the rest).
+
+Skip it if you only want new missions to have these. The old ones keep working, just without the new details.
+
 ## Backups
 
 `il2ks backup` writes a dated zip into the `backups` folder of the data folder, with everything that cannot be rebuilt from

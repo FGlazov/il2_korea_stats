@@ -9,7 +9,9 @@ Two groups:
   Run with `IL2KS_PERF_REPORT=1 ... -s` to print the measured numbers.
 - **Web vitals** (timing, generous limits): LCP, CLS and total blocking time from the Performance API
   (`PerformanceObserver`). CLS is deterministic enough to keep tight; LCP and TBT only catch order-of-magnitude
-  regressions (slow CI runners).
+  regressions (slow CI runners). Wall-clock numbers jump on a loaded machine (several checks run at once on
+  one PC), so a page is loaded up to `VITALS_ATTEMPTS` times and passes when ONE load is within the limits: a
+  real regression is slow every time, a busy CPU only some of the time.
 
 Selected with `-m perf` (together with `IL2KS_TEST_E2E=1`) or as part of the e2e job."""
 
@@ -21,6 +23,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page, Request, Response
 
+from tests.e2e.helpers import wait_until_settled
 from tests.e2e.test_smoke import PUBLIC_PAGES
 from tests.e2e.world import World
 
@@ -48,12 +51,13 @@ class Weight:
 
 
 def measure(page: Page, url: str, base: str) -> Weight:
-    """Load `url` with a cold cache and wait until the network is quiet (htmx fragments included)."""
+    """Load `url` with a cold cache and wait until it has settled (htmx fragments included)."""
     weight = Weight()
     responses: list[Response] = []
     page.on("response", lambda r: responses.append(r))
     page.on("requestfailed", lambda r: weight.failed.append(r.url))
-    page.goto(url, wait_until="networkidle")
+    page.goto(url)
+    wait_until_settled(page)
     for response in responses:
         request: Request = response.request
         if not request.url.startswith(("http://", "https://")):
@@ -183,28 +187,40 @@ new PerformanceObserver(list => {
 MAX_LCP_MS = 2500
 MAX_CLS = 0.1
 MAX_TBT_MS = 300
+VITALS_ATTEMPTS = 3
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
 def test_web_vitals(page: Page, world: World, name: str) -> None:
     page.add_init_script(OBSERVERS)
-    page.goto(PUBLIC_PAGES[name](world), wait_until="networkidle")
-    page.wait_for_timeout(300)  # layout shifts after the last request (htmx swaps, fonts)
-    vitals: dict[str, float] = page.evaluate("window.__vitals")
+    problems: list[str] = []
+    for _ in range(VITALS_ATTEMPTS):
+        page.goto(PUBLIC_PAGES[name](world))
+        wait_until_settled(page)
+        page.wait_for_timeout(300)  # layout shifts after the last request (htmx swaps, fonts)
+        vitals: dict[str, float] = page.evaluate("window.__vitals")
 
-    if REPORT:
-        lcp, cls, tbt = vitals["lcp"], vitals["cls"], vitals["tbt"]
-        print(f"VITALS {PUBLIC_PAGES[name](world)}: LCP {lcp:.0f} ms, CLS {cls:.4f}, TBT {tbt:.0f} ms")
-    assert vitals["lcp"] <= MAX_LCP_MS, f"LCP {vitals['lcp']:.0f} ms (limit {MAX_LCP_MS})"
-    assert vitals["cls"] <= MAX_CLS, f"CLS {vitals['cls']:.3f} (limit {MAX_CLS}): something moves after first paint"
-    assert vitals["tbt"] <= MAX_TBT_MS, f"TBT {vitals['tbt']:.0f} ms (limit {MAX_TBT_MS})"
+        if REPORT:
+            lcp, cls, tbt = vitals["lcp"], vitals["cls"], vitals["tbt"]
+            print(f"VITALS {PUBLIC_PAGES[name](world)}: LCP {lcp:.0f} ms, CLS {cls:.4f}, TBT {tbt:.0f} ms")
+        problems = []
+        if vitals["lcp"] > MAX_LCP_MS:
+            problems.append(f"LCP {vitals['lcp']:.0f} ms (limit {MAX_LCP_MS})")
+        if vitals["cls"] > MAX_CLS:
+            problems.append(f"CLS {vitals['cls']:.3f} (limit {MAX_CLS}): something moves after first paint")
+        if vitals["tbt"] > MAX_TBT_MS:
+            problems.append(f"TBT {vitals['tbt']:.0f} ms (limit {MAX_TBT_MS})")
+        if not problems:
+            return
+    pytest.fail(f"over the limits in all {VITALS_ATTEMPTS} loads (last one): " + "; ".join(problems))
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
 def test_every_icon_reference_resolves_in_the_sprite(page: Page, world: World, base_url: str, name: str) -> None:
     """Icons are `<use href="/sprite.svg?v=...#id">`: the sprite loads once (cached for a year) and has every id the
     page uses, so no icon is blank. The reference is the same after an HTMX swap, which needs no symbols of its own."""
-    page.goto(PUBLIC_PAGES[name](world), wait_until="networkidle")
+    page.goto(PUBLIC_PAGES[name](world))
+    wait_until_settled(page)
     result: dict[str, list[str]] = page.evaluate(
         """async () => {
           const refs = [...document.querySelectorAll('svg.icon use')].map(u => u.getAttribute('href'));

@@ -232,8 +232,11 @@ or when the newest part's mtime was more than **120 s** old, polling every 30 s,
 - **Coverage on the samples: 99.3% of spawns resolve** once one alias is applied: the CSV calls the Sabre `f-86a`, but logs say `F-86A-5`.
   Match through the catalog's alias list, not by string equality. Unresolved: `Turret_IL10` (player gunners, no payload, expected) and
   one F-51D spawn with payload 59, which is missing from the CSV.
-- `WM` (weapon modification bitmask, for example values 1–63 on the MiG-15bis) is **not** covered by the CSV. It shows as raw values until a
-  mapping exists (OQ-25).
+- `WM` (weapon modification bitmask, for example values 1–63 on the MiG-15bis): bit 0 is always set, **bit k is modification k**
+  (checked on 30.7k spawns). `core/catalog/data/weapon_mods.csv` (`vehicle, mod_id, name`) names them; a bit without a row shows as
+  "Unknown modification (id k)" on the sortie page (OQ-25).
+- **The ammo belt choice is not logged** (maintainer, 2026-10-04): AType 10 has no belt field and `WM` holds weapon modifications,
+  not belts. Hits per ammo type (AType 1 `AMMO`) are the only proxy for what a pilot loaded.
 - Use: readable loadout on the sortie page and sortie list, and later per-loadout stats. The names belong in the catalog defaults with
   translations, like object names (TD-24).
 

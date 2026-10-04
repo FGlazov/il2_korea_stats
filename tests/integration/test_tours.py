@@ -542,6 +542,18 @@ def test_tour_select_renders_all_time_and_marks_the_chosen_tour() -> None:
     assert 'action="/players/"' in html
 
 
+def test_tour_select_drops_every_page_parameter() -> None:
+    """A tour switch must not carry `page_best` / `page_running` / `page_*` into the new tour (page 1 of each list)."""
+    three_tour_history()
+
+    html = render_selector("/players/?q=bob&page=2&page_best=3&page_running=4&page_missions=5&pager=x")
+
+    assert 'name="q" value="bob"' in html
+    assert 'name="pager" value="x"' in html  # only `page` and `page_*` are pagination
+    for key in ("page", "page_best", "page_running", "page_missions"):
+        assert f'name="{key}"' not in html
+
+
 def test_tour_select_without_a_tour_selects_the_current_one_and_renders_nothing_without_tours() -> None:
     assert render_selector("/players/").strip() == ""
     three_tour_history()

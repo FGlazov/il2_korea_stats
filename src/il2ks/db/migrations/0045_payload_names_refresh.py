@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     (`ops/migrate.py`, `BACKFILL_PAYLOAD_NAMES`). Having a pending migration is what triggers that backfill."""
 
     dependencies = [
-        ("il2ks_db", "0045_aircraft_roles"),
+        ("il2ks_db", "0044_sortie_achievement_facts"),
     ]
 
     operations: list[migrations.operations.base.Operation] = []
