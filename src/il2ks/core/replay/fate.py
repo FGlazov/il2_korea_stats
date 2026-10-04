@@ -140,15 +140,20 @@ def took_off(sortie: SortieState, end_tick: int) -> bool:
     return any(airborne and sortie.spawn_tick <= t <= end_tick for t, airborne in airframe.flight_changes)
 
 
-def ground_loss(sortie: SortieState, *, lost: bool, loss_cause: LossCause, cutoff_tick: int) -> tuple[bool, bool]:
+def ground_loss(
+    sortie: SortieState, *, lost: bool, loss_cause: LossCause, cutoff_tick: int, killed_by_attacker: bool
+) -> tuple[bool, bool]:
     """OQ-32: `(taxi_accident, strafed_on_ground)` for a lost pilot aircraft (crashes before takeoff still count as
     deaths and losses; these two flags only label them). `cutoff_tick` is the loss, else the sortie end.
 
     - taxi accident: the aircraft never took off and nobody else is to blame (`loss_cause` self). Air starts never
       qualify.
     - strafed on the ground: an attacker is to blame and the aircraft was on the ground, either it never took off, or it
-      had landed and not taken off again, and every attacker hit or damage on the aircraft or crew came after that
-      landing (a shot-up aircraft that crash-lands and is then destroyed was shot down, not strafed).
+      had landed (an AType 6 strictly before the loss) and not taken off again. A landed aircraft counts as strafed even
+      if it was shot up in the air first, provided the kill line names an attacker (`killed_by_attacker`) or an attacker
+      hit or damaged it after the landing. A crash-landing resolves its loss at the landing tick, so it is not a
+      landing here: shot up, crash-landed, destroyed = shot down. Shot up, landed, then burned down with no attacker
+      line after the landing is not strafed either.
 
     Gunners are never flagged: their flight state is the parent's, and gunners aren't counted."""
     if sortie.role != "pilot" or not lost:
@@ -161,7 +166,9 @@ def ground_loss(sortie: SortieState, *, lost: bool, loss_cause: LossCause, cutof
     landed_at = max((t for t, airborne in airframe.flight_changes if not airborne and t <= cutoff_tick), default=-1)
     attacks = [r.tick for r in damage_records(airframe, sortie, cutoff_tick, attackers_only=True)]
     attacks += [r.tick for r in hit_records(airframe, sortie, cutoff_tick, attackers_only=True)]
-    return False, all(t > landed_at for t in attacks)
+    if not attacks:
+        return False, True
+    return False, landed_at < cutoff_tick and (killed_by_attacker or any(t > landed_at for t in attacks))
 
 
 def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:

@@ -767,6 +767,10 @@ msgid "Bad (red)"
 msgstr "Плохо (красный)"
 
 # llm-draft
+msgid "Bad luck, not bad flying: the airframe never got a chance to prove itself."
+msgstr "Не промах пилота, а злой рок: машине не дали шанса показать себя."
+
+# llm-draft
 msgid "Bailed out"
 msgstr "Выпрыгнул с парашютом"
 
@@ -1154,6 +1158,10 @@ msgstr "Песок пустыни"
 # llm-draft
 msgid "Destroyed"
 msgstr "Уничтожен"
+
+# llm-draft
+msgid "Destroyed before it ever left the ramp. The ground crew is holding a very short memorial."
+msgstr "Уничтожен, так и не выкатившись со стоянки. Наземная команда держит очень краткую минуту молчания."
 
 # llm-draft
 msgid "Destroyed on the ground"
@@ -1661,6 +1669,10 @@ msgid "Home"
 msgstr "Главная"
 
 # llm-draft
+msgid "Home at last, and the ramp was not safe either. The ground crew mourns the airframe."
+msgstr "Наконец-то дома, а на стоянке тоже небезопасно. Наземная команда скорбит по планеру."
+
+# llm-draft
 msgid "Hours Aloft"
 msgstr "Часы в небе"
 
@@ -1878,6 +1890,10 @@ msgstr "Приземлился"
 # llm-draft
 msgid "Landed by parachute, collected by the other side. The war goes on without this pilot, for now."
 msgstr "Приземлился на парашюте, и его подобрали с другой стороны. Пока война идёт без него."
+
+# llm-draft
+msgid "Landing was the easy part. The taxiway had a visitor with other plans."
+msgstr "Посадка была самой простой частью. На рулёжке ждал гость с другими планами."
 
 # llm-draft
 msgid "Landings"
@@ -2392,6 +2408,10 @@ msgstr "Не посадка и не крушение, а серьёзное ра
 # llm-draft
 msgid "Not a single contrail yet. Somebody has to be first."
 msgstr "Ни одного инверсионного следа. Кому-то же надо быть первым."
+
+# llm-draft
+msgid "Not even the engine had warmed up yet. Sometimes the war simply comes to you."
+msgstr "Двигатель даже не успел прогреться. Иногда война приходит сама."
 
 # llm-draft
 msgid "Not much was left standing down there. The map needs a fresh coat of paint."
@@ -3274,6 +3294,10 @@ msgid "Survived"
 msgstr "Выжил"
 
 # llm-draft
+msgid "Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."
+msgstr "Пережили небо, а попались на стоянке. По дороге в ангар никого не должны обстреливать."
+
+# llm-draft
 msgid "Suspected early bailouts"
 msgstr "Подозрения на преждевременный прыжок"
 
@@ -3517,6 +3541,10 @@ msgstr "Земля внизу этот вылет надолго запомни�
 # llm-draft
 msgid "The ground crew and the squadron both have a file on this one. The files have met."
 msgstr "И у техников, и в эскадрилье на этого пилота заведено дело. Дела уже успели подружиться."
+
+# llm-draft
+msgid "The ground crew mourns the airframe, and quietly polishes the next one."
+msgstr "Наземная команда скорбит по планеру и тихо полирует следующий."
 
 # llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
@@ -4017,6 +4045,10 @@ msgstr[2] ""
 # llm-draft
 msgid "What was saved"
 msgstr "Что было сохранено"
+
+# llm-draft
+msgid "Wheels down, engine barely cooling, and then the enemy arrived. Rotten luck."
+msgstr "Шасси выпущено, двигатель ещё не остыл, и тут появился враг. Не повезло так не повезло."
 
 # llm-draft
 msgid "Where to find it:"

@@ -149,24 +149,41 @@ def test_landed_aircraft_destroyed_by_an_attacker_is_strafed() -> None:
     assert (a.outcome, a.loss_cause, a.takeoffs, a.landings) == ("shot_down", "attacker", 1, 1)
 
 
-def test_crash_landing_after_being_shot_up_is_shot_down_not_strafed() -> None:
-    """The attacker's damage came before the landing: the aircraft was shot down and then destroyed on the ground."""
+def test_landed_after_being_shot_up_in_the_air_then_destroyed_is_strafed() -> None:
+    """Maintainer, 2026-10-04: a real landing (AType 6) strictly before the loss, then destroyed by an attacker on the
+    ground, is strafing even though the aircraft took damage in the air first."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()
     sc.hit(80, 200, 100)
     sc.damage(80, 200, 100, 0.6)
     sc.land(100, 100)
-    sc.damage(110, 200, 100, 0.2, pos=GROUND)  # more fire on the ground, but the first hit was in the air
+    sc.damage(110, 200, 100, 0.2, pos=GROUND)
     sc.kill(115, 200, 100, pos=GROUND)
     sc.end(115.1, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.outcome, a.loss_cause) == ("shot_down", "attacker")
+    assert _flags(a) == (False, True)
+
+
+def test_crash_landing_after_being_shot_up_is_shot_down_not_strafed() -> None:
+    """A crash-landing resolves the loss at the landing tick: not a landing, so shot down."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.hit(80, 200, 100)
+    sc.damage(80, 200, 100, 0.6)
+    sc.damage(100, 200, 100, 0.5, pos=GROUND)
+    sc.kill(100, 200, 100, pos=GROUND)
+    sc.land(100, 100)
+    sc.end(100.1, 100, 101)
     a = by_acct(sc.result(), 1)
     assert (a.outcome, a.loss_cause) == ("shot_down", "attacker")
     assert _flags(a) == (False, False)
 
 
-def test_a_hit_on_the_pilot_before_landing_also_counts_as_shot_up() -> None:
-    """Crew count with the aircraft: the pilot bot was hit in the air."""
+def test_a_hit_on_the_pilot_before_a_real_landing_does_not_stop_the_strafing() -> None:
+    """The kill line names an attacker after the landing: strafed (the pilot bot hit in the air changes nothing)."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()
@@ -174,12 +191,12 @@ def test_a_hit_on_the_pilot_before_landing_also_counts_as_shot_up() -> None:
     sc.land(100, 100)
     sc.kill(120, 200, 100, pos=GROUND)
     sc.end(120.1, 100, 101)
-    assert _flags(by_acct(sc.result(), 1)) == (False, False)
+    assert _flags(by_acct(sc.result(), 1)) == (False, True)
 
 
 def test_shot_up_then_landed_then_destroyed_by_the_environment_is_not_flagged() -> None:
-    """A earlier attacker hit makes the loss an attacker loss, but the destruction is after the landing; the
-    environment finishing the job isn't strafing and the hit came before landing."""
+    """An earlier attacker hit makes the loss an attacker loss, but the destruction is after the landing by the
+    environment, and no attacker line follows the landing: not strafing."""
     sc = Scenario()
     sc.fly_a()
     sc.fly_b()

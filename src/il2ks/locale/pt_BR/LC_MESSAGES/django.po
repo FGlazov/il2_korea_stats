@@ -755,6 +755,10 @@ msgid "Bad (red)"
 msgstr "Ruim (vermelho)"
 
 # llm-draft
+msgid "Bad luck, not bad flying: the airframe never got a chance to prove itself."
+msgstr "Foi azar, não pilotagem ruim: o avião nem teve chance de mostrar o que sabe."
+
+# llm-draft
 msgid "Bailed out"
 msgstr "Saltou de paraquedas"
 
@@ -1133,6 +1137,10 @@ msgstr "Areia do deserto"
 # llm-draft
 msgid "Destroyed"
 msgstr "Destruído"
+
+# llm-draft
+msgid "Destroyed before it ever left the ramp. The ground crew is holding a very short memorial."
+msgstr "Destruído antes mesmo de sair da rampa. A equipe de solo faz um minuto de silêncio bem curtinho."
 
 # llm-draft
 msgid "Destroyed on the ground"
@@ -1638,6 +1646,10 @@ msgid "Home"
 msgstr "Início"
 
 # llm-draft
+msgid "Home at last, and the ramp was not safe either. The ground crew mourns the airframe."
+msgstr "Em casa, finalmente, e nem a rampa estava segura. A equipe de solo lamenta a perda da fuselagem."
+
+# llm-draft
 msgid "Hours Aloft"
 msgstr "Horas no Ar"
 
@@ -1853,6 +1865,10 @@ msgstr "Pousou"
 # llm-draft
 msgid "Landed by parachute, collected by the other side. The war goes on without this pilot, for now."
 msgstr "Pousou de paraquedas e foi recolhido pelo outro lado. A guerra segue sem este piloto, por enquanto."
+
+# llm-draft
+msgid "Landing was the easy part. The taxiway had a visitor with other plans."
+msgstr "O pouso foi a parte fácil. Na pista de táxi, uma visita tinha outros planos."
 
 # llm-draft
 msgid "Landings"
@@ -2367,6 +2383,10 @@ msgstr "Nem pouso, nem queda: uma sólida divergência com o chão."
 # llm-draft
 msgid "Not a single contrail yet. Somebody has to be first."
 msgstr "Nem um rastro de condensação ainda. Alguém tem que ser o primeiro."
+
+# llm-draft
+msgid "Not even the engine had warmed up yet. Sometimes the war simply comes to you."
+msgstr "O motor nem tinha esquentado ainda. Às vezes a guerra vem até você."
 
 # llm-draft
 msgid "Not much was left standing down there. The map needs a fresh coat of paint."
@@ -3249,6 +3269,10 @@ msgid "Survived"
 msgstr "Sobreviveu"
 
 # llm-draft
+msgid "Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."
+msgstr "Você sobreviveu ao céu e foi pego na rampa. Ninguém merece ser metralhado a caminho do hangar."
+
+# llm-draft
 msgid "Suspected early bailouts"
 msgstr "Suspeitas de salto precoce"
 
@@ -3492,6 +3516,10 @@ msgstr "O chão lá embaixo vai lembrar desta missão por um bom tempo."
 # llm-draft
 msgid "The ground crew and the squadron both have a file on this one. The files have met."
 msgstr "A equipe de solo e o esquadrão têm uma pasta sobre este piloto. As pastas já se conhecem."
+
+# llm-draft
+msgid "The ground crew mourns the airframe, and quietly polishes the next one."
+msgstr "A equipe de solo lamenta a perda da fuselagem e, em silêncio, já lustra a próxima."
 
 # llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
@@ -3992,6 +4020,10 @@ msgstr[1] ""
 # llm-draft
 msgid "What was saved"
 msgstr "O que foi salvo"
+
+# llm-draft
+msgid "Wheels down, engine barely cooling, and then the enemy arrived. Rotten luck."
+msgstr "Trem de pouso embaixo, motor ainda quente, e aí o inimigo apareceu. Azar dos grandes."
 
 # llm-draft
 msgid "Where to find it:"
