@@ -21,13 +21,14 @@ from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.forms import ModelForm
+from django.forms.models import BaseModelFormSet
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import URLPattern, path, reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ngettext
 
 from il2ks.core.catalog.loader import load_default_catalog
 from il2ks.db.models import (
@@ -36,6 +37,7 @@ from il2ks.db.models import (
     GameObject,
     IngestRun,
     Mission,
+    NavLink,
     Player,
     PlayerTour,
     SiteSettings,
@@ -46,7 +48,8 @@ from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
 from il2ks.web.logo import prune_logos, store_logo
 from il2ks.web.object_names import default_catalog
-from il2ks.web.site_forms import SiteSettingsForm
+from il2ks.web.site_forms import MAX_NAV_LINKS, RECOMMENDED_NAV_LINKS, NavLinkFormSet, SiteSettingsForm
+from il2ks.web.theme import ContrastWarning, contrast_warnings
 
 if TYPE_CHECKING:
     from django.contrib.admin import ModelAdmin
@@ -84,17 +87,39 @@ class ReadOnlyIngestedAdmin[M: models.Model](ModelAdmin[M]):
 # --- Site settings (singleton) ---
 
 
+class NavLinkInline(admin.TabularInline):  # pyright: ignore[reportMissingTypeArgument]
+    model = NavLink
+    formset = NavLinkFormSet
+    extra = 2
+    max_num = MAX_NAV_LINKS
+    fields = ("label", "url", "icon", "position")
+    verbose_name = _("navigation link")
+    verbose_name_plural = _("Navigation links, in order")
+
+
+def _contrast_message(item: ContrastWarning) -> str:
+    return gettext(
+        "Low contrast in %(mode)s mode: %(what)s has a contrast ratio of %(ratio)s:1; aim for at least %(minimum)s:1 "
+        "so it stays readable."
+    ) % {
+        "mode": gettext("light") if item.mode == "light" else gettext("dark"),
+        "what": item.what,
+        "ratio": item.ratio,
+        "minimum": item.minimum,
+    }
+
+
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
     form = SiteSettingsForm
-    readonly_fields = ("current_logo",)
+    inlines = (NavLinkInline,)
+    readonly_fields = ("current_logo", "nav_links_help")
     fieldsets = (
         (None, {"fields": ("site_title", "server_name", "description")}),
-        (
-            _("Look"),
-            {"fields": ("current_logo", "logo_upload", "remove_logo", "accent_color")},
-        ),
-        (_("Links"), {"fields": ("links_text",)}),
+        (_("Logo"), {"fields": ("current_logo", "logo_upload", "remove_logo")}),
+        (_("Fonts"), {"fields": ("heading_font", "body_font")}),
+        (_("Colors"), {"fields": ("theme_preset", "theme")}),
+        (_("Navigation links"), {"fields": ("nav_links_help",)}),
         (
             _("Coalitions"),
             {
@@ -129,9 +154,43 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             obj.logo,
         )
 
+    @admin.display(description=_("About the links"))
+    def nav_links_help(self, obj: SiteSettings) -> str:
+        return format_html(
+            "{} {} {}",
+            _(
+                "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), "
+                "shown after the built-in ones."
+            ),
+            _("Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."),
+            ngettext(
+                "We recommend at most %(n)d extra link with a short label (one or two words): more still work, "
+                "but the menu then wraps onto a second row of the header.",
+                "We recommend at most %(n)d extra links with short labels (one or two words): more still work, "
+                "but the menu then wraps onto a second row of the header.",
+                RECOMMENDED_NAV_LINKS,
+            )
+            % {"n": RECOMMENDED_NAV_LINKS},
+        )
+
+    def save_related(self, request: HttpRequest, form: ModelForm, formsets: BaseModelFormSet, change: bool) -> None:
+        super().save_related(request, form, formsets, change)
+        # Number the links 1..n in the order shown and publish them into the settings row (pages read that copy).
+        site = form.instance
+        assert isinstance(site, SiteSettings)
+        links = list(NavLink.objects.filter(site=site))
+        for number, link in enumerate(links, start=1):
+            if link.position != number:
+                link.position = number
+                link.save(update_fields=["position"])
+        site.links = [{"label": link.label, "url": link.url, "icon": link.icon} for link in links]
+        site.save(update_fields=["links", "updated_at"])
+        bump_data_version()
+
     def save_model(self, request: HttpRequest, obj: SiteSettings, form: ModelForm, change: bool) -> None:
         assert isinstance(form, SiteSettingsForm)
-        obj.links = form.cleaned_data["links_text"]
+        for item in contrast_warnings(obj.theme):
+            messages.warning(request, _contrast_message(item))
         media_root = Path(settings.MEDIA_ROOT)
         if form.processed_logo is not None:
             store_logo(form.processed_logo, media_root)

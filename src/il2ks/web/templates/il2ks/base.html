@@ -1,15 +1,15 @@
-{# il2ks-template: templates/il2ks/base.html v6 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v7 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
     title    the <title> text; default: "<page_title> · <site title>". Views can set `page_title` in the context.
     head     extra <head> content (meta tags, a page's own stylesheet).
-    nav      the <ul> of header navigation links.
+    nav      the <ul> of header navigation links (the built-in ones, then `nav_links` from the admin).
     content  the page itself, inside <main>.
     footer   the footer's inner content (it holds the language menu, `{% language_menu %}`).
     scripts  extra scripts, after htmx, il2ks.js and localtime.js (real-world times in the viewer's time zone, FR-WEB-17).
-  Context from il2ks.web.context_processors.site: site (SiteSettings), site_links [(label, url)], accent_css,
-  data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
+  Context from il2ks.web.context_processors.site: site (SiteSettings), nav_links [NavItem(label, url, icon)],
+  site_links [(label, url)], theme_css (the :root colour/font overrides), data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
   static/il2ks/site.css (tokens first).
 {% endcomment %}<!doctype html>
 {% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}">
@@ -21,7 +21,7 @@
   <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}{{ site.site_title }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'il2ks/vendor/pico.min.css' %}">
   <link rel="stylesheet" href="{% static 'il2ks/site.css' %}">
-  {% if accent_css %}<style>{{ accent_css }}</style>{% endif %}
+  {% if theme_css %}<style>{{ theme_css }}</style>{% endif %}
   <script src="{% static 'il2ks/theme-init.js' %}"></script>
   {% block head %}{% endblock %}
 </head>
@@ -44,13 +44,14 @@
             <li><a href="{% url 'web:player-search' %}"{% if route == 'player-search' or route == 'player-detail' or route == 'player-sorties' or route == 'sortie-detail' %} aria-current="page"{% endif %}>{% translate "Players" %}</a></li>
             <li><a href="{% url 'web:aircraft-list' %}"{% if route == 'aircraft-list' %} aria-current="page"{% endif %}>{% translate "Aircraft" %}</a></li>
             <li><a href="{% url 'web:leaderboards' %}"{% if route == 'leaderboards' or route == 'leaderboard' %} aria-current="page"{% endif %}>{% translate "Leaderboards" %}</a></li>
-            {% if site_links %}<li>{% dropdown _("Community") site_links align="right" %}</li>{% endif %}
+            {% for link in nav_links %}<li><a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a></li>{% endfor %}
           </ul>
           {% endwith %}
         {% endblock %}
       </nav>
       <form class="site-search" role="search" action="{% url 'web:player-search' %}" method="get">
         {% translate "Find a player" as search_label %}
+        <svg class="site-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input type="search" name="q" value="{% if request.resolver_match.url_name == 'player-search' %}{{ request.GET.q }}{% endif %}" placeholder="{{ search_label }}" aria-label="{{ search_label }}" autocomplete="off">
         <button type="submit">{% translate "Search" %}</button>
       </form>

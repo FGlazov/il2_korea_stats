@@ -10,6 +10,8 @@ from typing import ClassVar, Self
 
 from django.db import models
 
+from il2ks.db.validators import validate_http_url
+
 
 class HideableQuerySet[T: models.Model](models.QuerySet[T]):
     """Rows an admin can hide from public pages (`is_hidden`, FR-ADM-3). Page code starts from `visible()`."""
@@ -972,9 +974,15 @@ class SiteSettings(models.Model):
     description = models.TextField(blank=True)  # shown on the home page
     # Path relative to MEDIA_ROOT of the re-encoded logo (raster only, never SVG; FR-ADM-2). Empty = no logo.
     logo = models.CharField(max_length=200, blank=True)
-    # "#RRGGBB" mapped onto Pico's primary color; empty = the default theme
-    accent_color = models.CharField(max_length=7, blank=True)
-    links: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)  # [{"label", "url"}]
+    # Colour overrides by token: {"light": {"accent": "#A86A14", ...}, "dark": {...}}; empty = the default look. The
+    # token list and validation live in `il2ks.web.theme` (TD-25); readers sanitize again (no CSS injection).
+    theme: models.JSONField[dict[str, dict[str, str]]] = models.JSONField(default=dict, blank=True)
+    # Font choices by key (`il2ks.web.theme.HEADING_FONTS` / `BODY_FONTS`); empty = the default font.
+    heading_font = models.CharField(max_length=20, blank=True)
+    body_font = models.CharField(max_length=20, blank=True)
+    # The custom navigation links, in order: [{"label", "url", "icon"}]. A published copy of the `NavLink` rows, written
+    # by the admin on save, so pages read them with the settings row and need no extra query (page budgets).
+    links: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)
     # Coalition display names (FR-ADM-5, doc 06): 5xx countries are REDFOR, 6xx BLUFOR.
     redfor_name = models.CharField(max_length=40, default="REDFOR")
     blufor_name = models.CharField(max_length=40, default="BLUFOR")
@@ -988,6 +996,33 @@ class SiteSettings(models.Model):
 
     def __str__(self) -> str:
         return self.site_title
+
+
+class NavIcon(models.TextChoices):
+    """The small built-in icons for a custom navigation link (static/il2ks/img/nav/<value>.svg)."""
+
+    NONE = "", "No icon"
+    DISCORD = "discord", "Discord"
+    FORUM = "forum", "Forum"
+    PATREON = "patreon", "Patreon"
+    LINK = "link", "Generic link"
+
+
+class NavLink(models.Model):
+    """One extra link in the site's top navigation, after the built-in ones (TD-25). Edited as an ordered inline of
+    `SiteSettings`; the admin publishes the list into `SiteSettings.links` when it saves."""
+
+    site = models.ForeignKey(SiteSettings, on_delete=models.CASCADE, related_name="nav_links")
+    label = models.CharField(max_length=60)
+    url = models.CharField(max_length=300, validators=[validate_http_url])
+    icon = models.CharField(max_length=10, choices=NavIcon.choices, blank=True, default=NavIcon.NONE)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def __str__(self) -> str:
+        return self.label
 
 
 class DataVersion(models.Model):

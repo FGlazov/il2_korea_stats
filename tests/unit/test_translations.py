@@ -230,7 +230,7 @@ def test_templates_and_python_are_both_extracted() -> None:
     ids = {key for _context, key in keys_of(translations.extract_catalog())}
     assert "Skip to content" in ids  # {% translate %} in base.html
     assert "Powered by il2ks %(version)s" in ids  # {% blocktranslate %}
-    assert "Community" in ids  # _("...") inside a {% dropdown %} tag
+    assert "Attack sorties" in ids  # _("...") inside a {% stat_tile %} tag
     assert "Air superiority" in ids  # gettext_lazy in web/display.py
 
 

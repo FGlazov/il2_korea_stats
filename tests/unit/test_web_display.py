@@ -107,23 +107,6 @@ def test_badge_spec_degrades_for_unknown_values() -> None:
     assert display.badge_spec(display.OUTCOMES, None) == (display.DASH, "grey", "")
 
 
-def test_accent_css_accepts_only_rrggbb() -> None:
-    assert display.accent_css("#A86A14") == ":root{--il2-accent:#a86a14;--il2-accent-contrast:#ffffff}"
-    assert display.accent_css("#ffd400").endswith("--il2-accent-contrast:#10161c}")  # light accent gets dark text
-    for bad in [
-        "",
-        "red",
-        "#fff",
-        "#12345",
-        "#1234567",
-        "#12345g",
-        "javascript:alert(1)",
-        "#aabbcc}body{x:y",
-        " #aabbcc",
-    ]:
-        assert display.accent_css(bad) == ""
-
-
 def test_next_sort_toggles_and_numeric_columns_start_descending() -> None:
     assert display.next_sort("", "kills", "desc") == "-kills"
     assert display.next_sort("-kills", "kills", "desc") == "kills"

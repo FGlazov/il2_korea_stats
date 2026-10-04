@@ -14,36 +14,32 @@
       "sha256": "00725aa7710027856d019805aba8038a7377db2daeae2a85b819dc9b30bdd56f"
     },
     "static/il2ks/missions.css": {
-      "version": 1,
-      "sha256": "b6d0cd2d30ea8fb9ee3f684f36655a87927adc348a9d8ed4a7f1952eda638d1f"
+      "version": 2,
+      "sha256": "08be06c44777acc337e06a6ad74011575b5a82ebe0cc18542cf86993ace1230f"
     },
     "static/il2ks/players.css": {
       "version": 3,
       "sha256": "b75affc5b202b48e62229f2ce77a133c86576df46d349637decc32d41475c349"
     },
     "static/il2ks/setup.css": {
-      "version": 1,
-      "sha256": "9c10d84b1455fa4237ba8460f485a033cabba98134a4b6b21121f14c5b63ba54"
+      "version": 2,
+      "sha256": "4861d8add5d90b074012f9d776374d9b03770ef95dc827545f83f53a06946cd8"
     },
     "static/il2ks/setup.js": {
       "version": 1,
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 6,
-      "sha256": "17b5d3b596d5a89a8bb555fec020e2677394f0589e0d25bded409d0193ac94a3"
+      "version": 7,
+      "sha256": "f8b210850979377a2ba050e27a07dcb2060108d47043b6e96998c700e54e875b"
     },
     "static/il2ks/sorties.css": {
-      "version": 1,
-      "sha256": "fc59c231cf3d3d5249958d044e15a056f237f30032f9d81c13347b2a95e4d0a2"
+      "version": 2,
+      "sha256": "b1eb2a1d744c15cf2d019bf0e4b15ea92187d59c6a2dc7ad833ccfe993fbcca8"
     },
     "static/il2ks/theme-init.js": {
       "version": 1,
       "sha256": "dbb085cb12309ed6e7e59cfd076e3afafb6b6ede627c5105fe18c622311fb59f"
-    },
-    "static/il2ks_admin/accent_picker.js": {
-      "version": 1,
-      "sha256": "43a7ab96888d14c4dbc76784aebbb1737782d5b06af3d7eeb732d70578fbe994"
     },
     "static/il2ks_admin/ingest_status.css": {
       "version": 1,
@@ -52,6 +48,14 @@
     "static/il2ks_admin/override_warning.css": {
       "version": 1,
       "sha256": "1a446dc1d085d10a02a06e64623c9325fe636674e81e172a0ce6d3447b5b4783"
+    },
+    "static/il2ks_admin/theme_editor.css": {
+      "version": 1,
+      "sha256": "cb0c85134d28f17669ed89a62cd7ebccfc2360ffae6ab543863bff8d6ec22060"
+    },
+    "static/il2ks_admin/theme_editor.js": {
+      "version": 1,
+      "sha256": "395aac13d9b5b54aeba52f5cbba77bf866e711d61b7ae8b4345f8181f53eb843"
     },
     "templates/404.html": {
       "version": 1,
@@ -90,8 +94,8 @@
       "sha256": "c2179e2bb3346cf773f7bd471490dee59981bf6e15bc8e7270c656c68260d492"
     },
     "templates/il2ks/base.html": {
-      "version": 6,
-      "sha256": "95d33258c1f913660d2ba7bfdb5901b5b94ccecba78708bb2f12489b5630c996"
+      "version": 7,
+      "sha256": "1eab38d00045a040fe8eea147a8c2c8a0d3b2f32546739884cea394f7af96502"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -364,6 +368,10 @@
     "templates/il2ks/styleguide.html": {
       "version": 4,
       "sha256": "d90ae2d7639d57476ad115b5bb8aaa6d0dab9d561abe67d38316317cbe073bd2"
+    },
+    "templates/il2ks_admin/theme_editor.html": {
+      "version": 1,
+      "sha256": "f4174557573d53782f0750b70c3959edf2c1c35836eb1cbc4bdfd1bbbbc8c44d"
     }
   }
 }
