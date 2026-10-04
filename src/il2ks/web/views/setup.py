@@ -199,7 +199,18 @@ def _finding_rows(cfg: Config) -> list[FindingRow]:
 
 
 def _finish(request: HttpRequest, cfg: Config, form: SetupForm, data_dir: Path) -> HttpResponse | None:
-    """Write everything; the summary page, or None (with errors added to the form) when it could not be done."""
+    """Write everything; the summary page, or None (with errors added to the form) when it could not be done.
+
+    While this runs the marker `setup-finishing.txt` tells `il2ks run` not to restart the stack for the new
+    configuration yet: the restart would cut off this very answer (`ConfigWatch` `hold`)."""
+    setup_token.mark_finishing(data_dir)
+    try:
+        return _finish_marked(request, cfg, form, data_dir)
+    finally:
+        setup_token.clear_finishing(data_dir)
+
+
+def _finish_marked(request: HttpRequest, cfg: Config, form: SetupForm, data_dir: Path) -> HttpResponse | None:
     answers = form.answers(cfg.data_dir)
     target = cfg.source or cfg.data_dir / CONFIG_FILE
     with _finish_lock:

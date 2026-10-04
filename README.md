@@ -11,7 +11,8 @@ Inspired by [IL2 stats](https://github.com/vaal-/il2_stats) by =FB=Vaal and =FB=
 
 Written for people who run a game server, not for programmers: short steps, copy-paste commands.
 
-- [Installing il2ks](docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
+- [Installing il2ks on Windows](docs/install-windows.md): the double-click installer (no terminal), service, upgrades.
+- [Installing il2ks by hand](docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
 - [Installing with Docker](docs/install-docker.md): one Compose file for Linux hosts (also DServer under Wine).
 - [Using your own proxy (nginx, IIS)](docs/reverse-proxy.md): when ports 80/443 are already taken.
 - [Customizing the site](docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.

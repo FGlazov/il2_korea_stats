@@ -768,3 +768,132 @@ def test_run_keeps_running_when_nothing_changes(env: Path, calls: Calls) -> None
     world = RunWorld()
     commands.dispatch(parse(["--config", str(env / "il2ks.toml"), "run"]), world.hooks(calls))
     assert [c.spec.name for c in world.spawned] == ["web"]
+
+
+# --- token not logged, restart waits for the setup answer, run lock follows the data folder ---------------------------
+
+
+def test_the_setup_token_is_printed_on_the_console_but_never_logged(
+    env: Path,
+    calls: Calls,
+    settings: Settings,
+    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Log files outlive the setup and are shared in bug reports: the token (a credential) must not be in them."""
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    with caplog.at_level(logging.DEBUG):
+        commands.dispatch(parse(["web"]), pending_hooks(calls, pending=True))
+    token = setup_token.read_token(env / "data")
+    assert token
+    assert token in capsys.readouterr().out
+    assert token not in caplog.text
+    assert "first-run setup is pending" in caplog.text  # the log still says that it is
+
+
+def test_setup_page_switched_off_makes_no_token_and_prints_nothing(
+    env: Path,
+    calls: Calls,
+    settings: Settings,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The Docker image sets IL2KS_SETUP_PAGE=off: no browser on the machine itself, so no address to announce."""
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    monkeypatch.setenv(setup_token.SETUP_PAGE_ENV, "off")
+    commands.dispatch(parse(["web"]), pending_hooks(calls, pending=True))
+    assert setup_token.read_token(env / "data") == ""
+    assert "setup" not in capsys.readouterr().out.lower()
+
+
+def test_config_watch_holds_the_restart_while_the_setup_answer_is_still_being_made(env: Path) -> None:
+    """The setup page writes the file, then still creates the admin and renders its summary: a restart in between
+    would cut the browser off. While `hold()` is true nothing restarts; the settle time starts after it."""
+    file = env / "il2ks.toml"
+    file.write_text("", encoding="utf-8")
+    clock = FakeClock()
+    busy = [True]
+    watch = commands.ConfigWatch(
+        file, clock, settle_s=3.0, env={"IL2KS_DATA_DIR": str(env / "data")}, hold=lambda: busy[0]
+    )
+    file.write_text("[web]\nport = 8002\n", encoding="utf-8")
+    for now in (0.0, 5.0, 10.0, 30.0):  # far longer than the settle time
+        clock.now = now
+        assert not watch.changed()
+    busy[0] = False
+    clock.now = 31.0
+    assert not watch.changed()  # the settle time counts from the end of the answer, not from the file write
+    clock.now = 32.5
+    assert not watch.changed()
+    clock.now = 33.5
+    assert watch.changed()
+
+
+def test_setup_finishing_marker_expires_so_a_crashed_request_cannot_block_restarts(tmp_path: Path) -> None:
+    assert not setup_token.finishing(tmp_path)
+    setup_token.mark_finishing(tmp_path)
+    assert setup_token.finishing(tmp_path)
+    assert not setup_token.finishing(tmp_path, now=lambda: time.time() + setup_token.FINISHING_MAX_AGE_S + 1)
+    setup_token.clear_finishing(tmp_path)
+    assert not setup_token.finishing(tmp_path)
+
+
+def test_run_lock_follows_a_change_of_data_folder(tmp_path: Path) -> None:
+    lock = commands.RunLock()
+    first, second = tmp_path / "a", tmp_path / "b"
+    first.mkdir()
+    second.mkdir()
+    lock.take(first)
+    lock.take(first)  # same folder again: nothing to do
+    assert procutil.running_stack(first) is not None
+    lock.take(second)
+    assert procutil.running_stack(second) is not None
+    assert procutil.running_stack(first) is None  # the old folder is free again
+    lock.release()
+    assert procutil.running_stack(second) is None
+
+
+def test_run_lock_keeps_the_old_folder_when_the_new_one_is_taken(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(commands, "RUN_LOCK_WAIT_S", 0.0)
+    first, second = tmp_path / "a", tmp_path / "b"
+    first.mkdir()
+    second.mkdir()
+    lock = commands.RunLock()
+    lock.take(first)
+    with procutil.run_lock(second):  # another `il2ks run` serves the new folder
+        with pytest.raises(LockBusyError):
+            lock.take(second)
+        assert procutil.running_stack(first) is not None  # still ours
+    lock.release()
+
+
+def test_run_takes_the_lock_of_the_new_data_folder_after_a_config_change(
+    env: Path, calls: Calls, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(commands.caddy, "find_caddy", returning(None))
+    new_data = env / "elsewhere"
+    config_file = env / "data" / "il2ks.toml"
+    config_file.parent.mkdir(parents=True)
+    config_file.write_text('[https]\nmode = "external"\n', encoding="utf-8")
+    text = f'data_dir = "{new_data.as_posix()}"\n[logs]\ndir = "{env.as_posix()}"\n[https]\nmode = "external"\n'
+    world = ReconfigWorld(config_file, text)
+    held: list[object] = []
+    original_sleep = world.sleep
+
+    def sleep(seconds: float) -> None:
+        if world.ticks == 1:
+            monkeypatch.delenv("IL2KS_DATA_DIR", raising=False)  # the environment would override the file's data_dir
+        original_sleep(seconds)
+        if len(world.spawned) >= 2:
+            held.append(procutil.running_stack(new_data))
+
+    world.sleep = sleep
+    assert commands.dispatch(parse(["--config", str(config_file), "run"]), world.hooks(calls)) == EXIT_OK
+    assert held
+    assert isinstance(held[0], LockHolder)  # the second generation holds the lock of its own data folder
+    assert procutil.running_stack(env / "data") is None
+    assert procutil.running_stack(new_data) is None  # and everything is released at the end

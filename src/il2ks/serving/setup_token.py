@@ -24,6 +24,9 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 
 TOKEN_FILE = "setup-token.txt"
+FINISHING_FILE = "setup-finishing.txt"
+FINISHING_MAX_AGE_S = 60.0
+SETUP_PAGE_ENV = "IL2KS_SETUP_PAGE"
 SETUP_PATH = "/setup/"
 LOCAL_HOST_NAMES = frozenset({"localhost", "127.0.0.1", "::1"})
 FORWARDING_HEADERS = (
@@ -76,6 +79,39 @@ def discard_token(data_dir: Path) -> None:
     """Setup is complete (or an admin exists): the page is gone for good."""
     with contextlib.suppress(OSError):
         token_path(data_dir).unlink(missing_ok=True)
+
+
+def page_disabled(env: Mapping[str, str]) -> bool:
+    """`IL2KS_SETUP_PAGE=off` (the Docker image sets it): no token is made and the page stays a 404. A container's
+    browser never reaches the page anyway (the peer is not loopback): announcing it would mislead."""
+    return env.get(SETUP_PAGE_ENV, "").strip().lower() in {"off", "0", "no", "false"}
+
+
+def mark_finishing(data_dir: Path) -> None:
+    """The setup page is about to write the configuration and answer: `il2ks run` must not restart the stack on that
+    change before the answer has been sent (`finishing`)."""
+    with contextlib.suppress(OSError):
+        data_dir.mkdir(parents=True, exist_ok=True)
+        finishing_path(data_dir).write_text("finishing\n", encoding="utf-8")
+
+
+def clear_finishing(data_dir: Path) -> None:
+    with contextlib.suppress(OSError):
+        finishing_path(data_dir).unlink(missing_ok=True)
+
+
+def finishing_path(data_dir: Path) -> Path:
+    return data_dir / FINISHING_FILE
+
+
+def finishing(data_dir: Path, *, now: Callable[[], float] = time.time) -> bool:
+    """Whether a setup page submit is in flight. A marker older than `FINISHING_MAX_AGE_S` (a crashed request) is
+    ignored, so a stale file can never block a restart for good."""
+    try:
+        age = now() - finishing_path(data_dir).stat().st_mtime
+    except OSError:
+        return False
+    return age < FINISHING_MAX_AGE_S
 
 
 def token_matches(data_dir: Path, given: str) -> bool:

@@ -1,0 +1,199 @@
+name: Windows installer
+
+# Builds dist/il2ks-setup-<version>.exe (packaging/windows, doc 07 option B), smoke-tests it, and on a version tag attaches it
+# to the GitHub release. Not run on every push: it downloads about 90 MB of pinned inputs and takes several minutes.
+#
+#  - tag v*              build + smoke test + release asset (+ the real-service test, which may fail without blocking)
+#  - workflow_dispatch   build + smoke test, uploaded as a workflow artifact; tick "service_test" for the real-service test
+#
+# The smoke test installs into a temp folder with the service and firewall steps switched off (/NOSERVICE /NOFIREWALL), so it
+# changes nothing outside the runner's disposable VM anyway. The service test installs the real service on that VM.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      service_test:
+        description: "Also install the real Windows service on the runner and check start and graceful stop"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+
+      - name: The tag must match the package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version="$(uv run python -c 'import il2ks; print(il2ks.__version__)')"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match il2ks.__version__ ${version}" >&2
+            exit 1
+          fi
+
+      - name: Build the installer (pinned inputs, SHA-256 checked)
+        run: uv run python packaging/windows/build.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: il2ks-windows-installer
+          path: dist/il2ks-setup-*.exe
+          if-no-files-found: error
+
+  smoke:
+    # Install silently into a temp folder, no service, no firewall; run il2ks from the installed copy; uninstall.
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: il2ks-windows-installer
+          path: installer
+
+      - name: Install silently
+        shell: pwsh
+        run: |
+          $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
+          $app = Join-Path $env:RUNNER_TEMP 'il2ks-app'
+          $logs = Join-Path $env:RUNNER_TEMP 'dserver-logs'
+          $pw = Join-Path $env:RUNNER_TEMP 'il2ks-admin-password.txt'
+          Set-Content -Path $pw -Value 'Correct-Horse-Battery-9' -Encoding ascii
+          New-Item -ItemType Directory -Force $logs | Out-Null
+          "APP=$app" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+          $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=$app", "/LOG=$env:RUNNER_TEMP\setup.log",
+                    '/NOSERVICE', '/NOFIREWALL', '/MERGETASKS=!firewall', "/LOGDIR=$logs", '/TIMEZONE=UTC',
+                    '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
+          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          if (Test-Path "$pw") { throw "the installer did not delete the password file" }
+          if (Test-Path "$env:RUNNER_TEMP\setup.log") { Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 60 }
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+
+      - name: il2ks --version and doctor from the installed copy
+        shell: pwsh
+        run: |
+          & "$env:APP\il2ks.cmd" --version
+          if ($LASTEXITCODE -ne 0) { throw "il2ks --version failed" }
+          & "$env:APP\il2ks.cmd" doctor
+          # 0 = all OK, 1 = warnings (no missions yet, no domain), 2 = errors: only that fails the job
+          if ($LASTEXITCODE -ge 2) { throw "il2ks doctor reported errors (exit code $LASTEXITCODE)" }
+          if (-not (Test-Path "$env:APP\service\il2ks-service.exe")) { throw "the service wrapper is missing" }
+          if (-not (Test-Path "$env:APP\bin\caddy.exe")) { throw "caddy.exe is missing" }
+          & "$env:APP\bin\caddy.exe" version
+          if (-not (Test-Path "$env:ProgramData\il2ks\il2ks.toml")) { throw "setup did not write il2ks.toml" }
+          if (Get-Service il2ks -ErrorAction SilentlyContinue) { throw "a service was installed despite /NOSERVICE" }
+
+      - name: The site answers (il2ks web --dev from the installed Python)
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath "$env:APP\python\python.exe" -PassThru -NoNewWindow `
+            -ArgumentList '-m', 'il2ks', '--config', "$env:ProgramData\il2ks\il2ks.toml", 'web', '--dev', '--port', '18000'
+          $ok = $false
+          foreach ($i in 1..60) {
+            try { $r = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18000/ ; $ok = $true; break } catch { Start-Sleep 1 }
+          }
+          Stop-Process -Id $proc.Id -Force
+          if (-not $ok) { throw "the site did not answer" }
+
+      - name: Uninstall keeps the data
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "$env:APP\unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstaller exit code $($p.ExitCode)" }
+          Start-Sleep 3
+          if (Test-Path "$env:APP\python") { throw "program files are still there" }
+          if (-not (Test-Path "$env:ProgramData\il2ks\il2ks.toml")) { throw "the data folder was deleted" }
+
+  service-test:
+    # The real thing on a disposable runner: register the Windows service, start it, stop it the way Windows does, remove it.
+    # Informational until it has passed on a real runner a few times (continue-on-error), because it cannot be run elsewhere.
+    needs: build
+    if: github.event_name == 'push' || inputs.service_test
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: il2ks-windows-installer
+          path: installer
+
+      - name: Install with the service (own-proxy mode: no ports 80/443 needed)
+        shell: pwsh
+        run: |
+          $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
+          $logs = Join-Path $env:RUNNER_TEMP 'dserver-logs'
+          $pw = Join-Path $env:RUNNER_TEMP 'il2ks-admin-password.txt'
+          Set-Content -Path $pw -Value 'Correct-Horse-Battery-9' -Encoding ascii
+          New-Item -ItemType Directory -Force $logs | Out-Null
+          $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\setup.log", '/NOFIREWALL',
+                    '/HTTPS=external', '/DOMAIN=stats.example.org', "/LOGDIR=$logs", '/TIMEZONE=UTC',
+                    '/ADMINUSER=ci', "/ADMINPASSWORDFILE=$pw")
+          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          Get-Content "$env:RUNNER_TEMP\setup.log" | Select-Object -Last 80
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+
+      - name: The service is running and the site answers
+        shell: pwsh
+        run: |
+          $svc = Get-Service il2ks
+          if ($svc.Status -ne 'Running') { throw "service status: $($svc.Status)" }
+          $account = (Get-CimInstance Win32_Service -Filter "Name='il2ks'").StartName
+          if ($account -ne 'NT SERVICE\il2ks') { throw "the service runs as '$account', not as its virtual account" }
+          $ok = $false
+          foreach ($i in 1..90) {
+            try {
+              # production mode redirects plain http to https unless the proxy says it already did
+              $r = Invoke-WebRequest -UseBasicParsing -Headers @{ 'X-Forwarded-Proto' = 'https'; Host = 'stats.example.org' } http://127.0.0.1:8000/
+              $ok = $true; break
+            } catch { Start-Sleep 1 }
+          }
+          if (-not $ok) { Get-ChildItem "$env:ProgramData\il2ks\logs" -Recurse | ForEach-Object { "== $($_.FullName)"; Get-Content $_.FullName -Tail 20 }; throw "the site did not answer" }
+
+      - name: Stopping the service stops il2ks gracefully and leaves nothing behind
+        shell: pwsh
+        run: |
+          Stop-Service il2ks
+          Start-Sleep 3
+          $left = Get-Process -Name python, caddy -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$env:ProgramFiles\il2ks\*" }
+          Get-ChildItem "$env:ProgramData\il2ks\logs" -Filter 'run-*.log' | ForEach-Object { Get-Content $_.FullName -Tail 12 }
+          if ($left) { throw "processes left behind: $($left.Id -join ', ')" }
+          $log = Get-ChildItem "$env:ProgramData\il2ks\logs" -Filter 'run-*.log' | ForEach-Object { Get-Content $_.FullName } | Out-String
+          if ($log -notmatch '"message": "stopped"') { throw "il2ks run did not log a clean stop (it was killed)" }
+          Start-Service il2ks
+
+      - name: Uninstall removes the service
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "$env:ProgramFiles\il2ks\unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "uninstaller exit code $($p.ExitCode)" }
+          Start-Sleep 5
+          if (Get-Service il2ks -ErrorAction SilentlyContinue) { throw "the service is still registered" }
+          if (-not (Test-Path "$env:ProgramData\il2ks\il2ks.toml")) { throw "the data folder was deleted" }
+
+  release:
+    needs: smoke
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # attach the installer to the GitHub release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: il2ks-windows-installer
+          path: installer
+      - name: Attach the installer to the release (created if the PyPI release workflow has not made one)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
+          sha256sum installer/*.exe | tee installer/SHA256SUMS.txt
+          gh release upload "$GITHUB_REF_NAME" installer/*.exe installer/SHA256SUMS.txt --clobber
