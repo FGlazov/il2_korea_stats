@@ -33,6 +33,14 @@ jobs:
             exit 1
           fi
 
+      - name: Template versions count again after the first release (TD-25)
+        run: |
+          done="$(uv run python -c 'from il2ks.serving.templateversions import FIRST_RELEASE_DONE; print(FIRST_RELEASE_DONE)')"
+          if [ "${done}" != "True" ]; then
+            echo "FIRST_RELEASE_DONE is still False in serving/templateversions.py: flip it before tagging (docs/releasing.md)" >&2
+            exit 1
+          fi
+
       - name: Tests, including the wheel contents check
         run: uv run pytest -q
         env:
