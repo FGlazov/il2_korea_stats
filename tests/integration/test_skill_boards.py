@@ -276,7 +276,7 @@ def test_the_backfill_derives_the_sortie_column_from_the_timelines_and_rebuilds_
     SiteSettings.objects.filter(pk=1).update(backfills_done=[])
     cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
 
-    migrate._backfill_interception(cfg)  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg, [migrate.BACKFILL_INTERCEPTION])  # pyright: ignore[reportPrivateUsage]
 
     assert PlayerSortie.objects.get(pk=killer.pk).kills_air_intercept == 2  # the B-29 and the attack sortie
     assert Player.objects.get(account_uuid=account(4)).flight_time_air_s == 3600.0

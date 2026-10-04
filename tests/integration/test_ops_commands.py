@@ -651,8 +651,8 @@ def test_backfills_run_once_even_when_their_trigger_stays_true(tmp_path: Path, m
     monkeypatch.setattr(aggregates, "rebuild_aggregates", fake)
     cfg = make_instance(tmp_path)
 
-    migrate._backfill_scores(cfg)  # pyright: ignore[reportPrivateUsage]
-    migrate._backfill_scores(cfg)  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg, [migrate.BACKFILL_SCORES])  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg, [migrate.BACKFILL_SCORES])  # pyright: ignore[reportPrivateUsage]
 
     assert calls == [1]
     assert "scores" in get_site_settings().backfills_done

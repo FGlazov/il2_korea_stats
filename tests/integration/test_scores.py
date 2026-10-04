@@ -205,7 +205,7 @@ def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, m
 
     monkeypatch.setattr(aggregates, "rebuild_aggregates", fake)
 
-    migrate._backfill_scores(cfg)  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg, [migrate.BACKFILL_SCORES])  # pyright: ignore[reportPrivateUsage]
 
     assert calls == [{"marks": cfg.marks, "score": cfg.score, "board": cfg.board}]
     assert cfg.marks.min_sorties == 7

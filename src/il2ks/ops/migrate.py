@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -58,13 +59,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
             log.info("backed up the database before updating it: %s", backup)
         log.info("applying database migrations")
         call_command("migrate", interactive=False, verbosity=0)
-        _backfill_tours(cfg)
-        _backfill_scores(cfg)
-        _backfill_type_ratings(cfg)
-        _backfill_type_killboard(cfg)
-        _backfill_interception(cfg)
-        _backfill_assist_split(cfg)
-        _backfill_achievements()
+        _run_backfills(cfg)
         return backup
 
 
@@ -86,14 +81,15 @@ def _already_done(name: str) -> bool:
     return name in get_site_settings().backfills_done
 
 
-def _mark_done(name: str) -> None:
-    """Record that the backfill ran (or was not needed), so a later migration doesn't repeat it."""
+def _mark_done(*names: str) -> None:
+    """Record that these backfills ran (or were not needed), so a later migration doesn't repeat them."""
     from il2ks.db.models import SiteSettings
     from il2ks.db.site import get_site_settings
 
     done = get_site_settings().backfills_done
-    if name not in done:
-        SiteSettings.objects.filter(pk=1).update(backfills_done=[*done, name])
+    missing = [name for name in names if name not in done]
+    if missing:
+        SiteSettings.objects.filter(pk=1).update(backfills_done=[*done, *missing])
 
 
 def _rebuild_all(cfg: Config) -> None:
@@ -104,167 +100,155 @@ def _rebuild_all(cfg: Config) -> None:
     rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
 
 
-def _backfill_assist_split(cfg: Config) -> None:
+def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
+    """Run the one-time data fix-ups an upgrade needs (`only` limits them to those names; tests).
+
+    Each level-1 step fixes the stored sortie columns it is responsible for and says whether level 2 needs a rebuild;
+    the rebuild then runs once for all of them (it used to run once per step, up to three times on a very old database),
+    and all the markers are written in the same transaction. Only backfills not yet marked done run, and they run only
+    when migrations were pending (`migrate_if_needed`): a database that is up to date never gets here."""
+    from django.db import transaction
+
+    steps: list[tuple[str, Callable[[], bool]]] = [
+        (BACKFILL_TOURS, _check_tours),
+        (BACKFILL_SCORES, _check_scores),
+        (BACKFILL_TYPE_RATINGS, _check_type_ratings),
+        (BACKFILL_TYPE_KILLBOARD, _check_type_killboard),
+        (BACKFILL_INTERCEPTION, _check_interception),
+        (BACKFILL_ASSIST_SPLIT, _check_assist_split),
+    ]
+    wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
+    with transaction.atomic():
+        rebuild = False
+        for _, check in wanted:  # every step runs: each one also fixes level 1
+            rebuild = check() or rebuild
+        if rebuild:
+            log.info("rebuilding the aggregates for the upgrade")
+            _rebuild_all(cfg)
+        elif only is None or BACKFILL_TOURS in only:
+            _backfill_thresholds(cfg)
+        _mark_done(*(name for name, _ in wanted))
+        if only is None or BACKFILL_ACHIEVEMENTS in only:
+            _backfill_achievements()  # after the rebuild, which computes the medals itself
+
+
+def _check_assist_split() -> bool:
     """A database from before assists were split has `assists` but no `assists_air` / `assists_ground`. The timeline's
     `assist` entries name the victim (a player sortie, or the object type), so air and ground are derived from them with
     the replay's own rule (a victim is air when it is a player's aircraft or its catalog class is an air class); the
-    remainder of `assists` (a timeline that lost entries) counts as ground. Then level 2 is rebuilt once, which also
-    rescores (ground assists no longer score). `il2ks reprocess` gives the same."""
-    from django.db import transaction
-
+    remainder of `assists` (a timeline that lost entries) counts as ground. Returns whether level 2 must be rebuilt,
+    which also rescores (ground assists no longer score). `il2ks reprocess` gives the same."""
     from il2ks.core.catalog.loader import AIR_CLASSES
     from il2ks.db.models import GameObject, PlayerSortie
-    from il2ks.ingest.dbutil import update_rows
+    from il2ks.ingest.dbutil import update_partial_rows
 
-    if _already_done(BACKFILL_ASSIST_SPLIT):
-        return
     sorties = PlayerSortie.objects.filter(assists__gt=0)
-    with transaction.atomic():
-        if (
-            sorties.exists()
-            and not sorties.filter(assists_air__gt=0).exists()
-            and not sorties.filter(assists_ground__gt=0).exists()
-        ):
-            log.info("splitting assists into air and ground")
-            classes = dict(GameObject.objects.values_list("log_name", "cls"))
-            changed: list[PlayerSortie] = []
-            for sortie in sorties.only("pk", "assists", "timeline", "assists_air", "assists_ground"):
-                air = 0
-                for entry in sortie.timeline:
-                    other = entry.get("counterpart")
-                    if entry.get("kind") != "assist" or not isinstance(other, dict):
-                        continue
-                    victim = cast("dict[str, object]", other)
-                    air += (
-                        victim.get("sortie_id") is not None
-                        or classes.get(str(victim.get("object_type"))) in AIR_CLASSES
-                    )
-                sortie.assists_air = min(air, sortie.assists)
-                sortie.assists_ground = sortie.assists - sortie.assists_air
-                changed.append(sortie)
-            update_rows(PlayerSortie, changed, ["assists_air", "assists_ground"])
-            _rebuild_all(cfg)
-        _mark_done(BACKFILL_ASSIST_SPLIT)
+    if (
+        not sorties.exists()
+        or sorties.filter(assists_air__gt=0).exists()
+        or sorties.filter(assists_ground__gt=0).exists()
+    ):
+        return False
+    log.info("splitting assists into air and ground")
+    classes = dict(GameObject.objects.values_list("log_name", "cls"))
+    changed: list[PlayerSortie] = []
+    # Only the needed columns are loaded, streamed in chunks (timelines are big), and only pk + the two columns written.
+    for pk, assists, timeline in sorties.values_list("pk", "assists", "timeline").iterator(chunk_size=500):
+        air = 0
+        for entry in timeline:
+            other = entry.get("counterpart")
+            if entry.get("kind") != "assist" or not isinstance(other, dict):
+                continue
+            victim = cast("dict[str, object]", other)
+            air += victim.get("sortie_id") is not None or classes.get(str(victim.get("object_type"))) in AIR_CLASSES
+        air = min(air, assists)
+        changed.append(PlayerSortie(pk=pk, assists_air=air, assists_ground=assists - air))
+    update_partial_rows(PlayerSortie, changed, ["assists_air", "assists_ground"])
+    return True
 
 
-def _backfill_interception(cfg: Config) -> None:
+def _check_interception() -> bool:
     """A database from before the interception board has no `PlayerSortie.kills_air_intercept`. The sortie timelines
     name every kill's victim type (and the victim's sortie), so the column is derived from them (the same rule as the
-    replay, `is_interception_victim`), then level 2 is rebuilt once (FR-WEB-7). `il2ks reprocess` gives the same."""
-    from django.db import transaction
-
+    replay, `is_interception_victim`); level 2 must then be rebuilt (FR-WEB-7). `il2ks reprocess` gives the same."""
     from il2ks.core.replay.attack import is_interception_victim
     from il2ks.db.models import GameObject, PlayerSortie
-    from il2ks.ingest.dbutil import update_rows
+    from il2ks.ingest.dbutil import update_partial_rows
 
-    if _already_done(BACKFILL_INTERCEPTION):
-        return
     sorties = PlayerSortie.objects.filter(kills_air__gt=0)
-    with transaction.atomic():
-        if PlayerSortie.objects.exists() and not sorties.filter(kills_air_intercept__gt=0).exists():
-            log.info("counting kills of bombers and attackers")
-            classes = dict(GameObject.objects.values_list("log_name", "cls"))
-            roles = dict(PlayerSortie.objects.exclude(combat_role=None).values_list("pk", "combat_role"))
-            changed: list[PlayerSortie] = []
-            for sortie in sorties.only("pk", "timeline", "kills_air_intercept"):
-                count = 0
-                for entry in sortie.timeline:
-                    other = entry.get("counterpart")
-                    if entry.get("kind") != "kill" or not isinstance(other, dict):
-                        continue
-                    victim = cast("dict[str, object]", other)
-                    victim_id = victim.get("sortie_id")
-                    victim_role = roles.get(victim_id) if isinstance(victim_id, int) else None
-                    count += is_interception_victim(classes.get(str(victim.get("object_type"))), victim_role)
-                if count:
-                    sortie.kills_air_intercept = count
-                    changed.append(sortie)
-            update_rows(PlayerSortie, changed, ["kills_air_intercept"])
-            _rebuild_all(cfg)
-        _mark_done(BACKFILL_INTERCEPTION)
+    if not PlayerSortie.objects.exists() or sorties.filter(kills_air_intercept__gt=0).exists():
+        return False
+    log.info("counting kills of bombers and attackers")
+    classes = dict(GameObject.objects.values_list("log_name", "cls"))
+    roles = dict(PlayerSortie.objects.exclude(combat_role=None).values_list("pk", "combat_role"))
+    changed: list[PlayerSortie] = []
+    for pk, timeline in sorties.values_list("pk", "timeline").iterator(chunk_size=500):
+        count = 0
+        for entry in timeline:
+            other = entry.get("counterpart")
+            if entry.get("kind") != "kill" or not isinstance(other, dict):
+                continue
+            victim = cast("dict[str, object]", other)
+            victim_id = victim.get("sortie_id")
+            victim_role = roles.get(victim_id) if isinstance(victim_id, int) else None
+            count += is_interception_victim(classes.get(str(victim.get("object_type"))), victim_role)
+        if count:
+            changed.append(PlayerSortie(pk=pk, kills_air_intercept=count))
+    update_partial_rows(PlayerSortie, changed, ["kills_air_intercept"])
+    return True
 
 
-def _backfill_type_killboard(cfg: Config) -> None:
+def _check_type_killboard() -> bool:
     """A database from before the killboard by aircraft type and the per-tour / intercept matchups has matchup rows
-    (all-time only) but no `PlayerTypeKillboard` row (FR-WEB-8, FR-WEB-9): rebuild level 2 once."""
-    from django.db import transaction
-
+    (all-time only) but no `PlayerTypeKillboard` row (FR-WEB-8, FR-WEB-9): level 2 must be rebuilt."""
     from il2ks.db.models import AircraftMatchup, PlayerTypeKillboard
 
-    if _already_done(BACKFILL_TYPE_KILLBOARD):
-        return
-    with transaction.atomic():
-        if AircraftMatchup.objects.exists() and not PlayerTypeKillboard.objects.exists():
-            log.info("building the killboard by aircraft type")
-            _rebuild_all(cfg)
-        _mark_done(BACKFILL_TYPE_KILLBOARD)
+    return AircraftMatchup.objects.exists() and not PlayerTypeKillboard.objects.exists()
 
 
-def _backfill_type_ratings(cfg: Config) -> None:
+def _check_type_ratings() -> bool:
     """A database from before the per-type Elo (OQ-49) and the prop / jet pools has no rated games in any
-    `PlayerAircraft` row and no `PlayerPool` rows: rebuild level 2 once, which also applies the current `[score]` rules
-    (the penalty rules changed in the same release)."""
-    from django.db import transaction
-
+    `PlayerAircraft` row and no `PlayerPool` rows: level 2 must be rebuilt, which also applies the current `[score]`
+    rules (the penalty rules changed in the same release)."""
     from il2ks.db.models import PlayerAircraft, PlayerPool
 
-    if _already_done(BACKFILL_TYPE_RATINGS):
-        return
     rows = PlayerAircraft.objects.all()
-    with transaction.atomic():
-        if rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists()):
-            log.info("rating aircraft types and rescoring sorties")
-            _rebuild_all(cfg)
-        _mark_done(BACKFILL_TYPE_RATINGS)
+    return rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists())
 
 
-def _backfill_scores(cfg: Config) -> None:
-    """Sorties saved before the score existed have none: when there are pilot sorties and none has a score, compute
-    every score from the stored columns and rebuild level 2 (FR-WEB-7). Rule changes: `il2ks rebuild-aggregates`."""
-    from django.db import transaction
-
+def _check_scores() -> bool:
+    """Sorties saved before the score existed have none: when there are pilot sorties and none has a score, level 2
+    must be rebuilt, which computes every score from the stored columns (FR-WEB-7). Rule changes: `il2ks
+    rebuild-aggregates`."""
     from il2ks.db.models import PlayerSortie, Role
 
-    if _already_done(BACKFILL_SCORES):
-        return
     pilots = PlayerSortie.objects.filter(role=Role.PILOT)
-    with transaction.atomic():
-        if pilots.exists() and not pilots.exclude(air_points=0, ground_points=0).exists():
-            log.info("scoring existing sorties")
-            _rebuild_all(cfg)
-        _mark_done(BACKFILL_SCORES)
+    return pilots.exists() and not pilots.exclude(air_points=0, ground_points=0).exists()
 
 
-def _backfill_tours(cfg: Config) -> None:
-    """Missions saved before tours existed get their tour, and the per-tour rows are built (FR-WEB-10, TD-26)."""
-    from django.db import transaction
-
+def _check_tours() -> bool:
+    """Missions saved before tours existed get their tour, and the per-tour rows are built (FR-WEB-10, TD-26), by the
+    rebuild. Also a database from before the per-tour killboard and the best streaks: streaks exist, their best rows
+    don't."""
     from il2ks.db.models import Mission, PlayerBestStreak, PlayerStreak
 
-    # Also a database from before the per-tour killboard and the best streaks: streaks exist, their best rows don't.
     old_streaks = PlayerStreak.objects.exists() and not PlayerBestStreak.objects.exists()
-    if _already_done(BACKFILL_TOURS):
-        needs_rebuild = False
-    else:
-        needs_rebuild = Mission.objects.filter(tour__isnull=True).exists() or old_streaks
-        if not needs_rebuild:
-            _mark_done(BACKFILL_TOURS)
-    if needs_rebuild:
-        log.info("assigning existing missions to tours and rebuilding the aggregates")
-        with transaction.atomic():
-            _rebuild_all(cfg)
-            _mark_done(BACKFILL_TOURS)
-    else:
-        from il2ks.db.models import Player, StatThreshold
-        from il2ks.ingest.stat_marks import recompute_thresholds
+    return Mission.objects.filter(tour__isnull=True).exists() or old_streaks
 
-        # A database from before stat marks (FR-WEB-22), or before the score and Elo marks (the newest metric is the
-        # marker; a site without enough pilots just recomputes its few rows at each start): build the thresholds once,
-        # without waiting for a mission.
-        if not StatThreshold.objects.filter(metric="air_score").exists() and Player.objects.exists():
-            log.info("computing stat thresholds")
-            with transaction.atomic():
-                recompute_thresholds(cfg.marks)
+
+def _backfill_thresholds(cfg: Config) -> None:
+    """A database from before stat marks (FR-WEB-22), or before the score and Elo marks (the newest metric is the
+    marker): build the thresholds once, without waiting for a mission. Backfills only run when migrations are pending
+    (`migrate_if_needed`), so a site too small to fill the thresholds does not recompute them at each start."""
+    from django.db import transaction
+
+    from il2ks.db.models import Player, StatThreshold
+    from il2ks.ingest.stat_marks import recompute_thresholds
+
+    if not StatThreshold.objects.filter(metric="air_score").exists() and Player.objects.exists():
+        log.info("computing stat thresholds")
+        with transaction.atomic():
+            recompute_thresholds(cfg.marks)
 
 
 def _backfill_achievements() -> None:
