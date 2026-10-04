@@ -1,10 +1,12 @@
 """ORDER BY helpers for the sortable list pages (TD-22: plain expressions, no aggregation).
 
-A page's sort whitelist maps a public `?sort=` key to a `SortSpec`: a column name, a `Ratio` of two columns or a
-`Rated` column. Ratios and ratings have no value where their denominator or game count is 0; those rows get NULL and
-always sort last, ascending or descending, on SQLite and Postgres alike (their default NULL placement differs).
+A page's sort whitelist maps a public `?sort=` key to a `SortSpec`: a column name, a `Ratio` of two columns, a `Rated`
+column or a `Computed` expression. Ratios and ratings have no value where their denominator or game count is 0; those
+rows get NULL and always sort last, ascending or descending, on SQLite and Postgres alike (their default NULL placement
+differs).
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from django.db.models import Case, Expression, ExpressionWrapper, F, FloatField, OrderBy, Value, When
@@ -30,7 +32,15 @@ class Rated:
     games: str
 
 
-type SortSpec = str | Ratio | Rated
+@dataclass(frozen=True, slots=True)
+class Computed:
+    """Any expression of the row: `build(prefix)` returns it (`prefix` reaches the columns through a relation). A NULL
+    result sorts last in both directions (a hidden player's name, a gunner's missing combat role)."""
+
+    build: Callable[[str], Expression]
+
+
+type SortSpec = str | Ratio | Rated | Computed
 
 
 def order_by(spec: SortSpec, sort: str, prefix: str = "") -> Expression | OrderBy:
@@ -61,4 +71,6 @@ def order_by(spec: SortSpec, sort: str, prefix: str = "") -> Expression | OrderB
                 default=None,
                 output_field=FloatField(),
             )
+        case Computed():
+            expression = spec.build(prefix)
     return expression.desc(nulls_last=True) if descending else expression.asc(nulls_last=True)

@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v5 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v6 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
   PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
-  aircraft), sortie_count.
+  aircraft), sortie_count, sort (the resolved ?sort=, orders all the sortie tables, not the kills), optional_columns / columns
+  (the optional sortie columns and the chosen ones, ?cols=), colspan.
   Crumbs: breadcrumbs. Blocks: head (page stylesheet), content. Hidden players are anonymised through missions/_player.html (FR-ADM-3).
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
@@ -34,6 +35,8 @@
     <a href="#kills">{% translate "Kills" %} ({{ kills|length|num }})</a>
   </nav>
   <h2>{% translate "Sorties" %}</h2>
+  {% results_region %}
+  {% filter_bar %}{% columns_picker optional_columns %}{% endfilter_bar %}
   {% for group in groups %}
     <h3 id="sorties-{{ group.side|default:"other" }}" class="side-heading{% if group.side %} side-heading--{{ group.side }}{% endif %}">
       {% if group.side %}{% coalition_icon group.side %}{% side group.side as heading_name %}{% else %}{% translate "Other" as heading_name %}{% endif %}
@@ -44,16 +47,17 @@
       <table class="data-table data-table--compact sortie-table">
         <thead>
           <tr>
-            <th scope="col" class="num">{% translate "Time" %}</th>
-            <th scope="col">{% translate "Pilot" %}</th>
-            <th scope="col">{% translate "Aircraft" %}</th>
-            <th scope="col">{% translate "Role" %}</th>
-            <th scope="col">{% translate "Outcome" %}</th>
-            <th scope="col">{% translate "Pilot fate" %}</th>
-            <th scope="col" class="num">{% translate "Air" %}</th>
-            <th scope="col" class="num">{% translate "Ground" %}</th>
-            <th scope="col" class="num">{% translate "Assists" %}</th>
-            <th scope="col" class="num">{% translate "Flight time" %}</th>
+            {% sort_th "time" _("Time") numeric=True first="asc" %}
+            {% sort_th "pilot" _("Pilot") %}
+            {% sort_th "aircraft" _("Aircraft") %}
+            {% sort_th "role" _("Role") %}
+            {% sort_th "outcome" _("Outcome") %}
+            {% sort_th "fate" _("Pilot fate") first="desc" %}
+            {% sort_th "kills_air" _("Air") numeric=True %}
+            {% sort_th "kills_ground" _("Ground") numeric=True %}
+            {% sort_th "assists" _("Assists") numeric=True %}
+            {% sort_th "flight_time" _("Flight time") numeric=True %}
+            {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric %}{% endfor %}
             <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
           </tr>
         </thead>
@@ -70,15 +74,17 @@
               <td class="num">{{ s.kills_ground|num }}</td>
               <td class="num">{{ s.assists|num }}</td>
               <td class="num">{{ s.flight_time_s|duration }}</td>
+              {% for column in columns %}<td{% if column.numeric %} class="num"{% endif %}>{{ column|cell:s }}</td>{% endfor %}
               <td>{% if not s.player.is_hidden %}<a class="row-link stretched-link" href="{% url 'web:sortie-detail' s.pk %}" title="{% translate 'Sortie details' %}" aria-label="{% translate 'Sortie details' %}">→</a>{% endif %}</td>
             </tr>
           {% empty %}
-            {% empty_row 11 _("Nobody flew for this side.") %}
+            {% empty_row colspan _("Nobody flew for this side.") %}
           {% endfor %}
         </tbody>
       </table>
     </div>
   {% endfor %}
+  {% endresults_region %}
 
   <h2 id="kills">{% translate "Kills" %}</h2>
   <p class="muted">{% translate "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in the sortie rows above." %}</p>

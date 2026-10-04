@@ -123,6 +123,16 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 )
 
 
+# --- the sortie tables of a mission page ---------------------------------------------------------------------------
+# The default columns (time, pilot, aircraft, role, outcome, fate, kills, assists, flight time) stay in the template;
+# these are the extras: the player sortie list's, minus the mission (this page), plus the damage taken (a default
+# column there).
+MISSION_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
+    Column("damage_taken", _("Damage taken"), lambda s: f"{round(s.damage_taken * 100)}%"),
+    *(column for column in SORTIE_COLUMNS if column.key != "mission"),
+)
+
+
 # --- aircraft (all time) -------------------------------------------------------------------------------------------
 AIRCRAFT_COLUMNS: tuple[Column[AircraftStats], ...] = (
     Column("kills_air_pvp", _("Air kills (PvP)"), lambda a: display.num(a.kills_air_pvp)),

@@ -110,10 +110,15 @@ def mission_list(request: HttpRequest) -> HttpResponse:
 
 
 def mission_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """`/missions/<pk>/`. Query parameters: `sort` (one of `reads.SORTIE_SORT_FIELDS`, '-' = descending) orders the
+    sortie tables, all three alike; `cols` adds optional sortie columns (`columns.MISSION_SORTIE_COLUMNS`). The kills
+    table is not sortable and takes neither. Unknown values are ignored."""
     mission = reads.visible_mission(pk)
     if mission is None:
         raise Http404
-    sorties = reads.mission_sorties(mission)
+    sort = reads.resolve_sortie_sort(request.GET.get("sort", ""))
+    shown = columns.chosen(request.GET, columns.MISSION_SORTIE_COLUMNS)
+    sorties = reads.mission_sorties(mission, sort)
     groups = [
         SideSorties(side, [row for row in sorties if display.side_of(row.country) == side])
         for side in ("redfor", "blufor", None)
@@ -125,5 +130,9 @@ def mission_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "groups": [group for group in groups if group.rows or group.side is not None],
         "kills": reads.mission_kills(mission),
         "sortie_count": len(sorties),
+        "sort": sort,
+        "optional_columns": columns.MISSION_SORTIE_COLUMNS,
+        "columns": shown,
+        "colspan": 11 + len(shown),
     }
     return render(request, "il2ks/missions/detail.html", context)

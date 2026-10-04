@@ -9,11 +9,13 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Final, Literal
 
-from django.db.models import QuerySet
+from django.db.models import Case, CharField, Expression, IntegerField, Q, QuerySet, Value, When
+from django.db.models.functions import Lower, NullIf
 from django.http import QueryDict
 
 from il2ks.db.models import HEAVY_SORTIE_COLUMNS, Kill, Mission, PlayerMission, PlayerSortie, Tour
-from il2ks.queries.sorting import Ratio, SortSpec, order_by
+from il2ks.queries import sorties as sortie_reads
+from il2ks.queries.sorting import Computed, Ratio, SortSpec, order_by
 
 # What the mission list can be sorted by: ?sort= value -> model field or NULL-safe ratio (the whitelist: anything else
 # is ignored). The first block is the default columns, the second the optional ones a visitor can add with `?cols=`
@@ -112,13 +114,78 @@ def visible_mission(pk: int) -> Mission | None:
     return Mission.objects.visible().filter(pk=pk).first()
 
 
-def mission_sorties(mission: Mission) -> list[PlayerSortie]:
-    """Every sortie of a mission in spawn order, with its player and aircraft (one query)."""
+def _pilot_name(prefix: str) -> Expression:
+    """The name at the time, lower-cased; NULL (last) for a hidden player, so the order cannot reveal who they are
+    (FR-ADM-3)."""
+    return Case(
+        When(**{f"{prefix}player__is_hidden": False}, then=Lower(prefix + "name_at_time")),
+        default=None,
+        output_field=CharField(),
+    )
+
+
+def _fate_rank(prefix: str) -> Expression:
+    """Dead 2, captured 1, survived 0: the displayed fate (`web.display.pilot_fate_key`)."""
+    return Case(
+        When(Q(**{f"{prefix}is_death": True}) | Q(**{f"{prefix}pilot_status": "dead"}), then=Value(2)),
+        When(Q(**{f"{prefix}is_captured": True}) | Q(**{f"{prefix}pilot_status": "captured"}), then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+
+def _nullable(column: str) -> Computed:
+    """A text column where "" means "none" and sorts last."""
+    return Computed(lambda prefix: NullIf(prefix + column, Value("")))
+
+
+# The mission page's sortie tables: ?sort= value -> ordering. One sort orders all three side tables. The first block is
+# the default columns, the rest the optional ones (`web.columns.MISSION_SORTIE_COLUMNS`; a test keeps the two in step).
+SORTIE_SORT_FIELDS: Final[dict[str, SortSpec]] = {
+    "time": "spawned_at",
+    "pilot": Computed(_pilot_name),
+    "aircraft": "aircraft__display_name",
+    "role": _nullable("combat_role"),  # gunners have none: last
+    "outcome": "outcome",
+    "fate": Computed(_fate_rank),
+    "kills_air": "kills_air",
+    "kills_ground": "kills_ground",
+    "assists": "assists",
+    "assists_air": "assists_air",
+    "assists_ground": "assists_ground",
+    "flight_time": "flight_time_s",
+    **{
+        key: sortie_reads.SORT_FIELDS[key]
+        for key in (
+            "damage_taken",
+            "kills_air_pvp",
+            "kills_air_ai",
+            "friendly_kills",
+            "air_points",
+            "ground_points",
+            "time_on_target",
+            "takeoffs",
+            "landings",
+        )
+    },
+    "payload": _nullable("payload_name"),
+}
+DEFAULT_SORTIE_SORT: Final = "time"
+
+
+def resolve_sortie_sort(raw: str) -> str:
+    """The whitelisted `?sort=` of the mission page ('time', '-kills_air', ...); anything else means spawn order."""
+    return raw if raw.removeprefix("-") in SORTIE_SORT_FIELDS else DEFAULT_SORTIE_SORT
+
+
+def mission_sorties(mission: Mission, sort: str = DEFAULT_SORTIE_SORT) -> list[PlayerSortie]:
+    """Every sortie of a mission, with its player and aircraft (one query), in spawn order unless `sort` (already
+    resolved) says otherwise. Ties fall back to spawn order."""
     return list(
         PlayerSortie.objects.filter(mission=mission)
         .select_related("player", "aircraft")
         .defer(*HEAVY_SORTIE_COLUMNS)
-        .order_by("spawned_at", "pk")
+        .order_by(order_by(SORTIE_SORT_FIELDS[sort.removeprefix("-")], sort), "spawned_at", "pk")
     )
 
 
