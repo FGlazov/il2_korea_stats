@@ -246,8 +246,8 @@
       "sha256": "c794f07677cbf46001fae2739c00ec0573fcbe192941131060ed77ba76fbac78"
     },
     "templates/il2ks/missions/detail.html": {
-      "version": 5,
-      "sha256": "83bf7ab57258d169ddbd500de9bbc68dbea7a3232a2c7a8f89341e87e8e6c2bf"
+      "version": 6,
+      "sha256": "837f869713c5b9b4c50023ff2b193ce4a9c71a9c621b513bf69fcb4a92919d15"
     },
     "templates/il2ks/missions/list.html": {
       "version": 5,
