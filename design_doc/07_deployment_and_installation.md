@@ -61,6 +61,11 @@ read-only, a named volume for data, and `restart: unless-stopped`.
 - ✅ Cheap to build. Reproducible. Same setup in dev and prod. Fits the Linux/Wine DServer crowd.
 - ❌ Docker on Windows needs Docker Desktop with WSL2 or Hyper-V. It's often unavailable on rented Windows hosts and not supported on
   Windows Server. It's still a terminal workflow, and bind-mounting Windows paths trips people up.
+- **No browser setup page in the image** `[DECIDED]` (maintainer, 2026-10-04, OQ-70): a container never sees a loopback peer, so the image sets
+  `IL2KS_SETUP_PAGE=off`, the logs explain `il2ks createadmin` while no admin exists, and `docs/install-docker.md` documents it (doc 16 "Setup page").
+- **`il2ks restore` refuses while the site runs** `[DECIDED]` (maintainer, 2026-10-04, OQ-71): it swaps the database, the config, `custom/`
+  (template overrides), `media/`, the server ID and the secret key, so it exits with code 3 when `il2ks run` holds its lock or the web port
+  answers; `--force` overrides (scripts that restored against a live site need it). Doc 16 "Backups".
 
 ### B. Native Windows installer — now much simpler with SQLite
 An installer (Inno Setup or WiX) that bundles:
@@ -78,7 +83,9 @@ An installer (Inno Setup or WiX) that bundles:
 - **As built and CI-verified (2026-10-04)** `[PROPOSED]`: `packaging/windows/il2ks.iss` (Inno Setup), built by `packaging/windows/build.py` from
   pinned, SHA-256-checked inputs (a bundled relocatable CPython with il2ks installed from `uv.lock`, Caddy, WinSW; `packaging/windows/README.md`).
   Program files in `%ProgramFiles%\il2ks`, everything that is the admin's in `%ProgramData%\il2ks`; the service runs as the virtual account
-  `NT SERVICE\il2ks` (OQ-41, OQ-68). The workflow `windows-installer.yml` (tags `v*` or by hand) builds the installer and runs, on a clean
+  `NT SERVICE\il2ks` (OQ-41). Because that account can't read the game's log folder the way SYSTEM could, the installer grants it **Modify** on the
+  log folder chosen in the wizard (read access, plus `after_archive = move`); this changes ACLs outside il2ks's own folders, and network folders
+  are fine too `[DECIDED]` (maintainer, 2026-10-04, OQ-68). The workflow `windows-installer.yml` (tags `v*` or by hand) builds the installer and runs, on a clean
   `windows-latest` runner: a **silent install** (`/VERYSILENT /NOSERVICE /NOFIREWALL /ADMINPASSWORDFILE=...`, which must delete the password
   file), `il2ks --version` and **`doctor`** from the installed copy (errors fail the job; exit 1 for warnings is fine), the **site answers**
   (`il2ks web --dev`), the **upgrade check** (an outdated override reported in the log and in `installer-custom-check.log`, exit code 0 for the
@@ -87,7 +94,7 @@ An installer (Inno Setup or WiX) that bundles:
   clean `stopped` in the log, no stray python or caddy), and checks the uninstall removes the service; it is informational
   (`continue-on-error`) until it has passed a few more times. A tag then attaches the installer and its `SHA256SUMS.txt` to the release.
   Silent switches: `/LOGDIR= /TIMEZONE= /DOMAIN= /EMAIL= /HTTPS=caddy|external /ADMINUSER= /ADMINPASSWORDFILE= /NOSETUP /NOSERVICE /NOFIREWALL
-  /MERGETASKS="!firewall" /DELETEDATA`; `/ADMINPASSWORD=` still works but shows the password in process lists and the log (OQ-69).
+  /MERGETASKS="!firewall" /DELETEDATA`; `/ADMINPASSWORD=` is **kept** for silent installs, next to `/ADMINUSER=` and `/ADMINPASSWORDFILE=` (the recommended switch, deleted after use), but shows the password in process lists and the log `[DECIDED]` (maintainer, 2026-10-04, OQ-69).
   **Silent mode skips the custom wizard pages and never validates their edits** (the empty admin-password page made the silent wizard wait
   forever after the files were copied; a silent install that waits for input hung the job for 30 minutes). Hang guards: installer children run
   with stdin from NUL and their command lines are logged; CI runs the installer through `.github/scripts/run-installer.ps1` (a 900 s timeout, then

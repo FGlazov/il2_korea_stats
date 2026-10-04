@@ -19,7 +19,7 @@ class ReplayRules:
     # Structural failure definition v2 (FR-ING-17)
     structural_sudden_s: float = 1.0
     structural_fall_s: float = 1.0
-    # Additive (iteration 1 replay, see design_doc/11_open_questions.md, section core.replay)
+    # Additive (iteration 1 replay, see design_doc/13_game_rules.md)
     # A sortie's aircraft destroyed after AType 4 still counts for the sortie within this window (the shot-down shape
     # logs AType 4 before AType 3, doc 12), or at any time if the pilot left an airborne aircraft (FR-ING-22).
     # The same window applies to the pilot bot's own AType 3. Maintainer decision OQ-30: 5 minutes, to be safe. It only
