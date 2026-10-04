@@ -55,7 +55,13 @@ from il2ks.db.site import bump_data_version
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
-from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
+from il2ks.ingest.aircraft_stats import (
+    mission_aircraft,
+    mission_pairs,
+    recompute_aircraft_stats,
+    recompute_matchups,
+    recompute_payload_elo,
+)
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.ratings import recompute_ratings
@@ -137,7 +143,7 @@ def save_mission(
     replay ignores the kills of a live mission anyway, `ratings._games`).
     """
     mission, touched = save_level1(result, meta, catalog, tours, score)
-    apply_level2(touched)
+    apply_level2(touched, payload_elo=ratings is None)  # with ratings, `recompute_ratings` refreshes it
     if ratings is not None:
         recompute_ratings(ratings)
     if marks is not None:  # FR-WEB-22: after the player rows and the Elo replay (the Elo marks read the ratings)
@@ -146,13 +152,19 @@ def save_mission(
     return mission
 
 
-def apply_level2(touched: Touched) -> None:
-    """Recompute level 2 from level 1 for what a save touched. Inside the caller's transaction."""
+def apply_level2(touched: Touched, *, payload_elo: bool = True) -> None:
+    """Recompute level 2 from level 1 for what a save touched. Inside the caller's transaction.
+
+    `payload_elo`: refresh the loadouts' and weapon-mod sets' average pilot Elo. `recompute_ratings` does it too, so a
+    save that replays the ratings afterwards passes False; a live pass (no ratings, FR-ING-15) needs it, or its new
+    loadout and mod rows would have no Elo until the final save."""
     recompute_players(touched.players, touched.tours)
     recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(touched.ammo_aircraft)
     # after the players' PlayerAircraft / PlayerTourAircraft rows
     recompute_aircraft_stats(touched.aircraft, touched.tours)
+    if payload_elo:
+        recompute_payload_elo()
     recompute_matchups(touched.pairs)
     recompute_days(touched.days)
 
