@@ -125,7 +125,7 @@ jobs:
           Get-Content "$env:RUNNER_TEMP\upgrade.log" | Select-Object -Last 40
           if ($p.ExitCode -ne 0) { throw "the upgrade failed with exit code $($p.ExitCode)" }
           $report = "$env:ProgramData\il2ks\logs\installer-custom-check.log"
-          if (-not (Test-Path $report)) { throw "no $report: the upgrade did not check the customized templates" }
+          if (-not (Test-Path $report)) { throw "no ${report}: the upgrade did not check the customized templates" }
           Get-Content $report
           if ((Get-Content $report -Raw) -notmatch 'templates/il2ks/home\.html') { throw "the report does not name the outdated override" }
           if ((Get-Content "$env:RUNNER_TEMP\upgrade.log" -Raw) -notmatch 'customized file\(s\)') { throw "the installer log has no warning" }
