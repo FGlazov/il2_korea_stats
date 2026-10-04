@@ -11,6 +11,8 @@ The rule (doc 13, "Streaks"), applied to a player's pilot sorties in chronologic
 
 A streak's counters sum its survived sorties only (the fatal sortie that ends it, with its kills, is not part of it).
 The **best** streak is the longest by sorties; ties go to more air kills, then more flight time, then the earlier one.
+A player also has a best streak by air kills (ties: more sorties, then more flight time) and one by flight time (ties:
+more sorties, then more air kills); on a full tie the earlier run wins.
 The **current** streak is the run after the last broken sortie (zero sorties when the latest flown sortie was fatal).
 """
 
@@ -55,11 +57,19 @@ class Streak:
     def sort_key(self) -> tuple[int, int, float]:
         return (self.sorties, self.kills_air, self.flight_time_s)
 
+    def kills_key(self) -> tuple[int, int, float]:
+        return (self.kills_air, self.sorties, self.flight_time_s)
+
+    def time_key(self) -> tuple[float, int, int]:
+        return (self.flight_time_s, self.sorties, self.kills_air)
+
 
 @dataclass(frozen=True, slots=True)
 class StreakSummary:
     current: Streak
-    best: Streak
+    best: Streak  # by sorties
+    best_air_kills: Streak
+    best_flight_time: Streak
 
 
 def is_broken(s: StreakSortie) -> bool:
@@ -70,6 +80,8 @@ def summarize(sorties: Iterable[StreakSortie]) -> StreakSummary:
     """Current and best streak of one player; `sorties` must be in chronological order."""
     current = Streak()
     best = Streak()
+    best_kills = Streak()
+    best_time = Streak()
     for s in sorties:
         if is_broken(s):
             current = Streak()
@@ -79,4 +91,8 @@ def summarize(sorties: Iterable[StreakSortie]) -> StreakSummary:
             current = current.extended(s)
             if current.sort_key() > best.sort_key():  # strictly: the earlier streak wins a full tie
                 best = current
-    return StreakSummary(current, best)
+            if current.kills_key() > best_kills.kills_key():
+                best_kills = current
+            if current.time_key() > best_time.time_key():
+                best_time = current
+    return StreakSummary(current, best, best_kills, best_time)

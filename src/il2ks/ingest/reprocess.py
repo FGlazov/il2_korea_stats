@@ -161,7 +161,7 @@ def reprocess(
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
-                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks))()
+                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, board=cfg.board))()
         log.info("%s", summary.describe())
         return summary
 
@@ -231,5 +231,12 @@ def rebuild_all(
     with WriterLock(cfg.data_dir, "rebuild-aggregates", wait=lock_wait), transaction.atomic():
         (
             rebuild
-            or partial(rebuild_aggregates, cfg.ratings, cfg.tours, reassign_tours=reassign_tours, marks=cfg.marks)
+            or partial(
+                rebuild_aggregates,
+                cfg.ratings,
+                cfg.tours,
+                reassign_tours=reassign_tours,
+                marks=cfg.marks,
+                board=cfg.board,
+            )
         )()

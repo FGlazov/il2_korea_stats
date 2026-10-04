@@ -15,6 +15,7 @@ urlpatterns: list[URLPattern] = [
     path("players/<int:pk>/", players.player_detail, name="player-detail"),
     path("players/<int:pk>/sorties/", sorties.player_sorties, name="player-sorties"),  # ?aircraft=<GameObject pk>
     path("players/<int:pk>/killboard/", boards.player_killboard, name="player-killboard"),
+    path("players/<int:pk>/streaks/", boards.player_streaks, name="player-streaks"),  # ?tour=: best streaks
     path("streaks/", boards.streak_list, name="streak-list"),
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
     path("aircraft/", aircraft.aircraft_list, name="aircraft-list"),  # ?sort=: per-type stats (FR-WEB-8)

@@ -9,6 +9,7 @@ from typing import cast
 import pytest
 
 from il2ks.config import BackupConfig, Config, HttpsConfig, IngestConfig, LiveConfig, LogsConfig, WebConfig, load_config
+from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.stat_marks import MarkRules
@@ -44,6 +45,7 @@ def test_template_lists_every_config_key() -> None:
         "replay": {f.name for f in dataclasses.fields(ReplayRules)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "marks": {f.name for f in dataclasses.fields(MarkRules)},
+        "killboard": {f.name for f in dataclasses.fields(KillboardRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
         "tours": TOURS_KEYS,
         "server": SERVER_KEYS,
@@ -71,6 +73,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "replay",
         "ratings",
         "marks",
+        "board",
         "backup",
         "tours",
         "server_uid",

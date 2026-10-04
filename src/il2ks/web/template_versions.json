@@ -186,12 +186,12 @@
       "sha256": "b2f6073d3a71565076786e1c9f98dae1cf5f788fc9d14c61f3b94c22d5c0366a"
     },
     "templates/il2ks/players/_killboard_rows.html": {
-      "version": 2,
-      "sha256": "b404951bd359cde0f5349cb148ce3753d7d07f14c7fb424bcf7e08ac4e570588"
+      "version": 3,
+      "sha256": "1298c5d5206ecccaaed025aaad79ca52369a214121a60f04312cd9dac0f2d997"
     },
     "templates/il2ks/players/detail.html": {
-      "version": 4,
-      "sha256": "2716ed00c0a3127c749485828837ec97e1f8292d9a0ea2903ce88e86ca8354cc"
+      "version": 5,
+      "sha256": "ed758bc03e4d0d0c2d513d39fc918d16673d8a16c5f8e90608d5b96f26653262"
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 4,
@@ -206,8 +206,8 @@
       "sha256": "6503edf8535ee88826d380b12c81e4d523f71a5ff504056e5b5cd21baa069dbc"
     },
     "templates/il2ks/players/detail_killboard.html": {
-      "version": 1,
-      "sha256": "27c40d52b8652e44a2076d59f288041207aeb25dd10332688d619e44bf6d8beb"
+      "version": 2,
+      "sha256": "e663c529cd6718eb47ba6cb06497372072e349e3fb976be0fab225e34c365108"
     },
     "templates/il2ks/players/detail_pve.html": {
       "version": 3,
@@ -226,8 +226,8 @@
       "sha256": "ab411cb97dea8987c40c2a138d4216b89c06aa9f666682652456f84f0811e551"
     },
     "templates/il2ks/players/detail_streaks.html": {
-      "version": 2,
-      "sha256": "ce4792168aaba6ade5603dfba00c6cc8e67057bde2fdc3b7d396e3a656b8ff4e"
+      "version": 3,
+      "sha256": "a9becd60881a2c08f4aad286bf84d469b29b502ccede7b60ca959978ad278dac"
     },
     "templates/il2ks/players/detail_tiles.html": {
       "version": 2,
@@ -238,8 +238,8 @@
       "sha256": "55b0f1d99a267148486305015aece3d55cc552222e56fe2b2b2b8429bf5e3fc5"
     },
     "templates/il2ks/players/killboard.html": {
-      "version": 1,
-      "sha256": "a5f94015284fdd5a199f9d28018731cea1a59b232ea82011d775f1e67c6834de"
+      "version": 2,
+      "sha256": "0ea62d2140bb832bf3c5d03fa4ba91c1ad473ae53dd6fca27547755ad604c71c"
     },
     "templates/il2ks/players/search.html": {
       "version": 1,
@@ -248,6 +248,10 @@
     "templates/il2ks/players/search_table.html": {
       "version": 3,
       "sha256": "d5b29e2ac0391f73e65718a29e887f3a4476044689990f21249e816fc561f6e2"
+    },
+    "templates/il2ks/players/streaks.html": {
+      "version": 1,
+      "sha256": "b9fab69e283209a10176f9511bd5a72996dc48451a46ec2f74ee2af1f4065ebb"
     },
     "templates/il2ks/setup.html": {
       "version": 1,

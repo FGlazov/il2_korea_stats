@@ -7,7 +7,7 @@ import pytest
 from django.test import Client
 
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import Mission, Player, PlayerKillboard, PlayerStreak
+from il2ks.db.models import Mission, Player, PlayerBestStreak, PlayerKillboard, PlayerStreak, PlayerTourKillboard
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -30,7 +30,13 @@ def board() -> dict[tuple[int, int], tuple[int, int]]:
 
 def snapshot() -> list[tuple[object, ...]]:
     kb = PlayerKillboard.objects.order_by("player_id", "opponent_id").values_list(
-        "player_id", "opponent_id", "kills", "deaths", "last_at", "last_mission_id"
+        "player_id", "opponent_id", "kills", "deaths", "assists", "last_at", "last_mission_id"
+    )
+    tour_kb = PlayerTourKillboard.objects.order_by("player_id", "tour_id", "opponent_id").values_list(
+        "player_id", "tour_id", "opponent_id", "kills", "deaths", "assists", "last_at", "last_mission_id"
+    )
+    best = PlayerBestStreak.objects.order_by("player_id", "tour_id", "kind").values_list(
+        "player_id", "tour_id", "kind", "sorties", "kills_air", "flight_time_s", "since", "until"
     )
     st = PlayerStreak.objects.order_by("player_id").values_list(
         "player_id",
@@ -45,7 +51,7 @@ def snapshot() -> list[tuple[object, ...]]:
         "best_since",
         "best_until",
     )
-    return [*kb, *st]
+    return [*kb, *tour_kb, *best, *st]
 
 
 def duel_mission() -> MissionResult:
@@ -190,8 +196,8 @@ def test_profile_budget_and_killboard_page(client: Client) -> None:
 
     assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=11)  # + tours selector, stat thresholds
     # context processor 2, player, count, rows
-    assert_simple_reads(client, f"/players/{pk(1)}/killboard/", max_queries=6)
-    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=6)
+    assert_simple_reads(client, f"/players/{pk(1)}/killboard/", max_queries=7)  # + tours selector
+    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=7)
     assert_simple_reads(client, "/streaks/", max_queries=6)
 
 

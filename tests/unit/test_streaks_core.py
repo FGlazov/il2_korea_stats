@@ -20,6 +20,41 @@ def s(
     return StreakSortie(start, start + timedelta(minutes=30), kills, flight, death, captured, grounded)
 
 
+def test_best_by_air_kills_and_by_flight_time_are_their_own_streaks() -> None:
+    result = summarize(
+        [
+            s(0, kills=1),
+            s(1),
+            s(2),
+            s(3, death=True),
+            s(4, kills=3),
+            s(5, kills=2),
+            s(6, death=True),
+            s(7, flight=7200.0),
+        ]
+    )
+
+    assert (result.best.sorties, result.best.kills_air) == (3, 1)
+    assert (result.best_air_kills.sorties, result.best_air_kills.kills_air) == (2, 5)
+    assert (result.best_flight_time.sorties, result.best_flight_time.flight_time_s) == (1, 7200.0)
+
+
+def test_best_by_air_kills_breaks_ties_by_sorties_then_by_the_earlier_run() -> None:
+    longer = summarize([s(0, kills=2), s(1, death=True), s(2, kills=2), s(3), s(4)])
+    full_tie = summarize([s(0, kills=1), s(1, death=True), s(2, kills=1)])
+
+    assert longer.best_air_kills.sorties == 3  # same kills, the longer run wins
+    assert longer.best_air_kills.since == s(2).spawned_at
+    assert full_tie.best_air_kills.since == s(0).spawned_at  # the earlier run keeps a full tie
+    assert full_tie.best_flight_time.since == s(0).spawned_at
+
+
+def test_no_survived_sortie_means_empty_bests() -> None:
+    result = summarize([s(0, death=True)])
+
+    assert result.best_air_kills.sorties == 0 == result.best_flight_time.sorties
+
+
 def test_no_sorties_no_streak() -> None:
     result = summarize([])
 

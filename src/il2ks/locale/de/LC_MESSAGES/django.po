@@ -115,6 +115,11 @@ msgstr ""
 msgid "%(n)s types"
 msgstr ""
 
+# llm-draft
+#, python-format
+msgid "%(name)s: best streaks"
+msgstr "%(name)s: Beste Serien"
+
 #, python-format
 msgid "%(name)s: killboard"
 msgstr ""
@@ -376,6 +381,10 @@ msgid "BLUFOR won"
 msgstr ""
 
 # llm-draft
+msgid "Back to the profile"
+msgstr "Zurück zum Profil"
+
+# llm-draft
 msgid "Back to the start page"
 msgstr "Zurück zur Startseite"
 
@@ -389,11 +398,24 @@ msgstr "Mit Fallschirm ausgestiegen"
 msgid "Bailouts"
 msgstr ""
 
+# llm-draft
+msgid "Best by"
+msgstr "Beste nach"
+
 msgid "Best showing of the mission. Well flown."
 msgstr ""
 
 msgid "Best streak"
 msgstr ""
+
+# llm-draft
+msgid "Best streaks"
+msgstr "Beste Serien"
+
+# llm-draft
+#, python-format
+msgid "Best streaks of %(name)s"
+msgstr "Beste Serien von %(name)s"
 
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
@@ -867,6 +889,10 @@ msgstr "Eingelesen"
 msgid "Ingestion status"
 msgstr "Einlesestatus"
 
+# llm-draft
+msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
+msgstr "Nur innerhalb der gewählten Tour: Eine Serie wird nicht aus einer früheren Tour übernommen."
+
 msgid "Ironman"
 msgstr ""
 
@@ -1232,6 +1258,10 @@ msgstr ""
 
 msgid "No sorties yet"
 msgstr ""
+
+# llm-draft
+msgid "No streak yet: no sortie survived."
+msgstr "Noch keine Serie: kein Einsatz überlebt."
 
 msgid "No winner"
 msgstr ""
@@ -1683,6 +1713,10 @@ msgid "Sorties per side"
 msgstr ""
 
 # llm-draft
+msgid "Sorties survived"
+msgstr "Überlebte Einsätze"
+
+# llm-draft
 msgid "Source"
 msgstr "Quelle"
 
@@ -1879,6 +1913,14 @@ msgid ""
 "log and can be wrong, for example after an engine failure or a deliberate exit."
 msgstr ""
 
+# llm-draft
+msgid ""
+"The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), by sorties, by air kills and by flight time."
+msgstr ""
+"Die besten Serien des Piloten: aufeinanderfolgende überlebte Einsätze (kein Tod, keine Gefangennahme; Einsätze ohne "
+"Start werden übersprungen), nach Einsätzen, Luftsiegen und Flugzeit."
+
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 
@@ -2067,6 +2109,10 @@ msgstr ""
 msgid "Unknown: the sortie was resupplied"
 msgstr ""
 
+# llm-draft
+msgid "Until"
+msgstr "Bis"
+
 #, python-format
 msgid "Updated %(when)s"
 msgstr ""
@@ -2129,6 +2175,14 @@ msgstr ""
 
 msgid "Who kills you, and whom you kill"
 msgstr ""
+
+# llm-draft
+msgid ""
+"Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own "
+"column, not as kills."
+msgstr ""
+"Wen dieser Pilot abgeschossen hat und wer ihn abgeschossen hat: Luftsiege zwischen Spielern. Assists werden in einer "
+"eigenen Spalte gezählt, nicht als Abschüsse."
 
 msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
 msgstr ""

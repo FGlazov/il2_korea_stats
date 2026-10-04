@@ -17,7 +17,8 @@ Cost: the all-time part of a player's recompute reads all of that player's level
 The per-tour part is bounded by the tour.
 
 Killboard pairs (`ingest.pairs`, FR-WEB-9) and ironman streaks (`ingest.streaks`, FR-WEB-23) are recomputed per chunk
-too; a pair touching the chunk is rewritten in both mirror directions, so the opponent need not be in the chunk.
+too, all-time and per tour (the same tour limit as above); a pair touching the chunk is rewritten in both mirror
+directions, so the opponent need not be in the chunk.
 
 Identity fields (`Player.first_seen`, `last_seen`, `current_name`, `name_lower` and the `PlayerName` history) aren't
 summed: they come from the player's sorties. A player without sorties keeps the identity values they had.
@@ -29,6 +30,7 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Max, Min, Sum
 
+from il2ks.core.killboard import DEFAULT_KILLBOARD_RULES, KillboardRules
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import TourRules
@@ -43,7 +45,7 @@ from il2ks.db.models import (
     PlayerTour,
     PlayerTourAircraft,
 )
-from il2ks.db.site import bump_data_version
+from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.pairs import recompute_killboard
@@ -76,8 +78,8 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         _recompute_aircraft(chunk)
         _recompute_tours(chunk, tours)
         _refresh_identity(chunk)
-        recompute_killboard(chunk)  # level-2 pair rows, ingest.pairs (FR-WEB-9)
-        recompute_streaks(chunk)  # ironman streaks, ingest.streaks (FR-WEB-23)
+        recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
+        recompute_streaks(chunk, tours)  # ironman streaks, all-time and per tour, ingest.streaks (FR-WEB-23)
 
 
 def rebuild_aggregates(
@@ -86,6 +88,7 @@ def rebuild_aggregates(
     *,
     reassign_tours: bool = False,
     marks: MarkRules = DEFAULT_MARK_RULES,
+    board: KillboardRules = DEFAULT_KILLBOARD_RULES,
 ) -> None:
     """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players (all
     tours), the hits to destroy per aircraft type (`recompute_aircraft_ammo`), then the Elo ratings
@@ -93,7 +96,11 @@ def rebuild_aggregates(
 
     `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
     With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
-    start or timezone change)."""
+    start or timezone change).
+
+    `board` (the `[killboard]` rules) is stored first (`SiteSettings.killboard_assists`): the killboard rows follow it,
+    here and in the incremental updates until the next rebuild."""
+    _store_board_rules(board)
     if tours is not None:
         if reassign_tours:
             retour(tours)
@@ -108,6 +115,13 @@ def rebuild_aggregates(
     recompute_ratings(ratings)
     recompute_thresholds(marks)
     bump_data_version()  # TD-28: pages changed
+
+
+def _store_board_rules(board: KillboardRules) -> None:
+    settings = get_site_settings()
+    if settings.killboard_assists != board.assists:
+        settings.killboard_assists = board.assists
+        settings.save(update_fields=["killboard_assists"])
 
 
 def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
