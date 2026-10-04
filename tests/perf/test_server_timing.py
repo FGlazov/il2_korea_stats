@@ -13,12 +13,12 @@ Set `IL2KS_PERF_REPORT=1` (with `-s`) to print the measured medians."""
 import os
 import statistics
 import time
+from collections.abc import Callable
 
 import pytest
 from django.db import connection
 from django.test import Client
 from django.urls import URLPattern, get_resolver
-
 from tests.perf.pages import NOT_PUBLIC_PAGES, PAGES, PageSpec
 from tests.perf.seed import SeededWorld
 from tests.simple_reads import assert_simple_reads
@@ -79,7 +79,12 @@ def test_revalidation_is_cheap(client: Client, big_world: SeededWorld, spec: Pag
     headers = {"If-None-Match": client.get(url)["ETag"]}
 
     queries: list[str] = []
-    with connection.execute_wrapper(lambda execute, sql, *rest: (queries.append(sql), execute(sql, *rest))[1]):
+
+    def count(execute: Callable[..., object], sql: str, params: object, many: bool, context: object) -> object:
+        queries.append(sql)
+        return execute(sql, params, many, context)
+
+    with connection.execute_wrapper(count):
         client.get(url, headers=headers)  # (a wrapper, not CaptureQueriesContext: every request resets the query log)
     elapsed = median_ms(client, url, headers=headers, expect=304)
 
@@ -93,4 +98,6 @@ def test_every_public_page_has_a_budget() -> None:
     names = {p.name for p in patterns if p.name} - NOT_PUBLIC_PAGES
     covered = {spec.url_name for spec in PAGES}
 
-    assert names == covered, f"without a performance budget: {sorted(names - covered)}; stale: {sorted(covered - names)}"
+    assert names == covered, (
+        f"without a performance budget: {sorted(names - covered)}; stale: {sorted(covered - names)}"
+    )

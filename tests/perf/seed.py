@@ -6,7 +6,7 @@ give a few thousand sorties, enough for lists to paginate and per-player pages t
 stays at around a minute. Deterministic: the same arguments give the same data.
 
 As a script (`python -m tests.perf.seed [missions [players [sorties per mission]]]`, with `IL2KS_DATA_DIR` pointing at
-a scratch data dir) it migrates and fills the configured database and prints the ids a load test needs as JSON
+a scratch data dir) it migrates and fills the configured database and prints what it made as JSON
 (see docs/performance-testing.md)."""
 
 import json
@@ -48,16 +48,17 @@ def fill(
 ) -> SeededWorld:
     """Save `missions` missions (going back in time from `factories.STARTED_AT`) into the current database."""
     from django.db.models import Count
-
-    from il2ks.db.models import GameObject, Mission, Player, PlayerSortie
     from tests import factories as f
+
+    from il2ks.core.replay.result import SortieResult
+    from il2ks.db.models import GameObject, Mission, Player, PlayerSortie
 
     rng = random.Random(seed)
     for m in range(missions):
         started = f.STARTED_AT - timedelta(hours=7 * m)
         # One account flies at most once per mission here (the replay allows several; this keeps the data simple).
         pilots = rng.sample(range(players), min(players, sorties_per_mission))
-        sorties = []
+        sorties: list[SortieResult] = []
         for i, who in enumerate(pilots):
             aircraft = AIRCRAFT[rng.randrange(len(AIRCRAFT))]
             fate = rng.random()
@@ -127,7 +128,9 @@ def main() -> None:
     django.setup()
     call_command("migrate", verbosity=0)
     numbers = [int(a) for a in sys.argv[1:4]]
-    print(json.dumps(asdict(fill(*numbers))))
+    world = fill(*numbers)
+    summary = {k: v for k, v in asdict(world).items() if not isinstance(v, list)}
+    print(json.dumps(summary))
 
 
 if __name__ == "__main__":

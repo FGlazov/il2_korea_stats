@@ -1,0 +1,38 @@
+name: Load test
+
+# Manual only (Actions tab -> Load test -> Run workflow): load numbers on a shared runner are too noisy to gate a
+# commit on. Seeds a scratch database, runs Locust against `il2ks web --dev`, uploads the report (docs/performance-testing.md).
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: Concurrent users
+        default: "20"
+      run_time:
+        description: Run time (Locust syntax, e.g. 60s or 3m)
+        default: "60s"
+      missions:
+        description: Missions to seed
+        default: "60"
+
+jobs:
+  loadtest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - name: Seed, serve and load the site
+        run: >-
+          uv run python loadtest/run.py
+          -u "${{ inputs.users }}" -t "${{ inputs.run_time }}" --missions "${{ inputs.missions }}"
+          --html loadtest-report.html | tee loadtest-report.md
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: loadtest-${{ github.run_id }}
+          path: |
+            loadtest-report.html
+            loadtest-report.md
+          if-no-files-found: ignore
+          retention-days: 30

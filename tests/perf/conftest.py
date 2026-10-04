@@ -8,7 +8,6 @@ from collections.abc import Iterator
 import pytest
 from django.db import transaction
 from pytest_django.plugin import DjangoDbBlocker
-
 from tests.perf.seed import SeededWorld, fill
 
 
