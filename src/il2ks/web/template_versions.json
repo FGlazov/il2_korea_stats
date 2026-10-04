@@ -374,8 +374,8 @@
       "sha256": "67238a2c917ca4dfea94e283e83a51c441ea06d0cbef41683f6782d669348fa1"
     },
     "templates/il2ks/players/streak_runs.html": {
-      "version": 1,
-      "sha256": "852e095bf9f9cd591db5302e32497515dd78fc20e5f19f02ddd5d3413fe0414b"
+      "version": 2,
+      "sha256": "32e1a9733627968337ae63030cc5ced668db5d113d848134579f2f7ff2ae3d95"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 3,
@@ -462,8 +462,8 @@
       "sha256": "d5a1795b9a074967f898c66b5938e8665de2571a0069dc21e468c3f2ae6a9486"
     },
     "templates/il2ks/streaks/home_block.html": {
-      "version": 2,
-      "sha256": "279b75a3c1eb5a1793f016ca6a90956be86e2ff5aee1e25a5c50818dbad9dc5d"
+      "version": 3,
+      "sha256": "66defe8d0cb294c3d0e5e19313ec5b0f30bc9bbb402bac05d478ebcec3f57aa1"
     },
     "templates/il2ks/streaks/list.html": {
       "version": 1,

@@ -15,6 +15,7 @@ from django.core.paginator import Page, Paginator
 from django.db.models import QuerySet
 
 from il2ks.db.models import (
+    HEAVY_SORTIE_COLUMNS,
     Player,
     PlayerBestStreak,
     PlayerKillboard,
@@ -148,7 +149,11 @@ def streak_runs_page(player: Player, number: str | int, tour: Tour | None = None
         if tour
         else PlayerStreakRun.objects.filter(player=player, tour__isnull=True)
     )
-    ordered = rows.select_related("ended_sortie__mission").order_by("-since", "-pk")
+    ordered = (
+        rows.select_related("ended_sortie__mission")
+        .defer(*(f"ended_sortie__{column}" for column in HEAVY_SORTIE_COLUMNS))
+        .order_by("-since", "-pk")
+    )
     return Paginator(ordered, RUNS_PAGE_SIZE).get_page(number)
 
 

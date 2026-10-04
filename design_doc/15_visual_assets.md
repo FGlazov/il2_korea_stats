@@ -253,7 +253,7 @@ Total: 128 files in 13 groups; 103 shipped as placeholders (1 of them not used b
 | `stat/captures.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `prison` | yes | P2 | shipped |
 | `stat/taxi-accidents.svg` | Profile hall of shame (humorous): crashed before taking off (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `car-crash` | yes | P2 | shipped |
 | `stat/strafed.svg` | Profile hall of shame (humorous): destroyed while parked (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `target-arrow` | yes | P2 | shipped |
-| `stat/friendly-fire.svg` | Profile hall of shame: sorties with a friendly kill (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `friends-off` | yes | P2 | shipped |
+| `stat/friendly-fire.svg` | Profile hall of shame: friendly-fire kills (friendly aircraft and ground objects destroyed) (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `friends-off` | yes | P2 | shipped |
 | `stat/elo-prop.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-queen` | yes | P2 | shipped |
 | `stat/elo-jet.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-knight` | yes | P2 | shipped |
 | `stat/interception.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `radar-2` | yes | P2 | shipped |

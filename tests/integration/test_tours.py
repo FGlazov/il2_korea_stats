@@ -691,3 +691,15 @@ def test_migrating_a_database_from_before_tours_assigns_the_missions(
 
     assert titles() == ["August 2026", "September 2026", "October 2026"]
     assert_tour_rows_consistent()
+
+
+def test_is_quiet_tour_ignores_paging_and_view_parameters_but_not_filters() -> None:
+    from il2ks.db.models import Tour
+    from il2ks.queries.tours import is_quiet_tour
+
+    tour = Tour(title="October 2026")
+
+    assert is_quiet_tour(tour, {"tour": "1", "page": "2", "page_missions": "3", "sort": "kills", "cols": "a"}, 0)
+    assert not is_quiet_tour(tour, {"tour": "1", "aircraft": "5"}, 0)
+    assert not is_quiet_tour(tour, {"tour": "1"}, 4)
+    assert not is_quiet_tour(None, {}, 0)

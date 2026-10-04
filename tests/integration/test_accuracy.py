@@ -3,6 +3,7 @@ air accuracy is read from air-superiority sorties and ground accuracy from attac
 upgraded database derives the sortie figures from the stored ammo JSON."""
 
 import uuid
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 
 import pytest
@@ -155,3 +156,29 @@ def test_aircraft_page_and_list_show_the_type_accuracy(client: Client) -> None:
 
     listing = client.get("/aircraft/?cols=accuracy,accuracy_air,accuracy_ground&sort=-accuracy").content.decode()
     assert "8.6%" in listing
+
+
+def test_backfill_writes_only_the_sorties_whose_figures_change(monkeypatch: pytest.MonkeyPatch) -> None:
+    from il2ks.ingest import dbutil
+
+    save(mission((sortie(0, 1), sortie(1, 2))))
+    flown = PlayerSortie.objects.get(name_at_time="Player-1")
+    flown.ammo = {"used": {"bullets": 40, "shells": 0, "bombs": 0, "rockets": 0}, "hits": []}
+    flown.save(update_fields=["ammo"])
+    PlayerSortie.objects.exclude(pk=flown.pk).update(ammo={}, damage_breakdown=[])
+    PlayerSortie.objects.update(rounds_fired=None, gun_hits_air=0, gun_hits_ground=0)
+    written: list[list[int]] = []
+    real = dbutil.update_partial_rows
+
+    def spy(model: type[PlayerSortie], rows: Iterable[PlayerSortie], fields: Sequence[str]) -> None:
+        batch = list(rows)
+        written.append([row.pk for row in batch])
+        real(model, batch, fields)
+
+    monkeypatch.setattr(dbutil, "update_partial_rows", spy)
+
+    assert migrate._check_accuracy()  # pyright: ignore[reportPrivateUsage]
+
+    assert written == [[flown.pk]]  # the other sortie stays (None, 0, 0): not written
+    flown.refresh_from_db()
+    assert flown.rounds_fired == 40

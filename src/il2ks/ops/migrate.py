@@ -138,7 +138,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
 
 def _check_streak_runs() -> bool:
     """A database from before the streak history (OQ-82) and the assists received (OQ-81) has pilot sorties but no
-    `PlayerStreakRun` row: level 2 must be rebuilt (it is not marked done on a database with no sorties)."""
+    `PlayerStreakRun` row: level 2 must be rebuilt. A database with no pilot sorties returns False;
+    the step is marked done either way, like every step that ran."""
     from il2ks.db.models import PlayerSortie, PlayerStreakRun, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerStreakRun.objects.exists()
@@ -166,9 +167,13 @@ def _check_accuracy() -> bool:
     log.info("deriving accuracy figures from the stored ammo")
     air_types = {name for name, cls in GameObject.objects.values_list("log_name", "cls") if cls in AIR_CLASSES}
     changed: list[PlayerSortie] = []
-    rows = pilots.values_list("pk", "ammo", "damage_breakdown", "resupplied").iterator(chunk_size=500)
-    for pk, ammo, breakdown, resupplied in rows:
+    rows = pilots.values_list(
+        "pk", "ammo", "damage_breakdown", "resupplied", "rounds_fired", "gun_hits_air", "gun_hits_ground"
+    ).iterator(chunk_size=500)
+    for pk, ammo, breakdown, resupplied, *stored in rows:
         rounds, air, ground = accuracy_from_stored(ammo or {}, breakdown or [], air_types, resupplied=resupplied)
+        if (rounds, air, ground) == tuple(stored):
+            continue  # nothing to write (most rows stay (None, 0, 0))
         changed.append(PlayerSortie(pk=pk, rounds_fired=rounds, gun_hits_air=air, gun_hits_ground=ground))
     update_partial_rows(PlayerSortie, changed, ["rounds_fired", "gun_hits_air", "gun_hits_ground"])
     return True

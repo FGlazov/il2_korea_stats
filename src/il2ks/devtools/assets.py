@@ -267,7 +267,7 @@ def build_manifest() -> list[Asset]:
         "captures": "Profile tile",
         "taxi-accidents": "Profile hall of shame (humorous): crashed before taking off",
         "strafed": "Profile hall of shame (humorous): destroyed while parked",
-        "friendly-fire": "Profile hall of shame: sorties with a friendly kill",
+        "friendly-fire": "Profile hall of shame: friendly-fire kills (friendly aircraft and ground objects destroyed)",
     }
     for name, text in stat_uses.items():
         add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", True)

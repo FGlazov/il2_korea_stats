@@ -5,7 +5,7 @@ How a page uses them (the `?tour=<id>` convention, TD-26): no `tour` parameter (
 valid, TD-28); `?tour=all` (`TOUR_ALL`) is the explicit all-time view; `?tour=<id>` is that tour.
 
     choice = tour_choice_from(request.GET)                # TourChoice(tours, selected, ...), one query
-    context = {**choice.context, ...}                     # "tours", "tour", "tour_all" for {% tour_toggle %}
+    context = {**choice.context, ...}                     # "tours", "tour" for {% tour_select %}
     stats = choice.selected and player_tour(player.pk, choice.selected)   # PlayerTour or None -> all-time `Player`
     aircraft = player_tour_aircraft(player.pk, choice.selected) if choice.selected else player.aircraft_stats...
 
@@ -131,6 +131,8 @@ def tour_leaderboard(tour: Tour) -> QuerySet[PlayerTour]:
 
 def is_quiet_tour(selected: Tour | None, params: Mapping[str, str], rows: int) -> bool:
     """Whether a list page explains an empty result with the empty-tour flavor text (FR-WEB-23): a tour is picked,
-    nothing is listed and no other filter is active (so the tour itself is the reason)."""
-    others = (value for key, value in params.items() if key not in {TOUR_PARAM, "page", "sort", "cols"})
+    nothing is listed and no other filter is active (so the tour itself is the reason).
+    Paging parameters (`page`, `page_*`) are not filters."""
+    ignored = {TOUR_PARAM, "page", "sort", "cols"}
+    others = (value for key, value in params.items() if key not in ignored and not key.startswith("page_"))
     return selected is not None and rows == 0 and not any(others)

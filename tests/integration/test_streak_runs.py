@@ -176,3 +176,49 @@ def test_assists_received_show_as_a_detail_only_with_the_toggle(client: Client) 
 
     rebuild_aggregates()  # toggle off again
     assert "Assists on this pilot's losses" not in client.get(f"/players/{pk(2)}/killboard/?tour=all").content.decode()
+
+
+def test_streak_runs_defer_the_heavy_sortie_columns(client: Client) -> None:
+    from il2ks.db.models import HEAVY_SORTIE_COLUMNS
+
+    two_runs()
+
+    rows = list(client.get(f"/players/{pk(1)}/streaks/history/?tour=all").context["page_obj"])
+
+    ended = [r.ended_sortie for r in rows if r.ended_sortie is not None]
+    assert ended
+    for sortie_row in ended:
+        assert set(HEAVY_SORTIE_COLUMNS) <= sortie_row.get_deferred_fields()
+
+
+def test_an_open_run_of_a_finished_tour_says_the_tour_ended_not_still_going(client: Client) -> None:
+    save(mission((sortie(0, 1), sortie(1, 1))), meta("m1", STARTED_AT))  # September, open run
+    save(mission((sortie(0, 1), sortie(1, 1))), meta("m2", OCTOBER))  # October (the newest = current), open run
+    september, october = tour_named("September 2026"), tour_named("October 2026")
+
+    old = client.get(f"/players/{pk(1)}/streaks/history/?tour={september.pk}")
+    current = client.get(f"/players/{pk(1)}/streaks/history/?tour={october.pk}")
+    all_time = client.get(f"/players/{pk(1)}/streaks/history/?tour=all")
+
+    assert old.context["tour_ended"] is True
+    assert "Tour ended" in old.content.decode()
+    assert "Still going" not in old.content.decode()
+    assert current.context["tour_ended"] is False
+    assert "Still going" in current.content.decode()
+    assert "Tour ended" not in current.content.decode()
+    assert "Still going" in all_time.content.decode()
+
+
+def test_home_streak_button_says_what_it_links_to(client: Client) -> None:
+    save(mission((sortie(0, 1), sortie(1, 1))), meta("m1", STARTED_AT))
+    save(mission((sortie(0, 1),)), meta("m2", OCTOBER))
+    september = tour_named("September 2026")
+
+    in_tour = client.get(f"/?tour={september.pk}").content.decode()
+    all_time = client.get("/?tour=all").content.decode()
+
+    assert "Longest ironman streaks in this tour" in in_tour
+    assert "Running streaks, all time" in in_tour  # /streaks/ lists running streaks, not tour bests
+    assert "All streaks" not in in_tour
+    assert "Running streaks, all time" not in all_time
+    assert "All streaks" in all_time

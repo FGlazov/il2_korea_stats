@@ -833,7 +833,7 @@ def _summarize_suppressed(stats: ParseStats) -> None:
 # the same tick and attacker into one `ExplosionBurstEvent`, found with plain string operations (no regex, no event per
 # line). Only lines of *exactly* this shape take part (single spaces, ASCII digits, nothing before or after): every
 # other line, however close, goes through `_parse` as before and ends the burst, so the warnings and counters of odd
-# lines are the generic path's. `tests/unit/logparse/test_fast_path.py` compares bursts with per-line parsing.
+# lines are the generic path's. `tests/unit/logparse/test_explosion_burst.py` compares bursts with per-line parsing.
 
 _EXPLOSION_MARK = " AType:1 AMMO:explosion AID:"
 _EXPLOSION_TID = " TID:"

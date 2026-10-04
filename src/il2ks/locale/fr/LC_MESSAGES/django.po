@@ -3029,6 +3029,9 @@ msgstr "En cours"
 msgid "Running streaks"
 msgstr "Séries en cours"
 
+msgid "Running streaks, all time"
+msgstr "Séries en cours, tous temps confondus"
+
 # llm-draft
 msgid "Runway"
 msgstr "Piste"
@@ -3942,6 +3945,9 @@ msgstr "Tour"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Tour %(number)s"
+
+msgid "Tour ended"
+msgstr "Tour terminé"
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

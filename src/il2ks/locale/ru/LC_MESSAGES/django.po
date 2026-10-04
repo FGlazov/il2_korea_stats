@@ -3046,6 +3046,9 @@ msgstr "Выполняется"
 msgid "Running streaks"
 msgstr "Текущие серии"
 
+msgid "Running streaks, all time"
+msgstr "Текущие серии за всё время"
+
 # llm-draft
 msgid "Runway"
 msgstr "ВПП"
@@ -3951,6 +3954,9 @@ msgstr "Тур"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Тур %(number)s"
+
+msgid "Tour ended"
+msgstr "Тур закончился"
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

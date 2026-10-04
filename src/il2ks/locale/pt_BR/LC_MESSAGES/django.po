@@ -3021,6 +3021,9 @@ msgstr "Em andamento"
 msgid "Running streaks"
 msgstr "Sequências em andamento"
 
+msgid "Running streaks, all time"
+msgstr "Sequências em andamento, de todos os tempos"
+
 # llm-draft
 msgid "Runway"
 msgstr "Pista"
@@ -3929,6 +3932,9 @@ msgstr "Temporada"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Temporada %(number)s"
+
+msgid "Tour ended"
+msgstr "Tour encerrado"
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

@@ -87,7 +87,8 @@ def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
     sorties, finished or running), newest first, 20 per page, all-time or within the selected tour (OQ-82).
 
     Template `il2ks/players/streak_runs.html`. Context: `player`, `tours`, `tour`, `page_obj` (PlayerStreakRun rows with
-    `ended_sortie` and its mission), `min_run`, `crumbs`, `page_title`."""
+    `ended_sortie` and its mission), `tour_ended` (the selected tour is not the current one), `min_run`, `crumbs`,
+    `page_title`."""
     player = player_reads.visible_player(pk)
     if player is None:
         raise Http404
@@ -103,6 +104,8 @@ def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
         ],
         "player": player,
         "min_run": MIN_LISTED_RUN,
+        # an open run of a finished tour did not "still go": the tour ran out (decided from data, TD-28)
+        "tour_ended": choice.selected is not None and choice.selected != choice.current,
         "page_obj": reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected),
     }
     return render(request, "il2ks/players/streak_runs.html", context)
