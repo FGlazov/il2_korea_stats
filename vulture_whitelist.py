@@ -254,6 +254,7 @@ _.ground_points
 _.calibre  # core.catalog.loader.AmmoInfo: ammo.csv columns kept for later pages (grouping/sorting by calibre); tested
 _.round_type  # core.catalog.loader.AmmoInfo: same
 _.compute_ratings  # pure-function wrapper over compute_all_ratings, kept for the unit tests (pools only)
+_.shame  # core.achievements.Achievement: hall-of-shame flag, read by the profile / medal views and tested
 _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.archive.write_archive
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
 _.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html

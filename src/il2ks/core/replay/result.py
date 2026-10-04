@@ -232,6 +232,12 @@ class SortieResult:
     kills_air_ai: int = 0  # air kills of an AI aircraft
     # Interception (doc 13): air kills of bombers and attackers (`attack.is_interception_victim`), a part of kills_air
     kills_air_intercept: int = 0
+    # Achievements (doc 17): air kills by ramming an enemy aircraft (`credit_rams`, a part of kills_air); whether this
+    # sortie made the first credited PvP air kill of the mission (by tick, friendly kills excluded); and the most air
+    # kills within `kills.BURST_WINDOW_S` seconds (double / triple / quad kills).
+    rams: int = 0
+    first_blood: bool = False
+    multi_kill: int = 0
     # The server force-ended the sortie at mission end (doc 12, 13): `outcome` then says what state the aircraft was in
     # when the mission ended (`airborne`, `landed`, `ditched`, `not_taken_off`) and the pilot fate is `in_aircraft`.
     ended_by_mission_end: bool = False
@@ -258,6 +264,7 @@ class KillResult:
     via: KillVia
     is_friendly: bool
     pos: Pos | None
+    ram: bool = False  # credited because of a mid-air collision with an enemy (`credit_rams`), not an attack
     killer_coalition: int | None = None  # of the credited party; lets a timeline mark a friendly shoot-down
     victim_ground_category: GroundCategory | None = None  # ground victims only ("other" for an uncatalogued type)
     victim_is_static: bool = False

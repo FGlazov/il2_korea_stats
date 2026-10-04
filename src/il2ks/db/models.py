@@ -493,6 +493,13 @@ class PlayerSortie(models.Model):
     kills_air_pvp = models.PositiveIntegerField(default=0)
     kills_air_ai = models.PositiveIntegerField(default=0)
     kills_air_intercept = models.PositiveIntegerField(default=0)  # air kills of bombers / attackers (part of kills_air)
+    # Achievement facts (doc 17): air kills by ramming an enemy (part of kills_air); the sortie made the first credited
+    # PvP air kill of its mission; the most air kills within `core.replay.kills.BURST_WINDOW_S` seconds; and the highest
+    # Elo (prop or jet) the pilot held after a win in this sortie, 0 without one (written by `ingest.ratings`).
+    rams = models.PositiveIntegerField(default=0)
+    first_blood = models.BooleanField(default=False)
+    multi_kill = models.PositiveIntegerField(default=0)
+    elo_peak = models.FloatField(default=0.0)
     # Air and ground score of this sortie (pilots; gunners 0). Named `*_points` so the counters `score_*` can sum them.
     # Computed from the columns above and the `[score]` rules; a changed rule is applied by `il2ks rebuild-aggregates`.
     air_points = models.FloatField(default=0.0)

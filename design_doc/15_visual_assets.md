@@ -125,7 +125,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 128 files in 13 groups; 103 shipped as placeholders (1 of them not used by any page yet), 25 planned.
+Total: 141 files in 13 groups; 116 shipped as placeholders (1 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -261,7 +261,7 @@ Total: 128 files in 13 groups; 103 shipped as placeholders (1 of them not used b
 | `stat/ground-hour.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `clock-bolt` | yes | P2 | shipped |
 | `stat/play-time.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `hourglass` | yes | P2 | shipped |
 
-### Achievement medals (`medal/`): 12 files (12 shipped)
+### Achievement medals (`medal/`): 25 files (25 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
@@ -277,6 +277,19 @@ Total: 128 files in 13 groups; 103 shipped as placeholders (1 of them not used b
 | `medal/frequent-flyer.svg` | Medal row (profile, achievement pages, sortie page): Frequent Flyer: sorties flown; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `plane-departure` | yes | P2 | shipped |
 | `medal/flight-hours.svg` | Medal row (profile, achievement pages, sortie page): Hours Aloft: flight time in total; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `clock` | yes | P2 | shipped |
 | `medal/type-veteran.svg` | Medal row (profile, achievement pages, sortie page): Type Veteran: flight time in one aircraft type; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `award` | yes | P2 | shipped |
+| `medal/elo-peak.svg` | Medal row (profile, achievement pages, sortie page): Top Rated: the highest Elo reached; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `trending-up` | yes | P2 | shipped |
+| `medal/ground-score.svg` | Medal row (profile, achievement pages, sortie page): Ground Pounder: the ground score in total; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `chart-bar` | yes | P2 | shipped |
+| `medal/ram.svg` | Medal row (profile, achievement pages, sortie page): Contact Sport: enemy aircraft rammed; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `arrows-diagonal-minimize-2` | yes | P2 | shipped |
+| `medal/first-blood.svg` | Medal row (profile, achievement pages, sortie page): First Blood: first air kill of a mission; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `droplet` | yes | P2 | shipped |
+| `medal/multi-kill.svg` | Medal row (profile, achievement pages, sortie page): Hot Streak: several air kills within two minutes; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `chevrons-right` | yes | P2 | shipped |
+| `medal/types-flown.svg` | Medal row (profile, achievement pages, sortie page): Type Collector: different aircraft types flown; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `stack-2` | yes | P2 | shipped |
+| `medal/types-with-kills.svg` | Medal row (profile, achievement pages, sortie page): Versatile Hunter: different aircraft types with an air kill; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `list-check` | yes | P2 | shipped |
+| `medal/landing-streak.svg` | Medal row (profile, achievement pages, sortie page): Soft Touch: landings in a row; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `plane-arrival` | yes | P2 | shipped |
+| `medal/ace-in-a-day.svg` | Medal row (profile, achievement pages, sortie page): Ace in a Day: air kills in one day; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `sun` | yes | P2 | shipped |
+| `medal/shame-taxi.svg` | Medal row (profile, achievement pages, sortie page): Ramp Rash (hall of shame): taxi accidents; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `traffic-cone` | yes | P2 | shipped |
+| `medal/shame-friendly.svg` | Medal row (profile, achievement pages, sortie page): Wrong Team (hall of shame): friendly-fire kills; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `user-x` | yes | P2 | shipped |
+| `medal/shame-strafed.svg` | Medal row (profile, achievement pages, sortie page): Sitting Duck (hall of shame): destroyed on the ground by an attacker; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `flame` | yes | P2 | shipped |
+| `medal/shame-crashed.svg` | Medal row (profile, achievement pages, sortie page): Hard Landing (hall of shame): crashed after take-off; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `alert-triangle` | yes | P2 | shipped |
 
 ### Navigation link icons (`nav/`): 11 files (11 shipped)
 

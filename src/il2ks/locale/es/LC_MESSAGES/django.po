@@ -401,6 +401,10 @@ msgid "Accent, links and buttons"
 msgstr "Acento, enlaces y botones"
 
 # llm-draft
+msgid "Ace in a Day"
+msgstr "As en un día"
+
+# llm-draft
 msgid "Ace of the Sortie"
 msgstr "As de la salida"
 
@@ -504,12 +508,20 @@ msgid "Air kills in total, all sorties together."
 msgstr "Derribos aéreos en total, todas las salidas juntas."
 
 # llm-draft
+msgid "Air kills on a single day (UTC)."
+msgstr "Derribos aéreos en un solo día (UTC)."
+
+# llm-draft
 msgid "Air kills per flight hour"
 msgstr "Derribos aéreos por hora de vuelo"
 
 # llm-draft
 msgid "Air kills per sortie"
 msgstr "Derribos aéreos por salida"
+
+# llm-draft
+msgid "Air kills within two minutes in one sortie: a double, a triple, a quad."
+msgstr "Derribos aéreos en dos minutos en una salida: doble, triple, cuádruple."
 
 # llm-draft
 msgid "Air kills/h"
@@ -588,6 +600,10 @@ msgstr "En el aire"
 # llm-draft
 msgid "Aircraft"
 msgstr "Aeronave"
+
+# llm-draft
+msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
+msgstr "Aeronaves destruidas en tierra por un atacante: lugar equivocado, momento equivocado."
 
 # llm-draft
 msgid "Aircraft lost"
@@ -1155,6 +1171,10 @@ msgid "Consecutive sorties survived: no death, no capture. Sorties that never to
 msgstr "Salidas seguidas sobrevividas: sin muerte ni captura. Las salidas que nunca despegaron se saltan."
 
 # llm-draft
+msgid "Contact Sport"
+msgstr "Deporte de contacto"
+
+# llm-draft
 msgid "Continue"
 msgstr "Continuar"
 
@@ -1278,6 +1298,14 @@ msgid "Died"
 msgstr "Murió"
 
 # llm-draft
+msgid "Different aircraft types flown."
+msgstr "Tipos de aeronave distintos que has volado."
+
+# llm-draft
+msgid "Different aircraft types in which you scored an air kill."
+msgstr "Tipos de aeronave distintos con los que has logrado un derribo aéreo."
+
+# llm-draft
 msgid "Direct hits"
 msgstr "Impactos directos"
 
@@ -1304,6 +1332,10 @@ msgstr "Nombre de dominio"
 # llm-draft
 msgid "Domain name, for example stats.example.com"
 msgstr "Nombre de dominio, por ejemplo stats.example.com"
+
+# llm-draft
+msgid "Drew first blood, and the scoreboard has not been the same since."
+msgstr "Rompió el hielo, y el marcador no volvió a ser el mismo."
 
 # llm-draft
 msgid "Duration"
@@ -1357,6 +1389,10 @@ msgstr "Acción enemiga"
 # llm-draft
 msgid "Enemy aircraft"
 msgstr "Aeronaves enemigas"
+
+# llm-draft
+msgid "Enemy aircraft downed by ramming them."
+msgstr "Aeronaves enemigas derribadas por embestida."
 
 # llm-draft
 msgid "Enemy bombers and attackers flown by other pilots, shot down."
@@ -1471,6 +1507,14 @@ msgid "Finish setup"
 msgstr "Terminar la configuración"
 
 # llm-draft
+msgid "First Blood"
+msgstr "Primera sangre"
+
+# llm-draft
+msgid "First blood of the mission goes to this pilot. Somebody had to open the scoring."
+msgstr "La primera sangre de la misión es de este piloto. Alguien tenía que abrir el marcador."
+
+# llm-draft
 msgid "First seen"
 msgstr "Visto por primera vez"
 
@@ -1578,6 +1622,10 @@ msgid "Friendly-fire kills"
 msgstr "Derribos por fuego amigo"
 
 # llm-draft
+msgid "Friendly-fire kills. The markings are small and the sky is crowded."
+msgstr "Derribos por fuego amigo. Las insignias son pequeñas y el cielo está concurrido."
+
+# llm-draft
 msgid "Full killboard"
 msgstr "Registro de derribos completo"
 
@@ -1603,6 +1651,10 @@ msgstr "Bueno (verde)"
 # llm-draft
 msgid "Ground"
 msgstr "Tierra"
+
+# llm-draft
+msgid "Ground Pounder"
+msgstr "Azote de tierra"
 
 # llm-draft
 msgid "Ground accuracy"
@@ -1648,6 +1700,10 @@ msgstr "Puntos de tierra y salidas de ataque"
 # llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
 msgstr "Puntos de tierra ganados en salidas de ataque por hora sobre el objetivo. El trayecto de ida y vuelta no cuenta."
+
+# llm-draft
+msgid "Ground score in total, all sorties together."
+msgstr "Puntos de tierra en total, todas las salidas juntas."
 
 # llm-draft
 msgid "Ground score per hour"
@@ -1727,6 +1783,10 @@ msgstr "HTTPS"
 # llm-draft
 msgid "Hall of shame"
 msgstr "Muro de la vergüenza"
+
+# llm-draft
+msgid "Hard Landing"
+msgstr "Aterrizaje duro"
 
 # llm-draft
 msgid "Header band"
@@ -1856,6 +1916,10 @@ msgstr ""
 
 msgid "Home page: under the top pilots of the last mission"
 msgstr ""
+
+# llm-draft
+msgid "Hot Streak"
+msgstr "Racha caliente"
 
 # llm-draft
 msgid "Hours Aloft"
@@ -2092,6 +2156,12 @@ msgid "Landings"
 msgstr "Aterrizajes"
 
 # llm-draft
+msgid "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+msgstr ""
+"Aterrizajes seguidos. Un accidente, un salto en paracaídas o una muerte cortan la racha; las salidas que nunca "
+"despegaron, no."
+
+# llm-draft
 msgid "Language"
 msgstr "Idioma"
 
@@ -2306,6 +2376,10 @@ msgstr "Misiones"
 #, python-format
 msgid "Missions in %(tour)s"
 msgstr "Misiones de %(tour)s"
+
+# llm-draft
+msgid "Missions in which you made the first air kill against a player."
+msgstr "Misiones en las que lograste el primer derribo aéreo contra un jugador."
 
 # llm-draft
 msgid "Missions stored"
@@ -2698,6 +2772,10 @@ msgid "Open the sortie report"
 msgstr "Abrir el informe de la salida"
 
 # llm-draft
+msgid "Opening shots matter, and these ones found their mark."
+msgstr "El primer disparo es el que cuenta, y este dio en el blanco."
+
+# llm-draft
 msgid "Operations"
 msgstr "Operaciones"
 
@@ -3070,6 +3148,10 @@ msgid "REDFOR won"
 msgstr "Ganó REDFOR"
 
 # llm-draft
+msgid "Ramp Rash"
+msgstr "Raspón en la rampa"
+
+# llm-draft
 msgid "Ratings"
 msgstr "Clasificaciones"
 
@@ -3373,6 +3455,10 @@ msgid "Site texts"
 msgstr ""
 
 # llm-draft
+msgid "Sitting Duck"
+msgstr "Blanco fácil"
+
+# llm-draft
 msgid "Skip to content"
 msgstr "Saltar al contenido"
 
@@ -3389,6 +3475,10 @@ msgid "So many assists, so few credits. The kill counter is a cruel bookkeeper."
 msgstr "Tantas asistencias y tan pocos derribos acreditados. El contador es un contable cruel."
 
 # llm-draft
+msgid "Soft Touch"
+msgstr "Toque suave"
+
+# llm-draft
 msgid "Softened them up beautifully and the flight collected the trophies. Next time, the last shot is yours."
 msgstr "Los dejaste ablandados y la formación se llevó los trofeos. La próxima vez, el último disparo es tuyo."
 
@@ -3399,6 +3489,10 @@ msgstr "Unos persiguen derribos. Este persigue el aparcamiento perfecto, y sigue
 # llm-draft
 msgid "Some pilots sprint. This one went the distance."
 msgstr "Algunos pilotos hacen sprints. Este hizo todo el recorrido."
+
+# llm-draft
+msgid "Somebody had to go first. It was a good choice."
+msgstr "Alguien tenía que estrenar el cielo. Mejor que fuera este."
 
 # llm-draft
 msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
@@ -3470,6 +3564,10 @@ msgstr ""
 msgid "Sortie: taxi accident"
 msgstr ""
 
+# llm-draft
+msgid "Sortie: the first kill of the mission"
+msgstr "Salida: el primer derribo de la misión"
+
 msgid "Sortie: the pilot was captured"
 msgstr ""
 
@@ -3529,6 +3627,10 @@ msgstr "Salidas superadas"
 # llm-draft
 msgid "Sorties survived in a row: no death, no capture. Sorties that never took off are skipped."
 msgstr "Salidas sobrevividas seguidas: sin muerte ni captura. Las salidas en las que no se despegó se omiten."
+
+# llm-draft
+msgid "Sorties that took off and ended in a crash. The ground always wins."
+msgstr "Salidas que despegaron y acabaron en accidente. El suelo siempre gana."
 
 # llm-draft
 msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
@@ -3705,6 +3807,10 @@ msgid "Taxi accidents"
 msgstr "Accidentes de rodaje"
 
 # llm-draft
+msgid "Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Accidentes de rodaje: la aeronave se perdió antes de despegar. La rampa perdona."
+
+# llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
 msgstr "Calle de rodaje o formación, da igual: donde va este piloto, hay anécdota."
 
@@ -3813,6 +3919,10 @@ msgid "The file is larger than 2 MB."
 msgstr "El archivo supera los 2 MB."
 
 # llm-draft
+msgid "The first kill of the night, and it was this one. Everybody else is playing catch-up."
+msgstr "El primer derribo de la noche, y fue este. Los demás ya van a rebufo."
+
+# llm-draft
 msgid "The flak had the final say."
 msgstr "La antiaérea tuvo la última palabra."
 
@@ -3878,6 +3988,10 @@ msgid "The gun camera footage on this one would be a good watch."
 msgstr "La grabación de la cámara de tiro de este sería digna de ver."
 
 # llm-draft
+msgid "The highest Elo rating reached, in the prop or the jet pool."
+msgstr "La valoración Elo más alta alcanzada, en el grupo de hélice o en el de reactores."
+
+# llm-draft
 #, python-format
 msgid "The image has too many pixels (limit: %(px)d megapixels)."
 msgstr "La imagen tiene demasiados píxeles (límite: %(px)d megapíxeles)."
@@ -3909,6 +4023,10 @@ msgstr ""
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
 msgstr "Las marcas son pequeñas y el cielo, un hormiguero. Les pasa a las mejores escuadrillas."
+
+# llm-draft
+msgid "The mission was young and the sky was quiet, until this pilot changed that."
+msgstr "La misión era joven y el cielo estaba tranquilo. Hasta que este piloto lo arregló."
 
 # llm-draft
 msgid ""
@@ -4160,6 +4278,10 @@ msgid "Top 25%%"
 msgstr "Top 25 %%"
 
 # llm-draft
+msgid "Top Rated"
+msgstr "Mejor valorado"
+
+# llm-draft
 msgid "Top attack pilots"
 msgstr "Mejores pilotos de ataque"
 
@@ -4213,6 +4335,10 @@ msgstr "Problemas en la plataforma y en el aire. Al menos es constante."
 # llm-draft
 msgid "Type"
 msgstr "Tipo"
+
+# llm-draft
+msgid "Type Collector"
+msgstr "Coleccionista de tipos"
 
 # llm-draft
 msgid "Type Veteran"
@@ -4348,6 +4474,10 @@ msgid "Vehicles"
 msgstr "Vehículos"
 
 # llm-draft
+msgid "Versatile Hunter"
+msgstr "Cazador versátil"
+
+# llm-draft
 msgid "Victim"
 msgstr "Víctima"
 
@@ -4448,6 +4578,10 @@ msgstr "Peor intercambio: contra %(enemy)s (%(kills)s derribos, %(losses)s pérd
 # llm-draft
 msgid "Wounded"
 msgstr "Herido"
+
+# llm-draft
+msgid "Wrong Team"
+msgstr "Equipo equivocado"
 
 # llm-draft
 msgid "Wrong target, right enthusiasm. The debrief will be lively."

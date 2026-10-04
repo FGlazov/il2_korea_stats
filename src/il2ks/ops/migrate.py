@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Callable, Sequence
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -75,6 +76,7 @@ BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, T
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
+BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
 def _already_done(name: str) -> bool:
@@ -125,6 +127,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_STREAK_RUNS, _check_streak_runs),
         (BACKFILL_TOUR_AIRCRAFT, _check_tour_aircraft),
         (BACKFILL_BUILDS, _check_builds),
+        (BACKFILL_ACHIEVEMENT_FACTS, _check_achievement_facts),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -190,6 +193,101 @@ def _check_streak_runs() -> bool:
     from il2ks.db.models import PlayerSortie, PlayerStreakRun, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerStreakRun.objects.exists()
+
+
+def _close(a: tuple[float, float, float] | None, b: tuple[float, float, float] | None, metres: float) -> bool:
+    """Whether two kill positions are within `metres` of each other (unknown positions are not held against a ram)."""
+    if a is None or b is None:
+        return True
+    return sum((p - q) ** 2 for p, q in zip(a, b, strict=True)) <= metres**2
+
+
+def _hits_dealt(pairs: list[tuple[int, int]]) -> dict[int, set[int]]:
+    """Sortie id -> the player sorties it landed gun hits on, read from the stored damage breakdown, for the sorties
+    in `pairs` only (the JSON is big)."""
+    from il2ks.db.models import PlayerSortie
+
+    ids = sorted({pk for pair in pairs for pk in pair})
+    hit: dict[int, set[int]] = {}
+    for start in range(0, len(ids), 400):
+        rows = PlayerSortie.objects.filter(pk__in=ids[start : start + 400]).values_list("pk", "damage_breakdown")
+        for pk, breakdown in rows:
+            for entry in cast("list[dict[str, object]]", breakdown or []):
+                other, dealt = entry.get("counterpart"), entry.get("hits_dealt")
+                if isinstance(other, dict) and isinstance(dealt, int) and dealt > 0:
+                    target = cast("dict[str, object]", other).get("sortie_id")
+                    if isinstance(target, int):
+                        hit.setdefault(pk, set()).add(target)
+    return hit
+
+
+def _check_achievement_facts() -> bool:
+    """A database from before the second set of achievements (doc 17) has no `rams`, `first_blood`, `multi_kill` or
+    `elo_peak` on its sorties. Derived from what is stored; the rebuild this asks for replays the Elo games (the peaks)
+    and computes every medal:
+
+    - `multi_kill`: the timeline's air `kill` entries (a victim that is a player's aircraft, or of an air class), the
+      replay's own window (`max_burst`).
+    - `first_blood`: the first PvP air kill of each mission in `Kill` (earliest tick, then id); AI victims have no row,
+      which is the rule (doc 17).
+    - `rams`: only approximated. The log has no collision event and the timelines do not mark rams, so a kill counts as
+      a ram when its victim killed the killer back within the ram window (`[rules] ram_window_s`): two enemies that
+      credit each other at the same moment and place (`ram_distance_m`). `il2ks reprocess` gives the exact value.
+    """
+    from il2ks.core.catalog.loader import AIR_CLASSES
+    from il2ks.core.replay.kills import max_burst
+    from il2ks.core.replay.toggles import RuleToggles
+    from il2ks.db.models import GameObject, Kill, KillCredit, PlayerSortie, Role
+    from il2ks.ingest.dbutil import update_partial_rows
+
+    pilots = PlayerSortie.objects.filter(role=Role.PILOT)
+    if not pilots.exists() or pilots.filter(first_blood=True).exists() or pilots.filter(multi_kill__gt=0).exists():
+        return False
+    log.info("deriving rams, first bloods and multi-kills")
+    classes = dict(GameObject.objects.values_list("log_name", "cls"))
+    bursts: dict[int, int] = {}
+    for pk, timeline in pilots.filter(kills_air__gt=0).values_list("pk", "timeline").iterator(chunk_size=500):
+        ticks: list[int] = []
+        for entry in timeline:
+            other = entry.get("counterpart")
+            tick = entry.get("tick")
+            if entry.get("kind") != "kill" or not isinstance(other, dict) or not isinstance(tick, int):
+                continue
+            victim = cast("dict[str, object]", other)
+            if victim.get("sortie_id") is not None or classes.get(str(victim.get("object_type"))) in AIR_CLASSES:
+                ticks.append(tick)
+        if ticks:
+            bursts[pk] = max_burst(ticks)
+
+    first: dict[int, int] = {}
+    mutual: dict[tuple[int, int], tuple[datetime, tuple[float, float, float] | None]] = {}
+    toggles = RuleToggles()
+    window = timedelta(seconds=toggles.ram_window_s)
+    kills = Kill.objects.filter(credit=KillCredit.KILL, is_friendly=False).order_by("mission_id", "tick", "pk")
+    rams: dict[int, int] = {}
+    pairs: list[tuple[int, int]] = []
+    for mission_id, killer, victim, when, x, y, z in kills.values_list(
+        "mission_id", "killer_sortie_id", "victim_sortie_id", "time", "pos_x", "pos_y", "pos_z"
+    ).iterator():
+        first.setdefault(mission_id, killer)
+        where = (x, y, z) if x is not None and y is not None and z is not None else None
+        back = mutual.get((victim, killer))
+        if back is not None and abs(when - back[0]) <= window and _close(where, back[1], toggles.ram_distance_m):
+            pairs.append((killer, victim))
+        mutual[(killer, victim)] = (when, where)
+    shots = _hits_dealt(pairs)
+    for killer, victim in pairs:
+        if victim not in shots.get(killer, ()) and killer not in shots.get(victim, ()):  # a ram: no guns either way
+            rams[killer] = rams.get(killer, 0) + 1
+            rams[victim] = rams.get(victim, 0) + 1
+
+    first_ids = set(first.values())
+    changed = [
+        PlayerSortie(pk=pk, multi_kill=bursts.get(pk, 0), rams=rams.get(pk, 0), first_blood=pk in first_ids)
+        for pk in sorted(bursts.keys() | rams.keys() | first_ids)
+    ]
+    update_partial_rows(PlayerSortie, changed, ["multi_kill", "rams", "first_blood"])
+    return True
 
 
 def _check_accuracy() -> bool:

@@ -412,6 +412,10 @@ msgid "Accent, links and buttons"
 msgstr "Акцент, ссылки и кнопки"
 
 # llm-draft
+msgid "Ace in a Day"
+msgstr "Ас за день"
+
+# llm-draft
 msgid "Ace of the Sortie"
 msgstr "Ас вылета"
 
@@ -514,12 +518,20 @@ msgid "Air kills in total, all sorties together."
 msgstr "Воздушные победы за всё время, все вылеты вместе."
 
 # llm-draft
+msgid "Air kills on a single day (UTC)."
+msgstr "Воздушные победы за один день (UTC)."
+
+# llm-draft
 msgid "Air kills per flight hour"
 msgstr "Воздушных побед за час полёта"
 
 # llm-draft
 msgid "Air kills per sortie"
 msgstr "Воздушных побед за вылет"
+
+# llm-draft
+msgid "Air kills within two minutes in one sortie: a double, a triple, a quad."
+msgstr "Воздушные победы в одном вылете в пределах двух минут: двойная, тройная, четверная."
 
 # llm-draft
 msgid "Air kills/h"
@@ -601,6 +613,10 @@ msgstr "В воздухе"
 # llm-draft
 msgid "Aircraft"
 msgstr "Самолёт"
+
+# llm-draft
+msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
+msgstr "Самолёты, уничтоженные на земле штурмовиком: не то место и не то время."
 
 # llm-draft
 msgid "Aircraft lost"
@@ -1175,6 +1191,10 @@ msgid "Consecutive sorties survived: no death, no capture. Sorties that never to
 msgstr "Вылеты подряд без гибели и плена. Вылеты, в которых самолёт так и не взлетел, пропускаются."
 
 # llm-draft
+msgid "Contact Sport"
+msgstr "Контактный спорт"
+
+# llm-draft
 msgid "Continue"
 msgstr "Продолжить"
 
@@ -1298,6 +1318,14 @@ msgid "Died"
 msgstr "Погиб"
 
 # llm-draft
+msgid "Different aircraft types flown."
+msgstr "Разные типы самолётов, на которых вы летали."
+
+# llm-draft
+msgid "Different aircraft types in which you scored an air kill."
+msgstr "Разные типы самолётов, на которых вы одержали воздушную победу."
+
+# llm-draft
 msgid "Direct hits"
 msgstr "Прямые попадания"
 
@@ -1324,6 +1352,10 @@ msgstr "Доменное имя"
 # llm-draft
 msgid "Domain name, for example stats.example.com"
 msgstr "Доменное имя, например stats.example.com"
+
+# llm-draft
+msgid "Drew first blood, and the scoreboard has not been the same since."
+msgstr "Открыл счёт, и табло с тех пор уже не стояло на месте."
 
 # llm-draft
 msgid "Duration"
@@ -1377,6 +1409,10 @@ msgstr "Действия противника"
 # llm-draft
 msgid "Enemy aircraft"
 msgstr "Самолёты противника"
+
+# llm-draft
+msgid "Enemy aircraft downed by ramming them."
+msgstr "Вражеские самолёты, сбитые тараном."
 
 # llm-draft
 msgid "Enemy bombers and attackers flown by other pilots, shot down."
@@ -1489,6 +1525,14 @@ msgid "Finish setup"
 msgstr "Завершить настройку"
 
 # llm-draft
+msgid "First Blood"
+msgstr "Первая кровь"
+
+# llm-draft
+msgid "First blood of the mission goes to this pilot. Somebody had to open the scoring."
+msgstr "Первая кровь в этой миссии за этим пилотом. Кто-то же должен открыть счёт."
+
+# llm-draft
 msgid "First seen"
 msgstr "Впервые замечен"
 
@@ -1598,6 +1642,10 @@ msgid "Friendly-fire kills"
 msgstr "Огонь по своим: уничтожено"
 
 # llm-draft
+msgid "Friendly-fire kills. The markings are small and the sky is crowded."
+msgstr "Сбитые свои. Опознавательные знаки мелкие, а небо тесное."
+
+# llm-draft
 msgid "Full killboard"
 msgstr "Полный журнал побед"
 
@@ -1623,6 +1671,10 @@ msgstr "Хорошо (зелёный)"
 # llm-draft
 msgid "Ground"
 msgstr "Земля"
+
+# llm-draft
+msgid "Ground Pounder"
+msgstr "Гроза земли"
 
 # llm-draft
 msgid "Ground accuracy"
@@ -1670,6 +1722,10 @@ msgid "Ground score earned in attack sorties per hour spent on target. Transit t
 msgstr ""
 "Очки за наземные цели, набранные во время штурмовых вылетов, в пересчёте на час над целью. Перелёт к цели и обратно "
 "не учитывается."
+
+# llm-draft
+msgid "Ground score in total, all sorties together."
+msgstr "Очки за землю в сумме, за все вылеты."
 
 # llm-draft
 msgid "Ground score per hour"
@@ -1749,6 +1805,10 @@ msgstr "HTTPS"
 # llm-draft
 msgid "Hall of shame"
 msgstr "Доска позора"
+
+# llm-draft
+msgid "Hard Landing"
+msgstr "Жёсткая посадка"
 
 # llm-draft
 msgid "Header band"
@@ -1878,6 +1938,10 @@ msgstr ""
 
 msgid "Home page: under the top pilots of the last mission"
 msgstr ""
+
+# llm-draft
+msgid "Hot Streak"
+msgstr "Горячая серия"
 
 # llm-draft
 msgid "Hours Aloft"
@@ -2114,6 +2178,10 @@ msgid "Landings"
 msgstr "Посадки"
 
 # llm-draft
+msgid "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+msgstr "Посадки подряд. Авария, прыжок с парашютом или гибель прерывают серию, вылеты без взлёта — нет."
+
+# llm-draft
 msgid "Language"
 msgstr "Язык"
 
@@ -2326,6 +2394,10 @@ msgstr "Миссии"
 #, python-format
 msgid "Missions in %(tour)s"
 msgstr "Миссии: %(tour)s"
+
+# llm-draft
+msgid "Missions in which you made the first air kill against a player."
+msgstr "Миссии, в которых вы одержали первую воздушную победу над игроком."
 
 # llm-draft
 msgid "Missions stored"
@@ -2718,6 +2790,10 @@ msgid "Open the sortie report"
 msgstr "Открыть отчёт о вылете"
 
 # llm-draft
+msgid "Opening shots matter, and these ones found their mark."
+msgstr "Первый выстрел решает многое, и этот попал точно в цель."
+
+# llm-draft
 msgid "Operations"
 msgstr "Операции"
 
@@ -3091,6 +3167,10 @@ msgid "REDFOR won"
 msgstr "Победила REDFOR"
 
 # llm-draft
+msgid "Ramp Rash"
+msgstr "Беда на рулёжке"
+
+# llm-draft
 msgid "Ratings"
 msgstr "Рейтинги"
 
@@ -3397,6 +3477,10 @@ msgid "Site texts"
 msgstr ""
 
 # llm-draft
+msgid "Sitting Duck"
+msgstr "Лёгкая мишень"
+
+# llm-draft
 msgid "Skip to content"
 msgstr "Перейти к содержимому"
 
@@ -3413,6 +3497,10 @@ msgid "So many assists, so few credits. The kill counter is a cruel bookkeeper."
 msgstr "Столько содействий, а засчитанных побед так мало. Счётчик побед — суровый бухгалтер."
 
 # llm-draft
+msgid "Soft Touch"
+msgstr "Мягкая посадка"
+
+# llm-draft
 msgid "Softened them up beautifully and the flight collected the trophies. Next time, the last shot is yours."
 msgstr "Красиво обработали цель, а трофеи достались звену. В следующий раз последний выстрел за вами."
 
@@ -3423,6 +3511,10 @@ msgstr "Одни гонятся за победами. Этот ищет иде�
 # llm-draft
 msgid "Some pilots sprint. This one went the distance."
 msgstr "Кто-то берёт спринтом, а этот пилот прошёл всю дистанцию."
+
+# llm-draft
+msgid "Somebody had to go first. It was a good choice."
+msgstr "Кому-то надо было начать первым. Хорошо, что это был он."
 
 # llm-draft
 msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
@@ -3494,6 +3586,10 @@ msgstr ""
 msgid "Sortie: taxi accident"
 msgstr ""
 
+# llm-draft
+msgid "Sortie: the first kill of the mission"
+msgstr "Вылет: первый сбитый в миссии"
+
 msgid "Sortie: the pilot was captured"
 msgstr ""
 
@@ -3553,6 +3649,10 @@ msgstr "Пережитые вылеты"
 # llm-draft
 msgid "Sorties survived in a row: no death, no capture. Sorties that never took off are skipped."
 msgstr "Вылеты подряд без гибели и плена. Вылеты, в которых самолёт не взлетел, пропускаются."
+
+# llm-draft
+msgid "Sorties that took off and ended in a crash. The ground always wins."
+msgstr "Вылеты, которые закончились аварией после взлёта. Земля всегда побеждает."
 
 # llm-draft
 msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
@@ -3729,6 +3829,10 @@ msgid "Taxi accidents"
 msgstr "Аварии при рулении"
 
 # llm-draft
+msgid "Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Аварии при рулении: самолёт потерян, так и не взлетев. Стоянка простит."
+
+# llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
 msgstr "Рулёжка, строй — без разницы: где этот пилот, там и история."
 
@@ -3837,6 +3941,10 @@ msgid "The file is larger than 2 MB."
 msgstr "Файл больше 2 МБ."
 
 # llm-draft
+msgid "The first kill of the night, and it was this one. Everybody else is playing catch-up."
+msgstr "Первый сбитый за вечер, и он на счету этого пилота. Остальные догоняют."
+
+# llm-draft
 msgid "The flak had the final say."
 msgstr "Последнее слово осталось за зенитками."
 
@@ -3903,6 +4011,10 @@ msgid "The gun camera footage on this one would be a good watch."
 msgstr "Кадры фотокиноружья с этого вылета стоило бы посмотреть."
 
 # llm-draft
+msgid "The highest Elo rating reached, in the prop or the jet pool."
+msgstr "Лучший достигнутый рейтинг Эло в пуле поршневых или реактивных самолётов."
+
+# llm-draft
 #, python-format
 msgid "The image has too many pixels (limit: %(px)d megapixels)."
 msgstr "В изображении слишком много пикселей (предел: %(px)d мегапикселей)."
@@ -3934,6 +4046,10 @@ msgstr ""
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
 msgstr "Опознавательные знаки мелкие, а небо тесное. С кем не бывает, даже в лучших эскадрильях."
+
+# llm-draft
+msgid "The mission was young and the sky was quiet, until this pilot changed that."
+msgstr "Миссия только началась, небо было спокойным. Пока этот пилот не взялся за дело."
 
 # llm-draft
 msgid ""
@@ -4182,6 +4298,10 @@ msgid "Top 25%%"
 msgstr "Лучшие 25%%"
 
 # llm-draft
+msgid "Top Rated"
+msgstr "Высший рейтинг"
+
+# llm-draft
 msgid "Top attack pilots"
 msgstr "Лучшие штурмовики"
 
@@ -4235,6 +4355,10 @@ msgstr "Проблемы и на стоянке, и в воздухе. Зато 
 # llm-draft
 msgid "Type"
 msgstr "Тип"
+
+# llm-draft
+msgid "Type Collector"
+msgstr "Коллекционер типов"
 
 # llm-draft
 msgid "Type Veteran"
@@ -4368,6 +4492,10 @@ msgid "Vehicles"
 msgstr "Техника"
 
 # llm-draft
+msgid "Versatile Hunter"
+msgstr "Универсальный охотник"
+
+# llm-draft
 msgid "Victim"
 msgstr "Жертва"
 
@@ -4471,6 +4599,10 @@ msgstr "Худший обмен: против %(enemy)s (%(kills)s побед, %
 # llm-draft
 msgid "Wounded"
 msgstr "Ранен"
+
+# llm-draft
+msgid "Wrong Team"
+msgstr "Огонь по своим"
 
 # llm-draft
 msgid "Wrong target, right enthusiasm. The debrief will be lively."

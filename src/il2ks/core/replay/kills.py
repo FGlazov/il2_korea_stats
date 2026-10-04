@@ -5,7 +5,7 @@ Derived from il2_stats (MIT), see NOTICE: `Object.got_killed`. Credit is damage 
 
 from dataclasses import dataclass
 
-from il2ks.core.logparse.events import Pos
+from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import Credited, credit_kill, is_self_attack
 from il2ks.core.replay.judge import Verdict
@@ -112,6 +112,7 @@ def _result(
     credit: KillCredit,
     via: KillVia,
     friendly: bool,
+    ram: bool = False,
 ) -> KillResult:
     info = victim.obj.info
     is_ground = not info.is_air
@@ -132,6 +133,7 @@ def _result(
         via=via,
         is_friendly=friendly,
         pos=victim.pos,
+        ram=ram,
     )
 
 
@@ -144,7 +146,8 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
     for victim in _victims(facts, verdicts, rules):
         credited = credit_kill(victim.obj, victim.sortie, victim.explicit, victim.tick, rules.assist_min_damage)
         rammer = facts.ram_partners.get(id(victim.obj))
-        if not credited and rammer is not None:  # `credit_rams`: a mid-air collision with an enemy (rams.ram_partners)
+        rammed = not credited and rammer is not None
+        if rammed and rammer is not None:  # `credit_rams`: a mid-air collision with an enemy (rams.ram_partners)
             credited = [Credited(party_of(rammer), True, 0.0)]
         victim_index = victim.sortie.index if victim.sortie is not None else None
         if not credited:
@@ -176,6 +179,7 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
                     credit="kill" if entry.is_killer else "assist",
                     via=victim.via if victim_index is not None else "direct",
                     friendly=friendly,
+                    ram=rammed,
                 )
             )
         taken = {index for index in map(_party_sortie_index, credited) if index is not None}
@@ -197,3 +201,36 @@ def resolve_kills(facts: MissionFacts, verdicts: list[Verdict], rules: ReplayRul
                 )
     results.sort(key=lambda k: k.tick)
     return results
+
+
+BURST_WINDOW_S = 120.0
+"""Air kills this close together (first to last of a burst) are a double / triple / quad kill (doc 17)."""
+
+
+def max_burst(ticks: list[int], window_s: float = BURST_WINDOW_S) -> int:
+    """The most kills whose ticks fit in a window of `window_s` seconds (a burst from its first to its last kill)."""
+    window = round(window_s * TICKS_PER_SECOND)
+    ordered = sorted(ticks)
+    best = 0
+    start = 0
+    for end, tick in enumerate(ordered):
+        while tick - ordered[start] > window:
+            start += 1
+        best = max(best, end - start + 1)
+    return best
+
+
+def first_blood_sortie(kills: list[KillResult], pilot_indices: frozenset[int]) -> int | None:
+    """The sortie index of the first credited PvP air kill of the mission (earliest tick; the first in `kills` order on
+    a tie, which the resolver sorts stably). Friendly kills, assists, kills of AI aircraft and kills by gunners and
+    ground objects do not count."""
+    for kill in sorted(kills, key=lambda k: k.tick):
+        if (
+            kill.credit == "kill"
+            and not kill.is_friendly
+            and kill.victim_kind == "air"
+            and kill.victim_sortie_index is not None
+            and kill.killer_sortie_index in pilot_indices
+        ):
+            return kill.killer_sortie_index
+    return None

@@ -52,6 +52,7 @@ class Game:
     loser_pool: Pool
     winner_aircraft: int = 0  # GameObject id of the winner's aircraft type (0: unknown, only the pool ratings count)
     loser_aircraft: int = 0
+    winner_sortie: int = 0  # id of the winner's sortie (0: unknown); `AllRatings.peaks` reports ratings per sortie
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,6 +71,9 @@ class AllRatings:
 
     pools: dict[RatingKey, Rating]
     types: dict[TypeKey, Rating]
+    peaks: dict[int, float]
+    """Winner sortie id -> the highest pool rating its winner held right after one of that sortie's games (achievements,
+    doc 17). A loser's rating only falls, so peaks come from wins; sorties without a rating-changing win are absent."""
 
 
 def expected_score(rating: float, opponent: float) -> float:
@@ -89,16 +93,19 @@ def compute_all_ratings(games: Iterable[Game], rules: RatingRules) -> AllRatings
     aircraft type (id 0) leaves that side's per-type rating alone."""
     pools = _Elo[RatingKey](rules)
     types = _Elo[TypeKey](rules)
+    peaks: dict[int, float] = {}
     for game in games:
         if game.winner == game.loser:
             continue
         if game.winner_pool == "jet" and game.loser_pool == "prop":
             continue  # a jet beating a prop aircraft is the expected result
         weight = rules.cross_pool_weight if game.winner_pool == "prop" and game.loser_pool == "jet" else 1.0
-        pools.play((game.winner, game.winner_pool), (game.loser, game.loser_pool), weight)
+        after = pools.play((game.winner, game.winner_pool), (game.loser, game.loser_pool), weight)
+        if game.winner_sortie:
+            peaks[game.winner_sortie] = max(peaks.get(game.winner_sortie, after), after)
         if game.winner_aircraft and game.loser_aircraft:
             types.play((game.winner, game.winner_aircraft), (game.loser, game.loser_aircraft), weight)
-    return AllRatings(pools.result(), types.result())
+    return AllRatings(pools.result(), types.result(), peaks)
 
 
 class _Elo[K]:
@@ -109,7 +116,8 @@ class _Elo[K]:
         self._ratings: dict[K, float] = {}
         self._counts: dict[K, int] = {}
 
-    def play(self, won: K, lost: K, weight: float) -> None:
+    def play(self, won: K, lost: K, weight: float) -> float:
+        """One game; returns the winner's new rating."""
         start = self._rules.start
         winner_rating = self._ratings.get(won, start)
         loser_rating = self._ratings.get(lost, start)
@@ -118,6 +126,7 @@ class _Elo[K]:
         self._ratings[lost] = loser_rating - change
         self._counts[won] = self._counts.get(won, 0) + 1
         self._counts[lost] = self._counts.get(lost, 0) + 1
+        return self._ratings[won]
 
     def result(self) -> dict[K, Rating]:
         return {key: Rating(rating, self._counts[key]) for key, rating in self._ratings.items()}

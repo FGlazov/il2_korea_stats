@@ -155,6 +155,9 @@ def sortie(
     ended_by_mission_end: bool = False,
     combat_role: CombatRole | None = None,
     time_on_target_s: float | None = None,
+    rams: int = 0,
+    first_blood: bool = False,
+    multi_kill: int = 0,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
@@ -242,6 +245,9 @@ def sortie(
         ended_by_mission_end=ended_by_mission_end,
         combat_role=combat_role,
         time_on_target_s=time_on_target_s,
+        rams=rams,
+        first_blood=first_blood,
+        multi_kill=multi_kill,
     )
 
 

@@ -15,8 +15,11 @@ from collections.abc import Iterator
 
 from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_all_ratings
-from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, Role
+from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, PlayerSortie, Role
+from il2ks.ingest.achievements import recompute_achievements, recompute_holders
 from il2ks.ingest.dbutil import update_partial_rows
+
+CHUNK = 400  # players per achievement batch (SQLite's bound-parameter limit)
 
 
 def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
@@ -61,7 +64,32 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
         if wanted_type != (elo, elo_games):
             changed_types.append(PlayerAircraft(pk=pk, elo=wanted_type[0], elo_games=wanted_type[1]))
     update_partial_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
+    _store_peaks(computed.peaks, {g.winner_sortie: g.winner for g in games})
     return len(games)
+
+
+def _store_peaks(peaks: dict[int, float], winners: dict[int, int]) -> None:
+    """Write `PlayerSortie.elo_peak` (the Elo medal reads it) where it differs, then recompute the medals of every pilot
+    whose sorties changed. Incremental == rebuild: the peaks are a pure function of the replayed games."""
+    stored = dict(PlayerSortie.objects.filter(elo_peak__gt=0).values_list("pk", "elo_peak"))
+    changed: list[PlayerSortie] = []
+    players: set[int] = set()
+    for pk in stored.keys() | peaks.keys():
+        want = peaks.get(pk, 0.0)
+        if stored.get(pk, 0.0) != want:
+            changed.append(PlayerSortie(pk=pk, elo_peak=want))
+            players.add(winners[pk] if pk in winners else _owner(pk))
+    update_partial_rows(PlayerSortie, changed, ["elo_peak"])
+    ids = sorted(players)
+    for start in range(0, len(ids), CHUNK):
+        recompute_achievements(ids[start : start + CHUNK])
+    if ids:
+        recompute_holders()
+
+
+def _owner(sortie_id: int) -> int:
+    """The player of a sortie whose peak was cleared (it has no game any more, so `winners` does not know it)."""
+    return PlayerSortie.objects.values_list("player_id", flat=True).get(pk=sortie_id)
 
 
 def _games() -> Iterator[Game]:
@@ -83,8 +111,9 @@ def _games() -> Iterator[Game]:
             "victim_sortie__aircraft__propulsion",
             "killer_sortie__aircraft_id",
             "victim_sortie__aircraft_id",
+            "killer_sortie_id",
         )
     )
-    for winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft in kills.iterator():
+    for winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft, sortie in kills.iterator():
         if is_propulsion(winner_pool) and is_propulsion(loser_pool):
-            yield Game(winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft)
+            yield Game(winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft, sortie)
