@@ -24,7 +24,10 @@ BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landin
 # Thresholds of the extreme-event spots, read off the September 2026 archive (15,245 pilot sorties; share of those
 # sorties that reach the threshold, before the precedence in `sortie_spot` takes some away):
 BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
-STOLEN_ASSISTS_MIN = 6  # assists without a single air kill: 2.4%
+# Assists that earn the stolen-kills line, by the sortie's own air kills (maintainer, 2026-10-04): 3+ with no air kill,
+# 5+ with one, 6+ with two (three or more air kills is the ace line, which comes first).
+STOLEN_ASSISTS_MIN = {0: 3, 1: 5}
+STOLEN_ASSISTS_MIN_MORE_KILLS = 6
 QUICK_KILL_S = 420.0  # first air kill within 7 min of takeoff: 1.1%
 MARATHON_S = 3600.0  # flight time of 1 h or more: 1.0%
 BATTERED_KILLS_MIN = 2  # kills (air + ground) of a landing with BADLY_DAMAGED damage: 1.1%
@@ -226,7 +229,7 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
         return "sortie_bomber_hunter"
     if sortie.kills_air >= MULTI_KILL_MIN:
         return "sortie_ace"
-    if sortie.assists >= STOLEN_ASSISTS_MIN and sortie.kills_air == 0:
+    if sortie.assists >= STOLEN_ASSISTS_MIN.get(sortie.kills_air, STOLEN_ASSISTS_MIN_MORE_KILLS):
         return "sortie_stolen_kills"
     landed_damaged = (
         sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED

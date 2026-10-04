@@ -97,9 +97,12 @@ def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
         ({"kills_air": 2}, Highlights(bomber_kills=2), "sortie_bomber_hunter"),
         ({"kills_air": 2}, Highlights(bomber_kills=1), None),  # one bomber is not a hunt
         ({"kills_air": 2}, None, None),  # the spot needs the timeline facts
-        ({"assists": 6}, None, "sortie_stolen_kills"),
-        ({"assists": 5}, None, None),
-        ({"assists": 9, "kills_air": 1}, None, None),  # a kill of their own: nothing was stolen
+        ({"assists": 3}, None, "sortie_stolen_kills"),  # no air kill: 3 assists
+        ({"assists": 2}, None, None),
+        ({"assists": 5, "kills_air": 1}, None, "sortie_stolen_kills"),  # one air kill: 5 assists
+        ({"assists": 4, "kills_air": 1}, None, None),
+        ({"assists": 6, "kills_air": 2}, None, "sortie_stolen_kills"),  # two air kills: 6 assists
+        ({"assists": 5, "kills_air": 2}, None, None),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
