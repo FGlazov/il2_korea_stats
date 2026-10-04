@@ -65,7 +65,7 @@ Two separate answers per sortie:
 They're independent: a `disconnected` pilot can have outcome `shot_down`; a `bailed_out` pilot can have outcome `crashed` (an undamaged bailout).
 Death, aircraft loss and capture are separate flags (`is_death`, `is_plane_lost`, `is_captured`), derived once here so level 2 only sums them.
 
-**What pages show as the pilot's fate** (maintainer, 2026-10-04, display only; OQ-106): **Dead** if `is_death` (or status dead), else **Captured**
+**What pages show as the pilot's fate** (`[DECIDED]` maintainer, 2026-10-04, display only; OQ-106: the colours and wording are fine for now, a designer may revisit them): **Dead** if `is_death` (or status dead), else **Captured**
 if `is_captured` (or status captured), else **Survived**, whatever the stored `pilot_fate` says (`unknown` reads Survived). The stored fate
 (`bailed_out`, `exited_on_ground`, `disconnected`; nothing for `in_aircraft` and `unknown`) is only the detail: a tooltip on the lists, a note on
 the sortie page. Nothing here changes how the replay decides (`web/display.py::pilot_fate_key`).
@@ -188,11 +188,12 @@ other** (option a: "we want to encourage players to taxi well"). Two extra flags
 taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
 strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss, and either
                     (a) it never took off (then it is strafed whatever hit it), or
-                    (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and the destroyer is an attacker:
-                        the kill line names one, or an attacker hit or damaged it after the landing. Air damage before the landing
-                        does not matter any more (2026-10-04, maintainer; before: every attacker line had to follow the landing).
-                    Not strafed: a crash-landing (its loss resolves at the landing tick, so it is no landing here: shot up, crash-landed,
-                    destroyed = shot down), and a landed wreck that burned down with no attacker line after the landing (= shot down)
+                    (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and **another object did
+                        significant damage to it after the landing** (maintainer, OQ-112, 2026-10-04); an attacker named on the kill line
+                        counts as that. Air damage before the landing does not matter.
+                    Not strafed: a damaged aircraft that fails its landing is **crashed** (its loss resolves at the landing tick, so it is
+                    no landing here: shot up, crash-landed, destroyed = shot down), and a landed wreck that burned down with no significant
+                    damage from another object after the landing (= shot down)
 both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
 ```
 Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
@@ -270,7 +271,7 @@ Was the aircraft lost (is_plane_lost)?
   `sortie_end`, and the **hit rows** `hit_given` / `hit_taken` (below); each with time, position and counterpart. The killer is named for
   gunners too.
 
-### Timeline hits (2026-10-04, `core/replay/hits.py`, OQ-108) `[PROPOSED]`
+### Timeline hits (2026-10-04, `core/replay/hits.py`) `[DECIDED]` (maintainer, 2026-10-04, OQ-108: 0.2% burst threshold, scenery excluded)
 The significant damage a sortie gave and took, as timeline rows (maintainer: a damage % column, significant hits as rows, ammo matched to the nearest
 hit). Input: every damage line (AType 2) that touched a player sortie, each already labelled with the ammo of the **closest hit** (the ammo
 attribution rule, `ammo_window_s` 1 s).
@@ -305,8 +306,9 @@ attribution rule, `ammo_window_s` 1 s).
 - **Used where "left" cannot be trusted** (after a loss, resupplied, no AType 4, or bombs with more left than loaded), for **bombs and rockets**
   (`ingest/persist.py::_ammo_used`): AType 25 (store) and AType 26 (rocket salvo) events are release *commands*, not counts (one event can drop a pair
   of bombs, a rocket event is a salvo), so they cannot give the number used. But **no release event in the whole sortie means none was used**: used = 0.
-  One or more releases leave "used" unknown (OQ-101: right in 87-90% of comparable sorties; a "~all loaded" estimate was the alternative). **Gun
-  ammo** (bullets, shells) stays unknown in these cases. Where "left" is trusted it is kept even if it disagrees with the releases. The counts are
+  One or more releases leave "used" unknown but store an estimate, `ammo.used_estimate` (maintainer, OQ-101: bombs and rockets only, the kinds that
+  were released; it equals "all loaded" and matched the trusted record in 92% of bomb and 87% of rocket sorties; the page shows it as "~N" with a
+  tooltip). **Gun ammo** (bullets, shells) stays unknown in these cases, with no estimate. Where "left" is trusted it is kept even if it disagrees with the releases. The counts are
   stored as `ammo.releases` (`stores`, `rocket_salvos`) and `ammo.left_after_loss`; the sortie page words it "the ammunition left was recorded after
   the aircraft was lost" (the game writes the record when the sortie ends).
 
@@ -366,16 +368,17 @@ time on target = sum over attacks
 - Samples, attack sorties that took off: 37.5% have 0 (shot down or turned back before attacking, or released nowhere near a target); median
   60 s, top 10% ≥ 250 s, max 18 min; about 10% of the flight time where nonzero. 64% of releases qualify. Cost: about 2 ms per mission.
 
-**Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[PROPOSED]`,
+**Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[DECIDED]`,
 OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read time; the counters are sums over a pilot's sorties.
 - **Interception** = kills of bombers and attackers **per hour of air superiority flight**. A kill counts when it is a credited air kill (not an
   assist, not friendly; PvP or AI) whose victim is an **interception victim** (`attack.is_interception_victim`): an AI aircraft of catalog class
-  `bomber` or `attacker`, or a player sortie with the combat role `attack` (a fighter carrying bombs or rockets). Transports are not victims.
+  `bomber`, `attacker` or `transport` (maintainer, OQ-102: **transports count too**), or a player sortie with the combat role `attack` (a fighter
+  carrying bombs or rockets). AI and player victims both count; only credited kills count (no assists, no friendly fire).
   `PlayerSortie.kills_air_intercept` is a part of `kills_air`. The counters `kills_intercept` (the kills made **in air superiority sorties**),
   `flight_time_air_s` and `air_superiority_sorties` sum the pilot's air superiority sorties; an attacker shooting a bomber from an attack sortie does
   not count. Board minimum: `[score] min_air_superiority_sorties` (5) and `min_air_superiority_minutes` (60).
 - **Tank busting** = **tanks destroyed in attack sorties per hour on target** (`kills_tank_attack` / `time_on_target_s`). A tank is a ground kill of
-  category `tank` (static or moving). Board minimum: the ground-per-hour minimums (`min_attack_sorties` 5, `min_time_on_target_minutes` 10).
+  category `tank` (static or moving); only attack sorties count (maintainer, OQ-103, as built). Board minimum: the ground-per-hour minimums (`min_attack_sorties` 5, `min_time_on_target_minutes` 10).
 - Upgraded databases: `ops/migrate.py::_backfill_interception` derives `kills_air_intercept` once from the stored sortie timelines (victim types and
   victim sortie roles), then rebuilds level 2 (marker `interception` in `SiteSettings.backfills_done`); `il2ks reprocess` gives the same.
 
@@ -404,7 +407,7 @@ Pure function `score_sortie` in `core/ratings/score.py`, per pilot sortie (gunne
 and summed into `score_air` / `score_ground` / `score_ground_attack` (doc 06). Everything comes from stored sortie columns and the `[score]`
 section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess. Air and ground score are never combined (OQ-62).
 - **Points**: per air kill (PvP aircraft more than an AI one), per assist, and one value per ground-kill category (fences worth very little).
-- **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone and ignored, OQ-100): **death 80%,
+- **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone; a config that still sets them gets a warning at load (shown by `il2ks doctor`) and the new defaults, maintainer, OQ-100): **death 80%,
   capture 50%, aircraft lost without death or capture 20%**. The percentage comes off **both** the air and the ground score, only from a
   positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
 - **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
@@ -443,15 +446,15 @@ stores that minimum in the metric's own unit (sorties, games, seconds).
 
 ## Rule toggles (`[rules]`, as built 2026-10-04, OQ-61)
 
-The ram toggle applies via `il2ks reprocess --all` (it changes kills and deaths, not only aggregates).
-- **Rams** `[PROPOSED]`: the log has no collision event. A ram is two aircraft destroyed while airborne, before the first AType 7, within
+The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it changes kills and deaths, not only aggregates).
+- **Rams** `[DECIDED]` (credit on by default, OQ-89; a ram between enemies credits **both**, OQ-90; thresholds OQ-92): the log has no collision event. A ram is two aircraft destroyed while airborne, before the first AType 7, within
   `ram_window_s` (**0.5 s**) and `ram_distance_m` (**15 m**) of each other (maintainer, OQ-92, 2026-10-04: the tighter values; the first values
   2 s / 50 m let 4 looser cases through among the 17 below), where neither has an attacker to blame and neither hit the other with
-  guns. With `[rules] credit_rams = true` (default **false**) each aircraft of an enemy pair is credited a kill for the other (the victim's
-  loss is then `attacker` / `shot_down`, `via direct`). A collision between friends credits nobody and has no friendly-kill penalty.
+  guns. With `[rules] credit_rams = true` (default **true**, maintainer, OQ-89) each aircraft of an enemy pair is credited a kill for the other (the victim's
+  loss is then `attacker` / `shot_down`, `via direct`; a ram is an ordinary kill in the UI, nothing says "rammed", OQ-90). A collision between friends credits nobody and has no friendly-kill penalty.
   Validated on the 210 sample missions (at 2 s / 50 m): 17 rams, 13 between enemies (26 kills), 4 between friends, no false positive identified; about 35
   debris collisions correctly excluded; about 10 to 15 rams with prior third-party damage missed (damage-based credit already gives them to
   someone). Low-altitude ground crashes can't be told apart without terrain height (OQ-39). Code: `core/replay/rams.py`.
 - **Parachute deaths: no toggle** (maintainer, OQ-99, 2026-10-04): the toggle `parachute_deaths` was removed; a pilot killed while parachuting is
   always a death. An `il2ks.toml` that still sets it gets a warning at load (the key is ignored).
-- Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99.
+- Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).

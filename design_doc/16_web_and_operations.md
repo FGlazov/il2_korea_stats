@@ -21,7 +21,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   shared with the caching middleware.
 - **Components** (`templates/il2ks/components/`, each documents its context; `{% load il2ks %}`): formatting filters (`duration`, `utc`, `local_*`,
   `num`, `ratio`, `per_hour`, `percent`: a zero denominator gives "—"), `side`, badges (coalition, outcome, fate, status, aircraft status,
-  combat role, generic, and the **pilot fate** badge Dead / Captured / Survived with the stored fate as a tooltip or note, OQ-106), `icon` (inlines an SVG from static, so `custom/static` overrides work), `aircraft_icon` (per-type file, else
+  combat role, generic, and the **pilot fate** badge Dead / Captured / Survived with the stored fate as a tooltip or note; `[DECIDED]` for now, a designer may restyle it later, OQ-106), `icon` (inlines an SVG from static, so `custom/static` overrides work), `aircraft_icon` (per-type file, else
   generic jet/prop by propulsion), `stat_tile`, `kv_list`, `breadcrumbs`, `dropdown`, `notice` (hidden / may still change / info / warning),
   `accordion`, `columns_picker` (the optional-columns control, below), `language_menu`, and the **list pattern**: `results_region` + `filter_bar` + `filter_select` / `filter_text live=True` + `sort_th` +
   `pagination`. htmx requests return the full page and swap `#results` (`hx-select`), so there are no partial templates and everything works
@@ -47,15 +47,23 @@ How the website, the admin and the operations commands are built (iteration 1, p
 
 ## Pages (as built, 2026-10-03)
 
-- **Home**: site description, player search, "Online now" (`/live/` fragment), the last mission (tiles, sorties per side, top 5 pilots by air
-  then ground kills), the latest 8 missions (empty missions left out), the top 5 of the **Elo jet, Elo prop, interception, ground-per-hour and tank-busting**
-  boards (all time; OQ-64, OQ-104; the board titles and player names link with `?tour=all`), a streaks block of 5 and the activity chart.
+- **Home** (tour-aware: `/?tour=`, no `tour` = the current tour, `?tour=all` = all time, `[DECIDED]` maintainer, OQ-79): site description, player
+  search, "Online now" (`/live/` fragment, always live), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills), the
+  latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
+  interception, ground score per hour, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards are all time only, the
+  rest follow the tour; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
+  inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
+- **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
+  every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
+  each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage and timeline rows
+  (`?page_damage=`, `?page_timeline=`); links keep every other parameter. Real-log mission and sortie pages fell from 107-122 KB of HTML to
+  87-95 KB (NFR-PERF-6).
 - **Mission list**: newest first, 25 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
   come from the mission file name ("The Sinuiju Bridges 1951").
 - **Mission detail**: tiles, one sortie table per side (mission clock, pilot, aircraft, combat role, outcome, fate, kills, flight time),
   the PvP kill list. A hidden player keeps an **anonymised row** ("Hidden player", no links) so the mission's numbers still add up (gut
   call on FR-ADM-3's "gone from rosters").
-- **Mission page sortie tables** (2026-10-04, OQ-113): the three sortie tables (REDFOR, BLUFOR, others) are sortable and take optional columns.
+- **Mission page sortie tables** (2026-10-04, `[DECIDED]` for now, maintainer, OQ-113: the defaults are fine, to be revisited with the designer): the three sortie tables (REDFOR, BLUFOR, others) are sortable and take optional columns.
   One `?sort=` (`queries/missions.py::SORTIE_SORT_FIELDS`, a whitelist, `-` = descending, ties by spawn time, NULLs last, hidden players' rows last)
   orders all three; `?cols=` (`columns.MISSION_SORTIE_COLUMNS`: damage taken plus the player sortie list's extras, air / ground assists included)
   adds columns; unknown values are ignored; the kills table takes neither. One sortie query, the sort is done in SQL.
@@ -87,7 +95,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `Rated` (no value without a rated game); **undefined values (NULL) always sort last**, ascending or descending, on SQLite and Postgres. Players
   (all time only): Elo jet and prop, K/D, K/L, survival, PvP air kills, air and ground score, ground score per hour, planes lost, assists, friendly
   kills, first seen. Missions: friendly kills, tour, ended, REDFOR / BLUFOR sorties, sorties per player. Aircraft: PvP air kills, kills per hour,
-  assists, bailouts, friendly kills, scores, ground per hour, sortie length, sorties per pilot. Player sorties: **Mission** (OQ-109), PvP and AI air
+  assists, bailouts, friendly kills, scores, ground per hour, sortie length, sorties per pilot. Player sorties: **Mission** (optional, `[DECIDED]` OQ-109), PvP and AI air
   kills, friendly kills, air and ground score, time on target, loadout, takeoffs, landings. The sortie list shows **damage taken by default** and
   the pilot fate next to the outcome (also on the mission page and the profile's latest sorties).
 - **Achievements** (FR-WEB-26, doc 17): `/players/<pk>/achievements/` (every tier with its date, open tiers dimmed), `/achievements/` (all
@@ -105,10 +113,10 @@ How the website, the admin and the operations commands are built (iteration 1, p
   and stay as they are.
 - **Flavor text** (FR-WEB-23, 2026-10-03): `web/flavor.py` `SPOTS` maps a spot to translatable variants; `{% flavor "spot" seed %}` picks
   one by SHA-256 of `spot:seed` (stable across restarts and languages, so caching holds); `{% sortie_flavor %}` picks the sortie spot with `flavor.sortie_spot`, the first match of: taxi accident, friendly kills, captured, shot down
-  by an AI gunner, ditched, **strafed** (`sortie_strafed` parked, `sortie_strafed_landed` after a landing; doc 13, OQ-112), shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **ace** (3+
+  by an AI gunner, ditched, **strafed** (`sortie_strafed` parked, `sortie_strafed_landed` after a landing; doc 13 `[DECIDED]`, OQ-112), shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **ace** (3+
   air kills), **stolen kills** (**air** assists: 2+ with no air kill, 3+ with one, 6+ with two, below the ace line; maintainer 2026-10-04, OQ-107
   resolved, the variants reworded to fit pilots with kills), **stolen targets** (5+ **ground** assists, at least the own ground kills, under 70
-  ground kills; OQ-111), **battered victor** (landed, 50%+ damage taken, 2+ kills), limped home (the same damage, fewer kills), **ground pounder** (70+ ground
+  ground kills; `[DECIDED]` as built, maintainer, OQ-111), **battered victor** (landed, 50%+ damage taken, 2+ kills), limped home (the same damage, fewer kills), **ground pounder** (70+ ground
   kills), **quick first kill** (within 7 minutes of takeoff or an air start's spawn), **marathon** (1 hour or more of flight); none for gunners or
   ordinary sorties. The bomber and first-kill facts come from the timeline (`sortie_view.build_highlights`, `Highlights`); without it those two
   spots are skipped. Thresholds were read off the September 2026 archive (15,245 pilot sorties; each spot fires on 0.2% to 2% of them). Other
@@ -138,7 +146,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   counted. The sections read through simple template tags (`il2ks_boards`), not the view context. The streak
   list filters on "ended within 30 days of now", so between ingests a cached home page can lag by up to one ingest interval (accepted).
   **`[killboard] assists`** (default false): assist credits get their own column; the value is stored in `SiteSettings.killboard_assists` by
-  `rebuild-aggregates` and takes effect with it. Hidden opponents sort last. Rules: OQ-56..58, OQ-81..83.
+  `rebuild-aggregates` and takes effect with it. Hidden opponents sort last. Rules: OQ-56..58, OQ-81..83 (all `[DECIDED]`: the assists-received detail, the streak history page and the tie-breaks are built, FR-WEB-9, FR-WEB-25).
 - **Charts** (FR-WEB-16, 2026-10-03): server-rendered inline SVG bar charts, no JS: pure layout in `web/charts.py`
   (`build_bar_chart(ChartSpec)`: 1/2/5 ticks, k/M abbreviations, legend from 2 series), `{% bar_chart spec %}` with `role="img"`, title/desc,
   per-bar `<title>`, a "Show the numbers" table and an empty state; colours `--il2-chart-1/2` (steel blue, rust) checked for contrast in
@@ -158,9 +166,9 @@ How the website, the admin and the operations commands are built (iteration 1, p
   per board (chess pieces for Elo, the role icons for the scores, `stat/interception`, `ground/tank`); a button keeps the tour, pool and aircraft
   choice only where the target board has that filter (`_tab_url`), and it works without JavaScript (the earlier `nav` element let the
   framework's nav rules overlap label and first button; a Playwright check covers four widths). The page note names the board's minimum
-  (rated games, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
+  (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
-  product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104.
+  product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
 - **Aircraft stats** (FR-WEB-8, 2026-10-03): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
   losses, K/D, K/L, survival, attack share, hits to destroy; sortable); `/aircraft/<pk>/` adds **matchups vs each enemy type** (below), **top pilots** (hidden
   players left out; by per-type Elo, and ground score per hour on target for attack work, under the leaderboard minimums; types with an attack
@@ -168,11 +176,11 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **Matchups follow the tour selector** and a toggle "All fights /
   Intercept flights only" (`?tour=`, `?intercept=1`; `AircraftMatchup.tour` / `.intercept`, an intercept fight being two air superiority sorties),
   sortable by enemy, kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights
-  (`MIN_ENCOUNTERS`, OQ-110). The rest of the page (tiles, top pilots, hits to destroy, loadouts) is all time. **No ratio is stored** (OQ-98):
+  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). The rest of the page (tiles, top pilots, hits to destroy, loadouts) is all time. **No ratio is stored** (OQ-98):
   the list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next
-  to: ≥ `[marks] min_sorties` (20) sorties for the ratios, air score and ground score; ≥ `min_elo_games` rated games in the pool for **Elo jet and
+  to: ≥ `[marks] min_sorties` (20) sorties for the ratios, air score and ground score; ≥ `min_elo_games` encounters in the pool for **Elo jet and
   Elo prop** (all time only); ≥ the boards' time on target for **ground score per hour** and **tanks per hour**; ≥ the boards' air superiority
   flight for **interception per hour** (the unit of that minimum is stored in `StatThreshold.min_sorties`, doc 13 "Stat marks");
   recomputed per saved mission (a few ms) and by rebuild-aggregates. Percentiles, not mean + 2σ: the ratios are skewed with a floor at 0
@@ -238,7 +246,7 @@ content hash (`branding/font-<hash16>.woff2`, `il2-font-<hash>`; nothing the adm
 shown, escaped), served like the logo by the media view (`nosniff`, strict CSP, a year of immutable caching). The theme CSS emits an
 `@font-face` (`font-display: swap`) per uploaded font and a font is selected by its key `up-<hash8>` in the heading or body choice
 (`SiteSettings.custom_fonts`, readers re-validate). Guide for admins: `docs/customizing.md`. Every branding save bumps the data version (TD-28). Product
-choices: OQ-87, OQ-88.
+choices (`[DECIDED]`, maintainer, 2026-10-04): navigation link URLs up to 2000 characters (detail pages), new tab, 3 recommended (OQ-87); **Default** is the original military theme, a theme can be built from scratch (every token editable), the contrast check stays a simple warning after save (OQ-88).
 
 ## Caching (TD-28)
 

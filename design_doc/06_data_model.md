@@ -114,7 +114,7 @@ StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25
                -- FR-WEB-22: percentiles of one metric over the pilots who meet that metric's minimum; no row = too few pilots for a distribution.
                -- Metrics: survival, kd, kl, air/ground kills per sortie and hour, taxi/friendly-fire per sortie (never badged), air_score,
                -- ground_score, ground_score_hour, elo_prop, elo_jet (all time only), interception_hour, tank_hour. `min_sorties` holds the
-               -- minimum in the metric's unit: sorties (`[marks] min_sorties`), rated games (Elo), seconds on target or of air superiority
+               -- minimum in the metric's unit: sorties (`[marks] min_sorties`), encounters (Elo games), seconds on target or of air superiority
                -- flight (the boards' minimums), so a population follows the board it sits next to
 AircraftStats  aircraft (1:1 → GameObject), pilots, side (redfor/blufor/''), + counters
                -- FR-WEB-8: all-time sum of the type's PlayerAircraft rows; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come

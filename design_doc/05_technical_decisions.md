@@ -326,7 +326,10 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   recomputed from level 1 like all-time totals, limited to the touched tours; `rebuild-aggregates --retour` reassigns all missions after a
   mode or timezone change (doctor warns when needed). Elo stays all-time. Missions without a tour are assigned automatically after
   migrations. Query helpers `il2ks.queries.tours` and a `{% tour_select %}` component serve the pages, which open on the current tour
-  (doc 16, OQ-78..80). **Selector** `[DECIDED]` (maintainer, 2026-10-04, OQ-78): one dropdown whose top two entries are "All time" and "Current
+  (doc 16, OQ-78..80). **Current tour** `[DECIDED]` (maintainer, 2026-10-04, OQ-79, OQ-80): the current tour is the default on every tour-aware page,
+  **the home page included** (`/?tour=`; online-now stays live); a tour starts with its **first ingested mission**: the current tour is the newest
+  `Tour` row, which exists only once a mission of the new tour is ingested, so the first day of a month still shows the previous tour (no empty page).
+  **Selector** `[DECIDED]` (maintainer, 2026-10-04, OQ-78): one dropdown whose top two entries are "All time" and "Current
   tour"; no segmented toggle.
 - **The `?tour=` convention and the all-time link rule** (2026-10-04): no `?tour` (or an unknown or stale one) means the **current tour**,
   `?tour=<id>` that tour, `?tour=all` all time (`queries.tours.TOUR_ALL`). Because a bare link means the current tour, **a link from an

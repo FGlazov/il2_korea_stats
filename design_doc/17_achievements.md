@@ -66,7 +66,7 @@ single-digit thresholds a third of all pilots would hold it.
   cut-off sortie is not a "landing" for `damaged_landing` (only `outcome = landed` is).
 - **Friendly kills** are not in `kills_air` (doc 13) and are excluded from `strike_hunter`; AI aircraft shot down count for the air-kill
   medals (they are in `kills_air`) but **not** for `strike_hunter`, which reads `Kill` rows between two pilots (AI victims have none).
-- **Rams**: not used (see ideas): `credit_rams` is off by default and the sortie row carries no ram flag.
+- **Rams**: not used (see ideas): `credit_rams` is on by default (maintainer, OQ-89) but the sortie row carries no ram flag.
 - **Death in the same sortie as the kills**: `life_kills` counts the fatal sortie's kills (a life ends with its last breath);
   `survivor` does not count the fatal sortie (the streak rule).
 - **Re-ingest / reprocess**: rows are recomputed from the sorties, so a medal built on a mission that is reprocessed with fewer
@@ -89,8 +89,8 @@ single-digit thresholds a third of all pilots would hold it.
 
 Further achievements, and why they are not built yet:
 
-- **Ram** ("Kamikaze"/"Brothers in Arms"): needs a stored ram flag per sortie; `credit_rams` is off pending OQ-89, so there is no
-  reliable data to build on. Add a `rams` counter when rams are switched on.
+- **Ram** ("Kamikaze"/"Brothers in Arms"): needs a stored ram flag per sortie; rams are credited by default now (maintainer, OQ-89), but no sortie stores a
+  ram flag yet. Add a `rams` counter first.
 - **First blood of a mission**: needs the first kill of each mission by tick. Doable at ingest (one query over `Kill`), but it
   rewards being there first rather than skill and favours a busy pilot slot; left out.
 - **Double / triple kills in a short time** (several kills within N seconds): the `Kill.time` data supports it; needs a window rule

@@ -183,8 +183,11 @@ decisions are made):
   shot down most and the types that killed them most, above the player-vs-player table (more important than it). On the aircraft
   page, a killboard by enemy type with the exchange rate ("how do I counter this plane, what should I fly?"), with a filter for
   intercept flights only (air superiority vs air superiority).
-- ⏳ **Assists received as a killboard detail (OQ-81) and a page with all of a player's streaks, linked from their sortie page (OQ-82)** (maintainer, 2026-10-04).
+- ✅ **Assists received as a killboard detail (OQ-81) and a page with all of a player's streaks, linked from their sortie page (OQ-82)** (maintainer, 2026-10-04).
 - ✅ **More fitting icons** for the gaps in doc 15, other icon sets allowed (OQ-95).
+- 🔧 **Interception counts transports; strafing needs significant damage by another object after landing (a failed landing of a damaged plane = crashed)** (OQ-102, OQ-112, maintainer 2026-10-04).
+- ✅ **Pagination** (OQ-96): 10 missions, 20 rows per page. 🔧 SVG icon sprite to cut the remaining page weight.
+- ✅ **Home page** tour-aware with six boards (3×2, incl. play time) (OQ-79, OQ-104); Elo "encounters".
 - ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
