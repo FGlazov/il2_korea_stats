@@ -588,3 +588,63 @@ a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .medal-tabs__tab--silver { --medal: var(--il2-medal-silver); }
 .medal-tabs__tab--gold { --medal: var(--il2-medal-gold); }
 .medal-tabs__tab--platinum { --medal: var(--il2-medal-platinum); }
+
+/* Medal scope label on the sortie page, and rarity (doc 17): the rarer a tier is, the more it stands out. The ring or glow
+   takes the tier colour (--medal), so it works in light and dark and needs no tokens of its own. */
+.medal-scope { margin: 0.6rem 0 0.3rem; font-size: 0.85rem; }
+.rarity--rare { box-shadow: 0 0 0 2px color-mix(in srgb, var(--medal) 55%, transparent); }
+.rarity--epic { box-shadow: 0 0 0 2px var(--medal), 0 0 0.8rem 0.15rem color-mix(in srgb, var(--medal) 60%, transparent); }
+.tier-list__item.rarity--rare, .tier-list__item.rarity--epic { box-shadow: none; background: color-mix(in srgb, var(--medal) 10%, transparent); }
+.tier-list__item.rarity--epic { background: color-mix(in srgb, var(--medal) 20%, transparent); font-weight: 600; }
+
+/* Tooltips on medals, ribbons and feed entries: Pico's data-tooltip (hover, keyboard focus and tap). Hidden with display:none
+   when not shown, so a wide tooltip near the screen edge never makes the page scroll sideways; allowed to wrap. The same text
+   is in a .visually-hidden span for screen readers. */
+.medal[data-tooltip], .ribbon[data-tooltip], .feed__item[data-tooltip] { border-bottom: 1px solid var(--il2-border); cursor: default; }
+a.medal[data-tooltip], a.ribbon[data-tooltip] { cursor: pointer; }
+.medal[data-tooltip]::before, .medal[data-tooltip]::after, .ribbon[data-tooltip]::before, .ribbon[data-tooltip]::after,
+.feed__item[data-tooltip]::before, .feed__item[data-tooltip]::after { display: none; }
+.medal[data-tooltip]:is(:hover, :focus-visible)::before, .ribbon[data-tooltip]:is(:hover, :focus-visible)::before,
+.feed__item[data-tooltip]:is(:hover, :focus-visible)::before {
+  display: block; opacity: 1; animation: none; transform: translate(-50%, -0.3rem); width: max-content; max-width: min(16rem, 80vw);
+  white-space: normal; text-align: left; line-height: 1.3; overflow: visible;
+}
+
+/* Ribbons: the compact form of the simple achievements, like service ribbons. A bar of stripes (colour pairs from the status
+   tokens, one pattern per achievement) with a pip per tier reached, pips in the tier colour. */
+.ribbon-rack { display: flex; flex-wrap: wrap; gap: 0.5rem 0.6rem; margin: 0 0 1.5rem; }
+.ribbon {
+  --medal: var(--il2-border-strong);
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0.65rem 0.2rem 0.2rem; font-size: 0.85rem;
+  color: var(--il2-text); background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); text-decoration: none;
+}
+a.ribbon:hover { background: var(--il2-surface-hover); text-decoration: none; }
+.ribbon--bronze { --medal: var(--il2-medal-bronze); }
+.ribbon--silver { --medal: var(--il2-medal-silver); }
+.ribbon--gold { --medal: var(--il2-medal-gold); }
+.ribbon--platinum { --medal: var(--il2-medal-platinum); }
+.ribbon--s0 { --stripe-1: var(--il2-blue); --stripe-2: var(--il2-amber); }
+.ribbon--s1 { --stripe-1: var(--il2-green); --stripe-2: var(--il2-red); }
+.ribbon--s2 { --stripe-1: var(--il2-purple); --stripe-2: var(--il2-teal); }
+.ribbon--s3 { --stripe-1: var(--il2-orange); --stripe-2: var(--il2-grey); }
+.ribbon__bar {
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px; flex: none; width: 2.8rem; height: 1.15rem; border-radius: 2px;
+  background: linear-gradient(90deg, var(--stripe-2) 0 14%, var(--stripe-1) 14% 40%, var(--stripe-2) 40% 60%, var(--stripe-1) 60% 86%, var(--stripe-2) 86%);
+}
+.ribbon__pip { width: 0.26rem; height: 0.75rem; border-radius: 1px; background: var(--medal); box-shadow: 0 0 0 1px var(--il2-surface); }
+.ribbon__name { font-weight: 600; color: var(--il2-heading); }
+
+/* The home page's "Recently earned" strip: compact entries in a wrapping grid; the fifth and later are left out on a phone. */
+.recent-awards { margin: 1.5rem 0; }
+.feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.feed > li { list-style: none; }
+.feed__item {
+  --medal: var(--il2-border-strong);
+  display: flex; align-items: center; gap: 0.7rem; min-width: 0; padding: 0.4rem 0.7rem 0.4rem 0.4rem;
+  background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius);
+}
+.feed__text { display: grid; min-width: 0; line-height: 1.25; }
+.feed__text > * { overflow-wrap: anywhere; }
+.feed__pilot { font-weight: 650; }
+.feed__meta { font-size: 0.8rem; }
+@media (max-width: 640px) { .feed__item:nth-child(n+5) { display: none; } }

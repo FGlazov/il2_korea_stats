@@ -160,8 +160,8 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, identity and names, then the killboard rows (`PlayerKillboard` /
      `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
-     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17);
-  1b. `recompute_holders` (`AchievementHolders`, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
+     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per touched tour);
+  1b. `recompute_holders` (`AchievementHolders` per scope with the pilot count, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
   2. `recompute_aircraft_ammo` (`AircraftAmmoStats`);
   3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
      after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the four scopes, all time and per tour, all kills

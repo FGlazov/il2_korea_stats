@@ -405,20 +405,23 @@ msgstr "Succès"
 
 # llm-draft
 msgid ""
-"Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie "
-"show when a tier was first reached."
+"Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a"
+" tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is."
 msgstr ""
-"Les succès se gagnent sur toute la carrière d'un pilote et ne sont jamais retirés. Chacun a des niveaux ; la date et "
-"la sortie indiquent quand un niveau a été atteint pour la première fois."
+"Les succès ne sont jamais retirés. Chacun a des niveaux ; la date et la sortie indiquent quand un niveau a été "
+"atteint pour la première fois. Choisissez un tour pour voir ce que le pilote y a obtenu, ou tous temps. Survolez un "
+"niveau pour voir sa rareté."
 
 # llm-draft
 msgid ""
 "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
-"earned once and kept. The numbers show how many pilots hold each tier."
+"earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the "
+"numbers show how many pilots hold it. Everything starts afresh with each tour."
 msgstr ""
-"Des succès pour ce que les pilotes accomplissent dans les airs et au sol. Chaque succès a des niveaux, du bronze vers"
-" le haut ; un niveau se gagne une fois et se garde. Les chiffres indiquent combien de pilotes détiennent chaque "
-"niveau."
+"Des succès pour ce que les pilotes accomplissent dans les airs et au sol. Chaque succès a des niveaux, à partir du "
+"bronze ; un niveau s'obtient une fois et reste acquis. Les médailles sont les plus difficiles, les rubans les plus "
+"simples. Survolez un niveau pour voir sa rareté ; les nombres indiquent combien de pilotes le détiennent. Tout repart"
+" de zéro à chaque tour."
 
 # llm-draft
 #, python-format
@@ -1726,6 +1729,16 @@ msgid "Healthy"
 msgstr "Indemne"
 
 # llm-draft
+#, python-format
+msgid "Held by %(share)s%% of pilots"
+msgstr "Détenu par %(share)s%% des pilotes"
+
+# llm-draft
+#, python-format
+msgid "Held by less than 0.1%% of pilots"
+msgstr "Détenu par moins de 0,1%% des pilotes"
+
+# llm-draft
 msgid "Hidden"
 msgstr "Masqué"
 
@@ -2988,6 +3001,10 @@ msgid "Recently completed by idle timeout"
 msgstr "Récemment terminées par expiration du délai d'inactivité"
 
 # llm-draft
+msgid "Recently earned"
+msgstr "Obtenu récemment"
+
+# llm-draft
 msgid "Regular"
 msgstr "Assidu"
 
@@ -3044,6 +3061,10 @@ msgstr "Résultat"
 # llm-draft
 msgid "Resupplied during the sortie"
 msgstr "Réapprovisionné pendant la sortie"
+
+# llm-draft
+msgid "Ribbon"
+msgstr "Ruban"
 
 # llm-draft
 msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."

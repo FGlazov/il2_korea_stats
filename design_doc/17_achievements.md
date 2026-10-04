@@ -11,20 +11,28 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
   value reached **up to and including each sortie** (a running maximum). Tier `n` is first reached at the first sortie whose value
   is at least `thresholds[n-1]`. A tier is never lost, and the same history always gives the same rows.
 - **Level 2, computed at ingest** (TD-08, TD-22): `recompute_players` calls `recompute_achievements(chunk)` next to the streaks. One
-  extra read for the one fact the sortie row lacks (bombers and attackers shot down, from `Kill`). `PlayerAchievement(player, key,
+  extra read for the one fact the sortie row lacks (bombers and attackers shot down, from `Kill`). `PlayerAchievement(player, tour, key,
   tier, earned_at, sortie, mission)` has **one row per earned tier** (a gold holder also has the bronze and silver rows), unique per
-  `(player, key, tier)`; `earned_at` is the end time of the sortie that reached it. All time only. `AchievementHolders(key, tier,
-  holders)` holds the per-tier counts of **visible** players for the overview (no counting at request time); `recompute_holders`
-  rewrites it after each saved mission, in `rebuild_aggregates` and when an admin hides or shows a player.
+  `(player, tour, key, tier)` (two conditional constraints, because `tour` is null for all time); `earned_at` is the end time of
+  the sortie that reached it. **Per tour** (OQ-105): the same definitions run twice per player, over all their sorties (`tour` null)
+  and over each tour's sorties alone, so a life, a streak or a run of weeks starts fresh in a tour (the streak code does the same
+  for its best streaks). A saved mission recomputes the all-time rows and the rows of its old and new tour only. Ribbons and
+  medals share the table. `AchievementHolders(tour, key, tier, holders, pilots)` holds, per scope, the counts of **visible**
+  players for the overview and the rarity (no counting at request time) and `pilots`, the scope's denominator (visible players with
+  at least one sortie in it: `Player` all time, `PlayerTour` per tour) `[PROPOSED]`; `recompute_holders` rewrites it after each saved
+  mission, in `rebuild_aggregates` and when an admin hides or shows a player (three counting queries, whatever the number of tours).
 - Incremental == rebuild: both run the same pure function over the same ordered sorties (tested). `rebuild_aggregates` fills the
   tables. Upgraded databases: `ops/migrate.py::_backfill_achievements` (marker `achievements` in `SiteSettings.backfills_done`)
-  computes them once; it only touches medal rows.
-- Display: the profile shows the **highest tier of each earned achievement** (a medal row after the hall of shame, each medal linking
-  to the sortie that reached that tier), a per-player list `/players/<pk>/achievements/` (every tier with its date, open tiers
-  dimmed), an overview `/achievements/` (tiers and holder counts), a holders page `/achievements/<key>/?tier=N` (visible pilots,
-  newest first) and "Earned in this sortie" on the sortie page. Medal icons are placeholder Tabler SVGs in `static/il2ks/img/medal/`
+  computes them once, and `_backfill_achievement_tours` (marker `achievement_tours`) adds the per-tour rows and the pilot counts to a
+  database that had only the all-time medals; both only touch medal rows.
+- Display: see "Display" below. In short: the profile shows the **highest tier of each earned achievement**, medals first and
+  the ribbon rack after them, each linking to the sortie that reached that tier; a per-player list `/players/<pk>/achievements/`
+  (every tier with its date, open tiers dimmed), an overview `/achievements/` (tiers and holder counts), a holders page
+  `/achievements/<key>/?tier=N` (visible pilots, newest first), "Earned in this sortie" on the sortie page and "Recently earned"
+  on the home page. All of them follow the tour choice (TD-26). Medal icons are placeholder Tabler SVGs in `static/il2ks/img/medal/`
   (one per achievement, listed in the asset manifest and doc 15), tinted per tier by the CSS tokens `--il2-medal-bronze|silver|gold|platinum`.
-- Cost: one query more on the profile and on the sortie page; the three new pages are two to four queries each (perf rows added).
+- Cost: two queries on the profile and the sortie page (the rows, and the holder counts for the rarity), two on the home page
+  (the feed rows and the rarity; one when nothing was earned), the three achievement pages three to five each (the tour list too).
   A full rebuild of 1,138 pilots takes about 2 s.
 
 ## The first set (12 achievements)
@@ -71,7 +79,9 @@ single-digit thresholds a third of all pilots would hold it.
 - **Re-ingest / reprocess**: rows are recomputed from the sorties, so a medal built on a mission that is reprocessed with fewer
   kills disappears again; the medal's sortie and time move with the data.
 - **Time zones**: weeks and hours are UTC (the same as everything stored); the displayed date follows the viewer (`local_date`).
-- **Data older than a tour**: all time only for now.
+- **Tours**: a sortie belongs to the tour of its mission (`Mission.tour`); a mission without a tour (a database from before tours,
+  until `assign_missing` runs) feeds the all-time rows only. Moving a mission to another tour (reprocess, `--retour`) recomputes
+  both tours. A tier earned in a tour is not lost when the next tour starts: the tour's rows stay, the new tour just starts at zero.
 
 ## Decisions (for review)
 
@@ -89,7 +99,7 @@ single-digit thresholds a third of all pilots would hold it.
 "I think the achievements as given are good!" The first set, its names and thresholds are `[DECIDED]`. Additions, all to build
 before the release (details `[PROPOSED]` where the maintainer did not specify them):
 
-- **Per tour** `[DECIDED]`: achievements reset when a tour starts; "All time" in the tour dropdown shows the all-time set. Pages follow
+- **Per tour** `[DECIDED]`, built: achievements reset when a tour starts; "All time" in the tour dropdown shows the all-time set. Pages follow
   the site's tour rule (TD-26: no `?tour` = current tour, `?tour=all` = all time). `[PROPOSED]`: `PlayerAchievement.tour` (null = all
   time), the same definitions run over the tour's sorties (a life, a streak, a run of weeks starts fresh in a tour);
   `AchievementHolders` per tour too.
@@ -105,6 +115,38 @@ before the release (details `[PROPOSED]` where the maintainer did not specify th
 - **Rarer medals stand out more** `[DECIDED]`, especially in the feed.
 - **A global feed** of recently earned achievements on the home page `[DECIDED]`.
 - **Ribbons** for the simpler achievements `[DECIDED]` (a ribbon bar, like service ribbons); medals stay for the hard ones.
+
+## Display (OQ-105)
+
+All `[PROPOSED]` unless marked, built 2026-10-04 after the maintainer review. The tour choice is the site's (TD-26): no `?tour` is
+the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement pages; the profile keeps its own selector.
+
+- **Medals and ribbons** `[DECIDED]` (split by `Achievement.kind`, default `medal`): the **hard** achievements are medals (round
+  badge with an icon: `life_kills`, `sortie_kills`, `strike_hunter`, `tank_buster`, `ground_sortie`, `survivor`,
+  `damaged_landing`, `type_veteran`); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`,
+  `regular`): things that mostly need time. A ribbon is a small bar of CSS stripes (a colour pair from the status tokens, one of four
+  patterns per achievement) with one pip per tier reached, tinted in the tier colour, plus the name: no new colour tokens. The
+  profile shows the medals first and the ribbon rack under them; the lists and the overview show medals first, then ribbons.
+  New definitions pick their kind with `kind="medal" | "ribbon"`.
+- **Hall of shame** `[DECIDED]`: a definition with `shame=True` is a tongue-in-cheek entry. It renders as a ribbon inside the hall
+  of shame block of the profile, never in the medal row or the ribbon rack, and never in the home feed. The overview and the full
+  list put such entries last.
+- **Rarity** `[DECIDED]`: every tier (medal, ribbon, overview row, list row, holders page) says "Held by N% of pilots" for the
+  selected scope. Denominator `[PROPOSED]`: visible pilots with at least one sortie in the scope (a tour: `PlayerTour` rows; all
+  time: `Player.sorties > 0`), stored with the holder counts so no page counts anything. Percent shown with one decimal below 10
+  and rounded above, "less than 0.1%" under that; a tier nobody holds says "nobody yet". The text is the Pico tooltip
+  (`data-tooltip`, which shows on hover and on keyboard or tap focus; the medal is focusable when it is not a link) with the
+  achievement's description and tier, and the same text sits in a visually hidden span, because a tooltip alone is not announced.
+- **Rarer stands out** `[DECIDED]`, thresholds `[PROPOSED]`: tiers held by under **5%** of the pilots get a ring in their tier
+  colour (`rarity--rare`), under **1%** a ring and a glow (`rarity--epic`); in the lists a tinted row. Not applied in a scope with
+  fewer than **20** pilots (a small server would glow everywhere). Colours come from the tier tokens, so light and dark both work.
+- **Home feed** `[DECIDED]`, rules `[PROPOSED]`: "Recently earned" under the streak list: the newest 8 tiers of visible pilots in
+  the selected scope (phones show 4), as compact cards with the pilot, the achievement and tier, the rarity and the date, rarer
+  ones with the ring or glow. Left out: hall-of-shame entries, **ribbons below silver** and **medal tiers a fifth or more of the
+  pilots hold** (bronze Charmed Life on a busy server would drown the rest). The achievement links to its sortie unless the mission
+  is hidden; hidden players are not listed. The block is full width under the board grid, so the 3x2 boards are untouched.
+  Cost: 2 reads (the newest 40 candidate rows; the holder counts of the scope), 1 when nothing was earned.
+- **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour.
 
 ## Ideas and alternatives
 
@@ -134,20 +176,16 @@ Further achievements, and why they are not built yet:
 
 Alternative designs:
 
-- **Per-tour medals**: the same definitions run over a tour's sorties (the streak code already does this for its best-streak rows),
-  with a `tour` column in `PlayerAchievement` (null = all time). Shown as "this tour" next to all time; more motivation each month,
-  more rows (players x tours x tiers). Easy extension of the current design: `earn_all` takes any list of sorties.
-- **Ribbons vs medals**: ribbons (a small bar of coloured stripes, like military service ribbons) instead of round medals: denser,
-  suits a long list on the profile, and is cheap to draw as CSS. Medals are kept for now because they read better with only a few
-  earned and for the designer's icons.
+- **Per-tour medals**: built (see How it works): `earn_all` runs over a tour's sorties, with a `tour` column in `PlayerAchievement`.
+  More rows (players x tours x tiers).
+- **Ribbons vs medals**: built as both (see Display): ribbons for the simple achievements, medals for the hard ones.
 - **Rarity percentage** on each tier ("held by 4% of pilots"): easy from `AchievementHolders` and the pilot count, but it needs a
   denominator (pilots with at least a sortie, or active pilots) and changes with every ingest, which makes medals feel unstable.
   A cheap middle way: show the holder count (done) and let the viewer judge.
 - **Progress to the next tier**: a bar "7 of 10 air kills in this life" on the full list. Needs the current value stored (a
   `PlayerAchievementProgress` or a `value` column on the top row) and for "in one life" the current life's count; the progress
   functions already return it, only the storage is missing.
-- **A global feed** ("recently earned", on the home page): one query over `PlayerAchievement` ordered by `earned_at`; deliberately
-  not added yet to avoid one more block on the home page.
+- **A global feed** ("recently earned", on the home page): built (see Display).
 - **Notifications / Discord post** when a gold tier is reached: out of scope (there is no outbound integration yet).
 - **Configurable thresholds** in `il2ks.toml` (`[achievements]`): the registry is code on purpose (tests pin tier behaviour);
   a server with a few pilots may want lower thresholds. Possible later as scale factors per key.

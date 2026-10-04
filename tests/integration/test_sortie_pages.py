@@ -28,7 +28,9 @@ from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
-DETAIL_BUDGET = 2 + 6  # site context + sortie, kills made, kills suffered, counterparts, game objects, medals
+DETAIL_BUDGET = (
+    2 + 7
+)  # site context + sortie, kills made, kills suffered, counterparts, game objects, medals, their rarity
 LIST_BUDGET = 2 + 5  # site context + player, aircraft choices, tours (selector), count, page
 
 

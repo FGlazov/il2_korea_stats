@@ -202,8 +202,8 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
-  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
-  milestones (FR-WEB-26); the Elo boards are all time (see above). `/streaks/` follows the tour. A tour dropdown appears on a page
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; the Elo boards are all time (see above). Achievements follow the tour now (OQ-105: the profile, `/players/<pk>/achievements/`,
+  `/achievements/` and `/achievements/<key>/`, plus the home page's "Recently earned" strip; doc 17). `/streaks/` follows the tour. A tour dropdown appears on a page
   only where its numbers exist per tour.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:
   short`) in the page language and the browser's zone; the zone is named only in the footer; the UTC time stays in the tooltip.

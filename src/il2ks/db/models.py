@@ -1188,17 +1188,21 @@ class PlayerStreak(models.Model):
 
 
 class PlayerAchievement(models.Model):
-    """A medal tier a pilot has earned (FR-WEB-26, doc 17): level 2, recomputed per affected player by
+    """A medal or ribbon tier a pilot has earned (FR-WEB-26, doc 17): level 2, recomputed per affected player by
     `ingest.achievements` from the rules in `il2ks.core.achievements`.
 
     One row per earned tier (a pilot at tier 3 also has the rows of tiers 1 and 2), with the sortie that first reached
-    it. All time only. Hidden players keep their rows; the pages leave them out (FR-ADM-3)."""
+    it. `tour` null = all time; with a tour, the same definitions ran over that tour's sorties only (a life, a streak, a
+    run of weeks starts fresh in a tour), so a tier can be earned again in every tour. Hidden players keep their rows;
+    the pages leave them out (FR-ADM-3)."""
 
     player_id: int
     sortie_id: int
     mission_id: int
+    tour_id: int | None
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="achievements")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="achievements")
     key = models.CharField(max_length=32)
     tier = models.PositiveSmallIntegerField()
     earned_at = models.DateTimeField()
@@ -1206,25 +1210,53 @@ class PlayerAchievement(models.Model):
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="achievements")
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["player", "key", "tier"], name="achievement_unique")]
-        indexes = [models.Index(fields=["key", "tier", "-earned_at"], name="achievement_holders")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "tour", "key", "tier"],
+                condition=models.Q(tour__isnull=False),
+                name="achievement_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["player", "key", "tier"], condition=models.Q(tour__isnull=True), name="achievement_unique"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["tour", "key", "tier", "-earned_at"], name="achievement_holders_tour"),
+            models.Index(fields=["tour", "-earned_at"], name="achievement_feed"),
+        ]
 
     def __str__(self) -> str:
         return f"{self.player_id} {self.key} {self.tier}"
 
 
 class AchievementHolders(models.Model):
-    """How many visible pilots hold a medal tier (the overview page; TD-22: no counting at request time).
+    """How many visible pilots hold a medal tier in a scope, and out of how many (the overview page and the rarity
+    shown on every medal; TD-22: no counting at request time). `tour` null = all time.
 
     Level 2, rewritten whole by `ingest.achievements.recompute_holders` after the player rows, and when an admin hides
-    or shows a player. A row exists per tier somebody holds."""
+    or shows a player. A row exists per tier somebody holds. `pilots` is the scope's denominator, the same on every row
+    of a scope: visible players with at least one counted pilot sortie in it (`[PROPOSED]`, doc 17); the rarity is
+    `holders / pilots`. 0 on rows from before it existed (until the upgrade backfill rewrites them)."""
 
+    tour_id: int | None
+
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="achievement_holders")
     key = models.CharField(max_length=32)
     tier = models.PositiveSmallIntegerField()
     holders = models.PositiveIntegerField(default=0)
+    pilots = models.PositiveIntegerField(default=0)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["key", "tier"], name="achievement_holders_unique")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tour", "key", "tier"],
+                condition=models.Q(tour__isnull=False),
+                name="achievement_holders_tour_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["key", "tier"], condition=models.Q(tour__isnull=True), name="achievement_holders_unique"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.key} {self.tier}: {self.holders}"

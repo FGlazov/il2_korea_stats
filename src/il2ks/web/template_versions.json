@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "1217b63c82afeba1bea0fc440d67adce3c433dca548e98cb5ec3852938f48535"
+      "sha256": "469dd6dd8607bb76e799d59a809b715544094cdff26bca9fa2e10ea9e5f26130"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
@@ -85,17 +85,29 @@
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
+    "templates/il2ks/achievements/_award.html": {
+      "version": 1,
+      "sha256": "97c6cd73a04dc7419da836fd3a851c86901f2b4944c803c849b916093b304d8f"
+    },
     "templates/il2ks/achievements/_medal.html": {
       "version": 1,
-      "sha256": "d3a5c844fcd57ba9b04ab9ad7e9144430ca560d12bd66989676759fc91470099"
+      "sha256": "5b4cb4de859759b3a73faba041e37b49ecfd506ed02a44dd907d192767476850"
+    },
+    "templates/il2ks/achievements/_ribbon.html": {
+      "version": 1,
+      "sha256": "491a873f948d1184ec9617e5a6fdf50b678a73e9def30bb58873e562d1687faf"
     },
     "templates/il2ks/achievements/holders.html": {
       "version": 1,
-      "sha256": "a28eab9e9785e7fe0637cfda109ee622031e044d31d13f05b916dae3043f174b"
+      "sha256": "63c365d25b363e4f9afeae61bbcceca77377c33f38ecc9cfbd5b325d660101aa"
+    },
+    "templates/il2ks/achievements/home_feed.html": {
+      "version": 1,
+      "sha256": "de8106fa41d60f0c2231f386951450eecce7d4229518c5773837349545da7a4e"
     },
     "templates/il2ks/achievements/overview.html": {
       "version": 1,
-      "sha256": "5a71dcfd4fb5a737f44a52da9c3c845ff0d790b63b13b1847d71d1e6dd5774a1"
+      "sha256": "8ad7d09147bb09cb8eaa1c6c78856e0cd54669c200aa36af1e9562070e51a9ab"
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
@@ -223,7 +235,7 @@
     },
     "templates/il2ks/home.html": {
       "version": 1,
-      "sha256": "3d994ce1dd6e78b631aeb38175fa765c9abf913c6e7c8f1ecdf777aaddba2213"
+      "sha256": "f92e1f2db2586cbe9102b1960f447303773ef672e006b80ecd7c10dd13cf329b"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,
@@ -267,15 +279,15 @@
     },
     "templates/il2ks/players/achievements.html": {
       "version": 1,
-      "sha256": "92aa9dbfaf4a8ddc096d4c71d64c3555472c331e2a14f39cee6c56e40998bfbf"
+      "sha256": "30b02dbbd6427a4bc36273a2862dd712654392214a6fb9a33dd03e02515327ca"
     },
     "templates/il2ks/players/detail.html": {
       "version": 1,
-      "sha256": "04f6ccb93bc7289e3be9e0616c5b5c433def9033379d69ab29370e3add7ac12c"
+      "sha256": "879eb38152243bc5607a2e79147e6fc50083d1e86331fc4cd6a13e4e05d172ca"
     },
     "templates/il2ks/players/detail_achievements.html": {
       "version": 1,
-      "sha256": "efd48911a864552241b410ebe0e8a7ff09212f4c5305c336c3a86c0ce78e34a0"
+      "sha256": "32df4592f100ed4c81453d5207994163032cff4546af8d4ad5d7b18ad8787b65"
     },
     "templates/il2ks/players/detail_air_section.html": {
       "version": 1,
@@ -351,7 +363,7 @@
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,
-      "sha256": "ef911685224597f1f6cd2a444953ac7854f20a4dfbdcaec49a68ff1f39a91e3d"
+      "sha256": "1082f4b629f55fe79b590bab925ec38d002ceb4a97369b1e7a16b6b5bc49a012"
     },
     "templates/il2ks/players/detail_streaks.html": {
       "version": 1,
@@ -443,7 +455,7 @@
     },
     "templates/il2ks/sorties/parts/medals.html": {
       "version": 1,
-      "sha256": "c195ab3fbf5d9e4e1c526aab9b718ae7a410761838fd2d1dd7bba3f3df2929c6"
+      "sha256": "1c59e6458f3a1dfcb9d7aeef7da4239777320367e299a7a9d2b275acbc3f916c"
     },
     "templates/il2ks/sorties/parts/meta.html": {
       "version": 1,

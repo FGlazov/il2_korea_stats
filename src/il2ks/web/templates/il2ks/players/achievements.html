@@ -2,7 +2,8 @@
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's full medal list (FR-WEB-26). View: il2ks.web.views.achievements.player_achievements.
   Context: player, rows (ListRow: .info with key, name, description, icon; .tiers of (.tier number, name, slug, threshold;
-  .earned a web.medals.Medal or None); .best = highest tier held, 0 = none), earned (tiers held), crumbs, page_title.
+  .earned a web.medals.Medal or None; .rarity text, level); .best = highest tier held, 0 = none), earned (tiers held),
+  tours, tour (the scope, TD-26: none = all time), tour_query, crumbs, page_title. Medals first, then ribbons.
   Blocks: head, content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
@@ -10,8 +11,9 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% blocktranslate with name=player.current_name %}Achievements of {{ name }}{% endblocktranslate %}</h1>
-    <p>{% translate "Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show when a tier was first reached." %}</p>
+    <p>{% translate "Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is." %}</p>
   </div>
+  {% tour_select tours tour %}
   <ul class="medal-list">
     {% for row in rows %}
       <li class="medal-list__item{% if not row.best %} medal-list__item--none{% endif %}">
@@ -24,14 +26,14 @@
         </div>
         <ol class="tier-list">
           {% for t in row.tiers %}
-            <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if not t.earned %} tier-list__item--open{% endif %}">
+            <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if not t.earned %} tier-list__item--open{% endif %}{% if t.earned and t.rarity.level %} rarity--{{ t.rarity.level }}{% endif %}">
               <strong>{{ t.tier.name }}</strong> <span>{{ t.tier.threshold }}</span>
-              {% if t.earned %}<span class="muted">{% if t.earned.mission_hidden %}{{ t.earned.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' t.earned.sortie_id %}">{{ t.earned.earned_at|local_date }}</a>{% endif %}</span>{% else %}<span class="muted">{% translate "not yet" %}</span>{% endif %}
+              {% if t.earned %}<span class="muted">{% if t.earned.mission_hidden %}{{ t.earned.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' t.earned.sortie_id %}">{{ t.earned.earned_at|local_date }}</a>{% endif %}{% if t.rarity.text %} · {{ t.rarity.text }}{% endif %}</span>{% else %}<span class="muted">{% translate "not yet" %}</span>{% endif %}
             </li>
           {% endfor %}
         </ol>
       </li>
     {% endfor %}
   </ul>
-  <p><a href="{% url 'web:player-detail' player.pk %}">← {% translate "Back to the profile" %}</a> · <a href="{% url 'web:achievements' %}">{% translate "All achievements and their holders" %} →</a></p>
+  <p><a href="{% url 'web:player-detail' player.pk %}{{ tour_query }}">← {% translate "Back to the profile" %}</a> · <a href="{% url 'web:achievements' %}{{ tour_query }}">{% translate "All achievements and their holders" %} →</a></p>
 {% endblock %}

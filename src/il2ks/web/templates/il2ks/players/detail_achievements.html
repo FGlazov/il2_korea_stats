@@ -1,15 +1,20 @@
 {# il2ks-template: templates/il2ks/players/detail_achievements.html v1 - copy this line along when you override #}
-{% load i18n il2ks il2ks_achievements %}{% comment %}
-  detail_achievements.html: the profile's medal row (FR-WEB-26): the highest tier of every achievement the player has
-  earned, each linking to the sortie that earned it, and a link to the full list. All time, in any tour view. One query
-  ({% player_medals player as medals %}). Shows nothing for a player without a medal.
-  Context: player.
-{% endcomment %}{% player_medals player as medals %}{% if medals %}<section class="medals" id="medals">
+{% load i18n il2ks %}{% comment %}
+  detail_achievements.html: the profile's achievements (FR-WEB-26, doc 17): medals first (the highest tier of every medal the
+  player has earned in the selected scope), then the ribbon rack (the simpler achievements), each linking to the sortie that
+  earned it, and links to the full list and the overview. The scope follows the tour choice (TD-26: a tour, or all time with
+  ?tour=all). Hall-of-shame ribbons are in detail_shame.html. Shows nothing for a player without a medal or ribbon.
+  Context: player, tour, medal_set (web.medals.MedalSet: .medals, .ribbons, .shame; read once in detail.html with
+  {% player_medals player tour as medal_set %}), tour_query.
+{% endcomment %}{% if medal_set.medals or medal_set.ribbons %}<section class="medals" id="medals">
   <div class="section-head">
     <h2>{% translate "Achievements" %}</h2>
-    <span><a href="{% url 'web:player-achievements' player.pk %}">{% translate "All achievements" %} →</a> · <a href="{% url 'web:achievements' %}">{% translate "Overview" %} →</a></span>
+    <span><a href="{% url 'web:player-achievements' player.pk %}{{ tour_query }}">{% translate "All achievements" %} →</a> · <a href="{% url 'web:achievements' %}{{ tour_query }}">{% translate "Overview" %} →</a></span>
   </div>
-  <div class="medal-row">
-    {% for m in medals %}{% if m.mission_hidden %}{% include "il2ks/achievements/_medal.html" with href=None %}{% else %}{% url 'web:sortie-detail' m.sortie_id as sortie_url %}{% include "il2ks/achievements/_medal.html" with href=sortie_url %}{% endif %}{% endfor %}
-  </div>
+  {% if medal_set.medals %}<div class="medal-row">
+    {% for m in medal_set.medals %}{% include "il2ks/achievements/_medal.html" with href=m.href %}{% endfor %}
+  </div>{% endif %}
+  {% if medal_set.ribbons %}<div class="ribbon-rack">
+    {% for m in medal_set.ribbons %}{% include "il2ks/achievements/_ribbon.html" with href=m.href %}{% endfor %}
+  </div>{% endif %}
 </section>{% endif %}
