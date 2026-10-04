@@ -210,7 +210,7 @@ decisions are made):
 - 🔧 **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
   online-now list and provisional sorties of a running mission; sortie and mission pages say the stats may still change; an admin toggle,
   on by default. Defaults (provisional rows count in boards right away, Elo at the final pass, about 2 min between passes) are OQs.
-- 🔧 **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large
+- ✅ **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large
   image (e.g. a map of the current situation) dominating the home page, read from a server file path and picked up within ~10 s; the
   file is validated and re-encoded like the logo, never served directly. An embed (iframe) mode later.
 - 🔧 **Weapon mods** ✅ foundation (payload table, `weapon_mods.csv`, WM bit k = mod k verified on 30.7k spawns, Modifications row); 🔧 **the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table

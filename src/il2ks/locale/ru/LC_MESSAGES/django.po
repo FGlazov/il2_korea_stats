@@ -327,8 +327,16 @@ msgstr ""
 "сайта; с других сайтов ничего не загружается."
 
 # llm-draft
+msgid "A big formation, a long chase, and not much left of the formation. Textbook interception."
+msgstr "Большой строй, долгая погоня, и от строя мало что осталось. Образцовый перехват."
+
+# llm-draft
 msgid "A bomber's tail gunner had a say in this. Those guns are not decoration."
 msgstr "Тут вмешался кормовой стрелок бомбера. Эти стволы не для красоты."
+
+# llm-draft
+msgid "A busy hour for the gun camera and a quiet one for the other side's wingmen."
+msgstr "Горячий час для фотокинопулемёта и тихий для ведомых противника."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -356,6 +364,10 @@ msgid "A first kill that quick deserves a stopwatch and a small medal."
 msgstr "За такую быструю первую победу полагается секундомер и маленькая медаль."
 
 # llm-draft
+msgid "A forced landing is still a landing. The log says so, and the log is never wrong."
+msgstr "Вынужденная посадка — всё равно посадка. Так сказано в журнале, а журнал никогда не ошибается."
+
+# llm-draft
 msgid "A fresh tour: the log book is still blank. Go and write the first line."
 msgstr "Новый тур: журнал вылетов ещё чист. Самое время написать первую строчку."
 
@@ -367,9 +379,20 @@ msgstr "Щедрая душа: этот пилот делится патрона
 msgid "A hidden built-in line that no longer exists (it was reworded in an update), so the hide does nothing: %(key)s"
 msgstr ""
 
+msgid "A large image, for example a map of the current situation, shown first on the front page."
+msgstr ""
+
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."
 msgstr "Долгий день на работе. Топливомер смотрит с уважением."
+
+# llm-draft
+msgid "A low pass by the other side, uninvited. The ramp is not a place for opinions."
+msgstr "Низкий пролёт противника, без приглашения. Стоянка не место для споров."
+
+# llm-draft
+msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."
+msgstr "Пилот редкой преданности: аэродром всегда близко к его сердцу, а заодно и к винту."
 
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
@@ -386,6 +409,10 @@ msgstr "Запрос на повторную обработку уже ожид�
 # llm-draft
 msgid "A reprocess request is already waiting."
 msgstr "Запрос на повторную обработку уже ожидает."
+
+# llm-draft
+msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
+msgstr "Шапку долой ведомому, который простил. Большинство прощает, рано или поздно."
 
 # llm-draft
 msgid "A very busy day for the ground crews on the other side."
@@ -699,6 +726,9 @@ msgstr "За всё время"
 msgid "Also known as"
 msgstr "Также известен как"
 
+msgid "Alternative text"
+msgstr ""
+
 # llm-draft
 msgid "Ammunition"
 msgstr "Боекомплект"
@@ -724,6 +754,10 @@ msgid "Ammunition used unknown"
 msgstr "Расход боеприпасов неизвестен"
 
 # llm-draft
+msgid "An Il-10 would have been proud of this one. The Shturmovik school of thought lives."
+msgstr "Ил-10 мог бы гордиться этим вылетом. Школа штурмовиков жива."
+
+# llm-draft
 msgid "An all-rounder: the taxiway and the formation have both had their moments."
 msgstr "Универсал: и рулёжка, и строй уже оценили его по достоинству."
 
@@ -734,6 +768,10 @@ msgstr "Посол хаоса на земле и в воздухе. Эскадр
 # llm-draft
 msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Выносливый полёт: подушка сиденья заслуживает упоминания в рапорте."
+
+# llm-draft
+msgid "Another night, another name at the top. The hangar wall is running out of space for it."
+msgstr "Ещё одна ночь, ещё одно имя наверху. На стене ангара скоро не останется места."
 
 # llm-draft
 msgid "Anti-aircraft"
@@ -905,6 +943,10 @@ msgid "Barely off the runway and already on the scoreboard. That is a fast start
 msgstr "От полосы едва оторвался, а победа уже в таблице. Вот это старт."
 
 # llm-draft
+msgid "Before the Yalu, before the Sabres, there was the apron. It won this round."
+msgstr "Прежде чем были Ялу и «Сейбры», была стоянка. Этот раунд она выиграла."
+
+# llm-draft
 msgid "Best by"
 msgstr "Лучшие по"
 
@@ -1024,6 +1066,10 @@ msgstr "Охотник на бомберов"
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Охота на бомберов — это ремесло, а этот вылет был мастер-классом."
 
+# llm-draft
+msgid "Bombers are not defenceless, and this one wanted it known."
+msgstr "Бомбардировщики не беззащитны, и этот решил это доказать."
+
 msgid "Bombers, attackers and transports shot down"
 msgstr "Сбито бомбардировщиков, штурмовиков и транспортных самолётов"
 
@@ -1046,6 +1092,10 @@ msgstr "Бомбы, ракеты и напалм"
 # llm-draft
 msgid "Borders"
 msgstr "Границы"
+
+# llm-draft
+msgid "Brave enough to shoot first and sort out the colours afterwards. The mess salutes the nerve."
+msgstr "Достаточно смел, чтобы стрелять первым, а цвета разбирать потом. Столовая салютует выдержке."
 
 # llm-draft
 msgid "Breadcrumb"
@@ -1099,6 +1149,9 @@ msgstr "Календарные недели подряд (с понедельн�
 msgid "Cannon shells"
 msgstr "Снаряды пушек"
 
+msgid "Caption"
+msgstr ""
+
 # llm-draft
 msgid "Captured"
 msgstr "В плену"
@@ -1125,6 +1178,10 @@ msgstr "Внимание (янтарный)"
 
 msgid "Change"
 msgstr ""
+
+# llm-draft
+msgid "Chapeau. The rest of the sky is now taking requests on how to do that."
+msgstr "Снимаем шляпу. Остальное небо теперь принимает заявки: как так вообще можно?"
 
 # llm-draft
 msgid "Charmed Life"
@@ -1165,6 +1222,10 @@ msgstr "Сбросить фильтры"
 # llm-draft
 msgid "Close the current tour and start a new one now?"
 msgstr "Закрыть текущий тур и начать новый прямо сейчас?"
+
+# llm-draft
+msgid "Closing from six o'clock on a bomber is a bold plan. The tail gunner enjoyed it too."
+msgstr "Заходить на бомбардировщик с шести часов — смелый план. Хвостовому стрелку он тоже понравился."
 
 # llm-draft
 msgid "Coalitions"
@@ -1208,6 +1269,10 @@ msgstr "Таранщик"
 # llm-draft
 msgid "Continue"
 msgstr "Продолжить"
+
+# llm-draft
+msgid "Controlled flight into a field. The farmer has questions, the pilot has a story."
+msgstr "Контролируемый полёт в поле. У фермера вопросы, у пилота история."
 
 # llm-draft
 msgid "Counterpart"
@@ -1293,6 +1358,9 @@ msgid "Default (clears all colors below)"
 msgstr "По умолчанию (сбрасывает все цвета ниже)"
 
 msgid "Delete"
+msgstr ""
+
+msgid "Describe the image in a few words; screen readers read this text."
 msgstr ""
 
 # llm-draft
@@ -1436,6 +1504,9 @@ msgstr "Моторы прогреты, небо ждёт. Время для пе
 msgid "Enter a full http:// or https:// address."
 msgstr "Введите полный адрес, начинающийся с http:// или https://."
 
+msgid "Enter the location of the image file."
+msgstr ""
+
 # llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
 msgstr "Равные права для всех: этот пилот не делит цели на своих и чужих."
@@ -1459,6 +1530,10 @@ msgstr "Событие"
 # llm-draft
 msgid "Event type (AType)"
 msgstr "Тип события (AType)"
+
+# llm-draft
+msgid "Every hole in it is a story, and the scoreboard backs up the better ones."
+msgstr "Каждая дыра в нём — это история, и таблица очков подтверждает лучшие из них."
 
 msgid "Every language"
 msgstr ""
@@ -1489,6 +1564,10 @@ msgstr "Все вылеты, сначала новые. Выберите выл�
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
 msgstr "Ведомого со вражеским путал каждый. У кого-то просто список подлиннее."
+
+# llm-draft
+msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."
+msgstr "Все храбро патрулировали, а противник патрулировал где-то в другом месте. Может, в следующий раз."
 
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
@@ -1578,6 +1657,14 @@ msgid "Fix the setting named above in il2ks.toml, restart il2ks and open this pa
 msgstr "Исправьте указанный выше параметр в il2ks.toml, перезапустите il2ks и снова откройте эту страницу."
 
 # llm-draft
+msgid "Flak never misses by much, which is the whole trouble with it."
+msgstr "Зенитки редко промахиваются сильно, в этом вся беда."
+
+# llm-draft
+msgid "Flew home through the worst of it, parked, and the worst of it followed. Nobody earns that."
+msgstr "Прошёл через самое страшное, зарулил на стоянку, а самое страшное прилетело следом. Такого никто не заслуживает."
+
+# llm-draft
 msgid "Flight time"
 msgstr "Время в полёте"
 
@@ -1617,12 +1704,20 @@ msgstr[1] "Найдено %(n)s файла отчёта о миссии."
 msgstr[2] "Найдено %(n)s файлов отчётов о миссиях."
 
 # llm-draft
+msgid "Fourteen guns on the hill and one aircraft over it. The arithmetic was never on your side."
+msgstr "Четырнадцать стволов на холме и один самолёт над ним. Арифметика была не на вашей стороне."
+
+# llm-draft
 msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name."
 msgstr "Бесплатные имена динамического DNS (DuckDNS и подобные) работают как любое другое доменное имя."
 
 # llm-draft
 msgid "Frequent Flyer"
 msgstr "Частый гость"
+
+# llm-draft
+msgid "Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."
+msgstr "Свежая краска, полные баки, пустая доска. Комната для разбора ждёт первого пилота."
 
 # llm-draft
 msgid "Friendly"
@@ -1664,9 +1759,22 @@ msgstr "Огонь по своим: уничтожено"
 msgid "Friendly-fire kills. The markings are small and the sky is crowded."
 msgstr "Сбитые свои. Опознавательные знаки мелкие, а небо тесное."
 
+msgid "Front page image"
+msgstr ""
+
+msgid "Front page image: status"
+msgstr ""
+
 # llm-draft
 msgid "Full killboard"
 msgstr "Полный журнал побед"
+
+msgid ""
+"Full path of a PNG, JPEG or WebP file on the machine that runs il2ks, for example a map that another program "
+"regenerates. il2ks checks the file every few seconds and shows the new picture within about ten seconds. The file "
+"itself is never published: a checked, re-encoded copy is (at most 2560 px wide, 40 MB and 64 megapixels). Docker: the"
+" file must be mounted into the container. Windows service: the account NT SERVICE\\il2ks needs read access."
+msgstr ""
 
 # llm-draft
 msgid "General"
@@ -1768,6 +1876,10 @@ msgid "Ground score/h"
 msgstr "Очки за землю/ч"
 
 # llm-draft
+msgid "Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."
+msgstr "Скорость по земле: скромная. Ущерб: не скромный. Законцовка уже подала жалобу."
+
+# llm-draft
 msgid "Ground targets destroyed in a single sortie."
 msgstr "Уничтожено наземных целей за один вылет."
 
@@ -1820,6 +1932,14 @@ msgstr "Вылет стрелком"
 # llm-draft
 msgid "HTTPS"
 msgstr "HTTPS"
+
+# llm-draft
+msgid "Half the convoy was already smoking when somebody else arrived to take the credit. Typical."
+msgstr "Половина колонны уже дымилась, когда кто-то другой явился за славой. Классика."
+
+# llm-draft
+msgid "Half the credit, all of the effort. The claims officer has been sent a polite note."
+msgstr "Половина заслуг, а труда на все сто. Офицеру по подтверждению побед отправлена вежливая записка."
 
 # llm-draft
 msgid "Hall of shame"
@@ -1878,6 +1998,10 @@ msgstr "Есть у %(share)s%% пилотов"
 #, python-format
 msgid "Held by less than 0.1%% of pilots"
 msgstr "Есть у менее чем 0,1%% пилотов"
+
+# llm-draft
+msgid "Held together by good luck and the crew chief's optimism. Both held out."
+msgstr "Держался на удаче и оптимизме механика. И то и другое выдержало."
 
 # llm-draft
 msgid "Hidden"
@@ -1966,6 +2090,10 @@ msgid "Hours Aloft"
 msgstr "Налёт"
 
 # llm-draft
+msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a well-earned one."
+msgstr "Часы в воздухе, и метеокарта превратилась в дневник. Эта посадка заслужена."
+
+# llm-draft
 msgid "Hours flown: the time spent in the air in all sorties, air and ground."
 msgstr "Налёт: время в воздухе по всем вылетам, воздушным и наземным."
 
@@ -2013,6 +2141,9 @@ msgstr "У меня уже есть свой веб-сервер"
 msgid "I have no domain name yet"
 msgstr "У меня пока нет доменного имени"
 
+msgid "Image file on the server"
+msgstr ""
+
 # llm-draft
 msgid "In aircraft"
 msgstr "В самолёте"
@@ -2029,6 +2160,10 @@ msgstr "В игре: %(when)s"
 # llm-draft
 msgid "In the air"
 msgstr "В воздухе"
+
+# llm-draft
+msgid "In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."
+msgstr "В пылу боя «Сейбр» выглядит как «Сейбр», пока не окажется сослуживцем."
 
 # llm-draft
 msgid "In the lobby"
@@ -2081,6 +2216,10 @@ msgstr ""
 "доступ."
 
 # llm-draft
+msgid "It brought the pilot home, and that is the only entry the logbook needs to read."
+msgstr "Он привёз пилота домой, и это единственная запись, которая нужна в журнале."
+
+# llm-draft
 msgid "It came home full of holes and full of results. A fair trade."
 msgstr "Вернулся весь в дырах, зато с результатами. Честный обмен."
 
@@ -2095,6 +2234,10 @@ msgstr ""
 # llm-draft
 msgid "It still flew, mostly out of politeness. Well landed."
 msgstr "Ещё летел, скорее из вежливости. Хорошая посадка."
+
+# llm-draft
+msgid "It was a very good shot at the wrong target. The aim is not the problem here."
+msgstr "Очень меткий выстрел, но не в ту цель. Прицел тут не виноват."
 
 # llm-draft
 msgid "Jet"
@@ -2210,6 +2353,9 @@ msgstr "Посадки подряд. Серию прерывает авария,
 msgid "Language"
 msgstr "Язык"
 
+msgid "Large image on the front page"
+msgstr ""
+
 # llm-draft
 msgid "Last"
 msgstr "Последний"
@@ -2290,6 +2436,10 @@ msgstr "Осталось"
 # llm-draft
 msgid "Left the server"
 msgstr "Покинул сервер"
+
+# llm-draft
+msgid "Legend has it the tower flinches whenever this callsign comes over the radio."
+msgstr "Говорят, диспетчерская вздрагивает, едва в эфире звучит этот позывной."
 
 # llm-draft
 msgid "Light mode"
@@ -2374,6 +2524,10 @@ msgid "Lost to"
 msgstr "Потеряно из-за"
 
 # llm-draft
+msgid "Low and slow near the gun line is the oldest mistake in the book. It is a very long book."
+msgstr "Низко и медленно у линии зениток — древнейшая ошибка в учебнике. А учебник очень толстый."
+
+# llm-draft
 #, python-format
 msgid ""
 "Low contrast in %(mode)s mode: %(what)s has a contrast ratio of %(ratio)s:1; aim for at least %(minimum)s:1 so it "
@@ -2401,6 +2555,14 @@ msgstr "Противостояния"
 # llm-draft
 msgid "May still change"
 msgstr "Может измениться"
+
+# llm-draft
+msgid "Mechanic's logbook, this pilot's page: no entries. We keep it as a reference."
+msgstr "Журнал механика, страница этого пилота: записей нет. Храним как образец."
+
+# llm-draft
+msgid "Mechanic's note: the aircraft is fine, the fence is not. Please see the fence."
+msgstr "Запись механика: самолёт в порядке, забор — не очень. Просьба обратиться к забору."
 
 # llm-draft
 msgid "Mission"
@@ -2444,6 +2606,10 @@ msgstr "Дырок больше, чем самолёта, а на земле. Ш
 msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "Самая опасная часть миссии: первые сто метров."
 
+# llm-draft
+msgid "Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."
+msgstr "Мустанг, знакомься: луг. Луг, знакомься: Мустанг. Знакомство вышло коротким, но крепким."
+
 msgid "My own only"
 msgstr ""
 
@@ -2466,6 +2632,10 @@ msgstr "Ссылки в навигации"
 # llm-draft
 msgid "Navigation links, in order"
 msgstr "Ссылки в навигации по порядку"
+
+# llm-draft
+msgid "Navigators on three continents would admire the fuel planning. The coffee flask is empty, naturally."
+msgstr "Штурманы трёх континентов восхитились бы расчётом топлива. Термос с кофе, естественно, пуст."
 
 # llm-draft
 #, python-format
@@ -2552,6 +2722,9 @@ msgstr "Без атаковавшего (падение, местность, п�
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
 msgstr "Атаковавший не указан: самолёт потерян по собственной вине (столкновение с землёй, перегрузка или происшествие)."
 
+msgid "No file location is set."
+msgstr ""
+
 # llm-draft
 msgid "No ground kills."
 msgstr "Наземных целей нет."
@@ -2598,6 +2771,9 @@ msgid ""
 msgstr ""
 "Автоматических повторов больше не будет. Повтор происходит, когда меняются их файлы или версия il2ks; либо выполните "
 "`il2ks reprocess --mission UID` после устранения причины."
+
+msgid "No picture yet."
+msgstr ""
 
 # llm-draft
 msgid "No pilot has enough attack sorties in this aircraft yet."
@@ -2785,6 +2961,13 @@ msgstr "Пока нечего показывать."
 msgid "OK"
 msgstr "OK"
 
+msgid "Off by default: the front page then looks as usual."
+msgstr ""
+
+# llm-draft
+msgid "Off the squadron roster for the moment. The empty chair at the mess table stays reserved."
+msgstr "Пока что вне списка эскадрильи. Пустой стул в столовой остаётся за ним."
+
 msgid "On"
 msgstr ""
 
@@ -2814,6 +2997,9 @@ msgstr ""
 "Только победы, где оба пилота выполняли вылет на господство в воздухе (истребитель против истребителя); штурмовые "
 "вылеты не учитываются."
 
+msgid "Open the full-size image"
+msgstr ""
+
 # llm-draft
 msgid "Open the site"
 msgstr "Открыть сайт"
@@ -2833,6 +3019,9 @@ msgstr "Операции"
 # llm-draft
 msgid "Opponent"
 msgstr "Противник"
+
+msgid "Optional title shown under the image."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -2961,6 +3150,9 @@ msgstr "В час"
 # llm-draft
 msgid "Period"
 msgstr "Период"
+
+msgid "Picture taken from the file as of (UTC):"
+msgstr ""
 
 # llm-draft
 msgid "Pilot"
@@ -3107,6 +3299,10 @@ msgid "Please look at the marked answers below. Nothing was changed."
 msgstr "Посмотрите на отмеченные ниже ответы. Ничего не изменено."
 
 # llm-draft
+msgid "Plenty of clouds, plenty of fuel burnt, not a shot fired in anger. The weather won."
+msgstr "Облаков много, топлива сожжено немало, а ни одного выстрела всерьёз. Победила погода."
+
+# llm-draft
 msgid "Plenty of ground targets carry your handiwork and somebody else's name in the log."
 msgstr "На многих наземных целях ваша работа, а в журнале чужое имя."
 
@@ -3140,6 +3336,9 @@ msgstr "Назад"
 msgid "Previous file kept as %(path)s"
 msgstr "Прежний файл сохранён как %(path)s"
 
+msgid "Problem:"
+msgstr ""
+
 # llm-draft
 msgid "Problems"
 msgstr "Проблемы"
@@ -3168,6 +3367,9 @@ msgstr "Фиолетовый"
 #. Translators: column header; player-versus-player air kills per death with this loadout
 msgid "PvP K/D"
 msgstr "K/D в PvP"
+
+msgid "Quicker than the kettle in the ready room. The tea is still brewing."
+msgstr "Быстрее, чем закипает чайник в дежурке. Чай ещё заваривается."
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
@@ -3208,8 +3410,24 @@ msgid "REDFOR won"
 msgstr "Победила REDFOR"
 
 # llm-draft
+msgid "Radio chatter, afterwards: 'Was that one of ours?' It was. The apologies are in the post."
+msgstr "Радиопереговоры после боя: «Это был наш?» Наш. Извинения уже в пути."
+
+# llm-draft
+msgid "Radio check: that was a friendly. Yes, the voice on the other end sounded rather upset."
+msgstr "Проверка связи: это был свой. Да, голос на том конце звучал несколько расстроенно."
+
+# llm-draft
+msgid "Radio log: nothing to report. The operator has gone through two crosswords."
+msgstr "Радиожурнал: докладывать нечего. Радист разгадал уже два кроссворда."
+
+# llm-draft
 msgid "Ramp Rash"
 msgstr "Мастер парковки"
+
+# llm-draft
+msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
+msgstr "Редко кто даёт офицеру по безопасности столько материала для отчётов. Настоящий соавтор."
 
 #, python-format
 msgid ""
@@ -3287,6 +3505,9 @@ msgstr "Заново обработать все миссии…"
 msgid "Reprocessing of all missions is requested. It starts at the next watch tick."
 msgstr "Повторная обработка всех миссий запрошена. Она начнётся на следующем такте наблюдения."
 
+msgid "Required when the image is on: a short description for people who cannot see the picture."
+msgstr ""
+
 # llm-draft
 msgid "Reset display names to the catalog defaults"
 msgstr "Сбросить названия на значения из каталога"
@@ -3346,6 +3567,10 @@ msgstr "Текущие серии"
 # llm-draft
 msgid "Runway"
 msgstr "ВПП"
+
+# llm-draft
+msgid "Safe on the ground, then a late guest at the party. The tower would have liked a warning too."
+msgstr "Благополучно сел, и тут нежданный гость. Диспетчерская тоже предпочла бы, чтобы её предупредили."
 
 msgid "Save"
 msgstr ""
@@ -3560,6 +3785,10 @@ msgid "Somebody had to go first. It was a good choice."
 msgstr "Кому-то надо было начать первым. Хорошо, что это был он."
 
 # llm-draft
+msgid "Somebody has to keep the wingmen alert. This pilot volunteers every time."
+msgstr "Кто-то должен держать ведомых в тонусе. Этот пилот вызывается добровольцем каждый раз."
+
+# llm-draft
 msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
 msgstr "Чей-то бомбовый заход закончился раньше срока. Кто-то ставит следующий круг."
 
@@ -3570,6 +3799,10 @@ msgstr "Кто-то сегодня отлично потрудился."
 # llm-draft
 msgid "Something went wrong"
 msgstr "Что-то пошло не так"
+
+# llm-draft
+msgid "Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."
+msgstr "Где-то вздыхает интендант, и он даже не уверен, из-за какого случая."
 
 # llm-draft
 msgid "Sortie details"
@@ -3884,6 +4117,10 @@ msgid "Teal"
 msgstr "Бирюзовый"
 
 # llm-draft
+msgid "Technically the most experienced pilot on the apron. Nobody has spent more time there."
+msgstr "Формально самый опытный пилот на стоянке: больше времени там не проводил никто."
+
+# llm-draft
 msgid "Text"
 msgstr "Текст"
 
@@ -3914,12 +4151,20 @@ msgstr ""
 "история обработки)."
 
 # llm-draft
+msgid "The aircraft is lost, the pilot is still in the story. Sequels have started worse."
+msgstr "Самолёт потерян, а пилот остался в сюжете. Продолжения начинались и хуже."
+
+# llm-draft
 msgid ""
 "The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb "
 "releases and rocket salvos are still exact."
 msgstr ""
 "Самолёт сел, перевооружился и снова взлетел, поэтому расход боеприпасов по журналу определить нельзя. Попадания, "
 "сбросы бомб и залпы ракет по-прежнему точны."
+
+# llm-draft
+msgid "The aircraft took the beating, somebody else took the bow. That is formation flying for you."
+msgstr "Самолёт принял на себя удар, а поклон достался другому. Вот он, групповой полёт."
 
 # llm-draft
 msgid ""
@@ -3934,12 +4179,24 @@ msgid "The airfield is also part of the mission. Some pilots just take that very
 msgstr "Аэродром тоже часть задания. Некоторые просто воспринимают это слишком буквально."
 
 # llm-draft
+msgid "The airframe came home smelling of cordite and looking like a colander. Mission accomplished."
+msgstr "Самолёт вернулся пропахший порохом и похожий на дуршлаг. Задание выполнено."
+
+# llm-draft
 msgid "The airframe took a beating and handed one back."
 msgstr "Самолёт получил своё и отдал сполна."
 
 # llm-draft
+msgid "The armourer is already counting the missing rounds, and smiling while he does it."
+msgstr "Оружейник уже считает недостающие патроны и при этом улыбается."
+
+# llm-draft
 msgid "The big, slow ones had a bad day, and this pilot had a good one."
 msgstr "У больших и медленных день не задался, а у этого пилота задался."
+
+# llm-draft
+msgid "The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0."
+msgstr "Тормоза и пилот разошлись во мнениях. Тормоза: 1, пилот: 0."
 
 # llm-draft
 msgid ""
@@ -3967,8 +4224,19 @@ msgid "The crew chief will have opinions about this one."
 msgstr "У бригадира на этот счёт будет своё мнение."
 
 # llm-draft
+msgid "The enemy had just finished its own takeoff checklist. A pity, really."
+msgstr "Противник только что закончил свою предвзлётную карту. Жаль, честное слово."
+
+# llm-draft
 msgid "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
 msgstr "Противник был изрядно потрёпан. Кто-то другой просто оказался первым у финиша."
+
+# llm-draft
+msgid "The engine never got to say a word. The ground crew would like it noted that the aircraft was ready."
+msgstr "Двигатель не успел и слова сказать. Наземная команда просит отметить: самолёт был готов."
+
+msgid "The file could not be read (is the network share or drive available?)."
+msgstr ""
 
 # llm-draft
 msgid "The file is empty."
@@ -4034,12 +4302,20 @@ msgid "The gear stayed up and so did the pilot's spirits."
 msgstr "Шасси остались убраны, а настроение осталось на высоте."
 
 # llm-draft
+msgid "The ground below was well tended, and the harvest went to a neighbour's barn."
+msgstr "Земля внизу была хорошо вспахана, а урожай увезли в соседский амбар."
+
+# llm-draft
 msgid "The ground below will remember this one for a while."
 msgstr "Земля внизу этот вылет запомнит надолго."
 
 # llm-draft
 msgid "The ground crew and the squadron both have a file on this one. The files have met."
 msgstr "И техники, и эскадрилья ведут на этого пилота досье. Папки уже успели познакомиться."
+
+# llm-draft
+msgid "The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."
+msgstr "У наземной команды припасён запасной кончик крыла с именем этого пилота. На всякий случай."
 
 # llm-draft
 msgid "The ground crew mourns the airframe, and quietly polishes the next one."
@@ -4058,6 +4334,10 @@ msgid "The highest Elo rating reached, in the prop or the jet pool."
 msgstr "Самый высокий достигнутый рейтинг Эло, в пуле поршневых или реактивных самолётов."
 
 # llm-draft
+msgid "The hydraulics sent their regards, the engine coughed, and the runway came up anyway."
+msgstr "Гидравлика передавала привет, двигатель кашлял, а полоса всё равно появилась."
+
+# llm-draft
 #, python-format
 msgid "The image has too many pixels (limit: %(px)d megapixels)."
 msgstr "В изображении слишком много пикселей (предел: %(px)d мегапикселей)."
@@ -4073,6 +4353,9 @@ msgid ""
 msgstr ""
 "Задание выполняется в процессе наблюдения (не на этой странице) и начнётся на его следующем такте. Следить за ним "
 "можно на странице состояния обработки."
+
+msgid "The location cannot be reached (is the network share or drive available?)."
+msgstr ""
 
 # llm-draft
 msgid "The log does not name an attacker."
@@ -4143,6 +4426,9 @@ msgstr "Техники назвали в честь этого пилота од
 msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "Последнее слово осталось за хвостовым стрелком, и прозвучало оно громко."
 
+msgid "The record books call it a pattern. The squadron calls it character."
+msgstr "В протоколах это называют закономерностью. В эскадрилье зовут характером."
+
 # llm-draft
 msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
 msgstr "Фильтр по роли не действует на противостояния: они показывают все победы и потери этого самолёта."
@@ -4168,6 +4454,11 @@ msgstr ""
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "При построении этой страницы на сервере произошла ошибка. Повторите попытку чуть позже."
+
+msgid ""
+"The server is not allowed to read this file. Give the account that runs il2ks read access to the file (Windows "
+"service: NT SERVICE\\il2ks; Docker: mount the file into the container)."
+msgstr ""
 
 # llm-draft
 msgid "The server stopped before the mission ended; the numbers may be partial."
@@ -4200,6 +4491,18 @@ msgstr "В небе обошлось без драмы. Чай в диспетч
 # llm-draft
 msgid "The squadron has learned to fly a little wider. Bold of them, and well chosen."
 msgstr "Эскадрилья научилась держать дистанцию пошире. Мудрое решение."
+
+# llm-draft
+msgid "The squadron's emergency drills have, thanks to this pilot, never been short of material."
+msgstr "Благодаря этому пилоту у эскадрильи никогда не было недостатка в материале для учений по тревоге."
+
+# llm-draft
+msgid "The target list is shorter and the ammunition list is longer. A sound exchange."
+msgstr "Список целей стал короче, а список израсходованных боеприпасов длиннее. Честный обмен."
+
+# llm-draft
+msgid "The target list said bombers, plural. The pilot read it literally."
+msgstr "В списке целей значились бомбардировщики, во множественном числе. Пилот понял это буквально."
 
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
@@ -4239,6 +4542,9 @@ msgstr "Война ждала. У рулёжки были другие план�
 msgid "The wheels were still folding when the first kill reached the log."
 msgstr "Шасси ещё убирались, а первая победа уже легла в журнал."
 
+msgid "There is no file at this location (the server could not find it)."
+msgstr ""
+
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Эти миссии закончились без события завершения; стоит проверить, не упал ли сервер посреди миссии."
@@ -4259,6 +4565,12 @@ msgstr "Это не изображение PNG, JPEG или WebP (SVG не пр�
 #, python-format
 msgid "This is not a valid %(kind)s font file."
 msgstr "Это не корректный файл шрифта %(kind)s."
+
+msgid "This location is a folder; enter the path of the image file itself."
+msgstr ""
+
+msgid "This location is not a regular file."
+msgstr ""
 
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
@@ -4295,6 +4607,10 @@ msgstr[2] ""
 # llm-draft
 msgid "Those little black clouds were not decorative."
 msgstr "Эти чёрные облачка были не для красоты."
+
+# llm-draft
+msgid "Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."
+msgstr "Три и больше за один вылет? Старожилы «МиГовой аллеи» подняли бы бровь, а потом бокал."
 
 # llm-draft
 msgid "Tiers"
@@ -4403,12 +4719,28 @@ msgid "Tours start by themselves unless [tours] mode is manual."
 msgstr "Туры начинаются сами, если только [tours] mode не задан как manual."
 
 # llm-draft
+msgid "Tower to pilot: the war is the other way, but thank you for the thorough survey of the apron."
+msgstr "Вышка — пилоту: война в другой стороне, но за подробный осмотр стоянки спасибо."
+
+# llm-draft
+msgid "Tower: 'Say condition.' Pilot: 'Mostly air.' And with a good score on the board."
+msgstr "Вышка: «Доложите состояние». Пилот: «Больше всего дырок». И при этом хороший счёт."
+
+# llm-draft
+msgid "Tracers going the other way for once. The bomber crew will tell this one for years."
+msgstr "Трассеры на этот раз летели в другую сторону. Экипаж бомбардировщика будет рассказывать об этом годами."
+
+# llm-draft
 msgid "Trains"
 msgstr "Поезда"
 
 # llm-draft
 msgid "Trouble on the ramp and in the air. At least this pilot is consistent."
 msgstr "Неприятности и на стоянке, и в воздухе. Зато последовательно."
+
+# llm-draft
+msgid "Two departments, one pilot. The paperwork is going to need a bigger folder."
+msgstr "Два отдела, один пилот. Для бумаг понадобится папка потолще."
 
 # llm-draft
 msgid "Type"
@@ -4491,12 +4823,19 @@ msgstr "Неизвестно: в журнале нет записи о боек�
 msgid "Unknown: the sortie was resupplied"
 msgstr "Неизвестно: в этом вылете боекомплект пополнялся"
 
+# llm-draft
+msgid "Unscheduled landing in unfamiliar territory. The flight plan did not cover this chapter."
+msgstr "Незапланированная посадка на незнакомой земле. В плане полёта этой главы не было."
+
 msgid "Untick to turn all quips off, whatever the settings below say."
 msgstr ""
 
 # llm-draft
 msgid "Until"
 msgstr "До"
+
+msgid "Updated"
+msgstr ""
 
 #, python-format
 msgid "Updated %(when)s"
@@ -4716,6 +5055,10 @@ msgid ""
 "they cannot show a name or a number. Leave the language empty to show a quip in every language, or pick one to show "
 "it only there. A built-in line is shown in the language of the page; hiding it hides it in every language."
 msgstr ""
+
+# llm-draft
+msgid "Zero scrapes, zero misfires at friends. Wingmen sleep well around this one."
+msgstr "Ни царапины, ни выстрела по своим. Рядом с этим пилотом ведомые спят спокойно."
 
 # llm-draft
 msgid "after the pilot bailed out"

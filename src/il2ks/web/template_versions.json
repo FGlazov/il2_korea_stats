@@ -15,7 +15,7 @@
     },
     "static/il2ks/missions.css": {
       "version": 1,
-      "sha256": "226babb1302741b841a67dec16abc0c1b8762faaf15bd0ef0a7cefe1aac77f76"
+      "sha256": "273f23cb81c3bd0866c915fca7acb0c4a8e54c9edb5709fdb1d27f5acfbdb170"
     },
     "static/il2ks/players.css": {
       "version": 1,
@@ -247,11 +247,15 @@
     },
     "templates/il2ks/home.html": {
       "version": 1,
-      "sha256": "78b532edd95b2043164a7651cee962bca66f332d1898fa0437092948b35567a7"
+      "sha256": "7189cc26e0a38007f59a595f7156ada27413d0033f9d06c2d6b690aaefdd2206"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,
       "sha256": "343830337a5b4cfb7c02549486cc4529c0b88c617e8d9c1236e95a474a949c6b"
+    },
+    "templates/il2ks/home_feature.html": {
+      "version": 1,
+      "sha256": "0091bd177e923c7b7892b70363a1dcac93b596bfb607804aa9dbf30dac36229c"
     },
     "templates/il2ks/leaderboards/home_block.html": {
       "version": 1,

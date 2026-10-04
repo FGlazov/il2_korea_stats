@@ -85,6 +85,14 @@ All settings are explained in the file itself. [settings.md](settings.md) says w
 The installer puts one site on the machine. For several game servers on one machine, use the
 [manual install](install.md#several-servers-on-one-machine).
 
+## A map or other image for the front page
+
+The admin can show a large image first on the front page (Site settings, Front page image) read from a file on this
+machine. The service runs as `NT SERVICE\il2ks`, so that account needs **read access** to the file, and the file must not
+be on a drive that needs your login (mapped network drives are per user; use a UNC path the service account can open).
+Grant it with `icacls "D:\maps" /grant "NT SERVICE\il2ks:(OI)(CI)R"` as administrator. `il2ks doctor` checks the file.
+Details: [customizing.md](customizing.md#a-large-image-on-the-front-page).
+
 ## Upgrading
 
 Download the newer `il2ks-setup-<version>.exe` and run it over the old install. It notices the existing install and

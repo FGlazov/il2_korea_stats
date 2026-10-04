@@ -9,7 +9,14 @@ from django.template.loader import render_to_string
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import SiteSettings
+from il2ks.db.models import HomeFeature, SiteSettings
+from il2ks.web.feature_image import (
+    FeatureImageError,
+    ProcessedFeature,
+    Source,
+    inspect_source,
+    process_feature,
+)
 from il2ks.web.fonts import (
     MAX_CUSTOM_FONTS,
     MAX_FONT_BYTES,
@@ -184,17 +191,48 @@ class SiteSettingsForm(forms.ModelForm):
             "theme",
             "heading_font",
             "body_font",
+            "home_feature",
+            "feature_image_path",
+            "feature_caption",
+            "feature_alt",
             "redfor_name",
             "blufor_name",
             "redfor_emblem",
             "blufor_emblem",
         ]
-        widgets = {"description": forms.Textarea(attrs={"rows": 4, "cols": 70})}
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 4, "cols": 70}),
+            "feature_image_path": forms.TextInput(attrs={"size": 70}),
+            "feature_caption": forms.TextInput(attrs={"size": 70}),
+            "feature_alt": forms.TextInput(attrs={"size": 70}),
+        }
+        labels = {
+            "home_feature": _("Large image on the front page"),
+            "feature_image_path": _("Image file on the server"),
+            "feature_caption": _("Caption"),
+            "feature_alt": _("Alternative text"),
+        }
+        help_texts = {
+            "home_feature": _("Off by default: the front page then looks as usual."),
+            "feature_image_path": _(
+                "Full path of a PNG, JPEG or WebP file on the machine that runs il2ks, for example a map that "
+                "another program regenerates. il2ks checks the file every few seconds and shows the new picture "
+                "within about ten seconds. The file itself is never published: a checked, re-encoded copy is "
+                "(at most 2560 px wide, 40 MB and 64 megapixels). Docker: the file must be mounted into the "
+                "container. Windows service: the account NT SERVICE\\il2ks needs read access."
+            ),
+            "feature_caption": _("Optional title shown under the image."),
+            "feature_alt": _(
+                "Required when the image is on: a short description for people who cannot see the picture."
+            ),
+        }
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)  # pyright: ignore[reportArgumentType]
         self.processed_logo: ProcessedLogo | None = None
+        self.fields["home_feature"].required = False  # a post without it keeps the current choice
         self.processed_font: ProcessedFont | None = None
+        self.processed_feature: tuple[Source, ProcessedFeature] | None = None
         self.stored_fonts: list[CustomFont] = clean_fonts(self.instance.custom_fonts)
         if self.instance.pk is not None:
             self.initial["theme"] = clean_theme(self.instance.theme)
@@ -214,6 +252,9 @@ class SiteSettingsForm(forms.ModelForm):
         if new is not None and all(font.file != new.file for font in fonts):
             fonts.append(new)
         return fonts
+
+    def clean_home_feature(self) -> str:
+        return str(self.cleaned_data.get("home_feature") or self.instance.home_feature or HomeFeature.NONE.value)
 
     def clean_font_upload(self) -> UploadedFile | None:
         upload: UploadedFile | None = self.cleaned_data["font_upload"]
@@ -244,12 +285,40 @@ class SiteSettingsForm(forms.ModelForm):
         if cleaned.get("remove_logo") and self.processed_logo is not None:
             self.add_error("remove_logo", _("Either upload a new logo or remove the current one, not both."))
         self._clean_fonts(cleaned)
+        self._clean_feature(cleaned)
         preset = cleaned.get("theme_preset")
         if preset == "default":
             cleaned["theme"] = {"light": {}, "dark": {}}
         elif isinstance(preset, str) and preset in PRESETS:
             cleaned["theme"] = clean_theme(PRESETS[preset][1])
         return cleaned
+
+    def _clean_feature(self, cleaned: dict[str, object]) -> None:
+        """Front-page image: a path and alt text are required when it is on, and the file is checked (and re-encoded)
+        when something changed, so a bad path is refused here with a clear message instead of being saved."""
+        if cleaned.get("home_feature") != HomeFeature.IMAGE:
+            return
+        path = str(cleaned.get("feature_image_path") or "").strip()
+        if not path:
+            self.add_error("feature_image_path", _("Enter the location of the image file."))
+        if not str(cleaned.get("feature_alt") or "").strip():
+            self.add_error("feature_alt", _("Describe the image in a few words; screen readers read this text."))
+        if not path:
+            return
+        row = self.instance
+        unchanged = (
+            row.home_feature == HomeFeature.IMAGE
+            and row.feature_image_path.strip() == path
+            and bool(row.feature_image)
+            and not row.feature_error
+        )
+        if unchanged:
+            return  # `web.feature_image.sync` follows later changes of the file itself
+        try:
+            source = inspect_source(path)
+            self.processed_feature = (source, process_feature(source))
+        except FeatureImageError as exc:
+            self.add_error("feature_image_path", str(exc))
 
     def _clean_fonts(self, cleaned: dict[str, object]) -> None:
         """Font selection: a removed font stops being used, a new upload can be selected right away, and the list is

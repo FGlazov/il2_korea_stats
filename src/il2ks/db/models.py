@@ -1470,6 +1470,13 @@ class BluforEmblem(models.TextChoices):
     UN = "un", "UN-style roundel"
 
 
+class HomeFeature(models.TextChoices):
+    """What dominates the front page (`SiteSettings.home_feature`). `embed` (an iframe) may come later."""
+
+    NONE = "none", "Nothing (the normal front page)"
+    IMAGE = "image", "A large image from a file on the server"
+
+
 class SiteSettings(models.Model):
     """Branding and site texts, edited in the admin (FR-ADM-2, TD-25). A singleton: always pk=1 (`il2ks.db.site`)."""
 
@@ -1491,6 +1498,23 @@ class SiteSettings(models.Model):
     # The custom navigation links, in order: [{"label", "url", "icon"}]. A published copy of the `NavLink` rows, written
     # by the admin on save, so pages read them with the settings row and need no extra query (page budgets).
     links: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)
+    # Front-page feature (FR-ADM-2): `none` keeps the home page as it is; `image` shows a large image (e.g. a map of
+    # the current situation) read from a file on the server. An `embed` mode (an iframe) can be added later.
+    home_feature = models.CharField(max_length=10, choices=HomeFeature.choices, default=HomeFeature.NONE)
+    feature_image_path = models.CharField(max_length=500, blank=True)  # the configured file; never served itself
+    feature_caption = models.CharField(max_length=200, blank=True)
+    feature_alt = models.CharField(max_length=300, blank=True)
+    # Output of `web.feature_image.sync` (the admin save, and a polling thread of the web process): the re-encoded
+    # copies under MEDIA_ROOT (names relative to it, content-hashed), their size, the source file's mtime,
+    # the signature of the
+    # last file looked at (path, mtime, size: unchanged = nothing to do) and why the last attempt failed ('' = fine).
+    feature_image = models.CharField(max_length=200, blank=True)
+    feature_image_small = models.CharField(max_length=200, blank=True)
+    feature_image_width = models.PositiveIntegerField(default=0)
+    feature_image_height = models.PositiveIntegerField(default=0)
+    feature_image_updated = models.DateTimeField(null=True, blank=True)
+    feature_source_sig = models.CharField(max_length=700, blank=True)
+    feature_error = models.CharField(max_length=300, blank=True)
     # Coalition display names (FR-ADM-5, doc 06): 5xx countries are REDFOR, 6xx BLUFOR.
     redfor_name = models.CharField(max_length=40, default="REDFOR")
     blufor_name = models.CharField(max_length=40, default="BLUFOR")

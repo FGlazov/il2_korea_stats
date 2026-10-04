@@ -97,6 +97,13 @@ If you let il2ks move or delete logs (`IL2KS_LOGS_READ_ONLY=false`), the contain
 folder: same user ID as the owner, or `chmod o+w`. Rootless Docker and Podman map IDs differently (your own user is
 `0` inside); then leave the ID at 1000 and use `podman unshare chown` / `--userns=keep-id` as that tool documents.
 
+## A map or other image for the front page
+
+The admin can show a large image first on the front page (Site settings, Front page image) read from a file path. In a
+container that path is **inside the container**: mount the file (or its folder) as an extra volume in your compose file,
+read-only is enough, and enter the container's path in the admin. The container user (1000:1000, see above) must be able
+to read it. See [customizing.md](customizing.md#a-large-image-on-the-front-page).
+
 ## Windows hosts (Docker Desktop)
 
 Tested with Docker Desktop for Windows (WSL 2 backend, Linux containers), from PowerShell and Git Bash:
