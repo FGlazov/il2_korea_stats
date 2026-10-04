@@ -411,8 +411,8 @@ def test_leaderboard_selector_offers_all_time_as_all_and_filters_keep_it(client:
 
     october = Tour.objects.get()
     assert '<option value="all">All time</option>' in default
-    assert f'<option value="{october.pk}" selected>' in default
-    assert '<option value="" ' not in default
+    assert '<option value="" selected>Current tour</option>' in default  # no parameter = the current tour
+    assert f'<option value="{october.pk}">' in default
     assert '<option value="all" selected>All time</option>' in all_time
     assert 'name="pool"' in all_time
     assert all_time.count('name="tour"') == 1  # the one form carries the tour with the pool and aircraft filters

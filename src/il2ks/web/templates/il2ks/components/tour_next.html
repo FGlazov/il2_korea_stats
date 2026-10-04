@@ -1,0 +1,7 @@
+{# il2ks-template: templates/il2ks/components/tour_next.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  tour_next.html: when the next tour starts, beside the tour dropdown (included by tour_select.html and tour_filter.html,
+  TD-26, OQ-78). Context: next_start (aware datetime or None: the calendar fixed the end of the newest tour, never in
+  manual mode). The line carries data-il2-until: localtime.js hides it once that moment is past, keeping its box (no CLS);
+  the markup itself is the same for every viewer (TD-28).
+{% endcomment %}{% if next_start %}<span class="tour-next muted" data-il2-until="{{ next_start|date:'c' }}">{% blocktranslate with when=next_start|local_time %}Next tour starts {{ when }}{% endblocktranslate %}</span>{% endif %}

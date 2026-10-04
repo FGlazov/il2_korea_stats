@@ -1099,6 +1099,10 @@ msgid "Current streak"
 msgstr "Série en cours"
 
 # llm-draft
+msgid "Current tour"
+msgstr "Tour actuel"
+
+# llm-draft
 #. Translators: the name shown for an uploaded font whose file name gave nothing usable (a noun phrase)
 msgid "Custom font"
 msgstr "Police personnalisée"
@@ -1422,6 +1426,10 @@ msgid "Friendly"
 msgstr "Allié"
 
 # llm-draft
+msgid "Friendly aircraft and ground objects they destroyed"
+msgstr "Avions et objets au sol alliés qu'ils ont détruits"
+
+# llm-draft
 msgid "Friendly fire"
 msgstr "Tir fratricide"
 
@@ -1446,8 +1454,8 @@ msgid "Friendly victim"
 msgstr "Victime alliée"
 
 # llm-draft
-msgid "Friendly-fire incidents"
-msgstr "Incidents de tir fratricide"
+msgid "Friendly-fire kills"
+msgstr "Tirs fratricides : victimes"
 
 # llm-draft
 msgid "Full killboard"
@@ -3200,10 +3208,6 @@ msgstr "Sorties effectuées : l'appareil a décollé."
 #, python-format
 msgid "Sorties in %(tour)s"
 msgstr "Sorties dans %(tour)s"
-
-# llm-draft
-msgid "Sorties in which they killed a friendly"
-msgstr "Sorties où un allié a été abattu"
 
 # llm-draft
 #, python-format

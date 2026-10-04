@@ -295,7 +295,7 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         kills_ground=stats.kills_ground,
         flight_time_s=stats.flight_time_s,
         taxi_accidents=stats.taxi_accidents,
-        friendly_fire_incidents=stats.friendly_fire_incidents,
+        friendly_kills=stats.friendly_kills,
         time_on_target_s=stats.time_on_target_s,
         # Player and PlayerTour rows carry the scores, other Counters rows don't
         score_air=getattr(stats, "score_air", 0.0),
@@ -324,9 +324,9 @@ def shame_spot(stats: Counters, marks: Mapping[str, StatThreshold]) -> str:
     sorties (`marks`, the thresholds of the scope `stats` belongs to). Only the incident kinds the pilot is in the top
     10% for are named in a p90 spot."""
     taxi = stats.taxi_accidents > 0
-    friendly = stats.friendly_fire_incidents > 0
+    friendly = stats.friendly_kills > 0
     top_taxi = taxi and _is_top("taxi_per_sortie", stats, marks)
-    top_friendly = friendly and _is_top("friendly_fire_per_sortie", stats, marks)
+    top_friendly = friendly and _is_top("friendly_kill_rate", stats, marks)
     if top_taxi and top_friendly:
         return "shame_both_p90"
     if top_taxi:

@@ -212,7 +212,7 @@ def _limits(metric: str, p90: float, min_sorties: int = 20) -> StatThreshold:
 # 5% of sorties end in a taxi accident / a friendly kill at the 90th percentile.
 MARKS = {
     "taxi_per_sortie": _limits("taxi_per_sortie", 0.05),
-    "friendly_fire_per_sortie": _limits("friendly_fire_per_sortie", 0.05),
+    "friendly_kill_rate": _limits("friendly_kill_rate", 0.05),
 }
 
 
@@ -236,12 +236,12 @@ MARKS = {
     ],
 )
 def test_shame_spot(sorties: int, taxi: int, friendly: int, marks: dict[str, StatThreshold], spot: str) -> None:
-    stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_fire_incidents=friendly)
+    stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_kills=friendly)
     assert flavor.shame_spot(stats, marks) == spot
     assert spot in flavor.SPOTS
 
 
 def test_shame_spot_on_a_tour_row() -> None:
     """The profile shows a PlayerTour with `?tour=`: the same counters, so the same rules."""
-    stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_fire_incidents=0)
+    stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_kills=0)
     assert flavor.shame_spot(stats, MARKS) == "shame_taxi_p90"

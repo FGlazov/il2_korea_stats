@@ -78,10 +78,10 @@ def test_metric_values_follow_the_page_ratios() -> None:
 
 def test_incident_rates_are_per_sortie() -> None:
     assert metric_value("taxi_per_sortie", TOTALS) == 0.0
-    busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_fire_incidents=2)
+    busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_kills=2)
     assert metric_value("taxi_per_sortie", busy) == 0.1
-    assert metric_value("friendly_fire_per_sortie", busy) == 0.05
-    assert metric_value("friendly_fire_per_sortie", Totals(0, 0, 0, 0, 0, 0.0)) is None
+    assert metric_value("friendly_kill_rate", busy) == 0.05
+    assert metric_value("friendly_kill_rate", Totals(0, 0, 0, 0, 0, 0.0)) is None
 
 
 def test_undefined_where_the_page_shows_a_dash() -> None:

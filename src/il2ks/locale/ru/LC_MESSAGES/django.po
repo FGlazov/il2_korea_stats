@@ -1121,6 +1121,10 @@ msgid "Current streak"
 msgstr "Текущая серия"
 
 # llm-draft
+msgid "Current tour"
+msgstr "Текущий тур"
+
+# llm-draft
 #. Translators: the name shown for an uploaded font whose file name gave nothing usable (a noun phrase)
 msgid "Custom font"
 msgstr "Свой шрифт"
@@ -1444,6 +1448,10 @@ msgid "Friendly"
 msgstr "Свой"
 
 # llm-draft
+msgid "Friendly aircraft and ground objects they destroyed"
+msgstr "Свои самолёты и наземные объекты, которые они уничтожили"
+
+# llm-draft
 msgid "Friendly fire"
 msgstr "Огонь по своим"
 
@@ -1468,8 +1476,8 @@ msgid "Friendly victim"
 msgstr "Свой пострадавший"
 
 # llm-draft
-msgid "Friendly-fire incidents"
-msgstr "Случаи огня по своим"
+msgid "Friendly-fire kills"
+msgstr "Огонь по своим: сбито"
 
 # llm-draft
 msgid "Full killboard"
@@ -3215,10 +3223,6 @@ msgstr "Совершённые вылеты: самолёт взлетел."
 #, python-format
 msgid "Sorties in %(tour)s"
 msgstr "Вылеты: %(tour)s"
-
-# llm-draft
-msgid "Sorties in which they killed a friendly"
-msgstr "Вылеты, в которых сбит свой"
 
 # llm-draft
 #, python-format

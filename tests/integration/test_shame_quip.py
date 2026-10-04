@@ -72,16 +72,16 @@ def test_tiles_show_taxi_accidents_and_friendly_fire_not_strafings(client: Clien
     start = body.index('class="shame"')
     shame = body[start : body.index("</section>", start)]
     assert "Taxi accidents" in shame
-    assert "Friendly-fire incidents" in shame
+    assert "Friendly-fire kills" in shame
     assert "Strafed on the ground" not in shame
     assert "Strafed on the ground" in body  # now under "Other totals"
 
 
-def test_friendly_fire_incidents_count_sorties_not_kills() -> None:
+def test_friendly_kills_are_summed_per_pilot() -> None:
     sorties = (sortie(0, 1, friendly_kills=3), sortie(1, 1, friendly_kills=1), sortie(2, 1))
     save(mission(sorties), meta("2026-09-19_22-34-13", STARTED_AT))
     p = Player.objects.get()
-    assert (p.friendly_kills, p.friendly_fire_incidents) == (4, 2)
+    assert p.friendly_kills == 4
 
 
 def test_the_quip_follows_the_selected_tour(client: Client) -> None:
@@ -97,7 +97,7 @@ def test_the_quip_follows_the_selected_tour(client: Client) -> None:
 
 def test_rebuild_keeps_the_counter() -> None:
     seed()
-    before = list(Player.objects.order_by("pk").values_list("friendly_fire_incidents", flat=True))
+    before = list(Player.objects.order_by("pk").values_list("friendly_kills", flat=True))
     rebuild_aggregates(marks=ONE)
-    assert list(Player.objects.order_by("pk").values_list("friendly_fire_incidents", flat=True)) == before
+    assert list(Player.objects.order_by("pk").values_list("friendly_kills", flat=True)) == before
     assert sum(before) == 5

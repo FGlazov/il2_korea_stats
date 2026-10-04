@@ -1,12 +1,13 @@
-{# il2ks-template: templates/il2ks/components/tour_filter.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/components/tour_filter.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  tour_filter.html ({% tour_filter tours tour %}): the tour selector for inside a {% filter_bar %}: a select with
-  "All time" (`?tour=all`) first, then the tours newest first, and the current-tour / all-time toggle. No empty option:
-  no parameter means the current tour (queries.tours). Context: see tour_select.html.
+  tour_filter.html ({% tour_filter tours tour %}): the tour selector for inside a {% filter_bar %}: one select whose first
+  entries are "All time" (`?tour=all`) and "Current tour" (empty value: no parameter means the current tour, queries.tours),
+  then the tours newest first; the next tour's start sits beside it. Context: see tour_select.html.
 {% endcomment %}{% if tours %}<label class="filter" for="f-tour">{% translate "Tour" %}
   <select name="tour" id="f-tour">
-    <option value="{{ all_value }}"{% if is_all %} selected{% endif %}>{% translate "All time" %}</option>{% for tour in tours %}
-    <option value="{{ tour.pk }}"{% if tour.pk == selected_id %} selected{% endif %}>{{ tour|tour_title }}</option>{% endfor %}
+    <option value="{{ all_value }}"{% if is_all %} selected{% endif %}>{% translate "All time" %}</option>
+    <option value=""{% if is_current %} selected{% endif %}>{% translate "Current tour" %}</option>{% for tour in tours %}
+    <option value="{{ tour.pk }}"{% if tour.pk == selected_id and not is_current %} selected{% endif %}>{{ tour|tour_title }}</option>{% endfor %}
   </select>
 </label>
-<div class="tour-bar">{% include "il2ks/components/tour_toggle.html" %}</div>{% endif %}
+{% include "il2ks/components/tour_next.html" %}{% endif %}
