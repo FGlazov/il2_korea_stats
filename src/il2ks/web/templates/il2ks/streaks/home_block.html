@@ -2,7 +2,7 @@
 {% load i18n il2ks il2ks_boards %}{% comment %}
   home_block.html: the home page's "Longest ironman streaks" list (FR-WEB-23). Reads its own rows with
   {% home_streaks tour as streaks %} (running streaks all time; with a tour, the longest streaks inside it, OQ-79); shows nothing
-  when there are none. Context: tour. Links: web:player-detail, web:streak-list (running streaks, all time: no page lists the tours' best streaks, so with a tour the button says so).
+  when there are none. Context: tour, tour_query. Links: web:player-detail, web:streak-list.
 {% endcomment %}{% home_streaks tour as streaks %}{% if streaks %}<section aria-labelledby="streaks-heading">
   <h2 id="streaks-heading">{% if tour %}{% translate "Longest ironman streaks in this tour" %}{% else %}{% translate "Longest ironman streaks" %}{% endif %}</h2>
   <div class="table-wrap">
@@ -11,5 +11,5 @@
       <tbody>{% for row in streaks %}<tr><td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td><td class="num">{{ row.sorties|num }}</td><td class="num">{{ row.kills_air|num }}</td><td class="num">{{ row.flight_time_s|duration }}</td></tr>{% endfor %}</tbody>
     </table>
   </div>
-  <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:streak-list' %}">{% if tour %}{% translate "Running streaks, all time" %}{% else %}{% translate "All streaks" %}{% endif %}</a></p>
+  <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:streak-list' %}{{ tour_query }}">{% translate "All streaks" %}</a></p>
 </section>{% endif %}

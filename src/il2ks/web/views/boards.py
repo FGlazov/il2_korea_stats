@@ -68,15 +68,23 @@ def player_streaks(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def streak_list(request: HttpRequest) -> HttpResponse:
-    """`/streaks/?sort=&page=`: players on a running streak of survived sorties (Ironman).
+    """`/streaks/?tour=&sort=&page_best=&page_running=`: every pilot's best ironman streak in the selected tour (or all
+    time), plus the streaks running right now (TD-26, FR-WEB-23).
 
-    Template `il2ks/streaks/list.html`. Context: `page_obj` (PlayerStreak rows with `player`), `sort`, `page_title`,
-    `active_days`."""
+    Template `il2ks/streaks/list.html`. Context: `tours`, `tour`, `best_page` (PlayerBestStreak rows with `player`),
+    `running_page` (PlayerStreak rows with `player`; None on a past tour, where nothing is running [PROPOSED]), `sort`
+    (of the running list), `page_title`, `active_days`."""
     sort = player_reads.resolve_sort(request.GET.get("sort", ""), reads.STREAK_SORTS, reads.DEFAULT_STREAK_SORT)
+    choice = tour_choice_from(request.GET)
+    past_tour = choice.selected is not None and choice.selected != choice.current
     context = {
+        **choice.context,
         "page_title": _("Ironman streaks"),
         "sort": sort,
-        "page_obj": reads.streak_page(sort, request.GET.get("page", 1), datetime.now(UTC)),
+        "best_page": reads.best_streaks_page(choice.selected, request.GET.get("page_best", 1)),
+        "running_page": None
+        if past_tour
+        else reads.streak_page(sort, request.GET.get("page_running", 1), datetime.now(UTC)),
         "active_days": reads.ACTIVE_DAYS,
     }
     return render(request, "il2ks/streaks/list.html", context)

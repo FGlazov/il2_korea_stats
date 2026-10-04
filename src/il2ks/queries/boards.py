@@ -170,6 +170,14 @@ def streak_page(sort: str, number: str | int, now: datetime) -> Page:
     return Paginator(_running(now).order_by(_order(sort, STREAK_SORTS), "pk"), PAGE_SIZE).get_page(number)
 
 
+def best_streaks_page(tour: Tour | None, number: str | int) -> Page:
+    """One page of every visible player's best streak by sorties (the `/streaks/` list), longest first, inside `tour` or
+    all time (`tour` None; there a streak may span tours). Reads the stored `PlayerBestStreak` rows (TD-22)."""
+    rows = PlayerBestStreak.objects.filter(kind=StreakKind.SORTIES, player__is_hidden=False)
+    rows = rows.filter(tour=tour) if tour else rows.filter(tour__isnull=True)
+    return Paginator(rows.select_related("player").order_by("-sorties", "-kills_air", "pk"), PAGE_SIZE).get_page(number)
+
+
 def longest_tour_streaks(tour: Tour, limit: int = HOME_STREAKS) -> list[PlayerBestStreak]:
     """The home page's short list for a tour (OQ-79): the longest streaks by sorties inside that tour (a streak does not
     span tours there), visible players only."""

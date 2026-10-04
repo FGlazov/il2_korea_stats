@@ -346,8 +346,8 @@
       "sha256": "ef911685224597f1f6cd2a444953ac7854f20a4dfbdcaec49a68ff1f39a91e3d"
     },
     "templates/il2ks/players/detail_streaks.html": {
-      "version": 4,
-      "sha256": "32c264c920cdeaad0bd5f8a212e10ff2b9f9e975be6287b08833d1a3ca7b9ad7"
+      "version": 5,
+      "sha256": "1242b4b5e1747fa7c569facd533ed8841ff2b91cba4a86f1392f4618b0bda73d"
     },
     "templates/il2ks/players/detail_tiles.html": {
       "version": 4,
@@ -463,11 +463,11 @@
     },
     "templates/il2ks/streaks/home_block.html": {
       "version": 3,
-      "sha256": "66defe8d0cb294c3d0e5e19313ec5b0f30bc9bbb402bac05d478ebcec3f57aa1"
+      "sha256": "d39faae0d28d1281aa1f439180654ef86ac7ae79a0238af781081fd429fbb7ea"
     },
     "templates/il2ks/streaks/list.html": {
-      "version": 1,
-      "sha256": "c800a229947f5240e8bbde3ae66940dc091dc5d649996b492b8aab66038fcf72"
+      "version": 4,
+      "sha256": "04e0838969d12d81ef36befb9ffa4385eb3788c4af280d3fb939ece946ae622a"
     },
     "templates/il2ks/styleguide.html": {
       "version": 4,

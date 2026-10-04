@@ -849,10 +849,16 @@ msgstr "Meilleure série"
 msgid "Best streaks"
 msgstr "Meilleures séries"
 
+msgid "Best streaks in this tour"
+msgstr "Meilleures séries de ce tour"
+
 # llm-draft
 #, python-format
 msgid "Best streaks of %(name)s"
 msgstr "Meilleures séries de %(name)s"
+
+msgid "Best streaks, all time"
+msgstr "Meilleures séries de tous les temps"
 
 # llm-draft
 #, python-format
@@ -1090,6 +1096,9 @@ msgstr "Condensée (par défaut)"
 # llm-draft
 msgid "Configuration file"
 msgstr "Fichier de configuration"
+
+msgid "Consecutive sorties survived: no death and no capture."
+msgstr "Sorties consécutives survécues : sans mort ni capture."
 
 # llm-draft
 msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
@@ -2737,14 +2746,11 @@ msgstr "Statistiques des pilotes, sorties et missions de notre serveur IL-2 Stur
 msgid "Pilots"
 msgstr "Pilotes"
 
-# llm-draft
 #, python-format
-msgid ""
-"Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
-"%(days)s days are listed."
+msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
-"Pilotes toujours en vie après le plus de sorties d'affilée, sans mort ni capture. Seuls les pilotes ayant volé ces "
-"%(days)s derniers jours sont listés."
+"Pilotes toujours en vie après le plus de sorties consécutives. Seuls les pilotes ayant volé au cours des %(days)s "
+"derniers jours sont listés."
 
 # llm-draft
 msgid "Pilots with any flight time."

@@ -852,10 +852,16 @@ msgstr "Beste Serie"
 msgid "Best streaks"
 msgstr "Beste Serien"
 
+msgid "Best streaks in this tour"
+msgstr "Beste Serien in dieser Tour"
+
 # llm-draft
 #, python-format
 msgid "Best streaks of %(name)s"
 msgstr "Beste Serien von %(name)s"
+
+msgid "Best streaks, all time"
+msgstr "Beste Serien aller Zeiten"
 
 # llm-draft
 #, python-format
@@ -1092,6 +1098,9 @@ msgstr "Schmal (Standard)"
 # llm-draft
 msgid "Configuration file"
 msgstr "Konfigurationsdatei"
+
+msgid "Consecutive sorties survived: no death and no capture."
+msgstr "Einsätze in Folge überlebt: kein Tod und keine Gefangennahme."
 
 # llm-draft
 msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
@@ -2743,14 +2752,11 @@ msgstr "Statistiken zu Piloten, Einsätzen und Missionen von unserem IL-2-Sturmo
 msgid "Pilots"
 msgstr "Piloten"
 
-# llm-draft
 #, python-format
-msgid ""
-"Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
-"%(days)s days are listed."
+msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
-"Piloten, die die meisten Einsätze in Folge überlebt haben: kein Tod, keine Gefangennahme. Aufgeführt sind nur "
-"Piloten, die in den letzten %(days)s Tagen geflogen sind."
+"Piloten, die die meisten Einsätze in Folge überlebt haben. Aufgeführt sind nur Piloten, die in den letzten %(days)s "
+"Tagen geflogen sind."
 
 # llm-draft
 msgid "Pilots with any flight time."

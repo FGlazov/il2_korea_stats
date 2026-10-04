@@ -863,10 +863,16 @@ msgstr "Лучшая серия"
 msgid "Best streaks"
 msgstr "Лучшие серии"
 
+msgid "Best streaks in this tour"
+msgstr "Лучшие серии в этом туре"
+
 # llm-draft
 #, python-format
 msgid "Best streaks of %(name)s"
 msgstr "Лучшие серии пилота %(name)s"
+
+msgid "Best streaks, all time"
+msgstr "Лучшие серии за всё время"
 
 # llm-draft
 #, python-format
@@ -1111,6 +1117,9 @@ msgstr "Узкий (по умолчанию)"
 # llm-draft
 msgid "Configuration file"
 msgstr "Файл настроек"
+
+msgid "Consecutive sorties survived: no death and no capture."
+msgstr "Вылеты подряд, пережитые без гибели и плена."
 
 # llm-draft
 msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
@@ -2757,14 +2766,11 @@ msgstr "Статистика пилотов, вылетов и миссий на
 msgid "Pilots"
 msgstr "Пилоты"
 
-# llm-draft
 #, python-format
-msgid ""
-"Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
-"%(days)s days are listed."
+msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
-"Пилоты, дольше всех остающиеся в живых вылет за вылетом: без гибели и плена. В списке только те, кто летал за "
-"последние %(days)s дн."
+"Пилоты, которые остаются живы после наибольшего числа вылетов подряд. В списке только те, кто летал за последние "
+"%(days)s дн."
 
 # llm-draft
 msgid "Pilots with any flight time."
