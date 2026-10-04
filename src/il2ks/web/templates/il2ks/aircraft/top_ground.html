@@ -13,9 +13,9 @@
         <tr>
           <th scope="col" class="num">#</th>
           <th scope="col">{% translate "Pilot" %}</th>
-          <th scope="col" class="num">{% translate "Score per hour" %}</th>
-          <th scope="col" class="num">{% translate "Time on target" %}</th>
-          <th scope="col" class="num">{% translate "Attack sorties" %}</th>
+          {% col_th _("Score per hour") numeric=True hint="score_per_hour" %}
+          {% col_th _("Time on target") numeric=True hint="time_on_target" %}
+          {% col_th _("Attack sorties") numeric=True hint="attack_sorties" %}
         </tr>
       </thead>
       <tbody>

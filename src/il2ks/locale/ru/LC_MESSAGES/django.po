@@ -506,6 +506,20 @@ msgid "Air kills by victim"
 msgstr "Воздушные победы по типу цели"
 
 # llm-draft
+#. Translators: tooltip of the "K/L" column header (kills per loss); a "loss" is a lost aircraft
+msgid ""
+"Air kills divided by aircraft lost. Unlike K/D it also counts aircraft lost when the pilot survived, for example "
+"after a bailout."
+msgstr ""
+"Воздушные победы, делённые на потерянные самолёты. В отличие от K/D здесь учитываются и самолёты, потерянные при "
+"выжившем пилоте, например после прыжка с парашютом."
+
+# llm-draft
+#. Translators: tooltip of the "K/D" column header (kills per death)
+msgid "Air kills divided by deaths, a death being a sortie in which the pilot died. A dash with no deaths."
+msgstr "Воздушные победы, делённые на гибели; гибель — это вылет, в котором пилот погиб. Прочерк, если гибелей не было."
+
+# llm-draft
 msgid "Air kills in a single sortie."
 msgstr "Воздушные победы за один вылет."
 
@@ -518,12 +532,22 @@ msgid "Air kills in total, all sorties together."
 msgstr "Воздушные победы за всё время, по всем вылетам."
 
 # llm-draft
+#. Translators: tooltip of the "Air kills" column header of a streak table
+msgid "Air kills made during the streak."
+msgstr "Воздушные победы за время серии."
+
+# llm-draft
 msgid "Air kills on a single day (UTC)."
 msgstr "Воздушные победы за один день (UTC)."
 
 # llm-draft
 msgid "Air kills per flight hour"
 msgstr "Воздушных побед за час полёта"
+
+# llm-draft
+#. Translators: tooltip of the optional "Air kills/h" column header of the aircraft list
+msgid "Air kills per hour of flight time."
+msgstr "Воздушные победы за час в полёте."
 
 # llm-draft
 msgid "Air kills per sortie"
@@ -597,8 +621,31 @@ msgstr ""
 "поршневого над реактивным засчитывается вдвойне."
 
 # llm-draft
-msgid "Air-to-air rating, all time"
-msgstr "Рейтинг в воздушных боях, за всё время"
+#. Translators: tooltip of the optional "Elo (jet)" column header
+msgid ""
+"Air-to-air skill rating for jet aircraft, 1500 at the start, all time. It moves only when you and another player meet"
+" in air-superiority sorties."
+msgstr ""
+"Рейтинг воздушного боя для реактивных самолётов, вначале 1500, за всё время. Он меняется, только когда вы и другой "
+"игрок встречаетесь в вылетах на господство в воздухе."
+
+# llm-draft
+#. Translators: tooltip of the optional "Elo (prop)" column header
+msgid ""
+"Air-to-air skill rating for propeller aircraft, 1500 at the start, all time. It moves only when you and another "
+"player meet in air-superiority sorties."
+msgstr ""
+"Рейтинг воздушного боя для поршневых самолётов, вначале 1500, за всё время. Он меняется, только когда вы и другой "
+"игрок встречаетесь в вылетах на господство в воздухе."
+
+# llm-draft
+#. Translators: tooltip of the "Elo" column header on the Elo leaderboards and an aircraft type's top pilots
+msgid ""
+"Air-to-air skill rating, 1500 at the start. It rises when you shoot down another player and falls when another player"
+" shoots you down. Only air-superiority sorties count; jets and propeller aircraft are rated separately."
+msgstr ""
+"Рейтинг воздушного боя, вначале 1500. Он растёт, когда вы сбиваете другого игрока, и падает, когда другой игрок "
+"сбивает вас. Учитываются только вылеты на господство в воздухе; реактивные и поршневые самолёты оцениваются отдельно."
 
 # llm-draft
 #. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
@@ -619,12 +666,37 @@ msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time.
 msgstr "Самолёты, уничтоженные на земле штурмовиком: не то место и не то время."
 
 # llm-draft
+#. Translators: tooltip of the "Planes lost" column header
+msgid "Aircraft destroyed or lost, including those where the pilot survived, for example by bailing out."
+msgstr "Уничтоженные или потерянные самолёты, в том числе когда пилот выжил, например выпрыгнув с парашютом."
+
+# llm-draft
 msgid "Aircraft lost"
 msgstr "Потеряно самолётов"
 
 # llm-draft
+#. Translators: tooltip of the "Friendly kills" column header
+msgid "Aircraft or objects of your own side that you destroyed. They do not count as kills and cost score points."
+msgstr "Самолёты или объекты вашей стороны, которые вы уничтожили. Они не считаются победами и стоят очков."
+
+# llm-draft
+#. Translators: tooltip of the "Air" column header of a mission sortie table and the last mission top pilots
+msgid "Aircraft shot down (air kills)."
+msgstr "Сбитые самолёты (воздушные победы)."
+
+# llm-draft
 msgid "Aircraft shot down most"
 msgstr "Самолёты, сбитые чаще всего"
+
+# llm-draft
+#. Translators: tooltip of the "Air kills (PvP)" column header
+msgid "Aircraft shot down that were flown by other players."
+msgstr "Сбитые самолёты, которыми управляли другие игроки."
+
+# llm-draft
+#. Translators: tooltip of the "Air kills (AI)" column header
+msgid "Aircraft shot down that were flown by the server's AI."
+msgstr "Сбитые самолёты, которыми управлял ИИ сервера."
 
 # llm-draft
 msgid "Aircraft status"
@@ -764,6 +836,16 @@ msgid "Assists"
 msgstr "Содействия"
 
 # llm-draft
+#. Translators: tooltip of the "Air assists" column header
+msgid "Assists on aircraft. They earn score points."
+msgstr "Содействия по самолётам. Они приносят очки."
+
+# llm-draft
+#. Translators: tooltip of the "Ground assists" column header
+msgid "Assists on ground objects. They are counted but earn no score points."
+msgstr "Содействия по наземным объектам. Они учитываются, но очков не приносят."
+
+# llm-draft
 #, python-format
 msgid "Assists on this pilot's losses: %(n)s"
 msgstr "Содействий в потерях этого пилота: %(n)s"
@@ -807,6 +889,11 @@ msgid "Attack ground score"
 msgstr "Очки за штурмовку земли"
 
 # llm-draft
+#. Translators: tooltip of the "Role" column header of a mission's sortie table (the combat role of the sortie)
+msgid "Attack if the aircraft carried bombs or rockets (or is a dedicated attacker), otherwise air superiority."
+msgstr "Штурмовик, если самолёт нёс бомбы или ракеты (или это специальный штурмовик), иначе — господство в воздухе."
+
+# llm-draft
 msgid "Attack sorties"
 msgstr "Штурмовые вылеты"
 
@@ -829,6 +916,11 @@ msgstr "Среднее число попаданий"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Среднее число попаданий из пушек и пулемётов, которое потребовалось для уничтожения"
+
+# llm-draft
+#. Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table
+msgid "Average number of gun hits that were needed to shoot this aircraft down."
+msgstr "Среднее число попаданий из пушек и пулемётов, которое потребовалось, чтобы сбить этот самолёт."
 
 # llm-draft
 msgid "BLUFOR"
@@ -1026,6 +1118,15 @@ msgstr ""
 "только вылеты на господство в воздухе."
 
 # llm-draft
+#. Translators: tooltip of the "Kills per hour" column header of the interception board and its home block
+msgid ""
+"Bombers, attackers and transports shot down per hour of flight in air-superiority sorties. Players flying with bombs "
+"or rockets count as well."
+msgstr ""
+"Сбитые бомбардировщики, штурмовики и транспортники за час полёта в вылетах на господство в воздухе. Игроки с бомбами "
+"или ракетами тоже учитываются."
+
+# llm-draft
 msgid "Bombs"
 msgstr "Бомбы"
 
@@ -1200,6 +1301,16 @@ msgid "Continue"
 msgstr "Продолжить"
 
 # llm-draft
+#. Translators: tooltip of the "Instances" column header of an aircraft's "Ammunition mixes" table
+msgid "Counted kills of this aircraft in which exactly these ammunition types hit together."
+msgstr "Учтённые победы над этим самолётом, в которых попали вместе именно эти типы боеприпасов."
+
+# llm-draft
+#. Translators: tooltip of the "Instances" column header of an aircraft's "Hits to destroy" table
+msgid "Counted kills of this aircraft in which this ammunition hit at least once."
+msgstr "Учтённые победы над этим самолётом, в которых этот боеприпас попал хотя бы раз."
+
+# llm-draft
 msgid "Counterpart"
 msgstr "Соперник"
 
@@ -1219,6 +1330,25 @@ msgstr "Разбился при рулении, до взлёта"
 #. Translators: how the kill is credited to the attacker (sole kill, shared kill, assist), a short column header
 msgid "Credit"
 msgstr "Засчитано как"
+
+# llm-draft
+#. Translators: tooltip of the "Assists" column header
+#, python-format
+msgid ""
+"Credit for damaging an aircraft or ground object that someone else then destroyed (at least 1% of its damage). Only "
+"assists on aircraft earn score points."
+msgstr ""
+"Засчитывается, если вы повредили самолёт или наземный объект, который затем уничтожил кто-то другой (не менее 1% "
+"урона). Очки приносят только содействия по самолётам."
+
+# llm-draft
+#. Translators: tooltip of the "Bombers and attackers shot down" column header of the interception leaderboard
+msgid ""
+"Credited kills of AI bombers, attackers and transports, and of players flying with bombs or rockets, made in air-"
+"superiority sorties."
+msgstr ""
+"Засчитанные победы над бомбардировщиками, штурмовиками и транспортниками ИИ, а также над игроками с бомбами или "
+"ракетами, одержанные в вылетах на господство в воздухе."
 
 # llm-draft
 msgid "Current logo"
@@ -1246,8 +1376,27 @@ msgid "Damage dealt"
 msgstr "Нанесённый урон"
 
 # llm-draft
+#. Translators: tooltip of the "Damage" column header of a sortie's timeline
+msgid "Damage of a significant hit, as a percentage of the object's health: plus if you dealt it, minus if you took it."
+msgstr "Урон от значимого попадания в процентах от прочности объекта: плюс, если его нанесли вы, минус, если получили вы."
+
+# llm-draft
 msgid "Damage taken"
 msgstr "Полученный урон"
+
+# llm-draft
+#. Translators: tooltip of the "Damage taken" column header of a sortie's damage table
+msgid "Damage this counterpart did to you, measured as in the column Damage dealt."
+msgstr "Урон, который нанёс вам этот соперник, считается так же, как в столбце «Нанесённый урон»."
+
+# llm-draft
+#. Translators: tooltip of the "Damage dealt" column header of a sortie's damage table
+msgid ""
+"Damage you did to this counterpart. Against players it is a percentage of their aircraft's health; against AI and "
+"ground objects it is the health units summed over all objects of that type."
+msgstr ""
+"Урон, который вы нанесли этому сопернику. Для игроков это процент прочности их самолёта; для ИИ и наземных объектов —"
+" единицы прочности, сложенные по всем объектам этого типа."
 
 # llm-draft
 msgid "Damaged"
@@ -1331,8 +1480,9 @@ msgid "Direct hits"
 msgstr "Прямые попадания"
 
 # llm-draft
-msgid "Direct impacts logged with the ordnance named"
-msgstr "Прямые попадания, в журнале которых указано боеприпас"
+#. Translators: tooltip of the "Direct hits" column header of a sortie's ordnance table
+msgid "Direct impacts logged with the ordnance named."
+msgstr "Прямые попадания, в журнале которых указано это вооружение."
 
 # llm-draft
 msgid "Display name"
@@ -1398,6 +1548,11 @@ msgstr "Пустые миссии"
 #. Translators: Elo-rated PvP air kills between two pilots (each counts as an encounter); not all kills and losses
 msgid "Encounters"
 msgstr "Столкновения"
+
+# llm-draft
+#. Translators: tooltip of the "Encounters" column header of the Elo leaderboards (the number of rated games)
+msgid "Encounters: kills between two players in air-superiority sorties, counted for the killer and for the victim."
+msgstr "Столкновения: победы одного игрока над другим в вылетах на господство в воздухе; считаются и победителю, и жертве."
 
 # llm-draft
 msgid "Ended"
@@ -1563,6 +1718,16 @@ msgid "Flight time"
 msgstr "Время в полёте"
 
 # llm-draft
+#. Translators: tooltip of the "Flight time" column header of a streak table
+msgid "Flight time added up over the streak's sorties."
+msgstr "Время в полёте, сложенное по всем вылетам серии."
+
+# llm-draft
+#. Translators: tooltip of the "Air superiority flight time" column header of the interception leaderboard
+msgid "Flight time in air-superiority sorties only."
+msgstr "Время в полёте только в вылетах на господство в воздухе."
+
+# llm-draft
 #, python-format
 msgid "Flown by %(pilots)s pilot."
 msgid_plural "Flown by %(pilots)s pilots."
@@ -1710,12 +1875,31 @@ msgid "Ground kills: %(n)s"
 msgstr "Наземные цели: %(n)s"
 
 # llm-draft
+#. Translators: tooltip of the "Ground" column header of a mission sortie table and the last mission top pilots
+msgid "Ground objects destroyed (ground kills): vehicles, tanks, ships, buildings and so on."
+msgstr "Уничтоженные наземные объекты (наземные цели): машины, танки, корабли, здания и так далее."
+
+# llm-draft
 msgid "Ground score"
 msgstr "Очки за землю"
 
 # llm-draft
 msgid "Ground score and attack sorties"
 msgstr "Очки за наземные цели и штурмовые вылеты"
+
+# llm-draft
+#. Translators: tooltip of the "Attack ground score" column header of the ground-score-per-hour leaderboard
+msgid "Ground score earned in attack sorties only."
+msgstr "Очки за землю, полученные только в штурмовых вылетах."
+
+# llm-draft
+#. Translators: tooltip of the "Score per hour" and "Ground score/h" column headers
+msgid ""
+"Ground score earned in attack sorties per hour spent on target. Only pilots with enough attack sorties and time on "
+"target are ranked."
+msgstr ""
+"Очки за землю из штурмовых вылетов за час над целью. В рейтинге участвуют только пилоты с достаточным числом "
+"штурмовых вылетов и времени над целью."
 
 # llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
@@ -1765,22 +1949,29 @@ msgid "Gun hits"
 msgstr "Попадания из пушек и пулемётов"
 
 # llm-draft
-msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
-msgstr "Попадания по самолётам на один выстрел, в вылетах на господство в воздухе"
+#. Translators: tooltip of the optional "Air accuracy" column header of the player and aircraft lists
+msgid "Gun hits on aircraft per round fired, in air-superiority sorties where the rounds fired are known."
+msgstr "Попадания по самолётам на один выпущенный снаряд в вылетах на господство в воздухе, где известно число выстрелов."
 
 msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
 msgstr "Попадания по самолётам на один выстрел; только вылеты на господство в воздухе с известным числом выстрелов"
 
 # llm-draft
-msgid "Gun hits on ground targets per round fired, in attack sorties"
-msgstr "Попадания по наземным целям на один выстрел, в штурмовых вылетах"
+#. Translators: tooltip of the optional "Ground accuracy" column header of the player and aircraft lists
+msgid "Gun hits on ground targets per round fired, in attack sorties where the rounds fired are known."
+msgstr "Попадания по наземным целям на один выпущенный снаряд в штурмовых вылетах, где известно число выстрелов."
 
 msgid "Gun hits on ground targets per round fired; attack sorties with known rounds only"
 msgstr "Попадания по наземным целям на один выстрел; только штурмовые вылеты с известным числом выстрелов"
 
 # llm-draft
-msgid "Gun hits per round fired, over sorties where the rounds fired are known"
-msgstr "Попадания на один выстрел, по вылетам с известным числом выстрелов"
+#. Translators: tooltip of the optional "Gun accuracy" column header of the player and aircraft lists
+msgid ""
+"Gun hits per round fired, adding up only the sorties where the rounds fired are known. Bombs and rockets are not "
+"counted."
+msgstr ""
+"Попадания на один выпущенный снаряд; суммируются только вылеты, где известно число выстрелов. Бомбы и ракеты не "
+"учитываются."
 
 # llm-draft
 msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
@@ -1929,6 +2120,16 @@ msgstr ""
 "не входят. Штурмовые вылеты: остальные вылеты — на завоевание превосходства в воздухе."
 
 # llm-draft
+#. Translators: tooltip of the "Hits given" column header of a sortie's ammunition hit table
+msgid "Hits you scored with this ammunition."
+msgstr "Попадания, которых вы добились этим боеприпасом."
+
+# llm-draft
+#. Translators: tooltip of the "Hits received" column header of a sortie's ammunition hit table
+msgid "Hits you took from this ammunition."
+msgstr "Попадания, которые вы получили от этого боеприпаса."
+
+# llm-draft
 msgid "Home"
 msgstr "Главная"
 
@@ -1981,6 +2182,30 @@ msgid ""
 msgstr ""
 "Сколько попаданий из пушек и пулемётов нужно, чтобы сбить этот самолёт. Учитываются только победы, где весь урон "
 "нанёс один атакующий; бомбы и ракеты не входят. Случаи — это учтённые победы, в которых боеприпас попал хотя бы раз."
+
+# llm-draft
+#. Translators: tooltip of the "Detonations" column header of a sortie's ordnance table
+msgid "How many of the released pieces exploded."
+msgstr "Сколько из сброшенных боеприпасов взорвалось."
+
+# llm-draft
+#. Translators: tooltip of the "Released" column header of a sortie's ordnance table (bombs, rockets, napalm)
+msgid "How many of this ordnance the aircraft dropped or fired."
+msgstr "Сколько таких боеприпасов самолёт сбросил или выпустил."
+
+# llm-draft
+#. Translators: tooltip of the "Damage taken" column header of a sortie list
+msgid ""
+"How much damage the aircraft had taken when the sortie ended or it was lost, as a share of its health: 100% means it "
+"was destroyed."
+msgstr ""
+"Сколько урона получил самолёт к концу вылета или к моменту потери, в долях его прочности: 100% означает, что он "
+"уничтожен."
+
+# llm-draft
+#. Translators: tooltip of the "Kills + losses" column header of an aircraft's matchup table
+msgid "How often this aircraft and that enemy aircraft met: this aircraft's kills of it plus its losses to it."
+msgstr "Как часто этот самолёт встречался с тем вражеским: его победы над ним плюс потери от него."
 
 # llm-draft
 msgid "How should HTTPS be handled?"
@@ -2123,6 +2348,15 @@ msgstr "Ключ (AType:KEY)"
 # llm-draft
 msgid "Kill"
 msgstr "Победа"
+
+# llm-draft
+#. Translators: tooltip of the "Credit" column header of a table of kills (who gets the kill)
+msgid ""
+"Kill: the attacker did the most damage. Assist: the attacker damaged it but someone else destroyed it. Friendly fire:"
+" both were on the same side."
+msgstr ""
+"Победа: атакующий нанёс больше всего урона. Содействие: атакующий повредил цель, но уничтожил её кто-то другой. Огонь"
+" по своим: оба были на одной стороне."
 
 # llm-draft
 msgid "Killboard"
@@ -2768,6 +3002,16 @@ msgid "Nothing to show yet."
 msgstr "Пока нечего показывать."
 
 # llm-draft
+#. Translators: tooltip of the "Hits taken" column header of a sortie's damage table
+msgid "Number of hits this counterpart landed on you."
+msgstr "Число попаданий, которые этот соперник нанёс по вам."
+
+# llm-draft
+#. Translators: tooltip of the "Hits dealt" column header of a sortie's damage table
+msgid "Number of hits you landed on this counterpart."
+msgstr "Число попаданий, которые вы нанесли по этому сопернику."
+
+# llm-draft
 msgid "OK"
 msgstr "OK"
 
@@ -2783,8 +3027,9 @@ msgid "On this page"
 msgstr "На этой странице"
 
 # llm-draft
-msgid "One detonation and one target that took damage"
-msgstr "Один подрыв и одна повреждённая цель"
+#. Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
+msgid "One detonation and one target that took damage."
+msgstr "Один взрыв и одна цель, получившая урон."
 
 # llm-draft
 msgid "Online now"
@@ -3097,12 +3342,30 @@ msgid "Plenty of ground targets carry your handiwork and somebody else's name in
 msgstr "На многих наземных целях ваша работа, а в журнале чужое имя."
 
 # llm-draft
+#. Translators: tooltip of the "Air score" column header
+msgid ""
+"Points for air kills (a player is worth more than an AI aircraft) and assists, minus penalties for dying, being "
+"captured, losing the aircraft and friendly kills. Ground kills are scored separately."
+msgstr ""
+"Очки за воздушные победы (игрок стоит больше, чем самолёт ИИ) и содействия, за вычетом штрафов за гибель, плен, "
+"потерю самолёта и сбитых своих. Наземные цели оцениваются отдельно."
+
+# llm-draft
 msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
 msgstr "Очки за воздушные победы и содействия за вычетом штрафов за гибели, потерянные самолёты и сбитых своих."
 
 # llm-draft
 msgid "Points for ground kills (a tank counts for far more than a fence), minus the same penalties."
 msgstr "Очки за наземные цели (танк стоит куда больше забора) за вычетом тех же штрафов."
+
+# llm-draft
+#. Translators: tooltip of the "Ground score" column header
+msgid ""
+"Points for ground kills (each kind of target has its own value, fences very little), with the same penalties as the "
+"air score. Air kills are scored separately."
+msgstr ""
+"Очки за наземные цели (у каждого типа цели своя цена, у заборов совсем мало) с теми же штрафами, что и для воздушных "
+"очков. Воздушные победы оцениваются отдельно."
 
 # llm-draft
 msgid "Possible early bailout"
@@ -3307,6 +3570,11 @@ msgid "Role"
 msgstr "Роль"
 
 # llm-draft
+#. Translators: tooltip of the "Used" column header of a sortie's ammunition table
+msgid "Rounds fired: loaded minus left. A dash when unknown, for example after a resupply."
+msgstr "Выпущено снарядов: заряжено минус осталось. Прочерк, если неизвестно, например после пополнения боезапаса."
+
+# llm-draft
 msgid "Row and menu hover"
 msgstr "Строка и меню при наведении"
 
@@ -3409,6 +3677,11 @@ msgstr "Доля"
 # llm-draft
 msgid "Share of ground kills"
 msgstr "Доля наземных целей"
+
+# llm-draft
+#. Translators: tooltip of the "Survival" column header
+msgid "Share of the sorties in which the pilot did not die."
+msgstr "Доля вылетов, в которых пилот не погиб."
 
 # llm-draft
 msgid "Shared kill"
@@ -3627,6 +3900,16 @@ msgid "Sorties"
 msgstr "Вылеты"
 
 # llm-draft
+#. Translators: tooltip of the "Attack sorties" column header
+msgid "Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."
+msgstr "Вылеты с бомбами или ракетами на борту или на специальном штурмовике, например Ил-10."
+
+# llm-draft
+#. Translators: tooltip of the "Air superiority sorties" column header
+msgid "Sorties flown without bombs or rockets: guns only, with or without drop tanks."
+msgstr "Вылеты без бомб и ракет: только пушки и пулемёты, с подвесными баками или без них."
+
+# llm-draft
 msgid "Sorties flown: the aircraft took off."
 msgstr "Совершённые вылеты: самолёт оторвался от земли."
 
@@ -3634,6 +3917,16 @@ msgstr "Совершённые вылеты: самолёт оторвался �
 #, python-format
 msgid "Sorties in %(tour)s"
 msgstr "Вылеты: %(tour)s"
+
+# llm-draft
+#. Translators: tooltip of the "Sorties" column header of a streak table
+msgid "Sorties in a row that the pilot survived."
+msgstr "Вылеты подряд, которые пилот пережил."
+
+# llm-draft
+#. Translators: tooltip of the "Aircraft lost" column header of the profile's "Caused by" table
+msgid "Sorties in which the aircraft was lost to this cause (the pilot may have survived)."
+msgstr "Вылеты, в которых самолёт был потерян по этой причине (пилот мог выжить)."
 
 # llm-draft
 #, python-format
@@ -3816,8 +4109,18 @@ msgid "Tanks destroyed"
 msgstr "Уничтожено танков"
 
 # llm-draft
+#. Translators: tooltip of the "Tanks per hour" column header of the tank-busting board and its home block
+msgid "Tanks destroyed in attack sorties per hour spent on target."
+msgstr "Уничтоженные в штурмовых вылетах танки за час над целью."
+
+# llm-draft
 msgid "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."
 msgstr "Танки, уничтоженные в штурмовых вылетах, за час над целью. Дорога к цели и обратно не считается."
+
+# llm-draft
+#. Translators: tooltip of the "Tanks destroyed" column header of the tank-busting leaderboard
+msgid "Tanks destroyed in attack sorties, moving or parked."
+msgstr "Танки, уничтоженные в штурмовых вылетах, в движении или на стоянке."
 
 # llm-draft
 msgid "Tanks destroyed in total."
@@ -4223,6 +4526,15 @@ msgstr ""
 "версии. Они могут быть сломаны или скрывать новое содержимое. Это может коснуться посетителей."
 
 # llm-draft
+#. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
+msgid ""
+"This aircraft's kills of that enemy aircraft divided by its losses to it. A dash if it was never lost to that "
+"aircraft."
+msgstr ""
+"Победы этого самолёта над тем вражеским, делённые на потери от него. Прочерк, если оно ни разу не было потеряно из-за"
+" того самолёта."
+
+# llm-draft
 msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
 msgstr "Это не изображение PNG, JPEG или WebP (SVG не принимается)."
 
@@ -4276,8 +4588,24 @@ msgid "Time"
 msgstr "Время"
 
 # llm-draft
+#. Translators: tooltip of the "Flight time" column header
+msgid "Time in the air, from takeoff until landing or until the aircraft was lost."
+msgstr "Время в воздухе: от взлёта до посадки или до потери самолёта."
+
+# llm-draft
 msgid "Time on target"
 msgstr "Время над целью"
+
+# llm-draft
+#. Translators: tooltip of the "Time on target" column header
+msgid ""
+"Time spent attacking enemy ground targets in attack sorties: from a minute before the first bomb or rocket released "
+"within 3 km of a target until the last such release. Releases far from any target count for nothing. Not the same as "
+"flight time."
+msgstr ""
+"Время, проведённое за атакой вражеских наземных целей в штурмовых вылетах: от минуты до первой бомбы или ракеты, "
+"сброшенной в пределах 3 км от цели, до последнего такого сброса. Сбросы вдали от целей не учитываются. Это не то же "
+"самое, что время в полёте."
 
 # llm-draft
 msgid "Time zone"
@@ -4290,6 +4618,11 @@ msgstr "Часовой пояс компьютера игрового серве
 # llm-draft
 msgid "Timeline"
 msgstr "Хронология"
+
+# llm-draft
+#. Translators: tooltip of the optional "Bailouts" column header of the aircraft list
+msgid "Times a pilot jumped out of this aircraft."
+msgstr "Сколько раз пилот выпрыгивал из этого самолёта."
 
 # llm-draft
 msgid "Times are shown in UTC."
@@ -4578,6 +4911,16 @@ msgstr[2] ""
 # llm-draft
 msgid "Weapon modifications"
 msgstr "Модификации вооружения"
+
+# llm-draft
+#. Translators: tooltip of the "Outcome" column header (what happened to the aircraft)
+msgid "What happened to the aircraft: landed, crashed, shot down and so on."
+msgstr "Что произошло с самолётом: приземлился, разбился, был сбит и так далее."
+
+# llm-draft
+#. Translators: tooltip of the "Pilot fate" column header (what happened to the pilot)
+msgid "What happened to the pilot: survived, killed or captured. The badge names the exact state."
+msgstr "Что произошло с пилотом: выжил, погиб или попал в плен. Значок называет точное состояние."
 
 # llm-draft
 msgid "What was saved"

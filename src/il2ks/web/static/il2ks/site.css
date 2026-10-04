@@ -326,6 +326,29 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .sortable[aria-sort="descending"] a::after { content: "\25BC"; opacity: 1; color: var(--il2-primary); font-size: 0.7em; }
 .sortable[aria-sort="ascending"], .sortable[aria-sort="descending"] { color: var(--il2-heading); }
 
+/* Column description (components/col_th.html, col_hint.html, il2ks.js): a header with a hint has a dotted underline and a
+   small "?" marker. The text sits in a role="tooltip" element inside the <th>, position: fixed so the scrolling
+   .table-wrap cannot clip it; il2ks.js sets its left/top (clamped to the viewport), and without JS it shows at the
+   header's own place. Shown on hover, keyboard focus and tap (the marker toggles .is-open); Escape hides it. */
+.has-hint .col-hint__label, .has-hint.sortable a { text-decoration: underline dotted; text-underline-offset: 0.25em; text-decoration-thickness: 1px; }
+.col-hint__label { cursor: help; }
+.col-hint__marker::before { content: "?"; }
+.col-hint__marker {
+  display: inline-block; width: 1.05em; height: 1.05em; margin-inline-start: 0.35em; border: 1px solid currentColor; border-radius: 50%;
+  font-size: 0.8em; line-height: 1; text-align: center; font-weight: 600; opacity: 0.6; cursor: help; user-select: none;
+  vertical-align: 0.05em;
+}
+.has-hint:hover .col-hint__marker, .has-hint:focus-within .col-hint__marker, .has-hint.is-open .col-hint__marker { opacity: 1; }
+.data-table thead th.has-hint:hover, .data-table thead th.has-hint:focus-within, .data-table thead th.has-hint.is-open { z-index: 6; }
+.col-tip {
+  display: none; position: fixed; z-index: 50; box-sizing: border-box; width: max-content; max-width: min(20rem, calc(100vw - 1rem));
+  padding: 0.5rem 0.7rem; background: var(--il2-surface); color: var(--il2-text); border: 1px solid var(--il2-border-strong);
+  border-radius: var(--il2-radius); box-shadow: 0 4px 14px var(--il2-shadow-color);
+  font-size: 0.8rem; font-weight: 400; line-height: 1.4; letter-spacing: normal; text-transform: none; text-align: left; white-space: normal;
+}
+.has-hint:hover .col-tip, .has-hint:focus-within .col-tip, .has-hint.is-open .col-tip, .has-hint[data-hint-open] .col-tip { display: block; }
+.has-hint[data-hint-dismissed] .col-tip { display: none; }
+
 /* ---- 7. Components ----------------------------------------------------------------------------------------- */
 /* Results region: filters + table + pagination swapped as one unit by htmx. */
 .results-region { transition: opacity 0.15s; }

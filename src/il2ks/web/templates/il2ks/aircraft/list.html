@@ -27,17 +27,17 @@
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
             {% sort_th "pilots" _("Pilots") numeric=True %}
-            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
             {% sort_th "kills_air" _("Air kills") numeric=True %}
             {% sort_th "kills_ground" _("Ground kills") numeric=True %}
             {% sort_th "deaths" _("Deaths") numeric=True %}
-            {% sort_th "planes_lost" _("Planes lost") numeric=True %}
-            {% sort_th "kd" _("K/D") numeric=True %}
-            {% sort_th "kl" _("K/L") numeric=True %}
-            {% sort_th "survival" _("Survival") numeric=True %}
-            {% sort_th "attack_share" _("Attack sorties") numeric=True %}
+            {% sort_th "planes_lost" _("Planes lost") numeric=True hint="planes_lost" %}
+            {% sort_th "kd" _("K/D") numeric=True hint="kd" %}
+            {% sort_th "kl" _("K/L") numeric=True hint="kl" %}
+            {% sort_th "survival" _("Survival") numeric=True hint="survival" %}
+            {% sort_th "attack_share" _("Attack sorties") numeric=True hint="attack_sorties" %}
             <th scope="col" class="num" title="{% translate 'Average number of gun hits that destroyed it' %}">{% translate "Hits to destroy" %}</th>
-            {% for column in columns %}{% sort_th column.key column.label numeric=True %}{% endfor %}
+            {% for column in columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
           </tr>
         </thead>
         <tbody>

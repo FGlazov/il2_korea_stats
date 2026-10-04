@@ -1,0 +1,10 @@
+{# il2ks-template: templates/il2ks/components/col_th.html v1 - copy this line along when you override #}
+{% comment %}
+  col_th.html ({% col_th _("Elo") numeric=True hint="elo" %}): a plain column header, with a description when it has a
+  `hint` (a key of web/column_hints.py or a ready text). {% sort_th %} renders the same description through
+  {% include "il2ks/components/col_hint.html" %}.
+  Context: label, numeric (right-aligned column), hint, hint_id (unique on the page).
+  Without a hint it is an ordinary <th>. With one the header carries class "has-hint": a hidden role="tooltip" element
+  holds the text, the label (focusable) points at it with aria-describedby, and il2ks.js places it on hover, focus and
+  tap (CSS alone shows it on hover and focus, at the label's own position). The marker is decoration for pointers.
+{% endcomment %}<th scope="col"{% if numeric or hint %} class="{% if numeric %}num{% endif %}{% if hint %} has-hint{% endif %}"{% endif %}>{% if hint %}<span class="col-hint__label" tabindex="0" aria-describedby="{{ hint_id }}">{{ label }}</span>{% include "il2ks/components/col_hint.html" %}{% else %}{{ label }}{% endif %}</th>

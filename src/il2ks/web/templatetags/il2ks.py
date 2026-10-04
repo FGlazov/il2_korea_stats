@@ -16,6 +16,7 @@ Block tags: results_region, filter_bar, accordion, notice.
 """
 
 import dataclasses
+import hashlib
 import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
@@ -37,7 +38,7 @@ from django.utils.translation import get_language, get_language_info
 from il2ks.core import stat_marks
 from il2ks.db.models import Counters, PlayerSortie, SiteSettings, StatThreshold, Tour
 from il2ks.queries import tours as tour_reads
-from il2ks.web import columns, display, icons, object_names, quips
+from il2ks.web import column_hints, columns, display, icons, object_names, quips
 from il2ks.web import flavor as flavor_text
 from il2ks.web.charts import ChartSpec, build_bar_chart
 from il2ks.web.display import SortFirst, Tone
@@ -487,8 +488,10 @@ def sort_th(
     current: str | None = None,
     numeric: bool = False,
     first: SortFirst | None = None,
+    hint: object = "",
 ) -> dict[str, object]:
-    """{% sort_th "kills" _("Kills") numeric=True %}: a sortable <th>.
+    """{% sort_th "kills" _("Kills") numeric=True hint="kl" %}: a sortable <th>, with an optional column description
+    (`hint`: a key of `column_hints.HINTS` or a ready text, see `col_th`).
 
     `current` defaults to the context variable `sort` (the view's whitelisted, resolved value: 'kills' or '-kills').
     The first click sorts descending for numeric columns and ascending otherwise (override with first="asc"/"desc")."""
@@ -501,7 +504,30 @@ def sort_th(
         "direction": direction,
         "aria_sort": {"asc": "ascending", "desc": "descending"}.get(direction, "none"),
         "href": replace_query(_params_of(context), {"sort": target, **_page_resets(_params_of(context))}),
+        **_hint_context(context, hint),
     }
+
+
+def _hint_context(context: Context, hint: object) -> dict[str, object]:
+    """The `hint` / `hint_id` part of a header's context (components/col_th.html). The id is unique on the page: a
+    short hash of the text plus how many times that text was used before in this render (a full page and the htmx
+    response for one of its regions number alike, so a swap never duplicates an id)."""
+    text = column_hints.hint_text(hint)
+    if not text:
+        return {"hint": "", "hint_id": ""}
+    seen: dict[str, int] = context.dicts[0].setdefault("_hint_seen", {})
+    digest = hashlib.sha1(text.encode(), usedforsecurity=False).hexdigest()[:8]
+    seen[digest] = seen.get(digest, 0) + 1
+    return {"hint": text, "hint_id": f"hint-{digest}-{seen[digest]}"}
+
+
+@register.inclusion_tag(COMPONENTS + "col_th.html", takes_context=True)
+def col_th(context: Context, label: object, numeric: bool = False, hint: object = "") -> dict[str, object]:
+    """{% col_th _("Elo") numeric=True hint="elo" %}: a plain (not sortable) <th> with an optional description.
+
+    `hint` is a key of `column_hints.HINTS` or a ready text (a `Column.hint`); without one it is an ordinary header.
+    With one the header shows the text on hover, keyboard focus and tap (components/col_th.html, il2ks.js)."""
+    return {"label": label, "numeric": numeric, **_hint_context(context, hint)}
 
 
 @register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
@@ -630,7 +656,7 @@ def columns_picker(context: Context, available: Sequence[columns.Column[Never]])
     `available` is the page's registry of optional columns (`il2ks.web.columns`); the checked ones are read from the
     query string, so the control and the table can never disagree."""
     wanted = columns.requested_keys(_params_of(context))
-    return {"options": [(column.key, column.label, column.hint, column.key in wanted) for column in available]}
+    return {"options": [(column.key, column.label, column.description, column.key in wanted) for column in available]}
 
 
 @register.filter

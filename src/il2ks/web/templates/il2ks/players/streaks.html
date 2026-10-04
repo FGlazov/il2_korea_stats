@@ -20,9 +20,9 @@
       <thead>
         <tr>
           <th scope="col">{% translate "Best by" %}</th>
-          <th scope="col" class="num">{% translate "Sorties" %}</th>
-          <th scope="col" class="num">{% translate "Air kills" %}</th>
-          <th scope="col" class="num">{% translate "Flight time" %}</th>
+          {% col_th _("Sorties") numeric=True hint="streak_sorties" %}
+          {% col_th _("Air kills") numeric=True hint="streak_kills" %}
+          {% col_th _("Flight time") numeric=True hint="streak_time" %}
           <th scope="col">{% translate "Since" %}</th>
           <th scope="col">{% translate "Until" %}</th>
         </tr>

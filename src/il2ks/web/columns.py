@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
-from il2ks.web import display
+from il2ks.web import column_hints, display
 from il2ks.web.display import Label
 
 COLS_PARAM = "cols"
@@ -31,13 +31,20 @@ MAX_COL_KEY_LENGTH = 32
 @dataclass(frozen=True, slots=True)
 class Column[T]:
     """An optional column: `key` (also its sort key), the header `label`, a `cell` that renders a row's value as text
-    (HTML-safe `<time>` elements allowed) and an optional `hint` shown as a tooltip in the picker."""
+    (HTML-safe `<time>` elements allowed) and an optional `hint` (else the description registered under `key` in
+    `web.column_hints`), shown as a tooltip in the picker and on the column's header (`description`)."""
 
     key: str
     label: Label
     cell: Callable[[T], str | SafeString]
     hint: Label = ""
     numeric: bool = True
+
+    @property
+    def description(self) -> str:
+        """The text shown for the column (picker tooltip and header): its own `hint`, else the shared description
+        registered under its key in `web.column_hints` (so `elo_jet`, `kd`... need no `hint` here), else nothing."""
+        return column_hints.hint_text(self.hint) or column_hints.hint_text(self.key)
 
 
 def requested_keys(params: QueryDict) -> frozenset[str]:
@@ -65,13 +72,9 @@ def _accuracy(hits: int, rounds: int) -> str:
     return display.percent(hits, rounds, 1)
 
 
-_ACCURACY_HINT = _("Gun hits per round fired, over sorties where the rounds fired are known")
-_AIR_ACCURACY_HINT = _("Gun hits on aircraft per round fired, in air-superiority sorties")
-_GROUND_ACCURACY_HINT = _("Gun hits on ground targets per round fired, in attack sorties")
-
 PLAYER_COLUMNS: tuple[Column[Player], ...] = (
-    Column("elo_jet", _("Elo (jet)"), lambda p: _elo(p.elo_jet, p.elo_jet_games), _("Air-to-air rating, all time")),
-    Column("elo_prop", _("Elo (prop)"), lambda p: _elo(p.elo_prop, p.elo_prop_games), _("Air-to-air rating, all time")),
+    Column("elo_jet", _("Elo (jet)"), lambda p: _elo(p.elo_jet, p.elo_jet_games)),
+    Column("elo_prop", _("Elo (prop)"), lambda p: _elo(p.elo_prop, p.elo_prop_games)),
     Column("kd", _("K/D"), lambda p: display.ratio(p.kills_air, p.deaths)),
     Column("kl", _("K/L"), lambda p: display.ratio(p.kills_air, p.planes_lost)),
     Column("survival", _("Survival"), lambda p: display.percent(max(p.sorties - p.deaths, 0), p.sorties)),
@@ -82,24 +85,21 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
         "ground_hour",
         _("Ground score/h"),
         lambda p: display.per_hour(p.score_ground_attack, p.time_on_target_s, 1),
-        _("Ground score per hour on target"),
     ),
     Column("planes_lost", _("Planes lost"), lambda p: display.num(p.planes_lost)),
     Column("assists", _("Assists"), lambda p: display.num(p.assists)),
     Column("assists_air", _("Air assists"), lambda p: display.num(p.assists_air)),
     Column("assists_ground", _("Ground assists"), lambda p: display.num(p.assists_ground)),
-    Column("accuracy", _("Gun accuracy"), lambda p: _accuracy(p.accuracy_hits, p.accuracy_rounds), _ACCURACY_HINT),
+    Column("accuracy", _("Gun accuracy"), lambda p: _accuracy(p.accuracy_hits, p.accuracy_rounds)),
     Column(
         "accuracy_air",
         _("Air accuracy"),
         lambda p: _accuracy(p.accuracy_air_hits, p.accuracy_air_rounds),
-        _AIR_ACCURACY_HINT,
     ),
     Column(
         "accuracy_ground",
         _("Ground accuracy"),
         lambda p: _accuracy(p.accuracy_ground_hits, p.accuracy_ground_rounds),
-        _GROUND_ACCURACY_HINT,
     ),
     Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
@@ -191,7 +191,6 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
         "ground_hour",
         _("Ground score/h"),
         lambda a: display.per_hour(a.score_ground_attack, a.time_on_target_s, 1),
-        _("Ground score per hour on target"),
     ),
     Column(
         "sortie_length",
@@ -200,17 +199,15 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
         _("Average flight time per sortie"),
     ),
     Column("sorties_per_pilot", _("Sorties per pilot"), lambda a: display.ratio(a.sorties, a.pilots, 1)),
-    Column("accuracy", _("Gun accuracy"), lambda a: _accuracy(a.accuracy_hits, a.accuracy_rounds), _ACCURACY_HINT),
+    Column("accuracy", _("Gun accuracy"), lambda a: _accuracy(a.accuracy_hits, a.accuracy_rounds)),
     Column(
         "accuracy_air",
         _("Air accuracy"),
         lambda a: _accuracy(a.accuracy_air_hits, a.accuracy_air_rounds),
-        _AIR_ACCURACY_HINT,
     ),
     Column(
         "accuracy_ground",
         _("Ground accuracy"),
         lambda a: _accuracy(a.accuracy_ground_hits, a.accuracy_ground_rounds),
-        _GROUND_ACCURACY_HINT,
     ),
 )

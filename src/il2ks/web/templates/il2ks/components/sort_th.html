@@ -1,8 +1,10 @@
 {# il2ks-template: templates/il2ks/components/sort_th.html v1 - copy this line along when you override #}
 {% comment %}
-  sort_th.html ({% sort_th "field" label numeric=True %}): a sortable column header. The link keeps the other query
-  parameters, drops `page`, and toggles ?sort=field / ?sort=-field. The view must whitelist sortable fields.
-  Context: label, numeric (right-aligned column), direction ("asc", "desc" or ""), aria_sort, href.
+  sort_th.html ({% sort_th "field" label numeric=True hint="kl" %}): a sortable column header. The link keeps the other
+  query parameters, drops `page`, and toggles ?sort=field / ?sort=-field. The view must whitelist sortable fields.
+  Context: label, numeric (right-aligned column), direction ("asc", "desc" or ""), aria_sort, href, hint, hint_id.
   The hx-get makes it swap the surrounding {% results_region %} (hx-target, hx-select, hx-swap and hx-push-url are
   inherited from it); without htmx it is a plain link.
-{% endcomment %}<th scope="col" class="sortable{% if numeric %} num{% endif %}" aria-sort="{{ aria_sort }}"><a href="{{ href }}" hx-get="{{ href }}">{{ label }}</a></th>
+  A hint (see col_th.html) is described by the link itself (aria-describedby) and shown when the header is hovered or
+  the link focused; the marker beside the link shows it on tap.
+{% endcomment %}<th scope="col" class="sortable{% if numeric %} num{% endif %}{% if hint %} has-hint{% endif %}" aria-sort="{{ aria_sort }}"><a href="{{ href }}" hx-get="{{ href }}"{% if hint %} aria-describedby="{{ hint_id }}"{% endif %}>{{ label }}</a>{% if hint %}{% include "il2ks/components/col_hint.html" %}{% endif %}</th>
