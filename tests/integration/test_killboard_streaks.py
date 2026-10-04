@@ -188,7 +188,7 @@ def test_profile_shows_killboard_and_streak(client: Client) -> None:
 def test_profile_budget_and_killboard_page(client: Client) -> None:
     seed_pages()
 
-    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=9)
+    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=11)  # + tours selector, stat thresholds
     # context processor 2, player, count, rows
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/", max_queries=6)
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=6)
