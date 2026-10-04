@@ -21,6 +21,7 @@ show what such a site does; their look is considered dated. Data areas (tables, 
 - **Icons: SVG**, 24 × 24 grid, one colour drawn with `currentColor` (the site recolours them for light/dark mode, badges and the server
   owner's accent colour). One consistent style across the whole set (same stroke weight, corner style and level of detail). They must read
   at 16 px and look good at 48 px. No text inside icons (the site is translated into six languages).
+  **Delivery [DECIDED]:** the pages reference icons (`<svg class="icon"><use href="/sprite.svg?v=<hash>#event.takeoff"/></svg>`); `/sprite.svg` combines every file under `img/` (except `pattern/`) as `<symbol>`s, built from the static finders so `custom/` overrides are included (TD-25), cached for a year by its content hash. Cut the real-log mission page from 87 to 55 KB of HTML. Files need a plain `<svg ...>...</svg>` root (no `<style>`, ids or gradients that could clash across icons).
 - **Illustrations and textures: SVG** where possible, otherwise PNG/WebP at 2× resolution. Textures must tile seamlessly and work at very
   low contrast on both a light and a dark background.
 - **Licensing:** the project is MIT-licensed and redistributed on PyPI, so assets must be original work (no game screenshots, no art traced

@@ -75,13 +75,16 @@ def measure(page: Page, url: str, base: str) -> Weight:
 
 # Budgets: measured on 2026-10-04 on the e2e world, ~25% headroom. Worst page then: 11 requests, ~310 KB (the mission
 # and sortie pages of the anonymized real log). Their HTML was 107-122 KB until the lists were paginated (OQ-96: 10
-# missions, 20 sorties, kills and timeline rows a page); now 87-95 KB, about half of it inline SVG icons.
+# missions, 20 sorties, kills and timeline rows a page); then icons became `<use>` references to one
+# cached sprite (`web.icons`): now 55-56 KB (from 87-95).
+# The sprite is a ~38 KB uncompressed (~9 KB gzipped) request, fetched once and cached for a year (`other` below).
 # The rest is the same on every page and mostly
 # vendored: CSS 113 KB (pico 81, site 28), JS 57 KB (htmx 51), fonts 22-44 KB, one image. Uncompressed: production
 # serves these gzip/brotli-compressed by WhiteNoise, roughly a quarter of the size.
 MAX_REQUESTS = 16
 MAX_TOTAL_KB = 390
-MAX_HTML_KB = 120
+MAX_HTML_KB = 70
+MAX_SPRITE_KB = 50
 MAX_CSS_KB = 140
 MAX_JS_KB = 75
 MAX_FONT_KB = 60
@@ -101,6 +104,9 @@ def test_page_weight_budget(page: Page, world: World, base_url: str, name: str) 
     assert weight.requests <= MAX_REQUESTS, f"{weight.requests} requests (budget {MAX_REQUESTS})"
     assert weight.total() <= MAX_TOTAL_KB * KB, f"{weight.total() / KB:.0f} KB in total (budget {MAX_TOTAL_KB} KB)"
     assert weight.of("document") <= MAX_HTML_KB * KB, f"HTML {weight.of('document') / KB:.0f} KB (budget {MAX_HTML_KB})"
+    assert weight.of("other") <= MAX_SPRITE_KB * KB, (
+        f"icon sprite {weight.of('other') / KB:.0f} KB (budget {MAX_SPRITE_KB})"
+    )
     assert weight.of("stylesheet") <= MAX_CSS_KB * KB, f"CSS {weight.of('stylesheet') / KB:.0f} KB"
     assert weight.of("script") <= MAX_JS_KB * KB, f"JS {weight.of('script') / KB:.0f} KB (budget {MAX_JS_KB})"
     assert weight.of("font") <= MAX_FONT_KB * KB, f"fonts {weight.of('font') / KB:.0f} KB (budget {MAX_FONT_KB})"
@@ -192,3 +198,26 @@ def test_web_vitals(page: Page, world: World, name: str) -> None:
     assert vitals["lcp"] <= MAX_LCP_MS, f"LCP {vitals['lcp']:.0f} ms (limit {MAX_LCP_MS})"
     assert vitals["cls"] <= MAX_CLS, f"CLS {vitals['cls']:.3f} (limit {MAX_CLS}): something moves after first paint"
     assert vitals["tbt"] <= MAX_TBT_MS, f"TBT {vitals['tbt']:.0f} ms (limit {MAX_TBT_MS})"
+
+
+@pytest.mark.parametrize("name", PUBLIC_PAGES)
+def test_every_icon_reference_resolves_in_the_sprite(page: Page, world: World, base_url: str, name: str) -> None:
+    """Icons are `<use href="/sprite.svg?v=...#id">`: the sprite loads once (cached for a year) and has every id the
+    page uses, so no icon is blank. The reference is the same after an HTMX swap, which needs no symbols of its own."""
+    page.goto(PUBLIC_PAGES[name](world), wait_until="networkidle")
+    result: dict[str, list[str]] = page.evaluate(
+        """async () => {
+          const refs = [...document.querySelectorAll('svg.icon use')].map(u => u.getAttribute('href'));
+          const sprites = new Set(refs.map(r => r.split('#')[0]));
+          const missing = [];
+          for (const url of sprites) {
+            const response = await fetch(url);
+            const ids = new Set([...new DOMParser().parseFromString(await response.text(), 'image/svg+xml')
+              .querySelectorAll('symbol')].map(s => s.id));
+            for (const ref of refs) if (ref.startsWith(url + '#') && !ids.has(ref.split('#')[1])) missing.push(ref);
+          }
+          return {refs: refs.slice(0, 1), sprites: [...sprites], missing};
+        }"""
+    )
+    assert len(result["sprites"]) <= 1, f"more than one sprite URL: {result['sprites']}"
+    assert result["missing"] == []

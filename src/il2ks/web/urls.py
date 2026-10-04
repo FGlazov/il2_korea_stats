@@ -15,6 +15,7 @@ from il2ks.web.views import (
     players,
     setup,
     sorties,
+    sprite,
     styleguide,
 )
 
@@ -38,6 +39,7 @@ urlpatterns: list[URLPattern] = [
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
     path("aircraft/", aircraft.aircraft_list, name="aircraft-list"),  # ?sort=: per-type stats (FR-WEB-8)
     path("aircraft/<int:pk>/", aircraft.aircraft_detail, name="aircraft-detail"),  # pk = GameObject pk
+    path("sprite.svg", sprite.icon_sprite, name="sprite"),  # all icons as <symbol>s, long-cached by ?v=<hash>
     path("language/", language.set_language, name="set-language"),  # ?language=<code>&next=<local url> (TD-24)
     path("live/", live.live_fragment, name="live"),  # HTMX fragment: online now, its own max-age (FR-ING-12)
     path("setup/", setup.setup, name="setup"),  # first run only: local, token-gated, 404 once setup is done

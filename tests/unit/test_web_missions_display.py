@@ -9,7 +9,7 @@ from django.template import Context, Template
 from django.test import RequestFactory
 
 from il2ks.db.models import BluforEmblem, RedforEmblem, SiteSettings
-from il2ks.web import display
+from il2ks.web import display, icons
 
 IMG = Path(__file__).resolve().parents[2] / "src" / "il2ks" / "web" / "static" / "il2ks" / "img"
 
@@ -95,17 +95,22 @@ def test_coalition_badge_and_icon_use_the_chosen_emblem() -> None:
     )
 
     assert "tint--redfor" in neutral
-    assert "M12 17.75l-6.172 3.245" in neutral  # the neutral star outline
-    assert 'fill="#c8312b"' in chosen  # VVS star in the REDFOR badge
-    assert 'fill="#4f8fdc"' in chosen  # UN roundel for BLUFOR
-    assert 'fill="#c8312b"' not in neutral
+    assert "#coalition.redfor" in neutral  # the neutral star outline
+    assert "#coalition.blufor" in neutral
+    assert "#coalition.insignia" not in neutral
+    assert "#coalition.insignia.vvs" in chosen  # VVS star in the REDFOR badge
+    assert "#coalition.insignia.un" in chosen  # UN roundel for BLUFOR
+    sprite = icons.sprite()[0]  # the drawings live in the sprite
+    assert 'fill="#c8312b"' in sprite
+    assert 'fill="#4f8fdc"' in sprite
 
 
 def test_an_unknown_emblem_falls_back_to_the_neutral_one() -> None:
     html = render("{% coalition_icon 501 %}", SiteSettings(redfor_emblem="no-such-emblem"))
 
     assert "<svg" in html
-    assert "#c8312b" not in html
+    assert "#coalition.redfor" in html
+    assert "insignia" not in html
 
 
 def test_winner_badge() -> None:

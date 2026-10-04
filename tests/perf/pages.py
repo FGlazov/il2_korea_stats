@@ -46,5 +46,5 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("live", lambda w: "/live/", 4, max_ms=250.0),
 )
 
-NOT_PUBLIC_PAGES = frozenset({"set-language", "setup", "styleguide"})
+NOT_PUBLIC_PAGES = frozenset({"set-language", "setup", "sprite", "styleguide"})
 """URL names that are not pages a visitor reads: a form target, the first-run wizard, the DEBUG-only style guide."""

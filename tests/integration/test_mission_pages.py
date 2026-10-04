@@ -268,10 +268,11 @@ def test_detail_shows_the_winner(client: Client) -> None:
 def test_site_emblems_show_on_the_mission_pages(client: Client) -> None:
     won = make_mission(1, winning_coalition=1, countries={"501": 1, "601": 2})
     plain = body(client, f"/missions/{won.pk}/")
-    assert 'fill="#c8312b"' not in plain  # neutral emblems are single-colour outlines
+    assert "#coalition.redfor" in plain  # neutral emblems (single-colour outlines)
+    assert "#coalition.insignia" not in plain
 
     SiteSettings.objects.create(pk=1, redfor_emblem="vvs", blufor_emblem="un")
 
     html = body(client, f"/missions/{won.pk}/")
-    assert 'fill="#c8312b"' in html  # the VVS star
-    assert 'fill="#4f8fdc"' in html  # the UN-style roundel
+    assert "#coalition.insignia.vvs" in html  # the VVS star
+    assert "#coalition.insignia.un" in html  # the UN-style roundel
