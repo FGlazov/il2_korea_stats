@@ -57,7 +57,7 @@ def first_mission() -> MissionResult:
             sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True, payload_id=1),
             sortie(2, 3, is_death=True, is_plane_lost=True, payload_id=2),
             sortie(3, 4, aircraft_type="F-86A-5", coalition=2, kills_air=1, kills_air_pvp=1, payload_id=1),
-            sortie(4, 5, aircraft_type="Il-10", kills_ground=2, combat_role="attack"),
+            sortie(4, 5, aircraft_type="IL-10", kills_ground=2, combat_role="attack"),
             sortie(5, 6, aircraft_type="Turret_IL10", role="gunner"),
         ),
         (
@@ -78,7 +78,7 @@ def test_totals_matchups_and_payloads_from_one_mission() -> None:
     assert (mig.sorties, mig.pilots, mig.kills_air, mig.deaths, mig.planes_lost, mig.side) == (2, 2, 2, 1, 1, "redfor")
     sabre = AircraftStats.objects.get(aircraft__log_name="F-86A-5")
     assert (sabre.sorties, sabre.side) == (2, "blufor")
-    attacker = AircraftStats.objects.get(aircraft__log_name="Il-10")
+    attacker = AircraftStats.objects.get(aircraft__log_name="IL-10")
     assert attacker.attack_sorties == 1
     assert not {"kd", "kl", "survival", "attack_share"} & {f.name for f in AircraftStats._meta.get_fields()}  # OQ-98
     assert not AircraftStats.objects.filter(aircraft__log_name="Turret_IL10").exists()  # gunner sorties aren't counted
@@ -252,7 +252,7 @@ def test_an_attack_type_ranks_its_pilots_by_ground_score_per_hour(client: Client
                     0,
                     1,
                     name="Pounder",
-                    aircraft_type="Il-10",
+                    aircraft_type="IL-10",
                     combat_role="attack",
                     ground_by_category={"tank": 3},
                     time_on_target_s=600.0,
@@ -261,7 +261,7 @@ def test_an_attack_type_ranks_its_pilots_by_ground_score_per_hour(client: Client
                     1,
                     2,
                     name="Fencer",
-                    aircraft_type="Il-10",
+                    aircraft_type="IL-10",
                     combat_role="attack",
                     ground_by_category={"other": 10},
                     time_on_target_s=7200.0,
@@ -271,7 +271,7 @@ def test_an_attack_type_ranks_its_pilots_by_ground_score_per_hour(client: Client
         )
     )
 
-    body = client.get(detail_url("Il-10")).content.decode()
+    body = client.get(detail_url("IL-10")).content.decode()
 
     assert "Top attack pilots" in body
     assert body.index("Pounder") < body.index("Fencer")

@@ -234,7 +234,7 @@ def build_arena() -> list[str]:
                 victim_type="MiG-15bis" if rex_wins else "F-86A-5",
                 killer_type="F-86A-5" if rex_wins else "MiG-15bis",
             ),
-            f.kill(3000, killer=0, victim=None, victim_type="Il-10", killer_type="MiG-15bis"),
+            f.kill(3000, killer=0, victim=None, victim_type="IL-10", killer_type="MiG-15bis"),
             f.kill(
                 4000,
                 killer=2 if pete_wins else 3,

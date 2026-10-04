@@ -29,7 +29,7 @@ def seed() -> None:
     )
     save(
         mission(
-            (sortie(0, 1, name="Maverick", aircraft_type="Il-10", ground_by_category={"vehicle": 4}, kills_ground=4),)
+            (sortie(0, 1, name="Maverick", aircraft_type="IL-10", ground_by_category={"vehicle": 4}, kills_ground=4),)
         ),
         meta("2026-10-02_10-00-00", STARTED_AT + timedelta(days=13)),
     )
@@ -84,7 +84,7 @@ def test_profile_without_tour_opens_on_the_current_tour_and_offers_the_selector(
     assert response.status_code == 200
     assert response.context["tour"] == tour("October 2026")
     assert (response.context["stats"].sorties, response.context["stats"].kills_ground) == (1, 4)
-    assert [row.aircraft.log_name for row in response.context["aircraft"]] == ["Il-10"]
+    assert [row.aircraft.log_name for row in response.context["aircraft"]] == ["IL-10"]
     body = response.content.decode()
     assert 'name="tour"' in body
     assert '<option value="" selected>Current tour</option>' in body  # no parameter = the current tour
@@ -221,7 +221,7 @@ def test_sortie_list_filters_by_tour(client: Client) -> None:
     assert "Sorties of Maverick in October 2026" in everything.content.decode()
     assert "Sorties of Maverick</h1>" in all_time.content.decode()
     assert [s.mission.mission_uid for s in september.context["page_obj"]] == ["2026-09-19_22-34-13"]
-    assert [s.aircraft.log_name for s in october.context["page_obj"]] == ["Il-10"]
+    assert [s.aircraft.log_name for s in october.context["page_obj"]] == ["IL-10"]
     assert unknown.status_code == 200
     assert len(unknown.context["page_obj"]) == 1  # a stale link opens the current tour
     assert '<option value="" selected>Current tour</option>' in october.content.decode()

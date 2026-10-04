@@ -429,7 +429,7 @@ def many_sorties() -> MissionResult:
             sortie(0, 1, kills_air=3, outcome="landed"),
             sortie(1, 1, kills_air=1, outcome="shot_down", is_plane_lost=True, aircraft_type="F-86A-5", coalition=2),
             sortie(2, 1, aircraft_type="Turret_IL10", role="gunner", combat_role=None),
-            sortie(3, 1, aircraft_type="Il-10", combat_role="attack", kills_air=0),
+            sortie(3, 1, aircraft_type="IL-10", combat_role="attack", kills_air=0),
             sortie(4, 2, kills_air=9),
         )
     )
@@ -578,3 +578,13 @@ def test_upgrade_backfill_rederives_payload_names_from_the_stored_ids() -> None:
     assert names["Player-2"] not in ("", "stale")
     assert names["Player-3"] == ""
     assert not migrate._check_payload_names()  # pyright: ignore[reportPrivateUsage]
+
+
+def test_the_sortie_aircraft_links_to_its_aircraft_page_in_header_and_list(client: Client) -> None:
+    """The sortie's own aircraft links to `/aircraft/<pk>/` (keeping the mission's tour), not to a filtered list."""
+    save(duel())
+    sortie_row = PlayerSortie.objects.select_related("mission").get(pk=pk_of(1))
+    link = f'href="/aircraft/{sortie_row.aircraft_id}/?tour='
+
+    assert link in detail(client, sortie_row.pk)
+    assert link in client.get(f"/players/{sortie_row.player_id}/sorties/?tour=all").content.decode()

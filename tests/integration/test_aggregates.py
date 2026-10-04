@@ -43,7 +43,7 @@ def test_incremental_equals_rebuild_over_overlapping_missions() -> None:
             sortie(0, 1, kills_air=2, flight_time_s=1234.56),
             sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True, outcome="shot_down"),
             sortie(2, 3, aircraft_type="Turret_IL10", role="gunner"),
-            sortie(3, 1, aircraft_type="Il-10", kills_ground=3, flight_time_s=777.7),
+            sortie(3, 1, aircraft_type="IL-10", kills_ground=3, flight_time_s=777.7),
         )
     )
     m2 = mission(
@@ -113,7 +113,7 @@ def test_rebuild_repairs_drifted_counters() -> None:
 
 def test_reingest_without_a_player_zeroes_them_and_drops_their_aircraft_rows() -> None:
     """Level 2 is recomputed for the mission's old players too: a player who vanished keeps the row, with no totals."""
-    first = mission((sortie(0, 1, kills_air=2, flight_time_s=0.1), sortie(1, 1, aircraft_type="Il-10"), sortie(2, 2)))
+    first = mission((sortie(0, 1, kills_air=2, flight_time_s=0.1), sortie(1, 1, aircraft_type="IL-10"), sortie(2, 2)))
     save(first)
     p1 = Player.objects.get(account_uuid=account(1))
     assert p1.sorties == 2
@@ -139,7 +139,7 @@ def test_recompute_players_only_touches_the_given_players() -> None:
 
 
 def test_rebuild_keeps_player_aircraft_pks() -> None:
-    save(mission((sortie(0, 1), sortie(1, 1, aircraft_type="Il-10"))))
+    save(mission((sortie(0, 1), sortie(1, 1, aircraft_type="IL-10"))))
     pks = sorted(PlayerAircraft.objects.values_list("pk", flat=True))
 
     rebuild_aggregates()

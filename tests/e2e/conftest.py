@@ -92,7 +92,15 @@ def world(_e2e_data_dir: tuple[Path, World]) -> World:
 
 @pytest.fixture(scope="session")
 def base_url(_e2e_data_dir: tuple[Path, World]) -> Iterator[str]:
-    """Start `il2ks web --dev` on a free port; overrides pytest-base-url's fixture, so `page.goto("/")` works."""
+    """Start `il2ks web --dev` on a free port; overrides pytest-base-url's fixture, so `page.goto("/")` works.
+
+    Opt-in `IL2KS_E2E_BASE_URL=http://host:port` uses an already running server instead (faster local iteration). It
+    must serve the seeded e2e world (`python -m tests.e2e.world` into its data dir); tests that write to the data dir
+    (`set_branding`) change the local throwaway dir, not that server. Unset: the self-started server, as in CI."""
+    external = os.environ.get("IL2KS_E2E_BASE_URL", "").strip().rstrip("/")
+    if external:
+        yield external
+        return
     data_dir = _e2e_data_dir[0]
     port = _free_port()
     url = f"http://127.0.0.1:{port}"

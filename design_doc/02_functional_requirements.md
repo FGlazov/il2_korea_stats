@@ -237,7 +237,9 @@ people ask). The main use case is **a player reviewing their sortie**.
   tiles for a type not flown in the tour (OQ-114); aircraft and crew as separate hit rows, capped at 100% (OQ-115), and **new**: the sortie
   page shows the pilot's remaining health and the aircraft's damage, forced to 0% health when the pilot died and 100% damage when the
   aircraft was destroyed; ammo mixes, top 10 plus a fold (OQ-116); the profile shows **only the favourite loadout** per aircraft, without
-  the mod-set and hits-by-ammo detail (OQ-117, changed); front-page image display (OQ-118); quip defaults (OQ-119).
+  the mod-set and hits-by-ammo detail (OQ-117, changed); front-page image display (OQ-118); quip defaults (OQ-119). Object name variants (OQ-120): "Il-10" / "IL-10" and `B 29` / `B-29` are one aircraft each (catalog spelling and aliases,
+  merged on upgrade); vehicle and static pairs such as `GAZ_63` / `GAZ-63` stay separate for now. The profile's per-aircraft table keeps
+  linking to the pilot's sorties in that aircraft (OQ-121).
 
 ### Score and ratings
 Recorded by the maintainer on 2026-10-03; built 2026-10-04 (air and ground score, leaderboards, Elo: doc 13 "Score", doc 16). Its **inputs are computed at ingest

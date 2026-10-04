@@ -240,21 +240,26 @@ def _ids(tour_id: int | None) -> set[int]:
 
 
 def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[str, GameObject]:
-    """Get or create a `GameObject` per log name (FR-ING-7). Unknown types are stored with `is_known=False`.
+    """Get or create a `GameObject` per type (FR-ING-7). Unknown types are stored with `is_known=False`.
+
+    The result is keyed by the log's own spelling. Known types are stored under the catalog's spelling, so `Il-10` and
+    `IL-10` (both occur in real logs) share one row and one aircraft page; unknown types keep the log's spelling.
 
     Existing rows: class, playable and known flags follow the catalog (so a catalog update fixes old unknowns), and so
     does the display name, unless an admin edited it (`name_overridden`, TD-24): upgrades refresh the shipped names
     without wiping admin edits.
     """
     wanted = sorted(set(log_names))
-    existing = {o.log_name: o for o in GameObject.objects.filter(log_name__in=wanted)}
-    for log_name in wanted:
-        info = catalog.lookup(log_name)
-        obj = existing.get(log_name)
+    infos = {name: catalog.lookup(name) for name in wanted}
+    stored = {name: (info.log_name if info.is_known else name) for name, info in infos.items()}
+    rows = {o.log_name: o for o in GameObject.objects.filter(log_name__in=set(stored.values()))}
+    for key in sorted(set(stored.values())):
+        info = catalog.lookup(key)
+        obj = rows.get(key)
         if obj is None:
-            existing[log_name] = GameObject.objects.create(
-                log_name=log_name,
-                display_name=info.display_name or log_name,
+            rows[key] = GameObject.objects.create(
+                log_name=key,
+                display_name=info.display_name or key,
                 cls=info.cls,
                 propulsion=info.propulsion or "",
                 ground_category=info.ground_category or "",
@@ -268,7 +273,7 @@ def register_game_objects(log_names: Iterable[str], catalog: Catalog) -> dict[st
         if new != (obj.display_name, obj.cls, obj.propulsion, obj.ground_category, obj.is_playable, obj.is_known):
             obj.display_name, obj.cls, obj.propulsion, obj.ground_category, obj.is_playable, obj.is_known = new
             obj.save(update_fields=["display_name", "cls", "propulsion", "ground_category", "is_playable", "is_known"])
-    return existing
+    return {name: rows[key] for name, key in stored.items()}
 
 
 def register_countries(countries: dict[int, int], catalog: Catalog) -> None:

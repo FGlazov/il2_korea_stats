@@ -210,7 +210,7 @@ def three_tour_history(rules: TourRules = MONTHLY) -> None:
         mission(
             (
                 sortie(0, 1, kills_ground=3, flight_time_s=777.7),
-                sortie(1, 1, aircraft_type="Il-10", assists=1),
+                sortie(1, 1, aircraft_type="IL-10", assists=1),
                 sortie(2, 3, aircraft_type="Turret_IL10", role="gunner"),
             )
         ),
@@ -248,7 +248,7 @@ def test_player_tour_aircraft_rows_group_by_tour_and_aircraft() -> None:
     p1 = Player.objects.get(account_uuid=account(1))
     sept = Tour.objects.get(title="September 2026")
     by_aircraft = {r.aircraft.log_name: r.sorties for r in PlayerTourAircraft.objects.filter(player=p1, tour=sept)}
-    assert by_aircraft == {"MiG-15bis": 1, "Il-10": 1}
+    assert by_aircraft == {"MiG-15bis": 1, "IL-10": 1}
     assert PlayerAircraft.objects.filter(player=p1).count() == 2  # all-time rows are not touched by tours
 
 
@@ -749,7 +749,7 @@ def test_aircraft_stats_per_tour_sum_the_tours_pilots_and_sides() -> None:
         ("MiG-15bis", "August 2026"),
         ("F-86A-5", "August 2026"),
         ("MiG-15bis", "September 2026"),
-        ("Il-10", "September 2026"),
+        ("IL-10", "September 2026"),
         ("F-51D", "October 2026"),
         ("MiG-15bis", "October 2026"),
     }  # the gunner sortie is no row

@@ -38,7 +38,7 @@ def seed() -> None:
                     3,
                     4,
                     name="Pounder",
-                    aircraft_type="Il-10",
+                    aircraft_type="IL-10",
                     combat_role="attack",
                     ground_by_category={"tank": 3},
                     time_on_target_s=600.0,
@@ -47,7 +47,7 @@ def seed() -> None:
                     4,
                     5,
                     name="Fencer",
-                    aircraft_type="Il-10",
+                    aircraft_type="IL-10",
                     combat_role="attack",
                     ground_by_category={"other": 10},
                     time_on_target_s=7200.0,
@@ -294,7 +294,7 @@ def test_score_boards_split_into_prop_and_jet_pilots(client: Client) -> None:
 def test_the_pool_split_works_per_tour_and_the_aircraft_filter_wins(client: Client) -> None:
     seed()
     tour = Tour.objects.get()
-    pounder_type = GameObject.objects.get(log_name="Il-10")
+    pounder_type = GameObject.objects.get(log_name="IL-10")
 
     assert set(names(client, f"/leaderboards/air/?tour={tour.pk}&pool=prop")) == {"Pounder", "Fencer"}
     assert set(names(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet")) == {"Ace", "Rookie"}
