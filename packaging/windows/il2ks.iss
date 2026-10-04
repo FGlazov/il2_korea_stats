@@ -386,7 +386,8 @@ end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := HaveConfig and ((PageID = LogPage.ID) or (PageID = SitePage.ID) or (PageID = HttpsPage.ID) or (PageID = AdminPage.ID));
+  // Silent runs take every answer from the switches (FinishInstall): the pages are never shown, so their edits stay empty.
+  Result := (WizardSilent or HaveConfig) and ((PageID = LogPage.ID) or (PageID = SitePage.ID) or (PageID = HttpsPage.ID) or (PageID = AdminPage.ID));
 end;
 
 // --- the work after the files are copied ------------------------------------------------------------------------------
@@ -708,6 +709,10 @@ var
   Domain: String;
 begin
   Result := True;
+  // Never validate in a silent run: the page edits are empty there (answers come from /ADMINPASSWORDFILE etc.), a failed check
+  // would only show a suppressed message box and leave the wizard on that page forever.
+  if WizardSilent then
+    Exit;
   if CurPageID = LogPage.ID then
   begin
     if (Trim(LogPage.Values[0]) <> '') and not DirExists(Trim(LogPage.Values[0])) then
