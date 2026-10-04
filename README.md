@@ -11,12 +11,13 @@ il2ks reads the text mission logs your DServer writes and builds a stats website
 Sturmovik: Korea servers.
 
 - **Missions, players and sorties**: every mission with its kills and losses, a page per player and a timeline per flight.
+- **Live, while the mission runs**: who is online, and sorties that show up as they are flown, updated every couple of
+  minutes (most stats sites wait for the mission to end). Admins can switch it off.
 - **Tours**: stats per tour (a month by default) or all-time. The site opens on the current tour.
 - **Leaderboards**: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
   and play time. Scoring is yours to tune.
 - **Achievements**, streaks, killboards (who shot whom), accuracy, assists, and a "top 10%" mark on a
   player's best ratios.
-- **Online now**: who is on the server while a mission runs.
 - **Your branding**: title, logo, colors (light and dark), fonts (also your own font file), menu links, all in the
   admin without touching files. Templates can be replaced for more.
 - **Six languages**: English, Russian, German, Spanish, French, Brazilian Portuguese. Visitors get their browser's
