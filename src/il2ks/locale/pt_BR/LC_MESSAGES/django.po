@@ -352,6 +352,10 @@ msgstr "Temporada nova: o diário de bordo ainda está em branco. Hora de escrev
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
 msgstr "Uma alma generosa: este piloto reparte a munição com todos, alas incluídos."
 
+#, python-format
+msgid "A hidden built-in line that no longer exists (it was reworded in an update), so the hide does nothing: %(key)s"
+msgstr ""
+
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."
 msgstr "Um dia longo no escritório. O medidor de combustível manda respeito."
@@ -359,6 +363,10 @@ msgstr "Um dia longo no escritório. O medidor de combustível manda respeito."
 # llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
 msgstr "Missão tranquila. Todo mundo voltou para casa com a munição."
+
+#, python-format
+msgid "A quip is longer than %(max)d characters: %(start)s..."
+msgstr ""
 
 # llm-draft
 msgid "A reprocess request is already waiting or running."
@@ -434,6 +442,9 @@ msgstr "Conquistas de %(name)s"
 # llm-draft
 msgid "Activity by tour"
 msgstr "Atividade por temporada"
+
+msgid "Add a line"
+msgstr ""
 
 # llm-draft
 msgid "Admin account"
@@ -757,6 +768,16 @@ msgstr ""
 msgid "At most %(max)d navigation links."
 msgstr "No máximo %(max)d links de navegação."
 
+#, python-format
+msgid "At most %(max)d own quip per spot (%(spot)s)."
+msgid_plural "At most %(max)d own quips per spot (%(spot)s)."
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "At most %(max)d own quips in total."
+msgstr ""
+
 # llm-draft
 #, python-format
 msgid "At most %(max)d uploaded fonts: tick one under “Remove uploaded fonts” first."
@@ -1016,6 +1037,15 @@ msgstr "Ver missões"
 msgid "Buildings"
 msgstr "Edifícios"
 
+msgid "Built-in and my own"
+msgstr ""
+
+msgid "Built-in lines"
+msgstr ""
+
+msgid "Built-in quips only"
+msgstr ""
+
 # llm-draft
 msgid "Busy sortie. The enemy count went down noticeably."
 msgstr "Surtida movimentada. O número de inimigos caiu bastante."
@@ -1059,6 +1089,9 @@ msgstr "Causado por"
 # llm-draft
 msgid "Caution (amber)"
 msgstr "Atenção (âmbar)"
+
+msgid "Change"
+msgstr ""
 
 # llm-draft
 msgid "Charmed Life"
@@ -1226,6 +1259,9 @@ msgstr "Mortes e aeronaves perdidas por causa"
 msgid "Default (clears all colors below)"
 msgstr "Padrão (limpa todas as cores abaixo)"
 
+msgid "Delete"
+msgstr ""
+
 # llm-draft
 msgid "Desert sand"
 msgstr "Areia do deserto"
@@ -1294,6 +1330,10 @@ msgstr "Nome de domínio"
 # llm-draft
 msgid "Domain name, for example stats.example.com"
 msgstr "Nome de domínio, por exemplo stats.example.com"
+
+# llm-draft
+msgid "Drew first blood, and the scoreboard has not been the same since."
+msgstr "Quebrou o gelo, e o placar nunca mais foi o mesmo."
 
 # llm-draft
 msgid "Duration"
@@ -1388,6 +1428,9 @@ msgstr "Evento"
 msgid "Event type (AType)"
 msgstr "Tipo de evento (AType)"
 
+msgid "Every language"
+msgstr ""
+
 # llm-draft
 msgid "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them."
 msgstr ""
@@ -1466,6 +1509,10 @@ msgid "First Blood"
 msgstr "Primeiro sangue"
 
 # llm-draft
+msgid "First blood of the mission goes to this pilot. Somebody had to open the scoring."
+msgstr "O primeiro sangue da missão é deste piloto. Alguém tinha que abrir o placar."
+
+# llm-draft
 msgid "First seen"
 msgstr "Visto pela primeira vez"
 
@@ -1517,6 +1564,9 @@ msgstr "Fontes"
 # llm-draft
 msgid "Fonts come from the visitor's system or are shipped with il2ks; nothing is loaded from other websites."
 msgstr "As fontes vêm do sistema do visitante ou acompanham o il2ks; nada é carregado de outros sites."
+
+msgid "Forget"
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -1794,6 +1844,9 @@ msgstr "Oculto"
 msgid "Hidden player"
 msgstr "Jogador oculto"
 
+msgid "Hide"
+msgstr ""
+
 # llm-draft
 msgid "Hide selected missions from public pages"
 msgstr "Ocultar as missões selecionadas nas páginas públicas"
@@ -1855,6 +1908,12 @@ msgstr "Início"
 # llm-draft
 msgid "Home at last, and the ramp was not safe either. The ground crew mourns the airframe."
 msgstr "Em casa, finalmente, e nem a rampa estava segura. A equipe de solo lamenta a perda da célula."
+
+msgid "Home page: the last mission had no kills"
+msgstr ""
+
+msgid "Home page: under the top pilots of the last mission"
+msgstr ""
 
 # llm-draft
 msgid "Hot Streak"
@@ -2197,6 +2256,9 @@ msgstr "Linhas"
 msgid "Links"
 msgstr "Links"
 
+msgid "Lists of a tour without sorties: fresh start"
+msgstr ""
+
 # llm-draft
 #. Translators: ammunition table columns, rounds loaded at take-off / rounds still left at the end / rounds fired (used)
 msgid "Loaded"
@@ -2335,6 +2397,9 @@ msgstr "Mais buraco que avião, e mesmo assim de volta ao chão. Tiro o chapéu.
 msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr "A parte mais perigosa da missão: os primeiros cem metros."
 
+msgid "My own only"
+msgstr ""
+
 # llm-draft
 msgid "Name"
 msgstr "Nome"
@@ -2379,6 +2444,9 @@ msgstr "Nunca saiu do chão e ainda assim rendeu uma história."
 # llm-draft
 msgid "Never shot down by a player."
 msgstr "Nunca abatido por um jogador."
+
+msgid "New quip text"
+msgstr ""
 
 # llm-draft
 msgid "Next"
@@ -2520,6 +2588,9 @@ msgstr "Ainda não há jogadores."
 # llm-draft
 msgid "No qualifying attack"
 msgstr "Nenhum ataque válido"
+
+msgid "No quip here"
+msgstr ""
 
 # llm-draft
 msgid "No sorties in this tour"
@@ -2663,6 +2734,9 @@ msgstr "Ainda não há nada para mostrar."
 msgid "OK"
 msgstr "OK"
 
+msgid "On"
+msgstr ""
+
 # llm-draft
 msgid "On the ground"
 msgstr "No solo"
@@ -2696,6 +2770,10 @@ msgstr "Abrir o site"
 # llm-draft
 msgid "Open the sortie report"
 msgstr "Abrir o relatório da surtida"
+
+# llm-draft
+msgid "Opening shots matter, and these ones found their mark."
+msgstr "O primeiro tiro é o que conta, e esse acertou em cheio."
 
 # llm-draft
 msgid "Operations"
@@ -2848,6 +2926,30 @@ msgstr "Destino do piloto"
 # llm-draft
 msgid "Pilot or gunner"
 msgstr "Piloto ou artilheiro"
+
+#, python-format
+msgid "Pilot profile, hall of shame: both, among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: clean sheet"
+msgstr ""
+
+#, python-format
+msgid "Pilot profile, hall of shame: friendly fire among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: friendly fire only"
+msgstr ""
+
+#, python-format
+msgid "Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: taxi accidents and friendly fire"
+msgstr ""
+
+msgid "Pilot profile, hall of shame: taxi accidents only"
+msgstr ""
 
 # llm-draft
 msgid "Pilot status"
@@ -3013,6 +3115,24 @@ msgstr "Roxo"
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Céu tranquilo por enquanto. O aeródromo é seu."
 
+msgid "Quip text"
+msgstr ""
+
+msgid "Quips"
+msgstr ""
+
+msgid ""
+"Quips are the short light-hearted lines the site shows at a few highlight spots (a clean hall of shame, a notable "
+"sortie, a quiet mission). They are on by default. Here you can hide the built-in lines, add your own, or turn quips "
+"off."
+msgstr ""
+
+msgid "Quips here"
+msgstr ""
+
+msgid "Quips saved."
+msgstr ""
+
 # llm-draft
 msgid "REDFOR"
 msgstr "REDFOR"
@@ -3162,6 +3282,9 @@ msgstr "Sequências em andamento"
 msgid "Runway"
 msgstr "Pista"
 
+msgid "Save"
+msgstr ""
+
 # llm-draft
 msgid "Score and rating"
 msgstr "Pontos e classificação"
@@ -3281,6 +3404,9 @@ msgid_plural "Show %(n)s more mixes"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Show quips on the site"
+msgstr ""
+
 # llm-draft
 msgid "Show selected missions on public pages again"
 msgstr "Voltar a exibir as missões selecionadas nas páginas públicas"
@@ -3302,6 +3428,12 @@ msgstr "Exibindo %(first)s–%(last)s de %(all)s"
 msgid "Shown"
 msgstr "Exibido"
 
+#, python-format
+msgid "Shows %(n)s line now."
+msgid_plural "Shows %(n)s lines now."
+msgstr[0] ""
+msgstr[1] ""
+
 # llm-draft
 msgid "Side"
 msgstr "Lado"
@@ -3320,6 +3452,9 @@ msgstr "Desde"
 # llm-draft
 msgid "Site administration"
 msgstr "Administração do site"
+
+msgid "Site texts"
+msgstr ""
 
 # llm-draft
 msgid "Sitting Duck"
@@ -3358,6 +3493,10 @@ msgid "Some pilots sprint. This one went the distance."
 msgstr "Alguns pilotos correm uma prova curta. Este foi até o fim do percurso."
 
 # llm-draft
+msgid "Somebody had to go first. It was a good choice."
+msgstr "Alguém tinha que ir primeiro. Ainda bem que foi ele."
+
+# llm-draft
 msgid "Somebody's bombing run ended early. Somebody else is buying the next round."
 msgstr "O ataque de bombardeio de alguém terminou cedo. Outra pessoa paga a próxima rodada."
 
@@ -3384,6 +3523,61 @@ msgstr "Duração da surtida"
 # llm-draft
 msgid "Sortie report"
 msgstr "Relatório da surtida"
+
+msgid "Sortie: 70 or more ground kills"
+msgstr ""
+
+msgid "Sortie: an hour or more in the air"
+msgstr ""
+
+msgid "Sortie: destroyed on the ramp before takeoff"
+msgstr ""
+
+msgid "Sortie: ditched (forced landing)"
+msgstr ""
+
+msgid "Sortie: first kill within seven minutes of takeoff"
+msgstr ""
+
+msgid "Sortie: friendly fire"
+msgstr ""
+
+msgid "Sortie: landed badly damaged"
+msgstr ""
+
+msgid "Sortie: landed badly damaged, with kills"
+msgstr ""
+
+msgid "Sortie: landed, then destroyed on the ground"
+msgstr ""
+
+msgid "Sortie: many air assists, few kills"
+msgstr ""
+
+msgid "Sortie: many ground assists, few ground kills"
+msgstr ""
+
+msgid "Sortie: shot down by a bomber's AI gunner"
+msgstr ""
+
+msgid "Sortie: shot down by flak"
+msgstr ""
+
+msgid "Sortie: taxi accident"
+msgstr ""
+
+# llm-draft
+msgid "Sortie: the first kill of the mission"
+msgstr "Surtida: o primeiro abate da missão"
+
+msgid "Sortie: the pilot was captured"
+msgstr ""
+
+msgid "Sortie: three or more air kills"
+msgstr ""
+
+msgid "Sortie: two or more bomber kills"
+msgstr ""
 
 # llm-draft
 msgid "Sorties"
@@ -3727,6 +3921,10 @@ msgid "The file is larger than 2 MB."
 msgstr "O arquivo é maior que 2 MB."
 
 # llm-draft
+msgid "The first kill of the night, and it was this one. Everybody else is playing catch-up."
+msgstr "A primeira vitória da noite foi dele. O resto da turma que corra atrás."
+
+# llm-draft
 msgid "The flak had the final say."
 msgstr "A antiaérea teve a palavra final."
 
@@ -3828,6 +4026,10 @@ msgstr ""
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
 msgstr "As marcações são pequenas e o céu está lotado. Acontece nos melhores esquadrões."
+
+# llm-draft
+msgid "The mission was young and the sky was quiet, until this pilot changed that."
+msgstr "A missão estava calma e o céu tranquilo. Até esse piloto aparecer."
 
 # llm-draft
 msgid ""
@@ -4173,9 +4375,16 @@ msgstr "Tipos de evento e chaves desconhecidos, últimos 30 dias"
 msgid "Unknown keys (AType:KEY: lines)"
 msgstr "Chaves desconhecidas (linhas AType:KEY:)"
 
+#, python-format
+msgid "Unknown language: %(code)s"
+msgstr ""
+
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Configuração de armamento desconhecida"
+
+msgid "Unknown mode for a spot."
+msgstr ""
 
 # llm-draft
 #, python-format
@@ -4206,6 +4415,9 @@ msgstr "Desconhecido: o log não tem o registro de munição no fim da surtida"
 # llm-draft
 msgid "Unknown: the sortie was resupplied"
 msgstr "Desconhecido: houve reabastecimento durante a surtida"
+
+msgid "Untick to turn all quips off, whatever the settings below say."
+msgstr ""
 
 # llm-draft
 msgid "Until"
@@ -4396,6 +4608,16 @@ msgstr "Sim, reprocessar todas as missões"
 # llm-draft
 msgid "You wore those targets down and somebody else finished them. Next time, the last shot is yours."
 msgstr "Você enfraqueceu esses alvos e outro terminou o serviço. Da próxima vez, o último tiro é seu."
+
+msgid "Your own lines"
+msgstr ""
+
+#, python-format
+msgid ""
+"Your own quips are plain text (no HTML or formatting, at most %(max_length)s characters) and have no placeholders: "
+"they cannot show a name or a number. Leave the language empty to show a quip in every language, or pick one to show "
+"it only there. A built-in line is shown in the language of the page; hiding it hides it in every language."
+msgstr ""
 
 # llm-draft
 msgid "after the pilot bailed out"

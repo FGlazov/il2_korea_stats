@@ -173,6 +173,14 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Bomber hunting is a craft, and this sortie was a masterclass."),
         gettext_lazy("Somebody's bombing run ended early. Somebody else is buying the next round."),
     ),
+    "sortie_first_blood": (
+        gettext_lazy("First blood of the mission goes to this pilot. Somebody had to open the scoring."),
+        gettext_lazy("The first kill of the night, and it was this one. Everybody else is playing catch-up."),
+        gettext_lazy("Drew first blood, and the scoreboard has not been the same since."),
+        gettext_lazy("The mission was young and the sky was quiet, until this pilot changed that."),
+        gettext_lazy("Opening shots matter, and these ones found their mark."),
+        gettext_lazy("Somebody had to go first. It was a good choice."),
+    ),
     "sortie_stolen_kills": (
         gettext_lazy("Ah, the finishing shots went to somebody else! The wingmen send their thanks, and nothing else."),
         gettext_lazy("So many assists, so few credits. The kill counter is a cruel bookkeeper."),
@@ -222,6 +230,39 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
 }
 
 
+# Where each spot shows, for the admin's Quips page (plain words; translatable). Every spot of SPOTS needs one (a test).
+SPOT_DESCRIPTIONS: Mapping[str, Label] = {
+    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi accidents only"),
+    "shame_friendly": gettext_lazy("Pilot profile, hall of shame: friendly fire only"),
+    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi accidents and friendly fire"),
+    "shame_taxi_p90": gettext_lazy("Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"),
+    "shame_friendly_p90": gettext_lazy("Pilot profile, hall of shame: friendly fire among the top 10% of pilots"),
+    "shame_both_p90": gettext_lazy("Pilot profile, hall of shame: both, among the top 10% of pilots"),
+    "shame_clean": gettext_lazy("Pilot profile, hall of shame: clean sheet"),
+    "top_pilot": gettext_lazy("Home page: under the top pilots of the last mission"),
+    "nobody_scored": gettext_lazy("Home page: the last mission had no kills"),
+    "tour_empty": gettext_lazy("Lists of a tour without sorties: fresh start"),
+    "sortie_captured": gettext_lazy("Sortie: the pilot was captured"),
+    "sortie_ditched": gettext_lazy("Sortie: ditched (forced landing)"),
+    "sortie_strafed": gettext_lazy("Sortie: destroyed on the ramp before takeoff"),
+    "sortie_strafed_landed": gettext_lazy("Sortie: landed, then destroyed on the ground"),
+    "sortie_aa": gettext_lazy("Sortie: shot down by flak"),
+    "sortie_friendly_fire": gettext_lazy("Sortie: friendly fire"),
+    "sortie_taxi": gettext_lazy("Sortie: taxi accident"),
+    "sortie_ace": gettext_lazy("Sortie: three or more air kills"),
+    "sortie_ai_gunner": gettext_lazy("Sortie: shot down by a bomber's AI gunner"),
+    "sortie_bomber_hunter": gettext_lazy("Sortie: two or more bomber kills"),
+    "sortie_first_blood": gettext_lazy("Sortie: the first kill of the mission"),
+    "sortie_stolen_kills": gettext_lazy("Sortie: many air assists, few kills"),
+    "sortie_stolen_ground": gettext_lazy("Sortie: many ground assists, few ground kills"),
+    "sortie_battered_victor": gettext_lazy("Sortie: landed badly damaged, with kills"),
+    "sortie_ground_pounder": gettext_lazy("Sortie: 70 or more ground kills"),
+    "sortie_quick_kill": gettext_lazy("Sortie: first kill within seven minutes of takeoff"),
+    "sortie_marathon": gettext_lazy("Sortie: an hour or more in the air"),
+    "sortie_limped_home": gettext_lazy("Sortie: landed badly damaged"),
+}
+
+
 def pick(spot: str, seed: object) -> Label:
     """The variant of `spot` that `seed` selects, always the same for the same pair (SHA-256, not Python's per-process
     `hash`). Raises `KeyError` for an unknown spot, so a typo in a template fails loudly."""
@@ -236,7 +277,7 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
     achievements, then the broader ones):
 
     taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground (after a landing
-    or before takeoff), flak, bomber hunter, ace, stolen kills,
+    or before takeoff), flak, bomber hunter, first blood, ace, stolen kills,
     stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
 
     `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
@@ -259,6 +300,8 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
         return "sortie_aa"
     if highlights is not None and highlights.bomber_kills >= BOMBER_KILLS_MIN:
         return "sortie_bomber_hunter"
+    if sortie.first_blood:
+        return "sortie_first_blood"
     if sortie.kills_air >= MULTI_KILL_MIN:
         return "sortie_ace"
     if sortie.assists_air >= STOLEN_ASSISTS_MIN.get(sortie.kills_air, STOLEN_ASSISTS_MIN_MORE_KILLS):
