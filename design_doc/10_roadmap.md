@@ -151,6 +151,9 @@ decisions are made):
   superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
   target). On the leaderboards next to Elo and ground per hour, and in the home page's top boards. Queued after the leaderboard
   rework lands.
+- 🔧 **Achievements / medals** (maintainer, 2026-10-04): tiered achievements beyond quips (e.g. 5/10/20/50 air kills in one life,
+  X weeks in a row played), computed at ingest, shown prominently on the player page, "earned in this sortie" on the sortie page, an
+  overview page. The implemented list and further ideas go to [17_achievements.md](17_achievements.md) for the maintainer's review.
 - 🔧 **Language selector with flags** (maintainer, 2026-10-04): country flags next to the languages (US for English, Russia,
   Germany, Spain, France, Brazil) so the selector reads as clickable; default to the visitor's OS/browser language when shipped
   (Portuguese variants → Brazilian Portuguese), else English; an explicit choice wins.
