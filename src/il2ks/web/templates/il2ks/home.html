@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/home.html v5 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v6 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
@@ -91,6 +91,6 @@
         <tbody>{% include "il2ks/missions/_rows.html" with missions=latest empty_message=_("No missions yet.") %}</tbody>
       </table>
     </div>
-    <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:mission-list' %}">{% translate "All missions" %}</a></p>
+    <p class="button-row"><a role="button" class="secondary outline" href="{% url 'web:mission-list' %}?tour=all">{% translate "All missions" %}</a></p>
   </section>
 {% endblock %}

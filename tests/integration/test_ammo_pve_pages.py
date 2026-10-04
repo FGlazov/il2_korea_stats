@@ -140,7 +140,9 @@ def test_profile_deaths_by_class_follow_the_counters(client: Client) -> None:
 def test_profile_budget_is_unchanged_by_the_breakdown(client: Client) -> None:
     save(seed())
 
-    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=11)  # as test_player_pages (tours, stat marks, streak, killboard)
+    assert_simple_reads(
+        client, f"/players/{player_pk(1)}/?tour=all", max_queries=11
+    )  # as test_player_pages (tours, stat marks, streak, killboard)
 
 
 def test_hidden_player_profile_stays_404(client: Client) -> None:

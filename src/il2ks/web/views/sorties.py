@@ -18,7 +18,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
-from il2ks.queries.tours import tour_choice_from, tour_options
+from il2ks.queries.tours import is_quiet_tour, tour_choice_from
 from il2ks.web import display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
@@ -37,7 +37,8 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     aircraft), `outcome`, `role`, `combat_role`,
     `sort` (one of `reads.SORT_FIELDS`, '-' prefix = descending), `page`. Unknown values are ignored.
 
-    Context: player, tours, tour, tour_options, page_obj (PlayerSortie rows with mission and aircraft), sort (resolved),
+    Context: player, tours, tour (None = all time), quiet_tour, page_obj (PlayerSortie rows with mission
+    and aircraft), sort (resolved),
     aircraft_options,
     outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title."""
     player = get_object_or_404(Player.objects.visible(), pk=pk)
@@ -64,8 +65,8 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
         {
             "player": player,
             **choice.context,
-            "tour_options": tour_options(choice.tours),
             "page_obj": page,
+            "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
             "sort": sort,
             "aircraft_options": [(row.aircraft_id, object_names.name_of(row.aircraft, language)) for row in aircraft],
             "outcome_options": _options(Outcome.values, display.OUTCOMES),
@@ -117,7 +118,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (sortie.player.current_name, reverse("web:player-detail", args=[sortie.player_id])),
-                (_("Sorties"), reverse("web:player-sorties", args=[sortie.player_id])),
+                (_("Sorties"), reverse("web:player-sorties", args=[sortie.player_id]) + "?tour=all"),
                 (_("Sortie report"), None),
             ],
             "page_title": title,

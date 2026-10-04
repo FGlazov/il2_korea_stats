@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/components/tour_toggle.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  tour_toggle.html: the current-tour / all-time switch and the next tour's start, included by tour_select.html and
+  tour_filter.html (TD-26). Two links, the active one marked with aria-current; `?tour=all` is the all-time view.
+  Context: current (the newest Tour), is_all, is_current, all_href, current_href, next_start (aware datetime or None), main
+  (True when htmx swaps <main>, else the surrounding results_region does it).
+  The "next tour starts" line carries data-il2-until: localtime.js hides it once that moment is past (the markup itself
+  is the same for every viewer, TD-28).
+{% endcomment %}<span class="tour-toggle" role="group" aria-label="{% translate 'Tour' %}">{% if current %}
+  <a href="{{ current_href }}" hx-get="{{ current_href }}"{% if main %} hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if is_current %} aria-current="true"{% endif %}>{{ current|tour_title }}</a>{% endif %}
+  <a href="{{ all_href }}" hx-get="{{ all_href }}"{% if main %} hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if is_all %} aria-current="true"{% endif %}>{% translate "All time" %}</a>
+</span>{% if next_start %}
+<span class="tour-next muted" data-il2-until="{{ next_start|date:'c' }}">{% blocktranslate with when=next_start|local_time %}Next tour starts {{ when }}{% endblocktranslate %}</span>{% endif %}

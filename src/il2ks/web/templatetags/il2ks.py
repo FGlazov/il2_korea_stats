@@ -9,7 +9,8 @@ num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title
 in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select, stat_mark, stat_mark_note, flavor, sortie_flavor (flavor text,
+pagination, filter_select, filter_text, tour_select, tour_filter, stat_mark, stat_mark_note, flavor,
+sortie_flavor (flavor text,
 FR-WEB-23).
 Block tags: results_region, filter_bar, accordion, notice.
 """
@@ -475,20 +476,53 @@ def filter_text(
     }
 
 
+def _tour_context(context: Context, tours: Iterable[Tour], selected: Tour | None, *, main: bool) -> dict[str, object]:
+    """What the tour components render: the select, the current-tour / all-time toggle and the next tour's start.
+
+    `selected` None means all time. The toggle links keep the other query parameters (a sort, a filter) and drop
+    `page`. `next_start` is the end of the newest tour when the calendar fixed it (never in manual mode), shown for
+    every viewer alike; `localtime.js` hides it once that moment has passed, so the markup stays a function of the data
+    (TD-28). `main` is whether the htmx swap target is `<main>` (the profile) rather than a `results_region`."""
+    rows = list(tours)
+    params = _params_of(context)
+    current = tour_reads.current_tour_of(rows)
+    return {
+        "tours": rows,
+        "selected_id": selected.pk if selected is not None else tour_reads.TOUR_ALL,
+        "all_value": tour_reads.TOUR_ALL,
+        "current": current,
+        "is_all": selected is None,
+        "is_current": selected is not None and selected == current,
+        "all_href": replace_query(params, {tour_reads.TOUR_PARAM: tour_reads.TOUR_ALL, "page": None}),
+        "current_href": replace_query(
+            params, {tour_reads.TOUR_PARAM: current.pk if current is not None else None, "page": None}
+        ),
+        "next_start": current.ended_at if current is not None else None,
+        "main": main,
+    }
+
+
 @register.inclusion_tag(COMPONENTS + "tour_select.html", takes_context=True)
 def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None = None) -> dict[str, object]:
-    """{% tour_select tours tour %}: the tour selector (`?tour=<id>`, "All time" = no parameter), TD-26.
+    """{% tour_select tours tour %}: the tour selector and all-time toggle as a form of its own (`?tour=<id>` or
+    `?tour=all`, no parameter = the current tour), TD-26.
 
     `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice_from(request.GET)`."""
     request = _request_of(context)
-    params = _params_of(context)
-    hidden = [(key, value) for key, values in params.lists() if key not in {"tour", "page"} for value in values]
+    hidden = [
+        (key, value) for key, values in _params_of(context).lists() if key not in {"tour", "page"} for value in values
+    ]
     return {
-        "tours": list(tours),
-        "selected_id": selected.pk if selected is not None else "",
+        **_tour_context(context, tours, selected, main=True),
         "action": request.path if request is not None else "",
         "hidden": hidden,
     }
+
+
+@register.inclusion_tag(COMPONENTS + "tour_filter.html", takes_context=True)
+def tour_filter(context: Context, tours: Iterable[Tour], selected: Tour | None = None) -> dict[str, object]:
+    """{% tour_filter tours tour %} inside {% filter_bar %}: the same selector and toggle for a list page."""
+    return _tour_context(context, tours, selected, main=False)
 
 
 # --- block tags ---------------------------------------------------------------------------------------------------

@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from il2ks.core.catalog.loader import Side
 from il2ks.db.models import PlayerMission, PlayerSortie
 from il2ks.queries import missions as reads
-from il2ks.queries.tours import tour_choice_from, tour_options
+from il2ks.queries.tours import is_quiet_tour, tour_choice_from
 from il2ks.web import display
 
 HOME_MISSIONS = 8
@@ -65,8 +65,8 @@ def mission_list(request: HttpRequest) -> HttpResponse:
         "page_title": _("Missions"),
         "page_obj": page,
         "missions": page.object_list,
+        "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
         **choice.context,
-        "tour_options": tour_options(choice.tours),
         "sort": sort,
         "period_options": [(days, label) for days, label in PERIOD_LABELS.items()],
         "winner_options": [("redfor", _("REDFOR won")), ("blufor", _("BLUFOR won")), ("none", _("No winner"))],

@@ -57,7 +57,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "ground": ground_breakdown(stats) if stats else [],
         "pve_kills": pve.kill_breakdown(stats) if stats else [],
         "pve_losses": pve.loss_breakdown(stats) if stats else [],
-        "gunner_only": tour is None and reads.flies_as_gunner_only(player),
+        "gunner_only": reads.flies_as_gunner_only(player),  # all-time counters, so it holds in any tour view
         "recent": reads.recent_sorties(player, tour=tour),
     }
     return render(request, "il2ks/players/detail.html", context)

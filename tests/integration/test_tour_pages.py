@@ -10,6 +10,7 @@ from django.utils import translation
 
 from il2ks.db.models import Mission, Player, Tour
 from il2ks.queries.tours import tour_options, tour_title
+from il2ks.web.flavor import SPOTS
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
@@ -75,19 +76,62 @@ def test_selector_lists_localised_titles_and_keeps_renames(client: Client) -> No
 
 
 # --- profile -------------------------------------------------------------------------------------------------------
-def test_profile_without_tour_is_all_time_and_offers_the_selector(client: Client) -> None:
+def test_profile_without_tour_opens_on_the_current_tour_and_offers_the_selector(client: Client) -> None:
     seed()
 
     response = client.get(f"/players/{pk(1)}/")
 
     assert response.status_code == 200
+    assert response.context["tour"] == tour("October 2026")
+    assert (response.context["stats"].sorties, response.context["stats"].kills_ground) == (1, 4)
+    assert [row.aircraft.log_name for row in response.context["aircraft"]] == ["Il-10"]
+    body = response.content.decode()
+    assert 'name="tour"' in body
+    assert f'<option value="{tour("October 2026").pk}" selected>October 2026</option>' in body
+    assert '<option value="all">All time</option>' in body
+    assert "<h2>Sorties in October 2026</h2>" in body
+    assert "Shot down most" not in body  # killboard and streaks stay all-time only
+
+
+def test_profile_all_time_is_the_explicit_all_parameter(client: Client) -> None:
+    seed()
+
+    response = client.get(f"/players/{pk(1)}/?tour=all")
+
     assert response.context["tour"] is None
     assert response.context["stats"] == response.context["player"]
     assert (response.context["stats"].sorties, response.context["stats"].kills_ground) == (2, 6)
     assert len(response.context["aircraft"]) == 2
     body = response.content.decode()
-    assert 'name="tour"' in body
-    assert f'<option value="{tour("September 2026").pk}">September 2026</option>' in body
+    assert '<option value="all" selected>All time</option>' in body
+    assert "<h2>Recent sorties</h2>" in body
+    assert f"/players/{pk(1)}/sorties/?tour=all" in body  # the list link keeps the all-time view
+    assert "&amp;tour=all" in body
+
+
+def test_the_toggle_links_current_tour_and_all_time(client: Client) -> None:
+    seed()
+    october = tour("October 2026")
+
+    body = client.get(f"/players/{pk(1)}/?sort=-kills_ground").content.decode()
+
+    assert f'href="?sort=-kills_ground&amp;tour={october.pk}"' in body
+    assert 'href="?sort=-kills_ground&amp;tour=all"' in body
+    assert 'aria-current="true">October 2026</a>' in body
+
+
+def test_next_tour_start_is_shown_once_for_every_viewer(client: Client) -> None:
+    seed()
+    october = tour("October 2026")
+    assert october.ended_at is not None
+
+    first = client.get(f"/players/{pk(1)}/").content.decode()
+    second = client.get(f"/players/{pk(1)}/", headers={"Time-Zone": "Asia/Tokyo"}).content.decode()
+
+    assert first == second  # same bytes whatever the zone or the time of the request (TD-28)
+    assert first.count("Next tour starts") == 1
+    assert 'data-il2-until="' in first
+    assert f'datetime="{october.ended_at.strftime("%Y-%m-%dT%H:%M:%SZ")}"' in first
 
 
 def test_profile_with_a_tour_shows_that_tour_only(client: Client) -> None:
@@ -104,6 +148,7 @@ def test_profile_with_a_tour_shows_that_tour_only(client: Client) -> None:
     assert [(g.key, g.count) for g in response.context["ground"] if g.count] == [("tank", 2)]
     body = response.content.decode()
     assert f'<option value="{september.pk}" selected>September 2026</option>' in body
+    assert "<h2>Sorties in September 2026</h2>" in body
     assert f"/players/{pk(1)}/sorties/?tour={september.pk}" in body  # "All sorties" keeps the tour
     assert f"&amp;tour={september.pk}" in body  # so do the per-aircraft links
 
@@ -117,18 +162,20 @@ def test_profile_tour_where_the_player_did_not_fly_says_so(client: Client) -> No
     assert response.context["stats"] is None
     assert response.context["recent"] == []
     assert response.context["aircraft"] == []
-    assert "No pilot sorties are counted for this player in the selected tour." in response.content.decode()
+    body = response.content.decode()
+    assert "No pilot sorties are counted for this player in the selected tour." in body
+    assert any(str(line) in body for line in SPOTS["tour_empty"])  # the flavor line, never harsh
 
 
-@pytest.mark.parametrize("raw", ["", "abc", "-1", "999999", "1.5", "1;2", "%00"])
-def test_profile_unknown_tour_falls_back_to_all_time(client: Client, raw: str) -> None:
+@pytest.mark.parametrize("raw", ["", "abc", "-1", "999999", "1.5", "1;2", "%00", "9" * 5000])
+def test_profile_unknown_tour_falls_back_to_the_current_tour(client: Client, raw: str) -> None:
     seed()
 
     response = client.get(f"/players/{pk(1)}/", {"tour": raw})
 
     assert response.status_code == 200
-    assert response.context["tour"] is None
-    assert response.context["stats"].sorties == 2
+    assert response.context["tour"] == tour("October 2026")
+    assert response.context["stats"].sorties == 1
 
 
 def test_profile_sort_and_tour_combine(client: Client) -> None:
@@ -145,7 +192,9 @@ def test_profile_tour_budget(client: Client) -> None:
     seed()
 
     # context processor 2, player, names, tours, aircraft rows, recent sorties = 7; a tour adds the PlayerTour row
-    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=8)
+    # (the default view is the current tour; ?tour=all is the cheaper all-time one)
+    assert_simple_reads(client, f"/players/{pk(1)}/", max_queries=9)
+    assert_simple_reads(client, f"/players/{pk(1)}/?tour=all", max_queries=11)
     assert_simple_reads(client, f"/players/{pk(1)}/?tour={tour('September 2026').pk}", max_queries=9)
     assert_simple_reads(client, f"/players/{pk(2)}/?tour={tour('October 2026').pk}", max_queries=9)
 
@@ -159,15 +208,19 @@ def test_sortie_list_filters_by_tour(client: Client) -> None:
     september = client.get(f"{base}?tour={tour('September 2026').pk}")
     october = client.get(f"{base}?tour={tour('October 2026').pk}")
     unknown = client.get(f"{base}?tour=424242")
+    all_time = client.get(f"{base}?tour=all")
 
-    assert [s.mission.mission_uid for s in everything.context["page_obj"]] == [
+    assert [s.mission.mission_uid for s in all_time.context["page_obj"]] == [
         "2026-10-02_10-00-00",
         "2026-09-19_22-34-13",
     ]
+    assert [s.mission.mission_uid for s in everything.context["page_obj"]] == ["2026-10-02_10-00-00"]
+    assert "Sorties of Maverick in October 2026" in everything.content.decode()
+    assert "Sorties of Maverick</h1>" in all_time.content.decode()
     assert [s.mission.mission_uid for s in september.context["page_obj"]] == ["2026-09-19_22-34-13"]
     assert [s.aircraft.log_name for s in october.context["page_obj"]] == ["Il-10"]
     assert unknown.status_code == 200
-    assert len(unknown.context["page_obj"]) == 2
+    assert len(unknown.context["page_obj"]) == 1  # a stale link opens the current tour
     assert f'<option value="{tour("October 2026").pk}" selected>October 2026</option>' in october.content.decode()
 
 
@@ -178,6 +231,7 @@ def test_sortie_list_tour_budget(client: Client) -> None:
     # context processor 2, player, aircraft options, tours, COUNT, page
     assert_simple_reads(client, base, max_queries=7)
     assert_simple_reads(client, f"{base}?tour={tour('September 2026').pk}", max_queries=7)
+    assert_simple_reads(client, f"{base}?tour=all", max_queries=7)
 
 
 # --- mission list --------------------------------------------------------------------------------------------------
@@ -187,10 +241,14 @@ def test_mission_list_filters_by_tour(client: Client) -> None:
     everything = client.get("/missions/")
     september = client.get(f"/missions/?tour={tour('September 2026').pk}")
     unknown = client.get("/missions/?tour=abc")
+    all_time = client.get("/missions/?tour=all")
 
-    assert [m.mission_uid for m in everything.context["page_obj"]] == ["2026-10-02_10-00-00", "2026-09-19_22-34-13"]
+    assert [m.mission_uid for m in all_time.context["page_obj"]] == ["2026-10-02_10-00-00", "2026-09-19_22-34-13"]
+    assert [m.mission_uid for m in everything.context["page_obj"]] == ["2026-10-02_10-00-00"]
+    assert "Missions in October 2026" in everything.content.decode()
+    assert "<h1>Missions</h1>" in all_time.content.decode()
     assert [m.mission_uid for m in september.context["page_obj"]] == ["2026-09-19_22-34-13"]
-    assert len(unknown.context["page_obj"]) == 2
+    assert len(unknown.context["page_obj"]) == 1
     assert Mission.objects.count() == 2
     assert f'<option value="{tour("September 2026").pk}" selected>September 2026</option>' in september.content.decode()
 
@@ -201,3 +259,28 @@ def test_mission_list_tour_budget(client: Client) -> None:
     # context processor 2, tours, COUNT, page
     assert_simple_reads(client, "/missions/", max_queries=5)
     assert_simple_reads(client, f"/missions/?tour={tour('October 2026').pk}", max_queries=5)
+    assert_simple_reads(client, "/missions/?tour=all", max_queries=5)
+
+
+# --- an empty tour -------------------------------------------------------------------------------------------------
+def test_a_tour_without_missions_shows_flavor_text_not_the_filter_message(client: Client) -> None:
+    seed()
+    empty = Tour.objects.create(
+        title="November 2026",
+        started_at=STARTED_AT + timedelta(days=60),
+        ended_at=STARTED_AT + timedelta(days=90),
+        mode="monthly",
+    )
+
+    missions = client.get("/missions/")  # the newest tour row is the current one, even when nobody flew yet
+    sorties = client.get(f"/players/{pk(1)}/sorties/")
+    filtered = client.get(f"/missions/?tour={empty.pk}&q=nothing")
+
+    assert missions.context["tour"] == empty
+    for response in (missions, sorties):
+        body = response.content.decode()
+        assert response.context["quiet_tour"] is True
+        assert "No missions match these filters." not in body
+        assert "No sorties match these filters." not in body
+        assert any(str(line) in body for line in SPOTS["tour_empty"])
+    assert "No missions match these filters." in filtered.content.decode()  # another filter: no quip

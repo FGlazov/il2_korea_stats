@@ -117,15 +117,16 @@ def test_marks_follow_the_selected_tour(client: Client) -> None:
 
 def test_pilots_under_the_minimum_get_a_note_instead_of_marks(client: Client) -> None:
     seed(TWO)
-    page = client.get(f"/players/{pk(24)}/").content.decode()  # one sortie all-time
+    page = client.get(f"/players/{pk(24)}/?tour=all").content.decode()  # one sortie all-time
     assert "from 2 sorties on" in page
     assert "stat-mark--" not in page
-    flown_twice = client.get(f"/players/{pk(1)}/").content.decode()
+    flown_twice = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
     assert "from 2 sorties on" not in flown_twice
 
 
 def test_profile_query_budget_with_marks(client: Client) -> None:
     """One extra read for the thresholds, all-time and per tour (TD-22: a simple SELECT)."""
     seed()
-    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=8)
+    assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=9)
+    assert_simple_reads(client, f"/players/{pk(25)}/?tour=all", max_queries=11)
     assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=9)

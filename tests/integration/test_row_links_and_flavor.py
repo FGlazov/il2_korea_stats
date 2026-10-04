@@ -67,9 +67,9 @@ def test_player_pages_rows_link_to_their_main_target() -> None:
     pilot = Player.objects.get(account_uuid=account(1))
     row = PlayerSortie.objects.get(player=pilot)
     assert stretched(get(client, "/players/?q=Mav"), f"/players/{pilot.pk}/")
-    profile = get(client, f"/players/{pilot.pk}/")
+    profile = get(client, f"/players/{pilot.pk}/?tour=all")
     assert stretched(profile, f"/sorties/{row.pk}/")
-    assert stretched(profile, f"/players/{pilot.pk}/sorties/?aircraft={row.aircraft_id}")
+    assert stretched(profile, f"/players/{pilot.pk}/sorties/?aircraft={row.aircraft_id}&amp;tour=all")
     assert stretched(get(client, f"/players/{pilot.pk}/sorties/"), f"/sorties/{row.pk}/")
 
 

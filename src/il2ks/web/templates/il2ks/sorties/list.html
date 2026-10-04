@@ -1,7 +1,7 @@
-{# il2ks-template: templates/il2ks/sorties/list.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/list.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's sortie list (FR-WEB-5), newest first. Filters, sorting and paging work with and without htmx (results_region).
-  Context: player, tour_options ((id, title) pairs for ?tour=), page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
+  Context: player, tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
   aircraft_options / outcome_options / role_options / combat_role_options ((value, label) pairs), crumbs, page_title.
   Blocks: content only; the row is `sorties/parts/list_row.html`.
 {% endcomment %}
@@ -9,13 +9,13 @@
 {% block content %}
   {% breadcrumbs crumbs %}
   <div class="page-head">
-    <h1>{% blocktranslate with name=player.current_name %}Sorties of {{ name }}{% endblocktranslate %}</h1>
+    <h1>{% if tour %}{% blocktranslate with name=player.current_name tour=tour|tour_title %}Sorties of {{ name }} in {{ tour }}{% endblocktranslate %}{% else %}{% blocktranslate with name=player.current_name %}Sorties of {{ name }}{% endblocktranslate %}{% endif %}</h1>
     <p>{% translate "Every sortie, newest first. Select one for the full report." %}</p>
   </div>
 
   {% results_region %}
     {% filter_bar %}
-      {% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}
+      {% tour_filter tours tour %}
       {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
       {% filter_select "outcome" _("Outcome") outcome_options all_label=_("Any outcome") %}
       {% filter_select "role" _("Seat") role_options all_label=_("Pilot or gunner") %}
@@ -40,7 +40,7 @@
         </thead>
         <tbody>
           {% for sortie in page_obj %}{% include "il2ks/sorties/parts/list_row.html" %}
-          {% empty %}{% empty_row 11 _("No sorties match these filters.") %}
+          {% empty %}{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% empty_row 11 quiet_line %}{% else %}{% empty_row 11 _("No sorties match these filters.") %}{% endif %}
           {% endfor %}
         </tbody>
       </table>
