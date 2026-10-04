@@ -6,11 +6,12 @@ from pathlib import Path
 
 import pytest
 from django.db import connection
+from django.test import Client
 from django.test.utils import CaptureQueriesContext
 
 from il2ks.config import Config
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult
-from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings
+from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.ratings import recompute_ratings
@@ -252,3 +253,30 @@ def test_saving_a_mission_that_changes_elo_peaks_recounts_the_holders_once() -> 
     assert PlayerSortie.objects.filter(elo_peak__gt=0).exists()
     holder_reads = [q for q in queries if q["sql"].startswith("SELECT") and "il2ks_db_achievementholders" in q["sql"]]
     assert len(holder_reads) == 1
+
+
+def test_top_rated_is_an_all_time_medal_only(client: Client) -> None:
+    """The Elo is global: per tour, a pilot already above a tier would earn Top Rated with the first win of every new
+    tour. So `elo_peak` has all-time rows only (doc 17), and the tour pages leave it out."""
+    save(*duel(8))
+    save(
+        mission(
+            (
+                sortie(0, 1, combat_role="air_superiority", kills_air=1, kills_air_pvp=1),
+                sortie(1, 40, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
+            ),
+            (kill(100, 0, 1),),
+        ),
+        meta("october", STARTED_AT + timedelta(days=40)),
+    )
+    september, october = Tour.objects.order_by("started_at")
+
+    assert held(1)["elo_peak"] >= 1  # all time
+    assert not PlayerAchievement.objects.filter(key="elo_peak", tour__isnull=False).exists()
+    assert not AchievementHolders.objects.filter(key="elo_peak", tour__isnull=False).exists()
+    assert PlayerAchievement.objects.filter(player_id=pk(1), tour=october, key="career_kills").exists()  # others stay
+    page = client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
+    assert "Top Rated" not in page
+    assert "Top Rated" in client.get(f"/players/{pk(1)}/achievements/?tour=all").content.decode()
+    assert "Top Rated" not in client.get(f"/achievements/?tour={october.pk}").content.decode()
+    assert september.pk != october.pk
