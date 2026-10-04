@@ -53,6 +53,7 @@ jobs:
     # Install silently into a temp folder, no service, no firewall; run il2ks from the installed copy; uninstall.
     needs: build
     runs-on: windows-latest
+    timeout-minutes: 30  # a silent install that waits for input would otherwise hang for 6 hours
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -145,6 +146,7 @@ jobs:
     needs: build
     if: github.event_name == 'push' || inputs.service_test
     runs-on: windows-latest
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/download-artifact@v8
