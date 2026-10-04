@@ -39,6 +39,8 @@ def test_sqlite_runs_in_wal_mode_with_immediate_transactions(tmp_path: Path) -> 
             assert cursor.fetchone() == (1,)  # NORMAL
             cursor.execute("PRAGMA busy_timeout")
             assert cursor.fetchone() == (20000,)
+            cursor.execute("PRAGMA wal_autocheckpoint")  # a mission commit is bigger than the 1000-page default
+            assert cursor.fetchone() == (10000,)
         assert settings.DATABASES["default"]["OPTIONS"]["transaction_mode"] == "IMMEDIATE"
     finally:
         connections.close_all()

@@ -99,8 +99,11 @@ TEMPLATES = [
 # IMMEDIATE takes the write lock when a transaction begins, so it waits (up to `timeout` seconds) instead of failing
 # with SQLITE_BUSY when a deferred read lock cannot be upgraded; NORMAL is the safe pairing with WAL (a power cut can
 # lose the last commits, never corrupt the file). The journal mode is stored in the file: it sticks once set.
+# wal_autocheckpoint (default 1000 pages = 4 MB): a mission commit is far bigger, so with the default every commit also
+# ran a checkpoint (copy WAL to the database file + fsync), 0.1-0.7 s on top of each ingested mission. 10000 pages
+# (40 MB) moves that to every few missions; the WAL file just stays that big until then.
 SQLITE_OPTIONS: dict[str, object] = {
-    "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+    "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA wal_autocheckpoint=10000;",
     "transaction_mode": "IMMEDIATE",
     "timeout": 20,
 }

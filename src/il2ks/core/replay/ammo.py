@@ -34,6 +34,7 @@ loaded. A rocket "release" is a salvo.
 from bisect import bisect_left
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from itertools import islice
 from typing import Literal
 
 from il2ks.core.catalog.loader import (
@@ -45,7 +46,7 @@ from il2ks.core.catalog.loader import (
     LoadoutItem,
     OrdnanceKind,
 )
-from il2ks.core.logparse.events import TICKS_PER_SECOND
+from il2ks.core.logparse.events import TICKS_PER_SECOND, ObjectId
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import damage_records, hit_records, is_self_attack
 from il2ks.core.replay.fate import ticks, was_resupplied
@@ -208,6 +209,7 @@ class _Analysis:
         self._det_labels: dict[int, Label | None] = {}
         self._damage_labels: dict[int, Label] = {}
         self._units: dict[int, tuple[TrackedObject, ...]] = {}
+        self._unit_ids: dict[int, frozenset[ObjectId]] = {}
 
     # classification
 
@@ -249,7 +251,7 @@ class _Analysis:
         hits = attacker.given_hits
         start = bisect_left(hits, det.tick - self.hit_window, key=_hit_tick)
         best: tuple[tuple[int, int], Label] | None = None
-        for hit in hits[start:]:
+        for hit in islice(hits, start, None):
             if hit.tick > det.tick + self.hit_window:
                 break
             label = self.classify(hit.ammo)
@@ -293,10 +295,13 @@ class _Analysis:
         Hits on the target's whole unit count (the pilot bot's damage lines have no hit lines of their own)."""
         best: tuple[tuple[int, int, int], Label | None, int] | None = None
         unit = self._unit(target)
+        unit_ids = self._unit_ids.get(id(unit[0]))
+        if unit_ids is None:
+            unit_ids = self._unit_ids[id(unit[0])] = frozenset(member.object_id for member in unit)
         for member in unit:
             hits = member.hit_log
             start = bisect_left(hits, record_tick - self.window, key=_hit_tick)
-            for hit in hits[start:]:
+            for hit in islice(hits, start, None):
                 if hit.tick > record_tick + self.window:
                     break
                 if hit.attacker is not attacker:
@@ -306,10 +311,10 @@ class _Analysis:
                     best = (rank, self.classify(hit.ammo), hit.tick)
         dets = attacker.detonations
         start = bisect_left(dets, record_tick - self.window, key=_det_tick)
-        for det in dets[start:]:
+        for det in islice(dets, start, None):
             if det.tick > record_tick + self.window:
                 break
-            if not any(member.object_id in det.targets for member in unit):
+            if det.targets.keys().isdisjoint(unit_ids):
                 continue
             rank = (abs(det.tick - record_tick), 1 if det.tick > record_tick else 0, 1)
             if best is None or rank < best[0]:
