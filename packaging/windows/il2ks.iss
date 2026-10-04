@@ -184,10 +184,13 @@ var
 begin
   Tmp := ExpandConstant('{tmp}\il2ks-output.txt');
   DeleteFile(Tmp);
-  if Exec(ExpandConstant('{cmd}'), '/S /C ""' + FileName + '" ' + Params + ' > "' + Tmp + '" 2>&1"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
+  // < NUL: a child that asks something on stdin gets end-of-file instead of waiting for a person who is not there (silent installs).
+  Log('Running: ' + FileName + ' ' + Params);
+  if Exec(ExpandConstant('{cmd}'), '/S /C ""' + FileName + '" ' + Params + ' > "' + Tmp + '" 2>&1 < NUL"', '', SW_HIDE, ewWaitUntilTerminated, Code) then
     Result := Code
   else
     Result := -1;
+  Log('  exit code ' + IntToStr(Result));
   Output := '';
   if LoadStringFromFile(Tmp, Raw) then
     Output := String(Raw);
