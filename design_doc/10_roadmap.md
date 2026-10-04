@@ -204,7 +204,7 @@ decisions are made):
   shows all), new achievements (Elo and ground-score milestones, ram, first blood, double/triple/quad kills, aircraft types, landing
   streak, Ace in a Day, hall-of-shame medals), rarity percentage on hover, rarer medals stand out, a recently-earned feed on the home
   page, ribbons for the simpler achievements.
-- 🔧 **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
+- ✅ **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
   focus / tap).
 
 - ✅ **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the

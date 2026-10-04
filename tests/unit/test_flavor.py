@@ -259,3 +259,24 @@ def test_shame_spot_on_a_tour_row() -> None:
     """The profile shows a PlayerTour with `?tour=`: the same counters, so the same rules."""
     stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_kills=0)
     assert flavor.shame_spot(stats, MARKS) == "shame_taxi_p90"
+
+
+# Default quips must fit any pilot, so none may name one aircraft type or a propeller (jets have none).
+# Allowed: the place name "MiG Alley" and the Il-10 compliment (it works for any type).
+_TYPE_OR_PROPELLER = re.compile(
+    r"mustang|sabre|mig-15|f-86|f-51|f-80|f-84|\byak\b|la-11|tu-2|b-29"
+    r"|мустанг|сейбр|миг-15|\bяк\b|пропеллер|\bвинт|воздушн\w+ винт"
+    r"|propeller|\bprop\b|luftschraube"
+    r"|hélice|helice",
+    re.IGNORECASE,
+)
+_ALLOWED = re.compile(r"mig alley|мигов\w+ аллеи", re.IGNORECASE)
+
+
+def test_no_default_quip_names_an_aircraft_type_or_a_propeller() -> None:
+    for code in ("en", *(c for c, _directory, _plural in translations.TARGET_LANGUAGES)):
+        with translation.override(code):
+            for spot, variants in flavor.SPOTS.items():
+                for variant in variants:
+                    text = _ALLOWED.sub("", str(variant))
+                    assert not _TYPE_OR_PROPELLER.search(text), (code, spot, str(variant))
