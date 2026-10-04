@@ -25,8 +25,10 @@ Collected from the maintainer's instructions of 2026-10-02/03. They apply to eve
 - Time-box agents (~90–120 min); they report what's done, what's left, test results, and a **Decisions** list.
 - Keep the slots busy while there is queued work. Before starting, check `git branch` / `git worktree list` for unmerged
   `worktree-agent-*` branches from earlier runs.
-- Merging: `git merge --no-ff`, renumber migrations, `uv run il2ks dev bump-templates`, `uv run il2ks dev translations update`,
-  full checks (ruff, pyright, lint-imports, vulture, pytest). Stage explicit paths only; never stage `sample_data/`.
+- Merging: follow the `merge-branch` skill (`git merge --no-ff`, renumber migrations, regenerate po/mo/template versions,
+  `uv run il2ks dev check --full`). Stage explicit paths only; never stage `sample_data/`.
+- Every agent prompt: "run `uv run il2ks dev check` before each commit and `--full` before you report"; the hooks in
+  `.claude/settings.json` block edits of released migrations and `sample_data/`.
 - Commit and push on `main` freely (no feature branches); never force-push.
 - Never split or rename a migration that may already be applied: existing databases fail with InconsistentMigrationHistory.
 

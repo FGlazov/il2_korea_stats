@@ -155,6 +155,7 @@ def _add_translation_parsers(dev: SubParsers) -> None:
     sub = tr.add_subparsers(dest="translations_command", required=True)
     sub.add_parser("update", help="re-extract the strings, merge them into every language's .po, then compile")
     sub.add_parser("compile", help="compile every .po into its .mo (after editing a .po by hand)")
+    sub.add_parser("check", help="change nothing; exit 1 when update/compile would change a file (CI, pre-commit)")
     sub.add_parser("status", help="per language: strings, translated, still llm-draft (unreviewed), untranslated")
     missing = sub.add_parser("missing", help="print a language's untranslated strings as JSON (input for a draft)")
     missing.add_argument("language", help="ru, de, es, fr or pt-br")
@@ -174,6 +175,12 @@ def _translations_command(ns: argparse.Namespace) -> int:
                 for directory, count in translations.update().items():
                     print(f"{directory}: {count} strings")
                 translations.compile_all()
+            case "check":
+                problems = translations.check()
+                for problem in problems:
+                    print(f"  - {problem}")
+                print("translations are up to date" if not problems else "run `uv run il2ks dev translations update`")
+                return EXIT_FAILED if problems else EXIT_OK
             case "compile":
                 for path in translations.compile_all():
                     print(f"wrote {path}")
@@ -272,6 +279,28 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     changes.add_argument("old_tag", help="a git tag or commit, like v0.2.0")
     _add_translation_parsers(dev)
+    chk = dev.add_parser(
+        "check",
+        help="everything to run before committing (lint, types, guards, tests); see CLAUDE.md. Default tier: quick",
+    )
+    tier = chk.add_mutually_exclusive_group()
+    tier.add_argument("--fast", action="store_true", help="static checks + guards only (~15 s; the Stop hook)")
+    tier.add_argument("--quick", action="store_true", help="fast + unit tests (the default; before every commit)")
+    tier.add_argument("--full", action="store_true", help="quick + integration tests (before merging / finishing)")
+    chk.add_argument(
+        "--fix", action="store_true", help="first run the auto-fixers: ruff --fix/format, bump-templates, translations"
+    )
+    chk.add_argument("--no-tests", action="store_true", help="skip every test step (CI lint job)")
+    chk.add_argument("--postgres", action="store_true", help="also run the whole suite on Postgres (compose.dev.yaml)")
+    chk.add_argument("--e2e", action="store_true", help="also run the Playwright browser tests")
+    chk.add_argument("--only", action="append", default=[], metavar="STEP", help="just this step (repeatable)")
+    chk.add_argument("--list", action="store_true", dest="list_steps", help="list the steps of the chosen tier, exit")
+    chk.add_argument("--if-changed", action="store_true", help="skip when nothing changed since the last passing run")
+    chk.add_argument("--verbose", action="store_true", help="show the whole output of failed steps")
+    dev.add_parser(
+        "check-migrations",
+        help="released migrations unchanged (vs origin/main or main), exactly one leaf, no duplicate numbers",
+    )
     serving_commands.add_parsers(sub)
     return parser
 
@@ -323,6 +352,26 @@ def _main(argv: Sequence[str] | None) -> int:
         from il2ks.devtools.templates import template_changes
 
         return template_changes(ns.old_tag)
+    if command == "dev" and ns.dev_command == "check":
+        from il2ks.devtools.check import Tier, check
+
+        chosen: Tier = "full" if ns.full else "fast" if ns.fast else "quick"
+        return check(
+            chosen,
+            fix=ns.fix,
+            no_tests=ns.no_tests,
+            postgres=ns.postgres,
+            e2e=ns.e2e,
+            only=ns.only,
+            if_changed=ns.if_changed,
+            verbose=ns.verbose,
+            list_only=ns.list_steps,
+        )
+    if command == "dev" and ns.dev_command == "check-migrations":
+        from il2ks.devtools import migrations as dev_migrations
+        from il2ks.devtools.check import repo_root
+
+        return dev_migrations.check(repo_root())
     if command == "dev" and ns.dev_command == "translations":
         return _translations_command(ns)
     if command == "db" and ns.db_command == "copy":

@@ -7,16 +7,17 @@ on:
 
 jobs:
   lint:
+    # The same command agents and pre-commit run (`il2ks dev check`), minus the tests (the jobs below run those):
+    # ruff, format, pyright, import-linter, vulture, makemigrations --check, migration immutability / single leaf,
+    # bump-templates --check, translations check. Full history: the migration guard compares with origin/main.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v10
       - run: uv sync --locked
-      - run: uv run ruff check
-      - run: uv run ruff format --check
-      - run: uv run pyright
-      - run: uv run lint-imports
-      - run: uv run vulture
+      - run: uv run il2ks dev check --no-tests --verbose
 
   test-sqlite:
     # SQLite is the default test database (TD-19). Windows is the main target platform.

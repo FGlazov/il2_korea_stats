@@ -26,7 +26,7 @@ from typing import cast
 
 from babel.messages.catalog import Catalog, Message
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
-from babel.messages.mofile import write_mo
+from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 from django.utils.translation.template import templatize
 
@@ -102,12 +102,16 @@ def read_catalog(directory: str) -> Catalog:
         return read_po(handle, locale=directory)
 
 
-def _write_po(catalog: Catalog, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def _po_bytes(catalog: Catalog) -> bytes:
     buffer = io.BytesIO()
     write_po(buffer, catalog, width=120, no_location=True, sort_output=True, ignore_obsolete=True)
     # LF everywhere, whatever the platform: .po files are diffed and reviewed.
-    path.write_bytes(buffer.getvalue().replace(b"\r\n", b"\n"))
+    return buffer.getvalue().replace(b"\r\n", b"\n")
+
+
+def _write_po(catalog: Catalog, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(_po_bytes(catalog))
 
 
 def _set_headers(catalog: Catalog, directory: str, plural_forms: str) -> None:
@@ -144,13 +148,45 @@ def update(languages: Iterable[LanguageSpec] = TARGET_LANGUAGES) -> dict[str, in
     template = extract_catalog()
     counts: dict[str, int] = {}
     for _code, directory, plural_forms in languages:
-        path = po_path(directory)
-        catalog = read_catalog(directory) if path.exists() else _new_catalog(directory)
-        _set_headers(catalog, directory, plural_forms)
-        catalog.update(template, no_fuzzy_matching=True, update_header_comment=False, update_creation_date=False)
-        _write_po(catalog, path)
+        catalog = _merged(template, directory, plural_forms)
+        _write_po(catalog, po_path(directory))
         counts[directory] = len(catalog)
     return counts
+
+
+def _merged(template: Catalog, directory: str, plural_forms: str) -> Catalog:
+    path = po_path(directory)
+    catalog = read_catalog(directory) if path.exists() else _new_catalog(directory)
+    _set_headers(catalog, directory, plural_forms)
+    catalog.update(template, no_fuzzy_matching=True, update_header_comment=False, update_creation_date=False)
+    return catalog
+
+
+def check(languages: Iterable[LanguageSpec] = TARGET_LANGUAGES) -> list[str]:
+    """What `update` + `compile_all` would change in the shipped files, as problem lines (empty = up to date). Writes
+    nothing. For `il2ks dev translations check` (agents, pre-commit, CI)."""
+    template = extract_catalog()
+    problems: list[str] = []
+    for _code, directory, plural_forms in languages:
+        po = po_path(directory)
+        if not po.is_file():
+            problems.append(f"{po} is missing")
+            continue
+        on_disk = po.read_bytes().replace(b"\r\n", b"\n")  # a Windows checkout may have CRLF; git stores LF
+        if _po_bytes(_merged(template, directory, plural_forms)) != on_disk:
+            problems.append(f"{directory}: django.po is out of date with the templates and sources")
+        mo = mo_path(directory)
+        if not mo.is_file():
+            problems.append(f"{directory}: django.mo is missing")
+            continue
+        compiled = read_mo(io.BytesIO(mo.read_bytes()))
+        for message in messages_of(read_catalog(directory)):
+            if is_translated(message):
+                found = compiled.get(message.id, message.context)
+                if found is None or _strings(found)[1] != _strings(message)[1]:
+                    problems.append(f"{directory}: django.mo is stale (compiled from an older django.po)")
+                    break
+    return problems
 
 
 def compile_all(languages: Iterable[LanguageSpec] = TARGET_LANGUAGES) -> list[Path]:

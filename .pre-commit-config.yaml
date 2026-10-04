@@ -1,26 +1,13 @@
-# Uses the project's own tool versions through uv, so pre-commit, CI and the editor agree.
+# One source of truth: `il2ks dev check` (src/il2ks/devtools/check.py). Agents, the Stop hook, pre-commit and CI all call it.
+# It uses the project's own tool versions through uv. Install once per clone (worktrees share it): uv run pre-commit install
+# On failure it prints what broke and the fix command; `uv run il2ks dev check --fix` applies the auto-fixable parts.
 repos:
   - repo: local
     hooks:
-      - id: ruff-check
-        name: ruff check
-        entry: uv run ruff check --fix
-        language: system
-        types: [python]
-      - id: ruff-format
-        name: ruff format
-        entry: uv run ruff format
-        language: system
-        types: [python]
-      - id: lint-imports
-        name: import-linter (core stays pure)
-        entry: uv run lint-imports
+      - id: il2ks-check
+        name: il2ks dev check (lint, types, migration/template/translation guards, unit tests)
+        entry: uv run il2ks dev check
         language: system
         pass_filenames: false
-        types: [python]
-      - id: vulture
-        name: vulture (dead code; intentional leftovers go in vulture_whitelist.py)
-        entry: uv run vulture
-        language: system
-        pass_filenames: false
-        types: [python]
+        always_run: true
+        verbose: true
