@@ -55,7 +55,7 @@ def test_the_reload_detector_notices_a_full_page_load(page: Page) -> None:
 def test_home_links_lead_to_the_lists(page: Page) -> None:
     page.goto("/")
     link_or_button(page, "All missions").click()
-    expect(page).to_have_url(re.compile(r"/missions/[?]tour=all$"))
+    expect(page).to_have_url(re.compile(r"/missions/[?]tour=[0-9]+$"))
     page.goto("/")
     search = page.get_by_role("main").get_by_role("searchbox", name="Find a player by name")
     search.fill("Ace")

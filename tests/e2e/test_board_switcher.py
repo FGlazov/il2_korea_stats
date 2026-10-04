@@ -42,7 +42,7 @@ def test_labels_are_whole_and_nothing_overlaps(page: Page, width: int) -> None:
     result = page.evaluate(MEASURE)
 
     assert result["problems"] == []
-    assert [label.lower() for label in result["labels"]] == ["air", "ground"]
+    assert [label.lower() for label in result["labels"]] == ["air", "ground", "general"]
     assert result["scrollOverflow"] <= 0
     if width >= 1280:  # side by side with a normal gap, not pushed to the far edge
         assert result["sameRow"] is True

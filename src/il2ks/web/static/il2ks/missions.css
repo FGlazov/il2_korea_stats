@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/missions.css v3 - copy this line along when you override */
+/* il2ks-template: static/il2ks/missions.css v4 - copy this line along when you override */
 /* Mission pages (home, list, detail): the few styles the shared theme does not cover. Tokens come from site.css. */
 .mission-when { display: block; margin-top: 0.1rem; font-weight: 400; font-size: 0.78rem; }
 .data-table tr.is-empty { opacity: 0.6; }
@@ -42,14 +42,15 @@
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Sortie tables of one mission page share column widths so the two sides line up. */
-.sortie-table { table-layout: fixed; min-width: 66rem; } /* narrower: the wrapper scrolls instead of crushing the cells */
+.sortie-table { table-layout: fixed; min-width: calc(66rem + var(--extra-cols, 0) * 6.5rem); } /* narrower: the wrapper scrolls instead of crushing the cells */
 .sortie-table th:nth-child(1) { width: 5rem; }
 .sortie-table th:nth-child(2) { width: 14%; }
 .sortie-table th:nth-child(3) { width: 13%; }
 .sortie-table th:nth-child(4), .sortie-table th:nth-child(5), .sortie-table th:nth-child(6) { width: 12.5%; }
 .sortie-table th:nth-child(7), .sortie-table th:nth-child(8), .sortie-table th:nth-child(9) { width: 4.5rem; }
 .sortie-table th:nth-child(10) { width: 6.5rem; }
-.sortie-table th:nth-child(11) { width: 3rem; }
+.sortie-table th:nth-child(n+11) { width: 6.5rem; } /* the optional (?cols=) columns */
+.sortie-table th:last-child { width: 3rem; } /* Details */
 .sortie-table tbody th { overflow-wrap: anywhere; }
 
 /* "On this page" links (Pico lays a <nav> out with space-between). */
