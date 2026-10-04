@@ -190,7 +190,7 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
 
 - **Medals and ribbons** `[DECIDED]` (split by `Achievement.kind`, default `medal`): the **hard** achievements are medals (round
   badge with an icon: `life_kills`, `sortie_kills`, `strike_hunter`, `tank_buster`, `ground_sortie`, `survivor`,
-  `damaged_landing`, `type_veteran`); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`,
+  `damaged_landing`, `type_veteran` and the second set's other medals); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`, `types_flown`,
   `regular`): things that mostly need time. A ribbon is a small bar of CSS stripes (a colour pair from the status tokens, one of four
   patterns per achievement) with one pip per tier reached, tinted in the tier colour, plus the name: no new colour tokens. The
   profile shows the medals first and the ribbon rack under them; the lists and the overview show medals first, then ribbons.

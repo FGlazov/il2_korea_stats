@@ -213,8 +213,8 @@ decisions are made):
 - 🔧 **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large
   image (e.g. a map of the current situation) dominating the home page, read from a server file path and picked up within ~10 s; the
   file is validated and re-encoded like the logo, never served directly. An embed (iframe) mode later.
-- 🔧 **Weapon mods and the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table
-  (one row per vehicle and payload id, the newest version for all sorties) and `korea_weapon_mods.csv` (WM bit k = mod k); mod names on
+- 🔧 **Weapon mods** ✅ foundation (payload table, `weapon_mods.csv`, WM bit k = mod k verified on 30.7k spawns, Modifications row); 🔧 **the "significant modifications" filter** (maintainer, 2026-10-04; was after the release): the new payload table
+  (one row per vehicle and payload id, the newest version for all sorties) and `weapon_mods.csv`; mod names on
   the sortie page; an aircraft-page filter by the mods that change performance a lot: MiG-15bis Anti-G suit (5), NR-23 cannons (1),
   improved air brakes and wing (2), all combinations; F-51D 150-grade fuel (4); a mods table with effectiveness.
 - 🔧 **Aircraft page role toggle and loadout effectiveness** (maintainer, 2026-10-04): all / air superiority / attack scope for the type's

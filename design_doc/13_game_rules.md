@@ -468,4 +468,8 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   someone). Low-altitude ground crashes can't be told apart without terrain height (OQ-39). Code: `core/replay/rams.py`.
 - **Parachute deaths: no toggle** (maintainer, OQ-99, 2026-10-04): the toggle `parachute_deaths` was removed; a pilot killed while parachuting is
   always a death. An `il2ks.toml` that still sets it gets a warning at load (the key is ignored).
+- **Achievement facts per sortie** (OQ-105, doc 17; changing one needs a reprocess): `rams` = the air kills credited to a ram (`KillResult.ram`);
+  `first_blood` = the sortie made the mission's earliest credited, non-friendly PvP air kill of a player's aircraft (`kills.first_blood_sortie`; AI victims,
+  assists and gunners do not count); `multi_kill` = the most air kills within `BURST_WINDOW_S` (120 s) in the sortie; `elo_peak` is not a replay fact but written by
+  `ingest.ratings` (the highest pool Elo held after a win in the sortie).
 - Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).

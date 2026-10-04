@@ -13,6 +13,8 @@ Lighthouse are not needed).
 
 ## 1. Server timing and query budgets (`tests/perf/`)
 
+`uv run il2ks dev check --full` runs them too (in one process: the world is seeded once, and the timings are steadier).
+
 ```
 uv run pytest -m perf                 # only these
 uv run pytest -m "not perf"           # everything else (they also run in a plain `uv run pytest` locally; CI keeps them out of the functional jobs)
