@@ -25,10 +25,10 @@ BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landin
 # sorties that reach the threshold, before the precedence in `sortie_spot` takes some away):
 BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
 # Air assists (assists on aircraft) that earn the stolen-kills line, by the sortie's own air kills (maintainer,
-# 2026-10-04): 3+ with no air kill, 5+ with one, 6+ with two (three or more air kills is the ace line, which comes
+# 2026-10-04): 2+ with no air kill, 3+ with one, 6+ with two (three or more air kills is the ace line, which comes
 # first). Ground assists have their own line. Of the 15,245 September pilot sorties only 291 have an air assist at all,
-# and none reaches these numbers: the line is for a rare, striking evening.
-STOLEN_ASSISTS_MIN = {0: 3, 1: 5}
+# so the line stays rare.
+STOLEN_ASSISTS_MIN = {0: 2, 1: 3}
 STOLEN_ASSISTS_MIN_MORE_KILLS = 6
 # Ground assists: at least 5 and at least as many as the sortie's own ground kills (the pilot did as much damage to
 # targets others finished as to those it finished itself): 1.5% of the 8,300 attack sorties (0.8% of all sorties); 5 is

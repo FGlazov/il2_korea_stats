@@ -97,10 +97,10 @@ def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
         ({"kills_air": 2}, Highlights(bomber_kills=2), "sortie_bomber_hunter"),
         ({"kills_air": 2}, Highlights(bomber_kills=1), None),  # one bomber is not a hunt
         ({"kills_air": 2}, None, None),  # the spot needs the timeline facts
-        ({"assists_air": 3}, None, "sortie_stolen_kills"),  # no air kill: 3 assists
-        ({"assists_air": 2}, None, None),
-        ({"assists_air": 5, "kills_air": 1}, None, "sortie_stolen_kills"),  # one air kill: 5 assists
-        ({"assists_air": 4, "kills_air": 1}, None, None),
+        ({"assists_air": 2}, None, "sortie_stolen_kills"),  # no air kill: 2 assists
+        ({"assists_air": 1}, None, None),
+        ({"assists_air": 3, "kills_air": 1}, None, "sortie_stolen_kills"),  # one air kill: 3 assists
+        ({"assists_air": 2, "kills_air": 1}, None, None),
         ({"assists_air": 6, "kills_air": 2}, None, "sortie_stolen_kills"),  # two air kills: 6 assists
         ({"assists_air": 5, "kills_air": 2}, None, None),
         # ground assists: 5+ and at least as many as the own ground kills, fewer than 70 of those
