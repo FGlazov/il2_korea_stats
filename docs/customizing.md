@@ -99,6 +99,29 @@ that was in use falls back to the default). A preview line shows each uploaded f
 If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
 `--il2-font-display` / `--pico-font-family` line in a small stylesheet from the `head` block (section 2).
 
+### Quips
+
+The site shows a short, light-hearted line ("quip") at a few highlight spots: the hall of shame on a pilot's profile, a
+notable sortie (taxi accident, many kills, a long flight), the top pilots of the last mission, an empty tour. They are
+**on by default** and you change nothing until you edit them. Open **Admin > Site texts > Quips**:
+
+- **Show quips on the site** is the master switch. Untick it and no quip appears anywhere.
+- Every spot has a description of when it shows (for example "Sortie: taxi accident"), and a choice:
+  *Built-in quips only* (the default), *Built-in and my own*, *My own only*, or *No quip here*.
+- Each built-in line has a **Hide** box. A page picks one line of the remaining ones, always the same line for the same
+  pilot, sortie or mission (so a page does not change when reloaded).
+- **Your own lines**: type a line, choose a language (empty = every language) and save; a saved line can be edited,
+  switched off with *On* or removed with *Delete*. A line for one language is used only on pages in that language, so a
+  site with players in several languages usually adds the same joke once per language, or leaves the language empty.
+  If a spot is set to *My own only* and has no line for the page's language, it shows no quip there.
+- Your lines are plain text: no HTML or formatting (it is always shown as typed), at most 200 characters, up to 20 per
+  spot. There are no placeholders for now: a quip cannot contain a pilot name or a number.
+- A hidden built-in line is remembered by its English text. If an il2ks update rewords that line, your hide no longer
+  matches anything; the page then lists it as "no longer exists" with a **Forget** box, and the new wording shows up
+  again until you hide it.
+
+Saving refreshes the cached pages at once.
+
 ## 2. `custom/` overrides
 
 Inside your **data folder** (the folder with the database and `logs/`; `il2ks.toml` says where it is) il2ks keeps a

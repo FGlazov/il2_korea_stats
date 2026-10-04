@@ -200,7 +200,7 @@ decisions are made):
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
 
-- 🔧 **Achievements v2** (maintainer review of doc 17, 2026-10-04, OQ-105): per-tour achievements (reset at tour start, "All time"
+- ✅ **Achievements v2** (maintainer review of doc 17, 2026-10-04, OQ-105): per-tour achievements (reset at tour start, "All time"
   shows all), new achievements (Elo and ground-score milestones, ram, first blood, double/triple/quad kills, aircraft types, landing
   streak, Ace in a Day, hall-of-shame medals), rarity percentage on hover, rarer medals stand out, a recently-earned feed on the home
   page, ribbons for the simpler achievements.
@@ -224,7 +224,7 @@ decisions are made):
   filters, achievements to the earned-in sortie, columns + sort + reload, deep links and OG tags, admin hide removes a player everywhere,
   past tours, rivalry to killboard, streak history, phone viewport, no-JS sorting and filtering, keyboard-only row open.
 
-- 🔧 **Admin-configurable quips** (maintainer, 2026-10-04, first release): a global switch (on by default); per quip spot: defaults,
+- ✅ **Admin-configurable quips** (maintainer, 2026-10-04, first release): a global switch (on by default); per quip spot: defaults,
   defaults + own, own only, or off; hide single default quips; own quips per language or for all; plain escaped text.
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README

@@ -6,16 +6,22 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import URLPattern, URLResolver, path, reverse
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from il2ks.db.models import SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
+from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.serving import custom
+from il2ks.web import quips
+from il2ks.web.admin_quips import build_rows, mode_labels, parse_form
 from il2ks.web.ingest_status import build_overview
+from il2ks.web.quips import QuipConfig
 
 
 class Il2ksAdminSite(admin.AdminSite):
@@ -37,6 +43,7 @@ class Il2ksAdminSite(admin.AdminSite):
     def get_urls(self) -> list[URLPattern | URLResolver]:  # pyright: ignore[reportIncompatibleMethodOverride]
         extra = [
             path("ingestion/", self.admin_view(self.ingest_status_view), name="ingest-status"),
+            path("quips/", self.admin_view(self.quips_view), name="quips"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
         ]
         return [*extra, *super().get_urls()]
@@ -78,3 +85,33 @@ class Il2ksAdminSite(admin.AdminSite):
             "status_url": status_url,
         }
         return TemplateResponse(request, "admin/il2ks_reprocess_confirm.html", context)
+
+    def quips_view(self, request: HttpRequest) -> HttpResponse:
+        """The Quips page (FR-WEB-23): the global switch, every spot's mode, built-in lines (hide) and own lines."""
+        if not request.user.has_perm("il2ks_db.change_sitesettings"):
+            raise PermissionDenied
+        row = get_site_settings()
+        config = QuipConfig.from_row(row.quips_enabled, row.quips)
+        if request.method == "POST":
+            posted, errors = parse_form(request.POST, config)
+            if not errors:
+                with transaction.atomic():
+                    row.quips_enabled = posted.enabled
+                    row.quips = posted.to_json()
+                    row.save(update_fields=["quips_enabled", "quips", "updated_at"])
+                    bump_data_version()  # cached pages refresh (TD-28)
+                messages.success(request, _("Quips saved."))
+                return HttpResponseRedirect(reverse(f"{self.name}:quips"))
+            for error in errors:
+                messages.error(request, error)
+            config = posted
+        context = {
+            **self.each_context(request),
+            "title": _("Quips"),
+            "enabled": config.enabled,
+            "rows": build_rows(config, get_language() or "en"),
+            "mode_options": list(mode_labels().items()),
+            "languages": list(settings.LANGUAGES),
+            "max_length": quips.MAX_LEN,
+        }
+        return TemplateResponse(request, "admin/il2ks_quips.html", context)
