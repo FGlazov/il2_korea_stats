@@ -271,6 +271,16 @@ def _build_parser() -> argparse.ArgumentParser:
         "template-changes", help="template versions that changed since a release tag (release notes)"
     )
     changes.add_argument("old_tag", help="a git tag or commit, like v0.2.0")
+    bench = dev.add_parser("bench-ingest", help="time an import of a log folder, split by phase (throw-away data dir)")
+    bench.add_argument("source", type=Path, help="folder with mission logs (.txt / .txt.zip)")
+    bench.add_argument("--limit", type=int, metavar="N", help="only the first N missions")
+    bench.add_argument("--profile", type=Path, metavar="FILE", help="write a cProfile dump of the whole run")
+    bench.add_argument("--data-dir", type=Path, metavar="DIR", help="keep the resulting data dir here (for dump-db)")
+    dump = dev.add_parser(
+        "dump-db", help="write every table of a data dir's database as sorted JSON lines, to compare runs"
+    )
+    dump.add_argument("data_dir", type=Path, help="a data dir with il2ks.sqlite3")
+    dump.add_argument("target", type=Path, help="output file (.jsonl)")
     _add_translation_parsers(dev)
     serving_commands.add_parsers(sub)
     return parser
@@ -315,6 +325,14 @@ def _main(argv: Sequence[str] | None) -> int:
 
         anonymize_file(ns.source, ns.target)
         return EXIT_OK
+    if command == "dev" and ns.dev_command == "bench-ingest":
+        from il2ks.devtools.bench import bench_ingest
+
+        return bench_ingest(ns.source, limit=ns.limit, profile=ns.profile, data_dir=ns.data_dir)
+    if command == "dev" and ns.dev_command == "dump-db":
+        from il2ks.devtools.dbdump import dump_db
+
+        return dump_db(ns.data_dir, ns.target)
     if command == "dev" and ns.dev_command == "bump-templates":
         from il2ks.devtools.templates import bump_templates
 
