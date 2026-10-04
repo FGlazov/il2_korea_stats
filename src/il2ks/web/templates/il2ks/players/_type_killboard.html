@@ -1,0 +1,40 @@
+{# il2ks-template: templates/il2ks/players/_type_killboard.html v2 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _type_killboard.html: the two tables of the killboard by aircraft type (FR-WEB-9): the enemy aircraft types the player
+  shot down most, and the types that shot the player down most, each with the player's own aircraft most used in those
+  fights. Context: types (queries.boards.TypeBoard: victims / nemeses, PlayerTypeKillboard rows with .enemy_aircraft,
+  .kills_with, .deaths_in). Player-versus-player air kill credits only (no assists); hidden players count.
+{% endcomment %}<div class="split">
+  <div>
+    <h3>{% translate "Aircraft shot down most" %}</h3>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact">
+        <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col">
+          {% comment %}Translators: column in a list of enemy aircraft the player shot down; the cell is the player's own aircraft type they flew in most of those kills.{% endcomment %}
+          {% translate "Mostly flying" %}</th></tr></thead>
+        <tbody>{% for row in types.victims %}<tr>
+          <td class="aircraft-table__name">{% aircraft_icon row.enemy_aircraft "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' row.enemy_aircraft_id %}">{{ row.enemy_aircraft|object_name }}</a></td>
+          <td class="num">{{ row.kills|num }}</td>
+          <td>{% if row.kills_with %}{{ row.kills_with|object_name }}{% endif %}</td>
+        </tr>
+        {% empty %}{% empty_row 3 _("Nobody shot down yet.") %}{% endfor %}</tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <h3>{% translate "Aircraft that shot down this pilot most" %}</h3>
+    <div class="table-wrap table-wrap--flat">
+      <table class="data-table data-table--compact">
+        <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col">
+          {% comment %}Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type they were flying in most of those deaths.{% endcomment %}
+          {% translate "Mostly flying" %}</th></tr></thead>
+        <tbody>{% for row in types.nemeses %}<tr>
+          <td class="aircraft-table__name">{% aircraft_icon row.enemy_aircraft "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' row.enemy_aircraft_id %}">{{ row.enemy_aircraft|object_name }}</a></td>
+          <td class="num">{{ row.deaths|num }}</td>
+          <td>{% if row.deaths_in %}{{ row.deaths_in|object_name }}{% endif %}</td>
+        </tr>
+        {% empty %}{% empty_row 3 _("Never shot down by a player.") %}{% endfor %}</tbody>
+      </table>
+    </div>
+  </div>
+</div>

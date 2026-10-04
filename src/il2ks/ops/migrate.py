@@ -61,6 +61,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         _backfill_tours(cfg)
         _backfill_scores(cfg)
         _backfill_type_ratings(cfg)
+        _backfill_type_killboard(cfg)
         return backup
 
 
@@ -70,6 +71,19 @@ def _rebuild_all(cfg: Config) -> None:
     from il2ks.ingest.aggregates import rebuild_aggregates
 
     rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+
+def _backfill_type_killboard(cfg: Config) -> None:
+    """A database from before the killboard by aircraft type and the per-tour / intercept matchups has matchup rows
+    (all-time only) but no `PlayerTypeKillboard` row (FR-WEB-8, FR-WEB-9): rebuild level 2 once."""
+    from django.db import transaction
+
+    from il2ks.db.models import AircraftMatchup, PlayerTypeKillboard
+
+    if AircraftMatchup.objects.exists() and not PlayerTypeKillboard.objects.exists():
+        log.info("building the killboard by aircraft type")
+        with transaction.atomic():
+            _rebuild_all(cfg)
 
 
 def _backfill_type_ratings(cfg: Config) -> None:

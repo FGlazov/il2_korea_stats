@@ -295,7 +295,7 @@ def test_tour_budgets(client: Client) -> None:
         client, f"/players/{pk(1)}/?tour={october}", max_queries=PROFILE_READS_TOUR
     )  # the tour adds its PlayerTour row
     # context processor 2, player, tours, count, rows
-    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?tour={october}", max_queries=7)
+    assert_simple_reads(client, f"/players/{pk(1)}/killboard/?tour={october}", max_queries=8)
     # context processor 2, player, tours, best streaks
     assert_simple_reads(client, f"/players/{pk(1)}/streaks/", max_queries=5)
     assert_simple_reads(client, f"/players/{pk(1)}/streaks/?tour={october}", max_queries=5)

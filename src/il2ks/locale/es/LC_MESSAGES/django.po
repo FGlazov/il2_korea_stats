@@ -341,8 +341,16 @@ msgstr "Aeronave"
 msgid "Aircraft lost"
 msgstr ""
 
+# llm-draft
+msgid "Aircraft shot down most"
+msgstr "Aviones derribados con más frecuencia"
+
 msgid "Aircraft status"
 msgstr ""
+
+# llm-draft
+msgid "Aircraft that shot down this pilot most"
+msgstr "Aviones que más veces derribaron a este piloto"
 
 # llm-draft
 msgid "All"
@@ -350,6 +358,10 @@ msgstr "Todos"
 
 msgid "All aircraft"
 msgstr ""
+
+# llm-draft
+msgid "All fights"
+msgstr "Todos los combates"
 
 msgid "All gun ammunition"
 msgstr ""
@@ -511,6 +523,11 @@ msgstr[1] ""
 msgid "Best by"
 msgstr ""
 
+# llm-draft
+#, python-format
+msgid "Best exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
+msgstr "Mejor intercambio: contra %(enemy)s (%(kills)s derribos, %(losses)s pérdidas)."
+
 msgid "Best showing of the mission. Well flown."
 msgstr ""
 
@@ -580,8 +597,13 @@ msgstr ""
 msgid "Busy sortie. The enemy count went down noticeably."
 msgstr ""
 
+# llm-draft
 msgid "By aircraft"
-msgstr ""
+msgstr "Por avión"
+
+# llm-draft
+msgid "By player"
+msgstr "Por jugador"
 
 msgid "Cannon shells"
 msgstr ""
@@ -871,6 +893,10 @@ msgstr "Pocos conocen la calle de rodaje como este piloto. Podría hacer visitas
 
 msgid "Fighters"
 msgstr ""
+
+# llm-draft
+msgid "Fights"
+msgstr "Combates"
 
 # llm-draft
 msgid "Find a player"
@@ -1163,6 +1189,10 @@ msgstr "Estado de la ingesta"
 msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
 msgstr "Solo dentro de la gira elegida: una racha no pasa de una gira anterior."
 
+# llm-draft
+msgid "Intercept flights only"
+msgstr "Solo interceptaciones"
+
 msgid "Ironman"
 msgstr ""
 
@@ -1203,6 +1233,15 @@ msgid "K/L %(value)s"
 msgstr ""
 
 # llm-draft
+#, python-format
+msgid ""
+"K/L is kills per loss against that aircraft. It is shown from %(n)s fights on; with fewer, a single mission decides "
+"the number."
+msgstr ""
+"K/L son los derribos por cada pérdida contra ese avión. Se muestra a partir de %(n)s combates; con menos, una sola "
+"misión decide el número."
+
+# llm-draft
 msgid "Key (AType:KEY)"
 msgstr "Clave (AType:KEY)"
 
@@ -1211,6 +1250,10 @@ msgstr ""
 
 msgid "Killboard"
 msgstr ""
+
+# llm-draft
+msgid "Killboard by aircraft"
+msgstr "Killboard por avión"
 
 #, python-format
 msgid "Killboard of %(name)s"
@@ -1437,6 +1480,14 @@ msgid "Most dangerous part of the mission: the first hundred metres."
 msgstr ""
 
 # llm-draft
+#. Translators: column in a list of enemy aircraft the player shot down; the cell is the player's own aircraft type they
+#. flew in most of those kills.
+#. Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type
+#. they were flying in most of those deaths.
+msgid "Mostly flying"
+msgstr "Vuela sobre todo"
+
+# llm-draft
 msgid "Name"
 msgstr "Nombre"
 
@@ -1453,6 +1504,11 @@ msgstr "Enlaces de navegación"
 # llm-draft
 msgid "Navigation links, in order"
 msgstr "Enlaces de navegación, en orden"
+
+# llm-draft
+#, python-format
+msgid "Needs at least %(n)s fights for a reliable ratio"
+msgstr "Hacen falta al menos %(n)s combates para una proporción fiable"
 
 # llm-draft
 msgid "Neutral"
@@ -1558,8 +1614,9 @@ msgstr ""
 msgid "No player found for “%(query)s”."
 msgstr ""
 
-msgid "No player-versus-player air kills with this aircraft yet."
-msgstr ""
+# llm-draft
+msgid "No player-versus-player air kills with this aircraft here yet."
+msgstr "Este avión aún no tiene derribos aéreos contra jugadores aquí."
 
 msgid "No player-versus-player kills in this mission."
 msgstr ""
@@ -1680,6 +1737,12 @@ msgstr ""
 # llm-draft
 msgid "Online now"
 msgstr "En línea ahora"
+
+# llm-draft
+msgid "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out."
+msgstr ""
+"Solo derribos en los que ambos pilotos volaron una salida de superioridad aérea (caza contra caza); las salidas de "
+"ataque no cuentan."
 
 msgid "Open the site"
 msgstr ""
@@ -1826,8 +1889,13 @@ msgstr "Jugador"
 msgid "Player aircraft"
 msgstr ""
 
-msgid "Player-versus-player air kills against each enemy aircraft type."
+# llm-draft
+msgid ""
+"Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
+"aircraft this one beats and which beat it. The rest of this page covers all time."
 msgstr ""
+"Derribos aéreos entre jugadores contra cada tipo de avión enemigo en la gira elegida. Sirve para ver a qué enemigos "
+"vence este avión y cuáles lo vencen. El resto de la página abarca todo el tiempo."
 
 msgid ""
 "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in "
@@ -2741,6 +2809,10 @@ msgstr ""
 msgid "Where to find it:"
 msgstr ""
 
+# llm-draft
+msgid "Which fights to count"
+msgstr "Qué combates contar"
+
 msgid "Who kills you, and whom you kill"
 msgstr ""
 
@@ -2760,6 +2832,11 @@ msgstr ""
 
 msgid "Winner"
 msgstr ""
+
+# llm-draft
+#, python-format
+msgid "Worst exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
+msgstr "Peor intercambio: contra %(enemy)s (%(kills)s derribos, %(losses)s pérdidas)."
 
 # llm-draft
 msgid "Wounded"
@@ -2923,6 +3000,10 @@ msgid ""
 "nginx, IIS or Apache in front of il2ks handles HTTPS. il2ks then only listens on this computer, and you point your "
 "server at it (see docs/reverse-proxy.md)."
 msgstr ""
+
+# llm-draft
+msgid "no losses"
+msgstr "sin pérdidas"
 
 msgid "none yet (test certificate)"
 msgstr ""

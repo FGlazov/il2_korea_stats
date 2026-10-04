@@ -61,6 +61,7 @@ from il2ks.ingest.scoring import rebuild_sortie_scores
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.streaks import recompute_streaks
 from il2ks.ingest.tours import assign_missing, retour
+from il2ks.ingest.type_board import recompute_type_killboard
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
 
@@ -89,6 +90,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         _recompute_tours(chunk, tours)
         _refresh_identity(chunk)
         recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
+        recompute_type_killboard(chunk, tours)  # ... and by enemy aircraft type, ingest.type_board (FR-WEB-9)
         recompute_streaks(chunk, tours)  # ironman streaks, all-time and per tour, ingest.streaks (FR-WEB-23)
 
 

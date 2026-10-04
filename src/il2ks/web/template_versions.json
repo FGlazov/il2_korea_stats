@@ -86,8 +86,8 @@
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
     "templates/il2ks/aircraft/detail.html": {
-      "version": 3,
-      "sha256": "6ee3a06298a5d55b743cd7adc6fd3aa916979b5824406b57296e257006d2b7bc"
+      "version": 4,
+      "sha256": "cf59d5c0a3441ed4f34d630dcec76484cb157385b62e2e306a535148eeff78d6"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 2,
@@ -233,9 +233,13 @@
       "version": 3,
       "sha256": "1298c5d5206ecccaaed025aaad79ca52369a214121a60f04312cd9dac0f2d997"
     },
+    "templates/il2ks/players/_type_killboard.html": {
+      "version": 2,
+      "sha256": "ccd108a2923c6a6984faec72d00377a031061b4a4b1c974cd75638029f8b0fa0"
+    },
     "templates/il2ks/players/detail.html": {
-      "version": 10,
-      "sha256": "7cac0a5d483fa042019f723451e2a4d84495a2eb302a5f8e190af374fbd3b9d7"
+      "version": 11,
+      "sha256": "8236a2c02666c4e3bcd43da721679ad48c28d0976cbba56b7ff2e81213526ca7"
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 5,
@@ -254,8 +258,8 @@
       "sha256": "6503edf8535ee88826d380b12c81e4d523f71a5ff504056e5b5cd21baa069dbc"
     },
     "templates/il2ks/players/detail_killboard.html": {
-      "version": 2,
-      "sha256": "e663c529cd6718eb47ba6cb06497372072e349e3fb976be0fab225e34c365108"
+      "version": 3,
+      "sha256": "5df6c70308602869fd1c98572b834bb5a772f9ee89bf788885570dd6f6b9d8bc"
     },
     "templates/il2ks/players/detail_pve.html": {
       "version": 3,
@@ -289,9 +293,13 @@
       "version": 3,
       "sha256": "b595e57a350297d52e125e209d72b1c934b8a53b9673d3651447135c02c115a5"
     },
+    "templates/il2ks/players/detail_type_killboard.html": {
+      "version": 1,
+      "sha256": "52222b96c05ced9506ce930302f3ee013a6e7354f0dfda422ed7da6d1a954ed5"
+    },
     "templates/il2ks/players/killboard.html": {
-      "version": 2,
-      "sha256": "0ea62d2140bb832bf3c5d03fa4ba91c1ad473ae53dd6fca27547755ad604c71c"
+      "version": 3,
+      "sha256": "5553b0bb3c410e9ea0da1146aa7903bb0b4689396de62f5c5ea9faf6e6e9bd34"
     },
     "templates/il2ks/players/search.html": {
       "version": 1,

@@ -8,7 +8,8 @@ rebuild by construction:
   the side most sorties were flown for, and the four stored ratios used for sorting. Recompute it after
   `recompute_players` (it reads their rows).
 - `AircraftPayload` = counted sorties grouped by loadout name.
-- `AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type).
+- `AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type) and scope
+  (all time / tour, all kills / intercept fights where both sorties were air superiority).
 
 `save_mission` passes the types and pairs a mission touched (old and new); `rebuild_aggregates` passes everything.
 """
@@ -22,6 +23,7 @@ from il2ks.db.models import (
     AircraftMatchup,
     AircraftPayload,
     AircraftStats,
+    CombatRole,
     Kill,
     KillCredit,
     PlayerAircraft,
@@ -34,6 +36,7 @@ CHUNK = 400
 PAIR_CHUNK = 60  # pairs per OR-ed query: far below SQLite's expression depth limit
 
 type Pair = tuple[int, int]  # (killer aircraft id, victim aircraft id)
+type ScopedPair = tuple[int, int, int | None, bool]  # pair, tour (None = all time), intercept fights only
 
 
 def matchup_kills() -> QuerySet[Kill]:
@@ -157,21 +160,20 @@ def _payload_fields(values: tuple[int, int, int, int]) -> dict[str, int]:
 
 
 def recompute_matchups(pairs: Iterable[Pair] | None = None) -> None:
-    """`AircraftMatchup` for these (killer type, victim type) pairs from the `Kill` rows, or for all pairs (None, a
-    rebuild). Rows without kills left are deleted."""
+    """`AircraftMatchup` (every scope: all time and per tour, all kills and intercept fights only) for these
+    (killer type, victim type) pairs from the `Kill` rows, or for all pairs (None, a rebuild). Rows without kills left
+    are deleted."""
     if pairs is None:
-        counts = _pair_counts(matchup_kills())
-        existing = {(r.killer_aircraft_id, r.victim_aircraft_id): r for r in AircraftMatchup.objects.all()}
-        _sync_matchups(counts, existing)
+        _sync_matchups(_scope_counts(matchup_kills()), {_key_of(r): r for r in AircraftMatchup.objects.all()})
         return
     ordered = sorted(set(pairs))
     for start in range(0, len(ordered), PAIR_CHUNK):
         chunk = ordered[start : start + PAIR_CHUNK]
         match = _any_of([Q(killer_sortie__aircraft_id=k, victim_sortie__aircraft_id=v) for k, v in chunk])
-        counts = _pair_counts(matchup_kills().filter(match))
         found = _any_of([Q(killer_aircraft_id=k, victim_aircraft_id=v) for k, v in chunk])
-        existing = {(r.killer_aircraft_id, r.victim_aircraft_id): r for r in AircraftMatchup.objects.filter(found)}
-        _sync_matchups(counts, existing)
+        _sync_matchups(
+            _scope_counts(matchup_kills().filter(match)), {_key_of(r): r for r in AircraftMatchup.objects.filter(found)}
+        )
 
 
 def _any_of(conditions: list[Q]) -> Q:
@@ -182,18 +184,50 @@ def _any_of(conditions: list[Q]) -> Q:
     return combined
 
 
-def _pair_counts(kills: QuerySet[Kill]) -> dict[Pair, int]:
-    rows = kills.values("killer_sortie__aircraft_id", "victim_sortie__aircraft_id").annotate(n=Count("pk"))
-    return {(row["killer_sortie__aircraft_id"], row["victim_sortie__aircraft_id"]): row["n"] for row in rows}
+def _key_of(row: AircraftMatchup) -> ScopedPair:
+    return (row.killer_aircraft_id, row.victim_aircraft_id, row.tour_id, row.intercept)
 
 
-def _sync_matchups(counts: dict[Pair, int], existing: dict[Pair, AircraftMatchup]) -> None:
+def _scope_counts(kills: QuerySet[Kill]) -> dict[ScopedPair, int]:
+    """The kills counted into every scope they belong to: all time, their tour, and (when both sorties were air
+    superiority) the same two for intercept fights."""
+    rows = kills.values(
+        "killer_sortie__aircraft_id",
+        "victim_sortie__aircraft_id",
+        "mission__tour_id",
+        "killer_sortie__combat_role",
+        "victim_sortie__combat_role",
+    ).annotate(n=Count("pk"))
+    counts: dict[ScopedPair, int] = {}
+    for row in rows:
+        killer, victim, tour = (
+            row["killer_sortie__aircraft_id"],
+            row["victim_sortie__aircraft_id"],
+            row["mission__tour_id"],
+        )
+        both_air = (
+            row["killer_sortie__combat_role"] == CombatRole.AIR_SUPERIORITY
+            and row["victim_sortie__combat_role"] == CombatRole.AIR_SUPERIORITY
+        )
+        tours: tuple[int | None, ...] = (None,) if tour is None else (None, tour)
+        for scope_tour in tours:
+            for intercept in (False, True) if both_air else (False,):
+                key = (killer, victim, scope_tour, intercept)
+                counts[key] = counts.get(key, 0) + row["n"]
+    return counts
+
+
+def _sync_matchups(counts: dict[ScopedPair, int], existing: dict[ScopedPair, AircraftMatchup]) -> None:
     changed: list[AircraftMatchup] = []
     new: list[AircraftMatchup] = []
-    for pair, kills in counts.items():
-        row = existing.pop(pair, None)
+    for key, kills in counts.items():
+        row = existing.pop(key, None)
         if row is None:
-            new.append(AircraftMatchup(killer_aircraft_id=pair[0], victim_aircraft_id=pair[1], kills=kills))
+            new.append(
+                AircraftMatchup(
+                    killer_aircraft_id=key[0], victim_aircraft_id=key[1], tour_id=key[2], intercept=key[3], kills=kills
+                )
+            )
         elif row.kills != kills:
             row.kills = kills
             changed.append(row)

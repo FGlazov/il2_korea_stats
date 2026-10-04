@@ -2,7 +2,7 @@
 
     stats_list(sort)         -> list[AircraftStats]      # one row per flown type; one query
     stats_for(aircraft_id)   -> AircraftStats | None     # one query
-    matchups(aircraft)       -> list[Matchup]            # kills and losses against each enemy type; two queries
+    matchups(aircraft, tour, intercept, sort) -> MatchupTable  # kills and losses against each enemy type; one query
     top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
     top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
     payloads(aircraft)       -> list[AircraftPayload]    # one query
@@ -12,11 +12,13 @@ volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`P
 by `ingest.ratings`) and, for attack work, the ground score per hour on target.
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from django.db.models import Q
+
 from il2ks.config import LeaderboardConfig
-from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, PlayerAircraft
+from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, PlayerAircraft, Tour
 from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
 
 # Public `?sort=` key -> the AircraftStats column it orders by (a whitelist; anything else falls back to the default).
@@ -50,6 +52,14 @@ def stats_for(aircraft_id: int) -> AircraftStats | None:
     return AircraftStats.objects.select_related("aircraft").filter(aircraft_id=aircraft_id).first()
 
 
+MIN_ENCOUNTERS = 10
+"""A matchup shows its exchange ratio (and can be named best or worst) only with at least this many kills plus
+losses in the selected scope: with fewer, one lucky mission decides the number (PRODUCT decision)."""
+
+MATCHUP_SORTS: tuple[str, ...] = ("enemy", "kills", "losses", "encounters", "ratio")
+DEFAULT_MATCHUP_SORT = "-encounters"
+
+
 @dataclass(frozen=True, slots=True)
 class Matchup:
     """Player-versus-player air kills between the page's type and one enemy type."""
@@ -62,24 +72,66 @@ class Matchup:
     def encounters(self) -> int:
         return self.kills + self.losses
 
+    @property
+    def rated(self) -> bool:
+        """Enough encounters for the ratio to mean something (`MIN_ENCOUNTERS`)."""
+        return self.encounters >= MIN_ENCOUNTERS
 
-def matchups(aircraft: GameObject) -> list[Matchup]:
-    """Kills and losses against every type met, the most contested first (ties by name)."""
-    kills = {
-        row.victim_aircraft_id: row
-        for row in AircraftMatchup.objects.filter(killer_aircraft=aircraft).select_related("victim_aircraft")
+    @property
+    def share(self) -> float:
+        """Kills as a share of all kills and losses in the matchup (0.0 without any): finite where kills per loss is
+        not, so it ranks the matchups."""
+        return self.kills / self.encounters if self.encounters else 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class MatchupTable:
+    """The matchup rows of one scope in display order, and the best and worst rated matchups (None unless at least two
+    matchups are rated and they differ)."""
+
+    rows: list[Matchup]
+    best: Matchup | None
+    worst: Matchup | None
+
+
+def matchups(
+    aircraft: GameObject, tour: Tour | None = None, intercept: bool = False, sort: str = DEFAULT_MATCHUP_SORT
+) -> MatchupTable:
+    """Kills and losses against every enemy type met, in `tour` (None = all time), for all fights or only intercept
+    fights (both sorties air superiority, `AircraftMatchup.intercept`). `sort`: a `MATCHUP_SORTS` name, `-` for
+    descending; ties by name. One query."""
+    rows = AircraftMatchup.objects.filter(
+        Q(killer_aircraft=aircraft) | Q(victim_aircraft=aircraft), tour=tour, intercept=intercept
+    ).select_related("killer_aircraft", "victim_aircraft")
+    kills: dict[int, tuple[GameObject, int]] = {}
+    losses: dict[int, tuple[GameObject, int]] = {}
+    for row in rows:
+        if row.killer_aircraft_id == aircraft.pk:
+            kills[row.victim_aircraft_id] = (row.victim_aircraft, row.kills)
+        if row.victim_aircraft_id == aircraft.pk:
+            losses[row.killer_aircraft_id] = (row.killer_aircraft, row.kills)
+    found = [
+        Matchup(
+            (kills.get(enemy_id) or losses[enemy_id])[0],
+            kills.get(enemy_id, (aircraft, 0))[1],
+            losses.get(enemy_id, (aircraft, 0))[1],
+        )
+        for enemy_id in kills.keys() | losses.keys()
+    ]
+    found.sort(key=lambda m: m.enemy.display_name)  # the tie order of every sort
+    key = sort.removeprefix("-")
+    descending = sort.startswith("-")
+    values: dict[str, Callable[[Matchup], float | str]] = {
+        "enemy": lambda m: m.enemy.display_name.casefold(),
+        "kills": lambda m: m.kills,
+        "losses": lambda m: m.losses,
+        "encounters": lambda m: m.encounters,
+        "ratio": lambda m: m.share if m.rated else -1.0,  # unrated rows last when descending, first when ascending
     }
-    losses = {
-        row.killer_aircraft_id: row
-        for row in AircraftMatchup.objects.filter(victim_aircraft=aircraft).select_related("killer_aircraft")
-    }
-    out: list[Matchup] = []
-    for enemy_id in kills.keys() | losses.keys():
-        won, lost = kills.get(enemy_id), losses.get(enemy_id)
-        enemy = won.victim_aircraft if won is not None else lost.killer_aircraft if lost is not None else None
-        if enemy is not None:
-            out.append(Matchup(enemy, won.kills if won else 0, lost.kills if lost else 0))
-    return sorted(out, key=lambda m: (-m.encounters, m.enemy.display_name))
+    found.sort(key=values[key], reverse=descending)
+    rated = sorted((m for m in found if m.rated), key=lambda m: (-m.share, m.enemy.display_name))
+    best, worst = (rated[0], rated[-1]) if len(rated) >= 2 and rated[0].share != rated[-1].share else (None, None)
+    return MatchupTable(found, best, worst)
 
 
 def top_elo(aircraft: GameObject, rules: LeaderboardConfig) -> list[PlayerAircraft]:

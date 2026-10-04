@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/players/detail_type_killboard.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_boards %}{% comment %}
+  detail_type_killboard.html: the profile's killboard by aircraft type (FR-WEB-9): the five enemy aircraft types the
+  player shot down most and the five that shot the player down most (player-versus-player air kills), with a link to
+  the full killboard. Reads its own rows with {% type_killboard player tour as types %}: all time, or the selected
+  tour's. Context: player, tour (None = all time). Shows nothing without a player-versus-player encounter.
+{% endcomment %}{% type_killboard player tour as types %}{% if types.victims or types.nemeses %}<section>
+  <div class="section-head">
+    <h2>{% translate "Killboard by aircraft" %}</h2>
+    <a href="{% url 'web:player-killboard' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Full killboard" %} →</a>
+  </div>
+  {% include "il2ks/players/_type_killboard.html" %}
+</section>{% endif %}
