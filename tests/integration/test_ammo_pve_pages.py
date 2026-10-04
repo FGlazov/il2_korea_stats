@@ -177,7 +177,7 @@ def test_aircraft_page_without_data_says_so_and_stays_cheap(client: Client) -> N
     assert "No aircraft has flown yet." in client.get("/aircraft/").content.decode()
 
     save(seed())
-    assert_simple_reads(client, "/aircraft/", max_queries=2 + 2)
+    assert_simple_reads(client, "/aircraft/", max_queries=2 + 3)  # + the tours (the selector)
 
 
 def test_aircraft_page_is_reachable_from_the_navigation(client: Client) -> None:

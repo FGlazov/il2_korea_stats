@@ -770,24 +770,53 @@ class StatThreshold(models.Model):
         return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
 
 
-class AircraftStats(Counters):
+class AircraftCounters(Counters):
+    """The counters of one aircraft type plus `pilots` and `side`: what `AircraftStats` (all time) and
+    `TourAircraftStats` (one tour) share, so the aircraft pages read either one the same way."""
+
+    aircraft_id: int
+
+    pilots = models.PositiveIntegerField(default=0)
+    side = models.CharField(max_length=8, blank=True, default="")
+
+    class Meta(Counters.Meta):
+        abstract = True
+
+
+class AircraftStats(AircraftCounters):
     """Level 2 (FR-WEB-8): all-time counters per aircraft type, summed over every pilot's `PlayerAircraft` row.
 
     Hidden players are included: hiding is presentation only (FR-ADM-3). `pilots` = distinct players who flew the type.
     `side` is the side most of its sorties were flown for ('redfor', 'blufor' or ''). No ratio is stored (OQ-98): K/D,
     K/L, survival and the attack share are shown from the counters and sorted with `queries.sorting.Ratio`."""
 
-    aircraft_id: int
-
     aircraft = models.OneToOneField(GameObject, on_delete=models.PROTECT, related_name="stats")
-    pilots = models.PositiveIntegerField(default=0)
-    side = models.CharField(max_length=8, blank=True, default="")
 
-    class Meta(Counters.Meta):
+    class Meta(AircraftCounters.Meta):
         abstract = False
 
     def __str__(self) -> str:
         return f"aircraft {self.aircraft_id}"
+
+
+class TourAircraftStats(AircraftCounters):
+    """Level 2 (FR-WEB-8, TD-26): `AircraftStats` within one tour, summed over the pilots' `PlayerTourAircraft` rows
+    of that tour; `pilots` = distinct players who flew the type in it, `side` the side most of its sorties in the tour
+    were flown for. A sibling table rather than a nullable `tour` column on `AircraftStats` (the pattern of
+    `PlayerTourAircraft`): the all-time reads stay unfiltered and the unique key needs no NULL special case.
+    Hidden players and missions count too (FR-ADM-3). Rows without a counted sortie are deleted."""
+
+    tour_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="tour_stats")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="aircraft_stats")
+
+    class Meta(AircraftCounters.Meta):
+        abstract = False
+        constraints = [models.UniqueConstraint(fields=["tour", "aircraft"], name="touraircraftstats_unique")]
+
+    def __str__(self) -> str:
+        return f"aircraft {self.aircraft_id} / tour {self.tour_id}"
 
 
 class AircraftMatchup(models.Model):

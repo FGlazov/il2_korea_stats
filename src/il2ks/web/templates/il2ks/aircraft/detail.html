@@ -1,8 +1,10 @@
 {# il2ks-template: templates/il2ks/aircraft/detail.html v1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
-  Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average)), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the matchup scope), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
+  Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
+  selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
+  (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
+  average, by_ammo (AmmoHits: name, kills, average)), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), payloads (AircraftPayload rows), crumbs, page_title.
   Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
@@ -17,39 +19,41 @@
       {% if aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
       {% if stats.side %}{% coalition_badge stats.side %}{% endif %}
     </h1>
-    <p>{% blocktranslate with pilots=stats.pilots|num count n=stats.pilots %}Flown by {{ pilots }} pilot.{% plural %}Flown by {{ pilots }} pilots.{% endblocktranslate %}</p>
+    <p>{% blocktranslate with pilots=tile.pilots|num count n=tile.pilots %}Flown by {{ pilots }} pilot.{% plural %}Flown by {{ pilots }} pilots.{% endblocktranslate %}</p>
   </div>
 
+  {% tour_select tours tour %}
+  <p class="muted">{% translate "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time." %}</p>
+
   <div class="stat-tiles profile-tiles">
-    {% blocktranslate with rate=survived|percent:stats.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
-    {% stat_tile stats.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
+    {% blocktranslate with rate=survived|percent:tile.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
+    {% stat_tile tile.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
 
-    {% stat_tile stats.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}
+    {% stat_tile tile.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}
 
-    {% blocktranslate with value=stats.kills_air|ratio:stats.deaths asvar sub_air %}K/D {{ value }}{% endblocktranslate %}
-    {% stat_tile stats.kills_air|num _("Air kills") sub=sub_air icon="stat/air-kills" %}
+    {% blocktranslate with value=tile.kills_air|ratio:tile.deaths asvar sub_air %}K/D {{ value }}{% endblocktranslate %}
+    {% stat_tile tile.kills_air|num _("Air kills") sub=sub_air icon="stat/air-kills" %}
 
-    {% blocktranslate with value=stats.kills_ground|ratio:stats.sorties asvar sub_ground %}{{ value }} per sortie{% endblocktranslate %}
-    {% stat_tile stats.kills_ground|num _("Ground kills") sub=sub_ground icon="stat/ground-kills" %}
+    {% blocktranslate with value=tile.kills_ground|ratio:tile.sorties asvar sub_ground %}{{ value }} per sortie{% endblocktranslate %}
+    {% stat_tile tile.kills_ground|num _("Ground kills") sub=sub_ground icon="stat/ground-kills" %}
 
-    {% stat_tile stats.deaths|num _("Deaths") icon="stat/deaths" %}
+    {% stat_tile tile.deaths|num _("Deaths") icon="stat/deaths" %}
 
-    {% blocktranslate with value=stats.kills_air|ratio:stats.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
-    {% stat_tile stats.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
+    {% blocktranslate with value=tile.kills_air|ratio:tile.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
+    {% stat_tile tile.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
 
-    {% blocktranslate with rate=stats.attack_sorties|percent:stats.sorties asvar sub_attack %}{{ rate }} attack{% endblocktranslate %}
-    {% stat_tile stats.attack_sorties|num _("Attack sorties") sub=sub_attack icon="stat/sorties" %}
+    {% blocktranslate with rate=tile.attack_sorties|percent:tile.sorties asvar sub_attack %}{{ rate }} attack{% endblocktranslate %}
+    {% stat_tile tile.attack_sorties|num _("Attack sorties") sub=sub_attack icon="stat/sorties" %}
 
-    {% if stats.accuracy_rounds %}
-      {% blocktranslate with air=stats.accuracy_air_hits|accuracy:stats.accuracy_air_rounds ground=stats.accuracy_ground_hits|accuracy:stats.accuracy_ground_rounds asvar sub_accuracy %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
-      {% stat_tile stats.accuracy_hits|accuracy:stats.accuracy_rounds _("Gun accuracy") sub=sub_accuracy icon="stat/accuracy" %}
+    {% if tile.accuracy_rounds %}
+      {% blocktranslate with air=tile.accuracy_air_hits|accuracy:tile.accuracy_air_rounds ground=tile.accuracy_ground_hits|accuracy:tile.accuracy_ground_rounds asvar sub_accuracy %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
+      {% stat_tile tile.accuracy_hits|accuracy:tile.accuracy_rounds _("Gun accuracy") sub=sub_accuracy icon="stat/accuracy" %}
     {% endif %}
   </div>
 
   <section>
     <h2>{% translate "Matchups" %}</h2>
-    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it. The rest of this page covers all time." %}</p>
-    {% tour_select tours tour %}
+    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
     <p class="tour-bar">
       <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
         <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All kills and losses" %}</a>

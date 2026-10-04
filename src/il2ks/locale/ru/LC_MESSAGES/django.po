@@ -1787,13 +1787,10 @@ msgstr "Принято попаданий"
 msgid "Hits to destroy"
 msgstr "Попаданий до уничтожения"
 
-# llm-draft
 msgid ""
-"Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack"
-" sorties: the rest are air-superiority sorties."
+"Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
+"left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
-"Попаданий до уничтожения: считаются только победы, где весь урон нанёс один атаковавший; бомбы и ракеты не "
-"учитываются. Штурмовые вылеты: остальные — вылеты на господство в воздухе."
 
 # llm-draft
 msgid "Home"
@@ -1819,13 +1816,10 @@ msgstr "Часы в воздухе на самом часто используе
 msgid "Hours in the air, all sorties together."
 msgstr "Часы в воздухе за всё время, все вылеты вместе."
 
-# llm-draft
 msgid ""
-"How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its "
-"matchups, best pilots and loadouts."
+"How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
+" Open a type for its matchups, best pilots and loadouts."
 msgstr ""
-"Как показывает себя каждый тип самолёта: вылеты, победы, потери и соотношения за все сыгранные миссии. Откройте тип, "
-"чтобы увидеть его противников, лучших пилотов и варианты вооружения."
 
 # llm-draft
 msgid "How it ended"
@@ -2357,6 +2351,9 @@ msgstr "В этом туре не было работы по земле: ни у
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Работы по земле пока не было: ни уничтоженных наземных целей, ни штурмовых вылетов."
 
+msgid "No aircraft has flown in this tour yet."
+msgstr ""
+
 # llm-draft
 msgid "No aircraft has flown yet."
 msgstr "Пока ни один самолёт не летал."
@@ -2842,13 +2839,10 @@ msgstr "Игрок"
 msgid "Player aircraft"
 msgstr "Самолёты игроков"
 
-# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
-"aircraft this one beats and which beat it. The rest of this page covers all time."
+"aircraft this one beats and which beat it."
 msgstr ""
-"Воздушные победы игроков над игроками против каждого типа вражеских самолётов в выбранном туре. Так видно, каких "
-"врагов этот самолёт побеждает чаще, а кто побеждает его. Остальная часть страницы охватывает всё время."
 
 # llm-draft
 msgid ""
@@ -3804,6 +3798,9 @@ msgstr "Эскадрилья научилась держать дистанци�
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "На рулёжке на такие случаи заведена папка. Тонкая, зато зачитана до дыр."
+
+msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+msgstr ""
 
 # llm-draft
 msgid "The two passwords differ."
