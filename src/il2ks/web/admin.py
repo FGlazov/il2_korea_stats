@@ -299,6 +299,12 @@ class PlayerAdmin(ReadOnlyIngestedAdmin[Player]):
         (_("Ratings"), {"fields": ("elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")}),
     )
 
+    def save_model(self, request: HttpRequest, obj: Player, form: ModelForm, change: bool) -> None:
+        super().save_model(request, obj, form, change)
+        if "is_hidden" in form.changed_data:
+            recompute_holders()  # FR-WEB-26: the medal counts and rarity cover visible players only (like the actions)
+            bump_data_version()
+
     @admin.action(description=_("Hide selected players from public pages"), permissions=["change"])
     def hide_selected(self, request: HttpRequest, queryset: models.QuerySet[Player]) -> None:
         _set_hidden(self, request, queryset, True)
