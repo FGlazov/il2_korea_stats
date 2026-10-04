@@ -287,6 +287,7 @@ def _build_parser() -> argparse.ArgumentParser:
     bench.add_argument("--limit", type=int, metavar="N", help="only the first N missions")
     bench.add_argument("--profile", type=Path, metavar="FILE", help="write a cProfile dump of the whole run")
     bench.add_argument("--data-dir", type=Path, metavar="DIR", help="keep the resulting data dir here (for dump-db)")
+    bench.add_argument("--cpu", action="store_true", help="time process CPU instead of wall clock (noisy machines)")
     dump = dev.add_parser(
         "dump-db", help="write every table of a data dir's database as sorted JSON lines, to compare runs"
     )
@@ -370,7 +371,7 @@ def _main(argv: Sequence[str] | None) -> int:
     if command == "dev" and ns.dev_command == "bench-ingest":
         from il2ks.devtools.bench import bench_ingest
 
-        return bench_ingest(ns.source, limit=ns.limit, profile=ns.profile, data_dir=ns.data_dir)
+        return bench_ingest(ns.source, limit=ns.limit, profile=ns.profile, data_dir=ns.data_dir, cpu=ns.cpu)
     if command == "dev" and ns.dev_command == "dump-db":
         from il2ks.devtools.dbdump import dump_db
 

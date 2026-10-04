@@ -182,7 +182,7 @@ def refresh_player_missions() -> None:
         values = wanted.get((row.player_id, row.mission_id))
         if values is not None and _assign(row, values):
             changed.append(row)
-    PlayerMission.objects.bulk_update(changed, list(COUNTER_FIELDS), batch_size=200)
+    update_rows(PlayerMission, changed, list(COUNTER_FIELDS))
 
 
 def _recompute_totals(chunk: list[int]) -> None:

@@ -91,7 +91,16 @@ class Replay:
 
     def feed(self, event: LogEvent) -> None:
         facts = self._facts
-        facts.last_tick = max(facts.last_tick, event.tick)
+        if event.tick > facts.last_tick:
+            facts.last_tick = event.tick
+        # The two lines that make up 87% of a log first, without walking the `match` below (exact classes: the events
+        # are final dataclasses).
+        if type(event) is HitEvent:
+            self._on_hit(event)
+            return
+        if type(event) is DamageEvent:
+            self._on_damage(event)
+            return
         match event:
             case MissionStartEvent():
                 facts.start = event
@@ -419,9 +428,9 @@ class Replay:
     # --- combat -----------------------------------------------------------------------------------------------------
 
     def _on_hit(self, event: HitEvent) -> None:
-        if (
-            event.ammo.lower() == "explosion"
-        ):  # never counted as a hit (TD-08); kept per player aircraft to label ordnance
+        ammo = event.ammo
+        if ammo == "explosion" or ammo.lower() == "explosion":
+            # never counted as a hit (TD-08); kept per player aircraft to label ordnance
             self._note_explosion(event)
             return
         target = self._get(event.target_id)
@@ -437,8 +446,10 @@ class Replay:
         """Collapse a player aircraft's explosion lines to detonations (FR-WEB-18). Others' are dropped (97% of hit
         lines, and only player ordnance is labelled). Undeclared IDs are skipped: no placeholder objects for them."""
         attacker = self._objects.get(event.attacker_id)
+        if attacker is None or (attacker.sortie is None and attacker.parent is None):
+            return  # nothing declared, or an AI object with no ancestor: no owner (the common case, by far)
         target = self._objects.get(event.target_id)
-        if attacker is None or target is None or owner_sortie(attacker) is None:
+        if target is None or owner_sortie(attacker) is None:
             return
         last = attacker.detonations[-1] if attacker.detonations else None
         if last is not None and last.tick == event.tick:

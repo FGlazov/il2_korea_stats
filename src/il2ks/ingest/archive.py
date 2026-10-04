@@ -3,7 +3,7 @@
 Layout: `<data dir>/archive/YYYY/MM/missionReport(<uid>)[0].txt.zip` (YYYY/MM from the mission UID, the server's local
 start time). One zip entry `missionReport(<uid>)[0].txt` holding all parts concatenated in order: the same format and
 names as the `il2_stats` backups and `sample_data/`, so `group_mission_files` / `read_mission_lines` read our archives
-like any import (FR-ING-13). DEFLATE: stdlib, fast, readable by every zip tool; logs still compress ~15x.
+like any import (FR-ING-13). DEFLATE (`COMPRESS_LEVEL`): stdlib, fast, readable by every zip tool; logs compress ~13x.
 
 Writing goes to a temporary file in the target folder, is verified (CRC re-read and a sha256 of the uncompressed content
 compared with what was written), and only then renamed over the final path. The returned `sha256` is of the zip file
@@ -27,6 +27,11 @@ from il2ks.config import AfterArchive
 log = logging.getLogger(__name__)
 
 _CHUNK = 1 << 20
+
+COMPRESS_LEVEL = 3
+"""DEFLATE level of the archive. 6 (zlib's default) took 43 ms for a 4.7 MB log and gave 265 KB; 3 takes 18 ms and gives
+349 KB (the logs are only ~13x smaller instead of ~18x). Ingest time matters more than a third more disk for the
+archive of a mission (measured 2026-10-04 on a September sample mission)."""
 
 
 class ArchiveError(RuntimeError):
@@ -91,16 +96,18 @@ def write_archive(
     `entry_time` (local time, as zip stores it) defaults to now; callers pass part [0]'s mtime (TD-15 hint)."""
     if not sources:
         raise ArchiveError(f"{mission_uid}: no source files")
-    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.parent.is_dir():  # a stat is cheaper than `mkdir(exist_ok=True)`, which fails first
+        target.parent.mkdir(parents=True, exist_ok=True)
     tmp = target.with_name(target.name + ".tmp")
     stamp = (entry_time or datetime.now()).timetuple()[:6]
     info = zipfile.ZipInfo(mission_log_name(mission_uid), date_time=(max(stamp[0], 1980), *stamp[1:]))
     info.compress_type = zipfile.ZIP_DEFLATED
+    info.compress_level = COMPRESS_LEVEL  # `ZipFile(compresslevel=)` is ignored for an entry given as a ZipInfo
     digest = hashlib.sha256()
     size = 0
     try:
         with (
-            zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf,
+            zipfile.ZipFile(tmp, "w", compression=zipfile.ZIP_DEFLATED) as zf,
             zf.open(info, "w", force_zip64=True) as out,
         ):
             last = b"\n"

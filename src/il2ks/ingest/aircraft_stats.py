@@ -69,15 +69,16 @@ def recompute_aircraft_stats(aircraft_ids: Iterable[int]) -> None:
     ids = sorted(set(aircraft_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
-        _recompute_stats(chunk)
-        _recompute_payloads(chunk)
+        groups = _sortie_groups(chunk)
+        _recompute_stats(chunk, _sides(groups))
+        _recompute_payloads(chunk, groups)
 
 
 def _ratio(top: int, bottom: int) -> float:
     return top / bottom if bottom else 0.0
 
 
-def _recompute_stats(chunk: list[int]) -> None:
+def _recompute_stats(chunk: list[int], sides: dict[int, str]) -> None:
     sums = {name: Sum(name) for name in COUNTER_FIELDS}
     totals = {
         row["aircraft_id"]: row
@@ -85,7 +86,6 @@ def _recompute_stats(chunk: list[int]) -> None:
         .values("aircraft_id")
         .annotate(pilots=Count("pk"), **sums)
     }
-    sides = _sides(chunk)
     existing = {row.aircraft_id: row for row in AircraftStats.objects.filter(aircraft_id__in=chunk)}
     changed: list[AircraftStats] = []
     new: list[AircraftStats] = []
@@ -114,31 +114,46 @@ def _recompute_stats(chunk: list[int]) -> None:
     AircraftStats.objects.bulk_create(new)
 
 
-def _sides(chunk: list[int]) -> dict[int, str]:
-    """The side most of each type's counted sorties were flown for (ties: the REDFOR/BLUFOR name that sorts first)."""
-    by_side: dict[int, dict[str, int]] = {}
-    rows = counted_sorties().filter(aircraft_id__in=chunk).values("aircraft_id", "country").annotate(n=Count("pk"))
-    for row in rows:
-        side = side_of_country(row["country"])
-        if side is not None:
-            counts = by_side.setdefault(row["aircraft_id"], {})
-            counts[side] = counts.get(side, 0) + row["n"]
-    return {aircraft_id: min(counts, key=lambda s: (-counts[s], s)) for aircraft_id, counts in by_side.items()}
+type _Group = tuple[int, int, str, int, int, int, int]  # aircraft, country, payload name, sorties, air, ground, deaths
 
 
-def _recompute_payloads(chunk: list[int]) -> None:
-    wanted = {
-        (row["aircraft_id"], row["payload_name"]): (row["n"], row["air"] or 0, row["ground"] or 0, row["dead"])
-        for row in counted_sorties()
+def _sortie_groups(chunk: list[int]) -> list[_Group]:
+    """The types' counted sorties grouped by country and payload, in ONE pass over all their history (this grows with
+    it, so the sides and the payload rows both come from these groups instead of a grouped query each)."""
+    rows = (
+        counted_sorties()
         .filter(aircraft_id__in=chunk)
-        .values("aircraft_id", "payload_name")
+        .values("aircraft_id", "country", "payload_name")
         .annotate(
             n=Count("pk"),
             air=Sum("kills_air"),
             ground=Sum("kills_ground"),
             dead=Count("pk", filter=Q(is_death=True)),
         )
-    }
+    )
+    return [
+        (r["aircraft_id"], r["country"], r["payload_name"], r["n"], r["air"] or 0, r["ground"] or 0, r["dead"])
+        for r in rows
+    ]
+
+
+def _sides(groups: list[_Group]) -> dict[int, str]:
+    """The side most of each type's counted sorties were flown for (ties: the REDFOR/BLUFOR name that sorts first)."""
+    by_side: dict[int, dict[str, int]] = {}
+    for aircraft_id, country, _, n, _, _, _ in groups:
+        side = side_of_country(country)
+        if side is not None:
+            counts = by_side.setdefault(aircraft_id, {})
+            counts[side] = counts.get(side, 0) + n
+    return {aircraft_id: min(counts, key=lambda s: (-counts[s], s)) for aircraft_id, counts in by_side.items()}
+
+
+def _recompute_payloads(chunk: list[int], groups: list[_Group]) -> None:
+    sums: dict[tuple[int, str], tuple[int, int, int, int]] = {}
+    for aircraft_id, _, payload_name, n, air, ground, dead in groups:
+        a, b, c, d = sums.get((aircraft_id, payload_name), (0, 0, 0, 0))
+        sums[(aircraft_id, payload_name)] = (a + n, b + air, c + ground, d + dead)
+    wanted = dict(sorted(sums.items()))  # the order a GROUP BY gives: new rows get their ids in it
     existing = {(r.aircraft_id, r.payload_name): r for r in AircraftPayload.objects.filter(aircraft_id__in=chunk)}
     changed: list[AircraftPayload] = []
     new: list[AircraftPayload] = []

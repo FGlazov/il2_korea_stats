@@ -11,14 +11,14 @@ The caller says which with `group_mission_files(..., txt_as=...)`: production re
 import reads archives.
 """
 
-import io
+import codecs
 import re
 import zipfile
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import IO, Literal
 
 from il2ks.core.logparse.events import LogEvent
 from il2ks.core.logparse.parser import ParseStats, parse_lines
@@ -28,6 +28,8 @@ type MissionLogKind = Literal["parts", "archive"]
 LOG_ENCODING = "utf-8"
 """Logs are ASCII in practice (doc 12). Read as UTF-8 and replace undecodable bytes, so a stray byte never stops a
 mission; it can at most turn one value into a replacement character."""
+
+_READ_SIZE = 1 << 20
 
 _NAME_RE = re.compile(
     r"missionReport\((\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\)\[(\d+)\]\.txt(\.zip)?",
@@ -90,11 +92,6 @@ def group_mission_files(paths: Iterable[Path], *, txt_as: MissionLogKind = "part
     return logs
 
 
-def _text_lines(stream: io.TextIOBase) -> Iterator[str]:
-    for line in stream:
-        yield line.rstrip("\r\n")
-
-
 def _zip_member(archive: zipfile.ZipFile, path: Path) -> zipfile.ZipInfo:
     members = [i for i in archive.infolist() if not i.is_dir() and i.filename.lower().endswith(".txt")]
     if len(members) != 1:
@@ -102,13 +99,35 @@ def _zip_member(archive: zipfile.ZipFile, path: Path) -> zipfile.ZipInfo:
     return members[0]
 
 
+def _decode_lines(raw: IO[bytes]) -> Iterator[str]:
+    """The lines of a byte stream, decoded as `LOG_ENCODING` (undecodable bytes replaced), without line endings.
+    `\n`, `\r\n` and `\r` all end a line (what `io.TextIOWrapper(newline=None)` does) and no other character does
+    (so not `str.splitlines`). Works on megabyte chunks with C-level string methods: a Python generator layer per
+    line costs more than the parser's regex."""
+    decoder = codecs.getincrementaldecoder(LOG_ENCODING)(errors="replace")
+    pending = ""  # the unfinished last line of the previous chunk
+    while True:
+        chunk = raw.read(_READ_SIZE)
+        text = pending + decoder.decode(chunk, final=not chunk)
+        held = ""
+        if chunk and text.endswith("\r"):
+            text, held = text[:-1], "\r"  # maybe the first half of a `\r\n` that the chunk boundary split
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        pending = lines.pop() + held
+        yield from lines
+        if not chunk:
+            if pending:
+                yield pending
+            return
+
+
 def _read_file_lines(path: Path) -> Iterator[str]:
     if path.name.lower().endswith(".zip"):
         with zipfile.ZipFile(path) as archive, archive.open(_zip_member(archive, path)) as raw:
-            yield from _text_lines(io.TextIOWrapper(raw, encoding=LOG_ENCODING, errors="replace", newline=None))
+            yield from _decode_lines(raw)
     else:
-        with path.open(encoding=LOG_ENCODING, errors="replace", newline=None) as stream:
-            yield from _text_lines(stream)
+        with path.open("rb") as raw:
+            yield from _decode_lines(raw)
 
 
 def read_mission_lines(log: MissionLog) -> Iterator[str]:
@@ -117,12 +136,11 @@ def read_mission_lines(log: MissionLog) -> Iterator[str]:
     A UTF-8 byte order mark at the start of a file is dropped. Raises `ValueError` for a zip that doesn't hold
     exactly one `.txt`."""
     for path in log.files:
-        first = True
-        for line in _read_file_lines(path):
-            if first:
-                line = line.removeprefix("﻿")
-                first = False
-            yield line
+        lines = _read_file_lines(path)
+        for first in lines:
+            yield first.removeprefix("﻿")
+            break
+        yield from lines
 
 
 def parse_mission(log: MissionLog, stats: ParseStats) -> Iterator[LogEvent]:

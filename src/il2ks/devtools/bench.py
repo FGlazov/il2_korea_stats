@@ -19,6 +19,10 @@ from collections.abc import Callable, Iterable
 from datetime import datetime
 from pathlib import Path
 
+_clock: Callable[[], float] = time.perf_counter
+"""Wall clock; `--cpu` swaps in the process CPU time, which other load on the machine (antivirus, other jobs) does not
+inflate. Windows resolves CPU time to ~15 ms, fine for the sums and medians below but not for single small phases."""
+
 PHASES = ("archive", "parse", "replay", "persist L1", "level 2", "ratings", "other")
 
 
@@ -31,11 +35,11 @@ class PhaseTimer:
 
     def wrap[**P, R](self, phase: str, fn: Callable[P, R]) -> Callable[P, R]:
         def timed(*args: P.args, **kwargs: P.kwargs) -> R:
-            t0 = time.perf_counter()
+            t0 = _clock()
             try:
                 return fn(*args, **kwargs)
             finally:
-                self.current[phase] += time.perf_counter() - t0
+                self.current[phase] += _clock() - t0
 
         return timed
 
@@ -76,10 +80,17 @@ def format_report(timer: PhaseTimer, wall: float) -> str:
 
 
 def bench_ingest(
-    source: Path, *, limit: int | None = None, profile: Path | None = None, data_dir: Path | None = None
+    source: Path,
+    *,
+    limit: int | None = None,
+    profile: Path | None = None,
+    data_dir: Path | None = None,
+    cpu: bool = False,
 ) -> int:
     """Run the benchmark. Returns the process exit code. `data_dir` keeps the result (for `dump-db`); it must be
-    empty or new."""
+    empty or new. `cpu`: time CPU instead of wall clock."""
+    global _clock
+    _clock = time.process_time if cpu else time.perf_counter
     with contextlib.ExitStack() as stack:
         if data_dir is None:
             tmp = stack.enter_context(tempfile.TemporaryDirectory(prefix="il2ks-bench-"))
@@ -120,9 +131,9 @@ def bench_ingest(
             return logs if limit is None else logs[:limit]
 
         def parse(log: MissionLog, stats: ParseStats) -> Iterable[LogEvent]:
-            t0 = time.perf_counter()
+            t0 = _clock()
             events = list(real.parse(log, stats))
-            timer.current["parse"] += time.perf_counter() - t0
+            timer.current["parse"] += _clock() - t0
             return events
 
         pipeline = runner.Pipeline(
@@ -144,9 +155,9 @@ def bench_ingest(
             *,
             now: Callable[[], datetime] = runner.utcnow,
         ) -> runner.Outcome:
-            t0 = time.perf_counter()
+            t0 = _clock()
             outcome = original_ingest_mission(cfg, pipeline, item, decision, last, now=now)
-            timer.finish(time.perf_counter() - t0)
+            timer.finish(_clock() - t0)
             return outcome
 
         runner.ingest_mission = ingest_mission
@@ -159,13 +170,13 @@ def bench_ingest(
         persist.recompute_ratings = timer.wrap("ratings", persist.recompute_ratings)
 
         profiler = cProfile.Profile() if profile is not None else None
-        start = time.perf_counter()
+        start = _clock()
         if profiler is not None:
             profiler.enable()
         summary = runner.ingest_once(cfg, pipeline, runner.IngestOptions(source=source))
         if profiler is not None:
             profiler.disable()
-        wall = time.perf_counter() - start
+        wall = _clock() - start
         print(summary.describe())
         print(format_report(timer, wall))
         if profiler is not None and profile is not None:

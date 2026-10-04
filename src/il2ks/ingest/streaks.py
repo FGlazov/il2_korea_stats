@@ -111,7 +111,7 @@ def _sync_best(chunk: list[int], tours: set[int] | None, wanted: dict[_BestKey, 
                 setattr(row, field, value)
             changed.append(row)
     PlayerBestStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    PlayerBestStreak.objects.bulk_update(changed, list(fields))
+    update_rows(PlayerBestStreak, changed, list(fields))
     PlayerBestStreak.objects.bulk_create(new)
 
 

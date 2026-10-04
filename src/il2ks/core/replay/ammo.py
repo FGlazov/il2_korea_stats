@@ -302,27 +302,31 @@ class _Analysis:
         unit_ids = self._unit_ids.get(id(unit[0]))
         if unit_ids is None:
             unit_ids = self._unit_ids[id(unit[0])] = frozenset(member.object_id for member in unit)
+        low, high = record_tick - self.window, record_tick + self.window
         for member in unit:
             hits = member.hit_log
-            start = bisect_left(hits, record_tick - self.window, key=_hit_tick)
-            for hit in islice(hits, start, None):
-                if hit.tick > record_tick + self.window:
+            if not hits:
+                continue
+            for hit in islice(hits, bisect_left(hits, low, key=_hit_tick), None):
+                hit_tick = hit.tick
+                if hit_tick > high:
                     break
                 if hit.attacker is not attacker:
                     continue
-                rank = (abs(hit.tick - record_tick), 1 if hit.tick > record_tick else 0, 0)
+                rank = (abs(hit_tick - record_tick), 1 if hit_tick > record_tick else 0, 0)
                 if best is None or rank < best[0]:
-                    best = (rank, self.classify(hit.ammo), hit.tick)
+                    best = (rank, self.classify(hit.ammo), hit_tick)
         dets = attacker.detonations
-        start = bisect_left(dets, record_tick - self.window, key=_det_tick)
-        for det in islice(dets, start, None):
-            if det.tick > record_tick + self.window:
-                break
-            if det.targets.keys().isdisjoint(unit_ids):
-                continue
-            rank = (abs(det.tick - record_tick), 1 if det.tick > record_tick else 0, 1)
-            if best is None or rank < best[0]:
-                best = (rank, self.label_detonation(attacker, det), det.tick)
+        if dets:
+            for det in islice(dets, bisect_left(dets, low, key=_det_tick), None):
+                det_tick = det.tick
+                if det_tick > high:
+                    break
+                if det.targets.keys().isdisjoint(unit_ids):
+                    continue
+                rank = (abs(det_tick - record_tick), 1 if det_tick > record_tick else 0, 1)
+                if best is None or rank < best[0]:
+                    best = (rank, self.label_detonation(attacker, det), det_tick)
         return None if best is None or best[1] is None else (best[1], best[2])
 
     def run(self, kills: list[KillResult]) -> AmmoAnalysis:

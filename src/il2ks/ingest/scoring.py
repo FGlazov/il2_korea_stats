@@ -13,6 +13,7 @@ from il2ks.core.catalog.loader import GROUND_CATEGORIES
 from il2ks.core.ratings.score import ScoreRules, SortieFacts, score_sortie
 from il2ks.db.models import CombatRole, PlayerSortie, Role
 from il2ks.ingest.counters import counted_sorties
+from il2ks.ingest.dbutil import update_partial_rows
 
 FACT_COLUMNS: tuple[str, ...] = (
     "combat_role",
@@ -72,5 +73,5 @@ def rebuild_sortie_scores(rules: ScoreRules) -> int:
         air, ground = score_values(row, rules)
         if (air, ground) != (row["air_points"], row["ground_points"]):
             changed.append(PlayerSortie(pk=row["pk"], air_points=air, ground_points=ground))
-    PlayerSortie.objects.bulk_update(changed, ["air_points", "ground_points"], batch_size=500)
+    update_partial_rows(PlayerSortie, changed, ["air_points", "ground_points"])
     return len(changed)
