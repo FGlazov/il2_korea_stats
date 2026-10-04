@@ -523,23 +523,23 @@ msgid_plural ""
 "Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least %(games)s "
 "encounters."
 msgstr[0] ""
-"Luftkampf-Elo mit diesem Flugzeug, aus Abschüssen zwischen Luftüberlegenheits-Einsätzen. Piloten mit mindestens "
+"Luftkampf-Elo mit diesem Flugzeug, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Piloten mit mindestens "
 "%(games)s Begegnung."
 msgstr[1] ""
-"Luftkampf-Elo mit diesem Flugzeug, aus Abschüssen zwischen Luftüberlegenheits-Einsätzen. Piloten mit mindestens "
+"Luftkampf-Elo mit diesem Flugzeug, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Piloten mit mindestens "
 "%(games)s Begegnungen."
 
 # llm-draft
 msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Luftkampf-Elo der Jets, aus Abschüssen zwischen Luftüberlegenheits-Einsätzen. Gesamtzeit."
+msgstr "Luftkampf-Elo der Jets, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit."
 
 # llm-draft
 msgid ""
 "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
 " counts double."
 msgstr ""
-"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Luftüberlegenheits-Einsätzen. Gesamtzeit. Ein "
-"Propeller-Abschuss gegen einen Jet zählt doppelt."
+"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit. Ein Propeller-"
+"Abschuss gegen einen Jet zählt doppelt."
 
 # llm-draft
 msgid "Air-to-air rating, all time"
@@ -695,7 +695,7 @@ msgstr "Assist"
 # llm-draft
 #, python-format
 msgid "Assisted on your losses: %(n)s"
-msgstr "Hat bei deinen Abschüssen mitgeholfen: %(n)s"
+msgstr "Assists bei deinen Verlusten: %(n)s"
 
 # llm-draft
 msgid "Assists"
@@ -845,8 +845,8 @@ msgstr "Beste Serien von %(name)s"
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s encounter in this pool"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnung in diesem Pool"
-msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnungen in diesem Pool"
+msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnung in dieser Gruppe"
+msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnungen in dieser Gruppe"
 
 # llm-draft
 #, python-format
@@ -873,8 +873,8 @@ msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Einsätzen"
 #, python-format
 msgid "Better than 9 in 10 pilots with at least %(n)s encounter in this pool"
 msgid_plural "Better than 9 in 10 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnung in diesem Pool"
-msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnungen in diesem Pool"
+msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnung in dieser Gruppe"
+msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnungen in dieser Gruppe"
 
 # llm-draft
 #, python-format
@@ -930,8 +930,8 @@ msgid ""
 "Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
 "flying an attack sortie (bombs or rockets). Only air superiority sorties count."
 msgstr ""
-"Abgeschossene Bomber und Erdkampfflugzeuge pro Flugstunde in Luftüberlegenheit: KI-Bomber und -Erdkämpfer sowie "
-"Flugzeuge von Spielern im Erdkampfeinsatz (Bomben oder Raketen). Nur Luftüberlegenheitseinsätze zählen."
+"Abgeschossene Bomber und Erdkampfflugzeuge pro Flugstunde in Luftüberlegenheit: KI-Bomber und -Erdkampfflugzeuge "
+"sowie Flugzeuge von Spielern im Erdkampfeinsatz (Bomben oder Raketen). Nur Luftüberlegenheitseinsätze zählen."
 
 # llm-draft
 msgid "Bombs"
@@ -1291,7 +1291,7 @@ msgstr "Feindliche Flugzeuge"
 
 # llm-draft
 msgid "Enemy bombers and attackers flown by other pilots, shot down."
-msgstr "Abgeschossene feindliche Bomber und Schlachtflugzeuge, die von anderen Piloten geflogen wurden."
+msgstr "Abgeschossene feindliche Bomber und Erdkampfflugzeuge, die von anderen Piloten geflogen wurden."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -1494,7 +1494,7 @@ msgstr "Eigenes Opfer"
 
 # llm-draft
 msgid "Friendly-fire kills"
-msgstr "Abschüsse eigener Kräfte"
+msgstr "Eigenbeschuss-Abschüsse"
 
 # llm-draft
 msgid "Full killboard"
@@ -1559,7 +1559,7 @@ msgstr "Bodenpunkte"
 
 # llm-draft
 msgid "Ground score and attack sorties"
-msgstr "Bodenpunkte und Angriffseinsätze"
+msgstr "Bodenpunkte und Erdkampfeinsätze"
 
 # llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
@@ -1604,11 +1604,11 @@ msgstr "Bordwaffen-Treffer"
 
 # llm-draft
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
-msgstr "Bordwaffen-Treffer an Flugzeugen pro abgefeuertem Schuss, in Luftüberlegenheits-Einsätzen"
+msgstr "Bordwaffen-Treffer an Flugzeugen pro abgefeuertem Schuss, in Luftüberlegenheitseinsätzen"
 
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
-msgstr "Bordwaffen-Treffer an Bodenzielen pro abgefeuertem Schuss, in Angriffseinsätzen"
+msgstr "Bordwaffen-Treffer an Bodenzielen pro abgefeuertem Schuss, in Erdkampfeinsätzen"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
@@ -1736,8 +1736,7 @@ msgid ""
 " sorties: the rest are air-superiority sorties."
 msgstr ""
 "Treffer bis zur Zerstörung: Es zählen nur Abschüsse, bei denen ein einzelner Angreifer den gesamten Schaden "
-"verursacht hat; Bomben und Raketen bleiben außen vor. Erdkampfeinsätze: Alle übrigen sind Luftüberlegenheits-"
-"Einsätze."
+"verursacht hat; Bomben und Raketen bleiben außen vor. Erdkampfeinsätze: Alle übrigen sind Luftüberlegenheitseinsätze."
 
 # llm-draft
 msgid "Home"
@@ -1929,7 +1928,7 @@ msgstr "Abschussliste"
 
 # llm-draft
 msgid "Killboard by aircraft"
-msgstr "Killboard nach Flugzeug"
+msgstr "Abschussliste nach Flugzeug"
 
 # llm-draft
 #, python-format
@@ -2235,7 +2234,7 @@ msgstr "Gefährlichster Teil der Mission: die ersten hundert Meter."
 #. Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type
 #. they were flying in most of those deaths.
 msgid "Mostly flying"
-msgstr "Meist geflogen"
+msgstr "Meist auf"
 
 # llm-draft
 msgid "Name"
@@ -2317,11 +2316,11 @@ msgstr "Noch kein Luftkampf: keine Luftsiege oder Assists."
 
 # llm-draft
 msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
-msgstr "In dieser Tour kein Bodenangriff: keine Bodenziele zerstört, keine Angriffseinsätze."
+msgstr "In dieser Tour kein Bodenangriff: keine Bodenziele zerstört, keine Erdkampfeinsätze."
 
 # llm-draft
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
-msgstr "Noch kein Bodenangriff: keine Bodenziele zerstört, keine Angriffseinsätze."
+msgstr "Noch kein Bodenangriff: keine Bodenziele zerstört, keine Erdkampfeinsätze."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -2581,7 +2580,7 @@ msgstr "Es werden nur Schriftdateien im Format .woff2 und .woff akzeptiert (kein
 # llm-draft
 msgid "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out."
 msgstr ""
-"Nur Abschüsse, bei denen beide Piloten einen Luftüberlegenheits-Einsatz flogen (Jäger gegen Jäger); Angriffseinsätze "
+"Nur Abschüsse, bei denen beide Piloten einen Luftüberlegenheits-Einsatz flogen (Jäger gegen Jäger); Erdkampfeinsätze "
 "zählen nicht."
 
 # llm-draft
@@ -3015,7 +3014,9 @@ msgstr "Im Einsatz neu aufmunitioniert"
 
 # llm-draft
 msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."
-msgstr "Durchlöchert, zerbeult und trotzdem punktend. Der Wart will ein Wort mit dir reden, danach einen Händedruck."
+msgstr ""
+"Durchlöchert, zerbeult und trotzdem punktend. Der Chefmechaniker will ein Wort mit dir wechseln, danach dir die Hand "
+"schütteln."
 
 # llm-draft
 msgid "Rocket salvo"
@@ -3108,7 +3109,7 @@ msgstr "Einrichtungs-Token"
 
 # llm-draft
 msgid "Several bombers will not be making it home tonight. Fine hunting."
-msgstr "Mehrere Bomber kommen heute Nacht nicht mehr nach Hause. Feine Jagd."
+msgstr "Mehrere Bomber kommen heute Nacht nicht mehr nach Hause. Gute Jagd."
 
 # llm-draft
 msgid "Several kills in one flight. Time to buy the squadron a round."
@@ -3454,7 +3455,7 @@ msgstr "Ziel"
 
 # llm-draft
 msgid "Target-Rich"
-msgstr "Zielreich"
+msgstr "Ziele satt"
 
 # llm-draft
 msgid "Targets damaged"
@@ -3636,7 +3637,7 @@ msgstr "Die Bodencrew trauert um die Zelle und poliert still die nächste."
 
 # llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
-msgstr "Die Bodentruppen drüben wissen genau, wessen Werk das war, auch wenn das Log es nicht verrät."
+msgstr "Die Bodencrews drüben wissen genau, wessen Werk das war, auch wenn das Log es nicht verrät."
 
 # llm-draft
 msgid "The gun camera footage on this one would be a good watch."
@@ -3969,7 +3970,7 @@ msgstr "Typ"
 
 # llm-draft
 msgid "Type Veteran"
-msgstr "Typ-Veteran"
+msgstr "Typenveteran"
 
 # llm-draft
 msgid "Type the password again"
@@ -4267,7 +4268,7 @@ msgstr "Fließtext auf dem Seitenhintergrund"
 
 # llm-draft
 msgid "bomber and attacker kills, air superiority sorties"
-msgstr "Abschüsse von Bombern und Erdkämpfern, Luftüberlegenheitseinsätze"
+msgstr "Abschüsse von Bombern und Erdkampfflugzeugen, Luftüberlegenheitseinsätze"
 
 # llm-draft
 msgid "by"
@@ -4515,7 +4516,8 @@ msgstr "— Farben unten beibehalten —"
 msgid "— nothing yet (choose it in the lists below) —"
 msgstr "— noch nichts (in den Listen unten auswählen) —"
 
+# llm-draft
 #, python-format
 msgid "…and %(n)s more (the breakdown by target type above counts them all)"
-msgstr ""
+msgstr "…und %(n)s weitere (die Aufschlüsselung nach Zielart oben zählt alle mit)"
 

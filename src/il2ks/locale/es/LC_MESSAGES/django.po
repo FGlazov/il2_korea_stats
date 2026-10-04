@@ -142,7 +142,7 @@ msgstr "%(n)s blancos terrestres"
 # llm-draft
 #, python-format
 msgid "%(n)s ground targets"
-msgstr "%(n)s objetivos terrestres"
+msgstr "%(n)s blancos terrestres"
 
 # llm-draft
 #, python-format
@@ -691,7 +691,7 @@ msgstr "Asistencia"
 # llm-draft
 #, python-format
 msgid "Assisted on your losses: %(n)s"
-msgstr "Asistió en tus derribos: %(n)s"
+msgstr "Asistencias en tus pérdidas: %(n)s"
 
 # llm-draft
 msgid "Assists"
@@ -913,7 +913,7 @@ msgstr "Lanzamiento de bombas"
 
 # llm-draft
 msgid "Bomber Hunter"
-msgstr "Cazabombarderos"
+msgstr "Cazador de bombarderos"
 
 # llm-draft
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
@@ -1010,7 +1010,7 @@ msgstr "Precaución (ámbar)"
 
 # llm-draft
 msgid "Charmed Life"
-msgstr "Vida encantada"
+msgstr "Buena estrella"
 
 # llm-draft
 msgid "Chart grid lines"
@@ -1254,7 +1254,7 @@ msgstr "Elo"
 
 # llm-draft
 msgid "Elo jet"
-msgstr "Elo jets"
+msgstr "Elo reacción"
 
 # llm-draft
 msgid "Elo prop"
@@ -1585,7 +1585,7 @@ msgstr "Puntos de tierra/h"
 
 # llm-draft
 msgid "Ground targets destroyed in a single sortie."
-msgstr "Objetivos terrestres destruidos en una sola salida."
+msgstr "Blancos terrestres destruidos en una sola salida."
 
 # llm-draft
 msgid "Ground vehicle or object"
@@ -1593,27 +1593,27 @@ msgstr "Vehículo u objeto terrestre"
 
 # llm-draft
 msgid "Gun accuracy"
-msgstr "Puntería con cañones"
+msgstr "Puntería con armas"
 
 # llm-draft
 msgid "Gun hits"
-msgstr "Impactos de cañón"
+msgstr "Impactos de armas"
 
 # llm-draft
 msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
-msgstr "Impactos de cañón en aviones por disparo, en salidas de superioridad aérea"
+msgstr "Impactos de armas en aviones por disparo, en salidas de superioridad aérea"
 
 # llm-draft
 msgid "Gun hits on ground targets per round fired, in attack sorties"
-msgstr "Impactos de cañón en objetivos terrestres por disparo, en salidas de ataque"
+msgstr "Impactos de armas en blancos terrestres por disparo, en salidas de ataque"
 
 # llm-draft
 msgid "Gun hits per round fired, over sorties where the rounds fired are known"
-msgstr "Impactos de cañón por disparo, en las salidas con disparos efectuados conocidos"
+msgstr "Impactos de armas por disparo, en las salidas con disparos efectuados conocidos"
 
 # llm-draft
 msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
-msgstr "Impactos de cañón por disparo; un guion si se desconocen los disparos efectuados"
+msgstr "Impactos de armas por disparo; un guion si se desconocen los disparos efectuados"
 
 # llm-draft
 msgid "Gunner"
@@ -1840,11 +1840,11 @@ msgstr "Solo interceptaciones"
 
 # llm-draft
 msgid "Interception"
-msgstr "Intercepción"
+msgstr "Interceptación"
 
 # llm-draft
 msgid "Interception per hour"
-msgstr "Intercepción por hora"
+msgstr "Interceptación por hora"
 
 # llm-draft
 msgid "Ironman"
@@ -1923,7 +1923,7 @@ msgstr "Registro de derribos"
 
 # llm-draft
 msgid "Killboard by aircraft"
-msgstr "Killboard por avión"
+msgstr "Registro de derribos por avión"
 
 # llm-draft
 #, python-format
@@ -2229,7 +2229,7 @@ msgstr "La parte más peligrosa de la misión: los primeros cien metros."
 #. Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type
 #. they were flying in most of those deaths.
 msgid "Mostly flying"
-msgstr "Vuela sobre todo"
+msgstr "Casi siempre en"
 
 # llm-draft
 msgid "Name"
@@ -2303,7 +2303,7 @@ msgstr "Sin derribos aéreos."
 
 # llm-draft
 msgid "No air-to-air activity in this tour: no air kills or assists."
-msgstr "Sin actividad de combate aéreo en este tour: ni derribos ni asistencias."
+msgstr "Sin actividad de combate aéreo en esta temporada: ni derribos ni asistencias."
 
 # llm-draft
 msgid "No air-to-air activity yet: no air kills or assists."
@@ -2311,11 +2311,11 @@ msgstr "Aún sin actividad de combate aéreo: ni derribos ni asistencias."
 
 # llm-draft
 msgid "No air-to-ground activity in this tour: no ground kills or attack sorties."
-msgstr "Sin ataques a tierra en este tour: ni destrucciones terrestres ni salidas de ataque."
+msgstr "Sin ataques a tierra en esta temporada: ni blancos terrestres ni salidas de ataque."
 
 # llm-draft
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
-msgstr "Aún sin ataques a tierra: ni destrucciones terrestres ni salidas de ataque."
+msgstr "Aún sin ataques a tierra: ni blancos terrestres ni salidas de ataque."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -3376,7 +3376,7 @@ msgstr "Sobrevivió"
 
 # llm-draft
 msgid "Survived the sky, caught on the ramp. Nobody should be strafed on their way to the hangar."
-msgstr "Sobreviviste al cielo y te cazaron en la rampa. Nadie debería sufrir un ataque camino del hangar."
+msgstr "Sobreviviste al cielo y te cazaron en la rampa. Nadie debería acabar ametrallado de camino al hangar."
 
 # llm-draft
 msgid "Suspected early bailouts"
@@ -3961,7 +3961,7 @@ msgstr "Tipo"
 
 # llm-draft
 msgid "Type Veteran"
-msgstr "Veterano de tipo"
+msgstr "Veterano del modelo"
 
 # llm-draft
 msgid "Type the password again"
@@ -4509,7 +4509,8 @@ msgstr "— mantener los colores de abajo —"
 msgid "— nothing yet (choose it in the lists below) —"
 msgstr "— todavía nada (elígela en las listas de abajo) —"
 
+# llm-draft
 #, python-format
 msgid "…and %(n)s more (the breakdown by target type above counts them all)"
-msgstr ""
+msgstr "…y %(n)s más (el desglose por tipo de objetivo de arriba los cuenta todos)"
 
