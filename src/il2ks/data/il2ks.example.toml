@@ -210,7 +210,7 @@
 # A pilot needs this many sorties before their ratios are compared, and only such pilots make up the comparison.
 #min_sorties = 20
 
-# --- Backups (FR-OPS-6)--------------------------------------------------------------------------------------------
+# --- Backups (FR-OPS-6) --------------------------------------------------------------------------------------------
 # `il2ks backup` zips what you could not rebuild from the logs: a consistent copy of the database (hidden players,
 # name overrides, branding, admin accounts), this file, the custom/ and media/ folders and the server ID. It goes to
 # <data dir>/backups/. The archived mission logs are NOT included: they are large and are kept forever on their own.

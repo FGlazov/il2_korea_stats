@@ -54,6 +54,12 @@ def _workers() -> str:
     return str(max(2, min(8, (os.cpu_count() or 4) // 2)))
 
 
+def _workflow_files() -> tuple[str, ...]:
+    """The workflow files (repo-relative, forward slashes) for the schema check; the step runs from the repo root."""
+    folder = repo_root() / ".github" / "workflows"
+    return tuple(sorted(f".github/workflows/{p.name}" for p in folder.glob("*.y*ml")))
+
+
 def steps() -> list[Step]:
     il2ks = ("{py}", "-m", "il2ks")
     unit = ("{py}", "-m", "pytest", "tests/unit", "-q", "-n", _workers(), "--dist", "worksteal")
@@ -89,6 +95,12 @@ def steps() -> list[Step]:
             "guard",
             (*il2ks, "dev", "bump-templates", "--check"),
             "uv run il2ks dev bump-templates   (and commit the result)",
+        ),
+        Step(
+            "workflows",
+            "guard",
+            ("tool:check-jsonschema", "--builtin-schema", "vendor.github-workflows", *_workflow_files()),
+            "fix the YAML / schema error in .github/workflows (an unquoted ': ' in a step name breaks the whole file)",
         ),
         Step(
             "translations",

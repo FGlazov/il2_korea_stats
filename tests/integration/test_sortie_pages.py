@@ -18,7 +18,10 @@ from il2ks.core.replay.result import (
     SortieResult,
     TimelineEntry,
 )
-from il2ks.db.models import GameObject, Mission, Player, PlayerSortie
+from il2ks.db.models import HEAVY_SORTIE_COLUMNS, GameObject, Mission, Player, PlayerSortie
+from il2ks.queries.missions import mission_sorties
+from il2ks.queries.players import recent_sorties
+from il2ks.queries.sorties import SortieFilters, sortie_page
 from il2ks.web.sortie_view import TIMELINE_HEAD_ROWS
 from tests.factories import kill, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -314,6 +317,24 @@ def test_list_renders_within_budget_newest_first(client: Client) -> None:
     assert 'aria-sort="descending"' in html  # the date column
     rows = [int(n) for n in re.findall(r'href="/sorties/(\d+)/" title', html)]
     assert rows == sorted(rows, reverse=True)  # same mission, spawn order: newest first
+
+
+def test_list_queries_leave_the_big_json_columns_unloaded() -> None:
+    """The lists never render ammo, damage breakdown or timeline: they must not be read from the database."""
+    save(many_sorties())
+    player = Player.objects.get(account_uuid__endswith=f"{1:012d}")
+    mission_row = Mission.objects.get()
+
+    pages = [
+        sortie_page(player, SortieFilters(), "-date", "1").object_list,
+        recent_sorties(player),
+        mission_sorties(mission_row),
+    ]
+
+    for rows in pages:
+        assert rows
+        for row in rows:
+            assert set(HEAVY_SORTIE_COLUMNS) <= row.get_deferred_fields()
 
 
 def test_list_filters_by_aircraft_outcome_role_and_combat_role(client: Client) -> None:

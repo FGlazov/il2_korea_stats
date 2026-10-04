@@ -568,3 +568,10 @@ _register_block("results_region", COMPONENTS + "results_region.html", ())
 _register_block("filter_bar", COMPONENTS + "filter_bar.html", (), _filter_bar_extra)
 _register_block("accordion", COMPONENTS + "accordion.html", ("title", "hint"))
 _register_block("notice", COMPONENTS + "notice.html", ("kind", "title"))
+
+
+@register.filter
+def utc_date(value: datetime | None) -> SafeString | str:
+    """Deprecated alias of `local_date` (the UTC filter was removed with FR-WEB-17); keeps old `custom/` overrides
+    rendering (TD-25)."""
+    return local_date(value)

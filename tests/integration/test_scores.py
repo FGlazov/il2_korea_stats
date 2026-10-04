@@ -188,3 +188,24 @@ def test_the_score_config_reaches_save_and_rebuild_through_the_pipeline(tmp_path
     rebuild_all(cfg)
 
     assert sortie_score(1)[0] == 50 * 2 + 2 + 3 - 3 - 2 - 2
+
+
+def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Both backfills go through one helper that hands `[marks]` and `[score]` to `rebuild_aggregates`."""
+    import il2ks.ingest.aggregates as aggregates
+    from il2ks.ops import migrate
+
+    seed()
+    PlayerSortie.objects.update(air_points=0.0, ground_points=0.0)
+    cfg = make_instance(tmp_path, extra_toml="[marks]\nmin_sorties = 7\n")
+    calls: list[dict[str, object]] = []
+
+    def fake(*args: object, **kwargs: object) -> None:
+        calls.append(kwargs)
+
+    monkeypatch.setattr(aggregates, "rebuild_aggregates", fake)
+
+    migrate._backfill_scores(cfg)  # pyright: ignore[reportPrivateUsage]
+
+    assert calls == [{"marks": cfg.marks, "score": cfg.score}]
+    assert cfg.marks.min_sorties == 7

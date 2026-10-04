@@ -12,7 +12,7 @@ from typing import Final, Literal
 from django.db.models import QuerySet
 from django.http import QueryDict
 
-from il2ks.db.models import Kill, Mission, PlayerMission, PlayerSortie, Tour
+from il2ks.db.models import HEAVY_SORTIE_COLUMNS, Kill, Mission, PlayerMission, PlayerSortie, Tour
 
 # What the mission list can be sorted by: ?sort= value -> model field (the whitelist: anything else is ignored).
 SORT_FIELDS: Final[dict[str, str]] = {
@@ -105,7 +105,10 @@ def visible_mission(pk: int) -> Mission | None:
 def mission_sorties(mission: Mission) -> list[PlayerSortie]:
     """Every sortie of a mission in spawn order, with its player and aircraft (one query)."""
     return list(
-        PlayerSortie.objects.filter(mission=mission).select_related("player", "aircraft").order_by("spawned_at", "pk")
+        PlayerSortie.objects.filter(mission=mission)
+        .select_related("player", "aircraft")
+        .defer(*HEAVY_SORTIE_COLUMNS)
+        .order_by("spawned_at", "pk")
     )
 
 
@@ -116,5 +119,6 @@ def mission_kills(mission: Mission) -> list[Kill]:
         .select_related(
             "killer_sortie__player", "killer_sortie__aircraft", "victim_sortie__player", "victim_sortie__aircraft"
         )
+        .defer(*(f"{side}__{c}" for side in ("killer_sortie", "victim_sortie") for c in HEAVY_SORTIE_COLUMNS))
         .order_by("tick", "pk")
     )

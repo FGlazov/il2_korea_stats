@@ -9,7 +9,17 @@ from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
 
-from il2ks.db.models import Player, PlayerAircraft, PlayerName, PlayerSortie, PlayerTour, PlayerTourAircraft, Role, Tour
+from il2ks.db.models import (
+    HEAVY_SORTIE_COLUMNS,
+    Player,
+    PlayerAircraft,
+    PlayerName,
+    PlayerSortie,
+    PlayerTour,
+    PlayerTourAircraft,
+    Role,
+    Tour,
+)
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = 50
@@ -115,6 +125,7 @@ def recent_sorties(player: Player, limit: int = RECENT_SORTIES, tour: Tour | Non
     """The latest sorties by spawn time, any role (of `tour` when given); mission and aircraft come along in the same
     query. Sorties of hidden missions are left out (FR-ADM-3)."""
     rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
+    rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if tour is not None:
         rows = rows.filter(mission__tour=tour)
     return list(rows.order_by("-spawned_at", "-pk")[:limit])

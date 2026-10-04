@@ -63,19 +63,26 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         return backup
 
 
+def _rebuild_all(cfg: Config) -> None:
+    """The one place the backfills call `rebuild_aggregates`, so no configured section (ratings, tours, marks, score)
+    can be forgotten by one of them."""
+    from il2ks.ingest.aggregates import rebuild_aggregates
+
+    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score)
+
+
 def _backfill_scores(cfg: Config) -> None:
     """Sorties saved before the score existed have none: when there are pilot sorties and none has a score, compute
     every score from the stored columns and rebuild level 2 (FR-WEB-7). Rule changes: `il2ks rebuild-aggregates`."""
     from django.db import transaction
 
     from il2ks.db.models import PlayerSortie, Role
-    from il2ks.ingest.aggregates import rebuild_aggregates
 
     pilots = PlayerSortie.objects.filter(role=Role.PILOT)
     if pilots.exists() and not pilots.exclude(air_points=0, ground_points=0).exists():
         log.info("scoring existing sorties")
         with transaction.atomic():
-            rebuild_aggregates(cfg.ratings, cfg.tours, score=cfg.score)
+            _rebuild_all(cfg)
 
 
 def _backfill_tours(cfg: Config) -> None:
@@ -83,12 +90,11 @@ def _backfill_tours(cfg: Config) -> None:
     from django.db import transaction
 
     from il2ks.db.models import Mission
-    from il2ks.ingest.aggregates import rebuild_aggregates
 
     if Mission.objects.filter(tour__isnull=True).exists():
         log.info("assigning existing missions to tours")
         with transaction.atomic():
-            rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score)
+            _rebuild_all(cfg)
     else:
         from il2ks.db.models import Player, StatThreshold
         from il2ks.ingest.stat_marks import recompute_thresholds

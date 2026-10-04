@@ -34,6 +34,7 @@ il2ks = "il2ks.cli:main"
 [dependency-groups]
 dev = [
     "babel>=2.18.0",
+    "check-jsonschema>=0.38.2",
     "django-types>=0.20",
     "import-linter>=2.1",
     "pre-commit>=4.0",

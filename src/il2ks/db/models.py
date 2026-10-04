@@ -208,6 +208,9 @@ class KillVia(models.TextChoices):
 TOTAL_AMMO = "*"
 """The `ammo` of the row that sums all gun ammo (`MissionAircraftAmmo`, `AircraftAmmoStats`)."""
 
+HEAVY_SORTIE_COLUMNS = ("ammo", "damage_breakdown", "timeline")
+"""The big JSON columns of `PlayerSortie`: only the sortie report renders them, so list queries `.defer()` them."""
+
 
 class Counters(models.Model):
     """The counters shared by PlayerMission, Player and PlayerAircraft (doc 06, FR-WEB-4). No ratios (TD-22)."""
