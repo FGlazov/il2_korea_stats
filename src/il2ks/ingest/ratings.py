@@ -16,7 +16,7 @@ from collections.abc import Iterator
 from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_all_ratings
 from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, PlayerSortie, Role
-from il2ks.ingest.achievements import recompute_achievements, recompute_holders
+from il2ks.ingest.achievements import recompute_achievements
 from il2ks.ingest.dbutil import update_partial_rows
 
 CHUNK = 400  # players per achievement batch (SQLite's bound-parameter limit)
@@ -70,26 +70,28 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
 
 def _store_peaks(peaks: dict[int, float], winners: dict[int, int]) -> None:
     """Write `PlayerSortie.elo_peak` (the Elo medal reads it) where it differs, then recompute the medals of every pilot
-    whose sorties changed. Incremental == rebuild: the peaks are a pure function of the replayed games."""
+    whose sorties changed. The holder counts are the caller's to recompute afterwards
+    (`recompute_holders`, once per save or rebuild). Incremental == rebuild: the peaks are a pure function of the replayed games."""
     stored = dict(PlayerSortie.objects.filter(elo_peak__gt=0).values_list("pk", "elo_peak"))
     changed: list[PlayerSortie] = []
     players: set[int] = set()
+    cleared: list[int] = []  # sorties whose peak goes: no game explains them, so `winners` does not know their pilot
     for pk in stored.keys() | peaks.keys():
         want = peaks.get(pk, 0.0)
         if stored.get(pk, 0.0) != want:
             changed.append(PlayerSortie(pk=pk, elo_peak=want))
-            players.add(winners[pk] if pk in winners else _owner(pk))
+            if pk in winners:
+                players.add(winners[pk])
+            else:
+                cleared.append(pk)
+    for start in range(0, len(cleared), CHUNK):
+        players.update(
+            PlayerSortie.objects.filter(pk__in=cleared[start : start + CHUNK]).values_list("player_id", flat=True)
+        )
     update_partial_rows(PlayerSortie, changed, ["elo_peak"])
     ids = sorted(players)
     for start in range(0, len(ids), CHUNK):
         recompute_achievements(ids[start : start + CHUNK])
-    if ids:
-        recompute_holders()
-
-
-def _owner(sortie_id: int) -> int:
-    """The player of a sortie whose peak was cleared (it has no game any more, so `winners` does not know it)."""
-    return PlayerSortie.objects.values_list("player_id", flat=True).get(pk=sortie_id)
 
 
 def _games() -> Iterator[Game]:

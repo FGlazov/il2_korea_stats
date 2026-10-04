@@ -136,7 +136,6 @@ def save_mission(
 
     touched_tours = {tour.pk} | _ids(old_tour_id)
     recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
-    recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(ammo_aircraft_ids)
     # after the players' PlayerAircraft / PlayerTourAircraft rows
     recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk), touched_tours)
@@ -145,7 +144,8 @@ def save_mission(
     if marks is not None:
         recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:
-        recompute_ratings(ratings)
+        recompute_ratings(ratings)  # may change medals (Elo peaks)
+    recompute_holders()  # FR-WEB-26: the overview counts, once, after every step that changes the medal rows
     bump_data_version()  # TD-28: same transaction as the save
     return mission
 
