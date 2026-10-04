@@ -182,9 +182,11 @@ def test_list_paginates(client: Client) -> None:
 
     first = body(client, "/missions/")
     second = body(client, "/missions/?page=2")
+    third = body(client, "/missions/?page=3")
 
-    assert len(re.findall(r'href="/missions/\d+/"', first)) == 25
-    assert len(re.findall(r'href="/missions/\d+/"', second)) == 2
+    assert len(re.findall(r'href="/missions/\d+/"', first)) == 10  # OQ-96: 10 missions a page
+    assert len(re.findall(r'href="/missions/\d+/"', second)) == 10
+    assert len(re.findall(r'href="/missions/\d+/"', third)) == 7
     assert "page=2" in first
     assert client.get("/missions/?page=999").status_code == 200  # Django's get_page clamps
 

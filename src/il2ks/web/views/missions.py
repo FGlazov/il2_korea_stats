@@ -7,7 +7,7 @@ templates anonymise hidden players ("Hidden player", no link).
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
-from django.core.paginator import Paginator
+from django.core.paginator import Page, Paginator
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -18,6 +18,7 @@ from il2ks.db.models import PlayerMission, PlayerSortie
 from il2ks.queries import activity as activity_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import missions as reads
+from il2ks.queries.paging import MISSION_PAGE_SIZE, ROW_PAGE_SIZE
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from
 from il2ks.web import columns, display
 from il2ks.web.chart_data import activity_chart
@@ -25,7 +26,8 @@ from il2ks.web.views.leaderboards import BOARD_TITLES
 
 HOME_MISSIONS = 8
 HOME_PILOTS = 5
-PAGE_SIZE = 25
+PAGE_SIZE = MISSION_PAGE_SIZE
+KILLS_PARAM = "page_kills"
 PERIOD_LABELS = {7: _("Last 7 days"), 30: _("Last 30 days"), 90: _("Last 90 days")}
 
 
@@ -35,6 +37,11 @@ class SideSorties:
 
     side: Side | None
     rows: list[PlayerSortie]
+    """This page's rows (`ROW_PAGE_SIZE` at most)."""
+    page: Page
+    """The Django page the rows come from: `page.paginator.count` is every sortie of the side."""
+    page_param: str
+    """The query parameter of this table's page number ('page_redfor', 'page_blufor', 'page_other')."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,24 +118,31 @@ def mission_list(request: HttpRequest) -> HttpResponse:
 
 def mission_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """`/missions/<pk>/`. Query parameters: `sort` (one of `reads.SORTIE_SORT_FIELDS`, '-' = descending) orders the
-    sortie tables, all three alike; `cols` adds optional sortie columns (`columns.MISSION_SORTIE_COLUMNS`). The kills
-    table is not sortable and takes neither. Unknown values are ignored."""
+    sortie tables, all three alike, before they are paginated; `cols` adds optional sortie columns
+    (`columns.MISSION_SORTIE_COLUMNS`). Each table has its own page number (OQ-96): `page_redfor`, `page_blufor`,
+    `page_other` (20 sorties each) and `page_kills` (20 kills); a sort or column change starts them all at page 1.
+    The kills table is not sortable and takes neither `sort` nor `cols`. Unknown values are ignored."""
     mission = reads.visible_mission(pk)
     if mission is None:
         raise Http404
     sort = reads.resolve_sortie_sort(request.GET.get("sort", ""))
     shown = columns.chosen(request.GET, columns.MISSION_SORTIE_COLUMNS)
     sorties = reads.mission_sorties(mission, sort)
-    groups = [
-        SideSorties(side, [row for row in sorties if display.side_of(row.country) == side])
-        for side in ("redfor", "blufor", None)
-    ]
+    groups: list[SideSorties] = []
+    for side in ("redfor", "blufor", None):
+        param = f"page_{side or 'other'}"
+        page = Paginator([row for row in sorties if display.side_of(row.country) == side], ROW_PAGE_SIZE).get_page(
+            request.GET.get(param)
+        )
+        groups.append(SideSorties(side, list(page.object_list), page, param))
+    kills = Paginator(reads.mission_kills(mission), ROW_PAGE_SIZE).get_page(request.GET.get(KILLS_PARAM))
     context: dict[str, object] = {
         "page_title": display.mission_title(mission.mission_file),
         "crumbs": [(_("Missions"), reverse("web:mission-list")), (display.mission_title(mission.mission_file), None)],
         "mission": mission,
         "groups": [group for group in groups if group.rows or group.side is not None],
-        "kills": reads.mission_kills(mission),
+        "kills": kills,
+        "kills_param": KILLS_PARAM,
         "sortie_count": len(sorties),
         "sort": sort,
         "optional_columns": columns.MISSION_SORTIE_COLUMNS,

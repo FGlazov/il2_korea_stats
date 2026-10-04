@@ -9,6 +9,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import replace
 
 from django.contrib.staticfiles import finders
+from django.core.paginator import Paginator
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.templatetags.static import static
@@ -18,10 +19,13 @@ from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
+from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from, tour_query
 from il2ks.web import columns, display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
+DAMAGE_PARAM = "page_damage"
+TIMELINE_PARAM = "page_timeline"
 OG_IMAGE = "il2ks/img/brand/og-default.png"
 
 
@@ -97,7 +101,8 @@ def _og_description(sortie: PlayerSortie) -> str:
 
 def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """`/sorties/<pk>/`: the core page. Context: sortie (with player, mission, aircraft), detail
-    (`il2ks.web.sortie_view.Detail`), og (title, description, url, image) for the `head` block, page_title.
+    (`il2ks.web.sortie_view.Detail`), damage_page / timeline_page (20 rows a page, `?page_damage=`, `?page_timeline=`;
+    OQ-96), og (title, description, url, image) for the `head` block, page_title.
 
     Reads: sortie + joins (1), kills made (1), kills suffered (1), counterpart sorties (1), game objects (1)."""
     sortie = reads.visible_sortie(pk)
@@ -110,6 +115,8 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
         reads.objects_by_log_name(counterpart_object_types(sortie)),
     )
     detail = build_detail(sortie, made, suffered, lookup)
+    damage_page = Paginator(detail.damage, ROW_PAGE_SIZE).get_page(request.GET.get(DAMAGE_PARAM))
+    timeline_page = Paginator(detail.timeline, ROW_PAGE_SIZE).get_page(request.GET.get(TIMELINE_PARAM))
     outcome = display.badge_spec(display.OUTCOMES, sortie.outcome)[0]
     aircraft = object_names.name_of(sortie.aircraft, get_language() or "en")
     title = f"{sortie.name_at_time} — {aircraft} — {outcome}"
@@ -120,6 +127,10 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
         {
             "sortie": sortie,
             "detail": detail,
+            "damage_page": damage_page,
+            "damage_param": DAMAGE_PARAM,
+            "timeline_page": timeline_page,
+            "timeline_param": TIMELINE_PARAM,
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (sortie.player.current_name, reverse("web:player-detail", args=[sortie.player_id])),

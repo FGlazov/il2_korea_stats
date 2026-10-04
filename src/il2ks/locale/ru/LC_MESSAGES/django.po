@@ -3101,11 +3101,6 @@ msgid "Shot down most"
 msgstr "Чаще всего сбивал"
 
 # llm-draft
-#, python-format
-msgid "Show %(n)s more counterparts"
-msgstr "Показать ещё соперников: %(n)s"
-
-# llm-draft
 msgid "Show selected missions on public pages again"
 msgstr "Снова показывать выбранные миссии на публичных страницах"
 
@@ -3116,11 +3111,6 @@ msgstr "Снова показывать выбранных игроков на �
 # llm-draft
 msgid "Show the numbers"
 msgstr "Показать числа"
-
-# llm-draft
-#, python-format
-msgid "Show the remaining %(n)s timeline rows"
-msgstr "Показать оставшиеся строки хронологии: %(n)s"
 
 # llm-draft
 #, python-format
@@ -4472,4 +4462,8 @@ msgstr "— оставить цвета ниже —"
 # llm-draft
 msgid "— nothing yet (choose it in the lists below) —"
 msgstr "— пока ничего (выберите её в списках ниже) —"
+
+#, python-format
+msgid "…and %(n)s more (the breakdown by target type above counts them all)"
+msgstr ""
 

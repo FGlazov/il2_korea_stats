@@ -20,9 +20,9 @@ from il2ks.core.replay.result import (
 )
 from il2ks.db.models import HEAVY_SORTIE_COLUMNS, GameObject, Mission, Player, PlayerSortie
 from il2ks.queries.missions import mission_sorties
+from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.players import recent_sorties
 from il2ks.queries.sorties import SortieFilters, sortie_page
-from il2ks.web.sortie_view import TIMELINE_HEAD_ROWS
 from tests.factories import kill, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
@@ -273,17 +273,25 @@ def test_consecutive_ground_kills_fold_into_one_row(client: Client) -> None:
     assert "300 ground targets" in html
     assert "300\N{MULTIPLICATION SIGN} GAZ-63" in html
     assert "Show the remaining" not in html
-    assert len(html) < 400_000
+    assert len(html) < 100_000
     assert_simple_reads(client, f"/sorties/{pk}/", max_queries=DETAIL_BUDGET)
 
 
-def test_a_long_timeline_shows_the_first_rows_and_folds_the_rest(client: Client) -> None:
-    save(mission((long_timeline(ground_kills=0, singles=TIMELINE_HEAD_ROWS + 40),)))
+def test_a_long_timeline_is_paginated_and_keeps_the_other_parameters(client: Client) -> None:
+    """OQ-96: 20 timeline rows a page (`?page_timeline=`); the links keep every other parameter, repeats too."""
+    save(mission((long_timeline(ground_kills=0, singles=ROW_PAGE_SIZE * 2 + 5),)))
+    pk = pk_of(1)
 
-    html = detail(client, pk_of(1))
+    first = detail(client, pk)
+    second = client.get(f"/sorties/{pk}/?page_timeline=2&cols=a&cols=b").content.decode()
 
-    assert "Show the remaining" in html
-    assert html.count('class="timeline__row') == TIMELINE_HEAD_ROWS + 40 + 2  # every event is still in the page
+    assert first.count('class="timeline__row') == ROW_PAGE_SIZE
+    assert second.count('class="timeline__row') == ROW_PAGE_SIZE
+    assert "Show the remaining" not in first
+    link = re.search(r'<a href="([^"]*)" hx-get="[^"]*" rel="next"', second)
+    assert link is not None
+    assert "cols=a&amp;cols=b" in link.group(1) or "cols=a&cols=b" in link.group(1)
+    assert "page_timeline=3" in link.group(1)
 
 
 def test_timeline_rows_carry_icons_and_both_clocks(client: Client) -> None:
@@ -479,7 +487,7 @@ def test_list_paginates_and_survives_a_bad_page(client: Client) -> None:
     save(mission(tuple(sortie(i, 1) for i in range(30))))
 
     first = client.get(list_url(1)).content.decode()
-    assert "Showing 1\N{EN DASH}25 of 30" in first
-    assert "Showing 26\N{EN DASH}30 of 30" in client.get(list_url(1, "?page=2")).content.decode()
+    assert "Showing 1\N{EN DASH}20 of 30" in first
+    assert "Showing 21\N{EN DASH}30 of 30" in client.get(list_url(1, "?page=2")).content.decode()
     assert client.get(list_url(1, "?page=junk")).status_code == 200
     assert client.get(list_url(1, "?page=99")).status_code == 200

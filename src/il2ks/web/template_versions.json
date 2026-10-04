@@ -246,8 +246,8 @@
       "sha256": "c794f07677cbf46001fae2739c00ec0573fcbe192941131060ed77ba76fbac78"
     },
     "templates/il2ks/missions/detail.html": {
-      "version": 6,
-      "sha256": "837f869713c5b9b4c50023ff2b193ce4a9c71a9c621b513bf69fcb4a92919d15"
+      "version": 7,
+      "sha256": "846d45979f2ac47c61fd6b955e79316b61fc7d4fba45e5f287c8bb6a6b201bd1"
     },
     "templates/il2ks/missions/list.html": {
       "version": 5,
@@ -390,8 +390,8 @@
       "sha256": "e0915cb5feec7f2b2a8b51f4919c898d3ff9b655a85e073b819d22d7b945ef62"
     },
     "templates/il2ks/sorties/detail.html": {
-      "version": 4,
-      "sha256": "caa3e4e0e2d5043fc8d74b4dfd233185875b8ba768f603fd0a570ab3c2b94a16"
+      "version": 5,
+      "sha256": "365b083d030be2fa7323fa0bbc75a8ea7c16035954fd531978fa187b0e360865"
     },
     "templates/il2ks/sorties/list.html": {
       "version": 6,
@@ -402,8 +402,8 @@
       "sha256": "3fb85d787208120bd393829e7a700affc59a5cb347ecdc536f81a4ff4a559f78"
     },
     "templates/il2ks/sorties/parts/damage.html": {
-      "version": 1,
-      "sha256": "529d9e68a7097d9c4f004d93ae3877facdc79ce6da563d39fcb44ced92b2549b"
+      "version": 2,
+      "sha256": "a3b70fe3f3c71b9b4d447010a91dea2c59ad9cf26d4b53b92786059ccc042946"
     },
     "templates/il2ks/sorties/parts/damage_table.html": {
       "version": 1,
@@ -446,12 +446,12 @@
       "sha256": "e52e66ca890fe2b7bdf3f65976d64753bfa7ed69a48c2ed16ee78d4f7421c608"
     },
     "templates/il2ks/sorties/parts/timeline.html": {
-      "version": 3,
-      "sha256": "61b87ee7039f616cce4ddd258aec35e6cd5d5a0c37d096563cad672b1e3962c9"
+      "version": 4,
+      "sha256": "8f3f17d2f26cfb341e47f564b165eebb0cfd69053d4dccc584d8bdfef4f7fe3b"
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
-      "version": 4,
-      "sha256": "a473f5e96a759404b91ef49fb08e280eb3ac2433544c92bcc075c68f7ce9f250"
+      "version": 5,
+      "sha256": "01f37f940390f77572e4e7a55c652d760756e95cf16c70cb6075754f5fa16fc2"
     },
     "templates/il2ks/sorties/parts/who.html": {
       "version": 1,

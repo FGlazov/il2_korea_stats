@@ -23,9 +23,10 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
+from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.sorting import Computed, Rated, SortSpec, order_by
 
-PAGE_SIZE = 25
+PAGE_SIZE = ROW_PAGE_SIZE
 
 
 def _accuracy(prefix: str) -> Expression:

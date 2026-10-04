@@ -200,7 +200,7 @@ def test_whole_row_links_survive_sorting(client: Client) -> None:
     assert len(re.findall(r'class="row-link stretched-link" href="/sorties/\d+/"', html)) == 3  # all but the hidden one
 
 
-def test_results_region_is_there_for_htmx_and_kills_table_is_outside(client: Client) -> None:
+def test_results_region_is_there_for_htmx_and_the_kills_table_has_no_sort_links(client: Client) -> None:
     pk = seed().pk
 
     html = client.get(reverse("web:mission-detail", args=[pk]), {"sort": "pilot"}).content.decode()

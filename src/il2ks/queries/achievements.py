@@ -8,8 +8,9 @@ only while its mission is visible (the templates check `mission_hidden`).
 from django.core.paginator import Page, Paginator
 
 from il2ks.db.models import AchievementHolders, PlayerAchievement, PlayerSortie
+from il2ks.queries.paging import ROW_PAGE_SIZE
 
-PAGE_SIZE = 50
+PAGE_SIZE = ROW_PAGE_SIZE
 
 
 def player_rows(player_id: int) -> list[PlayerAchievement]:

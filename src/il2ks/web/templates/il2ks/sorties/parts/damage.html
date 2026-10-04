@@ -1,16 +1,12 @@
-{# il2ks-template: templates/il2ks/sorties/parts/damage.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/damage.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Damage dealt and taken per counterpart (damage_breakdown), most damage first; percent of the counterpart's health.
-  Context: detail.damage (the first rows), detail.damage_more (the rest, folded in a details element).
+  Context: detail.damage (all rows, to decide whether there is a section), damage_page (a Page of 20 rows,
+  ?page_damage=, OQ-96), damage_param.
   Rows: sortie_view.DamageRow, rendered by damage_table.html.
 {% endcomment %}{% if detail.damage %}
 <h2>{% translate "Damage" %}</h2>
 <p class="muted">{% translate "Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole object, added up over all objects of that type." %}</p>
-{% include "il2ks/sorties/parts/damage_table.html" with rows=detail.damage %}
-{% if detail.damage_more %}
-  <details class="more">
-    <summary>{% blocktranslate with n=detail.damage_more|length|num %}Show {{ n }} more counterparts{% endblocktranslate %}</summary>
-    {% include "il2ks/sorties/parts/damage_table.html" with rows=detail.damage_more %}
-  </details>
-{% endif %}
+{% include "il2ks/sorties/parts/damage_table.html" with rows=damage_page %}
+{% pagination damage_page param=damage_param %}
 {% endif %}

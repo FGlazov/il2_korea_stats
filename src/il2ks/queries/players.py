@@ -21,10 +21,11 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
+from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.sorting import Rated, Ratio, SortSpec, order_by
 from il2ks.queries.tours import player_tour_aircraft
 
-PAGE_SIZE = 50
+PAGE_SIZE = ROW_PAGE_SIZE
 RECENT_SORTIES = 5
 TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64

@@ -24,8 +24,9 @@ from il2ks.db.models import (
     StreakKind,
     Tour,
 )
+from il2ks.queries.paging import ROW_PAGE_SIZE
 
-PAGE_SIZE = 50
+PAGE_SIZE = ROW_PAGE_SIZE
 TOP_OPPONENTS = 5
 TOP_TYPES = 5  # enemy aircraft types per direction in the profile block
 HOME_STREAKS = 5
