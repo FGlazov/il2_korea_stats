@@ -59,11 +59,11 @@ def test_totals_matchups_and_payloads_from_one_mission() -> None:
 
     mig = AircraftStats.objects.get(aircraft__log_name="MiG-15bis")
     assert (mig.sorties, mig.pilots, mig.kills_air, mig.deaths, mig.planes_lost, mig.side) == (2, 2, 2, 1, 1, "redfor")
-    assert (mig.kd, mig.kl, mig.survival) == (2.0, 2.0, 0.5)
     sabre = AircraftStats.objects.get(aircraft__log_name="F-86A-5")
-    assert (sabre.sorties, sabre.side, sabre.survival) == (2, "blufor", 0.5)
+    assert (sabre.sorties, sabre.side) == (2, "blufor")
     attacker = AircraftStats.objects.get(aircraft__log_name="Il-10")
-    assert (attacker.attack_sorties, attacker.attack_share, attacker.kd) == (1, 1.0, 0.0)
+    assert attacker.attack_sorties == 1
+    assert not {"kd", "kl", "survival", "attack_share"} & {f.name for f in AircraftStats._meta.get_fields()}  # OQ-98
     assert not AircraftStats.objects.filter(aircraft__log_name="Turret_IL10").exists()  # gunner sorties aren't counted
 
     pairs = {
@@ -113,7 +113,7 @@ def test_incremental_equals_rebuild_with_a_reingest_that_drops_things() -> None:
 def test_rebuild_repairs_drifted_rows() -> None:
     save(first_mission())
     good = snapshot()
-    AircraftStats.objects.update(sorties=99, kd=9.0)
+    AircraftStats.objects.update(sorties=99, kills_air=9)
     AircraftMatchup.objects.all().delete()
     AircraftPayload.objects.update(sorties=7)
 

@@ -22,9 +22,10 @@ from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, Gam
 from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
 from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
-# Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio (a whitelist; anything else
-# falls back to the default). The first block is the default columns, the second the optional ones a visitor can add
-# with `?cols=` (`web.columns.AIRCRAFT_COLUMNS`; a test keeps the two in step).
+# Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio of two columns (no ratio is
+# stored, OQ-98; a whitelist, anything else falls back to the default). The first block is the default columns, the
+# second the optional ones a visitor can add with `?cols=` (`web.columns.AIRCRAFT_COLUMNS`; a test keeps the two in
+# step).
 AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "aircraft": "aircraft__display_name",
     "sorties": "sorties",
@@ -34,10 +35,10 @@ AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "kills_ground": "kills_ground",
     "deaths": "deaths",
     "planes_lost": "planes_lost",
-    "kd": "kd",
-    "kl": "kl",
-    "survival": "survival",
-    "attack_share": "attack_share",
+    "kd": Ratio("kills_air", "deaths"),
+    "kl": Ratio("kills_air", "planes_lost"),
+    "survival": Ratio("sorties", "sorties", minus="deaths"),
+    "attack_share": Ratio("attack_sorties", "sorties"),
     "kills_air_pvp": "kills_air_pvp",
     "assists": "assists",
     "bailouts": "bailouts",

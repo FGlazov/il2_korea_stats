@@ -747,20 +747,14 @@ class AircraftStats(Counters):
     """Level 2 (FR-WEB-8): all-time counters per aircraft type, summed over every pilot's `PlayerAircraft` row.
 
     Hidden players are included: hiding is presentation only (FR-ADM-3). `pilots` = distinct players who flew the type.
-    `side` is the side most of its sorties were flown for ('redfor', 'blufor' or ''). The four ratio fields are
-    fractions stored only so the list page can sort by them (TD-22); 0.0 where the denominator is 0, and the page shows
-    a dash then: `kd` = air kills per death, `kl` = air kills per plane lost, `survival` = sorties without a death per
-    sortie, `attack_share` = attack sorties per sortie (the rest are air-superiority sorties)."""
+    `side` is the side most of its sorties were flown for ('redfor', 'blufor' or ''). No ratio is stored (OQ-98): K/D,
+    K/L, survival and the attack share are shown from the counters and sorted with `queries.sorting.Ratio`."""
 
     aircraft_id: int
 
     aircraft = models.OneToOneField(GameObject, on_delete=models.PROTECT, related_name="stats")
     pilots = models.PositiveIntegerField(default=0)
     side = models.CharField(max_length=8, blank=True, default="")
-    kd = models.FloatField(default=0.0)
-    kl = models.FloatField(default=0.0)
-    survival = models.FloatField(default=0.0)
-    attack_share = models.FloatField(default=0.0)
 
     class Meta(Counters.Meta):
         abstract = False
