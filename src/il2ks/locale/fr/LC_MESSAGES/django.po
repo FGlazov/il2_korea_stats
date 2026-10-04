@@ -338,10 +338,6 @@ msgid "Air / ground kills"
 msgstr "Victoires air / sol"
 
 # llm-draft
-msgid "Air and ground kills."
-msgstr "Victoires aériennes et au sol."
-
-# llm-draft
 msgid "Air kills"
 msgstr "Victoires aériennes"
 
@@ -1047,10 +1043,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Peu de pilotes connaissent la voie de roulage aussi bien que celui-ci. Il pourrait faire visiter."
 
 # llm-draft
-msgid "Fighters"
-msgstr "Chasseurs"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Trouver un joueur"
 
@@ -1149,10 +1141,6 @@ msgstr "Incidents de tir fratricide"
 # llm-draft
 msgid "Full killboard"
 msgstr "Tableau de chasse complet"
-
-# llm-draft
-msgid "General"
-msgstr "Général"
 
 # llm-draft
 msgid "Given up"

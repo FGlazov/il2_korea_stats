@@ -338,10 +338,6 @@ msgid "Air / ground kills"
 msgstr "Abates ar / solo"
 
 # llm-draft
-msgid "Air and ground kills."
-msgstr "Abates aéreos e terrestres."
-
-# llm-draft
 msgid "Air kills"
 msgstr "Abates aéreos"
 
@@ -1049,10 +1045,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Podia até oferecer visita guiada."
 
 # llm-draft
-msgid "Fighters"
-msgstr "Caças"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Procurar um jogador"
 
@@ -1151,10 +1143,6 @@ msgstr "Incidentes de fogo amigo"
 # llm-draft
 msgid "Full killboard"
 msgstr "Placar de abates completo"
-
-# llm-draft
-msgid "General"
-msgstr "Geral"
 
 # llm-draft
 msgid "Given up"

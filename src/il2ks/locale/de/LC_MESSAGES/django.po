@@ -340,10 +340,6 @@ msgid "Air / ground kills"
 msgstr "Luft- / Bodenabschüsse"
 
 # llm-draft
-msgid "Air and ground kills."
-msgstr "Luft- und Bodenabschüsse."
-
-# llm-draft
 msgid "Air kills"
 msgstr "Luftsiege"
 
@@ -1049,10 +1045,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Kaum ein Pilot kennt den Rollweg so gut wie dieser. Der könnte Führungen anbieten."
 
 # llm-draft
-msgid "Fighters"
-msgstr "Jäger"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Spieler suchen"
 
@@ -1153,10 +1145,6 @@ msgstr "Vorfälle mit Eigenbeschuss"
 # llm-draft
 msgid "Full killboard"
 msgstr "Vollständige Abschussliste"
-
-# llm-draft
-msgid "General"
-msgstr "Allgemein"
 
 # llm-draft
 msgid "Given up"

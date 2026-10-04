@@ -165,7 +165,7 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
         if cfg.logs.dir is None:
             raise ValueError("logs.dir is not configured (il2ks.toml [logs] dir, or IL2KS_LOGS_DIR)")
         mode = cfg.logs.after_archive
-        if mode != "keep" and PROTECTED_LOG_DIR in cfg.logs.dir.resolve().parts:
+        if mode != "keep" and PROTECTED_LOG_DIR in {part.casefold() for part in cfg.logs.dir.resolve().parts}:
             # The repo's `sample_data/` is real player data kept for tests: moving or deleting it once cost a morning.
             raise ValueError(
                 f"logs.dir {cfg.logs.dir} is inside a '{PROTECTED_LOG_DIR}' folder: use after_archive = \"keep\" "

@@ -2,8 +2,8 @@
 (TD-22). Scores, kills and time on target are stored counters (`PlayerTour`, `Player`, and their per-aircraft tables);
 Elo is stored on `Player`. The only arithmetic is the ground score per hour, a division of two stored columns.
 
-Boards (`BOARDS`): `air`, `ground`, `ground-hour`, `kills`, `elo-prop`, `elo-jet`, grouped into fighter boards (air
-score, Elo), attack boards (ground score, ground score per hour) and the general kills board (`GROUPS`). Per tour
+Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, then `ground-hour`, `ground`, in an air group and a
+ground group (`GROUPS`; maintainer decision 2026-10-04: no kills board). Per tour
 (`?tour=`, TD-26) the rows are `PlayerTour`, all-time `Player`; with an aircraft chosen (`?aircraft=<GameObject pk>`)
 they are the per-aircraft rows `PlayerTourAircraft` / `PlayerAircraft`, so a player appears once per aircraft type; with
 a pool chosen (`?pool=prop|jet`) they are the per-propulsion rows `PlayerTourPool` / `PlayerPool` (a chosen aircraft
@@ -47,22 +47,32 @@ class Board:
     per_tour: bool = True  # False: all-time only (Elo)
     per_aircraft: bool = True
     per_pool: bool = True  # False: the board is a pool already (Elo) or has none
-    group: str = "fighter"  # the tab group: "fighter", "attack" or "general"
+    group: str = "air"  # the tab group: "air" or "ground"
 
 
 _COMMON: Final[Mapping[str, str]] = {"sorties": "sorties", "name": "player__name_lower"}
 
 BOARDS: Final[Mapping[str, Board]] = {
+    "elo-jet": Board(
+        "elo-jet",
+        {**_COMMON, "rating": "elo_jet", "games": "elo_jet_games"},
+        "-rating",
+        per_tour=False,
+        per_aircraft=False,
+        per_pool=False,
+    ),
+    "elo-prop": Board(
+        "elo-prop",
+        {**_COMMON, "rating": "elo_prop", "games": "elo_prop_games"},
+        "-rating",
+        per_tour=False,
+        per_aircraft=False,
+        per_pool=False,
+    ),
     "air": Board(
         "air",
         {**_COMMON, "score": "score_air", "kills_air": "kills_air", "assists": "assists", "deaths": "deaths"},
         "-score",
-    ),
-    "ground": Board(
-        "ground",
-        {**_COMMON, "score": "score_ground", "kills_ground": "kills_ground", "attack_sorties": "attack_sorties"},
-        "-score",
-        group="attack",
     ),
     "ground-hour": Board(
         "ground-hour",
@@ -74,33 +84,17 @@ BOARDS: Final[Mapping[str, Board]] = {
             "attack_sorties": "attack_sorties",
         },
         "-per_hour",
-        group="attack",
+        group="ground",
     ),
-    "kills": Board(
-        "kills",
-        {**_COMMON, "kills_air": "kills_air", "kills_ground": "kills_ground", "deaths": "deaths"},
-        "-kills_air",
-        group="general",
-    ),
-    "elo-prop": Board(
-        "elo-prop",
-        {**_COMMON, "rating": "elo_prop", "games": "elo_prop_games"},
-        "-rating",
-        per_tour=False,
-        per_aircraft=False,
-        per_pool=False,
-    ),
-    "elo-jet": Board(
-        "elo-jet",
-        {**_COMMON, "rating": "elo_jet", "games": "elo_jet_games"},
-        "-rating",
-        per_tour=False,
-        per_aircraft=False,
-        per_pool=False,
+    "ground": Board(
+        "ground",
+        {**_COMMON, "score": "score_ground", "kills_ground": "kills_ground", "attack_sorties": "attack_sorties"},
+        "-score",
+        group="ground",
     ),
 }
 DEFAULT_BOARD: Final = "air"
-GROUPS: Final[tuple[str, ...]] = ("fighter", "attack", "general")
+GROUPS: Final[tuple[str, ...]] = ("air", "ground")
 POOLS: Final[tuple[str, ...]] = ("prop", "jet")
 HOME_BOARDS: Final[tuple[str, ...]] = ("elo-jet", "elo-prop", "ground-hour")
 """The boards the home page highlights (maintainer, OQ-64): Elo of both pools and ground proficiency."""

@@ -338,10 +338,6 @@ msgid "Air / ground kills"
 msgstr "Derribos aire / tierra"
 
 # llm-draft
-msgid "Air and ground kills."
-msgstr "Derribos aéreos y terrestres."
-
-# llm-draft
 msgid "Air kills"
 msgstr "Derribos aéreos"
 
@@ -1049,10 +1045,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Pocos pilotos conocen la calle de rodaje tan a fondo. Podría hacer de guía turístico."
 
 # llm-draft
-msgid "Fighters"
-msgstr "Cazas"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Buscar un jugador"
 
@@ -1151,10 +1143,6 @@ msgstr "Incidentes de fuego amigo"
 # llm-draft
 msgid "Full killboard"
 msgstr "Registro de derribos completo"
-
-# llm-draft
-msgid "General"
-msgstr "General"
 
 # llm-draft
 msgid "Given up"

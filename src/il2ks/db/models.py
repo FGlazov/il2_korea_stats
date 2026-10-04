@@ -1112,6 +1112,9 @@ class SiteSettings(models.Model):
     # Not branding: the `[killboard] assists` setting the level-2 rows were last rebuilt with (`ingest.aggregates`,
     # `rebuild-aggregates`), so the pages can show the assists column without reading the config file.
     killboard_assists = models.BooleanField(default=False)
+    # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
+    # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
+    backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

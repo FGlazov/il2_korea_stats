@@ -320,3 +320,22 @@ def test_killboard_opponent_sort_puts_hidden_players_last(client: Client, sort: 
     rows = client.get(f"/players/{pk(1)}/killboard/?sort={sort}").context["page_obj"]
 
     assert [r.opponent_id for r in rows] == [pk(3), pk(2)]
+
+
+def test_profile_links_keep_the_all_time_view(client: Client) -> None:
+    """Without a tour parameter a link means the current tour, so every all-time link must say `?tour=all`."""
+    seed_tours()
+    october = tour_named("October 2026")
+
+    html = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
+    assert f"/players/{pk(1)}/killboard/?tour=all" in html
+    assert f"/players/{pk(2)}/streaks/?tour=all" in client.get(f"/players/{pk(2)}/?tour=all").content.decode()
+    streaks = client.get(f"/players/{pk(1)}/streaks/?tour=all")
+    assert f'href="/players/{pk(1)}/?tour=all"' in streaks.content.decode()
+    assert f"/players/{pk(1)}/?tour=all" in [url for _label, url in streaks.context["crumbs"] if url]
+    killboard = client.get(f"/players/{pk(1)}/killboard/?tour=all")
+    assert f"/players/{pk(1)}/?tour=all" in [url for _label, url in killboard.context["crumbs"] if url]
+    in_tour = client.get(f"/players/{pk(1)}/killboard/?tour={october.pk}")
+    assert f"/players/{pk(1)}/?tour={october.pk}" in [url for _label, url in in_tour.context["crumbs"] if url]
+    sorties = client.get(f"/players/{pk(1)}/sorties/?tour=all")
+    assert f"/players/{pk(1)}/?tour=all" in [url for _label, url in sorties.context["crumbs"] if url]

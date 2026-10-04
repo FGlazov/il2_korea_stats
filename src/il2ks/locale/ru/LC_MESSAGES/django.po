@@ -347,10 +347,6 @@ msgid "Air / ground kills"
 msgstr "Воздух / земля"
 
 # llm-draft
-msgid "Air and ground kills."
-msgstr "Воздушные и наземные победы."
-
-# llm-draft
 msgid "Air kills"
 msgstr "Воздушные победы"
 
@@ -1060,10 +1056,6 @@ msgid "Few pilots know the taxiway as intimately as this one. It could give guid
 msgstr "Мало кто знает рулёжку так же досконально. Хоть экскурсии води."
 
 # llm-draft
-msgid "Fighters"
-msgstr "Истребители"
-
-# llm-draft
 msgid "Find a player"
 msgstr "Найти игрока"
 
@@ -1164,10 +1156,6 @@ msgstr "Случаи огня по своим"
 # llm-draft
 msgid "Full killboard"
 msgstr "Полный журнал побед"
-
-# llm-draft
-msgid "General"
-msgstr "Общее"
 
 # llm-draft
 msgid "Given up"

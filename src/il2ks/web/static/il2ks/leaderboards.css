@@ -1,13 +1,16 @@
-/* il2ks-template: static/il2ks/leaderboards.css v2 - copy this line along when you override */
+/* il2ks-template: static/il2ks/leaderboards.css v3 - copy this line along when you override */
 /* Leaderboards. Loaded by templates/il2ks/leaderboards/*.html; colours come from the tokens in site.css. */
 
-.board-tabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.25rem 1.75rem; margin: 0 0 1rem; border-bottom: 1px solid var(--il2-border); }
-.board-tabs__label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--il2-muted); }
-.board-tabs ul { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; margin: 0; padding: 0; list-style: none; }
+/* The board switcher: buttons with an icon, the air group and the ground group side by side (wrapping on a phone). */
+.board-tabs { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; margin: 0 0 1rem; }
+.board-tabs__group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+.board-tabs__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--il2-muted); }
+.board-tabs ul { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
 .board-tabs li { margin: 0; padding: 0; }
-.board-tabs a { display: block; padding: 0.4rem 0.1rem; text-decoration: none; color: var(--il2-muted); border-bottom: 2px solid transparent; }
-.board-tabs a:hover { color: inherit; }
-.board-tabs a[aria-current="page"] { color: inherit; font-weight: 600; border-bottom-color: var(--il2-accent); }
+.board-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; text-decoration: none; color: var(--il2-text); background: var(--il2-surface); border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); }
+.board-tabs a:hover { background: var(--il2-surface-hover); }
+.board-tabs a:focus-visible { outline: 2px solid var(--il2-accent); outline-offset: 2px; }
+.board-tabs a[aria-current="page"] { background: var(--il2-accent); border-color: var(--il2-accent); color: var(--il2-accent-contrast); font-weight: 600; }
 .board-table td:first-child, .board-table th:first-child { width: 3rem; color: var(--il2-muted); }
 .board-note { margin: 0.5rem 0; font-size: 0.85rem; color: var(--il2-muted); }
 

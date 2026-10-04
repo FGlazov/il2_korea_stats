@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_streaks.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_streaks.html v4 - copy this line along when you override #}
 {% load i18n il2ks il2ks_boards %}{% comment %}
   detail_streaks.html: the profile's ironman block (FR-WEB-23): current and best run of sorties without a death or a
   capture, with air kills and flight time in the run, and a link to the player's best streaks page. All time it reads
@@ -8,7 +8,7 @@
 {% endcomment %}{% if tour %}{% player_tour_streak player tour as best %}{% else %}{% player_streak player as streak %}{% endif %}{% if streak or best %}<section>
   <div class="section-head">
     <h2>{% translate "Ironman" %}</h2>
-    <span><a href="{% url 'web:player-streaks' player.pk %}{% if tour %}?tour={{ tour.pk }}{% endif %}">{% translate "Best streaks" %} →</a> · <a href="{% url 'web:streak-list' %}">{% translate "Running streaks" %} →</a></span>
+    <span><a href="{% url 'web:player-streaks' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Best streaks" %} →</a> · <a href="{% url 'web:streak-list' %}">{% translate "Running streaks" %} →</a></span>
   </div>
   <p class="muted">{% translate "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped." %}</p>
   <div class="table-wrap table-wrap--flat">
