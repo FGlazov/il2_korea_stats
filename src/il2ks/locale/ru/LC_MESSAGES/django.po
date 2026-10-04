@@ -645,6 +645,10 @@ msgid "All missions"
 msgstr "Все миссии"
 
 # llm-draft
+msgid "All roles"
+msgstr "Все роли"
+
+# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Все вылеты на этом самолёте"
 
@@ -780,6 +784,12 @@ msgstr "Среднее число попаданий"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Среднее число попаданий из пушек и пулемётов, которое потребовалось для уничтожения"
+
+# llm-draft
+#. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
+#. their skill, not only the loadout)
+msgid "Average pilot Elo"
+msgstr "Средний Elo пилотов"
 
 # llm-draft
 msgid "BLUFOR"
@@ -1787,10 +1797,13 @@ msgstr "Принято попаданий"
 msgid "Hits to destroy"
 msgstr "Попаданий до уничтожения"
 
+# llm-draft
 msgid ""
 "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
 "left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
+"Попаданий до уничтожения: за всё время, учитываются только победы, где весь урон нанёс один атакующий; бомбы и ракеты"
+" не считаются. Штурмовые вылеты: остальные — вылеты на господство в воздухе."
 
 # llm-draft
 msgid "Home"
@@ -1816,10 +1829,13 @@ msgstr "Часы в воздухе на самом часто используе
 msgid "Hours in the air, all sorties together."
 msgstr "Часы в воздухе за всё время, все вылеты вместе."
 
+# llm-draft
 msgid ""
 "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
 " Open a type for its matchups, best pilots and loadouts."
 msgstr ""
+"Как показывает себя каждый тип самолёта: вылеты, победы, потери и соотношения за выбранный тур или за все сыгранные "
+"миссии. Откройте тип, чтобы увидеть его противостояния, лучших пилотов и варианты вооружения."
 
 # llm-draft
 msgid "How it ended"
@@ -2351,8 +2367,9 @@ msgstr "В этом туре не было работы по земле: ни у
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Работы по земле пока не было: ни уничтоженных наземных целей, ни штурмовых вылетов."
 
+# llm-draft
 msgid "No aircraft has flown in this tour yet."
-msgstr ""
+msgstr "В этом туре ещё не летал ни один самолёт."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -2839,10 +2856,13 @@ msgstr "Игрок"
 msgid "Player aircraft"
 msgstr "Самолёты игроков"
 
+# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
+"Воздушные победы над другими игроками по типам вражеских самолётов в выбранном туре. Так видно, каких вражеских "
+"самолётов этот побеждает, а кто побеждает его."
 
 # llm-draft
 msgid ""
@@ -2927,6 +2947,11 @@ msgid "Purple"
 msgstr "Фиолетовый"
 
 # llm-draft
+#. Translators: column header; player-versus-player air kills per death with this loadout
+msgid "PvP K/D"
+msgstr "K/D в PvP"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Пока в небе тихо. Аэродром в вашем распоряжении."
 
@@ -2945,6 +2970,15 @@ msgstr "Вылеты REDFOR"
 # llm-draft
 msgid "REDFOR won"
 msgstr "Победила REDFOR"
+
+# llm-draft
+#, python-format
+msgid ""
+"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
+"target, as on the leaderboards."
+msgstr ""
+"Показатели отображаются начиная с %(sorties)s вылетов на господство в воздухе или с %(attack)s штурмовых вылетов и "
+"%(minutes)s мин над целью, как и в таблицах лидеров."
 
 # llm-draft
 msgid "Ratings"
@@ -3754,6 +3788,10 @@ msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "Последнее слово осталось за кормовым стрелком, и прозвучало оно громко."
 
 # llm-draft
+msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
+msgstr "Фильтр по роли не действует на противостояния: они показывают все победы и потери этого самолёта."
+
+# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "Те же проверки, что и у команды il2ks doctor, выполненные для новых настроек. Часть предупреждений исчезнет после "
@@ -3799,8 +3837,14 @@ msgstr "Эскадрилья научилась держать дистанци�
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "На рулёжке на такие случаи заведена папка. Тонкая, зато зачитана до дыр."
 
-msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+# llm-draft
+msgid ""
+"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
+"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
 msgstr ""
+"Итоги зависят от выбранных тура и роли, противостояния — от тура. Лучшие пилоты, попадания до уничтожения и варианты "
+"вооружения охватывают всё время, а попадания до уничтожения всегда учитывают все роли (речь о победах над этим "
+"самолётом)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -4180,6 +4224,24 @@ msgstr "Где его найти:"
 # llm-draft
 msgid "Which kills and losses to count"
 msgstr "Какие победы и потери считать"
+
+# llm-draft
+msgid ""
+"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
+"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
+"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
+"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
+"apply or there are too few sorties."
+msgstr ""
+"Какие варианты вооружения работают лучше всего в выбранной роли. Для вариантов на господство в воздухе показаны "
+"средний Elo пилотов, летавших с ними (на этом самолёте, если у них там есть зачётные бои, иначе в их пуле), воздушные"
+" победы за вылет и K/D по победам над другими игроками; для штурмовых — очки за землю в час над целью. Средний Elo "
+"отражает мастерство пилотов, а не только достоинства вооружения: сильные пилоты могут выбирать его и по другим "
+"причинам. Прочерк означает, что показатель не применим или вылетов слишком мало."
+
+# llm-draft
+msgid "Which sorties to count"
+msgstr "Какие вылеты учитывать"
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

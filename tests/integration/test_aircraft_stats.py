@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from django.db import models
+from django.http import HttpResponse
 from django.test import Client, override_settings
 from django.urls import reverse
 
@@ -35,15 +36,15 @@ RATED = LeaderboardConfig(min_sorties=1, min_elo_games=1, min_attack_sorties=1, 
 
 
 def snapshot() -> dict[str, list[dict[str, object]]]:
-    def rows(model: type[models.Model]) -> list[dict[str, object]]:
-        found = list(model.objects.order_by("pk").values())
+    def rows(model: type[models.Model], *order: str) -> list[dict[str, object]]:
+        found = list(model.objects.order_by(*(order or ("pk",))).values())
         for row in found:
             row.pop("id")
         return found
 
     return {
         "stats": rows(AircraftStats),
-        "tour_stats": rows(TourAircraftStats),
+        "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role"),
         "matchups": rows(AircraftMatchup),
         "payloads": rows(AircraftPayload),
     }
@@ -321,6 +322,14 @@ def two_tours() -> tuple[Tour, Tour]:
     return september, october
 
 
+def loadout_sorties(response: HttpResponse) -> dict[str, int]:
+    """Sorties per loadout name of a detail page (a loadout flown in two roles has a row per role)."""
+    found: dict[str, int] = {}
+    for row in response.context["loadouts"]:
+        found[row.payload.payload_name] = found.get(row.payload.payload_name, 0) + row.payload.sorties
+    return found
+
+
 def listed(client: Client, query: str = "") -> dict[str, int]:
     response = client.get(reverse("web:aircraft-list") + query)
     assert response.status_code == 200
@@ -382,7 +391,7 @@ def test_detail_tiles_follow_the_tour_but_the_rest_stays_all_time(client: Client
     assert [in_september.context["survived"], in_october.context["survived"]] == [1, 1]  # 2 sorties 1 death; 1 and 0
     assert all_time.context["stats"].sorties == 3  # the all-time row is always loaded (side badge)
     for response in (in_september, in_october, all_time):  # loadouts stay all time
-        assert {p.payload_name: p.sorties for p in response.context["payloads"]} == {
+        assert loadout_sorties(response) == {
             "Payload 1": 2,
             "Payload 2": 1,
         }

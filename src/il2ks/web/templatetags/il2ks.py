@@ -9,7 +9,7 @@ num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title
 in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 pilot_fate_badge, status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown,
-language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, stat_mark,
+language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, role_toggle, stat_mark,
 stat_mark_note, flavor, sortie_flavor
 (flavor text, FR-WEB-23), bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
@@ -33,6 +33,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
+from django.utils.translation import gettext_lazy as _
 
 from il2ks.core import stat_marks
 from il2ks.db.models import Counters, PlayerSortie, StatThreshold, Tour
@@ -470,11 +471,14 @@ def sort_th(
     current: str | None = None,
     numeric: bool = False,
     first: SortFirst | None = None,
+    param: str = "sort",
 ) -> dict[str, object]:
     """{% sort_th "kills" _("Kills") numeric=True %}: a sortable <th>.
 
     `current` defaults to the context variable `sort` (the view's whitelisted, resolved value: 'kills' or '-kills').
-    The first click sorts descending for numeric columns and ascending otherwise (override with first="asc"/"desc")."""
+    The first click sorts descending for numeric columns and ascending otherwise (override with first="asc"/"desc").
+    A second table on the same page sorts by its own query parameter: `param="lsort"` (give its `current` too); its
+    links then swap the whole page body (`main`) instead of a results region, of which a page has at most one."""
     active = current if current is not None else str(context.get("sort") or "")
     direction = "desc" if active == f"-{field}" else "asc" if active == field else ""
     target = display.next_sort(active, field, first or ("desc" if numeric else "asc"))
@@ -483,7 +487,8 @@ def sort_th(
         "numeric": numeric,
         "direction": direction,
         "aria_sort": {"asc": "ascending", "desc": "descending"}.get(direction, "none"),
-        "href": replace_query(_params_of(context), {"sort": target, **_page_resets(_params_of(context))}),
+        "href": replace_query(_params_of(context), {param: target, **_page_resets(_params_of(context))}),
+        "main": param != "sort",
     }
 
 
@@ -593,6 +598,30 @@ def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None =
         "action": request.path if request is not None else "",
         "hidden": hidden,
     }
+
+
+@register.inclusion_tag(COMPONENTS + "role_toggle.html", takes_context=True)
+def role_toggle(context: Context, selected: str = "all") -> dict[str, object]:
+    """{% role_toggle role %}: the combat role switch of the aircraft pages (all roles, air superiority, attack) as
+    three links in the style of the intercept toggle (`?role=`, no parameter = all roles). Every other query
+    parameter is kept (the tour above all), a new role starts at page 1."""
+    params = _params_of(context)
+    request = _request_of(context)
+    path = request.path if request is not None else ""
+    labels = {
+        "all": _("All roles"),
+        "air_superiority": display.ROLES["air_superiority"][0],
+        "attack": display.ROLES["attack"][0],
+    }
+    options = [
+        (
+            label,
+            path + replace_query(params, {"role": None if value == "all" else value, **_page_resets(params)}),
+            value == selected,
+        )
+        for value, label in labels.items()
+    ]
+    return {"options": options}
 
 
 @register.inclusion_tag(COMPONENTS + "tour_filter.html", takes_context=True)

@@ -5,7 +5,8 @@
     matchups(aircraft, tour, intercept, sort) -> MatchupTable  # kills and losses against each enemy type; one query
     top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
     top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
-    payloads(aircraft)       -> list[AircraftPayload]    # one query
+    scoped_stats(aircraft, tour, role) -> TourAircraftStats  # counters in a tour and/or role; one query
+    payloads(aircraft, role, rules, sort) -> list[Loadout]   # loadouts with their effectiveness measures; one query
 
 The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
 volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
@@ -14,6 +15,7 @@ by `ingest.ratings`) and, for attack work, the ground score per hour on target.
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from typing import Final
 
 from django.db.models import Q
 
@@ -21,13 +23,14 @@ from il2ks.config import LeaderboardConfig
 from il2ks.db.models import (
     AircraftMatchup,
     AircraftPayload,
+    AircraftRole,
     AircraftStats,
     GameObject,
     PlayerAircraft,
     Tour,
     TourAircraftStats,
 )
-from il2ks.queries.leaderboards import BOARDS, BoardRow, top_rows
+from il2ks.queries.leaderboards import BOARDS, SECONDS_PER_HOUR, BoardRow, top_rows
 from il2ks.queries.sorting import Ratio, SortSpec, order_by
 
 # Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio of two columns (no ratio is
@@ -69,11 +72,23 @@ type StatsRow = AircraftStats | TourAircraftStats
 TOP_PILOTS = 10
 
 
-def stats_list(sort: str, tour: Tour | None = None) -> list[StatsRow]:
-    """Every type flown in `tour` (None = all time), ordered by a resolved `sort` ('kills_air' or '-kills_air', see
-    `players.resolve_sort`). One query."""
+ROLE_PARAM = "role"
+ROLES: Final[tuple[AircraftRole, ...]] = (AircraftRole.ALL, AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK)
+
+
+def parse_role(raw: str | None) -> AircraftRole:
+    """`?role=air_superiority|attack`; absent or anything else means every role."""
+    return next((role for role in ROLES if role.value == raw), AircraftRole.ALL)
+
+
+def stats_list(sort: str, tour: Tour | None = None, role: AircraftRole = AircraftRole.ALL) -> list[StatsRow]:
+    """Every type flown in `tour` (None = all time) in `role` (`all` = every sortie), ordered by a resolved `sort`
+    ('kills_air' or '-kills_air', see `players.resolve_sort`). One query."""
     order = order_by(AIRCRAFT_SORTS[sort.removeprefix("-")], sort)
-    rows = AircraftStats.objects.all() if tour is None else TourAircraftStats.objects.filter(tour=tour)
+    if role == AircraftRole.ALL and tour is None:
+        rows = AircraftStats.objects.all()
+    else:
+        rows = TourAircraftStats.objects.filter(tour=tour, role=role)  # tour None: the all-time role rows (null tour)
     return list(rows.select_related("aircraft").order_by(order, "aircraft__display_name", "pk"))
 
 
@@ -81,10 +96,11 @@ def stats_for(aircraft_id: int) -> AircraftStats | None:
     return AircraftStats.objects.select_related("aircraft").filter(aircraft_id=aircraft_id).first()
 
 
-def tour_stats_for(aircraft: GameObject, tour: Tour) -> TourAircraftStats:
-    """The type's counters in `tour`; all zero (an unsaved row) when nobody flew it there. One query."""
-    found = TourAircraftStats.objects.filter(aircraft=aircraft, tour=tour).first()
-    return found or TourAircraftStats(aircraft=aircraft, tour=tour)
+def scoped_stats(aircraft: GameObject, tour: Tour | None, role: AircraftRole) -> TourAircraftStats:
+    """The type's counters in `tour` (None = all time) and `role`; all zero (an unsaved row) when nobody flew it
+    there. Not for all time and every role: that is `AircraftStats`. One query."""
+    found = TourAircraftStats.objects.filter(aircraft=aircraft, tour=tour, role=role).first()
+    return found or TourAircraftStats(aircraft=aircraft, tour=tour, role=role)
 
 
 MIN_ENCOUNTERS = 10
@@ -183,6 +199,83 @@ def top_ground(aircraft: GameObject, rules: LeaderboardConfig) -> list[BoardRow]
     return top_rows(BOARDS["ground-hour"], rules, TOP_PILOTS, aircraft)
 
 
-def payloads(aircraft: GameObject) -> list[AircraftPayload]:
-    """Loadouts flown in the type, most used first."""
-    return list(AircraftPayload.objects.filter(aircraft=aircraft).order_by("-sorties", "payload_name"))
+LOADOUT_SORTS: tuple[str, ...] = (
+    "loadout",
+    "sorties",
+    "kills_air",
+    "kills_ground",
+    "deaths",
+    "elo",
+    "kills_per_sortie",
+    "kd",
+    "ground_hour",
+)
+DEFAULT_LOADOUT_SORT = "-sorties"
+
+
+@dataclass(frozen=True, slots=True)
+class Loadout:
+    """One loadout row of the aircraft page with its effectiveness measures (None = does not apply or too few sorties:
+    shown as a dash). Air superiority loadouts carry the average pilot Elo, air kills per sortie and K/D (PvP air
+    kills per death, a loadout without a death counting its kills); attack loadouts the ground score per hour on
+    target. Every measure is a division of stored columns (TD-22); the Elo average is stored
+    (`AircraftPayload.elo_avg`)."""
+
+    payload: AircraftPayload
+    elo: float | None
+    kills_per_sortie: float | None
+    kd: float | None
+    ground_hour: float | None
+
+
+def _loadout(row: AircraftPayload, rules: LeaderboardConfig) -> Loadout:
+    """The measures of one stored loadout row, each only above the leaderboard minimums of its role (one lucky sortie
+    must not top the table): air superiority sorties as the interception board asks, attack sorties and time on
+    target as the ground-per-hour board does."""
+    if row.combat_role == AircraftRole.AIR_SUPERIORITY:
+        if row.sorties < max(rules.min_air_superiority_sorties, 1):
+            return Loadout(row, None, None, None, None)
+        return Loadout(row, row.elo_avg, row.kills_air / row.sorties, row.kills_air_pvp / max(row.deaths, 1), None)
+    if row.combat_role == AircraftRole.ATTACK:
+        enough = row.sorties >= max(rules.min_attack_sorties, 1) and row.time_on_target_s >= max(
+            rules.min_time_on_target_minutes * 60.0, 1.0
+        )
+        hour = row.score_ground_attack * SECONDS_PER_HOUR / row.time_on_target_s if enough else None
+        return Loadout(row, None, None, None, hour)
+    return Loadout(row, None, None, None, None)
+
+
+def payloads(
+    aircraft: GameObject,
+    role: AircraftRole = AircraftRole.ALL,
+    rules: LeaderboardConfig | None = None,
+    sort: str = DEFAULT_LOADOUT_SORT,
+) -> list[Loadout]:
+    """Loadouts flown in the type (all time; only those of `role` unless `all`) with their effectiveness measures,
+    ordered by a resolved `sort` (a `LOADOUT_SORTS` name, `-` for descending; a dash measure sorts last either way,
+    ties by sorties, then name). One query."""
+    rows = AircraftPayload.objects.filter(aircraft=aircraft)
+    if role != AircraftRole.ALL:
+        rows = rows.filter(combat_role=role)
+    used = rules or LeaderboardConfig()
+    found = [_loadout(row, used) for row in rows]
+    found.sort(key=lambda m: m.payload.payload_name.casefold())
+    found.sort(key=lambda m: m.payload.sorties, reverse=True)  # the tie order of every sort
+    key = sort.removeprefix("-")
+    descending = sort.startswith("-")
+    if key == "loadout":
+        found.sort(key=lambda m: m.payload.payload_name.casefold(), reverse=descending)
+        return found
+    measures: dict[str, Callable[[Loadout], float | None]] = {
+        "sorties": lambda m: m.payload.sorties,
+        "kills_air": lambda m: m.payload.kills_air,
+        "kills_ground": lambda m: m.payload.kills_ground,
+        "deaths": lambda m: m.payload.deaths,
+        "elo": lambda m: m.elo,
+        "kills_per_sortie": lambda m: m.kills_per_sortie,
+        "kd": lambda m: m.kd,
+        "ground_hour": lambda m: m.ground_hour,
+    }
+    measure = measures[key]
+    defined = sorted((m for m in found if measure(m) is not None), key=lambda m: measure(m) or 0.0, reverse=descending)
+    return defined + [m for m in found if measure(m) is None]

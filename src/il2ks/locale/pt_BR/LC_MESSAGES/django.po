@@ -631,6 +631,10 @@ msgid "All missions"
 msgstr "Todas as missões"
 
 # llm-draft
+msgid "All roles"
+msgstr "Todas as funções"
+
+# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Todas as surtidas com esta aeronave"
 
@@ -768,6 +772,12 @@ msgstr "Acertos em média"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Média de acertos de armas que o destruíram"
+
+# llm-draft
+#. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
+#. their skill, not only the loadout)
+msgid "Average pilot Elo"
+msgstr "Elo médio dos pilotos"
 
 # llm-draft
 msgid "BLUFOR"
@@ -1764,10 +1774,13 @@ msgstr "Acertos sofridos"
 msgid "Hits to destroy"
 msgstr "Acertos para destruir"
 
+# llm-draft
 msgid ""
 "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
 "left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
+"Acertos para destruir: em todo o período, só contam os abates em que um único atacante causou todo o dano; bombas e "
+"foguetes ficam de fora. Surtidas de ataque: as demais são surtidas de superioridade aérea."
 
 # llm-draft
 msgid "Home"
@@ -1793,10 +1806,13 @@ msgstr "Horas de voo no tipo de aeronave mais voado."
 msgid "Hours in the air, all sorties together."
 msgstr "Horas de voo no total, todas as surtidas somadas."
 
+# llm-draft
 msgid ""
 "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
 " Open a type for its matchups, best pilots and loadouts."
 msgstr ""
+"Como cada tipo de aeronave se sai: surtidas, abates, perdas e razões, na turnê selecionada ou em todas as missões "
+"jogadas. Abra um tipo para ver seus confrontos, melhores pilotos e configurações de armamento."
 
 # llm-draft
 msgid "How it ended"
@@ -2326,8 +2342,9 @@ msgstr "Sem ataques ao solo nesta temporada: nem alvos terrestres nem surtidas d
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Ainda sem ataques ao solo: nem alvos terrestres nem surtidas de ataque."
 
+# llm-draft
 msgid "No aircraft has flown in this tour yet."
-msgstr ""
+msgstr "Nenhuma aeronave voou nesta turnê ainda."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -2815,10 +2832,13 @@ msgstr "Jogador"
 msgid "Player aircraft"
 msgstr "Aeronaves de jogadores"
 
+# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
+"Abates aéreos contra outros jogadores, por tipo de aeronave inimiga, na turnê selecionada. Use para ver quais "
+"aeronaves inimigas esta vence e quais vencem esta."
 
 # llm-draft
 msgid ""
@@ -2903,6 +2923,11 @@ msgid "Purple"
 msgstr "Roxo"
 
 # llm-draft
+#. Translators: column header; player-versus-player air kills per death with this loadout
+msgid "PvP K/D"
+msgstr "K/D em PvP"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Céu tranquilo por enquanto. O aeródromo é seu."
 
@@ -2921,6 +2946,15 @@ msgstr "Surtidas REDFOR"
 # llm-draft
 msgid "REDFOR won"
 msgstr "REDFOR venceu"
+
+# llm-draft
+#, python-format
+msgid ""
+"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
+"target, as on the leaderboards."
+msgstr ""
+"As taxas aparecem a partir de %(sorties)s surtidas de superioridade aérea, ou de %(attack)s surtidas de ataque com "
+"%(minutes)s minutos sobre o alvo, como nos rankings."
 
 # llm-draft
 msgid "Ratings"
@@ -3729,6 +3763,10 @@ msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "A última palavra foi do artilheiro de cauda, e foi uma palavra alta."
 
 # llm-draft
+msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
+msgstr "O filtro de função não vale para os confrontos: eles mostram todos os abates e perdas desta aeronave."
+
+# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "As mesmas verificações do comando il2ks doctor, aplicadas às novas configurações. Alguns avisos desaparecem após a "
@@ -3776,8 +3814,14 @@ msgstr "O esquadrão aprendeu a voar um pouco mais aberto. Corajoso, e bem pensa
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "O taxiway guarda uma pasta com esses casos. É fininha, mas está toda amassada."
 
-msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+# llm-draft
+msgid ""
+"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
+"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
 msgstr ""
+"Os totais seguem a turnê e a função selecionadas; os confrontos seguem a turnê. Melhores pilotos, acertos para "
+"destruir e configurações de armamento abrangem todo o período, e os acertos para destruir sempre contam todas as "
+"funções (tratam dos abates desta aeronave)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -4155,6 +4199,24 @@ msgstr "Onde encontrar:"
 # llm-draft
 msgid "Which kills and losses to count"
 msgstr "Quais abates e perdas contar"
+
+# llm-draft
+msgid ""
+"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
+"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
+"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
+"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
+"apply or there are too few sorties."
+msgstr ""
+"Quais configurações de armamento funcionam melhor, na função selecionada. As de superioridade aérea mostram o Elo "
+"médio dos pilotos que as voaram (na aeronave, se têm partidas ranqueadas nela; senão, o do seu grupo), abates aéreos "
+"por surtida e o K/D dos abates contra outros jogadores; as de ataque mostram os pontos de solo por hora sobre o alvo."
+" O Elo médio reflete a habilidade dos pilotos, não só a da configuração: bons pilotos podem preferir uma configuração"
+" por outros motivos. Um traço significa que a medida não se aplica ou que há poucas surtidas."
+
+# llm-draft
+msgid "Which sorties to count"
+msgstr "Quais surtidas contar"
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

@@ -139,11 +139,12 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
 
 
 def _check_tour_aircraft() -> bool:
-    """A database from before the aircraft stats per tour (FR-WEB-8, TD-26) has per-tour player aircraft rows but no
-    `TourAircraftStats` row: level 2 must be rebuilt."""
-    from il2ks.db.models import PlayerTourAircraft, TourAircraftStats
+    """A database from before the aircraft stats per tour and combat role (FR-WEB-8, TD-26) has counted sorties with a
+    role but no role row in `TourAircraftStats`: level 2 must be rebuilt (the loadout roles and Elo come with it)."""
+    from il2ks.db.models import AircraftRole, PlayerSortie, TourAircraftStats
 
-    return PlayerTourAircraft.objects.exists() and not TourAircraftStats.objects.exists()
+    has_roles = PlayerSortie.objects.filter(role="pilot", combat_role__isnull=False).exists()
+    return has_roles and not TourAircraftStats.objects.exclude(role=AircraftRole.ALL).exists()
 
 
 def _check_streak_runs() -> bool:

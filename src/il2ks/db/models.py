@@ -195,6 +195,14 @@ class CombatRole(models.TextChoices):
     ATTACK = "attack"
 
 
+class AircraftRole(models.TextChoices):
+    """The role scope of an aircraft-type stats row (FR-WEB-8): every sortie, or only those of one combat role."""
+
+    ALL = "all"
+    AIR_SUPERIORITY = "air_superiority"
+    ATTACK = "attack"
+
+
 class KillCredit(models.TextChoices):
     KILL = "kill"
     ASSIST = "assist"
@@ -800,23 +808,43 @@ class AircraftStats(AircraftCounters):
 
 
 class TourAircraftStats(AircraftCounters):
-    """Level 2 (FR-WEB-8, TD-26): `AircraftStats` within one tour, summed over the pilots' `PlayerTourAircraft` rows
-    of that tour; `pilots` = distinct players who flew the type in it, `side` the side most of its sorties in the tour
-    were flown for. A sibling table rather than a nullable `tour` column on `AircraftStats` (the pattern of
-    `PlayerTourAircraft`): the all-time reads stay unfiltered and the unique key needs no NULL special case.
+    """Level 2 (FR-WEB-8, TD-26): `AircraftStats` within one tour and/or one combat role.
+
+    `tour` null = all time, but only for a role row: the all-time `all` row is `AircraftStats` itself (no duplicate).
+    `role` `all` rows are the sum of the pilots' `PlayerTourAircraft` rows of that tour; `air_superiority` / `attack`
+    rows come from the counted sorties of that combat role (`pilots` = distinct players who flew the type in that role).
+    The nullable tour with conditional constraints is the pattern of `AircraftMatchup`; a sibling table for the all-time
+    role rows would have split one read into two models. `side` is the side most of the row's sorties were flown for.
     Hidden players and missions count too (FR-ADM-3). Rows without a counted sortie are deleted."""
 
-    tour_id: int
+    tour_id: int | None
 
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="tour_stats")
-    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="aircraft_stats")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="aircraft_stats")
+    role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
 
     class Meta(AircraftCounters.Meta):
         abstract = False
-        constraints = [models.UniqueConstraint(fields=["tour", "aircraft"], name="touraircraftstats_unique")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tour", "aircraft", "role"],
+                condition=models.Q(tour__isnull=False),
+                name="touraircraftstats_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["aircraft", "role"],
+                condition=models.Q(tour__isnull=True),
+                name="touraircraftstats_alltime_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(tour__isnull=False) | ~models.Q(role="all"),
+                name="touraircraftstats_alltime_role",
+            ),
+        ]
 
     def __str__(self) -> str:
-        return f"aircraft {self.aircraft_id} / tour {self.tour_id}"
+        scope = "all time" if self.tour_id is None else f"tour {self.tour_id}"
+        return f"aircraft {self.aircraft_id} / {scope} / {self.role}"
 
 
 class AircraftMatchup(models.Model):
@@ -860,19 +888,33 @@ class AircraftMatchup(models.Model):
 
 
 class AircraftPayload(models.Model):
-    """Level 2 (FR-WEB-8): counted sorties per aircraft type and loadout (`PlayerSortie.payload_name`; '' = unnamed)."""
+    """Level 2 (FR-WEB-8): counted sorties per aircraft type, loadout (`PlayerSortie.payload_name`; '' = unnamed) and
+    combat role of the sortie (a loadout has one role in practice: bombs, rockets and napalm make a sortie `attack`)."""
 
     aircraft_id: int
 
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="payload_stats")
     payload_name = models.CharField(max_length=128, blank=True)
+    combat_role = models.CharField(max_length=16, blank=True, default="")  # of its sorties; '' = none recorded
     sorties = models.PositiveIntegerField(default=0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
     deaths = models.PositiveIntegerField(default=0)
+    # What the loadout-effectiveness columns are made of (doc 13): PvP air kills for K/D, the flight time and attack
+    # score and time on target for the per-hour rates the leaderboards use.
+    kills_air_pvp = models.PositiveIntegerField(default=0)
+    flight_time_s = models.FloatField(default=0.0)
+    score_ground_attack = models.FloatField(default=0.0)
+    time_on_target_s = models.FloatField(default=0.0)
+    # Sortie-weighted average Elo of the pilots who flew it (air superiority loadouts; per-type Elo where the pilot has
+    # games in the type, else the propulsion pool's). Order-dependent like every Elo: written by
+    # `ingest.aircraft_stats.recompute_payload_elo` after `recompute_ratings`. Null = no rated pilot.
+    elo_avg = models.FloatField(null=True, blank=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["aircraft", "payload_name"], name="aircraftpayload_unique")]
+        constraints = [
+            models.UniqueConstraint(fields=["aircraft", "payload_name", "combat_role"], name="aircraftpayload_unique")
+        ]
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / {self.payload_name}"

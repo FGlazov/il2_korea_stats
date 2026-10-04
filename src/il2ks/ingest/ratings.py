@@ -16,6 +16,7 @@ from collections.abc import Iterator
 from il2ks.core.catalog.loader import is_propulsion
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_all_ratings
 from il2ks.db.models import CombatRole, Kill, KillCredit, Player, PlayerAircraft, Role
+from il2ks.ingest.aircraft_stats import recompute_payload_elo
 from il2ks.ingest.dbutil import update_partial_rows
 
 
@@ -61,6 +62,7 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES) -> int:
         if wanted_type != (elo, elo_games):
             changed_types.append(PlayerAircraft(pk=pk, elo=wanted_type[0], elo_games=wanted_type[1]))
     update_partial_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
+    recompute_payload_elo()  # the loadouts' average pilot Elo follows the new ratings
     return len(games)
 
 

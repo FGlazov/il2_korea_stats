@@ -18,7 +18,7 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftCounters, AircraftStats, CombatRole, Mission, Player, PlayerSortie
+from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import display
 from il2ks.web.display import Label

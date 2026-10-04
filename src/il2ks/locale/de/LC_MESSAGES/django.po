@@ -635,6 +635,10 @@ msgid "All missions"
 msgstr "Alle Missionen"
 
 # llm-draft
+msgid "All roles"
+msgstr "Alle Rollen"
+
+# llm-draft
 msgid "All sorties in this aircraft"
 msgstr "Alle Einsätze mit diesem Flugzeug"
 
@@ -770,6 +774,12 @@ msgstr "Durchschnittliche Treffer"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Durchschnittliche Zahl der Bordwaffentreffer, die zur Zerstörung nötig waren"
+
+# llm-draft
+#. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
+#. their skill, not only the loadout)
+msgid "Average pilot Elo"
+msgstr "Durchschnittliche Piloten-Elo"
 
 # llm-draft
 msgid "BLUFOR"
@@ -1768,10 +1778,14 @@ msgstr "Eingesteckte Treffer"
 msgid "Hits to destroy"
 msgstr "Treffer bis zur Zerstörung"
 
+# llm-draft
 msgid ""
 "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
 "left out. Attack sorties: the rest are air-superiority sorties."
 msgstr ""
+"Treffer bis zur Zerstörung: über die gesamte Zeit, gezählt werden nur Abschüsse, bei denen ein einzelner Angreifer "
+"den ganzen Schaden verursacht hat; Bomben und Raketen bleiben außen vor. Erdkampfeinsätze: Die übrigen sind "
+"Luftüberlegenheitseinsätze."
 
 # llm-draft
 msgid "Home"
@@ -1797,10 +1811,13 @@ msgstr "Flugstunden in dem Flugzeugtyp, der am meisten geflogen wurde."
 msgid "Hours in the air, all sorties together."
 msgstr "Flugstunden insgesamt, alle Einsätze zusammen."
 
+# llm-draft
 msgid ""
 "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
 " Open a type for its matchups, best pilots and loadouts."
 msgstr ""
+"Wie sich jeder Flugzeugtyp schlägt: Einsätze, Abschüsse, Verluste und Verhältnisse, in der gewählten Tour oder über "
+"alle gespielten Missionen. Öffne einen Typ für seine Duelle, besten Piloten und Bewaffnungen."
 
 # llm-draft
 msgid "How it ended"
@@ -2336,8 +2353,9 @@ msgstr "In dieser Tour kein Bodenangriff: keine Bodenziele zerstört, keine Erdk
 msgid "No air-to-ground activity yet: no ground kills or attack sorties."
 msgstr "Noch kein Bodenangriff: keine Bodenziele zerstört, keine Erdkampfeinsätze."
 
+# llm-draft
 msgid "No aircraft has flown in this tour yet."
-msgstr ""
+msgstr "In dieser Tour ist noch kein Flugzeug geflogen."
 
 # llm-draft
 msgid "No aircraft has flown yet."
@@ -2823,10 +2841,13 @@ msgstr "Spieler"
 msgid "Player aircraft"
 msgstr "Spielerflugzeuge"
 
+# llm-draft
 msgid ""
 "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
+"Luftsiege gegen andere Spieler, aufgeschlüsselt nach gegnerischem Flugzeugtyp, in der gewählten Tour. So siehst du, "
+"welche gegnerischen Flugzeuge dieses schlägt und welche es schlagen."
 
 # llm-draft
 msgid ""
@@ -2911,6 +2932,11 @@ msgid "Purple"
 msgstr "Violett"
 
 # llm-draft
+#. Translators: column header; player-versus-player air kills per death with this loadout
+msgid "PvP K/D"
+msgstr "PvP-K/D"
+
+# llm-draft
 msgid "Quiet skies so far. The airfield is yours."
 msgstr "Bisher ruhiger Himmel. Der Platz gehört dir."
 
@@ -2929,6 +2955,15 @@ msgstr "REDFOR-Einsätze"
 # llm-draft
 msgid "REDFOR won"
 msgstr "REDFOR hat gewonnen"
+
+# llm-draft
+#, python-format
+msgid ""
+"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
+"target, as on the leaderboards."
+msgstr ""
+"Raten werden ab %(sorties)s Luftüberlegenheitseinsätzen angezeigt, bzw. ab %(attack)s Erdkampfeinsätzen mit "
+"%(minutes)s Minuten über dem Ziel, wie in den Bestenlisten."
 
 # llm-draft
 msgid "Ratings"
@@ -3740,6 +3775,10 @@ msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "Der Heckschütze hatte das letzte Wort, und es war ein lautes."
 
 # llm-draft
+msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
+msgstr "Der Rollenfilter gilt nicht für die Duelle: Sie zeigen alle Abschüsse und Verluste dieses Flugzeugs."
+
+# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "Dieselben Prüfungen wie beim Befehl il2ks doctor, angewendet auf die neuen Einstellungen. Manche Warnungen "
@@ -3787,8 +3826,14 @@ msgstr "Die Staffel hat gelernt, etwas weiter auseinander zu fliegen. Mutig, und
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "Auf dem Rollweg gibt es für solche Fälle eine Akte. Dünn, aber ordentlich abgegriffen."
 
-msgid "The totals and the matchups follow the selected tour. Top pilots, hits to destroy and loadouts cover all time."
+# llm-draft
+msgid ""
+"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
+"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
 msgstr ""
+"Die Summen folgen der gewählten Tour und Rolle, die Duelle der Tour. Beste Piloten, Treffer bis zur Zerstörung und "
+"Bewaffnungen gelten für die gesamte Zeit; die Treffer bis zur Zerstörung zählen immer alle Rollen (es geht um "
+"Abschüsse dieses Flugzeugs)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -4168,6 +4213,25 @@ msgstr "Wo du es findest:"
 # llm-draft
 msgid "Which kills and losses to count"
 msgstr "Welche Abschüsse und Verluste gezählt werden"
+
+# llm-draft
+msgid ""
+"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
+"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
+"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
+"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
+"apply or there are too few sorties."
+msgstr ""
+"Welche Bewaffnungen am besten funktionieren, in der gewählten Rolle. Luftüberlegenheits-Bewaffnungen zeigen die "
+"durchschnittliche Elo der Piloten, die sie geflogen sind (im jeweiligen Flugzeug, wo sie gewertete Duelle haben, "
+"sonst im Pool), Luftsiege pro Einsatz und K/D aus Luftsiegen gegen andere Spieler; Erdkampf-Bewaffnungen zeigen "
+"Bodenpunkte pro Stunde über dem Ziel. Die durchschnittliche Elo spiegelt das Können der Piloten wider, nicht nur das "
+"der Bewaffnung: Gute Piloten wählen eine Bewaffnung vielleicht aus anderen Gründen. Ein Strich bedeutet, dass der "
+"Wert nicht zutrifft oder es zu wenige Einsätze gibt."
+
+# llm-draft
+msgid "Which sorties to count"
+msgstr "Welche Einsätze gezählt werden"
 
 # llm-draft
 msgid "Who kills you, and whom you kill"
