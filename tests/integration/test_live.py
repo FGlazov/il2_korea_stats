@@ -14,7 +14,7 @@ import pytest
 from django.db import OperationalError
 
 from il2ks.config import Config, LiveConfig
-from il2ks.db.models import LiveMission, LivePlayer, Player
+from il2ks.db.models import LiveMission, LivePlayer, Player, SiteSettings
 from il2ks.db.reprocess_requests import request_reprocess
 from il2ks.db.site import current_data_version
 from il2ks.ingest import live as live_module
@@ -24,7 +24,15 @@ from il2ks.ingest.reprocess import ReprocessSummary
 from il2ks.ingest.runner import Pipeline
 from il2ks.ingest.watch import watch
 from tests.ingest_fakes import T0, FakeSteps, make_config, make_pipeline
-from tests.live_helpers import LIVE_UID, fixture_lines, mission_end_index, split_into_parts, write_part
+from tests.live_helpers import (
+    LIVE_UID,
+    SteppingClock,
+    fixture_lines,
+    free_clock,
+    mission_end_index,
+    split_into_parts,
+    write_part,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -39,7 +47,10 @@ class Live:
         self.logs.mkdir(parents=True)
         base = make_config(tmp_path / "data", self.logs)
         self.cfg: Config = replace(base, live=live or LiveConfig(enabled=True, interval_s=30.0))
-        self.tracker = LiveTracker(self.cfg)
+        # These tests are about online now only; saving the running mission provisionally (FR-ING-15) has its own
+        # tests (test_live_sorties.py).
+        SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": False})
+        self.tracker = LiveTracker(self.cfg, cost_clock=free_clock)
         self.clock = T0
         lines = fixture_lines()
         self.lines = lines
@@ -122,7 +133,9 @@ def test_a_restarted_watch_rereads_the_parts_and_lands_on_the_same_snapshot(live
     live.tick()
     before = rows()
 
-    live.tracker = LiveTracker(live.cfg)  # the watch process restarted: no memory of offsets or the replay
+    live.tracker = LiveTracker(
+        live.cfg, cost_clock=free_clock
+    )  # the watch process restarted: no memory of offsets or the replay
     live.tick()
     assert rows() == before
     assert live.tracker.following == LIVE_UID
@@ -136,7 +149,7 @@ def test_a_part_that_shrinks_restarts_the_reading_cleanly(live: Live) -> None:
     live.tick()
     after_shrink = rows()
 
-    fresh = LiveTracker(live.cfg)
+    fresh = LiveTracker(live.cfg, cost_clock=free_clock)
     LivePlayer.objects.all().delete()
     fresh.tick(live.clock)
     assert rows() == after_shrink
@@ -155,11 +168,9 @@ def test_snapshots_are_taken_every_interval_not_every_tick(live: Live) -> None:
 
 def test_a_slow_snapshot_backs_the_interval_off_to_keep_cpu_low(live: Live) -> None:
     """NFR-INS-5: snapshots of a long mission are slow; the gap grows with the last one's cost (<= 2.5 % of a core)."""
+    live.tracker = LiveTracker(live.cfg, cost_clock=SteppingClock(3.0))  # every snapshot "costs" 3 s: 120 s to the next
     live.write(2)
     live.tick()
-    running = live.tracker._running  # pyright: ignore[reportPrivateUsage]
-    assert running is not None
-    running.last_cost_s = 3.0  # a 3 s snapshot -> at least 120 s to the next
     first = live.clock
 
     live.tick(60)  # past the plain 30 s interval, inside the backed-off one

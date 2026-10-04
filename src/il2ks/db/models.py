@@ -403,6 +403,9 @@ class Mission(models.Model):
     completed_cleanly = models.BooleanField()
     winning_coalition = models.IntegerField(null=True)
     is_hidden = models.BooleanField(default=False)
+    # Provisional: the mission is still running and `watch` saved its sorties so far (FR-ING-15). The final save (the
+    # normal ingest once the mission is complete) rewrites the same rows by the same natural keys and clears this.
+    is_live = models.BooleanField(default=False)
     # The tour containing `started_at` (TD-26). Null only for missions saved before tours existed, until the next
     # `rebuild-aggregates`.
     tour = models.ForeignKey("Tour", on_delete=models.PROTECT, null=True, related_name="missions")
@@ -1529,6 +1532,9 @@ class SiteSettings(models.Model):
     # row, which every page reads already, so a quip costs no extra query.
     quips_enabled = models.BooleanField(default=True)
     quips: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    # "Show sorties of the running mission" (FR-ING-15): `watch` saves the running mission provisionally every few
+    # minutes, so its sorties show on the pages and move the counters before the mission ends. Off = online now only.
+    show_live_sorties = models.BooleanField(default=True)
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)

@@ -16,9 +16,11 @@
       <span>{{ mission.started_at|local_time }}</span>
       <span>{% blocktranslate with when=mission|game_when %}In game: {{ when }}{% endblocktranslate %}</span>
       <span>{% translate "Winner" %}: {% winner_badge mission %}</span>
-      {% if not mission.completed_cleanly %}<span>{% badge _("Log incomplete") "amber" title=_("The server stopped before the mission ended; the numbers may be partial.") %}</span>{% endif %}
+      {% if mission.is_live %}<span>{% badge _("Live") "green" title=_("This mission is still running.") %}</span>{% elif not mission.completed_cleanly %}<span>{% badge _("Log incomplete") "amber" title=_("The server stopped before the mission ended; the numbers may be partial.") %}</span>{% endif %}
     </p>
   </div>
+
+  {% if mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "This mission is still running: these numbers may change when it ends." %}{% endnotice %}{% endif %}
 
   {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
   {% blocktranslate asvar sides_sub with red=mission.redfor_sorties blue=mission.blufor_sorties %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}

@@ -95,6 +95,8 @@ class LiveConfig:
 
     enabled: bool = True
     interval_s: float = 30.0  # seconds between snapshots; the website also treats data older than 3x this as stale
+    sorties_interval_s: float = 120.0  # seconds between provisional saves of the running mission's sorties (FR-ING-15)
+    aggregates_interval_s: float = 300.0  # ... and between the level-2 recomputes for them; 0 = only at the final save
 
 
 @dataclass(frozen=True, slots=True)
@@ -272,6 +274,8 @@ def load_config(
     live = LiveConfig(
         enabled=reader.bool_("live", "enabled", live_defaults.enabled),
         interval_s=reader.positive("live", "interval_s", live_defaults.interval_s),
+        sorties_interval_s=reader.positive("live", "sorties_interval_s", live_defaults.sorties_interval_s),
+        aggregates_interval_s=reader.non_negative("live", "aggregates_interval_s", live_defaults.aggregates_interval_s),
     )
 
     rule_values: dict[str, float] = {}

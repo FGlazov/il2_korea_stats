@@ -145,6 +145,16 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         ),
         (_("Navigation links"), {"fields": ("nav_links_help",)}),
         (
+            _("Running mission"),
+            {
+                "fields": ("show_live_sorties",),
+                "description": _(
+                    "While a mission is running, its sorties already show on the pages and count in the "
+                    "statistics, marked as still running. Ratings are only worked out when the mission ends."
+                ),
+            },
+        ),
+        (
             _("Coalitions"),
             {
                 "fields": ("redfor_name", "blufor_name", "redfor_emblem", "blufor_emblem"),

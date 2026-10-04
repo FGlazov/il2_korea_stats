@@ -47,7 +47,7 @@ from il2ks.ingest.discover import (
     next_retry,
 )
 from il2ks.ingest.lock import WriterLock
-from il2ks.ingest.persist import MissionMeta, save_mission
+from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_mission
 from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -334,8 +334,8 @@ def ingest_mission(
             run.mission = mission
             run.finished_at = now()
             run.save()
-    except Exception:
-        error = traceback.format_exc()
+    except Exception as exc:
+        error = str(exc) if isinstance(exc, DuplicateSortieError) else traceback.format_exc()  # a known, explained case
         same_failure = (
             last is not None
             and last.status == IngestStatus.FAILED

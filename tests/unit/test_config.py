@@ -230,6 +230,18 @@ def test_live_defaults_toml_and_env(tmp_path: Path) -> None:
     assert load_config(file, env).live.interval_s == 45.0
 
 
+def test_live_sorties_intervals(tmp_path: Path) -> None:
+    """FR-ING-15: level 1 every 120 s and level 2 every 300 s by default; 0 = level 2 only at the final save."""
+    data = {"IL2KS_DATA_DIR": str(tmp_path / "data")}
+    assert load_config(None, data).live.sorties_interval_s == 120.0
+    assert load_config(None, data).live.aggregates_interval_s == 300.0
+    file = write_toml(tmp_path / "il2ks.toml", "[live]\nsorties_interval_s = 60\naggregates_interval_s = 0\n")
+    cfg = load_config(file, data)
+    assert (cfg.live.sorties_interval_s, cfg.live.aggregates_interval_s) == (60.0, 0.0)
+    with pytest.raises(ConfigError, match=r"live\.sorties_interval_s"):
+        load_config(None, {**data, "IL2KS_LIVE_SORTIES_INTERVAL_S": "0"})
+
+
 @pytest.mark.parametrize("value", ["0", "-5", "soon"])
 def test_live_interval_must_be_a_positive_number(tmp_path: Path, value: str) -> None:
     env = {"IL2KS_DATA_DIR": str(tmp_path / "data"), "IL2KS_LIVE_INTERVAL_S": value}

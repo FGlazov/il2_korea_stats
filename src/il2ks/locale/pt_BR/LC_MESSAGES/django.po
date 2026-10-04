@@ -2435,6 +2435,9 @@ msgstr "Links"
 msgid "Lists of a tour without sorties: fresh start"
 msgstr ""
 
+msgid "Live"
+msgstr ""
+
 # llm-draft
 #. Translators: ammunition table columns, rounds loaded at take-off / rounds still left at the end / rounds fired (used)
 msgid "Loaded"
@@ -2547,6 +2550,9 @@ msgstr "Missão"
 #, python-format
 msgid "Mission %(name)s, running for %(running)s"
 msgstr "Missão %(name)s, em andamento há %(running)s"
+
+msgid "Mission still running"
+msgstr ""
 
 # llm-draft
 msgid "Missions"
@@ -3534,6 +3540,9 @@ msgstr "Linha e menu ao passar o mouse"
 # llm-draft
 msgid "Running"
 msgstr "Em andamento"
+
+msgid "Running mission"
+msgstr ""
 
 # llm-draft
 msgid "Running streaks"
@@ -4550,6 +4559,12 @@ msgstr ""
 msgid "This location is not a regular file."
 msgstr ""
 
+msgid "This mission is still running."
+msgstr ""
+
+msgid "This mission is still running: these numbers may change when it ends."
+msgstr ""
+
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
 msgstr "Esta página não é listada nem pesquisável. Só quem tem o link pode vê-la."
@@ -4952,6 +4967,11 @@ msgstr ""
 # llm-draft
 msgid "Which sorties to count"
 msgstr "Quais surtidas contar"
+
+msgid ""
+"While a mission is running, its sorties already show on the pages and count in the statistics, marked as still "
+"running. Ratings are only worked out when the mission ends."
+msgstr ""
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

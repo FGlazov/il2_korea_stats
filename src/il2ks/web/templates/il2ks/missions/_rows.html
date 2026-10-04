@@ -7,7 +7,7 @@
 {% endcomment %}{% for m in missions %}
 <tr{% if not m.sorties_total %} class="is-empty"{% endif %}>
   <td class="nowrap">{{ m.started_at|local_date }} <span class="muted">{{ m.started_at|local_hm }}</span></td>
-  <th scope="row"><a class="stretched-link" href="{% url 'web:mission-detail' m.pk %}">{{ m|mission_title }}</a><small class="mission-when">{{ m|game_when }}</small></th>
+  <th scope="row"><a class="stretched-link" href="{% url 'web:mission-detail' m.pk %}">{{ m|mission_title }}</a>{% if m.is_live %} {% badge _("Live") "green" title=_("This mission is still running.") %}{% endif %}<small class="mission-when">{{ m|game_when }}</small></th>
   <td class="num">{{ m.duration_s|duration }}</td>
   <td class="num">{{ m.players_total|num }}</td>
   <td class="num">{{ m.sorties_total|num }}</td>
