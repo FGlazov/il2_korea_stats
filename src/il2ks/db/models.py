@@ -447,7 +447,10 @@ class PlayerSortie(models.Model):
     pilot_status = models.CharField(max_length=10, choices=PilotStatus.choices)
     suspected_early_bailout = models.BooleanField(default=False)
     aircraft_status = models.CharField(max_length=10, choices=AircraftStatus.choices)
-    damage_taken = models.FloatField(default=0.0)
+    damage_taken = models.FloatField(default=0.0)  # aircraft damage; 1.0 when destroyed (OQ-115)
+    # Pilot (gunner) damage, 1.0 when dead; health = 1 - this. NULL = unknown (sorties from before migration 0050 that
+    # did not die: `reprocess --all` fills it).
+    pilot_damage = models.FloatField(null=True, default=None)
     disconnected = models.BooleanField(default=False)
     is_death = models.BooleanField(default=False)
     is_plane_lost = models.BooleanField(default=False)
@@ -546,6 +549,11 @@ class PlayerSortie(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name_at_time} @ {self.mission_id}"
+
+    @property
+    def pilot_health(self) -> float | None:
+        """0..1 health left of the pilot (gunner), None where the damage is unknown (see `pilot_damage`)."""
+        return None if self.pilot_damage is None else 1.0 - self.pilot_damage
 
 
 class Kill(models.Model):

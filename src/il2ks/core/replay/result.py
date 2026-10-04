@@ -178,7 +178,7 @@ class SortieResult:
     pilot_fate_source: PilotFateSource
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
-    damage_taken: float  # 0..1, aircraft damage from all sources (clamped)
+    damage_taken: float  # 0..1, aircraft damage from all sources (clamped); 1 when the aircraft was destroyed
     disconnected: bool
     is_death: bool  # counts as a death in totals (FR-ING-21 for disconnects)
     is_plane_lost: bool  # counts as an aircraft lost in totals
@@ -195,6 +195,7 @@ class SortieResult:
     ammo_left: AmmoCounts | None  # None when the sortie had no AType 4
     # Accuracy (doc 13): gun rounds fired, None when unknown (resupply, no or unreliable AType 4, gunner sorties); the
     # gun hits (bullets and shells, no ordnance) by target are exact. Accuracy only counts the sorties with a number.
+    pilot_damage: float = 0.0  # 0..1, damage to the pilot (or gunner) bot, clamped; 1 when it died (health = 1 - this)
     rounds_fired: int | None = None
     gun_hits_air: int = 0  # on aircraft (with their crews)
     gun_hits_ground: int = 0  # on anything else (vehicles, ships, statics, ...)

@@ -1,4 +1,4 @@
-"""Pilot damage and aircraft damage per sortie (maintainer, OQ-115): sums capped at 1, overrides on death / destruction."""
+"""Pilot and aircraft damage per sortie (maintainer, OQ-115): sums capped at 1, overrides on death / destruction."""
 
 import pytest
 

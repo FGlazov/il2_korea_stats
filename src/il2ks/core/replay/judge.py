@@ -64,7 +64,8 @@ class Verdict:
     outcome: Outcome
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
-    damage_taken: float
+    damage_taken: float  # aircraft damage 0..1; 1 when the aircraft was destroyed
+    pilot_damage: float  # damage to the pilot bot 0..1; 1 when the pilot died
     cutoff_tick: int  # damage and hits after this tick don't belong to the sortie (the loss, the end, or AType 7 - 1)
     ended_by_mission_end: bool  # the server force-ended the sortie at mission end (`outcome` is the state then)
     active_end_tick: int  # the sortie end, or the loss tick when the aircraft was destroyed first (flight stops there)
@@ -166,8 +167,13 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     areas = list(facts.areas.values())
     captured = status_pos is not None and on_enemy_territory(status_pos, sortie.coalition, areas)
 
-    damage_taken = min(1.0, sum(r.amount for r in airframe.damage_log if r.tick <= damage_cutoff))
-    bot_damage = any(r.tick <= damage_cutoff for obj in unit_objects(sortie.bot) for r in obj.damage_log)
+    # OQ-115: capped sums; a destroyed aircraft or a dead pilot is at 100% whatever the damage lines say
+    damage_taken = (
+        1.0 if loss is not None else min(1.0, sum(r.amount for r in airframe.damage_log if r.tick <= damage_cutoff))
+    )
+    bot_lines = [r for obj in unit_objects(sortie.bot) for r in obj.damage_log if r.tick <= damage_cutoff]
+    bot_damage = bool(bot_lines)
+    pilot_damage = 1.0 if dead else min(1.0, sum(r.amount for r in bot_lines))
     pilot_status: PilotStatus = "dead" if dead else "captured" if captured else "wounded" if bot_damage else "healthy"
     aircraft_status: AircraftStatus = "destroyed" if loss is not None else "damaged" if damage_taken > 0 else "unharmed"
 
@@ -202,6 +208,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         pilot_status=pilot_status,
         aircraft_status=aircraft_status,
         damage_taken=damage_taken,
+        pilot_damage=pilot_damage,
         cutoff_tick=damage_cutoff,
         ended_by_mission_end=forced,
     )

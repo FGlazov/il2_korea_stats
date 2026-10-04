@@ -628,6 +628,9 @@ msgstr "En el aire"
 msgid "Aircraft"
 msgstr "Aeronave"
 
+msgid "Aircraft damage"
+msgstr ""
+
 # llm-draft
 msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
 msgstr "Aviones destruidos en tierra por un atacante: lugar equivocado, momento equivocado."
@@ -1878,6 +1881,9 @@ msgstr "Impactos de armas por disparo; un guion si se desconocen los disparos ef
 # llm-draft
 msgid "Gunner"
 msgstr "Artillero"
+
+msgid "Gunner health"
+msgstr ""
 
 # llm-draft
 msgid "Gunner only"
@@ -3131,6 +3137,9 @@ msgstr "Piloto / tripulación"
 # llm-draft
 msgid "Pilot fate"
 msgstr "Suerte del piloto"
+
+msgid "Pilot health"
+msgstr ""
 
 # llm-draft
 msgid "Pilot or gunner"

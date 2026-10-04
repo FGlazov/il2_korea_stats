@@ -641,6 +641,9 @@ msgstr "В воздухе"
 msgid "Aircraft"
 msgstr "Самолёт"
 
+msgid "Aircraft damage"
+msgstr ""
+
 # llm-draft
 msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
 msgstr "Самолёты, уничтоженные на земле штурмовиком: не то место и не то время."
@@ -1902,6 +1905,9 @@ msgstr "Попадания на один выстрел; прочерк, есл�
 msgid "Gunner"
 msgstr "Стрелок"
 
+msgid "Gunner health"
+msgstr ""
+
 # llm-draft
 msgid "Gunner only"
 msgstr "Только стрелок"
@@ -3150,6 +3156,9 @@ msgstr "Пилот / экипаж"
 # llm-draft
 msgid "Pilot fate"
 msgstr "Судьба пилота"
+
+msgid "Pilot health"
+msgstr ""
 
 # llm-draft
 msgid "Pilot or gunner"
