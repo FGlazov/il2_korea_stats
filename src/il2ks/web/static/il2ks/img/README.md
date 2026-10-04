@@ -66,6 +66,18 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `nav/patreon.svg` | `brand-patreon` |
 | `nav/forum.svg` | `messages` |
 | `nav/link.svg` | `link` |
+| `medal/life-kills.svg` | `clover` |
+| `medal/sortie-kills.svg` | `target-arrow` |
+| `medal/career-kills.svg` | `crosshair` |
+| `medal/strike-hunter.svg` | `plane-off` |
+| `medal/tank-buster.svg` | `tank` |
+| `medal/ground-sortie.svg` | `flame` |
+| `medal/survivor.svg` | `shield-check` |
+| `medal/damaged-landing.svg` | `bandage` |
+| `medal/regular.svg` | `calendar-week` |
+| `medal/frequent-flyer.svg` | `plane-departure` |
+| `medal/flight-hours.svg` | `clock` |
+| `medal/type-veteran.svg` | `award` |
 
 ## Ours (original drawings, MIT like the rest of the project)
 

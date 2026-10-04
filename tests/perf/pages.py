@@ -26,11 +26,14 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("mission-detail", lambda w: f"/missions/{w.mission_pk}/", 6, max_ms=600.0),
     PageSpec("player-search", lambda w: "/players/", 5),
     PageSpec("player-search", lambda w: "/players/?q=Pilot+0", 5),
-    PageSpec("player-detail", lambda w: f"/players/{w.player_pk}/", 14),
+    PageSpec("player-detail", lambda w: f"/players/{w.player_pk}/", 15),  # + the medal row (FR-WEB-26)
     PageSpec("player-sorties", lambda w: f"/players/{w.player_pk}/sorties/", 8),
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
     PageSpec("streak-list", lambda w: "/streaks/", 5),
-    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 6),
+    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 7),  # + earned medals (FR-WEB-26)
+    PageSpec("player-achievements", lambda w: f"/players/{w.player_pk}/achievements/", 5),
+    PageSpec("achievements", lambda w: "/achievements/", 4),
+    PageSpec("achievement-holders", lambda w: "/achievements/flight_hours/", 6),
     PageSpec("aircraft-list", lambda w: "/aircraft/", 5),
     PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 9),
     PageSpec("live", lambda w: "/live/", 4, max_ms=250.0),

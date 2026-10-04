@@ -44,6 +44,7 @@ from il2ks.db.models import (
     Tour,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
 from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
@@ -264,6 +265,8 @@ def _set_hidden(
             days = {day_of(m.started_at) for m in toggled if isinstance(m, Mission)}
         changed = toggled.update(is_hidden=hidden)
         recompute_days(days)
+        if queryset.model is Player:
+            recompute_holders()  # FR-WEB-26: the medal overview counts visible players only
         bump_data_version()
     text = (
         ngettext("%(n)d row hidden from public pages.", "%(n)d rows hidden from public pages.", changed)

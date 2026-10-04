@@ -50,6 +50,7 @@ from il2ks.db.models import (
     PlayerSortie,
 )
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
@@ -130,6 +131,7 @@ def save_mission(
 
     touched_tours = {tour.pk} | _ids(old_tour_id)
     recompute_players(old_player_ids | {p.pk for p in players.values()}, touched_tours)
+    recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(ammo_aircraft_ids)
     recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk))  # after the players' PlayerAircraft rows
     recompute_matchups(old_pairs | mission_pairs(mission.pk))

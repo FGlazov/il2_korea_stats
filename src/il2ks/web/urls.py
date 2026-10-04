@@ -5,6 +5,7 @@ Paths are stable so shared links keep working (FR-WEB-13)."""
 from django.urls import URLPattern, path
 
 from il2ks.web.views import (
+    achievements,
     aircraft,
     boards,
     language,
@@ -30,6 +31,9 @@ urlpatterns: list[URLPattern] = [
     path("players/<int:pk>/killboard/", boards.player_killboard, name="player-killboard"),
     path("players/<int:pk>/streaks/", boards.player_streaks, name="player-streaks"),  # ?tour=: best streaks
     path("streaks/", boards.streak_list, name="streak-list"),
+    path("players/<int:pk>/achievements/", achievements.player_achievements, name="player-achievements"),
+    path("achievements/", achievements.achievement_overview, name="achievements"),
+    path("achievements/<slug:key>/", achievements.achievement_holders, name="achievement-holders"),  # ?tier=
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
     path("aircraft/", aircraft.aircraft_list, name="aircraft-list"),  # ?sort=: per-type stats (FR-WEB-8)
     path("aircraft/<int:pk>/", aircraft.aircraft_detail, name="aircraft-detail"),  # pk = GameObject pk

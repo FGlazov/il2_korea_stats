@@ -61,6 +61,11 @@ msgstr "%(m)d мин"
 
 # llm-draft
 #, python-format
+msgid "%(medal)s: holders"
+msgstr "%(medal)s: обладатели"
+
+# llm-draft
+#, python-format
 msgid "%(n)d names reset."
 msgstr "Названий сброшено: %(n)d."
 
@@ -128,6 +133,11 @@ msgstr "наземных целей: %(n)s"
 
 # llm-draft
 #, python-format
+msgid "%(n)s h"
+msgstr "%(n)s ч"
+
+# llm-draft
+#, python-format
 msgid "%(n)s mission report file found"
 msgid_plural "%(n)s mission report files found"
 msgstr[0] "Найден %(n)s файл отчёта о миссии"
@@ -141,8 +151,29 @@ msgstr "Из них %(n)s — неподвижные объекты: припа�
 
 # llm-draft
 #, python-format
+msgid "%(n)s pilot"
+msgid_plural "%(n)s pilots"
+msgstr[0] "%(n)s пилот"
+msgstr[1] "%(n)s пилота"
+msgstr[2] "%(n)s пилотов"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "типов: %(n)s"
+
+# llm-draft
+#, python-format
+msgid "%(n)s week"
+msgid_plural "%(n)s weeks"
+msgstr[0] "%(n)s неделя"
+msgstr[1] "%(n)s недели"
+msgstr[2] "%(n)s недель"
+
+# llm-draft
+#, python-format
+msgid "%(name)s: achievements"
+msgstr "%(name)s: достижения"
 
 # llm-draft
 #, python-format
@@ -327,6 +358,19 @@ msgid "Accent, links and buttons"
 msgstr "Акцент, ссылки и кнопки"
 
 # llm-draft
+msgid "Ace of the Sortie"
+msgstr "Ас вылета"
+
+# llm-draft
+msgid "Achievements"
+msgstr "Достижения"
+
+# llm-draft
+#, python-format
+msgid "Achievements of %(name)s"
+msgstr "Достижения игрока %(name)s"
+
+# llm-draft
 msgid "Activity by tour"
 msgstr "Активность по турам"
 
@@ -365,6 +409,18 @@ msgstr "Воздушные победы и гибели по турам"
 # llm-draft
 msgid "Air kills by victim"
 msgstr "Воздушные победы по типу цели"
+
+# llm-draft
+msgid "Air kills in a single sortie."
+msgstr "Воздушные победы за один вылет."
+
+# llm-draft
+msgid "Air kills in one life: everything since the last death or capture, the fatal sortie included."
+msgstr "Воздушные победы за одну жизнь: всё с момента последней гибели или плена, включая роковой вылет."
+
+# llm-draft
+msgid "Air kills in total, all sorties together."
+msgstr "Воздушные победы за всё время, все вылеты вместе."
 
 # llm-draft
 msgid "Air kills per flight hour"
@@ -468,6 +524,18 @@ msgstr "Самолёты, которые чаще всего сбивали эт
 # llm-draft
 msgid "All"
 msgstr "Все"
+
+# llm-draft
+msgid "All achievements"
+msgstr "Все достижения"
+
+# llm-draft
+msgid "All achievements and their holders"
+msgstr "Все достижения и их обладатели"
+
+# llm-draft
+msgid "All achievements of this pilot"
+msgstr "Все достижения этого пилота"
 
 # llm-draft
 msgid "All aircraft"
@@ -763,6 +831,10 @@ msgid "Bomb release"
 msgstr "Сброс бомб"
 
 # llm-draft
+msgid "Bomber Hunter"
+msgstr "Охотник за бомбардировщиками"
+
+# llm-draft
 msgid "Bombs"
 msgstr "Бомбы"
 
@@ -783,6 +855,10 @@ msgid "Breakdown by target type"
 msgstr "Разбивка по типам целей"
 
 # llm-draft
+msgid "Bronze"
+msgstr "Бронза"
+
+# llm-draft
 msgid "Browse missions"
 msgstr "Смотреть миссии"
 
@@ -801,6 +877,10 @@ msgstr "По самолётам"
 # llm-draft
 msgid "By player"
 msgstr "По игрокам"
+
+# llm-draft
+msgid "Calendar weeks in a row (Monday to Sunday, UTC) with at least one sortie."
+msgstr "Календарные недели подряд (с понедельника по воскресенье, UTC), в каждой из которых был хотя бы один вылет."
 
 # llm-draft
 msgid "Cannon shells"
@@ -829,6 +909,10 @@ msgstr "Причина"
 # llm-draft
 msgid "Caution (amber)"
 msgstr "Внимание (янтарный)"
+
+# llm-draft
+msgid "Charmed Life"
+msgstr "Заговорённый"
 
 # llm-draft
 msgid "Chart grid lines"
@@ -1047,6 +1131,14 @@ msgid "E-mail for certificate notices (optional)"
 msgstr "Адрес e-mail для уведомлений о сертификате (необязательно)"
 
 # llm-draft
+msgid "Earned"
+msgstr "Получено"
+
+# llm-draft
+msgid "Earned in this sortie"
+msgstr "Получено в этом вылете"
+
+# llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
 msgstr "Загрузите новый логотип или удалите текущий, но не то и другое сразу."
 
@@ -1085,6 +1177,10 @@ msgstr "Действия противника"
 # llm-draft
 msgid "Enemy aircraft"
 msgstr "Самолёты противника"
+
+# llm-draft
+msgid "Enemy bombers and attackers flown by other pilots, shot down."
+msgstr "Сбитые вражеские бомбардировщики и штурмовики, которыми управляли другие пилоты."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -1227,6 +1323,10 @@ msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain n
 msgstr "Бесплатные имена динамического DNS (DuckDNS и подобные) работают как любое другое доменное имя."
 
 # llm-draft
+msgid "Frequent Flyer"
+msgstr "Завсегдатай неба"
+
+# llm-draft
 msgid "Friendly"
 msgstr "Свой"
 
@@ -1265,6 +1365,10 @@ msgstr "Полный журнал побед"
 # llm-draft
 msgid "Given up"
 msgstr "Отброшены"
+
+# llm-draft
+msgid "Gold"
+msgstr "Золото"
 
 # llm-draft
 msgid "Good (green)"
@@ -1333,6 +1437,10 @@ msgstr ""
 # llm-draft
 msgid "Ground score/h"
 msgstr "Очки за землю/ч"
+
+# llm-draft
+msgid "Ground targets destroyed in a single sortie."
+msgstr "Уничтоженные наземные цели за один вылет."
 
 # llm-draft
 msgid "Ground vehicle or object"
@@ -1453,6 +1561,18 @@ msgstr ""
 # llm-draft
 msgid "Home"
 msgstr "Главная"
+
+# llm-draft
+msgid "Hours Aloft"
+msgstr "Часы в небе"
+
+# llm-draft
+msgid "Hours in the air in the one aircraft type flown most."
+msgstr "Часы в воздухе на самом часто используемом типе самолёта."
+
+# llm-draft
+msgid "Hours in the air, all sorties together."
+msgstr "Часы в воздухе за всё время, все вылеты вместе."
 
 # llm-draft
 msgid ""
@@ -1735,6 +1855,10 @@ msgid "Light mode"
 msgstr "Светлая тема"
 
 # llm-draft
+msgid "Limping Home"
+msgstr "Домой на честном слове"
+
+# llm-draft
 msgid "Lines"
 msgstr "Строк"
 
@@ -1829,6 +1953,22 @@ msgstr "Противостояния"
 # llm-draft
 msgid "May still change"
 msgstr "Может измениться"
+
+# llm-draft
+msgid ""
+"Medals are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie show "
+"when a tier was first reached."
+msgstr ""
+"Медали зарабатываются за всю карьеру пилота и никогда не отбираются. У каждой есть уровни; дата и вылет показывают, "
+"когда уровень был достигнут впервые."
+
+# llm-draft
+msgid ""
+"Medals for what pilots do in the air and on the ground. Every medal has tiers, from bronze up; a tier is earned once "
+"and kept. The numbers show how many pilots hold each tier."
+msgstr ""
+"Медали за то, что пилоты делают в воздухе и на земле. У каждой медали есть уровни, начиная с бронзы; уровень "
+"зарабатывается один раз и остаётся навсегда. Числа показывают, сколько пилотов достигли каждого уровня."
 
 # llm-draft
 msgid "Mission"
@@ -2088,6 +2228,10 @@ msgid "Nobody flew for this side."
 msgstr "За эту сторону никто не летал."
 
 # llm-draft
+msgid "Nobody holds this tier yet."
+msgstr "Этого уровня пока никто не достиг."
+
+# llm-draft
 msgid "Nobody is judging. The wreckage is merely taking notes."
 msgstr "Никто не осуждает. Обломки просто конспектируют."
 
@@ -2275,6 +2419,10 @@ msgid "Overall"
 msgstr "Общее"
 
 # llm-draft
+msgid "Overview"
+msgstr "Обзор"
+
+# llm-draft
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Обзор всех ваших переопределений: <code>il2ks custom list</code>"
 
@@ -2379,6 +2527,10 @@ msgstr[2] "Пилоты минимум с %(sorties)s вылетами."
 # llm-draft
 msgid "Planes lost"
 msgstr "Потеряно самолётов"
+
+# llm-draft
+msgid "Platinum"
+msgstr "Платина"
 
 # llm-draft
 msgid "Player"
@@ -2540,6 +2692,10 @@ msgstr "Недавние вылеты"
 # llm-draft
 msgid "Recently completed by idle timeout"
 msgstr "Недавно завершены по таймауту бездействия"
+
+# llm-draft
+msgid "Regular"
+msgstr "Постоянный игрок"
 
 # llm-draft
 msgid "Released"
@@ -2758,6 +2914,10 @@ msgid "Side"
 msgstr "Сторона"
 
 # llm-draft
+msgid "Silver"
+msgstr "Серебро"
+
+# llm-draft
 msgid "Since"
 msgstr "С"
 
@@ -2768,6 +2928,10 @@ msgstr "Администрирование сайта"
 # llm-draft
 msgid "Skip to content"
 msgstr "Перейти к содержимому"
+
+# llm-draft
+msgid "Sky Hunter"
+msgstr "Небесный охотник"
 
 # llm-draft
 msgid "Slab serif"
@@ -2804,6 +2968,10 @@ msgstr "Отчёт о вылете"
 # llm-draft
 msgid "Sorties"
 msgstr "Вылеты"
+
+# llm-draft
+msgid "Sorties flown: the aircraft took off."
+msgstr "Совершённые вылеты: самолёт взлетел."
 
 # llm-draft
 #, python-format
@@ -2847,6 +3015,14 @@ msgstr "Вылетов по турам"
 # llm-draft
 msgid "Sorties survived"
 msgstr "Пережитые вылеты"
+
+# llm-draft
+msgid "Sorties survived in a row: no death, no capture. Sorties that never took off are skipped."
+msgstr "Вылеты подряд без гибели и плена. Вылеты, в которых самолёт не взлетел, пропускаются."
+
+# llm-draft
+msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
+msgstr "Вылеты хотя бы с одной победой, закончившиеся посадкой на сильно повреждённом самолёте."
 
 # llm-draft
 msgid "Source"
@@ -2955,12 +3131,24 @@ msgid "Tank"
 msgstr "Танк"
 
 # llm-draft
+msgid "Tank Buster"
+msgstr "Танкобой"
+
+# llm-draft
 msgid "Tanks"
 msgstr "Танки"
 
 # llm-draft
+msgid "Tanks destroyed in total."
+msgstr "Уничтожено танков за всё время."
+
+# llm-draft
 msgid "Target"
 msgstr "Цель"
+
+# llm-draft
+msgid "Target-Rich"
+msgstr "Целей хоть отбавляй"
 
 # llm-draft
 msgid "Targets damaged"
@@ -3326,6 +3514,10 @@ msgid "Those little black clouds were not decorative."
 msgstr "Эти чёрные облачка были не для красоты."
 
 # llm-draft
+msgid "Tiers"
+msgstr "Уровни"
+
+# llm-draft
 msgid "Time"
 msgstr "Время"
 
@@ -3431,6 +3623,10 @@ msgstr "Проблемы и на стоянке, и в воздухе. Зато 
 # llm-draft
 msgid "Type"
 msgstr "Тип"
+
+# llm-draft
+msgid "Type Veteran"
+msgstr "Ветеран типа"
 
 # llm-draft
 msgid "Type the password again"
@@ -3833,12 +4029,20 @@ msgid "no losses"
 msgstr "без потерь"
 
 # llm-draft
+msgid "nobody yet"
+msgstr "пока никто"
+
+# llm-draft
 msgid "none yet (test certificate)"
 msgstr "пока нет (тестовый сертификат)"
 
 # llm-draft
 msgid "not set"
 msgstr "не задано"
+
+# llm-draft
+msgid "not yet"
+msgstr "ещё нет"
 
 # llm-draft
 #, python-format

@@ -1,0 +1,33 @@
+{# il2ks-template: templates/il2ks/achievements/holders.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  The pilots who hold one tier of an achievement (FR-WEB-26). View: il2ks.web.views.achievements.achievement_holders.
+  Context: info (name, description, icon, key), tier (the shown tier: number, name, slug, threshold), tiers (OverviewTier:
+  .tier and .holders, to switch), page_obj (PlayerAchievement rows with .player and .mission; hidden players left out),
+  crumbs, page_title. Blocks: head, content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+  <div class="page-head">
+    <h1>{{ info.name }}</h1>
+    <p>{{ info.description }}</p>
+  </div>
+  <nav class="medal-tabs" aria-label="{% translate 'Tiers' %}">
+    {% for t in tiers %}<a class="medal-tabs__tab medal-tabs__tab--{{ t.tier.slug }}" href="{% url 'web:achievement-holders' info.key %}?tier={{ t.tier.number }}"{% if t.tier.number == tier.number %} aria-current="page"{% endif %}>{{ t.tier.name }} · {{ t.tier.threshold }} <span class="muted">({{ t.holders|num }})</span></a>{% endfor %}
+  </nav>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th scope="col">{% translate "Pilot" %}</th><th scope="col">{% translate "Earned" %}</th></tr></thead>
+      <tbody>
+        {% for row in page_obj %}
+          <tr>
+            <td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td>
+            <td class="nowrap">{% if row.mission.is_hidden %}{{ row.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' row.sortie_id %}">{{ row.earned_at|local_date }}</a>{% endif %}</td>
+          </tr>
+        {% empty %}{% empty_row 2 _("Nobody holds this tier yet.") %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% pagination page_obj %}
+  <p><a href="{% url 'web:achievements' %}">← {% translate "All achievements" %}</a></p>
+{% endblock %}

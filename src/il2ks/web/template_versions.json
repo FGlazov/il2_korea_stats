@@ -30,8 +30,8 @@
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 10,
-      "sha256": "827feb391cd5b96e92d1b47e571fe38540a200aa2ed048e4aacf6c682472d826"
+      "version": 12,
+      "sha256": "b83fcb673fceb57420cb4ed6f8018b7f26bb23c4ad053230121ceb8dd9d3d2a8"
     },
     "static/il2ks/sorties.css": {
       "version": 2,
@@ -84,6 +84,18 @@
     "templates/admin/il2ks_reprocess_confirm.html": {
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
+    },
+    "templates/il2ks/achievements/_medal.html": {
+      "version": 1,
+      "sha256": "d3a5c844fcd57ba9b04ab9ad7e9144430ca560d12bd66989676759fc91470099"
+    },
+    "templates/il2ks/achievements/holders.html": {
+      "version": 1,
+      "sha256": "a28eab9e9785e7fe0637cfda109ee622031e044d31d13f05b916dae3043f174b"
+    },
+    "templates/il2ks/achievements/overview.html": {
+      "version": 1,
+      "sha256": "77eb3f8967f8baac2e5186d95ad73e20ff6fe2b073ba064e4009779691cf61f1"
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 4,
@@ -241,9 +253,17 @@
       "version": 2,
       "sha256": "ccd108a2923c6a6984faec72d00377a031061b4a4b1c974cd75638029f8b0fa0"
     },
+    "templates/il2ks/players/achievements.html": {
+      "version": 1,
+      "sha256": "065a389ebf5db0b9990696123a9e5de5fa623a5198f14ee5a32e2a4e18617535"
+    },
     "templates/il2ks/players/detail.html": {
-      "version": 12,
-      "sha256": "98f63ed605adf22ddce6c83c9e1eb78cff595c62462b553501731263e890a508"
+      "version": 13,
+      "sha256": "04f6ccb93bc7289e3be9e0616c5b5c433def9033379d69ab29370e3add7ac12c"
+    },
+    "templates/il2ks/players/detail_achievements.html": {
+      "version": 1,
+      "sha256": "efd48911a864552241b410ebe0e8a7ff09212f4c5305c336c3a86c0ce78e34a0"
     },
     "templates/il2ks/players/detail_air_section.html": {
       "version": 4,
@@ -362,8 +382,8 @@
       "sha256": "e0915cb5feec7f2b2a8b51f4919c898d3ff9b655a85e073b819d22d7b945ef62"
     },
     "templates/il2ks/sorties/detail.html": {
-      "version": 2,
-      "sha256": "7090d40292e139431e7c3a09ff217bf986166c412dd81eb036c3031e07de5e9f"
+      "version": 3,
+      "sha256": "ee85fb5ee6b0d1615976f5ed7bb35a2fd7d1b17e056af5ea11a7132d2e768056"
     },
     "templates/il2ks/sorties/list.html": {
       "version": 5,
@@ -400,6 +420,10 @@
     "templates/il2ks/sorties/parts/list_row.html": {
       "version": 5,
       "sha256": "6131e1b2c8bc7969656932ca75344cd9d855173174dd564118700dfe3910bd79"
+    },
+    "templates/il2ks/sorties/parts/medals.html": {
+      "version": 1,
+      "sha256": "c195ab3fbf5d9e4e1c526aab9b718ae7a410761838fd2d1dd7bba3f3df2929c6"
     },
     "templates/il2ks/sorties/parts/meta.html": {
       "version": 1,

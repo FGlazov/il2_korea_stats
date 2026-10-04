@@ -1,0 +1,259 @@
+"""Achievements / medals (FR-WEB-26, doc 17): ingest rows, incremental == rebuild, the upgrade backfill, the pages."""
+
+from datetime import timedelta
+from pathlib import Path
+
+import pytest
+from django.test import Client
+
+from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings
+from il2ks.ingest.achievements import recompute_holders
+from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
+from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
+from tests.ops_helpers import make_instance
+from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
+
+pytestmark = pytest.mark.django_db
+
+DAY2 = STARTED_AT + timedelta(days=1)
+DAY3 = STARTED_AT + timedelta(days=2)
+
+
+def pk(n: int) -> int:
+    return Player.objects.get(account_uuid=account(n)).pk
+
+
+def held(n: int) -> dict[str, int]:
+    """key -> highest tier held by player number `n`."""
+    best: dict[str, int] = {}
+    for row in PlayerAchievement.objects.filter(player_id=pk(n)):
+        best[row.key] = max(best.get(row.key, 0), row.tier)
+    return best
+
+
+def snapshot() -> list[tuple[object, ...]]:
+    rows = PlayerAchievement.objects.order_by("player_id", "key", "tier").values_list(
+        "player_id", "key", "tier", "earned_at", "sortie_id", "mission_id"
+    )
+    counts = AchievementHolders.objects.order_by("key", "tier").values_list("key", "tier", "holders")
+    return [*rows, *counts]
+
+
+def seed() -> None:
+    """Player 1 gets kills over two missions and a death; player 2 flies one grounded and one landed sortie."""
+    save(
+        mission((sortie(0, 1, kills_air=3, kills_ground=60), sortie(1, 1, kills_air=2), sortie(2, 2))),
+        meta("m1", STARTED_AT),
+    )
+    save(
+        mission(
+            (
+                sortie(0, 1, kills_air=1, outcome="shot_down", is_death=True, is_plane_lost=True),
+                sortie(1, 2, outcome="not_taken_off", flight_time_s=0.0),
+                sortie(2, 3, aircraft_type="Il-10", ground_by_category={"tank": 6}),
+            ),
+            (kill(100, 0, 2, victim_type="Il-10"),),
+        ),
+        meta("m2", DAY2),
+    )
+    save(
+        mission((sortie(0, 1, kills_air=4), sortie(1, 4, role="gunner", aircraft_type="Turret_IL10"))), meta("m3", DAY3)
+    )
+
+
+def test_medals_are_earned_in_the_sortie_that_reaches_them() -> None:
+    seed()
+
+    assert held(1)["life_kills"] == 1  # 3 + 2 = 5 in the first life; the death sortie adds 1
+    first = PlayerAchievement.objects.get(player_id=pk(1), key="life_kills", tier=1)
+    assert first.mission.mission_uid == "m1"
+    assert first.sortie.kills_air == 2  # the second sortie took the life to 5
+    assert first.earned_at == first.sortie.ended_at
+    assert held(1)["ground_sortie"] == 2  # 60 ground targets in one sortie
+    assert held(3)["tank_buster"] == 1  # 6 tanks
+    assert "life_kills" not in held(2)
+
+
+def test_gunner_and_grounded_sorties_earn_nothing() -> None:
+    seed()
+
+    assert not PlayerAchievement.objects.filter(player_id=pk(4)).exists()  # a gunner only
+    assert held(2).get("frequent_flyer") is None
+    assert "regular" not in held(2)
+
+
+def test_bomber_and_attacker_kills_count_for_the_killer() -> None:
+    seed()
+    assert PlayerAchievement.objects.filter(player_id=pk(1), key="strike_hunter", tier=1).exists()
+    assert not PlayerAchievement.objects.filter(player_id=pk(2), key="strike_hunter").exists()
+
+
+def test_friendly_fire_is_not_a_strike_kill() -> None:
+    save(
+        mission(
+            (sortie(0, 1), sortie(1, 2, aircraft_type="Il-10")),
+            (kill(100, 0, 1, victim_type="Il-10", is_friendly=True),),
+        )
+    )
+    assert not PlayerAchievement.objects.filter(key="strike_hunter").exists()
+
+
+def test_incremental_equals_rebuild_and_is_idempotent() -> None:
+    seed()
+    incremental = snapshot()
+    assert PlayerAchievement.objects.exists()
+
+    rebuild_aggregates()
+
+    assert snapshot() == incremental
+    recompute_players(Player.objects.values_list("pk", flat=True))
+    assert snapshot() == incremental
+
+
+def test_reprocessing_a_mission_keeps_or_removes_tiers() -> None:
+    seed()
+    before = snapshot()
+    save(
+        mission((sortie(0, 1, kills_air=3, kills_ground=60), sortie(1, 1, kills_air=2), sortie(2, 2))),
+        meta("m1", STARTED_AT),
+    )
+    assert snapshot() == before
+
+    save(mission((sortie(0, 1), sortie(1, 1), sortie(2, 2))), meta("m1", STARTED_AT))  # the kills were a mistake
+
+    assert "ground_sortie" not in held(1)
+    assert (
+        held(1).get("life_kills", 0) < 1
+        or PlayerAchievement.objects.filter(player_id=pk(1), key="life_kills").count() <= 1
+    )
+
+
+def test_holders_count_visible_players_only() -> None:
+    seed()
+    assert AchievementHolders.objects.get(key="life_kills", tier=1).holders == 1
+    assert AchievementHolders.objects.get(key="tank_buster", tier=1).holders == 1
+
+    Player.objects.filter(pk=pk(1)).update(is_hidden=True)
+    recompute_holders()
+
+    assert AchievementHolders.objects.get(key="tank_buster", tier=1).holders == 1
+    assert not AchievementHolders.objects.filter(key="life_kills").exists()
+    assert PlayerAchievement.objects.filter(player_id=pk(1), key="ground_sortie").exists()  # only presentation hides
+
+
+def test_the_upgrade_backfill_fills_an_old_database_once(tmp_path: Path) -> None:
+    from il2ks.ops import migrate
+
+    seed()
+    good = snapshot()
+    PlayerAchievement.objects.all().delete()
+    AchievementHolders.objects.all().delete()
+
+    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
+
+    assert snapshot() == good
+    assert migrate.BACKFILL_ACHIEVEMENTS in SiteSettings.objects.get(pk=1).backfills_done
+    PlayerAchievement.objects.all().delete()
+    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
+    assert not PlayerAchievement.objects.exists()  # marked done: not repeated
+    assert make_instance(tmp_path)
+
+
+def test_the_backfill_marks_an_empty_database_without_work() -> None:
+    from il2ks.ops import migrate
+
+    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
+
+    assert migrate.BACKFILL_ACHIEVEMENTS in SiteSettings.objects.get(pk=1).backfills_done
+
+
+# --- pages ----------------------------------------------------------------------------------------------------------
+def test_profile_shows_the_best_tier_of_each_medal_and_stays_in_budget(client: Client) -> None:
+    seed()
+
+    html = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
+
+    assert "Charmed Life" in html
+    assert "Bronze · 5" in html
+    assert f"/players/{pk(1)}/achievements/" in html
+    assert "Gold · 20" not in html
+    assert_simple_reads(client, f"/players/{pk(1)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
+
+
+def test_a_profile_without_medals_has_no_medal_row(client: Client) -> None:
+    seed()
+
+    html = client.get(f"/players/{pk(2)}/?tour=all").content.decode()
+
+    assert 'id="medals"' not in html
+
+
+def test_player_achievement_list_shows_earned_and_open_tiers(client: Client) -> None:
+    seed()
+    url = f"/players/{pk(1)}/achievements/"
+
+    html = client.get(url).content.decode()
+
+    assert "Ace of the Sortie" in html
+    assert "not yet" in html
+    assert "Platinum" in html
+    assert_simple_reads(client, url, max_queries=2 + 2 + 1)  # context 2, player, medals
+
+
+def test_hidden_player_has_no_achievement_page_and_is_not_listed(client: Client) -> None:
+    seed()
+    Player.objects.filter(pk=pk(1)).update(is_hidden=True)
+    recompute_holders()
+
+    assert client.get(f"/players/{pk(1)}/achievements/").status_code == 404
+    html = client.get("/achievements/life_kills/?tier=1").content.decode()
+    assert "Player-1" not in html
+    assert "Nobody holds this tier yet." in html
+
+
+def test_overview_counts_holders_per_tier_and_links_to_them(client: Client) -> None:
+    seed()
+
+    html = client.get("/achievements/").content.decode()
+
+    assert "Charmed Life" in html
+    assert "/achievements/ground_sortie/?tier=1" in html
+    assert "nobody yet" in html
+    assert_simple_reads(client, "/achievements/", max_queries=2 + 1)  # context 2, holder counts
+
+
+def test_holders_page_lists_the_pilots_of_a_tier(client: Client) -> None:
+    seed()
+
+    html = client.get("/achievements/ground_sortie/?tier=2").content.decode()
+    default = client.get("/achievements/ground_sortie/").content.decode()  # the highest tier anybody holds
+
+    assert "Player-1" in html
+    assert "Player-1" in default
+    assert client.get("/achievements/nothing/").status_code == 404
+    assert client.get("/achievements/ground_sortie/?tier=x").status_code == 200
+    assert_simple_reads(client, "/achievements/ground_sortie/?tier=2", max_queries=2 + 3)  # holder counts, count, page
+
+
+def test_sortie_page_lists_what_the_sortie_earned(client: Client) -> None:
+    seed()
+    reaching = PlayerSortie.objects.get(player_id=pk(1), kills_ground=60)
+    quiet = PlayerSortie.objects.get(player_id=pk(2), mission__mission_uid="m1")
+
+    html = client.get(f"/sorties/{reaching.pk}/").content.decode()
+
+    assert "Earned in this sortie" in html
+    assert "Target-Rich" in html
+    assert "Earned in this sortie" not in client.get(f"/sorties/{quiet.pk}/").content.decode()
+
+
+def test_a_hidden_missions_sortie_is_not_linked_from_the_medal(client: Client) -> None:
+    seed()
+    from il2ks.db.models import Mission
+
+    Mission.objects.filter(mission_uid="m1").update(is_hidden=True)
+    sortie_pk = PlayerAchievement.objects.get(player_id=pk(1), key="ground_sortie", tier=1).sortie_id
+
+    html = client.get(f"/players/{pk(1)}/achievements/").content.decode()
+
+    assert f"/sorties/{sortie_pk}/" not in html

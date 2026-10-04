@@ -62,6 +62,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         _backfill_scores(cfg)
         _backfill_type_ratings(cfg)
         _backfill_type_killboard(cfg)
+        _backfill_achievements()
         return backup
 
 
@@ -69,6 +70,7 @@ BACKFILL_TOURS = "tours"  # missions without a tour, per-tour rows, best streaks
 BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
 BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
+BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 
 
 def _already_done(name: str) -> bool:
@@ -179,3 +181,20 @@ def _backfill_tours(cfg: Config) -> None:
             log.info("computing stat thresholds")
             with transaction.atomic():
                 recompute_thresholds(cfg.marks)
+
+
+def _backfill_achievements() -> None:
+    """A database from before the medals (FR-WEB-26) has pilot sorties but no `PlayerAchievement` row: compute them once
+    (medals are all-time level-2 rows; no other aggregate changes)."""
+    from django.db import transaction
+
+    from il2ks.db.models import PlayerAchievement, PlayerSortie, Role
+    from il2ks.ingest.achievements import rebuild_achievements
+
+    if _already_done(BACKFILL_ACHIEVEMENTS):
+        return
+    with transaction.atomic():
+        if PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAchievement.objects.exists():
+            log.info("computing medals")
+            rebuild_achievements()
+        _mark_done(BACKFILL_ACHIEVEMENTS)
