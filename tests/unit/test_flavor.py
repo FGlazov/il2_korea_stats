@@ -111,7 +111,7 @@ def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
         ({"assists_ground": 80, "kills_ground": 70}, None, "sortie_ground_pounder"),
         ({"assists_ground": 5, "assists_air": 3}, None, "sortie_stolen_kills"),  # the air line comes first
         ({"assists_ground": 5, "kills_air": 3}, None, "sortie_ace"),
-        ({"assists_air": 2, "assists_ground": 4}, None, None),  # air and ground assists don't add up
+        ({"assists_air": 1, "assists_ground": 4}, None, None),  # air and ground assists don't add up
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
         ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
