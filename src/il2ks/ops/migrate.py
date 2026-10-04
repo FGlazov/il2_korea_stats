@@ -72,6 +72,7 @@ BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
+BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 
 
@@ -122,6 +123,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_ACCURACY, _check_accuracy),
         (BACKFILL_STREAK_RUNS, _check_streak_runs),
         (BACKFILL_TOUR_AIRCRAFT, _check_tour_aircraft),
+        (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -136,6 +138,28 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         _mark_done(*(name for name, _ in wanted))
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
+
+
+def _check_payload_names() -> bool:
+    """The loadout table was replaced (renumbered IL-10 ids, F-86A-5 now resolves, new rows): every sortie's
+    `payload_name` is looked up again from its stored `payload_id` and aircraft type. `weapon_mods` needs nothing (the
+    raw `WM` was always stored, names are looked up when a page is shown). Returns whether a name changed, which means
+    the per-loadout aircraft stats (level 2) must be rebuilt. Unknown ids keep the empty name (OQ-25)."""
+    from il2ks.core.catalog.loader import load_default_catalog
+    from il2ks.db.models import PlayerSortie
+    from il2ks.ingest.persist import PAYLOAD_NAME_MAX
+
+    catalog = load_default_catalog()
+    groups = PlayerSortie.objects.values_list("aircraft__log_name", "payload_id").distinct()
+    changed = False
+    for aircraft_type, payload_id in list(groups):
+        payload = catalog.payload(aircraft_type, payload_id)
+        name = payload.readable_name[:PAYLOAD_NAME_MAX] if payload is not None else ""
+        rows = PlayerSortie.objects.filter(aircraft__log_name=aircraft_type, payload_id=payload_id).exclude(
+            payload_name=name
+        )
+        changed = bool(rows.update(payload_name=name)) or changed
+    return changed
 
 
 def _check_tour_aircraft() -> bool:

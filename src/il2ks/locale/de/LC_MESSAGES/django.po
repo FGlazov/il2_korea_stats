@@ -2241,6 +2241,10 @@ msgid "Missions stored"
 msgstr "Gespeicherte Missionen"
 
 # llm-draft
+msgid "Modifications"
+msgstr "Modifikationen"
+
+# llm-draft
 msgid "Monospace"
 msgstr "Festbreitschrift"
 
@@ -2505,6 +2509,10 @@ msgstr "In dieser Mission hat niemand einen Abschuss erzielt."
 # llm-draft
 msgid "Nobody shot down yet."
 msgstr "Noch niemand abgeschossen."
+
+# llm-draft
+msgid "None"
+msgstr "Keine"
 
 # llm-draft
 msgid "None of these (skip for now)"
@@ -4036,6 +4044,11 @@ msgstr "Unbekannte Schlüssel (AType:KEY:-Zeilen)"
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Unbekannte Bewaffnung"
+
+# llm-draft
+#, python-format
+msgid "Unknown modification (id %(id)s)"
+msgstr "Unbekannte Modifikation (ID %(id)s)"
 
 # llm-draft
 msgid "Unknown object types"

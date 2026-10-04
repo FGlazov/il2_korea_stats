@@ -2237,6 +2237,10 @@ msgid "Missions stored"
 msgstr "Missions enregistrées"
 
 # llm-draft
+msgid "Modifications"
+msgstr "Modifications"
+
+# llm-draft
 msgid "Monospace"
 msgstr "Chasse fixe"
 
@@ -2503,6 +2507,10 @@ msgstr "Personne n'a obtenu de victoire dans cette mission."
 # llm-draft
 msgid "Nobody shot down yet."
 msgstr "Personne n'a encore été abattu."
+
+# llm-draft
+msgid "None"
+msgstr "Aucune"
 
 # llm-draft
 msgid "None of these (skip for now)"
@@ -4042,6 +4050,11 @@ msgstr "Clés inconnues (lignes AType:KEY:)"
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Configuration d'emport inconnue"
+
+# llm-draft
+#, python-format
+msgid "Unknown modification (id %(id)s)"
+msgstr "Modification inconnue (id %(id)s)"
 
 # llm-draft
 msgid "Unknown object types"
