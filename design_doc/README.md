@@ -96,3 +96,6 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   roadmap: ingestion part of iteration 1 done, frontend next).
   2026-10-03 (frontend/ops round: doc 16 as built; OQ-33..35 answered (ground-kill categories, neutral emblems + optional insignia, hiding is
   presentation only); AType 16 research; ground-kill categories and replay fixes in doc 13; new OQ-36, OQ-37; roadmap with status markers).
+  2026-10-04 (doc sync after the second merge wave: data model (doc 06) brought up to the models, ingest speed and save order (14), score, rule toggles
+  and per-type Elo (13), branding, query budgets and new pages (16), regression guards and perf tests (08, 03), installer upgrade check (07); new OQ-78..98;
+  OQ-67 decided with defaults applied).

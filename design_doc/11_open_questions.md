@@ -27,9 +27,12 @@ OQ-38 and OQ-40..66 are answered (maintainer, 2026-10-03): see doc 02 "Maintaine
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
-**OQ-67 Percentage penalties: the details** (OQ-63 follow-up; (a) answered: a plane lost without death or capture costs 20%)
-Claude's defaults otherwise: the percentage is taken from **both** the sortie's air and ground score, only from positive scores (a
-percentage never makes a score negative), and death + capture together apply the larger one only.
+**OQ-67 Percentage penalties: the details** `[DECIDED]`, Claude's defaults applied and built (2026-10-04; the maintainer may still change them)
+(OQ-63 follow-up; (a) answered: a plane lost without death or capture costs 20%.) As built (doc 13 "Score"): death 80%, capture 50%, plane lost
+without death or capture 20% (`[score] penalty_*_pct`, clamped 0..100; the old flat keys are gone). The percentage is taken from **both** the sortie's
+air and ground score, only from positive scores (a percentage never makes a score negative), and when several apply the **largest** one counts
+(death and capture are not added); the flat penalties (suspected early bailout 5, friendly kill 3 up to 5 per sortie) come off afterwards from
+the combat role's score. Delete this entry once the maintainer has seen it.
 
 ### Decisions made during the 2026-10-04 run (defaults applied; answer by ID)
 
@@ -78,6 +81,112 @@ to aircraft), `SHELL_57_RUS_CV` ("57×348 mm", round type unclear). US 20 mm rou
 **OQ-77 Ammo: which damage columns to hide** (OQ-52 follow-up)
 Default applied: all per-ammo damage is hidden on the sortie page, including the bombs/rockets/napalm table and the "damage no hit
 could be blamed on" note, not only the gun ammo table. Damage is still stored. Reverting part of it is cheap.
+
+**OQ-78 Tour selector: segmented toggle and the "next tour starts" line**
+Default applied: a segmented toggle (current tour / All time) in addition to the tour select, and the "Next tour starts <local time>" line
+beside the toggle, not in the footer (it is hidden in manual mode, and by JS once the moment has passed). Alternative: the select alone, and
+the line in the footer as OQ-44 first said.
+
+**OQ-79 Tours: the current tour is the default view on the leaderboards and killboard pages too**
+Default applied: every page with a tour selector (profile, mission list, player's sortie list, killboard, leaderboards) opens on the current
+tour when `?tour` is absent or unknown; `?tour=all` is all time. Alternative: all time on the leaderboards and the killboard (the "all-time
+rankings" view people may expect when they arrive from a link).
+
+**OQ-80 Tours: the first day of a new month**
+Default applied: the current tour is the newest `Tour` row, which only exists once a mission of the new tour is ingested, so the first day of a new
+month keeps showing the previous tour until that first mission arrives (no empty page on the 1st). Alternative: switch at midnight of the
+tour boundary and show the empty-tour flavor text until the first mission.
+
+**OQ-81 Killboard: what an assist is and where it counts**
+Default applied (`[killboard] assists`, off by default): an assist is the player's assist credit on the opponent's sortie, in one column (no
+"assists received"); a pair with only assists appears when the toggle is on, and its "last encounter" counts assists too; hidden opponents sort
+last. Alternative: also show assists received, or show only pairs with a kill or a death.
+
+**OQ-82 Streaks: what the per-tour and best-streak views show**
+Default applied: best streaks are a sub-page of the player (`/players/<id>/streaks/`), not a tab on the profile; the per-tour view shows the best
+streak only (no current streak, since a running streak crosses tours); the "air kills" best row is omitted when the best such streak has no air
+kill. Alternative: a profile tab; a current streak per tour; show a zero row.
+
+**OQ-83 Streaks: tie-breaks between equal best streaks**
+Default applied: by air kills, more sorties, then more flight time, then the earlier one; by flight time, more sorties, then more air kills,
+then the earlier one. Alternative: prefer the more recent
+streak, or list ties side by side.
+
+**OQ-84 Leaderboards: fighter and attack as grouped tabs, prop and jet as a filter**
+Default applied: tabs grouped as Fighters (air score, Elo prop, Elo jet), Attack (ground score, ground per hour) and General (kills);
+`?pool=prop|jet` on the score and kill boards only (Elo boards have no pool filter, a chosen aircraft type overrides the pool). Alternative:
+separate prop and jet boards as their own tabs, or one flat list of tabs.
+
+**OQ-85 Home page: which boards and how many**
+Default applied: the top 5 of Elo jet, Elo prop and ground per hour, all time (not the current tour), plus "Online now". Alternative: the
+current tour's top 5, more rows, or the air and ground score boards on the home page.
+
+**OQ-86 An aircraft type's top pilots: when the ground ranking comes first**
+Default applied: a type with an attack share of 50% or more lists the ground ranking (ground score per hour on target) first, otherwise the
+Elo ranking first; both under the leaderboard minimums. Alternative: a different share threshold, or always the same order.
+
+**OQ-87 Navigation links: how they open and how many**
+Default applied: links open in a new tab (`rel="noopener noreferrer"`); only http/https URLs (old `mailto:` and relative links were dropped in the
+migration); we recommend at most 3 short-labelled links (measured: 3 fit at >= 1280 px, 5 at 768 px, 2 at 360 px) and cap the list at 30; order
+by a position number, no drag and drop. Alternative: same tab, allow `mailto:`, drag and drop ordering, a "more" menu for overflow.
+
+**OQ-88 Theme: presets, contrast and what stays fixed**
+Default applied: presets Steel blue, Desert sand, High contrast and Default; the admin warns on WCAG contrast below 4.5:1 (charts 3:1) but never
+blocks a save; the camo pattern and the favicon stay non-themable images; the setup page's "ok" green is now the badge green. Alternative:
+block low-contrast themes, theme the camo tile, fewer or more presets.
+
+**OQ-89 Rams: should `credit_rams` be on by default?**
+Default applied: `credit_rams = false` (nobody is credited, as before). The validation on 210 missions (17 rams, 13 between enemies, 26 kills, no
+false positive identified) supports turning it on, and the agent recommends enabling it. Alternative: default true. Applies via `il2ks reprocess --all`.
+
+**OQ-90 Rams: their own kind in the UI**
+Default applied: a ram kill is an ordinary kill (`attacker` / `shot_down`, `via direct`); nothing says "rammed". Alternative: a `ram` value of
+`KillVia` and a "rammed by" label on the sortie page and the timeline (needs a migration and a reprocess).
+
+**OQ-91 Parachute deaths off: what happens to the shooter's kill**
+Default applied: with `parachute_deaths = false` the pilot killed after a bailout is not a death, and the shooter's kill of that pilot is
+removed too (the aircraft was already lost and credited). Alternative: keep the shooter's kill and only spare the victim's death.
+
+**OQ-92 Ram detection thresholds**
+Default applied: 2 s and 50 m (`ram_window_s`, `ram_distance_m`). Tightening to 0.5 s / 15 m drops the 4 looser cases of the 17 rams in the samples. Alternative: the tighter values.
+
+**OQ-93 Installer: what the upgrade check reports**
+Default applied: on an upgrade the installer reports only customized overrides (not other doctor findings); every problem state (outdated, newer,
+unversioned, orphan) triggers the message box, which has an OK button only; silent installs write to the installer log and
+`<data>\logs\installer-custom-check.log`; it never fails the install. Alternative: also run the doctor, or show the box only for "outdated".
+
+**OQ-94 Visual assets: which images gate the release** (doc 15)
+Default applied: the final `og-default.png` and the PNG favicon set are marked not required (the site works without them) although the designer
+brief rates them P1. Alternative: make them release gates.
+
+**OQ-95 Visual assets: icon gaps** (doc 15)
+Default applied: no tiles for bailouts and captures are added; `mission-ended` has no outcome value (the icon stays unused); the own-drawn
+`friendly-fire` stat icon stays as a placeholder. Alternative: add the two tiles or drop the icons from the brief; give `mission-ended` an
+outcome value or drop it; commission a proper friendly-fire icon.
+
+**OQ-96 Page weight of mission and sortie pages**
+Real-log mission and sortie pages are 107 to 122 KB of HTML (other pages about 20 KB). Default applied: the HTML budget is 150 KB
+(NFR-PERF-6) and the lists are not trimmed or paginated. Alternative: paginate or trim the sortie lists on those pages.
+
+**OQ-97 Page performance tests: in every test job**
+Default applied: the `perf` tests (about 40 s of seeding each) run in every test job instead of a job of their own. Alternative: a separate CI job,
+or run only on SQLite/ubuntu.
+
+**OQ-98 Aircraft stats store four ratio fractions**
+`AircraftStats.kd`, `kl`, `survival` and `attack_share` are columns, which departs from "don't store ratios" (TD-22, maintainer 2026-10-02): the
+aircraft list sorts and paginates in SQL, which needs a column to sort by. Default applied: keep the columns as the one documented exception
+(doc 06). Alternative: compute ratios in the view and sort the (few dozen) rows in Python, which keeps TD-22 literal.
+
+**OQ-99 Parachute deaths off: a pilot killed in the parachute can become "captured"**
+With `[rules] parachute_deaths = false` the pilot killed after a bailout is not a death, so the pilot's final position decides capture: over enemy
+territory the sortie becomes captured (50% score penalty, streak broken). Default applied: that behaviour (the pilot survived, the capture rules
+apply). Alternative: treat such pilots as neither dead nor captured.
+
+**OQ-100 Old `[score]` penalty keys are replaced**
+The flat `penalty_death`, `penalty_plane_lost` and `penalty_capture` keys became `penalty_death_pct`, `penalty_plane_lost_pct` and
+`penalty_capture_pct` (percent). Default applied: the old keys are ignored (a warning at config load is being added), so a server that set them
+gets the new defaults until it edits `il2ks.toml`; needs a line in the release notes. Alternative: convert old values automatically, or fail the
+config load.
 
 ## Lower impact
 

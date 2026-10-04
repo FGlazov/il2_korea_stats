@@ -340,4 +340,33 @@ time on target = sum over attacks
 - Samples: 807 games (164 prop-prop, 528 jet-jet, 36 prop-kills-jet, 79 jet-kills-prop that change nothing) out of 2,327 kill credits
   (attack sorties don't play). 150 prop and 298 jet players rated; 5 and 26 with ≥ 10 games. Ratings span 1,377–1,806; the biggest single
   change is 37 points.
-- Stretch (not built): per-aircraft-type ratings from the same games.
+- **Per-type Elo** (OQ-49, built 2026-10-04, `[PROPOSED]`): the same games and the same replay also give a rating per (player, aircraft type),
+  stored on `PlayerAircraft` (`elo`, `elo_games`). Each starts at `[ratings] start`; the opponent's rating is their rating in the type they flew
+  in that game. Pools still apply: a jet killing a prop changes nothing. A type's top pilots are ranked by it (FR-WEB-8).
+
+## Score (as built, 2026-10-04)
+
+Pure function `score_sortie` in `core/ratings/score.py`, per pilot sortie (gunners 0); stored as `PlayerSortie.air_points` / `ground_points`
+and summed into `score_air` / `score_ground` / `score_ground_attack` (doc 06). Everything comes from stored sortie columns and the `[score]`
+section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess. Air and ground score are never combined (OQ-62).
+- **Points**: per air kill (PvP aircraft more than an AI one), per assist, and one value per ground-kill category (fences worth very little).
+- **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone and ignored, OQ-100): **death 80%,
+  capture 50%, aircraft lost without death or capture 20%**. The percentage comes off **both** the air and the ground score, only from a
+  positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
+- **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
+  early bailout (5) and each friendly kill (3, up to 5 kills per sortie). A sortie with a flat penalty and no kills can be negative.
+- **Leaderboard minimums** (`[score] min_sorties`, `min_elo_games`, `min_attack_sorties`, `min_time_on_target_minutes`) apply at read time.
+
+## Rule toggles (`[rules]`, as built 2026-10-04, OQ-61)
+
+Both toggles apply via `il2ks reprocess --all` (they change kills and deaths, not only aggregates).
+- **Rams** `[PROPOSED]`: the log has no collision event. A ram is two aircraft destroyed while airborne, before the first AType 7, within
+  `ram_window_s` (2 s) and `ram_distance_m` (50 m) of each other, where neither has an attacker to blame and neither hit the other with
+  guns. With `[rules] credit_rams = true` (default **false**) each aircraft of an enemy pair is credited a kill for the other (the victim's
+  loss is then `attacker` / `shot_down`, `via direct`). A collision between friends credits nobody and has no friendly-kill penalty.
+  Validated on the 210 sample missions: 17 rams, 13 between enemies (26 kills), 4 between friends, no false positive identified; about 35
+  debris collisions correctly excluded; about 10 to 15 rams with prior third-party damage missed (damage-based credit already gives them to
+  someone). Low-altitude ground crashes can't be told apart without terrain height (OQ-39). Code: `core/replay/rams.py`.
+- **Parachute deaths** `[PROPOSED]`: with `[rules] parachute_deaths = false` (default true), a pilot killed after a detected bailout (rule v3)
+  is not a death; the aircraft is still lost and the fate stays `bailed_out` (2 sorties in the samples).
+- Product choices behind both: OQ-89..92, OQ-99.
