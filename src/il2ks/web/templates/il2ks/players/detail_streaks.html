@@ -13,7 +13,7 @@
   <p class="muted">{% translate "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped." %}</p>
   <div class="table-wrap table-wrap--flat">
     <table class="data-table data-table--compact">
-      <thead><tr><th scope="col"><span class="visually-hidden">{% translate "Streak" %}</span></th><th scope="col" class="num">{% translate "Sorties" %}</th><th scope="col" class="num">{% translate "Air kills" %}</th><th scope="col" class="num">{% translate "Flight time" %}</th><th scope="col">{% translate "Since" %}</th></tr></thead>
+      <thead><tr><th scope="col"><span class="visually-hidden">{% translate "Streak" %}</span></th>{% col_th _("Sorties") numeric=True hint="streak_sorties" %}{% col_th _("Air kills") numeric=True hint="streak_kills" %}{% col_th _("Flight time") numeric=True hint="streak_time" %}<th scope="col">{% translate "Since" %}</th></tr></thead>
       <tbody>
         {% if tour %}<tr><th scope="row">{% translate "Best streak" %}</th><td class="num">{{ best.sorties|num }}</td><td class="num">{{ best.kills_air|num }}</td><td class="num">{{ best.flight_time_s|duration }}</td><td>{{ best.since|local_date }}</td></tr>
         {% else %}<tr><th scope="row">{% translate "Current streak" %}</th><td class="num">{{ streak.current_sorties|num }}</td><td class="num">{{ streak.current_kills_air|num }}</td><td class="num">{{ streak.current_flight_time_s|duration }}</td><td>{% if streak.current_since %}{{ streak.current_since|local_date }}{% else %}–{% endif %}</td></tr>

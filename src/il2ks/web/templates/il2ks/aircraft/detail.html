@@ -85,8 +85,8 @@
             {% sort_th "kills" _("Kills") numeric=True %}
             {% sort_th "losses" _("Losses") numeric=True %}
             {# Translators: column header; the number is kills plus losses between the two aircraft types (not the Elo "Encounters" of the leaderboards) #}
-            {% sort_th "encounters" _("Kills + losses") numeric=True %}
-            {% sort_th "ratio" _("K/L") numeric=True %}
+            {% sort_th "encounters" _("Kills + losses") numeric=True hint="kills_plus_losses" %}
+            {% sort_th "ratio" _("K/L") numeric=True hint="kl_matchup" %}
           </tr>
         </thead>
         <tbody>
@@ -124,8 +124,8 @@
         <thead>
           <tr>
             <th scope="col">{% translate "Ammunition" %}</th>
-            <th scope="col" class="num">{% translate "Instances" %}</th>
-            <th scope="col" class="num">{% translate "Average hits" %}</th>
+            {% col_th _("Instances") numeric=True hint="hits_instances" %}
+            {% col_th _("Average hits") numeric=True hint="hits_average" %}
           </tr>
         </thead>
         <tbody>
@@ -148,8 +148,8 @@
           <thead>
             <tr>
               <th scope="col">{% translate "Ammunition mix" %}</th>
-              <th scope="col" class="num">{% translate "Instances" %}</th>
-              <th scope="col" class="num">{% translate "Average hits" %}</th>
+              {% col_th _("Instances") numeric=True hint="mix_instances" %}
+              {% col_th _("Average hits") numeric=True hint="hits_average" %}
             </tr>
           </thead>
           <tbody>

@@ -20,9 +20,9 @@
         <thead>
           <tr>
             <th scope="col">{% translate "Pilot" %}</th>
-            <th scope="col" class="num">{% translate "Sorties" %}</th>
-            <th scope="col" class="num">{% translate "Air kills" %}</th>
-            <th scope="col" class="num">{% translate "Flight time" %}</th>
+            {% col_th _("Sorties") numeric=True hint="streak_sorties" %}
+            {% col_th _("Air kills") numeric=True hint="streak_kills" %}
+            {% col_th _("Flight time") numeric=True hint="streak_time" %}
           </tr>
         </thead>
         <tbody>
@@ -48,9 +48,9 @@
           <thead>
             <tr>
               {% sort_th "player" _("Pilot") %}
-              {% sort_th "current" _("Sorties") numeric=True %}
-              {% sort_th "current_kills" _("Air kills") numeric=True %}
-              {% sort_th "current_time" _("Flight time") numeric=True %}
+              {% sort_th "current" _("Sorties") numeric=True hint="streak_sorties" %}
+              {% sort_th "current_kills" _("Air kills") numeric=True hint="streak_kills" %}
+              {% sort_th "current_time" _("Flight time") numeric=True hint="streak_time" %}
               {% sort_th "best" _("Best streak") numeric=True %}
             </tr>
           </thead>

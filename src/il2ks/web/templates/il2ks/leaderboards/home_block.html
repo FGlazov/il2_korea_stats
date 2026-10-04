@@ -16,7 +16,7 @@
             <tr>
               <th scope="col" class="num">#</th>
               <th scope="col">{% translate "Player" %}</th>
-              <th scope="col" class="num">{% if board.key == "ground-hour" %}{% translate "Score per hour" %}{% elif board.key == "interception" or board.key == "tank-busting" %}{% translate "Per hour" %}{% elif board.key == "play-time" %}{% translate "Flight time" %}{% else %}{% translate "Elo" %}{% endif %}</th>
+              {% if board.key == "ground-hour" %}{% col_th _("Score per hour") numeric=True hint="score_per_hour" %}{% elif board.key == "interception" %}{% col_th _("Per hour") numeric=True hint="interception_rate" %}{% elif board.key == "tank-busting" %}{% col_th _("Per hour") numeric=True hint="tank_rate" %}{% elif board.key == "play-time" %}{% col_th _("Flight time") numeric=True hint="flight_time" %}{% else %}{% col_th _("Elo") numeric=True hint="elo" %}{% endif %}
             </tr>
           </thead>
           <tbody>

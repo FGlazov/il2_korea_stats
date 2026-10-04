@@ -13,12 +13,12 @@
           <tr>
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
-            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
             {% sort_th "kills_air" _("Air kills") numeric=True %}
             {% sort_th "kills_ground" _("Ground kills") numeric=True %}
             {% sort_th "deaths" _("Deaths") numeric=True %}
-            <th scope="col" class="num">{% translate "K/D" %}</th>
-            <th scope="col" class="num">{% translate "K/L" %}</th>
+            {% col_th _("K/D") numeric=True hint="kd" %}
+            {% col_th _("K/L") numeric=True hint="kl" %}
           </tr>
         </thead>
         <tbody>

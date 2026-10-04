@@ -13,7 +13,7 @@
         <h3>{% translate "Deaths and lost aircraft by cause" %}</h3>
         <div class="table-wrap table-wrap--flat">
           <table class="data-table data-table--compact pve-table">
-            <thead><tr><th scope="col">{% translate "Caused by" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col" class="num">{% translate "Share" %}</th><th scope="col" class="num">{% translate "Aircraft lost" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% translate "Caused by" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col" class="num">{% translate "Share" %}</th>{% col_th _("Aircraft lost") numeric=True hint="pve_lost" %}</tr></thead>
             <tbody>
               {% for row in pve_losses %}
                 <tr{% if not row.deaths and not row.planes_lost %} class="is-zero"{% endif %}>

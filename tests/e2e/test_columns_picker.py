@@ -25,7 +25,9 @@ def list_pages(world: World) -> list[tuple[str, list[str]]]:
 
 
 def header(page: Page, label: str) -> Locator:
-    return page.locator("thead th").filter(has_text=re.compile(f"^\\s*{re.escape(label)}\\s*$", re.I)).first
+    """The column header called `label` (by its accessible name: a description inside the header is not part of it)."""
+    name = re.compile(f"^\\s*{re.escape(label).replace('/', '\\/')}(\\s*[↕▲▼])?\\s*$", re.I)
+    return page.get_by_role("columnheader", name=name).first
 
 
 @pytest.mark.parametrize("index", range(5))
