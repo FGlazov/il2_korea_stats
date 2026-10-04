@@ -233,6 +233,11 @@ people ask). The main use case is **a player reviewing their sortie**.
 - **Visual assets** (doc 15): no asset gates the release (OQ-94); icon gaps filled from other sets as needed, Tabler so far (OQ-95).
 - **Web** (doc 16): 10 missions and 20 rows a page (OQ-96); home page: six boards in a 3x2 grid with play time (OQ-104); Elo games are "encounters" (UI wording);
   fate badges fine for now (OQ-106); Mission is an optional column on the sortie list (OQ-109); mission table defaults fine for now (OQ-113); stolen-targets quip thresholds as built (OQ-111).
+- **Accepted 2026-10-04** (maintainer; the maintainer spot-checks them): aircraft stats per tour with the current tour as default, zero
+  tiles for a type not flown in the tour (OQ-114); aircraft and crew as separate hit rows, capped at 100% (OQ-115), and **new**: the sortie
+  page shows the pilot's remaining health and the aircraft's damage, forced to 0% health when the pilot died and 100% damage when the
+  aircraft was destroyed; ammo mixes, top 10 plus a fold (OQ-116); the profile shows **only the favourite loadout** per aircraft, without
+  the mod-set and hits-by-ammo detail (OQ-117, changed); front-page image display (OQ-118); quip defaults (OQ-119).
 
 ### Score and ratings
 Recorded by the maintainer on 2026-10-03; built 2026-10-04 (air and ground score, leaderboards, Elo: doc 13 "Score", doc 16). Its **inputs are computed at ingest

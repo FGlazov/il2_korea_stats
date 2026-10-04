@@ -227,6 +227,10 @@ decisions are made):
 - ✅ **Admin-configurable quips** (maintainer, 2026-10-04, first release): a global switch (on by default); per quip spot: defaults,
   defaults + own, own only, or off; hide single default quips; own quips per language or for all; plain escaped text.
 
+- 🔧 **Pilot health and aircraft damage on the sortie page** (maintainer, 2026-10-04, OQ-115 follow-up): remaining pilot health and
+  aircraft damage, 0% health when the pilot died, 100% damage when the aircraft was destroyed.
+- 🔧 **Favourite loadout only** on the profile's per-aircraft rows (OQ-117, changed 2026-10-04): the mod-set and hits-by-ammo detail goes.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 

@@ -4,7 +4,7 @@ Only **unanswered** questions live here, ordered by how much each one blocks or 
 When a question is answered, write the answer into the relevant doc (requirement, decision, or format doc) and
 **delete it from this file**. If it's partly answered, cut it down to the part that's still open.
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
-Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78 and OQ-79..113 right after it, each with the doc that holds the rule).
+Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113 and OQ-114..119 right after it, each with the doc that holds the rule).
 
 
 ## Needs outside input
@@ -12,37 +12,6 @@ Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summ
 **OQ-39 Terrain height for the bailout "> 30 m above ground" test** (owner: maintainer, will try to get heightmaps)
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
-
-## Needs the maintainer's review
-
-**OQ-114 Aircraft stats per tour: defaults** (built 2026-10-04 on the maintainer's request)
-Defaults applied: `/aircraft/` and `/aircraft/<pk>/` default to the **current tour** like every other page (TD-26), which changes what
-existing links to an aircraft page show; a tour with no flights shows "No aircraft has flown in this tour yet."; a type not flown in
-the selected tour shows zero tiles, not a 404; top pilots, hits to destroy, loadouts and the side badge stay all time (noted on the page).
-
-**OQ-115 Timeline hits: aircraft and crew** (fix of the "+200%" rows, 2026-10-04)
-Defaults applied: the aircraft and its pilot/crew are separate hit rows; every bot (pilot, gunners, AI pilots) counts as crew, labelled
-"Pilot / crew"; damage capped at 100% per row (doc 13 "Timeline hits").
-
-**OQ-116 Ammo mixes on the aircraft page** (built 2026-10-04 on the maintainer's request, "like il2_stats")
-Defaults applied: the "Hits to destroy" count column is called "Instances" (same numbers, the intro explains it); the top 10 mixes are
-shown with per-ammo average hits, the rest folded; per-ammo average = that ammo's hits / the mix's instances; mixes are all time.
-Existing databases need `il2ks reprocess --all` (level-1 rows).
-
-**OQ-117 Favourite loadout on the profile** (built 2026-10-04 on the maintainer's request, "see what a skilled player uses")
-Defaults applied: the per-aircraft row shows only the favourite loadout (ties: the lower payload id) with its share; weapon-mod sets and
-hits by ammo sit in an expandable detail ("hits by ammo, not the belt they chose": belts are not logged); mod sets show the raw WM value
-with a "names not known yet" hint until the weapon-mods catalog lands; shares under 1% show as 1%.
-
-**OQ-118 Front-page image: display** (built 2026-10-04, FR-ADM-9)
-Defaults applied: "updated" is the file's modification time; the image is at most 75% of the viewport height, scaled to fit and framed;
-a click opens it full size in a new tab; the caption is one bold line.
-
-**OQ-119 Admin-configurable quips: defaults** (built 2026-10-04, maintainer request)
-Defaults applied: four modes per spot (defaults, defaults + own, own only, off; default "defaults"); "own only" with no line in the
-page's language shows nothing; limits 200 characters per line, 20 own lines per spot, 300 in total; the global switch beats the spot
-modes; hiding a default quip applies in every language (the key is the English text); the new "first blood" quip sits below the extreme
-events and above "ace".
 
 ## Lower impact (owner: maintainer, outside input)
 

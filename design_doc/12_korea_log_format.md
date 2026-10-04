@@ -235,6 +235,8 @@ or when the newest part's mtime was more than **120 s** old, polling every 30 s,
 - `WM` (weapon modification bitmask, for example values 1–63 on the MiG-15bis): bit 0 is always set, **bit k is modification k**
   (checked on 30.7k spawns). `core/catalog/data/weapon_mods.csv` (`vehicle, mod_id, name`) names them; a bit without a row shows as
   "Unknown modification (id k)" on the sortie page (OQ-25).
+- **The ammo belt choice is not logged** (maintainer, 2026-10-04): AType 10 has no belt field and `WM` holds weapon modifications,
+  not belts. Hits per ammo type (AType 1 `AMMO`) are the only proxy for what a pilot loaded.
 - Use: readable loadout on the sortie page and sortie list, and later per-loadout stats. The names belong in the catalog defaults with
   translations, like object names (TD-24).
 
