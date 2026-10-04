@@ -19,7 +19,7 @@ from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.serving import custom
 from il2ks.web import quips
-from il2ks.web.admin_quips import build_rows, mode_labels, parse_form
+from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
 from il2ks.web.ingest_status import build_overview
 from il2ks.web.quips import QuipConfig
 
@@ -92,6 +92,7 @@ class Il2ksAdminSite(admin.AdminSite):
             raise PermissionDenied
         row = get_site_settings()
         config = QuipConfig.from_row(row.quips_enabled, row.quips)
+        drafts: dict[str, Draft] = {}
         if request.method == "POST":
             posted, errors = parse_form(request.POST, config)
             if not errors:
@@ -104,12 +105,13 @@ class Il2ksAdminSite(admin.AdminSite):
                 return HttpResponseRedirect(reverse(f"{self.name}:quips"))
             for error in errors:
                 messages.error(request, error)
-            config = posted
+            config = posted  # the form comes back as posted, with the rejected lines (nothing typed is lost)
+            drafts = rejected_drafts(request.POST, posted)
         context = {
             **self.each_context(request),
             "title": _("Quips"),
             "enabled": config.enabled,
-            "rows": build_rows(config, get_language() or "en"),
+            "rows": build_rows(config, get_language() or "en", drafts),
             "mode_options": list(mode_labels().items()),
             "languages": list(settings.LANGUAGES),
             "max_length": quips.MAX_LEN,

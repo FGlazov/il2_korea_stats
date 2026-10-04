@@ -36,6 +36,14 @@ class CustomRow:
 
 
 @dataclass(frozen=True, slots=True)
+class Draft:
+    """A new quip the admin typed that was rejected: put back into the spot's "add a line" field."""
+
+    text: str
+    language: str
+
+
+@dataclass(frozen=True, slots=True)
 class SpotRow:
     spot: str
     description: str
@@ -44,6 +52,7 @@ class SpotRow:
     stale_hides: tuple[str, ...]  # hidden texts that match no built-in line any more
     custom: tuple[CustomRow, ...]
     effective: int  # how many lines the spot shows from now on (in the admin's language)
+    draft: Draft = Draft("", "")
 
 
 def mode_labels() -> Mapping[Mode, str]:
@@ -55,7 +64,7 @@ def mode_labels() -> Mapping[Mode, str]:
     }
 
 
-def build_rows(config: QuipConfig, language: str) -> list[SpotRow]:
+def build_rows(config: QuipConfig, language: str, drafts: Mapping[str, Draft] | None = None) -> list[SpotRow]:
     rows: list[SpotRow] = []
     for spot, variants in flavor.SPOTS.items():
         hidden = config.hidden.get(spot, frozenset[str]())
@@ -73,6 +82,7 @@ def build_rows(config: QuipConfig, language: str) -> list[SpotRow]:
                 tuple(sorted(hidden - set(keys))),
                 custom,
                 len(quips.variants(QuipConfig(True, config.modes, config.hidden, config.custom), spot, language)),
+                (drafts or {}).get(spot, Draft("", "")),
             )
         )
     return rows
@@ -83,7 +93,9 @@ def _clean(text: str) -> str:
 
 
 def parse_form(post: QueryDict, current: QuipConfig) -> tuple[QuipConfig, list[str]]:
-    """The configuration the posted form describes, and the problems that stop it from being saved."""
+    """The configuration the posted form describes, and the problems that stop it from being saved. With problems, the
+    configuration is for showing the form again: it keeps the rejected stored lines as typed (`rejected_drafts` has the
+    rejected new ones), so nothing the admin typed is lost."""
     errors: list[str] = []
     languages = set(quips.language_codes())
     modes: dict[str, Mode] = {}
@@ -102,18 +114,20 @@ def parse_form(post: QueryDict, current: QuipConfig) -> tuple[QuipConfig, list[s
 
     custom: list[CustomQuip] = []
 
-    def add(spot: str, text: str, language: str, enabled: bool) -> None:
+    def add(spot: str, text: str, language: str, enabled: bool, *, stored: bool = True) -> None:
         if spot not in flavor.SPOTS or not text:
             return
         if len(text) > quips.MAX_LEN:
             errors.append(
                 _("A quip is longer than %(max)d characters: %(start)s...") % {"max": quips.MAX_LEN, "start": text[:30]}
             )
-            return
-        if language and language not in languages:
+        elif language and language not in languages:
             errors.append(_("Unknown language: %(code)s") % {"code": language})
+        else:
+            custom.append(CustomQuip(spot, text, language, enabled))
             return
-        custom.append(CustomQuip(spot, text, language, enabled))
+        if stored:  # a rejected stored line stays in the page as typed; a new one goes back into its field
+            custom.append(CustomQuip(spot, text, language, enabled))
 
     indexes = sorted(int(m.group(1)) for key in post if (m := _STORED.match(key)))
     for i in indexes:
@@ -126,7 +140,7 @@ def parse_form(post: QueryDict, current: QuipConfig) -> tuple[QuipConfig, list[s
             bool(post.get(f"c{i}-on")),
         )
     for spot in flavor.SPOTS:
-        add(spot, _clean(post.get(f"new-{spot}-text", "")), post.get(f"new-{spot}-lang", ""), True)
+        add(spot, _clean(post.get(f"new-{spot}-text", "")), post.get(f"new-{spot}-lang", ""), True, stored=False)
 
     for spot in flavor.SPOTS:
         count = sum(1 for q in custom if q.spot == spot)
@@ -142,3 +156,15 @@ def parse_form(post: QueryDict, current: QuipConfig) -> tuple[QuipConfig, list[s
     if len(custom) > quips.MAX_TOTAL:
         errors.append(_("At most %(max)d own quips in total.") % {"max": quips.MAX_TOTAL})
     return QuipConfig(bool(post.get("enabled")), modes, hidden, tuple(custom)), errors
+
+
+def rejected_drafts(post: QueryDict, accepted: QuipConfig) -> dict[str, Draft]:
+    """The new quips of `post` that `parse_form` did not accept (too long, unknown language), by spot, for the form to
+    show again with the errors."""
+    drafts: dict[str, Draft] = {}
+    for spot in flavor.SPOTS:
+        text = _clean(post.get(f"new-{spot}-text", ""))
+        language = post.get(f"new-{spot}-lang", "")
+        if text and CustomQuip(spot, text, language, True) not in accepted.custom:
+            drafts[spot] = Draft(text, language)
+    return drafts
