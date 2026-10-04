@@ -18,7 +18,10 @@ Shipped data (`core/catalog/data/`):
   `HVAR 5 in`. `designation` is the
   real-world one for a tooltip (`M8 API`). The names are proper technical designations, so they are not translated.
   `_HIT` and `_xN` sub-objects belong to their parent (`Catalog.ammo`); an ammo missing here gets a cleaned-up log name.
-- `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` vehicle key (`F-86A-5` -> `f-86a`).
+- `weapon_mods.csv`: `vehicle, mod_id, name`, the modifications a pilot can pick for a type; the spawn line's `WM` is
+  a bitmask: bit 0 is always set, mod `k` is bit `k` (`weapon_mod_ids`).
+- `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` / `weapon_mods.csv` vehicle key
+  (`F-86A-5` -> `f-86a-5`).
 - `ordnance.csv`: `key, kind, display_name, payload_tokens, hit_ammo`, what a payload carries and which logged ammo
   names are that ordnance (FR-WEB-18). `payload_tokens` are the `payloads.csv` editor-name tokens (`M64`, `HVAR`),
   `hit_ammo` the named hit-line ammo (prefix match, so `_HIT` and `_x8` variants belong to the same ordnance).
@@ -207,6 +210,31 @@ class PayloadInfo:
     readable_name: str
 
 
+@dataclass(frozen=True, slots=True)
+class WeaponModInfo:
+    aircraft: str  # catalog vehicle key, e.g. "mig-15bis"
+    mod_id: int
+    name: str
+
+
+def weapon_mod_ids(weapon_mods: int) -> tuple[int, ...]:
+    """The modification ids a spawn line's `WM` bitmask selects, ascending (doc 12).
+
+    Mapping, verified on ~15,000 spawns of 8 types: bit 0 is always set and means nothing (the base aircraft), mod `k`
+    is bit `k` (value `2**k`). The ONE place that knows this: to correct the mapping, change this function (and
+    `weapon_mod_mask`, its inverse for database filters)."""
+    return tuple(bit for bit in range(1, max(weapon_mods, 0).bit_length()) if weapon_mods >> bit & 1)
+
+
+def weapon_mod_mask(mod_ids: Iterable[int]) -> int:
+    """The `WM` bits of the given modification ids (the inverse of `weapon_mod_ids`, without the base bit): filter
+    sorties that have all of them with `weapon_mods & mask == mask`."""
+    mask = 0
+    for mod_id in mod_ids:
+        mask |= 1 << mod_id
+    return mask
+
+
 def canonical_type_name(object_type: str) -> str:
     """The catalog name for a log `TYPE`: block suffix and per-instance numbers removed, case kept.
 
@@ -291,6 +319,7 @@ class Catalog:
         objects: Iterable[ObjectInfo] = (),
         payloads: Iterable[PayloadInfo] = (),
         payload_aliases: Mapping[str, str] | None = None,
+        weapon_mods: Iterable[WeaponModInfo] = (),
         object_names: Mapping[str, Mapping[str, str]] | None = None,
         ordnance: Iterable[OrdnanceRow] = (),
         ammo: Iterable[AmmoInfo] = (),
@@ -312,6 +341,12 @@ class Catalog:
             if pkey in self._payloads:
                 raise ValueError(f"duplicate payload {p.aircraft!r} #{p.payload_id} in the catalog")
             self._payloads[pkey] = p
+        self._weapon_mods: dict[tuple[str, int], WeaponModInfo] = {}
+        for mod in weapon_mods:
+            mkey = (mod.aircraft.casefold(), mod.mod_id)
+            if mkey in self._weapon_mods:
+                raise ValueError(f"duplicate weapon mod {mod.aircraft!r} #{mod.mod_id} in the catalog")
+            self._weapon_mods[mkey] = mod
         self._aliases: dict[str, str] = {_key(k): v.casefold() for k, v in (payload_aliases or {}).items()}
         self._ordnance: dict[str, OrdnanceInfo] = {}
         self._tokens: dict[str, OrdnanceInfo] = {}
@@ -365,6 +400,17 @@ class Catalog:
         key = _key(aircraft_type)
         vehicle = self._aliases.get(key, key)
         return self._payloads.get((vehicle, payload_id))
+
+    def weapon_mods(self, aircraft_type: str, weapon_mods: int) -> tuple[tuple[int, str | None], ...]:
+        """The modifications a `WM` bitmask selects as (id, name) pairs; the name is None for an id the catalog doesn't
+        list (OQ-25: the caller shows the raw id). Same alias handling as `payload`."""
+        key = _key(aircraft_type)
+        vehicle = self._aliases.get(key, key)
+        result: list[tuple[int, str | None]] = []
+        for mod_id in weapon_mod_ids(weapon_mods):
+            found = self._weapon_mods.get((vehicle, mod_id))
+            result.append((mod_id, found.name if found is not None else None))
+        return tuple(result)
 
     def ordnance(self, key: str) -> OrdnanceInfo | None:
         """The ordnance type with this key (`M65`, `HVAR`, ...); None for unknown and for the generic stand-in keys."""
@@ -530,6 +576,16 @@ def parse_payloads(text: str, source: str = "payloads.csv") -> list[PayloadInfo]
     ]
 
 
+def parse_weapon_mods(text: str, source: str = "weapon_mods.csv") -> list[WeaponModInfo]:
+    result: list[WeaponModInfo] = []
+    for n, row in enumerate(_rows(text, ["vehicle", "mod_id", "name"], source), start=2):
+        mod_id = int(row["mod_id"])
+        if mod_id < 1 or not row["name"].strip():
+            raise ValueError(f"{source}:{n}: mod_id must be 1 or more and the name filled")
+        result.append(WeaponModInfo(row["vehicle"], mod_id, row["name"]))
+    return result
+
+
 def parse_ordnance(text: str, source: str = "ordnance.csv") -> list[OrdnanceRow]:
     columns = ["key", "kind", "display_name", "payload_tokens", "hit_ammo"]
     result: list[OrdnanceRow] = []
@@ -578,6 +634,7 @@ def load_default_catalog() -> Catalog:
         objects=parse_objects(read("objects.csv")),
         payloads=parse_payloads(read("payloads.csv")),
         payload_aliases=parse_payload_aliases(read("payload_aliases.csv")),
+        weapon_mods=parse_weapon_mods(read("weapon_mods.csv")),
         object_names=names,
         ordnance=parse_ordnance(read("ordnance.csv")),
         ammo=parse_ammo(read("ammo.csv")),

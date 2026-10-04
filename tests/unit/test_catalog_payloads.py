@@ -6,7 +6,7 @@ from pathlib import Path
 import il2ks.core.catalog
 
 PAYLOADS = Path(il2ks.core.catalog.__file__).parent / "data" / "payloads.csv"
-PLAYER_AIRCRAFT = {"f-51d", "f-80c-10", "f-84e", "f-86a", "il-10", "la-11", "mig-15bis", "yak-9p"}
+PLAYER_AIRCRAFT = {"f-51d", "f-80c-10", "f-84e", "f-86a-5", "il-10", "la-11", "mig-15bis", "yak-9p"}
 
 
 def rows() -> list[dict[str, str]]:
@@ -37,7 +37,7 @@ def test_f51d_payload_ids_are_contiguous_and_match_the_logged_loadouts() -> None
     """The editor list lacked "M29CLUS-2 + ATAR-6", shifting ids 54-58. AType 10 loads 6 rockets and 2 bombs for id 54,
     4 rockets for 57, 6 rockets and 2 bombs for 58 and 4 rockets and no bombs for 59 (210 samples)."""
     ids = sorted(int(r["payload_id"]) for r in rows() if r["vehicle"] == "f-51d")
-    assert ids == list(range(64))
+    assert ids == list(range(76))  # 0-63 loadouts, 64-75 the smoke generators
     names = {int(r["payload_id"]): r["editor_name"] for r in rows() if r["vehicle"] == "f-51d"}
     assert names[54] == "M29CLUS-2 + ATAR-6"
     assert names[57] == "NAP_110GAL-2 + ATAR-4"

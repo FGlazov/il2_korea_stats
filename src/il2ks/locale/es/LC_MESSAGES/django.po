@@ -2328,6 +2328,10 @@ msgid "Modification names are not known yet: the numbers are the raw values from
 msgstr "Aún no se conocen los nombres de las modificaciones: los números son los valores en bruto del registro."
 
 # llm-draft
+msgid "Modifications"
+msgstr "Modificaciones"
+
+# llm-draft
 msgid "Monospace"
 msgstr "Monoespaciada"
 
@@ -2592,6 +2596,10 @@ msgstr "Nadie logró un derribo en esta misión."
 # llm-draft
 msgid "Nobody shot down yet."
 msgstr "Todavía nadie ha sido derribado."
+
+# llm-draft
+msgid "None"
+msgstr "Ninguna"
 
 # llm-draft
 msgid "None of these (skip for now)"
@@ -4173,6 +4181,11 @@ msgstr "Claves desconocidas (líneas AType:KEY:)"
 # llm-draft
 msgid "Unknown loadout"
 msgstr "Configuración de armamento desconocida"
+
+# llm-draft
+#, python-format
+msgid "Unknown modification (id %(id)s)"
+msgstr "Modificación desconocida (id %(id)s)"
 
 # llm-draft
 msgid "Unknown object types"
