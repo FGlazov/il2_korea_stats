@@ -69,7 +69,7 @@ the release gate.
   real service test (`windows-installer.yml`, workflow_dispatch).
 - ✅ First-run **web setup page** for the installer (game folder, domain, admin account): config written write-validate-replace, token not
   in logs, restart after the response.
-- ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). ⏳ Docker https smoke on Windows.
+- ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). 🔧 Docker https smoke on Windows.
 - ✅ **Ammo breakdown** (FR-WEB-18): per-sortie hits per ammo type, average hits-to-destroy per aircraft type, `/aircraft/` pages; per-ammo
   damage columns hidden (OQ-52). **Not a release gate**.
 - ✅ **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
@@ -82,7 +82,7 @@ the release gate.
 - ✅ **Ingest speed, round 1** (maintainer, 2026-10-04): compiled-regex tokenizer fast path (the generic tokenizer stays the fallback
   and reference), per-row UPDATEs instead of `bulk_update`, fewer WAL checkpoints: the 210 samples went from 842 s to 344 s (median
   3.4 s → 1.3 s per mission), identical rows. `il2ks dev bench-ingest` / `dump-db`. ✅ Round 2: about 25–40% less CPU per mission;
-  🔧 next: explosion bursts in one event (target: hundreds of milliseconds per mission).
+  ✅ explosion bursts in one event (about 35% less parse time).
 - ✅ **Performance tests for the pages** (maintainer, 2026-10-04): server-side timing budgets next to the query budgets, a Locust load
   test (manual), front-end budgets (page weight, requests, LCP/CLS) in the Playwright job.
 
@@ -125,8 +125,8 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
 - ✅ **Tours** with configurable length (monthly by default) (TD-26), on the profile, sortie and mission lists; localised titles.
 - ✅ **Online now**: current player counts and the list of players, plus in-progress missions (FR-ING-12, FR-WEB-15).
   ✅ `{% online_now %}` on the home page.
-- ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ⏳ re-run once the pages
-  settle (idiomatic, not literal), then human review.
+- ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ✅ consistency pass
+  (2026-10-04: one term per concept, du/vous/вы/tú/você); ⏳ update after the English copy pass, then human review.
 - ✅ **Game object names**: admin overrides and translated defaults (TD-24, FR-ADM-5).
 - Features from the maintainer's mods, through proper extension points (TD-16):
   - ✅ Score concept (separate air and ground scores), leaderboards and rankings; pages for the air-to-air Elo (prop/jet pools) and ground
@@ -172,7 +172,7 @@ decisions are made):
 - ✅ **Strafed after landing** (maintainer, 2026-10-04): an aircraft that landed and is then destroyed by an attacker on the ground counts as
   strafed even if it was damaged in the air before the landing (today only when every hit came after the landing); crash-landings stay
   "shot down". Plus quips for being strafed on the sortie page. Starts after the assist split (same files).
-- 🔧 **Explosion bursts in one event** (2026-10-04). Then: evaluate non-std tokenizer libraries (maintainer: allowed if Windows + Linux wheels and > 10% faster): 99.96% of explosion hits come from player aircraft, so skipping lines saves nothing; merging consecutive same-tick explosion lines of one attacker into one parser event would cut parse + replay by an estimated 25–30%.
+- ✅ **Explosion bursts in one event** (2026-10-04): consecutive same-tick explosion lines of one attacker are one parser event, about 35% less parse time. Non-std tokenizer libraries evaluated: none is more than 10% faster (regex is about 10% of parse), so none is used.
 - ✅ **Sortable sorties with optional columns on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
   columns (pilot, aircraft, outcome, fate, kills, damage, flight time, …) and with the same optional "Columns" control as the other lists.
 - ✅ **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
