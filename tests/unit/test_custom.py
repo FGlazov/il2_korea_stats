@@ -9,6 +9,7 @@ import pytest
 
 from il2ks.cli import EXIT_OK, EXIT_USAGE, main
 from il2ks.config import Config, load_config
+from il2ks.exitcodes import EXIT_PROBLEMS
 from il2ks.ops import serving_checks
 from il2ks.ops.doctor import Level
 from il2ks.serving import custom, templateversions
@@ -408,3 +409,46 @@ def test_cli_list_builtin(builtin: dict[custom.Kind, Path], capsys: pytest.Captu
     out = capsys.readouterr().out.splitlines()
     assert "templates/il2ks/home.html" in out
     assert "static/css/site.css" in out
+
+
+def test_cli_list_problems_json_and_fail_on_problems(
+    cfg: Config,
+    builtin: dict[custom.Kind, Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The Windows installer asks `custom list --problems --fail-on-problems` after an upgrade (TD-25, doc 07)."""
+    monkeypatch.setenv("IL2KS_DATA_DIR", str(cfg.data_dir))
+    monkeypatch.delenv("IL2KS_CONFIG", raising=False)
+    # no overrides at all: nothing to report, exit status 0
+    assert main(["custom", "list", "--problems", "--fail-on-problems"]) == EXIT_OK
+    assert "no override needs attention" in capsys.readouterr().out
+    assert main(["custom", "copy", "il2ks/home.html"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["custom", "list", "--problems", "--fail-on-problems"]) == EXIT_OK
+    assert "no override needs attention" in capsys.readouterr().out
+
+    upgrade_home(builtin, 2)
+    assert main(["custom", "list", "--problems"]) == EXIT_OK  # without the flag the status stays 0
+    assert "OUT OF DATE  templates/il2ks/home.html" in capsys.readouterr().out
+    assert main(["custom", "list", "--problems", "--fail-on-problems"]) == EXIT_PROBLEMS
+    capsys.readouterr()
+
+    assert main(["custom", "list", "--json", "--problems", "--fail-on-problems"]) == EXIT_PROBLEMS
+    document = json.loads(capsys.readouterr().out)
+    assert document["problems"] == 1
+    assert document["custom_dir"] == str(custom.custom_dir(cfg))
+    [item] = document["overrides"]
+    assert item["key"] == "templates/il2ks/home.html"
+    assert item["state"] == "outdated"
+    assert item["is_problem"] is True
+    assert (item["override_version"], item["builtin_version"]) == (1, 2)
+    assert "il2ks custom accept templates/il2ks/home.html" in item["fix"]
+
+    # --json without --problems also lists the good ones
+    assert main(["custom", "accept", "templates/il2ks/home.html"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["custom", "list", "--json", "--fail-on-problems"]) == EXIT_OK
+    document = json.loads(capsys.readouterr().out)
+    assert document["problems"] == 0
+    assert [i["state"] for i in document["overrides"]] == ["current"]

@@ -4,3 +4,4 @@ EXIT_OK = 0  # done
 EXIT_FAILED = 1  # done, but some missions failed (ingest, reprocess); doctor: warnings only
 EXIT_USAGE = 2  # usage or configuration error, a refused action; doctor: errors found
 EXIT_LOCKED = 3  # another writer holds the lock (FR-ING-20)
+EXIT_PROBLEMS = 4  # `custom list --fail-on-problems`: some override needs attention (a crash would be 1)

@@ -92,7 +92,12 @@ Download the newer `il2ks-setup-<version>.exe` and run it over the old install. 
 when the service starts, after one more automatic backup. No questions are asked. If the backup fails, the upgrade stops before it
 changes anything.
 
-Afterwards run **Run doctor** from the Start menu: it tells you if a template you customized has changed.
+At the end of an upgrade the installer also checks the pages you customized (the files in `C:\ProgramData\il2ks\custom`, see
+[customizing.md](customizing.md)). If the new version changed a built-in page you had copied, a message lists the affected files and
+what to do: look at the difference with `il2ks custom diff <path>`, bring over what you need, then run `il2ks custom accept <path>`
+(in **il2ks command prompt** from the Start menu). Your versions keep being used meanwhile. A silent install shows no message: the
+same report goes to the installer log and to `C:\ProgramData\il2ks\logs\installer-custom-check.log`. A fresh install has nothing to
+check. **Run doctor** shows the same warnings later.
 
 ## Uninstalling
 

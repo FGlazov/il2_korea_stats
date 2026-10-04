@@ -103,6 +103,33 @@ jobs:
           Stop-Process -Id $proc.Id -Force
           if (-not $ok) { throw "the site did not answer" }
 
+      - name: Upgrade over an install with an outdated override warns in the log (silent mode)
+        shell: pwsh
+        run: |
+          # A copy of a built-in page, then its version line set back to v0: as if the new il2ks had changed that page.
+          $cfg = "$env:ProgramData\il2ks\il2ks.toml"
+          & "$env:APP\python\python.exe" -P -m il2ks --config $cfg custom copy il2ks/home.html
+          if ($LASTEXITCODE -ne 0) { throw "custom copy failed" }
+          $file = "$env:ProgramData\il2ks\custom\templates\il2ks\home.html"
+          $text = [IO.File]::ReadAllText($file)
+          $old = [regex]::Match($text, 'il2ks/home\.html v\d+').Value
+          if (-not $old) { throw "the copy has no version line" }
+          [IO.File]::WriteAllText($file, $text.Replace($old, 'il2ks/home.html v0'))
+          & "$env:APP\python\python.exe" -P -m il2ks --config $cfg custom list --problems --fail-on-problems
+          if ($LASTEXITCODE -ne 4) { throw "expected exit code 4 (override out of date), got $LASTEXITCODE" }
+          # Install the same build again over it: an upgrade (il2ks.toml exists), silent, so no message box
+          $exe = (Get-ChildItem installer\il2ks-setup-*.exe).FullName
+          $args = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/DIR=$env:APP", "/LOG=$env:RUNNER_TEMP\upgrade.log",
+                    '/NOSERVICE', '/NOFIREWALL', '/MERGETASKS=!firewall')
+          $p = Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          Get-Content "$env:RUNNER_TEMP\upgrade.log" | Select-Object -Last 40
+          if ($p.ExitCode -ne 0) { throw "the upgrade failed with exit code $($p.ExitCode)" }
+          $report = "$env:ProgramData\il2ks\logs\installer-custom-check.log"
+          if (-not (Test-Path $report)) { throw "no $report: the upgrade did not check the customized templates" }
+          Get-Content $report
+          if ((Get-Content $report -Raw) -notmatch 'templates/il2ks/home\.html') { throw "the report does not name the outdated override" }
+          if ((Get-Content "$env:RUNNER_TEMP\upgrade.log" -Raw) -notmatch 'customized file\(s\)') { throw "the installer log has no warning" }
+
       - name: Uninstall keeps the data
         shell: pwsh
         run: |

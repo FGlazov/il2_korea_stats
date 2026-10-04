@@ -7,6 +7,7 @@ swap the parts that start processes or touch the machine.
 
 import argparse
 import dataclasses
+import json
 import logging
 import os
 import sys
@@ -18,11 +19,11 @@ from pathlib import Path
 
 from il2ks import logsetup
 from il2ks.config import Config, ConfigError, find_config_file, load_config
+from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_PROBLEMS, EXIT_USAGE
 from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.serving import bootid, caddy, custom, procutil, service, setup_token, supervisor, webserver
 from il2ks.serving.secret import DEV_SECRET_KEY, ensure_secret_key
 
-EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_LOCKED = 0, 1, 2, 3
 COMMANDS = frozenset({"web", "run", "caddyfile", "service", "custom"})
 MIGRATE_WAIT_S = 60.0
 CONFIG_SETTLE_S = 5.0
@@ -93,6 +94,15 @@ def add_parsers(sub: SubParsers) -> None:
     copy.add_argument("--force", action="store_true", help="replace your existing override with a fresh copy")
     lst = actions.add_parser("list", help="your overrides and whether they are based on the current built-in version")
     lst.add_argument("--builtin", action="store_true", help="list the built-in files you can override instead")
+    lst.add_argument(
+        "--problems", action="store_true", help="only the overrides that need attention (outdated, newer, ...)"
+    )
+    lst.add_argument("--json", action="store_true", help="machine-readable output (one JSON document)")
+    lst.add_argument(
+        "--fail-on-problems",
+        action="store_true",
+        help=f"exit with status {EXIT_PROBLEMS} when some override needs attention (the Windows installer uses this)",
+    )
     diff = actions.add_parser("diff", help="show how an override differs from the built-in file it replaces")
     diff.add_argument("path", help="like il2ks/home.html or static/css/site.css")
     accept = actions.add_parser(
@@ -592,15 +602,42 @@ def cmd_custom(cfg: Config, ns: argparse.Namespace) -> int:
                 for rel in custom.builtin_listing(kind):
                     print(f"{kind}/{rel}")
         else:
-            _print_overrides(cfg)
+            return _list_overrides(cfg, ns)
     except custom.CustomError as exc:
         print(f"il2ks custom: {exc}", file=sys.stderr)
         return EXIT_USAGE
     return EXIT_OK
 
 
-def _print_overrides(cfg: Config) -> None:
+def _list_overrides(cfg: Config, ns: argparse.Namespace) -> int:
     checks = custom.override_checks(cfg)
+    problems = [c for c in checks if c.is_problem]
+    if ns.problems:
+        checks = problems
+    if ns.json:
+        document = {
+            "custom_dir": str(custom.custom_dir(cfg)),
+            "problems": len(problems),
+            "overrides": [
+                {
+                    "key": c.key,
+                    "state": c.state,
+                    "is_problem": c.is_problem,
+                    "override_version": c.override_version,
+                    "builtin_version": c.builtin_version,
+                    "message": c.message,
+                    "fix": c.fix,
+                }
+                for c in checks
+            ],
+        }
+        print(json.dumps(document, indent=2))
+    else:
+        _print_overrides(cfg, checks, only_problems=ns.problems)
+    return EXIT_PROBLEMS if ns.fail_on_problems and problems else EXIT_OK
+
+
+def _print_overrides(cfg: Config, checks: list[custom.OverrideCheck], *, only_problems: bool = False) -> None:
     for item in checks:
         versions = ""
         if item.builtin_version is not None:
@@ -610,5 +647,7 @@ def _print_overrides(cfg: Config) -> None:
         print(f"{'':<13}{item.message}")
         if item.fix:
             print(f"{'':<13}{item.fix}")
-    if not checks:
+    if not checks and only_problems:
+        print("no override needs attention")
+    elif not checks:
         print(f"no overrides yet. Copy a file with `il2ks custom copy <path>`; they live in {custom.custom_dir(cfg)}")

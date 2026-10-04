@@ -540,6 +540,83 @@ begin
          'Run "Run doctor" from the Start menu, and read the newest files in ' + DataDir + '\logs.');
 end;
 
+// --- upgrade: warn about customized templates that the new version changed (TD-25) ----------------------------------------
+
+// Writes to the installer log and, in the data folder's logs\, to installer-custom-check.log (so it survives the installer log).
+procedure NoteCustomCheck(const Text: String);
+begin
+  Log(Text);
+  ForceDirectories(DataDir + '\logs');
+  SaveStringToFile(DataDir + '\logs\installer-custom-check.log',
+                   AnsiString(GetDateTimeString('yyyy-mm-dd hh:nn:ss', '-', ':') + ' ' + Text + #13#10), True);
+end;
+
+// Only items of the report: `il2ks custom list --problems` prints "STATE  path" unindented, the explanation indented.
+function CustomCheckSummary(const Output: String; var Count: Integer): String;
+var
+  Rest, Line: String;
+  P: Integer;
+begin
+  Result := '';
+  Count := 0;
+  Rest := Output;
+  while Rest <> '' do
+  begin
+    P := Pos(#10, Rest);
+    if P = 0 then
+    begin
+      Line := Rest;
+      Rest := '';
+    end
+    else
+    begin
+      Line := Copy(Rest, 1, P - 1);
+      Rest := Copy(Rest, P + 1, Length(Rest));
+    end;
+    Line := TrimRight(Line);
+    if (Line <> '') and (Line[1] <> ' ') then
+    begin
+      Count := Count + 1;
+      if Count <= 8 then
+        Result := Result + '   ' + Line + #13#10;
+    end;
+  end;
+  if Count > 8 then
+    Result := Result + '   ... and ' + IntToStr(Count - 8) + ' more' + #13#10;
+end;
+
+// Runs after an upgrade (not a fresh install: that has no overrides). Exit code 4 of --fail-on-problems means "some override is out
+// of date"; any other failure is only logged. Never fails the install; silent installs get log lines instead of a message box.
+procedure CheckCustomOverrides;
+var
+  Output, Summary, Text: String;
+  Code, Count: Integer;
+begin
+  if not (FileExists(ConfigPath) and FileExists(PythonExe)) then
+    Exit;
+  Code := RunCaptured(PythonExe, PythonSafeFlag + '-m il2ks --config ' + QuoteArg(ConfigPath) + ' custom list --problems --fail-on-problems', Output);
+  Log('il2ks custom list --problems: exit code ' + IntToStr(Code) + #13#10 + Output);
+  if Code = 0 then
+    Exit;
+  if Code <> 4 then
+  begin
+    NoteCustomCheck('The check of your customized templates did not run (exit code ' + IntToStr(Code) + '): ' + LastLines(Output, 3));
+    Exit;
+  end;
+  Summary := CustomCheckSummary(Output, Count);
+  NoteCustomCheck(IntToStr(Count) + ' customized file(s) in ' + DataDir + '\custom need attention after the upgrade:' + #13#10 + Trim(Output));
+  if WizardSilent then
+    Exit;
+  Text := 'The upgrade changed built-in pages that you have customized (' + IntToStr(Count) + ' file(s) in ' + DataDir + '\custom). ' +
+          'Your versions are still used, but they may miss new content or break:' + #13#10 + #13#10 + Summary + #13#10 +
+          'What to do, in the il2ks command prompt (Start menu):' + #13#10 +
+          '   il2ks custom list              the full list with explanations' + #13#10 +
+          '   il2ks custom diff <path>       what differs from the new built-in file' + #13#10 +
+          '   il2ks custom accept <path>     once your file is up to date (stops this warning)' + #13#10 + #13#10 +
+          'Details: docs/customizing.md in the il2ks documentation. The full report is in ' + DataDir + '\logs\installer-custom-check.log.';
+  MsgBox(Text, mbInformation, MB_OK);
+end;
+
 // Everything after the files are in place. Interactive fresh installs call it from the last page, upgrades and silent runs
 // from ssPostInstall.
 procedure FinishInstall;
@@ -611,6 +688,8 @@ begin
     if Progress <> nil then
       Progress.Hide;
   end;
+  if HaveConfig then
+    CheckCustomOverrides;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
