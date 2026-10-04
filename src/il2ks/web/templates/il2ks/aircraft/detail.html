@@ -4,7 +4,7 @@
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
   selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
   (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average)), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
+  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), payloads (AircraftPayload rows), crumbs, page_title.
   Top pilots are ranked by skill: per-type Elo and ground score per hour on target (OQ-49), both from the stored columns.
@@ -107,13 +107,13 @@
 
   <section>
     <h2>{% translate "Hits to destroy" %}</h2>
-    <p class="muted">{% translate "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted; bombs and rockets are left out." %}</p>
+    <p class="muted">{% translate "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted; bombs and rockets are left out. Instances are the counted kills in which the ammunition hit at least once." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
           <tr>
             <th scope="col">{% translate "Ammunition" %}</th>
-            <th scope="col" class="num">{% translate "Kills it hit in" %}</th>
+            <th scope="col" class="num">{% translate "Instances" %}</th>
             <th scope="col" class="num">{% translate "Average hits" %}</th>
           </tr>
         </thead>
@@ -129,6 +129,34 @@
         </tbody>
       </table>
     </div>
+    {% if hits.mixes %}
+      <h3>{% translate "Ammunition mixes" %}</h3>
+      <p class="muted">{% translate "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix." %}</p>
+      <div class="table-wrap table-wrap--flat">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Ammunition mix" %}</th>
+              <th scope="col" class="num">{% translate "Instances" %}</th>
+              <th scope="col" class="num">{% translate "Average hits" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mix in hits.mixes %}{% include "il2ks/aircraft/parts/ammo_mix_row.html" %}{% endfor %}
+            {% if hits.more_mixes %}
+              <tr><td colspan="3">
+                <details>
+                  <summary>{% blocktranslate count n=hits.more_mixes|length %}Show {{ n }} more mix{% plural %}Show {{ n }} more mixes{% endblocktranslate %}</summary>
+                  <table class="data-table"><tbody>
+                    {% for mix in hits.more_mixes %}{% include "il2ks/aircraft/parts/ammo_mix_row.html" %}{% endfor %}
+                  </tbody></table>
+                </details>
+              </td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
   </section>
 
   <section>

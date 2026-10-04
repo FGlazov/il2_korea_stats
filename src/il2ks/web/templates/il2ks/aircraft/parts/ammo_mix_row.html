@@ -1,0 +1,10 @@
+{# il2ks-template: templates/il2ks/aircraft/parts/ammo_mix_row.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  ammo_mix_row.html: one row of the "Ammunition mixes" table on the aircraft detail page (FR-WEB-18).
+  Context: mix (AmmoMixRow: parts (MixPart: name, designation, average), instances, average).
+{% endcomment %}
+<tr>
+  <td>{% for part in mix.parts %}{% if not forloop.first %} + {% endif %}{% if part.designation %}<span title="{{ part.designation }}">{{ part.name }}</span>{% else %}{{ part.name }}{% endif %} <span class="muted">{{ part.average }}</span>{% endfor %}</td>
+  <td class="num">{{ mix.instances }}</td>
+  <td class="num">{{ mix.average }}</td>
+</tr>

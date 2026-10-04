@@ -99,11 +99,15 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "b92ac786b5907ebf1c1dc6f5f19ba7cd082665300e260318756ff9b9ea0897c7"
+      "sha256": "93d7f660fedb403fd90f0d1ec725c369e36205960db6f23e6d72ee9072edc377"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
       "sha256": "13542edc92ddbd744a47aef8a59fb762cdcd4d9634f806afdaea4996312ff605"
+    },
+    "templates/il2ks/aircraft/parts/ammo_mix_row.html": {
+      "version": 1,
+      "sha256": "5f2e0a81844573495514a7e5bb35b0aa9052d0e9bc1dbc10111de63c3f08349c"
     },
     "templates/il2ks/aircraft/top_elo.html": {
       "version": 1,

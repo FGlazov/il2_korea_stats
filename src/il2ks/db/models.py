@@ -617,6 +617,37 @@ class MissionAircraftAmmo(models.Model):
         return f"{self.mission_id} / {self.aircraft_id} / {self.ammo}"
 
 
+MIX_SEPARATOR = "|"
+"""Joins the sorted gun ammo log names of an ammo mix into its key (`AmmoMixKey`); no ammo name contains it."""
+
+MIX_KEY_LENGTH = 512
+
+
+class MissionAircraftAmmoMix(models.Model):
+    """Level 1 (FR-WEB-18, doc 06): the same single-attacker kills as `MissionAircraftAmmo`, grouped by the set of gun
+    ammo types that hit (an ammo mix). `mix` is the sorted ammo log names joined by `MIX_SEPARATOR`. One row per
+    `(mission, aircraft, mix, ammo)`: `ammo` is a member of the mix with the hits it landed, or `TOTAL_AMMO` with the
+    total hits. `kills` = instances of the mix (equal on all rows of one mix). Rewritten when the mission is saved."""
+
+    mission_id: int
+    aircraft_id: int
+
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="aircraft_ammo_mixes")
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="mission_ammo_mixes")
+    mix = models.CharField(max_length=MIX_KEY_LENGTH)
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["mission", "aircraft", "mix", "ammo"], name="missionaircraftammomix_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.mission_id} / {self.aircraft_id} / {self.mix} / {self.ammo}"
+
+
 # --- Level 2: across missions ---
 
 
@@ -1421,3 +1452,23 @@ class LivePlayer(models.Model):
 
     def __str__(self) -> str:
         return self.name or self.account_uuid
+
+
+class AircraftAmmoMixStats(models.Model):
+    """Level 2 (FR-WEB-18): all-time ammo mixes per victim aircraft type, the sum of `MissionAircraftAmmoMix` over all
+    missions (rows as there: one per member ammo plus the `TOTAL_AMMO` row). Average hits of a member =
+    `hits / kills`, divided when the page reads it (TD-22)."""
+
+    aircraft_id: int
+
+    aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="ammo_mix_stats")
+    mix = models.CharField(max_length=MIX_KEY_LENGTH)
+    ammo = models.CharField(max_length=128)
+    kills = models.PositiveIntegerField(default=0)
+    hits = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["aircraft", "mix", "ammo"], name="aircraftammomixstats_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.aircraft_id} / {self.mix} / {self.ammo}"

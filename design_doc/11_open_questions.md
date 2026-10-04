@@ -24,6 +24,11 @@ the selected tour shows zero tiles, not a 404; top pilots, hits to destroy, load
 Defaults applied: the aircraft and its pilot/crew are separate hit rows; every bot (pilot, gunners, AI pilots) counts as crew, labelled
 "Pilot / crew"; damage capped at 100% per row (doc 13 "Timeline hits").
 
+**OQ-116 Ammo mixes on the aircraft page** (built 2026-10-04 on the maintainer's request, "like il2_stats")
+Defaults applied: the "Hits to destroy" count column is called "Instances" (same numbers, the intro explains it); the top 10 mixes are
+shown with per-ammo average hits, the rest folded; per-ammo average = that ammo's hits / the mix's instances; mixes are all time.
+Existing databases need `il2ks reprocess --all` (level-1 rows).
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

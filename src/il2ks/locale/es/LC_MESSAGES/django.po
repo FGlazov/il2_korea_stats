@@ -663,6 +663,12 @@ msgstr "Munición que le dio o con la que se dio"
 msgid "Ammunition left not recorded reliably"
 msgstr "Munición restante registrada sin fiabilidad"
 
+msgid "Ammunition mix"
+msgstr ""
+
+msgid "Ammunition mixes"
+msgstr ""
+
 # llm-draft
 msgid "Ammunition used unknown"
 msgstr "Munición gastada desconocida"
@@ -1803,13 +1809,10 @@ msgstr ""
 msgid "How it ended"
 msgstr "Cómo terminó"
 
-# llm-draft
 msgid ""
 "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
-" bombs and rockets are left out."
+" bombs and rockets are left out. Instances are the counted kills in which the ammunition hit at least once."
 msgstr ""
-"Cuántos impactos de armas hacen falta para derribar esta aeronave. Solo cuentan los derribos en los que un único "
-"atacante causó todo el daño; no se incluyen bombas ni cohetes."
 
 # llm-draft
 msgid "How should HTTPS be handled?"
@@ -1865,6 +1868,9 @@ msgstr "Estado de la ingesta"
 # llm-draft
 msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
 msgstr "Solo dentro de la temporada elegida: una racha no se arrastra de una temporada anterior."
+
+msgid "Instances"
+msgstr ""
 
 # llm-draft
 msgid "Intercept sorties only"
@@ -1987,10 +1993,6 @@ msgstr "Derribos y asistencias"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Derribos por víctima"
-
-# llm-draft
-msgid "Kills it hit in"
-msgstr "Derribos en los que impactó"
 
 # llm-draft
 msgid "Kills per hour"
@@ -3157,6 +3159,12 @@ msgstr "Derribado más veces por"
 msgid "Shot down most"
 msgstr "Más veces derribado"
 
+#, python-format
+msgid "Show %(n)s more mix"
+msgid_plural "Show %(n)s more mixes"
+msgstr[0] ""
+msgstr[1] ""
+
 # llm-draft
 msgid "Show selected missions on public pages again"
 msgstr "Volver a mostrar las misiones seleccionadas en las páginas públicas"
@@ -3738,6 +3746,9 @@ msgid "The same checks as the command il2ks doctor, run on the new settings. Som
 msgstr ""
 "Las mismas comprobaciones que el comando il2ks doctor, aplicadas a los nuevos ajustes. Algunos avisos desaparecen "
 "tras el reinicio."
+
+msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
+msgstr ""
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."

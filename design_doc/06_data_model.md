@@ -128,6 +128,8 @@ AircraftMatchup killer_aircraft, victim_aircraft, tour (null = all time), interc
                -- `intercept` kills (both sorties air superiority), so a kill is counted in up to four rows (FR-WEB-8, OQ-110)
 AircraftPayload aircraft, payload_name ('' = unnamed), sorties, kills_air, kills_ground, deaths
 AircraftAmmoStats aircraft, ammo, kills, hits               -- FR-WEB-18: sum of MissionAircraftAmmo; average hits to destroy = hits / kills
+MissionAircraftAmmoMix mission, aircraft, mix, ammo, kills, hits -- level 1 per saved mission; mix = sorted ammo log names joined by "|"
+AircraftAmmoMixStats aircraft, mix, ammo, kills, hits       -- level 2 sum (all time); the aircraft page's ammo mixes (OQ-116)
 PlayerKillboard player, opponent, kills, deaths, assists, assists_received, last_at, last_mission
                -- FR-WEB-9: two mirror rows per pair (one per perspective), so a board is one indexed read; `assists` is 0 unless
                -- `[killboard] assists` is on; a pair with only assists has kills = deaths = 0
@@ -185,7 +187,7 @@ ReprocessRequest, LiveMission, LivePlayer   -- admin reprocess queue (doc 14) an
 | Home | `?tour=` filter (OQ-79; none = current tour, `all` = all time): `Mission` (latest; the last mission's top pilots via `PlayerSortie`), `ActivityDay`, streaks (`PlayerStreak` all time; `PlayerBestStreak` of the tour), top 5 of Elo jet, Elo prop (all time only), interception, ground per hour, tank busting and play time (`Player` / `PlayerTour`, one read each), `LiveMission` / `LivePlayer` (always live) |
 | Leaderboards | `Player` / `PlayerTour` (+ `PlayerPool` / `PlayerTourPool` for `?pool=`, `PlayerAircraft` / `PlayerTourAircraft` for `?aircraft=`; Elo boards from `Player.elo_*`; the per-hour skill boards divide two stored counters), `Tour` |
 | Aircraft list | `AircraftStats` + `GameObject` |
-| Aircraft detail | `AircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, top pilots from `PlayerAircraft` |
+| Aircraft detail | `AircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, `AircraftAmmoMixStats`, top pilots from `PlayerAircraft` |
 | Killboard | `PlayerTypeKillboard` (by aircraft type), `PlayerKillboard` / `PlayerTourKillboard` where player; `SiteSettings.killboard_assists` |
 | Achievements | `PlayerAchievement` (profile medal row, `/players/<id>/achievements/`, holders page), `AchievementHolders` (`/achievements/`) |
 | Streaks | `PlayerBestStreak` of the selected tour or all time (best list) and `PlayerStreak` (running streaks, not on a past tour), `/streaks/`; a player's best streaks: `PlayerBestStreak` (`/players/<id>/streaks/`); all of a player's runs: `PlayerStreakRun` (`/players/<id>/streaks/history/`) |

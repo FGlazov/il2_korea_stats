@@ -33,12 +33,36 @@ class AmmoHits:
 
 
 @dataclass(frozen=True, slots=True)
+class MixPart:
+    """One ammunition of a mix with its average hits in the mix's instances."""
+
+    name: str
+    designation: str
+    average: str
+
+
+@dataclass(frozen=True, slots=True)
+class AmmoMixRow:
+    """An ammo mix: the ammunition that hit together, how often it destroyed the type, average hits per ammunition."""
+
+    parts: tuple[MixPart, ...]
+    instances: str
+    average: str  # all hits of the mix together
+
+
+MIX_ROWS_SHOWN = 10
+"""Ammo mixes listed before the "show all" fold (the rest sits in a `<details>`)."""
+
+
+@dataclass(frozen=True, slots=True)
 class HitsToDestroy:
     """How many gun hits it takes to destroy the type (all gun ammunition together, then per ammunition)."""
 
     kills: str
     average: str
     by_ammo: tuple[AmmoHits, ...]
+    mixes: tuple[AmmoMixRow, ...] = ()
+    more_mixes: tuple[AmmoMixRow, ...] = ()  # beyond `MIX_ROWS_SHOWN`
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,6 +86,14 @@ def _ammo_hits(row: ammo_reads.AmmoToDestroy) -> AmmoHits:
     return AmmoHits(info.name, info.designation, display.num(row.kills), _average(row.average_hits))
 
 
+def _mix_row(mix: ammo_reads.AmmoMix) -> AmmoMixRow:
+    parts: list[MixPart] = []
+    for part in mix.parts:
+        info = ammo_reads.ammo_info(part.ammo)
+        parts.append(MixPart(info.name, info.designation, _average(part.average_hits)))
+    return AmmoMixRow(tuple(parts), display.num(mix.instances), _average(mix.average_hits))
+
+
 def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
     if found is None or found.total is None:
         return NO_HITS
@@ -69,6 +101,8 @@ def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
         display.num(found.total.kills),
         _average(found.total.average_hits),
         tuple(_ammo_hits(a) for a in found.by_ammo),
+        tuple(_mix_row(m) for m in found.mixes[:MIX_ROWS_SHOWN]),
+        tuple(_mix_row(m) for m in found.mixes[MIX_ROWS_SHOWN:]),
     )
 
 
