@@ -121,6 +121,11 @@ msgstr ""
 msgid "%(n)s types"
 msgstr ""
 
+# llm-draft
+#, python-format
+msgid "%(name)s: best streaks"
+msgstr "%(name)s : meilleures séries"
+
 #, python-format
 msgid "%(name)s: killboard"
 msgstr ""
@@ -414,6 +419,10 @@ msgid "BLUFOR won"
 msgstr ""
 
 # llm-draft
+msgid "Back to the profile"
+msgstr "Retour au profil"
+
+# llm-draft
 msgid "Back to the start page"
 msgstr "Retour à la page d'accueil"
 
@@ -436,11 +445,23 @@ msgid_plural "Bar chart over %(n)d tours. The numbers are in the table below."
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Best by"
+msgstr ""
+
 msgid "Best showing of the mission. Well flown."
 msgstr ""
 
 msgid "Best streak"
 msgstr ""
+
+# llm-draft
+msgid "Best streaks"
+msgstr "Meilleures séries"
+
+# llm-draft
+#, python-format
+msgid "Best streaks of %(name)s"
+msgstr "Meilleures séries de %(name)s"
 
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
@@ -939,6 +960,10 @@ msgstr "Ingérée"
 msgid "Ingestion status"
 msgstr "État de l'ingestion"
 
+# llm-draft
+msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
+msgstr "Uniquement dans le tour choisi : une série ne se prolonge pas depuis un tour précédent."
+
 msgid "Ironman"
 msgstr ""
 
@@ -1307,6 +1332,10 @@ msgstr ""
 
 msgid "No sorties yet"
 msgstr ""
+
+# llm-draft
+msgid "No streak yet: no sortie survived."
+msgstr "Pas encore de série : aucune sortie survécue."
 
 msgid "No winner"
 msgstr ""
@@ -1812,6 +1841,10 @@ msgid "Sorties per tour"
 msgstr ""
 
 # llm-draft
+msgid "Sorties survived"
+msgstr "Sorties survécues"
+
+# llm-draft
 msgid "Source"
 msgstr "Source"
 
@@ -2020,6 +2053,11 @@ msgstr "Les chiffres de cette page sont provisoires et peuvent encore changer."
 msgid ""
 "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
 "log and can be wrong, for example after an engine failure or a deliberate exit."
+msgstr ""
+
+msgid ""
+"The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), by sorties, by air kills and by flight time."
 msgstr ""
 
 # llm-draft
@@ -2236,6 +2274,10 @@ msgstr ""
 msgid "Unknown: the sortie was resupplied"
 msgstr ""
 
+# llm-draft
+msgid "Until"
+msgstr "Jusqu'au"
+
 #, python-format
 msgid "Updated %(when)s"
 msgstr ""
@@ -2298,6 +2340,14 @@ msgstr ""
 
 msgid "Who kills you, and whom you kill"
 msgstr ""
+
+# llm-draft
+msgid ""
+"Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own "
+"column, not as kills."
+msgstr ""
+"Qui ce pilote a abattu et qui l'a abattu : victoires aériennes entre joueurs. Les assistances sont comptées dans leur"
+" propre colonne, pas comme des victoires."
 
 msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
 msgstr ""

@@ -210,6 +210,13 @@
 # A pilot needs this many sorties before their ratios are compared, and only such pilots make up the comparison.
 #min_sorties = 20
 
+# --- Killboard (FR-WEB-9) ---------------------------------------------------------------------------------------------
+# The killboard lists whom a pilot shot down and who shot them down (kill credits between players, friendly fire never).
+# Changing this setting takes effect with `il2ks rebuild-aggregates`; no reprocess is needed.
+#[killboard]
+# true = also count assists, in their own column next to kills and deaths (never mixed into the kills).
+#assists = false
+
 # --- Backups (FR-OPS-6) --------------------------------------------------------------------------------------------
 # `il2ks backup` zips what you could not rebuild from the logs: a consistent copy of the database (hidden players,
 # name overrides, branding, admin accounts), this file, the custom/ and media/ folders and the server ID. It goes to

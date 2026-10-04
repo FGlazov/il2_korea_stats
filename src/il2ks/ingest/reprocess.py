@@ -161,7 +161,12 @@ def reprocess(
         if summary.ok:
             log.info("rebuilding level-2 aggregates")
             with transaction.atomic():
-                (rebuild or partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score))()
+                (
+                    rebuild
+                    or partial(
+                        rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
+                    )
+                )()
         log.info("%s", summary.describe())
         return summary
 
@@ -238,5 +243,6 @@ def rebuild_all(
                 reassign_tours=reassign_tours,
                 marks=cfg.marks,
                 score=cfg.score,
+                board=cfg.board,
             )
         )()

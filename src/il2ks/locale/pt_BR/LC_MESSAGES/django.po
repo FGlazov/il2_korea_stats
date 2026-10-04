@@ -121,6 +121,11 @@ msgstr ""
 msgid "%(n)s types"
 msgstr ""
 
+# llm-draft
+#, python-format
+msgid "%(name)s: best streaks"
+msgstr "%(name)s: melhores sequências"
+
 #, python-format
 msgid "%(name)s: killboard"
 msgstr ""
@@ -414,6 +419,10 @@ msgid "BLUFOR won"
 msgstr ""
 
 # llm-draft
+msgid "Back to the profile"
+msgstr "Voltar ao perfil"
+
+# llm-draft
 msgid "Back to the start page"
 msgstr "Voltar à página inicial"
 
@@ -436,11 +445,23 @@ msgid_plural "Bar chart over %(n)d tours. The numbers are in the table below."
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Best by"
+msgstr ""
+
 msgid "Best showing of the mission. Well flown."
 msgstr ""
 
 msgid "Best streak"
 msgstr ""
+
+# llm-draft
+msgid "Best streaks"
+msgstr "Melhores sequências"
+
+# llm-draft
+#, python-format
+msgid "Best streaks of %(name)s"
+msgstr "Melhores sequências de %(name)s"
 
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
@@ -939,6 +960,10 @@ msgstr "Ingerida"
 msgid "Ingestion status"
 msgstr "Status da ingestão"
 
+# llm-draft
+msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
+msgstr "Só dentro da temporada escolhida: uma sequência não vem de uma temporada anterior."
+
 msgid "Ironman"
 msgstr ""
 
@@ -1307,6 +1332,10 @@ msgstr ""
 
 msgid "No sorties yet"
 msgstr ""
+
+# llm-draft
+msgid "No streak yet: no sortie survived."
+msgstr "Ainda sem sequência: nenhuma saída sobrevivida."
 
 msgid "No winner"
 msgstr ""
@@ -1812,6 +1841,10 @@ msgid "Sorties per tour"
 msgstr ""
 
 # llm-draft
+msgid "Sorties survived"
+msgstr "Saídas sobrevividas"
+
+# llm-draft
 msgid "Source"
 msgstr "Origem"
 
@@ -2020,6 +2053,11 @@ msgstr "Os números desta página são provisórios e ainda podem mudar."
 msgid ""
 "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
 "log and can be wrong, for example after an engine failure or a deliberate exit."
+msgstr ""
+
+msgid ""
+"The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), by sorties, by air kills and by flight time."
 msgstr ""
 
 # llm-draft
@@ -2234,6 +2272,10 @@ msgstr ""
 msgid "Unknown: the sortie was resupplied"
 msgstr ""
 
+# llm-draft
+msgid "Until"
+msgstr "Até"
+
 #, python-format
 msgid "Updated %(when)s"
 msgstr ""
@@ -2296,6 +2338,14 @@ msgstr ""
 
 msgid "Who kills you, and whom you kill"
 msgstr ""
+
+# llm-draft
+msgid ""
+"Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own "
+"column, not as kills."
+msgstr ""
+"Quem este piloto abateu e quem o abateu: vitórias aéreas entre jogadores. As assistências são contadas em uma coluna "
+"própria, não como abates."
 
 msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
 msgstr ""

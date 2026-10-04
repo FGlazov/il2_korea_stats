@@ -129,6 +129,11 @@ msgstr ""
 msgid "%(n)s types"
 msgstr ""
 
+# llm-draft
+#, python-format
+msgid "%(name)s: best streaks"
+msgstr "%(name)s: лучшие серии"
+
 #, python-format
 msgid "%(name)s: killboard"
 msgstr ""
@@ -423,6 +428,10 @@ msgid "BLUFOR won"
 msgstr ""
 
 # llm-draft
+msgid "Back to the profile"
+msgstr "Назад к профилю"
+
+# llm-draft
 msgid "Back to the start page"
 msgstr "На главную страницу"
 
@@ -446,11 +455,23 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+msgid "Best by"
+msgstr ""
+
 msgid "Best showing of the mission. Well flown."
 msgstr ""
 
 msgid "Best streak"
 msgstr ""
+
+# llm-draft
+msgid "Best streaks"
+msgstr "Лучшие серии"
+
+# llm-draft
+#, python-format
+msgid "Best streaks of %(name)s"
+msgstr "Лучшие серии пилота %(name)s"
 
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
@@ -953,6 +974,10 @@ msgstr "Обработано"
 msgid "Ingestion status"
 msgstr "Состояние обработки"
 
+# llm-draft
+msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
+msgstr "Только внутри выбранного тура: серия не переходит из предыдущего тура."
+
 msgid "Ironman"
 msgstr ""
 
@@ -1321,6 +1346,10 @@ msgstr ""
 
 msgid "No sorties yet"
 msgstr ""
+
+# llm-draft
+msgid "No streak yet: no sortie survived."
+msgstr "Серии пока нет: ни одного пережитого вылета."
 
 msgid "No winner"
 msgstr ""
@@ -1829,6 +1858,10 @@ msgid "Sorties per tour"
 msgstr ""
 
 # llm-draft
+msgid "Sorties survived"
+msgstr "Пережитые вылеты"
+
+# llm-draft
 msgid "Source"
 msgstr "Источник"
 
@@ -2037,6 +2070,11 @@ msgstr "Цифры на этой странице предварительные
 msgid ""
 "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
 "log and can be wrong, for example after an engine failure or a deliberate exit."
+msgstr ""
+
+msgid ""
+"The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
+"skipped), by sorties, by air kills and by flight time."
 msgstr ""
 
 # llm-draft
@@ -2252,6 +2290,10 @@ msgstr ""
 msgid "Unknown: the sortie was resupplied"
 msgstr ""
 
+# llm-draft
+msgid "Until"
+msgstr "До"
+
 #, python-format
 msgid "Updated %(when)s"
 msgstr ""
@@ -2314,6 +2356,14 @@ msgstr ""
 
 msgid "Who kills you, and whom you kill"
 msgstr ""
+
+# llm-draft
+msgid ""
+"Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own "
+"column, not as kills."
+msgstr ""
+"Кого сбил этот пилот и кто сбил его: воздушные победы между игроками. Содействия считаются в отдельном столбце, а не "
+"как сбития."
 
 msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
 msgstr ""

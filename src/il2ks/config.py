@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Literal, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
@@ -155,6 +156,7 @@ class Config:
     marks: MarkRules = field(default_factory=MarkRules)
     score: ScoreRules = field(default_factory=ScoreRules)
     leaderboards: LeaderboardConfig = field(default_factory=LeaderboardConfig)
+    board: KillboardRules = field(default_factory=KillboardRules)  # the `[killboard]` section
     backup: BackupConfig = field(default_factory=BackupConfig)
     tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
     source: Path | None = None  # the TOML file that was read, if any
@@ -288,6 +290,8 @@ def load_config(
         ),
     )
 
+    board = KillboardRules(assists=reader.bool_("killboard", "assists", KillboardRules().assists))
+
     backup_defaults = BackupConfig()
     backup = BackupConfig(
         keep=reader.positive_int("backup", "keep", backup_defaults.keep),
@@ -324,6 +328,7 @@ def load_config(
         marks=marks,
         score=score,
         leaderboards=leaderboards,
+        board=board,
         backup=backup,
         tours=tours,
         source=file,

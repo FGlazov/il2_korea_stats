@@ -773,8 +773,10 @@ class PlayerKillboard(models.Model):
 
     Every pair has two mirror rows, one per perspective, so a player's board is one indexed read: `kills` = times
     `player` got the kill credit on `opponent`, `deaths` = times `opponent` got it on `player`. Only kill credits count
-    (not assists, not friendly fire) between two pilot sorties of different accounts. `last_at` / `last_mission` = the
-    latest such kill in either direction. Level 2: recomputed per affected player by `ingest.pairs`."""
+    (not friendly fire) between two pilot sorties of different accounts; assists count only in `assists` and only with
+    `[killboard] assists` on (otherwise 0): `assists` = times `player` got an assist credit on a sortie of `opponent`.
+    `last_at` / `last_mission` = the latest such kill (or assist, when counted) in either direction. A pair with only
+    assists has `kills = deaths = 0`. Level 2: recomputed per affected player by `ingest.pairs`."""
 
     player_id: int
     opponent_id: int
@@ -784,6 +786,7 @@ class PlayerKillboard(models.Model):
     opponent = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="+")
     kills = models.PositiveIntegerField(default=0)
     deaths = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
     last_at = models.DateTimeField()
     last_mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="+")
 
@@ -796,6 +799,77 @@ class PlayerKillboard(models.Model):
 
     def __str__(self) -> str:
         return f"{self.player_id} vs {self.opponent_id}"
+
+
+class PlayerTourKillboard(models.Model):
+    """`PlayerKillboard` within one tour (the kills of that tour's missions only). Same meaning and mirror rows; a
+    separate table so the all-time reads stay as they are (like `PlayerTourAircraft`)."""
+
+    player_id: int
+    opponent_id: int
+    tour_id: int
+    last_mission_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_killboard_rows")
+    opponent = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="+")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="killboard_rows")
+    kills = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)
+    last_at = models.DateTimeField()
+    last_mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="+")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["player", "tour", "opponent"], name="playertourkillboard_unique")
+        ]
+        indexes = [
+            models.Index(fields=["player", "tour", "-kills"], name="tourkillboard_by_kills"),
+            models.Index(fields=["player", "tour", "-deaths"], name="tourkillboard_by_deaths"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} vs {self.opponent_id} / tour {self.tour_id}"
+
+
+class StreakKind(models.TextChoices):
+    SORTIES = "sorties"
+    AIR_KILLS = "air_kills"
+    FLIGHT_TIME = "flight_time"
+
+
+class PlayerBestStreak(models.Model):
+    """A player's best ironman streak by one criterion (FR-WEB-23): the run with the most survived sorties, the most
+    air kills, or the most flight time. `tour` null = all time; with a tour, the streak runs within that tour's
+    sorties only (a streak does not span tours there). `since` / `until` as in `core.streaks.Streak`. An `air_kills`
+    row exists only when the best such streak has at least one air kill. Level 2: `ingest.streaks`."""
+
+    player_id: int
+    tour_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="best_streaks")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="best_streaks")
+    kind = models.CharField(max_length=12, choices=StreakKind.choices)
+    sorties = models.PositiveIntegerField(default=0)
+    kills_air = models.PositiveIntegerField(default=0)
+    flight_time_s = models.FloatField(default=0.0)
+    since = models.DateTimeField()
+    until = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["player", "tour", "kind"], condition=models.Q(tour__isnull=False), name="bests_tour_unique"
+            ),
+            models.UniqueConstraint(
+                fields=["player", "kind"], condition=models.Q(tour__isnull=True), name="bests_alltime_unique"
+            ),
+            models.CheckConstraint(condition=models.Q(kind__in=StreakKind.values), name="bests_kind_valid"),
+        ]
+        indexes = [models.Index(fields=["player", "tour"], name="bests_by_player_tour")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} {self.kind}: {self.sorties}"
 
 
 class PlayerStreak(models.Model):
@@ -983,6 +1057,9 @@ class SiteSettings(models.Model):
     blufor_name = models.CharField(max_length=40, default="BLUFOR")
     redfor_emblem = models.CharField(max_length=10, choices=RedforEmblem.choices, default=RedforEmblem.NEUTRAL)
     blufor_emblem = models.CharField(max_length=10, choices=BluforEmblem.choices, default=BluforEmblem.NEUTRAL)
+    # Not branding: the `[killboard] assists` setting the level-2 rows were last rebuilt with (`ingest.aggregates`,
+    # `rebuild-aggregates`), so the pages can show the assists column without reading the config file.
+    killboard_assists = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

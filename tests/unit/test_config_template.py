@@ -19,6 +19,7 @@ from il2ks.config import (
     WebConfig,
     load_config,
 )
+from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
@@ -57,6 +58,7 @@ def test_template_lists_every_config_key() -> None:
         "marks": {f.name for f in dataclasses.fields(MarkRules)},
         "score": {f.name for f in dataclasses.fields(ScoreRules)}
         | {f.name for f in dataclasses.fields(LeaderboardConfig)},
+        "killboard": {f.name for f in dataclasses.fields(KillboardRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},
         "tours": TOURS_KEYS,
         "server": SERVER_KEYS,
@@ -86,6 +88,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "marks",
         "score",
         "leaderboards",
+        "board",
         "backup",
         "tours",
         "server_uid",

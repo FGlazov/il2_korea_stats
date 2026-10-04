@@ -64,11 +64,11 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
 
 
 def _rebuild_all(cfg: Config) -> None:
-    """The one place the backfills call `rebuild_aggregates`, so no configured section (ratings, tours, marks, score)
-    can be forgotten by one of them."""
+    """The one place the backfills call `rebuild_aggregates`, so no configured section (ratings, tours, marks, score,
+    killboard) can be forgotten by one of them."""
     from il2ks.ingest.aggregates import rebuild_aggregates
 
-    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score)
+    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
 
 
 def _backfill_scores(cfg: Config) -> None:
@@ -89,10 +89,12 @@ def _backfill_tours(cfg: Config) -> None:
     """Missions saved before tours existed get their tour, and the per-tour rows are built (FR-WEB-10, TD-26)."""
     from django.db import transaction
 
-    from il2ks.db.models import Mission
+    from il2ks.db.models import Mission, PlayerBestStreak, PlayerStreak
 
-    if Mission.objects.filter(tour__isnull=True).exists():
-        log.info("assigning existing missions to tours")
+    # Also a database from before the per-tour killboard and the best streaks: streaks exist, their best rows don't.
+    old_streaks = PlayerStreak.objects.exists() and not PlayerBestStreak.objects.exists()
+    if Mission.objects.filter(tour__isnull=True).exists() or old_streaks:
+        log.info("assigning existing missions to tours and rebuilding the aggregates")
         with transaction.atomic():
             _rebuild_all(cfg)
     else:

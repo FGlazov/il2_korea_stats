@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/players/_killboard_rows.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/_killboard_rows.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  _killboard_rows.html: the cells of one killboard row. Context: row (PlayerKillboard with .opponent and .last_mission).
-  A hidden opponent is anonymised, a hidden mission is not linked (FR-ADM-3); the counts include both.
+  _killboard_rows.html: the cells of one killboard row. Context: row (PlayerKillboard or PlayerTourKillboard with
+  .opponent and .last_mission), site (the assists cell shows when site.killboard_assists). A hidden opponent is anonymised, a hidden mission is not linked (FR-ADM-3); the counts include both.
 {% endcomment %}<td>{% include "il2ks/missions/_player.html" with player=row.opponent name=row.opponent.current_name %}</td>
 <td class="num">{{ row.kills|num }}</td>
 <td class="num">{{ row.deaths|num }}</td>
-<td class="num nowrap">{% if row.last_mission.is_hidden %}{{ row.last_at|local_date }}{% else %}<a href="{% url 'web:mission-detail' row.last_mission_id %}">{{ row.last_at|local_date }}</a>{% endif %}</td>
+{% if site.killboard_assists %}<td class="num">{{ row.assists|num }}</td>
+{% endif %}<td class="num nowrap">{% if row.last_mission.is_hidden %}{{ row.last_at|local_date }}{% else %}<a href="{% url 'web:mission-detail' row.last_mission_id %}">{{ row.last_at|local_date }}</a>{% endif %}</td>
