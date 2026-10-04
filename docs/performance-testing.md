@@ -42,6 +42,8 @@ as the change that needs it, and say why.
 
 Needs the e2e setup (`uv run playwright install chromium`, then `IL2KS_TEST_E2E=1 uv run pytest -m e2e`):
 
+To reuse a server you already started, set `IL2KS_E2E_BASE_URL=http://127.0.0.1:PORT` (opt-in, local only; unset = the suite starts its own server, as CI does). That server must serve the seeded e2e world (`python -m tests.e2e.world` into its data dir), because the tests assert its names and figures.
+
 ```
 IL2KS_TEST_E2E=1 uv run pytest tests/e2e/test_frontend_performance.py
 IL2KS_TEST_E2E=1 IL2KS_PERF_REPORT=1 uv run pytest tests/e2e/test_frontend_performance.py -s   # print numbers

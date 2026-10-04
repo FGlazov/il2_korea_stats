@@ -4,7 +4,7 @@ Only **unanswered** questions live here, ordered by how much each one blocks or 
 When a question is answered, write the answer into the relevant doc (requirement, decision, or format doc) and
 **delete it from this file**. If it's partly answered, cut it down to the part that's still open.
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
-Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113 and OQ-114..119 right after it, each with the doc that holds the rule).
+Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113 and OQ-114..121 right after it, each with the doc that holds the rule).
 
 
 ## Needs outside input

@@ -70,7 +70,7 @@ def test_highlights_count_bomber_kills_and_time_to_the_first_air_kill() -> None:
 
     objects = {
         "Tu-2S": GameObject(log_name="Tu-2S", cls="bomber"),
-        "Il-10": GameObject(log_name="Il-10", cls="attacker"),
+        "IL-10": GameObject(log_name="IL-10", cls="attacker"),
         "MiG-15bis": GameObject(log_name="MiG-15bis", cls="fighter"),
         "M46 Patton": GameObject(log_name="M46 Patton", cls="vehicle"),
     }
@@ -83,7 +83,7 @@ def test_highlights_count_bomber_kills_and_time_to_the_first_air_kill() -> None:
             entry("kill", 90, "M46 Patton"),  # ground kill: not an air kill
             entry("kill", 300, "MiG-15bis"),  # the first air kill: 240 s after takeoff
             entry("kill", 400, "Tu-2S"),
-            entry("kill", 500, "Il-10"),
+            entry("kill", 500, "IL-10"),
             entry("kill", 600, "B-26", victim_sortie=7),  # a player's bomber
             entry("assist", 700, "Tu-2S"),  # assists do not count
         ],

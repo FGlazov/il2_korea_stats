@@ -16,7 +16,7 @@ def flagged_mission() -> MissionResult:
         (
             sortie(0, 1, taxi_accident=True, outcome="crashed", combat_role="air_superiority"),
             sortie(1, 1, strafed_on_ground=True, combat_role="attack", time_on_target_s=40.5),
-            sortie(2, 1, aircraft_type="Il-10", combat_role="attack", time_on_target_s=19.5),
+            sortie(2, 1, aircraft_type="IL-10", combat_role="attack", time_on_target_s=19.5),
             sortie(3, 1, combat_role="air_superiority"),
             sortie(4, 1, aircraft_type="Turret_IL10", role="gunner", combat_role=None),
             sortie(5, 2, coalition=2, aircraft_type="F-86A-5"),
@@ -55,7 +55,7 @@ def test_counters_on_mission_player_and_aircraft() -> None:
     mig = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="MiG-15bis")
     assert (mig.sorties, mig.taxi_accidents, mig.strafed_on_ground, mig.attack_sorties) == (3, 1, 1, 1)
     assert mig.time_on_target_s == pytest.approx(40.5)
-    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="Il-10")
+    il10 = PlayerAircraft.objects.get(player__account_uuid=account(1), aircraft__log_name="IL-10")
     assert (il10.attack_sorties, il10.time_on_target_s) == (1, 19.5)
     other = Player.objects.get(account_uuid=account(2))
     assert (other.taxi_accidents, other.strafed_on_ground, other.attack_sorties, other.time_on_target_s) == (
@@ -79,5 +79,5 @@ def test_game_object_gets_its_propulsion_from_the_catalog() -> None:
     save(flagged_mission())
 
     props = dict(GameObject.objects.filter(cls__in=["fighter", "attacker"]).values_list("log_name", "propulsion"))
-    assert props == {"MiG-15bis": "jet", "F-86A-5": "jet", "Il-10": "prop"}
+    assert props == {"MiG-15bis": "jet", "F-86A-5": "jet", "IL-10": "prop"}
     assert GameObject.objects.get(log_name="Turret_IL10").propulsion == ""

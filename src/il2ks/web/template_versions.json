@@ -443,7 +443,7 @@
     },
     "templates/il2ks/sorties/parts/header.html": {
       "version": 1,
-      "sha256": "fa67b2d90ebb86c4273b97b742f348c00ce8a7f0351586536db27a2882c41e36"
+      "sha256": "3e7b5dfa6270435891e4d007698b7ab81e84216c4b941832d5585f734df56650"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 1,
@@ -459,7 +459,7 @@
     },
     "templates/il2ks/sorties/parts/list_row.html": {
       "version": 1,
-      "sha256": "1aa88ca6950d918006f8725e215298a6bec21a5d26e2c2924a0d14acddd889cc"
+      "sha256": "5c186bb6a4e93d55558e4923dec974da941b722e64776fa207511a08db14aa29"
     },
     "templates/il2ks/sorties/parts/medals.html": {
       "version": 1,

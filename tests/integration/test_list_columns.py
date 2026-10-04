@@ -339,7 +339,7 @@ def seed_aircraft() -> None:
             (
                 sortie(0, 1, kills_air=2, kills_air_pvp=2),
                 sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True),
-                sortie(2, 3, aircraft_type="Il-10", kills_ground=2, combat_role="attack"),
+                sortie(2, 3, aircraft_type="IL-10", kills_ground=2, combat_role="attack"),
             )
         ),
     )
@@ -355,17 +355,17 @@ def aircraft_order(client: Client, sort: str, cols: str) -> list[str]:
 
 def test_aircraft_columns_sort_with_undefined_ratios_last(client: Client) -> None:
     seed_aircraft()
-    AircraftStats.objects.filter(aircraft__log_name="Il-10").update(
+    AircraftStats.objects.filter(aircraft__log_name="IL-10").update(
         time_on_target_s=3600.0, score_ground_attack=500.0, flight_time_s=0.0
     )
     AircraftStats.objects.filter(aircraft__log_name="MiG-15bis").update(flight_time_s=7200.0, kills_air=4)
 
     # air kills per flight hour: MiG 2/h; the Sabre has kills_air 0 -> 0/h; the Il-10 has no flight time -> undefined
     assert aircraft_order(client, "-kills_per_hour", "kills_per_hour")[0] == "MiG-15bis"
-    assert aircraft_order(client, "-kills_per_hour", "kills_per_hour")[-1] == "Il-10"
-    assert aircraft_order(client, "kills_per_hour", "kills_per_hour")[-1] == "Il-10"
-    assert aircraft_order(client, "-ground_hour", "ground_hour")[0] == "Il-10"
-    assert aircraft_order(client, "ground_hour", "ground_hour")[-1] != "Il-10"  # the only defined value is the first
+    assert aircraft_order(client, "-kills_per_hour", "kills_per_hour")[-1] == "IL-10"
+    assert aircraft_order(client, "kills_per_hour", "kills_per_hour")[-1] == "IL-10"
+    assert aircraft_order(client, "-ground_hour", "ground_hour")[0] == "IL-10"
+    assert aircraft_order(client, "ground_hour", "ground_hour")[-1] != "IL-10"  # the only defined value is the first
 
 
 def test_aircraft_ratio_columns_sort_from_the_counters(client: Client) -> None:
@@ -379,12 +379,12 @@ def test_aircraft_ratio_columns_sort_from_the_counters(client: Client) -> None:
         kills_air=3, deaths=1, planes_lost=0, sorties=2, attack_sorties=1
     )
     # Il-10: deaths 0 and planes_lost 0 -> K/D and K/L undefined
-    assert aircraft_order(client, "-kd", "") == ["F-86A-5", "MiG-15bis", "Il-10"]  # 3.0, 2.0, undefined
-    assert aircraft_order(client, "kd", "") == ["MiG-15bis", "F-86A-5", "Il-10"]
-    assert aircraft_order(client, "-kl", "") == ["MiG-15bis", "F-86A-5", "Il-10"]  # 4.0, undefined, undefined (by name)
-    assert aircraft_order(client, "-survival", "")[0] == "Il-10"  # no death: 100%
+    assert aircraft_order(client, "-kd", "") == ["F-86A-5", "MiG-15bis", "IL-10"]  # 3.0, 2.0, undefined
+    assert aircraft_order(client, "kd", "") == ["MiG-15bis", "F-86A-5", "IL-10"]
+    assert aircraft_order(client, "-kl", "") == ["MiG-15bis", "F-86A-5", "IL-10"]  # 4.0, undefined, undefined (by name)
+    assert aircraft_order(client, "-survival", "")[0] == "IL-10"  # no death: 100%
     assert aircraft_order(client, "survival", "")[0] == "MiG-15bis"  # (4 - 3) / 4
-    assert aircraft_order(client, "-attack_share", "") == ["Il-10", "F-86A-5", "MiG-15bis"]  # 100%, 50%, 0%
+    assert aircraft_order(client, "-attack_share", "") == ["IL-10", "F-86A-5", "MiG-15bis"]  # 100%, 50%, 0%
     assert aircraft_order(client, "attack_share", "")[0] == "MiG-15bis"  # 0%
 
 
@@ -395,7 +395,7 @@ def test_every_aircraft_column_sorts_both_ways(client: Client, column: str) -> N
     ascending = aircraft_order(client, column, column)
     descending = aircraft_order(client, f"-{column}", column)
 
-    assert sorted(ascending) == sorted(descending) == ["F-86A-5", "Il-10", "MiG-15bis"]
+    assert sorted(ascending) == sorted(descending) == ["F-86A-5", "IL-10", "MiG-15bis"]
 
 
 def test_aircraft_page_columns_form_and_budget(client: Client) -> None:

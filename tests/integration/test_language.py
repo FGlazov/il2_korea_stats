@@ -272,8 +272,8 @@ def test_the_sortie_pages_show_the_aircraft_in_the_viewers_language(client: Clie
     sortie_pk = PlayerSortie.objects.get(player=player).pk
     switch(client, "ru")
 
-    assert 'sortie-head__craft">Як-9П' in nav_text(client.get(f"/sorties/{sortie_pk}/"))
-    assert " Як-9П</td>" in nav_text(client.get(f"/players/{player.pk}/sorties/"))
+    assert ">Як-9П</a>" in nav_text(client.get(f"/sorties/{sortie_pk}/"))
+    assert ">Як-9П</a></td>" in nav_text(client.get(f"/players/{player.pk}/sorties/"))
 
 
 def test_name_of_tolerates_missing_objects() -> None:
