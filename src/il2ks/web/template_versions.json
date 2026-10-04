@@ -99,11 +99,11 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "493cb5eef875b6bb0dbfa3b963af798c3219566f0894a6031d8290b5e5b7b449"
+      "sha256": "b92ac786b5907ebf1c1dc6f5f19ba7cd082665300e260318756ff9b9ea0897c7"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
-      "sha256": "399acaac6311695fa2df88c96af181471a85c01a11ddfb84ac65a2741a2c2966"
+      "sha256": "13542edc92ddbd744a47aef8a59fb762cdcd4d9634f806afdaea4996312ff605"
     },
     "templates/il2ks/aircraft/top_elo.html": {
       "version": 1,

@@ -1,6 +1,7 @@
 """Per-aircraft-type stats (FR-WEB-8): level-2 tables (incremental == rebuild) and the pages (TD-22, FR-ADM-3)."""
 
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 from django.db import models
@@ -9,10 +10,21 @@ from django.urls import reverse
 
 from il2ks.config import LeaderboardConfig
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import AircraftMatchup, AircraftPayload, AircraftStats, GameObject, Player, PlayerAircraft
+from il2ks.db.models import (
+    AircraftMatchup,
+    AircraftPayload,
+    AircraftStats,
+    GameObject,
+    Player,
+    PlayerAircraft,
+    SiteSettings,
+    Tour,
+    TourAircraftStats,
+)
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.web import object_names
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
+from tests.ops_helpers import make_instance
 from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
@@ -29,7 +41,12 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
             row.pop("id")
         return found
 
-    return {"stats": rows(AircraftStats), "matchups": rows(AircraftMatchup), "payloads": rows(AircraftPayload)}
+    return {
+        "stats": rows(AircraftStats),
+        "tour_stats": rows(TourAircraftStats),
+        "matchups": rows(AircraftMatchup),
+        "payloads": rows(AircraftPayload),
+    }
 
 
 def first_mission() -> MissionResult:
@@ -153,13 +170,13 @@ def detail_url(log_name: str) -> str:
 def test_list_page_sorts_links_and_stays_within_budget(client: Client) -> None:
     save(first_mission())
 
-    assert_simple_reads(client, reverse("web:aircraft-list"), max_queries=4)
+    assert_simple_reads(client, reverse("web:aircraft-list"), max_queries=5)  # 4 + the tours of the selector
 
-    body = client.get(reverse("web:aircraft-list") + "?sort=-kills_air").content.decode()
+    body = client.get(reverse("web:aircraft-list") + "?tour=all&sort=-kills_air").content.decode()
     assert detail_url("MiG-15bis") in body
     assert "stretched-link" in body
     assert body.index("MiG-15bis") < body.index("F-86A Sabre")  # most air kills first
-    ascending = client.get(reverse("web:aircraft-list") + "?sort=kills_air").content.decode()
+    ascending = client.get(reverse("web:aircraft-list") + "?tour=all&sort=kills_air").content.decode()
     assert ascending.index("F-86A Sabre") < ascending.index("MiG-15bis")
     assert client.get(reverse("web:aircraft-list") + "?sort=password").status_code == 200  # whitelist: falls back
 
@@ -185,7 +202,7 @@ def test_list_sorted_by_aircraft_follows_the_localized_name(client: Client, monk
 def test_detail_page_matchups_loadouts_and_budget(client: Client) -> None:
     save(first_mission())
 
-    assert_simple_reads(client, detail_url("MiG-15bis"), max_queries=9)
+    assert_simple_reads(client, detail_url("MiG-15bis"), max_queries=10)  # 9 + the current tour's counters
 
     body = client.get(detail_url("MiG-15bis")).content.decode()
     assert "Matchups" in body
@@ -275,3 +292,146 @@ def test_unknown_or_unflown_aircraft_is_a_404(client: Client) -> None:
     turret = GameObject.objects.get(log_name="Turret_IL10")  # registered, but only gunner sorties
     assert client.get(reverse("web:aircraft-detail", args=[turret.pk])).status_code == 404
     assert client.get(reverse("web:aircraft-detail", args=[999_999])).status_code == 404
+
+
+# --- per tour (FR-WEB-8, TD-26): `?tour=` as on the leaderboards; absent = the current tour, `all` = all time ---------
+OCTOBER = STARTED_AT + timedelta(days=40)  # September 2026 holds the first mission, October the second
+
+
+def two_tours() -> tuple[Tour, Tour]:
+    """September: two MiG sorties (players 1, 3) and a Sabre (2). October: one MiG (player 1) and a Mustang (2)."""
+    save(
+        mission(
+            (
+                sortie(0, 1, kills_air=2, kills_air_pvp=2, payload_id=1, combat_role=AIR),
+                sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True),
+                sortie(2, 3, is_death=True, is_plane_lost=True, payload_id=2),
+            ),
+            (kill(100, 0, 1, victim_type="F-86A-5"), kill(200, 1, 2, killer_type="F-86A-5", victim_type="MiG-15bis")),
+        )
+    )
+    save(
+        mission(
+            (sortie(0, 1, kills_air=1, kills_air_pvp=1), sortie(1, 2, aircraft_type="F-51D", coalition=2)),
+            (kill(100, 0, 1, victim_type="F-51D"),),
+        ),
+        meta("2026-10-29_22-00-00", OCTOBER),
+    )
+    september, october = Tour.objects.order_by("started_at")
+    return september, october
+
+
+def listed(client: Client, query: str = "") -> dict[str, int]:
+    response = client.get(reverse("web:aircraft-list") + query)
+    assert response.status_code == 200
+    return {row.stats.aircraft.log_name: row.stats.sorties for row in response.context["rows"]}
+
+
+def test_list_follows_the_tour_selector_like_the_other_pages(client: Client) -> None:
+    september, october = two_tours()
+
+    assert listed(client) == {"MiG-15bis": 1, "F-51D": 1}  # no ?tour=: the current (newest) tour
+    assert listed(client, f"?tour={october.pk}") == {"MiG-15bis": 1, "F-51D": 1}
+    assert listed(client, f"?tour={september.pk}") == {"MiG-15bis": 2, "F-86A-5": 1}
+    assert listed(client, "?tour=all") == {"MiG-15bis": 3, "F-86A-5": 1, "F-51D": 1}
+    assert listed(client, "?tour=999999") == {"MiG-15bis": 1, "F-51D": 1}  # unknown id: the current tour, no error
+    pilots = {
+        row.stats.aircraft.log_name: row.stats.pilots
+        for row in client.get(reverse("web:aircraft-list") + f"?tour={september.pk}").context["rows"]
+    }
+    assert pilots == {"MiG-15bis": 2, "F-86A-5": 1}  # distinct players of the tour
+
+
+def test_list_per_tour_sorts_and_keeps_all_time_hits_to_destroy(client: Client) -> None:
+    september, _ = two_tours()
+    url = reverse("web:aircraft-list") + f"?tour={september.pk}"
+
+    ascending = client.get(url + "&sort=kills_air").content.decode()
+    descending = client.get(url + "&sort=-kills_air&cols=kills_air_pvp").content.decode()
+
+    assert ascending.index("F-86A Sabre") < ascending.index("MiG-15bis")
+    assert descending.index("MiG-15bis") < descending.index("F-86A Sabre")
+    assert "F-51D" not in descending  # not flown in September
+    assert 'name="tour"' in descending  # the selector
+    assert_simple_reads(client, url, max_queries=5)
+    assert_simple_reads(client, reverse("web:aircraft-list") + "?tour=all", max_queries=5)
+
+
+def test_list_of_a_tour_nobody_flew_in_is_empty(client: Client) -> None:
+    two_tours()
+    empty = Tour.objects.create(title="December 2026", started_at=OCTOBER + timedelta(days=60), ended_at=None, mode="x")
+
+    response = client.get(reverse("web:aircraft-list") + f"?tour={empty.pk}")
+
+    assert response.status_code == 200
+    assert "No aircraft has flown in this tour yet." in response.content.decode()
+
+
+def test_detail_tiles_follow_the_tour_but_the_rest_stays_all_time(client: Client) -> None:
+    september, october = two_tours()
+    mig = GameObject.objects.get(log_name="MiG-15bis")
+    url = reverse("web:aircraft-detail", args=[mig.pk])
+
+    in_september = client.get(f"{url}?tour={september.pk}")
+    in_october = client.get(url)  # the current tour
+    all_time = client.get(f"{url}?tour=all")
+
+    assert [r.context["tile"].sorties for r in (in_september, in_october, all_time)] == [2, 1, 3]
+    assert [r.context["tile"].pilots for r in (in_september, in_october, all_time)] == [2, 1, 2]
+    assert [r.context["tile"].kills_air for r in (in_september, in_october, all_time)] == [2, 1, 3]
+    assert [in_september.context["survived"], in_october.context["survived"]] == [1, 1]  # 2 sorties 1 death; 1 and 0
+    assert all_time.context["stats"].sorties == 3  # the all-time row is always loaded (side badge)
+    for response in (in_september, in_october, all_time):  # loadouts stay all time
+        assert {p.payload_name: p.sorties for p in response.context["payloads"]} == {
+            "Payload 1": 2,
+            "Payload 2": 1,
+        }
+    # the matchups follow the same tour
+    assert [m.enemy.log_name for m in in_september.context["matchups"].rows] == ["F-86A-5"]
+    assert [m.enemy.log_name for m in in_october.context["matchups"].rows] == ["F-51D"]
+    assert 'name="tour"' in in_october.content.decode()
+    assert october.pk != september.pk
+
+
+def test_detail_in_a_tour_without_the_type_shows_zero_tiles(client: Client) -> None:
+    two_tours()
+    sabre = GameObject.objects.get(log_name="F-86A-5")
+
+    response = client.get(reverse("web:aircraft-detail", args=[sabre.pk]))  # October: only a Mustang flew
+
+    assert response.status_code == 200
+    tile = response.context["tile"]
+    assert (tile.sorties, tile.pilots, tile.kills_air) == (0, 0, 0)
+    assert response.context["stats"].sorties == 1  # flown all-time, so no 404
+
+
+def test_detail_budget_with_a_tour(client: Client) -> None:
+    september, _ = two_tours()
+    mig = GameObject.objects.get(log_name="MiG-15bis")
+
+    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + f"?tour={september.pk}", max_queries=10)
+    assert_simple_reads(client, reverse("web:aircraft-detail", args=[mig.pk]) + "?tour=all", max_queries=9)
+
+
+def test_reingest_into_another_tour_moves_the_per_tour_rows() -> None:
+    """A re-ingest whose start time moves the mission to another tour recomputes the old and the new tour."""
+    save(mission((sortie(0, 1, kills_air=1),)), meta("m1", STARTED_AT))
+    assert list(TourAircraftStats.objects.values_list("tour__title", "sorties")) == [("September 2026", 1)]
+
+    save(mission((sortie(0, 1, kills_air=1),)), meta("m1", OCTOBER))
+
+    assert list(TourAircraftStats.objects.values_list("tour__title", "sorties")) == [("October 2026", 1)]
+
+
+def test_the_migration_backfill_builds_the_tour_rows_of_an_old_database(tmp_path: Path) -> None:
+    from il2ks.ops import migrate
+
+    two_tours()
+    good = snapshot()
+    TourAircraftStats.objects.all().delete()
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
+
+    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_TOUR_AIRCRAFT])  # pyright: ignore[reportPrivateUsage]
+
+    assert snapshot() == good
+    assert migrate._already_done(migrate.BACKFILL_TOUR_AIRCRAFT)  # pyright: ignore[reportPrivateUsage]

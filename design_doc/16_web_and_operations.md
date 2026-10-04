@@ -169,7 +169,10 @@ How the website, the admin and the operations commands are built (iteration 1, p
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
-- **Aircraft stats** (FR-WEB-8, 2026-10-03): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
+- **Aircraft stats** (FR-WEB-8, 2026-10-03; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
+  pilot count and matchups follow one selector above the tiles, from the level-2 `TourAircraftStats` (tour, aircraft) next to the all-time
+  `AircraftStats`, both on an abstract `AircraftCounters`; top pilots, hits to destroy, loadouts and the side badge stay all time and the
+  page says so; OQ-114): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
   losses, K/D, K/L, survival, attack share, hits to destroy; sortable); `/aircraft/<pk>/` adds **matchups vs each enemy type** (below), **top pilots** (hidden
   players left out; by per-type Elo, and ground score per hour on target for attack work, under the leaderboard minimums; types with an attack
   share of 50% or more list the ground ranking first), hits to destroy per ammo, loadouts. Level-2 `AircraftStats` / `AircraftMatchup` /
@@ -199,9 +202,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
-  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the aircraft list is all time (its figures are
-  `AircraftStats` rows; per-tour aircraft aggregates are not built, and the detail page's matchups are the only per-tour part);
-  the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
   milestones (FR-WEB-26); the Elo boards are all time (see above). `/streaks/` follows the tour. A tour dropdown appears on a page
   only where its numbers exist per tour.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:

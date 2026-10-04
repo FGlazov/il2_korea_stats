@@ -13,6 +13,13 @@ Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summ
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
+## Needs the maintainer's review
+
+**OQ-114 Aircraft stats per tour: defaults** (built 2026-10-04 on the maintainer's request)
+Defaults applied: `/aircraft/` and `/aircraft/<pk>/` default to the **current tour** like every other page (TD-26), which changes what
+existing links to an aircraft page show; a tour with no flights shows "No aircraft has flown in this tour yet."; a type not flown in
+the selected tour shows zero tiles, not a 404; top pilots, hits to destroy, loadouts and the side badge stay all time (noted on the page).
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

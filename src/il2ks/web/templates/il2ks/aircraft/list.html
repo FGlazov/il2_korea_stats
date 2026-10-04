@@ -1,6 +1,7 @@
 {# il2ks-template: templates/il2ks/aircraft/list.html v1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
-  Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown, sortable with ?sort= (a whitelist in the view). View:
+  Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown in the selected tour (?tour=, default the current
+  tour, `all` = all time; context tours / tour), sortable with ?sort= (a whitelist in the view). View:
   il2ks.web.views.aircraft.aircraft_list. Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
   (HitsToDestroy: kills, average)), sort (resolved), page_title, optional_columns (the columns a visitor can add),
   columns (the chosen ones, ?cols=), colspan.
@@ -12,10 +13,11 @@
 {% block content %}
   <div class="page-head">
     <h1>{% translate "Aircraft" %}</h1>
-    <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
+    <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
   </div>
   {% results_region %}
     {% filter_bar %}
+      {% tour_filter tours tour %}
       {% columns_picker optional_columns %}
     {% endfilter_bar %}
     <div class="table-wrap">
@@ -64,11 +66,11 @@
               </tr>
             {% endwith %}
           {% empty %}
-            {% empty_row colspan _("No aircraft has flown yet.") %}
+            {% if tour %}{% empty_row colspan _("No aircraft has flown in this tour yet.") %}{% else %}{% empty_row colspan _("No aircraft has flown yet.") %}{% endif %}
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="muted">{% translate "Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack sorties: the rest are air-superiority sorties." %}</p>
+    <p class="muted">{% translate "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack sorties: the rest are air-superiority sorties." %}</p>
   {% endresults_region %}
 {% endblock %}
