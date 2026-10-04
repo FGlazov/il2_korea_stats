@@ -74,6 +74,12 @@ msgid "%(n)s assists"
 msgstr ""
 
 #, python-format
+msgid "%(n)s death, %(aaa)s to anti-aircraft"
+msgid_plural "%(n)s deaths, %(aaa)s to anti-aircraft"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
 msgid "%(n)s events. Times count from the spawn; the time of day is shown next to them."
 msgstr ""
 
@@ -110,6 +116,10 @@ msgid "%(n)s types"
 msgstr ""
 
 #, python-format
+msgid "%(name)s: killboard"
+msgstr ""
+
+#, python-format
 msgid "%(name)s: sorties"
 msgstr ""
 
@@ -122,10 +132,18 @@ msgid "%(path)s is a file, not a folder."
 msgstr ""
 
 #, python-format
+msgid "%(players)s player aircraft, %(ai)s AI aircraft"
+msgstr ""
+
+#, python-format
 msgid "%(players)s player online"
 msgid_plural "%(players)s players online"
 msgstr[0] ""
 msgstr[1] ""
+
+#, python-format
+msgid "%(rate)s attack"
+msgstr ""
 
 #, python-format
 msgid "%(rate)s survived"
@@ -187,7 +205,13 @@ msgid ""
 "dated copy is kept."
 msgstr ""
 
+msgid "A creative arrival. The airframe will be remembered fondly."
+msgstr ""
+
 msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
+msgstr ""
+
+msgid "A quiet one. Everybody got home with their ammunition."
 msgstr ""
 
 msgid "A reprocess request is already waiting or running."
@@ -345,6 +369,9 @@ msgstr ""
 msgid "Average number of gun hits that destroyed it"
 msgstr ""
 
+msgid "Aviation's first rule: the airfield is also part of the mission."
+msgstr ""
+
 msgid "BLUFOR won"
 msgstr ""
 
@@ -359,10 +386,13 @@ msgstr ""
 msgid "Bailed out"
 msgstr "A sauté en parachute"
 
-msgid "Bailed out and taken in. Hopefully the food is decent."
+msgid "Bailouts"
 msgstr ""
 
-msgid "Bailouts"
+msgid "Best showing of the mission. Well flown."
+msgstr ""
+
+msgid "Best streak"
 msgstr ""
 
 #, python-format
@@ -400,6 +430,9 @@ msgstr "Parcourir les missions"
 msgid "Buildings"
 msgstr ""
 
+msgid "Busy sortie. The enemy count went down noticeably."
+msgstr ""
+
 #, python-format
 msgid "By air kills in this aircraft, pilots with at least %(min_sorties)s sorties."
 msgstr ""
@@ -418,6 +451,9 @@ msgid "Captures"
 msgstr ""
 
 msgid "Category"
+msgstr ""
+
+msgid "Caused by"
 msgstr ""
 
 msgid "Check"
@@ -449,6 +485,9 @@ msgid "Community"
 msgstr "Communauté"
 
 msgid "Configuration file"
+msgstr ""
+
+msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
 msgstr ""
 
 msgid "Continue"
@@ -533,6 +572,9 @@ msgstr ""
 msgid "Detected: %(zone)s. Change it if the game server's computer uses another one."
 msgstr ""
 
+msgid "Detonations"
+msgstr ""
+
 msgid "Died"
 msgstr ""
 
@@ -563,6 +605,9 @@ msgid "Duration"
 msgstr ""
 
 msgid "E-mail for certificate notices (optional)"
+msgstr ""
+
+msgid "Each point of damage is attributed to the hit closest in time; damage without a hit nearby stays unattributed."
 msgstr ""
 
 # llm-draft
@@ -644,6 +689,12 @@ msgstr ""
 
 msgid "Flight time"
 msgstr ""
+
+#, python-format
+msgid "Flown by %(pilots)s pilot."
+msgid_plural "Flown by %(pilots)s pilots."
+msgstr[0] ""
+msgstr[1] ""
 
 #, python-format
 msgid "Found %(n)s mission report file there."
@@ -768,6 +819,16 @@ msgstr ""
 msgid "Home"
 msgstr "Accueil"
 
+msgid ""
+"How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its "
+"matchups, best pilots and loadouts."
+msgstr ""
+
+msgid ""
+"How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
+" bombs and rockets are left out."
+msgstr ""
+
 msgid "How should HTTPS be handled?"
 msgstr ""
 
@@ -806,12 +867,24 @@ msgstr "Ingérée"
 msgid "Ingestion status"
 msgstr "État de l'ingestion"
 
+msgid "Ironman"
+msgstr ""
+
+msgid "Ironman streaks"
+msgstr ""
+
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr ""
 
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
 "are ingested again once it is over."
+msgstr ""
+
+msgid "It still flew, mostly out of politeness. Well landed."
+msgstr ""
+
+msgid "Jet"
 msgstr ""
 
 msgid "Joining…"
@@ -958,6 +1031,12 @@ msgstr "Liens"
 msgid "Loaded"
 msgstr ""
 
+msgid "Loadout"
+msgstr ""
+
+msgid "Loadouts"
+msgstr ""
+
 msgid "Log folder"
 msgstr ""
 
@@ -1052,6 +1131,9 @@ msgstr ""
 msgid "Never left the ground, still earned a story."
 msgstr ""
 
+msgid "Never shot down by a player."
+msgstr ""
+
 # llm-draft
 msgid "Next"
 msgstr "Suivant"
@@ -1084,6 +1166,9 @@ msgstr ""
 msgid "No kill of this aircraft by a single attacker yet."
 msgstr ""
 
+msgid "No kills this time. Somebody had to keep the airspace tidy."
+msgstr ""
+
 msgid "No landing"
 msgstr ""
 
@@ -1110,6 +1195,9 @@ msgid ""
 msgstr ""
 "Plus de nouvelles tentatives automatiques. Elles sont relancées quand leurs fichiers ou la version d'il2ks changent, "
 "ou lancez `il2ks reprocess --mission UID` après avoir corrigé la cause."
+
+msgid "No pilot has enough sorties in this aircraft yet."
+msgstr ""
 
 msgid "No pilot sorties are counted for this player in the selected tour."
 msgstr ""
@@ -1154,10 +1242,19 @@ msgstr ""
 msgid "Nobody flew for this side."
 msgstr ""
 
+msgid "Nobody is judging. The wreckage is merely taking notes."
+msgstr ""
+
+msgid "Nobody is on a streak right now."
+msgstr ""
+
 msgid "Nobody is on the server right now."
 msgstr ""
 
 msgid "Nobody scored a kill in this mission."
+msgstr ""
+
+msgid "Nobody shot down yet."
 msgstr ""
 
 msgid "None of these (skip for now)"
@@ -1166,6 +1263,12 @@ msgstr ""
 # llm-draft
 msgid "None."
 msgstr "Aucun."
+
+msgid "Not a landing, not a crash: a firm disagreement with the ground."
+msgstr ""
+
+msgid "Not one incident on the ramp. Textbook."
+msgstr ""
 
 msgid "Not saved yet"
 msgstr ""
@@ -1224,6 +1327,9 @@ msgstr ""
 msgid "Operations"
 msgstr "Opérations"
 
+msgid "Opponent"
+msgstr ""
+
 #, python-format
 msgid "Or open this file and copy its content: %(path)s"
 msgstr ""
@@ -1239,6 +1345,9 @@ msgid ""
 "for an IP address and il2ks renews them by itself. The address must be public, and port 80 must be reachable."
 msgstr ""
 
+msgid "Ordnance"
+msgstr ""
+
 msgid "Other"
 msgstr ""
 
@@ -1249,6 +1358,9 @@ msgid "Other objects"
 msgstr ""
 
 msgid "Other totals"
+msgstr ""
+
+msgid "Out of the fight, but not out of the story."
 msgstr ""
 
 msgid "Outcome"
@@ -1307,6 +1419,12 @@ msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea serve
 msgstr "Statistiques de pilotes, de sorties et de missions de notre serveur IL-2 Sturmovik: Korea."
 
 msgid "Pilots"
+msgstr ""
+
+#, python-format
+msgid ""
+"Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
+"%(days)s days are listed."
 msgstr ""
 
 msgid "Planes lost"
@@ -1469,6 +1587,9 @@ msgstr ""
 msgid "Setup token"
 msgstr ""
 
+msgid "Several kills in one flight. Time to buy the squadron a round."
+msgstr ""
+
 msgid "Share"
 msgstr ""
 
@@ -1522,6 +1643,9 @@ msgid "Shown"
 msgstr ""
 
 msgid "Side"
+msgstr ""
+
+msgid "Since"
 msgstr ""
 
 # llm-draft
@@ -1672,6 +1796,9 @@ msgstr ""
 msgid "The configuration does not load"
 msgstr ""
 
+msgid "The crew chief will have opinions about this one."
+msgstr ""
+
 # llm-draft
 msgid "The file is empty."
 msgstr "Le fichier est vide."
@@ -1685,6 +1812,9 @@ msgstr "Le fichier dépasse %(mb)d Mo."
 msgid "The file is larger than 2 MB."
 msgstr "Le fichier dépasse 2 Mo."
 
+msgid "The flak had the final say."
+msgstr ""
+
 #, python-format
 msgid ""
 "The folder %(path)s does not exist. Check the spelling, or tick “use it anyway” if it will appear later (for example "
@@ -1697,6 +1827,15 @@ msgid ""
 msgstr ""
 
 msgid "The game server names its log files in its own computer's local time, so il2ks has to know that time zone."
+msgstr ""
+
+msgid "The gear stayed up and so did the pilot's spirits."
+msgstr ""
+
+msgid "The ground crew keeps a file on these. It is a thin, well-thumbed file."
+msgstr ""
+
+msgid "The gun camera footage on this one would be a good watch."
 msgstr ""
 
 # llm-draft
@@ -1753,13 +1892,25 @@ msgstr ""
 msgid "The settings are saved and the admin account exists. This setup page is now closed for good."
 msgstr ""
 
+msgid "The silk opened, the welcoming committee was less friendly."
+msgstr ""
+
 msgid "The site is served over HTTPS only, so players need an address that points to this computer."
 msgstr ""
 
 msgid "The site, once it is back:"
 msgstr ""
 
+msgid "The sky is crowded and the markings are small. It happens."
+msgstr ""
+
+msgid "The sky was empty of drama. The tea stayed hot."
+msgstr ""
+
 msgid "The two passwords differ."
+msgstr ""
+
+msgid "The war was waiting. The taxiway had other ideas."
 msgstr ""
 
 # llm-draft
@@ -1817,6 +1968,13 @@ msgstr ""
 msgid "Timeline"
 msgstr ""
 
+msgid "Times are shown in UTC."
+msgstr ""
+
+#, python-format
+msgid "Times are shown in your time zone (%(zone)s)."
+msgstr ""
+
 msgid "To make sure it is really you, setup needs the one-time token that il2ks created for this installation."
 msgstr ""
 
@@ -1835,6 +1993,12 @@ msgstr ""
 
 #, python-format
 msgid "Top 25%%"
+msgstr ""
+
+msgid "Top of the board. The rest of the sky took notes."
+msgstr ""
+
+msgid "Top pilots"
 msgstr ""
 
 msgid "Top pilots by kills"
@@ -1860,9 +2024,6 @@ msgid "Type"
 msgstr ""
 
 msgid "Type the password again"
-msgstr ""
-
-msgid "UTC"
 msgstr ""
 
 msgid "Unattributed"
@@ -1966,6 +2127,12 @@ msgid "What was saved"
 msgstr ""
 
 msgid "Where to find it:"
+msgstr ""
+
+msgid "Who kills you, and whom you kill"
+msgstr ""
+
+msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
 msgstr ""
 
 msgid "Windows cannot tell us the name of its time zone. If your browser can, it was filled in for you; please check it."

@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0011_sortie_mission_end_constraints"),
+        ("il2ks_db", "0011_sortie_mission_end_flag_reprocess_requests"),
     ]
 
     operations = [
