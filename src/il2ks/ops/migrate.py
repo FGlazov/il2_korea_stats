@@ -75,6 +75,7 @@ BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists r
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_AIRCRAFT_CASE = "aircraft_case"  # `Il-10` / `IL-10` rows merged into one GameObject
+BACKFILL_AIRCRAFT_ALIASES = "aircraft_aliases"  # `B 29` / `B-29` rows merged through object_aliases.csv (OQ-120)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
@@ -132,6 +133,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_ACHIEVEMENT_FACTS, _check_achievement_facts),
         (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
         (BACKFILL_AIRCRAFT_CASE, _check_aircraft_case),
+        (BACKFILL_AIRCRAFT_ALIASES, _check_aircraft_case),  # the same merge, now that the catalog knows aliases
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():

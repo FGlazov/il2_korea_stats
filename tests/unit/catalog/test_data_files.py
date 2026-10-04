@@ -92,7 +92,9 @@ def test_object_names_unique_case_insensitively() -> None:
 
 def test_aliases_point_at_payload_vehicles() -> None:
     vehicles = {r["vehicle"] for r in read_rows("payloads.csv")}
-    objects = {r["log_name"] for r in read_rows("objects.csv")}
+    objects = {r["log_name"] for r in read_rows("objects.csv")} | {
+        r["log_name"] for r in read_rows("object_aliases.csv")
+    }
     for row in read_rows("payload_aliases.csv"):
         assert row["vehicle"] in vehicles, row
         assert row["log_name"] in objects, row
@@ -127,3 +129,11 @@ def test_parse_payloads_and_aliases() -> None:
     payloads = parse_payloads('vehicle,payload_id,editor_name,readable_name\nf-51d,9,HVAR-6,"6 x HVAR 5"" rockets"\n')
     assert payloads[0].readable_name == '6 x HVAR 5" rockets'
     assert parse_payload_aliases("log_name,vehicle\nF-86A-5,f-86a\n") == {"F-86A-5": "f-86a"}
+
+
+def test_object_aliases_point_at_catalog_objects() -> None:
+    """`object_aliases.csv` (OQ-120): every alias names an object of `objects.csv` and is not one itself."""
+    objects = {r["log_name"].casefold() for r in read_rows("objects.csv")}
+    for row in read_rows("object_aliases.csv"):
+        assert row["same_as"].casefold() in objects, row
+        assert row["log_name"].casefold() not in objects, row

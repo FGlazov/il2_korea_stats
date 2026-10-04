@@ -20,6 +20,8 @@ Shipped data (`core/catalog/data/`):
   `_HIT` and `_xN` sub-objects belong to their parent (`Catalog.ammo`); an ammo missing here gets a cleaned-up log name.
 - `weapon_mods.csv`: `vehicle, mod_id, name`, the modifications a pilot can pick for a type; the spawn line's `WM` is
   a bitmask: bit 0 is always set, mod `k` is bit `k` (`weapon_mod_ids`).
+- `object_aliases.csv`: `log_name, same_as`, a second spelling of a catalog object the logs write (`B 29` -> `B-29`,
+  OQ-120): `lookup` answers with the object itself, so both spellings are one `GameObject`.
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` / `weapon_mods.csv` vehicle key
   (`F-86A-5` -> `f-86a-5`).
 - `ordnance.csv`: `key, kind, display_name, payload_tokens, hit_ammo`, what a payload carries and which logged ammo
@@ -323,6 +325,7 @@ class Catalog:
         object_names: Mapping[str, Mapping[str, str]] | None = None,
         ordnance: Iterable[OrdnanceRow] = (),
         ammo: Iterable[AmmoInfo] = (),
+        object_aliases: Mapping[str, str] | None = None,
     ) -> None:
         """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}."""
         self._names: dict[str, dict[str, str]] = {
@@ -335,6 +338,13 @@ class Catalog:
             if key in self._objects:
                 raise ValueError(f"duplicate object type {obj.log_name!r} in the catalog")
             self._objects[key] = obj
+        for alias, same_as in (object_aliases or {}).items():
+            target = self._objects.get(_key(same_as))
+            if target is None or _key(alias) in self._objects:
+                raise ValueError(
+                    f"object alias {alias!r} -> {same_as!r}: unknown target or the alias is an object itself"
+                )
+            self._objects[_key(alias)] = target
         self._payloads: dict[tuple[str, int], PayloadInfo] = {}
         for p in payloads:
             pkey = (p.aircraft.casefold(), p.payload_id)
@@ -477,8 +487,8 @@ class Catalog:
         return SIDE_NAMES[side] if side is not None else self.coalition_name(coalition)
 
     def objects(self) -> tuple[ObjectInfo, ...]:
-        """Every known object type, in data order (for seeding `GameObject` defaults, TD-24)."""
-        return tuple(self._objects.values())
+        """Every known object type, in data order (for seeding `GameObject` defaults, TD-24); aliases are left out."""
+        return tuple(obj for key, obj in self._objects.items() if key == _key(obj.log_name))
 
 
 _TOKEN_COUNT = re.compile(r"(.+?)-(\d+)")
@@ -611,6 +621,10 @@ def parse_ammo(text: str, source: str = "ammo.csv") -> list[AmmoInfo]:
     return result
 
 
+def parse_object_aliases(text: str, source: str = "object_aliases.csv") -> dict[str, str]:
+    return {row["log_name"]: row["same_as"] for row in _rows(text, ["log_name", "same_as"], source)}
+
+
 def parse_payload_aliases(text: str, source: str = "payload_aliases.csv") -> dict[str, str]:
     return {row["log_name"]: row["vehicle"] for row in _rows(text, ["log_name", "vehicle"], source)}
 
@@ -638,4 +652,5 @@ def load_default_catalog() -> Catalog:
         object_names=names,
         ordnance=parse_ordnance(read("ordnance.csv")),
         ammo=parse_ammo(read("ammo.csv")),
+        object_aliases=parse_object_aliases(read("object_aliases.csv")),
     )
