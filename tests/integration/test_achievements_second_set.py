@@ -5,12 +5,15 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from il2ks.config import Config
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult
 from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import MissionMeta
+from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ops import migrate
 from tests.factories import SERVER_UID, STARTED_AT, account, kill, meta, mission, save, sortie
 
@@ -225,3 +228,27 @@ def test_the_backfill_first_blood_skips_gunner_kills() -> None:
     rows = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
     assert rows[pk(1)]
     assert not rows[pk(4)]
+
+
+def test_clearing_stored_elo_peaks_looks_up_their_owners_in_one_query() -> None:
+    """The owners of cleared peaks are read together, not one query per peak (the number of reads does not grow)."""
+    save(*duel(6))
+    losers = list(PlayerSortie.objects.filter(is_death=True).order_by("pk").values_list("pk", flat=True))
+
+    def clearing(count: int) -> int:
+        PlayerSortie.objects.filter(pk__in=losers[:count]).update(elo_peak=1700.0)  # peaks no game explains
+        with CaptureQueriesContext(connection) as queries:
+            recompute_ratings()
+        assert not PlayerSortie.objects.filter(pk__in=losers[:count], elo_peak__gt=0).exists()
+        return sum(q["sql"].startswith("SELECT") for q in queries)  # the writes are one per row anyway
+
+    assert clearing(5) == clearing(2)
+
+
+def test_saving_a_mission_that_changes_elo_peaks_recounts_the_holders_once() -> None:
+    with CaptureQueriesContext(connection) as queries:
+        save(*duel(8))  # a new peak: the ratings step rewrites medals
+
+    assert PlayerSortie.objects.filter(elo_peak__gt=0).exists()
+    holder_reads = [q for q in queries if q["sql"].startswith("SELECT") and "il2ks_db_achievementholders" in q["sql"]]
+    assert len(holder_reads) == 1
