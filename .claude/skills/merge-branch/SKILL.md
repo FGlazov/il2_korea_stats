@@ -15,7 +15,8 @@ each; do not stack merges on a red tree. Everything below stages explicit paths 
   agent (put the change in a new migration), do not merge it.
 
 ## 2. Merge
-`git merge --no-ff <branch>` (a merge commit per branch keeps the history reviewable). On conflicts:
+`git merge --no-ff --no-commit <branch>` (a merge commit per branch keeps the history reviewable; `--no-commit` so a renumbered
+migration lands in the merge commit itself: once committed on main, the released-migration guard counts it as released). On conflicts:
 - **Code and docs**: resolve by hand, keep both sides' intent.
 - **Generated files: never hand-merge, regenerate** (take either side, then run the generator in step 4):
   `src/il2ks/locale/*/LC_MESSAGES/django.po|.mo` and `src/il2ks/web/template_versions.json`.
