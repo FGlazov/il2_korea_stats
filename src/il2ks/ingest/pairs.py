@@ -28,6 +28,7 @@ from django.db.models.manager import BaseManager
 
 from il2ks.db.models import Kill, KillCredit, PlayerKillboard, PlayerTourKillboard, Role
 from il2ks.db.site import get_site_settings
+from il2ks.ingest.dbutil import update_rows
 
 
 @dataclass(slots=True)
@@ -140,5 +141,5 @@ def _sync[M: PlayerKillboard | PlayerTourKillboard, K](
             row.last_at, row.last_mission_id = last_at, last_mission_id
             changed.append(row)
     manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing left to count
-    manager.bulk_update(changed, ["kills", "deaths", "assists", "last_at", "last_mission"])
+    update_rows(manager.model, changed, ["kills", "deaths", "assists", "last_at", "last_mission"])
     manager.bulk_create(new)

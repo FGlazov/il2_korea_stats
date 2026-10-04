@@ -17,6 +17,7 @@ from django.db.models import Q, QuerySet
 from il2ks.core.streaks import Streak, StreakSortie, StreakSummary, summarize
 from il2ks.db.models import Outcome, PlayerBestStreak, PlayerSortie, PlayerStreak, StreakKind
 from il2ks.ingest.counters import counted_sorties
+from il2ks.ingest.dbutil import update_rows
 
 _FIELDS = (
     "current_sorties",
@@ -87,7 +88,7 @@ def _sync_streaks(chunk: list[int], wanted: dict[int, tuple[object, ...]]) -> No
                 setattr(row, field, value)
             changed.append(row)
     PlayerStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    PlayerStreak.objects.bulk_update(changed, list(_FIELDS))
+    update_rows(PlayerStreak, changed, list(_FIELDS))
     PlayerStreak.objects.bulk_create(new)
 
 

@@ -125,17 +125,14 @@ def write_archive(
 
 
 def verify_archive(path: Path, content_sha256: str) -> None:
-    """Re-read the archive: zip CRCs must check out and the content hash must match what was written."""
-    try:
-        with zipfile.ZipFile(path) as zf:
-            bad = zf.testzip()
-            if bad is not None:
-                raise ArchiveError(f"{path}: CRC error in {bad}")
-    except zipfile.BadZipFile as exc:
-        raise ArchiveError(f"{path}: not a valid zip ({exc})") from exc
+    """Re-read the archive once: it must be a valid zip, reading it to the end checks its CRC (`zipfile` raises
+    `BadZipFile` on a mismatch), and the content hash must match what was written."""
     digest = hashlib.sha256()
-    for chunk in iter_zip_bytes(path):
-        digest.update(chunk)
+    try:
+        for chunk in iter_zip_bytes(path):
+            digest.update(chunk)
+    except zipfile.BadZipFile as exc:
+        raise ArchiveError(f"{path}: not a valid zip or CRC error ({exc})") from exc
     if digest.hexdigest() != content_sha256:
         raise ArchiveError(f"{path}: content doesn't match what was written")
 

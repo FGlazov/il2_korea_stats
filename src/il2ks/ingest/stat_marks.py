@@ -13,6 +13,7 @@ from django.db.models import QuerySet
 
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, METRICS, MarkRules, Thresholds, Totals, metric_value, thresholds
 from il2ks.db.models import Player, PlayerTour, StatThreshold, Tour
+from il2ks.ingest.dbutil import update_rows
 
 _FIELDS = (
     "sorties",
@@ -65,5 +66,5 @@ def _write(tour_id: int | None, rules: MarkRules, rows: QuerySet[Player] | Query
                 setattr(row, name, value)
             changed.append(row)
     StatThreshold.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()  # too few pilots now
-    StatThreshold.objects.bulk_update(changed, ["min_sorties", "population", "p10", "p25", "p50", "p75", "p90"])
+    update_rows(StatThreshold, changed, ["min_sorties", "population", "p10", "p25", "p50", "p75", "p90"])
     StatThreshold.objects.bulk_create(new)
