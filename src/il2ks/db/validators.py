@@ -8,6 +8,9 @@ from django.utils.translation import gettext_lazy as _
 
 _CONTROL = re.compile(r"[\x00-\x1f\x7f\s]")
 
+# A navigation link may go to a detail page with a long query string (OQ-87); the model column has the same length.
+NAV_URL_MAX_LENGTH = 2000
+
 
 def validate_http_url(value: str) -> None:
     """Only absolute `http://` / `https://` addresses with a host; no `javascript:`, `data:`, `mailto:`, relative paths,
@@ -17,5 +20,10 @@ def validate_http_url(value: str) -> None:
         host = parts.hostname
     except ValueError:  # e.g. an unbalanced bracket in an IPv6 host
         raise ValidationError(_("Enter a full http:// or https:// address."), code="url") from None
-    if parts.scheme.lower() not in {"http", "https"} or not host or _CONTROL.search(value):
+    if (
+        len(value) > NAV_URL_MAX_LENGTH
+        or parts.scheme.lower() not in {"http", "https"}
+        or not host
+        or _CONTROL.search(value)
+    ):
         raise ValidationError(_("Enter a full http:// or https:// address."), code="url")

@@ -188,6 +188,16 @@ def test_zones_render_as_a_pascal_function() -> None:
 # --- il2ks.iss ------------------------------------------------------------------------------------
 
 
+def test_the_upgrade_message_names_the_commands_to_run_and_stays_non_blocking() -> None:
+    """OQ-93: the pop-up lists the files to check and refers to `il2ks doctor` and `il2ks custom diff/accept`; it is an
+    OK-only box, skipped in silent runs (the log line carries the same pointers)."""
+    body = ISS_TEXT.split("procedure CheckCustomOverrides;", 1)[1].split("end;\n\n//", 1)[0]
+    for command in ("il2ks doctor", "il2ks custom diff", "il2ks custom accept"):
+        assert command in body
+    assert "MsgBox(Text, mbInformation, MB_OK)" in body
+    assert body.index("if WizardSilent then") < body.index("MsgBox(")
+
+
 def test_installer_switches_used_in_code_are_documented_in_its_header() -> None:
     header = ISS_TEXT.split("[Setup]", 1)[0]
     used = set(re.findall(r"\bParam\('([A-Z]+)'\)", ISS_TEXT)) | set(re.findall(r"SwitchGiven\('([A-Z]+)'\)", ISS_TEXT))

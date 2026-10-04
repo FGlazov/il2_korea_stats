@@ -1306,6 +1306,14 @@ msgid "Error"
 msgstr "Erro"
 
 # llm-draft
+msgid ""
+"Estimate: at least one was released, and the ammunition left was recorded after the aircraft was lost, so everything "
+"loaded is counted as used"
+msgstr ""
+"Estimativa: pelo menos uma foi lançada, e a munição restante foi registrada depois da perda da aeronave, então toda a"
+" carga é contada como usada."
+
+# llm-draft
 msgid "Event"
 msgstr "Evento"
 
@@ -3585,12 +3593,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example "
-"after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets "
-"that were released, the amount used is unknown."
+"after a bailout). Bombs and rockets that were never released count as unused; for guns the amount used is unknown, "
+"and for bombs and rockets that were released it is estimated as everything loaded (marked ~)."
 msgstr ""
-"O jogo registra a munição restante no fim da surtida, e aqui isso ocorreu depois da perda da aeronave (por exemplo, "
-"após um salto de paraquedas). Bombas e foguetes que nunca foram lançados contam como não usados; o gasto das armas de"
-" bordo, das bombas lançadas e dos foguetes disparados é desconhecido."
+"O jogo registra a munição restante quando a surtida termina, e aqui isso foi depois da perda da aeronave (por "
+"exemplo, após um salto de paraquedas). Bombas e foguetes que nunca foram lançados contam como não usados; para as "
+"armas de bordo o consumo é desconhecido, e para bombas e foguetes lançados ele é estimado como toda a carga (marcado "
+"com ~)."
 
 # llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
@@ -4035,11 +4044,11 @@ msgstr "Gasto"
 
 # llm-draft
 msgid ""
-"Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the "
-"aircraft was lost."
+"Used is unknown for guns, and only estimated (~, everything loaded) for bombs and rockets that were released: the "
+"ammunition left was recorded after the aircraft was lost."
 msgstr ""
-"O gasto é desconhecido para as armas de bordo, as bombas lançadas e os foguetes disparados: a munição restante foi "
-"registrada depois da perda da aeronave."
+"O consumo é desconhecido para as armas de bordo e apenas estimado (~, toda a carga) para bombas e foguetes lançados: "
+"a munição restante foi registrada depois da perda da aeronave."
 
 # llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."

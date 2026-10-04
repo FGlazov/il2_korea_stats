@@ -267,6 +267,29 @@ def test_trusted_ammo_left_beats_the_release_events() -> None:
     assert ammo["used"] == {"bullets": 250, "shells": 0, "bombs": 4, "rockets": 8}
 
 
+def test_after_a_loss_released_bombs_and_rockets_get_an_all_loaded_estimate_kept_apart_from_used() -> None:
+    """OQ-101: "used" stays unknown (null), the estimate (= all loaded) is stored separately; guns get none."""
+    ammo = _ammo(
+        ammo_loaded=AmmoCounts(400, 0, 4, 6),
+        ammo_left=AmmoCounts(150, 0, 0, 0),
+        ammo_left_after_loss=True,
+        store_releases=1,
+        rocket_salvos=1,
+    )
+    assert ammo["used"] == {"bullets": None, "shells": None, "bombs": None, "rockets": None}
+    assert ammo["used_estimate"] == {"bombs": 4, "rockets": 6}
+
+
+def test_no_estimate_when_nothing_was_released_when_trusted_or_when_resupplied() -> None:
+    loaded, left = AmmoCounts(400, 0, 4, 6), AmmoCounts(150, 0, 0, 0)
+    assert _ammo(ammo_loaded=loaded, ammo_left=left, ammo_left_after_loss=True)["used_estimate"] == {}
+    assert _ammo(ammo_loaded=loaded, ammo_left=left, store_releases=1)["used_estimate"] == {}  # "left" is trusted
+    resupplied = _ammo(ammo_loaded=loaded, ammo_left=left, ammo_left_after_loss=True, resupplied=True, store_releases=1)
+    assert resupplied["used_estimate"] == {}
+    one_kind = _ammo(ammo_loaded=loaded, ammo_left=left, ammo_left_after_loss=True, rocket_salvos=2)
+    assert one_kind["used_estimate"] == {"rockets": 6}
+
+
 def test_ended_by_mission_end_is_persisted_with_the_airborne_outcome() -> None:
     """Doc 13: a sortie the server force-ended keeps its outcome (the state then) and the flag."""
     save(mission((sortie(0, 1, outcome="airborne", ended_by_mission_end=True), sortie(1, 2))))

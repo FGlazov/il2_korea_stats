@@ -219,6 +219,37 @@ def test_after_a_loss_unreleased_bombs_show_zero_used_and_the_left_column_is_das
     )
 
 
+def test_after_a_loss_released_bombs_show_a_marked_estimate_and_guns_stay_unknown(client: Client) -> None:
+    """OQ-101: "~4" with the estimate tooltip for bombs that were released; guns keep the dash; no plain count."""
+    save(
+        mission(
+            (
+                sortie(
+                    0,
+                    1,
+                    ammo_loaded=AmmoCounts(bullets=400, bombs=4),
+                    ammo_left=AmmoCounts(bullets=150),
+                    ammo_left_after_loss=True,
+                    store_releases=1,
+                    is_plane_lost=True,
+                    outcome="shot_down",
+                ),
+            )
+        )
+    )
+
+    html = detail(client, pk_of(1))
+
+    assert re.search(
+        r"<td class=\"num\">4</td>\s*<td class=\"num\">—</td>\s*<td class=\"num\"><span title=\"Estimate:[^>]*>~4</span>",  # noqa: E501
+        html,
+    )
+    assert re.search(
+        r"<td class=\"num\">400</td>\s*<td class=\"num\">—</td>\s*<td class=\"num\"><span[^>]*>—</span>", html
+    )
+    assert "estimated as everything loaded" in html
+
+
 def test_gunner_sortie_has_a_notice_and_no_combat_role(client: Client) -> None:
     save(mission((sortie(0, 1, aircraft_type="Turret_IL10", role="gunner", combat_role=None),)))
 

@@ -605,16 +605,15 @@ begin
     Exit;
   end;
   Summary := CustomCheckSummary(Output, Count);
-  NoteCustomCheck(IntToStr(Count) + ' customized file(s) in ' + DataDir + '\custom need attention after the upgrade:' + #13#10 + Trim(Output));
+  NoteCustomCheck(IntToStr(Count) + ' customized file(s) in ' + DataDir + '\custom need checking after the upgrade (see also: il2ks doctor, il2ks custom diff/accept):' + #13#10 + Trim(Output));
   if WizardSilent then
     Exit;
-  Text := 'The upgrade changed built-in pages that you have customized (' + IntToStr(Count) + ' file(s) in ' + DataDir + '\custom). ' +
-          'Your versions are still used, but they may miss new content or break:' + #13#10 + #13#10 + Summary + #13#10 +
-          'What to do, in the il2ks command prompt (Start menu):' + #13#10 +
-          '   il2ks custom list              the full list with explanations' + #13#10 +
-          '   il2ks custom diff <path>       what differs from the new built-in file' + #13#10 +
-          '   il2ks custom accept <path>     once your file is up to date (stops this warning)' + #13#10 + #13#10 +
-          'Details: docs/customizing.md in the il2ks documentation. The full report is in ' + DataDir + '\logs\installer-custom-check.log.';
+  Text := 'The upgrade changed built-in pages that you have customized. Your versions are still used, but check these ' +
+          IntToStr(Count) + ' file(s) in ' + DataDir + '\custom:' + #13#10 + #13#10 + Summary + #13#10 +
+          'In the il2ks command prompt (Start menu): "il2ks doctor" repeats this check, ' +
+          '"il2ks custom diff <path>" shows what changed in the built-in file, ' +
+          '"il2ks custom accept <path>" marks yours as up to date. ' +
+          'Report: ' + DataDir + '\logs\installer-custom-check.log.';
   MsgBox(Text, mbInformation, MB_OK);
 end;
 

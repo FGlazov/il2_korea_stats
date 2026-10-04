@@ -87,7 +87,7 @@ Tests: `tests/unit/test_windows_packaging.py`.
 After an upgrade (`il2ks.toml` existed) `FinishInstall` calls `CheckCustomOverrides`, which runs
 `python -P -m il2ks --config <toml> custom list --problems --fail-on-problems` (as the installer's own, elevated user; it only reads).
 Exit code 4 (`EXIT_PROBLEMS`) means some override in `custom\` is out of date: an interactive install shows a message box (first 8
-files, the three commands to run, docs/customizing.md); a silent one (`WizardSilent`, which includes `/SUPPRESSMSGBOXES` runs) only
+files, a short pointer to `il2ks doctor` and `il2ks custom diff` / `accept`); a silent one (`WizardSilent`, which includes `/SUPPRESSMSGBOXES` runs) only
 logs. Both write the full report to the installer log and to `%ProgramData%\il2ks\logs\installer-custom-check.log`. Any other exit
 code is logged and ignored: the check never fails an install. A fresh install skips it. `il2ks custom list --json` is the
 machine-readable form. CI (`windows-installer.yml`, smoke job) makes an override outdated, installs over it silently and asserts the

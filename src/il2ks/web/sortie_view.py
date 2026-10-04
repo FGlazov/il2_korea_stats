@@ -483,6 +483,7 @@ class AmmoRow:
     left: str
     used: str
     note: AmmoNote
+    estimated: bool = False  # `used` is "~N": an estimate (OQ-101), not a count
 
 
 @dataclass(frozen=True, slots=True)
@@ -541,6 +542,7 @@ def _hit_rows(guns: Sequence[GunAmmoRow]) -> list[HitRow]:
 def ammo_table(sortie: PlayerSortie) -> AmmoTable:
     ammo = _dict(sortie.ammo)
     loaded, left, used = _dict(ammo.get("loaded")), _dict(ammo.get("left")), _dict(ammo.get("used"))
+    estimate = _dict(ammo.get("used_estimate"))  # OQ-101: bombs/rockets released after a loss, "used" unknown
     has_end_record = ammo.get("left") is not None
     after_loss = ammo.get("left_after_loss") is True  # AType 4 was written after the aircraft was lost: "left" is junk
     rows: list[AmmoRow] = []
@@ -548,8 +550,11 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
     for kind, label in AMMO_LABELS.items():
         if not (_int(loaded.get(kind)) or _int(left.get(kind))):
             continue
-        is_unknown = _int(used.get(kind)) is None
+        estimated = _int(used.get(kind)) is None and _int(estimate.get(kind)) is not None
+        is_unknown = _int(used.get(kind)) is None and not estimated
         note: AmmoNote = ""
+        if estimated:
+            unknown = unknown or "after_loss"
         if is_unknown:
             note = (
                 "resupplied"
@@ -566,8 +571,13 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
                 str(label),
                 _count(loaded.get(kind)),
                 _count(left.get(kind)) if has_end_record and not after_loss else display.DASH,
-                display.DASH if is_unknown else _count(used.get(kind)),
+                display.DASH
+                if is_unknown
+                else "~" + _count(estimate.get(kind))
+                if estimated
+                else _count(used.get(kind)),
                 note,
+                estimated,
             )
         )
     breakdown = parse_sortie_ammo(ammo)

@@ -1308,6 +1308,14 @@ msgid "Error"
 msgstr "Fehler"
 
 # llm-draft
+msgid ""
+"Estimate: at least one was released, and the ammunition left was recorded after the aircraft was lost, so everything "
+"loaded is counted as used"
+msgstr ""
+"Schätzung: Mindestens eine wurde abgeworfen, und die Restmunition wurde erst nach dem Verlust des Flugzeugs erfasst. "
+"Deshalb zählt die gesamte Ladung als verbraucht."
+
+# llm-draft
 msgid "Event"
 msgstr "Ereignis"
 
@@ -3594,12 +3602,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example "
-"after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets "
-"that were released, the amount used is unknown."
+"after a bailout). Bombs and rockets that were never released count as unused; for guns the amount used is unknown, "
+"and for bombs and rockets that were released it is estimated as everything loaded (marked ~)."
 msgstr ""
 "Das Spiel schreibt die Restmunition am Ende des Einsatzes, und das lag hier nach dem Verlust des Flugzeugs (zum "
 "Beispiel nach einem Ausstieg). Bomben und Raketen, die nie abgeworfen oder abgefeuert wurden, gelten als nicht "
-"verbraucht; für Bordwaffen sowie für abgeworfene Bomben und abgefeuerte Raketen ist der Verbrauch unbekannt."
+"verbraucht. Für Bordwaffen ist der Verbrauch unbekannt; bei abgeworfenen Bomben und abgefeuerten Raketen wird die "
+"gesamte Ladung als verbraucht geschätzt (mit ~ markiert)."
 
 # llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
@@ -4045,11 +4054,11 @@ msgstr "Verbraucht"
 
 # llm-draft
 msgid ""
-"Used is unknown for guns, and for bombs and rockets that were released: the ammunition left was recorded after the "
-"aircraft was lost."
+"Used is unknown for guns, and only estimated (~, everything loaded) for bombs and rockets that were released: the "
+"ammunition left was recorded after the aircraft was lost."
 msgstr ""
-"Der Verbrauch ist für Bordwaffen sowie für abgeworfene Bomben und abgefeuerte Raketen unbekannt: Die Restmunition "
-"wurde nach dem Verlust des Flugzeugs erfasst."
+"Der Verbrauch ist für Bordwaffen unbekannt und für abgeworfene Bomben und abgefeuerte Raketen nur geschätzt (~, "
+"gesamte Ladung): Die Restmunition wurde nach dem Verlust des Flugzeugs erfasst."
 
 # llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."

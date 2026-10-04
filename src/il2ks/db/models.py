@@ -10,7 +10,7 @@ from typing import ClassVar, Self
 
 from django.db import models
 
-from il2ks.db.validators import validate_http_url
+from il2ks.db.validators import NAV_URL_MAX_LENGTH, validate_http_url
 
 
 class HideableQuerySet[T: models.Model](models.QuerySet[T]):
@@ -1310,7 +1310,7 @@ class NavLink(models.Model):
 
     site = models.ForeignKey(SiteSettings, on_delete=models.CASCADE, related_name="nav_links")
     label = models.CharField(max_length=60)
-    url = models.CharField(max_length=300, validators=[validate_http_url])
+    url = models.CharField(max_length=NAV_URL_MAX_LENGTH, validators=[validate_http_url])
     icon = models.CharField(max_length=10, choices=NavIcon.choices, blank=True, default=NavIcon.NONE)
     position = models.PositiveSmallIntegerField(default=0)
 

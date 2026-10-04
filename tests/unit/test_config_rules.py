@@ -19,7 +19,7 @@ def _load(tmp_path: Path, text: str):  # noqa: ANN202
 def test_defaults_match_current_behaviour(tmp_path: Path) -> None:
     cfg = load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "data")})
     assert cfg.rules == RuleToggles()
-    assert cfg.rules.credit_rams is False
+    assert cfg.rules.credit_rams is True  # OQ-89: on by default
     assert (cfg.rules.ram_window_s, cfg.rules.ram_distance_m) == (0.5, 15.0)  # OQ-92: the tighter thresholds
     assert cfg.warnings == ()
 
@@ -55,7 +55,7 @@ def test_the_config_reaches_the_replay(tmp_path: Path) -> None:
     sc.kill(110.04, NO, 200, pos=Pos(FAR.x + 5.0, FAR.y, FAR.z))
     sc.end(110.2, 100, 101)
     sc.end(110.2, 200, 201)
-    off = _load(tmp_path, "")
-    on = _load(tmp_path, "[rules]\ncredit_rams = true\n")
+    off = _load(tmp_path, "[rules]\ncredit_rams = false\n")
+    on = _load(tmp_path, "")  # the default is on (OQ-89)
     assert by_acct(sc.result(off.replay), 1).kills_air == 0
     assert by_acct(sc.result(on.replay), 1).kills_air == 1

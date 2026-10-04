@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/notices.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/notices.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Flag notices (doc 13): what the reader should know before trusting a number. All neutral in tone: the flags are
   heuristics. Context: sortie, detail (ammo.used_unknown says why ammo used is unknown).
@@ -14,7 +14,7 @@
 {% if detail.ammo.used_unknown == "resupplied" %}
   {% notice "info" title=_("Resupplied during the sortie") %}{% translate "The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb releases and rocket salvos are still exact." %}{% endnotice %}
 {% elif detail.ammo.used_unknown == "after_loss" %}
-  {% notice "info" title=_("Ammunition left not recorded reliably") %}{% translate "The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example after a bailout). Bombs and rockets that were never released count as unused; for guns, and for bombs and rockets that were released, the amount used is unknown." %}{% endnotice %}
+  {% notice "info" title=_("Ammunition left not recorded reliably") %}{% translate "The game writes the ammunition left when the sortie ends, which here was after the aircraft was lost (for example after a bailout). Bombs and rockets that were never released count as unused; for guns the amount used is unknown, and for bombs and rockets that were released it is estimated as everything loaded (marked ~)." %}{% endnotice %}
 {% elif detail.ammo.used_unknown == "unreliable" %}
   {% notice "info" title=_("Ammunition used unknown") %}{% translate "The log's record of ammunition left does not match what was loaded, for example because a payload is counted in different units when loaded and at the end (cluster bomblets)." %}{% endnotice %}
 {% endif %}

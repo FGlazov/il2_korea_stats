@@ -203,10 +203,11 @@
 # to older ones. It re-runs the replay from the archive and rebuilds the aggregates; `rebuild-aggregates` alone is not
 # enough, because the kills and deaths themselves change.
 #[rules]
-# Rams: when two enemy aircraft collide in the air, credit each pilot a kill for the other aircraft (default false =
-# nobody is credited, the collision has no attacker in the log). A collision between friends never earns a kill. Tried
+# Rams: when two enemy aircraft collide in the air, credit each pilot a kill for the other aircraft (default true;
+# false = nobody is credited, the collision has no attacker in the log). Old missions get the credit too once you run
+# `il2ks reprocess --all` after upgrading. A collision between friends never earns a kill. Tried
 # on 210 sample missions: 13 enemy collisions in about 15,000 pilot sorties (26 kills), none of them doubtful.
-#credit_rams = false
+#credit_rams = true
 # (A pilot killed while parachuting is always a death. The old `parachute_deaths` key is no longer read: `doctor`
 # warns if it is still set.)
 # A ram = two aircraft destroyed in the air within this many seconds of each other, with nobody else to blame and no gun

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from django.core.exceptions import ValidationError
 
-from il2ks.db.validators import validate_http_url
+from il2ks.db.validators import NAV_URL_MAX_LENGTH, validate_http_url
 from il2ks.web.theme import (
     BODY_FONTS,
     HEADING_FONTS,
@@ -228,3 +228,10 @@ def test_http_urls_are_accepted(url: str) -> None:
 def test_other_addresses_are_refused(url: str) -> None:
     with pytest.raises(ValidationError):
         validate_http_url(url)
+
+
+def test_a_long_address_is_accepted_up_to_the_column_length() -> None:
+    """OQ-87: a link to a detail page may be long; the limit is the NavLink.url column (2000)."""
+    validate_http_url("https://example.org/?q=" + "x" * (NAV_URL_MAX_LENGTH - len("https://example.org/?q=")))
+    with pytest.raises(ValidationError):
+        validate_http_url("https://example.org/?q=" + "x" * NAV_URL_MAX_LENGTH)

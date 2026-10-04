@@ -234,7 +234,7 @@ def test_a_link_can_be_deleted(admin: Client) -> None:
         "https://example.org/a b",
         "https://example.org/\nx",
         "https://[bad",
-        "x" * 301,
+        "https://example.org/" + "x" * 1981,  # 2001 characters
     ],
 )
 def test_bad_link_addresses_are_refused(admin: Client, url: str) -> None:
