@@ -112,8 +112,9 @@ Default applied: by air kills, more sorties, then more flight time, then the ear
 then the earlier one. Alternative: prefer the more recent
 streak, or list ties side by side.
 
-**OQ-84 Leaderboards: fighter and attack as grouped tabs, prop and jet as a filter**
-Default applied: tabs grouped as Fighters (air score, Elo prop, Elo jet), Attack (ground score, ground per hour) and General (kills);
+**OQ-84 Leaderboards: fighter and attack as grouped tabs, prop and jet as a filter** — **answered** (maintainer, 2026-10-04):
+boards in this order: Elo jet, Elo prop, air score; then ground score per hour, ground score. No kills board. The board switcher is
+buttons with icons, so it reads as clickable. (Being built.) Originally applied default: tabs grouped as Fighters (air score, Elo prop, Elo jet), Attack (ground score, ground per hour) and General (kills);
 `?pool=prop|jet` on the score and kill boards only (Elo boards have no pool filter, a chosen aircraft type overrides the pool). Alternative:
 separate prop and jet boards as their own tabs, or one flat list of tabs.
 
