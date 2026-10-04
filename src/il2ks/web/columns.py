@@ -70,8 +70,8 @@ _AIR_ACCURACY_HINT = _("Gun hits on aircraft per round fired, in air-superiority
 _GROUND_ACCURACY_HINT = _("Gun hits on ground targets per round fired, in attack sorties")
 
 PLAYER_COLUMNS: tuple[Column[Player], ...] = (
-    Column("elo_jet", _("Elo jet"), lambda p: _elo(p.elo_jet, p.elo_jet_games), _("Air-to-air rating, all time")),
-    Column("elo_prop", _("Elo prop"), lambda p: _elo(p.elo_prop, p.elo_prop_games), _("Air-to-air rating, all time")),
+    Column("elo_jet", _("Elo (jet)"), lambda p: _elo(p.elo_jet, p.elo_jet_games), _("Air-to-air rating, all time")),
+    Column("elo_prop", _("Elo (prop)"), lambda p: _elo(p.elo_prop, p.elo_prop_games), _("Air-to-air rating, all time")),
     Column("kd", _("K/D"), lambda p: display.ratio(p.kills_air, p.deaths)),
     Column("kl", _("K/L"), lambda p: display.ratio(p.kills_air, p.planes_lost)),
     Column("survival", _("Survival"), lambda p: display.percent(max(p.sorties - p.deaths, 0), p.sorties)),

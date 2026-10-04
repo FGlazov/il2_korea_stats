@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v6 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v7 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
@@ -51,9 +51,9 @@
     <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy aircraft this one beats and which beat it. The rest of this page covers all time." %}</p>
     {% tour_select tours tour %}
     <p class="tour-bar">
-      <span class="tour-toggle" role="group" aria-label="{% translate 'Which fights to count' %}">
-        <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All fights" %}</a>
-        <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept flights only" %}</a>
+      <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
+        <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All kills and losses" %}</a>
+        <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept sorties only" %}</a>
       </span>
     </p>
     {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
@@ -69,7 +69,8 @@
             {% sort_th "enemy" _("Enemy aircraft") %}
             {% sort_th "kills" _("Kills") numeric=True %}
             {% sort_th "losses" _("Losses") numeric=True %}
-            {% sort_th "encounters" _("Fights") numeric=True %}
+            {# Translators: column header; the number is kills plus losses between the two aircraft types (not the Elo "Encounters" of the leaderboards) #}
+            {% sort_th "encounters" _("Kills + losses") numeric=True %}
             {% sort_th "ratio" _("K/L") numeric=True %}
           </tr>
         </thead>
@@ -80,7 +81,7 @@
               <td class="num">{{ m.kills|num }}</td>
               <td class="num">{{ m.losses|num }}</td>
               <td class="num">{{ m.encounters|num }}</td>
-              <td class="num">{% if not m.rated %}<span class="muted" title="{% blocktranslate with n=min_encounters %}Needs at least {{ n }} fights for a reliable ratio{% endblocktranslate %}">—</span>{% elif m.losses %}{{ m.kills|ratio:m.losses }}{% else %}{% translate "no losses" %}{% endif %}</td>
+              <td class="num">{% if not m.rated %}<span class="muted" title="{% blocktranslate with n=min_encounters %}Needs at least {{ n }} kills and losses for a reliable ratio{% endblocktranslate %}">—</span>{% elif m.losses %}{{ m.kills|ratio:m.losses }}{% else %}{% translate "no losses" %}{% endif %}</td>
             </tr>
           {% empty %}
             {% empty_row 5 _("No player-versus-player air kills with this aircraft here yet.") %}
@@ -89,7 +90,7 @@
       </table>
     </div>
     {% endresults_region %}
-    <p class="muted">{% blocktranslate with n=min_encounters %}K/L is kills per loss against that aircraft. It is shown from {{ n }} fights on; with fewer, a single mission decides the number.{% endblocktranslate %}</p>
+    <p class="muted">{% blocktranslate with n=min_encounters %}K/L is kills per loss against that aircraft. It is shown from {{ n }} kills and losses on; with fewer, a single mission decides the number.{% endblocktranslate %}</p>
   </section>
 
   {% if ground_first %}

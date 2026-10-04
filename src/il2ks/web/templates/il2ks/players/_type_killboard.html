@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/_type_killboard.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/_type_killboard.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   _type_killboard.html: the two tables of the killboard by aircraft type (FR-WEB-9): the enemy aircraft types the player
   shot down most, and the types that shot the player down most, each with the player's own aircraft most used in those
@@ -11,7 +11,7 @@
       <table class="data-table data-table--compact">
         <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col">
           {% comment %}Translators: column in a list of enemy aircraft the player shot down; the cell is the player's own aircraft type they flew in most of those kills.{% endcomment %}
-          {% translate "Mostly flying" %}</th></tr></thead>
+          {% translate "Flown most" %}</th></tr></thead>
         <tbody>{% for row in types.victims %}<tr>
           <td class="aircraft-table__name">{% aircraft_icon row.enemy_aircraft "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' row.enemy_aircraft_id %}">{{ row.enemy_aircraft|object_name }}</a></td>
           <td class="num">{{ row.kills|num }}</td>
@@ -27,7 +27,7 @@
       <table class="data-table data-table--compact">
         <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col">
           {% comment %}Translators: column in a list of enemy aircraft that shot the player down; the cell is the player's own aircraft type they were flying in most of those deaths.{% endcomment %}
-          {% translate "Mostly flying" %}</th></tr></thead>
+          {% translate "Flown most" %}</th></tr></thead>
         <tbody>{% for row in types.nemeses %}<tr>
           <td class="aircraft-table__name">{% aircraft_icon row.enemy_aircraft "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' row.enemy_aircraft_id %}">{{ row.enemy_aircraft|object_name }}</a></td>
           <td class="num">{{ row.deaths|num }}</td>

@@ -299,4 +299,4 @@ def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(c
 
     assert "<dt>Ground score</dt><dd>12.0" in in_tour  # two tanks in September
     assert "<dt>Ground score</dt><dd>24.0" in all_time  # plus four vehicles in October
-    assert "Elo, prop <small>all time</small>" in in_tour
+    assert "Elo (prop) <small>all time</small>" in in_tour

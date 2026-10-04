@@ -24,8 +24,8 @@ BOARD_TITLES = {
     "ground-hour": _("Ground score per hour"),
     "interception": _("Interception"),
     "tank-busting": _("Tank busting"),
-    "elo-prop": _("Elo, prop"),
-    "elo-jet": _("Elo, jet"),
+    "elo-prop": _("Elo (prop)"),
+    "elo-jet": _("Elo (jet)"),
     "play-time": _("Play time"),
 }
 GROUP_TITLES = {

@@ -369,8 +369,8 @@ def test_hit_rows_show_damage_given_and_taken_with_the_ammo(client: Client) -> N
     assert "M64" in html
     assert html.count("timeline__damage--given") == 2
     assert html.count("timeline__damage--taken") == 1
-    assert "Hit given" in html
-    assert "Hit taken" in html
+    assert "Hit (dealt)" in html
+    assert "Hit (taken)" in html
 
 
 def test_a_timeline_stored_before_the_hit_rows_still_renders(client: Client) -> None:
