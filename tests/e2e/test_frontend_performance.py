@@ -8,9 +8,10 @@ Two groups:
   stylesheet or a script. A page that grows past its budget fails; raise the number on purpose, in the same commit.
   Run with `IL2KS_PERF_REPORT=1 ... -s` to print the measured numbers.
 - **Web vitals** (timing, generous limits): LCP, CLS and total blocking time from the Performance API
-  (`PerformanceObserver`). CLS is deterministic enough to keep tight; LCP and TBT only catch order-of-magnitude
+  (`PerformanceObserver`), each load in a fresh browser context (cold cache). CLS is deterministic enough to keep tight
+  and is checked on every load; LCP and TBT only catch order-of-magnitude
   regressions (slow CI runners). Wall-clock numbers jump on a loaded machine (several checks run at once on
-  one PC), so a page is loaded up to `VITALS_ATTEMPTS` times and passes when ONE load is within the limits: a
+  one PC), so a page is loaded up to `VITALS_ATTEMPTS` times and passes LCP / TBT when ONE load is within the limits: a
   real regression is slow every time, a busy CPU only some of the time.
 
 Selected with `-m perf` (together with `IL2KS_TEST_E2E=1`) or as part of the e2e job."""
@@ -21,7 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import Page, Request, Response
+from playwright.sync_api import Browser, Page, Request, Response
 
 from tests.e2e.helpers import wait_until_settled
 from tests.e2e.test_smoke import PUBLIC_PAGES
@@ -191,28 +192,36 @@ VITALS_ATTEMPTS = 3
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)
-def test_web_vitals(page: Page, world: World, name: str) -> None:
-    page.add_init_script(OBSERVERS)
+def test_web_vitals(browser: Browser, browser_context_args: dict[str, object], world: World, name: str) -> None:
+    """Every attempt is a cold load in a fresh browser context (no HTTP cache, so a retry cannot hide a slow first
+    load). LCP and TBT pass when one attempt is within the limits (a busy CPU slows some loads); CLS is deterministic
+    and must be within the limit in every attempt."""
     problems: list[str] = []
     for _ in range(VITALS_ATTEMPTS):
-        page.goto(PUBLIC_PAGES[name](world))
-        wait_until_settled(page)
-        page.wait_for_timeout(300)  # layout shifts after the last request (htmx swaps, fonts)
-        vitals: dict[str, float] = page.evaluate("window.__vitals")
+        context = browser.new_context(**browser_context_args)  # pyright: ignore[reportArgumentType]
+        try:
+            page = context.new_page()
+            page.add_init_script(OBSERVERS)
+            page.goto(PUBLIC_PAGES[name](world))
+            wait_until_settled(page)
+            page.wait_for_timeout(300)  # layout shifts after the last request (htmx swaps, fonts)
+            vitals: dict[str, float] = page.evaluate("window.__vitals")
+        finally:
+            context.close()
 
         if REPORT:
             lcp, cls, tbt = vitals["lcp"], vitals["cls"], vitals["tbt"]
             print(f"VITALS {PUBLIC_PAGES[name](world)}: LCP {lcp:.0f} ms, CLS {cls:.4f}, TBT {tbt:.0f} ms")
+        if vitals["cls"] > MAX_CLS:
+            pytest.fail(f"CLS {vitals['cls']:.3f} (limit {MAX_CLS}): something moves after first paint")
         problems = []
         if vitals["lcp"] > MAX_LCP_MS:
             problems.append(f"LCP {vitals['lcp']:.0f} ms (limit {MAX_LCP_MS})")
-        if vitals["cls"] > MAX_CLS:
-            problems.append(f"CLS {vitals['cls']:.3f} (limit {MAX_CLS}): something moves after first paint")
         if vitals["tbt"] > MAX_TBT_MS:
             problems.append(f"TBT {vitals['tbt']:.0f} ms (limit {MAX_TBT_MS})")
         if not problems:
             return
-    pytest.fail(f"over the limits in all {VITALS_ATTEMPTS} loads (last one): " + "; ".join(problems))
+    pytest.fail(f"over the limits in all {VITALS_ATTEMPTS} cold loads (last one): " + "; ".join(problems))
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)

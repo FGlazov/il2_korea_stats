@@ -16,11 +16,11 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
   `(player, tour, key, tier)` (two conditional constraints, because `tour` is null for all time); `earned_at` is the end time of
   the sortie that reached it. **Per tour** (OQ-105): the same definitions run twice per player, over all their sorties (`tour` null)
   and over each tour's sorties alone, so a life, a streak or a run of weeks starts fresh in a tour (the streak code does the same
-  for its best streaks). A saved mission recomputes the all-time rows and the rows of its old and new tour only. Ribbons and
+  for its best streaks). **Exception** `[PROPOSED]`: `Achievement.all_time_only` (only `elo_peak`, Top Rated): the Elo is global, so over a tour's sorties a pilot already above a tier would earn it with the first win of every new tour. It has all-time rows and holder counts only; the tour pages leave it out (overview and player list; its holders page always shows all time). A database from before this keeps stale per-tour `elo_peak` rows until `il2ks rebuild-aggregates` (or a reprocess) rewrites them. A saved mission recomputes the all-time rows and the rows of its old and new tour only. Ribbons and
   medals share the table. `AchievementHolders(tour, key, tier, holders, pilots)` holds, per scope, the counts of **visible**
   players for the overview and the rarity (no counting at request time) and `pilots`, the scope's denominator (visible players with
-  at least one sortie in it: `Player` all time, `PlayerTour` per tour) `[PROPOSED]`; `recompute_holders` rewrites it after each saved
-  mission, in `rebuild_aggregates` and when an admin hides or shows a player (three counting queries, whatever the number of tours).
+  at least one sortie in it: `Player` all time, `PlayerTour` per tour) `[PROPOSED]`; `recompute_holders` rewrites it once per saved
+  mission (after the Elo step, which can change medals too), in `rebuild_aggregates` and when an admin hides or shows a player (the bulk actions and the change form) (three counting queries, whatever the number of tours).
 - Incremental == rebuild: both run the same pure function over the same ordered sorties (tested). `rebuild_aggregates` fills the
   tables. Upgraded databases: `ops/migrate.py::_backfill_achievements` (marker `achievements` in `SiteSettings.backfills_done`)
   computes them once, and `_backfill_achievement_tours` (marker `achievement_tours`) adds the per-tour rows and the pilot counts to a
@@ -68,7 +68,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 
 | Key | Name | Rule | Tiers (bronze / silver / gold / platinum) | Sample pilots (B / S / G / P) |
 |---|---|---|---|---|
-| `elo_peak` | Top Rated | The highest Elo reached, prop or jet pool (one achievement over both). Needs a stored per-sortie fact, see below | 1530 / 1560 / 1600 / 1700 | 77 / 25 / 11 / 2 |
+| `elo_peak` | Top Rated | The highest Elo reached, prop or jet pool (one achievement over both). All time only, never per tour. Needs a stored per-sortie fact, see below | 1530 / 1560 / 1600 / 1700 | 77 / 25 / 11 / 2 |
 | `ground_score` | Ground Pounder | Ground score in total (sum of the sorties' `ground_points`; a penalty can lower the total, the medal never drops) | 100 / 500 / 2000 / 5000 | 156 / 40 / 10 / 1 |
 | `ram` | Contact Sport | Enemy aircraft downed by ramming them (`credit_rams`; a part of the air kills) | 1 / 2 / 3 / 5 | 18 / 2 / 0 / 0 |
 | `first_blood` | First Blood | Missions in which the pilot made the first credited PvP air kill (by tick) | 1 / 3 / 5 / 10 | 107 / 15 / 1 / 0 |

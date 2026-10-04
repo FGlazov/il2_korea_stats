@@ -114,7 +114,7 @@ RARE_BELOW = 5.0
 EPIC_BELOW = 1.0
 """... and as very rare (a glow)."""
 COMMON_FEED_FROM = 20.0
-"""Percent of pilots from which a bronze-level medal tier is too common for the home feed."""
+"""Percent of pilots from which a tier is too common for the home feed."""
 MIN_PILOTS_FOR_RARITY = 20
 """Fewer pilots in the scope and nobody is "rare": the emphasis would be on every medal."""
 RIBBON_STYLES = 4
@@ -258,8 +258,9 @@ def info(achievement: Achievement) -> MedalInfo:
     )
 
 
-def all_info() -> list[MedalInfo]:
-    return [info(a) for a in ACHIEVEMENTS]
+def all_info(*, in_tour: bool = False) -> list[MedalInfo]:
+    """Every achievement; `in_tour` (a tour is selected) leaves out the all-time-only ones (Top Rated, doc 17)."""
+    return [info(a) for a in ACHIEVEMENTS if not (in_tour and a.all_time_only)]
 
 
 def _style(key: str) -> int:

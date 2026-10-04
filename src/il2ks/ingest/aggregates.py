@@ -138,8 +138,8 @@ def rebuild_aggregates(
     )
     rebuild_aircraft_stats()
     rebuild_activity()
-    recompute_holders()
-    recompute_ratings(ratings)
+    recompute_ratings(ratings)  # may change medals (Elo peaks)
+    recompute_holders()  # once, after the medal rows are final
     recompute_thresholds(marks)
     bump_data_version()  # TD-28: pages changed
 

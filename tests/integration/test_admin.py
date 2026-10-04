@@ -15,6 +15,7 @@ from pytest_django.fixtures import DjangoCaptureOnCommitCallbacks, Settings
 
 from il2ks.core.catalog.loader import load_default_catalog
 from il2ks.db.models import (
+    AchievementHolders,
     CompletionReason,
     Country,
     GameObject,
@@ -733,6 +734,20 @@ def test_player_form_only_allows_hiding(admin: Client) -> None:
     assert first.current_name != "Hacked"
     assert first.kills_air != 999
     assert current_data_version() > before
+
+
+def test_hiding_a_player_in_the_change_form_refreshes_the_medal_counts(admin: Client) -> None:
+    """The bulk action recomputed the holder counts; the change form must too (FR-WEB-26, FR-ADM-3)."""
+    save(mission((sortie(0, 1, kills_ground=60), sortie(1, 2, kills_ground=60))))
+    first = Player.objects.order_by("pk").first()
+    assert first is not None
+    assert AchievementHolders.objects.filter(tour=None).exists()
+    assert {r.pilots for r in AchievementHolders.objects.filter(tour=None)} == {2}
+
+    admin.post(f"/admin/il2ks_db/player/{first.pk}/change/", {"is_hidden": "on"})
+
+    assert {r.pilots for r in AchievementHolders.objects.filter(tour=None)} == {1}
+    assert {r.holders for r in AchievementHolders.objects.filter(tour=None)} == {1}
 
 
 def test_players_and_missions_cannot_be_added_or_deleted(admin: Client) -> None:

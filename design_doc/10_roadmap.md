@@ -207,7 +207,7 @@ decisions are made):
 - 🔧 **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
   focus / tap).
 
-- 🔧 **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
+- ✅ **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
   online-now list and provisional sorties of a running mission; sortie and mission pages say the stats may still change; an admin toggle,
   on by default. Defaults (provisional rows count in boards right away, Elo at the final pass, about 2 min between passes) are OQs.
 - ✅ **Front-page image** (maintainer, 2026-10-04, "definitely for the first release"): an admin option, off by default, to show a large

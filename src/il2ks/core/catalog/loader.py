@@ -226,7 +226,7 @@ class WeaponModInfo:
 def weapon_mod_ids(weapon_mods: int) -> tuple[int, ...]:
     """The modification ids a spawn line's `WM` bitmask selects, ascending (doc 12).
 
-    Mapping, verified on ~15,000 spawns of 8 types: bit 0 is always set and means nothing (the base aircraft), mod `k`
+    Mapping, verified on ~30,700 spawns of 8 types: bit 0 is always set and means nothing (the base aircraft), mod `k`
     is bit `k` (value `2**k`). The ONE place that knows this: to correct the mapping, change this function (and
     `weapon_mod_mask`, its inverse for database filters)."""
     return tuple(bit for bit in range(1, max(weapon_mods, 0).bit_length()) if weapon_mods >> bit & 1)

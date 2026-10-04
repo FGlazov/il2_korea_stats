@@ -384,22 +384,29 @@ def tours_check(cfg: Config) -> Iterable[Finding]:
 
 @check
 def ammo_mix_check(cfg: Config) -> Iterable[Finding]:
-    """Ammo rows but no mix rows: a database from before ammo mixes (no backfill, only a reprocess builds them)."""
+    """A mission with gun hits on kills but no mix rows: a database from before ammo mixes (no backfill, only a
+    reprocess builds them). Checked per mission, so newer missions do not hide the old ones; kills without gun hits have
+    no mix rows by design and are ignored."""
     from django.db import DatabaseError
+    from django.db.models import Exists, OuterRef
 
     from il2ks.db.models import MissionAircraftAmmo, MissionAircraftAmmoMix
 
     if applied_migrations(cfg.db_path) is None:
         return  # the database check reports it
     try:
-        stale = MissionAircraftAmmo.objects.exists() and not MissionAircraftAmmoMix.objects.exists()
+        stale = (
+            MissionAircraftAmmo.objects.filter(hits__gt=0)
+            .exclude(Exists(MissionAircraftAmmoMix.objects.filter(mission_id=OuterRef("mission_id"))))
+            .exists()
+        )
     except DatabaseError:
         return  # a database from before the table existed: the database check asks for the update
     if stale:
         yield Finding(
             Level.WARN,
             "Ammunition mixes are missing for the old missions",
-            "The database has ammunition rows but no ammunition mixes (it was filled by an older version).",
+            "Some missions have ammunition rows but no ammunition mixes (they were ingested by an older version).",
             'Run il2ks reprocess --all (see "Upgrading from a pre-release build" in the install guide).',
         )
 

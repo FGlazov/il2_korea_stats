@@ -83,7 +83,7 @@
     },
     "templates/admin/il2ks_quips.html": {
       "version": 1,
-      "sha256": "9e4e3b399b5667ade1e470d0c7de4db7739929da0629da45a2de17ddd46ee882"
+      "sha256": "8a055997e4cfde74f984798a7dc2a16ebbe2c52ee41ca6a4f112a1d57f6fc244"
     },
     "templates/admin/il2ks_reprocess_confirm.html": {
       "version": 1,

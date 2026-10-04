@@ -143,23 +143,27 @@ def save_mission(
     replay ignores the kills of a live mission anyway, `ratings._games`).
     """
     mission, touched = save_level1(result, meta, catalog, tours, score)
-    apply_level2(touched, payload_elo=ratings is None)  # with ratings, `recompute_ratings` refreshes it
+    # with ratings, `recompute_ratings` refreshes the loadout Elo, and the holder counts come once after it
+    apply_level2(touched, payload_elo=ratings is None, holders=ratings is None)
     if ratings is not None:
-        recompute_ratings(ratings)
+        recompute_ratings(ratings)  # may change medals (Elo peaks)
+        recompute_holders()  # FR-WEB-26: once, after every step that changes the medal rows
     if marks is not None:  # FR-WEB-22: after the player rows and the Elo replay (the Elo marks read the ratings)
         recompute_thresholds(marks, touched.tours)
     bump_data_version()  # TD-28: same transaction as the save
     return mission
 
 
-def apply_level2(touched: Touched, *, payload_elo: bool = True) -> None:
+def apply_level2(touched: Touched, *, payload_elo: bool = True, holders: bool = True) -> None:
     """Recompute level 2 from level 1 for what a save touched. Inside the caller's transaction.
 
     `payload_elo`: refresh the loadouts' and weapon-mod sets' average pilot Elo. `recompute_ratings` does it too, so a
     save that replays the ratings afterwards passes False; a live pass (no ratings, FR-ING-15) needs it, or its new
-    loadout and mod rows would have no Elo until the final save."""
+    loadout and mod rows would have no Elo until the final save. `holders`: the achievement holder counts, likewise
+    left to the caller when the ratings run afterwards (Elo peaks change medals; one count after both)."""
     recompute_players(touched.players, touched.tours)
-    recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
+    if holders:
+        recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
     recompute_aircraft_ammo(touched.ammo_aircraft)
     # after the players' PlayerAircraft / PlayerTourAircraft rows
     recompute_aircraft_stats(touched.aircraft, touched.tours)

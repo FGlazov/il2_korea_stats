@@ -86,6 +86,9 @@ class Achievement:
     progress: Progress
     kind: Kind = "medal"
     """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
+    all_time_only: bool = False
+    """Earned over the whole history only, never per tour: the fact it reads is not a function of the tour's sorties
+    (the Elo is global, so a pilot above a tier would earn it with the first win of every new tour)."""
     shame: bool = False
     """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
 
@@ -300,7 +303,7 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     ),
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
     # The second set (doc 17, OQ-105).
-    Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
+    Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo, all_time_only=True),
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
     Achievement("ram", (1, 2, 3, 5), "count", _cumulative(lambda s: s.rams)),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
@@ -330,6 +333,12 @@ def earn(achievement: Achievement, sorties: Sequence[AchievementSortie]) -> list
     return earned
 
 
-def earn_all(sorties: Sequence[AchievementSortie]) -> list[EarnedTier]:
-    """Every tier of every registered achievement the pilot's sorties (chronological) reach."""
-    return [e for achievement in ACHIEVEMENTS for e in earn(achievement, sorties)]
+def earn_all(sorties: Sequence[AchievementSortie], *, all_time: bool = True) -> list[EarnedTier]:
+    """Every tier of every registered achievement the pilot's sorties (chronological) reach. `all_time=False` (the
+    sorties are one tour's) leaves out the achievements that are `all_time_only`."""
+    return [
+        e
+        for achievement in ACHIEVEMENTS
+        if all_time or not achievement.all_time_only
+        for e in earn(achievement, sorties)
+    ]

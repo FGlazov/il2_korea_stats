@@ -390,6 +390,8 @@ def test_the_sortie_page_shows_both_scopes() -> None:
 def test_the_home_feed_lists_the_newest_uncommon_tiers_and_never_links_a_hidden_mission() -> None:
     seed()
     client = Client()
+    # a busier server: one in ten pilots holds Target-Rich (silver), so it is uncommon enough for the feed
+    AchievementHolders.objects.filter(tour=None, key="ground_sortie", tier=2).update(holders=1, pilots=10)
 
     html = client.get("/?tour=all").content.decode()
 
@@ -452,3 +454,14 @@ def test_the_upgrade_backfill_adds_the_tour_rows_once() -> None:
 
     assert snapshot() == good
     assert migrate.BACKFILL_ACHIEVEMENT_TOURS in SiteSettings.objects.get(pk=1).backfills_done
+
+
+def test_the_home_feed_leaves_out_every_tier_a_fifth_of_the_pilots_hold() -> None:
+    """Doc 17: not only bronze; a silver that 20% or more of the pilots hold is too common for the feed too."""
+    seed()
+    AchievementHolders.objects.filter(tour=None, key="ground_sortie", tier=2).update(holders=1, pilots=5)  # 20%
+
+    assert "Target-Rich" not in Client().get("/?tour=all").content.decode()
+
+    AchievementHolders.objects.filter(tour=None, key="ground_sortie", tier=2).update(holders=1, pilots=6)  # 16.7%
+    assert "Target-Rich" in Client().get("/?tour=all").content.decode()

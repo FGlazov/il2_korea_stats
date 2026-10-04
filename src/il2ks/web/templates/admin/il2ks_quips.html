@@ -58,10 +58,10 @@
           </p>
           {% endfor %}
           <p>
-            <input type="text" name="new-{{ row.spot }}-text" value="" maxlength="{{ max_length }}" size="70" placeholder="{% translate 'Add a line' %}" aria-label="{% translate 'New quip text' %}">
+            <input type="text" name="new-{{ row.spot }}-text" value="{{ row.draft.text }}" maxlength="{{ max_length }}" size="70" placeholder="{% translate 'Add a line' %}" aria-label="{% translate 'New quip text' %}">
             <select name="new-{{ row.spot }}-lang" aria-label="{% translate 'Language' %}">
-              <option value="" selected>{% translate "Every language" %}</option>
-              {% for code, name in languages %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+              <option value=""{% if not row.draft.language %} selected{% endif %}>{% translate "Every language" %}</option>
+              {% for code, name in languages %}<option value="{{ code }}"{% if code == row.draft.language %} selected{% endif %}>{{ name }}</option>{% endfor %}
             </select>
           </p>
         </div>

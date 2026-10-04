@@ -328,10 +328,11 @@ def _check_achievement_facts() -> bool:
     kills = Kill.objects.filter(credit=KillCredit.KILL, is_friendly=False).order_by("mission_id", "tick", "pk")
     rams: dict[int, int] = {}
     pairs: list[tuple[int, int]] = []
-    for mission_id, killer, victim, when, x, y, z in kills.values_list(
-        "mission_id", "killer_sortie_id", "victim_sortie_id", "time", "pos_x", "pos_y", "pos_z"
+    for mission_id, killer, killer_role, victim, when, x, y, z in kills.values_list(
+        "mission_id", "killer_sortie_id", "killer_sortie__role", "victim_sortie_id", "time", "pos_x", "pos_y", "pos_z"
     ).iterator():
-        first.setdefault(mission_id, killer)
+        if killer_role == Role.PILOT:  # the replay's rule: gunners never draw first blood (`first_blood_sortie`)
+            first.setdefault(mission_id, killer)
         where = (x, y, z) if x is not None and y is not None and z is not None else None
         back = mutual.get((victim, killer))
         if back is not None and abs(when - back[0]) <= window and _close(where, back[1], toggles.ram_distance_m):

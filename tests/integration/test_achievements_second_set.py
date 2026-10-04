@@ -5,12 +5,16 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from django.db import connection
+from django.test import Client
+from django.test.utils import CaptureQueriesContext
 
 from il2ks.config import Config
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult
-from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings
+from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import MissionMeta
+from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ops import migrate
 from tests.factories import SERVER_UID, STARTED_AT, account, kill, meta, mission, save, sortie
 
@@ -198,3 +202,82 @@ def test_the_upgrade_backfill_derives_the_facts_from_stored_data() -> None:
     assert (rows[pk(1)].multi_kill, rows[pk(2)].multi_kill) == (3, 0)
     assert held(1)["multi_kill"] == 2  # the rebuild computed the medals from the derived facts
     assert held(1)["ram"] == 1
+
+
+def test_the_backfill_first_blood_skips_gunner_kills() -> None:
+    """The replay's first blood ignores gunners (`first_blood_sortie`); the backfill must agree (doc 17)."""
+    save(
+        mission(
+            (
+                sortie(0, 1, kills_air=1, first_blood=True),
+                sortie(1, 4, role="gunner", aircraft_type="Turret_IL10"),
+                sortie(2, 3, coalition=2, is_death=True),
+                sortie(3, 5, coalition=2, is_death=True),
+            ),
+            (kill(50, 1, 2), kill(100, 0, 3)),  # the gunner kills first, then the pilot
+        ),
+        meta("m1", STARTED_AT),
+    )
+    ingested = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
+    assert ingested[pk(1)]
+    assert not ingested[pk(4)]
+    PlayerSortie.objects.update(rams=0, first_blood=False, multi_kill=0)
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
+    config = Config(data_dir=Path("."), server_uid=SERVER_UID, timezone_name="UTC")
+
+    migrate._run_backfills(config, [migrate.BACKFILL_ACHIEVEMENT_FACTS])  # pyright: ignore[reportPrivateUsage]
+
+    rows = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
+    assert rows[pk(1)]
+    assert not rows[pk(4)]
+
+
+def test_clearing_stored_elo_peaks_looks_up_their_owners_in_one_query() -> None:
+    """The owners of cleared peaks are read together, not one query per peak (the number of reads does not grow)."""
+    save(*duel(6))
+    losers = list(PlayerSortie.objects.filter(is_death=True).order_by("pk").values_list("pk", flat=True))
+
+    def clearing(count: int) -> int:
+        PlayerSortie.objects.filter(pk__in=losers[:count]).update(elo_peak=1700.0)  # peaks no game explains
+        with CaptureQueriesContext(connection) as queries:
+            recompute_ratings()
+        assert not PlayerSortie.objects.filter(pk__in=losers[:count], elo_peak__gt=0).exists()
+        return sum(q["sql"].startswith("SELECT") for q in queries)  # the writes are one per row anyway
+
+    assert clearing(5) == clearing(2)
+
+
+def test_saving_a_mission_that_changes_elo_peaks_recounts_the_holders_once() -> None:
+    with CaptureQueriesContext(connection) as queries:
+        save(*duel(8))  # a new peak: the ratings step rewrites medals
+
+    assert PlayerSortie.objects.filter(elo_peak__gt=0).exists()
+    holder_reads = [q for q in queries if q["sql"].startswith("SELECT") and "il2ks_db_achievementholders" in q["sql"]]
+    assert len(holder_reads) == 1
+
+
+def test_top_rated_is_an_all_time_medal_only(client: Client) -> None:
+    """The Elo is global: per tour, a pilot already above a tier would earn Top Rated with the first win of every new
+    tour. So `elo_peak` has all-time rows only (doc 17), and the tour pages leave it out."""
+    save(*duel(8))
+    save(
+        mission(
+            (
+                sortie(0, 1, combat_role="air_superiority", kills_air=1, kills_air_pvp=1),
+                sortie(1, 40, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
+            ),
+            (kill(100, 0, 1),),
+        ),
+        meta("october", STARTED_AT + timedelta(days=40)),
+    )
+    september, october = Tour.objects.order_by("started_at")
+
+    assert held(1)["elo_peak"] >= 1  # all time
+    assert not PlayerAchievement.objects.filter(key="elo_peak", tour__isnull=False).exists()
+    assert not AchievementHolders.objects.filter(key="elo_peak", tour__isnull=False).exists()
+    assert PlayerAchievement.objects.filter(player_id=pk(1), tour=october, key="career_kills").exists()  # others stay
+    page = client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
+    assert "Top Rated" not in page
+    assert "Top Rated" in client.get(f"/players/{pk(1)}/achievements/?tour=all").content.decode()
+    assert "Top Rated" not in client.get(f"/achievements/?tour={october.pk}").content.decode()
+    assert september.pk != october.pk

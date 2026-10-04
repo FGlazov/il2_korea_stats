@@ -58,7 +58,7 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
             info,
             tuple(_overview_tier(info.key, t, counts) for t in info.tiers),
         )
-        for info in medals.all_info()
+        for info in medals.all_info(in_tour=choice.selected is not None)
     ]
     rows.sort(key=lambda r: (r.info.shame, r.info.kind == "ribbon"))
     context = {
@@ -88,7 +88,8 @@ def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
         raise Http404
     info = medals.info(achievement)
     choice = tour_choice_from(request.GET)
-    counts = reads.holder_counts(choice.selected)
+    scope_tour = None if achievement.all_time_only else choice.selected  # Top Rated has no per-tour rows: all time
+    counts = reads.holder_counts(scope_tour)
     tiers = tuple(_overview_tier(key, t, counts) for t in info.tiers)
     try:
         wanted = int(request.GET.get("tier", ""))
@@ -101,7 +102,7 @@ def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
         "tier": info.tiers[wanted - 1],
         "tiers": tiers,
         "rarity": tiers[wanted - 1].rarity,
-        "page_obj": reads.holders_page(key, wanted, request.GET.get("page", 1), choice.selected),
+        "page_obj": reads.holders_page(key, wanted, request.GET.get("page", 1), scope_tour),
         "tour_query": tour_query(choice.selected),
         **choice.context,
         "page_title": _("%(medal)s: holders") % {"medal": info.name},
@@ -127,7 +128,7 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
         for m in medals.medals_of(reads.player_rows(player.pk, choice.selected), holdings, highest_only=False)
     }
     rows: list[ListRow] = []
-    for info in medals.all_info():
+    for info in medals.all_info(in_tour=choice.selected is not None):
         tiers = tuple(
             ListTier(
                 t,
