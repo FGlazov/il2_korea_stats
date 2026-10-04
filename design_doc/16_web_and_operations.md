@@ -179,7 +179,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **Matchups follow the tour selector** and a toggle "All fights /
   Intercept flights only" (`?tour=`, `?intercept=1`; `AircraftMatchup.tour` / `.intercept`, an intercept fight being two air superiority sorties),
   sortable by enemy, kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights
-  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). The rest of the page (tiles, top pilots, hits to destroy, loadouts) is all time. **No ratio is stored** (OQ-98):
+  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). Top pilots, hits to destroy and loadouts are all time (the tiles follow the tour, OQ-114). **No ratio is stored** (OQ-98):
   the list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next

@@ -224,6 +224,9 @@ decisions are made):
   filters, achievements to the earned-in sortie, columns + sort + reload, deep links and OG tags, admin hide removes a player everywhere,
   past tours, rivalry to killboard, streak history, phone viewport, no-JS sorting and filtering, keyboard-only row open.
 
+- 🔧 **Admin-configurable quips** (maintainer, 2026-10-04, first release): a global switch (on by default); per quip spot: defaults,
+  defaults + own, own only, or off; hide single default quips; own quips per language or for all; plain escaped text.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
@@ -235,6 +238,8 @@ and the PyPI first publish (maintainer).
 - Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
 - Per-ammo damage attribution analysis (follow-up damage is hard to attribute; OQ-52).
 - Yearly or quarterly aggregates next to tours (OQ-45).
+- **Scripted custom quip events** (maintainer, 2026-10-04): admin-written conditions over a sortie's fields, evaluated by a small
+  whitelisted expression parser (never Python `eval`) and validated on save.
 - Bailout height arm once heightmaps arrive (OQ-39).
 
 ## Right after the release: visual assets
