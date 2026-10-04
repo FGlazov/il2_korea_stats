@@ -281,6 +281,33 @@ def test_destroyed_status_is_not_derived_from_damage_taken(client: Client) -> No
     assert "Destroyed" not in html
 
 
+# --- detail: pilot health and aircraft damage (OQ-115) -----------------------------------------------------------
+def test_summary_shows_pilot_health_and_aircraft_damage(client: Client) -> None:
+    save(mission((sortie(0, 1, damage_taken=0.25, pilot_damage=0.38),)))
+
+    html = detail(client, pk_of(1))
+
+    assert re.search(r"Pilot health</dt><dd>62%", html)
+    assert re.search(r"Aircraft damage</dt><dd>25%", html)
+
+
+def test_dead_pilot_has_zero_health_and_destroyed_aircraft_full_damage(client: Client) -> None:
+    save(mission((sortie(0, 1, is_death=True, is_plane_lost=True, damage_taken=1.0),)))
+
+    html = detail(client, pk_of(1))
+
+    assert re.search(r"Pilot health</dt><dd>0%", html)
+    assert re.search(r"Aircraft damage</dt><dd>100%", html)
+
+
+def test_unknown_pilot_damage_hides_the_health_row_and_gunners_get_their_own_label(client: Client) -> None:
+    save(mission((sortie(0, 1), sortie(1, 2, role="gunner", pilot_damage=0.1))))
+    PlayerSortie.objects.filter(player__account_uuid__endswith=f"{1:012d}").update(pilot_damage=None)
+
+    assert "Pilot health" not in detail(client, pk_of(1))
+    assert re.search(r"Gunner health</dt><dd>90%", detail(client, pk_of(2)))
+
+
 # --- detail: timeline ----------------------------------------------------------------------------------------------
 def long_timeline(ground_kills: int, singles: int) -> SortieResult:
     entries: list[TimelineEntry] = [TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3))]

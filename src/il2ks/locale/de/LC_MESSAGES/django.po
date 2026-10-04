@@ -682,6 +682,9 @@ msgstr "In der Luft"
 msgid "Aircraft"
 msgstr "Flugzeug"
 
+msgid "Aircraft damage"
+msgstr ""
+
 # llm-draft
 msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
 msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge: falscher Ort, falsche Zeit."
@@ -2108,6 +2111,9 @@ msgstr "Bordwaffen-Treffer pro abgefeuertem Schuss; ein Strich, wenn die Schussz
 msgid "Gunner"
 msgstr "Bordschütze"
 
+msgid "Gunner health"
+msgstr ""
+
 # llm-draft
 msgid "Gunner only"
 msgstr "Nur Bordschütze"
@@ -3418,6 +3424,9 @@ msgstr "Pilot / Besatzung"
 # llm-draft
 msgid "Pilot fate"
 msgstr "Schicksal des Piloten"
+
+msgid "Pilot health"
+msgstr ""
 
 # llm-draft
 msgid "Pilot or gunner"

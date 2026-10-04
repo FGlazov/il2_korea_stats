@@ -239,7 +239,9 @@ people ask). The main use case is **a player reviewing their sortie**.
   aircraft was destroyed; ammo mixes, top 10 plus a fold (OQ-116); the profile shows **only the favourite loadout** per aircraft, without
   the mod-set and hits-by-ammo detail (OQ-117, changed); front-page image display (OQ-118); quip defaults (OQ-119). Object name variants (OQ-120): "Il-10" / "IL-10" and `B 29` / `B-29` are one aircraft each (catalog spelling and aliases,
   merged on upgrade); vehicle and static pairs such as `GAZ_63` / `GAZ-63` stay separate for now. The profile's per-aircraft table keeps
-  linking to the pilot's sorties in that aircraft (OQ-121).
+  linking to the pilot's sorties in that aircraft (OQ-121). Sortie page health rows (OQ-123, accepted): plain percentage rows; "Aircraft damage" on the sortie page
+  (100% when the aircraft was lost), the sortie list keeps "Damage taken"; "Pilot health" / "Gunner health" (0% when dead), a bailed-out
+  survivor shows the summed pilot-bot damage, hidden when unknown (older sorties until `il2ks reprocess --all`).
 
 ### Score and ratings
 Recorded by the maintainer on 2026-10-03; built 2026-10-04 (air and ground score, leaderboards, Elo: doc 13 "Score", doc 16). Its **inputs are computed at ingest
