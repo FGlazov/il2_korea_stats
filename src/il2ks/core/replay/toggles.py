@@ -12,11 +12,8 @@ class RuleToggles:
     # credited a kill for the other aircraft (and the victim's loss is "shot down" instead of "crashed").
     # Default False = nobody is credited (the collision has no attacker in the log).
     credit_rams: bool = False
-    # Parachute deaths: a pilot killed after leaving the aircraft in the air (a detected bailout). True = it is a death,
-    # as before. False = the "no parachute deaths" mod: the bailout is a lost aircraft but the pilot survives, and the
-    # shooter gets no kill for the pilot.
-    parachute_deaths: bool = True
+    # (A pilot killed under the parachute is always a death: the old `parachute_deaths` toggle was removed, OQ-99.)
     # Ram detection: both aircraft destroyed in the air within this many seconds and this distance of each other,
-    # with nobody else credited and no gun hits between them (`core.replay.rams`).
-    ram_window_s: float = 2.0
-    ram_distance_m: float = 50.0
+    # with nobody else credited and no gun hits between them (`core.replay.rams`). Tight on purpose (OQ-92).
+    ram_window_s: float = 0.5
+    ram_distance_m: float = 15.0

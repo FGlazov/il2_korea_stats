@@ -95,6 +95,8 @@ def test_collision_with_a_friend_credits_nobody() -> None:
     ("gap", "apart"),
     [
         pytest.param(3.0, BESIDE, id="too-far-apart-in-time"),
+        pytest.param(0.6, BESIDE, id="just-over-the-0.5-s-window"),
+        pytest.param(0.04, Pos(FAR.x + 20.0, FAR.y, FAR.z), id="just-over-the-15-m-distance"),
         pytest.param(0.04, Pos(FAR.x + 80.0, FAR.y, FAR.z), id="too-far-apart-in-space"),
         pytest.param(0.04, Pos(FAR.x, FAR.y + 80.0, FAR.z), id="too-far-apart-in-height"),
     ],

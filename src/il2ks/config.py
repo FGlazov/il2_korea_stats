@@ -282,7 +282,6 @@ def load_config(
     toggle_defaults = RuleToggles()
     rules = RuleToggles(
         credit_rams=reader.bool_("rules", "credit_rams", toggle_defaults.credit_rams),
-        parachute_deaths=reader.bool_("rules", "parachute_deaths", toggle_defaults.parachute_deaths),
         ram_window_s=reader.positive("rules", "ram_window_s", toggle_defaults.ram_window_s),
         ram_distance_m=reader.positive("rules", "ram_distance_m", toggle_defaults.ram_distance_m),
     )
@@ -388,6 +387,12 @@ def _renamed_key_warnings(reader: _Reader) -> tuple[str, ...]:
                 f"score.{old} is ignored: it was replaced by score.{new}, a percentage of the sortie's score "
                 f"(0 to 100) instead of a flat number of points. Rename it and convert the value."
             )
+    value, _ = reader._get("rules", "parachute_deaths")  # pyright: ignore[reportPrivateUsage]
+    if value is not None:
+        found.append(
+            "rules.parachute_deaths is ignored: a pilot killed while parachuting is always a death. Remove the key "
+            "(run `il2ks reprocess --all` if you had set it to false, to apply the rule to older missions)."
+        )
     return tuple(found)
 
 

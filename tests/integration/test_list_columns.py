@@ -321,6 +321,26 @@ def test_aircraft_columns_sort_with_undefined_ratios_last(client: Client) -> Non
     assert aircraft_order(client, "ground_hour", "ground_hour")[-1] != "Il-10"  # the only defined value is the first
 
 
+def test_aircraft_ratio_columns_sort_from_the_counters(client: Client) -> None:
+    """OQ-98: `AircraftStats` stores no ratio; K/D, K/L, survival and attack share are divided at read time, a zero
+    denominator is undefined and sorts last in both directions."""
+    seed_aircraft()
+    AircraftStats.objects.filter(aircraft__log_name="MiG-15bis").update(
+        kills_air=4, deaths=3, planes_lost=1, sorties=4, attack_sorties=0
+    )
+    AircraftStats.objects.filter(aircraft__log_name="F-86A-5").update(
+        kills_air=3, deaths=1, planes_lost=0, sorties=2, attack_sorties=1
+    )
+    # Il-10: deaths 0 and planes_lost 0 -> K/D and K/L undefined
+    assert aircraft_order(client, "-kd", "") == ["F-86A-5", "MiG-15bis", "Il-10"]  # 3.0, 2.0, undefined
+    assert aircraft_order(client, "kd", "") == ["MiG-15bis", "F-86A-5", "Il-10"]
+    assert aircraft_order(client, "-kl", "") == ["MiG-15bis", "F-86A-5", "Il-10"]  # 4.0, undefined, undefined (by name)
+    assert aircraft_order(client, "-survival", "")[0] == "Il-10"  # no death: 100%
+    assert aircraft_order(client, "survival", "")[0] == "MiG-15bis"  # (4 - 3) / 4
+    assert aircraft_order(client, "-attack_share", "") == ["Il-10", "F-86A-5", "MiG-15bis"]  # 100%, 50%, 0%
+    assert aircraft_order(client, "attack_share", "")[0] == "MiG-15bis"  # 0%
+
+
 @pytest.mark.parametrize("column", [c.key for c in columns.AIRCRAFT_COLUMNS])
 def test_every_aircraft_column_sorts_both_ways(client: Client, column: str) -> None:
     seed_aircraft()

@@ -5,8 +5,8 @@ Like the player aggregates they are always recomputed from lower rows, never adj
 rebuild by construction:
 
 - `AircraftStats` = the sum of the type's `PlayerAircraft` rows (every player, hidden ones too), plus the pilot count,
-  the side most sorties were flown for, and the four stored ratios used for sorting. Recompute it after
-  `recompute_players` (it reads their rows).
+  the side most sorties were flown for. No ratio is stored: K/D and the like are computed at read time (OQ-98).
+  Recompute it after `recompute_players` (it reads their rows).
 - `AircraftPayload` = counted sorties grouped by loadout name.
 - `AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type) and scope
   (all time / tour, all kills / intercept fights where both sorties were air superiority).
@@ -74,10 +74,6 @@ def recompute_aircraft_stats(aircraft_ids: Iterable[int]) -> None:
         _recompute_payloads(chunk, groups)
 
 
-def _ratio(top: int, bottom: int) -> float:
-    return top / bottom if bottom else 0.0
-
-
 def _recompute_stats(chunk: list[int], sides: dict[int, str]) -> None:
     sums = {name: Sum(name) for name in COUNTER_FIELDS}
     totals = {
@@ -91,15 +87,10 @@ def _recompute_stats(chunk: list[int], sides: dict[int, str]) -> None:
     new: list[AircraftStats] = []
     for aircraft_id, total in totals.items():
         values = clean_counters(total)
-        sorties, deaths = int(values["sorties"]), int(values["deaths"])
         wanted: dict[str, int | float | str] = {
             **values,
             "pilots": int(total["pilots"]),
             "side": sides.get(aircraft_id, ""),
-            "kd": _ratio(int(values["kills_air"]), deaths),
-            "kl": _ratio(int(values["kills_air"]), int(values["planes_lost"])),
-            "survival": _ratio(max(sorties - deaths, 0), sorties),
-            "attack_share": _ratio(int(values["attack_sorties"]), sorties),
         }
         row = existing.pop(aircraft_id, None)
         if row is None:
@@ -109,7 +100,7 @@ def _recompute_stats(chunk: list[int], sides: dict[int, str]) -> None:
                 setattr(row, name, value)
             changed.append(row)
     AircraftStats.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    fields = [*COUNTER_FIELDS, "pilots", "side", "kd", "kl", "survival", "attack_share"]
+    fields = [*COUNTER_FIELDS, "pilots", "side"]
     update_rows(AircraftStats, changed, fields)
     AircraftStats.objects.bulk_create(new)
 

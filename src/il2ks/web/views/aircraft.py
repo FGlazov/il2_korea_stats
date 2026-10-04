@@ -158,7 +158,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "intercept_url": _query_url(request, intercept=True),
         "elo_pilots": reads.top_elo(aircraft, rules),
         "ground_pilots": reads.top_ground(aircraft, rules),
-        "ground_first": stats.attack_share >= ATTACK_TYPE_SHARE,
+        "ground_first": stats.sorties > 0 and stats.attack_sorties >= ATTACK_TYPE_SHARE * stats.sorties,
         "rules": rules,
         "payloads": reads.payloads(aircraft),
     }
