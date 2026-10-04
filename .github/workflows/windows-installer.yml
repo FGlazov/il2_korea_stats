@@ -134,6 +134,7 @@ jobs:
           Get-Content $report
           if ((Get-Content $report -Raw) -notmatch 'templates/il2ks/home\.html') { throw "the report does not name the outdated override" }
           if ((Get-Content "$env:RUNNER_TEMP\upgrade.log" -Raw) -notmatch 'customized file\(s\)') { throw "the installer log has no warning" }
+          exit 0  # $LASTEXITCODE is still 4 from the expected `custom list --fail-on-problems` above
 
       - name: Uninstall keeps the data
         shell: pwsh
