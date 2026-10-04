@@ -24,6 +24,9 @@ SKIP_MODELS = frozenset(
     }
 )
 VOLATILE = frozenset({"updated_at"})
+FLOAT_DIGITS = 6
+"""Float columns are compared rounded: a SUM over the same rows in another order (Postgres does not promise one) differs
+in the last bits (256.53999999999996 vs 256.54), which is no difference in what the test checks."""
 
 
 def _encode(value: object) -> str:
@@ -85,6 +88,8 @@ class Canon:
             }
         if isinstance(value, list):
             return [self._remap_json(v) for v in cast(list[Any], value)]
+        if isinstance(value, float):
+            return round(value, FLOAT_DIGITS) + 0.0  # + 0.0: -0.0 becomes 0.0
         return value
 
 
