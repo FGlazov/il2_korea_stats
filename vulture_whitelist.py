@@ -59,6 +59,7 @@ _.has_change_permission
 _.changelist_view  # SiteSettingsAdmin: a singleton has no list
 extra_context  # changelist_view signature
 _.current_logo  # readonly_fields display methods
+_.uploaded_fonts
 _.missions_count  # TourAdmin display column
 _.start_view  # TourAdmin URL (admin:il2ks_db_tour_start)
 _.change_list_template  # ModelAdmin option
@@ -78,10 +79,14 @@ _.widgets  # ModelForm.Meta
 _.clean_accent_color  # ModelForm clean_<field> hooks
 _.clean_links_text
 _.clean_logo_upload
+_.clean_font_upload
 _.initial  # form field attribute
 links_text  # declared form fields of SiteSettingsForm, listed in the admin fieldsets
 logo_upload
 remove_logo
+font_upload
+font_use
+remove_fonts
 Media
 Meta
 

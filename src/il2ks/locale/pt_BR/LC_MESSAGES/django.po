@@ -213,6 +213,16 @@ msgstr ""
 msgid "<1%"
 msgstr ""
 
+# llm-draft
+msgid ""
+"A .woff2 (preferred) or .woff file, up to 2 MB; smaller is faster, so a file under 100 KB is ideal. Make sure the "
+"font's license allows web use. It is stored on your server and served from your own site; nothing is loaded from "
+"other websites."
+msgstr ""
+"Um arquivo .woff2 (preferível) ou .woff de até 2 MB; quanto menor, mais rápido, e o ideal é menos de 100 KB. Confirme"
+" que a licença da fonte permite uso na web. Ele fica guardado no seu servidor e é entregue pelo seu próprio site; "
+"nada é carregado de outros sites."
+
 msgid "A clean sheet so far. The runway thanks you."
 msgstr ""
 
@@ -437,6 +447,11 @@ msgstr ""
 #, python-format
 msgid "At most %(max)d navigation links."
 msgstr "No máximo %(max)d links de navegação."
+
+# llm-draft
+#, python-format
+msgid "At most %(max)d uploaded fonts: tick one under “Remove uploaded fonts” first."
+msgstr "No máximo %(max)d fontes enviadas: marque antes uma em “Remover fontes enviadas”."
 
 # llm-draft
 msgid "Attack"
@@ -691,6 +706,11 @@ msgstr "Logotipo atual"
 
 msgid "Current streak"
 msgstr ""
+
+# llm-draft
+#. Translators: the name shown for an uploaded font whose file name gave nothing usable (a noun phrase)
+msgid "Custom font"
+msgstr "Fonte personalizada"
 
 msgid "Damage"
 msgstr ""
@@ -1050,6 +1070,10 @@ msgstr "Fonte dos títulos"
 # llm-draft
 msgid "Headings"
 msgstr "Títulos"
+
+# llm-draft
+msgid "Headings and body text"
+msgstr "Títulos e texto do corpo"
 
 msgid "Health check"
 msgstr ""
@@ -1584,6 +1608,10 @@ msgstr ""
 msgid "No streak yet: no sortie survived."
 msgstr "Ainda sem sequência: nenhuma saída sobrevivida."
 
+# llm-draft
+msgid "No uploaded fonts."
+msgstr "Nenhuma fonte enviada."
+
 msgid "No winner"
 msgstr ""
 
@@ -1678,6 +1706,10 @@ msgstr ""
 # llm-draft
 msgid "Online now"
 msgstr "Online agora"
+
+# llm-draft
+msgid "Only .woff2 and .woff font files are accepted (no SVG, TTF, OTF or EOT)."
+msgstr "Só são aceitos arquivos de fonte .woff2 e .woff (nada de SVG, TTF, OTF ou EOT)."
 
 msgid "Open the site"
 msgstr ""
@@ -1943,6 +1975,10 @@ msgstr ""
 # llm-draft
 msgid "Remove the current logo"
 msgstr "Remover o logotipo atual"
+
+# llm-draft
+msgid "Remove uploaded fonts"
+msgstr "Remover fontes enviadas"
 
 # llm-draft
 msgid "Replaces the colors below with that scheme when you save. You can then adjust single colors."
@@ -2380,6 +2416,10 @@ msgid ""
 " set to write text logs there."
 msgstr ""
 
+# llm-draft
+msgid "The font file is damaged or truncated."
+msgstr "O arquivo de fonte está danificado ou incompleto."
+
 msgid "The game server names its log files in its own computer's local time, so il2ks has to know that time zone."
 msgstr ""
 
@@ -2444,6 +2484,11 @@ msgid ""
 msgstr ""
 
 # llm-draft
+#. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
+msgid "The quick brown fox jumps over the lazy dog 0123456789"
+msgstr "Um pequeno jabuti xereta viu dez cegonhas felizes 0123456789"
+
+# llm-draft
 msgid "The ramp crew has named a bollard after this pilot. Fondly."
 msgstr "A equipe de solo batizou um balizador com o nome deste piloto. Com carinho."
 
@@ -2487,6 +2532,15 @@ msgid "The two passwords differ."
 msgstr ""
 
 # llm-draft
+#, python-format
+msgid ""
+"The uploaded font is %(kb)d KB. Every visitor downloads it once (then it is cached), so large fonts slow down the "
+"first page view; a subset .woff2 under 100 KB is ideal."
+msgstr ""
+"A fonte enviada tem %(kb)d KB. Cada visitante a baixa uma vez (depois ela fica em cache), então fontes grandes deixam"
+" a primeira visita mais lenta; o ideal é um .woff2 reduzido com menos de 100 KB."
+
+# llm-draft
 msgid "The war was waiting. The ramp had other ideas."
 msgstr "A guerra esperava. O pátio tinha outros planos."
 
@@ -2505,6 +2559,11 @@ msgstr ""
 # llm-draft
 msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
 msgstr "Isto não é uma imagem PNG, JPEG ou WebP (SVG não é aceito)."
+
+# llm-draft
+#, python-format
+msgid "This is not a valid %(kind)s font file."
+msgstr "Este não é um arquivo de fonte %(kind)s válido."
 
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
@@ -2673,11 +2732,23 @@ msgid "Updated %(when)s"
 msgstr "Atualizado: %(when)s"
 
 # llm-draft
+msgid "Upload a font"
+msgstr "Enviar uma fonte"
+
+# llm-draft
 msgid "Upload a new logo"
 msgstr "Enviar um novo logotipo"
 
+# llm-draft
+msgid "Uploaded fonts"
+msgstr "Fontes enviadas"
+
 msgid "Use it anyway if it does not exist yet"
 msgstr ""
+
+# llm-draft
+msgid "Use the uploaded font for"
+msgstr "Usar a fonte enviada para"
 
 msgid "Used"
 msgstr ""
@@ -2999,6 +3070,12 @@ msgstr "texto nos botões de destaque"
 msgid "text on secondary buttons"
 msgstr "texto nos botões secundários"
 
+# llm-draft
+#. Translators: a short suffix in the heading/body font drop-down, after the font's name: "Fira Sans (uploaded)"
+#. marks a font the admin uploaded, as opposed to the built-in choices.
+msgid "uploaded"
+msgstr "enviada"
+
 #, python-format
 msgid "x %(x)s, z %(z)s, altitude %(y)s m"
 msgstr ""
@@ -3009,4 +3086,8 @@ msgstr ""
 # llm-draft
 msgid "— keep the colors below —"
 msgstr "— manter as cores abaixo —"
+
+# llm-draft
+msgid "— nothing yet (choose it in the lists below) —"
+msgstr "— nada por enquanto (escolha-a nas listas abaixo) —"
 

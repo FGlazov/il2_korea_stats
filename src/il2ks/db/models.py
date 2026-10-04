@@ -1097,6 +1097,10 @@ class SiteSettings(models.Model):
     # Font choices by key (`il2ks.web.theme.HEADING_FONTS` / `BODY_FONTS`); empty = the default font.
     heading_font = models.CharField(max_length=20, blank=True)
     body_font = models.CharField(max_length=20, blank=True)
+    # Uploaded fonts: [{"file": "branding/font-<hash16>.woff2", "label": "..."}], at most `web.fonts.MAX_CUSTOM_FONTS`.
+    # A font is selected by putting its key (`up-<hash8>`) into heading_font / body_font. Readers re-validate
+    # (`web.fonts.clean_fonts`), so a hand-edited row cannot inject CSS.
+    custom_fonts: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)
     # The custom navigation links, in order: [{"label", "url", "icon"}]. A published copy of the `NavLink` rows, written
     # by the admin on save, so pages read them with the settings row and need no extra query (page budgets).
     links: models.JSONField[list[dict[str, str]]] = models.JSONField(default=list, blank=True)

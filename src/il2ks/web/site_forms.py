@@ -10,6 +10,15 @@ from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
 from il2ks.db.models import SiteSettings
+from il2ks.web.fonts import (
+    MAX_CUSTOM_FONTS,
+    MAX_FONT_BYTES,
+    CustomFont,
+    FontError,
+    ProcessedFont,
+    clean_fonts,
+    process_font,
+)
 from il2ks.web.logo import MAX_UPLOAD_BYTES, LogoError, ProcessedLogo, process_logo
 from il2ks.web.theme import (
     BODY_FONTS,
@@ -142,6 +151,29 @@ class SiteSettingsForm(forms.ModelForm):
         help_text=_("PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."),
     )
     remove_logo = forms.BooleanField(label=_("Remove the current logo"), required=False)
+    font_upload = forms.FileField(
+        label=_("Upload a font"),
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": ".woff2,.woff,font/woff2,font/woff"}),
+        help_text=_(
+            "A .woff2 (preferred) or .woff file, up to 2 MB; smaller is faster, so a file under 100 KB is ideal. "
+            "Make sure the font's license allows web use. It is stored on your server and served from your own site; "
+            "nothing is loaded from other websites."
+        ),
+    )
+    font_use = forms.ChoiceField(
+        label=_("Use the uploaded font for"),
+        required=False,
+        choices=[
+            ("", _("— nothing yet (choose it in the lists below) —")),
+            ("heading", _("Headings")),
+            ("body", _("Body text")),
+            ("both", _("Headings and body text")),
+        ],
+    )
+    remove_fonts = forms.MultipleChoiceField(
+        label=_("Remove uploaded fonts"), required=False, widget=forms.CheckboxSelectMultiple, choices=[]
+    )
 
     class Meta:
         model = SiteSettings
@@ -162,8 +194,38 @@ class SiteSettingsForm(forms.ModelForm):
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)  # pyright: ignore[reportArgumentType]
         self.processed_logo: ProcessedLogo | None = None
+        self.processed_font: ProcessedFont | None = None
+        self.stored_fonts: list[CustomFont] = clean_fonts(self.instance.custom_fonts)
         if self.instance.pk is not None:
             self.initial["theme"] = clean_theme(self.instance.theme)
+        # Translators: a short suffix in the heading/body font drop-down, after the font's name: "Fira Sans (uploaded)"
+        # marks a font the admin uploaded, as opposed to the built-in choices.
+        uploaded = [(font.key, f"{font.label} ({_('uploaded')})") for font in self.stored_fonts]
+        for name, builtin in (("heading_font", HEADING_FONTS), ("body_font", BODY_FONTS)):
+            self.fields[name].choices = _choices(builtin) + uploaded
+        self.fields["remove_fonts"].choices = [(font.key, font.label) for font in self.stored_fonts]
+
+    @property
+    def kept_fonts(self) -> list[CustomFont]:
+        """The uploaded fonts that stay after this save, plus the new upload (valid after `is_valid`)."""
+        removed = set(self.cleaned_data.get("remove_fonts") or [])
+        fonts = [font for font in self.stored_fonts if font.key not in removed]
+        new = self.processed_font.font if self.processed_font is not None else None
+        if new is not None and all(font.file != new.file for font in fonts):
+            fonts.append(new)
+        return fonts
+
+    def clean_font_upload(self) -> UploadedFile | None:
+        upload: UploadedFile | None = self.cleaned_data["font_upload"]
+        if upload is None:
+            return None
+        if upload.size > MAX_FONT_BYTES:  # don't even read an oversized upload
+            raise forms.ValidationError(_("The file is larger than 2 MB."))
+        try:
+            self.processed_font = process_font(upload.read(MAX_FONT_BYTES + 1), upload.name or "")
+        except FontError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+        return upload
 
     def clean_logo_upload(self) -> UploadedFile | None:
         upload: UploadedFile | None = self.cleaned_data["logo_upload"]
@@ -181,12 +243,38 @@ class SiteSettingsForm(forms.ModelForm):
         cleaned = super().clean() or {}
         if cleaned.get("remove_logo") and self.processed_logo is not None:
             self.add_error("remove_logo", _("Either upload a new logo or remove the current one, not both."))
+        self._clean_fonts(cleaned)
         preset = cleaned.get("theme_preset")
         if preset == "default":
             cleaned["theme"] = {"light": {}, "dark": {}}
         elif isinstance(preset, str) and preset in PRESETS:
             cleaned["theme"] = clean_theme(PRESETS[preset][1])
         return cleaned
+
+    def _clean_fonts(self, cleaned: dict[str, object]) -> None:
+        """Font selection: a removed font stops being used, a new upload can be selected right away, and the list is
+        capped."""
+        if self.errors.get("font_upload") or self.errors.get("remove_fonts"):
+            return
+        removed = set(cast("list[str]", cleaned.get("remove_fonts") or []))
+        for name in ("heading_font", "body_font"):
+            if cleaned.get(name) in removed:
+                cleaned[name] = ""
+        kept = self.kept_fonts
+        if len(kept) > MAX_CUSTOM_FONTS:
+            self.add_error(
+                "font_upload",
+                _("At most %(max)d uploaded fonts: tick one under “Remove uploaded fonts” first.")
+                % {"max": MAX_CUSTOM_FONTS},
+            )
+            return
+        if self.processed_font is not None:
+            key = self.processed_font.font.key
+            use = cleaned.get("font_use")
+            if use in {"heading", "both"}:
+                cleaned["heading_font"] = key
+            if use in {"body", "both"}:
+                cleaned["body_font"] = key
 
 
 class NavLinkFormSet(forms.BaseInlineFormSet):
