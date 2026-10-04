@@ -147,11 +147,19 @@ decisions are made):
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
 - 🔧 **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
-- ⏳ **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
+- 🔧 **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
   superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
   target). On the leaderboards next to Elo and ground per hour, and in the home page's top boards. Queued after the leaderboard
   rework lands.
-- ⏳ **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
+- 🔧 **Language selector with flags** (maintainer, 2026-10-04): country flags next to the languages (US for English, Russia,
+  Germany, Spain, France, Brazil) so the selector reads as clickable; default to the visitor's OS/browser language when shipped
+  (Portuguese variants → Brazilian Portuguese), else English; an explicit choice wins.
+- 🔧 **Pilot fate shown as Dead / Captured / Survived** (maintainer, 2026-10-04): Dead and Captured override every other fate,
+  "unknown" reads as Survived; fate next to the outcome on the sortie previews; Mission is no longer a default column there.
+- ⏳ **Sortie timeline: damage and hits** (maintainer, 2026-10-04): a column for percent damage taken / given (empty unless the
+  event carries it); significant hits (e.g. over 0.1% damage) as timeline rows; ammo used matched to the nearest significant damage
+  event. Starts after the ammo-after-loss work lands (same attribution code).
+- 🔧 **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
   or attackers shot down, lots of assists but no kills ("the kills went to the rest of the flight", in the usual warm tone), and
   other standouts (a very quick first kill, a very long sortie, heavy damage brought home with kills, many ground targets, shot down
   by an AI gunner, a ram). Most notable event wins, several variants each, idiomatic translations.
