@@ -74,6 +74,7 @@ BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
+BACKFILL_AIRCRAFT_CASE = "aircraft_case"  # `Il-10` / `IL-10` rows merged into one GameObject
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
@@ -130,6 +131,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_BUILDS, _check_builds),
         (BACKFILL_ACHIEVEMENT_FACTS, _check_achievement_facts),
         (BACKFILL_PAYLOAD_NAMES, _check_payload_names),
+        (BACKFILL_AIRCRAFT_CASE, _check_aircraft_case),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -168,6 +170,53 @@ def _check_payload_names() -> bool:
         )
         changed = bool(rows.update(payload_name=name)) or changed
     return changed
+
+
+def _check_aircraft_case() -> bool:
+    """Before this fix a type written in two cases by the logs (`Il-10` / `IL-10`) had two `GameObject` rows, so two
+    aircraft pages and split stats. Every known type that has several rows keeps the one named like the catalog (or the
+    oldest, renamed), the others are merged into it: level 1 rows (sorties, per-mission ammo) are repointed, level 2
+    rows of the duplicate are dropped (the rebuild recreates them). Returns whether anything was merged."""
+    from django.db import IntegrityError, models, transaction
+
+    from il2ks.core.catalog.loader import load_default_catalog
+    from il2ks.db.models import GameObject, MissionAircraftAmmo, MissionAircraftAmmoMix, PlayerSortie
+
+    catalog = load_default_catalog()
+    groups: dict[str, list[GameObject]] = {}
+    for obj in GameObject.objects.order_by("pk"):
+        info = catalog.lookup(obj.log_name)
+        if info.is_known:
+            groups.setdefault(info.log_name, []).append(obj)
+    level1: tuple[type[models.Model], ...] = (PlayerSortie, MissionAircraftAmmo, MissionAircraftAmmoMix)
+    merged = False
+    for canonical, objs in groups.items():
+        if len(objs) < 2:
+            continue
+        keep = next((o for o in objs if o.log_name == canonical), objs[0])
+        for dup in objs:
+            if dup.pk == keep.pk:
+                continue
+            for rel in GameObject._meta.related_objects:
+                model, field = rel.related_model, rel.field.name
+                if not isinstance(model, type):
+                    continue
+                if model in level1:
+                    for row in model._default_manager.filter(**{field: dup.pk}):
+                        setattr(row, field, keep)
+                        try:
+                            with transaction.atomic():
+                                row.save(update_fields=[field])
+                        except IntegrityError:  # the same mission had both spellings: the kept row's counts stand
+                            row.delete()
+                else:
+                    model._default_manager.filter(**{field: dup.pk}).delete()
+            dup.delete()
+            merged = True
+        if keep.log_name != canonical:
+            keep.log_name = canonical
+            keep.save(update_fields=["log_name"])
+    return merged
 
 
 def _check_tour_aircraft() -> bool:
