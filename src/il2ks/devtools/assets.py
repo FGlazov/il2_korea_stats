@@ -61,7 +61,6 @@ GROUP_TITLES = {
     "illustration": "Illustrations (`illustration/`)",
 }
 # Not Tabler: original drawings (README.md "Ours"). Everything else must be a row of the README's Tabler table.
-UNUSED_STATS = ("bailouts", "captures")  # shipped, but no page shows a tile for them yet
 OURS = (
     "aircraft/",
     "brand/",
@@ -70,8 +69,22 @@ OURS = (
     "illustration/",
     "ground/artillery.svg",
     "ground/aaa.svg",
-    "stat/friendly-fire.svg",
     "flag/",  # flag-icons (MIT) and a hand-reduced Spain; README.md "Flags"
+)
+
+
+NAV_ICONS = (
+    "discord",
+    "forum",
+    "patreon",
+    "youtube",
+    "twitch",
+    "github",
+    "telegram",
+    "steam",
+    "mail",
+    "book",
+    "link",
 )
 
 
@@ -208,7 +221,7 @@ def build_manifest() -> list[Asset]:
     outcome_names = sorted({p.removesuffix(".svg") for p in usage})
     extra_usage = {"outcome/dead": "pilot status `dead`; also the timeline rows `killed` and `died`"}
     outcome_names = sorted({*outcome_names, "outcome/mission-ended"})
-    usage.setdefault("outcome/mission-ended.svg", "listed in the brief, no outcome value uses it yet")
+    usage.setdefault("outcome/mission-ended.svg", "reserved for a mission-ended outcome, no outcome value uses it yet")
     for name in outcome_names:
         used = extra_usage.get(name, usage[f"{name}.svg"])
         add(
@@ -248,16 +261,17 @@ def build_manifest() -> list[Asset]:
         "ground-kills": "Profile, aircraft, mission and home tiles",
         "assists": "Profile tile",
         "deaths": "Profile and aircraft tiles",
+        "accuracy": "Gun accuracy tiles (profile air / ground, aircraft, sortie)",
         "planes-lost": "Profile and aircraft tiles",
-        "bailouts": "No tile yet (shipped, unused)",
-        "captures": "No tile yet (shipped, unused)",
+        "bailouts": "Profile tile",
+        "captures": "Profile tile",
         "taxi-accidents": "Profile hall of shame (humorous): crashed before taking off",
         "strafed": "Profile hall of shame (humorous): destroyed while parked",
         "friendly-fire": "Profile hall of shame: sorties with a friendly kill",
     }
     for name, text in stat_uses.items():
-        add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", name not in UNUSED_STATS)
-    for name in ("elo-prop", "elo-jet", "interception"):
+        add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", True)
+    for name in ("elo-prop", "elo-jet", "interception", "ground-hour"):
         add(f"stat/{name}.svg", "Leaderboard switcher button (chess pieces for the Elo boards)", ICON, "P2", True)
 
     # achievement medals (FR-WEB-26): one icon per achievement, drawn inside a round badge that CSS tints per tier
@@ -285,7 +299,7 @@ def build_manifest() -> list[Asset]:
         )
 
     # navigation link icons: the admin picks one per custom link by key (web.site_forms), so the name is computed
-    for name in ("discord", "forum", "patreon", "link"):
+    for name in NAV_ICONS:
         add(f"nav/{name}.svg", "Custom navigation links in the header (`NavLink.icon`)", ICON, "P3", True, dynamic=True)
 
     # language flags (web.templatetags.il2ks.LANGUAGE_FLAGS): decorative `<img alt="">` in the footer language menu

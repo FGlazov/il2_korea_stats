@@ -39,7 +39,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `outcome/shot-down.svg` | `plane-off` |
 | `outcome/in-flight.svg` | `plane-inflight` |
 | `outcome/not-taken-off.svg` | `parking` |
-| `outcome/mission-ended.svg` | `flag-check` |
+| `outcome/mission-ended.svg` | `clock-stop` |
 | `outcome/unknown.svg` | `help` |
 | `outcome/bailed-out.svg` | `parachute` |
 | `outcome/exited-on-ground.svg` | `logout` |
@@ -63,12 +63,22 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `stat/elo-jet.svg` | `chess-knight` |
 | `stat/elo-prop.svg` | `chess-queen` |
 | `stat/interception.svg` | `radar-2` |
+| `stat/ground-hour.svg` | `clock-bolt` |
+| `stat/accuracy.svg` | `target` |
+| `stat/friendly-fire.svg` | `friends-off` |
 | `coalition/redfor.svg` | `star` |
 | `coalition/blufor.svg` | `shield` |
 | `nav/discord.svg` | `brand-discord` |
 | `nav/patreon.svg` | `brand-patreon` |
 | `nav/forum.svg` | `messages` |
 | `nav/link.svg` | `link` |
+| `nav/youtube.svg` | `brand-youtube` |
+| `nav/twitch.svg` | `brand-twitch` |
+| `nav/github.svg` | `brand-github` |
+| `nav/telegram.svg` | `brand-telegram` |
+| `nav/steam.svg` | `brand-steam` |
+| `nav/mail.svg` | `mail` |
+| `nav/book.svg` | `book` |
 | `medal/life-kills.svg` | `clover` |
 | `medal/sortie-kills.svg` | `target-arrow` |
 | `medal/career-kills.svg` | `crosshair` |
@@ -100,6 +110,6 @@ name is the label. `flag/es.svg` is reduced by hand to the plain red-yellow-red 
 
 ## Ours (original drawings, MIT like the rest of the project)
 
-`aircraft/*` (silhouettes), `ground/artillery.svg`, `ground/aaa.svg`, `stat/friendly-fire.svg`, `brand/*` (logo mark, favicon), `coalition/insignia/*`,
+`aircraft/*` (silhouettes), `ground/artillery.svg`, `ground/aaa.svg`, `brand/*` (logo mark, favicon), `coalition/insignia/*`,
 `pattern/*`, `illustration/*`. The complete inventory (every file, where it is used, required for the release or not) is generated into design_doc/15 by `uv run il2ks dev assets --write`; `tests/unit/test_asset_inventory.py` fails when it drifts. A test (`tests/unit/test_icon_files.py`) checks that every icon named in a template or in
 the code exists and that every icon is a well-formed 24 px `currentColor` SVG.

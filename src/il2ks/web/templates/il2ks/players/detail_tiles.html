@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_tiles.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_tiles.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_tiles.html: the general headline totals (sorties, flight time, deaths, planes lost) as stat tiles. The kill tiles
   moved to detail_air_tiles.html and detail_ground_tiles.html (the air / ground split of the page). Computed here from the
@@ -14,4 +14,8 @@
 
   {% blocktranslate with value=stats.kills_air|ratio:stats.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
   {% stat_tile stats.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
+
+  {% stat_tile stats.bailouts|num _("Bailouts") icon="stat/bailouts" %}
+
+  {% stat_tile stats.captures|num _("Captures") icon="stat/captures" %}
 </div>
