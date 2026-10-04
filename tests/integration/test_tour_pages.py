@@ -293,6 +293,6 @@ def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(c
     in_tour = client.get(f"/players/{pk(1)}/?tour={september.pk}").content.decode()
     all_time = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
 
-    assert "<dt>Ground score</dt><dd>12.0</dd>" in in_tour  # two tanks in September
-    assert "<dt>Ground score</dt><dd>24.0</dd>" in all_time  # plus four vehicles in October
+    assert "<dt>Ground score</dt><dd>12.0" in in_tour  # two tanks in September
+    assert "<dt>Ground score</dt><dd>24.0" in all_time  # plus four vehicles in October
     assert "Elo, prop <small>all time</small>" in in_tour

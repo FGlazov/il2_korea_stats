@@ -5,9 +5,9 @@
   player (its Elo, which is always all time and labelled so). Air side only (air score, Elo); the ground score is in
   detail_ground_scores.html. Elo shows once the player has rated games in that pool (otherwise the dash).
 {% endcomment %}<dl class="kv">
-  <dt>{% translate "Air score" %}</dt><dd>{{ stats.score_air|num:1 }}</dd>
+  <dt>{% translate "Air score" %}</dt><dd>{{ stats.score_air|num:1 }}{% stat_mark "air_score" %}</dd>
   <dt>{% translate "Elo, prop" %} <small>{% translate "all time" %}</small></dt>
-  <dd>{% if player.elo_prop_games %}{{ player.elo_prop|num }} <small>{% blocktranslate count games=player.elo_prop_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
+  <dd>{% if player.elo_prop_games %}{{ player.elo_prop|num }}{% stat_mark "elo_prop" %} <small>{% blocktranslate count games=player.elo_prop_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
   <dt>{% translate "Elo, jet" %} <small>{% translate "all time" %}</small></dt>
-  <dd>{% if player.elo_jet_games %}{{ player.elo_jet|num }} <small>{% blocktranslate count games=player.elo_jet_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
+  <dd>{% if player.elo_jet_games %}{{ player.elo_jet|num }}{% stat_mark "elo_jet" %} <small>{% blocktranslate count games=player.elo_jet_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
 </dl>

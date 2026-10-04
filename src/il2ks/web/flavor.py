@@ -167,6 +167,11 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         flight_time_s=stats.flight_time_s,
         taxi_accidents=stats.taxi_accidents,
         friendly_fire_incidents=stats.friendly_fire_incidents,
+        time_on_target_s=stats.time_on_target_s,
+        # Player and PlayerTour rows carry the scores, other Counters rows don't
+        score_air=getattr(stats, "score_air", 0.0),
+        score_ground=getattr(stats, "score_ground", 0.0),
+        score_ground_attack=getattr(stats, "score_ground_attack", 0.0),
     )
 
 

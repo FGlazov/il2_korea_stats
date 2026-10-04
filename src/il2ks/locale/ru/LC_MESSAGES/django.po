@@ -655,11 +655,43 @@ msgstr "Лучшие серии пилота %(name)s"
 
 # llm-draft
 #, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
+msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутой на цели"
+msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами на цели"
+msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами на цели"
+
+# llm-draft
+#, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s rated game in this pool"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s rated games in this pool"
+msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s рейтинговой игрой в этом классе"
+msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s рейтинговыми играми в этом классе"
+msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s рейтинговыми играми в этом классе"
+
+# llm-draft
+#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
 msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетом"
 msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
 msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s minute on target"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes on target"
+msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутой на цели"
+msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами на цели"
+msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами на цели"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s rated game in this pool"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s rated games in this pool"
+msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s рейтинговой игрой в этом классе"
+msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s рейтинговыми играми в этом классе"
+msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s рейтинговыми играми в этом классе"
 
 # llm-draft
 #, python-format

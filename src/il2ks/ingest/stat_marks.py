@@ -11,7 +11,18 @@ from collections.abc import Iterable
 
 from django.db.models import QuerySet
 
-from il2ks.core.stat_marks import DEFAULT_MARK_RULES, METRICS, MarkRules, Thresholds, Totals, metric_value, thresholds
+from il2ks.core.stat_marks import (
+    DEFAULT_MARK_RULES,
+    ELO_METRICS,
+    METRICS,
+    MarkRules,
+    Metric,
+    Thresholds,
+    Totals,
+    amount,
+    metric_value,
+    thresholds,
+)
 from il2ks.db.models import Player, PlayerTour, StatThreshold, Tour
 from il2ks.ingest.dbutil import update_rows
 
@@ -24,25 +35,32 @@ _FIELDS = (
     "flight_time_s",
     "taxi_accidents",
     "friendly_fire_incidents",
+    "score_air",
+    "score_ground",
+    "score_ground_attack",
+    "time_on_target_s",
 )
+_ELO_FIELDS = ("elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")  # Player only: ratings are all time
 
 
 def recompute_thresholds(rules: MarkRules = DEFAULT_MARK_RULES, tour_ids: Iterable[int] | None = None) -> None:
     """Rewrite the all-time thresholds and those of `tour_ids` (None = every tour) from the level-2 counters."""
-    _write(None, rules, Player.objects.all())
+    _write(None, rules, Player.objects.all(), _FIELDS + _ELO_FIELDS)
     ids = Tour.objects.values_list("pk", flat=True) if tour_ids is None else sorted(set(tour_ids))
     for tour_id in ids:
-        _write(tour_id, rules, PlayerTour.objects.filter(tour_id=tour_id))
+        _write(tour_id, rules, PlayerTour.objects.filter(tour_id=tour_id), _FIELDS)
 
 
-def _write(tour_id: int | None, rules: MarkRules, rows: QuerySet[Player] | QuerySet[PlayerTour]) -> None:
-    population = [
-        Totals(*values)
-        for values in rows.filter(sorties__gte=rules.min_sorties).values_list(*_FIELDS)  # one row per qualifying pilot
-    ]
-    wanted: dict[str, Thresholds] = {}
+def _write(
+    tour_id: int | None, rules: MarkRules, rows: QuerySet[Player] | QuerySet[PlayerTour], fields: tuple[str, ...]
+) -> None:
+    pilots = [Totals(**dict(zip(fields, values, strict=True))) for values in rows.values_list(*fields)]
+    wanted: dict[Metric, Thresholds] = {}
     for metric in METRICS:
-        found = thresholds(metric_value(metric, totals) for totals in population)
+        if tour_id is not None and metric in ELO_METRICS:
+            continue  # the Elo marks compare with the all-time population on a tour profile too
+        minimum = rules.minimum(metric)  # each metric has its own population: sorties, rated games or time on target
+        found = thresholds(metric_value(metric, totals) for totals in pilots if amount(metric, totals) >= minimum)
         if found is not None:
             wanted[metric] = found
     existing = {row.metric: row for row in StatThreshold.objects.filter(tour_id=tour_id)}
@@ -51,7 +69,7 @@ def _write(tour_id: int | None, rules: MarkRules, rows: QuerySet[Player] | Query
     for metric, found in wanted.items():
         row = existing.pop(metric, None)
         values = {
-            "min_sorties": rules.min_sorties,
+            "min_sorties": rules.minimum(metric),  # the minimum in the metric's unit (core.stat_marks.unit)
             "population": found.population,
             "p10": found.p10,
             "p25": found.p25,

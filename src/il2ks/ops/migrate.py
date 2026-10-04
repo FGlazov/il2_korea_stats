@@ -154,8 +154,10 @@ def _backfill_tours(cfg: Config) -> None:
         from il2ks.db.models import Player, StatThreshold
         from il2ks.ingest.stat_marks import recompute_thresholds
 
-        # A database from before stat marks (FR-WEB-22): build the thresholds once, without waiting for a mission.
-        if not StatThreshold.objects.exists() and Player.objects.exists():
+        # A database from before stat marks (FR-WEB-22), or before the score and Elo marks (the newest metric is the
+        # marker; a site without enough pilots just recomputes its few rows at each start): build the thresholds once,
+        # without waiting for a mission.
+        if not StatThreshold.objects.filter(metric="air_score").exists() and Player.objects.exists():
             log.info("computing stat thresholds")
             with transaction.atomic():
                 recompute_thresholds(cfg.marks)

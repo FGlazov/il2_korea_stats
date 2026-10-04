@@ -13,9 +13,14 @@ Rules:
   are stored anyway, for the owner's judgement and for later.
 - `taxi_per_sortie` and `friendly_fire_per_sortie` are no "better" metrics and never get a badge: the profile's hall of
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
+- The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
+  and ratios need `min_sorties` sorties; Elo needs `min_elo_games` rated games in that pool (all time, shown against
+  the all-time population on a tour profile too); ground score per hour needs `min_time_on_target_s` on target. The
+  stored `StatThreshold.min_sorties` holds that minimum in the metric's unit (sorties, games, seconds).
 - A population smaller than `MIN_POPULATION` has no thresholds (a percentile of a handful of pilots means nothing).
 """
 
+import math
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Final, Literal
@@ -29,6 +34,11 @@ type Metric = Literal[
     "ground_per_sortie",
     "taxi_per_sortie",
     "friendly_fire_per_sortie",
+    "air_score",
+    "ground_score",
+    "ground_score_hour",
+    "elo_prop",
+    "elo_jet",
 ]
 type Band = Literal["top", "high"]
 
@@ -41,7 +51,13 @@ METRICS: Final[tuple[Metric, ...]] = (
     "ground_per_sortie",
     "taxi_per_sortie",
     "friendly_fire_per_sortie",
+    "air_score",
+    "ground_score",
+    "ground_score_hour",
+    "elo_prop",
+    "elo_jet",
 )
+ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # all time only: ratings are not per tour
 MIN_POPULATION: Final = 20  # pilots needed before a distribution is worth showing
 SECONDS_PER_HOUR: Final = 3600.0
 
@@ -51,6 +67,18 @@ class MarkRules:
     """The `[marks]` config section."""
 
     min_sorties: int = 20  # a pilot (and a distribution) needs at least this many counted sorties
+    min_elo_games: int = 5  # Elo marks: rated games in that pool (the `[score]` minimum of the Elo boards)
+    min_time_on_target_s: float = 600.0  # ground score per hour: time on target (the ground-per-hour board's minimum)
+
+    def minimum(self, metric: Metric) -> int:
+        """The minimum a pilot needs for `metric`, in its unit (see `unit`), as stored with the thresholds."""
+        match unit(metric):
+            case "games":
+                return max(self.min_elo_games, 1)
+            case "seconds":
+                return math.ceil(max(self.min_time_on_target_s, 1.0))
+            case _:
+                return self.min_sorties
 
 
 DEFAULT_MARK_RULES = MarkRules()
@@ -68,6 +96,41 @@ class Totals:
     flight_time_s: float
     taxi_accidents: int = 0
     friendly_fire_incidents: int = 0  # sorties with a friendly kill
+    score_air: float = 0.0
+    score_ground: float = 0.0
+    score_ground_attack: float = 0.0  # score earned in attack sorties
+    time_on_target_s: float = 0.0
+    elo_prop: float = 0.0
+    elo_prop_games: int = 0
+    elo_jet: float = 0.0
+    elo_jet_games: int = 0
+
+
+type Unit = Literal["sorties", "games", "seconds"]
+
+
+def unit(metric: Metric) -> Unit:
+    """What the pilot's minimum for `metric` counts."""
+    match metric:
+        case "elo_prop" | "elo_jet":
+            return "games"
+        case "ground_score_hour":
+            return "seconds"
+        case _:
+            return "sorties"
+
+
+def amount(metric: Metric, totals: Totals) -> float:
+    """The pilot's figure the minimum of `metric` is compared with (sorties, rated games in the pool, seconds)."""
+    match metric:
+        case "elo_prop":
+            return totals.elo_prop_games
+        case "elo_jet":
+            return totals.elo_jet_games
+        case "ground_score_hour":
+            return totals.time_on_target_s
+        case _:
+            return totals.sorties
 
 
 def metric_value(metric: Metric, totals: Totals) -> float | None:
@@ -89,6 +152,16 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return _div(totals.taxi_accidents, totals.sorties)
         case "friendly_fire_per_sortie":
             return _div(totals.friendly_fire_incidents, totals.sorties)
+        case "air_score":
+            return totals.score_air
+        case "ground_score":
+            return totals.score_ground
+        case "ground_score_hour":
+            return _div(totals.score_ground_attack * SECONDS_PER_HOUR, totals.time_on_target_s)
+        case "elo_prop":
+            return totals.elo_prop if totals.elo_prop_games > 0 else None
+        case "elo_jet":
+            return totals.elo_jet if totals.elo_jet_games > 0 else None
 
 
 def _div(numerator: float, denominator: float) -> float | None:

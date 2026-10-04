@@ -644,10 +644,38 @@ msgstr "Mejores rachas de %(name)s"
 
 # llm-draft
 #, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
+msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minuto sobre el objetivo"
+msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minutos sobre el objetivo"
+
+# llm-draft
+#, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s rated game in this pool"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s rated games in this pool"
+msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s partida clasificada en esta categoría"
+msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s partidas clasificadas en esta categoría"
+
+# llm-draft
+#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
 msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salida"
 msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salidas"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s minute on target"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes on target"
+msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minuto sobre el objetivo"
+msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minutos sobre el objetivo"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s rated game in this pool"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s rated games in this pool"
+msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s partida clasificada en esta categoría"
+msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s partidas clasificadas en esta categoría"
 
 # llm-draft
 #, python-format

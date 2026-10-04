@@ -170,8 +170,8 @@
       "sha256": "30557119a0562ff24b08e0502d6e766938a2d06dbbfb64a25e6f0b50e6d03ea1"
     },
     "templates/il2ks/components/stat_mark.html": {
-      "version": 1,
-      "sha256": "6f4b02ca0d89b405403af240bf4a3b55365505c769729debda3ea366d402c61c"
+      "version": 3,
+      "sha256": "c50be31e53c82ea34134545291113fda6ca6e8f9c09fd519e3d4d6b044c2e245"
     },
     "templates/il2ks/components/stat_mark_note.html": {
       "version": 1,
