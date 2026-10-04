@@ -2,8 +2,8 @@
 
 For a **Linux** machine (typically one that runs DServer under Wine) that has Docker with the Compose plugin. One
 container runs everything: the web server, the log watcher and Caddy (HTTPS). The database is SQLite in a Docker
-volume. On Windows, use the [normal install](install.md): Docker Desktop on Windows is awkward with the game's folders
-and is often unavailable on rented Windows servers.
+volume. On Windows, the [normal install](install.md) is the recommended way (Docker Desktop is often unavailable on
+rented Windows servers); Docker Desktop on a Windows PC works too, see [Windows hosts](#windows-hosts-docker-desktop).
 
 **You need:** Docker with `docker compose`, a **domain name** pointing at this machine (like `stats.example.com`),
 **ports 80 and 443** free and reachable from the internet (otherwise [use your own proxy](#behind-your-own-proxy)), and
@@ -96,6 +96,31 @@ If you let il2ks move or delete logs (`IL2KS_LOGS_READ_ONLY=false`), the contain
 folder: same user ID as the owner, or `chmod o+w`. Rootless Docker and Podman map IDs differently (your own user is
 `0` inside); then leave the ID at 1000 and use `podman unshare chown` / `--userns=keep-id` as that tool documents.
 
+## Windows hosts (Docker Desktop)
+
+Tested with Docker Desktop for Windows (WSL 2 backend, Linux containers), from PowerShell and Git Bash:
+
+- **Log folder:** a normal Windows path in `docker/.env`, no quotes, for example
+  `IL2KS_LOGS_HOST_DIR=C:\Users\you\Documents\IL-2\data\Multiplayer\Cooperative\Logs` (forward slashes work too). The
+  drive must be shared with Docker Desktop (local drives are by default). The folder must exist, as on Linux. A network
+  share (`\\server\...`) is not supported: run il2ks on the machine that has the logs.
+- **New logs are noticed** although Windows bind mounts send no file-change events: the watcher polls the folder every
+  `[ingest] watch_interval_s` (30 s by default) and does not depend on such events.
+- **Permissions:** Docker Desktop shows Windows files as readable by everyone and writable by any user, so
+  `IL2KS_CONTAINER_UID`/`GID` and [file permissions](#file-permissions) do not matter. `IL2KS_LOGS_READ_ONLY=false` with
+  `IL2KS_LOGS_AFTER_ARCHIVE=move` works.
+- **Ports 80 and 443** must be free on Windows (IIS, other web servers and some VPN or sharing software take them:
+  `netstat -ano | findstr ":443 "` shows who). Windows also reserves port ranges (`netsh interface ipv4 show
+  excludedportrange protocol=tcp`); if 80 or 443 lies inside one, use [your own proxy](#behind-your-own-proxy). On the same
+  PC the site is at `https://localhost` (self-signed test certificate, the browser warns). A real certificate needs the PC
+  to be reachable from the internet on port 80, which behind a home router means forwarding it.
+- **Line endings:** the repository's `.gitattributes` keeps `*.sh` at LF, so `docker/docker-entrypoint.sh` works after a
+  Windows checkout with `core.autocrlf=true`. If an editor saved it with CRLF, the container fails with
+  `exec ... no such file or directory`; convert it back to LF.
+- **Startup is slower** than on Linux (the first start takes up to a minute). Docker Desktop must be running; turn on
+  "Start Docker Desktop when you sign in" so that the container (`restart: unless-stopped`) comes back after a reboot.
+- The smoke test runs on Windows too: `bash docker/smoke-test.sh` from Git Bash.
+
 ## Day to day
 
 ```bash
@@ -139,7 +164,7 @@ If 80 and 443 are taken (nginx, Traefik, ...), let that proxy do HTTPS and use *
 |---|---|
 | `set IL2KS_SERVER_TIMEZONE in docker/.env` or `set IL2KS_LOGS_HOST_DIR ...` | `docker/.env` is missing or incomplete; run compose from the folder that has it, or use `-f docker/compose.yaml`. |
 | `bind source path does not exist` | The log folder in `IL2KS_LOGS_HOST_DIR` is wrong or not created yet. |
-| `Bind for 0.0.0.0:80 failed: port is already allocated` | Something else uses 80 or 443: [your own proxy](#behind-your-own-proxy). |
+| `Bind for 0.0.0.0:80 failed: port is already allocated`, or on Windows `ports are not available` | Something else uses 80 or 443: [your own proxy](#behind-your-own-proxy). |
 | Browser says "not secure" | `IL2KS_HTTPS_DOMAIN` is empty (test certificate), or the real certificate is not issued yet: DNS must point here and port 80 be reachable from outside. `docker compose logs il2ks` shows lines from `caddy`. |
 | The site works but is empty | Wrong log folder, DServer's text logs off, or wrong permissions: `docker compose run --rm il2ks doctor`. |
 | Missions are named with the wrong day | `IL2KS_SERVER_TIMEZONE` does not match the game server. |

@@ -5,8 +5,13 @@
 #   2. The default command (`il2ks run`: web + Caddy, self-signed certificate because no domain is set) comes up:
 #      the site answers over https, http redirects, the admin from IL2KS_ADMIN_* exists, the healthcheck turns healthy,
 #      and a restart keeps the admin instead of resetting it.
+#      It runs with the hardening of compose.yaml (cap_drop ALL, no-new-privileges, UID 1000, the low-port sysctl) and a
+#      bind-mounted log folder (the anonymized fixture from tests/fixtures/logs, copied to a temp dir) that must get
+#      ingested: that also covers bind mounts from a Windows host, where inotify does not fire (the watcher polls).
 #   3. `IL2KS_HTTPS_MODE=external` (no Caddy) serves the production settings on the web port.
 set -euo pipefail
+[ -z "${SMOKE_TRACE:-}" ] || set -x
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 IMAGE="${1:-il2ks:local}"
 PREFIX="il2ks-smoke-$$"
@@ -28,6 +33,7 @@ cleanup() {
         done
     fi
     docker rm -f "$PREFIX-full" "$PREFIX-external" >/dev/null 2>&1 || true
+    [ -z "${LOGS_TMP:-}" ] || rm -rf "$LOGS_TMP"
 }
 trap cleanup EXIT
 
@@ -35,9 +41,9 @@ trap cleanup EXIT
 wait_for() {
     local seconds="$1" what="$2"
     shift 2
-    local deadline=$((SECONDS + seconds))
-    until curl -fsS -o /dev/null --max-time 5 "$@" 2>/dev/null; do
-        [ "$SECONDS" -lt "$deadline" ] || fail "$what did not come up within ${seconds}s"
+    local deadline=$((SECONDS + seconds)) err=""
+    until err="$(curl -fsS -o /dev/null --max-time 30 "$@" 2>&1)"; do
+        [ "$SECONDS" -lt "$deadline" ] || fail "$what did not come up within ${seconds}s (curl: $err)"
         sleep 2
     done
     echo "ok: $what"
@@ -62,7 +68,18 @@ docker run --rm -e IL2KS_SERVER_TIMEZONE=UTC "$IMAGE" doctor --json >/dev/null &
 echo "ok: doctor ran (exit $doctor_status)"
 
 echo "== 2. il2ks run (web + Caddy)"
-docker run -d --name "$PREFIX-full" \
+LOGS_TMP="$(mktemp -d)"
+cp "$SCRIPT_DIR/../tests/fixtures/logs/typical.txt.zip" "$LOGS_TMP/missionReport(2026-10-02_20-00-00)[0].txt.zip"
+chmod -R a+rX "$LOGS_TMP"
+# docker.exe needs a Windows path for a bind mount (C:/Users/...), not Git Bash's /tmp/...
+LOGS_MOUNT="$(cygpath -m "$LOGS_TMP" 2>/dev/null || echo "$LOGS_TMP")"
+# Git Bash on Windows rewrites arguments that look like POSIX paths (-e IL2KS_LOGS_DIR=/logs): docker wants them
+# untouched. (Only here: curl's `-o /dev/null` elsewhere needs the rewrite.)
+MSYS_NO_PATHCONV=1 docker run -d --name "$PREFIX-full" \
+    --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges:true \
+    --sysctl net.ipv4.ip_unprivileged_port_start=0 \
+    -v "$LOGS_MOUNT:/logs:ro" -e IL2KS_LOGS_DIR=/logs -e IL2KS_LOGS_AFTER_ARCHIVE=keep \
+    -e IL2KS_INGEST_WATCH_INTERVAL_S=3 \
     -p "$HTTPS_PORT:443" -p "$HTTP_PORT:80" \
     -e IL2KS_SERVER_TIMEZONE=UTC \
     -e IL2KS_ADMIN_USERNAME=smoke -e IL2KS_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
@@ -77,6 +94,12 @@ logs="$(docker logs "$PREFIX-full" 2>&1)"
 grep -q "Admin account 'smoke': created" <<<"$logs" || fail "the admin account was not created"
 echo "ok: admin created from IL2KS_ADMIN_*"
 wait_healthy "$PREFIX-full"
+deadline=$((SECONDS + 120))
+until logs="$(docker logs "$PREFIX-full" 2>&1)" && grep -q "ingested (new" <<<"$logs"; do
+    [ "$SECONDS" -lt "$deadline" ] || fail "the log in the mounted folder was not ingested"
+    sleep 3
+done
+echo "ok: a log from the bind-mounted folder was ingested"
 docker restart "$PREFIX-full" >/dev/null
 wait_for 120 "https after a restart" -k --resolve "localhost:$HTTPS_PORT:127.0.0.1" "https://localhost:$HTTPS_PORT/"
 logs="$(docker logs "$PREFIX-full" 2>&1)"
