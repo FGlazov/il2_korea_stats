@@ -25,7 +25,7 @@ from il2ks.core.logparse.events import (
 )
 from il2ks.core.logparse.parser import ParseStats, parse_lines
 from il2ks.core.replay.config import ReplayRules
-from il2ks.core.replay.result import MissionInfo, SortieResult
+from il2ks.core.replay.result import MissionInfo, MissionResult, SortieResult
 from il2ks.core.replay.state import Replay
 
 type LiveState = Literal["in_flight", "on_ground", "spawned", "connected"]
@@ -56,6 +56,7 @@ class LiveView:
     mission: MissionInfo | None
     players: tuple[OnlinePlayer, ...]
     ended: bool  # AType 7 was seen: the mission is over, the server is about to load the next one
+    result: MissionResult | None = None  # the full provisional result, the same rules as the final pass (FR-ING-15)
 
 
 @dataclass(slots=True)
@@ -138,4 +139,4 @@ class LiveReplay:
                 )
             )
         ended = snap.mission is not None and snap.mission.completed_cleanly
-        return LiveView(tick=snap.tick, mission=snap.mission, players=tuple(players), ended=ended)
+        return LiveView(tick=snap.tick, mission=snap.mission, players=tuple(players), ended=ended, result=snap.result)

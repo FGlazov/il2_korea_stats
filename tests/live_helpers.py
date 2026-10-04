@@ -45,3 +45,21 @@ def write_part(
 def mission_end_index(lines: list[str]) -> int:
     """Index of the first AType 7 line."""
     return next(i for i, line in enumerate(lines) if " AType:7" in line)
+
+
+def free_clock() -> float:
+    """A cost clock for `LiveTracker` under which every pass costs nothing: the CPU cap never backs the intervals off,
+    whatever the speed of the machine running the test."""
+    return 0.0
+
+
+class SteppingClock:
+    """A cost clock where each reading is `step` seconds after the last: every measured pass costs exactly `step`."""
+
+    def __init__(self, step: float) -> None:
+        self.step = step
+        self._now = 0.0
+
+    def __call__(self) -> float:
+        self._now += self.step
+        return self._now

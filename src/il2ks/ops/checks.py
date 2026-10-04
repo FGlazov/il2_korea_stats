@@ -405,6 +405,38 @@ def ammo_mix_check(cfg: Config) -> Iterable[Finding]:
 
 
 @check
+def live_check(cfg: Config) -> Iterable[Finding]:
+    """FR-ING-15: are the sorties of the running mission shown while it runs? (The admin's switch, on by default.)"""
+    from django.db import DatabaseError
+
+    from il2ks.db.models import Mission
+    from il2ks.ingest.live import sorties_enabled
+
+    if applied_migrations(cfg.db_path) is None:
+        return
+    try:
+        enabled = sorties_enabled()
+        running = Mission.objects.filter(is_live=True).count()
+    except DatabaseError:
+        return  # an old database without the column: the database check says to migrate
+    if not cfg.live.enabled:
+        yield Finding(Level.OK, "Online now and live sorties are off", "[live] enabled = false in il2ks.toml")
+    elif enabled:
+        yield Finding(
+            Level.OK,
+            "Sorties of the running mission are shown while it runs",
+            f"saved every {cfg.live.sorties_interval_s:.0f} s by il2ks watch"
+            + (f"; {running} running mission(s) are in the statistics now" if running else ""),
+        )
+    else:
+        yield Finding(
+            Level.OK,
+            "Sorties of the running mission are hidden until it ends",
+            'switched off in the admin (Site settings, "Show sorties of the running mission"); online now still works',
+        )
+
+
+@check
 def backup_check(cfg: Config) -> Iterable[Finding]:
     newest = newest_backup_time(cfg.backup_dir)
     if newest is None:

@@ -62,6 +62,13 @@
 #enabled = true
 # Seconds between two looks at the running mission. The website treats data older than three times this as stale.
 #interval_s = 30.0
+# Seconds between two provisional saves of the running mission's sorties, so profiles, leaderboards and the sortie pages
+# move while the mission is still going (the admin can switch this off in the site settings; ratings are only worked out
+# when the mission ends). Passes are slowed down automatically on a very long mission to stay light on the CPU.
+#sorties_interval_s = 120.0
+# Seconds between two updates of the totals those sorties feed (player profiles, leaderboards, aircraft pages). This is
+# the heavier part, so it runs less often. 0 = only when the mission ends. Ratings are always worked out at the end.
+#aggregates_interval_s = 300.0
 
 # --- Game rules for the replay (FR-ING-14, FR-ING-17, FR-ING-21, FR-ING-22) ----------------------------------------
 # A changed rule only affects missions ingested afterwards; run `il2ks reprocess --all` (or --since DATE) to apply

@@ -73,6 +73,9 @@ class Snapshot:
     sorties: tuple[SortieResult, ...]
     mission: MissionInfo | None = None  # None only when resolving failed
     open_sorties: frozenset[int] = frozenset()  # `SortieResult.index` of sorties with no end (AType 4) logged yet
+    result: MissionResult | None = (
+        None  # the whole provisional result (kills, ammo ...), for provisional saving (FR-ING-15)
+    )
 
 
 class Replay:
@@ -192,7 +195,11 @@ class Replay:
             return Snapshot(tick=self._facts.last_tick, sorties=())
         open_sorties = frozenset(s.index for s in self._facts.sorties if s.is_open)
         return Snapshot(
-            tick=self._facts.last_tick, sorties=result.sorties, mission=result.mission, open_sorties=open_sorties
+            tick=self._facts.last_tick,
+            sorties=result.sorties,
+            mission=result.mission,
+            open_sorties=open_sorties,
+            result=result,
         )
 
     def finish(self) -> MissionResult:

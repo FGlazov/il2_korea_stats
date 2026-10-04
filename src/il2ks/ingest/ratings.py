@@ -8,7 +8,8 @@ by construction, and running it twice changes nothing.
 
 A game is a `Kill` row that is a `kill` credit (not an assist, not shared), not friendly, whose killer and victim
 sorties are both pilot sorties with the air superiority combat role. The pool of each side is its aircraft's
-propulsion; a game with an unknown propulsion on either side is skipped.
+propulsion; a game with an unknown propulsion on either side is skipped. Kills of a provisional (still running)
+mission are not games yet (FR-ING-15): the ratings only move when the mission's final save has cleared `is_live`.
 """
 
 from collections.abc import Iterator
@@ -96,6 +97,7 @@ def _games() -> Iterator[Game]:
     """Qualifying kills as games, in chronological order (mission start, kill time, row id)."""
     kills = (
         Kill.objects.filter(
+            mission__is_live=False,  # a running mission counts when it ends (FR-ING-15), not before
             credit=KillCredit.KILL,
             is_friendly=False,
             killer_sortie__role=Role.PILOT,

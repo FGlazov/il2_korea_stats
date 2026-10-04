@@ -271,6 +271,19 @@ def ingest_cfg(tmp_path: Path) -> Config:
 
 
 @pytest.mark.django_db
+def test_live_check_reports_the_admin_switch(ingest_cfg: Config) -> None:
+    """FR-ING-15: on by default, and the doctor says when the admin switched live sorties off."""
+    from il2ks.db.models import SiteSettings
+
+    [on] = checks.live_check(ingest_cfg)
+    assert on.level == Level.OK
+    assert "shown while it runs" in on.title
+    SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": False})
+    [off] = checks.live_check(ingest_cfg)
+    assert "hidden until it ends" in off.title
+
+
+@pytest.mark.django_db
 def test_ingestion_without_problems_is_ok(ingest_cfg: Config) -> None:
     run("2026-09-19_10-00-00", IngestStatus.OK, hours_ago=3)
     assert levels(checks.ingestion_check(ingest_cfg)) == [Level.OK]
