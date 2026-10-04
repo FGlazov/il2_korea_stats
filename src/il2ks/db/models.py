@@ -812,6 +812,26 @@ class PlayerStreak(models.Model):
         return f"{self.player_id}: {self.current_sorties} / {self.best_sorties}"
 
 
+# --- Level 2: server activity ---
+
+
+class ActivityDay(models.Model):
+    """Server activity per UTC calendar day (FR-WEB-16, the home page's activity chart): level 2, written by `ingest`.
+
+    Built from the day's visible (not hidden) missions, by their start time: how many missions, their sorties and air
+    kills, and the distinct pilots (counted roles) who flew in them. Hidden players still count as a pilot, like in a
+    mission's `players_total`. Rows exist only for days with a visible mission. Hiding a mission refreshes its day."""
+
+    day = models.DateField(unique=True)
+    missions = models.PositiveIntegerField(default=0)
+    sorties = models.PositiveIntegerField(default=0)
+    pilots = models.PositiveIntegerField(default=0)
+    kills_air = models.PositiveIntegerField(default=0)
+
+    def __str__(self) -> str:
+        return str(self.day)
+
+
 # --- Operational ---
 
 

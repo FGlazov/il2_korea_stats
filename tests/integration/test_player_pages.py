@@ -274,9 +274,9 @@ def test_profile_page_budget(client: Client) -> None:
     seed()
 
     # context processor 2, player, names, tours (selector), stat thresholds, aircraft rows, recent sorties, streak,
-    # top victims, top nemeses
-    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=11)
-    assert_simple_reads(client, f"/players/{player_pk(1)}/?sort=-kills_air", max_queries=11)
+    # top victims, top nemeses, tour history (charts)
+    assert_simple_reads(client, f"/players/{player_pk(1)}/", max_queries=12)
+    assert_simple_reads(client, f"/players/{player_pk(1)}/?sort=-kills_air", max_queries=12)
     # a player with zero counted sorties adds one read to tell gunner-only from empty
     assert_simple_reads(client, f"/players/{player_pk(5)}/", max_queries=9)
 

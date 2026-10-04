@@ -17,6 +17,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from il2ks.web import display
+from il2ks.web.charts import ChartSeries, ChartSpec
 
 AIRCRAFT = ("F-86F-30 Sabre", "MiG-15bis", "F-51D-30 Mustang", "Yak-9P", "La-9", "Il-10")
 SIDES = {"redfor": 501, "blufor": 601}
@@ -77,6 +78,29 @@ def icon_names() -> list[str]:
     )
 
 
+def sample_charts() -> list[ChartSpec]:
+    """Fake charts for the style guide: two series, one series with a huge value, one point, and an empty one."""
+    months = ("May", "Jun", "Jul", "Aug", "Sep", "Oct")
+    return [
+        ChartSpec(
+            "sg-chart-two",
+            "Air kills and deaths per tour",
+            "Two series over six tours.",
+            months,
+            (ChartSeries("Air kills", (12, 40, 31, 57, 18, 3)), ChartSeries("Deaths", (9, 22, 35, 41, 10, 4))),
+        ),
+        ChartSpec(
+            "sg-chart-big",
+            "Huge values and tiny ones",
+            "One series, the second bar is 1 of 48,000.",
+            months,
+            (ChartSeries("Sorties", (48_000, 1, 0, 12_345, 700, 25_000)),),
+        ),
+        ChartSpec("sg-chart-one", "A single point", "One category.", ("Sep",), (ChartSeries("Sorties", (7,)),)),
+        ChartSpec("sg-chart-empty", "No data yet", "Nothing.", months, (ChartSeries("Sorties", (0,) * 6),)),
+    ]
+
+
 def resolve_sort(raw: str) -> str:
     """The whitelisted sort for a ?sort= value: unknown fields fall back to the default, never an error."""
     return raw if raw.removeprefix("-") in SORT_FIELDS else DEFAULT_SORT
@@ -113,6 +137,7 @@ def styleguide(request: HttpRequest) -> HttpResponse:
         "roles": list(display.ROLES),
         "aircraft_statuses": list(display.AIRCRAFT_STATUSES),
         "icon_names": icon_names(),
+        "charts": sample_charts(),
         "sample_aircraft": [
             SimpleNamespace(log_name="MiG-15bis", propulsion="jet"),
             SimpleNamespace(log_name="Yak-9P", propulsion="prop"),

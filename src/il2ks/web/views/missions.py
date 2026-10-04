@@ -15,9 +15,11 @@ from django.utils.translation import gettext_lazy as _
 
 from il2ks.core.catalog.loader import Side
 from il2ks.db.models import PlayerMission, PlayerSortie
+from il2ks.queries import activity as activity_reads
 from il2ks.queries import missions as reads
 from il2ks.queries.tours import tour_choice_from, tour_options
 from il2ks.web import display
+from il2ks.web.chart_data import activity_chart
 
 HOME_MISSIONS = 8
 HOME_PILOTS = 5
@@ -52,7 +54,12 @@ def home(request: HttpRequest) -> HttpResponse:
         if last is not None
         else []
     )
-    context: dict[str, object] = {"latest": latest, "last_mission": last, "pilots": pilots}
+    context: dict[str, object] = {
+        "latest": latest,
+        "last_mission": last,
+        "pilots": pilots,
+        "activity": activity_chart(activity_reads.recent_activity()),
+    }
     return render(request, "il2ks/home.html", context)
 
 

@@ -1,0 +1,12 @@
+{# il2ks-template: templates/il2ks/players/detail_charts.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_charts.html: the profile's per-tour charts (FR-WEB-16), only when the player has counters in two or more tours.
+  Context: charts (ChartSpec tuple from il2ks.web.chart_data.player_charts, may be empty).
+{% endcomment %}{% if charts %}
+  <section class="profile-charts" aria-labelledby="activity-heading">
+    <h2 id="activity-heading">{% translate "Activity by tour" %}</h2>
+    <div class="split">
+      {% for spec in charts %}{% bar_chart spec %}{% endfor %}
+    </div>
+  </section>
+{% endif %}

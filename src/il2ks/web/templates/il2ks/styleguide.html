@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/styleguide.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/styleguide.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load il2ks %}{% comment %}
   Dev-only style guide (DEBUG only). English on purpose: the i18n test skips this file. Context comes from
   il2ks.web.views.styleguide. Add ?theme=dark or ?theme=light to preview a theme.
@@ -83,6 +83,16 @@
       {% stat_tile 205|num "Deaths" sub="K/L 1.92" icon="stat/deaths" %}
     </div>
     {% kv_list kv_rows %}
+  </section>
+
+  <section class="sg-section" id="charts">
+    <h2>Bar charts</h2>
+    <p class="sg-note">Inline SVG drawn on the server (<code>il2ks.web.charts</code>), coloured by the <code>--il2-chart-*</code> tokens. A legend appears from two plotted series; every bar has a tooltip; the numbers are in the table under each chart. A <code>ChartSeries(plotted=False)</code> is table-only.</p>
+<pre class="sg-code">{% verbatim %}spec = ChartSpec("chart-id", title, desc, categories, (ChartSeries("Kills", (3, 5, 2)),))
+{% bar_chart spec %}{% endverbatim %}</pre>
+    <div class="split">
+      {% for spec in charts %}{% bar_chart spec %}{% endfor %}
+    </div>
   </section>
 
   <section class="sg-section" id="badges">

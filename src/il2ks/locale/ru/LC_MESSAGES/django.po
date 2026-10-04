@@ -249,6 +249,9 @@ msgstr ""
 msgid "Air kills"
 msgstr ""
 
+msgid "Air kills and deaths per tour"
+msgstr ""
+
 msgid "Air kills per flight hour"
 msgstr ""
 
@@ -1643,6 +1646,9 @@ msgstr "Снова показывать выбранные миссии на п�
 msgid "Show selected players on public pages again"
 msgstr "Снова показывать выбранных игроков на публичных страницах"
 
+msgid "Show the numbers"
+msgstr ""
+
 #, python-format
 msgid "Show the remaining %(n)s timeline rows"
 msgstr ""
@@ -1692,7 +1698,13 @@ msgstr ""
 msgid "Sorties of %(name)s"
 msgstr ""
 
+msgid "Sorties per day"
+msgstr ""
+
 msgid "Sorties per side"
+msgstr ""
+
+msgid "Sorties per tour"
 msgstr ""
 
 # llm-draft

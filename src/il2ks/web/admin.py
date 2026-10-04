@@ -12,6 +12,7 @@ Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rul
 
 from collections.abc import Sequence
 from functools import partial
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -41,6 +42,7 @@ from il2ks.db.models import (
     Tour,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
 from il2ks.web.logo import prune_logos, store_logo
 from il2ks.web.object_names import default_catalog
@@ -153,7 +155,13 @@ def _set_hidden(
     hidden: bool,
 ) -> None:
     with transaction.atomic():
-        changed = queryset.exclude(is_hidden=hidden).update(is_hidden=hidden)
+        toggled = queryset.exclude(is_hidden=hidden)
+        # Hiding a mission changes its day's activity numbers (FR-WEB-16)
+        days: set[date] = set()
+        if queryset.model is Mission:
+            days = {day_of(m.started_at) for m in toggled if isinstance(m, Mission)}
+        changed = toggled.update(is_hidden=hidden)
+        recompute_days(days)
         bump_data_version()
     text = (
         ngettext("%(n)d row hidden from public pages.", "%(n)d rows hidden from public pages.", changed)
@@ -250,6 +258,10 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
             },
         ),
     )
+
+    def save_model(self, request: HttpRequest, obj: Mission, form: ModelForm, change: bool) -> None:
+        super().save_model(request, obj, form, change)
+        recompute_days({day_of(obj.started_at)})  # hiding or showing it changes its day's activity (FR-WEB-16)
 
     @admin.action(description=_("Hide selected missions from public pages"), permissions=["change"])
     def hide_selected(self, request: HttpRequest, queryset: models.QuerySet[Mission]) -> None:

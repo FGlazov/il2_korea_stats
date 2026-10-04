@@ -8,8 +8,8 @@ Order inside `save_mission` (the caller holds the transaction):
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
 5. rewrite the mission's `MissionAircraftAmmo` rows (gun hits per destroyed aircraft type, FR-WEB-18)
 6. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`), per-tour
-   rows only for the mission's old and new tour, and for the aircraft types whose ammo rows changed
-   (`aggregates.recompute_aircraft_ammo`)
+   rows only for the mission's old and new tour, for the aircraft types whose ammo rows changed
+   (`aggregates.recompute_aircraft_ammo`), plus the server-activity day(s) (`ingest.activity`)
 7. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
 """
 
@@ -49,6 +49,7 @@ from il2ks.db.models import (
     PlayerSortie,
 )
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
 from il2ks.ingest.aircraft_stats import mission_aircraft, mission_pairs, recompute_aircraft_stats, recompute_matchups
 from il2ks.ingest.counters import COUNTED_ROLES, SORTIE_COUNTERS, clean_counters, counted_sorties
@@ -94,11 +95,12 @@ def save_mission(
     """
     clock = _Clock(meta.started_at)
     tour = ensure_tour(tours, meta.started_at)
-    old_tour_id = (
+    previous = (
         Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
-        .values_list("tour_id", flat=True)
+        .values_list("tour_id", "started_at")
         .first()
     )
+    old_tour_id, old_started_at = previous if previous else (None, None)
     mission, created = Mission.objects.update_or_create(
         server_uid=meta.server_uid,
         mission_uid=meta.mission_uid,
@@ -126,6 +128,7 @@ def save_mission(
     recompute_aircraft_ammo(ammo_aircraft_ids)
     recompute_aircraft_stats(old_aircraft_ids | mission_aircraft(mission.pk))  # after the players' PlayerAircraft rows
     recompute_matchups(old_pairs | mission_pairs(mission.pk))
+    recompute_days({day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()))
     if marks is not None:
         recompute_thresholds(marks, touched_tours)  # FR-WEB-22: after the player rows, once per mission
     if ratings is not None:

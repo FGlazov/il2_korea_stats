@@ -69,7 +69,7 @@ def body(client: Client, url: str) -> str:
 
 # --- home ---------------------------------------------------------------------------------------------------------
 def test_home_without_missions_is_a_friendly_page(client: Client) -> None:
-    assert_simple_reads(client, "/", max_queries=CONTEXT_READS + 2)  # + the streaks block
+    assert_simple_reads(client, "/", max_queries=CONTEXT_READS + 3)  # latest missions, streaks block, activity days
 
     assert "Latest missions" in body(client, "/")
 
@@ -79,7 +79,7 @@ def test_home_shows_latest_missions_and_the_last_missions_top_pilots(client: Cli
     Player.objects.filter(account_uuid=account(1)).update(current_name="Maverick")
     make_mission(5, sorties=0)  # newer than nothing: empty missions stay off the home page
 
-    assert_simple_reads(client, "/", max_queries=CONTEXT_READS + 3)  # + the streaks block
+    assert_simple_reads(client, "/", max_queries=CONTEXT_READS + 4)  # + the streaks block and the activity days
 
     html = body(client, "/")
     assert "korea test" in html  # "missions/korea_test" from the factory

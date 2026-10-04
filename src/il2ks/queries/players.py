@@ -9,11 +9,12 @@ from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
 
-from il2ks.db.models import Player, PlayerAircraft, PlayerName, PlayerSortie, PlayerTourAircraft, Role, Tour
+from il2ks.db.models import Player, PlayerAircraft, PlayerName, PlayerSortie, PlayerTour, PlayerTourAircraft, Role, Tour
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = 50
 RECENT_SORTIES = 10
+TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64
 
 # Public `?sort=` key -> the Player column it orders by. Anything else falls back to the default (a whitelist).
@@ -125,3 +126,10 @@ def flies_as_gunner_only(player: Player) -> bool:
         player.sorties == 0
         and PlayerSortie.objects.filter(player=player, role=Role.GUNNER, mission__is_hidden=False).exists()
     )
+
+
+def tour_history(player: Player, limit: int = TOUR_HISTORY) -> list[PlayerTour]:
+    """The player's per-tour counters for the profile charts (FR-WEB-16), oldest first, at most the latest `limit`
+    tours; the tour comes along in the same query."""
+    rows = PlayerTour.objects.filter(player=player).select_related("tour").order_by("-tour__started_at")[:limit]
+    return list(reversed(rows))
