@@ -37,6 +37,19 @@ the combat role's score. Delete this entry once the maintainer has seen it.
 
 ### Decisions made during the 2026-10-04 run (defaults applied; answer by ID)
 
+**Answers (maintainer, 2026-10-04, batch 2):**
+- **OQ-68** `[DECIDED]`: grant the service account access to the log folder, as built; fine for network folders too.
+- **OQ-69** `[DECIDED]`: keep `/ADMINPASSWORD=` for silent installs (next to `/ADMINUSER=` and `/ADMINPASSWORDFILE=`).
+- **OQ-70** `[DECIDED]`: no setup page in Docker; docs/install-docker.md explains `il2ks createadmin` (checked).
+- **OQ-71** `[DECIDED]`: `restore` refuses while the site runs: it swaps the database, the config, `custom/` (template overrides),
+  `media/`, the server ID and the secret key.
+- **OQ-72** `[DECIDED]`: the hall-of-shame tile is named after friendly-fire **kills** (rename being applied).
+- **OQ-73** `[DECIDED]` for now: "Strafed on the ground" stays in "Other totals"; the maintainer reviews all pages later.
+- **OQ-74, OQ-75, OQ-77** `[DECIDED]`: as applied.
+- **OQ-76** `[DECIDED]` for now: the ammo-name guesses stay.
+- **OQ-78** `[DECIDED]`: no segmented toggle; only the tour dropdown, with "All time" and "Current tour" as its top two entries
+  (being applied).
+
 **OQ-68 Installer: grant the service account access to the game log folder**
 The service now runs as `NT SERVICE\il2ks` (OQ-41), which can't read the game's log folder the way SYSTEM could. Default applied: the
 installer grants it Modify on the log folder chosen in the wizard (read access, plus `after_archive = move`). This changes ACLs outside
