@@ -424,19 +424,22 @@ msgstr "Достижения"
 
 # llm-draft
 msgid ""
-"Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie "
-"show when a tier was first reached."
+"Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a"
+" tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is."
 msgstr ""
-"Достижения зарабатываются за всю карьеру пилота и никогда не отбираются. У каждого есть уровни; дата и вылет "
-"показывают, когда уровень был достигнут впервые."
+"Достижения никогда не отбираются. У каждого есть уровни; дата и вылет показывают, когда уровень был достигнут "
+"впервые. Выберите тур, чтобы увидеть, что пилот заработал за него, или за всё время. Наведите курсор на уровень, "
+"чтобы узнать, насколько он редок."
 
 # llm-draft
 msgid ""
 "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
-"earned once and kept. The numbers show how many pilots hold each tier."
+"earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the "
+"numbers show how many pilots hold it. Everything starts afresh with each tour."
 msgstr ""
-"Достижения за то, что пилоты делают в воздухе и на земле. У каждого достижения есть уровни, начиная с бронзы; уровень"
-" зарабатывается один раз и остаётся навсегда. Числа показывают, сколько пилотов достигли каждого уровня."
+"Достижения за то, что пилоты делают в воздухе и на земле. У каждого есть уровни, начиная с бронзы; уровень получают "
+"один раз, и он остаётся. Медали — более трудные достижения, ленточки — более простые. Наведите курсор на уровень, "
+"чтобы узнать, насколько он редок; числа показывают, сколько пилотов его имеют. С каждым туром всё начинается заново."
 
 # llm-draft
 #, python-format
@@ -1788,6 +1791,16 @@ msgid "Healthy"
 msgstr "Здоров"
 
 # llm-draft
+#, python-format
+msgid "Held by %(share)s%% of pilots"
+msgstr "Есть у %(share)s%% пилотов"
+
+# llm-draft
+#, python-format
+msgid "Held by less than 0.1%% of pilots"
+msgstr "Есть у менее чем 0,1%% пилотов"
+
+# llm-draft
 msgid "Hidden"
 msgstr "Скрыто"
 
@@ -3112,6 +3125,10 @@ msgid "Recently completed by idle timeout"
 msgstr "Недавно завершены по таймауту бездействия"
 
 # llm-draft
+msgid "Recently earned"
+msgstr "Недавно получено"
+
+# llm-draft
 msgid "Regular"
 msgstr "Постоянный игрок"
 
@@ -3166,6 +3183,10 @@ msgstr "Результат"
 # llm-draft
 msgid "Resupplied during the sortie"
 msgstr "Пополнил боекомплект во время вылета"
+
+# llm-draft
+msgid "Ribbon"
+msgstr "Ленточка"
 
 # llm-draft
 msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."

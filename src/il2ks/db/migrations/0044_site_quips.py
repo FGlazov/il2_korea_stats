@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0042_player_aircraft_build"),
+        ("il2ks_db", "0043_achievements_per_tour"),
     ]
 
     operations = [

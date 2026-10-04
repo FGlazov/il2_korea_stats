@@ -413,19 +413,22 @@ msgstr "Conquistas"
 
 # llm-draft
 msgid ""
-"Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie "
-"show when a tier was first reached."
+"Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a"
+" tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is."
 msgstr ""
-"As conquistas são obtidas ao longo de todo o histórico do piloto e nunca são retiradas. Cada uma tem níveis; a data e"
-" a surtida mostram quando um nível foi alcançado pela primeira vez."
+"As conquistas nunca são tiradas. Cada uma tem níveis; a data e a surtida mostram quando um nível foi alcançado pela "
+"primeira vez. Escolha uma temporada para ver o que o piloto conquistou nela, ou todo o período. Passe o mouse sobre "
+"um nível para ver o quão raro ele é."
 
 # llm-draft
 msgid ""
 "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
-"earned once and kept. The numbers show how many pilots hold each tier."
+"earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the "
+"numbers show how many pilots hold it. Everything starts afresh with each tour."
 msgstr ""
-"Conquistas pelo que os pilotos fazem no ar e em terra. Cada conquista tem níveis, do bronze para cima; um nível é "
-"conquistado uma vez e fica para sempre. Os números mostram quantos pilotos têm cada nível."
+"Conquistas pelo que os pilotos fazem no ar e em solo. Cada conquista tem níveis, a partir do bronze; um nível é "
+"conquistado uma vez e fica. As medalhas são as mais difíceis, as fitas as mais simples. Passe o mouse sobre um nível "
+"para ver o quão raro ele é; os números mostram quantos pilotos o têm. Tudo recomeça a cada temporada."
 
 # llm-draft
 #, python-format
@@ -1764,6 +1767,16 @@ msgid "Healthy"
 msgstr "Ileso"
 
 # llm-draft
+#, python-format
+msgid "Held by %(share)s%% of pilots"
+msgstr "Conquistado por %(share)s%% dos pilotos"
+
+# llm-draft
+#, python-format
+msgid "Held by less than 0.1%% of pilots"
+msgstr "Conquistado por menos de 0,1%% dos pilotos"
+
+# llm-draft
 msgid "Hidden"
 msgstr "Oculto"
 
@@ -3086,6 +3099,10 @@ msgid "Recently completed by idle timeout"
 msgstr "Concluídas recentemente por tempo limite de inatividade"
 
 # llm-draft
+msgid "Recently earned"
+msgstr "Conquistado recentemente"
+
+# llm-draft
 msgid "Regular"
 msgstr "Presença Garantida"
 
@@ -3140,6 +3157,10 @@ msgstr "Resultado"
 # llm-draft
 msgid "Resupplied during the sortie"
 msgstr "Reabastecido durante a surtida"
+
+# llm-draft
+msgid "Ribbon"
+msgstr "Fita"
 
 # llm-draft
 msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."

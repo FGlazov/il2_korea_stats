@@ -413,19 +413,23 @@ msgstr "Logros"
 
 # llm-draft
 msgid ""
-"Achievements are earned over a pilot's whole history and never taken back. Each one has tiers; the date and sortie "
-"show when a tier was first reached."
+"Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a"
+" tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is."
 msgstr ""
-"Los logros se ganan a lo largo de toda la trayectoria del piloto y nunca se retiran. Cada uno tiene niveles; la fecha"
-" y la salida indican cuándo se alcanzó un nivel por primera vez."
+"Los logros nunca se quitan. Cada uno tiene niveles; la fecha y la salida muestran cuándo se alcanzó un nivel por "
+"primera vez. Elige una temporada para ver lo que el piloto consiguió en ella, o el histórico. Pasa el cursor por un "
+"nivel para ver lo poco común que es."
 
 # llm-draft
 msgid ""
 "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is "
-"earned once and kept. The numbers show how many pilots hold each tier."
+"earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the "
+"numbers show how many pilots hold it. Everything starts afresh with each tour."
 msgstr ""
-"Logros por lo que hacen los pilotos en el aire y en tierra. Cada logro tiene niveles, de bronce hacia arriba; un "
-"nivel se gana una vez y se conserva. Los números indican cuántos pilotos tienen cada nivel."
+"Logros por lo que los pilotos hacen en el aire y en tierra. Cada logro tiene niveles, desde el bronce; un nivel se "
+"consigue una vez y se conserva. Las medallas son los más difíciles, las cintas los más sencillos. Pasa el cursor por "
+"un nivel para ver lo poco común que es; los números indican cuántos pilotos lo tienen. Con cada temporada todo "
+"empieza de cero."
 
 # llm-draft
 #, python-format
@@ -1765,6 +1769,16 @@ msgid "Healthy"
 msgstr "Ileso"
 
 # llm-draft
+#, python-format
+msgid "Held by %(share)s%% of pilots"
+msgstr "Lo tiene el %(share)s%% de los pilotos"
+
+# llm-draft
+#, python-format
+msgid "Held by less than 0.1%% of pilots"
+msgstr "Lo tiene menos del 0,1%% de los pilotos"
+
+# llm-draft
 msgid "Hidden"
 msgstr "Oculto"
 
@@ -3089,6 +3103,10 @@ msgid "Recently completed by idle timeout"
 msgstr "Completadas recientemente por tiempo de inactividad"
 
 # llm-draft
+msgid "Recently earned"
+msgstr "Conseguido recientemente"
+
+# llm-draft
 msgid "Regular"
 msgstr "Habitual"
 
@@ -3143,6 +3161,10 @@ msgstr "Resultado"
 # llm-draft
 msgid "Resupplied during the sortie"
 msgstr "Reabastecido durante la salida"
+
+# llm-draft
+msgid "Ribbon"
+msgstr "Cinta"
 
 # llm-draft
 msgid "Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."

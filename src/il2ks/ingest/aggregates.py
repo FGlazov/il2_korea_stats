@@ -97,7 +97,7 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
         recompute_killboard(chunk, tours)  # level-2 pair rows, all-time and per tour, ingest.pairs (FR-WEB-9)
         recompute_type_killboard(chunk, tours)  # ... and by enemy aircraft type, ingest.type_board (FR-WEB-9)
         recompute_streaks(chunk, tours)  # ironman streaks, all-time and per tour, ingest.streaks (FR-WEB-23)
-        recompute_achievements(chunk)  # medals, all time, ingest.achievements (FR-WEB-26)
+        recompute_achievements(chunk, tours)  # medals, all time and per tour, ingest.achievements (FR-WEB-26)
 
 
 def rebuild_aggregates(

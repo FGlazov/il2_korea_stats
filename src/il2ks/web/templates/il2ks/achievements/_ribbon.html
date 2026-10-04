@@ -1,0 +1,12 @@
+{# il2ks-template: templates/il2ks/achievements/_ribbon.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _ribbon.html: one ribbon (doc 17, Display): the compact form of a simple achievement, like a service ribbon. A bar of
+  coloured stripes (the pattern ribbon--s0 to s3 follows the achievement, colours are theme tokens) with one small pip per
+  tier reached, pips tinted by tier (ribbon--bronze ...), then the name. Rarer tiers get the same ring or glow as
+  medals (rarity--rare, rarity--epic). Context: m (web.medals.Medal), optional href (link of the whole ribbon). Tooltip
+  and screen-reader text as in _medal.html.
+{% endcomment %}<{% if href %}a href="{{ href }}"{% else %}span tabindex="0"{% endif %} class="ribbon ribbon--s{{ m.style }} ribbon--{{ m.slug }}{% if m.rarity.level %} rarity--{{ m.rarity.level }}{% endif %}" data-tooltip="{{ m.hint }}">
+  <span class="ribbon__bar" aria-hidden="true">{% for n in m.tier_range %}<i class="ribbon__pip"></i>{% endfor %}</span>
+  <span class="ribbon__name">{{ m.name }}</span>
+  <span class="visually-hidden">{{ m.hint }}</span>
+</{% if href %}a{% else %}span{% endif %}>

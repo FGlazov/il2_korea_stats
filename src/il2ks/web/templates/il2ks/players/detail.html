@@ -1,5 +1,5 @@
 {# il2ks-template: templates/il2ks/players/detail.html v1 - copy this line along when you override #}
-{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_achievements %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/, in this
   order: detail_header, tour select, detail_nav (in-page links), detail_tiles (general), detail_shame (hall of shame),
   detail_recent (latest 5 sorties + "View all sorties"), detail_air_section (air-to-air: detail_air_tiles, detail_ratios,
@@ -12,7 +12,8 @@
   Context: air_active, ground_active, player, stats (Player or PlayerTour, None when the tour has no sortie of theirs), tour, tours, names (PlayerName
   rows, newest first), sort (aircraft table sort, resolved), pve_kills / pve_losses (of `stats`), aircraft (PlayerAircraft / PlayerTourAircraft
   rows with .aircraft), survived (sorties without a death), ground (GroundRow list), gunner_only, recent (PlayerSortie
-  rows with .mission and .aircraft), crumbs, page_title.
+  rows with .mission and .aircraft), tour_query, crumbs, page_title. `medal_set` (medals, ribbons, hall-of-shame ribbons of the
+  selected scope; two reads) is set here for detail_shame and detail_achievements.
   Blocks of this page: content. A player without a counted sortie gets a notice instead of empty tables.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
@@ -25,6 +26,7 @@
   {% if stats.sorties %}
     {% include "il2ks/players/detail_nav.html" %}
     {% include "il2ks/players/detail_tiles.html" %}
+    {% player_medals player tour as medal_set %}
     {% include "il2ks/players/detail_shame.html" %}
     {% include "il2ks/players/detail_achievements.html" %}
     {% include "il2ks/players/detail_recent.html" %}

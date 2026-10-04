@@ -1,0 +1,24 @@
+{# il2ks-template: templates/il2ks/achievements/home_feed.html v1 - copy this line along when you override #}
+{% load i18n il2ks il2ks_achievements %}{% comment %}
+  home_feed.html: the home page's "Recently earned" strip (doc 17, OQ-105): the newest medal and ribbon tiers of visible
+  pilots in the selected scope, newest first, at most 8. Rarer tiers carry a ring or a glow (rarity--rare, rarity--epic).
+  Left out on purpose: hall-of-shame entries, bronze ribbons and bronze medals that a fifth of the pilots hold already.
+  A hidden mission's sortie is not linked. Reads its own rows with {% recent_medals tour as feed %} (two reads, one when
+  nothing was earned); shows nothing when there are none. Context: tour, tour_query.
+{% endcomment %}{% recent_medals tour as feed %}{% if feed %}<section aria-labelledby="recent-awards-heading" class="recent-awards">
+  <div class="section-head">
+    <h2 id="recent-awards-heading">{% translate "Recently earned" %}</h2>
+    <a href="{% url 'web:achievements' %}{{ tour_query }}">{% translate "All achievements" %} →</a>
+  </div>
+  <ul class="feed">
+    {% for item in feed %}{% with m=item.medal %}<li class="feed__item medal--{{ m.slug }}{% if m.rarity.level %} rarity--{{ m.rarity.level }}{% endif %}" data-tooltip="{{ m.hint }}">
+      {% if m.kind == "ribbon" %}<span class="ribbon__bar ribbon--s{{ m.style }} ribbon--{{ m.slug }}" aria-hidden="true">{% for n in m.tier_range %}<i class="ribbon__pip"></i>{% endfor %}</span>{% else %}<span class="medal__badge">{% icon m.icon %}</span>{% endif %}
+      <span class="feed__text">
+        <a class="feed__pilot" href="{% url 'web:player-detail' item.player_id %}{{ tour_query }}">{{ item.player_name }}</a>
+        <span class="feed__what">{% if m.href %}<a href="{{ m.href }}">{{ m.name }}</a>{% else %}{{ m.name }}{% endif %} · {{ m.tier_name }}</span>
+        <span class="feed__meta muted">{% if m.rarity.text %}{{ m.rarity.text }} · {% endif %}{{ m.earned_at|local_date }}</span>
+      </span>
+      <span class="visually-hidden">{{ m.hint }}</span>
+    </li>{% endwith %}{% endfor %}
+  </ul>
+</section>{% endif %}

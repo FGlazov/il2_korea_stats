@@ -145,8 +145,8 @@ PlayerBestStreak player, tour (null = all time), kind (sorties / air_kills / fli
 PlayerStreakRun player, tour (null = all time), sorties, kills_air, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
                -- FR-WEB-25, OQ-82: every streak of at least `MIN_LISTED_RUN` survived sorties, finished or running; `ended_sortie` is the fatal or
                -- capturing sortie (null while open); `open` also covers a tour that ran out. A tour's runs stay inside the tour. Built by `ingest.streaks`
-PlayerAchievement player, key, tier, earned_at, sortie, mission   -- FR-WEB-26, doc 17: one row per earned tier, unique (player, key, tier); all time
-AchievementHolders key, tier, holders   -- visible pilots holding each tier, for the overview page (no counting at request time)
+PlayerAchievement player, tour (null = all time), key, tier, earned_at, sortie, mission   -- FR-WEB-26, doc 17: one row per earned tier, unique (player, tour, key, tier) as two conditional constraints (tour set / null); a tour's rows come from that tour's sorties only
+AchievementHolders tour (null = all time), key, tier, holders, pilots   -- visible pilots holding each tier in the scope and the scope's visible pilots with a sortie in it (the rarity denominator), for the overview, the hover text and the home feed (no counting at request time)
 ActivityDay    day (UTC, unique), missions, sorties, pilots, kills_air   -- FR-WEB-16: the home chart; visible missions only, by start time
 ```
 **Only counters are stored.** Ratios (K/D = kills / deaths, K/L = kills / planes lost, kills per sortie, kills per flight hour, survival rate)

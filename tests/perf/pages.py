@@ -38,10 +38,10 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("streak-list", lambda w: "/streaks/", 8),
     PageSpec("streak-list", lambda w: "/streaks/?tour=all", 8),
     PageSpec("leaderboard", lambda w: "/leaderboards/air/", 8),
-    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 7),  # + earned medals (FR-WEB-26)
-    PageSpec("player-achievements", lambda w: f"/players/{w.player_pk}/achievements/", 5),
-    PageSpec("achievements", lambda w: "/achievements/", 4),
-    PageSpec("achievement-holders", lambda w: "/achievements/flight_hours/", 6),
+    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 8),  # + earned medals and their rarity (FR-WEB-26)
+    PageSpec("player-achievements", lambda w: f"/players/{w.player_pk}/achievements/", 6),
+    PageSpec("achievements", lambda w: "/achievements/", 5),
+    PageSpec("achievement-holders", lambda w: "/achievements/flight_hours/", 7),
     PageSpec("aircraft-list", lambda w: "/aircraft/", 5),
     PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 11),  # + the tour tiles, + the ammo mixes
     PageSpec("live", lambda w: "/live/", 4, max_ms=250.0),

@@ -215,3 +215,27 @@ def test_progress_is_monotone_and_has_one_value_per_sortie(a: Achievement) -> No
 
     assert len(values) == len(rows)
     assert values == sorted(values)
+
+
+# --- ribbons and rarity (doc 17, OQ-105) -----------------------------------------------------------------------
+def test_definitions_default_to_medals_and_the_simple_ones_are_ribbons() -> None:
+    assert Achievement("x", (1,), "count", life_kills).kind == "medal"
+    assert not Achievement("x", (1,), "count", life_kills).shame
+    ribbons = {a.key for a in ACHIEVEMENTS if a.kind == "ribbon"}
+    assert {"frequent_flyer", "regular", "flight_hours", "career_kills"} <= ribbons
+    assert BY_KEY["life_kills"].kind == "medal"
+
+
+def test_rarity_text_and_emphasis_follow_the_share_of_pilots() -> None:
+    from il2ks.queries.achievements import Holding
+    from il2ks.web.medals import NO_RARITY, rarity
+
+    assert rarity(None) is NO_RARITY
+    assert rarity(Holding(3, 0)) is NO_RARITY  # a row from before the pilot counts existed
+    assert rarity(Holding(1, 200)).level == "epic"  # 0.5 %
+    assert rarity(Holding(1, 200)).text == "Held by 0.5% of pilots"
+    assert rarity(Holding(8, 200)).level == "rare"  # 4 %
+    assert rarity(Holding(40, 200)).level == ""  # 20 %
+    assert rarity(Holding(40, 200)).text == "Held by 20% of pilots"
+    assert rarity(Holding(1, 10)).level == ""  # too few pilots to call anything rare
+    assert rarity(Holding(1, 5000)).text == "Held by less than 0.1% of pilots"

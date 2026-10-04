@@ -179,7 +179,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **Matchups follow the tour selector** and a toggle "All fights /
   Intercept flights only" (`?tour=`, `?intercept=1`; `AircraftMatchup.tour` / `.intercept`, an intercept fight being two air superiority sorties),
   sortable by enemy, kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights
-  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). The rest of the page (tiles, top pilots, hits to destroy, loadouts) is all time. **No ratio is stored** (OQ-98):
+  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). Top pilots, hits to destroy and loadouts are all time (the tiles follow the tour, OQ-114). **No ratio is stored** (OQ-98):
   the list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next
@@ -202,8 +202,8 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
-  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; achievements are lifetime
-  milestones (FR-WEB-26); the Elo boards are all time (see above). `/streaks/` follows the tour. A tour dropdown appears on a page
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; the Elo boards are all time (see above). Achievements follow the tour now (OQ-105: the profile, `/players/<pk>/achievements/`,
+  `/achievements/` and `/achievements/<key>/`, plus the home page's "Recently earned" strip; doc 17). `/streaks/` follows the tour. A tour dropdown appears on a page
   only where its numbers exist per tour.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:
   short`) in the page language and the browser's zone; the zone is named only in the footer; the UTC time stays in the tooltip.

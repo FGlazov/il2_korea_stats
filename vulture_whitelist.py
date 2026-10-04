@@ -107,6 +107,9 @@ view_kwargs
 _.threshold  # web.medals.Tier / Medal: shown by the achievement templates (_medal.html, overview.html)
 _.mission_hidden  # web.medals.Medal: read by the profile and sortie medal templates (no link to a hidden mission)
 _.more_mixes  # web.views.aircraft.HitsToDestroy: the "show more mixes" fold of aircraft/detail.html
+_.style  # web.medals.Medal: the ribbon stripe pattern (ribbon--sN class) read by _ribbon.html and the home feed
+_.tier_range  # web.medals.Medal: one pip per tier, looped over by _ribbon.html and the home feed
+_.player_name  # web.templatetags.il2ks_achievements.FeedItem: shown by achievements/home_feed.html
 _.missions_stored  # web.ingest_status.IngestOverview: fields are read by the admin template il2ks_ingest_status.html
 _.last_run
 _.last_ok

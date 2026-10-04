@@ -74,6 +74,7 @@ BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists r
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # gun hits per ammo per sortie (SortieGunHits) and the favourite loadout rows
+BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
 
 
 def _already_done(name: str) -> bool:
@@ -138,6 +139,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         _mark_done(*(name for name, _ in wanted))
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
+        if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
+            _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
 
 
 def _check_tour_aircraft() -> bool:
@@ -400,3 +403,24 @@ def _backfill_achievements() -> None:
             log.info("computing medals")
             rebuild_achievements()
         _mark_done(BACKFILL_ACHIEVEMENTS)
+
+
+def _backfill_achievement_tours() -> None:
+    """A database from before per-tour medals (doc 17) has all-time medal rows only (and holder rows without the rarity
+    denominator): run the medal pass again, which adds the tour rows and rewrites the holder counts. Skipped when tour
+    rows exist already (the plain backfill above just computed everything)."""
+    from django.db import transaction
+
+    from il2ks.db.models import PlayerAchievement, PlayerSortie, Role
+    from il2ks.ingest.achievements import rebuild_achievements
+
+    if _already_done(BACKFILL_ACHIEVEMENT_TOURS):
+        return
+    with transaction.atomic():
+        if (
+            PlayerSortie.objects.filter(role=Role.PILOT).exists()
+            and not PlayerAchievement.objects.filter(tour__isnull=False).exists()
+        ):
+            log.info("computing medals per tour")
+            rebuild_achievements()
+        _mark_done(BACKFILL_ACHIEVEMENT_TOURS)

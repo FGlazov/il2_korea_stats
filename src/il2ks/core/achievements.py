@@ -22,6 +22,7 @@ from datetime import datetime
 from typing import Literal
 
 type Unit = Literal["count", "hours", "weeks"]
+type Kind = Literal["medal", "ribbon"]
 
 BADLY_DAMAGED = 0.5
 """`damage_taken` (0 to 1) from which a landed aircraft counts as "badly damaged" (`damaged_landing`)."""
@@ -67,6 +68,10 @@ class Achievement:
     thresholds: tuple[int, ...]
     unit: Unit
     progress: Progress
+    kind: Kind = "medal"
+    """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
+    shame: bool = False
+    """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
 
     @property
     def top_tier(self) -> int:
@@ -183,15 +188,17 @@ def _is_damaged_landing(s: AchievementSortie) -> bool:
 ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("life_kills", (5, 10, 20, 50), "count", life_kills),
     Achievement("sortie_kills", (2, 3, 5, 7), "count", _best_in_one(lambda s: s.kills_air)),
-    Achievement("career_kills", (1, 10, 50, 250), "count", _cumulative(lambda s: s.kills_air)),
+    Achievement("career_kills", (1, 10, 50, 250), "count", _cumulative(lambda s: s.kills_air), kind="ribbon"),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
     Achievement("tank_buster", (3, 10, 25, 100), "count", _cumulative(lambda s: s.kills_ground_tank)),
     Achievement("ground_sortie", (20, 50, 100, 200), "count", _best_in_one(lambda s: s.kills_ground)),
     Achievement("survivor", (5, 10, 25, 50), "count", survived_in_a_row),
     Achievement("damaged_landing", (1, 3, 10), "count", _cumulative(lambda s: 1.0 if _is_damaged_landing(s) else 0.0)),
-    Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks),
-    Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0)),
-    Achievement("flight_hours", (1, 10, 50, 200), "hours", _cumulative(lambda s: s.flight_time_s / 3600)),
+    Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks, kind="ribbon"),
+    Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0), kind="ribbon"),
+    Achievement(
+        "flight_hours", (1, 10, 50, 200), "hours", _cumulative(lambda s: s.flight_time_s / 3600), kind="ribbon"
+    ),
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
 )
 BY_KEY: dict[str, Achievement] = {a.key: a for a in ACHIEVEMENTS}

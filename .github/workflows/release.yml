@@ -36,6 +36,7 @@ jobs:
       - name: Template versions count again after the first release (TD-25)
         run: |
           done="$(uv run python -c 'from il2ks.serving.templateversions import FIRST_RELEASE_DONE; print(FIRST_RELEASE_DONE)')"
+          case "${GITHUB_REF_NAME}" in *a[0-9]*|*b[0-9]*|*rc[0-9]*) echo "pre-release tag: the switch may stay off"; exit 0;; esac
           if [ "${done}" != "True" ]; then
             echo "FIRST_RELEASE_DONE is still False in serving/templateversions.py: flip it before tagging (docs/releasing.md)" >&2
             exit 1

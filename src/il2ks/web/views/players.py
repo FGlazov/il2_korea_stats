@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import Counters, Player
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
-from il2ks.queries.tours import player_tour, tour_choice_from
+from il2ks.queries.tours import player_tour, tour_choice_from, tour_query
 from il2ks.web import columns, pve
 from il2ks.web.chart_data import player_charts
 from il2ks.web.ground import ground_breakdown
@@ -72,6 +72,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     stats: Counters | None = player if tour is None else player_tour(player.pk, tour)
     context: dict[str, object] = {
         **choice.context,
+        "tour_query": tour_query(tour),  # keeps the scope on the links to the achievement pages
         "stats": stats,
         "marks": stat_thresholds(tour),  # FR-WEB-22: one query
         "page_title": player.current_name,
