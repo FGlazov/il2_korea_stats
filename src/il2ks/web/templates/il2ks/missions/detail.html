@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None and .rows, the
   PlayerSortie rows with .player and .aircraft, in spawn order), kills (Kill rows with both sorties' player and
@@ -70,7 +70,7 @@
               <td class="num">{{ s.kills_ground|num }}</td>
               <td class="num">{{ s.assists|num }}</td>
               <td class="num">{{ s.flight_time_s|duration }}</td>
-              <td>{% if not s.player.is_hidden %}<a class="row-link" href="{% url 'web:sortie-detail' s.pk %}" title="{% translate 'Sortie details' %}" aria-label="{% translate 'Sortie details' %}">→</a>{% endif %}</td>
+              <td>{% if not s.player.is_hidden %}<a class="row-link stretched-link" href="{% url 'web:sortie-detail' s.pk %}" title="{% translate 'Sortie details' %}" aria-label="{% translate 'Sortie details' %}">→</a>{% endif %}</td>
             </tr>
           {% empty %}
             {% empty_row 11 _("Nobody flew for this side.") %}

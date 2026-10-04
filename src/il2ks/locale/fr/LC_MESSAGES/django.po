@@ -356,6 +356,9 @@ msgstr ""
 msgid "Bailed out"
 msgstr "A sauté en parachute"
 
+msgid "Bailed out and taken in. Hopefully the food is decent."
+msgstr ""
+
 msgid "Bailouts"
 msgstr ""
 
@@ -573,6 +576,9 @@ msgstr ""
 msgid "Error"
 msgstr "Erreur"
 
+msgid "Even the best squadrons have a story about the taxiway."
+msgstr ""
+
 msgid "Event"
 msgstr ""
 
@@ -600,6 +606,9 @@ msgstr "Échec"
 # llm-draft
 msgid "Failed, waiting for a retry"
 msgstr "Échec, en attente d'une nouvelle tentative"
+
+msgid "Fair winds, full magazines and the numbers to prove it."
+msgstr ""
 
 # llm-draft
 msgid "Find a player"
@@ -645,6 +654,9 @@ msgstr ""
 msgid "Friendly fire"
 msgstr ""
 
+msgid "Friendly fire happens to the best squadrons. The debrief will be lively."
+msgstr ""
+
 msgid "Friendly hits"
 msgstr ""
 
@@ -659,6 +671,9 @@ msgid "Given up"
 msgstr "Abandonnées"
 
 msgid "Ground"
+msgstr ""
+
+msgid "Ground fire: the one opponent that never needs fuel."
 msgstr ""
 
 msgid "Ground kill"
@@ -840,6 +855,9 @@ msgstr "Genre"
 msgid "Landed"
 msgstr "Atterri"
 
+msgid "Landed by parachute, collected by the other side. The war goes on without this pilot, for now."
+msgstr ""
+
 msgid "Landings"
 msgstr ""
 
@@ -983,6 +1001,12 @@ msgstr "Missions"
 msgid "Missions stored"
 msgstr "Missions enregistrées"
 
+msgid "More hole than airplane, and still back on the ground. Hats off."
+msgstr ""
+
+msgid "Most dangerous part of the mission: the first hundred metres."
+msgstr ""
+
 # llm-draft
 msgid "Name"
 msgstr "Nom"
@@ -998,6 +1022,9 @@ msgid "Neutral"
 msgstr "Neutre"
 
 msgid "Never"
+msgstr ""
+
+msgid "Never left the ground, still earned a story."
 msgstr ""
 
 # llm-draft
@@ -1131,6 +1158,9 @@ msgid "Nothing ingested yet."
 msgstr "Rien n'a encore été ingéré."
 
 msgid "Nothing lost"
+msgstr ""
+
+msgid "Nothing to see here, which is the best thing to see."
 msgstr ""
 
 # llm-draft
@@ -1465,6 +1495,9 @@ msgstr "Administration du site"
 msgid "Skip to content"
 msgstr "Aller au contenu"
 
+msgid "Someone had a very good night at the office."
+msgstr ""
+
 # llm-draft
 msgid "Something went wrong"
 msgstr "Une erreur s'est produite"
@@ -1500,6 +1533,9 @@ msgid "Spawn"
 msgstr ""
 
 msgid "Spawned"
+msgstr ""
+
+msgid "Spotless. The ground crew is almost suspicious."
 msgstr ""
 
 msgid "Start a new tour now"
@@ -1723,6 +1759,9 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Those little black clouds were not decorative."
+msgstr ""
+
 msgid "Time"
 msgstr ""
 
@@ -1898,6 +1937,9 @@ msgstr ""
 # llm-draft
 msgid "Wounded"
 msgstr "Blessé"
+
+msgid "Wrong target, right enthusiasm. The sky is crowded, mistakes happen."
+msgstr ""
 
 msgid "Yes"
 msgstr ""

@@ -9,7 +9,8 @@ num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title
 in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select, stat_mark, stat_mark_note.
+pagination, filter_select, filter_text, tour_select, stat_mark, stat_mark_note, flavor, sortie_flavor (flavor text,
+FR-WEB-23).
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
@@ -30,9 +31,10 @@ from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
 
 from il2ks.core import stat_marks
-from il2ks.db.models import Counters, StatThreshold, Tour
+from il2ks.db.models import Counters, PlayerSortie, StatThreshold, Tour
 from il2ks.queries import tours as tour_reads
 from il2ks.web import display, icons, object_names
+from il2ks.web import flavor as flavor_text
 from il2ks.web.display import SortFirst, Tone
 
 register = template.Library()
@@ -333,6 +335,19 @@ def _totals(stats: Counters) -> stat_marks.Totals:
         kills_ground=stats.kills_ground,
         flight_time_s=stats.flight_time_s,
     )
+
+
+@register.simple_tag
+def flavor(spot: str, seed: object) -> str:
+    """`{% flavor "spot" seed %}`: a stable, translated one-liner for a highlight spot (il2ks.web.flavor)."""
+    return str(flavor_text.pick(spot, seed))
+
+
+@register.simple_tag
+def sortie_flavor(sortie: PlayerSortie) -> str:
+    """`{% sortie_flavor sortie as quip %}`: the sortie's line, or '' for an ordinary sortie."""
+    spot = flavor_text.sortie_spot(sortie)
+    return "" if spot is None else flavor(spot, sortie.pk)
 
 
 @register.inclusion_tag(COMPONENTS + "empty_row.html")

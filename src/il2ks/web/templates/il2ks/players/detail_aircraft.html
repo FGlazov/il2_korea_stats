@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_aircraft.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_aircraft.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_aircraft.html: the per-aircraft table from PlayerAircraft, sortable with ?sort= (a whitelist in the view). It is the
   page's one results_region, so the sort links swap just this table with htmx. Each row links to the player's sortie
@@ -23,7 +23,7 @@
         <tbody>
           {% for row in aircraft %}
             <tr>
-              <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} <a href="{% url 'web:player-sorties' player.pk %}?aircraft={{ row.aircraft_id }}{% if tour %}&amp;tour={{ tour.pk }}{% endif %}" title="{% translate 'All sorties in this aircraft' %}">{{ row.aircraft|object_name }}</a></td>
+              <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} <a class="stretched-link" href="{% url 'web:player-sorties' player.pk %}?aircraft={{ row.aircraft_id }}{% if tour %}&amp;tour={{ tour.pk }}{% endif %}" title="{% translate 'All sorties in this aircraft' %}">{{ row.aircraft|object_name }}</a></td>
               <td class="num">{{ row.sorties|num }}</td>
               <td class="num">{{ row.flight_time_s|duration }}</td>
               <td class="num">{{ row.kills_air|num }}</td>

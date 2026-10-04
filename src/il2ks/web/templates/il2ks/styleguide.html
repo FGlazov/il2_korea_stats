@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/styleguide.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/styleguide.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load il2ks %}{% comment %}
   Dev-only style guide (DEBUG only). English on purpose: the i18n test skips this file. Context comes from
   il2ks.web.views.styleguide. Add ?theme=dark or ?theme=light to preview a theme.
@@ -158,7 +158,7 @@
           <tbody>
             {% for row in rows %}
               <tr>
-                <td><a href="#tables">{{ row.callsign }}</a></td>
+                <td><a class="stretched-link" href="#tables">{{ row.callsign }}</a></td>
                 <td>{% coalition_badge row.country %}</td>
                 <td>{{ row.aircraft }}</td>
                 <td>{% outcome_badge row.outcome %}</td>
@@ -178,6 +178,13 @@
       {% pagination page_obj %}
     {% endresults_region %}
 
+    <h3>Whole-row link (<code>stretched-link</code>)</h3>
+    <p class="sg-note">Put the class on the row's main link. A click almost anywhere in the row opens it (no JavaScript); ctrl/middle-click, the status-bar URL and keyboard focus behave like a real link. Other links in the row (a pilot's name, say) stay clickable. The rows of the demo table above use it; the callsign is the target. Do not use it in a row with no single obvious target (a kills table), or twice in one row.</p>
+<pre class="sg-code">{% verbatim %}&lt;tr&gt;
+  &lt;td&gt;&lt;a class="stretched-link" href="{% url 'web:sortie-detail' s.pk %}"&gt;{{ s.spawned_at|utc }}&lt;/a&gt;&lt;/td&gt;
+  &lt;td&gt;&lt;a href="{% url 'web:player-detail' s.player_id %}"&gt;{{ s.name_at_time }}&lt;/a&gt;&lt;/td&gt;   {# still its own link #}
+&lt;/tr&gt;{% endverbatim %}</pre>
+
     <h3>Empty state and footer row</h3>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
@@ -186,6 +193,14 @@
         <tfoot><tr><td>Total</td><td class="num">0</td><td class="num">0</td></tr></tfoot>
       </table>
     </div>
+  </section>
+
+  <section class="sg-section" id="flavor">
+    <h2>Flavor text</h2>
+<pre class="sg-code">{% verbatim %}{% flavor "top_pilot" mission.pk %}              {# several variants per spot, stable per seed #}
+{% sortie_flavor sortie as quip %}{% if quip %}...{% endif %}{% endverbatim %}</pre>
+    <p class="sg-note">A short quip at a few highlight spots only (hall of shame, notable sortie outcomes, the last mission's top pilots). The variant is chosen by hashing the spot name and the seed (an object id), so a page never changes on reload. Variants live in <code>il2ks/web/flavor.py</code>; keep them kind, light and free of politics.</p>
+    <p class="flavor">{% flavor "top_pilot" 1 %}</p>
   </section>
 
   <section class="sg-section" id="menus">
