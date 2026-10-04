@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/sorties.css v2 - copy this line along when you override */
+/* il2ks-template: static/il2ks/sorties.css v3 - copy this line along when you override */
 /*
  * Sortie pages: the player's sortie list and the sortie report (templates il2ks/sorties/*).
  * Uses the tokens of site.css; loaded from the pages' `head` block so it can be overridden on its own (TD-25).
@@ -12,7 +12,6 @@
 /* Sortie list */
 .sortie-list th, .sortie-list td { padding-inline: 0.45rem; }
 .sortie-list td:last-child, .sortie-list th:last-child { padding-inline-start: 0; }
-.sortie-list .cell-mission { max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sortie-list .badge { font-size: 0.7rem; }
 
 /* Report header */

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_recent.html v8 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_recent.html v9 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_recent.html: the five latest sorties (any role) near the top of the profile, with the "View all sorties" button to the full list (keeps the tour scope: ?tour=<id> or ?tour=all). Context: player, recent
   (PlayerSortie rows with .mission and .aircraft). Links: web:sortie-detail, web:mission-detail, web:player-sorties.
@@ -11,9 +11,9 @@
       <thead>
         <tr>
           <th scope="col">{% translate "Date" %}</th>
-          <th scope="col">{% translate "Mission" %}</th>
           <th scope="col">{% translate "Aircraft" %}</th>
           <th scope="col">{% translate "Outcome" %}</th>
+          <th scope="col">{% translate "Pilot fate" %}</th>
           <th scope="col" class="num">{% translate "Air kills" %}</th>
           <th scope="col" class="num">{% translate "Ground kills" %}</th>
           <th scope="col" class="num">{% translate "Flight time" %}</th>
@@ -23,9 +23,9 @@
         {% for sortie in recent %}
           <tr>
             <td class="nowrap"><a class="stretched-link" href="{% url 'web:sortie-detail' sortie.pk %}">{{ sortie.spawned_at|local_time }}</a></td>
-            <td><a href="{% url 'web:mission-detail' sortie.mission_id %}" class="mono">{{ sortie.mission.mission_uid }}</a></td>
             <td class="nowrap">{% aircraft_icon sortie.aircraft "aircraft-table__icon" %} {{ sortie.aircraft|object_name }}{% if sortie.role == "gunner" %} {% badge _("Gunner") "grey" %}{% endif %}</td>
             <td>{% outcome_badge sortie.outcome %}</td>
+            <td>{% pilot_fate_badge sortie %}</td>
             <td class="num">{{ sortie.kills_air|num }}</td>
             <td class="num">{{ sortie.kills_ground|num }}</td>
             <td class="num">{{ sortie.flight_time_s|duration }}</td>

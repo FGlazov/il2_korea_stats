@@ -69,7 +69,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
             **choice.context,
             "page_obj": page,
             "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
-            "colspan": 12 + len(shown),
+            "colspan": 11 + len(shown),
             "sort": sort,
             "optional_columns": columns.SORTIE_COLUMNS,
             "columns": shown,

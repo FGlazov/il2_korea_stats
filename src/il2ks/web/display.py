@@ -8,7 +8,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from django.utils.formats import number_format
 from django.utils.functional import Promise
@@ -18,6 +18,9 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from il2ks.core.catalog.loader import Side, side_of_country
+
+if TYPE_CHECKING:
+    from il2ks.db.models import PlayerSortie
 
 DASH = "—"  # shown instead of a number that cannot be computed
 
@@ -243,6 +246,37 @@ ROLES: Mapping[str, BadgeSpec] = {
     "air_superiority": (gettext_lazy("Air superiority"), "blue", "role/air-superiority"),
     "attack": (gettext_lazy("Attack"), "orange", "role/attack"),
 }
+
+
+# What a visitor sees as the pilot's fate (maintainer request 2026-10-04): dead > captured > survived, whatever the
+# stored `pilot_fate` says; the stored fate (bailed out, exited on ground, ...) is only a secondary detail.
+PILOT_FATES: Mapping[str, BadgeSpec] = {
+    "dead": (gettext_lazy("Dead"), "red", "outcome/dead"),
+    "captured": (gettext_lazy("Captured"), "orange", "outcome/captured"),
+    "survived": (gettext_lazy("Survived"), "green", ""),
+}
+# The stored fates worth naming next to the headline ("Survived, bailed out"); in_aircraft / unknown add nothing.
+FATE_DETAILS: Mapping[str, Label] = {
+    "bailed_out": gettext_lazy("bailed out"),
+    "exited_on_ground": gettext_lazy("exited on ground"),
+    "disconnected": gettext_lazy("left the server"),
+}
+
+
+def pilot_fate_key(sortie: "PlayerSortie") -> Literal["dead", "captured", "survived"]:
+    """Dead if `is_death` (or status dead), else captured if `is_captured` (or status captured), else survived (also
+    for fate `unknown`). Display only: the stored fields stay as the replay wrote them (doc 13)."""
+    if sortie.is_death or sortie.pilot_status == "dead":
+        return "dead"
+    if sortie.is_captured or sortie.pilot_status == "captured":
+        return "captured"
+    return "survived"
+
+
+def pilot_fate_detail(sortie: "PlayerSortie") -> str:
+    """The stored fate as a lower-case phrase ('bailed out'), or '' when it adds nothing."""
+    found = FATE_DETAILS.get(sortie.pilot_fate)
+    return "" if found is None else str(found)
 
 
 def badge_spec(table: Mapping[str, BadgeSpec], value: object) -> tuple[str, Tone, str]:
