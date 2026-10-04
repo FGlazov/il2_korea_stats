@@ -74,6 +74,14 @@ the release gate.
   variants. Not on every section.
 - 🔧 (done, merging) OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE (the sortie pages already use some).
 
+## Maintainer requests (2026-10-04)
+- ⏳ **Real ammo names** (FR-WEB-18): research the calibre and round types each aircraft actually used and show plain names
+  (for example ".50 BMG API", ".50 BMG AP" for the US .50 cal) instead of the game's object names.
+- ⏳ **Idiomatic translations**: flavor text is translated for meaning and tone, not word for word (TD-24 drafts).
+- ⏳ **Hall of shame**: drop "Strafed by" from it (moves elsewhere on the profile); the second tile becomes **friendly-fire
+  incidents**. The quip depends on which kinds of incidents the player has (runway/taxi only, friendly fire only, both, none),
+  with a separate light-hearted variant above the 90th percentile. Nothing demeaning.
+
 ## Decisions to apply (maintainer answers, 2026-10-03; doc 02 "Maintainer decisions")
 Do these while merging the finished branches, before the release where they touch release items:
 - ⏳ Local time: locale-native formats; zone only in the footer; show when the next tour starts.
@@ -144,7 +152,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
   - 🔧 (done, merging) Killboards (FR-WEB-9). Ironman / virtual-life stats. 🔧 (WIP: config only) Rams, parachute deaths, and other rule toggles (OQ-61).
   - Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
 - 🔧 (done, merging) Light charts (FR-WEB-16).
-- Sortie map: **benched until after the release** (maintainer, 2026-10-03, doc 02 decisions); the grid version stays on its branch, unmerged.
+
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
@@ -153,6 +161,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
 - `il2ks ship` helper for remote log mode.
 - Optional self-hosted monitoring and error tracking (TD-27).
 - Continuous flight tracks from a separate live telemetry source, if the game offers one (TD-08, OQ-26).
+- Sortie map: **benched until after the release** (maintainer, 2026-10-03, doc 02 decisions); the grid version stays on its branch, unmerged.
 
 ## Iteration 3: Global stats (multi-server)
 - A central instance that receives data from many servers. Each server gets an opt-in exporter (push, or pull through a
