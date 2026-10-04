@@ -241,6 +241,9 @@ msgstr ""
 msgid "AI gunner"
 msgstr ""
 
+msgid "Activity by tour"
+msgstr ""
+
 msgid "Admin account"
 msgstr ""
 
@@ -251,6 +254,9 @@ msgid "Air"
 msgstr ""
 
 msgid "Air / ground kills"
+msgstr ""
+
+msgid "Air and ground kills."
 msgstr ""
 
 msgid "Air kills"
@@ -420,6 +426,16 @@ msgstr "Выпрыгнул с парашютом"
 
 msgid "Bailouts"
 msgstr ""
+
+msgid "Bar chart of the sorties per day over the last days. The numbers are in the table below."
+msgstr ""
+
+#, python-format
+msgid "Bar chart over %(n)d tour. The numbers are in the table below."
+msgid_plural "Bar chart over %(n)d tours. The numbers are in the table below."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 msgid "Best showing of the mission. Well flown."
 msgstr ""
@@ -797,6 +813,18 @@ msgstr ""
 msgid "Ground kills: %(n)s"
 msgstr ""
 
+msgid "Ground score"
+msgstr ""
+
+msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
+msgstr ""
+
+msgid "Ground score per hour"
+msgstr ""
+
+msgid "Ground score per hour on target"
+msgstr ""
+
 msgid "Ground vehicle or object"
 msgstr ""
 
@@ -1036,6 +1064,9 @@ msgid "Latest attempt"
 msgstr "Последняя попытка"
 
 msgid "Latest missions"
+msgstr ""
+
+msgid "Leaderboards"
 msgstr ""
 
 msgid ""
@@ -1296,6 +1327,9 @@ msgstr ""
 msgid "Nobody is on the server right now."
 msgstr ""
 
+msgid "Nobody qualifies for this board yet."
+msgstr ""
+
 msgid "Nobody scored a kill in this mission."
 msgstr ""
 
@@ -1472,6 +1506,24 @@ msgid ""
 "%(days)s days are listed."
 msgstr ""
 
+#, python-format
+msgid "Pilots with at least %(games)s rated game."
+msgid_plural "Pilots with at least %(games)s rated games."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#, python-format
+msgid "Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on target."
+msgstr ""
+
+#, python-format
+msgid "Pilots with at least %(sorties)s sortie."
+msgid_plural "Pilots with at least %(sorties)s sorties."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 msgid "Planes lost"
 msgstr ""
 
@@ -1499,6 +1551,12 @@ msgid ""
 msgstr ""
 
 msgid "Please look at the marked answers below. Nothing was changed."
+msgstr ""
+
+msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
+msgstr ""
+
+msgid "Points for ground kills (a tank counts for far more than a fence), minus the same penalties."
 msgstr ""
 
 msgid "Possible early bailout"
@@ -1631,6 +1689,9 @@ msgid "Seen in logs but missing from the catalog. Give them a name here, and rep
 msgstr ""
 "Встречаются в журналах, но отсутствуют в каталоге. Задайте им название здесь и сообщите о них, чтобы каталог можно "
 "было обновить."
+
+msgid "Server activity"
+msgstr ""
 
 msgid "Setup finished"
 msgstr ""
