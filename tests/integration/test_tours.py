@@ -1,5 +1,6 @@
 """Tours (TD-26, FR-WEB-10, FR-ADM-8): assignment per mode and timezone, per-tour level 2, retour, admin, selector."""
 
+import re
 from collections import defaultdict
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -511,6 +512,7 @@ def test_tour_select_renders_all_time_and_marks_the_chosen_tour() -> None:
     assert 'name="tour"' in html
     assert ">All time</option>" in html
     assert 'value="all"' in html
+    assert "tour-toggle" not in html  # OQ-78: no segmented toggle, only the dropdown
     assert f'<option value="{september.pk}" selected>September 2026</option>' in html
     assert 'name="q" value="bob"' in html
     assert 'name="sort" value="-kills"' in html
@@ -525,11 +527,32 @@ def test_tour_select_without_a_tour_selects_the_current_one_and_renders_nothing_
     html = render_selector("/players/")
     assert html.count(" selected") == 1  # no parameter = the current tour
     assert '<option value="all">' in html
-    assert "selected>October 2026</option>" in html
+    assert '<option value="" selected>Current tour</option>' in html
+    assert "tour-toggle" not in html
     all_time = render_selector("/players/?tour=all")
     assert '<option value="all" selected>All time</option>' in all_time
-    assert 'aria-current="true">All time</a>' in all_time
-    assert "?tour=all" in html
+    assert all_time.count(" selected") == 1
+
+
+def test_tour_select_lists_all_time_then_current_tour_then_the_tours_newest_first() -> None:
+    """OQ-78: the dropdown alone; "Current tour" is the empty value (no parameter), "All time" is `all`."""
+    three_tour_history()
+    html = render_selector("/players/")
+    options = re.findall(r"<option value=\"([^\"]*)\"[^>]*>([^<]*)</option>", html)
+    ids = [tour.pk for tour in tour_choice(None).tours]
+    assert len(ids) == 3
+    assert options == [
+        ("all", "All time"),
+        ("", "Current tour"),
+        (str(ids[0]), "October 2026"),
+        (str(ids[1]), "September 2026"),
+        (str(ids[2]), "August 2026"),
+    ]
+    chosen = render_selector(f"/players/?tour={ids[0]}")  # the current tour by id is still "Current tour"
+    assert chosen.count(" selected") == 1
+    assert '<option value="" selected>' in chosen
+    older = render_selector(f"/players/?tour={ids[1]}")
+    assert f'<option value="{ids[1]}" selected>' in older
 
 
 # --- admin (FR-ADM-8) ---

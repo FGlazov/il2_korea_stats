@@ -34,7 +34,7 @@ _FIELDS = (
     "kills_ground",
     "flight_time_s",
     "taxi_accidents",
-    "friendly_fire_incidents",
+    "friendly_kills",
     "score_air",
     "score_ground",
     "score_ground_attack",

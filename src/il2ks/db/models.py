@@ -233,7 +233,6 @@ class Counters(models.Model):
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
     # Friendly fire is tracked apart from the counters above (never in kills_*, assists)
-    friendly_fire_incidents = models.PositiveIntegerField(default=0)  # sorties with at least one friendly kill
     friendly_kills = models.PositiveIntegerField(default=0)
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)

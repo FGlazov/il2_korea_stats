@@ -87,8 +87,9 @@ def test_profile_without_tour_opens_on_the_current_tour_and_offers_the_selector(
     assert [row.aircraft.log_name for row in response.context["aircraft"]] == ["Il-10"]
     body = response.content.decode()
     assert 'name="tour"' in body
-    assert f'<option value="{tour("October 2026").pk}" selected>October 2026</option>' in body
+    assert '<option value="" selected>Current tour</option>' in body  # no parameter = the current tour
     assert '<option value="all">All time</option>' in body
+    assert f'<option value="{tour("October 2026").pk}">October 2026</option>' in body
     assert ">Sorties in October 2026</a></h2>" in body
     assert "Shot down most" not in body  # killboard and streaks stay all-time only
 
@@ -109,15 +110,18 @@ def test_profile_all_time_is_the_explicit_all_parameter(client: Client) -> None:
     assert "&amp;tour=all" in body
 
 
-def test_the_toggle_links_current_tour_and_all_time(client: Client) -> None:
+def test_there_is_no_toggle_only_the_dropdown_and_it_keeps_the_other_parameters(client: Client) -> None:
+    """OQ-78: the segmented toggle is gone; the one-field form carries sort and friends as hidden fields."""
     seed()
-    october = tour("October 2026")
 
     body = client.get(f"/players/{pk(1)}/?sort=-kills_ground").content.decode()
 
-    assert f'href="?sort=-kills_ground&amp;tour={october.pk}"' in body
-    assert 'href="?sort=-kills_ground&amp;tour=all"' in body
-    assert 'aria-current="true">October 2026</a>' in body
+    assert "tour-toggle" not in body
+    assert 'aria-current="true">October 2026</a>' not in body
+    assert '<input type="hidden" name="sort" value="-kills_ground">' in body
+    assert (
+        body.index(">All time</option>") < body.index(">Current tour</option>") < body.index(">October 2026</option>")
+    )
 
 
 def test_next_tour_start_is_shown_once_for_every_viewer(client: Client) -> None:
@@ -220,7 +224,7 @@ def test_sortie_list_filters_by_tour(client: Client) -> None:
     assert [s.aircraft.log_name for s in october.context["page_obj"]] == ["Il-10"]
     assert unknown.status_code == 200
     assert len(unknown.context["page_obj"]) == 1  # a stale link opens the current tour
-    assert f'<option value="{tour("October 2026").pk}" selected>October 2026</option>' in october.content.decode()
+    assert '<option value="" selected>Current tour</option>' in october.content.decode()
 
 
 def test_sortie_list_tour_budget(client: Client) -> None:

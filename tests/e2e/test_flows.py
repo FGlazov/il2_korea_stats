@@ -249,16 +249,16 @@ def test_a_players_sortie_list_sorts_in_place(page: Page, world: World) -> None:
     expect_same_document(page)
 
 
-def test_the_tour_toggle_switches_to_all_time_in_place(page: Page, world: World) -> None:
-    """TD-26: a profile opens on the current tour; the toggle (and the select) swap <main> to the all-time view."""
+def test_the_tour_dropdown_switches_to_all_time_in_place(page: Page, world: World) -> None:
+    """TD-26, OQ-78: a profile opens on the current tour; the dropdown swaps <main>."""
     page.goto(f"/players/{world.ace_pk}/")
     mark_page(page)
-    toggle = page.get_by_role("group", name="Tour")
-    expect(toggle.get_by_role("link", name="All time")).not_to_have_attribute("aria-current", "true")
+    select = page.locator("#f-tour")
+    expect(select).to_have_value("")  # "Current tour": no parameter
 
-    toggle.get_by_role("link", name="All time").click()
+    select.select_option(label="All time")
 
     expect(page).to_have_url(re.compile(r"[?&]tour=all"))
-    expect(toggle.get_by_role("link", name="All time")).to_have_attribute("aria-current", "true")
+    expect(page.locator("#f-tour")).to_have_value("all")
     expect_same_document(page)
     expect_heading(page, "Recent sorties", level=2)

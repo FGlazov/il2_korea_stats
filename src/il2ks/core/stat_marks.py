@@ -11,7 +11,7 @@ Rules:
   nothing else. Strictly above: with ties at a threshold nobody gets a mark they would share with half the field, so
   the claim "better than 9 in 10" stays true. Low values are never marked (nobody is shamed, FR-WEB-22); p10 and p25
   are stored anyway, for the owner's judgement and for later.
-- `taxi_per_sortie` and `friendly_fire_per_sortie` are no "better" metrics and never get a badge: the profile's hall of
+- `taxi_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the profile's hall of
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
   and ratios need `min_sorties` sorties; Elo needs `min_elo_games` rated games in that pool (all time, shown against
@@ -34,7 +34,7 @@ type Metric = Literal[
     "air_per_hour",
     "ground_per_sortie",
     "taxi_per_sortie",
-    "friendly_fire_per_sortie",
+    "friendly_kill_rate",
     "air_score",
     "ground_score",
     "ground_score_hour",
@@ -53,7 +53,7 @@ METRICS: Final[tuple[Metric, ...]] = (
     "air_per_hour",
     "ground_per_sortie",
     "taxi_per_sortie",
-    "friendly_fire_per_sortie",
+    "friendly_kill_rate",
     "air_score",
     "ground_score",
     "ground_score_hour",
@@ -103,7 +103,7 @@ class Totals:
     kills_ground: int
     flight_time_s: float
     taxi_accidents: int = 0
-    friendly_fire_incidents: int = 0  # sorties with a friendly kill
+    friendly_kills: int = 0
     score_air: float = 0.0
     score_ground: float = 0.0
     score_ground_attack: float = 0.0  # score earned in attack sorties
@@ -165,8 +165,8 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return _div(totals.kills_ground, totals.sorties)
         case "taxi_per_sortie":
             return _div(totals.taxi_accidents, totals.sorties)
-        case "friendly_fire_per_sortie":
-            return _div(totals.friendly_fire_incidents, totals.sorties)
+        case "friendly_kill_rate":
+            return _div(totals.friendly_kills, totals.sorties)
         case "air_score":
             return totals.score_air
         case "ground_score":

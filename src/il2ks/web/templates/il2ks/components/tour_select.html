@@ -1,22 +1,23 @@
-{# il2ks-template: templates/il2ks/components/tour_select.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/components/tour_select.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   tour_select.html ({% tour_select tours tour %}): the tour selector, a one-field GET form like {% filter_bar %}.
-  `?tour=<id>` picks a tour, `?tour=all` (the first option) is all time, no parameter is the current tour; the toggle
-  links beside it (tour_toggle.html) switch between the current tour and all time and name when the next tour starts.
+  The select's first entries are "All time" (`?tour=all`) and "Current tour" (empty value: no parameter, the default),
+  then the tours newest first (`?tour=<id>`); "Next tour starts ..." (tour_next.html) sits beside it.
   Other query parameters are kept as hidden fields (never ?page=, so a new tour starts at page 1). With htmx it swaps
   the whole <main> (the tour changes the entire page, not one table) and pushes the URL, and submits when the choice
   changes; without JS the Apply button does. Inside an existing {% filter_bar %} use {% tour_filter tours tour %} instead.
-  Context: tours (newest first), selected_id (the chosen tour's id, or "all"), all_value ("all"), action (current path),
-  hidden ((name, value) pairs), plus what tour_toggle.html takes. Renders nothing while there are no tours yet.
+  Context: tours (newest first), selected_id (the chosen tour's id, or "all"), all_value ("all"), is_all, is_current,
+  next_start, action (current path), hidden ((name, value) pairs). Renders nothing while there are no tours yet.
 {% endcomment %}{% if tours %}<form class="filter-bar tour-select" method="get" action="{{ action }}" hx-get="{{ action }}" hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true" hx-trigger="submit, change from:find select">
   {% for name, value in hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">
   {% endfor %}<label class="filter" for="f-tour">{% translate "Tour" %}
     <select name="tour" id="f-tour">
-      <option value="{{ all_value }}"{% if is_all %} selected{% endif %}>{% translate "All time" %}</option>{% for tour in tours %}
-      <option value="{{ tour.pk }}"{% if tour.pk == selected_id %} selected{% endif %}>{{ tour|tour_title }}</option>{% endfor %}
+      <option value="{{ all_value }}"{% if is_all %} selected{% endif %}>{% translate "All time" %}</option>
+      <option value=""{% if is_current %} selected{% endif %}>{% translate "Current tour" %}</option>{% for tour in tours %}
+      <option value="{{ tour.pk }}"{% if tour.pk == selected_id and not is_current %} selected{% endif %}>{{ tour|tour_title }}</option>{% endfor %}
     </select>
   </label>
-  <div class="tour-bar">{% include "il2ks/components/tour_toggle.html" %}</div>
+  {% include "il2ks/components/tour_next.html" %}
   <div class="filter-bar__actions">
     <button type="submit" class="filter-bar__apply">{% translate "Apply" %}</button>
   </div>
