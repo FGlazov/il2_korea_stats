@@ -62,14 +62,14 @@ How the website, the admin and the operations commands are built (iteration 1, p
 - **Player search**: live search on current and past names ("also known as"), recently active players when empty, sortable.
 - **Player profile** (FR-WEB-4; reworked 2026-10-04: air and ground apart, shame and latest sorties near the top). Top to bottom: the header
   (past names), the tour selector, an in-page nav (plain anchors: Recent sorties, Air-to-air, Air-to-ground, Overall), the general tiles (sorties
-  with the survival rate, flight time, deaths, planes lost with K/L), the **hall of shame** (taxi accidents, friendly-fire incidents, a quip), the
+  with the survival rate, flight time, deaths, planes lost with K/L), the **hall of shame** (taxi accidents, friendly-fire **kills**, a quip; a counted sortie with at least one friendly kill, hits and damage alone don't count, matching the sortie-page badge; the tile is named after kills, `[DECIDED]` maintainer, 2026-10-04, OQ-72, being applied), the
   **achievements medal row** (the highest earned tier of each achievement, linking to the sortie that earned it; links to the pilot's full list and
   the overview; nothing at all without a medal; doc 17), the **latest 5 sorties** (the heading and a "View all sorties" button open the player's
   sortie list with the page's `?tour=` scope), then three parts. **Air-to-air**: tiles, ratios with their stat marks, score and rating (air score,
   interception per hour, Elo prop and jet with games, all with marks), air kills by victim, the **killboard by aircraft type** (five types each
   way, "Full killboard") and the pilot killboard's top rows. **Air-to-ground**: tiles, the collapsible ground-kill breakdown, ground score,
   ground score per hour and **tanks per hour** on target, ground kills per sortie. **Overall**: ironman streaks, the per-aircraft table (links to
-  the filtered sortie list, per-type Elo), PvE, "Other totals" (with strafed on the ground) and the per-tour charts. A part with no activity in the
+  the filtered sortie list, per-type Elo), PvE, "Other totals" (with strafed on the ground, which stays there for now; the maintainer reviews all pages later; `[DECIDED]` 2026-10-04, OQ-73; the sortie-page badge stays) and the per-tour charts. A part with no activity in the
   scope collapses to one muted line (`air_active` / `ground_active`; the type killboard still shows who shot the pilot down). Gunner-only players
   get a notice. **K/D, K/L and kills per sortie/hour use air kills only** (ground kills include fences; they get their own per-sortie figure),
   OQ-38. Partials: `players/detail_*.html`, listed at the top of `players/detail.html`; scores follow the tour, Elo stays all time.
@@ -112,8 +112,12 @@ How the website, the admin and the operations commands are built (iteration 1, p
   kills), **quick first kill** (within 7 minutes of takeoff or an air start's spawn), **marathon** (1 hour or more of flight); none for gunners or
   ordinary sorties. The bomber and first-kill facts come from the timeline (`sortie_view.build_highlights`, `Highlights`); without it those two
   spots are skipped. Thresholds were read off the September 2026 archive (15,245 pilot sorties; each spot fires on 0.2% to 2% of them). Other
-  spots: hall of shame (taxi only, friendly fire only, both, none, and the three warmer p90 variants), home top pilots (doesn't name the pilot),
-  home "nobody scored", an empty tour. Quiet italic `.flavor` style. Placement and wording: OQ-53, OQ-74, OQ-111, OQ-112.
+  spots: hall of shame (taxi only, friendly fire only, both, none: 3-4 variants each, and a separate warmer variant when a rate per sortie is
+  strictly above the 90th percentile of pilots with at least `[marks] min_sorties` sorties in the same scope, all time or the selected tour; only
+  the elevated kind is named, no ranking; `[DECIDED]` maintainer, 2026-10-04, OQ-74, wording still to be reviewed in `src/il2ks/web/flavor.py`),
+  home top pilots (doesn't name the pilot), home "nobody scored", an empty tour. Quiet italic `.flavor` style. Two lines were replaced at the
+  maintainer's request (2026-10-03; OQ-75): the POW "food" joke and "Ace-in-a-day territory" are gone, now "Out of the fight, but not out of the
+  story." (sortie captured) and "Best showing of the mission. Well flown." (top pilot). Placement and wording: OQ-53, OQ-111, OQ-112.
 - **Sortie map** (FR-WEB-12, 2026-10-03; **not on main**: benched until after the release, OQ-54/55, the code stays on its branch): an accordion (open) on the sortie page with a server-rendered inline SVG of the key events
   from the stored timeline (+0 queries): numbered markers with the event icons, a faint dashed line in time order (labelled "not the
   flight path"), a km grid in absolute game coordinates, an N arrow, a legend, `<title>` tooltips; the timeline table is the textual
@@ -180,10 +184,11 @@ How the website, the admin and the operations commands are built (iteration 1, p
   per-aircraft table and recent sorties follow the tour), the mission list, the player's sortie list, the killboard and the leaderboards have a
   tour selector and **open on the current tour** (the newest `Tour` row, data-only so caching and ETags stay valid) when `?tour` is absent
   or unknown; `?tour=all` is all time; ids over 18 digits count as unknown (stale links still answer 200). **Links from an all-time context carry
-  `?tour=all`** (`queries.tours.tour_query`; TD-26): a bare link would silently mean the current tour. A segmented toggle (current tour /
-  All time) sits next to the select, with "Next tour starts <local time>" beside it (hidden in manual mode, and by JS once past). A tour
+  `?tour=all`** (`queries.tours.tour_query`; TD-26): a bare link would silently mean the current tour. **One dropdown only, no segmented
+  toggle: "All time" and "Current tour" are its top two entries** (`[DECIDED]` maintainer, 2026-10-04, OQ-78; being applied). The "Next tour
+  starts <local time>" line sits beside the dropdown (hidden in manual mode, and by JS once past). A tour
   without sorties shows the `tour_empty` flavor text. Views use `queries.tours.tour_choice_from(request.GET)` (one query); templates use
-  `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (segmented toggle + select). Titles are localised at display time
+  `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
   (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
   all-time. Choices: OQ-45..48, OQ-78..80.
 - **Local times** (FR-WEB-17, TD-15): `localtime.js` formats every `<time>` with `Intl.DateTimeFormat` (`dateStyle: medium`, `timeStyle:
@@ -191,7 +196,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
 - **Setup page** (`/setup/`, installer path): answers 404 unless a setup token file exists (`il2ks web` / `run` write it while no admin exists),
   the request is straight from this machine (loopback peer, no proxy headers, `localhost` Host) and the URL carries the token (constant-time
   check, guesses counted, then locked out). On submit it writes the config via `ops.setup.complete_web_setup`, creates the admin and deletes the
-  token; from then on 404. The image disables it (`IL2KS_SETUP_PAGE=off`, OQ-70). Code: `web/views/setup.py`, `serving/setup_token.py`.
+  token; from then on 404. The image disables it (`IL2KS_SETUP_PAGE=off`; the logs explain `il2ks createadmin` when no admin exists, documented in `docs/install-docker.md`; `[DECIDED]` maintainer, 2026-10-04, OQ-70). Code: `web/views/setup.py`, `serving/setup_token.py`.
 - **Query budgets** (TD-22; a test per page, shared constants in `tests/simple_reads.py`; every number includes the 2 context-processor reads;
   never raise one without a reason in the test). Home **12** (11 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 6 extras are the five compact
   boards and the online-now snapshot), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **14** all
@@ -292,8 +297,9 @@ original changed since it was copied, disappeared, or when a hand-placed file sh
   snapshot, the config, `server_uid.txt`, `secret_key.txt`, `custom/`, `media/` and a manifest; not the mission archives (large, kept
   forever, back them up separately). Keeps `[backup] keep` (10). Automatic **before pending migrations** (no migration if the backup fails)
   and **daily** from `watch` (`[backup] daily = true`; a failure retries an hour later). `il2ks restore <zip>` validates, refuses while a
-  writer holds the lock or a newer il2ks made the backup, warns if the site seems to be running, takes a safety backup, swaps in, verifies.
-  SQLite only.
+  writer holds the lock (`il2ks run`) or the web port answers (exit code 3; `--force` overrides) and when a newer il2ks made the backup, takes a
+  safety backup, swaps in the database, config, `custom/`, `media/`, server ID and secret key, verifies. SQLite only. `[DECIDED]` (maintainer,
+  2026-10-04, OQ-71: restore refuses while the site runs; scripts need `--force`).
 - **Autostart for the manual path**: `il2ks service systemd` (Linux unit) and `il2ks service schtasks` (Windows task XML with restart on
   failure) print or write the definition; only `--install` changes the machine. A real Windows service is the installer's job.
 - **Exit codes** (all commands): 0 ok, 1 partial failure / warnings, 2 usage or config error, 3 lock held.

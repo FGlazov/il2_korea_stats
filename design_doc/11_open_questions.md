@@ -4,102 +4,15 @@ Only **unanswered** questions live here, ordered by how much each one blocks or 
 When a question is answered, write the answer into the relevant doc (requirement, decision, or format doc) and
 **delete it from this file**. If it's partly answered, cut it down to the part that's still open.
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
+Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78 right after it).
 
-The iteration 1 implementation batch (`OQ-I1-*`, 2026-10-03) is resolved: game rules are in [13_game_rules.md](13_game_rules.md), parser,
-catalog, ingest jobs and persistence in [14_ingest_internals.md](14_ingest_internals.md). Those IDs are retired.
-
-OQ-27..32 (2026-10-03) are answered: combat role, Elo and time on target are in [13_game_rules.md](13_game_rules.md#combat-role-time-on-target-and-ratings),
-the post-end window and ground losses in doc 13's sortie scope and outcome sections, the gunner credit rule (deferred) in FR-WEB-14.
-
-## Frontend (iteration 1, part 2)
-
-OQ-33 (static ground kills) is answered: a ground-kill breakdown by category, FR-WEB-4.
-
-OQ-34 (insignia) is answered: neutral emblems by default, real insignia per country later (doc 15).
-
-OQ-35 (hiding) is answered: compute everything, don't show it (FR-ADM-3).
-
-OQ-36 (destruction before a disconnect is a normal loss, doc 13) and OQ-37 (ship Tabler Icons, doc 15) are answered.
-
-OQ-107 (stolen-kills quip) is answered: 2+ air assists with no air kill, 3+ with one, 6+ with two, four reworded variants (doc 16 "Flavor text").
-OQ-38 and OQ-40..66 are answered (maintainer, 2026-10-03): see doc 02 "Maintainer decisions, 2026-10-03".
+## Needs outside input
 
 **OQ-39 Terrain height for the bailout "> 30 m above ground" test** (owner: maintainer, will try to get heightmaps)
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
 
-**OQ-67 Percentage penalties: the details** `[DECIDED]`, Claude's defaults applied and built (2026-10-04; the maintainer may still change them)
-(OQ-63 follow-up; (a) answered: a plane lost without death or capture costs 20%.) As built (doc 13 "Score"): death 80%, capture 50%, plane lost
-without death or capture 20% (`[score] penalty_*_pct`, clamped 0..100; the old flat keys are gone). The percentage is taken from **both** the sortie's
-air and ground score, only from positive scores (a percentage never makes a score negative), and when several apply the **largest** one counts
-(death and capture are not added); the flat penalties (suspected early bailout 5, friendly kill 3 up to 5 per sortie) come off afterwards from
-the combat role's score. Delete this entry once the maintainer has seen it.
-
-### Decisions made during the 2026-10-04 run (defaults applied; answer by ID)
-
-**Answers (maintainer, 2026-10-04, batch 2):**
-- **OQ-68** `[DECIDED]`: grant the service account access to the log folder, as built; fine for network folders too.
-- **OQ-69** `[DECIDED]`: keep `/ADMINPASSWORD=` for silent installs (next to `/ADMINUSER=` and `/ADMINPASSWORDFILE=`).
-- **OQ-70** `[DECIDED]`: no setup page in Docker; docs/install-docker.md explains `il2ks createadmin` (checked).
-- **OQ-71** `[DECIDED]`: `restore` refuses while the site runs: it swaps the database, the config, `custom/` (template overrides),
-  `media/`, the server ID and the secret key.
-- **OQ-72** `[DECIDED]`: the hall-of-shame tile is named after friendly-fire **kills** (rename being applied).
-- **OQ-73** `[DECIDED]` for now: "Strafed on the ground" stays in "Other totals"; the maintainer reviews all pages later.
-- **OQ-74, OQ-75, OQ-77** `[DECIDED]`: as applied.
-- **OQ-76** `[DECIDED]` for now: the ammo-name guesses stay.
-- **OQ-78** `[DECIDED]`: no segmented toggle; only the tour dropdown, with "All time" and "Current tour" as its top two entries
-  (being applied).
-
-**OQ-68 Installer: grant the service account access to the game log folder**
-The service now runs as `NT SERVICE\il2ks` (OQ-41), which can't read the game's log folder the way SYSTEM could. Default applied: the
-installer grants it Modify on the log folder chosen in the wizard (read access, plus `after_archive = move`). This changes ACLs outside
-il2ks's own folders. Network-drive log folders still don't work under the service.
-
-**OQ-69 Installer: keep `/ADMINPASSWORD=` for silent installs?**
-Default applied: kept for compatibility, documented as visible in process lists and the installer log; the new `/ADMINPASSWORDFILE=`
-(the file is deleted after use) is the recommended switch. Alternative: remove `/ADMINPASSWORD=`.
-
-**OQ-70 Docker: no browser setup page**
-A container never sees a loopback peer, so the setup page can't work there. Default applied: the image disables it
-(`IL2KS_SETUP_PAGE=off`) and the logs explain `il2ks createadmin` when no admin exists.
-
-**OQ-71 `restore` refuses while the site runs**
-Default applied: `il2ks restore` exits with code 3 when `il2ks run` holds its lock or the web port answers; `--force` overrides. Scripts that
-restored against a live site now need `--force`.
-
-**OQ-72 Hall of shame: what counts as a friendly-fire incident**
-Default applied: a counted pilot sortie with at least one friendly kill (`friendly_fire_incidents`, on every counters table). Hits and damage
-alone don't count (collateral hits on own-side objects would swamp the tile); this matches the sortie-page badge.
-
-**OQ-73 Hall of shame: where "Strafed on the ground" went**
-Default applied: the "Other totals" list on the profile (it isn't the pilot's own fault and sits next to friendly kills and hits). The
-sortie-page badge stays.
-
-**OQ-74 Hall of shame: quips and the p90 rule**
-Default applied: one quip spot per case (taxi only, friendly fire only, both, none), 3–4 variants each, written by Claude; a separate,
-warmer variant when a rate per sortie is strictly above the 90th percentile of pilots with at least `[marks] min_sorties` sorties in the
-same scope (all time or the selected tour). Only the elevated kind is named; no ranking is shown. The lines need the maintainer's review
-(`src/il2ks/web/flavor.py`).
-
-**OQ-75 Two flavor lines replaced**
-As asked (2026-10-03), the POW "food" joke and "Ace-in-a-day territory" are gone. Replacements: "Out of the fight, but not out of the
-story." (sortie captured) and "Best showing of the mission. Well flown." (top pilot).
-
-**OQ-76 Ammo names: convention and the uncertain ones** (FR-WEB-18; data in `src/il2ks/core/catalog/data/ammo.csv`)
-Default applied: `<cartridge> <round type>` with the game's round letters (".50 BMG API", "12.7×108 mm API-T", "23×115 mm HEI-T"),
-rockets and bombs by designation and size ("HVAR 5 in", "FAB-100", "Napalm 110 gal"); the real designation (M8 API, OZT) is a tooltip;
-names are not translated. Low confidence, worth asking the IL-2 Korea developers: `BULLET_7-62_RUS_HEI` (shown "7.62×54R HEI", probably
-the PZ incendiary-tracer), `BULLET_12-7_RUS_HEI` ("12.7×108 mm HEI", probably MDZ), `BULLET_9-01_GER_FMJ` ("9 mm ball", odd attribution
-to aircraft), `SHELL_57_RUS_CV` ("57×348 mm", round type unclear). US 20 mm rounds never appear in the sample logs.
-
-**OQ-77 Ammo: which damage columns to hide** (OQ-52 follow-up)
-Default applied: all per-ammo damage is hidden on the sortie page, including the bombs/rockets/napalm table and the "damage no hit
-could be blamed on" note, not only the gun ammo table. Damage is still stored. Reverting part of it is cheap.
-
-**OQ-78 Tour selector: segmented toggle and the "next tour starts" line**
-Default applied: a segmented toggle (current tour / All time) in addition to the tour select, and the "Next tour starts <local time>" line
-beside the toggle, not in the footer (it is hidden in manual mode, and by JS once the moment has passed). Alternative: the select alone, and
-the line in the footer as OQ-44 first said.
+## Defaults applied by agents, 2026-10-04 (answer by ID)
 
 **OQ-79 Tours: the current tour is the default view on the leaderboards and killboard pages too**
 Default applied: every page with a tour selector (profile, mission list, player's sortie list, killboard, leaderboards) opens on the current
@@ -126,14 +39,6 @@ Default applied: by air kills, more sorties, then more flight time, then the ear
 then the earlier one. Alternative: prefer the more recent
 streak, or list ties side by side.
 
-**OQ-84 Leaderboards: board order and switcher** `[DECIDED]` (maintainer, 2026-10-04; built, doc 02 FR-WEB-7, doc 16)
-Boards in this order: Elo jet, Elo prop, air score | ground score per hour, ground score (interception and tank busting joined later, OQ-102, OQ-103).
-No kills board (`/leaderboards/kills/` answers 301 to the index). The switcher is a row of icon buttons, so it reads as clickable. The prop/jet filter
-stays on the score boards (and the new skill boards); Elo boards have no pool filter.
-
-**OQ-85 Home page: which boards and how many** (superseded by OQ-104)
-Default applied first: the top 5 of Elo jet, Elo prop and ground per hour, all time, plus "Online now". Now five boards, see OQ-104.
-
 **OQ-86 An aircraft type's top pilots: when the ground ranking comes first**
 Default applied: a type with an attack share of 50% or more lists the ground ranking (ground score per hour on target) first, otherwise the
 Elo ranking first; both under the leaderboard minimums. Alternative: a different share threshold, or always the same order.
@@ -156,11 +61,6 @@ false positive identified) supports turning it on, and the agent recommends enab
 Default applied: a ram kill is an ordinary kill (`attacker` / `shot_down`, `via direct`); nothing says "rammed". Alternative: a `ram` value of
 `KillVia` and a "rammed by" label on the sortie page and the timeline (needs a migration and a reprocess).
 
-**OQ-91 Parachute deaths off: what happens to the shooter's kill** (moot: the toggle is gone, see OQ-99)
-
-**OQ-92 Ram detection thresholds** `[DECIDED]` (maintainer, 2026-10-04; built, doc 13 "Rule toggles")
-0.5 s and 15 m (`[rules] ram_window_s`, `ram_distance_m`). The earlier 2 s / 50 m let 4 looser cases through among the 17 rams in the samples.
-
 **OQ-93 Installer: what the upgrade check reports**
 Default applied: on an upgrade the installer reports only customized overrides (not other doctor findings); every problem state (outdated, newer,
 unversioned, orphan) triggers the message box, which has an OK button only; silent installs write to the installer log and
@@ -179,17 +79,6 @@ outcome value or drop it; commission a proper friendly-fire icon.
 Real-log mission and sortie pages are 107 to 122 KB of HTML (other pages about 20 KB). Default applied: the HTML budget is 150 KB
 (NFR-PERF-6) and the lists are not trimmed or paginated. Alternative: paginate or trim the sortie lists on those pages.
 
-**OQ-97 Page performance tests: where they run** `[DECIDED]` (maintainer, 2026-10-04; built, doc 08)
-A CI job of their own (`test-perf`: SQLite, then Postgres); the other test jobs skip `-m perf`. `il2ks dev check --full` runs them too.
-
-**OQ-98 Aircraft stats store no ratios** `[DECIDED]` (maintainer, 2026-10-04; built, doc 06, TD-22)
-`AircraftStats` has no `kd`, `kl`, `survival` or `attack_share` column (migration 0032 dropped them). The ratios are computed from the counters at read
-time, and the aircraft list sorts by them in SQL with `queries.sorting.Ratio` (NULL when the denominator is 0, always last). TD-22 holds without exception.
-
-**OQ-99 A pilot killed while parachuting** `[DECIDED]` (maintainer, 2026-10-04; built, doc 13 "Rule toggles")
-Always a death (and the shooter keeps the kill). The `[rules] parachute_deaths` toggle was removed; the key in an `il2ks.toml` warns at load ("ignored").
-Capture still needs a pilot who survived.
-
 **OQ-100 Old `[score]` penalty keys are replaced**
 The flat `penalty_death`, `penalty_plane_lost` and `penalty_capture` keys became `penalty_death_pct`, `penalty_plane_lost_pct` and
 `penalty_capture_pct` (percent). Default applied: the old keys are ignored with a warning at config load (logged, shown by `il2ks doctor`), so a server that set them
@@ -203,7 +92,7 @@ often leaves in one event; a rocket event is a salvo), so they don't give exact 
 (marked "~" with a tooltip) when at least one release happened; it matches the trusted record in 92% of bomb and 87% of rocket sorties and would
 fill ~970 bomb and ~450 rocket sorties in the samples.
 
-### Decisions made during the 2026-10-04 second run (defaults applied; answer by ID)
+### Second run, 2026-10-04
 
 **OQ-102 Interception: who counts as a victim, and the minimum**
 Default applied (doc 13 "Interception and tank busting"): the victim is a **bomber or attacker** by catalog class (AI B-29, Tu-2, ...), or a **player
@@ -272,7 +161,7 @@ Default applied: a matchup row on the aircraft page shows its exchange share (ki
 keeps kills where **both** sorties had the combat role air superiority (fighter against fighter); it is a different thing from the interception
 board (OQ-102), which the roadmap's wording shares. Alternative: another minimum, or rename the filter ("Fighter vs fighter").
 
-## Lower impact
+## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
 Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it
