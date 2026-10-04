@@ -31,7 +31,8 @@ There is no browser setup page in Docker (it only opens for a browser on the sam
 If you leave the admin variables out, the container log says so in a framed notice and shows the command to run instead:
 `docker compose -f docker/compose.yaml exec il2ks il2ks createadmin`. After the first start the password is removed from
 the server's own environment; only Docker's configuration (`docker/.env`, `docker inspect`) still holds it, so protect that
-file or use a Docker secret (`IL2KS_ADMIN_PASSWORD_FILE`).
+file. Or use a Docker secret: add `IL2KS_ADMIN_PASSWORD_FILE` (the path of the secret file inside the container) under
+`environment:` in `docker/compose.yaml` instead of the password.
 
 ## 2. Start it
 
@@ -102,7 +103,8 @@ folder: same user ID as the owner, or `chmod o+w`. Rootless Docker and Podman ma
 docker compose -f docker/compose.yaml exec il2ks il2ks createadmin     # another admin, or reset a password
 docker compose -f docker/compose.yaml exec il2ks il2ks backup          # zip in /data/backups
 docker compose -f docker/compose.yaml cp il2ks:/data/backups ./il2ks-backups   # get them out of the volume
-docker compose -f docker/compose.yaml restart                           # after changing .env: `up -d` applies it
+docker compose -f docker/compose.yaml restart                           # after a change in il2ks.toml; after changing .env use `up -d`
+docker compose -f docker/compose.yaml exec il2ks il2ks reprocess --all # after changing a rule: see settings.md
 ```
 
 Backups also happen automatically every day and before each upgrade (`il2ks backup` has the details). Copy them
@@ -115,7 +117,10 @@ git pull
 docker compose -f docker/compose.yaml up -d --build
 ```
 
-The database is migrated at start, after an automatic backup. The volume is untouched.
+The database is migrated at start, after an automatic backup, and what the new version needs is filled in from your data
+(a few minutes on a big database). The volume is untouched. Old missions are not recalculated by themselves: if the release
+notes say a rule or score changed, run `il2ks reprocess --all` or `il2ks rebuild-aggregates` as above. See
+[Rules, scoring and tours](settings.md#what-to-run-after-a-change).
 
 **Change a setting** that has no line in `.env`: every `il2ks.toml` setting can be given as an environment variable
 `IL2KS_<SECTION>_<KEY>` (`[web] threads` is `IL2KS_WEB_THREADS`); add it under `environment:` in `docker/compose.yaml`.

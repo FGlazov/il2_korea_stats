@@ -79,7 +79,8 @@ reachable from outside.
 
 `C:\ProgramData` is a hidden folder: type the path into the Explorer address bar. It is readable by administrators and the
 service only (it holds the database and the secret key). Open `il2ks.toml` with Notepad **run as administrator**.
-All settings are explained in the file itself; `docs/customizing.md` covers branding and template overrides.
+All settings are explained in the file itself. [settings.md](settings.md) says what to run after changing a rule or score, and
+[customizing.md](customizing.md) covers branding and template overrides.
 
 The installer puts one site on the machine. For several game servers on one machine, use the
 [manual install](install.md#several-servers-on-one-machine).
@@ -89,8 +90,9 @@ The installer puts one site on the machine. For several game servers on one mach
 Download the newer `il2ks-setup-<version>.exe` and run it over the old install. It notices the existing install and
 **keeps your configuration and data**: it stops the service, writes a **backup** (`il2ks backup`, into
 `C:\ProgramData\il2ks\backups`), replaces the program files, registers the service again and starts it. Database changes are applied
-when the service starts, after one more automatic backup. No questions are asked. If the backup fails, the upgrade stops before it
-changes anything.
+when the service starts, after one more automatic backup; a big database may need a few minutes before the site answers. If the
+backup fails, the upgrade stops before it changes anything (the wizard asks whether to continue without a backup; the default is
+No; a silent install just stops).
 
 At the end of an upgrade the installer also checks the pages you customized (the files in `C:\ProgramData\il2ks\custom`, see
 [customizing.md](customizing.md)). If the new version changed a built-in page you had copied, a message lists the affected files and
@@ -98,6 +100,10 @@ what to do: look at the difference with `il2ks custom diff <path>`, bring over w
 (in **il2ks command prompt** from the Start menu). Your versions keep being used meanwhile. A silent install shows no message: the
 same report goes to the installer log and to `C:\ProgramData\il2ks\logs\installer-custom-check.log`. A fresh install has nothing to
 check. **Run doctor** shows the same warnings later.
+
+Some releases change a rule or a score. The release notes then say so. Old missions are **not** recalculated by themselves: open
+the **il2ks command prompt** and run `il2ks reprocess --all` (or `il2ks rebuild-aggregates` for scores). See
+[Rules, scoring and tours](settings.md#what-to-run-after-a-change).
 
 ## Uninstalling
 
@@ -117,7 +123,7 @@ il2ks-setup-<version>.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOGDIR="D:\I
 | Switch | Meaning |
 |---|---|
 | `/LOGDIR=`, `/TIMEZONE=`, `/DOMAIN=`, `/EMAIL=` | the answers of the pages above |
-| `/HTTPS=caddy` or `/HTTPS=external` | bundled Caddy (default) or your own proxy |
+| `/HTTPS=caddy` or `/HTTPS=external` | bundled Caddy (default) or your own proxy ([reverse-proxy.md](reverse-proxy.md)) |
 | `/ADMINUSER=`, `/ADMINPASSWORDFILE=` | the admin account; the password is read from that file (UTF-8, one line), and the file is deleted afterwards. Without a password none is created: `il2ks createadmin` later. `/ADMINPASSWORD=` still works but is visible in process lists and in the installer log: avoid it |
 | `/NOSETUP` | copy the files only; run `il2ks setup` yourself |
 | `/NOSERVICE` | no Windows service, nothing started (also no firewall rules) |
