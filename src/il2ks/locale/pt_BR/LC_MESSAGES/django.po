@@ -2705,6 +2705,11 @@ msgid "Pagination"
 msgstr "Paginação"
 
 # llm-draft
+#, python-format
+msgid "Pagination: %(name)s"
+msgstr "Paginação: %(name)s"
+
+# llm-draft
 msgid "Parked aircraft"
 msgstr "Aeronaves estacionadas"
 

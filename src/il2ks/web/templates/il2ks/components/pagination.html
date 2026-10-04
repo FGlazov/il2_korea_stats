@@ -1,9 +1,9 @@
 {# il2ks-template: templates/il2ks/components/pagination.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   pagination.html ({% pagination page_obj %}): summary and numbered links; links keep the other query parameters.
-  Context: page_obj, total, first_index, last_index, multiple (more than one page), links (number, current, href),
+  Context: page_obj, label (the nav's name when a page has several), total, first_index, last_index, multiple (more than one page), links (number, current, href),
   prev_href, next_href. Put it inside {% results_region %} so htmx swaps the region (hx-get, as in sort_th.html).
-{% endcomment %}{% if total %}<nav class="pagination" aria-label="{% translate 'Pagination' %}">
+{% endcomment %}{% if total %}<nav class="pagination" aria-label="{% if label %}{{ label }}{% else %}{% translate 'Pagination' %}{% endif %}">
   <p>{% blocktranslate with first=first_index|num last=last_index|num all=total|num %}Showing {{ first }}–{{ last }} of {{ all }}{% endblocktranslate %}</p>
   {% if multiple %}
   <ul>

@@ -295,6 +295,18 @@ on every admin page (staff only, never public), a start-up warning, `il2ks docto
 and records the original's hash in `custom/.il2ks-overrides.json`; `custom list` and `custom accept` complete it. Doctor warns when an
 original changed since it was copied, disappeared, or when a hand-placed file shadows a built-in one it can't check.
 
+## Accessibility `[PROPOSED]`
+
+Target: WCAG 2.1 AA for every public page, in light and dark, at phone and desktop width. `tests/e2e/test_accessibility.py` runs
+axe-core (tags wcag2a/2aa/21a/21aa + best-practice; the bundled `axe.min.js` of the dev-only `axe-playwright-python`, injected by the
+test, never shipped, no CDN) on every page of `test_visual_qa.PAGES` (menus opened too) and on home/leaderboards/mission in each language
+(also checks `<html lang>`); its waiver list `ALLOWED` is empty. `tests/e2e/test_keyboard.py` drives the column picker, tour select,
+board switcher and pagination with the keyboard only. Conventions the tests protect: icons are `aria-hidden` and always sit beside text
+or inside a control with an `aria-label`; several paginations on one page get distinct names (`{% pagination ... label=%}`); a scrolling
+`.table-wrap` gets `tabindex="0"` from `il2ks.js` (only while it overflows) so its columns are reachable by keyboard. The first run found
+only two rules (scrollable-region-focusable on narrow tables, landmark-unique for the second pagination on a page); contrast, labels and
+`lang` were already clean. Not covered by axe (needs a person): reading order with a screen reader, zoom to 200 %, the admin pages.
+
 ## Operations (FR-OPS-1, 2, 6)
 
 - **`il2ks setup`**: interactive (with defaults) or `--non-interactive` (flags or env for everything). Asks for the data dir, the log folder

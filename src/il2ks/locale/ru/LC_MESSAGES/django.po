@@ -2729,6 +2729,11 @@ msgid "Pagination"
 msgstr "Постраничная навигация"
 
 # llm-draft
+#, python-format
+msgid "Pagination: %(name)s"
+msgstr "Постраничная навигация: %(name)s"
+
+# llm-draft
 msgid "Parked aircraft"
 msgstr "Самолёты на стоянке"
 

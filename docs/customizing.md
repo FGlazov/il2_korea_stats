@@ -62,6 +62,12 @@ il2ks checks the readability of the colors you saved (WCAG contrast ratios: body
 header). Poor combinations produce a yellow warning after saving; **nothing is blocked**, so a deliberate choice stays
 possible. The one accent color of older versions became the accent in both modes.
 
+**Keep the contrast.** The shipped look meets WCAG 2.1 AA (4.5:1 for text, 3:1 for large text and borders of controls) in both
+modes, and the site's automated accessibility test holds it there. A custom theme or `site.css` override that lowers contrast
+makes the site harder to read for many visitors, so keep the warnings above in mind and check both modes. A quick way is the
+browser's dev tools (Lighthouse, or "Inspect" on a text element shows its contrast ratio); the il2ks developers' test is
+`IL2KS_TEST_E2E=1 uv run pytest tests/e2e/test_accessibility.py -m e2e`.
+
 Only exact `#RRGGBB` values are written into the page. The colors are one small `<style>` block that sets the
 `--il2-*` variables (see "Colours" below).
 

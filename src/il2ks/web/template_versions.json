@@ -3,7 +3,7 @@
   "files": {
     "static/il2ks/il2ks.js": {
       "version": 1,
-      "sha256": "49fc04710cb70a4f5b1627d4877acdfac60b392a0a4da33e8e48c03aa2098c90"
+      "sha256": "8d933f3792352c098fa3a84ef593abd2deafda66bcbe6e485467c6eb45477a14"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "7b9ff3fd4c13d510d619dbfec9519feb500f4dfdc60288ad0d8673d44ca9f969"
+      "sha256": "1217b63c82afeba1bea0fc440d67adce3c433dca548e98cb5ec3852938f48535"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
@@ -183,7 +183,7 @@
     },
     "templates/il2ks/components/pagination.html": {
       "version": 1,
-      "sha256": "87422db620ed26d8559374dffb3ddf06d3daa60d3afdb9af649ef3f98830a86c"
+      "sha256": "54b98c8b36c4359ba5d9e03cf4bf4e723367980d8893717478b715284f2060d9"
     },
     "templates/il2ks/components/pilot_fate.html": {
       "version": 1,
@@ -251,7 +251,7 @@
     },
     "templates/il2ks/missions/detail.html": {
       "version": 1,
-      "sha256": "c22422d421ea0a98a696ea701338ffc78973991b8b8b5866cd68a040c42f8505"
+      "sha256": "648524ffdcb311f7e85be035a6d6561a1bc780af9d41fe6f0c0336317b273e92"
     },
     "templates/il2ks/missions/list.html": {
       "version": 1,
@@ -411,7 +411,7 @@
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
-      "sha256": "a3b70fe3f3c71b9b4d447010a91dea2c59ad9cf26d4b53b92786059ccc042946"
+      "sha256": "38500a19128dfa04ae1751cebab7cfa7c5856960d1c9576dc2099fa52a1103df"
     },
     "templates/il2ks/sorties/parts/damage_table.html": {
       "version": 1,
@@ -455,7 +455,7 @@
     },
     "templates/il2ks/sorties/parts/timeline.html": {
       "version": 1,
-      "sha256": "8f3f17d2f26cfb341e47f564b165eebb0cfd69053d4dccc584d8bdfef4f7fe3b"
+      "sha256": "9de04aefaf7519ede8746ff446bb89758a92b8d649767027c4a9c0d5418354b8"
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
       "version": 1,

@@ -488,12 +488,13 @@ def sort_th(
 
 
 @register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
-def pagination(context: Context, page_obj: Page, param: str = "page") -> dict[str, object]:
+def pagination(context: Context, page_obj: Page, param: str = "page", label: str = "") -> dict[str, object]:
     """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters,
     every value of a repeated one (`cols`) included.
 
     A page with several paginated tables gives each its own query parameter, named 'page_...':
-    {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1)."""
+    {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1).
+    Several on one page need distinct landmark names: pass `label` (axe rule landmark-unique)."""
     params = _params_of(context)
     paginator = page_obj.paginator
     links = [
@@ -508,6 +509,7 @@ def pagination(context: Context, page_obj: Page, param: str = "page") -> dict[st
     ]
     return {
         "page_obj": page_obj,
+        "label": label,
         "total": paginator.count,
         "first_index": page_obj.start_index(),
         "last_index": page_obj.end_index(),

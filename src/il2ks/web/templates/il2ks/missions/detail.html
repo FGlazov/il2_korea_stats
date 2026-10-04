@@ -83,7 +83,8 @@
         </tbody>
       </table>
     </div>
-    {% pagination group.page param=group.page_param %}
+    {% blocktranslate asvar pages_label with name=heading_name %}Pagination: {{ name }}{% endblocktranslate %}
+    {% pagination group.page param=group.page_param label=pages_label %}
   {% endfor %}
 
   <h2 id="kills">{% translate "Kills" %}</h2>
@@ -127,6 +128,7 @@
       </tbody>
     </table>
   </div>
-  {% pagination kills param=kills_param %}
+  {% translate "Kills" as kills_name %}{% blocktranslate asvar pages_label with name=kills_name %}Pagination: {{ name }}{% endblocktranslate %}
+  {% pagination kills param=kills_param label=pages_label %}
   {% endresults_region %}
 {% endblock %}

@@ -8,5 +8,6 @@
 <h2>{% translate "Damage" %}</h2>
 <p class="muted">{% translate "Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole object, added up over all objects of that type." %}</p>
 {% include "il2ks/sorties/parts/damage_table.html" with rows=damage_page %}
-{% pagination damage_page param=damage_param %}
+{% translate "Damage" as damage_name %}{% blocktranslate asvar pages_label with name=damage_name %}Pagination: {{ name }}{% endblocktranslate %}
+{% pagination damage_page param=damage_param label=pages_label %}
 {% endif %}

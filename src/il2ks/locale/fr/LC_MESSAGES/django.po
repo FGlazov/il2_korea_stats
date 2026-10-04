@@ -2713,6 +2713,11 @@ msgid "Pagination"
 msgstr "Pagination"
 
 # llm-draft
+#, python-format
+msgid "Pagination: %(name)s"
+msgstr "Pagination : %(name)s"
+
+# llm-draft
 msgid "Parked aircraft"
 msgstr "Appareils au parking"
 

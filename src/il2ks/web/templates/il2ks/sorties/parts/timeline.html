@@ -8,5 +8,6 @@
   the burst; sorties processed before these rows existed simply have none.
 {% endcomment %}<h2 id="timeline">{% translate "Timeline" %}</h2>
 {% include "il2ks/sorties/parts/timeline_table.html" with rows=timeline_page %}
-{% pagination timeline_page param=timeline_param %}
+{% translate "Timeline" as timeline_name %}{% blocktranslate asvar pages_label with name=timeline_name %}Pagination: {{ name }}{% endblocktranslate %}
+{% pagination timeline_page param=timeline_param label=pages_label %}
 <p class="timeline-note"><small>{% blocktranslate with n=detail.timeline_events|num %}{{ n }} events. Times count from the spawn; the time of day is shown next to them.{% endblocktranslate %}</small></p>

@@ -37,4 +37,21 @@
       document.querySelectorAll("details.dropdown[open]").forEach(function (menu) { menu.removeAttribute("open"); });
     }
   });
+
+  // A table wrapper that scrolls sideways (a phone, a wide table) must be reachable by keyboard, or its hidden columns
+  // are not (WCAG 2.1.1, axe scrollable-region-focusable): give those, and only those, a tab stop.
+  function markScrollable() {
+    document.querySelectorAll(".table-wrap").forEach(function (box) {
+      if (box.scrollWidth > box.clientWidth + 1 || box.scrollHeight > box.clientHeight + 1) {
+        if (!box.hasAttribute("tabindex")) { box.setAttribute("tabindex", "0"); }
+      } else if (box.getAttribute("tabindex") === "0") {
+        box.removeAttribute("tabindex");
+      }
+    });
+  }
+  markScrollable();
+  window.addEventListener("load", markScrollable);
+  window.addEventListener("resize", markScrollable);
+  document.addEventListener("htmx:afterSettle", markScrollable);
+  document.addEventListener("toggle", markScrollable, true);
 })();
