@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from tests.perf.seed import SeededWorld
+from tests.simple_reads import HOME_READS, PROFILE_READS_TOUR
 
 
 @dataclass(frozen=True)
@@ -20,16 +21,19 @@ class PageSpec:
 
 
 PAGES: tuple[PageSpec, ...] = (
-    PageSpec("home", lambda w: "/", 6),
+    PageSpec("home", lambda w: "/", HOME_READS),
     PageSpec("mission-list", lambda w: "/missions/", 6),
     PageSpec("mission-list", lambda w: "/missions/?page=3", 6),
     PageSpec("mission-detail", lambda w: f"/missions/{w.mission_pk}/", 6, max_ms=600.0),
     PageSpec("player-search", lambda w: "/players/", 5),
     PageSpec("player-search", lambda w: "/players/?q=Pilot+0", 5),
-    PageSpec("player-detail", lambda w: f"/players/{w.player_pk}/", 14),
+    PageSpec("player-detail", lambda w: f"/players/{w.player_pk}/", PROFILE_READS_TOUR),
     PageSpec("player-sorties", lambda w: f"/players/{w.player_pk}/sorties/", 8),
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
+    PageSpec("player-streaks", lambda w: f"/players/{w.player_pk}/streaks/", 8),
     PageSpec("streak-list", lambda w: "/streaks/", 5),
+    PageSpec("leaderboards", lambda w: "/leaderboards/", 8),
+    PageSpec("leaderboard", lambda w: "/leaderboards/air/", 8),
     PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 6),
     PageSpec("aircraft-list", lambda w: "/aircraft/", 5),
     PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 9),

@@ -4,7 +4,8 @@ Stop hook, pre-commit and CI (they all call this, so they cannot drift apart).
 Tiers (each includes the one before):
 - `fast`  (Stop hook, ~15 s): static checks + the guards + the guard tests. No full test suite.
 - `quick` (default, before every commit): fast + the whole unit suite.
-- `full`  (before merging / finishing a task): quick + integration tests (the page tests with their query budgets).
+- `full`  (before merging / finishing a task): quick + integration tests (the page tests with their query budgets) + the
+  performance tests (`tests/perf`: query and time budgets of every public page over a seeded world, ~1-2 min).
 Extras: `--postgres` (needs `docker compose -f docker/compose.dev.yaml up -d db`) and `--e2e` (needs Playwright).
 
 Independent steps run in parallel; every failure is reported with the command that fixes it. Tools are taken from the
@@ -127,6 +128,15 @@ def steps() -> list[Step]:
             "test",
             ("{py}", "-m", "pytest", "tests/integration", "-q", "-n", _workers(), "--dist", "worksteal"),
             "uv run pytest tests/integration -q -x   (page tests also guard the query budgets)",
+            ("full",),
+        ),
+        Step(
+            "perf-tests",
+            "test",
+            # One process on purpose: the world is seeded once per module (~40 s), xdist would seed it per worker, and
+            # the median-of-7 timings are steadier without a pool of competing workers.
+            ("{py}", "-m", "pytest", "tests/perf", "-q", "-n", "0"),
+            "uv run pytest tests/perf -q -x   (slower page, more queries, or no row in tests/perf/pages.py)",
             ("full",),
         ),
         Step(
