@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v10 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v11 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -236,8 +236,14 @@ body > footer.site-footer {
 .site-footer__links li { margin: 0; padding: 0; }
 .site-footer__meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
 .site-footer__language details.dropdown { width: auto; min-width: 9rem; margin: 0; }
-.site-footer__language details.dropdown summary { margin: 0; padding-block: 0.3rem; font-size: 0.85rem; }
-.site-footer__language details.dropdown ul { top: auto; bottom: 100%; min-width: 11rem; margin-bottom: 0.25rem; }
+.site-footer__language details.dropdown summary {
+  display: inline-flex; align-items: center; gap: 0.5rem; width: 100%; margin: 0; padding: 0.3rem 0.75rem; font-size: 0.85rem;
+  cursor: pointer; border-radius: var(--pico-border-radius);
+}
+.site-footer__language details.dropdown ul { top: auto; bottom: 100%; min-width: 12rem; margin-bottom: 0.25rem; }
+.language-menu ul a { display: flex; align-items: center; gap: 0.6rem; }
+.language-menu ul a[aria-current] { font-weight: 700; }
+.language-menu__flag { width: 1.25rem; height: auto; aspect-ratio: 4 / 3; flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); }
 .site-footer strong { color: var(--il2-text); font-weight: 600; }
 
 /* ---- 5. Content basics ------------------------------------------------------------------------------------- */

@@ -115,7 +115,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 99 files in 11 groups; 72 shipped as placeholders (3 of them not used by any page yet), 27 planned.
+Total: 105 files in 12 groups; 78 shipped as placeholders (3 of them not used by any page yet), 27 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -255,6 +255,17 @@ Total: 99 files in 11 groups; 72 shipped as placeholders (3 of them not used by 
 | `nav/forum.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `messages` | yes | P3 | shipped |
 | `nav/patreon.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `brand-patreon` | yes | P3 | shipped |
 | `nav/link.svg` | Custom navigation links in the header (`NavLink.icon`) | SVG 24 x 24, currentColor | Tabler `link` | yes | P3 | shipped |
+
+### Language flags (`flag/`): 6 files (6 shipped)
+
+| File | Used in | Size / format | Placeholder source | Release | Prio | State |
+|---|---|---|---|---|---|---|
+| `flag/us.svg` | Footer language menu: English (American English) | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
+| `flag/ru.svg` | Footer language menu: Russian | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
+| `flag/de.svg` | Footer language menu: German | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
+| `flag/es.svg` | Footer language menu: Spanish | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
+| `flag/fr.svg` | Footer language menu: French | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
+| `flag/br.svg` | Footer language menu: Brazilian Portuguese | SVG, 4:3 flag, viewBox 640 x 480 | flag-icons (MIT) | yes | P2 | shipped |
 
 ### Textures (`pattern/`): 1 files (1 shipped)
 

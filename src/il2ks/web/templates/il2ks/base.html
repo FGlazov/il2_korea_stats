@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v7 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v8 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -77,7 +77,7 @@
           <span data-il2-tz-note data-local-text="{{ tz_local }}">{% translate "Times are shown in UTC." %}</span>
           {% if data_updated %}<span>{% blocktranslate with when=data_updated|local_time %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
           <span>{% blocktranslate with version=il2ks_version %}Powered by il2ks {{ version }}{% endblocktranslate %}</span>
-          {% language_menu as languages %}<span class="site-footer__language">{% dropdown languages.label languages.items align="right" %}</span>
+          <span class="site-footer__language">{% language_menu %}</span>
         </div>
       {% endblock %}
     </div>

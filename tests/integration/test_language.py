@@ -68,7 +68,7 @@ def test_the_switcher_only_answers_get_and_head(client: Client) -> None:
 def test_every_page_offers_all_languages_and_returns_to_it(client: Client) -> None:
     page = nav_text(client.get("/players/?q=ab"))
 
-    for name in ("English", "Русский", "Deutsch", "Español", "Français", "Português brasileiro"):
+    for name in ("English", "Русский", "Deutsch", "Español", "Français", "Português"):
         assert name in page
     assert re.search(r'href="/language/\?language=de&amp;next=%2Fplayers%2F%3Fq%3Dab"', page)
 
@@ -78,7 +78,7 @@ def test_the_menu_shows_the_current_language_in_its_own_language(client: Client)
 
     page = nav_text(client.get("/"))
 
-    assert re.search(r"<summary>\s*Français\s*</summary>", page)
+    assert re.search(r'<summary[^>]*>.*?<span lang="fr">Français</span></summary>', page)
 
 
 def test_accept_language_is_used_until_a_choice_is_made(client: Client) -> None:
@@ -88,6 +88,85 @@ def test_accept_language_is_used_until_a_choice_is_made(client: Client) -> None:
     switch(client, "es")
     spanish = client.get("/", headers={"Accept-Language": "de-DE,de;q=0.9"})
     assert ">Jugadores</a>" in nav_text(spanish)  # the cookie beats the browser's header
+
+
+def test_portuguese_is_just_portugues_in_the_menu(client: Client) -> None:
+    page = nav_text(client.get("/"))
+
+    assert "<span>Português</span>" in page
+    assert "brasileiro" not in page.lower()
+    assert "Brasil" not in page
+
+
+def test_the_menu_shows_a_decorative_flag_before_each_language(client: Client) -> None:
+    """The flags make the selector look clickable; they are decorative, so alt="" and the name is the label."""
+    page = nav_text(client.get("/"))
+    menu = page[page.index('class="dropdown dropdown--right language-menu"') :]
+    menu = menu[: menu.index("</details>")]
+
+    flags = re.findall(r'<img class="language-menu__flag" src="([^"]+)" alt=""', menu)
+    # the summary shows the current flag (English: US), then one per language in LANGUAGES order
+    assert [f.rsplit("/", 1)[-1] for f in flags] == [
+        "us.svg",
+        "us.svg",
+        "ru.svg",
+        "de.svg",
+        "es.svg",
+        "fr.svg",
+        "br.svg",
+    ]
+    assert 'hreflang="pt-br"' in menu
+    assert 'aria-current="true"' in menu  # the active language
+    assert '<summary role="button"' in menu
+
+
+@pytest.mark.parametrize(
+    ("header", "word"),
+    [
+        ("pt-PT,pt;q=0.9", "Jogadores"),  # every Portuguese maps to the shipped Brazilian one
+        ("pt", "Jogadores"),
+        ("pt-BR", "Jogadores"),
+        ("de-AT,de;q=0.8", "Spieler"),
+        ("es-MX,es;q=0.9", "Jugadores"),
+        ("fr-CA", "Joueurs"),
+        ("en-GB,en;q=0.9", "Players"),
+        ("ru-UA,ru;q=0.5", "Игроки"),
+        ("ko,pt-PT;q=0.5", "Jogadores"),  # unsupported first choice: the next supported one
+        ("ko-KR,ko;q=0.9", "Players"),  # nothing supported: English
+        ("*", "Players"),
+        ("", "Players"),
+    ],
+)
+def test_the_browser_language_is_negotiated_with_regional_variants(client: Client, header: str, word: str) -> None:
+    """The visitor's browser language is the default; regional variants map to the shipped language."""
+    page = client.get("/", headers={"Accept-Language": header})
+
+    assert f">{word}</a>" in nav_text(page)
+
+
+def test_the_cookie_beats_accept_language_for_every_page_kind(client: Client) -> None:
+    switch(client, "fr")
+
+    fragment = client.get("/players/", headers={"Accept-Language": "pt-PT", "HX-Request": "true"})
+
+    assert fragment.status_code == 200
+    assert fragment["Content-Language"] == "fr"
+
+
+def test_fragments_vary_and_etag_per_language(client: Client) -> None:
+    german = client.get("/players/", headers={"HX-Request": "true", "Accept-Language": "de"})
+    portuguese = client.get("/players/", headers={"HX-Request": "true", "Accept-Language": "pt-PT"})
+
+    assert german["ETag"] != portuguese["ETag"]
+    assert german["Content-Language"] == "de"
+    assert portuguese["Content-Language"] == "pt-br"
+    vary = {v.strip() for v in german["Vary"].split(",")}
+    assert {"Accept-Language", "HX-Request"} <= vary
+    # a copy cached for one language is never revalidated into another
+    again = client.get(
+        "/players/", headers={"HX-Request": "true", "Accept-Language": "pt-PT", "If-None-Match": german["ETag"]}
+    )
+    assert again.status_code == 200
 
 
 def test_html_and_pages_stay_english_for_unsupported_languages(client: Client) -> None:

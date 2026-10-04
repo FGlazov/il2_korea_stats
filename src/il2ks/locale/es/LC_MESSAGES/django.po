@@ -1627,6 +1627,10 @@ msgid "Landings"
 msgstr "Aterrizajes"
 
 # llm-draft
+msgid "Language"
+msgstr "Idioma"
+
+# llm-draft
 msgid "Last"
 msgstr "Último"
 

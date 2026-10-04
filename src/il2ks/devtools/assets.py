@@ -40,6 +40,7 @@ GROUPS = (
     "role",
     "stat",
     "nav",
+    "flag",
     "pattern",
     "illustration",
 )
@@ -53,6 +54,7 @@ GROUP_TITLES = {
     "role": "Combat role (`role/`)",
     "stat": "Stat tiles (`stat/`)",
     "nav": "Navigation link icons (`nav/`)",
+    "flag": "Language flags (`flag/`)",
     "pattern": "Textures (`pattern/`)",
     "illustration": "Illustrations (`illustration/`)",
 }
@@ -67,6 +69,7 @@ OURS = (
     "ground/artillery.svg",
     "ground/aaa.svg",
     "stat/friendly-fire.svg",
+    "flag/",  # flag-icons (MIT) and a hand-reduced Spain; README.md "Flags"
 )
 
 
@@ -259,6 +262,17 @@ def build_manifest() -> list[Asset]:
     for name in ("discord", "forum", "patreon", "link"):
         add(f"nav/{name}.svg", "Custom navigation links in the header (`NavLink.icon`)", ICON, "P3", True, dynamic=True)
 
+    # language flags (web.templatetags.il2ks.LANGUAGE_FLAGS): decorative `<img alt="">` in the footer language menu
+    for name, text in (
+        ("us", "English (American English)"),
+        ("ru", "Russian"),
+        ("de", "German"),
+        ("es", "Spanish"),
+        ("fr", "French"),
+        ("br", "Brazilian Portuguese"),
+    ):
+        add(f"flag/{name}.svg", f"Footer language menu: {text}", "SVG, 4:3 flag, viewBox 640 x 480", "P2", True)
+
     # textures and illustrations
     add(
         "pattern/camo.svg",
@@ -302,6 +316,8 @@ def tabler_sources(readme: Path = README) -> dict[str, str]:
 def source_of(path: str, tabler: dict[str, str]) -> str:
     if path in tabler:
         return f"Tabler `{tabler[path]}`"
+    if path.startswith("flag/"):
+        return "flag-icons (MIT)"
     if path.startswith(OURS):
         return "own drawing"
     return "none yet"
@@ -310,10 +326,10 @@ def source_of(path: str, tabler: dict[str, str]) -> str:
 # --- what the code references and what is on disk ----------------------------------------------------------------
 
 _QUOTED = re.compile(
-    r"""["']((?:aircraft|brand|coalition|event|ground|outcome|role|stat|pattern|illustration)/[a-z0-9][a-z0-9_/-]*)["']"""
+    r"""["']((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|pattern|illustration)/[a-z0-9][a-z0-9_/-]*)["']"""
 )
 _PATHED = re.compile(
-    r"img/((?:aircraft|brand|coalition|event|ground|outcome|role|stat|pattern|illustration)/[a-z0-9][a-z0-9_/-]*\.(?:svg|png|webp))"
+    r"img/((?:aircraft|brand|coalition|event|ground|outcome|role|stat|flag|pattern|illustration)/[a-z0-9][a-z0-9_/-]*\.(?:svg|png|webp))"
 )
 
 

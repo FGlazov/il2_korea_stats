@@ -1646,6 +1646,10 @@ msgid "Landings"
 msgstr "Посадки"
 
 # llm-draft
+msgid "Language"
+msgstr "Язык"
+
+# llm-draft
 msgid "Last"
 msgstr "Последний"
 

@@ -30,8 +30,8 @@
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 10,
-      "sha256": "827feb391cd5b96e92d1b47e571fe38540a200aa2ed048e4aacf6c682472d826"
+      "version": 11,
+      "sha256": "f68a8358b9b844eb46f88456818807c0a5970ea7b755487aee88fde0cef95cda"
     },
     "static/il2ks/sorties.css": {
       "version": 2,
@@ -102,8 +102,8 @@
       "sha256": "029e157eeee51b8fa1ce7085bf5e2a920d115a456dbd2dd4c44d0bbdf05649d6"
     },
     "templates/il2ks/base.html": {
-      "version": 7,
-      "sha256": "1eab38d00045a040fe8eea147a8c2c8a0d3b2f32546739884cea394f7af96502"
+      "version": 8,
+      "sha256": "dd96e6e945f5211f757b1945b8e2de267ccc3a2ece6a11bd8c631b5deb23821c"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -148,6 +148,10 @@
     "templates/il2ks/components/kv_list.html": {
       "version": 1,
       "sha256": "32a7fce482dddf36d712e99dd58956e25829f49fa949905961bd20fd33fcc1a5"
+    },
+    "templates/il2ks/components/language_menu.html": {
+      "version": 1,
+      "sha256": "8d243fb35f934adb0f53185d9b067078dcf44636178d1ae1d13994bd28d810e4"
     },
     "templates/il2ks/components/notice.html": {
       "version": 1,
