@@ -167,7 +167,7 @@
     },
     "templates/il2ks/components/filter_bar.html": {
       "version": 1,
-      "sha256": "61a070e15695f578d7b9a21741d4aa61031c7bd777f6846d6a7aa16b519ad13d"
+      "sha256": "8cd165ecddb588cec806a5f640a5356e73437c256ef514efa2d8993f1a15a83e"
     },
     "templates/il2ks/components/filter_select.html": {
       "version": 1,
