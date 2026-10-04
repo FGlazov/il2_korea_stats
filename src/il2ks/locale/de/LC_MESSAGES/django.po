@@ -252,8 +252,8 @@ msgid ""
 "font's license allows web use. It is stored on your server and served from your own site; nothing is loaded from "
 "other websites."
 msgstr ""
-"Eine .woff2-Datei (bevorzugt) oder .woff-Datei bis 2 MB; kleiner ist schneller, ideal sind unter 100 KB. Prüfen Sie, "
-"ob die Lizenz der Schrift die Web-Nutzung erlaubt. Die Datei liegt auf Ihrem Server und wird von Ihrer eigenen Seite "
+"Eine .woff2-Datei (bevorzugt) oder .woff-Datei bis 2 MB; kleiner ist schneller, ideal sind unter 100 KB. Prüfe, ob "
+"die Lizenz der Schrift die Web-Nutzung erlaubt. Die Datei liegt auf deinem Server und wird von deiner eigenen Seite "
 "ausgeliefert; von anderen Websites wird nichts geladen."
 
 # llm-draft
@@ -536,7 +536,7 @@ msgstr "Höchstens %(max)d Navigationslinks."
 # llm-draft
 #, python-format
 msgid "At most %(max)d uploaded fonts: tick one under “Remove uploaded fonts” first."
-msgstr "Höchstens %(max)d hochgeladene Schriften: Wählen Sie zuerst unter „Hochgeladene Schriften entfernen“ eine aus."
+msgstr "Höchstens %(max)d hochgeladene Schriften: Wähle zuerst unter „Hochgeladene Schriften entfernen“ eine aus."
 
 # llm-draft
 msgid "Attack"
@@ -946,7 +946,7 @@ msgstr "E-Mail-Adresse für Zertifikatshinweise (optional)"
 
 # llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
-msgstr "Laden Sie entweder ein neues Logo hoch oder entfernen Sie das aktuelle, nicht beides."
+msgstr "Lade entweder ein neues Logo hoch oder entferne das aktuelle, nicht beides."
 
 # llm-draft
 msgid "Elo"
@@ -1849,7 +1849,7 @@ msgid ""
 "--mission UID` after fixing the cause."
 msgstr ""
 "Keine weiteren automatischen Versuche. Sie werden erneut versucht, wenn sich ihre Dateien oder die il2ks-Version "
-"ändern, oder führen Sie nach Behebung der Ursache `il2ks reprocess --mission UID` aus."
+"ändern, oder führe nach Behebung der Ursache `il2ks reprocess --mission UID` aus."
 
 # llm-draft
 msgid "No pilot has enough attack sorties in this aircraft yet."
@@ -2461,8 +2461,8 @@ msgstr "Nebentext"
 # llm-draft
 msgid "Seen in logs but missing from the catalog. Give them a name here, and report them so the catalog can be updated."
 msgstr ""
-"In den Logs gesehen, aber nicht im Katalog. Geben Sie ihnen hier einen Namen und melden Sie sie, damit der Katalog "
-"aktualisiert werden kann."
+"In den Logs gesehen, aber nicht im Katalog. Gib ihnen hier einen Namen und melde sie, damit der Katalog aktualisiert "
+"werden kann."
 
 # llm-draft
 msgid "Serif"
@@ -2993,7 +2993,7 @@ msgstr ""
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
-msgstr "Beim Erstellen dieser Seite ist auf dem Server ein Fehler aufgetreten. Bitte versuchen Sie es gleich noch einmal."
+msgstr "Beim Erstellen dieser Seite ist auf dem Server ein Fehler aufgetreten. Versuch es gleich noch einmal."
 
 # llm-draft
 msgid "The server stopped before the mission ended; the numbers may be partial."
