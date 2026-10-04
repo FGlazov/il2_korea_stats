@@ -324,3 +324,28 @@ def test_the_upgrade_merges_aircraft_rows_that_differ_only_in_case(tmp_path: Pat
 
     assert list(GameObject.objects.values_list("log_name", flat=True)) == ["IL-10"]
     assert PlayerSortie.objects.get().aircraft.log_name == "IL-10"
+
+
+def test_b_29_with_a_space_is_the_same_aircraft_as_b_29() -> None:
+    """Real logs write `B 29` and `B-29` (maintainer, OQ-120): one `GameObject`, through a catalog alias."""
+    from il2ks.core.catalog.loader import load_default_catalog
+
+    objects = persist.register_game_objects(["B 29", "B-29"], load_default_catalog())
+
+    assert list(GameObject.objects.values_list("log_name", flat=True)) == ["B-29"]
+    assert objects["B 29"].pk == objects["B-29"].pk
+
+
+def test_the_upgrade_merges_a_b_29_row_written_with_a_space(tmp_path: Path) -> None:
+    from il2ks.db.models import PlayerSortie
+    from il2ks.ops import migrate
+    from tests.ops_helpers import make_instance
+
+    save(mission((sortie(0, 1, aircraft_type="B-29"),)))
+    dup = GameObject.objects.create(log_name="B 29", display_name="B-29", cls="bomber")
+    PlayerSortie.objects.update(aircraft=dup)  # as an old database: the sortie sits on the spaced spelling
+
+    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_AIRCRAFT_ALIASES])  # pyright: ignore[reportPrivateUsage]
+
+    assert list(GameObject.objects.values_list("log_name", flat=True)) == ["B-29"]
+    assert PlayerSortie.objects.get().aircraft.log_name == "B-29"
