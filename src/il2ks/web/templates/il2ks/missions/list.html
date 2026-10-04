@@ -1,7 +1,7 @@
-{# il2ks-template: templates/il2ks/missions/list.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/list.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission list (FR-WEB-1). Context: page_obj (Page of Mission), missions (the page's rows), sort (whitelisted ?sort=),
-  period_options, winner_options, empty_options ((value, label) pairs for the filters).
+  tour_options ((id, title) pairs for ?tour=, TD-26), period_options, winner_options, empty_options ((value, label) pairs for the filters).
   Blocks: head (page stylesheet), content.
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
@@ -14,6 +14,7 @@
   {% results_region %}
     {% filter_bar %}
       {% filter_text "q" _("Mission") placeholder=_("Name contains…") live=True %}
+      {% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}
       {% filter_select "period" _("Period") period_options all_label=_("All time") %}
       {% filter_select "winner" _("Winner") winner_options all_label=_("Any") %}
       {% filter_select "empty" _("Empty missions") empty_options all_label=_("Hidden") %}

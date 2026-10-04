@@ -111,7 +111,7 @@ def test_home_shows_the_site_description(client: Client) -> None:
 def test_list_is_newest_first_and_cheap(client: Client) -> None:
     old, new = make_mission(1), make_mission(2)
 
-    assert_simple_reads(client, "/missions/", max_queries=CONTEXT_READS + 2)  # count + page
+    assert_simple_reads(client, "/missions/", max_queries=CONTEXT_READS + 3)  # tours (selector), count, page
 
     html = body(client, "/missions/")
     assert html.index(f"/missions/{new.pk}/") < html.index(f"/missions/{old.pk}/")

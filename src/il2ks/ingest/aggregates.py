@@ -27,6 +27,7 @@ from django.db import models
 from django.db.models import Max, Min, Sum
 
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
+from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import (
     AircraftAmmoStats,
@@ -42,6 +43,7 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.ratings import recompute_ratings
+from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import assign_missing, retour
 
 CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
@@ -71,11 +73,15 @@ def recompute_players(player_ids: Iterable[int], tour_ids: Iterable[int] | None 
 
 
 def rebuild_aggregates(
-    ratings: RatingRules = DEFAULT_RULES, tours: TourRules | None = None, *, reassign_tours: bool = False
+    ratings: RatingRules = DEFAULT_RULES,
+    tours: TourRules | None = None,
+    *,
+    reassign_tours: bool = False,
+    marks: MarkRules = DEFAULT_MARK_RULES,
 ) -> None:
     """Recompute every level-2 row from level 1 (`il2ks rebuild-aggregates`): `recompute_players` for all players (all
     tours), the hits to destroy per aircraft type (`recompute_aircraft_ammo`), then the Elo ratings
-    (`recompute_ratings`, which replays all kills).
+    (`recompute_ratings`, which replays all kills) and the stat thresholds (FR-WEB-22).
 
     `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
     With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
@@ -91,6 +97,7 @@ def rebuild_aggregates(
         | set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True))
     )
     recompute_ratings(ratings)
+    recompute_thresholds(marks)
     bump_data_version()  # TD-28: pages changed
 
 

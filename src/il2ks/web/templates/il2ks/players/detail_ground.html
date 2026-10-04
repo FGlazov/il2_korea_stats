@@ -1,10 +1,10 @@
-{# il2ks-template: templates/il2ks/players/detail_ground.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_ground.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_ground.html: the ground-kill breakdown (FR-WEB-4, OQ-33) in a collapsed accordion right under the stat tiles, so a
   total inflated by fences and crates stays honest. Nine categories (they add up to kills_ground) with icon, count and
-  share, plus how many of the kills were static objects. Context: player, ground (list of GroundRow: key, icon, label, count).
-{% endcomment %}{% if player.kills_ground %}
-  {% blocktranslate with total=player.kills_ground|num static=player.kills_ground_static|num asvar ground_hint %}{{ total }} in total, {{ static }} of them static objects{% endblocktranslate %}
+  share, plus how many of the kills were static objects. Context: stats (the player, or their PlayerTour row with ?tour=), ground (list of GroundRow: key, icon, label, count).
+{% endcomment %}{% if stats.kills_ground %}
+  {% blocktranslate with total=stats.kills_ground|num static=stats.kills_ground_static|num asvar ground_hint %}{{ total }} in total, {{ static }} of them static objects{% endblocktranslate %}
   {% accordion _("Ground kills by category") ground_hint %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact ground-table">
@@ -14,14 +14,14 @@
             <tr{% if not row.count %} class="is-zero"{% endif %}>
               <td>{% icon row.icon "ground-table__icon" %} {{ row.label }}</td>
               <td class="num">{{ row.count|num }}</td>
-              <td class="num">{{ row.count|percent:player.kills_ground }}</td>
-              <td class="ground-table__bar"><progress value="{{ row.count }}" max="{{ player.kills_ground }}" aria-hidden="true"></progress></td>
+              <td class="num">{{ row.count|percent:stats.kills_ground }}</td>
+              <td class="ground-table__bar"><progress value="{{ row.count }}" max="{{ stats.kills_ground }}" aria-hidden="true"></progress></td>
             </tr>
           {% endfor %}
         </tbody>
         <tfoot>
-          <tr><td>{% translate "Total" %}</td><td class="num">{{ player.kills_ground|num }}</td><td class="num">100%</td><td></td></tr>
-          <tr><td>{% translate "of them static objects" %}</td><td class="num">{{ player.kills_ground_static|num }}</td><td class="num">{{ player.kills_ground_static|percent:player.kills_ground }}</td><td></td></tr>
+          <tr><td>{% translate "Total" %}</td><td class="num">{{ stats.kills_ground|num }}</td><td class="num">100%</td><td></td></tr>
+          <tr><td>{% translate "of them static objects" %}</td><td class="num">{{ stats.kills_ground_static|num }}</td><td class="num">{{ stats.kills_ground_static|percent:stats.kills_ground }}</td><td></td></tr>
         </tfoot>
       </table>
     </div>

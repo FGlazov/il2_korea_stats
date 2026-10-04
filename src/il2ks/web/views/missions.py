@@ -4,7 +4,7 @@ Hidden missions are absent from the list and the home page and answer 404 on the
 templates anonymise hidden players ("Hidden player", no link).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 
 from django.core.paginator import Paginator
@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from il2ks.core.catalog.loader import Side
 from il2ks.db.models import PlayerMission, PlayerSortie
 from il2ks.queries import missions as reads
+from il2ks.queries.tours import tour_choice_from, tour_options
 from il2ks.web import display
 
 HOME_MISSIONS = 8
@@ -57,12 +58,15 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def mission_list(request: HttpRequest) -> HttpResponse:
     sort = reads.resolve_sort(request.GET.get("sort", ""))
-    filters = reads.parse_filters(request.GET)
+    choice = tour_choice_from(request.GET)
+    filters = replace(reads.parse_filters(request.GET), tour=choice.selected)
     page = Paginator(reads.mission_list(filters, sort, datetime.now(UTC)), PAGE_SIZE).get_page(request.GET.get("page"))
     context: dict[str, object] = {
         "page_title": _("Missions"),
         "page_obj": page,
         "missions": page.object_list,
+        **choice.context,
+        "tour_options": tour_options(choice.tours),
         "sort": sort,
         "period_options": [(days, label) for days, label in PERIOD_LABELS.items()],
         "winner_options": [("redfor", _("REDFOR won")), ("blufor", _("BLUFOR won")), ("none", _("No winner"))],

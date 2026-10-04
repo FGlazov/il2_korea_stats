@@ -4,17 +4,18 @@ The tags render the files in `templates/il2ks/components/`; every component docu
 its template, and server owners may override any of them (TD-25). Tags that need the current URL read the request from
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
-Filters (formatting only, TD-22): duration, utc, local_time, local_short, local_date, local_hm, local_clock, num,
-ratio, per_hour, percent, mission_title, game_when,
-clock_since; object_name (TD-24: show a GameObject in the viewer's language, never `.display_name` directly).
+Filters (formatting only, TD-22): duration, utc, local_time, local_short, local_date, local_hm, local_clock,
+num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title; object_name (TD-24: show a GameObject
+in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown, language_menu, sort_th,
-pagination, filter_select, filter_text, tour_select.
+pagination, filter_select, filter_text, tour_select, stat_mark, stat_mark_note.
 Block tags: results_region, filter_bar, accordion, notice.
 """
 
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
+from typing import cast
 
 from django import template
 from django.conf import settings
@@ -28,7 +29,9 @@ from django.utils.http import urlencode
 from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
 
-from il2ks.db.models import Tour
+from il2ks.core import stat_marks
+from il2ks.db.models import Counters, StatThreshold, Tour
+from il2ks.queries import tours as tour_reads
 from il2ks.web import display, icons, object_names
 from il2ks.web.display import SortFirst, Tone
 
@@ -149,6 +152,13 @@ def clock_since(when: datetime | None, start: datetime | None) -> str:
 def game_when(mission: object) -> str:
     """{{ mission|game_when }} -> '1951-09-15 13:00': the in-game date and time of a mission (not real time)."""
     return display.game_when(str(getattr(mission, "game_date", "")), str(getattr(mission, "game_time", "")))
+
+
+@register.filter
+def tour_title(tour: Tour | str) -> str:
+    """{{ tour|tour_title }}: the tour's name in the viewer's language ("October 2026" -> "Oktober 2026"; a title an
+    admin renamed stays as written)."""
+    return tour_reads.tour_title(tour if isinstance(tour, str) else tour.title)
 
 
 @register.filter
@@ -286,6 +296,45 @@ def kv_list(items: Iterable[tuple[object, object]]) -> dict[str, object]:
     return {"items": list(items)}
 
 
+@register.inclusion_tag(COMPONENTS + "stat_mark.html", takes_context=True)
+def stat_mark(context: Context, metric: str) -> dict[str, object]:
+    """{% stat_mark "survival" %} after a ratio on the profile: a "Top 10%" / "Top 25%" badge when the pilot's value
+    (from `stats`) is above the p90 / p75 of the pilots with enough sorties (`marks`, from the view; FR-WEB-22).
+    Nothing for low values, a pilot under the minimum, an undefined ratio or a scope without thresholds."""
+    stats = context.get("stats")
+    marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
+    limits = marks.get(metric)
+    if stats is None or limits is None or stats.sorties < limits.min_sorties:
+        return {}
+    value = stat_marks.metric_value(cast(stat_marks.Metric, metric), _totals(stats))
+    found = stat_marks.band(
+        value, stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population)
+    )
+    return {"band": found, "min_sorties": limits.min_sorties}
+
+
+@register.inclusion_tag(COMPONENTS + "stat_mark_note.html", takes_context=True)
+def stat_mark_note(context: Context) -> dict[str, object]:
+    """{% stat_mark_note %} under the ratios: why a pilot with too few sorties has no marks (FR-WEB-22)."""
+    stats = context.get("stats")
+    marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
+    first = next(iter(marks.values()), None)
+    if stats is None or first is None or stats.sorties >= first.min_sorties:
+        return {}
+    return {"min_sorties": first.min_sorties}
+
+
+def _totals(stats: Counters) -> stat_marks.Totals:
+    return stat_marks.Totals(
+        sorties=stats.sorties,
+        deaths=stats.deaths,
+        planes_lost=stats.planes_lost,
+        kills_air=stats.kills_air,
+        kills_ground=stats.kills_ground,
+        flight_time_s=stats.flight_time_s,
+    )
+
+
 @register.inclusion_tag(COMPONENTS + "empty_row.html")
 def empty_row(colspan: int, message: object = "") -> dict[str, object]:
     """{% empty_row 6 %} inside <tbody> when there are no rows."""
@@ -415,7 +464,7 @@ def filter_text(
 def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None = None) -> dict[str, object]:
     """{% tour_select tours tour %}: the tour selector (`?tour=<id>`, "All time" = no parameter), TD-26.
 
-    `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice(request.GET.get("tour"))`."""
+    `tours` and `selected` are the fields of `il2ks.queries.tours.tour_choice_from(request.GET)`."""
     request = _request_of(context)
     params = _params_of(context)
     hidden = [(key, value) for key, values in params.lists() if key not in {"tour", "page"} for value in values]

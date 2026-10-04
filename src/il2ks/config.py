@@ -30,6 +30,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.replay.config import ReplayRules
+from il2ks.core.stat_marks import MarkRules
 from il2ks.core.tours import TourRules, parse_mode
 
 type AfterArchive = Literal["move", "keep", "delete"]
@@ -139,6 +140,7 @@ class Config:
     live: LiveConfig = field(default_factory=LiveConfig)
     replay: ReplayRules = field(default_factory=ReplayRules)
     ratings: RatingRules = field(default_factory=RatingRules)
+    marks: MarkRules = field(default_factory=MarkRules)
     backup: BackupConfig = field(default_factory=BackupConfig)
     tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
     source: Path | None = None  # the TOML file that was read, if any
@@ -258,6 +260,8 @@ def load_config(
         cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
     )
 
+    marks = MarkRules(min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties))
+
     backup_defaults = BackupConfig()
     backup = BackupConfig(
         keep=reader.positive_int("backup", "keep", backup_defaults.keep),
@@ -291,6 +295,7 @@ def load_config(
         live=live,
         replay=replay,
         ratings=ratings,
+        marks=marks,
         backup=backup,
         tours=tours,
         source=file,

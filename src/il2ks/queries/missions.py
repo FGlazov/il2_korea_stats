@@ -12,7 +12,7 @@ from typing import Final, Literal
 from django.db.models import QuerySet
 from django.http import QueryDict
 
-from il2ks.db.models import Kill, Mission, PlayerMission, PlayerSortie
+from il2ks.db.models import Kill, Mission, PlayerMission, PlayerSortie, Tour
 
 # What the mission list can be sorted by: ?sort= value -> model field (the whitelist: anything else is ignored).
 SORT_FIELDS: Final[dict[str, str]] = {
@@ -38,6 +38,7 @@ class MissionFilters:
     include_empty: bool = False
     winner: Winner | None = None
     name: str = ""
+    tour: Tour | None = None  # resolved from `?tour=` by `queries.tours.tour_choice_from`, not by parse_filters
 
 
 def resolve_sort(raw: str) -> str:
@@ -61,6 +62,8 @@ def mission_list(filters: MissionFilters, sort: str, now: datetime) -> QuerySet[
     missions = Mission.objects.visible()
     if not filters.include_empty:
         missions = missions.filter(sorties_total__gt=0)
+    if filters.tour is not None:
+        missions = missions.filter(tour=filters.tour)
     if filters.period_days is not None:
         missions = missions.filter(started_at__gte=now - timedelta(days=filters.period_days))
     if filters.winner is not None:

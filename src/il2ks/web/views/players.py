@@ -5,7 +5,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from il2ks.db.models import Counters
 from il2ks.queries import players as reads
+from il2ks.queries.stat_marks import stat_thresholds
+from il2ks.queries.tours import player_tour, tour_choice_from
 from il2ks.web.ground import ground_breakdown
 
 
@@ -27,21 +30,31 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
     Template `il2ks/players/detail.html`. Context: `player`, `names` (PlayerName rows, newest first), `sort` (resolved),
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
-    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`."""
+    `gunner_only`, `recent` (PlayerSortie rows with mission and aircraft), `crumbs`, `page_title`.
+    With `?tour=<id>` (queries.tours.tour_choice_from; unknown = all time): `tours`, `tour`, and `stats` is the
+    PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `marks` (stat thresholds
+    of that scope, FR-WEB-22); `aircraft` and `recent`
+    are that tour's."""
     player = reads.visible_player(pk)
     if player is None:
         raise Http404
     sort = reads.resolve_sort(request.GET.get("sort", ""), reads.AIRCRAFT_SORTS, reads.DEFAULT_AIRCRAFT_SORT)
-    context = {
+    choice = tour_choice_from(request.GET)  # `?tour=<id>`; unknown or absent = all time (TD-26)
+    tour = choice.selected
+    stats: Counters | None = player if tour is None else player_tour(player.pk, tour)
+    context: dict[str, object] = {
+        **choice.context,
+        "stats": stats,
+        "marks": stat_thresholds(tour),  # FR-WEB-22: one query
         "page_title": player.current_name,
         "crumbs": [(_("Players"), reverse("web:player-search")), (player.current_name, None)],
         "player": player,
         "names": reads.past_names(player),
         "sort": sort,
-        "aircraft": reads.aircraft_rows(player, sort),
-        "survived": max(player.sorties - player.deaths, 0),
-        "ground": ground_breakdown(player),
-        "gunner_only": reads.flies_as_gunner_only(player),
-        "recent": reads.recent_sorties(player),
+        "aircraft": reads.aircraft_rows(player, sort, tour),
+        "survived": max(stats.sorties - stats.deaths, 0) if stats else 0,
+        "ground": ground_breakdown(stats) if stats else [],
+        "gunner_only": tour is None and reads.flies_as_gunner_only(player),
+        "recent": reads.recent_sorties(player, tour=tour),
     }
     return render(request, "il2ks/players/detail.html", context)

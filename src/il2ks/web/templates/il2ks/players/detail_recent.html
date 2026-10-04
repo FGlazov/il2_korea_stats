@@ -1,11 +1,11 @@
-{# il2ks-template: templates/il2ks/players/detail_recent.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_recent.html v4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_recent.html: the ten latest sorties (any role) with a link to the full list. Context: player, recent
   (PlayerSortie rows with .mission and .aircraft). Links: web:sortie-detail, web:mission-detail, web:player-sorties.
 {% endcomment %}<section>
   <div class="section-head">
     <h2>{% translate "Recent sorties" %}</h2>
-    <a href="{% url 'web:player-sorties' player.pk %}">{% translate "All sorties" %} →</a>
+    <a href="{% url 'web:player-sorties' player.pk %}{% if tour %}?tour={{ tour.pk }}{% endif %}">{% translate "All sorties" %} →</a>
   </div>
   <div class="table-wrap table-wrap--flat">
     <table class="data-table recent-table">

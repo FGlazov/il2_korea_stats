@@ -353,6 +353,20 @@ msgstr "Выпрыгнул с парашютом"
 msgid "Bailouts"
 msgstr ""
 
+#, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s sortie"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s sorties"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
 msgid "Bomb release"
 msgstr ""
 
@@ -978,6 +992,9 @@ msgstr ""
 "Автоматических повторов больше не будет. Повтор происходит, когда меняются их файлы или версия il2ks; либо выполните "
 "`il2ks reprocess --mission UID` после устранения причины."
 
+msgid "No pilot sorties are counted for this player in the selected tour."
+msgstr ""
+
 msgid "No pilot sorties are counted for this player yet."
 msgstr ""
 
@@ -992,6 +1009,9 @@ msgid "No players yet."
 msgstr ""
 
 msgid "No qualifying attack"
+msgstr ""
+
+msgid "No sorties in this tour"
 msgstr ""
 
 msgid "No sorties match these filters."
@@ -1207,6 +1227,13 @@ msgstr "Рейтинги"
 
 msgid "Ratios"
 msgstr ""
+
+#, python-format
+msgid "Ratios are compared with other pilots from %(n)s sortie on."
+msgid_plural "Ratios are compared with other pilots from %(n)s sorties on."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 msgid ""
 "Re-runs every stored mission from its archive with the current rules, then rebuilds the aggregates. It can take a "
@@ -1626,6 +1653,14 @@ msgstr ""
 msgid "Took off"
 msgstr ""
 
+#, python-format
+msgid "Top 10%%"
+msgstr ""
+
+#, python-format
+msgid "Top 25%%"
+msgstr ""
+
 msgid "Top pilots by kills"
 msgstr ""
 
@@ -1633,6 +1668,10 @@ msgid "Total"
 msgstr ""
 
 msgid "Tour"
+msgstr ""
+
+#, python-format
+msgid "Tour %(number)s"
 msgstr ""
 
 msgid "Tours start by themselves unless [tours] mode is manual."

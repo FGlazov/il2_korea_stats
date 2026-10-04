@@ -6,6 +6,7 @@ Hidden players and missions answer 404 (FR-ADM-3).
 """
 
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 
 from django.contrib.staticfiles import finders
 from django.http import Http404, HttpRequest, HttpResponse
@@ -17,6 +18,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
+from il2ks.queries.tours import tour_choice_from, tour_options
 from il2ks.web import display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
@@ -31,17 +33,23 @@ def _options(values: Sequence[str], labels: Mapping[str, display.BadgeSpec]) -> 
 def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     """`/players/<pk>/sorties/`: newest first, sortable, filterable by aircraft, outcome, role and combat role.
 
-    Query parameters: `aircraft` (GameObject pk of one of the player's aircraft), `outcome`, `role`, `combat_role`,
+    Query parameters: `tour` (Tour pk, TD-26; unknown = all time), `aircraft` (GameObject pk of one of the player's
+    aircraft), `outcome`, `role`, `combat_role`,
     `sort` (one of `reads.SORT_FIELDS`, '-' prefix = descending), `page`. Unknown values are ignored.
 
-    Context: player, page_obj (PlayerSortie rows with mission and aircraft), sort (resolved), aircraft_options,
+    Context: player, tours, tour, tour_options, page_obj (PlayerSortie rows with mission and aircraft), sort (resolved),
+    aircraft_options,
     outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title."""
     player = get_object_or_404(Player.objects.visible(), pk=pk)
     aircraft = reads.player_aircraft(player)
     language = get_language() or "en"
-    filters = reads.parse_filters(
-        {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "role", "combat_role")},
-        {row.aircraft_id for row in aircraft},
+    choice = tour_choice_from(request.GET)
+    filters = replace(
+        reads.parse_filters(
+            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "role", "combat_role")},
+            {row.aircraft_id for row in aircraft},
+        ),
+        tour=choice.selected,
     )
     sort = reads.resolve_sort(request.GET.get("sort", ""))
     page = reads.sortie_page(player, filters, sort, request.GET.get("page", "1"))
@@ -55,6 +63,8 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
         "il2ks/sorties/list.html",
         {
             "player": player,
+            **choice.context,
+            "tour_options": tour_options(choice.tours),
             "page_obj": page,
             "sort": sort,
             "aircraft_options": [(row.aircraft_id, object_names.name_of(row.aircraft, language)) for row in aircraft],

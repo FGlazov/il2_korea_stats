@@ -18,6 +18,7 @@ from il2ks.db.models import (
     PlayerAircraft,
     PlayerSortie,
     Role,
+    Tour,
 )
 
 PAGE_SIZE = 25
@@ -44,12 +45,14 @@ def resolve_sort(raw: str) -> str:
 
 @dataclass(frozen=True, slots=True)
 class SortieFilters:
-    """The validated `?aircraft=`, `?outcome=`, `?role=`, `?combat_role=` of the list ('' = no filter)."""
+    """The validated `?aircraft=`, `?outcome=`, `?role=`, `?combat_role=` of the list ('' = no filter) and the chosen
+    tour (`?tour=`, resolved by `queries.tours.tour_choice_from`; None = all time)."""
 
     aircraft: int | None = None
     outcome: str = ""
     role: str = ""
     combat_role: str = ""
+    tour: Tour | None = None
 
 
 def parse_filters(raw: dict[str, str], aircraft_ids: Collection[int]) -> SortieFilters:
@@ -72,6 +75,8 @@ def player_aircraft(player: Player) -> list[PlayerAircraft]:
 def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) -> Page:
     """One page of a player's sorties in visible missions: filtered, sorted (`sort` already resolved) and paginated."""
     rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
+    if filters.tour is not None:
+        rows = rows.filter(mission__tour=filters.tour)
     if filters.aircraft is not None:
         rows = rows.filter(aircraft_id=filters.aircraft)
     if filters.outcome:
