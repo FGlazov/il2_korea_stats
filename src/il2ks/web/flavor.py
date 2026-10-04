@@ -233,6 +233,14 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Opening shots matter, and these ones found their mark."),
         gettext_lazy("Somebody had to go first. It was a good choice."),
     ),
+    "sortie_first_blood": (
+        gettext_lazy("First blood of the mission goes to this pilot. Somebody had to open the scoring."),
+        gettext_lazy("The first kill of the night, and it was this one. Everybody else is playing catch-up."),
+        gettext_lazy("Drew first blood, and the scoreboard has not been the same since."),
+        gettext_lazy("The mission was young and the sky was quiet, until this pilot changed that."),
+        gettext_lazy("Opening shots matter, and these ones found their mark."),
+        gettext_lazy("Somebody had to go first. It was a good choice."),
+    ),
     "sortie_stolen_kills": (
         gettext_lazy("Ah, the finishing shots went to somebody else! The wingmen send their thanks, and nothing else."),
         gettext_lazy("So many assists, so few credits. The kill counter is a cruel bookkeeper."),

@@ -38,6 +38,12 @@ with a "names not known yet" hint until the weapon-mods catalog lands; shares un
 Defaults applied: "updated" is the file's modification time; the image is at most 75% of the viewport height, scaled to fit and framed;
 a click opens it full size in a new tab; the caption is one bold line.
 
+**OQ-119 Admin-configurable quips: defaults** (built 2026-10-04, maintainer request)
+Defaults applied: four modes per spot (defaults, defaults + own, own only, off; default "defaults"); "own only" with no line in the
+page's language shows nothing; limits 200 characters per line, 20 own lines per spot, 300 in total; the global switch beats the spot
+modes; hiding a default quip applies in every language (the key is the English text); the new "first blood" quip sits below the extreme
+events and above "ace".
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
