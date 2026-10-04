@@ -68,6 +68,17 @@ same scope (all time or the selected tour). Only the elevated kind is named; no 
 As asked (2026-10-03), the POW "food" joke and "Ace-in-a-day territory" are gone. Replacements: "Out of the fight, but not out of the
 story." (sortie captured) and "Best showing of the mission. Well flown." (top pilot).
 
+**OQ-76 Ammo names: convention and the uncertain ones** (FR-WEB-18; data in `src/il2ks/core/catalog/data/ammo.csv`)
+Default applied: `<cartridge> <round type>` with the game's round letters (".50 BMG API", "12.7×108 mm API-T", "23×115 mm HEI-T"),
+rockets and bombs by designation and size ("HVAR 5 in", "FAB-100", "Napalm 110 gal"); the real designation (M8 API, OZT) is a tooltip;
+names are not translated. Low confidence, worth asking the IL-2 Korea developers: `BULLET_7-62_RUS_HEI` (shown "7.62×54R HEI", probably
+the PZ incendiary-tracer), `BULLET_12-7_RUS_HEI` ("12.7×108 mm HEI", probably MDZ), `BULLET_9-01_GER_FMJ` ("9 mm ball", odd attribution
+to aircraft), `SHELL_57_RUS_CV` ("57×348 mm", round type unclear). US 20 mm rounds never appear in the sample logs.
+
+**OQ-77 Ammo: which damage columns to hide** (OQ-52 follow-up)
+Default applied: all per-ammo damage is hidden on the sortie page, including the bombs/rockets/napalm table and the "damage no hit
+could be blamed on" note, not only the gun ammo table. Damage is still stored. Reverting part of it is cheap.
+
 ## Lower impact
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

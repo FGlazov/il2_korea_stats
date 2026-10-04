@@ -51,62 +51,85 @@ Status legend: ✅ merged, 🔧 in progress (an agent is on it), ⏳ queued. As-
 - ✅ **Versioned templates** for `custom/` overrides: outdated overrides get a big warning in the admin (maintainer, 2026-10-03; TD-25).
 - ✅ OQ-36: destruction before a disconnect is a normal loss (maintainer, 2026-10-03).
 - ✅ Playwright harness and smoke tests (the key flows are listed under "Before the public release").
-- 🔧 Fixes from the Opus review (2026-10-03): Windows child processes orphaned by `schtasks /End`, a stale `run.json` blocking restarts,
-  half-swapped restores, restore while running; SQLite WAL mode, the "data updated" time, admin password validators, Caddyfile validation,
-  ETag details, logo deletion on Windows. ✅ merged; ⏳ left: restore refusal while running + `--force`, restore config path, and the Opus review #1 findings (in progress).
+- ✅ Fixes from the Opus review (2026-10-03): Windows child processes orphaned by `schtasks /End`, a stale `run.json` blocking restarts,
+  half-swapped restores, restore while running (refused unless `--force`, OQ-71), restore config path; SQLite WAL mode, the "data
+  updated" time, admin password validators, Caddyfile validation, ETag details, logo deletion on Windows; Opus review #1 findings
+  (installer, setup page, Docker; merged 2026-10-04).
+- 🔧 Fixes from the Opus review of 2026-10-04 (everything merged since ac9bada): chart axes in non-English languages, score backfill
+  ignoring `[marks]`, migration 0011 atomic again (✅), deprecated `utc_date`/`utc_short` aliases, huge `?tour=` values, hidden-player
+  sort order on the killboard, heavy JSON columns in list queries, tour-aware scores on the profile.
 
 ## Iteration 1.x: Easy install and polish
 The maintainer asked (2026-10-03) to build everything up to the end of iteration 2 except the visual assets, which move to right after
 the release gate.
-- 🔧 **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Built, **not merged yet**; needs the review fixes (service account OQ-41, password switch, `--logs-dir` quoting).
-- ✅ First-run **web setup page** for the installer (game folder, domain, admin account). Review fixes pending (config validated before writing, token not in logs, restart settle time).
-- ✅ Docker Compose distribution (option A) for Linux/Wine hosts. Its https smoke test failed on Docker Desktop for Windows; review fix pending (unset admin password env).
-- 🔧 **Ammo breakdown** (FR-WEB-18): ✅ data, pages done (merging; `/aircraft/` page). Per-sortie hits and damage per ammo type, average hits-to-destroy per
-  aircraft type, closest-hit attribution. **Not a release gate**.
-- ✅ data side, 🔧 pages (done, merging): **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
-- 🔧 **`web` alongside `ingest`/`watch`** (maintainer, 2026-10-03): `web` took the writer lock (waiting up to 60 s) just to *check* for
-  pending migrations, so it exited with code 3 while a long `ingest` or `reprocess` held the lock. It now takes the lock only when
-  migrations are pending. Admin writes from the web never take the writer lock (the concurrency risk is negligible). A test runs both
-  at once.
-- 🔧 (done, merging) **Whole-row links** in tables (FR-WEB-24, maintainer, 2026-10-03): clicking most of a row opens its main target (player, mission or sortie), not
-  only the name. Other links in the row keep working.
-- 🔧 (done, merging) **Flavor text** (FR-WEB-23; the maintainer liked the hall-of-shame quips): a few more tasteful highlight spots, each with several
-  variants. Not on every section.
-- 🔧 (done, merging) OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE (the sortie pages already use some).
+- ✅ **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Merged
+  2026-10-04 with the review fixes: service account `NT SERVICE\il2ks` (OQ-41, OQ-68), password via a locked temp file and
+  `/ADMINPASSWORDFILE=` (OQ-69), argument quoting, `python -P`. ⏳ Not yet compiled with Inno Setup on a real machine: the Windows CI job
+  is the first check.
+- ✅ First-run **web setup page** for the installer (game folder, domain, admin account): config written write-validate-replace, token not
+  in logs, restart after the response.
+- ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). ⏳ Docker https smoke on Windows.
+- ✅ **Ammo breakdown** (FR-WEB-18): per-sortie hits per ammo type, average hits-to-destroy per aircraft type, `/aircraft/` pages; per-ammo
+  damage columns hidden (OQ-52). **Not a release gate**.
+- ✅ **PvE breakdown** (FR-WEB-21): kills and deaths by counterpart class ("how often does AA get me?").
+- ✅ **`web` alongside `ingest`/`watch`** (maintainer, 2026-10-03): `web` takes the writer lock only when migrations are pending.
+- ✅ **Whole-row links** in tables (FR-WEB-24, maintainer, 2026-10-03).
+- ✅ **Flavor text** (FR-WEB-23): a few tasteful highlight spots, several variants each (two lines replaced, OQ-75).
+- ✅ OQ-37 leftovers: the remaining placeholder icons from Tabler + NOTICE.
+- ✅ **Regression guards for agent work** (maintainer, 2026-10-04): `il2ks dev check` (fast / quick / `--full`) is the one pre-commit gate
+  for agents, hooks, pre-commit and CI; released migrations can't be edited; template compile test; Claude Code hooks (doc 08).
+- 🔧 **Ingest speed** (maintainer, 2026-10-04): a faster, non-pure-Python tokenizer if it keeps good error messages, then profile and
+  fix the hot spots; target hundreds of milliseconds per mission. A repeatable benchmark command.
+- 🔧 **Performance tests for the pages** (maintainer, 2026-10-04): server-side timing budgets next to the query budgets, a Locust load
+  test (manual), front-end budgets (page weight, requests, LCP/CLS) in the Playwright job.
 
 ## Maintainer requests (2026-10-04)
-- ⏳ **Real ammo names** (FR-WEB-18): research the calibre and round types each aircraft actually used and show plain names
-  (for example ".50 BMG API", ".50 BMG AP" for the US .50 cal) instead of the game's object names.
-- ⏳ **Idiomatic translations**: flavor text is translated for meaning and tone, not word for word (TD-24 drafts).
-- ⏳ **Hall of shame**: drop "Strafed by" from it (moves elsewhere on the profile); the second tile becomes **friendly-fire
-  incidents**. The quip depends on which kinds of incidents the player has (runway/taxi only, friendly fire only, both, none),
-  with a separate light-hearted variant above the 90th percentile. Nothing demeaning.
+- ✅ **Real ammo names** (FR-WEB-18): `ammo.csv` maps the game's names to plain ones (".50 BMG API", ".50 BMG INC", ".50 BMG API-T",
+  "23×115 mm HEI-T", "HVAR 5 in"), with the real designation (M8 API) as a tooltip; not translated. Two Soviet sub-types are inferred
+  (OQ-76).
+- 🔧 **Idiomatic translations**: flavor text is translated for meaning and tone, not word for word (TD-24 drafts). Done for the new hall
+  of shame lines; the full re-run comes once the pages settle.
+- ✅ **Hall of shame**: "Strafed on the ground" moved to "Other totals" (OQ-73); the second tile is **friendly-fire incidents** (OQ-72).
+  The quip depends on the kinds of incidents (taxi only, friendly fire only, both, none), with a warmer variant above the 90th percentile
+  (OQ-74).
 
 ## Decisions to apply (maintainer answers, 2026-10-03; doc 02 "Maintainer decisions")
 Do these while merging the finished branches, before the release where they touch release items:
-- ⏳ Local time: locale-native formats; zone only in the footer; show when the next tour starts.
-- ⏳ Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
-- ⏳ Ammo: hide the per-ammo damage columns (keep hits).
-- ⏳ Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab.
-- ⏳ Score: percentage penalties by outcome (death 80%, capture 50%, plane lost 20%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
-- ⏳ Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
-- ⏳ Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
+- 🔧 Local time: locale-native formats; zone only in the footer; show when the next tour starts.
+- 🔧 Tours: current tour by default with an all-time toggle; "Sorties in <tour>" framing; flavor text for an empty tour.
+- ✅ Ammo: hide the per-ammo damage columns (keep hits).
+- 🔧 Killboard: `assists` config toggle, off by default. Streaks: a per-player "best streaks" tab. Per-tour killboard and streaks.
+- 🔧 Score: percentage penalties by outcome (death 80%, capture 50%, plane lost 20%, configurable; OQ-67), flat friendly-fire and early-bailout penalties.
+- 🔧 Leaderboards: Elo (jet, prop) and ground proficiency on the home page; the rest on the leaderboards page.
+- 🔧 Aircraft: rank a type's top pilots by skill (per-type Elo / ground proficiency); per-type Elo.
 - ⏳ Doc 15: list every icon file in the designer brief.
-- ⏳ Rams: test the ram signal on the samples and confirm the results are plausible before enabling it (OQ-61 answer).
-- ⏳ Windows installer: virtual service account `NT SERVICE\il2ks` (OQ-41).
-- ⏳ **Run the tests in parallel** (maintainer, 2026-10-03): the unit + integration run takes ~7–10 min serially; try pytest-xdist
-  (watch for tests sharing data dirs, ports and the writer lock, and for Windows process spawning).
+- 🔧 Rams: test the ram signal on the samples and confirm the results are plausible before enabling it (OQ-61 answer).
+- ✅ Windows installer: virtual service account `NT SERVICE\il2ks` (OQ-41).
+- ✅ **Run the tests in parallel** (maintainer, 2026-10-03): pytest-xdist in `il2ks dev check`; the full suite went from ~11 min to ~2 min.
 
 ## Before the public release (maintainer, 2026-10-03)
-- 🔧 **Playwright end-to-end tests on the key flows** (done, 30 tests, merging), moved up from stretch: (1) a player opens their latest sortie and follows the link to
-  an enemy's sortie (one they shot down, or one that shot them down); (2) someone browses several missions and opens a couple of sorties.
-  Plus the earlier flows (search → profile → sortie; mission → find yourself → sortie). Remove `PAGES_PENDING`.
-- 🔧 **Times in the viewer's local timezone** (FR-WEB-17), moved up from stretch (TD-15 as built; OQ-42..44). Done, merging.
-- 🔧 (done, merging; then `reprocess --all`) **Bailout rule v3** (FR-ING-14, doc 13 "as built"): test Rufus's two methods (ejection spawn with `PID:-1`, geometry with 200 m / 30 m above ground)
-  against rule v2 on the sample missions and adopt what improves it (doc 13). Ships with the first public release (maintainer, 2026-10-03).
-- 🔧 (done, merging) Stretch, before the release: **stat highlights** (FR-WEB-22): a player's number stands out (tastefully) when it's unusually good
-  compared with every player with enough sorties (for example above the 90th percentile); unusually bad gets a gentle hint at most,
-  never shaming.
+- ✅ **Playwright end-to-end tests on the key flows** (30 tests): (1) a player opens their latest sortie and follows the link to an enemy's
+  sortie; (2) someone browses several missions and opens a couple of sorties; plus search → profile → sortie and mission → find yourself →
+  sortie.
+- ✅ **Times in the viewer's local timezone** (FR-WEB-17; TD-15 as built; OQ-42..44).
+- ✅ **Bailout rule v3** (FR-ING-14, doc 13 "as built"): ejection spawn (Rufus's method 1) and the pilot-not-dead gate. Servers need
+  `il2ks reprocess --all`. The height arm waits for heightmaps (OQ-39).
+- ✅ Stretch, before the release: **stat highlights** (FR-WEB-22): Top 10% / 25% badges against every player with enough sorties.
+
+## Iteration 2: Live data, languages, richer stats
+Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait for any of it.
+- ✅ **Tours** with configurable length (monthly by default) (TD-26), on the profile, sortie and mission lists; localised titles.
+- ✅ **Online now**: current player counts and the list of players, plus in-progress missions (FR-ING-12, FR-WEB-15).
+  🔧 `{% online_now %}` on the home page.
+- ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ⏳ re-run once the pages
+  settle (idiomatic, not literal), then human review.
+- ✅ **Game object names**: admin overrides and translated defaults (TD-24, FR-ADM-5).
+- Features from the maintainer's mods, through proper extension points (TD-16):
+  - ✅ Score concept (separate air and ground scores), leaderboards and rankings; pages for the air-to-air Elo (prop/jet pools) and ground
+    score per hour on target (FR-WEB-19/20). 🔧 Percentage penalties (above).
+  - ✅ Stats by aircraft (FR-WEB-8). 🔧 Split rankings by prop/jet and fighter/attack.
+  - ✅ Killboards (FR-WEB-9) and ironman streaks. 🔧 Rams, parachute deaths, and other rule toggles (OQ-61).
+- ✅ Light charts (FR-WEB-16).
 
 ## Public release gate
 **Target: roughly 3 weeks from 2026-10-02, around 2026-10-23** (maintainer). These items are **required before it** (the list grows as
@@ -135,24 +158,6 @@ The order that protects the date: (1) parser + replay + ingest with golden tests
 image and illustrations with finished ones. Moved here (maintainer, 2026-10-03): the maintainer will work with a designer on a mostly
 finished site and wants to release quickly. The site ships with placeholders under the final file names, so this is a drop-in change.
 
-## Iteration 2: Live data, languages, richer stats
-Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait for any of it.
-- ✅ data, admin, selector; 🔧 wiring into pages (done, merging): **Tours** with configurable length (monthly by default) (TD-26). Localise monthly tour
-  titles at display time.
-- ✅ **Online now**: current player counts and the list of players, plus in-progress missions on the main page (FR-ING-12, FR-WEB-15).
-  ⏳ `{% online_now %}` on the home page.
-- ✅ **Translations** pipeline and LLM drafts for Russian, German, Spanish, French, Brazilian Portuguese (TD-24); ⏳ re-run once the pages
-  settle, then human review.
-- ✅ **Game object names**: admin overrides and translated defaults (TD-24, FR-ADM-5).
-- Features from the maintainer's mods, through proper extension points (TD-16):
-  - 🔧 (done, merging) Score concept (separate air and ground scores), then leaderboards and rankings. Configurable penalties, including for suspected early
-    bailouts. Pages for the air-to-air Elo (prop/jet pools) and ground score per hour on target (FR-WEB-19/20); their inputs are stored
-    since iteration 1.
-  - 🔧 (done, merging) Stats by aircraft (FR-WEB-8). ⏳ Split rankings by prop/jet and fighter/attack (score boards have a per-type filter only).
-  - 🔧 (done, merging) Killboards (FR-WEB-9). Ironman / virtual-life stats. 🔧 (WIP: config only) Rams, parachute deaths, and other rule toggles (OQ-61).
-  - Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
-- 🔧 (done, merging) Light charts (FR-WEB-16).
-
 
 ## Later / stretch
 - **Live sorties**: stream in-progress data so sorties appear right away (FR-ING-15), in v2–v3 or later.
@@ -162,6 +167,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
 - Optional self-hosted monitoring and error tracking (TD-27).
 - Continuous flight tracks from a separate live telemetry source, if the game offers one (TD-08, OQ-26).
 - Sortie map: **benched until after the release** (maintainer, 2026-10-03, doc 02 decisions); the grid version stays on its branch, unmerged.
+- Stretch: **gunner stats** with the gunner credit rule (FR-WEB-14; needs telling a gunner's fire apart, likely by ammo type).
 
 ## Iteration 3: Global stats (multi-server)
 - A central instance that receives data from many servers. Each server gets an opt-in exporter (push, or pull through a
