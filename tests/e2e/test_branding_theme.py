@@ -1,6 +1,7 @@
 """Admin-defined colours and fonts reach the rendered page in both modes (TD-25)."""
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
 import pytest
@@ -49,3 +50,27 @@ def test_fonts_are_applied(page: Page, set_branding: SetBranding) -> None:
     page.goto("/")
     assert "monospace" in computed(page, "h1", "fontFamily") or "Mono" in computed(page, "h1", "fontFamily")
     assert "Georgia" in computed(page, "main", "fontFamily")
+
+
+VENDOR = Path(__file__).resolve().parents[2] / "src" / "il2ks" / "web" / "static" / "il2ks" / "vendor"
+
+
+def test_uploaded_fonts_are_applied_and_loaded(page: Page, set_branding: SetBranding) -> None:
+    """A custom heading and body font: the computed family is the generated one and the browser really loaded the
+    files from our own server (a font file the browser rejects would stay `unloaded` or `error`)."""
+    set_branding(
+        {
+            "font_files": {
+                "heading": str(VENDOR / "BarlowCondensed-700.woff2"),
+                "body": str(VENDOR / "BarlowCondensed-600.woff2"),
+            }
+        }
+    )
+    page.goto("/", wait_until="networkidle")
+
+    assert "il2-font-" in computed(page, "h1", "fontFamily")
+    assert "il2-font-" in computed(page, "main", "fontFamily")
+    states: list[str] = page.evaluate(
+        "Array.from(document.fonts).filter(f => f.family.includes('il2-font-')).map(f => f.status)"
+    )
+    assert states == ["loaded", "loaded"]

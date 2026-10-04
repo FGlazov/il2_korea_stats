@@ -84,14 +84,20 @@ def _normalize_mode(image: Image.Image) -> Image.Image:
 
 def store_logo(logo: ProcessedLogo, media_root: Path) -> Path:
     """Write the logo under `media_root` (atomically; nothing to do if the same content is already there)."""
-    target = media_root / logo.name
+    return store_bytes(logo.data, logo.name, media_root)
+
+
+def store_bytes(data: bytes, name: str, media_root: Path) -> Path:
+    """Write `data` to `media_root / name` atomically (temp file, then rename); nothing to do if it is already there.
+    Shared by the logo and the custom fonts (`web.fonts`); `name` is always derived from the content hash."""
+    target = media_root / name
     if target.is_file():
         return target
     target.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp_name = tempfile.mkstemp(dir=target.parent, suffix=".tmp")
     try:
         with os.fdopen(fd, "wb") as handle:
-            handle.write(logo.data)
+            handle.write(data)
         Path(tmp_name).replace(target)
     except BaseException:
         Path(tmp_name).unlink(missing_ok=True)

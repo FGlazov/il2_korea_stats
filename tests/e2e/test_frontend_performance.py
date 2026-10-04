@@ -14,7 +14,9 @@ Two groups:
 Selected with `-m perf` (together with `IL2KS_TEST_E2E=1`) or as part of the e2e job."""
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pytest
 from playwright.sync_api import Page, Request, Response
@@ -24,6 +26,7 @@ from tests.e2e.world import World
 
 pytestmark = pytest.mark.perf
 
+VENDOR_FONTS = Path(__file__).resolve().parents[2] / "src" / "il2ks" / "web" / "static" / "il2ks" / "vendor"
 REPORT = os.environ.get("IL2KS_PERF_REPORT") == "1"
 KB = 1024
 
@@ -100,6 +103,27 @@ def test_page_weight_budget(page: Page, world: World, base_url: str, name: str) 
     assert weight.of("script") <= MAX_JS_KB * KB, f"JS {weight.of('script') / KB:.0f} KB (budget {MAX_JS_KB})"
     assert weight.of("font") <= MAX_FONT_KB * KB, f"fonts {weight.of('font') / KB:.0f} KB (budget {MAX_FONT_KB})"
     assert weight.of("image") <= MAX_IMAGE_KB * KB, f"images {weight.of('image') / KB:.0f} KB (budget {MAX_IMAGE_KB})"
+
+
+def test_uploaded_fonts_stay_within_the_font_budget(
+    page: Page, world: World, base_url: str, set_branding: Callable[[dict[str, object]], None]
+) -> None:
+    """Admin-uploaded fonts count toward the font bytes. Two typical subset fonts (about 22 KB each; the vendored Barlow
+    files stand in) for headings and body fit the budget, and a custom heading font even replaces the shipped one. The
+    admin form warns above 150 KB (`web.fonts.RECOMMENDED_FONT_BYTES`); the budgets above describe the shipped look."""
+    set_branding(
+        {
+            "font_files": {
+                "heading": str(VENDOR_FONTS / "BarlowCondensed-700.woff2"),
+                "body": str(VENDOR_FONTS / "BarlowCondensed-600.woff2"),
+            }
+        }
+    )
+    weight = measure(page, PUBLIC_PAGES["home"](world), base_url)
+
+    assert weight.of("font") <= MAX_FONT_KB * KB, f"fonts {weight.of('font') / KB:.0f} KB (budget {MAX_FONT_KB})"
+    assert weight.of("font") > 0
+    assert weight.foreign == []
 
 
 @pytest.mark.parametrize("name", PUBLIC_PAGES)

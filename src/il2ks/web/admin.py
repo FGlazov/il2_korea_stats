@@ -46,7 +46,8 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
-from il2ks.web.logo import prune_logos, store_logo
+from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
+from il2ks.web.logo import prune_logos, store_bytes, store_logo
 from il2ks.web.object_names import default_catalog
 from il2ks.web.site_forms import MAX_NAV_LINKS, RECOMMENDED_NAV_LINKS, NavLinkFormSet, SiteSettingsForm
 from il2ks.web.theme import ContrastWarning, contrast_warnings
@@ -113,11 +114,23 @@ def _contrast_message(item: ContrastWarning) -> str:
 class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
     form = SiteSettingsForm
     inlines = (NavLinkInline,)
-    readonly_fields = ("current_logo", "nav_links_help")
+    readonly_fields = ("current_logo", "uploaded_fonts", "nav_links_help")
     fieldsets = (
         (None, {"fields": ("site_title", "server_name", "description")}),
         (_("Logo"), {"fields": ("current_logo", "logo_upload", "remove_logo")}),
-        (_("Fonts"), {"fields": ("heading_font", "body_font")}),
+        (
+            _("Fonts"),
+            {
+                "fields": (
+                    "uploaded_fonts",
+                    "font_upload",
+                    "font_use",
+                    "remove_fonts",
+                    "heading_font",
+                    "body_font",
+                )
+            },
+        ),
         (_("Colors"), {"fields": ("theme_preset", "theme")}),
         (_("Navigation links"), {"fields": ("nav_links_help",)}),
         (
@@ -153,6 +166,22 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             settings.MEDIA_URL,
             obj.logo,
         )
+
+    @admin.display(description=_("Uploaded fonts"))
+    def uploaded_fonts(self, obj: SiteSettings) -> str:
+        """The uploaded fonts with a preview line each (the `@font-face` rules come from the validated list)."""
+        fonts = clean_fonts(obj.custom_fonts)
+        if not fonts:
+            return _("No uploaded fonts.")
+        # Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
+        sample = _("The quick brown fox jumps over the lazy dog 0123456789")
+        rows = format_html_join(
+            "",
+            '<p style="margin:.4em 0"><strong>{}</strong><br>'
+            '<span style="font-family:{},sans-serif;font-size:1.4em">{}</span></p>',
+            ((font.label, font.family, sample) for font in fonts),
+        )
+        return format_html("<style>{}</style>{}", mark_safe(font_face_css(fonts, settings.MEDIA_URL)), rows)
 
     @admin.display(description=_("About the links"))
     def nav_links_help(self, obj: SiteSettings) -> str:
@@ -197,11 +226,25 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             obj.logo = form.processed_logo.name
         elif form.cleaned_data["remove_logo"]:
             obj.logo = ""
+        fonts = form.kept_fonts
+        if form.processed_font is not None:
+            store_bytes(form.processed_font.data, form.processed_font.font.file, media_root)
+            if len(form.processed_font.data) > RECOMMENDED_FONT_BYTES:
+                messages.warning(
+                    request,
+                    _(
+                        "The uploaded font is %(kb)d KB. Every visitor downloads it once (then it is cached), so "
+                        "large fonts slow down the first page view; a subset .woff2 under 100 KB is ideal."
+                    )
+                    % {"kb": len(form.processed_font.data) // 1024},
+                )
+        obj.custom_fonts = [font.as_json() for font in fonts]
         super().save_model(request, obj, form, change)
         bump_data_version()
         # Old logo files go only once the new row is committed (a rolled-back save keeps the logo it had), and a file
         # that cannot be deleted right now (Windows refuses while it is being served) is left for the next save.
         transaction.on_commit(partial(prune_logos, media_root, obj.logo))
+        transaction.on_commit(partial(prune_fonts, media_root, [font.file for font in fonts]))
 
 
 # --- Players and missions: read-only apart from hiding (FR-ADM-3) ---

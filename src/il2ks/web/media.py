@@ -1,8 +1,9 @@
-"""Serves the admin-uploaded logo at `/media/branding/<file>` (FR-ADM-2, NFR-SEC-7).
+"""Serves the admin-uploaded logo and fonts at `/media/branding/<file>` (FR-ADM-2, NFR-SEC-7).
 
 WhiteNoise only serves collected static files, so uploads need a view. It is deliberately narrow: one folder
-(`MEDIA_ROOT/branding/`), flat file names of a safe alphabet, raster extensions only. Everything else is a 404, with no
-hint of why. Files are content-hashed (`web.logo`), so they are cached for a year. Works with DEBUG off.
+(`MEDIA_ROOT/branding/`), flat file names of a safe alphabet, raster image and WOFF/WOFF2 font extensions only.
+Everything else is a 404, with no hint of why. Files are content-hashed (`web.logo`, `web.fonts`), so they are cached
+for a year. Works with DEBUG off.
 """
 
 import re
@@ -17,7 +18,14 @@ from django.views.decorators.http import require_safe
 
 from il2ks.web.logo import BRANDING_DIR
 
-CONTENT_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".woff2": "font/woff2",
+    ".woff": "font/woff",
+}
 SAFE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 

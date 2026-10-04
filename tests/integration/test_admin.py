@@ -2,6 +2,7 @@
 
 import io
 import re
+import struct
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -488,6 +489,202 @@ def test_upload_and_remove_together_is_an_error(admin: Client, media_root: Path)
 
     assert response.status_code == 200
     assert "remove_logo" in response.context["adminform"].form.errors
+
+
+# --- custom fonts ---
+
+VENDOR = Path(__file__).resolve().parents[2] / "src" / "il2ks" / "web" / "static" / "il2ks" / "vendor"
+
+
+def font_file(name: str = "BarlowCondensed-700.woff2", upload_name: str = "My Font.woff2") -> SimpleUploadedFile:
+    return SimpleUploadedFile(upload_name, (VENDOR / name).read_bytes(), content_type="font/woff2")
+
+
+def upload_font(admin: Client, use: str = "", **extra: object) -> SiteSettings:
+    admin.post(settings_url(), settings_form(font_upload=font_file(), font_use=use, **extra))
+    return SiteSettings.objects.get(pk=1)
+
+
+def test_uploading_a_font_stores_serves_and_selects_it(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+    before = current_data_version()
+
+    response = admin.post(settings_url(), settings_form(font_upload=font_file(), font_use="both"))
+
+    assert response.status_code == 302
+    row = SiteSettings.objects.get(pk=1)
+    [stored] = row.custom_fonts
+    assert re.fullmatch(r"branding/font-[0-9a-f]{16}\.woff2", stored["file"])
+    assert stored["label"] == "My Font"
+    assert (media_root / stored["file"]).read_bytes() == (VENDOR / "BarlowCondensed-700.woff2").read_bytes()
+    assert row.heading_font == row.body_font == f"up-{stored['file'][len('branding/font-') :][:8]}"
+    assert current_data_version() != before  # cached pages are revalidated (TD-28)
+    served = admin.get(f"/media/{stored['file']}")
+    assert (served.status_code, served["Content-Type"]) == (200, "font/woff2")
+    page = Client().get("/").content.decode()
+    assert "@font-face" in page
+    assert f"/media/{stored['file']}" in page
+    assert "font-display:swap" in page
+
+
+def test_the_form_previews_and_offers_the_uploaded_font(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+    row = upload_font(admin)
+    key = f"up-{row.custom_fonts[0]['file'][len('branding/font-') :][:8]}"
+
+    form_page = admin.get(settings_url()).content.decode()
+
+    assert "My Font" in form_page
+    assert "The quick brown fox" in form_page  # the preview line
+    assert "@font-face" in form_page
+    assert f'value="{key}"' in form_page  # a choice for the heading font, the body font and the remove checkbox
+    assert form_page.count(f'value="{key}"') == 3
+
+
+def test_an_upload_without_choosing_a_use_does_not_select_it(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+
+    row = upload_font(admin, use="")
+
+    assert len(row.custom_fonts) == 1
+    assert (row.heading_font, row.body_font) == ("", "")
+    assert "@font-face" not in Client().get("/").content.decode()  # not used: nothing is emitted
+
+
+def test_a_stored_font_can_be_selected_later(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+    key = f"up-{upload_font(admin).custom_fonts[0]['file'][len('branding/font-') :][:8]}"
+
+    admin.post(settings_url(), settings_form(heading_font=key, body_font="serif"))
+
+    row = SiteSettings.objects.get(pk=1)
+    assert (row.heading_font, row.body_font) == (key, "serif")
+    assert row.custom_fonts  # saving without an upload keeps the list
+
+
+def test_choosing_a_font_that_was_never_uploaded_is_refused(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+
+    response = admin.post(settings_url(), settings_form(heading_font="up-deadbeef"))
+
+    assert response.status_code == 200
+    assert "heading_font" in response.context["adminform"].form.errors
+
+
+def test_removing_a_font_deletes_the_file_and_resets_the_choice(
+    admin: Client, media_root: Path, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
+) -> None:
+    get_site_settings()
+    with django_capture_on_commit_callbacks(execute=True):
+        row = upload_font(admin, use="both")
+    [stored] = row.custom_fonts
+    key = row.heading_font
+
+    with django_capture_on_commit_callbacks(execute=False) as callbacks:
+        response = admin.post(settings_url(), settings_form(remove_fonts=[key], heading_font=key, body_font="serif"))
+    assert response.status_code == 302
+    assert (media_root / stored["file"]).exists()  # nothing is deleted before the row is committed
+    for callback in callbacks:
+        callback()
+
+    row = SiteSettings.objects.get(pk=1)
+    assert row.custom_fonts == []
+    assert (row.heading_font, row.body_font) == ("", "serif")
+    assert not (media_root / stored["file"]).exists()
+    assert Client().get(f"/media/{stored['file']}").status_code == 404
+
+
+def test_replacing_a_font_keeps_only_the_wanted_files(
+    admin: Client, media_root: Path, django_capture_on_commit_callbacks: DjangoCaptureOnCommitCallbacks
+) -> None:
+    get_site_settings()
+    with django_capture_on_commit_callbacks(execute=True):
+        first = upload_font(admin, use="heading").custom_fonts[0]
+    with django_capture_on_commit_callbacks(execute=True):
+        admin.post(
+            settings_url(),
+            settings_form(
+                font_upload=font_file("BarlowCondensed-600.woff2", "Other.woff2"),
+                font_use="heading",
+                remove_fonts=[f"up-{first['file'][len('branding/font-') :][:8]}"],
+            ),
+        )
+
+    [second] = SiteSettings.objects.get(pk=1).custom_fonts
+    assert second["label"] == "Other"
+    assert not (media_root / first["file"]).exists()
+    assert (media_root / second["file"]).is_file()
+
+
+def test_uploading_the_same_font_twice_stores_it_once(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+    upload_font(admin)
+
+    row = upload_font(admin)
+
+    assert len(row.custom_fonts) == 1
+    assert len(list((media_root / "branding").glob("font-*"))) == 1
+
+
+@pytest.mark.parametrize(
+    ("data", "name"),
+    [
+        (b'<svg xmlns="http://www.w3.org/2000/svg"><font/></svg>', "font.svg"),
+        (b'<svg xmlns="http://www.w3.org/2000/svg"/>' + b" " * 100, "font.woff2"),  # SVG renamed
+        (b"wOF2" + b"\x00" * 100, "font.woff2"),  # right magic, wrong header
+        ((VENDOR / "BarlowCondensed-700.woff2").read_bytes(), "font.woff"),  # WOFF2 under a WOFF name
+        ((VENDOR / "BarlowCondensed-700.woff2").read_bytes()[:500], "font.woff2"),  # truncated
+        (b"wOF2" + b"\x00" * (2 * 1024 * 1024), "font.woff2"),  # over the size limit
+        (b"\x00\x01\x00\x00" + b"\x00" * 100, "font.ttf"),
+    ],
+    ids=["svg", "svg-as-woff2", "bad-header", "woff2-as-woff", "truncated", "oversized", "ttf"],
+)
+def test_bad_font_uploads_are_refused_and_change_nothing(
+    admin: Client, media_root: Path, data: bytes, name: str
+) -> None:
+    get_site_settings()
+    before = current_data_version()
+
+    response = admin.post(
+        settings_url(), settings_form(font_upload=SimpleUploadedFile(name, data, content_type="font/woff2"))
+    )
+
+    assert response.status_code == 200
+    assert "font_upload" in response.context["adminform"].form.errors
+    row = SiteSettings.objects.get(pk=1)
+    assert row.custom_fonts == []
+    assert row.site_title != "Korea Fighters"
+    assert not media_root.exists() or not list(media_root.rglob("*.*"))
+    assert current_data_version() == before
+
+
+def test_the_number_of_uploaded_fonts_is_limited(admin: Client, media_root: Path) -> None:
+    row = get_site_settings()
+    row.custom_fonts = [{"file": f"branding/font-{i:016x}.woff2", "label": str(i)} for i in range(6)]
+    row.save()
+
+    response = admin.post(settings_url(), settings_form(font_upload=font_file()))
+
+    assert response.status_code == 200
+    assert "font_upload" in response.context["adminform"].form.errors
+    assert len(SiteSettings.objects.get(pk=1).custom_fonts) == 6
+
+
+def test_a_large_font_is_accepted_with_a_warning(admin: Client, media_root: Path) -> None:
+    get_site_settings()
+    raw = (VENDOR / "BarlowCondensed-700.woff2").read_bytes()
+    size = 200 * 1024
+
+    big = raw[:8] + struct.pack(">I", size) + raw[12:] + b"\x00" * (size - len(raw))
+
+    response = admin.post(
+        settings_url(),
+        settings_form(font_upload=SimpleUploadedFile("Big.woff2", big, content_type="font/woff2")),
+        follow=True,
+    )
+
+    assert len(SiteSettings.objects.get(pk=1).custom_fonts) == 1
+    assert "200 KB" in response.content.decode()
 
 
 # --- players and missions ---

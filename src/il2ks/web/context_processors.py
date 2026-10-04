@@ -71,7 +71,9 @@ def site(request: HttpRequest) -> dict[str, object]:
     data_updated: datetime | None = version_row.updated_at if version_row is not None else None
     logo_url = f"{django_settings.MEDIA_URL or '/media/'}{row.logo}" if row.logo else ""
     links = nav_items(row.links)
-    css: SafeString = theme_css(row.theme, row.heading_font, row.body_font)
+    css: SafeString = theme_css(
+        row.theme, row.heading_font, row.body_font, row.custom_fonts, django_settings.MEDIA_URL or "/media/"
+    )
     return {
         "site": row,
         "logo_url": logo_url,

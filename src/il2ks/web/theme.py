@@ -6,7 +6,8 @@ only the overrides, per mode: `{"light": {"bg": "#E9E8E0"}, "dark": {...}}`. `th
 `:root { ... }` rule for a `<style>` block, and it can only ever emit what it builds itself:
 
 - a token value is exactly `#RRGGBB` (re-validated here, so a hand-edited database row cannot inject CSS),
-- a font is one of the fixed stacks below, chosen by key,
+- a font is one of the fixed stacks below, chosen by key, or an uploaded font (`web.fonts`): its family and file name
+  are generated from a content hash and re-validated here, and its `@font-face` uses `font-display: swap`,
 - the final string is checked against a whitelist of characters before it is marked safe.
 
 `contrast_warnings` compares the text/background pairs of the effective colours (WCAG 2.x ratios) and returns messages
@@ -21,6 +22,8 @@ from typing import Final, Literal
 from django.utils.functional import Promise
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext_lazy as _
+
+from il2ks.web.fonts import CustomFont, clean_fonts, font_face_css
 
 type StrOrPromise = str | Promise
 type Mode = Literal["light", "dark"]
@@ -191,7 +194,7 @@ BODY_FONTS: Final[dict[str, tuple[str, str]]] = {
     "mono": HEADING_FONTS["mono"],
 }
 
-_CSS_SAFE = re.compile(r"""[A-Za-z0-9#,.:;(){}\-\s"'%]*""")
+_CSS_SAFE = re.compile(r"""[A-Za-z0-9#,.:;(){}\-\s"'%/@]*""")
 
 
 def _declaration(token: Token, theme: Theme, colors: dict[Mode, dict[str, str]]) -> str | None:
@@ -227,20 +230,38 @@ def _default_css(token: Token, mode: Mode) -> str:
     return "#ffffff"  # accent-contrast of the shipped accent
 
 
-def theme_css(theme: object, heading_font: str = "", body_font: str = "") -> SafeString:
-    """The `:root { ... }` rule for the page's <style> block; '' for the default look. Safe by construction."""
+def _font_stack(
+    key: str, uploads: dict[str, CustomFont], builtin: Mapping[str, tuple[StrOrPromise, str]], fallback: str
+) -> str:
+    """The `font-family` value for a choice: a built-in stack, or the uploaded font in front of `fallback`."""
+    if key in uploads:
+        return f'"{uploads[key].family}", {fallback}'
+    return builtin[key][1] if key and key in builtin else ""
+
+
+def theme_css(
+    theme: object,
+    heading_font: str = "",
+    body_font: str = "",
+    custom_fonts: object = (),
+    media_url: str = "/media/",
+) -> SafeString:
+    """The `@font-face` rules and the `:root { ... }` rule for the page's <style> block; '' for the default look. Safe
+    by construction. `custom_fonts` is the stored list of uploads; only those chosen as heading/body font are used."""
     cleaned = clean_theme(theme)
     colors: dict[Mode, dict[str, str]] = {"light": effective(cleaned, "light"), "dark": effective(cleaned, "dark")}
     parts = [d for token in TOKENS if (d := _declaration(token, cleaned, colors)) is not None]
-    heading = HEADING_FONTS[heading_font][1] if heading_font and heading_font in HEADING_FONTS else ""
-    body = BODY_FONTS[body_font][1] if body_font and body_font in BODY_FONTS else ""
+    uploads = {font.key: font for font in clean_fonts(custom_fonts)}
+    heading = _font_stack(heading_font, uploads, HEADING_FONTS, HEADING_FONTS[""][1])
+    body = _font_stack(body_font, uploads, BODY_FONTS, HEADING_FONTS["system"][1])
     if heading:
         parts.append(f"--il2-font-display:{heading};")
     if body:
         parts.append(f"--pico-font-family:{body};")
     if not parts:
         return SafeString("")
-    css = ":root{" + "".join(parts) + "}"
+    used = [font for key, font in uploads.items() if key in {heading_font, body_font}]
+    css = font_face_css(used, media_url) + ":root{" + "".join(parts) + "}"
     if not _CSS_SAFE.fullmatch(css) or "<" in css or "\\" in css:  # defence in depth: cannot happen with the code above
         return SafeString("")
     return mark_safe(css)

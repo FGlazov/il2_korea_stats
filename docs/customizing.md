@@ -67,12 +67,32 @@ database. The colors are one small `<style>` block that sets the `--il2-*` varia
 
 ### Fonts
 
-**Heading font** and **Body font** pick from a fixed list: the condensed headline font that ships with il2ks, and
+**Heading font** and **Body font** pick from a list: the condensed headline font that ships with il2ks, and
 system fonts (system sans-serif, humanist sans-serif, serif, slab serif, monospace). They use fonts the visitor's device
 already has (each choice lists fallbacks, so it always shows something readable), and **nothing is loaded from another
-website**, so your visitors' privacy is not touched. Uploading your own font file is not supported; if you want one,
-put the `.woff2` in `custom/static/` and add an `@font-face` and a `--il2-font-display` / `--pico-font-family` line in a
-small stylesheet from the `head` block (section 2).
+website**, so your visitors' privacy is not touched.
+
+**Your own font.** Under "Fonts" you can **upload a font file** (`.woff2`, preferred, or `.woff`; up to 2 MB) and use it
+for headings, body text or both: pick where to use it in the same step, or choose it later in the two lists, where it
+appears as "name (uploaded)". Up to six fonts can be kept; tick "Remove uploaded fonts" to delete one (a removed font
+that was in use falls back to the default). A preview line shows each uploaded font.
+
+- Only real WOFF2/WOFF files are accepted: the extension, the file header and the declared size must all match. SVG,
+  TTF, OTF, EOT and anything else is refused.
+- The font is stored on your server (next to the logo, in `<data folder>/media/branding/`), served from your own site
+  and cached by browsers for a year. **Nothing is loaded from another website**, so visitor privacy is unchanged.
+- il2ks writes the `@font-face` rule itself (with `font-display: swap`: text shows at once in a fallback font and
+  switches when the file arrives). The font family name and file name are generated from the file's hash; nothing you type
+  ends up in the CSS. One file is used for every weight, so bold text is the font's own cut, or a synthesized bold if
+  the file has only one weight; upload a font with the weights you need (a variable font covers all of them).
+- **Size matters.** Every visitor downloads the file once. The shipped site loads about 45 KB of fonts; a subset
+  `.woff2` (Latin plus the scripts you need) is usually 15-40 KB, a full font with every script can be several hundred.
+  il2ks warns when a file is over 150 KB; aim for under 100 KB. The built-in page-weight limit
+  (`tests/e2e/test_frontend_performance.py`, 60 KB of fonts) applies to the shipped look and to two typical subset fonts.
+- Check that the font's **license allows web use** (embedding on a website); many desktop-only licenses do not.
+
+If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
+`--il2-font-display` / `--pico-font-family` line in a small stylesheet from the `head` block (section 2).
 
 ## 2. `custom/` overrides
 
@@ -182,7 +202,7 @@ template that fills a block is easier to keep up to date than a copy of a whole 
 Variables available on every page: `site` (your site settings: `site.site_title`, `site.server_name`, `site.description`,
 `site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `nav_links` (your navigation links: `label`, `url`, `icon`; the
 default `nav` block lists them after the built-in ones), `site_links` (the same as label/URL pairs, used by the footer),
-`theme_css` (the color and font overrides of the admin as one `:root{...}` rule, already safe: print it inside
+`theme_css` (the color and font overrides of the admin as `@font-face` rules for uploaded fonts plus one `:root{...}` rule, already safe: print it inside
 `<style>`), `data_updated` (when the stats last changed), `il2ks_version`, and `page_title`.
 
 **Small building blocks** — `il2ks/components/*.html`: tables, badges, stat tiles, filters, pagination, notices. Each file

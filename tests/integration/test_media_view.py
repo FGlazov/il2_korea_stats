@@ -11,7 +11,7 @@ from django.test import Client
 from PIL import Image
 from pytest_django.fixtures import Settings
 
-from il2ks.web.logo import process_logo, store_logo
+from il2ks.web.logo import process_logo, store_bytes, store_logo
 
 # A 404 renders the site's 404 page, whose header reads the branding row.
 pytestmark = pytest.mark.django_db
@@ -45,6 +45,33 @@ def test_serves_the_logo_with_safe_headers(client: Client, logo_name: str) -> No
     assert response["Content-Disposition"] == "inline"
     assert isinstance(response, FileResponse)
     assert b"".join(cast("Iterable[bytes]", response.streaming_content)).startswith(b"\x89PNG")
+
+
+@pytest.mark.parametrize(("suffix", "mime"), [("woff2", "font/woff2"), ("woff", "font/woff")])
+def test_serves_fonts_with_the_same_safe_headers(client: Client, media_root: Path, suffix: str, mime: str) -> None:
+    store_bytes(b"wOF2 font bytes", f"branding/font-0123456789abcdef.{suffix}", media_root)
+
+    response = client.get(f"/media/branding/font-0123456789abcdef.{suffix}")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == mime
+    assert response["X-Content-Type-Options"] == "nosniff"
+    assert "immutable" in response["Cache-Control"]
+    assert "max-age=31536000" in response["Cache-Control"]
+    assert "default-src 'none'" in response["Content-Security-Policy"]
+    assert (
+        client.get(f"/media/branding/font-0123456789abcdef.{suffix}", headers={"If-None-Match": response["ETag"]})[
+            "X-Content-Type-Options"
+        ]
+        == "nosniff"
+    )
+
+
+@pytest.mark.parametrize("name", ["font.ttf", "font.otf", "font.eot", "font.svg", "font.woff2.txt"])
+def test_other_font_types_are_a_404(client: Client, media_root: Path, name: str) -> None:
+    store_bytes(b"x", f"branding/{name}", media_root)
+
+    assert client.get(f"/media/branding/{name}").status_code == 404
 
 
 def test_head_and_conditional_requests(client: Client, logo_name: str) -> None:

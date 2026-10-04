@@ -1,19 +1,26 @@
 """Sets the e2e site's branding from a JSON argument, the way the admin save would (child process, like `world.py`).
 
 `python -m tests.e2e.branding '{"links": [["Discord", "https://d.example/", "discord"]], "site_title": "X"}'`
-Keys: `links` ([label, url, icon] triples), `site_title`, `server_name`, `theme`, `heading_font`, `body_font`. Missing
-keys are reset to the default, so `{}` restores the shipped look. The data version is bumped (TD-28).
+Keys: `links` ([label, url, icon] triples), `site_title`, `server_name`, `theme`, `heading_font`, `body_font`,
+`font_files` ({"heading": path, "body": path} of .woff2 files to upload as custom fonts and select). Missing keys are
+reset to the default, so `{}` restores the shipped look. The data version is bumped (TD-28).
 """
 
 import json
 import sys
+from pathlib import Path
+from typing import cast
 
 
 def main() -> None:
     import django
 
     django.setup()
+    from django.conf import settings
+
     from il2ks.db.site import bump_data_version, get_site_settings
+    from il2ks.web.fonts import process_font
+    from il2ks.web.logo import store_bytes
 
     spec: dict[str, object] = json.loads(sys.argv[1]) if len(sys.argv) > 1 else {}
     row = get_site_settings()
@@ -25,6 +32,13 @@ def main() -> None:
     row.theme = spec.get("theme", {})  # pyright: ignore[reportAttributeAccessIssue]
     row.heading_font = str(spec.get("heading_font", ""))
     row.body_font = str(spec.get("body_font", ""))
+    row.custom_fonts = []
+    uploads = cast("dict[str, str]", spec.get("font_files", {}))
+    for role, source in uploads.items():
+        font = process_font(Path(str(source)).read_bytes(), Path(str(source)).name)
+        store_bytes(font.data, font.font.file, Path(settings.MEDIA_ROOT))
+        row.custom_fonts.append(font.font.as_json())
+        setattr(row, f"{role}_font", font.font.key)
     row.save()
     bump_data_version()
 
