@@ -18,6 +18,7 @@ from il2ks.core.logparse.events import (
     BailoutEvent,
     BotRemovedEvent,
     DamageEvent,
+    ExplosionBurstEvent,
     GunBurstEvent,
     HitEvent,
     InfluenceAreaEvent,
@@ -95,6 +96,9 @@ class Replay:
             facts.last_tick = event.tick
         # The two lines that make up 87% of a log first, without walking the `match` below (exact classes: the events
         # are final dataclasses).
+        if type(event) is ExplosionBurstEvent:
+            self._on_explosion_burst(event)
+            return
         if type(event) is HitEvent:
             self._on_hit(event)
             return
@@ -456,6 +460,26 @@ class Replay:
             last.targets.setdefault(target.object_id, target)
         else:
             attacker.detonations.append(Detonation(event.tick, {target.object_id: target}))
+
+    def _on_explosion_burst(self, event: ExplosionBurstEvent) -> None:
+        """`_note_explosion` for each line of a burst: the attacker is checked once, and its detonation of this tick is
+        found once."""
+        objects = self._objects
+        attacker = objects.get(event.attacker_id)
+        if attacker is None or (attacker.sortie is None and attacker.parent is None) or owner_sortie(attacker) is None:
+            return
+        last = attacker.detonations[-1] if attacker.detonations else None
+        if last is not None and last.tick != event.tick:
+            last = None
+        for target_id in event.target_ids:
+            target = objects.get(target_id)
+            if target is None:
+                continue
+            if last is None:
+                last = Detonation(event.tick, {target.object_id: target})
+                attacker.detonations.append(last)
+            else:
+                last.targets.setdefault(target.object_id, target)
 
     def _on_damage(self, event: DamageEvent) -> None:
         if event.damage <= 0:  # il2_stats ignored zero damage too (log bug)

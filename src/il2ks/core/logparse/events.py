@@ -70,6 +70,16 @@ class HitEvent(Event):
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class ExplosionBurstEvent(Event):
+    """Consecutive AType 1 `AMMO:explosion` lines with the same tick and attacker, in log order (speed: they are 72% of
+    all lines). Only `parse_lines` yields it, for lines of exactly the shape `T:<tick> AType:1 AMMO:explosion AID:<n>
+    TID:<n>`; any other hit line is a `HitEvent`. Consumers treat it as one `HitEvent(ammo="explosion")` per target."""
+
+    attacker_id: ObjectId  # AID
+    target_ids: tuple[ObjectId, ...]  # TID of each line (at least one)
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class DamageEvent(Event):
     """AType 2. `damage` is the fraction of the target destroyed by this hit (0..1)."""
 
@@ -308,6 +318,7 @@ class GenericEvent(Event):
 type LogEvent = (
     MissionStartEvent
     | HitEvent
+    | ExplosionBurstEvent
     | DamageEvent
     | KillEvent
     | SortieEndEvent
