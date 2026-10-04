@@ -90,6 +90,12 @@ def tour_options(tours: list[Tour]) -> list[tuple[int, str]]:
     return [(tour.pk, tour_title(tour.title)) for tour in tours]
 
 
+def tour_query(selected: Tour | None) -> str:
+    """The query string that keeps a page's tour scope on a link: `?tour=<id>`, or `?tour=all` for all time (a bare
+    link would mean the current tour)."""
+    return f"?{TOUR_PARAM}={selected.pk if selected else TOUR_ALL}"
+
+
 def tour_choice(raw: str | None) -> TourChoice:
     """The selector state for `?tour=<raw>`: `all` is all time, a tour id that exists is that tour, anything else
     (absent, empty, malformed, a stale shared link) is the current tour: never an error, a link always shows a page.

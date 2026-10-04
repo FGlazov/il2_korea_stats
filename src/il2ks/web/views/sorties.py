@@ -18,7 +18,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
-from il2ks.queries.tours import is_quiet_tour, tour_choice_from
+from il2ks.queries.tours import is_quiet_tour, tour_choice_from, tour_query
 from il2ks.web import display, object_names
 from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
 
@@ -56,7 +56,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     page = reads.sortie_page(player, filters, sort, request.GET.get("page", "1"))
     crumbs = [
         (_("Players"), reverse("web:player-search")),
-        (player.current_name, reverse("web:player-detail", args=[player.pk])),
+        (player.current_name, reverse("web:player-detail", args=[player.pk]) + tour_query(choice.selected)),
         (_("Sorties"), None),
     ]
     return render(

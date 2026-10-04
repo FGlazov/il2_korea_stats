@@ -1,9 +1,9 @@
-{# il2ks-template: templates/il2ks/leaderboards/list.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/list.html v3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). View: il2ks.web.views.leaderboards.leaderboard.
   Context: board (the queries.leaderboards.Board), title, help, tab_groups ((group title, tab rows) pairs; a tab row is
-  (key, title, url, current)), pool_options ((value, label) pairs for the prop / jet filter), sort (resolved),
-  page_obj (Page of BoardRow: rank, player, stats, per_hour), tour_options and tour (the tour selector; empty for the
+  (key, title, url, current, icon name; the url keeps the tour / pool / aircraft choice)), pool_options ((value, label) pairs for the prop / jet filter), sort (resolved),
+  page_obj (Page of BoardRow: rank, player, stats, per_hour), tours / tour (the tour selector, TD-26: no ?tour = current tour, ?tour=all = all time; empty for the
   all-time-only Elo boards), aircraft_options ((pk, name) pairs, empty where the board has no aircraft filter), rules
   (the minimum-activity thresholds).
   Blocks: head (page stylesheet), content. The table is leaderboards/table.html.
@@ -20,8 +20,8 @@
       <div class="board-tabs__group">
         <span class="board-tabs__label">{{ group }}</span>
         <ul>
-          {% for key, label, url, current in group_tabs %}
-            <li><a href="{{ url }}"{% if current %} aria-current="page"{% endif %}>{{ label }}</a></li>
+          {% for key, label, url, current, icon_name in group_tabs %}
+            <li><a href="{{ url }}"{% if current %} aria-current="page"{% endif %}>{% icon icon_name %}<span>{{ label }}</span></a></li>
           {% endfor %}
         </ul>
       </div>
@@ -29,9 +29,9 @@
   </nav>
 
   {% results_region %}
-    {% if tour_options or aircraft_options or pool_options %}
+    {% if tours or aircraft_options or pool_options %}
       {% filter_bar %}
-        {% if tour_options %}{% filter_select "tour" _("Tour") tour_options all_label=_("All time") %}{% endif %}
+        {% tour_filter tours tour %}
         {% if pool_options %}{% filter_select "pool" _("Propulsion") pool_options all_label=_("Propeller and jet") %}{% endif %}
         {% if aircraft_options %}{% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}{% endif %}
       {% endfilter_bar %}

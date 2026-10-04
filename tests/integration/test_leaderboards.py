@@ -75,7 +75,7 @@ def test_air_board_ranks_by_score_and_leaves_out_hidden_players(client: Client) 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
 def test_hidden_players_are_absent_from_every_board(client: Client) -> None:
     seed()
-    for board in ("air", "ground", "ground-hour", "kills", "elo-prop", "elo-jet"):
+    for board in ("air", "ground", "ground-hour", "elo-prop", "elo-jet"):
         assert "Ghost" not in names(client, f"/leaderboards/{board}/"), board
         assert "Ghost" not in client.get(f"/leaderboards/{board}/").content.decode(), board
 
@@ -196,7 +196,7 @@ def test_tour_selector_shows_the_tours_own_scores(client: Client) -> None:
         ("Ace", 10.0),
     ]
     assert in_september["tour"] == september
-    assert client.get("/leaderboards/air/?tour=junk").status_code == 200  # an unknown tour means all time
+    assert client.get("/leaderboards/air/?tour=junk").status_code == 200  # an unknown tour means the current tour
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
@@ -224,9 +224,9 @@ def test_aircraft_filter_lists_one_row_per_player_of_that_type(client: Client) -
 def test_sorting_is_whitelisted_and_columns_are_sortable(client: Client) -> None:
     seed()
 
-    by_name = client.get("/leaderboards/kills/?sort=name")
+    by_name = client.get("/leaderboards/ground/?sort=name")
     assert by_name.context["sort"] == "name"
-    assert client.get("/leaderboards/kills/?sort=password").context["sort"] == "-kills_air"
+    assert client.get("/leaderboards/ground/?sort=password").context["sort"] == "-score"
     assert client.get("/leaderboards/air/?sort=-bogus").context["sort"] == "-score"
 
 
@@ -245,7 +245,7 @@ def test_boards_are_simple_reads_within_budget(client: Client) -> None:
     # context processors 2, tours, aircraft options, count, rows (Elo boards have no tour or aircraft reads)
     assert_simple_reads(client, "/leaderboards/", max_queries=6)
     assert_simple_reads(client, "/leaderboards/ground-hour/?sort=-score", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/kills/?sort=name", max_queries=6)
+    assert_simple_reads(client, "/leaderboards/ground/?sort=name", max_queries=6)
     assert_simple_reads(client, "/leaderboards/elo-prop/", max_queries=4)
 
 
@@ -311,16 +311,39 @@ def test_elo_boards_are_not_split_again_and_the_pool_filter_is_offered_elsewhere
     assert names(client, "/leaderboards/elo-jet/?pool=prop") == names(client, "/leaderboards/elo-jet/")
 
 
-def test_tabs_are_grouped_into_fighter_attack_and_general_boards(client: Client) -> None:
+def test_the_board_switcher_lists_elo_jet_elo_prop_air_then_ground_per_hour_and_ground(client: Client) -> None:
+    """Maintainer decision 2026-10-04: this order, an air group and a ground group, no kills board."""
     groups = {title: [t[0] for t in tabs] for title, tabs in client.get("/leaderboards/").context["tab_groups"]}
 
-    assert groups == {
-        "Fighters": ["air", "elo-prop", "elo-jet"],
-        "Attack": ["ground", "ground-hour"],
-        "General": ["kills"],
-    }
+    assert groups == {"Air": ["elo-jet", "elo-prop", "air"], "Ground": ["ground-hour", "ground"]}
     body = client.get("/leaderboards/").content.decode()
     assert "Propeller and jet" in body
+
+
+def test_the_retired_kills_board_redirects_permanently_to_the_index(client: Client) -> None:
+    response = client.get("/leaderboards/kills/?sort=name")
+
+    assert response.status_code == 301
+    assert response["Location"] == "/leaderboards/"
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_switching_boards_keeps_the_filters_the_target_board_has(client: Client) -> None:
+    seed()
+    october = Tour.objects.get()
+
+    response = client.get(f"/leaderboards/air/?tour={october.pk}&pool=jet&sort=name")
+    tabs = {key: (url, current) for group in response.context["tab_groups"] for key, _t, url, current, _i in group[1]}
+
+    assert tabs["air"][1] is True
+    assert tabs["ground"][0] == f"/leaderboards/ground/?tour={october.pk}&pool=jet"
+    assert tabs["elo-jet"][0] == "/leaderboards/elo-jet/"  # all-time only: no tour or pool
+    body = response.content.decode()
+    assert 'aria-current="page"' in body
+    assert (
+        client.get("/leaderboards/air/?tour=all").context["tab_groups"][1][1][0][2]
+        == "/leaderboards/ground-hour/?tour=all"
+    )
 
 
 def _without_ids(rows: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -372,3 +395,34 @@ def test_pool_and_group_pages_stay_simple_reads(client: Client) -> None:
     assert_simple_reads(client, "/leaderboards/ground-hour/?pool=prop&sort=name", max_queries=6)
     tour = Tour.objects.get()
     assert_simple_reads(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet", max_queries=7)
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_leaderboard_selector_offers_all_time_as_all_and_filters_keep_it(client: Client) -> None:
+    """No `?tour` is the current tour, so the selector's All time option must be `all` and survive other filters."""
+    seed()
+
+    default = client.get("/leaderboards/air/").content.decode()
+    all_time = client.get("/leaderboards/air/?tour=all").content.decode()
+
+    october = Tour.objects.get()
+    assert '<option value="all">All time</option>' in default
+    assert f'<option value="{october.pk}" selected>' in default
+    assert '<option value="" ' not in default
+    assert '<option value="all" selected>All time</option>' in all_time
+    assert 'name="pool"' in all_time
+    assert all_time.count('name="tour"') == 1  # the one form carries the tour with the pool and aircraft filters
+    assert f"/players/{Player.objects.get(current_name='Ace').pk}/?tour=all" in all_time
+    assert client.get("/leaderboards/air/?tour=all").context["tour"] is None
+
+
+@override_settings(IL2KS_LEADERBOARDS=LOW)
+def test_home_ground_board_links_to_the_all_time_board(client: Client) -> None:
+    """The home block lists the all-time top 5, so its title and player links must open the all-time view."""
+    seed()
+
+    html = client.get("/").content.decode()
+
+    assert 'href="/leaderboards/ground-hour/?tour=all"' in html
+    assert 'href="/leaderboards/elo-jet/"' in html
+    assert f"/players/{Player.objects.get(current_name='Pounder').pk}/?tour=all" in html

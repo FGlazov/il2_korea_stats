@@ -410,3 +410,10 @@ def backup_check(cfg: Config) -> Iterable[Finding]:
         )
         return
     yield Finding(Level.OK, f"Newest backup is {_age(age)} old", f"{count} backup(s) in {cfg.backup_dir}")
+
+
+@check
+def config_warnings_check(cfg: Config) -> Iterable[Finding]:
+    """Settings the config loader ignored (renamed keys): the site would silently use the defaults instead."""
+    for message in cfg.warnings:
+        yield Finding(Level.WARN, "Ignored setting in il2ks.toml", message, "Edit il2ks.toml as the message says.")

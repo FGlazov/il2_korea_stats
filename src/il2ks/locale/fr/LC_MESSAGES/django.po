@@ -271,15 +271,13 @@ msgstr ""
 msgid "Admin user name"
 msgstr ""
 
+# llm-draft
 msgid "Air"
-msgstr ""
+msgstr "Air"
 
 # llm-draft
 msgid "Air / ground kills"
 msgstr "Victoires air / sol"
-
-msgid "Air and ground kills."
-msgstr ""
 
 msgid "Air kills"
 msgstr ""
@@ -869,9 +867,6 @@ msgstr ""
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
 msgstr "Peu de pilotes connaissent la voie de circulation aussi bien que celui-ci. Il pourrait faire des visites guidées."
 
-msgid "Fighters"
-msgstr ""
-
 # llm-draft
 msgid "Find a player"
 msgstr "Trouver un joueur"
@@ -954,10 +949,6 @@ msgid "Full killboard"
 msgstr ""
 
 # llm-draft
-msgid "General"
-msgstr "Général"
-
-# llm-draft
 msgid "Given up"
 msgstr "Abandonnées"
 
@@ -965,8 +956,9 @@ msgstr "Abandonnées"
 msgid "Good (green)"
 msgstr "Bon (vert)"
 
+# llm-draft
 msgid "Ground"
-msgstr ""
+msgstr "Sol"
 
 msgid "Ground fire: the one opponent that never needs fuel."
 msgstr ""

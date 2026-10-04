@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/leaderboards/home_block.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/home_block.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   home_block.html: the home page's compact leaderboards (OQ-64): Elo of the jet and prop pools and ground proficiency.
   Context: boards (a list of HomeBoard: .key "elo-jet", "elo-prop" or "ground-hour", .title, .rows of BoardRow: rank,
@@ -8,7 +8,7 @@
   <div class="home-boards">
     {% for board in boards %}
       <div>
-        <h3><a href="{% url 'web:leaderboard' board.key %}">{{ board.title }}</a></h3>
+        <h3><a href="{% url 'web:leaderboard' board.key %}{% if board.key == 'ground-hour' %}?tour=all{% endif %}">{{ board.title }}</a></h3>
         <table class="data-table data-table--compact board-table">
           <thead>
             <tr>
@@ -21,7 +21,7 @@
             {% for row in board.rows %}
               <tr>
                 <td class="num">{{ row.rank|num }}</td>
-                <td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td>
+                <td><a href="{% url 'web:player-detail' row.player.pk %}?tour=all">{{ row.player.current_name }}</a></td>
                 <td class="num"><strong>{% if board.key == "elo-jet" %}{{ row.stats.elo_jet|num }}{% elif board.key == "elo-prop" %}{{ row.stats.elo_prop|num }}{% else %}{{ row.per_hour|num:1 }}{% endif %}</strong></td>
               </tr>
             {% empty %}

@@ -64,6 +64,30 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         return backup
 
 
+BACKFILL_TOURS = "tours"  # missions without a tour, per-tour rows, best streaks
+BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
+BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
+
+
+def _already_done(name: str) -> bool:
+    """Whether this one-time backfill ran on this database (`SiteSettings.backfills_done`). The data triggers alone
+    can't tell: with percentage penalties a legitimate database may hold only zero scores or no rated games, and would
+    be rebuilt after every migration."""
+    from il2ks.db.site import get_site_settings
+
+    return name in get_site_settings().backfills_done
+
+
+def _mark_done(name: str) -> None:
+    """Record that the backfill ran (or was not needed), so a later migration doesn't repeat it."""
+    from il2ks.db.models import SiteSettings
+    from il2ks.db.site import get_site_settings
+
+    done = get_site_settings().backfills_done
+    if name not in done:
+        SiteSettings.objects.filter(pk=1).update(backfills_done=[*done, name])
+
+
 def _rebuild_all(cfg: Config) -> None:
     """The one place the backfills call `rebuild_aggregates`, so no configured section (ratings, tours, marks, score,
     killboard) can be forgotten by one of them."""
@@ -80,11 +104,14 @@ def _backfill_type_ratings(cfg: Config) -> None:
 
     from il2ks.db.models import PlayerAircraft, PlayerPool
 
+    if _already_done(BACKFILL_TYPE_RATINGS):
+        return
     rows = PlayerAircraft.objects.all()
-    if rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists()):
-        log.info("rating aircraft types and rescoring sorties")
-        with transaction.atomic():
+    with transaction.atomic():
+        if rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists()):
+            log.info("rating aircraft types and rescoring sorties")
             _rebuild_all(cfg)
+        _mark_done(BACKFILL_TYPE_RATINGS)
 
 
 def _backfill_scores(cfg: Config) -> None:
@@ -94,11 +121,14 @@ def _backfill_scores(cfg: Config) -> None:
 
     from il2ks.db.models import PlayerSortie, Role
 
+    if _already_done(BACKFILL_SCORES):
+        return
     pilots = PlayerSortie.objects.filter(role=Role.PILOT)
-    if pilots.exists() and not pilots.exclude(air_points=0, ground_points=0).exists():
-        log.info("scoring existing sorties")
-        with transaction.atomic():
+    with transaction.atomic():
+        if pilots.exists() and not pilots.exclude(air_points=0, ground_points=0).exists():
+            log.info("scoring existing sorties")
             _rebuild_all(cfg)
+        _mark_done(BACKFILL_SCORES)
 
 
 def _backfill_tours(cfg: Config) -> None:
@@ -109,10 +139,17 @@ def _backfill_tours(cfg: Config) -> None:
 
     # Also a database from before the per-tour killboard and the best streaks: streaks exist, their best rows don't.
     old_streaks = PlayerStreak.objects.exists() and not PlayerBestStreak.objects.exists()
-    if Mission.objects.filter(tour__isnull=True).exists() or old_streaks:
+    if _already_done(BACKFILL_TOURS):
+        needs_rebuild = False
+    else:
+        needs_rebuild = Mission.objects.filter(tour__isnull=True).exists() or old_streaks
+        if not needs_rebuild:
+            _mark_done(BACKFILL_TOURS)
+    if needs_rebuild:
         log.info("assigning existing missions to tours and rebuilding the aggregates")
         with transaction.atomic():
             _rebuild_all(cfg)
+            _mark_done(BACKFILL_TOURS)
     else:
         from il2ks.db.models import Player, StatThreshold
         from il2ks.ingest.stat_marks import recompute_thresholds

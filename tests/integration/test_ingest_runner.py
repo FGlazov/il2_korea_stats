@@ -577,3 +577,12 @@ def test_move_or_delete_refuses_a_sample_data_log_folder(tmp_path: Path) -> None
         ingest_once(cfg, make_pipeline(FakeSteps()))
     keep = make_config(tmp_path / "data", logs, after_archive="keep")
     assert ingest_once(keep, make_pipeline(FakeSteps())).ok == []
+
+
+def test_the_sample_data_guard_ignores_the_case_of_the_folder_name(tmp_path: Path) -> None:
+    """Windows and macOS file systems are case-insensitive: `Sample_Data` is the same real player data."""
+    logs = tmp_path / "Sample_Data" / "2026-09"
+    logs.mkdir(parents=True)
+    cfg = make_config(tmp_path / "data", logs, after_archive="move")
+    with pytest.raises(ValueError, match="sample_data"):
+        ingest_once(cfg, make_pipeline(FakeSteps()))

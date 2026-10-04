@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.queries import boards as reads
 from il2ks.queries import players as player_reads
-from il2ks.queries.tours import tour_choice_from
+from il2ks.queries.tours import tour_choice_from, tour_query
 
 
 def player_killboard(request: HttpRequest, pk: int) -> HttpResponse:
@@ -32,7 +32,7 @@ def player_killboard(request: HttpRequest, pk: int) -> HttpResponse:
         "page_title": _("%(name)s: killboard") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
-            (player.current_name, reverse("web:player-detail", args=[player.pk])),
+            (player.current_name, reverse("web:player-detail", args=[player.pk]) + tour_query(choice.selected)),
             (_("Killboard"), None),
         ],
         "player": player,
@@ -57,7 +57,7 @@ def player_streaks(request: HttpRequest, pk: int) -> HttpResponse:
         "page_title": _("%(name)s: best streaks") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
-            (player.current_name, reverse("web:player-detail", args=[player.pk])),
+            (player.current_name, reverse("web:player-detail", args=[player.pk]) + tour_query(choice.selected)),
             (_("Best streaks"), None),
         ],
         "player": player,
