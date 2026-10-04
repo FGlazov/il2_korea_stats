@@ -8,6 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_DATA = REPO_ROOT / "sample_data"
 FIXTURE_LOGS = REPO_ROOT / "tests" / "fixtures" / "logs"
 E2E_DIR = REPO_ROOT / "tests" / "e2e"
+PERF_DIR = REPO_ROOT / "tests" / "perf"
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -21,6 +22,8 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
             item.add_marker(pytest.mark.skip(reason="SQLite only (restore, WAL settings); not run against Postgres"))
         if E2E_DIR in item.path.parents:
             item.add_marker(pytest.mark.e2e)  # everything under tests/e2e is a browser test: `-m e2e` selects it
+        if PERF_DIR in item.path.parents:
+            item.add_marker(pytest.mark.perf)  # everything under tests/perf: `-m perf` selects it, `-m "not perf"` skips
         if "e2e" in item.keywords and not e2e:
             item.add_marker(pytest.mark.skip(reason="browser tests need IL2KS_TEST_E2E=1 (and: playwright install)"))
         if "sample_data" in item.keywords and not SAMPLE_DATA.is_dir():
