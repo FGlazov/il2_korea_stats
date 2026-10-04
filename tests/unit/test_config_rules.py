@@ -20,15 +20,23 @@ def test_defaults_match_current_behaviour(tmp_path: Path) -> None:
     cfg = load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "data")})
     assert cfg.rules == RuleToggles()
     assert cfg.rules.credit_rams is False
-    assert cfg.rules.parachute_deaths is True
+    assert (cfg.rules.ram_window_s, cfg.rules.ram_distance_m) == (0.5, 15.0)  # OQ-92: the tighter thresholds
+    assert cfg.warnings == ()
 
 
 def test_rules_section_is_read(tmp_path: Path) -> None:
     cfg = _load(tmp_path, "[rules]\ncredit_rams = true\nparachute_deaths = false\nram_window_s = 3\n")
     assert cfg.rules.credit_rams is True
-    assert cfg.rules.parachute_deaths is False
     assert cfg.rules.ram_window_s == 3.0
     assert cfg.replay.toggles == cfg.rules  # the replay reads them from its rules: every entry point sees them
+
+
+def test_the_removed_parachute_deaths_key_only_warns(tmp_path: Path) -> None:
+    """OQ-99: a pilot killed while parachuting is always a death; old configs still load, with a warning."""
+    cfg = _load(tmp_path, "[rules]\nparachute_deaths = false\n")
+    assert not hasattr(cfg.rules, "parachute_deaths")
+    assert len(cfg.warnings) == 1
+    assert "rules.parachute_deaths" in cfg.warnings[0]
 
 
 def test_invalid_rules_are_rejected(tmp_path: Path) -> None:

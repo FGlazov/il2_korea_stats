@@ -196,15 +196,13 @@
 # nobody is credited, the collision has no attacker in the log). A collision between friends never earns a kill. Tried
 # on 210 sample missions: 13 enemy collisions in about 15,000 pilot sorties (26 kills), none of them doubtful.
 #credit_rams = false
-# Parachute deaths: a pilot who is killed after leaving the aircraft in the air counts as a death (true, as always).
-# false = the "no parachute deaths" mod: the aircraft is still lost, but the pilot survives. Rare: 2 sorties in 210
-# missions.
-#parachute_deaths = true
+# (A pilot killed while parachuting is always a death. The old `parachute_deaths` key is no longer read: `doctor`
+# warns if it is still set.)
 # A ram = two aircraft destroyed in the air within this many seconds of each other, with nobody else to blame and no gun
 # hits between them...
-#ram_window_s = 2.0
+#ram_window_s = 0.5
 # ... and within this many metres of each other. Only used with credit_rams (the detection itself is cheap).
-#ram_distance_m = 50.0
+#ram_distance_m = 15.0
 
 # --- Tours (TD-26, FR-WEB-10, FR-ADM-8) -----------------------------------------------------------------------------
 # Missions are grouped into tours, and the site shows stats per tour as well as all-time. A mission belongs to the tour

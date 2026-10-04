@@ -89,8 +89,6 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         forced = loss is None and died is None
     found = bailout_v3(sortie, loss, died, end, rules)
     bailout = found.detected
-    if found.detected and died is not None and sortie.role == "pilot" and not rules.toggles.parachute_deaths:
-        died = None  # `[rules] parachute_deaths = false` (OQ-61): killed while out of the aircraft, the pilot survives
     shot_down_directly = loss is not None and loss.by is not None and not is_self_attack(loss.by, airframe, sortie)
 
     fate, source = pilot_fate_of(
