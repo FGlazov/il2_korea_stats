@@ -204,7 +204,7 @@ decisions are made):
   shows all), new achievements (Elo and ground-score milestones, ram, first blood, double/triple/quad kills, aircraft types, landing
   streak, Ace in a Day, hall-of-shame medals), rarity percentage on hover, rarer medals stand out, a recently-earned feed on the home
   page, ribbons for the simpler achievements.
-- 🔧 **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
+- ✅ **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
   focus / tap).
 
 - ✅ **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
@@ -227,7 +227,7 @@ decisions are made):
 - ✅ **Admin-configurable quips** (maintainer, 2026-10-04, first release): a global switch (on by default); per quip spot: defaults,
   defaults + own, own only, or off; hide single default quips; own quips per language or for all; plain escaped text.
 
-- 🔧 **Pilot health and aircraft damage on the sortie page** (maintainer, 2026-10-04, OQ-115 follow-up): remaining pilot health and
+- ✅ **Pilot health and aircraft damage on the sortie page** (maintainer, 2026-10-04, OQ-115 follow-up): remaining pilot health and
   aircraft damage, 0% health when the pilot died, 100% damage when the aircraft was destroyed.
 - ✅ **Favourite loadout only** on the profile's per-aircraft rows (OQ-117, changed 2026-10-04): the mod-set and hits-by-ammo detail goes.
 
@@ -236,6 +236,15 @@ decisions are made):
   tier thresholds; defaults unchanged; changed thresholds apply through the level-2 recompute (`rebuild-aggregates`, or an admin
   "recompute achievements" button queued for `watch`), with a note that holders and rarity change. Custom conditions belong with the
   post-release scripting item.
+
+- ⏳ **Batched level 2 for long runs** (maintainer, 2026-10-04; ingest speed, not a gate): for batches of 20+ missions (a backlog
+  `ingest`, `reprocess`) collect one `Touched` set and apply level 2 at every 10% and at the end; ratings and thresholds once at the end in
+  mission order. Today `reprocess` recomputes level 2 per mission and then rebuilds everything. Final state must equal a rebuild; small
+  batches unchanged. Estimated 15-25% faster big batches.
+
+- ⏳ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,
+  top pilots, hits to destroy and ammo mixes follow the tour (all time included), the role toggle and the significant-mods filter (for
+  hits to destroy and ammo mixes: the destroyed aircraft's sortie); the "not filtered" notes go.
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.

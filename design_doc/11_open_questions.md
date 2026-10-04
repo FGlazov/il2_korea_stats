@@ -4,7 +4,7 @@ Only **unanswered** questions live here, ordered by how much each one blocks or 
 When a question is answered, write the answer into the relevant doc (requirement, decision, or format doc) and
 **delete it from this file**. If it's partly answered, cut it down to the part that's still open.
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
-Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113 and OQ-114..121 right after it, each with the doc that holds the rule).
+Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113 and OQ-114..123 right after it, each with the doc that holds the rule).
 
 
 ## Needs outside input
@@ -12,15 +12,6 @@ Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summ
 **OQ-39 Terrain height for the bailout "> 30 m above ground" test** (owner: maintainer, will try to get heightmaps)
 Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has no terrain data for the Korea maps. When heightmaps arrive
 (and their licence allows shipping them), add the height arm to bailout rule v3 (doc 13). Until then rule v3 stays as built.
-
-## Needs the maintainer's review
-
-**OQ-122 Aircraft page: role toggle and weapon-mod filter** (built 2026-10-04)
-Defaults applied: the Loadouts and Modifications tables are all time and follow the role toggle and the mod filter, not the tour;
-matchups, top pilots and hits to destroy are not filtered by role or mods (a note says so); the Modifications table has one row per
-(weapon-mod set, role), "No modifications" for none, unknown ids as "#id"; mod names are not translated (like ordnance); URLs use
-`?role=air_superiority|attack` and `?mod<id>=with|without`. Real data (September): MiG-15bis with the Anti-G suit 181 sorties, PvP K/D 1.42
-vs 1.30 without; NR-23 1.44 vs 1.01; F-51D 150-grade fuel air superiority K/D 0.77 vs 0.59.
 
 ## Lower impact (owner: maintainer, outside input)
 

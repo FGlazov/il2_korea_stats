@@ -10,7 +10,7 @@
     <table class="data-table data-table--compact">
       <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Attacker" %}</th>
 {# Translators: how the kill is credited to the attacker (sole kill, shared kill, assist), a short column header #}
-<th scope="col">{% translate "Credit" %}</th><th scope="col">{% translate "Note" %}</th></tr></thead>
+{% col_th _("Credit") hint="credit" %}<th scope="col">{% translate "Note" %}</th></tr></thead>
       <tbody>
         {% for row in detail.shot_down_by %}
           <tr>

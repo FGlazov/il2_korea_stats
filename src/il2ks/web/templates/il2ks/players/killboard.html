@@ -33,7 +33,7 @@
             {% sort_th "opponent" _("Opponent") %}
             {% sort_th "kills" _("Kills") numeric=True %}
             {% sort_th "deaths" _("Deaths") numeric=True %}
-            {% if site.killboard_assists %}{% sort_th "assists" _("Assists") numeric=True %}{% endif %}
+            {% if site.killboard_assists %}{% sort_th "assists" _("Assists") numeric=True hint="assists" %}{% endif %}
             {% sort_th "last" _("Last encounter") first="desc" %}
           </tr>
         </thead>

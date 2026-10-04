@@ -45,6 +45,22 @@ How the website, the admin and the operations commands are built (iteration 1, p
   normalised to 24 px / `currentColor` / stroke 2); the file → icon table is in `static/il2ks/img/README.md`, the licence in `NOTICE`;
   `tests/unit/test_icon_files.py` checks every referenced icon exists and is well-formed. Icon picks: OQ-60.
 
+## Column descriptions (maintainer request 2026-10-04) `[DECIDED]`
+Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, assists, interception...) carry a short description.
+- **One mechanism**: `{% sort_th ... hint=X %}` and `{% col_th label numeric=True hint=X %}` (`templatetags/il2ks.py`, components `col_th.html`,
+  `col_hint.html`). `X` is a key of `web/column_hints.py::HINTS` (the single place with the wording, with `Translators:` comments) or a ready
+  text. Optional columns (`web/columns.py`) use `Column.description`: the column's own `hint`, else the `HINTS` entry with the same key as
+  the column; the picker's tooltip and the header show the same text. Obvious columns (Name, Date, Aircraft, Sorties...) get none.
+- **Rendering**: the header gets class `has-hint`, a dotted underline on the label and a small `?` marker. The text is a `role="tooltip"`
+  element inside the `<th>`; the label (a plain header: a `tabindex=0` span, a sortable one: the sort link itself) has `aria-describedby` to
+  it, so a screen reader reads it as the description and the link's name stays "Kills". The marker is `aria-hidden` and only serves pointers.
+  No nested interactive elements; ids are `hint-<hash of the text>-<n>`, numbered per render, so a full page and an htmx region never clash.
+- **Showing it**: CSS shows it on `:hover` and `:focus-within`; the tooltip is `position: fixed` (the scrolling `.table-wrap` would clip an
+  absolute one) and `il2ks.js` places it under the header, clamped to the viewport (so it never causes sideways page scroll at 360 px).
+  A tap on the marker toggles it (a tap on a sort link sorts); Escape hides it; a scroll or resize closes a tapped one. Colours are
+  tokens, so both themes work. Tests: `tests/integration/test_column_hints.py`, `tests/e2e/test_column_hints.py`.
+- Adding a column: use `hint=` with a new `HINTS` key (or name the optional column's key in `HINTS`), then `il2ks dev translations update`.
+
 ## Pages (as built, 2026-10-03)
 
 - **Home** (tour-aware: `/?tour=`, no `tour` = the current tour, `?tour=all` = all time, `[DECIDED]` maintainer, OQ-79): site description, player
@@ -169,7 +185,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
-- **Aircraft stats** (FR-WEB-8, 2026-10-03; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
+- **Aircraft stats** (FR-WEB-8, 2026-10-03; OQ-122: every section follows tour, role and mod filter, ⏳ to build, until then the page notes which parts do not; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
   pilot count and matchups follow one selector above the tiles, from the level-2 `TourAircraftStats` (tour, aircraft) next to the all-time
   `AircraftStats`, both on an abstract `AircraftCounters`; top pilots, hits to destroy, loadouts and the side badge stay all time and the
   page says so; OQ-114): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,

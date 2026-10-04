@@ -115,6 +115,7 @@ def _build_sortie(
         pilot_status=verdict.pilot_status,
         aircraft_status=verdict.aircraft_status,
         damage_taken=verdict.damage_taken,
+        pilot_damage=verdict.pilot_damage,
         disconnected=verdict.disconnected,
         is_death=verdict.is_death,
         is_plane_lost=verdict.is_plane_lost,

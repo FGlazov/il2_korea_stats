@@ -25,7 +25,12 @@
     <dt>{% translate "Pilot fate" %}</dt><dd>{% pilot_fate_badge sortie detail=True %}{% if sortie.pilot_fate_source == "inferred" %} <small>{% translate "inferred from the log" %}</small>{% elif sortie.pilot_fate_source == "event" %} <small>{% translate "from a log event" %}</small>{% endif %}</dd>
     {% if not sortie.is_death and not sortie.is_captured and sortie.pilot_status != "dead" and sortie.pilot_status != "captured" %}<dt>{% translate "Pilot status" %}</dt><dd>{% status_badge sortie.pilot_status %}</dd>{% endif %}
     <dt>{% translate "Aircraft status" %}</dt><dd>{% aircraft_badge sortie.aircraft_status %}</dd>
-    <dt>{% translate "Damage taken" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
+    {# translators: damage the aircraft took in the sortie, 100% when it was destroyed #}
+    <dt>{% translate "Aircraft damage" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
+    {% if sortie.pilot_health is not None %}
+      {# translators: health left of the pilot at the end of the sortie, 0% when the pilot died #}
+      <dt>{% if sortie.role == "gunner" %}{% translate "Gunner health" %}{% else %}{% translate "Pilot health" %}{% endif %}</dt><dd>{% widthratio sortie.pilot_health 1 100 %}%</dd>
+    {% endif %}
     <dt>{% translate "Loss cause" %}</dt><dd>{% if sortie.loss_cause == "attacker" %}{% translate "Enemy action" %}{% elif sortie.loss_cause == "self" %}{% translate "Own doing (terrain, overstress, accident)" %}{% else %}<span class="muted">{% translate "Nothing lost" %}</span>{% endif %}</dd>
     {% if detail.lost_to %}<dt>{% translate "Lost to" %}</dt><dd>{{ detail.lost_to }}</dd>{% endif %}
     {% if sortie.disconnected %}<dt>{% translate "Left the server" %}</dt><dd>{% translate "Yes" %}</dd>{% endif %}

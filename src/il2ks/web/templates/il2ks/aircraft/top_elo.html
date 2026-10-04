@@ -12,9 +12,9 @@
         <tr>
           <th scope="col" class="num">#</th>
           <th scope="col">{% translate "Pilot" %}</th>
-          <th scope="col" class="num">{% translate "Elo" %}</th>
+          {% col_th _("Elo") numeric=True hint="elo" %}
           {# Translators: Elo-rated PvP air kills between two pilots (each counts as an encounter); not all kills and losses #}
-          <th scope="col" class="num">{% translate "Encounters" %}</th>
+          {% col_th _("Encounters") numeric=True hint="elo_games" %}
           <th scope="col" class="num">{% translate "Sorties" %}</th>
         </tr>
       </thead>

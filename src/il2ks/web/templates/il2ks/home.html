@@ -54,8 +54,8 @@
               <thead>
                 <tr>
                   <th scope="col">{% translate "Pilot" %}</th>
-                  <th scope="col" class="num">{% translate "Air" %}</th>
-                  <th scope="col" class="num">{% translate "Ground" %}</th>
+                  {% col_th _("Air") numeric=True hint="kills_air_short" %}
+                  {% col_th _("Ground") numeric=True hint="kills_ground_short" %}
                 </tr>
               </thead>
               <tbody>

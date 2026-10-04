@@ -7,10 +7,10 @@
     <thead>
       <tr>
         <th scope="col">{% translate "Counterpart" %}</th>
-        <th scope="col" class="num">{% translate "Damage dealt" %}</th>
-        <th scope="col" class="num">{% translate "Hits dealt" %}</th>
-        <th scope="col" class="num">{% translate "Damage taken" %}</th>
-        <th scope="col" class="num">{% translate "Hits taken" %}</th>
+        {% col_th _("Damage dealt") numeric=True hint="damage_dealt" %}
+        {% col_th _("Hits dealt") numeric=True hint="hits_dealt" %}
+        {% col_th _("Damage taken") numeric=True hint="damage_taken_from" %}
+        {% col_th _("Hits taken") numeric=True hint="hits_taken" %}
       </tr>
     </thead>
     <tbody>

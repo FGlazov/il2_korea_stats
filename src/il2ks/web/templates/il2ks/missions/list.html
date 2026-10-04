@@ -34,7 +34,7 @@
             {% sort_th "air_kills" _("Air kills") numeric=True %}
             {% sort_th "ground_kills" _("Ground kills") numeric=True %}
             <th scope="col">{% translate "Winner" %}</th>
-            {% for column in columns %}{% sort_th column.key column.label numeric=True %}{% endfor %}
+            {% for column in columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
           </tr>
         </thead>
         <tbody>{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% include "il2ks/missions/_rows.html" with empty_message=quiet_line columns=columns colspan=colspan %}{% else %}{% include "il2ks/missions/_rows.html" with columns=columns colspan=colspan %}{% endif %}</tbody>

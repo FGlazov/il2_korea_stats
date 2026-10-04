@@ -37,7 +37,11 @@ def badge_texts(html: str) -> list[str]:
 
 def headers(html: str) -> list[str]:
     head = html.split("<thead>", 1)[1].split("</thead>", 1)[0]
-    return [re.sub(r"<[^>]+>", "", h).strip() for h in re.findall(r"<th\b.*?</th>", head, re.S)]
+    cells = [
+        re.sub(r'<span id="[^"]+" class="col-tip".*?</span>', "", h, flags=re.S)
+        for h in re.findall(r"<th\b.*?</th>", head, re.S)
+    ]
+    return [re.sub(r"<[^>]+>", "", h).strip() for h in cells]
 
 
 def test_sortie_list_shows_the_fate_right_after_the_outcome_and_no_default_mission_column(client: Client) -> None:

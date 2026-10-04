@@ -12,11 +12,11 @@
         <tr>
           <th scope="col">{% translate "Date" %}</th>
           <th scope="col">{% translate "Aircraft" %}</th>
-          <th scope="col">{% translate "Outcome" %}</th>
-          <th scope="col">{% translate "Pilot fate" %}</th>
+          {% col_th _("Outcome") hint="outcome" %}
+          {% col_th _("Pilot fate") hint="fate" %}
           <th scope="col" class="num">{% translate "Air kills" %}</th>
           <th scope="col" class="num">{% translate "Ground kills" %}</th>
-          <th scope="col" class="num">{% translate "Flight time" %}</th>
+          {% col_th _("Flight time") numeric=True hint="flight_time" %}
         </tr>
       </thead>
       <tbody>

@@ -85,7 +85,9 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Some chase kills. This one chases the perfect parking spot, and keeps looking."),
         gettext_lazy("Technically the most experienced pilot on the apron. Nobody has spent more time there."),
         gettext_lazy("The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."),
-        gettext_lazy("A pilot of rare devotion: the airfield is never far from this one's heart, or its propeller."),
+        gettext_lazy(
+            "A pilot of rare devotion: the airfield is never far from this one's heart, or from its landing gear."
+        ),
     ),
     "shame_friendly_p90": (
         gettext_lazy("A generous soul: this pilot shares the ammunition with everyone, wingmen included."),
@@ -153,7 +155,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The gear stayed up and so did the pilot's spirits."),
         gettext_lazy("A creative arrival. The airframe will be remembered fondly."),
         gettext_lazy("Controlled flight into a field. The farmer has questions, the pilot has a story."),
-        gettext_lazy("Mustang, meet meadow. Meadow, Mustang. It was short, but the introductions were firm."),
+        gettext_lazy("Aircraft, meet meadow. Meadow, aircraft. It was short, but the introductions were firm."),
         gettext_lazy("A forced landing is still a landing. The log says so, and the log is never wrong."),
     ),
     # Destroyed on the ground by an attacker: never took off (parked) ...
@@ -189,7 +191,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The sky is crowded and the markings are small. It happens."),
         gettext_lazy("Friendly fire happens to the best squadrons. The debrief will be lively."),
         gettext_lazy("Radio chatter, afterwards: 'Was that one of ours?' It was. The apologies are in the post."),
-        gettext_lazy("In the heat of the moment a Sabre looks like a Sabre, until it turns out to be a squadron-mate."),
+        gettext_lazy("In the heat of the moment every enemy looks the same, until it turns out to be a squadron-mate."),
         gettext_lazy("It was a very good shot at the wrong target. The aim is not the problem here."),
     ),
     "sortie_taxi": (
@@ -197,7 +199,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Never left the ground, still earned a story."),
         gettext_lazy("Most dangerous part of the mission: the first hundred metres."),
         gettext_lazy("Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."),
-        gettext_lazy("Before the Yalu, before the Sabres, there was the apron. It won this round."),
+        gettext_lazy("Before the Yalu, before the enemy, there was the apron. It won this round."),
         gettext_lazy("The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0."),
     ),
     "sortie_ace": (
