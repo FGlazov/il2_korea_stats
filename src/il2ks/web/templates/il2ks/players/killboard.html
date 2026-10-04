@@ -1,0 +1,35 @@
+{# il2ks-template: templates/il2ks/players/killboard.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  A player's full killboard (FR-WEB-9). View: il2ks.web.views.boards.player_killboard.
+  Context: player, page_obj (PlayerKillboard rows with .opponent and .last_mission), sort (resolved), crumbs, page_title.
+  Kills = kill credits of this player on the opponent, deaths = the opponent's on this player (PvP air, no assists).
+  Blocks: head, content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
+{% block content %}
+  {% breadcrumbs crumbs %}
+  <div class="page-head">
+    <h1>{% blocktranslate with name=player.current_name %}Killboard of {{ name }}{% endblocktranslate %}</h1>
+    <p>{% translate "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted." %}</p>
+  </div>
+
+  {% results_region %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            {% sort_th "opponent" _("Opponent") %}
+            {% sort_th "kills" _("Kills") numeric=True %}
+            {% sort_th "deaths" _("Deaths") numeric=True %}
+            {% sort_th "last" _("Last encounter") first="desc" %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in page_obj %}<tr>{% include "il2ks/players/_killboard_rows.html" %}</tr>
+          {% empty %}{% empty_row 4 _("No player-versus-player kills yet.") %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

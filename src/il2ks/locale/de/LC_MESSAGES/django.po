@@ -270,6 +270,9 @@ msgstr ""
 msgid "All sorties in this aircraft"
 msgstr ""
 
+msgid "All streaks"
+msgstr ""
+
 msgid "All time"
 msgstr ""
 
@@ -472,6 +475,9 @@ msgstr ""
 msgid "Current logo"
 msgstr "Aktuelles Logo"
 
+msgid "Current streak"
+msgstr ""
+
 msgid "Damage"
 msgstr ""
 
@@ -666,6 +672,9 @@ msgstr ""
 msgid "Friendly victim"
 msgstr ""
 
+msgid "Full killboard"
+msgstr ""
+
 # llm-draft
 msgid "Given up"
 msgstr "Aufgegeben"
@@ -829,6 +838,13 @@ msgstr "Schlüssel (AType:KEY)"
 msgid "Kill"
 msgstr ""
 
+msgid "Killboard"
+msgstr ""
+
+#, python-format
+msgid "Killboard of %(name)s"
+msgstr ""
+
 msgid "Killed"
 msgstr ""
 
@@ -861,6 +877,9 @@ msgstr ""
 msgid "Landings"
 msgstr ""
 
+msgid "Last"
+msgstr ""
+
 # llm-draft
 msgid "Last 30 days"
 msgstr "Letzte 30 Tage"
@@ -869,6 +888,9 @@ msgid "Last 7 days"
 msgstr ""
 
 msgid "Last 90 days"
+msgstr ""
+
+msgid "Last encounter"
 msgstr ""
 
 msgid "Last mission"
@@ -954,6 +976,9 @@ msgstr ""
 # llm-draft
 msgid "Log name"
 msgstr "Logname"
+
+msgid "Longest ironman streaks"
+msgstr ""
 
 # llm-draft
 msgid "Look"
@@ -1100,6 +1125,9 @@ msgid "No player-versus-player air kills with this aircraft yet."
 msgstr ""
 
 msgid "No player-versus-player kills in this mission."
+msgstr ""
+
+msgid "No player-versus-player kills yet."
 msgstr ""
 
 msgid "No players yet."
@@ -1409,6 +1437,9 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
+msgid "Running streaks"
+msgstr ""
+
 msgid "Runway"
 msgstr ""
 
@@ -1458,6 +1489,12 @@ msgid "Shot down"
 msgstr "Abgeschossen"
 
 msgid "Shot down by"
+msgstr ""
+
+msgid "Shot down by most"
+msgstr ""
+
+msgid "Shot down most"
 msgstr ""
 
 #, python-format
@@ -1552,6 +1589,9 @@ msgid "Static object"
 msgstr ""
 
 msgid "Strafed on the ground"
+msgstr ""
+
+msgid "Streak"
 msgstr ""
 
 msgid "Summary"

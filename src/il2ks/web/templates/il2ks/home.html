@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/home.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v5 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Home page. Context: latest (the newest missions that have sorties), last_mission (the first of them, or None),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
@@ -68,6 +68,8 @@
       </article>
     </section>
   {% endif %}
+
+  {% include "il2ks/streaks/home_block.html" %}
 
   <section aria-labelledby="latest-heading">
     <h2 id="latest-heading">{% translate "Latest missions" %}</h2>

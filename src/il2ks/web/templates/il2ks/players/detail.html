@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail.html v4 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player profile (FR-WEB-4). View: il2ks.web.views.players.player_detail. Built from small partials in players/:
   detail_header, detail_tiles, detail_ground, detail_pve, detail_ratios, detail_totals, detail_shame, detail_aircraft,
@@ -34,6 +34,10 @@
       </section>
     </div>
     {% include "il2ks/players/detail_aircraft.html" %}
+    {% if not tour %}{# all-time only for now #}
+      {% include "il2ks/players/detail_streaks.html" %}
+      {% include "il2ks/players/detail_killboard.html" %}
+    {% endif %}
   {% elif tour %}
     {% notice "info" _("No sorties in this tour") %}{% translate "No pilot sorties are counted for this player in the selected tour." %}{% endnotice %}
   {% elif gunner_only %}

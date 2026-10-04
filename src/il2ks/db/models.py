@@ -686,6 +686,8 @@ class StatThreshold(models.Model):
 
     def __str__(self) -> str:
         return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
+
+
 class AircraftStats(Counters):
     """Level 2 (FR-WEB-8): all-time counters per aircraft type, summed over every pilot's `PlayerAircraft` row.
 
@@ -751,6 +753,63 @@ class AircraftPayload(models.Model):
 
     def __str__(self) -> str:
         return f"{self.aircraft_id} / {self.payload_name}"
+
+
+class PlayerKillboard(models.Model):
+    """The killboard (FR-WEB-9): how often `player` and `opponent` shot each other down in PvP air combat.
+
+    Every pair has two mirror rows, one per perspective, so a player's board is one indexed read: `kills` = times
+    `player` got the kill credit on `opponent`, `deaths` = times `opponent` got it on `player`. Only kill credits count
+    (not assists, not friendly fire) between two pilot sorties of different accounts. `last_at` / `last_mission` = the
+    latest such kill in either direction. Level 2: recomputed per affected player by `ingest.pairs`."""
+
+    player_id: int
+    opponent_id: int
+    last_mission_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="killboard_rows")
+    opponent = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="+")
+    kills = models.PositiveIntegerField(default=0)
+    deaths = models.PositiveIntegerField(default=0)
+    last_at = models.DateTimeField()
+    last_mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="+")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["player", "opponent"], name="playerkillboard_unique")]
+        indexes = [
+            models.Index(fields=["player", "-kills"], name="killboard_by_kills"),
+            models.Index(fields=["player", "-deaths"], name="killboard_by_deaths"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} vs {self.opponent_id}"
+
+
+class PlayerStreak(models.Model):
+    """Ironman streaks (FR-WEB-23): current and best run of survived sorties, rule in `il2ks.core.streaks`.
+
+    A row exists for players with at least one survived sortie. All-time only. Level 2: recomputed per affected player
+    by `ingest.streaks`."""
+
+    player_id: int
+
+    player = models.OneToOneField(Player, on_delete=models.CASCADE, related_name="streak")
+    current_sorties = models.PositiveIntegerField(default=0)
+    current_kills_air = models.PositiveIntegerField(default=0)
+    current_flight_time_s = models.FloatField(default=0.0)
+    current_since = models.DateTimeField(null=True)
+    current_until = models.DateTimeField(null=True)
+    best_sorties = models.PositiveIntegerField(default=0)
+    best_kills_air = models.PositiveIntegerField(default=0)
+    best_flight_time_s = models.FloatField(default=0.0)
+    best_since = models.DateTimeField(null=True)
+    best_until = models.DateTimeField(null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["-current_sorties"], name="streak_current_desc")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id}: {self.current_sorties} / {self.best_sorties}"
 
 
 # --- Operational ---

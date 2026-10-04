@@ -216,3 +216,4 @@ _.direct  # sortie_view.OrdnanceView: sorties/parts/ammo.html
 _.lost_to  # sortie_view.Detail: sorties/parts/summary.html
 _.average  # web.views.aircraft.AircraftRow / AmmoHits: aircraft/list.html
 _.survived  # web.views.aircraft.AircraftRow: aircraft/list.html
+_.nemeses  # web.templatetags.il2ks_boards.Board: players/detail_killboard.html
