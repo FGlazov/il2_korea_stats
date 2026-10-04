@@ -326,8 +326,8 @@
       "sha256": "fbccf68365f40179e0d4d8a8b2788b5108b423719fb84a6144ad1d9034527ceb"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
-      "version": 3,
-      "sha256": "926a8ab16d101f0d33fa2badd5c8aa156e00aad3cf0ded6d2a9748d3e0953796"
+      "version": 5,
+      "sha256": "86d3016e6b8881ed4fc1fe2dc1d09fbf0f67dd96c5d303c6a8b174405cf01c19"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
@@ -346,8 +346,8 @@
       "sha256": "77c7e667ed68645b703dca799ecb3e2f6487671eeb9b26c1e58d923b8e1b25d8"
     },
     "templates/il2ks/sorties/parts/killed_by.html": {
-      "version": 2,
-      "sha256": "48e8beff2d9b8551f414fba05bceaa8aeec3fee1f5de7b8de214c12f8c9167d1"
+      "version": 4,
+      "sha256": "96ba5ffca707626df087e94d66c326946db9ce8f6a8850fbba97021146302c7e"
     },
     "templates/il2ks/sorties/parts/kills.html": {
       "version": 2,
@@ -366,8 +366,8 @@
       "sha256": "f0b306a85d59a02df7c360e248a54bc33479c4628f88a91f718ad1fb7f163c36"
     },
     "templates/il2ks/sorties/parts/summary.html": {
-      "version": 3,
-      "sha256": "5228337de30b65bd97c0575f548a2d2d7fccb5b87061013b50b71f271d95e06e"
+      "version": 5,
+      "sha256": "fa94abb32e36765afc799ab565e75bc01f1c937a82ed5ebd08bd84a090bf0c90"
     },
     "templates/il2ks/sorties/parts/timeline.html": {
       "version": 2,

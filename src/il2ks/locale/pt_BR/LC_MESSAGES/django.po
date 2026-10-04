@@ -15,23 +15,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+# llm-draft
 #, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)s apelido"
+msgstr[1] "%(counter)s apelidos"
 
+# llm-draft
 #, python-format
 msgid "%(counter)s takeoff"
 msgid_plural "%(counter)s takeoffs"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(counter)s decolagem"
+msgstr[1] "%(counter)s decolagens"
 
+# llm-draft
 #, python-format
 msgid "%(games)s game"
 msgid_plural "%(games)s games"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(games)s partida"
+msgstr[1] "%(games)s partidas"
 
 # llm-draft
 #, python-format
@@ -43,9 +46,10 @@ msgstr "%(h)d h"
 msgid "%(h)d h %(m)d min"
 msgstr "%(h)d h %(m)d min"
 
+# llm-draft
 #, python-format
 msgid "%(kills)s kills, %(hits)s hits"
-msgstr ""
+msgstr "%(kills)s abates, %(hits)s acertos"
 
 # llm-draft
 #, python-format
@@ -71,80 +75,96 @@ msgid_plural "%(n)d rows are visible again."
 msgstr[0] "%(n)d linha voltou a ficar visível."
 msgstr[1] "%(n)d linhas voltaram a ficar visíveis."
 
+# llm-draft
 #, python-format
 msgid "%(n)s air kills"
-msgstr ""
+msgstr "%(n)s abates aéreos"
 
+# llm-draft
 #, python-format
 msgid "%(n)s assists"
-msgstr ""
+msgstr "%(n)s assistências"
 
+# llm-draft
 #, python-format
 msgid "%(n)s death, %(aaa)s to anti-aircraft"
 msgid_plural "%(n)s deaths, %(aaa)s to anti-aircraft"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s morte, %(aaa)s por antiaérea"
+msgstr[1] "%(n)s mortes, %(aaa)s por antiaérea"
 
+# llm-draft
 #, python-format
 msgid "%(n)s events. Times count from the spawn; the time of day is shown next to them."
-msgstr ""
+msgstr "%(n)s eventos. Os tempos contam a partir do surgimento; ao lado aparece a hora do dia."
 
+# llm-draft
 #, python-format
 msgid "%(n)s file, newest %(newest)s"
 msgid_plural "%(n)s files, newest %(newest)s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s arquivo, o mais recente: %(newest)s"
+msgstr[1] "%(n)s arquivos, o mais recente: %(newest)s"
 
+# llm-draft
 #, python-format
 msgid "%(n)s friendly kills in this sortie. They do not count as kills."
-msgstr ""
+msgstr "%(n)s abates de aliados nesta surtida. Eles não contam como abates."
 
+# llm-draft
 #, python-format
 msgid "%(n)s ground kills"
-msgstr ""
+msgstr "%(n)s alvos terrestres"
 
+# llm-draft
 #, python-format
 msgid "%(n)s ground targets"
-msgstr ""
+msgstr "%(n)s alvos terrestres"
 
+# llm-draft
 #, python-format
 msgid "%(n)s mission report file found"
 msgid_plural "%(n)s mission report files found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s relatório de missão encontrado"
+msgstr[1] "%(n)s relatórios de missão encontrados"
 
+# llm-draft
 #, python-format
 msgid "%(n)s of them were static objects (not moving), such as parked vehicles, fences and crates."
-msgstr ""
+msgstr "Desses, %(n)s eram objetos estáticos (parados), como veículos estacionados, cercas e caixas."
 
+# llm-draft
 #, python-format
 msgid "%(n)s types"
-msgstr ""
+msgstr "%(n)s tipos"
 
 # llm-draft
 #, python-format
 msgid "%(name)s: best streaks"
 msgstr "%(name)s: melhores sequências"
 
+# llm-draft
 #, python-format
 msgid "%(name)s: killboard"
-msgstr ""
+msgstr "%(name)s: placar de abates"
 
+# llm-draft
 #, python-format
 msgid "%(name)s: sorties"
-msgstr ""
+msgstr "%(name)s: surtidas"
 
+# llm-draft
 #, python-format
 msgid "%(ok)s missions reprocessed, %(failed)s failed, %(missing)s without an archive."
-msgstr ""
+msgstr "%(ok)s missões reprocessadas, %(failed)s com falha, %(missing)s sem arquivo."
 
+# llm-draft
 #, python-format
 msgid "%(path)s is a file, not a folder."
-msgstr ""
+msgstr "%(path)s é um arquivo, não uma pasta."
 
+# llm-draft
 #, python-format
 msgid "%(players)s player aircraft, %(ai)s AI aircraft"
-msgstr ""
+msgstr "%(players)s aeronaves de jogadores, %(ai)s aeronaves de IA"
 
 # llm-draft
 #, python-format
@@ -153,26 +173,30 @@ msgid_plural "%(players)s players online"
 msgstr[0] "%(players)s jogador online"
 msgstr[1] "%(players)s jogadores online"
 
+# llm-draft
 #, python-format
 msgid "%(rate)s attack"
-msgstr ""
+msgstr "%(rate)s ataque"
 
+# llm-draft
 #, python-format
 msgid "%(rate)s survived"
-msgstr ""
+msgstr "%(rate)s sobreviveram"
 
+# llm-draft
 #, python-format
 msgid "%(red_name)s %(red)s · %(blue_name)s %(blue)s"
-msgstr ""
+msgstr "%(red_name)s %(red)s · %(blue_name)s %(blue)s"
 
 # llm-draft
 #, python-format
 msgid "%(s)d s"
 msgstr "%(s)d s"
 
+# llm-draft
 #, python-format
 msgid "%(share)s static objects"
-msgstr ""
+msgstr "%(share)s de objetos estáticos"
 
 # llm-draft
 #, python-format
@@ -184,34 +208,43 @@ msgstr "Administração de %(title)s"
 msgid "%(token)s (%(mode)s): use a color like #1A73E8 (six hex digits), or leave it empty."
 msgstr "%(token)s (%(mode)s): use uma cor como #1A73E8 (seis dígitos hexadecimais) ou deixe o campo vazio."
 
+# llm-draft
 #, python-format
 msgid "%(total)s in total, %(static)s of them static objects"
-msgstr ""
+msgstr "%(total)s no total, %(static)s deles objetos estáticos"
 
+# llm-draft
 #, python-format
 msgid "%(value)s per sortie"
-msgstr ""
+msgstr "%(value)s por surtida"
 
+# llm-draft
 msgid "(site name, logo, colours, hiding players)."
-msgstr ""
+msgstr "(nome do site, logotipo, cores, ocultar jogadores)."
 
+# llm-draft
 msgid ", and more"
-msgstr ""
+msgstr "e mais"
 
+# llm-draft
 msgid "1. The game server's log folder"
-msgstr ""
+msgstr "1. Pasta de logs do servidor do jogo"
 
+# llm-draft
 msgid "2. Time zone"
-msgstr ""
+msgstr "2. Fuso horário"
 
+# llm-draft
 msgid "3. Website address and HTTPS"
-msgstr ""
+msgstr "3. Endereço do site e HTTPS"
 
+# llm-draft
 msgid "4. Admin account"
-msgstr ""
+msgstr "4. Conta de administrador"
 
+# llm-draft
 msgid "<1%"
-msgstr ""
+msgstr "<1%"
 
 # llm-draft
 msgid ""
@@ -223,42 +256,54 @@ msgstr ""
 " que a licença da fonte permite uso na web. Ele fica guardado no seu servidor e é entregue pelo seu próprio site; "
 "nada é carregado de outros sites."
 
+# llm-draft
 msgid "A clean sheet so far. The runway thanks you."
-msgstr ""
+msgstr "Ficha limpa até agora. A pista agradece."
 
+# llm-draft
 #, python-format
 msgid ""
 "A configuration file already exists (%(path)s). Your answers are written into it; everything else in it stays, and a "
 "dated copy is kept."
 msgstr ""
+"Já existe um arquivo de configuração (%(path)s). Suas respostas são gravadas nele; todo o resto permanece, e uma "
+"cópia com data é guardada."
 
+# llm-draft
 msgid "A creative arrival. The airframe will be remembered fondly."
-msgstr ""
+msgstr "Uma chegada criativa. A fuselagem será lembrada com carinho."
 
+# llm-draft
 msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
-msgstr ""
+msgstr "Algumas perguntas e o site fica pronto. Esta página só abre neste computador e some quando você terminar."
 
+# llm-draft
 msgid "A fresh tour: the log book is still blank. Go and write the first line."
-msgstr ""
+msgstr "Temporada nova: o diário de bordo ainda está em branco. Hora de escrever a primeira linha."
 
 # llm-draft
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
-msgstr "Alma generosa: divide a munição com todo mundo, inclusive com os alas."
+msgstr "Uma alma generosa: este piloto reparte a munição com todos, alas incluídos."
 
+# llm-draft
 msgid "A quiet one. Everybody got home with their ammunition."
-msgstr ""
+msgstr "Missão tranquila. Todo mundo voltou para casa com a munição."
 
+# llm-draft
 msgid "A reprocess request is already waiting or running."
-msgstr ""
+msgstr "Já há um pedido de reprocessamento aguardando ou em andamento."
 
+# llm-draft
 msgid "A reprocess request is already waiting."
-msgstr ""
+msgstr "Já há um pedido de reprocessamento aguardando."
 
+# llm-draft
 msgid "AI aircraft"
-msgstr ""
+msgstr "Aeronaves de IA"
 
+# llm-draft
 msgid "AI gunner"
-msgstr ""
+msgstr "Artilheiro de IA"
 
 # llm-draft
 msgid "About the links"
@@ -272,47 +317,58 @@ msgstr "Destaque (botões, marcadores)"
 msgid "Accent, links and buttons"
 msgstr "Destaque, links e botões"
 
+# llm-draft
 msgid "Activity by tour"
-msgstr ""
+msgstr "Atividade por temporada"
 
+# llm-draft
 msgid "Admin account"
-msgstr ""
+msgstr "Conta de administrador"
 
+# llm-draft
 msgid "Admin user name"
-msgstr ""
+msgstr "Nome de usuário do administrador"
 
+# llm-draft
 msgid "Air"
-msgstr ""
+msgstr "Ar"
 
 # llm-draft
 msgid "Air / ground kills"
 msgstr "Abates ar / solo"
 
+# llm-draft
 msgid "Air and ground kills."
-msgstr ""
+msgstr "Abates aéreos e terrestres."
 
+# llm-draft
 msgid "Air kills"
-msgstr ""
+msgstr "Abates aéreos"
 
+# llm-draft
 msgid "Air kills and deaths per tour"
-msgstr ""
+msgstr "Abates aéreos e mortes por temporada"
 
+# llm-draft
 msgid "Air kills per flight hour"
-msgstr ""
+msgstr "Abates aéreos por hora de voo"
 
+# llm-draft
 msgid "Air kills per sortie"
-msgstr ""
+msgstr "Abates aéreos por surtida"
 
+# llm-draft
 #, python-format
 msgid "Air kills: %(n)s"
-msgstr ""
+msgstr "Abates aéreos: %(n)s"
 
 # llm-draft
 msgid "Air score"
 msgstr "Pontos aéreos"
 
+# llm-draft
 msgid "Air start"
-msgstr ""
+msgstr "Início no ar"
 
 # llm-draft
 msgid "Air superiority"
@@ -333,36 +389,45 @@ msgstr[1] ""
 "Elo ar-ar nesta aeronave, a partir de abates entre surtidas de superioridade aérea. Pilotos com pelo menos %(games)s "
 "partidas ranqueadas."
 
+# llm-draft
 msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr ""
+msgstr "Elo ar-ar dos jatos, a partir de abates entre surtidas de superioridade aérea. Todo o período."
 
+# llm-draft
 msgid ""
 "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
 " counts double."
 msgstr ""
+"Elo ar-ar das aeronaves a hélice, a partir de abates entre surtidas de superioridade aérea. Todo o período. Um abate "
+"de hélice sobre um jato vale em dobro."
 
+# llm-draft
 msgid "Airborne"
-msgstr ""
+msgstr "No ar"
 
 # llm-draft
 msgid "Aircraft"
 msgstr "Aeronave"
 
+# llm-draft
 msgid "Aircraft lost"
-msgstr ""
+msgstr "Aeronaves perdidas"
 
+# llm-draft
 msgid "Aircraft status"
-msgstr ""
+msgstr "Estado da aeronave"
 
 # llm-draft
 msgid "All"
 msgstr "Todos"
 
+# llm-draft
 msgid "All aircraft"
-msgstr ""
+msgstr "Todas as aeronaves"
 
+# llm-draft
 msgid "All gun ammunition"
-msgstr ""
+msgstr "Toda a munição das armas"
 
 # llm-draft
 msgid "All ingestion runs"
@@ -372,76 +437,96 @@ msgstr "Todas as execuções de ingestão"
 msgid "All leaderboards"
 msgstr "Todos os rankings"
 
+# llm-draft
 msgid "All missions"
-msgstr ""
+msgstr "Todas as missões"
 
+# llm-draft
 msgid "All sorties"
-msgstr ""
+msgstr "Todas as surtidas"
 
+# llm-draft
 msgid "All sorties in this aircraft"
-msgstr ""
+msgstr "Todas as surtidas com esta aeronave"
 
 # llm-draft
 msgid "All sorties in this tour"
-msgstr "Todas as missões desta turnê"
+msgstr "Todas as surtidas desta temporada"
 
+# llm-draft
 msgid "All streaks"
-msgstr ""
+msgstr "Todas as sequências"
 
+# llm-draft
 msgid "All time"
-msgstr ""
+msgstr "Todo o período"
 
+# llm-draft
 msgid "Also known as"
-msgstr ""
+msgstr "Também conhecido como"
 
+# llm-draft
 msgid "Ammunition"
-msgstr ""
+msgstr "Munição"
 
+# llm-draft
 msgid "Ammunition hit by or with"
-msgstr ""
+msgstr "Munição que atingiu ou com a qual foi atingido"
 
+# llm-draft
 msgid "Ammunition used unknown"
-msgstr ""
+msgstr "Munição gasta desconhecida"
 
 # llm-draft
 msgid "An all-rounder: the taxiway and the formation have both had their moments."
-msgstr "Um coringa: o taxiway e a formação já tiveram seus momentos."
+msgstr "Um polivalente: o taxiway e a formação já tiveram seus momentos."
 
 # llm-draft
 msgid "An ambassador for chaos, on the ground and in the air. The squadron would not swap them."
-msgstr "Embaixador do caos, no chão e no ar. O esquadrão não trocaria por ninguém."
+msgstr "Um embaixador do caos, no solo e no ar. O esquadrão não o trocaria por ninguém."
 
+# llm-draft
 msgid "Anti-aircraft"
-msgstr ""
+msgstr "Antiaérea"
 
+# llm-draft
 msgid "Any"
-msgstr ""
+msgstr "Qualquer"
 
+# llm-draft
 msgid "Any outcome"
-msgstr ""
+msgstr "Qualquer resultado"
 
+# llm-draft
 msgid "Any role"
-msgstr ""
+msgstr "Qualquer função"
 
 # llm-draft
 msgid "Apply"
 msgstr "Aplicar"
 
+# llm-draft
 msgid "Artillery"
-msgstr ""
+msgstr "Artilharia"
 
+# llm-draft
 msgid "Assist"
-msgstr ""
+msgstr "Assistência"
 
+# llm-draft
 msgid "Assists"
-msgstr ""
+msgstr "Assistências"
 
+# llm-draft
 #, python-format
 msgid "Assists: %(n)s"
-msgstr ""
+msgstr "Assistências: %(n)s"
 
+# llm-draft
 msgid "At least 8 characters, not a common password, not only digits, not like the user name."
 msgstr ""
+"Pelo menos 8 caracteres, que não seja uma senha comum, que não tenha só dígitos e que não se pareça com o nome de "
+"usuário."
 
 # llm-draft
 #, python-format
@@ -457,25 +542,29 @@ msgstr "No máximo %(max)d fontes enviadas: marque antes uma em “Remover fonte
 msgid "Attack"
 msgstr "Ataque"
 
+# llm-draft
 msgid "Attack ground score"
-msgstr ""
+msgstr "Pontos de ataque ao solo"
 
 # llm-draft
 msgid "Attack sorties"
 msgstr "Surtidas de ataque"
 
+# llm-draft
 msgid "Attacker"
-msgstr ""
+msgstr "Atacante"
 
 # llm-draft
 msgid "Attempts"
 msgstr "Tentativas"
 
+# llm-draft
 msgid "Average hits"
-msgstr ""
+msgstr "Acertos em média"
 
+# llm-draft
 msgid "Average number of gun hits that destroyed it"
-msgstr ""
+msgstr "Média de acertos de armas que o destruíram"
 
 # llm-draft
 msgid "BLUFOR"
@@ -485,8 +574,9 @@ msgstr "BLUFOR"
 msgid "BLUFOR labels"
 msgstr "rótulos da BLUFOR"
 
+# llm-draft
 msgid "BLUFOR won"
-msgstr ""
+msgstr "BLUFOR venceu"
 
 # llm-draft
 msgid "Back to the profile"
@@ -496,8 +586,9 @@ msgstr "Voltar ao perfil"
 msgid "Back to the start page"
 msgstr "Voltar à página inicial"
 
+# llm-draft
 msgid "Back up your data now and then: il2ks backup"
-msgstr ""
+msgstr "Faça um backup dos seus dados de vez em quando: il2ks backup"
 
 # llm-draft
 msgid "Backgrounds"
@@ -511,26 +602,32 @@ msgstr "Ruim (vermelho)"
 msgid "Bailed out"
 msgstr "Saltou de paraquedas"
 
+# llm-draft
 msgid "Bailouts"
-msgstr ""
+msgstr "Saltos de paraquedas"
 
+# llm-draft
 msgid "Bar chart of the sorties per day over the last days. The numbers are in the table below."
-msgstr ""
+msgstr "Gráfico de barras das surtidas por dia nos últimos dias. Os números estão na tabela abaixo."
 
+# llm-draft
 #, python-format
 msgid "Bar chart over %(n)d tour. The numbers are in the table below."
 msgid_plural "Bar chart over %(n)d tours. The numbers are in the table below."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Gráfico de barras de %(n)d temporada. Os números estão na tabela abaixo."
+msgstr[1] "Gráfico de barras de %(n)d temporadas. Os números estão na tabela abaixo."
 
+# llm-draft
 msgid "Best by"
-msgstr ""
+msgstr "Melhores por"
 
+# llm-draft
 msgid "Best showing of the mission. Well flown."
-msgstr ""
+msgstr "Melhor desempenho da missão. Bem voado."
 
+# llm-draft
 msgid "Best streak"
-msgstr ""
+msgstr "Melhor sequência"
 
 # llm-draft
 msgid "Best streaks"
@@ -541,17 +638,19 @@ msgstr "Melhores sequências"
 msgid "Best streaks of %(name)s"
 msgstr "Melhores sequências de %(name)s"
 
+# llm-draft
 #, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Melhor que 3 em cada 4 pilotos com pelo menos %(n)s surtida"
+msgstr[1] "Melhor que 3 em cada 4 pilotos com pelo menos %(n)s surtidas"
 
+# llm-draft
 #, python-format
 msgid "Better than 9 in 10 pilots with at least %(n)s sortie"
 msgid_plural "Better than 9 in 10 pilots with at least %(n)s sorties"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Melhor que 9 em cada 10 pilotos com pelo menos %(n)s surtida"
+msgstr[1] "Melhor que 9 em cada 10 pilotos com pelo menos %(n)s surtidas"
 
 # llm-draft
 msgid "Blue"
@@ -565,14 +664,17 @@ msgstr "Fonte do texto"
 msgid "Body text"
 msgstr "Texto principal"
 
+# llm-draft
 msgid "Bomb release"
-msgstr ""
+msgstr "Lançamento de bombas"
 
+# llm-draft
 msgid "Bombs"
-msgstr ""
+msgstr "Bombas"
 
+# llm-draft
 msgid "Bombs, rockets and napalm"
-msgstr ""
+msgstr "Bombas, foguetes e napalm"
 
 # llm-draft
 msgid "Borders"
@@ -582,41 +684,49 @@ msgstr "Bordas"
 msgid "Breadcrumb"
 msgstr "Trilha de navegação"
 
+# llm-draft
 msgid "Breakdown by target type"
-msgstr ""
+msgstr "Detalhamento por tipo de alvo"
 
 # llm-draft
 msgid "Browse missions"
 msgstr "Ver missões"
 
+# llm-draft
 msgid "Buildings"
-msgstr ""
+msgstr "Edifícios"
 
+# llm-draft
 msgid "Busy sortie. The enemy count went down noticeably."
-msgstr ""
+msgstr "Surtida movimentada. O número de inimigos caiu bastante."
 
+# llm-draft
 msgid "By aircraft"
-msgstr ""
+msgstr "Por aeronave"
 
+# llm-draft
 msgid "Cannon shells"
-msgstr ""
+msgstr "Projéteis de canhão"
 
 # llm-draft
 msgid "Captured"
 msgstr "Capturado"
 
+# llm-draft
 msgid "Captures"
-msgstr ""
+msgstr "Capturas"
 
 # llm-draft
 msgid "Cards, tables, inputs"
 msgstr "Cartões, tabelas, campos"
 
+# llm-draft
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
+# llm-draft
 msgid "Caused by"
-msgstr ""
+msgstr "Causado por"
 
 # llm-draft
 msgid "Caution (amber)"
@@ -638,11 +748,13 @@ msgstr "Série 2 do gráfico"
 msgid "Charts"
 msgstr "Gráficos"
 
+# llm-draft
 msgid "Check"
-msgstr ""
+msgstr "Verificar"
 
+# llm-draft
 msgid "Check that you copied all of it. After several wrong tries this page locks for a while."
-msgstr ""
+msgstr "Confira se copiou tudo. Depois de várias tentativas erradas, esta página trava por um tempo."
 
 # llm-draft
 msgid "Class"
@@ -652,8 +764,9 @@ msgstr "Classe"
 msgid "Clear filters"
 msgstr "Limpar filtros"
 
+# llm-draft
 msgid "Close the current tour and start a new one now?"
-msgstr ""
+msgstr "Encerrar a temporada atual e começar uma nova agora?"
 
 # llm-draft
 msgid "Coalitions"
@@ -667,24 +780,29 @@ msgstr "Cor"
 msgid "Colors"
 msgstr "Cores"
 
+# llm-draft
 msgid "Combat role"
-msgstr ""
+msgstr "Função de combate"
 
 # llm-draft
 msgid "Condensed (default)"
 msgstr "Condensada (padrão)"
 
+# llm-draft
 msgid "Configuration file"
-msgstr ""
+msgstr "Arquivo de configuração"
 
+# llm-draft
 msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
-msgstr ""
+msgstr "Surtidas seguidas sobrevividas: sem morte nem captura. Surtidas que nunca decolaram são ignoradas."
 
+# llm-draft
 msgid "Continue"
-msgstr ""
+msgstr "Continuar"
 
+# llm-draft
 msgid "Counterpart"
-msgstr ""
+msgstr "Adversário"
 
 # llm-draft
 msgid "Counters (rebuilt by ingest)"
@@ -694,32 +812,39 @@ msgstr "Contadores (recalculados na ingestão)"
 msgid "Crashed"
 msgstr "Caiu"
 
+# llm-draft
 msgid "Crashed while taxiing, before takeoff"
-msgstr ""
+msgstr "Acidente no taxiamento, antes da decolagem"
 
+# llm-draft
+#. Translators: how the kill is credited to the attacker (sole kill, shared kill, assist), a short column header
 msgid "Credit"
-msgstr ""
+msgstr "Atribuição"
 
 # llm-draft
 msgid "Current logo"
 msgstr "Logotipo atual"
 
+# llm-draft
 msgid "Current streak"
-msgstr ""
+msgstr "Sequência atual"
 
 # llm-draft
 #. Translators: the name shown for an uploaded font whose file name gave nothing usable (a noun phrase)
 msgid "Custom font"
 msgstr "Fonte personalizada"
 
+# llm-draft
 msgid "Damage"
-msgstr ""
+msgstr "Dano"
 
+# llm-draft
 msgid "Damage dealt"
-msgstr ""
+msgstr "Dano causado"
 
+# llm-draft
 msgid "Damage taken"
-msgstr ""
+msgstr "Dano sofrido"
 
 # llm-draft
 msgid "Damaged"
@@ -734,18 +859,21 @@ msgstr "Modo escuro"
 msgid "Data updated %(when)s"
 msgstr "Dados atualizados: %(when)s"
 
+# llm-draft
 msgid "Date"
-msgstr ""
+msgstr "Data"
 
 # llm-draft
 msgid "Dead"
 msgstr "Morto"
 
+# llm-draft
 msgid "Deaths"
-msgstr ""
+msgstr "Mortes"
 
+# llm-draft
 msgid "Deaths and lost aircraft by cause"
-msgstr ""
+msgstr "Mortes e aeronaves perdidas por causa"
 
 # llm-draft
 msgid "Default (clears all colors below)"
@@ -759,27 +887,34 @@ msgstr "Areia do deserto"
 msgid "Destroyed"
 msgstr "Destruído"
 
+# llm-draft
 msgid "Destroyed on the ground"
-msgstr ""
+msgstr "Destruído no solo"
 
+# llm-draft
 msgid "Details"
-msgstr ""
+msgstr "Detalhes"
 
+# llm-draft
 #, python-format
 msgid "Detected: %(zone)s. Change it if the game server's computer uses another one."
-msgstr ""
+msgstr "Detectado: %(zone)s. Altere se o computador do servidor do jogo usar outro."
 
+# llm-draft
 msgid "Detonations"
-msgstr ""
+msgstr "Detonações"
 
+# llm-draft
 msgid "Died"
-msgstr ""
+msgstr "Morreu"
 
+# llm-draft
 msgid "Direct hits"
-msgstr ""
+msgstr "Acertos diretos"
 
+# llm-draft
 msgid "Direct impacts logged with the ordnance named"
-msgstr ""
+msgstr "Impactos diretos registrados com o armamento identificado"
 
 # llm-draft
 msgid "Display name"
@@ -787,22 +922,27 @@ msgstr "Nome exibido"
 
 # llm-draft
 msgid "Ditched"
-msgstr "Amerissou"
+msgstr "Pouso forçado"
 
+# llm-draft
 msgid "Domain"
-msgstr ""
+msgstr "Domínio"
 
+# llm-draft
 msgid "Domain name"
-msgstr ""
+msgstr "Nome de domínio"
 
+# llm-draft
 msgid "Domain name, for example stats.example.com"
-msgstr ""
+msgstr "Nome de domínio, por exemplo stats.example.com"
 
+# llm-draft
 msgid "Duration"
-msgstr ""
+msgstr "Duração"
 
+# llm-draft
 msgid "E-mail for certificate notices (optional)"
-msgstr ""
+msgstr "E-mail para avisos do certificado (opcional)"
 
 # llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
@@ -820,17 +960,21 @@ msgstr "Elo, jato"
 msgid "Elo, prop"
 msgstr "Elo, hélice"
 
+# llm-draft
 msgid "Empty missions"
-msgstr ""
+msgstr "Missões vazias"
 
+# llm-draft
 msgid "Enemy action"
-msgstr ""
+msgstr "Ação inimiga"
 
+# llm-draft
 msgid "Enemy aircraft"
-msgstr ""
+msgstr "Aeronaves inimigas"
 
+# llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
-msgstr ""
+msgstr "Motores aquecidos e o céu esperando. Faça a primeira surtida da temporada!"
 
 # llm-draft
 msgid "Enter a full http:// or https:// address."
@@ -838,31 +982,37 @@ msgstr "Informe um endereço completo começando com http:// ou https://."
 
 # llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
-msgstr "Igualdade de oportunidades: este piloto não tem preferidos, nem entre os lados."
+msgstr "Tiro com igualdade de oportunidades: este piloto não faz distinção entre os lados."
 
 # llm-draft
 msgid "Error"
 msgstr "Erro"
 
+# llm-draft
 msgid "Event"
-msgstr ""
+msgstr "Evento"
 
 # llm-draft
 msgid "Event type (AType)"
 msgstr "Tipo de evento (AType)"
 
+# llm-draft
 msgid "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them."
 msgstr ""
+"Todas as missões jogadas no servidor, da mais recente para a mais antiga. Missões vazias (em que ninguém voou) ficam "
+"ocultas, a menos que você peça."
 
+# llm-draft
 msgid "Every pilot has bad days. These are the ones the server remembers."
-msgstr ""
+msgstr "Todo piloto tem dias ruins. Estes são os que o servidor guardou."
 
+# llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
-msgstr ""
+msgstr "Todas as surtidas, da mais recente para a mais antiga. Selecione uma para ver o relatório completo."
 
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
-msgstr "Todo mundo já confundiu um ala uma vez. Alguns só têm um histórico maior."
+msgstr "Todo mundo já confundiu o ala uma vez. Alguns só têm uma ficha mais longa."
 
 # llm-draft
 msgid "Exited on ground"
@@ -882,50 +1032,62 @@ msgstr "Falhou"
 msgid "Failed, waiting for a retry"
 msgstr "Falhou, aguardando nova tentativa"
 
+# llm-draft
 msgid "Fair winds, full magazines and the numbers to prove it."
-msgstr ""
+msgstr "Bons ventos, carregadores cheios e os números para provar."
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
-msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Daria até para fazer visita guiada."
+msgstr "Poucos pilotos conhecem o taxiway tão bem quanto este. Podia até oferecer visita guiada."
 
+# llm-draft
 msgid "Fighters"
-msgstr ""
+msgstr "Caças"
 
 # llm-draft
 msgid "Find a player"
 msgstr "Procurar um jogador"
 
+# llm-draft
 msgid "Find a player by name"
-msgstr ""
+msgstr "Encontrar um jogador pelo nome"
 
+# llm-draft
 msgid "Finish setup"
-msgstr ""
+msgstr "Concluir a configuração"
 
+# llm-draft
 #, python-format
 msgid "First seen %(first)s · last seen %(last)s"
-msgstr ""
+msgstr "Visto pela primeira vez em %(first)s · última vez em %(last)s"
 
+# llm-draft
 msgid "First used"
-msgstr ""
+msgstr "Primeiro uso"
 
+# llm-draft
 msgid "First-run setup"
-msgstr ""
+msgstr "Configuração inicial"
 
+# llm-draft
+#. Translators: setup check badges. "Fix" = a problem the admin must fix, "Check" = a warning worth a look.
 msgid "Fix"
-msgstr ""
+msgstr "Corrigir"
 
+# llm-draft
 msgid "Fix the setting named above in il2ks.toml, restart il2ks and open this page again."
-msgstr ""
+msgstr "Corrija a configuração indicada acima em il2ks.toml, reinicie o il2ks e abra esta página de novo."
 
+# llm-draft
 msgid "Flight time"
-msgstr ""
+msgstr "Tempo de voo"
 
+# llm-draft
 #, python-format
 msgid "Flown by %(pilots)s pilot."
 msgid_plural "Flown by %(pilots)s pilots."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Pilotado por %(pilots)s piloto."
+msgstr[1] "Pilotado por %(pilots)s pilotos."
 
 # llm-draft
 msgid "Fonts"
@@ -935,43 +1097,52 @@ msgstr "Fontes"
 msgid "Fonts come from the visitor's system or are shipped with il2ks; nothing is loaded from other websites."
 msgstr "As fontes vêm do sistema do visitante ou acompanham o il2ks; nada é carregado de outros sites."
 
+# llm-draft
 #, python-format
 msgid "Found %(n)s mission report file there."
 msgid_plural "Found %(n)s mission report files there."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Foi encontrado %(n)s relatório de missão ali."
+msgstr[1] "Foram encontrados %(n)s relatórios de missão ali."
 
+# llm-draft
 msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name."
-msgstr ""
+msgstr "Nomes de DNS dinâmico gratuitos (DuckDNS e similares) funcionam como qualquer outro nome de domínio."
 
+# llm-draft
 msgid "Friendly"
-msgstr ""
+msgstr "Aliado"
 
+# llm-draft
 msgid "Friendly fire"
-msgstr ""
+msgstr "Fogo amigo"
 
+# llm-draft
 msgid "Friendly fire happens to the best squadrons. The debrief will be lively."
-msgstr ""
+msgstr "Fogo amigo acontece nos melhores esquadrões. O debriefing vai ser animado."
 
 # llm-draft
 msgid "Friendly fire: proof that the guns work."
 msgstr "Fogo amigo: prova de que as armas funcionam."
 
+# llm-draft
 msgid "Friendly hits"
-msgstr ""
+msgstr "Acertos em aliados"
 
+# llm-draft
 msgid "Friendly kills"
-msgstr ""
+msgstr "Aliados abatidos"
 
+# llm-draft
 msgid "Friendly victim"
-msgstr ""
+msgstr "Vítima aliada"
 
 # llm-draft
 msgid "Friendly-fire incidents"
 msgstr "Incidentes de fogo amigo"
 
+# llm-draft
 msgid "Full killboard"
-msgstr ""
+msgstr "Placar de abates completo"
 
 # llm-draft
 msgid "General"
@@ -985,63 +1156,83 @@ msgstr "Desistidas"
 msgid "Good (green)"
 msgstr "Bom (verde)"
 
+# llm-draft
 msgid "Ground"
-msgstr ""
+msgstr "Solo"
 
+# llm-draft
 msgid "Ground fire: the one opponent that never needs fuel."
-msgstr ""
+msgstr "Fogo do solo: o único adversário que nunca precisa de combustível."
 
+# llm-draft
 msgid "Ground kill"
-msgstr ""
+msgstr "Alvo terrestre"
 
+# llm-draft
 msgid "Ground kills"
-msgstr ""
+msgstr "Alvos terrestres"
 
+# llm-draft
 msgid "Ground kills by category"
-msgstr ""
+msgstr "Alvos terrestres por categoria"
 
+# llm-draft
 msgid "Ground kills per sortie"
-msgstr ""
+msgstr "Alvos terrestres por surtida"
 
+# llm-draft
 #, python-format
 msgid "Ground kills: %(n)s"
-msgstr ""
+msgstr "Alvos terrestres: %(n)s"
 
+# llm-draft
 msgid "Ground score"
-msgstr ""
+msgstr "Pontos de solo"
 
+# llm-draft
 msgid "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
-msgstr ""
+msgstr "Pontos de solo ganhos em surtidas de ataque por hora sobre o alvo. O trajeto de ida e volta não conta."
 
+# llm-draft
 msgid "Ground score per hour"
-msgstr ""
+msgstr "Pontos de solo por hora"
 
+# llm-draft
 msgid "Ground score per hour on target"
-msgstr ""
+msgstr "Pontos de solo por hora sobre o alvo"
 
+# llm-draft
 #, python-format
 msgid ""
 "Ground score per hour on target in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s "
 "minutes on target."
 msgstr ""
+"Pontos de solo por hora sobre o alvo com esta aeronave. Pilotos com pelo menos %(sorties)s surtidas de ataque e "
+"%(minutes)s minutos sobre o alvo."
 
+# llm-draft
 msgid "Ground vehicle or object"
-msgstr ""
+msgstr "Veículo ou objeto terrestre"
 
+# llm-draft
 msgid "Gunner"
-msgstr ""
+msgstr "Artilheiro"
 
+# llm-draft
 msgid "Gunner only"
-msgstr ""
+msgstr "Somente artilheiro"
 
+# llm-draft
 msgid "Gunner sortie"
-msgstr ""
+msgstr "Surtida de artilheiro"
 
+# llm-draft
 msgid "HTTPS"
-msgstr ""
+msgstr "HTTPS"
 
+# llm-draft
 msgid "Hall of shame"
-msgstr ""
+msgstr "Mural da vergonha"
 
 # llm-draft
 msgid "Header band"
@@ -1075,8 +1266,9 @@ msgstr "Títulos"
 msgid "Headings and body text"
 msgstr "Títulos e texto do corpo"
 
+# llm-draft
 msgid "Health check"
-msgstr ""
+msgstr "Verificação de integridade"
 
 # llm-draft
 msgid "Healthy"
@@ -1102,55 +1294,73 @@ msgstr "Ocultar os jogadores selecionados nas páginas públicas"
 msgid "High contrast (black and white)"
 msgstr "Alto contraste (preto e branco)"
 
+# llm-draft
 msgid "Hits dealt"
-msgstr ""
+msgstr "Acertos desferidos"
 
+# llm-draft
 msgid "Hits given"
-msgstr ""
+msgstr "Acertos dados"
 
+# llm-draft
 msgid "Hits needed to destroy each aircraft type"
-msgstr ""
+msgstr "Acertos necessários para destruir cada tipo de aeronave"
 
+# llm-draft
 msgid "Hits received"
-msgstr ""
+msgstr "Acertos recebidos"
 
+# llm-draft
 msgid "Hits taken"
-msgstr ""
+msgstr "Acertos sofridos"
 
+# llm-draft
 msgid "Hits to destroy"
-msgstr ""
+msgstr "Acertos para destruir"
 
+# llm-draft
 msgid ""
 "Hits to destroy: only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack"
 " sorties: the rest are air-superiority sorties."
 msgstr ""
+"Acertos para destruir: só contam os abates em que um único atacante causou todo o dano; bombas e foguetes ficam de "
+"fora. Surtidas de ataque: as demais são surtidas de superioridade aérea."
 
 # llm-draft
 msgid "Home"
 msgstr "Início"
 
+# llm-draft
 msgid ""
 "How each aircraft type performs: sorties, kills, losses and ratios, over all missions played. Open a type for its "
 "matchups, best pilots and loadouts."
 msgstr ""
+"Como cada tipo de aeronave se sai: surtidas, abates, perdas e proporções em todas as missões jogadas. Abra um tipo "
+"para ver seus confrontos, melhores pilotos e configurações de armamento."
 
+# llm-draft
 msgid ""
 "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
 " bombs and rockets are left out."
 msgstr ""
+"Quantos acertos de armas são necessários para abater esta aeronave. Só contam os abates em que um único atacante "
+"causou todo o dano; bombas e foguetes ficam de fora."
 
+# llm-draft
 msgid "How should HTTPS be handled?"
-msgstr ""
+msgstr "Como o HTTPS deve ser tratado?"
 
 # llm-draft
 msgid "Humanist sans-serif"
 msgstr "Sem serifa humanista"
 
+# llm-draft
 msgid "I already run my own web server"
-msgstr ""
+msgstr "Eu já tenho meu próprio servidor web"
 
+# llm-draft
 msgid "I have no domain name yet"
-msgstr ""
+msgstr "Ainda não tenho um nome de domínio"
 
 # llm-draft
 msgid "In aircraft"
@@ -1160,9 +1370,10 @@ msgstr "Na aeronave"
 msgid "In flight"
 msgstr "Em voo"
 
+# llm-draft
 #, python-format
 msgid "In game: %(when)s"
-msgstr ""
+msgstr "No jogo: %(when)s"
 
 # llm-draft
 msgid "In the air"
@@ -1172,8 +1383,9 @@ msgstr "No ar"
 msgid "In the lobby"
 msgstr "No lobby"
 
+# llm-draft
 msgid "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead."
-msgstr ""
+msgstr "Na janela onde o il2ks está rodando: ele imprimiu um endereço web com o token já incluído. Abra esse endereço."
 
 # llm-draft
 msgid "Ingested"
@@ -1187,22 +1399,29 @@ msgstr "Status da ingestão"
 msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
 msgstr "Só dentro da temporada escolhida: uma sequência não vem de uma temporada anterior."
 
+# llm-draft
 msgid "Ironman"
-msgstr ""
+msgstr "Ironman"
 
+# llm-draft
 msgid "Ironman streaks"
-msgstr ""
+msgstr "Sequências Ironman"
 
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
-msgstr ""
+msgstr "O servidor do jogo está em outro computador? Informe a pasta para a qual os logs dele são copiados ou compartilhados."
 
+# llm-draft
 msgid ""
 "It can take minutes to hours on a big archive. Pages keep working, and are updated mission by mission. New missions "
 "are ingested again once it is over."
 msgstr ""
+"Pode levar de minutos a horas em um arquivo grande. As páginas continuam funcionando e são atualizadas missão por "
+"missão. As missões novas voltam a ser processadas quando terminar."
 
+# llm-draft
 msgid "It still flew, mostly out of politeness. Well landed."
-msgstr ""
+msgstr "Ainda voava, mais por educação. Bom pouso."
 
 # llm-draft
 msgid "Jet"
@@ -1212,52 +1431,64 @@ msgstr "A jato"
 msgid "Joining…"
 msgstr "Entrando…"
 
+# llm-draft
 msgid "K/D"
-msgstr ""
+msgstr "K/D"
 
+# llm-draft
 #, python-format
 msgid "K/D %(value)s"
-msgstr ""
+msgstr "K/D %(value)s"
 
+# llm-draft
 msgid "K/L"
-msgstr ""
+msgstr "K/L"
 
+# llm-draft
 #, python-format
 msgid "K/L %(value)s"
-msgstr ""
+msgstr "K/L %(value)s"
 
 # llm-draft
 msgid "Key (AType:KEY)"
 msgstr "Chave (AType:KEY)"
 
+# llm-draft
 msgid "Kill"
-msgstr ""
+msgstr "Abate"
 
+# llm-draft
 msgid "Killboard"
-msgstr ""
+msgstr "Placar de abates"
 
+# llm-draft
 #, python-format
 msgid "Killboard of %(name)s"
-msgstr ""
+msgstr "Placar de abates de %(name)s"
 
+# llm-draft
 msgid "Killed"
-msgstr ""
+msgstr "Morto"
 
+# llm-draft
 msgid "Killer"
-msgstr ""
+msgstr "Autor"
 
 # llm-draft
 msgid "Kills"
 msgstr "Abates"
 
+# llm-draft
 msgid "Kills and assists"
-msgstr ""
+msgstr "Abates e assistências"
 
+# llm-draft
 msgid "Kills by victim"
-msgstr ""
+msgstr "Abates por vítima"
 
+# llm-draft
 msgid "Kills it hit in"
-msgstr ""
+msgstr "Abates em que acertou"
 
 # llm-draft
 msgid "Kind"
@@ -1267,58 +1498,70 @@ msgstr "Tipo"
 msgid "Landed"
 msgstr "Pousou"
 
+# llm-draft
 msgid "Landed by parachute, collected by the other side. The war goes on without this pilot, for now."
-msgstr ""
+msgstr "Pousou de paraquedas e foi recolhido pelo outro lado. A guerra segue sem este piloto, por enquanto."
 
+# llm-draft
 msgid "Landings"
-msgstr ""
+msgstr "Pousos"
 
+# llm-draft
 msgid "Last"
-msgstr ""
+msgstr "Último"
 
 # llm-draft
 msgid "Last 30 days"
 msgstr "Últimos 30 dias"
 
+# llm-draft
 msgid "Last 7 days"
-msgstr ""
+msgstr "Últimos 7 dias"
 
+# llm-draft
 msgid "Last 90 days"
-msgstr ""
+msgstr "Últimos 90 dias"
 
+# llm-draft
 msgid "Last encounter"
-msgstr ""
+msgstr "Último encontro"
 
+# llm-draft
 msgid "Last mission"
-msgstr ""
+msgstr "Última missão"
 
 # llm-draft
 msgid "Last mission ingested"
 msgstr "Última missão ingerida"
 
+# llm-draft
 msgid "Last request"
-msgstr ""
+msgstr "Último pedido"
 
+# llm-draft
 msgid "Last seen"
-msgstr ""
+msgstr "Visto pela última vez"
 
 # llm-draft
 #, python-format
 msgid "Last seen %(when)s."
-msgstr "Vista pela última vez: %(when)s."
+msgstr "Visto pela última vez: %(when)s."
 
+# llm-draft
 msgid "Last used"
-msgstr ""
+msgstr "Último uso"
 
 # llm-draft
 msgid "Latest attempt"
 msgstr "Última tentativa"
 
+# llm-draft
 msgid "Latest missions"
-msgstr ""
+msgstr "Últimas missões"
 
+# llm-draft
 msgid "Leaderboards"
-msgstr ""
+msgstr "Classificações"
 
 # llm-draft
 msgid ""
@@ -1328,13 +1571,17 @@ msgstr ""
 "Deixe um campo vazio para manter a cor padrão. «Claro» e «escuro» são os dois modos do botão de tema. As cores "
 "«automáticas» acompanham o destaque."
 
+# llm-draft
 msgid ""
 "Leave the box empty. The site starts with a self-signed test certificate: browsers warn that it is “not secure”. Good"
 " for trying things out, not for your players."
 msgstr ""
+"Deixe o campo vazio. O site começa com um certificado de teste autoassinado: os navegadores avisam que ele “não é "
+"seguro”. Serve para testar, não para os seus jogadores."
 
+# llm-draft
 msgid "Left"
-msgstr ""
+msgstr "Restante"
 
 # llm-draft
 msgid "Left the server"
@@ -1352,23 +1599,30 @@ msgstr "Linhas"
 msgid "Links"
 msgstr "Links"
 
+# llm-draft
+#. Translators: ammunition table columns, rounds loaded at take-off / rounds still left at the end / rounds fired (used)
 msgid "Loaded"
-msgstr ""
+msgstr "Levado"
 
+# llm-draft
 msgid "Loadout"
-msgstr ""
+msgstr "Configuração de armamento"
 
+# llm-draft
 msgid "Loadouts"
-msgstr ""
+msgstr "Configurações de armamento"
 
+# llm-draft
 msgid "Log folder"
-msgstr ""
+msgstr "Pasta de logs"
 
+# llm-draft
 msgid "Log in to the admin pages"
-msgstr ""
+msgstr "Entrar nas páginas de administração"
 
+# llm-draft
 msgid "Log incomplete"
-msgstr ""
+msgstr "Log incompleto"
 
 # llm-draft
 msgid "Log lines the parser does not know. Harmless until the game changes its log format; worth reporting."
@@ -1384,20 +1638,25 @@ msgstr "Nome no log"
 msgid "Logo"
 msgstr "Logotipo"
 
+# llm-draft
 msgid "Longest ironman streaks"
-msgstr ""
+msgstr "Maiores sequências Ironman"
 
+# llm-draft
 msgid "Loss cause"
-msgstr ""
+msgstr "Causa da perda"
 
+# llm-draft
 msgid "Losses"
-msgstr ""
+msgstr "Perdas"
 
+# llm-draft
 msgid "Lost before the first takeoff, by their own doing"
-msgstr ""
+msgstr "Perdidas antes da primeira decolagem, por culpa própria"
 
+# llm-draft
 msgid "Lost to"
-msgstr ""
+msgstr "Perdido para"
 
 # llm-draft
 #, python-format
@@ -1412,15 +1671,17 @@ msgstr ""
 msgid "Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."
 msgstr "Números menores aparecem primeiro. Os links abrem em uma nova aba; só são aceitos endereços http:// e https://."
 
+# llm-draft
 msgid "Machine-gun rounds"
-msgstr ""
+msgstr "Cartuchos de metralhadora"
 
 # llm-draft
 msgid "Main"
 msgstr "Principal"
 
+# llm-draft
 msgid "Matchups"
-msgstr ""
+msgstr "Confrontos"
 
 # llm-draft
 msgid "May still change"
@@ -1452,21 +1713,25 @@ msgstr "Missões armazenadas"
 msgid "Monospace"
 msgstr "Monoespaçada"
 
+# llm-draft
 msgid "More hole than airplane, and still back on the ground. Hats off."
-msgstr ""
+msgstr "Mais buraco que avião, e mesmo assim de volta ao chão. Tiro o chapéu."
 
+# llm-draft
 msgid "Most dangerous part of the mission: the first hundred metres."
-msgstr ""
+msgstr "A parte mais perigosa da missão: os primeiros cem metros."
 
 # llm-draft
 msgid "Name"
 msgstr "Nome"
 
+# llm-draft
 msgid "Name contains…"
-msgstr ""
+msgstr "O nome contém…"
 
+# llm-draft
 msgid "Names and emblems shown for 5xx / 6xx. The default emblems are neutral."
-msgstr ""
+msgstr "Nomes e emblemas exibidos para 5xx / 6xx. Os emblemas padrão são neutros."
 
 # llm-draft
 msgid "Navigation links"
@@ -1484,14 +1749,17 @@ msgstr "Neutro"
 msgid "Neutral (grey)"
 msgstr "Neutro (cinza)"
 
+# llm-draft
 msgid "Never"
-msgstr ""
+msgstr "Nunca"
 
+# llm-draft
 msgid "Never left the ground, still earned a story."
-msgstr ""
+msgstr "Nunca saiu do chão e ainda assim rendeu uma história."
 
+# llm-draft
 msgid "Never shot down by a player."
-msgstr ""
+msgstr "Nunca abatido por um jogador."
 
 # llm-draft
 msgid "Next"
@@ -1501,40 +1769,50 @@ msgstr "Próxima"
 msgid "Next retry"
 msgstr "Próxima tentativa"
 
+# llm-draft
 msgid "Next step"
-msgstr ""
+msgstr "Próximo passo"
 
 # llm-draft
 #, python-format
 msgid "Next tour starts %(when)s"
-msgstr "A próxima turnê começa em %(when)s"
+msgstr "A próxima temporada começa em %(when)s"
 
+# llm-draft
 msgid "Nickname"
-msgstr ""
+msgstr "Apelido"
 
+# llm-draft
 msgid "No air kills."
-msgstr ""
+msgstr "Sem abates aéreos."
 
+# llm-draft
 msgid "No aircraft has flown yet."
-msgstr ""
+msgstr "Nenhuma aeronave voou ainda."
 
+# llm-draft
 msgid "No attacker (crash, terrain, accident)"
-msgstr ""
+msgstr "Sem atacante (queda, terreno, acidente)"
 
+# llm-draft
 msgid "No attacker is credited: the aircraft was lost by its own doing (terrain, overstress or an accident)."
-msgstr ""
+msgstr "Nenhum atacante é creditado: a aeronave se perdeu por culpa própria (terreno, excesso de esforço ou acidente)."
 
+# llm-draft
 msgid "No ground kills."
-msgstr ""
+msgstr "Sem alvos terrestres."
 
+# llm-draft
 msgid "No kill of this aircraft by a single attacker yet."
-msgstr ""
+msgstr "Ainda nenhum abate desta aeronave por um único atacante."
 
+# llm-draft
 msgid "No kills this time. Somebody had to keep the airspace tidy."
-msgstr ""
+msgstr "Sem abates desta vez. Alguém tinha que manter o espaço aéreo organizado."
 
+# llm-draft
 msgid "No landing"
-msgstr ""
+msgstr "Sem pouso"
 
 # llm-draft
 msgid "No logo."
@@ -1548,11 +1826,13 @@ msgstr "Nenhuma missão foi vista no servidor ainda."
 msgid "No mission running"
 msgstr "Nenhuma missão em andamento"
 
+# llm-draft
 msgid "No missions match these filters."
-msgstr ""
+msgstr "Nenhuma missão corresponde a esses filtros."
 
+# llm-draft
 msgid "No missions yet."
-msgstr ""
+msgstr "Ainda não há missões."
 
 # llm-draft
 msgid ""
@@ -1570,62 +1850,78 @@ msgstr "Nenhum piloto tem surtidas de ataque suficientes nesta aeronave ainda."
 msgid "No pilot has enough rated games in this aircraft yet."
 msgstr "Nenhum piloto tem partidas ranqueadas suficientes nesta aeronave ainda."
 
+# llm-draft
 msgid "No pilot sorties are counted for this player in the selected tour."
-msgstr ""
+msgstr "Nenhuma surtida como piloto é contada para este jogador na temporada escolhida."
 
+# llm-draft
 msgid "No pilot sorties are counted for this player yet."
-msgstr ""
+msgstr "Nenhuma surtida como piloto é contada para este jogador ainda."
 
+# llm-draft
 #, python-format
 msgid "No player found for “%(query)s”."
-msgstr ""
+msgstr "Nenhum jogador encontrado para “%(query)s”."
 
+# llm-draft
 msgid "No player-versus-player air kills with this aircraft yet."
-msgstr ""
+msgstr "Ainda não há abates aéreos jogador contra jogador com esta aeronave."
 
+# llm-draft
 msgid "No player-versus-player kills in this mission."
-msgstr ""
+msgstr "Não há abates jogador contra jogador nesta missão."
 
+# llm-draft
 msgid "No player-versus-player kills yet."
-msgstr ""
+msgstr "Ainda não há abates jogador contra jogador."
 
+# llm-draft
 msgid "No players yet."
-msgstr ""
+msgstr "Ainda não há jogadores."
 
+# llm-draft
 msgid "No qualifying attack"
-msgstr ""
+msgstr "Nenhum ataque válido"
 
+# llm-draft
 msgid "No sorties in this tour"
-msgstr ""
+msgstr "Sem surtidas nesta temporada"
 
+# llm-draft
 msgid "No sorties match these filters."
-msgstr ""
+msgstr "Nenhuma surtida corresponde a esses filtros."
 
+# llm-draft
 msgid "No sorties yet"
-msgstr ""
+msgstr "Ainda não há surtidas"
 
 # llm-draft
 msgid "No streak yet: no sortie survived."
-msgstr "Ainda sem sequência: nenhuma saída sobrevivida."
+msgstr "Ainda sem sequência: nenhuma surtida sobrevivida."
 
 # llm-draft
 msgid "No uploaded fonts."
 msgstr "Nenhuma fonte enviada."
 
+# llm-draft
 msgid "No winner"
-msgstr ""
+msgstr "Sem vencedor"
 
+# llm-draft
 msgid "No, take me back"
-msgstr ""
+msgstr "Não, voltar"
 
+# llm-draft
 msgid "Nobody flew for this side."
-msgstr ""
+msgstr "Ninguém voou por este lado."
 
+# llm-draft
 msgid "Nobody is judging. The wreckage is merely taking notes."
-msgstr ""
+msgstr "Ninguém está julgando. Só os destroços estão anotando."
 
+# llm-draft
 msgid "Nobody is on a streak right now."
-msgstr ""
+msgstr "No momento, ninguém está em sequência."
 
 # llm-draft
 msgid "Nobody is on the server right now."
@@ -1635,31 +1931,37 @@ msgstr "Ninguém está no servidor agora."
 msgid "Nobody qualifies for this board yet."
 msgstr "Ninguém se qualificou para este ranking ainda."
 
+# llm-draft
 msgid "Nobody scored a kill in this mission."
-msgstr ""
+msgstr "Ninguém fez um abate nesta missão."
 
+# llm-draft
 msgid "Nobody shot down yet."
-msgstr ""
+msgstr "Ninguém foi abatido ainda."
 
+# llm-draft
 msgid "None of these (skip for now)"
-msgstr ""
+msgstr "Nenhuma dessas (pular por enquanto)"
 
 # llm-draft
 msgid "None."
 msgstr "Nenhum."
 
+# llm-draft
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
-msgstr ""
+msgstr "Nem pouso, nem queda: uma sólida divergência com o chão."
 
 # llm-draft
 msgid "Not a single contrail yet. Somebody has to be first."
-msgstr "Nenhuma esteira no céu ainda. Alguém tem que ser o primeiro."
+msgstr "Nem um rastro de condensação ainda. Alguém tem que ser o primeiro."
 
+# llm-draft
 msgid "Not one incident on the ramp. Textbook."
-msgstr ""
+msgstr "Nenhum incidente no pátio. De manual."
 
+# llm-draft
 msgid "Not saved yet"
-msgstr ""
+msgstr "Ainda não salvo"
 
 # llm-draft
 msgid "Not taken off"
@@ -1669,39 +1971,47 @@ msgstr "Não decolou"
 msgid "Note"
 msgstr "Observação"
 
+# llm-draft
 msgid "Nothing found. The server may not write text logs yet; the final check will say what to switch on in the game server."
 msgstr ""
+"Nada encontrado. O servidor talvez ainda não grave logs de texto; a verificação final dirá o que ativar no servidor "
+"do jogo."
 
 # llm-draft
 msgid "Nothing here yet. The ground crew just finished polishing the aircraft."
-msgstr "Ainda não tem nada aqui. A equipe de solo acabou de dar brilho nos aviões."
+msgstr "Nada por aqui ainda. A equipe de solo acabou de dar brilho nos aviões."
 
 # llm-draft
 msgid "Nothing ingested yet."
 msgstr "Nada foi ingerido ainda."
 
+# llm-draft
 msgid "Nothing lost"
-msgstr ""
+msgstr "Nada perdido"
 
+# llm-draft
 msgid "Nothing to see here, which is the best thing to see."
-msgstr ""
+msgstr "Nada para ver por aqui, e essa é a melhor coisa para se ver."
 
 # llm-draft
 msgid "Nothing to show yet."
 msgstr "Ainda não há nada para mostrar."
 
+# llm-draft
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 # llm-draft
 msgid "On the ground"
 msgstr "No solo"
 
+# llm-draft
 msgid "On this page"
-msgstr ""
+msgstr "Nesta página"
 
+# llm-draft
 msgid "One detonation and one target that took damage"
-msgstr ""
+msgstr "Uma detonação e um alvo que sofreu dano"
 
 # llm-draft
 msgid "Online now"
@@ -1711,64 +2021,83 @@ msgstr "Online agora"
 msgid "Only .woff2 and .woff font files are accepted (no SVG, TTF, OTF or EOT)."
 msgstr "Só são aceitos arquivos de fonte .woff2 e .woff (nada de SVG, TTF, OTF ou EOT)."
 
+# llm-draft
 msgid "Open the site"
-msgstr ""
+msgstr "Abrir o site"
 
+# llm-draft
 msgid "Open the sortie report"
-msgstr ""
+msgstr "Abrir o relatório da surtida"
 
 # llm-draft
 msgid "Operations"
 msgstr "Operações"
 
+# llm-draft
 msgid "Opponent"
-msgstr ""
+msgstr "Oponente"
 
+# llm-draft
 #, python-format
 msgid "Or open this file and copy its content: %(path)s"
-msgstr ""
+msgstr "Ou abra este arquivo e copie o conteúdo: %(path)s"
 
+# llm-draft
 msgid "Or type the folder"
-msgstr ""
+msgstr "Ou digite a pasta"
 
+# llm-draft
 msgid "Or type the folder's path"
-msgstr ""
+msgstr "Ou digite o caminho da pasta"
 
+# llm-draft
 msgid ""
 "Or type this computer's public IP address. Certificate authorities can issue short-lived certificates (about 6 days) "
 "for an IP address and il2ks renews them by itself. The address must be public, and port 80 must be reachable."
 msgstr ""
+"Ou digite o endereço IP público deste computador. As autoridades certificadoras podem emitir certificados de curta "
+"duração (cerca de 6 dias) para um endereço IP, e o il2ks os renova sozinho. O endereço precisa ser público, e a porta"
+" 80 precisa estar acessível."
 
 # llm-draft
 msgid "Orange"
 msgstr "Laranja"
 
+# llm-draft
 msgid "Ordnance"
-msgstr ""
+msgstr "Armamento"
 
+# llm-draft
 msgid "Other"
-msgstr ""
+msgstr "Outros"
 
+# llm-draft
 msgid "Other ground objects"
-msgstr ""
+msgstr "Outros objetos terrestres"
 
+# llm-draft
 msgid "Other objects"
-msgstr ""
+msgstr "Outros objetos"
 
+# llm-draft
 msgid "Other totals"
-msgstr ""
+msgstr "Outros totais"
 
+# llm-draft
 msgid "Out of the fight, but not out of the story."
-msgstr ""
+msgstr "Fora da luta, mas não fora da história."
 
+# llm-draft
 msgid "Outcome"
-msgstr ""
+msgstr "Resultado"
 
+# llm-draft
 msgid "Overview of all your overrides: <code>il2ks custom list</code>"
-msgstr ""
+msgstr "Visão geral de todas as suas substituições: <code>il2ks custom list</code>"
 
+# llm-draft
 msgid "Own doing (terrain, overstress, accident)"
-msgstr ""
+msgstr "Culpa própria (terreno, excesso de esforço, acidente)"
 
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
@@ -1786,107 +2115,137 @@ msgstr "Página não encontrada"
 msgid "Pagination"
 msgstr "Paginação"
 
+# llm-draft
 msgid "Parked aircraft"
-msgstr ""
+msgstr "Aeronaves estacionadas"
 
+# llm-draft
 msgid "Parking"
-msgstr ""
+msgstr "Estacionamento"
 
+# llm-draft
 msgid "Part of a nickname"
-msgstr ""
+msgstr "Parte de um apelido"
 
+# llm-draft
 msgid "Password"
-msgstr ""
+msgstr "Senha"
 
+# llm-draft
 msgid "Payload"
-msgstr ""
+msgstr "Carga"
 
+# llm-draft
 msgid "Period"
-msgstr ""
+msgstr "Período"
 
 # llm-draft
 msgid "Pilot"
 msgstr "Piloto"
 
+# llm-draft
 msgid "Pilot fate"
-msgstr ""
+msgstr "Destino do piloto"
 
+# llm-draft
 msgid "Pilot or gunner"
-msgstr ""
+msgstr "Piloto ou artilheiro"
 
+# llm-draft
 msgid "Pilot status"
-msgstr ""
+msgstr "Estado do piloto"
 
 # llm-draft
 msgid "Pilot, sortie and mission statistics from our IL-2 Sturmovik: Korea server."
-msgstr "Estatísticas de pilotos, saídas e missões do nosso servidor de IL-2 Sturmovik: Korea."
+msgstr "Estatísticas de pilotos, surtidas e missões do nosso servidor de IL-2 Sturmovik: Korea."
 
+# llm-draft
 msgid "Pilots"
-msgstr ""
+msgstr "Pilotos"
 
+# llm-draft
 #, python-format
 msgid ""
 "Pilots still alive after the most consecutive sorties: no death and no capture. Only pilots who flew in the last "
 "%(days)s days are listed."
 msgstr ""
+"Pilotos ainda vivos após o maior número de surtidas seguidas: sem morte nem captura. Só aparecem os que voaram nos "
+"últimos %(days)s dias."
 
+# llm-draft
 #, python-format
 msgid "Pilots with at least %(games)s rated game."
 msgid_plural "Pilots with at least %(games)s rated games."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Pilotos com pelo menos %(games)s partida ranqueada."
+msgstr[1] "Pilotos com pelo menos %(games)s partidas ranqueadas."
 
+# llm-draft
 #, python-format
 msgid "Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on target."
-msgstr ""
+msgstr "Pilotos com pelo menos %(sorties)s surtidas de ataque e %(minutes)s minutos sobre o alvo."
 
+# llm-draft
 #, python-format
 msgid "Pilots with at least %(sorties)s sortie."
 msgid_plural "Pilots with at least %(sorties)s sorties."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Pilotos com pelo menos %(sorties)s surtida."
+msgstr[1] "Pilotos com pelo menos %(sorties)s surtidas."
 
+# llm-draft
 msgid "Planes lost"
-msgstr ""
+msgstr "Aviões perdidos"
 
 # llm-draft
 msgid "Player"
 msgstr "Jogador"
 
+# llm-draft
 msgid "Player aircraft"
-msgstr ""
+msgstr "Aeronaves de jogadores"
 
+# llm-draft
 msgid "Player-versus-player air kills against each enemy aircraft type."
-msgstr ""
+msgstr "Abates aéreos jogador contra jogador contra cada tipo de aeronave inimiga."
 
+# llm-draft
 msgid ""
 "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in "
 "the sortie rows above."
 msgstr ""
+"Abates e assistências jogador contra jogador nesta missão, em ordem. Abates contra a IA e alvos terrestres estão "
+"contados nas linhas de surtidas acima."
 
 # llm-draft
 msgid "Players"
 msgstr "Jogadores"
 
+# llm-draft
 msgid ""
 "Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole "
 "object, added up over all objects of that type."
 msgstr ""
+"Jogadores: percentual da integridade da aeronave. Aeronaves de IA e objetos terrestres: unidades de integridade, em "
+"que 1,0 é um objeto inteiro, somadas sobre todos os objetos desse tipo."
 
+# llm-draft
 msgid "Please look at the marked answers below. Nothing was changed."
-msgstr ""
+msgstr "Confira as respostas marcadas abaixo. Nada foi alterado."
 
+# llm-draft
 msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
-msgstr ""
+msgstr "Pontos por abates aéreos e assistências, menos penalidades por mortes, aeronaves perdidas e aliados abatidos."
 
+# llm-draft
 msgid "Points for ground kills (a tank counts for far more than a fence), minus the same penalties."
-msgstr ""
+msgstr "Pontos por alvos terrestres (um tanque vale muito mais que uma cerca), menos as mesmas penalidades."
 
+# llm-draft
 msgid "Possible early bailout"
-msgstr ""
+msgstr "Possível salto precoce"
 
+# llm-draft
 msgid "Possible structural failure"
-msgstr ""
+msgstr "Possível falha estrutural"
 
 # llm-draft
 #, python-format
@@ -1897,9 +2256,10 @@ msgstr "Desenvolvido com il2ks %(version)s"
 msgid "Previous"
 msgstr "Anterior"
 
+# llm-draft
 #, python-format
 msgid "Previous file kept as %(path)s"
-msgstr ""
+msgstr "Arquivo anterior mantido como %(path)s"
 
 # llm-draft
 msgid "Problems"
@@ -1927,7 +2287,7 @@ msgstr "Roxo"
 
 # llm-draft
 msgid "Quiet skies so far. The airfield is yours."
-msgstr "Céu tranquilo por enquanto. O aeródromo é todo seu."
+msgstr "Céu tranquilo por enquanto. O aeródromo é seu."
 
 # llm-draft
 msgid "REDFOR"
@@ -1937,8 +2297,9 @@ msgstr "REDFOR"
 msgid "REDFOR labels"
 msgstr "rótulos da REDFOR"
 
+# llm-draft
 msgid "REDFOR won"
-msgstr ""
+msgstr "REDFOR venceu"
 
 # llm-draft
 msgid "Rated games"
@@ -1948,29 +2309,37 @@ msgstr "Partidas ranqueadas"
 msgid "Ratings"
 msgstr "Classificações"
 
+# llm-draft
 msgid "Ratios"
-msgstr ""
+msgstr "Proporções"
 
+# llm-draft
 #, python-format
 msgid "Ratios are compared with other pilots from %(n)s sortie on."
 msgid_plural "Ratios are compared with other pilots from %(n)s sorties on."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "As proporções são comparadas com as de outros pilotos a partir de %(n)s surtida."
+msgstr[1] "As proporções são comparadas com as de outros pilotos a partir de %(n)s surtidas."
 
+# llm-draft
 msgid ""
 "Re-runs every stored mission from its archive with the current rules, then rebuilds the aggregates. It can take a "
 "long time on a big archive. The watch process starts it at its next tick; the site keeps working meanwhile."
 msgstr ""
+"Reprocessa cada missão guardada a partir do seu arquivo com as regras atuais e depois reconstrói os agregados. Pode "
+"demorar bastante em um arquivo grande. O processo de monitoramento a inicia no próximo ciclo; o site continua "
+"funcionando enquanto isso."
 
+# llm-draft
 msgid "Recent sorties"
-msgstr ""
+msgstr "Surtidas recentes"
 
 # llm-draft
 msgid "Recently completed by idle timeout"
 msgstr "Concluídas recentemente por tempo limite de inatividade"
 
+# llm-draft
 msgid "Released"
-msgstr ""
+msgstr "Lançado"
 
 # llm-draft
 msgid "Remove the current logo"
@@ -1984,14 +2353,17 @@ msgstr "Remover fontes enviadas"
 msgid "Replaces the colors below with that scheme when you save. You can then adjust single colors."
 msgstr "Ao salvar, substitui as cores abaixo por este esquema. Depois você pode ajustar cores individuais."
 
+# llm-draft
 msgid "Reprocess all missions"
-msgstr ""
+msgstr "Reprocessar todas as missões"
 
+# llm-draft
 msgid "Reprocess all missions…"
-msgstr ""
+msgstr "Reprocessar todas as missões…"
 
+# llm-draft
 msgid "Reprocessing of all missions is requested. It starts at the next watch tick."
-msgstr ""
+msgstr "O reprocessamento de todas as missões foi solicitado. Ele começa no próximo ciclo de monitoramento."
 
 # llm-draft
 msgid "Reset display names to the catalog defaults"
@@ -2001,43 +2373,53 @@ msgstr "Redefinir os nomes exibidos para os padrões do catálogo"
 msgid "Reset to the default color"
 msgstr "Restaurar a cor padrão"
 
+# llm-draft
 msgid "Restart il2ks"
-msgstr ""
+msgstr "Reiniciar o il2ks"
 
+# llm-draft
 msgid "Restarting"
-msgstr ""
+msgstr "Reiniciando"
 
 # llm-draft
 msgid "Result"
 msgstr "Resultado"
 
+# llm-draft
 msgid "Resupplied during the sortie"
-msgstr ""
+msgstr "Reabastecido durante a surtida"
 
+# llm-draft
 msgid "Rocket salvo"
-msgstr ""
+msgstr "Salva de foguetes"
 
+# llm-draft
 msgid "Rockets"
-msgstr ""
+msgstr "Foguetes"
 
+# llm-draft
 msgid "Role"
-msgstr ""
+msgstr "Função"
 
 # llm-draft
 msgid "Row and menu hover"
 msgstr "Linha e menu ao passar o mouse"
 
+# llm-draft
 msgid "Running"
-msgstr ""
+msgstr "Em andamento"
 
+# llm-draft
 msgid "Running streaks"
-msgstr ""
+msgstr "Sequências em andamento"
 
+# llm-draft
 msgid "Runway"
-msgstr ""
+msgstr "Pista"
 
+# llm-draft
 msgid "Score and rating"
-msgstr ""
+msgstr "Pontos e classificação"
 
 # llm-draft
 msgid "Score per hour"
@@ -2047,11 +2429,13 @@ msgstr "Pontos por hora"
 msgid "Search"
 msgstr "Pesquisar"
 
+# llm-draft
 msgid "Search by nickname. Past nicknames are found too."
-msgstr ""
+msgstr "Busque por apelido. Apelidos antigos também são encontrados."
 
+# llm-draft
 msgid "Seat"
-msgstr ""
+msgstr "Posição"
 
 # llm-draft
 msgid "Secondary button"
@@ -2075,53 +2459,69 @@ msgstr ""
 msgid "Serif"
 msgstr "Com serifa"
 
+# llm-draft
 msgid "Server activity"
-msgstr ""
+msgstr "Atividade do servidor"
 
+# llm-draft
 msgid "Setup finished"
-msgstr ""
+msgstr "Configuração concluída"
 
+# llm-draft
 #, python-format
 msgid "Setup is locked for about %(minutes)s minutes after several wrong tokens. Restarting il2ks also unlocks it."
 msgstr ""
+"A configuração fica bloqueada por cerca de %(minutes)s minutos após vários tokens errados. Reiniciar o il2ks também a"
+" desbloqueia."
 
+# llm-draft
 msgid "Setup token"
-msgstr ""
+msgstr "Token de configuração"
 
+# llm-draft
 msgid "Several kills in one flight. Time to buy the squadron a round."
-msgstr ""
+msgstr "Vários abates em um só voo. Hora de pagar uma rodada para o esquadrão."
 
+# llm-draft
 msgid "Share"
-msgstr ""
+msgstr "Parcela"
 
+# llm-draft
 msgid "Share of ground kills"
-msgstr ""
+msgstr "Parcela de alvos terrestres"
 
+# llm-draft
 msgid "Shared kill"
-msgstr ""
+msgstr "Abate compartilhado"
 
+# llm-draft
 msgid "Ship"
-msgstr ""
+msgstr "Navio"
 
+# llm-draft
 msgid "Ships"
-msgstr ""
+msgstr "Navios"
 
 # llm-draft
 msgid "Shot down"
 msgstr "Abatido"
 
+# llm-draft
 msgid "Shot down by"
-msgstr ""
+msgstr "Abatido por"
 
+# llm-draft
 msgid "Shot down by most"
-msgstr ""
+msgstr "Mais vezes abatido por"
 
+# llm-draft
 msgid "Shot down most"
-msgstr ""
+msgstr "Mais vezes abatido"
 
+# llm-draft
 #, python-format
 msgid "Show %(n)s more counterparts"
-msgstr ""
+msgstr "Mostrar mais %(n)s adversários"
 
 # llm-draft
 msgid "Show selected missions on public pages again"
@@ -2131,27 +2531,31 @@ msgstr "Voltar a exibir as missões selecionadas nas páginas públicas"
 msgid "Show selected players on public pages again"
 msgstr "Voltar a exibir os jogadores selecionados nas páginas públicas"
 
+# llm-draft
 msgid "Show the numbers"
-msgstr ""
+msgstr "Mostrar os números"
 
+# llm-draft
 #, python-format
 msgid "Show the remaining %(n)s timeline rows"
-msgstr ""
+msgstr "Mostrar as %(n)s linhas restantes da linha do tempo"
 
 # llm-draft
 #, python-format
 msgid "Showing %(first)s–%(last)s of %(all)s"
 msgstr "Exibindo %(first)s–%(last)s de %(all)s"
 
+# llm-draft
 msgid "Shown"
-msgstr ""
+msgstr "Exibido"
 
 # llm-draft
 msgid "Side"
 msgstr "Lado"
 
+# llm-draft
 msgid "Since"
-msgstr ""
+msgstr "Desde"
 
 # llm-draft
 msgid "Site administration"
@@ -2167,55 +2571,66 @@ msgstr "Serifa quadrada"
 
 # llm-draft
 msgid "Some chase kills. This one chases the perfect parking spot, and keeps looking."
-msgstr "Uns correm atrás de abates. Este corre atrás da vaga de estacionamento perfeita, e continua procurando."
+msgstr "Uns caçam abates. Este caça a vaga de estacionamento perfeita, e continua procurando."
 
+# llm-draft
 msgid "Someone had a very good night at the office."
-msgstr ""
+msgstr "Alguém teve uma noite de expediente e tanto."
 
 # llm-draft
 msgid "Something went wrong"
 msgstr "Algo deu errado"
 
+# llm-draft
 msgid "Sortie details"
-msgstr ""
+msgstr "Detalhes da surtida"
 
+# llm-draft
 msgid "Sortie ended"
-msgstr ""
+msgstr "Fim da surtida"
 
+# llm-draft
 msgid "Sortie report"
-msgstr ""
+msgstr "Relatório da surtida"
 
+# llm-draft
 msgid "Sorties"
-msgstr ""
+msgstr "Surtidas"
 
+# llm-draft
 #, python-format
 msgid "Sorties in %(tour)s"
-msgstr ""
+msgstr "Surtidas em %(tour)s"
 
 # llm-draft
 msgid "Sorties in which they killed a friendly"
 msgstr "Surtidas em que abateu um aliado"
 
+# llm-draft
 #, python-format
 msgid "Sorties of %(name)s"
-msgstr ""
+msgstr "Surtidas de %(name)s"
 
+# llm-draft
 #, python-format
 msgid "Sorties of %(name)s in %(tour)s"
-msgstr ""
+msgstr "Surtidas de %(name)s em %(tour)s"
 
+# llm-draft
 msgid "Sorties per day"
-msgstr ""
+msgstr "Surtidas por dia"
 
+# llm-draft
 msgid "Sorties per side"
-msgstr ""
+msgstr "Surtidas por lado"
 
+# llm-draft
 msgid "Sorties per tour"
-msgstr ""
+msgstr "Surtidas por temporada"
 
 # llm-draft
 msgid "Sorties survived"
-msgstr "Saídas sobrevividas"
+msgstr "Surtidas sobrevividas"
 
 # llm-draft
 msgid "Source"
@@ -2225,33 +2640,39 @@ msgstr "Origem"
 msgid "Source files"
 msgstr "Arquivos de origem"
 
+# llm-draft
+#. Translators: how the sortie started (in the air, on the runway or at a parking spot), not the verb "to spawn"
 msgid "Spawn"
-msgstr ""
+msgstr "Início"
 
 # llm-draft
 msgid "Spawned"
 msgstr "Surgiu"
 
+# llm-draft
 msgid "Spotless. The ground crew is almost suspicious."
-msgstr ""
+msgstr "Impecável. A equipe de solo está quase desconfiada."
 
+# llm-draft
 msgid "Start a new tour now"
-msgstr ""
+msgstr "Começar uma nova temporada agora"
 
 # llm-draft
 msgid "Start from a color scheme"
 msgstr "Começar com um esquema de cores"
 
+# llm-draft
 #, python-format
 msgid "Started %(title)s."
-msgstr ""
+msgstr "%(title)s iniciada."
 
 # llm-draft
 msgid "State"
 msgstr "Estado"
 
+# llm-draft
 msgid "Static object"
-msgstr ""
+msgstr "Objeto estático"
 
 # llm-draft
 msgid "Status colors (badges, notices)"
@@ -2265,24 +2686,29 @@ msgstr "Azul aço"
 msgid "Strafed on the ground"
 msgstr "Metralhado no solo"
 
+# llm-draft
 msgid "Streak"
-msgstr ""
+msgstr "Sequência"
 
 # llm-draft
 msgid "Strong borders"
 msgstr "Bordas fortes"
 
+# llm-draft
 msgid "Summary"
-msgstr ""
+msgstr "Resumo"
 
+# llm-draft
 msgid "Survival"
-msgstr ""
+msgstr "Sobrevivência"
 
+# llm-draft
 msgid "Survival rate"
-msgstr ""
+msgstr "Taxa de sobrevivência"
 
+# llm-draft
 msgid "Suspected early bailouts"
-msgstr ""
+msgstr "Suspeitas de salto precoce"
 
 # llm-draft
 msgid "Switch between light and dark"
@@ -2300,33 +2726,41 @@ msgstr "Sem serifa do sistema (padrão)"
 msgid "Table headers, quiet panels"
 msgstr "Cabeçalhos de tabela, painéis discretos"
 
+# llm-draft
 msgid "Takeoffs"
-msgstr ""
+msgstr "Decolagens"
 
+# llm-draft
 msgid "Takeoffs / landings"
-msgstr ""
+msgstr "Decolagens / pousos"
 
+# llm-draft
 msgid "Tank"
-msgstr ""
+msgstr "Tanque"
 
+# llm-draft
 msgid "Tanks"
-msgstr ""
+msgstr "Tanques"
 
+# llm-draft
 msgid "Target"
-msgstr ""
+msgstr "Alvo"
 
+# llm-draft
 msgid "Targets damaged"
-msgstr ""
+msgstr "Alvos danificados"
 
+# llm-draft
 msgid "Taxi accident"
-msgstr ""
+msgstr "Acidente no taxiamento"
 
+# llm-draft
 msgid "Taxi accidents"
-msgstr ""
+msgstr "Acidentes no taxiamento"
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
-msgstr "Taxiway ou formação, tanto faz: onde este piloto passa, rende história."
+msgstr "Taxiway ou formação, tanto faz: onde este piloto passa, rola uma história."
 
 # llm-draft
 msgid "Teal"
@@ -2344,50 +2778,68 @@ msgstr "Texto sobre o destaque"
 msgid "Text on the secondary button"
 msgstr "Texto sobre o botão secundário"
 
+# llm-draft
 msgid "That folder does not exist yet. il2ks will start watching once it appears."
-msgstr ""
+msgstr "Essa pasta ainda não existe. O il2ks começará a monitorá-la assim que ela aparecer."
 
 # llm-draft
 msgid "That page does not exist, or the link is out of date."
 msgstr "Essa página não existe, ou o link está desatualizado."
 
+# llm-draft
 msgid "That token is not right"
-msgstr ""
+msgstr "Esse token não está certo"
 
+# llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
 msgstr ""
+"A conta de administrador abre as páginas de administração (nome e aparência do site, ocultar jogadores, histórico de "
+"processamento)."
 
+# llm-draft
 msgid ""
 "The aircraft landed, rearmed and took off again, so the ammunition used cannot be told from the log. Hits, bomb "
 "releases and rocket salvos are still exact."
 msgstr ""
+"A aeronave pousou, rearmou e decolou de novo, então a munição gasta não dá para saber pelo log. Acertos, lançamentos "
+"de bombas e salvas de foguetes continuam exatos."
 
+# llm-draft
 msgid ""
 "The aircraft was destroyed in flight by something other than an enemy, shortly after it took self-inflicted damage, "
 "and kept falling afterwards. It may have broken up from overstress; this is a guess from the log."
 msgstr ""
+"A aeronave foi destruída em voo por algo que não era um inimigo, pouco depois de sofrer dano autoinfligido, e "
+"continuou caindo. Pode ter se desintegrado por excesso de esforço; é um palpite a partir do log."
 
 # llm-draft
 msgid "The airfield is also part of the mission. Some pilots just take that very seriously."
 msgstr "O aeródromo também faz parte da missão. Tem piloto que leva isso muito a sério."
 
+# llm-draft
 msgid ""
 "The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this "
 "computer."
 msgstr ""
+"O Caddy incluído obtém o certificado e serve o site nas portas 80 e 443. Essas portas precisam estar livres neste "
+"computador."
 
+# llm-draft
 msgid "The certificate authority writes here before a certificate would expire. Only used with the bundled Caddy."
-msgstr ""
+msgstr "A autoridade certificadora escreve aqui antes de um certificado expirar. Usado apenas com o Caddy incluído."
 
+# llm-draft
 #, python-format
 msgid "The configuration could not be saved: %(error)s"
-msgstr ""
+msgstr "Não foi possível salvar a configuração: %(error)s"
 
+# llm-draft
 msgid "The configuration does not load"
-msgstr ""
+msgstr "A configuração não carrega"
 
+# llm-draft
 msgid "The crew chief will have opinions about this one."
-msgstr ""
+msgstr "O chefe da equipe vai ter opiniões sobre este aqui."
 
 # llm-draft
 msgid "The file is empty."
@@ -2402,36 +2854,48 @@ msgstr "O arquivo é maior que %(mb)d MB."
 msgid "The file is larger than 2 MB."
 msgstr "O arquivo é maior que 2 MB."
 
+# llm-draft
 msgid "The flak had the final say."
-msgstr ""
+msgstr "A antiaérea teve a palavra final."
 
+# llm-draft
 #, python-format
 msgid ""
 "The folder %(path)s does not exist. Check the spelling, or tick “use it anyway” if it will appear later (for example "
 "a network share that is not connected yet)."
 msgstr ""
+"A pasta %(path)s não existe. Confira a grafia ou marque “usar mesmo assim” se ela vai aparecer depois (por exemplo, "
+"um compartilhamento de rede ainda não conectado)."
 
+# llm-draft
 msgid ""
 "The folder exists, but no mission reports are in it yet. That is fine for a new server, as long as the game server is"
 " set to write text logs there."
 msgstr ""
+"A pasta existe, mas ainda não tem relatórios de missão. Isso é normal em um servidor novo, desde que o servidor do "
+"jogo esteja configurado para gravar logs de texto ali."
 
 # llm-draft
 msgid "The font file is damaged or truncated."
 msgstr "O arquivo de fonte está danificado ou incompleto."
 
+# llm-draft
 msgid "The game server names its log files in its own computer's local time, so il2ks has to know that time zone."
 msgstr ""
+"O servidor do jogo nomeia seus arquivos de log pelo horário local do próprio computador, então o il2ks precisa saber "
+"esse fuso horário."
 
+# llm-draft
 msgid "The gear stayed up and so did the pilot's spirits."
-msgstr ""
+msgstr "O trem de pouso ficou recolhido, e o astral do piloto também."
 
 # llm-draft
 msgid "The ground crew and the squadron both have a file on this one. The files have met."
-msgstr "A equipe de solo e o esquadrão têm, cada um, uma ficha deste piloto. As fichas já se conhecem."
+msgstr "A equipe de solo e o esquadrão têm uma pasta sobre este piloto. As pastas já se conhecem."
 
+# llm-draft
 msgid "The gun camera footage on this one would be a good watch."
-msgstr ""
+msgstr "A filmagem da câmera de tiro desse aqui daria um bom filme."
 
 # llm-draft
 #, python-format
@@ -2442,46 +2906,63 @@ msgstr "A imagem tem pixels demais (limite: %(px)d megapixels)."
 msgid "The image is damaged or truncated."
 msgstr "A imagem está danificada ou truncada."
 
+# llm-draft
 msgid ""
 "The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion "
 "status page."
 msgstr ""
+"A tarefa roda no processo de monitoramento (não nesta página) e começa no próximo ciclo dele. Você pode acompanhá-la "
+"na página de estado do processamento."
 
+# llm-draft
 msgid "The log does not name an attacker."
-msgstr ""
+msgstr "O log não informa nenhum atacante."
 
+# llm-draft
 msgid ""
 "The log's record of ammunition left is not reliable here, for example because it was taken after the aircraft was "
 "lost."
-msgstr ""
+msgstr "O registro da munição restante não é confiável aqui, por exemplo porque foi feito depois que a aeronave foi perdida."
 
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
-msgstr "As marcações são pequenas e o céu está lotado. Acontece até com os melhores."
+msgstr "As marcações são pequenas e o céu está lotado. Acontece nos melhores esquadrões."
 
+# llm-draft
 msgid ""
 "The name has to point at this computer (a DNS record at your domain provider), and ports 80 and 443 must be reachable"
 " from the internet. The certificate is then requested and renewed automatically."
 msgstr ""
+"O nome precisa apontar para este computador (um registro DNS no seu provedor de domínio), e as portas 80 e 443 "
+"precisam estar acessíveis pela internet. O certificado é então solicitado e renovado automaticamente."
 
+# llm-draft
 msgid ""
 "The new settings only take effect after a restart. Stop il2ks (Ctrl+C in its window, or restart the Windows service "
 "or systemd unit) and start it again with: il2ks run"
 msgstr ""
+"As novas configurações só entram em vigor após reiniciar. Pare o il2ks (Ctrl+C na janela dele, ou reinicie o serviço "
+"do Windows ou a unidade do systemd) e inicie de novo com: il2ks run"
 
 # llm-draft
 msgid "The numbers on this page are provisional and can still be updated."
 msgstr "Os números desta página são provisórios e ainda podem mudar."
 
+# llm-draft
 msgid ""
 "The pilot left the aircraft in flight although no enemy hit or damage was recorded on it. This is a guess from the "
 "log and can be wrong, for example after an engine failure or a deliberate exit."
 msgstr ""
+"O piloto deixou a aeronave em voo, embora nenhum acerto inimigo ou dano tenha sido registrado. É um palpite a partir "
+"do log e pode estar errado, por exemplo após uma falha de motor ou uma saída deliberada."
 
+# llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
 "skipped), by sorties, by air kills and by flight time."
 msgstr ""
+"As melhores sequências do piloto de surtidas seguidas sobrevividas (sem morte nem captura; surtidas que nunca "
+"decolaram são ignoradas), por surtidas, por abates aéreos e por tempo de voo."
 
 # llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
@@ -2490,35 +2971,47 @@ msgstr "Um pequeno jabuti xereta viu dez cegonhas felizes 0123456789"
 
 # llm-draft
 msgid "The ramp crew has named a bollard after this pilot. Fondly."
-msgstr "A equipe de solo batizou um balizador com o nome deste piloto. Com carinho."
+msgstr "A equipe do pátio batizou um poste com o nome deste piloto. Com carinho."
 
+# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
+"As mesmas verificações do comando il2ks doctor, aplicadas às novas configurações. Alguns avisos desaparecem após a "
+"reinicialização."
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "O servidor encontrou um erro ao montar esta página. Tente novamente em instantes."
 
+# llm-draft
 msgid "The server stopped before the mission ended; the numbers may be partial."
-msgstr ""
+msgstr "O servidor parou antes do fim da missão; os números podem estar incompletos."
 
+# llm-draft
 msgid "The settings are saved and the admin account exists. This setup page is now closed for good."
 msgstr ""
+"As configurações foram salvas e a conta de administrador existe. Esta página de configuração agora está fechada de "
+"vez."
 
+# llm-draft
 msgid "The silk opened, the welcoming committee was less friendly."
-msgstr ""
+msgstr "A seda abriu, mas o comitê de boas-vindas foi menos simpático."
 
+# llm-draft
 msgid "The site is served over HTTPS only, so players need an address that points to this computer."
-msgstr ""
+msgstr "O site é servido apenas por HTTPS, então os jogadores precisam de um endereço que aponte para este computador."
 
+# llm-draft
 msgid "The site, once it is back:"
-msgstr ""
+msgstr "O site, quando voltar:"
 
+# llm-draft
 msgid "The sky is crowded and the markings are small. It happens."
-msgstr ""
+msgstr "O céu está cheio e as marcações são pequenas. Acontece."
 
+# llm-draft
 msgid "The sky was empty of drama. The tea stayed hot."
-msgstr ""
+msgstr "O céu não teve drama nenhum. O chá continuou quente."
 
 # llm-draft
 msgid "The squadron has learned to fly a little wider. Bold of them, and well chosen."
@@ -2526,10 +3019,11 @@ msgstr "O esquadrão aprendeu a voar um pouco mais aberto. Corajoso, e bem pensa
 
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
-msgstr "O taxiway guarda uma ficha sobre esses casos. É fininha, mas bem manuseada."
+msgstr "O taxiway guarda uma pasta com esses casos. É fininha, mas está toda amassada."
 
+# llm-draft
 msgid "The two passwords differ."
-msgstr ""
+msgstr "As duas senhas não coincidem."
 
 # llm-draft
 #, python-format
@@ -2544,17 +3038,21 @@ msgstr ""
 msgid "The war was waiting. The ramp had other ideas."
 msgstr "A guerra esperava. O pátio tinha outros planos."
 
+# llm-draft
 msgid "The war was waiting. The taxiway had other ideas."
-msgstr ""
+msgstr "A guerra esperava. O taxiway tinha outros planos."
 
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaram sem um evento de fim de missão; vale conferir caso o servidor tenha travado no meio da missão."
 
+# llm-draft
 msgid ""
 "These files in your custom/ folder replace built-in il2ks files, but are based on an older version of them (or on an "
 "unknown one). They may be broken or hide new content. Visitors can be affected."
 msgstr ""
+"Estes arquivos da sua pasta custom/ substituem arquivos internos do il2ks, mas se baseiam em uma versão mais antiga "
+"(ou desconhecida) deles. Podem estar quebrados ou esconder conteúdo novo. Os visitantes podem ser afetados."
 
 # llm-draft
 msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
@@ -2569,14 +3067,19 @@ msgstr "Este não é um arquivo de fonte %(kind)s válido."
 msgid "This page is not listed or searchable. Only people with the link can see it."
 msgstr "Esta página não é listada nem pesquisável. Só quem tem o link pode vê-la."
 
+# llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."
-msgstr ""
+msgstr "Este jogador voa apenas como artilheiro. As estatísticas de artilheiro virão depois."
 
+# llm-draft
 msgid ""
 "This player manned a gun position. The game log credits a gunner's fire to the aircraft, so the pilot gets the kills "
 "and this sortie shows none. Time in flight follows the aircraft."
 msgstr ""
+"Este jogador ocupou um posto de tiro. O log do jogo credita o fogo de um artilheiro à aeronave, então o piloto fica "
+"com os abates e esta surtida não mostra nenhum. O tempo de voo acompanha a aeronave."
 
+# llm-draft
 #, python-format
 msgid ""
 "This re-runs the %(n)s stored mission from its archive with the current rules, then rebuilds all statistics and "
@@ -2585,64 +3088,84 @@ msgid_plural ""
 "This re-runs all %(n)s stored missions from their archives with the current rules, then rebuilds all statistics and "
 "ratings."
 msgstr[0] ""
+"Isso reprocessa a missão guardada (%(n)s) a partir do seu arquivo com as regras atuais e depois reconstrói todas as "
+"estatísticas e classificações."
 msgstr[1] ""
+"Isso reprocessa as %(n)s missões guardadas a partir dos seus arquivos com as regras atuais e depois reconstrói todas "
+"as estatísticas e classificações."
 
+# llm-draft
 msgid "Those little black clouds were not decorative."
-msgstr ""
+msgstr "Aquelas nuvenzinhas pretas não eram enfeite."
 
+# llm-draft
 msgid "Time"
-msgstr ""
+msgstr "Hora"
 
 # llm-draft
 msgid "Time on target"
 msgstr "Tempo sobre o alvo"
 
+# llm-draft
 msgid "Time zone"
-msgstr ""
+msgstr "Fuso horário"
 
+# llm-draft
 msgid "Time zone of the game server's computer"
-msgstr ""
+msgstr "Fuso horário do computador do servidor do jogo"
 
+# llm-draft
 msgid "Timeline"
-msgstr ""
+msgstr "Linha do tempo"
 
+# llm-draft
 msgid "Times are shown in UTC."
-msgstr ""
+msgstr "Os horários são exibidos em UTC."
 
+# llm-draft
 #, python-format
 msgid "Times are shown in your time zone (%(zone)s)."
-msgstr ""
+msgstr "Os horários são exibidos no seu fuso horário (%(zone)s)."
 
+# llm-draft
 msgid "To make sure it is really you, setup needs the one-time token that il2ks created for this installation."
 msgstr ""
+"Para ter certeza de que é você mesmo, a configuração precisa do token de uso único que o il2ks criou para esta "
+"instalação."
 
+# llm-draft
 msgid "Too many failed login attempts. Try again in a few minutes."
-msgstr ""
+msgstr "Muitas tentativas de login falhas. Tente de novo em alguns minutos."
 
+# llm-draft
 msgid "Too many wrong tokens"
-msgstr ""
+msgstr "Tokens errados demais"
 
+# llm-draft
 msgid "Took off"
-msgstr ""
+msgstr "Decolou"
 
+# llm-draft
 #, python-format
 msgid "Top 10%%"
-msgstr ""
+msgstr "Top 10%%"
 
+# llm-draft
 #, python-format
 msgid "Top 25%%"
-msgstr ""
+msgstr "Top 25%%"
 
 # llm-draft
 msgid "Top attack pilots"
 msgstr "Melhores pilotos de ataque"
 
+# llm-draft
 msgid "Top of the board. The rest of the sky took notes."
-msgstr ""
+msgstr "No topo do placar. O resto do céu tomou nota."
 
 # llm-draft
 msgid "Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honour."
-msgstr "No topo de um ranking em que ninguém quer estar. No bar do rancho tem uma conta aberta em nome deste piloto."
+msgstr "Líder do ranking em que ninguém quer estar. No rancho dos oficiais há uma conta aberta em nome dele."
 
 msgid "Top pilots"
 msgstr "Melhores pilotos"
@@ -2651,37 +3174,46 @@ msgstr "Melhores pilotos"
 msgid "Top pilots by Elo"
 msgstr "Melhores pilotos por Elo"
 
+# llm-draft
 msgid "Top pilots by kills"
-msgstr ""
+msgstr "Melhores pilotos por abates"
 
+# llm-draft
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
+# llm-draft
 msgid "Tour"
-msgstr ""
+msgstr "Temporada"
 
+# llm-draft
 #, python-format
 msgid "Tour %(number)s"
-msgstr ""
+msgstr "Temporada %(number)s"
 
+# llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."
-msgstr ""
+msgstr "As temporadas começam sozinhas, a menos que [tours] mode seja manual."
 
+# llm-draft
 msgid "Trains"
-msgstr ""
+msgstr "Trens"
 
 # llm-draft
 msgid "Trouble on the ramp and in the air. At least this pilot is consistent."
-msgstr "Confusão no pátio e no ar. Pelo menos este piloto é consistente."
+msgstr "Encrenca no pátio e no ar. Pelo menos este piloto é consistente."
 
+# llm-draft
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
+# llm-draft
 msgid "Type the password again"
-msgstr ""
+msgstr "Digite a senha de novo"
 
+# llm-draft
 msgid "Unattributed"
-msgstr ""
+msgstr "Sem autoria"
 
 # llm-draft
 msgid "Unharmed"
@@ -2703,25 +3235,30 @@ msgstr "Tipos de evento e chaves desconhecidos, últimos 30 dias"
 msgid "Unknown keys (AType:KEY: lines)"
 msgstr "Chaves desconhecidas (linhas AType:KEY:)"
 
+# llm-draft
 msgid "Unknown loadout"
-msgstr ""
+msgstr "Configuração de armamento desconhecida"
 
 # llm-draft
 msgid "Unknown object types"
 msgstr "Tipos de objeto desconhecidos"
 
+# llm-draft
 #, python-format
 msgid "Unknown payload (id %(id)s)"
-msgstr ""
+msgstr "Carga desconhecida (id %(id)s)"
 
+# llm-draft
 msgid "Unknown: the ammunition left cannot be trusted"
-msgstr ""
+msgstr "Desconhecido: não dá para confiar na munição restante"
 
+# llm-draft
 msgid "Unknown: the log has no end-of-sortie ammunition record"
-msgstr ""
+msgstr "Desconhecido: o log não tem o registro de munição no fim da surtida"
 
+# llm-draft
 msgid "Unknown: the sortie was resupplied"
-msgstr ""
+msgstr "Desconhecido: houve reabastecimento durante a surtida"
 
 # llm-draft
 msgid "Until"
@@ -2743,47 +3280,57 @@ msgstr "Enviar um novo logotipo"
 msgid "Uploaded fonts"
 msgstr "Fontes enviadas"
 
+# llm-draft
 msgid "Use it anyway if it does not exist yet"
-msgstr ""
+msgstr "Usar mesmo assim, se ainda não existir"
 
 # llm-draft
 msgid "Use the uploaded font for"
 msgstr "Usar a fonte enviada para"
 
+# llm-draft
 msgid "Used"
-msgstr ""
+msgstr "Gasto"
 
+# llm-draft
 msgid "Used is unknown: the aircraft was resupplied during the sortie."
-msgstr ""
+msgstr "O gasto é desconhecido: a aeronave foi reabastecida durante a surtida."
 
+# llm-draft
 msgid "Used is unknown: the ammunition left is not reliable."
-msgstr ""
+msgstr "O gasto é desconhecido: a munição restante não é confiável."
 
+# llm-draft
 msgid "Used is unknown: the log has no end-of-sortie ammunition record, for example after a disconnect."
-msgstr ""
+msgstr "O gasto é desconhecido: o log não tem o registro de munição no fim da surtida, por exemplo após uma desconexão."
 
+# llm-draft
 msgid "Vehicle"
-msgstr ""
+msgstr "Veículo"
 
+# llm-draft
 msgid "Vehicles"
-msgstr ""
+msgstr "Veículos"
 
+# llm-draft
 msgid "Victim"
-msgstr ""
+msgstr "Vítima"
 
 # llm-draft
 msgid "View"
 msgstr "Ver"
 
+# llm-draft
 msgid "Waiting"
-msgstr ""
+msgstr "Aguardando"
 
 # llm-draft
 msgid "Warning"
 msgstr "Aviso"
 
+# llm-draft
 msgid "Warning: some of your custom files are out of date"
-msgstr ""
+msgstr "Atenção: alguns dos seus arquivos personalizados estão desatualizados"
 
 # llm-draft
 msgid "Warnings"
@@ -2804,14 +3351,17 @@ msgstr[1] ""
 "Recomendamos no máximo %(n)d links extras com rótulos curtos (uma ou duas palavras): mais também funcionam, mas o "
 "menu passa a ocupar uma segunda linha do cabeçalho."
 
+# llm-draft
 msgid "What was saved"
-msgstr ""
+msgstr "O que foi salvo"
 
+# llm-draft
 msgid "Where to find it:"
-msgstr ""
+msgstr "Onde encontrar:"
 
+# llm-draft
 msgid "Who kills you, and whom you kill"
-msgstr ""
+msgstr "Quem abate você e quem você abate"
 
 # llm-draft
 msgid ""
@@ -2821,14 +3371,19 @@ msgstr ""
 "Quem este piloto abateu e quem o abateu: vitórias aéreas entre jogadores. As assistências são contadas em uma coluna "
 "própria, não como abates."
 
+# llm-draft
 msgid "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted."
-msgstr ""
+msgstr "Quem este piloto abateu e quem o abateu: abates aéreos creditados entre jogadores. As assistências não contam."
 
+# llm-draft
 msgid "Windows cannot tell us the name of its time zone. If your browser can, it was filled in for you; please check it."
 msgstr ""
+"O Windows não nos informa o nome do seu fuso horário. Se o seu navegador souber, ele foi preenchido para você; "
+"confira, por favor."
 
+# llm-draft
 msgid "Winner"
-msgstr ""
+msgstr "Vencedor"
 
 # llm-draft
 msgid "Wounded"
@@ -2836,46 +3391,56 @@ msgstr "Ferido"
 
 # llm-draft
 msgid "Wrong target, right enthusiasm. The debrief will be lively."
-msgstr "Alvo errado, entusiasmo certo. O debriefing vai ser animado."
+msgstr "Alvo errado, empolgação certa. O debriefing vai ser animado."
 
+# llm-draft
 msgid "Wrong target, right enthusiasm. The sky is crowded, mistakes happen."
-msgstr ""
+msgstr "Alvo errado, empolgação certa. O céu está cheio, erros acontecem."
 
+# llm-draft
 msgid "Yes"
-msgstr ""
+msgstr "Sim"
 
+# llm-draft
 msgid "Yes, reprocess all missions"
-msgstr ""
+msgstr "Sim, reprocessar todas as missões"
 
+# llm-draft
 msgid "after the pilot bailed out"
-msgstr ""
+msgstr "depois que o piloto saltou"
 
+# llm-draft
 msgid "after the pilot left the server"
-msgstr ""
+msgstr "depois que o piloto saiu do servidor"
 
+# llm-draft
 msgid "air kills per death"
-msgstr ""
+msgstr "abates aéreos por morte"
 
+# llm-draft
 msgid "air kills per plane lost"
-msgstr ""
+msgstr "abates aéreos por aeronave perdida"
 
+# llm-draft
 msgid "air start"
-msgstr ""
+msgstr "início no ar"
 
 # llm-draft
 msgid "all time"
 msgstr "todo o período"
 
+# llm-draft
 #, python-format
 msgid "also known as %(name)s"
-msgstr ""
+msgstr "também conhecido como %(name)s"
 
 # llm-draft
 msgid "amber badges"
 msgstr "selos âmbar"
 
+# llm-draft
 msgid "attack sorties"
-msgstr ""
+msgstr "surtidas de ataque"
 
 # llm-draft
 msgid "automatic"
@@ -2893,8 +3458,9 @@ msgstr "texto principal em cartões e tabelas"
 msgid "body text on the page background"
 msgstr "texto principal sobre o fundo da página"
 
+# llm-draft
 msgid "by"
-msgstr ""
+msgstr "por"
 
 # llm-draft
 msgid "chart series 1"
@@ -2904,11 +3470,13 @@ msgstr "série 1 do gráfico"
 msgid "chart series 2"
 msgstr "série 2 do gráfico"
 
+# llm-draft
 msgid "created"
-msgstr ""
+msgstr "criado"
 
+# llm-draft
 msgid "current"
-msgstr ""
+msgstr "atual"
 
 # llm-draft
 msgid "dark"
@@ -2918,12 +3486,14 @@ msgstr "escuro"
 msgid "dark mode"
 msgstr "modo escuro"
 
+# llm-draft
 #, python-format
 msgid "flight time %(t)s"
-msgstr ""
+msgstr "tempo de voo %(t)s"
 
+# llm-draft
 msgid "from a log event"
-msgstr ""
+msgstr "de um evento do log"
 
 # llm-draft
 msgid "green badges"
@@ -2949,24 +3519,33 @@ msgstr "texto do cabeçalho ao passar o mouse"
 msgid "headings on the page background"
 msgstr "títulos sobre o fundo da página"
 
+# llm-draft
 msgid "il2ks does it (recommended)"
-msgstr ""
+msgstr "o il2ks cuida disso (recomendado)"
 
+# llm-draft
 msgid "il2ks handles it with the bundled Caddy"
-msgstr ""
+msgstr "o il2ks resolve isso com o Caddy incluído"
 
+# llm-draft
 msgid ""
 "il2ks reads the missionReport(…)[N].txt text logs that the game server writes. These are the folders that look like "
 "it:"
 msgstr ""
+"o il2ks lê os logs de texto missionReport(…)[N].txt que o servidor do jogo grava. Estas são as pastas que parecem ser"
+" isso:"
 
+# llm-draft
 msgid ""
 "il2ks run is supervising the site: it notices the new settings and restarts everything in a few seconds. This page "
 "may stop answering for a moment. Then open the site below."
 msgstr ""
+"o il2ks run está supervisionando o site: ele percebe as novas configurações e reinicia tudo em poucos segundos. Esta "
+"página pode parar de responder por um instante. Depois, abra o site abaixo."
 
+# llm-draft
 msgid "inferred from the log"
-msgstr ""
+msgstr "deduzido do log"
 
 # llm-draft
 msgid "light"
@@ -2988,23 +3567,30 @@ msgstr "links sobre o fundo da página"
 msgid "navigation link"
 msgstr "link de navegação"
 
+# llm-draft
 msgid ""
 "nginx, IIS or Apache in front of il2ks handles HTTPS. il2ks then only listens on this computer, and you point your "
 "server at it (see docs/reverse-proxy.md)."
 msgstr ""
+"nginx, IIS ou Apache na frente do il2ks cuida do HTTPS. O il2ks então escuta apenas neste computador, e você aponta "
+"seu servidor para ele (veja docs/reverse-proxy.md)."
 
+# llm-draft
 msgid "none yet (test certificate)"
-msgstr ""
+msgstr "nenhum ainda (certificado de teste)"
 
+# llm-draft
 msgid "not set"
-msgstr ""
+msgstr "não definido"
 
+# llm-draft
 #, python-format
 msgid "now playing as %(name)s"
-msgstr ""
+msgstr "agora joga como %(name)s"
 
+# llm-draft
 msgid "of them static objects"
-msgstr ""
+msgstr "deles, objetos estáticos"
 
 # llm-draft
 msgid "opens in a new tab"
@@ -3014,8 +3600,9 @@ msgstr "abre em uma nova aba"
 msgid "orange badges"
 msgstr "selos laranja"
 
+# llm-draft
 msgid "password reset"
-msgstr ""
+msgstr "redefinição de senha"
 
 # llm-draft
 msgid "purple badges"
@@ -3025,9 +3612,10 @@ msgstr "selos roxos"
 msgid "red badges"
 msgstr "selos vermelhos"
 
+# llm-draft
 #, python-format
 msgid "requested %(at)s by %(who)s; it starts at the next watch tick."
-msgstr ""
+msgstr "solicitado em %(at)s por %(who)s; começa no próximo ciclo de monitoramento."
 
 # llm-draft
 msgid "runs ok / failed"
@@ -3041,22 +3629,27 @@ msgstr "texto secundário em cartões e tabelas"
 msgid "secondary text on the page background"
 msgstr "texto secundário sobre o fundo da página"
 
+# llm-draft
 msgid "set in the configuration"
-msgstr ""
+msgstr "definido na configuração"
 
+# llm-draft
 #, python-format
 msgid "since %(started)s: %(done)s of %(total)s missions done, %(failed)s failed."
-msgstr ""
+msgstr "desde %(started)s: %(done)s de %(total)s missões concluídas, %(failed)s com falha."
 
+# llm-draft
 msgid "sorties"
-msgstr ""
+msgstr "surtidas"
 
+# llm-draft
 msgid "sorties without a death"
-msgstr ""
+msgstr "surtidas sem morte"
 
+# llm-draft
 #, python-format
 msgid "spawned %(when)s"
-msgstr ""
+msgstr "surgiu %(when)s"
 
 # llm-draft
 msgid "teal badges"
@@ -3076,12 +3669,14 @@ msgstr "texto nos botões secundários"
 msgid "uploaded"
 msgstr "enviada"
 
+# llm-draft
 #, python-format
 msgid "x %(x)s, z %(z)s, altitude %(y)s m"
-msgstr ""
+msgstr "x %(x)s, z %(z)s, altitude %(y)s m"
 
+# llm-draft
 msgid "your own web server"
-msgstr ""
+msgstr "meu próprio servidor web"
 
 # llm-draft
 msgid "— keep the colors below —"
