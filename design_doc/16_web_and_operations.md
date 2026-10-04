@@ -140,7 +140,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   tour; a tour streak counts only that tour's sorties), rebuilt per affected player in `recompute_players` (incremental == rebuild, checked
   on 45 sample missions). Pure streak rule in `core/streaks.py`. Pages: profile sections (Ironman; **Killboard by aircraft** and Killboard, top 5 each way),
   `/players/<pk>/killboard/` (`?tour=`, `?sort=`; the by-aircraft tables of up to 60 enemy types sit above the player table), `/players/<pk>/streaks/` (the player's best streaks, a sub-page, `?tour=`), `/streaks/`
-  (running streaks), a home block of 5. The **killboard by aircraft type** (2026-10-04) is the level-2 `PlayerTypeKillboard` (per player, enemy
+  (tour-aware, TD-26, built 2026-10-04: a tour dropdown; every visible pilot's best streak by sorties in the selected tour or all time from `PlayerBestStreak`, 20 per page as `page_best`, each row linking to `/players/<pk>/streaks/history/` with the same tour; below it the running streaks from `PlayerStreak`, `page_running`, shown on the current-tour and all-time views and hidden on a past tour because nothing is running in a finished tour `[PROPOSED]`), a home block of 5 whose "All streaks" button carries the block's tour (`?tour=`). The **killboard by aircraft type** (2026-10-04) is the level-2 `PlayerTypeKillboard` (per player, enemy
   type and scope: kills, deaths, and the player's own type most used in them; built by `ingest.type_board`, recomputed per affected player with
   the pair rows): "Aircraft shot down most" and "Aircraft that shot down this pilot most", all time or the selected tour, hidden opponents
   counted. The sections read through simple template tags (`il2ks_boards`), not the view context. The streak
@@ -209,7 +209,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   never raise one without a reason in the test). Home **12** (11 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 6 extras are the five compact
   boards and the online-now snapshot), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **14** all
   time (`PROFILE_READS_ALL_TIME`) and **15** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
-  player sortie list 8 (with or without optional columns), sortie detail **8** (+ the earned medals), killboard 8, best streaks 5, streak list 6,
+  player sortie list 8 (with or without optional columns), sortie detail **8** (+ the earned medals), killboard 8, best streaks 5, streak list 8 (best + running, each with its count),
   leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 4, aircraft detail 9, achievements: a player's list 5, the overview 3, a
   holders page 5, live fragment 3 to 5. The `tests/perf/` suite (doc 08) has its own, looser per-page limits over a larger seeded world (N+1 guard);
   `uv run il2ks dev check --full` runs it, and CI runs it as the separate job `test-perf` (SQLite, then Postgres; OQ-97). On Postgres the perf

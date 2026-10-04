@@ -176,3 +176,59 @@ def test_assists_received_show_as_a_detail_only_with_the_toggle(client: Client) 
 
     rebuild_aggregates()  # toggle off again
     assert "Assists on this pilot's losses" not in client.get(f"/players/{pk(2)}/killboard/?tour=all").content.decode()
+
+
+# --- the streaks page follows the tour (TD-26) and the home block's button keeps the scope ---------------------------
+def seed_streak_tours() -> None:
+    save(mission((sortie(0, 1), sortie(1, 1), sortie(2, 1), sortie(3, 2), sortie(4, 2))), meta("m1", STARTED_AT))
+    save(mission((sortie(0, 1), sortie(1, 1))), meta("m2", OCTOBER))
+
+
+def test_streak_list_lists_best_streaks_of_the_selected_tour_and_running_only_when_current(client: Client) -> None:
+    seed_streak_tours()
+    september = tour_named("September 2026")
+
+    current = client.get("/streaks/")
+    past = client.get(f"/streaks/?tour={september.pk}")
+    all_time = client.get("/streaks/?tour=all")
+
+    assert [(r.player_id, r.sorties) for r in current.context["best_page"]] == [(pk(1), 2)]  # October only
+    assert current.context["running_page"] is not None
+    assert [(r.player_id, r.sorties) for r in past.context["best_page"]] == [(pk(1), 3), (pk(2), 2)]
+    assert past.context["running_page"] is None  # nothing runs in a finished tour
+    assert "Running streaks" not in past.content.decode()
+    assert [(r.player_id, r.sorties) for r in all_time.context["best_page"]] == [(pk(1), 5), (pk(2), 2)]
+    assert all_time.context["running_page"] is not None
+    assert f"/players/{pk(1)}/streaks/history/?tour={september.pk}" in past.content.decode()
+    assert f"/players/{pk(1)}/streaks/history/?tour=all" in all_time.content.decode()
+
+
+def test_streak_list_best_streaks_skip_hidden_players_and_paginate_by_20(client: Client) -> None:
+    save(mission(tuple(sortie(n, n % 3 + 1) for n in range(6))), meta("m", STARTED_AT))
+    Player.objects.filter(pk=pk(2)).update(is_hidden=True)
+
+    page = client.get("/streaks/?tour=all").context["best_page"]
+
+    assert sorted(r.player_id for r in page) == [pk(1), pk(3)]
+    assert page.paginator.per_page == 20
+    assert client.get("/streaks/?tour=all&page_best=99").status_code == 200
+
+
+def test_streak_list_budget(client: Client) -> None:
+    seed_streak_tours()
+    september = tour_named("September 2026")
+
+    # context processor 2, tours, best count + rows, running count + rows
+    assert_simple_reads(client, "/streaks/", max_queries=8)
+    assert_simple_reads(client, "/streaks/?tour=all", max_queries=8)
+    assert_simple_reads(client, f"/streaks/?tour={september.pk}", max_queries=6)
+
+
+def test_home_streak_button_carries_the_tour_of_the_block(client: Client) -> None:
+    seed_streak_tours()
+    september = tour_named("September 2026")
+
+    october = tour_named("October 2026")
+    assert f'href="/streaks/?tour={october.pk}"' in client.get("/").content.decode()
+    assert f'href="/streaks/?tour={september.pk}"' in client.get(f"/?tour={september.pk}").content.decode()
+    assert 'href="/streaks/?tour=all"' in client.get("/?tour=all").content.decode()

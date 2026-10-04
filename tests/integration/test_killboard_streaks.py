@@ -223,7 +223,7 @@ def test_profile_budget_and_killboard_page(client: Client) -> None:
         client, f"/players/{pk(1)}/killboard/", max_queries=8
     )  # + tours selector, + killboard by aircraft type
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=8)
-    assert_simple_reads(client, "/streaks/", max_queries=6)
+    assert_simple_reads(client, "/streaks/", max_queries=8)
 
 
 def test_killboard_sort_is_whitelisted_and_ordered(client: Client) -> None:
@@ -276,5 +276,5 @@ def test_streak_list_and_home_block_skip_hidden_and_stale(client: Client) -> Non
         assert "Player-3" in html
         assert "Player-2" not in html  # hidden
         assert "Player-4" not in html  # flew 90 days ago: not running
-    assert [r.player_id for r in client.get("/streaks/").context["page_obj"]] == sorted([pk(1), pk(3)])
+    assert [r.player_id for r in client.get("/streaks/?tour=all").context["running_page"]] == sorted([pk(1), pk(3)])
     assert client.get("/streaks/?sort=nonsense").status_code == 200

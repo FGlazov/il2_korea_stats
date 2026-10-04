@@ -181,6 +181,6 @@ ReprocessRequest, LiveMission, LivePlayer   -- admin reprocess queue (doc 14) an
 | Aircraft detail | `AircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, top pilots from `PlayerAircraft` |
 | Killboard | `PlayerTypeKillboard` (by aircraft type), `PlayerKillboard` / `PlayerTourKillboard` where player; `SiteSettings.killboard_assists` |
 | Achievements | `PlayerAchievement` (profile medal row, `/players/<id>/achievements/`, holders page), `AchievementHolders` (`/achievements/`) |
-| Streaks | `PlayerStreak` (running streaks, `/streaks/`); a player's best streaks: `PlayerBestStreak` (`/players/<id>/streaks/`) |
+| Streaks | `PlayerBestStreak` of the selected tour or all time (best list) and `PlayerStreak` (running streaks, not on a past tour), `/streaks/`; a player's best streaks: `PlayerBestStreak` (`/players/<id>/streaks/`) |
 | Profile extras | `StatThreshold` (highlights), `PlayerStreak`, `PlayerKillboard` and `PlayerTypeKillboard` top rows, `PlayerAchievement`, `PlayerTour` (charts) |
 | Every page | `SiteSettings` (incl. `links`, `theme`) and `DataVersion` (context processor, caching middleware) |
