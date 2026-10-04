@@ -255,7 +255,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   (rows with only the pk and the changed columns, one `UPDATE` per sortie instead of about 70 queries per sortie, Opus review #4), and
   timelines are streamed in chunks of 500.
   Each is recorded by name in `SiteSettings.backfills_done` after it ran (or was found unnecessary), because the data trigger alone cannot tell
-  "never filled" from "legitimately empty" (a database with only zero scores, or no rated games) and would rebuild after every later migration.
+  "never filled" from "legitimately empty" (a database with only zero scores, or no Elo encounters) and would rebuild after every later migration.
   Where a backfill needs a level-2 rebuild it calls `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`.
   These exist for pre-release databases and may go when the migrations are squashed before the first release (roadmap).
 - **Verified end to end on the 210 sample missions** (2026-10-03, run three times; the last after the score inputs and Elo landed, with

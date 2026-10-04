@@ -76,10 +76,10 @@ An installer (Inno Setup or WiX) that bundles:
 - **Caddy** for HTTPS (TD-23), plus firewall rules for ports 80 and 443.
 - a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
 - Start menu shortcuts: "Open stats site", "Open admin", "View logs".
-- **Upgrade check for `custom/` overrides** `[PROPOSED]` (2026-10-04, TD-25): on an upgrade (not a fresh install) the installer runs `il2ks custom list
+- **Upgrade check for `custom/` overrides** `[DECIDED]` (maintainer, 2026-10-04, OQ-93; TD-25): on an upgrade (not a fresh install) the installer runs `il2ks custom list
   --problems --fail-on-problems` (exit code 4 = an override needs attention; `custom list --json` is the machine-readable form). Interactive installs show
-  a message box naming the affected files and the `il2ks custom diff` / `custom accept` workflow, with a pointer to `docs/customizing.md`; silent installs
-  write the report to the installer log and to `<data>\logs\installer-custom-check.log`. It never fails the install. Scope and wording: OQ-93.
+  a message box (OK button only; every problem state triggers it: outdated, newer, unversioned, orphan) that lists the templates to check, names the `il2ks custom diff` / `custom accept` workflow, points to `il2ks doctor` and `docs/customizing.md`; silent installs
+  write the report to the installer log and to `<data>\logs\installer-custom-check.log`. It reports only customized overrides, not other doctor findings, and never fails the install.
 - **As built and CI-verified (2026-10-04)** `[PROPOSED]`: `packaging/windows/il2ks.iss` (Inno Setup), built by `packaging/windows/build.py` from
   pinned, SHA-256-checked inputs (a bundled relocatable CPython with il2ks installed from `uv.lock`, Caddy, WinSW; `packaging/windows/README.md`).
   Program files in `%ProgramFiles%\il2ks`, everything that is the admin's in `%ProgramData%\il2ks`; the service runs as the virtual account

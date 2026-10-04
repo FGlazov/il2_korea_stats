@@ -43,6 +43,15 @@ show what such a site does; their look is considered dated. Data areas (tables, 
 `currentColor`; credited in `NOTICE`) until the designer delivers; aircraft silhouettes, artillery, AA, the logo mark and the header texture
 stay our own drawings. Paid stock marketplaces don't fit an open-source package (doc 16).
 
+**Release gate** `[DECIDED]` (maintainer, 2026-10-04, OQ-94): **no visual asset gates the release**; the site works with the placeholders (the
+priorities below say how much the designer's work matters, not whether the release waits for it). That includes `og-default.png` and the PNG
+favicon set.
+
+**Icon gaps** `[DECIDED]` (maintainer, 2026-10-04, OQ-95): gaps are filled with more fitting icons, and other icon sets are allowed; the set does
+not have to be fully cohesive. So far Tabler alone was enough: bailout and capture tiles on the profile, gun accuracy, ground score per hour, a
+distinct `mission-ended` icon (no outcome value uses it yet), the friendly-fire stat icon, and seven more navigation link icons (YouTube, Twitch,
+GitHub, Telegram, Steam, e-mail, rules/wiki; migration 0036 widens the choices).
+
 ## Asset list
 
 The sections below explain each group; the **complete, generated file list** (every file with its page, size, placeholder source and release status) is the last section of this document.

@@ -107,3 +107,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-04 (doc sync 2: assists split into air and ground, stolen-kills and stolen-targets quips, strafed after landing and its quips, sortable mission
   sortie tables, hit-row tints, one-rebuild upgrade backfills, CI test-DB notes, explosion filter measured; OQ-107 resolved, new OQ-111..113).
   2026-10-04 (open-question cleanup: every answered OQ removed from doc 11, its decision placed in the spec docs; OQ-68..78 now in docs 02, 05, 07, 16).
+  2026-10-04 (open-question cleanup 2: OQ-79..113 answered by the maintainer removed from doc 11 except OQ-105; decisions folded into docs 02, 05, 07, 13, 15, 16, 17 and 03).
