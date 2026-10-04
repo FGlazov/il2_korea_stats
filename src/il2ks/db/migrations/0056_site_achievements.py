@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0054_live_sorties"),
+        ("il2ks_db", "0055_sortie_pilot_damage"),
     ]
 
     operations = [

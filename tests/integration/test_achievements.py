@@ -418,16 +418,15 @@ def test_hall_of_shame_entries_stay_out_of_the_feed_and_the_medal_row(monkeypatc
     """A `shame` achievement is shown with the hall of shame only (doc 17)."""
     from dataclasses import replace
 
+    from il2ks.core import achievement_rules as rules_mod
     from il2ks.core import achievements as core
-    from il2ks.queries import achievements as reads
-    from il2ks.web import medals
-    from il2ks.web.templatetags import il2ks_achievements as tags
+    from il2ks.web import achievement_config, medals
 
     shamed = tuple(replace(a, shame=True) if a.key == "ground_sortie" else a for a in core.ACHIEVEMENTS)
     by_key = {a.key: a for a in shamed}
-    for module in (core, reads, medals):
+    for module in (core, achievement_config, medals, rules_mod):
         monkeypatch.setattr(module, "ACHIEVEMENTS", shamed)
-    for module in (core, medals, tags):
+    for module in (core, achievement_config, rules_mod):
         monkeypatch.setattr(module, "BY_KEY", by_key)
     seed()
     client = Client()

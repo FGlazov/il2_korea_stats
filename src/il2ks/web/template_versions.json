@@ -69,13 +69,17 @@
       "version": 1,
       "sha256": "f506e890239ed3d35ea7509447170a24f084257c130aecf61c1f4f6f5f58078e"
     },
+    "templates/admin/il2ks_achievements.html": {
+      "version": 1,
+      "sha256": "5dbd8fdfc38718070f36495d6d0454eedd0dccbc2046536711e20ac424fd2fac"
+    },
     "templates/admin/il2ks_db/tour/change_list.html": {
       "version": 1,
       "sha256": "f05b80c81559a4a6460abe5d60c542410e3705a5c82530cae029cf3a5c2f07e6"
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,
-      "sha256": "2111b4473c296c4907dd45e545600f28c374b896f40fa81538c6e2f3c76931d9"
+      "sha256": "430dcb8e4e502f41616368d0bdd0762a526b315ac718d5235172ba7d34bc064b"
     },
     "templates/admin/il2ks_ingest_status.html": {
       "version": 1,
