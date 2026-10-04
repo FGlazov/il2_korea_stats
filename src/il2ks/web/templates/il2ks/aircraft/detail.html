@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v5 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats), aircraft (GameObject), survived (sorties without a death), hits (HitsToDestroy: kills,
@@ -39,6 +39,11 @@
 
     {% blocktranslate with rate=stats.attack_sorties|percent:stats.sorties asvar sub_attack %}{{ rate }} attack{% endblocktranslate %}
     {% stat_tile stats.attack_sorties|num _("Attack sorties") sub=sub_attack icon="stat/sorties" %}
+
+    {% if stats.accuracy_rounds %}
+      {% blocktranslate with air=stats.accuracy_air_hits|accuracy:stats.accuracy_air_rounds ground=stats.accuracy_ground_hits|accuracy:stats.accuracy_ground_rounds asvar sub_accuracy %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
+      {% stat_tile stats.accuracy_hits|accuracy:stats.accuracy_rounds _("Gun accuracy") sub=sub_accuracy %}
+    {% endif %}
   </div>
 
   <section>

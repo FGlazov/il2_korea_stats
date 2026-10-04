@@ -145,6 +145,12 @@ def percent(part: object, whole: object) -> str:
 
 
 @register.filter
+def accuracy(hits: object, rounds: object) -> str:
+    """{{ s.accuracy_hits|accuracy:s.accuracy_rounds }} -> '3.4%' (gun hits per round fired), or the dash if none."""
+    return display.percent(hits, rounds, 1)
+
+
+@register.filter
 def mission_title(mission: object) -> str:
     """{{ mission|mission_title }} -> 'The Sinuiju Bridges 1951': a readable name from the mission file path."""
     return display.mission_title(str(getattr(mission, "mission_file", "")))

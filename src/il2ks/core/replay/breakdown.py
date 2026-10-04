@@ -6,8 +6,20 @@ from dataclasses import dataclass, field
 
 from il2ks.core.replay.fate import crew_death
 from il2ks.core.replay.judge import Verdict
-from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, party_of
+from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, is_gun_ammo, party_of
 from il2ks.core.replay.result import AmmoHits, Counterpart, DamageExchange, KillResult, TimelineEntry
+
+
+@dataclass(frozen=True, slots=True)
+class GunHits:
+    """Gun hits (bullets and shells; no ordnance, no explosions) a sortie gave, by what they landed on: an aircraft (or
+    its crew and turrets) or anything else (vehicles, ships, statics, ...). Friendly targets count too."""
+
+    air: int = 0
+    ground: int = 0
+
+
+type Breakdown = tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...], GunHits]
 
 
 @dataclass(slots=True)
@@ -24,6 +36,8 @@ class _Breakdown:
     exchanges: dict[tuple[str, int], _Exchange] = field(default_factory=dict[tuple[str, int], _Exchange])
     given: dict[str, int] = field(default_factory=dict[str, int])
     received: dict[str, int] = field(default_factory=dict[str, int])
+    gun_air: int = 0
+    gun_ground: int = 0
 
     def exchange(self, party: Party) -> _Exchange:
         index = party.index if isinstance(party, SortieState) else None
@@ -36,9 +50,7 @@ class _Breakdown:
         return found
 
 
-def breakdowns(
-    facts: MissionFacts, verdicts: list[Verdict]
-) -> dict[int, tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]]]:
+def breakdowns(facts: MissionFacts, verdicts: list[Verdict]) -> dict[int, Breakdown]:
     """Damage and hits from each player sortie to its counterparts, and back. Self damage is left out."""
     ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
     cutoffs = {s.index: v.cutoff_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
@@ -65,11 +77,16 @@ def breakdowns(
                 book = per_sortie[attacker_party.index]
                 book.exchange(target_party).hits_dealt += 1
                 book.given[hit.ammo] = book.given.get(hit.ammo, 0) + 1
+                if is_gun_ammo(hit.ammo):
+                    if obj.root.info.is_air:
+                        book.gun_air += 1
+                    else:
+                        book.gun_ground += 1
             if isinstance(target_party, SortieState) and hit.tick <= cutoffs[target_party.index]:
                 book = per_sortie[target_party.index]
                 book.exchange(attacker_party).hits_taken += 1
                 book.received[hit.ammo] = book.received.get(hit.ammo, 0) + 1
-    out: dict[int, tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]]] = {}
+    out: dict[int, Breakdown] = {}
     for index, book in per_sortie.items():
         exchanges = tuple(
             DamageExchange(e.counterpart, e.dealt, e.taken, e.hits_dealt, e.hits_taken)
@@ -79,7 +96,7 @@ def breakdowns(
             AmmoHits(a, book.given.get(a, 0), book.received.get(a, 0))
             for a in sorted(set(book.given) | set(book.received))
         )
-        out[index] = (exchanges, ammo)
+        out[index] = (exchanges, ammo, GunHits(book.gun_air, book.gun_ground))
     return out
 
 

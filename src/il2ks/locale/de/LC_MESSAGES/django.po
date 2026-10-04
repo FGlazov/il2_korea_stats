@@ -27,6 +27,16 @@ msgstr "%(air)s an Flugzeugen, %(ground)s an Bodenzielen"
 
 # llm-draft
 #, python-format
+msgid "%(air)s on aircraft, %(ground)s on the ground, of %(rounds)s rounds"
+msgstr "%(air)s an Flugzeugen, %(ground)s am Boden, bei %(rounds)s Schuss"
+
+# llm-draft
+#, python-format
+msgid "%(air)s on aircraft, %(ground)s on the ground; rounds fired unknown"
+msgstr "%(air)s an Flugzeugen, %(ground)s am Boden; Zahl der Schüsse unbekannt"
+
+# llm-draft
+#, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
 msgstr[0] "%(counter)s Spitzname"
@@ -229,6 +239,11 @@ msgstr "%(red_name)s %(red)s · %(blue_name)s %(blue)s"
 
 # llm-draft
 #, python-format
+msgid "%(rounds)s rounds fired"
+msgstr "%(rounds)s Schuss abgefeuert"
+
+# llm-draft
+#, python-format
 msgid "%(s)d s"
 msgstr "%(s)d s"
 
@@ -410,6 +425,10 @@ msgstr "Luft"
 # llm-draft
 msgid "Air / ground kills"
 msgstr "Luft- / Bodenabschüsse"
+
+# llm-draft
+msgid "Air accuracy"
+msgstr "Luft-Trefferquote"
 
 # llm-draft
 msgid "Air assists"
@@ -1456,6 +1475,10 @@ msgid "Ground"
 msgstr "Boden"
 
 # llm-draft
+msgid "Ground accuracy"
+msgstr "Boden-Trefferquote"
+
+# llm-draft
 msgid "Ground assists"
 msgstr "Boden-Assists"
 
@@ -1524,6 +1547,30 @@ msgstr "Zerstörte Bodenziele in einem einzigen Einsatz."
 # llm-draft
 msgid "Ground vehicle or object"
 msgstr "Bodenfahrzeug oder -objekt"
+
+# llm-draft
+msgid "Gun accuracy"
+msgstr "Trefferquote (Bordwaffen)"
+
+# llm-draft
+msgid "Gun hits"
+msgstr "Bordwaffen-Treffer"
+
+# llm-draft
+msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
+msgstr "Bordwaffen-Treffer an Flugzeugen pro abgefeuertem Schuss, in Luftüberlegenheits-Einsätzen"
+
+# llm-draft
+msgid "Gun hits on ground targets per round fired, in attack sorties"
+msgstr "Bordwaffen-Treffer an Bodenzielen pro abgefeuertem Schuss, in Angriffseinsätzen"
+
+# llm-draft
+msgid "Gun hits per round fired, over sorties where the rounds fired are known"
+msgstr "Bordwaffen-Treffer pro abgefeuertem Schuss, über Einsätze mit bekannter Schusszahl"
+
+# llm-draft
+msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
+msgstr "Bordwaffen-Treffer pro abgefeuertem Schuss; ein Strich, wenn die Schusszahl unbekannt ist"
 
 # llm-draft
 msgid "Gunner"

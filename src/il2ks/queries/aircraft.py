@@ -49,6 +49,9 @@ AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "sortie_length": Ratio("flight_time_s", "sorties"),
     "kills_per_hour": Ratio("kills_air", "flight_time_s", scale=3600.0),
     "sorties_per_pilot": Ratio("sorties", "pilots"),
+    "accuracy": Ratio("accuracy_hits", "accuracy_rounds"),
+    "accuracy_air": Ratio("accuracy_air_hits", "accuracy_air_rounds"),
+    "accuracy_ground": Ratio("accuracy_ground_hits", "accuracy_ground_rounds"),
 }
 DEFAULT_AIRCRAFT_SORT = "-sorties"
 

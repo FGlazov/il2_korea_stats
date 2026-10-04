@@ -284,6 +284,17 @@ class Counters(models.Model):
     # annotation shadows the field of the same name); tanks destroyed in attack sorties (`kills_tank_attack`)
     air_superiority_sorties = models.PositiveIntegerField(default=0)
     kills_intercept = models.PositiveIntegerField(default=0)
+    # Accuracy (doc 13): rounds fired and the gun hits of the SAME sorties (those with a known number of rounds, so
+    # resupplied or unreliable ones are in neither), overall and for air-superiority sorties (air hits) and attack
+    # sorties (ground hits); and the exact gun hits of all sorties. Ratios are computed on read.
+    accuracy_rounds = models.PositiveIntegerField(default=0)
+    accuracy_hits = models.PositiveIntegerField(default=0)
+    accuracy_air_rounds = models.PositiveIntegerField(default=0)
+    accuracy_air_hits = models.PositiveIntegerField(default=0)
+    accuracy_ground_rounds = models.PositiveIntegerField(default=0)
+    accuracy_ground_hits = models.PositiveIntegerField(default=0)
+    gun_hits_air = models.PositiveIntegerField(default=0)
+    gun_hits_ground = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -454,6 +465,11 @@ class PlayerSortie(models.Model):
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
     resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
+    # Accuracy (doc 13): rounds fired is NULL where unknown (resupplied, unreliable AType 4, gunners); gun hits
+    # (bullets and shells) are exact. Level 2 counts the hits only of sorties with a known number of rounds.
+    rounds_fired = models.PositiveIntegerField(null=True, blank=True)
+    gun_hits_air = models.PositiveIntegerField(default=0)
+    gun_hits_ground = models.PositiveIntegerField(default=0)
     taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
     strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
     ended_by_mission_end = models.BooleanField(

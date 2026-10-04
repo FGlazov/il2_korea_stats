@@ -53,17 +53,20 @@ from il2ks.core.replay.fate import ticks, was_resupplied
 from il2ks.core.replay.hits import DamageEvent, Label
 from il2ks.core.replay.judge import Verdict
 from il2ks.core.replay.model import (
+    SHELL_PREFIXES,
     Detonation,
     HitRecord,
     MissionFacts,
     ReleaseClass,
     SortieState,
     TrackedObject,
+    is_gun_ammo,
     owner_sortie,
     party_of,
 )
 from il2ks.core.replay.result import (
     UNATTRIBUTED_ORDNANCE,
+    AmmoCounts,
     AmmoHits,
     KillResult,
     OrdnanceUse,
@@ -72,17 +75,10 @@ from il2ks.core.replay.result import (
 )
 
 AIRCRAFT_CLASSES = frozenset({"fighter", "attacker", "bomber", "transport"})
-_SHELL_PREFIXES = ("SHELL_", "NPC_SHELL_")
-_GUN_PREFIXES = ("BULLET_", *_SHELL_PREFIXES)
-
-
-def is_gun_ammo(ammo: str) -> bool:
-    """Bullets and shells (`BULLET_12-7_USA_API`, `SHELL_23_RUS_HET`, `NPC_SHELL_ENG_40_HE`), not ordnance or flares."""
-    return ammo.startswith(_GUN_PREFIXES)
 
 
 def _is_shell(ammo: str) -> bool:
-    return ammo.startswith(_SHELL_PREFIXES)
+    return ammo.startswith(SHELL_PREFIXES)
 
 
 @dataclass(slots=True)
@@ -563,6 +559,24 @@ def single_attacker_kills(facts: MissionFacts) -> tuple[SingleAttackerKill, ...]
     return tuple(kills)
 
 
+def rounds_fired(
+    loaded: AmmoCounts, left: AmmoCounts | None, *, resupplied: bool, left_after_loss: bool, gun_hits: int
+) -> int | None:
+    """Gun rounds a pilot sortie fired (accuracy, doc 13 "Accuracy"): bullets and shells loaded minus left, or None
+    (unknown) when "left" cannot be trusted: no AType 4, a resupply (AType 4 only describes the last leg), a "left"
+    written long after the aircraft was lost, more left than loaded, or more gun hits than rounds fired (a rearm the
+    resupply rule missed). The caller counts only known sorties, hits and rounds alike, in every accuracy figure.
+
+    The game's AType 10 `BUL` counts every gun round (cannon shells too: `SH` is always 0 in Korea logs), so shells are
+    not counted twice; with a log that fills `SH`, both are summed."""
+    if left is None or resupplied or left_after_loss:
+        return None
+    if left.bullets > loaded.bullets or left.shells > loaded.shells:
+        return None
+    fired = loaded.bullets - left.bullets + loaded.shells - left.shells
+    return None if gun_hits > fired else fired
+
+
 def analyse(facts: MissionFacts, verdicts: list[Verdict], kills: list[KillResult], rules: ReplayRules) -> AmmoAnalysis:
     """Gun damage per ammo, ordnance use and unattributed damage for every sortie, plus the single-attacker kills."""
     return _Analysis(facts, verdicts, rules).run(kills)
@@ -573,8 +587,8 @@ __all__ = [
     "AmmoAnalysis",
     "SortieAmmoResult",
     "analyse",
-    "is_gun_ammo",
     "merge_ammo_hits",
     "release_key",
+    "rounds_fired",
     "single_attacker_kills",
 ]

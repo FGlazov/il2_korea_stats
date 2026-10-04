@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_ground_tiles.html v2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_ground_tiles.html v3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_ground_tiles.html: the air-to-ground headline tiles (ground kills with the per-sortie figure, assists on ground targets, attack sorties).
   Context: stats.
@@ -9,4 +9,9 @@
   {% stat_tile stats.assists_ground|num _("Assists") icon="stat/assists" %}
 
   {% stat_tile stats.attack_sorties|num _("Attack sorties") %}
+
+  {% if stats.accuracy_ground_rounds %}
+    {% blocktranslate with rounds=stats.accuracy_ground_rounds|num asvar sub_accuracy %}{{ rounds }} rounds fired{% endblocktranslate %}
+    {% stat_tile stats.accuracy_ground_hits|accuracy:stats.accuracy_ground_rounds _("Ground accuracy") sub=sub_accuracy %}
+  {% endif %}
 </div>

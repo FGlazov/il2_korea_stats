@@ -190,6 +190,11 @@ class SortieResult:
     assists_ground: int
     ammo_loaded: AmmoCounts
     ammo_left: AmmoCounts | None  # None when the sortie had no AType 4
+    # Accuracy (doc 13): gun rounds fired, None when unknown (resupply, no or unreliable AType 4, gunner sorties); the
+    # gun hits (bullets and shells, no ordnance) by target are exact. Accuracy only counts the sorties with a number.
+    rounds_fired: int | None = None
+    gun_hits_air: int = 0  # on aircraft (with their crews)
+    gun_hits_ground: int = 0  # on anything else (vehicles, ships, statics, ...)
     ammo_hits: tuple[AmmoHits, ...] = ()
     damage: tuple[DamageExchange, ...] = ()
     timeline: tuple[TimelineEntry, ...] = ()

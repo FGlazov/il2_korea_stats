@@ -61,6 +61,14 @@ def _elo(rating: float, games: int) -> str:
     return display.num(rating) if games else display.DASH  # 1500 with no rated game is only the starting value
 
 
+def _accuracy(hits: int, rounds: int) -> str:
+    return display.percent(hits, rounds, 1)
+
+
+_ACCURACY_HINT = _("Gun hits per round fired, over sorties where the rounds fired are known")
+_AIR_ACCURACY_HINT = _("Gun hits on aircraft per round fired, in air-superiority sorties")
+_GROUND_ACCURACY_HINT = _("Gun hits on ground targets per round fired, in attack sorties")
+
 PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     Column("elo_jet", _("Elo jet"), lambda p: _elo(p.elo_jet, p.elo_jet_games), _("Air-to-air rating, all time")),
     Column("elo_prop", _("Elo prop"), lambda p: _elo(p.elo_prop, p.elo_prop_games), _("Air-to-air rating, all time")),
@@ -80,6 +88,19 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     Column("assists", _("Assists"), lambda p: display.num(p.assists)),
     Column("assists_air", _("Air assists"), lambda p: display.num(p.assists_air)),
     Column("assists_ground", _("Ground assists"), lambda p: display.num(p.assists_ground)),
+    Column("accuracy", _("Gun accuracy"), lambda p: _accuracy(p.accuracy_hits, p.accuracy_rounds), _ACCURACY_HINT),
+    Column(
+        "accuracy_air",
+        _("Air accuracy"),
+        lambda p: _accuracy(p.accuracy_air_hits, p.accuracy_air_rounds),
+        _AIR_ACCURACY_HINT,
+    ),
+    Column(
+        "accuracy_ground",
+        _("Ground accuracy"),
+        lambda p: _accuracy(p.accuracy_ground_hits, p.accuracy_ground_rounds),
+        _GROUND_ACCURACY_HINT,
+    ),
     Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
 )
@@ -120,6 +141,12 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
     Column("payload", _("Loadout"), lambda s: s.payload_name or display.DASH, numeric=False),
     Column("takeoffs", _("Takeoffs"), lambda s: display.num(s.takeoffs)),
     Column("landings", _("Landings"), lambda s: display.num(s.landings)),
+    Column(
+        "accuracy",
+        _("Gun accuracy"),
+        lambda s: _accuracy(s.gun_hits_air + s.gun_hits_ground, s.rounds_fired or 0),
+        _("Gun hits per round fired; a dash when the rounds fired are unknown"),
+    ),
 )
 
 
@@ -155,4 +182,17 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftStats], ...] = (
         _("Average flight time per sortie"),
     ),
     Column("sorties_per_pilot", _("Sorties per pilot"), lambda a: display.ratio(a.sorties, a.pilots, 1)),
+    Column("accuracy", _("Gun accuracy"), lambda a: _accuracy(a.accuracy_hits, a.accuracy_rounds), _ACCURACY_HINT),
+    Column(
+        "accuracy_air",
+        _("Air accuracy"),
+        lambda a: _accuracy(a.accuracy_air_hits, a.accuracy_air_rounds),
+        _AIR_ACCURACY_HINT,
+    ),
+    Column(
+        "accuracy_ground",
+        _("Ground accuracy"),
+        lambda a: _accuracy(a.accuracy_ground_hits, a.accuracy_ground_rounds),
+        _GROUND_ACCURACY_HINT,
+    ),
 )
