@@ -416,6 +416,14 @@ msgid "Air superiority"
 msgstr "Господство в воздухе"
 
 # llm-draft
+msgid "Air superiority flight time"
+msgstr "Налёт на господстве в воздухе"
+
+# llm-draft
+msgid "Air superiority sorties"
+msgstr "Вылеты на господство в воздухе"
+
+# llm-draft
 #. Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking
 #. ground targets
 msgid "Air-to-air"
@@ -728,6 +736,14 @@ msgstr "Лучшие серии пилота %(name)s"
 
 # llm-draft
 #, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s minute of air superiority flight"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes of air superiority flight"
+msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутой налёта на господстве в воздухе"
+msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
+msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
+
+# llm-draft
+#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
 msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутой на цели"
@@ -749,6 +765,14 @@ msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
 msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетом"
 msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
 msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s minute of air superiority flight"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes of air superiority flight"
+msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутой налёта на господстве в воздухе"
+msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
+msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
 
 # llm-draft
 #, python-format
@@ -793,6 +817,18 @@ msgstr "Сброс бомб"
 # llm-draft
 msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Охота на бомбардировщиков — это ремесло, а этот вылет был мастер-классом."
+
+# llm-draft
+msgid "Bombers and attackers shot down"
+msgstr "Сбито бомбардировщиков и штурмовиков"
+
+# llm-draft
+msgid ""
+"Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
+"flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+msgstr ""
+"Сбитые бомбардировщики и штурмовики за час налёта на господстве в воздухе: бомбардировщики и штурмовики ИИ, а также "
+"самолёты игроков в штурмовом вылете (бомбы или ракеты). Считаются только вылеты на господство в воздухе."
 
 # llm-draft
 msgid "Bombs"
@@ -1572,6 +1608,14 @@ msgid "Intercept flights only"
 msgstr "Только перехваты"
 
 # llm-draft
+msgid "Interception"
+msgstr "Перехват"
+
+# llm-draft
+msgid "Interception per hour"
+msgstr "Перехват в час"
+
+# llm-draft
 msgid "Ironman"
 msgstr "Ironman"
 
@@ -1680,6 +1724,10 @@ msgstr "Победы по жертвам"
 # llm-draft
 msgid "Kills it hit in"
 msgstr "Победы, в которых оно участвовало"
+
+# llm-draft
+msgid "Kills per hour"
+msgstr "Побед в час"
 
 # llm-draft
 msgid "Kind"
@@ -2387,6 +2435,10 @@ msgid "Payload"
 msgstr "Боевая нагрузка"
 
 # llm-draft
+msgid "Per hour"
+msgstr "В час"
+
+# llm-draft
 msgid "Period"
 msgstr "Период"
 
@@ -2430,6 +2482,11 @@ msgid_plural "Pilots with at least %(games)s rated games."
 msgstr[0] "Пилоты минимум с %(games)s учтённым боем."
 msgstr[1] "Пилоты минимум с %(games)s учтёнными боями."
 msgstr[2] "Пилоты минимум с %(games)s учтёнными боями."
+
+# llm-draft
+#, python-format
+msgid "Pilots with at least %(sorties)s air superiority sorties and %(minutes)s minutes of air superiority flight."
+msgstr "Пилоты минимум с %(sorties)s вылетами на господство в воздухе и %(minutes)s минутами налёта на господстве в воздухе."
 
 # llm-draft
 #, python-format
@@ -3051,8 +3108,28 @@ msgid "Tank"
 msgstr "Танк"
 
 # llm-draft
+msgid "Tank busting"
+msgstr "Охота на танки"
+
+# llm-draft
 msgid "Tanks"
 msgstr "Танки"
+
+# llm-draft
+msgid "Tanks destroyed"
+msgstr "Уничтожено танков"
+
+# llm-draft
+msgid "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."
+msgstr "Танки, уничтоженные в штурмовых вылетах, за час над целью. Дорога к цели и обратно не считается."
+
+# llm-draft
+msgid "Tanks destroyed per hour on target"
+msgstr "Уничтожено танков в час над целью"
+
+# llm-draft
+msgid "Tanks per hour"
+msgstr "Танков в час"
 
 # llm-draft
 msgid "Target"
@@ -3834,6 +3911,10 @@ msgstr "основной текст на карточках и в таблица
 # llm-draft
 msgid "body text on the page background"
 msgstr "основной текст на фоне страницы"
+
+# llm-draft
+msgid "bomber and attacker kills, air superiority sorties"
+msgstr "сбитые бомбардировщики и штурмовики, вылеты на господство в воздухе"
 
 # llm-draft
 msgid "by"

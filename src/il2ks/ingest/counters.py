@@ -20,6 +20,8 @@ COUNTED_ROLES: tuple[str, ...] = (Role.PILOT,)
 SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
     {
         "sorties": Count("pk"),
+        # Before the counters of the same name as the sortie fields they read: an annotation shadows the field.
+        "flight_time_air_s": Sum("flight_time_s", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
         "flight_time_s": Sum("flight_time_s"),
         "kills_air": Sum("kills_air"),
         "kills_ground": Sum("kills_ground"),
@@ -40,6 +42,7 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "strafed_on_ground": Count("pk", filter=Q(strafed_on_ground=True)),
         "attack_sorties": Count("pk", filter=Q(combat_role=CombatRole.ATTACK)),
         "time_on_target_s": Sum("time_on_target_s"),
+        "kills_tank_attack": Sum("kills_ground_tank", filter=Q(combat_role=CombatRole.ATTACK)),
         "kills_ground_tank": Sum("kills_ground_tank"),
         "kills_ground_vehicle": Sum("kills_ground_vehicle"),
         "kills_ground_artillery": Sum("kills_ground_artillery"),
@@ -57,12 +60,22 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "score_air": Sum("air_points"),
         "score_ground": Sum("ground_points"),
         "score_ground_attack": Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
+        "air_superiority_sorties": Count("pk", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
+        "kills_intercept": Sum("kills_air_intercept", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
     }
 )
 
 COUNTER_FIELDS: tuple[str, ...] = tuple(SORTIE_COUNTERS)
 FLOAT_COUNTERS: frozenset[str] = frozenset(
-    {"flight_time_s", "friendly_damage", "time_on_target_s", "score_air", "score_ground", "score_ground_attack"}
+    {
+        "flight_time_s",
+        "friendly_damage",
+        "time_on_target_s",
+        "score_air",
+        "score_ground",
+        "score_ground_attack",
+        "flight_time_air_s",
+    }
 )
 
 type CounterValues = dict[str, int | float]

@@ -39,6 +39,9 @@ _FIELDS = (
     "score_ground",
     "score_ground_attack",
     "time_on_target_s",
+    "flight_time_air_s",
+    "kills_intercept",
+    "kills_tank_attack",
 )
 _ELO_FIELDS = ("elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")  # Player only: ratings are all time
 

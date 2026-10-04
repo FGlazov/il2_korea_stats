@@ -1,8 +1,9 @@
 """Reads behind the leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). Simple SELECTs only: no aggregation at request time
 (TD-22). Scores, kills and time on target are stored counters (`PlayerTour`, `Player`, and their per-aircraft tables);
-Elo is stored on `Player`. The only arithmetic is the ground score per hour, a division of two stored columns.
+Elo is stored on `Player`. The only arithmetic is the per-hour rate of the skill boards: two stored columns divided.
 
-Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, then `ground-hour`, `ground`, in an air group and a
+Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, `interception`, then `ground-hour`, `tank-busting`,
+`ground`, in an air group and a
 ground group (`GROUPS`; maintainer decision 2026-10-04: no kills board). Per tour
 (`?tour=`, TD-26) the rows are `PlayerTour`, all-time `Player`; with an aircraft chosen (`?aircraft=<GameObject pk>`)
 they are the per-aircraft rows `PlayerTourAircraft` / `PlayerAircraft`, so a player appears once per aircraft type; with
@@ -74,12 +75,35 @@ BOARDS: Final[Mapping[str, Board]] = {
         {**_COMMON, "score": "score_air", "kills_air": "kills_air", "assists": "assists", "deaths": "deaths"},
         "-score",
     ),
+    "interception": Board(
+        "interception",
+        {
+            **_COMMON,
+            "per_hour": "per_hour",
+            "kills": "kills_intercept",
+            "flight_time_s": "flight_time_air_s",
+            "air_superiority_sorties": "air_superiority_sorties",
+        },
+        "-per_hour",
+    ),
     "ground-hour": Board(
         "ground-hour",
         {
             **_COMMON,
             "per_hour": "per_hour",
             "score": "score_ground_attack",
+            "time_on_target_s": "time_on_target_s",
+            "attack_sorties": "attack_sorties",
+        },
+        "-per_hour",
+        group="ground",
+    ),
+    "tank-busting": Board(
+        "tank-busting",
+        {
+            **_COMMON,
+            "per_hour": "per_hour",
+            "tanks": "kills_tank_attack",
             "time_on_target_s": "time_on_target_s",
             "attack_sorties": "attack_sorties",
         },
@@ -96,8 +120,9 @@ BOARDS: Final[Mapping[str, Board]] = {
 DEFAULT_BOARD: Final = "air"
 GROUPS: Final[tuple[str, ...]] = ("air", "ground")
 POOLS: Final[tuple[str, ...]] = ("prop", "jet")
-HOME_BOARDS: Final[tuple[str, ...]] = ("elo-jet", "elo-prop", "ground-hour")
-"""The boards the home page highlights (maintainer, OQ-64): Elo of both pools and ground proficiency."""
+HOME_BOARDS: Final[tuple[str, ...]] = ("elo-jet", "elo-prop", "interception", "ground-hour", "tank-busting")
+"""The boards the home page highlights (maintainer, OQ-64): Elo of both pools and the skill boards (interception, ground
+score per hour, tank busting)."""
 HOME_ROWS = 5
 MAX_PK_DIGITS = 18  # int() of a longer digit string is slow or raises (4300-digit limit): not a pk
 
@@ -148,17 +173,34 @@ def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: Leaderboar
             return rows.filter(elo_prop_games__gte=rules.min_elo_games)
         case "elo-jet":
             return rows.filter(elo_jet_games__gte=rules.min_elo_games)
-        case "ground-hour":
-            return rows.filter(
-                attack_sorties__gte=max(rules.min_attack_sorties, 1),
-                time_on_target_s__gte=max(rules.min_time_on_target_minutes * 60.0, 1.0),
-            ).annotate(
-                per_hour=ExpressionWrapper(
-                    F("score_ground_attack") * SECONDS_PER_HOUR / F("time_on_target_s"), output_field=FloatField()
-                )
+        case "ground-hour" | "tank-busting":
+            return _per_hour(
+                rows.filter(
+                    attack_sorties__gte=max(rules.min_attack_sorties, 1),
+                    time_on_target_s__gte=max(rules.min_time_on_target_minutes * 60.0, 1.0),
+                ),
+                "score_ground_attack" if board.key == "ground-hour" else "kills_tank_attack",
+                "time_on_target_s",
+            )
+        case "interception":
+            return _per_hour(
+                rows.filter(
+                    air_superiority_sorties__gte=max(rules.min_air_superiority_sorties, 1),
+                    flight_time_air_s__gte=max(rules.min_air_superiority_minutes * 60.0, 1.0),
+                ),
+                "kills_intercept",
+                "flight_time_air_s",
             )
         case _:
             return rows.filter(sorties__gte=max(rules.min_sorties, 1))
+
+
+def _per_hour[M: Model](rows: QuerySet[M], amount: str, seconds: str) -> QuerySet[M]:
+    """Annotate `per_hour` = `amount` per hour of `seconds` (a division of two stored columns; the rows already passed a
+    minimum above 0 seconds)."""
+    return rows.annotate(
+        per_hour=ExpressionWrapper(F(amount) * SECONDS_PER_HOUR / F(seconds), output_field=FloatField())
+    )
 
 
 def board_page(

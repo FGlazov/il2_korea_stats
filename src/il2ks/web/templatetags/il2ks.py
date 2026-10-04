@@ -352,7 +352,9 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
         "band": found,
         "min_sorties": limits.min_sorties,
         "unit": stat_marks.unit(kind),
-        "minutes": max(1, math.ceil(limits.min_sorties / 60)),  # for the time on target (stored in seconds)
+        "minutes": max(
+            1, math.ceil(limits.min_sorties / 60)
+        ),  # for the time on target / flight time (stored in seconds)
     }
 
 

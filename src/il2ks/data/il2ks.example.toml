@@ -192,8 +192,12 @@
 #min_elo_games = 5
 # Attack sorties needed for the ground-score-per-hour board.
 #min_attack_sorties = 5
-# Minutes on target needed for the ground-score-per-hour board.
+# Minutes on target needed for the ground-score-per-hour and tank-busting boards.
 #min_time_on_target_minutes = 10.0
+# Air superiority sorties needed for the interception board (kills of bombers and attackers per hour).
+#min_air_superiority_sorties = 5
+# Minutes of air superiority flight time needed for the interception board.
+#min_air_superiority_minutes = 60.0
 # --- Rule toggles from the old il2_stats mods (TD-16, OQ-61) --------------------------------------------------------
 # A changed toggle only affects missions ingested afterwards; run `il2ks reprocess --all` (or --since DATE) to apply it
 # to older ones. It re-runs the replay from the archive and rebuilds the aggregates; `rebuild-aggregates` alone is not

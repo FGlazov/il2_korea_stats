@@ -255,8 +255,8 @@ def build_manifest() -> list[Asset]:
     }
     for name, text in stat_uses.items():
         add(f"stat/{name}.svg", f"{text} (`stat_tile ... icon=`)", ICON, "P2", name not in UNUSED_STATS)
-    for name in ("elo-prop", "elo-jet"):
-        add(f"stat/{name}.svg", "Rating tile (ratings are not shown yet)", ICON, "P3", False)
+    for name in ("elo-prop", "elo-jet", "interception"):
+        add(f"stat/{name}.svg", "Leaderboard switcher button (chess pieces for the Elo boards)", ICON, "P2", True)
 
     # navigation link icons: the admin picks one per custom link by key (web.site_forms), so the name is computed
     for name in ("discord", "forum", "patreon", "link"):

@@ -121,8 +121,8 @@ def rebuild_aggregates(
             retour(tours)
         else:
             assign_missing(tours)
-    if rebuild_sortie_scores(score):
-        refresh_player_missions()
+    rebuild_sortie_scores(score)
+    refresh_player_missions()  # also after a level-1 column was filled by a backfill (the interception counters)
     recompute_players(Player.objects.values_list("pk", flat=True))
     recompute_aircraft_ammo(
         set(MissionAircraftAmmo.objects.values_list("aircraft_id", flat=True))

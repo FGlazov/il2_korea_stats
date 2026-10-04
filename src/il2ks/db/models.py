@@ -218,6 +218,7 @@ class Counters(models.Model):
     """The counters shared by PlayerMission, Player and PlayerAircraft (doc 06, FR-WEB-4). No ratios (TD-22)."""
 
     sorties = models.PositiveIntegerField(default=0)
+    flight_time_air_s = models.FloatField(default=0.0)
     flight_time_s = models.FloatField(default=0.0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
@@ -240,6 +241,7 @@ class Counters(models.Model):
     attack_sorties = models.PositiveIntegerField(default=0)
     time_on_target_s = models.FloatField(default=0.0)
     # Ground kills by category (they sum to kills_ground) and how many of those were static objects (OQ-33, doc 13)
+    kills_tank_attack = models.PositiveIntegerField(default=0)  # tanks in attack sorties (tank busting)
     kills_ground_tank = models.PositiveIntegerField(default=0)
     kills_ground_vehicle = models.PositiveIntegerField(default=0)
     kills_ground_artillery = models.PositiveIntegerField(default=0)
@@ -275,6 +277,11 @@ class Counters(models.Model):
     score_air = models.FloatField(default=0.0)
     score_ground = models.FloatField(default=0.0)
     score_ground_attack = models.FloatField(default=0.0)
+    # Skill boards (doc 13): air-superiority sorties and their kills of bombers and attackers (interception per
+    # hour of their flight time, `flight_time_air_s`, declared before `flight_time_s` like in the registry: an
+    # annotation shadows the field of the same name); tanks destroyed in attack sorties (`kills_tank_attack`)
+    air_superiority_sorties = models.PositiveIntegerField(default=0)
+    kills_intercept = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -466,6 +473,7 @@ class PlayerSortie(models.Model):
     loss_class = models.CharField(max_length=12, choices=LossClass.choices, blank=True, default="")
     kills_air_pvp = models.PositiveIntegerField(default=0)
     kills_air_ai = models.PositiveIntegerField(default=0)
+    kills_air_intercept = models.PositiveIntegerField(default=0)  # air kills of bombers / attackers (part of kills_air)
     # Air and ground score of this sortie (pilots; gunners 0). Named `*_points` so the counters `score_*` can sum them.
     # Computed from the columns above and the `[score]` rules; a changed rule is applied by `il2ks rebuild-aggregates`.
     air_points = models.FloatField(default=0.0)

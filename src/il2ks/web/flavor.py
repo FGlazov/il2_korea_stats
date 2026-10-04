@@ -260,6 +260,9 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         score_air=getattr(stats, "score_air", 0.0),
         score_ground=getattr(stats, "score_ground", 0.0),
         score_ground_attack=getattr(stats, "score_ground_attack", 0.0),
+        flight_time_air_s=stats.flight_time_air_s,
+        kills_intercept=stats.kills_intercept,
+        kills_tank_attack=stats.kills_tank_attack,
     )
 
 

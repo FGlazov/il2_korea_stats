@@ -375,6 +375,7 @@ _SORTIE_FIELDS = [
     "loss_class",
     "kills_air_pvp",
     "kills_air_ai",
+    "kills_air_intercept",
     "air_points",
     "ground_points",
     "ammo",
@@ -488,6 +489,7 @@ def _fill_sortie(
     row.loss_class = s.loss_class or ""
     row.kills_air_pvp = s.kills_air_pvp
     row.kills_air_ai = s.kills_air_ai
+    row.kills_air_intercept = s.kills_air_intercept
     apply_score(row, score)
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos

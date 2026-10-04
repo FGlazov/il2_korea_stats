@@ -9,7 +9,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Literal
 
-from il2ks.core.catalog.loader import GroundCategory
+from il2ks.core.catalog.loader import GroundCategory, ObjectClass
 from il2ks.core.logparse.events import AccountUuid, ObjectId, Pos, ProfileUuid
 
 type Role = Literal["pilot", "gunner"]
@@ -220,6 +220,8 @@ class SortieResult:
     loss_class: LossClass | None = None
     kills_air_pvp: int = 0  # air kills of a player's aircraft
     kills_air_ai: int = 0  # air kills of an AI aircraft
+    # Interception (doc 13): air kills of bombers and attackers (`attack.is_interception_victim`), a part of kills_air
+    kills_air_intercept: int = 0
     # The server force-ended the sortie at mission end (doc 12, 13): `outcome` then says what state the aircraft was in
     # when the mission ended (`airborne`, `landed`, `ditched`, `not_taken_off`) and the pilot fate is `in_aircraft`.
     ended_by_mission_end: bool = False
@@ -249,6 +251,7 @@ class KillResult:
     killer_coalition: int | None = None  # of the credited party; lets a timeline mark a friendly shoot-down
     victim_ground_category: GroundCategory | None = None  # ground victims only ("other" for an uncatalogued type)
     victim_is_static: bool = False
+    victim_class: ObjectClass | None = None  # air victims: the catalog class (bomber, attacker, fighter, ...)
 
 
 @dataclass(frozen=True, slots=True)

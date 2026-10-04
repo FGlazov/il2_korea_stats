@@ -59,7 +59,11 @@ def test_template_lists_every_config_key() -> None:
         "rules": {f.name for f in dataclasses.fields(RuleToggles)},
         "ratings": {f.name for f in dataclasses.fields(RatingRules)},
         "marks": {f.name for f in dataclasses.fields(MarkRules)}
-        - {"min_elo_games", "min_time_on_target_s"},  # taken from the [score] minimums of the boards (config.py)
+        - {
+            "min_elo_games",
+            "min_time_on_target_s",
+            "min_air_superiority_s",
+        },  # taken from the [score] minimums of the boards (config.py)
         "score": {f.name for f in dataclasses.fields(ScoreRules)}
         | {f.name for f in dataclasses.fields(LeaderboardConfig)},
         "killboard": {f.name for f in dataclasses.fields(KillboardRules)},
