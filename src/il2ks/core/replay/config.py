@@ -30,6 +30,9 @@ class ReplayRules:
     post_end_destroy_window_ground_s: float = 5.0
     # Damage-based credit: other damagers above this fraction of the victim get an assist (il2_stats used > 1%).
     assist_min_damage: float = 0.01
+    # Strafed on the ground (OQ-112): a landed aircraft counts as strafed only when other objects did at least this
+    # fraction of its DMG after the landing; a damaged aircraft that fails its landing is a crash.
+    strafed_min_damage: float = 0.05
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
     # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown.
     resupply_allowed: bool = True

@@ -1,4 +1,4 @@
-"""Interception: air kills of bombers and attackers (doc 13; maintainer request 2026-10-04).
+"""Interception: air kills of bombers, attackers and transports (doc 13; maintainer request 2026-10-04).
 
 A (acct 1, aircraft 100, F-86A-5) shoots; victims are an AI bomber (302, B-29), an AI fighter (301), the player B
 (aircraft 200) once with a guns-only loadout (a fighter) and once with bombs or rockets (an attack sortie), and an AI
@@ -45,6 +45,20 @@ def test_bombers_and_attackers_count_fighters_do_not() -> None:
     assert (a.kills_air, a.kills_air_intercept) == (4, 2)
 
 
+def test_an_ai_transport_counts() -> None:
+    """Maintainer, 2026-10-04 (OQ-102): C-47B and Li-2 (paratrooper and supply planes) are interception targets."""
+    sc = _scenario(victim_bombs=0, victim_rockets=0)
+    sc.declare(0, 310, "C-47B", 501)
+    sc.declare(0, 311, "Li-2", 501)
+    _shoot(sc, 100, 310)
+    _shoot(sc, 110, 311)
+    sc.end(200, 100, 101)
+
+    a = by_acct(sc.result(), 1)
+
+    assert (a.kills_air, a.kills_air_intercept) == (2, 2)
+
+
 @pytest.mark.parametrize(("bombs", "rockets"), [(2, 0), (0, 6)])
 def test_a_player_in_an_attack_sortie_counts(bombs: int, rockets: int) -> None:
     sc = _scenario(victim_bombs=bombs, victim_rockets=rockets)
@@ -73,7 +87,7 @@ def test_assists_and_ground_kills_do_not_count() -> None:
         ("fighter", "attack", True),
         ("fighter", "air_superiority", False),
         ("fighter", None, False),
-        ("transport", None, False),
+        ("transport", None, True),
         (None, None, False),
     ],
 )

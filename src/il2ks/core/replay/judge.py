@@ -13,6 +13,7 @@ from il2ks.core.replay.fate import (
     bailout_v3,
     disconnect_death,
     disconnect_tick_of,
+    failed_landing,
     final_pos_pending,
     flight_time_s,
     forced_by_mission_end,
@@ -139,8 +140,17 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     structural = loss is not None and lost and structural_failure(sortie, loss, attacker_cause, rules)
 
     taxi, strafed = ground_loss(
-        sortie, lost=lost, loss_cause=loss_cause, cutoff_tick=cutoff, killed_by_attacker=shot_down_directly
+        sortie,
+        lost=lost,
+        loss_cause=loss_cause,
+        cutoff_tick=cutoff,
+        killed_by_attacker=shot_down_directly,
+        strafed_min_damage=rules.strafed_min_damage,
     )
+    if attacker_cause and rammer is None and failed_landing(sortie, loss, strafed=strafed, off=off):
+        # OQ-112: a damaged aircraft that fails its landing is a crash; kill credit is decided by credit_kill
+        attacker_cause = False
+        loss_cause = "self"
 
     dead = died is not None or disc_death
     status_pos: Pos | None = None

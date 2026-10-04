@@ -187,17 +187,19 @@ other** (option a: "we want to encourage players to taxi well"). Two extra flags
 ```
 taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
 strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss, and either
-                    (a) it never took off (then it is strafed whatever hit it), or
-                    (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and **another object did
-                        significant damage to it after the landing** (maintainer, OQ-112, 2026-10-04); an attacker named on the kill line
-                        counts as that. Air damage before the landing does not matter.
-                    Not strafed: a damaged aircraft that fails its landing is **crashed** (its loss resolves at the landing tick, so it is
-                    no landing here: shot up, crash-landed, destroyed = shot down), and a landed wreck that burned down with no significant
-                    damage from another object after the landing (= shot down)
+                    (a) it never took off (strafed whatever hit it), or
+                    (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and other objects did
+                        significant damage after the landing (>= 5% of DMG summed, `[replay] strafed_min_damage`; maintainer, OQ-112,
+                        2026-10-04). With no attacker damage in the log at all, a kill line naming an attacker or an attacker hit after
+                        the landing counts (damage lines can be missing) [PROPOSED].
+A damaged aircraft that fails its landing (a crash-landing resolved at the landing tick, or a landed wreck with the attackers' damage all
+before the landing) is not strafed and not shot down: it is `crashed`, loss_cause `self` (skipped when another aircraft rammed it). Kill
+credit is unchanged: the earlier attacker keeps the air kill. The timeline shows `destroyed`.
 both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
 ```
 Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
-not parked aircraft) and **28 strafed** (10 parked, 18 after landing; the 2026-10-04 rule change added 9, all after landing). The timeline's `destroyed` / `shot_down` entry says which.
+not parked aircraft) and **27 strafed** (10 parked, 17 after landing). The damage after a landing splits cleanly: 33 landed losses had at most 0.13% and 16 had at
+least 14.8%, so any threshold from 1% to 14% gives the same result. The OQ-112 rule moved 24 losses from shot down to crashed. The timeline's `destroyed` / `shot_down` entry says which.
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).

@@ -37,11 +37,12 @@ def combat_role(sortie: SortieState) -> CombatRole | None:
     return "attack" if loaded.bombs > 0 or loaded.rockets > 0 else "air_superiority"
 
 
-INTERCEPT_CLASSES: frozenset[str] = frozenset({"bomber", "attacker"})
+INTERCEPT_CLASSES: frozenset[str] = frozenset({"bomber", "attacker", "transport"})
 
 
 def is_interception_victim(victim_class: str | None, victim_role: str | None) -> bool:
-    """Is an air victim a bomber or an attacker (doc 13, interception)? AI aircraft count by their catalog class, a
+    """Is an air victim a bomber, an attacker or a transport (doc 13, interception; transports added 2026-10-04, OQ-102:
+    paratrooper and supply planes are important targets)? AI aircraft count by their catalog class, a
     player's sortie also by its combat role (a fighter with bombs or rockets is attacking)."""
     return victim_class in INTERCEPT_CLASSES or victim_role == "attack"
 
