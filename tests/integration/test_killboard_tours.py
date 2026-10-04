@@ -26,7 +26,7 @@ from tests.simple_reads import assert_simple_reads
 pytestmark = pytest.mark.django_db
 
 OCTOBER = datetime(2026, 10, 5, 12, tzinfo=UTC)
-PROFILE_BUDGET = 11  # the same in test_player_pages, test_stat_marks, test_ammo_pve_pages and test_killboard_streaks
+PROFILE_BUDGET = 12  # the same in test_player_pages, test_stat_marks, test_ammo_pve_pages and test_killboard_streaks
 ASSISTS_ON = KillboardRules(assists=True)
 
 

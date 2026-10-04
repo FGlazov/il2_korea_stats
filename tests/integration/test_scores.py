@@ -191,7 +191,7 @@ def test_the_score_config_reaches_save_and_rebuild_through_the_pipeline(tmp_path
 
 
 def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Both backfills go through one helper that hands `[marks]` and `[score]` to `rebuild_aggregates`."""
+    """Both backfills go through one helper that hands `[marks]`, `[score]` and `[killboard]` to `rebuild_aggregates`."""
     import il2ks.ingest.aggregates as aggregates
     from il2ks.ops import migrate
 
@@ -207,5 +207,5 @@ def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, m
 
     migrate._backfill_scores(cfg)  # pyright: ignore[reportPrivateUsage]
 
-    assert calls == [{"marks": cfg.marks, "score": cfg.score}]
+    assert calls == [{"marks": cfg.marks, "score": cfg.score, "board": cfg.board}]
     assert cfg.marks.min_sorties == 7

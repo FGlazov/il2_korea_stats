@@ -137,6 +137,11 @@ decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 - Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
+- ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the release: a new
+  database is created in one step instead of replaying the development history (faster installs). Done once, with the
+  released-migration guard's maintainer override (`IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1`); development databases are recreated
+  afterwards (or marked applied with `migrate --fake-initial` after checking the schema matches). Backfills in `ops/migrate.py`
+  that only exist for pre-release databases can go at the same time.
 - 🔧 **More branding for server admins** (maintainer, 2026-10-04): any number of extra links in the top navigation row after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
