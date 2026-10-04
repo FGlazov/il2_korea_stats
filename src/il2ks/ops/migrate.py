@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from il2ks.config import Config
 
@@ -62,6 +62,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         _backfill_scores(cfg)
         _backfill_type_ratings(cfg)
         _backfill_type_killboard(cfg)
+        _backfill_interception(cfg)
         return backup
 
 
@@ -69,6 +70,7 @@ BACKFILL_TOURS = "tours"  # missions without a tour, per-tour rows, best streaks
 BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
 BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
+BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
 
 
 def _already_done(name: str) -> bool:
@@ -96,6 +98,43 @@ def _rebuild_all(cfg: Config) -> None:
     from il2ks.ingest.aggregates import rebuild_aggregates
 
     rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+
+def _backfill_interception(cfg: Config) -> None:
+    """A database from before the interception board has no `PlayerSortie.kills_air_intercept`. The sortie timelines
+    name every kill's victim type (and the victim's sortie), so the column is derived from them (the same rule as the
+    replay, `is_interception_victim`), then level 2 is rebuilt once (FR-WEB-7). `il2ks reprocess` gives the same."""
+    from django.db import transaction
+
+    from il2ks.core.replay.attack import is_interception_victim
+    from il2ks.db.models import GameObject, PlayerSortie
+    from il2ks.ingest.dbutil import update_rows
+
+    if _already_done(BACKFILL_INTERCEPTION):
+        return
+    sorties = PlayerSortie.objects.filter(kills_air__gt=0)
+    with transaction.atomic():
+        if PlayerSortie.objects.exists() and not sorties.filter(kills_air_intercept__gt=0).exists():
+            log.info("counting kills of bombers and attackers")
+            classes = dict(GameObject.objects.values_list("log_name", "cls"))
+            roles = dict(PlayerSortie.objects.exclude(combat_role=None).values_list("pk", "combat_role"))
+            changed: list[PlayerSortie] = []
+            for sortie in sorties.only("pk", "timeline", "kills_air_intercept"):
+                count = 0
+                for entry in sortie.timeline:
+                    other = entry.get("counterpart")
+                    if entry.get("kind") != "kill" or not isinstance(other, dict):
+                        continue
+                    victim = cast("dict[str, object]", other)
+                    victim_id = victim.get("sortie_id")
+                    victim_role = roles.get(victim_id) if isinstance(victim_id, int) else None
+                    count += is_interception_victim(classes.get(str(victim.get("object_type"))), victim_role)
+                if count:
+                    sortie.kills_air_intercept = count
+                    changed.append(sortie)
+            update_rows(PlayerSortie, changed, ["kills_air_intercept"])
+            _rebuild_all(cfg)
+        _mark_done(BACKFILL_INTERCEPTION)
 
 
 def _backfill_type_killboard(cfg: Config) -> None:

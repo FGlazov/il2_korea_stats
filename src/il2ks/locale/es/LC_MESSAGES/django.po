@@ -387,6 +387,14 @@ msgid "Air superiority"
 msgstr "Superioridad aérea"
 
 # llm-draft
+msgid "Air superiority flight time"
+msgstr "Tiempo de vuelo en superioridad aérea"
+
+# llm-draft
+msgid "Air superiority sorties"
+msgstr "Salidas de superioridad aérea"
+
+# llm-draft
 #. Translators: heading of the profile part about fighting other aircraft (air kills, K/D, Elo), as opposed to attacking
 #. ground targets
 msgid "Air-to-air"
@@ -685,6 +693,13 @@ msgstr "Mejores rachas de %(name)s"
 
 # llm-draft
 #, python-format
+msgid "Better than 3 in 4 pilots with at least %(n)s minute of air superiority flight"
+msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes of air superiority flight"
+msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minuto de vuelo en superioridad aérea"
+msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minutos de vuelo en superioridad aérea"
+
+# llm-draft
+#, python-format
 msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
 msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s minuto sobre el objetivo"
@@ -703,6 +718,13 @@ msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
 msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
 msgstr[0] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salida"
 msgstr[1] "Mejor que 3 de cada 4 pilotos con al menos %(n)s salidas"
+
+# llm-draft
+#, python-format
+msgid "Better than 9 in 10 pilots with at least %(n)s minute of air superiority flight"
+msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes of air superiority flight"
+msgstr[0] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minuto de vuelo en superioridad aérea"
+msgstr[1] "Mejor que 9 de cada 10 pilotos con al menos %(n)s minutos de vuelo en superioridad aérea"
 
 # llm-draft
 #, python-format
@@ -740,6 +762,19 @@ msgstr "Texto principal"
 # llm-draft
 msgid "Bomb release"
 msgstr "Lanzamiento de bombas"
+
+# llm-draft
+msgid "Bombers and attackers shot down"
+msgstr "Bombarderos y aviones de ataque derribados"
+
+# llm-draft
+msgid ""
+"Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player aircraft "
+"flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+msgstr ""
+"Bombarderos y aviones de ataque derribados por hora de vuelo en superioridad aérea: bombarderos y aviones de ataque "
+"de la IA, y aviones de jugadores en una salida de ataque (bombas o cohetes). Solo cuentan las salidas de superioridad"
+" aérea."
 
 # llm-draft
 msgid "Bombs"
@@ -1507,6 +1542,14 @@ msgid "Intercept flights only"
 msgstr "Solo interceptaciones"
 
 # llm-draft
+msgid "Interception"
+msgstr "Intercepción"
+
+# llm-draft
+msgid "Interception per hour"
+msgstr "Intercepción por hora"
+
+# llm-draft
 msgid "Ironman"
 msgstr "Ironman"
 
@@ -1609,6 +1652,10 @@ msgstr "Derribos por víctima"
 # llm-draft
 msgid "Kills it hit in"
 msgstr "Derribos en los que impactó"
+
+# llm-draft
+msgid "Kills per hour"
+msgstr "Derribos por hora"
 
 # llm-draft
 msgid "Kind"
@@ -2299,6 +2346,10 @@ msgid "Payload"
 msgstr "Carga"
 
 # llm-draft
+msgid "Per hour"
+msgstr "Por hora"
+
+# llm-draft
 msgid "Period"
 msgstr "Periodo"
 
@@ -2341,6 +2392,11 @@ msgid "Pilots with at least %(games)s rated game."
 msgid_plural "Pilots with at least %(games)s rated games."
 msgstr[0] "Pilotos con al menos %(games)s partida puntuada."
 msgstr[1] "Pilotos con al menos %(games)s partidas puntuadas."
+
+# llm-draft
+#, python-format
+msgid "Pilots with at least %(sorties)s air superiority sorties and %(minutes)s minutes of air superiority flight."
+msgstr "Pilotos con al menos %(sorties)s salidas de superioridad aérea y %(minutes)s minutos de vuelo en superioridad aérea."
 
 # llm-draft
 #, python-format
@@ -2932,8 +2988,28 @@ msgid "Tank"
 msgstr "Tanque"
 
 # llm-draft
+msgid "Tank busting"
+msgstr "Caza de tanques"
+
+# llm-draft
 msgid "Tanks"
 msgstr "Tanques"
+
+# llm-draft
+msgid "Tanks destroyed"
+msgstr "Tanques destruidos"
+
+# llm-draft
+msgid "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."
+msgstr "Tanques destruidos en salidas de ataque por hora sobre el objetivo. El trayecto de ida y vuelta no cuenta."
+
+# llm-draft
+msgid "Tanks destroyed per hour on target"
+msgstr "Tanques destruidos por hora sobre el objetivo"
+
+# llm-draft
+msgid "Tanks per hour"
+msgstr "Tanques por hora"
 
 # llm-draft
 msgid "Target"
@@ -3665,6 +3741,10 @@ msgstr "texto principal en tarjetas y tablas"
 # llm-draft
 msgid "body text on the page background"
 msgstr "texto principal sobre el fondo de la página"
+
+# llm-draft
+msgid "bomber and attacker kills, air superiority sorties"
+msgstr "derribos de bombarderos y aviones de ataque, salidas de superioridad aérea"
 
 # llm-draft
 msgid "by"

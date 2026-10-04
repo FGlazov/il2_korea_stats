@@ -75,7 +75,7 @@ def test_air_board_ranks_by_score_and_leaves_out_hidden_players(client: Client) 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
 def test_hidden_players_are_absent_from_every_board(client: Client) -> None:
     seed()
-    for board in ("air", "ground", "ground-hour", "elo-prop", "elo-jet"):
+    for board in ("air", "ground", "ground-hour", "elo-prop", "elo-jet", "interception", "tank-busting"):
         assert "Ghost" not in names(client, f"/leaderboards/{board}/"), board
         assert "Ghost" not in client.get(f"/leaderboards/{board}/").content.decode(), board
 
@@ -311,11 +311,14 @@ def test_elo_boards_are_not_split_again_and_the_pool_filter_is_offered_elsewhere
     assert names(client, "/leaderboards/elo-jet/?pool=prop") == names(client, "/leaderboards/elo-jet/")
 
 
-def test_the_board_switcher_lists_elo_jet_elo_prop_air_then_ground_per_hour_and_ground(client: Client) -> None:
+def test_the_board_switcher_lists_the_air_boards_then_the_ground_boards(client: Client) -> None:
     """Maintainer decision 2026-10-04: this order, an air group and a ground group, no kills board."""
     groups = {title: [t[0] for t in tabs] for title, tabs in client.get("/leaderboards/").context["tab_groups"]}
 
-    assert groups == {"Air": ["elo-jet", "elo-prop", "air"], "Ground": ["ground-hour", "ground"]}
+    assert groups == {
+        "Air": ["elo-jet", "elo-prop", "air", "interception"],
+        "Ground": ["ground-hour", "tank-busting", "ground"],
+    }
     body = client.get("/leaderboards/").content.decode()
     assert "Propeller and jet" in body
 
@@ -373,9 +376,10 @@ def test_home_highlights_elo_and_ground_proficiency(client: Client) -> None:
     response = client.get("/")
 
     boards = {b.key: [r.player.current_name for r in b.rows] for b in response.context["boards"]}
-    assert list(boards) == ["elo-jet", "elo-prop", "ground-hour"]
+    assert list(boards) == ["elo-jet", "elo-prop", "interception", "ground-hour", "tank-busting"]
     assert boards["elo-jet"][0] == "Ace"
     assert boards["ground-hour"] == ["Pounder", "Fencer"]
+    assert boards["tank-busting"] == ["Pounder", "Fencer"]
     assert "Ghost" not in response.content.decode()
     assert "/leaderboards/elo-jet/" in response.content.decode()
 

@@ -20,7 +20,11 @@ class PageSpec:
 
 
 PAGES: tuple[PageSpec, ...] = (
-    PageSpec("home", lambda w: "/", 6),
+    # site context 2, missions, last mission and its pilots, streaks, activity days, five compact boards, online now
+    PageSpec("home", lambda w: "/", 12),
+    PageSpec("leaderboards", lambda w: "/leaderboards/", 7),
+    PageSpec("leaderboard", lambda w: "/leaderboards/interception/?tour=all", 7),
+    PageSpec("leaderboard", lambda w: "/leaderboards/tank-busting/?pool=prop", 7),
     PageSpec("mission-list", lambda w: "/missions/", 6),
     PageSpec("mission-list", lambda w: "/missions/?page=3", 6),
     PageSpec("mission-detail", lambda w: f"/missions/{w.mission_pk}/", 6, max_ms=600.0),
@@ -30,6 +34,7 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("player-sorties", lambda w: f"/players/{w.player_pk}/sorties/", 8),
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
     PageSpec("streak-list", lambda w: "/streaks/", 5),
+    PageSpec("player-streaks", lambda w: f"/players/{w.player_pk}/streaks/", 7),
     PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 6),
     PageSpec("aircraft-list", lambda w: "/aircraft/", 5),
     PageSpec("aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 9),

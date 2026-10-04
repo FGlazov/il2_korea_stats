@@ -15,7 +15,8 @@ Rules:
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
   and ratios need `min_sorties` sorties; Elo needs `min_elo_games` rated games in that pool (all time, shown against
-  the all-time population on a tour profile too); ground score per hour needs `min_time_on_target_s` on target. The
+  the all-time population on a tour profile too); ground score and tanks per hour need
+  `min_time_on_target_s` on target; interception per hour needs `min_air_superiority_s` of air superiority flight. The
   stored `StatThreshold.min_sorties` holds that minimum in the metric's unit (sorties, games, seconds).
 - A population smaller than `MIN_POPULATION` has no thresholds (a percentile of a handful of pilots means nothing).
 """
@@ -39,6 +40,8 @@ type Metric = Literal[
     "ground_score_hour",
     "elo_prop",
     "elo_jet",
+    "interception_hour",
+    "tank_hour",
 ]
 type Band = Literal["top", "high"]
 
@@ -56,6 +59,8 @@ METRICS: Final[tuple[Metric, ...]] = (
     "ground_score_hour",
     "elo_prop",
     "elo_jet",
+    "interception_hour",
+    "tank_hour",
 )
 ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # all time only: ratings are not per tour
 MIN_POPULATION: Final = 20  # pilots needed before a distribution is worth showing
@@ -68,7 +73,8 @@ class MarkRules:
 
     min_sorties: int = 20  # a pilot (and a distribution) needs at least this many counted sorties
     min_elo_games: int = 5  # Elo marks: rated games in that pool (the `[score]` minimum of the Elo boards)
-    min_time_on_target_s: float = 600.0  # ground score per hour: time on target (the ground-per-hour board's minimum)
+    min_time_on_target_s: float = 600.0  # ground score / tanks per hour: time on target (the boards' minimum)
+    min_air_superiority_s: float = 3600.0  # interception per hour: air superiority flight time (the board's minimum)
 
     def minimum(self, metric: Metric) -> int:
         """The minimum a pilot needs for `metric`, in its unit (see `unit`), as stored with the thresholds."""
@@ -77,6 +83,8 @@ class MarkRules:
                 return max(self.min_elo_games, 1)
             case "seconds":
                 return math.ceil(max(self.min_time_on_target_s, 1.0))
+            case "flight_seconds":
+                return math.ceil(max(self.min_air_superiority_s, 1.0))
             case _:
                 return self.min_sorties
 
@@ -104,9 +112,12 @@ class Totals:
     elo_prop_games: int = 0
     elo_jet: float = 0.0
     elo_jet_games: int = 0
+    flight_time_air_s: float = 0.0  # flight time of air superiority sorties
+    kills_intercept: int = 0  # air kills of bombers and attackers in air superiority sorties
+    kills_tank_attack: int = 0  # tanks destroyed in attack sorties
 
 
-type Unit = Literal["sorties", "games", "seconds"]
+type Unit = Literal["sorties", "games", "seconds", "flight_seconds"]
 
 
 def unit(metric: Metric) -> Unit:
@@ -114,7 +125,9 @@ def unit(metric: Metric) -> Unit:
     match metric:
         case "elo_prop" | "elo_jet":
             return "games"
-        case "ground_score_hour":
+        case "interception_hour":
+            return "flight_seconds"
+        case "ground_score_hour" | "tank_hour":
             return "seconds"
         case _:
             return "sorties"
@@ -127,8 +140,10 @@ def amount(metric: Metric, totals: Totals) -> float:
             return totals.elo_prop_games
         case "elo_jet":
             return totals.elo_jet_games
-        case "ground_score_hour":
+        case "ground_score_hour" | "tank_hour":
             return totals.time_on_target_s
+        case "interception_hour":
+            return totals.flight_time_air_s
         case _:
             return totals.sorties
 
@@ -158,6 +173,10 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return totals.score_ground
         case "ground_score_hour":
             return _div(totals.score_ground_attack * SECONDS_PER_HOUR, totals.time_on_target_s)
+        case "interception_hour":
+            return _div(totals.kills_intercept * SECONDS_PER_HOUR, totals.flight_time_air_s)
+        case "tank_hour":
+            return _div(totals.kills_tank_attack * SECONDS_PER_HOUR, totals.time_on_target_s)
         case "elo_prop":
             return totals.elo_prop if totals.elo_prop_games > 0 else None
         case "elo_jet":

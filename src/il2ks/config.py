@@ -139,7 +139,9 @@ class LeaderboardConfig:
     min_sorties: int = 5  # score and kill boards: pilot sorties flown (in the tour, or all-time)
     min_elo_games: int = 5  # Elo boards: rated games in that pool (Elo is all-time)
     min_attack_sorties: int = 5  # ground-per-hour board: attack sorties flown
-    min_time_on_target_minutes: float = 10.0  # ground-per-hour board: time on target (FR-WEB-20)
+    min_time_on_target_minutes: float = 10.0  # ground-per-hour and tank-busting boards: time on target (FR-WEB-20)
+    min_air_superiority_sorties: int = 5  # interception board: air superiority sorties flown
+    min_air_superiority_minutes: float = 60.0  # interception board: air superiority flight time
 
 
 @dataclass(frozen=True, slots=True)
@@ -307,12 +309,19 @@ def load_config(
         min_time_on_target_minutes=reader.non_negative(
             "score", "min_time_on_target_minutes", board_defaults.min_time_on_target_minutes
         ),
+        min_air_superiority_sorties=reader.whole_number(
+            "score", "min_air_superiority_sorties", board_defaults.min_air_superiority_sorties
+        ),
+        min_air_superiority_minutes=reader.non_negative(
+            "score", "min_air_superiority_minutes", board_defaults.min_air_superiority_minutes
+        ),
     )
     # The Elo and ground-per-hour marks use the minimums of the boards they sit next to, so marks and boards agree.
     marks = MarkRules(
         min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties),
         min_elo_games=leaderboards.min_elo_games,
         min_time_on_target_s=leaderboards.min_time_on_target_minutes * 60.0,
+        min_air_superiority_s=leaderboards.min_air_superiority_minutes * 60.0,
     )
 
     board = KillboardRules(assists=reader.bool_("killboard", "assists", KillboardRules().assists))

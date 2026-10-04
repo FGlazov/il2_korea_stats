@@ -30,7 +30,7 @@ def assert_simple_reads(client: Client, url: str, max_queries: int) -> None:
 
 
 # Query budgets of the home page, shared by test_views, test_mission_pages and test_charts so they cannot drift apart.
-HOME_EXTRA_READS = 4  # the three compact boards (Elo jet, Elo prop, ground per hour) and the online-now snapshot
+HOME_EXTRA_READS = 6  # the five compact boards (Elo, interception, ground per hour, tank busting), the online snapshot
 HOME_READS_EMPTY = 5 + HOME_EXTRA_READS
 """No missions: the site context (2), latest missions, streaks block, activity days, plus `HOME_EXTRA_READS`."""
 HOME_READS = 6 + HOME_EXTRA_READS

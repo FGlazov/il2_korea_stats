@@ -22,6 +22,8 @@ BOARD_TITLES = {
     "air": _("Air score"),
     "ground": _("Ground score"),
     "ground-hour": _("Ground score per hour"),
+    "interception": _("Interception"),
+    "tank-busting": _("Tank busting"),
     "elo-prop": _("Elo, prop"),
     "elo-jet": _("Elo, jet"),
 }
@@ -29,11 +31,13 @@ GROUP_TITLES = {
     "air": _("Air"),
     "ground": _("Ground"),
 }
-BOARD_ICONS = {  # the existing icon set (static/il2ks/img): air kills for the Elo boards, the roles for the scores
-    "elo-jet": "stat/air-kills",
-    "elo-prop": "stat/air-kills",
+BOARD_ICONS = {  # the icon set (static/il2ks/img): chess pieces for the Elo boards, the roles for the scores
+    "elo-jet": "stat/elo-jet",
+    "elo-prop": "stat/elo-prop",
     "air": "role/air-superiority",
+    "interception": "stat/interception",
     "ground-hour": "stat/flight-time",
+    "tank-busting": "ground/tank",
     "ground": "role/attack",
 }
 RETIRED_BOARDS = frozenset({"kills"})  # removed 2026-10-04; old links go to the index
@@ -43,6 +47,13 @@ BOARD_HELP = {
     "ground": _("Points for ground kills (a tank counts for far more than a fence), minus the same penalties."),
     "ground-hour": _(
         "Ground score earned in attack sorties per hour spent on target. Transit to and from the target is not counted."
+    ),
+    "interception": _(
+        "Bombers and attackers shot down per hour of air superiority flight: AI bombers and attackers, and player "
+        "aircraft flying an attack sortie (bombs or rockets). Only air superiority sorties count."
+    ),
+    "tank-busting": _(
+        "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."
     ),
     "elo-prop": _(
         "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. "

@@ -1,9 +1,10 @@
 """Resolve recorded facts into a `MissionResult`. Used by `snapshot()` (provisional) and `finish()` (final)."""
 
 from collections import Counter
+from collections.abc import Mapping
 
 from il2ks.core.replay.ammo import EMPTY_SORTIE_AMMO, AmmoAnalysis, analyse, merge_ammo_hits
-from il2ks.core.replay.attack import GroundTargets, combat_role, time_on_target_s
+from il2ks.core.replay.attack import GroundTargets, combat_role, is_interception_victim, time_on_target_s
 from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import ticks, was_resupplied
@@ -15,6 +16,7 @@ from il2ks.core.replay.rams import ram_partners
 from il2ks.core.replay.result import (
     AmmoCounts,
     AmmoHits,
+    CombatRole,
     DamageExchange,
     KillResult,
     MissionInfo,
@@ -50,6 +52,7 @@ def _build_sortie(
     rules: ReplayRules,
     targets: GroundTargets,
     ammo: AmmoAnalysis,
+    roles: Mapping[int, CombatRole | None],
 ) -> SortieResult:
     role = combat_role(sortie)
     sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
@@ -105,6 +108,13 @@ def _build_sortie(
         kills_air=len(air),
         kills_air_pvp=sum(1 for k in air if k.victim_sortie_index is not None),
         kills_air_ai=sum(1 for k in air if k.victim_sortie_index is None),
+        kills_air_intercept=sum(
+            1
+            for k in air
+            if is_interception_victim(
+                k.victim_class, roles.get(k.victim_sortie_index) if k.victim_sortie_index is not None else None
+            )
+        ),
         loss_class=loss_class(sortie, verdict),
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
@@ -140,8 +150,11 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     friendly = friendly_fire(facts, verdicts, kills)
     targets = GroundTargets(facts, rules.tot_target_radius_m)
     ammo = analyse(facts, verdicts, kills, rules)
+    roles: dict[int, CombatRole | None] = {sortie.index: combat_role(sortie) for sortie in facts.sorties}
     sorties = tuple(
-        _build_sortie(sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets, ammo)
+        _build_sortie(
+            sortie, verdict, kills, details[sortie.index], friendly[sortie.index], rules, targets, ammo, roles
+        )
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )
     seen = frozenset(t for t in facts.types_seen if not is_bot_type(t))

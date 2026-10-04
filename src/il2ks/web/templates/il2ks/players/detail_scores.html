@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_scores.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_scores.html v5 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_scores.html: the score and rating block of the profile (FR-WEB-7, 19, 20), from stored values.
   Context: stats (the counters shown on the page: all time, or the selected tour's; None for a tour without sorties),
@@ -6,6 +6,8 @@
   detail_ground_scores.html. Elo shows once the player has rated games in that pool (otherwise the dash).
 {% endcomment %}<dl class="kv">
   <dt>{% translate "Air score" %}</dt><dd>{{ stats.score_air|num:1 }}{% stat_mark "air_score" %}</dd>
+  <dt>{% translate "Interception per hour" %} <small>{% translate "bomber and attacker kills, air superiority sorties" %}</small></dt>
+  <dd>{{ stats.kills_intercept|per_hour:stats.flight_time_air_s }}{% stat_mark "interception_hour" %}</dd>
   <dt>{% translate "Elo, prop" %} <small>{% translate "all time" %}</small></dt>
   <dd>{% if player.elo_prop_games %}{{ player.elo_prop|num }}{% stat_mark "elo_prop" %} <small>{% blocktranslate count games=player.elo_prop_games %}{{ games }} game{% plural %}{{ games }} games{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
   <dt>{% translate "Elo, jet" %} <small>{% translate "all time" %}</small></dt>
