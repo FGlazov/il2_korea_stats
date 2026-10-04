@@ -17,6 +17,16 @@ msgstr ""
 
 # llm-draft
 #, python-format
+msgid "%(air)s air, %(ground)s ground"
+msgstr "%(air)s aéreas, %(ground)s terrestres"
+
+# llm-draft
+#, python-format
+msgid "%(air)s on aircraft, %(ground)s on ground targets"
+msgstr "%(air)s em aeronaves, %(ground)s em alvos terrestres"
+
+# llm-draft
+#, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
 msgstr[0] "%(counter)s apelido"
@@ -388,8 +398,8 @@ msgid "Admin user name"
 msgstr "Nome de usuário do administrador"
 
 # llm-draft
-msgid "Ah, all your kills got stolen! The wingmen send their thanks, and nothing else."
-msgstr "Ah, roubaram todos os seus abates! Seus companheiros agradecem, e só."
+msgid "Ah, the finishing shots went to somebody else! The wingmen send their thanks, and nothing else."
+msgstr "Ah, os tiros finais ficaram com outro! Os ala agradecem, e só isso."
 
 # llm-draft
 msgid "Air"
@@ -398,6 +408,10 @@ msgstr "Ar"
 # llm-draft
 msgid "Air / ground kills"
 msgstr "Abates ar / solo"
+
+# llm-draft
+msgid "Air assists"
+msgstr "Assistências aéreas"
 
 # llm-draft
 msgid "Air kills"
@@ -1428,6 +1442,10 @@ msgstr "Bom (verde)"
 # llm-draft
 msgid "Ground"
 msgstr "Solo"
+
+# llm-draft
+msgid "Ground assists"
+msgstr "Assistências terrestres"
 
 # llm-draft
 msgid "Ground fire: the one opponent that never needs fuel."
@@ -2675,6 +2693,10 @@ msgid "Please look at the marked answers below. Nothing was changed."
 msgstr "Confira as respostas marcadas abaixo. Nada foi alterado."
 
 # llm-draft
+msgid "Plenty of ground targets carry your handiwork and somebody else's name in the log."
+msgstr "Muitos alvos no chão levam a sua marca e o nome de outro no registro."
+
+# llm-draft
 msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
 msgstr "Pontos por abates aéreos e assistências, menos penalidades por mortes, aeronaves perdidas e aliados abatidos."
 
@@ -3472,6 +3494,10 @@ msgid "The ground crew and the squadron both have a file on this one. The files 
 msgstr "A equipe de solo e o esquadrão têm uma pasta sobre este piloto. As pastas já se conhecem."
 
 # llm-draft
+msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
+msgstr "As equipes do outro lado sabem direitinho de quem foi o trabalho, mesmo que o registro não diga."
+
+# llm-draft
 msgid "The gun camera footage on this one would be a good watch."
 msgstr "A filmagem da câmera de tiro desse aqui daria um bom filme."
 
@@ -4002,6 +4028,10 @@ msgid "Winner"
 msgstr "Vencedor"
 
 # llm-draft
+msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
+msgstr "Você desgastou o comboio de forma linda, e o crédito foi para quem atirou por último. Um contador cruel."
+
+# llm-draft
 #, python-format
 msgid "Worst exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
 msgstr "Pior troca: contra %(enemy)s (%(kills)s abates, %(losses)s perdas)."
@@ -4025,6 +4055,10 @@ msgstr "Sim"
 # llm-draft
 msgid "Yes, reprocess all missions"
 msgstr "Sim, reprocessar todas as missões"
+
+# llm-draft
+msgid "You wore those targets down and somebody else finished them. Next time, the last shot is yours."
+msgstr "Você enfraqueceu esses alvos e outro terminou o serviço. Da próxima vez, o último tiro é seu."
 
 # llm-draft
 msgid "after the pilot bailed out"

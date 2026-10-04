@@ -142,6 +142,31 @@ def test_player_kills_ai_air_and_ground_counters() -> None:
     assert {(k.victim_kind, k.victim_sortie_index) for k in result.kills} == {("air", None), ("ground", None)}
 
 
+def test_assists_are_split_into_air_and_ground_victims() -> None:
+    """Assist credits count on the victim's kind, like kills_air / kills_ground; `assists` is their sum."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly(500, 501, 3, aircraft_type="MiG-15bis", country=601)
+    sc.declare(0, 300, "MiG-15bis", 501)
+    sc.declare(0, 401, "M46 Patton", 501)
+    sc.declare(0, 402, "M46 Patton", 501)
+    sc.damage(100, 100, 300, 0.3)  # air: A softens it up, the other pilot finishes it
+    sc.damage(101, 500, 300, 0.7)
+    sc.kill(102, 500, 300)
+    for tick, target in ((110, 401), (120, 402)):  # ground: the same twice
+        sc.damage(tick, 100, target, 0.3)
+        sc.damage(tick + 1, 500, target, 0.7)
+        sc.kill(tick + 2, 500, target)
+    sc.end(200, 100, 101)
+    sc.end(200, 500, 501)
+    result = sc.result()
+    a, other = by_acct(result, 1), by_acct(result, 3)
+    assert (a.kills_air, a.kills_ground) == (0, 0)
+    assert (a.assists, a.assists_air, a.assists_ground) == (3, 1, 2)
+    assert (other.kills_air, other.kills_ground, other.assists) == (1, 2, 0)
+    assert [e.kind for e in a.timeline].count("assist") == a.assists
+
+
 def test_ai_against_ai_has_no_kill_row() -> None:
     sc = Scenario()
     sc.fly_a()

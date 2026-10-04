@@ -32,7 +32,7 @@ class ScoreRules:
 
     air_kill_pvp: float = 10.0  # shooting down another player's aircraft
     air_kill_ai: float = 2.0  # shooting down an AI aircraft
-    air_assist: float = 3.0  # an assist on a player's or AI aircraft
+    air_assist: float = 3.0  # an assist on a player's or AI aircraft (ground assists score nothing)
     ground_tank: float = 6.0
     ground_vehicle: float = 3.0  # trucks, cars, halftracks, tractors, rocket launchers
     ground_artillery: float = 5.0
@@ -60,7 +60,7 @@ class SortieFacts:
     attack: bool  # combat role `attack`; anything else pays its penalties from the air score
     kills_air_pvp: int
     kills_air_ai: int
-    assists: int
+    assists_air: int  # assist credits on air victims; ground assists score nothing
     kills_ground: dict[GroundCategory, int]
     is_death: bool
     is_plane_lost: bool
@@ -120,7 +120,7 @@ def score_sortie(facts: SortieFacts, rules: ScoreRules = DEFAULT_SCORE_RULES) ->
     """Air and ground score of one pilot sortie. Kills count for their own score whatever the combat role. The outcome
     percentage reduces whichever of the two is positive; the flat penalties are charged to the score of the role."""
     air = rules.air_kill_pvp * facts.kills_air_pvp + rules.air_kill_ai * facts.kills_air_ai
-    air += rules.air_assist * facts.assists
+    air += rules.air_assist * facts.assists_air
     ground = sum(ground_value(rules, c) * facts.kills_ground.get(c, 0) for c in GROUND_CATEGORIES)
     keep = 1.0 - outcome_fraction(rules, facts)
     air, ground = max(air, 0.0) * keep, max(ground, 0.0) * keep

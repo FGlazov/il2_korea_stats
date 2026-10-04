@@ -51,6 +51,8 @@ PLAYER_SORTS: Mapping[str, SortSpec] = {
     "ground_hour": Ratio("score_ground_attack", "time_on_target_s", scale=3600.0),
     "planes_lost": "planes_lost",
     "assists": "assists",
+    "assists_air": "assists_air",
+    "assists_ground": "assists_ground",
     "friendly_kills": "friendly_kills",
     "first_seen": "first_seen",
 }

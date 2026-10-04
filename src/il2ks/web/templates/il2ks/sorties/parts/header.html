@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/header.html v3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v4 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
   Discord screenshot). Context: sortie (player, mission, aircraft), detail.
@@ -25,6 +25,7 @@
 <div class="stat-tiles">
   {% stat_tile sortie.kills_air|num _("Air kills") icon="stat/air-kills" %}
   {% stat_tile sortie.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
-  {% stat_tile sortie.assists|num _("Assists") icon="stat/assists" %}
+  {% blocktranslate with air=sortie.assists_air|num ground=sortie.assists_ground|num asvar sub_assists %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
+  {% stat_tile sortie.assists|num _("Assists") sub=sub_assists icon="stat/assists" %}
   {% stat_tile sortie.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}
 </div>

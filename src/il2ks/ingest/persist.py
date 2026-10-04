@@ -353,6 +353,8 @@ _SORTIE_FIELDS = [
     "kills_air",
     "kills_ground",
     "assists",
+    "assists_air",
+    "assists_ground",
     "takeoffs",
     "landings",
     "friendly_kills",
@@ -474,6 +476,8 @@ def _fill_sortie(
     row.kills_air = s.kills_air
     row.kills_ground = s.kills_ground
     row.assists = s.assists
+    row.assists_air = s.assists_air
+    row.assists_ground = s.assists_ground
     row.takeoffs = s.takeoffs
     row.landings = s.landings
     row.friendly_kills = s.friendly_kills

@@ -234,8 +234,8 @@
       "sha256": "ed6a11d32034c58dad9cf8251f0981795b8e2148d74fd4cf11f9a1b0fa0f743e"
     },
     "templates/il2ks/leaderboards/table.html": {
-      "version": 3,
-      "sha256": "88ad994d1e0af45250b98e39eec6a112a93986ef1e1a790af62c7c5c89b644bb"
+      "version": 4,
+      "sha256": "490726dac338be2edf3e66206cc75a7bb4c37b4cae2b62e6eb27ea2ba35b8cce"
     },
     "templates/il2ks/missions/_player.html": {
       "version": 2,
@@ -282,8 +282,8 @@
       "sha256": "0ce4f05c3749f73bcdec4ccab60643e1f4eecf744f94d357219fa0d324649da8"
     },
     "templates/il2ks/players/detail_air_tiles.html": {
-      "version": 1,
-      "sha256": "6f6d8b1affdf3b060fd8bd56705e931f09cd46e978337f70fffdfa2a56a0b66b"
+      "version": 2,
+      "sha256": "da2541914b2f0dc91542a47924642bd10ff48c8c488db6642293f5d47dd80c38"
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 5,
@@ -306,8 +306,8 @@
       "sha256": "96987b27d345b604e9e302674030cbef6266775177f5b7f556b24c569e4452fb"
     },
     "templates/il2ks/players/detail_ground_tiles.html": {
-      "version": 1,
-      "sha256": "ff6eef77219006703bb9fd5f1cfd90eb8f58555965b848bb7891b4816c7eb331"
+      "version": 2,
+      "sha256": "717e6e17e46dafb8e84e3c8c22edf4fd58375f5b0d01170ce3869f4cd109f4dd"
     },
     "templates/il2ks/players/detail_header.html": {
       "version": 2,
@@ -410,8 +410,8 @@
       "sha256": "2c2007419c4e92c237224c9691f5a41f81795460cb8746e4ad7ad774bde393e9"
     },
     "templates/il2ks/sorties/parts/header.html": {
-      "version": 3,
-      "sha256": "26d8b24349ddf45c92fcab4ceaf3677b35a148f5a9dfd3f6be5ff645a1f6fa39"
+      "version": 4,
+      "sha256": "38b7c7e1fb7835c5de568aad3702c28160ca5f00d78638d317b1c9b036819c8a"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 2,
@@ -422,8 +422,8 @@
       "sha256": "96ba5ffca707626df087e94d66c326946db9ce8f6a8850fbba97021146302c7e"
     },
     "templates/il2ks/sorties/parts/kills.html": {
-      "version": 2,
-      "sha256": "385a0392edaedaabf31b7f7f170f683552597dfb22094e0ddaab9f9491108782"
+      "version": 3,
+      "sha256": "bc4c6418283b6828333646b5e0d5782b2212855ce3b6811be65b36266b10eeed"
     },
     "templates/il2ks/sorties/parts/list_row.html": {
       "version": 6,

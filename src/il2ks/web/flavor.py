@@ -24,10 +24,17 @@ BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landin
 # Thresholds of the extreme-event spots, read off the September 2026 archive (15,245 pilot sorties; share of those
 # sorties that reach the threshold, before the precedence in `sortie_spot` takes some away):
 BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
-# Assists that earn the stolen-kills line, by the sortie's own air kills (maintainer, 2026-10-04): 3+ with no air kill,
-# 5+ with one, 6+ with two (three or more air kills is the ace line, which comes first).
+# Air assists (assists on aircraft) that earn the stolen-kills line, by the sortie's own air kills (maintainer,
+# 2026-10-04): 3+ with no air kill, 5+ with one, 6+ with two (three or more air kills is the ace line, which comes
+# first). Ground assists have their own line. Of the 15,245 September pilot sorties only 291 have an air assist at all,
+# and none reaches these numbers: the line is for a rare, striking evening.
 STOLEN_ASSISTS_MIN = {0: 3, 1: 5}
 STOLEN_ASSISTS_MIN_MORE_KILLS = 6
+# Ground assists: at least 5 and at least as many as the sortie's own ground kills (the pilot did as much damage to
+# targets others finished as to those it finished itself): 1.5% of the 8,300 attack sorties (0.8% of all sorties); 5 is
+# the p75 and 10 the p90 of the sorties that have any ground assist (1,684 sorties, 11%). Not for 70+ ground kills (the
+# ground pounder line, below, fits better).
+STOLEN_GROUND_ASSISTS_MIN = 5
 QUICK_KILL_S = 420.0  # first air kill within 7 min of takeoff: 1.1%
 MARATHON_S = 3600.0  # flight time of 1 h or more: 1.0%
 BATTERED_KILLS_MIN = 2  # kills (air + ground) of a landing with BADLY_DAMAGED damage: 1.1%
@@ -153,7 +160,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Somebody's bombing run ended early. Somebody else is buying the next round."),
     ),
     "sortie_stolen_kills": (
-        gettext_lazy("Ah, all your kills got stolen! The wingmen send their thanks, and nothing else."),
+        gettext_lazy("Ah, the finishing shots went to somebody else! The wingmen send their thanks, and nothing else."),
         gettext_lazy("So many assists, so few credits. The kill counter is a cruel bookkeeper."),
         gettext_lazy(
             "Softened them up beautifully and the flight collected the trophies. Next time, the last shot is yours."
@@ -161,6 +168,14 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy(
             "The enemy was well and truly damaged. Somebody else just happened to be standing at the finish line."
         ),
+    ),
+    "sortie_stolen_ground": (
+        gettext_lazy("You wore those targets down and somebody else finished them. Next time, the last shot is yours."),
+        gettext_lazy("Plenty of ground targets carry your handiwork and somebody else's name in the log."),
+        gettext_lazy(
+            "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
+        ),
+        gettext_lazy("The ground crews on the other side know exactly whose work this was, even if the log does not."),
     ),
     "sortie_battered_victor": (
         gettext_lazy("Riddled, bruised and still scoring. The crew chief wants a word, then a handshake."),
@@ -207,7 +222,7 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
     achievements, then the broader ones):
 
     taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, flak, bomber hunter, ace, stolen kills,
-    battered victor, limped home, ground pounder, quick first kill, marathon.
+    stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
 
     `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
     spots are skipped."""
@@ -229,8 +244,14 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
         return "sortie_bomber_hunter"
     if sortie.kills_air >= MULTI_KILL_MIN:
         return "sortie_ace"
-    if sortie.assists >= STOLEN_ASSISTS_MIN.get(sortie.kills_air, STOLEN_ASSISTS_MIN_MORE_KILLS):
+    if sortie.assists_air >= STOLEN_ASSISTS_MIN.get(sortie.kills_air, STOLEN_ASSISTS_MIN_MORE_KILLS):
         return "sortie_stolen_kills"
+    if (
+        sortie.assists_ground >= STOLEN_GROUND_ASSISTS_MIN
+        and sortie.assists_ground >= sortie.kills_ground
+        and sortie.kills_ground < GROUND_KILLS_MIN
+    ):
+        return "sortie_stolen_ground"
     landed_damaged = (
         sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED
     )

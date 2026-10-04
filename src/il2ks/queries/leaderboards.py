@@ -72,7 +72,7 @@ BOARDS: Final[Mapping[str, Board]] = {
     ),
     "air": Board(
         "air",
-        {**_COMMON, "score": "score_air", "kills_air": "kills_air", "assists": "assists", "deaths": "deaths"},
+        {**_COMMON, "score": "score_air", "kills_air": "kills_air", "assists": "assists_air", "deaths": "deaths"},
         "-score",
     ),
     "interception": Board(

@@ -63,6 +63,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         _backfill_type_ratings(cfg)
         _backfill_type_killboard(cfg)
         _backfill_interception(cfg)
+        _backfill_assist_split(cfg)
         _backfill_achievements()
         return backup
 
@@ -72,6 +73,7 @@ BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
 BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
 BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
+BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 
 
@@ -100,6 +102,49 @@ def _rebuild_all(cfg: Config) -> None:
     from il2ks.ingest.aggregates import rebuild_aggregates
 
     rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+
+def _backfill_assist_split(cfg: Config) -> None:
+    """A database from before assists were split has `assists` but no `assists_air` / `assists_ground`. The timeline's
+    `assist` entries name the victim (a player sortie, or the object type), so air and ground are derived from them with
+    the replay's own rule (a victim is air when it is a player's aircraft or its catalog class is an air class); the
+    remainder of `assists` (a timeline that lost entries) counts as ground. Then level 2 is rebuilt once, which also
+    rescores (ground assists no longer score). `il2ks reprocess` gives the same."""
+    from django.db import transaction
+
+    from il2ks.core.catalog.loader import AIR_CLASSES
+    from il2ks.db.models import GameObject, PlayerSortie
+    from il2ks.ingest.dbutil import update_rows
+
+    if _already_done(BACKFILL_ASSIST_SPLIT):
+        return
+    sorties = PlayerSortie.objects.filter(assists__gt=0)
+    with transaction.atomic():
+        if (
+            sorties.exists()
+            and not sorties.filter(assists_air__gt=0).exists()
+            and not sorties.filter(assists_ground__gt=0).exists()
+        ):
+            log.info("splitting assists into air and ground")
+            classes = dict(GameObject.objects.values_list("log_name", "cls"))
+            changed: list[PlayerSortie] = []
+            for sortie in sorties.only("pk", "assists", "timeline", "assists_air", "assists_ground"):
+                air = 0
+                for entry in sortie.timeline:
+                    other = entry.get("counterpart")
+                    if entry.get("kind") != "assist" or not isinstance(other, dict):
+                        continue
+                    victim = cast("dict[str, object]", other)
+                    air += (
+                        victim.get("sortie_id") is not None
+                        or classes.get(str(victim.get("object_type"))) in AIR_CLASSES
+                    )
+                sortie.assists_air = min(air, sortie.assists)
+                sortie.assists_ground = sortie.assists - sortie.assists_air
+                changed.append(sortie)
+            update_rows(PlayerSortie, changed, ["assists_air", "assists_ground"])
+            _rebuild_all(cfg)
+        _mark_done(BACKFILL_ASSIST_SPLIT)
 
 
 def _backfill_interception(cfg: Config) -> None:

@@ -222,7 +222,9 @@ class Counters(models.Model):
     flight_time_s = models.FloatField(default=0.0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
-    assists = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)  # = assists_air + assists_ground
+    assists_air = models.PositiveIntegerField(default=0)
+    assists_ground = models.PositiveIntegerField(default=0)
     deaths = models.PositiveIntegerField(default=0)
     planes_lost = models.PositiveIntegerField(default=0)
     bailouts = models.PositiveIntegerField(default=0)
@@ -443,7 +445,9 @@ class PlayerSortie(models.Model):
     suspected_structural_failure = models.BooleanField(default=False)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
-    assists = models.PositiveIntegerField(default=0)
+    assists = models.PositiveIntegerField(default=0)  # = assists_air + assists_ground
+    assists_air = models.PositiveIntegerField(default=0)
+    assists_ground = models.PositiveIntegerField(default=0)
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
     friendly_kills = models.PositiveIntegerField(default=0)

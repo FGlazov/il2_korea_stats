@@ -37,17 +37,17 @@ def player_search(request: HttpRequest) -> HttpResponse:
 
 
 def _air_active(player: Player, stats: Counters | None) -> bool:
-    """Whether the air-to-air part has anything to show: air kills, assists or a rated Elo game (all time)."""
+    """Whether the air-to-air part has anything to show: air kills, air assists or a rated Elo game (all time)."""
     if stats is None:
         return False
-    return bool(stats.kills_air or stats.assists or player.elo_prop_games or player.elo_jet_games)
+    return bool(stats.kills_air or stats.assists_air or player.elo_prop_games or player.elo_jet_games)
 
 
 def _ground_active(stats: Counters | None) -> bool:
-    """Whether the air-to-ground part has anything to show: ground kills, attack sorties or a ground score."""
+    """Whether the air-to-ground part has anything to show: ground kills or assists, attack sorties or ground score."""
     if stats is None:
         return False
-    return bool(stats.kills_ground or stats.attack_sorties or stats.score_ground)
+    return bool(stats.kills_ground or stats.assists_ground or stats.attack_sorties or stats.score_ground)
 
 
 def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
