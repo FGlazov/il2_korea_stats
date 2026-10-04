@@ -470,8 +470,8 @@ def test_a_slow_pass_backs_the_next_one_off(scenario: Scenario) -> None:
 
 
 def test_the_cpu_cap_follows_the_measured_cost_not_the_speed_of_the_machine(scenario: Scenario) -> None:
-    """NFR-INS-5 with a fake cost clock: every pass "costs" 5 s, so the next one waits at least 5 / 2.5 % = 200 s."""
-    scenario.tracker = LiveTracker(scenario.cfg, cost_clock=SteppingClock(5.0))
+    """NFR-INS-5 with a fake cost clock: a pass costs 2 s of snapshot (plus 2 s of saving), so the next one waits at least 4 / 2.5 % = 160 s."""
+    scenario.tracker = LiveTracker(scenario.cfg, cost_clock=SteppingClock(2.0))
     scenario.write(2)
     scenario.tick()
     saved_at = scenario.mission().ended_at
