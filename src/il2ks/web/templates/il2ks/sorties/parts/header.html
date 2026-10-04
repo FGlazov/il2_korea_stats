@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/header.html v4 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v5 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
   Discord screenshot). Context: sortie (player, mission, aircraft), detail.
@@ -28,4 +28,13 @@
   {% blocktranslate with air=sortie.assists_air|num ground=sortie.assists_ground|num asvar sub_assists %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
   {% stat_tile sortie.assists|num _("Assists") sub=sub_assists icon="stat/assists" %}
   {% stat_tile sortie.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}
+  {% if sortie.role == "pilot" %}
+    {% if sortie.rounds_fired is not None %}
+      {% blocktranslate with air=sortie.gun_hits_air|num ground=sortie.gun_hits_ground|num rounds=sortie.rounds_fired|num asvar sub_accuracy %}{{ air }} on aircraft, {{ ground }} on the ground, of {{ rounds }} rounds{% endblocktranslate %}
+      {% stat_tile sortie.gun_hits_air|add:sortie.gun_hits_ground|accuracy:sortie.rounds_fired _("Gun accuracy") sub=sub_accuracy %}
+    {% elif sortie.gun_hits_air or sortie.gun_hits_ground %}
+      {% blocktranslate with air=sortie.gun_hits_air|num ground=sortie.gun_hits_ground|num asvar sub_hits %}{{ air }} on aircraft, {{ ground }} on the ground; rounds fired unknown{% endblocktranslate %}
+      {% stat_tile sortie.gun_hits_air|add:sortie.gun_hits_ground|num _("Gun hits") sub=sub_hits %}
+    {% endif %}
+  {% endif %}
 </div>

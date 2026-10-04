@@ -21,6 +21,15 @@ GROUND_CLASSES: frozenset[ObjectClass] = frozenset({"tank", "vehicle", "aaa", "s
 """Object classes a bomb, napalm or rocket release can be aimed at (time on target, `attack.py`)."""
 
 
+SHELL_PREFIXES = ("SHELL_", "NPC_SHELL_")
+_GUN_PREFIXES = ("BULLET_", *SHELL_PREFIXES)
+
+
+def is_gun_ammo(ammo: str) -> bool:
+    """Bullets and shells (`BULLET_12-7_USA_API`, `SHELL_23_RUS_HET`, `NPC_SHELL_ENG_40_HE`), not ordnance or flares."""
+    return ammo.startswith(_GUN_PREFIXES)
+
+
 def normalize_type(object_type: str) -> str:
     """Strip per-instance parts of a log type: the static block group suffix (`Factory block E[36731,0]` ->
     `Factory block E`, doc 12, AType 12 `MID`) and instance numbers (`CParachute_2361344` -> `CParachute`).

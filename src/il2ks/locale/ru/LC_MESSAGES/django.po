@@ -27,6 +27,16 @@ msgstr "%(air)s по самолётам, %(ground)s по наземным цел
 
 # llm-draft
 #, python-format
+msgid "%(air)s on aircraft, %(ground)s on the ground, of %(rounds)s rounds"
+msgstr "%(air)s по самолётам, %(ground)s по наземным целям, из %(rounds)s выстрелов"
+
+# llm-draft
+#, python-format
+msgid "%(air)s on aircraft, %(ground)s on the ground; rounds fired unknown"
+msgstr "%(air)s по самолётам, %(ground)s по наземным целям; число выстрелов неизвестно"
+
+# llm-draft
+#, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
 msgstr[0] "%(counter)s ник"
@@ -240,6 +250,11 @@ msgstr "%(red_name)s %(red)s · %(blue_name)s %(blue)s"
 
 # llm-draft
 #, python-format
+msgid "%(rounds)s rounds fired"
+msgstr "Выстрелов: %(rounds)s"
+
+# llm-draft
+#, python-format
 msgid "%(s)d s"
 msgstr "%(s)d с"
 
@@ -419,6 +434,10 @@ msgstr "Воздух"
 # llm-draft
 msgid "Air / ground kills"
 msgstr "Воздух / земля"
+
+# llm-draft
+msgid "Air accuracy"
+msgstr "Меткость в воздухе"
 
 # llm-draft
 msgid "Air assists"
@@ -1465,6 +1484,10 @@ msgid "Ground"
 msgstr "Земля"
 
 # llm-draft
+msgid "Ground accuracy"
+msgstr "Меткость по земле"
+
+# llm-draft
 msgid "Ground assists"
 msgstr "Содействия по земле"
 
@@ -1535,6 +1558,30 @@ msgstr "Уничтоженные наземные цели за один выл�
 # llm-draft
 msgid "Ground vehicle or object"
 msgstr "Наземная техника или объект"
+
+# llm-draft
+msgid "Gun accuracy"
+msgstr "Меткость стрельбы"
+
+# llm-draft
+msgid "Gun hits"
+msgstr "Попадания из пушек и пулемётов"
+
+# llm-draft
+msgid "Gun hits on aircraft per round fired, in air-superiority sorties"
+msgstr "Попадания по самолётам на один выстрел, в вылетах на господство в воздухе"
+
+# llm-draft
+msgid "Gun hits on ground targets per round fired, in attack sorties"
+msgstr "Попадания по наземным целям на один выстрел, в штурмовых вылетах"
+
+# llm-draft
+msgid "Gun hits per round fired, over sorties where the rounds fired are known"
+msgstr "Попадания на один выстрел, по вылетам с известным числом выстрелов"
+
+# llm-draft
+msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
+msgstr "Попадания на один выстрел; прочерк, если число выстрелов неизвестно"
 
 # llm-draft
 msgid "Gunner"

@@ -64,6 +64,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         _backfill_type_killboard(cfg)
         _backfill_interception(cfg)
         _backfill_assist_split(cfg)
+        _backfill_accuracy(cfg)
         _backfill_achievements()
         return backup
 
@@ -74,6 +75,7 @@ BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools 
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
 BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
 BACKFILL_ASSIST_SPLIT = "assist_split"  # assists on air vs ground victims
+BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the stored ammo JSON)
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 
 
@@ -145,6 +147,85 @@ def _backfill_assist_split(cfg: Config) -> None:
             update_rows(PlayerSortie, changed, ["assists_air", "assists_ground"])
             _rebuild_all(cfg)
         _mark_done(BACKFILL_ASSIST_SPLIT)
+
+
+def accuracy_from_stored(
+    ammo: dict[str, object], damage_breakdown: list[dict[str, object]], air_types: set[str], *, resupplied: bool
+) -> tuple[int | None, int, int]:
+    """(rounds fired, gun hits on aircraft, gun hits on the ground) of a pilot sortie from its stored JSON: the numbers
+    a replay gives (`core.replay.ammo.rounds_fired`, `breakdown.GunHits`).
+
+    Gun hits = every stored hit line given of a gun ammo name (`ammo.hits[].hits_given`). The aircraft share is what
+    `damage_breakdown` says was hit on aircraft (`hits_dealt` per counterpart: a player sortie or an air type), capped
+    at the gun hits (it also holds the rare named bomb hit on an aircraft); the rest is ground."""
+    from il2ks.core.replay.model import is_gun_ammo
+
+    hits = ammo.get("hits")
+    gun = 0
+    if isinstance(hits, list):
+        for row in cast("list[dict[str, object]]", hits):
+            name, given = row.get("ammo"), row.get("hits_given")
+            if isinstance(name, str) and isinstance(given, int) and is_gun_ammo(name):
+                gun += given
+    on_aircraft = 0
+    for entry in damage_breakdown:
+        other, dealt = entry.get("counterpart"), entry.get("hits_dealt")
+        if not isinstance(other, dict) or not isinstance(dealt, int):
+            continue
+        victim = cast("dict[str, object]", other)
+        if victim.get("sortie_id") is not None or str(victim.get("object_type")) in air_types:
+            on_aircraft += dealt
+    air = min(on_aircraft, gun)
+    used = ammo.get("used")
+    rounds: int | None = None
+    if isinstance(used, dict) and not resupplied:
+        counts = cast("dict[str, object]", used)
+        bullets, shells = counts.get("bullets"), counts.get("shells")
+        if (
+            isinstance(bullets, int)
+            and isinstance(shells, int)
+            and bullets >= 0
+            and shells >= 0
+            and gun <= bullets + shells
+        ):
+            rounds = bullets + shells
+    return rounds, air, gun - air
+
+
+def _backfill_accuracy(cfg: Config) -> None:
+    """A database from before accuracy has no `rounds_fired`, `gun_hits_air` or `gun_hits_ground` on its sorties. They
+    follow from the stored JSON (`accuracy_from_stored`): rounds from the ammo `used` counts (unknown where "left"
+    cannot be trusted, FR-ING-24), gun hits from the per-ammo hit counts split by target through the damage breakdown.
+    Then level 2 is rebuilt once. `il2ks reprocess` gives the exact values."""
+    from django.db import transaction
+    from django.db.models import Q
+
+    from il2ks.core.catalog.loader import AIR_CLASSES
+    from il2ks.db.models import GameObject, PlayerSortie, Role
+    from il2ks.ingest.dbutil import update_rows
+
+    if _already_done(BACKFILL_ACCURACY):
+        return
+    pilots = PlayerSortie.objects.filter(role=Role.PILOT)
+    with transaction.atomic():
+        if (
+            pilots.exists()
+            and not pilots.filter(rounds_fired__isnull=False).exists()
+            and not pilots.filter(Q(gun_hits_air__gt=0) | Q(gun_hits_ground__gt=0)).exists()
+        ):
+            log.info("deriving accuracy figures from the stored ammo")
+            air_types = {name for name, cls in GameObject.objects.values_list("log_name", "cls") if cls in AIR_CLASSES}
+            changed: list[PlayerSortie] = []
+            for sortie in pilots.only("pk", "ammo", "damage_breakdown", "resupplied"):
+                ammo = sortie.ammo
+                rounds, air, ground = accuracy_from_stored(
+                    ammo, sortie.damage_breakdown, air_types, resupplied=sortie.resupplied
+                )
+                sortie.rounds_fired, sortie.gun_hits_air, sortie.gun_hits_ground = rounds, air, ground
+                changed.append(sortie)
+            update_rows(PlayerSortie, changed, ["rounds_fired", "gun_hits_air", "gun_hits_ground"])
+            _rebuild_all(cfg)
+        _mark_done(BACKFILL_ACCURACY)
 
 
 def _backfill_interception(cfg: Config) -> None:

@@ -3,9 +3,9 @@
 from collections import Counter
 from collections.abc import Mapping
 
-from il2ks.core.replay.ammo import EMPTY_SORTIE_AMMO, AmmoAnalysis, analyse, merge_ammo_hits
+from il2ks.core.replay.ammo import EMPTY_SORTIE_AMMO, AmmoAnalysis, analyse, merge_ammo_hits, rounds_fired
 from il2ks.core.replay.attack import GroundTargets, combat_role, is_interception_victim, time_on_target_s
-from il2ks.core.replay.breakdown import FriendlyFire, breakdowns, friendly_fire, timeline
+from il2ks.core.replay.breakdown import Breakdown, FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import ticks, was_resupplied
 from il2ks.core.replay.hits import hit_entries
@@ -16,9 +16,7 @@ from il2ks.core.replay.pve import loss_class
 from il2ks.core.replay.rams import ram_partners
 from il2ks.core.replay.result import (
     AmmoCounts,
-    AmmoHits,
     CombatRole,
-    DamageExchange,
     KillResult,
     MissionInfo,
     MissionResult,
@@ -48,7 +46,7 @@ def _build_sortie(
     sortie: SortieState,
     verdict: Verdict,
     kills: list[KillResult],
-    breakdown: tuple[tuple[DamageExchange, ...], tuple[AmmoHits, ...]],
+    breakdown: Breakdown,
     friendly: FriendlyFire,
     rules: ReplayRules,
     targets: GroundTargets,
@@ -68,6 +66,23 @@ def _build_sortie(
     takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
     landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
     first_takeoff = takeoffs[0] if takeoffs else (sortie.spawn_tick if verdict.took_off else None)
+    resupplied = was_resupplied(takeoffs, landings, rules)
+    left_after_loss = verdict.loss is not None and verdict.end_tick - verdict.loss.tick > ticks(
+        rules.ammo_left_after_loss_s
+    )
+    gun_hits = breakdown[2]
+    ammo_left = sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None
+    fired = (
+        rounds_fired(
+            sortie.ammo_loaded,
+            ammo_left,
+            resupplied=resupplied,
+            left_after_loss=left_after_loss,
+            gun_hits=gun_hits.air + gun_hits.ground,
+        )
+        if sortie.role == "pilot"
+        else None
+    )
     return SortieResult(
         index=sortie.index,
         account_uuid=sortie.account_uuid,
@@ -127,7 +142,10 @@ def _build_sortie(
         assists_air=len(assists_air),
         assists_ground=len(assists_ground),
         ammo_loaded=sortie.ammo_loaded,
-        ammo_left=sortie.ammo_left if isinstance(sortie.ammo_left, AmmoCounts) else None,
+        ammo_left=ammo_left,
+        rounds_fired=fired,
+        gun_hits_air=gun_hits.air,
+        gun_hits_ground=gun_hits.ground,
         ammo_hits=merge_ammo_hits(breakdown[1], sortie_ammo),
         ordnance=sortie_ammo.ordnance,
         store_releases=sortie_ammo.store_releases,
@@ -138,9 +156,8 @@ def _build_sortie(
         friendly_kills=friendly.kills,
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,
-        resupplied=was_resupplied(takeoffs, landings, rules),
-        ammo_left_after_loss=verdict.loss is not None
-        and verdict.end_tick - verdict.loss.tick > ticks(rules.ammo_left_after_loss_s),
+        resupplied=resupplied,
+        ammo_left_after_loss=left_after_loss,
         combat_role=role,
         time_on_target_s=(
             time_on_target_s(sortie, targets, rules, active_end_tick=verdict.active_end_tick)

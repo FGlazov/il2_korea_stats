@@ -53,6 +53,9 @@ PLAYER_SORTS: Mapping[str, SortSpec] = {
     "assists": "assists",
     "assists_air": "assists_air",
     "assists_ground": "assists_ground",
+    "accuracy": Ratio("accuracy_hits", "accuracy_rounds"),
+    "accuracy_air": Ratio("accuracy_air_hits", "accuracy_air_rounds"),
+    "accuracy_ground": Ratio("accuracy_ground_hits", "accuracy_ground_rounds"),
     "friendly_kills": "friendly_kills",
     "first_seen": "first_seen",
 }

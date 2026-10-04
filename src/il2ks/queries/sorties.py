@@ -8,6 +8,8 @@ from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
+from django.db.models import Case, ExpressionWrapper, F, FloatField, When
+from django.db.models.expressions import Expression
 
 from il2ks.db.models import (
     HEAVY_SORTIE_COLUMNS,
@@ -21,9 +23,25 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
-from il2ks.queries.sorting import Rated, SortSpec, order_by
+from il2ks.queries.sorting import Computed, Rated, SortSpec, order_by
 
 PAGE_SIZE = 25
+
+
+def _accuracy(prefix: str) -> Expression:
+    """Gun hits per round fired of a sortie; NULL where the rounds are unknown or zero."""
+    return Case(
+        When(
+            **{f"{prefix}rounds_fired__gt": 0},
+            then=ExpressionWrapper(
+                (F(prefix + "gun_hits_air") + F(prefix + "gun_hits_ground")) * 1.0 / F(prefix + "rounds_fired"),
+                output_field=FloatField(),
+            ),
+        ),
+        default=None,
+        output_field=FloatField(),
+    )
+
 
 # `?sort=` whitelist: public field name -> ORM ordering. Ties are broken by the primary key, so paging is stable.
 SORT_FIELDS: dict[str, SortSpec] = {
@@ -48,6 +66,7 @@ SORT_FIELDS: dict[str, SortSpec] = {
     "payload": "payload_name",
     "takeoffs": "takeoffs",
     "landings": "landings",
+    "accuracy": Computed(_accuracy),  # NULL (rounds fired unknown or none) sorts last
 }
 DEFAULT_SORT = "-date"
 

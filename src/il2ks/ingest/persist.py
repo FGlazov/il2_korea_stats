@@ -361,6 +361,9 @@ _SORTIE_FIELDS = [
     "friendly_hits",
     "friendly_damage",
     "resupplied",
+    "rounds_fired",
+    "gun_hits_air",
+    "gun_hits_ground",
     "taxi_accident",
     "strafed_on_ground",
     "ended_by_mission_end",
@@ -484,6 +487,9 @@ def _fill_sortie(
     row.friendly_hits = s.friendly_hits
     row.friendly_damage = s.friendly_damage
     row.resupplied = s.resupplied
+    row.rounds_fired = s.rounds_fired
+    row.gun_hits_air = s.gun_hits_air
+    row.gun_hits_ground = s.gun_hits_ground
     row.taxi_accident = s.taxi_accident
     row.strafed_on_ground = s.strafed_on_ground
     row.ended_by_mission_end = s.ended_by_mission_end

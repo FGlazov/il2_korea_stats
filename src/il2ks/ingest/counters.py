@@ -9,7 +9,7 @@ and `rebuild-aggregates` both recompute through this registry (`ingest.aggregate
 from collections.abc import Mapping
 from types import MappingProxyType
 
-from django.db.models import Aggregate, Count, Q, QuerySet, Sum
+from django.db.models import Aggregate, Count, F, Q, QuerySet, Sum
 
 from il2ks.core.replay.result import LOSS_CLASSES
 from il2ks.db.models import CombatRole, PilotFate, PlayerSortie, Role
@@ -64,6 +64,20 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "score_ground_attack": Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
         "air_superiority_sorties": Count("pk", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
         "kills_intercept": Sum("kills_air_intercept", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
+        # Accuracy (doc 13): rounds and hits of the same sorties only (those with a known number of rounds fired).
+        # Before "gun_hits_*": the annotation of that name would shadow the sortie field these read.
+        "accuracy_rounds": Sum("rounds_fired", filter=Q(rounds_fired__isnull=False)),
+        "accuracy_hits": Sum(F("gun_hits_air") + F("gun_hits_ground"), filter=Q(rounds_fired__isnull=False)),
+        "accuracy_air_rounds": Sum("rounds_fired", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY)),
+        "accuracy_air_hits": Sum(
+            "gun_hits_air", filter=Q(combat_role=CombatRole.AIR_SUPERIORITY, rounds_fired__isnull=False)
+        ),
+        "accuracy_ground_rounds": Sum("rounds_fired", filter=Q(combat_role=CombatRole.ATTACK)),
+        "accuracy_ground_hits": Sum(
+            "gun_hits_ground", filter=Q(combat_role=CombatRole.ATTACK, rounds_fired__isnull=False)
+        ),
+        "gun_hits_air": Sum("gun_hits_air"),
+        "gun_hits_ground": Sum("gun_hits_ground"),
     }
 )
 
