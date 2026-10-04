@@ -65,8 +65,8 @@ the release gate.
 - ✅ **Windows installer (option B)**, the top item: one service, Caddy, firewall rules, setup page. Unsigned (no code signing). Merged
   2026-10-04 with the review fixes: service account `NT SERVICE\il2ks` (OQ-41, OQ-68), password via a locked temp file and
   `/ADMINPASSWORDFILE=` (OQ-69), argument quoting, `python -P`; on upgrade it warns in a message box about outdated customized
-  templates (log only when silent). 🔧 First CI compile (2026-10-04) builds, but the installer crashes in `InitializeWizard`: fix in
-  progress.
+  templates (log only when silent). ✅ CI-verified on 2026-10-04: silent install, doctor, site, upgrade check, uninstall and the
+  real service test (`windows-installer.yml`, workflow_dispatch).
 - ✅ First-run **web setup page** for the installer (game folder, domain, admin account): config written write-validate-replace, token not
   in logs, restart after the response.
 - ✅ Docker Compose distribution (option A) for Linux/Wine hosts; no setup page in a container (OQ-70). ⏳ Docker https smoke on Windows.
@@ -81,8 +81,8 @@ the release gate.
   for agents, hooks, pre-commit and CI; released migrations can't be edited; template compile test; Claude Code hooks (doc 08).
 - ✅ **Ingest speed, round 1** (maintainer, 2026-10-04): compiled-regex tokenizer fast path (the generic tokenizer stays the fallback
   and reference), per-row UPDATEs instead of `bulk_update`, fewer WAL checkpoints: the 210 samples went from 842 s to 344 s (median
-  3.4 s → 1.3 s per mission), identical rows. `il2ks dev bench-ingest` / `dump-db`. 🔧 Round 2 (parse, replay, level 2, archive);
-  target hundreds of milliseconds per mission.
+  3.4 s → 1.3 s per mission), identical rows. `il2ks dev bench-ingest` / `dump-db`. ✅ Round 2: about 25–40% less CPU per mission;
+  🔧 next: explosion bursts in one event (target: hundreds of milliseconds per mission).
 - ✅ **Performance tests for the pages** (maintainer, 2026-10-04): server-side timing budgets next to the query budgets, a Locust load
   test (manual), front-end budgets (page weight, requests, LCP/CLS) in the Playwright job.
 
@@ -90,8 +90,8 @@ the release gate.
 - ✅ **Real ammo names** (FR-WEB-18): `ammo.csv` maps the game's names to plain ones (".50 BMG API", ".50 BMG INC", ".50 BMG API-T",
   "23×115 mm HEI-T", "HVAR 5 in"), with the real designation (M8 API) as a tooltip; not translated. Two Soviet sub-types are inferred
   (OQ-76).
-- 🔧 **Idiomatic translations**: flavor text is translated for meaning and tone, not word for word (TD-24 drafts). Done for the new hall
-  of shame lines; the full re-run comes once the pages settle.
+- ✅ **Idiomatic translations**: flavor text is translated for meaning and tone, not word for word (TD-24 drafts). All 1,000 strings drafted in five languages (2026-10-04), UI strings by context, address forms per language; human
+  review by native speakers is still open.
 - ✅ **Hall of shame**: "Strafed on the ground" moved to "Other totals" (OQ-73); the second tile is **friendly-fire incidents** (OQ-72).
   The quip depends on the kinds of incidents (taxi only, friendly fire only, both, none), with a warmer variant above the 90th percentile
   (OQ-74).
@@ -142,38 +142,38 @@ decisions are made):
 - ✅ Game object names: project-set English defaults plus admin overrides (TD-24, FR-ADM-5).
 - Windows installer (option B), unsigned (doc 07).
 - Playwright tests on the key flows, times in the viewer's local timezone, and bailout rule v3 (section above).
-- ⏳ **Accuracy** (maintainer, 2026-10-04): hit percentage for air-to-air and for ground fire (per sortie, per player, per aircraft
+- ✅ **Accuracy** (maintainer, 2026-10-04; rounds fired = loaded − left on sorties without a resupply, 66% of samples; overall 6.3%, air 2.8%, ground 7.0%): hit percentage for air-to-air and for ground fire (per sortie, per player, per aircraft
   type). Needs research first: which log fields give the rounds fired (ammo counts at spawn/landing/end, resupply) next to the hits
   we already count (doc 12), how to split air from ground fire, and how gunners and rockets/bombs fit in.
 - ✅ **Profile rework** (maintainer, 2026-10-04): split the player page into an **air-to-air** part and an **air-to-ground** part;
   the hall of shame near the top; the **latest 5 sorties** near the top with a "View all sorties" button to the full list.
-- 🔧 **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
+- ✅ **Two new skill boards, as visible as Elo and ground score per hour** (maintainer, 2026-10-04): **interception** (an air
   superiority pilot's proficiency at shooting down bombers and attackers) and **tank busting** (tanks destroyed per hour on
   target). On the leaderboards next to Elo and ground per hour, and in the home page's top boards. Queued after the leaderboard
   rework lands.
-- 🔧 **Achievements / medals** (maintainer, 2026-10-04): tiered achievements beyond quips (e.g. 5/10/20/50 air kills in one life,
+- ✅ **Achievements / medals** (maintainer, 2026-10-04): tiered achievements beyond quips (e.g. 5/10/20/50 air kills in one life,
   X weeks in a row played), computed at ingest, shown prominently on the player page, "earned in this sortie" on the sortie page, an
   overview page. The implemented list and further ideas go to [17_achievements.md](17_achievements.md) for the maintainer's review.
-- 🔧 **Language selector with flags** (maintainer, 2026-10-04): country flags next to the languages (US for English, Russia,
+- ✅ **Language selector with flags** (maintainer, 2026-10-04): country flags next to the languages (US for English, Russia,
   Germany, Spain, France, Brazil) so the selector reads as clickable; default to the visitor's OS/browser language when shipped
   (Portuguese variants → Brazilian Portuguese), else English; an explicit choice wins.
-- 🔧 **Pilot fate shown as Dead / Captured / Survived** (maintainer, 2026-10-04): Dead and Captured override every other fate,
+- ✅ **Pilot fate shown as Dead / Captured / Survived** (maintainer, 2026-10-04): Dead and Captured override every other fate,
   "unknown" reads as Survived; fate next to the outcome on the sortie previews; Mission is no longer a default column there.
-- 🔧 **Sortie timeline: damage and hits** (maintainer, 2026-10-04): a column for percent damage taken / given (empty unless the
+- ✅ **Sortie timeline: damage and hits** (maintainer, 2026-10-04): a column for percent damage taken / given (empty unless the
   event carries it); significant hits (e.g. over 0.1% damage) as timeline rows; ammo used matched to the nearest significant damage
   event. Starts after the ammo-after-loss work lands (same attribution code).
-- 🔧 **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
+- ✅ **More sortie flavor text** (maintainer, 2026-10-04): quips for more extreme events on the sortie page, e.g. several bombers
   or attackers shot down, lots of assists but no kills ("the kills went to the rest of the flight", in the usual warm tone), and
   other standouts (a very quick first kill, a very long sortie, heavy damage brought home with kills, many ground targets, shot down
   by an AI gunner, a ram). Most notable event wins, several variants each, idiomatic translations.
 - ✅ **Ammo used after a loss** (maintainer question, 2026-10-04; release events are commands, not counts: no release = 0 used, else unknown, OQ-101): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
-- ⏳ **Strafed after landing** (maintainer, 2026-10-04): an aircraft that landed and is then destroyed by an attacker on the ground counts as
+- ✅ **Strafed after landing** (maintainer, 2026-10-04): an aircraft that landed and is then destroyed by an attacker on the ground counts as
   strafed even if it was damaged in the air before the landing (today only when every hit came after the landing); crash-landings stay
   "shot down". Plus quips for being strafed on the sortie page. Starts after the assist split (same files).
-- ⏳ **Explosion bursts in one event** (2026-10-04): 99.96% of explosion hits come from player aircraft, so skipping lines saves nothing; merging consecutive same-tick explosion lines of one attacker into one parser event would cut parse + replay by an estimated 25–30%.
-- ⏳ **Sortable sorties with optional columns on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
+- 🔧 **Explosion bursts in one event** (2026-10-04). Then: evaluate non-std tokenizer libraries (maintainer: allowed if Windows + Linux wheels and > 10% faster): 99.96% of explosion hits come from player aircraft, so skipping lines saves nothing; merging consecutive same-tick explosion lines of one attacker into one parser event would cut parse + replay by an estimated 25–30%.
+- ✅ **Sortable sorties with optional columns on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
   columns (pilot, aircraft, outcome, fate, kills, damage, flight time, …) and with the same optional "Columns" control as the other lists.
 - ✅ **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
   visitors can add sortable columns (Elo, K/D, scores, …) from a small "Columns" control, kept in the URL.
@@ -189,7 +189,7 @@ decisions are made):
   released-migration guard's maintainer override (`IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1`); development databases are recreated
   afterwards (or marked applied with `migrate --fake-initial` after checking the schema matches). Backfills in `ops/migrate.py`
   that only exist for pre-release databases can go at the same time.
-- ✅ **More branding for server admins** (maintainer, 2026-10-04; 🔧 `.woff2` font upload in progress): any number of extra links in the top navigation row after the built-in
+- ✅ **More branding for server admins** (maintainer, 2026-10-04; incl. `.woff2` font upload): any number of extra links in the top navigation row after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
 
