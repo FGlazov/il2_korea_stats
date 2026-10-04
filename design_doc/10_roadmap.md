@@ -169,6 +169,8 @@ decisions are made):
 - ✅ **Ammo used after a loss** (maintainer question, 2026-10-04; release events are commands, not counts: no release = 0 used, else unknown, OQ-101): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
+- ⏳ **Sortable sorties on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
+  columns (pilot, aircraft, outcome, fate, kills, damage, flight time, …), like the other lists.
 - ✅ **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;
   visitors can add sortable columns (Elo, K/D, scores, …) from a small "Columns" control, kept in the URL.
 - ✅ **Stat marks for Elo and scores** (maintainer, 2026-10-04): Top 10% / 25% next to Elo jet/prop, air score, ground score and
