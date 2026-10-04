@@ -132,7 +132,7 @@ Pulled into the current run (maintainer, 2026-10-03); the release doesn't wait f
   - ✅ Score concept (separate air and ground scores), leaderboards and rankings; pages for the air-to-air Elo (prop/jet pools) and ground
     score per hour on target (FR-WEB-19/20); percentage penalties; per-type Elo.
   - ✅ Stats by aircraft (FR-WEB-8). ✅ Split rankings by prop/jet (filter) and fighter/attack (grouped boards).
-  - ✅ Killboards (FR-WEB-9), per tour, and ironman streaks with best streaks. ✅ Rams and parachute deaths as `[rules]` toggles
+  - ✅ Killboards (FR-WEB-9), per tour, and ironman streaks with best streaks. ✅ Rams as a `[rules]` toggle (0.5 s / 15 m); a death in the parachute always counts
     (OQ-61).
 - ✅ Light charts (FR-WEB-16).
 
@@ -169,6 +169,7 @@ decisions are made):
 - ✅ **Ammo used after a loss** (maintainer question, 2026-10-04; release events are commands, not counts: no release = 0 used, else unknown, OQ-101): when the end-of-sortie ammo record comes after the aircraft was
   lost (bailout, climb-out, disconnect), take bombs and rockets used from the release events (exact) instead of showing "unknown"
   for everything; only gun ammo stays unknown. Clearer notice wording ("the game writes it when the sortie ends, after the loss").
+- ⏳ **Explosion bursts in one event** (2026-10-04): 99.96% of explosion hits come from player aircraft, so skipping lines saves nothing; merging consecutive same-tick explosion lines of one attacker into one parser event would cut parse + replay by an estimated 25–30%.
 - ⏳ **Sortable sorties with optional columns on the mission page** (maintainer, 2026-10-04): the mission detail page's sortie table sortable by its
   columns (pilot, aircraft, outcome, fate, kills, damage, flight time, …) and with the same optional "Columns" control as the other lists.
 - ✅ **Optional columns** on the player, mission and aircraft lists (maintainer, 2026-10-04): the default view stays as it is;

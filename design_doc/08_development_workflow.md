@@ -51,7 +51,7 @@ regression test first.
 | Sample-data distribution checks (opt-in, `-m sample_data`) | Ingest all of `sample_data/` and assert distributions stay in expected bands: bailouts 10–15% of sorties that took off (12.6% now), payload resolution ≥ 99%, "mission ended" around 10%, unknown outcomes below a threshold per aircraft type. Plain pytest asserts, no pandera. | minutes | Catches rule or parser changes that shift totals even when single rows look fine. Skipped when `sample_data/` is missing |
 | DB constraint tests | Writing rows that violate a model constraint fails (constraints exist and are migrated on both backends). | s | |
 | Override tests | A template in a temporary `custom/` folder overrides the built-in one. Branding settings show up in the page CSS (TD-25). | s | |
-| Page performance (`-m perf`, `tests/perf/`) | A seeded world of ~1,800 sorties (60 missions, 250 players, real `save_mission`, rolled back at the end). Per public page: a tight query budget (N+1 guard), the median of 7 full renders against a generous time budget, and a 304 revalidation with exactly one query. A completeness test fails when a public URL name has no row in `tests/perf/pages.py`. Details: `docs/performance-testing.md`. | ~40 s seeding per run | `[PROPOSED]` (2026-10-04). Runs in every test job rather than its own job (OQ-97) |
+| Page performance (`-m perf`, `tests/perf/`) | A seeded world of ~1,800 sorties (60 missions, 250 players, real `save_mission`, rolled back at the end). Per public page: a tight query budget (N+1 guard), the median of 7 full renders against a generous time budget, and a 304 revalidation with exactly one query. A completeness test fails when a public URL name has no row in `tests/perf/pages.py`. On Postgres the seeded database gets **`ANALYZE`** after seeding (stale planner statistics once made the mission page take 59 s there while SQLite took 30 ms). Details: `docs/performance-testing.md` (still says "every test job"; stale). | ~40 s seeding per run | `[PROPOSED]` (2026-10-04). Runs in **its own CI job** `test-perf`, SQLite then Postgres, while the functional jobs skip it with `-m "not perf"` so a slow runner never fails them (OQ-97, maintainer); `il2ks dev check --full` runs it too |
 | Front-end performance | `tests/e2e/test_frontend_performance.py` (opt-in e2e): page weight, request count, no third-party requests, render-blocking budgets, LCP / CLS / TBT (NFR-PERF-6). Locust in `loadtest/`, manual `workflow_dispatch` job only. | slow | `[PROPOSED]` |
 | End-to-end | Playwright (Chromium) against the real `il2ks web --dev` on a synthetic world (factories + one anonymized fixture log through the real ingest): smoke tests for every page, dark mode, console errors; flows "player finds own sortie" and "mission → myself → sortie". Opt-in: `IL2KS_TEST_E2E=1 uv run pytest -m e2e` (once: `uv run playwright install chromium`); CI job `test-e2e`. | slow | `[PROPOSED]` (built 2026-10-03 at the maintainer's request; flow tests are marked pending until all pages are merged) |
 
@@ -60,8 +60,8 @@ The coverage target applies to `core/`: at least 90%, enforced in CI. Elsewhere 
 ## Regression guards and the one gate `[PROPOSED]` (2026-10-04)
 
 `uv run il2ks dev check` is the one gate: agents, the Stop hook, pre-commit and CI all run it. Tiers: `--fast` (about 30 s: no unit tests), the default
-(quick: plus the unit tests), `--full` (plus integration/page tests, which carry the query budgets); `--postgres`, `--e2e`, `--fix` (applies the
-auto-fixable parts). Guards beyond lint, format, pyright, import-linter and vulture:
+(quick: plus the unit tests), `--full` (plus integration/page tests, which carry the query budgets, **and `tests/perf`**, about 1-2 more minutes); `--postgres`, `--e2e`, `--fix` (applies the
+auto-fixable parts). The page query budgets live as shared constants in `tests/simple_reads.py` (`PROFILE_READS_ALL_TIME` 14, `PROFILE_READS_TOUR` 15, `HOME_READS` 12, `HOME_READS_EMPTY` 11); raise one only with a reason in the test, and run `--full` after merging because budgets drift when features merge. `CLAUDE.md` tells agents to add `--postgres` when they touch models, migrations or a query. Guards beyond lint, format, pyright, import-linter and vulture:
 - **Released migrations are frozen**: one that exists on `origin/main` or `main` can't be modified, renamed or deleted; there must be exactly one
   leaf and no duplicate numbers (`il2ks dev check-migrations`); `makemigrations --check` must be clean. Maintainer override
   `IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1` (planned use: squashing the migrations once before the first release).
@@ -73,7 +73,7 @@ auto-fixable parts). Guards beyond lint, format, pyright, import-linter and vult
 
 ## CI `[PROPOSED]`
 GitHub Actions on push and PR: ruff, pyright, import-linter, pytest (unit + integration), in this matrix:
-**SQLite on ubuntu and windows** (most target hosts run Windows) **plus Postgres on ubuntu** (as a service container). The repo goes **public** within days of 2026-10-02, so GitHub-hosted Actions minutes are free and unmetered. The matrix size isn't a cost concern. Later: build Docker image and installer artifacts on tags.
+**SQLite on ubuntu and windows** (most target hosts run Windows) **plus Postgres on ubuntu** (as a service container), a **`test-perf` job** (`pytest -m perf`, SQLite then Postgres, OQ-97), a `test-e2e` job (Playwright) and the separate **Windows installer** workflow (doc 07). The repo goes **public** within days of 2026-10-02, so GitHub-hosted Actions minutes are free and unmetered. The matrix size isn't a cost concern. Later: build Docker image and installer artifacts on tags.
 
 ## Working with Claude Code
 

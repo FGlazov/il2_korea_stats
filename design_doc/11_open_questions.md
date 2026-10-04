@@ -112,15 +112,13 @@ Default applied: by air kills, more sorties, then more flight time, then the ear
 then the earlier one. Alternative: prefer the more recent
 streak, or list ties side by side.
 
-**OQ-84 Leaderboards: fighter and attack as grouped tabs, prop and jet as a filter** — **answered** (maintainer, 2026-10-04):
-boards in this order: Elo jet, Elo prop, air score; then ground score per hour, ground score. No kills board. The board switcher is
-buttons with icons, so it reads as clickable. (Being built.) Originally applied default: tabs grouped as Fighters (air score, Elo prop, Elo jet), Attack (ground score, ground per hour) and General (kills);
-`?pool=prop|jet` on the score and kill boards only (Elo boards have no pool filter, a chosen aircraft type overrides the pool). Alternative:
-separate prop and jet boards as their own tabs, or one flat list of tabs.
+**OQ-84 Leaderboards: board order and switcher** `[DECIDED]` (maintainer, 2026-10-04; built, doc 02 FR-WEB-7, doc 16)
+Boards in this order: Elo jet, Elo prop, air score | ground score per hour, ground score (interception and tank busting joined later, OQ-102, OQ-103).
+No kills board (`/leaderboards/kills/` answers 301 to the index). The switcher is a row of icon buttons, so it reads as clickable. The prop/jet filter
+stays on the score boards (and the new skill boards); Elo boards have no pool filter.
 
-**OQ-85 Home page: which boards and how many**
-Default applied: the top 5 of Elo jet, Elo prop and ground per hour, all time (not the current tour), plus "Online now". Alternative: the
-current tour's top 5, more rows, or the air and ground score boards on the home page.
+**OQ-85 Home page: which boards and how many** (superseded by OQ-104)
+Default applied first: the top 5 of Elo jet, Elo prop and ground per hour, all time, plus "Online now". Now five boards, see OQ-104.
 
 **OQ-86 An aircraft type's top pilots: when the ground ranking comes first**
 Default applied: a type with an attack share of 50% or more lists the ground ranking (ground score per hour on target) first, otherwise the
@@ -144,12 +142,10 @@ false positive identified) supports turning it on, and the agent recommends enab
 Default applied: a ram kill is an ordinary kill (`attacker` / `shot_down`, `via direct`); nothing says "rammed". Alternative: a `ram` value of
 `KillVia` and a "rammed by" label on the sortie page and the timeline (needs a migration and a reprocess).
 
-**OQ-91 Parachute deaths off: what happens to the shooter's kill**
-Default applied: with `parachute_deaths = false` the pilot killed after a bailout is not a death, and the shooter's kill of that pilot is
-removed too (the aircraft was already lost and credited). Alternative: keep the shooter's kill and only spare the victim's death.
+**OQ-91 Parachute deaths off: what happens to the shooter's kill** (moot: the toggle is gone, see OQ-99)
 
-**OQ-92 Ram detection thresholds** — **answered** (maintainer, 2026-10-04): the tighter 0.5 s / 15 m (being applied).
-Default applied: 2 s and 50 m (`ram_window_s`, `ram_distance_m`). Tightening to 0.5 s / 15 m drops the 4 looser cases of the 17 rams in the samples. Alternative: the tighter values.
+**OQ-92 Ram detection thresholds** `[DECIDED]` (maintainer, 2026-10-04; built, doc 13 "Rule toggles")
+0.5 s and 15 m (`[rules] ram_window_s`, `ram_distance_m`). The earlier 2 s / 50 m let 4 looser cases through among the 17 rams in the samples.
 
 **OQ-93 Installer: what the upgrade check reports**
 Default applied: on an upgrade the installer reports only customized overrides (not other doctor findings); every problem state (outdated, newer,
@@ -169,32 +165,83 @@ outcome value or drop it; commission a proper friendly-fire icon.
 Real-log mission and sortie pages are 107 to 122 KB of HTML (other pages about 20 KB). Default applied: the HTML budget is 150 KB
 (NFR-PERF-6) and the lists are not trimmed or paginated. Alternative: paginate or trim the sortie lists on those pages.
 
-**OQ-97 Page performance tests: in every test job** — **answered** (maintainer, 2026-10-04): a separate CI job (being applied).
-Default applied: the `perf` tests (about 40 s of seeding each) run in every test job instead of a job of their own. Alternative: a separate CI job,
-or run only on SQLite/ubuntu.
+**OQ-97 Page performance tests: where they run** `[DECIDED]` (maintainer, 2026-10-04; built, doc 08)
+A CI job of their own (`test-perf`: SQLite, then Postgres); the other test jobs skip `-m perf`. `il2ks dev check --full` runs them too.
 
-**OQ-98 Aircraft stats store four ratio fractions** — **answered** (maintainer, 2026-10-04): don't store ratios whose numerator and denominator are stored anyway; compute them at read time (being applied).
-`AircraftStats.kd`, `kl`, `survival` and `attack_share` are columns, which departs from "don't store ratios" (TD-22, maintainer 2026-10-02): the
-aircraft list sorts and paginates in SQL, which needs a column to sort by. Default applied: keep the columns as the one documented exception
-(doc 06). Alternative: compute ratios in the view and sort the (few dozen) rows in Python, which keeps TD-22 literal.
+**OQ-98 Aircraft stats store no ratios** `[DECIDED]` (maintainer, 2026-10-04; built, doc 06, TD-22)
+`AircraftStats` has no `kd`, `kl`, `survival` or `attack_share` column (migration 0032 dropped them). The ratios are computed from the counters at read
+time, and the aircraft list sorts by them in SQL with `queries.sorting.Ratio` (NULL when the denominator is 0, always last). TD-22 holds without exception.
 
-**OQ-99 Parachute deaths off: a pilot killed in the parachute can become "captured"** — **answered** (maintainer, 2026-10-04): a pilot killed while parachuting is a death (being applied).
-With `[rules] parachute_deaths = false` the pilot killed after a bailout is not a death, so the pilot's final position decides capture: over enemy
-territory the sortie becomes captured (50% score penalty, streak broken). Default applied: that behaviour (the pilot survived, the capture rules
-apply). Alternative: treat such pilots as neither dead nor captured.
+**OQ-99 A pilot killed while parachuting** `[DECIDED]` (maintainer, 2026-10-04; built, doc 13 "Rule toggles")
+Always a death (and the shooter keeps the kill). The `[rules] parachute_deaths` toggle was removed; the key in an `il2ks.toml` warns at load ("ignored").
+Capture still needs a pilot who survived.
 
 **OQ-100 Old `[score]` penalty keys are replaced**
 The flat `penalty_death`, `penalty_plane_lost` and `penalty_capture` keys became `penalty_death_pct`, `penalty_plane_lost_pct` and
-`penalty_capture_pct` (percent). Default applied: the old keys are ignored (a warning at config load is being added), so a server that set them
+`penalty_capture_pct` (percent). Default applied: the old keys are ignored with a warning at config load (logged, shown by `il2ks doctor`), so a server that set them
 gets the new defaults until it edits `il2ks.toml`; needs a line in the release notes. Alternative: convert old values automatically, or fail the
 config load.
 
-**OQ-101 Bombs and rockets used after a loss: show an estimate?**
+**OQ-101 Bombs and rockets used after a loss: show an estimate?** (built as the default, doc 13 "Ammo and resupply")
 After a bailout or other late sortie end the "ammo left" record can't be trusted. Release events are release *commands* (a pair of bombs
 often leaves in one event; a rocket event is a salvo), so they don't give exact counts. Default applied: no release event in the sortie means
 0 used (right in ~87–90% of comparable sorties); one or more releases leave "used" unknown. Alternative: show "~all loaded" as an estimate
 (marked "~" with a tooltip) when at least one release happened; it matches the trusted record in 92% of bomb and 87% of rocket sorties and would
 fill ~970 bomb and ~450 rocket sorties in the samples.
+
+### Decisions made during the 2026-10-04 second run (defaults applied; answer by ID)
+
+**OQ-102 Interception: who counts as a victim, and the minimum**
+Default applied (doc 13 "Interception and tank busting"): the victim is a **bomber or attacker** by catalog class (AI B-29, Tu-2, ...), or a **player
+sortie with the combat role attack** (a fighter with bombs or rockets is attacking); transports (C-47B, Li-2) are not victims here, although the
+"bomber hunter" quip counts them. Only credited kills count (no assists, no friendly), and only those made in **air superiority** sorties, per hour
+of air superiority flight. A pilot needs **5 air superiority sorties and 60 minutes** of that flight (`[score] min_air_superiority_sorties`,
+`min_air_superiority_minutes`). Alternatives: include transports; count the attackers shot down from attack sorties too; 120 minutes (fewer pilots
+qualify, steadier rates).
+
+**OQ-103 Tank busting: attack sorties only**
+Default applied: tanks destroyed (class `tank`, static or moving) **in attack sorties** per hour on target, so a tank shot up by an air superiority
+sortie counts for nothing here, and the denominator is the same time on target as the ground-per-hour board. Minimum: 5 attack sorties and 10 minutes
+on target (the ground-per-hour minimums). Alternative: every tank kill over all flight time, or only moving tanks.
+
+**OQ-104 Home page: five boards**
+Default applied: the top 5 of **Elo jet, Elo prop, interception, ground score per hour and tank busting**, all time (the maintainer asked for the
+skill boards to be as visible as Elo, 2026-10-04); air score and ground score stay on the leaderboards page. Each board title links to its page, the
+skill boards with `?tour=all`. Alternative: fewer boards on the home page, or the current tour's top 5.
+
+**OQ-105 Achievements: names, tiers and thresholds**
+Default applied: the 12 achievements, their names, tier counts and thresholds as listed in [17](17_achievements.md) (its "Decisions" section holds the
+product calls). Not repeated here. Needs the maintainer's review of every name and number.
+
+**OQ-106 Pilot fate badge: colours and wording**
+Default applied (maintainer asked for Dead / Captured / Survived, 2026-10-04): **Dead** red with the dead icon, **Captured** orange with the captured
+icon, **Survived** green with no icon; dead beats captured beats survived, and an unknown fate reads Survived. The stored fate (bailed out, exited on
+ground, left the server) is a tooltip on the lists and a note in brackets on the sortie page; nothing is shown for "in aircraft". The older stored-fate
+badges (amber "Bailed out", purple "Left the server") are no longer used on the lists. Alternative: other colours (captured purple like the status
+badge), or show the stored fate as the headline again.
+
+**OQ-107 Stolen-kills quip: the variants do not fit the new thresholds**
+The rule (maintainer, 2026-10-04): 3+ assists with no air kill, 5+ with one, 6+ with two. The first of the four variants still says "all your kills got
+stolen!", which is wrong for a pilot with one or two kills. Default applied: the variants unchanged, flagged here. Suggested fix: a separate spot for
+pilots with kills ("the flight collected the trophies you softened up") and the current wording only for sorties with no kill. Needs the maintainer's
+words (and the translations follow).
+
+**OQ-108 Timeline hits: the 0.2% burst threshold and what is left out**
+The maintainer suggested "e.g. over 0.1%" per hit. Default applied: damage lines of one attacker on one target form a burst while each is within 3 s of
+the last (a burst lasts at most 15 s); a burst needs **0.2% damage in total** (`[replay] hit_min_damage`, 0.002) to become a timeline row, because
+strafing an airfield produces thousands of tiny lines; **static scenery** (fences, tents, stacks) as a target never gives a row; at most 150 rows per
+sortie (the heaviest). Alternative: 0.1%, scenery included, or a per-line rather than per-burst threshold. Applies with `il2ks reprocess --all`.
+
+**OQ-109 Mission is an optional column on the sortie lists**
+Default applied (maintainer, 2026-10-04: "Mission is no longer a default column"): on the player's sortie list the mission is one of the optional
+columns (`?cols=mission`); the default shows the time, aircraft, role, outcome, fate, damage taken, kills, assists and flight time. The sortie page and
+the mission page still name the mission. Alternative: keep Mission as a default column on wide screens.
+
+**OQ-110 Aircraft matchups: the minimum of 10 fights and the "intercept flights only" filter**
+Default applied: a matchup row on the aircraft page shows its exchange share (kills out of kills plus losses) and can be named best or worst only with
+**at least 10** PvP air kills plus losses in the chosen scope (tour or all time); fewer shows the counts only. The filter "Intercept flights only"
+keeps kills where **both** sorties had the combat role air superiority (fighter against fighter); it is a different thing from the interception
+board (OQ-102), which the roadmap's wording shares. Alternative: another minimum, or rename the filter ("Fighter vs fighter").
 
 ## Lower impact
 
