@@ -21,6 +21,7 @@ from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
 from il2ks.queries.ammo import parse_sortie_ammo
 from il2ks.web import display, icons, object_names, pve
+from il2ks.web.ground import GROUND_ICONS
 
 type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
@@ -54,17 +55,6 @@ GROUND_LABELS: Mapping[str, str] = {
     "building": gettext_lazy("Buildings"),
     "parked_aircraft": gettext_lazy("Parked aircraft"),
     "other": gettext_lazy("Other objects"),
-}
-GROUND_ICONS: Mapping[str, str] = {
-    "tank": "ground/tank",
-    "vehicle": "ground/vehicle",
-    "artillery": "ground/artillery",
-    "aaa": "ground/aaa",
-    "ship": "ground/ship",
-    "train": "ground/train",
-    "building": "ground/building",
-    "parked_aircraft": "ground/parked-aircraft",
-    "other": "ground/other-static",
 }
 
 EVENT_LABELS: Mapping[str, str] = {

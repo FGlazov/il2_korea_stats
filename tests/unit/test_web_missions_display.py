@@ -95,7 +95,7 @@ def test_coalition_badge_and_icon_use_the_chosen_emblem() -> None:
     )
 
     assert "tint--redfor" in neutral
-    assert "m12 3 2.7 5.8" in neutral  # the neutral star outline
+    assert "M12 17.75l-6.172 3.245" in neutral  # the neutral star outline
     assert 'fill="#c8312b"' in chosen  # VVS star in the REDFOR badge
     assert 'fill="#4f8fdc"' in chosen  # UN roundel for BLUFOR
     assert 'fill="#c8312b"' not in neutral
