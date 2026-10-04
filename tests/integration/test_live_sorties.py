@@ -683,3 +683,27 @@ def test_all_three_kinds_of_pass_share_one_cpu_budget(scenario: Scenario) -> Non
     assert LiveMission.objects.get().updated_at == updated
     scenario.tick(timedelta(seconds=200))
     assert LiveMission.objects.get().updated_at > updated
+
+
+# --- a log that holds the same mission twice -----------------------------------------------------------------------
+
+
+def test_a_log_with_the_same_mission_twice_fails_with_a_clear_message_and_writes_nothing(tmp_path: Path) -> None:
+    """Found by a real run whose feeder appended the mission twice: the replay yields every sortie twice and the save
+    died with a raw `IntegrityError` (UNIQUE playersortie.mission_id, account_uuid, spawn_tick) and a traceback."""
+    scenario = Scenario(tmp_path / "live", parts=1)
+    scenario.parts = [scenario.lines + scenario.lines]
+    scenario.write(1)
+    scenario.clock += timedelta(hours=1)
+    write_part(scenario.logs, scenario.uid, 0, scenario.parts[0], scenario.clock - timedelta(hours=1))
+
+    scenario.ingest()
+
+    run = IngestRun.objects.get(mission_uid=scenario.uid)
+    assert run.status == IngestStatus.FAILED
+    assert "same sortie twice" in run.error
+    assert "duplicated" in run.error
+    assert "Traceback" not in run.error
+    assert "IntegrityError" not in run.error
+    assert not Mission.objects.exists()
+    assert not PlayerSortie.objects.exists()
