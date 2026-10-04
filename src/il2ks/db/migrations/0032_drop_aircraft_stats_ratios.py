@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0030_type_killboard_and_matchup_scopes"),
+        ("il2ks_db", "0031_interception_tank_busting"),
     ]
 
     operations = [
