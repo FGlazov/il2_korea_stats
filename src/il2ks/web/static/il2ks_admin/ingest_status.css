@@ -1,10 +1,10 @@
-/* il2ks-template: static/il2ks_admin/ingest_status.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks_admin/ingest_status.css v2 - copy this line along when you override */
 .ingest-cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
 .ingest-card { flex: 1 1 220px; border: 1px solid var(--hairline-color, #ddd); border-radius: 6px; padding: 12px 16px; background: var(--body-bg, #fff); }
 .ingest-card .label { font-size: 12px; text-transform: uppercase; color: var(--body-quiet-color, #666); }
 .ingest-card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
 .ingest-card .sub { font-size: 12px; color: var(--body-quiet-color, #666); margin-top: 2px; }
-.state-ok { color: var(--message-success-bg, #2a7d2e); }
+.state-ok { color: light-dark(#136831, #5dd08c); } /* readable on the admin's light and dark page */
 .state-bad { color: var(--error-fg, #ba2121); }
 .ingest-section { margin-bottom: 24px; }
 .ingest-section h2 { margin-bottom: 4px; }

@@ -91,7 +91,7 @@ def test_default_theme_emits_nothing() -> None:
 def test_overrides_become_light_dark_pairs_and_accent_gets_a_contrast_colour() -> None:
     css = theme_css({"light": {"bg": "#ffffff"}, "dark": {"bg": "#000000", "accent": "#ffd400"}})
     assert "--il2-bg:light-dark(#ffffff, #000000);" in css
-    assert "--il2-accent:light-dark(#a86a14, #ffd400);" in css  # the light mode keeps its default
+    assert "--il2-accent:light-dark(#a56814, #ffd400);" in css  # the light mode keeps its default
     assert "--il2-accent-contrast:light-dark(#ffffff, #10161c);" in css  # light accent gets dark text
     assert css.startswith(":root{")
     assert css.endswith("}")

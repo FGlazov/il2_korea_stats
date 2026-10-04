@@ -22,6 +22,9 @@ PLAYER_CHARLIE = "Charlie Foxtrot"
 PLAYER_DELTA = "Delta Dawn"
 PLAYER_ECHO = "Echo Bravo"
 
+QA_ADMIN = ("qa-admin", "qa-admin-password-1")
+"""A superuser the visual QA test logs in with (tests/e2e/test_visual_qa.py)."""
+
 FILLER_MISSIONS = 55
 """More missions than any sensible page size (pagination); each has two sorties so the lists have something in them."""
 
@@ -115,7 +118,11 @@ def build() -> World:
         f.save(f.mission((first, second)), f.meta(uid, started))
     logs_uid = ingest_fixture_log()
 
+    from django.contrib.auth import get_user_model
+
     from il2ks.db.models import Mission, Player, PlayerSortie
+
+    get_user_model().objects.create_superuser(QA_ADMIN[0], "qa@example.org", QA_ADMIN[1])
 
     mission = Mission.objects.get(mission_uid=featured.mission_uid)
     logs_mission = Mission.objects.get(mission_uid=logs_uid)
