@@ -228,21 +228,44 @@ class Loadout:
     ground_hour: float | None
 
 
-def _loadout(row: AircraftPayload, rules: LeaderboardConfig) -> Loadout:
-    """The measures of one stored loadout row, each only above the leaderboard minimums of its role (one lucky sortie
-    must not top the table): air superiority sorties as the interception board asks, attack sorties and time on
-    target as the ground-per-hour board does."""
+type EffectivenessRow = AircraftPayload
+"""A stored "effectiveness by X" row: `AircraftPayload` today. A new grouping (weapon mods) with the same columns
+(combat_role, sorties, kills_air, deaths, kills_air_pvp, score_ground_attack, time_on_target_s, elo_avg) is added to
+this union; `measures_of` reads nothing else. (A structural Protocol does not type-check against Django fields.)"""
+
+
+@dataclass(frozen=True, slots=True)
+class Measures:
+    """The effectiveness measures of one row (None = a dash): average pilot Elo, air kills per sortie, K/D (PvP air
+    kills per death, a row without a death counting its kills) for air superiority; ground score per hour on target
+    for attack."""
+
+    elo: float | None = None
+    kills_per_sortie: float | None = None
+    kd: float | None = None
+    ground_hour: float | None = None
+
+
+def measures_of(row: EffectivenessRow, rules: LeaderboardConfig) -> Measures:
+    """The one definition of the effectiveness measures, shared by every table (loadouts, later weapon mods): each
+    only above the leaderboard minimums of the row's role (one lucky sortie must not top the table): air superiority
+    sorties as the interception board asks, attack sorties and time on target as the ground-per-hour board does."""
     if row.combat_role == AircraftRole.AIR_SUPERIORITY:
         if row.sorties < max(rules.min_air_superiority_sorties, 1):
-            return Loadout(row, None, None, None, None)
-        return Loadout(row, row.elo_avg, row.kills_air / row.sorties, row.kills_air_pvp / max(row.deaths, 1), None)
+            return Measures()
+        return Measures(row.elo_avg, row.kills_air / row.sorties, row.kills_air_pvp / max(row.deaths, 1))
     if row.combat_role == AircraftRole.ATTACK:
         enough = row.sorties >= max(rules.min_attack_sorties, 1) and row.time_on_target_s >= max(
             rules.min_time_on_target_minutes * 60.0, 1.0
         )
         hour = row.score_ground_attack * SECONDS_PER_HOUR / row.time_on_target_s if enough else None
-        return Loadout(row, None, None, None, hour)
-    return Loadout(row, None, None, None, None)
+        return Measures(ground_hour=hour)
+    return Measures()
+
+
+def _loadout(row: AircraftPayload, rules: LeaderboardConfig) -> Loadout:
+    m = measures_of(row, rules)
+    return Loadout(row, m.elo, m.kills_per_sortie, m.kd, m.ground_hour)
 
 
 def payloads(

@@ -308,12 +308,12 @@ def _recompute_payloads(chunk: list[int], groups: list[_Group]) -> None:
     AircraftPayload.objects.bulk_create(new)
 
 
-def recompute_payload_elo() -> None:
-    """`AircraftPayload.elo_avg` of every air superiority loadout: the average Elo of its sorties' pilots, one vote per
-    sortie. A pilot's Elo is the rating in the type if they have games in it (`PlayerAircraft.elo_games`), else their
-    pool's rating (the propulsion of the type) if they have games there; a pilot with neither is left out, and a loadout
-    with no rated pilot gets null. Other roles stay null. Order-dependent like every Elo, so it is recomputed for ALL
-    loadouts after `recompute_ratings` replayed the games (one code path for `save_mission` and a rebuild)."""
+def average_pilot_elo(group_field: str) -> dict[tuple[int, object], float]:
+    """The average Elo of the pilots of air superiority sorties, per (aircraft type, value of the sortie field
+    `group_field`) group, one vote per sortie: the reusable half of every "effectiveness by X" table (X = the loadout
+    `payload_name`; weapon mods next). A pilot's Elo is the rating in the type if they have games in it
+    (`PlayerAircraft.elo_games`), else their pool's rating (the propulsion of the type) if they have games there; a
+    pilot with neither is left out, and a group with no rated pilot is absent. Rounded to `ELO_DECIMALS`."""
     type_elo = {
         (player, aircraft): elo
         for player, aircraft, elo, games in PlayerAircraft.objects.values_list(
@@ -330,13 +330,13 @@ def recompute_payload_elo() -> None:
         if jet_games > 0:
             pool_elo[(pk, Propulsion.JET.value)] = jet
     propulsion = dict(GameObject.objects.values_list("pk", "propulsion"))
-    totals: dict[tuple[int, str], tuple[float, int]] = {}
+    totals: dict[tuple[int, object], tuple[float, int]] = {}
     pilots = (
         counted_sorties()
         .filter(combat_role=CombatRole.AIR_SUPERIORITY)
-        .values("aircraft_id", "payload_name", "player_id")
+        .values("aircraft_id", group_field, "player_id")
         .annotate(n=Count("pk"))
-        .order_by("aircraft_id", "payload_name", "player_id")
+        .order_by("aircraft_id", group_field, "player_id")  # a fixed summing order: a rebuild gives the same floats
     )
     for row in pilots:
         aircraft_id = row["aircraft_id"]
@@ -344,14 +344,22 @@ def recompute_payload_elo() -> None:
         if elo is None:
             elo = pool_elo.get((row["player_id"], propulsion.get(aircraft_id, "")))
         if elo is not None:
-            total, n = totals.get((aircraft_id, row["payload_name"]), (0.0, 0))
-            totals[(aircraft_id, row["payload_name"])] = (total + elo * row["n"], n + row["n"])
+            key = (aircraft_id, row[group_field])
+            total, n = totals.get(key, (0.0, 0))
+            totals[key] = (total + elo * row["n"], n + row["n"])
+    return {key: round(total / n, ELO_DECIMALS) for key, (total, n) in totals.items()}
+
+
+def recompute_payload_elo() -> None:
+    """`AircraftPayload.elo_avg` of every air superiority loadout (`average_pilot_elo("payload_name")`); other roles
+    and loadouts without a rated pilot stay null. Order-dependent like every Elo, so it is recomputed for ALL loadouts
+    after `recompute_ratings` replayed the games (one code path for `save_mission` and a rebuild)."""
+    averages = average_pilot_elo("payload_name")
     changed: list[AircraftPayload] = []
     for row in AircraftPayload.objects.all():
-        found = (
-            totals.get((row.aircraft_id, row.payload_name)) if row.combat_role == CombatRole.AIR_SUPERIORITY else None
+        wanted = (
+            averages.get((row.aircraft_id, row.payload_name)) if row.combat_role == CombatRole.AIR_SUPERIORITY else None
         )
-        wanted = None if found is None else round(found[0] / found[1], ELO_DECIMALS)
         if row.elo_avg != wanted:
             row.elo_avg = wanted
             changed.append(row)
