@@ -1668,6 +1668,12 @@ class SiteSettings(models.Model):
     # Both live on the settings row every page reads already, so they cost no query.
     achievements: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     achievements_applied: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    # Optional flight-time points (maintainer request, 2026-10-05): `score_flight` is the admin's choice
+    # `{"enabled": bool, "per_hour": float}` (`core.ratings.score.FlightScore`; empty = off, the default rate),
+    # `score_flight_applied` what the stored sortie scores were last computed with (written only by
+    # `ingest.flight_score`); the two differ while a re-score is pending (`watch` or `rebuild-aggregates` applies it).
+    score_flight: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    score_flight_applied: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     # "Show sorties of the running mission" (FR-ING-15): `watch` saves the running mission provisionally every few
     # minutes, so its sorties show on the pages and move the counters before the mission ends. Off = online now only.
     show_live_sorties = models.BooleanField(default=True)

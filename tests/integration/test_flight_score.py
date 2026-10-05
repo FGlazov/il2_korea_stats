@@ -32,7 +32,7 @@ def configure(enabled: bool, per_hour: float) -> None:
 
 def seed() -> None:
     patrol = sortie(0, 1, combat_role="air_superiority", flight_time_s=3600.0)
-    killer = sortie(1, 2, combat_role="air_superiority", flight_time_s=1800.0, kills_air_pvp=1)
+    killer = sortie(1, 2, combat_role="air_superiority", flight_time_s=1800.0, kills_air_pvp=1, kills_air_ai=0)
     dead = replace(
         sortie(2, 3, combat_role="air_superiority", flight_time_s=3600.0, is_death=True, is_plane_lost=True),
         outcome="shot_down",

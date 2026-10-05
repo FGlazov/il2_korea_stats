@@ -14,11 +14,14 @@ from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
+from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, MAX_FLIGHT_POINTS_PER_HOUR
 from il2ks.db.models import SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
+from il2ks.web import admin_score as score_forms
 from il2ks.web import quips
 from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig
 from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
@@ -47,6 +50,7 @@ class Il2ksAdminSite(admin.AdminSite):
             path("ingestion/", self.admin_view(self.ingest_status_view), name="ingest-status"),
             path("quips/", self.admin_view(self.quips_view), name="quips"),
             path("achievements/", self.admin_view(self.achievements_view), name="achievements"),
+            path("score/", self.admin_view(self.score_view), name="score"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
         ]
         return [*extra, *super().get_urls()]
@@ -119,6 +123,41 @@ class Il2ksAdminSite(admin.AdminSite):
             "max_description": MAX_DESCRIPTION,
         }
         return TemplateResponse(request, "admin/il2ks_achievements.html", context)
+
+    def score_view(self, request: HttpRequest) -> HttpResponse:
+        """The Scoring page: the optional score for flight time. The choice is saved at once; `watch` (or a rebuild)
+        applies it to the stored sorties, and the page says so."""
+        if not request.user.has_perm("il2ks_db.change_sitesettings"):
+            raise PermissionDenied
+        pending = flight_score_pending()  # of the stored choice, not of a rejected form
+        shown = wanted_flight_score()
+        typed = f"{shown.per_hour:g}"
+        if request.method == "POST":
+            posted, errors = score_forms.parse_form(request.POST)
+            if not errors:
+                with transaction.atomic():
+                    row = get_site_settings()
+                    row.score_flight = posted.to_json()
+                    row.save(update_fields=["score_flight", "updated_at"])
+                    bump_data_version()
+                messages.success(request, _("Scoring saved."))
+                return HttpResponseRedirect(reverse(f"{self.name}:score"))
+            for error in errors:
+                messages.error(request, error)
+            shown, typed = posted, request.POST.get("per_hour", "")
+        defaults = DEFAULT_SCORE_RULES
+        context = {
+            **self.each_context(request),
+            "title": _("Scoring"),
+            "enabled": shown.enabled,
+            "per_hour": typed,
+            "pending": pending,
+            "max_rate": f"{MAX_FLIGHT_POINTS_PER_HOUR:g}",
+            "default_rate": f"{defaults.flight_time_per_hour:g}",
+            "ai_kill": f"{defaults.air_kill_ai:g}",
+            "pvp_kill": f"{defaults.air_kill_pvp:g}",
+        }
+        return TemplateResponse(request, "admin/il2ks_score.html", context)
 
     def quips_view(self, request: HttpRequest) -> HttpResponse:
         """The Quips page (FR-WEB-23): the global switch, every spot's mode, built-in lines (hide) and own lines."""

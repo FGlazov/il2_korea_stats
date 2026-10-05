@@ -3,6 +3,10 @@
 Two scores, because air-to-air and ground attack are different skills (maintainer, 2026-10-03):
 
 - **Air score** = points for air kills (a player's aircraft is worth more than an AI one), plus assists.
+- **Flight-time points** (optional, off by default; maintainer, 2026-10-05): `flight_time_per_hour` points per hour
+  in the air, added to the air score of every pilot sortie, so a quiet intercept patrol is worth something. They are
+  kill-like points: the outcome percentages take their share, the flat penalties come off afterwards. Unlike the other
+  values these two are not in the `[score]` config section: the site admin sets them (`SiteSettings.score_flight`).
 - **Ground score** = points for ground kills, one value per ground-kill category (`GROUND_CATEGORIES`), so trivial
   statics like fences (`other`) are worth very little.
 - **Outcome penalties are percentages** (maintainer, 2026-10-03, OQ-63/67): a death costs 80% of the sortie's score, a
@@ -19,8 +23,10 @@ rebuild-aggregates` without reprocessing any mission. The values are first guess
 decisions, no design doc fixes them).
 """
 
+import math
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, cast
 
 from il2ks.core.catalog.loader import GROUND_CATEGORIES, GroundCategory
 
@@ -42,6 +48,8 @@ class ScoreRules:
     ground_building: float = 2.0
     ground_parked_aircraft: float = 3.0
     ground_other: float = 0.2  # fences, crate and barrel yards, logs, small fuel tanks: trivial
+    flight_time_enabled: bool = False  # admin option (not read from the config file): points for time in the air
+    flight_time_per_hour: float = 1.0  # admin option: points per hour of flight, less than one AI air kill
     penalty_death_pct: float = 80.0  # percent of the sortie's score lost when the pilot died (0 to 100)
     penalty_capture_pct: float = 50.0  # ... when the pilot was captured
     penalty_plane_lost_pct: float = 20.0  # ... when the aircraft was lost without a death or capture
@@ -51,6 +59,34 @@ class ScoreRules:
 
 
 DEFAULT_SCORE_RULES: Final = ScoreRules()
+
+ADMIN_SCORE_FIELDS: Final = frozenset({"flight_time_enabled", "flight_time_per_hour"})
+"""`ScoreRules` fields the site admin sets (`FlightScore`); the `[score]` config section does not read them."""
+
+MAX_FLIGHT_POINTS_PER_HOUR: Final = 100.0
+
+
+@dataclass(frozen=True, slots=True)
+class FlightScore:
+    """The admin's flight-time score option: on or off, and the points per hour of flight."""
+
+    enabled: bool = False
+    per_hour: float = DEFAULT_SCORE_RULES.flight_time_per_hour
+
+    @staticmethod
+    def from_json(raw: object) -> "FlightScore":
+        """Tolerant: anything malformed gives the defaults (off), never an error."""
+        default = FlightScore()
+        if not isinstance(raw, dict):
+            return default
+        data = cast(Mapping[str, object], raw)
+        rate = data.get("per_hour")
+        valid = isinstance(rate, int | float) and not isinstance(rate, bool) and math.isfinite(rate)
+        per_hour = min(max(float(rate), 0.0), MAX_FLIGHT_POINTS_PER_HOUR) if valid else default.per_hour  # type: ignore[arg-type]
+        return FlightScore(data.get("enabled") is True, per_hour)
+
+    def to_json(self) -> dict[str, object]:
+        return {"enabled": self.enabled, "per_hour": self.per_hour}
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +103,7 @@ class SortieFacts:
     is_captured: bool
     suspected_early_bailout: bool
     friendly_kills: int
+    flight_time_s: float = 0.0  # time in the air (not taxiing); scores only when the admin switched it on
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,6 +158,8 @@ def score_sortie(facts: SortieFacts, rules: ScoreRules = DEFAULT_SCORE_RULES) ->
     percentage reduces whichever of the two is positive; the flat penalties are charged to the score of the role."""
     air = rules.air_kill_pvp * facts.kills_air_pvp + rules.air_kill_ai * facts.kills_air_ai
     air += rules.air_assist * facts.assists_air
+    if rules.flight_time_enabled:
+        air += rules.flight_time_per_hour * facts.flight_time_s / 3600.0
     ground = sum(ground_value(rules, c) * facts.kills_ground.get(c, 0) for c in GROUND_CATEGORIES)
     keep = 1.0 - outcome_fraction(rules, facts)
     air, ground = max(air, 0.0) * keep, max(ground, 0.0) * keep
