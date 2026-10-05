@@ -11,6 +11,12 @@ Two kinds of text are translated, and they live in different places:
 | The **interface** (buttons, headings, table columns, messages, the admin) | `src/il2ks/locale/<language>/LC_MESSAGES/django.po` | gettext `.po` |
 | The **names of game objects** (trucks, fences, barracks, crew; aircraft type names mostly stay as they are) | `src/il2ks/core/catalog/data/object_names_<language>.csv` | CSV |
 
+| The **names of weapon modifications** (*Anti-G suit*, *Improved air brakes and wing*; designations such as NR-23 stay) | `src/il2ks/core/catalog/data/weapon_mod_names_<language>.csv` | CSV |
+
+**What is translated and what is not** (maintainer, 2026-10-05): game data that describes *what a thing is* (object names, weapon-mod
+names: the dimensions you filter and compare by) is translated; **mission names are facts** (what the server called the mission) and are
+never translated. Aircraft type names mostly stay as they are.
+
 Language folders: `ru`, `de`, `es`, `fr`, `pt_BR` (the site calls Brazilian Portuguese `pt-br`).
 
 ## Reviewing or improving a language
@@ -104,6 +110,23 @@ Fence wire 100m,Fence wire 100m,Drahtzaun 100 m,llm-draft
 Names are shown in the viewer's language, in this order: the server admin's own name for the object (if they edited it
 in the admin) → your translation → the English name → the raw log name. See "Server owners" below.
 
+### Weapon modification names (`weapon_mod_names_<language>.csv`)
+
+```
+english,display_name,review
+Anti-G suit,Anti-g-Anzug,llm-draft
+```
+
+- `english` is the name in `weapon_mods.csv` (the key; one name is shared by several aircraft, so it is translated once). Never
+  change it; a test keeps the file in step with `weapon_mods.csv`, one row per name, sorted.
+- `display_name` is the translation: use the term pilots of that language use for the equipment (Russian: the established Soviet
+  terms, e.g. *противоперегрузочный костюм*). Keep designations (NR-23, K-14C, AN/APS-13, 150) as they are; Soviet ones are written
+  in Cyrillic in Russian like the aircraft (НР-23, АСП-3Н).
+- `review` works as for object names: `llm-draft` until a person has checked the row, then empty.
+- The name is shown in the viewer's language on the sortie page, the aircraft page's filter and its modifications table (a set such
+  as *NR-23 cannons + Anti-G suit* joins the translated parts with ` + `). A name with no row shows in English; an id the catalog
+  does not list shows as its raw id. When a new mod is added to `weapon_mods.csv`, add its row to all five files (a test fails until you do).
+
 ## After the pages change (the one command)
 
 Whenever someone adds or rewords text in a template or in Python (`{% translate %}`, `gettext_lazy`):
@@ -137,7 +160,8 @@ JSON value is a list with one string per plural form.
    lists them). A test fails if the two lists disagree.
 2. `uv run il2ks dev translations update` creates `src/il2ks/locale/<folder>/LC_MESSAGES/django.po` and `django.mo`.
 3. Translate it (see above). Django already ships its own translations of the admin's built-in texts for most languages.
-4. Optionally create `src/il2ks/core/catalog/data/object_names_<code>.csv` for the object names (copy a header row).
+4. Optionally create `src/il2ks/core/catalog/data/object_names_<code>.csv` for the object names and
+   `weapon_mod_names_<code>.csv` for the weapon-mod names (copy a header row; the second needs a row for every mod name).
 
 ## How it works, in short
 

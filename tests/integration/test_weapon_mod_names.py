@@ -24,8 +24,8 @@ def test_the_sortie_page_shows_mod_names_in_the_viewers_language(client: Client)
 
     body = client.get(f"/sorties/{first}/").content.decode()
     assert "Противоперегрузочный костюм" in body
-    assert "NR-23 cannons" not in body and "Anti-G suit" not in body
-    assert "Unknown modification" not in body and "Warning system" not in body
+    for english in ("NR-23 cannons", "Anti-G suit", "Warning system", "Unknown modification"):
+        assert english not in body
     switch(client, "de")
     assert "Anti-g-Anzug" in client.get(f"/sorties/{first}/").content.decode()
     switch(client, "en")
