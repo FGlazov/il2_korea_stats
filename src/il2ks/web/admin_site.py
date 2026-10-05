@@ -23,6 +23,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
 from il2ks.ingest.rule_store import pending_fields, save_overrides
 from il2ks.ingest.tours import on_win_pending, on_win_projection
+from il2ks.rule_settings import effective_rules
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
 from il2ks.web import admin_rules, quips
@@ -174,6 +175,7 @@ class Il2ksAdminSite(admin.AdminSite):
                 messages.error(request, error)
             shown, typed, posted_texts = flight, request.POST.get("per_hour", ""), posted.texts
         defaults = DEFAULT_SCORE_RULES
+        in_force = effective_rules(admin_rules.base_rules(), site.rule_settings_applied).score  # the applied points
         context = {
             **self.each_context(request),
             "title": _("Scoring"),
@@ -183,8 +185,8 @@ class Il2ksAdminSite(admin.AdminSite):
             "groups": admin_rules.build_groups("scoring", site, posted_texts),
             "max_rate": f"{MAX_FLIGHT_POINTS_PER_HOUR:g}",
             "default_rate": f"{defaults.flight_time_per_hour:g}",
-            "ai_kill": f"{defaults.air_kill_ai:g}",
-            "pvp_kill": f"{defaults.air_kill_pvp:g}",
+            "ai_kill": f"{in_force.air_kill_ai:g}",
+            "pvp_kill": f"{in_force.air_kill_pvp:g}",
         }
         return TemplateResponse(request, "admin/il2ks_score.html", context)
 

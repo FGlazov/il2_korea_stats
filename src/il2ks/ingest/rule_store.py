@@ -22,14 +22,13 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import on_win_pending
-from il2ks.rule_settings import FIELDS, Effect, RuleField, effective_rules, sanitize
+from il2ks.rule_settings import BY_KEY, FIELDS, Effect, RuleField, effective_rules, sanitize
 
 log = logging.getLogger(__name__)
 
 MARK_KEYS = frozenset(
     {
         "marks.min_sorties",
-        "score.min_elo_games",
         "score.min_time_on_target_minutes",
         "score.min_air_superiority_minutes",
     }
@@ -107,9 +106,28 @@ def rebuild_overrides(*, reassign_tours: bool) -> dict[str, object]:
     return merged
 
 
+def _locked_row() -> SiteSettings:
+    """The settings row, locked until the end of the transaction (a no-op on SQLite, which has one writer): the admin's
+    save and the rebuild's adopt step both read it, change it and write it back."""
+    get_site_settings()
+    return SiteSettings.objects.select_for_update().get(pk=1)
+
+
 def adopt_overrides(overrides: Mapping[str, object]) -> None:
-    """Record these as the ones the stored numbers were computed with (in the rebuild's transaction)."""
-    SiteSettings.objects.filter(pk=1).update(rule_settings_applied=dict(overrides))
+    """Record these as the ones the stored numbers were computed with (in the rebuild's transaction).
+
+    `overrides` were read when the rebuild started, which can take minutes; the admin may have saved a `display` or
+    `reprocess` value meanwhile (written to both sides at once). Those keys are taken from the row as it is now, under
+    its lock, so the adopt step cannot undo a save (a lost update). The `rescore` and `retour` keys are what the
+    rebuild computed with."""
+    row = _locked_row()
+    current = sanitize(row.rule_settings_applied)
+    merged = {key: value for key, value in overrides.items() if BY_KEY[key].effect in ("rescore", "retour")}
+    for field in FIELDS:
+        if field.effect in ("display", "reprocess") and field.key in current:
+            merged[field.key] = current[field.key]
+    row.rule_settings_applied = merged
+    row.save(update_fields=["rule_settings_applied"])
 
 
 def save_overrides(fields: Iterable[RuleField], overrides: Mapping[str, object], base: RuleSet) -> bool:
@@ -118,7 +136,7 @@ def save_overrides(fields: Iterable[RuleField], overrides: Mapping[str, object],
     transaction. Returns whether the stored thresholds were rewritten."""
     fields = list(fields)
     with transaction.atomic():
-        row = get_site_settings()
+        row = _locked_row()
         wanted, applied = sanitize(row.rule_settings), sanitize(row.rule_settings_applied)
         marks_changed = False
         for field in fields:

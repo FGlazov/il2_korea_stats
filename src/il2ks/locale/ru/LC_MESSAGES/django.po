@@ -76,6 +76,41 @@ msgstr "побед: %(kills)s, попаданий: %(hits)s"
 
 # llm-draft
 #, python-format
+msgid "%(label)s must be a finite number"
+msgstr "%(label)s должно быть конечным числом"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a number"
+msgstr "%(label)s должно быть числом"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a whole number"
+msgstr "%(label)s должно быть целым числом"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be at most %(max)s"
+msgstr "%(label)s не может быть больше %(max)s"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be greater than 0"
+msgstr "%(label)s должно быть больше 0"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be true or false"
+msgstr "%(label)s должно быть «да» или «нет»"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must not be negative"
+msgstr "%(label)s не может быть отрицательным"
+
+# llm-draft
+#, python-format
 msgid "%(m)d min"
 msgstr "%(m)d мин"
 
@@ -402,11 +437,15 @@ msgstr ""
 # llm-draft
 #, python-format
 msgid ""
-"A change shows at once: the boards use it on the next page view, and the Top 10%% and Top 25%% marks on the player "
-"pages are computed again when you save."
+"A change to a minimum for sorties, attack sorties, time on target or air superiority shows at once: the boards use it"
+" on the next page view, and the Top 10%% and Top 25%% marks on the player pages are computed again when you save. The"
+" Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after"
+" the next rebuild, which the site starts in the background."
 msgstr ""
-"Изменение видно сразу: рейтинги используют его при следующем просмотре страницы, а отметки «Топ 10%%» и «Топ 25%%» на"
-" страницах игроков пересчитываются при сохранении."
+"Изменение минимума вылетов, штурмовых вылетов, времени над целью или завоевания превосходства в воздухе видно сразу: "
+"таблицы лидеров используют его при следующем открытии страницы, а отметки «Топ 10 %%» и «Топ 25 %%» на страницах "
+"пилотов пересчитываются при сохранении. Минимум Эло — исключение: он также определяет, из какого тура берётся общий "
+"рейтинг Эло пилота, поэтому вступает в силу после следующей пересборки, которую сайт запускает в фоновом режиме."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -4202,8 +4241,8 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Радист: в эфире тишина. Сборник сканвордов закончился ещё до перерыва."
 
 # llm-draft
-msgid "Ram: and this close in space (metres)"
-msgstr "Таран: и так близко в пространстве (метров)"
+msgid "Ram: and this close in space (meters)"
+msgstr "Таран: и так близко в пространстве (метры)"
 
 # llm-draft
 msgid "Ram: the two losses must be this close in time (seconds)"
@@ -4271,6 +4310,10 @@ msgstr "Недавно завершены по таймауту бездейст
 # llm-draft
 msgid "Recently earned"
 msgstr "Недавно получено"
+
+# llm-draft
+msgid "Recomputed in the background by the next rebuild"
+msgstr "Будет пересчитано в фоновом режиме при следующей пересборке"
 
 # llm-draft
 msgid "Regular"

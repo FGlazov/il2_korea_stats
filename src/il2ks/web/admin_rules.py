@@ -15,7 +15,7 @@ from il2ks.config import RuleSet
 from il2ks.core.tours import parse_mode
 from il2ks.db.models import SiteSettings
 from il2ks.ingest.rule_store import pending_fields
-from il2ks.rule_settings import Effect, Page, RuleField, base_value, fields_of, sanitize, validate
+from il2ks.rule_settings import Page, RuleField, base_value, fields_of, sanitize, validate
 
 LABELS = {
     "score.air_kill_pvp": _("Air kill, a player's aircraft (points)"),
@@ -45,7 +45,7 @@ LABELS = {
     "tours.timezone": _("Time zone where a tour begins and ends"),
     "rules.credit_rams": _("Credit each pilot with a kill when two enemy aircraft collide"),
     "rules.ram_window_s": _("Ram: the two losses must be this close in time (seconds)"),
-    "rules.ram_distance_m": _("Ram: and this close in space (metres)"),
+    "rules.ram_distance_m": _("Ram: and this close in space (meters)"),
     "score.min_sorties": _("Score and kill boards: sorties a pilot needs"),
     "score.min_elo_games": _("Elo boards: encounters a pilot needs"),
     "score.min_attack_sorties": _("Ground score per hour: attack sorties a pilot needs"),
@@ -61,12 +61,22 @@ HELP = {
     "tours.timezone": _("An IANA name like Europe/Berlin. Empty: the server's time zone."),
 }
 
-EFFECT_TEXT: dict[Effect, str] = {
-    "rescore": str(_("Re-scores every sortie in the background")),
-    "retour": str(_("Moves the missions into other tours in the background")),
-    "reprocess": str(_("New missions at once; older ones after a reprocess")),
-    "display": str(_("Applies at once")),
+EFFECT_TEXT = {  # lazy: read per request, in the admin's language (never `str()` at import time)
+    "rescore": _("Re-scores every sortie in the background"),
+    "retour": _("Moves the missions into other tours in the background"),
+    "reprocess": _("New missions at once; older ones after a reprocess"),
+    "display": _("Applies at once"),
 }
+# For a `rescore` field of the Leaderboards page (`score.min_elo_games`): it re-scores nothing, the rebuild recomputes
+# the all-time Elo with it (and the Elo boards and marks follow, since the applied value changes with that rebuild).
+RECOMPUTE_TEXT = _("Recomputed in the background by the next rebuild")
+
+
+def effect_text(field: RuleField) -> str:
+    """When a change of this field takes hold, in the active language."""
+    if field.effect == "rescore" and field.page == "leaderboards":
+        return str(RECOMPUTE_TEXT)
+    return str(EFFECT_TEXT[field.effect])
 
 
 def group_title(field: RuleField) -> str:
@@ -145,7 +155,7 @@ def build_groups(page: Page, site: SiteSettings, posted: Mapping[str, str] | Non
             kind="bool" if field.kind == "bool" else "text",
             typed=typed,
             default=show(base_value(base, field)),
-            effect=EFFECT_TEXT[field.effect],
+            effect=effect_text(field),
             pending=field.key in waiting,
         )
         groups.setdefault(group_title(field), []).append(row)

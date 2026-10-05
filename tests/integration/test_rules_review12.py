@@ -32,7 +32,7 @@ from il2ks.ingest.score_apply import rescore_with_wanted
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import start_manual_tour
 from il2ks.ops import migrate
-from il2ks.rule_settings import BY_KEY
+from il2ks.rule_settings import BY_KEY, validate
 from il2ks.web.admin_rules import build_groups
 from tests.conftest import FIXTURE_LOGS
 from tests.factories import SERVER_UID, FakeCatalog, meta
@@ -247,7 +247,15 @@ def test_the_scoring_hint_shows_the_applied_kill_points_not_the_built_in_ones(ad
         },
     )
     page = admin.get("/admin/score/").content.decode()
-    assert "a player&#x27;s 12 " in page or "a player's 12 " in page
+    assert "a player&#x27;s 12)" in page or "a player's 12)" in page
+
+
+def test_the_problems_of_the_parser_reach_the_admin_in_the_active_language() -> None:
+    _, english = validate(RuleSet(), {"score.min_sorties": "inf"})
+    with translation.override("de"):
+        _, german = validate(RuleSet(), {"score.min_sorties": "inf"})
+    assert english == ["score.min_sorties must be a finite number"]  # the toml path keeps the English text
+    assert german == ["score.min_sorties muss eine endliche Zahl sein"]
 
 
 def test_the_effect_texts_follow_the_active_language() -> None:

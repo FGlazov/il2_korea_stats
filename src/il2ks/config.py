@@ -56,8 +56,36 @@ MAX_WHOLE_NUMBER = 2_000_000_000
 """The largest whole number a setting may have (it must fit a database integer column)."""
 
 
+def gettext_noop(message: str) -> str:
+    """Marks `message` for translation without translating it (the extraction finds it by this name). Django is not
+    imported here: the installer's detection snippets load this module without it."""
+    return message
+
+
 class ConfigError(ValueError):
-    """The configuration is invalid. The message says which setting and why."""
+    """The configuration is invalid. The message says which setting and why (English, for the log and the terminal).
+
+    A message that can reach the admin's rule pages also carries its `template` (a gettext message id with named
+    placeholders) and the `params`: `localized()` is the same text in the active language."""
+
+    def __init__(
+        self, message: str, *, template: str | None = None, params: Mapping[str, object] | None = None
+    ) -> None:
+        super().__init__(message)
+        self.template = template
+        self.params: Mapping[str, object] = params or {}
+
+    def localized(self) -> str:
+        if self.template is None:
+            return str(self)
+        from django.utils.translation import gettext
+
+        return gettext(self.template) % self.params
+
+
+def _problem(template: str, **params: object) -> ConfigError:
+    """A `ConfigError` for `template` (written as `gettext_noop("...")` at the call: that is what extracts it)."""
+    return ConfigError(template % params, template=template, params=params)
 
 
 def default_data_dir(env: Mapping[str, str]) -> Path:
@@ -647,24 +675,24 @@ class _Reader:
             return value
         if isinstance(value, str) and value.lower() in {"1", "true", "yes", "on", "0", "false", "no", "off"}:
             return value.lower() in {"1", "true", "yes", "on"}
-        raise ConfigError(f"{self._label(section, key)} must be true or false")
+        raise _problem(gettext_noop("%(label)s must be true or false"), label=self._label(section, key))
 
     def _float(self, label: str, value: object) -> float:
         if isinstance(value, bool):
-            raise ConfigError(f"{label} must be a number")
+            raise _problem(gettext_noop("%(label)s must be a number"), label=label)
         number: float | None = None
         if isinstance(value, int | float):
             try:
                 number = float(value)
             except OverflowError:  # an integer beyond the range of a float
-                raise ConfigError(f"{label} must be a finite number") from None
+                raise _problem(gettext_noop("%(label)s must be a finite number"), label=label) from None
         elif isinstance(value, str):
             with contextlib.suppress(ValueError):
                 number = float(value)
         if number is None:
-            raise ConfigError(f"{label} must be a number")
+            raise _problem(gettext_noop("%(label)s must be a number"), label=label)
         if not math.isfinite(number):  # nan and inf (also "1e400"): they break integer fields, JSON and arithmetic
-            raise ConfigError(f"{label} must be a finite number")
+            raise _problem(gettext_noop("%(label)s must be a finite number"), label=label)
         return number
 
     def non_negative(self, section: str, key: str, default: float) -> float:
@@ -673,7 +701,7 @@ class _Reader:
             return default
         number = self._float(self._label(section, key), value)
         if number < 0:
-            raise ConfigError(f"{self._label(section, key)} must not be negative")
+            raise _problem(gettext_noop("%(label)s must not be negative"), label=self._label(section, key))
         return number
 
     def positive_int(self, section: str, key: str, default: int) -> int:
@@ -682,7 +710,7 @@ class _Reader:
     def positive(self, section: str, key: str, default: float) -> float:
         number = self.non_negative(section, key, default)
         if number == 0:
-            raise ConfigError(f"{self._label(section, key)} must be greater than 0")
+            raise _problem(gettext_noop("%(label)s must be greater than 0"), label=self._label(section, key))
         return number
 
     def whole_number(self, section: str, key: str, default: int) -> int:
@@ -693,9 +721,11 @@ class _Reader:
         """`number` (finite: `_float` saw to it) as an int; a ConfigError when it has a fraction or is absurdly large (a
         database column or a time span could not take it)."""
         if number != int(number):
-            raise ConfigError(f"{self._label(section, key)} must be a whole number")
+            raise _problem(gettext_noop("%(label)s must be a whole number"), label=self._label(section, key))
         if number > MAX_WHOLE_NUMBER:
-            raise ConfigError(f"{self._label(section, key)} must be at most {MAX_WHOLE_NUMBER}")
+            raise _problem(
+                gettext_noop("%(label)s must be at most %(max)s"), label=self._label(section, key), max=MAX_WHOLE_NUMBER
+            )
         return int(number)
 
     def port(self, section: str, key: str, default: int) -> int:
