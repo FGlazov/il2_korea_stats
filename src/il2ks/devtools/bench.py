@@ -32,6 +32,7 @@ class PhaseTimer:
     def __init__(self) -> None:
         self.current: defaultdict[str, float] = defaultdict(float)
         self.missions: list[tuple[float, dict[str, float]]] = []
+        self.batch: defaultdict[str, float] = defaultdict(float)  # batched level 2 passes, between the missions
 
     def wrap[**P, R](self, phase: str, fn: Callable[P, R]) -> Callable[P, R]:
         def timed(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -40,6 +41,26 @@ class PhaseTimer:
                 return fn(*args, **kwargs)
             finally:
                 self.current[phase] += _clock() - t0
+
+        return timed
+
+    def wrap_batch[**P, R](self, fn: Callable[P, R]) -> Callable[P, R]:
+        """Time a batched level-2 pass (`Level2Batch.flush` / `finish`), which runs between missions: its phases go to
+        `self.batch`, not to the next mission; what no phase wrapper saw (holders, data version) counts as other."""
+
+        def timed(*args: P.args, **kwargs: P.kwargs) -> R:
+            before = dict(self.current)
+            t0 = _clock()
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                elapsed = _clock() - t0
+                spent = {k: v - before.get(k, 0.0) for k, v in self.current.items()}
+                self.current.clear()
+                self.current.update(before)
+                for phase, seconds in spent.items():
+                    self.batch[phase] += seconds
+                self.batch["other"] += elapsed - sum(spent.values())
 
         return timed
 
@@ -62,9 +83,11 @@ def format_report(timer: PhaseTimer, wall: float) -> str:
     if not missions:
         return "no missions were ingested"
     totals = [t for t, _ in missions]
-    grand = sum(totals)
+    batched = sum(timer.batch.values())  # level 2 / ratings passes of a batched run, between the missions
+    grand = sum(totals) + batched
     lines = [
-        f"missions: {len(missions)}, wall time {wall:.1f} s, sum of missions {grand:.1f} s",
+        f"missions: {len(missions)}, wall time {wall:.1f} s, sum of missions {sum(totals):.1f} s"
+        + (f", batched level 2 and ratings {batched:.1f} s" if batched else ""),
         f"per mission: median {statistics.median(totals) * 1000:.0f} ms, p95 {percentile(totals, 0.95) * 1000:.0f} ms, "
         f"max {max(totals) * 1000:.0f} ms",
         "",
@@ -73,7 +96,8 @@ def format_report(timer: PhaseTimer, wall: float) -> str:
     for phase in PHASES:
         values = [phases.get(phase, 0.0) for _, phases in missions]
         lines.append(
-            f"{phase:<12}{sum(values):>9.2f}{sum(values) / grand:>8.1%}"
+            f"{phase:<12}{sum(values) + timer.batch.get(phase, 0.0):>9.2f}"
+            f"{(sum(values) + timer.batch.get(phase, 0.0)) / grand:>8.1%}"
             f"{statistics.median(values) * 1000:>11.1f}{percentile(values, 0.95) * 1000:>9.1f}"
         )
     return "\n".join(lines)
@@ -86,9 +110,11 @@ def bench_ingest(
     profile: Path | None = None,
     data_dir: Path | None = None,
     cpu: bool = False,
+    per_mission: bool = False,
 ) -> int:
     """Run the benchmark. Returns the process exit code. `data_dir` keeps the result (for `dump-db`); it must be
-    empty or new. `cpu`: time CPU instead of wall clock."""
+    empty or new. `cpu`: time CPU instead of wall clock. `per_mission`: level 2 after every mission even for 20+
+    missions (the path of a small run), to compare with the batched one."""
     global _clock
     _clock = time.process_time if cpu else time.perf_counter
     with contextlib.ExitStack() as stack:
@@ -114,6 +140,7 @@ def bench_ingest(
         from il2ks.core.logparse.parser import ParseStats
         from il2ks.db.models import IngestRun
         from il2ks.ingest import persist, runner
+        from il2ks.ingest.batch import Level2Batch
         from il2ks.ingest.discover import Decision, Found
 
         cfg = load_config(None, {"IL2KS_DATA_DIR": tmp})
@@ -141,6 +168,9 @@ def bench_ingest(
             parse=parse,
             replay=timer.wrap("replay", real.replay),
             save=timer.wrap("persist L1", real.save),
+            save_level1=timer.wrap("persist L1", real.save_level1)
+            if real.save_level1 is not None and not per_mission
+            else None,
             resolve_start=real.resolve_start,
         )
 
@@ -154,20 +184,20 @@ def bench_ingest(
             last: IngestRun | None,
             *,
             now: Callable[[], datetime] = runner.utcnow,
+            batch: Level2Batch | None = None,
         ) -> runner.Outcome:
             t0 = _clock()
-            outcome = original_ingest_mission(cfg, pipeline, item, decision, last, now=now)
+            outcome = original_ingest_mission(cfg, pipeline, item, decision, last, now=now, batch=batch)
             timer.finish(_clock() - t0)
             return outcome
 
         runner.ingest_mission = ingest_mission
         runner.write_archive = timer.wrap("archive", runner.write_archive)
-        persist.recompute_players = timer.wrap("level 2", persist.recompute_players)
-        persist.recompute_aircraft_ammo = timer.wrap("level 2", persist.recompute_aircraft_ammo)
-        persist.recompute_aircraft_stats = timer.wrap("level 2", persist.recompute_aircraft_stats)
-        persist.recompute_matchups = timer.wrap("level 2", persist.recompute_matchups)
+        persist.refresh_tours = timer.wrap("level 2", persist.refresh_tours)
         persist.recompute_thresholds = timer.wrap("level 2", persist.recompute_thresholds)
         persist.recompute_ratings = timer.wrap("ratings", persist.recompute_ratings)
+        Level2Batch.flush = timer.wrap_batch(Level2Batch.flush)
+        Level2Batch.finish = timer.wrap_batch(Level2Batch.finish)
 
         profiler = cProfile.Profile() if profile is not None else None
         start = _clock()

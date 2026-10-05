@@ -156,20 +156,29 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `PlayerAircraft`; a test checks it matches the model.
 - **Save order** (`persist.save_mission`, one transaction, `[PROPOSED]`): the tour (`ensure_tour`), the `Mission` row, game objects and countries,
   `Player` rows, the sorties (each gets its air and ground score from `ingest.scoring.apply_score` under the `[score]` rules, as it is written),
-  the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo and ammo mix of each destroyed aircraft, with that aircraft's own combat role and weapon mods, migration 0057). Then level 2, always after the rows it reads:
-  1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
+  `SortieGunHits` (the gun hit lines per sortie and ammo), the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo and ammo mix of each destroyed aircraft, with that aircraft's own combat role and weapon mods, migration 0057). Then level 2, always after the rows it reads. **Level-2 refresh** (maintainer, 2026-10-05: every level-2 refresh is a full refresh of the touched tours; no per-entity tracking, `[PROPOSED]` details):
+  `save_level1` returns only the ids of the tours it touched (the mission's tour and, when a re-ingest moved it, the old one; the `Touched` set is gone), and
+  `aggregates.refresh_tours(tour_ids)` is the one level-2 path for the single-mission save, the batches, the live passes and `discard_provisional_mission`
+  (`rebuild_aggregates` calls it with `None`: every tour and everything that has none). It finds what to recompute by queries over the tours' level-1 rows
+  and the rows level 2 already holds for them (so an entity that dropped out of a re-ingested mission is corrected too): the players with a sortie,
+  `PlayerMission` or `PlayerTour` row in the tours, the types flown in them (counted sorties, `PlayerTourAircraft`, `TourAircraftStats`), the (killer type, victim type)
+  pairs of their counted kills (and the tours' `AircraftMatchup` rows), the types that have ammo rows (they are not per tour), the UTC days of their missions. It then runs
+  two steps (`_recompute_tour_scope`, then `_recompute_all_time`) with the existing recompute functions:
+  1. `recompute_players` for those players, limited to the tours: totals, `PlayerAircraft`, the prop/jet pools
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: the payload only since OQ-117; `ingest.builds`, from the sorties), identity and names, then the killboard rows (`PlayerKillboard` /
      `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
-     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per touched tour);
-  1b. `recompute_holders` (`AchievementHolders` per scope with the pilot count, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
-  2. `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables per tour, role and modification pattern);
-  3. `recompute_aircraft_stats` for the types involved (`AircraftStats`; `TourAircraftStats` per tour, role and modification pattern for the touched tours; `AircraftPayload` and `AircraftMods`; `PlayerAircraftScope`, the top-pilot rows of every scope; reads the players' `PlayerAircraft` rows, so it comes
-     after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the scopes: all time and per tour, all kills and intercept kills only,
-     and, since 0057, the role / modification scopes of the killer's and of the victim's sortie, `scoped_side`);
-  4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
-  5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum; skipped by `reprocess`, which recomputes once at the end);
-  6. `recompute_ratings` (Elo per pool and per type, all kills replayed; then `recompute_payload_elo`, the average Elo of the pilots of each loadout and mod set, `elo_avg`; same skip);
-  7. `bump_data_version` (TD-28).
+     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per tour);
+  2. `recompute_aircraft_stats` for the types (`AircraftStats`; `TourAircraftStats` per tour, role and modification pattern for the tours; `AircraftPayload` and `AircraftMods`; `PlayerAircraftScope`, the top-pilot rows of every scope; reads the players' `PlayerAircraft` rows, so it comes
+     after step 1) and `recompute_matchups` (`AircraftMatchup`: for each type pair the scopes: all time and per tour, all kills
+     and intercept kills only, and, since 0057, the role / modification scopes of the killer's and of the victim's sortie, `scoped_side`);
+  3. `_recompute_all_time`: `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables per tour, role and modification pattern) and `recompute_days` (`ActivityDay`).
+  The all-time player and type rows are still written by the same recompute functions in step 1 and 2 (they read all of a player's level-1 rows); `_recompute_all_time` is the
+  seam where "all time = the sum of the tour rows" will go. Known limit: the old day of a re-ingested mission whose start time moved is found only by `rebuild-aggregates`.
+  The callers then add, once per call: `recompute_holders` (`AchievementHolders` per scope, after the medal rows; counted in the database with `GROUP BY`),
+  `recompute_payload_elo` when no ratings follow, then
+  4. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum; skipped by `reprocess`, which recomputes once at the end);
+  5. `recompute_ratings` (Elo per pool and per type, all kills replayed; then `recompute_payload_elo`, the average Elo of the pilots of each loadout and mod set, `elo_avg`; same skip);
+  6. `bump_data_version` (TD-28).
 - **Provisional sorties of the running mission** (FR-ING-15, built 2026-10-04, `ingest/live.py`; all `[PROPOSED]` except the feature itself): the
   `LiveTracker` that feeds "online now" also keeps a `LiveReplay` of the running mission and, every `[live] sorties_interval_s` (default 120 s),
   saves it as a real `Mission` with `is_live = true` through `persist.save_mission`, upserting by the **same natural keys** as the final save, so
@@ -198,6 +207,44 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the
   end of `rebuild-aggregates` and `reprocess`. So a mission imported late lands in the right place in the order. Cost: about 0.02 s per mission
   at sample scale, growing with the total number of kills; if it ever matters, replay only from the earliest affected mission onward.
+- **Batched level 2 for long runs** (`ingest/batch.py`, roadmap item, 2026-10-05, `[PROPOSED]`). Maintainer, 2026-10-05: batches track only the touched tours and fully refresh them (no per-entity tracking), to bound complexity. A run with `BATCH_MIN = 20` or more missions to do
+  (`ingest` after its classify pass, `reprocess` after choosing its targets) saves **level 1 only** per mission (`Pipeline.save_level1` =
+  `persist.save_level1` + `bump_data_version`; still one transaction per mission, the `IngestRun` row in it) and does level 2 later. Fewer than 20:
+  nothing changes (`Pipeline.save` = `save_mission`: level 2, ratings and thresholds per mission). A pipeline without `save_level1` (test fakes) never batches.
+  - **ingest**: a `Level2Batch` tracks **only the ids of the tours** its saves touched (`add(tour_ids)`, called inside the save's transaction so a rolled-back mission adds nothing). After each mission
+    (saved or failed: progress counts missions) `mission_done()` applies `persist.apply_level2(pending_tours, payload_elo=False, holders=False)` (= `refresh_tours`) and
+    `bump_data_version` in its own transaction whenever `done * 10 // total` crossed the next line (9 passes at most; the last 10% is the end's). At the end,
+    in one transaction: the same pending tours, then `recompute_ratings` once (it replays every kill ordered by mission start, so "in mission order" holds
+    whatever order the missions were saved in), `recompute_holders`, `recompute_thresholds` for every tour the batch touched: what `save_mission` does per mission,
+    in the same order (`persist.apply_batch_end`). Between passes the pages show the new level-1 rows (missions, sorties) with level 2 at most 10% behind;
+    the new loadouts' average Elo and the holder counts wait for the end.
+  - **reprocess** (`defer_ratings` pipelines, also the admin's request and `watch`): level 1 only per mission and **no 10% passes**: the final
+    `rebuild_aggregates` (unchanged: it also re-scores sorties and applies a changed `[score]`, `[tours]` or `[killboard]` config) recomputes every
+    level-2 table anyway, so per-mission or 10% passes were pure waste (they used to run per mission and the rebuild redid all of it). End state identical.
+  - **Crash safety**: the loop is in a `try/finally`. Ctrl-C, an exception or a failing pass in the middle still applies what is pending (ingest: `Level2Batch.finish`;
+    reprocess: the rebuild), so level 2 matches the saved missions. A pass failing inside that `finally` is logged ("run `il2ks rebuild-aggregates`"), not raised over the first error.
+    A **hard kill** (power cut, `kill -9`, OOM) loses the in-memory pending tours (the marker keeps them, below): level 1 of the saved missions is committed, level 2 (and the Elo
+    ratings) lag by at most the last 10% (reprocess: by every mission so far), and a re-run skips the missions as `unchanged`.
+  - **Pending marker** `[PROPOSED]` (2026-10-05, makes the hard kill detectable and self-healing): `SiteSettings.level2_pending` (JSON, empty = none; migration
+    0059, on the settings row every page reads anyway) is set to `{"since", "command", "pid"}` when a batch starts, and gets `"tours": [ids]` (every tour the batch's saves touched so far, one small update only when the batch reaches a new tour, in the save's transaction) (`Level2Batch.start()` before the first save; a batched
+    `reprocess` sets it too) and cleared in the same transaction as the last level-2 pass (`finish`), by any `rebuild_aggregates` (so the reprocess's final rebuild
+    and `il2ks rebuild-aggregates` clear it) and by a batch that saved nothing. The marker is **not** cleared by the 10% passes. At the start of every `ingest`,
+    `watch` and `reprocess` run, writer lock held, `batch.repair_pending` finds it still set (a killed process; the lock proves nobody is running). With `tours` in it, it runs `refresh_tours(those)` and then ratings, holders and thresholds
+    (`persist.finish_batch`); without (a batched reprocess, an older marker) it runs `rebuild_aggregates` first. It logs a warning with the start time and pid, then clears the marker. `il2ks doctor` (ingestion check) warns "Level 2 ... may be behind" with the fix
+    `il2ks rebuild-aggregates` while it is set. An ordinary exception or Ctrl-C leaves no marker (the `finally` finishes the batch). Cost: two one-row updates per batched run
+    and one read per run. Tests: `test_a_killed_batch_is_detected_by_doctor_and_repaired_by_the_next_run`, `test_a_killed_batched_reprocess_...`, `test_a_finished_batch_leaves_no_marker`.
+    Tests: `test_the_marker_names_the_tours_of_the_batch`, `test_a_marker_without_tours_is_repaired_by_a_full_rebuild`. A killed batched reprocess still repairs by a full rebuild.
+  - **Equality** is tested table by table (`tests/integration/test_batched_level2.py`, `tests/db_canon.py`): batched ingest == per-mission ingest == after a rebuild,
+    and batched reprocess == per-mission reprocess; plus a batch that re-ingests missions that moved tours (both tours refreshed) and a batch over several tours.
+  - **Measured** (2026-10-05, `bench-ingest` on a copy of every 5th sample, 42 missions, machine loaded by other jobs, so wall clock and CPU swing 2x):
+    wall 88.4 s and 84.1 s per-mission path (`BATCH_MIN` forced high) against 65.7 s and 62.6 s batched, about 26% faster (level 2 plus ratings 22-25% of
+    the run before, 18-19% after; 11.7-13.6 s of it in the batched passes). First, quiet CPU-time run: 9.6 s before (level 2 2.8 s) against 6.5 s after (1.4 s).
+    The saving grows with the batch: a player in many missions is recomputed once per pass instead of once per mission.
+  - **Measured with the tour-based refresh** (2026-10-05, same 42 missions, one monthly tour, `bench-ingest`, wall clock on a loaded machine): per-mission path 68.7 s with the previous
+    Touched-set version (level 2 18.2 s, median 350 ms per mission) -> 115.3 s with the full-tour refresh (level 2 51.1 s, median 1.0 s per mission; the other phases also ran 1.3-1.5x
+    slower in that run, so about 2.8x for level 2 itself); batched 44.2 s -> 44.0 s (batched passes plus ratings 8.1 s -> 11.7 s). Batched stays far ahead of the per-mission path
+    (44 s against 115 s). The per-mission cost now grows with the number of players in the tour: `recompute_players` is 80% of the refresh.
+  - `il2ks dev bench-ingest` times the passes separately ("batched level 2 and ratings" in the header; their phases are added to the table).
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
 - **Players are never deleted**; one whose sorties disappear keeps the row and URL with zero counters. Players who only ever flew as gunner
