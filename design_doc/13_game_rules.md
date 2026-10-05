@@ -367,17 +367,24 @@ qualifying   = an enemy ground object lies within tot_target_radius_m (3 km), ho
                position: its last logged one at or before the release (AType 12 spawn, AType 2/3 lines naming it as the target)
                it must exist and not be destroyed yet at the release
 attacks      = qualifying releases sorted by time; a gap > tot_pass_gap_s (300 s) starts a new attack
-one attack   = from (first release − tot_lead_in_s (60 s)) to its last release; the run-in never starts before the takeoff of that
-               flight (a resupplied sortie's later takeoff counts) or before the previous attack's last release
+one attack   = from (first release − tot_lead_in_s (60 s)) to (last release + tot_trail_s (60 s)); the run-in never starts before the
+               takeoff of that flight (a resupplied sortie's later takeoff counts) or before the previous attack's last release; the
+               trail never runs past the end of that flight (the sortie end, the aircraft's loss or its landing, whichever is first)
+               nor past the next attack's start (no double counting)
 time on target = sum over attacks
 ```
 - A release far from every enemy ground object (a jettison when intercepted) counts for nothing, as the maintainer asked. A single qualifying
-  release is worth the 60 s run-in.
+  release is worth 120 s (60 s run-in + 60 s trail). Maintainer, 2026-10-05: one minute after the last release counts too (`tot_trail_s`,
+  a replay rule next to `tot_lead_in_s`, so it is in `il2ks.toml` and on the admin Rules page).
 - Known noise `[PROPOSED]` (accepted for now): the log can't tell a drop tank from a bomb, so a drop tank released near an enemy object counts;
   the release position is the carrier's, not the impact point (a jet releasing high can hit 1–2 km ahead, so 3 km is generous for jets);
   vehicles that moved without being hit are taken at their last logged position.
-- Samples, attack sorties that took off: 37.5% have 0 (shot down or turned back before attacking, or released nowhere near a target); median
-  60 s, top 10% ≥ 250 s, max 18 min; about 10% of the flight time where nonzero. 64% of releases qualify. Cost: about 2 ms per mission.
+- Samples (210 missions, 6195 attack sorties that flew): 37.5% have 0 (shot down or turned back before attacking, or released nowhere near a
+  target); the zero share and the 64% of releases that qualify do not change with the trail. Of the nonzero ones, measured 2026-10-05 without
+  the trail → with it: median 120 s → 175 s, top 10% ≥ 300 s → ≥ 363 s, max 18 min → 21.5 min, total 165 h → 225 h (+36%), share of the
+  flight time 10.7% → 14.6%. Cost: about 2 ms per mission.
+- Ground score per hour and tank busting divide by time on target, so their rates go down a little (the same kills and points over about a
+  third more hours on target). Stored sorties get the new time after `il2ks reprocess --all`.
 
 **Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[DECIDED]`,
 OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read time; the counters are sums over a pilot's sorties.

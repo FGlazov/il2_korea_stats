@@ -279,7 +279,7 @@ from iteration 1** (combat role, time on target, Elo), so pages needed no reproc
   Per-aircraft-type ratings from the same games are built (`PlayerAircraft.elo`, OQ-49, doc 13).
 - **Ground proficiency** (FR-WEB-20): ground score per hour **on target** for attack sorties. **Time on target** `[DECIDED]` (OQ-29): only
   ordnance (bombs, napalm, rockets) released **within 3 km (horizontal) of an enemy ground object** counts, plus 1 minute of run-in before
-  the first such release. Releases far from any target (jettisoned when intercepted) don't count, and neither does transit.
+  the first such release and 1 minute after the last one (maintainer, 2026-10-05). Releases far from any target (jettisoned when intercepted) don't count, and neither does transit.
 - **Interception** `[DECIDED]` (maintainer, 2026-10-04, OQ-102): kills of **bombers, attackers and transports** (AI or player) per hour of **air
   superiority** flight, credited kills only, for air superiority sorties only; a pilot needs 5 such sorties and 60 minutes of that flight.
   **Tank busting** `[DECIDED]` (OQ-103): tanks destroyed in **attack** sorties per hour on target, with the ground-per-hour minimums. Both rank next to Elo and ground per hour (FR-WEB-7) and

@@ -285,7 +285,9 @@ def test_lead_in_does_not_overlap_the_previous_attack() -> None:
     sc = _strike()
     _release(sc, 400)
     _release(sc, 520)  # 120 s later: a new attack whose 300 s lead-in would reach back into the first one
-    assert _a(sc, rules).time_on_target_s == 300.0 + 180.0  # 100 s to 400 s (the trail stops where the next run-in starts), then 400 s to 580 s
+    assert (
+        _a(sc, rules).time_on_target_s == 300.0 + 180.0
+    )  # 100 s to 400 s (the trail stops where the next run-in starts), then 400 s to 580 s
 
 
 def test_far_releases_between_near_ones_do_not_bridge_a_gap() -> None:
@@ -370,4 +372,6 @@ def test_a_trail_never_runs_into_the_next_run_in() -> None:
     sc = _strike()
     _release(sc, 100)
     _release(sc, 300)  # 200 s later: a new attack, its run-in starts at 240 s
-    assert _a(sc, rules).time_on_target_s == (240 - 40) + (600 - 240)  # the first attack stops at 240 s; the second's trail hits the end
+    assert _a(sc, rules).time_on_target_s == (240 - 40) + (
+        600 - 240
+    )  # the first attack stops at 240 s; the second's trail hits the end

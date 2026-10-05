@@ -122,6 +122,9 @@
 #tot_target_radius_m = 3000.0
 # ... each attack also counts this many seconds before its first release (the run-in) ...
 #tot_lead_in_s = 60.0
+# ... and this many seconds after its last release (but not past the end of the flight: the sortie end, the loss or
+# the landing) ...
+#tot_trail_s = 60.0
 # ... and releases more than this many seconds apart are separate attacks (the time between them doesn't count).
 #tot_pass_gap_s = 300.0
 # Ammo breakdown (FR-WEB-18): a damage line is attributed to the ammo of the attacker's hit on that target that is

@@ -44,10 +44,12 @@ class ReplayRules:
     # samples), so "ammo used" is unknown for such a sortie.
     ammo_left_after_loss_s: float = 1.0
     # Time on target (FR-WEB-20, doc 13): a bomb, napalm or rocket release counts when an enemy ground object is within
-    # this horizontal distance; each attack starts this many seconds before its first counted release; counted releases
-    # further apart than the gap start a new attack.
+    # this horizontal distance; each attack starts this many seconds before its first counted release and
+    # ends `tot_trail_s` after its last one (never after the flight ends); counted releases further apart than the
+    # gap start a new attack.
     tot_target_radius_m: float = 3000.0
     tot_lead_in_s: float = 60.0
+    tot_trail_s: float = 60.0
     tot_pass_gap_s: float = 300.0
     # Ammo attribution (FR-WEB-18, doc 02): a damage line takes the ammo of the attacker's hit on that target closest in
     # time, if one lies within this many seconds (either side; hits are logged a tick or two before the damage line).
