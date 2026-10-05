@@ -218,6 +218,17 @@ def test_without_resupply_the_landing_damage_is_the_damage_taken_as_before() -> 
     assert (a.damage_taken, a.landing_damage) == (pytest.approx(0.7), pytest.approx(0.7))
 
 
+def test_a_repaired_damaged_landing_counts_although_the_sortie_is_shot_down_later() -> None:
+    sc = _scenario()
+    _resupply(sc, hits=((50, 0.7),))
+    sc.damage(250, 200, 100, 1.0)
+    sc.kill(250, 200, 100)
+    sc.end(260, 200, 201)
+    a = by_acct(sc.result(), 1)
+    assert a.outcome == "shot_down"
+    assert a.landing_damage == pytest.approx(0.7)  # the first landing; the final state is a loss, not a landing
+
+
 def test_a_sortie_that_did_not_land_has_no_landing_damage_from_its_end() -> None:
     sc = _scenario()
     sc.damage(50, 200, 100, 0.8)

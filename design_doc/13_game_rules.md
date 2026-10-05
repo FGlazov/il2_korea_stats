@@ -302,7 +302,7 @@ dropped, and a counterpart's several sorties are separate rows. No row came from
   aircraft that flew on undamaged is "unharmed". `pilot_damage` is unchanged (the pilot is not repaired, summed and capped at 1).
 - **Landing damage** (maintainer 2026-10-05: "keep the medal in that scenario"): `landing_damage` of a sortie = the most damage the aircraft carried
   **into a landing**: the leg that ends at each repairing landing (counted up to that tick) and, when the sortie ends in a landing (`outcome = landed`),
-  the damage it ends with. A landing made damaged therefore still counts for the damaged-landing medal and the "limped home" / "battered victor"
+  the damage it ends with (whatever the outcome otherwise: a repaired landing counts although the sortie is shot down later). A landing made damaged therefore still counts for the damaged-landing medal and the "limped home" / "battered victor"
   quips although a repair and more flying follow and `damage_taken` reads 0. Without `resupply_allowed` there is no repair, so it equals `damage_taken` of a
   landed sortie (0 for the others). It is a fraction (not a bool) because the medal and the quips keep their 50% "badly damaged" threshold.
 - Timeline: a `repaired` row ("Repaired after landing") at the landing tick when the leg that ends there had counted damage and a takeoff follows.

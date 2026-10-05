@@ -53,7 +53,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     ),
     "damaged_landing": (
         gettext_lazy("Limping Home"),
-        gettext_lazy("Sorties with at least one kill that ended in a landing with the aircraft badly damaged."),
+        gettext_lazy("Sorties with at least one kill in which the aircraft made a landing badly damaged."),
     ),
     "regular": (
         gettext_lazy("Regular"),

@@ -102,6 +102,7 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({"landing_damage": 0.8}, "sortie_limped_home"),
         ({"landing_damage": 0.2}, None),
         ({"landing_damage": 0.8, "aircraft_status": "unharmed", "damage_taken": 0.0}, "sortie_limped_home"),  # repaired
+        ({"landing_damage": 0.8, "outcome": "shot_down"}, None),  # a repaired landing, then shot down: no quip
         ({"role": "gunner", "kills_air": 9}, None),
     ],
 )

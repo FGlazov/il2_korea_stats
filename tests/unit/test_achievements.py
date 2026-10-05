@@ -148,7 +148,7 @@ def test_damaged_landing_needs_a_kill_a_landing_and_heavy_damage() -> None:
     rows = [
         s(damage=0.9, air=0),  # no kill
         s(damage=0.2, air=2),  # barely scratched
-        s(damage=0.8, air=1, landed=False),  # did not land
+        s(damage=0.0, air=1, landed=False),  # no damage at any landing
         s(damage=0.6, ground=3),  # counts: ground kills too
         hurt(),
     ]
@@ -162,6 +162,9 @@ def test_damaged_landing_counts_a_landing_that_was_repaired_before_the_sortie_fl
     repaired = s(damage=0.0, landing_damage=0.7, air=1)  # damage_taken (the last leg) reads 0
     assert tiers("damaged_landing", [repaired]) == {1: 0}
     assert tiers("damaged_landing", [s(damage=0.0, landing_damage=0.0, air=1)]) == {}  # an undamaged landing
+    # ... and one that was repaired, flew on and ended shot down still made that landing
+    shot_down = s(damage=1.0, landing_damage=0.7, air=1, death=True)
+    assert tiers("damaged_landing", [shot_down]) == {1: 0}
 
 
 def test_weeks_in_a_row_use_iso_weeks_and_a_gap_restarts() -> None:

@@ -340,7 +340,7 @@ def _never(sorties: Sequence[AchievementSortie]) -> list[float]:
 
 
 def _is_damaged_landing(s: AchievementSortie) -> bool:
-    return s.landed and s.landing_damage >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
+    return s.landing_damage >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
 
 
 # --- the registry ------------------------------------------------------------------------------------------------
