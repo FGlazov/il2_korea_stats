@@ -252,6 +252,9 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
     Touched-set version (level 2 18.2 s, median 350 ms per mission) -> 115.3 s with the full-tour refresh (level 2 51.1 s, median 1.0 s per mission; the other phases also ran 1.3-1.5x
     slower in that run, so about 2.8x for level 2 itself); batched 44.2 s -> 44.0 s (batched passes plus ratings 8.1 s -> 11.7 s). Batched stays far ahead of the per-mission path
     (44 s against 115 s). The per-mission cost now grows with the number of players in the tour: `recompute_players` is 80% of the refresh.
+  - **Measured after merging per-tour Elo, streaks and medals** (2026-10-05, same 42 missions on a temp copy, one monthly tour, `bench-ingest`, machine loaded by other jobs): wall clock per-mission path 153.3 s
+    (level 2 86.7 s, median 3.3 s per mission) against batched 94.6 s (-38%); `--cpu` (steadier): 45.3 s (level 2 31.0 s, median 1.1 s per mission, ratings 0.8 s) against
+    18.0 s batched (level 2 8.6 s of it, ratings 0.3 s), 2.5x faster. Every refresh now also computes the tour's streaks and medals and replays only the touched tours' Elo.
   - `il2ks dev bench-ingest` times the passes separately ("batched level 2 and ratings" in the header; their phases are added to the table).
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
