@@ -519,6 +519,25 @@ msgid "A low pass by the other side, uninvited. The ramp is not a place for opin
 msgstr "Ungeladene Gäste im Tiefflug. Auf dem Vorfeld ist man auf Besuch nicht vorbereitet."
 
 # llm-draft
+msgid ""
+"A picture behind the title and player search on the home page. PNG, JPEG or WebP, up to 4 MB; about 1600 × 500 pixels"
+" is a good size. It is cropped to fit at every screen width. The image is checked and re-encoded; SVG is refused."
+msgstr ""
+"Ein Bild hinter Titel und Spielersuche auf der Startseite. PNG, JPEG oder WebP, bis 4 MB; etwa 1600 × 500 Pixel sind "
+"eine gute Größe. Es wird bei jeder Bildschirmbreite passend zugeschnitten. Das Bild wird geprüft und neu kodiert; SVG"
+" wird abgelehnt."
+
+# llm-draft
+msgid ""
+"A picture behind the top banner on every page. PNG, JPEG or WebP, up to 4 MB; about 1920 × 400 pixels is a good size."
+" It is cropped to fit at every screen width, so keep the important part where the focus below points. The image is "
+"checked and re-encoded; SVG is refused."
+msgstr ""
+"Ein Bild hinter dem oberen Banner auf jeder Seite. PNG, JPEG oder WebP, bis 4 MB; etwa 1920 × 400 Pixel sind eine "
+"gute Größe. Es wird bei jeder Bildschirmbreite passend zugeschnitten, achte also darauf, dass der wichtige Teil dort "
+"liegt, wo der Fokus unten hinzeigt. Das Bild wird geprüft und neu kodiert; SVG wird abgelehnt."
+
+# llm-draft
 msgid "A pilot of rare devotion: the airfield is never far from this one's heart, or from its landing gear."
 msgstr "Heimatverbunden bis ins Fahrwerk: Dieser Pilot kann sich vom Flugplatz einfach nicht lösen."
 
@@ -1702,12 +1721,24 @@ msgid "Current ground streak"
 msgstr "Aktuelle Bodenserie"
 
 # llm-draft
+msgid "Current header background"
+msgstr "Aktueller Header-Hintergrund"
+
+# llm-draft
+msgid "Current home banner background"
+msgstr "Aktueller Hintergrund des Startseiten-Banners"
+
+# llm-draft
 msgid "Current logo"
 msgstr "Aktuelles Logo"
 
 # llm-draft
 msgid "Current streak"
 msgstr "Aktuelle Serie"
+
+# llm-draft
+msgid "Current tab icon"
+msgstr "Aktuelles Tab-Symbol"
 
 # llm-draft
 msgid "Current tour"
@@ -1764,6 +1795,10 @@ msgstr "Beschädigt"
 # llm-draft
 msgid "Dark mode"
 msgstr "Dunkler Modus"
+
+# llm-draft
+msgid "Darkening (0 to 80 %)"
+msgstr "Abdunkelung (0 bis 80 %)"
 
 # llm-draft
 #, python-format
@@ -1947,6 +1982,10 @@ msgstr "Erhalten"
 # llm-draft
 msgid "Earned in this sortie"
 msgstr "In diesem Einsatz erreicht"
+
+# llm-draft
+msgid "Either upload a new file or remove the current one, not both."
+msgstr "Lade entweder eine neue Datei hoch oder entferne die aktuelle, nicht beides."
 
 # llm-draft
 msgid "Either upload a new logo or remove the current one, not both."
@@ -2249,6 +2288,10 @@ msgstr[1] "Geflogen von %(pilots)s Piloten."
 #. they were flying in most of those deaths.
 msgid "Flown most"
 msgstr "Meist geflogen"
+
+# llm-draft
+msgid "Focus of the picture"
+msgstr "Bildfokus"
 
 # llm-draft
 msgid "Fonts"
@@ -2597,6 +2640,10 @@ msgid "Hard Landing"
 msgstr "Harte Landung"
 
 # llm-draft
+msgid "Header background"
+msgstr "Header-Hintergrund"
+
+# llm-draft
 msgid "Header band"
 msgstr "Kopfzeile"
 
@@ -2712,6 +2759,10 @@ msgid "Home at last, and the ramp was not safe either. The ground crew mourns th
 msgstr "Endlich daheim, und auch das Vorfeld war nicht sicher. Das Bodenpersonal trauert um die Maschine."
 
 # llm-draft
+msgid "Home banner background"
+msgstr "Hintergrund des Startseiten-Banners"
+
+# llm-draft
 msgid "Home page: the last mission had no kills"
 msgstr "Startseite: Die letzte Mission hatte keine Abschüsse"
 
@@ -2792,6 +2843,10 @@ msgstr "Ich betreibe bereits einen eigenen Webserver"
 # llm-draft
 msgid "I have no domain name yet"
 msgstr "Ich habe noch keinen Domainnamen"
+
+# llm-draft
+msgid "Icon for the browser tab"
+msgstr "Symbol für den Browser-Tab"
 
 # llm-draft
 msgid "Image file on the server"
@@ -3074,6 +3129,10 @@ msgid "Latest missions"
 msgstr "Neueste Missionen"
 
 # llm-draft
+msgid "Lays the band color over the picture so the text stays readable. Bright pictures need 60 to 80 %."
+msgstr "Legt die Farbe des Banners über das Bild, damit der Text lesbar bleibt. Helle Bilder brauchen 60 bis 80 %."
+
+# llm-draft
 msgid "Leaderboards"
 msgstr "Bestenlisten"
 
@@ -3122,6 +3181,10 @@ msgid "Links"
 msgstr "Links"
 
 # llm-draft
+msgid "Links, in order"
+msgstr "Links in dieser Reihenfolge"
+
+# llm-draft
 msgid "Lists of a tour without sorties: fresh start"
 msgstr "Listen einer Tour ohne Einsätze: frischer Start"
 
@@ -3165,8 +3228,8 @@ msgid "Log name"
 msgstr "Logname"
 
 # llm-draft
-msgid "Logo"
-msgstr "Logo"
+msgid "Logo and browser tab icon"
+msgstr "Logo und Browser-Tab-Symbol"
 
 # llm-draft
 msgid "Longest ground kill streak"
@@ -3336,10 +3399,6 @@ msgstr ""
 # llm-draft
 msgid "Navigation links"
 msgstr "Navigationslinks"
-
-# llm-draft
-msgid "Navigation links, in order"
-msgstr "Navigationslinks in der gewünschten Reihenfolge"
 
 # llm-draft
 msgid "Navigators on three continents would admire the fuel planning. The coffee flask is empty, naturally."
@@ -3661,6 +3720,10 @@ msgid "None."
 msgstr "Keine."
 
 # llm-draft
+msgid "None: the built-in decoration."
+msgstr "Keines: die eingebaute Dekoration."
+
+# llm-draft
 msgid ""
 "Normally a pilot's air score comes from air kills and assists only, so a long patrol where nothing happens earns "
 "nothing. Here you can switch on points for time in the air (not for taxiing): every pilot sortie then earns the rate "
@@ -3832,8 +3895,25 @@ msgid "Opponent"
 msgstr "Gegner"
 
 # llm-draft
+msgid "Optional picture behind the title and player search on the home page. Without one, the built-in decoration stays."
+msgstr "Optionales Bild hinter Titel und Spielersuche auf der Startseite. Ohne Bild bleibt die eingebaute Dekoration."
+
+# llm-draft
+msgid "Optional picture behind the top banner. Without one, the built-in decoration stays."
+msgstr "Optionales Bild hinter dem oberen Banner. Ohne Bild bleibt die eingebaute Dekoration."
+
+# llm-draft
 msgid "Optional title shown under the image."
 msgstr "Optionaler Titel unter dem Bild."
+
+# llm-draft
+msgid ""
+"Optional. Without it the logo is used as the tab icon (padded to a square, never cropped); with neither, the built-in"
+" aircraft icon stays. PNG, JPEG or WebP, up to 2 MB; a square image of at least 180 × 180 pixels works best."
+msgstr ""
+"Optional. Ohne diese Datei wird das Logo als Tab-Symbol verwendet (quadratisch aufgefüllt, nie beschnitten); gibt es "
+"keins von beiden, bleibt das eingebaute Flugzeugsymbol. PNG, JPEG oder WebP, bis 2 MB; am besten ein quadratisches "
+"Bild mit mindestens 180 × 180 Pixeln."
 
 # llm-draft
 #, python-format
@@ -4391,8 +4471,16 @@ msgid "Released"
 msgstr "Abgeworfen"
 
 # llm-draft
+msgid "Remove it and use the built-in decoration"
+msgstr "Entfernen und die eingebaute Dekoration verwenden"
+
+# llm-draft
 msgid "Remove the current logo"
 msgstr "Aktuelles Logo entfernen"
+
+# llm-draft
+msgid "Remove the separate tab icon"
+msgstr "Das separate Tab-Symbol entfernen"
 
 # llm-draft
 msgid "Remove uploaded fonts"
@@ -5244,6 +5332,10 @@ msgid "The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0
 msgstr "Pilot und Bremsen waren sich nicht einig. Die Physik hat den Streit geschlichtet."
 
 # llm-draft
+msgid "The built-in icon."
+msgstr "Das eingebaute Symbol."
+
+# llm-draft
 msgid ""
 "The bundled Caddy gets the certificate and serves the site on ports 80 and 443. Those ports must be free on this "
 "computer."
@@ -5302,6 +5394,10 @@ msgstr "Die Datei ist größer als %(mb)d MB."
 # llm-draft
 msgid "The file is larger than 2 MB."
 msgstr "Die Datei ist größer als 2 MB."
+
+# llm-draft
+msgid "The file is larger than 4 MB."
+msgstr "Die Datei ist größer als 4 MB."
 
 # llm-draft
 msgid "The first kill of the night, and it was this one. Everybody else is playing catch-up."
@@ -5477,6 +5573,10 @@ msgstr "Die Zahlen können sich bis zum Ende noch ändern."
 # llm-draft
 msgid "The numbers on this page are provisional and can still be updated."
 msgstr "Die Zahlen auf dieser Seite sind vorläufig und können sich noch ändern."
+
+# llm-draft
+msgid "The part of the picture that stays visible when it is cropped to a narrow screen."
+msgstr "Der Teil des Bildes, der sichtbar bleibt, wenn es für einen schmalen Bildschirm zugeschnitten wird."
 
 # llm-draft
 msgid ""
@@ -6094,6 +6194,14 @@ msgstr "Aktualisiert: %(when)s"
 # llm-draft
 msgid "Upload a font"
 msgstr "Schrift hochladen"
+
+# llm-draft
+msgid "Upload a header background"
+msgstr "Header-Hintergrund hochladen"
+
+# llm-draft
+msgid "Upload a home banner background"
+msgstr "Hintergrund für das Startseiten-Banner hochladen"
 
 # llm-draft
 msgid "Upload a new logo"

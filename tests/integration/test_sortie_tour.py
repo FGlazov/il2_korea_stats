@@ -99,7 +99,7 @@ def test_the_migration_backfills_the_tour_of_the_missions(tmp_path: Path) -> Non
     expected = dict(PlayerSortie.objects.values_list("pk", "tour_id"))
     assert len(set(expected.values())) == 2
     try:
-        MigrationExecutor(connection).migrate([("il2ks_db", "0074_sortie_recent_index")])  # drops the column
+        MigrationExecutor(connection).migrate([("il2ks_db", "0075_branding_backgrounds_favicon")])  # drops the column
         MigrationExecutor(connection).migrate([("il2ks_db", "0120_sortie_tour")])
         got = dict(PlayerSortie.objects.values_list("pk", "tour_id"))
     finally:

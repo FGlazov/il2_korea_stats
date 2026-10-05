@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Self
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from il2ks.db.validators import NAV_URL_MAX_LENGTH, validate_http_url
@@ -1784,6 +1785,20 @@ class HomeFeature(models.TextChoices):
     IMAGE = "image", "A large image from a file on the server"
 
 
+SHADE_VALIDATORS = [MinValueValidator(0), MaxValueValidator(80)]  # `web.branding_images.MAX_SHADE`
+
+
+class BackgroundPosition(models.TextChoices):
+    """Which part of a branding background picture stays visible when it is cropped (`background-size: cover`).
+    The CSS for each key lives in `il2ks.web.branding_images.POSITIONS` (a test keeps the two in step)."""
+
+    CENTER = "center", "Center"
+    LEFT = "left", "Left"
+    RIGHT = "right", "Right"
+    TOP = "top", "Top"
+    BOTTOM = "bottom", "Bottom"
+
+
 class SiteSettings(models.Model):
     """Branding and site texts, edited in the admin (FR-ADM-2, TD-25). A singleton: always pk=1 (`il2ks.db.site`)."""
 
@@ -1792,6 +1807,18 @@ class SiteSettings(models.Model):
     description = models.TextField(blank=True)  # shown on the home page
     # Path relative to MEDIA_ROOT of the re-encoded logo (raster only, never SVG; FR-ADM-2). Empty = no logo.
     logo = models.CharField(max_length=200, blank=True)
+    # Browser-tab icon: `favicon` is the base name (`branding/icon-<hash>`) of the renditions made from the logo,
+    # `favicon_custom` that of an uploaded icon, which wins. Empty = the built-in icon (`web.branding_images`).
+    favicon = models.CharField(max_length=200, blank=True)
+    favicon_custom = models.CharField(max_length=200, blank=True)
+    # Optional background pictures (`branding/bg-<home|header>-<hash>.webp`, re-encoded), where the crop keeps the focus
+    # (`BackgroundPosition`) and how strongly the band colour is laid over the picture, 0..80 %. Empty = built-in look.
+    home_bg_image = models.CharField(max_length=200, blank=True)
+    home_bg_position = models.CharField(max_length=10, choices=BackgroundPosition.choices, default="center")
+    home_bg_shade = models.PositiveSmallIntegerField(default=70, validators=SHADE_VALIDATORS)
+    header_bg_image = models.CharField(max_length=200, blank=True)
+    header_bg_position = models.CharField(max_length=10, choices=BackgroundPosition.choices, default="center")
+    header_bg_shade = models.PositiveSmallIntegerField(default=70, validators=SHADE_VALIDATORS)
     # Colour overrides by token: {"light": {"accent": "#A86A14", ...}, "dark": {...}}; empty = the default look. The
     # token list and validation live in `il2ks.web.theme` (TD-25); readers sanitize again (no CSS injection).
     theme: models.JSONField[dict[str, dict[str, str]]] = models.JSONField(default=dict, blank=True)

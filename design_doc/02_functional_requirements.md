@@ -259,6 +259,10 @@ people ask). The main use case is **a player reviewing their sortie**.
   both or neither is a draw; cuts on top of the tour mode; "(2)", "(3)" part titles; one campaign per site); flight-time score defaults
   (1 point per hour, fractional rates allowed, prorated by the time in the air: 20 minutes at 1 point per hour = 0.333 points; every
   pilot sortie; reduced by the outcome percentage like kill points).
+- **Accepted 2026-10-05** (all sorties page, FR-WEB-29): the navigation dropdown is called "History" (Missions, Sorties) after
+  Players, Aircraft and Leaderboards; the list shows counted pilot sorties by default (a Seat filter adds gunner sorties); hidden
+  players and hidden missions are left out; the pilot search matches the name flown under in that sortie; every sortie carries
+  its mission's tour (denormalized, kept in sync) so a tour's list walks an index.
 - **A new tour is a clean slate** (maintainer, 2026-10-05; built: Elo, streaks and medals per tour, all time rolled up from the tour rows, doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,

@@ -406,7 +406,10 @@ def test_the_stored_logo_ignores_the_declared_name_and_type(admin: Client, media
     logo = SiteSettings.objects.get(pk=1).logo
     assert re.fullmatch(r"branding/logo-[0-9a-f]{16}\.png", logo)
     assert not (media_root.parent / "evil.html").exists()
-    assert [p.name for p in (media_root / "branding").iterdir()] == [logo.removeprefix("branding/")]
+    stored = [
+        p.name for p in (media_root / "branding").iterdir() if not p.name.startswith("icon-")
+    ]  # icon-*: the tab icon
+    assert stored == [logo.removeprefix("branding/")]
 
 
 @pytest.mark.parametrize(

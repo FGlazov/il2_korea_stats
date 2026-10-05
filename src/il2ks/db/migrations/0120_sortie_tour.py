@@ -23,7 +23,7 @@ def backfill(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0074_sortie_recent_index"),
+        ("il2ks_db", "0075_branding_backgrounds_favicon"),
     ]
 
     operations = [

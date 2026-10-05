@@ -48,6 +48,14 @@ from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
 from il2ks.web.admin_rules import tour_mode
+from il2ks.web.branding_images import (
+    ICON_SIZES,
+    BackgroundKind,
+    ProcessedIcons,
+    has_background,
+    icon_urls,
+    prune_branding_pictures,
+)
 from il2ks.web.feature_image import prune_feature_files, store_result
 from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
 from il2ks.web.logo import prune_logos, store_bytes, store_logo
@@ -98,7 +106,7 @@ class NavLinkInline(admin.TabularInline):  # pyright: ignore[reportMissingTypeAr
     max_num = MAX_NAV_LINKS
     fields = ("label", "url", "icon", "position")
     verbose_name = _("navigation link")
-    verbose_name_plural = _("Navigation links, in order")
+    verbose_name_plural = _("Links, in order")
 
 
 def _contrast_message(item: ContrastWarning) -> str:
@@ -113,14 +121,76 @@ def _contrast_message(item: ContrastWarning) -> str:
     }
 
 
+def _store_icons(icons: ProcessedIcons, media_root: Path) -> None:
+    for name, data in icons.files.items():
+        store_bytes(data, name, media_root)
+
+
+def _icon_files(base: str) -> list[str]:
+    return [f"{base}-{size}.png" for size in ICON_SIZES] if base else []
+
+
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
     form = SiteSettingsForm
     inlines = (NavLinkInline,)
-    readonly_fields = ("current_logo", "uploaded_fonts", "nav_links_help", "feature_status")
+    readonly_fields = (
+        "current_logo",
+        "current_favicon",
+        "current_header_bg",
+        "current_home_bg",
+        "uploaded_fonts",
+        "nav_links_help",
+        "feature_status",
+    )
+    # Order: what the site is called, its look (logo and tab icon, the two background pictures, colors, fonts), the
+    # front-page image, behavior, coalitions; the navigation links come last because Django shows the inline rows
+    # after the last fieldset, so the description sits directly above the rows it describes.
     fieldsets = (
         (None, {"fields": ("site_title", "server_name", "description")}),
-        (_("Logo"), {"fields": ("current_logo", "logo_upload", "remove_logo")}),
+        (
+            _("Logo and browser tab icon"),
+            {
+                "fields": (
+                    "current_logo",
+                    "logo_upload",
+                    "remove_logo",
+                    "current_favicon",
+                    "favicon_upload",
+                    "remove_favicon",
+                ),
+            },
+        ),
+        (
+            _("Header background"),
+            {
+                "fields": (
+                    "current_header_bg",
+                    "header_bg_upload",
+                    "header_bg_position",
+                    "header_bg_shade",
+                    "remove_header_bg",
+                ),
+                "description": _("Optional picture behind the top banner. Without one, the built-in decoration stays."),
+            },
+        ),
+        (
+            _("Home banner background"),
+            {
+                "fields": (
+                    "current_home_bg",
+                    "home_bg_upload",
+                    "home_bg_position",
+                    "home_bg_shade",
+                    "remove_home_bg",
+                ),
+                "description": _(
+                    "Optional picture behind the title and player search on the home page. Without one, the "
+                    "built-in decoration stays."
+                ),
+            },
+        ),
+        (_("Colors"), {"fields": ("theme_preset", "theme")}),
         (
             _("Fonts"),
             {
@@ -134,7 +204,6 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
                 )
             },
         ),
-        (_("Colors"), {"fields": ("theme_preset", "theme")}),
         (
             _("Front page image"),
             {
@@ -144,16 +213,6 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
                 ),
             },
         ),
-        (
-            _("Front page image"),
-            {
-                "fields": ("home_feature", "feature_image_path", "feature_caption", "feature_alt", "feature_status"),
-                "description": _(
-                    "A large image, for example a map of the current situation, shown first on the front page."
-                ),
-            },
-        ),
-        (_("Navigation links"), {"fields": ("nav_links_help",)}),
         (
             _("Running mission"),
             {
@@ -171,6 +230,7 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
                 "description": _("Names and emblems shown for 5xx / 6xx. The default emblems are neutral."),
             },
         ),
+        (_("Navigation links"), {"fields": ("nav_links_help",)}),
     )
 
     def has_add_permission(self, request: HttpRequest) -> bool:
@@ -198,6 +258,31 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             obj.logo,
         )
 
+    @admin.display(description=_("Current tab icon"))
+    def current_favicon(self, obj: SiteSettings) -> str:
+        urls = icon_urls(settings.MEDIA_URL, obj.favicon_custom, obj.favicon)
+        if urls is None:
+            return _("The built-in icon.")
+        return format_html('<img src="{}" alt="" width="32" height="32">', urls[0])
+
+    @staticmethod
+    def _background_preview(name: str, kind: BackgroundKind) -> str:
+        if not has_background(name, kind):
+            return _("None: the built-in decoration.")
+        return format_html(
+            '<img src="{}{}" alt="" style="max-height:90px;max-width:360px;background:#ddd;padding:4px">',
+            settings.MEDIA_URL,
+            name,
+        )
+
+    @admin.display(description=_("Current header background"))
+    def current_header_bg(self, obj: SiteSettings) -> str:
+        return self._background_preview(obj.header_bg_image, "header")
+
+    @admin.display(description=_("Current home banner background"))
+    def current_home_bg(self, obj: SiteSettings) -> str:
+        return self._background_preview(obj.home_bg_image, "home")
+
     @admin.display(description=_("Uploaded fonts"))
     def uploaded_fonts(self, obj: SiteSettings) -> str:
         """The uploaded fonts with a preview line each (the `@font-face` rules come from the validated list)."""
@@ -213,31 +298,6 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             ((font.label, font.family, sample) for font in fonts),
         )
         return format_html("<style>{}</style>{}", mark_safe(font_face_css(fonts, settings.MEDIA_URL)), rows)
-
-    @admin.display(description=_("Front page image: status"))
-    def feature_status(self, obj: SiteSettings) -> str:
-        parts: list[str] = []
-        if obj.feature_image:
-            parts.append(
-                format_html(
-                    '<img src="{}{}" alt="" style="max-height:120px;max-width:320px;background:#ddd;padding:4px">',
-                    settings.MEDIA_URL,
-                    obj.feature_image,
-                )
-            )
-            if obj.feature_image_updated is not None:
-                parts.append(
-                    format_html(
-                        "{} {}",
-                        _("Picture taken from the file as of (UTC):"),
-                        obj.feature_image_updated.strftime("%Y-%m-%d %H:%M"),
-                    )
-                )
-        else:
-            parts.append(_("No picture yet."))
-        if obj.feature_error:
-            parts.append(format_html("<strong>{}</strong> {}", _("Problem:"), obj.feature_error))
-        return format_html_join(mark_safe("<br>"), "{}", ((part,) for part in parts))
 
     @admin.display(description=_("Front page image: status"))
     def feature_status(self, obj: SiteSettings) -> str:
@@ -305,18 +365,24 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         if form.processed_logo is not None:
             store_logo(form.processed_logo, media_root)
             obj.logo = form.processed_logo.name
+            if form.logo_icons is not None:
+                _store_icons(form.logo_icons, media_root)
+                obj.favicon = form.logo_icons.base
         elif form.cleaned_data["remove_logo"]:
             obj.logo = ""
-        if form.processed_feature is not None:
-            source, feature = form.processed_feature
-            store_result(feature, media_root)
-            obj.feature_image = feature.full_name
-            obj.feature_image_small = feature.small_name
-            obj.feature_image_width = feature.width
-            obj.feature_image_height = feature.height
-            obj.feature_image_updated = source.modified
-            obj.feature_source_sig = source.signature
-            obj.feature_error = ""
+            obj.favicon = ""
+        if form.processed_favicon is not None:
+            _store_icons(form.processed_favicon, media_root)
+            obj.favicon_custom = form.processed_favicon.base
+        elif form.cleaned_data["remove_favicon"]:
+            obj.favicon_custom = ""
+        for kind in ("home", "header"):
+            picture = form.processed_backgrounds.get(kind)
+            if picture is not None:
+                store_bytes(picture.data, picture.name, media_root)
+                setattr(obj, f"{kind}_bg_image", picture.name)
+            elif form.cleaned_data[f"remove_{kind}_bg"]:
+                setattr(obj, f"{kind}_bg_image", "")
         if form.processed_feature is not None:
             source, feature = form.processed_feature
             store_result(feature, media_root)
@@ -345,7 +411,13 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         # Old logo files go only once the new row is committed (a rolled-back save keeps the logo it had), and a file
         # that cannot be deleted right now (Windows refuses while it is being served) is left for the next save.
         transaction.on_commit(partial(prune_logos, media_root, obj.logo))
-        transaction.on_commit(partial(prune_feature_files, media_root, (obj.feature_image, obj.feature_image_small)))
+        transaction.on_commit(
+            partial(
+                prune_branding_pictures,
+                media_root,
+                (obj.home_bg_image, obj.header_bg_image, *_icon_files(obj.favicon), *_icon_files(obj.favicon_custom)),
+            )
+        )
         transaction.on_commit(partial(prune_feature_files, media_root, (obj.feature_image, obj.feature_image_small)))
         transaction.on_commit(partial(prune_fonts, media_root, [font.file for font in fonts]))
 

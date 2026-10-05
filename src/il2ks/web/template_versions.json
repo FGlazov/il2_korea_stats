@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "b66180932447b6bb521264916d2df055a4d5366639f44c5c3bfc0acd568b8721"
+      "sha256": "8269c476b67cd5abfadf85db9ea64021250b7b659052377ff5b0e4f89f7d55e4"
     },
     "static/il2ks/sortie.js": {
       "version": 1,
@@ -163,7 +163,7 @@
     },
     "templates/il2ks/base.html": {
       "version": 1,
-      "sha256": "0e743f4fec84ca0dff91cc3f73dcab4eb649e0d275f85b196628b5390473578c"
+      "sha256": "eb9edf0a173e245e40e69db08a60698c6a1be2016a2b475fb2b323c0c9c2f18d"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -287,7 +287,7 @@
     },
     "templates/il2ks/home.html": {
       "version": 1,
-      "sha256": "f37c54c1347d0ea69c377b6f41aa14a9e56c884101741a922b63fb50f6263179"
+      "sha256": "64825a156e996499b0919b1eef644bc80b5a9eb7191cb379b08346d8679bae45"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,

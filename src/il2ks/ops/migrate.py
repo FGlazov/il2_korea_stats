@@ -100,6 +100,7 @@ BACKFILL_ELO_MIN_GAMES = "elo_min_games"  # all-time Elo = best tour with at lea
 BACKFILL_PLAYER_ROLES = "player_roles"  # per-role copies of the player rows (`PlayerRole`, the profile role toggle)
 BACKFILL_AIRCRAFT_ELO = "aircraft_elo"  # the Elo of the aircraft types, per tour and all time (maintainer 2026-10-05)
 BACKFILL_TOP_TIERS = "top_tiers"  # the Top 5% / Top 1% cuts of the stat thresholds and the sortie page's populations
+BACKFILL_FAVICON = "favicon"  # the tab icon of a logo uploaded before icons were derived from it (2026-10-05)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -168,6 +169,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_PLAYER_ROLES, _check_player_roles),
         (BACKFILL_AIRCRAFT_ELO, _check_aircraft_elo),
         (BACKFILL_TOP_TIERS, _check_top_tiers),
+        (BACKFILL_FAVICON, _check_favicon),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -705,6 +707,34 @@ def _check_top_tiers() -> bool:
     """The Top 5% / Top 1% cuts (`StatThreshold.p95`, `p99`) and the sortie populations (`SortieThreshold`) are new:
     the thresholds are recomputed once (`_backfill_thresholds` with `force`), which is much cheaper than the level-2
     rebuild, so this step never asks for one (a rebuild running anyway recomputes them as its last step)."""
+    return False
+
+
+def _check_favicon() -> bool:
+    """A site with a logo but no tab icon (the logo was uploaded before icons were derived from it) gets the 32 / 180 px
+    renditions made from the stored logo file, like the admin upload would. Nothing to do with a custom icon or an
+    icon already there; a missing or corrupt logo file is logged and skipped. Never asks for a level-2 rebuild."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    from il2ks.db.models import SiteSettings
+    from il2ks.db.site import get_site_settings
+    from il2ks.web.branding_images import process_icons
+    from il2ks.web.logo import MAX_PIXELS, MAX_UPLOAD_BYTES, LogoError, store_bytes
+
+    site = get_site_settings()
+    if not site.logo or site.favicon or site.favicon_custom:
+        return False
+    media_root = Path(settings.MEDIA_ROOT)
+    try:
+        icons = process_icons((media_root / site.logo).read_bytes(), max_bytes=MAX_UPLOAD_BYTES, max_pixels=MAX_PIXELS)
+        for name, data in icons.files.items():
+            store_bytes(data, name, media_root)
+    except (OSError, LogoError) as exc:
+        log.warning("no tab icon made from the logo %s: %s", site.logo, exc)
+        return False
+    SiteSettings.objects.filter(pk=1).update(favicon=icons.base)
     return False
 
 
