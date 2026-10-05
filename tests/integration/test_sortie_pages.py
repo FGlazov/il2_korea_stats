@@ -615,3 +615,20 @@ def test_the_sortie_aircraft_links_to_its_aircraft_page_in_header_and_list(clien
 
     assert link in detail(client, sortie_row.pk)
     assert link in client.get(f"/players/{sortie_row.player_id}/sorties/?tour=all").content.decode()
+
+
+def test_a_gunner_sortie_does_not_link_to_an_aircraft_page_that_does_not_exist(client: Client) -> None:
+    """Gunner sorties are not counted, so their turret object has no aircraft page (404): the name is plain text."""
+    save(mission((sortie(0, 1, name="Alpha"), sortie(1, 2, name="Gunny", aircraft_type="Turret_IL10", role="gunner"))))
+    gunner = PlayerSortie.objects.select_related("aircraft").get(pk=pk_of(2))
+    assert client.get(f"/aircraft/{gunner.aircraft_id}/").status_code == 404
+    link = f'href="/aircraft/{gunner.aircraft_id}/'
+
+    page = detail(client, gunner.pk)
+    listing = client.get(f"/players/{gunner.player_id}/sorties/?tour=all")
+
+    assert listing.status_code == 200
+    assert link not in page
+    assert link not in listing.content.decode()
+    pilot = PlayerSortie.objects.get(pk=pk_of(1))
+    assert f'href="/aircraft/{pilot.aircraft_id}/' in detail(client, pilot.pk)
