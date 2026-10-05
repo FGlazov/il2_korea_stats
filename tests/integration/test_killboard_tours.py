@@ -53,7 +53,7 @@ def tour_board(title: str) -> dict[tuple[int, int], tuple[int, int]]:
 
 def streak_rows(player_number: int, title: str | None = None) -> dict[str, tuple[int, int, float]]:
     tour = None if title is None else tour_named(title)
-    rows = PlayerBestStreak.objects.filter(player=pk(player_number), tour=tour)
+    rows = PlayerBestStreak.objects.filter(player=pk(player_number), tour=tour, track="air")  # the air track
     return {r.kind: (r.sorties, r.kills_air, r.flight_time_s) for r in rows}
 
 
@@ -172,7 +172,7 @@ def test_best_streaks_by_sorties_air_kills_and_flight_time() -> None:
         "flight_time": (1, 0, 7200.0),
     }
     assert streak_rows(1, "September 2026") == streak_rows(1)  # one tour: the same runs
-    assert PlayerStreak.objects.get(player=pk(1)).best_sorties == 3
+    assert PlayerStreak.objects.get(player=pk(1), track="air").best_sorties == 3
 
 
 def test_no_air_kills_means_no_air_kills_row_and_no_survival_means_no_rows() -> None:
@@ -269,13 +269,21 @@ def test_best_streaks_page(client: Client) -> None:
     response = client.get(f"/players/{pk(1)}/streaks/")
 
     assert response.status_code == 200
-    assert [r.kind for r in response.context["streaks"]] == ["sorties", "air_kills", "flight_time"]
+    # the all track first (sorties, kills, flight time), then the air track; the pilot has no ground sorties
+    assert [(r.track, r.kind) for r in response.context["streaks"]] == [
+        ("all", "sorties"),
+        ("all", "kills"),
+        ("all", "flight_time"),
+        ("air", "sorties"),
+        ("air", "air_kills"),
+        ("air", "flight_time"),
+    ]
     html = response.content.decode()
     assert "Best streaks of Player-1" in html
     assert "Sorties survived" in html
     in_tour = client.get(f"/players/{pk(1)}/streaks/?tour={september.pk}")
     assert in_tour.context["tour"] == september
-    assert len(in_tour.context["streaks"]) == 3
+    assert len(in_tour.context["streaks"]) == 6
     assert "No streak yet" in client.get(f"/players/{pk(2)}/streaks/").content.decode()
 
 

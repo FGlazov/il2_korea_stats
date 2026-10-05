@@ -137,7 +137,7 @@ def best_streaks(player: Player, tour: Tour | None = None) -> list[PlayerBestStr
         if tour
         else PlayerBestStreak.objects.filter(player=player, tour__isnull=True)
     )
-    order = {str(kind): n for n, kind in enumerate(StreakKind.values)}
+    order = {"sorties": 0, "air_kills": 1, "ground_kills": 1, "kills": 1, "flight_time": 2}  # sorties, kills, time
     return sorted(rows, key=lambda row: (TRACKS.index(row.track), order[row.kind]))
 
 
