@@ -44,11 +44,16 @@ POOLS: tuple[Pool, ...] = ("prop", "jet")
 
 
 def recompute_ratings(
-    rules: RatingRules = DEFAULT_RULES, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True
+    rules: RatingRules = DEFAULT_RULES,
+    tour_ids: Iterable[int] | None = None,
+    *,
+    payload_elo: bool = True,
+    all_time: bool = True,
 ) -> int:
     """Replay the qualifying kills of each tour in `tour_ids` (None = every tour) alone and update that tour's rows
     (`PlayerTourPool.elo*`, `PlayerTourAircraft.elo*`, `PlayerSortie.elo_peak`), then derive the all-time Elo
-    (`Player.elo_*`, `PlayerAircraft.elo*`) from the rows of every tour. Returns the number of games replayed.
+    (`Player.elo_*`, `PlayerAircraft.elo*`) from the tour rows of every player (`rollup_ratings`; with
+    `all_time=False` the caller does that, for the players it refreshed only). Returns the number of games replayed.
 
     Rows with no game get `rules.start` and 0 games (so a changed `start` is applied to them too). Only rows whose
     stored values differ from the result are written.
@@ -67,7 +72,8 @@ def recompute_ratings(
         replayed += len(games)
     if tour_ids is None:  # a rebuild also clears the peaks of sorties outside every tour (no game explains them)
         _store_peaks(None, {})
-    _store_all_time(rules)
+    if all_time:
+        rollup_ratings(rules)
     if payload_elo:
         recompute_payload_elo()  # the loadouts' average pilot Elo follows the new ratings
     return replayed
@@ -105,15 +111,37 @@ def best_of_tours[K: Hashable](rows: Iterable[tuple[K, float, int]]) -> dict[K, 
     return found
 
 
-def _store_all_time(rules: RatingRules) -> None:
-    """`Player.elo_*` and `PlayerAircraft.elo*` from the per-tour rows of every tour (rows with rated games only)."""
+def rollup_ratings(rules: RatingRules, player_ids: Iterable[int] | None = None) -> None:
+    """`Player.elo_*` and `PlayerAircraft.elo*` of these players (None = everyone) from their per-tour rows (rated
+    games only): the best tour's final rating, the games of all tours summed. Only the players' own rows are read, so
+    a refresh costs what its players' tours cost, not the number of rated rows of the whole site."""
+    if player_ids is None:
+        _store_all_time(rules, None)
+        return
+    ids = sorted(set(player_ids))
+    for start in range(0, len(ids), _CHUNK):
+        _store_all_time(rules, ids[start : start + _CHUNK])
+
+
+_CHUNK = 400  # players per query: far below SQLite's bound-parameter limit
+
+
+def _store_all_time(rules: RatingRules, player_ids: list[int] | None) -> None:
     rated_pools = PlayerTourPool.objects.filter(elo_games__gt=0)
+    players = Player.objects.all()
+    aircraft = PlayerAircraft.objects.all()
+    rated_types = PlayerTourAircraft.objects.filter(elo_games__gt=0)
+    if player_ids is not None:
+        rated_pools = rated_pools.filter(player_id__in=player_ids)
+        players = players.filter(pk__in=player_ids)
+        aircraft = aircraft.filter(player_id__in=player_ids)
+        rated_types = rated_types.filter(player_id__in=player_ids)
     pools = {
         pool: best_of_tours(rated_pools.filter(propulsion=pool).values_list("player_id", "elo", "elo_games"))
         for pool in POOLS
     }
     changed: list[Player] = []
-    stored = Player.objects.values_list("pk", "elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")
+    stored = players.values_list("pk", "elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")
     for pk, prop, prop_games, jet, jet_games in stored:
         want_prop = pools["prop"].get(pk)
         want_jet = pools["jet"].get(pk)
@@ -137,12 +165,12 @@ def _store_all_time(rules: RatingRules) -> None:
 
     types = best_of_tours(
         ((player_id, aircraft_id), elo, games)
-        for player_id, aircraft_id, elo, games in PlayerTourAircraft.objects.filter(elo_games__gt=0).values_list(
+        for player_id, aircraft_id, elo, games in rated_types.values_list(
             "player_id", "aircraft_id", "elo", "elo_games"
         )
     )
     changed_types: list[PlayerAircraft] = []
-    for pk, player_id, aircraft_id, elo, elo_games in PlayerAircraft.objects.values_list(
+    for pk, player_id, aircraft_id, elo, elo_games in aircraft.values_list(
         "pk", "player_id", "aircraft_id", "elo", "elo_games"
     ):
         found = types.get((player_id, aircraft_id))

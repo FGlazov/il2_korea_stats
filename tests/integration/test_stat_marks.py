@@ -31,9 +31,11 @@ def test_thresholds_are_computed_after_the_elo_replay(monkeypatch: pytest.Monkey
     order: list[str] = []
     real_ratings, real_marks = aggregates.recompute_ratings, persist.recompute_thresholds
 
-    def ratings(rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True) -> int:
+    def ratings(
+        rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True, all_time: bool = True
+    ) -> int:
         order.append("ratings")
-        return real_ratings(rules, tour_ids, payload_elo=payload_elo)
+        return real_ratings(rules, tour_ids, payload_elo=payload_elo, all_time=all_time)
 
     def marks(rules: MarkRules, tour_ids: Iterable[int] | None = None) -> None:
         order.append("marks")

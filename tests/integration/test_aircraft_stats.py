@@ -104,7 +104,7 @@ def test_the_sortie_groups_come_in_a_fixed_order_so_float_sums_match_a_rebuild()
     save(first_mission())
     ids = list(AircraftStats.objects.values_list("aircraft_id", flat=True))
     with CaptureQueriesContext(connection) as queries:
-        groups = _sortie_groups(ids)
+        groups = _sortie_groups(ids, None)
     assert groups
     sql = [q["sql"] for q in queries if "GROUP BY" in q["sql"]]
     assert len(sql) == 1

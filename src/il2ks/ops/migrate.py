@@ -92,6 +92,8 @@ BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
 BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
+BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
+BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -150,6 +152,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_AIRCRAFT_ALIASES, _check_aircraft_case),  # the same merge, now that the catalog knows aliases
         (BACKFILL_MOD_FILTERS, _check_mod_filters),
         (BACKFILL_SCOPED_AIRCRAFT, _check_scoped_aircraft),
+        (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
+        (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -305,6 +309,26 @@ def _check_builds() -> bool:
     from il2ks.db.models import PlayerAircraftBuild, PlayerSortie, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftBuild.objects.exists()
+
+
+def _check_player_rollup() -> bool:
+    """The all-time player rows are now the sum of the per-tour rows (doc 14), which needs a tour for every mission and
+    the per-tour identity rows (`PlayerTourName`). A database from before has sorties but no identity row, or missions
+    without a tour: level 2 must be rebuilt (which gives every mission its tour, `rebuild_aggregates`)."""
+    from il2ks.db.models import Mission, PlayerSortie, PlayerTourName
+
+    return Mission.objects.filter(tour__isnull=True).exists() or (
+        PlayerSortie.objects.exists() and not PlayerTourName.objects.exists()
+    )
+
+
+def _check_tour_aircraft_sides() -> bool:
+    """The all-time aircraft rows are the roll-up of the tour rows (doc 14), and the all-time side is the larger of the
+    summed per-side sorties of the tour rows (`TourAircraftStats.sorties_redfor` / `sorties_blufor`, migration 0065).
+    A database from before has tour rows with sorties and no side counters: level 2 must be rebuilt."""
+    from il2ks.db.models import TourAircraftStats
+
+    return TourAircraftStats.objects.filter(sorties__gt=0, sorties_redfor=0, sorties_blufor=0).exists()
 
 
 def _check_tour_aircraft() -> bool:

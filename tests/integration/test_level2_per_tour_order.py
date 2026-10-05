@@ -67,7 +67,7 @@ def _tour_ids_of_ratings(*args: object, **kwargs: object) -> list[int] | None:
 
 def _watch(monkeypatch: pytest.MonkeyPatch) -> Log:
     log = Log()
-    _spy(monkeypatch, aggregates, "recompute_player_rows", log)
+    _spy(monkeypatch, aggregates, "recompute_player_tours", log)
     _spy(monkeypatch, aggregates, "recompute_ratings", log, _tour_ids_of_ratings)
     _spy(monkeypatch, aggregates, "refresh_streak_tours", log)
     _spy(monkeypatch, aggregates, "refresh_achievement_tours", log)
@@ -88,7 +88,7 @@ def test_a_save_refreshes_its_tour_in_the_documented_order(monkeypatch: pytest.M
     october = tour_at(OCTOBER).pk
     assert october != september
     assert log.calls == [
-        "recompute_player_rows",
+        "recompute_player_tours",
         ("recompute_ratings", [october]),  # only the touched tour is replayed
         "refresh_streak_tours",  # after the replay: the Top Rated medal reads the peaks
         "refresh_achievement_tours",

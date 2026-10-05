@@ -186,7 +186,7 @@ def test_mods_rows_are_per_set_role_and_pattern() -> None:
 
     def row(mods: int, role: str, pattern: str = "") -> AircraftMods | None:
         return AircraftMods.objects.filter(
-            aircraft=mig(), weapon_mods=mods, combat_role=role, mod_pattern=pattern
+            aircraft=mig(), tour=None, weapon_mods=mods, combat_role=role, mod_pattern=pattern
         ).first()
 
     anti_g_air = row(ANTI_G, AIR)
