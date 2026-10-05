@@ -300,6 +300,14 @@ decisions are made):
   ironman without a role filter (any loss ends it), on the boards and the player page.
 - ✅ **Sortie page**: the damage section collapsed, below the timeline.
 
+## Maintainer's third round (2026-10-05, before the release)
+- 🔧 **Branding**: admin background images for the home banner and the header (focal point, darkening overlay), the uploaded logo as
+  the browser tab icon, the navigation-links help text next to its fields.
+- 🔧 **Damaged-landing medal** counts a damaged landing even when a repair and more flying follow.
+- 🔧 **Minified JavaScript and CSS** in the production static pipeline.
+- 🔧 **Extra columns** inline with the other filters, with a live "chosen/available" count.
+- 🔧 **All sorties page** (`/sorties/`), and a navigation dropdown after Players, Aircraft and Leaderboards with Missions and Sorties.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
