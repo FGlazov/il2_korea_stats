@@ -1,5 +1,6 @@
 """CLI smoke tests: exit codes and messages of the job commands (FR-OPS-1, FR-ING-20)."""
 
+import sys
 import uuid
 from collections.abc import Sequence
 from datetime import UTC, date, datetime
@@ -254,3 +255,18 @@ def test_reprocess_all_cannot_be_combined_with_a_selection(
     assert main(["reprocess", "--all", "--since", "2026-04-01"]) == EXIT_USAGE
     assert "--all cannot be combined" in capsys.readouterr().err
     assert main(["reprocess", "--all", "--mission", A]) == EXIT_USAGE
+
+
+@pytest.mark.xfail(strict=True, reason="fixed in the next commit")
+def test_dev_translations_without_the_dev_dependencies_says_so_instead_of_a_traceback(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A wheel installed for running a site has no Babel: `il2ks dev translations ...` must not crash."""
+    monkeypatch.delitem(sys.modules, "il2ks.devtools.translations", raising=False)
+    monkeypatch.setitem(sys.modules, "babel", None)
+    monkeypatch.setitem(sys.modules, "babel.messages", None)
+    monkeypatch.setitem(sys.modules, "babel.messages.catalog", None)
+    assert main(["dev", "translations", "status"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "uv sync" in err
+    assert "Traceback" not in err
