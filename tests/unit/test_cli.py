@@ -257,7 +257,6 @@ def test_reprocess_all_cannot_be_combined_with_a_selection(
     assert main(["reprocess", "--all", "--mission", A]) == EXIT_USAGE
 
 
-@pytest.mark.xfail(strict=True, reason="fixed in the next commit")
 def test_dev_translations_without_the_dev_dependencies_says_so_instead_of_a_traceback(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
