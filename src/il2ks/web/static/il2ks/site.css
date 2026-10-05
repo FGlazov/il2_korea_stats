@@ -217,13 +217,18 @@ body > header.site-header.site-header--image {
 .site-nav a:hover { color: var(--il2-band-strong); background: var(--il2-band-hover); }
 .site-nav a[aria-current="page"] { color: var(--il2-band-strong); background: var(--il2-band-hover); box-shadow: inset 0 -2px 0 var(--il2-accent); }
 .site-nav details.dropdown { margin: 0; }
-.site-nav details.dropdown summary {
-  margin: 0; padding: 0.45rem 2rem 0.45rem 0.85rem; border: 0; background-color: transparent; color: var(--il2-band-muted);
-  font-weight: 600; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; width: auto;
+.site-nav details.dropdown > summary:not([role]) {
+  /* Same box as `.site-nav a`; Pico's summary sets a fixed height (rem line-height + spacing) that made it 6 px taller, so the
+     text sat about 4 px higher than the other links (maintainer 2026-10-05). */
+  display: flex; align-items: center; height: auto; margin: 0; padding: 0.45rem 0.6rem; border: 0; border-radius: var(--il2-radius);
+  background-color: transparent; color: var(--il2-band-muted); font-weight: 600; font-size: 0.82rem; line-height: inherit;
+  letter-spacing: 0.08em; text-transform: uppercase; width: auto; white-space: nowrap;
 }
+.site-header--image .site-nav details.dropdown summary { color: var(--il2-band-muted); text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }
+.site-header--image .site-nav details.dropdown summary:hover, .site-header--image .site-nav details.dropdown[open] summary, .site-header--image .site-nav details.dropdown summary[aria-current="page"] { color: var(--il2-band-strong); }
 .site-nav details.dropdown summary:hover, .site-nav details.dropdown[open] summary { color: var(--il2-band-strong); background-color: var(--il2-band-hover); }
 .site-nav details.dropdown summary[aria-current="page"] { color: var(--il2-band-strong); background-color: var(--il2-band-hover); box-shadow: inset 0 -2px 0 var(--il2-accent); }
-.site-nav details.dropdown summary::after { margin-inline-start: 0.35rem; filter: brightness(2.2); }
+.site-nav details.dropdown summary::after { float: none; flex: none; width: 0.8rem; height: 1em; margin-inline-start: 0.3rem; background-size: 0.8rem auto; background-position: center; filter: brightness(2.2); }
 .site-nav details.dropdown ul { min-width: 12rem; flex-direction: column; align-items: stretch; gap: 0; padding: 0.3rem; }
 .site-nav details.dropdown ul a { color: var(--il2-text); font-size: 0.9rem; letter-spacing: 0; text-transform: none; font-weight: 500; }
 .site-nav details.dropdown ul a:hover { color: var(--il2-heading); background: var(--il2-surface-hover); }
