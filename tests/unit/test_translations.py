@@ -5,6 +5,7 @@ with the one command that fixes them: `uv run il2ks dev translations update`."""
 
 import gettext
 import io
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -260,12 +261,14 @@ def _po(catalog: Catalog) -> bytes:
 @pytest.mark.parametrize("directory", DIRECTORIES)
 def test_no_message_is_flagged_python_format_without_a_placeholder(directory: str) -> None:
     """Babel / xgettext flag `10% of pilots` as `python-format` (`% o` reads as an octal directive), and `msgfmt
-    --check-format` then rejects the translation (`10% пилотов`). A message with no real placeholder carries no flag."""
-    flagged = [
-        str(m.id)
-        for m in translations.messages_of(translations.read_catalog(directory))
-        if "python-format" in m.flags and not any(translations.placeholders(s) for s in _forms(m.id))
-    ]
+    --check-format` then rejects the translation (`10% пилотов`). A message with no real placeholder carries no flag.
+    Reads the file as text: Babel adds the flag again to every message it reads."""
+    text = translations.po_path(directory).read_text(encoding="utf-8")
+    flagged: list[str] = []
+    for block in text.replace("\r\n", "\n").split("\n\n"):
+        found = re.search(r"^msgid (.*?)^msgstr", block, re.DOTALL | re.MULTILINE)
+        if found and "#, python-format" in block.split("\n") and not translations.placeholders(found.group(1)):
+            flagged.append(found.group(1).strip()[:80])
     assert not flagged, f"{directory}: {flagged}; {FIX}"
 
 

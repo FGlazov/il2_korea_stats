@@ -89,6 +89,17 @@ def extract_catalog() -> Catalog:
     return template
 
 
+def _drop_false_format_flags(catalog: Catalog) -> None:
+    """Babel flags every message with a `%` followed by a letter as `python-format` (`10% of pilots`: `% o` is an octal
+    directive). A translation (`10% пилотов`) then fails `msgfmt --check-format`. A message with no placeholder of ours
+    is plain text and is written without that flag; one with `%(name)s`, `%s` or `%%` (a formatted string) keeps it."""
+    for message in catalog:
+        if message.id and "python-format" in message.flags:
+            ids = [message.id] if isinstance(message.id, str) else list(message.id)
+            if not any(placeholders(text) for text in ids):
+                message.flags.discard("python-format")
+
+
 def po_path(directory: str) -> Path:
     return LOCALE_DIR / directory / "LC_MESSAGES" / "django.po"
 
@@ -103,6 +114,7 @@ def read_catalog(directory: str) -> Catalog:
 
 
 def _po_bytes(catalog: Catalog) -> bytes:
+    _drop_false_format_flags(catalog)  # Babel adds the flag again whenever it reads or creates a message
     buffer = io.BytesIO()
     write_po(buffer, catalog, width=120, no_location=True, sort_output=True, ignore_obsolete=True)
     # LF everywhere, whatever the platform: .po files are diffed and reviewed.
