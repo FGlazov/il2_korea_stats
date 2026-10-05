@@ -18,7 +18,7 @@ from il2ks.ingest.persist import discard_provisional_mission, save_level1, save_
 from tests.db_canon import canonical_dump, diff_dumps
 from tests.factories import FakeCatalog, kill, meta, mission, sortie
 from tests.integration.test_achievements import held, snapshot
-from tests.integration.test_achievements_all_time import fly
+from tests.integration.test_achievements_all_time import fly, month
 from tests.integration.test_tours import MONTHLY
 from tests.integration.test_tours_decisive import END_TICK, A, B, C, D, at, history, put, set_on_win, tour_titles
 
@@ -133,6 +133,21 @@ def test_tour_inserted_between_breaks_the_old_hand_run_like_a_rebuild() -> None:
     with transaction.atomic():
         rebuild_aggregates()
 
+    assert snapshot() == snap
+
+
+def test_a_discarded_tour_in_between_restores_the_old_hand_run_like_a_rebuild() -> None:
+    fly(0)
+    fly(2)
+    live = save_live(1, month(1))  # a live mission opens the tour between them: player 1's run is broken
+    assert held(1).get("tours_in_a_row") is None
+    with transaction.atomic():
+        discard_provisional_mission(Mission.objects.get(pk=live.pk))
+
+    assert held(1).get("tours_in_a_row") == 1
+    snap = snapshot()
+    with transaction.atomic():
+        rebuild_aggregates()
     assert snapshot() == snap
 
 
