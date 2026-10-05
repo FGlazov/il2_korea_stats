@@ -184,6 +184,16 @@ body > header.site-header {
   background-size: 640px 200px;
   border-bottom: 3px solid var(--il2-accent);
 }
+/* Optional header picture (admin upload; the properties come from a validated <style> in base.html). The band colour is
+   laid over it by --il2-header-bg-shade so the light nav text keeps its contrast in both themes. */
+body > header.site-header.site-header--image {
+  background-image: linear-gradient(color-mix(in srgb, var(--il2-band) var(--il2-header-bg-shade), transparent), color-mix(in srgb, var(--il2-band) var(--il2-header-bg-shade), transparent)), var(--il2-header-bg);
+  background-size: cover; background-position: center, var(--il2-header-bg-pos); background-repeat: no-repeat;
+}
+.site-header--image .brand__sub, .site-header--image .site-nav > ul > li > a { color: var(--il2-band-text); }
+/* On a picture the hover/current highlight darkens instead of lightening, so the text keeps its contrast. */
+.site-header--image .site-nav > ul > li > a:hover, .site-header--image .site-nav > ul > li > a[aria-current="page"] { color: var(--il2-band-strong); background: rgb(0 0 0 / 0.35); }
+.site-header--image .brand__title, .site-header--image .site-nav > ul > li > a { text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }
 .site-header__inner { display: flex; align-items: center; gap: 1.75rem; min-height: 3.9rem; padding-block: 0.4rem; flex-wrap: wrap; }
 
 .brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; color: var(--il2-band-text); }
@@ -547,6 +557,11 @@ details.dropdown.dropdown--right ul { right: 0; left: auto; }
   background-color: var(--il2-band); background-image: var(--il2-camo); background-size: 640px 200px;
   border-left: 4px solid var(--il2-accent); border-radius: var(--il2-radius);
 }
+.hero.hero--image {
+  background-image: linear-gradient(color-mix(in srgb, var(--il2-band) var(--il2-home-bg-shade), transparent), color-mix(in srgb, var(--il2-band) var(--il2-home-bg-shade), transparent)), var(--il2-home-bg);
+  background-size: cover; background-position: center, var(--il2-home-bg-pos); background-repeat: no-repeat;
+}
+.hero--image h1, .hero--image .lead { text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }
 .hero__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1.1rem; position: relative; }
 .hero__tools .home-search { margin: 0; flex: 1 1 22rem; }
 .hero .tour-select { margin: 0; justify-content: flex-start; }
@@ -556,6 +571,7 @@ details.dropdown.dropdown--right ul { right: 0; left: auto; }
 .hero [role="button"].outline { color: var(--il2-band-text); border-color: var(--il2-band-border); background: transparent; }
 .hero [role="button"].outline:hover { background: var(--il2-band-hover); border-color: var(--il2-band-muted); }
 .hero__mark { position: absolute; right: 2.5rem; top: 50%; width: 11rem; height: 11rem; transform: translateY(-50%) rotate(12deg); color: color-mix(in srgb, var(--il2-band-text) 7%, transparent); pointer-events: none; }
+.hero--image .lead, .hero--image .tour-select__field, .hero--image .tour-next { color: var(--il2-band-text); }
 .empty-row__mark { display: block; width: 6rem; height: auto; margin: 0 auto 0.6rem; opacity: 0.35; }
 .error-page__mark { display: block; width: 11rem; height: auto; margin: 0 auto 1rem; color: var(--il2-accent); }
 

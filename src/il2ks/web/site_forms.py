@@ -10,6 +10,14 @@ from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
 from il2ks.db.models import HomeFeature, SiteSettings
+from il2ks.web.branding_images import (
+    MAX_BACKGROUND_BYTES,
+    BackgroundKind,
+    ProcessedBackground,
+    ProcessedIcons,
+    process_background,
+    process_icons,
+)
 from il2ks.web.feature_image import (
     FeatureImageError,
     ProcessedFeature,
@@ -26,7 +34,7 @@ from il2ks.web.fonts import (
     clean_fonts,
     process_font,
 )
-from il2ks.web.logo import MAX_UPLOAD_BYTES, LogoError, ProcessedLogo, process_logo
+from il2ks.web.logo import MAX_PIXELS, MAX_UPLOAD_BYTES, LogoError, ProcessedLogo, process_logo
 from il2ks.web.theme import (
     BODY_FONTS,
     GROUPS,
@@ -126,6 +134,10 @@ def _choices(fonts: Mapping[str, tuple[StrOrPromise, str]]) -> list[tuple[str, s
     return [(key, cast("str", label)) for key, (label, _stack) in fonts.items()]
 
 
+FOCUS_HELP = _("The part of the picture that stays visible when it is cropped to a narrow screen.")
+SHADE_HELP = _("Lays the band color over the picture so the text stays readable. Bright pictures need 60 to 80 %.")
+
+
 class SiteSettingsForm(forms.ModelForm):
     theme = ThemeField(
         label=_("Colors"),
@@ -158,6 +170,39 @@ class SiteSettingsForm(forms.ModelForm):
         help_text=_("PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."),
     )
     remove_logo = forms.BooleanField(label=_("Remove the current logo"), required=False)
+    favicon_upload = forms.FileField(
+        label=_("Icon for the browser tab"),
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": "image/png,image/jpeg,image/webp"}),
+        help_text=_(
+            "Optional. Without it the logo is used as the tab icon (padded to a square, never cropped); with neither, "
+            "the built-in aircraft icon stays. PNG, JPEG or WebP, up to 2 MB; a square image of at least 180 × 180 "  # noqa: RUF001
+            "pixels works best."
+        ),
+    )
+    remove_favicon = forms.BooleanField(label=_("Remove the separate tab icon"), required=False)
+    header_bg_upload = forms.FileField(
+        label=_("Upload a header background"),
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": "image/png,image/jpeg,image/webp"}),
+        help_text=_(
+            "A picture behind the top banner on every page. PNG, JPEG or WebP, up to 4 MB; about 1920 × 400 pixels "  # noqa: RUF001
+            "is a good size. It is cropped to fit at every screen width, so keep the important part where the "
+            "focus below points. The image is checked and re-encoded; SVG is refused."
+        ),
+    )
+    remove_header_bg = forms.BooleanField(label=_("Remove it and use the built-in decoration"), required=False)
+    home_bg_upload = forms.FileField(
+        label=_("Upload a home banner background"),
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": "image/png,image/jpeg,image/webp"}),
+        help_text=_(
+            "A picture behind the title and player search on the home page. PNG, JPEG or WebP, up to 4 MB; about "
+            "1600 × 500 pixels is a good size. It is cropped to fit at every screen width. The image is checked and "  # noqa: RUF001
+            "re-encoded; SVG is refused."
+        ),
+    )
+    remove_home_bg = forms.BooleanField(label=_("Remove it and use the built-in decoration"), required=False)
     font_upload = forms.FileField(
         label=_("Upload a font"),
         required=False,
@@ -195,6 +240,10 @@ class SiteSettingsForm(forms.ModelForm):
             "feature_image_path",
             "feature_caption",
             "feature_alt",
+            "home_bg_position",
+            "home_bg_shade",
+            "header_bg_position",
+            "header_bg_shade",
             "redfor_name",
             "blufor_name",
             "redfor_emblem",
@@ -212,6 +261,10 @@ class SiteSettingsForm(forms.ModelForm):
             "feature_image_path": _("Image file on the server"),
             "feature_caption": _("Caption"),
             "feature_alt": _("Alternative text"),
+            "home_bg_position": _("Focus of the picture"),
+            "header_bg_position": _("Focus of the picture"),
+            "home_bg_shade": _("Darkening (0 to 80 %)"),
+            "header_bg_shade": _("Darkening (0 to 80 %)"),
         }
         help_texts = {
             "home_feature": _("Off by default: the front page then looks as usual."),
@@ -222,6 +275,10 @@ class SiteSettingsForm(forms.ModelForm):
                 "(at most 2560 px wide, 40 MB and 64 megapixels). Docker: the file must be mounted into the "
                 "container. Windows service: the account NT SERVICE\\il2ks needs read access."
             ),
+            "home_bg_position": FOCUS_HELP,
+            "header_bg_position": FOCUS_HELP,
+            "home_bg_shade": SHADE_HELP,
+            "header_bg_shade": SHADE_HELP,
             "feature_caption": _("Optional title shown under the image."),
             "feature_alt": _(
                 "Required when the image is on: a short description for people who cannot see the picture."
@@ -231,6 +288,11 @@ class SiteSettingsForm(forms.ModelForm):
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)  # pyright: ignore[reportArgumentType]
         self.processed_logo: ProcessedLogo | None = None
+        self.logo_icons: ProcessedIcons | None = None  # the tab icon made from a newly uploaded logo
+        self.processed_favicon: ProcessedIcons | None = None
+        self.processed_backgrounds: dict[BackgroundKind, ProcessedBackground] = {}
+        for name in ("home_bg_position", "home_bg_shade", "header_bg_position", "header_bg_shade"):
+            self.fields[name].required = False  # a post without them keeps the current choice
         self.fields["home_feature"].required = False  # a post without it keeps the current choice
         self.processed_font: ProcessedFont | None = None
         self.processed_feature: tuple[Source, ProcessedFeature] | None = None
@@ -276,15 +338,65 @@ class SiteSettingsForm(forms.ModelForm):
         if upload.size > MAX_UPLOAD_BYTES:  # don't even read an oversized upload
             raise forms.ValidationError(_("The file is larger than 2 MB."))
         try:
-            self.processed_logo = process_logo(upload.read(MAX_UPLOAD_BYTES + 1))
+            raw = upload.read(MAX_UPLOAD_BYTES + 1)
+            self.processed_logo = process_logo(raw)
+            self.logo_icons = process_icons(raw, max_bytes=MAX_UPLOAD_BYTES, max_pixels=MAX_PIXELS)
         except LogoError as exc:
             raise forms.ValidationError(str(exc)) from exc
         return upload
+
+    def clean_favicon_upload(self) -> UploadedFile | None:
+        upload: UploadedFile | None = self.cleaned_data["favicon_upload"]
+        if upload is None:
+            return None
+        if upload.size > MAX_UPLOAD_BYTES:
+            raise forms.ValidationError(_("The file is larger than 2 MB."))
+        try:
+            self.processed_favicon = process_icons(
+                upload.read(MAX_UPLOAD_BYTES + 1), max_bytes=MAX_UPLOAD_BYTES, max_pixels=MAX_PIXELS
+            )
+        except LogoError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+        return upload
+
+    def _background(self, kind: BackgroundKind) -> UploadedFile | None:
+        upload: UploadedFile | None = self.cleaned_data[f"{kind}_bg_upload"]
+        if upload is None:
+            return None
+        if upload.size > MAX_BACKGROUND_BYTES:
+            raise forms.ValidationError(_("The file is larger than 4 MB."))
+        try:
+            self.processed_backgrounds[kind] = process_background(upload.read(MAX_BACKGROUND_BYTES + 1), kind)
+        except LogoError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+        return upload
+
+    def clean_home_bg_upload(self) -> UploadedFile | None:
+        return self._background("home")
+
+    def clean_header_bg_upload(self) -> UploadedFile | None:
+        return self._background("header")
+
+    def _clean_position_and_shade(self, kind: BackgroundKind) -> None:
+        """A post that omits the focus or the darkening keeps what is stored (a missing value is not an error)."""
+        if not self.cleaned_data.get(f"{kind}_bg_position") and f"{kind}_bg_position" not in self.errors:
+            self.cleaned_data[f"{kind}_bg_position"] = getattr(self.instance, f"{kind}_bg_position")
+        if self.cleaned_data.get(f"{kind}_bg_shade") is None and f"{kind}_bg_shade" not in self.errors:
+            self.cleaned_data[f"{kind}_bg_shade"] = getattr(self.instance, f"{kind}_bg_shade")
 
     def clean(self) -> dict[str, object]:
         cleaned = super().clean() or {}
         if cleaned.get("remove_logo") and self.processed_logo is not None:
             self.add_error("remove_logo", _("Either upload a new logo or remove the current one, not both."))
+        for flag, upload in (
+            ("remove_favicon", self.processed_favicon),
+            ("remove_home_bg", self.processed_backgrounds.get("home")),
+            ("remove_header_bg", self.processed_backgrounds.get("header")),
+        ):
+            if cleaned.get(flag) and upload is not None:
+                self.add_error(flag, _("Either upload a new file or remove the current one, not both."))
+        self._clean_position_and_shade("home")
+        self._clean_position_and_shade("header")
         self._clean_fonts(cleaned)
         self._clean_feature(cleaned)
         preset = cleaned.get("theme_preset")

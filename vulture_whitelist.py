@@ -79,11 +79,20 @@ _.widgets  # ModelForm.Meta
 _.clean_accent_color  # ModelForm clean_<field> hooks
 _.clean_links_text
 _.clean_logo_upload
+_.clean_favicon_upload
+_.clean_home_bg_upload
+_.clean_header_bg_upload
 _.clean_font_upload
 _.initial  # form field attribute
 links_text  # declared form fields of SiteSettingsForm, listed in the admin fieldsets
 logo_upload
 remove_logo
+favicon_upload  # branding pictures (web.branding_images), declared form fields
+remove_favicon
+header_bg_upload
+remove_header_bg
+home_bg_upload
+remove_home_bg
 font_upload
 font_use
 remove_fonts
@@ -259,6 +268,9 @@ _.compress_level  # zipfile.ZipInfo: per-entry DEFLATE level, set in ingest.arch
 _.page_param  # web.views.missions.SideSorties: read by missions/detail.html (the side table's pagination parameter)
 # --- front-page image (FR-ADM-2) ---
 _.feature_status  # ModelAdmin readonly field (SiteSettingsAdmin.readonly_fields)
+_.current_favicon  # ModelAdmin readonly fields of the branding pictures (SiteSettingsAdmin.readonly_fields)
+_.current_header_bg
+_.current_home_bg
 _.small_url  # web.feature_image.HomeFeatureView: read by il2ks/home_feature.html
 _.small_width
 _.caption

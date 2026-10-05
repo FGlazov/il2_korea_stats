@@ -19,6 +19,7 @@ from django.utils.safestring import SafeString
 from il2ks import __version__
 from il2ks.db.models import NavIcon, SiteSettings
 from il2ks.db.validators import validate_http_url
+from il2ks.web.branding_images import background_css, has_background, icon_urls
 from il2ks.web.caching import request_data_version
 from il2ks.web.feature_image import HomeFeatureView, home_feature_view
 from il2ks.web.theme import theme_css
@@ -80,6 +81,9 @@ def site(request: HttpRequest) -> dict[str, object]:
       construction (`il2ks.web.theme`), meant for `<style>{{ theme_css }}</style>`.
     - `data_updated`: aware datetime of the last data change, or None before the first one.
     - `il2ks_version`: the installed il2ks version.
+    - `bg_css`, `home_bg`, `header_bg`: the `:root` custom properties of the optional banner/header background pictures
+      and whether each is set (`web.branding_images`); `icon_url`, `apple_touch_icon_url`: the uploaded tab icon ('' =
+      the built-in favicon).
     - `home_feature`: the large front-page image (`HomeFeatureView`) when the admin turned it on and it is usable,
       else None (`web.feature_image`; no query: it comes from the settings row).
     """
@@ -92,7 +96,18 @@ def site(request: HttpRequest) -> dict[str, object]:
         row.theme, row.heading_font, row.body_font, row.custom_fonts, django_settings.MEDIA_URL or "/media/"
     )
     feature: HomeFeatureView | None = home_feature_view(row)
+    media_url = django_settings.MEDIA_URL or "/media/"
+    icons = icon_urls(media_url, row.favicon_custom, row.favicon)
     return {
+        "bg_css": background_css(
+            media_url,
+            (row.home_bg_image, row.home_bg_position, row.home_bg_shade),
+            (row.header_bg_image, row.header_bg_position, row.header_bg_shade),
+        ),
+        "home_bg": has_background(row.home_bg_image, "home"),
+        "header_bg": has_background(row.header_bg_image, "header"),
+        "icon_url": icons[0] if icons else "",
+        "apple_touch_icon_url": icons[1] if icons else "",
         "site": row,
         "home_feature": feature,
         "logo_url": logo_url,
