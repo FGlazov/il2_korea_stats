@@ -38,7 +38,7 @@ from django.db import transaction
 from django.db.models import F, Q, QuerySet
 
 from il2ks.core.tours import MissionSpan, TourRules, period_for, segment_title, win_cuts
-from il2ks.db.models import Mission, SiteSettings, Tour
+from il2ks.db.models import Mission, PlayerSortie, SiteSettings, Tour
 
 CHUNK = 500  # mission ids per UPDATE: far below SQLite's bound-parameter limit
 
@@ -110,6 +110,18 @@ def start_manual_tour(now: datetime | None = None, title: str = "") -> Tour:
         return Tour.objects.create(title=title or f"Tour {number}", started_at=moment, ended_at=None, mode="manual")
 
 
+def move_missions(mission_ids: Iterable[int], tour_id: int) -> int:
+    """Put missions into a tour and their sorties with them: the only writer of `Mission.tour` besides a mission's own
+    save (`PlayerSortie.tour` is always the mission's, doc 14 "The sortie's tour"). Returns the missions changed."""
+    ids = list(mission_ids)
+    total = 0
+    for start in range(0, len(ids), CHUNK):
+        chunk = ids[start : start + CHUNK]
+        total += Mission.objects.filter(pk__in=chunk).update(tour_id=tour_id)
+        PlayerSortie.objects.filter(mission_id__in=chunk).update(tour_id=tour_id)
+    return total
+
+
 def assign_missing(rules: TourRules) -> int:
     """Give a tour to missions that have none (saved before tours existed). Returns how many.
 
@@ -124,11 +136,7 @@ def assign_missing(rules: TourRules) -> int:
         Mission.objects.filter(tour__isnull=True).order_by("started_at").values_list("pk", "started_at")
     ):
         ids_by_tour[ensure_tour(rules, started_at).pk].append(pk)
-    total = 0
-    for tour_id, ids in ids_by_tour.items():
-        for start in range(0, len(ids), CHUNK):
-            total += Mission.objects.filter(pk__in=ids[start : start + CHUNK]).update(tour_id=tour_id)
-    return total
+    return sum(move_missions(ids, tour_id) for tour_id, ids in ids_by_tour.items())
 
 
 @dataclass(frozen=True, slots=True)
@@ -235,7 +243,7 @@ def resegment(rules: TourRules, stretch: _Stretch) -> set[int]:
         if has_missions:
             moved = rows.exclude(tour=tour)
             touched |= {t for t in moved.values_list("tour_id", flat=True).distinct() if t is not None}
-            if moved.update(tour=tour):
+            if move_missions(list(moved.values_list("pk", flat=True)), tour.pk):
                 touched.add(tour.pk)
     parts = Tour.objects.filter(by_win=True)
     if stretch.start is not None:

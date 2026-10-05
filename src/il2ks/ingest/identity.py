@@ -29,8 +29,8 @@ type _Values = tuple[datetime, datetime, datetime]  # first spawn, last end, las
 
 def tour_sorties(chunk: list[int], tour_ids: list[int] | None) -> QuerySet[PlayerSortie]:
     """The sorties (any role) of these players in the missions of `tour_ids` (None = every tour)."""
-    sorties = PlayerSortie.objects.filter(player_id__in=chunk, mission__tour_id__isnull=False)
-    return sorties if tour_ids is None else sorties.filter(mission__tour_id__in=tour_ids)
+    sorties = PlayerSortie.objects.filter(player_id__in=chunk, tour_id__isnull=False)
+    return sorties if tour_ids is None else sorties.filter(tour_id__in=tour_ids)
 
 
 def recompute_tour_names(chunk: list[int], tour_ids: list[int] | None) -> None:
@@ -40,8 +40,8 @@ def recompute_tour_names(chunk: list[int], tour_ids: list[int] | None) -> None:
     if tour_ids is not None:
         existing_rows = existing_rows.filter(tour_id__in=tour_ids)
     wanted: dict[_Key, _Values] = {
-        (row["player_id"], row["mission__tour_id"], row["name_at_time"]): (row["first"], row["last"], row["spawned"])
-        for row in sorties.values("player_id", "mission__tour_id", "name_at_time").annotate(
+        (row["player_id"], row["tour_id"], row["name_at_time"]): (row["first"], row["last"], row["spawned"])
+        for row in sorties.values("player_id", "tour_id", "name_at_time").annotate(
             first=Min("spawned_at"), last=Max("ended_at"), spawned=Max("spawned_at")
         )
     }

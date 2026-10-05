@@ -516,9 +516,20 @@ class Mission(models.Model):
 
 class PlayerSortie(models.Model):
     mission_id: int
+    tour_id: int | None
     player_id: int
     aircraft_id: int
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name="sortie_rows")
+    # Always the mission's tour (`mission.tour`), denormalised so a tour's sorties can be read and sorted from one
+    # index (`sortie_tour_recent`) without joining the mission. Every write of `Mission.tour` keeps it in step
+    # (design_doc/14 "The sortie's tour"; `tests/sortie_tours.py` asserts it).
+    tour = models.ForeignKey(
+        "Tour",
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="sortie_rows",
+        db_index=False,  # `sortie_tour_recent`
+    )
     player = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="sortie_rows")
     account_uuid = models.CharField(max_length=36)  # part of the natural key
     spawn_tick = models.IntegerField()  # part of the natural key
@@ -651,6 +662,8 @@ class PlayerSortie(models.Model):
             # role, mission and player make it covering for the list's COUNT (the seat filter and its two joins).
             models.Index(fields=["-spawned_at", "-id", "role", "mission", "player"], name="sortie_recent"),
             models.Index(fields=["aircraft", "-spawned_at", "-id"], name="sortie_aircraft_recent"),  # ... of one type
+            # ... of one tour (the default view: the current tour), covering like `sortie_recent`
+            models.Index(fields=["tour", "-spawned_at", "-id", "role", "mission", "player"], name="sortie_tour_recent"),
         ]
 
     def __str__(self) -> str:

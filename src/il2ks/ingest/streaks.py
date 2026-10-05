@@ -73,12 +73,10 @@ def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -
 def _read(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], list[StreakSortie]]:
     """The counted sorties of the players per (player, tour), chronological; `tours` None = every tour."""
     sorties: QuerySet[PlayerSortie] = (
-        counted_sorties()
-        .filter(player_id__in=chunk, mission__tour_id__isnull=False)
-        .order_by("player_id", "spawned_at", "pk")
+        counted_sorties().filter(player_id__in=chunk, tour_id__isnull=False).order_by("player_id", "spawned_at", "pk")
     )
     if tours is not None:
-        sorties = sorties.filter(mission__tour_id__in=tours)
+        sorties = sorties.filter(tour_id__in=tours)
     found: dict[tuple[int, int], list[StreakSortie]] = {}
     for (
         sortie_id,
@@ -96,7 +94,7 @@ def _read(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
     ) in sorties.values_list(
         "pk",
         "player_id",
-        "mission__tour_id",
+        "tour_id",
         "spawned_at",
         "ended_at",
         "kills_air",

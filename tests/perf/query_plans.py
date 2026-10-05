@@ -164,16 +164,6 @@ SORT_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "/players/?q=",
     ),
     QueryAllowance(
-        "il2ks_db_mission",
-        '"il2ks_db_mission"."tour_id" = %s',
-        "the site-wide sortie list inside ONE tour (the default view: the current tour): the planner starts from the "
-        "tour's missions (the tour index, an equality) and sorts the tour's sorties, a month of play (a few thousand "
-        "rows), by the sort the visitor picked, the default (newest first) included. The sort needs a tour column on "
-        "the sortie row to be served by an index (a denormalisation the ingest would have to keep in step); all time "
-        "walks the `sortie_recent` index without sorting",
-        "/sorties/",
-    ),
-    QueryAllowance(
         "il2ks_db_playertour",
         '"il2ks_db_tour"."started_at" DESC',
         "a player's tour history for the profile charts: the rows of one player, at most one per tour played",

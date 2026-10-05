@@ -25,6 +25,7 @@ from il2ks.db.models import (
     Player,
     PlayerAircraft,
     PlayerMission,
+    PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
     PlayerTourPool,
@@ -50,6 +51,7 @@ from il2ks.queries.tours import (
 )
 from tests.factories import FakeCatalog, account, meta, mission, sortie
 from tests.ops_helpers import make_instance, recording, returning
+from tests.sortie_tours import assert_sortie_tours_consistent
 
 pytestmark = pytest.mark.django_db
 
@@ -183,7 +185,9 @@ def sums_by(model: type[PlayerMission] | type[PlayerTour]) -> dict[tuple[int, in
 
 
 def assert_tour_rows_consistent() -> None:
-    """Per-tour counters are exactly the sum of the tour's `PlayerMission` rows; per-aircraft rows sum to the same."""
+    """Per-tour counters are exactly the sum of the tour's `PlayerMission` rows; per-aircraft rows sum to the same.
+    Every sortie's tour is its mission's too."""
+    assert_sortie_tours_consistent()
     expected = sums_by(PlayerMission)
     actual = sums_by(PlayerTour)
     assert actual.keys() == expected.keys()
@@ -375,6 +379,7 @@ def test_elo_is_per_tour_on_the_pool_and_type_rows_not_on_player_tour() -> None:
 def test_assign_missing_gives_legacy_missions_a_tour_on_rebuild() -> None:
     three_tour_history()
     Mission.objects.update(tour=None)
+    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
     Tour.objects.all().delete()
     assert PlayerTour.objects.count() == 0
     assert tour_problems(MONTHLY).missions_without_tour == 4
@@ -450,6 +455,7 @@ def test_retour_to_manual_keeps_the_boundaries_and_opens_the_newest() -> None:
 def test_retour_to_manual_without_tours_makes_one_open_tour() -> None:
     three_tour_history(MONTHLY)
     Mission.objects.update(tour=None)
+    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
     Tour.objects.all().delete()
 
     rebuild_aggregates(DEFAULT_RULES, MANUAL, reassign_tours=True)
@@ -705,6 +711,7 @@ def test_doctor_reports_tours_that_do_not_match_the_settings(tmp_path: Path) -> 
     assert "rebuild-aggregates --retour" in findings[0].fix
 
     Mission.objects.update(tour=None)
+    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
     assert "1 mission(s) without a tour" in next(iter(tours_check(cfg))).detail
 
 
@@ -721,6 +728,7 @@ def test_migrating_a_database_from_before_tours_assigns_the_missions(
     """After the schema update, existing missions get their tours without the admin running anything."""
     three_tour_history()
     Mission.objects.update(tour=None)
+    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
     Tour.objects.all().delete()
     monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
     monkeypatch.setattr(management, "call_command", recording([], "migrate"))
