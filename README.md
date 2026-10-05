@@ -10,10 +10,6 @@ and serves mission, player and sortie stats as a server-rendered website.
 il2ks reads the text mission logs your DServer writes and builds a stats website from them. It is made for IL-2
 Sturmovik: Korea servers.
 
-- **Live stats while the mission is still running**: land, open the site and your sortie is already there, with its
-  kills, damage and timeline. The mission log is streamed as the server writes it, so sorties, pilot pages and
-  leaderboards update every couple of minutes, next to a live list of who is online. Stats sites for the earlier IL-2
-  games only showed anything after the mission had ended. Admins can switch it off.
 - **Missions, players and sorties**: every mission with its kills and losses and who won it, a page per player and a
   timeline per flight.
 - **Tours**: stats per tour (a month by default, or a new tour whenever one side wins a mission, for dynamic campaigns)
@@ -21,6 +17,8 @@ Sturmovik: Korea servers.
   tour.
 - **Leaderboards**: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
   and play time. Scoring is yours to tune, including optional points for time in the air, so a quiet patrol counts too.
+- **Live stats**: check your sortie while the mission is still running; the log is streamed as the server writes it,
+  not read after the mission ends.
 - **Aircraft pages**: how each type does, its best loadouts and modifications, and who it beats and loses to, filtered
   by tour, role and modification.
 - **Achievements**, streaks, killboards (who shot whom), accuracy, assists, and a "top 10%" mark on a
