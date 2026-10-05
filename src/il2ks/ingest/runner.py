@@ -14,6 +14,7 @@ import traceback
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
@@ -29,6 +30,8 @@ from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.result import MissionResult
 from il2ks.core.replay.state import run as replay_run
 from il2ks.db.models import IngestRun, IngestStatus, Mission
+from il2ks.db.site import bump_data_version
+from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import (
     ArchiveError,
     archive_matches,
@@ -36,6 +39,7 @@ from il2ks.ingest.archive import (
     dispose_originals,
     write_archive,
 )
+from il2ks.ingest.batch import Level2Batch, finish_quietly, is_batch, repair_pending
 from il2ks.ingest.discover import (
     INGEST_DECISIONS,
     Decision,
@@ -47,7 +51,7 @@ from il2ks.ingest.discover import (
     next_retry,
 )
 from il2ks.ingest.lock import WriterLock
-from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_mission
+from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_level1, save_mission
 from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -67,6 +71,9 @@ class Pipeline:
     replay: Callable[[Iterable[LogEvent]], MissionResult]
     save: Callable[[MissionResult, MissionMeta], Mission]
     resolve_start: Callable[[str, ZoneInfo, datetime | None], ResolvedStart]
+    save_level1: Callable[[MissionResult, MissionMeta], tuple[Mission, set[int]]] | None = None
+    """Level 1 only, returning the ids of the tours level 2 must refresh: what a batched run (`ingest.batch`) saves
+    with. None (a test's fake pipeline): the run always uses `save`, i.e. level 2 per mission."""
 
 
 def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
@@ -94,6 +101,11 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
             score=cfg.score,
         )
 
+    def save_l1(result: MissionResult, meta: MissionMeta) -> tuple[Mission, set[int]]:
+        mission, touched = save_level1(result, meta, get_catalog(), cfg.tours, cfg.score)
+        bump_data_version()  # TD-28: the pages changed now; level 2 follows at the next 10%
+        return mission, touched
+
     def group(paths: Iterable[Path], txt_as: MissionLogKind) -> list[MissionLog]:
         return group_mission_files(paths, txt_as=txt_as)
 
@@ -103,6 +115,7 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
         replay=replay,
         save=save,
         resolve_start=resolve_mission_start,
+        save_level1=save_l1,
     )
 
 
@@ -152,10 +165,17 @@ def ingest_once(
     """Process everything that's ready, under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken."""
     opts = opts or IngestOptions()
     with WriterLock(cfg.data_dir, command, wait=opts.lock_wait):
-        return _ingest_locked(cfg, pipeline, opts, now)
+        return _ingest_locked(cfg, pipeline, opts, now, command)
 
 
-def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime]) -> IngestSummary:
+def _ingest_locked(
+    cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime], command: str = "ingest"
+) -> IngestSummary:
+    repair_pending(
+        partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
+        cfg.ratings,
+        cfg.marks,
+    )
     summary = IngestSummary()
     is_import = opts.source is not None
     if opts.source is not None:
@@ -190,6 +210,7 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
     summary.incomplete.extend(f.mission_uid for f in found if f.complete is None)
     last_runs = latest_runs([f.mission_uid for f in complete])
 
+    todo: list[tuple[Found, Decision, IngestRun | None]] = []
     for item in complete:
         last = last_runs.get(item.mission_uid)
         decision = classify(item.fingerprint, _as_last_run(last), version=__version__, now=now())
@@ -204,12 +225,30 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
             if decision == "unchanged" and last is not None:
                 _dispose(item, mode, cfg, summary)  # leftovers of an earlier move that failed (file was locked)
             continue
-        outcome = ingest_mission(cfg, pipeline, item, decision, last, now=now)
-        if outcome == "ok":
-            summary.ok.append(item.mission_uid)
-            _dispose(item, mode, cfg, summary)
-        else:
-            summary.failed.append(item.mission_uid)
+        todo.append((item, decision, last))
+
+    # Batched level 2 (doc 14): a long run saves level 1 only and applies level 2 at every 10% and at the end.
+    batch = (
+        Level2Batch(len(todo), cfg.ratings, cfg.marks, command)
+        if is_batch(len(todo)) and pipeline.save_level1 is not None
+        else None
+    )
+    failing = True
+    try:
+        if batch is not None:
+            batch.start()  # before the first save: a hard kill from here on leaves a marker (`repair_pending`)
+        for item, decision, last in todo:
+            outcome = ingest_mission(cfg, pipeline, item, decision, last, now=now, batch=batch)
+            if outcome == "ok":
+                summary.ok.append(item.mission_uid)
+                _dispose(item, mode, cfg, summary)
+            else:
+                summary.failed.append(item.mission_uid)
+            if batch is not None:
+                batch.mission_done()
+        failing = False
+    finally:  # also on Ctrl-C and on an error of the level-2 pass itself: what is pending is applied, not lost
+        finish_quietly(batch, failing=failing)
     log.info("%s", summary.describe())
     return summary
 
@@ -299,8 +338,10 @@ def ingest_mission(
     last: IngestRun | None,
     *,
     now: Callable[[], datetime] = utcnow,
+    batch: Level2Batch | None = None,
 ) -> Outcome:
-    """Archive, parse, replay and save one mission, recording an `IngestRun` either way."""
+    """Archive, parse, replay and save one mission, recording an `IngestRun` either way. With a `batch` only level 1 is
+    saved (one transaction, as ever) and what level 2 must recompute goes to the batch once the save committed."""
     uid = item.mission_uid
     t0 = time.monotonic()
     run = IngestRun(
@@ -330,7 +371,11 @@ def ingest_mission(
         side_warnings = country_side_warnings(result.mission.countries)
         fill_counters(run, stats, (*plan.warnings, *start.warnings, *side_warnings))
         with transaction.atomic():
-            mission = pipeline.save(result, meta)
+            if batch is not None and pipeline.save_level1 is not None:
+                mission, touched_tours = pipeline.save_level1(result, meta)
+                batch.add(touched_tours)  # in the transaction: the marker names the tours when the save is in
+            else:
+                mission = pipeline.save(result, meta)
             run.mission = mission
             run.finished_at = now()
             run.save()

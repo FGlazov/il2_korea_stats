@@ -267,7 +267,7 @@ def test_new_mission_failure_leaves_nothing(monkeypatch: pytest.MonkeyPatch) -> 
     def boom(*_args: object) -> None:
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(persist, "recompute_players", boom)
+    monkeypatch.setattr(persist, "refresh_tours", boom)
     with pytest.raises(RuntimeError), transaction.atomic():
         persist.save_mission(basic_result(), meta(), FakeCatalog())
 

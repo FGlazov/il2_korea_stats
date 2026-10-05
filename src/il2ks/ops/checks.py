@@ -305,6 +305,26 @@ def _unknown_types() -> dict[str, int]:
     return counts
 
 
+def _level2_pending_finding() -> Iterable[Finding]:
+    """A batched run (20+ missions) that was killed hard leaves level 2 and the Elo ratings behind level 1 (doc 14)."""
+    from django.db import DatabaseError
+
+    from il2ks.db.site import level2_pending
+
+    try:
+        marker = level2_pending()
+    except DatabaseError:
+        return  # a database from before the marker existed: the database check asks for the update
+    if marker:
+        yield Finding(
+            Level.WARN,
+            "Level 2 (player totals and ratings) may be behind the missions: a long run was interrupted",
+            f"A batched {marker.get('command', 'ingest')} run started {marker.get('since', '?')} and never finished "
+            "(power cut or killed process). Missions saved by it are in, but totals and ratings may not include them.",
+            "Run il2ks rebuild-aggregates. (The next ingest, watch or reprocess does this by itself.)",
+        )
+
+
 @check
 def ingestion_check(cfg: Config) -> Iterable[Finding]:
     from django.db import DatabaseError
@@ -339,6 +359,7 @@ def ingestion_check(cfg: Config) -> Iterable[Finding]:
         )
     if not gave_up and not waiting:
         yield Finding(Level.OK, "No failed missions")
+    yield from _level2_pending_finding()
     if unknown:
         listed = ", ".join(f"{name} ({n}x)" for name, n in sorted(unknown.items())[:MAX_LISTED])
         yield Finding(
