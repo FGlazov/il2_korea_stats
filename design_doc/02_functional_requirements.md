@@ -254,6 +254,10 @@ people ask). The main use case is **a player reviewing their sortie**.
   selected tour gets a placeholder page with a way out (OQ-130, doc 16). Also: **weapon-mod names are translated** (dimensions), mission
   names are not (facts); damage percentages slightly over 100% from rounding are fine; friendly-fire penalties may make a score negative,
   but **an outcome penalty (death, capture, crash, plane lost) never improves a negative score**: a negative score is left as is (doc 13).
+- **Accepted 2026-10-05** (OQ-131, OQ-132): new tour on a decisive mission as built (a lone coalition completing the objective wins,
+  both or neither is a draw; cuts on top of the tour mode; "(2)", "(3)" part titles; one campaign per site); flight-time score defaults
+  (1 point per hour, fractional rates allowed, prorated by the time in the air: 20 minutes at 1 point per hour = 0.333 points; every
+  pilot sortie; reduced by the outcome percentage like kill points).
 - **A new tour is a clean slate** (maintainer, 2026-10-05; built: Elo, streaks and medals per tour, all time rolled up from the tour rows, doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,
