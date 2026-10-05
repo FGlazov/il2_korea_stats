@@ -38,7 +38,7 @@ from il2ks.ingest.aircraft_stats import (
 from tests import legacy_aircraft_alltime as legacy
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 AIR = "air_superiority"
 ATTACK = "attack"

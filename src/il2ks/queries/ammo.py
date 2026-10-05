@@ -89,7 +89,7 @@ class AmmoToDestroy:
 @dataclass(frozen=True, slots=True)
 class AmmoMix:
     """A set of gun ammo types that together destroyed this aircraft type in single-attacker kills: how often, and the
-    average hits of each member (`parts`, sorted by ammo name) and of all of them together."""
+    average hits of each member (`parts`, in the order of `ammos`) and of all of them together."""
 
     ammos: tuple[str, ...]  # log names, sorted
     instances: int
@@ -215,34 +215,43 @@ def _group(rows: Sequence[AircraftAmmoStats]) -> list[AircraftAmmo]:
     return sorted(out, key=lambda a: -(a.total.kills if a.total else 0))
 
 
-def _mixes(rows: Sequence[AircraftAmmoMixStats]) -> tuple[AmmoMix, ...]:
+def _mixes(rows: Sequence[AircraftAmmoMixStats], min_kills: int = 0) -> tuple[AmmoMix, ...]:
     by_mix: dict[str, list[AircraftAmmoMixStats]] = {}
     for row in rows:
         by_mix.setdefault(row.mix, []).append(row)
     out: list[AmmoMix] = []
     for mix, group in by_mix.items():
         total = next((r for r in group if r.ammo == TOTAL_AMMO), None)
-        if total is None:
+        if total is None or total.kills < min_kills:
             continue
+        ammos = tuple(mix.split(MIX_SEPARATOR))
+        order = {ammo: i for i, ammo in enumerate(ammos)}  # the parts follow the order the mix is stored in
         parts = tuple(
-            AmmoToDestroy(r.ammo, r.kills, r.hits) for r in sorted(group, key=lambda r: r.ammo) if r.ammo != TOTAL_AMMO
+            AmmoToDestroy(r.ammo, r.kills, r.hits)
+            for r in sorted(group, key=lambda r: order.get(r.ammo, len(order)))
+            if r.ammo != TOTAL_AMMO
         )
-        out.append(AmmoMix(tuple(mix.split(MIX_SEPARATOR)), total.kills, total.hits, parts))
+        out.append(AmmoMix(ammos, total.kills, total.hits, parts))
     return tuple(sorted(out, key=lambda m: (-m.instances, m.ammos)))
 
 
 def aircraft_ammo(
-    aircraft: GameObject, tour: Tour | None = None, role: AircraftRole = AircraftRole.ALL, mod_pattern: str = ""
+    aircraft: GameObject,
+    tour: Tour | None = None,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
+    min_mix_kills: int = 0,
 ) -> AircraftAmmo:
     """Hits to destroy this aircraft type in a scope: its destroyed aircraft's tour (None = all time), combat role and
     modification pattern ('' = none, see `TourAircraftStats.mod_pattern`); empty (`total` None) if no kill was counted
-    there. Two queries (one stored row per ammo, one per mix member)."""
+    there. Only mixes with at least `min_mix_kills` kills are listed (the totals count every kill). Two queries (one
+    stored row per ammo, one per mix member)."""
     scope = {"aircraft": aircraft, "tour": tour, "role": role, "mod_pattern": mod_pattern}
     rows = list(AircraftAmmoStats.objects.filter(**scope).select_related("aircraft"))
     found = _group(rows)
     if not found:
         return AircraftAmmo(aircraft.pk, aircraft, None, ())
-    mixes = _mixes(list(AircraftAmmoMixStats.objects.filter(**scope)))
+    mixes = _mixes(list(AircraftAmmoMixStats.objects.filter(**scope)), min_mix_kills)
     return replace(found[0], mixes=mixes)
 
 

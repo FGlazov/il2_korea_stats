@@ -968,14 +968,6 @@ msgid "Ammunition left not recorded reliably"
 msgstr "Munición restante registrada sin fiabilidad"
 
 # llm-draft
-msgid "Ammunition mix"
-msgstr "Mezcla de munición"
-
-# llm-draft
-msgid "Ammunition mixes"
-msgstr "Mezclas de munición"
-
-# llm-draft
 msgid "Ammunition used unknown"
 msgstr "Munición gastada desconocida"
 
@@ -1101,6 +1093,17 @@ msgid "Attack if the aircraft carried bombs or rockets (or is a dedicated attack
 msgstr "Ataque si el avión llevaba bombas o cohetes (o es un avión de ataque dedicado); si no, superioridad aérea."
 
 # llm-draft
+msgid "Attack proficiency"
+msgstr "Competencia de ataque"
+
+# llm-draft
+#, python-format
+msgid "Attack proficiency needs at least %(sorties)s attack sorties and %(minutes)s minutes on target."
+msgstr ""
+"Para la competencia de ataque necesitas al menos %(sorties)s salidas de ataque y %(minutes)s minutos sobre el "
+"objetivo."
+
+# llm-draft
 msgid "Attack sorties"
 msgstr "Salidas de ataque"
 
@@ -1113,8 +1116,25 @@ msgid "Attempts"
 msgstr "Intentos"
 
 # llm-draft
+#, python-format
+msgid "Average Elo shows the pilots' skill as much as the loadout's. Rates need at least %(n)s air superiority sorties."
+msgstr ""
+"El Elo medio refleja tanto la habilidad de los pilotos como la del armamento. Las tasas necesitan al menos %(n)s "
+"salidas de superioridad aérea."
+
+# llm-draft
 msgid "Average flight time per sortie"
 msgstr "Tiempo de vuelo medio por salida"
+
+# llm-draft
+#. Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table. "5.4 + 2.7"
+#. is an example: the numbers follow the order of the ammunition types named in the row.
+msgid ""
+"Average gun hits of each ammunition type that it took to shoot this aircraft down, in the order the types are named: "
+"5.4 + 2.7 is 5.4 hits of the first type and 2.7 of the second."
+msgstr ""
+"Impactos medios de cada tipo de munición que hicieron falta para derribar este avión, en el orden en que se nombran "
+"los tipos: 5.4 + 2.7 son 5.4 impactos del primer tipo y 2.7 del segundo."
 
 # llm-draft
 msgid "Average hits"
@@ -1123,11 +1143,6 @@ msgstr "Impactos de media"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Promedio de impactos de armas que bastaron para destruirlo"
-
-# llm-draft
-#. Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table
-msgid "Average number of gun hits that were needed to shoot this aircraft down."
-msgstr "Número medio de impactos de armas que hicieron falta para derribar este avión."
 
 # llm-draft
 #. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
@@ -1205,11 +1220,6 @@ msgstr "Ni el Yalú ni el enemigo: la batalla terminó en la calle de rodaje."
 # llm-draft
 msgid "Best by"
 msgstr "Mejores por"
-
-# llm-draft
-#, python-format
-msgid "Best exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
-msgstr "Mejor intercambio: contra %(enemy)s (%(kills)s derribos, %(losses)s pérdidas)."
 
 # llm-draft
 msgid "Best showing of the mission. Well flown."
@@ -1542,14 +1552,12 @@ msgid "Controlled flight into a field. The farmer has questions, the pilot has a
 msgstr "Aterrizaje de panza en mitad del campo. El agricultor está desconcertado; el piloto, con anécdota para rato."
 
 # llm-draft
-#. Translators: tooltip of the "Kills" column header of an aircraft's "Ammunition mixes" table
-msgid "Counted kills of this aircraft in which exactly these ammunition types hit together."
-msgstr "Derribos contados de este avión en los que impactaron juntos exactamente estos tipos de munición."
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table
-msgid "Counted kills of this aircraft in which this ammunition hit at least once."
-msgstr "Derribos contados de este avión en los que esta munición impactó al menos una vez."
+#. Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table. Each row is one
+#. mix of ammunition types (a single type is a mix of one).
+msgid "Counted kills of this aircraft in which exactly these ammunition types hit. The first row counts them all."
+msgstr ""
+"Derribos contabilizados de este avión en los que impactaron exactamente estos tipos de munición. La primera fila los "
+"cuenta todos."
 
 # llm-draft
 msgid "Counterpart"
@@ -2449,6 +2457,10 @@ msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
 msgstr "Impactos de armas por disparo; un guion si se desconocen los disparos efectuados"
 
 # llm-draft
+msgid "Gun kills by a single attacker only."
+msgstr "Solo derribos con armas de fuego hechos por un único atacante."
+
+# llm-draft
 msgid "Gunner"
 msgstr "Artillero"
 
@@ -2660,15 +2672,6 @@ msgid "How long a tour lasts"
 msgstr "Cuánto dura una temporada"
 
 # llm-draft
-msgid ""
-"How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
-" bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once."
-msgstr ""
-"Cuántos impactos de armas de fuego hacen falta para derribar esta aeronave. Solo se cuentan las victorias en las que "
-"un único atacante causó todo el daño; no se incluyen bombas ni cohetes. Derribos es el número de victorias contadas "
-"en las que la munición impactó al menos una vez."
-
-# llm-draft
 #. Translators: tooltip of the "Detonations" column header of a sortie's ordnance table
 msgid "How many of the released pieces exploded."
 msgstr "Cuántas de las piezas lanzadas explotaron."
@@ -2848,15 +2851,6 @@ msgstr "K/L"
 #, python-format
 msgid "K/L %(value)s"
 msgstr "K/L %(value)s"
-
-# llm-draft
-#, python-format
-msgid ""
-"K/L is kills per loss against that aircraft. It is shown from %(n)s kills and losses on; with fewer, a single mission"
-" decides the number."
-msgstr ""
-"K/L son los derribos por cada pérdida contra ese avión. Se muestra a partir de %(n)s derribos y pérdidas; con menos, "
-"una sola misión decide el número."
 
 # llm-draft
 msgid "Key (AType:KEY)"
@@ -3358,6 +3352,13 @@ msgid "No aircraft has flown yet."
 msgstr "Todavía no ha volado ninguna aeronave."
 
 # llm-draft
+#, python-format
+msgid "No ammunition mix with at least %(n)s kill yet."
+msgid_plural "No ammunition mix with at least %(n)s kills yet."
+msgstr[0] "Aún no hay ninguna mezcla de munición con al menos %(n)s derribo."
+msgstr[1] "Aún no hay ninguna mezcla de munición con al menos %(n)s derribos."
+
+# llm-draft
 msgid "No attacker (crash, terrain, accident)"
 msgstr "Sin atacante (accidente, terreno, percance)"
 
@@ -3386,6 +3387,13 @@ msgid "No landing"
 msgstr "Sin aterrizaje"
 
 # llm-draft
+#, python-format
+msgid "No loadout with at least %(n)s sortie yet."
+msgid_plural "No loadout with at least %(n)s sorties yet."
+msgstr[0] "Aún no hay ninguna configuración de armamento con al menos %(n)s salida."
+msgstr[1] "Aún no hay ninguna configuración de armamento con al menos %(n)s salidas."
+
+# llm-draft
 msgid "No logo."
 msgstr "Sin logotipo."
 
@@ -3404,6 +3412,13 @@ msgstr "Ninguna misión coincide con estos filtros."
 # llm-draft
 msgid "No missions yet."
 msgstr "Todavía no hay misiones."
+
+# llm-draft
+#, python-format
+msgid "No modification set with at least %(n)s sortie yet."
+msgid_plural "No modification set with at least %(n)s sorties yet."
+msgstr[0] "Aún no hay ningún conjunto de modificaciones con al menos %(n)s salida."
+msgstr[1] "Aún no hay ningún conjunto de modificaciones con al menos %(n)s salidas."
 
 # llm-draft
 msgid "No modifications"
@@ -4004,14 +4019,6 @@ msgstr "Aeronaves de jugadores"
 
 # llm-draft
 msgid ""
-"Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy "
-"aircraft this one beats and which beat it."
-msgstr ""
-"Derribos aéreos entre jugadores contra cada tipo de avión enemigo, en la selección elegida. Así ves a qué aviones "
-"enemigos supera este y cuáles lo superan a él."
-
-# llm-draft
-msgid ""
 "Player-versus-player kills and assists in this mission, in order. Kills against AI and ground targets are counted in "
 "the sortie rows above."
 msgstr ""
@@ -4213,15 +4220,6 @@ msgstr "Embestidas"
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
 msgstr "Con los informes del oficial de seguridad sobre este piloto ya sale un libro. Y él, de coautor."
-
-# llm-draft
-#, python-format
-msgid ""
-"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
-"target, as on the leaderboards."
-msgstr ""
-"Las tasas se muestran a partir de %(sorties)s salidas de superioridad aérea, o %(attack)s salidas de ataque con "
-"%(minutes)s minutos sobre el objetivo, igual que en las clasificaciones."
 
 # llm-draft
 msgid "Ratings"
@@ -4528,13 +4526,6 @@ msgstr "Derribado más veces por"
 # llm-draft
 msgid "Shot down most"
 msgstr "Más veces derribado"
-
-# llm-draft
-#, python-format
-msgid "Show %(n)s more mix"
-msgid_plural "Show %(n)s more mixes"
-msgstr[0] "Mostrar %(n)s mezcla más"
-msgstr[1] "Mostrar %(n)s mezclas más"
 
 # llm-draft
 msgid "Show assists in their own column of the killboard"
@@ -5057,22 +5048,6 @@ msgstr "Esa página no existe, o el enlace está desactualizado."
 msgid "That token is not right"
 msgstr "Ese token no es correcto"
 
-#, python-format
-msgid ""
-"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
-"at least %(n)s air superiority sortie in it are listed, and the sorties are counted in the selection."
-msgid_plural ""
-"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
-"at least %(n)s air superiority sorties in it are listed, and the sorties are counted in the selection."
-msgstr[0] ""
-"El Elo es la puntuación del piloto en la temporada seleccionada (histórico: la de su mejor temporada); en esta "
-"selección solo aparecen pilotos con al menos %(n)s salida de superioridad aérea en ella, y las salidas se cuentan "
-"dentro de la selección."
-msgstr[1] ""
-"El Elo es la puntuación del piloto en la temporada seleccionada (histórico: la de su mejor temporada); en esta "
-"selección solo aparecen pilotos con al menos %(n)s salidas de superioridad aérea en ella, y las salidas se cuentan "
-"dentro de la selección."
-
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
 msgstr ""
@@ -5382,23 +5357,6 @@ msgid "The same checks as the command il2ks doctor, run on the new settings. Som
 msgstr ""
 "Las mismas comprobaciones que el comando il2ks doctor, aplicadas a los nuevos ajustes. Algunos avisos desaparecen "
 "tras el reinicio."
-
-# llm-draft
-msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
-msgstr ""
-"Las mismas victorias agrupadas según qué tipos de munición impactaron juntos, con el promedio de impactos de cada "
-"tipo en esa mezcla."
-
-# llm-draft
-msgid ""
-"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role."
-" Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons."
-" A dash means the measure does not apply or there are too few sorties."
-msgstr ""
-"Las mismas medidas para cada conjunto de modificaciones de armamento con el que los pilotos volaron este avión, en el"
-" tour y el rol elegidos. El Elo medio refleja la habilidad de los pilotos, no solo las modificaciones: los buenos "
-"pilotos pueden preferir un conjunto por otros motivos. Un guion significa que la medida no aplica o que hay muy pocas"
-" salidas."
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
@@ -6037,19 +5995,8 @@ msgid "Which kills and losses to count"
 msgstr "Qué derribos y pérdidas contar"
 
 # llm-draft
-msgid ""
-"Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo"
-" of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per "
-"sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo"
-" reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means"
-" the measure does not apply or there are too few sorties."
-msgstr ""
-"Qué configuraciones de armamento funcionan mejor, en el tour, el rol y las modificaciones elegidos. Las de "
-"superioridad aérea muestran el Elo medio de los pilotos que las usaron (por avión si tienen encuentros puntuados en "
-"él; si no, el de su grupo), derribos aéreos por salida y K/D de derribos entre jugadores; las de ataque muestran "
-"puntos de tierra por hora sobre el objetivo. El Elo medio refleja la habilidad de los pilotos, no solo la "
-"configuración: los buenos pilotos pueden preferir una por otros motivos. Un guion significa que la medida no aplica o"
-" que hay muy pocas salidas."
+msgid "Which loadouts to show"
+msgstr "Qué configuraciones de armamento mostrar"
 
 # llm-draft
 msgid ""
@@ -6120,11 +6067,6 @@ msgstr "Victoria de un bando: %(won)s"
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
 msgstr "Dejaste el convoy hecho polvo y el mérito fue para quien disparó el último. Un contable cruel."
-
-# llm-draft
-#, python-format
-msgid "Worst exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
-msgstr "Peor intercambio: contra %(enemy)s (%(kills)s derribos, %(losses)s pérdidas)."
 
 # llm-draft
 msgid "Wounded"

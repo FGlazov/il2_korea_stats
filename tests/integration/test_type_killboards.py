@@ -23,7 +23,7 @@ from tests.integration.test_killboard_streaks import duel_mission
 from tests.ops_helpers import make_instance
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 OCTOBER = datetime(2026, 10, 5, 12, tzinfo=UTC)
 AIR: CombatRole = "air_superiority"
@@ -310,8 +310,7 @@ def test_ratio_needs_enough_fights_and_the_hint_names_best_and_worst(client: Cli
     assert (table.best.enemy.log_name, table.worst.enemy.log_name) == (SABRE, "F-51D")  # Il-10: too few to name
 
     body = client.get(reverse("web:aircraft-detail", args=[aircraft(MIG).pk]) + "?tour=all").content.decode()
-    assert "Best exchange: against" in body
-    assert "Worst exchange: against" in body
+    assert "Best exchange" not in body  # the sentence is gone (maintainer 2026-10-05); the table says it all
     # the unrated Il-10 shows a dash, not "no losses" (the column description names both, so look outside it)
     hint = escape(str(HINTS["kl_matchup"]))
     assert "no losses" not in body.replace(hint, "")

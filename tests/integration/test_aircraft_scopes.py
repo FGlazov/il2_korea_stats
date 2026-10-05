@@ -27,10 +27,11 @@ from il2ks.db.models import (
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.ammo import aircraft_ammo
+from tests.aircraft_pages import all_loadouts
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 AIR = "air_superiority"
 ATTACK = "attack"
@@ -299,7 +300,7 @@ def test_page_sections_all_follow_the_filters(client: Client) -> None:
             assert note not in body
         return {
             "tile": response.context["tile"].sorties,
-            "loadouts": sum(row.payload.sorties for row in response.context["loadouts"]),
+            "loadouts": sum(row.payload.sorties for row in all_loadouts(client, f"{url}?{query}")),
             "mods": sum(row.stats.sorties for row in response.context["mod_sets"]),
             "matchups": [(m.kills, m.losses) for m in response.context["matchups"].rows],
             "hits": response.context["hits"].kills,
