@@ -57,7 +57,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         if catalog_changed():
             try:
                 with WriterLock(cfg.data_dir, command, wait=wait):
-                    refresh_for_catalog_change(cfg)
+                    refresh_for_catalog_change(cfg, backup=True)
             except LockBusyError:  # a writer is running (and did or will do this itself): `web` must still start
                 log.info("the catalog files changed; the next writer refreshes the stored rows")
         return None
@@ -153,6 +153,12 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         rebuild = False
         for _, check in wanted:  # every step runs: each one also fixes level 1
             rebuild = check() or rebuild
+        stale_catalog = only is None and BACKFILL_PAYLOAD_NAMES not in (n for n, _ in wanted) and catalog_changed()
+        if (
+            stale_catalog
+        ):  # a database from before the fingerprint, or a changed catalog: level 1 now, one rebuild below
+            log.info("the catalog files changed: refreshing the stored loadout names and aircraft rows")
+            rebuild = _refresh_level_1_for_catalog() or rebuild
         if rebuild:
             log.info("rebuilding the aggregates for the upgrade")
             _rebuild_all(cfg)
@@ -160,14 +166,23 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
             _backfill_thresholds(cfg)
         _mark_done(*(name for name, _ in wanted))
         if only is None:
-            if BACKFILL_PAYLOAD_NAMES in (name for name, _ in wanted):  # just applied with the current catalog
-                _record_catalog_fingerprint(catalog_fingerprint())
-            else:
-                refresh_for_catalog_change(cfg)  # a database from before the fingerprint, or a changed catalog
+            _record_catalog_fingerprint(catalog_fingerprint())  # applied just now, with the one rebuild above
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
         if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
             _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
+
+
+def _refresh_level_1_for_catalog() -> bool:
+    """The level 1 part of a catalog refresh (loadout names, alias duplicates merged). Returns whether level 2 must be
+    rebuilt: always when there are sorties, because a flipped `significant` flag shows nowhere in level 1."""
+    from il2ks.db.models import PlayerSortie
+
+    if not PlayerSortie.objects.exists():
+        return False
+    _check_payload_names()
+    _check_aircraft_case()
+    return True
 
 
 def _check_payload_names() -> bool:
@@ -213,8 +228,8 @@ def _check_aircraft_case() -> bool:
     relations = [rel for rel in GameObject._meta.get_fields(include_hidden=True) if isinstance(rel, ManyToOneRel)]
     # The level 1 tables with a unique key that holds the aircraft: the other columns of that key.
     ammo_keys: dict[type[models.Model], tuple[str, ...]] = {
-        MissionAircraftAmmo: ("mission_id", "ammo"),
-        MissionAircraftAmmoMix: ("mission_id", "mix", "ammo"),
+        MissionAircraftAmmo: ("mission_id", "combat_role", "weapon_mods", "ammo"),
+        MissionAircraftAmmoMix: ("mission_id", "combat_role", "weapon_mods", "mix", "ammo"),
     }
     merged = False
     for canonical, objs in groups.items():
@@ -680,11 +695,12 @@ def catalog_changed() -> bool:
     return _stored_catalog_fingerprint() != catalog_fingerprint()
 
 
-def refresh_for_catalog_change(cfg: Config) -> bool:
+def refresh_for_catalog_change(cfg: Config, *, backup: bool = False) -> bool:
     """Apply a changed `weapon_mods.csv` / `payloads.csv` / `payload_aliases.csv` / `object_aliases.csv` to the stored
     rows: loadout names are looked up again, new alias duplicates merged, and level 2 rebuilt once (the significant
     mods and so the filter scopes come from the catalog). The one-time backfills never ran again after a catalog
-    update. Nothing happens when the fingerprint is unchanged; an empty database only records it. Returns whether
+    update. Nothing happens when the fingerprint is unchanged; an empty database only records it. With `backup`, a
+    database that holds sorties is backed up first (the refresh merges and deletes level 1 rows). Returns whether
     anything was refreshed. The caller holds the writer lock."""
     from django.db import transaction
 
@@ -693,11 +709,16 @@ def refresh_for_catalog_change(cfg: Config) -> bool:
     current = catalog_fingerprint()
     if _stored_catalog_fingerprint() == current:
         return False
+    if backup and PlayerSortie.objects.exists():
+        from il2ks.ops.backup import backup_before_migration
+
+        saved = backup_before_migration(cfg)
+        if saved is not None:
+            log.info("backed up the database before refreshing it for the catalog change: %s", saved)
     with transaction.atomic():
         if PlayerSortie.objects.exists():
             log.info("the catalog files changed: refreshing the stored loadout names, aircraft rows and aggregates")
-            _check_payload_names()
-            _check_aircraft_case()
-            _rebuild_all(cfg)  # not only when a name changed: a flipped `significant` flag shows nowhere in level 1
+            if _refresh_level_1_for_catalog():
+                _rebuild_all(cfg)
         _record_catalog_fingerprint(current)
     return True

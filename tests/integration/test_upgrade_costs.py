@@ -26,6 +26,7 @@ from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.stat_marks import _ELO_FIELDS, _FIELDS, recompute_thresholds  # pyright: ignore[reportPrivateUsage]
 from il2ks.ops import migrate
 from tests.factories import account, mission, save, sortie
+from tests.ops_helpers import recording
 
 pytestmark = pytest.mark.django_db
 
@@ -202,10 +203,10 @@ def test_the_first_upgrade_with_scoped_data_missing_rebuilds_once(monkeypatch: p
         if key.startswith("BACKFILL_") and value != migrate.BACKFILL_SCOPED_AIRCRAFT
     ]
     SiteSettings.objects.filter(pk=1).update(backfills_done=names)
-    rebuilds: list[int] = []
-    monkeypatch.setattr(migrate, "_rebuild_all", lambda _cfg: rebuilds.append(1))
+    rebuilds: list[str] = []
+    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
 
     migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
 
-    assert rebuilds == [1]
+    assert rebuilds == ["rebuild"]
     assert not migrate.catalog_changed()
