@@ -146,9 +146,9 @@ PlayerTypeKillboard player, tour (null = all time), enemy_aircraft, kills, death
                -- FR-WEB-9: the killboard by aircraft type; `kills` = the player's PvP air kill credits on that enemy type, `deaths` = the credits of
                -- pilots flying that type on the player's sorties; `kills_with` / `deaths_in` = the player's own type most used in those fights
                -- (ties: lowest id). Hidden opponents count; no assists. Built by `ingest.type_board`, recomputed per affected player
-PlayerStreak   player (1:1), current_* and best_* (sorties, kills_air, flight_time_s, since, until)   -- FR-WEB-25: ironman streaks, all time
+PlayerStreak   player (1:1), current_tour, current_* and best_* (sorties, kills_air, flight_time_s, since, until)   -- FR-WEB-25: ironman streaks; best = over the tours, current = the run in the newest tour (zero if not flown in it)
 PlayerBestStreak player, tour (null = all time), kind (sorties / air_kills / flight_time), sorties, kills_air, flight_time_s, since, until
-               -- the best streak by each criterion; a tour streak counts only that tour's sorties; an air_kills row exists only when the
+               -- the best streak by each criterion; a tour row counts only that tour's sorties, the all-time row (tour null) is the best of the tour rows; an air_kills row exists only when the
                -- best such streak has an air kill
 PlayerStreakRun player, tour (null = all time), sorties, kills_air, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
                -- FR-WEB-25, OQ-82: every streak of at least `MIN_LISTED_RUN` survived sorties, finished or running; `ended_sortie` is the fatal or

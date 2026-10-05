@@ -159,8 +159,8 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `SortieGunHits` (the gun hit lines per sortie and ammo), the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo mix of each destroyed aircraft). Then level 2, always after the rows it reads:
   1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: payloads, weapon mods, gun ammo; `ingest.builds`, from the sorties and `SortieGunHits`), identity and names, then the killboard rows (`PlayerKillboard` /
-     `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
-     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per touched tour);
+     `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak` / `PlayerStreakRun`,
+     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17): each is "refresh the touched tours, then roll up the players' all-time rows from the tour rows" (`refresh_streak_tours` + `rollup_streaks`, `refresh_achievement_tours` + `rollup_achievements`; a tour is a clean slate, nothing is carried across tours, a player's whole history is never read) `[PROPOSED]`;
   1b. `recompute_holders` (`AchievementHolders` per scope with the pilot count, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
   2. `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables);
   3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `TourAircraftStats` for the touched tours, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
