@@ -116,7 +116,7 @@ def test_a_running_mission_says_so_on_the_lists_the_mission_and_the_sortie(
     page and on its sorties' pages; once it ends none of that is left."""
     mission_url = f"/missions/{world.featured_mission_pk}/"
     sortie_url = f"/sorties/{world.ace_sortie_pk}/"
-    still_running = "This mission is still running: these numbers may change when it ends."
+    still_running = "The numbers may still change until it ends."
 
     def expect_running(running: bool) -> None:
         count = 1 if running else 0
@@ -134,6 +134,12 @@ def test_a_running_mission_says_so_on_the_lists_the_mission_and_the_sortie(
     expect(main_region(page).get_by_text("Log incomplete")).to_have_count(0)  # running is not "incomplete"
     page.goto(f"/sorties/{world.ace_sortie_pk}/")
     expect_heading(page, world.ace, level=1)  # the numbers are still there, only flagged
+    expect(main_region(page).locator(".sortie-head__badges").get_by_text("Live", exact=True)).to_be_visible()
+    banner_y = main_region(page).get_by_text("Mission still running").bounding_box()
+    tiles_y = main_region(page).locator(".stat-tiles").first.bounding_box()
+    assert banner_y is not None
+    assert tiles_y is not None
+    assert banner_y["y"] < tiles_y["y"]  # warned before the numbers
 
 
 # --- pilot health and aircraft damage ---------------------------------------------------------------------------------

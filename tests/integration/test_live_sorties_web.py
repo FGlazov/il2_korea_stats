@@ -13,7 +13,7 @@ from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
-NOTICE = "This mission is still running: these numbers may change when it ends."
+NOTICE = "The numbers may still change until it ends."
 
 
 def seed(*, live: bool) -> tuple[int, int]:
@@ -37,6 +37,13 @@ def test_the_mission_and_sortie_pages_of_a_running_mission_show_the_notice(clien
 
     assert NOTICE in mission_html
     assert NOTICE in sortie_html
+    assert sortie_html.index("Mission still running") < sortie_html.index(
+        'class="stat-tiles"'
+    )  # warned before the numbers
+    header_html = sortie_html[
+        sortie_html.index('class="sortie-head__badges"') : sortie_html.index("sortie-head__where")
+    ]
+    assert ">Live<" in header_html
     assert "Log incomplete" not in mission_html  # a running mission is not "incomplete"
     assert "badge--green" in mission_html
 
@@ -45,7 +52,9 @@ def test_a_finished_mission_has_no_notice_and_no_badge(client: Client) -> None:
     mission_pk, sortie_pk = seed(live=False)
 
     assert NOTICE not in client.get(reverse("web:mission-detail", args=[mission_pk])).content.decode()
-    assert NOTICE not in client.get(reverse("web:sortie-detail", args=[sortie_pk])).content.decode()
+    finished_sortie_html = client.get(reverse("web:sortie-detail", args=[sortie_pk])).content.decode()
+    assert NOTICE not in finished_sortie_html
+    assert ">Live<" not in finished_sortie_html
     assert ">Live<" not in client.get(reverse("web:mission-list")).content.decode()
 
 
