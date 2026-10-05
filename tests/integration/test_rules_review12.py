@@ -13,28 +13,37 @@ import pytest
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.test import Client
+from django.utils import translation
 
+from il2ks.config import Config, RuleSet
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
-from il2ks.db.models import SiteSettings, Tour
+from il2ks.db.models import Player, SiteSettings, Tour
 from il2ks.db.site import get_site_settings
-from il2ks.ingest import aggregates, persist
+from il2ks.ingest import aggregates, persist, score_apply
 from il2ks.ingest import batch as batch_mod
 from il2ks.ingest.batch import Level2Batch
 from il2ks.ingest.live import discard_stale_provisional
 from il2ks.ingest.persist import save_mission
 from il2ks.ingest.reprocess import reprocess
-from il2ks.ingest.rule_store import wanted_overrides
+from il2ks.ingest.rule_store import applied_overrides, save_overrides, wanted_overrides
 from il2ks.ingest.runner import IngestOptions, default_pipeline, ingest_once
+from il2ks.ingest.score_apply import rescore_with_wanted
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import start_manual_tour
+from il2ks.ops import migrate
+from il2ks.rule_settings import BY_KEY
+from il2ks.web.admin_rules import build_groups
 from tests.conftest import FIXTURE_LOGS
 from tests.factories import SERVER_UID, FakeCatalog, meta
 from tests.ingest_fakes import make_config
 from tests.integration.test_batched_level2 import FIXTURES
+from tests.integration.test_elo_alltime_minimum import OCT, OCTOBER, SEP, SEPTEMBER, jet, put
+from tests.integration.test_elo_alltime_minimum import RULES as ELO_RULES
 from tests.integration.test_tours import MONTHLY
 from tests.integration.test_tours_decisive import at
 from tests.integration.test_tours_review11 import result
+from tests.ops_helpers import make_instance
 
 pytestmark = pytest.mark.django_db
 
@@ -158,6 +167,97 @@ def test_a_batched_reprocess_uses_the_marks_minimum_saved_during_the_run(
             on_progress=saves_after_the_first,
         )
     assert minimums[-1] == 1, minimums
+
+
+def test_a_display_change_saved_during_the_rebuild_survives_the_adopt_step(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Review #12 item 5 (a lost update on Postgres): the watch rebuild read the wanted values at its start and wrote
+    `rule_settings_applied` at its end; a display value the admin saved in between was overwritten there, and as a
+    display field it is never pending again. The adopt step keeps the display and reprocess keys of the current row."""
+    cfg = make_instance(tmp_path, with_db=False)
+    row = get_site_settings()
+    row.rule_settings = {"score.air_kill_pvp": 20.0}
+    row.save()
+    real = score_apply.rebuild_aggregates
+
+    def rebuild_while_the_admin_saves(*args: object, **kwargs: object) -> None:
+        real(*args, **kwargs)  # pyright: ignore[reportArgumentType]
+        save_overrides([BY_KEY["marks.min_sorties"]], {"marks.min_sorties": 7}, RuleSet())
+
+    monkeypatch.setattr(score_apply, "rebuild_aggregates", rebuild_while_the_admin_saves)
+    assert rescore_with_wanted(cfg)
+    assert applied_overrides() == {"score.air_kill_pvp": 20.0, "marks.min_sorties": 7}
+    assert wanted_overrides() == applied_overrides()
+
+
+def test_an_upgrade_recomputes_the_all_time_elo_once_with_the_minimum_of_games(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Review #12 item 6: a database that already ran `player_rollup` kept the old "best of any tour" all-time Elo. One
+    marker-gated recompute, folded into the single upgrade rebuild (FR-OPS-3)."""
+    put(SEP, SEPTEMBER)
+    put(OCT, OCTOBER)
+    september = jet(1).elo_jet
+    Player.objects.filter(pk=jet(1).pk).update(elo_jet=1516.0)  # what the old rule stored: the lucky October game
+    names = [v for k, v in vars(migrate).items() if k.startswith("BACKFILL_") and v != "elo_min_games"]
+    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
+    migrate._record_catalog_fingerprint(migrate.catalog_fingerprint())  # pyright: ignore[reportPrivateUsage]
+    rebuilds: list[str] = []
+    real = migrate._rebuild_all  # pyright: ignore[reportPrivateUsage]
+
+    def counted(cfg: Config) -> None:
+        rebuilds.append("rebuild")
+        real(cfg)
+
+    monkeypatch.setattr(migrate, "_rebuild_all", counted)
+    cfg = replace(make_instance(tmp_path, with_db=False), ratings=ELO_RULES)
+
+    migrate._run_backfills(cfg)  # pyright: ignore[reportPrivateUsage]
+
+    assert rebuilds == ["rebuild"]
+    assert jet(1).elo_jet == september != 1516.0
+    migrate._run_backfills(cfg)  # pyright: ignore[reportPrivateUsage]
+    assert rebuilds == ["rebuild"]  # marked: not again
+
+
+def test_the_elo_minimum_says_it_is_recomputed_by_a_rebuild_not_that_every_sortie_is_re_scored() -> None:
+    """Review #12 item 7: `min_elo_games` is applied by a rebuild; its effect text is not the scoring one."""
+    rows = {row.key: row for group in build_groups("leaderboards", get_site_settings()) for row in group.rows}
+    scoring = {row.key: row for group in build_groups("scoring", get_site_settings()) for row in group.rows}
+    assert "Re-scores" in scoring["score.air_kill_pvp"].effect
+    elo = rows["score.min_elo_games"]
+    assert "Re-scores" not in elo.effect
+    assert "rebuild" in elo.effect
+    assert rows["score.min_sorties"].effect == "Applies at once"
+
+
+def test_the_leaderboards_page_says_which_fields_apply_at_once_and_which_after_the_rebuild(admin: Client) -> None:
+    page = admin.get("/admin/leaderboards/").content.decode()
+    assert "A change shows at once" not in page
+    assert "rebuild" in page
+
+
+def test_the_scoring_hint_shows_the_applied_kill_points_not_the_built_in_ones(admin: Client) -> None:
+    SiteSettings.objects.update_or_create(
+        pk=1,
+        defaults={
+            "rule_settings": {"score.air_kill_pvp": 12.0},
+            "rule_settings_applied": {"score.air_kill_pvp": 12.0},
+        },
+    )
+    page = admin.get("/admin/score/").content.decode()
+    assert "a player&#x27;s 12 " in page or "a player's 12 " in page
+
+
+def test_the_effect_texts_follow_the_active_language() -> None:
+    """Review #12 item 4: the effect texts were translated once at import, so every admin saw English."""
+    english = [row.effect for group in build_groups("leaderboards", get_site_settings()) for row in group.rows]
+    with translation.override("de"):
+        german = [row.effect for group in build_groups("leaderboards", get_site_settings()) for row in group.rows]
+    assert "Applies at once" in english
+    assert "Applies at once" not in german
+    assert german != english
 
 
 # --- the admin form never raises on a number the parser cannot take --------------------------------------------------
