@@ -681,6 +681,10 @@ msgid "Air accuracy"
 msgstr "Précision air"
 
 # llm-draft
+msgid "Air and ground kills"
+msgstr "Victoires aériennes et au sol"
+
+# llm-draft
 msgid "Air assist (points)"
 msgstr "Assistance aérienne (points)"
 
@@ -966,6 +970,10 @@ msgstr "Toutes les missions"
 # llm-draft
 msgid "All roles"
 msgstr "Tous les rôles"
+
+# llm-draft
+msgid "All sorties"
+msgstr "Toutes les sorties"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1592,12 +1600,13 @@ msgstr "Fichier de configuration"
 
 # llm-draft
 msgid ""
-"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
-"count separately: losing a ground attacker does not end the air run, and the other way round."
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts "
+"every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end "
+"the air run, and the other way round."
 msgstr ""
-"Sorties survécues d’affilée : ni mort ni capture. Les sorties qui n’ont jamais décollé sont ignorées. Les sorties "
-"aériennes et les sorties d’attaque comptent séparément : perdre un appareil d’attaque ne coupe pas la série aérienne,"
-" et inversement."
+"Sorties d’affilée que vous avez survécues : ni mort ni capture. Les sorties où vous n’avez jamais décollé sont "
+"ignorées. La première série compte toutes les sorties et toute perte y met fin. Les séries aérienne et au sol sont "
+"comptées séparément : perdre un avion d’attaque ne met pas fin à la série aérienne, et inversement."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1673,6 +1682,10 @@ msgstr "Série au sol en cours"
 # llm-draft
 msgid "Current logo"
 msgstr "Logo actuel"
+
+# llm-draft
+msgid "Current streak"
+msgstr "Série en cours"
 
 # llm-draft
 msgid "Current tour"
@@ -1883,12 +1896,12 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
-"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+"Each pilot's longest run of air sorties survived: no death, no capture. Every sortie that is not an attack sortie "
+"counts; losing an attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"La plus longue série de sorties aériennes survécues de chaque pilote : ni mort ni capture. Seules les sorties de "
-"supériorité aérienne comptent ; perdre un appareil d’attaque ne la coupe pas. Chaque tour repart de zéro ; « Tous "
-"temps » montre le meilleur tour."
+"La plus longue série de sorties aériennes survécues de chaque pilote : ni mort ni capture. Toute sortie qui n’est pas"
+" une sortie d’attaque compte ; perdre un avion d’attaque n’y met pas fin. Chaque nouveau tour repart de zéro pour "
+"tout le monde ; « Tout le temps » montre le meilleur tour."
 
 # llm-draft
 msgid ""
@@ -1898,6 +1911,16 @@ msgstr ""
 "La plus longue série de sorties d’attaque survécues de chaque pilote : ni mort ni capture. Seules les sorties "
 "d’attaque comptent ; perdre un chasseur ne la coupe pas. Chaque tour repart de zéro ; « Tous temps » montre le "
 "meilleur tour."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of sorties survived, whatever kind they were: no death, no capture. Attack and fighter "
+"sorties both count, and losing either one ends the run. A new tour starts everyone afresh; all time shows the best "
+"tour."
+msgstr ""
+"La plus longue série de sorties survécues de chaque pilote, de quelque type qu’elles soient : ni mort ni capture. Les"
+" sorties d’attaque comme de chasse comptent, et la perte dans l’une ou l’autre met fin à la série. Chaque nouveau "
+"tour repart de zéro pour tout le monde ; « Tout le temps » montre le meilleur tour."
 
 # llm-draft
 msgid "Earned"
@@ -2422,7 +2445,7 @@ msgid "Ground kills by category"
 msgstr "Cibles au sol par catégorie"
 
 # llm-draft
-#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+#. Translators: tooltip of the "Ground kills" column header of a streak table
 msgid "Ground kills made during the streak."
 msgstr "Victoires au sol obtenues pendant la série."
 
@@ -2934,17 +2957,6 @@ msgstr "Victoires et assistances"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Victoires par victime"
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-#. ground kills in a ground streak)
-msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-msgstr "Victoires obtenues pendant la série : aériennes pour une série aérienne, au sol pour une série au sol."
-
-# llm-draft
-#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-msgid "Kills of the other kind made in the sorties of this streak."
-msgstr "Victoires de l’autre type obtenues pendant les sorties de cette série."
 
 # llm-draft
 msgid "Kills per hour"
@@ -5446,12 +5458,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
-"kind of sortie does not end the other's run)."
+"skipped), by sorties, by kills and by flight time, for all sorties together, and for air sorties and attack sorties "
+"separately (a death in one kind of sortie does not end the other kind's run, any death ends the first streak)."
 msgstr ""
-"Les meilleures séries de sorties survécues d’affilée du pilote (ni mort ni capture ; les sorties sans décollage sont "
-"ignorées), par sorties, par victoires et par temps de vol, séparément pour les sorties aériennes et les sorties "
-"d’attaque (une mort dans un type de sortie ne coupe pas la série de l’autre)."
+"Les meilleures séries de sorties d’affilée survécues par le pilote (ni mort ni capture ; les sorties sans décollage "
+"sont ignorées), par sorties, par victoires et par temps de vol : pour toutes les sorties ensemble, puis séparément "
+"pour les sorties aériennes et d’attaque (une mort dans un type de sortie ne met pas fin à la série de l’autre ; la "
+"première série prend fin à toute mort)."
 
 # llm-draft
 #, python-format

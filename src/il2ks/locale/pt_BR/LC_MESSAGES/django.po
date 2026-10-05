@@ -676,6 +676,10 @@ msgid "Air accuracy"
 msgstr "Precisão no ar"
 
 # llm-draft
+msgid "Air and ground kills"
+msgstr "Abates aéreos e terrestres"
+
+# llm-draft
 msgid "Air assist (points)"
 msgstr "Assistência aérea (pontos)"
 
@@ -956,6 +960,10 @@ msgstr "Todas as missões"
 # llm-draft
 msgid "All roles"
 msgstr "Todas as funções"
+
+# llm-draft
+msgid "All sorties"
+msgstr "Todas as surtidas"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1582,11 +1590,13 @@ msgstr "Arquivo de configuração"
 
 # llm-draft
 msgid ""
-"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
-"count separately: losing a ground attacker does not end the air run, and the other way round."
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts "
+"every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end "
+"the air run, and the other way round."
 msgstr ""
-"Surtidas sobrevividas em sequência: sem morte nem captura. Surtidas que nunca decolaram são ignoradas. As surtidas "
-"aéreas e as de ataque contam separadamente: perder um atacante não interrompe a sequência aérea, e vice-versa."
+"Surtidas seguidas que você sobreviveu: sem morte nem captura. Surtidas em que você nunca decolou são ignoradas. A "
+"primeira sequência conta todas as surtidas e qualquer perda a encerra. As sequências aérea e terrestre contam "
+"separadamente: perder um avião de ataque não encerra a sequência aérea, e vice-versa."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1660,6 +1670,10 @@ msgstr "Sequência terrestre atual"
 # llm-draft
 msgid "Current logo"
 msgstr "Logotipo atual"
+
+# llm-draft
+msgid "Current streak"
+msgstr "Sequência atual"
 
 # llm-draft
 msgid "Current tour"
@@ -1870,12 +1884,12 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
-"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+"Each pilot's longest run of air sorties survived: no death, no capture. Every sortie that is not an attack sortie "
+"counts; losing an attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"A maior sequência de surtidas aéreas sobrevividas de cada piloto: sem morte nem captura. Só contam as surtidas de "
-"superioridade aérea; perder um atacante não a interrompe. Cada temporada recomeça do zero; “Todo o período” mostra o "
-"melhor temporada."
+"A maior sequência de surtidas aéreas sobrevividas de cada piloto: sem morte nem captura. Toda surtida que não seja de"
+" ataque conta; perder um avião de ataque não a encerra. Cada novo tour recomeça do zero para todos; o histórico geral"
+" mostra o melhor tour."
 
 # llm-draft
 msgid ""
@@ -1884,6 +1898,16 @@ msgid ""
 msgstr ""
 "A maior sequência de surtidas de ataque sobrevividas de cada piloto: sem morte nem captura. Só contam as surtidas de "
 "ataque; perder um caça não a interrompe. Cada temporada recomeça do zero; “Todo o período” mostra o melhor temporada."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of sorties survived, whatever kind they were: no death, no capture. Attack and fighter "
+"sorties both count, and losing either one ends the run. A new tour starts everyone afresh; all time shows the best "
+"tour."
+msgstr ""
+"A maior sequência de surtidas sobrevividas de cada piloto, de qualquer tipo: sem morte nem captura. Surtidas de "
+"ataque e de caça contam, e perder em qualquer uma delas encerra a sequência. Cada novo tour recomeça do zero para "
+"todos; o histórico geral mostra o melhor tour."
 
 # llm-draft
 msgid "Earned"
@@ -2408,7 +2432,7 @@ msgid "Ground kills by category"
 msgstr "Alvos terrestres por categoria"
 
 # llm-draft
-#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+#. Translators: tooltip of the "Ground kills" column header of a streak table
 msgid "Ground kills made during the streak."
 msgstr "Abates em terra feitos durante a sequência."
 
@@ -2912,17 +2936,6 @@ msgstr "Abates e assistências"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Abates por vítima"
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-#. ground kills in a ground streak)
-msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-msgstr "Abates feitos durante a sequência: aéreos numa sequência aérea, terrestres numa sequência terrestre."
-
-# llm-draft
-#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-msgid "Kills of the other kind made in the sorties of this streak."
-msgstr "Abates do outro tipo feitos nas surtidas desta sequência."
 
 # llm-draft
 msgid "Kills per hour"
@@ -5410,12 +5423,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
-"kind of sortie does not end the other's run)."
+"skipped), by sorties, by kills and by flight time, for all sorties together, and for air sorties and attack sorties "
+"separately (a death in one kind of sortie does not end the other kind's run, any death ends the first streak)."
 msgstr ""
-"As melhores sequências do piloto de surtidas sobrevividas em sequência (sem morte nem captura; surtidas sem decolagem"
-" são ignoradas), por surtidas, por abates e por tempo de voo, separadamente para as surtidas aéreas e as de ataque "
-"(uma morte em um tipo de missão não interrompe a sequência do outro)."
+"As melhores sequências de surtidas seguidas sobrevividas pelo piloto (sem morte nem captura; surtidas sem decolagem "
+"são ignoradas), por surtidas, por abates e por tempo de voo: com todas as surtidas juntas e separadamente com as "
+"aéreas e as de ataque (uma morte em um tipo de surtida não encerra a sequência do outro; a primeira sequência é "
+"encerrada por qualquer morte)."
 
 # llm-draft
 #, python-format

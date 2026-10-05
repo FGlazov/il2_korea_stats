@@ -19,7 +19,7 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerBestStreak, PlayerSortie
+from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import column_hints, display
 from il2ks.web.display import Label
@@ -137,29 +137,6 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
 )
-
-
-# --- the ironman boards (maintainer 2026-10-05; rows: a pilot's best run on one track) --------------------------------
-# The default columns (pilot, sorties, the track's kills, flight time) stay in the template; these are the extras. The
-# other track's kills (what an air run killed on the ground, and the reverse) is one of them.
-_RUN_SINCE = Column[PlayerBestStreak](
-    "since", _("Since"), lambda r: display.time_element(r.since, "date"), numeric=False
-)
-_RUN_UNTIL = Column[PlayerBestStreak](
-    "until", _("Until"), lambda r: display.time_element(r.until, "date"), numeric=False
-)
-IRONMAN_COLUMNS: dict[str, tuple[Column[PlayerBestStreak], ...]] = {
-    "air": (
-        Column("kills_ground", _("Ground kills"), lambda r: display.num(r.kills_ground), "streak_other_kills"),
-        _RUN_SINCE,
-        _RUN_UNTIL,
-    ),
-    "ground": (
-        Column("kills_air", _("Air kills"), lambda r: display.num(r.kills_air), "streak_other_kills"),
-        _RUN_SINCE,
-        _RUN_UNTIL,
-    ),
-}
 
 
 # --- missions ------------------------------------------------------------------------------------------------------

@@ -74,7 +74,7 @@ def streak_list(request: HttpRequest) -> HttpResponse:
     """`/streaks/?tour=`: the old list of ironman streaks, now the ironman board of the leaderboards (maintainer
     2026-10-05); old links keep working and land on the air board, in the same tour."""
     query = f"?{urlencode({'tour': request.GET['tour']})}" if request.GET.get("tour") else ""
-    return redirect(reverse("web:leaderboard", args=["ironman-air"]) + query, permanent=True)
+    return redirect(reverse("web:leaderboard", args=["ironman-all"]) + query, permanent=True)
 
 
 def _track_url(request: HttpRequest, track: str) -> str:
@@ -84,12 +84,12 @@ def _track_url(request: HttpRequest, track: str) -> str:
 
 
 def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
-    """`/players/<pk>/streaks/history/?tour=&page=`: every streak of the player on one track (`?track=air|ground`, a
-    run of at least two survived sorties, finished or running), newest first, 20 per page, all-time or within the
-    selected tour (OQ-82).
+    """`/players/<pk>/streaks/history/?tour=&page=`: every streak of the player on one track
+    (`?track=all|air|ground`, default all; a run of at least two survived sorties, finished or running), newest first,
+    20 per page, all-time or within the selected tour (OQ-82).
 
     Template `il2ks/players/streak_runs.html`. Context: `player`, `tours`, `tour`, `page_obj` (PlayerStreakRun rows with
-    `ended_sortie` and its mission), `track` (air or ground, `?track=`), `track_options` ((label, url, current)
+    `ended_sortie` and its mission), `track` (all, air or ground, `?track=`), `track_options` ((label, url, current)
     rows), `tour_ended` (the selected tour is not the current one), `min_run`, `crumbs`,
     `page_title`."""
     player = player_reads.visible_player(pk)
@@ -104,7 +104,7 @@ def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
         "track": track,
         "track_options": [
             (label, _track_url(request, value), value == track)
-            for value, label in ((reads.TRACKS[0], _("Air")), (reads.TRACKS[1], _("Ground")))
+            for value, label in zip(reads.TRACKS, (_("All"), _("Air"), _("Ground")), strict=True)
         ],
         "absence": pilot_absence(player.pk, choice) if page.paginator.count == 0 else None,
         "page_title": _("%(name)s: all streaks") % {"name": player.current_name},

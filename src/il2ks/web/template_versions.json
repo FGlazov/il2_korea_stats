@@ -299,15 +299,15 @@
     },
     "templates/il2ks/leaderboards/ironman_running.html": {
       "version": 1,
-      "sha256": "d925253439e5db3deebcab4921ebac465da27f06192b2607a6709d8c66d0f835"
+      "sha256": "348f0c568271e459a4b9907cd13266666bb8530344a18b3ec72c120c36ed606f"
     },
     "templates/il2ks/leaderboards/list.html": {
       "version": 1,
-      "sha256": "26806c571d971aeb707c1cfab6e9c20b88fda05a74d79e986fa182c5123df67a"
+      "sha256": "b8b2a0a36024bf438d2a2bc9011bb336cd01e894241af8c38ae3017f3cfc6144"
     },
     "templates/il2ks/leaderboards/table.html": {
       "version": 1,
-      "sha256": "426fe3c6c9093d579903c700a1cf4108b65959080b486ef1fb9968ad93612957"
+      "sha256": "c3667977e04656e84bebe4abaac63337273cff0283ceb960a2762efd6067bb10"
     },
     "templates/il2ks/missions/_player.html": {
       "version": 1,
@@ -423,7 +423,7 @@
     },
     "templates/il2ks/players/detail_streaks.html": {
       "version": 1,
-      "sha256": "2b70ba7eb986cd5f494adbb8fca8ad837f91ec5432b8b1d4175cef137d1c7f38"
+      "sha256": "2bd7ccedafe978b54eabed2c8151165fcae1433a506f93d6d6bb1bfe10c37f2e"
     },
     "templates/il2ks/players/detail_tiles.html": {
       "version": 1,
@@ -451,11 +451,11 @@
     },
     "templates/il2ks/players/streak_runs.html": {
       "version": 1,
-      "sha256": "b01b5a427cbe0bf35651206829f9f8fcd49a6e7b11d00667a35261759f873799"
+      "sha256": "e4092bf1cd0f6da687daa5d97c65255a9b84de5f9e1581c147f18f12537579d4"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 1,
-      "sha256": "1fc31e6cc93168788322b6ee1219853ed0934373e26ac34f39c506bd9e63b352"
+      "sha256": "205eaffc4ef5da3a6ccf2956f99385b25b26261384e7d8764950cdef3c081d20"
     },
     "templates/il2ks/setup.html": {
       "version": 1,

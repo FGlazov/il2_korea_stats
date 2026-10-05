@@ -22,7 +22,9 @@ def died(index: int, player: int = 1) -> SortieResult:
 
 def runs_of(number: int, tour: str | None = None) -> list[tuple[int, int, str]]:
     """(sorties, air kills, ended by) of the player's runs, oldest first."""
-    rows = PlayerStreakRun.objects.filter(player=pk(number), tour=tour_named(tour) if tour else None).order_by("since")
+    rows = PlayerStreakRun.objects.filter(
+        player=pk(number), track="air", tour=tour_named(tour) if tour else None
+    ).order_by("since")
     return [(r.sorties, r.kills_air, r.ended_by) for r in rows]
 
 
@@ -49,11 +51,11 @@ def test_every_run_of_two_or_more_is_stored_with_what_ended_it() -> None:
     two_runs()
 
     assert runs_of(1) == [(2, 1, "death"), (3, 2, "open")]
-    first = PlayerStreakRun.objects.filter(player=pk(1), tour=None).order_by("since").first()
+    first = PlayerStreakRun.objects.filter(player=pk(1), tour=None, track="air").order_by("since").first()
     assert first is not None
     assert first.ended_sortie is not None
     assert first.ended_sortie.is_death
-    assert PlayerStreakRun.objects.get(player=pk(1), tour=None, ended_by="open").ended_sortie is None
+    assert PlayerStreakRun.objects.get(player=pk(1), tour=None, track="air", ended_by="open").ended_sortie is None
 
 
 def test_runs_are_kept_per_tour_and_a_run_does_not_span_tours_there() -> None:
@@ -121,7 +123,7 @@ def test_streak_runs_page_of_a_hidden_or_unknown_player_is_404_and_a_hidden_miss
     client: Client,
 ) -> None:
     two_runs()
-    fatal = PlayerStreakRun.objects.get(player=pk(1), tour=None, ended_by="death").ended_sortie_id
+    fatal = PlayerStreakRun.objects.get(player=pk(1), tour=None, track="air", ended_by="death").ended_sortie_id
     Mission.objects.update(is_hidden=True)
 
     html = client.get(f"/players/{pk(1)}/streaks/history/?tour=all").content.decode()

@@ -687,6 +687,10 @@ msgid "Air accuracy"
 msgstr "Меткость в воздухе"
 
 # llm-draft
+msgid "Air and ground kills"
+msgstr "Воздушные и наземные победы"
+
+# llm-draft
 msgid "Air assist (points)"
 msgstr "Содействие в воздухе (очки)"
 
@@ -970,6 +974,10 @@ msgstr "Все миссии"
 # llm-draft
 msgid "All roles"
 msgstr "Все роли"
+
+# llm-draft
+msgid "All sorties"
+msgstr "Все вылеты"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1604,11 +1612,13 @@ msgstr "Файл настроек"
 
 # llm-draft
 msgid ""
-"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
-"count separately: losing a ground attacker does not end the air run, and the other way round."
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts "
+"every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end "
+"the air run, and the other way round."
 msgstr ""
-"Подряд пережитые вылеты: без смерти и без плена. Вылеты, в которых вы не взлетели, пропускаются. Воздушные и наземные"
-" вылеты считаются отдельно: потеря штурмовика не обрывает воздушную серию, и наоборот."
+"Вылеты подряд, пережитые без гибели и плена. Вылеты, в которых вы так и не взлетели, пропускаются. Первая серия "
+"считает все вылеты, и её прерывает любая потеря. Воздушная и наземная серии считаются отдельно: потеря штурмовика не "
+"прерывает воздушную серию, и наоборот."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1682,6 +1692,10 @@ msgstr "Текущая наземная серия"
 # llm-draft
 msgid "Current logo"
 msgstr "Текущий логотип"
+
+# llm-draft
+msgid "Current streak"
+msgstr "Текущая серия"
 
 # llm-draft
 msgid "Current tour"
@@ -1888,12 +1902,12 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
-"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+"Each pilot's longest run of air sorties survived: no death, no capture. Every sortie that is not an attack sortie "
+"counts; losing an attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"Самая длинная серия пережитых воздушных вылетов у каждого пилота: без смерти и без плена. Считаются только вылеты на "
-"завоевание превосходства в воздухе; потеря штурмовика серию не обрывает. Каждый тур начинается заново; за всё время "
-"показан лучший тур."
+"Самая длинная серия пережитых воздушных вылетов у каждого пилота: без гибели и плена. Считается любой вылет, кроме "
+"штурмовки; потеря штурмовика серию не прерывает. Новый тур начинается для всех с нуля; за всё время показан лучший "
+"тур."
 
 # llm-draft
 msgid ""
@@ -1902,6 +1916,16 @@ msgid ""
 msgstr ""
 "Самая длинная серия пережитых штурмовых вылетов у каждого пилота: без смерти и без плена. Считаются только штурмовые "
 "вылеты; потеря истребителя серию не обрывает. Каждый тур начинается заново; за всё время показан лучший тур."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of sorties survived, whatever kind they were: no death, no capture. Attack and fighter "
+"sorties both count, and losing either one ends the run. A new tour starts everyone afresh; all time shows the best "
+"tour."
+msgstr ""
+"Самая длинная серия пережитых вылетов у каждого пилота, какими бы они ни были: без гибели и плена. Считаются и "
+"штурмовые, и истребительные вылеты, а потеря в любом из них прерывает серию. Новый тур начинается для всех с нуля; за"
+" всё время показан лучший тур."
 
 # llm-draft
 msgid "Earned"
@@ -2423,7 +2447,7 @@ msgid "Ground kills by category"
 msgstr "Наземные цели по категориям"
 
 # llm-draft
-#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+#. Translators: tooltip of the "Ground kills" column header of a streak table
 msgid "Ground kills made during the streak."
 msgstr "Наземные победы за время серии."
 
@@ -2931,17 +2955,6 @@ msgstr "Победы и содействия"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Победы по жертвам"
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-#. ground kills in a ground streak)
-msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-msgstr "Победы за время серии: воздушные для воздушной серии, наземные для наземной."
-
-# llm-draft
-#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-msgid "Kills of the other kind made in the sorties of this streak."
-msgstr "Победы другого вида в вылетах этой серии."
 
 # llm-draft
 msgid "Kills per hour"
@@ -5432,12 +5445,12 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
-"kind of sortie does not end the other's run)."
+"skipped), by sorties, by kills and by flight time, for all sorties together, and for air sorties and attack sorties "
+"separately (a death in one kind of sortie does not end the other kind's run, any death ends the first streak)."
 msgstr ""
-"Лучшие серии пилота из подряд пережитых вылетов (без смерти и плена; вылеты без взлёта пропускаются): по числу "
-"вылетов, по победам и по времени налёта, отдельно для воздушных и для штурмовых вылетов (смерть в вылете одного вида "
-"не обрывает серию другого)."
+"Лучшие серии вылетов подряд, пережитые пилотом (без гибели и плена; вылеты без взлёта пропускаются), по числу "
+"вылетов, по победам и по времени налёта: для всех вылетов вместе, а также отдельно для воздушных и штурмовых (гибель "
+"в вылете одного вида не прерывает серию другого вида, а первую серию прерывает любая гибель)."
 
 # llm-draft
 #, python-format

@@ -59,7 +59,7 @@ class Board:
     per_tour: bool = True
     per_aircraft: bool = True
     per_pool: bool = True  # False: the board is a pool already (Elo) or has none
-    group: str = "air"  # the tab group: "air", "ground" or "general"
+    group: str = "air"  # the tab group: "air", "ground", "general" or "ironman"
     elo_pool: str | None = (
         None  # an Elo board: its propulsion pool (rows `Player` all time, `PlayerTourPool` in a tour)
     )
@@ -69,12 +69,9 @@ class Board:
 _COMMON: Final[Mapping[str, str]] = {"sorties": "sorties", "name": "player__name_lower"}
 _IRONMAN: Final[Mapping[str, str]] = {  # the sort keys of the ironman boards (rows: `PlayerBestStreak`)
     **_COMMON,
-    "flight_time_s": "flight_time_s",
     "kills_air": "kills_air",
     "kills_ground": "kills_ground",
-    "since": "since",
-    "until": "until",
-}
+}  # the four columns of every ironman board (maintainer, 2026-10-05): pilot, sorties in a row, air and ground kills
 
 BOARDS: Final[Mapping[str, Board]] = {
     "elo-jet": Board(
@@ -145,30 +142,39 @@ BOARDS: Final[Mapping[str, Board]] = {
         "-flight_time_s",
         group="general",
     ),
-    # The ironman boards (maintainer, 2026-10-05): every pilot's best run of survived sorties on one track, in the tour
-    # (or the best tour, all time). They sit in the general tab group so the air and ground groups keep fitting side
-    # by side. `kills` is the track's own kill count; the other one is an optional column.
-    "ironman-air": Board(
-        "ironman-air",
-        {**_IRONMAN, "kills": "kills_air"},
+    # The ironman boards (maintainer, 2026-10-05): every pilot's best run of survived sorties on one track (all: every
+    # sortie, air: not an attack sortie, ground: attack sorties), in the tour (or the best tour, all time). They have a
+    # tab group of their own. Four fixed columns: pilot, sorties in a row, air kills, ground kills.
+    "ironman-all": Board(
+        "ironman-all",
+        _IRONMAN,
         "-sorties",
         per_aircraft=False,
         per_pool=False,
-        group="general",
+        group="ironman",
+        streak_track="all",
+    ),
+    "ironman-air": Board(
+        "ironman-air",
+        _IRONMAN,
+        "-sorties",
+        per_aircraft=False,
+        per_pool=False,
+        group="ironman",
         streak_track="air",
     ),
     "ironman-ground": Board(
         "ironman-ground",
-        {**_IRONMAN, "kills": "kills_ground"},
+        _IRONMAN,
         "-sorties",
         per_aircraft=False,
         per_pool=False,
-        group="general",
+        group="ironman",
         streak_track="ground",
     ),
 }
 DEFAULT_BOARD: Final = "air"
-GROUPS: Final[tuple[str, ...]] = ("air", "ground", "general")
+GROUPS: Final[tuple[str, ...]] = ("air", "ground", "general", "ironman")
 POOLS: Final[tuple[str, ...]] = ("prop", "jet")
 HOME_BOARDS: Final[tuple[str, ...]] = (
     "elo-jet",
@@ -236,7 +242,7 @@ def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: Leaderboar
     match board.key:
         case "elo-prop" | "elo-jet":
             return rows.filter(**{f"{_elo_columns(board, rows.model)[1]}__gte": rules.min_elo_games})
-        case "ironman-air" | "ironman-ground":
+        case "ironman-all" | "ironman-air" | "ironman-ground":
             return rows  # no minimum: a run of one survived sortie is a streak too
         case "play-time":
             return rows.filter(flight_time_s__gt=0)  # no sortie minimum: the board is hours flown

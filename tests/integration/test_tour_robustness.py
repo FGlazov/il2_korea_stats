@@ -46,6 +46,7 @@ BOARDS = [
     "elo-prop",
     "elo-jet",
     "play-time",
+    "ironman-all",
     "ironman-air",
     "ironman-ground",
 ]
@@ -298,7 +299,7 @@ def filtered_urls(w: World) -> Iterator[str]:
         yield f"/players/{p.pk}/sorties/?outcome=landed&sort=-flight_time"
         yield f"/players/{p.pk}/killboard/?sort=-last"
         yield f"/players/{p.pk}/?sort=-sorties"
-    yield "/leaderboards/ironman-air/?sort=-sorties&cols=kills_ground,since"
+    yield "/leaderboards/ironman-all/?sort=-kills_ground"
     yield "/achievements/first_blood/?tier=2"
     yield "/missions/?q=korea&winner=redfor"
 
