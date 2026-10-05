@@ -93,7 +93,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "ace_in_a_day": (gettext_lazy("Ace in a Day"), gettext_lazy("Air kills on a single day (UTC).")),
     "tours_in_a_row": (
         gettext_lazy("Old Hand"),
-        gettext_lazy("Tours in a row in which you flew at least one sortie. A tour you skip ends the run."),
+        gettext_lazy("Tours in a row in which you flew at least once. A tour you skip ends the run."),
     ),
     "shame_taxi": (
         gettext_lazy("Ramp Rash"),

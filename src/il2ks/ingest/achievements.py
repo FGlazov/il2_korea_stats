@@ -249,15 +249,14 @@ def _cumulative_rows(chunk: list[int], cumulative: list[Achievement]) -> dict[_K
 
 
 def _tour_run_rows(chunk: list[int], runs: list[Achievement]) -> dict[_Key, _Value]:
-    """The all-time rows of the tours-in-a-row medals: a tour counts when the pilot has a `PlayerTour` row with sorties
-    (`[PROPOSED]`: counted pilot sorties, as the pilot counts of the rarity); a tour in between with none breaks the
-    run. A tier is earned at the pilot's first sortie of the tour whose run reached it (the first that took off when
-    there is one)."""
+    """The all-time rows of the tours-in-a-row medals: a tour counts when the pilot flew in it (a `PlayerTour` row with
+    `takeoffs > 0`: a sortie that never took off is not a sortie flown); a tour in between with none breaks the run.
+    A tier is earned at the pilot's first sortie of the tour whose run reached it (the first that took off)."""
     if not runs:
         return {}
     order = _tour_order()
     flown: dict[int, set[int]] = {}
-    played_rows = PlayerTour.objects.filter(player_id__in=chunk, sorties__gt=0).values_list("player_id", "tour_id")
+    played_rows = PlayerTour.objects.filter(player_id__in=chunk, takeoffs__gt=0).values_list("player_id", "tour_id")
     for pid, tour_id in played_rows:
         flown.setdefault(pid, set()).add(tour_id)
     completing: dict[tuple[int, int], list[tuple[str, int]]] = {}  # (player, tour) -> [(key, tier)]

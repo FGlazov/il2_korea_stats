@@ -109,6 +109,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 | `types_with_kills` | Versatile Hunter | Different aircraft types with at least one air kill | 2 / 4 / 6 / 8 | 186 / 34 / 6 / 0 |
 | `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
 | `ace_in_a_day` | Ace in a Day | Most air kills in one UTC day (the day the sortie spawned on) | 5 / 8 / 12 / 20 | 53 / 17 / 4 / 0 |
+| `tours_in_a_row` | Old Hand | Longest run of consecutive tours in which the pilot flew at least once (a take-off); all time only, 2 / 3 / 6 / 12 tours | 2 / 3 / 6 / 12 tours | n/a (one month of sample data) |
 | `shame_taxi` | Ramp Rash (shame) | Taxi accidents | 1 / 5 / 10 | 361 / 36 / 4 |
 | `shame_friendly` | Wrong Team (shame) | Friendly-fire kills (aircraft and ground objects, `friendly_kills`) | 1 / 5 / 20 | 125 / 38 / 15 |
 | `shame_strafed` | Sitting Duck (shame) | Aircraft destroyed on the ground by an attacker | 1 / 2 / 3 | 25 / 1 / 1 |
@@ -269,12 +270,12 @@ tour achievements", and "also add tiered achievements for playing in X tours in 
   "Gold: 250" all time are both true. The sortie page lists a tour tier and an all-time tier of the same number once only when their
   thresholds are the same, otherwise both are news ("the first kill of the tour" and "the fifth of the career").
 - **Tours in a row** (`tours_in_a_row`, **Old Hand**, medal, unit `tours`): tiers **2 / 3 / 6 / 12** consecutive tours. `[PROPOSED]`
-  (PRODUCT): a tour counts for a pilot when they have a `PlayerTour` row with `sorties > 0` (counted pilot sorties: the same rule as the
-  pilot count of the rarity; a sortie that never took off still counts as played, the row does not tell the two apart); the tours are
+  (PRODUCT): a tour counts for a pilot when they have a `PlayerTour` row with `takeoffs > 0` (the pilot flew at least once in it, consistent with "flown" above: a sortie that never
+  took off does not count, unlike the pilot count of the rarity, which counts any sortie); the tours are
   ordered by start, so "consecutive" means no tour in between in which the pilot flew. A tour exists once anybody has flown in it, so
   on a live server a skipped tour is a real gap. Two tours (a month and the next) is the bar of "came back"; 12 is a year. All time
   only (`Achievement.all_time_only`): no tour rows, no tour view (the overview, the profile list and the holders page leave it out in
-  a tour; its holders URL is a 404 there), `progress` is unused. `rollup_achievements` reads `PlayerTour` (player, tour, sorties > 0)
+  a tour; its holders URL is a 404 there), `progress` is unused. `rollup_achievements` reads `PlayerTour` (player, tour, takeoffs > 0)
   and the tours table for the order, finds the longest run (`core.achievements.consecutive_tours`, `earn_tours`), and reads only the
   completing tours' sorties to date the tier: **earned at the pilot's first sortie of the tour whose run reached it** (the first that
   took off, else the first). A tier is never lost: the longest run counts, the running tour counts once the pilot flies in it (until

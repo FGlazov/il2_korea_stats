@@ -5380,8 +5380,8 @@ msgid "Tour ended"
 msgstr "Тур закончился"
 
 # llm-draft
-msgid "Tours in a row in which you flew at least one sortie. A tour you skip ends the run."
-msgstr "Туры подряд, в каждом из которых вы совершили хотя бы один вылет. Пропущенный тур обрывает серию."
+msgid "Tours in a row in which you flew at least once. A tour you skip ends the run."
+msgstr "Туры подряд, в каждом из которых вы хотя бы раз поднялись в воздух. Пропущенный тур обрывает серию."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."
