@@ -247,7 +247,7 @@ decisions are made):
   batches unchanged. Estimated 15-25% faster big batches. **Changed (maintainer, 2026-10-05):** no per-entity `Touched` tracking: a
   batch tracks only the touched tours and fully refreshes them; the same tour refresh replaces every other level-2 refresh too
   (single missions, live passes, rebuilds; maintainer, 2026-10-05).
-- 🔧 **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
+- ✅ **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
   the tour rows, so a recompute no longer grows with a player's whole history. Inventory and plan first (what sums, what can't).
   **Merged 2026-10-05:** one level-2 path `refresh_tours(tour_ids, ratings)` with the per-tour order in doc 14 (rows from level 1, the tour's Elo,
   its streaks and medals, then the all-time roll-ups of Elo, streaks and medals; Elo, streaks and medals start over in a tour); the
@@ -265,32 +265,32 @@ decisions are made):
 - ✅ **New tour on a decisive mission** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that starts a new
   tour after a mission won by one side (dynamic campaigns that run for weeks); research first which log events carry the result.
 
-- 🔧 **Game rules in the admin** (maintainer, 2026-10-05, before the release): the game-rule settings of il2ks.toml (score values,
+- ✅ **Game rules in the admin** (maintainer, 2026-10-05, before the release): the game-rule settings of il2ks.toml (score values,
   tours, rule toggles, leaderboard minimums, live intervals) editable in the web admin, applied by `watch` like the other rule pages;
   machine settings (paths, domain, ports, database, backups) stay in il2ks.toml.
-- 🔧 **Docs describe only the released software** (maintainer, 2026-10-05): no "older versions" in docs/ (nothing was released yet);
+- ✅ **Docs describe only the released software** (maintainer, 2026-10-05): no "older versions" in docs/ (nothing was released yet);
   pre-release compatibility code goes with the migration squash.
 
 ## Maintainer's view pass (2026-10-05, before the release)
-- 🔧 **Names and help texts**: "ground score per hour on target" is called **attack proficiency** everywhere; help texts for
+- ✅ **Names and help texts**: "ground score per hour on target" is called **attack proficiency** everywhere; help texts for
   self-explanatory things go (the maintainer's list plus any other where the context is enough); mission list intro text goes.
-- 🔧 **Extra columns**: the optional-columns control is called "Extra columns", a collapsible block with the choices as checkboxes on
+- ✅ **Extra columns**: the optional-columns control is called "Extra columns", a collapsible block with the choices as checkboxes on
   the page (no dropdown scrolling); toggling keeps the table's horizontal scroll; the row's name column stays visible when scrolling right.
-- 🔧 **Layout**: home page: the longest ironman streak block moves to the leaderboards, "Recently earned" below the last mission,
+- ✅ **Layout**: home page: the longest ironman streak block moves to the leaderboards, "Recently earned" below the last mission,
   "Online now" above it; the tour selector sits in the banner right of the player search on the home page and right-aligned on the
   title line of every other page (the player page's selector was far too big).
-- 🔧 **Lists**: aircraft list defaults Aircraft, Sorties, K/L, Survival, Attack proficiency, Elo (the rest optional); player list
+- ✅ **Lists**: aircraft list defaults Aircraft, Sorties, K/L, Survival, Attack proficiency, Elo (the rest optional); player list
   defaults Player, Flight time, Elo, Attack proficiency, K/L, longest kill streak, longest ground kill streak; ironman streaks become a
   leaderboard with extra columns and ground kills by default.
-- 🔧 **Aircraft page**: hits to destroy and ammo mixes in one table, a mix shown as average hits per ammo type in its stored order
+- ✅ **Aircraft page**: hits to destroy and ammo mixes in one table, a mix shown as average hits per ammo type in its stored order
   (e.g. 5.4 + 2.7); mixes, modifications and loadouts need at least 10 events; those three tables paginated; loadouts get an air
   superiority / attack tab under "All" with only the columns of that mode; the maintainer's list of help texts removed, the loadout
   text shortened per mode.
-- 🔧 **Player page**: all / air superiority / attack toggle; air-to-air and air-to-ground sections can be reordered; "Other totals"
+- ✅ **Player page**: all / air superiority / attack toggle; air-to-air and air-to-ground sections can be reordered; "Other totals"
   condensed into about 4 columns.
-- 🔧 **Separate air and ground ironman**: losing an attack sortie doesn't end the air ironman life and the other way round (so air
+- ✅ **Separate air and ground ironman**: losing an attack sortie doesn't end the air ironman life and the other way round (so air
   pilots can ground-pound without fearing for their streak); on the player page and the leaderboards.
-- 🔧 **Bug report**: a pilot who is a tank buster in the current tour but not all time, after a full ingest: check the all-time
+- ✅ **Bug report** (not a bug: the career medals had 5x all-time tiers; their tour variants now have their own names): a pilot who is a tank buster in the current tour but not all time, after a full ingest: check the all-time
   refresh at the end of a batch (or explain it: career medals have 5x all-time thresholds).
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
