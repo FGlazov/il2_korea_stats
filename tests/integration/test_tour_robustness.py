@@ -15,7 +15,9 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from django.test import Client
+from pytest_django.fixtures import Settings
 
+from il2ks.config import LeaderboardConfig
 from il2ks.db.models import GameObject, Mission, Player, PlayerSortie, PlayerTour, Tour, TourAircraftStats
 from tests.factories import account, kill, meta, mission, save, sortie
 from tests.simple_reads import PROFILE_READS_TOUR, assert_simple_reads
@@ -27,6 +29,14 @@ SEPTEMBER = datetime(2026, 9, 1, tzinfo=UTC)
 OCTOBER = datetime(2026, 10, 3, 20, tzinfo=UTC)
 AIR = "air_superiority"
 ATTACK = "attack"
+SOME = LeaderboardConfig(
+    min_sorties=1,
+    min_elo_games=1,
+    min_attack_sorties=1,
+    min_time_on_target_minutes=1.0,
+    min_air_superiority_sorties=1,
+    min_air_superiority_minutes=1.0,
+)
 BOARDS = ["air", "ground", "ground-hour", "interception", "tank-busting", "elo-prop", "elo-jet", "play-time"]
 LINK = re.compile(r'href="(/[^"#]*)"')
 SKIPPED_LINKS = ("/sprite.svg", "/static/", "/media/", "/admin", "/language/", "/live/", "/setup/", "/_")
@@ -47,7 +57,8 @@ class World:
 
 
 @pytest.fixture
-def world() -> World:
+def world(settings: Settings) -> World:
+    settings.IL2KS_LEADERBOARDS = SOME  # low minimums: the boards have rows, so their links are checked too
     save(
         mission(
             (
@@ -258,3 +269,38 @@ def test_no_link_leads_to_a_page_where_its_target_has_no_rows_in_the_tour(client
                 if not same_scope and not has_rows(parts.path, tour):
                     dead.add(f"{page_url} -> {link}")
     assert not dead, "\n".join(sorted(dead))
+
+
+def filtered_urls(w: World) -> Iterator[str]:
+    """Pages with the other filters set on top of the tour: an aircraft nobody flew in that tour, the role and
+    modification filters, a pool, sort orders, a tier."""
+    for board in BOARDS:
+        yield f"/leaderboards/{board}/?aircraft={w.il10.pk}"
+        yield f"/leaderboards/{board}/?aircraft={w.mig.pk}&pool=jet&sort=-kills_air"
+    for aircraft in (w.il10, w.mig, w.sabre):
+        yield f"/aircraft/{aircraft.pk}/?role=attack"
+        yield f"/aircraft/{aircraft.pk}/?role=air_superiority&intercept=1"
+        yield f"/aircraft/{aircraft.pk}/?mod1=with&mod5=without"
+    yield "/aircraft/?role=attack&sort=-sorties"
+    yield "/aircraft/?sort=aircraft"
+    for p in (w.a, w.b, w.c):
+        yield f"/players/{p.pk}/sorties/?aircraft={w.il10.pk}"
+        yield f"/players/{p.pk}/sorties/?outcome=landed&sort=-flight_time"
+        yield f"/players/{p.pk}/killboard/?sort=-last"
+        yield f"/players/{p.pk}/?sort=-sorties"
+    yield "/streaks/?sort=-sorties"
+    yield "/achievements/first_blood/?tier=2"
+    yield "/missions/?q=korea&winner=redfor"
+
+
+def test_filters_on_top_of_a_tour_without_rows_still_answer_200_with_the_selector(client: Client, world: World) -> None:
+    failures: list[str] = []
+    for path in filtered_urls(world):
+        for params in world.tour_params:
+            url = path + (params.replace("?", "&") if "?" in path else params)
+            response = client.get(url)
+            if response.status_code != 200:
+                failures.append(f"{url}: {response.status_code}")
+            elif 'name="tour"' not in response.content.decode() and "/elo-" not in path:
+                failures.append(f"{url}: no tour selector")
+    assert not failures, "\n".join(failures)
