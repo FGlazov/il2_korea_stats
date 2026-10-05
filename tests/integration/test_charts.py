@@ -177,6 +177,20 @@ def test_profile_shows_per_tour_charts_for_two_tours(client: Client) -> None:
     assert "<title>September 2026 - Deaths: 1</title>" in html
 
 
+def test_profile_chart_tour_labels_are_in_the_viewers_language(client: Client) -> None:
+    """Pre-release QA, real data: the chart's tour labels (SVG ticks, table rows, bar titles) showed the stored English
+    title ("Tour 3", "August 2026") on every language, while the tour selector right above them was localised."""
+    pk = fly_tours()
+    client.get("/language/", {"language": "es", "next": "/"})
+
+    html = client.get(f"/players/{pk}/").content.decode()
+
+    assert "agosto de 2026" in html
+    assert "septiembre de 2026" in html
+    assert "August 2026" not in html
+    assert "September 2026" not in html
+
+
 def test_profile_with_a_single_tour_has_no_chart(client: Client) -> None:
     fly("2026-09-19_20-00-00", STARTED_AT, 1)
     pk = Player.objects.get().pk
