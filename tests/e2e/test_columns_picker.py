@@ -174,7 +174,9 @@ def test_the_summary_looks_clickable(page: Page) -> None:
     assert resting["border"] == "1px"
     assert resting["content"] != "none"
     count = summary.locator(".columns-picker__count")
-    assert int(count.inner_text()) == page.locator("details.columns-picker input[type=checkbox]").count() > 3
+    total = page.locator("details.columns-picker input[type=checkbox]").count()
+    assert total > 3
+    assert count.inner_text() == f"0/{total}"
     page.mouse.move(0, 0)
     summary.hover()
     hovered = summary.evaluate(look)
@@ -190,3 +192,55 @@ def test_the_summary_looks_clickable(page: Page) -> None:
     page.mouse.move(0, 0)
     page.wait_for_timeout(300)  # the chevron's transition
     assert summary.evaluate(look)["chevron"] != resting["chevron"]
+
+
+# --- Inline in the filter row and a live chosen/available count (maintainer 2026-10-05) ---
+
+
+@pytest.mark.parametrize("index", range(5))
+def test_the_summary_sits_on_the_same_row_as_the_filters(page: Page, world: World, index: int) -> None:
+    """At 1280 px the button is in the row of the filters (not on a line of its own) and as tall as the selects; opened,
+    the checkbox grid is a full-width panel below the row."""
+    page.set_viewport_size({"width": 1280, "height": 900})
+    path, _labels = list_pages(world)[index]
+    page.goto(path)
+    summary = page.locator("details.columns-picker > summary")
+    controls = page.locator(".filter-bar .filter select, .filter-bar .filter input")
+    box = summary.bounding_box()
+    assert box is not None
+    if controls.count():  # the mission page has no other filter: the button is then alone in the bar
+        last_box = controls.nth(controls.count() - 1).bounding_box()
+        assert last_box is not None
+        assert box["x"] >= last_box["x"] + last_box["width"] - 1, (box, last_box)  # after the last filter, in its row
+        assert abs((box["y"] + box["height"]) - (last_box["y"] + last_box["height"])) <= 2, (box, last_box)
+        assert abs(box["height"] - last_box["height"]) <= 2, (box, last_box)
+    summary.click()
+    grid = page.locator("details.columns-picker > ul").bounding_box()
+    bar = page.locator("form.filter-bar").bounding_box()
+    assert grid is not None
+    assert bar is not None
+    assert grid["y"] >= box["y"] + box["height"] - 1  # below the row
+    assert grid["width"] > bar["width"] * 0.8  # a full-width panel, not squeezed into the inline slot
+    moved = summary.bounding_box()
+    assert moved is not None
+    assert abs(moved["y"] - box["y"]) <= 1  # opening does not move the button
+
+
+def test_the_count_updates_live_and_survives_the_swap(page: Page) -> None:
+    page.goto("/players/?q=")
+    count = page.locator(".columns-picker__count")
+    total = page.locator("details.columns-picker input[type=checkbox]").count()
+    expect(count).to_have_text(f"0/{total}")
+    page.get_by_text("Extra columns", exact=True).click()
+    for number, label in enumerate(("K/D", "Survival", "Aircraft lost"), start=1):
+        page.get_by_role("checkbox", name=label, exact=True).check()
+        expect(count).to_have_text(f"{number}/{total}")
+    expect(page.locator(".columns-picker__count-text")).to_have_text(f"3 of {total} extra columns shown")
+    expect(header(page, "Aircraft lost")).to_be_visible()  # the swap is done
+    expect(count).to_have_text(f"3/{total}")
+    page.get_by_role("checkbox", name="Survival", exact=True).uncheck()
+    expect(count).to_have_text(f"2/{total}")
+    expect(header(page, "Survival")).to_be_hidden()
+    expect(count).to_have_text(f"2/{total}")
+    page.reload()  # server-rendered from the URL
+    expect(page.locator(".columns-picker__count")).to_have_text(f"2/{total}")

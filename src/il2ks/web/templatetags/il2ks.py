@@ -787,7 +787,8 @@ def columns_picker(context: Context, available: Sequence[columns.Column[Never]])
     query string, so the control and the table can never disagree."""
     wanted = columns.requested_keys(_params_of(context))
     options = [(column.key, column.label, column.description, column.key in wanted) for column in available]
-    return {"options": options, "any_checked": any(option[3] for option in options)}
+    chosen = sum(1 for option in options if option[3])
+    return {"options": options, "any_checked": chosen > 0, "chosen": chosen}
 
 
 @register.filter

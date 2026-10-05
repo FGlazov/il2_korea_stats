@@ -148,6 +148,25 @@
     }
   });
 
+  // "Extra columns" count (chosen/available, e.g. 5/21): the server renders it from the URL, this keeps it right while boxes
+  // are ticked and after a swap (the details element is hx-preserve'd, so its checkboxes and count live on).
+  function updateColumnCount() {
+    var picker = document.getElementById("columns-picker");
+    if (!picker) { return; }
+    var total = picker.querySelectorAll("input[type=checkbox]").length;
+    var chosen = picker.querySelectorAll("input[type=checkbox]:checked").length;
+    var badge = picker.querySelector(".columns-picker__count");
+    var text = picker.querySelector(".columns-picker__count-text");
+    if (badge) { badge.textContent = chosen + "/" + total; }
+    if (text && text.dataset.template) {
+      text.textContent = text.dataset.template.replace("@chosen@", chosen).replace("@total@", total);
+    }
+  }
+  document.addEventListener("change", function (event) {
+    if (event.target instanceof Element && event.target.closest("#columns-picker")) { updateColumnCount(); }
+  });
+  document.addEventListener("htmx:afterSwap", updateColumnCount);
+
   // Whole-row links (.stretched-link) cover the row with a pseudo-element, but a table's sticky first column is its own
   // positioned box (the containing block of that pseudo-element) and the overlay only covers that cell: a click elsewhere
   // on the row has to follow the link by script. A pure-CSS overlay over the whole row is not possible next to a sticky

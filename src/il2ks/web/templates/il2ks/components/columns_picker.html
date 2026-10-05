@@ -6,10 +6,11 @@
   with htmx a change refreshes the results. It starts open when a column is ticked (so a no-JS submit or a reload stays
   open); hx-preserve keeps the element, with its open state, while the region is swapped (il2ks.js puts the focus back
   on the clicked checkbox and the table's horizontal scroll where it was).
-  The summary is a button-like control (chevron, count of the columns on offer; see site.css).
-  Context: options (list of (key, label, hint, checked)), any_checked.
+  The summary is a button-like control in the same row as the filters (chevron, count chosen/available such as 5/21, kept
+  right by il2ks.js; see site.css); the checkbox grid opens below as a full-width panel of the bar.
+  Context: options (list of (key, label, hint, checked)), any_checked, chosen (number ticked).
 {% endcomment %}<details class="columns-picker" id="columns-picker" hx-preserve{% if any_checked %} open{% endif %}>
-  <summary><span>{% translate "Extra columns" %}</span><span class="columns-picker__count" aria-hidden="true">{{ options|length }}</span></summary>
+  <summary><span>{% translate "Extra columns" %}</span><span class="columns-picker__count" aria-hidden="true" data-total="{{ options|length }}">{{ chosen }}/{{ options|length }}</span><span class="visually-hidden columns-picker__count-text" data-template="{% blocktranslate with chosen="@chosen@" total="@total@" %}{{ chosen }} of {{ total }} extra columns shown{% endblocktranslate %}">{% blocktranslate with chosen=chosen total=options|length %}{{ chosen }} of {{ total }} extra columns shown{% endblocktranslate %}</span></summary>
   <ul class="columns-picker__grid">{% for key, label, hint, checked in options %}
     <li><label{% if hint %} title="{{ hint }}"{% endif %}><input type="checkbox" id="col-{{ key }}" name="cols" value="{{ key }}"{% if checked %} checked{% endif %}>{{ label }}</label></li>{% endfor %}
   </ul>
