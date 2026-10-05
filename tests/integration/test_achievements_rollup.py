@@ -69,11 +69,12 @@ def test_incremental_equals_rebuild_with_career_tiers_crossed_in_several_tours()
 
 
 def level_one_tour_filters(queries: CaptureQueriesContext) -> list[set[int]]:
-    """The tours each query on the sorties or kills is restricted to (an unrestricted query gives an empty set)."""
+    """The tours each query on the sorties or kills is restricted to (an unrestricted query gives an empty set). The
+    activity days' query (restricted by the missions' start time, not their tour) is not one of them."""
     found: list[set[int]] = []
     for q in queries:
         sql = q["sql"].lower()
-        if 'from "il2ks_db_playersortie"' in sql or 'from "il2ks_db_kill"' in sql:
+        if ('from "il2ks_db_playersortie"' in sql or 'from "il2ks_db_kill"' in sql) and '"started_at" >=' not in sql:
             tours: set[int] = set()
             for many, one in TOUR_FILTER.findall(sql):
                 tours |= {int(n) for n in re.findall(r"\d+", many or one)}
@@ -87,7 +88,7 @@ def test_a_refresh_of_the_newest_tour_reads_only_its_sorties() -> None:
     newest = Tour.objects.order_by("started_at").last()
     assert newest is not None
     with CaptureQueriesContext(connection) as queries:
-        refresh_tours([newest.pk], None)
+        refresh_tours([newest.pk], None, payload_elo=False)  # the payload Elo reads more: not this roll-up
     filters = level_one_tour_filters(queries)
     assert filters, "no level-1 query was captured"
     for tours in filters:
@@ -99,7 +100,7 @@ def test_a_late_import_replays_only_the_tours_from_the_oldest_touched_one() -> N
         step()
     _september, _october, november, december = Tour.objects.order_by("started_at")
     with CaptureQueriesContext(connection) as queries:
-        refresh_tours([november.pk], None)
+        refresh_tours([november.pk], None, payload_elo=False)
     allowed = {november.pk, december.pk}  # a later tour's carried-in total changes with the touched one
     for tours in level_one_tour_filters(queries):
         assert tours <= allowed, f"tours before the touched one were read: {tours - allowed}"

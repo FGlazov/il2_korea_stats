@@ -187,8 +187,13 @@ def refresh_achievement_tours(
     _sync(chunk, tours, wanted, all_time=False)
 
 
-def rollup_achievements(chunk: list[int], achievements: Sequence[Achievement] | None = None) -> None:
-    """Make the all-time medal rows of these players follow their per-tour rows (see the module docstring)."""
+def rollup_achievements(
+    chunk: list[int], achievements: Sequence[Achievement] | None = None, tour_ids: Iterable[int] | None = None
+) -> None:
+    """Make the all-time medal rows of these players follow their per-tour rows (see the module docstring).
+    `tour_ids`: the tours whose rows were just refreshed (None = all). A tier crossed in a tour older than the oldest
+    of them cannot change (the crossing depends on that tour and the earlier ones only): its stored row is kept, and
+    only the (player, tour) pairs from the oldest touched tour on are replayed."""
     active = {a.key: a for a in (applied_rules().active() if achievements is None else achievements)}
     rows = PlayerAchievement.objects.filter(player_id__in=chunk, tour__isnull=False, key__in=list(active))
     wanted: dict[_Key, _Value] = {}
@@ -196,8 +201,13 @@ def rollup_achievements(chunk: list[int], achievements: Sequence[Achievement] | 
         key = (row.player_id, None, row.key, row.tier)
         if key not in wanted and not active[row.key].cumulative:  # the earliest of the tours holding the tier
             wanted[key] = (row.earned_at, row.sortie_id, row.mission_id)
-    wanted.update(_cumulative_rows(chunk, [a for a in active.values() if a.cumulative]))
-    wanted.update(_tour_run_rows(chunk, [a for a in active.values() if a.all_time_only]))
+    order = _tour_order()
+    first = 0 if tour_ids is None else min((order.index(t) for t in set(tour_ids) if t in order), default=len(order))
+    cumulative = [a for a in active.values() if a.cumulative]
+    runs = [a for a in active.values() if a.all_time_only]
+    stored = _stored_all_time(chunk, {a.key for a in (*cumulative, *runs)}) if first > 0 else {}
+    wanted.update(_cumulative_rows(chunk, cumulative, order, first, stored))
+    wanted.update(_tour_run_rows(chunk, runs, order, first, stored))
     _sync(chunk, None, wanted, all_time=True)
 
 
@@ -206,22 +216,48 @@ def _tour_order() -> list[int]:
     return list(Tour.objects.order_by("started_at", "pk").values_list("pk", flat=True))
 
 
-def _cumulative_rows(chunk: list[int], cumulative: list[Achievement]) -> dict[_Key, _Value]:
+def _stored_all_time(chunk: list[int], keys: set[str]) -> dict[tuple[int, str, int], _Value]:
+    """The all-time rows now stored for these medals: (player, key, tier) -> value."""
+    rows = PlayerAchievement.objects.filter(player_id__in=chunk, tour__isnull=True, key__in=keys)
+    return {(r.player_id, r.key, r.tier): (r.earned_at, r.sortie_id, r.mission_id) for r in rows}
+
+
+def _load_pairs(pairs: Iterable[tuple[int, int]]) -> dict[tuple[int, int], list[AchievementSortie]]:
+    """`_load` for exactly these (player, tour) pairs: one query per tour, for the players with a pair in it."""
+    players: dict[int, set[int]] = {}
+    for pid, tour_id in pairs:
+        players.setdefault(tour_id, set()).add(pid)
+    found: dict[tuple[int, int], list[AchievementSortie]] = {}
+    for tour_id, pids in sorted(players.items()):
+        found.update(_load(sorted(pids), {tour_id}))
+    return found
+
+
+def _cumulative_rows(
+    chunk: list[int],
+    cumulative: list[Achievement],
+    order: list[int],
+    first: int,
+    stored: dict[tuple[int, str, int], _Value],
+) -> dict[_Key, _Value]:
     """The all-time rows of the cumulative medals: per player and medal the running sum of the tours' totals (the
     `PlayerTour` counters, in tour order) against the all-time thresholds (`ALL_TIME_FACTOR` times the per-tour ones);
     a tier is earned in the first tour whose sum reaches the threshold, at the sortie where the carried-in total plus
-    the tour's own running total does (the tour's sorties are replayed: the per-tour rows have other thresholds)."""
+    the tour's own running total does (the tour's sorties are replayed: the per-tour rows have other thresholds).
+    A tier crossed in a tour before position `first` of `order` (older than every touched tour) keeps its `stored`
+    row; the other crossings are replayed, those (player, tour) pairs only."""
     if not cumulative:
         return {}
-    order = {pk: n for n, pk in enumerate(_tour_order())}
+    position = {pk: n for n, pk in enumerate(order)}
     fields = sorted({a.counter for a in cumulative})
     totals: dict[int, list[tuple[int, dict[str, float]]]] = {}
     for row in PlayerTour.objects.filter(player_id__in=chunk).values("player_id", "tour_id", *fields):
         totals.setdefault(row["player_id"], []).append((row["tour_id"], {f: float(row[f]) for f in fields}))
     # (player, tour) -> [(achievement, carried-in total, tiers the running sum reaches in this tour)]
+    wanted: dict[_Key, _Value] = {}
     replay: dict[tuple[int, int], list[tuple[Achievement, float, list[int]]]] = {}
     for pid, per_tour in totals.items():
-        per_tour.sort(key=lambda t: order.get(t[0], 0))
+        per_tour.sort(key=lambda t: position.get(t[0], 0))
         for a in cumulative:
             scale = 3600.0 if a.unit == "hours" else 1.0
             thresholds = a.all_time_thresholds
@@ -232,11 +268,15 @@ def _cumulative_rows(chunk: list[int], cumulative: list[Achievement]) -> dict[_K
                 reached = [n for n in range(tier + 1, a.top_tier + 1) if carried + total >= thresholds[n - 1]]
                 if reached:
                     tier = reached[-1]
-                    replay.setdefault((pid, tour_id), []).append((a, carried, reached))
+                    if position.get(tour_id, 0) < first:  # cannot have changed: keep what is stored
+                        for n in [n for n in reached if (pid, a.key, n) in stored]:
+                            wanted[(pid, None, a.key, n)] = stored[(pid, a.key, n)]
+                        reached = [n for n in reached if (pid, a.key, n) not in stored]
+                    if reached:
+                        replay.setdefault((pid, tour_id), []).append((a, carried, reached))
                 carried += total
-    wanted: dict[_Key, _Value] = {}
     if replay:
-        loaded = _load(chunk, {t for _, t in replay})
+        loaded = _load_pairs(replay)
         for (pid, tour_id), todo in replay.items():
             sorties = loaded.get((pid, tour_id), [])
             for a, carried, reached in todo:
@@ -248,44 +288,55 @@ def _cumulative_rows(chunk: list[int], cumulative: list[Achievement]) -> dict[_K
     return wanted
 
 
-def _tour_run_rows(chunk: list[int], runs: list[Achievement]) -> dict[_Key, _Value]:
+def _tour_run_rows(
+    chunk: list[int],
+    runs: list[Achievement],
+    order: list[int],
+    first: int,
+    stored: dict[tuple[int, str, int], _Value],
+) -> dict[_Key, _Value]:
     """The all-time rows of the tours-in-a-row medals: a tour counts when the pilot flew in it (a `PlayerTour` row with
     `takeoffs > 0`: a sortie that never took off is not a sortie flown); a tour in between with none breaks the run.
-    A tier is earned at the pilot's first sortie of the tour whose run reached it (the first that took off)."""
+    A tier is earned at the pilot's first sortie of the tour whose run reached it (the first that took off). As in
+    `_cumulative_rows`, a tier completed in a tour before position `first` of `order` keeps its `stored` row."""
     if not runs:
         return {}
-    order = _tour_order()
     flown: dict[int, set[int]] = {}
     played_rows = PlayerTour.objects.filter(player_id__in=chunk, takeoffs__gt=0).values_list("player_id", "tour_id")
     for pid, tour_id in played_rows:
         flown.setdefault(pid, set()).add(tour_id)
+    wanted: dict[_Key, _Value] = {}
     completing: dict[tuple[int, int], list[tuple[str, int]]] = {}  # (player, tour) -> [(key, tier)]
     for pid, tour_ids in flown.items():
         played = [t in tour_ids for t in order]
         for a in runs:
             for e in earn_tours(a, played):
-                completing.setdefault((pid, order[e.index]), []).append((a.key, e.tier))
+                if e.index < first and (pid, a.key, e.tier) in stored:  # cannot have changed: keep what is stored
+                    wanted[(pid, None, a.key, e.tier)] = stored[(pid, a.key, e.tier)]
+                else:
+                    completing.setdefault((pid, order[e.index]), []).append((a.key, e.tier))
     if not completing:
-        return {}
-    first: dict[tuple[int, int], _Value] = {}
+        return wanted
+    earliest: dict[tuple[int, int], _Value] = {}
     fallback: dict[tuple[int, int], _Value] = {}
-    sorties = (
-        counted_sorties()
-        .filter(player_id__in={p for p, _ in completing}, mission__tour_id__in={t for _, t in completing})
-        .order_by("spawned_at", "pk")
-        .values_list("player_id", "mission__tour_id", "ended_at", "pk", "mission_id", "outcome")
-    )
-    for pid, tour_id, ended_at, sortie_id, mission_id, outcome in sorties.iterator():
-        pair = (pid, tour_id)
-        if pair not in completing:
-            continue
-        value = (ended_at, sortie_id, mission_id)
-        fallback.setdefault(pair, value)
-        if outcome != Outcome.NOT_TAKEN_OFF:
-            first.setdefault(pair, value)
-    wanted: dict[_Key, _Value] = {}
+    by_tour: dict[int, set[int]] = {}
+    for pid, tour_id in completing:
+        by_tour.setdefault(tour_id, set()).add(pid)
+    for tour_id, pids in sorted(by_tour.items()):  # one query per tour, for the players completing a run in it
+        sorties = (
+            counted_sorties()
+            .filter(player_id__in=sorted(pids), mission__tour_id=tour_id)
+            .order_by("spawned_at", "pk")
+            .values_list("player_id", "ended_at", "pk", "mission_id", "outcome")
+        )
+        for pid, ended_at, sortie_id, mission_id, outcome in sorties.iterator():
+            pair = (pid, tour_id)
+            value = (ended_at, sortie_id, mission_id)
+            fallback.setdefault(pair, value)
+            if outcome != Outcome.NOT_TAKEN_OFF:
+                earliest.setdefault(pair, value)
     for pair, earned in completing.items():
-        value = first.get(pair) or fallback.get(pair)
+        value = earliest.get(pair) or fallback.get(pair)
         if value is None:  # the tour's sorties are gone (cannot happen: the counters are summed from them)
             continue
         for key, tier in earned:
