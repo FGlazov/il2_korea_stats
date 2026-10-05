@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, cast
 from il2ks.config import Config
 
 if TYPE_CHECKING:
+    from django.db import models
     from django.db.migrations.executor import MigrationExecutor
 
 log = logging.getLogger(__name__)
@@ -181,7 +182,7 @@ def _check_aircraft_case() -> bool:
     aircraft pages and split stats. Every known type that has several rows keeps the one named like the catalog (or the
     oldest, renamed), the others are merged into it: level 1 rows (sorties, per-mission ammo) are repointed, level 2
     rows of the duplicate are dropped (the rebuild recreates them). Returns whether anything was merged."""
-    from django.db import IntegrityError, models, transaction
+    from django.db.models.fields.reverse_related import ManyToOneRel
 
     from il2ks.core.catalog.loader import load_default_catalog
     from il2ks.db.models import GameObject, MissionAircraftAmmo, MissionAircraftAmmoMix, PlayerSortie
@@ -192,7 +193,14 @@ def _check_aircraft_case() -> bool:
         info = catalog.lookup(obj.log_name)
         if info.is_known:
             groups.setdefault(info.log_name, []).append(obj)
-    level1: tuple[type[models.Model], ...] = (PlayerSortie, MissionAircraftAmmo, MissionAircraftAmmoMix)
+    # Every reverse relation, hidden ones included: `related_name="+"` ones (`PlayerTypeKillboard`) are left out of
+    # `related_objects`, and their PROTECT would stop `dup.delete()`. A relation added later is handled as level 2.
+    relations = [rel for rel in GameObject._meta.get_fields(include_hidden=True) if isinstance(rel, ManyToOneRel)]
+    # The level 1 tables with a unique key that holds the aircraft: the other columns of that key.
+    ammo_keys: dict[type[models.Model], tuple[str, ...]] = {
+        MissionAircraftAmmo: ("mission_id", "ammo"),
+        MissionAircraftAmmoMix: ("mission_id", "mix", "ammo"),
+    }
     merged = False
     for canonical, objs in groups.items():
         if len(objs) < 2:
@@ -201,26 +209,41 @@ def _check_aircraft_case() -> bool:
         for dup in objs:
             if dup.pk == keep.pk:
                 continue
-            for rel in GameObject._meta.related_objects:
+            for rel in relations:
                 model, field = rel.related_model, rel.field.name
-                if not isinstance(model, type):
-                    continue
-                if model in level1:
-                    for row in model._default_manager.filter(**{field: dup.pk}):
-                        setattr(row, field, keep)
-                        try:
-                            with transaction.atomic():
-                                row.save(update_fields=[field])
-                        except IntegrityError:  # the same mission had both spellings: the kept row's counts stand
-                            row.delete()
-                else:
-                    cast("models.Manager[models.Model]", model._default_manager).filter(**{field: dup.pk}).delete()
+                manager = cast("models.Manager[models.Model]", model._default_manager)
+                if model is PlayerSortie:  # no unique key holds the aircraft: one UPDATE
+                    manager.filter(**{field: dup.pk}).update(**{field: keep.pk})
+                elif model in ammo_keys:
+                    _merge_ammo_rows(manager, field, dup.pk, keep.pk, ammo_keys[model])
+                else:  # level 2: the rebuild recreates it
+                    manager.filter(**{field: dup.pk}).delete()
+            if dup.name_overridden and not keep.name_overridden:  # the admin's custom name survives the merge
+                keep.display_name, keep.name_overridden = dup.display_name, True
+                keep.save(update_fields=["display_name", "name_overridden"])
             dup.delete()
             merged = True
         if keep.log_name != canonical:
             keep.log_name = canonical
             keep.save(update_fields=["log_name"])
     return merged
+
+
+def _merge_ammo_rows(
+    manager: models.Manager[models.Model], field: str, dup_pk: int, keep_pk: int, key: tuple[str, ...]
+) -> None:
+    """Move the per-mission ammo rows of the duplicate to the kept aircraft; where the mission already has a row of the
+    kept one for the same key (it logged both spellings), the counters are added to that row and the duplicate goes."""
+    from django.db.models import F
+
+    for row in manager.filter(**{field: dup_pk}):
+        twin = manager.filter(**{field: keep_pk}, **{name: getattr(row, name) for name in key})
+        if twin.exists():
+            kills, hits = getattr(row, "kills"), getattr(row, "hits")  # noqa: B009
+            twin.update(kills=F("kills") + kills, hits=F("hits") + hits)
+            row.delete()
+        else:
+            manager.filter(pk=row.pk).update(**{field: keep_pk})
 
 
 def _check_mod_filters() -> bool:
