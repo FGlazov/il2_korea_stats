@@ -408,7 +408,7 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
   (`Mission.tour`); a mission without a tour has no games until the next rebuild gives it one. The tour's rating is its **final** rating (not the
   in-tour peak; OQ-128, default, the maintainer may change it): stored per pool on `PlayerTourPool` (`elo`, `elo_games`) and per type on
   `PlayerTourAircraft`. A late import into an old tour changes only that tour (and the all-time maxima).
-- **All time = the best tour** (maintainer): `Player.elo_prop` / `elo_jet` and `PlayerAircraft.elo` are the **highest final rating of any tour**;
+- **All time = the best tour with enough games** (maintainer; the minimum rule is a PRODUCT default of 2026-10-05, `[PROPOSED]`, the maintainer may change it): `Player.elo_prop` / `elo_jet` and `PlayerAircraft.elo` are the **highest final rating among the tours in which the pilot (in that pool, or in that type) had at least `[score] min_elo_games` rated games** (`RatingRules.min_games`, filled from the board minimum; `best_of_tours`); only when no tour reaches the minimum, the highest of the tours with any game (the pilot then has no standing on the all-time board unless his summed games reach the minimum). Why: a pilot who wins his only game in a new month has 1516 after it, which topped the all-time board over a season of games. Changing `min_elo_games` moves the stored all-time Elo at the next `rebuild-aggregates`, the boards' own minimum applies at once. Before the rule, all time was the **highest final rating of any tour**;
   their `*_games` are the games **summed over all tours** `[PROPOSED]` (the sample size the minimum-games rules and the "encounters" columns
   read; the rating shown is that of one tour, the encounters those of all, so a pilot with three tours of 3 games each has 9 encounters and no
   rating above the 5-game minimum in any single tour, by design: the tour boards have their own minimum). Tour boards show the tour's rows.
@@ -422,7 +422,7 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
 - **Per-type Elo** (OQ-49, built 2026-10-04, `[PROPOSED]`): the same games and the same replay also give a rating per (player, aircraft type),
   stored on `PlayerAircraft` (`elo`, `elo_games`). Each starts at `[ratings] start`; the opponent's rating is their rating in the type they flew
   in that game. Pools still apply: a jet killing a prop changes nothing. A type's top pilots are ranked by it (FR-WEB-8). Per tour like the pool
-  ratings (`PlayerTourAircraft`); all time = the best tour's rating, games summed.
+  ratings (`PlayerTourAircraft`); all time = the best rating among the tours with at least `min_elo_games` games in the type (any tour when none reaches it), games summed.
 - The loadouts' and weapon-mod sets' **average pilot Elo** (`elo_avg`, aircraft page) exists all time only (their rows have no tour); it uses the
   all-time Elo above (per-type where the pilot has games in the type, else the pool's). `[PROPOSED]` Per-tour rows of those tables would use the
   tour's Elo the same way.

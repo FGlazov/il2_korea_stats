@@ -101,14 +101,21 @@ def _store_tour_types(tour_id: int, computed: AllRatings, rules: RatingRules) ->
     update_rows(PlayerTourAircraft, changed, ["elo", "elo_games"])
 
 
-def best_of_tours[K: Hashable](rows: Iterable[tuple[K, float, int]]) -> dict[K, Rating]:
+def best_of_tours[K: Hashable](rows: Iterable[tuple[K, float, int]], min_games: int = 1) -> dict[K, Rating]:
     """The all-time rating of each key from its per-tour (key, final rating, games) rows of rated games: the highest
-    tour rating, with the games of all tours added up."""
-    found: dict[K, Rating] = {}
+    final rating among the tours with at least `min_games` games (one game at least), the highest of all its tours when
+    none reaches that (the key then has no board standing anyway), with the games of all tours added up. A rating
+    after one or two games in a new tour is noise, so it must not beat a season of games."""
+    minimum = max(min_games, 1)
+    best: dict[K, float] = {}  # among the tours that reach the minimum
+    anything: dict[K, float] = {}
+    games_of: dict[K, int] = {}
     for key, rating, games in rows:
-        old = found.get(key)
-        found[key] = Rating(rating, games) if old is None else Rating(max(old.rating, rating), old.games + games)
-    return found
+        anything[key] = max(rating, anything.get(key, rating))
+        games_of[key] = games_of.get(key, 0) + games
+        if games >= minimum:
+            best[key] = max(rating, best.get(key, rating))
+    return {key: Rating(best.get(key, anything[key]), games) for key, games in games_of.items()}
 
 
 def rollup_ratings(rules: RatingRules, player_ids: Iterable[int] | None = None) -> None:
@@ -137,7 +144,9 @@ def _store_all_time(rules: RatingRules, player_ids: list[int] | None) -> None:
         aircraft = aircraft.filter(player_id__in=player_ids)
         rated_types = rated_types.filter(player_id__in=player_ids)
     pools = {
-        pool: best_of_tours(rated_pools.filter(propulsion=pool).values_list("player_id", "elo", "elo_games"))
+        pool: best_of_tours(
+            rated_pools.filter(propulsion=pool).values_list("player_id", "elo", "elo_games"), rules.min_games
+        )
         for pool in POOLS
     }
     changed: list[Player] = []
@@ -164,10 +173,13 @@ def _store_all_time(rules: RatingRules, player_ids: list[int] | None) -> None:
     update_partial_rows(Player, changed, ["elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games"])
 
     types = best_of_tours(
-        ((player_id, aircraft_id), elo, games)
-        for player_id, aircraft_id, elo, games in rated_types.values_list(
-            "player_id", "aircraft_id", "elo", "elo_games"
-        )
+        [
+            ((player_id, aircraft_id), elo, games)
+            for player_id, aircraft_id, elo, games in rated_types.values_list(
+                "player_id", "aircraft_id", "elo", "elo_games"
+            )
+        ],
+        rules.min_games,
     )
     changed_types: list[PlayerAircraft] = []
     for pk, player_id, aircraft_id, elo, elo_games in aircraft.values_list(

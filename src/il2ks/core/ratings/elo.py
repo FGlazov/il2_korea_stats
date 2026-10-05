@@ -37,6 +37,10 @@ class RatingRules:
     start: float = 1500.0  # rating of a player with no games
     k: float = 32.0  # maximum rating change of one game between players of the same pool
     cross_pool_weight: float = 2.0  # a prop kill on a jet moves ratings k * this much
+    min_games: int = 5
+    """Not a `[ratings]` key: the `[score] min_elo_games` of the boards (config.py). The all-time rating is the best
+    final rating among the tours with at least this many rated games (the best tour with any game when none reaches
+    it), so one game in a new month cannot set it."""
 
 
 DEFAULT_RULES = RatingRules()

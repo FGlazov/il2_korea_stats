@@ -30,7 +30,7 @@ il2ks ignores, for example a key that was renamed.
 | `[marks]` (the "Top 10%" marks) | `il2ks rebuild-aggregates` | Same. |
 | `[killboard] assists` | `il2ks rebuild-aggregates` | Same. |
 | `[tours]`: mode, start date or time zone | `il2ks rebuild-aggregates --retour` | Moves the old missions into the new tours. |
-| The board minimums in `[score]` (`min_sorties`, `min_elo_games`, ...) | nothing more | The boards use them at once. The marks pick them up at the next rebuild. |
+| The board minimums in `[score]` (`min_sorties`, `min_elo_games`, ...) | nothing more (`il2ks rebuild-aggregates` for `min_elo_games`) | The boards use them at once. The marks pick them up at the next rebuild; so does the all-time Elo for `min_elo_games` (it is the best tour with at least that many games). |
 | `[logs]`, `[ingest]`, `[live]`, `[backup]`, `[web]`, `[https]` | nothing more | Restart is enough. |
 | Title, logo, colors, fonts, menu links, game object names | nothing, no restart | Done in the admin; shows at once. |
 
