@@ -252,10 +252,15 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   Elo prop** (all time: the best-tour ratings; per tour: that tour's, from `PlayerTourPool`, OQ-128); ≥ the boards' time on target for **ground score per hour** and **tanks per hour**; ≥ the boards' air superiority
   flight for **interception per hour** (the unit of that minimum is stored in `StatThreshold.min_sorties`, doc 13 "Stat marks");
   recomputed per saved mission (a few ms) and by rebuild-aggregates. Percentiles, not mean + 2σ: the ratios are skewed with a floor at 0
-  and survival is capped at 100%. `{% stat_mark "key" %}` on the profile's ratio, score and rating lists: above p90 "Top 10%" (accent), above p75 "Top
-  25%" (muted), strict `>`; low values are never marked. Real data (216 pilots with ≥ 20 sorties, September 2026): survival p50 74% /
+  and survival is capped at 100%. `{% stat_mark "key" %}` on the profile's ratio, score and rating lists: above p99 "Top 1%" (solid accent fill), p95 "Top 5%" (stronger tint), p90 "Top 10%" (tint), p75 "Top
+  25%" (muted), strict `>` (the two upper tiers 2026-10-05; the styles are in `site.css`, shared with the sortie page); low values are never marked. Real data (216 pilots with ≥ 20 sorties, September 2026): survival p50 74% /
   p90 87%; K/D p50 0.34 / p90 2.96; K/L 0.26 / 1.80; air kills per sortie 0.09 / 0.48, per hour 0.37 / 1.71; ground kills per sortie
   2.9 / 13.7. +1 query on the profile. Rules: OQ-66.
+  **Sortie page** (2026-10-05): `{% sortie_mark sortie_marks "air_kills" %}` after the air-kills and ground-kills tiles; `queries.stat_marks.sortie_thresholds`
+  (one SELECT of the sortie's tour and all-time `SortieThreshold` rows, only for a pilot sortie with kills, so the detail budget is 2 + 8 instead of 2 + 7)
+  and `sortie_view.sortie_marks` (pure: best tier, value 0 never). **Damage section** (2026-10-05): the dealt / taken breakdown is a collapsed
+  `<details id="damage">` below the timeline (summary "Damage" and the row count; native, keyboard accessible); it starts open when `?page_damage=` is asked
+  for (the pagination links), and `sortie.js` opens it for `#damage` (load and `hashchange`).
 - **Tours on pages** (2026-10-03, current-tour default 2026-10-04): the profile (totals, tiles, ratios, ground kills, hall of shame,
   per-aircraft table and recent sorties follow the tour), the mission list, the player's sortie list, the killboard and the leaderboards have a
   tour selector and **open on the current tour** (the newest `Tour` row, data-only so caching and ETags stay valid) when `?tour` is absent

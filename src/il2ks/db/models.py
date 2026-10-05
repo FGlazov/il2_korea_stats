@@ -1018,6 +1018,8 @@ class StatThreshold(models.Model):
     p50 = models.FloatField()
     p75 = models.FloatField()
     p90 = models.FloatField()
+    p95 = models.FloatField(default=0.0)  # the Top 5% tier (2026-10-05); rewritten by the upgrade's threshold recompute
+    p99 = models.FloatField(default=0.0)  # the Top 1% tier
 
     class Meta:
         constraints = [
@@ -1026,6 +1028,43 @@ class StatThreshold(models.Model):
             ),
             models.UniqueConstraint(
                 fields=["metric"], condition=models.Q(tour__isnull=True), name="statthreshold_alltime_unique"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.metric} / {'all time' if self.tour_id is None else f'tour {self.tour_id}'}"
+
+
+class SortieThreshold(models.Model):
+    """Percentiles of one per-sortie number (air kills, ground kills; `core.stat_marks.SORTIE_METRICS`) over the counted
+    pilot sorties of a tour (`tour` set) or of all time (null): the sortie page's marks (FR-WEB-22, 2026-10-05).
+
+    Level 2: `ingest.stat_marks` rewrites the tours' rows from their sorties and the all-time row as the sum of the
+    tours' `histogram`s (value -> sorties), so no history is read for it. Hidden players' sorties count (FR-ADM-3).
+    No row = fewer than `MIN_POPULATION` sorties (as with `StatThreshold`); such a tour is not part of all time."""
+
+    tour_id: int | None
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="sortie_thresholds")
+    metric = models.CharField(max_length=16)  # a `core.stat_marks.SortieMetric`
+    population = models.PositiveIntegerField()  # counted pilot sorties
+    histogram: models.JSONField[dict[str, int]] = models.JSONField(
+        default=dict
+    )  # {"value": number of sorties}, JSON keys are strings
+    p10 = models.FloatField(default=0.0)
+    p25 = models.FloatField(default=0.0)
+    p50 = models.FloatField(default=0.0)
+    p75 = models.FloatField(default=0.0)
+    p90 = models.FloatField(default=0.0)
+    p95 = models.FloatField(default=0.0)
+    p99 = models.FloatField(default=0.0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tour", "metric"], condition=models.Q(tour__isnull=False), name="sortiethreshold_tour_unique"
+            ),
+            models.UniqueConstraint(
+                fields=["metric"], condition=models.Q(tour__isnull=True), name="sortiethreshold_alltime_unique"
             ),
         ]
 

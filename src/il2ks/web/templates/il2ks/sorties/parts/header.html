@@ -1,7 +1,7 @@
 {# il2ks-template: templates/il2ks/sorties/parts/header.html v1 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
-  Discord screenshot). Context: sortie (player, mission, aircraft), detail. A running mission's notice sits between the header and the tiles.
+  Discord screenshot). Context: sortie (player, mission, aircraft), detail, sortie_marks (badges after the air and ground kills). A running mission's notice sits between the header and the tiles.
 {% endcomment %}<header class="sortie-head">
   <div class="sortie-head__mark">{% aircraft_icon sortie.aircraft "sortie-head__icon" %}</div>
   <div class="sortie-head__main">
@@ -25,8 +25,9 @@
 
 {% if sortie.mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "The numbers may still change until it ends." %}{% endnotice %}{% endif %}
 <div class="stat-tiles">
-  {% stat_tile sortie.kills_air|num _("Air kills") icon="stat/air-kills" %}
-  {% stat_tile sortie.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
+  {% sortie_mark sortie_marks "air_kills" as air_mark %}{% sortie_mark sortie_marks "ground_kills" as ground_mark %}
+  {% stat_tile sortie.kills_air|num _("Air kills") icon="stat/air-kills" mark=air_mark %}
+  {% stat_tile sortie.kills_ground|num _("Ground kills") icon="stat/ground-kills" mark=ground_mark %}
   {% blocktranslate with air=sortie.assists_air|num ground=sortie.assists_ground|num asvar sub_assists %}{{ air }} air, {{ ground }} ground{% endblocktranslate %}
   {% stat_tile sortie.assists|num _("Assists") sub=sub_assists icon="stat/assists" %}
   {% stat_tile sortie.flight_time_s|duration _("Flight time") icon="stat/flight-time" %}

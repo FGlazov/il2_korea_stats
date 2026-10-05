@@ -2,10 +2,11 @@
 {% comment %}
   stat_tile.html ({% stat_tile value label sub=... icon="stat/air-kills" %}); put tiles in <div class="stat-tiles">.
   Context: value (already formatted, e.g. through |num), label, sub (optional small line, e.g. a ratio),
-  icon_html (optional inline SVG from static/il2ks/img/).
+  icon_html (optional inline SVG from static/il2ks/img/), mark (optional markup: a stat mark badge).
 {% endcomment %}<div class="stat-tile">
   {% if icon_html %}<span class="stat-tile__icon">{{ icon_html }}</span>{% endif %}
   <div class="stat-tile__value">{{ value }}</div>
+  {% if mark %}<div class="stat-tile__mark">{{ mark }}</div>{% endif %}
   <div class="stat-tile__label">{{ label }}</div>
   {% if sub %}<div class="stat-tile__sub">{{ sub }}</div>{% endif %}
 </div>

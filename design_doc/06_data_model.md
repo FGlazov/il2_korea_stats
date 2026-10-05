@@ -142,7 +142,9 @@ PlayerRole     player, tour (null = all time), role (air_superiority / attack), 
 Mission.tour   FK (assigned at ingest by started_at in tours.timezone)
 
 -- statistics, boards, activity (FR-WEB-7, 8, 9, 16, 22, 25):
-StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25, p50, p75, p90
+StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25, p50, p75, p90, p95, p99   -- p95 / p99: Top 5% / Top 1% (2026-10-05)
+SortieThreshold tour (null = all time), metric (air_kills, ground_kills), population, histogram {value: sorties}, p10..p99
+               -- the sortie page's marks (2026-10-05): counted pilot sorties of a tour; all time = the tours' histograms summed; unique per (tour, metric)
                -- FR-WEB-22: percentiles of one metric over the pilots who meet that metric's minimum; no row = too few pilots for a distribution.
                -- Metrics: survival, kd, kl, air/ground kills per sortie and hour, taxi/friendly-fire per sortie (never badged), air_score,
                -- ground_score, ground_score_hour, elo_prop, elo_jet (all time only), interception_hour, tank_hour. `min_sorties` holds the

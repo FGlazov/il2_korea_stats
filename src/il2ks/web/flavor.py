@@ -429,8 +429,10 @@ def _is_top(metric: stat_marks.Metric, stats: Counters, marks: Mapping[str, Stat
     if limits is None or stats.sorties < limits.min_sorties:
         return False
     value = stat_marks.metric_value(metric, stat_marks_totals(stats))
-    found = stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population)
-    return stat_marks.band(value, found) == "top"
+    found = stat_marks.Thresholds(
+        limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.p95, limits.p99, limits.population
+    )
+    return stat_marks.band(value, found) in ("top1", "top5", "top10")  # above p90
 
 
 def shame_spot(stats: Counters, marks: Mapping[str, StatThreshold]) -> str:

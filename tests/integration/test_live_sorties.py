@@ -303,7 +303,9 @@ def test_level_two_in_the_middle_of_a_live_mission_equals_a_rebuild(tmp_path: Pa
 
     rebuilt = canonical_dump()
     differing = diff_dumps(incremental, rebuilt)
-    assert [d for d in differing if not d.startswith(("StatThreshold", "TourStatThreshold"))] == [], differing
+    assert [
+        d for d in differing if not d.startswith(("StatThreshold", "TourStatThreshold", "SortieThreshold"))
+    ] == [], differing
 
 
 def test_discarding_the_running_mission_leaves_level_two_equal_to_a_rebuild(tmp_path: Path) -> None:

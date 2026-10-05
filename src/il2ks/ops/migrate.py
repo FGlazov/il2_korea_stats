@@ -99,6 +99,7 @@ BACKFILL_STREAK_ALL = "streak_all"  # the third ironman track, every sortie (mig
 BACKFILL_ELO_MIN_GAMES = "elo_min_games"  # all-time Elo = best tour with at least min_elo_games games (doc 13)
 BACKFILL_PLAYER_ROLES = "player_roles"  # per-role copies of the player rows (`PlayerRole`, the profile role toggle)
 BACKFILL_AIRCRAFT_ELO = "aircraft_elo"  # the Elo of the aircraft types, per tour and all time (maintainer 2026-10-05)
+BACKFILL_TOP_TIERS = "top_tiers"  # the Top 5% / Top 1% cuts of the stat thresholds and the sortie page's populations
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -166,6 +167,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_ELO_MIN_GAMES, _check_elo_min_games),
         (BACKFILL_PLAYER_ROLES, _check_player_roles),
         (BACKFILL_AIRCRAFT_ELO, _check_aircraft_elo),
+        (BACKFILL_TOP_TIERS, _check_top_tiers),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -181,8 +183,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         if rebuild:
             log.info("rebuilding the aggregates for the upgrade")
             _rebuild_all(cfg)
-        elif only is None or BACKFILL_TOURS in only:
-            _backfill_thresholds(cfg)
+        elif only is None or BACKFILL_TOURS in only or BACKFILL_TOP_TIERS in only:
+            _backfill_thresholds(cfg, force=BACKFILL_TOP_TIERS in (name for name, _ in wanted))
         _mark_done(*(name for name, _ in wanted))
         if only is None:
             _record_catalog_fingerprint(catalog_fingerprint())  # applied just now, with the one rebuild above
@@ -699,17 +701,25 @@ def _check_tours() -> bool:
     return Mission.objects.filter(tour__isnull=True).exists() or old_streaks
 
 
-def _backfill_thresholds(cfg: Config) -> None:
+def _check_top_tiers() -> bool:
+    """The Top 5% / Top 1% cuts (`StatThreshold.p95`, `p99`) and the sortie populations (`SortieThreshold`) are new:
+    the thresholds are recomputed once (`_backfill_thresholds` with `force`), which is much cheaper than the level-2
+    rebuild, so this step never asks for one (a rebuild running anyway recomputes them as its last step)."""
+    return False
+
+
+def _backfill_thresholds(cfg: Config, *, force: bool = False) -> None:
     """A database from before stat marks (FR-WEB-22), or before the score and Elo marks (the newest metric is the
     marker): build the thresholds once, without waiting for a mission. Backfills only run when migrations are pending
-    (`migrate_if_needed`), so a site too small to fill the thresholds does not recompute them at each start."""
+    (`migrate_if_needed`), so a site too small to fill the thresholds does not recompute them at each start. `force`:
+    the top-tier backfill (2026-10-05) recomputes every row once, whatever is there."""
     from django.db import transaction
 
     from il2ks.db.models import Player, StatThreshold
     from il2ks.ingest.rule_store import effective_config
     from il2ks.ingest.stat_marks import recompute_thresholds
 
-    if not StatThreshold.objects.filter(metric="air_score").exists() and Player.objects.exists():
+    if (force or not StatThreshold.objects.filter(metric="air_score").exists()) and Player.objects.exists():
         log.info("computing stat thresholds")
         with transaction.atomic():
             recompute_thresholds(effective_config(cfg).marks)

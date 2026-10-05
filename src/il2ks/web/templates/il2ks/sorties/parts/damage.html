@@ -1,13 +1,20 @@
 {# il2ks-template: templates/il2ks/sorties/parts/damage.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Damage dealt and taken per counterpart (damage_breakdown), most damage first; percent of the counterpart's health.
+  A collapsed <details id="damage"> below the timeline (2026-10-05): the summary names the section and counts the rows;
+  it starts open only when a damage page was asked for (damage_open: ?page_damage=), and sortie.js opens it when the
+  page is opened or navigated to with #damage, so a link to it works. A native <details> is keyboard accessible.
   Context: detail.damage (all rows, to decide whether there is a section), damage_page (a Page of 20 rows,
-  ?page_damage=, OQ-96), damage_param.
+  ?page_damage=, OQ-96), damage_param, damage_open.
   Rows: sortie_view.DamageRow, rendered by damage_table.html.
 {% endcomment %}{% if detail.damage %}
-<h2>{% translate "Damage" %}</h2>
+<details class="accordion damage-section" id="damage"{% if damage_open %} open{% endif %}>
+  <summary>{% translate "Damage" %}<small class="accordion__hint">{% blocktranslate count n=detail.damage|length %}{{ n }} counterpart{% plural %}{{ n }} counterparts{% endblocktranslate %}</small></summary>
+  <div class="accordion__body">
 <p class="muted">{% translate "Players: percent of the aircraft's health (not the pilot's), at most 100% for each flight leg; a landing followed by a takeoff counts as a repair, so a sortie with a repair can show more. AI aircraft and ground objects: health units, where 1.0 is one whole object, added up over all objects of that type." %}</p>
 {% include "il2ks/sorties/parts/damage_table.html" with rows=damage_page %}
 {% translate "Damage" as damage_name %}{% blocktranslate asvar pages_label with name=damage_name %}Pagination: {{ name }}{% endblocktranslate %}
 {% pagination damage_page param=damage_param label=pages_label %}
+  </div>
+</details>
 {% endif %}

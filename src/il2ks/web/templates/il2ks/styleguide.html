@@ -111,6 +111,8 @@
     <p>{% for value in aircraft_statuses %}{% aircraft_badge value %} {% endfor %}</p>
     <h3>Combat role</h3>
     <p>{% for value in roles %}{% role_badge value %} {% endfor %}</p>
+    <h3>Stat marks (FR-WEB-22): Top 25%, 10%, 5%, 1%</h3>
+    <p>{% include "il2ks/components/stat_mark.html" with band="top25" unit="sortie_tour" %}{% include "il2ks/components/stat_mark.html" with band="top10" unit="sortie_tour" %}{% include "il2ks/components/stat_mark.html" with band="top5" unit="sortie_tour" %}{% include "il2ks/components/stat_mark.html" with band="top1" unit="sortie_all" %}</p>
     <h3>Generic tones</h3>
     <p>{% badge "green" "green" %} {% badge "amber" "amber" %} {% badge "orange" "orange" %} {% badge "red" "red" %} {% badge "blue" "blue" %} {% badge "teal" "teal" %} {% badge "purple" "purple" %} {% badge "grey" "grey" %}</p>
   </section>

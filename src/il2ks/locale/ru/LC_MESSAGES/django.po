@@ -157,6 +157,14 @@ msgstr "содействий: %(n)s"
 
 # llm-draft
 #, python-format
+msgid "%(n)s counterpart"
+msgid_plural "%(n)s counterparts"
+msgstr[0] "%(n)s цель или противник"
+msgstr[1] "%(n)s цели или противника"
+msgstr[2] "%(n)s целей или противников"
+
+# llm-draft
+#, python-format
 msgid "%(n)s death, %(aaa)s to anti-aircraft"
 msgid_plural "%(n)s deaths, %(aaa)s to anti-aircraft"
 msgstr[0] "%(n)s гибель, из них от зениток: %(aaa)s"
@@ -443,14 +451,15 @@ msgstr ""
 #, python-format
 msgid ""
 "A change to a minimum for sorties, attack sorties, time on target or air superiority shows at once: the boards use it"
-" on the next page view, and the Top 10%% and Top 25%% marks on the player pages are computed again when you save. The"
-" Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after"
-" the next rebuild, which the site starts in the background."
+" on the next page view, and the Top 25%%, 10%%, 5%% and 1%% marks on the player pages are computed again when you "
+"save. The Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes "
+"effect after the next rebuild, which the site starts in the background."
 msgstr ""
 "Изменение минимума вылетов, штурмовых вылетов, времени над целью или завоевания превосходства в воздухе видно сразу: "
-"таблицы лидеров используют его при следующем открытии страницы, а отметки «Топ 10 %%» и «Топ 25 %%» на страницах "
-"пилотов пересчитываются при сохранении. Минимум Эло — исключение: он также определяет, из какого тура берётся общий "
-"рейтинг Эло пилота, поэтому вступает в силу после следующей пересборки, которую сайт запускает в фоновом режиме."
+"таблицы лидеров используют его при следующем открытии страницы, а отметки «Топ 25 %%», «10 %%», «5 %%» и «1 %%» на "
+"страницах пилотов пересчитываются при сохранении. Минимум Эло — исключение: он также определяет, из какого тура "
+"берётся общий рейтинг Эло пилота, поэтому вступает в силу после следующей пересборки, которую сайт запускает в "
+"фоновом режиме."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -1315,68 +1324,20 @@ msgid "Best streaks of %(name)s"
 msgstr "Лучшие серии пилота %(name)s"
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s encounter in this pool"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Лучше, чем 3 из 4 пилотов, у которых не менее %(n)s столкновения в этом пуле"
-msgstr[1] "Лучше, чем 3 из 4 пилотов, у которых не менее %(n)s столкновений в этом пуле"
-msgstr[2] "Лучше, чем 3 из 4 пилотов, у которых не менее %(n)s столкновений в этом пуле"
+msgid "Better than 19 in 20."
+msgstr "Лучше, чем 19 из 20."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s minute of air superiority flight"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes of air superiority flight"
-msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутой налёта на господстве в воздухе"
-msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
-msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
+msgid "Better than 3 in 4."
+msgstr "Лучше, чем 3 из 4."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
-msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутой на цели"
-msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами на цели"
-msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s минутами на цели"
+msgid "Better than 9 in 10."
+msgstr "Лучше, чем 9 из 10."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
-msgstr[0] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетом"
-msgstr[1] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
-msgstr[2] "Лучше, чем у 3 из 4 пилотов минимум с %(n)s вылетами"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s encounter in this pool"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Лучше, чем 9 из 10 пилотов, у которых не менее %(n)s столкновения в этом пуле"
-msgstr[1] "Лучше, чем 9 из 10 пилотов, у которых не менее %(n)s столкновений в этом пуле"
-msgstr[2] "Лучше, чем 9 из 10 пилотов, у которых не менее %(n)s столкновений в этом пуле"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s minute of air superiority flight"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes of air superiority flight"
-msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутой налёта на господстве в воздухе"
-msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
-msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами налёта на господстве в воздухе"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s minute on target"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes on target"
-msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутой на цели"
-msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами на цели"
-msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s минутами на цели"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s sortie"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s sorties"
-msgstr[0] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s вылетом"
-msgstr[1] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s вылетами"
-msgstr[2] "Лучше, чем у 9 из 10 пилотов минимум с %(n)s вылетами"
+msgid "Better than 99 in 100."
+msgstr "Лучше, чем 99 из 100."
 
 # llm-draft
 msgid "Blue"
@@ -1601,6 +1562,46 @@ msgstr "Цвета"
 # llm-draft
 msgid "Combat role"
 msgstr "Боевая роль"
+
+# llm-draft
+msgid "Compared with all counted pilot sorties of all time."
+msgstr "Сравнение со всеми засчитанными вылетами пилотов за всё время."
+
+# llm-draft
+msgid "Compared with all counted pilot sorties of this tour."
+msgstr "Сравнение со всеми засчитанными вылетами пилотов этого тура."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s encounter in this pool."
+msgid_plural "Compared with pilots who have at least %(n)s encounters in this pool."
+msgstr[0] "Сравнение с пилотами, у которых в этой категории не менее %(n)s столкновения."
+msgstr[1] "Сравнение с пилотами, у которых в этой категории не менее %(n)s столкновений."
+msgstr[2] "Сравнение с пилотами, у которых в этой категории не менее %(n)s столкновений."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s minute of air superiority flight."
+msgid_plural "Compared with pilots who have at least %(n)s minutes of air superiority flight."
+msgstr[0] "Сравнение с пилотами, у которых не менее %(n)s минуты полёта на господство в воздухе."
+msgstr[1] "Сравнение с пилотами, у которых не менее %(n)s минут полёта на господство в воздухе."
+msgstr[2] "Сравнение с пилотами, у которых не менее %(n)s минут полёта на господство в воздухе."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s minute on target."
+msgid_plural "Compared with pilots who have at least %(n)s minutes on target."
+msgstr[0] "Сравнение с пилотами, у которых не менее %(n)s минуты над целью."
+msgstr[1] "Сравнение с пилотами, у которых не менее %(n)s минут над целью."
+msgstr[2] "Сравнение с пилотами, у которых не менее %(n)s минут над целью."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s sortie."
+msgid_plural "Compared with pilots who have at least %(n)s sorties."
+msgstr[0] "Сравнение с пилотами, у которых не менее %(n)s вылета."
+msgstr[1] "Сравнение с пилотами, у которых не менее %(n)s вылетов."
+msgstr[2] "Сравнение с пилотами, у которых не менее %(n)s вылетов."
 
 # llm-draft
 msgid "Condensed (default)"
@@ -5796,6 +5797,11 @@ msgstr "Взлетел"
 
 # llm-draft
 #, python-format
+msgid "Top 1%%"
+msgstr "Лучший 1%%"
+
+# llm-draft
+#, python-format
 msgid "Top 10%%"
 msgstr "Лучшие 10%%"
 
@@ -5803,6 +5809,11 @@ msgstr "Лучшие 10%%"
 #, python-format
 msgid "Top 25%%"
 msgstr "Лучшие 25%%"
+
+# llm-draft
+#, python-format
+msgid "Top 5%%"
+msgstr "Лучшие 5%%"
 
 # llm-draft
 msgid "Top Rated"

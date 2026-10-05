@@ -146,7 +146,7 @@ Show assists in their own column of the killboard (they are never mixed into the
 assists = true     # default false; then run il2ks rebuild-aggregates
 ```
 
-The "Top 10%" and "Top 25%" marks on a player page only compare pilots with enough flights:
+The "Top 25%", "Top 10%", "Top 5%" and "Top 1%" marks on a player page only compare pilots with enough flights:
 
 ```toml
 [marks]

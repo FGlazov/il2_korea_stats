@@ -67,9 +67,6 @@
   .shame__quip { grid-column: auto; }
 }
 
-/* Stat marks (FR-WEB-22): a small badge after a ratio that is among the best pilots. Text + tooltip, never colour alone. */
-.stat-mark { display: inline-block; margin-inline-start: 0.6rem; padding: 0.05rem 0.5rem; border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; line-height: 1.4; vertical-align: 0.1em; color: var(--il2-muted); cursor: help; }
-.stat-mark--top { color: var(--il2-primary); border-color: color-mix(in srgb, var(--il2-accent) 55%, transparent); background: color-mix(in srgb, var(--il2-accent) 16%, transparent); }
 .stat-mark-note { margin: -0.25rem 0 1rem; color: var(--il2-muted); font-size: 0.8rem; }
 
 /* Part tiles: as many as fit, none wider than 17rem (two tiles must not stretch over the whole page). */

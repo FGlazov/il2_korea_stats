@@ -224,7 +224,9 @@ def test_templates_only_use_known_spots() -> None:
 
 # --- hall of shame (doc 13): which incidents, and above the p90 ------------------------------------------------------
 def _limits(metric: str, p90: float, min_sorties: int = 20) -> StatThreshold:
-    return StatThreshold(metric=metric, min_sorties=min_sorties, population=100, p10=0, p25=0, p50=0, p75=0, p90=p90)
+    return StatThreshold(
+        metric=metric, min_sorties=min_sorties, population=100, p10=0, p25=0, p50=0, p75=0, p90=p90, p95=p90, p99=p90
+    )
 
 
 # 5% of sorties end in a taxi accident / a friendly kill at the 90th percentile.

@@ -3,7 +3,9 @@
   The sortie report (FR-WEB-6): the page a player reads after a flight and shares on Discord (FR-WEB-13).
   Context: sortie (PlayerSortie with player, mission and aircraft), detail (il2ks.web.sortie_view.Detail: air_kills,
   assists, friendly, ground, shot_down_by, damage, ammo, timeline, timeline_events),
-  damage_page (a Page of 20 rows; damage_param its query parameter; the timeline is not paginated),
+  damage_page (a Page of 20 rows; damage_param its query parameter; damage_open: the collapsed damage section starts open;
+  the timeline is not paginated), sortie_marks ({metric: (band, all_time)}: the Top 1% / 5% / 10% / 25% badges of the
+  sortie's air and ground kills, FR-WEB-22),
   crumbs, og (title, description, url, image: the link-preview tags), page_title.
   Blocks: head (preview meta tags + sorties.css), content. Every section is its own file in sorties/parts/ and only
   reads this context, so a server owner can override one without touching the rest (TD-25).
@@ -12,6 +14,7 @@
   <link rel="stylesheet" href="{% static 'il2ks/sorties.css' %}">
   {% include "il2ks/sorties/parts/meta.html" %}
 {% endblock %}
+{% block scripts %}<script src="{% static 'il2ks/sortie.js' %}" defer></script>{% endblock %}
 {% block content %}
   {% breadcrumbs crumbs %}
   {% include "il2ks/sorties/parts/header.html" %}
@@ -22,8 +25,8 @@
   {% include "il2ks/sorties/parts/kills.html" %}
   {% include "il2ks/sorties/parts/killed_by.html" %}
   {% results_region %}
-  {% include "il2ks/sorties/parts/damage.html" %}
   {% include "il2ks/sorties/parts/ammo.html" %}
   {% include "il2ks/sorties/parts/timeline.html" %}
+  {% include "il2ks/sorties/parts/damage.html" %}
   {% endresults_region %}
 {% endblock %}

@@ -1,16 +1,22 @@
 """Stat marks (FR-WEB-22): where a ratio stands among the pilots, as percentile thresholds. Pure functions, no database.
 
-A mark says "better than N in 10 pilots with at least `MarkRules.min_sorties` sorties". The thresholds are percentiles
-of the population, not mean + 2 standard deviations: kill ratios and rates are heavily skewed (a long tail of very
-good pilots, a hard floor at 0) and survival is capped at 100%, so "mean + 2 sigma" lands at impossible values or
-marks almost nobody; a percentile says directly what share of pilots a value beats, whatever the shape.
+A mark says "better than N in 10 pilots with at least `MarkRules.min_sorties` sorties" (or 19 in 20, 99 in 100). The
+thresholds are percentiles of the population, not mean + 2 standard deviations: kill ratios and rates are heavily
+skewed (a long tail of very good pilots, a hard floor at 0) and survival is capped at 100%, so "mean + 2 sigma" lands
+at impossible values or marks almost nobody; a percentile says directly what share of pilots a value beats, whatever
+the shape.
 
 Rules:
 - A ratio counts for the population only when it is defined (K/D needs a death, per-hour needs flight time).
-- Bands, by the value against the stored percentiles: `top` above p90 (the best 10%), `high` above p75 (best 25%),
-  nothing else. Strictly above: with ties at a threshold nobody gets a mark they would share with half the field, so
-  the claim "better than 9 in 10" stays true. Low values are never marked (nobody is shamed, FR-WEB-22); p10 and p25
-  are stored anyway, for the owner's judgement and for later.
+- Bands, by the value against the stored percentiles, the best tier a value reaches: `top1` above p99 (the best 1%),
+  `top5` above p95, `top10` above p90, `top25` above p75, nothing else (2026-10-05: the 5% and 1% tiers were added).
+  Strictly above: with ties at a threshold nobody gets a mark they would share with half the field, so the claim
+  "better than 9 in 10" stays true. Low values are never marked (nobody is shamed, FR-WEB-22); p10 and p25 are stored
+  anyway, for the owner's judgement and for later.
+- Sorties have marks too (the sortie page, 2026-10-05): `SORTIE_METRICS` (air and ground kills of one sortie) against
+  the population of counted pilot sorties of a tour or of all time. Kill counts are integers with most sorties at 0, so
+  the population is stored as a histogram (`histogram_thresholds`): the same percentiles, exactly, and the all-time
+  histogram is the sum of the tours' histograms, no history is read to build it. Only a value above 0 is marked.
 - `taxi_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the profile's hall of
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
@@ -44,7 +50,8 @@ type Metric = Literal[
     "interception_hour",
     "tank_hour",
 ]
-type Band = Literal["top", "high"]
+type Band = Literal["top1", "top5", "top10", "top25"]
+type SortieMetric = Literal["air_kills", "ground_kills"]
 
 METRICS: Final[tuple[Metric, ...]] = (
     "survival",
@@ -63,6 +70,7 @@ METRICS: Final[tuple[Metric, ...]] = (
     "interception_hour",
     "tank_hour",
 )
+SORTIE_METRICS: Final[tuple[SortieMetric, ...]] = ("air_kills", "ground_kills")
 ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # a tour's marks use the tour's Elo, all time the best
 MIN_POPULATION: Final = 20  # pilots needed before a distribution is worth showing
 SECONDS_PER_HOUR: Final = 3600.0
@@ -197,6 +205,8 @@ class Thresholds:
     p50: float
     p75: float
     p90: float
+    p95: float
+    p99: float
     population: int  # pilots with a defined value
 
 
@@ -222,16 +232,63 @@ def thresholds(values: Iterable[float | None]) -> Thresholds | None:
         p50=percentile(ordered, 50),
         p75=percentile(ordered, 75),
         p90=percentile(ordered, 90),
+        p95=percentile(ordered, 95),
+        p99=percentile(ordered, 99),
         population=len(ordered),
     )
 
 
 def band(value: float | None, limits: Thresholds) -> Band | None:
-    """`top` above p90, `high` above p75, else None (including undefined values)."""
+    """The best tier of `value`: `top1` above p99, `top5` above p95, `top10` above p90, `top25` above p75, else None
+    (including undefined values)."""
     if value is None:
         return None
+    if value > limits.p99:
+        return "top1"
+    if value > limits.p95:
+        return "top5"
     if value > limits.p90:
-        return "top"
+        return "top10"
     if value > limits.p75:
-        return "high"
+        return "top25"
     return None
+
+
+type Histogram = dict[int, int]  # value -> how many sorties have it
+
+
+def _value_at(ordered: Sequence[tuple[int, int]], index: int) -> int:
+    """The `index`-th (0-based) value of the ascending list the (value, count) pairs stand for."""
+    seen = 0
+    for value, count in ordered:
+        seen += count
+        if index < seen:
+            return value
+    return ordered[-1][0]
+
+
+def histogram_thresholds(histogram: Histogram) -> Thresholds | None:
+    """`thresholds` of the values a histogram stands for (the same type-7 percentiles, without expanding it), or None
+    below `MIN_POPULATION` values."""
+    ordered = sorted((value, count) for value, count in histogram.items() if count > 0)
+    population = sum(count for _, count in ordered)
+    if population < MIN_POPULATION:
+        return None
+
+    def at(q: float) -> float:
+        position = (population - 1) * q / 100.0
+        low = int(position)
+        below = _value_at(ordered, low)
+        above = _value_at(ordered, min(low + 1, population - 1))
+        return below + (above - below) * (position - low)
+
+    return Thresholds(at(10), at(25), at(50), at(75), at(90), at(95), at(99), population)
+
+
+def merge_histograms(parts: Iterable[Histogram]) -> Histogram:
+    """The histogram of the union of the populations (all time = the tours together)."""
+    total: Histogram = {}
+    for part in parts:
+        for value, count in part.items():
+            total[value] = total.get(value, 0) + count
+    return total

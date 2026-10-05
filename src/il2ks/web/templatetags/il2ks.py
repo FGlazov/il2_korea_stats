@@ -10,7 +10,7 @@ GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 pilot_fate_badge, status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown,
 language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, tour_absent, role_toggle,
-mod_filter, stat_mark, stat_mark_note, flavor, sortie_flavor
+mod_filter, stat_mark, sortie_mark, stat_mark_note, flavor, sortie_flavor
 (flavor text, FR-WEB-23), bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
 """
@@ -326,9 +326,16 @@ def role_badge(value: object) -> dict[str, object]:
 
 # --- small components ---------------------------------------------------------------------------------------------
 @register.inclusion_tag(COMPONENTS + "stat_tile.html")
-def stat_tile(value: object, label: object, sub: object = "", icon: str = "") -> dict[str, object]:
-    """{% stat_tile p.kills_air|num _("Air kills") sub=kd icon="stat/air-kills" %}; wrap tiles in .stat-tiles."""
-    return {"value": value, "label": label, "sub": sub, "icon_html": icons.icon_markup(icon) if icon else ""}
+def stat_tile(value: object, label: object, sub: object = "", icon: str = "", mark: object = "") -> dict[str, object]:
+    """{% stat_tile p.kills_air|num _("Air kills") sub=kd icon="stat/air-kills" %}; wrap tiles in .stat-tiles.
+    `mark`: optional markup shown after the value (a `{% sortie_mark %}` badge)."""
+    return {
+        "value": value,
+        "label": label,
+        "sub": sub,
+        "icon_html": icons.icon_markup(icon) if icon else "",
+        "mark": mark,
+    }
 
 
 @register.simple_tag
@@ -355,8 +362,9 @@ def kv_list(items: Iterable[tuple[object, object]]) -> dict[str, object]:
 
 @register.inclusion_tag(COMPONENTS + "stat_mark.html", takes_context=True)
 def stat_mark(context: Context, metric: str) -> dict[str, object]:
-    """{% stat_mark "survival" %} after a ratio on the profile: a "Top 10%" / "Top 25%" badge when the pilot's value
-    (from `stats`) is above the p90 / p75 of the pilots with enough sorties (`marks`, from the view; FR-WEB-22).
+    """{% stat_mark "survival" %} after a ratio on the profile: a "Top 1%" / "Top 5%" / "Top 10%" / "Top 25%" badge when
+    the pilot's value (from `stats`) is above the p99 / p95 / p90 / p75 of the pilots with enough sorties (`marks`, from
+    the view; FR-WEB-22).
     Nothing for low values, a pilot under the minimum, an undefined ratio or a scope without thresholds."""
     stats = context.get("stats")
     marks = cast(Mapping[str, StatThreshold], context.get("marks") or {})
@@ -380,7 +388,9 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
         return {}
     found = stat_marks.band(
         stat_marks.metric_value(kind, totals),
-        stat_marks.Thresholds(limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.population),
+        stat_marks.Thresholds(
+            limits.p10, limits.p25, limits.p50, limits.p75, limits.p90, limits.p95, limits.p99, limits.population
+        ),
     )
     return {
         "band": found,
@@ -390,6 +400,21 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
             1, math.ceil(limits.min_sorties / 60)
         ),  # for the time on target / flight time (stored in seconds)
     }
+
+
+@register.simple_tag
+def sortie_mark(marks: object, metric: str) -> SafeString:
+    """{% sortie_mark sortie_marks "air_kills" as mark %} then `{% stat_tile ... mark=mark %}`: the sortie page's badge
+    for one number of the sortie (FR-WEB-22, 2026-10-05). `marks` is the view's `{metric: (band, all_time)}` (only
+    the sortie's own best tier; empty where nothing is marked); empty markup for a metric without a mark."""
+    found = cast(Mapping[str, tuple[stat_marks.Band, bool]], marks or {}).get(metric)
+    if found is None:
+        return SafeString("")
+    return SafeString(
+        render_to_string(
+            COMPONENTS + "stat_mark.html", {"band": found[0], "unit": "sortie_all" if found[1] else "sortie_tour"}
+        ).strip()
+    )
 
 
 @register.inclusion_tag(COMPONENTS + "stat_mark_note.html", takes_context=True)

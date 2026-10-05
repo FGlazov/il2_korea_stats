@@ -5,13 +5,14 @@ dies. October: pilots 1-22 fly again without kills."""
 
 from collections.abc import Iterable
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 from django.test import Client
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.stat_marks import METRICS, MarkRules
-from il2ks.db.models import Player, PlayerTourPool, StatThreshold, Tour
+from il2ks.db.models import Player, PlayerTourPool, SortieThreshold, StatThreshold, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.stat_marks import recompute_thresholds
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
@@ -127,9 +128,12 @@ def test_profile_marks_the_best_pilots_of_the_selected_tour(client: Client) -> N
     seed()
     september = f"?tour={tour('September 2026').pk}"
     best = client.get(f"/players/{pk(25)}/{september}").content.decode()  # 24 air kills in one sortie
-    assert "stat-mark--top" in best
-    assert "Top 10%" in best
-    assert "Better than 9 in 10 pilots with at least 1 sortie" in best
+    assert "stat-mark--top1" in best  # above the p99 (23.76) of the tour
+    assert "Top 1%" in best
+    assert "Better than 99 in 100. Compared with pilots who have at least 1 sortie." in best
+    tenth = client.get(f"/players/{pk(23)}/{september}").content.decode()  # 22 kills: above p90 (21.6), below p95
+    assert "stat-mark--top10" in tenth
+    assert "Better than 9 in 10." in tenth
     middle = client.get(f"/players/{pk(13)}/{september}").content.decode()  # 12 kills: the median
     assert "stat-mark" not in middle.replace("stat-mark-note", "")
     lowest = client.get(f"/players/{pk(1)}/{september}").content.decode()  # 0 kills: never marked
@@ -212,16 +216,18 @@ def test_elo_mark_renders_on_all_time_and_tour_profiles(client: Client) -> None:
     seed_scores_and_ratings()
     for query in ("?tour=all", f"?tour={tour('September 2026').pk}"):
         best = client.get(f"/players/{pk(25)}/{query}").content.decode()
-        assert "Better than 9 in 10 pilots with at least 3 encounters in this pool" in best, query
+        assert "Compared with pilots who have at least 3 encounters in this pool." in best, query
         low = client.get(f"/players/{pk(2)}/{query}").content.decode()  # below the Elo minimum: no Elo mark
         assert "encounters in this pool" not in low, query
 
 
 def test_score_hour_mark_text_names_the_minutes(client: Client) -> None:
     seed_scores_and_ratings()
-    StatThreshold.objects.filter(tour=None, metric="ground_score_hour").update(p75=100.0, p90=150.0)
+    StatThreshold.objects.filter(tour=None, metric="ground_score_hour").update(
+        p75=100.0, p90=150.0, p95=160.0, p99=170.0
+    )
     page = client.get(f"/players/{pk(25)}/?tour=all").content.decode()
-    assert "Better than 9 in 10 pilots with at least 10 minutes on target" in page
+    assert "Better than 99 in 100. Compared with pilots who have at least 10 minutes on target." in page
 
 
 def test_profile_query_budget_with_score_marks(client: Client) -> None:
@@ -237,3 +243,168 @@ def test_profile_query_budget_with_marks(client: Client) -> None:
     assert_simple_reads(client, f"/players/{pk(25)}/", max_queries=PROFILE_READS_TOUR)
     assert_simple_reads(client, f"/players/{pk(25)}/?tour=all", max_queries=PROFILE_READS_ALL_TIME)
     assert_simple_reads(client, f"/players/{pk(25)}/?tour={tour('September 2026').pk}", max_queries=PROFILE_READS_TOUR)
+
+
+# --- Top 5% / Top 1% cuts and the sortie page's marks (2026-10-05) ---------------------------------------------------
+def sortie_state() -> list[tuple[int | None, str, int, dict[str, int], tuple[float, ...]]]:
+    """The sortie populations without PKs, in a fixed order."""
+    return [
+        (r.tour_id, r.metric, r.population, r.histogram, (r.p10, r.p25, r.p50, r.p75, r.p90, r.p95, r.p99))
+        for r in SortieThreshold.objects.order_by("tour_id", "metric")
+    ]
+
+
+def test_player_thresholds_carry_the_top_five_and_top_one_percent_cuts() -> None:
+    """September: pilot n has n - 1 air kills, 25 pilots: the type-7 cuts of 0..24 are 21.6, 22.8 and 23.76."""
+    seed()
+    row = StatThreshold.objects.get(tour=tour("September 2026"), metric="air_per_sortie")
+    assert (row.p90, row.p95, row.p99) == (pytest.approx(21.6), pytest.approx(22.8), pytest.approx(23.76))
+    assert row.p90 <= row.p95 <= row.p99
+    all_time = StatThreshold.objects.get(tour=None, metric="air_per_sortie")
+    assert all_time.p90 <= all_time.p95 <= all_time.p99
+
+
+def test_sortie_populations_exist_per_tour_and_all_time_from_histograms() -> None:
+    seed()
+    september = SortieThreshold.objects.get(tour=tour("September 2026"), metric="air_kills")
+    assert september.population == 25
+    assert september.histogram == {str(kills): 1 for kills in range(25)}
+    assert (september.p75, september.p90, september.p95, september.p99) == (
+        pytest.approx(18.0),
+        pytest.approx(21.6),
+        pytest.approx(22.8),
+        pytest.approx(23.76),
+    )
+    october = SortieThreshold.objects.get(tour=tour("October 2026"), metric="air_kills")
+    assert (october.population, october.histogram) == (22, {"0": 22})  # all zeros: the cuts are 0
+    everything = SortieThreshold.objects.get(tour=None, metric="air_kills")
+    assert everything.population == 47  # the tours' histograms added up
+    assert everything.histogram["0"] == 23
+    assert everything.histogram["24"] == 1
+    assert SortieThreshold.objects.get(tour=None, metric="ground_kills").histogram == {"0": 47}
+
+
+def test_sortie_populations_rebuild_equals_incremental() -> None:
+    seed()
+    incremental = sortie_state()
+    assert incremental
+    rebuild_aggregates(marks=ONE)
+    assert sortie_state() == incremental
+    StatThreshold.objects.all().delete()
+    SortieThreshold.objects.all().delete()
+    recompute_thresholds(ONE)
+    assert sortie_state() == incremental
+    assert state()  # and the pilots' thresholds, with the new cuts, came back too
+
+
+def test_a_hidden_pilots_sorties_count_toward_the_sortie_population() -> None:
+    seed()
+    Player.objects.filter(account_uuid=account(25)).update(is_hidden=True)
+    rebuild_aggregates(marks=ONE)
+    assert SortieThreshold.objects.get(tour=tour("September 2026"), metric="air_kills").population == 25
+
+
+def test_a_new_mission_changes_its_tour_and_all_time_but_not_the_other_tour() -> None:
+    seed()
+    before = SortieThreshold.objects.get(tour=tour("September 2026"), metric="air_kills").histogram
+    extra = tuple(sortie(i, 30 + i, kills_air=1) for i in range(3))
+    save(mission(extra), meta("2026-10-03_10-00-00", STARTED_AT + timedelta(days=14)), marks=ONE)
+    assert SortieThreshold.objects.get(tour=tour("September 2026"), metric="air_kills").histogram == before
+    october = SortieThreshold.objects.get(tour=tour("October 2026"), metric="air_kills")
+    assert october.histogram == {"0": 22, "1": 3}
+    assert SortieThreshold.objects.get(tour=None, metric="air_kills").population == 50
+
+
+def test_upgrading_a_database_without_the_new_cuts_recomputes_the_thresholds(tmp_path: Path) -> None:
+    """`top_tiers` backfill: rows from before the update have p95 / p99 = 0 and no sortie populations; one threshold
+    recompute (no level-2 rebuild) fills them, and later migrations do not repeat it."""
+    from il2ks.db.site import get_site_settings
+    from il2ks.ops import migrate
+    from tests.ops_helpers import make_instance
+
+    seed()
+    expected, expected_sorties = state(), sortie_state()
+    StatThreshold.objects.update(p95=0.0, p99=0.0)
+    SortieThreshold.objects.all().delete()
+
+    migrate._run_backfills(make_instance(tmp_path, extra_toml=MARKS_TOML), [migrate.BACKFILL_TOP_TIERS])  # pyright: ignore[reportPrivateUsage]
+
+    assert state() == expected
+    assert sortie_state() == expected_sorties
+    assert "top_tiers" in get_site_settings().backfills_done
+
+
+MARKS_TOML = "[marks]\nmin_sorties = 1\n"  # the upgrade reads the configured minimum: the tests' ONE
+
+
+def sortie_url(number: int, *, tour_name: str = "September 2026") -> str:
+    from il2ks.db.models import PlayerSortie
+
+    found = PlayerSortie.objects.get(player_id=pk(number), mission__tour=tour(tour_name))
+    return f"/sorties/{found.pk}/"
+
+
+def test_sortie_page_marks_its_air_kills_against_all_sorties(client: Client) -> None:
+    seed()
+    SortieThreshold.objects.filter(tour=None).delete()  # the tour's tiers alone (all time: the next test)
+    best = client.get(sortie_url(25)).content.decode()  # 24 air kills: above p99 of the tour
+    assert "stat-mark--top1" in best
+    assert ">Top 1%<" in best
+    assert "Compared with all counted pilot sorties of this tour." in best
+    fifth = client.get(sortie_url(24)).content.decode()  # 23 kills: above p95 (22.8), not above p99 (23.76)
+    assert "stat-mark--top5" in fifth
+    tenth = client.get(sortie_url(23)).content.decode()  # 22 kills: above p90 (21.6), not above p95
+    assert "stat-mark--top10" in tenth
+    quarter = client.get(sortie_url(21)).content.decode()  # 20 kills: above p75 (18), not above p90
+    assert "stat-mark--top25" in quarter
+
+
+def test_sortie_page_uses_the_all_time_tier_when_it_is_better(client: Client) -> None:
+    seed()
+    # 22 kills: the tour's p95 is 22.8 (top 10%), but all time October's zero-kill sorties lower the cuts: p95 = 21.7
+    html = client.get(sortie_url(23)).content.decode()
+    assert "stat-mark--top5" in html
+    assert "Compared with all counted pilot sorties of all time." in html
+
+
+def test_sortie_page_has_no_mark_for_the_middle_zero_or_other_numbers(client: Client) -> None:
+    seed()
+    for number in (13, 1):  # 12 kills (the median) and none: never marked
+        html = client.get(sortie_url(number)).content.decode()
+        assert "stat-mark--" not in html
+    best = client.get(sortie_url(25)).content.decode()
+    assert best.count("stat-mark--") == 1  # the air kills only: no ground kills, no mark for them
+
+
+def test_sortie_page_marks_ground_kills_too(client: Client) -> None:
+    from il2ks.db.models import PlayerSortie
+
+    seed()
+    PlayerSortie.objects.filter(player_id=pk(25), mission__tour=tour("September 2026")).update(kills_ground=3)
+    recompute_thresholds(ONE)
+    html = client.get(sortie_url(25)).content.decode()
+    assert html.count("stat-mark--top1") == 2  # air and ground
+
+
+def test_sortie_page_all_time_mark_when_the_tour_is_too_small(client: Client) -> None:
+    """October has 22 sorties (enough); with a minimum population of 20 only the all-time one counts for a tour that
+    lost sorties: the all-time population still marks it."""
+    seed()
+    SortieThreshold.objects.filter(tour=tour("September 2026")).delete()  # as if that tour had too few sorties
+    html = client.get(sortie_url(25)).content.decode()
+    assert "stat-mark--top1" in html
+    assert "Compared with all counted pilot sorties of all time." in html
+
+
+def test_sortie_page_without_populations_or_for_a_gunner_has_no_marks(client: Client) -> None:
+    seed()
+    SortieThreshold.objects.all().delete()
+    assert "stat-mark--" not in client.get(sortie_url(25)).content.decode()
+
+
+def test_sortie_page_marks_stay_within_the_read_budget(client: Client) -> None:
+    seed()
+    # context processor 2, sortie, kills made, kills suffered, counterparts, game objects, medals, their rarity, and the
+    # sortie populations: the one read the marks add (only for a pilot sortie with kills)
+    assert_simple_reads(client, sortie_url(25), max_queries=2 + 8)
+    assert_simple_reads(client, sortie_url(1), max_queries=2 + 7)  # no kills: no population read

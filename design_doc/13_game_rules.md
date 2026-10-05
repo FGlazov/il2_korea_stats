@@ -499,12 +499,19 @@ section and the admin's flight-time option, so a changed rule applies with `il2k
   `min_air_superiority_sorties` 5, `min_air_superiority_minutes` 60) apply at read time. Old flat penalty keys warn at load (FR-OPS-2).
 
 ### Stat marks (FR-WEB-22, `core/stat_marks.py`, as built 2026-10-04)
-A mark says where a figure stands among the pilots, by the percentiles stored in `StatThreshold` (strictly above p90 = "Top 10%", above p75 = "Top
-25%"; low values never marked; no distribution under 20 pilots). Which pilots form a metric's population follows the board the figure sits next to:
+A mark says where a figure stands among the pilots, by the percentiles stored in `StatThreshold` (strictly above p99 = "Top 1%", above p95 = "Top 5%", above p90 = "Top 10%", above p75 = "Top
+25%": the best tier a value reaches, 2026-10-05; low values never marked; no distribution under 20 pilots). Which pilots form a metric's population follows the board the figure sits next to:
 the ratios and the air and ground scores need `[marks] min_sorties` (20) sorties; **Elo jet / Elo prop** need `min_elo_games` rated games in that pool
 (all time: the best-tour ratings of `Player`; in a tour: that tour's final ratings from `PlayerTourPool`, against that tour's population, OQ-128); **ground score per hour and tanks per hour** need
 `min_time_on_target_s` on target; **interception per hour** needs `min_air_superiority_s` of air superiority flight. `StatThreshold.min_sorties`
 stores that minimum in the metric's own unit (sorties, games, seconds).
+
+**Sortie marks** (the sortie page, 2026-10-05): the air kills and the ground kills of one sortie against the population of **counted pilot sorties**
+(`SortieThreshold`: p10..p99 plus the histogram value -> sorties, one row per tour and metric, and one for all time; a population under 20 sorties has
+no row and no marks; such a tiny tour is also left out of the all-time sum, `[PROPOSED]`). Kill counts are small integers with most sorties at 0, so a population is stored as a histogram and the percentiles (the same type-7
+interpolation as the pilots', strictly above) are computed from it exactly; **all time is the sum of the tours' histograms**, so no sortie history is
+read for it (`[PROPOSED]`, TECHNICAL: it stays exact and incremental == rebuild). A mark needs a pilot sortie with a value above 0; the page shows the better
+tier of the sortie's tour and of all time (the tour on a tie) and the tooltip says which. Hidden players' sorties count (FR-ADM-3), like the pilots' own populations.
 
 ## Accuracy (as built, 2026-10-04)
 
