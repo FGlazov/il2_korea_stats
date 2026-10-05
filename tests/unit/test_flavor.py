@@ -280,3 +280,39 @@ def test_no_default_quip_names_an_aircraft_type_or_a_propeller() -> None:
                 for variant in variants:
                     text = _ALLOWED.sub("", str(variant))
                     assert not _TYPE_OR_PROPELLER.search(text), (code, spot, str(variant))
+
+
+def _quip_for(sortie: PlayerSortie, quips: dict[str, object]) -> str:
+    from django.template import Context
+
+    from il2ks.db.models import SiteSettings
+    from il2ks.web.templatetags.il2ks import sortie_flavor
+
+    site = SiteSettings(quips_enabled=True, quips=quips)
+    return sortie_flavor(Context({"site": site}), sortie)
+
+
+def test_a_spot_switched_off_is_skipped_and_the_next_matching_spot_is_used() -> None:
+    """A first-blood sortie with three kills matches first blood and ace; with first blood off the ace line shows."""
+    sortie = sortie_with(first_blood=True, kills_air=3)
+    assert flavor.sortie_spot(sortie) == "sortie_first_blood"
+    line = _quip_for(sortie, {"modes": {"sortie_first_blood": "off"}})
+    assert line in {str(v) for v in flavor.SPOTS["sortie_ace"]}
+
+
+def test_a_spot_with_an_empty_pool_is_skipped_too() -> None:
+    """custom_only without any custom quip leaves the pool empty: the next matching spot is used."""
+    sortie = sortie_with(first_blood=True, kills_air=3)
+    line = _quip_for(sortie, {"modes": {"sortie_first_blood": "custom_only"}})
+    assert line in {str(v) for v in flavor.SPOTS["sortie_ace"]}
+
+
+def test_a_sortie_with_every_matching_spot_off_has_no_quip() -> None:
+    sortie = sortie_with(first_blood=True, kills_air=3)
+    assert _quip_for(sortie, {"modes": {"sortie_first_blood": "off", "sortie_ace": "off"}}) == ""
+
+
+def test_every_candidate_spot_is_listed_in_order() -> None:
+    sortie = sortie_with(first_blood=True, kills_air=3)
+    assert list(flavor.sortie_spots(sortie))[:2] == ["sortie_first_blood", "sortie_ace"]
+    assert list(flavor.sortie_spots(sortie_with(role="gunner", kills_air=9))) == []
