@@ -167,8 +167,9 @@ def test_profile_tour_where_the_player_did_not_fly_says_so(client: Client) -> No
     assert response.context["recent"] == []
     assert response.context["aircraft"] == []
     body = response.content.decode()
-    assert "No pilot sorties are counted for this player in the selected tour." in body
-    assert any(str(line) in body for line in SPOTS["tour_empty"])  # the flavor line, never harsh
+    assert "Goose did not fly in October 2026." in body  # not harsh: the way out, All time and September, is offered
+    assert f"/players/{pk(2)}/?tour=all" in body
+    assert f"/players/{pk(2)}/?tour={tour('September 2026').pk}" in body
 
 
 @pytest.mark.parametrize("raw", ["", "abc", "-1", "999999", "1.5", "1;2", "%00", "9" * 5000])

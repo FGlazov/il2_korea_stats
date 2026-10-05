@@ -36,11 +36,13 @@
   {% else %}
     {% if gunner_only %}
       {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}
+    {% elif absence %}
+      {% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}
     {% elif tour %}
       {% notice "info" _("No sorties in this tour") %}{% translate "No pilot sorties are counted for this player in the selected tour." %} {% flavor "tour_empty" tour.pk %}{% endnotice %}
     {% else %}
       {% notice "info" _("No sorties yet") %}{% translate "No pilot sorties are counted for this player yet." %}{% endnotice %}
     {% endif %}
-    {% include "il2ks/players/detail_recent.html" %}
+    {% if recent or not absence %}{% include "il2ks/players/detail_recent.html" %}{% endif %}
   {% endif %}
 {% endblock %}

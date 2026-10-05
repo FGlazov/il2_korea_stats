@@ -20,7 +20,7 @@ Elo is all-time only (`Player.elo_*`): don't offer it per tour.
 """
 
 import re
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
@@ -29,7 +29,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from il2ks.core.tours import MONTH_NAMES
-from il2ks.db.models import PlayerTour, PlayerTourAircraft, Tour
+from il2ks.db.models import PlayerTour, PlayerTourAircraft, Tour, TourAircraftStats
 
 TOUR_PARAM = "tour"  # the one query parameter every tour-aware page uses: `?tour=<Tour.pk>`, absent = current tour
 MAX_TOUR_DIGITS = 18  # longer ids are unknown (fits a 64-bit pk, and keeps int() away from 4300+ digit strings)
@@ -93,7 +93,13 @@ def tour_options(tours: list[Tour]) -> list[tuple[int, str]]:
 def tour_query(selected: Tour | None) -> str:
     """The query string that keeps a page's tour scope on a link: `?tour=<id>`, or `?tour=all` for all time (a bare
     link would mean the current tour)."""
-    return f"?{TOUR_PARAM}={selected.pk if selected else TOUR_ALL}"
+    return tour_id_query(selected.pk if selected else None)
+
+
+def tour_id_query(tour_id: int | None) -> str:
+    """`tour_query` for a tour id (a mission's `tour_id`; None = no tour = all time): how a page about one mission or
+    sortie links to its pilots, so they open in the tour they flew in, not in whatever the current tour is."""
+    return f"?{TOUR_PARAM}={tour_id if tour_id is not None else TOUR_ALL}"
 
 
 def tour_choice(raw: str | None) -> TourChoice:
@@ -127,6 +133,45 @@ def player_tour_aircraft(player_id: int, tour: Tour) -> QuerySet[PlayerTourAircr
 def tour_leaderboard(tour: Tour) -> QuerySet[PlayerTour]:
     """The tour's player rows of visible players, players pre-loaded; the page orders and paginates them."""
     return PlayerTour.objects.filter(tour=tour, player__is_hidden=False).select_related("player")
+
+
+@dataclass(frozen=True, slots=True)
+class TourAbsence:
+    """A pilot or an aircraft type with no rows in the selected tour (a new tour is a clean slate: whoever did not
+    fly in it is simply absent, never an error). `flown` are the tours it does have rows in, newest first: where the
+    page offers to go instead (together with all time)."""
+
+    tour: Tour
+    flown: list[Tour]
+
+
+def _absence(selected: Tour | None, tours: list[Tour], flown_ids: set[int]) -> TourAbsence | None:
+    if selected is None or selected.pk in flown_ids:
+        return None
+    return TourAbsence(selected, [tour for tour in tours if tour.pk in flown_ids])
+
+
+def pilot_absence(player_id: int, choice: TourChoice) -> TourAbsence | None:
+    """Whether the pilot has no counted sortie in the selected tour (None for all time, or when he has): one query, so
+    call it only once a page came up empty."""
+    if choice.selected is None:
+        return None
+    flown = set(PlayerTour.objects.filter(player_id=player_id).values_list("tour_id", flat=True))
+    return _absence(choice.selected, choice.tours, flown)
+
+
+def absence_from_history(selected: Tour | None, tours: list[Tour], history: Iterable[PlayerTour]) -> TourAbsence | None:
+    """`pilot_absence` from the player's `PlayerTour` rows a page already loaded (the profile's tour history)."""
+    return _absence(selected, tours, {row.tour_id for row in history})
+
+
+def aircraft_absence(aircraft_id: int, choice: TourChoice) -> TourAbsence | None:
+    """Whether nobody flew the aircraft type in the selected tour (None for all time, or when somebody did): one query,
+    from the unfiltered all-roles rows. Call it only once the page's tiles came up empty."""
+    if choice.selected is None:
+        return None
+    rows = TourAircraftStats.objects.filter(aircraft_id=aircraft_id, tour__isnull=False, role="all", mod_pattern="")
+    return _absence(choice.selected, choice.tours, set(rows.values_list("tour_id", flat=True)))
 
 
 def is_quiet_tour(selected: Tour | None, params: Mapping[str, str], rows: int) -> bool:

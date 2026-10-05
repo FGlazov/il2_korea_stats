@@ -1,0 +1,11 @@
+{# il2ks-template: templates/il2ks/components/tour_absent.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  tour_absent.html ({% tour_absent absence message %}): the notice of a page whose pilot or aircraft type has no rows in
+  the selected tour (a new tour is a clean slate, so this is a normal state, not an error). It says so, then offers the
+  same page for all time (`?tour=all`) and for every tour the subject has rows in, newest first, so the visitor is never
+  stuck in the empty scope. Context: absence (TourAbsence: tour, flown), message (the sentence), path (current path).
+  Renders nothing without an absence.
+{% endcomment %}{% if absence %}<aside class="notice notice--info tour-absent" role="note">
+  <strong>{% translate "Not in this tour" %}</strong>
+  <div>{{ message }} {% translate "Switch to:" %} <a href="{{ path }}?tour=all">{% translate "All time" %}</a>{% for tour in absence.flown %} · <a href="{{ path }}?tour={{ tour.pk }}">{{ tour|tour_title }}</a>{% endfor %}</div>
+</aside>{% endif %}

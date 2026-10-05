@@ -140,8 +140,11 @@ def test_sortie_and_mission_pages_with_a_foreign_tour(client: Client, world: Wor
 
 # --- the empty state ---
 PILOT_PAGES = ("", "sorties/", "killboard/", "streaks/", "streaks/history/", "achievements/")
-# the budgets of the populated pages (docs 16, simple_reads): an empty state stays within them
-PILOT_BUDGETS = {"": PROFILE_READS_TOUR, "sorties/": 8, "killboard/": 8, "streaks/": 5, "streaks/history/": 6}
+# The budgets of the populated pages (doc 16, simple_reads). The empty state reads one more table, the tours the pilot
+# (or aircraft type) has rows in, to offer them; pages that had room left (sorties list, killboard, history, profile:
+# it reuses its tour-history read) stay within the old budget, the best-streaks page (5 -> 6) and the aircraft page
+# (11 -> 12) need that one read.
+PILOT_BUDGETS = {"": PROFILE_READS_TOUR, "sorties/": 8, "killboard/": 8, "streaks/": 5 + 1, "streaks/history/": 6}
 
 
 def hrefs(html: str) -> set[str]:
@@ -200,7 +203,7 @@ def test_aircraft_nobody_flew_in_the_tour_is_told_so_and_offers_the_tours_it_was
     assert f"{base}?tour=all" in links
     assert f"{base}?tour={world.tour1.pk}" in links
     assert "was not flown in" not in client.get(f"{base}?tour={world.tour1.pk}").content.decode()
-    assert_simple_reads(client, f"{base}?tour={world.tour3.pk}", 11)
+    assert_simple_reads(client, f"{base}?tour={world.tour3.pk}", 11 + 1)
 
 
 # --- links keep the scope: no link lands on a page where its target has nothing ------------------------------

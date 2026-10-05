@@ -57,7 +57,7 @@
           <tbody>
             {% for row in running_page %}
               <tr>
-                <td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td>
+                <td><a href="{% url 'web:player-detail' row.player_id %}{{ tour|tour_qs }}">{{ row.player.current_name }}</a></td>
                 <td class="num">{{ row.current_sorties|num }}</td>
                 <td class="num">{{ row.current_kills_air|num }}</td>
                 <td class="num">{{ row.current_flight_time_s|duration }}</td>

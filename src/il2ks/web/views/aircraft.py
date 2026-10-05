@@ -19,7 +19,7 @@ from il2ks.queries import ammo as ammo_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries.aircraft import StatsRow
 from il2ks.queries.players import resolve_sort
-from il2ks.queries.tours import tour_choice_from
+from il2ks.queries.tours import aircraft_absence, tour_choice_from
 from il2ks.web import columns, display, object_names
 
 
@@ -237,6 +237,8 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "survived": max(tile.sorties - tile.deaths, 0),
         "hits": _hits(ammo_reads.aircraft_ammo(aircraft, choice.selected, role, mod_pattern)),
         **choice.context,
+        # nobody flew the type in the selected tour (a clean slate): only an empty tile pays the extra read
+        "absence": aircraft_absence(aircraft.pk, choice) if tile.sorties == 0 else None,
         "role": role.value,
         "matchups": reads.matchups(aircraft, choice.selected, intercept, matchup_sort, role, mod_pattern),
         "scoped": not reads.is_alltime_scope(choice.selected, role, mod_pattern),

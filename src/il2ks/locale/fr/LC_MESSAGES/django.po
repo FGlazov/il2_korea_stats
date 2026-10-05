@@ -182,6 +182,16 @@ msgstr[1] "%(n)s semaines"
 
 # llm-draft
 #, python-format
+msgid "%(name)s did not fly in %(tour)s."
+msgstr "%(name)s n’a pas volé pendant %(tour)s."
+
+# llm-draft
+#, python-format
+msgid "%(name)s was not flown in %(tour)s."
+msgstr "Personne n’a piloté le %(name)s pendant %(tour)s."
+
+# llm-draft
+#, python-format
 msgid "%(name)s: a text is longer than %(max)d characters: %(start)s..."
 msgstr "%(name)s : un texte dépasse %(max)d caractères : %(start)s..."
 
@@ -3301,6 +3311,10 @@ msgid "Not even the engine had warmed up yet. Sometimes the war simply comes to 
 msgstr "Le moteur n'avait même pas eu le temps de chauffer. Parfois, c'est la guerre qui vient à vous."
 
 # llm-draft
+msgid "Not in this tour"
+msgstr "Pas dans cette tournée"
+
+# llm-draft
 msgid "Not much was left standing down there. The map needs a fresh coat of paint."
 msgstr "Il ne restait plus grand-chose debout là-dessous. La carte a besoin d'un coup de peinture."
 
@@ -4544,6 +4558,10 @@ msgstr "Sauts précoces présumés"
 # llm-draft
 msgid "Switch between light and dark"
 msgstr "Basculer entre clair et sombre"
+
+# llm-draft
+msgid "Switch to:"
+msgstr "Passez à :"
 
 # llm-draft
 msgid "Switched on"

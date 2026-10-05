@@ -61,7 +61,7 @@
               <tbody>
                 {% for pilot in pilots %}
                   <tr>
-                    <td>{% coalition_icon pilot.side %} {% include "il2ks/missions/_player.html" with player=pilot.row.player name=pilot.row.player.current_name stretch=True %}</td>
+                    <td>{% coalition_icon pilot.side %} {% include "il2ks/missions/_player.html" with player=pilot.row.player name=pilot.row.player.current_name stretch=True tour_q=tour_query %}</td>
                     <td class="num">{{ pilot.row.kills_air|num }}</td>
                     <td class="num">{{ pilot.row.kills_ground|num }}</td>
                   </tr>

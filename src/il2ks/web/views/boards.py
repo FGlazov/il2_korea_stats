@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 from il2ks.core.streaks import MIN_LISTED_RUN
 from il2ks.queries import boards as reads
 from il2ks.queries import players as player_reads
-from il2ks.queries.tours import tour_choice_from, tour_query
+from il2ks.queries.tours import pilot_absence, tour_choice_from, tour_query
 
 
 def player_killboard(request: HttpRequest, pk: int) -> HttpResponse:
@@ -28,8 +28,10 @@ def player_killboard(request: HttpRequest, pk: int) -> HttpResponse:
         raise Http404
     sort = player_reads.resolve_sort(request.GET.get("sort", ""), reads.KILLBOARD_SORTS, reads.DEFAULT_KILLBOARD_SORT)
     choice = tour_choice_from(request.GET)
+    page = reads.killboard_page(player, sort, request.GET.get("page", 1), choice.selected)
     context = {
         **choice.context,
+        "absence": pilot_absence(player.pk, choice) if page.paginator.count == 0 else None,
         "page_title": _("%(name)s: killboard") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
@@ -38,7 +40,7 @@ def player_killboard(request: HttpRequest, pk: int) -> HttpResponse:
         ],
         "player": player,
         "sort": sort,
-        "page_obj": reads.killboard_page(player, sort, request.GET.get("page", 1), choice.selected),
+        "page_obj": page,
     }
     return render(request, "il2ks/players/killboard.html", context)
 
@@ -53,8 +55,10 @@ def player_streaks(request: HttpRequest, pk: int) -> HttpResponse:
     if player is None:
         raise Http404
     choice = tour_choice_from(request.GET)
+    streaks = reads.best_streaks(player, choice.selected)
     context = {
         **choice.context,
+        "absence": None if streaks else pilot_absence(player.pk, choice),
         "page_title": _("%(name)s: best streaks") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
@@ -62,7 +66,7 @@ def player_streaks(request: HttpRequest, pk: int) -> HttpResponse:
             (_("Best streaks"), None),
         ],
         "player": player,
-        "streaks": reads.best_streaks(player, choice.selected),
+        "streaks": streaks,
     }
     return render(request, "il2ks/players/streaks.html", context)
 
@@ -101,8 +105,10 @@ def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
     if player is None:
         raise Http404
     choice = tour_choice_from(request.GET)
+    page = reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected)
     context = {
         **choice.context,
+        "absence": pilot_absence(player.pk, choice) if page.paginator.count == 0 else None,
         "page_title": _("%(name)s: all streaks") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
@@ -114,6 +120,6 @@ def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
         "min_run": MIN_LISTED_RUN,
         # an open run of a finished tour did not "still go": the tour ran out (decided from data, TD-28)
         "tour_ended": choice.selected is not None and choice.selected != choice.current,
-        "page_obj": reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected),
+        "page_obj": page,
     }
     return render(request, "il2ks/players/streak_runs.html", context)

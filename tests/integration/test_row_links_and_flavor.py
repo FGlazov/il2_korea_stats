@@ -5,7 +5,7 @@ import re
 import pytest
 from django.test import Client
 
-from il2ks.db.models import Mission, Player, PlayerSortie
+from il2ks.db.models import Mission, Player, PlayerSortie, Tour
 from tests.factories import account, kill, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
@@ -47,7 +47,7 @@ def test_home_top_pilots_row_links_to_the_profile_and_shows_a_quip() -> None:
     seed()
     html = get(client, "/")
     pk = Player.objects.get(account_uuid=account(1)).pk
-    assert stretched(html, f"/players/{pk}/")
+    assert stretched(html, f"/players/{pk}/?tour={Tour.objects.get().pk}")  # keeps the tour (bare = current)
     assert 'class="flavor"' in html
 
 
@@ -58,7 +58,7 @@ def test_mission_detail_sortie_rows_link_to_the_sortie_and_the_pilot_name_stays_
     row = PlayerSortie.objects.get(player__account_uuid=account(1))
     pilot = Player.objects.get(account_uuid=account(1))
     assert stretched(html, f"/sorties/{row.pk}/")
-    assert f'<a href="/players/{pilot.pk}/">Maverick</a>' in html
+    assert f'<a href="/players/{pilot.pk}/?tour={saved.tour_id}">Maverick</a>' in html  # the mission's tour
 
 
 def test_player_pages_rows_link_to_their_main_target() -> None:
