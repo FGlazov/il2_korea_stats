@@ -1047,6 +1047,10 @@ class TourAircraftStats(AircraftCounters):
     tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="aircraft_stats")
     role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
     mod_pattern = models.CharField(max_length=16, blank=True, default="")
+    # the row's counted sorties per side (a country that is neither: in neither): `side` is the larger one (ties: the
+    # name that sorts first), so an all-time row's side is the argmax of the summed tour rows (doc 14)
+    sorties_redfor = models.PositiveIntegerField(default=0)
+    sorties_blufor = models.PositiveIntegerField(default=0)
 
     class Meta(AircraftCounters.Meta):
         abstract = False

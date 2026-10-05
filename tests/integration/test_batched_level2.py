@@ -137,9 +137,11 @@ def test_batched_run_replays_only_the_touched_tours_and_ends_once(
     replayed: list[object] = []
     original = aggregates.recompute_ratings
 
-    def replay(rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True) -> int:
+    def replay(
+        rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True, all_time: bool = True
+    ) -> int:
         replayed.append(None if tour_ids is None else sorted(tour_ids))
-        return original(rules, tour_ids, payload_elo=payload_elo)
+        return original(rules, tour_ids, payload_elo=payload_elo, all_time=all_time)
 
     monkeypatch.setattr(aggregates, "recompute_ratings", replay)
     end = _spy(monkeypatch, "apply_batch_end")
