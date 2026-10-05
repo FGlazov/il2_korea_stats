@@ -452,16 +452,9 @@ def test_the_role_rows_of_a_fully_tagged_pilot_add_up_to_his_tour_and_all_time_r
     assert sum(r.deaths for r in all_time) == player.deaths == 1
 
 
-def test_the_role_rows_survive_a_rebuild_and_come_back_with_the_upgrade_backfill() -> None:
-    """Incremental == rebuild (FR-ING-15): a rebuild writes the same PlayerRole rows; a database from before them gets
-    them through the one level-2 rebuild of the `player_roles` backfill."""
-    import uuid
-    from pathlib import Path
-
-    from il2ks.config import Config
-    from il2ks.db.models import SiteSettings
+def test_the_role_rows_survive_a_rebuild() -> None:
+    """Incremental == rebuild (FR-ING-15): a rebuild writes the same PlayerRole rows."""
     from il2ks.ingest.aggregates import rebuild_aggregates
-    from il2ks.ops import migrate
     from tests.db_canon import canonical_dump, diff_dumps
 
     seed_roles()
@@ -469,14 +462,6 @@ def test_the_role_rows_survive_a_rebuild_and_come_back_with_the_upgrade_backfill
     assert PlayerRole.objects.filter(tour__isnull=True).count() == 4  # player 1 (two roles), 2 and 3 (one each)
     rebuild_aggregates()
     assert diff_dumps(expected, canonical_dump()) == []
-
-    PlayerRole.objects.all().delete()
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-    migrate._run_backfills(cfg, [migrate.BACKFILL_PLAYER_ROLES])  # pyright: ignore[reportPrivateUsage]
-
-    assert diff_dumps(expected, canonical_dump()) == []
-    assert migrate.BACKFILL_PLAYER_ROLES in SiteSettings.objects.get(pk=1).backfills_done
 
 
 def test_role_toggle_in_a_tour_counts_only_that_tours_role_sorties(client: Client) -> None:

@@ -1,125 +1,24 @@
-"""Costs that must not grow with history: the upgrade backfills (one rebuild, partial writes), the per-mission medal
-holder counts and the per-mission stat thresholds (pre-filtered rows)."""
-
-import uuid
-from pathlib import Path
+"""Costs that must not grow with history: the per-mission medal holder counts and the per-mission stat thresholds
+(pre-filtered rows)."""
 
 import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
-from il2ks.config import Config
 from il2ks.core.stat_marks import ELO_METRICS, METRICS, MarkRules, Totals, metric_value, thresholds
 from il2ks.db.models import (
     AchievementHolders,
-    GameObject,
     Player,
     PlayerAchievement,
-    PlayerSortie,
-    PlayerStreak,
     PlayerTour,
-    SiteSettings,
     StatThreshold,
     Tour,
 )
-from il2ks.ingest import aggregates
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.stat_marks import _ELO_FIELDS, _FIELDS, recompute_thresholds  # pyright: ignore[reportPrivateUsage]
-from il2ks.ops import migrate
 from tests.factories import account, mission, save, sortie
-from tests.ops_helpers import recording
 
 pytestmark = pytest.mark.django_db
-
-N = 12
-
-
-def count_rebuilds(monkeypatch: pytest.MonkeyPatch) -> list[int]:
-    calls: list[int] = []
-
-    def fake(*args: object, **kwargs: object) -> None:
-        calls.append(1)
-
-    monkeypatch.setattr(aggregates, "rebuild_aggregates", fake)
-    return calls
-
-
-def cfg() -> Config:
-    return Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-
-def seed_old_database() -> list[int]:
-    """N sorties with assists and kills, and timelines naming the victims; the new columns zeroed, markers cleared."""
-    GameObject.objects.update_or_create(log_name="B-29", defaults={"display_name": "B-29", "cls": "bomber"})
-    save(mission(tuple(sortie(i, i + 1, assists=2, kills_air=1) for i in range(N))))
-    timeline = [
-        {"kind": "assist", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-        {"kind": "assist", "counterpart": {"object_type": "M46 Patton", "sortie_id": None, "coalition": 1}},
-        {"kind": "kill", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-    ]
-    PlayerSortie.objects.update(timeline=timeline, assists_air=0, assists_ground=0, kills_air_intercept=0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    return list(PlayerSortie.objects.values_list("pk", flat=True))
-
-
-@pytest.mark.parametrize("name", [migrate.BACKFILL_ASSIST_SPLIT, migrate.BACKFILL_INTERCEPTION])
-def test_the_sortie_backfills_write_partial_rows_without_refreshing_deferred_fields(
-    name: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    count_rebuilds(monkeypatch)  # level 2 is not under test
-    pks = seed_old_database()
-
-    with CaptureQueriesContext(connection) as queries:
-        migrate._run_backfills(cfg(), [name])  # pyright: ignore[reportPrivateUsage]
-
-    # A fixed handful of reads, one UPDATE per changed sortie, and none of the per-field `refresh_from_db` SELECTs
-    # (~66 per sortie) the upsert of `.only()` rows caused.
-    sql = [q["sql"] for q in queries]
-    selects = [s for s in sql if s.startswith("SELECT")]
-    updates = [s for s in sql if s.startswith("UPDATE")]
-    assert len(updates) >= len(pks)
-    assert len(selects) < 12, len(selects)
-    assert not any('"il2ks_db_playersortie"."id" = ' in s for s in selects)
-    assert len(sql) < len(pks) + 20, len(sql)
-    row = PlayerSortie.objects.get(pk=pks[0])
-    if name == migrate.BACKFILL_ASSIST_SPLIT:
-        assert (row.assists_air, row.assists_ground) == (1, 1)
-    else:
-        assert row.kills_air_intercept == 1
-    assert row.timeline  # the timeline was not touched
-
-
-def test_an_old_shaped_database_rebuilds_the_aggregates_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    seed_old_database()
-    PlayerSortie.objects.update(air_points=0.0, ground_points=0.0)  # the scores backfill fires too
-    calls = count_rebuilds(monkeypatch)
-
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-
-    assert calls == [1]
-    done = SiteSettings.objects.get(pk=1).backfills_done
-    for name in (
-        migrate.BACKFILL_TOURS,
-        migrate.BACKFILL_SCORES,
-        migrate.BACKFILL_INTERCEPTION,
-        migrate.BACKFILL_ASSIST_SPLIT,
-        migrate.BACKFILL_ACHIEVEMENTS,
-        migrate.BACKFILL_ACHIEVEMENT_TOURS,
-    ):
-        assert name in done
-    assert PlayerSortie.objects.filter(assists_air__gt=0).exists()  # level 1 was fixed before the (patched) rebuild
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-    assert calls == [1]  # marked: not repeated
-
-
-def test_a_fresh_database_does_not_rebuild(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls = count_rebuilds(monkeypatch)
-
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-
-    assert calls == []
-    assert migrate.BACKFILL_ASSIST_SPLIT in SiteSettings.objects.get(pk=1).backfills_done
-
 
 # --- medal holders ----------------------------------------------------------------------------------------------------
 
@@ -191,76 +90,3 @@ def test_the_prefilter_gives_the_thresholds_of_the_unfiltered_population() -> No
         rules, list(PlayerTour.objects.filter(tour=tour).values_list(*_FIELDS)), _FIELDS, tour=True
     )
     assert stored(None)  # the world is not empty
-
-
-def test_the_first_upgrade_with_scoped_data_missing_rebuilds_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    """FR-OPS-3: at most one rebuild per upgrade. A database with every marker but `scoped_aircraft` and no scope rows
-    used to rebuild for that backfill and again for the catalog refresh (no fingerprint stored yet)."""
-    from il2ks.db.models import PlayerAircraftScope
-
-    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
-    PlayerAircraftScope.objects.all().delete()
-    names = [
-        value
-        for key, value in vars(migrate).items()
-        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_SCOPED_AIRCRAFT
-    ]
-    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
-    rebuilds: list[str] = []
-    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
-
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-
-    assert rebuilds == ["rebuild"]
-    assert not migrate.catalog_changed()
-
-
-def test_the_ironman_tracks_backfill_rebuilds_once_with_the_other_markers_set(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """FR-OPS-3, maintainer 2026-10-05: a database from before the two ironman tracks (migration 0069) has every marker
-    but `streak_tracks`: level 2 is rebuilt once, the marker is written, and the next upgrade does not rebuild."""
-    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
-    names = [
-        value
-        for key, value in vars(migrate).items()
-        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_STREAK_TRACKS
-    ]
-    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
-    rebuilds: list[str] = []
-    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
-
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-
-    assert rebuilds == ["rebuild"]
-    assert migrate.BACKFILL_STREAK_TRACKS in SiteSettings.objects.get(pk=1).backfills_done
-
-
-def test_the_all_track_backfill_rebuilds_once_and_builds_the_all_rows(monkeypatch: pytest.MonkeyPatch) -> None:
-    """FR-OPS-3, maintainer 2026-10-05: a database from before the all ironman track (migration 0101) has every marker
-    but `streak_all`: level 2 is rebuilt once (the all rows appear), the marker is written, and the next upgrade does
-    not rebuild."""
-    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
-    PlayerStreak.objects.filter(track="all").delete()
-    names = [
-        value
-        for key, value in vars(migrate).items()
-        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_STREAK_ALL
-    ]
-    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
-    rebuilds: list[str] = []
-    real = migrate._rebuild_all  # pyright: ignore[reportPrivateUsage]
-
-    def counting(cfg_: Config) -> None:
-        rebuilds.append("rebuild")
-        real(cfg_)
-
-    monkeypatch.setattr(migrate, "_rebuild_all", counting)
-
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
-
-    assert rebuilds == ["rebuild"]
-    assert PlayerStreak.objects.filter(track="all").exists()
-    assert migrate.BACKFILL_STREAK_ALL in SiteSettings.objects.get(pk=1).backfills_done

@@ -1,4 +1,4 @@
-"""The upgrade merge of duplicate aircraft rows (`Il-10` / `IL-10`, `B 29` / `B-29`; OQ-120): every relation of the
+"""The merge of duplicate aircraft rows (`Il-10` / `IL-10`, `B 29` / `B-29`; OQ-120): every relation of the
 duplicate is handled, counters of unique-conflicting level 1 rows are summed, an admin's custom name is kept."""
 
 from pathlib import Path
@@ -20,14 +20,14 @@ pytestmark = pytest.mark.django_db
 
 
 def _upgrade(tmp_path: Path) -> None:
+    """The catalog-change refresh's merge step (the writer lock and the rebuild are not what is tested)."""
     from il2ks.ops import migrate
-    from tests.ops_helpers import make_instance
 
-    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_AIRCRAFT_ALIASES])  # pyright: ignore[reportPrivateUsage]
+    migrate._merge_alias_duplicates()  # pyright: ignore[reportPrivateUsage]
 
 
 def _spaced_duplicate() -> GameObject:
-    """A saved B-29 sortie, moved onto a `B 29` row as an old database has it; returns that duplicate."""
+    """A saved B-29 sortie, moved onto a `B 29` row as a changed alias file leaves it; returns that duplicate."""
     save(mission((sortie(0, 1, aircraft_type="B-29"),)))
     dup = GameObject.objects.create(log_name="B 29", display_name="B-29", cls="bomber")
     PlayerSortie.objects.update(aircraft=dup)

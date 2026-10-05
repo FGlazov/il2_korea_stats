@@ -6,7 +6,6 @@ dies. October: pilots 1-22 fly again without kills."""
 import re
 from collections.abc import Iterable
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.test import Client
@@ -315,25 +314,6 @@ def test_a_new_mission_changes_its_tour_and_all_time_but_not_the_other_tour() ->
     october = SortieThreshold.objects.get(tour=tour("October 2026"), metric="air_kills")
     assert october.histogram == {"0": 22, "1": 3}
     assert SortieThreshold.objects.get(tour=None, metric="air_kills").population == 50
-
-
-def test_upgrading_a_database_without_the_new_cuts_recomputes_the_thresholds(tmp_path: Path) -> None:
-    """`top_tiers` backfill: rows from before the update have p95 / p99 = 0 and no sortie populations; one threshold
-    recompute (no level-2 rebuild) fills them, and later migrations do not repeat it."""
-    from il2ks.db.site import get_site_settings
-    from il2ks.ops import migrate
-    from tests.ops_helpers import make_instance
-
-    seed()
-    expected, expected_sorties = state(), sortie_state()
-    StatThreshold.objects.update(p95=0.0, p99=0.0)
-    SortieThreshold.objects.all().delete()
-
-    migrate._run_backfills(make_instance(tmp_path, extra_toml=MARKS_TOML), [migrate.BACKFILL_TOP_TIERS])  # pyright: ignore[reportPrivateUsage]
-
-    assert state() == expected
-    assert sortie_state() == expected_sorties
-    assert "top_tiers" in get_site_settings().backfills_done
 
 
 MARKS_TOML = "[marks]\nmin_sorties = 1\n"  # the upgrade reads the configured minimum: the tests' ONE

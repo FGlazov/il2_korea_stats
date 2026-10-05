@@ -671,7 +671,7 @@ def _ordnance_json(o: OrdnanceUse) -> dict[str, object]:
 
 def _ammo_json(s: SortieResult) -> dict[str, object]:
     """`PlayerSortie.ammo`, the ammo breakdown of one sortie (FR-WEB-18, doc 13). Shape (keys are only ever added, so
-    rows written by an older version still read, until the next reprocess):
+    rows written earlier still read, until the next reprocess):
 
         {"loaded": {"bullets", "shells", "bombs", "rockets"},          # AType 10
          "left": {... same} | null,                                    # AType 4; null = no AType 4

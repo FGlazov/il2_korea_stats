@@ -6,11 +6,8 @@ slate (stored on the type's unfiltered `all` and `air_superiority` tour rows), a
 import re
 from dataclasses import replace
 from datetime import UTC, datetime
-from pathlib import Path
 
 import pytest
-from django.core import management
-from django.db.migrations.executor import MigrationExecutor
 from django.http import HttpResponse
 from django.test import Client
 from django.urls import reverse
@@ -18,9 +15,7 @@ from django.urls import reverse
 from il2ks.core.ratings.elo import DEFAULT_RULES, Game, RatingRules, compute_type_ratings
 from il2ks.core.replay.result import CombatRole
 from il2ks.db.models import AircraftRole, AircraftStats, Tour, TourAircraftStats
-from il2ks.db.site import get_site_settings
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.ops.migrate import migrate_if_needed
 from il2ks.web import columns
 from tests.factories import kill, meta, mission, save, sortie
 
@@ -162,27 +157,6 @@ def test_a_changed_start_applies_to_types_without_games() -> None:
     rebuild_aggregates(RatingRules(start=1000.0))
 
     assert all_time(MIG) == (1000.0, 0)
-
-
-def test_migrating_a_database_from_before_the_type_elo_rebuilds_it(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The columns are new (default 1500 / 0) while the pilots' tour Elo exists: the `aircraft_elo` backfill asks for
-    the one level-2 rebuild, which fills the type Elo."""
-    from tests.ops_helpers import make_instance, recording, returning
-
-    duel(3)
-    expected = (all_time(MIG), all_time(SABRE))
-    assert expected[0][1] == 3
-    AircraftStats.objects.update(elo=1500.0, elo_games=0)
-    TourAircraftStats.objects.update(elo=1500.0, elo_games=0)
-    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
-    monkeypatch.setattr(management, "call_command", recording([], "migrate"))
-
-    migrate_if_needed(make_instance(tmp_path), "ingest", wait=None)
-
-    assert (all_time(MIG), all_time(SABRE)) == expected
-    assert "aircraft_elo" in get_site_settings().backfills_done
 
 
 # --- the aircraft list: the six default columns and the type Elo as a sortable column -----------------------------

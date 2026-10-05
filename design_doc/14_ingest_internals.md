@@ -197,19 +197,19 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
      pattern `TourAircraftStats` rows, all-time `PlayerAircraftScope`, `AircraftPayload` / `AircraftMods` = SUM per key, `elo_avg` left to step 7; the type Elo `_rollup_type_elo` = the best tour with at least `type_min_games` games of the types' tour rows, games summed, never read from the kills), `rollup_matchups`, `rollup_aircraft_ammo` (SUM of the tour rows per scope key; only the types with rows
      in the refreshed tours, before or after, are rolled up), then `recompute_days` (`ActivityDay`, the touched days and those recorded within the tours' ranges).
   The **side** of an aircraft row is the argmax of per-side sorties: `TourAircraftStats` stores `sorties_redfor` / `sorties_blufor` (the row's counted sorties for countries of that side; migration 0065) and `side` is the larger,
-     ties REDFOR; an all-time row sums the counters and takes the argmax. An existing database is rebuilt once by the upgrade (`tour_aircraft_sides` backfill).
+     ties REDFOR; an all-time row sums the counters and takes the argmax.
   7. `recompute_payload_elo` (the average Elo of the pilots of each loadout and mod set, `elo_avg`; after the aircraft rows exist and the Elo is rolled up; a batch's intermediate passes leave it to its end). It reads every air-superiority
      sortie and every pilot's all-time rating, so it is the one level-1 read left in a refresh (a loadout average is over all pilots, each with the best tour's rating, which a refresh changes in all of their tours; bounding it would need
      stored per-row Elo sums: allowance in `tests/perf/query_plans.py`) `[PROPOSED]`.
   **Invariant: every mission has a tour** (a mission without one is in no tour row, so in no all-time row): `save_mission` assigns it, `rebuild_aggregates` always runs `assign_missing` (the default `[tours]` rules when none are passed),
-  and the upgrade backfill `player_rollup` (`ops/migrate.py`) rebuilds a database from before. Equal floats: the roll-up helper folds a key's tour rows in tour-id order and rounds a float total at write, so an incremental update and a rebuild
+  so no database holds one. Equal floats: the roll-up helper folds a key's tour rows in tour-id order and rounds a float total at write, so an incremental update and a rebuild
   agree to the last digit. Oracles: `tests/level1_oracle.py` and `tests/legacy_aircraft_alltime.py` (the old whole-history computations) equal the stored rows after every step of a messy three-tour history (late import, moved mission, dropped player,
   dropped type), `tests/integration/test_level2_end_to_end.py` (single == batched == rebuild, Elo, streaks and medals included). What a refresh reads is the players' tour rows (players in the tour x their tours), so the cost no longer
   grows with a player's sortie history, only with the number of tours; an all-time pair row still costs one read of every tour row of the players' pairs.
   **The sortie's tour** (`PlayerSortie.tour`, maintainer 2026-10-05, migration 0076; `[DECIDED]` by the maintainer, the mechanics `[PROPOSED]`): **invariant: a sortie's tour is always its mission's tour.** Every writer of `Mission.tour` keeps it in the
   same transaction: `save_level1` (`_fill_sortie` copies `mission.tour_id` into new and existing rows, so a re-ingest that moves a mission moves its sorties; the sorties are written after the mission is placed, also when
   `resegment_around` placed it) and `ingest/tours.py::move_missions`, the one function that moves missions between tours and their sorties with them (`resegment`: decisive-mission cuts, calendar and manual periods; `assign_missing`;
-  `retour`, so `rebuild-aggregates --retour` and the migration's tour backfill; `save_level1`'s fallback placement). Live provisional saves and `reprocess` go through `save_level1`; a discard deletes the mission and its sorties
+  `retour`, so `rebuild-aggregates --retour` ; `save_level1`'s fallback placement). Live provisional saves and `reprocess` go through `save_level1`; a discard deletes the mission and its sorties
   (cascade) and `resegment_around` moves the rest through `move_missions`; the admin's tour actions (start a new tour, rename) never move a mission, a settings change that does goes through `retour`. A tour that is deleted has no
   mission and so no sortie (the foreign key is `PROTECT`, like `Mission.tour`). Migration 0076 adds the column, the index `sortie_tour_recent` and backfills with one `UPDATE ... SET tour = (SELECT tour FROM mission)`. Reads: the
   tour-step queries of level 2 (`mission__tour_id` on a sortie query became `tour_id`: the same rows, one join less; kill and ammo queries still read the mission's tour), `/sorties/` and the player's sortie list filter
@@ -252,7 +252,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   replays every tour (rebuild, `reprocess`'s end); every other refresh passes the tours it touched (old and new), since a tour's result never depends on another
   tour's games. It runs inside each mission save (same transaction), in every batch pass, and once at the end of `rebuild-aggregates` and `reprocess`. So a mission imported late
   lands in the right place in its tour's order and changes nothing in the other tours. Cost: about 0.02 s per mission at sample scale, bounded by the
-  tour's kills when `tour_ids` is passed. Upgrade: the `tour_elo` backfill rebuilds level 2 once for a database with all-time ratings and no tour ratings.
+  tour's kills when `tour_ids` is passed.
 - **Batched level 2 for long runs** (`ingest/batch.py`, roadmap item, 2026-10-05, `[PROPOSED]`). Maintainer, 2026-10-05: batches track only the touched tours and fully refresh them (no per-entity tracking), to bound complexity. A run with `BATCH_MIN = 20` or more missions to do
   (`ingest` after its classify pass, `reprocess` after choosing its targets) saves **level 1 only** per mission (`Pipeline.save_level1` =
   `persist.save_level1` + `bump_data_version`; still one transaction per mission, the `IngestRun` row in it) and does level 2 later. Fewer than 20:
@@ -322,7 +322,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
 - `Mission.settings` stores the raw `SETTS` string (not parsed yet).
 - **Assists are stored split** (2026-10-04): `PlayerSortie.assists_air` / `assists_ground` (`assists` is their sum), summed by `ingest.counters`
   into the same two columns on every counter table (`PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour*`, the pools, `AircraftStats`); the
-  score reads `assists_air` only (doc 13). Migration 0034 adds the columns; the `assist_split` backfill fills them (below).
+  score reads `assists_air` only (doc 13). Migration 0034 adds the columns.
 - `Kill` (PvP only) is keyed by **`(victim_sortie, killer_sortie)`**: a sortie is lost once, and a killer sortie gets either the kill or an assist
   on it. `credit`, `tick` and `via` are attributes.
 - `PlayerSortie` JSON: `ammo` = `{loaded, left, used, left_after_loss, releases, hits, unattributed, ordnance}` (keys are only ever added; the
@@ -396,29 +396,13 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   clock so antivirus and other jobs do not skew it, but Windows resolves CPU time to about 15 ms, fine for sums and medians) and
   `il2ks dev dump-db` (every table as sorted JSON lines, to diff two runs). `ingest` refuses an `after_archive` move or delete when the logs dir is
   inside `sample_data/` (real player data).
-- **Upgrade backfills** (`ops/migrate.py`, FR-OPS-3): after `migrate`, an upgraded database gets the data the new tables and columns need, once
-  each: tours (`tours`), sortie scores (`scores`), per-type Elo and the prop/jet pools (`type_ratings`), the Elo per tour (`tour_elo`: a rebuild, which replays each tour alone), the killboard by aircraft type and the
-  per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`), the air / ground assist
-  split from the timelines (`assist_split`), rounds fired and gun hits from the stored ammo (`accuracy`), the streak history (`streak_runs`),
-  `TourAircraftStats` (`tour_aircraft`), the aircraft type Elo (`aircraft_elo`: a rebuild, which replays each tour's duels between types) and the favourite loadouts (`builds`), the achievement facts rams, first blood, multi-kills
-  and Elo peaks (`achievement_facts`), the loadout names looked up again from the payload ids (`payload_names`) and medals (`achievements`, then
-  `achievement_tours` for the per-tour medals and rarity counts, after the rebuild; `elo_min_games`, a rebuild for a database that stored the all-time Elo as the best of any tour before the minimum-games rule, once per database and folded into the same one rebuild; `streak_tracks` (the two ironman tracks, migration 0069: marks the one rebuild that fills `track`, the ground-kill counts, `Player.streak_kills_*` and the survivor / life-kills medals, FR-OPS-3); last `tour_clean_slate`, streaks and medals per tour with the all-time rows rolled up, which
-  only records its marker when this upgrade just rebuilt, since the rebuild computes the same after `tour_elo`'s replay). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
-  the level-1 sortie columns it owns (level 1) and returns whether level 2 needs a rebuild**; `rebuild_aggregates` then runs **at most once per
-  upgrade** (it used to run once per step, up to three times) and all the markers are written together. Level-1 writes use `update_partial_rows`
-  (rows with only the pk and the changed columns, one `UPDATE` per sortie instead of about 70 queries per sortie, Opus review #4), and
-  timelines are streamed in chunks of 500.
-  Each is recorded by name in `SiteSettings.backfills_done` after it ran (or was found unnecessary), because the data trigger alone cannot tell
-  "never filled" from "legitimately empty" (a database with only zero scores, or no Elo encounters) and would rebuild after every later migration.
-  Where a backfill needs a level-2 rebuild it calls `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`.
-  **Catalog fingerprint** (2026-10-05): the catalog files that are copied into stored rows (`CATALOG_FILES`: `weapon_mods.csv` significant flags, `payloads.csv`,
-  `payload_aliases.csv`, `object_aliases.csv`) are hashed (line endings normalised) into a `catalog:<hash>` entry of `backfills_done`. When the hash differs from the stored one,
-  `refresh_for_catalog_change` re-reads the loadout names, merges alias duplicates of `GameObject` (the aircraft case merge keys its per-mission ammo rows on the full scope
-  `(mission, aircraft, combat_role, weapon_mods[, mix], ammo)` since migration 0057) and rebuilds level 2, then records the hash. `migrate_if_needed` does this on a writer or `web` start
-  when no migration is pending (under the writer lock, after a backup, because the merge deletes level-1 rows; a start that finds the lock busy leaves it to the next writer). When migrations
-  ARE pending, `_run_backfills` runs the refresh's level-1 part as one more step before the **single** rebuild and records the fingerprint after it, so the first upgrade of an old database
-  rebuilds once, not once for the backfill and once for the refresh (FR-OPS-3).
-  These exist for pre-release databases and may go when the migrations are squashed before the first release (roadmap). Migration 0057 (scoped aircraft rows) is not reversible; that is accepted until the squash.
+- **Catalog refresh** (`ops/migrate.py`, FR-OPS-3): after `migrate`, and on any later start, the stored rows are brought in line with the shipped catalog. The catalog
+  files that are copied into stored rows (`CATALOG_FILES`: `weapon_mods.csv` significant flags, `payloads.csv`, `payload_aliases.csv`, `object_aliases.csv`) are hashed
+  (line endings normalised) into `SiteSettings.catalog_fingerprint`; it is empty on a new database. When the hash differs from the stored one,
+  `refresh_for_catalog_change` re-reads the loadout names from the stored payload ids, merges alias duplicates of `GameObject` (`Il-10` / `IL-10`, `B 29` / `B-29`; the merge keys its per-mission ammo rows on the full scope
+  `(mission, aircraft, combat_role, weapon_mods[, mix], ammo)`) and rebuilds level 2 once through `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`, then records the hash.
+  An empty database only records it. `migrate_if_needed` does this on a writer or `web` start when no migration is pending (under the writer lock, after a backup, because the merge deletes level-1 rows;
+  a start that finds the lock busy leaves it to the next writer). When migrations ARE pending, the refresh runs right after them, under the same lock and the same backup, so an upgrade rebuilds at most once.
 - **Verified end to end on the 210 sample missions** (2026-10-03, run three times; the last after the score inputs and Elo landed, with
   the same results and Elo stored = Elo recomputed for every player): no failures, zero bad lines and unknown
   keys, re-import skips everything with identical rows, `rebuild-aggregates` and `reprocess` reproduce level 2 **byte for byte** and keep every

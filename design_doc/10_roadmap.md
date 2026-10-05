@@ -200,6 +200,7 @@ decisions are made):
   (0029, 0045, 0048, 0049, 0055) disappear in the squash; `config.py` `RENAMED_SCORE_KEYS` / `_renamed_key_warnings` and their doctor
   output and tests; `ops/checks.py` `ammo_mix_check` (points to a docs section that no longer exists); the `parachute_deaths` comment
   in `core/replay/toggles.py`; the "upgrade backfill" docstring in `ingest/achievements.py`.
+  Compat code removed (2026-10-05): all `BACKFILL_*` steps and `_run_backfills`, `RENAMED_SCORE_KEYS` and the config warnings, `ammo_mix_check`, with their tests; `SiteSettings.backfills_done` became `catalog_fingerprint` (migration 0077, squashed away with the rest).
 - ✅ **More branding for server admins** (maintainer, 2026-10-04; incl. `.woff2` font upload): extra links in the top navigation row (up to 30) after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).

@@ -249,35 +249,6 @@ def test_a_refresh_of_one_tour_leaves_the_other_tours_rows_alone() -> None:
     assert snapshot() == before
 
 
-def test_upgrade_backfill_rebuilds_the_side_counters_of_an_old_database() -> None:
-    """A database from before migration 0065 has tour rows with sorties but zero side counters, so the all-time side
-    (argmax of the summed counters) would be empty until something rebuilt level 2: the upgrade does it, once."""
-    import uuid
-    from pathlib import Path
-
-    from il2ks.config import Config
-    from il2ks.db.models import SiteSettings
-    from il2ks.ops import migrate
-
-    for _, step in STEPS[:3]:
-        step()
-    expected = snapshot()
-    sides = sorted(TourAircraftStats.objects.values_list("pk", "sorties_redfor", "sorties_blufor"))
-    assert any(red or blue for _, red, blue in sides)
-    all_time = sorted(AircraftStats.objects.values_list("pk", "side"))
-    TourAircraftStats.objects.update(sorties_redfor=0, sorties_blufor=0)
-    AircraftStats.objects.update(side="")
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-    migrate._run_backfills(cfg, [migrate.BACKFILL_TOUR_AIRCRAFT_SIDES])  # pyright: ignore[reportPrivateUsage]
-
-    assert snapshot() == expected
-    assert sorted(TourAircraftStats.objects.values_list("pk", "sorties_redfor", "sorties_blufor")) == sides
-    assert sorted(AircraftStats.objects.values_list("pk", "side")) == all_time
-    assert migrate.BACKFILL_TOUR_AIRCRAFT_SIDES in SiteSettings.objects.get(pk=1).backfills_done
-
-
 def test_a_refresh_reads_only_its_tours_ammo_rows() -> None:
     """Hits to destroy: the types come from the touched tours' rows and only those tours' `MissionAircraftAmmo(Mix)`
     rows are summed; the all-time rows are the sum of the tour rows (never the whole ammo history again)."""

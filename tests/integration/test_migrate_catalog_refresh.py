@@ -1,6 +1,6 @@
 """A changed catalog file (`weapon_mods.csv` significant flags, `payloads.csv`, `object_aliases.csv`) reaches the stored
-rows at the next upgrade: the one-time backfill markers alone never re-ran (aircraft_mods.py promises "a change applies
-with rebuild-aggregates"). A fingerprint of those files is kept in `SiteSettings.backfills_done`."""
+rows at the next start (aircraft_mods.py promises "a change applies with rebuild-aggregates"). A fingerprint of those
+files is kept in `SiteSettings.catalog_fingerprint`."""
 
 from pathlib import Path
 
@@ -51,7 +51,7 @@ def test_a_changed_catalog_rebuilds_once_and_an_unchanged_one_does_nothing(
     assert migrate.refresh_for_catalog_change(cfg) is True
     assert migrate.catalog_changed() is False
     assert rebuilds == ["rebuild", "rebuild"]
-    assert [m for m in get_site_settings().backfills_done if m.startswith("catalog:")] == ["catalog:v2"]
+    assert get_site_settings().catalog_fingerprint == "v2"
 
 
 def test_a_changed_alias_file_merges_the_new_duplicate_at_the_next_upgrade(
@@ -100,3 +100,31 @@ def test_a_refresh_for_a_changed_catalog_backs_up_first_and_only_then(
     migrate.refresh_for_catalog_change(cfg, backup=True)  # unchanged
 
     assert made == ["backup"]
+
+
+def test_migrate_if_needed_refreshes_once_after_applying_migrations_and_again_only_for_a_catalog_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from django.core import management
+    from django.db.migrations.executor import MigrationExecutor
+
+    save(mission((sortie(0, 1),)))
+    cfg = make_instance(tmp_path)
+    rebuilds: list[str] = []
+    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
+    monkeypatch.setattr(migrate, "catalog_fingerprint", returning("v1"))
+    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
+    monkeypatch.setattr(management, "call_command", recording([], "migrate"))
+
+    migrate.migrate_if_needed(cfg, "ingest", wait=None)  # migrations applied: the stored rows are brought in line
+
+    assert rebuilds == ["rebuild"]
+    assert migrate.catalog_changed() is False
+
+    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([]))
+    migrate.migrate_if_needed(cfg, "ingest", wait=None)  # up to date, same catalog: nothing
+    assert rebuilds == ["rebuild"]
+
+    monkeypatch.setattr(migrate, "catalog_fingerprint", returning("v2"))
+    migrate.migrate_if_needed(cfg, "ingest", wait=None)  # up to date, a changed catalog: one more rebuild
+    assert rebuilds == ["rebuild", "rebuild"]

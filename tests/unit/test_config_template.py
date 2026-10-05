@@ -103,7 +103,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "server_uid",
         "timezone_name",
     }
-    not_settings = {"source", "warnings"}  # the file that was read and the load-time notes, not settings
+    not_settings = {"source"}  # the file that was read, not a setting
     assert {f.name for f in dataclasses.fields(Config)} == covered | not_settings
 
 

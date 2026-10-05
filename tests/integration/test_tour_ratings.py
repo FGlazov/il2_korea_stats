@@ -228,16 +228,3 @@ def test_the_profile_shows_the_tours_elo_in_a_tour_and_the_best_one_all_time() -
     shown = elo_shown(player, None)
     assert (shown.elo_jet, shown.elo_jet_games) == (player.elo_jet, player.elo_jet_games)
     assert elo_shown(player, tour_at(OCTOBER)).elo_prop_games == 0
-
-
-def test_a_database_with_all_time_ratings_but_no_tour_ratings_asks_for_a_rebuild() -> None:
-    from il2ks.ops.migrate import _check_tour_elo  # pyright: ignore[reportPrivateUsage]
-
-    put(SEP_WINS, SEPTEMBER)
-    assert not _check_tour_elo()
-
-    PlayerTourPool.objects.update(elo=1500.0, elo_games=0)  # what the schema update leaves behind
-
-    assert _check_tour_elo()
-    rebuild_aggregates()
-    assert not _check_tour_elo()

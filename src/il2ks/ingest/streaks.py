@@ -19,7 +19,7 @@ id). Two steps, both per chunk of players:
    everybody at zero, and a player who has not flown in it yet shows no current streak. `current_tour` says which tour
    the current run belongs to; rows pointing at an older tour are zeroed when a newer tour exists.
 
-`recompute_streaks` does both. A player with no survived sortie has no `PlayerStreak` row. Sorties of a mission without
+A player with no survived sortie has no `PlayerStreak` row. Sorties of a mission without
 a tour (only before the first `rebuild-aggregates` assigned tours) count nowhere.
 """
 
@@ -62,12 +62,6 @@ type _BestKey = tuple[int, int | None, str, str]  # player, tour (None = all tim
 type _BestValues = tuple[
     int, int, int, float, datetime, datetime
 ]  # sorties, air kills, ground kills, flight, since, until
-
-
-def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
-    """Refresh the per-tour rows of `tour_ids` (None = all tours) for these players, then roll up the all-time rows."""
-    refresh_streak_tours(chunk, tour_ids)
-    rollup_streaks(chunk)
 
 
 def _read(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], list[StreakSortie]]:

@@ -57,8 +57,8 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                --  the stored fate stays as the replay wrote it and is only the detail, OQ-106)
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
                aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1; 1.0 when destroyed, OQ-115), disconnected (bool),
-               pilot_damage (float, nullable: the pilot's (gunner's) damage, 1.0 when dead, health = 1 - it; NULL = unknown, on sorties from before
-               migration 0050 that did not die, until `reprocess --all` fills it; the sortie page shows a gunner's health from it) `[PROPOSED]`,
+               pilot_damage (float, nullable: the pilot's (gunner's) damage, 1.0 when dead, health = 1 - it; NULL = unknown,
+               until `reprocess --all` fills it; the sortie page shows a gunner's health from it) `[PROPOSED]`,
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
@@ -199,8 +199,8 @@ PlayerTypeKillboard player, tour (null = all time), enemy_aircraft, kills, death
                -- (ties: lowest id). Hidden opponents count; no assists. Built by `ingest.type_board`, recomputed per affected player
 PlayerStreak   player, track (all / air / ground; unique together), current_tour, current_* and best_* (sorties, kills_air, kills_ground, flight_time_s, since, until)   -- FR-WEB-25: ironman streaks, one row per player and track (maintainer 2026-10-05; doc 13); best = over the tours, current = the run in the newest tour (zero if not flown in it)
 PlayerBestStreak player, tour (null = all time), track, kind (sorties / air_kills / ground_kills / kills / flight_time), sorties, kills_air, kills_ground, flight_time_s, since, until
-               -- the best streak of a track by each criterion; `air_kills` exists on the air track, `ground_kills` on the ground track, `kills` (air plus ground kills) on the all track, which counts every sortie (migration 0101, backfill `streak_all`); a tour row counts only that tour's sorties of the track, the all-time row (tour null) is the best of the tour rows; a kills row exists only when the
-               -- best such streak has a kill of its kind. Migration 0094 adds `track` (default air), the ground-kill counts and `Player.streak_kills_air` / `streak_kills_ground` (the player list's columns); the backfill `streak_tracks` rebuilds level 2 once
+               -- the best streak of a track by each criterion; `air_kills` exists on the air track, `ground_kills` on the ground track, `kills` (air plus ground kills) on the all track, which counts every sortie (migration 0101); a tour row counts only that tour's sorties of the track, the all-time row (tour null) is the best of the tour rows; a kills row exists only when the
+               -- best such streak has a kill of its kind. Migration 0094 adds `track` (default air), the ground-kill counts and `Player.streak_kills_air` / `streak_kills_ground` (the player list's columns).
 PlayerStreakRun player, tour (null = all time), track, sorties, kills_air, kills_ground, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
                -- FR-WEB-25, OQ-82: every streak of at least `MIN_LISTED_RUN` survived sorties, finished or running; `ended_sortie` is the fatal or
                -- capturing sortie (null while open); `open` also covers a tour that ran out. A tour's runs stay inside the tour. Built by `ingest.streaks`
@@ -239,7 +239,7 @@ SiteSettings   singleton (TD-25): site_title, server_name, description, logo (pa
                a recompute is pending), doc 17,
                show_live_sorties (bool, default on: `watch` saves the running mission provisionally and its sorties count, FR-ING-15),
                killboard_assists (bool; not branding: the `[killboard] assists` value the level-2 rows were last rebuilt with),
-               backfills_done (json list: the one-time upgrade backfills that already ran, `ops/migrate.py`, FR-OPS-3)
+               catalog_fingerprint (char(16): the hash of the shipped catalog files the stored rows were last brought in line with, `ops/migrate.py`, FR-OPS-3)
                -- all of it sits on the one settings row every page already reads, so quips, achievement texts and the feature image cost no query
 NavLink        site, label, url (http/https only), icon (built-in key or none), position   -- ordered inline of SiteSettings, at most 30
 DataVersion    singleton counter bumped with every page-visible change (TD-28)

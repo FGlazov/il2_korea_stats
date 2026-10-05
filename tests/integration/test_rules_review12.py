@@ -15,10 +15,10 @@ from django.db import transaction
 from django.test import Client
 from django.utils import translation
 
-from il2ks.config import Config, RuleSet
+from il2ks.config import RuleSet
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
-from il2ks.db.models import Player, SiteSettings, Tour
+from il2ks.db.models import SiteSettings, Tour
 from il2ks.db.site import get_site_settings
 from il2ks.ingest import aggregates, persist, score_apply
 from il2ks.ingest import batch as batch_mod
@@ -31,15 +31,12 @@ from il2ks.ingest.runner import IngestOptions, default_pipeline, ingest_once
 from il2ks.ingest.score_apply import rescore_with_wanted
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import start_manual_tour
-from il2ks.ops import migrate
 from il2ks.rule_settings import BY_KEY, validate
 from il2ks.web.admin_rules import build_groups
 from tests.conftest import FIXTURE_LOGS
 from tests.factories import SERVER_UID, FakeCatalog, meta
 from tests.ingest_fakes import make_config
 from tests.integration.test_batched_level2 import FIXTURES
-from tests.integration.test_elo_alltime_minimum import OCT, OCTOBER, SEP, SEPTEMBER, jet, put
-from tests.integration.test_elo_alltime_minimum import RULES as ELO_RULES
 from tests.integration.test_tours import MONTHLY
 from tests.integration.test_tours_decisive import at
 from tests.integration.test_tours_review11 import result
@@ -189,36 +186,6 @@ def test_a_display_change_saved_during_the_rebuild_survives_the_adopt_step(
     assert rescore_with_wanted(cfg)
     assert applied_overrides() == {"score.air_kill_pvp": 20.0, "marks.min_sorties": 7}
     assert wanted_overrides() == applied_overrides()
-
-
-def test_an_upgrade_recomputes_the_all_time_elo_once_with_the_minimum_of_games(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Review #12 item 6: a database that already ran `player_rollup` kept the old "best of any tour" all-time Elo. One
-    marker-gated recompute, folded into the single upgrade rebuild (FR-OPS-3)."""
-    put(SEP, SEPTEMBER)
-    put(OCT, OCTOBER)
-    september = jet(1).elo_jet
-    Player.objects.filter(pk=jet(1).pk).update(elo_jet=1516.0)  # what the old rule stored: the lucky October game
-    names = [v for k, v in vars(migrate).items() if k.startswith("BACKFILL_") and v != "elo_min_games"]
-    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
-    migrate._record_catalog_fingerprint(migrate.catalog_fingerprint())  # pyright: ignore[reportPrivateUsage]
-    rebuilds: list[str] = []
-    real = migrate._rebuild_all  # pyright: ignore[reportPrivateUsage]
-
-    def counted(cfg: Config) -> None:
-        rebuilds.append("rebuild")
-        real(cfg)
-
-    monkeypatch.setattr(migrate, "_rebuild_all", counted)
-    cfg = replace(make_instance(tmp_path, with_db=False), ratings=ELO_RULES)
-
-    migrate._run_backfills(cfg)  # pyright: ignore[reportPrivateUsage]
-
-    assert rebuilds == ["rebuild"]
-    assert jet(1).elo_jet == september != 1516.0
-    migrate._run_backfills(cfg)  # pyright: ignore[reportPrivateUsage]
-    assert rebuilds == ["rebuild"]  # marked: not again
 
 
 def test_the_elo_minimum_says_it_is_recomputed_by_a_rebuild_not_that_every_sortie_is_re_scored() -> None:
