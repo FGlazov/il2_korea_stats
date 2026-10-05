@@ -83,7 +83,7 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     Column("score_ground", _("Ground score"), lambda p: display.num(p.score_ground)),
     Column(
         "ground_hour",
-        _("Ground score/h"),
+        _("Attack proficiency"),
         lambda p: display.per_hour(p.score_ground_attack, p.time_on_target_s, 1),
     ),
     Column("planes_lost", _("Aircraft lost"), lambda p: display.num(p.planes_lost)),
@@ -189,7 +189,7 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
     Column("score_ground", _("Ground score"), lambda a: display.num(a.score_ground)),
     Column(
         "ground_hour",
-        _("Ground score/h"),
+        _("Attack proficiency"),
         lambda a: display.per_hour(a.score_ground_attack, a.time_on_target_s, 1),
     ),
     Column(

@@ -13,8 +13,7 @@
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/players.css' %}">{% endblock %}
 {% block content %}
   <div class="page-head">
-    <h1>{% translate "Aircraft" %}</h1>
-    <p>{% translate "How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played. Open a type for its matchups, best pilots and loadouts." %}</p>
+    <h1>{% translate "Aircraft" %}</h1>
   </div>
   {% role_toggle role %}
   {% results_region %}
@@ -29,7 +28,7 @@
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
             {% sort_th "pilots" _("Pilots") numeric=True %}
-            {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
             {% sort_th "kills_air" _("Air kills") numeric=True %}
             {% sort_th "kills_ground" _("Ground kills") numeric=True %}
             {% sort_th "deaths" _("Deaths") numeric=True %}

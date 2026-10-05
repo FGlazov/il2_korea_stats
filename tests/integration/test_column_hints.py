@@ -30,11 +30,10 @@ def headers(html: str) -> dict[str, str]:
         ("/leaderboards/elo-jet/", ["Elo", "Encounters"]),
         ("/leaderboards/air/", ["Air score", "Assists"]),
         ("/leaderboards/ground/", ["Ground score", "Attack sorties"]),
-        ("/leaderboards/ground-hour/", ["Score per hour", "Attack ground score", "Time on target"]),
+        ("/leaderboards/ground-hour/", ["Attack proficiency", "Time on target"]),
         ("/leaderboards/interception/", ["Kills per hour", "Bombers, attackers and transports shot down"]),
         ("/leaderboards/tank-busting/", ["Tanks per hour", "Tanks destroyed", "Time on target"]),
-        ("/leaderboards/play-time/", ["Flight time"]),
-        ("/aircraft/?cols=accuracy_air,assists,ground_hour", ["K/L", "Survival", "Air accuracy", "Ground score/h"]),
+        ("/aircraft/?cols=accuracy_air,assists,ground_hour", ["K/L", "Survival", "Air accuracy", "Attack proficiency"]),
         ("/players/?q=&cols=elo_jet,kl,accuracy,assists_air,assists_ground", ["Elo (jet)", "K/L", "Gun accuracy"]),
         ("/players/?q=&cols=elo_prop,score_air,friendly_kills", ["Elo (prop)", "Air score", "Friendly kills"]),
         ("/missions/?cols=friendly_kills", ["Friendly kills"]),
@@ -72,7 +71,7 @@ def test_every_registered_description_is_plain_text_and_every_optional_column_re
         "planes_lost",
     }
     described |= {"assists", "assists_air", "assists_ground", "accuracy", "accuracy_air", "accuracy_ground"}
-    described |= {"friendly_kills", "kills_air_pvp", "damage_taken", "time_on_target"}
+    described |= {"friendly_kills", "damage_taken", "time_on_target"}
     for registry in registries:
         for column in registry:
             if column.key in described:

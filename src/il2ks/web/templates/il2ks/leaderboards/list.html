@@ -12,7 +12,7 @@
 {% block content %}
   <div class="page-head">
     <h1>{% translate "Leaderboards" %}</h1>
-    <p>{{ help }}</p>
+    {% if help %}<p>{{ help }}</p>{% endif %}
   </div>
 
   <div class="board-tabs" role="navigation" aria-label="{% translate 'Leaderboards' %}">

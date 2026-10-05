@@ -86,7 +86,7 @@ def test_a_player_scans_the_boards_and_finds_himself_on_each(page: Page, world: 
     assert number(row_for(rows, world.rival, "Player")[shot_down]) == 0
 
     # Ground boards: only the attack pilot is on the per-hour and tank boards, and Ace shows on the plain ground board
-    open_board(page, "Ground score per hour", "ground-hour")
+    open_board(page, "Attack proficiency", "ground-hour")
     assert players(page) == [world.gunther]
     open_board(page, "Tank busting", "tank-busting")
     assert players(page) == [world.gunther]

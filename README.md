@@ -15,7 +15,7 @@ Sturmovik: Korea servers.
 - **Tours**: stats per tour (a month by default, or a new tour whenever one side wins a mission, for dynamic campaigns)
   or all-time. Every tour is a clean slate: Elo, streaks and achievements start over. The site opens on the current
   tour.
-- **Leaderboards**: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
+- **Leaderboards**: air score, ground score, attack proficiency, interception, tank busting, Elo (propeller and jet)
   and play time. Scoring is yours to tune, including optional points for time in the air, so a quiet patrol counts too.
 - **Live data**: sorties and stats update while the mission is still running.
 - **Aircraft pages**: how each type does, its best loadouts and modifications, and who it beats and loses to, filtered
