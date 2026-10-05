@@ -258,4 +258,3 @@ def test_streak_list_budget(client: Client) -> None:
     assert_simple_reads(client, "/leaderboards/ironman-air/", max_queries=8)
     assert_simple_reads(client, "/leaderboards/ironman-ground/?tour=all", max_queries=8)
     assert_simple_reads(client, f"/leaderboards/ironman-air/?tour={september.pk}", max_queries=6)
-

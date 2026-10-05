@@ -176,9 +176,7 @@ def rollup_streaks(chunk: list[int]) -> None:
         for track in Track:  # per track: the (track, -current_sorties) index serves each update
             PlayerStreak.objects.filter(
                 Q(current_sorties__gt=0) | Q(current_tour__isnull=False), track=track.value
-            ).exclude(
-                current_tour_id=newest
-            ).update(
+            ).exclude(current_tour_id=newest).update(
                 current_sorties=0,
                 current_kills_air=0,
                 current_kills_ground=0,
