@@ -207,3 +207,24 @@ def test_re_enabling_needs_the_recompute(tmp_path: Path) -> None:
     assert recompute_pending()
     assert recompute_with_wanted_rules(cfg)
     assert held(1)["ground_sortie"] == 2
+
+
+def test_a_crash_midway_leaves_the_old_rows_and_the_old_rules_together(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A medal never claims a threshold its holder did not meet, not even after a crash in the middle of a recompute."""
+    seed()
+    cfg = make_instance(tmp_path, with_db=False)
+    before = snapshot()
+    configure(thresholds={"ground_sortie": [70, 80, 90, 100]})
+    monkeypatch.setattr("il2ks.ingest.achievements.CHUNK", 1)  # one player per batch: the first is done at the crash
+
+    def crash() -> None:
+        raise RuntimeError("crash after the rows were rewritten")
+
+    monkeypatch.setattr("il2ks.ingest.achievements.recompute_holders", crash)
+    with pytest.raises(RuntimeError):
+        recompute_with_wanted_rules(cfg)
+
+    assert snapshot() == before  # the rows still follow the applied thresholds ...
+    assert recompute_pending()  # ... and the change is still pending
