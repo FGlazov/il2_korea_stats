@@ -19,6 +19,7 @@ from typing import cast
 
 from il2ks.config import SERVER_UID_FILE, Config
 from il2ks.core.logparse.files import mission_uid_from_name
+from il2ks.ingest.lock import LOCK_FILE, is_locked
 from il2ks.ops.backup import list_backups, newest_backup_time
 from il2ks.ops.dbfile import applied_migrations
 from il2ks.ops.doctor import Finding, Level, check
@@ -305,8 +306,9 @@ def _unknown_types() -> dict[str, int]:
     return counts
 
 
-def _level2_pending_finding() -> Iterable[Finding]:
-    """A batched run (20+ missions) that was killed hard leaves level 2 and the Elo ratings behind level 1 (doc 14)."""
+def _level2_pending_finding(cfg: Config) -> Iterable[Finding]:
+    """A batched run (20+ missions) that was killed hard leaves level 2 and the Elo ratings behind level 1 (doc 14). The
+    marker is also set during a healthy run: while a live process holds the writer lock that is only information."""
     from django.db import DatabaseError
 
     from il2ks.db.site import level2_pending
@@ -315,7 +317,13 @@ def _level2_pending_finding() -> Iterable[Finding]:
         marker = level2_pending()
     except DatabaseError:
         return  # a database from before the marker existed: the database check asks for the update
-    if marker:
+    if marker and is_locked(cfg.data_dir / LOCK_FILE):
+        yield Finding(
+            Level.OK,
+            "A batch is running: level 2 (player totals and ratings) is applied as it goes",
+            f"A batched {marker.get('command', 'ingest')} run started {marker.get('since', '?')} holds the lock.",
+        )
+    elif marker:
         yield Finding(
             Level.WARN,
             "Level 2 (player totals and ratings) may be behind the missions: a long run was interrupted",
@@ -359,7 +367,7 @@ def ingestion_check(cfg: Config) -> Iterable[Finding]:
         )
     if not gave_up and not waiting:
         yield Finding(Level.OK, "No failed missions")
-    yield from _level2_pending_finding()
+    yield from _level2_pending_finding(cfg)
     if unknown:
         listed = ", ".join(f"{name} ({n}x)" for name, n in sorted(unknown.items())[:MAX_LISTED])
         yield Finding(

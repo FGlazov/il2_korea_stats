@@ -118,7 +118,7 @@ def recompute_players(
     if ratings is not None:
         recompute_ratings(ratings, tours, payload_elo=False, all_time=False)
     refresh_player_tour_medals(ids, tours)
-    rollup_players(ids, ratings)
+    rollup_players(ids, ratings, tours)
 
 
 def recompute_player_tours(player_ids: Iterable[int], tour_ids: Iterable[int] | None = None) -> None:
@@ -153,7 +153,9 @@ def refresh_player_tour_medals(player_ids: Iterable[int], tour_ids: Iterable[int
         refresh_achievement_tours(chunk, tours, rules)  # medals per tour, ingest.achievements (FR-WEB-26)
 
 
-def rollup_players(player_ids: Iterable[int], ratings: RatingRules | None = None) -> None:
+def rollup_players(
+    player_ids: Iterable[int], ratings: RatingRules | None = None, tour_ids: Iterable[int] | None = None
+) -> None:
     """The all-time rows of these players as a roll-up of their per-tour rows (`ingest.rollup`; never level 1):
 
     - `Player` counters = SUM of `PlayerTour` (zero without a row, the identity stays), `PlayerAircraft` = SUM of
@@ -163,6 +165,7 @@ def rollup_players(player_ids: Iterable[int], ratings: RatingRules | None = None
     - the streaks (best tour), the medals (highest tier of the tours, cumulative ones summed from the `PlayerTour`
       counters) and, with `ratings`, the Elo (the best tour's final rating, games summed: `rollup_ratings`)."""
     ids = sorted(set(player_ids))
+    tours = None if tour_ids is None else sorted(set(tour_ids))
     rules = applied_rules().active()
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
@@ -195,7 +198,7 @@ def rollup_players(player_ids: Iterable[int], ratings: RatingRules | None = None
         rollup_killboard(chunk)
         rollup_type_killboard(chunk)
         rollup_streaks(chunk)
-        rollup_achievements(chunk, rules)
+        rollup_achievements(chunk, rules, tours)
         if ratings is not None:
             rollup_ratings(ratings, chunk)
 
@@ -383,7 +386,7 @@ def _recompute_all_time(scope: _TourScope, ratings: RatingRules | None) -> None:
     counters, loadouts, killboards, identity, streaks, medals, Elo), then the types' all-time rows (`AircraftStats`,
     the null-tour `TourAircraftStats`, `PlayerAircraftScope`, payload, mods, matchups, ammo: the sums of their tour
     rows; they read the rolled-up `PlayerAircraft` rows, so they come after) and the activity days."""
-    rollup_players(scope.players, ratings)
+    rollup_players(scope.players, ratings, scope.tours)
     rollup_aircraft_stats(scope.aircraft)
     rollup_matchups(scope.pairs)
     rollup_aircraft_ammo(scope.ammo_aircraft)

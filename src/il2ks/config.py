@@ -361,7 +361,7 @@ def load_rule_set(reader: _Reader, server_tz_name: str) -> RuleSet:
     replay = ReplayRules(resupply_allowed=resupply_allowed, toggles=rules, **rule_values)
 
     rating_defaults = RatingRules()
-    ratings = RatingRules(
+    ratings_values = RatingRules(
         start=reader.non_negative("ratings", "start", rating_defaults.start),
         k=reader.non_negative("ratings", "k", rating_defaults.k),
         cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
@@ -388,6 +388,7 @@ def load_rule_set(reader: _Reader, server_tz_name: str) -> RuleSet:
             "score", "min_air_superiority_minutes", board_defaults.min_air_superiority_minutes
         ),
     )
+    ratings = dataclasses.replace(ratings_values, min_games=leaderboards.min_elo_games)  # the all-time Elo's minimum
     # The Elo and ground-per-hour marks use the minimums of the boards they sit next to, so marks and boards agree.
     marks = MarkRules(
         min_sorties=reader.positive_int("marks", "min_sorties", MarkRules().min_sorties),

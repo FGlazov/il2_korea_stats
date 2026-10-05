@@ -57,7 +57,7 @@ def test_template_lists_every_config_key() -> None:
         "replay": {f.name for f in dataclasses.fields(ReplayRules)}
         - {"toggles"},  # the toggles are the [rules] section
         "rules": {f.name for f in dataclasses.fields(RuleToggles)},
-        "ratings": {f.name for f in dataclasses.fields(RatingRules)},
+        "ratings": {f.name for f in dataclasses.fields(RatingRules)} - {"min_games"},  # the [score] min_elo_games
         "marks": {f.name for f in dataclasses.fields(MarkRules)}
         - {
             "min_elo_games",

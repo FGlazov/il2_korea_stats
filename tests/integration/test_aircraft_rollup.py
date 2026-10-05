@@ -276,3 +276,20 @@ def test_upgrade_backfill_rebuilds_the_side_counters_of_an_old_database() -> Non
     assert sorted(TourAircraftStats.objects.values_list("pk", "sorties_redfor", "sorties_blufor")) == sides
     assert sorted(AircraftStats.objects.values_list("pk", "side")) == all_time
     assert migrate.BACKFILL_TOUR_AIRCRAFT_SIDES in SiteSettings.objects.get(pk=1).backfills_done
+
+
+def test_a_refresh_reads_only_its_tours_ammo_rows() -> None:
+    """Hits to destroy: the types come from the touched tours' rows and only those tours' `MissionAircraftAmmo(Mix)`
+    rows are summed; the all-time rows are the sum of the tour rows (never the whole ammo history again)."""
+    for _, step in STEPS[:4]:
+        step()
+    october = Tour.objects.order_by("started_at")[1]
+    with CaptureQueriesContext(connection) as queries:
+        refresh_tours([october.pk], None, payload_elo=False)
+    checked = 0
+    for q in queries:
+        sql = q["sql"].lower()
+        if 'from "il2ks_db_missionaircraftammo' in sql:
+            assert f'"tour_id" in ({october.pk})' in sql or f'"tour_id" = {october.pk}' in sql, sql
+            checked += 1
+    assert checked, "no ammo level-1 query was captured"
