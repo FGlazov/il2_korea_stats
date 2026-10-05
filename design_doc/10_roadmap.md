@@ -242,7 +242,7 @@ decisions are made):
   mission order. Today `reprocess` recomputes level 2 per mission and then rebuilds everything. Final state must equal a rebuild; small
   batches unchanged. Estimated 15-25% faster big batches.
 
-- ⏳ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,
+- ✅ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,
   top pilots, hits to destroy and ammo mixes follow the tour (all time included), the role toggle and the significant-mods filter (for
   hits to destroy and ammo mixes: the destroyed aircraft's sortie); the "not filtered" notes go.
 
