@@ -2,9 +2,12 @@
 `Kill` rows.
 
 A pair's row for player A reads only kills between A and the opponent, but its mirror row belongs to the opponent. So
-`recompute_killboard(players)` recomputes *every pair that touches these players*, both mirror rows, from all their
-kills: the rows come out the same whether a mission's players were recomputed in one batch or one by one, and
-the same as a rebuild of everybody (`il2ks rebuild-aggregates` reaches it through `aggregates.recompute_players`).
+`recompute_killboard(players, tours)` recomputes the per-tour rows of *every pair that touches these players*, both
+mirror rows, from the kills of those tours only: the rows come out the same whether a mission's players were recomputed
+in one batch or one by one, and the same as a rebuild of everybody (`il2ks rebuild-aggregates` reaches it through
+`aggregates.recompute_players`). The all-time rows (`PlayerKillboard`) are the roll-up of the tour rows
+(`rollup_killboard`, `ingest.rollup`): counts SUM, `last_at` / `last_mission` from the newest row. They never read
+`Kill`.
 
 What counts: a `Kill` row with credit `kill` (not friendly fire) whose killer and victim are pilot sorties of two
 different accounts. With `[killboard] assists` on, a row with credit `assist` counts too, in its own `assists` column
@@ -16,20 +19,22 @@ The setting that decides about assists is the one the aggregates were last rebui
 `SiteSettings.killboard_assists` (`aggregates.rebuild_aggregates` writes it): a config change takes effect with
 `il2ks rebuild-aggregates`, and the incremental updates between rebuilds follow the last rebuild, never the file.
 
-Per tour (`PlayerTourKillboard`): the same pairs counted over the kills of that tour's missions. One pass over the
-kills fills both; `tour_ids` limits which tours' rows are rewritten (None = all), the all-time rows always are.
+Per tour (`PlayerTourKillboard`): the same pairs counted over the kills of that tour's missions; `tour_ids` limits
+which tours' rows are rewritten (None = all).
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from typing import cast
 
-from django.db.models import F, Q
+from django.db.models import F, Q, QuerySet
 from django.db.models.manager import BaseManager
 
 from il2ks.db.models import Kill, KillCredit, PlayerKillboard, PlayerTourKillboard, Role
 from il2ks.db.site import get_site_settings
 from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.rollup import Row, rollup
 
 
 @dataclass(slots=True)
@@ -43,51 +48,42 @@ class _Pair:
 
 
 type _Values = tuple[int, int, int, int, datetime, int]  # kills, deaths, assists, assists received, last_at, mission
-type _Key = tuple[int, int, int | None]  # player, opponent, tour (None = all time)
+type _Key = tuple[int, int, int]  # player, opponent, tour
 
 
 def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
-    """Make the killboard rows of every pair touching a player in `chunk` equal what the kills say."""
+    """Make the per-tour killboard rows (`PlayerTourKillboard`) of every pair touching a player in `chunk` equal what
+    the kills of `tour_ids` (None = every tour) say. Reads only those tours' kills; `rollup_killboard` builds
+    the all-time rows from the tour rows."""
     with_assists = get_site_settings().killboard_assists
     credits = [KillCredit.KILL, KillCredit.ASSIST] if with_assists else [KillCredit.KILL]
     tours = None if tour_ids is None else set(tour_ids)
-    kills = (
-        Kill.objects.filter(
-            Q(killer_sortie__player_id__in=chunk) | Q(victim_sortie__player_id__in=chunk),
-            credit__in=credits,
-            is_friendly=False,
-            killer_sortie__role=Role.PILOT,
-            victim_sortie__role=Role.PILOT,
-        )
-        .exclude(killer_sortie__player_id=F("victim_sortie__player_id"))
+    rows = (
+        pair_kills(chunk, credits, tours)
         .order_by("time", "pk")
         .values_list(
             "killer_sortie__player_id", "victim_sortie__player_id", "credit", "time", "mission_id", "mission__tour_id"
         )
     )
-    pairs: dict[tuple[int, int, int | None], _Pair] = {}
-    for killer, victim, credit, time, mission_id, tour_id in kills.iterator():
+    pairs: dict[tuple[int, int, int], _Pair] = {}
+    for killer, victim, credit, time, mission_id, tour_id in rows.iterator():
         low, high = sorted((killer, victim))
-        scopes: tuple[int | None, ...] = (
-            (None,) if tour_id is None or (tours is not None and tour_id not in tours) else (None, tour_id)
-        )
-        for scope in scopes:
-            pair = pairs.setdefault((low, high, scope), _Pair())
-            if credit == KillCredit.ASSIST:
-                if killer == low:
-                    pair.assists_low += 1
-                else:
-                    pair.assists_high += 1
-            elif killer == low:
-                pair.kills += 1
+        pair = pairs.setdefault((low, high, tour_id), _Pair())
+        if credit == KillCredit.ASSIST:
+            if killer == low:
+                pair.assists_low += 1
             else:
-                pair.deaths += 1
-            pair.last_at, pair.last_mission_id = time, mission_id  # ordered by time: the last one wins
+                pair.assists_high += 1
+        elif killer == low:
+            pair.kills += 1
+        else:
+            pair.deaths += 1
+        pair.last_at, pair.last_mission_id = time, mission_id  # ordered by time: the last one wins
 
     wanted: dict[_Key, _Values] = {}
-    for (low, high, scope), pair in pairs.items():
+    for (low, high, tour_id), pair in pairs.items():
         assert pair.last_at is not None
-        wanted[(low, high, scope)] = (
+        wanted[(low, high, tour_id)] = (
             pair.kills,
             pair.deaths,
             pair.assists_low,
@@ -95,7 +91,7 @@ def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None)
             pair.last_at,
             pair.last_mission_id,
         )
-        wanted[(high, low, scope)] = (
+        wanted[(high, low, tour_id)] = (
             pair.deaths,
             pair.kills,
             pair.assists_high,
@@ -104,22 +100,55 @@ def recompute_killboard(chunk: list[int], tour_ids: Iterable[int] | None = None)
             pair.last_mission_id,
         )
 
-    touching = Q(player_id__in=chunk) | Q(opponent_id__in=chunk)
-    all_time = {key: values for key, values in wanted.items() if key[2] is None}
-    _sync(
-        PlayerKillboard.objects,
-        {(p, o): v for (p, o, _), v in all_time.items()},
-        {(r.player_id, r.opponent_id): r for r in PlayerKillboard.objects.filter(touching)},
-        lambda key: {"player_id": key[0], "opponent_id": key[1]},
-    )
-    per_tour = PlayerTourKillboard.objects.filter(touching)
+    per_tour = PlayerTourKillboard.objects.filter(_touching(chunk))
     if tours is not None:
         per_tour = per_tour.filter(tour_id__in=tours)
     _sync(
         PlayerTourKillboard.objects,
-        {key: v for key, v in wanted.items() if key[2] is not None},
+        wanted,
         {(r.player_id, r.opponent_id, r.tour_id): r for r in per_tour},
         lambda key: {"player_id": key[0], "opponent_id": key[1], "tour_id": key[2]},
+    )
+
+
+def pair_kills(chunk: list[int], credits: list[KillCredit], tours: set[int] | None) -> QuerySet[Kill]:
+    """The kill rows the per-tour pairs of these players are counted from: of the missions of `tours` (None = every
+    tour), between pilot sorties of two accounts, one of them in `chunk`."""
+    kills = Kill.objects.filter(
+        Q(killer_sortie__player_id__in=chunk) | Q(victim_sortie__player_id__in=chunk),
+        credit__in=credits,
+        is_friendly=False,
+        killer_sortie__role=Role.PILOT,
+        victim_sortie__role=Role.PILOT,
+        mission__tour_id__isnull=False,
+    )
+    if tours is not None:
+        kills = kills.filter(mission__tour_id__in=tours)
+    return kills.exclude(killer_sortie__player_id=F("victim_sortie__player_id"))
+
+
+def _touching(chunk: list[int]) -> Q:
+    return Q(player_id__in=chunk) | Q(opponent_id__in=chunk)
+
+
+def rollup_killboard(chunk: list[int]) -> None:
+    """`PlayerKillboard` of every pair touching a player in `chunk` = the per-tour rows added up: counts SUM, `last_at`
+    MAX, `last_mission` that of the newest row. Reads the tour rows only (never `Kill`)."""
+
+    def newest(rows: Sequence[Row]) -> object:
+        return max(enumerate(rows), key=lambda item: (cast(datetime, item[1]["last_at"]), item[0]))[1][
+            "last_mission_id"
+        ]
+
+    rollup(
+        PlayerKillboard,
+        PlayerKillboard.objects.filter(_touching(chunk)),
+        PlayerTourKillboard.objects.filter(_touching(chunk)),
+        key=("player_id", "opponent_id"),
+        sums=("kills", "deaths", "assists", "assists_received"),
+        maxes=("last_at",),
+        derived={"last_mission_id": newest},
+        source_fields=("last_mission_id",),
     )
 
 

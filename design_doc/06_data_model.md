@@ -113,14 +113,16 @@ pages until gunner stats exist (FR-WEB-14).
 
 ## Level 2: cross-mission tables (recomputed at ingest, rebuildable from level 1)
 
-All of it is rebuilt by `il2ks rebuild-aggregates` and kept equal to it by the incremental updates (tests compare both). Hidden players stay in
+All of it is rebuilt by `il2ks rebuild-aggregates` and kept equal to it by the incremental updates (tests compare both). The player-side all-time rows (`Player` counters, `PlayerAircraft`, `PlayerPool`, `PlayerAircraftBuild`, `PlayerKillboard`, `PlayerTypeKillboard`, identity) are roll-ups (SUM / MAX / MIN) of their per-tour rows, never computed from level 1 (doc 14). Hidden players stay in
 every aggregate: hiding is presentation only (FR-ADM-3).
 
 ```
 Player         id, account_uuid (unique), current_name, name_lower (indexed, for search),
                first_seen, last_seen, is_hidden, + all-time counters,
                elo_prop, elo_jet (float), elo_prop_games, elo_jet_games (int)   -- FR-WEB-19, not counters: a global replay (doc 13)
-PlayerName     player, name, name_lower, first_seen, last_seen
+PlayerName     player, name, name_lower, first_seen, last_seen   -- MIN / MAX per name over PlayerTourName
+PlayerTourName player, tour, name, first_seen, last_seen, last_spawn   -- `[PROPOSED]` identity per tour, from the sorties of all roles; Player.first_seen / last_seen /
+                                                                         -- current_name (the name of the latest last_spawn) roll up from it (doc 14)
 PlayerAircraft player, aircraft, + all-time counters, elo, elo_games    -- per-aircraft table on profile; the Elo is per (player, type) from
                                                                            -- the same replay (OQ-49), written by `recompute_ratings`, not a sum
 Tour           id, title, started_at, ended_at (null = current), mode snapshot   -- TD-26
@@ -180,7 +182,8 @@ PlayerKillboard player, opponent, kills, deaths, assists, assists_received, last
                -- FR-WEB-9: two mirror rows per pair (one per perspective), so a board is one indexed read; `assists` is 0 unless
                -- `[killboard] assists` is on; a pair with only assists has kills = deaths = 0
 PlayerTourKillboard player, opponent, tour, kills, deaths, assists, assists_received, last_at, last_mission   -- the same within one tour
-PlayerTypeKillboard player, tour (null = all time), enemy_aircraft, kills, deaths, kills_with, deaths_in
+PlayerTypeKillboard player, tour (null = all time), enemy_aircraft, kills, deaths, kills_with, deaths_in, kills_with_counts, deaths_in_counts
+               -- the two JSON counts (own aircraft type id -> n) are on the tour rows only: the all-time kills_with / deaths_in are the most used type of their sum
                -- FR-WEB-9: the killboard by aircraft type; `kills` = the player's PvP air kill credits on that enemy type, `deaths` = the credits of
                -- pilots flying that type on the player's sorties; `kills_with` / `deaths_in` = the player's own type most used in those fights
                -- (ties: lowest id). Hidden opponents count; no assists. Built by `ingest.type_board`, recomputed per affected player
