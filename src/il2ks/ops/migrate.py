@@ -66,6 +66,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
 
 BACKFILL_TOURS = "tours"  # missions without a tour, per-tour rows, best streaks
 BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
+BACKFILL_TOUR_ELO = "tour_elo"  # Elo per tour (reset at every tour, OQ-128)
 BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
 BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
@@ -124,6 +125,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_TOURS, _check_tours),
         (BACKFILL_SCORES, _check_scores),
         (BACKFILL_TYPE_RATINGS, _check_type_ratings),
+        (BACKFILL_TOUR_ELO, _check_tour_elo),
         (BACKFILL_TYPE_KILLBOARD, _check_type_killboard),
         (BACKFILL_INTERCEPTION, _check_interception),
         (BACKFILL_ASSIST_SPLIT, _check_assist_split),
@@ -512,6 +514,17 @@ def _check_type_ratings() -> bool:
 
     rows = PlayerAircraft.objects.all()
     return rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists())
+
+
+def _check_tour_elo() -> bool:
+    """A database from before the Elo per tour (OQ-128) has rated games on `Player` but none on the per-tour pool rows:
+    level 2 must be rebuilt, which replays every tour alone and re-derives the all-time Elo from them."""
+    from django.db.models import Q
+
+    from il2ks.db.models import Player, PlayerTourPool
+
+    rated = Q(elo_prop_games__gt=0) | Q(elo_jet_games__gt=0)
+    return Player.objects.filter(rated).exists() and not PlayerTourPool.objects.filter(elo_games__gt=0).exists()
 
 
 def _check_scores() -> bool:
