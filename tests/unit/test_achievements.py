@@ -280,4 +280,4 @@ def test_the_medal_hint_punctuation_is_translatable() -> None:
     with translation.override("en"):
         assert "Gold: 5 kills." in medal.hint
     with translation.override("fr"):
-        assert "Gold : 5 kills." in medal.hint
+        assert "Gold\u00a0: 5 kills." in medal.hint

@@ -233,7 +233,11 @@ class Medal:
     @property
     def hint(self) -> str:
         """The hover text: what it measures, the tier and threshold, the rarity (also read out to screen readers)."""
-        parts = [str(self.description), f"{self.tier_name}: {self.threshold}.", self.rarity.text]
+        # Translators: part of a medal's hover text: the tier and what it takes, e.g. "Gold: 25 kills." %(tier)s is the
+        # tier's name (Bronze, Silver, Gold, Platinum), %(threshold)s the requirement. The punctuation is yours to adapt
+        # (French: a no-break space before the colon).
+        tier = _("%(tier)s: %(threshold)s.") % {"tier": str(self.tier_name), "threshold": self.threshold}
+        parts = [str(self.description), tier, self.rarity.text]
         return " ".join(p for p in parts if p)
 
 
