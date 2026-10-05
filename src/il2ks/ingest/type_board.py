@@ -17,7 +17,7 @@ from typing import cast
 from django.db.models import F, Q, QuerySet
 
 from il2ks.db.models import Kill, KillCredit, PlayerTypeKillboard, Role
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import delete_pks, update_rows
 from il2ks.ingest.rollup import Row, rollup
 
 type _Key = tuple[int, int, int]  # player, tour, enemy aircraft
@@ -122,7 +122,7 @@ def recompute_type_killboard(chunk: list[int], tour_ids: Iterable[int] | None = 
             row.kills, row.deaths, row.kills_with_id, row.deaths_in_id = values[:4]
             row.kills_with_counts, row.deaths_in_counts = values[4], values[5]
             changed.append(row)
-    PlayerTypeKillboard.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing left to count
+    delete_pks(PlayerTypeKillboard.objects, [r.pk for r in existing.values()])  # nothing left to count
     update_rows(
         PlayerTypeKillboard,
         changed,

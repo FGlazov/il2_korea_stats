@@ -293,3 +293,28 @@ def test_a_refresh_reads_only_its_tours_ammo_rows() -> None:
             assert f'"tour_id" in ({october.pk})' in sql or f'"tour_id" = {october.pk}' in sql, sql
             checked += 1
     assert checked, "no ammo level-1 query was captured"
+
+
+def test_player_scope_rollup_float_sums_do_not_depend_on_the_summing_order() -> None:
+    """The all-time scope row sums the tour rows: 0.1 + 0.2 + 0.3 is 0.6000000000000001 as a float, whatever order
+    the database adds in, so the float counters are rounded at write like `rollup.py` does (rebuild == incremental)."""
+    from il2ks.db.models import GameObject, Player, PlayerAircraftScope, Tour
+    from il2ks.ingest.aircraft_stats import _rollup_player_scopes  # pyright: ignore[reportPrivateUsage]
+
+    aircraft = GameObject.objects.create(log_name="MiG-X", display_name="MiG-X", cls="fighter")
+    player = Player.objects.create(
+        account_uuid="acc-x", current_name="X", name_lower="x", first_seen=STARTED_AT, last_seen=STARTED_AT
+    )
+    for i, seconds in enumerate((0.1, 0.2, 0.3)):
+        tour = Tour.objects.create(
+            title=f"T{i}",
+            started_at=STARTED_AT + timedelta(days=40 * i),
+            ended_at=STARTED_AT + timedelta(days=40 * i + 30),
+            mode="monthly",
+        )
+        PlayerAircraftScope.objects.create(
+            player=player, aircraft=aircraft, tour=tour, role=AIR, mod_pattern="x", flight_time_s=seconds
+        )
+    _rollup_player_scopes([aircraft.pk])
+    total = PlayerAircraftScope.objects.get(tour__isnull=True)
+    assert total.flight_time_s == 0.6

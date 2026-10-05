@@ -14,7 +14,7 @@ from django.db.models import Count
 
 from il2ks.db.models import BuildKind, PlayerAircraftBuild
 from il2ks.ingest.counters import counted_sorties
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import delete_pks, update_rows
 from il2ks.ingest.rollup import rollup
 
 type _Key = tuple[int, int, int, int, str]  # player, aircraft, tour, payload id, name
@@ -62,7 +62,7 @@ def recompute_builds(chunk: list[int], tour_ids: list[int] | None) -> None:
         elif row.sorties != n:
             row.sorties = n
             changed.append(row)
-    PlayerAircraftBuild.objects.filter(pk__in=[r.pk for r in existing.values()] + stale).delete()
+    delete_pks(PlayerAircraftBuild.objects, [r.pk for r in existing.values()] + stale)
     update_rows(PlayerAircraftBuild, changed, ["sorties"])
     PlayerAircraftBuild.objects.bulk_create(new)
 

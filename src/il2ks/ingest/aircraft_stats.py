@@ -76,12 +76,14 @@ from il2ks.ingest.counters import (
     FLOAT_COUNTERS,
     SCORE_DECIMALS,
     SORTIE_COUNTERS,
+    CounterValues,
     clean_counters,
     counted_sorties,
     round_scores,
 )
-from il2ks.ingest.dbutil import sync_rows, update_partial_rows, update_rows
+from il2ks.ingest.dbutil import delete_pks, sync_rows, update_partial_rows, update_rows
 from il2ks.ingest.rating_games import rated_games
+from il2ks.ingest.rollup import ROUND_DECIMALS
 
 CHUNK = 2000  # types per batch, as aggregates.CHUNK
 ELO_DECIMALS = 3  # averages are rounded so a rebuild can't differ by float noise
@@ -336,18 +338,28 @@ def _recompute_player_scopes(
 def _rollup_player_scopes(chunk: list[int]) -> None:
     """The all-time `PlayerAircraftScope` rows of these types = the sum of each player's tour rows per (type, role,
     pattern), except the every-role, unfiltered one (`PlayerAircraft`)."""
-    wanted: dict[tuple[int, int, int | None, str, str], Mapping[str, int | float]] = {}
+    totals: dict[tuple[int, int, int | None, str, str], CounterValues] = {}
     rows = (
         PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
-        .values("aircraft_id", "player_id", "role", "mod_pattern")
-        .annotate(**_SUMS)
-        .order_by()
+        .order_by("aircraft_id", "player_id", "role", "mod_pattern", "tour_id")  # fixed order: the same float additions
+        .values("aircraft_id", "player_id", "role", "mod_pattern", *COUNTER_FIELDS)
     )
     for row in rows:
         if row["role"] == ALL and not row["mod_pattern"]:
             continue
-        wanted[(row["aircraft_id"], row["player_id"], None, row["role"], row["mod_pattern"])] = clean_counters(row)
+        total = totals.setdefault(
+            (row["aircraft_id"], row["player_id"], None, row["role"], row["mod_pattern"]),
+            {name: 0.0 if name in FLOAT_COUNTERS else 0 for name in COUNTER_FIELDS},
+        )
+        for name in COUNTER_FIELDS:
+            total[name] += row[name]
+    wanted = {key: _rounded(total) for key, total in totals.items()}
     _sync_player_scopes(wanted, PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=True))
+
+
+def _rounded(totals: CounterValues) -> CounterValues:
+    """`totals` summed in Python with every float counter rounded (`ROUND_DECIMALS`, as `rollup.py` does at write)."""
+    return {name: round(value, ROUND_DECIMALS) if name in FLOAT_COUNTERS else value for name, value in totals.items()}
 
 
 def _sync_player_scopes(
@@ -756,7 +768,7 @@ def _sync_matchups(counts: dict[ScopedPair, int], existing: dict[ScopedPair, Air
         elif row.kills != kills:
             row.kills = kills
             changed.append(row)
-    AircraftMatchup.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
+    delete_pks(AircraftMatchup.objects, [row.pk for row in existing.values()])
     update_rows(AircraftMatchup, changed, ["kills"])
     AircraftMatchup.objects.bulk_create(new)
 

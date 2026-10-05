@@ -20,7 +20,7 @@ from typing import cast
 from django.db.models import Max, Min, QuerySet
 
 from il2ks.db.models import Player, PlayerName, PlayerSortie, PlayerTourName
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import delete_pks, update_rows
 from il2ks.ingest.rollup import Row, rollup
 
 type _Key = tuple[int, int, str]  # player, tour, name
@@ -59,7 +59,7 @@ def recompute_tour_names(chunk: list[int], tour_ids: list[int] | None) -> None:
         elif (row.first_seen, row.last_seen, row.last_spawn) != (first, last, spawned):
             row.first_seen, row.last_seen, row.last_spawn = first, last, spawned
             changed.append(row)
-    PlayerTourName.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()  # no sortie under this name left
+    delete_pks(PlayerTourName.objects, [r.pk for r in existing.values()])  # no sortie under this name left
     update_rows(PlayerTourName, changed, ["first_seen", "last_seen", "last_spawn"])
     PlayerTourName.objects.bulk_create(new)
 

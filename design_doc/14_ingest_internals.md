@@ -188,7 +188,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   4. the tours' streaks (`PlayerStreak` / `PlayerBestStreak` / `PlayerStreakRun`, `refresh_streak_tours`; the rule runs once per **track**, air and ground, on the tour's sorties of that track, doc 13) and medals (`PlayerAchievement`, `refresh_achievement_tours`, doc 17), read from the players' sorties of the tour alone,
      with the peaks of step 3 (`refresh_player_tour_medals`).
   *All-time step* (sums, maxima and minima of the tour rows; no level 1):
-  5. `rollup_players` for the players, per chunk of 400: `Player` counters = SUM of `PlayerTour` (zero without a row, the identity stays), `PlayerAircraft` = SUM of `PlayerTourAircraft`, `PlayerPool` = SUM of `PlayerTourPool`, the
+  5. `rollup_players` for the players, per chunk of `CHUNK` (2000): `Player` counters = SUM of `PlayerTour` (zero without a row, the identity stays), `PlayerAircraft` = SUM of `PlayerTourAircraft`, `PlayerPool` = SUM of `PlayerTourPool`, the
      all-time `PlayerAircraftBuild` = SUM of `sorties` per (aircraft, loadout) over the tour rows, `PlayerKillboard` = SUM per mirror pair with `last_at` MAX and `last_mission` of the newest row, `PlayerTypeKillboard` kills / deaths = SUM
      (`kills_with` / `deaths_in`, an argmax, come from the per-tour counts, ties: the lowest id), the identity (`Player.first_seen` / `last_seen` = MIN / MAX over `PlayerTourName`, `current_name` = the name with the latest last spawn,
      `PlayerName` = MIN / MAX per name; a player without any such row keeps theirs), then `rollup_streaks` (best streak = max over the tours, the current run), `rollup_achievements` (highest tier over the tours; the cumulative medals are

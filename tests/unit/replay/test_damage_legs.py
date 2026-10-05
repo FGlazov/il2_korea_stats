@@ -114,7 +114,6 @@ def test_an_ai_aircraft_takes_at_most_one_whole_health() -> None:
     assert entry.damage_dealt == pytest.approx(1.0)
 
 
-@pytest.mark.xfail(strict=True, reason="turrets folded into the aircraft")
 def test_an_ai_aircraft_with_turrets_never_takes_more_than_one_whole_health() -> None:
     """The airframe and an AI turret were capped one by one and then folded into the aircraft: up to 200%."""
     sc = _scenario()

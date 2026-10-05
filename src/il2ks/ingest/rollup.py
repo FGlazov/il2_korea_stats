@@ -19,7 +19,7 @@ from typing import cast
 from django.db import models
 from django.db.models.manager import BaseManager
 
-from il2ks.ingest.dbutil import sync_rows, update_rows
+from il2ks.ingest.dbutil import IN_BATCH, sync_rows, update_rows
 
 ROUND_DECIMALS = 4
 """Float totals (flight time, friendly damage, time on target, scores) are stored rounded to this many decimals."""
@@ -95,10 +95,12 @@ def _update_existing[M: models.Model](
         if any(target.get(name, value) != value for name, value in zip(fields, values, strict=True)):
             new_values[pk] = target
     changed: list[M] = []
-    for row in model._default_manager.filter(pk__in=list(new_values)):
-        for name, value in new_values[row.pk].items():
-            setattr(row, name, value)
-        changed.append(row)
+    pks = list(new_values)
+    for start in range(0, len(pks), IN_BATCH):  # a 2,000-player chunk can change more rows than SQLite has variables
+        for row in model._default_manager.filter(pk__in=pks[start : start + IN_BATCH]):
+            for name, value in new_values[row.pk].items():
+                setattr(row, name, value)
+            changed.append(row)
     update_rows(model, changed, fields)
 
 

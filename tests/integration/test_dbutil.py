@@ -121,7 +121,6 @@ def test_sync_rows_reads_without_loading_models_and_writes_nothing_when_equal() 
 SQLITE_VARIABLE_LIMIT = 32766
 
 
-@pytest.mark.xfail(strict=True, reason="unbatched stale delete")
 def test_sync_rows_deletes_more_stale_rows_than_sqlite_has_variables() -> None:
     """A shrinking big tour (`rebuild-aggregates --retour`) leaves tens of thousands of stale rows: one
     `pk__in=[...]` delete would hit "too many SQL variables"."""
@@ -131,10 +130,9 @@ def test_sync_rows_deletes_more_stale_rows_than_sqlite_has_variables() -> None:
     assert not PlayerTour.objects.exists()
 
 
-@pytest.mark.xfail(strict=True, reason="unbatched stale delete")
 def test_sync_best_deletes_more_stale_rows_than_sqlite_has_variables() -> None:
     from il2ks.db.models import PlayerBestStreak, StreakKind, StreakTrack
-    from il2ks.ingest.streaks import _sync_best
+    from il2ks.ingest.streaks import _sync_best  # pyright: ignore[reportPrivateUsage]
 
     tour, players = _tour_rows(6000)
     kinds = list(StreakKind.values)

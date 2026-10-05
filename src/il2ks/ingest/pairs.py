@@ -33,7 +33,7 @@ from django.db.models.manager import BaseManager
 
 from il2ks.db.models import Kill, KillCredit, PlayerKillboard, PlayerTourKillboard, Role
 from il2ks.db.site import get_site_settings
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import delete_pks, update_rows
 from il2ks.ingest.rollup import Row, rollup
 
 
@@ -186,6 +186,6 @@ def _sync[M: PlayerKillboard | PlayerTourKillboard, K](
             row.kills, row.deaths, row.assists, row.assists_received = kills, deaths, assists, received
             row.last_at, row.last_mission_id = last_at, last_mission_id
             changed.append(row)
-    manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing left to count
+    delete_pks(manager, [r.pk for r in existing.values()])  # nothing left to count
     update_rows(manager.model, changed, ["kills", "deaths", "assists", "assists_received", "last_at", "last_mission"])
     manager.bulk_create(new)

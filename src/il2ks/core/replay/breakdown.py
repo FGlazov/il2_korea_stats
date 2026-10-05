@@ -54,7 +54,8 @@ class _Breakdown:
 def _counted_on(obj: TrackedObject, target_party: Party, verdicts: dict[int, Verdict]) -> list[CountedDamage]:
     """The damage that counts on one object (`damage.py`): the aircraft's (or vehicle's) own lines, capped at 100% per
     flight leg for a player sortie (up to its cutoff), at 100% in all for any other object. Damage to a pilot, gunner
-    or crew bot, or to an AI turret of a player aircraft, is not damage to the aircraft and is left out."""
+    or crew bot, or to a turret of any aircraft (player or AI), is not damage to the aircraft and is left out, so the
+    dealt amount against one aircraft never exceeds 100%."""
     if obj.is_bot:
         return []
     if isinstance(target_party, SortieState):
@@ -62,6 +63,8 @@ def _counted_on(obj: TrackedObject, target_party: Party, verdicts: dict[int, Ver
             return []
         verdict = verdicts[target_party.index]
         return counted_damage(obj, verdict.cutoff_tick, verdict.repairs)
+    if obj is not obj.root and obj.root.info.is_air:  # an AI bomber's turret: not damage to the aircraft either
+        return []
     return counted_damage(obj)
 
 

@@ -39,7 +39,7 @@ from il2ks.db.models import (
     Tour,
 )
 from il2ks.ingest.counters import counted_sorties
-from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.dbutil import delete_pks, update_partial_rows, update_rows
 
 _FIELDS = (
     "current_sorties",
@@ -211,7 +211,7 @@ def _sync_streaks(chunk: list[int], wanted: dict[tuple[int, str], tuple[object, 
             for field, value in zip(_FIELDS, values, strict=True):
                 setattr(row, field, value)
             changed.append(row)
-    PlayerStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    delete_pks(PlayerStreak.objects, [r.pk for r in existing.values()])
     update_rows(PlayerStreak, changed, list(_FIELDS))
     PlayerStreak.objects.bulk_create(new)
 
@@ -244,7 +244,7 @@ def _sync_best(
             for field, value in zip(fields, values, strict=True):
                 setattr(row, field, value)
             changed.append(row)
-    PlayerBestStreak.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    delete_pks(PlayerBestStreak.objects, [r.pk for r in existing.values()])
     update_rows(PlayerBestStreak, changed, list(fields))
     PlayerBestStreak.objects.bulk_create(new)
 
@@ -302,7 +302,7 @@ def _sync_runs(
             for field, value in zip(fields, values, strict=True):
                 setattr(row, field, value)
             changed.append(row)
-    PlayerStreakRun.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    delete_pks(PlayerStreakRun.objects, [r.pk for r in existing.values()])
     update_rows(
         PlayerStreakRun,
         changed,

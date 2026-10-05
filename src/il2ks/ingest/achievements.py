@@ -53,7 +53,7 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import counted_sorties
-from il2ks.ingest.dbutil import sync_rows, update_rows
+from il2ks.ingest.dbutil import delete_pks, sync_rows, update_rows
 from il2ks.ingest.lock import LockBusyError, WriterLock
 
 log = logging.getLogger(__name__)
@@ -419,7 +419,7 @@ def recompute_holders() -> None:
             row.holders = holders
             row.pilots = scope_pilots
             changed.append(row)
-    AchievementHolders.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    delete_pks(AchievementHolders.objects, [r.pk for r in existing.values()])
     update_rows(AchievementHolders, changed, ["holders", "pilots"])
     AchievementHolders.objects.bulk_create(new)
 
