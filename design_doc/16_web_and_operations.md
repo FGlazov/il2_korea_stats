@@ -102,7 +102,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   "Earned in this sortie" lists the medals (+1 query); the quip (below). Timeline **hit rows are tinted**: light green for a hit given, light red for a
   hit taken (a 9% mix of the `--il2-green` / `--il2-red` theme tokens in `sorties.css`, so both themes work). Air and ground assists are listed apart.
 - **Optional columns** (FR-WEB-27, 2026-10-04): the player search, mission list, aircraft list and a player's sortie list keep their default
-  columns in their templates and offer more through a "Columns" control (`components/columns_picker.html`, a plain GET form, works without JS).
+  columns in their templates and offer more through a collapsible **"Extra columns"** (`components/columns_picker.html`: every choice a checkbox in a compact grid, open when a column is ticked, a plain GET form that works without JS; with htmx the swap keeps the open state, the focused checkbox and each table's horizontal scroll, `il2ks.js`). The first column of every `.data-table` stays pinned when the table scrolls sideways (opaque row-matching background; `data-table--sticky-2` pins a leading rank/time column and the name next to it).
   `web/columns.py` registers per list the optional `Column(key, label, cell)`; `?cols=a,b` (comma separated or repeated) picks them, unknown keys
   are ignored, they appear in registry order, and each key is also its `?sort=` key (the sort whitelists live in `queries/`; a test keeps both in
   step). Cells are plain text from counters the row already holds (+0 queries, TD-22); the page cache keys on the full URL, so the choice is

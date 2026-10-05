@@ -327,7 +327,7 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .data-table--sticky-2 tbody tr:nth-child(even) > :nth-child(2) { background: var(--row-even); }
 .data-table--sticky-2 tbody tr:hover > :nth-child(2), .data-table--sticky-2 tbody tr:has(.stretched-link:focus-visible) > :nth-child(2) { background: var(--il2-surface-hover); }
 .data-table--sticky-2 tfoot tr > :nth-child(2) { background: var(--il2-surface-2); }
-@media (max-width: 640px) { .data-table tr > :first-child:not([colspan]) { max-width: 40vw; } .data-table--sticky-2 tr > :nth-child(2) { max-width: 38vw; } }
+@media (max-width: 640px) { .data-table tbody tr > :first-child:not([colspan]) { max-width: 40vw; } .data-table--sticky-2 tbody tr > :nth-child(2) { max-width: 38vw; } .data-table thead tr > :first-child:not([colspan]) { white-space: normal; } }
 .num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .data-table--compact th, .data-table--compact td { padding-block: 0.3rem; }
 .empty-row td { padding: 2.2rem 1rem; text-align: center; color: var(--il2-muted); background: transparent !important; }
