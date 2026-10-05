@@ -37,6 +37,11 @@ msgstr "%(air)s по самолётам, %(ground)s по наземным цел
 
 # llm-draft
 #, python-format
+msgid "%(chosen)s of %(total)s extra columns shown"
+msgstr "Показано дополнительных столбцов: %(chosen)s из %(total)s"
+
+# llm-draft
+#, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
 msgstr[0] "%(counter)s ник"

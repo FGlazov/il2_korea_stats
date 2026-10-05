@@ -37,6 +37,11 @@ msgstr "%(air)s en aviones, %(ground)s en tierra; disparos efectuados desconocid
 
 # llm-draft
 #, python-format
+msgid "%(chosen)s of %(total)s extra columns shown"
+msgstr "%(chosen)s de %(total)s columnas adicionales mostradas"
+
+# llm-draft
+#, python-format
 msgid "%(counter)s nickname"
 msgid_plural "%(counter)s nicknames"
 msgstr[0] "%(counter)s apodo"

@@ -256,12 +256,44 @@ def test_extra_columns_is_a_collapsible_that_starts_open_only_with_a_ticked_colu
     plain = client.get("/players/").content.decode()
     ticked = client.get("/players/?cols=kd").content.decode()
 
-    assert "<summary><span>Extra columns</span>" in plain
+    assert "<summary><span>Extra columns</span><span" in plain
     assert "dropdown columns-picker" not in plain
     assert 'id="columns-picker" hx-preserve>' in plain
     assert 'id="columns-picker" hx-preserve open>' in ticked
     assert 'id="col-kd" name="cols" value="kd" checked' in ticked
     assert 'id="col-kd" name="cols" value="kd">' in plain
+
+
+def test_extra_columns_count_is_chosen_of_available_from_the_url(client: Client) -> None:
+    """Maintainer 2026-10-05: the badge reads 0/N with nothing ticked and k/N with k ticked (server-rendered: works
+    without JS); the visible text is aria-hidden and a translated sentence says the same to screen readers."""
+    seed_players()
+    total = len(columns.PLAYER_COLUMNS)
+
+    plain = client.get("/players/").content.decode()
+    five = client.get("/players/?cols=kd,survival&cols=assists&cols=elo_jet&cols=elo_prop&cols=bogus").content.decode()
+
+    assert f'aria-hidden="true" data-total="{total}">0/{total}</span>' in plain
+    assert f'aria-hidden="true" data-total="{total}">5/{total}</span>' in five
+    assert f"0 of {total} extra columns shown" in plain
+    assert f"5 of {total} extra columns shown" in five
+
+
+def test_extra_columns_summary_sits_inline_in_the_filter_bar_before_the_actions(client: Client) -> None:
+    """The picker is a direct child of the filter bar's form, after the filters and before the Apply/Clear block, so it
+    flows in the same row (site.css dissolves the details box); the grid is its own list for the full-width panel."""
+    seed_players()
+
+    html = client.get("/players/?q=a").content.decode()
+
+    start = html.index('<form class="filter-bar"')
+    form = html[start : html.index("</form>", start)]
+    assert (
+        form.index('<label class="filter"')
+        < form.index('<details class="columns-picker"')
+        < form.index("filter-bar__actions")
+    )
+    assert '</summary>\n  <ul class="columns-picker__grid">' in form
 
 
 def test_htmx_column_change_returns_the_results_region(client: Client) -> None:

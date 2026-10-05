@@ -3,7 +3,7 @@
   "files": {
     "static/il2ks/il2ks.js": {
       "version": 1,
-      "sha256": "521c1b598cfe1f3d5bb970bf8feac46ab8c5ebc757a536c18b5f47f1f31a809d"
+      "sha256": "e33efeae115f0e38631ce7bc697a413a92c09adb27b52c51fe7f0bf736a18a3b"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "cadc151353515563621c6b8440643517684d3580ce5cae29f2f7a094357a0b7b"
+      "sha256": "35a17e4464beb63c7255f6b3399a43a463b3a494a0c683806ff3dc394cea9c1d"
     },
     "static/il2ks/sortie.js": {
       "version": 1,
@@ -191,7 +191,7 @@
     },
     "templates/il2ks/components/columns_picker.html": {
       "version": 1,
-      "sha256": "3b4bbfaf4ffaf27f3c4a267ed85f5d50c3de963f5545536550f2f129387d08f4"
+      "sha256": "04504cd5edf6ed52b5d1557e4d4d5f7ec889855488bad66bf27a841649d95bae"
     },
     "templates/il2ks/components/dropdown.html": {
       "version": 1,
