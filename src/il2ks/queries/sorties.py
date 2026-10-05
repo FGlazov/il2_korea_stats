@@ -1,14 +1,14 @@
-"""Reads for the sortie pages (FR-WEB-5, FR-WEB-6): simple SELECTs with simple joins only (TD-22).
+"""Reads for the sortie pages (FR-WEB-5, FR-WEB-6, FR-WEB-29): simple SELECTs with simple joins only (TD-22).
 
 Hiding (FR-ADM-3): a sortie of a hidden player or of a hidden mission does not exist for the public pages
-(`visible_sortie` answers None, the sortie list leaves hidden missions out).
+(`visible_sortie` answers None, the sortie lists leave hidden missions, and the site-wide list hidden players, out).
 """
 
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
-from django.db.models import Case, ExpressionWrapper, F, FloatField, When
+from django.db.models import Case, ExpressionWrapper, F, FloatField, QuerySet, When
 from django.db.models.expressions import Combinable, Expression
 
 from il2ks.db.models import (
@@ -106,6 +106,8 @@ class SortieFilters:
     role: str = ""
     combat_role: str = ""
     tour: Tour | None = None
+    pilot: str = ""
+    """The site-wide list's pilot search: the name the pilot flew under (`name_at_time`) contains it, any case."""
 
 
 def parse_filters(raw: dict[str, str], aircraft_ids: Collection[int]) -> SortieFilters:
@@ -119,15 +121,33 @@ def parse_filters(raw: dict[str, str], aircraft_ids: Collection[int]) -> SortieF
     )
 
 
+SEAT_ANY = "any"
+"""`?seat=any` on the site-wide list: pilot and gunner sorties together (the default is pilot sorties only, like the
+statistics, `?seat=gunner` the gunners)."""
+MAX_PILOT_QUERY = 64
+
+
+def parse_seat(raw: str) -> str:
+    """The site-wide list's seat filter as a `PlayerSortie.role` value ('' = any seat): no parameter = pilots only,
+    `gunner` = gunners, `any` = both; an unknown value is the default."""
+    if raw == Role.GUNNER.value:
+        return Role.GUNNER.value
+    return "" if raw == SEAT_ANY else Role.PILOT.value
+
+
+def parse_pilot(raw: str) -> str:
+    """The pilot search text: trimmed, at most `MAX_PILOT_QUERY` characters."""
+    return raw.strip()[:MAX_PILOT_QUERY]
+
+
 def player_aircraft(player: Player) -> list[PlayerAircraft]:
     """The aircraft types a player has flown (the filter's choices), by name."""
     rows = PlayerAircraft.objects.filter(player=player).select_related("aircraft")
     return list(rows.order_by("aircraft__display_name", "aircraft_id"))
 
 
-def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) -> Page:
-    """One page of a player's sorties in visible missions: filtered, sorted (`sort` already resolved) and paginated."""
-    rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
+def _page(rows: QuerySet[PlayerSortie], filters: SortieFilters, sort: str, number: str) -> Page:
+    """The shared part of the sortie lists: the filters, the sort (ties by pk, so paging is stable) and the page."""
     rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if filters.tour is not None:
         rows = rows.filter(mission__tour=filters.tour)
@@ -139,8 +159,26 @@ def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) 
         rows = rows.filter(role=filters.role)
     if filters.combat_role:
         rows = rows.filter(combat_role=filters.combat_role)
+    if filters.pilot:
+        rows = rows.filter(name_at_time__icontains=filters.pilot)
     rows = rows.order_by(order_by(SORT_FIELDS[sort.removeprefix("-")], sort), "-pk" if sort.startswith("-") else "pk")
     return Paginator(rows, PAGE_SIZE).get_page(number)
+
+
+def sortie_page(player: Player, filters: SortieFilters, sort: str, number: str) -> Page:
+    """One page of a player's sorties in visible missions: filtered, sorted (`sort` already resolved) and paginated."""
+    rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
+    return _page(rows, filters, sort, number)
+
+
+def all_sortie_page(filters: SortieFilters, sort: str, number: str) -> Page:
+    """One page of every sortie of the site (`/sorties/`): the visible players' sorties in visible missions, with the
+    pilot, mission and aircraft of each row, filtered, sorted (`sort` already resolved) and paginated. `filters.role`
+    is the seat ('' = both, see `parse_seat`)."""
+    rows = PlayerSortie.objects.filter(mission__is_hidden=False, player__is_hidden=False).select_related(
+        "player", "mission", "aircraft"
+    )
+    return _page(rows, filters, sort, number)
 
 
 def visible_sortie(pk: int) -> PlayerSortie | None:

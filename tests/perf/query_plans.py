@@ -79,6 +79,28 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "/players/?q=",
     ),
     QueryAllowance(
+        "il2ks_db_playersortie",
+        '"name_at_time" LIKE',
+        "the site-wide sortie list's pilot search is a substring match ('%query%') on the name the pilot flew under: a "
+        "B-tree index cannot serve a leading wildcard; the page itself walks `sortie_recent` newest first and stops "
+        "after 20 matches, only its COUNT reads the table",
+        "/sorties/",
+    ),
+    QueryAllowance(
+        "il2ks_db_playersortie",
+        '"combat_role" = %s',
+        "the site-wide sortie list's combat role filter: two values, so an index would not narrow anything; the page "
+        "walks `sortie_recent` newest first, only its COUNT reads the table (all-time scope; one tour is bounded)",
+        "/sorties/",
+    ),
+    QueryAllowance(
+        "il2ks_db_playersortie",
+        '"outcome" = %s',
+        "the site-wide sortie list's outcome filter: a handful of values, so an index would not narrow anything; the "
+        "page walks `sortie_recent` newest first, only its COUNT reads the table (all-time scope; one tour is bounded)",
+        "/sorties/",
+    ),
+    QueryAllowance(
         "il2ks_db_kill",
         "OR T",
         "the ingest's pair, type and aircraft recomputes read the kills of the pilots that flew (killer OR victim): "
@@ -140,6 +162,16 @@ SORT_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "LIKE",
         "the sort of a substring search (see its scan): the matching name rows are ordered by the player's column",
         "/players/?q=",
+    ),
+    QueryAllowance(
+        "il2ks_db_mission",
+        '"il2ks_db_mission"."tour_id" = %s',
+        "the site-wide sortie list inside ONE tour (the default view: the current tour): the planner starts from the "
+        "tour's missions (the tour index, an equality) and sorts the tour's sorties, a month of play (a few thousand "
+        "rows), by the sort the visitor picked, the default (newest first) included. The sort needs a tour column on "
+        "the sortie row to be served by an index (a denormalisation the ingest would have to keep in step); all time "
+        "walks the `sortie_recent` index without sorting",
+        "/sorties/",
     ),
     QueryAllowance(
         "il2ks_db_playertour",

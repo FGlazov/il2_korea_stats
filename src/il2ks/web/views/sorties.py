@@ -1,4 +1,5 @@
-"""A player's sortie list and the sortie detail page (FR-WEB-5, FR-WEB-6, FR-WEB-13).
+"""A player's sortie list, the site-wide sortie list and the sortie detail page (FR-WEB-5, FR-WEB-6, FR-WEB-13,
+FR-WEB-29).
 
 Both are simple reads (TD-22): the list is one paginated query plus the filter choices; the detail page reads the sortie
 with its joins, the kill rows, the counterpart sorties and the game objects the stored JSON refers to (5 queries).
@@ -18,6 +19,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
+from il2ks.queries import leaderboards as aircraft_reads
 from il2ks.queries import sorties as reads
 from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.stat_marks import sortie_thresholds
@@ -91,6 +93,53 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
             "combat_role_options": _options(CombatRole.values, display.ROLES),
             "crumbs": crumbs,
             "page_title": _("%(name)s: sorties") % {"name": player.current_name},
+        },
+    )
+
+
+def all_sorties(request: HttpRequest) -> HttpResponse:
+    """`/sorties/`: every counted sortie of the site, newest first (maintainer request 2026-10-05, FR-WEB-29).
+
+    Query parameters: `tour` (TD-26: none = the current tour, `all` = all time), `q` (pilot name contains), `aircraft`
+    (GameObject pk of a playable aircraft), `combat_role`, `outcome`, `seat` (none = pilot sorties, like the statistics;
+    `gunner`; `any`), `sort` (one of `reads.SORT_FIELDS`, '-' prefix = descending), `cols`
+    (`columns.SITE_SORTIE_COLUMNS`),
+    `page`. Unknown values are ignored. Hidden players and hidden missions are left out (their sortie page is a 404).
+
+    Context: tours, tour (None = all time), quiet_tour, page_obj (PlayerSortie rows with player, mission and
+    aircraft), sort, seat (the parsed seat value for the filter), aircraft_options, outcome_options, seat_options,
+    combat_role_options, optional_columns, columns, colspan, page_title.
+    Reads: site context (2), tours, aircraft choices, count, page."""
+    planes = aircraft_reads.aircraft_options()
+    language = get_language() or "en"
+    choice = tour_choice_from(request.GET)
+    filters = replace(
+        reads.parse_filters(
+            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "combat_role")}, {p.pk for p in planes}
+        ),
+        tour=choice.selected,
+        role=reads.parse_seat(request.GET.get("seat", "")),
+        pilot=reads.parse_pilot(request.GET.get("q", "")),
+    )
+    sort = reads.resolve_sort(request.GET.get("sort", ""))
+    shown = columns.chosen(request.GET, columns.SITE_SORTIE_COLUMNS)
+    page = reads.all_sortie_page(filters, sort, request.GET.get("page", "1"))
+    return render(
+        request,
+        "il2ks/sorties/all.html",
+        {
+            **choice.context,
+            "page_obj": page,
+            "quiet_tour": is_quiet_tour(choice.selected, request.GET, page.paginator.count),
+            "colspan": 9 + len(shown),
+            "sort": sort,
+            "optional_columns": columns.SITE_SORTIE_COLUMNS,
+            "columns": shown,
+            "aircraft_options": [(a.pk, object_names.name_of(a, language)) for a in planes],
+            "outcome_options": _options(Outcome.values, display.OUTCOMES),
+            "seat_options": [(Role.GUNNER.value, _("Gunner")), (reads.SEAT_ANY, _("Pilot or gunner"))],
+            "combat_role_options": _options(CombatRole.values, display.ROLES),
+            "page_title": _("Sorties"),
         },
     )
 

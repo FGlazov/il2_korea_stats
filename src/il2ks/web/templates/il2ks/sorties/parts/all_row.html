@@ -1,0 +1,16 @@
+{# il2ks-template: templates/il2ks/sorties/parts/all_row.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  One row of the site-wide sortie list. Context: sortie (PlayerSortie with player, mission and aircraft), columns (the extra columns chosen with ?cols=, after Flight time).
+  The whole row opens the sortie (the date's stretched link); the pilot, aircraft and mission links keep working.
+{% endcomment %}<tr>
+  <td class="nowrap"><a class="stretched-link" href="{% url 'web:sortie-detail' sortie.pk %}" title="{% translate 'Open the sortie report' %}">{{ sortie.spawned_at|local_short }}</a></td>
+  <td><span class="pilot-cell">{% include "il2ks/missions/_player.html" with player=sortie.player name=sortie.name_at_time tour_q=sortie.mission.tour_id|tour_qs %}{% if sortie.role == "gunner" %}{% badge _("Gunner") "purple" %}{% endif %}</span></td>
+  <td class="nowrap">{% include "il2ks/sorties/parts/aircraft_cell.html" %}</td>
+  <td><a href="{% url 'web:mission-detail' sortie.mission_id %}">{{ sortie.mission|mission_title }}</a>{% if sortie.mission.is_live %} {% badge _("Live") "green" title=_("This mission is still running.") %}{% endif %}</td>
+  <td>{% outcome_badge sortie.outcome %}</td>
+  <td>{% pilot_fate_badge sortie %}</td>
+  <td class="num">{{ sortie.kills_air|num }}</td>
+  <td class="num">{{ sortie.kills_ground|num }}</td>
+  <td class="num">{{ sortie.flight_time_s|duration }}</td>
+  {% for column in columns %}<td{% if column.numeric %} class="num"{% endif %}>{{ column|cell:sortie }}</td>{% endfor %}
+</tr>

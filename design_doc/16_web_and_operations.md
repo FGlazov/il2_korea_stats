@@ -68,13 +68,33 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
   interception, attack proficiency, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards follow the tour like the rest since 2026-10-05, OQ-128: the tour's Elo, all time the best tour's; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
+- **Navigation** (maintainer request 2026-10-05, `[DECIDED]` structure, label `[PROPOSED]`): the top level is **Players, Aircraft, Leaderboards** and a
+  **"History"** dropdown holding **Missions** and **Sorties** (alternatives considered: "Other facts", the maintainer's first idea, which says little
+  about what is inside; "Archive", which suggests the data is closed; "Records", which promises record lists; "More", which says nothing; "Browse" and
+  "Flights", which are vague or clash with the Sorties page). It is a native `<details class="dropdown">` like the language menu (no JavaScript
+  needed; `il2ks.js` closes it on an outside click and on Escape and returns the focus to the summary), the summary carries `aria-current="page"` on the
+  missions, mission and sortie list pages (and so does the current link inside), and the menu wraps with the other items on a phone. The admin's own
+  links come after it. The old URLs are unchanged; the home page's "All missions" still goes to `/missions/`. The sortie detail page keeps highlighting
+  Players (a sortie belongs to a pilot).
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
-  every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
+  every other long list **20 rows** (a player's sorties, the site's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
   each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage rows
   (`?page_damage=`); links keep every other parameter. **Not paginated, by design** (short or bounded lists): the aircraft list (one row per flown type) and the matchup table on the aircraft page (its ammo-mix, loadout and modification tables page since 2026-10-05, see below), the by-aircraft killboard tables (at most 60 enemy types), a player's best streaks and achievements pages and the achievements overview, the profile's fixed top-5 and latest-5 blocks, the sortie page's other tables, and the home page's blocks. **Exception** (maintainer, 2026-10-04): the sortie page's timeline is not paginated, every row is shown (a detail page, so it gets a higher server-time and query budget; the HTML stays lean because icons are a sprite). Real-log mission and sortie pages fell from 107-122 KB of HTML to
   87-95 KB (NFR-PERF-6).
 - **Mission list**: newest first, 10 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
   come from the mission file name ("The Sinuiju Bridges 1951").
+- **Sortie list `/sorties/`** (maintainer request 2026-10-05, FR-WEB-29; `views/sorties.py::all_sorties`, `queries/sorties.py::all_sortie_page`): every
+  counted sortie of the site, newest first, 20 a page, tour selector on the title line (no `?tour` = the current tour, `?tour=all`). Columns: date,
+  pilot, aircraft, mission (with the Live badge of a running one), outcome, pilot fate, air kills, ground kills, flight time (`[PROPOSED]`); the
+  "Extra columns" are the player sortie list's plus role, damage taken and assists (`columns.SITE_SORTIE_COLUMNS`). Every column but the pilot and the
+  fate is sortable (the player list's `?sort=` whitelist). Filters: pilot (name the pilot flew under contains, live), aircraft, combat role, outcome and
+  **seat**. **Gunners** (`[PROPOSED]`): excluded by default, like every statistic (the page lists "counted pilot sorties"); `?seat=gunner` lists them,
+  `?seat=any` both (a Gunner badge marks them). Hidden players' sorties and hidden missions are left out (the sortie page answers 404 for them, so a
+  row would be a dead link; the mission page still lists a hidden player anonymised). Whole-row link to the sortie (the date), pilot, aircraft and
+  mission links keep working. Shares the player list's filter parsing, sort whitelist, page code and aircraft cell. Indexes (migration 0112):
+  `sortie_recent` (`-spawned_at, -id, role, mission, player`: the newest-first walk and a covering COUNT) and `sortie_aircraft_recent`. A tour-scoped view
+  sorts the tour's sorties (a month of play) because the tour lives on the mission, not the sortie row (allowance in `tests/perf/query_plans.py`).
+  Budget 6 (site context 2, tours, aircraft choices, count, page).
 - **Mission detail**: tiles, one sortie table per side (mission clock, pilot, aircraft, combat role, outcome, fate, kills, flight time),
   the PvP kill list. A hidden player keeps an **anonymised row** ("Hidden player", no links) so the mission's numbers still add up (gut
   call on FR-ADM-3's "gone from rosters").
@@ -284,7 +304,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   token; from then on 404. The image disables it (`IL2KS_SETUP_PAGE=off`; the logs explain `il2ks createadmin` when no admin exists, documented in `docs/install-docker.md`; `[DECIDED]` maintainer, 2026-10-04, OQ-70). Code: `web/views/setup.py`, `serving/setup_token.py`.
 - **Query budgets** (TD-22; a test per page, shared constants in `tests/simple_reads.py`; every number includes the 2 context-processor reads;
   never raise one without a reason in the test). Home **16** (15 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 10 extras are the six compact
-  boards, the tour list of the selector, the online-now snapshot and the "Recently earned" feed, 2 reads), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **16** all
+  boards, the tour list of the selector, the online-now snapshot and the "Recently earned" feed, 2 reads), mission list 5, **sortie list `/sorties/` 6**, mission detail 5, player search 4 (also with every optional column), profile **16** all
   time (`PROFILE_READS_ALL_TIME`, incl. the medals with their rarity and the favourite loadout `PlayerAircraftBuild`) and **17** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
   player sortie list 7 (with or without optional columns; the column and fate tests allow 8), sortie detail **9** (+ the earned medals and their rarity), killboard 8, best streaks 5 (6 when empty: the absence notice reads the pilot's tours), streak history 6, ironman boards 8 (best + running, each with its count; 6 on a past tour, which has no running list),
   leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 5 (+ the tours of the selector), aircraft detail **12** (11 + the scoped tiles + the mods table, `AIRCRAFT_DETAIL_READS`; one more for a type nobody flew in the tour: the absence notice), achievements: a player's list 6, the overview 4, a

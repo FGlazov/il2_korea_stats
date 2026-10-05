@@ -4,7 +4,8 @@
   Blocks (keep this list short and stable):
     title    the <title> text; default: "<page_title> · <site title>". Views can set `page_title` in the context.
     head     extra <head> content (meta tags, a page's own stylesheet).
-    nav      the <ul> of header navigation links (the built-in ones, then `nav_links` from the admin).
+    nav      the <ul> of header navigation links (Players, Aircraft, Leaderboards, the "History" dropdown with Missions and
+             Sorties, then `nav_links` from the admin).
     content  the page itself, inside <main>.
     footer   the footer's inner content (it holds the language menu, `{% language_menu %}`).
     scripts  extra scripts, after htmx, il2ks.js and localtime.js (real-world times in the viewer's time zone, FR-WEB-17).
@@ -40,10 +41,16 @@
         {% block nav %}
           {% with route=request.resolver_match.url_name %}
           <ul>
-            <li><a href="{% url 'web:mission-list' %}"{% if route == 'mission-list' or route == 'mission-detail' %} aria-current="page"{% endif %}>{% translate "Missions" %}</a></li>
             <li><a href="{% url 'web:player-search' %}"{% if route == 'player-search' or route == 'player-detail' or route == 'player-sorties' or route == 'sortie-detail' %} aria-current="page"{% endif %}>{% translate "Players" %}</a></li>
             <li><a href="{% url 'web:aircraft-list' %}"{% if route == 'aircraft-list' %} aria-current="page"{% endif %}>{% translate "Aircraft" %}</a></li>
             <li><a href="{% url 'web:leaderboards' %}"{% if route == 'leaderboards' or route == 'leaderboard' %} aria-current="page"{% endif %}>{% translate "Leaderboards" %}</a></li>
+            <li><details class="dropdown nav-history">
+              <summary{% if route == 'mission-list' or route == 'mission-detail' or route == 'sortie-list' %} aria-current="page"{% endif %}>{% translate "History" %}</summary>
+              <ul>
+                <li><a href="{% url 'web:mission-list' %}"{% if route == 'mission-list' or route == 'mission-detail' %} aria-current="page"{% endif %}>{% translate "Missions" %}</a></li>
+                <li><a href="{% url 'web:sortie-list' %}"{% if route == 'sortie-list' %} aria-current="page"{% endif %}>{% translate "Sorties" %}</a></li>
+              </ul>
+            </details></li>
             {% for link in nav_links %}<li><a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a></li>{% endfor %}
           </ul>
           {% endwith %}

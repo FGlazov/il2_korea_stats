@@ -642,7 +642,13 @@ class PlayerSortie(models.Model):
             ),
             models.CheckConstraint(condition=models.Q(flight_time_s__gte=0), name="sortie_flight_time_nonneg"),
         ]
-        indexes = [models.Index(fields=["player", "-spawned_at"], name="sortie_player_recent")]
+        indexes = [
+            models.Index(fields=["player", "-spawned_at"], name="sortie_player_recent"),
+            # the site-wide sortie list (`/sorties/`, FR-WEB-29): newest first across all players, ties by id. The
+            # role, mission and player make it covering for the list's COUNT (the seat filter and its two joins).
+            models.Index(fields=["-spawned_at", "-id", "role", "mission", "player"], name="sortie_recent"),
+            models.Index(fields=["aircraft", "-spawned_at", "-id"], name="sortie_aircraft_recent"),  # ... of one type
+        ]
 
     def __str__(self) -> str:
         return f"{self.name_at_time} @ {self.mission_id}"

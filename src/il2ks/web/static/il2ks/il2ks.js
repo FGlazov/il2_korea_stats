@@ -34,7 +34,11 @@
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
-      document.querySelectorAll("details.dropdown[open]").forEach(function (menu) { menu.removeAttribute("open"); });
+      document.querySelectorAll("details.dropdown[open]").forEach(function (menu) {
+        var summary = menu.querySelector("summary");
+        if (summary && menu.contains(document.activeElement)) { summary.focus(); }  // keep the keyboard user's place
+        menu.removeAttribute("open");
+      });
       // Column descriptions: Escape hides the open one until the pointer or focus comes back.
       document.querySelectorAll("th.has-hint").forEach(function (th) {
         th.removeAttribute("data-hint-open");

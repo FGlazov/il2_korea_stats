@@ -1,0 +1,5 @@
+{# il2ks-template: templates/il2ks/sorties/parts/aircraft_cell.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  The aircraft of a sortie row: icon and name, linked to the aircraft page (in the sortie's tour) for a pilot sortie.
+  Context: sortie (PlayerSortie with mission and aircraft).
+{% endcomment %}{% aircraft_icon sortie.aircraft %} {% if sortie.role == "gunner" %}{{ sortie.aircraft|object_name }}{% else %}<a href="{% url 'web:aircraft-detail' sortie.aircraft_id %}?tour={% if sortie.mission.tour_id %}{{ sortie.mission.tour_id }}{% else %}all{% endif %}" title="{% translate 'Statistics of this aircraft' %}">{{ sortie.aircraft|object_name }}</a>{% endif %}
