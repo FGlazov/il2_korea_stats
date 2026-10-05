@@ -274,6 +274,10 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   - **Measured after merging per-tour Elo, streaks and medals** (2026-10-05, same 42 missions on a temp copy, one monthly tour, `bench-ingest`, machine loaded by other jobs): wall clock per-mission path 153.3 s
     (level 2 86.7 s, median 3.3 s per mission) against batched 94.6 s (-38%); `--cpu` (steadier): 45.3 s (level 2 31.0 s, median 1.1 s per mission, ratings 0.8 s) against
     18.0 s batched (level 2 8.6 s of it, ratings 0.3 s), 2.5x faster. Every refresh now also computes the tour's streaks and medals and replays only the touched tours' Elo.
+  - **Measured after the roll-ups** (2026-10-05, `bench-ingest --cpu` on a temp copy, loaded machine, `[PROPOSED]`). Every 5th sample (42 missions, one monthly tour): per-mission level 2 20.0 s (median 289 ms) against 10.75 s
+    (242 ms) with the whole-history code, batched 5.5 s against 6.5 s: with ONE tour the roll-up is pure extra work (tour rows plus the sums), so the per-mission path is up to 1.9x slower there. All 210 samples with `days:3` tours
+    (9 tours; first 200 missions batched, last 10 one by one): `refresh_tours` median 2.54 s wall / 0.88 s CPU against 3.57 s / 1.41 s with the whole-history code (-29% / -38%), and the gap grows with the history because the old code reads
+    every sortie of the touched players.
   - `il2ks dev bench-ingest` times the passes separately ("batched level 2 and ratings" in the header; their phases are added to the table).
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
