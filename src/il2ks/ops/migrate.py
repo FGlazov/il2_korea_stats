@@ -50,13 +50,16 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
     from django.core.management import call_command
     from django.db.migrations.executor import MigrationExecutor
 
-    from il2ks.ingest.lock import WriterLock
+    from il2ks.ingest.lock import LockBusyError, WriterLock
     from il2ks.ops.backup import backup_before_migration
 
     if not _pending(MigrationExecutor):
         if catalog_changed():
-            with WriterLock(cfg.data_dir, command, wait=wait):
-                refresh_for_catalog_change(cfg)
+            try:
+                with WriterLock(cfg.data_dir, command, wait=wait):
+                    refresh_for_catalog_change(cfg)
+            except LockBusyError:  # a writer is running (and did or will do this itself): `web` must still start
+                log.info("the catalog files changed; the next writer refreshes the stored rows")
         return None
     with WriterLock(cfg.data_dir, command, wait=wait):
         if not _pending(MigrationExecutor):
@@ -154,6 +157,11 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         elif only is None or BACKFILL_TOURS in only:
             _backfill_thresholds(cfg)
         _mark_done(*(name for name, _ in wanted))
+        if only is None:
+            if BACKFILL_PAYLOAD_NAMES in (name for name, _ in wanted):  # just applied with the current catalog
+                _record_catalog_fingerprint(catalog_fingerprint())
+            else:
+                refresh_for_catalog_change(cfg)  # a database from before the fingerprint, or a changed catalog
         if only is None or BACKFILL_ACHIEVEMENTS in only:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
         if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
@@ -615,13 +623,69 @@ def _backfill_achievement_tours() -> None:
         _mark_done(BACKFILL_ACHIEVEMENT_TOURS)
 
 
+CATALOG_FILES = ("weapon_mods.csv", "payloads.csv", "payload_aliases.csv", "object_aliases.csv")
+"""The catalog files whose content is copied into stored rows: significant mods (the filter scopes of level 2), loadout
+names (`PlayerSortie.payload_name`), and the log-name aliases (merged `GameObject` rows)."""
+
+CATALOG_MARKER = "catalog:"
+"""Prefix of the entry in `SiteSettings.backfills_done` that holds the fingerprint of `CATALOG_FILES` last applied."""
+
+
 def catalog_fingerprint(data: Traversable | None = None) -> str:
-    return ""
+    """A short hash of the `CATALOG_FILES` (line endings normalised, so a Windows checkout hashes like Linux's);
+    `data` is the folder to read, the shipped catalog by default."""
+    import hashlib
+    from importlib.resources import files
+
+    folder = data if data is not None else files("il2ks.core.catalog").joinpath("data")
+    digest = hashlib.sha256()
+    for name in CATALOG_FILES:
+        digest.update(name.encode())
+        digest.update(folder.joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()[:16]
+
+
+def _stored_catalog_fingerprint() -> str | None:
+    from il2ks.db.site import get_site_settings
+
+    return next(
+        (m.removeprefix(CATALOG_MARKER) for m in get_site_settings().backfills_done if m.startswith(CATALOG_MARKER)),
+        None,
+    )
+
+
+def _record_catalog_fingerprint(fingerprint: str) -> None:
+    from il2ks.db.models import SiteSettings
+    from il2ks.db.site import get_site_settings
+
+    done = [m for m in get_site_settings().backfills_done if not m.startswith(CATALOG_MARKER)]
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[*done, CATALOG_MARKER + fingerprint])
 
 
 def catalog_changed() -> bool:
-    return catalog_fingerprint() == "    return False"  # stub
+    """Whether the shipped catalog files differ from what the stored rows were last brought in line with. A read of
+    one row and four small files: cheap enough for every start."""
+    return _stored_catalog_fingerprint() != catalog_fingerprint()
 
 
 def refresh_for_catalog_change(cfg: Config) -> bool:
-    return False
+    """Apply a changed `weapon_mods.csv` / `payloads.csv` / `payload_aliases.csv` / `object_aliases.csv` to the stored
+    rows: loadout names are looked up again, new alias duplicates merged, and level 2 rebuilt once (the significant
+    mods and so the filter scopes come from the catalog). The one-time backfills never ran again after a catalog
+    update. Nothing happens when the fingerprint is unchanged; an empty database only records it. Returns whether
+    anything was refreshed. The caller holds the writer lock."""
+    from django.db import transaction
+
+    from il2ks.db.models import PlayerSortie
+
+    current = catalog_fingerprint()
+    if _stored_catalog_fingerprint() == current:
+        return False
+    with transaction.atomic():
+        if PlayerSortie.objects.exists():
+            log.info("the catalog files changed: refreshing the stored loadout names, aircraft rows and aggregates")
+            _check_payload_names()
+            _check_aircraft_case()
+            _rebuild_all(cfg)  # not only when a name changed: a flipped `significant` flag shows nowhere in level 1
+        _record_catalog_fingerprint(current)
+    return True
