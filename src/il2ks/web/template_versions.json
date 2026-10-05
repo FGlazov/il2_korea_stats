@@ -479,7 +479,7 @@
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
-      "sha256": "38500a19128dfa04ae1751cebab7cfa7c5856960d1c9576dc2099fa52a1103df"
+      "sha256": "92f4aec9eaf740f196a41f29f97e9df9d98aaf27ba369c128e425ce46858934d"
     },
     "templates/il2ks/sorties/parts/damage_table.html": {
       "version": 1,

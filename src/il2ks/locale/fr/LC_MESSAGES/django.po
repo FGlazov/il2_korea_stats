@@ -1688,11 +1688,17 @@ msgstr "Dégâts que cet adversaire vous a infligés, mesurés comme dans la col
 # llm-draft
 #. Translators: tooltip of the "Damage dealt" column header of a sortie's damage table
 msgid ""
-"Damage you did to this counterpart. Against players it is a percentage of their aircraft's health; against AI and "
-"ground objects it is the health units summed over all objects of that type."
+"Damage you did to this counterpart's aircraft (not to the pilot). Against players it is a percentage of their "
+"aircraft's health, at most 100% for each flight leg: hits after the aircraft was at 100% count nothing, and after a "
+"landing and a new takeoff (an assumed repair) the count starts from 0 again, so a sortie with a repair can show more "
+"than 100%. Against AI and ground objects it is the health units summed over all objects of that type, at most 1.0 for"
+" each object."
 msgstr ""
-"Dégâts que vous avez infligés à cet adversaire. Contre des joueurs, c'est un pourcentage de la santé de leur avion ; "
-"contre l'IA et les objets au sol, ce sont les points de santé additionnés sur tous les objets de ce type."
+"Dégâts que vous avez infligés à l'avion de cet adversaire (pas au pilote). Contre des joueurs, c'est un pourcentage "
+"de la santé de leur avion, au plus 100% par phase de vol : les coups sur un avion déjà à 100% ne comptent pas, et "
+"après un atterrissage suivi d'un nouveau décollage (réparation supposée) le compte repart de 0, donc une sortie avec "
+"réparation peut afficher plus de 100%. Contre l'IA et les objets au sol, ce sont les unités de santé additionnées sur"
+" tous les objets de ce type, au plus 1,0 par objet."
 
 # llm-draft
 msgid "Damaged"
@@ -2742,11 +2748,11 @@ msgstr ""
 # llm-draft
 #. Translators: tooltip of the "Damage taken" column header of a sortie list
 msgid ""
-"How much damage the aircraft had taken when the sortie ended or it was lost, as a share of its health: 100% means it "
-"was destroyed."
+"How much damage the aircraft carried when the sortie ended or it was lost, as a share of its health: 100% means it "
+"was destroyed. A landing followed by a new takeoff repairs the aircraft, so only the last flight counts."
 msgstr ""
-"Dégâts subis par l'avion à la fin de la sortie ou à sa perte, en part de sa santé : 100 % signifie qu'il a été "
-"détruit."
+"Dégâts que l'avion portait à la fin de la sortie ou à sa perte, en part de sa santé : 100% signifie qu'il a été "
+"détruit. Un atterrissage suivi d'un nouveau décollage répare l'avion, donc seul le dernier vol compte."
 
 # llm-draft
 #. Translators: tooltip of the "Kills + losses" column header of an aircraft's matchup table
@@ -4074,12 +4080,15 @@ msgid "Players"
 msgstr "Joueurs"
 
 # llm-draft
+#, python-format
 msgid ""
-"Players: percent of the aircraft's health. AI aircraft and ground objects: health units, where 1.0 is one whole "
-"object, added up over all objects of that type."
+"Players: percent of the aircraft's health (not the pilot's), at most 100%% for each flight leg; a landing followed by"
+" a takeoff counts as a repair, so a sortie with a repair can show more. AI aircraft and ground objects: health units,"
+" where 1.0 is one whole object, added up over all objects of that type."
 msgstr ""
-"Joueurs : pourcentage de l'intégrité de l'appareil. Appareils IA et objets au sol : unités de santé, où 1,0 vaut un "
-"objet entier, additionnées sur tous les objets de ce type."
+"Joueurs : pourcentage de la santé de l'avion (pas du pilote), au plus 100%% par phase de vol ; un atterrissage suivi "
+"d'un décollage compte comme une réparation, donc une sortie avec réparation peut afficher plus. Avions IA et objets "
+"au sol : unités de santé, où 1,0 est un objet entier, additionnées sur tous les objets de ce type."
 
 # llm-draft
 msgid "Please look at the marked answers below. Nothing was changed."
@@ -4327,6 +4336,12 @@ msgstr "Supprimer le logo actuel"
 # llm-draft
 msgid "Remove uploaded fonts"
 msgstr "Supprimer les polices importées"
+
+# llm-draft
+#. Translators: timeline row after a landing with a damaged aircraft that takes off again in the same sortie: the
+#. aircraft is assumed repaired (the log has no repair event), so its damage starts from 0 again
+msgid "Repaired after landing"
+msgstr "Réparé après l'atterrissage"
 
 # llm-draft
 msgid "Replaces the colors below with that scheme when you save. You can then adjust single colors."

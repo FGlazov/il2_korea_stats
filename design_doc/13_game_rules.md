@@ -169,7 +169,7 @@ is_death      = died or disconnect death
 is_captured   = alive, not forced, and the pilot's bailout / ground-exit / last landing position lies in an enabled influence area
                 (AType 13/14, 2D polygons) of another non-neutral coalition
 pilot_status  = dead > captured > wounded (pilot bot took any damage) > healthy
-aircraft_status = destroyed (loss) > damaged (damage_taken > 0) > unharmed;  damage_taken = own damage lines up to the loss, capped at 1
+aircraft_status = destroyed (loss) > damaged (damage_taken > 0) > unharmed;  damage_taken = the aircraft's own damage lines up to the loss, per flight leg (see "Damage per flight leg"), capped at 1; 1 when destroyed
 ```
 
 A **bailout without any AType 3** for the aircraft still counts as a loss (the aircraft was abandoned in the air), as in il2_stats. So a missing
@@ -274,10 +274,35 @@ Was the aircraft lost (is_plane_lost)?
 
 - Damage exchanges and hits are grouped **per counterpart** (object type + sortie, if it's a player), folded to the aircraft (crew and turrets
   count as their aircraft). Self damage is left out. Hits per ammo type count every non-explosion hit line given or received.
+  The **damage amounts** of the exchanges are the capped aircraft damage of "Damage per flight leg" below (hit counts are unchanged and still
+  include hits on the crew).
 - **Timeline** = the sortie page's event list. Entry kinds: `spawn`, `takeoff`, `landing`, `kill`, `assist`, `friendly_fire`,
   `shot_down` / `destroyed` (the aircraft), `killed` / `died` (the pilot or gunner died while the aircraft survived), `bailout`, `disconnect`,
   `sortie_end`, and the **hit rows** `hit_given` / `hit_taken` (below); each with time, position and counterpart. The killer is named for
   gunners too.
+
+### Damage per flight leg (maintainer 2026-10-05, `core/replay/damage.py`) `[DECIDED]`
+Real data had "damage dealt / taken" up to 300% of a counterpart's aircraft (1,171 of 6,464 player-vs-player rows over 100% on the dealt side, 1,107 on the taken
+side, 210 sample missions). Causes, measured on the taken side: **76% were damage to the pilot bot added to the aircraft's share** (the exchange folded
+crew and turrets into the aircraft, so a pilot hit on top of a nearly dead aircraft passed 100%), **24% were damage lines of one attacker summing over 1.0 on
+one aircraft before its AType 3** (the lines logged on the way to destruction, e.g. 1.0001 plus the pilot's damage); damage logged after AType 3 was already
+dropped, and a counterpart's several sorties are separate rows. No row came from a resupply (repairs are rare: 229 of about 8,200 aircraft legs).
+- An aircraft's damage **taken** is tracked per **flight leg**: the damage lines on the aircraft (never the pilot, gunner or crew bots, nor AI turrets)
+  count in order up to 100% of that leg, whoever fired them (environment included); the part of a line that passes 100% and every later line count nothing.
+  Each counterpart's share is what counted of its lines, so the shares on one leg sum to at most 100%.
+- **Repair** (maintainer 2026-10-05: the log has no repair event, so a landing is assumed to repair): a landing (AType 6) followed by a later takeoff
+  (AType 5) in the same sortie starts a new leg at 0. Only with `replay.resupply_allowed` (the toggle of the ammo rule above, admin Rules page; `false`
+  = damage accumulates over the whole sortie, still capped at 100%). A landing with no later takeoff is no repair (damage on the ground after the final
+  landing still counts, it is strafing). Damage on the landing tick belongs to the leg that ends there.
+- **Dealt** to a counterpart is the same capped damage seen from the shooter: never more than 100% per leg of the victim's aircraft. A victim with several
+  legs in the mission can total more than 100% in one row (the row sums over its legs; the column hint says so). The rows stay per sortie (one
+  aircraft), no per-leg split `[DECIDED, PRODUCT]`. AI and ground objects: each object is capped at 1.0 (no legs), crew bots excluded; the page still
+  adds the objects of one type up in health units.
+- `damage_taken` of a sortie (list column, status "damaged", achievements) = the damage of the **last** leg at the end, 1 when destroyed; a repaired
+  aircraft that flew on undamaged is "unharmed". `pilot_damage` is unchanged (the pilot is not repaired, summed and capped at 1).
+- Timeline: a `repaired` row ("Repaired after landing") at the landing tick when the leg that ends there had counted damage and a takeoff follows.
+  Hit rows are per burst, capped at 100% each, and not cumulative, so they need no reset; they are not capped by the leg's remaining health.
+- Stored per sortie (`damage_taken`, `damage_breakdown`, `timeline`): existing databases need `il2ks reprocess --all` (pre-release: just run it).
 
 ### Timeline hits (2026-10-04, `core/replay/hits.py`) `[DECIDED]` (maintainer, 2026-10-04, OQ-108: 0.2% burst threshold, scenery excluded)
 The significant damage a sortie gave and took, as timeline rows (maintainer: a damage % column, significant hits as rows, ammo matched to the nearest
@@ -308,7 +333,7 @@ attribution rule, `ammo_window_s` 1 s).
   `replay.resupply_allowed = true` (default; most servers allow it), a landing followed by another takeoff in the same sortie marks the sortie
   `resupplied`, and "ammo used" is unknown for it, bombs and rockets with no release event aside (below; hits, releases and rocket salvos are still exact). With `false`, "loaded − left" is used.
   "Used" is also unknown for bombs when "left" exceeds "loaded" (IL-10 bomblet payloads count stations when loaded and bomblets when left).
-  About 2% of sorties take off more than once.
+  About 2% of sorties take off more than once. The same toggle decides the **damage repair** at such a landing (see "Damage per flight leg").
 - **Ammo left after a loss** `[PROPOSED]` (2026-10-03, extended 2026-10-04): when the sortie ended more than `ammo_left_after_loss_s` (1 s) after its
   aircraft was destroyed (the pilot bailed out, climbed out or disconnected later), AType 4's "left" is unreliable (unfired stores read as zero in
   20-60% of such cases, and in all 107 checked bailouts and ground exits with unreleased stores). The sortie is flagged `left_after_loss`, "left" is

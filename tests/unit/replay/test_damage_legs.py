@@ -60,7 +60,6 @@ def _b_vs_a(result: MissionResult) -> tuple[DamageExchange, DamageExchange]:
 # --- the cap ----------
 
 
-@pytest.mark.xfail(strict=True, reason="exchange sums are not capped yet")
 def test_hits_summing_over_100_percent_cap_at_100_for_both_sides() -> None:
     sc = _scenario()
     sc.damage(50, 200, 100, 0.6)
@@ -71,7 +70,6 @@ def test_hits_summing_over_100_percent_cap_at_100_for_both_sides() -> None:
     assert dealt.damage_dealt == pytest.approx(1.0)
 
 
-@pytest.mark.xfail(strict=True, reason="damage to the pilot is added to the aircraft's share")
 def test_damage_to_the_pilot_is_not_aircraft_damage() -> None:
     sc = _scenario()
     sc.damage(50, 200, 100, 0.5)
@@ -81,7 +79,6 @@ def test_damage_to_the_pilot_is_not_aircraft_damage() -> None:
     assert dealt.damage_dealt == pytest.approx(0.5)
 
 
-@pytest.mark.xfail(strict=True, reason="lines before the destruction are not capped in the exchange")
 def test_hits_on_an_aircraft_that_is_already_at_100_percent_count_nothing() -> None:
     sc = _scenario()
     sc.damage(50, 200, 100, 0.8)
@@ -94,7 +91,6 @@ def test_hits_on_an_aircraft_that_is_already_at_100_percent_count_nothing() -> N
     assert by_acct(result, 1).damage_taken == 1.0
 
 
-@pytest.mark.xfail(strict=True, reason="attackers' shares are not capped together")
 def test_the_counterparts_split_one_aircraft_so_the_shares_sum_to_at_most_100_percent() -> None:
     sc = _scenario(third=True)
     sc.damage(50, 200, 100, 0.7)
@@ -108,7 +104,6 @@ def test_the_counterparts_split_one_aircraft_so_the_shares_sum_to_at_most_100_pe
     assert sum(shares.values()) == pytest.approx(1.0)
 
 
-@pytest.mark.xfail(strict=True, reason="AI aircraft are not capped per object")
 def test_an_ai_aircraft_takes_at_most_one_whole_health() -> None:
     sc = _scenario()
     sc.declare(0, 300, "MiG-15bis", 501)
@@ -122,7 +117,6 @@ def test_an_ai_aircraft_takes_at_most_one_whole_health() -> None:
 # --- a landing repairs ----------
 
 
-@pytest.mark.xfail(strict=True, reason="no reset at a landing yet")
 def test_a_landing_followed_by_a_takeoff_resets_the_damage() -> None:
     sc = _scenario()
     _resupply(sc, hits=((50, 0.7),), second=(0.7,))
@@ -135,7 +129,6 @@ def test_a_landing_followed_by_a_takeoff_resets_the_damage() -> None:
     assert a.damage_taken == pytest.approx(0.7)  # the state at the end: the last leg only
 
 
-@pytest.mark.xfail(strict=True, reason="no reset at a landing yet")
 def test_each_leg_caps_at_100_percent_by_itself() -> None:
     sc = _scenario()
     _resupply(sc, hits=((50, 0.8), (51, 0.8)), second=(0.9, 0.9))
@@ -144,7 +137,6 @@ def test_each_leg_caps_at_100_percent_by_itself() -> None:
     assert dealt.damage_dealt == pytest.approx(2.0)
 
 
-@pytest.mark.xfail(strict=True, reason="no reset at a landing yet")
 def test_a_repaired_aircraft_is_unharmed_at_the_end() -> None:
     sc = _scenario()
     _resupply(sc, hits=((50, 0.5),))
@@ -161,7 +153,6 @@ def test_a_landing_without_a_second_takeoff_is_no_repair() -> None:
     assert taken.damage_taken == pytest.approx(0.9)
 
 
-@pytest.mark.xfail(strict=True, reason="the toggle does not exist for damage yet")
 def test_without_resupply_the_damage_accumulates_over_the_whole_sortie_up_to_100_percent() -> None:
     sc = _scenario()
     _resupply(sc, hits=((50, 0.7),), second=(0.7,))
@@ -175,7 +166,6 @@ def test_without_resupply_the_damage_accumulates_over_the_whole_sortie_up_to_100
 # --- timeline ----------
 
 
-@pytest.mark.xfail(strict=True, reason="no repaired row yet")
 def test_the_timeline_shows_the_repair_at_the_landing_of_a_damaged_aircraft() -> None:
     sc = _scenario()
     _resupply(sc, hits=((50, 0.5),))
