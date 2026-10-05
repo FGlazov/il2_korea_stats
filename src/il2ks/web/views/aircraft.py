@@ -246,7 +246,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "intercept_url": _query_url(request, intercept=True),
         "show_elo": show_elo,
         "show_ground": show_ground,
-        "elo_pilots": reads.top_elo(aircraft, rules) if show_elo else [],
+        "elo_pilots": reads.top_elo(aircraft, rules, choice.selected) if show_elo else [],
         "ground_pilots": reads.top_ground(aircraft, rules) if show_ground else [],
         "ground_first": role == AircraftRole.ATTACK
         or (

@@ -14,8 +14,9 @@ Rules:
 - `taxi_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the profile's hall of
   shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
-  and ratios need `min_sorties` sorties; Elo needs `min_elo_games` encounters in that pool (all time, shown against
-  the all-time population on a tour profile too); ground score and tanks per hour need
+  and ratios need `min_sorties` sorties; Elo needs `min_elo_games` encounters in that pool (all time: the best
+  tour's rating, games over all tours; in a tour: that tour's final rating, games and population, OQ-128); ground
+  score and tanks per hour need
   `min_time_on_target_s` on target; interception per hour needs `min_air_superiority_s` of air superiority flight. The
   stored `StatThreshold.min_sorties` holds that minimum in the metric's unit (sorties, games, seconds).
 - A population smaller than `MIN_POPULATION` has no thresholds (a percentile of a handful of pilots means nothing).
@@ -62,7 +63,7 @@ METRICS: Final[tuple[Metric, ...]] = (
     "interception_hour",
     "tank_hour",
 )
-ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # all time only: ratings are not per tour
+ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # a tour's marks use the tour's Elo, all time the best
 MIN_POPULATION: Final = 20  # pilots needed before a distribution is worth showing
 SECONDS_PER_HOUR: Final = 3600.0
 

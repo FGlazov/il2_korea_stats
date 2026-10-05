@@ -3,7 +3,7 @@
     stats_list(sort)         -> list[AircraftStats]      # one row per flown type; one query
     stats_for(aircraft_id)   -> AircraftStats | None     # one query
     matchups(aircraft, tour, intercept, sort) -> MatchupTable  # kills and losses against each enemy type; one query
-    top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
+    top_elo(aircraft, rules, tour) -> list[PlayerAircraft | PlayerTourAircraft]  # by per-type Elo; one query
     top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
     scoped_stats(aircraft, tour, role, mod_pattern) -> TourAircraftStats  # a tour / role / mod filter scope; one query
     payloads(aircraft, role, rules, sort, mod_pattern) -> list[Loadout]   # loadouts with effectiveness; one query
@@ -11,8 +11,9 @@
     significant_mods(aircraft) -> tuple[SignificantMod, ...]  # the mods the page can filter by (catalog, no query)
 
 The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
-volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
-by `ingest.ratings`) and, for attack work, the ground score per hour on target.
+volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerTourAircraft.elo` in a tour,
+all time the best tour's `PlayerAircraft.elo`; computed at ingest by `ingest.ratings`) and, for attack work, the
+ground score per hour on target.
 """
 
 from collections.abc import Callable, Mapping
@@ -20,7 +21,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import Final
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
 from il2ks.config import LeaderboardConfig
 from il2ks.core.catalog.loader import (
@@ -39,6 +40,7 @@ from il2ks.db.models import (
     AircraftStats,
     GameObject,
     PlayerAircraft,
+    PlayerTourAircraft,
     Tour,
     TourAircraftStats,
 )
@@ -246,9 +248,15 @@ def matchups(
     return MatchupTable(found, best, worst)
 
 
-def top_elo(aircraft: GameObject, rules: LeaderboardConfig) -> list[PlayerAircraft]:
-    """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first."""
-    rows = PlayerAircraft.objects.filter(
+def top_elo(
+    aircraft: GameObject, rules: LeaderboardConfig, tour: Tour | None = None
+) -> list[PlayerAircraft | PlayerTourAircraft]:
+    """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first. In
+    a tour the tour's final per-type Elo (OQ-128), all time the best tour's."""
+    rows: QuerySet[PlayerAircraft] | QuerySet[PlayerTourAircraft] = (
+        PlayerAircraft.objects.all() if tour is None else PlayerTourAircraft.objects.filter(tour=tour)
+    )
+    rows = rows.filter(
         aircraft=aircraft, player__is_hidden=False, elo_games__gte=max(rules.min_elo_games, 1)
     ).select_related("player")
     return list(rows.order_by("-elo", "-elo_games", "player__name_lower", "pk")[:TOP_PILOTS])

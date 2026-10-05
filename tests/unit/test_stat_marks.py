@@ -18,6 +18,7 @@ from il2ks.core.stat_marks import (
     thresholds,
 )
 from il2ks.db.models import Player, PlayerTour, StatThreshold
+from il2ks.queries.players import EloShown
 
 LIMITS = Thresholds(p10=0.1, p25=0.2, p50=0.5, p75=0.7, p90=0.9, population=100)
 
@@ -205,16 +206,17 @@ def test_each_metric_has_its_own_minimum() -> None:
     assert amount("elo_prop", totals) < rules.minimum("elo_prop")
 
 
-def test_elo_mark_uses_the_player_also_when_stats_is_a_tour_row() -> None:
+def test_elo_mark_uses_the_elo_of_the_scope_also_when_stats_is_a_tour_row() -> None:
     marks = {"elo_jet": _threshold("elo_jet", p10=1400.0, p25=1450.0, p50=1500.0, p75=1550.0, p90=1600.0)}
     marks["elo_jet"].min_sorties = 5  # encounters for an Elo row
-    player = Player(sorties=1, elo_jet=1700.0, elo_jet_games=6)
+    elo = EloShown(elo_jet=1700.0, elo_jet_games=6)
     source = '{% load il2ks %}{% stat_mark "elo_jet" %}'
-    html = Template(source).render(Context({"stats": PlayerTour(sorties=1), "player": player, "marks": marks}))
+    html = Template(source).render(Context({"stats": PlayerTour(sorties=1), "elo": elo, "marks": marks}))
     assert "Top 10%" in html
     assert "at least 5 encounters" in html
-    few = Player(sorties=1, elo_jet=1700.0, elo_jet_games=4)
-    assert Template(source).render(Context({"stats": few, "player": few, "marks": marks})).strip() == ""
+    few = EloShown(elo_jet=1700.0, elo_jet_games=4)
+    stats = Player(sorties=1)
+    assert Template(source).render(Context({"stats": stats, "elo": few, "marks": marks})).strip() == ""
 
 
 def test_ground_score_hour_mark_needs_the_time_on_target() -> None:

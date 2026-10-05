@@ -168,7 +168,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
      and intercept kills only);
   4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
   5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum; skipped by `reprocess`, which recomputes once at the end);
-  6. `recompute_ratings` (Elo per pool and per type, all kills replayed; same skip);
+  6. `recompute_ratings(rules, tour_ids)` (Elo per pool and per type, replayed **per tour** from the start rating, then the all-time maxima; None = every tour; same skip);
   7. `bump_data_version` (TD-28).
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in
   `SiteSettings`.
@@ -177,11 +177,15 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   recomputed from their level-1 rows. `rebuild-aggregates` uses the same code for all players. Why: no delta arithmetic to get wrong, and a
   re-ingest can't drift from a rebuild. Cost grows with a player's history; in it2 the recompute is bounded to the mission's tour plus the
   all-time row.
-- **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of every qualifying kill, so
-  `ingest/ratings.py::recompute_ratings` replays all of them (ordered by mission start, kill time, row id) through the pure
-  `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the
-  end of `rebuild-aggregates` and `reprocess`. So a mission imported late lands in the right place in the order. Cost: about 0.02 s per mission
-  at sample scale, growing with the total number of kills; if it ever matters, replay only from the earliest affected mission onward.
+- **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of the qualifying kills, so
+  `ingest/ratings.py::recompute_ratings(rules, tour_ids)` replays the kills of **each tour alone** (ordered by mission start, kill time, row id; a new
+  tour is a clean slate, OQ-128) through the pure `core/ratings/elo.py` and writes only the rows that changed: the tour's `PlayerTourPool` and
+  `PlayerTourAircraft` ratings and the tour's `PlayerSortie.elo_peak` (then the medals of the pilots whose peaks changed, for that tour and all time). The
+  all-time ratings (`Player`, `PlayerAircraft`) are derived afterwards from all tour rows: the best final rating, games summed (doc 13). `tour_ids=None`
+  replays every tour (rebuild, `reprocess`); `save_mission` may pass the tours it touched (old and new), since a tour's result never depends on another
+  tour's games. It runs after each mission save (same transaction), and once at the end of `rebuild-aggregates` and `reprocess`. So a mission imported late
+  lands in the right place in its tour's order and changes nothing in the other tours. Cost: about 0.02 s per mission at sample scale, bounded by the
+  tour's kills when `tour_ids` is passed. Upgrade: the `tour_elo` backfill rebuilds level 2 once for a database with all-time ratings and no tour ratings.
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
 - **Players are never deleted**; one whose sorties disappear keeps the row and URL with zero counters. Players who only ever flew as gunner

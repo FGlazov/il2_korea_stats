@@ -704,7 +704,8 @@ class PlayerAircraft(Counters):
 class PlayerTour(Counters):
     """A player's counters within one tour (TD-26): the sum of their `PlayerMission` rows of that tour's missions.
 
-    Rows exist only for players with a counted sortie in the tour. Elo is per tour too, on `PlayerTourPool` and `PlayerTourAircraft`."""
+    Rows exist only for players with a counted sortie in the tour. The tour's Elo is on `PlayerTourPool` and
+    `PlayerTourAircraft`."""
 
     player_id: int
     tour_id: int

@@ -12,7 +12,8 @@ from django.test.utils import CaptureQueriesContext
 # streak, killboard by aircraft type, killboard top victims and nemeses, tour history (charts), medals and their
 # rarity (FR-WEB-26, doc 17), the favourite loadout per aircraft type (PlayerAircraftBuild, one query).
 PROFILE_READS_ALL_TIME = 16
-PROFILE_READS_TOUR = PROFILE_READS_ALL_TIME + 1  # a tour, incl. the default current tour: + the PlayerTour row
+# a tour, incl. the default current tour: + the PlayerTour row + the tour's Elo (PlayerTourPool rows, OQ-128)
+PROFILE_READS_TOUR = PROFILE_READS_ALL_TIME + 2
 
 FORBIDDEN_SQL = re.compile(r"\bGROUP\s+BY\b|\bHAVING\b|\b(SUM|AVG|MIN|MAX)\s*\(|\bOVER\s*\(", re.IGNORECASE)
 

@@ -1,6 +1,7 @@
 """Reads behind the leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). Simple SELECTs only: no aggregation at request time
 (TD-22). Scores, kills and time on target are stored counters (`PlayerTour`, `Player`, and their per-aircraft tables);
-Elo is stored on `Player`. The only arithmetic is the per-hour rate of the skill boards: two stored columns divided.
+Elo is stored per tour (`PlayerTourPool.elo`, the tour's final rating) and all time on `Player` (the best tour's).
+The only arithmetic is the per-hour rate of the skill boards: two stored columns divided.
 
 Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, `interception`, then `ground-hour`, `tank-busting`,
 `ground`, then `play-time`, in an air group, a ground group and a general group (`GROUPS`; maintainer decision
@@ -8,7 +9,8 @@ Boards (`BOARDS`, in tab order): `elo-jet`, `elo-prop`, `air`, `interception`, t
 (`?tour=`, TD-26) the rows are `PlayerTour`, all-time `Player`; with an aircraft chosen (`?aircraft=<GameObject pk>`)
 they are the per-aircraft rows `PlayerTourAircraft` / `PlayerAircraft`, so a player appears once per aircraft type; with
 a pool chosen (`?pool=prop|jet`) they are the per-propulsion rows `PlayerTourPool` / `PlayerPool` (a chosen aircraft
-wins over a pool). Elo is all-time and has no aircraft or pool filter (its pools are the split). A minimum of activity
+wins over a pool). The Elo boards show the tour's rating in a tour (OQ-128: Elo resets at every tour) and the best
+tour's rating all time; they have no aircraft or pool filter (their pools are the split). A minimum of activity
 (`LeaderboardConfig`) keeps one lucky sortie off it.
 
 Hiding (FR-ADM-3): hidden players are never listed.
@@ -46,10 +48,13 @@ class Board:
     key: str
     sorts: Mapping[str, str]
     default_sort: str
-    per_tour: bool = True  # False: all-time only (Elo)
+    per_tour: bool = True
     per_aircraft: bool = True
     per_pool: bool = True  # False: the board is a pool already (Elo) or has none
     group: str = "air"  # the tab group: "air", "ground" or "general"
+    elo_pool: str | None = (
+        None  # an Elo board: its propulsion pool (rows `Player` all time, `PlayerTourPool` in a tour)
+    )
 
 
 _COMMON: Final[Mapping[str, str]] = {"sorties": "sorties", "name": "player__name_lower"}
@@ -59,17 +64,17 @@ BOARDS: Final[Mapping[str, Board]] = {
         "elo-jet",
         {**_COMMON, "rating": "elo_jet", "games": "elo_jet_games"},
         "-rating",
-        per_tour=False,
         per_aircraft=False,
         per_pool=False,
+        elo_pool="jet",
     ),
     "elo-prop": Board(
         "elo-prop",
         {**_COMMON, "rating": "elo_prop", "games": "elo_prop_games"},
         "-rating",
-        per_tour=False,
         per_aircraft=False,
         per_pool=False,
+        elo_pool="prop",
     ),
     "air": Board(
         "air",
@@ -151,12 +156,15 @@ def rules() -> LeaderboardConfig:
 class BoardRow:
     """A row of a leaderboard: `rank` follows the current order; `stats` holds the counters (it is the `Player` itself
     for all-time boards, a `PlayerTour` / `PlayerAircraft` / `PlayerTourAircraft` row otherwise); `per_hour` is the
-    ground score per hour on target (ground-hour board only)."""
+    ground score per hour on target (ground-hour board only); `rating` / `games` are the Elo and encounters of an Elo
+    board, whichever table the row comes from."""
 
     rank: int
     player: Player
     stats: Model
     per_hour: float | None = None
+    rating: float | None = None  # Elo boards only: the Elo shown (tour rating, or the best tour's all time)
+    games: int | None = None  # Elo boards only: the encounters behind it
 
 
 def resolve_sort(board: Board, raw: str) -> str:
@@ -183,10 +191,8 @@ def parse_pool(raw: str | None, board: Board) -> str | None:
 def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: LeaderboardConfig) -> QuerySet[M]:
     """Keep rows with enough activity for this board (the thresholds of `[score]`)."""
     match board.key:
-        case "elo-prop":
-            return rows.filter(elo_prop_games__gte=rules.min_elo_games)
-        case "elo-jet":
-            return rows.filter(elo_jet_games__gte=rules.min_elo_games)
+        case "elo-prop" | "elo-jet":
+            return rows.filter(**{f"{_elo_columns(board, rows.model)[1]}__gte": rules.min_elo_games})
         case "play-time":
             return rows.filter(flight_time_s__gt=0)  # no sortie minimum: the board is hours flown
         case "ground-hour" | "tank-busting":
@@ -209,6 +215,14 @@ def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: Leaderboar
             )
         case _:
             return rows.filter(sorties__gte=max(rules.min_sorties, 1))
+
+
+def _elo_columns(board: Board, model: type[Model]) -> tuple[str, str]:
+    """The (rating, games) columns of an Elo board's rows: one pair per pool on `Player`, `elo` / `elo_games` on the
+    pool rows of a tour."""
+    if model is PlayerTourPool:
+        return "elo", "elo_games"
+    return f"elo_{board.elo_pool}", f"elo_{board.elo_pool}_games"
 
 
 def _per_hour[M: Model](rows: QuerySet[M], amount: str, seconds: str) -> QuerySet[M]:
@@ -244,13 +258,17 @@ def top_rows(
     """The first `limit` rows of a board in its default order, all time or in `tour` (ignored by the all-time Elo
     boards): the home page's compact boards, the top pilots of an aircraft type. One SELECT."""
     rows = _ordered(board, _apply_minimums(board, _source(board, tour, aircraft, None), rules), board.default_sort)
-    return [_row(i + 1, stats) for i, stats in enumerate(rows[:limit])]
+    return [_row(i + 1, stats, board) for i, stats in enumerate(rows[:limit])]
 
 
 def _source(board: Board, tour: Tour | None, aircraft: GameObject | None, pool: str | None) -> QuerySet[Model]:
     """The table the board reads: the player (all time), a tour, an aircraft type or a propulsion pool."""
     tour = tour if board.per_tour else None
     aircraft = aircraft if board.per_aircraft else None
+    if board.elo_pool is not None:
+        if tour is not None:
+            return _rows(PlayerTourPool.objects.filter(tour=tour, propulsion=board.elo_pool, player__is_hidden=False))
+        return _rows(Player.objects.filter(is_hidden=False))
     pool = pool if board.per_pool and aircraft is None else None
     if aircraft is not None:
         if tour is not None:
@@ -275,6 +293,9 @@ def _ordered[M: Model](board: Board, rows: QuerySet[M], sort: str) -> QuerySet[M
         rows = rows.select_related("player")
     prefix = "" if rows.model is Player else "player__"
     column = board.sorts[sort.removeprefix("-")].replace("player__", prefix)
+    if board.elo_pool is not None and rows.model is PlayerTourPool:  # the same public keys, the tour table's columns
+        rating, games = _elo_columns(board, rows.model)
+        column = {f"elo_{board.elo_pool}": rating, f"elo_{board.elo_pool}_games": games}.get(column, column)
     # The player's name and the row id break ties, so paging is stable.
     return rows.order_by(f"{'-' if sort.startswith('-') else ''}{column}", f"{prefix}name_lower", "pk")
 
@@ -285,11 +306,15 @@ def _page[M: Model](
     ordered = _ordered(board, _apply_minimums(board, rows, rules), sort)
     page = Paginator(ordered, PAGE_SIZE).get_page(page_number)
     offset = (page.number - 1) * PAGE_SIZE
-    items = [_row(offset + i + 1, stats) for i, stats in enumerate(page.object_list)]
+    items = [_row(offset + i + 1, stats, board) for i, stats in enumerate(page.object_list)]
     return Page(items, page.number, page.paginator)  # pyright: ignore[reportArgumentType]
 
 
-def _row(rank: int, stats: Model) -> BoardRow:
+def _row(rank: int, stats: Model, board: Board) -> BoardRow:
     per_hour = getattr(stats, "per_hour", None)
     player = stats if isinstance(stats, Player) else getattr(stats, "player")  # noqa: B009
-    return BoardRow(rank, player, stats, per_hour if isinstance(per_hour, float) else None)
+    rating = games = None
+    if board.elo_pool is not None:
+        rating_column, games_column = _elo_columns(board, type(stats))
+        rating, games = getattr(stats, rating_column), getattr(stats, games_column)
+    return BoardRow(rank, player, stats, per_hour if isinstance(per_hour, float) else None, rating, games)

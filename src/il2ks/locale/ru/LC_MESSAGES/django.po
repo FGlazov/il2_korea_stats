@@ -689,16 +689,20 @@ msgstr[2] ""
 "%(games)s столкновений."
 
 # llm-draft
-msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Эло реактивных самолётов в воздушных боях, по победам между вылетами на господство в воздухе. За всё время."
+msgid ""
+"Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
+"pilot's best tour."
+msgstr ""
+"Эло реактивных самолётов в воздушных боях, по победам между вылетами на господство в воздухе. В каждом туре рейтинг "
+"начинается заново; за всё время показан лучший тур пилота."
 
 # llm-draft
 msgid ""
-"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
-" counts double."
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
+"shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Эло поршневых самолётов в воздушных боях, по победам между вылетами на господство в воздухе. За всё время. Победа "
-"поршневого над реактивным засчитывается вдвойне."
+"Эло поршневых самолётов в воздушных боях, по победам между вылетами на господство в воздухе. В каждом туре рейтинг "
+"начинается заново; за всё время показан лучший тур пилота. Победа поршневого самолёта над реактивным считается вдвое."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header

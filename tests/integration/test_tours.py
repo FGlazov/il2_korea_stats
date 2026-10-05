@@ -27,6 +27,7 @@ from il2ks.db.models import (
     PlayerMission,
     PlayerTour,
     PlayerTourAircraft,
+    PlayerTourPool,
     Tour,
     TourAircraftStats,
 )
@@ -361,9 +362,11 @@ def test_per_tour_counters_registry_matches_the_counters_base() -> None:
         assert {n for n in names} <= {f.name for f in model._meta.get_fields()}
 
 
-def test_elo_stays_all_time() -> None:
-    """Elo is a global replay (OQ-28): there are no per-tour rating fields."""
+def test_elo_is_per_tour_on_the_pool_and_type_rows_not_on_player_tour() -> None:
+    """Elo resets every tour (OQ-128): `PlayerTourPool` / `PlayerTourAircraft` carry the tour's ratings."""
     assert not [f.name for f in PlayerTour._meta.get_fields() if f.name.startswith("elo")]
+    assert {"elo", "elo_games"} <= {f.name for f in PlayerTourPool._meta.get_fields()}
+    assert {"elo", "elo_games"} <= {f.name for f in PlayerTourAircraft._meta.get_fields()}
 
 
 # --- legacy missions, retour, doctor ---

@@ -683,16 +683,20 @@ msgstr[1] ""
 "%(games)s Begegnungen."
 
 # llm-draft
-msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Luftkampf-Elo der Jets, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit."
+msgid ""
+"Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
+"pilot's best tour."
+msgstr ""
+"Luftkampf-Elo der Jets, aus Abschüssen zwischen Einsätzen zur Luftüberlegenheit. Jede Tour beginnt neu; die "
+"Gesamtwertung zeigt die beste Tour jedes Piloten."
 
 # llm-draft
 msgid ""
-"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
-" counts double."
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
+"shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit. Ein Propeller-"
-"Abschuss gegen einen Jet zählt doppelt."
+"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Einsätzen zur Luftüberlegenheit. Jede Tour beginnt neu;"
+" die Gesamtwertung zeigt die beste Tour jedes Piloten. Ein Propellerabschuss gegen einen Jet zählt doppelt."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
