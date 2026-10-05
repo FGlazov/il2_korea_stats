@@ -53,9 +53,10 @@ def sortie_medals(context: Context, sortie: PlayerSortie) -> list[medals.Medal]:
     found = [
         m for m in medals.medals_of(rows, holdings, achievement_config(context), highest_only=False) if not m.shame
     ]  # shame: hall of shame only
-    all_time = {(m.key, m.tier) for m in found if m.scope is None}
-    # The same tier in the tour is the same news (the first tour starts with the server): list it once.
-    found = [m for m in found if m.scope is None or (m.key, m.tier) not in all_time]
+    all_time = {(m.key, m.tier, m.threshold) for m in found if m.scope is None}
+    # The same tier in the tour is the same news (the first tour starts with the server): list it once. A cumulative
+    # medal's all-time tier asks five times as much as the tour's (another threshold): that is other news.
+    found = [m for m in found if m.scope is None or (m.key, m.tier, m.threshold) not in all_time]
     return sorted(found, key=lambda m: m.scope is not None)  # all time first; `regroup` needs the scopes together
 
 

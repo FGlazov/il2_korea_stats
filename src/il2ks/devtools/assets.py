@@ -297,6 +297,7 @@ def build_manifest() -> list[Asset]:
         ("types-with-kills", "Versatile Hunter: different aircraft types with an air kill"),
         ("landing-streak", "Soft Touch: landings in a row"),
         ("ace-in-a-day", "Ace in a Day: air kills in one day"),
+        ("tours-in-a-row", "Old Hand: tours flown in a row (all time only)"),
         ("shame-taxi", "Ramp Rash (hall of shame): taxi accidents"),
         ("shame-friendly", "Wrong Team (hall of shame): friendly-fire kills"),
         ("shame-strafed", "Sitting Duck (hall of shame): destroyed on the ground by an attacker"),

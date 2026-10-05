@@ -53,7 +53,7 @@ def seed() -> None:
             (
                 sortie(0, 1, kills_air=1, outcome="shot_down", is_death=True, is_plane_lost=True),
                 sortie(1, 2, outcome="not_taken_off", flight_time_s=0.0),
-                sortie(2, 3, aircraft_type="IL-10", ground_by_category={"tank": 6}),
+                sortie(2, 3, aircraft_type="IL-10", ground_by_category={"tank": 16}),
             ),
             (kill(100, 0, 2, victim_type="IL-10"),),
         ),
@@ -73,7 +73,7 @@ def test_medals_are_earned_in_the_sortie_that_reaches_them() -> None:
     assert first.sortie.kills_air == 2  # the second sortie took the life to 5
     assert first.earned_at == first.sortie.ended_at
     assert held(1)["ground_sortie"] == 2  # 60 ground targets in one sortie
-    assert held(3)["tank_buster"] == 1  # 6 tanks
+    assert held(3)["tank_buster"] == 1  # 16 tanks: the 15 of the all-time bronze (5 x 3)
     assert "life_kills" not in held(2)
 
 
@@ -303,7 +303,10 @@ def test_holders_and_pilots_are_counted_per_scope() -> None:
     september, october = seed_two_tours()
 
     everyone = AchievementHolders.objects.get(tour=None, key="career_kills", tier=1)
-    assert (everyone.holders, everyone.pilots) == (2, 3)  # players 1 and 2 shot something down; 1 to 3 flew
+    assert (everyone.holders, everyone.pilots) == (
+        1,
+        3,
+    )  # all time asks 5 kills: player 1 has 6, player 2 has 1; 3 flew
     in_october = AchievementHolders.objects.get(tour=october, key="career_kills", tier=1)
     assert (in_october.holders, in_october.pilots) == (1, 2)  # players 1 and 3
     assert AchievementHolders.objects.get(tour=september, key="career_kills", tier=1).pilots == 2  # players 1 and 2
@@ -352,12 +355,12 @@ def test_the_sortie_page_lists_a_tier_once_and_leaves_shame_to_the_hall_of_shame
     first = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t1").get()
     second = PlayerSortie.objects.filter(player_id=pk(1), mission__mission_uid="t2").get()
 
-    in_first = [(m.key, m.tier, m.scope) for m in sortie_medals(Context(), first)]
-    assert in_first.count(("career_kills", 1, None)) == 1
-    assert not [m for m in in_first if m[0] == "career_kills" and m[2] is not None]  # not again for the tour
+    in_first = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(Context(), first)]
+    assert in_first.count(("career_kills", 1, True)) == 1  # the first kill of the tour; the career asks 5 (x5)
+    assert ("career_kills", 1, False) not in in_first
     in_second = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(Context(), second)]
-    assert ("career_kills", 1, True) in in_second  # first of the second tour, earlier all time
-    assert ("career_kills", 1, False) not in in_second
+    assert ("career_kills", 1, True) in in_second  # the first kill of the second tour ...
+    assert ("career_kills", 1, False) in in_second  # ... and the fifth of the career: other news, both listed
     assert all(not m.shame for m in sortie_medals(Context(), first))
 
 
@@ -379,13 +382,13 @@ def test_the_sortie_page_shows_both_scopes() -> None:
     html = Client().get(f"/sorties/{first.pk}/").content.decode()
 
     assert "Earned in this sortie" in html
-    assert "All time" in html
-    assert "medal-scope" in html
-    assert html.count("Sky Hunter") == 1  # the all-time first kill and the tour's are the same news: listed once
+    assert html.count("Sky Hunter") == 1  # the tour's first kill; the career's 5 (x5) come in October
 
     second = PlayerSortie.objects.get(player_id=pk(1), mission__mission_uid="t2")
     later = Client().get(f"/sorties/{second.pk}/").content.decode()
-    assert "Sky Hunter" in later  # the first kill of the second tour, not of the career
+    assert later.count("Sky Hunter") == 2  # the first kill of the tour and the fifth of the career: other news
+    assert "All time" in later
+    assert "medal-scope" in later
     assert ">Tour<" in later
 
 

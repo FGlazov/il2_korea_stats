@@ -14,7 +14,7 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
   extra read for the one fact the sortie row lacks (bombers, attackers and transports shot down, from `Kill`). `PlayerAchievement(player, tour, key,
   tier, earned_at, sortie, mission)` has **one row per earned tier** (a gold holder also has the bronze and silver rows), unique per
   `(player, tour, key, tier)` (two conditional constraints, because `tour` is null for all time); `earned_at` is the end time of
-  the sortie that reached it. **Clean slate per tour** (maintainer, 2026-10-05: "a new tour should be a clean slate, even for achievements"; supersedes the OQ-105 "all time computed over all sorties"): the definitions run over **each tour's sorties alone** (`refresh_achievement_tours`; a life, a streak, a run of weeks, the types flown start from zero in a tour), and the **all-time rows are rolled up from the tour rows** (`rollup_achievements`, no read of the whole history) `[PROPOSED]`: all-time tier = the **max tier over the tours**, each tier's row (`earned_at`, sortie, mission) being the earliest tour row of that tier. **Cumulative** medals (`Achievement.cumulative`: pure running totals, `career_kills`, `tank_buster`, `flight_hours`, `shame_taxi`, `shame_friendly`, `shame_strafed`; OQ-128 default `[PROPOSED]`) instead use the **sum of the tours' totals** (the `PlayerTour` counters named by `Achievement.counter`), so career tiers stay reachable: a tier is earned in the first tour whose running sum reaches the threshold, at the sortie where it does (that one tour is replayed with the earlier total carried in, `earn(carried_in=)`). Switching a medal to a plain max over tours is clearing its `cumulative` flag. `elo_peak` is an ordinary per-tour medal now (`all_time_only` is gone; it reads the stored per-sortie `PlayerSortie.elo_peak`; per-tour Elo is another change). Visible effect: all-time life kills, weeks in a row (`regular`), types flown and types with kills, landing streak, survivor, ace in a day, damaged landings, first bloods, rams, strike hunter and the other non-cumulative medals can only be as high as the best tour. A saved mission refreshes its old and new tour, then rolls up the all-time rows of its players. Upgraded databases: backfill `tour_clean_slate` (`ops/migrate.py`). Ribbons and
+  the sortie that reached it. **Clean slate per tour** (maintainer, 2026-10-05: "a new tour should be a clean slate, even for achievements"; supersedes the OQ-105 "all time computed over all sorties"): the definitions run over **each tour's sorties alone** (`refresh_achievement_tours`; a life, a streak, a run of weeks, the types flown start from zero in a tour), and the **all-time rows are rolled up from the tour rows** (`rollup_achievements`, no read of the whole history) `[PROPOSED]`: all-time tier = the **max tier over the tours**, each tier's row (`earned_at`, sortie, mission) being the earliest tour row of that tier. **Cumulative** medals (`Achievement.cumulative`: pure running totals, `career_kills`, `tank_buster`, `flight_hours`, `shame_taxi`, `shame_friendly`, `shame_strafed`; OQ-128 default `[PROPOSED]`) instead use the **sum of the tours' totals** (the `PlayerTour` counters named by `Achievement.counter`), so career tiers stay reachable, against **`ALL_TIME_FACTOR` (5) times the per-tour thresholds** (`Achievement.all_time_thresholds`; OQ-128 answered 2026-10-05, see "All time: x5 tiers and tours in a row" below): a tier is earned in the first tour whose running sum reaches the all-time threshold, at the sortie where it does (that one tour is replayed with the earlier total carried in, `earn(carried_in=, all_time=True)`). Switching a medal to a plain max over tours is clearing its `cumulative` flag. `elo_peak` is an ordinary per-tour medal now (`all_time_only` is back with a new meaning: only `tours_in_a_row` has it; it reads the stored per-sortie `PlayerSortie.elo_peak`; per-tour Elo is another change). Visible effect: all-time life kills, weeks in a row (`regular`), types flown and types with kills, landing streak, survivor, ace in a day, damaged landings, first bloods, rams, strike hunter and the other non-cumulative medals can only be as high as the best tour. A saved mission refreshes its old and new tour, then rolls up the all-time rows of its players. Upgraded databases: backfill `tour_clean_slate` (`ops/migrate.py`). Ribbons and
   medals share the table. `AchievementHolders(tour, key, tier, holders, pilots)` holds, per scope, the counts of **visible**
   players for the overview and the rarity (no counting at request time) and `pilots`, the scope's denominator (visible players with
   at least one sortie in it: `Player` all time, `PlayerTour` per tour) `[PROPOSED]`; `recompute_holders` rewrites it once per saved
@@ -109,6 +109,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 | `types_with_kills` | Versatile Hunter | Different aircraft types with at least one air kill | 2 / 4 / 6 / 8 | 186 / 34 / 6 / 0 |
 | `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
 | `ace_in_a_day` | Ace in a Day | Most air kills in one UTC day (the day the sortie spawned on) | 5 / 8 / 12 / 20 | 53 / 17 / 4 / 0 |
+| `tours_in_a_row` | Old Hand | Longest run of consecutive tours in which the pilot flew at least once (a take-off); all time only, 2 / 3 / 6 / 12 tours | 2 / 3 / 6 / 12 tours | n/a (one month of sample data) |
 | `shame_taxi` | Ramp Rash (shame) | Taxi accidents | 1 / 5 / 10 | 361 / 36 / 4 |
 | `shame_friendly` | Wrong Team (shame) | Friendly-fire kills (aircraft and ground objects, `friendly_kills`) | 1 / 5 / 20 | 125 / 38 / 15 |
 | `shame_strafed` | Sitting Duck (shame) | Aircraft destroyed on the ground by an attacker | 1 / 2 / 3 | 25 / 1 / 1 |
@@ -246,10 +247,42 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
   is hidden; hidden players are not listed. The block is full width under the board grid, so the 3x2 boards are untouched.
   Cost: 2 reads (the newest 40 candidate rows; the holder counts of the scope), 1 when nothing was earned.
 - **Sortie page**: "Earned in this sortie" lists the tiers the sortie reached all time, then (own label) in its tour. A tour
-  tier that is also reached all time in the same sortie is listed once (the first tour starts with the server, everything
+  tier that is also reached all time in the same sortie *with the same threshold* is listed once (the first tour starts with the server, everything
   would show twice), and hall-of-shame tiers are not listed there (QA on the real sample, 2026-10-04).
 - **Shame and rarity**: a hall-of-shame tier shows its rarity text but never the ring or glow (a rare "Hard Landing" must not
   look like a trophy).
+
+## All time: x5 tiers and tours in a row (OQ-128 answered, maintainer 2026-10-05)
+
+The maintainer's answer to OQ-128: "If it's multi tour then we should increase the thresholds, maybe 5x the current ones for the multi
+tour achievements", and "also add tiered achievements for playing in X tours in a row". Built the same day.
+
+- **Cumulative medals have their own all-time tiers**, `ALL_TIME_FACTOR = 5` times the per-tour ones (`Achievement.all_time_thresholds`,
+  `thresholds_for(all_time=)`): Sky Hunter 5 / 50 / 250 / 1250 kills, Tank Buster 15 / 50 / 125 / 500, Hours Aloft 5 / 50 / 250 / 1000 h,
+  Ramp Rash 5 / 25 / 50, Wrong Team 5 / 25 / 100, Sitting Duck 5 / 10 / 15 (a tour keeps 1 / 10 / 50 / 250 and so on). Every other medal is the
+  best tour's tier (max), with the same thresholds in both views. `[PROPOSED]` (TECHNICAL): the factor is a constant, not an admin
+  field, and it scales **whatever per-tour thresholds are in force**: an admin who changes Sky Hunter to 2 / 20 / 100 / 500 gets
+  10 / 100 / 500 / 2500 all time, so there is one set of numbers to edit and the all-time view cannot fall below the tour's. The admin
+  page says so under the thresholds of a cumulative medal. The all-time roll-up always replays the crossing tour (the tour's own
+  row has another threshold). Words: the descriptions are numberless ("Air kills in total, all sorties together"); the tier labels
+  (overview, holders page, profile hint, achievement list) take the scope: `medals.threshold_text(achievement, tier, all_time=)`,
+  `info(..., all_time=)`, a `Medal` from an all-time row (`tour` null) shows the all-time number, so "Gold: 50" in a tour and
+  "Gold: 250" all time are both true. The sortie page lists a tour tier and an all-time tier of the same number once only when their
+  thresholds are the same, otherwise both are news ("the first kill of the tour" and "the fifth of the career").
+- **Tours in a row** (`tours_in_a_row`, **Old Hand**, medal, unit `tours`): tiers **2 / 3 / 6 / 12** consecutive tours. `[PROPOSED]`
+  (PRODUCT): a tour counts for a pilot when they have a `PlayerTour` row with `takeoffs > 0` (the pilot flew at least once in it, consistent with "flown" above: a sortie that never
+  took off does not count, unlike the pilot count of the rarity, which counts any sortie); the tours are
+  ordered by start, so "consecutive" means no tour in between in which the pilot flew. A tour exists once anybody has flown in it, so
+  on a live server a skipped tour is a real gap. Two tours (a month and the next) is the bar of "came back"; 12 is a year. All time
+  only (`Achievement.all_time_only`): no tour rows, no tour view (the overview, the profile list and the holders page leave it out in
+  a tour; its holders URL is a 404 there), `progress` is unused. `rollup_achievements` reads `PlayerTour` (player, tour, takeoffs > 0)
+  and the tours table for the order, finds the longest run (`core.achievements.consecutive_tours`, `earn_tours`), and reads only the
+  completing tours' sorties to date the tier: **earned at the pilot's first sortie of the tour whose run reached it** (the first that
+  took off, else the first). A tier is never lost: the longest run counts, the running tour counts once the pilot flies in it (until
+  then the run before it stands). A late import into an old tour that fills a gap changes that tour's `PlayerTour` row and the roll-up
+  extends the run (incremental == rebuild, tested). Admin on/off, rename, description and thresholds like the others (strictly
+  increasing, four tiers), rarity and holders per scope (all time only), the profile and the home feed as for any medal, icon
+  `medal/tours-in-a-row.svg` (Tabler `repeat`), five translations.
 
 ## Ideas and alternatives
 

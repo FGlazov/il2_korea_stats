@@ -91,6 +91,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         ),
     ),
     "ace_in_a_day": (gettext_lazy("Ace in a Day"), gettext_lazy("Air kills on a single day (UTC).")),
+    "tours_in_a_row": (
+        gettext_lazy("Old Hand"),
+        gettext_lazy("Tours in a row in which you flew at least once. A tour you skip ends the run."),
+    ),
     "shame_taxi": (
         gettext_lazy("Ramp Rash"),
         gettext_lazy("Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."),
@@ -165,11 +169,14 @@ def icon_name(key: str) -> str:
     return f"medal/{key.replace('_', '-')}"
 
 
-def threshold_text(achievement: Achievement, tier: int) -> str:
-    """What reaching `tier` takes, e.g. '20', '10 h' or '4 weeks'."""
-    n = achievement.thresholds[tier - 1]
+def threshold_text(achievement: Achievement, tier: int, *, all_time: bool = False) -> str:
+    """What reaching `tier` takes, e.g. '20', '10 h' or '4 weeks'. `all_time`: in the all-time view, where a cumulative
+    medal's tiers are `ALL_TIME_FACTOR` times the per-tour ones."""
+    n = achievement.thresholds_for(all_time=all_time)[tier - 1]
     if achievement.unit == "hours":
         return _("%(n)s h") % {"n": n}
+    if achievement.unit == "tours":
+        return ngettext("%(n)s tour", "%(n)s tours", n) % {"n": n}
     if achievement.unit == "weeks":
         return ngettext("%(n)s week", "%(n)s weeks", n) % {"n": n}
     return str(n)
@@ -261,19 +268,22 @@ def words(config: AchievementConfig, key: str) -> tuple[Label, Label]:
     return config.name(key, language) or name, config.description(key, language) or description
 
 
-def info(achievement: Achievement, config: AchievementConfig) -> MedalInfo:
+def info(achievement: Achievement, config: AchievementConfig, *, all_time: bool = False) -> MedalInfo:
+    """`achievement` as the overview shows it in a scope: `all_time` (no tour) shows the all-time tiers."""
     name, description = words(config, achievement.key)
     tiers = tuple(
-        Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n)) for n in range(1, achievement.top_tier + 1)
+        Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n, all_time=all_time))
+        for n in range(1, achievement.top_tier + 1)
     )
     return MedalInfo(
         achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind, achievement.shame
     )
 
 
-def all_info(config: AchievementConfig) -> list[MedalInfo]:
-    """Every switched-on achievement (all of them are shown in every tour: the Elo medal is per tour too)."""
-    return [info(a, config) for a in config.active()]
+def all_info(config: AchievementConfig, *, all_time: bool = False) -> list[MedalInfo]:
+    """Every switched-on achievement in the scope (`all_time`: no tour): all are shown in every tour (the Elo medal is
+    per tour too) except the all-time-only ones, which have no tour view."""
+    return [info(a, config, all_time=all_time) for a in config.active() if all_time or not a.all_time_only]
 
 
 def _style(key: str) -> int:
@@ -292,7 +302,7 @@ def _medal(
         tier=row.tier,
         tier_name=tier_name(row.tier),
         slug=tier_slug(row.tier),
-        threshold=threshold_text(achievement, row.tier),
+        threshold=threshold_text(achievement, row.tier, all_time=row.tour_id is None),
         top_tier=achievement.top_tier,
         earned_at=row.earned_at,
         sortie_id=row.sortie_id,

@@ -170,6 +170,13 @@ msgstr[1] "%(n)s Piloten"
 
 # llm-draft
 #, python-format
+msgid "%(n)s tour"
+msgid_plural "%(n)s tours"
+msgstr[0] "%(n)s Tour"
+msgstr[1] "%(n)s Touren"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "%(n)s Typen"
 
@@ -3407,6 +3414,10 @@ msgid "Off the squadron roster for the moment. The empty chair at the mess table
 msgstr "In der Staffelliste klafft vorerst eine Lücke. Bett und Stuhl in der Messe bleiben freigehalten."
 
 # llm-draft
+msgid "Old Hand"
+msgstr "Alter Hase"
+
+# llm-draft
 msgid "On"
 msgstr "An"
 
@@ -5127,6 +5138,13 @@ msgid "There is no file at this location (the server could not find it)."
 msgstr "An diesem Ort gibt es keine Datei (der Server konnte sie nicht finden)."
 
 # llm-draft
+#, python-format
+msgid "These are the tiers in one tour. The all-time view sums the tours and asks %(factor)s times as much: %(values)s."
+msgstr ""
+"Das sind die Stufen für eine einzelne Tour. Die Gesamtzeit-Ansicht addiert die Touren und verlangt das "
+"%(factor)s-Fache: %(values)s."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Diese endeten ohne Mission-Ende-Ereignis; ein Blick lohnt sich, falls der Server mitten in der Mission abgestürzt ist."
 
@@ -5137,6 +5155,10 @@ msgid ""
 msgstr ""
 "Diese Dateien in deinem Ordner custom/ ersetzen eingebaute il2ks-Dateien, basieren aber auf einer älteren (oder "
 "unbekannten) Version davon. Sie könnten kaputt sein oder neue Inhalte verdecken. Besucher können betroffen sein."
+
+# llm-draft
+msgid "This achievement exists in the all-time view only (there is no tour view of it)."
+msgstr "Diese Auszeichnung gibt es nur in der Gesamtzeit-Ansicht (eine Tour-Ansicht gibt es dafür nicht)."
 
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
@@ -5370,6 +5392,10 @@ msgstr "Tour %(number)s"
 
 msgid "Tour ended"
 msgstr "Tour beendet"
+
+# llm-draft
+msgid "Tours in a row in which you flew at least once. A tour you skip ends the run."
+msgstr "Touren in Folge, in denen du mindestens einmal geflogen bist. Eine ausgelassene Tour beendet die Serie."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

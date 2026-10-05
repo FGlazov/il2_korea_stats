@@ -204,7 +204,7 @@ def sortie(
         landing_tick=end - 250 if outcome == "landed" else None,
         end_tick=end,
         flight_time_s=flight_time_s,
-        takeoffs=1,
+        takeoffs=0 if outcome == "not_taken_off" else 1,
         landings=1 if outcome == "landed" else 0,
         outcome=outcome,
         pilot_fate=pilot_fate,
