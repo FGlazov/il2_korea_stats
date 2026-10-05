@@ -296,7 +296,6 @@ class SiteSettingsForm(forms.ModelForm):
         self.fields["home_feature"].required = False  # a post without it keeps the current choice
         self.processed_font: ProcessedFont | None = None
         self.processed_feature: tuple[Source, ProcessedFeature] | None = None
-        self.processed_feature: tuple[Source, ProcessedFeature] | None = None
         self.stored_fonts: list[CustomFont] = clean_fonts(self.instance.custom_fonts)
         if self.instance.pk is not None:
             self.initial["theme"] = clean_theme(self.instance.theme)
@@ -406,33 +405,6 @@ class SiteSettingsForm(forms.ModelForm):
         elif isinstance(preset, str) and preset in PRESETS:
             cleaned["theme"] = clean_theme(PRESETS[preset][1])
         return cleaned
-
-    def _clean_feature(self, cleaned: dict[str, object]) -> None:
-        """Front-page image: a path and alt text are required when it is on, and the file is checked (and re-encoded)
-        when something changed, so a bad path is refused here with a clear message instead of being saved."""
-        if cleaned.get("home_feature") != HomeFeature.IMAGE:
-            return
-        path = str(cleaned.get("feature_image_path") or "").strip()
-        if not path:
-            self.add_error("feature_image_path", _("Enter the location of the image file."))
-        if not str(cleaned.get("feature_alt") or "").strip():
-            self.add_error("feature_alt", _("Describe the image in a few words; screen readers read this text."))
-        if not path:
-            return
-        row = self.instance
-        unchanged = (
-            row.home_feature == HomeFeature.IMAGE
-            and row.feature_image_path.strip() == path
-            and bool(row.feature_image)
-            and not row.feature_error
-        )
-        if unchanged:
-            return  # `web.feature_image.sync` follows later changes of the file itself
-        try:
-            source = inspect_source(path)
-            self.processed_feature = (source, process_feature(source))
-        except FeatureImageError as exc:
-            self.add_error("feature_image_path", str(exc))
 
     def _clean_feature(self, cleaned: dict[str, object]) -> None:
         """Front-page image: a path and alt text are required when it is on, and the file is checked (and re-encoded)
