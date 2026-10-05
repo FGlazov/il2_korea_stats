@@ -11,6 +11,7 @@ Cells are plain text computed from counters the row already has: no extra query 
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import Protocol
 
 from django.http import QueryDict
 from django.urls import reverse
@@ -39,6 +40,8 @@ class Column[T]:
     cell: Callable[[T], str | SafeString]
     hint: Label = ""
     numeric: bool = True
+    sortable: bool = True
+    """False: the header is plain (no `?sort=` key); only a column whose value is not stored with the row."""
 
     @property
     def description(self) -> str:
@@ -179,35 +182,66 @@ MISSION_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 
 
 # --- aircraft (all time or one tour: both stats rows have the same counters) ---------------------------------------
-AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
-    Column("kills_air_pvp", _("Air kills (PvP)"), lambda a: display.num(a.kills_air_pvp)),
-    Column("kills_per_hour", _("Air kills/h"), lambda a: display.per_hour(a.kills_air, a.flight_time_s)),
-    Column("assists", _("Assists"), lambda a: display.num(a.assists)),
-    Column("bailouts", _("Bailouts"), lambda a: display.num(a.bailouts)),
-    Column("friendly_kills", _("Friendly kills"), lambda a: display.num(a.friendly_kills)),
-    Column("score_air", _("Air score"), lambda a: display.num(a.score_air)),
-    Column("score_ground", _("Ground score"), lambda a: display.num(a.score_ground)),
+class AircraftListRow(Protocol):
+    """What an aircraft list cell reads: the row's counters (`AircraftStats` or `TourAircraftStats`), the average gun
+    hits to destroy the type (all time) and the sorties without a death (`web.views.aircraft.AircraftRow`)."""
+
+    @property
+    def stats(self) -> AircraftCounters: ...
+
+    @property
+    def hits_average(self) -> str: ...
+
+
+# The default columns (maintainer 2026-10-05) stay in `aircraft/list.html`: aircraft, sorties, Elo, K/L, survival and
+# attack proficiency (ground score per hour on target). Everything else the list ever showed is optional.
+AIRCRAFT_COLUMNS: tuple[Column[AircraftListRow], ...] = (
+    Column("pilots", _("Pilots"), lambda a: display.num(a.stats.pilots)),
+    Column("flight_time_s", _("Flight time"), lambda a: display.duration(a.stats.flight_time_s), "flight_time"),
+    Column("kills_air", _("Air kills"), lambda a: display.num(a.stats.kills_air)),
+    Column("kills_ground", _("Ground kills"), lambda a: display.num(a.stats.kills_ground)),
+    Column("deaths", _("Deaths"), lambda a: display.num(a.stats.deaths)),
+    Column("planes_lost", _("Aircraft lost"), lambda a: display.num(a.stats.planes_lost)),
+    Column("kd", _("K/D"), lambda a: display.ratio(a.stats.kills_air, a.stats.deaths)),
     Column(
-        "ground_hour",
-        _("Ground score/h"),
-        lambda a: display.per_hour(a.score_ground_attack, a.time_on_target_s, 1),
+        "attack_share",
+        _("Attack sorties"),
+        lambda a: display.percent(a.stats.attack_sorties, a.stats.sorties),
+        "attack_sorties",
     ),
+    Column(
+        "hits",
+        _("Hits to destroy"),
+        lambda a: a.hits_average,
+        _(
+            "Average number of gun hits that destroyed it, counted over all time. Only kills where one attacker did "
+            "all the damage are included, and bombs and rockets are left out."
+        ),
+        sortable=False,
+    ),
+    Column("kills_air_pvp", _("Air kills (PvP)"), lambda a: display.num(a.stats.kills_air_pvp)),
+    Column("kills_per_hour", _("Air kills/h"), lambda a: display.per_hour(a.stats.kills_air, a.stats.flight_time_s)),
+    Column("assists", _("Assists"), lambda a: display.num(a.stats.assists)),
+    Column("bailouts", _("Bailouts"), lambda a: display.num(a.stats.bailouts)),
+    Column("friendly_kills", _("Friendly kills"), lambda a: display.num(a.stats.friendly_kills)),
+    Column("score_air", _("Air score"), lambda a: display.num(a.stats.score_air)),
+    Column("score_ground", _("Ground score"), lambda a: display.num(a.stats.score_ground)),
     Column(
         "sortie_length",
         _("Sortie length"),
-        lambda a: display.duration(a.flight_time_s / a.sorties) if a.sorties else display.DASH,
+        lambda a: display.duration(a.stats.flight_time_s / a.stats.sorties) if a.stats.sorties else display.DASH,
         _("Average flight time per sortie"),
     ),
-    Column("sorties_per_pilot", _("Sorties per pilot"), lambda a: display.ratio(a.sorties, a.pilots, 1)),
-    Column("accuracy", _("Gun accuracy"), lambda a: _accuracy(a.accuracy_hits, a.accuracy_rounds)),
+    Column("sorties_per_pilot", _("Sorties per pilot"), lambda a: display.ratio(a.stats.sorties, a.stats.pilots, 1)),
+    Column("accuracy", _("Gun accuracy"), lambda a: _accuracy(a.stats.accuracy_hits, a.stats.accuracy_rounds)),
     Column(
         "accuracy_air",
         _("Air accuracy"),
-        lambda a: _accuracy(a.accuracy_air_hits, a.accuracy_air_rounds),
+        lambda a: _accuracy(a.stats.accuracy_air_hits, a.stats.accuracy_air_rounds),
     ),
     Column(
         "accuracy_ground",
         _("Ground accuracy"),
-        lambda a: _accuracy(a.accuracy_ground_hits, a.accuracy_ground_rounds),
+        lambda a: _accuracy(a.stats.accuracy_ground_hits, a.stats.accuracy_ground_rounds),
     ),
 )

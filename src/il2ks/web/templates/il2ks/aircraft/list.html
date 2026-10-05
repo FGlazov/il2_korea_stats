@@ -2,8 +2,10 @@
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown in the selected tour (?tour=, default the current
   tour, `all` = all time; context tours / tour), sortable with ?sort= (a whitelist in the view). View:
-  il2ks.web.views.aircraft.aircraft_list. Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
-  (HitsToDestroy: kills, average)), sort (resolved), page_title, optional_columns (the columns a visitor can add),
+  il2ks.web.views.aircraft.aircraft_list. Default columns (maintainer 2026-10-05): aircraft, sorties, Elo, K/L,
+  survival, attack proficiency; the others are optional (`?cols=`, web.columns.AIRCRAFT_COLUMNS, cells read the row).
+  Context: rows (AircraftRow: stats (AircraftStats with .aircraft), hits
+  (HitsToDestroy: kills, average), elo_text), sort (resolved), page_title, optional_columns (the columns a visitor can add),
   columns (the chosen ones, ?cols=), colspan, role (?role=: "all", "air_superiority" or "attack": the rows count only
   sorties of that combat role; hits to destroy stay all roles).
   K/D and K/L use air kills (OQ-38). The main link of a row carries `stretched-link`, which makes the whole row clickable.
@@ -28,18 +30,11 @@
           <tr>
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
-            {% sort_th "pilots" _("Pilots") numeric=True %}
-            {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
-            {% sort_th "kills_air" _("Air kills") numeric=True %}
-            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
-            {% sort_th "deaths" _("Deaths") numeric=True %}
-            {% sort_th "planes_lost" _("Aircraft lost") numeric=True hint="planes_lost" %}
-            {% sort_th "kd" _("K/D") numeric=True hint="kd" %}
+            {% sort_th "elo" _("Elo") numeric=True hint="elo_aircraft" %}
             {% sort_th "kl" _("K/L") numeric=True hint="kl" %}
             {% sort_th "survival" _("Survival") numeric=True hint="survival" %}
-            {% sort_th "attack_share" _("Attack sorties") numeric=True hint="attack_sorties" %}
-            <th scope="col" class="num" title="{% translate 'Average number of gun hits that destroyed it' %}">{% translate "Hits to destroy" %}</th>
-            {% for column in columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
+            {% sort_th "ground_hour" _("Attack proficiency") numeric=True hint="ground_hour" %}
+            {% for column in columns %}{% if column.sortable %}{% sort_th column.key column.label numeric=True hint=column.description %}{% else %}{% col_th column.label numeric=True hint=column.description %}{% endif %}{% endfor %}
           </tr>
         </thead>
         <tbody>
@@ -53,18 +48,11 @@
                   {% if stats.side %}{% coalition_icon stats.side %}{% endif %}
                 </td>
                 <td class="num">{{ stats.sorties|num }}</td>
-                <td class="num">{{ stats.pilots|num }}</td>
-                <td class="num">{{ stats.flight_time_s|duration }}</td>
-                <td class="num">{{ stats.kills_air|num }}</td>
-                <td class="num">{{ stats.kills_ground|num }}</td>
-                <td class="num">{{ stats.deaths|num }}</td>
-                <td class="num">{{ stats.planes_lost|num }}</td>
-                <td class="num">{{ stats.kills_air|ratio:stats.deaths }}</td>
+                <td class="num">{{ row.elo_text }}</td>
                 <td class="num">{{ stats.kills_air|ratio:stats.planes_lost }}</td>
                 <td class="num">{{ row.survived|percent:stats.sorties }}</td>
-                <td class="num">{{ stats.attack_sorties|percent:stats.sorties }}</td>
-                <td class="num">{{ row.hits.average }}</td>
-                {% for column in columns %}<td class="num">{{ column|cell:stats }}</td>{% endfor %}
+                <td class="num">{{ stats.score_ground_attack|per_hour:stats.time_on_target_s }}</td>
+                {% for column in columns %}<td class="num">{{ column|cell:row }}</td>{% endfor %}
               </tr>
             {% endwith %}
           {% empty %}
@@ -73,6 +61,6 @@
         </tbody>
       </table>
     </div>
-    <p class="muted">{% translate "Hits to destroy: counted over all time; only kills where one attacker did all the damage are included, and bombs and rockets are left out. Attack sorties: the share of sorties flown with bombs or rockets; the rest are air superiority sorties." %}</p>
+    <p class="muted">{% translate "Elo rates the aircraft types against each other: every kill between two players in air superiority sorties is a game won by the killer's type. Attack proficiency is the ground score per hour on target. More columns are in the Columns menu." %}</p>
   {% endresults_region %}
 {% endblock %}

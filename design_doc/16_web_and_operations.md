@@ -101,6 +101,12 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   `hit_taken` rows, doc 13 "Timeline hits") and the ammo of the nearest hit; the ammo table dashes "Left" after a loss and explains why (doc 13);
   "Earned in this sortie" lists the medals (+1 query); the quip (below). Timeline **hit rows are tinted**: light green for a hit given, light red for a
   hit taken (a 9% mix of the `--il2-green` / `--il2-red` theme tokens in `sorties.css`, so both themes work). Air and ground assists are listed apart.
+- **Aircraft list columns** (maintainer, 2026-10-05): the default columns are Aircraft, Sorties, **Elo** (the aircraft type's own rating, doc 13 "Aircraft type
+  Elo"; sortable, a dash while the type has no rated duel, tooltip "rating of the aircraft type from air-superiority duels between types"), K/L, Survival and
+  **Attack proficiency** (ground score per hour on target; the `ground_hour` sort key). Every other column the list had (pilots, flight time, air and ground kills,
+  deaths, aircraft lost, K/D, attack sorties, hits to destroy, the earlier extras) is an optional column; "Hits to destroy" is the one extra that does not sort
+  (`Column.sortable`: its value lives in the ammo tables, not on the row). There is no separate "Aircraft" board: the sortable Elo column is the view. The
+  aircraft page shows the type's Elo as one tile. Query budget unchanged (5 + the tours of the selector).
 - **Optional columns** (FR-WEB-27, 2026-10-04): the player search, mission list, aircraft list and a player's sortie list keep their default
   columns in their templates and offer more through a "Columns" control (`components/columns_picker.html`, a plain GET form, works without JS).
   `web/columns.py` registers per list the optional `Column(key, label, cell)`; `?cols=a,b` (comma separated or repeated) picks them, unknown keys

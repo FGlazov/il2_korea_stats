@@ -39,7 +39,8 @@ def test_chosen_keeps_registry_order_and_ignores_unknown_keys() -> None:
 def test_every_optional_column_is_sortable() -> None:
     assert {c.key for c in columns.PLAYER_COLUMNS} <= set(player_reads.PLAYER_SORTS)
     assert {c.key for c in columns.MISSION_COLUMNS} <= set(mission_reads.SORT_FIELDS)
-    assert {c.key for c in columns.AIRCRAFT_COLUMNS} <= set(aircraft_reads.AIRCRAFT_SORTS)
+    assert {c.key for c in columns.AIRCRAFT_COLUMNS if c.sortable} <= set(aircraft_reads.AIRCRAFT_SORTS)
+    assert {c.key for c in columns.AIRCRAFT_COLUMNS if not c.sortable} == {"hits"}  # not stored with the row
     for registry in (columns.PLAYER_COLUMNS, columns.MISSION_COLUMNS, columns.AIRCRAFT_COLUMNS):
         assert len({c.key for c in registry}) == len(registry)
 
@@ -388,7 +389,7 @@ def test_aircraft_ratio_columns_sort_from_the_counters(client: Client) -> None:
     assert aircraft_order(client, "attack_share", "")[0] == "MiG-15bis"  # 0%
 
 
-@pytest.mark.parametrize("column", [c.key for c in columns.AIRCRAFT_COLUMNS])
+@pytest.mark.parametrize("column", [c.key for c in columns.AIRCRAFT_COLUMNS if c.sortable])
 def test_every_aircraft_column_sorts_both_ways(client: Client, column: str) -> None:
     seed_aircraft()
 

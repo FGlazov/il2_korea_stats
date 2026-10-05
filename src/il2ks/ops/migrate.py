@@ -94,6 +94,7 @@ BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rari
 BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
 BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
 BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
+BACKFILL_AIRCRAFT_ELO = "aircraft_elo"  # the Elo of the aircraft types, per tour and all time (maintainer 2026-10-05)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -156,6 +157,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_SCOPED_AIRCRAFT, _check_scoped_aircraft),
         (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
         (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
+        (BACKFILL_AIRCRAFT_ELO, _check_aircraft_elo),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -617,6 +619,17 @@ def _check_tour_elo() -> bool:
 
     rated = Q(elo_prop_games__gt=0) | Q(elo_jet_games__gt=0)
     return Player.objects.filter(rated).exists() and not PlayerTourPool.objects.filter(elo_games__gt=0).exists()
+
+
+def _check_aircraft_elo() -> bool:
+    """A database from before the aircraft type Elo has rated pilot games but no rated tour row of any aircraft type:
+    level 2 must be rebuilt, which replays every tour's duels between types and rolls the best tour up."""
+    from il2ks.db.models import PlayerTourPool, TourAircraftStats
+
+    return (
+        PlayerTourPool.objects.filter(elo_games__gt=0).exists()
+        and not TourAircraftStats.objects.filter(elo_games__gt=0).exists()
+    )
 
 
 def _check_scores() -> bool:

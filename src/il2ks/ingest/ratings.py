@@ -20,25 +20,21 @@ propulsion; a game with an unknown propulsion on either side is skipped, and so 
 the ratings only move when the mission's final save has cleared `is_live`.
 """
 
-from collections.abc import Hashable, Iterable, Iterator
+from collections.abc import Iterable
 from typing import cast
 
-from il2ks.core.catalog.loader import is_propulsion
-from il2ks.core.ratings.elo import DEFAULT_RULES, AllRatings, Game, Pool, Rating, RatingRules, compute_all_ratings
+from il2ks.core.ratings.elo import DEFAULT_RULES, AllRatings, Pool, RatingRules, best_of_tours, compute_all_ratings
 from il2ks.db.models import (
-    CombatRole,
-    Kill,
-    KillCredit,
     Player,
     PlayerAircraft,
     PlayerSortie,
     PlayerTourAircraft,
     PlayerTourPool,
-    Role,
     Tour,
 )
 from il2ks.ingest.aircraft_stats import recompute_payload_elo
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.rating_games import rated_games
 
 POOLS: tuple[Pool, ...] = ("prop", "jet")
 
@@ -64,7 +60,7 @@ def recompute_ratings(
     ids = sorted(Tour.objects.values_list("pk", flat=True) if tour_ids is None else set(tour_ids))
     replayed = 0
     for tour_id in ids:
-        games = list(_games(tour_id))
+        games = list(rated_games(tour_id))
         computed = compute_all_ratings(games, rules)
         _store_tour_pools(tour_id, computed, rules)
         _store_tour_types(tour_id, computed, rules)
@@ -99,23 +95,6 @@ def _store_tour_types(tour_id: int, computed: AllRatings, rules: RatingRules) ->
             row.elo, row.elo_games = wanted
             changed.append(row)
     update_rows(PlayerTourAircraft, changed, ["elo", "elo_games"])
-
-
-def best_of_tours[K: Hashable](rows: Iterable[tuple[K, float, int]], min_games: int = 1) -> dict[K, Rating]:
-    """The all-time rating of each key from its per-tour (key, final rating, games) rows of rated games: the highest
-    final rating among the tours with at least `min_games` games (one game at least), the highest of all its tours when
-    none reaches that (the key then has no board standing anyway), with the games of all tours added up. A rating
-    after one or two games in a new tour is noise, so it must not beat a season of games."""
-    minimum = max(min_games, 1)
-    best: dict[K, float] = {}  # among the tours that reach the minimum
-    anything: dict[K, float] = {}
-    games_of: dict[K, int] = {}
-    for key, rating, games in rows:
-        anything[key] = max(rating, anything.get(key, rating))
-        games_of[key] = games_of.get(key, 0) + games
-        if games >= minimum:
-            best[key] = max(rating, best.get(key, rating))
-    return {key: Rating(best.get(key, anything[key]), games) for key, games in games_of.items()}
 
 
 def rollup_ratings(rules: RatingRules, player_ids: Iterable[int] | None = None) -> None:
@@ -205,33 +184,3 @@ def _store_peaks(tour_id: int | None, peaks: dict[int, float]) -> None:
         if stored.get(pk, 0.0) != peaks.get(pk, 0.0)
     ]
     update_partial_rows(PlayerSortie, changed, ["elo_peak"])
-
-
-def _games(tour_id: int) -> Iterator[Game]:
-    """The qualifying kills of the missions of one tour as games, in chronological order (mission start, kill time,
-    row id)."""
-    kills = (
-        Kill.objects.filter(
-            mission__tour_id=tour_id,
-            mission__is_live=False,  # a running mission counts when it ends (FR-ING-15), not before
-            credit=KillCredit.KILL,
-            is_friendly=False,
-            killer_sortie__role=Role.PILOT,
-            victim_sortie__role=Role.PILOT,
-            killer_sortie__combat_role=CombatRole.AIR_SUPERIORITY,
-            victim_sortie__combat_role=CombatRole.AIR_SUPERIORITY,
-        )
-        .order_by("mission__started_at", "time", "pk")
-        .values_list(
-            "killer_sortie__player_id",
-            "killer_sortie__aircraft__propulsion",
-            "victim_sortie__player_id",
-            "victim_sortie__aircraft__propulsion",
-            "killer_sortie__aircraft_id",
-            "victim_sortie__aircraft_id",
-            "killer_sortie_id",
-        )
-    )
-    for winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft, sortie in kills.iterator():
-        if is_propulsion(winner_pool) and is_propulsion(loser_pool):
-            yield Game(winner, winner_pool, loser, loser_pool, winner_aircraft, loser_aircraft, sortie)

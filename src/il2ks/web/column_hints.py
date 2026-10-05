@@ -14,6 +14,12 @@ from il2ks.web.display import Label
 # They explain what the number in that column means; keep them short and plain. The header itself is translated
 # separately: reuse its wording.
 HINTS: dict[str, Label] = {
+    # Translators: tooltip of the "Elo" column header of the aircraft list (the rating of an aircraft type, not a pilot)
+    "elo_aircraft": _(
+        "Rating of the aircraft type from air superiority duels between types. Every kill between two players in "
+        "air superiority sorties is a game won by the killer's type, whoever flew it; 1500 at the start of a tour. "
+        "All time counts the best tour with enough games."
+    ),
     # Translators: tooltip of the "Elo" column header on the Elo leaderboards and an aircraft type's top pilots
     "elo": _(
         "Air-to-air skill rating, 1500 at the start. It rises when you shoot down another player and falls when "

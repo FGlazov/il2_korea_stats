@@ -40,7 +40,7 @@ def matchups(page: Page) -> list[dict[str, str]]:
 
 
 def aircraft_table(page: Page) -> list[dict[str, str]]:
-    return rows_of(table_with(page, "Aircraft", "Sorties", "Pilots"))
+    return rows_of(table_with(page, "Aircraft", "Sorties", "Elo"))
 
 
 def open_aircraft_rankings(page: Page) -> None:
@@ -148,8 +148,8 @@ def test_the_tour_selector_splits_the_season_and_all_time_adds_it_up(page: Page,
 
 def test_sorting_the_rankings_by_several_columns_in_turn(page: Page, world: World) -> None:
     """Pilots, Air kills, then the first column again (A-Z): the rows follow each time, the header says which way, the
-    address keeps the choice (and the tour)."""
-    page.goto("/aircraft/?tour=all")
+    address keeps the choice (and the tour). These three are optional columns (the defaults are Elo, K/L...)."""
+    page.goto("/aircraft/?tour=all&cols=pilots,kills_air,deaths")
 
     for header in ("Pilots", "Air kills", "Deaths"):
         column_header(page, header).get_by_role("link").click()

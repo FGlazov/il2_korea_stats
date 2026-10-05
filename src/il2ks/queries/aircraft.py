@@ -51,15 +51,20 @@ from il2ks.db.models import (
     TourAircraftStats,
 )
 from il2ks.queries.leaderboards import BOARDS, SECONDS_PER_HOUR, BoardRow, top_rows
-from il2ks.queries.sorting import Ratio, SortSpec, order_by
+from il2ks.queries.sorting import Rated, Ratio, SortSpec, order_by
 
 # Public `?sort=` key -> what it orders by: an AircraftStats column or a NULL-safe ratio of two columns (no ratio is
-# stored, OQ-98; a whitelist, anything else falls back to the default). The first block is the default columns, the
-# second the optional ones a visitor can add with `?cols=` (`web.columns.AIRCRAFT_COLUMNS`; a test keeps the two in
-# step).
+# stored, OQ-98; a whitelist, anything else falls back to the default). The first block is the default columns
+# (maintainer 2026-10-05: aircraft, sorties, Elo, K/L, survival, attack proficiency = `ground_hour`), the second the
+# optional ones a visitor can add with `?cols=` (`web.columns.AIRCRAFT_COLUMNS`; a test keeps the two in step).
+# The Elo is the type's own rating (`ingest.aircraft_stats`), undefined (last) while the type has no rated duel.
 AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "aircraft": "aircraft__display_name",
     "sorties": "sorties",
+    "elo": Rated("elo", "elo_games"),
+    "kl": Ratio("kills_air", "planes_lost"),
+    "survival": Ratio("sorties", "sorties", minus="deaths"),
+    "ground_hour": Ratio("score_ground_attack", "time_on_target_s", scale=3600.0),
     "pilots": "pilots",
     "flight_time_s": "flight_time_s",
     "kills_air": "kills_air",
@@ -67,8 +72,6 @@ AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "deaths": "deaths",
     "planes_lost": "planes_lost",
     "kd": Ratio("kills_air", "deaths"),
-    "kl": Ratio("kills_air", "planes_lost"),
-    "survival": Ratio("sorties", "sorties", minus="deaths"),
     "attack_share": Ratio("attack_sorties", "sorties"),
     "kills_air_pvp": "kills_air_pvp",
     "assists": "assists",
@@ -76,7 +79,6 @@ AIRCRAFT_SORTS: Mapping[str, SortSpec] = {
     "friendly_kills": "friendly_kills",
     "score_air": "score_air",
     "score_ground": "score_ground",
-    "ground_hour": Ratio("score_ground_attack", "time_on_target_s", scale=3600.0),
     "sortie_length": Ratio("flight_time_s", "sorties"),
     "kills_per_hour": Ratio("kills_air", "flight_time_s", scale=3600.0),
     "sorties_per_pilot": Ratio("sorties", "pilots"),

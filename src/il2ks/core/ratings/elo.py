@@ -18,10 +18,14 @@ by skill). It follows exactly the same rules, with each side's rating being the 
 pilot's Be 109 rating and their Spitfire rating are independent. It comes from the same pass over the games
 (`compute_all_ratings`), which stays a single replay.
 
+The same games also feed an **aircraft type rating** (maintainer, 2026-10-05): one rating per aircraft type, where each
+game is won by the winner's type against the loser's type (`compute_type_ratings`, same pool rules, a type against
+itself is no game). It says how the types do against each other, whoever flew them.
+
 The result depends on the order of the games, so the caller passes them in chronological order.
 """
 
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -42,6 +46,16 @@ class RatingRules:
     final rating among the tours with at least this many rated games (the best tour with any game when none reaches
     it), so one game in a new month cannot set it."""
 
+    @property
+    def type_min_games(self) -> int:
+        """Games an aircraft type needs in a tour for that tour to qualify for its all-time rating: every kill between
+        two types is a game for both, so a type collects far more games than a pilot (`TYPE_MIN_GAMES_FACTOR`)."""
+        return max(self.min_games, 1) * TYPE_MIN_GAMES_FACTOR
+
+
+TYPE_MIN_GAMES_FACTOR = (
+    10  # PRODUCT: a type's tour needs `min_games` x this many games (default 50) to set its all-time Elo
+)
 
 DEFAULT_RULES = RatingRules()
 
@@ -92,6 +106,13 @@ def compute_ratings(games: Iterable[Game], rules: RatingRules) -> dict[RatingKey
     return compute_all_ratings(games, rules).pools
 
 
+def _weight(game: Game, rules: RatingRules) -> float | None:
+    """How much a game moves ratings (the pool rules); None = it moves nothing (a jet beating a prop aircraft)."""
+    if game.winner_pool == "jet" and game.loser_pool == "prop":
+        return None  # a jet beating a prop aircraft is the expected result
+    return rules.cross_pool_weight if game.winner_pool == "prop" and game.loser_pool == "jet" else 1.0
+
+
 def compute_all_ratings(games: Iterable[Game], rules: RatingRules) -> AllRatings:
     """The pool ratings and the per-type ratings in one pass over the (chronological) games. A game whose side has no
     aircraft type (id 0) leaves that side's per-type rating alone."""
@@ -101,15 +122,49 @@ def compute_all_ratings(games: Iterable[Game], rules: RatingRules) -> AllRatings
     for game in games:
         if game.winner == game.loser:
             continue
-        if game.winner_pool == "jet" and game.loser_pool == "prop":
-            continue  # a jet beating a prop aircraft is the expected result
-        weight = rules.cross_pool_weight if game.winner_pool == "prop" and game.loser_pool == "jet" else 1.0
+        weight = _weight(game, rules)
+        if weight is None:
+            continue
         after = pools.play((game.winner, game.winner_pool), (game.loser, game.loser_pool), weight)
         if game.winner_sortie:
             peaks[game.winner_sortie] = max(peaks.get(game.winner_sortie, after), after)
         if game.winner_aircraft and game.loser_aircraft:
             types.play((game.winner, game.winner_aircraft), (game.loser, game.loser_aircraft), weight)
     return AllRatings(pools.result(), types.result(), peaks)
+
+
+def compute_type_ratings(games: Iterable[Game], rules: RatingRules) -> dict[int, Rating]:
+    """The rating and the number of games of each aircraft type that played at least one rating-changing game: every
+    game is won by the winner's type against the loser's type, with the pool rules of the pilot ratings. Games between
+    pilots of one player, with an unknown aircraft type on a side or between two aircraft of one type move nothing (a
+    type cannot gain from beating itself). Types without a game are not in the result (`rules.start`, 0 games)."""
+    types = _Elo[int](rules)
+    for game in games:
+        if game.winner == game.loser or not (game.winner_aircraft and game.loser_aircraft):
+            continue
+        if game.winner_aircraft == game.loser_aircraft:
+            continue
+        weight = _weight(game, rules)
+        if weight is not None:
+            types.play(game.winner_aircraft, game.loser_aircraft, weight)
+    return types.result()
+
+
+def best_of_tours[K: Hashable](rows: Iterable[tuple[K, float, int]], min_games: int = 1) -> dict[K, Rating]:
+    """The all-time rating of each key from its per-tour (key, final rating, games) rows of rated games: the highest
+    final rating among the tours with at least `min_games` games (one game at least), the highest of all its tours when
+    none reaches that (the key then has no board standing anyway), with the games of all tours added up. A rating
+    after one or two games in a new tour is noise, so it must not beat a season of games."""
+    minimum = max(min_games, 1)
+    best: dict[K, float] = {}  # among the tours that reach the minimum
+    anything: dict[K, float] = {}
+    games_of: dict[K, int] = {}
+    for key, rating, games in rows:
+        anything[key] = max(rating, anything.get(key, rating))
+        games_of[key] = games_of.get(key, 0) + games
+        if games >= minimum:
+            best[key] = max(rating, best.get(key, rating))
+    return {key: Rating(best.get(key, anything[key]), games) for key, games in games_of.items()}
 
 
 class _Elo[K]:
