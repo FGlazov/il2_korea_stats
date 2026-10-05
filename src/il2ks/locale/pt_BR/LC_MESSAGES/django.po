@@ -1549,10 +1549,6 @@ msgid "Colors"
 msgstr "Cores"
 
 # llm-draft
-msgid "Columns"
-msgstr "Colunas"
-
-# llm-draft
 msgid "Combat role"
 msgstr "Função de combate"
 
@@ -2029,6 +2025,10 @@ msgstr "Tudo que tinha motor, cano ou telhado levou a sua. Trabalho caprichado."
 # llm-draft
 msgid "Exited on ground"
 msgstr "Saiu em solo"
+
+# llm-draft
+msgid "Extra columns"
+msgstr "Colunas extras"
 
 # llm-draft
 msgid "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), shown after the built-in ones."

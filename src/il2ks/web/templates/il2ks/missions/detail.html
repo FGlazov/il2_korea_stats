@@ -46,7 +46,7 @@
       <small class="muted">{{ group.page.paginator.count|num }}</small>
     </h3>
     <div class="table-wrap table-wrap--flat">
-      <table class="data-table data-table--compact sortie-table" style="--extra-cols: {{ columns|length }}">
+      <table class="data-table data-table--compact data-table--sticky-2 sortie-table" style="--extra-cols: {{ columns|length }}; --sticky-lead: 5rem">
         <thead>
           <tr>
             {% sort_th "time" _("Time") numeric=True first="asc" %}

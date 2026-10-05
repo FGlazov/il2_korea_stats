@@ -1571,10 +1571,6 @@ msgid "Colors"
 msgstr "Цвета"
 
 # llm-draft
-msgid "Columns"
-msgstr "Столбцы"
-
-# llm-draft
 msgid "Combat role"
 msgstr "Боевая роль"
 
@@ -2045,6 +2041,10 @@ msgstr "Всё, что с мотором, стволом или крышей, п
 # llm-draft
 msgid "Exited on ground"
 msgstr "Покинул самолёт на земле"
+
+# llm-draft
+msgid "Extra columns"
+msgstr "Дополнительные столбцы"
 
 # llm-draft
 msgid "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), shown after the built-in ones."

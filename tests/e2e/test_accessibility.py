@@ -27,7 +27,7 @@ PUBLIC = [name for name in PAGES if name != "styleguide"]
 """The debug-only style guide is not a public page."""
 
 
-def _violations(page: Page, label: str) -> list[str]:
+def axe_violations(page: Page, label: str) -> list[str]:
     """axe-playwright-python ships no type information: the untyped call is cast to the JSON shape axe documents."""
     options = {"runOnly": {"type": "tag", "values": TAGS}, "resultTypes": ["violations"]}
     results = Axe().run(page, options=options)  # pyright: ignore[reportUnknownMemberType]
@@ -53,11 +53,11 @@ def test_public_page_has_no_axe_violations(page: Page, world: World, name: str) 
             page.goto(with_theme(url, scheme))
             page.wait_for_load_state("networkidle")
             tag = f"{name} {width}px {scheme}"
-            found += _violations(page, tag)
+            found += axe_violations(page, tag)
             if page.locator("details").count():
                 page.evaluate(OPEN_DETAILS_JS)
                 page.wait_for_timeout(450)  # Pico fades a dropdown in
-                found += _violations(page, tag + " open")
+                found += axe_violations(page, tag + " open")
     assert not found, f"{url}\n" + "\n".join(sorted(set(found)))
 
 
@@ -75,7 +75,7 @@ def test_every_language_has_its_lang_attribute_and_no_axe_violations(
             page.goto(path)
             page.wait_for_load_state("networkidle")
             assert (page.get_attribute("html", "lang") or "").lower().replace("_", "-") == language.lower()
-            found += _violations(page, f"{language} {path}")
+            found += axe_violations(page, f"{language} {path}")
         assert not found, "\n".join(found)
     finally:
         context.close()

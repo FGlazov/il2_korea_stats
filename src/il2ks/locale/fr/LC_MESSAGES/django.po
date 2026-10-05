@@ -1559,10 +1559,6 @@ msgid "Colors"
 msgstr "Couleurs"
 
 # llm-draft
-msgid "Columns"
-msgstr "Colonnes"
-
-# llm-draft
 msgid "Combat role"
 msgstr "Rôle de combat"
 
@@ -2041,6 +2037,10 @@ msgstr "Tout ce qui avait un moteur, un canon ou un toit a pris sa part. Du trav
 # llm-draft
 msgid "Exited on ground"
 msgstr "Sorti au sol"
+
+# llm-draft
+msgid "Extra columns"
+msgstr "Colonnes supplémentaires"
 
 # llm-draft
 msgid "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), shown after the built-in ones."

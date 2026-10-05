@@ -240,6 +240,22 @@ def test_the_form_reacts_to_any_column_checkbox_even_after_a_swap(client: Client
     assert "change[target.name=='cols']" in html
 
 
+def test_extra_columns_is_a_collapsible_that_starts_open_only_with_a_ticked_column(client: Client) -> None:
+    """Maintainer 2026-10-05: "Extra columns", the choices on the page (a checkbox grid, not a dropdown); closed on a
+    plain list, open once a column is ticked (so a no-JS submit and a reload stay open)."""
+    seed_players()
+
+    plain = client.get("/players/").content.decode()
+    ticked = client.get("/players/?cols=kd").content.decode()
+
+    assert "<summary>Extra columns</summary>" in plain
+    assert "dropdown columns-picker" not in plain
+    assert 'id="columns-picker" hx-preserve>' in plain
+    assert 'id="columns-picker" hx-preserve open>' in ticked
+    assert 'id="col-kd" name="cols" value="kd" checked' in ticked
+    assert 'id="col-kd" name="cols" value="kd">' in plain
+
+
 def test_htmx_column_change_returns_the_results_region(client: Client) -> None:
     seed_players()
 

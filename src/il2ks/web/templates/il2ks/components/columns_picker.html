@@ -1,13 +1,15 @@
 {# il2ks-template: templates/il2ks/components/columns_picker.html v1 - copy this line along when you override #}
 {% load i18n %}{% comment %}
-  columns_picker.html ({% columns_picker optional_columns %}): the "Columns" dropdown of a list page, for inside a
-  {% filter_bar %}. One checkbox per optional column, all named `cols`: the form submits ?cols=a&cols=b (the page also
-  reads ?cols=a,b). Works without JS (the Apply button submits); with htmx a change refreshes the results.
-  hx-preserve keeps the dropdown open while the region is swapped.
-  Context: options (list of (key, label, hint, checked)).
-{% endcomment %}<details class="dropdown columns-picker" id="columns-picker" hx-preserve>
-  <summary>{% translate "Columns" %}</summary>
-  <ul>{% for key, label, hint, checked in options %}
-    <li><label{% if hint %} title="{{ hint }}"{% endif %}><input type="checkbox" name="cols" value="{{ key }}"{% if checked %} checked{% endif %}>{{ label }}</label></li>{% endfor %}
+  columns_picker.html ({% columns_picker optional_columns %}): the collapsible "Extra columns" of a list page, for inside a
+  {% filter_bar %}. One checkbox per optional column, all shown at once in a compact grid (no menu to scroll), all named
+  `cols`: the form submits ?cols=a&cols=b (the page also reads ?cols=a,b). Works without JS (the Apply button submits);
+  with htmx a change refreshes the results. It starts open when a column is ticked (so a no-JS submit or a reload stays
+  open); hx-preserve keeps the element, with its open state, while the region is swapped (il2ks.js puts the focus back
+  on the clicked checkbox and the table's horizontal scroll where it was).
+  Context: options (list of (key, label, hint, checked)), any_checked.
+{% endcomment %}<details class="columns-picker" id="columns-picker" hx-preserve{% if any_checked %} open{% endif %}>
+  <summary>{% translate "Extra columns" %}</summary>
+  <ul class="columns-picker__grid">{% for key, label, hint, checked in options %}
+    <li><label{% if hint %} title="{{ hint }}"{% endif %}><input type="checkbox" id="col-{{ key }}" name="cols" value="{{ key }}"{% if checked %} checked{% endif %}>{{ label }}</label></li>{% endfor %}
   </ul>
 </details>

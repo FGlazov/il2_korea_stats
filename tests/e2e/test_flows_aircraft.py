@@ -167,10 +167,10 @@ def test_sorting_the_rankings_by_several_columns_in_turn(page: Page, world: Worl
 
 
 def test_optional_columns_join_the_table_and_can_be_sorted_on(page: Page) -> None:
-    """Columns control: Bailouts and Assists appear (in place), the address lists both, Bailouts sorts, and a reload
+    """Extra columns: Bailouts and Assists appear (in place), the address lists both, Bailouts sorts, and a reload
     keeps all of it."""
     page.goto("/aircraft/?tour=all")
-    page.get_by_text("Columns", exact=True).click()
+    page.get_by_text("Extra columns", exact=True).click()
     for label in ("Bailouts", "Assists"):
         page.get_by_role("checkbox", name=label, exact=True).check()
         expect(column_header(page, label)).to_be_visible()
