@@ -345,6 +345,30 @@ class Player(Counters):
 
     objects: ClassVar[HideableManager[Player]] = HideableManager()  # pyright: ignore[reportIncompatibleVariableOverride]
 
+    class Meta(Counters.Meta):
+        abstract = False
+        # Query-plan rule (docs/performance-testing.md, tests/perf/test_query_plans.py): every board and list orders by
+        # an indexed column. The all-time boards order by `score DESC, name_lower ASC` (the tie-break is the player's
+        # name), so the index has exactly that order, and carries the minimum-activity filter columns and `is_hidden`
+        # so the page query and its COUNT never touch the table to filter. The per-hour boards sort by a ratio no index
+        # can serve: their covering indexes only make the filter and the count a range scan.
+        indexes = [
+            models.Index(fields=["-score_air", "name_lower", "sorties", "is_hidden"], name="player_board_air"),
+            models.Index(fields=["-score_ground", "name_lower", "sorties", "is_hidden"], name="player_board_ground"),
+            models.Index(fields=["-flight_time_s", "name_lower", "is_hidden"], name="player_board_playtime"),
+            models.Index(fields=["-elo_jet", "name_lower", "elo_jet_games", "is_hidden"], name="player_board_elo_jet"),
+            models.Index(
+                fields=["-elo_prop", "name_lower", "elo_prop_games", "is_hidden"], name="player_board_elo_prop"
+            ),
+            models.Index(
+                fields=["air_superiority_sorties", "flight_time_air_s", "is_hidden"], name="player_board_intercept"
+            ),
+            models.Index(fields=["attack_sorties", "time_on_target_s", "is_hidden"], name="player_board_ground_hour"),
+            # The player list: its default sort (last seen) and air kills, the column visitors sort by most.
+            models.Index(fields=["-last_seen", "is_hidden"], name="player_list_last_seen"),
+            models.Index(fields=["-kills_air", "is_hidden"], name="player_list_kills_air"),
+        ]
+
     def __str__(self) -> str:
         return self.current_name
 
@@ -438,7 +462,14 @@ class Mission(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["server_uid", "mission_uid"], name="mission_natural_key")]
-        indexes = [models.Index(fields=["-started_at"], name="mission_started_desc")]
+        # The mission list and the home page: newest first, all time or within a tour; the filters of the default list
+        # (`is_hidden`, `sorties_total`) ride along so the list and its COUNT are answered from the index.
+        indexes = [
+            models.Index(fields=["-started_at", "is_hidden", "sorties_total"], name="mission_started_list"),
+            models.Index(
+                fields=["tour", "-started_at", "is_hidden", "sorties_total"], name="mission_tour_started_list"
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.mission_uid
@@ -849,6 +880,7 @@ class PlayerPool(Counters):
     class Meta(Counters.Meta):
         abstract = False
         constraints = [models.UniqueConstraint(fields=["player", "propulsion"], name="playerpool_unique")]
+        indexes = [models.Index(fields=["propulsion"], name="playerpool_by_propulsion")]  # the pool boards
 
     def __str__(self) -> str:
         return f"{self.player_id} / {self.propulsion}"
@@ -1255,7 +1287,17 @@ class PlayerBestStreak(models.Model):
             ),
             models.CheckConstraint(condition=models.Q(kind__in=StreakKind.values), name="bests_kind_valid"),
         ]
-        indexes = [models.Index(fields=["player", "tour"], name="bests_by_player_tour")]
+        indexes = [
+            models.Index(fields=["player", "tour"], name="bests_by_player_tour"),
+            # The best-streak list (`/streaks/`, the home page): one kind in one tour (or all time), longest first.
+            models.Index(fields=["kind", "tour", "-sorties", "-kills_air"], name="bests_list"),
+            # The all-time list: Postgres cannot read `tour IS NULL` as a fixed prefix of `bests_list`, so it sorts.
+            models.Index(
+                fields=["kind", "-sorties", "-kills_air", "id"],
+                condition=models.Q(tour__isnull=True),
+                name="bests_alltime_list",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.player_id} {self.kind}: {self.sorties}"
@@ -1288,7 +1330,13 @@ class PlayerStreakRun(models.Model):
     ended_sortie = models.ForeignKey(PlayerSortie, null=True, on_delete=models.SET_NULL, related_name="+")
 
     class Meta:
-        indexes = [models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour")]
+        indexes = [
+            models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour"),
+            # The all-time history (`tour IS NULL`), newest first: see `bests_alltime_list` on PlayerBestStreak.
+            models.Index(
+                fields=["player", "-since", "-id"], condition=models.Q(tour__isnull=True), name="streakruns_alltime"
+            ),
+        ]
         constraints = [models.CheckConstraint(condition=models.Q(ended_by__in=StreakEnd.values), name="runs_end_valid")]
 
     def __str__(self) -> str:
