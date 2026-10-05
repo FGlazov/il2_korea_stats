@@ -253,6 +253,9 @@ decisions are made):
   top pilots, hits to destroy and ammo mixes follow the tour (all time included), the role toggle and the significant-mods filter (for
   hits to destroy and ammo mixes: the destroyed aircraft's sortie); the "not filtered" notes go.
 
+- 🔧 **Maintainer answers of 2026-10-05** (doc 02): career medals with all-time thresholds 5x the per-tour ones and a new "tours in a
+  row" medal (OQ-128); translated weapon-mod names; outcome penalties never improve a negative score.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
