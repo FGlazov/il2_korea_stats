@@ -469,3 +469,35 @@ def test_the_home_feed_leaves_out_every_tier_a_fifth_of_the_pilots_hold() -> Non
 
     AchievementHolders.objects.filter(tour=None, key="ground_sortie", tier=2).update(holders=1, pilots=6)  # 16.7%
     assert "Target-Rich" in Client().get("/?tour=all").content.decode()
+
+
+def damaged_landing_world(landing_damage: float) -> None:
+    """Player 1 flies five sorties with a kill that landed with `landing_damage` and were repaired, so `damage_taken`
+    (the last leg) reads 0 (maintainer 2026-10-05: the damaged-landing medal still counts them)."""
+    save(
+        mission(tuple(sortie(i, 1, kills_air=1, damage_taken=0.0, landing_damage=landing_damage) for i in range(5))),
+        meta("m1", STARTED_AT),
+    )
+
+
+def test_a_repaired_damaged_landing_earns_the_damaged_landing_medal() -> None:
+    damaged_landing_world(0.7)
+
+    assert PlayerSortie.objects.filter(landing_damage=0.7).count() == 5
+    assert held(1)["damaged_landing"] == 2  # 5 landings reach the second tier (3), not the third (10)
+
+
+def test_an_undamaged_landing_earns_no_damaged_landing_medal() -> None:
+    damaged_landing_world(0.0)
+
+    assert "damaged_landing" not in held(1)
+
+
+def test_damaged_landing_incremental_equals_rebuild() -> None:
+    damaged_landing_world(0.7)
+    incremental = snapshot()
+
+    rebuild_aggregates()
+
+    assert snapshot() == incremental
+    assert any(row[2] == "damaged_landing" for row in incremental)

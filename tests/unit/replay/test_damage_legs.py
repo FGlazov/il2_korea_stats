@@ -175,6 +175,57 @@ def test_without_resupply_the_damage_accumulates_over_the_whole_sortie_up_to_100
     assert by_acct(result, 1).damage_taken == pytest.approx(1.0)
 
 
+# --- the damage at a landing (maintainer 2026-10-05: the damaged-landing medal keeps counting a repaired landing) ---
+
+
+def _a_lands_at_the_end(sc: Scenario, rules: ReplayRules | None = None) -> SortieResult:
+    sc.land(250, 100)
+    return by_acct(_finish(sc, rules), 1)
+
+
+def test_a_damaged_landing_that_was_repaired_still_counts_as_a_damaged_landing() -> None:
+    sc = _scenario()
+    _resupply(sc, hits=((50, 0.7),))
+    a = _a_lands_at_the_end(sc)
+    assert (a.outcome, a.damage_taken, a.aircraft_status) == ("landed", 0.0, "unharmed")
+    assert a.landing_damage == pytest.approx(0.7)
+
+
+def test_an_undamaged_landing_has_no_landing_damage() -> None:
+    sc = _scenario()
+    _resupply(sc, hits=())
+    assert _a_lands_at_the_end(sc).landing_damage == 0.0
+
+
+def test_landing_damage_is_the_worst_landing_of_the_sortie() -> None:
+    sc = _scenario()
+    _resupply(sc, hits=((50, 0.3),), second=(0.6,))
+    a = _a_lands_at_the_end(sc)
+    assert a.damage_taken == pytest.approx(0.6)
+    assert a.landing_damage == pytest.approx(0.6)  # the final landing carried 0.6, the first 0.3
+
+
+def test_the_final_landing_counts_when_there_was_no_repair() -> None:
+    sc = _scenario()
+    sc.damage(50, 200, 100, 0.8)
+    assert _a_lands_at_the_end(sc).landing_damage == pytest.approx(0.8)
+
+
+def test_without_resupply_the_landing_damage_is_the_damage_taken_as_before() -> None:
+    sc = _scenario()
+    _resupply(sc, hits=((50, 0.7),))
+    a = _a_lands_at_the_end(sc, NO_REPAIR)
+    assert (a.damage_taken, a.landing_damage) == (pytest.approx(0.7), pytest.approx(0.7))
+
+
+def test_a_sortie_that_did_not_land_has_no_landing_damage_from_its_end() -> None:
+    sc = _scenario()
+    sc.damage(50, 200, 100, 0.8)
+    a = by_acct(_finish(sc), 1)  # still airborne at the end of the mission
+    assert a.outcome != "landed"
+    assert a.landing_damage == 0.0
+
+
 # --- timeline ----------
 
 

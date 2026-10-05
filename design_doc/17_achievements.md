@@ -84,7 +84,7 @@ them).
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
 | `ground_sortie` | Target-Rich | Most ground kills in a single sortie (static objects count, like the profile's ground kills) | 20 / 50 / 100 / 200 | 271 / 123 / 57 / 13 |
 | `survivor` | Ironman | Sorties survived in a row on the better of the two ironman tracks (air or ground, `core/streaks.py`, doc 13) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
-| `damaged_landing` | Limping Home | Sorties with at least one kill that ended in a landing with `damage_taken` of 0.5 or more | 1 / 3 / 10 | 157 / 22 / 1 |
+| `damaged_landing` | Limping Home | Sorties with at least one kill that ended in a landing, where some landing of the sortie carried `landing_damage` of 0.5 or more (a repaired landing counts, maintainer 2026-10-05) | 1 / 3 / 10 | 157 / 22 / 1 |
 | `regular` | Regular | Longest run of consecutive ISO weeks (Monday to Sunday, UTC) with at least one sortie | 2 / 4 / 8 / 16 weeks | 436 / 114 / 0 / 0 |
 | `frequent_flyer` | Frequent Flyer | Sorties flown (took off) | 10 / 50 / 200 / 1000 | 324 / 56 / 0 / 0 |
 | `flight_hours` | Hours Aloft | Flight hours in total | 1 / 10 / 50 / 200 h | 610 / 103 / 3 / 0 |
@@ -171,6 +171,12 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
   or a life (the streak rule). A death or capture at the parking spot still ends the life / survival run.
 - **Mission-end cut-offs and disconnects**: the pilot did not die, so the sortie counts as survived and its kills and hours count; a
   cut-off sortie is not a "landing" for `damaged_landing` (only `outcome = landed` is).
+- **Damaged landing and repairs** (maintainer 2026-10-05: "keep the medal in that scenario") `[DECIDED]`: `damage_taken` is the last flight leg's
+  damage, so a sortie that landed damaged, was repaired (a landing followed by a takeoff, doc 13) and flew on undamaged reads "unharmed". The medal
+  (and the sortie quips) read `PlayerSortie.landing_damage` instead: the most damage carried into any landing of the sortie, repaired ones included.
+  It still counts sorties (not landings) with a kill, `outcome = landed` and the 50% "badly damaged" threshold `[PROPOSED]`. Without
+  `resupply_allowed` nothing changes. Existing databases: the migration fills it from `damage_taken` of landed sorties; `il2ks reprocess --all`
+  gives the exact value (pre-release: just run it).
 - **Friendly kills** are not in `kills_air` (doc 13) and are excluded from `strike_hunter`; AI aircraft shot down count for the air-kill
   medals (they are in `kills_air`) but **not** for `strike_hunter`, which reads `Kill` rows between two pilots (AI victims have none).
 - **Rams**: `Contact Sport` counts the air kills credited to a ram of an enemy aircraft (`PlayerSortie.rams`). With `credit_rams` off

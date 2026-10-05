@@ -77,6 +77,20 @@ def damage_at_end(counted: Iterable[CountedDamage], repairs: tuple[int, ...]) ->
     )
 
 
+def damage_at_repairs(counted: Iterable[CountedDamage], repairs: tuple[int, ...]) -> float:
+    """The most damage the aircraft carried into one of the repairing landings (0 when it had no repair): each leg that
+    ends at a repair tick, its counted damage up to that tick. Maintainer 2026-10-05: the damaged-landing medal counts
+    these landings although the repair leaves the last leg unharmed."""
+    lines = list(counted)
+    worst = 0.0
+    for leg, tick in enumerate(repairs):
+        carried = sum(
+            c.amount for c in lines if c.record.tick <= tick and sum(1 for r in repairs if r < c.record.tick) == leg
+        )
+        worst = max(worst, min(FULL_HEALTH, carried))
+    return worst
+
+
 def damaged_at(counted: Iterable[CountedDamage], tick: int, repairs: tuple[int, ...]) -> bool:
     """True when the leg that ends at the repair `tick` counted any damage by then."""
     leg = sum(1 for r in repairs if r < tick)

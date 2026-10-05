@@ -300,9 +300,14 @@ dropped, and a counterpart's several sorties are separate rows. No row came from
   adds the objects of one type up in health units.
 - `damage_taken` of a sortie (list column, status "damaged", achievements) = the damage of the **last** leg at the end, 1 when destroyed; a repaired
   aircraft that flew on undamaged is "unharmed". `pilot_damage` is unchanged (the pilot is not repaired, summed and capped at 1).
+- **Landing damage** (maintainer 2026-10-05: "keep the medal in that scenario"): `landing_damage` of a sortie = the most damage the aircraft carried
+  **into a landing**: the leg that ends at each repairing landing (counted up to that tick) and, when the sortie ends in a landing (`outcome = landed`),
+  the damage it ends with. A landing made damaged therefore still counts for the damaged-landing medal and the "limped home" / "battered victor"
+  quips although a repair and more flying follow and `damage_taken` reads 0. Without `resupply_allowed` there is no repair, so it equals `damage_taken` of a
+  landed sortie (0 for the others). It is a fraction (not a bool) because the medal and the quips keep their 50% "badly damaged" threshold.
 - Timeline: a `repaired` row ("Repaired after landing") at the landing tick when the leg that ends there had counted damage and a takeoff follows.
   Hit rows are per burst, capped at 100% each, and not cumulative, so they need no reset; they are not capped by the leg's remaining health.
-- Stored per sortie (`damage_taken`, `damage_breakdown`, `timeline`): existing databases need `il2ks reprocess --all` (pre-release: just run it).
+- Stored per sortie (`damage_taken`, `landing_damage`, `damage_breakdown`, `timeline`): existing databases need `il2ks reprocess --all` (pre-release: just run it).
 
 ### Timeline hits (2026-10-04, `core/replay/hits.py`) `[DECIDED]` (maintainer, 2026-10-04, OQ-108: 0.2% burst threshold, scenery excluded)
 The significant damage a sortie gave and took, as timeline rows (maintainer: a damage % column, significant hits as rows, ammo matched to the nearest

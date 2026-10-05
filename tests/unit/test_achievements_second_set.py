@@ -51,7 +51,7 @@ def s(
             kills_ground=0,
             kills_ground_tank=0,
             kills_strike_air=0,
-            damage_taken=0.0,
+            landing_damage=0.0,
             landed=landed and not death and not grounded,
             is_death=death,
             is_captured=captured,

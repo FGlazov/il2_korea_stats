@@ -78,7 +78,7 @@ def sortie_with(**fields: object) -> PlayerSortie:
         "role": "pilot",
         "outcome": "landed",
         "pilot_status": "healthy",
-        "aircraft_status": "unharmed",
+        "landing_damage": 0.0,
         "loss_class": "",
     }
     return PlayerSortie(**{**defaults, **fields})
@@ -99,8 +99,9 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({"outcome": "shot_down", "loss_class": "aaa"}, "sortie_aa"),
         ({"outcome": "shot_down", "loss_class": "player"}, None),
         ({"kills_air": 3}, "sortie_ace"),
-        ({"aircraft_status": "damaged", "damage_taken": 0.8}, "sortie_limped_home"),
-        ({"aircraft_status": "damaged", "damage_taken": 0.2}, None),
+        ({"landing_damage": 0.8}, "sortie_limped_home"),
+        ({"landing_damage": 0.2}, None),
+        ({"landing_damage": 0.8, "aircraft_status": "unharmed", "damage_taken": 0.0}, "sortie_limped_home"),  # repaired
         ({"role": "gunner", "kills_air": 9}, None),
     ],
 )
@@ -131,9 +132,9 @@ def test_sortie_spots(fields: dict[str, object], spot: str | None) -> None:
         ({"assists_ground": 5, "assists_air": 3}, None, "sortie_stolen_kills"),  # the air line comes first
         ({"assists_ground": 5, "kills_air": 3}, None, "sortie_ace"),
         ({"assists_air": 1, "assists_ground": 4}, None, None),  # air and ground assists don't add up
-        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
-        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
-        ({"aircraft_status": "damaged", "damage_taken": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
+        ({"landing_damage": 0.7, "kills_ground": 2}, None, "sortie_battered_victor"),
+        ({"landing_damage": 0.7, "kills_air": 1}, None, "sortie_limped_home"),
+        ({"landing_damage": 0.7, "kills_air": 2}, None, "sortie_battered_victor"),
         ({"kills_ground": 70}, None, "sortie_ground_pounder"),
         ({"kills_ground": 69}, None, None),
         ({}, Highlights(first_kill_s=420.0), "sortie_quick_kill"),
@@ -152,8 +153,7 @@ ACHIEVEMENTS: dict[str, object] = {
     "assists_air": 8,
     "assists_ground": 90,
     "kills_ground": 90,
-    "aircraft_status": "damaged",
-    "damage_taken": 0.8,
+    "landing_damage": 0.8,
     "flight_time_s": 4000.0,
 }
 HUNTER = Highlights(bomber_kills=3, first_kill_s=100.0)
@@ -194,17 +194,17 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
         ({"kills_air": 0, "assists_air": 0, "assists_ground": 0}, QUICK, "sortie_battered_victor"),
         ({"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0}, QUICK, "sortie_limped_home"),
         (
-            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "aircraft_status": "unharmed"},
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "landing_damage": 0.0},
             QUICK,
             "sortie_ground_pounder",
         ),
         (
-            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "aircraft_status": "unharmed"},
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "landing_damage": 0.0},
             QUICK,
             "sortie_quick_kill",
         ),
         (
-            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "aircraft_status": "unharmed"},
+            {"kills_air": 0, "assists_air": 0, "assists_ground": 0, "kills_ground": 0, "landing_damage": 0.0},
             None,
             "sortie_marathon",
         ),

@@ -20,7 +20,7 @@ from il2ks.db.models import Counters, PlayerSortie, StatThreshold
 from il2ks.web.display import Label
 
 MULTI_KILL_MIN = 3  # air kills in one sortie that earn a line
-BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landing worth a remark
+BADLY_DAMAGED = 0.5  # damage carried into the landing (share of the airframe's health) of a landing worth a remark
 # Thresholds of the extreme-event spots, read off the September 2026 archive (15,245 pilot sorties; share of those
 # sorties that reach the threshold, before the precedence in `sortie_spots` takes some away):
 BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
@@ -385,9 +385,7 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
         and sortie.kills_ground < GROUND_KILLS_MIN
     ):
         yield "sortie_stolen_ground"
-    landed_damaged = (
-        sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED
-    )
+    landed_damaged = sortie.outcome == "landed" and sortie.landing_damage >= BADLY_DAMAGED
     if landed_damaged and sortie.kills_air + sortie.kills_ground >= BATTERED_KILLS_MIN:
         yield "sortie_battered_victor"
     if landed_damaged:
