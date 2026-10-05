@@ -199,8 +199,16 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   - **Crash safety**: the loop is in a `try/finally`. Ctrl-C, an exception or a failing pass in the middle still applies what is pending (ingest: `Level2Batch.finish`;
     reprocess: the rebuild), so level 2 matches the saved missions. A pass failing inside that `finally` is logged ("run `il2ks rebuild-aggregates`"), not raised over the first error.
     A **hard kill** (power cut, `kill -9`, OOM) loses the in-memory pending set: level 1 of the saved missions is committed, level 2 (and the Elo
-    ratings) lag by at most the last 10% (reprocess: by every mission so far). Nothing detects that automatically and a re-run skips the missions as `unchanged`:
-    `il2ks rebuild-aggregates` repairs it (tested: `test_a_killed_batch_is_repaired_by_rebuild_aggregates`). A `doctor` check for "level 2 behind level 1" is not built.
+    ratings) lag by at most the last 10% (reprocess: by every mission so far), and a re-run skips the missions as `unchanged`.
+  - **Pending marker** `[PROPOSED]` (2026-10-05, makes the hard kill detectable and self-healing): `SiteSettings.level2_pending` (JSON, empty = none; migration
+    0060, on the settings row every page reads anyway) is set to `{"since", "command", "pid"}` when a batch starts (`Level2Batch.start()` before the first save; a batched
+    `reprocess` sets it too) and cleared in the same transaction as the last level-2 pass (`finish`), by any `rebuild_aggregates` (so the reprocess's final rebuild
+    and `il2ks rebuild-aggregates` clear it) and by a batch that saved nothing. The marker is **not** cleared by the 10% passes. At the start of every `ingest`,
+    `watch` and `reprocess` run, writer lock held, `batch.repair_pending` finds it still set (a killed process; the lock proves nobody is running) and runs
+    `rebuild_aggregates` first, logging a warning with the start time and pid, then clears it. `il2ks doctor` (ingestion check) warns "Level 2 ... may be behind" with the fix
+    `il2ks rebuild-aggregates` while it is set. An ordinary exception or Ctrl-C leaves no marker (the `finally` finishes the batch). Cost: two one-row updates per batched run
+    and one read per run. Tests: `test_a_killed_batch_is_detected_by_doctor_and_repaired_by_the_next_run`, `test_a_killed_batched_reprocess_...`, `test_a_finished_batch_leaves_no_marker`.
+    Not covered: the first `repair_pending` rebuild is a full rebuild, minutes on a big database; a repair could replay only the touched rows, but they are unknown after the kill.
   - **Equality** is tested table by table (`tests/integration/test_batched_level2.py`, `tests/db_canon.py`): batched ingest == per-mission ingest == after a rebuild,
     and batched reprocess == per-mission reprocess.
   - **Measured** (2026-10-05, `bench-ingest` on a copy of every 5th sample, 42 missions, machine loaded by other jobs, so wall clock and CPU swing 2x):
