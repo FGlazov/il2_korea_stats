@@ -120,6 +120,12 @@ def test_pictures_keep_layout_text_and_axe_clean(
     problems = audit_page(
         page, f"{picture}-{page_name}-{width}-{scheme}", with_theme(PAGES[page_name], scheme), shots_dir()
     )
+    # audit_page leaves the page at its last width and scheme with a menu open (the History dropdown would sit over
+    # the hero heading): measure on a fresh load in this case's own state.
+    page.emulate_media(color_scheme=scheme)
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto(with_theme(PAGES[page_name], scheme))
+    wait_until_settled(page)
     problems += axe_violations(page, f"{picture} {page_name} {width} {scheme}")
     for selector, found in contrasts(page).items():
         needed = 3.0 if selector == ".hero h1" else 4.5

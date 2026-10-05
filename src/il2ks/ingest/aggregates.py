@@ -330,10 +330,11 @@ class _TourScope:
 def _tour_scope(tours: list[int]) -> _TourScope:
     """What `refresh_tours` has to recompute for these tours, by queries (never by tracking)."""
     in_tours = {"mission__tour_id__in": tours}
-    players = set(PlayerSortie.objects.filter(**in_tours).values_list("player_id", flat=True).distinct())
+    sortie_in_tours = {"tour_id__in": tours}  # the sorties carry their mission's tour
+    players = set(PlayerSortie.objects.filter(**sortie_in_tours).values_list("player_id", flat=True).distinct())
     players |= set(PlayerMission.objects.filter(**in_tours).values_list("player_id", flat=True).distinct())
     players |= set(PlayerTour.objects.filter(tour_id__in=tours).values_list("player_id", flat=True).distinct())
-    flown = set(counted_sorties().filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
+    flown = set(counted_sorties().filter(**sortie_in_tours).values_list("aircraft_id", flat=True).distinct())
     flown |= set(PlayerTourAircraft.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
     flown |= set(TourAircraftStats.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
     ammo = set(MissionAircraftAmmo.objects.filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
@@ -584,12 +585,12 @@ def refresh_player_missions() -> None:
 def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
     """`PlayerTour` and `PlayerTourAircraft` for these players, limited to `tour_ids` unless that is None."""
     missions = PlayerMission.objects.filter(player_id__in=chunk, mission__tour__isnull=False)
-    sorties = counted_sorties().filter(player_id__in=chunk, mission__tour__isnull=False)
+    sorties = counted_sorties().filter(player_id__in=chunk, tour__isnull=False)
     totals = PlayerTour.objects.filter(player_id__in=chunk)
     aircraft = PlayerTourAircraft.objects.filter(player_id__in=chunk)
     if tour_ids is not None:
         missions = missions.filter(mission__tour_id__in=tour_ids)
-        sorties = sorties.filter(mission__tour_id__in=tour_ids)
+        sorties = sorties.filter(tour_id__in=tour_ids)
         totals = totals.filter(tour_id__in=tour_ids)
         aircraft = aircraft.filter(tour_id__in=tour_ids)
     sums = {n: Sum(n) for n in COUNTER_FIELDS}
@@ -599,17 +600,17 @@ def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
     }
     _sync(PlayerTour, ("player_id", "tour_id"), wanted_totals, totals)
     wanted_aircraft = {
-        (row["player_id"], row["mission__tour_id"], row["aircraft_id"]): clean_counters(row)
-        for row in sorties.values("player_id", "mission__tour_id", "aircraft_id").annotate(**SORTIE_COUNTERS)
+        (row["player_id"], row["tour_id"], row["aircraft_id"]): clean_counters(row)
+        for row in sorties.values("player_id", "tour_id", "aircraft_id").annotate(**SORTIE_COUNTERS)
     }
     _sync(PlayerTourAircraft, ("player_id", "tour_id", "aircraft_id"), wanted_aircraft, aircraft)
     pools = PlayerTourPool.objects.filter(player_id__in=chunk)
     if tour_ids is not None:
         pools = pools.filter(tour_id__in=tour_ids)
     wanted_pools = {
-        (row["player_id"], row["mission__tour_id"], row["aircraft__propulsion"]): clean_counters(row)
+        (row["player_id"], row["tour_id"], row["aircraft__propulsion"]): clean_counters(row)
         for row in sorties.filter(aircraft__propulsion__in=Propulsion.values)
-        .values("player_id", "mission__tour_id", "aircraft__propulsion")
+        .values("player_id", "tour_id", "aircraft__propulsion")
         .annotate(**SORTIE_COUNTERS)
     }
     _sync(PlayerTourPool, ("player_id", "tour_id", "propulsion"), wanted_pools, pools)
@@ -617,9 +618,9 @@ def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
     if tour_ids is not None:
         roles = roles.filter(tour_id__in=tour_ids)
     wanted_roles = {
-        (row["player_id"], row["mission__tour_id"], row["combat_role"]): clean_counters(row)
+        (row["player_id"], row["tour_id"], row["combat_role"]): clean_counters(row)
         for row in sorties.filter(combat_role__in=CombatRole.values)
-        .values("player_id", "mission__tour_id", "combat_role")
+        .values("player_id", "tour_id", "combat_role")
         .annotate(**SORTIE_COUNTERS)
     }
     _sync(PlayerRole, ("player_id", "tour_id", "role"), wanted_roles, roles)

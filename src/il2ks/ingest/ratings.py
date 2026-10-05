@@ -176,7 +176,7 @@ def _store_peaks(tour_id: int | None, peaks: dict[int, float]) -> None:
     differs. The medals of the pilots whose peaks changed are recomputed by the caller's refresh, after the replay
     (`aggregates.recompute_players`: the tour's medals, then the all-time roll-up). Incremental == rebuild: the peaks
     are a pure function of the tour's replayed games."""
-    scope = PlayerSortie.objects.filter(mission__tour_id=tour_id)
+    scope = PlayerSortie.objects.filter(tour_id=tour_id)
     stored = dict(scope.filter(elo_peak__gt=0).values_list("pk", "elo_peak"))
     changed = [
         PlayerSortie(pk=pk, elo_peak=peaks.get(pk, 0.0))

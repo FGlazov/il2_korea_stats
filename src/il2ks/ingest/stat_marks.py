@@ -105,7 +105,7 @@ def _write_sortie_tour(tour_id: int) -> None:
     """The sortie populations of one tour (the sortie page's marks): one GROUP BY per metric over the tour's counted
     pilot sorties, which are kept as histograms (value -> sorties) so that all time can be summed from them."""
     histograms: dict[SortieMetric, Histogram] = {}
-    sorties = counted_sorties().filter(mission__tour_id=tour_id)
+    sorties = counted_sorties().filter(tour_id=tour_id)
     for metric in SORTIE_METRICS:
         column = _SORTIE_COLUMN[metric]
         rows = sorties.order_by().values_list(column).annotate(n=Count("pk"))

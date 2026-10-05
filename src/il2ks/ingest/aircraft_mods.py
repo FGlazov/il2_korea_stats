@@ -71,17 +71,17 @@ def pattern_tour_stats(
     only those tours' sorties; the all-time pattern rows are the sum of these (`rollup_aircraft_stats`)."""
     if not significant:
         return {}
-    rows = counted_sorties().filter(aircraft_id__in=sorted(significant), mission__tour__isnull=False)
+    rows = counted_sorties().filter(aircraft_id__in=sorted(significant), tour__isnull=False)
     if tour_ids is not None:
-        rows = rows.filter(mission__tour_id__in=tour_ids)
+        rows = rows.filter(tour_id__in=tour_ids)
     rows = (
-        rows.values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
+        rows.values("aircraft_id", "tour_id", "combat_role", "weapon_mods", "player_id", "country")
         .annotate(**SORTIE_COUNTERS)
-        .order_by("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
+        .order_by("aircraft_id", "tour_id", "combat_role", "weapon_mods", "player_id", "country")
     )
     cells: dict[CellKey, _Cell] = {}
     for row in rows:
-        aircraft, tour, mods = row["aircraft_id"], row["mission__tour_id"], row["weapon_mods"]
+        aircraft, tour, mods = row["aircraft_id"], row["tour_id"], row["weapon_mods"]
         side = side_of_country(row["country"])
         roles = (ALL,) if row["combat_role"] is None else (ALL, row["combat_role"])
         for role in roles:
@@ -140,19 +140,19 @@ def player_scope_stats(
     sorties; the all-time rows are the sum of these (`aircraft_stats._rollup_player_scopes`). One grouped query, in a
     fixed order so a
     rebuild sums the floats like an incremental run."""
-    rows = counted_sorties().filter(aircraft_id__in=sorted(set(aircraft_ids)), mission__tour__isnull=False)
+    rows = counted_sorties().filter(aircraft_id__in=sorted(set(aircraft_ids)), tour__isnull=False)
     if tour_ids is not None:
-        rows = rows.filter(mission__tour_id__in=tour_ids)
+        rows = rows.filter(tour_id__in=tour_ids)
     rows = (
-        rows.values("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
+        rows.values("aircraft_id", "player_id", "tour_id", "combat_role", "weapon_mods")
         .annotate(**SORTIE_COUNTERS)
-        .order_by("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
+        .order_by("aircraft_id", "player_id", "tour_id", "combat_role", "weapon_mods")
     )
     found: dict[PlayerScopeKey, Totals] = {}
     for row in rows:
         aircraft, player = row["aircraft_id"], row["player_id"]
         for tour, role, pattern in scopes_of(
-            row["mission__tour_id"], row["combat_role"] or "", row["weapon_mods"], significant.get(aircraft, ())
+            row["tour_id"], row["combat_role"] or "", row["weapon_mods"], significant.get(aircraft, ())
         ):
             if tour is None:
                 continue

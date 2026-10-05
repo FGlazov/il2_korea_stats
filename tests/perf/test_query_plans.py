@@ -140,6 +140,22 @@ def test_ingest_queries_use_an_index(big_world: SeededWorld, tmp_path: Path) -> 
     assert not blocks, f"{len(blocks)} ingest statement(s) cannot use an index:\n\n" + "\n\n".join(blocks)
 
 
+def test_the_sortie_list_of_the_current_tour_walks_the_tour_index(client: Client, big_world: SeededWorld) -> None:
+    """`/sorties/` (current tour, newest first): the page and its COUNT both read `sortie_tour_recent`, no sort step
+    (the tour lives on the sortie row, `PlayerSortie.tour`)."""
+    if connection.vendor != "sqlite":
+        pytest.skip(
+            "names the SQLite index; Postgres plans the seeded world by its statistics (the generic rules apply)"
+        )
+    _, statements = capture(lambda: client.get("/sorties/"))
+    plans = {s.sql: qp.explain(s) for s in statements if "il2ks_db_playersortie" in s.sql}
+    assert len(plans) == 2
+    for plan in plans.values():
+        text = "\n".join(plan)
+        assert "sortie_tour_recent" in text, text
+        assert "TEMP B-TREE" not in text, text
+
+
 def test_every_table_is_planned_or_explained() -> None:
     """Tables are discovered from the models, not listed here: a table that no page or ingest plan of this file
     ever read (a new feature's table, say) fails until a page variant reaches it or `NOT_PLANNED_TABLES`

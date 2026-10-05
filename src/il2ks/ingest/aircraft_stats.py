@@ -291,29 +291,29 @@ def _recompute_tour_stats(
     players, which no sum of rows can give); and, for a type with significant weapon mods, every filter pattern of
     those scopes (`aircraft_mods`). Each row also counts its sorties per side."""
     rows = PlayerTourAircraft.objects.filter(aircraft_id__in=chunk)
-    tour_sorties = counted_sorties().filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+    tour_sorties = counted_sorties().filter(aircraft_id__in=chunk, tour__isnull=False)
     existing_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
         rows = rows.filter(tour_id__in=tour_ids)
         existing_rows = existing_rows.filter(tour_id__in=tour_ids)
-        tour_sorties = tour_sorties.filter(mission__tour_id__in=tour_ids)
+        tour_sorties = tour_sorties.filter(tour_id__in=tour_ids)
     by_side: dict[tuple[int, int, str], list[int]] = {}  # (aircraft, tour, role) -> [REDFOR, BLUFOR] sorties
-    grouped = tour_sorties.values("aircraft_id", "mission__tour_id", "combat_role", "country").annotate(n=Count("pk"))
+    grouped = tour_sorties.values("aircraft_id", "tour_id", "combat_role", "country").annotate(n=Count("pk"))
     for found in grouped.order_by():
         side = side_of_country(found["country"])
         if side is not None:
             for role in (ALL, found["combat_role"]):
                 if role is not None:
-                    counts = by_side.setdefault((found["aircraft_id"], found["mission__tour_id"], role), [0, 0])
+                    counts = by_side.setdefault((found["aircraft_id"], found["tour_id"], role), [0, 0])
                     counts[0 if side == "redfor" else 1] += found["n"]
     wanted: _Wanted[_TourKey] = {}
     for row in rows.values("aircraft_id", "tour_id").annotate(pilots=Count("pk"), **_SUMS).order_by():
         red, blue = by_side.get((row["aircraft_id"], row["tour_id"], ALL), [0, 0])
         wanted[(row["aircraft_id"], row["tour_id"], ALL, "")] = _tour_stat_values(row, row["pilots"], red, blue)
     distinct = {"pilots": Count("player_id", distinct=True), **SORTIE_COUNTERS}
-    per_tour = tour_sorties.filter(combat_role__isnull=False).values("aircraft_id", "mission__tour_id", "combat_role")
+    per_tour = tour_sorties.filter(combat_role__isnull=False).values("aircraft_id", "tour_id", "combat_role")
     for row in per_tour.annotate(**distinct).order_by():
-        tour = row["mission__tour_id"]
+        tour = row["tour_id"]
         red, blue = by_side.get((row["aircraft_id"], tour, row["combat_role"]), [0, 0])
         wanted[(row["aircraft_id"], tour, row["combat_role"], "")] = _tour_stat_values(row, row["pilots"], red, blue)
     for (aircraft, tour, role, pattern), (totals, pilots, red, blue) in pattern_tour_stats(
@@ -397,11 +397,11 @@ class _Group:
 def _sortie_groups(chunk: list[int], tour_ids: list[int] | None) -> list[_Group]:
     """The types' counted sorties of these tours (None = all) grouped by tour, payload, weapon mods and role, in ONE
     pass: the loadout and mods rows both come from these groups instead of a grouped query each."""
-    sorties = counted_sorties().filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+    sorties = counted_sorties().filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
-        sorties = sorties.filter(mission__tour_id__in=tour_ids)
+        sorties = sorties.filter(tour_id__in=tour_ids)
     rows = (
-        sorties.values("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "combat_role")
+        sorties.values("aircraft_id", "tour_id", "payload_name", "weapon_mods", "combat_role")
         .annotate(
             n=Count("pk"),
             air=Sum("kills_air"),
@@ -412,12 +412,12 @@ def _sortie_groups(chunk: list[int], tour_ids: list[int] | None) -> list[_Group]
             attack_score=Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
             tot=Sum("time_on_target_s"),
         )
-        .order_by("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "combat_role")  # fixed float order
+        .order_by("aircraft_id", "tour_id", "payload_name", "weapon_mods", "combat_role")  # fixed float order
     )
     return [
         _Group(
             r["aircraft_id"],
-            r["mission__tour_id"],
+            r["tour_id"],
             r["payload_name"],
             r["weapon_mods"],
             r["combat_role"] or "",
@@ -556,10 +556,10 @@ def average_pilot_elo() -> PilotElo:
     pilots = (
         counted_sorties()
         .filter(combat_role=CombatRole.AIR_SUPERIORITY)
-        .values("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "player_id")
+        .values("aircraft_id", "tour_id", "payload_name", "weapon_mods", "player_id")
         .annotate(n=Count("pk"))
         # a fixed summing order: a rebuild gives the same floats
-        .order_by("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "player_id")
+        .order_by("aircraft_id", "tour_id", "payload_name", "weapon_mods", "player_id")
     )
     for row in pilots:
         aircraft_id = row["aircraft_id"]
@@ -567,7 +567,7 @@ def average_pilot_elo() -> PilotElo:
         if elo is None:
             elo = pool_elo.get((row["player_id"], propulsion.get(aircraft_id, "")))
         if elo is not None:
-            key = (aircraft_id, row["mission__tour_id"], row["payload_name"], row["weapon_mods"])
+            key = (aircraft_id, row["tour_id"], row["payload_name"], row["weapon_mods"])
             total, n = votes.get(key, (0.0, 0))
             votes[key] = (total + elo * row["n"], n + row["n"])
     significant = significant_mods({key[0] for key in votes})

@@ -206,7 +206,7 @@ def recent_sorties(
     rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
     rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if tour is not None:
-        rows = rows.filter(mission__tour=tour)
+        rows = rows.filter(tour=tour)
     if role != AircraftRole.ALL:
         rows = rows.filter(combat_role=role.value)
     return list(rows.order_by("-spawned_at", "-pk")[:limit])

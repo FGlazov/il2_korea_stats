@@ -25,18 +25,16 @@ _PAYLOAD = BuildKind.PAYLOAD.value
 def recompute_builds(chunk: list[int], tour_ids: list[int] | None) -> None:
     """The per-tour `PlayerAircraftBuild` rows for these players, limited to `tour_ids` unless that is None, from the
     tours' level-1 sorties. Rows with nothing left are deleted."""
-    sorties = counted_sorties().filter(player_id__in=chunk, mission__tour_id__isnull=False)
+    sorties = counted_sorties().filter(player_id__in=chunk, tour_id__isnull=False)
     existing_rows = PlayerAircraftBuild.objects.filter(player_id__in=chunk, tour_id__isnull=False)
     if tour_ids is not None:
-        sorties = sorties.filter(mission__tour_id__in=tour_ids)
+        sorties = sorties.filter(tour_id__in=tour_ids)
         existing_rows = existing_rows.filter(tour_id__in=tour_ids)
     wanted: dict[_Key, int] = {
-        (row["player_id"], row["aircraft_id"], row["mission__tour_id"], row["payload_id"], row["payload_name"]): row[
-            "n"
-        ]
-        for row in sorties.values(
-            "player_id", "aircraft_id", "mission__tour_id", "payload_id", "payload_name"
-        ).annotate(n=Count("pk"))
+        (row["player_id"], row["aircraft_id"], row["tour_id"], row["payload_id"], row["payload_name"]): row["n"]
+        for row in sorties.values("player_id", "aircraft_id", "tour_id", "payload_id", "payload_name").annotate(
+            n=Count("pk")
+        )
     }
     existing = {
         (r.player_id, r.aircraft_id, r.tour_id, r.value, r.label): r for r in existing_rows if r.kind == _PAYLOAD

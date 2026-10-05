@@ -264,6 +264,7 @@ def test_rebuild_gives_every_mission_a_tour_whatever_rules_it_is_called_with() -
     _history()
     before = canonical_dump()
     Mission.objects.update(tour=None)
+    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
     PlayerTour.objects.all().delete()
 
     rebuild_aggregates()  # no [tours] rules given: the defaults apply

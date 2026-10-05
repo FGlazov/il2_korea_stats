@@ -44,6 +44,10 @@ Mission        id, server_uid, mission_uid (unique together), tour → Tour, mis
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
                players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills
 PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
+               tour → Tour (maintainer 2026-10-05; null only while the mission has none: ALWAYS equal to `mission.tour`, a denormalisation of 4-8 bytes per sortie so a tour's
+               sorties can be filtered and sorted from one index without joining the mission: `sortie_tour_recent` (tour, -spawned_at, -id, role, mission, player) serves the site-wide
+               `/sorties/` page and its COUNT in the default current-tour view and the player's sortie list with a tour filter; `sortie_recent` stays for all time. Kept in step by every write of
+               `Mission.tour`: doc 14 "The sortie's tour"),
                aircraft → GameObject, payload_id, payload_name, weapon_mods (int, the log's `WM` bitmask: bit 0 always set, bit k = mod k of `weapon_mods.csv`), coalition, country, role (pilot / gunner),
                spawned_at, took_off_at, landed_at, ended_at, spawn position, flight_time_s, takeoffs, landings,
                air_start (bool), spawn_type (air/runway/parking),

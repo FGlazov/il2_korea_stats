@@ -61,7 +61,7 @@ from il2ks.ingest.dbutil import delete_pks, update_partial_rows, update_rows
 from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
-from il2ks.ingest.tours import delete_empty_tours, effective_rules, ensure_tour, resegment_around
+from il2ks.ingest.tours import delete_empty_tours, effective_rules, ensure_tour, move_missions, resegment_around
 
 log = logging.getLogger(__name__)
 
@@ -184,7 +184,7 @@ def save_level1(
         placed = Mission.objects.values_list("tour_id", flat=True).get(pk=mission.pk)
         if placed is None:  # no stretch drew one (cannot happen with a calendar mode)
             placed = ensure_tour(tours, meta.started_at).pk
-            Mission.objects.filter(pk=mission.pk).update(tour_id=placed)
+            move_missions([mission.pk], placed)
         mission.tour_id = placed
         touched.add(placed)
         touched = set(Tour.objects.filter(pk__in=touched).values_list("pk", flat=True))  # parts may be gone
@@ -406,6 +406,7 @@ def _upsert_player_missions(mission: Mission, sorties: Iterable[SortieResult], p
 # --- sorties ---
 
 _SORTIE_FIELDS = [
+    "tour",  # the mission's, see `PlayerSortie.tour`
     "player",
     "name_at_time",
     "profile_uuid",
@@ -546,6 +547,7 @@ def _fill_sortie(
 ) -> None:
     payload = catalog.payload(s.aircraft_type, s.payload_id)
     payload_name = payload.readable_name if payload is not None else ""
+    row.tour_id = row.mission.tour_id  # always the mission's tour (doc 14 "The sortie's tour")
     row.player = player
     row.name_at_time = s.name
     row.profile_uuid = s.profile_uuid

@@ -150,7 +150,7 @@ def _page(rows: QuerySet[PlayerSortie], filters: SortieFilters, sort: str, numbe
     """The shared part of the sortie lists: the filters, the sort (ties by pk, so paging is stable) and the page."""
     rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if filters.tour is not None:
-        rows = rows.filter(mission__tour=filters.tour)
+        rows = rows.filter(tour=filters.tour)
     if filters.aircraft is not None:
         rows = rows.filter(aircraft_id=filters.aircraft)
     if filters.outcome:

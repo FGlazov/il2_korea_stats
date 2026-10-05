@@ -82,7 +82,7 @@ def _strike_kills(chunk: list[int], tours: set[int] | None) -> Counter[int]:
         .values_list("killer_sortie_id", flat=True)
     )
     if tours is not None:
-        kills = kills.filter(killer_sortie__mission__tour_id__in=tours)
+        kills = kills.filter(killer_sortie__tour_id__in=tours)
     return Counter(kills.iterator())
 
 
@@ -92,13 +92,13 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
     strike = _strike_kills(chunk, tours)
     rows = (
         counted_sorties()
-        .filter(player_id__in=chunk, mission__tour_id__isnull=False)
+        .filter(player_id__in=chunk, tour_id__isnull=False)
         .order_by("player_id", "spawned_at", "pk")
         .values(
             "player_id",
             "pk",
             "mission_id",
-            "mission__tour_id",
+            "tour_id",
             "spawned_at",
             "ended_at",
             "aircraft_id",
@@ -124,11 +124,11 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
         )
     )
     if tours is not None:
-        rows = rows.filter(mission__tour_id__in=tours)
+        rows = rows.filter(tour_id__in=tours)
     found: dict[tuple[int, int], list[AchievementSortie]] = {}
     for r in rows.iterator():
         outcome = r["outcome"]
-        found.setdefault((r["player_id"], r["mission__tour_id"]), []).append(
+        found.setdefault((r["player_id"], r["tour_id"]), []).append(
             AchievementSortie(
                 sortie_id=r["pk"],
                 mission_id=r["mission_id"],
@@ -330,7 +330,7 @@ def _tour_run_rows(
     for tour_id, pids in sorted(by_tour.items()):  # one query per tour, for the players completing a run in it
         sorties = (
             counted_sorties()
-            .filter(player_id__in=sorted(pids), mission__tour_id=tour_id)
+            .filter(player_id__in=sorted(pids), tour_id=tour_id)
             .order_by("spawned_at", "pk")
             .values_list("player_id", "ended_at", "pk", "mission_id", "outcome")
         )
