@@ -26,6 +26,8 @@ from il2ks.ingest.batch import Level2Batch, is_batch
 from il2ks.ingest.persist import Touched
 from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once
+from il2ks.ops import checks
+from il2ks.ops.doctor import Level
 from tests.conftest import FIXTURE_LOGS
 from tests.db_canon import canonical_dump, diff_dumps
 from tests.ingest_fakes import make_config
@@ -232,6 +234,82 @@ def test_a_killed_batch_is_repaired_by_rebuild_aggregates(tmp_path: Path, monkey
 
     assert diff_dumps(stale, expected) != []
     assert diff_dumps(repaired, expected) == []
+
+
+def _no_migrations(_path: Path) -> set[tuple[str, str]]:
+    return set()
+
+
+def _nothing(_self: Level2Batch) -> None:
+    return None
+
+
+def _pending_findings(cfg: Config, monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """The doctor's ingestion-check warnings about level 2 (the check needs a database file; the test one is used)."""
+    monkeypatch.setattr(checks, "applied_migrations", _no_migrations)
+    return [f.title for f in checks.ingestion_check(cfg) if f.level == Level.WARN and "level 2" in f.title.lower()]
+
+
+def test_a_killed_batch_is_detected_by_doctor_and_repaired_by_the_next_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A hard kill mid-batch leaves a marker: doctor warns with the fix, and the next ingest (writer lock held)
+    rebuilds level 2 first, so the state equals the per-mission path, and clears the marker."""
+    expected, _ = _run(tmp_path, "one", 1000, monkeypatch)
+    monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
+    monkeypatch.setattr(Level2Batch, "flush", _nothing)  # the process was killed: nothing after the saves ran
+    monkeypatch.setattr(Level2Batch, "finish", _nothing)
+    cfg = make_config(tmp_path / "killed", None, after_archive="keep")
+
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        assert diff_dumps(canonical_dump(), expected) != []
+        [title] = _pending_findings(cfg, monkeypatch)
+        monkeypatch.undo()  # the restarted process: a normal one
+        assert "rebuild-aggregates" in " ".join(
+            f.fix for f in checks.ingestion_check(cfg) if "level 2" in f.title.lower()
+        )
+
+        summary = ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        assert summary.ok == []  # every mission is unchanged: only the repair ran
+        repaired = canonical_dump()
+        monkeypatch.setattr(checks, "applied_migrations", _no_migrations)
+        assert _pending_findings(cfg, monkeypatch) == []
+
+    assert title
+    assert diff_dumps(repaired, expected) == []
+
+
+def test_a_finished_batch_leaves_no_marker(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
+    cfg = make_config(tmp_path / "data", None, after_archive="keep")
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        assert _pending_findings(cfg, monkeypatch) == []
+
+
+def test_a_killed_batched_reprocess_is_repaired_by_the_next_reprocess(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = make_config(tmp_path / "data", None, after_archive="keep")
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        expected = canonical_dump()
+        monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
+
+        def killed() -> None:
+            raise SystemExit  # not a rebuild: stands for the process dying before the final rebuild
+
+        with pytest.raises(SystemExit):
+            reprocess(
+                cfg, default_pipeline(cfg, defer_ratings=True), workers=2, executor_factory=_thread_pool, rebuild=killed
+            )
+        assert len(_pending_findings(cfg, monkeypatch)) == 1
+        reprocess(
+            cfg, default_pipeline(cfg, defer_ratings=True), mission_uids=[], workers=2, executor_factory=_thread_pool
+        )
+        assert _pending_findings(cfg, monkeypatch) == []
+        assert diff_dumps(canonical_dump(), expected) == []
 
 
 def _thread_pool(workers: int) -> Executor:
