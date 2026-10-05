@@ -87,6 +87,22 @@ def test_every_translated_string_is_a_draft_or_reviewed_never_fuzzy(directory: s
         assert not message.fuzzy, message.id
 
 
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_no_translation_starts_with_a_stray_msgstr_fragment(directory: str) -> None:
+    """A bad paste once left `sgstr "` at the start of ~60 quips per language (shown to visitors)."""
+    for message in translations.messages_of(translations.read_catalog(directory)):
+        for form in _forms(message.string):
+            assert not form.startswith("sgstr"), message.id
+
+
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_no_string_is_left_untranslated(directory: str) -> None:
+    """Every source string has a translation in every language (a new string: translate it, or `il2ks dev translations
+    missing`/`import`)."""
+    for message in translations.messages_of(translations.read_catalog(directory)):
+        assert all(_forms(message.string)), f"untranslated in {directory}: {message.id}"
+
+
 def test_the_gitignore_keeps_the_compiled_catalogs() -> None:
     """`*.mo` is ignored generally (Python template); the shipped ones must be tracked or the wheel loses them."""
     git = shutil.which("git")
