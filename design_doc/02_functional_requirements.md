@@ -249,7 +249,9 @@ people ask). The main use case is **a player reviewing their sortie**.
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,
   the all-time best streak = the max over the tours; **counts of distinct things** (types flown, days, weeks in a row) reset every tour;
-  **achievements** start over every tour, all time takes the max (OQ-128). Top 10% / 25% marks: OQ-129.
+  **achievements** start over every tour, all time takes the max (OQ-128). Top 10% / 25% marks: OQ-129. As a consequence the Elo boards
+  (leaderboards and home) follow the tour selector like every other board, so their default view is the current tour; all-time Elo games
+  are the sum over the tours (in progress 2026-10-05).
 
 ### Score and ratings
 Recorded by the maintainer on 2026-10-03; built 2026-10-04 (air and ground score, leaderboards, Elo: doc 13 "Score", doc 16). Its **inputs are computed at ingest

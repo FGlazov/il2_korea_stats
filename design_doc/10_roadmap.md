@@ -243,7 +243,7 @@ decisions are made):
   batches unchanged. Estimated 15-25% faster big batches. **Changed (maintainer, 2026-10-05):** no per-entity `Touched` tracking: a
   batch tracks only the touched tours and fully refreshes them; the same tour refresh replaces every other level-2 refresh too
   (single missions, live passes, rebuilds; maintainer, 2026-10-05).
-- ⏳ **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
+- 🔧 **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
   the tour rows, so a recompute no longer grows with a player's whole history. Inventory and plan first (what sums, what can't).
 
 - ✅ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,

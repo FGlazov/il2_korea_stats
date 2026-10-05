@@ -102,8 +102,9 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
     QueryAllowance(
         "il2ks_db_playersortie",
         '"combat_role" = %s) GROUP BY',
-        "the loadout and weapon-mod Elo averages read every air-superiority sortie (`aircraft_stats.average_pilot_elo`); "
-        "temporary: the tour-level refresh (doc 14, maintainer 2026-10-05) bounds it to the touched tours",
+        "the loadout and weapon-mod Elo averages read every air-superiority sortie "
+        "(`aircraft_stats.average_pilot_elo`); temporary: the tour-level refresh (doc 14, maintainer 2026-10-05) "
+        "bounds it to the touched tours",
         "ingest",
     ),
     QueryAllowance(

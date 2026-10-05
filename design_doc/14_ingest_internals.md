@@ -193,6 +193,9 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   of the touched tours, no per-entity tracking (maintainer, 2026-10-05: "not just for batched refreshes, but all of them"). **Not built yet:** today the all-time rows are still recomputed from level 1 (see above); the inventory of what
   sums cleanly (counters, min/max, weighted averages) and what does not (the Elo replay, streaks across a tour boundary, distinct counts,
   population thresholds) is in progress (roadmap).
+  Data model (maintainer, 2026-10-05): the tour is a column at the player level: a pilot gets a new per-tour player row the first time they
+  fly in a tour, and every per-player stat hangs off that row. `Player` stays the stable identity and URL; the per-tour rows exist only for
+  tours the pilot flew in, so every view must handle a selected tour in which the pilot (or aircraft, or pair) has no row.
 - **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of every qualifying kill, so
   `ingest/ratings.py::recompute_ratings` replays all of them (ordered by mission start, kill time, row id) through the pure
   `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the

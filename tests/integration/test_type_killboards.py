@@ -11,11 +11,13 @@ import pytest
 from django.db import models
 from django.test import Client
 from django.urls import reverse
+from django.utils.html import escape
 
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult, SortieResult
 from il2ks.db.models import AircraftMatchup, GameObject, Player, PlayerTypeKillboard, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.aircraft import MIN_ENCOUNTERS, MatchupTable
+from il2ks.web.column_hints import HINTS
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.integration.test_killboard_streaks import duel_mission
 from tests.ops_helpers import make_instance
@@ -310,7 +312,9 @@ def test_ratio_needs_enough_fights_and_the_hint_names_best_and_worst(client: Cli
     body = client.get(reverse("web:aircraft-detail", args=[aircraft(MIG).pk]) + "?tour=all").content.decode()
     assert "Best exchange: against" in body
     assert "Worst exchange: against" in body
-    assert "no losses" not in body  # the unrated Il-10 shows a dash, not "no losses"
+    # the unrated Il-10 shows a dash, not "no losses" (the column description names both, so look outside it)
+    hint = escape(str(HINTS["kl_matchup"]))
+    assert "no losses" not in body.replace(hint, "")
 
 
 def test_no_hint_with_a_single_rated_matchup(client: Client) -> None:
