@@ -198,8 +198,10 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
     first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, mod_filters,
     mod_filtered, mod_sets, mod_sort, crumbs, page_title.
-    Reads: eight queries plus the tours (nine with a tour, role or filter selected), plus the 2 of the context
-    processor."""
+    Reads: with a tour, role or filter selected and data in every section, nine queries (the type's all-time row, the
+    scope's row, hits, ammo mixes, matchups, loadouts, mod sets, and one query per pilot board: Elo and ground
+    both for every role, one for a single role), plus the tours, plus the 2 of the context processor: 12 at most,
+    11 with a single role. Without a selection there is no scope row."""
     stats = reads.stats_for(pk)
     if stats is None:
         raise Http404

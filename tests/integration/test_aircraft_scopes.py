@@ -28,6 +28,7 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.ammo import aircraft_ammo
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
+from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -341,3 +342,27 @@ def test_a_scoped_self_pairing_takes_kills_from_the_killer_row_and_losses_from_t
     table = matchups(sabre, role=AircraftRole.AIR_SUPERIORITY)
 
     assert [(m.enemy.pk, m.kills, m.losses) for m in table.rows] == [(sabre.pk, 5, 2)]
+
+
+@override_settings(IL2KS_LEADERBOARDS=SOME)
+def test_a_populated_scoped_page_stays_within_the_query_budget(client: Client) -> None:
+    """The budget tests of the other aircraft files run over fixtures without pilots in scope, which skips queries (the
+    top pilots' Elo read). Here every section has data: pilots in scope, ammo rows, matchups, loadouts and mods."""
+    _, october = history()
+    url = reverse("web:aircraft-detail", args=[mig().pk])
+    scoped = f"{url}?tour={october.pk}&role=air_superiority&mod5=with&intercept=1"
+
+    response = client.get(scoped)
+    assert response.context["elo_pilots"]  # pilots in scope
+    assert response.context["loadouts"]
+    assert response.context["mod_sets"]
+    assert response.context["hits"].by_ammo
+    assert response.context["matchups"].rows
+
+    # Budget with data in every section: the 2 of the context processor, the tours, the type's all-time row, the scope's
+    # row, hits, mixes, matchups, loadouts, mod sets and one pilot board (Elo or ground) = 11.
+    assert_simple_reads(client, scoped, max_queries=11)
+    assert_simple_reads(client, f"{url}?tour=all&role=attack&mod5=with", max_queries=11)
+    assert_simple_reads(
+        client, f"{url}?tour={october.pk}&mod5=with", max_queries=12
+    )  # both pilot boards: one more than a single role
