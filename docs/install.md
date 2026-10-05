@@ -242,30 +242,12 @@ a running il2ks can fail.)
 Database migrations run by themselves at start, after an automatic backup, and so does filling in what a new version needs
 from your existing data (a few minutes on a big database). Your data folder (database, logs, `custom/`) is untouched.
 
-After an upgrade run `il2ks doctor`: it tells you about renamed settings and if a template you customized has changed
+After an upgrade run `il2ks doctor`: it tells you about ignored settings and if a template you customized has changed
 ([customizing.md](customizing.md)).
 
 Old missions are **not** recalculated by themselves. If the release notes say a rule or score changed, run
 `il2ks reprocess --all` (or `il2ks rebuild-aggregates` for scores). Which command fits which change:
 [Rules, scoring and tours](settings.md#what-to-run-after-a-change).
-
-### Upgrading from a pre-release build
-
-If your database was filled by a pre-release (alpha/beta/rc) build, some figures only exist for missions ingested by
-the new version. Migrations and the automatic fill-in cannot rebuild them, because they need the original logs. After
-upgrading, run `il2ks reprocess --all` once (a few minutes per thousand missions; the site stays up) to get:
-
-- the **ammunition mixes** table on the aircraft pages (until then it is hidden; `il2ks doctor` warns about it);
-- sortie timeline hit rows that list an aircraft and its pilot / crew separately (older rows can read "+200%");
-- the exact **strafed** and **crashed** outcomes (a parked or landed aircraft destroyed by enemy fire is "strafed", a
-  crash after a fault is "crashed", not "shot down"), and the exact state of sorties the mission end cut off;
-- transports counted as victims of interceptions (the automatic fill-in covers most of it; reprocess gives the rest);
-- exact **rams** (the "Contact Sport" medal): the automatic fill-in only approximates them from the kills (two enemies
-  who credit each other at the same moment and place), because the stored data has no collision event;
-- correct **ordnance names** in the stored ammunition of old sorties: they were typed with the old payload table.
-  Only the reprocess makes both of these exact.
-
-Skip it if you only want new missions to have these. The old ones keep working, just without the new details.
 
 ## Backups
 
