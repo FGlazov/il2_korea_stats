@@ -1,6 +1,7 @@
 """Query-plan checks: every SELECT (and UPDATE/DELETE with a WHERE) a page or the ingest runs must be able to use an
-index (maintainer request 2026-10-04: we are read-heavy, one more index costs little). SQLite only: the plan comes from
-`EXPLAIN QUERY PLAN`. How to read a failure and how to allow-list: docs/performance-testing.md, section "Query plans".
+index (maintainer request 2026-10-04: we are read-heavy, one more index costs little). The plan comes from
+`EXPLAIN QUERY PLAN` on SQLite, `EXPLAIN (FORMAT JSON)` with seq scans and sorts made expensive on Postgres. How to
+read a failure and how to allow-list: docs/performance-testing.md, section "Query plans".
 
 The rule, on the plan of one statement:
 
@@ -12,8 +13,10 @@ The rule, on the plan of one statement:
   page is cut. Fails for a page's default order; for a sort the visitor picks it needs a `SORT_ALLOWANCES` entry.
 """
 
+import json
 import re
 from dataclasses import dataclass
+from typing import Any, cast
 
 from django.db import connection
 
@@ -37,6 +40,11 @@ SMALL_TABLES: dict[str, str] = {
 """`{table: reason}`: tables a full scan of which is fine. Everything else is a big table (it grows with every mission
 or every player). A new entry needs a reason that says why the table stays small; a table that grows with play never
 belongs here."""
+
+
+NOT_PLANNED_TABLES: dict[str, str] = {}
+"""`{table: reason}`: tables no checked page or ingest query reads (only written, or read by something the test cannot
+reach). The coverage test lists every other table that no plan touched, so a new table cannot dodge the check."""
 
 
 @dataclass(frozen=True)
@@ -82,6 +90,13 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
         'ASC, "il2ks_db_kill"."time"',
         "the Elo replay: every qualifying kill, oldest first, because ratings depend on the order of the games "
         "(`ingest.ratings`); the same code path as a full rebuild",
+        "ingest",
+    ),
+    QueryAllowance(
+        "il2ks_db_playersortie",
+        '"elo_peak" > %s',
+        "the Elo replay's write-back reads the stored `elo_peak` of every rated sortie to write only the ones that "
+        "changed: the rows with an Elo are most of the table by definition (`ingest.ratings`)",
         "ingest",
     ),
     QueryAllowance(
@@ -136,6 +151,9 @@ class Problem:
     kind: str  # "scan" or "sort"
     table: str  # the scanned table; for a sort: a big table the statement reads
     detail: str  # the plan line
+    tables: tuple[
+        str, ...
+    ] = ()  # for a sort: every big table the statement reads (the join order differs per database)
 
 
 @dataclass(frozen=True)
@@ -145,7 +163,11 @@ class Statement:
 
 
 def explain(statement: Statement) -> list[str]:
-    """The `detail` column of `EXPLAIN QUERY PLAN`, one string per plan node, indented by depth."""
+    """The plan of one statement as text lines, one per plan node, indented by depth, in SQLite's vocabulary
+    (`SCAN t`, `SCAN t USING INDEX i`, `SEARCH t USING INDEX i (..)`, `USE TEMP B-TREE FOR ORDER BY`), whatever the
+    database: the rules below read that vocabulary only."""
+    if connection.vendor == "postgresql":
+        return _explain_postgres(statement)
     with connection.cursor() as cursor:
         cursor.execute("EXPLAIN QUERY PLAN " + statement.sql, statement.params)
         rows = cursor.fetchall()
@@ -155,6 +177,42 @@ def explain(statement: Statement) -> list[str]:
         depth[node_id] = depth.get(parent, 0) + 1
         lines.append("  " * (depth[node_id] - 1) + str(detail))
     return lines
+
+
+_PG_SEQ = "Seq Scan"
+_PG_INDEXED = ("Index Scan", "Index Only Scan", "Bitmap Heap Scan")
+
+
+def _explain_postgres(statement: Statement) -> list[str]:
+    """Postgres plans from statistics, and on a seeded few thousand rows it prefers a seq scan over any index. So the
+    planner is told seq scans and sorts are as bad as it gets (`enable_seqscan` / `enable_sort` off add a huge cost,
+    they do not forbid): it then picks a seq scan only where no index can serve the query, and a Sort node only where no
+    index delivers the order. The settings are transaction-local (`SET LOCAL`): nothing leaks to other tests."""
+    with connection.cursor() as cursor:
+        cursor.execute("SET LOCAL enable_seqscan = off")
+        cursor.execute("SET LOCAL enable_sort = off")
+        cursor.execute("EXPLAIN (FORMAT JSON) " + statement.sql, statement.params)
+        row = cursor.fetchone()
+    assert row is not None
+    document = cast("list[dict[str, dict[str, Any]]]", row[0] if isinstance(row[0], list) else json.loads(row[0]))
+    lines: list[str] = []
+    _walk_postgres(document[0]["Plan"], 0, lines)
+    return lines
+
+
+def _walk_postgres(node: dict[str, Any], depth: int, lines: list[str]) -> None:
+    kind = str(node["Node Type"])
+    table = node.get("Relation Name")
+    pad = "  " * depth
+    if kind == _PG_SEQ and table:
+        lines.append(f"{pad}SCAN {table}")
+    elif kind.startswith(_PG_INDEXED) and table:
+        index = node.get("Index Name")
+        lines.append(f"{pad}SEARCH {table} USING INDEX {index or 'bitmap'}")
+    elif kind == "Sort":
+        lines.append(f"{pad}{SORT_MARK}")
+    for child in node.get("Plans", []):
+        _walk_postgres(child, depth + 1, lines)
 
 
 def checkable(sql: str, *, require_where: bool = False) -> bool:
@@ -194,7 +252,7 @@ def problems(plan: list[str], sql: str = "", *, rare_sort: bool = False) -> list
     if any(line.strip() == SORT_MARK for line in plan) and HAS_LIMIT.search(sql):
         big = [t for t in tables_read(plan) if t not in SMALL_TABLES | NOT_TABLES]
         if big:
-            found.append(Problem("sort", big[0], SORT_MARK))
+            found.append(Problem("sort", big[0], SORT_MARK, tuple(big)))
     return found
 
 
@@ -202,7 +260,12 @@ def allowance_reason(problem: Problem, sql: str, url: str) -> str | None:
     """The reason this problem is accepted, or None."""
     pool = SCAN_ALLOWANCES if problem.kind == "scan" else SORT_ALLOWANCES
     for entry in pool:
-        if entry.table == problem.table and entry.sql_contains in sql and url.startswith(entry.url_prefix):
+        concerned = problem.kind == "sort" and entry.table in problem.tables
+        if (
+            (entry.table == problem.table or concerned)
+            and entry.sql_contains in sql
+            and url.startswith(entry.url_prefix)
+        ):
             return entry.reason
     return None
 

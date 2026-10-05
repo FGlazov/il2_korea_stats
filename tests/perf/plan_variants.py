@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from tests.perf.pages import PAGES
 from tests.perf.seed import SeededWorld
 
-from il2ks.db.models import Outcome
+from il2ks.db.models import AircraftRole, GameObject, Outcome
 from il2ks.queries import aircraft as aircraft_reads
 from il2ks.queries import boards as board_reads
 from il2ks.queries import leaderboards as leaderboard_reads
@@ -169,6 +169,9 @@ def _variants() -> list[Variant]:
     found.append(_fixed("achievement-holders", "/achievements/flight_hours/?tier=1"))
 
     found += _sorts("aircraft-list", lambda w: "/aircraft/?", list(aircraft_reads.AIRCRAFT_SORTS), "/aircraft/")
+    for role in (AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK):
+        found.append(_fixed("aircraft-list", f"/aircraft/?role={role.value}"))
+        found.append(_fixed("aircraft-list", f"/aircraft/?role={role.value}&tour=all"))
 
     def aircraft(w: SeededWorld) -> str:
         return f"/aircraft/{w.aircraft_pk}/?"
@@ -177,7 +180,54 @@ def _variants() -> list[Variant]:
         "aircraft-detail", lambda w: aircraft(w) + "tour=all&", list(aircraft_reads.MATCHUP_SORTS), "aircraft all-time"
     )
     found.append(_built("aircraft-detail", lambda w: aircraft(w) + "tour=all&intercept=1", "aircraft intercept"))
+    # The loadout (payload) and weapon-mod tables sort apart from the matchups (`lsort`, `msort`), per role and tour.
+    for role in (AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK):
+        for tour in ("", "tour=all&"):
+            found.append(
+                _built(
+                    "aircraft-detail",
+                    lambda w, r=role, t=tour: f"{aircraft(w)}{t}role={r.value}",
+                    f"aircraft role={role.value} {tour}".strip(),
+                )
+            )
+    for key in aircraft_reads.LOADOUT_SORTS:
+        for prefix in ("", "-"):
+            found.append(
+                _built(
+                    "aircraft-detail",
+                    lambda w, k=key, p=prefix: f"{aircraft(w)}tour=all&lsort={p}{k}",
+                    f"aircraft lsort={prefix}{key}",
+                )
+            )
+    for key in aircraft_reads.MOD_SORTS:
+        for prefix in ("", "-"):
+            found.append(
+                _built(
+                    "aircraft-detail",
+                    lambda w, k=key, p=prefix: f"{aircraft(w)}tour=all&msort={p}{k}",
+                    f"aircraft msort={prefix}{key}",
+                )
+            )
+    for state in ("with", "without"):
+        found.append(
+            _built(
+                "aircraft-detail",
+                lambda w, s=state: _mod_filtered(w, s),
+                f"aircraft with a weapon-mod filter ({state}), when the seeded types have one",
+            )
+        )
     return found
+
+
+def _mod_filtered(world: SeededWorld, state: str) -> str:
+    """The detail page of a seeded type that has significant weapon mods, filtered by all of them; the plain page when
+    no seeded type has any (the filter then has nothing to select)."""
+    for pk in world.aircraft_pks:
+        mods = aircraft_reads.significant_mods(GameObject.objects.get(pk=pk))
+        if mods:
+            query = "&".join(f"{aircraft_reads.mod_param(m.mod_id)}={state}" for m in mods)
+            return f"/aircraft/{pk}/?tour=all&{query}"
+    return f"/aircraft/{world.aircraft_pk}/?tour=all"
 
 
 _PLACEHOLDER = SeededWorld(0, 0, 0, 0, "", 0, 0, [], [], [], [], [])
