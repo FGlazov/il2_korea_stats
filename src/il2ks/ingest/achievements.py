@@ -14,7 +14,13 @@ A new tour is a clean slate (maintainer, 2026-10-05): every medal starts over in
      all-time total is the **sum of the tours' totals** (`PlayerTour` counters, which `recompute_players` refreshes
      first), so career tiers stay reachable. A tier is earned in the first tour whose running sum crosses the
      threshold, at the sortie where it does: that one tour's sorties are replayed with the earlier tours' total carried
-     in (`earn(carried_in=)`). Setting `cumulative=False` in the registry turns a medal into a plain max over tours.
+     in (`earn(carried_in=, all_time=True)`). The tiers are `ALL_TIME_FACTOR` (5) times the per-tour thresholds
+     (`Achievement.all_time_thresholds`, OQ-128). Setting `cumulative=False` in the registry turns a medal into a plain
+     max over tours;
+   - an `all_time_only` medal (tours in a row) has no tour rows: the tours the pilot flew in (a `PlayerTour` row with
+     sorties; the tours table gives the order, so a tour nobody flew in is a gap) give the longest run, and a tier is
+     earned at the first sortie of the tour whose run reached it. Only `PlayerTour` and the completing tours' sorties
+     are read, never the whole history.
 
 A player with no tier has no row. `recompute_holders` then rewrites the per-scope, per-tier holder counts and the pilot
 count (the rarity denominator) that the overview page and every medal's hover text show (visible players only);
@@ -30,7 +36,7 @@ from django.db.models import Count, F
 
 from il2ks.config import Config
 from il2ks.core.achievement_rules import Rules
-from il2ks.core.achievements import Achievement, AchievementSortie, earn, earn_all
+from il2ks.core.achievements import Achievement, AchievementSortie, earn, earn_all, earn_tours
 from il2ks.db.models import (
     AchievementHolders,
     Kill,
@@ -186,64 +192,104 @@ def rollup_achievements(chunk: list[int], achievements: Sequence[Achievement] | 
     active = {a.key: a for a in (applied_rules().active() if achievements is None else achievements)}
     rows = PlayerAchievement.objects.filter(player_id__in=chunk, tour__isnull=False, key__in=list(active))
     wanted: dict[_Key, _Value] = {}
-    tour_rows: dict[tuple[int, str, int, int], _Value] = {}  # (player, key, tier, tour) -> the tour's row
     for row in rows.order_by("earned_at", "sortie_id"):
         key = (row.player_id, None, row.key, row.tier)
-        value = (row.earned_at, row.sortie_id, row.mission_id)
-        tour_rows[(row.player_id, row.key, row.tier, row.tour_id or 0)] = value
         if key not in wanted and not active[row.key].cumulative:  # the earliest of the tours holding the tier
-            wanted[key] = value
-    wanted.update(_cumulative_rows(chunk, [a for a in active.values() if a.cumulative], tour_rows))
+            wanted[key] = (row.earned_at, row.sortie_id, row.mission_id)
+    wanted.update(_cumulative_rows(chunk, [a for a in active.values() if a.cumulative]))
+    wanted.update(_tour_run_rows(chunk, [a for a in active.values() if a.all_time_only]))
     _sync(chunk, None, wanted, all_time=True)
 
 
-def _cumulative_rows(
-    chunk: list[int], cumulative: list[Achievement], tour_rows: dict[tuple[int, str, int, int], _Value]
-) -> dict[_Key, _Value]:
+def _tour_order() -> list[int]:
+    """Every tour id, oldest first (by start, then id)."""
+    return list(Tour.objects.order_by("started_at", "pk").values_list("pk", flat=True))
+
+
+def _cumulative_rows(chunk: list[int], cumulative: list[Achievement]) -> dict[_Key, _Value]:
     """The all-time rows of the cumulative medals: per player and medal the running sum of the tours' totals (the
-    `PlayerTour` counters, in tour order); a tier is earned in the first tour whose sum reaches the threshold, at the
-    sortie where the carried-in total plus the tour's own running total does."""
+    `PlayerTour` counters, in tour order) against the all-time thresholds (`ALL_TIME_FACTOR` times the per-tour ones);
+    a tier is earned in the first tour whose sum reaches the threshold, at the sortie where the carried-in total plus
+    the tour's own running total does (the tour's sorties are replayed: the per-tour rows have other thresholds)."""
     if not cumulative:
         return {}
-    order = {pk: n for n, pk in enumerate(Tour.objects.order_by("started_at", "pk").values_list("pk", flat=True))}
+    order = {pk: n for n, pk in enumerate(_tour_order())}
     fields = sorted({a.counter for a in cumulative})
     totals: dict[int, list[tuple[int, dict[str, float]]]] = {}
     for row in PlayerTour.objects.filter(player_id__in=chunk).values("player_id", "tour_id", *fields):
         totals.setdefault(row["player_id"], []).append((row["tour_id"], {f: float(row[f]) for f in fields}))
     # (player, tour) -> [(achievement, carried-in total, tiers the running sum reaches in this tour)]
     replay: dict[tuple[int, int], list[tuple[Achievement, float, list[int]]]] = {}
-    wanted: dict[_Key, _Value] = {}
     for pid, per_tour in totals.items():
         per_tour.sort(key=lambda t: order.get(t[0], 0))
         for a in cumulative:
             scale = 3600.0 if a.unit == "hours" else 1.0
+            thresholds = a.all_time_thresholds
             carried = 0.0
             tier = 0
             for tour_id, counters in per_tour:
                 total = counters[a.counter] / scale
-                reached = [n for n in range(tier + 1, a.top_tier + 1) if carried + total >= a.thresholds[n - 1]]
+                reached = [n for n in range(tier + 1, a.top_tier + 1) if carried + total >= thresholds[n - 1]]
                 if reached:
                     tier = reached[-1]
-                    missing: list[int] = []
-                    for n in reached:
-                        row = tour_rows.get((pid, a.key, n, tour_id)) if carried == 0.0 else None
-                        if row is None:  # carried-in total (or no tour row, a rounding hair): replay the tour
-                            missing.append(n)
-                        else:  # the tour alone did it: its own row says where
-                            wanted[(pid, None, a.key, n)] = row
-                    if missing:
-                        replay.setdefault((pid, tour_id), []).append((a, carried, missing))
+                    replay.setdefault((pid, tour_id), []).append((a, carried, reached))
                 carried += total
+    wanted: dict[_Key, _Value] = {}
     if replay:
         loaded = _load(chunk, {t for _, t in replay})
         for (pid, tour_id), todo in replay.items():
             sorties = loaded.get((pid, tour_id), [])
             for a, carried, reached in todo:
-                found = {e.tier: e.index for e in earn(a, sorties, carried)}
+                found = {e.tier: e.index for e in earn(a, sorties, carried, all_time=True)}
                 for n in reached:
                     if sorties:  # a tier the replay misses by a rounding hair: the tour's last sortie
                         s = sorties[found.get(n, len(sorties) - 1)]
                         wanted[(pid, None, a.key, n)] = (s.ended_at, s.sortie_id, s.mission_id)
+    return wanted
+
+
+def _tour_run_rows(chunk: list[int], runs: list[Achievement]) -> dict[_Key, _Value]:
+    """The all-time rows of the tours-in-a-row medals: a tour counts when the pilot flew in it (a `PlayerTour` row with
+    `takeoffs > 0`: a sortie that never took off is not a sortie flown); a tour in between with none breaks the run.
+    A tier is earned at the pilot's first sortie of the tour whose run reached it (the first that took off)."""
+    if not runs:
+        return {}
+    order = _tour_order()
+    flown: dict[int, set[int]] = {}
+    played_rows = PlayerTour.objects.filter(player_id__in=chunk, takeoffs__gt=0).values_list("player_id", "tour_id")
+    for pid, tour_id in played_rows:
+        flown.setdefault(pid, set()).add(tour_id)
+    completing: dict[tuple[int, int], list[tuple[str, int]]] = {}  # (player, tour) -> [(key, tier)]
+    for pid, tour_ids in flown.items():
+        played = [t in tour_ids for t in order]
+        for a in runs:
+            for e in earn_tours(a, played):
+                completing.setdefault((pid, order[e.index]), []).append((a.key, e.tier))
+    if not completing:
+        return {}
+    first: dict[tuple[int, int], _Value] = {}
+    fallback: dict[tuple[int, int], _Value] = {}
+    sorties = (
+        counted_sorties()
+        .filter(player_id__in={p for p, _ in completing}, mission__tour_id__in={t for _, t in completing})
+        .order_by("spawned_at", "pk")
+        .values_list("player_id", "mission__tour_id", "ended_at", "pk", "mission_id", "outcome")
+    )
+    for pid, tour_id, ended_at, sortie_id, mission_id, outcome in sorties.iterator():
+        pair = (pid, tour_id)
+        if pair not in completing:
+            continue
+        value = (ended_at, sortie_id, mission_id)
+        fallback.setdefault(pair, value)
+        if outcome != Outcome.NOT_TAKEN_OFF:
+            first.setdefault(pair, value)
+    wanted: dict[_Key, _Value] = {}
+    for pair, earned in completing.items():
+        value = first.get(pair) or fallback.get(pair)
+        if value is None:  # the tour's sorties are gone (cannot happen: the counters are summed from them)
+            continue
+        for key, tier in earned:
+            wanted[(pair[0], None, key, tier)] = value
     return wanted
 
 

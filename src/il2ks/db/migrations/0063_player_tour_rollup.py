@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0061_tour_clean_slate_streak"),
+        ("il2ks_db", "0062_site_score_flight"),
     ]
 
     operations = [

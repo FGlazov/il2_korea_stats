@@ -16,7 +16,7 @@ from django.http import QueryDict
 from django.utils.translation import gettext as _
 
 from il2ks.core.achievement_rules import MAX_THRESHOLD, Rules, threshold_problem
-from il2ks.core.achievements import ACHIEVEMENTS
+from il2ks.core.achievements import ACHIEVEMENTS, ALL_TIME_FACTOR
 from il2ks.web import medals
 from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig, Texts
 
@@ -44,6 +44,9 @@ class AchievementRow:
     texts: tuple[LanguageText, ...]
     customised: bool  # anything differs from the built-in
     changes_rows: bool  # its switch or thresholds are not what the stored rows were computed with
+    all_time_thresholds: tuple[int, ...]  # a cumulative medal's all-time tiers (the wanted ones x the factor)
+    all_time_factor: int
+    all_time_only: bool  # no tour view: its thresholds are the all-time ones
 
 
 def _clean(text: str) -> str:
@@ -84,6 +87,9 @@ def build_rows(config: AchievementConfig, typed: Mapping[str, tuple[str, ...]] |
                 texts=texts,
                 customised=(not on or wanted != a.thresholds or any(t.name or t.description for t in texts)),
                 changes_rows=on != applied_on or config.applied.thresholds.get(a.key, a.thresholds) != wanted,
+                all_time_thresholds=tuple(ALL_TIME_FACTOR * n for n in wanted) if a.cumulative else (),
+                all_time_factor=ALL_TIME_FACTOR,
+                all_time_only=a.all_time_only,
             )
         )
     return rows

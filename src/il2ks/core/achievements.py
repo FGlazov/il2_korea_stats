@@ -21,8 +21,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
 
-type Unit = Literal["count", "hours", "weeks", "points", "elo"]
+type Unit = Literal["count", "hours", "weeks", "tours", "points", "elo"]
 type Kind = Literal["medal", "ribbon"]
+
+ALL_TIME_FACTOR = 5
+"""The all-time tiers of a `cumulative` medal are this many times its per-tour thresholds (maintainer, 2026-10-05,
+OQ-128: "if it's multi tour then we should increase the thresholds, maybe 5x"). It scales the thresholds in force (the
+admin's too), so changing a per-tour tier moves the all-time one with it."""
 
 BADLY_DAMAGED = 0.5
 """`damage_taken` (0 to 1) from which a landed aircraft counts as "badly damaged" (`damaged_landing`)."""
@@ -95,10 +100,24 @@ class Achievement:
     counter: str = ""
     shame: bool = False
     """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
+    all_time_only: bool = False
+    """No per-tour meaning (tours in a row): no tour rows, no tour view; its all-time rows come straight from the
+    `PlayerTour` rows (`ingest.achievements.rollup_achievements`) and `progress` is unused."""
 
     @property
     def top_tier(self) -> int:
         return len(self.thresholds)
+
+    @property
+    def all_time_thresholds(self) -> tuple[int, ...]:
+        """The tiers of the all-time view: `ALL_TIME_FACTOR` times the per-tour ones for a cumulative medal (a career
+        spans many tours), the same for every other (the best tour counts)."""
+        if not self.cumulative:
+            return self.thresholds
+        return tuple(ALL_TIME_FACTOR * n for n in self.thresholds)
+
+    def thresholds_for(self, *, all_time: bool) -> tuple[int, ...]:
+        return self.all_time_thresholds if all_time else self.thresholds
 
 
 @dataclass(frozen=True, slots=True)
@@ -287,6 +306,22 @@ def kills_in_a_day(sorties: Sequence[AchievementSortie]) -> list[float]:
     return values
 
 
+def consecutive_tours(played: Sequence[bool]) -> list[float]:
+    """The longest run of consecutive tours flown in, after each tour (`played`: one flag per tour in tour order, True
+    = the pilot flew a counted sortie in it; a tour in between that they skipped breaks the run)."""
+    run = 0
+    values: list[float] = []
+    for flew in played:
+        run = run + 1 if flew else 0
+        values.append(float(run))
+    return _running_max(values)
+
+
+def _never(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """The progress of an all-time-only achievement: no per-tour value."""
+    return [0.0] * len(sorties)
+
+
 def _is_damaged_landing(s: AchievementSortie) -> bool:
     return s.landed and s.damage_taken >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
 
@@ -339,6 +374,8 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("types_with_kills", (2, 4, 6, 8), "count", types_with_kills),
     Achievement("landing_streak", (3, 6, 10, 20), "count", landings_in_a_row),
     Achievement("ace_in_a_day", (5, 8, 12, 20), "count", kills_in_a_day),
+    # All time only: it reads the tours the pilot flew in, never the sorties (doc 17, OQ-128).
+    Achievement("tours_in_a_row", (2, 3, 6, 12), "tours", _never, all_time_only=True),
     # Hall of shame (tongue in cheek, shown with the hall of shame).
     Achievement(
         "shame_taxi",
@@ -372,18 +409,42 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
 BY_KEY: dict[str, Achievement] = {a.key: a for a in ACHIEVEMENTS}
 
 
-def earn(achievement: Achievement, sorties: Sequence[AchievementSortie], carried_in: float = 0.0) -> list[EarnedTier]:
-    """The tiers of `achievement` the sorties (chronological) reach, each with the first sortie that reached it.
-    `carried_in` (cumulative achievements only): the total of the earlier tours, added to every value; the tiers
-    already reached by it alone are earned at the first sortie."""
-    values = achievement.progress(sorties)
+def reached(
+    achievement: Achievement, values: Sequence[float], thresholds: Sequence[int], carried_in: float = 0.0
+) -> list[EarnedTier]:
+    """The tiers `values` (running, one per step) reach against `thresholds`, each with the first step that did."""
     earned: list[EarnedTier] = []
     tier = 0
     for index, value in enumerate(values):
-        while tier < achievement.top_tier and value + carried_in >= achievement.thresholds[tier]:
+        while tier < len(thresholds) and value + carried_in >= thresholds[tier]:
             tier += 1
             earned.append(EarnedTier(achievement.key, tier, index))
     return earned
+
+
+def earn(
+    achievement: Achievement,
+    sorties: Sequence[AchievementSortie],
+    carried_in: float = 0.0,
+    *,
+    all_time: bool = False,
+) -> list[EarnedTier]:
+    """The tiers of `achievement` the sorties (chronological) reach, each with the first sortie that reached it.
+    `all_time` (a cumulative medal replayed for the all-time view): the tiers are the all-time ones
+    (`Achievement.all_time_thresholds`) and `carried_in` the total of the earlier tours, added to every value; the tiers
+    already reached by it alone are earned at the first sortie. An all-time-only achievement is never earned from
+    sorties (`earn_tours`)."""
+    if achievement.all_time_only:
+        return []
+    return reached(
+        achievement, achievement.progress(sorties), achievement.thresholds_for(all_time=all_time), carried_in
+    )
+
+
+def earn_tours(achievement: Achievement, played: Sequence[bool]) -> list[EarnedTier]:
+    """The tiers of a tours-in-a-row achievement: `played` has one flag per tour in tour order (the pilot flew in it);
+    each tier's `index` is the tour whose run first reached it."""
+    return reached(achievement, consecutive_tours(played), achievement.all_time_thresholds)
 
 
 def earn_all(
@@ -391,5 +452,5 @@ def earn_all(
 ) -> list[EarnedTier]:
     """Every tier of every achievement in `achievements` (default: the whole registry; the admin's rules pass the
     switched-on ones with their thresholds, `core.achievement_rules`) the pilot's sorties (chronological, of one tour)
-    reach."""
+    reach. All-time-only achievements have no per-tour tiers."""
     return [e for achievement in achievements for e in earn(achievement, sorties)]

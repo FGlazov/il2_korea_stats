@@ -245,11 +245,20 @@ people ask). The main use case is **a player reviewing their sortie**.
   all-time stats"): **every section** (tiles, Loadouts, Modifications, matchups, top pilots, hits to destroy, ammo mixes) follows the tour
   (all time included), the role toggle and the significant-mods filter; for hits to destroy and ammo mixes the role and mods are those of
   the destroyed aircraft's sortie. The storage cost is accepted. Mod names untranslated; URLs `?role=`, `?mod<id>=with|without`.
+- **Accepted 2026-10-05** (maintainer answers to OQ-124..130): admin-configurable achievement defaults (OQ-124, doc 17); the aircraft
+  page's filter scopes (OQ-125, doc 16; the maintainer will spot-check the page); a quip spot that is off falls through to the next
+  matching spot, a gunner sortie's aircraft is plain text (OQ-126); the translated words for the admin and live strings (OQ-127: confirmed
+  for German and Russian, the other languages stay llm-draft); all-time medals and Elo under clean-slate tours as proposed (OQ-128), plus:
+  **career medals get all-time thresholds 5x the per-tour ones**, and a new tiered medal for **playing in X tours in a row** (doc 17); Top
+  10% / 25% marks per tour against the tour's pilots, all time against the all-time rows (OQ-129); a pilot or aircraft missing from the
+  selected tour gets a placeholder page with a way out (OQ-130, doc 16). Also: **weapon-mod names are translated** (dimensions), mission
+  names are not (facts); damage percentages slightly over 100% from rounding are fine; friendly-fire penalties may make a score negative,
+  but **an outcome penalty (death, capture, crash, plane lost) never improves a negative score**: a negative score is left as is (doc 13).
 - **A new tour is a clean slate** (maintainer, 2026-10-05; not built yet, roadmap "All-time stats = sum of the tour stats", doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,
   the all-time best streak = the max over the tours; **counts of distinct things** (types flown, days, weeks in a row) reset every tour;
-  **achievements** start over every tour, all time takes the max (OQ-128). Top 10% / 25% marks: OQ-129. As a consequence the Elo boards
+  **achievements** start over every tour, all time takes the max (OQ-128); the career medals' all-time tiers are 5 times the per-tour ones, and "Old Hand" (tours flown in a row) exists all time only (doc 17). Top 10% / 25% marks: OQ-129. As a consequence the Elo boards
   (leaderboards and home) follow the tour selector like every other board, so their default view is the current tour; all-time Elo games
   are the sum over the tours (in progress 2026-10-05).
 
@@ -289,7 +298,7 @@ from iteration 1** (combat role, time on target, Elo), so pages needed no reproc
 | FR-ADM-5 | Edit the object catalog (names and classes of game objects) and the display names of coalitions and countries without a new release. Game object names ship with **project-set defaults, including translations**. Admin edits are optional overrides that survive upgrades and can be reset (TD-24). | v1 (English default names); **it2**: object-name overrides (required for public release) and translations (not a release gate) | `[DECIDED]` (object-name defaults and overrides, 2026-10-02), `[PROPOSED]` (rest) |
 | FR-ADM-6 | **Template and static overrides**: a `custom/` folder (in the data directory, so it survives upgrades) whose templates and static files take priority over the built-in ones. This is very important for some server owners. | v1 | `[DECIDED]` (TD-25) |
 | FR-ADM-9 | **Front-page image** (maintainer, 2026-10-04, before the release): an option, off by default (the home page is unchanged when off), to show a large image such as a map of the current situation dominating the home page. The admin sets a server file path; the site picks up changes within about 10 s (mtime polling, works on Windows, Linux and network shares). The file is validated and re-encoded like the logo (content-hash name), never served directly. An embed (iframe to an interactive map) mode is designed for but not built. | release | `[DECIDED]` (feature), `[PROPOSED]` (delivery) |
-| FR-ADM-7 | Edit scoring values. | later | `[DEFERRED]` (with the score concept) |
+| FR-ADM-7 | Edit scoring values. The kill, assist and penalty values stay in the `[score]` config section. **Flight-time score** (maintainer request, 2026-10-05): the admin page `/admin/score/` has an optional switch (off by default) and a rate (points per hour in the air, added to the air score of pilot sorties; doc 13 "Score"); a change is applied by `watch` within a minute, or by `rebuild-aggregates`. | release | `[DECIDED]` (feature, maintainer 2026-10-05), `[PROPOSED]` (default rate 1 point per hour, all pilot sorties, range 0..100); the rest `[DEFERRED]` |
 | FR-ADM-8 | Start a new tour manually (when the tour mode is manual), and rename tours. | it2 | `[PROPOSED]` |
 
 ## Operations (FR-OPS)

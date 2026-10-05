@@ -151,7 +151,7 @@ AircraftStats  aircraft (1:1 → GameObject), pilots, side (redfor/blufor/''), +
                -- FR-WEB-8: all-time sum of the type's tour rows (`TourAircraftStats`, role all, no mod pattern), pilots = its PlayerAircraft row count; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come
                -- from the counters at read time and sort with `queries.sorting.Ratio`
 TourAircraftStats tour (null = all time), aircraft, role (all / air_superiority / attack), mod_pattern, pilots, side, sorties_redfor, sorties_blufor, + counters
-               -- AircraftStats within one scope (migration 0057); `sorties_redfor` / `sorties_blufor` (0063) = the row's counted sorties per side, `side` = the larger (ties REDFOR);
+               -- AircraftStats within one scope (migration 0057); `sorties_redfor` / `sorties_blufor` (0064) = the row's counted sorties per side, `side` = the larger (ties REDFOR);
                -- a null-tour (all-time) row = the SUM of the tour rows, its side the argmax of the summed counters (doc 14) [PROPOSED]: `role` `all` + no pattern in a tour = sum of the `PlayerTourAircraft` rows; the
                -- role and pattern rows come from the counted sorties of that combat role / modification set (`pilots` = distinct players in that
                -- scope). `tour` null is used only for a role or pattern row (check constraint); the all-time unfiltered `all` row is

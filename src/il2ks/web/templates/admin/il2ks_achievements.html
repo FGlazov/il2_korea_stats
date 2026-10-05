@@ -34,7 +34,7 @@
           {% for value in row.thresholds %}
           <input type="number" name="thr-{{ row.key }}-{{ forloop.counter }}" value="{{ value }}" min="1" step="1" style="width:7em" aria-label="{% blocktranslate with n=forloop.counter %}Tier {{ n }}{% endblocktranslate %}">
           {% endfor %}
-          <div class="help">{% blocktranslate with values=row.default_thresholds|join:", " %}Built-in: {{ values }}. Leave all blank to use them.{% endblocktranslate %}{% if row.changes_rows %} {% translate "Differs from what the pilots' achievements were computed with: a recompute is pending." %}{% endif %}</div>
+          <div class="help">{% blocktranslate with values=row.default_thresholds|join:", " %}Built-in: {{ values }}. Leave all blank to use them.{% endblocktranslate %}{% if row.changes_rows %} {% translate "Differs from what the pilots' achievements were computed with: a recompute is pending." %}{% endif %}{% if row.all_time_thresholds %} {% blocktranslate with factor=row.all_time_factor values=row.all_time_thresholds|join:", " %}These are the tiers in one tour. The all-time view sums the tours and asks {{ factor }} times as much: {{ values }}.{% endblocktranslate %}{% endif %}{% if row.all_time_only %} {% translate "This achievement exists in the all-time view only (there is no tour view of it)." %}{% endif %}</div>
         </div>
       </div>
       <details>

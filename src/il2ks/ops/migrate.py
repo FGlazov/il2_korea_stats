@@ -324,7 +324,7 @@ def _check_player_rollup() -> bool:
 
 def _check_tour_aircraft_sides() -> bool:
     """The all-time aircraft rows are the roll-up of the tour rows (doc 14), and the all-time side is the larger of the
-    summed per-side sorties of the tour rows (`TourAircraftStats.sorties_redfor` / `sorties_blufor`, migration 0063).
+    summed per-side sorties of the tour rows (`TourAircraftStats.sorties_redfor` / `sorties_blufor`, migration 0064).
     A database from before has tour rows with sorties and no side counters: level 2 must be rebuilt."""
     from il2ks.db.models import TourAircraftStats
 

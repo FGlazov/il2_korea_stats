@@ -430,12 +430,25 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
 ## Score (as built, 2026-10-04)
 
 Pure function `score_sortie` in `core/ratings/score.py`, per pilot sortie (gunners 0); stored as `PlayerSortie.air_points` / `ground_points`
-and summed into `score_air` / `score_ground` / `score_ground_attack` (doc 06). Everything comes from stored sortie columns and the `[score]`
-section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess. Air and ground score are never combined (OQ-62).
+and summed into `score_air` / `score_ground` / `score_ground_attack` (doc 06). Everything comes from stored sortie columns, the `[score]`
+section and the admin's flight-time option, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess. Air and ground score are never combined (OQ-62).
 - **Points**: per air kill (PvP aircraft more than an AI one), per assist, and one value per ground-kill category (fences worth very little).
 - **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone; a config that still sets them gets a warning at load (shown by `il2ks doctor`) and the new defaults, maintainer, OQ-100): **death 80%,
   capture 50%, aircraft lost without death or capture 20%**. The percentage comes off **both** the air and the ground score, only from a
   positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
+  Maintainer, 2026-10-05: percentage outcome penalties never improve a negative score: a negative score is left as is. This holds because the
+  percentage is taken from the kill points (never negative) **before** the flat penalties come off; regression tests in `tests/unit/ratings/test_score.py`.
+- **Flight-time points (optional; maintainer request 2026-10-05)**: so that an intercept sortie where nothing happens (or where the pilot
+  deterred bombers by being there) still earns something. **Off by default**; a site admin switches it on and sets the rate on the admin
+  page `/admin/score/` (stored in `SiteSettings.score_flight`, not in `[score]`: the other values stay config-file only). Rule: every **pilot**
+  sortie gets `rate x hours in the air` (`PlayerSortie.flight_time_s`: airborne time, taxiing excluded) added to its **air score**, whatever its
+  combat role `[PROPOSED]` (simple; an attack sortie gets the points in its air score too, a gunner sortie nothing). They are kill-like points:
+  the outcome percentage (death 80% ...) comes off them together with the kill points, then the flat penalties are subtracted (so the order
+  and the "an outcome penalty never improves a negative score" rule above hold). Defaults `[PROPOSED]`: **1 point per hour**, below one AI air
+  kill (2), the allowed range 0..100. Applying a change: the admin's choice is the **wanted** setting, saved at once; the stored sortie scores
+  follow the **applied** setting (`score_flight_applied`): `watch` re-scores every sortie and rebuilds level 2 on its next tick under the writer
+  lock (`ingest.score_apply.rescore_with_wanted`), or any `il2ks rebuild-aggregates` does it. Missions ingested meanwhile use the applied setting,
+  so incremental == rebuild. The air score column hint says "plus flight-time points if the server enables them".
 - **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
   early bailout (5) and each friendly kill (3, up to 5 kills per sortie). A sortie with a flat penalty and no kills can be negative.
 - **Leaderboard minimums** (`[score] min_sorties` 5, `min_elo_games` 5, `min_attack_sorties` 5, `min_time_on_target_minutes` 10,

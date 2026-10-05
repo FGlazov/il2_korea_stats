@@ -31,7 +31,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
-from il2ks.core.ratings.score import ScoreRules
+from il2ks.core.ratings.score import ADMIN_SCORE_FIELDS, ScoreRules
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.toggles import RuleToggles
 from il2ks.core.stat_marks import MarkRules
@@ -298,9 +298,12 @@ def load_config(
         cross_pool_weight=reader.non_negative("ratings", "cross_pool_weight", rating_defaults.cross_pool_weight),
     )
 
-    score = ScoreRules(
-        **{f.name: reader.non_negative("score", f.name, cast(float, f.default)) for f in dataclasses.fields(ScoreRules)}
-    )
+    score_values = {
+        f.name: reader.non_negative("score", f.name, cast(float, f.default))
+        for f in dataclasses.fields(ScoreRules)
+        if f.name not in ADMIN_SCORE_FIELDS  # the flight-time option is the site admin's
+    }
+    score = ScoreRules(**score_values)  # pyright: ignore[reportArgumentType]  # only float fields are read here
     warnings = _renamed_key_warnings(reader)
     for message in warnings:
         log.warning("config: %s", message)

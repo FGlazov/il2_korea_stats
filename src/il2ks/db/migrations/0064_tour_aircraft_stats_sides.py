@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0062_player_tour_rollup"),
+        ("il2ks_db", "0063_player_tour_rollup"),
     ]
 
     operations = [

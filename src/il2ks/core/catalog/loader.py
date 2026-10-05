@@ -22,6 +22,10 @@ Shipped data (`core/catalog/data/`):
   `significant` (`true`/`false`) marks the ones that change performance a lot: the aircraft page offers a with/without
   filter for each (a change applies with `il2ks rebuild-aggregates`). The spawn line's `WM` is a bitmask:
   bit 0 is always set, mod `k` is bit `k` (`weapon_mod_ids`).
+- `weapon_mod_names_<language>.csv` (like `object_names_<language>.csv`): `english, display_name, review`. Mod names are
+  translated (a dimension, unlike mission names, which are facts); keyed by the English `weapon_mods.csv` name because
+  one name is shared by several types. Every catalog name has a row in every language (a test), `review` as above.
+  A name with no row (or an id the catalog lacks) shows as it is (`Catalog.translated_mod_name`).
 - `object_aliases.csv`: `log_name, same_as`, a second spelling of a catalog object the logs write (`B 29` -> `B-29`,
   OQ-120): `lookup` answers with the object itself, so both spellings are one `GameObject`.
 - `payload_aliases.csv`: `log_name, vehicle`, log aircraft name -> `payloads.csv` / `weapon_mods.csv` vehicle key
@@ -349,11 +353,17 @@ class Catalog:
         ordnance: Iterable[OrdnanceRow] = (),
         ammo: Iterable[AmmoInfo] = (),
         object_aliases: Mapping[str, str] | None = None,
+        weapon_mod_names: Mapping[str, Mapping[str, str]] | None = None,
     ) -> None:
-        """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}."""
+        """`object_names`: language code (`de`, `pt-br`) -> {log name -> translated display name}.
+        `weapon_mod_names`: language code -> {English mod name from `weapon_mods.csv` -> translated name}."""
         self._names: dict[str, dict[str, str]] = {
             language.lower(): {_key(log_name): name for log_name, name in names.items()}
             for language, names in (object_names or {}).items()
+        }
+        self._mod_names: dict[str, dict[str, str]] = {
+            language.lower(): {_key(english): name for english, name in names.items()}
+            for language, names in (weapon_mod_names or {}).items()
         }
         self._objects: dict[str, ObjectInfo] = {}
         for obj in objects:
@@ -434,15 +444,28 @@ class Catalog:
         vehicle = self._aliases.get(key, key)
         return self._payloads.get((vehicle, payload_id))
 
-    def weapon_mods(self, aircraft_type: str, weapon_mods: int) -> tuple[tuple[int, str | None], ...]:
-        """The modifications a `WM` bitmask selects as (id, name) pairs; the name is None for an id the catalog doesn't
-        list (OQ-25: the caller shows the raw id). Same alias handling as `payload`."""
+    def translated_mod_name(self, name: str, language: str) -> str:
+        """A weapon modification's name (the English one of `weapon_mods.csv`) in `language` (TD-24); the English name
+        itself for English, a language without translations, or a name nobody translated."""
+        key = _key(name)
+        for code in language_chain(language):
+            translated = self._mod_names.get(code, {}).get(key)
+            if translated:
+                return translated
+        return name
+
+    def weapon_mods(
+        self, aircraft_type: str, weapon_mods: int, language: str = "en"
+    ) -> tuple[tuple[int, str | None], ...]:
+        """The modifications a `WM` bitmask selects as (id, name) pairs, the names in `language` (TD-24);
+        the name is None for an id the catalog doesn't list (OQ-25: the caller shows the raw id). Same alias handling
+        as `payload`."""
         key = _key(aircraft_type)
         vehicle = self._aliases.get(key, key)
         result: list[tuple[int, str | None]] = []
         for mod_id in weapon_mod_ids(weapon_mods):
             found = self._weapon_mods.get((vehicle, mod_id))
-            result.append((mod_id, found.name if found is not None else None))
+            result.append((mod_id, self.translated_mod_name(found.name, language) if found is not None else None))
         return tuple(result)
 
     def significant_mods(self, aircraft_type: str) -> tuple[WeaponModInfo, ...]:
@@ -609,6 +632,21 @@ def parse_object_names(text: str, source: str = "object_names.csv") -> dict[str,
     return names
 
 
+def parse_weapon_mod_names(text: str, source: str = "weapon_mod_names.csv") -> dict[str, str]:
+    """`English mod name -> translated name` from a `weapon_mod_names_<language>.csv`."""
+    names: dict[str, str] = {}
+    for n, row in enumerate(_rows(text, ["english", "display_name", "review"], source), start=2):
+        english, name = row["english"], row["display_name"]
+        if row["review"] not in ("", "llm-draft"):
+            raise ValueError(f"{source}:{n}: review must be empty or llm-draft, got {row['review']!r}")
+        if not english or not name.strip():
+            raise ValueError(f"{source}:{n}: empty english or display_name")
+        if english in names:
+            raise ValueError(f"{source}:{n}: duplicate weapon mod name {english!r}")
+        names[english] = name
+    return names
+
+
 def parse_payloads(text: str, source: str = "payloads.csv") -> list[PayloadInfo]:
     columns = ["vehicle", "payload_id", "editor_name", "readable_name"]
     return [
@@ -663,6 +701,7 @@ def parse_payload_aliases(text: str, source: str = "payload_aliases.csv") -> dic
 
 
 NAMES_PREFIX = "object_names_"
+MOD_NAMES_PREFIX = "weapon_mod_names_"
 
 
 def load_default_catalog() -> Catalog:
@@ -672,10 +711,18 @@ def load_default_catalog() -> Catalog:
     def read(name: str) -> str:
         return data.joinpath(name).read_text(encoding="utf-8")
 
+    entries = sorted(data.iterdir(), key=lambda e: e.name)
     names = {
         entry.name.removeprefix(NAMES_PREFIX).removesuffix(".csv"): parse_object_names(read(entry.name), entry.name)
-        for entry in sorted(data.iterdir(), key=lambda e: e.name)
+        for entry in entries
         if entry.name.startswith(NAMES_PREFIX) and entry.name.endswith(".csv")
+    }
+    mod_names = {
+        entry.name.removeprefix(MOD_NAMES_PREFIX).removesuffix(".csv"): parse_weapon_mod_names(
+            read(entry.name), entry.name
+        )
+        for entry in entries
+        if entry.name.startswith(MOD_NAMES_PREFIX) and entry.name.endswith(".csv")
     }
     return Catalog(
         objects=parse_objects(read("objects.csv")),
@@ -686,4 +733,5 @@ def load_default_catalog() -> Catalog:
         ordnance=parse_ordnance(read("ordnance.csv")),
         ammo=parse_ammo(read("ammo.csv")),
         object_aliases=parse_object_aliases(read("object_aliases.csv")),
+        weapon_mod_names=mod_names,
     )

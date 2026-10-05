@@ -586,3 +586,15 @@ def test_the_sample_data_guard_ignores_the_case_of_the_folder_name(tmp_path: Pat
     cfg = make_config(tmp_path / "data", logs, after_archive="move")
     with pytest.raises(ValueError, match="sample_data"):
         ingest_once(cfg, make_pipeline(FakeSteps()))
+
+
+def test_watch_applies_a_pending_flight_score_change_every_tick(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[Config] = []
+
+    def record(cfg: Config) -> bool:
+        calls.append(cfg)
+        return False
+
+    monkeypatch.setattr("il2ks.ingest.watch.rescore_with_wanted", record)
+    assert watch(fast(env.cfg), env.pipeline, max_ticks=2, now=env.now) == 2
+    assert len(calls) == 2

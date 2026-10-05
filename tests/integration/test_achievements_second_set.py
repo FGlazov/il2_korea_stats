@@ -143,17 +143,22 @@ def test_shame_medals_and_hidden_missions() -> None:
     save(
         mission(
             (
-                sortie(0, 1, outcome="not_taken_off", flight_time_s=0.0, taxi_accident=True, is_plane_lost=True),
-                sortie(1, 2, outcome="crashed", is_death=True, friendly_kills=1),
-                sortie(2, 2, outcome="crashed", is_death=True),
-                sortie(3, 2, outcome="crashed", is_death=True),
+                *(
+                    sortie(i, 1, outcome="not_taken_off", flight_time_s=0.0, taxi_accident=True, is_plane_lost=True)
+                    for i in range(5)  # all time asks 5 taxi accidents (5 x 1, OQ-128)
+                ),
+                sortie(5, 2, outcome="crashed", is_death=True, friendly_kills=5),
+                sortie(6, 2, outcome="crashed", is_death=True),
+                sortie(7, 2, outcome="crashed", is_death=True),
             )
         ),
         meta("m1", STARTED_AT),
     )
 
-    assert held(1) == {"shame_taxi": 1}  # a taxi accident is not a "crash after take-off"
-    assert held(2)["shame_friendly"] == 1
+    assert held(1) == {"shame_taxi": 2}  # a taxi accident is not a "crash after take-off"; in the tour 5 are silver
+    all_time = PlayerAchievement.objects.filter(player_id=pk(1), tour=None, key="shame_taxi")
+    assert [r.tier for r in all_time] == [1]  # ... and all time, with its x5 thresholds (5, 25, 50), bronze
+    assert held(2)["shame_friendly"] == 2  # 5 friendly kills: silver in the tour, bronze all time (5 x 1)
     assert held(2)["shame_crashed"] == 1  # three crashes after take-off
     assert AchievementHolders.objects.get(key="shame_taxi", tier=1, tour=None).holders == 1
 

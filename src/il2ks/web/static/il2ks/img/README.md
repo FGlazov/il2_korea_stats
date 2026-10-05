@@ -101,6 +101,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/types-with-kills.svg` | `list-check` |
 | `medal/landing-streak.svg` | `plane-arrival` |
 | `medal/ace-in-a-day.svg` | `sun` |
+| `medal/tours-in-a-row.svg` | `repeat` |
 | `medal/shame-taxi.svg` | `traffic-cone` |
 | `medal/shame-friendly.svg` | `user-x` |
 | `medal/shame-strafed.svg` | `flame` |

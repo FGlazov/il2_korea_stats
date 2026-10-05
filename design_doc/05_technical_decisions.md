@@ -300,6 +300,12 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   flag stands for English, Brazil's for Portuguese, which reads plain "Português"). The switch is a `GET /language/?language=&next=` that only stores a display preference (Django's own view needs a POST and a CSRF cookie, which would take every public page out of the shared cache); pages `Vary` on the cookie and the ETag includes the language (TD-28). **How the site addresses
   the reader** (maintainer): German *du*, French *vous*, Russian *вы*, Spanish *tú*, Brazilian Portuguese *você*, consistently within a language
   (`docs/translating.md`). Every template string is wrapped (a test enforces it) and `il2ks dev translations update` is part of the commit gate (doc 08).
+- **Which game data is translated** `[DECIDED]` (maintainer, 2026-10-05): *object names* (`object_names_<language>.csv`) and *weapon-mod names*
+  (`weapon_mod_names_<language>.csv`, keyed by the English name in `weapon_mods.csv`, same CSV format, `llm-draft` marks and fallback as object
+  names: a mod without a row shows in English, an unlisted id as its raw id) are translated, because they are dimensions players filter and compare
+  by. **Mission names are not translated**: they are facts (what the server called the mission). Technical choice (CSV beside the object names rather
+  than gettext): the names are catalog data in the pure-Python catalog, and reviewers use one CSV workflow for all game data; `translations
+  update/check` are unaffected (a test requires a row per catalog mod name in every language). See `docs/translating.md`.
 
 ### TD-25 Customization: branding in the admin, plus a `custom/` override folder — `[DECIDED]` (2026-10-02)
 - **Layer 1, no files touched:** `SiteSettings` in the admin holds the title, server name, logo upload, description, a color theme (overrides of

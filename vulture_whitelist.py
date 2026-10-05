@@ -268,8 +268,10 @@ _.clean_home_feature  # Django form hook: SiteSettingsForm.clean_<field>
 _.required  # Django form field attribute (SiteSettingsForm.__init__: home_feature is optional in a post)
 _.loadouts  # queries.builds.AircraftBuild: read by players/detail_aircraft_build.html
 weapon_mod_mask  # core.catalog.loader: inverse of weapon_mod_ids, for the aircraft page mod filter (next); tested
+_.score_flight  # SiteSettings: saved by web.admin_site.score_view, read as JSON by ingest.flight_score
 _.stale_hides  # web.admin_quips.SpotRow: read by admin/il2ks_quips.html
 _.default_description  # web.admin_achievements.AchievementRow: read by admin/il2ks_achievements.html
 _.default_thresholds
 _.customised
 _.changes_rows
+_.all_time_factor  # web.admin_achievements.AchievementRow: read by admin/il2ks_achievements.html

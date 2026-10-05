@@ -71,7 +71,7 @@
     },
     "templates/admin/il2ks_achievements.html": {
       "version": 1,
-      "sha256": "5dbd8fdfc38718070f36495d6d0454eedd0dccbc2046536711e20ac424fd2fac"
+      "sha256": "d022553a7a679bf6798188f519f39d169a41efe9a709a0efe298b026b3a09339"
     },
     "templates/admin/il2ks_db/tour/change_list.html": {
       "version": 1,
@@ -79,7 +79,7 @@
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,
-      "sha256": "430dcb8e4e502f41616368d0bdd0762a526b315ac718d5235172ba7d34bc064b"
+      "sha256": "6c5c1059c18a0db1aec358c738af31efc4cc996b45bea8568ad6c7db6f77f9c1"
     },
     "templates/admin/il2ks_ingest_status.html": {
       "version": 1,
@@ -92,6 +92,10 @@
     "templates/admin/il2ks_reprocess_confirm.html": {
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
+    },
+    "templates/admin/il2ks_score.html": {
+      "version": 1,
+      "sha256": "9fc491b02bf808ae3dadd2686ef60d8517e503f87d48a674b80c808176d043ab"
     },
     "templates/il2ks/achievements/_award.html": {
       "version": 1,

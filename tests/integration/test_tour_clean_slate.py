@@ -114,19 +114,20 @@ def test_a_max_medal_is_earned_when_its_first_tour_earned_it() -> None:
 
 
 def test_a_cumulative_medal_crosses_its_threshold_across_two_tours() -> None:
-    save(mission((sortie(0, 1, kills_air=6),)), meta("m1", STARTED_AT))
+    save(mission((sortie(0, 1, kills_air=30),)), meta("m1", STARTED_AT))
     save(
-        mission((sortie(0, 1, kills_air=3), sortie(1, 1, kills_air=3), sortie(2, 1, kills_air=3))), meta("m2", OCTOBER)
+        mission((sortie(0, 1, kills_air=10), sortie(1, 1, kills_air=10), sortie(2, 1, kills_air=10))),
+        meta("m2", OCTOBER),
     )
 
-    assert held(1)["career_kills"] == 2  # 6 + 9 = 15 kills: 10 reached
+    assert held(1)["career_kills"] == 2  # 30 + 30 = 60 kills: the 50 of tier 2 (5 x 10, OQ-128)
     for tour in tours():
-        assert held(1, tour)["career_kills"] == 1  # neither tour has 10 alone
+        assert held(1, tour)["career_kills"] == 2  # 30 kills in a tour: the 10 of tier 2, not the 50
     row = PlayerAchievement.objects.get(player_id=pk(1), tour=None, key="career_kills", tier=2)
     assert row.mission.mission_uid == "m2"
     in_tour = PlayerAchievement.objects.get(key="career_kills", tour=tours()[1], tier=1)
     sorties = list(PlayerSortie.objects.filter(mission=row.mission_id, player_id=pk(1)).order_by("spawned_at", "pk"))
-    assert row.sortie_id == sorties[1].pk  # 6 + 3 = 9, then 6 + 6 = 12: the second October sortie
+    assert row.sortie_id == sorties[1].pk  # 30 + 10 = 40, then 30 + 20 = 50: the second October sortie
     assert in_tour.sortie_id == sorties[0].pk  # the tour's own first kill
 
 
@@ -144,15 +145,15 @@ def test_the_rows_are_the_same_incremental_and_rebuilt() -> None:
 
 
 def test_a_late_import_into_an_old_tour_gives_the_rebuilt_rows() -> None:
-    save(mission((sortie(0, 1, kills_air=6), *survived(2, first=1))), meta("m2", OCTOBER))
-    save(mission((sortie(0, 1, kills_air=6), *survived(4, first=1))), meta("m1", STARTED_AT))  # older, imported later
+    save(mission((sortie(0, 1, kills_air=30), *survived(2, first=1))), meta("m2", OCTOBER))
+    save(mission((sortie(0, 1, kills_air=30), *survived(4, first=1))), meta("m1", STARTED_AT))  # older, imported later
     incremental = everything()
 
     rebuild_aggregates()
 
     assert everything() == incremental
     row = PlayerAchievement.objects.get(player_id=pk(1), tour=None, key="career_kills", tier=2)
-    assert row.mission.mission_uid == "m2"  # September's 6 come first now: 12 is reached in October
+    assert row.mission.mission_uid == "m2"  # September's 30 come first now: 60 (the 50) is reached in October
 
 
 def test_weeks_in_a_row_reset_per_tour_and_all_time_is_the_max() -> None:
