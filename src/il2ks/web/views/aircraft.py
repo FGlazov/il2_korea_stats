@@ -199,14 +199,19 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
     first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, mod_filters,
     mod_filtered, mod_sets, mod_sort, crumbs, page_title.
-    Reads: eight queries plus the tours (nine with a tour, role or filter selected), plus the 2 of the context
-    processor."""
+    Reads: with a tour, role or filter selected and data in every section, nine queries (the type's all-time row, the
+    scope's row, hits, ammo mixes, matchups, loadouts, mod sets, and one query per pilot board: Elo and ground
+    both for every role, one for a single role), plus the tours, plus the 2 of the context processor: 12 at most,
+    11 with a single role. Without a selection there is no scope row."""
     stats = reads.stats_for(pk)
     if stats is None:
         raise Http404
     choice = tour_choice_from(request.GET)
     role = reads.parse_role(request.GET.get(reads.ROLE_PARAM))
-    intercept = request.GET.get(INTERCEPT_PARAM) == "1"
+    # An intercept fight is air superiority against air superiority: with the attack role its table is always empty, so
+    # the toggle is not offered (`can_intercept`) and a stale `?intercept=1` is ignored.
+    can_intercept = role != AircraftRole.ATTACK
+    intercept = can_intercept and request.GET.get(INTERCEPT_PARAM) == "1"
     matchup_sort = resolve_sort(
         request.GET.get("sort", ""), dict.fromkeys(reads.MATCHUP_SORTS, ""), reads.DEFAULT_MATCHUP_SORT
     )
@@ -245,6 +250,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "scoped": role != AircraftRole.ALL or bool(mod_pattern),
         "sort": matchup_sort,
         "intercept": intercept,
+        "can_intercept": can_intercept,
         "min_encounters": reads.MIN_ENCOUNTERS,
         "all_fights_url": _query_url(request, intercept=False),
         "intercept_url": _query_url(request, intercept=True),

@@ -18,6 +18,7 @@ from il2ks.db.models import (
     AircraftMatchup,
     AircraftMods,
     AircraftPayload,
+    AircraftRole,
     GameObject,
     MissionAircraftAmmo,
     PlayerAircraftScope,
@@ -27,6 +28,7 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.queries.ammo import aircraft_ammo
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
+from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
@@ -324,3 +326,59 @@ def test_page_sections_all_follow_the_filters(client: Client) -> None:
     assert without_suit["matchups"] == []  # the unmodified sortie was shot down by an AI aircraft
     air_suit_october = page(f"tour={october.pk}&role=air_superiority&mod5=with")
     assert (air_suit_october["tile"], air_suit_october["hits"]) == (1, "1")
+
+
+def test_a_scoped_self_pairing_takes_kills_from_the_killer_row_and_losses_from_the_victim_row() -> None:
+    """Two Sabres meeting: with a role filter both the killer-scoped and the victim-scoped row of the pair match the
+    type's page, and each must feed only its own column (the last row used to win both)."""
+    sabre = GameObject.objects.create(log_name="F-86F-30", display_name="F-86F", cls="fighter")
+    for side, kills in (("killer", 5), ("victim", 2)):
+        AircraftMatchup.objects.create(
+            killer_aircraft=sabre, victim_aircraft=sabre, scoped_side=side, combat_role=AIR, kills=kills
+        )
+
+    from il2ks.queries.aircraft import matchups
+
+    table = matchups(sabre, role=AircraftRole.AIR_SUPERIORITY)
+
+    assert [(m.enemy.pk, m.kills, m.losses) for m in table.rows] == [(sabre.pk, 5, 2)]
+
+
+@override_settings(IL2KS_LEADERBOARDS=SOME)
+def test_a_populated_scoped_page_stays_within_the_query_budget(client: Client) -> None:
+    """The budget tests of the other aircraft files run over fixtures without pilots in scope, which skips queries (the
+    top pilots' Elo read). Here every section has data: pilots in scope, ammo rows, matchups, loadouts and mods."""
+    _, october = history()
+    url = reverse("web:aircraft-detail", args=[mig().pk])
+    scoped = f"{url}?tour={october.pk}&role=air_superiority&mod5=with&intercept=1"
+
+    response = client.get(scoped)
+    assert response.context["elo_pilots"]  # pilots in scope
+    assert response.context["loadouts"]
+    assert response.context["mod_sets"]
+    assert response.context["hits"].by_ammo
+    assert response.context["matchups"].rows
+
+    # Budget with data in every section: the 2 of the context processor, the tours, the type's all-time row, the scope's
+    # row, hits, mixes, matchups, loadouts, mod sets and one pilot board (Elo or ground) = 11.
+    assert_simple_reads(client, scoped, max_queries=11)
+    assert_simple_reads(client, f"{url}?tour=all&role=attack&mod5=with", max_queries=11)
+    assert_simple_reads(
+        client, f"{url}?tour={october.pk}&mod5=with", max_queries=12
+    )  # both pilot boards: one more than a single role
+
+
+@override_settings(IL2KS_LEADERBOARDS=SOME)
+def test_the_attack_role_has_no_intercept_toggle_and_ignores_a_stale_intercept_link(client: Client) -> None:
+    """An intercept fight is air superiority against air superiority, so with the attack role the intercept table is
+    always empty: the toggle is not offered, and a stale `?intercept=1` shows the usual matchups instead of nothing."""
+    history()
+    url = reverse("web:aircraft-detail", args=[mig().pk])
+
+    attack = client.get(f"{url}?tour=all&role=attack&intercept=1")
+    air = client.get(f"{url}?tour=all&role=air_superiority")
+
+    assert "Intercept sorties only" not in attack.content.decode()
+    assert attack.context["intercept"] is False
+    assert [(m.kills, m.losses) for m in attack.context["matchups"].rows] == [(0, 1)]
+    assert "Intercept sorties only" in air.content.decode()

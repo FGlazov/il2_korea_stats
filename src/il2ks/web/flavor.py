@@ -3,7 +3,7 @@
 Every spot has several variants (all translatable). The variant is chosen from a stable seed (the object's id plus the
 spot name, hashed), so a page never changes on reload, every language shows the same variant, and HTTP caching
 (`ETag`/`Last-Modified`) stays valid. Templates use `{% flavor "spot" seed %}` (il2ks template tags).
-The sortie page asks `sortie_spot` which notable outcome, if any, deserves a line.
+The sortie page asks `sortie_spots` which notable outcome, if any, deserves a line.
 
 Tone: respectful, light military humour, never harsh about the player, no real-world politics. Add variants freely (a
 new string needs `uv run il2ks dev translations update`); add a spot by adding it to `SPOTS` and to the template.
@@ -22,7 +22,7 @@ from il2ks.web.display import Label
 MULTI_KILL_MIN = 3  # air kills in one sortie that earn a line
 BADLY_DAMAGED = 0.5  # damage taken (share of the airframe's health) of a landing worth a remark
 # Thresholds of the extreme-event spots, read off the September 2026 archive (15,245 pilot sorties; share of those
-# sorties that reach the threshold, before the precedence in `sortie_spot` takes some away):
+# sorties that reach the threshold, before the precedence in `sortie_spots` takes some away):
 BOMBER_KILLS_MIN = 2  # bomber / attacker / transport air kills: 0.22% (one such kill is 1.84%, too common for a title)
 # Air assists (assists on aircraft) that earn the stolen-kills line, by the sortie's own air kills (maintainer,
 # 2026-10-04): 2+ with no air kill, 3+ with one, 6+ with two (three or more air kills is the ace line, which comes
@@ -141,7 +141,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Not a single contrail yet. Somebody has to be first."),
         gettext_lazy("Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."),
     ),
-    # Sortie page, one per notable outcome (see `sortie_spot`).
+    # Sortie page, one per notable outcome (see `sortie_spots`).
     "sortie_captured": (
         gettext_lazy("The silk opened, the welcoming committee was less friendly."),
         gettext_lazy("Landed by parachute, collected by the other side. The war goes on without this pilot, for now."),
@@ -210,7 +210,7 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The armourer is already counting the missing rounds, and smiling while he does it."),
         gettext_lazy("A busy hour for the gun camera and a quiet one for the other side's wingmen."),
     ),
-    # Extreme events (thresholds above; order in `sortie_spot`).
+    # Extreme events (thresholds above; order in `sortie_spots`).
     "sortie_ai_gunner": (
         gettext_lazy("A bomber's tail gunner had a say in this. Those guns are not decoration."),
         gettext_lazy("Outshot by a gunner who never gets a break. Respect the tail."),

@@ -5,6 +5,7 @@ with the one command that fixes them: `uv run il2ks dev translations update`."""
 
 import gettext
 import io
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -254,3 +255,39 @@ def _po(catalog: Catalog) -> bytes:
     buffer = io.BytesIO()
     translations.write_po(buffer, catalog, width=120, no_location=True, sort_output=True, ignore_obsolete=True)
     return buffer.getvalue()
+
+
+# --- python-format flags ---------------------------------------------------------------------------------------------
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_no_message_is_flagged_python_format_without_a_placeholder(directory: str) -> None:
+    """Babel / xgettext flag `10% of pilots` as `python-format` (`% o` reads as an octal directive), and `msgfmt
+    --check-format` then rejects the translation (`10% пилотов`). A message with no real placeholder carries no flag.
+    Reads the file as text: Babel adds the flag again to every message it reads."""
+    text = translations.po_path(directory).read_text(encoding="utf-8")
+    flagged: list[str] = []
+    for block in text.replace("\r\n", "\n").split("\n\n"):
+        found = re.search(r"^msgid (.*?)^msgstr", block, re.DOTALL | re.MULTILINE)
+        if found and "#, python-format" in block.split("\n") and not translations.placeholders(found.group(1)):
+            flagged.append(found.group(1).strip()[:80])
+    assert not flagged, f"{directory}: {flagged}; {FIX}"
+
+
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_the_shipped_catalogs_pass_msgfmt_check_format(directory: str) -> None:
+    msgfmt = shutil.which("msgfmt")
+    if msgfmt is None:
+        pytest.skip("msgfmt (GNU gettext) is not installed")
+    result = subprocess.run(
+        [msgfmt, "--check-format", "-o", "-", str(translations.po_path(directory))],
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+
+
+def test_the_french_medal_hint_has_a_no_break_space_before_the_colon() -> None:
+    """French typography: a no-break space (U+00A0) before `:`, so a tier name never ends one line with the colon
+    starting the next."""
+    message = translations.read_catalog("fr").get("%(tier)s: %(threshold)s.")
+    assert message is not None
+    assert message.string == "%(tier)s\u00a0: %(threshold)s."

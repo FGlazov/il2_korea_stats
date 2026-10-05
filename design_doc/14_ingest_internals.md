@@ -360,7 +360,14 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   Each is recorded by name in `SiteSettings.backfills_done` after it ran (or was found unnecessary), because the data trigger alone cannot tell
   "never filled" from "legitimately empty" (a database with only zero scores, or no Elo encounters) and would rebuild after every later migration.
   Where a backfill needs a level-2 rebuild it calls `_rebuild_all`, the one place that passes every config section to `rebuild_aggregates`.
-  These exist for pre-release databases and may go when the migrations are squashed before the first release (roadmap).
+  **Catalog fingerprint** (2026-10-05): the catalog files that are copied into stored rows (`CATALOG_FILES`: `weapon_mods.csv` significant flags, `payloads.csv`,
+  `payload_aliases.csv`, `object_aliases.csv`) are hashed (line endings normalised) into a `catalog:<hash>` entry of `backfills_done`. When the hash differs from the stored one,
+  `refresh_for_catalog_change` re-reads the loadout names, merges alias duplicates of `GameObject` (the aircraft case merge keys its per-mission ammo rows on the full scope
+  `(mission, aircraft, combat_role, weapon_mods[, mix], ammo)` since migration 0057) and rebuilds level 2, then records the hash. `migrate_if_needed` does this on a writer or `web` start
+  when no migration is pending (under the writer lock, after a backup, because the merge deletes level-1 rows; a start that finds the lock busy leaves it to the next writer). When migrations
+  ARE pending, `_run_backfills` runs the refresh's level-1 part as one more step before the **single** rebuild and records the fingerprint after it, so the first upgrade of an old database
+  rebuilds once, not once for the backfill and once for the refresh (FR-OPS-3).
+  These exist for pre-release databases and may go when the migrations are squashed before the first release (roadmap). Migration 0057 (scoped aircraft rows) is not reversible; that is accepted until the squash.
 - **Verified end to end on the 210 sample missions** (2026-10-03, run three times; the last after the score inputs and Elo landed, with
   the same results and Elo stored = Elo recomputed for every player): no failures, zero bad lines and unknown
   keys, re-import skips everything with identical rows, `rebuild-aggregates` and `reprocess` reproduce level 2 **byte for byte** and keep every

@@ -4,7 +4,7 @@
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
   selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
   (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
-  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters every section with the tour and the modification filter), show_elo / show_ground (which top-pilots tables), intercept, min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
+  average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters every section with the tour and the modification filter), show_elo / show_ground (which top-pilots tables), intercept, can_intercept (false for the attack role: no toggle), min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), loadouts (Loadout: payload (AircraftPayload), elo, kills_per_sortie, kd,
   ground_hour; None = a dash), loadout_sort (?lsort=), mod_filters (ModFilter: mod_id, name, state "any" / "with" / "without"; only a type with
@@ -62,12 +62,14 @@
   <section>
     <h2>{% translate "Matchups" %}</h2>
     <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
+    {% if can_intercept %}
     <p class="tour-bar">
       <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
         <a href="{{ all_fights_url }}"{% if not intercept %} aria-current="true"{% endif %}>{% translate "All kills and losses" %}</a>
         <a href="{{ intercept_url }}"{% if intercept %} aria-current="true"{% endif %}>{% translate "Intercept sorties only" %}</a>
       </span>
     </p>
+    {% endif %}
     {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
     {% if matchups.best %}
       <p>{% blocktranslate with enemy=matchups.best.enemy|object_name kills=matchups.best.kills|num losses=matchups.best.losses|num %}Best exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}

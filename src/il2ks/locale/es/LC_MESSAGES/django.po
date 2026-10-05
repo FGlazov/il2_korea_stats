@@ -1491,7 +1491,6 @@ msgstr "Atribución"
 
 # llm-draft
 #. Translators: tooltip of the "Assists" column header
-#, python-format
 msgid ""
 "Credit for damaging an aircraft or ground object that someone else then destroyed (at least 1% of its damage). Only "
 "assists on aircraft earn score points."
@@ -3610,7 +3609,6 @@ msgid "Pilot or gunner"
 msgstr "Piloto o artillero"
 
 # llm-draft
-#, python-format
 msgid "Pilot profile, hall of shame: both, among the top 10% of pilots"
 msgstr "Perfil del piloto, muro de la vergüenza: ambos, entre el 10 % de mejores pilotos"
 
@@ -3619,7 +3617,6 @@ msgid "Pilot profile, hall of shame: clean sheet"
 msgstr "Perfil del piloto, muro de la vergüenza: expediente limpio"
 
 # llm-draft
-#, python-format
 msgid "Pilot profile, hall of shame: friendly fire among the top 10% of pilots"
 msgstr "Perfil del piloto, muro de la vergüenza: fuego amigo entre el 10 % de mejores pilotos"
 
@@ -3628,7 +3625,6 @@ msgid "Pilot profile, hall of shame: friendly fire only"
 msgstr "Perfil del piloto, muro de la vergüenza: solo fuego amigo"
 
 # llm-draft
-#, python-format
 msgid "Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"
 msgstr "Perfil del piloto, muro de la vergüenza: accidentes de rodaje entre el 10 % de mejores pilotos"
 

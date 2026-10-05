@@ -270,3 +270,23 @@ def test_dev_translations_without_the_dev_dependencies_says_so_instead_of_a_trac
     err = capsys.readouterr().err
     assert "uv sync" in err
     assert "Traceback" not in err
+
+
+def test_dev_translations_only_blames_a_missing_babel_not_any_import_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A broken import inside the translations tool (a typo, another missing module) must show its traceback, not the
+    advice to install Babel."""
+    monkeypatch.delitem(sys.modules, "il2ks.devtools.translations", raising=False)
+    monkeypatch.delattr(devtools, "translations", raising=False)
+
+    import builtins
+
+    real_import = builtins.__import__
+
+    def failing_import(name: str, *args: object, **kwargs: object) -> object:
+        if name == "il2ks.devtools" and args and args[2:3] == (("translations",),):
+            raise ModuleNotFoundError("No module named 'some_other_module'", name="some_other_module")
+        return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(builtins, "__import__", failing_import)
+    with pytest.raises(ModuleNotFoundError, match="some_other_module"):
+        main(["dev", "translations", "status"])

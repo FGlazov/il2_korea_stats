@@ -119,7 +119,7 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "eb01eae5fe73a32e75a99a2dfc9ffe30bf2eca90ae41b94751cb959d8941bc8f"
+      "sha256": "5e8071afc8e034460dcca34e4849872e6495605c3337641d39d5b16230871579"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,

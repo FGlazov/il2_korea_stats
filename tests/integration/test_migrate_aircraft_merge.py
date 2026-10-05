@@ -75,3 +75,38 @@ def test_the_upgrade_keeps_a_custom_name_set_on_the_duplicate(tmp_path: Path) ->
 
     kept = GameObject.objects.get()
     assert (kept.log_name, kept.display_name, kept.name_overridden) == ("B-29", "Superfortress", True)
+
+
+def test_the_upgrade_merges_ammo_rows_per_scope_not_per_mission(tmp_path: Path) -> None:
+    """Since migration 0057 the unique key holds the destroyed aircraft's combat role and mods: the duplicate's counters
+    go to the twin of the same scope only, and a scope the kept side lacks moves over as it is."""
+    dup = _spaced_duplicate()
+    keep = GameObject.objects.get(log_name="B-29")
+    m = Mission.objects.get()
+    for role, mods, kills, hits in (("attack", 1, 1, 10), ("air_superiority", 1, 1, 20)):
+        MissionAircraftAmmo.objects.create(
+            mission=m, aircraft=keep, combat_role=role, weapon_mods=mods, ammo="A", kills=kills, hits=hits
+        )
+        MissionAircraftAmmoMix.objects.create(
+            mission=m, aircraft=keep, combat_role=role, weapon_mods=mods, mix="A", ammo="A", kills=kills, hits=hits
+        )
+    MissionAircraftAmmo.objects.create(
+        mission=m, aircraft=dup, combat_role="", weapon_mods=-1, ammo="A", kills=3, hits=7
+    )
+    MissionAircraftAmmo.objects.create(
+        mission=m, aircraft=dup, combat_role="attack", weapon_mods=1, ammo="A", kills=2, hits=5
+    )
+    MissionAircraftAmmoMix.objects.create(
+        mission=m, aircraft=dup, combat_role="", weapon_mods=-1, mix="A", ammo="A", kills=3, hits=7
+    )
+
+    _upgrade(tmp_path)
+
+    rows = sorted(
+        (r.combat_role, r.weapon_mods, r.kills, r.hits) for r in MissionAircraftAmmo.objects.filter(aircraft=keep)
+    )
+    assert rows == [("", -1, 3, 7), ("air_superiority", 1, 1, 20), ("attack", 1, 3, 15)]
+    mixes = sorted(
+        (r.combat_role, r.weapon_mods, r.kills, r.hits) for r in MissionAircraftAmmoMix.objects.filter(aircraft=keep)
+    )
+    assert mixes == [("", -1, 3, 7), ("air_superiority", 1, 1, 20), ("attack", 1, 1, 10)]

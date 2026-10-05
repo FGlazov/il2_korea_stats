@@ -26,6 +26,7 @@ from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.stat_marks import _ELO_FIELDS, _FIELDS, recompute_thresholds  # pyright: ignore[reportPrivateUsage]
 from il2ks.ops import migrate
 from tests.factories import account, mission, save, sortie
+from tests.ops_helpers import recording
 
 pytestmark = pytest.mark.django_db
 
@@ -187,3 +188,25 @@ def test_the_prefilter_gives_the_thresholds_of_the_unfiltered_population() -> No
         rules, list(PlayerTour.objects.filter(tour=tour).values_list(*_FIELDS)), _FIELDS, tour=True
     )
     assert stored(None)  # the world is not empty
+
+
+def test_the_first_upgrade_with_scoped_data_missing_rebuilds_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-OPS-3: at most one rebuild per upgrade. A database with every marker but `scoped_aircraft` and no scope rows
+    used to rebuild for that backfill and again for the catalog refresh (no fingerprint stored yet)."""
+    from il2ks.db.models import PlayerAircraftScope
+
+    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
+    PlayerAircraftScope.objects.all().delete()
+    names = [
+        value
+        for key, value in vars(migrate).items()
+        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_SCOPED_AIRCRAFT
+    ]
+    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
+    rebuilds: list[str] = []
+    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
+
+    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
+
+    assert rebuilds == ["rebuild"]
+    assert not migrate.catalog_changed()

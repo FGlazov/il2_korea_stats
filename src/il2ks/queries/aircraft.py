@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import Final
 
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 
 from il2ks.config import LeaderboardConfig
 from il2ks.core.catalog.loader import (
@@ -45,7 +45,6 @@ from il2ks.db.models import (
     GameObject,
     Player,
     PlayerAircraft,
-    PlayerAircraftScope,
     PlayerTourAircraft,
     Tour,
     TourAircraftStats,
@@ -235,10 +234,12 @@ def matchups(
     ).select_related("killer_aircraft", "victim_aircraft")
     kills: dict[int, tuple[GameObject, int]] = {}
     losses: dict[int, tuple[GameObject, int]] = {}
+    scoped = role != AircraftRole.ALL or bool(mod_pattern)
     for row in rows:
-        if row.killer_aircraft_id == aircraft.pk:
+        # Scoped: a pair of one type against itself has both a killer and a victim row, each feeds only its column.
+        if row.killer_aircraft_id == aircraft.pk and (not scoped or row.scoped_side == "killer"):
             kills[row.victim_aircraft_id] = (row.victim_aircraft, row.kills)
-        if row.victim_aircraft_id == aircraft.pk:
+        if row.victim_aircraft_id == aircraft.pk and (not scoped or row.scoped_side == "victim"):
             losses[row.killer_aircraft_id] = (row.killer_aircraft, row.kills)
     found = [
         Matchup(
@@ -289,8 +290,8 @@ def top_elo(
     """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first. The
     Elo is the selected tour's final per-type Elo (`PlayerTourAircraft`, OQ-128), all time the best tour's
     (`PlayerAircraft`); in a narrower scope (tour, role, filter) a pilot must also have flown at least the leaderboard
-    minimum of air superiority sorties within it, and `sorties` are the scope's. One query for the all-time scope and
-    the unfiltered tour, two for a narrower one (the scope's pilots, then their Elo)."""
+    minimum of air superiority sorties within it, and `sorties` are the scope's. One query, joined to the scope's rows
+    for a narrower scope."""
     minimum = max(rules.min_elo_games, 1)
     order = ("-elo", "-elo_games", "player__name_lower", "pk")
     rated: QuerySet[PlayerAircraft] | QuerySet[PlayerTourAircraft] = (
@@ -304,17 +305,20 @@ def top_elo(
             EloRow(r.player, r.elo, r.elo_games, r.sorties)
             for r in rated.select_related("player").order_by(*order)[:TOP_PILOTS]
         ]
-    in_scope = dict(
-        PlayerAircraftScope.objects.filter(
-            aircraft=aircraft,
-            tour=tour,
-            role=role,
-            mod_pattern=mod_pattern,
-            air_superiority_sorties__gte=max(rules.min_air_superiority_sorties, 1),
-        ).values_list("player_id", "sorties")
+    # One join to the scope row (one row per player and scope, so no duplicates); no subquery (TD-22).
+    best = (
+        rated.filter(
+            player__aircraft_scopes__aircraft=aircraft,
+            player__aircraft_scopes__tour=tour,
+            player__aircraft_scopes__role=role,
+            player__aircraft_scopes__mod_pattern=mod_pattern,
+            player__aircraft_scopes__air_superiority_sorties__gte=max(rules.min_air_superiority_sorties, 1),
+        )
+        .annotate(scope_sorties=F("player__aircraft_scopes__sorties"))
+        .select_related("player")
+        .order_by(*order)[:TOP_PILOTS]
     )
-    best = rated.filter(player_id__in=list(in_scope)).select_related("player").order_by(*order)[:TOP_PILOTS]
-    return [EloRow(r.player, r.elo, r.elo_games, in_scope[r.player_id]) for r in best]
+    return [EloRow(r.player, r.elo, r.elo_games, int(getattr(r, "scope_sorties"))) for r in best]  # noqa: B009
 
 
 def top_ground(

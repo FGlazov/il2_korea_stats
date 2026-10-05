@@ -80,3 +80,23 @@ def test_an_empty_database_only_records_the_fingerprint(tmp_path: Path, monkeypa
 
     assert rebuilds == []
     assert migrate.catalog_changed() is False
+
+
+def test_a_refresh_for_a_changed_catalog_backs_up_first_and_only_then(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The refresh merges and deletes level 1 rows, so a database with data is backed up first; an unchanged catalog
+    costs no backup."""
+    from il2ks.ops import backup
+
+    save(mission((sortie(0, 1),)))
+    cfg = make_instance(tmp_path)
+    made: list[str] = []
+    monkeypatch.setattr(backup, "backup_before_migration", recording(made, "backup"))
+    monkeypatch.setattr(migrate, "_rebuild_all", returning(None))
+    monkeypatch.setattr(migrate, "catalog_fingerprint", returning("v1"))
+
+    migrate.refresh_for_catalog_change(cfg, backup=True)
+    migrate.refresh_for_catalog_change(cfg, backup=True)  # unchanged
+
+    assert made == ["backup"]
