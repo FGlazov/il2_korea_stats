@@ -103,7 +103,8 @@ or neither (any report) is a **draw**; no `TYPE:0` report is **unknown**. Other 
 The first version of the parser (copied from il2_stats) credited the first `RES:1` line, which gave coalition 1 a "win" in
 the 22 mutual completions. Stored as `Mission.result` (`win` / `draw` / `unknown`) next to `winning_coalition` (set for `win` only).
 Missions saved before the column existed read `unknown` (or their old winner) until `il2ks reprocess`. The mission list and page show
-the winner, "Draw", or a dash; the admin's tour option uses only "won by one side" (doc 16).
+the winner, "Draw", or a dash; the admin's tour option uses only `result == "win"` (doc 16). An old row with a winner but
+`result = unknown` is not decisive: the Tours page counts such rows apart ("Old winners without a result") and asks the admin to run `il2ks reprocess`.
 
 ### Typical player sortie sequences (event types, deduplicated; `b` = pilot-bot event)
 ```

@@ -3210,6 +3210,11 @@ msgid "Missions stored"
 msgstr "Missions enregistrées"
 
 # llm-draft
+#, python-format
+msgid "Missions won by one side in the last 30 days: %(recent_wins)s"
+msgstr "Missions remportées par un camp au cours des 30 derniers jours : %(recent_wins)s"
+
+# llm-draft
 msgid "Modifications"
 msgstr "Modifications"
 
@@ -3685,6 +3690,11 @@ msgstr "Un blanc dans la liste de l'escadrille pour le moment. Le lit et la chai
 # llm-draft
 msgid "Old Hand"
 msgstr "Vieux de la Vieille"
+
+# llm-draft
+#, python-format
+msgid "Old winners without a result: %(old_winners)s"
+msgstr "Anciennes victoires sans résultat : %(old_winners)s"
 
 # llm-draft
 msgid "On"
@@ -6125,6 +6135,11 @@ msgid "With"
 msgstr "Avec"
 
 # llm-draft
+#, python-format
+msgid "With this option on, the missions so far would form this many tours: %(projected_tours)s"
+msgstr "Avec cette option activée, les missions jouées jusqu’ici formeraient ce nombre de tours : %(projected_tours)s"
+
+# llm-draft
 msgid "Without"
 msgstr "Sans"
 
@@ -6448,6 +6463,10 @@ msgstr "badges rouges"
 #, python-format
 msgid "requested %(at)s by %(who)s; it starts at the next watch tick."
 msgstr "demandé le %(at)s par %(who)s ; démarre au prochain cycle de surveillance."
+
+# llm-draft
+msgid "run il2ks reprocess to read their results; until then they do not count as wins"
+msgstr "exécutez il2ks reprocess pour lire leurs résultats ; d’ici là, elles ne comptent pas comme des victoires"
 
 # llm-draft
 msgid "runs ok / failed"

@@ -111,7 +111,7 @@
     },
     "templates/admin/il2ks_tours.html": {
       "version": 1,
-      "sha256": "7ee7eb391cc547d84622a4a771951d23a8ee1472f021aab193340e0be0a40a3e"
+      "sha256": "9545e51063ba2837c00eb6c52096d273d5d52fb1e114f502ab8bd2f7b3f4a481"
     },
     "templates/il2ks/achievements/_award.html": {
       "version": 1,

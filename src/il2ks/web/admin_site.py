@@ -22,7 +22,7 @@ from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
 from il2ks.ingest.rule_store import pending_fields, save_overrides
-from il2ks.ingest.tours import on_win_pending
+from il2ks.ingest.tours import on_win_pending, on_win_projection
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
 from il2ks.web import admin_rules, quips
@@ -246,7 +246,8 @@ class Il2ksAdminSite(admin.AdminSite):
             posted_texts = posted.texts
         results = Mission.objects.values("result").annotate(n=Count("pk"))
         counts = {r["result"]: r["n"] for r in results}
-        won = Mission.objects.filter(winning_coalition__isnull=False).count()
+        projection = on_win_projection()
+        won = counts.get("win", 0)  # decisive = a recorded win; an old row's winner without a result is counted apart
         context = {
             **self.each_context(request),
             "title": _("Tour options"),
@@ -255,7 +256,10 @@ class Il2ksAdminSite(admin.AdminSite):
             "groups": admin_rules.build_groups("tours", row, posted_texts),
             "won": won,
             "draws": counts.get("draw", 0),
-            "unknown": sum(counts.values()) - won - counts.get("draw", 0),
+            "old_winners": projection.old_winners,
+            "unknown": sum(counts.values()) - won - counts.get("draw", 0) - projection.old_winners,
+            "projected_tours": projection.tours,
+            "recent_wins": projection.recent_wins,
         }
         return TemplateResponse(request, "admin/il2ks_tours.html", context)
 

@@ -17,7 +17,9 @@
     <li>{% blocktranslate %}Won by one side: {{ won }}{% endblocktranslate %}</li>
     <li>{% blocktranslate %}Draws: {{ draws }}{% endblocktranslate %}</li>
     <li>{% blocktranslate %}No result: {{ unknown }}{% endblocktranslate %}</li>
+    <li>{% blocktranslate %}Old winners without a result: {{ old_winners }}{% endblocktranslate %}{% if old_winners %} ({% translate "run il2ks reprocess to read their results; until then they do not count as wins" %}){% endif %}</li>
   </ul>
+  <p>{% blocktranslate %}With this option on, the missions so far would form this many tours: {{ projected_tours }}{% endblocktranslate %}.<br>{% blocktranslate %}Missions won by one side in the last 30 days: {{ recent_wins }}{% endblocktranslate %}</p>
   {% if pending %}
   <p class="errornote">{% translate "A reassignment of the tours is pending: the saved choices are not applied to the missions yet. It runs on its own as soon as the watch process is free (within a minute or so), or with il2ks rebuild-aggregates --retour. Until then the pages show the old tours; afterwards every tour's leaderboards, ratings and achievements are recomputed." %}</p>
   {% else %}

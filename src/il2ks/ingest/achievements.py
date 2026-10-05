@@ -293,10 +293,27 @@ def _tour_run_rows(chunk: list[int], runs: list[Achievement]) -> dict[_Key, _Val
     return wanted
 
 
-def _sync(chunk: list[int], tours: set[int] | None, wanted: dict[_Key, _Value], *, all_time: bool) -> None:
+def refresh_tour_runs(chunk: list[int]) -> None:
+    """Roll up only the tours-in-a-row (Old Hand) all-time rows of these players, from their `PlayerTour` rows: for the
+    players whose run crosses a tour that was inserted or removed (the set of tours changed, no row of theirs did)."""
+    runs = [a for a in applied_rules().active() if a.all_time_only]
+    if runs:
+        _sync(chunk, None, _tour_run_rows(chunk, runs), all_time=True, keys={a.key for a in runs})
+
+
+def _sync(
+    chunk: list[int],
+    tours: set[int] | None,
+    wanted: dict[_Key, _Value],
+    *,
+    all_time: bool,
+    keys: set[str] | None = None,
+) -> None:
     """Make the chunk's rows of one scope equal `wanted`: the all-time rows (`all_time`), else those of `tours` (None =
-    every tour)."""
+    every tour). `keys`: only the rows of these medals (the rest of the scope is left alone)."""
     rows = PlayerAchievement.objects.filter(player_id__in=chunk)
+    if keys is not None:
+        rows = rows.filter(key__in=keys)
     if all_time:
         rows = rows.filter(tour__isnull=True)
     else:

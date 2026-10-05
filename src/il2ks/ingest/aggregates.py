@@ -7,17 +7,20 @@ Level 2 is always recomputed, never adjusted by deltas, in two layers (doc 14 "L
   identity, killboards) come from the level-1 rows of the tours a save touched only (`refresh_tours` gets the mission's
   new and old tour; `rebuild_aggregates`: every tour);
 - the all-time rows (`rollup_players`: `Player` counters, `PlayerAircraft`, `PlayerPool`, loadouts, killboards, identity
-  and the `PlayerName` history) are the SUM / MAX / MIN of the players' tour rows (`ingest.rollup`) and never read
-  level 1. So the cost of a refresh no longer grows with a player's history, only with the number of tours.
+  and the `PlayerName` history) are the SUM / MAX / MIN of the players' tour rows (`ingest.rollup`) and read no level 1
+  (known exceptions below). The goal: the cost of a refresh grows with the number of tours, not with a player's history.
 
 `refresh_tours` is the one code path (doc 14), so incremental == rebuild by construction. The counter list lives in
 `ingest.counters` so all paths use one definition (TD-16). Players are handled in chunks: a few queries per chunk, then
 writes only for rows whose values changed. Every mission has a tour (`rebuild_aggregates` assigns the missing ones): a
 sortie in no tour would be in no all-time row.
 
-Not rolled up yet: the ironman streaks (`ingest.streaks`) and the medals (`ingest.achievements`) still compute their
-all-time rows from the player's whole history in `recompute_player_tours`, and Elo stays all-time (it replays all
-kills, `ingest.ratings`). Server activity per day (`ingest.activity`) is rebuilt for all days.
+The streaks (`ingest.streaks`), the medals (`ingest.achievements`) and the Elo (`ingest.ratings`, replayed per tour, all
+time = the best tour's final rating) start over in every tour and roll up the same way. Known exceptions to "never
+read level 1": the cumulative medals replay the sorties of the tours where a tier is reached, and the tours-in-a-row
+medal reads the player's `PlayerTour` rows of every tour (and is rolled up on its own for the players whose run crosses
+a tour inserted in the past, `_roll_up_runs_across`). Server activity per day (`ingest.activity`) is refreshed for the
+touched days.
 
 A player without a tour row (a gunner-only player, or one whose sorties were all dropped) keeps the identity values they
 had; their counters are zero.
@@ -62,6 +65,7 @@ from il2ks.ingest.achievements import (
     applied_rules,
     recompute_holders,
     refresh_achievement_tours,
+    refresh_tour_runs,
     rollup_achievements,
 )
 from il2ks.ingest.activity import rebuild_activity, recompute_days
@@ -262,10 +266,40 @@ def refresh_tours(tour_ids: Iterable[int] | None, ratings: RatingRules | None, *
         tours = sorted(set(tour_ids))
         if tours:  # none left (a batch's last pass ran at its last 10% line): still the payload Elo below
             scope = _tour_scope(tours)
+            inserted = _inserted_tours(tours)  # before their rows exist
             _recompute_tour_scope(scope, ratings)
             _recompute_all_time(scope, ratings)
+            _roll_up_runs_across(inserted, scope.players)
     if payload_elo:
         recompute_payload_elo()
+
+
+def _inserted_tours(tours: list[int]) -> list[int]:
+    """The tours with no `PlayerTour` row yet (a first refresh) that have an older and a newer tour: a tour inserted
+    between two others. Their players are in the refresh scope, but the players of the tours on both sides are not, and
+    their Old Hand run (tours in a row, all time) may now be broken by it."""
+    order = list(Tour.objects.order_by("started_at", "pk").values_list("pk", flat=True))
+    fresh = set(tours) - set(PlayerTour.objects.filter(tour_id__in=tours).values_list("tour_id", flat=True))
+    return [pk for index, pk in enumerate(order) if pk in fresh and 0 < index < len(order) - 1]
+
+
+def _roll_up_runs_across(inserted: list[int], refreshed: list[int]) -> None:
+    """Old Hand for the players who flew in the tour before and in the tour after each inserted tour (the others are
+    unaffected); only that medal's roll-up, which reads `PlayerTour` rows. A tour that is removed is the caller's: it
+    refreshes the tours next to it (`ingest.tours.neighbours_of_removed`)."""
+    if not inserted:
+        return
+    order = list(Tour.objects.order_by("started_at", "pk").values_list("pk", flat=True))
+    across: set[int] = set()
+    for pk in inserted:
+        index = order.index(pk)
+        flown = PlayerTour.objects.filter(takeoffs__gt=0)
+        before = set(flown.filter(tour_id=order[index - 1]).values_list("player_id", flat=True))
+        after = set(flown.filter(tour_id=order[index + 1]).values_list("player_id", flat=True))
+        across |= before & after
+    todo = sorted(across - set(refreshed))
+    for start in range(0, len(todo), CHUNK):
+        refresh_tour_runs(todo[start : start + CHUNK])
 
 
 @dataclass(frozen=True, slots=True)
