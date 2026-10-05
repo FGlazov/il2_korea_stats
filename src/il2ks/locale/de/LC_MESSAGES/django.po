@@ -699,8 +699,8 @@ msgstr ""
 "tödlichen Ende eingeschlossen."
 
 # llm-draft
-msgid "Air kills in total, all sorties together."
-msgstr "Luftabschüsse insgesamt, alle Einsätze zusammen."
+msgid "Air kills in one tour, all sorties together."
+msgstr "Luftsiege in einer Tour, alle Einsätze zusammen."
 
 # llm-draft
 #. Translators: tooltip of the "Air kills" column header of a streak table
@@ -710,6 +710,10 @@ msgstr "Luftsiege während der Serie."
 # llm-draft
 msgid "Air kills on a single day (UTC)."
 msgstr "Luftabschüsse an einem einzigen Tag (UTC)."
+
+# llm-draft
+msgid "Air kills over your career, all sorties together."
+msgstr "Luftsiege in deiner gesamten Karriere, alle Einsätze zusammen."
 
 # llm-draft
 msgid "Air kills per flight hour"
@@ -839,8 +843,12 @@ msgid "Aircraft damage"
 msgstr "Flugzeugschaden"
 
 # llm-draft
-msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
-msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge: falscher Ort, falsche Zeit."
+msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
+msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge in einer Tour: falscher Ort, falsche Zeit."
+
+# llm-draft
+msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
+msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge in deiner gesamten Karriere: falscher Ort, falsche Zeit."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -2203,8 +2211,12 @@ msgid "Friendly-fire kills"
 msgstr "Eigenbeschuss-Abschüsse"
 
 # llm-draft
-msgid "Friendly-fire kills. The markings are small and the sky is crowded."
-msgstr "Abschüsse durch Eigenbeschuss. Die Hoheitszeichen sind klein und der Himmel ist voll."
+msgid "Friendly-fire kills in one tour. The markings are small and the sky is crowded."
+msgstr "Abschüsse durch Eigenbeschuss in einer Tour. Die Hoheitszeichen sind klein und der Himmel ist voll."
+
+# llm-draft
+msgid "Friendly-fire kills over your career. The markings are small and the sky is crowded."
+msgstr "Abschüsse durch Eigenbeschuss in deiner gesamten Karriere. Die Hoheitszeichen sind klein und der Himmel ist voll."
 
 # llm-draft
 #, python-format
@@ -2645,12 +2657,16 @@ msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a we
 msgstr "Stundenlang in der Luft, die Wetterkarte ist inzwischen ein Tagebuch. Diese Landung hat sich jemand verdient."
 
 # llm-draft
+msgid "Hours in the air in one tour, all sorties together."
+msgstr "Stunden in der Luft in einer Tour, alle Einsätze zusammen."
+
+# llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
 msgstr "Stunden in der Luft mit dem Flugzeugtyp, den du am häufigsten geflogen bist."
 
 # llm-draft
-msgid "Hours in the air, all sorties together."
-msgstr "Stunden in der Luft, alle Einsätze zusammen."
+msgid "Hours in the air over your career, all sorties together."
+msgstr "Stunden in der Luft in deiner gesamten Karriere, alle Einsätze zusammen."
 
 # llm-draft
 msgid ""
@@ -3707,6 +3723,16 @@ msgid "One detonation and one target that took damage."
 msgstr "Eine Detonation und ein Ziel, das Schaden genommen hat."
 
 # llm-draft
+#, python-format
+msgid "One-tour description in %(language)s"
+msgstr "Beschreibung für die Tour auf %(language)s"
+
+# llm-draft
+#, python-format
+msgid "One-tour name in %(language)s"
+msgstr "Name für die Tour auf %(language)s"
+
+# llm-draft
 msgid "Online now"
 msgstr "Gerade online"
 
@@ -3825,12 +3851,20 @@ msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Übersicht aller deiner Überschreibungen: <code>il2ks custom list</code>"
 
 # llm-draft
+msgid "Own career name and description per language"
+msgstr "Eigener Name und eigene Beschreibung der Karriere-Medaille je Sprache"
+
+# llm-draft
 msgid "Own doing (terrain, overstress, accident)"
 msgstr "Eigenes Zutun (Gelände, Überlastung, Unfall)"
 
 # llm-draft
 msgid "Own name and description per language"
 msgstr "Eigener Name und eigene Beschreibung je Sprache"
+
+# llm-draft
+msgid "Own one-tour name and description per language"
+msgstr "Eigener Name und eigene Beschreibung der Tour-Medaille je Sprache"
 
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
@@ -4991,8 +5025,12 @@ msgid "Tanks destroyed in attack sorties, moving or parked."
 msgstr "In Erdkampfeinsätzen zerstörte Panzer, fahrend oder geparkt."
 
 # llm-draft
-msgid "Tanks destroyed in total."
-msgstr "Zerstörte Panzer insgesamt."
+msgid "Tanks destroyed in one tour."
+msgstr "In einer Tour zerstörte Panzer."
+
+# llm-draft
+msgid "Tanks destroyed over your career."
+msgstr "In deiner gesamten Karriere zerstörte Panzer."
 
 # llm-draft
 msgid "Tanks destroyed per hour on target"
@@ -5023,8 +5061,12 @@ msgid "Taxi accidents"
 msgstr "Rollunfälle"
 
 # llm-draft
-msgid "Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Rollunfälle: Die Maschine ging verloren, bevor sie je abgehoben hat. Das Vorfeld verzeiht."
+msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Rollunfälle in einer Tour: Das Flugzeug war weg, bevor es je abgehoben hat. Das Vorfeld verzeiht."
+
+# llm-draft
+msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Rollunfälle in deiner gesamten Karriere: Das Flugzeug war weg, bevor es je abgehoben hat. Das Vorfeld verzeiht."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -5508,6 +5550,20 @@ msgstr ""
 "%(factor)s-Fache: %(values)s."
 
 # llm-draft
+#, python-format
+msgid ""
+"These are the words of the all-time (career) medal, built in as \"%(title)s\". The one-tour medal has its own words "
+"below."
+msgstr ""
+"Das sind die Texte der Karriere-Medaille (alle Zeit), standardmäßig „%(title)s“. Die Medaille für eine Tour hat unten"
+" eigene Texte."
+
+# llm-draft
+#, python-format
+msgid "These are the words of the medal in a tour, built in as \"%(title)s\": %(description)s"
+msgstr "Das sind die Texte der Medaille in einer Tour, standardmäßig „%(title)s“: %(description)s"
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Diese endeten ohne Mission-Ende-Ereignis; ein Blick lohnt sich, falls der Server mitten in der Mission abgestürzt ist."
 
@@ -5775,6 +5831,30 @@ msgstr "Tour"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Tour %(number)s"
+
+# llm-draft
+msgid "Tour Hours Aloft"
+msgstr "Über den Wolken (Tour)"
+
+# llm-draft
+msgid "Tour Ramp Rash"
+msgstr "Parkrempler (Tour)"
+
+# llm-draft
+msgid "Tour Sitting Duck"
+msgstr "Leichte Beute (Tour)"
+
+# llm-draft
+msgid "Tour Sky Hunter"
+msgstr "Himmelsjäger (Tour)"
+
+# llm-draft
+msgid "Tour Tank Buster"
+msgstr "Panzerknacker (Tour)"
+
+# llm-draft
+msgid "Tour Wrong Team"
+msgstr "Eigentor (Tour)"
 
 msgid "Tour ended"
 msgstr "Tour beendet"

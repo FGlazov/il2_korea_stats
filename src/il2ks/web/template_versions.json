@@ -75,7 +75,7 @@
     },
     "templates/admin/il2ks_achievements.html": {
       "version": 1,
-      "sha256": "d022553a7a679bf6798188f519f39d169a41efe9a709a0efe298b026b3a09339"
+      "sha256": "657ed533157c77af341ea120401da94ab29493a9cdf0501567898c908425a8ee"
     },
     "templates/admin/il2ks_db/tour/change_list.html": {
       "version": 1,

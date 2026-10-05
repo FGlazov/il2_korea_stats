@@ -38,7 +38,8 @@
         </div>
       </div>
       <details>
-        <summary>{% translate "Own name and description per language" %}</summary>
+        <summary>{% if row.tour_texts %}{% translate "Own career name and description per language" %}{% else %}{% translate "Own name and description per language" %}{% endif %}</summary>
+        {% if row.tour_texts %}<p class="help">{% blocktranslate with title=row.title %}These are the words of the all-time (career) medal, built in as "{{ title }}". The one-tour medal has its own words below.{% endblocktranslate %}</p>{% endif %}
         {% for t in row.texts %}
         <div class="form-row">
           <label for="name-{{ row.key }}-{{ t.code }}">{{ t.language }}</label>
@@ -47,6 +48,19 @@
         </div>
         {% endfor %}
       </details>
+      {% if row.tour_texts %}
+      <details>
+        <summary>{% translate "Own one-tour name and description per language" %}</summary>
+        <p class="help">{% blocktranslate with title=row.tour_title description=row.tour_default_description %}These are the words of the medal in a tour, built in as "{{ title }}": {{ description }}{% endblocktranslate %}</p>
+        {% for t in row.tour_texts %}
+        <div class="form-row">
+          <label for="tname-{{ row.key }}-{{ t.code }}">{{ t.language }}</label>
+          <input type="text" name="tname-{{ row.key }}-{{ t.code }}" id="tname-{{ row.key }}-{{ t.code }}" value="{{ t.name }}" maxlength="{{ max_name }}" size="30" placeholder="{% translate 'Name (blank: built-in)' %}" aria-label="{% blocktranslate with language=t.language %}One-tour name in {{ language }}{% endblocktranslate %}">
+          <input type="text" name="tdesc-{{ row.key }}-{{ t.code }}" value="{{ t.description }}" maxlength="{{ max_description }}" size="70" placeholder="{% translate 'Description (blank: built-in)' %}" aria-label="{% blocktranslate with language=t.language %}One-tour description in {{ language }}{% endblocktranslate %}">
+        </div>
+        {% endfor %}
+      </details>
+      {% endif %}
       <div class="form-row">
         <label for="reset-{{ row.key }}" class="vCheckboxLabel">{% translate "Reset to default" %}</label>
         <input type="checkbox" name="reset" value="{{ row.key }}" id="reset-{{ row.key }}">
