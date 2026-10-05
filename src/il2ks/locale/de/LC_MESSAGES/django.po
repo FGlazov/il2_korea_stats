@@ -1817,10 +1817,6 @@ msgid "Detected: %(zone)s. Change it if the game server's computer uses another 
 msgstr "Erkannt: %(zone)s. Ändere es, falls der Rechner des Spieleservers eine andere verwendet."
 
 # llm-draft
-msgid "Detonations"
-msgstr "Detonationen"
-
-# llm-draft
 msgid "Died"
 msgstr "Gestorben"
 
@@ -3763,11 +3759,6 @@ msgid "On this page"
 msgstr "Auf dieser Seite"
 
 # llm-draft
-#. Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
-msgid "One detonation and one target that took damage."
-msgstr "Eine Detonation und ein Ziel, das Schaden genommen hat."
-
-# llm-draft
 #, python-format
 msgid "One-tour description in %(language)s"
 msgstr "Beschreibung für die Tour auf %(language)s"
@@ -5104,6 +5095,11 @@ msgstr "Rundumschlag"
 # llm-draft
 msgid "Targets damaged"
 msgstr "Beschädigte Ziele"
+
+# llm-draft
+#. Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
+msgid "Targets it damaged: a target damaged by two bombs counts twice."
+msgstr "Beschädigte Ziele: Ein Ziel, das zwei Bomben treffen, zählt doppelt."
 
 # llm-draft
 msgid "Taxi accident"

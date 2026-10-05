@@ -151,7 +151,7 @@ HINTS: dict[str, Label] = {
     # Translators: tooltip of the "Used" column header of a sortie's ammunition table
     "ammo_used": _("Rounds fired: loaded minus left. A dash when unknown, for example after a resupply."),
     # Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
-    "ord_targets": _("One detonation and one target that took damage."),
+    "ord_targets": _("Targets it damaged: a target damaged by two bombs counts twice."),
     # Translators: tooltip of the "Direct hits" column header of a sortie's ordnance table
     "ord_direct": _("Direct impacts logged with the ordnance named."),
     # Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table. Each row is one

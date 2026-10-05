@@ -483,7 +483,7 @@
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 1,
-      "sha256": "c16ff3a3b940a10faf7cb465564cfdd630c0f30b44adfcf011aebbb38caf1d09"
+      "sha256": "b217c37373e7905eebf693ee3cbcb4cdb1a642e290b15cc3d35269f70b6c0649"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,

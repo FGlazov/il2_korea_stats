@@ -509,12 +509,12 @@ class HitRow:
 
 @dataclass(frozen=True, slots=True)
 class OrdnanceView:
-    """One bomb, rocket or napalm type: what was released, what went off, what it hurt (FR-WEB-18). An explosion is
-    never a "hit": detonations and damaged targets are counted instead; `direct` are the named direct-impact lines."""
+    """One bomb, rocket or napalm type: what was released and what it hurt (FR-WEB-18). An explosion is never a
+    "hit": damaged targets are counted instead; `direct` are the named direct-impact lines. The detonation count is
+    stored but not shown (maintainer, 2026-10-05: more confusing than helpful)."""
 
     name: str
     released: str
-    detonations: str
     targets_damaged: str
     kills: str
     direct: str
@@ -595,12 +595,15 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
         OrdnanceView(
             _ordnance_label(row.ordnance, row.name),
             display.num(row.released),
-            display.num(row.detonations),
             display.num(row.targets_damaged),
             display.num(row.kills),
             display.num(row.direct_hits),
         )
         for row in breakdown.ordnance
+        if row.released
+        or row.targets_damaged
+        or row.kills
+        or row.direct_hits  # nothing left to show without detonations
     ]
     return AmmoTable(
         rows,

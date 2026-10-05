@@ -75,7 +75,7 @@ def test_sortie_page_lists_hits_by_plain_name_without_damage_and_the_ordnance_ap
     assert "0.80" not in body
     assert "Bombs, rockets and napalm" in body
     assert "M64 500 lb General Purpose bomb" in body
-    assert "Unattributed" in body
+    assert "Unattributed" not in body  # its only figure is damage, which is not shown: an all-zero row is left out
     assert "explosion" not in body.lower()
     assert "Damage no hit could be blamed on" not in body
 

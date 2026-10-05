@@ -59,10 +59,10 @@
   {% accordion _("Bombs, rockets and napalm") ordnance_hint open=True %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Ordnance" %}</th>{% col_th _("Released") numeric=True %}{% col_th _("Detonations") numeric=True %}{% col_th _("Targets damaged") numeric=True hint="ord_targets" %}<th scope="col" class="num">{% translate "Kills" %}</th>{% col_th _("Direct hits") numeric=True hint="ord_direct" %}</tr></thead>
+        <thead><tr><th scope="col">{% translate "Ordnance" %}</th>{% col_th _("Released") numeric=True %}{% col_th _("Targets damaged") numeric=True hint="ord_targets" %}<th scope="col" class="num">{% translate "Kills" %}</th>{% col_th _("Direct hits") numeric=True hint="ord_direct" %}</tr></thead>
         <tbody>
           {% for row in detail.ammo.ordnance %}
-            <tr><td>{{ row.name }}</td><td class="num">{{ row.released }}</td><td class="num">{{ row.detonations }}</td><td class="num">{{ row.targets_damaged }}</td><td class="num">{{ row.kills }}</td><td class="num">{{ row.direct }}</td></tr>
+            <tr><td>{{ row.name }}</td><td class="num">{{ row.released }}</td><td class="num">{{ row.targets_damaged }}</td><td class="num">{{ row.kills }}</td><td class="num">{{ row.direct }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
