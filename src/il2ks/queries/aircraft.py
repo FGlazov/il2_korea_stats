@@ -232,10 +232,12 @@ def matchups(
     ).select_related("killer_aircraft", "victim_aircraft")
     kills: dict[int, tuple[GameObject, int]] = {}
     losses: dict[int, tuple[GameObject, int]] = {}
+    scoped = role != AircraftRole.ALL or bool(mod_pattern)
     for row in rows:
-        if row.killer_aircraft_id == aircraft.pk:
+        # Scoped: a pair of one type against itself has both a killer and a victim row, each feeds only its column.
+        if row.killer_aircraft_id == aircraft.pk and (not scoped or row.scoped_side == "killer"):
             kills[row.victim_aircraft_id] = (row.victim_aircraft, row.kills)
-        if row.victim_aircraft_id == aircraft.pk:
+        if row.victim_aircraft_id == aircraft.pk and (not scoped or row.scoped_side == "victim"):
             losses[row.killer_aircraft_id] = (row.killer_aircraft, row.kills)
     found = [
         Matchup(
