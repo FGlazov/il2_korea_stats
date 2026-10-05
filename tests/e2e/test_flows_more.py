@@ -432,6 +432,6 @@ def test_a_table_row_link_opens_with_the_keyboard(page: Page, world: World) -> N
     page.goto("/players/?q=")
     tab_to(page, "main tbody a[href^='/players/']")
     page.keyboard.press("Enter")
-    expect(page).to_have_url(re.compile(r"/players/\d+/$"))
+    expect(page).to_have_url(re.compile(r"/players/\d+/(\?.*)?$"))
     expect(page.get_by_role("heading", level=1)).to_be_visible()
     assert sortie_links(page).count() >= 1

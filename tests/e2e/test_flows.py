@@ -43,7 +43,7 @@ def search_and_open_profile(page: Page, name: str) -> None:
     header_search(page).press("Enter")
     expect(page).to_have_url(re.compile(r"/players/\?q="))
     main_region(page).get_by_role("link", name=name).click()
-    expect(page).to_have_url(re.compile(r"/players/\d+/$"))
+    expect(page).to_have_url(re.compile(r"/players/\d+/(\?.*)?$"))
     expect_heading(page, name, level=1)
 
 
@@ -94,7 +94,7 @@ def test_a_player_finds_his_own_sortie(page: Page, world: World) -> None:
 
     # 2. the profile shows who he is and what he flew
     main.get_by_role("link", name=world.ace).click()
-    expect(page).to_have_url(re.compile(rf"/players/{world.ace_pk}/$"))
+    expect(page).to_have_url(re.compile(rf"/players/{world.ace_pk}/(\?.*)?$"))
     expect_heading(page, world.ace, level=1)
     expect(main_region(page).get_by_text(world.ace_aircraft).first).to_be_visible()
 
@@ -177,7 +177,7 @@ def test_someone_finds_himself_in_a_mission_and_opens_his_sortie(page: Page, wor
     # 4. he was shot down, by Ace: the sortie names the killer, and Ace's page is one click away
     expect_heading(page, "Shot down by", level=2)
     shot_down_by_table(page).get_by_role("link", name=world.ace, exact=True).click()
-    expect(page).to_have_url(re.compile(rf"/players/{world.ace_pk}/$"))
+    expect(page).to_have_url(re.compile(rf"/players/{world.ace_pk}/(\?.*)?$"))
 
 
 def test_someone_browses_several_missions_and_opens_sorties(page: Page, world: World) -> None:

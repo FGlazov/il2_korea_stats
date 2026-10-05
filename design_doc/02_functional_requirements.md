@@ -245,6 +245,15 @@ people ask). The main use case is **a player reviewing their sortie**.
   all-time stats"): **every section** (tiles, Loadouts, Modifications, matchups, top pilots, hits to destroy, ammo mixes) follows the tour
   (all time included), the role toggle and the significant-mods filter; for hits to destroy and ammo mixes the role and mods are those of
   the destroyed aircraft's sortie. The storage cost is accepted. Mod names untranslated; URLs `?role=`, `?mod<id>=with|without`.
+- **Accepted 2026-10-05** (maintainer answers to OQ-124..130): admin-configurable achievement defaults (OQ-124, doc 17); the aircraft
+  page's filter scopes (OQ-125, doc 16; the maintainer will spot-check the page); a quip spot that is off falls through to the next
+  matching spot, a gunner sortie's aircraft is plain text (OQ-126); the translated words for the admin and live strings (OQ-127: confirmed
+  for German and Russian, the other languages stay llm-draft); all-time medals and Elo under clean-slate tours as proposed (OQ-128), plus:
+  **career medals get all-time thresholds 5x the per-tour ones**, and a new tiered medal for **playing in X tours in a row** (doc 17); Top
+  10% / 25% marks per tour against the tour's pilots, all time against the all-time rows (OQ-129); a pilot or aircraft missing from the
+  selected tour gets a placeholder page with a way out (OQ-130, doc 16). Also: **weapon-mod names are translated** (dimensions), mission
+  names are not (facts); damage percentages slightly over 100% from rounding are fine; friendly-fire penalties may make a score negative,
+  but **an outcome penalty (death, capture, crash, plane lost) never improves a negative score**: a negative score is left as is (doc 13).
 - **A new tour is a clean slate** (maintainer, 2026-10-05; not built yet, roadmap "All-time stats = sum of the tour stats", doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,

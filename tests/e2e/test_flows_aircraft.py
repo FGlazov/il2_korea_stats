@@ -68,7 +68,7 @@ def test_a_shot_down_player_learns_what_the_enemy_aircraft_is_weak_against(page:
     assert SABRE in names_in(ranking, "Aircraft")
     assert MIG in names_in(ranking, "Aircraft")
     table_with(page, "Aircraft", "Sorties").get_by_role("link", name=SABRE, exact=True).click()
-    expect(page).to_have_url(re.compile(r"/aircraft/\d+/$"))
+    expect(page).to_have_url(re.compile(r"/aircraft/\d+/(\?.*)?$"))
     expect_heading(page, SABRE, level=1)
 
     # what it is weak against: the MiG-15bis (it won 5 of their 14 fights: Rex 4 times, Charlie once)
