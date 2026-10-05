@@ -53,6 +53,16 @@ def test_monthly_titles_are_localised_at_display_time() -> None:
         assert tour_title("October 2026") != "October 2026"
 
 
+def test_parts_started_by_a_decisive_mission_localise_their_period_title() -> None:
+    """A part's title ("October 2026 (2)", `core.tours.segment_title`) follows the viewer's language like its base."""
+    assert tour_title("October 2026 (2)") == "October 2026 (2)"
+    assert tour_title("Tour 4 (3)") == "Tour 4 (3)"
+    with translation.override("de"):
+        assert tour_title("October 2026 (2)") == "Oktober 2026 (2)"
+        assert tour_title("Tour 4 (3)") == "Tour 4 (3)"  # German keeps "Tour"
+        assert tour_title("Operation Autumn Wind (2)") == "Operation Autumn Wind (2)"
+
+
 def test_renamed_and_lookalike_titles_are_left_alone() -> None:
     assert tour_title("Tour 7") == "Tour 7"
     with translation.override("de"):

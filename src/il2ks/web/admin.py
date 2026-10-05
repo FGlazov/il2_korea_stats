@@ -398,6 +398,7 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
                 "fields": (
                     "completed_cleanly",
                     "winning_coalition",
+                    "result",
                     "players_total",
                     "sorties_total",
                     "redfor_sorties",

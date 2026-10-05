@@ -289,6 +289,8 @@ def mission(
     end_tick: int | None = None,
     extra_types: frozenset[str] = frozenset(),
     countries: dict[int, int] | None = None,
+    winner: int | None = None,
+    draw: bool = False,
 ) -> MissionResult:
     """A mission holding `sorties` (their `index` must match their position) and `kills`."""
     assert [s.index for s in sorties] == list(range(len(sorties))), "sortie.index must equal its position"
@@ -306,7 +308,8 @@ def mission(
             end_tick=end,
             last_tick=end,
             completed_cleanly=True,
-            winning_coalition=None,
+            winning_coalition=winner,
+            result="win" if winner is not None else "draw" if draw else "unknown",
         ),
         sorties=sorties,
         kills=kills,

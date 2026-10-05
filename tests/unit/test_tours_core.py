@@ -1,10 +1,10 @@
 """Tour periods (TD-26, FR-WEB-10): which period contains an instant, in the tour timezone."""
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
-from il2ks.core.tours import TourRules, parse_mode, period_for
+from il2ks.core.tours import MissionSpan, TourRules, parse_mode, period_for, segment_title, win_cuts
 
 SEOUL = "Asia/Seoul"  # UTC+9, no DST
 
@@ -104,3 +104,43 @@ def test_manual_mode_has_no_calendar_periods() -> None:
 def test_days_mode_without_a_start_is_an_error() -> None:
     with pytest.raises(ValueError, match="start"):
         period_for(TourRules(mode="days", days=7), utc(2026, 10, 1))
+
+
+# --- decisive missions start a new tour (maintainer request 2026-10-05, TD-26) ---
+
+
+def span(start: datetime, minutes: int, *, decisive: bool) -> MissionSpan:
+    return MissionSpan(start, start + timedelta(minutes=minutes), decisive)
+
+
+def test_win_cuts_none_when_no_mission_is_decisive() -> None:
+    spans = [span(utc(2026, 10, 1, 8), 170, decisive=False), span(utc(2026, 10, 1, 11), 170, decisive=False)]
+    assert win_cuts(None, None, spans) == ()
+
+
+def test_win_cuts_are_the_ends_of_the_decisive_missions_in_time_order() -> None:
+    late = span(utc(2026, 10, 3, 8), 100, decisive=True)
+    early = span(utc(2026, 10, 1, 8), 170, decisive=True)
+    draw = span(utc(2026, 10, 2, 8), 170, decisive=False)
+    assert win_cuts(None, None, [late, draw, early]) == (early.ended_at, late.ended_at)
+
+
+def test_win_cuts_ignore_a_cut_outside_the_period_and_keep_equal_ones_once() -> None:
+    inside = span(utc(2026, 10, 5, 8), 60, decisive=True)
+    twin = span(utc(2026, 10, 5, 7), 120, decisive=True)  # ends when `inside` does
+    spills_over = span(utc(2026, 10, 31, 23), 120, decisive=True)  # ends after the period
+    before = span(utc(2026, 9, 30, 8), 60, decisive=True)  # ended before the period
+    spills_in = span(utc(2026, 9, 30, 23, 30), 60, decisive=True)  # started before it, ends in it: the cut is there
+    got = win_cuts(utc(2026, 10, 1), utc(2026, 11, 1), [inside, twin, spills_over, before, spills_in])
+    assert got == (spills_in.ended_at, inside.ended_at)
+
+
+def test_win_cuts_an_unbounded_period_takes_every_cut() -> None:
+    first = span(utc(2020, 1, 1), 60, decisive=True)
+    assert win_cuts(None, None, [first]) == (first.ended_at,)
+
+
+def test_segment_title_numbers_the_parts_after_the_first() -> None:
+    assert segment_title("October 2026", 0) == "October 2026"
+    assert segment_title("October 2026", 1) == "October 2026 (2)"
+    assert segment_title("Tour 4", 2) == "Tour 4 (3)"

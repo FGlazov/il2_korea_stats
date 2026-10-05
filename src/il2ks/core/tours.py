@@ -12,6 +12,7 @@ All boundaries are local midnight in `TourRules.timezone_name`, converted to UTC
 belongs to the new month even though it is still the 31st in UTC. Viewer-local display never changes membership.
 """
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal
@@ -43,6 +44,9 @@ class TourRules:
     days: int = 0  # days mode only: the length of a tour
     start: date | None = None  # days mode only: first day of tour 1, in the tour timezone
     timezone_name: str = "UTC"
+    # The admin's "start a new tour when a mission is won by one side" switch (`SiteSettings.tour_on_win_applied`, not a
+    # config key): on top of the mode, every decisive mission ends its tour (`win_cuts`).
+    on_win: bool = False
 
     @property
     def label(self) -> str:
@@ -100,3 +104,34 @@ def period_for(rules: TourRules, instant: datetime) -> Period:
         following = first + timedelta(days=rules.days)
         return Period(_local_midnight_utc(first, tz), _local_midnight_utc(following, tz), f"Tour {index + 1}")
     raise ValueError("manual mode has no calendar periods: tours are started by the admin")
+
+
+@dataclass(frozen=True, slots=True)
+class MissionSpan:
+    """What the decisive-mission rule needs of a mission: when it ran, and whether one side won it."""
+
+    started_at: datetime
+    ended_at: datetime
+    decisive: bool
+
+
+def win_cuts(start: datetime | None, end: datetime | None, missions: Iterable[MissionSpan]) -> tuple[datetime, ...]:
+    """Where decisive missions cut the period `[start, end)` (None = unbounded) into tours: the end of every decisive
+    mission that lies strictly inside it, ascending, each instant once. The next mission starts the next tour.
+
+    A function of the missions alone (each mission's own end and result), so it gives the same answer whether the
+    missions were ingested in order, late, or all at once (`ingest.tours`: incremental == rebuild)."""
+    cuts = {
+        m.ended_at
+        for m in missions
+        if m.decisive
+        and m.ended_at > m.started_at
+        and (start is None or m.ended_at > start)
+        and (end is None or m.ended_at < end)
+    }
+    return tuple(sorted(cuts))
+
+
+def segment_title(base_title: str, index: int) -> str:
+    """Title of the `index`-th part (0-based) of a period cut by decisive missions: "October 2026 (2)"."""
+    return base_title if index == 0 else f"{base_title} ({index + 1})"

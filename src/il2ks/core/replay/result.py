@@ -20,6 +20,9 @@ type PilotFateSource = Literal["event", "inferred", "unknown"]
 type PilotStatus = Literal["healthy", "wounded", "dead", "captured"]
 type AircraftStatus = Literal["unharmed", "damaged", "destroyed"]
 type LossCause = Literal["attacker", "self", "none"]
+type MissionOutcome = Literal[
+    "win", "draw", "unknown"
+]  # AType 8: one side completed the objective, none or both, no report
 type LossClass = Literal["player", "ai_aircraft", "ai_gunner", "aaa", "ground", "friendly", "environment", "unknown"]
 LOSS_CLASSES: tuple[LossClass, ...] = (
     "player",
@@ -289,6 +292,7 @@ class MissionInfo:
     last_tick: int
     completed_cleanly: bool  # AType 7 seen
     winning_coalition: int | None
+    result: MissionOutcome = "unknown"  # win (`winning_coalition` is set), draw (reported, no sole winner), unknown
 
 
 @dataclass(frozen=True, slots=True)

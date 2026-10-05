@@ -31,6 +31,7 @@ from django.template.base import FilterExpression, Parser, Token, kwarg_re
 from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.utils.safestring import SafeString
 from django.utils.translation import get_language, get_language_info
@@ -259,12 +260,15 @@ def coalition_icon(context: Context, country: object, css_class: str = "") -> Sa
 
 @register.simple_tag(takes_context=True)
 def winner_badge(context: Context, mission: object) -> SafeString:
-    """{% winner_badge mission %}: the winning side's coalition badge, or a muted dash while the winner is unknown."""
+    """{% winner_badge mission %}: the winning side's coalition badge, a muted "Draw" when the objectives were reported
+    and no side won them alone, or a muted dash while the result is unknown."""
     key = display.coalition_side(
         getattr(mission, "winning_coalition", None),
         getattr(mission, "countries", None),
     )
     if key is None:
+        if getattr(mission, "result", "") == "draw":
+            return format_html('<span class="muted">{}</span>', _("Draw"))
         return SafeString(f'<span class="muted">{display.DASH}</span>')
     data = {"text": side(context, key), "tone": key, "icon_html": _side_icon(context, key)}
     return SafeString(render_to_string(COMPONENTS + "badge.html", data))

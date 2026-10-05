@@ -125,3 +125,16 @@ def test_winner_badge() -> None:
     assert "badge--blufor" in winner
     assert display.DASH in nobody
     assert "muted" in nobody
+
+
+def test_winner_badge_says_draw_when_the_objectives_were_reported_without_a_winner() -> None:
+    draw = SimpleNamespace(winning_coalition=None, result="draw", countries={})
+    unknown = SimpleNamespace(winning_coalition=None, result="unknown", countries={})
+    context = Context({"request": RequestFactory().get("/"), "site": SiteSettings(), "draw": draw, "unknown": unknown})
+
+    rendered = Template("{% load il2ks %}{% winner_badge draw %}|{% winner_badge unknown %}").render(context)
+
+    shown, nothing = rendered.split("|")
+    assert "Draw" in shown
+    assert "Draw" not in nothing  # no report at all stays a dash
+    assert display.DASH in nothing

@@ -36,6 +36,7 @@ MAX_TOUR_DIGITS = 18  # longer ids are unknown (fits a 64-bit pk, and keeps int(
 TOUR_ALL = "all"  # `?tour=all`: the explicit all-time view
 _MONTHLY_TITLE = re.compile(rf"^({'|'.join(MONTH_NAMES)}) (\d{{4}})$")
 _DAYS_TITLE = re.compile(r"^Tour (\d+)$")
+_PART_TITLE = re.compile(r"^(.+) \((\d+)\)$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,7 +76,11 @@ def list_tours() -> list[Tour]:
 
 def tour_title(title: str) -> str:
     """The tour's title in the viewer's language. Automatic titles are stored in English ("October 2026", "Tour 7",
-    `core.tours`) and localised here at display time; any other title is an admin's rename (FR-ADM-8), shown as is."""
+    `core.tours`) and localised here at display time; any other title is an admin's rename (FR-ADM-8), shown as is.
+    A part started by a decisive mission adds " (2)", " (3)" ... (`core.tours.segment_title`): its base is localised."""
+    part = _PART_TITLE.match(title)
+    if part:
+        return f"{tour_title(part[1])} ({part[2]})"
     month = _MONTHLY_TITLE.match(title)
     if month:
         return date_format(date(int(month[2]), MONTH_NAMES.index(month[1]) + 1, 1), "YEAR_MONTH_FORMAT")

@@ -441,6 +441,17 @@ msgstr "Una ocurrencia supera los %(max)d caracteres: %(start)s..."
 
 # llm-draft
 msgid ""
+"A reassignment of the tours is pending: the saved choice is not applied to the missions yet. It runs on its own as "
+"soon as the watch process is free (within a minute or so), or with il2ks rebuild-aggregates --retour. Until then the "
+"pages show the old tours; afterwards every tour's leaderboards, ratings and achievements are recomputed."
+msgstr ""
+"Hay una reasignación de temporadas pendiente: la opción guardada aún no se ha aplicado a las misiones. Se ejecuta "
+"sola en cuanto el proceso watch quede libre (en un minuto, más o menos), o con il2ks rebuild-aggregates --retour. "
+"Hasta entonces las páginas muestran las temporadas anteriores; después se recalculan las clasificaciones, las "
+"valoraciones y los logros de cada temporada."
+
+# llm-draft
+msgid ""
 "A recompute is pending: the saved thresholds or switches are not applied to the pilots' achievements yet. It runs on "
 "its own as soon as the watch process is free (the site shows the old thresholds until then)."
 msgstr ""
@@ -463,6 +474,14 @@ msgstr "Una racha nunca pasa de una temporada a la siguiente; el total históric
 # llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Una cerveza para el punto que se lo perdonó. A casi todos se les pasa el enfado, antes o después."
+
+# llm-draft
+msgid ""
+"A tour is a period of missions with its own leaderboards. How tours start is set in the configuration file ([tours] "
+"mode: monthly, every N days, or manual). Here you can add one rule on top of that."
+msgstr ""
+"Una temporada es un periodo de misiones con sus propias clasificaciones. Cómo empiezan las temporadas se define en el"
+" archivo de configuración ([tours] mode: mensual, cada N días o manual). Aquí puedes añadir una regla más por encima."
 
 # llm-draft
 msgid "A very busy day for the ground crews on the other side."
@@ -1682,12 +1701,34 @@ msgid "Domain name, for example stats.example.com"
 msgstr "Nombre de dominio, por ejemplo stats.example.com"
 
 # llm-draft
+msgid "Draw"
+msgstr "Empate"
+
+# llm-draft
+#, python-format
+msgid "Draws: %(draws)s"
+msgstr "Empates: %(draws)s"
+
+# llm-draft
 msgid "Drew first blood, and the scoreboard has not been the same since."
 msgstr "Rompió el hielo, y el marcador no volvió a ser el mismo."
 
 # llm-draft
 msgid "Duration"
 msgstr "Duración"
+
+# llm-draft
+msgid ""
+"Dynamic campaign servers can run for weeks before one side wins. With the option below, a mission that ends with a "
+"win for one side ends the tour, and the next mission starts a new one. Draws, and missions that did not report a "
+"result, change nothing. The tours the configuration draws still apply: a decisive mission only cuts a monthly, N-day "
+"or manual tour into parts. Use the manual mode if only wins should start tours."
+msgstr ""
+"En los servidores de campaña dinámica pueden pasar semanas hasta que un bando gana. Con la opción de abajo, una "
+"misión que termina con victoria de un bando cierra la temporada y la siguiente misión empieza una nueva. Los empates "
+"y las misiones sin resultado no cambian nada. Las temporadas de la configuración siguen vigentes: una misión decisiva"
+" solo divide en partes una temporada mensual, de N días o manual. Usa el modo manual si solo las victorias deben "
+"iniciar temporadas."
 
 # llm-draft
 msgid "E-mail for certificate notices (optional)"
@@ -3230,6 +3271,11 @@ msgid "No recompute is pending: the pilots' achievements match the saved thresho
 msgstr "No hay ningún recálculo pendiente: los logros de los pilotos coinciden con los umbrales e interruptores guardados."
 
 # llm-draft
+#, python-format
+msgid "No result: %(unknown)s"
+msgstr "Sin resultado: %(unknown)s"
+
+# llm-draft
 msgid "No sorties in this tour"
 msgstr "Sin salidas en esta temporada"
 
@@ -3252,6 +3298,10 @@ msgstr "Aún sin racha: ninguna salida sobrevivida."
 # llm-draft
 msgid "No time wasted. The coffee in the tower was still warm."
 msgstr "Sin perder el tiempo. El café de la torre seguía caliente."
+
+# llm-draft
+msgid "No tour reassignment is pending: the tours match the saved choice."
+msgstr "No hay ninguna reasignación de temporadas pendiente: las temporadas coinciden con la opción guardada."
 
 # llm-draft
 msgid "No uploaded fonts."
@@ -3384,6 +3434,14 @@ msgstr "Número de impactos que le diste a este rival."
 # llm-draft
 msgid "OK"
 msgstr "Aceptar"
+
+# llm-draft
+msgid ""
+"Off by default. Changing it moves the missions between tours; tours you renamed keep their names where their dates "
+"stay the same."
+msgstr ""
+"Desactivada por defecto. Al cambiarla, las misiones pasan de una temporada a otra; las temporadas que hayas "
+"renombrado conservan su nombre mientras sus fechas no cambien."
 
 # llm-draft
 msgid "Off by default: the front page then looks as usual."
@@ -4488,6 +4546,10 @@ msgid "Start a new tour now"
 msgstr "Empezar una nueva temporada ahora"
 
 # llm-draft
+msgid "Start a new tour when a mission is won by one side"
+msgstr "Empezar una nueva temporada cuando un bando gana una misión"
+
+# llm-draft
 msgid "Start from a color scheme"
 msgstr "Empezar con un esquema de color"
 
@@ -5352,6 +5414,14 @@ msgid "Tour ended"
 msgstr "Tour terminado"
 
 # llm-draft
+msgid "Tour settings saved."
+msgstr "Ajustes de temporadas guardados."
+
+# llm-draft
+msgid "Tours"
+msgstr "Temporadas"
+
+# llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."
 msgstr "Las temporadas empiezan solas, salvo que [tours] mode sea manual."
 
@@ -5625,6 +5695,16 @@ msgstr ""
 " que hay muy pocas salidas."
 
 # llm-draft
+msgid ""
+"Which side won is read from the mission objective that the server logs when a mission ends: the side that completed "
+"it alone has won; both sides or neither is a draw. Missions saved before this was recorded show no result until you "
+"reprocess them (il2ks reprocess)."
+msgstr ""
+"El ganador se lee del objetivo de la misión que el servidor registra al terminar: el bando que lo cumplió en "
+"solitario ha ganado; si lo cumplen ambos o ninguno, es un empate. Las misiones guardadas antes de este registro no "
+"muestran resultado hasta que las vuelvas a procesar (il2ks reprocess)."
+
+# llm-draft
 msgid "Which sorties to count"
 msgstr "Qué salidas contar"
 
@@ -5669,6 +5749,11 @@ msgstr "Con"
 # llm-draft
 msgid "Without"
 msgstr "Sin"
+
+# llm-draft
+#, python-format
+msgid "Won by one side: %(won)s"
+msgstr "Victoria de un bando: %(won)s"
 
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
