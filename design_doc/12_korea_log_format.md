@@ -81,6 +81,30 @@ The meanings of 24–31 match the Discord notes from the other developer. Our se
 never-seen 22, 23 and 29. They get parsed into generic events, counted, and dropped (TD-20). Expect new log content now and then
 (maybe every couple of years with a game update). Supporting it must be a local change in `logparse` and `replay`.
 
+### Mission result: who won (AType 8, measured 2026-10-05; maintainer request: can a mission end in a draw?)
+
+The only result in the logs is AType 8 (`OBJID POS COAL TYPE RES ICTYPE TARGETS() OBJECTS() PLANES() MTARGETS() MOBJETS()`).
+Over the 210 missions, 279 AType 8 lines, **every one is `TYPE:0`** (the mission's main objective), `COAL` is 1 or 2 (never 0), `RES` is 0 or 1. All of a mission's lines share one
+tick, which is **before the first AType 7** (205 of 205 missions with events). AType 7 carries no result, AType 19 (round end, 25 in total) neither.
+Per mission, which coalitions reported what (`COAL:RES`):
+
+| Reports in the mission | Missions | Reading |
+|---|---|---|
+| only `1:1` | 47 | coalition 1 (REDFOR) won |
+| only `2:1` | 84 | coalition 2 (BLUFOR) won |
+| `1:1` and `2:1` | 22 | both completed it: **draw** |
+| `1:0` and `2:0` | 52 | neither completed it: **draw** (time ran out) |
+| no AType 8 at all | 5 | unknown (4 have no AType 7 either: the server stopped mid-mission; 1 ended without a report) |
+
+So 131 of 210 missions (62%) have a clear winner, 74 (35%) end in a draw, 5 (2%) have no result. A winner never reports `RES:0` for
+the other side (a lone winner is a lone line), and no mission has two reports for one coalition.
+**Rule** `[PROPOSED]` (PRODUCT, `core.replay.resolve.mission_outcome`): the one coalition with `RES` 1 on a `TYPE:0` line won; both
+or neither (any report) is a **draw**; no `TYPE:0` report is **unknown**. Other types and `COAL:0` are ignored (never seen).
+The first version of the parser (copied from il2_stats) credited the first `RES:1` line, which gave coalition 1 a "win" in
+the 22 mutual completions. Stored as `Mission.result` (`win` / `draw` / `unknown`) next to `winning_coalition` (set for `win` only).
+Missions saved before the column existed read `unknown` (or their old winner) until `il2ks reprocess`. The mission list and page show
+the winner, "Draw", or a dash; the admin's tour option uses only "won by one side" (doc 16).
+
 ### Typical player sortie sequences (event types, deduplicated; `b` = pilot-bot event)
 ```
 landed:     10 b10 31 [28] 30 5 31 6 12 b12 4 b4 b16

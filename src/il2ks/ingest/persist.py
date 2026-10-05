@@ -50,6 +50,7 @@ from il2ks.db.models import (
     Player,
     PlayerMission,
     PlayerSortie,
+    Tour,
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.achievements import recompute_holders
@@ -60,7 +61,7 @@ from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
-from il2ks.ingest.tours import ensure_tour
+from il2ks.ingest.tours import effective_rules, ensure_tour, resegment_around
 
 log = logging.getLogger(__name__)
 
@@ -158,18 +159,25 @@ def save_level1(
     re-ingest moved it, the old one."""
     score = with_applied_flight_score(score)  # the admin's flight-time option, as last applied to the stored scores
     clock = _Clock(meta.started_at)
+    tours = effective_rules(tours)  # + the admin's "new tour after a decisive mission" option as the tours have it
     tour = ensure_tour(tours, meta.started_at)
     previous = (
         Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
-        .values_list("tour_id", flat=True)
+        .values_list("tour_id", "ended_at")
         .first()
     )
-    old_tour_id = previous
+    old_tour_id = previous[0] if previous else None
     mission, _ = Mission.objects.update_or_create(
         server_uid=meta.server_uid,
         mission_uid=meta.mission_uid,
         defaults={**_mission_fields(result, meta, clock), "tour": tour},
     )
+    touched = {tour.pk} | _ids(old_tour_id)
+    if tours.on_win:  # decisive missions cut the period into parts: place this mission, and the ones its end moves
+        instants = [mission.started_at, mission.ended_at, *([previous[1]] if previous else [])]
+        touched |= resegment_around(tours, instants)
+        mission.tour_id = Mission.objects.values_list("tour_id", flat=True).get(pk=mission.pk)
+        touched = set(Tour.objects.filter(pk__in=touched).values_list("pk", flat=True))  # parts may be gone
     objects = register_game_objects(_object_types(result), catalog)
     register_countries(result.mission.countries, catalog)
     players = _upsert_players(result.sorties, clock)
@@ -178,7 +186,7 @@ def save_level1(
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
     _replace_aircraft_ammo(mission, result.single_attacker_kills, objects, sorties)
-    return mission, {tour.pk} | _ids(old_tour_id)
+    return mission, touched
 
 
 def discard_provisional_mission(mission: Mission) -> None:
@@ -292,6 +300,7 @@ def _mission_fields(result: MissionResult, meta: MissionMeta, clock: _Clock) -> 
         "log_version": info.log_version,
         "completed_cleanly": info.completed_cleanly,
         "winning_coalition": info.winning_coalition,
+        "result": info.result,
         "is_live": meta.live,
     }
 

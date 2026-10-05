@@ -34,9 +34,10 @@ from il2ks.db.site import clear_level2_pending, set_level2_pending
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
 from il2ks.ingest.batch import is_batch, repair_pending
-from il2ks.ingest.lock import WriterLock
+from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
+from il2ks.ingest.tours import on_win_pending
 from il2ks.ingest.worker import lower_priority, parse_and_replay
 
 log = logging.getLogger(__name__)
@@ -285,3 +286,18 @@ def rebuild_all(
             )
         )()
         clear_level2_pending()
+
+
+def recompute_tours_with_wanted_rule(cfg: Config) -> bool:
+    """Work off a pending change of the admin's "new tour after a decisive mission" option (`watch` calls this every
+    tick): under the writer lock reassign every mission to its tour and rebuild level 2, like `rebuild-aggregates
+    --retour` (which adopts the chosen value). False when nothing was pending or the lock was busy (the next tick tries
+    again). One transaction: a crash midway leaves the old tours and the pending change."""
+    if not on_win_pending():
+        return False
+    try:
+        rebuild_all(cfg, reassign_tours=True)
+    except LockBusyError as exc:
+        log.info("tour reassignment waits: %s", exc)
+        return False
+    return True

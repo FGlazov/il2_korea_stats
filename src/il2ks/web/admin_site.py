@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import URLPattern, URLResolver, path, reverse
@@ -15,7 +16,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, MAX_FLIGHT_POINTS_PER_HOUR
-from il2ks.db.models import SiteSettings
+from il2ks.db.models import Mission, SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
@@ -51,6 +52,7 @@ class Il2ksAdminSite(admin.AdminSite):
             path("quips/", self.admin_view(self.quips_view), name="quips"),
             path("achievements/", self.admin_view(self.achievements_view), name="achievements"),
             path("score/", self.admin_view(self.score_view), name="score"),
+            path("tours/", self.admin_view(self.tours_view), name="tours"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
         ]
         return [*extra, *super().get_urls()]
@@ -158,6 +160,34 @@ class Il2ksAdminSite(admin.AdminSite):
             "pvp_kill": f"{defaults.air_kill_pvp:g}",
         }
         return TemplateResponse(request, "admin/il2ks_score.html", context)
+
+    def tours_view(self, request: HttpRequest) -> HttpResponse:
+        """The Tours page: "start a new tour when a mission is won by one side" (default off). Saving only records the
+        choice (`SiteSettings.tour_on_win`); `watch` (or `rebuild-aggregates --retour`) reassigns the missions and
+        records it as applied (`ingest.tours`), and the page says so while the two differ."""
+        if not request.user.has_perm("il2ks_db.change_sitesettings"):
+            raise PermissionDenied
+        row = get_site_settings()
+        if request.method == "POST":
+            row.tour_on_win = request.POST.get("tour_on_win") == "on"
+            with transaction.atomic():
+                row.save(update_fields=["tour_on_win", "updated_at"])
+                bump_data_version()
+            messages.success(request, _("Tour settings saved."))
+            return HttpResponseRedirect(reverse(f"{self.name}:tours"))
+        results = Mission.objects.values("result").annotate(n=Count("pk"))
+        counts = {r["result"]: r["n"] for r in results}
+        won = Mission.objects.filter(winning_coalition__isnull=False).count()
+        context = {
+            **self.each_context(request),
+            "title": _("Tour options"),
+            "wanted": row.tour_on_win,
+            "pending": row.tour_on_win != row.tour_on_win_applied,
+            "won": won,
+            "draws": counts.get("draw", 0),
+            "unknown": sum(counts.values()) - won - counts.get("draw", 0),
+        }
+        return TemplateResponse(request, "admin/il2ks_tours.html", context)
 
     def quips_view(self, request: HttpRequest) -> HttpResponse:
         """The Quips page (FR-WEB-23): the global switch, every spot's mode, built-in lines (hide) and own lines."""

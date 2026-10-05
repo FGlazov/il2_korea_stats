@@ -146,9 +146,12 @@ class Replay:
             case MissionEndEvent():
                 facts.mission_end_ticks.append(event.tick)
             case MissionObjectiveEvent():
-                # Derived from il2_stats (MIT), see NOTICE: MissionReport.event_mission_result
-                if event.objective_type == 0 and event.coalition != 0 and event.result and facts.winner is None:
-                    facts.winner = event.coalition
+                # Korea: TYPE 0, once per reporting coalition (RES 1 = completed). Who won is decided at the end
+                # (`resolve.mission_outcome`): a lone completer wins, both or neither is a draw (doc 12).
+                if event.objective_type == 0 and event.coalition != 0:
+                    facts.objectives[event.coalition] = facts.objectives.get(event.coalition, False) or bool(
+                        event.result
+                    )
             case InfluenceAreaEvent():
                 area = facts.areas.get(event.area_id)
                 coalition = facts.countries.get(event.country)

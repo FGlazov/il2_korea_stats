@@ -24,6 +24,7 @@ from il2ks.core.logparse.events import (
     LandingEvent,
     LogEvent,
     MissionEndEvent,
+    MissionObjectiveEvent,
     MissionStartEvent,
     ObjectId,
     ObjectSpawnEvent,
@@ -224,6 +225,20 @@ class Scenario:
 
     def mission_end(self, t: float) -> None:
         self.add(MissionEndEvent(tick=tick(t)))
+
+    def objective(self, t: float, coalition: int, res: int, objective_type: int = 0) -> None:
+        """An AType 8 mission-objective result (Korea: TYPE 0, one per reporting coalition, just before the end)."""
+        self.add(
+            MissionObjectiveEvent(
+                tick=tick(t),
+                object_id=ObjectId(1),
+                pos=GROUND,
+                coalition=coalition,
+                objective_type=objective_type,
+                result=res,
+                icon_type=0,
+            )
+        )
 
     def gunner_bailout(self, t: float, bot: int, parent: int, pos: Pos) -> None:
         self.add(BailoutEvent(tick=tick(t), bot_id=ObjectId(bot), parent_id=ObjectId(parent), pos=pos))

@@ -154,6 +154,16 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `PlayerMission` rows exist only for players who flew a pilot sortie in the mission; `Mission.players_total` still counts everyone.
 - **One counter registry** (`ingest/counters.py`): the list of counters is defined once and used by `PlayerMission`, `Player` and
   `PlayerAircraft`; a test checks it matches the model.
+- **Tours with the "new tour after a decisive mission" option** (`ingest/tours.py`, TD-26, 2026-10-05, `[PROPOSED]`): `save_level1` first reads the applied option
+  (`SiteSettings.tour_on_win_applied`, `effective_rules`), puts the mission in its calendar or manual tour (`ensure_tour`), saves it with `Mission.result` /
+  `winning_coalition` (AType 8, doc 12), and when the option is on calls `resegment_around` for the periods of its start, its end and a re-ingest's old end:
+  `resegment` recomputes that period's cut instants (`core.tours.win_cuts`: the ends of its decisive missions), creates, retimes and deletes the `by_win` tours of
+  the period, and moves the missions by time range. The tours whose missions changed (never a deleted one) join the ids `save_level1` returns, so their level 2
+  is refreshed like any moved mission. `retour` runs the same routine for every period (calendar: each non-empty one; manual: between the tours that are not
+  `by_win`), after adopting the admin's choice (`tour_on_win` -> applied); `rebuild_aggregates(reassign_tours=True)` is its caller, and so is `watch` through
+  `reprocess.recompute_tours_with_wanted_rule` when the two differ (writer lock, one transaction, full level-2 rebuild). Missions without a tour (`assign_missing`) with the
+  option on go through `retour`. Upgrade: `Mission.result` is `unknown` for old rows until `il2ks reprocess` (old rows keep their `winning_coalition`, which may credit
+  a side for a mutual completion); the option works on whatever winners are stored.
 - **Save order** (`persist.save_mission`, one transaction, `[PROPOSED]`): the tour (`ensure_tour`), the `Mission` row, game objects and countries,
   `Player` rows, the sorties (each gets its air and ground score from `ingest.scoring.apply_score` under the `[score]` rules, as it is written),
   `SortieGunHits` (the gun hit lines per sortie and ammo), the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo and ammo mix of each destroyed aircraft, with that aircraft's own combat role and weapon mods, migration 0057). Then level 2, always after the rows it reads. **Level-2 refresh** (maintainer, 2026-10-05: every level-2 refresh is a full refresh of the touched tours; no per-entity tracking; the order below `[PROPOSED]`, 2026-10-05):

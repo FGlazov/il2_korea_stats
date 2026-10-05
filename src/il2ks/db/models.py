@@ -408,6 +408,10 @@ class Tour(models.Model):
     started_at = models.DateTimeField()
     ended_at = models.DateTimeField(null=True)
     mode = models.CharField(max_length=16)  # "monthly", "days:14", "manual"
+    # Started because a mission was won by one side (the admin's "new tour after a decisive mission" option, TD-26):
+    # a part of the period the mode draws, not a boundary of its own. Manual mode's own boundaries are the tours
+    # where this is False.
+    by_win = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -444,6 +448,9 @@ class Mission(models.Model):
     log_version = models.IntegerField(null=True)
     completed_cleanly = models.BooleanField()
     winning_coalition = models.IntegerField(null=True)
+    # "win" (`winning_coalition` is the side), "draw" (objectives reported, no sole winner) or "unknown" (no report, or
+    # saved before this column existed until `il2ks reprocess`). Decisive = `winning_coalition` is not null.
+    result = models.CharField(max_length=8, default="unknown")
     is_hidden = models.BooleanField(default=False)
     # Provisional: the mission is still running and `watch` saved its sorties so far (FR-ING-15). The final save (the
     # normal ingest once the mission is complete) rewrites the same rows by the same natural keys and clears this.
@@ -1677,6 +1684,11 @@ class SiteSettings(models.Model):
     # "Show sorties of the running mission" (FR-ING-15): `watch` saves the running mission provisionally every few
     # minutes, so its sorties show on the pages and move the counters before the mission ends. Off = online now only.
     show_live_sorties = models.BooleanField(default=True)
+    # "Start a new tour when a mission is won by one side" (Tours admin page; default off). `tour_on_win` is what the
+    # admin chose; `tour_on_win_applied` is what the stored tours were last assigned with (written only by
+    # `ingest.tours`: a retour). They differ while a re-assignment is pending, like the achievements' pair.
+    tour_on_win = models.BooleanField(default=False)
+    tour_on_win_applied = models.BooleanField(default=False)
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)

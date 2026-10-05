@@ -19,14 +19,26 @@ from il2ks.core.replay.result import (
     CombatRole,
     KillResult,
     MissionInfo,
+    MissionOutcome,
     MissionResult,
     SortieResult,
 )
 
 
+def mission_outcome(objectives: Mapping[int, bool]) -> tuple[MissionOutcome, int | None]:
+    """The mission result from the AType 8 TYPE 0 reports (coalition -> completed): the one coalition that completed
+    its objective won; both completing it or neither is a draw; no report at all is unknown (doc 12 "Mission
+    result": 47 + 84 wins, 22 + 52 draws and 5 unknown over 210 missions)."""
+    winners = [coalition for coalition, completed in sorted(objectives.items()) if completed]
+    if len(winners) == 1:
+        return "win", winners[0]
+    return ("draw" if objectives else "unknown"), None
+
+
 def _mission_info(facts: MissionFacts) -> MissionInfo:
     start = facts.start
     first_end = facts.first_mission_end
+    result, winner = mission_outcome(facts.objectives)
     return MissionInfo(
         mission_file=start.mission_file if start else "",
         game_date=start.game_date if start else "",
@@ -38,7 +50,8 @@ def _mission_info(facts: MissionFacts) -> MissionInfo:
         end_tick=first_end if first_end is not None else facts.last_tick,
         last_tick=facts.last_tick,
         completed_cleanly=first_end is not None,
-        winning_coalition=facts.winner,
+        winning_coalition=winner,
+        result=result,
     )
 
 

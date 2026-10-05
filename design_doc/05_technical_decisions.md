@@ -356,6 +356,22 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Which timezone draws tour boundaries** `[PROPOSED]` (2026-10-02): config `tours.timezone`, defaulting to the **server's configured
   timezone** (where the community usually plays), not UTC and not the viewer's. A mission belongs to the tour containing its `started_at`
   in that timezone. Viewer-local display (FR-WEB-17) never changes tour membership.
+- **New tour after a decisive mission** (maintainer request 2026-10-05: "missions can end in a draw? a toggle that starts a new tour whenever a mission
+  ends in a win for one side, for dynamic campaign servers"; **admin option, off by default**; built 2026-10-05). Which side won a mission is
+  in the log (doc 12 "Mission result": 131 of 210 sample missions have a winner, 74 are draws, 5 unknown); `Mission.result` / `winning_coalition`.
+  `[PROPOSED]` rule: **the option adds boundaries on top of the mode** (PRODUCT: simplest to explain, and the manual mode gives "only wins start
+  tours"). Every decisive mission ends its tour **at its own end** (`Mission.ended_at`); the next mission starts a new tour, a `by_win` part of the
+  period the mode draws ("October 2026", "October 2026 (2)", "(3)"; "Tour 4 (2)"; titles localised by `queries.tours.tour_title`, an admin rename
+  sticks). A part with no mission has no row (a tour starts with its first ingested mission, OQ-79). Draws and unknown results change nothing.
+  `[PROPOSED]` (TECHNICAL): membership is a pure function of the missions (`core.tours.win_cuts`: the ends of the decisive missions inside a period),
+  evaluated by one routine (`ingest.tours.resegment`) that both `save_level1` (the periods of the saved mission's start and end, and of a re-ingest's old end)
+  and `retour` (every period) call, so incremental ingest in any order, re-ingest and `rebuild-aggregates --retour` end in the same tours (a test shuffles
+  the ingest order). A late mission lands in the right part; a late decisive mission, or a reprocess that turns a win into a draw, moves or merges the later
+  parts (the touched tours get their level-2 refresh as for any moved mission). In manual mode the boundaries are the tours with `by_win` false.
+  Wanted vs applied like the achievements: `SiteSettings.tour_on_win` (the admin page, Tour options) and `tour_on_win_applied` (what the stored tours
+  were assigned with, which ingest follows); `watch` notices a difference on its next tick and runs `rebuild_all(reassign_tours=True)` under the writer
+  lock (retour + full level-2 rebuild), or `il2ks rebuild-aggregates --retour` does. Multi-server databases: the cuts use every mission of the database
+  (one campaign); a per-server rule is not built.
 - **Scheduled for it2** (maintainer, 2026-10-02). v1 shows all-time stats only. Adding tours later is a new level-2 table plus a rebuild,
   so v1 needs no special preparation beyond keeping `started_at` on `Mission`.
 

@@ -247,7 +247,7 @@ class MissionFacts:
     log_version: int | None = None
     last_tick: int = 0
     mission_end_ticks: list[int] = field(default_factory=list[int])
-    winner: int | None = None
+    objectives: dict[int, bool] = field(default_factory=dict[int, bool])  # AType 8 TYPE 0: coalition -> completed it
     areas: dict[ObjectId, Area] = field(default_factory=dict[ObjectId, Area])
     airfields: dict[ObjectId, Airfield] = field(default_factory=dict[ObjectId, Airfield])
     sorties: list[SortieState] = field(default_factory=list[SortieState])

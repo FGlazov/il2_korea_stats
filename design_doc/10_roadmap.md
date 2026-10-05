@@ -258,7 +258,7 @@ decisions are made):
 
 - ✅ **Flight-time score** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that gives air-score points
   per hour in the air at a configurable rate, so a quiet intercept patrol (or one that deterred the bombers) still counts.
-- 🔧 **New tour on a decisive mission** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that starts a new
+- ✅ **New tour on a decisive mission** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that starts a new
   tour after a mission won by one side (dynamic campaigns that run for weeks); research first which log events carry the result.
 
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README

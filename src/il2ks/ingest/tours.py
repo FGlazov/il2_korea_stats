@@ -12,20 +12,53 @@ A mission belongs to the tour that contains its `started_at` (UTC instant; bound
 caller then rebuilds the level-2 rows. It keeps a tour row (and so its admin-edited title and its PK) whose boundaries
 are unchanged, and deletes tours that end up without missions (not in manual mode: an empty open tour is wanted there).
 Level-2 rows per tour are not touched here: `ingest.aggregates` recomputes them from `PlayerMission` and `Mission.tour`.
+
+Decisive missions (the admin option "start a new tour when a mission is won by one side", `SiteSettings.tour_on_win`,
+`TourRules.on_win`) [PROPOSED] cut the period the mode draws (a calendar period, or the stretch between two manual
+boundaries) into parts: every mission with a winner (`Mission.winning_coalition`) ends its part at its own end
+(`core.tours.win_cuts`), and the next mission starts a new `Tour` with `by_win` set. Which tour holds a mission is still
+a function of the missions alone: `resegment` rebuilds the parts of one period, `save_level1` calls it for the periods a
+saved mission touches and `retour` for every period, so incremental ingest (in any order), re-ingest and
+`rebuild-aggregates --retour` end up with the same tours. A part without a mission has no row.
+
+The option is a pair like the achievements': what the admin chose (`tour_on_win`) and what the stored tours were
+assigned with (`tour_on_win_applied`). Ingest follows the applied value; a retour adopts the chosen one.
 """
 
 import re
 from collections import defaultdict
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+from itertools import pairwise
 
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import F, Q, QuerySet
 
-from il2ks.core.tours import TourRules, period_for
-from il2ks.db.models import Mission, Tour
+from il2ks.core.tours import MissionSpan, TourRules, period_for, segment_title, win_cuts
+from il2ks.db.models import Mission, SiteSettings, Tour
 
 CHUNK = 500  # mission ids per UPDATE: far below SQLite's bound-parameter limit
+
+
+def wanted_on_win() -> bool:
+    """The admin's choice: start a new tour after a mission won by one side."""
+    return bool(SiteSettings.objects.filter(pk=1).values_list("tour_on_win", flat=True).first())
+
+
+def applied_on_win() -> bool:
+    """What the stored tours were assigned with (the rule ingest follows until the next retour)."""
+    return bool(SiteSettings.objects.filter(pk=1).values_list("tour_on_win_applied", flat=True).first())
+
+
+def on_win_pending() -> bool:
+    """The admin changed the option since the tours were last assigned: a retour (and level-2 rebuild) is due."""
+    return wanted_on_win() != applied_on_win()
+
+
+def effective_rules(rules: TourRules) -> TourRules:
+    """The `[tours]` rules with the option as the stored tours have it."""
+    return replace(rules, on_win=applied_on_win())
 
 
 def ensure_tour(rules: TourRules, started_at: datetime) -> Tour:
@@ -79,6 +112,11 @@ def assign_missing(rules: TourRules) -> int:
     """Give a tour to missions that have none (saved before tours existed). Returns how many.
 
     Level 2 is the caller's."""
+    rules = effective_rules(rules)
+    if rules.on_win and Mission.objects.filter(tour__isnull=True).exists():
+        missing = Mission.objects.filter(tour__isnull=True).count()
+        _retour_all(rules)  # the parts a decisive mission cuts depend on the other missions: assign them all
+        return missing
     ids_by_tour: defaultdict[int, list[int]] = defaultdict(list)
     for pk, started_at in (
         Mission.objects.filter(tour__isnull=True).order_by("started_at").values_list("pk", "started_at")
@@ -100,32 +138,161 @@ class RetourSummary:
 def retour(rules: TourRules) -> RetourSummary:
     """Reassign every mission to its tour under `rules` (after a mode, start or timezone change). Run in a transaction.
 
-    The caller rebuilds the level-2 rows afterwards (`rebuild_aggregates`, which `rebuild-aggregates --retour` does)."""
+    The option "new tour after a decisive mission" is adopted first: the chosen value becomes the applied one, so the
+    parts follow what the admin ticked. The caller rebuilds the level-2 rows afterwards (`rebuild_aggregates`, which
+    `rebuild-aggregates --retour` does)."""
+    SiteSettings.objects.filter(pk=1).update(tour_on_win_applied=F("tour_on_win"))
+    _retour_all(effective_rules(rules))
+    return RetourSummary(Mission.objects.filter(tour__isnull=False).count(), Tour.objects.count())
+
+
+def _retour_all(rules: TourRules) -> None:
     if rules.mode == "manual":
         _retour_manual(rules)
     else:
         _retour_calendar(rules)
         Tour.objects.filter(missions__isnull=True).delete()
-    return RetourSummary(Mission.objects.filter(tour__isnull=False).count(), Tour.objects.count())
+
+
+@dataclass(frozen=True, slots=True)
+class _Stretch:
+    """A period the mode draws, which decisive missions may cut into parts: `[start, end)` (None = unbounded), the
+    title of its first part, and the first part's tour row when it exists."""
+
+    start: datetime | None
+    end: datetime | None
+    title: str
+    base: Tour | None
+    keep_empty_base: bool = False  # manual mode: the admin's boundary stays even while its first part is empty
+
+
+def _missions_between(start: datetime | None, end: datetime | None) -> QuerySet[Mission]:
+    rows = Mission.objects.all()
+    if start is not None:
+        rows = rows.filter(started_at__gte=start)
+    if end is not None:
+        rows = rows.filter(started_at__lt=end)
+    return rows
+
+
+def _decisive_spans(start: datetime | None, end: datetime | None) -> list[MissionSpan]:
+    """The decisive missions whose end could cut `[start, end)`: found by their end, which may lie in a later period
+    than their start."""
+    rows = Mission.objects.filter(winning_coalition__isnull=False)
+    if start is not None:
+        rows = rows.filter(ended_at__gt=start)
+    if end is not None:
+        rows = rows.filter(ended_at__lt=end)
+    return [MissionSpan(s, e, True) for s, e in rows.values_list("started_at", "ended_at")]
+
+
+def _is_automatic_part_title(base_title: str, title: str) -> bool:
+    return re.fullmatch(re.escape(base_title) + r" \(\d+\)", title) is not None
+
+
+def resegment(rules: TourRules, stretch: _Stretch) -> set[int]:
+    """Assign the missions of one period to its parts under `rules`: the part boundaries are `win_cuts` when
+    `rules.on_win`, else the period is one tour. Creates, retimes and deletes the `by_win` tours of the period, moves
+    the missions; a part without a mission has no tour (an empty first part keeps its row in manual mode only).
+    Returns the ids of the tours whose missions changed (the caller refreshes level 2 for them), not deleted ones."""
+    cuts = win_cuts(stretch.start, stretch.end, _decisive_spans(stretch.start, stretch.end)) if rules.on_win else ()
+    bounds = [stretch.start, *cuts, stretch.end]
+    touched: set[int] = set()
+    keep: set[int] = set()
+    emptied: Tour | None = None
+    for index, (low, high) in enumerate(pairwise(bounds)):
+        rows = _missions_between(low, high)
+        has_missions = rows.exists()
+        tour: Tour | None
+        if index == 0:
+            tour = stretch.base
+            if tour is None and has_missions and low is not None:
+                tour = Tour.objects.create(
+                    title=stretch.title, started_at=low, ended_at=high, mode=rules.label, by_win=False
+                )
+            elif tour is not None and not has_missions and not stretch.keep_empty_base:
+                emptied, tour = tour, None  # a calendar period whose first part has no mission has no tour of its own
+            elif tour is not None:
+                tour.ended_at, tour.mode, tour.by_win = high, rules.label, False
+                tour.save(update_fields=["ended_at", "mode", "by_win"])
+        elif has_missions and low is not None:
+            title = segment_title(stretch.title, index)
+            tour = Tour.objects.filter(started_at=low).first()
+            if tour is None:
+                tour = Tour.objects.create(title=title, started_at=low, ended_at=high, mode=rules.label, by_win=True)
+            else:
+                if not tour.by_win or _is_automatic_part_title(stretch.title, tour.title):
+                    tour.title = title  # an admin's rename of a part stays, the numbering of an automatic one follows
+                tour.ended_at, tour.mode, tour.by_win = high, rules.label, True
+                tour.save(update_fields=["title", "ended_at", "mode", "by_win"])
+        else:
+            tour = None
+        if tour is None:
+            continue
+        keep.add(tour.pk)
+        if has_missions:
+            moved = rows.exclude(tour=tour)
+            touched |= {t for t in moved.values_list("tour_id", flat=True).distinct() if t is not None}
+            if moved.update(tour=tour):
+                touched.add(tour.pk)
+    parts = Tour.objects.filter(by_win=True)
+    if stretch.start is not None:
+        parts = parts.filter(started_at__gt=stretch.start)
+    if stretch.end is not None:
+        parts = parts.filter(started_at__lt=stretch.end)
+    stale = parts.exclude(pk__in=keep)
+    gone = set(stale.values_list("pk", flat=True))
+    stale.delete()  # their missions were moved above
+    if emptied is not None and not Mission.objects.filter(tour=emptied).exists():
+        gone.add(emptied.pk)
+        emptied.delete()
+    return touched - gone
+
+
+def _calendar_stretch(rules: TourRules, instant: datetime) -> _Stretch:
+    period = period_for(rules, instant)
+    base = Tour.objects.filter(started_at=period.started_at).first()
+    return _Stretch(period.started_at, period.ended_at, period.title, base)
+
+
+def _manual_stretch(instant: datetime) -> _Stretch | None:
+    """The stretch between two manual boundaries (the tours that are not `by_win`) holding `instant`; the first one
+    holds everything older, the last one is open."""
+    bases = list(Tour.objects.filter(by_win=False).order_by("started_at"))
+    if not bases:
+        return None
+    index = max((i for i, t in enumerate(bases) if t.started_at <= instant), default=0)
+    following = bases[index + 1].started_at if index + 1 < len(bases) else None
+    base = bases[index]
+    return _Stretch(None if index == 0 else base.started_at, following, base.title, base, keep_empty_base=True)
+
+
+def resegment_around(rules: TourRules, instants: Iterable[datetime]) -> set[int]:
+    """The incremental half: `resegment` the period of each instant (a saved mission's start and end, and the end it
+    had before a re-ingest), each period once. Only meant for `rules.on_win`."""
+    done: set[tuple[datetime | None, datetime | None]] = set()
+    touched: set[int] = set()
+    for instant in sorted(set(instants)):
+        stretch = _manual_stretch(instant) if rules.mode == "manual" else _calendar_stretch(rules, instant)
+        if stretch is None or (stretch.start, stretch.end) in done:
+            continue
+        done.add((stretch.start, stretch.end))
+        touched |= resegment(rules, stretch)
+    return touched
 
 
 def _retour_calendar(rules: TourRules) -> None:
-    """One UPDATE per non-empty period: periods are contiguous ranges of `started_at`, so no id lists are needed."""
-    existing = {t.started_at: t for t in Tour.objects.all()}
+    """One `resegment` per non-empty period: periods are contiguous ranges of `started_at`, so no id lists are needed.
+    A tour of the same start keeps its row (and its admin-edited title) when its boundaries are unchanged."""
     cursor = Mission.objects.order_by("started_at").values_list("started_at", flat=True).first()
     while cursor is not None:
         period = period_for(rules, cursor)
-        tour = existing.get(period.started_at)
-        if tour is None:
-            tour = Tour.objects.create(
-                title=period.title, started_at=period.started_at, ended_at=period.ended_at, mode=rules.label
-            )
-        else:
-            if tour.ended_at != period.ended_at:
-                tour.title = period.title  # other boundaries: the old title (a rename) no longer describes it
-            tour.ended_at, tour.mode = period.ended_at, rules.label
-            tour.save(update_fields=["title", "ended_at", "mode"])
-        Mission.objects.filter(started_at__gte=period.started_at, started_at__lt=period.ended_at).update(tour=tour)
+        existing = Tour.objects.filter(started_at=period.started_at).first()
+        if existing is not None and existing.mode != rules.label:
+            existing.title = period.title  # other rules: the old title (a rename) no longer describes it
+            existing.save(update_fields=["title"])
+        title = existing.title if existing is not None else period.title
+        resegment(rules, _Stretch(period.started_at, period.ended_at, title, existing))
         cursor = (
             Mission.objects.filter(started_at__gte=period.ended_at)
             .order_by("started_at")
@@ -135,22 +302,19 @@ def _retour_calendar(rules: TourRules) -> None:
 
 
 def _retour_manual(rules: TourRules) -> None:
-    """Manual mode: the stored tours are the boundaries (see module doc). The newest one is (re)opened, the others end
-    where the next one starts. With no tour yet, one open "Tour 1" starts at the first mission."""
-    tours = list(Tour.objects.order_by("started_at"))
+    """Manual mode: the stored tours that are not `by_win` are the boundaries (see module doc). The newest one is
+    (re)opened, the others end where the next one starts. With no tour yet, one open "Tour 1" starts at the first
+    mission."""
+    tours = list(Tour.objects.filter(by_win=False).order_by("started_at"))
     if not tours:
         first = Mission.objects.order_by("started_at").values_list("started_at", flat=True).first()
         if first is None:
             return
         tours = [Tour.objects.create(title="Tour 1", started_at=first, ended_at=None, mode=rules.label)]
-    for tour, following in zip(tours, [*tours[1:], None], strict=True):
-        tour.ended_at = following.started_at if following is not None else None
-        tour.mode = rules.label
-        tour.save(update_fields=["ended_at", "mode"])
-        rows = Mission.objects.filter(started_at__lt=tour.ended_at) if tour.ended_at else Mission.objects.all()
-        if tour is not tours[0]:
-            rows = rows.filter(started_at__gte=tour.started_at)  # the first tour also holds everything older
-        rows.update(tour=tour)
+    for index, tour in enumerate(tours):
+        following = tours[index + 1].started_at if index + 1 < len(tours) else None
+        stretch = _Stretch(None if index == 0 else tour.started_at, following, tour.title, tour, keep_empty_base=True)
+        resegment(rules, stretch)
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,13 +333,21 @@ class TourProblems:
 def _is_stale(rules: TourRules, tour: Tour) -> bool:
     if tour.mode != rules.label:
         return True
+    if tour.by_win and not rules.on_win:
+        return True  # a part started by a decisive mission, but the option is off
     if rules.mode == "manual":
         return False
     period = period_for(rules, tour.started_at)
-    return (period.started_at, period.ended_at) != (tour.started_at, tour.ended_at)
+    if tour.by_win:
+        return tour.ended_at is None or tour.ended_at > period.ended_at
+    if tour.started_at != period.started_at:
+        return True
+    cut_short = rules.on_win and tour.ended_at is not None and tour.ended_at < period.ended_at
+    return tour.ended_at != period.ended_at and not cut_short
 
 
 def tour_problems(rules: TourRules) -> TourProblems:
+    rules = effective_rules(rules)
     outside = Mission.objects.filter(tour__isnull=False).filter(
         Q(started_at__lt=F("tour__started_at")) | Q(tour__ended_at__isnull=False, started_at__gte=F("tour__ended_at"))
     )

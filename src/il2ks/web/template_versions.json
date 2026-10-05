@@ -79,7 +79,7 @@
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,
-      "sha256": "6c5c1059c18a0db1aec358c738af31efc4cc996b45bea8568ad6c7db6f77f9c1"
+      "sha256": "5f68d39b1d8184d14c174382f760763d21719a046dc063f6ff0942e664510982"
     },
     "templates/admin/il2ks_ingest_status.html": {
       "version": 1,
@@ -96,6 +96,10 @@
     "templates/admin/il2ks_score.html": {
       "version": 1,
       "sha256": "9fc491b02bf808ae3dadd2686ef60d8517e503f87d48a674b80c808176d043ab"
+    },
+    "templates/admin/il2ks_tours.html": {
+      "version": 1,
+      "sha256": "c2bd471f410a76b0a01793dae7271da18f5f3780112a7471758a52f75a8f54c1"
     },
     "templates/il2ks/achievements/_award.html": {
       "version": 1,

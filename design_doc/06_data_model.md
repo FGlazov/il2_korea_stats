@@ -38,7 +38,7 @@ Principles (all `[DECIDED]`):
 ```
 Mission        id, server_uid, mission_uid (unique together), tour → Tour, mission_file (map/name), file_path,
                started_at (UTC), ended_at, duration_s, game_date, game_time, game_type, settings (json), countries (json, CNTRS), log_version,
-               completed_cleanly (bool, AType 7 seen), winning_coalition (nullable), is_hidden,
+               completed_cleanly (bool, AType 7 seen), winning_coalition (nullable), result (win|draw|unknown, doc 12 "Mission result"), is_hidden,
                is_live (bool, FR-ING-15: provisional rows `watch` saved while the mission still runs; the final save rewrites the same rows by
                their natural keys and clears it) `[PROPOSED]`,
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
@@ -123,7 +123,7 @@ Player         id, account_uuid (unique), current_name, name_lower (indexed, for
 PlayerName     player, name, name_lower, first_seen, last_seen
 PlayerAircraft player, aircraft, + all-time counters, elo, elo_games    -- per-aircraft table on profile; the Elo is per (player, type) from
                                                                            -- the same replay (OQ-49), written by `recompute_ratings`, not a sum
-Tour           id, title, started_at, ended_at (null = current), mode snapshot   -- TD-26
+Tour           id, title, started_at, ended_at (null = current), mode snapshot, by_win (a part started by a decisive mission)   -- TD-26
 PlayerTour     player, tour, + same counters as PlayerMission
 PlayerTourAircraft player, tour, aircraft, + counters   -- a separate table, so all-time PlayerAircraft reads stay untouched
 PlayerAircraftScope player, aircraft, tour (null = all time), role (all / air_superiority / attack), mod_pattern, + counters
