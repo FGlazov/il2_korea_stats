@@ -1,19 +1,15 @@
 """The interception and tank-busting skill boards (FR-WEB-7, FR-WEB-20, doc 13, maintainer request 2026-10-04): the
 counters behind them, ranking and minimums, the pool filter, the home block, the profile rows and marks, rebuild ==
-incremental, the backfill for upgraded databases. Synthetic data only."""
-
-import uuid
-from pathlib import Path
+incremental. Synthetic data only."""
 
 import pytest
 from django.test import Client, override_settings
 
-from il2ks.config import Config, LeaderboardConfig
+from il2ks.config import LeaderboardConfig
 from il2ks.core.stat_marks import MarkRules
-from il2ks.db.models import GameObject, Player, PlayerPool, PlayerSortie, PlayerTour, SiteSettings, StatThreshold
+from il2ks.db.models import Player, PlayerPool, PlayerSortie, PlayerTour, StatThreshold
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.stat_marks import recompute_thresholds
-from il2ks.ops import migrate
 from il2ks.queries.leaderboards import BoardRow
 from tests.factories import account, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
@@ -263,30 +259,3 @@ def test_marks_render_next_to_the_numbers(client: Client) -> None:
 
 
 # --- upgraded databases -----------------------------------------------------------------------------------------------
-
-
-def test_the_backfill_derives_the_sortie_column_from_the_timelines_and_rebuilds_level_2() -> None:
-    seed()
-    GameObject.objects.update_or_create(log_name="B-29", defaults={"display_name": "B-29", "cls": "bomber"})
-    rider = PlayerSortie.objects.get(name_at_time="Rider")  # an attack sortie: shooting it down is an interception
-    plain = PlayerSortie.objects.get(name_at_time="Plain")  # an air superiority sortie
-    killer = PlayerSortie.objects.get(name_at_time="Plain")
-    killer.timeline = [
-        {"kind": "kill", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-        {"kind": "kill", "counterpart": {"object_type": "MiG-15bis", "sortie_id": None, "coalition": 1}},
-        {"kind": "kill", "counterpart": {"object_type": "MiG-15bis", "sortie_id": plain.pk, "coalition": 1}},
-        {"kind": "kill", "counterpart": {"object_type": "MiG-15bis", "sortie_id": rider.pk, "coalition": 1}},
-        {"kind": "assist", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-    ]
-    killer.save(update_fields=["timeline"])
-    PlayerSortie.objects.update(kills_air_intercept=0)
-    Player.objects.update(kills_intercept=0, flight_time_air_s=0.0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-    migrate._run_backfills(cfg, [migrate.BACKFILL_INTERCEPTION])  # pyright: ignore[reportPrivateUsage]
-
-    assert PlayerSortie.objects.get(pk=killer.pk).kills_air_intercept == 2  # the B-29 and the attack sortie
-    assert Player.objects.get(account_uuid=account(4)).flight_time_air_s == 3600.0
-    assert Player.objects.get(account_uuid=account(4)).kills_intercept == 2
-    assert migrate._already_done(migrate.BACKFILL_INTERCEPTION)  # pyright: ignore[reportPrivateUsage]

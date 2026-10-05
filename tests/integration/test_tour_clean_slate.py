@@ -13,7 +13,6 @@ from il2ks.db.models import (
     PlayerSortie,
     PlayerStreak,
     PlayerStreakRun,
-    SiteSettings,
     Tour,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
@@ -184,19 +183,3 @@ def test_weeks_in_a_row_reset_per_tour_and_all_time_is_the_max() -> None:
     assert held(1).get("regular") == 1  # two weeks in a row (the bronze tier) in each tour, never four
     for tour in tours():
         assert held(1, tour).get("regular") == 1
-
-
-def test_the_upgrade_backfill_rolls_the_old_all_time_rows_up_once() -> None:
-    from il2ks.ops import migrate
-
-    save(mission(survived(3)), meta("m1", STARTED_AT))
-    save(mission(survived(3)), meta("m2", OCTOBER))
-    good = everything()
-    PlayerStreak.objects.update(best_sorties=6, current_sorties=6, current_tour=None)  # what the old code stored
-    PlayerBestStreak.objects.filter(tour=None, kind="sorties").update(sorties=6)
-    PlayerAchievement.objects.filter(tour=None).delete()
-
-    migrate._backfill_tour_clean_slate()  # pyright: ignore[reportPrivateUsage]
-
-    assert everything() == good
-    assert migrate.BACKFILL_TOUR_CLEAN_SLATE in SiteSettings.objects.get(pk=1).backfills_done

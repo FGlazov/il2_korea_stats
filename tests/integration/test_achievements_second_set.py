@@ -1,22 +1,19 @@
 """The second set of achievements (doc 17, OQ-105) at ingest: the Elo peak per sortie, the stored facts (rams, first
-blood, multi-kills), incremental == rebuild, gunners and the upgrade backfill."""
+blood, multi-kills), incremental == rebuild and gunners."""
 
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.db import connection
 from django.test import Client
 from django.test.utils import CaptureQueriesContext
 
-from il2ks.config import Config
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult
-from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings, Tour
+from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.ratings import recompute_ratings
-from il2ks.ops import migrate
-from tests.factories import SERVER_UID, STARTED_AT, account, kill, meta, mission, save, sortie
+from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
 
@@ -172,69 +169,6 @@ def test_landing_streak_and_types_are_stored_nothing_extra() -> None:
 
     assert held(1)["landing_streak"] == 2  # six landings in a row
     assert "types_flown" not in held(1)  # two types are not enough for the ribbon
-
-
-def test_the_upgrade_backfill_derives_the_facts_from_stored_data() -> None:
-    save(
-        mission(
-            (
-                sortie(0, 1, kills_air=3),
-                sortie(1, 2, coalition=2, kills_air=1),
-                sortie(2, 3, coalition=2, is_death=True),
-            ),
-            # p1 draws first blood on p3; p1 and p2 then kill each other at once: a ram
-            (kill(50, 0, 2), kill(100, 0, 1), kill(101, 1, 0)),
-        ),
-        meta("m1", STARTED_AT),
-    )
-    first = PlayerSortie.objects.get(player_id=pk(1))
-    first.timeline = [
-        {"kind": "kill", "tick": t, "counterpart": {"object_type": "F-86A-5", "sortie_id": None, "coalition": 2}}
-        for t in (100, 2000, 2500, 9000)  # a burst of three within a minute (50 ticks per second), then a lone kill
-    ]
-    first.save(update_fields=["timeline"])
-    PlayerSortie.objects.update(rams=0, first_blood=False, multi_kill=0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    PlayerAchievement.objects.all().delete()
-    config = Config(data_dir=Path("."), server_uid=SERVER_UID, timezone_name="UTC")
-
-    migrate._run_backfills(config, [migrate.BACKFILL_ACHIEVEMENT_FACTS])  # pyright: ignore[reportPrivateUsage]
-
-    rows = {s.player_id: s for s in PlayerSortie.objects.all()}
-    assert rows[pk(1)].first_blood
-    assert not rows[pk(2)].first_blood
-    assert (rows[pk(1)].rams, rows[pk(2)].rams, rows[pk(3)].rams) == (1, 1, 0)
-    assert (rows[pk(1)].multi_kill, rows[pk(2)].multi_kill) == (3, 0)
-    assert held(1)["multi_kill"] == 2  # the rebuild computed the medals from the derived facts
-    assert held(1)["ram"] == 1
-
-
-def test_the_backfill_first_blood_skips_gunner_kills() -> None:
-    """The replay's first blood ignores gunners (`first_blood_sortie`); the backfill must agree (doc 17)."""
-    save(
-        mission(
-            (
-                sortie(0, 1, kills_air=1, first_blood=True),
-                sortie(1, 4, role="gunner", aircraft_type="Turret_IL10"),
-                sortie(2, 3, coalition=2, is_death=True),
-                sortie(3, 5, coalition=2, is_death=True),
-            ),
-            (kill(50, 1, 2), kill(100, 0, 3)),  # the gunner kills first, then the pilot
-        ),
-        meta("m1", STARTED_AT),
-    )
-    ingested = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
-    assert ingested[pk(1)]
-    assert not ingested[pk(4)]
-    PlayerSortie.objects.update(rams=0, first_blood=False, multi_kill=0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    config = Config(data_dir=Path("."), server_uid=SERVER_UID, timezone_name="UTC")
-
-    migrate._run_backfills(config, [migrate.BACKFILL_ACHIEVEMENT_FACTS])  # pyright: ignore[reportPrivateUsage]
-
-    rows = dict(PlayerSortie.objects.values_list("player_id", "first_blood"))
-    assert rows[pk(1)]
-    assert not rows[pk(4)]
 
 
 def test_clearing_stored_elo_peaks_looks_up_their_owners_in_one_query() -> None:

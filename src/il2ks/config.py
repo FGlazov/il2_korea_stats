@@ -18,7 +18,6 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import ipaddress
-import logging
 import math
 import os
 import re
@@ -45,7 +44,6 @@ type HttpsMode = Literal["caddy", "external"]
 HTTPS_MODES: tuple[HttpsMode, ...] = ("caddy", "external")
 type CertSource = Literal["auto", "internal"]
 CERT_SOURCES: tuple[CertSource, ...] = ("auto", "internal")
-log = logging.getLogger(__name__)
 
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
@@ -200,7 +198,6 @@ class Config:
     backup: BackupConfig = field(default_factory=BackupConfig)
     tours: TourRules = field(default_factory=TourRules)  # `timezone_name` is resolved to the server's when not set
     source: Path | None = None  # the TOML file that was read, if any
-    warnings: tuple[str, ...] = ()  # settings that are ignored (renamed keys...); logged on load, shown by `doctor`
 
     @property
     def rules(self) -> RuleToggles:
@@ -319,10 +316,6 @@ def load_config(
         raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
 
     rule_set = load_rule_set(reader, tz_name)
-    warnings = _renamed_key_warnings(reader)
-    for message in warnings:
-        log.warning("config: %s", message)
-
     backup_defaults = BackupConfig()
     backup = BackupConfig(
         keep=reader.positive_int("backup", "keep", backup_defaults.keep),
@@ -353,7 +346,6 @@ def load_config(
         backup=backup,
         tours=rule_set.tours,
         source=file,
-        warnings=warnings,
     )
 
 
@@ -438,33 +430,6 @@ def load_rule_set_from(raw: Raw, server_tz_name: str) -> RuleSet:
     """`load_rule_set` over plain `{section: {key: value}}` data and no environment: the admin's overrides on top of
     the values the file gave (`il2ks.rule_settings`). Raises `ConfigError` like the file does."""
     return load_rule_set(_Reader(raw, {}, Path.cwd()), server_tz_name)
-
-
-# `[score]` keys that were replaced; reading them silently would leave an owner thinking the old value still applies.
-RENAMED_SCORE_KEYS: dict[str, str] = {
-    "penalty_death": "penalty_death_pct",
-    "penalty_plane_lost": "penalty_plane_lost_pct",
-    "penalty_capture": "penalty_capture_pct",
-}
-
-
-def _renamed_key_warnings(reader: _Reader) -> tuple[str, ...]:
-    """One warning per old `[score]` key (or `IL2KS_SCORE_*` variable) that is set but no longer read."""
-    found: list[str] = []
-    for old, new in RENAMED_SCORE_KEYS.items():
-        value, _ = reader._get("score", old)  # pyright: ignore[reportPrivateUsage]
-        if value is not None:
-            found.append(
-                f"score.{old} is ignored: it was replaced by score.{new}, a percentage of the sortie's score "
-                f"(0 to 100) instead of a flat number of points. Rename it and convert the value."
-            )
-    value, _ = reader._get("rules", "parachute_deaths")  # pyright: ignore[reportPrivateUsage]
-    if value is not None:
-        found.append(
-            "rules.parachute_deaths is ignored: a pilot killed while parachuting is always a death. Remove the key "
-            "(run `il2ks reprocess --all` if you had set it to false, to apply the rule to older missions)."
-        )
-    return tuple(found)
 
 
 def _load_web(reader: _Reader) -> WebConfig:

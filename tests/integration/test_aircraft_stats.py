@@ -1,7 +1,6 @@
 """Per-aircraft-type stats (FR-WEB-8): level-2 tables (incremental == rebuild) and the pages (TD-22, FR-ADM-3)."""
 
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.db import connection, models
@@ -18,7 +17,6 @@ from il2ks.db.models import (
     GameObject,
     Player,
     PlayerAircraft,
-    SiteSettings,
     Tour,
     TourAircraftStats,
 )
@@ -27,7 +25,6 @@ from il2ks.ingest.aircraft_stats import _sortie_groups  # pyright: ignore[report
 from il2ks.web import object_names
 from tests.aircraft_pages import all_loadouts
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
-from tests.ops_helpers import make_instance
 from tests.simple_reads import assert_simple_reads
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
@@ -463,17 +460,3 @@ def test_reingest_into_another_tour_moves_the_per_tour_rows() -> None:
     assert list(TourAircraftStats.objects.filter(role="all", mod_pattern="").values_list("tour__title", "sorties")) == [
         ("October 2026", 1)
     ]
-
-
-def test_the_migration_backfill_builds_the_tour_rows_of_an_old_database(tmp_path: Path) -> None:
-    from il2ks.ops import migrate
-
-    two_tours()
-    good = snapshot()
-    TourAircraftStats.objects.all().delete()
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-
-    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_TOUR_AIRCRAFT])  # pyright: ignore[reportPrivateUsage]
-
-    assert snapshot() == good
-    assert migrate._already_done(migrate.BACKFILL_TOUR_AIRCRAFT)  # pyright: ignore[reportPrivateUsage]

@@ -639,8 +639,8 @@ def test_modifications_are_shown_by_name(client: Client) -> None:
     assert "Unknown modification (id 9)" in detail(client, pk_of(3))
 
 
-def test_upgrade_backfill_rederives_payload_names_from_the_stored_ids() -> None:
-    """The loadout table was replaced: stored names follow the stored payload ids (IL-10 id 25 was renumbered); an id
+def test_a_catalog_change_rederives_payload_names_from_the_stored_ids() -> None:
+    """The loadout table changed: stored names follow the stored payload ids (IL-10 id 25 was renumbered); an id
     the table lacks gets no name (OQ-25)."""
     from il2ks.ops import migrate
 
@@ -655,13 +655,13 @@ def test_upgrade_backfill_rederives_payload_names_from_the_stored_ids() -> None:
     )
     PlayerSortie.objects.update(payload_name="stale")
 
-    assert migrate._check_payload_names()  # pyright: ignore[reportPrivateUsage]
+    assert migrate._refresh_payload_names()  # pyright: ignore[reportPrivateUsage]
 
     names = {s.name_at_time: s.payload_name for s in PlayerSortie.objects.all()}
     assert names["Player-1"].startswith("60 x PTAB-10-2.5 HEAT submunitions + 2 x FAB-100")
     assert names["Player-2"] not in ("", "stale")
     assert names["Player-3"] == ""
-    assert not migrate._check_payload_names()  # pyright: ignore[reportPrivateUsage]
+    assert not migrate._refresh_payload_names()  # pyright: ignore[reportPrivateUsage]
 
 
 def test_the_sortie_aircraft_links_to_its_aircraft_page_in_header_and_list(client: Client) -> None:

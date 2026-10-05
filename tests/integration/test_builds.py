@@ -1,19 +1,15 @@
 """Favorite loadout per player and aircraft type (`PlayerAircraftBuild`, FR-WEB-4, OQ-117): level 2 incremental ==
 rebuild, tour scoping, hidden rules, the profile section (the favourite loadout only) and its query budget."""
 
-import uuid
 from dataclasses import replace
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.test import Client
 
-from il2ks.config import Config
 from il2ks.core.replay.result import SortieResult
-from il2ks.db.models import BuildKind, Player, PlayerAircraftBuild, SiteSettings, Tour
+from il2ks.db.models import BuildKind, Player, PlayerAircraftBuild, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.ops import migrate
 from il2ks.queries.builds import player_builds
 from tests.factories import STARTED_AT, account, meta, mission, rows, save, sortie
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
@@ -153,15 +149,3 @@ def test_rebuild_drops_leftover_mod_and_ammo_rows() -> None:
     assert [{k: v for k, v in r.items() if k != "id"} for r in rows(PlayerAircraftBuild)] == [
         {k: v for k, v in r.items() if k != "id"} for r in good
     ]
-
-
-def test_upgrade_backfill_builds_the_loadouts_of_an_old_database() -> None:
-    seed()
-    expected = [{k: v for k, v in r.items() if k != "id"} for r in rows(PlayerAircraftBuild)]
-    PlayerAircraftBuild.objects.all().delete()
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-    migrate._run_backfills(cfg, [migrate.BACKFILL_BUILDS])  # pyright: ignore[reportPrivateUsage]
-
-    assert [{k: v for k, v in r.items() if k != "id"} for r in rows(PlayerAircraftBuild)] == expected

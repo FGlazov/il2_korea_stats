@@ -230,7 +230,7 @@ def rebuild_aggregates(
     streaks and medals and the all-time roll-ups, the aircraft types, the hits to destroy), the medal holder counts and
     the stat thresholds (FR-WEB-22).
 
-    `tours` (the `[tours]` rules) first gives a tour to missions that have none (a database from before tours existed).
+    `tours` (the `[tours]` rules) first gives a tour to missions that have none.
     With `reassign_tours` it moves every mission to the tour it belongs to under these rules (`--retour`, after a mode,
     start or timezone change).
 
@@ -245,7 +245,7 @@ def rebuild_aggregates(
         assign_missing(tours)
     score = with_flight_score(score, adopt_wanted_flight_score())  # the admin's flight-time option
     rebuild_sortie_scores(score)
-    refresh_player_missions()  # also after a level-1 column was filled by a backfill (the interception counters)
+    refresh_player_missions()
     refresh_tours(None, ratings)  # every tour, and whatever has none: rows, Elo replay, streaks and medals, roll-ups
     recompute_holders()  # once, after the medal rows are final
     recompute_thresholds(marks)

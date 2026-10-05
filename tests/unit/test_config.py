@@ -268,18 +268,3 @@ def test_live_interval_must_be_a_positive_number(tmp_path: Path, value: str) -> 
     env = {"IL2KS_DATA_DIR": str(tmp_path / "data"), "IL2KS_LIVE_INTERVAL_S": value}
     with pytest.raises(ConfigError, match=r"live\.interval_s"):
         load_config(None, env)
-
-
-def test_old_score_penalty_keys_are_warned_about_not_silently_ignored(tmp_path: Path) -> None:
-    """`penalty_death` / `penalty_plane_lost` / `penalty_capture` were replaced by `*_pct`: an owner who still has the
-    old names must hear that they do nothing."""
-    env = {"IL2KS_DATA_DIR": str(tmp_path / "d")}
-    assert load_config(None, env).warnings == ()
-    file = write_toml(tmp_path / "il2ks.toml", "[score]\npenalty_death = 10\npenalty_capture_pct = 40\n")
-    cfg = load_config(file, env)
-    assert len(cfg.warnings) == 1
-    assert "score.penalty_death is ignored" in cfg.warnings[0]
-    assert "score.penalty_death_pct" in cfg.warnings[0]
-    assert cfg.score.penalty_death_pct == ScoreRules().penalty_death_pct
-    via_env = load_config(None, {**env, "IL2KS_SCORE_PENALTY_PLANE_LOST": "5"})
-    assert "score.penalty_plane_lost is ignored" in via_env.warnings[0]

@@ -6,8 +6,6 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from django.core import management
-from django.db.migrations.executor import MigrationExecutor
 
 from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, ScoreRules
 from il2ks.db.models import (
@@ -22,9 +20,8 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.reprocess import rebuild_all
 from il2ks.ingest.scoring import FACT_COLUMNS, facts_of
-from il2ks.ops.migrate import _check_payload_names, migrate_if_needed  # pyright: ignore[reportPrivateUsage]
 from tests.factories import STARTED_AT, account, meta, mission, rows, save, sortie
-from tests.ops_helpers import make_instance, recording, returning
+from tests.ops_helpers import make_instance
 
 pytestmark = pytest.mark.django_db
 
@@ -173,24 +170,6 @@ def test_the_score_reads_only_the_listed_columns() -> None:
     assert facts.kills_ground == dict.fromkeys(facts.kills_ground, 0)
 
 
-def test_migrating_a_database_from_before_scores_scores_the_old_sorties(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """After the schema update (new columns all 0), existing sorties get their scores under the configured rules."""
-    seed()
-    _check_payload_names()  # the upgrade also renames the (fake) loadouts: keep that out of the comparison
-    expected = _comparable()
-    PlayerSortie.objects.update(air_points=0.0, ground_points=0.0)
-    for table in (Player, PlayerMission, PlayerAircraft, PlayerTour, PlayerTourAircraft):
-        table.objects.update(score_air=0.0, score_ground=0.0, score_ground_attack=0.0)
-    monkeypatch.setattr(MigrationExecutor, "migration_plan", returning([("fake", False)]))
-    monkeypatch.setattr(management, "call_command", recording([], "migrate"))
-
-    migrate_if_needed(make_instance(tmp_path), "ingest", wait=None)
-
-    assert _comparable() == expected
-
-
 def test_the_score_config_reaches_save_and_rebuild_through_the_pipeline(tmp_path: Path) -> None:
     """`[score]` values flow from the config file into `rebuild_all` (`il2ks rebuild-aggregates`)."""
     cfg = make_instance(tmp_path, extra_toml="[score]\nair_kill_pvp = 50\n")
@@ -201,13 +180,12 @@ def test_the_score_config_reaches_save_and_rebuild_through_the_pipeline(tmp_path
     assert sortie_score(1)[0] == (50 * 2 + 2 + 3) * 0.2
 
 
-def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Both backfills go through one helper that hands every config section to `rebuild_aggregates`."""
+def test_the_catalog_refresh_passes_every_configured_section(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The catalog refresh goes through one helper that hands every config section to `rebuild_aggregates`."""
     import il2ks.ingest.aggregates as aggregates
     from il2ks.ops import migrate
 
     seed()
-    PlayerSortie.objects.update(air_points=0.0, ground_points=0.0)
     cfg = make_instance(tmp_path, extra_toml="[marks]\nmin_sorties = 7\n")
     calls: list[dict[str, object]] = []
 
@@ -216,7 +194,7 @@ def test_the_migration_backfills_pass_every_configured_section(tmp_path: Path, m
 
     monkeypatch.setattr(aggregates, "rebuild_aggregates", fake)
 
-    migrate._run_backfills(cfg, [migrate.BACKFILL_SCORES])  # pyright: ignore[reportPrivateUsage]
+    migrate.refresh_for_catalog_change(cfg)
 
     assert calls == [{"marks": cfg.marks, "score": cfg.score, "board": cfg.board}]
     assert cfg.marks.min_sorties == 7

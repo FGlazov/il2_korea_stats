@@ -5,14 +5,11 @@ tour rows, and a rebuild changes nothing. Tours are monthly (the default): Sep, 
 The steps: missions in three tours, a player who skips a tour, a gunner-only player, a name change, a late import into
 an old tour, a re-ingest that moves a mission to another tour, and one that drops a player."""
 
-import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
-from pathlib import Path
 
 import pytest
 
-from il2ks.config import Config
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.replay.result import CombatRole, KillResult, Role, SortieResult
 from il2ks.db.models import (
@@ -28,18 +25,15 @@ from il2ks.db.models import (
     PlayerTour,
     PlayerTourAircraft,
     PlayerTourKillboard,
-    PlayerTourName,
     PlayerTourPool,
     PlayerTypeKillboard,
-    SiteSettings,
     Tour,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates, refresh_tours
 from il2ks.ingest.counters import COUNTER_FIELDS
-from il2ks.ops import migrate
 from tests import level1_oracle as oracle
 from tests.db_canon import canonical_dump, diff_dumps
-from tests.factories import kill, meta, mission, rows, save, sortie
+from tests.factories import kill, meta, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
 
@@ -264,7 +258,7 @@ def test_rebuild_gives_every_mission_a_tour_whatever_rules_it_is_called_with() -
     _history()
     before = canonical_dump()
     Mission.objects.update(tour=None)
-    PlayerSortie.objects.update(tour=None)  # a legacy database: the sorties had no tour either
+    PlayerSortie.objects.update(tour=None)  # the sorties had no tour either
     PlayerTour.objects.all().delete()
 
     rebuild_aggregates()  # no [tours] rules given: the defaults apply
@@ -272,21 +266,3 @@ def test_rebuild_gives_every_mission_a_tour_whatever_rules_it_is_called_with() -
     assert not Mission.objects.filter(tour__isnull=True).exists()
     assert diff_dumps(before, canonical_dump()) == []
     check("after a rebuild without tours")
-
-
-def _identity_rows() -> list[str]:
-    return sorted(repr({k: v for k, v in r.items() if k != "id"}) for r in rows(PlayerTourName))
-
-
-def test_upgrade_backfill_builds_the_tour_identity_of_an_old_database() -> None:
-    _history()
-    expected = _identity_rows()
-    assert expected
-    PlayerTourName.objects.all().delete()
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-    migrate._run_backfills(cfg, [migrate.BACKFILL_PLAYER_ROLLUP])  # pyright: ignore[reportPrivateUsage]
-
-    assert _identity_rows() == expected
-    check("after the upgrade backfill")

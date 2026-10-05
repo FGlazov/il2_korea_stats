@@ -1,17 +1,15 @@
-"""Achievements / medals (FR-WEB-26, doc 17): ingest rows, incremental == rebuild, the upgrade backfill, the pages."""
+"""Achievements / medals (FR-WEB-26, doc 17): ingest rows, incremental == rebuild, the pages."""
 
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.template import Context
 from django.test import Client
 
-from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, SiteSettings, Tour
+from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, Tour
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
-from tests.ops_helpers import make_instance
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
 pytestmark = pytest.mark.django_db
@@ -142,32 +140,6 @@ def test_holders_count_visible_players_only() -> None:
     assert AchievementHolders.objects.get(tour=None, key="tank_buster", tier=1).holders == 1
     assert not AchievementHolders.objects.filter(tour=None, key="life_kills").exists()
     assert PlayerAchievement.objects.filter(player_id=pk(1), key="ground_sortie").exists()  # only presentation hides
-
-
-def test_the_upgrade_backfill_fills_an_old_database_once(tmp_path: Path) -> None:
-    from il2ks.ops import migrate
-
-    seed()
-    good = snapshot()
-    PlayerAchievement.objects.all().delete()
-    AchievementHolders.objects.all().delete()
-
-    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
-
-    assert snapshot() == good
-    assert migrate.BACKFILL_ACHIEVEMENTS in SiteSettings.objects.get(pk=1).backfills_done
-    PlayerAchievement.objects.all().delete()
-    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
-    assert not PlayerAchievement.objects.exists()  # marked done: not repeated
-    assert make_instance(tmp_path)
-
-
-def test_the_backfill_marks_an_empty_database_without_work() -> None:
-    from il2ks.ops import migrate
-
-    migrate._backfill_achievements()  # pyright: ignore[reportPrivateUsage]
-
-    assert migrate.BACKFILL_ACHIEVEMENTS in SiteSettings.objects.get(pk=1).backfills_done
 
 
 # --- pages ----------------------------------------------------------------------------------------------------------
@@ -442,22 +414,6 @@ def test_hall_of_shame_entries_stay_out_of_the_feed_and_the_medal_row(monkeypatc
     shame_part = profile[profile.index('class="shame"') :]
     assert "Target-Rich" in shame_part
     assert profile.index("Target-Rich") > profile.index('class="shame"')  # not in the medal row above it
-
-
-def test_the_upgrade_backfill_adds_the_tour_rows_once() -> None:
-    from il2ks.ops import migrate
-
-    seed_two_tours()
-    good = snapshot()
-    PlayerAchievement.objects.filter(tour__isnull=False).delete()
-    AchievementHolders.objects.filter(tour__isnull=False).delete()
-    AchievementHolders.objects.update(pilots=0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[migrate.BACKFILL_ACHIEVEMENTS])
-
-    migrate._backfill_achievement_tours()  # pyright: ignore[reportPrivateUsage]
-
-    assert snapshot() == good
-    assert migrate.BACKFILL_ACHIEVEMENT_TOURS in SiteSettings.objects.get(pk=1).backfills_done
 
 
 def test_the_home_feed_leaves_out_every_tier_a_fifth_of_the_pilots_hold() -> None:

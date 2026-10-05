@@ -2,16 +2,12 @@
 only, the profile and the sortie page show them apart, an upgraded database derives the split from the timelines."""
 
 import re
-import uuid
-from pathlib import Path
 
 import pytest
 from django.test import Client
 
-from il2ks.config import Config
 from il2ks.core.ratings.score import DEFAULT_SCORE_RULES
-from il2ks.db.models import GameObject, Player, PlayerSortie, SiteSettings
-from il2ks.ops import migrate
+from il2ks.db.models import Player, PlayerSortie
 from tests.factories import account, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
@@ -68,35 +64,3 @@ def test_the_optional_columns_show_both_kinds(client: Client) -> None:
 
     assert "Air assists" in html
     assert "Ground assists" in html
-
-
-def test_the_backfill_derives_the_split_from_the_timelines_and_rebuilds_level_2() -> None:
-    save(mission((sortie(0, 1, assists=4), sortie(1, 2), sortie(2, 3, assists=1))))
-    GameObject.objects.update_or_create(log_name="B-29", defaults={"display_name": "B-29", "cls": "bomber"})
-    GameObject.objects.update_or_create(log_name="M46 Patton", defaults={"display_name": "M46", "cls": "tank"})
-    helper = PlayerSortie.objects.get(name_at_time="Player-2")
-    mixed = PlayerSortie.objects.get(name_at_time="Player-1")
-    mixed.timeline = [
-        {"kind": "assist", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-        {"kind": "assist", "counterpart": {"object_type": "MiG-15bis", "sortie_id": helper.pk, "coalition": 1}},
-        {"kind": "assist", "counterpart": {"object_type": "M46 Patton", "sortie_id": None, "coalition": 1}},
-        {"kind": "assist", "counterpart": {"object_type": "M46 Patton", "sortie_id": None, "coalition": 1}},
-        {"kind": "kill", "counterpart": {"object_type": "B-29", "sortie_id": None, "coalition": 1}},
-    ]
-    mixed.save(update_fields=["timeline"])
-    lost = PlayerSortie.objects.get(name_at_time="Player-3")  # a timeline that lost its entry: the rest is ground
-    PlayerSortie.objects.update(assists_air=0, assists_ground=0)
-    Player.objects.update(assists_air=0, assists_ground=0, score_air=99.0)
-    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
-    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
-
-    migrate._run_backfills(cfg, [migrate.BACKFILL_ASSIST_SPLIT])  # pyright: ignore[reportPrivateUsage]
-
-    mixed.refresh_from_db()
-    lost.refresh_from_db()
-    assert (mixed.assists_air, mixed.assists_ground) == (2, 2)
-    assert (lost.assists_air, lost.assists_ground) == (0, 1)
-    player = Player.objects.get(account_uuid=account(1))
-    assert (player.assists_air, player.assists_ground) == (2, 2)
-    assert player.score_air == 2 * DEFAULT_SCORE_RULES.air_assist
-    assert migrate._already_done(migrate.BACKFILL_ASSIST_SPLIT)  # pyright: ignore[reportPrivateUsage]

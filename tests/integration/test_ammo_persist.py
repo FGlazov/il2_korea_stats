@@ -1,7 +1,6 @@
 """The ammo breakdown in the database (FR-WEB-18): the sortie JSON, hits to destroy, and the reads for the pages."""
 
 from dataclasses import replace
-from pathlib import Path
 from typing import cast
 
 import pytest
@@ -19,16 +18,12 @@ from il2ks.db.models import (
     AircraftAmmoStats,
     GameObject,
     MissionAircraftAmmo,
-    MissionAircraftAmmoMix,
     PlayerSortie,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import aircraft_ammo_totals
-from il2ks.ops.checks import ammo_mix_check
-from il2ks.ops.doctor import Level
 from il2ks.queries.ammo import aircraft_ammo, all_aircraft_ammo, ordnance_name, parse_sortie_ammo, sortie_ammo_by_pk
 from tests.factories import meta, mission, save, sortie
-from tests.ops_helpers import make_instance
 
 pytestmark = pytest.mark.django_db
 
@@ -206,33 +201,6 @@ def test_a_rebuild_drops_level_2_rows_without_level_1_rows() -> None:
     MissionAircraftAmmo.objects.all().delete()
     rebuild_aggregates()
     assert stats() == {}
-
-
-def test_doctor_warns_when_ammo_rows_have_no_mixes_and_is_quiet_otherwise(tmp_path: Path) -> None:
-    """A pre-mix database (ammo rows, no `MissionAircraftAmmoMix`) is told to run `il2ks reprocess --all`."""
-    cfg = make_instance(tmp_path)
-    assert list(ammo_mix_check(cfg)) == []  # nothing ingested
-    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 4),))))
-    assert list(ammo_mix_check(cfg)) == []  # the new ingest wrote its mixes
-
-    MissionAircraftAmmoMix.objects.all().delete()
-    findings = list(ammo_mix_check(cfg))
-    assert [f.level for f in findings] == [Level.WARN]
-    assert "il2ks reprocess --all" in findings[0].fix
-
-
-def test_doctor_checks_each_mission_for_mixes_and_ignores_kills_without_gun_hits(tmp_path: Path) -> None:
-    """An old mission without mixes keeps warning after a new mission is ingested; kills with no gun hits (no mix rows
-    by design) never warn."""
-    cfg = make_instance(tmp_path)
-    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ())), meta("nohits"))  # a kill, no gun hit
-    assert list(ammo_mix_check(cfg)) == []
-
-    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 4),))), meta("old"))
-    MissionAircraftAmmoMix.objects.filter(mission__mission_uid="old").delete()  # that mission predates the mixes
-    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 2),))), meta("new"))
-
-    assert [f.level for f in ammo_mix_check(cfg)] == [Level.WARN]
 
 
 # --- the reads for the aircraft page --------------------------------------------------------------------------------

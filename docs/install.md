@@ -242,7 +242,7 @@ a running il2ks can fail.)
 Database migrations run by themselves at start, after an automatic backup, and so does filling in what a new version needs
 from your existing data (a few minutes on a big database). Your data folder (database, logs, `custom/`) is untouched.
 
-After an upgrade run `il2ks doctor`: it tells you about ignored settings and if a template you customized has changed
+After an upgrade run `il2ks doctor`: it tells you if a template you customized has changed
 ([customizing.md](customizing.md)).
 
 Old missions are **not** recalculated by themselves. If the release notes say a rule or score changed, run

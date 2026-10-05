@@ -3,7 +3,6 @@ sides from country codes (D5), crew/equipment classes (D6), friendly fire counte
 
 from dataclasses import replace
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from django.db import IntegrityError, transaction
@@ -311,16 +310,15 @@ def test_one_aircraft_row_whatever_case_the_log_writes() -> None:
     assert objects["Il-10"].pk == objects["IL-10"].pk == again["Il-10"].pk
 
 
-def test_the_upgrade_merges_aircraft_rows_that_differ_only_in_case(tmp_path: Path) -> None:
+def test_the_upgrade_merges_aircraft_rows_that_differ_only_in_case() -> None:
     from il2ks.db.models import PlayerSortie
     from il2ks.ops import migrate
-    from tests.ops_helpers import make_instance
 
     save(mission((sortie(0, 1, aircraft_type="IL-10"),)))
     dup = GameObject.objects.create(log_name="Il-10", display_name="Il-10", cls="attacker", is_playable=True)
-    PlayerSortie.objects.update(aircraft=dup)  # as an old database: the sortie sits on the odd spelling
+    PlayerSortie.objects.update(aircraft=dup)  # as a changed alias file leaves it: the odd spelling
 
-    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_AIRCRAFT_CASE])  # pyright: ignore[reportPrivateUsage]
+    migrate._merge_alias_duplicates()  # pyright: ignore[reportPrivateUsage]
 
     assert list(GameObject.objects.values_list("log_name", flat=True)) == ["IL-10"]
     assert PlayerSortie.objects.get().aircraft.log_name == "IL-10"
@@ -336,16 +334,15 @@ def test_b_29_with_a_space_is_the_same_aircraft_as_b_29() -> None:
     assert objects["B 29"].pk == objects["B-29"].pk
 
 
-def test_the_upgrade_merges_a_b_29_row_written_with_a_space(tmp_path: Path) -> None:
+def test_the_upgrade_merges_a_b_29_row_written_with_a_space() -> None:
     from il2ks.db.models import PlayerSortie
     from il2ks.ops import migrate
-    from tests.ops_helpers import make_instance
 
     save(mission((sortie(0, 1, aircraft_type="B-29"),)))
     dup = GameObject.objects.create(log_name="B 29", display_name="B-29", cls="bomber")
-    PlayerSortie.objects.update(aircraft=dup)  # as an old database: the sortie sits on the spaced spelling
+    PlayerSortie.objects.update(aircraft=dup)  # as a changed alias file leaves it: the spaced spelling
 
-    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_AIRCRAFT_ALIASES])  # pyright: ignore[reportPrivateUsage]
+    migrate._merge_alias_duplicates()  # pyright: ignore[reportPrivateUsage]
 
     assert list(GameObject.objects.values_list("log_name", flat=True)) == ["B-29"]
     assert PlayerSortie.objects.get().aircraft.log_name == "B-29"

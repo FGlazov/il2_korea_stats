@@ -5,7 +5,6 @@ superiority), hidden players (counted, never named), and the pages with their qu
 
 from dataclasses import replace
 from datetime import UTC, datetime
-from pathlib import Path
 
 import pytest
 from django.db import models
@@ -20,7 +19,6 @@ from il2ks.queries.aircraft import MIN_ENCOUNTERS, MatchupTable
 from il2ks.web.column_hints import HINTS
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.integration.test_killboard_streaks import duel_mission
-from tests.ops_helpers import make_instance
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
@@ -362,17 +360,3 @@ def test_aircraft_page_budget_with_the_matchup_scopes(client: Client) -> None:
     assert_simple_reads(client, url, max_queries=11)  # 9 + the current tour's tiles + the mods table
 
     assert_simple_reads(client, url + "?tour=all&intercept=1&sort=-ratio", max_queries=10)
-
-
-def test_the_migration_backfill_builds_the_type_rows_of_an_old_database(tmp_path: Path) -> None:
-    """A database from before the type killboard has only the all-time all-kills matchups: a rebuild fills the rest."""
-    from il2ks.ops import migrate
-
-    save(duels([(SABRE, 2, 1)]), meta("m1", STARTED_AT))
-    good = snapshot()
-    PlayerTypeKillboard.objects.all().delete()
-    AircraftMatchup.objects.exclude(tour=None, intercept=False).delete()
-
-    migrate._run_backfills(make_instance(tmp_path), [migrate.BACKFILL_TYPE_KILLBOARD])  # pyright: ignore[reportPrivateUsage]
-
-    assert snapshot() == good

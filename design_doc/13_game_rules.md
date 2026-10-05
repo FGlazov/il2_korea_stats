@@ -427,8 +427,6 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
   not count. Board minimum: `[score] min_air_superiority_sorties` (5) and `min_air_superiority_minutes` (60).
 - **Tank busting** = **tanks destroyed in attack sorties per hour on target** (`kills_tank_attack` / `time_on_target_s`). A tank is a ground kill of
   category `tank` (static or moving); only attack sorties count (maintainer, OQ-103, as built). Board minimum: the ground-per-hour minimums (`min_attack_sorties` 5, `min_time_on_target_minutes` 10).
-- Upgraded databases: `ops/migrate.py::_backfill_interception` derives `kills_air_intercept` once from the stored sortie timelines (victim types and
-  victim sortie roles), then rebuilds level 2 (marker `interception` in `SiteSettings.backfills_done`); `il2ks reprocess` gives the same.
 
 **Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` **per tour**, doc 14; "a new tour is a clean slate", maintainer 2026-10-05, OQ-128):
 - A **game** = one PvP kill credit (not an assist, not friendly) where killer and victim are both pilot sorties with role `air_superiority`.
@@ -482,7 +480,7 @@ Pure function `score_sortie` in `core/ratings/score.py`, per pilot sortie (gunne
 and summed into `score_air` / `score_ground` / `score_ground_attack` (doc 06). Everything comes from stored sortie columns, the `[score]`
 section and the admin's flight-time option, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess. Air and ground score are never combined (OQ-62).
 - **Points**: per air kill (PvP aircraft more than an AI one), per assist, and one value per ground-kill category (fences worth very little).
-- **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone; a config that still sets them gets a warning at load (shown by `il2ks doctor`) and the new defaults, maintainer, OQ-100): **death 80%,
+- **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone; maintainer, OQ-100): **death 80%,
   capture 50%, aircraft lost without death or capture 20%**. The percentage comes off **both** the air and the ground score, only from a
   positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
   Maintainer, 2026-10-05: percentage outcome penalties never improve a negative score: a negative score is left as is. This holds because the
@@ -536,7 +534,7 @@ tier of the sortie's tour and of all time (the tour on a tie) and the tooltip sa
   makes the sortie unknown).
 - Samples (210 missions): 66% of took-off sorties have known rounds (2,299 "left" after a loss, 1,354 no AType 4, 201 resupplied);
   overall 6.3%, air 2.8%, ground 7.0% (2.4% without statics); about half of the sorties that fired hit nothing, so accuracy is meaningful
-  aggregated, not per sortie. Upgraded databases get the figures from the stored ammo JSON (`accuracy` backfill); `il2ks reprocess` gives
+  aggregated, not per sortie. `il2ks reprocess` gives
   the exact values.
 
 ## Rule toggles (`[rules]`, as built 2026-10-04, OQ-61)
@@ -588,7 +586,7 @@ is **air kills plus ground kills** `[PROPOSED]`. The medals still read the two r
   when the best such run has at least one kill of that kind. The current streak of a track is the run after its last broken sortie; the all-time rows
   are rolled up from the tour rows (best = max over the tours, runs = union), the current one is the run in the newest tour.
 - The history lists the runs of at least `MIN_LISTED_RUN` (2) survived sorties of one track (`?track=all|air|ground`, default all, OQ-82).
-- **Upgrade**: migration `0101_streak_all_track` allows `track = all` and `kind = kills`; the backfill marker `streak_all` (`ops/migrate.py`) rebuilds level 2 once, in the same rebuild as the other markers (FR-OPS-3).
+- **Upgrade**: migration `0101_streak_all_track` allows `track = all` and `kind = kills`.
 - **Achievements** (doc 17): `life_kills` (Charmed Life) is the **air** life: air kills of the air-track sorties since the last air-track death
   or capture (attack sorties neither add to it nor end it) `[PROPOSED]`; `survivor` (Ironman medal) reads the **better of the two tracks'** survived
   runs `[PROPOSED]`; `landing_streak` stays a landing skill over every sortie (it is not an ironman run).

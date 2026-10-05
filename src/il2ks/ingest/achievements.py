@@ -425,8 +425,8 @@ def recompute_holders() -> None:
 
 
 def rebuild_achievements(rules: Rules | None = None) -> None:
-    """Recompute every player's medals and the holder counts (the upgrade backfill; `rebuild_aggregates` does the same
-    through `recompute_players`), with `rules` (default: the applied ones)."""
+    """Recompute every player's medals and the holder counts (`rebuild_aggregates` does the same through
+    `recompute_players`), with `rules` (default: the applied ones)."""
     ids = sorted(Player.objects.values_list("pk", flat=True))
     for start in range(0, len(ids), CHUNK):
         recompute_achievements(ids[start : start + CHUNK], rules=rules)

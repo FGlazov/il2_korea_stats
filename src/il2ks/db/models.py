@@ -560,8 +560,7 @@ class PlayerSortie(models.Model):
     # The most damage carried into a landing, a repaired one included (damage_taken is the last leg only); the
     # damaged-landing medal and the "limped home" quips read this.
     landing_damage = models.FloatField(default=0.0)
-    # Pilot (gunner) damage, 1.0 when dead; health = 1 - this. NULL = unknown (sorties from before migration 0050 that
-    # did not die: `reprocess --all` fills it).
+    # Pilot (gunner) damage, 1.0 when dead; health = 1 - this. NULL = unknown (`reprocess --all` fills it).
     pilot_damage = models.FloatField(null=True, default=None)
     disconnected = models.BooleanField(default=False)
     is_death = models.BooleanField(default=False)
@@ -1610,7 +1609,7 @@ class AchievementHolders(models.Model):
     Level 2, rewritten whole by `ingest.achievements.recompute_holders` after the player rows, and when an admin hides
     or shows a player. A row exists per tier somebody holds. `pilots` is the scope's denominator, the same on every row
     of a scope: visible players with at least one counted pilot sortie in it (`[PROPOSED]`, doc 17); the rarity is
-    `holders / pilots`. 0 on rows from before it existed (until the upgrade backfill rewrites them)."""
+    `holders / pilots`."""
 
     tour_id: int | None
 
@@ -1892,9 +1891,9 @@ class SiteSettings(models.Model):
     # `ingest.tours`: a retour). They differ while a re-assignment is pending, like the achievements' pair.
     tour_on_win = models.BooleanField(default=False)
     tour_on_win_applied = models.BooleanField(default=False)
-    # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
-    # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
-    backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)
+    # Not branding either: the hash of the shipped catalog files the stored rows were last brought in line with
+    # (`ops.migrate.catalog_fingerprint`); empty on a new database. A different hash at start = a catalog change.
+    catalog_fingerprint = models.CharField(max_length=16, blank=True, default="")
     # A batched level-2 run (`ingest.batch`) is under way: `{"since": ISO time, "command": "ingest", "pid": N}`, empty =
     # none. Set when the batch starts, cleared when its last level-2 pass or any rebuild committed. Still set at
     # the next run = killed mid-batch (level 2 lags level 1): that run rebuilds first, and `doctor` warns.
