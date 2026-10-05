@@ -235,12 +235,12 @@ def test_the_home_page_has_no_feature_by_default(client: Client, media_root: Pat
     assert "home-feature" not in client.get("/").content.decode()
 
 
-def test_the_home_page_shows_the_image_first(client: Client, source_file: Path, media_root: Path) -> None:
+def test_the_home_page_shows_the_image_below_the_hero(client: Client, source_file: Path, media_root: Path) -> None:
     enable(source_file)
     sync()
     html = client.get("/").content.decode()
     row = SiteSettings.objects.get(pk=1)
-    assert html.index("home-feature") < html.index('class="hero"')
+    assert html.index('class="hero"') < html.index('class="home-feature"')  # search and tour selection above the image
     assert f'src="/media/{row.feature_image}"' in html
     assert f"/media/{row.feature_image_small} 960w" in html
     assert 'alt="Map of the front line"' in html

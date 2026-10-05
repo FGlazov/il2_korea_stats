@@ -99,7 +99,7 @@ folder: same user ID as the owner, or `chmod o+w`. Rootless Docker and Podman ma
 
 ## A map or other image for the front page
 
-The admin can show a large image first on the front page (Site settings, Front page image) read from a file path. In a
+The admin can show a large image on the front page (Site settings, Front page image) read from a file path. In a
 container that path is **inside the container**: mount the file (or its folder) as an extra volume in your compose file,
 read-only is enough, and enter the container's path in the admin. The container user (1000:1000, see above) must be able
 to read it. See [customizing.md](customizing.md#a-large-image-on-the-front-page).

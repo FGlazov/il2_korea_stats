@@ -507,8 +507,10 @@ msgstr ""
 "masquage ne change rien : %(key)s"
 
 # llm-draft
-msgid "A large image, for example a map of the current situation, shown first on the front page."
-msgstr "Une grande image, par exemple une carte de la situation en cours, affichée en premier sur la page d'accueil."
+msgid "A large image, for example a map of the current situation, shown on the front page below the title and player search."
+msgstr ""
+"Une grande image, par exemple une carte de la situation en cours, affichée sur la page d'accueil sous le titre et la "
+"recherche de joueur."
 
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."

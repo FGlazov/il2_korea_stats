@@ -505,8 +505,10 @@ msgstr ""
 "efecto: %(key)s"
 
 # llm-draft
-msgid "A large image, for example a map of the current situation, shown first on the front page."
-msgstr "Una imagen grande, por ejemplo un mapa de la situación actual, que se muestra al principio de la página de inicio."
+msgid "A large image, for example a map of the current situation, shown on the front page below the title and player search."
+msgstr ""
+"Una imagen grande, por ejemplo un mapa de la situación actual, que se muestra en la página de inicio debajo del "
+"título y la búsqueda de jugadores."
 
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."

@@ -1,5 +1,6 @@
-"""The large front-page image (FR-ADM-2): dominant and first on the page, scales on phones, light and dark, picks up a
-changed source file by polling within seconds, and with it off the home page is as before.
+"""The large front-page image (FR-ADM-2): dominant, right below the hero (maintainer 2026-10-05: search and tour
+selection above the image), scales on phones, light and dark, picks up a changed source file by polling within seconds,
+and with it off the home page is as before.
 
 Screenshots go to `IL2KS_FEATURE_SHOTS` (default `<tmp>/il2ks-feature-image`; never committed).
 """
@@ -78,7 +79,7 @@ def test_the_image_dominates_the_front_page(
     assert box is not None
     assert hero is not None
     assert main is not None
-    assert box["y"] < hero["y"], "the image comes before the hero"
+    assert hero["y"] + hero["height"] <= box["y"], "the hero (search, tour selection) comes before the image"
     assert box["width"] >= min(main["width"] * 0.85, 1000), "the image spans the container"
     assert box["height"] <= height * 0.76, "never taller than most of a screen"
     assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") <= 0

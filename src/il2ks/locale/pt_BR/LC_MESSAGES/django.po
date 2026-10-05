@@ -504,8 +504,10 @@ msgstr ""
 "nada: %(key)s"
 
 # llm-draft
-msgid "A large image, for example a map of the current situation, shown first on the front page."
-msgstr "Uma imagem grande, por exemplo um mapa da situação atual, mostrada no topo da página inicial."
+msgid "A large image, for example a map of the current situation, shown on the front page below the title and player search."
+msgstr ""
+"Uma imagem grande, por exemplo um mapa da situação atual, mostrada na página inicial abaixo do título e da busca de "
+"jogadores."
 
 # llm-draft
 msgid "A long day at the office. The fuel gauge is full of respect."

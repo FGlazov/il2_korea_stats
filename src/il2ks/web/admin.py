@@ -209,7 +209,8 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             {
                 "fields": ("home_feature", "feature_image_path", "feature_caption", "feature_alt", "feature_status"),
                 "description": _(
-                    "A large image, for example a map of the current situation, shown first on the front page."
+                    "A large image, for example a map of the current situation, shown on the front page below the "
+                    "title and player search."
                 ),
             },
         ),

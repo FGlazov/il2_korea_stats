@@ -118,8 +118,9 @@ are scaled down to 2560 pixels wide). Without an upload nothing changes: the bui
 
 ### A large image on the front page
 
-Under **Front page image** you can show a large picture first on the front page, for example a **map of the current
-situation** that another program regenerates. It is **off by default** (the front page then looks as before).
+Under **Front page image** you can show a large picture on the front page, right below the title and player search, for
+example a **map of the current situation** that another program regenerates. It is **off by default** (the front page then
+looks as before).
 
 - **Image file on the server**: the full path of a PNG, JPEG or WebP file on the machine that runs il2ks (a relative
   path starts in the data folder). il2ks looks at the file's modification time and size every few seconds (this works on
