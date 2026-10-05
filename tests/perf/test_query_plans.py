@@ -145,7 +145,7 @@ def test_the_sortie_list_of_the_current_tour_walks_the_tour_index(client: Client
     (the tour lives on the sortie row, `PlayerSortie.tour`)."""
     if connection.vendor != "sqlite":
         pytest.skip(
-            "names the SQLite index; Postgres plans the seeded world by its statistics (the generic plan rules above apply)"
+            "names the SQLite index; Postgres plans the seeded world by its statistics (the generic rules apply)"
         )
     _, statements = capture(lambda: client.get("/sorties/"))
     plans = {s.sql: qp.explain(s) for s in statements if "il2ks_db_playersortie" in s.sql}
