@@ -26,6 +26,7 @@ from functools import cache
 from typing import Final
 
 from django.db.models import F, Q, QuerySet
+from django.utils.translation import get_language
 
 from il2ks.config import LeaderboardConfig
 from il2ks.core.catalog.loader import (
@@ -145,15 +146,21 @@ MOD_STATES: Final[Mapping[str, str]] = {"any": MOD_ANY, "with": MOD_WITH, "witho
 
 
 def significant_mods(aircraft: GameObject) -> tuple[SignificantMod, ...]:
-    """The type's significant modifications, by id; empty for most types (no filter is offered then)."""
-    return tuple(SignificantMod(m.mod_id, m.name) for m in _catalog().significant_mods(aircraft.log_name))
+    """The type's significant modifications, by id, named in the active language (TD-24); empty for most types (no
+    filter is offered then)."""
+    language = get_language() or "en"
+    return tuple(
+        SignificantMod(m.mod_id, _catalog().translated_mod_name(m.name, language))
+        for m in _catalog().significant_mods(aircraft.log_name)
+    )
 
 
 def mod_names(log_name: str, weapon_mods: int) -> tuple[str, ...]:
     """The names of the modifications a `WM` bitmask selects for the aircraft type with this log name, by id (the
-    catalog's name; an id it doesn't know shows as `#id`); empty = no modification."""
+    catalog's name in the active language, TD-24; an id it doesn't know shows as `#id`); empty = no modification."""
     return tuple(
-        name if name is not None else f"#{mod_id}" for mod_id, name in _catalog().weapon_mods(log_name, weapon_mods)
+        name if name is not None else f"#{mod_id}"
+        for mod_id, name in _catalog().weapon_mods(log_name, weapon_mods, get_language() or "en")
     )
 
 
