@@ -290,4 +290,4 @@ def test_the_french_medal_hint_has_a_no_break_space_before_the_colon() -> None:
     starting the next."""
     message = translations.read_catalog("fr").get("%(tier)s: %(threshold)s.")
     assert message is not None
-    assert message.string == "%(tier)s : %(threshold)s."
+    assert message.string == "%(tier)s\u00a0: %(threshold)s."

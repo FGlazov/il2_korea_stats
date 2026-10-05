@@ -207,7 +207,10 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         raise Http404
     choice = tour_choice_from(request.GET)
     role = reads.parse_role(request.GET.get(reads.ROLE_PARAM))
-    intercept = request.GET.get(INTERCEPT_PARAM) == "1"
+    # An intercept fight is air superiority against air superiority: with the attack role its table is always empty, so
+    # the toggle is not offered (`can_intercept`) and a stale `?intercept=1` is ignored.
+    can_intercept = role != AircraftRole.ATTACK
+    intercept = can_intercept and request.GET.get(INTERCEPT_PARAM) == "1"
     matchup_sort = resolve_sort(
         request.GET.get("sort", ""), dict.fromkeys(reads.MATCHUP_SORTS, ""), reads.DEFAULT_MATCHUP_SORT
     )
@@ -244,6 +247,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "scoped": not reads.is_alltime_scope(choice.selected, role, mod_pattern),
         "sort": matchup_sort,
         "intercept": intercept,
+        "can_intercept": can_intercept,
         "min_encounters": reads.MIN_ENCOUNTERS,
         "all_fights_url": _query_url(request, intercept=False),
         "intercept_url": _query_url(request, intercept=True),

@@ -283,7 +283,8 @@ def test_matchups_follow_the_role_of_this_aircrafts_sortie_and_combine_with_inte
     assert exchange("&role=air_superiority") == [(1, 1)]  # the MiG's air sortie won once, its October air sortie lost
     assert exchange("&role=attack") == [(0, 1)]  # an attack sortie of the MiG was shot down; none of them killed
     assert exchange("&role=air_superiority&intercept=1") == [(1, 1)]  # both sides air superiority in both fights
-    assert exchange("&role=attack&intercept=1") == []  # intercept needs both sorties air superiority
+    # intercept needs both sorties air superiority: with the attack role the toggle is gone and the link is ignored
+    assert exchange("&role=attack&intercept=1") == [(0, 1)]
     page = client.get(url + "&role=air_superiority").content.decode()
     assert "All kills and losses" in page  # the toggle stays: the role no longer implies it
 
