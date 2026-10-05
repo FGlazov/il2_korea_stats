@@ -1805,6 +1805,16 @@ msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe
 msgstr "Alle patrouillierten mutig. Der Gegner leider im anderen Planquadrat."
 
 # llm-draft
+msgid ""
+"Everything on this page follows the selected tour, role and modifications; choose all time to see every tour. "
+"Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was "
+"shot down."
+msgstr ""
+"Alles auf dieser Seite folgt der gewählten Tour, Rolle und den Modifikationen; wähle „Gesamtzeit“, um alle Touren zu "
+"sehen. Duelle nutzen Rolle und Modifikationen des Einsatzes dieses Flugzeugs, Treffer bis zur Zerstörung die des "
+"abgeschossenen Flugzeugs."
+
+# llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
 msgstr "Alles mit Motor, Rohr oder Dach hat etwas abbekommen. Gründliche Arbeit."
 
@@ -1842,14 +1852,6 @@ msgstr "Kaum jemand kennt den Rollweg so gut wie dieser Pilot. Er könnte Führu
 #, python-format
 msgid "Filter by modification %(name)s"
 msgstr "Nach Modifikation %(name)s filtern"
-
-# llm-draft
-msgid ""
-"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
-"hits to destroy still cover every modification."
-msgstr ""
-"Nach Modifikation gefiltert: Summen, Pilotenzahl, Bewaffnungen und Modifikationen richten sich danach. Duelle, beste "
-"Piloten und Treffer bis zur Zerstörung gelten weiterhin für alle Modifikationen."
 
 # llm-draft
 msgid "Find a player"
@@ -3686,11 +3688,11 @@ msgstr "Spielerflugzeuge"
 
 # llm-draft
 msgid ""
-"Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
+"Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
-"Luftabschüsse von Spieler gegen Spieler gegen jeden gegnerischen Flugzeugtyp, in der gewählten Tour. Daran siehst du,"
-" gegen welche gegnerischen Flugzeuge dieses besteht und welche es schlagen."
+"Luftabschüsse zwischen Spielern gegen jeden feindlichen Flugzeugtyp in der gewählten Auswahl. So siehst du, welche "
+"Gegner dieses Flugzeug schlägt und welche es schlagen."
 
 # llm-draft
 msgid ""
@@ -4667,6 +4669,21 @@ msgid "That token is not right"
 msgstr "Dieses Token stimmt nicht"
 
 # llm-draft
+#, python-format
+msgid ""
+"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority sortie"
+" in it are listed, and the sorties are counted in the selection."
+msgid_plural ""
+"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority "
+"sorties in it are listed, and the sorties are counted in the selection."
+msgstr[0] ""
+"Das Elo ist die Wertung des Piloten über die gesamte Zeit; aufgeführt sind nur Piloten mit mindestens %(n)s "
+"Luftüberlegenheitseinsatz in dieser Auswahl, und die Einsätze werden in der Auswahl gezählt."
+msgstr[1] ""
+"Das Elo ist die Wertung des Piloten über die gesamte Zeit; aufgeführt sind nur Piloten mit mindestens %(n)s "
+"Luftüberlegenheitseinsätzen in dieser Auswahl, und die Einsätze werden in der Auswahl gezählt."
+
+# llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
 msgstr "Das Admin-Konto öffnet die Admin-Seiten (Seitenname und Aussehen, Spieler ausblenden, Verarbeitungsverlauf)."
 
@@ -4957,10 +4974,6 @@ msgid "The record books call it a pattern. The squadron calls it character."
 msgstr "Im Protokoll steht »wiederholt auffällig«, in der Staffel heißt es: Das ist halt sein Stil."
 
 # llm-draft
-msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
-msgstr "Der Rollenfilter gilt nicht für die Duelle: Sie zeigen alle Abschüsse und Verluste dieses Flugzeugs."
-
-# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "Dieselben Prüfungen wie beim Befehl il2ks doctor, angewendet auf die neuen Einstellungen. Manche Warnungen "
@@ -4974,14 +4987,14 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
-"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
-"means the measure does not apply or there are too few sorties."
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role."
+" Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons."
+" A dash means the measure does not apply or there are too few sorties."
 msgstr ""
-"Dieselben Kennzahlen für jede Kombination von Waffenmodifikationen, mit der Piloten dieses Flugzeug in der gewählten "
-"Rolle geflogen haben. Das durchschnittliche Elo spiegelt das Können der Piloten wider, nicht nur das der "
-"Modifikationen: Gute Piloten bevorzugen eine Kombination vielleicht aus anderen Gründen. Ein Strich bedeutet, dass "
-"die Kennzahl nicht zutrifft oder es zu wenige Einsätze gibt."
+"Dieselben Kennzahlen für jede Kombination von Waffenmodifikationen, mit der Piloten dieses Flugzeug geflogen sind, in"
+" der gewählten Tour und Rolle. Das durchschnittliche Elo spiegelt das Können der Piloten wider, nicht nur die "
+"Modifikationen: Gute Piloten bevorzugen eine Kombination vielleicht aus anderen Gründen. Ein Strich heißt, dass die "
+"Kennzahl nicht passt oder es zu wenige Einsätze gibt."
 
 # llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
@@ -5044,15 +5057,6 @@ msgstr "Der Auftrag lautete »Bomber«, Mehrzahl. Der Pilot hat das gewissenhaft
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "Der Rollweg führt eine Akte über solche Fälle. Sie ist dünn, aber ziemlich abgegriffen."
-
-# llm-draft
-msgid ""
-"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
-"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
-msgstr ""
-"Die Summen folgen der gewählten Tour und Rolle, die Duelle der Tour. Beste Piloten, Treffer bis zur Zerstörung und "
-"Bewaffnungen gelten für die gesamte Zeit; die Treffer bis zur Zerstörung zählen immer alle Rollen (es geht um "
-"Abschüsse dieses Flugzeugs)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -5587,18 +5591,18 @@ msgstr "Welche Abschüsse und Verluste gezählt werden"
 
 # llm-draft
 msgid ""
-"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
-"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
-"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
-"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
-"apply or there are too few sorties."
+"Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo"
+" of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per "
+"sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo"
+" reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means"
+" the measure does not apply or there are too few sorties."
 msgstr ""
-"Welche Bewaffnungen am besten funktionieren, in der gewählten Rolle. Luftüberlegenheits-Bewaffnungen zeigen die "
-"durchschnittliche Elo der Piloten, die sie geflogen sind (im jeweiligen Flugzeug, wo sie gewertete Duelle haben, "
-"sonst im Pool), Luftsiege pro Einsatz und K/D aus Luftsiegen gegen andere Spieler; Erdkampf-Bewaffnungen zeigen "
-"Bodenpunkte pro Stunde über dem Ziel. Die durchschnittliche Elo spiegelt das Können der Piloten wider, nicht nur das "
-"der Bewaffnung: Gute Piloten wählen eine Bewaffnung vielleicht aus anderen Gründen. Ein Strich bedeutet, dass der "
-"Wert nicht zutrifft oder es zu wenige Einsätze gibt."
+"Welche Bewaffnungen am besten funktionieren, in der gewählten Tour, Rolle und mit den gewählten Modifikationen. "
+"Luftüberlegenheits-Bewaffnungen zeigen das durchschnittliche Elo ihrer Piloten (pro Flugzeug, wenn sie darin "
+"gewertete Begegnungen haben, sonst das ihres Pools), Luftabschüsse pro Einsatz und K/D aus Luftabschüssen zwischen "
+"Spielern; Erdkampf-Bewaffnungen zeigen Bodenpunkte pro Stunde über dem Ziel. Das durchschnittliche Elo spiegelt das "
+"Können der Piloten wider, nicht nur die Bewaffnung: Gute Piloten bevorzugen eine Bewaffnung vielleicht aus anderen "
+"Gründen. Ein Strich heißt, dass die Kennzahl nicht passt oder es zu wenige Einsätze gibt."
 
 # llm-draft
 msgid "Which sorties to count"

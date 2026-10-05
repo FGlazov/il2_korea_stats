@@ -116,3 +116,54 @@ def _cell_order(item: tuple[CellKey, _Cell]) -> tuple[int, int, str, int]:
     """A fixed order to add the cells in (all time first): a rebuild sums floats like an incremental run."""
     aircraft, tour, role, mods = item[0]
     return aircraft, -1 if tour is None else tour, role, mods
+
+
+def scopes_of(
+    tour: int | None, combat_role: str, weapon_mods: int, significant: tuple[int, ...]
+) -> list[tuple[int | None, str, str]]:
+    """Every (tour, role, mod pattern) scope one sortie (or one destroyed aircraft) belongs to, the stored scopes of the
+    aircraft page: all time and its tour, every role (`all`) and its own combat role ('' = none recorded: `all` only),
+    unfiltered ('') and each filter pattern of its weapon mods (`significant`: the type's significant mod ids, empty
+    for most; a negative `weapon_mods` = not a player sortie: unfiltered only)."""
+    tours: tuple[int | None, ...] = (None,) if tour is None else (None, tour)
+    roles = (ALL, combat_role) if combat_role else (ALL,)
+    patterns = ("", *mod_filter_patterns(weapon_mods, significant)) if significant and weapon_mods >= 0 else ("",)
+    return [(t, r, p) for t in tours for r in roles for p in patterns]
+
+
+type PlayerScopeKey = tuple[int, int, int | None, str, str]  # aircraft, player, tour (None = all time), role, pattern
+
+
+def player_scope_stats(
+    aircraft_ids: Iterable[int], significant: dict[int, tuple[int, ...]], tour_ids: list[int] | None
+) -> dict[PlayerScopeKey, Totals]:
+    """The counters of every player in each of these types per scope (`scopes_of`): tours in `tour_ids` (None = every
+    tour) and all time, every role and each combat role, unfiltered and each mod pattern, except the all-time, `all`,
+    unfiltered scope (that is `PlayerAircraft`). One grouped query over the types' history, in a fixed order so a
+    rebuild sums the floats like an incremental run."""
+    wanted_tours = None if tour_ids is None else set(tour_ids)
+    rows = (
+        counted_sorties()
+        .filter(aircraft_id__in=sorted(set(aircraft_ids)))
+        .values("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
+        .annotate(**SORTIE_COUNTERS)
+        .order_by("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
+    )
+    found: dict[PlayerScopeKey, Totals] = {}
+    for row in rows:
+        aircraft, player = row["aircraft_id"], row["player_id"]
+        for tour, role, pattern in scopes_of(
+            row["mission__tour_id"], row["combat_role"] or "", row["weapon_mods"], significant.get(aircraft, ())
+        ):
+            if (tour is None and role == ALL and not pattern) or (
+                tour is not None and wanted_tours is not None and tour not in wanted_tours
+            ):
+                continue
+            _fold(
+                found.setdefault(
+                    (aircraft, player, tour, role, pattern),
+                    {name: 0.0 if name in FLOAT_COUNTERS else 0 for name in COUNTER_FIELDS},
+                ),
+                row,
+            )
+    return found

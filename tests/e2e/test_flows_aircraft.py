@@ -3,7 +3,7 @@
 1. a player reads his sortie, sees what shot him down, and goes to that aircraft to learn what it is weak against
    (the matchups: kills, losses, exchange rate K/L, and the intercept-only toggle);
 3. the aircraft rankings (`/aircraft/`): tour selector, sorting by several columns, optional columns, and the filters
-   that are still being built (role toggle, weapon mods): those tests skip themselves until the control is on the page.
+   and, on a type's page, the weapon-mods filter.
 
 The arena missions of `tests/e2e/world.py` give the numbers: Ace (MiG-15bis) beats Rex Rival (F-86A-5) in 8 of 12
 duels, and the featured mission adds one MiG kill of an F-86A-5 and one F-86A-5 kill of a MiG. Never asserted: times.
@@ -213,19 +213,27 @@ def test_the_role_toggle_splits_air_superiority_from_attack(page: Page) -> None:
     assert {MIG, SABRE, "F-51D"} <= set(names_in(aircraft_table(page), "Aircraft"))
 
 
-def test_the_weapon_mods_filter_narrows_the_rankings(page: Page) -> None:
-    """Weapon mods filter: choosing a mod changes the address and keeps the page whole; "any" brings every row back."""
+def test_the_weapon_mods_filter_follows_into_every_section_of_the_aircraft_page(page: Page) -> None:
+    """Weapon mods filter (aircraft page, OQ-122): per significant modification a group "Filter by modification <name>"
+    with the links Any / With / Without. Choosing one puts it in the address, keeps the page whole and the choice
+    marked; Any brings the plain page back. The tour stays (all time here)."""
     page.goto("/aircraft/?tour=all")
-    mods = main_region(page).get_by_role("combobox", name=re.compile("weapon mods", re.IGNORECASE))
-    if mods.count() == 0:
-        pytest.skip(reason="lands with the weapon-mods branch")
+    main_region(page).get_by_role("link", name=MIG, exact=True).first.click()
+    expect_heading(page, MIG, level=1)
+    groups = main_region(page).get_by_role("group", name=re.compile(r"^Filter by modification "))
+    assert groups.count() >= 1
+    group = groups.first
+    for label in ("Any", "With", "Without"):
+        expect(group.get_by_role("link", name=label, exact=True)).to_be_visible()
+    expect(group.get_by_role("link", name="Any", exact=True)).to_have_attribute("aria-current", "true")
 
-    before = names_in(aircraft_table(page), "Aircraft")
-    options = mods.locator("option")
-    assert options.count() >= 2
-    mods.select_option(index=1)
-    expect(page).to_have_url(re.compile(r"[?&]\w*mod\w*="))
-    expect(page.get_by_role("heading", level=1)).to_be_visible()
-    assert set(names_in(aircraft_table(page), "Aircraft")) <= set(before)  # a filter never adds rows
-    mods.select_option(index=0)
-    assert names_in(aircraft_table(page), "Aircraft") == before
+    group.get_by_role("link", name="With", exact=True).click()
+    expect(page).to_have_url(re.compile(r"[?&]mod\d+=with"))
+    expect_heading(page, MIG, level=1)
+    expect(group.get_by_role("link", name="With", exact=True)).to_have_attribute("aria-current", "true")
+    for section in ("Matchups", "Loadouts", "Modifications"):
+        expect_heading(page, section, level=2)
+
+    group.get_by_role("link", name="Any", exact=True).click()
+    expect(page).not_to_have_url(re.compile(r"[?&]mod\d+="))
+    expect(group.get_by_role("link", name="Any", exact=True)).to_have_attribute("aria-current", "true")

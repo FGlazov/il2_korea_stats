@@ -21,6 +21,36 @@ descriptions at most 300 characters per language, blank = the built-in (translat
 no manual "recompute" button: `watch` applies changed thresholds or re-enabled achievements on its next tick (without `watch`, only
 `il2ks rebuild-aggregates` applies them); names, descriptions and on/off apply at once.
 
+**OQ-125 Aircraft page filters: how the scopes combine** (built 2026-10-05, roadmap "every section follows every filter")
+Defaults applied: the role toggle and "Intercept sorties only" are independent (before, air superiority implied intercept and attack
+hid it); the intercept toggle always shows. Matchups apply the role and mods filter to this type's sortie (the killer's for its kills, the
+victim's for its losses); hits to destroy and ammo mixes to the destroyed aircraft's sortie, so AI victims count only under "all roles,
+no mod filter". The top pilots by Elo in a narrower scope keep the all-time per-type Elo (not recomputed per scope) and list only pilots
+with at least `min_air_superiority_sorties` air-superiority sorties in the scope, with the scope's sortie count and a note.
+
+**OQ-126 Quip spots switched off fall through** (review #9, 2026-10-05)
+Default applied: a quip spot that is off (or custom-only with no line in the visitor's language) is skipped and the next matching spot
+speaks, e.g. a first-blood sortie with 3 kills shows the ace line when first blood is off; before, such a sortie had no quip. "Battered
+victor" off lets "limped home" speak. Also: a gunner sortie's aircraft name is plain text, not a link (gunner turrets have no aircraft page).
+
+**OQ-128 All-time achievements and Elo after the clean-slate tours** (maintainer, 2026-10-05: "maybe all time will take the max of all
+achievements")
+Proposed: all-time tier = the highest tier reached in any one tour (earned at the earliest such tour's sortie), except the **career**
+medals that are plain sums of a counter: Sky Hunter (career kills), Tank Buster, flight hours and the taxi / friendly-fire / strafed
+shame medals use the all-time summed counters, so a long-time pilot still reaches career tiers no single month gets to. Everything else
+(life kills, survivor, landing streak, Regular weeks in a row, types flown, Ace in a Day, Top Rated, …) is the best single tour, so
+Regular and the streak medals visibly shrink where a run crossed a month end. All-time Elo = the max of each tour's **final** (for the
+running tour: current) rating, not the in-tour peak; all-time Elo games = the sum over tours. The profile's running streak = the one in
+the current tour (zero until the pilot flies in it).
+
+**OQ-129 Top 10% / 25% marks with clean-slate tours** (maintainer unsure)
+Proposed: per-tour marks against that tour's pilots (as today); all-time marks against the all-time rows (sums and maxes of the tours),
+which stays cheap because it reads one row per player, not the history.
+
+**OQ-127 Words for the new admin and live strings** (translation drafts, 2026-10-05; part of the human review)
+"Quips" is ru Шутки, de Sprüche, es Ocurrencias, fr Bons mots, pt_BR Piadinhas; the live badge is Идёт / Läuft / En curso / En cours /
+Ao vivo; "Tier threshold" is порог / Schwellenwert / umbral / seuil / limite.
+
 ## Lower impact (owner: maintainer, outside input)
 
 **OQ-26 Live telemetry for positions (Tacview-style)**

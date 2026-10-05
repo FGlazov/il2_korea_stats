@@ -177,6 +177,13 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   recomputed from their level-1 rows. `rebuild-aggregates` uses the same code for all players. Why: no delta arithmetic to get wrong, and a
   re-ingest can't drift from a rebuild. Cost grows with a player's history; in it2 the recompute is bounded to the mission's tour plus the
   all-time row.
+- **Tour-level refresh, all time = sum of the tours** (maintainer, 2026-10-05, restating an earlier requirement that was not recorded
+  here): to bound complexity as the history grows, level 2 is refreshed per tour, and the all-time stats are built on top of the sum of
+  the tour stats rather than by re-reading a player's whole level-1 history. Batches (20+ missions) track only the tours they touched and
+  fully refresh those tours; every other refresh (a single mission, a live pass, a rebuild) works the same way: one path, a full refresh
+  of the touched tours, no per-entity tracking (maintainer, 2026-10-05: "not just for batched refreshes, but all of them"). **Not built yet:** today the all-time rows are still recomputed from level 1 (see above); the inventory of what
+  sums cleanly (counters, min/max, weighted averages) and what does not (the Elo replay, streaks across a tour boundary, distinct counts,
+  population thresholds) is in progress (roadmap).
 - **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of every qualifying kill, so
   `ingest/ratings.py::recompute_ratings` replays all of them (ordered by mission start, kill time, row id) through the pure
   `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the

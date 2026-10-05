@@ -174,28 +174,30 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
 
 
 def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
-    """`/aircraft/<GameObject pk>/?tour=&role=&intercept=&sort=&lsort=`: the type's totals and ratios (in the selected
-    tour, `?tour=` as everywhere; the tiles are zero when nobody flew it there) and in the selected combat role
-    (`?role=air_superiority|attack`, default every role), hits to destroy per ammunition (always every role: it is
-    about kills OF the type), matchups against each enemy type, its top pilots by skill (per-type Elo, and ground
-    score per hour on target; visible players who meet the leaderboard minimums) and loadouts with their
-    effectiveness. 404 for a type nobody flew.
+    """`/aircraft/<GameObject pk>/?tour=&role=&intercept=&sort=&lsort=&mod<id>=`: one type. Every section follows every
+    filter the visitor sets (maintainer 2026-10-04) and all time stays available (`?tour=all`): the tour (`?tour=` as
+    everywhere), the combat role (`?role=air_superiority|attack`, default every role) and, for a type with significant
+    weapon modifications, `?mod<id>=with|without` (absent = any). Each section reads the stored rows of that scope
+    (TD-22), so each is still one read:
 
-    The role filters the tiles, the pilot count, the loadouts and the top pilots (Elo is of air superiority fights,
-    ground per hour of attack work: the other table is left out). Matchups: air superiority = the intercept scope
-    (both sorties air superiority); attack = no role scope exists there, so they show every kill and a note says so.
+    - the tiles and the pilot count: `TourAircraftStats` (or `AircraftStats` for all time, every role, no filter);
+    - loadouts and the modifications table: `AircraftPayload` / `AircraftMods` of the tour, role and filter;
+    - matchups: kills and losses against each enemy type, the role and modifications being those of THIS type's sortie
+      (the killer's for kills, the victim's for losses), with the intercept toggle (both sorties air superiority);
+    - top pilots: per-type Elo (all time by nature) among the pilots with enough air superiority sorties in the scope,
+      and ground score per hour on target from the scope's own rows;
+    - hits to destroy and the ammunition mixes: the kills OF this type, the tour, role and modifications being those of
+      the destroyed aircraft's own sortie (an AI aircraft counts for every role without a modification filter only).
+    404 for a type nobody flew.
 
     Template `il2ks/aircraft/detail.html`. Context: stats (`AircraftStats`, all time), tile (the counters the tiles
-    show: a `TourAircraftStats` for a tour and/or role, or `stats`), aircraft (its GameObject), survived,
+    show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived,
     hits (`HitsToDestroy`), matchups (`queries.aircraft.MatchupTable`: rows, best, worst), sort (the matchup sort),
-    intercept, role ("all", "air_superiority", "attack"), matchup_role_note, tours / tour (the tour scope),
-    min_encounters, all_fights_url / intercept_url, show_elo / show_ground, elo_pilots (`PlayerAircraft` rows with
+    intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope), scoped (a tour, role or filter
+    is set), min_encounters, all_fights_url / intercept_url, show_elo / show_ground, elo_pilots (`EloRow`s: with
     .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
-    first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, crumbs,
-    page_title.
-    `?mod<id>=with|without` (one per significant weapon modification of the type, absent = any; none are offered for
-    a type without) scopes the tiles, pilot count, loadouts and the new weapon-mods table (`?msort=`) the same way:
-    one stored row per filter pattern, so still one read each. Matchups, top pilots and hits to destroy ignore it.
+    first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, mod_filters,
+    mod_filtered, mod_sets, mod_sort, crumbs, page_title.
     Reads: eight queries plus the tours (nine with a tour, role or filter selected), plus the 2 of the context
     processor."""
     stats = reads.stats_for(pk)
@@ -203,8 +205,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         raise Http404
     choice = tour_choice_from(request.GET)
     role = reads.parse_role(request.GET.get(reads.ROLE_PARAM))
-    matchup_role_note = role == AircraftRole.ATTACK
-    intercept = role == AircraftRole.AIR_SUPERIORITY or request.GET.get(INTERCEPT_PARAM) == "1"
+    intercept = request.GET.get(INTERCEPT_PARAM) == "1"
     matchup_sort = resolve_sort(
         request.GET.get("sort", ""), dict.fromkeys(reads.MATCHUP_SORTS, ""), reads.DEFAULT_MATCHUP_SORT
     )
@@ -234,11 +235,11 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "tile": tile,
         "aircraft": aircraft,
         "survived": max(tile.sorties - tile.deaths, 0),
-        "hits": _hits(ammo_reads.aircraft_ammo(aircraft)),
+        "hits": _hits(ammo_reads.aircraft_ammo(aircraft, choice.selected, role, mod_pattern)),
         **choice.context,
         "role": role.value,
-        "matchups": reads.matchups(aircraft, choice.selected, intercept, matchup_sort),
-        "matchup_role_note": matchup_role_note,
+        "matchups": reads.matchups(aircraft, choice.selected, intercept, matchup_sort, role, mod_pattern),
+        "scoped": not reads.is_alltime_scope(choice.selected, role, mod_pattern),
         "sort": matchup_sort,
         "intercept": intercept,
         "min_encounters": reads.MIN_ENCOUNTERS,
@@ -246,18 +247,16 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "intercept_url": _query_url(request, intercept=True),
         "show_elo": show_elo,
         "show_ground": show_ground,
-        "elo_pilots": reads.top_elo(aircraft, rules) if show_elo else [],
-        "ground_pilots": reads.top_ground(aircraft, rules) if show_ground else [],
+        "elo_pilots": reads.top_elo(aircraft, rules, choice.selected, role, mod_pattern) if show_elo else [],
+        "ground_pilots": reads.top_ground(aircraft, rules, choice.selected, role, mod_pattern) if show_ground else [],
         "ground_first": role == AircraftRole.ATTACK
-        or (
-            role == AircraftRole.ALL and stats.sorties > 0 and stats.attack_sorties >= ATTACK_TYPE_SHARE * stats.sorties
-        ),
+        or (role == AircraftRole.ALL and tile.sorties > 0 and tile.attack_sorties >= ATTACK_TYPE_SHARE * tile.sorties),
         "rules": rules,
         "mod_filters": tuple(ModFilter(m.mod_id, m.name, state) for m, state in zip(significant, states, strict=True)),
         "mod_filtered": bool(mod_pattern),
-        "loadouts": reads.payloads(aircraft, role, rules, loadout_sort, mod_pattern),
+        "loadouts": reads.payloads(aircraft, role, rules, loadout_sort, mod_pattern, choice.selected),
         "loadout_sort": loadout_sort,
-        "mod_sets": reads.mod_sets(aircraft, role, rules, mod_sort, mod_pattern),
+        "mod_sets": reads.mod_sets(aircraft, role, rules, mod_sort, mod_pattern, choice.selected),
         "mod_sort": mod_sort,
     }
     return render(request, "il2ks/aircraft/detail.html", context)

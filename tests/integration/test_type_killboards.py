@@ -219,7 +219,11 @@ def test_matchups_are_scoped_by_tour_and_intercept() -> None:
         return sum(
             m.kills
             for m in AircraftMatchup.objects.filter(
-                tour=tour, intercept=intercept, killer_aircraft=aircraft(MIG), victim_aircraft=aircraft(SABRE)
+                tour=tour,
+                intercept=intercept,
+                scoped_side="",
+                killer_aircraft=aircraft(MIG),
+                victim_aircraft=aircraft(SABRE),
             )
         )
 
@@ -235,12 +239,12 @@ def test_the_intercept_filter_needs_air_superiority_on_both_sides() -> None:
     save(duels([(SABRE, 1, 1)], mig_role=None, enemy_role=None), meta("m3", STARTED_AT.replace(day=21)))
     save(duels([(SABRE, 2, 3)]), meta("m4", STARTED_AT.replace(day=22)))
 
-    both = AircraftMatchup.objects.filter(intercept=True, tour=None)
+    both = AircraftMatchup.objects.filter(intercept=True, tour=None, scoped_side="")
     assert {(m.killer_aircraft.log_name, m.victim_aircraft.log_name): m.kills for m in both} == {
         (MIG, SABRE): 2,
         (SABRE, MIG): 3,
     }
-    everything = AircraftMatchup.objects.filter(intercept=False, tour=None)
+    everything = AircraftMatchup.objects.filter(intercept=False, tour=None, scoped_side="")
     assert {(m.killer_aircraft.log_name, m.victim_aircraft.log_name): m.kills for m in everything} == {
         (MIG, SABRE): 5,
         (SABRE, MIG): 6,
@@ -265,7 +269,7 @@ def test_hidden_players_count_in_the_matchups() -> None:
 
     rebuild_aggregates()
 
-    row = AircraftMatchup.objects.get(tour=None, intercept=False, killer_aircraft=aircraft(MIG))
+    row = AircraftMatchup.objects.get(tour=None, intercept=False, scoped_side="", killer_aircraft=aircraft(MIG))
     assert row.kills == 2
 
 

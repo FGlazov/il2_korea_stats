@@ -245,6 +245,11 @@ people ask). The main use case is **a player reviewing their sortie**.
   all-time stats"): **every section** (tiles, Loadouts, Modifications, matchups, top pilots, hits to destroy, ammo mixes) follows the tour
   (all time included), the role toggle and the significant-mods filter; for hits to destroy and ammo mixes the role and mods are those of
   the destroyed aircraft's sortie. The storage cost is accepted. Mod names untranslated; URLs `?role=`, `?mod<id>=with|without`.
+- **A new tour is a clean slate** (maintainer, 2026-10-05; not built yet, roadmap "All-time stats = sum of the tour stats", doc 14):
+  every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
+  tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,
+  the all-time best streak = the max over the tours; **counts of distinct things** (types flown, days, weeks in a row) reset every tour;
+  **achievements** start over every tour, all time takes the max (OQ-128). Top 10% / 25% marks: OQ-129.
 
 ### Score and ratings
 Recorded by the maintainer on 2026-10-03; built 2026-10-04 (air and ground score, leaderboards, Elo: doc 13 "Score", doc 16). Its **inputs are computed at ingest

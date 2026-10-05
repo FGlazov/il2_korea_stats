@@ -24,9 +24,11 @@ from django.db.models import ExpressionWrapper, F, FloatField, Model, QuerySet
 
 from il2ks.config import LeaderboardConfig
 from il2ks.db.models import (
+    AircraftRole,
     GameObject,
     Player,
     PlayerAircraft,
+    PlayerAircraftScope,
     PlayerPool,
     PlayerTour,
     PlayerTourAircraft,
@@ -240,19 +242,36 @@ def top_rows(
     limit: int = HOME_ROWS,
     aircraft: GameObject | None = None,
     tour: Tour | None = None,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
 ) -> list[BoardRow]:
     """The first `limit` rows of a board in its default order, all time or in `tour` (ignored by the all-time Elo
-    boards): the home page's compact boards, the top pilots of an aircraft type. One SELECT."""
-    rows = _ordered(board, _apply_minimums(board, _source(board, tour, aircraft, None), rules), board.default_sort)
+    boards): the home page's compact boards, the top pilots of an aircraft type, which can also be of one combat `role`
+    and modification filter `mod_pattern` (the `PlayerAircraftScope` rows). One SELECT."""
+    source = _source(board, tour, aircraft, None, role, mod_pattern)
+    rows = _ordered(board, _apply_minimums(board, source, rules), board.default_sort)
     return [_row(i + 1, stats) for i, stats in enumerate(rows[:limit])]
 
 
-def _source(board: Board, tour: Tour | None, aircraft: GameObject | None, pool: str | None) -> QuerySet[Model]:
-    """The table the board reads: the player (all time), a tour, an aircraft type or a propulsion pool."""
+def _source(
+    board: Board,
+    tour: Tour | None,
+    aircraft: GameObject | None,
+    pool: str | None,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
+) -> QuerySet[Model]:
+    """The table the board reads: the player (all time), a tour, an aircraft type (in a role and modification scope
+    too) or a propulsion pool."""
     tour = tour if board.per_tour else None
     aircraft = aircraft if board.per_aircraft else None
     pool = pool if board.per_pool and aircraft is None else None
     if aircraft is not None:
+        if role != AircraftRole.ALL or mod_pattern:
+            scope = PlayerAircraftScope.objects.filter(
+                aircraft=aircraft, tour=tour, role=role, mod_pattern=mod_pattern, player__is_hidden=False
+            )
+            return _rows(scope)
         if tour is not None:
             return _rows(PlayerTourAircraft.objects.filter(tour=tour, aircraft=aircraft, player__is_hidden=False))
         return _rows(PlayerAircraft.objects.filter(aircraft=aircraft, player__is_hidden=False))
