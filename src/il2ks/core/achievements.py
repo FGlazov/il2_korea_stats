@@ -30,7 +30,7 @@ OQ-128: "if it's multi tour then we should increase the thresholds, maybe 5x"). 
 admin's too), so changing a per-tour tier moves the all-time one with it."""
 
 BADLY_DAMAGED = 0.5
-"""`damage_taken` (0 to 1) from which a landed aircraft counts as "badly damaged" (`damaged_landing`)."""
+"""`landing_damage` (0 to 1) from which a landing counts as "badly damaged" (`damaged_landing`)."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,7 +48,8 @@ class AchievementSortie:
     kills_ground_tank: int
     kills_strike_air: int
     """Bombers, attackers and transports shot down (credited kills of other pilots' aircraft of those classes)."""
-    damage_taken: float
+    landing_damage: float
+    """The most damage the aircraft carried into a landing, a repaired one included (doc 13, damage per flight leg)."""
     landed: bool
     is_death: bool
     is_captured: bool
@@ -339,7 +340,7 @@ def _never(sorties: Sequence[AchievementSortie]) -> list[float]:
 
 
 def _is_damaged_landing(s: AchievementSortie) -> bool:
-    return s.landed and s.damage_taken >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
+    return s.landing_damage >= BADLY_DAMAGED and s.kills_air + s.kills_ground > 0
 
 
 # --- the registry ------------------------------------------------------------------------------------------------

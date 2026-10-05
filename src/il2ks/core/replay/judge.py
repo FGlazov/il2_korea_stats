@@ -6,7 +6,7 @@ from il2ks.core.logparse.events import Pos
 from il2ks.core.replay.areas import at_friendly_airfield, on_enemy_territory
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.credit import is_self_attack, unit_objects
-from il2ks.core.replay.damage import counted_damage, damage_at_end, sortie_repairs
+from il2ks.core.replay.damage import counted_damage, damage_at_end, damage_at_repairs, sortie_repairs
 from il2ks.core.replay.fate import (
     Loss,
     aircraft_loss,
@@ -70,6 +70,7 @@ class Verdict:
     cutoff_tick: int  # damage and hits after this tick don't belong to the sortie (the loss, the end, or AType 7 - 1)
     ended_by_mission_end: bool  # the server force-ended the sortie at mission end (`outcome` is the state then)
     active_end_tick: int  # the sortie end, or the loss tick when the aircraft was destroyed first (flight stops there)
+    landing_damage: float = 0.0  # the most damage carried into a landing: a repaired one or the final one (`damage.py`)
     repairs: tuple[int, ...] = ()  # landings that are followed by a takeoff: the assumed repairs (`damage.py`)
 
 
@@ -172,7 +173,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     # OQ-115: capped sums; a destroyed aircraft or a dead pilot is at 100% whatever the damage lines say
     # Maintainer 2026-10-05: per flight leg, a landing followed by a takeoff repairs (only with `resupply_allowed`)
     repairs = sortie_repairs(sortie, active_end, rules)
-    damage_taken = 1.0 if loss is not None else damage_at_end(counted_damage(airframe, damage_cutoff, repairs), repairs)
+    counted = counted_damage(airframe, damage_cutoff, repairs)
+    damage_taken = 1.0 if loss is not None else damage_at_end(counted, repairs)
     bot_lines = [r for obj in unit_objects(sortie.bot) for r in obj.damage_log if r.tick <= damage_cutoff]
     bot_damage = bool(bot_lines)
     pilot_damage = 1.0 if dead else min(1.0, sum(r.amount for r in bot_lines))
@@ -180,6 +182,9 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     aircraft_status: AircraftStatus = "destroyed" if loss is not None else "damaged" if damage_taken > 0 else "unharmed"
 
     outcome = _outcome(sortie, facts, end, lost=lost, attacker_cause=attacker_cause, off=off, forced=forced)
+    # Maintainer 2026-10-05: a landing made with damage counts for the damaged-landing medal and quips even when a
+    # repair and more flying follow. The final landing carries the damage the sortie ends with.
+    landing_damage = max(damage_at_repairs(counted, repairs), damage_taken if outcome == "landed" else 0.0)
     return Verdict(
         end_tick=end,
         loss=loss,
@@ -210,6 +215,7 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         pilot_status=pilot_status,
         aircraft_status=aircraft_status,
         damage_taken=damage_taken,
+        landing_damage=landing_damage,
         pilot_damage=pilot_damage,
         cutoff_tick=damage_cutoff,
         repairs=repairs,

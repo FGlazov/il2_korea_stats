@@ -183,6 +183,7 @@ class SortieResult:
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
     damage_taken: float  # 0..1, aircraft damage from all sources (clamped); 1 when the aircraft was destroyed
+    landing_damage: float  # 0..1, the most damage the aircraft carried into a landing (repaired ones count); 0 = none
     disconnected: bool
     is_death: bool  # counts as a death in totals (FR-ING-21 for disconnects)
     is_plane_lost: bool  # counts as an aircraft lost in totals

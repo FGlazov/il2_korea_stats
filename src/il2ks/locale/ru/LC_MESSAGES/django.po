@@ -4900,8 +4900,8 @@ msgid "Sorties that took off and ended in a crash. The ground always wins."
 msgstr "Вылеты, которые после взлёта закончились аварией. Земля всегда побеждает."
 
 # llm-draft
-msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
-msgstr "Вылеты хотя бы с одной победой, закончившиеся посадкой на сильно повреждённом самолёте."
+msgid "Sorties with at least one kill in which the aircraft made a landing badly damaged."
+msgstr "Вылеты хотя бы с одной победой, в которых самолёт сел с тяжёлыми повреждениями."
 
 # llm-draft
 msgid "Source"

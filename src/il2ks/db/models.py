@@ -545,6 +545,9 @@ class PlayerSortie(models.Model):
     suspected_early_bailout = models.BooleanField(default=False)
     aircraft_status = models.CharField(max_length=10, choices=AircraftStatus.choices)
     damage_taken = models.FloatField(default=0.0)  # aircraft damage; 1.0 when destroyed (OQ-115)
+    # The most damage carried into a landing, a repaired one included (damage_taken is the last leg only); the
+    # damaged-landing medal and the "limped home" quips read this.
+    landing_damage = models.FloatField(default=0.0)
     # Pilot (gunner) damage, 1.0 when dead; health = 1 - this. NULL = unknown (sorties from before migration 0050 that
     # did not die: `reprocess --all` fills it).
     pilot_damage = models.FloatField(null=True, default=None)

@@ -4880,8 +4880,8 @@ msgid "Sorties that took off and ended in a crash. The ground always wins."
 msgstr "Surtidas que decolaram e terminaram em queda. O chão sempre ganha."
 
 # llm-draft
-msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
-msgstr "Surtidas com pelo menos um abate que terminaram em pouso com a aeronave muito danificada."
+msgid "Sorties with at least one kill in which the aircraft made a landing badly damaged."
+msgstr "Surtidas com pelo menos um abate em que a aeronave pousou muito danificada."
 
 # llm-draft
 msgid "Source"

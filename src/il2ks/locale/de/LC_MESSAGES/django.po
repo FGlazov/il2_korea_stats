@@ -4907,8 +4907,8 @@ msgid "Sorties that took off and ended in a crash. The ground always wins."
 msgstr "Einsätze, die nach dem Start mit einem Absturz endeten. Der Boden gewinnt immer."
 
 # llm-draft
-msgid "Sorties with at least one kill that ended in a landing with the aircraft badly damaged."
-msgstr "Einsätze mit mindestens einem Abschuss, die mit einer schwer beschädigten Maschine in einer Landung endeten."
+msgid "Sorties with at least one kill in which the aircraft made a landing badly damaged."
+msgstr "Einsätze mit mindestens einem Abschuss, bei denen das Flugzeug schwer beschädigt gelandet ist."
 
 # llm-draft
 msgid "Source"

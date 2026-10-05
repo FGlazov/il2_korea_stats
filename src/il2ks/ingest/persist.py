@@ -430,6 +430,7 @@ _SORTIE_FIELDS = [
     "suspected_early_bailout",
     "aircraft_status",
     "damage_taken",
+    "landing_damage",
     "pilot_damage",
     "disconnected",
     "is_death",
@@ -569,6 +570,7 @@ def _fill_sortie(
     row.suspected_early_bailout = s.suspected_early_bailout
     row.aircraft_status = s.aircraft_status
     row.damage_taken = s.damage_taken
+    row.landing_damage = s.landing_damage
     row.pilot_damage = s.pilot_damage
     row.disconnected = s.disconnected
     row.is_death = s.is_death
