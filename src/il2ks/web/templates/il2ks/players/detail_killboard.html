@@ -6,12 +6,12 @@
   selected tour's. Context: player, tour (None = all time), site. Shows nothing without a PvP encounter.
 {% endcomment %}{% killboard_top player tour as board %}{% if board.victims or board.nemeses %}<section>
   <div class="section-head">
-    <h2>{% translate "Killboard" %}</h2>
+    <h3>{% translate "Killboard" %}</h3>
     <a href="{% url 'web:player-killboard' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Full killboard" %} →</a>
   </div>
   <div class="split">
     <div>
-      <h3>{% translate "Shot down most" %}</h3>
+      <h4>{% translate "Shot down most" %}</h4>
       <div class="table-wrap table-wrap--flat">
         <table class="data-table data-table--compact">
           <thead><tr><th scope="col">{% translate "Opponent" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th>{% if site.killboard_assists %}{% col_th _("Assists") numeric=True hint="assists" %}{% endif %}<th scope="col">{% translate "Last" %}</th></tr></thead>
@@ -21,7 +21,7 @@
       </div>
     </div>
     <div>
-      <h3>{% translate "Shot down by most" %}</h3>
+      <h4>{% translate "Shot down by most" %}</h4>
       <div class="table-wrap table-wrap--flat">
         <table class="data-table data-table--compact">
           <thead><tr><th scope="col">{% translate "Opponent" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th>{% if site.killboard_assists %}{% col_th _("Assists") numeric=True hint="assists" %}{% endif %}<th scope="col">{% translate "Last" %}</th></tr></thead>

@@ -4,7 +4,7 @@
   page's one results_region, so the sort links swap just this table with htmx. Each row links to the player's sortie
   list filtered to that aircraft (?aircraft=<GameObject pk>). Context: player, aircraft (PlayerAircraft or PlayerTourAircraft rows), sort, tour (the chosen Tour or None).
 {% endcomment %}<section>
-  <h2>{% translate "By aircraft" %}</h2>
+  <h3>{% translate "By aircraft" %}</h3>
   {% if role == "all" %}{% player_builds player tour as builds %}{% endif %}
   {% results_region %}
     <div class="table-wrap table-wrap--flat">

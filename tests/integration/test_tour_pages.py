@@ -303,7 +303,7 @@ def test_a_tour_without_missions_shows_flavor_text_not_the_filter_message(client
 
 def test_profile_score_block_follows_the_selected_tour_elo_included(client: Client) -> None:
     """The score block shows the tour's score next to the tour's other blocks; Elo too (a new tour is a clean slate,
-    doc 02), so the "all time" label is only on the all-time view."""
+    doc 02): it is a star tile of the top grid in both views."""
     seed()
     september = tour("September 2026")
 
@@ -312,5 +312,6 @@ def test_profile_score_block_follows_the_selected_tour_elo_included(client: Clie
 
     assert "<dt>Ground score</dt><dd>12.0" in in_tour  # two tanks in September
     assert "<dt>Ground score</dt><dd>24.0" in all_time  # plus four vehicles in October
-    assert "Elo (prop) <small>all time</small>" not in in_tour
-    assert "Elo (prop) <small>all time</small>" in all_time
+    # the Elo is a star tile of the top grid in both views (the tour's Elo in a tour, the best tour's all time)
+    assert 'data-star="elo-prop"' in in_tour
+    assert 'data-star="elo-prop"' in all_time

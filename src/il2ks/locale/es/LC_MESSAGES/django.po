@@ -49,13 +49,6 @@ msgstr[1] "%(counter)s apodos"
 
 # llm-draft
 #, python-format
-msgid "%(counter)s takeoff"
-msgid_plural "%(counter)s takeoffs"
-msgstr[0] "%(counter)s despegue"
-msgstr[1] "%(counter)s despegues"
-
-# llm-draft
-#, python-format
 msgid "%(games)s encounter"
 msgid_plural "%(games)s encounters"
 msgstr[0] "%(games)s encuentro"
@@ -358,6 +351,16 @@ msgstr "%(share)s objetos estáticos"
 #, python-format
 msgid "%(tier)s: %(threshold)s."
 msgstr "%(tier)s: %(threshold)s."
+
+# llm-draft
+#, python-format
+msgid "%(time)s in the air · %(rate)s survived"
+msgstr "%(time)s en el aire · %(rate)s sobrevivieron"
+
+# llm-draft
+#, python-format
+msgid "%(time)s on target"
+msgstr "%(time)s sobre el objetivo"
 
 # llm-draft
 #, python-format
@@ -6298,10 +6301,6 @@ msgid "air start"
 msgstr "inicio en el aire"
 
 # llm-draft
-msgid "all time"
-msgstr "histórico"
-
-# llm-draft
 #, python-format
 msgid "also known as %(name)s"
 msgstr "también conocido como %(name)s"
@@ -6481,6 +6480,14 @@ msgstr "nadie todavía"
 # llm-draft
 msgid "none yet (test certificate)"
 msgstr "ninguno por ahora (certificado de prueba)"
+
+# llm-draft
+msgid "not enough encounters yet"
+msgstr "aún no hay suficientes encuentros"
+
+# llm-draft
+msgid "not enough time on target yet"
+msgstr "aún no hay suficiente tiempo sobre el objetivo"
 
 # llm-draft
 msgid "not set"

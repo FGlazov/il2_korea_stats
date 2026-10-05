@@ -1,0 +1,13 @@
+{# il2ks-template: templates/il2ks/players/detail_star_tile.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_star_tile.html: one star-metric tile of the profile's top tiles (Elo jet / prop, attack proficiency): the value, its
+  stat mark (Top 1/5/10/25%) and a sub-line with the encounters or time on target. Below the board minimum the value is a
+  dash and the sub-line says what is missing. Context (set by detail_tiles.html): key (data-star), metric (stat mark key),
+  label, value (formatted; empty = below the minimum), sub, missing (the sub-line below the minimum), plus stats, marks and
+  elo for the mark. The tile closes with a `</div>` at the start of a line (tests slice on it).
+{% endcomment %}<div class="stat-tile stat-tile--star{% if not value %} stat-tile--muted{% endif %}" data-star="{{ key }}">
+  <div class="stat-tile__value">{% if value %}{{ value }}{% else %}–{% endif %}</div>
+  {% if value %}<div class="stat-tile__mark">{% stat_mark metric %}</div>{% endif %}
+  <div class="stat-tile__label">{{ label }}</div>
+  <div class="stat-tile__sub">{% if value %}{{ sub }}{% else %}{{ missing }}{% endif %}</div>
+</div>

@@ -3,10 +3,10 @@
   _type_killboard.html: the two tables of the killboard by aircraft type (FR-WEB-9): the enemy aircraft types the player
   shot down most, and the types that shot the player down most, each with the player's own aircraft most used in those
   fights. Context: types (queries.boards.TypeBoard: victims / nemeses, PlayerTypeKillboard rows with .enemy_aircraft,
-  .kills_with, .deaths_in). Player-versus-player air kill credits only (no assists); hidden players count.
+  .kills_with, .deaths_in), level (heading level of the two tables, default 3; 4 under the profile's h3). Player-versus-player air kill credits only (no assists); hidden players count.
 {% endcomment %}<div class="split">
   <div>
-    <h3>{% translate "Aircraft shot down most" %}</h3>
+    <h{{ level|default:3 }}>{% translate "Aircraft shot down most" %}</h{{ level|default:3 }}>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
         <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col">
@@ -22,7 +22,7 @@
     </div>
   </div>
   <div>
-    <h3>{% translate "Aircraft that shot down this pilot most" %}</h3>
+    <h{{ level|default:3 }}>{% translate "Aircraft that shot down this pilot most" %}</h{{ level|default:3 }}>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
         <thead><tr><th scope="col">{% translate "Enemy aircraft" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col">

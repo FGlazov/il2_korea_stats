@@ -9,7 +9,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from il2ks.config import Config
-from il2ks.core.stat_marks import ELO_METRICS, METRICS, MarkRules, Totals, amount, metric_value, thresholds
+from il2ks.core.stat_marks import ELO_METRICS, METRICS, MarkRules, Totals, metric_value, thresholds
 from il2ks.db.models import (
     AchievementHolders,
     GameObject,
@@ -152,7 +152,7 @@ def reference(rules: MarkRules, rows: list[tuple[float, ...]], fields: tuple[str
     for metric in METRICS:
         if tour and metric in ELO_METRICS:
             continue
-        found = thresholds(metric_value(metric, t) for t in pilots if amount(metric, t) >= rules.minimum(metric))
+        found = thresholds(metric_value(metric, t) for t in pilots if rules.qualifies(metric, t))
         if found is not None:
             out[metric] = (found.population, found.p10, found.p50, found.p90)
     return out
@@ -168,6 +168,7 @@ def test_the_prefilter_gives_the_thresholds_of_the_unfiltered_population() -> No
         player.flight_time_air_s = float((n % 5) * 600)
         player.elo_prop_games = n % 3
         player.elo_jet_games = (n + 1) % 4
+        player.attack_sorties = n % 7  # attack proficiency also needs attack sorties
         player.save()
     tour = Tour.objects.first()
     assert tour is not None
@@ -175,6 +176,7 @@ def test_the_prefilter_gives_the_thresholds_of_the_unfiltered_population() -> No
         row.sorties = n % 7
         row.time_on_target_s = float((n % 3) * 400)
         row.flight_time_air_s = float((n % 4) * 700)
+        row.attack_sorties = n % 8
         row.save()
     StatThreshold.objects.all().delete()
 

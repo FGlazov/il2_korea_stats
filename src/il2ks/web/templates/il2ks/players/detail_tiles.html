@@ -1,14 +1,28 @@
 {# il2ks-template: templates/il2ks/players/detail_tiles.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_tiles.html: the general headline totals (sorties, flight time, deaths, planes lost) as stat tiles. The kill tiles
-  moved to detail_air_tiles.html and detail_ground_tiles.html (the air / ground split of the page). Computed here from the
-  stored counters, TD-22. Context: stats (the player, or their PlayerTour row with ?tour=), survived.
+  detail_tiles.html: the headline tiles in a 4 x 2 grid. First the star metrics by which skill is measured (2026-10-05):
+  Elo (jet), Elo (prop) and attack proficiency, each with its Top 1/5/10/25% mark (detail_star_tile.html; which show follows
+  the role: Elo in All and air superiority, attack proficiency in All and attack), then sorties (with the flight time),
+  deaths, aircraft lost, bailouts and captures. A role view that hides a star tile just has fewer tiles. The kill tiles
+  are in detail_air_tiles.html and detail_ground_tiles.html. Computed from the stored counters, TD-22. Context: stats
+  (the player, or their PlayerTour row), survived, elo (EloShown), star (web.views.players.StarTiles), marks.
 {% endcomment %}<div class="stat-tiles profile-tiles">
-  {% blocktranslate with rate=survived|percent:stats.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
-  {% stat_tile stats.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
+  {% if star.show_elo %}
+    {% blocktranslate count games=elo.elo_jet_games asvar sub_games %}{{ games }} encounter{% plural %}{{ games }} encounters{% endblocktranslate %}
+    {% translate "not enough encounters yet" as missing_games %}
+    {% if star.elo_jet_enough %}{% include "il2ks/players/detail_star_tile.html" with key="elo-jet" metric="elo_jet" label=_("Elo (jet)") value=elo.elo_jet|num sub=sub_games %}{% else %}{% include "il2ks/players/detail_star_tile.html" with key="elo-jet" metric="elo_jet" label=_("Elo (jet)") value="" missing=missing_games %}{% endif %}
 
-  {% blocktranslate count counter=stats.takeoffs asvar sub_time %}{{ counter }} takeoff{% plural %}{{ counter }} takeoffs{% endblocktranslate %}
-  {% stat_tile stats.flight_time_s|duration _("Flight time") sub=sub_time icon="stat/flight-time" %}
+    {% blocktranslate count games=elo.elo_prop_games asvar sub_games %}{{ games }} encounter{% plural %}{{ games }} encounters{% endblocktranslate %}
+    {% if star.elo_prop_enough %}{% include "il2ks/players/detail_star_tile.html" with key="elo-prop" metric="elo_prop" label=_("Elo (prop)") value=elo.elo_prop|num sub=sub_games %}{% else %}{% include "il2ks/players/detail_star_tile.html" with key="elo-prop" metric="elo_prop" label=_("Elo (prop)") value="" missing=missing_games %}{% endif %}
+  {% endif %}
+  {% if star.show_attack %}
+    {% blocktranslate with time=stats.time_on_target_s|duration asvar sub_target %}{{ time }} on target{% endblocktranslate %}
+    {% translate "not enough time on target yet" as missing_target %}
+    {% if star.attack_enough %}{% include "il2ks/players/detail_star_tile.html" with key="attack" metric="ground_score_hour" label=_("Attack proficiency") value=star.attack_hour|num:1 sub=sub_target %}{% else %}{% include "il2ks/players/detail_star_tile.html" with key="attack" metric="ground_score_hour" label=_("Attack proficiency") value="" missing=missing_target %}{% endif %}
+  {% endif %}
+
+  {% blocktranslate with time=stats.flight_time_s|duration rate=survived|percent:stats.sorties asvar sub_sorties %}{{ time }} in the air · {{ rate }} survived{% endblocktranslate %}
+  {% stat_tile stats.sorties|num _("Sorties") sub=sub_sorties icon="stat/sorties" %}
 
   {% stat_tile stats.deaths|num _("Deaths") icon="stat/deaths" %}
 

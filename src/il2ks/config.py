@@ -427,6 +427,7 @@ def load_rule_set(reader: _Reader, server_tz_name: str) -> RuleSet:
         min_elo_games=leaderboards.min_elo_games,
         min_time_on_target_s=leaderboards.min_time_on_target_minutes * 60.0,
         min_air_superiority_s=leaderboards.min_air_superiority_minutes * 60.0,
+        min_attack_sorties=max(leaderboards.min_attack_sorties, 1),
     )
     board = KillboardRules(assists=reader.bool_("killboard", "assists", KillboardRules().assists))
     tours = _load_tours(reader, server_tz_name)

@@ -14,7 +14,10 @@ def stat_thresholds(tour: Tour | None) -> dict[str, StatThreshold]:
         rows = StatThreshold.objects.filter(tour_id=None)
     else:
         rows = StatThreshold.objects.filter(Q(tour_id=tour.pk) | Q(tour_id=None, metric__in=ELO_METRICS))
-    return {row.metric: row for row in rows}
+    found: dict[str, StatThreshold] = {}
+    for row in sorted(rows, key=lambda r: r.tour_id is not None):  # all-time first, the tour's own row wins (OQ-128)
+        found[row.metric] = row
+    return found
 
 
 def sortie_thresholds(tour_id: int | None) -> dict[tuple[str, bool], SortieThreshold]:
