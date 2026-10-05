@@ -1,12 +1,13 @@
 # Performance testing
 
 Notes for developers. The public pages should feel fast (NFR-PERF-2, roughly under 300 ms) on the data a real server
-has. Four tools catch regressions at different levels; all work on Windows and Linux with `uv` only (Node, k6 or
+has. Five tools catch regressions at different levels; all work on Windows and Linux with `uv` only (Node, k6 or
 Lighthouse are not needed).
 
 | Question | Tool | Where | Runs in CI |
 |---|---|---|---|
-| Did a page get slower or start running more queries? | server timing and query budgets | `tests/perf/` (`pytest -m perf`) | own CI job `test-perf` (SQLite, then Postgres); the other test jobs run `-m "not perf"` |
+| Did a page get slower or start running more queries? | server timing and query budgets | `tests/perf/` (`pytest -m perf`) | own CI job `test-perf` (SQLite, then Postgres; the plan test skips itself there); the other test jobs run `-m "not perf"` |
+| Can every query use an index? | query-plan test (`EXPLAIN QUERY PLAN`) over every page variant and the ingest | `tests/perf/test_query_plans.py` | same `test-perf` job (SQLite run) |
 | Did a page get heavier, or start blocking rendering? | page weight, request and render-blocking budgets | `tests/e2e/test_frontend_performance.py` | `test-e2e` job |
 | Does the browser see a slow paint or a jumping layout? | LCP, CLS, TBT via `PerformanceObserver` | same file | `test-e2e` job |
 | What happens with many visitors at once? | Locust | `loadtest/` | manual only (`Load test` workflow) |
@@ -37,6 +38,68 @@ For every public page (`tests/perf/pages.py`):
 `test_every_public_page_has_a_budget` fails when a URL name has no row in `tests/perf/pages.py`: **a new public page needs a
 row there** (URL builder, query budget, optionally a time budget). Raise a budget only on purpose, in the same commit
 as the change that needs it, and say why.
+
+## Query plans: every query can use an index (`tests/perf/test_query_plans.py`)
+
+The site is read-heavy, so an index costs little and a scan of a table that grows with play costs a lot. The rule: every
+SELECT a page runs (and every SELECT / UPDATE / DELETE **with a WHERE** the ingest runs) must be answerable through an
+index. SQLite only (`EXPLAIN QUERY PLAN`); Postgres plans from statistics, so a seq scan on a few thousand seeded rows says
+nothing there.
+
+```
+uv run pytest tests/perf/test_query_plans.py            # ~2 min: it seeds its own world (60 missions, like the timing tests)
+```
+
+What is checked (`tests/perf/query_plans.py`):
+
+- **Pages**: every row of `PAGES` plus the filter and sort variants of `tests/perf/plan_variants.py` (every `?sort=` key of
+  every list, ascending and descending, each board with `?tour=`, `?pool=`, `?aircraft=`, the mission and sortie filters).
+  The variants are built from the same whitelists the views use, so a new sort key or board is picked up by itself. A new
+  page needs a row in `PAGES` (an existing test makes you) and gets its default variant for free.
+- **Ingest**: the four fixture missions are ingested into the seeded world and every statement is checked the same way.
+- **Scan**: `SCAN <table>` without `USING INDEX` / `USING COVERING INDEX` reads every row. It fails for every table that is
+  not in `SMALL_TABLES`. Tables are read from the plan, so **a table added tomorrow is checked without touching the test**.
+  (`SCAN t USING INDEX i` walks an index in order: that is how `ORDER BY ... LIMIT` is answered without a sort, so it passes;
+  a `COUNT(*)` over most of a table passes through a covering index.)
+- **Sort**: `USE TEMP B-TREE FOR ORDER BY` on a statement with a `LIMIT` sorts everything to return a page. Only
+  statements with a LIMIT are checked (without one every row is returned anyway). The default sort of every list, and the
+  few common ones, must be served by an index; the other `?sort=` columns of a list are *rare sorts* (a visitor clicking a
+  column header): they may sort the scope (`Variant.rare_sort`, see `PLAYER_LIST_INDEXED` and the `indexed` tuples).
+
+### Reading a failure
+
+```
+/leaderboards/air/?tour=all
+  SQL: SELECT ... FROM "il2ks_db_player" WHERE (NOT ... "sorties" >= %s) ORDER BY "score_air" DESC, "name_lower" ASC ... LIMIT 20
+  plan:
+    SEARCH il2ks_db_player USING INDEX player_list_sorties (sorties>?)
+    USE TEMP B-TREE FOR ORDER BY
+  -> SORT of il2ks_db_player: USE TEMP B-TREE FOR ORDER BY
+```
+
+The first line is the page (or `ingest`), then the statement without its column list, its plan (indented by nesting) and
+what is wrong. `SCAN of <table>`: no index serves the WHERE. `SORT of <table>`: the table the plan starts from has no
+index in the order of the ORDER BY. Fix it with an index in `Meta.indexes` (and a new migration: never edit an applied one):
+
+- the columns in the order of **equality filters, then the ORDER BY columns** (with their `-` direction: SQLite reads an
+  index backwards, but not with one column ascending and the next descending);
+- add the other WHERE columns **after** the ORDER BY columns: the filter is then answered from the index, and the
+  COUNT of the pagination becomes a covering-index scan;
+- watch the planner: with no statistics SQLite may pick another index for a range filter (`sorties >= 5`) over the one that
+  gives the order. If it does, move the filter column behind the order columns or drop the competing index.
+
+### Allowing something, with a reason
+
+Only where no index can help, and always with a reason (a test fails on an empty one or a stale table name):
+
+- `SMALL_TABLES` `{table: reason}`: a table that stays tiny (settings, tours, the game-object catalog, per-aircraft-type
+  stats). A table that grows with play never belongs here.
+- `SCAN_ALLOWANCES` / `SORT_ALLOWANCES`: `QueryAllowance(table, sql_contains, reason, url_prefix)` for one kind of
+  statement (matched on the table the plan starts from, a snippet of the SQL, and optionally the page: `ingest` for the
+  ingest). Today: the player-name substring search, the leaderboards' tie-break on the joined player name, the per-hour
+  boards' ratio sort, the Elo replay, the threshold percentiles. Read their reasons before adding one.
+- A rare sort column of a list: do nothing; it is a rare sort unless you put it in the list's `indexed` tuple (then it must
+  have an index).
 
 ## 2. Front-end budgets and web vitals (`tests/e2e/test_frontend_performance.py`)
 
