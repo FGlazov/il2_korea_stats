@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from il2ks.core.catalog.loader import Side
-from il2ks.db.models import PlayerMission, PlayerSortie, Tour
+from il2ks.db.models import PlayerMission, PlayerSortie, SiteSettings, Tour
 from il2ks.queries import activity as activity_reads
 from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import missions as reads
@@ -22,6 +22,7 @@ from il2ks.queries.paging import MISSION_PAGE_SIZE, ROW_PAGE_SIZE
 from il2ks.queries.tours import is_quiet_tour, tour_choice_from, tour_query
 from il2ks.web import columns, display
 from il2ks.web.chart_data import activity_chart
+from il2ks.web.context_processors import site_row
 from il2ks.web.views.leaderboards import BOARD_TITLES
 
 HOME_MISSIONS = 8
@@ -81,17 +82,17 @@ def home(request: HttpRequest) -> HttpResponse:
         "last_mission": last,
         "pilots": pilots,
         "activity": activity_chart(activity_reads.recent_activity(tour=choice.selected)),
-        "boards": _home_boards(choice.selected),
+        "boards": _home_boards(choice.selected, site_row(request)),
         "tour_query": tour_query(choice.selected),
         **choice.context,
     }
     return render(request, "il2ks/home.html", context)
 
 
-def _home_boards(tour: Tour | None) -> list[HomeBoard]:
+def _home_boards(tour: Tour | None, site: SiteSettings) -> list[HomeBoard]:
     """The boards the maintainer wants on the home page (OQ-64, OQ-79): Elo of both pools, the skill boards and play
     time, in `tour` (all time without one). One read each."""
-    rules = board_reads.rules()
+    rules = board_reads.rules(site)
     return [
         HomeBoard(key, str(BOARD_TITLES[key]), board_reads.top_rows(board_reads.BOARDS[key], rules, tour=tour))
         for key in board_reads.HOME_BOARDS

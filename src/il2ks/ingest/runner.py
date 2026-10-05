@@ -52,6 +52,7 @@ from il2ks.ingest.discover import (
 )
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_level1, save_mission
+from il2ks.ingest.rule_store import effective_config
 from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -88,21 +89,23 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
         return catalog[0]
 
     def replay(events: Iterable[LogEvent]) -> MissionResult:
-        return replay_run(events, get_catalog(), cfg.replay)
+        return replay_run(events, get_catalog(), effective_config(cfg).replay)
 
     def save(result: MissionResult, meta: MissionMeta) -> Mission:
+        rules = effective_config(cfg)  # the admin's applied rules, read per mission: `watch` lives for weeks
         return save_mission(
             result,
             meta,
             get_catalog(),
-            None if defer_ratings else cfg.ratings,
-            cfg.tours,
-            marks=None if defer_ratings else cfg.marks,
-            score=cfg.score,
+            None if defer_ratings else rules.ratings,
+            rules.tours,
+            marks=None if defer_ratings else rules.marks,
+            score=rules.score,
         )
 
     def save_l1(result: MissionResult, meta: MissionMeta) -> tuple[Mission, set[int]]:
-        mission, touched = save_level1(result, meta, get_catalog(), cfg.tours, cfg.score)
+        rules = effective_config(cfg)
+        mission, touched = save_level1(result, meta, get_catalog(), rules.tours, rules.score)
         bump_data_version()  # TD-28: the pages changed now; level 2 follows at the next 10%
         return mission, touched
 
@@ -171,6 +174,7 @@ def ingest_once(
 def _ingest_locked(
     cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime], command: str = "ingest"
 ) -> IngestSummary:
+    cfg = effective_config(cfg)  # the rules the admin applied win over the file
     repair_pending(
         partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
         cfg.ratings,

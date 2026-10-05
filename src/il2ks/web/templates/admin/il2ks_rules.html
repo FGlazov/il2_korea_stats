@@ -1,0 +1,21 @@
+{# il2ks-template: templates/admin/il2ks_rules.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {% translate "Rules" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% translate "These rules decide what happened in a flight: whether a collision earns both pilots a kill, how far from the wreck a bailout must land, how much damage earns an assist, and more. A value you save here wins over the one in il2ks.toml. Leave a field empty to use the file (or the built-in default) again." %}</p>
+  <p>{% translate "A change applies to missions that are ingested from now on. Missions already stored keep their numbers until you read them again: use Reprocess all missions on the Ingestion status page (this can take a long time on a big archive; make a backup first)." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% include "admin/_rule_fields.html" %}
+    <div class="submit-row"><input type="submit" value="{% translate 'Save' %}" class="default"></div>
+  </form>
+</div>
+{% endblock %}

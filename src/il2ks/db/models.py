@@ -1713,6 +1713,14 @@ class SiteSettings(models.Model):
     # `ingest.flight_score`); the two differ while a re-score is pending (`watch` or `rebuild-aggregates` applies it).
     score_flight: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     score_flight_applied: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    # The game rules of `il2ks.toml` that the admin overrides (maintainer decision 2026-10-05; `il2ks.rule_settings`): a
+    # flat JSON object `{"score.air_kill_pvp": 12.0, "tours.mode": "manual", ...}`. `rule_settings` is what the admin
+    # chose, `rule_settings_applied` what the stored numbers were last computed with (the pair of the achievements): the
+    # rules that change stored numbers (scoring, ratings, assists, tours) stay pending until `watch` or
+    # `rebuild-aggregates` applied them; display-only ones and the replay rules (new missions only) are written to both
+    # at once. A key that is absent uses `il2ks.toml`, or the built-in default.
+    rule_settings: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    rule_settings_applied: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     # "Show sorties of the running mission" (FR-ING-15): `watch` saves the running mission provisionally every few
     # minutes, so its sorties show on the pages and move the counters before the mission ends. Off = online now only.
     show_live_sorties = models.BooleanField(default=True)

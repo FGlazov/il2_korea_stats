@@ -375,16 +375,18 @@ def tours_check(cfg: Config) -> Iterable[Finding]:
     """FR-WEB-10: missions must sit in the tours the `[tours]` settings give them (TD-26)."""
     from django.db import DatabaseError
 
+    from il2ks.ingest.rule_store import effective_config
     from il2ks.ingest.tours import tour_problems
 
     if applied_migrations(cfg.db_path) is None:
         return  # the database check reports it
     try:
-        problems = tour_problems(cfg.tours)
+        tours = effective_config(cfg).tours  # the admin's applied tour settings win over the file
+        problems = tour_problems(tours)
     except DatabaseError:
         return  # a database from before tours existed: the database check asks for the update
     if not problems.needs_retour:
-        yield Finding(Level.OK, f"Tours match the settings ({cfg.tours.label})")
+        yield Finding(Level.OK, f"Tours match the settings ({tours.label})")
         return
     parts = [
         f"{n} {what}"
@@ -401,6 +403,37 @@ def tours_check(cfg: Config) -> Iterable[Finding]:
         ", ".join(parts),
         "Run il2ks rebuild-aggregates --retour to move the missions into the right tours.",
     )
+
+
+@check
+def admin_rules_check(cfg: Config) -> Iterable[Finding]:
+    """Game rules set in the admin win over il2ks.toml: say which, so nobody edits the file in vain (FR-ADM-7)."""
+    from django.db import DatabaseError
+
+    from il2ks.ingest.rule_store import admin_rule_lines, pending_effects
+
+    if applied_migrations(cfg.db_path) is None:
+        return  # the database check reports it
+    try:
+        lines = admin_rule_lines()
+        pending = pending_effects()
+    except DatabaseError:
+        return  # a database from before the admin's rule settings: the database check asks for the update
+    if not lines:
+        yield Finding(Level.OK, "Game rules come from il2ks.toml and the defaults")
+    else:
+        yield Finding(
+            Level.OK,
+            f"{len(lines)} game rule(s) are set in the admin and win over il2ks.toml",
+            "; ".join(lines),
+        )
+    if pending:
+        yield Finding(
+            Level.WARN,
+            "A change of the game rules is not applied yet",
+            "The chosen rules wait for il2ks watch (next tick) or il2ks rebuild-aggregates.",
+            "Run il2ks rebuild-aggregates (with --retour for tour settings) if watch is not running.",
+        )
 
 
 @check

@@ -378,6 +378,25 @@ msgid "A busy hour for the gun camera and a quiet one for the other side's wingm
 msgstr "La cámara de tiro ha trabajado a destajo; entre los puntos del otro bando reina el silencio."
 
 # llm-draft
+msgid ""
+"A change applies to missions that are ingested from now on. Missions already stored keep their numbers until you read"
+" them again: use Reprocess all missions on the Ingestion status page (this can take a long time on a big archive; "
+"make a backup first)."
+msgstr ""
+"Un cambio se aplica a las misiones que se ingieran a partir de ahora. Las misiones ya guardadas conservan sus números"
+" hasta que las vuelvas a leer: usa «Reprocesar todas las misiones» en la página «Estado de la ingesta» (con un "
+"archivo grande puede tardar mucho; haz antes una copia de seguridad)."
+
+# llm-draft
+#, python-format
+msgid ""
+"A change shows at once: the boards use it on the next page view, and the Top 10%% and Top 25%% marks on the player "
+"pages are computed again when you save."
+msgstr ""
+"Un cambio se ve al instante: las clasificaciones lo usan en la siguiente visita a la página, y las marcas «Top 10 %%»"
+" y «Top 25 %%» de las páginas de jugadores se recalculan al guardar."
+
+# llm-draft
 msgid "A clean sheet so far. The runway thanks you."
 msgstr "Hoja limpia por ahora. La pista te lo agradece."
 
@@ -393,6 +412,10 @@ msgstr ""
 # llm-draft
 msgid "A creative arrival. The airframe will be remembered fondly."
 msgstr "Una llegada creativa. El avión será recordado con cariño."
+
+# llm-draft
+msgid "A date like 2026-10-01. Required for days:N, ignored otherwise."
+msgstr "Una fecha como 2026-10-01. Obligatoria para temporadas de N días; si no, se ignora."
 
 # llm-draft
 msgid "A few questions, then the site is ready. This page only opens on this computer and disappears when you are done."
@@ -448,22 +471,22 @@ msgstr "Una ocurrencia supera los %(max)d caracteres: %(start)s…"
 
 # llm-draft
 msgid ""
-"A re-score is pending: the saved setting is not applied to the sorties yet. It runs on its own as soon as the watch "
-"process is free."
+"A re-score is pending: the saved settings are not applied to the sorties yet. It runs on its own as soon as the watch"
+" process is free."
 msgstr ""
-"Hay un recálculo pendiente: el ajuste guardado todavía no se ha aplicado a las salidas. Se ejecutará solo en cuanto "
-"el proceso watch esté libre."
+"Hay un recálculo de puntos pendiente: los ajustes guardados aún no se han aplicado a las salidas. Se ejecuta solo en "
+"cuanto el proceso watch quede libre."
 
 # llm-draft
 msgid ""
-"A reassignment of the tours is pending: the saved choice is not applied to the missions yet. It runs on its own as "
+"A reassignment of the tours is pending: the saved choices are not applied to the missions yet. It runs on its own as "
 "soon as the watch process is free (within a minute or so), or with il2ks rebuild-aggregates --retour. Until then the "
 "pages show the old tours; afterwards every tour's leaderboards, ratings and achievements are recomputed."
 msgstr ""
-"Hay una reasignación de temporadas pendiente: la opción guardada aún no se ha aplicado a las misiones. Se ejecuta "
-"sola en cuanto el proceso watch quede libre (en un minuto, más o menos), o con il2ks rebuild-aggregates --retour. "
-"Hasta entonces las páginas muestran las temporadas anteriores; después se recalculan las clasificaciones, las "
-"valoraciones y los logros de cada temporada."
+"Hay una reasignación de temporadas pendiente: lo guardado aún no se ha aplicado a las misiones. Se ejecuta sola en "
+"cuanto el proceso watch quede libre (en cerca de un minuto), o con il2ks rebuild-aggregates --retour. Hasta entonces "
+"las páginas muestran las temporadas antiguas; después se recalculan las clasificaciones, valoraciones y logros de "
+"cada temporada."
 
 # llm-draft
 msgid ""
@@ -492,11 +515,13 @@ msgstr "Una cerveza para el punto que se lo perdonó. A casi todos se les pasa e
 
 # llm-draft
 msgid ""
-"A tour is a period of missions with its own leaderboards. How tours start is set in the configuration file ([tours] "
-"mode: monthly, every N days, or manual). Here you can add one rule on top of that."
+"A tour is a period of missions with its own leaderboards. How tours start is set here (monthly, every N days, or "
+"manual), starting from the values in il2ks.toml: a value you save wins over the file, and an empty field uses the "
+"file again. You can also add one rule on top of that."
 msgstr ""
-"Una temporada es un periodo de misiones con sus propias clasificaciones. Cómo empiezan las temporadas se define en el"
-" archivo de configuración ([tours] mode: mensual, cada N días o manual). Aquí puedes añadir una regla más por encima."
+"Una temporada es un periodo de misiones con sus propias clasificaciones. Cómo empiezan las temporadas se define aquí "
+"(mensual, cada N días o manual), partiendo de los valores de il2ks.toml: un valor guardado aquí prevalece sobre el "
+"archivo, y un campo vacío vuelve a usar el archivo. Además puedes añadir una regla más."
 
 # llm-draft
 msgid "A very busy day for the ground crews on the other side."
@@ -609,8 +634,20 @@ msgid "Air accuracy"
 msgstr "Puntería aire"
 
 # llm-draft
+msgid "Air assist (points)"
+msgstr "Asistencia aérea (puntos)"
+
+# llm-draft
 msgid "Air assists"
 msgstr "Asistencias aéreas"
+
+# llm-draft
+msgid "Air kill, a player's aircraft (points)"
+msgstr "Derribo aéreo, aeronave de un jugador (puntos)"
+
+# llm-draft
+msgid "Air kill, an AI aircraft (points)"
+msgstr "Derribo aéreo, aeronave de la IA (puntos)"
 
 # llm-draft
 msgid "Air kills"
@@ -810,6 +847,10 @@ msgid "Aircraft lost"
 msgstr "Aeronaves perdidas"
 
 # llm-draft
+msgid "Aircraft lost without a death or capture: share of the score lost (percent)"
+msgstr "Aeronave perdida sin muerte ni captura: parte de la puntuación que se pierde (porcentaje)"
+
+# llm-draft
 #. Translators: tooltip of the "Friendly kills" column header
 msgid "Aircraft or objects of your own side that you destroyed. They do not count as kills and cost score points."
 msgstr "Aviones u objetos de tu propio bando que destruiste. No cuentan como derribos y restan puntos."
@@ -939,6 +980,10 @@ msgid "Ammunition used unknown"
 msgstr "Munición gastada desconocida"
 
 # llm-draft
+msgid "An IANA name like Europe/Berlin. Empty: the server's time zone."
+msgstr "Un nombre IANA como Europe/Berlin. Vacío: la zona horaria del servidor."
+
+# llm-draft
 msgid "An Il-10 would have been proud of this one. The Shturmovik school of thought lives."
 msgstr "El Il-10 estaría orgulloso. La escuela del Shturmovik sigue viva."
 
@@ -973,6 +1018,10 @@ msgstr "Cualquier resultado"
 # llm-draft
 msgid "Any role"
 msgstr "Cualquier función"
+
+# llm-draft
+msgid "Applies at once"
+msgstr "Se aplica al instante"
 
 # llm-draft
 msgid "Apply"
@@ -1524,6 +1573,10 @@ msgid "Credit"
 msgstr "Atribución"
 
 # llm-draft
+msgid "Credit each pilot with a kill when two enemy aircraft collide"
+msgstr "Dar un derribo a cada piloto cuando dos aeronaves enemigas chocan"
+
+# llm-draft
 #. Translators: tooltip of the "Assists" column header
 msgid ""
 "Credit for damaging an aircraft or ground object that someone else then destroyed (at least 1% of its damage). Only "
@@ -1619,6 +1672,11 @@ msgstr "Muertes"
 # llm-draft
 msgid "Deaths and lost aircraft by cause"
 msgstr "Muertes y aeronaves perdidas por causa"
+
+# llm-draft
+#, python-format
+msgid "Default (%(default)s)"
+msgstr "Predeterminado (%(default)s)"
 
 # llm-draft
 msgid "Default (clears all colors below)"
@@ -1736,14 +1794,14 @@ msgstr "Duración"
 msgid ""
 "Dynamic campaign servers can run for weeks before one side wins. With the option below, a mission that ends with a "
 "win for one side ends the tour, and the next mission starts a new one. Draws, and missions that did not report a "
-"result, change nothing. The tours the configuration draws still apply: a decisive mission only cuts a monthly, N-day "
+"result, change nothing. The tours drawn by the mode above still apply: a decisive mission only cuts a monthly, N-day "
 "or manual tour into parts. Use the manual mode if only wins should start tours."
 msgstr ""
-"En los servidores de campaña dinámica pueden pasar semanas hasta que un bando gana. Con la opción de abajo, una "
-"misión que termina con victoria de un bando cierra la temporada y la siguiente misión empieza una nueva. Los empates "
-"y las misiones sin resultado no cambian nada. Las temporadas de la configuración siguen vigentes: una misión decisiva"
-" solo divide en partes una temporada mensual, de N días o manual. Usa el modo manual si solo las victorias deben "
-"iniciar temporadas."
+"En los servidores de campaña dinámica pueden pasar semanas hasta que un bando gane. Con la opción de abajo, una "
+"misión que termina con la victoria de un bando cierra la temporada, y la siguiente misión empieza una nueva. Los "
+"empates y las misiones sin resultado no cambian nada. Las temporadas que define el modo de arriba siguen valiendo: "
+"una misión decisiva solo divide una temporada mensual, de N días o manual en partes. Usa el modo manual si solo las "
+"victorias deben iniciar temporadas."
 
 # llm-draft
 msgid "Earned"
@@ -1770,12 +1828,37 @@ msgid "Elo (prop)"
 msgstr "Elo (hélice)"
 
 # llm-draft
+msgid "Elo boards: encounters a pilot needs"
+msgstr "Clasificaciones Elo: encuentros que necesita un piloto"
+
+# llm-draft
+msgid "Elo ratings"
+msgstr "Clasificación Elo"
+
+# llm-draft
+msgid "Elo: largest change of one game (K factor)"
+msgstr "Elo: mayor cambio por partida (factor K)"
+
+# llm-draft
+msgid "Elo: rating of a pilot with no games"
+msgstr "Elo: puntuación de un piloto sin partidas"
+
+# llm-draft
+msgid "Elo: weight of a propeller kill on a jet"
+msgstr "Elo: peso de un derribo de hélice sobre un reactor"
+
+# llm-draft
 msgid "Email for certificate notices (optional)"
 msgstr "Correo electrónico para avisos del certificado (opcional)"
 
 # llm-draft
 msgid "Empty missions"
 msgstr "Misiones vacías"
+
+# llm-draft
+#, python-format
+msgid "Empty uses il2ks.toml, or the built-in default: %(default)s."
+msgstr "Vacío usa il2ks.toml o el valor predeterminado integrado: %(default)s."
 
 # llm-draft
 #. Translators: Elo-rated PvP air kills between two pilots (each counts as an encounter); not all kills and losses
@@ -1949,6 +2032,10 @@ msgid "Find a player by name"
 msgstr "Buscar un jugador por nombre"
 
 # llm-draft
+msgid "Fine rules of how a flight is read (change only if results look wrong)"
+msgstr "Reglas finas de cómo se lee un vuelo (cámbialas solo si los resultados parecen erróneos)"
+
+# llm-draft
 msgid "Finish setup"
 msgstr "Terminar la configuración"
 
@@ -1959,6 +2046,10 @@ msgstr "Primera Sangre"
 # llm-draft
 msgid "First blood of the mission goes to this pilot. Somebody had to open the scoring."
 msgstr "La primera sangre de la misión es de este piloto. Alguien tenía que abrir el marcador."
+
+# llm-draft
+msgid "First day of tour 1 (only for tours of N days)"
+msgstr "Primer día de la temporada 1 (solo para temporadas de N días)"
 
 # llm-draft
 msgid "First seen"
@@ -2087,8 +2178,16 @@ msgid "Friendly hits"
 msgstr "Impactos a aliados"
 
 # llm-draft
+msgid "Friendly kill: points taken off for each"
+msgstr "Derribo aliado: puntos que se restan por cada uno"
+
+# llm-draft
 msgid "Friendly kills"
 msgstr "Aliados derribados"
+
+# llm-draft
+msgid "Friendly kills that cost points, at most per sortie"
+msgstr "Derribos aliados que restan puntos, como máximo por salida"
 
 # llm-draft
 msgid "Friendly victim"
@@ -2137,6 +2236,10 @@ msgstr ""
 "SERVICE\\il2ks necesita permiso de lectura."
 
 # llm-draft
+msgid "Game rules"
+msgstr "Reglas del juego"
+
+# llm-draft
 msgid "General"
 msgstr "General"
 
@@ -2178,6 +2281,42 @@ msgstr "Fuego antiaéreo: el único rival que nunca necesita combustible."
 # llm-draft
 msgid "Ground kill"
 msgstr "Blanco terrestre"
+
+# llm-draft
+msgid "Ground kill: anti-aircraft gun (points)"
+msgstr "Blanco terrestre: cañón antiaéreo (puntos)"
+
+# llm-draft
+msgid "Ground kill: anything else, such as fences and barrels (points)"
+msgstr "Blanco terrestre: cualquier otra cosa, como vallas y barriles (puntos)"
+
+# llm-draft
+msgid "Ground kill: artillery (points)"
+msgstr "Blanco terrestre: artillería (puntos)"
+
+# llm-draft
+msgid "Ground kill: building (points)"
+msgstr "Blanco terrestre: edificio (puntos)"
+
+# llm-draft
+msgid "Ground kill: parked aircraft (points)"
+msgstr "Blanco terrestre: aeronave estacionada (puntos)"
+
+# llm-draft
+msgid "Ground kill: ship (points)"
+msgstr "Blanco terrestre: barco (puntos)"
+
+# llm-draft
+msgid "Ground kill: tank (points)"
+msgstr "Blanco terrestre: tanque (puntos)"
+
+# llm-draft
+msgid "Ground kill: train (points)"
+msgstr "Blanco terrestre: tren (puntos)"
+
+# llm-draft
+msgid "Ground kill: vehicle (points)"
+msgstr "Blanco terrestre: vehículo (puntos)"
 
 # llm-draft
 msgid "Ground kills"
@@ -2236,6 +2375,10 @@ msgid "Ground score per hour"
 msgstr "Puntos de tierra por hora"
 
 # llm-draft
+msgid "Ground score per hour and tank busting: minutes on target a pilot needs"
+msgstr "Puntos terrestres por hora y caza de tanques: minutos sobre el objetivo que necesita un piloto"
+
+# llm-draft
 msgid "Ground score per hour on target"
 msgstr "Puntos de tierra por hora sobre el objetivo"
 
@@ -2247,6 +2390,10 @@ msgid ""
 msgstr ""
 "Puntos de tierra por hora sobre el objetivo con esta aeronave. Pilotos con al menos %(sorties)s salidas de ataque y "
 "%(minutes)s minutos sobre el objetivo."
+
+# llm-draft
+msgid "Ground score per hour: attack sorties a pilot needs"
+msgstr "Puntos terrestres por hora: salidas de ataque que necesita un piloto"
 
 # llm-draft
 msgid "Ground score/h"
@@ -2509,6 +2656,10 @@ msgid "How it ended"
 msgstr "Cómo terminó"
 
 # llm-draft
+msgid "How long a tour lasts"
+msgstr "Cuánto dura una temporada"
+
+# llm-draft
 msgid ""
 "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
 " bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once."
@@ -2526,6 +2677,16 @@ msgstr "Cuántas de las piezas lanzadas explotaron."
 #. Translators: tooltip of the "Released" column header of a sortie's ordnance table (bombs, rockets, napalm)
 msgid "How many of this ordnance the aircraft dropped or fired."
 msgstr "Cuántas unidades de este armamento lanzó o disparó el avión."
+
+# llm-draft
+msgid ""
+"How much a pilot must have done to appear on a leaderboard, so that one lucky flight cannot top it. Lower the numbers"
+" on a small server. A value you save here wins over the one in il2ks.toml; leave a field empty to use the file (or "
+"the built-in default) again."
+msgstr ""
+"Cuánto debe haber hecho un piloto para aparecer en una clasificación, de modo que un solo golpe de suerte no la "
+"encabece. En un servidor pequeño, baja los números. Un valor guardado aquí prevalece sobre el de il2ks.toml; un campo"
+" vacío vuelve a usar el archivo (o el valor predeterminado integrado)."
 
 # llm-draft
 #. Translators: tooltip of the "Damage taken" column header of a sortie list
@@ -2617,6 +2778,14 @@ msgstr "Interceptación"
 # llm-draft
 msgid "Interception per hour"
 msgstr "Interceptación por hora"
+
+# llm-draft
+msgid "Interception: air superiority sorties a pilot needs"
+msgstr "Intercepción: salidas de superioridad aérea que necesita un piloto"
+
+# llm-draft
+msgid "Interception: minutes of air superiority flight a pilot needs"
+msgstr "Intercepción: minutos de vuelo de superioridad aérea que necesita un piloto"
 
 # llm-draft
 msgid "Ironman"
@@ -2981,6 +3150,10 @@ msgid "Main"
 msgstr "Principal"
 
 # llm-draft
+msgid "Marks for the best pilots: sorties a pilot needs to be compared"
+msgstr "Marcas de los mejores pilotos: salidas necesarias para ser comparado"
+
+# llm-draft
 msgid "Matchups"
 msgstr "Enfrentamientos"
 
@@ -3041,6 +3214,10 @@ msgstr "Más agujero que avión, y aun así de vuelta en tierra. Me quito el som
 # llm-draft
 msgid "Most dangerous part of the mission: the first hundred meters."
 msgstr "La parte más peligrosa de la misión: los primeros cien metros."
+
+# llm-draft
+msgid "Moves the missions into other tours in the background"
+msgstr "Pasa las misiones a otras temporadas en segundo plano"
 
 # llm-draft
 msgid "My own only"
@@ -3117,6 +3294,10 @@ msgstr "Ni despegó y ya tiene historia que contar."
 # llm-draft
 msgid "Never shot down by a player."
 msgstr "Nunca derribado por un jugador."
+
+# llm-draft
+msgid "New missions at once; older ones after a reprocess"
+msgstr "Misiones nuevas al instante, las antiguas tras reprocesar"
 
 # llm-draft
 msgid "New quip text"
@@ -3281,8 +3462,8 @@ msgid "No quip here"
 msgstr "Aquí no hay ocurrencias"
 
 # llm-draft
-msgid "No re-score is pending: the scores match the saved setting."
-msgstr "No hay ningún recálculo pendiente: las puntuaciones coinciden con el ajuste guardado."
+msgid "No re-score is pending: the scores match the saved settings."
+msgstr "No hay recálculo pendiente: los puntos coinciden con los ajustes guardados."
 
 # llm-draft
 msgid "No recompute is pending: the pilots' achievements match the saved thresholds and switches."
@@ -3318,8 +3499,8 @@ msgid "No time wasted. The coffee in the tower was still warm."
 msgstr "Sin perder el tiempo. El café de la torre seguía caliente."
 
 # llm-draft
-msgid "No tour reassignment is pending: the tours match the saved choice."
-msgstr "No hay ninguna reasignación de temporadas pendiente: las temporadas coinciden con la opción guardada."
+msgid "No tour reassignment is pending: the tours match the saved choices."
+msgstr "No hay reasignación de temporadas pendiente: las temporadas coinciden con lo guardado."
 
 # llm-draft
 msgid "No uploaded fonts."
@@ -3415,6 +3596,11 @@ msgstr "Ni un solo incidente en la plataforma. De manual."
 # llm-draft
 msgid "Not saved yet"
 msgstr "Aún sin guardar"
+
+# llm-draft
+#, python-format
+msgid "Not saved: %(problem)s"
+msgstr "No se guardó: %(problem)s"
 
 # llm-draft
 msgid "Not taken off"
@@ -3673,6 +3859,10 @@ msgid "Payload"
 msgstr "Carga"
 
 # llm-draft
+msgid "Penalties"
+msgstr "Penalizaciones"
+
+# llm-draft
 msgid "Per hour"
 msgstr "Por hora"
 
@@ -3690,6 +3880,14 @@ msgstr "Piloto"
 
 msgid "Pilot / crew"
 msgstr "Piloto / tripulación"
+
+# llm-draft
+msgid "Pilot captured: share of the sortie's score lost (percent)"
+msgstr "Piloto capturado: parte de la puntuación que se pierde (porcentaje)"
+
+# llm-draft
+msgid "Pilot died: share of the sortie's score lost (percent)"
+msgstr "Piloto muerto: parte de la puntuación que se pierde (porcentaje)"
 
 # llm-draft
 msgid "Pilot fate"
@@ -3833,6 +4031,10 @@ msgstr "Se gastó gasolina, se contaron nubes y ni un tiro. Ganó el parte meteo
 # llm-draft
 msgid "Plenty of ground targets carry your handiwork and somebody else's name in the log."
 msgstr "Muchos blancos en tierra llevan tu sello y el nombre de otro en el registro."
+
+# llm-draft
+msgid "Points"
+msgstr "Puntos"
 
 # llm-draft
 #. Translators: tooltip of the "Air score" column header
@@ -3983,8 +4185,20 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Radio: sin novedad en el frente. El operador ya se ha terminado el periódico y los pasatiempos."
 
 # llm-draft
+msgid "Ram: and this close in space (metres)"
+msgstr "Embestida: y así de cerca en el espacio (metros)"
+
+# llm-draft
+msgid "Ram: the two losses must be this close in time (seconds)"
+msgstr "Embestida: las dos pérdidas deben ocurrir así de cerca en el tiempo (segundos)"
+
+# llm-draft
 msgid "Ramp Rash"
 msgstr "Rayón en Pista"
+
+# llm-draft
+msgid "Rams"
+msgstr "Embestidas"
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
@@ -4022,6 +4236,10 @@ msgstr ""
 "Vuelve a procesar cada misión guardada desde su archivo con las reglas actuales y luego reconstruye los agregados. "
 "Con un archivo grande puede tardar mucho. El proceso de vigilancia lo inicia en su siguiente ciclo; el sitio sigue "
 "funcionando mientras tanto."
+
+# llm-draft
+msgid "Re-scores every sortie in the background"
+msgstr "Recalcula los puntos de todas las salidas en segundo plano"
 
 # llm-draft
 #. Translators: these link names scroll to the page sections with the same names
@@ -4130,6 +4348,10 @@ msgid "Row and menu hover"
 msgstr "Fila y menú al pasar el ratón"
 
 # llm-draft
+msgid "Rules"
+msgstr "Reglas"
+
+# llm-draft
 msgid "Running"
 msgstr "En curso"
 
@@ -4154,23 +4376,27 @@ msgid "Save"
 msgstr "Guardar"
 
 # llm-draft
+msgid "Saved."
+msgstr "Guardado."
+
+# llm-draft
 msgid ""
 "Saving only stores your choice. Every sortie is scored again in the background (the watch process does it within a "
-"minute or so, or the next rebuild-aggregates does). Until then the pages show the old scores; missions ingested in "
-"the meantime use the old setting too, so nothing is ever mixed."
+"minute or so, or the next rebuild-aggregates does), all changes in one go. Until then the pages show the old scores; "
+"missions ingested in the meantime use the old settings too, so nothing is ever mixed."
 msgstr ""
-"Guardar solo almacena tu elección. Después todas las salidas se vuelven a puntuar en segundo plano (el proceso watch "
-"lo hace en aproximadamente un minuto, o lo hace el siguiente rebuild-aggregates). Hasta entonces las páginas muestran"
-" las puntuaciones antiguas; las misiones importadas mientras tanto también usan el ajuste antiguo, así que nunca se "
-"mezcla nada."
+"Guardar solo almacena tu elección. Los puntos de todas las salidas se recalculan en segundo plano (el proceso watch "
+"lo hace en cerca de un minuto, o el siguiente rebuild-aggregates), todos los cambios de una vez. Hasta entonces las "
+"páginas muestran los puntos antiguos; las misiones ingeridas mientras tanto también usan los ajustes antiguos, así "
+"que nunca se mezcla nada."
+
+# llm-draft
+msgid "Score and kill boards: sorties a pilot needs"
+msgstr "Clasificaciones de puntos y derribos: salidas que necesita un piloto"
 
 # llm-draft
 msgid "Score and rating"
 msgstr "Puntos y clasificación"
-
-# llm-draft
-msgid "Score for flight time"
-msgstr "Puntos por tiempo de vuelo"
 
 # llm-draft
 msgid "Score per hour"
@@ -4299,6 +4525,10 @@ msgid "Show %(n)s more mix"
 msgid_plural "Show %(n)s more mixes"
 msgstr[0] "Mostrar %(n)s mezcla más"
 msgstr[1] "Mostrar %(n)s mezclas más"
+
+# llm-draft
+msgid "Show assists in their own column of the killboard"
+msgstr "Mostrar las asistencias en su propia columna del registro de derribos"
 
 # llm-draft
 msgid "Show quips on the site"
@@ -4672,6 +4902,10 @@ msgid "Survived the sky, caught on the ramp. Nobody should be strafed on their w
 msgstr "Sobrevivió al cielo y lo pillaron en la plataforma. Nadie debería ser ametrallado camino del hangar."
 
 # llm-draft
+msgid "Suspected early bailout: points taken off"
+msgstr "Posible salto temprano: puntos que se restan"
+
+# llm-draft
 msgid "Suspected early bailouts"
 msgstr "Posibles saltos prematuros"
 
@@ -4909,6 +5143,10 @@ msgid "The crew chief will have opinions about this one."
 msgstr "El jefe de mecánicos va a tener opiniones sobre este."
 
 # llm-draft
+msgid "The database is busy. Nothing was saved; try again in a moment."
+msgstr "La base de datos está ocupada. No se guardó nada; inténtalo de nuevo en un momento."
+
+# llm-draft
 msgid "The enemy had just finished its own takeoff checklist. A pity, really."
 msgstr "El rival acababa de terminar su lista de comprobación de despegue. Una lástima."
 
@@ -5105,6 +5343,15 @@ msgid "The points per hour must be a number from 0 to %(max)s."
 msgstr "Los puntos por hora deben ser un número de 0 a %(max)s."
 
 # llm-draft
+msgid ""
+"The points, penalties, Elo and killboard settings below start with the values from il2ks.toml. A value you save here "
+"wins over the file; leave a field empty to use the file (or the built-in default) again."
+msgstr ""
+"Los ajustes de puntos, penalizaciones, Elo y registro de derribos de abajo parten de los valores de il2ks.toml. Un "
+"valor guardado aquí prevalece sobre el archivo; un campo vacío vuelve a usar el archivo (o el valor predeterminado "
+"integrado)."
+
+# llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
 msgid "The quick brown fox jumps over the lazy dog 0123456789"
 msgstr "El veloz murciélago hindú comía feliz cardillo y kiwi 0123456789"
@@ -5256,12 +5503,20 @@ msgstr ""
 # llm-draft
 msgid ""
 "These points count like kill points: dying, being captured or losing the aircraft takes its percentage off them, and "
-"friendly-kill and early-bailout penalties come off afterwards. The points for kills and the penalties are set in the "
-"configuration file, not here."
+"friendly-kill and early-bailout penalties come off afterwards."
 msgstr ""
-"Estos puntos cuentan como los de los derribos: morir, ser capturado o perder el avión les quita su porcentaje, y las "
-"penalizaciones por derribar aliados y por saltar pronto se restan después. Los puntos por derribos y las "
-"penalizaciones se fijan en el archivo de configuración, no aquí."
+"Estos puntos cuentan como los de derribo: morir, ser capturado o perder la aeronave les resta su porcentaje, y las "
+"penalizaciones por derribos aliados y saltos tempranos se restan después."
+
+# llm-draft
+msgid ""
+"These rules decide what happened in a flight: whether a collision earns both pilots a kill, how far from the wreck a "
+"bailout must land, how much damage earns an assist, and more. A value you save here wins over the one in il2ks.toml. "
+"Leave a field empty to use the file (or the built-in default) again."
+msgstr ""
+"Estas reglas deciden qué ocurrió en un vuelo: si una colisión da un derribo a ambos pilotos, a qué distancia de los "
+"restos debe caer un salto, cuánto daño da una asistencia y más. Un valor guardado aquí prevalece sobre el de "
+"il2ks.toml. Un campo vacío vuelve a usar el archivo (o el valor predeterminado integrado)."
 
 # llm-draft
 msgid "This achievement exists in the all-time view only (there is no tour view of it)."
@@ -5407,6 +5662,10 @@ msgstr "Zona horaria"
 # llm-draft
 msgid "Time zone of the game server's computer"
 msgstr "Zona horaria del equipo del servidor de juego"
+
+# llm-draft
+msgid "Time zone where a tour begins and ends"
+msgstr "Zona horaria en la que empieza y termina una temporada"
 
 # llm-draft
 msgid "Timeline"
@@ -6078,6 +6337,10 @@ msgid "links on the page background"
 msgstr "enlaces sobre el fondo de la página"
 
 # llm-draft
+msgid "monthly, days:14 (blocks of 14 days counted from the first day) or manual"
+msgstr "monthly (mensual), days:14 (bloques de 14 días desde el primer día) o manual"
+
+# llm-draft
 msgid "navigation link"
 msgstr "enlace de navegación"
 
@@ -6119,6 +6382,14 @@ msgid "of them static objects"
 msgstr "de ellos, objetos estáticos"
 
 # llm-draft
+msgid "off"
+msgstr "no"
+
+# llm-draft
+msgid "on"
+msgstr "sí"
+
+# llm-draft
 msgid "opens in a new tab"
 msgstr "se abre en una pestaña nueva"
 
@@ -6129,6 +6400,10 @@ msgstr "insignias naranjas"
 # llm-draft
 msgid "password reset"
 msgstr "restablecimiento de contraseña"
+
+# llm-draft
+msgid "pending"
+msgstr "pendiente"
 
 # llm-draft
 msgid "purple badges"

@@ -29,7 +29,7 @@ from il2ks.config import Config
 from il2ks.ingest.achievements import recompute_with_wanted_rules
 from il2ks.ingest.live import LiveTracker
 from il2ks.ingest.lock import LockBusyError
-from il2ks.ingest.reprocess import recompute_tours_with_wanted_rule, reprocess
+from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.reprocess_requests import ReprocessFn, fail_interrupted_requests, run_pending_request
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once, utcnow
 from il2ks.ingest.score_apply import rescore_with_wanted
@@ -136,13 +136,11 @@ def watch(
         except Exception:
             log.exception("achievement recompute failed; retrying next tick")
         try:
-            rescore_with_wanted(cfg)  # the admin changed the flight-time score option
+            rescore_with_wanted(
+                cfg
+            )  # the admin changed a scoring or tour rule, the flight-time score or the tour switch
         except Exception:
-            log.exception("score recompute failed; retrying next tick")
-        try:
-            recompute_tours_with_wanted_rule(cfg)  # the admin changed "new tour after a decisive mission"
-        except Exception:
-            log.exception("tour reassignment failed; retrying next tick")
+            log.exception("rule change failed; retrying next tick")
         backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
         live_tick()
         ticks += 1

@@ -278,6 +278,75 @@ def load_config(
         aggregates_interval_s=reader.non_negative("live", "aggregates_interval_s", live_defaults.aggregates_interval_s),
     )
 
+    configured_tz = reader.str_("server", "timezone", "")
+    tz_name = configured_tz or detect_os_timezone(env)
+    try:
+        ZoneInfo(tz_name)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        origin = "server.timezone" if configured_tz else "the OS timezone (TZ or /etc/localtime); set [server] timezone"
+        raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
+
+    rule_set = load_rule_set(reader, tz_name)
+    warnings = _renamed_key_warnings(reader)
+    for message in warnings:
+        log.warning("config: %s", message)
+
+    backup_defaults = BackupConfig()
+    backup = BackupConfig(
+        keep=reader.positive_int("backup", "keep", backup_defaults.keep),
+        daily=reader.bool_("backup", "daily", backup_defaults.daily),
+    )
+
+    uid_text = reader.str_("server", "uid", "")
+    server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)
+
+    return Config(
+        data_dir=data_dir,
+        server_uid=server_uid,
+        timezone_name=tz_name,
+        log_level=log_level,
+        log_keep_days=keep_days,
+        debug=debug,
+        web=web,
+        https=https,
+        logs=logs,
+        ingest=ingest,
+        live=live,
+        replay=rule_set.replay,
+        ratings=rule_set.ratings,
+        marks=rule_set.marks,
+        score=rule_set.score,
+        leaderboards=rule_set.leaderboards,
+        board=rule_set.board,
+        backup=backup,
+        tours=rule_set.tours,
+        source=file,
+        warnings=warnings,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class RuleSet:
+    """The game rules: every `il2ks.toml` section the site admin may override (docs/settings.md). `Config` holds them as
+    separate fields; this bundle is what `load_rule_set` reads, and what `il2ks.rule_settings` overlays."""
+
+    replay: ReplayRules = field(default_factory=ReplayRules)
+    ratings: RatingRules = field(default_factory=RatingRules)
+    marks: MarkRules = field(default_factory=MarkRules)
+    score: ScoreRules = field(default_factory=ScoreRules)
+    leaderboards: LeaderboardConfig = field(default_factory=LeaderboardConfig)
+    board: KillboardRules = field(default_factory=KillboardRules)
+    tours: TourRules = field(default_factory=TourRules)
+
+    @staticmethod
+    def of(cfg: Config) -> RuleSet:
+        return RuleSet(cfg.replay, cfg.ratings, cfg.marks, cfg.score, cfg.leaderboards, cfg.board, cfg.tours)
+
+
+def load_rule_set(reader: _Reader, server_tz_name: str) -> RuleSet:
+    """The game-rule sections (`[replay]`, `[rules]`, `[ratings]`, `[score]`, `[marks]`, `[killboard]`, `[tours]`) read
+    through `reader`. The one parser of them: `load_config` reads the file with it, and the admin's overrides go through
+    it too (`il2ks.rule_settings`), so the file and the admin cannot disagree on what is valid."""
     rule_values: dict[str, float] = {}
     for rule in dataclasses.fields(ReplayRules):
         if rule.name not in ("resupply_allowed", "toggles"):  # the yes/no rule and the [rules] toggles are read apart
@@ -304,9 +373,6 @@ def load_config(
         if f.name not in ADMIN_SCORE_FIELDS  # the flight-time option is the site admin's
     }
     score = ScoreRules(**score_values)  # pyright: ignore[reportArgumentType]  # only float fields are read here
-    warnings = _renamed_key_warnings(reader)
-    for message in warnings:
-        log.warning("config: %s", message)
     board_defaults = LeaderboardConfig()
     leaderboards = LeaderboardConfig(
         min_sorties=reader.whole_number("score", "min_sorties", board_defaults.min_sorties),
@@ -329,51 +395,15 @@ def load_config(
         min_time_on_target_s=leaderboards.min_time_on_target_minutes * 60.0,
         min_air_superiority_s=leaderboards.min_air_superiority_minutes * 60.0,
     )
-
     board = KillboardRules(assists=reader.bool_("killboard", "assists", KillboardRules().assists))
+    tours = _load_tours(reader, server_tz_name)
+    return RuleSet(replay, ratings, marks, score, leaderboards, board, tours)
 
-    backup_defaults = BackupConfig()
-    backup = BackupConfig(
-        keep=reader.positive_int("backup", "keep", backup_defaults.keep),
-        daily=reader.bool_("backup", "daily", backup_defaults.daily),
-    )
 
-    configured_tz = reader.str_("server", "timezone", "")
-    tz_name = configured_tz or detect_os_timezone(env)
-    try:
-        ZoneInfo(tz_name)
-    except (ZoneInfoNotFoundError, ValueError) as exc:
-        origin = "server.timezone" if configured_tz else "the OS timezone (TZ or /etc/localtime); set [server] timezone"
-        raise ConfigError(f"{origin}: unknown IANA timezone {tz_name!r}") from exc
-
-    tours = _load_tours(reader, tz_name)
-
-    uid_text = reader.str_("server", "uid", "")
-    server_uid = _parse_uid(uid_text) if uid_text else stored_server_uid(data_dir, create=create_server_uid)
-
-    return Config(
-        data_dir=data_dir,
-        server_uid=server_uid,
-        timezone_name=tz_name,
-        log_level=log_level,
-        log_keep_days=keep_days,
-        debug=debug,
-        web=web,
-        https=https,
-        logs=logs,
-        ingest=ingest,
-        live=live,
-        replay=replay,
-        ratings=ratings,
-        marks=marks,
-        score=score,
-        leaderboards=leaderboards,
-        board=board,
-        backup=backup,
-        tours=tours,
-        source=file,
-        warnings=warnings,
-    )
+def load_rule_set_from(raw: Raw, server_tz_name: str) -> RuleSet:
+    """`load_rule_set` over plain `{section: {key: value}}` data and no environment: the admin's overrides on top of
+    the values the file gave (`il2ks.rule_settings`). Raises `ConfigError` like the file does."""
+    return load_rule_set(_Reader(raw, {}, Path.cwd()), server_tz_name)
 
 
 # `[score]` keys that were replaced; reading them silently would leave an owner thinking the old value still applies.

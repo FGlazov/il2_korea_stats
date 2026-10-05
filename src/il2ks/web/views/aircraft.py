@@ -21,6 +21,7 @@ from il2ks.queries.aircraft import StatsRow
 from il2ks.queries.players import resolve_sort
 from il2ks.queries.tours import aircraft_absence, tour_choice_from
 from il2ks.web import columns, display, object_names
+from il2ks.web.context_processors import site_row
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,7 +231,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         if choice.selected is None and role == AircraftRole.ALL and not mod_pattern
         else reads.scoped_stats(aircraft, choice.selected, role, mod_pattern)
     )
-    rules = board_reads.rules()
+    rules = board_reads.rules(site_row(request))
     name = object_names.name_of(aircraft, get_language() or "en")
     show_elo = role != AircraftRole.ATTACK
     show_ground = role != AircraftRole.AIR_SUPERIORITY
