@@ -19,7 +19,7 @@ from il2ks.core.replay.result import (
     SortieResult,
     TimelineEntry,
 )
-from il2ks.db.models import HEAVY_SORTIE_COLUMNS, GameObject, Mission, Player, PlayerSortie
+from il2ks.db.models import HEAVY_SORTIE_COLUMNS, GameObject, Kill, Mission, Player, PlayerSortie
 from il2ks.queries.missions import mission_sorties
 from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.players import recent_sorties
@@ -309,6 +309,56 @@ def test_unknown_pilot_damage_hides_the_health_row_and_gunners_get_their_own_lab
 
     assert "Pilot health" not in detail(client, pk_of(1))
     assert re.search(r"Gunner health</dt><dd>90%", detail(client, pk_of(2)))
+
+
+# --- rams ----------------------------------------------------------------------------------------------------------
+def ram_duel(*, ram: bool = True) -> MissionResult:
+    """Players 1 (red, MiG-15bis) and 2 (blue, F-80C-10) collide: each has a kill and a shot-down row."""
+    a = replace(
+        sortie(0, 1, name="Alpha", kills_air=1, outcome="shot_down", is_plane_lost=True),
+        timeline=(
+            TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)),
+            TimelineEntry(3000, "kill", "F-80C-10", Pos(1, 2, 3), Counterpart("F-80C-10", 1, 2), ram=ram),
+            TimelineEntry(3000, "shot_down", "", Pos(1, 2, 3), Counterpart("F-80C-10", 1, 2), ram=ram),
+            TimelineEntry(3001, "sortie_end", "shot_down", Pos(1, 2, 3)),
+        ),
+    )
+    b = sortie(1, 2, name="Bravo", coalition=2, aircraft_type="F-80C-10", outcome="shot_down", is_plane_lost=True)
+    kills = (
+        kill(3000, 0, 1, victim_type="F-80C-10", ram=ram),
+        kill(3000, 1, 0, victim_type="MiG-15bis", killer_type="F-80C-10", ram=ram),
+    )
+    return mission((a, b), kills)
+
+
+def test_a_ram_is_stored_per_kill_and_in_the_timeline() -> None:
+    save(ram_duel())
+
+    assert sorted(Kill.objects.values_list("is_ram", flat=True)) == [True, True]
+    stored = PlayerSortie.objects.get(pk=pk_of(1)).timeline
+    assert [e.get("ram") for e in stored if e["kind"] in ("kill", "shot_down")] == [True, True]
+    assert all("ram" not in e for e in stored if e["kind"] in ("spawn", "sortie_end"))
+    save(ram_duel(ram=False))
+    assert Kill.objects.filter(is_ram=True).count() == 0  # re-ingest updates the flag in place
+
+
+def test_the_timeline_marks_both_rows_of_a_ram(client: Client) -> None:
+    save(ram_duel())
+
+    html = detail(client, pk_of(1))
+
+    assert html.count("timeline__ram") == 2
+
+
+def test_the_header_shows_a_ram_badge_only_for_a_ram_sortie(client: Client) -> None:
+    save(ram_duel())
+    head = detail(client, pk_of(1)).split("</header>")[0]
+    assert "Collided with" in head
+    assert "F-80C-10" in head.split("Collided with")[1].split('"')[0]
+
+    save(ram_duel(ram=False))
+    assert "Collided with" not in detail(client, pk_of(1))
+    assert "timeline__ram" not in detail(client, pk_of(1))
 
 
 # --- detail: timeline ----------------------------------------------------------------------------------------------
