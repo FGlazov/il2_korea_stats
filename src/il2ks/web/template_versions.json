@@ -131,7 +131,7 @@
     },
     "templates/il2ks/aircraft/top_elo.html": {
       "version": 1,
-      "sha256": "bad118bc345d3f79345a0660e2b6f0fe890e9ca7b0a05f957e365559eef80538"
+      "sha256": "ba51b57cefbeb6832aaf50a7e0a3cb277134fb82e464d17bb9867d5459224faa"
     },
     "templates/il2ks/aircraft/top_ground.html": {
       "version": 1,
@@ -271,15 +271,15 @@
     },
     "templates/il2ks/leaderboards/home_block.html": {
       "version": 1,
-      "sha256": "67ab029461a926d0e0fc2c83cc77857d8b0d48953cf221158e15545b66996a17"
+      "sha256": "007223f3c9999512905b8d274c1188bab9f0c4ffbe2028efaab77f26ef4a6283"
     },
     "templates/il2ks/leaderboards/list.html": {
       "version": 1,
-      "sha256": "6551b931e177e4c76f93b2417fe9f9e36a4d400517330f5ce44ff5e23d1f66e8"
+      "sha256": "1919a139ba5678689a6ea5d3b3b7a7c1c9b798dce255dfb797e1025f73d1106f"
     },
     "templates/il2ks/leaderboards/table.html": {
       "version": 1,
-      "sha256": "c0b182908ed6ebd4be70e85a12a1137044b1a51c863d483437d3ce8a3c6a5bc8"
+      "sha256": "7c8769a147c34970f596d8e9a728ceb7e505632dc1cfa5efeca9f42a516d5de8"
     },
     "templates/il2ks/missions/_player.html": {
       "version": 1,
@@ -387,7 +387,7 @@
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 1,
-      "sha256": "91fc490ee687887b102c446401987d2945609e39d8edc83413cefb3b1fcc73e1"
+      "sha256": "e550d3ee3d9f1afe67a6d1cf4a664d74247ab06ddcdb14f110f799f22300f0bb"
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,

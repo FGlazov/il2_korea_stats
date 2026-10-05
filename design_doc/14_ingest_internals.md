@@ -202,11 +202,15 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   of the touched tours, no per-entity tracking (maintainer, 2026-10-05: "not just for batched refreshes, but all of them"). **Not built yet:** today the all-time rows are still recomputed from level 1 (see above); the inventory of what
   sums cleanly (counters, min/max, weighted averages) and what does not (the Elo replay, streaks across a tour boundary, distinct counts,
   population thresholds) is in progress (roadmap).
-- **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of every qualifying kill, so
-  `ingest/ratings.py::recompute_ratings` replays all of them (ordered by mission start, kill time, row id) through the pure
-  `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the
-  end of `rebuild-aggregates` and `reprocess`. So a mission imported late lands in the right place in the order. Cost: about 0.02 s per mission
-  at sample scale, growing with the total number of kills; if it ever matters, replay only from the earliest affected mission onward.
+- **Elo ratings** are the one level-2 value that isn't per player: they depend on the order of the qualifying kills, so
+  `ingest/ratings.py::recompute_ratings(rules, tour_ids)` replays the kills of **each tour alone** (ordered by mission start, kill time, row id; a new
+  tour is a clean slate, OQ-128) through the pure `core/ratings/elo.py` and writes only the rows that changed: the tour's `PlayerTourPool` and
+  `PlayerTourAircraft` ratings and the tour's `PlayerSortie.elo_peak` (then the medals of the pilots whose peaks changed, for that tour and all time). The
+  all-time ratings (`Player`, `PlayerAircraft`) are derived afterwards from all tour rows: the best final rating, games summed (doc 13). `tour_ids=None`
+  replays every tour (rebuild, `reprocess`); `save_mission` may pass the tours it touched (old and new), since a tour's result never depends on another
+  tour's games. It runs after each mission save (same transaction), and once at the end of `rebuild-aggregates` and `reprocess`. So a mission imported late
+  lands in the right place in its tour's order and changes nothing in the other tours. Cost: about 0.02 s per mission at sample scale, bounded by the
+  tour's kills when `tour_ids` is passed. Upgrade: the `tour_elo` backfill rebuilds level 2 once for a database with all-time ratings and no tour ratings.
 - **Batched level 2 for long runs** (`ingest/batch.py`, roadmap item, 2026-10-05, `[PROPOSED]`). Maintainer, 2026-10-05: batches track only the touched tours and fully refresh them (no per-entity tracking), to bound complexity. A run with `BATCH_MIN = 20` or more missions to do
   (`ingest` after its classify pass, `reprocess` after choosing its targets) saves **level 1 only** per mission (`Pipeline.save_level1` =
   `persist.save_level1` + `bump_data_version`; still one transaction per mission, the `IngestRun` row in it) and does level 2 later. Fewer than 20:

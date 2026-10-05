@@ -351,16 +351,16 @@ def stat_mark(context: Context, metric: str) -> dict[str, object]:
         return {}
     kind = cast(stat_marks.Metric, metric)
     totals = stat_marks_totals(stats)
-    if kind in stat_marks.ELO_METRICS:  # ratings are all time and live on the player, also on a tour profile
-        player = context.get("player")
-        if player is None:
+    if kind in stat_marks.ELO_METRICS:  # the Elo of the profile's scope (`elo`: the tour's, or all time), not a counter
+        elo = context.get("elo")
+        if elo is None:
             return {}
         totals = dataclasses.replace(
             totals,
-            elo_prop=player.elo_prop,
-            elo_prop_games=player.elo_prop_games,
-            elo_jet=player.elo_jet,
-            elo_jet_games=player.elo_jet_games,
+            elo_prop=elo.elo_prop,
+            elo_prop_games=elo.elo_prop_games,
+            elo_jet=elo.elo_jet,
+            elo_jet_games=elo.elo_jet_games,
         )
     if stat_marks.amount(kind, totals) < limits.min_sorties:
         return {}

@@ -193,8 +193,9 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     Template `il2ks/aircraft/detail.html`. Context: stats (`AircraftStats`, all time), tile (the counters the tiles
     show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived,
     hits (`HitsToDestroy`), matchups (`queries.aircraft.MatchupTable`: rows, best, worst), sort (the matchup sort),
-    intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope), scoped (a tour, role or filter
-    is set), min_encounters, all_fights_url / intercept_url, show_elo / show_ground, elo_pilots (`EloRow`s: with
+    intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope), scoped (a role or modification
+    filter is set: narrows the top-Elo pilots), min_encounters, all_fights_url / intercept_url, show_elo /
+    show_ground, elo_pilots (`EloRow`s: with
     .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
     first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, mod_filters,
     mod_filtered, mod_sets, mod_sort, crumbs, page_title.
@@ -239,7 +240,7 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         **choice.context,
         "role": role.value,
         "matchups": reads.matchups(aircraft, choice.selected, intercept, matchup_sort, role, mod_pattern),
-        "scoped": not reads.is_alltime_scope(choice.selected, role, mod_pattern),
+        "scoped": role != AircraftRole.ALL or bool(mod_pattern),
         "sort": matchup_sort,
         "intercept": intercept,
         "min_encounters": reads.MIN_ENCOUNTERS,

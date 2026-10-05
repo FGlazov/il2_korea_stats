@@ -64,7 +64,7 @@ class HomeBoard:
 def home(request: HttpRequest) -> HttpResponse:
     """`/?tour=`: the home page (OQ-79). Like every tour-aware page (TD-26) no `tour` is the current tour and
     `?tour=all` is all time: the last mission, its top pilots, the latest missions, the activity chart, the streak list
-    and the compact boards follow the choice (the Elo boards are all-time only); "online now" stays live."""
+    and the compact boards follow the choice (Elo too: it resets every tour); "online now" stays live."""
     choice = tour_choice_from(request.GET)
     latest = reads.latest_missions(HOME_MISSIONS, choice.selected)
     last = latest[0] if latest else None
@@ -90,7 +90,7 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def _home_boards(tour: Tour | None) -> list[HomeBoard]:
     """The boards the maintainer wants on the home page (OQ-64, OQ-79): Elo of both pools, the skill boards and play
-    time, in `tour` (Elo is all time). One read each."""
+    time, in `tour` (all time without one). One read each."""
     rules = board_reads.rules()
     return [
         HomeBoard(key, str(BOARD_TITLES[key]), board_reads.top_rows(board_reads.BOARDS[key], rules, tour=tour))

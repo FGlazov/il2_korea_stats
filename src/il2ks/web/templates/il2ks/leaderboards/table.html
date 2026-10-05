@@ -79,12 +79,12 @@
             <td class="num"><strong>{{ row.stats.flight_time_s|duration }}</strong></td>
             <td class="num">{{ row.stats.sorties|num }}</td>
           {% elif board.key == "elo-prop" %}
-            <td class="num"><strong>{{ row.stats.elo_prop|num }}</strong></td>
-            <td class="num">{{ row.stats.elo_prop_games|num }}</td>
+            <td class="num"><strong>{{ row.rating|num }}</strong></td>
+            <td class="num">{{ row.games|num }}</td>
             <td class="num">{{ row.stats.sorties|num }}</td>
           {% else %}
-            <td class="num"><strong>{{ row.stats.elo_jet|num }}</strong></td>
-            <td class="num">{{ row.stats.elo_jet_games|num }}</td>
+            <td class="num"><strong>{{ row.rating|num }}</strong></td>
+            <td class="num">{{ row.games|num }}</td>
             <td class="num">{{ row.stats.sorties|num }}</td>
           {% endif %}
         </tr>

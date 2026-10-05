@@ -695,16 +695,20 @@ msgstr[1] ""
 "%(games)s Begegnungen."
 
 # llm-draft
-msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Luftkampf-Elo der Jets, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit."
+msgid ""
+"Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
+"pilot's best tour."
+msgstr ""
+"Luftkampf-Elo der Jets, aus Abschüssen zwischen Einsätzen zur Luftüberlegenheit. Jede Tour beginnt neu; die "
+"Gesamtwertung zeigt die beste Tour jedes Piloten."
 
 # llm-draft
 msgid ""
-"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
-" counts double."
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
+"shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Luftüberlegenheitseinsätzen. Gesamtzeit. Ein Propeller-"
-"Abschuss gegen einen Jet zählt doppelt."
+"Luftkampf-Elo der Propellerflugzeuge, aus Abschüssen zwischen Einsätzen zur Luftüberlegenheit. Jede Tour beginnt neu;"
+" die Gesamtwertung zeigt die beste Tour jedes Piloten. Ein Propellerabschuss gegen einen Jet zählt doppelt."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
@@ -4688,20 +4692,21 @@ msgstr "Diese Seite existiert nicht, oder der Link ist veraltet."
 msgid "That token is not right"
 msgstr "Dieses Token stimmt nicht"
 
-# llm-draft
 #, python-format
 msgid ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority sortie"
-" in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sortie in it are listed, and the sorties are counted in the selection."
 msgid_plural ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority "
-"sorties in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sorties in it are listed, and the sorties are counted in the selection."
 msgstr[0] ""
-"Das Elo ist die Wertung des Piloten über die gesamte Zeit; aufgeführt sind nur Piloten mit mindestens %(n)s "
-"Luftüberlegenheitseinsatz in dieser Auswahl, und die Einsätze werden in der Auswahl gezählt."
+"Das Elo ist die Wertung des Piloten in der gewählten Tour (gesamte Zeit: in seiner besten Tour); aufgeführt sind nur "
+"Piloten mit mindestens %(n)s Luftüberlegenheitseinsatz in dieser Auswahl, und die Einsätze werden in der Auswahl "
+"gezählt."
 msgstr[1] ""
-"Das Elo ist die Wertung des Piloten über die gesamte Zeit; aufgeführt sind nur Piloten mit mindestens %(n)s "
-"Luftüberlegenheitseinsätzen in dieser Auswahl, und die Einsätze werden in der Auswahl gezählt."
+"Das Elo ist die Wertung des Piloten in der gewählten Tour (gesamte Zeit: in seiner besten Tour); aufgeführt sind nur "
+"Piloten mit mindestens %(n)s Luftüberlegenheitseinsätzen in dieser Auswahl, und die Einsätze werden in der Auswahl "
+"gezählt."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."

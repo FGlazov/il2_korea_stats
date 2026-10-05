@@ -18,6 +18,7 @@ from il2ks.db.models import (
     PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
+    PlayerTourPool,
     Role,
     Tour,
 )
@@ -26,6 +27,33 @@ from il2ks.queries.sorting import Rated, Ratio, SortSpec, order_by
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = ROW_PAGE_SIZE
+
+
+@dataclass(frozen=True, slots=True)
+class EloShown:
+    """The Elo a profile shows: all time (the best tour's rating, games over all tours) or the selected tour's final
+    rating (OQ-128). A pool without rated games has 0 games."""
+
+    elo_prop: float = 0.0
+    elo_prop_games: int = 0
+    elo_jet: float = 0.0
+    elo_jet_games: int = 0
+
+
+def elo_shown(player: Player, tour: Tour | None) -> EloShown:
+    """The Elo of `player` in `tour` (None: all time, from the player row, no query; a tour: one query)."""
+    if tour is None:
+        return EloShown(player.elo_prop, player.elo_prop_games, player.elo_jet, player.elo_jet_games)
+    rows = {
+        propulsion: (elo, games)
+        for propulsion, elo, games in PlayerTourPool.objects.filter(player=player, tour=tour).values_list(
+            "propulsion", "elo", "elo_games"
+        )
+    }
+    prop, jet = rows.get("prop", (0.0, 0)), rows.get("jet", (0.0, 0))
+    return EloShown(prop[0], prop[1], jet[0], jet[1])
+
+
 RECENT_SORTIES = 5
 TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64

@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0059_site_level2_pending"),
+        ("il2ks_db", "0060_tour_elo"),
     ]
 
     operations = [

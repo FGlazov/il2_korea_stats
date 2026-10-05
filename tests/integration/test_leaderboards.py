@@ -153,8 +153,8 @@ def test_elo_boards_have_prop_and_jet_pools(client: Client) -> None:
     props = client.get("/leaderboards/elo-prop/").context["page_obj"].object_list
     assert [r.player.current_name for r in jets] == ["JetA", "JetB"]
     assert [r.player.current_name for r in props] == ["PropA", "PropB"]
-    assert jets[0].stats.elo_jet > 1500 > jets[1].stats.elo_jet
-    assert client.get("/leaderboards/elo-jet/?tour=1&aircraft=1").status_code == 200  # no such filters: ignored
+    assert jets[0].rating > 1500 > jets[1].rating
+    assert client.get("/leaderboards/elo-jet/?tour=1&aircraft=1").status_code == 200  # no aircraft filter: ignored
 
 
 def test_elo_boards_need_the_minimum_rated_games(client: Client) -> None:
@@ -341,7 +341,7 @@ def test_switching_boards_keeps_the_filters_the_target_board_has(client: Client)
 
     assert tabs["air"][1] is True
     assert tabs["ground"][0] == f"/leaderboards/ground/?tour={october.pk}&pool=jet"
-    assert tabs["elo-jet"][0] == "/leaderboards/elo-jet/"  # all-time only: no tour or pool
+    assert tabs["elo-jet"][0] == f"/leaderboards/elo-jet/?tour={october.pk}"  # the tour (Elo is per tour), no pool
     body = response.content.decode()
     assert 'aria-current="page"' in body
     assert (
@@ -424,7 +424,7 @@ def test_leaderboard_selector_offers_all_time_as_all_and_filters_keep_it(client:
 @override_settings(IL2KS_LEADERBOARDS=LOW)
 def test_home_ground_board_links_keep_the_home_pages_tour(client: Client) -> None:
     """The home block lists the selected tour's top 5 (OQ-79), so its title and player links open that tour; the Elo
-    boards are all time and link to all time."""
+    boards follow the tour like the others (Elo resets every tour, OQ-128)."""
     seed()
     tour = Tour.objects.get()
     default = client.get("/").content.decode()
@@ -434,5 +434,5 @@ def test_home_ground_board_links_keep_the_home_pages_tour(client: Client) -> Non
     html = client.get("/?tour=all").content.decode()
 
     assert 'href="/leaderboards/ground-hour/?tour=all"' in html
-    assert 'href="/leaderboards/elo-jet/"' in html
+    assert 'href="/leaderboards/elo-jet/?tour=all"' in html
     assert f"/players/{Player.objects.get(current_name='Pounder').pk}/?tour=all" in html

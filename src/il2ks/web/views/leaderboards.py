@@ -60,17 +60,20 @@ BOARD_HELP = {
         "Tanks destroyed in attack sorties per hour spent on target. Transit to and from the target is not counted."
     ),
     "elo-prop": _(
-        "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. "
-        "A propeller kill on a jet counts double."
+        "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; "
+        "all time shows each pilot's best tour. A propeller kill on a jet counts double."
     ),
-    "elo-jet": _("Air-to-air Elo of jets, from kills between air superiority sorties. All time."),
+    "elo-jet": _(
+        "Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; "
+        "all time shows each pilot's best tour."
+    ),
     "play-time": _("Hours flown: the time spent in the air in all sorties, air and ground."),
 }
 
 
 def _tab_url(key: str, request: HttpRequest) -> str:
     """The URL of a board's tab: keeps the tour, propulsion and aircraft choice where that board has the filter (the
-    Elo boards are all-time only and have neither). Sorting and paging start over."""
+    Elo boards have the tour only). Sorting and paging start over."""
     target = reads.BOARDS[key]
     keep = {
         name: value
