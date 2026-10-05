@@ -256,6 +256,11 @@ decisions are made):
 - 🔧 **Maintainer answers of 2026-10-05** (doc 02): career medals with all-time thresholds 5x the per-tour ones and a new "tours in a
   row" medal (OQ-128); translated weapon-mod names; outcome penalties never improve a negative score.
 
+- 🔧 **Flight-time score** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that gives air-score points
+  per hour in the air at a configurable rate, so a quiet intercept patrol (or one that deterred the bombers) still counts.
+- 🔧 **New tour on a decisive mission** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that starts a new
+  tour after a mission won by one side (dynamic campaigns that run for weeks); research first which log events carry the result.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
