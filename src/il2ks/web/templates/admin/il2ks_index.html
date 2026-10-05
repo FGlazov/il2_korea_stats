@@ -28,6 +28,15 @@
       </tr>
     </table>
   </div>
+  <div class="module">
+    <table>
+      <caption>{% translate "Scoring" %}</caption>
+      <tr>
+        <th scope="row"><a href="{% url 'admin:score' %}">{% translate "Score for flight time" %}</a></th>
+        <td><a href="{% url 'admin:score' %}" class="changelink">{% translate "Change" %}</a></td>
+      </tr>
+    </table>
+  </div>
   {% endif %}
   {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
 </div>

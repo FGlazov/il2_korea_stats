@@ -460,6 +460,14 @@ msgstr "Шутка длиннее %(max)d символов: %(start)s..."
 
 # llm-draft
 msgid ""
+"A re-score is pending: the saved setting is not applied to the sorties yet. It runs on its own as soon as the watch "
+"process is free."
+msgstr ""
+"Ожидается пересчёт очков: сохранённая настройка ещё не применена к вылетам. Он запустится сам, как только процесс "
+"watch освободится."
+
+# llm-draft
+msgid ""
 "A recompute is pending: the saved thresholds or switches are not applied to the pilots' achievements yet. It runs on "
 "its own as soon as the watch process is free (the site shows the old thresholds until then)."
 msgstr ""
@@ -2063,6 +2071,15 @@ msgid "Friendly-fire kills. The markings are small and the sky is crowded."
 msgstr "Сбитые свои. Опознавательные знаки мелкие, а небо тесное."
 
 # llm-draft
+#, python-format
+msgid ""
+"From 0 to %(max_rate)s. The default, %(default_rate)s, keeps an hour of patrol worth less than any air kill (an AI "
+"aircraft is worth %(ai_kill)s points, a player's %(pvp_kill)s)."
+msgstr ""
+"От 0 до %(max_rate)s. Значение по умолчанию, %(default_rate)s, делает час патрулирования дешевле любой воздушной "
+"победы (самолёт ИИ стоит %(ai_kill)s очка, самолёт игрока — %(pvp_kill)s)."
+
+# llm-draft
 msgid "Front page image"
 msgstr "Изображение на главной"
 
@@ -3242,6 +3259,10 @@ msgid "No quip here"
 msgstr "Здесь без шуток"
 
 # llm-draft
+msgid "No re-score is pending: the scores match the saved setting."
+msgstr "Пересчёт не ожидается: очки соответствуют сохранённой настройке."
+
+# llm-draft
 msgid "No recompute is pending: the pilots' achievements match the saved thresholds and switches."
 msgstr "Пересчёт не ожидается: достижения пилотов соответствуют сохранённым порогам и переключателям."
 
@@ -3326,6 +3347,16 @@ msgid "None."
 msgstr "Нет."
 
 # llm-draft
+msgid ""
+"Normally a pilot's air score comes from air kills and assists only, so a long patrol where nothing happens earns "
+"nothing. Here you can switch on points for time in the air (not for taxiing): every pilot sortie then earns the rate "
+"below for each hour it was airborne, as air score. Gunners get nothing."
+msgstr ""
+"Обычно воздушные очки пилота начисляются только за воздушные победы и содействие, поэтому долгий патруль, в котором "
+"ничего не происходит, ничего не приносит. Здесь вы можете включить очки за время в воздухе (без руления): каждый "
+"вылет пилота получит указанную ниже ставку за каждый час в воздухе, в воздушные очки. Стрелки ничего не получают."
+
+# llm-draft
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
 msgstr "Не посадка и не авария, а принципиальное расхождение во мнениях с землёй."
 
@@ -3400,6 +3431,10 @@ msgstr "Число попаданий, которые вы нанесли по �
 # llm-draft
 msgid "OK"
 msgstr "OK"
+
+# llm-draft
+msgid "Off by default."
+msgstr "По умолчанию выключено."
 
 # llm-draft
 msgid "Off by default: the front page then looks as usual."
@@ -3771,11 +3806,13 @@ msgstr "На многих наземных целях ваша работа, а 
 # llm-draft
 #. Translators: tooltip of the "Air score" column header
 msgid ""
-"Points for air kills (a player is worth more than an AI aircraft) and assists, minus penalties for dying, being "
-"captured, losing the aircraft and friendly kills. Ground kills are scored separately."
+"Points for air kills (a player is worth more than an AI aircraft) and assists, plus points for flight time if the "
+"server enables them, minus penalties for dying, being captured, losing the aircraft and friendly kills. Ground kills "
+"are scored separately."
 msgstr ""
-"Очки за воздушные победы (игрок стоит больше, чем самолёт ИИ) и содействия, за вычетом штрафов за гибель, плен, "
-"потерю самолёта и сбитых своих. Наземные цели оцениваются отдельно."
+"Очки за воздушные победы (самолёт игрока стоит больше самолёта ИИ) и содействие, плюс очки за время полёта, если "
+"сервер их включил, минус штрафы за гибель, плен, потерю самолёта и поражение своих. Наземные победы считаются "
+"отдельно."
 
 # llm-draft
 msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
@@ -3793,6 +3830,10 @@ msgid ""
 msgstr ""
 "Очки за наземные цели (у каждого типа цели своя цена, у заборов совсем мало) с теми же штрафами, что и для воздушных "
 "очков. Воздушные победы оцениваются отдельно."
+
+# llm-draft
+msgid "Points per hour of flight"
+msgstr "Очков за час полёта"
 
 # llm-draft
 msgid "Possible early bailout"
@@ -4083,12 +4124,38 @@ msgid "Save"
 msgstr "Сохранить"
 
 # llm-draft
+msgid ""
+"Saving only stores your choice. Every sortie is scored again in the background (the watch process does it within a "
+"minute or so, or the next rebuild-aggregates does). Until then the pages show the old scores; missions ingested in "
+"the meantime use the old setting too, so nothing is ever mixed."
+msgstr ""
+"Сохранение только запоминает ваш выбор. Затем все вылеты пересчитываются в фоне (процесс watch делает это примерно за"
+" минуту, либо это сделает следующий rebuild-aggregates). До этого страницы показывают прежние очки; миссии, "
+"загруженные за это время, тоже используют прежнюю настройку, так что ничего не смешивается."
+
+# llm-draft
 msgid "Score and rating"
 msgstr "Очки и рейтинг"
 
 # llm-draft
+msgid "Score for flight time"
+msgstr "Очки за время полёта"
+
+# llm-draft
 msgid "Score per hour"
 msgstr "Очков в час"
+
+# llm-draft
+msgid "Score points for flight time"
+msgstr "Начислять очки за время полёта"
+
+# llm-draft
+msgid "Scoring"
+msgstr "Подсчёт очков"
+
+# llm-draft
+msgid "Scoring saved."
+msgstr "Настройки подсчёта очков сохранены."
 
 # llm-draft
 msgid "Search"
@@ -5006,6 +5073,11 @@ msgstr ""
 "воздушных побед и времени в полёте."
 
 # llm-draft
+#, python-format
+msgid "The points per hour must be a number from 0 to %(max)s."
+msgstr "Очков за час должно быть числом от 0 до %(max)s."
+
+# llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
 msgid "The quick brown fox jumps over the lazy dog 0123456789"
 msgstr "Съешь же ещё этих мягких французских булок, да выпей чаю 0123456789"
@@ -5148,6 +5220,16 @@ msgid ""
 msgstr ""
 "Эти файлы в вашей папке custom/ заменяют встроенные файлы il2ks, но основаны на их более старой (или неизвестной) "
 "версии. Они могут быть сломаны или скрывать новое содержимое. Это может коснуться посетителей."
+
+# llm-draft
+msgid ""
+"These points count like kill points: dying, being captured or losing the aircraft takes its percentage off them, and "
+"friendly-kill and early-bailout penalties come off afterwards. The points for kills and the penalties are set in the "
+"configuration file, not here."
+msgstr ""
+"Эти очки считаются как очки за победы: гибель, плен или потеря самолёта отнимают от них свой процент, а штрафы за "
+"поражение своих и ранний выход из самолёта вычитаются потом. Очки за победы и штрафы задаются в файле конфигурации, а"
+" не здесь."
 
 # llm-draft
 msgid "This achievement exists in the all-time view only (there is no tour view of it)."

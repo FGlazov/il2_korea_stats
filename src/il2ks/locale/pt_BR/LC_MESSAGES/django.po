@@ -448,6 +448,14 @@ msgstr "Uma piadinha passa de %(max)d caracteres: %(start)s..."
 
 # llm-draft
 msgid ""
+"A re-score is pending: the saved setting is not applied to the sorties yet. It runs on its own as soon as the watch "
+"process is free."
+msgstr ""
+"Há um recálculo pendente: a configuração salva ainda não foi aplicada às saídas. Ele roda sozinho assim que o "
+"processo watch estiver livre."
+
+# llm-draft
+msgid ""
 "A recompute is pending: the saved thresholds or switches are not applied to the pilots' achievements yet. It runs on "
 "its own as soon as the watch process is free (the site shows the old thresholds until then)."
 msgstr ""
@@ -2045,6 +2053,15 @@ msgid "Friendly-fire kills. The markings are small and the sky is crowded."
 msgstr "Abates por fogo amigo. As marcações são pequenas e o céu está lotado."
 
 # llm-draft
+#, python-format
+msgid ""
+"From 0 to %(max_rate)s. The default, %(default_rate)s, keeps an hour of patrol worth less than any air kill (an AI "
+"aircraft is worth %(ai_kill)s points, a player's %(pvp_kill)s)."
+msgstr ""
+"De 0 a %(max_rate)s. O valor padrão, %(default_rate)s, mantém uma hora de patrulha valendo menos que qualquer abate "
+"aéreo (uma aeronave da IA vale %(ai_kill)s pontos, a de um jogador %(pvp_kill)s)."
+
+# llm-draft
 msgid "Front page image"
 msgstr "Imagem da página inicial"
 
@@ -3221,6 +3238,10 @@ msgid "No quip here"
 msgstr "Sem piadinhas aqui"
 
 # llm-draft
+msgid "No re-score is pending: the scores match the saved setting."
+msgstr "Nenhum recálculo pendente: as pontuações correspondem à configuração salva."
+
+# llm-draft
 msgid "No recompute is pending: the pilots' achievements match the saved thresholds and switches."
 msgstr "Não há recálculo pendente: as conquistas dos pilotos correspondem aos limites e chaves salvos."
 
@@ -3305,6 +3326,16 @@ msgid "None."
 msgstr "Nenhum."
 
 # llm-draft
+msgid ""
+"Normally a pilot's air score comes from air kills and assists only, so a long patrol where nothing happens earns "
+"nothing. Here you can switch on points for time in the air (not for taxiing): every pilot sortie then earns the rate "
+"below for each hour it was airborne, as air score. Gunners get nothing."
+msgstr ""
+"Normalmente a pontuação aérea de um piloto vem só de abates aéreos e assistências, então uma patrulha longa em que "
+"nada acontece não rende nada. Aqui você pode ativar pontos pelo tempo no ar (sem contar o táxi): cada saída de piloto"
+" passa a receber a taxa abaixo por hora no ar, como pontuação aérea. Artilheiros não recebem nada."
+
+# llm-draft
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
 msgstr "Nem pouso, nem queda: uma discordância séria com o chão."
 
@@ -3379,6 +3410,10 @@ msgstr "Número de acertos que você desferiu neste adversário."
 # llm-draft
 msgid "OK"
 msgstr "OK"
+
+# llm-draft
+msgid "Off by default."
+msgstr "Desativado por padrão."
 
 # llm-draft
 msgid "Off by default: the front page then looks as usual."
@@ -3751,11 +3786,13 @@ msgstr "Muitos alvos no chão levam sua marca, e o registro traz o nome de outro
 # llm-draft
 #. Translators: tooltip of the "Air score" column header
 msgid ""
-"Points for air kills (a player is worth more than an AI aircraft) and assists, minus penalties for dying, being "
-"captured, losing the aircraft and friendly kills. Ground kills are scored separately."
+"Points for air kills (a player is worth more than an AI aircraft) and assists, plus points for flight time if the "
+"server enables them, minus penalties for dying, being captured, losing the aircraft and friendly kills. Ground kills "
+"are scored separately."
 msgstr ""
-"Pontos por abates aéreos (um jogador vale mais que um avião da IA) e assistências, menos penalidades por morrer, ser "
-"capturado, perder o avião e abater aliados. Alvos terrestres são pontuados à parte."
+"Pontos por abates aéreos (um jogador vale mais que uma aeronave da IA) e assistências, mais pontos pelo tempo de voo "
+"se o servidor os ativar, menos penalidades por morrer, ser capturado, perder a aeronave e abater aliados. Abates em "
+"solo são pontuados separadamente."
 
 # llm-draft
 msgid "Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."
@@ -3773,6 +3810,10 @@ msgid ""
 msgstr ""
 "Pontos por alvos terrestres (cada tipo de alvo tem seu valor, cercas valem muito pouco), com as mesmas penalidades "
 "dos pontos aéreos. Abates aéreos são pontuados à parte."
+
+# llm-draft
+msgid "Points per hour of flight"
+msgstr "Pontos por hora de voo"
 
 # llm-draft
 msgid "Possible early bailout"
@@ -4062,12 +4103,38 @@ msgid "Save"
 msgstr "Salvar"
 
 # llm-draft
+msgid ""
+"Saving only stores your choice. Every sortie is scored again in the background (the watch process does it within a "
+"minute or so, or the next rebuild-aggregates does). Until then the pages show the old scores; missions ingested in "
+"the meantime use the old setting too, so nothing is ever mixed."
+msgstr ""
+"Salvar apenas guarda a sua escolha. Depois todas as saídas são pontuadas de novo em segundo plano (o processo watch "
+"faz isso em cerca de um minuto, ou o próximo rebuild-aggregates). Até lá, as páginas mostram as pontuações antigas; "
+"as missões importadas nesse meio-tempo também usam a configuração antiga, então nada é misturado."
+
+# llm-draft
 msgid "Score and rating"
 msgstr "Pontos e classificação"
 
 # llm-draft
+msgid "Score for flight time"
+msgstr "Pontos por tempo de voo"
+
+# llm-draft
 msgid "Score per hour"
 msgstr "Pontos por hora"
+
+# llm-draft
+msgid "Score points for flight time"
+msgstr "Dar pontos pelo tempo de voo"
+
+# llm-draft
+msgid "Scoring"
+msgstr "Pontuação"
+
+# llm-draft
+msgid "Scoring saved."
+msgstr "Pontuação salva."
 
 # llm-draft
 msgid "Search"
@@ -4982,6 +5049,11 @@ msgstr ""
 "decolaram são ignoradas), por surtidas, por abates aéreos e por tempo de voo."
 
 # llm-draft
+#, python-format
+msgid "The points per hour must be a number from 0 to %(max)s."
+msgstr "Os pontos por hora devem ser um número de 0 a %(max)s."
+
+# llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
 msgid "The quick brown fox jumps over the lazy dog 0123456789"
 msgstr "Um pequeno jabuti xereta viu dez cegonhas felizes 0123456789"
@@ -5128,6 +5200,16 @@ msgid ""
 msgstr ""
 "Estes arquivos da sua pasta custom/ substituem arquivos internos do il2ks, mas se baseiam em uma versão mais antiga "
 "(ou desconhecida) deles. Podem estar quebrados ou esconder conteúdo novo. Os visitantes podem ser afetados."
+
+# llm-draft
+msgid ""
+"These points count like kill points: dying, being captured or losing the aircraft takes its percentage off them, and "
+"friendly-kill and early-bailout penalties come off afterwards. The points for kills and the penalties are set in the "
+"configuration file, not here."
+msgstr ""
+"Esses pontos contam como pontos de abate: morte, captura ou perda da aeronave tiram deles a sua porcentagem, e as "
+"penalidades por abate de aliados e saída antecipada são subtraídas depois. Os pontos de abate e as penalidades são "
+"definidos no arquivo de configuração, não aqui."
 
 # llm-draft
 msgid "This achievement exists in the all-time view only (there is no tour view of it)."

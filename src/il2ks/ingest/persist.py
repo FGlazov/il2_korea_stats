@@ -57,6 +57,7 @@ from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import refresh_tours
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import ensure_tour
@@ -155,6 +156,7 @@ def save_level1(
     """The level-1 half of `save_mission`: mission, players, sorties, kills, PlayerMission rows, mission counters and
     the per-mission ammo rows. Returns the ids of the tours level 2 has to refresh: the mission's tour and, when a
     re-ingest moved it, the old one."""
+    score = with_applied_flight_score(score)  # the admin's flight-time option, as last applied to the stored scores
     clock = _Clock(meta.started_at)
     tour = ensure_tour(tours, meta.started_at)
     previous = (

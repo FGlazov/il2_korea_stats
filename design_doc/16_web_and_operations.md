@@ -147,6 +147,11 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   by the templates, at most 200 characters, 20 per spot, 300 per site), each for one language or every language, and can be disabled. A custom
   quip with a language matches that language or its base (`pt` for `pt-br`). Nothing is saved when anything in the form is invalid. All
   `[PROPOSED]` (limits and fall-through are agent choices).
+- **Scoring admin page** (FR-ADM-7, maintainer request 2026-10-05; `web/admin_score.py`, `/admin/score/`, `SiteSettings.score_flight` /
+  `.score_flight_applied`, migration 0080): an optional score for flight time: a checkbox (off by default) and the points per hour in the air
+  (default 1, 0..100, validated; nothing is saved when it is invalid). Saving stores the **wanted** setting at once; the page says "pending"
+  until `watch` has re-scored every sortie (next tick, within a minute, under the writer lock) or a `rebuild-aggregates` ran (the pattern of the
+  achievements page). Rule and defaults: doc 13 "Score". Needs the change-site-settings permission like the other admin pages.
 - **Sortie map** (FR-WEB-12, 2026-10-03; **not on main**: benched until after the release, OQ-54/55, the code stays on its branch): an accordion (open) on the sortie page with a server-rendered inline SVG of the key events
   from the stored timeline (+0 queries): numbered markers with the event icons, a faint dashed line in time order (labelled "not the
   flight path"), a km grid in absolute game coordinates, an N arrow, a legend, `<title>` tooltips; the timeline table is the textual

@@ -45,8 +45,9 @@ HINTS: dict[str, Label] = {
     "survival": _("Share of the sorties in which the pilot did not die."),
     # Translators: tooltip of the "Air score" column header
     "score_air": _(
-        "Points for air kills (a player is worth more than an AI aircraft) and assists, minus penalties for dying, "
-        "being captured, losing the aircraft and friendly kills. Ground kills are scored separately."
+        "Points for air kills (a player is worth more than an AI aircraft) and assists, plus points for flight time "
+        "if the server enables them, minus penalties for dying, being captured, losing the aircraft and friendly "
+        "kills. Ground kills are scored separately."
     ),
     # Translators: tooltip of the "Ground score" column header
     "score_ground": _(

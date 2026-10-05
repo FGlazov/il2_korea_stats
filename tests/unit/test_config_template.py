@@ -21,7 +21,7 @@ from il2ks.config import (
 )
 from il2ks.core.killboard import KillboardRules
 from il2ks.core.ratings.elo import RatingRules
-from il2ks.core.ratings.score import ScoreRules
+from il2ks.core.ratings.score import ADMIN_SCORE_FIELDS, ScoreRules
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.toggles import RuleToggles
 from il2ks.core.stat_marks import MarkRules
@@ -64,7 +64,7 @@ def test_template_lists_every_config_key() -> None:
             "min_time_on_target_s",
             "min_air_superiority_s",
         },  # taken from the [score] minimums of the boards (config.py)
-        "score": {f.name for f in dataclasses.fields(ScoreRules)}
+        "score": {f.name for f in dataclasses.fields(ScoreRules)} - ADMIN_SCORE_FIELDS  # the admin's, not the file's
         | {f.name for f in dataclasses.fields(LeaderboardConfig)},
         "killboard": {f.name for f in dataclasses.fields(KillboardRules)},
         "backup": {f.name for f in dataclasses.fields(BackupConfig)},

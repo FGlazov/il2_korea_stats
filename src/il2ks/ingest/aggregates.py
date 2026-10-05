@@ -79,6 +79,7 @@ from il2ks.ingest.aircraft_stats import (
 from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.flight_score import adopt_wanted_flight_score, with_flight_score
 from il2ks.ingest.pairs import recompute_killboard
 from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.scoring import rebuild_sortie_scores
@@ -173,6 +174,7 @@ def rebuild_aggregates(
             retour(tours)
         else:
             assign_missing(tours)
+    score = with_flight_score(score, adopt_wanted_flight_score())  # the admin's flight-time option
     rebuild_sortie_scores(score)
     refresh_player_missions()  # also after a level-1 column was filled by a backfill (the interception counters)
     refresh_tours(None, ratings)  # every tour, and whatever has none: rows, Elo replay, streaks and medals, roll-ups
