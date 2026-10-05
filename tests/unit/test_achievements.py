@@ -249,3 +249,35 @@ def test_a_shame_tier_is_never_emphasised_as_rare() -> None:
     assert rarity(Holding(1, 5000), shame=True).level == ""
     assert rarity(Holding(1, 5000), shame=True).text == "Held by less than 0.1% of pilots"
     assert rarity(Holding(1, 5000)).level == "epic"
+
+
+def test_the_medal_hint_punctuation_is_translatable() -> None:
+    """The tier and threshold pattern is one translatable string: French wants a no-break space before the colon."""
+    from django.utils import translation
+
+    from il2ks.web import medals
+
+    medal = medals.Medal(
+        key="sortie_kills",
+        name="Ace",
+        description="Air kills in a single sortie.",
+        icon="x",
+        tier=3,
+        tier_name="Gold",
+        slug="gold",
+        threshold="5 kills",
+        top_tier=4,
+        earned_at=datetime(2026, 1, 1, tzinfo=UTC),
+        sortie_id=1,
+        mission_id=1,
+        mission_hidden=False,
+        kind="medal",
+        shame=False,
+        scope=None,
+        style=0,
+        rarity=medals.NO_RARITY,
+    )
+    with translation.override("en"):
+        assert "Gold: 5 kills." in medal.hint
+    with translation.override("fr"):
+        assert "Gold\u00a0: 5 kills." in medal.hint

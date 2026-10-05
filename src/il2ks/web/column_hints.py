@@ -30,8 +30,9 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "K/L" column header of an aircraft's matchup table
     "kl_matchup": _(
-        "This aircraft's kills of that enemy aircraft divided by its losses to it. A dash if it was never lost to "
-        "that aircraft."
+        'This aircraft\'s kills of that enemy aircraft divided by its losses to it. It says "no losses" if it was '
+        "never lost to that aircraft, and shows a dash while kills plus losses are fewer than 10: too few for a "
+        "reliable ratio."
     ),
     # Translators: tooltip of the "K/L" column header (kills per loss); a "loss" is a lost aircraft
     "kl": _(

@@ -283,6 +283,14 @@ msgid "%(share)s static objects"
 msgstr "%(share)s d'objets statiques"
 
 # llm-draft
+#. Translators: part of a medal's hover text: the tier and what it takes, e.g. "Gold: 25 kills." %(tier)s is the
+#. tier's name (Bronze, Silver, Gold, Platinum), %(threshold)s the requirement. The punctuation is yours to adapt
+#. (French: a no-break space before the colon).
+#, python-format
+msgid "%(tier)s: %(threshold)s."
+msgstr "%(tier)s : %(threshold)s."
+
+# llm-draft
 #, python-format
 msgid "%(title)s admin"
 msgstr "Administration de %(title)s"
@@ -5109,11 +5117,12 @@ msgstr ""
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
 msgid ""
-"This aircraft's kills of that enemy aircraft divided by its losses to it. A dash if it was never lost to that "
-"aircraft."
+"This aircraft's kills of that enemy aircraft divided by its losses to it. It says \"no losses\" if it was never lost "
+"to that aircraft, and shows a dash while kills plus losses are fewer than 10: too few for a reliable ratio."
 msgstr ""
-"Victoires de cet avion sur cet avion ennemi divisées par ses pertes face à lui. Un tiret s'il n'a jamais été perdu "
-"face à cet avion."
+"Victoires de cet avion sur cet avion ennemi divisées par ses pertes face à lui. Affiche « aucune perte » s'il n'a "
+"jamais été perdu face à cet avion, et un tiret tant que victoires plus pertes font moins de 10 : trop peu pour un "
+"ratio fiable."
 
 # llm-draft
 msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."

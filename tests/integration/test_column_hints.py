@@ -97,3 +97,13 @@ def test_description_markup_is_accessible_and_ids_are_unique() -> None:
     assert 'class="col-hint__marker" aria-hidden="true"' in html
     assert "<button" not in html  # no interactive element inside the sort link or next to it
     assert '<th scope="col">Plain</th>' in html  # no description: an ordinary header
+
+
+def test_the_matchup_ratio_hint_says_what_the_table_shows() -> None:
+    """The matchup table shows "no losses" for a ratio with no losses and a dash below MIN_ENCOUNTERS kills plus
+    losses (`aircraft/detail.html`); the hint must not claim a dash for the first case."""
+    from il2ks.queries.aircraft import MIN_ENCOUNTERS
+
+    text = str(column_hints.HINTS["kl_matchup"])
+    assert "no losses" in text
+    assert str(MIN_ENCOUNTERS) in text
