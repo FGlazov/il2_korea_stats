@@ -266,6 +266,7 @@ def kill(
     killer_type: str | None = "MiG-15bis",
     credit: KillCredit = "kill",
     is_friendly: bool = False,
+    ram: bool = False,
 ) -> KillResult:
     """A kill credit; `killer` / `victim` are sortie indexes (None = AI or ground object)."""
     return KillResult(
@@ -281,6 +282,7 @@ def kill(
         via="direct",
         is_friendly=is_friendly,
         pos=Pos(1.0, 2.0, 3.0),
+        ram=ram,
     )
 
 

@@ -1559,6 +1559,19 @@ msgid "Coalitions"
 msgstr "Коалиции"
 
 # llm-draft
+#, python-format
+msgid "Collided with %(enemy)s: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Столкновение с %(enemy)s: засчитывается как победа обоим пилотам. Таран определяется автоматически и иногда может "
+"быть ошибочным."
+
+# llm-draft
+msgid "Collided with another aircraft: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Столкновение с другим самолётом: засчитывается как победа обоим пилотам. Таран определяется автоматически и иногда "
+"может быть ошибочным."
+
+# llm-draft
 msgid "Color"
 msgstr "Цвет"
 
@@ -4268,6 +4281,10 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Радист: в эфире тишина. Сборник сканвордов закончился ещё до перерыва."
 
 # llm-draft
+msgid "Ram"
+msgstr "Таран"
+
+# llm-draft
 msgid "Ram: and this close in space (meters)"
 msgstr "Таран: и так близко в пространстве (метры)"
 
@@ -4282,6 +4299,15 @@ msgstr "Мастер парковки"
 # llm-draft
 msgid "Rams"
 msgstr "Тараны"
+
+# llm-draft
+#, python-format
+msgid ""
+"Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) and may "
+"occasionally be wrong."
+msgstr ""
+"Тараны определяются по журналу (два самолёта потеряны с разницей не более %(seconds)s с и в пределах %(meters)s м "
+"друг от друга) и иногда могут быть определены ошибочно."
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."

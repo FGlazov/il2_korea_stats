@@ -744,7 +744,8 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
     """One `PlayerSortie.timeline` entry. The hit rows (`hit_given` / `hit_taken`, doc 14) add `damage` (summed
     DMG fraction, 4 digits), `lines` and, when a hit lay near, `ammo` (log name, or ordnance key with `ammo_kind`
     "ordnance"), and `target_role` "crew" when the damaged object was a pilot / crew bot; other rows and rows from
-    before the hit rows have none of these keys."""
+    before the hit rows have none of these keys. `ram` is true on the kill and the shot-down row of a ram (absent
+    otherwise)."""
     entry: dict[str, object] = {
         "tick": t.tick,
         "at": clock.at(t.tick).isoformat(),
@@ -753,6 +754,8 @@ def _timeline_json(t: TimelineEntry, clock: _Clock, pks: dict[int, int]) -> dict
         "pos": _pos_json(t.pos),
         "counterpart": None if t.counterpart is None else _counterpart_json(t.counterpart, pks),
     }
+    if t.ram:
+        entry["ram"] = True
     if t.damage is not None:
         entry["damage"] = round(t.damage, DAMAGE_DIGITS)
         entry["lines"] = t.lines
@@ -816,10 +819,11 @@ def _replace_kills(
         row.time = clock.at(k.tick)
         row.credit = k.credit
         row.is_friendly = k.is_friendly
+        row.is_ram = k.ram
         row.via = k.via
         row.pos_x, row.pos_y, row.pos_z = (None, None, None) if pos is None else pos
     delete_pks(Kill.objects, [k.pk for k in existing.values()])
-    update_rows(Kill, changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
+    update_rows(Kill, changed, ["tick", "time", "credit", "is_friendly", "is_ram", "via", "pos_x", "pos_y", "pos_z"])
     Kill.objects.bulk_create(new)
 
 

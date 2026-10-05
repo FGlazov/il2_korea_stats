@@ -206,12 +206,14 @@ def timeline(
                     kill.victim_type,
                     kill.pos,
                     Counterpart(kill.victim_type, kill.victim_sortie_index, kill.victim_coalition),
+                    ram=kill.ram,
                 )
             )
         elif kill.killer_sortie_index == sortie.index:
             entries.append(TimelineEntry(kill.tick, "friendly_fire", kill.victim_type, kill.pos))
     loss = verdict.loss
     killer = next((k for k in kills if k.victim_sortie_index == sortie.index and k.credit == "kill"), None)
+    rammed = killer is not None and killer.ram
     if killer is not None and killer.killer_type is not None:
         counterpart = Counterpart(killer.killer_type, killer.killer_sortie_index, killer.killer_coalition)
     elif verdict.killer is not None:  # no KillResult names this sortie as victim (a gunner's), so use the verdict's
@@ -221,12 +223,12 @@ def timeline(
     if loss is not None:
         kind = "shot_down" if verdict.loss_cause == "attacker" else "destroyed"
         detail = "taxi_accident" if verdict.taxi_accident else "strafed" if verdict.strafed_on_ground else ""
-        entries.append(TimelineEntry(loss.tick, kind, detail, loss.pos, counterpart))
+        entries.append(TimelineEntry(loss.tick, kind, detail, loss.pos, counterpart, ram=rammed))
     elif verdict.died_tick is not None:  # the crew member died but the aircraft wasn't lost
         crew = crew_death(sortie)
         kind = "killed" if verdict.loss_cause == "attacker" else "died"
         pos = crew.destroyed_pos if crew is not None else None
-        entries.append(TimelineEntry(verdict.died_tick, kind, pos=pos, counterpart=counterpart))
+        entries.append(TimelineEntry(verdict.died_tick, kind, pos=pos, counterpart=counterpart, ram=rammed))
     if verdict.fate == "bailed_out":
         bot = sortie.bot
         tick = bot.bailout_tick if bot.bailout_tick is not None else bot.removed_tick

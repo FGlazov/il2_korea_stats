@@ -104,6 +104,7 @@ EVENT_ICONS: Mapping[str, str] = {
     "sortie_end": "event/sortie-end",
     "bomb_release": "event/bomb-release",
     "rocket_salvo": "event/rocket-salvo",
+    "ram": "event/ram",  # not a row kind: the Ram badge on the kill and shot-down rows of a ram, and in the header
     "hit_given": "event/damaged",
     "hit_taken": "event/damaged",
 }
@@ -651,6 +652,7 @@ class TimelineRow:
     damage: str = ""
     ammo: str = ""
     ammo_title: str = ""
+    ram: bool = False  # the kill or the loss of a mid-air collision (`credit_rams`)
     children: Sequence["TimelineRow"] = field(default_factory=tuple)
 
 
@@ -717,6 +719,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         damage=hit_damage(kind, entry),
         ammo=ammo,
         ammo_title=ammo_title,
+        ram=entry.get("ram") is True,
     )
 
 
@@ -784,6 +787,8 @@ class Detail:
     timeline: Sequence[TimelineRow]  # every row; the view paginates them
     timeline_events: int
     highlights: Highlights
+    ram_with: str = ""  # the aircraft this sortie collided with ("" when it had no ram), for the header badge
+    has_ram: bool = False
 
 
 def build_highlights(sortie: PlayerSortie, lookup: Lookup) -> Highlights:
@@ -809,11 +814,20 @@ def build_highlights(sortie: PlayerSortie, lookup: Lookup) -> Highlights:
     return Highlights(bombers, first)
 
 
+def ram_partner(rows: Sequence[TimelineRow]) -> str | None:
+    """The name of the aircraft the sortie collided with ('' when unnamed); None when no row is a ram."""
+    for row in rows:
+        if row.ram:
+            return row.who.name if row.who is not None else ""
+    return None
+
+
 def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[Kill], lookup: Lookup) -> Detail:
     pvp_air, pvp_assists, friendly = pvp_kills(sortie, made, lookup)
     ai_air, ai_assists = ai_kill_rows(sortie, lookup)
     damage = damage_rows(sortie, lookup)
     timeline = timeline_rows(sortie, lookup)
+    partner = ram_partner(timeline)
     return Detail(
         air_kills=[*pvp_air, *ai_air],
         assists=[*pvp_assists, *ai_assists],
@@ -826,6 +840,8 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         timeline=timeline,
         timeline_events=len(sortie.timeline),
         highlights=build_highlights(sortie, lookup),
+        ram_with=partner or "",
+        has_ram=partner is not None,
     )
 
 

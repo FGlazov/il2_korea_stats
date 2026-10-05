@@ -81,6 +81,24 @@ def test_the_victim_timeline_names_the_rammer() -> None:
     assert (shot_down.counterpart.object_type, shot_down.counterpart.sortie_index) == ("MiG-15bis", b.index)
 
 
+def test_the_ram_is_marked_on_both_timelines_and_a_shot_down_aircraft_is_not() -> None:
+    """The kill row and the shot-down row of a ram carry `ram`; the page marks them (sortie page)."""
+    sc = _two_players()
+    _collision(sc)
+    result = sc.result(CREDIT)
+    for sortie in (by_acct(result, 1), by_acct(result, 2)):
+        rows = {e.kind: e for e in sortie.timeline if e.kind in ("kill", "shot_down")}
+        assert set(rows) == {"kill", "shot_down"}
+        assert all(e.ram for e in rows.values())
+        assert not any(e.ram for e in sortie.timeline if e.kind not in ("kill", "shot_down"))
+    shot = Scenario()
+    shot.fly_a()
+    shot.fly_b()
+    shot.kill(110, 100, 200, pos=FAR)
+    shot.end(110.2, 200, 201)
+    assert not any(e.ram for s in shot.result(CREDIT).sorties for e in s.timeline)
+
+
 def test_collision_with_a_friend_credits_nobody() -> None:
     sc = Scenario()
     sc.fly_a()

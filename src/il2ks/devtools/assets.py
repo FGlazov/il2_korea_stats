@@ -69,6 +69,7 @@ OURS = (
     "illustration/",
     "ground/artillery.svg",
     "ground/aaa.svg",
+    "event/ram.svg",
     "flag/",  # flag-icons (MIT) and a hand-reduced Spain; README.md "Flags"
 )
 

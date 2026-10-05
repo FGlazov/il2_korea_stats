@@ -1554,6 +1554,19 @@ msgid "Coalitions"
 msgstr "Coalitions"
 
 # llm-draft
+#, python-format
+msgid "Collided with %(enemy)s: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Collision avec %(enemy)s : compte comme une victoire pour les deux pilotes. Les éperonnages sont détectés "
+"automatiquement et peuvent parfois être erronés."
+
+# llm-draft
+msgid "Collided with another aircraft: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Collision avec un autre appareil : compte comme une victoire pour les deux pilotes. Les éperonnages sont détectés "
+"automatiquement et peuvent parfois être erronés."
+
+# llm-draft
 msgid "Color"
 msgstr "Couleur"
 
@@ -4281,6 +4294,10 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Radio : néant. L'opérateur a fini les mots fléchés, et le journal avec."
 
 # llm-draft
+msgid "Ram"
+msgstr "Éperonnage"
+
+# llm-draft
 msgid "Ram: and this close in space (meters)"
 msgstr "Collision : et aussi proches dans l’espace (mètres)"
 
@@ -4295,6 +4312,15 @@ msgstr "Créneau Raté"
 # llm-draft
 msgid "Rams"
 msgstr "Collisions"
+
+# llm-draft
+#, python-format
+msgid ""
+"Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) and may "
+"occasionally be wrong."
+msgstr ""
+"Les éperonnages sont détectés à partir du journal (deux appareils perdus à moins de %(seconds)s s et %(meters)s m "
+"l’un de l’autre) et peuvent parfois être erronés."
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."

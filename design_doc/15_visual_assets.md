@@ -91,7 +91,7 @@ Small status icons used in badges in sortie tables, on the sortie page, and on t
 ### Timeline events (`event/`)
 The sortie page lists the flight as a timeline; each row starts with an icon. P2.
 `spawn`, `takeoff`, `landing`, `kill-air`, `kill-ground`, `assist`, `friendly-fire`, `damaged`, `destroyed` (own aircraft lost),
-`bailout`, `disconnect`, `sortie-end`, `bomb-release`, `rocket-salvo`.
+`bailout`, `disconnect`, `sortie-end`, `bomb-release`, `rocket-salvo`, `ram`.
 
 ### Ground targets (`ground/`)
 Used in the collapsible ground-kill breakdown (profile and sortie page). P2.
@@ -125,7 +125,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 142 files in 13 groups; 117 shipped as placeholders (1 of them not used by any page yet), 25 planned.
+Total: 143 files in 13 groups; 118 shipped as placeholders (1 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -198,7 +198,7 @@ Total: 142 files in 13 groups; 117 shipped as placeholders (1 of them not used b
 | `outcome/unknown.svg` | Badge: sortie outcome `unknown`; pilot fate `unknown` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `help` | yes | P1 | shipped |
 | `outcome/wounded.svg` | Badge: pilot status `wounded` (sortie tables, sortie page, profile) | SVG 24 x 24, currentColor | Tabler `bandage` | yes | P1 | shipped |
 
-### Timeline events (`event/`): 14 files (14 shipped)
+### Timeline events (`event/`): 15 files (15 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
@@ -212,6 +212,7 @@ Total: 142 files in 13 groups; 117 shipped as placeholders (1 of them not used b
 | `event/kill-air.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `crosshair` | yes | P2 | shipped |
 | `event/kill-ground.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `tank` | yes | P2 | shipped |
 | `event/landing.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `plane-arrival` | yes | P2 | shipped |
+| `event/ram.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | own drawing | yes | P2 | shipped |
 | `event/rocket-salvo.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `rocket` | yes | P2 | shipped |
 | `event/sortie-end.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `flag-check` | yes | P2 | shipped |
 | `event/spawn.svg` | Sortie page timeline row | SVG 24 x 24, currentColor | Tabler `login` | yes | P2 | shipped |
