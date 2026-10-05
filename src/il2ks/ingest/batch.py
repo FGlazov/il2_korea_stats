@@ -60,6 +60,7 @@ class Level2Batch:
         self.flushes = 0  # intermediate level-2 passes so far
         self._pending: set[int] = set()  # tours touched since the last level-2 pass
         self._tours: set[int] = set()  # every tour any save touched: the thresholds are rewritten for them at the end
+        self._named: set[int] = set()  # the tours whose marker write is known to be committed
         self._saved = 0  # level-1 saves since the last `finish`
 
     def start(self) -> None:
@@ -69,9 +70,12 @@ class Level2Batch:
 
     def add(self, tour_ids: Iterable[int]) -> None:
         ids = set(tour_ids)
-        if ids - self._tours:
-            self._tours |= ids
+        self._tours |= ids
+        if ids - self._named:
             store_level2_pending_tours(self._tours)  # one small update, only when the batch reaches a new tour
+            # the save may still roll back, and this write with it: the tours count as named once it commits (until
+            # then, or when it never does, the next save writes the marker again)
+            transaction.on_commit(lambda: self._named.update(ids))
         self._pending |= ids
         self._saved += 1
 
