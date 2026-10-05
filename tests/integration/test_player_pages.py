@@ -345,7 +345,7 @@ def test_profile_without_ground_activity_collapses_the_ground_part(client: Clien
     assert response.context["ground_active"] is False
     assert 'id="ground"' in body
     assert "No air-to-ground activity yet" in body
-    assert "Ground score per hour on target" not in body
+    assert "Attack proficiency" not in body
     assert "Ground kills by category" not in body
 
 

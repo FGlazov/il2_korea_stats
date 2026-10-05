@@ -383,7 +383,7 @@ time on target = sum over attacks
   target); the zero share and the 64% of releases that qualify do not change with the trail. Of the nonzero ones, measured 2026-10-05 without
   the trail → with it: median 120 s → 175 s, top 10% ≥ 300 s → ≥ 363 s, max 18 min → 21.5 min, total 165 h → 225 h (+36%), share of the
   flight time 10.7% → 14.6%. Cost: about 2 ms per mission.
-- Ground score per hour and tank busting divide by time on target, so their rates go down a little (the same kills and points over about a
+- Attack proficiency (ground score per hour on target; the name the UI uses, maintainer 2026-10-05) and tank busting divide by time on target, so their rates go down a little (the same kills and points over about a
   third more hours on target). Stored sorties get the new time after `il2ks reprocess --all`.
 
 **Interception and tank busting** (2026-10-04, maintainer: two skill boards as visible as Elo and ground per hour; definitions `[DECIDED]`,

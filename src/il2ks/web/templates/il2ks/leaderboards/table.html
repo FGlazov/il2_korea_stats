@@ -22,7 +22,7 @@
         {% elif board.key == "interception" %}
           {% sort_th "per_hour" _("Kills per hour") numeric=True hint="interception_rate" %}
           {% sort_th "kills" _("Bombers, attackers and transports shot down") numeric=True hint="interception_kills" %}
-          {% sort_th "flight_time_s" _("Air superiority flight time") numeric=True hint="flight_time_air" %}
+          {% sort_th "flight_time_s" _("Air superiority flight time") numeric=True %}
           {% sort_th "air_superiority_sorties" _("Air superiority sorties") numeric=True hint="air_superiority_sorties" %}
         {% elif board.key == "tank-busting" %}
           {% sort_th "per_hour" _("Tanks per hour") numeric=True hint="tank_rate" %}
@@ -30,12 +30,12 @@
           {% sort_th "time_on_target_s" _("Time on target") numeric=True hint="time_on_target" %}
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True hint="attack_sorties" %}
         {% elif board.key == "ground-hour" %}
-          {% sort_th "per_hour" _("Score per hour") numeric=True hint="score_per_hour" %}
-          {% sort_th "score" _("Attack ground score") numeric=True hint="score_attack" %}
+          {% sort_th "per_hour" _("Attack proficiency") numeric=True hint="score_per_hour" %}
+          {% sort_th "score" _("Attack ground score") numeric=True %}
           {% sort_th "time_on_target_s" _("Time on target") numeric=True hint="time_on_target" %}
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True hint="attack_sorties" %}
         {% elif board.key == "play-time" %}
-          {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
+          {% sort_th "flight_time_s" _("Flight time") numeric=True %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
         {% else %}
           {% sort_th "rating" _("Elo") numeric=True hint="elo" %}

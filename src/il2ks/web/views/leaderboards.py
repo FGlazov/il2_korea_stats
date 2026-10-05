@@ -22,7 +22,7 @@ from il2ks.web.context_processors import site_row
 BOARD_TITLES = {
     "air": _("Air score"),
     "ground": _("Ground score"),
-    "ground-hour": _("Ground score per hour"),
+    "ground-hour": _("Attack proficiency"),
     "interception": _("Interception"),
     "tank-busting": _("Tank busting"),
     "elo-prop": _("Elo (prop)"),
@@ -68,7 +68,6 @@ BOARD_HELP = {
         "Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; "
         "all time shows each pilot's best tour."
     ),
-    "play-time": _("Flight time: the time spent in the air in all sorties, air and ground."),
 }
 
 
@@ -117,7 +116,7 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
         "page_title": BOARD_TITLES[board],
         "board": spec,
         "title": BOARD_TITLES[board],
-        "help": BOARD_HELP[board],
+        "help": BOARD_HELP.get(board, ""),
         "tabs": tabs,
         "tab_groups": [(GROUP_TITLES[g], [t for t in tabs if reads.BOARDS[t[0]].group == g]) for g in reads.GROUPS],
         "pool_options": list(POOL_OPTIONS) if spec.per_pool else [],

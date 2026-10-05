@@ -42,7 +42,7 @@
   <section>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th>{% col_th _("Hits dealt") numeric=True hint="ammo_hits_given" %}{% col_th _("Hits taken") numeric=True hint="ammo_hits_received" %}</tr></thead>
+        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th>{% col_th _("Hits dealt") numeric=True %}{% col_th _("Hits taken") numeric=True %}</tr></thead>
         <tbody>
           {% for row in detail.ammo.hits %}
             <tr><td>{% if row.designation %}<span title="{{ row.designation }}">{{ row.name }}</span>{% else %}{{ row.name }}{% endif %}</td><td class="num">{{ row.given }}</td><td class="num">{{ row.received }}</td></tr>
@@ -59,7 +59,7 @@
   {% accordion _("Bombs, rockets and napalm") ordnance_hint open=True %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Ordnance" %}</th>{% col_th _("Released") numeric=True hint="ord_released" %}{% col_th _("Detonations") numeric=True hint="ord_detonations" %}{% col_th _("Targets damaged") numeric=True hint="ord_targets" %}<th scope="col" class="num">{% translate "Kills" %}</th>{% col_th _("Direct hits") numeric=True hint="ord_direct" %}</tr></thead>
+        <thead><tr><th scope="col">{% translate "Ordnance" %}</th>{% col_th _("Released") numeric=True %}{% col_th _("Detonations") numeric=True %}{% col_th _("Targets damaged") numeric=True hint="ord_targets" %}<th scope="col" class="num">{% translate "Kills" %}</th>{% col_th _("Direct hits") numeric=True hint="ord_direct" %}</tr></thead>
         <tbody>
           {% for row in detail.ammo.ordnance %}
             <tr><td>{{ row.name }}</td><td class="num">{{ row.released }}</td><td class="num">{{ row.detonations }}</td><td class="num">{{ row.targets_damaged }}</td><td class="num">{{ row.kills }}</td><td class="num">{{ row.direct }}</td></tr>

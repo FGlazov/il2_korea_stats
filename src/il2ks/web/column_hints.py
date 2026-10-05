@@ -56,23 +56,17 @@ HINTS: dict[str, Label] = {
         "Points for ground kills (each kind of target has its own value, fences very little), with the same "
         "penalties as the air score. Air kills are scored separately."
     ),
-    # Translators: tooltip of the "Score per hour" and "Ground score/h" column headers
+    # Translators: tooltip of the "Attack proficiency" and "Attack proficiency" column headers
     "score_per_hour": _(
         "Ground score earned in attack sorties per hour spent on target. Only pilots with enough attack sorties and "
         "time on target are ranked."
     ),
-    # Translators: tooltip of the "Attack ground score" column header of the ground-score-per-hour leaderboard
-    "score_attack": _("Ground score earned in attack sorties only."),
     # Translators: tooltip of the "Time on target" column header
     "time_on_target": _(
         "Time spent attacking enemy ground targets in attack sorties: from a minute before the first bomb or rocket "
         "released within 3 km of a target until the last such release. Releases far from any target count for "
         "nothing. Not the same as flight time."
     ),
-    # Translators: tooltip of the "Flight time" column header
-    "flight_time": _("Time in the air, from takeoff until landing or until the aircraft was lost."),
-    # Translators: tooltip of the "Air superiority flight time" column header of the interception leaderboard
-    "flight_time_air": _("Flight time in air superiority sorties only."),
     # Translators: tooltip of the "Attack sorties" column header
     "attack_sorties": _("Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."),
     # Translators: tooltip of the "Air superiority sorties" column header
@@ -108,14 +102,6 @@ HINTS: dict[str, Label] = {
     "planes_lost": _(
         "Aircraft destroyed or lost, including those where the pilot survived, for example by bailing out."
     ),
-    # Translators: tooltip of the "Air kills (PvP)" column header
-    "kills_air_pvp": _("Aircraft shot down that were flown by other players."),
-    # Translators: tooltip of the "Air kills (AI)" column header
-    "kills_air_ai": _("Aircraft shot down that were flown by the server's AI."),
-    # Translators: tooltip of the "Air" column header of a mission sortie table and the last mission top pilots
-    "kills_air_short": _("Aircraft shot down (air kills)."),
-    # Translators: tooltip of the "Ground" column header of a mission sortie table and the last mission top pilots
-    "kills_ground_short": _("Ground objects destroyed (ground kills): vehicles, tanks, ships, buildings and so on."),
     # Translators: tooltip of the "Damage taken" column header of a sortie list
     "damage_taken": _(
         "How much damage the aircraft had taken when the sortie ended or it was lost, as a share of its health: "
@@ -125,10 +111,6 @@ HINTS: dict[str, Label] = {
     "role": _(
         "Attack if the aircraft carried bombs or rockets (or is a dedicated attacker), otherwise air superiority."
     ),
-    # Translators: tooltip of the "Outcome" column header (what happened to the aircraft)
-    "outcome": _("What happened to the aircraft: landed, crashed, shot down and so on."),
-    # Translators: tooltip of the "Pilot fate" column header (what happened to the pilot)
-    "fate": _("What happened to the pilot: survived, killed or captured. The badge names the exact state."),
     # Translators: tooltip of the "Credit" column header of a table of kills (who gets the kill)
     "credit": _(
         "Kill: the attacker did the most damage. Assist: the attacker damaged it but someone else destroyed it. "
@@ -139,12 +121,8 @@ HINTS: dict[str, Label] = {
         "Damage you did to this counterpart. Against players it is a percentage of their aircraft's health; against "
         "AI and ground objects it is the health units summed over all objects of that type."
     ),
-    # Translators: tooltip of the "Hits dealt" column header of a sortie's damage table
-    "hits_dealt": _("Number of hits you landed on this counterpart."),
     # Translators: tooltip of the "Damage taken" column header of a sortie's damage table
     "damage_taken_from": _("Damage this counterpart did to you, measured as in the column Damage dealt."),
-    # Translators: tooltip of the "Hits taken" column header of a sortie's damage table
-    "hits_taken": _("Number of hits this counterpart landed on you."),
     # Translators: tooltip of the "Damage" column header of a sortie's timeline
     "timeline_damage": _(
         "Damage of a significant hit, as a percentage of the object's health: plus if you dealt it, minus if you "
@@ -152,14 +130,6 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "Used" column header of a sortie's ammunition table
     "ammo_used": _("Rounds fired: loaded minus left. A dash when unknown, for example after a resupply."),
-    # Translators: tooltip of the "Hits dealt" column header of a sortie's ammunition hit table
-    "ammo_hits_given": _("Hits you scored with this ammunition."),
-    # Translators: tooltip of the "Hits taken" column header of a sortie's ammunition hit table
-    "ammo_hits_received": _("Hits you took from this ammunition."),
-    # Translators: tooltip of the "Released" column header of a sortie's ordnance table (bombs, rockets, napalm)
-    "ord_released": _("How many of this ordnance the aircraft dropped or fired."),
-    # Translators: tooltip of the "Detonations" column header of a sortie's ordnance table
-    "ord_detonations": _("How many of the released pieces exploded."),
     # Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
     "ord_targets": _("One detonation and one target that took damage."),
     # Translators: tooltip of the "Direct hits" column header of a sortie's ordnance table
@@ -201,12 +171,8 @@ HINTS: dict[str, Label] = {
     "accuracy_ground": _(
         "Gun hits on ground targets per round fired, in attack sorties where the rounds fired are known."
     ),
-    # Translators: tooltip of the optional "Air kills/h" column header of the aircraft list
-    "kills_per_hour": _("Air kills per hour of flight time."),
-    # Translators: tooltip of the optional "Bailouts" column header of the aircraft list
-    "bailouts": _("Times a pilot jumped out of this aircraft."),
 }
-HINTS["ground_hour"] = HINTS["score_per_hour"]  # the optional "Ground score/h" column (its key is its sort key)
+HINTS["ground_hour"] = HINTS["score_per_hour"]  # the optional "Attack proficiency" column (its key is its sort key)
 
 
 def hint_text(hint: object) -> str:

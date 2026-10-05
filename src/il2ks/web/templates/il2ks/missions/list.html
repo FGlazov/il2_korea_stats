@@ -9,7 +9,6 @@
 {% block content %}
   <div class="page-head">
     <h1>{% if tour %}{% blocktranslate with tour=tour|tour_title %}Missions in {{ tour }}{% endblocktranslate %}{% else %}{% translate "Missions" %}{% endif %}</h1>
-    <p>{% translate "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them." %}</p>
   </div>
 
   {% results_region %}

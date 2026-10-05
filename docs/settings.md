@@ -132,7 +132,7 @@ penalty_friendly_kill = 3.0
 
 After a change run `il2ks rebuild-aggregates`.
 
-The boards are: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
+The boards are: air score, ground score, attack proficiency, interception, tank busting, Elo (propeller and jet)
 and play time. The same `[score]` section sets how much a pilot must have done to appear on a board, so one lucky
 flight cannot top it: `min_sorties`, `min_elo_games`, `min_attack_sorties`, `min_time_on_target_minutes`,
 `min_air_superiority_sorties` and `min_air_superiority_minutes`. Lower them on a small server.

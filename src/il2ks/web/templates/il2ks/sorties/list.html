@@ -11,7 +11,7 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% if tour %}{% blocktranslate with name=player.current_name tour=tour|tour_title %}Sorties of {{ name }} in {{ tour }}{% endblocktranslate %}{% else %}{% blocktranslate with name=player.current_name %}Sorties of {{ name }}{% endblocktranslate %}{% endif %}</h1>
-    <p>{% translate "Every sortie, newest first. Select one for the full report." %} <a href="{% url 'web:player-streak-runs' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "All streaks" %} →</a></p>
+    <p><a href="{% url 'web:player-streak-runs' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "All streaks" %} →</a></p>
   </div>
 
   {% results_region %}
@@ -31,13 +31,13 @@
             {% sort_th "date" _("Date") first="desc" %}
             {% sort_th "aircraft" _("Aircraft") %}
             {% col_th _("Role") hint="role" %}
-            {% sort_th "outcome" _("Outcome") hint="outcome" %}
-            {% col_th _("Pilot fate") hint="fate" %}
+            {% sort_th "outcome" _("Outcome") %}
+            {% col_th _("Pilot fate") %}
             {% sort_th "damage_taken" _("Damage taken") numeric=True hint="damage_taken" %}
             {% sort_th "kills_air" _("Air kills") numeric=True %}
             {% sort_th "kills_ground" _("Ground kills") numeric=True %}
             {% sort_th "assists" _("Assists") numeric=True hint="assists" %}
-            {% sort_th "flight_time" _("Flight time") numeric=True hint="flight_time" %}
+            {% sort_th "flight_time" _("Flight time") numeric=True %}
             {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% endfor %}
             <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
           </tr>
