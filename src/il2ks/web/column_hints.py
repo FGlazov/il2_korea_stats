@@ -110,8 +110,9 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "Damage taken" column header of a sortie list
     "damage_taken": _(
-        "How much damage the aircraft had taken when the sortie ended or it was lost, as a share of its health: "
-        "100% means it was destroyed."
+        "How much damage the aircraft carried when the sortie ended or it was lost, as a share of its health: "
+        "100% means it was destroyed. A landing followed by a new takeoff repairs the aircraft, so only the last "
+        "flight counts."
     ),
     # Translators: tooltip of the "Role" column header of a mission's sortie table (the combat role of the sortie)
     "role": _(
@@ -124,8 +125,11 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "Damage dealt" column header of a sortie's damage table
     "damage_dealt": _(
-        "Damage you did to this counterpart. Against players it is a percentage of their aircraft's health; against "
-        "AI and ground objects it is the health units summed over all objects of that type."
+        "Damage you did to this counterpart's aircraft (not to the pilot). Against players it is a percentage of "
+        "their aircraft's health, at most 100% for each flight leg: hits after the aircraft was at 100% count "
+        "nothing, and after a landing and a new takeoff (an assumed repair) the count starts from 0 again, so a "
+        "sortie with a repair can show more than 100%. Against AI and ground objects it is the health units summed "
+        "over all objects of that type, at most 1.0 for each object."
     ),
     # Translators: tooltip of the "Damage taken" column header of a sortie's damage table
     "damage_taken_from": _("Damage this counterpart did to you, measured as in the column Damage dealt."),

@@ -61,6 +61,9 @@ EVENT_LABELS: Mapping[str, str] = {
     "spawn": gettext_lazy("Spawned"),
     "takeoff": gettext_lazy("Took off"),
     "landing": gettext_lazy("Landed"),
+    # Translators: timeline row after a landing with a damaged aircraft that takes off again in the same sortie: the
+    # aircraft is assumed repaired (the log has no repair event), so its damage starts from 0 again
+    "repaired": gettext_lazy("Repaired after landing"),
     "kill": gettext_lazy("Kill"),
     "assist": gettext_lazy("Assist"),
     "friendly_fire": gettext_lazy("Friendly fire"),
@@ -82,6 +85,7 @@ EVENT_ICONS: Mapping[str, str] = {
     "spawn": "event/spawn",
     "takeoff": "event/takeoff",
     "landing": "event/landing",
+    "repaired": "event/landing",
     "kill": "event/kill-air",
     "assist": "event/assist",
     "friendly_fire": "event/friendly-fire",
@@ -460,7 +464,8 @@ def damage_rows(sortie: PlayerSortie, lookup: Lookup) -> list[DamageRow]:
 
 
 def _damage(amount: float, who: Who) -> str:
-    """A player: percent of that aircraft's health. AI and ground objects of one type are summed over every object of
+    """A player: percent of that aircraft's health (the damage counted per flight leg, so it can pass 100% only when
+    the aircraft was repaired after a landing). AI and ground objects of one type are summed over every object of
     that type, so the share would pass 100% (a strafing run): shown as health units (1.0 = one whole object)."""
     if amount <= 0:
         return display.DASH
