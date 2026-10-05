@@ -672,6 +672,7 @@ class Kill(models.Model):
     killer_sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="kills_made")
     victim_sortie = models.ForeignKey(PlayerSortie, on_delete=models.CASCADE, related_name="kills_suffered")
     is_friendly = models.BooleanField(default=False)
+    is_ram = models.BooleanField(default=False)  # credited because of a mid-air collision (`credit_rams`)
     credit = models.CharField(max_length=8, choices=KillCredit.choices)
     via = models.CharField(max_length=20, choices=KillVia.choices)
     pos_x = models.FloatField(null=True)

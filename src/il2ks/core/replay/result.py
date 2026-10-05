@@ -147,6 +147,7 @@ class TimelineEntry:
     target_role: str = (
         ""  # hit rows: "crew" when the damaged object was a pilot / crew bot (else the aircraft or vehicle)
     )
+    ram: bool = False  # the kill row and the shot-down / killed row of a ram (`credit_rams`, KillResult.ram)
 
 
 @dataclass(frozen=True, slots=True)

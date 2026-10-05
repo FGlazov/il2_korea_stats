@@ -495,7 +495,7 @@
     },
     "templates/il2ks/sorties/parts/header.html": {
       "version": 1,
-      "sha256": "c6e0d95323af5c97acc2944274fb7827d97efe575b1452c06ddc6c88c6c963a1"
+      "sha256": "f49ef277d9c174e1d21b2df6a10fdc331f74887b6230698ff1d759a98172bc3e"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 1,
@@ -531,11 +531,11 @@
     },
     "templates/il2ks/sorties/parts/timeline.html": {
       "version": 1,
-      "sha256": "396fca70efa8029b32e2b3559c13eaa6d3bac3f08fc7f83a9f5ee43a0ee38fb2"
+      "sha256": "2203ca85d2546e0dff49c4f35422e191903e37632c0f33755434884ef2e486a3"
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
       "version": 1,
-      "sha256": "247a9b478824113c3713ca03513b8d47257d7d80307f310b84faf0b87e5df055"
+      "sha256": "3ceaa3a9d294d97bcf6c30f05f238f5c23cce96c4ef4b8fa86a7413820be2c0a"
     },
     "templates/il2ks/sorties/parts/who.html": {
       "version": 1,

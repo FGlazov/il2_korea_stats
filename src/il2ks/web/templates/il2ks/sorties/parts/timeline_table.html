@@ -17,7 +17,7 @@
                 <ul>{% for child in row.children|slice:":20" %}<li><small class="nowrap">{{ child.clock }}</small> {% include "il2ks/sorties/parts/who.html" with who=child.who %}</li>{% endfor %}{% if row.count > 20 %}<li class="muted">{% blocktranslate with n=row.count|add:"-20"|num %}…and {{ n }} more (the breakdown by target type above counts them all){% endblocktranslate %}</li>{% endif %}</ul>
               </details>
             {% else %}
-              {% if row.text %}{{ row.text }}{% endif %}
+              {% if row.ram %}<span class="timeline__ram">{% badge _("Ram") "orange" icon="event/ram" %}</span> {% endif %}{% if row.text %}{{ row.text }}{% endif %}
               {% if row.who %}{% if row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" %}<span class="muted">{% translate "by" %}</span> {% elif row.kind == "friendly_fire" %}{% badge _("Friendly") "red" %} {% endif %}{% include "il2ks/sorties/parts/who.html" with who=row.who %}{% endif %}
               {% if row.ammo %}<small class="timeline__ammo"{% if row.ammo_title %} title="{{ row.ammo_title }}"{% endif %}>{{ row.ammo }}</small>{% endif %}
             {% endif %}

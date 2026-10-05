@@ -11,6 +11,7 @@
       {% coalition_badge sortie.country %}
       {% if sortie.role == "gunner" %}{% badge _("Gunner") "purple" %}{% else %}{% badge _("Pilot") "grey" %}{% if sortie.combat_role %} {% role_badge sortie.combat_role %}{% endif %}{% endif %}
       {% outcome_badge sortie.outcome %}
+      {% if detail.has_ram %}{% if detail.ram_with %}{% blocktranslate with enemy=detail.ram_with asvar ram_tip %}Collided with {{ enemy }}: counts as a kill for both pilots. Ram detection can occasionally be wrong.{% endblocktranslate %}{% else %}{% translate "Collided with another aircraft: counts as a kill for both pilots. Ram detection can occasionally be wrong." as ram_tip %}{% endif %}{% badge _("Ram") "orange" title=ram_tip icon="event/ram" %}{% endif %}
       {% if sortie.mission.is_live %}{% badge _("Live") "green" title=_("This mission is still running.") %}{% endif %}
       {% if sortie.taxi_accident %}{% badge _("Taxi accident") "orange" icon="stat/taxi-accidents" %}{% endif %}
       {% if sortie.strafed_on_ground %}{% badge _("Strafed on the ground") "orange" icon="stat/strafed" %}{% endif %}

@@ -278,3 +278,6 @@ _.all_time_factor  # web.admin_achievements.AchievementRow: read by admin/il2ks_
 _.tour_default_description  # web.admin_achievements.AchievementRow: read by admin/il2ks_achievements.html
 _.sortable  # web.columns.Column: read by aircraft/list.html (a header without a sort link)
 _.elo_text  # web.views.aircraft.AircraftRow: read by aircraft/list.html
+_.is_ram  # Kill.is_ram: written at ingest, read by the sortie page through the stored timeline
+_.ram_with  # sortie_view.Detail: read by sorties/parts/header.html
+_.has_ram  # sortie_view.Detail: read by sorties/parts/header.html and timeline.html

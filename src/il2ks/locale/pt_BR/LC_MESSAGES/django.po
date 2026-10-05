@@ -1536,6 +1536,19 @@ msgid "Coalitions"
 msgstr "Coalizões"
 
 # llm-draft
+#, python-format
+msgid "Collided with %(enemy)s: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Colidiu com %(enemy)s: conta como abate para os dois pilotos. A detecção de abalroamentos é automática e às vezes "
+"pode estar errada."
+
+# llm-draft
+msgid "Collided with another aircraft: counts as a kill for both pilots. Ram detection can occasionally be wrong."
+msgstr ""
+"Colidiu com outra aeronave: conta como abate para os dois pilotos. A detecção de abalroamentos é automática e às "
+"vezes pode estar errada."
+
+# llm-draft
 msgid "Color"
 msgstr "Cor"
 
@@ -4242,6 +4255,10 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Rádio: sem novidades. O operador já terminou o jornal e as palavras cruzadas."
 
 # llm-draft
+msgid "Ram"
+msgstr "Abalroamento"
+
+# llm-draft
 msgid "Ram: and this close in space (meters)"
 msgstr "Colisão: e tão próximas no espaço (metros)"
 
@@ -4256,6 +4273,14 @@ msgstr "Barbeiragem no Pátio"
 # llm-draft
 msgid "Rams"
 msgstr "Colisões"
+
+# llm-draft
+msgid ""
+"Rams are detected from the log (two aircraft lost within half a second and 15 m of each other) and may occasionally "
+"be wrong."
+msgstr ""
+"Os abalroamentos são detectados a partir do registro (duas aeronaves perdidas com menos de meio segundo e 15 m de "
+"distância entre si) e às vezes podem estar errados."
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."

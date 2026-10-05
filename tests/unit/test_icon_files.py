@@ -15,7 +15,7 @@ CONTRACT = {
     *(
         f"event/{n}"
         for n in "spawn takeoff landing kill-air kill-ground assist friendly-fire damaged destroyed bailout "
-        "disconnect sortie-end bomb-release rocket-salvo".split()
+        "disconnect sortie-end bomb-release rocket-salvo ram".split()
     ),
     *(
         f"outcome/{n}"

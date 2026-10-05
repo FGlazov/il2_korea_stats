@@ -546,7 +546,7 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   `ram_window_s` (**0.5 s**) and `ram_distance_m` (**15 m**) of each other (maintainer, OQ-92, 2026-10-04: the tighter values; the first values
   2 s / 50 m let 4 looser cases through among the 17 below), where neither has an attacker to blame and neither hit the other with
   guns. With `[rules] credit_rams = true` (default **true**, maintainer, OQ-89) each aircraft of an enemy pair is credited a kill for the other (the victim's
-  loss is then `attacker` / `shot_down`, `via direct`; a ram is an ordinary kill in the UI, nothing says "rammed", OQ-90). A collision between friends credits nobody and has no friendly-kill penalty.
+  loss is then `attacker` / `shot_down`, `via direct`; a ram is an ordinary kill in the statistics, OQ-90; the sortie page marks it since 2026-10-05: `Kill.is_ram` and `ram: true` on the kill and the shot-down row of the stored timeline, shown as a Ram badge in those rows and in the header badge row, with a note that detection can be wrong; `il2ks reprocess --all` fills it in for existing data, no backfill, `[DECIDED, PRODUCT]` maintainer). A collision between friends credits nobody and has no friendly-kill penalty.
   Validated on the 210 sample missions (at 2 s / 50 m): 17 rams, 13 between enemies (26 kills), 4 between friends, no false positive identified; about 35
   debris collisions correctly excluded; about 10 to 15 rams with prior third-party damage missed (damage-based credit already gives them to
   someone). Low-altitude ground crashes can't be told apart without terrain height (OQ-39). Code: `core/replay/rams.py`.

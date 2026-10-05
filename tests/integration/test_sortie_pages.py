@@ -352,13 +352,16 @@ def test_the_timeline_marks_both_rows_of_a_ram(client: Client) -> None:
 
 def test_the_header_shows_a_ram_badge_only_for_a_ram_sortie(client: Client) -> None:
     save(ram_duel())
-    head = detail(client, pk_of(1)).split("</header>")[0]
+    html = detail(client, pk_of(1))
+    head = html.split('<header class="sortie-head">')[1].split("</header>")[0]
     assert "Collided with" in head
-    assert "F-80C-10" in head.split("Collided with")[1].split('"')[0]
+    assert "Bravo" in head.split("Collided with")[1].split('"')[0]
+    assert "may occasionally be wrong" in html  # the note under the timeline
 
     save(ram_duel(ram=False))
     assert "Collided with" not in detail(client, pk_of(1))
     assert "timeline__ram" not in detail(client, pk_of(1))
+    assert "may occasionally be wrong" not in detail(client, pk_of(1))
 
 
 # --- detail: timeline ----------------------------------------------------------------------------------------------
