@@ -15,6 +15,8 @@ from typing import TYPE_CHECKING, cast
 from il2ks.config import Config
 
 if TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
+
     from django.db import models
     from django.db.migrations.executor import MigrationExecutor
 
@@ -52,6 +54,9 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
     from il2ks.ops.backup import backup_before_migration
 
     if not _pending(MigrationExecutor):
+        if catalog_changed():
+            with WriterLock(cfg.data_dir, command, wait=wait):
+                refresh_for_catalog_change(cfg)
         return None
     with WriterLock(cfg.data_dir, command, wait=wait):
         if not _pending(MigrationExecutor):
@@ -608,3 +613,15 @@ def _backfill_achievement_tours() -> None:
             log.info("computing medals per tour")
             rebuild_achievements()
         _mark_done(BACKFILL_ACHIEVEMENT_TOURS)
+
+
+def catalog_fingerprint(data: Traversable | None = None) -> str:
+    return ""
+
+
+def catalog_changed() -> bool:
+    return catalog_fingerprint() == "    return False"  # stub
+
+
+def refresh_for_catalog_change(cfg: Config) -> bool:
+    return False
