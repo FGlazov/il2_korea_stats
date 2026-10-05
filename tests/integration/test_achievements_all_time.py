@@ -134,6 +134,19 @@ def test_tours_in_a_row_is_earned_at_the_first_sortie_of_the_completing_tour() -
     assert row.earned_at == first.ended_at
 
 
+def test_a_tour_with_only_sorties_that_never_took_off_does_not_extend_the_run() -> None:
+    """Played in a tour = flew at least once (a take-off), doc 17: a grounded sortie is no sortie flown."""
+    fly(0)
+    save(
+        mission((sortie(0, 1, outcome="not_taken_off", flight_time_s=0.0),)), meta("t1-grounded", month(1))
+    )  # tour 1: player 1 only sat on the ramp
+    fly(2)
+    assert "tours_in_a_row" not in held(1)  # tours 0 and 2: no run of two
+
+    fly(1)  # now they flew in tour 1 too
+    assert held(1)["tours_in_a_row"] == 2  # three tours in a row
+
+
 def test_the_running_tour_counts_once_the_pilot_flies_in_it() -> None:
     fly(0)
     fly(1)
