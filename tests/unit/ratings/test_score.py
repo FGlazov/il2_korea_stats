@@ -105,3 +105,38 @@ def test_friendly_kills_are_penalised_up_to_the_cap() -> None:
 def test_ground_assists_score_nothing() -> None:
     """Only assists on air victims earn `air_assist`; the facts don't even carry the ground ones."""
     assert score_sortie(facts(assists_air=2)) == SortieScore(air=2 * RULES.air_assist, ground=0.0)
+
+
+_OUTCOMES: list[dict[str, bool]] = [
+    {},
+    {"is_death": True, "is_plane_lost": True},
+    {"is_captured": True, "is_plane_lost": True},
+    {"is_plane_lost": True},
+]
+
+
+def _by_outcome(attack: bool, **kw: object) -> list[SortieScore]:
+    return [score_sortie(facts(attack=attack, **kw, **outcome)) for outcome in _OUTCOMES]  # type: ignore[arg-type]
+
+
+def test_an_outcome_never_improves_a_sortie_after_a_friendly_kill() -> None:
+    """Maintainer, 2026-10-05: dying, being captured or losing the plane after a friendly kill never beats surviving."""
+    for attack in (False, True):
+        for kw in (
+            {"friendly_kills": 1},
+            {"friendly_kills": 5, "suspected_early_bailout": True},
+            {"friendly_kills": 1, "kills_air_pvp": 1, "kills_ground": {"tank": 1}},
+            {"friendly_kills": 1, "kills_air_ai": 1},
+        ):
+            survived, *others = _by_outcome(attack, **kw)
+            for other in others:
+                assert other.air <= survived.air
+                assert other.ground <= survived.ground
+
+
+def test_a_negative_score_is_left_as_is_by_the_outcome_percentages() -> None:
+    """Air and ground separately: penalties alone leave a negative score whatever the outcome."""
+    for attack in (False, True):
+        for result in _by_outcome(attack, friendly_kills=2):
+            assert result.air == (0.0 if attack else -6.0)
+            assert result.ground == (-6.0 if attack else 0.0)
