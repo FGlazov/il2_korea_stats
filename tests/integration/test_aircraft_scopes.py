@@ -366,3 +366,19 @@ def test_a_populated_scoped_page_stays_within_the_query_budget(client: Client) -
     assert_simple_reads(
         client, f"{url}?tour={october.pk}&mod5=with", max_queries=12
     )  # both pilot boards: one more than a single role
+
+
+@override_settings(IL2KS_LEADERBOARDS=SOME)
+def test_the_attack_role_has_no_intercept_toggle_and_ignores_a_stale_intercept_link(client: Client) -> None:
+    """An intercept fight is air superiority against air superiority, so with the attack role the intercept table is
+    always empty: the toggle is not offered, and a stale `?intercept=1` shows the usual matchups instead of nothing."""
+    history()
+    url = reverse("web:aircraft-detail", args=[mig().pk])
+
+    attack = client.get(f"{url}?tour=all&role=attack&intercept=1")
+    air = client.get(f"{url}?tour=all&role=air_superiority")
+
+    assert "Intercept sorties only" not in attack.content.decode()
+    assert attack.context["intercept"] is False
+    assert [(m.kills, m.losses) for m in attack.context["matchups"].rows] == [(0, 1)]
+    assert "Intercept sorties only" in air.content.decode()
