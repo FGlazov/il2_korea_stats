@@ -3,7 +3,17 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: getting ready for the first public release.** The design lives in [design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
+**Status: public beta, version 0.1.0.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
+please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/issues). The design lives in
+[design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
+
+## Install
+
+- **Windows**: download `il2ks-setup-<version>.exe` from the [latest release](https://github.com/FGlazov/il2_korea_stats/releases/latest)
+  and follow [Installing il2ks on Windows](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-windows.md).
+- **Linux, or by hand**: `uv tool install il2ks` ([PyPI](https://pypi.org/project/il2ks/)), then
+  [Installing il2ks by hand](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md).
+- **Docker**: [Installing with Docker](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-docker.md).
 
 ## What it does
 
@@ -20,8 +30,8 @@ Sturmovik: Korea servers.
 - **Live data**: sorties and stats update while the mission is still running.
 - **Aircraft pages**: how each type does, its best loadouts and modifications, and who it beats and loses to, filtered
   by tour, role and modification.
-- **Achievements**, streaks, killboards (who shot whom), accuracy, assists, and a "top 10%" mark on a
-  player's best ratios.
+- **Achievements**, streaks, killboards (who shot whom), accuracy, assists, and Top 25% / 10% / 5% / 1% marks on a
+  player's best ratios and ratings.
 - **Your branding**: title, logo, colors (light and dark), fonts (also your own font file), menu links, all in the
   admin without touching files. Templates can be replaced for more.
 - **Six languages**: English, Russian, German, Spanish, French, Brazilian Portuguese. Visitors get their browser's
@@ -43,7 +53,7 @@ On Windows, use the installer. On Linux, use Docker or the manual steps.
 - [Using your own proxy (nginx, IIS)](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/reverse-proxy.md): when ports 80/443 are already taken.
 - [Rules, scoring and tours](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md): change a rule or a score, and which command to run afterwards (`reprocess` or `rebuild-aggregates`); upgrading; the admin area.
 - [Customizing the site](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
-- [Template versions and release notes](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template.
+- [Template versions and releases](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template, and how to make a release.
 - [Translating il2ks](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/translating.md): review or improve a language, keep translations in step, add a language.
 - [Performance testing](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/performance-testing.md): timing and query budgets, front-end budgets and web vitals, Locust load test.
 

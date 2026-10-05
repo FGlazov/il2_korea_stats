@@ -24,7 +24,7 @@ from playwright.sync_api import Page
 
 from tests.e2e.helpers import wait_until_settled
 from tests.e2e.test_accessibility import axe_violations
-from tests.e2e.test_frontend_performance import OBSERVERS
+from tests.e2e.test_frontend_performance import MAX_CLS, OBSERVERS
 from tests.e2e.test_visual_qa import audit_page, shots_dir, with_theme
 
 type SetBranding = Callable[[dict[str, object]], None]
@@ -72,6 +72,22 @@ BOXES_JS = (
     "['header.site-header', '.hero'].map(s => {"
     " const r = document.querySelector(s).getBoundingClientRect(); return [r.width, r.height]; })"
 )
+SHIFT_SOURCES = """
+window.__shifted = [];
+new PerformanceObserver(list => {
+  for (const e of list.getEntries()) {
+    if (e.hadRecentInput) continue;
+    for (const src of e.sources || []) {
+      const node = src.node && src.node.nodeType === 1 ? src.node : src.node && src.node.parentElement;
+      window.__shifted.push({
+        value: e.value,
+        node: node ? node.tagName.toLowerCase() + "." + String(node.className).split(" ").join(".") : "?",
+        inPictureArea: !!(node && node.closest("header.site-header, .hero")),
+      });
+    }
+  }
+}).observe({type: "layout-shift", buffered: true});
+"""
 TEXT_TARGETS = ("header .brand__title", "header .site-nav a", ".hero h1", ".hero .lead")
 
 
@@ -144,13 +160,17 @@ def test_a_picture_moves_nothing(page: Page, set_branding: SetBranding, pictures
 
     set_branding(both(pictures["busy"], 60))
     page.add_init_script(OBSERVERS)
+    page.add_init_script(SHIFT_SOURCES)
     page.goto("/")
     wait_until_settled(page)
     page.wait_for_timeout(300)
 
     after = page.evaluate(BOXES_JS)
     assert after == before
-    assert page.evaluate("window.__vitals.cls") == 0
+    # The pictures must move nothing in the header or the hero. Elsewhere a slow CI runner can record a tiny shift while
+    # the rest of the page loads (CLS 0.011 once, unrelated to the pictures): that part gets the site-wide budget.
+    assert page.evaluate("window.__shifted.filter(s => s.inPictureArea)") == []
+    assert page.evaluate("window.__vitals.cls") <= MAX_CLS, page.evaluate("window.__shifted")
     assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
 
 
