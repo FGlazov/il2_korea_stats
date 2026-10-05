@@ -273,4 +273,3 @@ _.default_description  # web.admin_achievements.AchievementRow: read by admin/il
 _.default_thresholds
 _.customised
 _.changes_rows
-rollup  # ingest.rollup: the generic all-time roll-up, wired in by the next commit (used by the player-side tables)

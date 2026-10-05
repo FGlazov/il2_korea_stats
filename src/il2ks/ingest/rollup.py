@@ -55,13 +55,12 @@ def rollup[M: models.Model, S: models.Model](
     - `derived`: field name -> function of the key's rows in tour order; `source_fields` are the extra source columns
       those functions read.
     - Default: rows are created, updated and deleted (a key without tour rows has no all-time row). `update_only`: the
-      rows in `existing` are only updated, and one without tour rows gets zero sums (the `Player` table, whose rows are
-      identities that never go away); needs no maxes, mins or derived values.
+      rows in `existing` are only updated, and one without tour rows gets zero sums and keeps its maxes, mins and
+      derived values (the `Player` table, whose rows are identities that never go away).
     Writes only the rows whose values changed. Must run inside the caller's transaction."""
     derived = derived or {}
     fixed = fixed or {}
     model_key = tuple(model_key or key)
-    assert not update_only or not (maxes or mins or derived)
     fields = [*sums, *maxes, *mins, *derived]
     columns = [*key, *sums, *maxes, *mins, *source_fields]
     grouped: dict[tuple[object, ...], list[Row]] = {}
@@ -93,12 +92,12 @@ def _fold(
     rows: Sequence[Row], sums: Sequence[str], maxes: Sequence[str], mins: Sequence[str], derived: Mapping[str, Derive]
 ) -> dict[str, object]:
     values: dict[str, object] = {}
-    for name in sums:
-        numbers = [
-            cast(float, row[name]) for row in rows
-        ]  # in tour order: the same additions whatever the database does
-        total = sum(numbers)
-        values[name] = round(total, ROUND_DECIMALS) if any(isinstance(n, float) for n in numbers) else total
+    totals: dict[str, float] = dict.fromkeys(sums, 0)
+    for row in rows:  # in tour order: the same additions whatever order the database returns
+        for name in sums:
+            totals[name] += cast(float, row[name])
+    for name, total in totals.items():
+        values[name] = round(total, ROUND_DECIMALS) if isinstance(total, float) else total
     for name in maxes:
         present = [row[name] for row in rows if row[name] is not None]
         values[name] = max(present) if present else None  # pyright: ignore[reportArgumentType]

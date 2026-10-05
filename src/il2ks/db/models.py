@@ -397,6 +397,30 @@ class Tour(models.Model):
         return self.title
 
 
+class PlayerTourName(models.Model):
+    """Level 2 identity within one tour (doc 14 "Level 2 is per tour"): one row per (player, tour, name used), filled
+    from the sorties of ALL roles in that tour's missions (a gunner-only player has identity rows but no `PlayerTour`).
+    `first_seen` = earliest spawn, `last_seen` = latest sortie end, `last_spawn` = latest spawn under this name.
+    `Player.first_seen` / `last_seen` / `current_name` and the `PlayerName` history are the MIN / MAX / latest-spawn
+    roll-up of these rows (`ingest.aggregates`), so the all-time identity never reads the whole sortie history."""
+
+    player_id: int
+    tour_id: int
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_names")
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="player_names")
+    name = models.CharField(max_length=128)
+    first_seen = models.DateTimeField()
+    last_seen = models.DateTimeField()
+    last_spawn = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["player", "tour", "name"], name="playertourname_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / tour {self.tour_id} / {self.name}"
+
+
 # --- Level 1: per mission ---
 
 
@@ -1201,6 +1225,10 @@ class PlayerTypeKillboard(models.Model):
     deaths = models.PositiveIntegerField(default=0)
     kills_with = models.ForeignKey(GameObject, null=True, on_delete=models.PROTECT, related_name="+")
     deaths_in = models.ForeignKey(GameObject, null=True, on_delete=models.PROTECT, related_name="+")
+    # Per-tour rows only: the player's own aircraft type id -> kills / deaths with it in that tour. The all-time
+    # `kills_with` / `deaths_in` are the most used type of the summed counts, which no per-tour winner can give.
+    kills_with_counts: models.JSONField[dict[str, int]] = models.JSONField(default=dict)
+    deaths_in_counts: models.JSONField[dict[str, int]] = models.JSONField(default=dict)
 
     class Meta:
         constraints = [
