@@ -90,3 +90,16 @@ def test_the_quip_is_the_same_on_every_load() -> None:
     pilot = Player.objects.get(account_uuid=account(1))
     first = get(client, f"/players/{pilot.pk}/")
     assert get(client, f"/players/{pilot.pk}/") == first
+
+
+def test_the_per_aircraft_row_of_a_role_view_keeps_the_combat_role() -> None:
+    """The player's sortie list filters on `combat_role`: the aircraft row of a role view must carry it."""
+    client = Client()
+    save(mission((sortie(0, 1, name="Maverick", combat_role="attack"),)))
+    pilot = Player.objects.get(account_uuid=account(1))
+    row = PlayerSortie.objects.get(player=pilot)
+    base = f"/players/{pilot.pk}/sorties/?aircraft={row.aircraft_id}&amp;tour=all"
+    role = "attack"
+    html = get(client, f"/players/{pilot.pk}/?tour=all&role={role}")
+    assert stretched(html, f"{base}&amp;combat_role={role}")
+    assert stretched(get(client, f"/players/{pilot.pk}/?tour=all"), base)

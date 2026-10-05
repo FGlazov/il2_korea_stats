@@ -501,7 +501,31 @@ details.dropdown ul a { text-decoration: none; }
 details.dropdown.dropdown--right ul { right: 0; left: auto; }
 /* "Extra columns" of the list pages: a collapsible in the filter bar (full row), the checkboxes laid out in a compact grid. */
 .filter-bar details.columns-picker { flex: 1 1 100%; margin: 0; }
-.filter-bar details.columns-picker summary { margin: 0; font-size: 0.9rem; font-weight: 650; color: var(--il2-text); }
+/* The summary is styled as a button (maintainer 2026-10-05: it was not obvious that it opens): a border and an accent tint, a
+   chevron that turns down when open, a count of the columns on offer, hover and keyboard-focus colours. */
+.filter-bar details.columns-picker summary {
+  display: inline-flex; align-items: center; gap: 0.55rem; width: fit-content; max-width: 100%; margin: 0; padding: 0.4rem 0.8rem;
+  font-size: 0.9rem; font-weight: 650; color: var(--il2-text); cursor: pointer; list-style: none; user-select: none;
+  background: color-mix(in srgb, var(--il2-accent) 10%, var(--il2-surface));
+  border: 1px solid color-mix(in srgb, var(--il2-accent) 60%, var(--il2-border-strong)); border-radius: var(--il2-radius);
+}
+.filter-bar details.columns-picker summary::-webkit-details-marker { display: none; }
+.filter-bar details.columns-picker summary::marker { content: ""; }
+.filter-bar details.columns-picker summary::after { display: none; } /* Pico's own accordion chevron, far off at the right edge */
+.filter-bar details.columns-picker summary::before {
+  content: ""; flex: none; width: 0.5rem; height: 0.5rem; margin-inline-end: 0.15rem;
+  border-inline-end: 2px solid var(--il2-accent); border-bottom: 2px solid var(--il2-accent);
+  transform: rotate(-45deg); transition: transform 0.15s;
+}
+.filter-bar details.columns-picker:dir(rtl) summary::before { transform: rotate(135deg); }
+.filter-bar details.columns-picker[open] > summary::before, .filter-bar details.columns-picker[open]:dir(rtl) > summary::before { transform: rotate(45deg); }
+.filter-bar details.columns-picker summary:hover { color: var(--il2-text); background: color-mix(in srgb, var(--il2-accent) 22%, var(--il2-surface)); border-color: var(--il2-accent); }
+.filter-bar details.columns-picker[open] > summary { color: var(--il2-text); background: color-mix(in srgb, var(--il2-accent) 16%, var(--il2-surface)); }
+.filter-bar details.columns-picker[open] > summary:hover { background: color-mix(in srgb, var(--il2-accent) 24%, var(--il2-surface)); }
+.filter-bar details.columns-picker summary:focus { color: var(--il2-text); box-shadow: none; }
+.filter-bar details.columns-picker summary:focus-visible { outline: 2px solid var(--il2-accent); outline-offset: 2px; }
+.columns-picker__count { min-width: 1.4rem; padding: 0 0.4rem; font-size: 0.75rem; font-weight: 650; line-height: 1.35rem; text-align: center; color: var(--il2-accent-contrast); background: var(--il2-accent); border-radius: 999px; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .filter-bar details.columns-picker summary::before { transition: none; } }
 .filter-bar details.columns-picker > ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr)); gap: 0 0.5rem; margin: 0.4rem 0 0; padding: 0; list-style: none; }
 .filter-bar details.columns-picker li { margin: 0; padding: 0; list-style: none; }
 .filter-bar details.columns-picker label { display: flex; align-items: center; gap: 0.5rem; margin: 0; padding: 0.3rem 0.4rem; font-size: 0.9rem; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--il2-text); border-radius: var(--il2-radius); }
@@ -588,7 +612,11 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
 .data-table tbody tr:has(.stretched-link) a:not(.stretched-link) { position: relative; z-index: 1; }
 .data-table tbody tr:has(.stretched-link:focus-visible) > * { background: var(--il2-surface-hover); }
 .stretched-link:focus-visible { outline: none; }
-.stretched-link:focus-visible::after { outline: 2px solid var(--il2-accent); outline-offset: -2px; }
+/* The focus ring of a whole-row link outlines the row: an inset line on top and bottom of every cell, the left end on the
+   first and the right end on the last (an outline on the row itself would sit under the sticky cells). */
+.data-table tbody tr:has(.stretched-link:focus-visible) > * { box-shadow: inset 0 2px 0 var(--il2-accent), inset 0 -2px 0 var(--il2-accent); }
+.data-table tbody tr:has(.stretched-link:focus-visible) > :first-child:not([colspan]) { box-shadow: inset 0 2px 0 var(--il2-accent), inset 0 -2px 0 var(--il2-accent), inset 2px 0 0 var(--il2-accent); }
+.data-table tbody tr:has(.stretched-link:focus-visible) > :last-child { box-shadow: inset 0 2px 0 var(--il2-accent), inset 0 -2px 0 var(--il2-accent), inset -2px 0 0 var(--il2-accent); }
 
 /* Flavor text (FR-WEB-23): an italic aside, deliberately quiet. */
 .flavor { font-style: italic; color: var(--il2-muted); }

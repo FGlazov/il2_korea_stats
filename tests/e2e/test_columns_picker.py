@@ -159,3 +159,34 @@ def test_extra_columns_pass_axe_open_with_columns_ticked(page: Page, world: Worl
             expect(page.locator("details.columns-picker")).to_have_attribute("open", "")
             found += axe_violations(page, f"extra columns {width}px {scheme}")
     assert not found, "\n".join(sorted(set(found)))
+
+
+def test_the_summary_looks_clickable(page: Page) -> None:
+    """Maintainer 2026-10-05: it was not obvious that "Extra columns" opens. A bordered button-like summary with a
+    pointer, a chevron that turns when open, a count of the columns on offer, and colours that change on hover/focus."""
+    page.goto("/players/?q=")
+    summary = page.locator("details.columns-picker > summary")
+    look = """el => { const s = getComputedStyle(el), b = getComputedStyle(el, '::before');
+        return {cursor: s.cursor, border: s.borderTopWidth, background: s.backgroundColor,
+                borderColor: s.borderTopColor, outline: s.outlineStyle, chevron: b.transform, content: b.content}; }"""
+    resting = summary.evaluate(look)
+    assert resting["cursor"] == "pointer"
+    assert resting["border"] == "1px"
+    assert resting["content"] != "none"
+    count = summary.locator(".columns-picker__count")
+    assert int(count.inner_text()) == page.locator("details.columns-picker input[type=checkbox]").count() > 3
+    page.mouse.move(0, 0)
+    summary.hover()
+    hovered = summary.evaluate(look)
+    assert hovered["background"] != resting["background"]
+    assert hovered["borderColor"] != resting["borderColor"]
+    page.mouse.move(0, 0)
+    summary.focus()
+    page.keyboard.press("Shift+Tab")
+    page.keyboard.press("Tab")  # keyboard focus: :focus-visible
+    assert summary.evaluate(look)["outline"] != "none"
+    summary.click()
+    expect(page.locator("details.columns-picker")).to_have_attribute("open", "")
+    page.mouse.move(0, 0)
+    page.wait_for_timeout(300)  # the chevron's transition
+    assert summary.evaluate(look)["chevron"] != resting["chevron"]

@@ -149,20 +149,38 @@
   });
 
   // Whole-row links (.stretched-link) cover the row with a pseudo-element, but a table's sticky first column is its own
-  // positioned box and only covers itself: a click elsewhere on the row follows the link too (not on another link or
-  // control, not when text is being selected, and with the usual modifier keys for a new tab).
-  document.addEventListener("click", function (event) {
+  // positioned box (the containing block of that pseudo-element) and the overlay only covers that cell: a click elsewhere
+  // on the row has to follow the link by script. A pure-CSS overlay over the whole row is not possible next to a sticky
+  // cell (an overlay wider than the cell would stretch the table's scroll width). Plain click: the link's own click;
+  // ctrl/meta/shift-click and middle-click (an `auxclick`): a new tab, opened inside the trusted event. Not on another
+  // link or control in the row, not while text is selected.
+  function rowLink(event) {
     var target = event.target;
-    if (!(target instanceof Element) || event.defaultPrevented || event.button !== 0) { return; }
+    if (!(target instanceof Element) || event.defaultPrevented) { return null; }
     var row = target.closest(".data-table tbody tr");
-    if (!row || target.closest("a, button, input, select, textarea, label, summary")) { return; }
-    var link = row.querySelector("a.stretched-link");
+    if (!row || target.closest("a, button, input, select, textarea, label, summary")) { return null; }
+    return row.querySelector("a.stretched-link");
+  }
+  document.addEventListener("mousedown", function (event) {
+    if (event.button === 1 && rowLink(event)) { event.preventDefault(); } // no autoscroll cursor on a middle-click
+  });
+  document.addEventListener("auxclick", function (event) {
+    var link = event.button === 1 ? rowLink(event) : null;
+    if (!link) { return; }
+    event.preventDefault();
+    window.open(link.href, "_blank", "noopener");
+  });
+  document.addEventListener("click", function (event) {
+    if (event.button !== 0 || event.altKey) { return; }
+    var link = rowLink(event);
     if (!link) { return; }
     var selection = window.getSelection && window.getSelection();
     if (selection && !selection.isCollapsed) { return; }
-    link.dispatchEvent(new MouseEvent("click", {
-      bubbles: true, cancelable: true, view: window,
-      ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey, altKey: event.altKey
-    }));
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+      event.preventDefault();
+      window.open(link.href, "_blank", "noopener");
+    } else {
+      link.click();
+    }
   });
 })();
