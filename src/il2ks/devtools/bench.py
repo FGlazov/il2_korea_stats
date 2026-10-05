@@ -110,9 +110,11 @@ def bench_ingest(
     profile: Path | None = None,
     data_dir: Path | None = None,
     cpu: bool = False,
+    per_mission: bool = False,
 ) -> int:
     """Run the benchmark. Returns the process exit code. `data_dir` keeps the result (for `dump-db`); it must be
-    empty or new. `cpu`: time CPU instead of wall clock."""
+    empty or new. `cpu`: time CPU instead of wall clock. `per_mission`: level 2 after every mission even for 20+
+    missions (the path of a small run), to compare with the batched one."""
     global _clock
     _clock = time.process_time if cpu else time.perf_counter
     with contextlib.ExitStack() as stack:
@@ -166,7 +168,9 @@ def bench_ingest(
             parse=parse,
             replay=timer.wrap("replay", real.replay),
             save=timer.wrap("persist L1", real.save),
-            save_level1=timer.wrap("persist L1", real.save_level1) if real.save_level1 is not None else None,
+            save_level1=timer.wrap("persist L1", real.save_level1)
+            if real.save_level1 is not None and not per_mission
+            else None,
             resolve_start=real.resolve_start,
         )
 
@@ -189,10 +193,7 @@ def bench_ingest(
 
         runner.ingest_mission = ingest_mission
         runner.write_archive = timer.wrap("archive", runner.write_archive)
-        persist.recompute_players = timer.wrap("level 2", persist.recompute_players)
-        persist.recompute_aircraft_ammo = timer.wrap("level 2", persist.recompute_aircraft_ammo)
-        persist.recompute_aircraft_stats = timer.wrap("level 2", persist.recompute_aircraft_stats)
-        persist.recompute_matchups = timer.wrap("level 2", persist.recompute_matchups)
+        persist.refresh_tours = timer.wrap("level 2", persist.refresh_tours)
         persist.recompute_thresholds = timer.wrap("level 2", persist.recompute_thresholds)
         persist.recompute_ratings = timer.wrap("ratings", persist.recompute_ratings)
         Level2Batch.flush = timer.wrap_batch(Level2Batch.flush)

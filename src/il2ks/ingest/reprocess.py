@@ -132,7 +132,7 @@ def reprocess(
         run_rebuild = rebuild or partial(
             rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
         )
-        repair_pending(run_rebuild)  # an earlier batched run was killed: level 2 lags, so rebuild before anything else
+        repair_pending(run_rebuild, cfg.ratings, cfg.marks)  # a killed batched run left level 2 behind
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)
         wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}

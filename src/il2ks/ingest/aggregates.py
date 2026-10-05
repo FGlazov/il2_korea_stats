@@ -2,14 +2,14 @@
 
 Level 2 is always recomputed from level 1, never adjusted by deltas: `recompute_players` rebuilds, for the players it
 gets, their totals from their `PlayerMission` rows, their `PlayerAircraft` rows from their counted `PlayerSortie` rows,
-and their identity fields from all their sorties. `save_mission` calls it for the players a mission touched (the old
-and the new ones) and `rebuild_aggregates` for every player. It is the one code path, so incremental == rebuild by
+and their identity fields from all their sorties. `refresh_tours` calls it for the players of the tours a save touched
+(`rebuild_aggregates`: every player): the one code path (doc 14), so incremental == rebuild by
 construction. The counter list lives in `ingest.counters` so all paths use one definition (TD-16).
 
 Players are handled in chunks: a few grouped queries per chunk, then writes only for rows whose values changed.
 
 Tours (TD-26): `PlayerTour` (sum of the player's `PlayerMission` rows per `Mission.tour`) and `PlayerTourAircraft`
-(counted sorties per tour and aircraft) are recomputed the same way. `save_mission` passes the tours it touched (the
+(counted sorties per tour and aircraft) are recomputed the same way. `refresh_tours` gets the tours a save touched (the
 mission's new and old tour), so the per-tour part of a recompute reads only those tours' rows; `rebuild_aggregates`
 recomputes every tour. Server activity per day (`ingest.activity`) is rebuilt for all days. Elo stays all-time (it
 replays all kills, `ingest.ratings`).
@@ -26,10 +26,12 @@ summed: they come from the player's sorties. A player without sorties keeps the 
 """
 
 from collections.abc import Iterable
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import UTC, date, datetime
 
 from django.db import models
 from django.db.models import Max, Min, Sum
+from django.db.models.functions import TruncDate
 
 from il2ks.core.killboard import DEFAULT_KILLBOARD_RULES, KillboardRules
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
@@ -39,6 +41,8 @@ from il2ks.core.tours import TourRules
 from il2ks.db.models import (
     AircraftAmmoMixStats,
     AircraftAmmoStats,
+    AircraftMatchup,
+    Mission,
     MissionAircraftAmmo,
     MissionAircraftAmmoMix,
     Player,
@@ -51,11 +55,17 @@ from il2ks.db.models import (
     PlayerTourAircraft,
     PlayerTourPool,
     Propulsion,
+    TourAircraftStats,
 )
 from il2ks.db.site import bump_data_version, clear_level2_pending, get_site_settings
 from il2ks.ingest.achievements import adopt_wanted_rules, recompute_achievements, recompute_holders
-from il2ks.ingest.activity import rebuild_activity
-from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
+from il2ks.ingest.activity import rebuild_activity, recompute_days
+from il2ks.ingest.aircraft_stats import (
+    matchup_kills,
+    rebuild_aircraft_stats,
+    recompute_aircraft_stats,
+    recompute_matchups,
+)
 from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_rows
@@ -130,6 +140,110 @@ def rebuild_aggregates(
             assign_missing(tours)
     rebuild_sortie_scores(score)
     refresh_player_missions()  # also after a level-1 column was filled by a backfill (the interception counters)
+    refresh_tours(None)  # every tour, and whatever has none
+    recompute_ratings(ratings)  # may change medals (Elo peaks)
+    recompute_holders()  # once, after the medal rows are final
+    recompute_thresholds(marks)
+    clear_level2_pending()  # everything was recomputed: whatever a killed batch left behind is repaired
+    bump_data_version()  # TD-28: pages changed
+
+
+def refresh_tours(tour_ids: Iterable[int] | None) -> None:
+    """The one level-2 path (doc 14 "Level-2 refresh"): a full refresh of these tours from level 1, with no record of
+    what a save changed. Every mission save, batch pass, live pass and discard calls it with the tours it touched, and
+    `rebuild_aggregates` with None (every tour and everything that has none).
+
+    The entities to refresh are found by queries over the tours' level-1 rows, plus the rows level 2 holds for the
+    tours (so a player, type, pair or day that dropped out of a re-ingested mission is corrected, too):
+    - the players with a sortie or a `PlayerMission` / `PlayerTour` row in the tours,
+    - the aircraft types flown in them (counted sorties, `PlayerTourAircraft`, `TourAircraftStats` rows) and the types
+      with ammo rows (hits to destroy: every type that has some, they are not per tour),
+    - the (killer type, victim type) pairs of their counted kills (and the tours' `AircraftMatchup` rows),
+    - the UTC days of their missions.
+    Known limit, which `il2ks rebuild-aggregates` fixes: the old day of a re-ingested mission whose start time moved.
+
+    Two steps, in this order: `_recompute_tour_scope` (the per-tour rows, and with them the entities' rows that are
+    still computed together with them) and `_recompute_all_time` (the all-time rows of the same entities). Neither runs
+    the Elo ratings, the medal holder counts, the payload Elo or the thresholds: the caller does, once."""
+    if tour_ids is None:
+        _recompute_everything()
+        return
+    tours = sorted(set(tour_ids))
+    if not tours:
+        return
+    scope = _tour_scope(tours)
+    _recompute_tour_scope(scope)
+    _recompute_all_time(scope)
+
+
+@dataclass(frozen=True, slots=True)
+class _TourScope:
+    tours: list[int]
+    players: list[int]
+    aircraft: list[int]
+    ammo_aircraft: list[int]
+    pairs: list[tuple[int, int]]
+    days: list[date]
+
+
+def _tour_scope(tours: list[int]) -> _TourScope:
+    """What `refresh_tours` has to recompute for these tours, by queries (never by tracking)."""
+    in_tours = {"mission__tour_id__in": tours}
+    players = set(PlayerSortie.objects.filter(**in_tours).values_list("player_id", flat=True).distinct())
+    players |= set(PlayerMission.objects.filter(**in_tours).values_list("player_id", flat=True).distinct())
+    players |= set(PlayerTour.objects.filter(tour_id__in=tours).values_list("player_id", flat=True).distinct())
+    flown = set(counted_sorties().filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
+    flown |= set(PlayerTourAircraft.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
+    flown |= set(TourAircraftStats.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
+    ammo = set(MissionAircraftAmmo.objects.filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
+    ammo |= set(MissionAircraftAmmoMix.objects.filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
+    # the all-time ammo rows are not per tour: those of every type that has some are re-summed, so a type a re-ingested
+    # mission no longer has loses its share (one grouped query per chunk, a few dozen rows per type)
+    ammo |= set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True).distinct())
+    ammo |= set(AircraftAmmoMixStats.objects.values_list("aircraft_id", flat=True).distinct())
+    pairs = set(
+        matchup_kills()
+        .filter(**in_tours)
+        .values_list("killer_sortie__aircraft_id", "victim_sortie__aircraft_id")
+        .distinct()
+    )
+    pairs |= set(
+        AircraftMatchup.objects.filter(tour_id__in=tours).values_list("killer_aircraft_id", "victim_aircraft_id")
+    )
+    days = set(
+        Mission.objects.filter(tour_id__in=tours)
+        .annotate(day=TruncDate("started_at", tzinfo=UTC))
+        .values_list("day", flat=True)
+        .distinct()
+    )
+    return _TourScope(
+        tours=tours,
+        players=sorted(players),
+        aircraft=sorted(flown),
+        ammo_aircraft=sorted(ammo | flown),
+        pairs=sorted(pairs),
+        days=sorted(days),
+    )
+
+
+def _recompute_tour_scope(scope: _TourScope) -> None:
+    """The per-tour step: the players' and types' rows of these tours (`PlayerTour`, `TourAircraftStats`, the
+    per-tour killboards, streaks, medals, matchups, ...). The recompute functions still write the entities' all-time
+    rows in the same pass; `_recompute_all_time` marks where they will be summed from these rows instead."""
+    recompute_players(scope.players, scope.tours)
+    recompute_aircraft_stats(scope.aircraft, scope.tours)
+    recompute_matchups(scope.pairs)
+
+
+def _recompute_all_time(scope: _TourScope) -> None:
+    """The all-time step, for the entities of the tour step: ammo rows (they are not per tour) and the activity days.
+    The all-time player and type rows are written by `_recompute_tour_scope` today (see there)."""
+    recompute_aircraft_ammo(scope.ammo_aircraft)
+    recompute_days(scope.days)
+
+
+def _recompute_everything() -> None:
+    """`refresh_tours(None)`: every player, type, pair and day, whatever tour they belong to (a rebuild)."""
     recompute_players(Player.objects.values_list("pk", flat=True))
     recompute_aircraft_ammo(
         set(MissionAircraftAmmo.objects.values_list("aircraft_id", flat=True))
@@ -139,11 +253,6 @@ def rebuild_aggregates(
     )
     rebuild_aircraft_stats()
     rebuild_activity()
-    recompute_ratings(ratings)  # may change medals (Elo peaks)
-    recompute_holders()  # once, after the medal rows are final
-    recompute_thresholds(marks)
-    clear_level2_pending()  # everything was recomputed: whatever a killed batch left behind is repaired
-    bump_data_version()  # TD-28: pages changed
 
 
 def _store_board_rules(board: KillboardRules) -> None:

@@ -51,7 +51,7 @@ from il2ks.ingest.discover import (
     next_retry,
 )
 from il2ks.ingest.lock import WriterLock
-from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, Touched, save_level1, save_mission
+from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_level1, save_mission
 from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -71,9 +71,9 @@ class Pipeline:
     replay: Callable[[Iterable[LogEvent]], MissionResult]
     save: Callable[[MissionResult, MissionMeta], Mission]
     resolve_start: Callable[[str, ZoneInfo, datetime | None], ResolvedStart]
-    save_level1: Callable[[MissionResult, MissionMeta], tuple[Mission, Touched]] | None = None
-    """Level 1 only, returning what level 2 must recompute: what a batched run (`ingest.batch`) saves with. None (a
-    test's fake pipeline): the run always uses `save`, i.e. level 2 per mission."""
+    save_level1: Callable[[MissionResult, MissionMeta], tuple[Mission, set[int]]] | None = None
+    """Level 1 only, returning the ids of the tours level 2 must refresh: what a batched run (`ingest.batch`) saves
+    with. None (a test's fake pipeline): the run always uses `save`, i.e. level 2 per mission."""
 
 
 def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
@@ -101,7 +101,7 @@ def default_pipeline(cfg: Config, *, defer_ratings: bool = False) -> Pipeline:
             score=cfg.score,
         )
 
-    def save_l1(result: MissionResult, meta: MissionMeta) -> tuple[Mission, Touched]:
+    def save_l1(result: MissionResult, meta: MissionMeta) -> tuple[Mission, set[int]]:
         mission, touched = save_level1(result, meta, get_catalog(), cfg.tours, cfg.score)
         bump_data_version()  # TD-28: the pages changed now; level 2 follows at the next 10%
         return mission, touched
@@ -172,7 +172,9 @@ def _ingest_locked(
     cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime], command: str = "ingest"
 ) -> IngestSummary:
     repair_pending(
-        partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+        partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
+        cfg.ratings,
+        cfg.marks,
     )
     summary = IngestSummary()
     is_import = opts.source is not None
@@ -368,17 +370,15 @@ def ingest_mission(
         meta = MissionMeta(cfg.server_uid, uid, start.started_at, run.archive_path)
         side_warnings = country_side_warnings(result.mission.countries)
         fill_counters(run, stats, (*plan.warnings, *start.warnings, *side_warnings))
-        touched: Touched | None = None
         with transaction.atomic():
             if batch is not None and pipeline.save_level1 is not None:
-                mission, touched = pipeline.save_level1(result, meta)
+                mission, touched_tours = pipeline.save_level1(result, meta)
+                batch.add(touched_tours)  # in the transaction: the marker names the tours when the save is in
             else:
                 mission = pipeline.save(result, meta)
             run.mission = mission
             run.finished_at = now()
             run.save()
-        if batch is not None and touched is not None:
-            batch.add(touched)  # only a committed save: a rolled-back one has nothing to recompute
     except Exception as exc:
         error = str(exc) if isinstance(exc, DuplicateSortieError) else traceback.format_exc()  # a known, explained case
         same_failure = (

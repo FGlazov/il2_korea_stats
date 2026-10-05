@@ -1,6 +1,7 @@
 """Singleton access for `SiteSettings` and `DataVersion` (TD-25, TD-28)."""
 
 import os
+from collections.abc import Iterable
 from datetime import UTC, datetime
 
 from django.db.models import F
@@ -29,6 +30,15 @@ def set_level2_pending(command: str) -> None:
         "command": command,
         "pid": os.getpid(),
     }
+    SiteSettings.objects.filter(pk=1).update(level2_pending=marker)
+
+
+def store_level2_pending_tours(tour_ids: Iterable[int]) -> None:
+    """Write the tours a running batch touched into its marker, so a repair after a hard kill refreshes just those."""
+    marker = level2_pending()
+    if not marker:
+        return
+    marker["tours"] = sorted(set(tour_ids))
     SiteSettings.objects.filter(pk=1).update(level2_pending=marker)
 
 

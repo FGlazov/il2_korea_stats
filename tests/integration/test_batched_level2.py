@@ -10,20 +10,26 @@ import shutil
 from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import Executor, ThreadPoolExecutor
 from contextlib import contextmanager
+from dataclasses import replace
+from datetime import date
 from pathlib import Path
 
 import pytest
 from django.db import transaction
 
 from il2ks.config import Config
+from il2ks.core.catalog.loader import load_default_catalog
+from il2ks.core.logparse.files import MissionLog
+from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
-from il2ks.db.models import Mission
+from il2ks.core.tours import TourRules
+from il2ks.db.models import Mission, SiteSettings, Tour
+from il2ks.db.site import level2_pending
 from il2ks.ingest import batch as batch_mod
 from il2ks.ingest import persist, runner
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.batch import Level2Batch, is_batch
-from il2ks.ingest.persist import Touched
 from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once
 from il2ks.ops import checks
@@ -144,19 +150,19 @@ def test_level2_is_applied_at_every_tenth_and_at_the_end(monkeypatch: pytest.Mon
     events: list[str] = []
     batch = Level2Batch(30, DEFAULT_RULES, DEFAULT_MARK_RULES)
 
-    def level2(touched: Touched, *, payload_elo: bool = True, holders: bool = True) -> None:
+    def level2(tour_ids: Iterable[int], *, payload_elo: bool = True, holders: bool = True) -> None:
         assert (payload_elo, holders) == (False, False)  # those come once, at the end
         events.append(f"level2@{batch.done}")
 
-    def end(touched: Touched, tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
+    def end(tour_ids: Iterable[int], tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
         assert 1 in set(tours)
         events.append(f"end@{batch.done}")
 
     monkeypatch.setattr(persist, "apply_level2", level2)
     monkeypatch.setattr(persist, "apply_batch_end", end)
 
-    for n in range(30):
-        batch.add(Touched(players={n}, tours={1}))
+    for _ in range(30):
+        batch.add({1})
         batch.mission_done()
     batch.finish()
     batch.finish()  # idempotent
@@ -168,10 +174,10 @@ def test_a_batch_that_saved_nothing_applies_nothing(monkeypatch: pytest.MonkeyPa
     events: list[str] = []
     batch = Level2Batch(20, DEFAULT_RULES, DEFAULT_MARK_RULES)
 
-    def level2(touched: Touched, *, payload_elo: bool = True, holders: bool = True) -> None:
+    def level2(tour_ids: Iterable[int], *, payload_elo: bool = True, holders: bool = True) -> None:
         events.append("level2")
 
-    def end(touched: Touched, tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
+    def end(tour_ids: Iterable[int], tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
         events.append("end")
 
     monkeypatch.setattr(persist, "apply_level2", level2)
@@ -194,7 +200,7 @@ def test_interrupted_batch_still_ends_in_a_consistent_state(tmp_path: Path, monk
     assert real.save_level1 is not None
     real_save = real.save_level1
 
-    def save_level1(result: object, meta: persist.MissionMeta) -> tuple[Mission, Touched]:
+    def save_level1(result: object, meta: persist.MissionMeta) -> tuple[Mission, set[int]]:
         if len(saved) == 3:
             raise KeyboardInterrupt
         saved.append(meta.mission_uid)
@@ -343,3 +349,95 @@ def test_batched_reprocess_equals_the_per_mission_one_without_the_redundant_leve
 def test_runner_exposes_the_level1_step() -> None:
     cfg = make_config(Path("unused"), None)
     assert runner.default_pipeline(cfg).save_level1 is not None
+
+
+# --- tour-based refresh: a batch tracks only the touched tours (doc 14, maintainer 2026-10-05) ---------
+
+DAYS_RULES = TourRules(mode="days", days=2, start=date(2026, 9, 1))
+"""The five fixtures are on Sept 1..5: three two-day tours, where the monthly default has one."""
+
+
+def _resave(cfg: Config, rules: TourRules) -> list[set[int]]:
+    """Level-1 re-save of every ingested mission under other tour rules (the mission moves to another tour); returns
+    the tour ids each save reports."""
+    pipeline = default_pipeline(cfg)
+    reported: list[set[int]] = []
+    for name, uid in FIXTURES.items():
+        started = Mission.objects.get(mission_uid=uid).started_at
+        log = MissionLog(uid, "archive", (FIXTURE_LOGS / f"{name}.txt.zip",))
+        result = pipeline.replay(pipeline.parse(log, ParseStats()))
+        meta = persist.MissionMeta(cfg.server_uid, uid, started, "")
+        reported.append(persist.save_level1(result, meta, load_default_catalog(), rules)[1])
+    return reported
+
+
+def test_a_batch_that_moves_missions_between_tours_refreshes_both_tours(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A re-ingest that moved a mission reports its old and its new tour; refreshing exactly those tours equals a
+    full rebuild (the old tour loses the mission's rows, the new one gains them)."""
+    monkeypatch.setattr(batch_mod, "BATCH_MIN", 1000)
+    cfg = make_config(tmp_path / "data", None, after_archive="keep")
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        batch = Level2Batch(len(FIXTURES), cfg.ratings, cfg.marks)
+        batch.start()
+        reported = _resave(cfg, DAYS_RULES)
+        for tours in reported:
+            batch.add(tours)
+            batch.mission_done()
+        batch.finish()
+        batched = canonical_dump()
+        _rebuild(cfg)
+        rebuilt = canonical_dump()
+
+    # the three missions after Sept 2 left tour 1 (monthly) for a new two-day tour: both ids are reported
+    assert sum(len(tours) == 2 for tours in reported) == 3, reported
+    assert len({tid for tours in reported for tid in tours}) == 3
+    assert diff_dumps(batched, rebuilt) == []
+
+
+def test_a_batch_over_several_tours_equals_the_per_mission_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def run(name: str, batch_min: int) -> Dump:
+        monkeypatch.setattr(batch_mod, "BATCH_MIN", batch_min)
+        cfg = replace(make_config(tmp_path / name, None, after_archive="keep"), tours=DAYS_RULES)
+        with _scratch():
+            ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+            return canonical_dump()
+
+    per_mission = run("one", 1000)
+    batched = run("two", 2)
+
+    assert len(per_mission["Tour"]) == 3
+    assert diff_dumps(per_mission, batched) == []
+
+
+def test_the_marker_names_the_tours_of_the_batch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
+    monkeypatch.setattr(Level2Batch, "finish", _nothing)  # killed before the end
+    cfg = replace(make_config(tmp_path / "data", None, after_archive="keep"), tours=DAYS_RULES)
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        tours = level2_pending()["tours"]
+        assert tours == sorted(Tour.objects.values_list("pk", flat=True))
+        assert len(Tour.objects.all()) == 3
+
+
+def test_a_marker_without_tours_is_repaired_by_a_full_rebuild(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A marker from a reprocess (or an older version) names no tours: the repair is the full rebuild."""
+    expected, _ = _run(tmp_path, "one", 1000, monkeypatch)
+    monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
+    monkeypatch.setattr(Level2Batch, "flush", _nothing)
+    monkeypatch.setattr(Level2Batch, "finish", _nothing)
+    cfg = make_config(tmp_path / "killed", None, after_archive="keep")
+    with _scratch():
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        SiteSettings.objects.filter(pk=1).update(level2_pending={"command": "reprocess", "since": "x"})
+        monkeypatch.undo()
+        ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
+        repaired = canonical_dump()
+        assert level2_pending() == {}
+
+    assert diff_dumps(repaired, expected) == []
