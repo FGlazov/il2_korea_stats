@@ -201,14 +201,14 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   modification (`?mod<id>=with|without`). **Scope rules `[PROPOSED]`** (the stored rows carry every scope, so each section is still one simple
   read, TD-22):
   - the **tiles and pilot count**: `TourAircraftStats` (tour, role, mod pattern), or `AircraftStats` for all time, every role, no filter; the
-    side badge is the side most of the scope's sorties were flown for;
+    side badge is the type's all-time majority side (`AircraftStats.side`), not the scope's;
   - **loadouts** and the **weapon-modification sets** tables: `AircraftPayload` / `AircraftMods` of the tour, role and filter, each with the
     effectiveness measures (average pilot Elo `elo_avg`, air kills per sortie and K/D for air superiority, ground score per hour on target for
     attack, each only above the leaderboard minimums of the row's role, a dash otherwise), sortable apart from the matchups (`?lsort=`,
     `?msort=`; a dash sorts last either way);
   - **matchups** vs each enemy type (`AircraftMatchup`): the role and the modifications scope **this type's own sortie** (the killer's for its
     kills, the victim's for its losses; `scoped_side`), the enemy is unrestricted. The **intercept** toggle "All fights / Intercept flights only"
-    (`?intercept=1`, an intercept fight = two air superiority sorties) is **independent of the role** and combines with it. Sortable by enemy,
+    (`?intercept=1`, an intercept fight = two air superiority sorties) is independent of the role and combines with it, except that the **attack role has no toggle** (an intercept fight is two air superiority sorties, so the table would always be empty; a stale `?intercept=1` is ignored). Sortable by enemy,
     kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights (`MIN_ENCOUNTERS`;
     `[DECIDED]` maintainer, OQ-110);
   - **hits to destroy** per ammo and the **ammunition mixes** (below): the kills OF this type, so the tour, role and modifications are those of
@@ -319,7 +319,7 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   cookies, nosniff, `same-origin` referrer policy. `ALLOWED_HOSTS` = domain + extras + localhost; with neither it's `*` and doctor warns.
   Static files: WhiteNoise compressed manifest storage (hashed names), lenient so a missing file is a 404, `collectstatic` at web start.
 - **Debug** (`debug = true`, `IL2KS_DEBUG=1` or `il2ks web --dev`): plain http, `runserver`, WhiteNoise reads source folders.
-- **`il2ks web`**: granian (WSGI) on `[web] host:port`; migrates first (with the pre-migration backup), then `collectstatic`.
+- **`il2ks web`**: granian (WSGI) on `[web] host:port`; migrates first (with the pre-migration backup), then `collectstatic`. A changed catalog (`catalog:` fingerprint, `CATALOG_FILES`, doc 14) is refreshed on this start like a migration (backed up first, once; if an `ingest` holds the writer lock the web start goes on and the writer refreshes).
 - **`il2ks run`**: migrates once, then supervises `web`, `watch` (when a log folder is set) and Caddy (not in `external` mode or debug),
   restarting crashed children with 1→60 s backoff and stopping them politely (Ctrl+Break in a separate process group on Windows, then a
   15 s grace period). A second `run` for the same data dir exits with code 3. On Windows a plain signal handler can't interrupt an untimed
