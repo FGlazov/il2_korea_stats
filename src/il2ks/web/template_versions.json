@@ -307,7 +307,7 @@
     },
     "templates/il2ks/players/achievements.html": {
       "version": 1,
-      "sha256": "30b02dbbd6427a4bc36273a2862dd712654392214a6fb9a33dd03e02515327ca"
+      "sha256": "8050fb678a6dcfed22edde84b6f633427f7691fd8c821bac5509ed1862332003"
     },
     "templates/il2ks/players/detail.html": {
       "version": 1,
@@ -423,11 +423,11 @@
     },
     "templates/il2ks/players/streak_runs.html": {
       "version": 1,
-      "sha256": "5cb6544745fa13fdb4a30bbc871435b9f8566c9a7d53f4baf74b8e91e05ee56d"
+      "sha256": "ea4017bb3c1087c23dfd64644bf5351e0ee925f69791ddac0eaf5664fd7ded44"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 1,
-      "sha256": "d77ca982f16a37c94105af08e7b1b44743f114459dc1693a5f02af23a749397d"
+      "sha256": "567fe76ad34f8e17abcb470bb627d4c5b108d17f8b8d1a5f8846ca3c14a95b1e"
     },
     "templates/il2ks/setup.html": {
       "version": 1,
@@ -515,7 +515,7 @@
     },
     "templates/il2ks/streaks/list.html": {
       "version": 1,
-      "sha256": "d9ea1f5756530863806be4100e81653eb9c207236a5b76fa85c51888688c2ee9"
+      "sha256": "a087ad6ef381cf0f785423cbf18c4d4202dc5fb289526488735a02dbb287c4a0"
     },
     "templates/il2ks/styleguide.html": {
       "version": 1,

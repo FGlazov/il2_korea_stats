@@ -9,7 +9,7 @@
 {% block content %}
   <div class="page-head">
     <h1>{% translate "Ironman streaks" %}</h1>
-    <p>{% translate "Consecutive sorties survived: no death and no capture." %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% endif %}</p>
+    <p>{% translate "Consecutive sorties survived: no death and no capture." %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% else %} {% translate "A streak never carries over from one tour to the next; all time shows the best of the tours." %}{% endif %}</p>
   </div>
   {% tour_select tours tour %}
 

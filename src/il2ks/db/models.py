@@ -1261,9 +1261,10 @@ class StreakKind(models.TextChoices):
 
 class PlayerBestStreak(models.Model):
     """A player's best ironman streak by one criterion (FR-WEB-23): the run with the most survived sorties, the most
-    air kills, or the most flight time. `tour` null = all time; with a tour, the streak runs within that tour's
-    sorties only (a streak does not span tours there). `since` / `until` as in `core.streaks.Streak`. An `air_kills`
-    row exists only when the best such streak has at least one air kill. Level 2: `ingest.streaks`."""
+    air kills, or the most flight time. `tour` null = all time, the best over the tour rows (a streak never spans
+    two tours); with a tour, the streak runs within that tour's sorties only. `since` / `until` as in
+    `core.streaks.Streak`. An `air_kills` row exists only when the best such streak has at least one air kill.
+    Level 2: `ingest.streaks`."""
 
     player_id: int
     tour_id: int | None
@@ -1346,12 +1347,16 @@ class PlayerStreakRun(models.Model):
 class PlayerStreak(models.Model):
     """Ironman streaks (FR-WEB-23): current and best run of survived sorties, rule in `il2ks.core.streaks`.
 
-    A row exists for players with at least one survived sortie. All-time only. Level 2: recomputed per affected player
-    by `ingest.streaks`."""
+    A row exists for players with at least one survived sortie. `best_*` is the best run over all tours (a streak never
+    spans two tours); `current_*` is the run in the current (newest) tour, zero for a player who has not flown in it
+    (`current_tour` = that tour, null when the player has not). Level 2: recomputed per affected player by
+    `ingest.streaks`."""
 
     player_id: int
+    current_tour_id: int | None
 
     player = models.OneToOneField(Player, on_delete=models.CASCADE, related_name="streak")
+    current_tour = models.ForeignKey(Tour, null=True, on_delete=models.SET_NULL, related_name="+")
     current_sorties = models.PositiveIntegerField(default=0)
     current_kills_air = models.PositiveIntegerField(default=0)
     current_flight_time_s = models.FloatField(default=0.0)

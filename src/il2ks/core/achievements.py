@@ -86,9 +86,13 @@ class Achievement:
     progress: Progress
     kind: Kind = "medal"
     """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
-    all_time_only: bool = False
-    """Earned over the whole history only, never per tour: the fact it reads is not a function of the tour's sorties
-    (the Elo is global, so a pilot above a tier would earn it with the first win of every new tour)."""
+    cumulative: bool = False
+    """A pure running total of a counter (kills, hours, taxi accidents): a new tour starts it at zero like every
+    medal, but the all-time medal counts the *sum* of the tours' totals, so career tiers stay reachable (maintainer,
+    2026-10-05, OQ-128 default; `[PROPOSED]`). Every other medal is, all time, the best of the tours (max tier).
+    `earn(..., carried_in=n)` replays a tour with the total of the earlier tours already in. `counter` names the
+    `PlayerTour` counter holding a tour's total (the all-time tier is found from those without reading the sorties)."""
+    counter: str = ""
     shame: bool = False
     """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
 
@@ -119,6 +123,8 @@ def _running_max(values: Sequence[float]) -> list[float]:
 
 
 def _cumulative(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
+    """A running total of `per_sortie` (sorties that never took off count nothing)."""
+
     def progress(sorties: Sequence[AchievementSortie]) -> list[float]:
         total = 0.0
         out: list[float] = []
@@ -290,20 +296,41 @@ def _is_damaged_landing(s: AchievementSortie) -> bool:
 ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("life_kills", (5, 10, 20, 50), "count", life_kills),
     Achievement("sortie_kills", (2, 3, 5, 7), "count", _best_in_one(lambda s: s.kills_air)),
-    Achievement("career_kills", (1, 10, 50, 250), "count", _cumulative(lambda s: s.kills_air), kind="ribbon"),
+    Achievement(
+        "career_kills",
+        (1, 10, 50, 250),
+        "count",
+        _cumulative(lambda s: s.kills_air),
+        kind="ribbon",
+        cumulative=True,
+        counter="kills_air",
+    ),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
-    Achievement("tank_buster", (3, 10, 25, 100), "count", _cumulative(lambda s: s.kills_ground_tank)),
+    Achievement(
+        "tank_buster",
+        (3, 10, 25, 100),
+        "count",
+        _cumulative(lambda s: s.kills_ground_tank),
+        cumulative=True,
+        counter="kills_ground_tank",
+    ),
     Achievement("ground_sortie", (20, 50, 100, 200), "count", _best_in_one(lambda s: s.kills_ground)),
     Achievement("survivor", (5, 10, 25, 50), "count", survived_in_a_row),
     Achievement("damaged_landing", (1, 3, 10), "count", _cumulative(lambda s: 1.0 if _is_damaged_landing(s) else 0.0)),
     Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks, kind="ribbon"),
     Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0), kind="ribbon"),
     Achievement(
-        "flight_hours", (1, 10, 50, 200), "hours", _cumulative(lambda s: s.flight_time_s / 3600), kind="ribbon"
+        "flight_hours",
+        (1, 10, 50, 200),
+        "hours",
+        _cumulative(lambda s: s.flight_time_s / 3600),
+        kind="ribbon",
+        cumulative=True,
+        counter="flight_time_s",
     ),
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
     # The second set (doc 17, OQ-105).
-    Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo, all_time_only=True),
+    Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
     Achievement("ram", (1, 2, 3, 5), "count", _cumulative(lambda s: s.rams)),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
@@ -313,38 +340,56 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("landing_streak", (3, 6, 10, 20), "count", landings_in_a_row),
     Achievement("ace_in_a_day", (5, 8, 12, 20), "count", kills_in_a_day),
     # Hall of shame (tongue in cheek, shown with the hall of shame).
-    Achievement("shame_taxi", (1, 5, 10), "count", _total(lambda s: 1.0 if s.taxi_accident else 0.0), shame=True),
-    Achievement("shame_friendly", (1, 5, 20), "count", _total(lambda s: s.friendly_kills), shame=True),
-    Achievement("shame_strafed", (1, 2, 3), "count", _total(lambda s: 1.0 if s.strafed_on_ground else 0.0), shame=True),
+    Achievement(
+        "shame_taxi",
+        (1, 5, 10),
+        "count",
+        _total(lambda s: 1.0 if s.taxi_accident else 0.0),
+        shame=True,
+        cumulative=True,
+        counter="taxi_accidents",
+    ),
+    Achievement(
+        "shame_friendly",
+        (1, 5, 20),
+        "count",
+        _total(lambda s: s.friendly_kills),
+        shame=True,
+        cumulative=True,
+        counter="friendly_kills",
+    ),
+    Achievement(
+        "shame_strafed",
+        (1, 2, 3),
+        "count",
+        _total(lambda s: 1.0 if s.strafed_on_ground else 0.0),
+        shame=True,
+        cumulative=True,
+        counter="strafed_on_ground",
+    ),
     Achievement("shame_crashed", (3, 10, 25), "count", _total(lambda s: 1.0 if s.crashed else 0.0), shame=True),
 )
 BY_KEY: dict[str, Achievement] = {a.key: a for a in ACHIEVEMENTS}
 
 
-def earn(achievement: Achievement, sorties: Sequence[AchievementSortie]) -> list[EarnedTier]:
-    """The tiers of `achievement` the sorties (chronological) reach, each with the first sortie that reached it."""
+def earn(achievement: Achievement, sorties: Sequence[AchievementSortie], carried_in: float = 0.0) -> list[EarnedTier]:
+    """The tiers of `achievement` the sorties (chronological) reach, each with the first sortie that reached it.
+    `carried_in` (cumulative achievements only): the total of the earlier tours, added to every value; the tiers
+    already reached by it alone are earned at the first sortie."""
     values = achievement.progress(sorties)
     earned: list[EarnedTier] = []
     tier = 0
     for index, value in enumerate(values):
-        while tier < achievement.top_tier and value >= achievement.thresholds[tier]:
+        while tier < achievement.top_tier and value + carried_in >= achievement.thresholds[tier]:
             tier += 1
             earned.append(EarnedTier(achievement.key, tier, index))
     return earned
 
 
 def earn_all(
-    sorties: Sequence[AchievementSortie],
-    *,
-    all_time: bool = True,
-    achievements: Sequence[Achievement] = ACHIEVEMENTS,
+    sorties: Sequence[AchievementSortie], *, achievements: Sequence[Achievement] = ACHIEVEMENTS
 ) -> list[EarnedTier]:
     """Every tier of every achievement in `achievements` (default: the whole registry; the admin's rules pass the
-    switched-on ones with their thresholds, `core.achievement_rules`) the pilot's sorties (chronological) reach.
-    `all_time=False` (the sorties are one tour's) leaves out the achievements that are `all_time_only`."""
-    return [
-        e
-        for achievement in achievements
-        if all_time or not achievement.all_time_only
-        for e in earn(achievement, sorties)
-    ]
+    switched-on ones with their thresholds, `core.achievement_rules`) the pilot's sorties (chronological, of one tour)
+    reach."""
+    return [e for achievement in achievements for e in earn(achievement, sorties)]

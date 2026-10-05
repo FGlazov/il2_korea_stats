@@ -90,6 +90,7 @@ BACKFILL_AIRCRAFT_ALIASES = "aircraft_aliases"  # `B 29` / `B-29` rows merged th
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
+BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -168,6 +169,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
         if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
             _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
+        if only is None or BACKFILL_TOUR_CLEAN_SLATE in only:
+            _backfill_tour_clean_slate()
 
 
 def _check_payload_names() -> bool:
@@ -612,6 +615,28 @@ def _backfill_achievements() -> None:
             log.info("computing medals")
             rebuild_achievements()
         _mark_done(BACKFILL_ACHIEVEMENTS)
+
+
+def _backfill_tour_clean_slate() -> None:
+    """Streaks and medals used to run over a player's whole history for the all-time rows; since a new tour is a clean
+    slate the all-time rows are rolled up from the tour rows (doc 17). Recompute them once for every player."""
+    from django.db import transaction
+
+    from il2ks.db.models import Player, PlayerSortie, Role
+    from il2ks.ingest.achievements import rebuild_achievements
+    from il2ks.ingest.aggregates import CHUNK
+    from il2ks.ingest.streaks import recompute_streaks
+
+    if _already_done(BACKFILL_TOUR_CLEAN_SLATE):
+        return
+    with transaction.atomic():
+        if PlayerSortie.objects.filter(role=Role.PILOT).exists():
+            log.info("recomputing streaks and medals per tour")
+            ids = sorted(Player.objects.values_list("pk", flat=True))
+            for start in range(0, len(ids), CHUNK):
+                recompute_streaks(ids[start : start + CHUNK])
+            rebuild_achievements()
+        _mark_done(BACKFILL_TOUR_CLEAN_SLATE)
 
 
 def _backfill_achievement_tours() -> None:

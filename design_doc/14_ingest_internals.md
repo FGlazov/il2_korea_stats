@@ -166,8 +166,8 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   two steps (`_recompute_tour_scope`, then `_recompute_all_time`) with the existing recompute functions:
   1. `recompute_players` for those players, limited to the tours: totals, `PlayerAircraft`, the prop/jet pools
      (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: the payload only since OQ-117; `ingest.builds`, from the sorties), identity and names, then the killboard rows (`PlayerKillboard` /
-     `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
-     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per tour);
+     `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak` / `PlayerStreakRun`,
+     `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17): each is "refresh the touched tours, then roll up the players' all-time rows from the tour rows" (`refresh_streak_tours` + `rollup_streaks`, `refresh_achievement_tours` + `rollup_achievements`; a tour is a clean slate, nothing is carried across tours, a player's whole history is never read) `[PROPOSED]`;
   2. `recompute_aircraft_stats` for the types (`AircraftStats`; `TourAircraftStats` per tour, role and modification pattern for the tours; `AircraftPayload` and `AircraftMods`; `PlayerAircraftScope`, the top-pilot rows of every scope; reads the players' `PlayerAircraft` rows, so it comes
      after step 1) and `recompute_matchups` (`AircraftMatchup`: for each type pair the scopes: all time and per tour, all kills
      and intercept kills only, and, since 0057, the role / modification scopes of the killer's and of the victim's sortie, `scoped_side`);
