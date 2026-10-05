@@ -4,12 +4,12 @@ from collections.abc import Callable, Generator
 from pathlib import PurePosixPath
 from typing import Any, cast
 
-import rcssmin  # pyright: ignore[reportMissingTypeStubs]
-import rjsmin  # pyright: ignore[reportMissingTypeStubs]
 from whitenoise.storage import (  # pyright: ignore[reportMissingTypeStubs]
     CompressedManifestStaticFilesStorage,
     MissingFileError,
 )
+
+from il2ks.serving._vendor import rcssmin, rjsmin
 
 # Never minified: Django's own admin files and every vendored library (`vendor/` folders; ours are already `.min`).
 _SKIP_FIRST_PARTS = frozenset({"admin"})

@@ -32,6 +32,9 @@ MUST_SHIP = [
     "il2ks/web/templates/il2ks/base.html",
     "il2ks/__main__.py",
     "il2ks/serving/caddy.py",
+    "il2ks/serving/_vendor/rjsmin.py",
+    "il2ks/serving/_vendor/rcssmin.py",
+    "il2ks/serving/_vendor/LICENSE-rjsmin-rcssmin.txt",
 ]
 
 
