@@ -417,10 +417,16 @@ def shame_flavor(context: Context, stats: Counters, seed: object) -> str:
 @register.simple_tag(takes_context=True)
 def sortie_flavor(context: Context, sortie: PlayerSortie, detail: object = None) -> str:
     """`{% sortie_flavor sortie detail as quip %}`: the sortie's line, or '' for an ordinary sortie. `detail` is the
-    page's `sortie_view.Detail`; its `highlights` unlock the spots that need the timeline."""
+    page's `sortie_view.Detail`; its `highlights` unlock the spots that need the timeline. The most notable spot that
+    has a quip wins: a spot the admin switched off (or left without a line in this language) is skipped."""
     highlights = getattr(detail, "highlights", None)
-    spot = flavor_text.sortie_spot(sortie, highlights if isinstance(highlights, flavor_text.Highlights) else None)
-    return "" if spot is None else flavor(context, spot, sortie.pk)
+    for spot in flavor_text.sortie_spots(
+        sortie, highlights if isinstance(highlights, flavor_text.Highlights) else None
+    ):
+        line = flavor(context, spot, sortie.pk)
+        if line:
+            return line
+    return ""
 
 
 @register.inclusion_tag(COMPONENTS + "empty_row.html")

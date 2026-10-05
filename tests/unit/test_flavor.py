@@ -69,6 +69,10 @@ def test_the_variant_does_not_depend_on_the_language() -> None:
         assert flavor.pick("sortie_taxi", 9) is english
 
 
+def _first_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> str | None:
+    return next(flavor.sortie_spots(sortie, highlights), None)
+
+
 def sortie_with(**fields: object) -> PlayerSortie:
     defaults: dict[str, object] = {
         "role": "pilot",
@@ -101,7 +105,7 @@ def sortie_with(**fields: object) -> PlayerSortie:
     ],
 )
 def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
-    assert flavor.sortie_spot(sortie_with(**fields)) == spot
+    assert _first_spot(sortie_with(**fields)) == spot
 
 
 @pytest.mark.parametrize(
@@ -140,7 +144,7 @@ def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
     ],
 )
 def test_extreme_event_spots(fields: dict[str, object], highlights: Highlights | None, spot: str | None) -> None:
-    assert flavor.sortie_spot(sortie_with(**fields), highlights) == spot
+    assert _first_spot(sortie_with(**fields), highlights) == spot
 
 
 ACHIEVEMENTS: dict[str, object] = {
@@ -208,7 +212,7 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
 )
 def test_spot_precedence(fields: dict[str, object], highlights: Highlights, spot: str) -> None:
     """Accidents and losses first, then the rarest achievements, then the broader ones (`flavor.sortie_spot`)."""
-    assert flavor.sortie_spot(sortie_with(**{**ACHIEVEMENTS, **fields}), highlights) == spot
+    assert _first_spot(sortie_with(**{**ACHIEVEMENTS, **fields}), highlights) == spot
 
 
 def test_templates_only_use_known_spots() -> None:
@@ -295,7 +299,7 @@ def _quip_for(sortie: PlayerSortie, quips: dict[str, object]) -> str:
 def test_a_spot_switched_off_is_skipped_and_the_next_matching_spot_is_used() -> None:
     """A first-blood sortie with three kills matches first blood and ace; with first blood off the ace line shows."""
     sortie = sortie_with(first_blood=True, kills_air=3)
-    assert flavor.sortie_spot(sortie) == "sortie_first_blood"
+    assert _first_spot(sortie) == "sortie_first_blood"
     line = _quip_for(sortie, {"modes": {"sortie_first_blood": "off"}})
     assert line in {str(v) for v in flavor.SPOTS["sortie_ace"]}
 

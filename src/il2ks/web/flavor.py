@@ -10,7 +10,7 @@ new string needs `uv run il2ks dev translations update`); add a spot by adding i
 """
 
 import hashlib
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 
 from django.utils.translation import gettext_lazy
@@ -343,10 +343,11 @@ def pick(spot: str, seed: object) -> Label:
     return variants[int.from_bytes(digest[:8], "big") % len(variants)]
 
 
-def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> str | None:
-    """The spot for a sortie that deserves a line; None for the ordinary ones (and for gunner sorties, whose numbers
-    the log credits to the pilot). The first match wins, in this order (accidents and losses first, then the rarest
-    achievements, then the broader ones):
+def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> Iterator[str]:
+    """Every spot a sortie qualifies for, most notable first; nothing for the ordinary ones (and for gunner sorties,
+    whose numbers the log credits to the pilot). A caller whose first spot has no quip (the admin switched it off or
+    left its pool empty, FR-WEB-23) falls through to the next one, so a first-blood sortie with three kills still gets
+    its ace line. The order (accidents and losses first, then the rarest achievements, then the broader ones):
 
     taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground (after a landing
     or before takeoff), flak, bomber hunter, first blood, ace, stolen kills,
@@ -355,49 +356,48 @@ def sortie_spot(sortie: PlayerSortie, highlights: Highlights | None = None) -> s
     `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
     spots are skipped."""
     if sortie.role == "gunner":
-        return None
+        return
     if sortie.taxi_accident:
-        return "sortie_taxi"
+        yield "sortie_taxi"
     if sortie.friendly_kills:
-        return "sortie_friendly_fire"
+        yield "sortie_friendly_fire"
     if sortie.is_captured or sortie.pilot_status == "captured":
-        return "sortie_captured"
+        yield "sortie_captured"
     if sortie.outcome == "shot_down" and sortie.loss_class == "ai_gunner":
-        return "sortie_ai_gunner"
+        yield "sortie_ai_gunner"
     if sortie.outcome == "ditched":
-        return "sortie_ditched"
+        yield "sortie_ditched"
     if sortie.strafed_on_ground:
-        return "sortie_strafed_landed" if sortie.landings else "sortie_strafed"
+        yield "sortie_strafed_landed" if sortie.landings else "sortie_strafed"
     if sortie.outcome == "shot_down" and sortie.loss_class == "aaa":
-        return "sortie_aa"
+        yield "sortie_aa"
     if highlights is not None and highlights.bomber_kills >= BOMBER_KILLS_MIN:
-        return "sortie_bomber_hunter"
+        yield "sortie_bomber_hunter"
     if sortie.first_blood:
-        return "sortie_first_blood"
+        yield "sortie_first_blood"
     if sortie.kills_air >= MULTI_KILL_MIN:
-        return "sortie_ace"
+        yield "sortie_ace"
     if sortie.assists_air >= STOLEN_ASSISTS_MIN.get(sortie.kills_air, STOLEN_ASSISTS_MIN_MORE_KILLS):
-        return "sortie_stolen_kills"
+        yield "sortie_stolen_kills"
     if (
         sortie.assists_ground >= STOLEN_GROUND_ASSISTS_MIN
         and sortie.assists_ground >= sortie.kills_ground
         and sortie.kills_ground < GROUND_KILLS_MIN
     ):
-        return "sortie_stolen_ground"
+        yield "sortie_stolen_ground"
     landed_damaged = (
         sortie.outcome == "landed" and sortie.aircraft_status == "damaged" and sortie.damage_taken >= BADLY_DAMAGED
     )
     if landed_damaged and sortie.kills_air + sortie.kills_ground >= BATTERED_KILLS_MIN:
-        return "sortie_battered_victor"
+        yield "sortie_battered_victor"
     if landed_damaged:
-        return "sortie_limped_home"
+        yield "sortie_limped_home"
     if sortie.kills_ground >= GROUND_KILLS_MIN:
-        return "sortie_ground_pounder"
+        yield "sortie_ground_pounder"
     if highlights is not None and highlights.first_kill_s is not None and highlights.first_kill_s <= QUICK_KILL_S:
-        return "sortie_quick_kill"
+        yield "sortie_quick_kill"
     if sortie.flight_time_s >= MARATHON_S:
-        return "sortie_marathon"
-    return None
+        yield "sortie_marathon"
 
 
 def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
