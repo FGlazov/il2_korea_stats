@@ -261,6 +261,12 @@ decisions are made):
 - ✅ **New tour on a decisive mission** (maintainer, 2026-10-05, before the release): an admin toggle, off by default, that starts a new
   tour after a mission won by one side (dynamic campaigns that run for weeks); research first which log events carry the result.
 
+- 🔧 **Game rules in the admin** (maintainer, 2026-10-05, before the release): the game-rule settings of il2ks.toml (score values,
+  tours, rule toggles, leaderboard minimums, live intervals) editable in the web admin, applied by `watch` like the other rule pages;
+  machine settings (paths, domain, ports, database, backups) stay in il2ks.toml.
+- 🔧 **Docs describe only the released software** (maintainer, 2026-10-05): no "older versions" in docs/ (nothing was released yet);
+  pre-release compatibility code goes with the migration squash.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
