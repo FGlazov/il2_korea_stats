@@ -297,13 +297,17 @@
       "version": 1,
       "sha256": "2f8f110fe627d4c745a7cbafc89605b136b76e1d0d33a625486ef3decea47224"
     },
+    "templates/il2ks/leaderboards/ironman_running.html": {
+      "version": 1,
+      "sha256": "d925253439e5db3deebcab4921ebac465da27f06192b2607a6709d8c66d0f835"
+    },
     "templates/il2ks/leaderboards/list.html": {
       "version": 1,
-      "sha256": "d2e5f0917570d65bab95b02bcf561ae33cf73212bc27d4d88caf449b375fb921"
+      "sha256": "26806c571d971aeb707c1cfab6e9c20b88fda05a74d79e986fa182c5123df67a"
     },
     "templates/il2ks/leaderboards/table.html": {
       "version": 1,
-      "sha256": "81ffbab474485f6b2ed80f8548ef26c52c877139f7bf7b2a0cbbba3ad22cb207"
+      "sha256": "426fe3c6c9093d579903c700a1cf4108b65959080b486ef1fb9968ad93612957"
     },
     "templates/il2ks/missions/_player.html": {
       "version": 1,
@@ -419,7 +423,7 @@
     },
     "templates/il2ks/players/detail_streaks.html": {
       "version": 1,
-      "sha256": "9d3b52bc908c63df0250e1015ef351af13adb5925318862dca2f7f027301f18f"
+      "sha256": "2b70ba7eb986cd5f494adbb8fca8ad837f91ec5432b8b1d4175cef137d1c7f38"
     },
     "templates/il2ks/players/detail_tiles.html": {
       "version": 1,
@@ -439,19 +443,19 @@
     },
     "templates/il2ks/players/search.html": {
       "version": 1,
-      "sha256": "307e5ef36f6cf32491f762ed4e464670e4816216a79015a6fb7d4d3300558058"
+      "sha256": "523431944a37ca9b373192bc4ffaff69b7770371b1b1a961123a810b0850bdaf"
     },
     "templates/il2ks/players/search_table.html": {
       "version": 1,
-      "sha256": "24e45d9c3665cb1c0021f5fbe7beae4a0633b0d43c997ec5773eaf3f5b863830"
+      "sha256": "193d76becec7e089ab7e66db6e17a230e59b50b4cb62503a4a391d5e69cf6d35"
     },
     "templates/il2ks/players/streak_runs.html": {
       "version": 1,
-      "sha256": "13ca648967fb1131fb5784ec0515218cbb5ae7dcef0a2ec7ef7a534e89227ffc"
+      "sha256": "b01b5a427cbe0bf35651206829f9f8fcd49a6e7b11d00667a35261759f873799"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 1,
-      "sha256": "fa0573c045b458489eeabc4c7ee2b8bdabb7017f5077a28d52940bc5af0bd465"
+      "sha256": "1fc31e6cc93168788322b6ee1219853ed0934373e26ac34f39c506bd9e63b352"
     },
     "templates/il2ks/setup.html": {
       "version": 1,
@@ -532,10 +536,6 @@
     "templates/il2ks/sorties/parts/who.html": {
       "version": 1,
       "sha256": "2127bb9cfafd81cd55df6467ec39b53828afd3a08c2a8eb2c7e4e9149fa46383"
-    },
-    "templates/il2ks/streaks/list.html": {
-      "version": 1,
-      "sha256": "5abaed0270f77273a4fa1fb46674697f5b0329f5578ca6bc8a1b958c0c766516"
     },
     "templates/il2ks/styleguide.html": {
       "version": 1,

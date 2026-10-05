@@ -1,7 +1,7 @@
 {# il2ks-template: templates/il2ks/players/streak_runs.html v1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Every ironman streak of a player (FR-WEB-25, OQ-82), newest first. View: il2ks.web.views.boards.player_streak_runs.
-  Context: player, tours, tour (None = all time), tour_ended (the selected tour is not the current one: an open run then shows "Tour ended"), page_obj (PlayerStreakRun rows: .sorties, .kills_air, .flight_time_s,
+  Context: player, tours, tour (None = all time), track (air or ground), track_options ((label, url, current) rows), tour_ended (the selected tour is not the current one: an open run then shows "Tour ended"), page_obj (PlayerStreakRun rows: .sorties, .kills_air, .flight_time_s,
   .since, .until, .ended_by = death / captured / open, .ended_sortie with .mission, None while open), min_run, crumbs,
   page_title. A hidden mission's sortie is not linked (FR-ADM-3). With a tour selected a run stays inside that tour.
   Blocks: head, content.
@@ -16,6 +16,12 @@
   </div>
   {% if absence %}{% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
 
+  <p class="tour-bar">
+    <span class="tour-toggle" role="group" aria-label="{% translate 'Which sorties to count' %}">{% for label, href, current in track_options %}
+      <a href="{{ href }}"{% if current %} aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}
+    </span>
+  </p>
+
   {% results_region %}
     <div class="table-wrap">
       <table class="data-table">
@@ -24,7 +30,7 @@
             <th scope="col">{% translate "Since" %}</th>
             <th scope="col">{% translate "Until" %}</th>
             {% col_th _("Sorties") numeric=True hint="streak_sorties" %}
-            {% col_th _("Air kills") numeric=True hint="streak_kills" %}
+            {% if track == "ground" %}{% col_th _("Ground kills") numeric=True hint="streak_kills_ground_run" %}{% else %}{% col_th _("Air kills") numeric=True hint="streak_kills" %}{% endif %}
             {% col_th _("Flight time") numeric=True hint="streak_time" %}
             <th scope="col">{% translate "How it ended" %}</th>
           </tr>
@@ -35,7 +41,7 @@
               <td class="nowrap">{{ run.since|local_date }}</td>
               <td class="nowrap">{{ run.until|local_date }}</td>
               <td class="num">{{ run.sorties|num }}</td>
-              <td class="num">{{ run.kills_air|num }}</td>
+              <td class="num">{% if track == "ground" %}{{ run.kills_ground|num }}{% else %}{{ run.kills_air|num }}{% endif %}</td>
               <td class="num">{{ run.flight_time_s|duration }}</td>
               <td>{% if run.ended_by == "open" %}{% if tour_ended %}{% translate "Tour ended" %}{% else %}{% translate "Still going" %}{% endif %}{% else %}{% if run.ended_sortie and not run.ended_sortie.mission.is_hidden %}<a href="{% url 'web:sortie-detail' run.ended_sortie_id %}">{% endif %}{% if run.ended_by == "captured" %}{% translate "Captured" %}{% else %}{% translate "Died" %}{% endif %}{% if run.ended_sortie and not run.ended_sortie.mission.is_hidden %}</a>{% endif %}{% endif %}</td>
             </tr>

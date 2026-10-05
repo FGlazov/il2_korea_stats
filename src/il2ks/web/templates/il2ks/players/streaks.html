@@ -1,8 +1,8 @@
 {# il2ks-template: templates/il2ks/players/streaks.html v1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's best ironman streaks (FR-WEB-23). View: il2ks.web.views.boards.player_streaks.
-  Context: player, tours, tour (None = all time), streaks (PlayerBestStreak rows: .kind is sorties, air_kills or
-  flight_time, .sorties, .kills_air, .flight_time_s, .since, .until; a kind may be missing), crumbs, page_title.
+  Context: player, tours, tour (None = all time), streaks (PlayerBestStreak rows, air track first: .track is air or ground, .kind is sorties,
+  air_kills / ground_kills (the track's kills) or flight_time, .sorties, .kills_air, .kills_ground, .flight_time_s, .since, .until; a kind may be missing), crumbs, page_title.
   With a tour selected a streak runs inside that tour's sorties only.
   Blocks: head, content.
 {% endcomment %}
@@ -12,7 +12,7 @@
   <div class="page-head">
     <h1>{% blocktranslate with name=player.current_name %}Best streaks of {{ name }}{% endblocktranslate %}</h1>
     {% tour_select tours tour %}
-    <p>{% translate "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are skipped), by sorties, by air kills and by flight time." %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% else %} {% translate "A streak never carries over from one tour to the next; all time shows the best of the tours." %}{% endif %}</p>
+    <p>{% translate "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one kind of sortie does not end the other's run)." %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% else %} {% translate "A streak never carries over from one tour to the next; all time shows the best of the tours." %}{% endif %}</p>
   </div>
   {% if absence %}{% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
 
@@ -20,9 +20,11 @@
     <table class="data-table">
       <thead>
         <tr>
+          <th scope="col">{% translate "Track" %}</th>
           <th scope="col">{% translate "Best by" %}</th>
           {% col_th _("Sorties") numeric=True hint="streak_sorties" %}
           {% col_th _("Air kills") numeric=True hint="streak_kills" %}
+          {% col_th _("Ground kills") numeric=True hint="streak_kills_ground_run" %}
           {% col_th _("Flight time") numeric=True hint="streak_time" %}
           <th scope="col">{% translate "Since" %}</th>
           <th scope="col">{% translate "Until" %}</th>
@@ -31,14 +33,16 @@
       <tbody>
         {% for row in streaks %}
           <tr>
-            <th scope="row">{% if row.kind == "sorties" %}{% translate "Sorties survived" %}{% elif row.kind == "air_kills" %}{% translate "Air kills" %}{% else %}{% translate "Flight time" %}{% endif %}</th>
+            <th scope="row">{% if row.track == "ground" %}{% translate "Ground" %}{% else %}{% translate "Air" %}{% endif %}</th>
+            <td>{% if row.kind == "sorties" %}{% translate "Sorties survived" %}{% elif row.kind == "air_kills" %}{% translate "Air kills" %}{% elif row.kind == "ground_kills" %}{% translate "Ground kills" %}{% else %}{% translate "Flight time" %}{% endif %}</td>
             <td class="num">{{ row.sorties|num }}</td>
             <td class="num">{{ row.kills_air|num }}</td>
+            <td class="num">{{ row.kills_ground|num }}</td>
             <td class="num">{{ row.flight_time_s|duration }}</td>
             <td class="nowrap">{{ row.since|local_date }}</td>
             <td class="nowrap">{{ row.until|local_date }}</td>
           </tr>
-        {% empty %}{% empty_row 6 _("No streak yet: no sortie survived.") %}{% endfor %}
+        {% empty %}{% empty_row 8 _("No streak yet: no sortie survived.") %}{% endfor %}
       </tbody>
     </table>
   </div>

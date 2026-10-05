@@ -1,13 +1,12 @@
-"""The full killboard and the best streaks of a player, and the list of running ironman streaks (FR-WEB-9, FR-WEB-23).
+"""The full killboard and the best streaks of a player, and the old streak list URL (FR-WEB-9, FR-WEB-23).
 
 Simple reads from `il2ks.queries.boards` (TD-22). A hidden player has no killboard (404, FR-ADM-3) and is never listed.
 """
 
-from datetime import UTC, datetime
-
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
 from il2ks.core.streaks import MIN_LISTED_RUN
@@ -72,42 +71,41 @@ def player_streaks(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def streak_list(request: HttpRequest) -> HttpResponse:
-    """`/streaks/?tour=&sort=&page_best=&page_running=`: every pilot's best ironman streak in the selected tour (or all
-    time), plus the streaks running right now (TD-26, FR-WEB-23).
+    """`/streaks/?tour=`: the old list of ironman streaks, now the ironman board of the leaderboards (maintainer
+    2026-10-05); old links keep working and land on the air board, in the same tour."""
+    query = f"?{urlencode({'tour': request.GET['tour']})}" if request.GET.get("tour") else ""
+    return redirect(reverse("web:leaderboard", args=["ironman-air"]) + query, permanent=True)
 
-    Template `il2ks/streaks/list.html`. Context: `tours`, `tour`, `best_page` (PlayerBestStreak rows with `player`),
-    `running_page` (PlayerStreak rows with `player`; None on a past tour, where nothing is running [PROPOSED]), `sort`
-    (of the running list), `page_title`, `active_days`."""
-    sort = player_reads.resolve_sort(request.GET.get("sort", ""), reads.STREAK_SORTS, reads.DEFAULT_STREAK_SORT)
-    choice = tour_choice_from(request.GET)
-    past_tour = choice.selected is not None and choice.selected != choice.current
-    context = {
-        **choice.context,
-        "page_title": _("Ironman streaks"),
-        "sort": sort,
-        "best_page": reads.best_streaks_page(choice.selected, request.GET.get("page_best", 1)),
-        "running_page": None
-        if past_tour
-        else reads.streak_page(sort, request.GET.get("page_running", 1), datetime.now(UTC)),
-        "active_days": reads.ACTIVE_DAYS,
-    }
-    return render(request, "il2ks/streaks/list.html", context)
+
+def _track_url(request: HttpRequest, track: str) -> str:
+    """This page's URL for another ironman track: the other parameters (the tour) stay, paging starts over."""
+    params = {key: value for key, value in request.GET.items() if key not in ("track", "page")}
+    return f"{request.path}?{urlencode({**params, 'track': track})}"
 
 
 def player_streak_runs(request: HttpRequest, pk: int) -> HttpResponse:
-    """`/players/<pk>/streaks/history/?tour=&page=`: every streak of the player (a run of at least two survived
-    sorties, finished or running), newest first, 20 per page, all-time or within the selected tour (OQ-82).
+    """`/players/<pk>/streaks/history/?tour=&page=`: every streak of the player on one track (`?track=air|ground`, a
+    run of at least two survived sorties, finished or running), newest first, 20 per page, all-time or within the
+    selected tour (OQ-82).
 
     Template `il2ks/players/streak_runs.html`. Context: `player`, `tours`, `tour`, `page_obj` (PlayerStreakRun rows with
-    `ended_sortie` and its mission), `tour_ended` (the selected tour is not the current one), `min_run`, `crumbs`,
+    `ended_sortie` and its mission), `track` (air or ground, `?track=`), `track_options` ((label, url, current)
+    rows), `tour_ended` (the selected tour is not the current one), `min_run`, `crumbs`,
     `page_title`."""
     player = player_reads.visible_player(pk)
     if player is None:
         raise Http404
     choice = tour_choice_from(request.GET)
-    page = reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected)
+    track = request.GET.get("track", "")
+    track = track if track in reads.TRACKS else reads.TRACKS[0]
+    page = reads.streak_runs_page(player, request.GET.get("page", 1), choice.selected, track)
     context = {
         **choice.context,
+        "track": track,
+        "track_options": [
+            (label, _track_url(request, value), value == track)
+            for value, label in ((reads.TRACKS[0], _("Air")), (reads.TRACKS[1], _("Ground")))
+        ],
         "absence": pilot_absence(player.pk, choice) if page.paginator.count == 0 else None,
         "page_title": _("%(name)s: all streaks") % {"name": player.current_name},
         "crumbs": [

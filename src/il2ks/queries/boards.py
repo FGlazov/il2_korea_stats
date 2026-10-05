@@ -24,6 +24,7 @@ from il2ks.db.models import (
     PlayerTourKillboard,
     PlayerTypeKillboard,
     StreakKind,
+    StreakTrack,
     Tour,
 )
 from il2ks.queries.paging import ROW_PAGE_SIZE
@@ -42,16 +43,6 @@ KILLBOARD_SORTS: Mapping[str, str] = {
     "last": "last_at",
 }
 DEFAULT_KILLBOARD_SORT = "-kills"
-
-STREAK_SORTS: Mapping[str, str] = {
-    "player": "player__name_lower",
-    "current": "current_sorties",
-    "current_kills": "current_kills_air",
-    "current_time": "current_flight_time_s",
-    "best": "best_sorties",
-    "best_kills": "best_kills_air",
-}
-DEFAULT_STREAK_SORT = "-current"
 
 
 def _order(sort: str, allowed: Mapping[str, str]) -> str:
@@ -119,34 +110,42 @@ def killboard_page(player: Player, sort: str, number: str | int, tour: Tour | No
     return Paginator(rows.order_by(*order), PAGE_SIZE).get_page(number)
 
 
-def streak_of(player: Player) -> PlayerStreak | None:
-    return PlayerStreak.objects.filter(player=player).first()
+TRACKS: tuple[str, ...] = tuple(StreakTrack.values)  # air first, then ground (the order every page shows them in)
 
 
-def best_streak_of(player: Player, tour: Tour) -> PlayerBestStreak | None:
-    """The player's longest streak (by sorties) inside `tour`, None without a survived sortie there."""
-    return PlayerBestStreak.objects.filter(player=player, tour=tour, kind=StreakKind.SORTIES).first()
+def streaks_of(player: Player) -> list[PlayerStreak]:
+    """The player's current and best ironman run on each track (a row per track with a survived sortie), air first.
+    One query."""
+    return sorted(PlayerStreak.objects.filter(player=player), key=lambda row: TRACKS.index(row.track))
+
+
+def tour_streaks_of(player: Player, tour: Tour) -> list[PlayerBestStreak]:
+    """The player's longest run (by sorties) of each track inside `tour`, air first; a track without a survived sortie
+    there is missing. One query."""
+    rows = PlayerBestStreak.objects.filter(player=player, tour=tour, kind=StreakKind.SORTIES)
+    return sorted(rows, key=lambda row: TRACKS.index(row.track))
 
 
 def best_streaks(player: Player, tour: Tour | None = None) -> list[PlayerBestStreak]:
-    """The player's best streaks by sorties, air kills and flight time (in that order), all-time or in `tour`.
-    One kind is missing when it doesn't exist (no air kill in any streak)."""
+    """The player's best streaks of both tracks, each by sorties, kills (air kills on the air track, ground kills on the
+    ground track) and flight time, all-time or in `tour`: air track first, the three kinds in that order. A kind is
+    missing when it doesn't exist (no kill in any streak of the track)."""
     rows = (
         PlayerBestStreak.objects.filter(player=player, tour=tour)
         if tour
         else PlayerBestStreak.objects.filter(player=player, tour__isnull=True)
     )
     order = {str(kind): n for n, kind in enumerate(StreakKind.values)}
-    return sorted(rows, key=lambda row: order[row.kind])
+    return sorted(rows, key=lambda row: (TRACKS.index(row.track), order[row.kind]))
 
 
-def streak_runs_page(player: Player, number: str | int, tour: Tour | None = None) -> Page:
-    """One page of the player's streak runs (OQ-82), newest first, all-time or within `tour`; the sortie that ended
-    each run is pre-loaded with its mission (the template links it unless the mission is hidden)."""
+def streak_runs_page(player: Player, number: str | int, tour: Tour | None = None, track: str = "air") -> Page:
+    """One page of the player's streak runs of one `track` (OQ-82), newest first, all-time or within `tour`; the sortie
+    that ended each run is pre-loaded with its mission (the template links it unless the mission is hidden)."""
     rows = (
-        PlayerStreakRun.objects.filter(player=player, tour=tour)
+        PlayerStreakRun.objects.filter(player=player, tour=tour, track=track)
         if tour
-        else PlayerStreakRun.objects.filter(player=player, tour__isnull=True)
+        else PlayerStreakRun.objects.filter(player=player, tour__isnull=True, track=track)
     )
     ordered = (
         rows.select_related("ended_sortie__mission")
@@ -156,22 +155,19 @@ def streak_runs_page(player: Player, number: str | int, tour: Tour | None = None
     return Paginator(ordered, RUNS_PAGE_SIZE).get_page(number)
 
 
-def _running(now: datetime) -> QuerySet[PlayerStreak]:
-    """Visible players with a non-empty current streak whose last sortie ended within `ACTIVE_DAYS` of `now` (an old
-    player's streak is history, not "current")."""
+def _running(now: datetime, track: str = "air") -> QuerySet[PlayerStreak]:
+    """Visible players with a non-empty current streak on `track` whose last sortie ended within `ACTIVE_DAYS` of `now`
+    (an old player's streak is history, not "current")."""
     return PlayerStreak.objects.filter(
-        current_sorties__gt=0, current_until__gte=now - timedelta(days=ACTIVE_DAYS), player__is_hidden=False
+        track=track,
+        current_sorties__gt=0,
+        current_until__gte=now - timedelta(days=ACTIVE_DAYS),
+        player__is_hidden=False,
     ).select_related("player")
 
 
-def streak_page(sort: str, number: str | int, now: datetime) -> Page:
-    """One page of the running streaks, `sort` a resolved `STREAK_SORTS` value."""
-    return Paginator(_running(now).order_by(_order(sort, STREAK_SORTS), "pk"), PAGE_SIZE).get_page(number)
-
-
-def best_streaks_page(tour: Tour | None, number: str | int) -> Page:
-    """One page of every visible player's best streak by sorties (the `/streaks/` list), longest first, inside `tour` or
-    all time (`tour` None; there a streak may span tours). Reads the stored `PlayerBestStreak` rows (TD-22)."""
-    rows = PlayerBestStreak.objects.filter(kind=StreakKind.SORTIES, player__is_hidden=False)
-    rows = rows.filter(tour=tour) if tour else rows.filter(tour__isnull=True)
-    return Paginator(rows.select_related("player").order_by("-sorties", "-kills_air", "pk"), PAGE_SIZE).get_page(number)
+def running_page(track: str, number: str | int, now: datetime) -> Page:
+    """One page of the streaks running right now on `track`, longest first (the ironman boards' second table)."""
+    kills = "-current_kills_ground" if track == StreakTrack.GROUND else "-current_kills_air"
+    ordered = _running(now, track).order_by("-current_sorties", kills, "pk")
+    return Paginator(ordered, PAGE_SIZE).get_page(number)

@@ -120,7 +120,7 @@ def test_chosen_player_columns_show_up_with_sortable_headers(client: Client) -> 
     assert "sort=elo_prop" not in html
     assert "sort=bogus" not in html
     assert re.search(r'value="kd" checked', html)  # the control and the table agree
-    assert 'value="kl" checked' not in html
+    assert 'value="planes_lost" checked' not in html
     assert ">4.00<" in html  # Pilot1: 8 kills / 2 deaths
     assert ">1,700<" in html
 
@@ -180,10 +180,10 @@ def test_hidden_players_stay_hidden_with_columns(client: Client) -> None:
 def test_player_links_and_form_keep_the_column_choice(client: Client) -> None:
     seed_players()
 
-    html = client.get("/players/?cols=kd,kl&sort=-kd&page=1").content.decode()
+    html = client.get("/players/?cols=kd,planes_lost&sort=-kd&page=1").content.decode()
 
-    assert re.search(r'<th[^>]*><a href="\?[^"]*cols=kd%2Ckl[^"]*sort=', html) or re.search(
-        r'<th[^>]*><a href="\?[^"]*sort=[^"]*cols=kd%2Ckl', html
+    assert re.search(r'<th[^>]*><a href="\?[^"]*cols=kd%2Cplanes_lost[^"]*sort=', html) or re.search(
+        r'<th[^>]*><a href="\?[^"]*sort=[^"]*cols=kd%2Cplanes_lost', html
     )  # sort links keep the choice (and drop page)
     form = re.search(r"<form class=\"filter-bar\".*?</form>", html, re.S)
     assert form is not None
@@ -191,34 +191,41 @@ def test_player_links_and_form_keep_the_column_choice(client: Client) -> None:
     assert form[0].count('name="cols"') == len(columns.PLAYER_COLUMNS)
     assert 'name="sort" value="-kd"' in form[0]
     assert "Clear filters" not in html  # a column choice is not a filter
-    repeated = client.get("/players/?cols=kd&cols=kl").content.decode()  # what the form submits without JS
+    repeated = client.get("/players/?cols=kd&cols=planes_lost").content.decode()  # what the form submits without JS
     assert 'value="kd" checked' in repeated
-    assert 'value="kl" checked' in repeated
+    assert 'value="planes_lost" checked' in repeated
 
 
 # --- several columns at once (maintainer bug 2026-10-04: only the first ticked column worked in the browser) ----------
-@pytest.mark.parametrize("query", ["cols=kd,kl,survival", "cols=kd&cols=kl&cols=survival", "cols=kd,kl&cols=survival"])
+@pytest.mark.parametrize(
+    "query",
+    ["cols=kd,planes_lost,survival", "cols=kd&cols=planes_lost&cols=survival", "cols=kd,planes_lost&cols=survival"],
+)
 def test_every_ticked_column_is_shown_in_both_url_forms(client: Client, query: str) -> None:
     seed_players()
 
     html = client.get(f"/players/?{query}").content.decode()
 
     heads = re.findall(r"<th[^>]*>.*?</th>", html, re.S)
-    for label in ("K/D", "K/L", "Survival"):
+    for label in ("K/D", "Aircraft lost", "Survival"):
         assert any(label in head for head in heads), label
-    for key in ("kd", "kl", "survival"):
+    for key in ("kd", "planes_lost", "survival"):
         assert f'value="{key}" checked' in html
 
 
 def test_sort_links_keep_every_chosen_column(client: Client) -> None:
     seed_players()
 
-    html = client.get("/players/?cols=kd&cols=kl&cols=survival&sort=-kd").content.decode()
+    html = client.get("/players/?cols=kd&cols=planes_lost&cols=survival&sort=-kd").content.decode()
 
     sort_links = re.findall(r'<th[^>]*><a href="(\?[^"]*)"', html)
     assert sort_links
     for href in sort_links:
-        assert QueryDict(href.removeprefix("?").replace("&amp;", "&")).getlist("cols") == ["kd", "kl", "survival"]
+        assert QueryDict(href.removeprefix("?").replace("&amp;", "&")).getlist("cols") == [
+            "kd",
+            "planes_lost",
+            "survival",
+        ]
 
 
 def test_replace_query_keeps_repeated_keys() -> None:

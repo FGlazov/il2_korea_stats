@@ -55,7 +55,7 @@ def _sorts(
     ]
 
 
-PLAYER_LIST_INDEXED = ("-last_seen", "name", "-kills_air")
+PLAYER_LIST_INDEXED = ("-last_seen", "name", "-kills_air", "-flight_time_s")
 """The player list's default sort (last seen) and the columns visitors sort by most: indexed on `Player`."""
 
 
@@ -165,7 +165,6 @@ def _variants() -> list[Variant]:
             "player-streak-runs", lambda w: f"/players/{w.player_pk}/streaks/history/?tour=all", "streak runs all-time"
         )
     )
-    found += _sorts("streak-list", lambda w: "/streaks/?", list(board_reads.STREAK_SORTS), "/streaks/", ("-current",))
     found.append(_fixed("achievement-holders", "/achievements/flight_hours/?tier=1"))
 
     found += _sorts("aircraft-list", lambda w: "/aircraft/?", list(aircraft_reads.AIRCRAFT_SORTS), "/aircraft/")

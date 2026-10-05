@@ -545,3 +545,36 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   assists and gunners do not count); `multi_kill` = the most air kills within `BURST_WINDOW_S` (120 s) in the sortie; `elo_peak` is not a replay fact but written by
   `ingest.ratings` (the highest pool Elo held after a win in the sortie).
 - Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).
+
+## Ironman streaks and the two tracks (`core/streaks.py`, FR-WEB-25, maintainer 2026-10-05)
+
+A **streak** is a run of a pilot's consecutive sorties without a death or capture, applied to the pilot (not gunner) sorties of one tour in
+chronological order (spawn time, then id; a streak never crosses a tour boundary, doc 14 "per-tour refresh"):
+
+- a sortie with `is_death` or `is_captured` is **broken**: it ends the run and is not part of any run;
+- a sortie that never took off (`outcome = not_taken_off`) and was not broken is **neutral**: it neither extends nor ends a run;
+- every other sortie is **survived** and extends the run (a lost aircraft with a living pilot, a disconnect, a mission-end cut-off included).
+
+**Two tracks** (maintainer, 2026-10-05: "losing a ground attacker would not reset your current air ironman life, to encourage air pilots to
+ground pound from time to time without worrying about their streaks") `[DECIDED]`: every pilot has an **air** run and a **ground** run. A sortie
+belongs to the track of its `combat_role`: an **attack** sortie to the ground track, every other sortie (air superiority) to the air track. The rule above runs on
+each track's sorties alone: a death, capture or fatal loss in an attack sortie ends only the ground run, one in an air superiority sortie only
+the air run, and a sortie of the other track neither extends nor breaks a run. The air track counts **air kills**, sorties and flight time, the
+ground track **ground kills**, sorties and flight time (each stored streak carries both kill counts; the "kills" criterion of a track is its own).
+
+- **PRODUCT** A sortie with **no combat role** (unknown role: sorties stored before the role existed) counts for the **air** track, as the whole
+  streak did before the split. Gunners are not pilot sorties and count nowhere.
+- **PRODUCT** Tanks are not a separate counter in a streak: the ground track's kills are all ground kills (the tank board has the tank figures).
+- Best streaks per track: by sorties (ties: more of the track's kills, more flight time, the earlier run), by the track's kills (ties: more
+  sorties, more flight time, the earlier) and by flight time (ties: more sorties, more of the track's kills, the earlier). A kills row exists only
+  when the best such run has at least one kill of that kind. The current streak of a track is the run after its last broken sortie; the all-time rows
+  are rolled up from the tour rows (best = max over the tours, runs = union), the current one is the run in the newest tour.
+- The history lists the runs of at least `MIN_LISTED_RUN` (2) survived sorties of one track (`?track=air|ground`, OQ-82).
+- **Achievements** (doc 17): `life_kills` (Charmed Life) is the **air** life: air kills of the air-track sorties since the last air-track death
+  or capture (attack sorties neither add to it nor end it) `[PROPOSED]`; `survivor` (Ironman medal) reads the **better of the two tracks'** survived
+  runs `[PROPOSED]`; `landing_streak` stays a landing skill over every sortie (it is not an ironman run).
+- Pages: a player's profile block and best-streaks page show both tracks; the history has a track switch; the **ironman boards** of the
+  leaderboards (`/leaderboards/ironman-air/` and `/leaderboards/ironman-ground/`, both in the General tab group so the Air and Ground groups keep fitting side by side, tour-aware like the other
+  boards, columns picker for the other kill count and the run's dates, the running streaks below them) replace the old `/streaks/` list (which redirects);
+  the player list's last two default columns are the best air run by air kills and the best ground run by ground kills (`Player.streak_kills_air` /
+  `streak_kills_ground`, copied from the all-time best rows by `rollup_streaks`).

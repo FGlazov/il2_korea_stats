@@ -37,7 +37,18 @@ SOME = LeaderboardConfig(
     min_air_superiority_sorties=1,
     min_air_superiority_minutes=1.0,
 )
-BOARDS = ["air", "ground", "ground-hour", "interception", "tank-busting", "elo-prop", "elo-jet", "play-time"]
+BOARDS = [
+    "air",
+    "ground",
+    "ground-hour",
+    "interception",
+    "tank-busting",
+    "elo-prop",
+    "elo-jet",
+    "play-time",
+    "ironman-air",
+    "ironman-ground",
+]
 LINK = re.compile(r'href="(/[^"#]*)"')
 SKIPPED_LINKS = ("/sprite.svg", "/static/", "/media/", "/admin", "/language/", "/live/", "/setup/", "/_")
 
@@ -93,7 +104,6 @@ def urls(w: World) -> Iterator[str]:
     yield "/leaderboards/"
     for board in BOARDS:
         yield f"/leaderboards/{board}/"
-    yield "/streaks/"
     yield "/aircraft/"
     for aircraft in (w.il10, w.mig, w.sabre):
         yield f"/aircraft/{aircraft.pk}/"
@@ -288,7 +298,7 @@ def filtered_urls(w: World) -> Iterator[str]:
         yield f"/players/{p.pk}/sorties/?outcome=landed&sort=-flight_time"
         yield f"/players/{p.pk}/killboard/?sort=-last"
         yield f"/players/{p.pk}/?sort=-sorties"
-    yield "/streaks/?sort=-sorties"
+    yield "/leaderboards/ironman-air/?sort=-sorties&cols=kills_ground,since"
     yield "/achievements/first_blood/?tier=2"
     yield "/missions/?q=korea&winner=redfor"
 

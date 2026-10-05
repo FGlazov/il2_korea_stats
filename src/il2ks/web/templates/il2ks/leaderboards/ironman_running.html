@@ -1,0 +1,28 @@
+{# il2ks-template: templates/il2ks/leaderboards/ironman_running.html v1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  ironman_running.html: the runs going right now on one ironman board (below the best runs). Context: board, running_page (Page of PlayerStreak rows with
+  .player: current_sorties, current_kills_air, current_kills_ground, current_flight_time_s, best_sorties), tour.
+{% endcomment %}<div class="table-wrap table-wrap--flat">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Pilot" %}</th>
+        {% col_th _("Sorties in a row") numeric=True hint="streak_sorties" %}
+        {% if board.key == "ironman-air" %}{% col_th _("Air kills") numeric=True hint="streak_kills" %}{% else %}{% col_th _("Ground kills") numeric=True hint="streak_kills_ground_run" %}{% endif %}
+        {% col_th _("Flight time") numeric=True hint="streak_time" %}
+        {% col_th _("Best streak") numeric=True %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in running_page %}
+        <tr>
+          <td><a href="{% url 'web:player-detail' row.player_id %}{{ tour|tour_qs }}">{{ row.player.current_name }}</a></td>
+          <td class="num">{{ row.current_sorties|num }}</td>
+          <td class="num">{% if board.key == "ironman-air" %}{{ row.current_kills_air|num }}{% else %}{{ row.current_kills_ground|num }}{% endif %}</td>
+          <td class="num">{{ row.current_flight_time_s|duration }}</td>
+          <td class="num">{{ row.best_sorties|num }}</td>
+        </tr>
+      {% empty %}{% empty_row 5 _("Nobody is on a streak right now.") %}{% endfor %}
+    </tbody>
+  </table>
+</div>

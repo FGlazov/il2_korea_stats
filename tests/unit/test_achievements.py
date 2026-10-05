@@ -305,3 +305,30 @@ def test_only_the_pure_running_totals_are_cumulative_and_the_elo_medal_is_per_to
     }
     assert all(a.counter for a in ACHIEVEMENTS if a.cumulative)
     assert "elo_peak" in {e.key for e in earn_all([replace(s(0), elo_peak=1600.0)])}
+
+
+# --- the two ironman tracks (maintainer, 2026-10-05) ----------------------------------------------------------------
+def test_life_kills_are_the_air_life_a_lost_attacker_does_not_end_it() -> None:
+    rows = [s(0, air=3), replace(s(1, death=True), is_attack=True), s(2, air=4)]
+
+    assert life_kills(rows)[-1] == 7.0  # the attack death left the air life alone
+
+
+def test_life_kills_ignore_the_kills_of_attack_sorties_and_an_air_death_still_ends_the_life() -> None:
+    rows = [s(0, air=3), replace(s(1, air=2), is_attack=True), s(2, air=1, death=True), s(3, air=1)]
+
+    assert life_kills(rows) == [3.0, 3.0, 4.0, 4.0]
+
+
+def test_survivor_reads_the_better_of_the_two_tracks() -> None:
+    attack = [replace(s(n), is_attack=True) for n in range(4)]
+    rows = [s(0), s(1), *attack, replace(s(9, death=True), is_attack=False), replace(s(10), is_attack=True)]
+
+    # air: 2, then the air death; ground: 4 in a row, one more after the air death: 5
+    assert survived_in_a_row(rows)[-1] == 5.0
+
+
+def test_survivor_air_death_does_not_reset_the_ground_run_and_vice_versa() -> None:
+    mixed = [s(0), replace(s(1), is_attack=True), replace(s(2, death=True), is_attack=True), s(3), s(4)]
+
+    assert survived_in_a_row(mixed)[-1] == 3.0  # air: 3 in a row; the ground death ended only the ground run

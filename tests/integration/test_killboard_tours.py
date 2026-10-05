@@ -231,9 +231,9 @@ def test_profile_shows_killboard_and_streaks_of_the_selected_tour(client: Client
     assert f"/players/{pk(1)}/killboard/?tour={october.pk}" in html
     two = client.get(f"/players/{pk(2)}/?tour={october.pk}").content.decode()  # player 2 survived October
     assert f"/players/{pk(2)}/streaks/?tour={october.pk}" in two
-    assert "Best streak" in two
-    assert "Current streak" not in two  # a current streak is not per tour
-    assert "Current streak" in client.get(f"/players/{pk(1)}/?tour=all").content.decode()
+    assert "Best air streak" in two
+    assert "Current air streak" not in two  # a current streak is not per tour
+    assert "Current air streak" in client.get(f"/players/{pk(1)}/?tour=all").content.decode()
     nobody = client.get(f"/players/{pk(2)}/?tour={october.pk}").content.decode()
     assert "Never shot down by a player." in nobody  # player 2 flew in October and nobody shot them down
 

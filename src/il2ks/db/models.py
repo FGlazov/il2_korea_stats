@@ -344,6 +344,11 @@ class Player(Counters):
     elo_jet = models.FloatField(default=1500.0)
     elo_prop_games = models.PositiveIntegerField(default=0)
     elo_jet_games = models.PositiveIntegerField(default=0)
+    # The player list's two streak columns (maintainer 2026-10-05), copied from the all-time `PlayerBestStreak` rows by
+    # `ingest.streaks.rollup_streaks` so the list needs no join: the air kills of the best air ironman run (by air
+    # kills) and the ground kills of the best ground ironman run (by ground kills). Both 0 without such a run.
+    streak_kills_air = models.PositiveIntegerField(default=0)
+    streak_kills_ground = models.PositiveIntegerField(default=0)
 
     objects: ClassVar[HideableManager[Player]] = HideableManager()  # pyright: ignore[reportIncompatibleVariableOverride]
 
@@ -1339,23 +1344,36 @@ class StreakKind(models.TextChoices):
     SORTIES = "sorties"
     AIR_KILLS = "air_kills"
     FLIGHT_TIME = "flight_time"
+    GROUND_KILLS = "ground_kills"  # the ground track's kills criterion (`air_kills` is the air track's)
+
+
+class StreakTrack(models.TextChoices):
+    """The two ironman tracks (maintainer, 2026-10-05): attack sorties are the ground track, the rest the air track.
+    Values match `core.streaks.Track`."""
+
+    AIR = "air"
+    GROUND = "ground"
 
 
 class PlayerBestStreak(models.Model):
     """A player's best ironman streak by one criterion (FR-WEB-23): the run with the most survived sorties, the most
     air kills, or the most flight time. `tour` null = all time, the best over the tour rows (a streak never spans
     two tours); with a tour, the streak runs within that tour's sorties only. `since` / `until` as in
-    `core.streaks.Streak`. An `air_kills` row exists only when the best such streak has at least one air kill.
-    Level 2: `ingest.streaks`."""
+    `core.streaks.Streak`. A kills row (`air_kills` on the air track, `ground_kills` on the ground track) exists only
+    when the best such streak has at least one kill. `track` is the ironman track (air or ground, maintainer
+    2026-10-05): the streak counts the sorties of that track only and carries both kill counts. Level 2:
+    `ingest.streaks`."""
 
     player_id: int
     tour_id: int | None
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="best_streaks")
     tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="best_streaks")
+    track = models.CharField(max_length=6, choices=StreakTrack.choices, default=StreakTrack.AIR)
     kind = models.CharField(max_length=12, choices=StreakKind.choices)
     sorties = models.PositiveIntegerField(default=0)
     kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
     flight_time_s = models.FloatField(default=0.0)
     since = models.DateTimeField()
     until = models.DateTimeField()
@@ -1363,22 +1381,27 @@ class PlayerBestStreak(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["player", "tour", "kind"], condition=models.Q(tour__isnull=False), name="bests_tour_unique"
+                fields=["player", "tour", "track", "kind"],
+                condition=models.Q(tour__isnull=False),
+                name="bests_tour_track_unique",
             ),
             models.UniqueConstraint(
-                fields=["player", "kind"], condition=models.Q(tour__isnull=True), name="bests_alltime_unique"
+                fields=["player", "track", "kind"],
+                condition=models.Q(tour__isnull=True),
+                name="bests_alltime_track_unique",
             ),
             models.CheckConstraint(condition=models.Q(kind__in=StreakKind.values), name="bests_kind_valid"),
+            models.CheckConstraint(condition=models.Q(track__in=StreakTrack.values), name="bests_track_valid"),
         ]
         indexes = [
             models.Index(fields=["player", "tour"], name="bests_by_player_tour"),
-            # The best-streak list (`/streaks/`, the home page): one kind in one tour (or all time), longest first.
-            models.Index(fields=["kind", "tour", "-sorties", "-kills_air"], name="bests_list"),
-            # The all-time list: Postgres cannot read `tour IS NULL` as a fixed prefix of `bests_list`, so it sorts.
+            # The ironman board: one track and kind in one tour (or all time), longest first.
+            models.Index(fields=["track", "kind", "tour", "-sorties", "-kills_air"], name="bests_track_list"),
+            # The all-time list: Postgres cannot read `tour IS NULL` as a fixed prefix of the one above, so it sorts.
             models.Index(
-                fields=["kind", "-sorties", "-kills_air", "id"],
+                fields=["track", "kind", "-sorties", "-kills_air", "id"],
                 condition=models.Q(tour__isnull=True),
-                name="bests_alltime_list",
+                name="bests_alltime_track_list",
             ),
         ]
 
@@ -1395,8 +1418,8 @@ class StreakEnd(models.TextChoices):
 class PlayerStreakRun(models.Model):
     """One ironman streak of a player (FR-WEB-25, OQ-82): a run of at least `core.streaks.MIN_LISTED_RUN` survived
     sorties, finished or still going, with what ended it. `tour` null = all time, else the run within that tour's
-    sorties only. `ended_sortie` = the fatal or capturing sortie (null while `ended_by` is open). Level 2: recomputed
-    per affected player by `ingest.streaks`."""
+    sorties only. `ended_sortie` = the fatal or capturing sortie (null while `ended_by` is open). `track` = the ironman
+    track (air or ground). Level 2: recomputed per affected player by `ingest.streaks`."""
 
     player_id: int
     tour_id: int | None
@@ -1404,8 +1427,10 @@ class PlayerStreakRun(models.Model):
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="streak_runs")
     tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="streak_runs")
+    track = models.CharField(max_length=6, choices=StreakTrack.choices, default=StreakTrack.AIR)
     sorties = models.PositiveIntegerField(default=0)
     kills_air = models.PositiveIntegerField(default=0)
+    kills_ground = models.PositiveIntegerField(default=0)
     flight_time_s = models.FloatField(default=0.0)
     since = models.DateTimeField()
     until = models.DateTimeField()
@@ -1414,13 +1439,18 @@ class PlayerStreakRun(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour"),
-            # The all-time history (`tour IS NULL`), newest first: see `bests_alltime_list` on PlayerBestStreak.
+            models.Index(fields=["player", "tour", "track", "-since"], name="streakruns_track_player_tour"),
+            # The all-time history (`tour IS NULL`), newest first: see `bests_alltime_track_list` on PlayerBestStreak.
             models.Index(
-                fields=["player", "-since", "-id"], condition=models.Q(tour__isnull=True), name="streakruns_alltime"
+                fields=["player", "track", "-since", "-id"],
+                condition=models.Q(tour__isnull=True),
+                name="streakruns_track_alltime",
             ),
         ]
-        constraints = [models.CheckConstraint(condition=models.Q(ended_by__in=StreakEnd.values), name="runs_end_valid")]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(ended_by__in=StreakEnd.values), name="runs_end_valid"),
+            models.CheckConstraint(condition=models.Q(track__in=StreakTrack.values), name="runs_track_valid"),
+        ]
 
     def __str__(self) -> str:
         return f"{self.player_id}: {self.sorties} sorties ({self.ended_by})"
@@ -1429,7 +1459,8 @@ class PlayerStreakRun(models.Model):
 class PlayerStreak(models.Model):
     """Ironman streaks (FR-WEB-23): current and best run of survived sorties, rule in `il2ks.core.streaks`.
 
-    A row exists for players with at least one survived sortie. `best_*` is the best run over all tours (a streak never
+    One row per player and track (`track`: air or ground, maintainer 2026-10-05); a row exists for players with at
+    least one survived sortie on the track. `best_*` is the best run over all tours (a streak never
     spans two tours); `current_*` is the run in the current (newest) tour, zero for a player who has not flown in it
     (`current_tour` = that tour, null when the player has not). Level 2: recomputed per affected player by
     `ingest.streaks`."""
@@ -1437,21 +1468,28 @@ class PlayerStreak(models.Model):
     player_id: int
     current_tour_id: int | None
 
-    player = models.OneToOneField(Player, on_delete=models.CASCADE, related_name="streak")
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="streaks")
+    track = models.CharField(max_length=6, choices=StreakTrack.choices, default=StreakTrack.AIR)
     current_tour = models.ForeignKey(Tour, null=True, on_delete=models.SET_NULL, related_name="+")
     current_sorties = models.PositiveIntegerField(default=0)
     current_kills_air = models.PositiveIntegerField(default=0)
+    current_kills_ground = models.PositiveIntegerField(default=0)
     current_flight_time_s = models.FloatField(default=0.0)
     current_since = models.DateTimeField(null=True)
     current_until = models.DateTimeField(null=True)
     best_sorties = models.PositiveIntegerField(default=0)
     best_kills_air = models.PositiveIntegerField(default=0)
+    best_kills_ground = models.PositiveIntegerField(default=0)
     best_flight_time_s = models.FloatField(default=0.0)
     best_since = models.DateTimeField(null=True)
     best_until = models.DateTimeField(null=True)
 
     class Meta:
-        indexes = [models.Index(fields=["-current_sorties"], name="streak_current_desc")]
+        constraints = [
+            models.UniqueConstraint(fields=["player", "track"], name="streak_player_track_unique"),
+            models.CheckConstraint(condition=models.Q(track__in=StreakTrack.values), name="streak_track_valid"),
+        ]
+        indexes = [models.Index(fields=["track", "-current_sorties"], name="streak_track_current_desc")]
 
     def __str__(self) -> str:
         return f"{self.player_id}: {self.current_sorties} / {self.best_sorties}"

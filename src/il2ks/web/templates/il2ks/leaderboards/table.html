@@ -1,7 +1,8 @@
 {# il2ks-template: templates/il2ks/leaderboards/table.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   table.html: the table of a leaderboard. Context: board, sort, page_obj (Page of BoardRow: rank, player, stats, per_hour).
-  Per-hour boards: ground-hour, interception, tank-busting. `stats` is the player's counters for the board (all-time, tour or per aircraft); the columns differ per board.
+  Per-hour boards: ground-hour, interception, tank-busting. The ironman boards (ironman-air, ironman-ground) list each pilot's best run: `stats` is
+  the PlayerBestStreak row, `columns` the optional columns chosen with ?cols=. `stats` is the player's counters for the board (all-time, tour or per aircraft); the columns differ per board.
 {% endcomment %}<div class="table-wrap">
   <table class="data-table data-table--sticky-2 board-table">
     <thead>
@@ -37,6 +38,11 @@
         {% elif board.key == "play-time" %}
           {% sort_th "flight_time_s" _("Flight time") numeric=True %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
+        {% elif board.key == "ironman-air" or board.key == "ironman-ground" %}
+          {% sort_th "sorties" _("Sorties in a row") numeric=True hint="streak_sorties" %}
+          {% if board.key == "ironman-air" %}{% sort_th "kills" _("Air kills") numeric=True hint="streak_kills" %}{% else %}{% sort_th "kills" _("Ground kills") numeric=True hint="streak_kills_ground_run" %}{% endif %}
+          {% sort_th "flight_time_s" _("Flight time") numeric=True hint="streak_time" %}
+          {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% endfor %}
         {% else %}
           {% sort_th "rating" _("Elo") numeric=True hint="elo" %}
           {% sort_th "games" _("Encounters") numeric=True hint="elo_games" %}
@@ -48,7 +54,7 @@
       {% for row in page_obj.object_list %}
         <tr>
           <td class="num">{{ row.rank|num }}</td>
-          <td><a href="{% url 'web:player-detail' row.player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{{ row.player.current_name }}</a></td>
+          <td>{% if board.streak_track %}<a href="{% url 'web:player-streak-runs' row.player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}&amp;track={{ board.streak_track }}">{{ row.player.current_name }}</a>{% else %}<a href="{% url 'web:player-detail' row.player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{{ row.player.current_name }}</a>{% endif %}</td>
           {% if board.key == "air" %}
             <td class="num"><strong>{{ row.stats.score_air|num:1 }}</strong></td>
             <td class="num">{{ row.stats.kills_air|num }}</td>
@@ -78,6 +84,11 @@
           {% elif board.key == "play-time" %}
             <td class="num"><strong>{{ row.stats.flight_time_s|duration }}</strong></td>
             <td class="num">{{ row.stats.sorties|num }}</td>
+          {% elif board.key == "ironman-air" or board.key == "ironman-ground" %}
+            <td class="num"><strong>{{ row.stats.sorties|num }}</strong></td>
+            <td class="num">{% if board.key == "ironman-air" %}{{ row.stats.kills_air|num }}{% else %}{{ row.stats.kills_ground|num }}{% endif %}</td>
+            <td class="num">{{ row.stats.flight_time_s|duration }}</td>
+            {% for column in columns %}<td{% if column.numeric %} class="num"{% endif %}>{{ column|cell:row.stats }}</td>{% endfor %}
           {% elif board.key == "elo-prop" %}
             <td class="num"><strong>{{ row.rating|num }}</strong></td>
             <td class="num">{{ row.games|num }}</td>
@@ -89,7 +100,7 @@
           {% endif %}
         </tr>
       {% empty %}
-        {% empty_row 7 _("Nobody qualifies for this board yet.") %}
+        {% if board.streak_track %}{% empty_row 4 _("No streak yet: no run of consecutive sorties survived.") %}{% else %}{% empty_row 7 _("Nobody qualifies for this board yet.") %}{% endif %}
       {% endfor %}
     </tbody>
   </table>

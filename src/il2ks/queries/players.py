@@ -8,7 +8,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from django.core.paginator import Page, Paginator
-from django.db.models import Expression, OrderBy
+from django.db.models import Case, Expression, F, FloatField, OrderBy, Q, Value, When
+from django.db.models.functions import Greatest
 
 from il2ks.db.models import (
     HEAVY_SORTIE_COLUMNS,
@@ -27,7 +28,7 @@ from il2ks.db.models import (
 )
 from il2ks.queries import aircraft as aircraft_reads
 from il2ks.queries.paging import ROW_PAGE_SIZE
-from il2ks.queries.sorting import Rated, Ratio, SortSpec, order_by
+from il2ks.queries.sorting import Computed, Rated, Ratio, SortSpec, order_by
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = ROW_PAGE_SIZE
@@ -64,9 +65,26 @@ RECENT_SORTIES = 5
 TOUR_HISTORY = 12  # tours shown in the profile charts
 MAX_QUERY_LENGTH = 64
 
+
+def _best_elo(prefix: str) -> Expression:
+    """The higher of the two pool ratings among the pools with rated games, NULL (sorts last) with none: the player
+    list's "Elo" column (`web.columns.best_elo` is its cell)."""
+
+    def rating(pool: str) -> Expression:
+        return Case(
+            When(**{f"{prefix}elo_{pool}_games__gt": 0}, then=F(f"{prefix}elo_{pool}")),
+            default=Value(0.0),
+            output_field=FloatField(),
+        )
+
+    rated = Q(**{f"{prefix}elo_jet_games__gt": 0}) | Q(**{f"{prefix}elo_prop_games__gt": 0})
+    return Case(When(rated, then=Greatest(rating("jet"), rating("prop"))), default=None, output_field=FloatField())
+
+
 # Public `?sort=` key -> what it orders by (a Player column or a NULL-safe ratio, see `queries.sorting`). Anything else
-# falls back to the default (a whitelist). The first block is the default columns, the second the optional ones a
-# visitor can add with `?cols=` (`web.columns.PLAYER_COLUMNS`; a test keeps the two in step).
+# falls back to the default (a whitelist). The default columns (`web.columns.PLAYER_DEFAULT_COLUMNS`, the player's
+# name) and the optional ones a visitor can add with `?cols=` (`web.columns.PLAYER_COLUMNS`) are all in it; a test
+# keeps them in step.
 PLAYER_SORTS: Mapping[str, SortSpec] = {
     "name": "name_lower",
     "sorties": "sorties",
@@ -75,6 +93,9 @@ PLAYER_SORTS: Mapping[str, SortSpec] = {
     "kills_ground": "kills_ground",
     "deaths": "deaths",
     "last_seen": "last_seen",
+    "elo": Computed(_best_elo),
+    "streak_kills_air": "streak_kills_air",
+    "streak_kills_ground": "streak_kills_ground",
     "elo_jet": Rated("elo_jet", "elo_jet_games"),
     "elo_prop": Rated("elo_prop", "elo_prop_games"),
     "kd": Ratio("kills_air", "deaths"),

@@ -4,9 +4,10 @@ Simple tags that fetch and hand the rows to the including template (TD-22: plain
 keep the profile and home views untouched: a section is one include line.
 
 Tags: killboard_top (-> Board), type_killboard (-> queries.boards.TypeBoard),
-player_streak (-> PlayerStreak or None), player_tour_streak (-> PlayerBestStreak or
-None). The first and the third take the selected tour (None = all time). Also player_builds (-> dict of
-AircraftBuild, with the filter build_of: the profile's favourite loadout per aircraft type).
+player_streaks (-> list of PlayerStreak, one per track), player_tour_streaks (-> list of
+PlayerBestStreak, one per track). The first and the third take the
+selected tour (None = all time). Also
+player_builds (-> dict of AircraftBuild, with the filter build_of: the profile's favourite loadout per aircraft type).
 """
 
 from collections.abc import Sequence
@@ -45,15 +46,17 @@ def type_killboard(player: Player, tour: Tour | None = None, limit: int = reads.
 
 
 @register.simple_tag
-def player_streak(player: Player) -> PlayerStreak | None:
-    """{% player_streak player as streak %}: the player's ironman streaks, None without a survived sortie."""
-    return reads.streak_of(player)
+def player_streaks(player: Player) -> list[PlayerStreak]:
+    """{% player_streaks player as streaks %}: the player's current and best ironman run on each track (air first),
+    a track without a survived sortie missing."""
+    return reads.streaks_of(player)
 
 
 @register.simple_tag
-def player_tour_streak(player: Player, tour: Tour) -> PlayerBestStreak | None:
-    """{% player_tour_streak player tour as best %}: the player's longest streak inside that tour, None without one."""
-    return reads.best_streak_of(player, tour)
+def player_tour_streaks(player: Player, tour: Tour) -> list[PlayerBestStreak]:
+    """{% player_tour_streaks player tour as bests %}: the player's longest run inside that tour on each track (air
+    first), a track without a survived sortie there missing."""
+    return reads.tour_streaks_of(player, tour)
 
 
 @register.simple_tag

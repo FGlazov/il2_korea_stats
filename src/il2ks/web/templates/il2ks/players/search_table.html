@@ -1,19 +1,15 @@
 {# il2ks-template: templates/il2ks/players/search_table.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)), columns (the optional columns chosen with
-  ?cols=, after the default ones; all-time values), colspan.
+  search_table.html: the player table of the search page. Context: q, sort, page_obj (Page of PlayerHit(player, matched_name)), default_columns (the
+  columns every visitor sees after the name: flight time, Elo, attack proficiency, K/L and the two longest kill streaks), columns (the optional columns
+  chosen with ?cols=, after those; all-time values), colspan.
   A row whose `matched_name` is set was found by an old nickname and says "also known as".
 {% endcomment %}<div class="table-wrap">
   <table class="data-table player-table">
     <thead>
       <tr>
         {% sort_th "name" _("Player") %}
-        {% sort_th "sorties" _("Sorties") numeric=True %}
-        {% sort_th "flight_time_s" _("Flight time") numeric=True %}
-        {% sort_th "kills_air" _("Air kills") numeric=True %}
-        {% sort_th "kills_ground" _("Ground kills") numeric=True %}
-        {% sort_th "deaths" _("Deaths") numeric=True %}
-        {% sort_th "last_seen" _("Last seen") numeric=True %}
+        {% for column in default_columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
         {% for column in columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
       </tr>
     </thead>
@@ -24,12 +20,7 @@
             <a class="stretched-link" href="{% url 'web:player-detail' hit.player.pk %}">{{ hit.player.current_name }}</a>
             {% if hit.matched_name %}<small class="player-table__alias">{% blocktranslate with name=hit.matched_name %}also known as {{ name }}{% endblocktranslate %}</small>{% endif %}
           </td>
-          <td class="num">{{ hit.player.sorties|num }}</td>
-          <td class="num">{{ hit.player.flight_time_s|duration }}</td>
-          <td class="num">{{ hit.player.kills_air|num }}</td>
-          <td class="num">{{ hit.player.kills_ground|num }}</td>
-          <td class="num">{{ hit.player.deaths|num }}</td>
-          <td class="num">{{ hit.player.last_seen|local_date }}</td>
+          {% for column in default_columns %}<td class="num">{{ column|cell:hit.player }}</td>{% endfor %}
           {% for column in columns %}<td class="num">{{ column|cell:hit.player }}</td>{% endfor %}
         </tr>
       {% empty %}
