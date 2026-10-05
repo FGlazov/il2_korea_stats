@@ -47,6 +47,18 @@ AUDIT_JS = r"""({checkOverlap}) => {
     return r.width > 1 && r.height > 1 && s.visibility !== 'hidden' && s.display !== 'none';
   };
   const rect = el => el.getBoundingClientRect();
+  // A link in a scrolling table wrapper (max-height) that is scrolled out of view keeps a layout box below the wrapper's
+  // edge, where the next block is; it is not on screen there, so it cannot overlap anything.
+  const clipped = el => {
+    const r = rect(el);
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      if (!['auto', 'scroll', 'hidden', 'clip'].some(v => v === s.overflowY || v === s.overflowX)) continue;
+      const c = a.getBoundingClientRect();
+      if (r.top >= c.bottom - 1 || r.bottom <= c.top + 1 || r.left >= c.right - 1 || r.right <= c.left + 1) return true;
+    }
+    return false;
+  };
 
   // 1. horizontal page scroll
   const doc = document.documentElement;
@@ -85,7 +97,7 @@ AUDIT_JS = r"""({checkOverlap}) => {
   if (checkOverlap) {
     const sel = 'a[href], button, input:not([type=hidden]), select, textarea, summary, label';
     const items = [...document.body.querySelectorAll(sel)].filter(el => {
-      if (!visible(el)) return false;
+      if (!visible(el) || clipped(el)) return false;
       const s = getComputedStyle(el);
       return s.position !== 'fixed' && s.position !== 'sticky';
     });
