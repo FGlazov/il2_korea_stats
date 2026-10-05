@@ -437,9 +437,9 @@ msgid ""
 msgstr ""
 "Un cambio en el mínimo de salidas, salidas de ataque, tiempo sobre el objetivo o superioridad aérea se ve al "
 "instante: las clasificaciones lo usan en la siguiente visita a la página, y las marcas Top 10 %% y Top 25 %% de las "
-"páginas de los pilotos se recalculan al guardar. El mínimo de Elo es la excepción: también decide de qué tour sale el"
-" Elo histórico de un piloto, así que se aplica después de la próxima reconstrucción, que el sitio inicia en segundo "
-"plano."
+"páginas de los pilotos se recalculan al guardar. El mínimo de Elo es la excepción: también decide de qué temporada "
+"sale el Elo histórico de un piloto, así que se aplica después de la próxima reconstrucción, que el sitio inicia en "
+"segundo plano."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -820,16 +820,17 @@ msgid ""
 "Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
 "pilot's best tour."
 msgstr ""
-"Elo aire-aire de los reactores, a partir de derribos entre salidas de superioridad aérea. Cada tour empieza de cero; "
-"el total histórico muestra el mejor tour de cada piloto."
+"Elo aire-aire de los reactores, a partir de derribos entre salidas de superioridad aérea. Cada temporada empieza de "
+"cero; el total histórico muestra la mejor temporada de cada piloto."
 
 # llm-draft
 msgid ""
 "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
 "shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Elo aire-aire de los aviones de hélice, a partir de derribos entre salidas de superioridad aérea. Cada tour empieza "
-"de cero; el total histórico muestra el mejor tour de cada piloto. Un derribo de hélice a un reactor cuenta doble."
+"Elo aire-aire de los aviones de hélice, a partir de derribos entre salidas de superioridad aérea. Cada temporada "
+"empieza de cero; el total histórico muestra la mejor temporada de cada piloto. Un derribo de hélice a un reactor "
+"cuenta doble."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
@@ -961,7 +962,7 @@ msgstr "Todas las misiones"
 
 # llm-draft
 msgid "All roles"
-msgstr "Todos los roles"
+msgstr "Todas las funciones"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1131,7 +1132,7 @@ msgstr "Competencia de ataque"
 
 # llm-draft
 msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
-msgstr "Eficacia de ataque y caza de tanques: minutos sobre el objetivo que necesita un piloto"
+msgstr "Competencia de ataque y caza de tanques: minutos sobre el objetivo que necesita un piloto"
 
 # llm-draft
 #, python-format
@@ -1139,8 +1140,8 @@ msgid ""
 "Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
 "target."
 msgstr ""
-"Eficacia de ataque con este avión. Pilotos con al menos %(sorties)s salidas de ataque y %(minutes)s minutos sobre el "
-"objetivo."
+"Competencia de ataque con este avión. Pilotos con al menos %(sorties)s salidas de ataque y %(minutes)s minutos sobre "
+"el objetivo."
 
 # llm-draft
 #, python-format
@@ -1151,7 +1152,7 @@ msgstr ""
 
 # llm-draft
 msgid "Attack proficiency: attack sorties a pilot needs"
-msgstr "Eficacia de ataque: salidas de ataque que necesita un piloto"
+msgstr "Competencia de ataque: salidas de ataque que necesita un piloto"
 
 # llm-draft
 msgid "Attack sorties"
@@ -1169,8 +1170,8 @@ msgstr "Intentos"
 #, python-format
 msgid "Average Elo shows the pilots' skill as much as the loadout's. Rates need at least %(n)s air superiority sorties."
 msgstr ""
-"El Elo medio refleja tanto la habilidad de los pilotos como la del armamento. Las tasas necesitan al menos %(n)s "
-"salidas de superioridad aérea."
+"El Elo medio refleja tanto la habilidad de los pilotos como la de la configuración de armamento. Las tasas necesitan "
+"al menos %(n)s salidas de superioridad aérea."
 
 # llm-draft
 msgid "Average flight time per sortie"
@@ -2072,9 +2073,9 @@ msgid ""
 "Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was "
 "shot down."
 msgstr ""
-"Todo en esta página sigue el tour, el rol y las modificaciones que elijas; elige «Histórico» para ver todos los "
-"tours. Los enfrentamientos usan el rol y las modificaciones de la salida de este avión; los impactos para destruir, "
-"los del avión derribado."
+"Todo en esta página sigue la temporada, la función y las modificaciones que elijas; elige «Histórico» para ver todas "
+"las temporadas. Los enfrentamientos usan la función y las modificaciones de la salida de este avión; los impactos "
+"para destruir, los del avión derribado."
 
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
@@ -2108,7 +2109,7 @@ msgstr "Cargadores llenos, viento de cola y los números para demostrarlo."
 
 # llm-draft
 msgid "Favorite loadout"
-msgstr "Carga favorita"
+msgstr "Configuración de armamento favorita"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
@@ -3526,7 +3527,7 @@ msgstr "Sin resultado: %(unknown)s"
 
 # llm-draft
 msgid "No sorties in this role"
-msgstr "Sin salidas en este rol"
+msgstr "Sin salidas con esta función"
 
 # llm-draft
 msgid "No sorties in this tour"
@@ -3637,7 +3638,7 @@ msgstr "Ni siquiera había calentado el motor. A veces la guerra viene a buscart
 
 # llm-draft
 msgid "Not in this tour"
-msgstr "No en esta gira"
+msgstr "No en esta temporada"
 
 # llm-draft
 msgid "Not much was left standing down there. The map needs a fresh coat of paint."
@@ -5346,7 +5347,7 @@ msgstr ""
 
 # llm-draft
 msgid "The killboards below count every role."
-msgstr "Los registros de bajas de abajo cuentan todos los roles."
+msgstr "Los registros de bajas de abajo cuentan todas las funciones."
 
 # llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
@@ -5651,7 +5652,7 @@ msgstr "Esta página no aparece en listados ni en búsquedas. Solo la ven quiene
 
 # llm-draft
 msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
-msgstr "Este jugador no hizo salidas del rol de combate elegido en la gira elegida. Elige otro rol arriba."
+msgstr "Este jugador no hizo salidas de la función de combate elegida en la temporada elegida. Elige otra función arriba."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."
@@ -5860,7 +5861,7 @@ msgid "Tour Wrong Team"
 msgstr "Gol en Propia Meta de la Temporada"
 
 msgid "Tour ended"
-msgstr "Tour terminado"
+msgstr "Temporada terminada"
 
 # llm-draft
 msgid "Tour options"
@@ -6185,7 +6186,7 @@ msgstr "Con"
 # llm-draft
 #, python-format
 msgid "With this option on, the missions so far would form this many tours: %(projected_tours)s"
-msgstr "Con esta opción activada, las misiones hasta ahora formarían este número de tours: %(projected_tours)s"
+msgstr "Con esta opción activada, las misiones hasta ahora formarían este número de temporadas: %(projected_tours)s"
 
 # llm-draft
 msgid "Without"

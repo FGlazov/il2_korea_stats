@@ -50,6 +50,30 @@ Page text is read by pilots, not by lawyers: short and plain beats formal.
 
 **How the site addresses the reader** (maintainer, 2026-10-04): German **du**; French the polite **vous**; Russian **вы**
 (lowercase, the usual UI convention); Spanish **tú**; Brazilian Portuguese **você**. Keep it consistent within a language.
+French: a no-break space (U+00A0) before `:` `;` `!` `?` and inside `« »`.
+
+**Recurring terms** (fixed 2026-10-05; use the same word everywhere a string mentions the concept, inflected as the grammar needs):
+
+| English | ru | de | es | fr | pt_BR |
+|---|---|---|---|---|---|
+| Attack proficiency (ground score per hour on target) | мастерство штурмовки | Erdkampfstärke | competencia de ataque | maîtrise de l'attaque | proficiência de ataque |
+| attack (role) / attack sortie | штурмовка / штурмовой вылет | Erdkampf / Erdkampfeinsatz | ataque / salida de ataque | attaque / sortie d'attaque | ataque / surtida de ataque |
+| air superiority (role) | господство в воздухе | Luftüberlegenheit | superioridad aérea | supériorité aérienne | superioridade aérea |
+| Tour | тур | Tour | temporada | tour | temporada |
+| Role | роль | Rolle | función | rôle | função |
+| Extra columns | дополнительные столбцы | zusätzliche Spalten | columnas adicionales | colonnes supplémentaires | colunas extras |
+| Ironman | несгораемый | Unkaputtbar | A Prueba de Balas | Increvable | Duro na Queda |
+| Old Hand | старожил | Alter Hase | Veterano de la Casa | Vieux de la Vieille | Veterano de Casa |
+| Live | идёт | läuft | en curso | en cours | ao vivo |
+| Flight time | время в полёте | Flugzeit | tiempo de vuelo | temps de vol | tempo de voo |
+| Encounters (Elo games) | столкновения | Begegnungen | encuentros | rencontres | confrontos |
+| Loadout (weapons carried) | вооружение | Bewaffnung | configuración de armamento | configuration d'emport | configuração de armamento |
+| Modifications | модификации | Modifikationen | modificaciones | modifications | modificações |
+| Hits to destroy | попаданий до уничтожения | Treffer bis zur Zerstörung | impactos para destruir | impacts pour détruire | acertos para destruir |
+| Repaired after landing | починен после посадки | nach der Landung repariert | reparado tras aterrizar | réparé après l'atterrissage | reparada após o pouso |
+
+The Russian Elo is written **Эло** everywhere. A career medal's tour variant is the medal name plus the language's tour word
+(ru/de/fr: "Name (тур / Tour / Tour)"; es/pt_BR: "Name de la Temporada / da Temporada").
 
 **Translate for meaning in context, not word for word.** The goal is a GUI a native-speaking flight-sim player understands at a
 glance, not literal fidelity.

@@ -478,11 +478,11 @@ msgstr "Un atterrissage de fortune reste un atterrissage. Le décollage, en reva
 
 # llm-draft
 msgid "A fresh tour: the log book is still blank. Go and write the first line."
-msgstr "Un nouveau tour : le carnet de vol est encore vierge. À vous d'écrire la première ligne."
+msgstr "Un nouveau tour : le carnet de vol est encore vierge. À vous d'écrire la première ligne."
 
 # llm-draft
 msgid "A generous soul: this pilot shares the ammunition with everyone, wingmen included."
-msgstr "Une âme généreuse : ce pilote partage ses munitions avec tout le monde, ailiers compris."
+msgstr "Une âme généreuse : ce pilote partage ses munitions avec tout le monde, ailiers compris."
 
 # llm-draft
 #, python-format
@@ -554,7 +554,7 @@ msgstr "Une demande de retraitement est déjà en attente."
 
 # llm-draft
 msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
-msgstr "Une série ne passe jamais d’un tour au suivant ; le total toutes périodes montre le meilleur résultat des tours."
+msgstr "Une série ne passe jamais d’un tour au suivant ; le total toutes périodes montre le meilleur résultat des tours."
 
 # llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
@@ -614,7 +614,7 @@ msgid ""
 "Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a"
 " tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is."
 msgstr ""
-"Les succès ne sont jamais retirés. Chacun a des niveaux ; la date et la sortie indiquent quand un niveau a été "
+"Les succès ne sont jamais retirés. Chacun a des niveaux ; la date et la sortie indiquent quand un niveau a été "
 "atteint pour la première fois. Choisissez un tour pour voir ce que le pilote y a obtenu, ou tous temps. Survolez un "
 "niveau pour voir sa rareté."
 
@@ -635,8 +635,8 @@ msgid ""
 "numbers show how many pilots hold it. Everything starts afresh with each tour."
 msgstr ""
 "Des succès pour ce que les pilotes accomplissent dans les airs et au sol. Chaque succès a des niveaux, à partir du "
-"bronze ; un niveau s'obtient une fois et reste acquis. Les médailles sont les plus difficiles, les rubans les plus "
-"simples. Survolez un niveau pour voir sa rareté ; les nombres indiquent combien de pilotes le détiennent. Tout repart"
+"bronze ; un niveau s'obtient une fois et reste acquis. Les médailles sont les plus difficiles, les rubans les plus "
+"simples. Survolez un niveau pour voir sa rareté ; les nombres indiquent combien de pilotes le détiennent. Tout repart"
 " de zéro à chaque tour."
 
 # llm-draft
@@ -666,7 +666,7 @@ msgstr "Nom d'utilisateur de l'administrateur"
 
 # llm-draft
 msgid "Ah, the finishing shots went to somebody else! The wingmen send their thanks, and nothing else."
-msgstr "Encore une victoire qui file sous le nez ! Les camarades vous disent merci, et rien d'autre."
+msgstr "Encore une victoire qui file sous le nez ! Les camarades vous disent merci, et rien d'autre."
 
 # llm-draft
 msgid "Air"
@@ -729,7 +729,7 @@ msgstr ""
 #. Translators: tooltip of the "K/D" column header (kills per death)
 msgid "Air kills divided by deaths, a death being a sortie in which the pilot died. A dash when there are no deaths."
 msgstr ""
-"Victoires aériennes divisées par les morts ; une mort est une sortie où le pilote est mort. Un tiret s'il n'y a "
+"Victoires aériennes divisées par les morts ; une mort est une sortie où le pilote est mort. Un tiret s'il n'y a "
 "aucune mort."
 
 # llm-draft
@@ -738,7 +738,7 @@ msgstr "Victoires aériennes en une seule sortie."
 
 # llm-draft
 msgid "Air kills in one life: everything since the last death or capture, the fatal sortie included."
-msgstr "Victoires aériennes en une vie : tout ce qui a été fait depuis la dernière mort ou capture, sortie fatale comprise."
+msgstr "Victoires aériennes en une vie : tout ce qui a été fait depuis la dernière mort ou capture, sortie fatale comprise."
 
 # llm-draft
 msgid "Air kills in one tour, all sorties together."
@@ -767,7 +767,7 @@ msgstr "Victoires aériennes par sortie"
 
 # llm-draft
 msgid "Air kills within two minutes in one sortie: a double, a triple, a quad."
-msgstr "Victoires aériennes en moins de deux minutes lors d'une même sortie : un doublé, un triplé, un quadruplé."
+msgstr "Victoires aériennes en moins de deux minutes lors d'une même sortie : un doublé, un triplé, un quadruplé."
 
 # llm-draft
 msgid "Air kills/h"
@@ -823,7 +823,7 @@ msgid ""
 "pilot's best tour."
 msgstr ""
 "Elo air-air des avions à réaction, d'après les victoires entre sorties de supériorité aérienne. Chaque tour repart de"
-" zéro ; le classement général montre le meilleur tour de chaque pilote."
+" zéro ; le classement général montre le meilleur tour de chaque pilote."
 
 # llm-draft
 msgid ""
@@ -831,7 +831,7 @@ msgid ""
 "shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
 "Elo air-air des avions à hélice, d'après les victoires entre sorties de supériorité aérienne. Chaque tour repart de "
-"zéro ; le classement général montre le meilleur tour de chaque pilote. Une victoire d'un avion à hélice sur un "
+"zéro ; le classement général montre le meilleur tour de chaque pilote. Une victoire d'un avion à hélice sur un "
 "réacteur compte double."
 
 # llm-draft
@@ -859,7 +859,7 @@ msgid ""
 " shoots you down. Only air superiority sorties count; jets and propeller aircraft are rated separately."
 msgstr ""
 "Cote de combat aérien, 1500 au départ. Elle monte quand vous abattez un autre joueur et baisse quand un autre joueur "
-"vous abat. Seules les sorties de supériorité aérienne comptent ; avions à réaction et à hélice sont cotés séparément."
+"vous abat. Seules les sorties de supériorité aérienne comptent ; avions à réaction et à hélice sont cotés séparément."
 
 # llm-draft
 #. Translators: heading of the profile part about attacking ground targets (ground kills, attack sorties), as opposed to
@@ -881,11 +881,11 @@ msgstr "Dégâts de l'avion"
 
 # llm-draft
 msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
-msgstr "Avions détruits au sol par un attaquant en un tour : mauvais endroit, mauvais moment."
+msgstr "Avions détruits au sol par un attaquant en un tour : mauvais endroit, mauvais moment."
 
 # llm-draft
 msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
-msgstr "Avions détruits au sol par un attaquant sur toute votre carrière : mauvais endroit, mauvais moment."
+msgstr "Avions détruits au sol par un attaquant sur toute votre carrière : mauvais endroit, mauvais moment."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -1018,7 +1018,7 @@ msgstr "L'Il-10 aurait été fier. L'école du Chtourmovik vit toujours."
 
 # llm-draft
 msgid "An all-rounder: the taxiway and the formation have both had their moments."
-msgstr "Un pilote complet : le taxiway et la formation ont tous deux eu leur moment de gloire."
+msgstr "Un pilote complet : le taxiway et la formation ont tous deux eu leur moment de gloire."
 
 # llm-draft
 msgid "An ambassador for chaos, on the ground and in the air. The squadron would not swap them."
@@ -1026,7 +1026,7 @@ msgstr "Un ambassadeur du chaos, au sol comme en l'air. L'escadrille ne l'échan
 
 # llm-draft
 msgid "An endurance flight: the seat cushion deserves a mention in the report."
-msgstr "Un vol d'endurance : le coussin du siège mérite une mention dans le rapport."
+msgstr "Un vol d'endurance : le coussin du siège mérite une mention dans le rapport."
 
 # llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
@@ -1081,7 +1081,7 @@ msgstr "Assistances sur des objets au sol. Elles sont comptées, mais ne rapport
 # llm-draft
 #, python-format
 msgid "Assists on this pilot's losses: %(n)s"
-msgstr "Assistances dans les pertes de ce pilote : %(n)s"
+msgstr "Assistances dans les pertes de ce pilote : %(n)s"
 
 # llm-draft
 #, python-format
@@ -1135,7 +1135,7 @@ msgstr "Maîtrise de l'attaque"
 
 # llm-draft
 msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
-msgstr "Efficacité d’attaque et chasse aux chars : minutes sur cible nécessaires à un pilote"
+msgstr "Maîtrise de l’attaque et chasse aux chars : minutes sur cible nécessaires à un pilote"
 
 # llm-draft
 #, python-format
@@ -1143,7 +1143,7 @@ msgid ""
 "Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
 "target."
 msgstr ""
-"Efficacité d’attaque avec cet appareil. Pilotes ayant au moins %(sorties)s sorties d’attaque et %(minutes)s minutes "
+"Maîtrise de l’attaque avec cet appareil. Pilotes ayant au moins %(sorties)s sorties d’attaque et %(minutes)s minutes "
 "sur cible."
 
 # llm-draft
@@ -1153,7 +1153,7 @@ msgstr "La maîtrise de l'attaque demande au moins %(sorties)s sorties d'attaque
 
 # llm-draft
 msgid "Attack proficiency: attack sorties a pilot needs"
-msgstr "Efficacité d’attaque : sorties d’attaque nécessaires à un pilote"
+msgstr "Maîtrise de l’attaque : sorties d’attaque nécessaires à un pilote"
 
 # llm-draft
 msgid "Attack sorties"
@@ -1244,7 +1244,7 @@ msgstr "Mauvais (rouge)"
 
 # llm-draft
 msgid "Bad luck, not bad flying: the airframe never got a chance to prove itself."
-msgstr "Pas du mauvais pilotage, juste de la malchance : l'appareil n'a jamais pu faire ses preuves."
+msgstr "Pas du mauvais pilotage, juste de la malchance : l'appareil n'a jamais pu faire ses preuves."
 
 # llm-draft
 msgid "Bailed out"
@@ -1271,7 +1271,7 @@ msgstr "À peine décollé et déjà au tableau. Voilà un départ en trombe."
 
 # llm-draft
 msgid "Before the Yalu, before the enemy, there was the apron. It won this round."
-msgstr "Pas de Yalou, pas d'ennemi : la bataille s'est jouée sur le taxiway."
+msgstr "Pas de Yalou, pas d'ennemi : la bataille s'est jouée sur le taxiway."
 
 # llm-draft
 msgid "Best air streak"
@@ -1287,7 +1287,7 @@ msgstr "Meilleure série au sol"
 
 # llm-draft
 msgid "Best showing of the mission. Well flown."
-msgstr "La meilleure prestation de la mission. Bien volé !"
+msgstr "La meilleure prestation de la mission. Bien volé !"
 
 # llm-draft
 msgid "Best streak"
@@ -1520,7 +1520,7 @@ msgstr "Modifier"
 
 # llm-draft
 msgid "Chapeau. The rest of the sky is now taking requests on how to do that."
-msgstr "Bravo l'artiste ! Le reste du ciel s'inscrit déjà au stage de perfectionnement."
+msgstr "Bravo l'artiste ! Le reste du ciel s'inscrit déjà au stage de perfectionnement."
 
 # llm-draft
 msgid "Charmed Life"
@@ -1695,7 +1695,7 @@ msgstr "Dégâts infligés"
 #. Translators: tooltip of the "Damage" column header of a sortie's timeline
 msgid "Damage of a significant hit, as a percentage of the object's health: plus if you dealt it, minus if you took it."
 msgstr ""
-"Dégâts d'un impact significatif, en pourcentage de la santé de l'objet : plus si vous les avez infligés, moins si "
+"Dégâts d'un impact significatif, en pourcentage de la santé de l'objet : plus si vous les avez infligés, moins si "
 "vous les avez subis."
 
 # llm-draft
@@ -1705,7 +1705,7 @@ msgstr "Dégâts subis"
 # llm-draft
 #. Translators: tooltip of the "Damage taken" column header of a sortie's damage table
 msgid "Damage this counterpart did to you, measured as in the column Damage dealt."
-msgstr "Dégâts que cet adversaire vous a infligés, mesurés comme dans la colonne « Dégâts infligés »."
+msgstr "Dégâts que cet adversaire vous a infligés, mesurés comme dans la colonne « Dégâts infligés »."
 
 # llm-draft
 #. Translators: tooltip of the "Damage dealt" column header of a sortie's damage table
@@ -1717,7 +1717,7 @@ msgid ""
 " each object."
 msgstr ""
 "Dégâts que vous avez infligés à l'avion de cet adversaire (pas au pilote). Contre des joueurs, c'est un pourcentage "
-"de la santé de leur avion, au plus 100% par phase de vol : les coups sur un avion déjà à 100% ne comptent pas, et "
+"de la santé de leur avion, au plus 100% par phase de vol : les coups sur un avion déjà à 100% ne comptent pas, et "
 "après un atterrissage suivi d'un nouveau décollage (réparation supposée) le compte repart de 0, donc une sortie avec "
 "réparation peut afficher plus de 100%. Contre l'IA et les objets au sol, ce sont les unités de santé additionnées sur"
 " tous les objets de ce type, au plus 1,0 par objet."
@@ -1975,7 +1975,7 @@ msgstr "Rencontres"
 #. Translators: tooltip of the "Encounters" column header of the Elo leaderboards (the number of rated games)
 msgid "Encounters: kills between two players in air superiority sorties, counted for the killer and for the victim."
 msgstr ""
-"Rencontres : victoires entre deux joueurs en sorties de supériorité aérienne, comptées pour le vainqueur comme pour "
+"Rencontres : victoires entre deux joueurs en sorties de supériorité aérienne, comptées pour le vainqueur comme pour "
 "la victime."
 
 # llm-draft
@@ -1999,7 +1999,7 @@ msgstr "Bombardiers, avions d'attaque et avions de transport ennemis pilotés pa
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
-msgstr "Moteurs chauds, ciel dégagé. Lancez la première sortie du tour !"
+msgstr "Moteurs chauds, ciel dégagé. Lancez la première sortie du tour !"
 
 # llm-draft
 msgid "Enter a full http:// or https:// address."
@@ -2011,7 +2011,7 @@ msgstr "Indiquez l'emplacement du fichier image."
 
 # llm-draft
 msgid "Equal-opportunity gunnery: this pilot never plays favorites between sides."
-msgstr "Un tireur sans favoritisme : ce pilote ne fait pas de différence entre les camps."
+msgstr "Un tireur sans favoritisme : ce pilote ne fait pas de différence entre les camps."
 
 # llm-draft
 msgid "Error"
@@ -2022,8 +2022,8 @@ msgid ""
 "Estimate: at least one bomb or rocket was released, and the ammunition left was recorded after the aircraft was lost,"
 " so everything loaded is counted as used"
 msgstr ""
-"Estimation : au moins une bombe ou une roquette a été larguée ou tirée, et les munitions restantes ont été "
-"enregistrées après la perte de l'appareil ; toute la charge est donc comptée comme utilisée."
+"Estimation : au moins une bombe ou une roquette a été larguée ou tirée, et les munitions restantes ont été "
+"enregistrées après la perte de l'appareil ; toute la charge est donc comptée comme utilisée."
 
 # llm-draft
 msgid "Event"
@@ -2059,7 +2059,7 @@ msgid ""
 "Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, "
 "which add up across tours."
 msgstr ""
-"Chaque tour repart de zéro ; le total toutes périodes montre le meilleur résultat des tours, sauf les totaux comme "
+"Chaque tour repart de zéro ; le total toutes périodes montre le meilleur résultat des tours, sauf les totaux comme "
 "les victoires et les heures de vol, qui s’additionnent d’un tour à l’autre."
 
 # llm-draft
@@ -2076,9 +2076,9 @@ msgid ""
 "Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was "
 "shot down."
 msgstr ""
-"Tout sur cette page suit la tournée, le rôle et les modifications choisis ; choisissez « Tous temps » pour voir "
-"toutes les tournées. Les duels utilisent le rôle et les modifications de la sortie de cet avion, les impacts pour "
-"détruire ceux de l'avion abattu."
+"Tout sur cette page suit le tour, le rôle et les modifications choisis ; choisissez « Tous temps » pour voir tous les"
+" tours. Les duels utilisent le rôle et les modifications de la sortie de cet avion, les impacts pour détruire ceux de"
+" l'avion abattu."
 
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
@@ -2112,7 +2112,7 @@ msgstr "Chargeurs pleins, vent dans le dos, et les chiffres pour le prouver."
 
 # llm-draft
 msgid "Favorite loadout"
-msgstr "Chargement favori"
+msgstr "Configuration d'emport favorite"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
@@ -2230,7 +2230,7 @@ msgstr[1] "%(n)s rapports de mission trouvés à cet endroit."
 
 # llm-draft
 msgid "Fourteen guns on the hill and one aircraft over it. The arithmetic was never on your side."
-msgstr "Quatorze pièces contre un seul avion : pas besoin de calculette pour connaître l'issue."
+msgstr "Quatorze pièces contre un seul avion : pas besoin de calculette pour connaître l'issue."
 
 # llm-draft
 msgid "Free dynamic-DNS names (DuckDNS and similar) work like any other domain name."
@@ -2242,7 +2242,7 @@ msgstr "Grand Voyageur"
 
 # llm-draft
 msgid "Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."
-msgstr "Peinture fraîche, pleins faits, tableau noir vierge. Personne n'est en retard au briefing : il n'y a encore personne."
+msgstr "Peinture fraîche, pleins faits, tableau noir vierge. Personne n'est en retard au briefing : il n'y a encore personne."
 
 # llm-draft
 msgid "Friendly"
@@ -2262,7 +2262,7 @@ msgstr "Le tir fratricide arrive aux meilleures escadrilles. Le débriefing prom
 
 # llm-draft
 msgid "Friendly fire: proof that the guns work."
-msgstr "Tir fratricide : la preuve que les mitrailleuses marchent."
+msgstr "Tir fratricide : la preuve que les mitrailleuses marchent."
 
 # llm-draft
 msgid "Friendly hits"
@@ -2371,7 +2371,7 @@ msgstr "Assistances au sol"
 
 # llm-draft
 msgid "Ground fire: the one opponent that never needs fuel."
-msgstr "La DCA : le seul adversaire qui n'a jamais besoin de carburant."
+msgstr "La DCA : le seul adversaire qui n'a jamais besoin de carburant."
 
 # llm-draft
 msgid "Ground kill"
@@ -2462,7 +2462,7 @@ msgstr "Score au sol au total, toutes sorties confondues."
 
 # llm-draft
 msgid "Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."
-msgstr "Vitesse : de tortue. Dégâts : conséquents. Le bout d'aile a déjà déposé une plainte."
+msgstr "Vitesse : de tortue. Dégâts : conséquents. Le bout d'aile a déjà déposé une plainte."
 
 # llm-draft
 msgid "Ground targets destroyed in a single sortie."
@@ -2684,7 +2684,7 @@ msgstr "Heures de Vol"
 
 # llm-draft
 msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a well-earned one."
-msgstr "Des heures en l'air : la carte météo tient désormais du journal intime. Un atterrissage bien mérité."
+msgstr "Des heures en l'air : la carte météo tient désormais du journal intime. Un atterrissage bien mérité."
 
 # llm-draft
 msgid "Hours in the air in one tour, all sorties together."
@@ -2722,14 +2722,14 @@ msgid ""
 "How much damage the aircraft carried when the sortie ended or it was lost, as a share of its health: 100% means it "
 "was destroyed. A landing followed by a new takeoff repairs the aircraft, so only the last flight counts."
 msgstr ""
-"Dégâts que l'avion portait à la fin de la sortie ou à sa perte, en part de sa santé : 100% signifie qu'il a été "
+"Dégâts que l'avion portait à la fin de la sortie ou à sa perte, en part de sa santé : 100% signifie qu'il a été "
 "détruit. Un atterrissage suivi d'un nouveau décollage répare l'avion, donc seul le dernier vol compte."
 
 # llm-draft
 #. Translators: tooltip of the "Kills + losses" column header of an aircraft's matchup table
 msgid "How often this aircraft and that enemy aircraft met: this aircraft's kills of it plus its losses to it."
 msgstr ""
-"Combien de fois cet avion et cet avion ennemi se sont rencontrés : les victoires de cet avion sur lui plus ses pertes"
+"Combien de fois cet avion et cet avion ennemi se sont rencontrés : les victoires de cet avion sur lui plus ses pertes"
 " face à lui."
 
 # llm-draft
@@ -2831,7 +2831,7 @@ msgstr "Le serveur de jeu est-il sur un autre ordinateur ? Indiquez le dossier 
 
 # llm-draft
 msgid "It brought the pilot home, and that is the only entry the logbook needs to read."
-msgstr "Dans le carnet de bord, une seule ligne suffit : le pilote est rentré."
+msgstr "Dans le carnet de bord, une seule ligne suffit : le pilote est rentré."
 
 # llm-draft
 msgid "It came home full of holes and full of results. A fair trade."
@@ -2893,8 +2893,8 @@ msgid ""
 "Kill: the attacker did the most damage. Assist: the attacker damaged it but someone else destroyed it. Friendly fire:"
 " both were on the same side."
 msgstr ""
-"Victoire : l'attaquant a infligé le plus de dégâts. Assistance : l'attaquant l'a endommagé, mais quelqu'un d'autre "
-"l'a détruit. Tir fratricide : les deux étaient du même camp."
+"Victoire : l'attaquant a infligé le plus de dégâts. Assistance : l'attaquant l'a endommagé, mais quelqu'un d'autre "
+"l'a détruit. Tir fratricide : les deux étaient du même camp."
 
 # llm-draft
 msgid "Killboard"
@@ -2973,7 +2973,7 @@ msgstr "Atterrissages"
 # llm-draft
 msgid "Landings in a row. A crash, a bailout or a death ends the run; sorties that never took off do not."
 msgstr ""
-"Atterrissages d'affilée. Un crash, un saut en parachute ou une mort interrompent la série ; les sorties sans "
+"Atterrissages d'affilée. Un crash, un saut en parachute ou une mort interrompent la série ; les sorties sans "
 "décollage, non."
 
 # llm-draft
@@ -3158,7 +3158,7 @@ msgstr "Perdu face à"
 
 # llm-draft
 msgid "Low and slow near the gun line is the oldest mistake in the book. It is a very long book."
-msgstr "Bas et lent près de la DCA : tout le monde essaie une fois. Rares sont ceux qui recommencent."
+msgstr "Bas et lent près de la DCA : tout le monde essaie une fois. Rares sont ceux qui recommencent."
 
 # llm-draft
 #, python-format
@@ -3201,7 +3201,7 @@ msgstr "Dans le carnet du mécano, la page de ce pilote est vierge. On la montre
 
 # llm-draft
 msgid "Mechanic's note: the aircraft is fine, the fence is not. Please see the fence."
-msgstr "Rapport du mécano : l'avion est nickel, la clôture un peu moins. Pour les détails, voyez la clôture."
+msgstr "Rapport du mécano : l'avion est nickel, la clôture un peu moins. Pour les détails, voyez la clôture."
 
 # llm-draft
 msgid "Mission"
@@ -3252,7 +3252,7 @@ msgstr "Plus de trous que d'avion, et pourtant de retour au sol. Chapeau."
 
 # llm-draft
 msgid "Most dangerous part of the mission: the first hundred meters."
-msgstr "La partie la plus dangereuse de la mission : les cent premiers mètres."
+msgstr "La partie la plus dangereuse de la mission : les cent premiers mètres."
 
 # llm-draft
 msgid "Moves the missions into other tours in the background"
@@ -3637,7 +3637,7 @@ msgstr ""
 
 # llm-draft
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
-msgstr "Ni un atterrissage ni un crash : un sérieux désaccord avec le sol."
+msgstr "Ni un atterrissage ni un crash : un sérieux désaccord avec le sol."
 
 # llm-draft
 msgid "Not a single contrail yet. Somebody has to be first."
@@ -3649,7 +3649,7 @@ msgstr "Le moteur n'avait même pas eu le temps de chauffer. Parfois, c'est la g
 
 # llm-draft
 msgid "Not in this tour"
-msgstr "Pas dans cette tournée"
+msgstr "Pas dans ce tour"
 
 # llm-draft
 msgid "Not much was left standing down there. The map needs a fresh coat of paint."
@@ -3915,7 +3915,7 @@ msgstr "Pagination"
 # llm-draft
 #, python-format
 msgid "Pagination: %(name)s"
-msgstr "Pagination : %(name)s"
+msgstr "Pagination : %(name)s"
 
 # llm-draft
 msgid "Parked aircraft"
@@ -4096,9 +4096,9 @@ msgid ""
 " a takeoff counts as a repair, so a sortie with a repair can show more. AI aircraft and ground objects: health units,"
 " where 1.0 is one whole object, added up over all objects of that type."
 msgstr ""
-"Joueurs : pourcentage de la santé de l'avion (pas du pilote), au plus 100%% par phase de vol ; un atterrissage suivi "
+"Joueurs : pourcentage de la santé de l'avion (pas du pilote), au plus 100%% par phase de vol ; un atterrissage suivi "
 "d'un décollage compte comme une réparation, donc une sortie avec réparation peut afficher plus. Avions IA et objets "
-"au sol : unités de santé, où 1,0 est un objet entier, additionnées sur tous les objets de ce type."
+"au sol : unités de santé, où 1,0 est un objet entier, additionnées sur tous les objets de ce type."
 
 # llm-draft
 msgid "Please look at the marked answers below. Nothing was changed."
@@ -4256,15 +4256,15 @@ msgstr "REDFOR a gagné"
 
 # llm-draft
 msgid "Radio chatter, afterwards: “Was that one of ours?” It was. The apologies are in the post."
-msgstr "À la radio, après coup : « Euh, c'était pas un des nôtres ? » Si. La tournée est pour vous."
+msgstr "À la radio, après coup : « Euh, c'était pas un des nôtres ? » Si. La tournée est pour vous."
 
 # llm-draft
 msgid "Radio check: that was a friendly. Yes, the voice on the other end sounded rather upset."
-msgstr "Message radio reçu : « Hé ! C'est moi, ton ailier ! » Il n'avait pas l'air ravi."
+msgstr "Message radio reçu : « Hé ! C'est moi, ton ailier ! » Il n'avait pas l'air ravi."
 
 # llm-draft
 msgid "Radio log: nothing to report. The operator has gone through two crosswords."
-msgstr "Radio : néant. L'opérateur a fini les mots fléchés, et le journal avec."
+msgstr "Radio : néant. L'opérateur a fini les mots fléchés, et le journal avec."
 
 # llm-draft
 msgid "Ram: and this close in space (meters)"
@@ -4441,7 +4441,7 @@ msgstr "Rôle"
 # llm-draft
 #. Translators: tooltip of the "Used" column header of a sortie's ammunition table
 msgid "Rounds fired: loaded minus left. A dash when unknown, for example after a resupply."
-msgstr "Coups tirés : chargés moins restants. Un tiret si inconnu, par exemple après un réapprovisionnement."
+msgstr "Coups tirés : chargés moins restants. Un tiret si inconnu, par exemple après un réapprovisionnement."
 
 # llm-draft
 msgid "Row and menu hover"
@@ -4469,7 +4469,7 @@ msgstr "Piste"
 
 # llm-draft
 msgid "Safe on the ground, then a late guest at the party. The tower would have liked a warning too."
-msgstr "À peine posé, à peine soulagé : visite surprise de l'ennemi. Même la tour n'était pas prévenue."
+msgstr "À peine posé, à peine soulagé : visite surprise de l'ennemi. Même la tour n'était pas prévenue."
 
 # llm-draft
 msgid "Save"
@@ -4734,7 +4734,7 @@ msgstr "Une erreur s'est produite"
 
 # llm-draft
 msgid "Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."
-msgstr "Quelque part, le magasinier soupire : il ne sait plus quel formulaire remplir en premier."
+msgstr "Quelque part, le magasinier soupire : il ne sait plus quel formulaire remplir en premier."
 
 # llm-draft
 msgid "Sortie details"
@@ -4810,7 +4810,7 @@ msgstr "Sortie : accident au roulage"
 
 # llm-draft
 msgid "Sortie: the first kill of the mission"
-msgstr "Sortie : le premier abattage de la mission"
+msgstr "Sortie : le premier abattage de la mission"
 
 # llm-draft
 msgid "Sortie: the pilot was captured"
@@ -4836,11 +4836,11 @@ msgstr "Sorties avec des bombes ou des roquettes à bord, ou sur un avion d'atta
 # llm-draft
 #. Translators: tooltip of the "Air superiority sorties" column header
 msgid "Sorties flown without bombs or rockets: guns only, with or without drop tanks."
-msgstr "Sorties sans bombes ni roquettes : uniquement des armes de bord, avec ou sans réservoirs larguables."
+msgstr "Sorties sans bombes ni roquettes : uniquement des armes de bord, avec ou sans réservoirs larguables."
 
 # llm-draft
 msgid "Sorties flown: the aircraft took off."
-msgstr "Sorties effectuées : l'appareil a décollé."
+msgstr "Sorties effectuées : l'appareil a décollé."
 
 # llm-draft
 #, python-format
@@ -4893,7 +4893,7 @@ msgstr "Sorties survécues"
 
 # llm-draft
 msgid "Sorties survived in a row: no death, no capture. Sorties that never took off are skipped."
-msgstr "Sorties survivées d'affilée : ni mort ni capture. Les sorties sans décollage sont ignorées."
+msgstr "Sorties survivées d'affilée : ni mort ni capture. Les sorties sans décollage sont ignorées."
 
 # llm-draft
 msgid "Sorties that took off and ended in a crash. The ground always wins."
@@ -5108,15 +5108,15 @@ msgstr "Accidents au roulage"
 
 # llm-draft
 msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Accidents au roulage en un tour : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
+msgstr "Accidents au roulage en un tour : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
 
 # llm-draft
 msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Accidents au roulage sur toute votre carrière : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
+msgstr "Accidents au roulage sur toute votre carrière : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
-msgstr "Taxiway ou formation, peu importe : là où ce pilote passe, il y a une histoire."
+msgstr "Taxiway ou formation, peu importe : là où ce pilote passe, il y a une histoire."
 
 # llm-draft
 msgid "Teal"
@@ -5243,7 +5243,7 @@ msgstr "L'ennemi était sérieusement amoché. Quelqu'un d'autre se trouvait sim
 
 # llm-draft
 msgid "The engine never got to say a word. The ground crew would like it noted that the aircraft was ready."
-msgstr "Le moteur n'a même pas eu le temps de tousser. Les mécanos le certifient : l'avion était parfait."
+msgstr "Le moteur n'a même pas eu le temps de tousser. Les mécanos le certifient : l'avion était parfait."
 
 # llm-draft
 msgid "The file could not be read (is the network share or drive available?)."
@@ -5537,7 +5537,7 @@ msgstr "L'escadrille a appris à voler un peu plus écartée. Sage décision."
 
 # llm-draft
 msgid "The squadron's emergency drills have, thanks to this pilot, never been short of material."
-msgstr "L'escadrille n'a jamais besoin d'inventer de scénarios pour ses exercices d'urgence : ce pilote les fournit."
+msgstr "L'escadrille n'a jamais besoin d'inventer de scénarios pour ses exercices d'urgence : ce pilote les fournit."
 
 # llm-draft
 msgid "The target list is shorter and the ammunition list is longer. A sound exchange."
@@ -5545,7 +5545,7 @@ msgstr "La liste des cibles raccourcit, celle des munitions s'allonge. Échange 
 
 # llm-draft
 msgid "The target list said bombers, plural. The pilot read it literally."
-msgstr "L'ordre disait « bombardiers », au pluriel. Le pilote a fait du zèle."
+msgstr "L'ordre disait « bombardiers », au pluriel. Le pilote a fait du zèle."
 
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
@@ -5584,7 +5584,7 @@ msgstr "Il n'y a aucun fichier à cet emplacement (le serveur ne l'a pas trouvé
 #, python-format
 msgid "These are the tiers in one tour. The all-time view sums the tours and asks %(factor)s times as much: %(values)s."
 msgstr ""
-"Ce sont les paliers pour un seul tour. La vue « Tous temps » additionne les tours et exige %(factor)s fois plus : "
+"Ce sont les paliers pour un seul tour. La vue « Tous temps » additionne les tours et exige %(factor)s fois plus : "
 "%(values)s."
 
 # llm-draft
@@ -5593,13 +5593,13 @@ msgid ""
 "These are the words of the all-time (career) medal, built in as \"%(title)s\". The one-tour medal has its own words "
 "below."
 msgstr ""
-"Voici les textes de la médaille de carrière (tous temps), intitulée par défaut « %(title)s ». La médaille d'un tour a"
+"Voici les textes de la médaille de carrière (tous temps), intitulée par défaut « %(title)s ». La médaille d'un tour a"
 " ses propres textes ci-dessous."
 
 # llm-draft
 #, python-format
 msgid "These are the words of the medal in a tour, built in as \"%(title)s\": %(description)s"
-msgstr "Voici les textes de la médaille en un tour, intitulée par défaut « %(title)s » : %(description)s"
+msgstr "Voici les textes de la médaille en un tour, intitulée par défaut « %(title)s » : %(description)s"
 
 # llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
@@ -5637,7 +5637,7 @@ msgstr ""
 
 # llm-draft
 msgid "This achievement exists in the all-time view only (there is no tour view of it)."
-msgstr "Ce succès n'existe que dans la vue « Tous temps » (il n'a pas de vue par tour)."
+msgstr "Ce succès n'existe que dans la vue « Tous temps » (il n'a pas de vue par tour)."
 
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
@@ -5645,7 +5645,7 @@ msgid ""
 "This aircraft's kills of that enemy aircraft divided by its losses to it. It says “no losses” if it was never lost to"
 " that aircraft, and shows a dash while kills plus losses are fewer than 10: too few for a reliable ratio."
 msgstr ""
-"Victoires de cet avion sur cet avion ennemi divisées par ses pertes face à lui. Affiche « aucune perte » s'il n'a "
+"Victoires de cet avion sur cet avion ennemi divisées par ses pertes face à lui. Affiche « aucune perte » s'il n'a "
 "jamais été perdu face à cet avion, et un tiret tant que victoires plus pertes font moins de 10 : trop peu pour un "
 "ratio fiable."
 
@@ -5677,8 +5677,8 @@ msgstr "Cette page n'est ni listée ni indexée par la recherche. Seules les per
 # llm-draft
 msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
 msgstr ""
-"Ce joueur n’a effectué aucune sortie du rôle de combat choisi pendant la tournée choisie. Choisissez un autre rôle "
-"ci-dessus."
+"Ce joueur n’a effectué aucune sortie du rôle de combat choisi pendant le tour choisi. Choisissez un autre rôle ci-"
+"dessus."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."
@@ -5713,7 +5713,7 @@ msgstr "Ces petits nuages noirs n'étaient pas là pour la déco."
 
 # llm-draft
 msgid "Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."
-msgstr "Trois d'un coup, voire plus ? Les anciens de MiG Alley lèveraient un sourcil, puis leur verre."
+msgstr "Trois d'un coup, voire plus ? Les anciens de MiG Alley lèveraient un sourcil, puis leur verre."
 
 # llm-draft
 msgid ""
@@ -5765,7 +5765,7 @@ msgid ""
 "within 3 km of a target until the last such release. Releases far from any target count for nothing. Not the same as "
 "flight time."
 msgstr ""
-"Temps passé à attaquer des cibles au sol ennemies en sorties d'attaque : de une minute avant la première bombe ou "
+"Temps passé à attaquer des cibles au sol ennemies en sorties d'attaque : de une minute avant la première bombe ou "
 "roquette larguée à moins de 3 km d'une cible jusqu'au dernier largage de ce type. Les largages loin de toute cible ne"
 " comptent pas. Différent du temps de vol."
 
@@ -5908,12 +5908,12 @@ msgstr "Les tours démarrent d'eux-mêmes, sauf si [tours] mode vaut manual."
 # llm-draft
 msgid "Tower to pilot: the war is the other way, but thank you for the thorough survey of the apron."
 msgstr ""
-"Tour à pilote : le front est dans l'autre sens, mais bravo pour la reconnaissance en profondeur de l'aire de "
+"Tour à pilote : le front est dans l'autre sens, mais bravo pour la reconnaissance en profondeur de l'aire de "
 "stationnement."
 
 # llm-draft
 msgid "Tower: “Say condition.” Pilot: “Mostly air.” And with a good score on the board."
-msgstr "Tour : « État de l'appareil ? » Pilote : « Principalement de l'air. » Mais le score est bon."
+msgstr "Tour : « État de l'appareil ? » Pilote : « Principalement de l'air. » Mais le score est bon."
 
 # llm-draft
 msgid "Tracers going the other way for once. The bomber crew will tell this one for years."
