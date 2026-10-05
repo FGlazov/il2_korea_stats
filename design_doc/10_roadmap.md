@@ -195,7 +195,11 @@ decisions are made):
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
   released-migration guard's maintainer override (`IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1`); development databases are recreated
   afterwards (or marked applied with `migrate --fake-initial` after checking the schema matches). Backfills in `ops/migrate.py`
-  that only exist for pre-release databases can go at the same time.
+  that only exist for pre-release databases can go at the same time. The list (2026-10-05 docs pass): `ops/migrate.py` `BACKFILL_*` and
+  `_run_backfills` with `SiteSettings.backfills_done` (keep the catalog fingerprint), the data migrations that only trigger backfills
+  (0029, 0045, 0048, 0049, 0055) disappear in the squash; `config.py` `RENAMED_SCORE_KEYS` / `_renamed_key_warnings` and their doctor
+  output and tests; `ops/checks.py` `ammo_mix_check` (points to a docs section that no longer exists); the `parachute_deaths` comment
+  in `core/replay/toggles.py`; the "upgrade backfill" docstring in `ingest/achievements.py`.
 - ✅ **More branding for server admins** (maintainer, 2026-10-04; incl. `.woff2` font upload): extra links in the top navigation row (up to 30) after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
