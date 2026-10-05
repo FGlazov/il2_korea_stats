@@ -173,6 +173,17 @@ def apply_level2(touched: Touched, *, payload_elo: bool = True, holders: bool = 
     recompute_days(touched.days)
 
 
+def apply_batch_end(touched: Touched, all_tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
+    """The end of a batched run (`ingest.batch`): level 2 for what is still pending, then, once, the Elo ratings (they
+    replay every kill in mission order, so the order the missions were saved in does not matter), the holder counts and
+    the thresholds of every tour any save of the batch touched. The same steps, in the same order, as `save_mission`
+    does per mission. Inside the caller's transaction."""
+    apply_level2(touched, payload_elo=False, holders=False)  # the ratings below refresh the loadout Elo, holders follow
+    recompute_ratings(ratings)  # may change medals (Elo peaks)
+    recompute_holders()
+    recompute_thresholds(marks, all_tours)
+
+
 def save_level1(
     result: MissionResult,
     meta: MissionMeta,

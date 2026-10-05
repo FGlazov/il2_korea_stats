@@ -12,9 +12,10 @@ from __future__ import annotations
 import logging
 import os
 import traceback
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Generator, Sequence
 from concurrent.futures import FIRST_COMPLETED as _FIRST_COMPLETED
 from concurrent.futures import Executor, Future, ProcessPoolExecutor, wait
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from functools import partial
@@ -31,6 +32,7 @@ from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import CompletionReason, IngestRun, IngestStatus
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
+from il2ks.ingest.batch import is_batch
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
@@ -136,13 +138,20 @@ def reprocess(
         window = n_workers * 2  # bound the results waiting in memory for the single writer
         pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
         queue = sorted(targets.values(), key=lambda r: r.mission_uid)
-        with executor_factory(n_workers) as executor:
+        batched = is_batch(len(targets)) and pipeline.save_level1 is not None
+        run_rebuild = rebuild or partial(
+            rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
+        )
+        # `with` order: the executor is shut down first, then the rebuild runs
+        with _final_rebuild(summary, run_rebuild, interrupted_too=batched), executor_factory(n_workers) as executor:
             while queue or pending:
                 while queue and len(pending) < window:
                     prev = queue.pop(0)
                     archive = cfg.data_dir / prev.archive_path
                     if not archive_matches(archive, prev.archive_sha256):
-                        _record(cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now)
+                        _record(
+                            cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now, batched
+                        )
                         _progress(on_progress, summary)
                         continue
                     pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
@@ -154,21 +163,40 @@ def reprocess(
                     try:
                         outcome = future.result()
                     except Exception:
-                        _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now)
+                        _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now, batched)
                     else:
-                        _record(cfg, pipeline, prev, outcome, "", summary, now)
+                        _record(cfg, pipeline, prev, outcome, "", summary, now, batched)
                     _progress(on_progress, summary)
-        if summary.ok:
-            log.info("rebuilding level-2 aggregates")
-            with transaction.atomic():
-                (
-                    rebuild
-                    or partial(
-                        rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
-                    )
-                )()
         log.info("%s", summary.describe())
         return summary
+
+
+@contextmanager
+def _final_rebuild(
+    summary: ReprocessSummary, run_rebuild: Callable[[], None], *, interrupted_too: bool
+) -> Generator[None]:
+    """The one level-2 pass of a reprocess, after the last mission (level 2 and the Elo ratings from level 1).
+
+    A batched run (`ingest.batch`) saved level 1 only, so it also runs when the run is interrupted or fails half way
+    (Ctrl-C, a bug): level 2 then matches the missions saved so far. A small run keeps the per-mission level 2 and
+    rebuilds only when it got to the end, as before."""
+    try:
+        yield
+    except BaseException:
+        if interrupted_too and summary.ok:
+            try:
+                _rebuild(run_rebuild)
+            except Exception:
+                log.exception("level 2 could not be rebuilt after the failure; run `il2ks rebuild-aggregates`")
+        raise
+    if summary.ok:
+        _rebuild(run_rebuild)
+
+
+def _rebuild(run_rebuild: Callable[[], None]) -> None:
+    log.info("rebuilding level-2 aggregates")
+    with transaction.atomic():
+        run_rebuild()
 
 
 def _progress(on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary) -> None:
@@ -184,8 +212,10 @@ def _record(
     error: str,
     summary: ReprocessSummary,
     now: Callable[[], datetime],
+    level1_only: bool = False,
 ) -> None:
-    """Save one reprocessed mission and its `IngestRun`. Failures schedule no automatic retry (admin-run command)."""
+    """Save one reprocessed mission and its `IngestRun`. Failures schedule no automatic retry (admin-run command).
+    `level1_only`: a batched run (`ingest.batch`): level 2 is left to the final rebuild, which recomputes all of it."""
     run = IngestRun(
         mission_uid=prev.mission_uid,
         files=list(prev.files),
@@ -204,7 +234,10 @@ def _record(
             meta = MissionMeta(cfg.server_uid, prev.mission_uid, start.started_at, prev.archive_path)
             fill_counters(run, stats, start.warnings)
             with transaction.atomic():
-                run.mission = pipeline.save(result, meta)
+                if level1_only and pipeline.save_level1 is not None:
+                    run.mission = pipeline.save_level1(result, meta)[0]
+                else:
+                    run.mission = pipeline.save(result, meta)
                 run.finished_at = now()
                 run.save()
             summary.ok.append(prev.mission_uid)
