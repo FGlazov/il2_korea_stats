@@ -351,7 +351,7 @@ class PlayerAdmin(ReadOnlyIngestedAdmin[Player]):
     actions = ("hide_selected", "unhide_selected")
     fieldsets = (
         (None, {"fields": ("is_hidden", "current_name", "account_uuid", "first_seen", "last_seen")}),
-        (_("Counters (rebuilt by ingest)"), {"fields": _field_names(Counters)}),
+        (_("Counters (rebuilt automatically)"), {"fields": _field_names(Counters)}),
         (_("Ratings"), {"fields": ("elo_prop", "elo_prop_games", "elo_jet", "elo_jet_games")}),
     )
 

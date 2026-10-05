@@ -67,7 +67,7 @@ def test_sortie_page_lists_hits_by_plain_name_without_damage_and_the_ordnance_ap
     body = client.get(f"/sorties/{pk_of(1)}/").content.decode()
 
     assert "Damage attributed to this ammunition" not in body  # OQ-52: the per-ammo damage is hidden, hits stay
-    assert "Hits given" in body
+    assert "Hits dealt" in body
     assert "BULLET_12-7_USA_API" not in body
     assert ">.50 BMG API<" in body
     assert 'title="M8 API"' in body  # the real designation as a tooltip

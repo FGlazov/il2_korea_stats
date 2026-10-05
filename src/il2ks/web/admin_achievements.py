@@ -135,7 +135,7 @@ def parse_form(
                     continue
                 if len(text) > limit:
                     errors.append(
-                        _("%(name)s: a text is longer than %(max)d characters: %(start)s...")
+                        _("%(name)s: a text is longer than %(max)d characters: %(start)s…")
                         % {"name": title, "max": limit, "start": text[:30]}
                     )
                 store.setdefault(a.key, {})[code] = text

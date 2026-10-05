@@ -141,7 +141,7 @@ def test_play_time_board_page_is_tour_aware_and_has_an_icon(client: Client) -> N
     assert default.status_code == 200
     assert [r.player.current_name for r in default.context["page_obj"].object_list] == ["Newbie"]
     assert [r.player.current_name for r in all_time.context["page_obj"].object_list] == ["Veteran", "Newbie"]
-    assert default.context["tabs"][-1][:4] == ("play-time", "Play time", "/leaderboards/play-time/", True)
+    assert default.context["tabs"][-1][:4] == ("play-time", "Flight time", "/leaderboards/play-time/", True)
     assert default.context["tabs"][-1][4] == "stat/play-time"
     assert [g for g, _ in default.context["tab_groups"]] == ["Air", "Ground", "General"]
     assert "Flight time" in all_time.content.decode()

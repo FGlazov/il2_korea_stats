@@ -5,7 +5,7 @@
 {% endcomment %}<dl class="kv kv--compact">
   <dt>{% translate "K/D" %} <small>{% translate "air kills per death" %}</small></dt>
   <dd>{{ stats.kills_air|ratio:stats.deaths }}{% stat_mark "kd" %}</dd>
-  <dt>{% translate "K/L" %} <small>{% translate "air kills per plane lost" %}</small></dt>
+  <dt>{% translate "K/L" %} <small>{% translate "air kills per aircraft lost" %}</small></dt>
   <dd>{{ stats.kills_air|ratio:stats.planes_lost }}{% stat_mark "kl" %}</dd>
   <dt>{% translate "Air kills per sortie" %}</dt>
   <dd>{{ stats.kills_air|ratio:stats.sorties }}{% stat_mark "air_per_sortie" %}</dd>

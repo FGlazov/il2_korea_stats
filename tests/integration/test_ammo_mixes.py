@@ -99,7 +99,7 @@ def test_aircraft_detail_lists_ammo_mixes_and_stays_cheap(client: Client) -> Non
     response = client.get(f"/aircraft/{pk}/")
 
     body = response.content.decode()
-    assert "Instances" in body
+    assert "Kills" in body
     assert "Kills it hit in" not in body
     hits = response.context["hits"]
     assert [(m.instances, m.average, [(p.name, p.average) for p in m.parts]) for m in hits.mixes] == [

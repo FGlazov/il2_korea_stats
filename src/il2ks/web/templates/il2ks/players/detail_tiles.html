@@ -13,7 +13,7 @@
   {% stat_tile stats.deaths|num _("Deaths") icon="stat/deaths" %}
 
   {% blocktranslate with value=stats.kills_air|ratio:stats.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
-  {% stat_tile stats.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
+  {% stat_tile stats.planes_lost|num _("Aircraft lost") sub=sub_lost icon="stat/planes-lost" %}
 
   {% stat_tile stats.bailouts|num _("Bailouts") icon="stat/bailouts" %}
 

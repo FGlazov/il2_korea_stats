@@ -48,7 +48,7 @@
     {% stat_tile tile.deaths|num _("Deaths") icon="stat/deaths" %}
 
     {% blocktranslate with value=tile.kills_air|ratio:tile.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
-    {% stat_tile tile.planes_lost|num _("Planes lost") sub=sub_lost icon="stat/planes-lost" %}
+    {% stat_tile tile.planes_lost|num _("Aircraft lost") sub=sub_lost icon="stat/planes-lost" %}
 
     {% blocktranslate with rate=tile.attack_sorties|percent:tile.sorties asvar sub_attack %}{{ rate }} attack{% endblocktranslate %}
     {% stat_tile tile.attack_sorties|num _("Attack sorties") sub=sub_attack icon="stat/sorties" %}
@@ -117,13 +117,13 @@
 
   <section>
     <h2>{% translate "Hits to destroy" %}</h2>
-    <p class="muted">{% translate "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted; bombs and rockets are left out. Instances are the counted kills in which the ammunition hit at least once." %}</p>
+    <p class="muted">{% translate "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted; bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
           <tr>
             <th scope="col">{% translate "Ammunition" %}</th>
-            {% col_th _("Instances") numeric=True hint="hits_instances" %}
+            {% col_th _("Kills") numeric=True hint="hits_instances" %}
             {% col_th _("Average hits") numeric=True hint="hits_average" %}
           </tr>
         </thead>
@@ -147,7 +147,7 @@
           <thead>
             <tr>
               <th scope="col">{% translate "Ammunition mix" %}</th>
-              {% col_th _("Instances") numeric=True hint="mix_instances" %}
+              {% col_th _("Kills") numeric=True hint="mix_instances" %}
               {% col_th _("Average hits") numeric=True hint="hits_average" %}
             </tr>
           </thead>

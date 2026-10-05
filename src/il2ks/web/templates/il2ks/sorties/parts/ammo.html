@@ -42,7 +42,7 @@
   <section>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table data-table--compact">
-        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th>{% col_th _("Hits given") numeric=True hint="ammo_hits_given" %}{% col_th _("Hits received") numeric=True hint="ammo_hits_received" %}</tr></thead>
+        <thead><tr><th scope="col">{% translate "Ammunition hit by or with" %}</th>{% col_th _("Hits dealt") numeric=True hint="ammo_hits_given" %}{% col_th _("Hits taken") numeric=True hint="ammo_hits_received" %}</tr></thead>
         <tbody>
           {% for row in detail.ammo.hits %}
             <tr><td>{% if row.designation %}<span title="{{ row.designation }}">{{ row.name }}</span>{% else %}{{ row.name }}{% endif %}</td><td class="num">{{ row.given }}</td><td class="num">{{ row.received }}</td></tr>

@@ -85,7 +85,7 @@ class SetupForm(forms.Form):
     )
     domain = forms.CharField(label=_("Domain name"), required=False, max_length=253)
     email = forms.CharField(
-        label=_("E-mail for certificate notices (optional)"), required=False, max_length=254, widget=forms.EmailInput
+        label=_("Email for certificate notices (optional)"), required=False, max_length=254, widget=forms.EmailInput
     )
     admin_username = forms.CharField(label=_("Admin user name"), max_length=150, initial=admin.DEFAULT_USERNAME)
     admin_password = forms.CharField(
