@@ -20,6 +20,10 @@ track of its combat role: an attack sortie to the ground track, every other one 
 known) to the air track. The rule above runs on each track's sorties alone: a death in an attack sortie ends the ground
 run only, a death in an air sortie the air run only, and a sortie of the other track neither extends nor breaks a run.
 The air track's "kills" are air kills, the ground track's ground kills (both are stored in every streak).
+
+A third track, **all** (maintainer, 2026-10-05, "ironman without a filter"), takes every sortie whatever its role: an
+attack sortie and an air sortie both extend it and any death or capture ends it. Its "kills" (the criterion of its
+best-by-kills streak) are air kills plus ground kills.
 """
 
 from collections.abc import Iterable, Iterator
@@ -30,15 +34,17 @@ from typing import Self
 
 
 class Track(StrEnum):
-    """The two ironman tracks of a pilot (maintainer, 2026-10-05)."""
+    """The three ironman tracks of a pilot (maintainer, 2026-10-05)."""
 
+    ALL = "all"  # every counted pilot sortie, whatever its role; any death or capture ends the run
     AIR = "air"
     GROUND = "ground"
 
 
 def track_of(combat_role: str | None) -> Track:
-    """The track a sortie of this combat role (`CombatRole` value, None = none known) counts for: attack sorties are the
-    ground track's, everything else (air superiority, unknown role) the air track's."""
+    """The role track a sortie of this combat role (`CombatRole` value, None = none known) counts for: attack sorties
+    are the ground track's, everything else (air superiority, unknown role) the air track's. Every sortie also counts
+    for `Track.ALL` (`on_track`)."""
     return Track.GROUND if combat_role == "attack" else Track.AIR
 
 
@@ -83,7 +89,10 @@ class Streak:
         return (self.sorties, self.kills_of(track), self.flight_time_s)
 
     def kills_of(self, track: Track) -> int:
-        """The kills the track counts: air kills on the air track, ground kills on the ground track."""
+        """The kills the track counts: air kills on the air track, ground kills on the ground track, both on the all
+        track."""
+        if track is Track.ALL:
+            return self.kills_air + self.kills_ground
         return self.kills_ground if track is Track.GROUND else self.kills_air
 
     def kills_key(self, track: Track = Track.AIR) -> tuple[int, int, float]:
@@ -106,8 +115,8 @@ def is_broken(s: StreakSortie) -> bool:
 
 
 def on_track(sorties: Iterable[StreakSortie], track: Track) -> Iterator[StreakSortie]:
-    """The sorties of one track, in the order given."""
-    return (s for s in sorties if s.track is track)
+    """The sorties of one track, in the order given (the all track takes every one)."""
+    return (s for s in sorties if track is Track.ALL or s.track is track)
 
 
 def summarize(sorties: Iterable[StreakSortie], track: Track = Track.AIR) -> StreakSummary:

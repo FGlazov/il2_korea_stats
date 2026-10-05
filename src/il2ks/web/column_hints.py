@@ -59,8 +59,6 @@ HINTS: dict[str, Label] = {
         "The most ground kills in one run of attack sorties without a death or capture. Losing a fighter does not end "
         "it. Every tour starts afresh; this is the best tour."
     ),
-    # Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-    "streak_other_kills": _("Kills of the other kind made in the sorties of this streak."),
     # Translators: tooltip of the "Survival" column header
     "survival": _("Share of the sorties in which the pilot did not die."),
     # Translators: tooltip of the "Air score" column header
@@ -171,12 +169,7 @@ HINTS: dict[str, Label] = {
     "streak_sorties": _("Sorties in a row that the pilot survived."),
     # Translators: tooltip of the "Air kills" column header of a streak table
     "streak_kills": _("Air kills made during the streak."),
-    # Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-    # ground kills in a ground streak)
-    "streak_run_kills": _(
-        "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-    ),
-    # Translators: tooltip of the "Ground kills" column header of a ground ironman table
+    # Translators: tooltip of the "Ground kills" column header of a streak table
     "streak_kills_ground_run": _("Ground kills made during the streak."),
     # Translators: tooltip of the "Flight time" column header of a streak table
     "streak_time": _("Flight time added up over the streak's sorties."),

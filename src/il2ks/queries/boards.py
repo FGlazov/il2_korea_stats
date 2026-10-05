@@ -110,32 +110,34 @@ def killboard_page(player: Player, sort: str, number: str | int, tour: Tour | No
     return Paginator(rows.order_by(*order), PAGE_SIZE).get_page(number)
 
 
-TRACKS: tuple[str, ...] = tuple(StreakTrack.values)  # air first, then ground (the order every page shows them in)
+TRACKS: tuple[str, ...] = tuple(
+    StreakTrack.values
+)  # all first, then air, then ground (the order every page shows them in)
 
 
 def streaks_of(player: Player) -> list[PlayerStreak]:
-    """The player's current and best ironman run on each track (a row per track with a survived sortie), air first.
-    One query."""
+    """The player's current and best ironman run on each track (a row per track with a survived sortie), the all track
+    first. One query."""
     return sorted(PlayerStreak.objects.filter(player=player), key=lambda row: TRACKS.index(row.track))
 
 
 def tour_streaks_of(player: Player, tour: Tour) -> list[PlayerBestStreak]:
-    """The player's longest run (by sorties) of each track inside `tour`, air first; a track without a survived sortie
-    there is missing. One query."""
+    """The player's longest run (by sorties) of each track inside `tour`, the all track first; a track without a
+    survived sortie there is missing. One query."""
     rows = PlayerBestStreak.objects.filter(player=player, tour=tour, kind=StreakKind.SORTIES)
     return sorted(rows, key=lambda row: TRACKS.index(row.track))
 
 
 def best_streaks(player: Player, tour: Tour | None = None) -> list[PlayerBestStreak]:
-    """The player's best streaks of both tracks, each by sorties, kills (air kills on the air track, ground kills on the
-    ground track) and flight time, all-time or in `tour`: air track first, the three kinds in that order. A kind is
-    missing when it doesn't exist (no kill in any streak of the track)."""
+    """The player's best streaks of the three tracks, each by sorties, kills (air kills on the air track, ground kills
+    on the ground track, both on the all track) and flight time, all-time or in `tour`: the all track first, the kinds
+    in that order. A kind is missing when it doesn't exist (no kill in any streak of the track)."""
     rows = (
         PlayerBestStreak.objects.filter(player=player, tour=tour)
         if tour
         else PlayerBestStreak.objects.filter(player=player, tour__isnull=True)
     )
-    order = {str(kind): n for n, kind in enumerate(StreakKind.values)}
+    order = {"sorties": 0, "air_kills": 1, "ground_kills": 1, "kills": 1, "flight_time": 2}  # sorties, kills, time
     return sorted(rows, key=lambda row: (TRACKS.index(row.track), order[row.kind]))
 
 
@@ -168,6 +170,11 @@ def _running(now: datetime, track: str = "air") -> QuerySet[PlayerStreak]:
 
 def running_page(track: str, number: str | int, now: datetime) -> Page:
     """One page of the streaks running right now on `track`, longest first (the ironman boards' second table)."""
-    kills = "-current_kills_ground" if track == StreakTrack.GROUND else "-current_kills_air"
-    ordered = _running(now, track).order_by("-current_sorties", kills, "pk")
+    # Ties: the track's own kills first (the all track: air, then ground).
+    kills = (
+        ("-current_kills_ground", "-current_kills_air")
+        if track == StreakTrack.GROUND
+        else ("-current_kills_air", "-current_kills_ground")
+    )
+    ordered = _running(now, track).order_by("-current_sorties", *kills, "pk")
     return Paginator(ordered, PAGE_SIZE).get_page(number)

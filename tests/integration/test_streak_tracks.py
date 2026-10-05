@@ -1,9 +1,10 @@
-"""The two ironman tracks (maintainer, 2026-10-05; doc 13): an air run and a ground run per pilot. An attack sortie is
-the ground track's, every other sortie the air track's; a death or capture ends only its own track's run. Ingest
-rules, tours, incremental == rebuild, the ironman boards, the player list's streak columns, the profile block and the
-history."""
+"""The three ironman tracks (maintainer, 2026-10-05; doc 13): a run without a filter (every sortie, any loss ends it),
+an air run and a ground run per pilot. An attack sortie is the ground track's, every other sortie the air track's; a
+death or capture ends only its own role track's run (and the all run). Ingest rules, tours, incremental == rebuild, the
+ironman boards (four fixed columns), the player list's streak columns, the profile block and the history."""
 
 import re
+from dataclasses import replace
 
 import pytest
 from django.test import Client
@@ -113,7 +114,54 @@ def test_runs_are_stored_per_track() -> None:
     save(mission((air(0), air(1), attack(2), attack(3), died_attack(4), air(5))), meta("m1", STARTED_AT))
 
     rows = PlayerStreakRun.objects.filter(player=pk(1), tour=None).order_by("track")
-    assert [(r.track, r.sorties, r.ended_by) for r in rows] == [("air", 3, "open"), ("ground", 2, "death")]
+    assert [(r.track, r.sorties, r.ended_by) for r in rows] == [
+        ("air", 3, "open"),
+        ("all", 4, "death"),  # the attack death ended the run without a filter
+        ("ground", 2, "death"),
+    ]
+
+
+# --- the all track: ironman without a filter ---
+def test_the_all_run_spans_attack_and_air_sorties_and_any_loss_ends_it() -> None:
+    save(
+        mission((air(0, kills_air=1), attack(1, kills_ground=2), air(2), died_attack(3), air(4), attack(5))),
+        meta("m1", STARTED_AT),
+    )
+
+    assert best(1, StreakTrack.ALL) == (3, 1, 2)  # the attack death ended it, though the air run went on
+    assert current(1, StreakTrack.ALL) == (2, 0, 0)
+    assert current(1, StreakTrack.AIR) == (3, 1, 0)
+    assert best(1, StreakTrack.ALL, kind=StreakKind.KILLS) == (3, 1, 2)  # ranked by air plus ground kills
+
+
+def test_the_all_run_is_ended_by_an_air_death_too_and_a_capture() -> None:
+    save(
+        mission(
+            (
+                attack(0),
+                air(1),
+                died_air(2),
+                attack(3),
+                replace(attack(4), is_captured=True, pilot_status="captured"),
+                air(5),
+            )
+        ),
+        meta("m1", STARTED_AT),
+    )
+
+    rows = PlayerStreakRun.objects.filter(player=pk(1), tour=None, track=StreakTrack.ALL).order_by("since")
+    assert [(r.sorties, r.ended_by) for r in rows] == [(2, "death")]  # then 1, a capture, 1: no run of two
+    assert current(1, StreakTrack.ALL) == (1, 0, 0)
+
+
+def test_the_all_track_has_tour_rows_a_clean_slate_per_tour_and_all_time_is_the_max() -> None:
+    save(mission((air(0), attack(1), air(2), died_air(3))), meta("m1", STARTED_AT))
+    save(mission((attack(0), air(1))), meta("m2", OCTOBER))
+
+    assert best(1, StreakTrack.ALL, "September 2026") == (3, 0, 0)
+    assert best(1, StreakTrack.ALL, "October 2026") == (2, 0, 0)
+    assert best(1, StreakTrack.ALL) == (3, 0, 0)
+    assert current(1, StreakTrack.ALL) == (2, 0, 0)  # the October run: a new tour starts at zero
 
 
 # --- tours: per tour, and all time = max over the tours ---
@@ -148,6 +196,7 @@ def test_tracks_incremental_equals_rebuild() -> None:
     save(mission((attack(0, 2, kills_ground=4), air(1, 2), attack(2, 2), died_attack(3, 2))), meta("m3", OCTOBER))
     incremental = snapshot()
     assert PlayerBestStreak.objects.filter(track=StreakTrack.GROUND).exists()
+    assert PlayerBestStreak.objects.filter(track=StreakTrack.ALL, kind=StreakKind.KILLS).exists()  # in the snapshot too
 
     rebuild_aggregates()
 
@@ -202,32 +251,50 @@ def test_the_ground_ironman_board_lists_the_best_ground_runs(client: Client) -> 
     assert board_rows(client, "/leaderboards/ironman-ground/?tour=all") == [(pk(2), 4), (pk(1), 1)]
 
 
-def test_the_board_sorts_by_the_tracks_kills_and_never_by_an_unknown_column(client: Client) -> None:
+def test_the_all_ironman_board_counts_every_sortie_and_ends_the_run_at_any_loss(client: Client) -> None:
+    seed_boards()  # player 1: air, air, air, attack (4 in a row); player 2: air, air, 4 attacks (6); player 3: air (1)
+
+    assert board_rows(client, "/leaderboards/ironman-all/?tour=all") == [(pk(2), 6), (pk(1), 4), (pk(3), 1)]
+
+
+def test_the_board_sorts_by_air_and_ground_kills_and_never_by_an_unknown_column(client: Client) -> None:
     seed_boards()
 
-    by_kills = client.get("/leaderboards/ironman-air/?tour=all&sort=-kills").context["page_obj"]
-    ground = client.get("/leaderboards/ironman-ground/?tour=all&sort=-kills").context["page_obj"]
+    by_air = client.get("/leaderboards/ironman-all/?tour=all&sort=-kills_air").context["page_obj"]
+    by_ground = client.get("/leaderboards/ironman-all/?tour=all&sort=-kills_ground").context["page_obj"]
 
-    assert [r.player.pk for r in by_kills][:2] == [pk(2), pk(1)]  # 5 air kills before 2
-    assert [r.player.pk for r in ground] == [pk(1), pk(2)]  # 7 ground kills before 2
+    assert [r.player.pk for r in by_air][:2] == [pk(2), pk(1)]  # 5 air kills before 2
+    assert [r.player.pk for r in by_ground][:2] == [pk(1), pk(2)]  # 7 ground kills before 2
+    for gone in ("kills", "flight_time_s", "since", "until"):  # no longer columns of the ironman boards
+        assert client.get(f"/leaderboards/ironman-air/?sort={gone}").context["sort"] == "-sorties"
     assert client.get("/leaderboards/ironman-air/?sort=bogus").context["sort"] == "-sorties"
 
 
-def test_the_default_columns_show_the_tracks_kills_and_the_extra_columns_the_other_ones(client: Client) -> None:
+def header_labels(html: str, table: int = 0) -> list[str]:
+    """The text of the column headers of the `table`-th data table of a page."""
+    head = re.sub(
+        r"<span[^>]*col-tip.*?</span>", "", re.findall(r"<thead>(.*?)</thead>", html, re.S)[table], flags=re.S
+    )  # no tooltips
+    return [
+        re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", cell)).strip() for cell in re.findall(r"<th.*?</th>", head, re.S)
+    ]
+
+
+@pytest.mark.parametrize("board", ["ironman-all", "ironman-air", "ironman-ground"])
+def test_the_ironman_boards_show_exactly_four_columns_and_no_extra_columns_control(client: Client, board: str) -> None:
+    """Maintainer 2026-10-05: always pilot, sorties in a row, air kills and ground kills (and the rank); no Since /
+    Until / Flight time, no "Extra columns" picker; the running-streaks table below has the same columns."""
     seed_boards()
 
-    plain = client.get("/leaderboards/ironman-ground/?tour=all").content.decode()
-    extra = client.get("/leaderboards/ironman-ground/?tour=all&cols=kills_air,since").content.decode()
-    air_board = client.get("/leaderboards/ironman-air/?tour=all").content.decode()
+    html = client.get(f"/leaderboards/{board}/?tour=all").content.decode()
 
-    assert "Ground kills" in plain
-    assert re.search(r"<th[^>]*>.*?sort=-?kills_air", plain, re.S) is None  # not shown by default
-    assert re.search(r'value="kills_air"', plain)  # but offered in the picker
-    assert re.search(r"<th[^>]*>\s*<a href=\"[^\"]*sort=-?kills_air", extra)
-    assert re.search(r"<th[^>]*>\s*<a href=\"[^\"]*sort=-?since", extra)
-    assert "Air kills" in air_board
-    assert 'value="kills_ground"' in air_board
-    assert [c.key for c in columns.IRONMAN_COLUMNS["air"]] == ["kills_ground", "since", "until"]
+    assert header_labels(html, 0) == ["#", "Player", "Sorties in a row", "Air kills", "Ground kills"]
+    assert header_labels(html, 1) == ["Pilot", "Sorties in a row", "Air kills", "Ground kills"]
+    assert "cols=" not in html
+    assert 'name="cols"' not in html
+    assert "Extra columns" not in html
+    for gone in ("Since", "Until", "Flight time"):
+        assert gone not in header_labels(html, 0) + header_labels(html, 1)
 
 
 def test_the_boards_are_tour_aware_and_running_streaks_only_show_in_the_current_tour(client: Client) -> None:
@@ -256,20 +323,23 @@ def test_the_board_tabs_and_the_old_streak_urls(client: Client) -> None:
     seed_boards()
 
     html = client.get("/leaderboards/").content.decode()
-    assert "/leaderboards/ironman-air/" in html
+    assert html.index("/leaderboards/ironman-all/") < html.index(
+        "/leaderboards/ironman-air/"
+    )  # the board without a filter first
     assert "/leaderboards/ironman-ground/" in html
     old = client.get("/streaks/?tour=all")
-    assert (old.status_code, old["Location"]) == (301, "/leaderboards/ironman-air/?tour=all")
-    assert client.get("/streaks/")["Location"] == "/leaderboards/ironman-air/"
-    assert client.get("/leaderboards/ironman/")["Location"] == "/leaderboards/ironman-air/"
+    assert (old.status_code, old["Location"]) == (301, "/leaderboards/ironman-all/?tour=all")
+    assert client.get("/streaks/")["Location"] == "/leaderboards/ironman-all/"
+    assert client.get("/leaderboards/ironman/")["Location"] == "/leaderboards/ironman-all/"
 
 
 def test_the_ironman_board_budget(client: Client) -> None:
     seed_boards()
 
     # context processor 2, tours, count + rows of the board, count + rows of the running list
+    assert_simple_reads(client, "/leaderboards/ironman-all/?tour=all", max_queries=8)
     assert_simple_reads(client, "/leaderboards/ironman-air/?tour=all", max_queries=8)
-    assert_simple_reads(client, "/leaderboards/ironman-ground/?tour=all&cols=kills_air,since,until", max_queries=8)
+    assert_simple_reads(client, "/leaderboards/ironman-ground/?tour=all&sort=-kills_air", max_queries=8)
 
 
 # --- the player list ---
@@ -345,35 +415,44 @@ def test_the_player_list_budget_is_unchanged(client: Client) -> None:
 
 
 # --- the profile and the history ---
-def test_the_profile_block_shows_both_tracks(client: Client) -> None:
+def test_the_profile_block_shows_all_three_tracks_the_unfiltered_one_first(client: Client) -> None:
     seed_boards()
 
     html = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
 
+    assert html.index("Current streak") < html.index("Current air streak") < html.index("Current ground streak")
+    assert html.index("Best streak</th>") < html.index("Best air streak")
     assert "Current air streak" in html
     assert "Current ground streak" in html
     assert "Best air streak" in html
     assert "Best ground streak" in html
     tour = tour_named("September 2026")
     in_tour = client.get(f"/players/{pk(1)}/?tour={tour.pk}").content.decode()
+    assert "Best streak</th>" in in_tour
     assert "Best air streak" in in_tour
     assert "Best ground streak" in in_tour
 
 
-def test_the_best_streaks_page_lists_both_tracks_and_the_history_has_a_track_switch(client: Client) -> None:
+def test_the_best_streaks_page_lists_all_three_tracks_and_the_history_has_a_track_switch(client: Client) -> None:
     seed_boards()
 
     best_page = client.get(f"/players/{pk(1)}/streaks/?tour=all")
-    assert [(r.track, r.kind) for r in best_page.context["streaks"]][:1] == [("air", "sorties")]
-    assert {r.track for r in best_page.context["streaks"]} == {"air", "ground"}
+    assert [(r.track, r.kind) for r in best_page.context["streaks"]][:1] == [("all", "sorties")]
+    assert {r.track for r in best_page.context["streaks"]} == {"all", "air", "ground"}
+    assert ("all", "kills") in {(r.track, r.kind) for r in best_page.context["streaks"]}  # air + ground kills
 
-    air_history = client.get(f"/players/{pk(1)}/streaks/history/?tour=all")
+    all_history = client.get(f"/players/{pk(1)}/streaks/history/?tour=all")
+    air_history = client.get(f"/players/{pk(1)}/streaks/history/?tour=all&track=air")
     ground_history = client.get(f"/players/{pk(1)}/streaks/history/?tour=all&track=ground")
     bogus = client.get(f"/players/{pk(1)}/streaks/history/?tour=all&track=bogus")
 
-    assert air_history.context["track"] == "air"
-    assert ground_history.context["track"] == "ground"
-    assert bogus.context["track"] == "air"
+    assert [all_history.context["track"], air_history.context["track"], ground_history.context["track"]] == [
+        "all",
+        "air",
+        "ground",
+    ]
+    assert bogus.context["track"] == "all"
+    assert [r.sorties for r in all_history.context["page_obj"]] == [4]  # the attack sortie joins the air ones
     assert [r.sorties for r in air_history.context["page_obj"]] == [3]
     assert list(ground_history.context["page_obj"]) == []  # a single attack sortie is not a listed run
     assert "track=ground" in air_history.content.decode()

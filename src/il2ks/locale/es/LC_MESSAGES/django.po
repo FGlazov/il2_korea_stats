@@ -679,6 +679,10 @@ msgid "Air accuracy"
 msgstr "Puntería aire"
 
 # llm-draft
+msgid "Air and ground kills"
+msgstr "Derribos aéreos y terrestres"
+
+# llm-draft
 msgid "Air assist (points)"
 msgstr "Asistencia aérea (puntos)"
 
@@ -963,6 +967,10 @@ msgstr "Todas las misiones"
 # llm-draft
 msgid "All roles"
 msgstr "Todas las funciones"
+
+# llm-draft
+msgid "All sorties"
+msgstr "Todas las salidas"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1591,11 +1599,13 @@ msgstr "Archivo de configuración"
 
 # llm-draft
 msgid ""
-"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
-"count separately: losing a ground attacker does not end the air run, and the other way round."
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts "
+"every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end "
+"the air run, and the other way round."
 msgstr ""
-"Salidas seguidas sobrevividas: sin muerte ni captura. Las salidas que nunca despegaron se omiten. Las salidas aéreas "
-"y las terrestres cuentan por separado: perder un atacante no corta la racha aérea, y al revés."
+"Salidas seguidas que has superado: sin muerte ni captura. Las salidas en las que nunca despegaste se omiten. La "
+"primera racha cuenta todas las salidas y cualquier pérdida la termina. Las rachas aérea y terrestre cuentan por "
+"separado: perder un atacante no termina la racha aérea, y al revés."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1671,6 +1681,10 @@ msgstr "Racha terrestre actual"
 # llm-draft
 msgid "Current logo"
 msgstr "Logotipo actual"
+
+# llm-draft
+msgid "Current streak"
+msgstr "Racha actual"
 
 # llm-draft
 msgid "Current tour"
@@ -1881,12 +1895,12 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
-"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+"Each pilot's longest run of air sorties survived: no death, no capture. Every sortie that is not an attack sortie "
+"counts; losing an attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"La racha más larga de salidas aéreas sobrevividas de cada piloto: sin muerte ni captura. Solo cuentan las salidas de "
-"superioridad aérea; perder un atacante no la corta. Cada temporada empieza de cero; «Histórico» muestra la mejor "
-"temporada."
+"La racha más larga de salidas aéreas superadas de cada piloto: sin muerte ni captura. Cuenta toda salida que no sea "
+"de ataque; perder un atacante no la termina. Cada tour nuevo empieza de cero para todos; el total histórico muestra "
+"el mejor tour."
 
 # llm-draft
 msgid ""
@@ -1895,6 +1909,16 @@ msgid ""
 msgstr ""
 "La racha más larga de salidas de ataque sobrevividas de cada piloto: sin muerte ni captura. Solo cuentan las salidas "
 "de ataque; perder un caza no la corta. Cada temporada empieza de cero; «Histórico» muestra la mejor temporada."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of sorties survived, whatever kind they were: no death, no capture. Attack and fighter "
+"sorties both count, and losing either one ends the run. A new tour starts everyone afresh; all time shows the best "
+"tour."
+msgstr ""
+"La racha más larga de salidas superadas de cada piloto, sean del tipo que sean: sin muerte ni captura. Cuentan tanto "
+"las salidas de ataque como las de caza, y perder cualquiera de ellas termina la racha. Cada tour nuevo empieza de "
+"cero para todos; el total histórico muestra el mejor tour."
 
 # llm-draft
 msgid "Earned"
@@ -2419,7 +2443,7 @@ msgid "Ground kills by category"
 msgstr "Blancos terrestres por categoría"
 
 # llm-draft
-#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+#. Translators: tooltip of the "Ground kills" column header of a streak table
 msgid "Ground kills made during the streak."
 msgstr "Derribos en tierra logrados durante la racha."
 
@@ -2927,17 +2951,6 @@ msgstr "Derribos y asistencias"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Derribos por víctima"
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-#. ground kills in a ground streak)
-msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-msgstr "Derribos logrados durante la racha: aéreos en una racha aérea, terrestres en una racha terrestre."
-
-# llm-draft
-#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-msgid "Kills of the other kind made in the sorties of this streak."
-msgstr "Derribos del otro tipo logrados en las salidas de esta racha."
 
 # llm-draft
 msgid "Kills per hour"
@@ -5426,12 +5439,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
-"kind of sortie does not end the other's run)."
+"skipped), by sorties, by kills and by flight time, for all sorties together, and for air sorties and attack sorties "
+"separately (a death in one kind of sortie does not end the other kind's run, any death ends the first streak)."
 msgstr ""
-"Las mejores rachas del piloto de salidas seguidas sobrevividas (sin muerte ni captura; las salidas que no despegaron "
-"se omiten), por salidas, por derribos y por tiempo de vuelo, por separado para las salidas aéreas y las de ataque "
-"(una muerte en un tipo de salida no corta la racha del otro)."
+"Las mejores rachas de salidas seguidas superadas por el piloto (sin muerte ni captura; las salidas sin despegar se "
+"omiten), por salidas, por derribos y por tiempo de vuelo: con todas las salidas juntas y por separado con las aéreas "
+"y las de ataque (una muerte en un tipo de salida no termina la racha del otro; la primera racha la termina cualquier "
+"muerte)."
 
 # llm-draft
 #, python-format

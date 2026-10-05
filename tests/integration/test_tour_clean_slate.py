@@ -51,12 +51,12 @@ def test_a_streak_ends_at_the_tour_boundary() -> None:
     save(mission(survived(3)), meta("m1", STARTED_AT))
     save(mission(survived(3)), meta("m2", OCTOBER))
 
-    rows = PlayerStreakRun.objects.filter(player=pk(1), tour=None).order_by("since")
+    rows = PlayerStreakRun.objects.filter(player=pk(1), tour=None, track="air").order_by("since")
     assert [(r.sorties, r.ended_by) for r in rows] == [(3, "open"), (3, "open")]  # the union, never merged
-    best = PlayerBestStreak.objects.get(player=pk(1), tour=None, kind="sorties")
+    best = PlayerBestStreak.objects.get(player=pk(1), tour=None, track="air", kind="sorties")
     assert best.sorties == 3
     assert best.since.date() == STARTED_AT.date()  # a tie: the earliest wins
-    assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 3  # the October run, not 6
+    assert PlayerStreak.objects.get(player=pk(1), track="air").current_sorties == 3  # the October run, not 6
 
 
 def test_all_time_best_streak_is_the_max_of_the_tour_bests() -> None:
@@ -64,23 +64,25 @@ def test_all_time_best_streak_is_the_max_of_the_tour_bests() -> None:
     save(mission(survived(5)), meta("m2", OCTOBER))  # best 5
     save(mission(survived(2, first=0)), meta("m3", NOVEMBER))  # best 2
 
-    best = PlayerStreak.objects.get(player=pk(1))
+    best = PlayerStreak.objects.get(player=pk(1), track="air")
     assert best.best_sorties == 5
-    assert PlayerBestStreak.objects.get(player=pk(1), tour=None, kind="sorties").sorties == 5
-    assert PlayerBestStreak.objects.get(player=pk(1), tour=None, kind="flight_time").flight_time_s == 3000.0
-    assert PlayerStreakRun.objects.filter(player=pk(1), tour=None).count() == 4  # 2, 3, 5, 2
+    assert PlayerBestStreak.objects.get(player=pk(1), tour=None, track="air", kind="sorties").sorties == 5
+    assert (
+        PlayerBestStreak.objects.get(player=pk(1), tour=None, track="air", kind="flight_time").flight_time_s == 3000.0
+    )
+    assert PlayerStreakRun.objects.filter(player=pk(1), tour=None, track="air").count() == 4  # 2, 3, 5, 2
 
 
 def test_current_streak_is_the_run_in_the_current_tour_and_a_new_tour_starts_at_zero() -> None:
     save(mission(survived(3)), meta("m1", STARTED_AT))
-    assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 3
+    assert PlayerStreak.objects.get(player=pk(1), track="air").current_sorties == 3
 
     save(mission(survived(1, player=2)), meta("m2", OCTOBER))  # player 1 has not flown in October yet
 
-    streak = PlayerStreak.objects.get(player=pk(1))
+    streak = PlayerStreak.objects.get(player=pk(1), track="air")
     assert (streak.current_sorties, streak.best_sorties) == (0, 3)
     save(mission(survived(1)), meta("m3", OCTOBER + timedelta(days=1)))
-    assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 1
+    assert PlayerStreak.objects.get(player=pk(1), track="air").current_sorties == 1
 
 
 def test_a_player_without_a_current_run_stops_pointing_at_an_older_tour() -> None:
@@ -88,7 +90,7 @@ def test_a_player_without_a_current_run_stops_pointing_at_an_older_tour() -> Non
     newest tour had a zero run but kept `current_tour` on it when a newer tour started, while a rebuild stores None
     (the row says "no current run in the newest tour")."""
     save(mission((*survived(2), died(2))), meta("m1", STARTED_AT))
-    assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 0
+    assert PlayerStreak.objects.get(player=pk(1), track="air").current_sorties == 0
     save(mission(survived(1, player=2)), meta("m2", OCTOBER))  # player 1 does not fly in October
 
     stored = list(
@@ -96,7 +98,7 @@ def test_a_player_without_a_current_run_stops_pointing_at_an_older_tour() -> Non
     )
     rebuild_aggregates()
 
-    assert PlayerStreak.objects.get(player=pk(1)).current_tour is None
+    assert PlayerStreak.objects.get(player=pk(1), track="air").current_tour is None
     assert stored == list(
         PlayerStreak.objects.order_by("player_id").values_list("player_id", "current_sorties", "current_tour")
     )

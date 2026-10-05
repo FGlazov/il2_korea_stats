@@ -1,8 +1,9 @@
 """Ironman streaks (`PlayerStreak`, `PlayerBestStreak`, `PlayerStreakRun`, FR-WEB-23): level 2, per player and track.
 
-Every pilot has an air and a ground ironman run (maintainer, 2026-10-05, `il2ks.core.streaks.Track`): the rule runs on
-the sorties of one track at a time (an attack sortie is a ground-track sortie, every other one an air-track sortie), so
-a death in one track never ends the other's run. All tables carry a `track`.
+Every pilot has an all, an air and a ground ironman run (maintainer, 2026-10-05, `il2ks.core.streaks.Track`): the rule
+runs on the sorties of one track at a time (an attack sortie is a ground-track sortie, every other one an air-track
+sortie, and both are in the all track), so a death in an attack sortie never ends the air run and the reverse, while
+any death ends the all run. All tables carry a `track`.
 
 A new tour is a clean slate (maintainer, 2026-10-05): a streak never crosses a tour boundary, so the rule
 (`il2ks.core.streaks`) runs over one tour's counted (pilot) sorties at a time, in chronological order (spawn time, then
@@ -191,8 +192,8 @@ def _rank(track: str, kind: str, v: _BestValues) -> tuple[float, float, float]:
     """The comparison key of a best streak of `kind` on `track` (as `core.streaks`: the criterion first, then the other
     two, the track's kills being the ones that count)."""
     sorties, air, ground, flight = float(v[0]), float(v[1]), float(v[2]), v[3]
-    own = ground if track == Track.GROUND.value else air  # what the track's kills are
-    if kind in (StreakKind.AIR_KILLS.value, StreakKind.GROUND_KILLS.value):
+    own = {Track.GROUND.value: ground, Track.ALL.value: air + ground}.get(track, air)  # what the track's kills are
+    if kind in (StreakKind.AIR_KILLS.value, StreakKind.GROUND_KILLS.value, StreakKind.KILLS.value):
         return (own, sorties, flight)
     if kind == StreakKind.FLIGHT_TIME.value:
         return (flight, sorties, own)
@@ -335,7 +336,7 @@ def _best_rows(
         (player_id, tour_id, track.value, StreakKind.FLIGHT_TIME.value): _best_values(summary.best_flight_time),
     }
     if summary.best_kills.kills_of(track):
-        kind = StreakKind.GROUND_KILLS if track is Track.GROUND else StreakKind.AIR_KILLS
+        kind = {Track.GROUND: StreakKind.GROUND_KILLS, Track.ALL: StreakKind.KILLS}.get(track, StreakKind.AIR_KILLS)
         rows[(player_id, tour_id, track.value, kind.value)] = _best_values(summary.best_kills)
     return rows
 

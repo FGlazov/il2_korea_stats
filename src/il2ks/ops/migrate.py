@@ -95,6 +95,7 @@ BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in 
 BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
 BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
 BACKFILL_STREAK_TRACKS = "streak_tracks"  # air and ground ironman tracks; the survivor and life-kills medals read them
+BACKFILL_STREAK_ALL = "streak_all"  # the third ironman track, every sortie (migration 0101, maintainer 2026-10-05)
 BACKFILL_ELO_MIN_GAMES = "elo_min_games"  # all-time Elo = best tour with at least min_elo_games games (doc 13)
 BACKFILL_PLAYER_ROLES = "player_roles"  # per-role copies of the player rows (`PlayerRole`, the profile role toggle)
 BACKFILL_AIRCRAFT_ELO = "aircraft_elo"  # the Elo of the aircraft types, per tour and all time (maintainer 2026-10-05)
@@ -161,6 +162,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
         (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
         (BACKFILL_STREAK_TRACKS, _check_streak_tracks),
+        (BACKFILL_STREAK_ALL, _check_streak_all),
         (BACKFILL_ELO_MIN_GAMES, _check_elo_min_games),
         (BACKFILL_PLAYER_ROLES, _check_player_roles),
         (BACKFILL_AIRCRAFT_ELO, _check_aircraft_elo),
@@ -385,6 +387,14 @@ def _check_streak_tracks() -> bool:
     streak columns of the player list on the old single track, and its survivor / life-kills medals from the old rule:
     level 2 must be rebuilt, once (the marker keeps it from running again; the same rebuild as every other step's, so an
     upgrade never rebuilds twice, FR-OPS-3)."""
+    from il2ks.db.models import PlayerSortie, Role
+
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists()
+
+
+def _check_streak_all() -> bool:
+    """A database from before the all ironman track (maintainer, 2026-10-05, migration 0101) has no streak rows for it:
+    level 2 must be rebuilt, once, in the same rebuild as every other step's (FR-OPS-3)."""
     from il2ks.db.models import PlayerSortie, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists()

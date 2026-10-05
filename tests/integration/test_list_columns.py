@@ -256,7 +256,7 @@ def test_extra_columns_is_a_collapsible_that_starts_open_only_with_a_ticked_colu
     plain = client.get("/players/").content.decode()
     ticked = client.get("/players/?cols=kd").content.decode()
 
-    assert "<summary>Extra columns</summary>" in plain
+    assert "<summary><span>Extra columns</span>" in plain
     assert "dropdown columns-picker" not in plain
     assert 'id="columns-picker" hx-preserve>' in plain
     assert 'id="columns-picker" hx-preserve open>' in ticked
