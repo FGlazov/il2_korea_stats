@@ -15,6 +15,10 @@ settings** you can change:
 - **Description**: a short text shown on the home page,
 - **Logo**: upload a PNG, JPEG or WebP picture (up to 2 MB). (SVG is not accepted for uploads, because an SVG file can carry
   scripts. See the next section if you need SVG.)
+- **Browser tab icon**: the logo is used automatically (made square with transparent padding, never cropped); you can upload
+  a separate icon instead (a square picture of at least 180 × 180 pixels works best). Without a logo the built-in aircraft icon stays.
+- **Header background** and **Home banner background**: optional pictures behind the top banner (every page) and behind the title
+  and player search on the home page (see below),
 - **Fonts**: one for headings and one for the text (see below),
 - **Colors**: every color of the site, separately for the light and the dark theme (see below),
 - **Navigation links**: your own links (Discord, forum, Patreon, ...) in the top menu (see below),
@@ -97,6 +101,20 @@ that was in use falls back to the default). A preview line shows each uploaded f
 
 If you prefer to manage fonts by hand, you can still put a `.woff2` in `custom/static/` and add an `@font-face` and a
 `--il2-font-display` / `--pico-font-family` line in a small stylesheet from the `head` block (section 2).
+
+### Background pictures for the top banner and the home banner
+
+Under **Header background** and **Home banner background** you can upload a picture each (PNG, JPEG or WebP, up to 4 MB; SVG is
+refused). Recommended sizes: **1920 × 400 pixels** for the header, **1600 × 500 pixels** for the home banner (larger pictures
+are scaled down to 2560 pixels wide). Without an upload nothing changes: the built-in camouflage and aircraft decoration stays.
+
+- The picture is **cropped to fill** the banner, which is wider and shorter on a desktop and narrower and taller on a phone. The
+  **Focus of the picture** (center, left, right, top, bottom) says which part always stays visible, so put the important part there.
+- **Darkening (0 to 80 %)** lays the band color over the picture so the light text stays readable, in the light and the dark
+  theme. The default is 70 %; bright or busy pictures need 80 %, dark pictures work with less.
+- The same picture is used in the light and the dark theme (the darkening keeps the contrast in both).
+- **Remove it and use the built-in decoration** switches back. The picture is checked, re-encoded (metadata removed) and stored
+  next to the logo; the file you uploaded is never served itself.
 
 ### A large image on the front page
 

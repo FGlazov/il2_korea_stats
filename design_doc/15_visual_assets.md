@@ -11,6 +11,8 @@ mainly to **look at their own last flight** ("sortie"): what they shot down, who
 table-heavy site: mostly numbers in tables, some summary tiles, some collapsible sections. Server owners can rebrand it (logo, accent
 colour) and override any file.
 
+**Admin-uploaded pictures (2026-10-05):** the header and the home hero may carry an uploaded background picture instead of the camo tile and the faint mark, and the uploaded logo becomes the tab icon (doc 16 branding, `web/branding_images.py`); these are data, not shipped assets, so they are not in the inventory below.
+
 **Style direction** (maintainer): *vaguely military*: camo or aircraft motifs, **nothing too distracting**. The current placeholder theme
 uses muted olive / khaki / gunmetal tones with one restrained accent colour, light and dark modes, squared corners, and a faint texture in
 the header only. The old IL-2 stats sites ([combatbox.net](https://combatbox.net/en/), [stats.virtualpilots.fi](https://stats.virtualpilots.fi/en/))

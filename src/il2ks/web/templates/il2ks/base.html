@@ -10,7 +10,7 @@
     footer   the footer's inner content (it holds the language menu, `{% language_menu %}`).
     scripts  extra scripts, after htmx, il2ks.js and localtime.js (real-world times in the viewer's time zone, FR-WEB-17).
   Context from il2ks.web.context_processors.site: site (SiteSettings), nav_links [NavItem(label, url, icon)],
-  site_links [(label, url)], theme_css (the :root colour/font overrides), data_updated (datetime or None), il2ks_version, logo_url ('' when no logo). The theme is documented in
+  site_links [(label, url)], theme_css (the :root colour/font overrides), data_updated (datetime or None), il2ks_version, logo_url ('' when no logo), bg_css/home_bg/header_bg (background pictures), icon_url/apple_touch_icon_url (tab icon). The theme is documented in
   static/il2ks/site.css (tokens first).
 {% endcomment %}<!doctype html>
 {% get_current_language as LANGUAGE_CODE %}<html lang="{{ LANGUAGE_CODE }}">
@@ -18,17 +18,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="{% static 'il2ks/img/brand/favicon.svg' %}" type="image/svg+xml">
+  {% if icon_url %}<link rel="icon" href="{{ icon_url }}" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="{{ apple_touch_icon_url }}">{% else %}<link rel="icon" href="{% static 'il2ks/img/brand/favicon.svg' %}" type="image/svg+xml">{% endif %}
   <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}{{ site.site_title }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'il2ks/vendor/pico.min.css' %}">
   <link rel="stylesheet" href="{% static 'il2ks/site.css' %}">
   {% if theme_css %}<style>{{ theme_css }}</style>{% endif %}
+  {% if bg_css %}<style>{{ bg_css }}</style>{% endif %}
   <script src="{% static 'il2ks/theme-init.js' %}"></script>
   {% block head %}{% endblock %}
 </head>
 <body>
   <a class="skip-link" href="#main">{% translate "Skip to content" %}</a>
-  <header class="site-header">
+  <header class="site-header{% if header_bg %} site-header--image{% endif %}">
     <div class="page site-header__inner">
       <a class="brand" href="{% url 'web:home' %}">
         {% if logo_url %}<img class="brand__logo" src="{{ logo_url }}" alt="">{% else %}{% icon "brand/logo-mark" "brand__mark" %}{% endif %}
