@@ -28,6 +28,9 @@ port = 8000
    your proxy, all visitors share one lockout counter (ten wrong passwords from anyone lock everyone out for five
    minutes).
 5. Keep the original **`Host`** header (recommended) so links and the admin login work.
+6. **Compress the pages** (gzip or better). il2ks already sends its stylesheets, scripts and icons compressed, but the
+   pages themselves come uncompressed, and the bundled Caddy normally compresses them. Pages with long tables shrink
+   about five to ten times, which phones on mobile data notice. The samples below include it.
 
 With the proxy running, `il2ks doctor` shows whether ports and settings agree.
 
@@ -47,6 +50,10 @@ server {
 
     ssl_certificate     /etc/letsencrypt/live/stats.example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/stats.example.com/privkey.pem;
+
+    gzip on;
+    gzip_proxied any;   # nginx skips proxied responses without this
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain;   # text/html is always on
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -78,13 +85,18 @@ the *Web Platform Installer* replacement downloads at <https://www.iis.net/downl
    on `http` port 80.
 4. **Allow the forwarded-proto header:** select the site, open *URL Rewrite*, click *View Server Variables...* on the
    right, *Add...*, name **`HTTP_X_FORWARDED_PROTO`**, *OK*.
-5. **The rules.** Put this `web.config` into the site's folder (the first rule redirects http to https, the second
+5. **Compression:** add the Windows feature *Dynamic Content Compression* (Server Manager, *Add Roles and Features*,
+   Web Server (IIS) > Web Server > Performance; on Windows 10/11: *Turn Windows features on or off*, Internet
+   Information Services > World Wide Web Services > Performance Features). The `web.config` below switches it on for
+   the site.
+6. **The rules.** Put this `web.config` into the site's folder (the first rule redirects http to https, the second
    forwards to il2ks):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
+    <urlCompression doStaticCompression="true" doDynamicCompression="true" />
     <rewrite>
       <rules>
         <rule name="http to https" stopProcessing="true">
@@ -113,13 +125,14 @@ address bar.
 
 ## Other proxies (Apache, Traefik, HAProxy, ...)
 
-Same four requirements. For Apache with `mod_proxy`:
+Same requirements. For Apache with `mod_proxy`, `mod_headers` and `mod_deflate`:
 
 ```apache
 RequestHeader set X-Forwarded-Proto "https"
 ProxyPreserveHost On
 ProxyPass        / http://127.0.0.1:8000/
 ProxyPassReverse / http://127.0.0.1:8000/
+AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml text/plain
 ```
 
 ## Not on the same machine as the proxy?

@@ -78,7 +78,7 @@ def test_the_admin_story_in_real_processes(tmp_path: Path) -> None:
 
     # 4. the database is behind (as after an upgrade): the next writer command backs it up, then updates it
     il2ks(
-        tmp_path, "manage", "migrate", "il2ks_db", "0001", "--no-input", IL2KS_DATA_DIR=str(data)
+        tmp_path, "manage", "migrate", "il2ks_db", "zero", "--no-input", IL2KS_DATA_DIR=str(data)
     )  # manage ignores il2ks.toml
     pending = json.loads(il2ks(tmp_path, "doctor", "--json", check=False).stdout)
     assert any("pending migration" in f["title"] for f in pending["findings"])

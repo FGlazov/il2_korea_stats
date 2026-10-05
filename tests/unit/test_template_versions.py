@@ -150,6 +150,12 @@ def released(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(tv, "FIRST_RELEASE_DONE", True)
 
 
+@pytest.fixture
+def prerelease(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The behaviour before the first public release: every file stays at v1, only the hash moves."""
+    monkeypatch.setattr(tv, "FIRST_RELEASE_DONE", False)
+
+
 def test_first_run_adds_headers_at_v1_and_registers_everything_versioned(web: Path) -> None:
     actions = tv.bump_templates(web)
     assert {a.key for a in actions} == {
@@ -255,8 +261,8 @@ def test_the_real_files_are_all_at_v1_until_the_first_release() -> None:
     assert {tv.version_of(path) for path in tv.versioned_files().values()} == {1}
 
 
+@pytest.mark.usefixtures("prerelease")
 def test_a_changed_file_stays_at_v1_and_only_its_hash_moves(web: Path) -> None:
-    assert not tv.FIRST_RELEASE_DONE
     tv.bump_templates(web)
     a, b = web / "templates" / "il2ks" / "a.html", web / "templates" / "il2ks" / "b.html"
     b_before = b.read_bytes()
@@ -274,6 +280,7 @@ def test_a_changed_file_stays_at_v1_and_only_its_hash_moves(web: Path) -> None:
     assert tv.bump_templates(web) == []
 
 
+@pytest.mark.usefixtures("prerelease")
 def test_higher_versions_are_reset_to_v1_before_the_first_release(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"
@@ -288,6 +295,7 @@ def test_higher_versions_are_reset_to_v1_before_the_first_release(web: Path) -> 
     assert tv.bump_templates(web) == []
 
 
+@pytest.mark.usefixtures("prerelease")
 def test_a_lost_header_comes_back_as_v1_before_the_first_release(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"

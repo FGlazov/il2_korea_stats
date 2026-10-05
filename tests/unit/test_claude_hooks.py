@@ -25,6 +25,13 @@ def _load(name: str) -> ModuleType:
 guard = _load("guard_edits")
 
 
+@pytest.fixture(autouse=True)
+def _no_escape_hatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The maintainer's override may be set in the shell that runs the suite (the first release's squash): the guard
+    tests assert the default, so they run without it; the escape-hatch tests set it themselves."""
+    monkeypatch.delenv(guard.ALLOW_ENV, raising=False)
+
+
 def _fake_released(*, only: str) -> Callable[[str, str], str | None]:
     def fake(rel: str, root: str) -> str | None:
         return "origin/main" if only in rel else None

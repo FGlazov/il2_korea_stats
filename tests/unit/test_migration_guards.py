@@ -15,6 +15,13 @@ pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not ava
 REAL = Path(__file__).resolve().parents[2] / guard.MIGRATIONS_DIR
 
 
+@pytest.fixture(autouse=True)
+def _no_escape_hatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The maintainer's override may be set in the shell that runs the suite (the first release's squash): the guard
+    tests assert the default, so they run without it; the escape-hatch tests set it themselves."""
+    monkeypatch.delenv(guard.ALLOW_ENV, raising=False)
+
+
 def _migration(depends_on: str | None) -> str:
     deps = f'[("il2ks_db", "{depends_on}")]' if depends_on else "[]"
     head = "from django.db import migrations\n\n\nclass Migration(migrations.Migration):\n"

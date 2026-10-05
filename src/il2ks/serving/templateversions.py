@@ -15,7 +15,7 @@ registry). This module is that bookkeeping plus the header parsing the detection
 
 Before the first public release nobody can have an override based on an older version, so the numbers would only be
 noise: while `FIRST_RELEASE_DONE` is False every file stays at v1 and `bump-templates` only refreshes the content
-hashes in the registry. Flip the constant when the first release is tagged; from then on versions count up.
+hashes in the registry. The constant was flipped for the first release (0.1.0); since then versions count up.
 
 Which files are versioned: HTML/TXT templates and CSS/JS static files of the `il2ks.web` package, except vendored
 libraries (`vendor/`). Images and fonts are replaced as a whole, so they have no versions.
@@ -45,11 +45,11 @@ UNVERSIONED_DIRS = frozenset({"vendor"})
 _DJANGO_HEADER = re.compile(r"^\s*\{#\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?#\}\s*$")
 _C_HEADER = re.compile(r"^\s*/\*\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?\*/\s*$")
 
-# Flip to True in the commit that tags the first public release (docs/releasing.md). Until then every built-in file
-# stays at version 1 and a changed file only gets a new hash in the registry. An explicit constant rather than something
+# True since the first public release (0.1.0, docs/releasing.md); before it every built-in file stayed at version 1
+# and a changed file only got a new hash in the registry. An explicit constant rather than something
 # derived (a git tag, `il2ks.__version__`): tags are missing in shallow clones and sdists, `__version__` also moves for
 # pre-releases, and the switch should be a visible, reviewed change in the release commit.
-FIRST_RELEASE_DONE = False
+FIRST_RELEASE_DONE = True
 
 type ActionKind = Literal["register", "add-header", "bump", "fix-header", "rehash", "drop"]
 

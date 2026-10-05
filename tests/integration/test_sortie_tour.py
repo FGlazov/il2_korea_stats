@@ -1,14 +1,12 @@
 """`PlayerSortie.tour` is always the mission's tour (doc 06 "PlayerSortie", doc 14 "The sortie's tour"): the paths that
-write `Mission.tour` keep it, and the migration backfills it. The big tour tests (`test_tours*.py`) assert it after
+write `Mission.tour` keep it. The big tour tests (`test_tours*.py`) assert it after
 each of their operations (`assert_tour_rows_consistent`), every incremental == rebuild comparison does too
 (`canonical_dump`)."""
 
 from datetime import UTC, datetime
-from pathlib import Path
 
 import pytest
-from django.db import connection, transaction
-from django.db.migrations.executor import MigrationExecutor
+from django.db import transaction
 
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.db.models import Mission, PlayerSortie, SiteSettings, Tour
@@ -90,19 +88,3 @@ def test_the_guard_notices_a_sortie_in_another_tour_than_its_mission() -> None:
 
     with pytest.raises(AssertionError, match="differs from their mission"):
         assert_sortie_tours_consistent()
-
-
-@pytest.mark.django_db(transaction=True)
-def test_the_migration_backfills_the_tour_of_the_missions(tmp_path: Path) -> None:
-    put("a", at(2026, 9, 30, 23))
-    put("b", at(2026, 10, 1, 3))
-    expected = dict(PlayerSortie.objects.values_list("pk", "tour_id"))
-    assert len(set(expected.values())) == 2
-    try:
-        MigrationExecutor(connection).migrate([("il2ks_db", "0075_branding_backgrounds_favicon")])  # drops the column
-        MigrationExecutor(connection).migrate([("il2ks_db", "0076_sortie_tour")])
-        got = dict(PlayerSortie.objects.values_list("pk", "tour_id"))
-    finally:
-        final = MigrationExecutor(connection)
-        final.migrate(final.loader.graph.leaf_nodes())
-    assert got == expected

@@ -189,8 +189,8 @@ decisions are made):
 - ✅ **Pagination** (OQ-96): 10 missions, 20 rows per page. Exception (maintainer, 2026-10-04): the sortie page's timeline is not paginated (a detail page; a higher
   time and query budget is fine). 🔧 ✅ SVG icon sprite (one cached `/sprite.svg`; real-log mission page 87 → 55 KB).
 - ✅ **Home page** tour-aware with six boards (3×2, incl. play time) (OQ-79, OQ-104); Elo "encounters".
-- ⏳ **Flip `FIRST_RELEASE_DONE`** (template versions start counting from v1; TD-25), together with the squash below.
-- ⏳ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
+- ✅ **Flip `FIRST_RELEASE_DONE`** (template versions start counting from v1; TD-25), together with the squash below (0.1.0, 2026-10-05).
+- ✅ **Squash the migrations into one initial migration** (maintainer, 2026-10-04), as the last step before the **first** release
   only (later releases ship their migrations as they are): a new
   database is created in one step instead of replaying the development history (faster installs). Done once, with the
   released-migration guard's maintainer override (`IL2KS_ALLOW_RELEASED_MIGRATION_EDIT=1`); development databases are recreated
@@ -201,6 +201,9 @@ decisions are made):
   output and tests; `ops/checks.py` `ammo_mix_check` (points to a docs section that no longer exists); the `parachute_deaths` comment
   in `core/replay/toggles.py`; the "upgrade backfill" docstring in `ingest/achievements.py`.
   Compat code removed (2026-10-05): all `BACKFILL_*` steps and `_run_backfills`, `RENAMED_SCORE_KEYS` and the config warnings, `ammo_mix_check`, with their tests; `SiteSettings.backfills_done` became `catalog_fingerprint` (migration 0077, squashed away with the rest).
+  Squashed (2026-10-05, for 0.1.0): 0001..0077 became one `0001_initial`; a fresh SQLite database from it has exactly the
+  schema (tables, columns, defaults, foreign keys, indexes incl. partial ones) and seed rows of the old history; the tests
+  that migrated to old migration names are gone.
 - ✅ **More branding for server admins** (maintainer, 2026-10-04; incl. `.woff2` font upload): extra links in the top navigation row (up to 30) after the built-in
   ones (Discord, forum, Patreon…), with a recommended maximum measured on real widths (the maintainer guesses 3); custom color schemes
   where nearly every color is a token admins can change, for light and dark; fonts if feasible (self-hosted, no third-party CDN).
@@ -312,8 +315,8 @@ decisions are made):
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
-**Schedule** (2026-10-04): every required item is built except the migration squash, which is the last step before the first release,
-and the PyPI first publish (maintainer).
+**Released** as the public beta **0.1.0** on 2026-10-05 (maintainer): migrations squashed, template versions counting, PyPI
+through trusted publishing.
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).
@@ -323,6 +326,16 @@ and the PyPI first publish (maintainer).
 - **Scripted custom quip events** (maintainer, 2026-10-04): admin-written conditions over a sortie's fields, evaluated by a small
   whitelisted expression parser (never Python `eval`) and validated on save.
 - Bailout height arm once heightmaps arrive (OQ-39).
+- **Doctor: are pages compressed?** (maintainer, 2026-10-05): with an own reverse proxy (nginx, IIS, Apache) the pages are
+  only compressed when the proxy does it (`docs/reverse-proxy.md`, requirement 6; the bundled Caddy always does). A
+  `doctor` check fetches a page through the public address and warns when it comes back without `Content-Encoding`. (Not
+  Django's GZipMiddleware: it would compress in the single Python process on every hit and replace Caddy's zstd.)
+- **"Delete all data and reprocess" in the admin** (maintainer, 2026-10-05): a second button next to *Reprocess all*
+  that deletes every ingested row (missions, sorties, players, tours and everything derived from them) but keeps the admin
+  settings, then reprocesses every archived mission, so the tours are cut again from the current tour settings. Open
+  before building: which rows count as admin settings besides `SiteSettings` and the game rules (hidden players and
+  missions, object name overrides, manual tour names / periods, achievement settings); a backup first; a typed
+  confirmation like other destructive actions.
 
 ## Right after the release: visual assets
 **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
