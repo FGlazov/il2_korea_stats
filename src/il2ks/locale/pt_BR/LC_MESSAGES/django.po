@@ -1338,6 +1338,10 @@ msgid "Bombs"
 msgstr "Bombas"
 
 # llm-draft
+msgid "Bombs (mixed loadout)"
+msgstr "Bombas (armamento misto)"
+
+# llm-draft
 msgid "Bombs, rockets and napalm"
 msgstr "Bombas, foguetes e napalm"
 
@@ -4332,6 +4336,10 @@ msgstr "Salva de foguetes"
 # llm-draft
 msgid "Rockets"
 msgstr "Foguetes"
+
+# llm-draft
+msgid "Rockets (mixed loadout)"
+msgstr "Foguetes (armamento misto)"
 
 # llm-draft
 msgid "Role"

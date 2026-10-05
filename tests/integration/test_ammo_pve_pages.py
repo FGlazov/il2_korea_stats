@@ -3,8 +3,8 @@
 from dataclasses import replace
 
 import pytest
-from django.test import Client
 from django.conf import settings
+from django.test import Client
 
 from il2ks.core.replay.result import (
     UNATTRIBUTED_ORDNANCE,
