@@ -3,7 +3,7 @@
   "files": {
     "static/il2ks/il2ks.js": {
       "version": 1,
-      "sha256": "399d5c552b59294ad12916b578756cd0fc39ee34ded5cea487a3c1177c858e50"
+      "sha256": "521c1b598cfe1f3d5bb970bf8feac46ab8c5ebc757a536c18b5f47f1f31a809d"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "cdd3f39853c64b8d243c641f3531b90421d292f4d95ee9448b50f92803a245fb"
+      "sha256": "03056a119bb545df5960ed3d67365538e8476dd1365c4a28c68327f7fc3ccf91"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
@@ -139,7 +139,7 @@
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "3923d50df90abf5e4959a16384a25d2941d3f4cfc0a2c2ffbc1137e7c3b48a01"
+      "sha256": "0b057dff1f66840e7b33926c9bad820228d41106f98946d48f709cdaa311a57c"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
@@ -187,7 +187,7 @@
     },
     "templates/il2ks/components/columns_picker.html": {
       "version": 1,
-      "sha256": "893d1056829eab56b514746ca065bf5eec92fdac40d2f536a1358a7eee920b3d"
+      "sha256": "3b4bbfaf4ffaf27f3c4a267ed85f5d50c3de963f5545536550f2f129387d08f4"
     },
     "templates/il2ks/components/dropdown.html": {
       "version": 1,
@@ -359,7 +359,7 @@
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 1,
-      "sha256": "42fd97507f16e149ec60a06c7a7666932408f7cb8bbc9161314f424b795fd121"
+      "sha256": "dbd83e4d65b578756f0371de7edaee1fa96d1e77d2f2443bdea3801a155bf09b"
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,

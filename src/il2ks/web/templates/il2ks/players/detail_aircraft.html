@@ -24,7 +24,7 @@
         <tbody>
           {% for row in aircraft %}
             <tr>
-              <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} <a class="stretched-link" href="{% url 'web:player-sorties' player.pk %}?aircraft={{ row.aircraft_id }}&amp;tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}" title="{% translate 'All sorties in this aircraft' %}">{{ row.aircraft|object_name }}</a></td>
+              <td class="aircraft-table__name">{% aircraft_icon row.aircraft "aircraft-table__icon" %} <a class="stretched-link" href="{% url 'web:player-sorties' player.pk %}?aircraft={{ row.aircraft_id }}&amp;tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}{% if role != 'all' %}&amp;combat_role={{ role }}{% endif %}" title="{% translate 'All sorties in this aircraft' %}">{{ row.aircraft|object_name }}</a></td>
               <td class="num">{{ row.sorties|num }}</td>
               <td class="num">{{ row.flight_time_s|duration }}</td>
               <td class="num">{{ row.kills_air|num }}</td>

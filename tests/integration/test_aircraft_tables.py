@@ -202,3 +202,16 @@ def test_the_detail_page_stays_within_its_read_budget_with_all_tables(client: Cl
 
     # the tables page lists in Python: no count queries (the same budget as before the tabs and the paging)
     assert_simple_reads(client, f"/aircraft/{pk}/?tour=all&lrole=attack&page_loadouts=1&page_mods=1", max_queries=10)
+
+
+@pytest.mark.usefixtures("list_every_row")
+def test_the_page_links_of_each_table_end_in_its_own_section_anchor(client: Client) -> None:
+    """Page 2 of loadouts / modifications must not jump to the top of the page (review #13 nit)."""
+    groups: list[tuple[int, int, CombatRole, int]] = [(1, payload, AIR, payload) for payload in range(1, 26)]
+    seed(*groups)
+
+    body = page(client, "?tour=all").content.decode()
+
+    for param, anchor in (("page_loadouts", "loadouts"), ("page_mods", "mods")):
+        assert f'<section id="{anchor}">' in body
+        assert f'href="?tour=all&amp;{param}=2#{anchor}"' in body

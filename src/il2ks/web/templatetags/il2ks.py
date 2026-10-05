@@ -556,20 +556,24 @@ def col_th(context: Context, label: object, numeric: bool = False, hint: object 
 
 
 @register.inclusion_tag(COMPONENTS + "pagination.html", takes_context=True)
-def pagination(context: Context, page_obj: Page, param: str = "page", label: str = "") -> dict[str, object]:
+def pagination(
+    context: Context, page_obj: Page, param: str = "page", label: str = "", anchor: str = ""
+) -> dict[str, object]:
     """{% pagination page_obj %} for a Django `Page`: result summary plus numbered links that keep other parameters,
     every value of a repeated one (`cols`) included.
 
     A page with several paginated tables gives each its own query parameter, named 'page_...':
     {% pagination group.page param=group.page_param %}. Sorting drops them all (a new order starts at page 1).
-    Several on one page need distinct landmark names: pass `label` (axe rule landmark-unique)."""
+    Several on one page need distinct landmark names: pass `label` (axe rule landmark-unique). `anchor` (an element id)
+    ends every link in `#anchor`, so page 2 of a table lower down the page does not jump to the top."""
     params = _params_of(context)
+    fragment = f"#{anchor}" if anchor else ""
     paginator = page_obj.paginator
     links = [
         {
             "number": link.number,
             "current": link.current,
-            "href": replace_query(params, {param: link.number if link.number != 1 else None})
+            "href": replace_query(params, {param: link.number if link.number != 1 else None}) + fragment
             if link.number is not None
             else "",
         }
@@ -584,11 +588,13 @@ def pagination(context: Context, page_obj: Page, param: str = "page", label: str
         "multiple": paginator.num_pages > 1,
         "links": links,
         "prev_href": (
-            replace_query(params, {param: page_obj.previous_page_number() if page_obj.number > 2 else None})
+            replace_query(params, {param: page_obj.previous_page_number() if page_obj.number > 2 else None}) + fragment
             if page_obj.has_previous()
             else ""
         ),
-        "next_href": replace_query(params, {param: page_obj.next_page_number()}) if page_obj.has_next() else "",
+        "next_href": (replace_query(params, {param: page_obj.next_page_number()}) + fragment)
+        if page_obj.has_next()
+        else "",
     }
 
 
