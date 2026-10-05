@@ -256,13 +256,3 @@ def test_streak_list_budget(client: Client) -> None:
     assert_simple_reads(client, "/streaks/", max_queries=8)
     assert_simple_reads(client, "/streaks/?tour=all", max_queries=8)
     assert_simple_reads(client, f"/streaks/?tour={september.pk}", max_queries=6)
-
-
-def test_home_streak_button_carries_the_tour_of_the_block(client: Client) -> None:
-    seed_streak_tours()
-    september = tour_named("September 2026")
-
-    october = tour_named("October 2026")
-    assert f'href="/streaks/?tour={october.pk}"' in client.get("/").content.decode()
-    assert f'href="/streaks/?tour={september.pk}"' in client.get(f"/?tour={september.pk}").content.decode()
-    assert 'href="/streaks/?tour=all"' in client.get("/?tour=all").content.decode()

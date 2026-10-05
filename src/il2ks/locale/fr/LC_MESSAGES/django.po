@@ -73,6 +73,41 @@ msgstr "%(kills)s victoires, %(hits)s impacts"
 
 # llm-draft
 #, python-format
+msgid "%(label)s must be a finite number"
+msgstr "%(label)s doit être un nombre fini"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a number"
+msgstr "%(label)s doit être un nombre"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a whole number"
+msgstr "%(label)s doit être un nombre entier"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be at most %(max)s"
+msgstr "%(label)s ne peut pas dépasser %(max)s"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be greater than 0"
+msgstr "%(label)s doit être supérieur à 0"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be true or false"
+msgstr "%(label)s doit être « oui » ou « non »"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must not be negative"
+msgstr "%(label)s ne doit pas être négatif"
+
+# llm-draft
+#, python-format
 msgid "%(m)d min"
 msgstr "%(m)d min"
 
@@ -392,11 +427,16 @@ msgstr ""
 # llm-draft
 #, python-format
 msgid ""
-"A change shows at once: the boards use it on the next page view, and the Top 10%% and Top 25%% marks on the player "
-"pages are computed again when you save."
+"A change to a minimum for sorties, attack sorties, time on target or air superiority shows at once: the boards use it"
+" on the next page view, and the Top 10%% and Top 25%% marks on the player pages are computed again when you save. The"
+" Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after"
+" the next rebuild, which the site starts in the background."
 msgstr ""
-"Une modification est visible tout de suite : les classements l'utilisent à la prochaine consultation, et les marques "
-"« Top 10 %% » et « Top 25 %% » des pages de joueurs sont recalculées à l'enregistrement."
+"Une modification du minimum de sorties, de sorties d’attaque, de temps sur cible ou de supériorité aérienne est "
+"visible immédiatement : les classements l’utilisent dès la prochaine consultation de la page, et les marques Top 10 "
+"%% et Top 25 %% des pages des pilotes sont recalculées à l’enregistrement. Le minimum Elo fait exception : il "
+"détermine aussi de quel tour provient l’Elo général d’un pilote, et ne prend donc effet qu’après la prochaine "
+"reconstruction, que le site lance en arrière-plan."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -4203,8 +4243,8 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Radio : néant. L'opérateur a fini les mots fléchés, et le journal avec."
 
 # llm-draft
-msgid "Ram: and this close in space (metres)"
-msgstr "Collision : et aussi proches dans l'espace (mètres)"
+msgid "Ram: and this close in space (meters)"
+msgstr "Collision : et aussi proches dans l’espace (mètres)"
 
 # llm-draft
 msgid "Ram: the two losses must be this close in time (seconds)"
@@ -4271,6 +4311,10 @@ msgstr "Récemment terminées par expiration du délai d'inactivité"
 # llm-draft
 msgid "Recently earned"
 msgstr "Obtenu récemment"
+
+# llm-draft
+msgid "Recomputed in the background by the next rebuild"
+msgstr "Recalculé en arrière-plan lors de la prochaine reconstruction"
 
 # llm-draft
 msgid "Regular"

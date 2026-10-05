@@ -91,7 +91,7 @@
     },
     "templates/admin/il2ks_leaderboards.html": {
       "version": 1,
-      "sha256": "4bf00750dbe90e215fa2af2110fe56c7da61620667671b2f26227a81ce90a7c3"
+      "sha256": "b2a2585946233540d2c12d961cd824899bf0715e6cb34282951752a04b5ecd26"
     },
     "templates/admin/il2ks_quips.html": {
       "version": 1,
