@@ -20,7 +20,7 @@ from tests.factories import FakeCatalog, kill, meta, mission, sortie
 from tests.integration.test_achievements import held, snapshot
 from tests.integration.test_achievements_all_time import fly
 from tests.integration.test_tours import MONTHLY
-from tests.integration.test_tours_decisive import A, B, C, D, END_TICK, at, history, put, set_on_win, tour_titles
+from tests.integration.test_tours_decisive import END_TICK, A, B, C, D, at, history, put, set_on_win, tour_titles
 
 pytestmark = pytest.mark.django_db
 
@@ -65,7 +65,7 @@ def assert_no_empty_tour() -> None:
     assert not Tour.objects.filter(missions__isnull=True).exists()
 
 
-# --- 1. a discarded live mission leaves no empty tour behind -----------------------------------------------------------
+# --- 1. a discarded live mission leaves no empty tour behind ---
 def test_discarded_live_mission_in_a_decisive_part_leaves_no_empty_tour() -> None:
     set_on_win(wanted=True)
     for i in range(3):
@@ -93,7 +93,7 @@ def test_discarded_live_mission_that_opened_a_month_leaves_no_empty_tour() -> No
     assert_equals_rebuild()  # the current streaks are those of September again
 
 
-# --- 2. a save touches its own tour only --------------------------------------------------------------------------------
+# --- 2. a save touches its own tour only ---
 def test_a_save_in_a_later_part_touches_only_that_part() -> None:
     set_on_win(wanted=True)
     history()
@@ -123,7 +123,7 @@ def test_a_new_part_touches_only_the_new_part() -> None:
     assert touched == {new}
 
 
-# --- 3. Old Hand after a tour was inserted in the past ------------------------------------------------------------------
+# --- 3. Old Hand after a tour was inserted in the past ---
 def test_tour_inserted_between_breaks_the_old_hand_run_like_a_rebuild() -> None:
     fly(0)
     fly(2)  # tours 0 and 2 exist only: consecutive in the tours table
@@ -136,7 +136,7 @@ def test_tour_inserted_between_breaks_the_old_hand_run_like_a_rebuild() -> None:
     assert snapshot() == snap
 
 
-# --- 4. titles after an admin's rename ----------------------------------------------------------------------------------
+# --- 4. titles after an admin's rename ---
 def test_parts_are_titled_from_the_renamed_base_incrementally_and_by_retour() -> None:
     set_on_win(wanted=True)
     put(A, winner=1)
@@ -150,7 +150,7 @@ def test_parts_are_titled_from_the_renamed_base_incrementally_and_by_retour() ->
     assert tour_titles() == incremental
 
 
-# --- shuffled orders stay equal to a rebuild ----------------------------------------------------------------------------
+# --- shuffled orders stay equal to a rebuild ---
 def test_shuffled_on_win_ingest_equals_rebuild() -> None:
     set_on_win(wanted=True)
     order = list(range(len(STARTS)))
