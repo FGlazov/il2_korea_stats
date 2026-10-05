@@ -6,10 +6,10 @@
   detail_ground_scores.html. Elo shows once the player has encounters in that pool (otherwise the dash).
 {% endcomment %}<dl class="kv kv--compact">
   <dt>{% translate "Air score" %}</dt><dd>{{ stats.score_air|num:1 }}{% stat_mark "air_score" %}</dd>
-  <dt>{% translate "Interception per hour" %} <small>{% translate "bomber, attacker and transport kills, air superiority sorties" %}</small></dt>
+  {% if show_elo %}<dt>{% translate "Interception per hour" %} <small>{% translate "bomber, attacker and transport kills, air superiority sorties" %}</small></dt>
   <dd>{{ stats.kills_intercept|per_hour:stats.flight_time_air_s }}{% stat_mark "interception_hour" %}</dd>
   <dt>{% translate "Elo (prop)" %}{% if not tour %} <small>{% translate "all time" %}</small>{% endif %}</dt>
   <dd>{% if elo.elo_prop_games %}{{ elo.elo_prop|num }}{% stat_mark "elo_prop" %} <small>{% blocktranslate count games=elo.elo_prop_games %}{{ games }} encounter{% plural %}{{ games }} encounters{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
   <dt>{% translate "Elo (jet)" %}{% if not tour %} <small>{% translate "all time" %}</small>{% endif %}</dt>
-  <dd>{% if elo.elo_jet_games %}{{ elo.elo_jet|num }}{% stat_mark "elo_jet" %} <small>{% blocktranslate count games=elo.elo_jet_games %}{{ games }} encounter{% plural %}{{ games }} encounters{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>
+  <dd>{% if elo.elo_jet_games %}{{ elo.elo_jet|num }}{% stat_mark "elo_jet" %} <small>{% blocktranslate count games=elo.elo_jet_games %}{{ games }} encounter{% plural %}{{ games }} encounters{% endblocktranslate %}</small>{% else %}–{% endif %}</dd>{% endif %}
 </dl>

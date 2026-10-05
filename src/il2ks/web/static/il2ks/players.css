@@ -104,3 +104,10 @@
 
 /* Favourite loadout row under an aircraft row of the per-aircraft table (detail_aircraft_build.html) */
 .aircraft-table__build > td { padding-top: 0; }
+
+/* Other totals: small label-over-value cells, 2 columns on phones, 4 from 760 px (maintainer 2026-10-05). */
+.totals-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin: 0 0 1.5rem; }
+.totals-grid > div { min-width: 0; padding: 0.55rem 0.8rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
+.totals-grid dt { margin: 0; color: var(--il2-muted); font-size: 0.8rem; line-height: 1.25; overflow-wrap: anywhere; }
+.totals-grid dd { margin: 0.15rem 0 0; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+@media (min-width: 760px) { .totals-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

@@ -1,11 +1,11 @@
 """Player search and profile pages (FR-WEB-3, FR-WEB-4, FR-WEB-13, FR-ADM-3, TD-22). Synthetic data only."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.test import Client
 
-from il2ks.db.models import GameObject, Mission, Player
+from il2ks.db.models import GameObject, Mission, Player, PlayerRole, PlayerTour, Tour
 from il2ks.queries import players as reads
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import PROFILE_READS_ALL_TIME, PROFILE_READS_TOUR, assert_simple_reads
@@ -357,3 +357,187 @@ def test_profile_without_air_activity_collapses_the_air_part(client: Client) -> 
 
     assert response.context["air_active"] is False
     assert "No air-to-air activity yet" in response.content.decode()
+
+
+# --- role toggle (maintainer 2026-10-05): ?role=air_superiority|attack on the profile -------------------------------
+def seed_roles() -> None:
+    """Player 1 flies air superiority (August: 3 air kills, a death; September: 1 air kill, 1 empty sortie) and attack
+    (September: 2 sorties, 5 ground kills); player 2 only air superiority; player 3 only attack. Two monthly tours."""
+    air, attack = "air_superiority", "attack"
+    save(
+        mission(
+            (
+                sortie(0, 1, name="Maverick", kills_air=3, is_death=True, is_plane_lost=True, combat_role=air),
+                sortie(1, 2, name="Goose", combat_role=air),
+                sortie(2, 3, name="Viper", aircraft_type="IL-10", kills_ground=1, combat_role=attack),
+            )
+        ),
+        meta("2026-08-10_10-00-00", datetime(2026, 8, 10, 8, tzinfo=UTC)),
+    )
+    save(
+        mission(
+            (
+                sortie(0, 1, name="Maverick", kills_air=1, combat_role=air),
+                sortie(1, 1, name="Maverick", aircraft_type="IL-10", kills_ground=2, combat_role=attack),
+                sortie(2, 1, name="Maverick", aircraft_type="IL-10", kills_ground=3, combat_role=attack),
+                sortie(3, 3, name="Viper", aircraft_type="IL-10", kills_ground=4, combat_role=attack),
+                sortie(4, 1, name="Maverick", combat_role=air),
+            )
+        ),
+        meta("2026-09-10_10-00-00", datetime(2026, 9, 10, 8, tzinfo=UTC)),
+    )
+
+
+def test_role_toggle_scopes_the_tiles_tables_and_recent_sorties(client: Client) -> None:
+    seed_roles()
+    url = f"/players/{player_pk(1)}/?tour=all"
+
+    everything = client.get(url).context["stats"]
+    air = client.get(url + "&role=air_superiority")
+    attack = client.get(url + "&role=attack")
+
+    assert (everything.sorties, everything.kills_air, everything.kills_ground) == (5, 4, 5)
+    assert (air.context["stats"].sorties, air.context["stats"].kills_air, air.context["stats"].deaths) == (3, 4, 1)
+    assert (attack.context["stats"].sorties, attack.context["stats"].kills_ground) == (2, 5)
+    assert attack.context["stats"].attack_sorties == 2
+    assert [row.aircraft.display_name for row in attack.context["aircraft"]] == ["IL-10"]
+    assert [row.aircraft.display_name for row in air.context["aircraft"]] == ["MiG-15bis"]
+    assert {s.combat_role for s in attack.context["recent"]} == {"attack"}
+    assert {s.combat_role for s in air.context["recent"]} == {"air_superiority"}
+    body = attack.content.decode()
+    assert 'aria-current="true"' in body
+    assert "tour=all" in body  # the toggle keeps the tour
+
+
+def test_the_role_rows_of_a_fully_tagged_pilot_add_up_to_his_tour_and_all_time_rows() -> None:
+    """The per-role copies of the player rows (PlayerRole) are the same counters grouped by combat role: a pilot whose
+    sorties all have a role has roles that sum to PlayerTour (per tour) and Player (all time)."""
+    seed_roles()
+    player = Player.objects.get(pk=player_pk(1))
+
+    for tour_row in PlayerTour.objects.filter(player=player):
+        parts = PlayerRole.objects.filter(player=player, tour=tour_row.tour)
+        assert sum(p.sorties for p in parts) == tour_row.sorties
+        assert sum(p.kills_air + p.kills_ground for p in parts) == tour_row.kills_air + tour_row.kills_ground
+        assert sum(p.flight_time_s for p in parts) == pytest.approx(tour_row.flight_time_s)
+    all_time = PlayerRole.objects.filter(player=player, tour__isnull=True)
+    assert {r.role: r.sorties for r in all_time} == {"air_superiority": 3, "attack": 2}
+    assert sum(r.deaths for r in all_time) == player.deaths == 1
+
+
+def test_the_role_rows_survive_a_rebuild_and_come_back_with_the_upgrade_backfill() -> None:
+    """Incremental == rebuild (FR-ING-15): a rebuild writes the same PlayerRole rows; a database from before them gets
+    them through the one level-2 rebuild of the `player_roles` backfill."""
+    import uuid
+    from pathlib import Path
+
+    from il2ks.config import Config
+    from il2ks.db.models import SiteSettings
+    from il2ks.ingest.aggregates import rebuild_aggregates
+    from il2ks.ops import migrate
+    from tests.db_canon import canonical_dump, diff_dumps
+
+    seed_roles()
+    expected = canonical_dump()
+    assert PlayerRole.objects.filter(tour__isnull=True).count() == 4  # player 1 (two roles), 2 and 3 (one each)
+    rebuild_aggregates()
+    assert diff_dumps(expected, canonical_dump()) == []
+
+    PlayerRole.objects.all().delete()
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
+    cfg = Config(data_dir=Path("."), server_uid=uuid.uuid4(), timezone_name="UTC")
+    migrate._run_backfills(cfg, [migrate.BACKFILL_PLAYER_ROLES])  # pyright: ignore[reportPrivateUsage]
+
+    assert diff_dumps(expected, canonical_dump()) == []
+    assert migrate.BACKFILL_PLAYER_ROLES in SiteSettings.objects.get(pk=1).backfills_done
+
+
+def test_role_toggle_in_a_tour_counts_only_that_tours_role_sorties(client: Client) -> None:
+    seed_roles()
+    august = Tour.objects.order_by("started_at").first()
+    assert august is not None
+
+    air = client.get(f"/players/{player_pk(1)}/?tour={august.pk}&role=air_superiority").context["stats"]
+    attack = client.get(f"/players/{player_pk(1)}/?tour={august.pk}&role=attack")
+    september = client.get(f"/players/{player_pk(1)}/?role=attack").context["stats"]  # default = the current tour
+
+    assert (air.sorties, air.kills_air) == (1, 3)
+    assert attack.context["stats"].sorties == 0  # flew no attack in August
+    assert "No sorties in this role" in attack.content.decode()
+    assert (september.sorties, september.kills_ground) == (2, 5)
+
+
+def test_a_pilot_who_never_flew_attack_gets_a_notice_and_a_working_toggle(client: Client) -> None:
+    seed_roles()
+
+    response = client.get(f"/players/{player_pk(2)}/?tour=all&role=attack")
+
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert "No sorties in this role" in body
+    assert 'id="air"' not in body
+    assert "Which sorties to count" in body  # the toggle stays so the visitor can go back
+    assert client.get(f"/players/{player_pk(2)}/?tour=all&role=air_superiority").context["stats"].sorties == 1
+
+
+def test_a_player_without_sorties_has_no_role_toggle_and_a_bad_role_means_every_role(client: Client) -> None:
+    seed_roles()
+    save(mission((sortie(0, 9, name="Gunnerella", aircraft_type="Turret_IL10", role="gunner"),)))
+
+    assert "Which sorties to count" not in client.get(f"/players/{player_pk(9)}/?role=attack").content.decode()
+    assert client.get(f"/players/{player_pk(1)}/?tour=all&role=bogus").context["role"] == "all"
+
+
+def test_role_view_hides_what_has_no_per_role_data(client: Client) -> None:
+    seed_roles()
+    url = f"/players/{player_pk(1)}/?tour=all"
+
+    everything = client.get(url).content.decode()
+    attack = client.get(url + "&role=attack").content.decode()
+    air = client.get(url + "&role=air_superiority").content.decode()
+
+    assert "Activity by tour" in everything
+    assert "Elo (prop)" in everything
+    assert "Elo (prop)" in air
+    assert "Activity by tour" not in attack
+    assert "Activity by tour" not in air
+    assert "Elo (prop)" not in attack
+    assert "The killboards below count every role." in attack
+    assert "The killboards below count every role." not in everything
+
+
+def test_air_and_ground_parts_swap_places_for_the_attack_role_and_attack_pilots(client: Client) -> None:
+    seed_roles()
+
+    def order(url: str) -> tuple[bool, bool]:
+        """(the air part is before the ground part, the nav link to air is before the one to ground)."""
+        body = client.get(url).content.decode()
+        return body.index('id="air"') < body.index('id="ground"'), body.index('href="#air"') < body.index(
+            'href="#ground"'
+        )
+
+    mixed = f"/players/{player_pk(1)}/?tour=all"
+    assert order(mixed) == (True, True)
+    assert order(mixed + "&role=air_superiority") == (True, True)
+    assert order(mixed + "&role=attack") == (False, False)
+    assert order(f"/players/{player_pk(3)}/?tour=all") == (False, False)  # a pilot who flies only attack
+
+
+def test_role_views_stay_within_the_profile_query_budgets(client: Client) -> None:
+    seed_roles()
+    pk = player_pk(1)
+
+    # the role's per-aircraft rows are ONE read that replaces the all-roles aircraft table read
+    for role in ("air_superiority", "attack"):
+        assert_simple_reads(client, f"/players/{pk}/?tour=all&role={role}", max_queries=PROFILE_READS_ALL_TIME)
+        assert_simple_reads(client, f"/players/{pk}/?role={role}", max_queries=PROFILE_READS_TOUR)
+        assert_simple_reads(client, f"/players/{player_pk(2)}/?role={role}", max_queries=PROFILE_READS_TOUR)
+
+
+def test_other_totals_are_a_grid_of_label_value_cells(client: Client) -> None:
+    seed_roles()
+
+    body = client.get(f"/players/{player_pk(1)}/?tour=all").content.decode()
+
+    assert 'class="totals-grid"' in body
+    assert body.count("<dt>Takeoffs</dt>") == 1

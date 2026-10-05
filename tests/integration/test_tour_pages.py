@@ -126,7 +126,8 @@ def test_there_is_no_toggle_only_the_dropdown_and_it_keeps_the_other_parameters(
 
     body = client.get(f"/players/{pk(1)}/?sort=-kills_ground").content.decode()
 
-    assert "tour-toggle" not in body
+    # the combat role toggle (also a `.tour-toggle`) is on the profile since 2026-10-05; the tour is not a toggle
+    assert ">October 2026</a>" not in body
     assert 'aria-current="true">October 2026</a>' not in body
     assert '<input type="hidden" name="sort" value="-kills_ground">' in body
     assert (

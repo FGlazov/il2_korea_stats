@@ -96,7 +96,7 @@ above, and `PlayerAircraftBuild` keeps only the favourite loadout. `[PROPOSED]` 
 constraint), but nothing writes it today; only `kill` and `assist` occur.
 
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour`, `PlayerTourAircraft`,
-`PlayerPool`, `PlayerTourPool`, `PlayerAircraftScope`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
+`PlayerPool`, `PlayerTourPool`, `PlayerRole`, `PlayerAircraftScope`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
 suspected early bailouts, captures, takeoffs, landings, friendly kills, friendly hits, friendly damage, **taxi accidents, strafed on the
 ground, attack sorties, time on target** (2026-10-03, doc 13). Added since, all sums of sortie columns: the ground-kill categories and `kills_ground_static`
 (OQ-33), the PvE families `kills_air_pvp` / `kills_air_ai`, `deaths_by_<class>` and `planes_lost_by_<class>` (8 classes each, FR-WEB-21), and
@@ -138,6 +138,7 @@ PlayerAircraftBuild player, aircraft, tour (null = all time), kind (only `payloa
                -- now (`AircraftMods`, `AircraftAmmoStats`). Two partial unique constraints (tour set / null). Recomputed per affected player
 PlayerPool     player, propulsion (prop/jet), + counters         -- counters of the sorties in prop or jet aircraft: the leaderboards'
 PlayerTourPool player, tour, propulsion, + counters              -- `?pool=` filter; unknown propulsion is in no pool
+PlayerRole     player, tour (null = all time), role (air_superiority / attack), + counters -- `[DECIDED]` maintainer 2026-10-05 ("two additional copies of the player object, with a role column"): the profile's `?role=` view reads one row. Tour rows = the tour's counted sorties of that role (`recompute_player_tours`), all-time rows = SUM of the tour rows (`rollup_players`); the every-role rows stay `PlayerTour` / `Player` (leaderboards unchanged); upgrade through the `player_roles` backfill (one rebuild)
 Mission.tour   FK (assigned at ingest by started_at in tours.timezone)
 
 -- statistics, boards, activity (FR-WEB-7, 8, 9, 16, 22, 25):

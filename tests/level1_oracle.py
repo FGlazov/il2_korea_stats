@@ -12,6 +12,7 @@ from datetime import datetime
 from django.db.models import Count, F, Max, Min, Sum
 
 from il2ks.db.models import (
+    CombatRole,
     Kill,
     KillCredit,
     Player,
@@ -21,6 +22,7 @@ from il2ks.db.models import (
     PlayerMission,
     PlayerName,
     PlayerPool,
+    PlayerRole,
     PlayerSortie,
     PlayerTypeKillboard,
     Propulsion,
@@ -40,7 +42,7 @@ def _row_counters(row: object) -> tuple[float, ...]:
 
 
 def counters() -> dict[tuple[object, ...], tuple[float, ...]]:
-    """Player, PlayerAircraft and PlayerPool counters."""
+    """Player, PlayerAircraft, PlayerPool and all-time PlayerRole counters."""
     out: dict[tuple[object, ...], tuple[float, ...]] = {}
     sums = {n: Sum(n) for n in COUNTER_FIELDS}
     totals = {r["player_id"]: r for r in PlayerMission.objects.values("player_id").annotate(**sums)}
@@ -56,6 +58,9 @@ def counters() -> dict[tuple[object, ...], tuple[float, ...]]:
     )
     for row in pools:
         out[("pool", row["player_id"], row["aircraft__propulsion"])] = _rounded(clean_counters(row))
+    roles = counted_sorties().filter(combat_role__in=CombatRole.values).values("player_id", "combat_role")
+    for row in roles.annotate(**SORTIE_COUNTERS):
+        out[("role", row["player_id"], row["combat_role"])] = _rounded(clean_counters(row))
     return out
 
 
@@ -67,6 +72,8 @@ def stored_counters() -> dict[tuple[object, ...], tuple[float, ...]]:
         out[("aircraft", aircraft.player_id, aircraft.aircraft_id)] = _row_counters(aircraft)
     for pool in PlayerPool.objects.all():
         out[("pool", pool.player_id, pool.propulsion)] = _row_counters(pool)
+    for role in PlayerRole.objects.filter(tour__isnull=True):
+        out[("role", role.player_id, role.role)] = _row_counters(role)
     return out
 
 

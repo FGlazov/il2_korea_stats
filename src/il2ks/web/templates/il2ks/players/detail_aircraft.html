@@ -5,7 +5,7 @@
   list filtered to that aircraft (?aircraft=<GameObject pk>). Context: player, aircraft (PlayerAircraft or PlayerTourAircraft rows), sort, tour (the chosen Tour or None).
 {% endcomment %}<section>
   <h2>{% translate "By aircraft" %}</h2>
-  {% player_builds player tour as builds %}
+  {% if role == "all" %}{% player_builds player tour as builds %}{% endif %}
   {% results_region %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table aircraft-table">
@@ -33,7 +33,7 @@
               <td class="num">{{ row.kills_air|ratio:row.deaths }}</td>
               <td class="num">{{ row.kills_air|ratio:row.planes_lost }}</td>
             </tr>
-            {% with build=builds|build_of:row.aircraft_id %}{% include "il2ks/players/detail_aircraft_build.html" %}{% endwith %}
+            {% if role == "all" %}{% with build=builds|build_of:row.aircraft_id %}{% include "il2ks/players/detail_aircraft_build.html" %}{% endwith %}{% endif %}
           {% empty %}
             {% empty_row 8 %}
           {% endfor %}

@@ -11,5 +11,5 @@
   {% include "il2ks/players/detail_pve.html" %}
   <h3>{% translate "Other totals" %}</h3>
   {% include "il2ks/players/detail_totals.html" %}
-  {% include "il2ks/players/detail_charts.html" %}
+  {% if role == "all" %}{% include "il2ks/players/detail_charts.html" %}{% endif %}
 </section>
