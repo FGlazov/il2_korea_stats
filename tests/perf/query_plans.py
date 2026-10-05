@@ -103,22 +103,10 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "il2ks_db_playersortie",
         '"combat_role" = %s) GROUP BY',
         "the loadout and weapon-mod Elo averages read every air-superiority sortie "
-        "(`aircraft_stats.average_pilot_elo`); temporary: the tour-level refresh (doc 14, maintainer 2026-10-05) "
-        "bounds it to the touched tours",
-        "ingest",
-    ),
-    QueryAllowance(
-        "il2ks_db_playertourpool",
-        '"elo_games" > %s AND "il2ks_db_playertourpool"."propulsion" = %s',
-        "the all-time Elo (the best tour's) is derived from every rated tour row; temporary: the roll-up is to be "
-        "limited to the players of the refreshed tours (doc 14)",
-        "ingest",
-    ),
-    QueryAllowance(
-        "il2ks_db_playertouraircraft",
-        '"elo_games" > %s',
-        "the all-time per-type Elo (the best tour's) is derived from every rated tour row; temporary: the roll-up is "
-        "to be limited to the players of the refreshed tours (doc 14)",
+        "(`aircraft_stats.average_pilot_elo`): a loadout's average is over every pilot that flew it, each with their "
+        "ALL-TIME rating (the best tour's), and a refresh changes the rating of its players in all of their tours, so "
+        "no tour or type bound keeps the stored averages equal to a rebuild (one grouped read per refresh; a bound "
+        "would need stored per-row Elo sums, a product-neutral change left for the maintainer, doc 14)",
         "ingest",
     ),
     QueryAllowance(
