@@ -16,7 +16,7 @@ Contents: [The three steps](#the-three-steps) · [What to run after a change](#w
 
 Run the commands where you run `il2ks backup`: with the Windows installer, in **il2ks command prompt** (Start menu); in
 Docker, as `docker compose -f docker/compose.yaml exec il2ks il2ks ...`. `il2ks doctor` warns about settings that
-il2ks ignores, for example a key that was renamed.
+il2ks ignores, for example a misspelled key.
 
 ## What to run after a change
 
@@ -56,7 +56,7 @@ ram_distance_m = 15.0  # ... and this close in space (metres)
 ```
 
 Set `credit_rams = false` if ramming should not earn a kill, then run `il2ks reprocess --all`.
-A pilot killed while parachuting is always counted as a death. The old `parachute_deaths` key is gone: remove it.
+A pilot killed while parachuting is always counted as a death.
 
 The fine rules under `[replay]` (how far from the wreck a bailout must land, how long a disconnect looks suspicious,
 how much damage earns an assist, ...) have sensible defaults. Change one only if you see wrong results, then run
@@ -81,8 +81,7 @@ penalty_early_bailout = 5.0  # flat points, not percent
 penalty_friendly_kill = 3.0
 ```
 
-Older versions had `penalty_death`, `penalty_capture` and `penalty_plane_lost` in points. They are ignored now.
-`il2ks doctor` tells you to rename them to `..._pct` and convert the number. After a change run `il2ks rebuild-aggregates`.
+After a change run `il2ks rebuild-aggregates`.
 
 The boards are: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
 and play time. The same `[score]` section sets how much a pilot must have done to appear on a board, so one lucky
@@ -123,7 +122,7 @@ rename a tour there. After changing mode, start or time zone: `il2ks rebuild-agg
 ends with a win for one side ends the tour, and the next mission starts a new one (a monthly tour becomes "October 2026",
 "October 2026 (2)", ...). Draws, and missions without a result, change nothing. The mode above still applies: a win only
 cuts its tours into parts, so use `mode = "manual"` if only wins should start tours. The result is read from the mission
-log when a mission is processed: missions saved by an older version show none until `il2ks reprocess`. The `watch` process
+log when a mission is processed. The `watch` process
 applies a changed option within a minute or so (or run `il2ks rebuild-aggregates --retour`).
 
 ## Other sections
@@ -145,13 +144,13 @@ Install the new version as your install guide says ([Windows installer](install-
 
 1. makes a **backup** in the `backups` folder of your data folder,
 2. updates the database,
-3. fills in what the new version needs from the data you already have (new boards, achievements, accuracy, ...). On a big
+3. fills in what the new version needs from the data you already have (new boards, achievements, ...). On a big
    database this can take a few minutes. The site is not up until it is done.
 
-Afterwards run `il2ks doctor`. It lists settings that were renamed or removed, and customized pages that changed.
+Afterwards run `il2ks doctor`. It lists settings that il2ks ignores, and customized pages that changed.
 
-**New rules do not rewrite old missions by themselves.** If the release notes say a rule changed (for example rams now
-earn a kill by default), run `il2ks reprocess --all` to apply it to the old missions too.
+**New rules do not rewrite old missions by themselves.** If the release notes say a rule changed (for example whether rams
+earn a kill), run `il2ks reprocess --all` to apply it to the old missions too.
 
 If an upgrade goes wrong, stop il2ks and run `il2ks restore <zip>` with the backup made before it. Restore refuses
 while il2ks is running, unless you add `--force`.

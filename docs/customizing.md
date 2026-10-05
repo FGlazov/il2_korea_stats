@@ -31,8 +31,7 @@ forum, Patreon or a generic link chain) and a number that sets the order (lower 
 Leaderboards) and, as a plain list, in the footer. Only full `http://` and `https://` addresses are accepted
 (`javascript:`, `mailto:`, relative paths and the like are refused). The links open in a new tab, with `rel="noopener
 noreferrer"`, so the other site cannot reach back into yours or learn where the visitor came from; screen readers are
-told that the link opens a new tab. Tick **Delete** on a row to remove a link. (Links you had under the old "Links" setting
-were moved here by the upgrade, in the same order.)
+told that the link opens a new tab. Tick **Delete** on a row to remove a link.
 
 **How many fit?** The menu never overflows: when it is full, the extra links wrap onto a second row (the header gets
 taller, nothing is cut off, there is never a horizontal scroll bar). We measured the header with Chromium at 360, 768, 1280
@@ -60,7 +59,7 @@ contrast) or with "Default" (clears everything) when you save. You can adjust si
 
 il2ks checks the readability of the colors you saved (WCAG contrast ratios: body text, links, buttons, badges, the
 header). Poor combinations produce a yellow warning after saving; **nothing is blocked**, so a deliberate choice stays
-possible. The one accent color of older versions became the accent in both modes.
+possible.
 
 **Keep the contrast.** The shipped look meets WCAG 2.1 AA (4.5:1 for text, 3:1 for large text and borders of controls) in both
 modes, and the site's automated accessibility test holds it there. A custom theme or `site.css` override that lowers contrast
