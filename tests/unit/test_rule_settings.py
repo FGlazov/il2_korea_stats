@@ -111,6 +111,27 @@ def test_invalid_input_is_rejected_with_the_message_of_the_config_parser(
     assert problems == [str(from_file.value).removeprefix(f"{file}: ")]
 
 
+@pytest.mark.xfail(strict=True, reason="review #12 item 3: inf and nan get through, or raise OverflowError")
+@pytest.mark.parametrize(
+    ("key", "text"),
+    [
+        ("score.min_sorties", "inf"),
+        ("score.min_sorties", "1e400"),
+        ("score.min_sorties", "nan"),
+        ("marks.min_sorties", "inf"),
+        ("score.air_kill_pvp", "nan"),
+        ("score.air_kill_pvp", "inf"),
+        ("ratings.k", "1e999"),
+        ("tours.mode", "days:999999999"),
+    ],
+)
+def test_non_finite_and_absurd_values_are_a_problem_not_an_error(key: str, text: str) -> None:
+    """Review #12 item 3: the admin form says "not saved", never raises (500) or stores what the JSON column rejects."""
+    base = RuleSet(tours=TourRules(start=date(2026, 1, 1)))
+    _, problems = validate(base, {key: text})
+    assert problems
+
+
 def test_a_day_tour_needs_its_start_date() -> None:
     clean, problems = validate(RuleSet(), {"tours.mode": "days:14"})
     assert len(problems) == 1

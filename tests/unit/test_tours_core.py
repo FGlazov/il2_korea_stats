@@ -33,6 +33,14 @@ def test_parse_mode_rejects_anything_else(text: str) -> None:
         parse_mode(text)
 
 
+@pytest.mark.xfail(strict=True, reason="review #12 item 3: days:N had no upper bound, period_for overflowed")
+def test_parse_mode_bounds_the_tour_length() -> None:
+    assert parse_mode("days:3660") == ("days", 3660)
+    for text in ("days:3661", "days:999999999"):
+        with pytest.raises(ValueError, match="3660"):
+            parse_mode(text)
+
+
 def test_label_round_trips_the_setting() -> None:
     assert TourRules().label == "monthly"
     assert TourRules(mode="days", days=14, start=date(2026, 1, 1)).label == "days:14"

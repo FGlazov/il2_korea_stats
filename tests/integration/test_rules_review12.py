@@ -10,7 +10,9 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from django.contrib.auth.models import User
 from django.db import transaction
+from django.test import Client
 
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
@@ -22,6 +24,7 @@ from il2ks.ingest.batch import Level2Batch
 from il2ks.ingest.live import discard_stale_provisional
 from il2ks.ingest.persist import save_mission
 from il2ks.ingest.reprocess import reprocess
+from il2ks.ingest.rule_store import wanted_overrides
 from il2ks.ingest.runner import IngestOptions, default_pipeline, ingest_once
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import start_manual_tour
@@ -155,3 +158,32 @@ def test_a_batched_reprocess_uses_the_marks_minimum_saved_during_the_run(
             on_progress=saves_after_the_first,
         )
     assert minimums[-1] == 1, minimums
+
+
+# --- the admin form never raises on a number the parser cannot take --------------------------------------------------
+
+
+@pytest.fixture
+def admin(client: Client) -> Client:
+    client.force_login(User.objects.create_superuser("boss", "boss@example.org", "x"))
+    return client
+
+
+@pytest.mark.parametrize(
+    ("url", "key", "text"),
+    [
+        ("/admin/leaderboards/", "score.min_sorties", "inf"),
+        ("/admin/leaderboards/", "score.min_sorties", "1e400"),
+        ("/admin/leaderboards/", "marks.min_sorties", "nan"),
+        ("/admin/score/", "score.air_kill_pvp", "nan"),
+        ("/admin/score/", "ratings.k", "inf"),
+        ("/admin/tours/", "tours.mode", "days:999999999"),
+    ],
+)
+def test_the_admin_form_rejects_non_finite_numbers_with_a_message(admin: Client, url: str, key: str, text: str) -> None:
+    """Review #12 item 3: a 500 (OverflowError), or a nan stored and the JSON CHECK shown as "database is busy"."""
+    posted = {key: text, "tours.start": "2026-10-01"} if key == "tours.mode" else {key: text}
+    response = admin.post(url, posted)
+    assert response.status_code == 200  # the form again, not a redirect after a save
+    assert wanted_overrides() == {}
+    assert "Not saved" in response.content.decode()
