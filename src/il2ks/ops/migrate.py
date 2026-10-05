@@ -121,8 +121,10 @@ def _rebuild_all(cfg: Config) -> None:
     """The one place the backfills call `rebuild_aggregates`, so no configured section (ratings, tours, marks, score,
     killboard) can be forgotten by one of them."""
     from il2ks.ingest.aggregates import rebuild_aggregates
+    from il2ks.ingest.rule_store import effective_config
 
-    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+    rules = effective_config(cfg)
+    rebuild_aggregates(rules.ratings, rules.tours, marks=rules.marks, score=rules.score, board=rules.board)
 
 
 def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
@@ -644,12 +646,13 @@ def _backfill_thresholds(cfg: Config) -> None:
     from django.db import transaction
 
     from il2ks.db.models import Player, StatThreshold
+    from il2ks.ingest.rule_store import effective_config
     from il2ks.ingest.stat_marks import recompute_thresholds
 
     if not StatThreshold.objects.filter(metric="air_score").exists() and Player.objects.exists():
         log.info("computing stat thresholds")
         with transaction.atomic():
-            recompute_thresholds(cfg.marks)
+            recompute_thresholds(effective_config(cfg).marks)
 
 
 def _backfill_achievements() -> None:

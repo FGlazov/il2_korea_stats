@@ -65,6 +65,10 @@
       "version": 1,
       "sha256": "1744285361603d6983c09e78d1c0ef068d02bc64c7eef09241e81a2b76dd65b0"
     },
+    "templates/admin/_rule_fields.html": {
+      "version": 1,
+      "sha256": "4e707d09d93548e33ce4b78c13521cabfb887ed57a776935a454843731971d25"
+    },
     "templates/admin/base_site.html": {
       "version": 1,
       "sha256": "f506e890239ed3d35ea7509447170a24f084257c130aecf61c1f4f6f5f58078e"
@@ -79,11 +83,15 @@
     },
     "templates/admin/il2ks_index.html": {
       "version": 1,
-      "sha256": "5f68d39b1d8184d14c174382f760763d21719a046dc063f6ff0942e664510982"
+      "sha256": "a2b83818ac2585c31b33e5d8a9fc21e2d71257ecda1984317ca7f95a45689de7"
     },
     "templates/admin/il2ks_ingest_status.html": {
       "version": 1,
       "sha256": "bf0ce575af4df41ec8d0d4be9549d1f79ca133417ae206eff3bfe425c572a4df"
+    },
+    "templates/admin/il2ks_leaderboards.html": {
+      "version": 1,
+      "sha256": "4bf00750dbe90e215fa2af2110fe56c7da61620667671b2f26227a81ce90a7c3"
     },
     "templates/admin/il2ks_quips.html": {
       "version": 1,
@@ -93,13 +101,17 @@
       "version": 1,
       "sha256": "7b3b2ce8897a40bfa3809236f33ed0f486fc9a0fe867167728ff91449156876e"
     },
+    "templates/admin/il2ks_rules.html": {
+      "version": 1,
+      "sha256": "742406f4685e6474cda7cab0c0e0022d34972a1228158015708d2c1b6974564a"
+    },
     "templates/admin/il2ks_score.html": {
       "version": 1,
-      "sha256": "9fc491b02bf808ae3dadd2686ef60d8517e503f87d48a674b80c808176d043ab"
+      "sha256": "163e57aac66b0405ac9c937a9315b28c02b681b010484de5479c2b519b3b3279"
     },
     "templates/admin/il2ks_tours.html": {
       "version": 1,
-      "sha256": "c2bd471f410a76b0a01793dae7271da18f5f3780112a7471758a52f75a8f54c1"
+      "sha256": "7ee7eb391cc547d84622a4a771951d23a8ee1472f021aab193340e0be0a40a3e"
     },
     "templates/il2ks/achievements/_award.html": {
       "version": 1,

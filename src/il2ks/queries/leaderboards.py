@@ -24,7 +24,7 @@ from django.conf import settings
 from django.core.paginator import Page, Paginator
 from django.db.models import ExpressionWrapper, F, FloatField, Model, QuerySet
 
-from il2ks.config import LeaderboardConfig
+from il2ks.config import LeaderboardConfig, RuleSet
 from il2ks.db.models import (
     AircraftRole,
     GameObject,
@@ -35,9 +35,13 @@ from il2ks.db.models import (
     PlayerTour,
     PlayerTourAircraft,
     PlayerTourPool,
+    SiteSettings,
     Tour,
 )
 from il2ks.queries.paging import ROW_PAGE_SIZE
+from il2ks.rule_settings import LEADERBOARD_MINIMUMS, effective_rules, sanitize
+
+BOARD_KEYS: Final = frozenset(f"score.{name}" for name in LEADERBOARD_MINIMUMS)
 
 PAGE_SIZE = ROW_PAGE_SIZE
 SECONDS_PER_HOUR = 3600.0
@@ -148,10 +152,15 @@ HOME_ROWS = 5
 MAX_PK_DIGITS = 18  # int() of a longer digit string is slow or raises (4300-digit limit): not a pk
 
 
-def rules() -> LeaderboardConfig:
-    """The minimum-activity thresholds (`[score]`)."""
+def rules(site: SiteSettings | None = None) -> LeaderboardConfig:
+    """The minimum-activity thresholds: `[score]` of the config file, with the admin's saved values (`site`, the row
+    the page already read) on top. They apply at once (nothing is stored but the thresholds of the marks)."""
     configured = getattr(settings, "IL2KS_LEADERBOARDS", None)
-    return configured if isinstance(configured, LeaderboardConfig) else LeaderboardConfig()
+    base = configured if isinstance(configured, LeaderboardConfig) else LeaderboardConfig()
+    if site is None:
+        return base
+    chosen = {k: v for k, v in sanitize(site.rule_settings_applied).items() if k in BOARD_KEYS}
+    return effective_rules(RuleSet(leaderboards=base), chosen).leaderboards if chosen else base
 
 
 @dataclass(frozen=True, slots=True)

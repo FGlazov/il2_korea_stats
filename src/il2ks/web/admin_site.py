@@ -1,12 +1,13 @@
 """The admin site: titles from `SiteSettings`, the ingestion status page and the "reprocess all missions" request
 (FR-ADM-1, FR-ADM-2, FR-ADM-4). The request is only filed here; the `watch` loop runs it (doc 14)."""
 
+from collections.abc import Callable
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
@@ -20,10 +21,12 @@ from il2ks.db.models import Mission, SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
+from il2ks.ingest.rule_store import pending_fields, save_overrides
+from il2ks.ingest.tours import on_win_pending
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
+from il2ks.web import admin_rules, quips
 from il2ks.web import admin_score as score_forms
-from il2ks.web import quips
 from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig
 from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
 from il2ks.web.ingest_status import build_overview
@@ -53,6 +56,8 @@ class Il2ksAdminSite(admin.AdminSite):
             path("achievements/", self.admin_view(self.achievements_view), name="achievements"),
             path("score/", self.admin_view(self.score_view), name="score"),
             path("tours/", self.admin_view(self.tours_view), name="tours"),
+            path("rules/", self.admin_view(self.rules_view), name="rules"),
+            path("leaderboards/", self.admin_view(self.leaderboards_view), name="leaderboards"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
         ]
         return [*extra, *super().get_urls()]
@@ -126,27 +131,48 @@ class Il2ksAdminSite(admin.AdminSite):
         }
         return TemplateResponse(request, "admin/il2ks_achievements.html", context)
 
+    def _save_rule_page(
+        self, request: HttpRequest, posted: admin_rules.Posted, also: Callable[[], None] | None = None
+    ) -> bool:
+        """Store a posted rule page (and what `also` stores with it, in the same transaction): False, with a message,
+        when the database was busy. The values were checked."""
+        try:
+            with transaction.atomic():
+                save_overrides(posted.fields, posted.overrides, admin_rules.base_rules())
+                if also is not None:
+                    also()
+        except DatabaseError:
+            messages.error(request, _("The database is busy. Nothing was saved; try again in a moment."))
+            return False
+        return True
+
     def score_view(self, request: HttpRequest) -> HttpResponse:
-        """The Scoring page: the optional score for flight time. The choice is saved at once; `watch` (or a rebuild)
-        applies it to the stored sorties, and the page says so."""
+        """The Scoring page: points, penalties, Elo, the killboard's assists and the optional score for flight time.
+        The choices are saved at once; `watch` (or a rebuild) applies them to the stored sorties, the page says so."""
         if not request.user.has_perm("il2ks_db.change_sitesettings"):
             raise PermissionDenied
-        pending = flight_score_pending()  # of the stored choice, not of a rejected form
+        pending = flight_score_pending() or any(f.page == "scoring" for f in pending_fields())  # of the stored choice
         shown = wanted_flight_score()
         typed = f"{shown.per_hour:g}"
+        site = get_site_settings()
+        posted_texts: dict[str, str] | None = None
         if request.method == "POST":
-            posted, errors = score_forms.parse_form(request.POST)
+            flight, errors = score_forms.parse_form(request.POST)
+            posted = admin_rules.read_post("scoring", request.POST)
+            errors += [_("Not saved: %(problem)s") % {"problem": problem} for problem in posted.problems]
             if not errors:
-                with transaction.atomic():
+
+                def store_flight() -> None:
                     row = get_site_settings()
-                    row.score_flight = posted.to_json()
+                    row.score_flight = flight.to_json()
                     row.save(update_fields=["score_flight", "updated_at"])
-                    bump_data_version()
-                messages.success(request, _("Scoring saved."))
-                return HttpResponseRedirect(reverse(f"{self.name}:score"))
+
+                if self._save_rule_page(request, posted, store_flight):
+                    messages.success(request, _("Scoring saved."))
+                    return HttpResponseRedirect(reverse(f"{self.name}:score"))
             for error in errors:
                 messages.error(request, error)
-            shown, typed = posted, request.POST.get("per_hour", "")
+            shown, typed, posted_texts = flight, request.POST.get("per_hour", ""), posted.texts
         defaults = DEFAULT_SCORE_RULES
         context = {
             **self.each_context(request),
@@ -154,12 +180,45 @@ class Il2ksAdminSite(admin.AdminSite):
             "enabled": shown.enabled,
             "per_hour": typed,
             "pending": pending,
+            "groups": admin_rules.build_groups("scoring", site, posted_texts),
             "max_rate": f"{MAX_FLIGHT_POINTS_PER_HOUR:g}",
             "default_rate": f"{defaults.flight_time_per_hour:g}",
             "ai_kill": f"{defaults.air_kill_ai:g}",
             "pvp_kill": f"{defaults.air_kill_pvp:g}",
         }
         return TemplateResponse(request, "admin/il2ks_score.html", context)
+
+    def rules_view(self, request: HttpRequest) -> HttpResponse:
+        """The Rules page: rams and the fine rules of how a flight is read. They apply to new missions at once; older
+        missions follow after "Reprocess all missions"."""
+        return self._plain_rule_page(request, "rules", _("Rules"), "admin/il2ks_rules.html", "rules")
+
+    def leaderboards_view(self, request: HttpRequest) -> HttpResponse:
+        """The Leaderboards page: how much a pilot must do to appear on a board or get a mark (applies at once)."""
+        return self._plain_rule_page(
+            request, "leaderboards", _("Leaderboards"), "admin/il2ks_leaderboards.html", "leaderboards"
+        )
+
+    def _plain_rule_page(
+        self, request: HttpRequest, page: admin_rules.Page, title: str, template: str, url_name: str
+    ) -> HttpResponse:
+        if not request.user.has_perm("il2ks_db.change_sitesettings"):
+            raise PermissionDenied
+        posted_texts: dict[str, str] | None = None
+        if request.method == "POST":
+            posted = admin_rules.read_post(page, request.POST)
+            if not posted.problems and self._save_rule_page(request, posted):
+                messages.success(request, _("Saved."))
+                return HttpResponseRedirect(reverse(f"{self.name}:{url_name}"))
+            for problem in posted.problems:
+                messages.error(request, _("Not saved: %(problem)s") % {"problem": problem})
+            posted_texts = posted.texts
+        context = {
+            **self.each_context(request),
+            "title": title,
+            "groups": admin_rules.build_groups(page, get_site_settings(), posted_texts),
+        }
+        return TemplateResponse(request, template, context)
 
     def tours_view(self, request: HttpRequest) -> HttpResponse:
         """The Tours page: "start a new tour when a mission is won by one side" (default off). Saving only records the
@@ -168,21 +227,32 @@ class Il2ksAdminSite(admin.AdminSite):
         if not request.user.has_perm("il2ks_db.change_sitesettings"):
             raise PermissionDenied
         row = get_site_settings()
+        wanted_on_win = row.tour_on_win
+        posted_texts: dict[str, str] | None = None
         if request.method == "POST":
-            row.tour_on_win = request.POST.get("tour_on_win") == "on"
-            with transaction.atomic():
-                row.save(update_fields=["tour_on_win", "updated_at"])
-                bump_data_version()
-            messages.success(request, _("Tour settings saved."))
-            return HttpResponseRedirect(reverse(f"{self.name}:tours"))
+            posted = admin_rules.read_post("tours", request.POST)
+            wanted_on_win = request.POST.get("tour_on_win") == "on"
+            if not posted.problems:
+
+                def store_switch() -> None:
+                    row.tour_on_win = request.POST.get("tour_on_win") == "on"
+                    row.save(update_fields=["tour_on_win", "updated_at"])
+
+                if self._save_rule_page(request, posted, store_switch):
+                    messages.success(request, _("Tour settings saved."))
+                    return HttpResponseRedirect(reverse(f"{self.name}:tours"))
+            for problem in posted.problems:
+                messages.error(request, _("Not saved: %(problem)s") % {"problem": problem})
+            posted_texts = posted.texts
         results = Mission.objects.values("result").annotate(n=Count("pk"))
         counts = {r["result"]: r["n"] for r in results}
         won = Mission.objects.filter(winning_coalition__isnull=False).count()
         context = {
             **self.each_context(request),
             "title": _("Tour options"),
-            "wanted": row.tour_on_win,
-            "pending": row.tour_on_win != row.tour_on_win_applied,
+            "wanted": wanted_on_win,
+            "pending": on_win_pending() or any(f.page == "tours" for f in pending_fields()),
+            "groups": admin_rules.build_groups("tours", row, posted_texts),
             "won": won,
             "draws": counts.get("draw", 0),
             "unknown": sum(counts.values()) - won - counts.get("draw", 0),

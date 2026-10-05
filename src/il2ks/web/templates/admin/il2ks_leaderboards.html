@@ -1,0 +1,21 @@
+{# il2ks-template: templates/admin/il2ks_leaderboards.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> › {% translate "Leaderboards" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% translate "How much a pilot must have done to appear on a leaderboard, so that one lucky flight cannot top it. Lower the numbers on a small server. A value you save here wins over the one in il2ks.toml; leave a field empty to use the file (or the built-in default) again." %}</p>
+  <p>{% translate "A change shows at once: the boards use it on the next page view, and the Top 10% and Top 25% marks on the player pages are computed again when you save." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% include "admin/_rule_fields.html" %}
+    <div class="submit-row"><input type="submit" value="{% translate 'Save' %}" class="default"></div>
+  </form>
+</div>
+{% endblock %}

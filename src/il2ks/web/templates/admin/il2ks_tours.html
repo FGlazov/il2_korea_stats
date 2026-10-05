@@ -10,8 +10,8 @@
 
 {% block content %}
 <div id="content-main">
-  <p>{% translate "A tour is a period of missions with its own leaderboards. How tours start is set in the configuration file ([tours] mode: monthly, every N days, or manual). Here you can add one rule on top of that." %}</p>
-  <p>{% translate "Dynamic campaign servers can run for weeks before one side wins. With the option below, a mission that ends with a win for one side ends the tour, and the next mission starts a new one. Draws, and missions that did not report a result, change nothing. The tours the configuration draws still apply: a decisive mission only cuts a monthly, N-day or manual tour into parts. Use the manual mode if only wins should start tours." %}</p>
+  <p>{% translate "A tour is a period of missions with its own leaderboards. How tours start is set here (monthly, every N days, or manual), starting from the values in il2ks.toml: a value you save wins over the file, and an empty field uses the file again. You can also add one rule on top of that." %}</p>
+  <p>{% translate "Dynamic campaign servers can run for weeks before one side wins. With the option below, a mission that ends with a win for one side ends the tour, and the next mission starts a new one. Draws, and missions that did not report a result, change nothing. The tours drawn by the mode above still apply: a decisive mission only cuts a monthly, N-day or manual tour into parts. Use the manual mode if only wins should start tours." %}</p>
   <p>{% translate "Which side won is read from the mission objective that the server logs when a mission ends: the side that completed it alone has won; both sides or neither is a draw. Missions saved before this was recorded show no result until you reprocess them (il2ks reprocess)." %}</p>
   <ul>
     <li>{% blocktranslate %}Won by one side: {{ won }}{% endblocktranslate %}</li>
@@ -19,12 +19,13 @@
     <li>{% blocktranslate %}No result: {{ unknown }}{% endblocktranslate %}</li>
   </ul>
   {% if pending %}
-  <p class="errornote">{% translate "A reassignment of the tours is pending: the saved choice is not applied to the missions yet. It runs on its own as soon as the watch process is free (within a minute or so), or with il2ks rebuild-aggregates --retour. Until then the pages show the old tours; afterwards every tour's leaderboards, ratings and achievements are recomputed." %}</p>
+  <p class="errornote">{% translate "A reassignment of the tours is pending: the saved choices are not applied to the missions yet. It runs on its own as soon as the watch process is free (within a minute or so), or with il2ks rebuild-aggregates --retour. Until then the pages show the old tours; afterwards every tour's leaderboards, ratings and achievements are recomputed." %}</p>
   {% else %}
-  <p>{% translate "No tour reassignment is pending: the tours match the saved choice." %}</p>
+  <p>{% translate "No tour reassignment is pending: the tours match the saved choices." %}</p>
   {% endif %}
   <form method="post">
     {% csrf_token %}
+    {% include "admin/_rule_fields.html" %}
     <fieldset class="module aligned">
       <div class="form-row">
         <label for="tour_on_win" class="vCheckboxLabel">{% translate "Start a new tour when a mission is won by one side" %}</label>

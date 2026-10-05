@@ -1,0 +1,23 @@
+{# il2ks-template: templates/admin/_rule_fields.html v1 - copy this line along when you override #}
+{% load i18n %}
+{% for group in groups %}
+<fieldset class="module aligned">
+  {% if group.title %}<h2>{{ group.title }}</h2>{% endif %}
+  {% for row in group.rows %}
+  <div class="form-row">
+    <label for="rule-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ row.label }}</label>
+    {% if row.kind == "bool" %}
+    <select name="{{ row.key }}" id="rule-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+      <option value=""{% if not row.typed %} selected{% endif %}>{% blocktranslate with default=row.default %}Default ({{ default }}){% endblocktranslate %}</option>
+      <option value="on"{% if row.typed == "on" %} selected{% endif %}>{% translate "on" %}</option>
+      <option value="off"{% if row.typed == "off" %} selected{% endif %}>{% translate "off" %}</option>
+    </select>
+    {% else %}
+    <input type="text" name="{{ row.key }}" id="rule-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" value="{{ row.typed }}" placeholder="{{ row.default }}" size="14" inputmode="text">
+    {% endif %}
+    {% if row.pending %}<strong class="errornote">{% translate "pending" %}</strong>{% endif %}
+    <div class="help">{% if row.hint %}{{ row.hint }} {% endif %}{{ row.effect }}. {% if row.kind != "bool" %}{% blocktranslate with default=row.default %}Empty uses il2ks.toml, or the built-in default: {{ default }}.{% endblocktranslate %}{% endif %}</div>
+  </div>
+  {% endfor %}
+</fieldset>
+{% endfor %}

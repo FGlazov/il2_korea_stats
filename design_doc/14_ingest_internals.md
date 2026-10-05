@@ -161,7 +161,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   the period, and moves the missions by time range. The tours whose missions changed (never a deleted one) join the ids `save_level1` returns, so their level 2
   is refreshed like any moved mission. `retour` runs the same routine for every period (calendar: each non-empty one; manual: between the tours that are not
   `by_win`), after adopting the admin's choice (`tour_on_win` -> applied); `rebuild_aggregates(reassign_tours=True)` is its caller, and so is `watch` through
-  `reprocess.recompute_tours_with_wanted_rule` when the two differ (writer lock, one transaction, full level-2 rebuild). Missions without a tour (`assign_missing`) with the
+  `score_apply.rescore_with_wanted` when the two differ (writer lock, one transaction, full level-2 rebuild). Missions without a tour (`assign_missing`) with the
   option on go through `retour`. Upgrade: `Mission.result` is `unknown` for old rows until `il2ks reprocess` (old rows keep their `winning_coalition`, which may credit
   a side for a mutual completion); the option works on whatever winners are stored.
 - **Save order** (`persist.save_mission`, one transaction, `[PROPOSED]`): the tour (`ensure_tour`), the `Mission` row, game objects and countries,

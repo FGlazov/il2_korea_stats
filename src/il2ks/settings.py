@@ -12,7 +12,7 @@ selected with IL2KS_TEST_DB=postgres (TD-04, TD-19).
 import os
 from pathlib import Path
 
-from il2ks.config import load_config
+from il2ks.config import RuleSet, load_config
 from il2ks.serving.djsettings import (
     INSTALLED_APPS as _APPS,
 )
@@ -37,6 +37,7 @@ IL2KS_TOUR_MODE = (
     _CFG.tours.mode
 )  # "monthly", "days" or "manual": only manual mode offers "start a new tour" (FR-ADM-8)
 
+IL2KS_RULES = RuleSet.of(_CFG)  # the file's game rules: the admin's saved values go on top (`il2ks.rule_settings`)
 IL2KS_LEADERBOARDS = _CFG.leaderboards  # minimum activity for the leaderboards (FR-WEB-7)
 
 DEBUG = _CFG.debug

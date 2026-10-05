@@ -1,18 +1,67 @@
 # Rules, scoring and tours
 
 How to change how il2ks counts things, and what to run afterwards. You do not need any of this to get started: the
-defaults work. Every setting lives in `il2ks.toml`. Your `il2ks.toml` (written by `il2ks setup` from the `il2ks.example.toml` that ships with il2ks) lists them all
-with their defaults and a comment each.
+defaults work. Every setting has a home in `il2ks.toml`. Your `il2ks.toml` (written by `il2ks setup` from the `il2ks.example.toml` that ships with il2ks) lists them all
+with their defaults and a comment each. The **game rules** (points, penalties, tours, rams, leaderboard minimums, ...) can also be
+changed in the web admin: see [Where a setting lives](#where-a-setting-lives).
 
-Contents: [The three steps](#the-three-steps) · [What to run after a change](#what-to-run-after-a-change) ·
+Contents: [Where a setting lives](#where-a-setting-lives) · [The three steps](#the-three-steps) ·
+[What to run after a change](#what-to-run-after-a-change) ·
 [Rules](#rules) · [Score and leaderboards](#score-and-leaderboards) · [Tours](#tours) ·
 [Other sections](#other-sections) · [Upgrading](#upgrading) · [The admin area](#the-admin-area)
 
+## Where a setting lives
+
+Settings are of two kinds:
+
+- **Game rules** decide how il2ks counts: points, penalties, ratings, tours, rams, how a flight is read, the minimums for the
+  boards. You can change them in the admin (**Scoring**, **Tours**, **Rules**, **Leaderboards**) without touching a file or
+  restarting anything.
+- **Machine settings** say where and how il2ks runs: folders, ports, domain, database, backups, the server's identity and
+  time zone, the timers of the log watcher. They stay in `il2ks.toml` (a wrong one can stop il2ks from starting, or lock you
+  out of the admin, and most need a restart).
+
+| Section | Where | Admin page |
+|---|---|---|
+| `[score]` points per kill and penalties | admin | Scoring |
+| `[score]` `min_sorties`, `min_elo_games`, `min_attack_sorties`, `min_time_on_target_minutes`, `min_air_superiority_sorties`, `min_air_superiority_minutes` | admin | Leaderboards |
+| `[ratings]` (Elo: `start`, `k`, `cross_pool_weight`) | admin | Scoring |
+| `[killboard]` `assists` | admin | Scoring |
+| `[marks]` `min_sorties` | admin | Leaderboards |
+| `[tours]` `mode`, `start`, `timezone` | admin | Tours |
+| `[rules]` (`credit_rams`, `ram_window_s`, `ram_distance_m`) | admin | Rules |
+| `[replay]` (the fine rules: bailout distance, time windows, assist threshold, ...) | admin | Rules |
+| The flight-time score (not in the file) and "new tour after a decisive mission" (not in the file) | admin only | Scoring, Tours |
+| `data_dir`, `log_level`, `log_keep_days`, `debug` | file only | |
+| `[logs]`, `[ingest]` (folders, when a mission is finished, how often to look) | file only | |
+| `[live]` (timers of the "online now" box; its on/off for visitors' sorties is an admin switch in Site settings) | file only | |
+| `[backup]`, `[web]`, `[https]` | file only | |
+| `[server]` `timezone`, `uid` (the server's identity: it decides when a mission started) | file only | |
+
+**How an admin value relates to the file.** Every game-rule field in the admin starts empty and shows what the file says
+(or the built-in default) as grey placeholder text. Empty means "use the file". Once you type a value and save, **your value
+wins** over the file, until you empty the field again. Both go through the same checks, so a value that il2ks.toml would
+refuse is refused in the admin too. `il2ks doctor` lists the rules set in the admin, so a changed line in the file that seems to do nothing is
+explained. (Environment variables such as `IL2KS_SCORE_AIR_KILL_PVP` set the file's value; the admin still wins over them.)
+
+**When an admin change takes hold.** Each field says which kind it is:
+
+| Kind | Fields | What happens |
+|---|---|---|
+| Re-scores every sortie | `[score]` points and penalties, `[ratings]`, `[killboard] assists`, the flight-time score | Shown as *pending*. The log watcher applies all pending changes together within a minute or so (one re-score and rebuild), or `il2ks rebuild-aggregates` does. Until then every page shows the old numbers, and new missions use the old rules too, so nothing is ever mixed. |
+| Moves missions into other tours | `[tours]`, "new tour after a decisive mission" | Shown as *pending*. The watcher reassigns the missions and rebuilds, or run `il2ks rebuild-aggregates --retour`. |
+| New missions at once | `[rules]`, `[replay]` | Used by the next mission that is ingested. Older missions keep their numbers until **Reprocess all missions** (Ingestion status page) or `il2ks reprocess`. |
+| Applies at once | The board minimums and `[marks]` | The boards use them on the next page view; the Top 10%/25% marks are computed again when you save. |
+
 ## The three steps
+
+For game rules you can use the admin instead (see above). To change a machine setting, or if you prefer the file:
 
 1. Edit `il2ks.toml`. (Windows installer: `C:\ProgramData\il2ks\il2ks.toml`, open it with Notepad as administrator.)
 2. **Restart il2ks.** Settings are read when it starts.
 3. Run the command from the table below, if there is one. Without it, old missions keep the old numbers.
+
+A rule that is also set in the admin keeps the admin's value: the file's line only shows as the default there.
 
 Run the commands where you run `il2ks backup`: with the Windows installer, in **il2ks command prompt** (Start menu); in
 Docker, as `docker compose -f docker/compose.yaml exec il2ks il2ks ...`. `il2ks doctor` warns about settings that
@@ -116,7 +165,8 @@ timezone = ""      # where a tour begins and ends (midnight there); empty = the 
 ```
 
 With `mode = "manual"` you start the next tour yourself: admin, **Tours**, **Start a new tour now**. In any mode you can
-rename a tour there. After changing mode, start or time zone: `il2ks rebuild-aggregates --retour`.
+rename a tour there. After changing mode, start or time zone in the file: `il2ks rebuild-aggregates --retour`. In the admin
+(**Tour options**) the same three settings are fields, and the log watcher moves the missions for you.
 
 **New tour after a decisive mission.** On a dynamic campaign server it can take weeks until one side wins. In the admin,
 **Tour options**, tick *Start a new tour when a mission is won by one side* (off by default). From then on, a mission that
@@ -163,7 +213,9 @@ Sign in at `/admin/`. Besides **Site settings** ([customizing.md](customizing.md
 - **Players**: select players and choose *Hide selected players from public pages* (a cheater, a test account).
   *Show ... again* undoes it. Names and numbers cannot be edited: they come from the logs.
 - **Missions**: hide a mission the same way (a test mission). Its numbers leave the totals.
-- **Tours**: rename tours; in manual mode, start the next one.
+- **Scoring**, **Tours** (tour options), **Rules**, **Leaderboards**: the game rules of `il2ks.toml` (see
+  [Where a setting lives](#where-a-setting-lives)), and the optional score for flight time.
+- **Tours** (list): rename tours; in manual mode, start the next one.
 - **Game objects**: change the shown name of a vehicle, building or aircraft. This name shows in every language.
   *Reset display names to the catalog defaults* undoes it.
 - **Ingest runs**: what the log watcher did, and which mission failed, if any.

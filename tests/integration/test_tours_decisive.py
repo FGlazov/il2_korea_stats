@@ -18,7 +18,7 @@ from il2ks.db.models import Mission, SiteSettings, Tour
 from il2ks.db.site import get_site_settings
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import save_mission
-from il2ks.ingest.reprocess import recompute_tours_with_wanted_rule
+from il2ks.ingest.score_apply import rescore_with_wanted
 from il2ks.ingest.tours import on_win_pending, retour, start_manual_tour, tour_problems
 from tests.factories import FakeCatalog, meta, mission, sortie
 from tests.integration.test_tours import MANUAL, MONTHLY, assert_tour_rows_consistent
@@ -272,12 +272,12 @@ def test_a_full_rebuild_with_retour_adopts_the_wanted_option_and_rebuilds_level_
 def test_watch_applies_a_changed_option_under_the_lock(tmp_path: Path) -> None:
     cfg = make_instance(tmp_path, with_db=False)
     history()
-    assert not recompute_tours_with_wanted_rule(cfg)  # nothing pending
+    assert not rescore_with_wanted(cfg)  # nothing pending
 
     SiteSettings.objects.filter(pk=1).update(tour_on_win=True)
-    assert recompute_tours_with_wanted_rule(cfg)
+    assert rescore_with_wanted(cfg)
 
     assert tour_titles() == ["October 2026", "October 2026 (2)", "October 2026 (3)"]
     assert not on_win_pending()
     assert_tour_rows_consistent()
-    assert not recompute_tours_with_wanted_rule(cfg)
+    assert not rescore_with_wanted(cfg)

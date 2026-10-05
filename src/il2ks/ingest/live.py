@@ -59,6 +59,7 @@ from il2ks.ingest.persist import (
     discard_provisional_mission,
     save_level1,
 )
+from il2ks.ingest.rule_store import effective_config
 from il2ks.ingest.timeutil import resolve_mission_start
 
 log = logging.getLogger(__name__)
@@ -273,7 +274,9 @@ class LiveTracker:
         started = resolve_mission_start(mission.mission_uid, self._cfg.timezone, hint).started_at
         if self._running is not None:
             self._flush_pending(self._running)  # work owed to level 2 is not dropped with the old replay
-        self._running = _Running(mission.mission_uid, PartTail(), LiveReplay(self.catalog, self._cfg.replay), started)
+        self._running = _Running(
+            mission.mission_uid, PartTail(), LiveReplay(self.catalog, effective_config(self._cfg).replay), started
+        )
 
     def _stop(self) -> None:
         """Nothing is running (any more): forget the replay and tell the database, once."""
@@ -342,7 +345,8 @@ def save_provisional(
         if waiting:
             return "waiting", set()
         meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True)
-        _, touched = save_level1(result, meta, catalog, cfg.tours, cfg.score)
+        rules = effective_config(cfg)  # what the admin applied wins over the file
+        _, touched = save_level1(result, meta, catalog, rules.tours, rules.score)
         bump_data_version()
     return "saved", touched
 

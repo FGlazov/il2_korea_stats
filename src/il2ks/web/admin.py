@@ -47,6 +47,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
+from il2ks.web.admin_rules import tour_mode
 from il2ks.web.feature_image import prune_feature_files, store_result
 from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
 from il2ks.web.logo import prune_logos, store_bytes, store_logo
@@ -461,7 +462,7 @@ class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
         return int(getattr(obj, "missions_n", 0))
 
     def changelist_view(self, request: HttpRequest, extra_context: dict[str, str] | None = None) -> TemplateResponse:
-        manual = getattr(settings, "IL2KS_TOUR_MODE", "monthly") == "manual"
+        manual = tour_mode() == "manual"
         can_start = "1" if manual and self.has_change_permission(request) else ""
         return super().changelist_view(request, {**(extra_context or {}), "can_start_tour": can_start})
 
@@ -474,7 +475,7 @@ class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
         changelist = reverse("admin:il2ks_db_tour_changelist")
         if request.method != "POST" or not self.has_change_permission(request):
             raise PermissionDenied
-        if getattr(settings, "IL2KS_TOUR_MODE", "monthly") != "manual":
+        if tour_mode() != "manual":
             self.message_user(request, _("Tours start by themselves unless [tours] mode is manual."), messages.ERROR)
             return HttpResponseRedirect(changelist)
         with transaction.atomic():

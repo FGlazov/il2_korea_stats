@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from il2ks.queries import leaderboards as reads
 from il2ks.queries import tours as tour_reads
 from il2ks.web import object_names
+from il2ks.web.context_processors import site_row
 
 BOARD_TITLES = {
     "air": _("Air score"),
@@ -102,7 +103,7 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
     spec = reads.BOARDS.get(board)
     if spec is None:
         raise Http404
-    rules = reads.rules()
+    rules = reads.rules(site_row(request))
     sort = reads.resolve_sort(spec, request.GET.get("sort", ""))
     choice = tour_reads.tour_choice(request.GET.get("tour")) if spec.per_tour else None
     planes = reads.aircraft_options() if spec.per_aircraft else []

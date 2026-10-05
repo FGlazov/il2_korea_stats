@@ -34,10 +34,10 @@ from il2ks.db.site import clear_level2_pending, set_level2_pending
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
 from il2ks.ingest.batch import is_batch, repair_pending
-from il2ks.ingest.lock import LockBusyError, WriterLock
+from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import MissionMeta
+from il2ks.ingest.rule_store import adopt_overrides, config_with, effective_config, rebuild_overrides
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
-from il2ks.ingest.tours import on_win_pending
 from il2ks.ingest.worker import lower_priority, parse_and_replay
 
 log = logging.getLogger(__name__)
@@ -130,6 +130,7 @@ def reprocess(
     `on_start(total)` is called once the lock is held and the missions are chosen; `on_progress(summary)` after each
     mission (the admin's request row shows both)."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
+        cfg = effective_config(cfg)  # the rules the admin applied (they win over the file)
         run_rebuild = rebuild or partial(
             rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
         )
@@ -273,6 +274,8 @@ def rebuild_all(
     the writer lock. `reassign_tours` (`--retour`) first moves every mission to its tour under the configured `[tours]`
     rules (TD-26), for after a mode, start date or timezone change."""
     with WriterLock(cfg.data_dir, "rebuild-aggregates", wait=lock_wait), transaction.atomic():
+        overrides = rebuild_overrides(reassign_tours=reassign_tours)  # the admin's wanted rules, adopted below
+        cfg = config_with(cfg, overrides)
         (
             rebuild
             or partial(
@@ -285,19 +288,5 @@ def rebuild_all(
                 board=cfg.board,
             )
         )()
+        adopt_overrides(overrides)
         clear_level2_pending()
-
-
-def recompute_tours_with_wanted_rule(cfg: Config) -> bool:
-    """Work off a pending change of the admin's "new tour after a decisive mission" option (`watch` calls this every
-    tick): under the writer lock reassign every mission to its tour and rebuild level 2, like `rebuild-aggregates
-    --retour` (which adopts the chosen value). False when nothing was pending or the lock was busy (the next tick tries
-    again). One transaction: a crash midway leaves the old tours and the pending change."""
-    if not on_win_pending():
-        return False
-    try:
-        rebuild_all(cfg, reassign_tours=True)
-    except LockBusyError as exc:
-        log.info("tour reassignment waits: %s", exc)
-        return False
-    return True

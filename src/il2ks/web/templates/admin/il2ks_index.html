@@ -34,10 +34,18 @@
   </div>
   <div class="module">
     <table>
-      <caption>{% translate "Scoring" %}</caption>
+      <caption>{% translate "Game rules" %}</caption>
       <tr>
-        <th scope="row"><a href="{% url 'admin:score' %}">{% translate "Score for flight time" %}</a></th>
+        <th scope="row"><a href="{% url 'admin:score' %}">{% translate "Scoring" %}</a></th>
         <td><a href="{% url 'admin:score' %}" class="changelink">{% translate "Change" %}</a></td>
+      </tr>
+      <tr>
+        <th scope="row"><a href="{% url 'admin:leaderboards' %}">{% translate "Leaderboards" %}</a></th>
+        <td><a href="{% url 'admin:leaderboards' %}" class="changelink">{% translate "Change" %}</a></td>
+      </tr>
+      <tr>
+        <th scope="row"><a href="{% url 'admin:rules' %}">{% translate "Rules" %}</a></th>
+        <td><a href="{% url 'admin:rules' %}" class="changelink">{% translate "Change" %}</a></td>
       </tr>
     </table>
   </div>
