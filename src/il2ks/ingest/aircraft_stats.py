@@ -1,29 +1,39 @@
 """Level-2 stats per aircraft type (FR-WEB-8): `AircraftStats`, `TourAircraftStats`, `AircraftMatchup`,
-`AircraftPayload`, `AircraftMods`. Aggregation in
-`ingest` only (TD-22); the aircraft pages just read these rows.
+`AircraftPayload`, `AircraftMods`, `PlayerAircraftScope`. Aggregation in `ingest` only (TD-22); the aircraft pages just
+read these rows.
 
 Like the player aggregates they are always recomputed from lower rows, never adjusted by deltas, so incremental ==
-rebuild by construction:
+rebuild by construction. Two steps (doc 14 "Level-2 refresh"), called by `aggregates.refresh_tours`:
 
-- `AircraftStats` = the sum of the type's `PlayerAircraft` rows (every player, hidden ones too), plus the pilot count,
-  the side most sorties were flown for. No ratio is stored: K/D and the like are computed at read time (OQ-98).
-  Recompute it after `recompute_players` (it reads their rows).
-- `TourAircraftStats` = the same per tour (TD-26) and combat role: `all` rows are summed from the type's
-  `PlayerTourAircraft` rows; `air_superiority` / `attack` rows (per tour, and all time with a null tour) are counted
-  sorties grouped by `combat_role`, with the distinct pilots. The pilot count and the side are of that scope. Only the
-  tours a saved mission touched are recomputed (the all-time role rows always); a rebuild does them all. A type with
-  significant weapon mods has more rows per tour, role and all time, one per filter pattern (`ingest.aircraft_mods`).
-- `AircraftPayload` / `AircraftMods` = counted sorties grouped by loadout name / weapon-mod set, tour (and all time),
-  combat role and (for such a type) filter pattern, plus the average pilot Elo of an air superiority group
-  (`recompute_payload_elo`, after the ratings).
-- `AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type) and scope
-  (all time / tour, all kills / intercept fights where both sorties were air superiority), plus the role / mod
-  pattern scopes of the killer's or the victim's sortie (`scoped_side`).
-- `PlayerAircraftScope` = one player's counters in a type per tour (and all time), role and mod pattern (the top pilots
-  of the aircraft page; the all-time unfiltered one is `PlayerAircraft`).
+1. The **tour rows** (`recompute_aircraft_tour_rows`, `recompute_matchup_tours`): one tour's rows of a type are counted
+   from that tour's level-1 rows only (the counted sorties of its missions; `PlayerTourAircraft` for the `all` role).
+   A refresh of a tour never reads another tour's sorties.
+2. The **all-time rows** (`rollup_aircraft_stats`, `rollup_matchups`): a roll-up of the tour rows of the type (SUM, and
+   an argmax for the side), never of level 1:
+   - `AircraftStats` = the sum of the type's `TourAircraftStats` rows (role `all`, no mod pattern); `pilots` = the
+     count of its `PlayerAircraft` rows (a union, so it can't be summed); `side` = the larger of the summed
+     `sorties_redfor` / `sorties_blufor` counters (ties: REDFOR). No ratio is stored: K/D and the like are computed at
+     read time (OQ-98).
+   - `TourAircraftStats` with a null tour (role and mod-pattern rows) = the sum of the tour rows of the same role and
+     pattern; `pilots` = the count of the scope's all-time `PlayerAircraftScope` rows; `side` as above.
+   - `PlayerAircraftScope` all-time rows = the sum of the player's tour rows per (type, role, pattern).
+   - `AircraftPayload` / `AircraftMods` all-time rows = the sum of the tour rows per loadout name / weapon-mod set,
+     role and pattern (`elo_avg` is not summable: `recompute_payload_elo`, after the ratings).
+   - `AircraftMatchup` all-time rows = the sum of the tour rows per scope.
 
-`save_mission` passes the types, tours and pairs a mission touched (old and new); `rebuild_aggregates` passes
-everything.
+`TourAircraftStats` = per tour (TD-26) and combat role: `all` rows are summed from the type's `PlayerTourAircraft`
+rows; `air_superiority` / `attack` rows are counted sorties grouped by `combat_role`, with the distinct pilots. A type
+with significant weapon mods has more rows per tour and role, one per filter pattern (`ingest.aircraft_mods`). Each
+row counts its sorties per side (`sorties_redfor`, `sorties_blufor`); its `side` is the larger one.
+`AircraftPayload` / `AircraftMods` = counted sorties grouped by loadout name / weapon-mod set, tour, combat role and
+(for such a type) filter pattern, plus the average pilot Elo of an air superiority group (`recompute_payload_elo`).
+`AircraftMatchup` = enemy PvP `Kill` rows between pilot sorties, grouped by (killer type, victim type) and scope (tour,
+all kills / intercept fights where both sorties were air superiority), plus the role / mod pattern scopes of the
+killer's or the victim's sortie (`scoped_side`). `PlayerAircraftScope` = one player's counters in a type per tour, role
+and mod pattern (the top pilots of the aircraft page; the all-time unfiltered one is `PlayerAircraft`).
+
+A mission always has a tour (`save_mission` gives it one), so the tour rows cover every sortie: the sum over the tours
+is the whole history.
 """
 
 from collections.abc import Callable, Iterable, Mapping
@@ -52,7 +62,7 @@ from il2ks.db.models import (
     Role,
     TourAircraftStats,
 )
-from il2ks.ingest.aircraft_mods import pattern_stats, player_scope_stats, scopes_of, significant_mods
+from il2ks.ingest.aircraft_mods import pattern_tour_stats, player_scope_stats, scopes_of, significant_mods
 from il2ks.ingest.counters import (
     COUNTER_FIELDS,
     FLOAT_COUNTERS,
@@ -83,109 +93,199 @@ def matchup_kills() -> QuerySet[Kill]:
 
 
 def recompute_aircraft_stats(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
-    """`AircraftStats` and `AircraftPayload` for these types, and their `TourAircraftStats` (per tour in `tour_ids`,
-    None = every tour; the all-time role rows always); rows of types without counted sorties are deleted. The payload
-    Elo is not here: it needs the ratings (`recompute_payload_elo`, run by `recompute_ratings`)."""
+    """Both steps for these types: the tour rows of the tours in `tour_ids` (None = every tour), then the all-time rows
+    rolled up from them. `refresh_tours` calls the steps apart (`recompute_aircraft_tour_rows`,
+    `rollup_aircraft_stats`) because the all-time step runs after every tour step. Rows of types without counted
+    sorties are deleted. The payload Elo is not here: it needs the ratings (`recompute_payload_elo`)."""
+    ids = sorted(set(aircraft_ids))
+    recompute_aircraft_tour_rows(ids, tour_ids)
+    rollup_aircraft_stats(ids)
+
+
+def recompute_aircraft_tour_rows(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
+    """The tour step: `TourAircraftStats`, `PlayerAircraftScope`, `AircraftPayload` and `AircraftMods` rows of the tours
+    in `tour_ids` (None = every tour) for these types, from those tours' level-1 rows (and `PlayerTourAircraft`)."""
     ids = sorted(set(aircraft_ids))
     tours = None if tour_ids is None else sorted(set(tour_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
-        groups = _sortie_groups(chunk)
-        sides = _sides(groups)
-        _recompute_stats(chunk, sides)
         significant = significant_mods(chunk)
-        _recompute_effectiveness(chunk, groups, significant)
-        _recompute_tour_stats(chunk, tours, sides, significant)
+        _recompute_effectiveness(chunk, _sortie_groups(chunk, tours), significant, tours)
+        _recompute_tour_stats(chunk, tours, significant)
         _recompute_player_scopes(chunk, tours, significant)
+
+
+def rollup_aircraft_stats(aircraft_ids: Iterable[int]) -> None:
+    """The all-time step: `AircraftStats` and every all-time (null tour) row of these types, rolled up from their tour
+    rows. After `recompute_aircraft_tour_rows` and the players' `PlayerAircraft` rows (the pilot count)."""
+    ids = sorted(set(aircraft_ids))
+    for start in range(0, len(ids), CHUNK):
+        chunk = ids[start : start + CHUNK]
+        _rollup_player_scopes(chunk)
+        _rollup_stats(chunk)
+        _rollup_effectiveness(chunk)
 
 
 type _Wanted[K] = dict[K, dict[str, int | float | str]]
 type _TourKey = tuple[int, int | None, str, str]  # aircraft, tour (None = all time), role (`AircraftRole`), mod pattern
 ALL = AircraftRole.ALL.value
+_SUMS = {name: Sum(name) for name in COUNTER_FIELDS}
+_STAT_FIELDS = [*COUNTER_FIELDS, "pilots", "side"]
+_TOUR_STAT_FIELDS = [*_STAT_FIELDS, "sorties_redfor", "sorties_blufor"]
 
 
-def _recompute_stats(chunk: list[int], sides: dict[tuple[int, str], str]) -> None:
-    sums = {name: Sum(name) for name in COUNTER_FIELDS}
-    wanted: _Wanted[int] = {
-        row["aircraft_id"]: _stat_values(row, sides.get((row["aircraft_id"], ALL), ""))
-        for row in PlayerAircraft.objects.filter(aircraft_id__in=chunk)
-        .values("aircraft_id")
-        .annotate(pilots=Count("pk"), **sums)
+def _side_of(redfor: int, blufor: int) -> str:
+    """The side with more sorties; a tie: the name that sorts first (REDFOR); no sorties for either: ''."""
+    if redfor == 0 and blufor == 0:
+        return ""
+    return "redfor" if redfor >= blufor else "blufor"
+
+
+def _tour_stat_values(
+    total: Mapping[str, object], pilots: int, redfor: int, blufor: int
+) -> dict[str, int | float | str]:
+    return {
+        **clean_counters(total),
+        "pilots": pilots,
+        "side": _side_of(redfor, blufor),
+        "sorties_redfor": redfor,
+        "sorties_blufor": blufor,
     }
-    existing = {row.aircraft_id: row for row in AircraftStats.objects.filter(aircraft_id__in=chunk)}
-    _sync_stats(AircraftStats, wanted, existing, lambda aircraft_id: {"aircraft_id": aircraft_id})
+
+
+def _rollup_stats(chunk: list[int]) -> None:
+    """`AircraftStats` and the all-time `TourAircraftStats` rows of these types = sums of their tour rows."""
+    sums = {**_SUMS, "red": Sum("sorties_redfor"), "blue": Sum("sorties_blufor")}
+    tour_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+    pilots_all = dict(
+        PlayerAircraft.objects.filter(aircraft_id__in=chunk)
+        .values_list("aircraft_id")
+        .annotate(n=Count("pk"))
+        .order_by()
+    )
+    pilots_scope = {
+        (aircraft, role, pattern): n
+        for aircraft, role, pattern, n in PlayerAircraftScope.objects.filter(
+            aircraft_id__in=chunk, tour__isnull=True, sorties__gt=0
+        )
+        .values_list("aircraft_id", "role", "mod_pattern")
+        .annotate(n=Count("pk"))
+        .order_by()
+    }
+    wanted_all: _Wanted[int] = {}
+    wanted: _Wanted[_TourKey] = {}
+    for row in tour_rows.values("aircraft_id", "role", "mod_pattern").annotate(**sums).order_by():
+        aircraft, role, pattern = row["aircraft_id"], row["role"], row["mod_pattern"]
+        red, blue = row["red"] or 0, row["blue"] or 0
+        if role == ALL and not pattern:
+            wanted_all[aircraft] = {
+                **clean_counters(row),
+                "pilots": pilots_all.get(aircraft, 0),
+                "side": _side_of(red, blue),
+            }
+        else:
+            wanted[(aircraft, None, role, pattern)] = _tour_stat_values(
+                row, pilots_scope.get((aircraft, role, pattern), 0), red, blue
+            )
+    existing_all = {row.aircraft_id: row for row in AircraftStats.objects.filter(aircraft_id__in=chunk)}
+    _sync_stats(AircraftStats, wanted_all, existing_all, lambda aircraft_id: {"aircraft_id": aircraft_id}, _STAT_FIELDS)
+    existing = {
+        (row.aircraft_id, row.tour_id, row.role, row.mod_pattern): row
+        for row in TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=True)
+    }
+    _sync_stats(
+        TourAircraftStats,
+        wanted,
+        existing,
+        lambda key: {"aircraft_id": key[0], "tour_id": key[1], "role": key[2], "mod_pattern": key[3]},
+        _TOUR_STAT_FIELDS,
+    )
 
 
 def _recompute_tour_stats(
-    chunk: list[int],
-    tour_ids: list[int] | None,
-    alltime_sides: dict[tuple[int, str], str],
-    significant: dict[int, tuple[int, ...]],
+    chunk: list[int], tour_ids: list[int] | None, significant: dict[int, tuple[int, ...]]
 ) -> None:
-    """`TourAircraftStats` of these types: the `all` role per tour from the players' per-tour aircraft rows, and every
-    combat role per tour and all time from the counted sorties (`pilots` = distinct players, which no sum of rows can
-    give); and, for a type with significant weapon mods, every filter pattern of those scopes (`aircraft_mods`)."""
+    """The tour `TourAircraftStats` rows of these types (the tours in `tour_ids`, None = all): the `all` role from the
+    players' per-tour aircraft rows, every combat role from the counted sorties of the tour (`pilots` = distinct
+    players, which no sum of rows can give); and, for a type with significant weapon mods, every filter pattern of
+    those scopes (`aircraft_mods`). Each row also counts its sorties per side."""
     rows = PlayerTourAircraft.objects.filter(aircraft_id__in=chunk)
-    sorties = counted_sorties().filter(aircraft_id__in=chunk)
-    existing_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk)
-    tour_sorties = sorties.filter(mission__tour__isnull=False)
+    tour_sorties = counted_sorties().filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+    existing_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
         rows = rows.filter(tour_id__in=tour_ids)
-        existing_rows = existing_rows.filter(Q(tour_id__in=tour_ids) | Q(tour__isnull=True))
+        existing_rows = existing_rows.filter(tour_id__in=tour_ids)
         tour_sorties = tour_sorties.filter(mission__tour_id__in=tour_ids)
-    by_side: dict[tuple[int, int, str], dict[str, int]] = {}
+    by_side: dict[tuple[int, int, str], list[int]] = {}  # (aircraft, tour, role) -> [REDFOR, BLUFOR] sorties
     grouped = tour_sorties.values("aircraft_id", "mission__tour_id", "combat_role", "country").annotate(n=Count("pk"))
-    for found in grouped:
+    for found in grouped.order_by():
         side = side_of_country(found["country"])
         if side is not None:
             for role in (ALL, found["combat_role"]):
                 if role is not None:
-                    counts = by_side.setdefault((found["aircraft_id"], found["mission__tour_id"], role), {})
-                    counts[side] = counts.get(side, 0) + found["n"]
-    sides = _majority_sides(by_side)
-    sums = {name: Sum(name) for name in COUNTER_FIELDS}
-    wanted: _Wanted[_TourKey] = {
-        (row["aircraft_id"], row["tour_id"], ALL, ""): _stat_values(
-            row, sides.get((row["aircraft_id"], row["tour_id"], ALL), "")
-        )
-        for row in rows.values("aircraft_id", "tour_id").annotate(pilots=Count("pk"), **sums)
-    }
+                    counts = by_side.setdefault((found["aircraft_id"], found["mission__tour_id"], role), [0, 0])
+                    counts[0 if side == "redfor" else 1] += found["n"]
+    wanted: _Wanted[_TourKey] = {}
+    for row in rows.values("aircraft_id", "tour_id").annotate(pilots=Count("pk"), **_SUMS).order_by():
+        red, blue = by_side.get((row["aircraft_id"], row["tour_id"], ALL), [0, 0])
+        wanted[(row["aircraft_id"], row["tour_id"], ALL, "")] = _tour_stat_values(row, row["pilots"], red, blue)
     distinct = {"pilots": Count("player_id", distinct=True), **SORTIE_COUNTERS}
     per_tour = tour_sorties.filter(combat_role__isnull=False).values("aircraft_id", "mission__tour_id", "combat_role")
-    for row in per_tour.annotate(**distinct):
-        key = (row["aircraft_id"], row["mission__tour_id"], row["combat_role"], "")
-        wanted[key] = _stat_values(row, sides.get((key[0], row["mission__tour_id"], key[2]), ""))
-    all_time = sorties.filter(combat_role__isnull=False).values("aircraft_id", "combat_role")
-    for row in all_time.annotate(**distinct):
-        wanted[(row["aircraft_id"], None, row["combat_role"], "")] = _stat_values(
-            row, alltime_sides.get((row["aircraft_id"], row["combat_role"]), "")
-        )
-    for key, (totals, pilots, side) in pattern_stats(significant, tour_ids).items():
-        wanted[key] = _stat_values({**totals, "pilots": pilots}, side)
+    for row in per_tour.annotate(**distinct).order_by():
+        tour = row["mission__tour_id"]
+        red, blue = by_side.get((row["aircraft_id"], tour, row["combat_role"]), [0, 0])
+        wanted[(row["aircraft_id"], tour, row["combat_role"], "")] = _tour_stat_values(row, row["pilots"], red, blue)
+    for (aircraft, tour, role, pattern), (totals, pilots, red, blue) in pattern_tour_stats(
+        significant, tour_ids
+    ).items():
+        wanted[(aircraft, tour, role, pattern)] = _tour_stat_values(totals, pilots, red, blue)
     existing = {(row.aircraft_id, row.tour_id, row.role, row.mod_pattern): row for row in existing_rows}
     _sync_stats(
         TourAircraftStats,
         wanted,
         existing,
         lambda key: {"aircraft_id": key[0], "tour_id": key[1], "role": key[2], "mod_pattern": key[3]},
+        _TOUR_STAT_FIELDS,
     )
 
 
 def _recompute_player_scopes(
     chunk: list[int], tour_ids: list[int] | None, significant: dict[int, tuple[int, ...]]
 ) -> None:
-    """`PlayerAircraftScope` rows of these types (the top pilots of the aircraft page): every player's counters per
-    scope but the all-time, every-role, unfiltered one (`PlayerAircraft`). Only the tours in `tour_ids` (None = all)
-    and all time are rewritten."""
+    """The tour `PlayerAircraftScope` rows of these types (the top pilots of the aircraft page): every player's counters
+    per tour, role and mod pattern, from the tours' counted sorties. Only the tours in `tour_ids` (None = all)."""
     wanted = player_scope_stats(chunk, significant, tour_ids)
-    existing_rows = PlayerAircraftScope.objects.filter(aircraft_id__in=chunk)
+    existing_rows = PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
-        existing_rows = existing_rows.filter(Q(tour_id__in=tour_ids) | Q(tour__isnull=True))
+        existing_rows = existing_rows.filter(tour_id__in=tour_ids)
+    _sync_player_scopes({key: clean_counters(totals) for key, totals in wanted.items()}, existing_rows)
+
+
+def _rollup_player_scopes(chunk: list[int]) -> None:
+    """The all-time `PlayerAircraftScope` rows of these types = the sum of each player's tour rows per (type, role,
+    pattern), except the every-role, unfiltered one (`PlayerAircraft`)."""
+    wanted: dict[tuple[int, int, int | None, str, str], Mapping[str, int | float]] = {}
+    rows = (
+        PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+        .values("aircraft_id", "player_id", "role", "mod_pattern")
+        .annotate(**_SUMS)
+        .order_by()
+    )
+    for row in rows:
+        if row["role"] == ALL and not row["mod_pattern"]:
+            continue
+        wanted[(row["aircraft_id"], row["player_id"], None, row["role"], row["mod_pattern"])] = clean_counters(row)
+    _sync_player_scopes(wanted, PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=True))
+
+
+def _sync_player_scopes(
+    wanted: Mapping[tuple[int, int, int | None, str, str], Mapping[str, int | float]],
+    existing_rows: QuerySet[PlayerAircraftScope],
+) -> None:
     existing = {(r.aircraft_id, r.player_id, r.tour_id, r.role, r.mod_pattern): r for r in existing_rows}
     changed: list[PlayerAircraftScope] = []
     new: list[PlayerAircraftScope] = []
-    for key, totals in wanted.items():
-        values = clean_counters(totals)
+    for key, values in wanted.items():
         row = existing.pop(key, None)
         if row is None:
             new.append(
@@ -202,14 +302,12 @@ def _recompute_player_scopes(
     PlayerAircraftScope.objects.bulk_create(new)
 
 
-def _stat_values(total: Mapping[str, object], side: str) -> dict[str, int | float | str]:
-    """The stored values of one stats row from an aggregate row: counters, pilots (one source row per player), side."""
-    pilots = total["pilots"]
-    return {**clean_counters(total), "pilots": pilots if isinstance(pilots, int) else 0, "side": side}
-
-
 def _sync_stats[K, M: AircraftCounters](
-    model: type[M], wanted: _Wanted[K], existing: dict[K, M], identity: Callable[[K], dict[str, int | str | None]]
+    model: type[M],
+    wanted: _Wanted[K],
+    existing: dict[K, M],
+    identity: Callable[[K], dict[str, int | str | None]],
+    fields: list[str],
 ) -> None:
     """Make the rows equal `wanted` (new ones created, changed ones updated, the others deleted)."""
     changed: list[M] = []
@@ -223,17 +321,16 @@ def _sync_stats[K, M: AircraftCounters](
                 setattr(row, name, value)
             changed.append(row)
     model.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    update_rows(model, changed, [*COUNTER_FIELDS, "pilots", "side"])
+    update_rows(model, changed, fields)
     model.objects.bulk_create(new)
 
 
 @dataclass(frozen=True, slots=True)
 class _Group:
-    """The counted sorties of one type, tour, country, loadout, weapon mods and combat role ('' = none), summed."""
+    """The counted sorties of one type, tour, loadout, weapon mods and combat role ('' = none), summed."""
 
     aircraft_id: int
-    tour: int | None
-    country: int
+    tour: int
     payload_name: str
     mods: int
     role: str
@@ -247,14 +344,14 @@ class _Group:
     time_on_target_s: float
 
 
-def _sortie_groups(chunk: list[int]) -> list[_Group]:
-    """The types' counted sorties grouped by tour, country, payload, weapon mods and role, in ONE pass over all their
-    history (this grows with it, so the sides and the loadout and mods rows all come from these groups instead of a
-    grouped query each)."""
+def _sortie_groups(chunk: list[int], tour_ids: list[int] | None) -> list[_Group]:
+    """The types' counted sorties of these tours (None = all) grouped by tour, payload, weapon mods and role, in ONE
+    pass: the loadout and mods rows both come from these groups instead of a grouped query each."""
+    sorties = counted_sorties().filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+    if tour_ids is not None:
+        sorties = sorties.filter(mission__tour_id__in=tour_ids)
     rows = (
-        counted_sorties()
-        .filter(aircraft_id__in=chunk)
-        .values("aircraft_id", "mission__tour_id", "country", "payload_name", "weapon_mods", "combat_role")
+        sorties.values("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "combat_role")
         .annotate(
             n=Count("pk"),
             air=Sum("kills_air"),
@@ -265,12 +362,12 @@ def _sortie_groups(chunk: list[int]) -> list[_Group]:
             attack_score=Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
             tot=Sum("time_on_target_s"),
         )
+        .order_by("aircraft_id", "mission__tour_id", "payload_name", "weapon_mods", "combat_role")  # fixed float order
     )
     return [
         _Group(
             r["aircraft_id"],
             r["mission__tour_id"],
-            r["country"],
             r["payload_name"],
             r["weapon_mods"],
             r["combat_role"] or "",
@@ -285,24 +382,6 @@ def _sortie_groups(chunk: list[int]) -> list[_Group]:
         )
         for r in rows
     ]
-
-
-def _sides(groups: list[_Group]) -> dict[tuple[int, str], str]:
-    """The side most of each type's counted sorties were flown for, overall (`all`) and per combat role (ties: the
-    REDFOR/BLUFOR name that sorts first)."""
-    by_side: dict[tuple[int, str], dict[str, int]] = {}
-    for g in groups:
-        side = side_of_country(g.country)
-        if side is not None:
-            for role in (ALL, g.role):
-                if role:
-                    counts = by_side.setdefault((g.aircraft_id, role), {})
-                    counts[side] = counts.get(side, 0) + g.sorties
-    return _majority_sides(by_side)
-
-
-def _majority_sides[K](by_side: dict[K, dict[str, int]]) -> dict[K, str]:
-    return {key: min(counts, key=lambda s: (-counts[s], s)) for key, counts in by_side.items()}
 
 
 _EFFECTIVENESS_FIELDS = (
@@ -320,50 +399,66 @@ type _GroupKey = tuple[int, int | None, str | int, str, str]
 # aircraft, tour (None = all time), loadout name or WM, role, mod pattern ('' = unfiltered)
 
 
-def _recompute_effectiveness(chunk: list[int], groups: list[_Group], significant: dict[int, tuple[int, ...]]) -> None:
-    """`AircraftPayload` rows per (type, tour or all time, loadout, role, mod pattern) and `AircraftMods` rows (type,
-    tour or all time, weapon-mod set, role, mod pattern), from the same groups. `elo_avg` is not touched here
-    (see `recompute_payload_elo`)."""
+def _recompute_effectiveness(
+    chunk: list[int], groups: list[_Group], significant: dict[int, tuple[int, ...]], tour_ids: list[int] | None
+) -> None:
+    """The tour `AircraftPayload` rows per (type, tour, loadout, role, mod pattern) and `AircraftMods` rows (type, tour,
+    weapon-mod set, role, mod pattern), from the same groups.
+    `elo_avg` is not touched here (`recompute_payload_elo`)."""
     payloads: dict[_GroupKey, list[float]] = {}
     mods: dict[_GroupKey, list[float]] = {}
     for g in groups:
-        for tour in (None,) if g.tour is None else (None, g.tour):
-            for pattern in ("", *mod_filter_patterns(g.mods, significant.get(g.aircraft_id, ()))):
-                for sums, value in ((payloads, g.payload_name), (mods, g.mods)):
-                    total = sums.setdefault(
-                        (g.aircraft_id, tour, value, g.role, pattern), [0.0] * len(_EFFECTIVENESS_FIELDS)
-                    )
-                    for i, name in enumerate(_EFFECTIVENESS_FIELDS):
-                        total[i] += getattr(g, name)
-    _sync_effectiveness(
-        AircraftPayload,
-        AircraftPayload.objects.filter(aircraft_id__in=chunk),
-        payloads,
-        lambda r: (r.aircraft_id, r.tour_id, r.payload_name, r.combat_role, r.mod_pattern),
-        lambda k: {
-            "aircraft_id": k[0],
-            "tour_id": k[1],
-            "payload_name": k[2],
-            "combat_role": k[3],
-            "mod_pattern": k[4],
-        },
-    )
-    _sync_effectiveness(
-        AircraftMods,
-        AircraftMods.objects.filter(aircraft_id__in=chunk),
-        mods,
-        lambda r: (r.aircraft_id, r.tour_id, r.weapon_mods, r.combat_role, r.mod_pattern),
-        lambda k: {"aircraft_id": k[0], "tour_id": k[1], "weapon_mods": k[2], "combat_role": k[3], "mod_pattern": k[4]},
-    )
+        for pattern in ("", *mod_filter_patterns(g.mods, significant.get(g.aircraft_id, ()))):
+            for sums, value in ((payloads, g.payload_name), (mods, g.mods)):
+                total = sums.setdefault(
+                    (g.aircraft_id, g.tour, value, g.role, pattern), [0.0] * len(_EFFECTIVENESS_FIELDS)
+                )
+                for i, name in enumerate(_EFFECTIVENESS_FIELDS):
+                    total[i] += getattr(g, name)
+    payload_rows = AircraftPayload.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+    mod_rows = AircraftMods.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+    if tour_ids is not None:
+        payload_rows = payload_rows.filter(tour_id__in=tour_ids)
+        mod_rows = mod_rows.filter(tour_id__in=tour_ids)
+    _sync_effectiveness(AircraftPayload, payload_rows, payloads, "payload_name")
+    _sync_effectiveness(AircraftMods, mod_rows, mods, "weapon_mods")
+
+
+def _rollup_effectiveness(chunk: list[int]) -> None:
+    """The all-time `AircraftPayload` / `AircraftMods` rows of these types = the sums of their tour rows per (type,
+    loadout or weapon-mod set, role, pattern)."""
+    for name_field, rows in (
+        ("payload_name", AircraftPayload.objects.filter(aircraft_id__in=chunk, tour__isnull=False)),
+        ("weapon_mods", AircraftMods.objects.filter(aircraft_id__in=chunk, tour__isnull=False)),
+    ):
+        summed = (
+            rows.values("aircraft_id", name_field, "combat_role", "mod_pattern")
+            .annotate(**{f: Sum(f) for f in _EFFECTIVENESS_FIELDS})
+            .order_by()
+        )
+        sums: dict[_GroupKey, list[float]] = {
+            (r["aircraft_id"], None, r[name_field], r["combat_role"], r["mod_pattern"]): [
+                float(r[f] or 0) for f in _EFFECTIVENESS_FIELDS
+            ]
+            for r in summed
+        }
+        if name_field == "payload_name":
+            _sync_effectiveness(
+                AircraftPayload,
+                AircraftPayload.objects.filter(aircraft_id__in=chunk, tour__isnull=True),
+                sums,
+                name_field,
+            )
+        else:
+            _sync_effectiveness(
+                AircraftMods, AircraftMods.objects.filter(aircraft_id__in=chunk, tour__isnull=True), sums, name_field
+            )
 
 
 def _sync_effectiveness[M: AircraftEffectiveness](
-    model: type[M],
-    existing_rows: QuerySet[M],
-    sums: dict[_GroupKey, list[float]],
-    key_of: Callable[[M], _GroupKey],
-    identity: Callable[[_GroupKey], dict[str, int | str | None]],
+    model: type[M], existing_rows: QuerySet[M], sums: dict[_GroupKey, list[float]], name_field: str
 ) -> None:
+    """Make these rows (a tour's or the all-time ones) equal `sums`: the identity of a row is its key."""
     wanted: dict[_GroupKey, dict[str, int | float]] = {
         key: {
             name: round(value, SCORE_DECIMALS) if name in FLOAT_COUNTERS else int(value)
@@ -372,13 +467,16 @@ def _sync_effectiveness[M: AircraftEffectiveness](
         # a fixed order (all time first): new rows get their ids in it
         for key, total in sorted(sums.items(), key=lambda item: (item[0][0], item[0][1] or 0, *item[0][2:]))
     }
-    existing = {key_of(r): r for r in existing_rows}
+    existing = {
+        (r.aircraft_id, r.tour_id, getattr(r, name_field), r.combat_role, r.mod_pattern): r for r in existing_rows
+    }
     changed: list[M] = []
     new: list[M] = []
     for key, values in wanted.items():
         row = existing.pop(key, None)
         if row is None:
-            new.append(model(**identity(key), **values))
+            identity = {"aircraft_id": key[0], "tour_id": key[1], name_field: key[2], "combat_role": key[3]}
+            new.append(model(**identity, mod_pattern=key[4], **values))
         elif any(getattr(row, name) != value for name, value in values.items()):
             for name, value in values.items():
                 setattr(row, name, value)
@@ -483,21 +581,67 @@ def recompute_payload_elo() -> None:
     update_rows(AircraftMods, changed_mods, ["elo_avg"])
 
 
-def recompute_matchups(pairs: Iterable[Pair] | None = None) -> None:
-    """`AircraftMatchup` (every scope: all time and per tour, all kills and intercept fights only) for these
-    (killer type, victim type) pairs from the `Kill` rows, or for all pairs (None, a rebuild). Rows without kills left
-    are deleted."""
+def recompute_matchups(pairs: Iterable[Pair] | None = None, tour_ids: Iterable[int] | None = None) -> None:
+    """Both steps for these (killer type, victim type) pairs, or for all pairs (None, a rebuild): the tour rows of the
+    tours in `tour_ids` (None = every tour), then the all-time rows rolled up from them."""
+    recompute_matchup_tours(pairs, tour_ids)
+    rollup_matchups(pairs)
+
+
+def recompute_matchup_tours(pairs: Iterable[Pair] | None, tour_ids: Iterable[int] | None = None) -> None:
+    """The tour step: `AircraftMatchup` rows (every scope: per tour, all kills and intercept fights only, role and mod
+    pattern scopes) of the tours in `tour_ids` (None = every tour) for these pairs, from those tours' `Kill` rows. Rows
+    without kills left are deleted."""
+    tours = None if tour_ids is None else sorted(set(tour_ids))
+    kills = matchup_kills().filter(mission__tour__isnull=False)
+    existing = AircraftMatchup.objects.filter(tour__isnull=False)
+    if tours is not None:
+        kills = kills.filter(mission__tour_id__in=tours)
+        existing = existing.filter(tour_id__in=tours)
     if pairs is None:
-        _sync_matchups(_scope_counts(matchup_kills()), {_key_of(r): r for r in AircraftMatchup.objects.all()})
+        _sync_matchups(_scope_counts(kills), {_key_of(r): r for r in existing})
         return
-    ordered = sorted(set(pairs))
-    for start in range(0, len(ordered), PAIR_CHUNK):
-        chunk = ordered[start : start + PAIR_CHUNK]
+    for chunk in _pair_chunks(pairs):
         match = _any_of([Q(killer_sortie__aircraft_id=k, victim_sortie__aircraft_id=v) for k, v in chunk])
         found = _any_of([Q(killer_aircraft_id=k, victim_aircraft_id=v) for k, v in chunk])
-        _sync_matchups(
-            _scope_counts(matchup_kills().filter(match)), {_key_of(r): r for r in AircraftMatchup.objects.filter(found)}
-        )
+        _sync_matchups(_scope_counts(kills.filter(match)), {_key_of(r): r for r in existing.filter(found)})
+
+
+def rollup_matchups(pairs: Iterable[Pair] | None = None) -> None:
+    """The all-time step: the all-time `AircraftMatchup` rows of these pairs (None = all) = the sums of their tour rows
+    per scope (intercept, scoped side, role, mod pattern)."""
+
+    def rolled(tour_rows: QuerySet[AircraftMatchup]) -> dict[ScopedPair, int]:
+        grouped = tour_rows.values(
+            "killer_aircraft_id", "victim_aircraft_id", "intercept", "scoped_side", "combat_role", "mod_pattern"
+        ).annotate(total=Sum("kills"))
+        return {
+            (
+                r["killer_aircraft_id"],
+                r["victim_aircraft_id"],
+                None,
+                r["intercept"],
+                r["scoped_side"],
+                r["combat_role"],
+                r["mod_pattern"],
+            ): r["total"]
+            for r in grouped.order_by()
+        }
+
+    tour_rows = AircraftMatchup.objects.filter(tour__isnull=False)
+    all_time = AircraftMatchup.objects.filter(tour__isnull=True)
+    if pairs is None:
+        _sync_matchups(rolled(tour_rows), {_key_of(r): r for r in all_time})
+        return
+    for chunk in _pair_chunks(pairs):
+        found = _any_of([Q(killer_aircraft_id=k, victim_aircraft_id=v) for k, v in chunk])
+        _sync_matchups(rolled(tour_rows.filter(found)), {_key_of(r): r for r in all_time.filter(found)})
+
+
+def _pair_chunks(pairs: Iterable[Pair]) -> Iterable[list[Pair]]:
+    ordered = sorted(set(pairs))
+    for start in range(0, len(ordered), PAIR_CHUNK):
+        yield ordered[start : start + PAIR_CHUNK]
 
 
 def _any_of(conditions: list[Q]) -> Q:
@@ -521,9 +665,9 @@ def _key_of(row: AircraftMatchup) -> ScopedPair:
 
 
 def _scope_counts(kills: QuerySet[Kill]) -> dict[ScopedPair, int]:
-    """The kills counted into every scope they belong to: all time, their tour, and (when both sorties were air
-    superiority) the same two for intercept fights; and, for each side, the role and modification scopes of that side's
-    sortie (`scopes_of`, minus the unscoped one)."""
+    """The kills counted into every tour scope they belong to: their tour, and (when both sorties were air superiority)
+    the same for intercept fights; and, for each side, the role and modification scopes of that side's sortie
+    (`scopes_of`, minus the unscoped one). The kills are those of the tours being refreshed, so this reads no other."""
     rows = list(
         kills.values(
             "killer_sortie__aircraft_id",
@@ -533,7 +677,9 @@ def _scope_counts(kills: QuerySet[Kill]) -> dict[ScopedPair, int]:
             "victim_sortie__combat_role",
             "killer_sortie__weapon_mods",
             "victim_sortie__weapon_mods",
-        ).annotate(n=Count("pk"))
+        )
+        .annotate(n=Count("pk"))
+        .order_by()
     )
     significant = significant_mods(
         {r[side] for r in rows for side in ("killer_sortie__aircraft_id", "victim_sortie__aircraft_id")}
@@ -559,12 +705,10 @@ def _scope_counts(kills: QuerySet[Kill]) -> dict[ScopedPair, int]:
             ):
                 if (role, pattern) != (ALL, ""):
                     scopes.append((side, role, pattern))
-        tours: tuple[int | None, ...] = (None,) if tour is None else (None, tour)
-        for scope_tour in tours:
-            for intercept in (False, True) if both_air else (False,):
-                for side, role, pattern in scopes:
-                    key = (killer, victim, scope_tour, intercept, side, role, pattern)
-                    counts[key] = counts.get(key, 0) + row["n"]
+        for intercept in (False, True) if both_air else (False,):
+            for side, role, pattern in scopes:
+                key = (killer, victim, tour, intercept, side, role, pattern)
+                counts[key] = counts.get(key, 0) + row["n"]
     return counts
 
 

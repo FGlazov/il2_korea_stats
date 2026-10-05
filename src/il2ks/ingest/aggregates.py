@@ -64,8 +64,10 @@ from il2ks.ingest.aircraft_mods import scopes_of, significant_mods
 from il2ks.ingest.aircraft_stats import (
     matchup_kills,
     rebuild_aircraft_stats,
-    recompute_aircraft_stats,
-    recompute_matchups,
+    recompute_aircraft_tour_rows,
+    recompute_matchup_tours,
+    rollup_aircraft_stats,
+    rollup_matchups,
 )
 from il2ks.ingest.builds import recompute_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
@@ -158,7 +160,7 @@ def refresh_tours(tour_ids: Iterable[int] | None) -> None:
     tours (so a player, type, pair or day that dropped out of a re-ingested mission is corrected, too):
     - the players with a sortie or a `PlayerMission` / `PlayerTour` row in the tours,
     - the aircraft types flown in them (counted sorties, `PlayerTourAircraft`, `TourAircraftStats` rows) and the types
-      with ammo rows (hits to destroy: every type that has some, they are not per tour),
+      with ammo rows in them (`MissionAircraftAmmo(Mix)` and the tours' `AircraftAmmo(Mix)Stats` rows),
     - the (killer type, victim type) pairs of their counted kills (and the tours' `AircraftMatchup` rows),
     - the UTC days of their missions.
     Known limit, which `il2ks rebuild-aggregates` fixes: the old day of a re-ingested mission whose start time moved.
@@ -198,10 +200,9 @@ def _tour_scope(tours: list[int]) -> _TourScope:
     flown |= set(TourAircraftStats.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
     ammo = set(MissionAircraftAmmo.objects.filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
     ammo |= set(MissionAircraftAmmoMix.objects.filter(**in_tours).values_list("aircraft_id", flat=True).distinct())
-    # the all-time ammo rows are not per tour: those of every type that has some are re-summed, so a type a re-ingested
-    # mission no longer has loses its share (one grouped query per chunk, a few dozen rows per type)
-    ammo |= set(AircraftAmmoStats.objects.values_list("aircraft_id", flat=True).distinct())
-    ammo |= set(AircraftAmmoMixStats.objects.values_list("aircraft_id", flat=True).distinct())
+    # a type a re-ingested mission no longer has still has its old tour rows: they are rewritten and rolled up
+    ammo |= set(AircraftAmmoStats.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
+    ammo |= set(AircraftAmmoMixStats.objects.filter(tour_id__in=tours).values_list("aircraft_id", flat=True).distinct())
     pairs = set(
         matchup_kills()
         .filter(**in_tours)
@@ -221,25 +222,30 @@ def _tour_scope(tours: list[int]) -> _TourScope:
         tours=tours,
         players=sorted(players),
         aircraft=sorted(flown),
-        ammo_aircraft=sorted(ammo | flown),
+        ammo_aircraft=sorted(ammo),
         pairs=sorted(pairs),
         days=sorted(days),
     )
 
 
 def _recompute_tour_scope(scope: _TourScope) -> None:
-    """The per-tour step: the players' and types' rows of these tours (`PlayerTour`, `TourAircraftStats`, the
-    per-tour killboards, streaks, medals, matchups, ...). The recompute functions still write the entities' all-time
-    rows in the same pass; `_recompute_all_time` marks where they will be summed from these rows instead."""
+    """The per-tour step: the players' and types' rows of these tours, from those tours' level-1 rows only
+    (`PlayerTour`, `TourAircraftStats`, `PlayerAircraftScope`, `AircraftPayload` / `AircraftMods`, `AircraftMatchup`,
+    the ammo rows, the per-tour killboards, streaks, medals, ...). The players' all-time rows are still written in the
+    same pass (`recompute_players`); the aircraft rows are tour rows only."""
     recompute_players(scope.players, scope.tours)
-    recompute_aircraft_stats(scope.aircraft, scope.tours)
-    recompute_matchups(scope.pairs)
+    recompute_aircraft_tour_rows(scope.aircraft, scope.tours)
+    recompute_matchup_tours(scope.pairs, scope.tours)
+    recompute_aircraft_ammo_tours(scope.ammo_aircraft, scope.tours)
 
 
 def _recompute_all_time(scope: _TourScope) -> None:
-    """The all-time step, for the entities of the tour step: ammo rows (they are not per tour) and the activity days.
-    The all-time player and type rows are written by `_recompute_tour_scope` today (see there)."""
-    recompute_aircraft_ammo(scope.ammo_aircraft)
+    """The all-time step: the types' all-time rows (`AircraftStats`, the null-tour `TourAircraftStats`,
+    `PlayerAircraftScope`, payload, mods, matchup and ammo rows) are the sums of their tour rows, never read from level
+    1, and the activity days. After the tour step (and the players' `PlayerAircraft` rows, the pilot count)."""
+    rollup_aircraft_stats(scope.aircraft)
+    rollup_matchups(scope.pairs)
+    rollup_aircraft_ammo(scope.ammo_aircraft)
     recompute_days(scope.days)
 
 
@@ -266,51 +272,96 @@ def _store_board_rules(board: KillboardRules) -> None:
 type _AmmoKey = tuple[int, int | None, str, str, str, str]  # aircraft, tour, role, pattern, mix ('' = per ammo), ammo
 
 
-def recompute_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
-    """Hits to destroy (FR-WEB-18): `AircraftAmmoStats` and `AircraftAmmoMixStats` for these victim aircraft types =
-    the sums of their `MissionAircraftAmmo` / `MissionAircraftAmmoMix` rows over the missions of every scope (all time
-    and each tour, every role and each combat role, no filter and each modification pattern of the types with
-    significant mods: the role and mods are those of the destroyed aircraft's sortie, a victim that was not a player
-    sortie counts for `all` roles without a filter only); rows with nothing left are deleted. Cheap enough to run for
-    every type (a few dozen rows per mission), so `save_mission` and the rebuild share it."""
+def recompute_aircraft_ammo(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None = None) -> None:
+    """Both steps for these victim aircraft types: the tour rows of the tours in `tour_ids` (None = every tour), then
+    the all-time rows rolled up from them (`refresh_tours` calls the steps apart)."""
     ids = sorted(set(aircraft_ids))
+    recompute_aircraft_ammo_tours(ids, tour_ids)
+    rollup_aircraft_ammo(ids)
+
+
+def recompute_aircraft_ammo_tours(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
+    """The tour step of hits to destroy (FR-WEB-18): the tour rows of `AircraftAmmoStats` and `AircraftAmmoMixStats` of
+    the tours in `tour_ids` (None = every tour) for these victim aircraft types = the sums of those tours'
+    `MissionAircraftAmmo` / `MissionAircraftAmmoMix` rows, every role and each combat role, no filter and each
+    modification pattern of the types with significant mods (the role and mods are those of the destroyed aircraft's
+    sortie; a victim that was not a player sortie counts for `all` roles without a filter only). Rows with nothing
+    left are deleted. No other tour's mission rows are read."""
+    ids = sorted(set(aircraft_ids))
+    tours = None if tour_ids is None else sorted(set(tour_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
         significant = significant_mods(chunk)
-        singles = _scoped_ammo(
-            MissionAircraftAmmo.objects.filter(aircraft_id__in=chunk)
-            .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "ammo")
-            .annotate(n=Sum("kills"), h=Sum("hits")),
-            significant,
-            None,
+        single_level1 = MissionAircraftAmmo.objects.filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+        mix_level1 = MissionAircraftAmmoMix.objects.filter(aircraft_id__in=chunk, mission__tour__isnull=False)
+        single_rows = AircraftAmmoStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+        mix_rows = AircraftAmmoMixStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+        if tours is not None:
+            single_level1 = single_level1.filter(mission__tour_id__in=tours)
+            mix_level1 = mix_level1.filter(mission__tour_id__in=tours)
+            single_rows = single_rows.filter(tour_id__in=tours)
+            mix_rows = mix_rows.filter(tour_id__in=tours)
+        group = ["aircraft_id", "mission__tour_id", "combat_role", "weapon_mods"]
+        single = single_level1.values(*group, "ammo").annotate(n=Sum("kills"), h=Sum("hits")).order_by()
+        mixes = mix_level1.values(*group, "mix", "ammo").annotate(n=Sum("kills"), h=Sum("hits")).order_by()
+        _sync_ammo(AircraftAmmoStats, single_rows, _scoped_ammo(single, significant, None), "")
+        _sync_ammo(AircraftAmmoMixStats, mix_rows, _scoped_ammo(mixes, significant, "mix"), "mix")
+
+
+def rollup_aircraft_ammo(aircraft_ids: Iterable[int]) -> None:
+    """The all-time step: the all-time (null tour) ammo rows of these types = the sums of their tour rows per (role,
+    pattern, mix, ammo). Reads no level-1 rows."""
+    ids = sorted(set(aircraft_ids))
+    for start in range(0, len(ids), CHUNK):
+        chunk = ids[start : start + CHUNK]
+        group = ["aircraft_id", "role", "mod_pattern"]
+        single = AircraftAmmoStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+        mixes = AircraftAmmoMixStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
+        _sync_ammo(
+            AircraftAmmoStats,
+            AircraftAmmoStats.objects.filter(aircraft_id__in=chunk, tour__isnull=True),
+            _summed_ammo(single.values(*group, "ammo").annotate(k=Sum("kills"), h=Sum("hits")).order_by(), None),
+            "",
         )
-        _sync_ammo(AircraftAmmoStats, AircraftAmmoStats.objects.filter(aircraft_id__in=chunk), singles, "")
-        mixes = _scoped_ammo(
-            MissionAircraftAmmoMix.objects.filter(aircraft_id__in=chunk)
-            .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "mix", "ammo")
-            .annotate(n=Sum("kills"), h=Sum("hits")),
-            significant,
+        _sync_ammo(
+            AircraftAmmoMixStats,
+            AircraftAmmoMixStats.objects.filter(aircraft_id__in=chunk, tour__isnull=True),
+            _summed_ammo(mixes.values(*group, "mix", "ammo").annotate(k=Sum("kills"), h=Sum("hits")).order_by(), "mix"),
             "mix",
         )
-        _sync_ammo(AircraftAmmoMixStats, AircraftAmmoMixStats.objects.filter(aircraft_id__in=chunk), mixes, "mix")
+
+
+def _summed_ammo(rows: Iterable[Mapping[str, object]], mix_field: str | None) -> dict[_AmmoKey, tuple[int, int]]:
+    """The all-time (kills, hits) per (type, role, pattern, mix, ammo) from rows already summed over the tours."""
+    wanted: dict[_AmmoKey, tuple[int, int]] = {}
+    for row in rows:
+        key = (
+            int(str(row["aircraft_id"])),
+            None,
+            str(row["role"]),
+            str(row["mod_pattern"]),
+            str(row[mix_field]) if mix_field else "",
+            str(row["ammo"]),
+        )
+        wanted[key] = (int(str(row["k"])), int(str(row["h"])))
+    return wanted
 
 
 def _scoped_ammo(
     rows: Iterable[Mapping[str, object]], significant: dict[int, tuple[int, ...]], mix_field: str | None
 ) -> dict[_AmmoKey, tuple[int, int]]:
-    """The (kills, hits) of every scope: the level-1 rows summed per (type, tour, role, WM, mix, ammo), each added to
-    every scope its destroyed aircraft's sortie belongs to (`aircraft_mods.scopes_of`)."""
+    """The (kills, hits) of every tour scope: the level-1 rows of the tour summed per (type, tour, role, WM, mix, ammo),
+    each added to every scope its destroyed aircraft's sortie belongs to (`aircraft_mods.scopes_of`, its tour only)."""
     wanted: dict[_AmmoKey, tuple[int, int]] = {}
     for row in rows:
-        aircraft, tour_id = int(str(row["aircraft_id"])), row["mission__tour_id"]
+        aircraft, tour_id = int(str(row["aircraft_id"])), int(str(row["mission__tour_id"]))
         mix = str(row[mix_field]) if mix_field else ""
         scopes = scopes_of(
-            None if tour_id is None else int(str(tour_id)),
-            str(row["combat_role"]),
-            int(str(row["weapon_mods"])),
-            significant.get(aircraft, ()),
+            tour_id, str(row["combat_role"]), int(str(row["weapon_mods"])), significant.get(aircraft, ())
         )
         for tour, role, pattern in scopes:
+            if tour is None:
+                continue
             key = (aircraft, tour, role, pattern, mix, str(row["ammo"]))
             kills, hits = wanted.get(key, (0, 0))
             wanted[key] = (kills + int(str(row["n"])), hits + int(str(row["h"])))

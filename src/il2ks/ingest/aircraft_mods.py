@@ -24,8 +24,8 @@ from il2ks.ingest.counters import COUNTER_FIELDS, FLOAT_COUNTERS, SORTIE_COUNTER
 
 ALL = AircraftRole.ALL.value
 
-type CellKey = tuple[int, int | None, str, int]  # aircraft, tour (None = all time), role (`AircraftRole`), WM
-type PatternKey = tuple[int, int | None, str, str]  # aircraft, tour (None = all time), role, pattern
+type CellKey = tuple[int, int, str, int]  # aircraft, tour, role (`AircraftRole`), WM
+type PatternKey = tuple[int, int, str, str]  # aircraft, tour, role, pattern
 type Totals = dict[str, int | float]
 
 
@@ -61,18 +61,19 @@ def _fold(sums: Totals, row: dict[str, object]) -> None:
             sums[name] += value
 
 
-def pattern_stats(
+def pattern_tour_stats(
     significant: dict[int, tuple[int, ...]], tour_ids: list[int] | None
-) -> dict[PatternKey, tuple[Totals, int, str]]:
-    """(counters, pilots, side) of every filter pattern scope of the types in `significant`: per tour (only those in
-    `tour_ids`, None = every tour) and all time, per role (`all` and each combat role that has sorties)."""
+) -> dict[PatternKey, tuple[Totals, int, int, int]]:
+    """(counters, pilots, REDFOR sorties, BLUFOR sorties) of every filter pattern scope of the types in `significant`,
+    per tour (those in `tour_ids`, None = every tour) and per role (`all` and each combat role that has sorties). Reads
+    only those tours' sorties; the all-time pattern rows are the sum of these (`rollup_aircraft_stats`)."""
     if not significant:
         return {}
-    wanted_tours = None if tour_ids is None else set(tour_ids)
+    rows = counted_sorties().filter(aircraft_id__in=sorted(significant), mission__tour__isnull=False)
+    if tour_ids is not None:
+        rows = rows.filter(mission__tour_id__in=tour_ids)
     rows = (
-        counted_sorties()
-        .filter(aircraft_id__in=sorted(significant))
-        .values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
+        rows.values("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
         .annotate(**SORTIE_COUNTERS)
         .order_by("aircraft_id", "mission__tour_id", "combat_role", "weapon_mods", "player_id", "country")
     )
@@ -81,22 +82,18 @@ def pattern_stats(
         aircraft, tour, mods = row["aircraft_id"], row["mission__tour_id"], row["weapon_mods"]
         side = side_of_country(row["country"])
         roles = (ALL,) if row["combat_role"] is None else (ALL, row["combat_role"])
-        scopes: tuple[int | None, ...] = (None,) if tour is None else (None, tour)
-        for scope in scopes:
-            if scope is not None and wanted_tours is not None and scope not in wanted_tours:
-                continue
-            for role in roles:
-                cell = cells.setdefault((aircraft, scope, role, mods), _Cell())
-                _fold(cell.totals, row)
-                cell.players.add(row["player_id"])
-                if side is not None:
-                    cell.sides[side] = cell.sides.get(side, 0) + row["sorties"]
+        for role in roles:
+            cell = cells.setdefault((aircraft, tour, role, mods), _Cell())
+            _fold(cell.totals, row)
+            cell.players.add(row["player_id"])
+            if side is not None:
+                cell.sides[side] = cell.sides.get(side, 0) + row["sorties"]
     return _fold_patterns(cells, significant)
 
 
 def _fold_patterns(
     cells: dict[CellKey, _Cell], significant: dict[int, tuple[int, ...]]
-) -> dict[PatternKey, tuple[Totals, int, str]]:
+) -> dict[PatternKey, tuple[Totals, int, int, int]]:
     merged: dict[PatternKey, _Cell] = {}
     for (aircraft, tour, role, mods), cell in sorted(cells.items(), key=_cell_order):
         for pattern in mod_filter_patterns(mods, significant[aircraft]):
@@ -107,15 +104,14 @@ def _fold_patterns(
             for side, n in cell.sides.items():
                 target.sides[side] = target.sides.get(side, 0) + n
     return {
-        key: (cell.totals, len(cell.players), min(cell.sides, key=lambda s: (-cell.sides[s], s)) if cell.sides else "")
+        key: (cell.totals, len(cell.players), cell.sides.get("redfor", 0), cell.sides.get("blufor", 0))
         for key, cell in merged.items()
     }
 
 
 def _cell_order(item: tuple[CellKey, _Cell]) -> tuple[int, int, str, int]:
-    """A fixed order to add the cells in (all time first): a rebuild sums floats like an incremental run."""
-    aircraft, tour, role, mods = item[0]
-    return aircraft, -1 if tour is None else tour, role, mods
+    """A fixed order to add the cells in: a rebuild sums floats like an incremental run."""
+    return item[0]
 
 
 def scopes_of(
@@ -131,21 +127,22 @@ def scopes_of(
     return [(t, r, p) for t in tours for r in roles for p in patterns]
 
 
-type PlayerScopeKey = tuple[int, int, int | None, str, str]  # aircraft, player, tour (None = all time), role, pattern
+type PlayerScopeKey = tuple[int, int, int, str, str]  # aircraft, player, tour, role, pattern
 
 
 def player_scope_stats(
     aircraft_ids: Iterable[int], significant: dict[int, tuple[int, ...]], tour_ids: list[int] | None
 ) -> dict[PlayerScopeKey, Totals]:
-    """The counters of every player in each of these types per scope (`scopes_of`): tours in `tour_ids` (None = every
-    tour) and all time, every role and each combat role, unfiltered and each mod pattern, except the all-time, `all`,
-    unfiltered scope (that is `PlayerAircraft`). One grouped query over the types' history, in a fixed order so a
+    """The counters of every player in each of these types per tour scope (`scopes_of`): the tours in `tour_ids`
+    (None = every tour), every role and each combat role, unfiltered and each mod pattern. Reads only those tours'
+    sorties; the all-time rows are the sum of these (`aircraft_stats._rollup_player_scopes`). One grouped query, in a
+    fixed order so a
     rebuild sums the floats like an incremental run."""
-    wanted_tours = None if tour_ids is None else set(tour_ids)
+    rows = counted_sorties().filter(aircraft_id__in=sorted(set(aircraft_ids)), mission__tour__isnull=False)
+    if tour_ids is not None:
+        rows = rows.filter(mission__tour_id__in=tour_ids)
     rows = (
-        counted_sorties()
-        .filter(aircraft_id__in=sorted(set(aircraft_ids)))
-        .values("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
+        rows.values("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
         .annotate(**SORTIE_COUNTERS)
         .order_by("aircraft_id", "player_id", "mission__tour_id", "combat_role", "weapon_mods")
     )
@@ -155,9 +152,7 @@ def player_scope_stats(
         for tour, role, pattern in scopes_of(
             row["mission__tour_id"], row["combat_role"] or "", row["weapon_mods"], significant.get(aircraft, ())
         ):
-            if (tour is None and role == ALL and not pattern) or (
-                tour is not None and wanted_tours is not None and tour not in wanted_tours
-            ):
+            if tour is None:
                 continue
             _fold(
                 found.setdefault(

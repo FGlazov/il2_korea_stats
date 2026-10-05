@@ -127,9 +127,9 @@ StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25
                -- minimum in the metric's unit: sorties (`[marks] min_sorties`), encounters (Elo games), seconds on target or of air superiority
                -- flight (the boards' minimums), so a population follows the board it sits next to
 AircraftStats  aircraft (1:1 → GameObject), pilots, side (redfor/blufor/''), + counters
-               -- FR-WEB-8: all-time sum of the type's PlayerAircraft rows; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come
+               -- FR-WEB-8: all-time sum of the type's tour rows (`TourAircraftStats`, role all, no mod pattern), pilots = its PlayerAircraft row count; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come
                -- from the counters at read time and sort with `queries.sorting.Ratio`
-TourAircraftStats tour, aircraft, pilots, side, + counters   -- the same as AircraftStats within one tour (sum of the `PlayerTourAircraft` rows); the
+TourAircraftStats tour, aircraft, role, mod_pattern, pilots, side, sorties_redfor, sorties_blufor, + counters   -- the same as AircraftStats within one tour (sum of the `PlayerTourAircraft` rows); `sorties_redfor` / `sorties_blufor` = the row's counted sorties per side, `side` = the larger (ties REDFOR); a null-tour (all-time) row = the SUM of the tour rows, its side the argmax of the summed counters (doc 14) [PROPOSED]; the
                -- aircraft list and detail follow `?tour=` (OQ-114); rows without a counted sortie are deleted
 AircraftMatchup killer_aircraft, victim_aircraft, tour (null = all time), intercept (bool), kills
                -- PvP kill credits type vs type; a type's losses are the reversed pair. One row per scope: all time or one tour, all kills or only
