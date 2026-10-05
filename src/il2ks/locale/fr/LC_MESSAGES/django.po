@@ -170,6 +170,13 @@ msgstr[1] "%(n)s pilotes"
 
 # llm-draft
 #, python-format
+msgid "%(n)s tour"
+msgid_plural "%(n)s tours"
+msgstr[0] "%(n)s tour"
+msgstr[1] "%(n)s tours"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "%(n)s types"
 
@@ -3407,6 +3414,10 @@ msgid "Off the squadron roster for the moment. The empty chair at the mess table
 msgstr "Un blanc dans la liste de l'escadrille pour le moment. Le lit et la chaise au mess restent à son nom."
 
 # llm-draft
+msgid "Old Hand"
+msgstr "Vieux de la Vieille"
+
+# llm-draft
 msgid "On"
 msgstr "Activé"
 
@@ -5132,6 +5143,13 @@ msgid "There is no file at this location (the server could not find it)."
 msgstr "Il n'y a aucun fichier à cet emplacement (le serveur ne l'a pas trouvé)."
 
 # llm-draft
+#, python-format
+msgid "These are the tiers in one tour. The all-time view sums the tours and asks %(factor)s times as much: %(values)s."
+msgstr ""
+"Ce sont les paliers pour un seul tour. La vue « Tous temps » additionne les tours et exige %(factor)s fois plus : "
+"%(values)s."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr ""
 "Celles-ci se sont terminées sans événement de fin de mission ; à vérifier au cas où le serveur aurait planté en "
@@ -5145,6 +5163,10 @@ msgstr ""
 "Ces fichiers de votre dossier custom/ remplacent des fichiers intégrés d'il2ks, mais reposent sur une version plus "
 "ancienne (ou inconnue) de ceux-ci. Ils peuvent être cassés ou masquer du nouveau contenu. Les visiteurs peuvent être "
 "touchés."
+
+# llm-draft
+msgid "This achievement exists in the all-time view only (there is no tour view of it)."
+msgstr "Ce succès n'existe que dans la vue « Tous temps » (il n'a pas de vue par tour)."
 
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
@@ -5375,6 +5397,10 @@ msgstr "Tour %(number)s"
 
 msgid "Tour ended"
 msgstr "Tour terminé"
+
+# llm-draft
+msgid "Tours in a row in which you flew at least one sortie. A tour you skip ends the run."
+msgstr "Tours consécutifs dans lesquels vous avez effectué au moins une sortie. Un tour manqué met fin à la série."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

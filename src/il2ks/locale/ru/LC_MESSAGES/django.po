@@ -179,6 +179,14 @@ msgstr[2] "%(n)s пилотов"
 
 # llm-draft
 #, python-format
+msgid "%(n)s tour"
+msgid_plural "%(n)s tours"
+msgstr[0] "%(n)s тур"
+msgstr[1] "%(n)s тура"
+msgstr[2] "%(n)s туров"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "типов: %(n)s"
 
@@ -3402,6 +3410,10 @@ msgid "Off the squadron roster for the moment. The empty chair at the mess table
 msgstr "В списке эскадрильи пока прочерк, а койка и место за столом остаются за ним."
 
 # llm-draft
+msgid "Old Hand"
+msgstr "Старожил"
+
+# llm-draft
 msgid "On"
 msgstr "Включена"
 
@@ -5121,6 +5133,11 @@ msgid "There is no file at this location (the server could not find it)."
 msgstr "По этому пути нет файла (сервер его не нашёл)."
 
 # llm-draft
+#, python-format
+msgid "These are the tiers in one tour. The all-time view sums the tours and asks %(factor)s times as much: %(values)s."
+msgstr "Это ступени для одного тура. Зачёт «За всё время» суммирует туры и требует в %(factor)s раз больше: %(values)s."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Эти миссии закончились без события завершения; стоит проверить, не упал ли сервер посреди миссии."
 
@@ -5131,6 +5148,10 @@ msgid ""
 msgstr ""
 "Эти файлы в вашей папке custom/ заменяют встроенные файлы il2ks, но основаны на их более старой (или неизвестной) "
 "версии. Они могут быть сломаны или скрывать новое содержимое. Это может коснуться посетителей."
+
+# llm-draft
+msgid "This achievement exists in the all-time view only (there is no tour view of it)."
+msgstr "Это достижение есть только в зачёте «За всё время» (по турам его нет)."
 
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
@@ -5357,6 +5378,10 @@ msgstr "Тур %(number)s"
 
 msgid "Tour ended"
 msgstr "Тур закончился"
+
+# llm-draft
+msgid "Tours in a row in which you flew at least one sortie. A tour you skip ends the run."
+msgstr "Туры подряд, в каждом из которых вы совершили хотя бы один вылет. Пропущенный тур обрывает серию."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

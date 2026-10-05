@@ -60,7 +60,7 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
             info,
             tuple(_overview_tier(info, t, counts) for t in info.tiers),
         )
-        for info in medals.all_info(config)
+        for info in medals.all_info(config, all_time=choice.selected is None)
     ]
     rows.sort(key=lambda r: (r.info.shame, r.info.kind == "ribbon"))
     context = {
@@ -89,10 +89,10 @@ def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
     `tour`, `tour_query`, `crumbs`, `page_title`."""
     config = AchievementConfig.from_row(site_row(request))
     achievement = config.achievement(key)  # None: unknown, or switched off by the admin
-    if achievement is None:
-        raise Http404
-    info = medals.info(achievement, config)
     choice = tour_choice_from(request.GET)
+    if achievement is None or (achievement.all_time_only and choice.selected is not None):  # no tour view of it
+        raise Http404
+    info = medals.info(achievement, config, all_time=choice.selected is None)
     counts = reads.holder_counts(choice.selected)
     tiers = tuple(_overview_tier(info, t, counts) for t in info.tiers)
     try:
@@ -133,7 +133,7 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
         for m in medals.medals_of(reads.player_rows(player.pk, choice.selected), holdings, config, highest_only=False)
     }
     rows: list[ListRow] = []
-    for info in medals.all_info(config):
+    for info in medals.all_info(config, all_time=choice.selected is None):
         tiers = tuple(
             ListTier(
                 t,

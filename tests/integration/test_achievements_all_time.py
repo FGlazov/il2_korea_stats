@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from django.test import Client
 
-from il2ks.db.models import PlayerAchievement, Tour
+from il2ks.db.models import PlayerAchievement, PlayerSortie, Tour
 from il2ks.ingest.achievements import recompute_with_wanted_rules
 from il2ks.ingest.aggregates import rebuild_aggregates
 from tests.factories import STARTED_AT, meta, mission, save, sortie
@@ -25,9 +25,9 @@ def month(n: int) -> datetime:
     return STARTED_AT + timedelta(days=30 * n)
 
 
-def fly(n: int, player: int = 1, **facts: int) -> None:
+def fly(n: int, player: int = 1, kills_air: int = 0) -> None:
     """One sortie of `player` in tour `n`."""
-    save(mission((sortie(0, player, **facts),)), meta(f"t{n}p{player}", month(n)))
+    save(mission((sortie(0, player, kills_air=kills_air),)), meta(f"t{n}p{player}", month(n)))
 
 
 def tours() -> list[Tour]:
@@ -60,7 +60,7 @@ def test_the_crossing_sortie_comes_from_the_replay_with_the_earlier_tours_carrie
 
     row = all_time_row(1, "career_kills", 2)  # 30 + 20 = 50 at the first sortie of the second tour
     assert row.mission.mission_uid == "t1b"
-    first = row.mission.sortie_rows.filter(player_id=pk(1)).order_by("spawned_at", "pk").first()
+    first = PlayerSortie.objects.filter(mission_id=row.mission_id, player_id=pk(1)).order_by("spawned_at", "pk").first()
     assert first is not None
     assert row.sortie_id == first.pk
 
@@ -101,8 +101,8 @@ def test_the_profile_and_the_holders_page_show_the_all_time_numbers(client: Clie
     fly(0, kills_air=12)
     first = tours()[0]
 
-    assert "Bronze · 5" in client.get(f"/players/{pk(1)}/?tour=all").content.decode()
-    assert "Silver · 10" in client.get(f"/players/{pk(1)}/?tour={first.pk}").content.decode()
+    assert "Bronze: 5." in client.get(f"/players/{pk(1)}/?tour=all").content.decode()
+    assert "Silver: 10." in client.get(f"/players/{pk(1)}/?tour={first.pk}").content.decode()
     assert "Silver · 50" in client.get("/achievements/career_kills/?tour=all&tier=2").content.decode()
     assert "Silver · 10" in client.get(f"/achievements/career_kills/?tour={first.pk}&tier=2").content.decode()
 
@@ -113,7 +113,8 @@ def test_tours_in_a_row_needs_flying_in_consecutive_tours_and_a_gap_resets() -> 
     assert "tours_in_a_row" not in held(1)
     fly(1)
     assert held(1)["tours_in_a_row"] == 1  # two tours in a row
-    fly(3)  # a gap: tour 2 is missing
+    fly(2, player=2)  # tour 2 exists (somebody flew in it) but player 1 skipped it: a gap
+    fly(3)
     assert held(1)["tours_in_a_row"] == 1
     fly(4)  # 3, 4: only two in a row, the earlier run of two did not carry over
     assert held(1)["tours_in_a_row"] == 1
@@ -127,7 +128,7 @@ def test_tours_in_a_row_is_earned_at_the_first_sortie_of_the_completing_tour() -
 
     row = all_time_row(1, "tours_in_a_row", 1)
     assert row.mission.mission_uid == "t1b"
-    first = row.mission.sortie_rows.filter(player_id=pk(1)).order_by("spawned_at", "pk").first()
+    first = PlayerSortie.objects.filter(mission_id=row.mission_id, player_id=pk(1)).order_by("spawned_at", "pk").first()
     assert first is not None
     assert row.sortie_id == first.pk
     assert row.earned_at == first.ended_at
@@ -154,6 +155,7 @@ def test_a_tour_never_has_a_tours_in_a_row_row() -> None:
 def test_a_late_import_into_an_old_tour_that_fills_a_gap_extends_the_run() -> None:
     fly(0)
     fly(1)
+    fly(2, player=2)  # tour 2 exists (somebody flew in it), player 1 has not been imported yet
     fly(3)
     fly(4)  # runs of 2 and 2, a gap at tour 2
     assert held(1)["tours_in_a_row"] == 1
@@ -169,8 +171,8 @@ def test_a_late_import_into_an_old_tour_that_fills_a_gap_extends_the_run() -> No
 
 
 def test_tours_in_a_row_incremental_equals_rebuild() -> None:
-    for n in (0, 1, 2, 4, 5, 6, 7, 8, 9):
-        fly(n)
+    for n in range(10):
+        fly(n, player=2 if n == 3 else 1)  # player 1 skips tour 3 (only player 2 flew in it)
         if n % 2 == 0:
             fly(n, player=2)
     incremental = snapshot()

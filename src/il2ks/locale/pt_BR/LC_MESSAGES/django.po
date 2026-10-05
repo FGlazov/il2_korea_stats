@@ -170,6 +170,13 @@ msgstr[1] "%(n)s pilotos"
 
 # llm-draft
 #, python-format
+msgid "%(n)s tour"
+msgid_plural "%(n)s tours"
+msgstr[0] "%(n)s temporada"
+msgstr[1] "%(n)s temporadas"
+
+# llm-draft
+#, python-format
 msgid "%(n)s types"
 msgstr "%(n)s tipos"
 
@@ -3382,6 +3389,10 @@ msgid "Off the squadron roster for the moment. The empty chair at the mess table
 msgstr "Um espaço em branco na escala do esquadrão, por enquanto. A cama e a cadeira no rancho continuam guardadas."
 
 # llm-draft
+msgid "Old Hand"
+msgstr "Veterano de Casa"
+
+# llm-draft
 msgid "On"
 msgstr "Ativa"
 
@@ -5100,6 +5111,13 @@ msgid "There is no file at this location (the server could not find it)."
 msgstr "Não há arquivo neste local (o servidor não o encontrou)."
 
 # llm-draft
+#, python-format
+msgid "These are the tiers in one tour. The all-time view sums the tours and asks %(factor)s times as much: %(values)s."
+msgstr ""
+"Estes são os níveis de uma única temporada. A visão de todo o período soma as temporadas e exige %(factor)s vezes "
+"mais: %(values)s."
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Estas terminaram sem um evento de fim de missão; vale conferir caso o servidor tenha travado no meio da missão."
 
@@ -5110,6 +5128,10 @@ msgid ""
 msgstr ""
 "Estes arquivos da sua pasta custom/ substituem arquivos internos do il2ks, mas se baseiam em uma versão mais antiga "
 "(ou desconhecida) deles. Podem estar quebrados ou esconder conteúdo novo. Os visitantes podem ser afetados."
+
+# llm-draft
+msgid "This achievement exists in the all-time view only (there is no tour view of it)."
+msgstr "Esta conquista só existe na visão de todo o período (ela não tem visão por temporada)."
 
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
@@ -5339,6 +5361,10 @@ msgstr "Temporada %(number)s"
 
 msgid "Tour ended"
 msgstr "Tour encerrado"
+
+# llm-draft
+msgid "Tours in a row in which you flew at least one sortie. A tour you skip ends the run."
+msgstr "Temporadas seguidas em que você fez pelo menos uma surtida. Pular uma temporada encerra a sequência."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

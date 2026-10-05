@@ -273,3 +273,4 @@ _.default_description  # web.admin_achievements.AchievementRow: read by admin/il
 _.default_thresholds
 _.customised
 _.changes_rows
+_.all_time_factor  # web.admin_achievements.AchievementRow: read by admin/il2ks_achievements.html

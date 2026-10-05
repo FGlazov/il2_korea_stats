@@ -42,6 +42,7 @@ shame medals use the all-time summed counters, so a long-time pilot still reache
 Regular and the streak medals visibly shrink where a run crossed a month end. All-time Elo = the max of each tour's **final** (for the
 running tour: current) rating, not the in-tour peak; all-time Elo games = the sum over tours. The profile's running streak = the one in
 the current tour (zero until the pilot flies in it).
+**Answered 2026-10-05 (maintainer):** "If it's multi tour then we should increase the thresholds, maybe 5x the current ones for the multi tour achievements" and "also add tiered achievements for playing in X tours in a row". Built: the career medals' all-time tiers are 5 times the per-tour thresholds in force, and a new all-time-only medal "Old Hand" (2 / 3 / 6 / 12 tours in a row); doc 17, "All time: x5 tiers and tours in a row".
 
 **OQ-129 Top 10% / 25% marks with clean-slate tours** (maintainer unsure)
 Proposed: per-tour marks against that tour's pilots (as today); all-time marks against the all-time rows (sums and maxes of the tours),
