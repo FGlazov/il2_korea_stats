@@ -537,7 +537,7 @@ ground track **ground kills**, sorties and flight time (each stored streak carri
   or capture (attack sorties neither add to it nor end it) `[PROPOSED]`; `survivor` (Ironman medal) reads the **better of the two tracks'** survived
   runs `[PROPOSED]`; `landing_streak` stays a landing skill over every sortie (it is not an ironman run).
 - Pages: a player's profile block and best-streaks page show both tracks; the history has a track switch; the **ironman boards** of the
-  leaderboards (`/leaderboards/ironman-air/` in the air group, `/leaderboards/ironman-ground/` in the ground group, tour-aware like the other
+  leaderboards (`/leaderboards/ironman-air/` and `/leaderboards/ironman-ground/`, both in the General tab group so the Air and Ground groups keep fitting side by side, tour-aware like the other
   boards, columns picker for the other kill count and the run's dates, the running streaks below them) replace the old `/streaks/` list (which redirects);
   the player list's last two default columns are the best air run by air kills and the best ground run by ground kills (`Player.streak_kills_air` /
   `streak_kills_ground`, copied from the all-time best rows by `rollup_streaks`).

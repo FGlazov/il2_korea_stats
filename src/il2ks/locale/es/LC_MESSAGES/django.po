@@ -2825,6 +2825,14 @@ msgid "Ironman"
 msgstr "A Prueba de Balas"
 
 # llm-draft
+msgid "Ironman (air)"
+msgstr "A Prueba de Balas (aire)"
+
+# llm-draft
+msgid "Ironman (ground)"
+msgstr "A Prueba de Balas (tierra)"
+
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr "¿El servidor de juego está en otro equipo? Indica la carpeta a la que se copian o comparten sus registros."
 

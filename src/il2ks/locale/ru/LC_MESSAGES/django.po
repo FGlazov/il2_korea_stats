@@ -2833,6 +2833,14 @@ msgid "Ironman"
 msgstr "Несгораемый"
 
 # llm-draft
+msgid "Ironman (air)"
+msgstr "Несгораемый (воздух)"
+
+# llm-draft
+msgid "Ironman (ground)"
+msgstr "Несгораемый (земля)"
+
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr ""
 "Игровой сервер на другом компьютере? Укажите папку, в которую копируются его журналы или к которой открыт общий "

@@ -2816,6 +2816,14 @@ msgid "Ironman"
 msgstr "Duro na Queda"
 
 # llm-draft
+msgid "Ironman (air)"
+msgstr "Duro na Queda (ar)"
+
+# llm-draft
+msgid "Ironman (ground)"
+msgstr "Duro na Queda (terra)"
+
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr "O servidor do jogo está em outro computador? Informe a pasta para a qual os logs dele são copiados ou compartilhados."
 

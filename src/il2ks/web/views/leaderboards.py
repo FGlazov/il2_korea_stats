@@ -31,8 +31,8 @@ BOARD_TITLES = {
     "elo-prop": _("Elo (prop)"),
     "elo-jet": _("Elo (jet)"),
     "play-time": _("Flight time"),
-    "ironman-air": _("Ironman"),
-    "ironman-ground": _("Ironman"),
+    "ironman-air": _("Ironman (air)"),
+    "ironman-ground": _("Ironman (ground)"),
 }
 GROUP_TITLES = {
     "air": _("Air"),

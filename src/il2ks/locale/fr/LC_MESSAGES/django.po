@@ -2835,6 +2835,14 @@ msgid "Ironman"
 msgstr "Increvable"
 
 # llm-draft
+msgid "Ironman (air)"
+msgstr "Increvable (air)"
+
+# llm-draft
+msgid "Ironman (ground)"
+msgstr "Increvable (sol)"
+
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr "Le serveur de jeu est-il sur un autre ordinateur ? Indiquez le dossier où ses journaux sont copiés ou partagés."
 

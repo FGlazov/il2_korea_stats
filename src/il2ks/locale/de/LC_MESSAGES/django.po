@@ -2836,6 +2836,14 @@ msgid "Ironman"
 msgstr "Unkaputtbar"
 
 # llm-draft
+msgid "Ironman (air)"
+msgstr "Unkaputtbar (Luft)"
+
+# llm-draft
+msgid "Ironman (ground)"
+msgstr "Unkaputtbar (Boden)"
+
+# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr ""
 "Läuft der Spieleserver auf einem anderen Rechner? Gib den Ordner an, in den seine Logs kopiert oder freigegeben "

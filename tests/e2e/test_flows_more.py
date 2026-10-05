@@ -393,7 +393,7 @@ def test_sorting_filtering_and_paging_work_without_javascript(browser: Browser, 
     page = context.new_page()
     page.set_default_timeout(20_000)
     try:
-        page.goto("/players/?q=")
+        page.goto("/players/?q=&cols=sorties")  # Sorties is an optional column since 2026-10-05
         column_header(page, "Sorties").get_by_role("link").click()
         expect(page).to_have_url(re.compile(r"[?&]sort="))
         values = [number(row["Sorties"]) for row in rows_of(table_with(page, "Player", "Sorties"))]

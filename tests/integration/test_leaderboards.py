@@ -316,9 +316,9 @@ def test_the_board_switcher_lists_the_air_boards_then_the_ground_boards(client: 
     groups = {title: [t[0] for t in tabs] for title, tabs in client.get("/leaderboards/").context["tab_groups"]}
 
     assert groups == {
-        "Air": ["elo-jet", "elo-prop", "air", "interception", "ironman-air"],  # the ironman boards: 2026-10-05
-        "Ground": ["ground-hour", "tank-busting", "ground", "ironman-ground"],
-        "General": ["play-time"],  # OQ-79
+        "Air": ["elo-jet", "elo-prop", "air", "interception"],
+        "Ground": ["ground-hour", "tank-busting", "ground"],
+        "General": ["play-time", "ironman-air", "ironman-ground"],  # OQ-79; the ironman boards: 2026-10-05
     }
     body = client.get("/leaderboards/").content.decode()
     assert "Propeller and jet" in body
