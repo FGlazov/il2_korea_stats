@@ -34,13 +34,18 @@ class PhaseTimer:
         self.missions: list[tuple[float, dict[str, float]]] = []
         self.batch: defaultdict[str, float] = defaultdict(float)  # batched level 2 passes, between the missions
 
-    def wrap[**P, R](self, phase: str, fn: Callable[P, R]) -> Callable[P, R]:
+    def wrap[**P, R](self, phase: str, fn: Callable[P, R], *, exclude: str | None = None) -> Callable[P, R]:
+        """Time `fn` into `phase`. `exclude`: another phase that runs inside `fn` and is timed on its own (the Elo
+        replay inside the level-2 refresh); its time is left out of `phase`."""
+
         def timed(*args: P.args, **kwargs: P.kwargs) -> R:
+            inner = self.current.get(exclude, 0.0) if exclude else 0.0
             t0 = _clock()
             try:
                 return fn(*args, **kwargs)
             finally:
-                self.current[phase] += _clock() - t0
+                spent_inside = self.current.get(exclude, 0.0) - inner if exclude else 0.0
+                self.current[phase] += _clock() - t0 - spent_inside
 
         return timed
 
@@ -139,7 +144,7 @@ def bench_ingest(
         from il2ks.core.logparse.files import MissionLog, MissionLogKind
         from il2ks.core.logparse.parser import ParseStats
         from il2ks.db.models import IngestRun
-        from il2ks.ingest import persist, runner
+        from il2ks.ingest import aggregates, persist, runner
         from il2ks.ingest.batch import Level2Batch
         from il2ks.ingest.discover import Decision, Found
 
@@ -193,9 +198,9 @@ def bench_ingest(
 
         runner.ingest_mission = ingest_mission
         runner.write_archive = timer.wrap("archive", runner.write_archive)
-        persist.refresh_tours = timer.wrap("level 2", persist.refresh_tours)
+        persist.refresh_tours = timer.wrap("level 2", persist.refresh_tours, exclude="ratings")
         persist.recompute_thresholds = timer.wrap("level 2", persist.recompute_thresholds)
-        persist.recompute_ratings = timer.wrap("ratings", persist.recompute_ratings)
+        aggregates.recompute_ratings = timer.wrap("ratings", aggregates.recompute_ratings)
         Level2Batch.flush = timer.wrap_batch(Level2Batch.flush)
         Level2Batch.finish = timer.wrap_batch(Level2Batch.finish)
 

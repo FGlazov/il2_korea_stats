@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 from django.db import transaction
@@ -26,8 +27,8 @@ from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import Mission, SiteSettings, Tour
 from il2ks.db.site import level2_pending
+from il2ks.ingest import aggregates, persist, runner
 from il2ks.ingest import batch as batch_mod
-from il2ks.ingest import persist, runner
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.batch import Level2Batch, is_batch
 from il2ks.ingest.reprocess import reprocess
@@ -102,21 +103,21 @@ def test_batched_ingest_equals_per_mission_and_rebuild(tmp_path: Path, monkeypat
     assert any(per_mission["PlayerAircraft"])  # something was compared
 
 
-def _spy(monkeypatch: pytest.MonkeyPatch, name: str) -> list[int]:
+def _spy(monkeypatch: pytest.MonkeyPatch, name: str, module: ModuleType = persist) -> list[int]:
     calls: list[int] = []
-    original: Callable[..., object] = getattr(persist, name)
+    original: Callable[..., object] = getattr(module, name)
 
     def spy(*args: object, **kwargs: object) -> object:
         calls.append(len(calls) + 1)
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(persist, name, spy)
+    monkeypatch.setattr(module, name, spy)
     return calls
 
 
 def test_small_batch_keeps_the_per_mission_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     level2 = _spy(monkeypatch, "apply_level2")
-    ratings = _spy(monkeypatch, "recompute_ratings")
+    ratings = _spy(monkeypatch, "recompute_ratings", aggregates)
     end = _spy(monkeypatch, "apply_batch_end")
     cfg = make_config(tmp_path / "data", None, after_archive="keep")
 
@@ -128,16 +129,27 @@ def test_small_batch_keeps_the_per_mission_path(tmp_path: Path, monkeypatch: pyt
     assert end == []
 
 
-def test_batched_run_does_ratings_once_at_the_end(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_batched_run_replays_only_the_touched_tours_and_ends_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every pass replays the Elo of the tours it refreshes (their medals read it), never every tour; one end."""
     monkeypatch.setattr(batch_mod, "BATCH_MIN", 2)
-    ratings = _spy(monkeypatch, "recompute_ratings")
+    replayed: list[object] = []
+    original = aggregates.recompute_ratings
+
+    def replay(rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True) -> int:
+        replayed.append(None if tour_ids is None else sorted(tour_ids))
+        return original(rules, tour_ids, payload_elo=payload_elo)
+
+    monkeypatch.setattr(aggregates, "recompute_ratings", replay)
     end = _spy(monkeypatch, "apply_batch_end")
     cfg = make_config(tmp_path / "data", None, after_archive="keep")
 
     with _scratch():
         ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
 
-    assert len(ratings) == 1
+    assert replayed
+    assert None not in replayed
     assert len(end) == 1
 
 
@@ -150,7 +162,10 @@ def test_level2_is_applied_at_every_tenth_and_at_the_end(monkeypatch: pytest.Mon
     events: list[str] = []
     batch = Level2Batch(30, DEFAULT_RULES, DEFAULT_MARK_RULES)
 
-    def level2(tour_ids: Iterable[int], *, payload_elo: bool = True, holders: bool = True) -> None:
+    def level2(
+        tour_ids: Iterable[int], ratings: RatingRules | None, *, payload_elo: bool = True, holders: bool = True
+    ) -> None:
+        assert ratings is not None  # the tours' medals read the replay, so every pass has one
         assert (payload_elo, holders) == (False, False)  # those come once, at the end
         events.append(f"level2@{batch.done}")
 
@@ -174,7 +189,9 @@ def test_a_batch_that_saved_nothing_applies_nothing(monkeypatch: pytest.MonkeyPa
     events: list[str] = []
     batch = Level2Batch(20, DEFAULT_RULES, DEFAULT_MARK_RULES)
 
-    def level2(tour_ids: Iterable[int], *, payload_elo: bool = True, holders: bool = True) -> None:
+    def level2(
+        tour_ids: Iterable[int], ratings: RatingRules | None, *, payload_elo: bool = True, holders: bool = True
+    ) -> None:
         events.append("level2")
 
     def end(tour_ids: Iterable[int], tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:

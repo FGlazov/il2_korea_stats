@@ -26,20 +26,20 @@ TWO = MarkRules(min_sorties=2)
 def test_thresholds_are_computed_after_the_elo_replay(monkeypatch: pytest.MonkeyPatch) -> None:
     """QA 2026-10-04: the Elo percentiles were taken before the mission's ratings were written and lagged one mission
     behind a rebuild (the real sample's elo_jet p50 differed)."""
-    from il2ks.ingest import persist
+    from il2ks.ingest import aggregates, persist
 
     order: list[str] = []
-    real_ratings, real_marks = persist.recompute_ratings, persist.recompute_thresholds
+    real_ratings, real_marks = aggregates.recompute_ratings, persist.recompute_thresholds
 
-    def ratings(rules: RatingRules) -> int:
+    def ratings(rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True) -> int:
         order.append("ratings")
-        return real_ratings(rules)
+        return real_ratings(rules, tour_ids, payload_elo=payload_elo)
 
     def marks(rules: MarkRules, tour_ids: Iterable[int] | None = None) -> None:
         order.append("marks")
         real_marks(rules, tour_ids)
 
-    monkeypatch.setattr(persist, "recompute_ratings", ratings)
+    monkeypatch.setattr(aggregates, "recompute_ratings", ratings)
     monkeypatch.setattr(persist, "recompute_thresholds", marks)
 
     save(mission((sortie(0, 1),)), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)

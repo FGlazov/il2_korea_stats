@@ -2,8 +2,9 @@
 
 A batch of `BATCH_MIN` or more missions (a backlog `il2ks ingest`) saves level 1 only, mission by mission (one
 transaction each, as ever), and tracks one thing: the ids of the tours its saves touched. Level 2 for those tours is
-the full refresh every level-2 pass is (`aggregates.refresh_tours`), applied at every 10% of the batch; the Elo
-ratings, the medal holder counts and the stat thresholds run once at the end. The end state equals the per-mission path
+the full refresh every level-2 pass is (`aggregates.refresh_tours`: per tour the rows from level 1, that tour's Elo
+replay, its streaks and medals, the all-time roll-ups), applied at every 10% of the batch; the loadouts' average Elo,
+the medal holder counts and the stat thresholds run once at the end. The end state equals the per-mission path
 and a full rebuild: level 2 is always recomputed from level 1, never adjusted by deltas (TD-08), so doing it later and
 for more missions at once changes nothing but the cost. No per-entity tracking (maintainer, 2026-10-05).
 
@@ -82,25 +83,27 @@ class Level2Batch:
             self.flush()
 
     def flush(self) -> None:
-        """Level 2 for the tours touched so far, in its own transaction. No ratings, holders or thresholds yet.
+        """Level 2 for the tours touched so far, in its own transaction, with their Elo replay (the tours' medals read
+        it). No payload Elo, holder counts or thresholds yet: those are the end's.
         The pending set is cleared only after the pass committed, so a failed pass is retried by the next one."""
         if not self._pending:
             return
         log.info("level 2 for %d/%d missions", self.done, self.total)
         with transaction.atomic():
-            persist.apply_level2(self._pending, payload_elo=False, holders=False)
+            persist.apply_level2(self._pending, self.ratings, payload_elo=False, holders=False)
             bump_data_version()
         self._pending = set()
 
     def finish(self) -> None:
-        """The last level-2 pass, then the Elo ratings, the holder counts and the thresholds, once, in one transaction.
-        The ratings replay every kill in mission order, whatever order the missions were saved in."""
+        """The last level-2 pass (with the Elo replay of its tours), then the payload Elo, the holder counts and the
+        thresholds of every tour the batch touched, once, in one transaction. A tour's replay is in mission order,
+        whatever order the missions were saved in."""
         if self._saved == 0:
             if self.started:
                 self.started = False
                 clear_level2_pending()  # nothing was saved: nothing lags
             return
-        log.info("level 2 for the last missions, then ratings and thresholds")
+        log.info("level 2 for the last missions, then holders and thresholds")
         with transaction.atomic():
             persist.apply_batch_end(self._pending, self._tours, self.ratings, self.marks)
             bump_data_version()
@@ -131,8 +134,7 @@ def repair_pending(rebuild: Callable[[], None], ratings: RatingRules, marks: Mar
     )
     with transaction.atomic():
         if tours:
-            persist.apply_level2(tours, payload_elo=False, holders=False)
-            persist.finish_batch(tours, ratings, marks)
+            persist.apply_batch_end(tours, tours, ratings, marks)
             bump_data_version()
         else:
             rebuild()

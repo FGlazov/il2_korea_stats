@@ -134,3 +134,22 @@ def test_the_default_rules_still_replay_when_called_directly() -> None:
     from il2ks.ingest.ratings import recompute_ratings
 
     assert recompute_ratings(DEFAULT_RULES, [tour_at(SEPTEMBER).pk]) == 1
+
+
+def test_the_clean_slate_backfill_is_skipped_when_the_upgrade_just_rebuilt(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The upgrade's rebuild already replays each tour's Elo and then computes streaks and medals per tour: the
+    `tour_clean_slate` backfill only records its marker then, instead of computing them a second time."""
+    from il2ks.db.models import SiteSettings
+    from il2ks.ingest import streaks
+    from il2ks.ops import migrate
+
+    duel("m1", SEPTEMBER)
+    SiteSettings.objects.filter(pk=1).update(backfills_done=[])
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("computed a second time")
+
+    monkeypatch.setattr(streaks, "recompute_streaks", boom)
+    migrate._backfill_tour_clean_slate(rebuilt=True)  # pyright: ignore[reportPrivateUsage]
+
+    assert migrate.BACKFILL_TOUR_CLEAN_SLATE in SiteSettings.objects.get(pk=1).backfills_done

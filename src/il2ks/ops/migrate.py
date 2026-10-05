@@ -172,7 +172,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
             _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
         if only is None or BACKFILL_TOUR_CLEAN_SLATE in only:
-            _backfill_tour_clean_slate()
+            _backfill_tour_clean_slate(rebuilt=rebuild)  # after `tour_elo`'s rebuild, which also reads the Elo peaks
 
 
 def _check_payload_names() -> bool:
@@ -630,9 +630,11 @@ def _backfill_achievements() -> None:
         _mark_done(BACKFILL_ACHIEVEMENTS)
 
 
-def _backfill_tour_clean_slate() -> None:
+def _backfill_tour_clean_slate(*, rebuilt: bool = False) -> None:
     """Streaks and medals used to run over a player's whole history for the all-time rows; since a new tour is a clean
-    slate the all-time rows are rolled up from the tour rows (doc 17). Recompute them once for every player."""
+    slate the all-time rows are rolled up from the tour rows (doc 17). Recompute them once for every player, unless this
+    upgrade just rebuilt level 2 (`rebuilt`): the rebuild replays each tour's Elo first and then computes the streaks
+    and medals per tour, the same result."""
     from django.db import transaction
 
     from il2ks.db.models import Player, PlayerSortie, Role
@@ -643,7 +645,7 @@ def _backfill_tour_clean_slate() -> None:
     if _already_done(BACKFILL_TOUR_CLEAN_SLATE):
         return
     with transaction.atomic():
-        if PlayerSortie.objects.filter(role=Role.PILOT).exists():
+        if not rebuilt and PlayerSortie.objects.filter(role=Role.PILOT).exists():
             log.info("recomputing streaks and medals per tour")
             ids = sorted(Player.objects.values_list("pk", flat=True))
             for start in range(0, len(ids), CHUNK):

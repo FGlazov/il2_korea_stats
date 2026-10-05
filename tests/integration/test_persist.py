@@ -252,7 +252,7 @@ def test_failure_mid_save_rolls_back(monkeypatch: pytest.MonkeyPatch) -> None:
     save(basic_result())
     before = {t.__name__: rows(t) for t in ALL_TABLES}
 
-    def boom(*_args: object) -> None:
+    def boom(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError("disk full")
 
     monkeypatch.setattr(persist, "_replace_kills", boom)
@@ -264,7 +264,7 @@ def test_failure_mid_save_rolls_back(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_new_mission_failure_leaves_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
-    def boom(*_args: object) -> None:
+    def boom(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError("boom")
 
     monkeypatch.setattr(persist, "refresh_tours", boom)

@@ -245,6 +245,9 @@ decisions are made):
   (single missions, live passes, rebuilds; maintainer, 2026-10-05).
 - ⏳ **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
   the tour rows, so a recompute no longer grows with a player's whole history. Inventory and plan first (what sums, what can't).
+  **Merged 2026-10-05:** one level-2 path `refresh_tours(tour_ids, ratings)` with the per-tour order in doc 14 (rows from level 1, the tour's Elo,
+  its streaks and medals, then the all-time roll-ups of Elo, streaks and medals; Elo, streaks and medals start over in a tour); the
+  counters, killboards and aircraft rows are still recomputed from level 1 for the all-time scope.
 
 - ✅ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,
   top pilots, hits to destroy and ammo mixes follow the tour (all time included), the role toggle and the significant-mods filter (for

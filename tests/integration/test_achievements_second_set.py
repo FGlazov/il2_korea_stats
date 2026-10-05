@@ -258,16 +258,18 @@ def test_saving_a_mission_that_changes_elo_peaks_recounts_the_holders_once() -> 
 
 def test_top_rated_is_a_medal_of_every_tour_and_all_time_is_the_best_of_them(client: Client) -> None:
     """A new tour is a clean slate for achievements too (maintainer, 2026-10-05): `elo_peak` is no
-    longer all-time only. Each tour's rows follow the sorties' stored Elo peaks of that tour; all time = the max tier
-    over the tours, each tier earned where the first tour earned it."""
+    longer all-time only. Each tour's rows follow the sorties' stored Elo peaks of that tour (the rating starts over
+    in every tour, so October needs two wins of its own to reach the first tier at 1530); all time = the max tier over
+    the tours, each tier earned where the first tour earned it."""
     save(*duel(8))
     save(
         mission(
             (
-                sortie(0, 1, combat_role="air_superiority", kills_air=1, kills_air_pvp=1),
+                sortie(0, 1, combat_role="air_superiority", kills_air=2, kills_air_pvp=2),
                 sortie(1, 40, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
+                sortie(2, 41, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
             ),
-            (kill(100, 0, 1),),
+            (kill(100, 0, 1), kill(110, 0, 2)),
         ),
         meta("october", STARTED_AT + timedelta(days=40)),
     )

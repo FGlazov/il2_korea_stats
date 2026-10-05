@@ -37,21 +37,25 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
-from il2ks.ingest.achievements import recompute_achievements
 from il2ks.ingest.aircraft_stats import recompute_payload_elo
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
 
-CHUNK = 400  # players per achievement batch (SQLite's bound-parameter limit)
 POOLS: tuple[Pool, ...] = ("prop", "jet")
 
 
-def recompute_ratings(rules: RatingRules = DEFAULT_RULES, tour_ids: Iterable[int] | None = None) -> int:
+def recompute_ratings(
+    rules: RatingRules = DEFAULT_RULES, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True
+) -> int:
     """Replay the qualifying kills of each tour in `tour_ids` (None = every tour) alone and update that tour's rows
     (`PlayerTourPool.elo*`, `PlayerTourAircraft.elo*`, `PlayerSortie.elo_peak`), then derive the all-time Elo
     (`Player.elo_*`, `PlayerAircraft.elo*`) from the rows of every tour. Returns the number of games replayed.
 
     Rows with no game get `rules.start` and 0 games (so a changed `start` is applied to them too). Only rows whose
-    stored values differ from the result are written."""
+    stored values differ from the result are written.
+
+    The medals that read the peaks (Top Rated) are not recomputed here: `aggregates.recompute_players` refreshes each
+    tour's medals after this replay. `payload_elo=False`: leave the loadouts' average pilot Elo to the caller (it needs
+    the aircraft rows of the same refresh, which come later)."""
     ids = sorted(Tour.objects.values_list("pk", flat=True) if tour_ids is None else set(tour_ids))
     replayed = 0
     for tour_id in ids:
@@ -59,12 +63,13 @@ def recompute_ratings(rules: RatingRules = DEFAULT_RULES, tour_ids: Iterable[int
         computed = compute_all_ratings(games, rules)
         _store_tour_pools(tour_id, computed, rules)
         _store_tour_types(tour_id, computed, rules)
-        _store_peaks(tour_id, computed.peaks, {g.winner_sortie: g.winner for g in games})
+        _store_peaks(tour_id, computed.peaks)
         replayed += len(games)
     if tour_ids is None:  # a rebuild also clears the peaks of sorties outside every tour (no game explains them)
-        _store_peaks(None, {}, {})
+        _store_peaks(None, {})
     _store_all_time(rules)
-    recompute_payload_elo()  # the loadouts' average pilot Elo follows the new ratings
+    if payload_elo:
+        recompute_payload_elo()  # the loadouts' average pilot Elo follows the new ratings
     return replayed
 
 
@@ -147,33 +152,19 @@ def _store_all_time(rules: RatingRules) -> None:
     update_partial_rows(PlayerAircraft, changed_types, ["elo", "elo_games"])
 
 
-def _store_peaks(tour_id: int | None, peaks: dict[int, float], winners: dict[int, int]) -> None:
+def _store_peaks(tour_id: int | None, peaks: dict[int, float]) -> None:
     """Write `PlayerSortie.elo_peak` (the Elo medal reads it) of the sorties of one tour (None: of no tour) where it
-    differs, then recompute the medals of every pilot whose sorties changed, all time and in that tour only (the other
-    tours' medals do not read this tour's peaks). The holder counts are the caller's to recompute afterwards
-    (`recompute_holders`, once per save or rebuild). Incremental == rebuild: the peaks are a pure function of the
-    tour's replayed games."""
+    differs. The medals of the pilots whose peaks changed are recomputed by the caller's refresh, after the replay
+    (`aggregates.recompute_players`: the tour's medals, then the all-time roll-up). Incremental == rebuild: the peaks
+    are a pure function of the tour's replayed games."""
     scope = PlayerSortie.objects.filter(mission__tour_id=tour_id)
     stored = dict(scope.filter(elo_peak__gt=0).values_list("pk", "elo_peak"))
-    changed: list[PlayerSortie] = []
-    players: set[int] = set()
-    cleared: list[int] = []  # sorties whose peak goes: no game explains them, so `winners` does not know their pilot
-    for pk in stored.keys() | peaks.keys():
-        want = peaks.get(pk, 0.0)
-        if stored.get(pk, 0.0) != want:
-            changed.append(PlayerSortie(pk=pk, elo_peak=want))
-            if pk in winners:
-                players.add(winners[pk])
-            else:
-                cleared.append(pk)
-    for start in range(0, len(cleared), CHUNK):
-        players.update(
-            PlayerSortie.objects.filter(pk__in=cleared[start : start + CHUNK]).values_list("player_id", flat=True)
-        )
+    changed = [
+        PlayerSortie(pk=pk, elo_peak=peaks.get(pk, 0.0))
+        for pk in sorted(stored.keys() | peaks.keys())
+        if stored.get(pk, 0.0) != peaks.get(pk, 0.0)
+    ]
     update_partial_rows(PlayerSortie, changed, ["elo_peak"])
-    ids = sorted(players)
-    for start in range(0, len(ids), CHUNK):
-        recompute_achievements(ids[start : start + CHUNK], [] if tour_id is None else [tour_id])
 
 
 def _games(tour_id: int) -> Iterator[Game]:

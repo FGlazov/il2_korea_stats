@@ -351,7 +351,7 @@ def apply_provisional_level2(cfg: Config, touched: set[int]) -> None:
     """Refresh level 2 for the tours the provisional passes touched since the last time. No ratings, no stat
     thresholds: they wait for the final save."""
     with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
-        apply_level2(touched)
+        apply_level2(touched, None)
         bump_data_version()
 
 
