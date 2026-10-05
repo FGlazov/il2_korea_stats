@@ -50,6 +50,11 @@
     {% blocktranslate with value=tile.kills_air|ratio:tile.planes_lost asvar sub_lost %}K/L {{ value }}{% endblocktranslate %}
     {% stat_tile tile.planes_lost|num _("Aircraft lost") sub=sub_lost icon="stat/planes-lost" %}
 
+    {% if tile.elo_games %}
+      {% blocktranslate with games=tile.elo_games|num asvar sub_elo %}{{ games }} games between types{% endblocktranslate %}
+      {% stat_tile tile.elo|num _("Elo") sub=sub_elo icon="stat/air-kills" %}
+    {% endif %}
+
     {% blocktranslate with rate=tile.attack_sorties|percent:tile.sorties asvar sub_attack %}{{ rate }} attack{% endblocktranslate %}
     {% stat_tile tile.attack_sorties|num _("Attack sorties") sub=sub_attack icon="stat/sorties" %}
 

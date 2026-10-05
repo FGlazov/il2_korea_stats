@@ -430,6 +430,18 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
   stored on `PlayerAircraft` (`elo`, `elo_games`). Each starts at `[ratings] start`; the opponent's rating is their rating in the type they flew
   in that game. Pools still apply: a jet killing a prop changes nothing. A type's top pilots are ranked by it (FR-WEB-8). Per tour like the pool
   ratings (`PlayerTourAircraft`); all time = the best rating among the tours with at least `min_elo_games` games in the type (any tour when none reaches it), games summed.
+- **Aircraft type Elo** (maintainer, 2026-10-05; `[DECIDED]` the idea, `[PROPOSED]` the details): a rating per aircraft TYPE, not per pilot. Every
+  game of the pilot Elo (a credited PvP air kill between two air superiority pilot sorties, doc 13 above; attack sorties never play) is also a game
+  that the killer's type wins against the victim's type, whoever flew them. **PRODUCT `[PROPOSED]`**: both sorties must be air superiority (the
+  intercept filter of the matchups), and the pool rules apply as for pilots (a jet beating a prop aircraft changes nothing; a prop kill on a jet
+  counts `cross_pool_weight` times). A kill between two aircraft of one type is no game. Same start rating and K as the pilot Elo (`[ratings]
+  start`, `k`; **TECHNICAL**: one set of numbers to tune). Per tour from a clean slate, replayed in the pilot Elo's order (mission start, kill
+  time, row id), the tour's final rating stored on that tour's `TourAircraftStats` rows (role `all` and `air_superiority`, no mod pattern: `elo`,
+  `elo_games` = the games of both sides). All time (`AircraftStats`, and the null-tour `air_superiority` row) = the best final rating among the tours with at least
+  `RatingRules.type_min_games` games, any tour when none reaches it, games summed. **PRODUCT `[PROPOSED]`**: the minimum is `min_elo_games` x 10 (default 50): a
+  type collects the games of all its pilots, so the pilots' minimum of 5 would let a few kills set a type's rating. Shown as a sortable "Elo" column
+  (a default column) of the aircraft list and a tile of the aircraft page; a type with no game shows a dash. The sortable column is the view: no
+  separate board. Code: `core.ratings.elo.compute_type_ratings`, `ingest.aircraft_stats` (`_store_type_elo`, `_rollup_type_elo`), the games from `ingest.rating_games`.
 - The loadouts' and weapon-mod sets' **average pilot Elo** (`elo_avg`, aircraft page) exists all time only (their rows have no tour); it uses the
   all-time Elo above (per-type where the pilot has games in the type, else the pool's). `[PROPOSED]` Per-tour rows of those tables would use the
   tour's Elo the same way.

@@ -385,7 +385,7 @@ def _recompute_tour_scope(scope: _TourScope, ratings: RatingRules | None) -> Non
     the tours' matchups and hits-to-destroy rows; then the tours' Elo replay (`ratings`; None skips it) and the
     players' streaks and medals of the tours (which read the replay's `elo_peak`)."""
     recompute_player_tours(scope.players, scope.tours)
-    recompute_aircraft_tour_rows(scope.aircraft, scope.tours)
+    recompute_aircraft_tour_rows(scope.aircraft, scope.tours, ratings)
     recompute_matchup_tours(scope.pairs, scope.tours)
     recompute_aircraft_ammo_tours(scope.ammo_aircraft, scope.tours)
     if ratings is not None:
@@ -399,7 +399,7 @@ def _recompute_all_time(scope: _TourScope, ratings: RatingRules | None) -> None:
     the null-tour `TourAircraftStats`, `PlayerAircraftScope`, payload, mods, matchups, ammo: the sums of their tour
     rows; they read the rolled-up `PlayerAircraft` rows, so they come after) and the activity days."""
     rollup_players(scope.players, ratings, scope.tours)
-    rollup_aircraft_stats(scope.aircraft)
+    rollup_aircraft_stats(scope.aircraft, ratings)
     rollup_matchups(scope.pairs)
     rollup_aircraft_ammo(scope.ammo_aircraft)
     recompute_days(scope.days)
@@ -414,7 +414,7 @@ def _recompute_everything(ratings: RatingRules | None) -> None:
         | set(MissionAircraftAmmoMix.objects.values_list("aircraft_id", flat=True))
         | set(AircraftAmmoMixStats.objects.values_list("aircraft_id", flat=True))
     )
-    rebuild_aircraft_stats()
+    rebuild_aircraft_stats(ratings)
     rebuild_activity()
 
 

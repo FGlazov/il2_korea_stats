@@ -18,7 +18,7 @@ Provisional sorties (FR-ING-15): the same tracked replay also saves the running 
 mission ends. Level 1 (mission, sorties, kills) is written every pass; level 2 (profiles, boards, aircraft pages) is
 recomputed for everything touched since the last time every `[live] aggregates_interval_s` (default 300 s, 0 = only at
 the end), because it is the heavy part; the Elo ratings and the stat thresholds wait for the final save (they depend
-on the order of missions; `ratings._games` skips live kills).
+on the order of missions; `rating_games.rated_games` skips live kills).
 The final save is the ordinary ingest of the complete mission: it rewrites those rows and clears `is_live`. A mission
 whose files vanish without being ingested, and every provisional mission when the admin switches
 `SiteSettings.show_live_sorties` off, are deleted again (`discard_provisional_mission`).

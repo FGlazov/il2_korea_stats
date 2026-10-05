@@ -32,6 +32,13 @@ all kills / intercept fights where both sorties were air superiority), plus the 
 killer's or the victim's sortie (`scoped_side`). `PlayerAircraftScope` = one player's counters in a type per tour, role
 and mod pattern (the top pilots of the aircraft page; the all-time unfiltered one is `PlayerAircraft`).
 
+The **aircraft type Elo** (`elo`, `elo_games`; maintainer 2026-10-05) is stored on the unfiltered `all` and
+`air_superiority` role rows of each tour (`TourAircraftStats`) and, all time, on `AircraftStats` and the null-tour
+`air_superiority` row. The tour step replays the tour's air superiority duels between types (`rating_games`,
+`core.ratings.elo.compute_type_ratings`: a clean slate per tour, the pilot Elo's order); the roll-up takes the best
+tour with at least `RatingRules.type_min_games` games (`best_of_tours`) and sums the games. Both only run when the
+caller passes the `[ratings]` rules (a live pass passes none and leaves the Elo alone).
+
 A mission always has a tour (`save_mission` gives it one), so the tour rows cover every sortie: the sum over the tours
 is the whole history.
 """
@@ -42,6 +49,7 @@ from dataclasses import dataclass
 from django.db.models import Count, Q, QuerySet, Sum
 
 from il2ks.core.catalog.loader import mod_filter_patterns, side_of_country
+from il2ks.core.ratings.elo import RatingRules, best_of_tours, compute_type_ratings
 from il2ks.db.models import (
     AircraftCounters,
     AircraftEffectiveness,
@@ -60,6 +68,7 @@ from il2ks.db.models import (
     PlayerTourAircraft,
     Propulsion,
     Role,
+    Tour,
     TourAircraftStats,
 )
 from il2ks.ingest.aircraft_mods import pattern_tour_stats, player_scope_stats, scopes_of, significant_mods
@@ -71,7 +80,8 @@ from il2ks.ingest.counters import (
     clean_counters,
     counted_sorties,
 )
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.rating_games import rated_games
 
 CHUNK = 400
 ELO_DECIMALS = 3  # averages are rounded so a rebuild can't differ by float noise
@@ -92,19 +102,25 @@ def matchup_kills() -> QuerySet[Kill]:
     )
 
 
-def recompute_aircraft_stats(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
+def recompute_aircraft_stats(
+    aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None, rules: RatingRules | None = None
+) -> None:
     """Both steps for these types: the tour rows of the tours in `tour_ids` (None = every tour), then the all-time rows
     rolled up from them. `refresh_tours` calls the steps apart (`recompute_aircraft_tour_rows`,
     `rollup_aircraft_stats`) because the all-time step runs after every tour step. Rows of types without counted
-    sorties are deleted. The payload Elo is not here: it needs the ratings (`recompute_payload_elo`)."""
+    sorties are deleted. The payload Elo is not here: it needs the ratings (`recompute_payload_elo`). `rules`: the
+    `[ratings]` rules of the aircraft type Elo (None: leave it alone)."""
     ids = sorted(set(aircraft_ids))
-    recompute_aircraft_tour_rows(ids, tour_ids)
-    rollup_aircraft_stats(ids)
+    recompute_aircraft_tour_rows(ids, tour_ids, rules)
+    rollup_aircraft_stats(ids, rules)
 
 
-def recompute_aircraft_tour_rows(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
+def recompute_aircraft_tour_rows(
+    aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None, rules: RatingRules | None = None
+) -> None:
     """The tour step: `TourAircraftStats`, `PlayerAircraftScope`, `AircraftPayload` and `AircraftMods` rows of the tours
-    in `tour_ids` (None = every tour) for these types, from those tours' level-1 rows (and `PlayerTourAircraft`)."""
+    in `tour_ids` (None = every tour) for these types, from those tours' level-1 rows (and `PlayerTourAircraft`), and,
+    with `rules`, the types' Elo in those tours (`_store_type_elo`: replayed from the tours' kills alone)."""
     ids = sorted(set(aircraft_ids))
     tours = None if tour_ids is None else sorted(set(tour_ids))
     for start in range(0, len(ids), CHUNK):
@@ -113,17 +129,82 @@ def recompute_aircraft_tour_rows(aircraft_ids: Iterable[int], tour_ids: Iterable
         _recompute_effectiveness(chunk, _sortie_groups(chunk, tours), significant, tours)
         _recompute_tour_stats(chunk, tours, significant)
         _recompute_player_scopes(chunk, tours, significant)
+    if rules is not None:
+        _store_type_elo(ids, tours, rules)
 
 
-def rollup_aircraft_stats(aircraft_ids: Iterable[int]) -> None:
+def rollup_aircraft_stats(aircraft_ids: Iterable[int], rules: RatingRules | None = None) -> None:
     """The all-time step: `AircraftStats` and every all-time (null tour) row of these types, rolled up from their tour
-    rows. After `recompute_aircraft_tour_rows` and the players' `PlayerAircraft` rows (the pilot count)."""
+    rows. After `recompute_aircraft_tour_rows` and the players' `PlayerAircraft` rows (the pilot count). With `rules`
+    also the types' all-time Elo (`_rollup_type_elo`), from their tour rows only."""
     ids = sorted(set(aircraft_ids))
     for start in range(0, len(ids), CHUNK):
         chunk = ids[start : start + CHUNK]
         _rollup_player_scopes(chunk)
         _rollup_stats(chunk)
+        if rules is not None:
+            _rollup_type_elo(chunk, rules)
         _rollup_effectiveness(chunk)
+
+
+ELO_ROLES = (AircraftRole.ALL.value, AircraftRole.AIR_SUPERIORITY.value)
+"""The role rows that carry the type Elo: every sortie and air superiority sorties (the Elo is air superiority by
+definition, so both show the same rating; an attack row has none)."""
+
+
+def _store_type_elo(aircraft_ids: list[int], tour_ids: list[int] | None, rules: RatingRules) -> None:
+    """The types' Elo in each tour of `tour_ids` (None = every tour): that tour's air superiority duels between types
+    replayed alone from a clean slate, written to the type's unfiltered `all` and `air_superiority` rows of the tour
+    (`rules.start` and 0 games where the type had no duel). Reads that tour's kills only."""
+    tours = sorted(Tour.objects.values_list("pk", flat=True)) if tour_ids is None else tour_ids
+    for tour in tours:
+        computed = compute_type_ratings(rated_games(tour), rules)
+        for start in range(0, len(aircraft_ids), CHUNK):
+            rows = TourAircraftStats.objects.filter(
+                tour_id=tour, aircraft_id__in=aircraft_ids[start : start + CHUNK], role__in=ELO_ROLES, mod_pattern=""
+            )
+            changed: list[TourAircraftStats] = []
+            for pk, aircraft, elo, games in rows.values_list("pk", "aircraft_id", "elo", "elo_games"):
+                found = computed.get(aircraft)
+                wanted = (rules.start, 0) if found is None else (found.rating, found.games)
+                if wanted != (elo, games):
+                    changed.append(TourAircraftStats(pk=pk, elo=wanted[0], elo_games=wanted[1]))
+            update_partial_rows(TourAircraftStats, changed, ["elo", "elo_games"])
+
+
+def _rollup_type_elo(chunk: list[int], rules: RatingRules) -> None:
+    """`AircraftStats.elo*` and the all-time `air_superiority` row's: the best tour's final rating among the tours with
+    at least `rules.type_min_games` games (the best of all tours when none reaches it), the games of all tours summed.
+    From the tour rows of the types only, never from the kills."""
+    rated = TourAircraftStats.objects.filter(
+        aircraft_id__in=chunk, tour__isnull=False, role__in=ELO_ROLES, mod_pattern="", elo_games__gt=0
+    )
+    best = best_of_tours(
+        [
+            ((aircraft, role), elo, games)
+            for aircraft, role, elo, games in rated.values_list("aircraft_id", "role", "elo", "elo_games")
+        ],
+        rules.type_min_games,
+    )
+    changed_all: list[AircraftStats] = []
+    for pk, aircraft, elo, games in AircraftStats.objects.filter(aircraft_id__in=chunk).values_list(
+        "pk", "aircraft_id", "elo", "elo_games"
+    ):
+        found = best.get((aircraft, AircraftRole.ALL.value))
+        wanted = (rules.start, 0) if found is None else (found.rating, found.games)
+        if wanted != (elo, games):
+            changed_all.append(AircraftStats(pk=pk, elo=wanted[0], elo_games=wanted[1]))
+    update_partial_rows(AircraftStats, changed_all, ["elo", "elo_games"])
+    changed_roles: list[TourAircraftStats] = []
+    all_time_rows = TourAircraftStats.objects.filter(
+        aircraft_id__in=chunk, tour__isnull=True, role=AircraftRole.AIR_SUPERIORITY.value, mod_pattern=""
+    )
+    for pk, aircraft, elo, games in all_time_rows.values_list("pk", "aircraft_id", "elo", "elo_games"):
+        found = best.get((aircraft, AircraftRole.AIR_SUPERIORITY.value))
+        wanted = (rules.start, 0) if found is None else (found.rating, found.games)
+        if wanted != (elo, games):
+            changed_roles.append(TourAircraftStats(pk=pk, elo=wanted[0], elo_games=wanted[1]))
+    update_partial_rows(TourAircraftStats, changed_roles, ["elo", "elo_games"])
 
 
 type _Wanted[K] = dict[K, dict[str, int | float | str]]
@@ -738,8 +819,9 @@ def _sync_matchups(counts: dict[ScopedPair, int], existing: dict[ScopedPair, Air
     AircraftMatchup.objects.bulk_create(new)
 
 
-def rebuild_aircraft_stats() -> None:
-    """Every aircraft-type row from scratch (`il2ks rebuild-aggregates`); needs the player rows rebuilt first."""
+def rebuild_aircraft_stats(rules: RatingRules | None = None) -> None:
+    """Every aircraft-type row from scratch (`il2ks rebuild-aggregates`, with the type Elo under `rules`); needs the
+    player rows rebuilt first."""
     ids = (
         set(PlayerAircraft.objects.values_list("aircraft_id", flat=True))
         | set(AircraftStats.objects.values_list("aircraft_id", flat=True))
@@ -748,5 +830,5 @@ def rebuild_aircraft_stats() -> None:
         | set(AircraftMods.objects.values_list("aircraft_id", flat=True))
         | set(PlayerAircraftScope.objects.values_list("aircraft_id", flat=True))
     )
-    recompute_aircraft_stats(ids, None)
+    recompute_aircraft_stats(ids, None, rules)
     recompute_matchups(None)
