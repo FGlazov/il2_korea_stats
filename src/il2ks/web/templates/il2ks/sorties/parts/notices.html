@@ -2,10 +2,7 @@
 {% load i18n il2ks %}{% comment %}
   Flag notices (doc 13): what the reader should know before trusting a number. All neutral in tone: the flags are
   heuristics. Context: sortie, detail (ammo.used_unknown says why ammo used is unknown).
-{% endcomment %}{% if sortie.mission.is_live %}
-  {% notice "changing" title=_("Mission still running") %}{% translate "This mission is still running: these numbers may change when it ends." %}{% endnotice %}
-{% endif %}
-{% if sortie.role == "gunner" %}
+{% endcomment %}{% if sortie.role == "gunner" %}
   {% notice "info" title=_("Gunner sortie") %}{% translate "This player manned a gun position. The game log credits a gunner's fire to the aircraft, so the pilot gets the kills and this sortie shows none. Time in flight follows the aircraft." %}{% endnotice %}
 {% endif %}
 {% if sortie.suspected_early_bailout %}

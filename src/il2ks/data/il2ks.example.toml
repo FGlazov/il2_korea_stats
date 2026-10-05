@@ -108,7 +108,9 @@
 #strafed_min_damage = 0.05
 # Resupply (FR-ING-24): the server may let a player rearm after landing and take off again in the same sortie, and no
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
-# it "used" is then unknown. false = never assume a resupply.
+# it "used" is then unknown, and the aircraft counts as repaired at that landing: the damage it took starts from 0 again
+# (the damage tables and the timeline show a "Repaired after landing" row). false = never assume a resupply or a
+# repair: the damage taken adds up over the whole sortie, up to 100%.
 #resupply_allowed = true
 # A pilot's final position (bailout rule, capture) is the one in the pilot's removal line. When that line is missing or
 # its position is garbage, the pilot's latest position from a re-declaration within this many seconds of the sortie's end

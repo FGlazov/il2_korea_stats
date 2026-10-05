@@ -4,6 +4,7 @@ timeline (TD-08)."""
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
+from il2ks.core.replay.damage import CountedDamage, counted_damage, damaged_at
 from il2ks.core.replay.fate import crew_death
 from il2ks.core.replay.judge import Verdict
 from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, is_gun_ammo, party_of
@@ -50,23 +51,40 @@ class _Breakdown:
         return found
 
 
+def _counted_on(obj: TrackedObject, target_party: Party, verdicts: dict[int, Verdict]) -> list[CountedDamage]:
+    """The damage that counts on one object (`damage.py`): the aircraft's (or vehicle's) own lines, capped at 100% per
+    flight leg for a player sortie (up to its cutoff), at 100% in all for any other object. Damage to a pilot, gunner
+    or crew bot, or to an AI turret of a player aircraft, is not damage to the aircraft and is left out."""
+    if obj.is_bot:
+        return []
+    if isinstance(target_party, SortieState):
+        if obj is not target_party.vehicle:
+            return []
+        verdict = verdicts[target_party.index]
+        return counted_damage(obj, verdict.cutoff_tick, verdict.repairs)
+    return counted_damage(obj)
+
+
 def breakdowns(facts: MissionFacts, verdicts: list[Verdict]) -> dict[int, Breakdown]:
-    """Damage and hits from each player sortie to its counterparts, and back. Self damage is left out."""
+    """Damage and hits from each player sortie to its counterparts, and back. Self damage is left out. Damage is the
+    capped aircraft damage of `_counted_on`; `verdicts` carry the repairs the rules assumed."""
     ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
     cutoffs = {s.index: v.cutoff_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
+    by_index = {s.index: v for s, v in zip(facts.sorties, verdicts, strict=True)}
     per_sortie = {s.index: _Breakdown() for s in facts.sorties}
     for obj in facts.objects:
         target_party = party_of(obj)
-        for record in obj.damage_log:
-            if record.attacker is None:
+        for counted in _counted_on(obj, target_party, by_index):
+            record = counted.record
+            if record.attacker is None or counted.amount <= 0:
                 continue
             attacker_party = party_of(record.attacker)
             if attacker_party is target_party:
                 continue
             if isinstance(attacker_party, SortieState) and record.tick <= ends[attacker_party.index]:
-                per_sortie[attacker_party.index].exchange(target_party).dealt += record.amount
-            if isinstance(target_party, SortieState) and record.tick <= cutoffs[target_party.index]:
-                per_sortie[target_party.index].exchange(attacker_party).taken += record.amount
+                per_sortie[attacker_party.index].exchange(target_party).dealt += counted.amount
+            if isinstance(target_party, SortieState):
+                per_sortie[target_party.index].exchange(attacker_party).taken += counted.amount
         for hit in obj.hit_log:
             if hit.attacker is None:
                 continue
@@ -166,6 +184,16 @@ def timeline(
     active = verdict.active_end_tick
     entries += [TimelineEntry(t, "takeoff", pos=p) for t, p in airframe.takeoffs if sortie.spawn_tick <= t <= active]
     entries += [TimelineEntry(t, "landing", pos=p) for t, p in airframe.landings if sortie.spawn_tick <= t <= active]
+    if (
+        verdict.repairs
+    ):  # a landing with damage on it, followed by a takeoff: the aircraft is assumed repaired (damage.py)
+        counted = counted_damage(airframe, verdict.cutoff_tick, verdict.repairs)
+        positions = dict(airframe.landings)
+        entries += [
+            TimelineEntry(t, "repaired", pos=positions.get(t))
+            for t in verdict.repairs
+            if damaged_at(counted, t, verdict.repairs)
+        ]
     for kill in kills:
         if kill.killer_sortie_index == sortie.index and not kill.is_friendly:
             entries.append(

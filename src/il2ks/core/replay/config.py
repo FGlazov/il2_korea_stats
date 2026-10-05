@@ -34,7 +34,9 @@ class ReplayRules:
     # fraction of its DMG after the landing; a damaged aircraft that fails its landing is a crash.
     strafed_min_damage: float = 0.05
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
-    # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown.
+    # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown,
+    # and as repaired: the aircraft's damage taken starts from 0 again at that landing (`damage.py`). False = no
+    # resupply and no repair: damage accumulates over the whole sortie, up to 100%.
     resupply_allowed: bool = True
     # A pilot's final position normally is the AType 16 position. Without one (AType 16 missing, or its position
     # garbage), the bot's latest AType 12 position counts if it was logged within this many seconds of the sortie end.
