@@ -78,7 +78,7 @@ def test_discarded_live_mission_in_a_decisive_part_leaves_no_empty_tour() -> Non
     assert_no_empty_tour()
     newest = Tour.objects.order_by("-started_at").first()
     assert newest is not None
-    assert newest.missions.exists()  # the default tour of the site has missions
+    assert Mission.objects.filter(tour=newest).exists()  # the default tour of the site has missions
     assert_equals_rebuild()
 
 

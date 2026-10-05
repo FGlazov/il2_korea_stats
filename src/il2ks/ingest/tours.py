@@ -241,18 +241,44 @@ def resegment(rules: TourRules, stretch: _Stretch) -> set[int]:
     if stretch.end is not None:
         parts = parts.filter(started_at__lt=stretch.end)
     stale = parts.exclude(pk__in=keep)
-    gone = set(stale.values_list("pk", flat=True))
+    removed = dict(stale.values_list("pk", "started_at"))
     stale.delete()  # their missions were moved above
     if emptied is not None and not Mission.objects.filter(tour=emptied).exists():
-        gone.add(emptied.pk)
+        removed[emptied.pk] = emptied.started_at
         emptied.delete()
-    return touched - gone
+    return (touched - removed.keys()) | neighbours_of_removed(removed.values())
+
+
+def neighbours_of_removed(started_ats: Iterable[datetime]) -> set[int]:
+    """The tours right before and after each removed tour's start. A removed tour closes a gap in the tour order: the
+    players of both sides may now have a longer run (Old Hand) and, when the newest tour went, the new newest tour is
+    the one the current streaks live in, so the caller refreshes these tours as well."""
+    found: set[int] = set()
+    for started_at in started_ats:
+        before = Tour.objects.filter(started_at__lt=started_at).order_by("-started_at").values_list("pk", flat=True)
+        after = Tour.objects.filter(started_at__gt=started_at).order_by("started_at").values_list("pk", flat=True)
+        found |= set(before[:1]) | set(after[:1])
+    return found
+
+
+def delete_empty_tours(tour_ids: Iterable[int], rules: TourRules) -> set[int]:
+    """Delete these tours when no mission is left in them (not in manual mode: the admin's boundary stays) and return
+    the surviving tours next to them (`neighbours_of_removed`), which the caller refreshes. A tour without a mission
+    has no level-2 row of its own left after its refresh."""
+    if rules.mode == "manual":
+        return set()
+    empty = list(Tour.objects.filter(pk__in=set(tour_ids), missions__isnull=True).values_list("pk", "started_at"))
+    Tour.objects.filter(pk__in=[pk for pk, _ in empty]).delete()
+    return neighbours_of_removed(started_at for _, started_at in empty)
 
 
 def _calendar_stretch(rules: TourRules, instant: datetime) -> _Stretch:
     period = period_for(rules, instant)
     base = Tour.objects.filter(started_at=period.started_at).first()
-    return _Stretch(period.started_at, period.ended_at, period.title, base)
+    title = (
+        base.title if base is not None else period.title
+    )  # an admin's rename of the base titles the parts, as in a retour
+    return _Stretch(period.started_at, period.ended_at, title, base)
 
 
 def _manual_stretch(instant: datetime) -> _Stretch | None:

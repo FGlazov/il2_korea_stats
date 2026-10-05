@@ -61,7 +61,7 @@ from il2ks.ingest.dbutil import update_partial_rows, update_rows
 from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
-from il2ks.ingest.tours import effective_rules, ensure_tour, resegment_around
+from il2ks.ingest.tours import delete_empty_tours, effective_rules, ensure_tour, resegment_around
 
 log = logging.getLogger(__name__)
 
@@ -160,7 +160,10 @@ def save_level1(
     score = with_applied_flight_score(score)  # the admin's flight-time option, as last applied to the stored scores
     clock = _Clock(meta.started_at)
     tours = effective_rules(tours)  # + the admin's "new tour after a decisive mission" option as the tours have it
-    tour = ensure_tour(tours, meta.started_at)
+    # With the decisive-tour option the part holding the mission is placed by `resegment` below: writing the mission
+    # into the calendar base first would put the base into the touched set of every save (and refresh it).
+    placed_later = tours.on_win and (tours.mode != "manual" or Tour.objects.exists())
+    tour = None if placed_later else ensure_tour(tours, meta.started_at)
     previous = (
         Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
         .values_list("tour_id", "ended_at")
@@ -170,13 +173,20 @@ def save_level1(
     mission, _ = Mission.objects.update_or_create(
         server_uid=meta.server_uid,
         mission_uid=meta.mission_uid,
-        defaults={**_mission_fields(result, meta, clock), "tour": tour},
+        defaults={**_mission_fields(result, meta, clock), **({} if tour is None else {"tour": tour})},
     )
-    touched = {tour.pk} | _ids(old_tour_id)
-    if tours.on_win:  # decisive missions cut the period into parts: place this mission, and the ones its end moves
+    touched = _ids(old_tour_id)
+    if tour is not None:
+        touched.add(tour.pk)
+    if placed_later:  # decisive missions cut the period into parts: place this mission, and the ones its end moves
         instants = [mission.started_at, mission.ended_at, *([previous[1]] if previous else [])]
         touched |= resegment_around(tours, instants)
-        mission.tour_id = Mission.objects.values_list("tour_id", flat=True).get(pk=mission.pk)
+        placed = Mission.objects.values_list("tour_id", flat=True).get(pk=mission.pk)
+        if placed is None:  # no stretch drew one (cannot happen with a calendar mode)
+            placed = ensure_tour(tours, meta.started_at).pk
+            Mission.objects.filter(pk=mission.pk).update(tour_id=placed)
+        mission.tour_id = placed
+        touched.add(placed)
         touched = set(Tour.objects.filter(pk__in=touched).values_list("pk", flat=True))  # parts may be gone
     objects = register_game_objects(_object_types(result), catalog)
     register_countries(result.mission.countries, catalog)
@@ -189,15 +199,25 @@ def save_level1(
     return mission, touched
 
 
-def discard_provisional_mission(mission: Mission) -> None:
+def discard_provisional_mission(mission: Mission, tours: TourRules = DEFAULT_TOUR_RULES) -> None:
     """Delete a provisional mission that will never be finished (its log files are gone, or the admin switched live
     sorties off) and bring level 2 back to what it was without it (FR-ING-15). Inside the caller's transaction.
-    Players stay (never deleted); their counters are recomputed. Ratings need no work: live kills never counted."""
+    Players stay (never deleted); their counters are recomputed. Ratings need no work: live kills never counted.
+
+    A tour the mission leaves without any mission is deleted (a calendar mode; a part of the decisive-tour option is
+    re-drawn by `resegment_around`), so the site's newest tour is never an empty one. The tour's rows are refreshed
+    first (they empty out), then the tours next to a deleted one are refreshed: their players' streaks and Old Hand
+    run read the changed tour order."""
     assert mission.is_live, "only provisional missions are discarded this way"
-    tours = _ids(mission.tour_id)
-    started = mission.started_at
+    rules = effective_rules(tours)
+    own = _ids(mission.tour_id)
+    started, ended = mission.started_at, mission.ended_at
     mission.delete()
-    refresh_tours(tours, None)  # the mission's players keep their `PlayerTour` rows until this recomputes them
+    refresh_tours(own, None)  # the mission's players keep their `PlayerTour` rows until this recomputes them
+    after = delete_empty_tours(own, rules)
+    if rules.on_win:
+        after |= resegment_around(rules, [started, ended])
+    refresh_tours(Tour.objects.filter(pk__in=after).values_list("pk", flat=True), None, payload_elo=False)
     recompute_holders()
     recompute_days({day_of(started)})  # a mission without a tour belongs to no refresh that would find its day
     bump_data_version()
