@@ -19,7 +19,7 @@
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "bc141868526b2535fe9882b9985f1d40a653d6da7321ab44baa98e428f3a79bd"
+      "sha256": "550c6eca6cd426ad8175c029ca9b9b9e5b2b12cf6614cf371cbce1ead5de01eb"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -335,7 +335,7 @@
     },
     "templates/il2ks/players/detail.html": {
       "version": 1,
-      "sha256": "ef5f280b3fd43bb7f3cb8b9b3b852b51c0918427c1e58c048f1b5aba704d11e1"
+      "sha256": "5e44f3306efea15489d0c8bc6af8c15458fecd71c40813efdd1e3e7a9b30e3a8"
     },
     "templates/il2ks/players/detail_achievements.html": {
       "version": 1,
@@ -343,7 +343,7 @@
     },
     "templates/il2ks/players/detail_air_section.html": {
       "version": 1,
-      "sha256": "8ef88febf370cc7b3727bb9b56ec16dc93cb77cf9c876461ced48d3c9430b9a1"
+      "sha256": "fbd9252a015b55e271161ad10148b647da46c8cbef8f54e25047d4410bf206d6"
     },
     "templates/il2ks/players/detail_air_split.html": {
       "version": 1,
@@ -355,7 +355,7 @@
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 1,
-      "sha256": "563d300f733cc8c9321b3cf965c113c4f74e887c57a1ccd3abcd179e7ec2fd3f"
+      "sha256": "39d4c3085b8b753a1a928a6b649c36c0698244bb8a30a8217e5e3e1f3c62e1a3"
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,
@@ -391,11 +391,11 @@
     },
     "templates/il2ks/players/detail_nav.html": {
       "version": 1,
-      "sha256": "dac6c306eb839189d121ad44d3143544b71a58b0b84e9d25661b4b1577739c38"
+      "sha256": "ef29ddf372a72d02674cce630f969bdb7269771b5c88c1e0b6a18cbf75ce36d7"
     },
     "templates/il2ks/players/detail_overall.html": {
       "version": 1,
-      "sha256": "426b0d30a41500d1a466f666d458f80e71cd013b64e8908c3e356d69bf86a3f1"
+      "sha256": "59993a6f8b900e92ba922fdd2de87a0665b43ea4fadafc097cf7cc18d3c44e6b"
     },
     "templates/il2ks/players/detail_pve.html": {
       "version": 1,
@@ -411,7 +411,7 @@
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 1,
-      "sha256": "e550d3ee3d9f1afe67a6d1cf4a664d74247ab06ddcdb14f110f799f22300f0bb"
+      "sha256": "bfde7bde3064dd266eb0a985699ce7ff3da69fb0c895741bdd8f2492e583585c"
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,
@@ -427,7 +427,7 @@
     },
     "templates/il2ks/players/detail_totals.html": {
       "version": 1,
-      "sha256": "b595e57a350297d52e125e209d72b1c934b8a53b9673d3651447135c02c115a5"
+      "sha256": "40498d12af549c8e23662ac880b2c7729a9a4427989979257cddf0f42a9b59e6"
     },
     "templates/il2ks/players/detail_type_killboard.html": {
       "version": 1,

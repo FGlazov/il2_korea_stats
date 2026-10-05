@@ -23,6 +23,7 @@ from il2ks.db.models import (
     PlayerAircraftBuild,
     PlayerKillboard,
     PlayerPool,
+    PlayerRole,
     PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
@@ -75,6 +76,11 @@ def sum_of_tour_rows() -> list[str]:
         by_pool[(tour_pool.player_id, tour_pool.propulsion)] += tour_pool.sorties
     if {(r.player_id, r.propulsion): r.sorties for r in PlayerPool.objects.all()} != dict(by_pool):
         out.append("PlayerPool sorties differ from the sum of PlayerTourPool")
+    by_role: dict[tuple[int, str], int] = defaultdict(int)
+    for tour_role in PlayerRole.objects.filter(tour__isnull=False):
+        by_role[(tour_role.player_id, tour_role.role)] += tour_role.sorties
+    if {(r.player_id, r.role): r.sorties for r in PlayerRole.objects.filter(tour__isnull=True)} != dict(by_role):
+        out.append("all-time PlayerRole sorties differ from the sum of the tour PlayerRole rows")
     builds: dict[tuple[int, int, int, str], int] = defaultdict(int)
     for build in PlayerAircraftBuild.objects.filter(tour__isnull=False):
         builds[(build.player_id, build.aircraft_id, build.value, build.label)] += build.sorties

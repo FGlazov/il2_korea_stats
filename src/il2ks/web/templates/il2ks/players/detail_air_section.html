@@ -25,6 +25,7 @@
   {% else %}
     <p class="muted">{% if tour %}{% translate "No air-to-air activity in this tour: no air kills or assists." %}{% else %}{% translate "No air-to-air activity yet: no air kills or assists." %}{% endif %}</p>
   {% endif %}
+  {% if role != "all" %}<p class="muted">{% translate "The killboards below count every role." %}</p>{% endif %}
   {% include "il2ks/players/detail_type_killboard.html" %}
   {% include "il2ks/players/detail_killboard.html" %}
 </section>

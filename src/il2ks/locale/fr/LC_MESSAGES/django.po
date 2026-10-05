@@ -3492,6 +3492,10 @@ msgid "No result: %(unknown)s"
 msgstr "Sans résultat : %(unknown)s"
 
 # llm-draft
+msgid "No sorties in this role"
+msgstr "Aucune sortie dans ce rôle"
+
+# llm-draft
 msgid "No sorties in this tour"
 msgstr "Aucune sortie dans ce tour"
 
@@ -5309,6 +5313,10 @@ msgstr ""
 "pouvez la suivre sur la page d'état du traitement."
 
 # llm-draft
+msgid "The killboards below count every role."
+msgstr "Les tableaux de chasse ci-dessous comptent tous les rôles."
+
+# llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
 msgstr "L'emplacement est inaccessible (le partage réseau ou le lecteur est-il disponible ?)."
 
@@ -5595,6 +5603,12 @@ msgstr "Cette mission est toujours en cours : ces chiffres peuvent changer à s
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
 msgstr "Cette page n'est ni listée ni indexée par la recherche. Seules les personnes disposant du lien peuvent la voir."
+
+# llm-draft
+msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
+msgstr ""
+"Ce joueur n’a effectué aucune sortie du rôle de combat choisi pendant la tournée choisie. Choisissez un autre rôle "
+"ci-dessus."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."

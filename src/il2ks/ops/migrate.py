@@ -94,6 +94,7 @@ BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rari
 BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
 BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
 BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
+BACKFILL_PLAYER_ROLES = "player_roles"  # per-role copies of the player rows (`PlayerRole`, the profile role toggle)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -156,6 +157,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_SCOPED_AIRCRAFT, _check_scoped_aircraft),
         (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
         (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
+        (BACKFILL_PLAYER_ROLES, _check_player_roles),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -303,6 +305,17 @@ def _check_scoped_aircraft() -> bool:
     from il2ks.db.models import PlayerAircraftScope, PlayerSortie, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftScope.objects.exists()
+
+
+def _check_player_roles() -> bool:
+    """A database from before the per-role player rows (`PlayerRole`) has pilot sorties with a combat role but no such
+    row: level 2 must be rebuilt (it writes them with the tour rows and rolls them up)."""
+    from il2ks.db.models import PlayerRole, PlayerSortie, Role
+
+    return (
+        PlayerSortie.objects.filter(role=Role.PILOT, combat_role__isnull=False).exists()
+        and not PlayerRole.objects.exists()
+    )
 
 
 def _check_builds() -> bool:

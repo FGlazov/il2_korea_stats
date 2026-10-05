@@ -3487,6 +3487,10 @@ msgid "No result: %(unknown)s"
 msgstr "Без результата: %(unknown)s"
 
 # llm-draft
+msgid "No sorties in this role"
+msgstr "Нет вылетов в этой роли"
+
+# llm-draft
 msgid "No sorties in this tour"
 msgstr "В этом туре вылетов нет"
 
@@ -5299,6 +5303,10 @@ msgstr ""
 "можно на странице состояния обработки."
 
 # llm-draft
+msgid "The killboards below count every role."
+msgstr "Списки побед и поражений ниже учитывают все роли."
+
+# llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
 msgstr "Не удаётся получить доступ к этому расположению (доступен ли сетевой ресурс или диск?)."
 
@@ -5574,6 +5582,10 @@ msgstr "Эта миссия ещё идёт: к её концу цифры мо�
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
 msgstr "Эта страница не отображается в списках и поиске. Её видят только те, у кого есть ссылка."
+
+# llm-draft
+msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
+msgstr "Этот игрок не совершал вылетов выбранной боевой роли в выбранном туре. Выберите другую роль выше."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."

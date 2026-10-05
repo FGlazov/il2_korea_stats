@@ -6,7 +6,8 @@
 {% endcomment %}<nav class="profile-nav" aria-label="{% translate 'On this page' %}">
   {# Translators: these link names scroll to the page sections with the same names #}
   <a href="#recent">{% translate "Recent sorties" %}</a>
-  <a href="#air">{% translate "Air-to-air" %}</a>
-  <a href="#ground">{% translate "Air-to-ground" %}</a>
+  {% if ground_first %}<a href="#ground">{% translate "Air-to-ground" %}</a>
+  <a href="#air">{% translate "Air-to-air" %}</a>{% else %}<a href="#air">{% translate "Air-to-air" %}</a>
+  <a href="#ground">{% translate "Air-to-ground" %}</a>{% endif %}
   <a href="#overall">{% translate "Overall" %}</a>
 </nav>
