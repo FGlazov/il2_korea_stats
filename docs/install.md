@@ -65,7 +65,8 @@ il2ks setup
 
 It asks where DServer writes its logs, which domain to use, and creates the configuration file `il2ks.toml`, the
 database, and your admin account. The file is commented; open it any time to change a setting. All settings and what
-they do are listed in the example config that ships with il2ks (`il2ks.example.toml`). Rules, scores and tours:
+they do are in that file itself: `il2ks setup` writes it from the example config that ships with il2ks
+(`il2ks.example.toml`, every setting with its default and a comment). Rules, scores and tours:
 [settings.md](settings.md).
 
 The settings you are most likely to touch:

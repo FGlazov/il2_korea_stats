@@ -1,7 +1,7 @@
 # Rules, scoring and tours
 
 How to change how il2ks counts things, and what to run afterwards. You do not need any of this to get started: the
-defaults work. Every setting lives in `il2ks.toml`. The file `il2ks.example.toml` that ships with il2ks lists them all
+defaults work. Every setting lives in `il2ks.toml`. Your `il2ks.toml` (written by `il2ks setup` from the `il2ks.example.toml` that ships with il2ks) lists them all
 with their defaults and a comment each.
 
 Contents: [The three steps](#the-three-steps) · [What to run after a change](#what-to-run-after-a-change) ·

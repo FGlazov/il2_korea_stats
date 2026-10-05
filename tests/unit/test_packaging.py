@@ -73,7 +73,6 @@ def test_the_files_the_wheel_must_ship_exist_in_the_source_tree() -> None:
         assert (SRC.parent / name).is_file(), name
 
 
-@pytest.mark.xfail(strict=True, reason="fixed in the next commit")
 def test_the_readme_links_are_absolute_because_pypi_shows_it_away_from_the_repository() -> None:
     readme = (REPO / "README.md").read_text(encoding="utf-8")
     relative = [t for t in re.findall(r"\]\(([^)\s]+)\)", readme) if not t.startswith(("http://", "https://", "#"))]
