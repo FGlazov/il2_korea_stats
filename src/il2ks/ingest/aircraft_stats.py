@@ -280,6 +280,8 @@ def _sortie_groups(chunk: list[int]) -> list[_Group]:
             attack_score=Sum("ground_points", filter=Q(combat_role=CombatRole.ATTACK)),
             tot=Sum("time_on_target_s"),
         )
+        # a fixed order: the groups are summed in Python (floats), so a rebuild must add them in the same order
+        .order_by("aircraft_id", "country", "payload_name", "weapon_mods", "combat_role")
     )
     return [
         _Group(

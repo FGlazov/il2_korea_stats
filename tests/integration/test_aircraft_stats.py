@@ -4,9 +4,10 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from django.db import models
+from django.db import connection, models
 from django.http import HttpResponse
 from django.test import Client, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from il2ks.config import LeaderboardConfig
@@ -23,6 +24,7 @@ from il2ks.db.models import (
     TourAircraftStats,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
+from il2ks.ingest.aircraft_stats import _sortie_groups  # pyright: ignore[reportPrivateUsage]
 from il2ks.web import object_names
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
 from tests.ops_helpers import make_instance
@@ -95,6 +97,19 @@ def test_totals_matchups_and_payloads_from_one_mission() -> None:
     }
     assert payloads[("MiG-15bis", "Payload 1")] == 1
     assert payloads[("MiG-15bis", "Payload 2")] == 1
+
+
+def test_the_sortie_groups_come_in_a_fixed_order_so_float_sums_match_a_rebuild() -> None:
+    """The groups are summed in Python: the order must not be left to the database (a GROUP BY promises none)."""
+    save(first_mission())
+    ids = list(AircraftStats.objects.values_list("aircraft_id", flat=True))
+    with CaptureQueriesContext(connection) as queries:
+        groups = _sortie_groups(ids)
+    assert groups
+    sql = [q["sql"] for q in queries if "GROUP BY" in q["sql"]]
+    assert len(sql) == 1
+    assert "ORDER BY" in sql[0]
+    assert sql[0].index("ORDER BY") > sql[0].index("GROUP BY")
 
 
 def test_incremental_equals_rebuild_with_a_reingest_that_drops_things() -> None:

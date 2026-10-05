@@ -14,6 +14,7 @@ from django.db.models import Sum
 
 from il2ks.config import Config, LiveConfig
 from il2ks.db.models import (
+    AircraftPayload,
     IngestRun,
     IngestStatus,
     Kill,
@@ -303,6 +304,32 @@ def test_level_two_in_the_middle_of_a_live_mission_equals_a_rebuild(tmp_path: Pa
     rebuilt = canonical_dump()
     differing = diff_dumps(incremental, rebuilt)
     assert [d for d in differing if not d.startswith(("StatThreshold", "TourStatThreshold"))] == [], differing
+
+
+def test_discarding_the_running_mission_leaves_level_two_equal_to_a_rebuild(tmp_path: Path) -> None:
+    """The loadouts' average pilot Elo too: the live pass moved it (new sorties of rated pilots), the discard must
+    bring it back to what a rebuild without the mission gives."""
+    earlier = Scenario(tmp_path / "earlier", fixture="most_bailouts", uid="2026-09-18_20-00-00")
+    earlier.write(len(earlier.parts))
+    earlier.finish()
+    live = Scenario(tmp_path / "live", fixture="most_bailouts", uid="2026-09-19_21-00-00")
+    live.cfg = replace(live.cfg, data_dir=earlier.cfg.data_dir)
+    live.tracker = LiveTracker(live.cfg, cost_clock=free_clock)
+    elo_before = sorted(AircraftPayload.objects.values_list("pk", "elo_avg"))
+    live.write(len(live.parts), last_half=True)
+    live.tick()
+    assert live.mission().is_live
+    assert sorted(AircraftPayload.objects.values_list("pk", "elo_avg")) != elo_before, "the fixture must move an Elo"
+
+    SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": False})
+    live.tick()  # the toggle is off: the provisional mission is discarded
+    assert not Mission.objects.filter(is_live=True).exists()
+    incremental = canonical_dump()
+
+    cfg = live.cfg
+    rebuild_aggregates(cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+
+    assert diff_dumps(canonical_dump(), incremental) == []
 
 
 def test_toggle_off_behaves_as_before(scenario: Scenario) -> None:

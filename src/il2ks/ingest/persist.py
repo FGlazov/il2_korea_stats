@@ -241,6 +241,7 @@ def discard_provisional_mission(mission: Mission) -> None:
     recompute_holders()
     recompute_aircraft_ammo(ammo_ids)
     recompute_aircraft_stats(aircraft_ids, tours)
+    recompute_payload_elo()  # the live passes moved the loadouts' Elo; `recompute_aircraft_stats` leaves it
     recompute_matchups(pairs)
     recompute_days({day_of(started)})
     bump_data_version()

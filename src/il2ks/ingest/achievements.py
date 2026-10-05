@@ -262,16 +262,17 @@ def adopt_wanted_rules() -> Rules:
 def recompute_with_wanted_rules(cfg: Config) -> bool:
     """Work off a pending change of the admin's achievement rules (`watch` calls this every tick): under the writer lock
     recompute every player's rows with the wanted rules and the holder counts, then record them as applied and bump
-    the data version. False when nothing was pending or the lock was busy (the next tick tries again). A crash midway
-    leaves the change pending, so the next tick starts over."""
+    the data version. False when nothing was pending or the lock was busy (the next tick tries again). All in one
+    transaction (only the changed rows are written, so it stays small; readers keep the old snapshot until the
+    commit): a crash midway rolls back, leaves the change pending, and the next tick starts over."""
     if not recompute_pending():
         return False
     try:
         with WriterLock(cfg.data_dir, "achievements"):
             rules = wanted_rules()
             log.info("recomputing achievements with the changed rules")
-            rebuild_achievements(rules)
-            with transaction.atomic():
+            with transaction.atomic():  # one commit: pages and a crash see old rows with old rules, or new with new
+                rebuild_achievements(rules)
                 SiteSettings.objects.filter(pk=1).update(achievements_applied=rules.to_json())
                 bump_data_version()
     except LockBusyError as exc:
