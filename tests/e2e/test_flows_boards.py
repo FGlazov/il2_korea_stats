@@ -125,8 +125,8 @@ def test_a_player_compares_himself_with_a_rival_across_boards(page: Page, world:
     assert ace_score is not None
     assert number(ace_score.group(1)) == number(ace_row["Air score"])
 
-    # the Elo boards link to the all-time profile
-    page.goto("/leaderboards/elo-jet/")
+    # the Elo boards follow the tour like the others (a new tour is a clean slate): all time links the all-time profile
+    page.goto("/leaderboards/elo-jet/?tour=all")
     table_with(page, "Player").get_by_role("link", name=world.rival, exact=True).click()
     expect(page).to_have_url(re.compile(rf"/players/{world.rival_pk}/\?tour=all"))
 
@@ -181,9 +181,11 @@ def test_the_tour_propulsion_and_aircraft_filters_narrow_a_board(page: Page, wor
     assert "tour=all" in page.url
 
 
-def test_the_elo_boards_are_all_time_and_have_no_filters(page: Page, world: World) -> None:
-    page.goto("/leaderboards/elo-jet/")
-    expect(main_region(page).get_by_role("combobox")).to_have_count(0)
+def test_the_elo_boards_follow_the_tour(page: Page, world: World) -> None:
+    """A new tour is a clean slate (maintainer, 2026-10-05): the Elo boards have the tour selector; all time shows the
+    best tour's Elo."""
+    page.goto("/leaderboards/elo-jet/?tour=all")
+    expect(tour_select(page)).to_have_value("all")
     assert players(page)[0] == world.ace
 
 
