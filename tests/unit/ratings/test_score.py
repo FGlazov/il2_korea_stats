@@ -18,6 +18,7 @@ def facts(
     is_captured: bool = False,
     suspected_early_bailout: bool = False,
     friendly_kills: int = 0,
+    flight_time_s: float = 0.0,
 ) -> SortieFacts:
     return SortieFacts(
         attack=attack,
@@ -30,6 +31,7 @@ def facts(
         is_captured=is_captured,
         suspected_early_bailout=suspected_early_bailout,
         friendly_kills=friendly_kills,
+        flight_time_s=flight_time_s,
     )
 
 
@@ -140,3 +142,47 @@ def test_a_negative_score_is_left_as_is_by_the_outcome_percentages() -> None:
         for result in _by_outcome(attack, friendly_kills=2):
             assert result.air == (0.0 if attack else -6.0)
             assert result.ground == (-6.0 if attack else 0.0)
+
+
+FLIGHT = ScoreRules(flight_time_enabled=True, flight_time_per_hour=2.0)
+
+
+def test_flight_time_scores_nothing_by_default() -> None:
+    """Off by default: the scores are exactly what they were."""
+    assert RULES.flight_time_enabled is False
+    assert score_sortie(facts(flight_time_s=7200.0)) == SortieScore(0.0, 0.0)
+    assert score_sortie(facts(kills_air_pvp=1, flight_time_s=7200.0)) == SortieScore(10.0, 0.0)
+
+
+def test_the_default_rate_is_worth_less_than_one_air_kill_per_hour() -> None:
+    assert 0 < RULES.flight_time_per_hour < RULES.air_kill_ai < RULES.air_kill_pvp
+
+
+def test_flight_time_adds_rate_times_hours_to_the_air_score() -> None:
+    assert score_sortie(facts(flight_time_s=5400.0), FLIGHT) == SortieScore(air=3.0, ground=0.0)
+    assert score_sortie(facts(kills_air_pvp=1, flight_time_s=3600.0), FLIGHT).air == 12.0
+    assert score_sortie(facts(attack=True, flight_time_s=3600.0), FLIGHT) == SortieScore(air=2.0, ground=0.0)
+
+
+def test_a_death_reduces_the_flight_time_points_like_kill_points() -> None:
+    result = score_sortie(facts(flight_time_s=3600.0, is_death=True, is_plane_lost=True), FLIGHT)
+    assert result.air == 2.0 * 0.2  # 80% of the points go
+    ditched = score_sortie(facts(flight_time_s=3600.0, is_plane_lost=True), FLIGHT)
+    assert ditched.air == 2.0 * 0.8
+
+
+def test_flat_penalties_come_off_after_the_flight_time_points() -> None:
+    result = score_sortie(facts(flight_time_s=3600.0, is_death=True, friendly_kills=1), FLIGHT)
+    assert result.air == 2.0 * 0.2 - 3
+    assert score_sortie(facts(flight_time_s=3600.0, friendly_kills=1, suspected_early_bailout=True), FLIGHT).air == -6.0
+
+
+def test_an_outcome_never_improves_a_negative_score_with_flight_time() -> None:
+    survived = score_sortie(facts(flight_time_s=900.0, friendly_kills=5), FLIGHT)
+    died = score_sortie(facts(flight_time_s=900.0, friendly_kills=5, is_death=True, is_plane_lost=True), FLIGHT)
+    assert died.air <= survived.air
+
+
+def test_a_zero_rate_adds_nothing_even_when_on() -> None:
+    zero = ScoreRules(flight_time_enabled=True, flight_time_per_hour=0.0)
+    assert score_sortie(facts(flight_time_s=3600.0), zero).air == 0
