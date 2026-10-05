@@ -5,12 +5,12 @@ its template, and server owners may override any of them (TD-25). Tags that need
 the context (`django.template.context_processors.request`, enabled in settings) and keep the other query parameters.
 
 Filters (formatting only, TD-22): duration, utc, local_time, local_short, local_date, local_hm, local_clock,
-num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title; object_name (TD-24: show a GameObject
-in the viewer's language, never `.display_name` directly).
+num, ratio, per_hour, percent, mission_title, game_when, clock_since, tour_title, tour_qs; object_name (TD-24: show a
+GameObject in the viewer's language, never `.display_name` directly).
 Tags: icon, aircraft_icon, side, badge, coalition_badge, coalition_icon, winner_badge, outcome_badge, fate_badge,
 pilot_fate_badge, status_badge, aircraft_badge, role_badge, stat_tile, kv_list, empty_row, breadcrumbs, dropdown,
-language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, role_toggle, mod_filter,
-stat_mark, stat_mark_note, flavor, sortie_flavor
+language_menu, sort_th, pagination, filter_select, filter_text, tour_select, tour_filter, tour_absent, role_toggle,
+mod_filter, stat_mark, stat_mark_note, flavor, sortie_flavor
 (flavor text, FR-WEB-23), bar_chart.
 Block tags: results_region, filter_bar, accordion, notice.
 """
@@ -180,6 +180,14 @@ def tour_title(tour: Tour | str) -> str:
     """{{ tour|tour_title }}: the tour's name in the viewer's language ("October 2026" -> "Oktober 2026"; a title an
     admin renamed stays as written)."""
     return tour_reads.tour_title(tour if isinstance(tour, str) else tour.title)
+
+
+@register.filter
+def tour_qs(tour: Tour | int | None) -> str:
+    """{{ tour|tour_qs }}: the query string that keeps a tour scope on a link to a pilot or aircraft page, `?tour=<id>`
+    for a Tour or a tour id, `?tour=all` for None (all time). A bare link would mean the current tour, where the
+    target may not have flown (TD-26)."""
+    return tour_reads.tour_id_query(tour.pk if isinstance(tour, Tour) else tour)
 
 
 @register.filter
@@ -652,6 +660,16 @@ def tour_select(context: Context, tours: Iterable[Tour], selected: Tour | None =
         "action": request.path if request is not None else "",
         "hidden": hidden,
     }
+
+
+@register.inclusion_tag(COMPONENTS + "tour_absent.html", takes_context=True)
+def tour_absent(context: Context, absence: tour_reads.TourAbsence | None, message: str) -> dict[str, object]:
+    """{% tour_absent absence message %}: the notice of a page whose subject (a pilot, an aircraft type) has no rows in
+    the selected tour. `message` is the sentence ("<name> did not fly in <tour>."), built by the page so the translator
+    sees the whole sentence. It offers the same page for all time and for each tour the subject has rows in. Renders
+    nothing when `absence` is None (the view builds it only for an empty page)."""
+    request = _request_of(context)
+    return {"absence": absence, "message": message, "path": request.path if request is not None else ""}
 
 
 @register.inclusion_tag(COMPONENTS + "role_toggle.html", takes_context=True)

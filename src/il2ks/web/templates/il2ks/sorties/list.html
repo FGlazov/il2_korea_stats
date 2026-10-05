@@ -23,6 +23,7 @@
       {% filter_select "combat_role" _("Combat role") combat_role_options all_label=_("Any role") %}
       {% columns_picker optional_columns %}
     {% endfilter_bar %}
+    {% if absence %}{% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
     <div class="table-wrap">
       <table class="data-table data-table--compact sortie-list">
         <thead>

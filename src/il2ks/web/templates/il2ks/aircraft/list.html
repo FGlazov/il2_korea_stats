@@ -48,7 +48,7 @@
               <tr>
                 <td class="aircraft-table__name">
                   {% aircraft_icon stats.aircraft "aircraft-table__icon" %}
-                  <a href="{% url 'web:aircraft-detail' stats.aircraft_id %}" class="stretched-link">{{ stats.aircraft|object_name }}</a>
+                  <a href="{% url 'web:aircraft-detail' stats.aircraft_id %}{{ tour|tour_qs }}" class="stretched-link">{{ stats.aircraft|object_name }}</a>
                   {% if stats.aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif stats.aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
                   {% if stats.side %}{% coalition_icon stats.side %}{% endif %}
                 </td>

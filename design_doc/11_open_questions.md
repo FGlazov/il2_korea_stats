@@ -47,6 +47,13 @@ the current tour (zero until the pilot flies in it).
 Proposed: per-tour marks against that tour's pilots (as today); all-time marks against the all-time rows (sums and maxes of the tours),
 which stays cheap because it reads one row per player, not the history.
 
+**OQ-130 A pilot or aircraft missing from the selected tour** (built 2026-10-05, maintainer: "views still work fine when switching
+between tours and suddenly the player is missing")
+Defaults applied: the page says "<name> did not fly in <tour>." (aircraft: "was not flown in"), keeps the tour selector and offers
+"Switch to: All time · <the tours it has rows in>" on the same sub-page; the "Quiet skies so far" line is kept for tours that are empty
+for everyone. Links to pilots and aircraft keep the tour of the page they sit on; mission and sortie pages link with that mission's
+tour. Player search and the online-now list still open the current tour (the notice offers the way out).
+
 **OQ-127 Words for the new admin and live strings** (translation drafts, 2026-10-05; part of the human review)
 "Quips" is ru Шутки, de Sprüche, es Ocurrencias, fr Bons mots, pt_BR Piadinhas; the live badge is Идёт / Läuft / En curso / En cours /
 Ao vivo; "Tier threshold" is порог / Schwellenwert / umbral / seuil / limite.

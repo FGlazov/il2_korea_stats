@@ -297,8 +297,9 @@ def test_tour_budgets(client: Client) -> None:
     # context processor 2, player, tours, count, rows
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?tour={october}", max_queries=8)
     # context processor 2, player, tours, best streaks
-    assert_simple_reads(client, f"/players/{pk(1)}/streaks/", max_queries=5)
-    assert_simple_reads(client, f"/players/{pk(1)}/streaks/?tour={october}", max_queries=5)
+    # an empty best-streaks list (this pilot died, so no streak) reads the pilot's tours too: the absence notice
+    assert_simple_reads(client, f"/players/{pk(1)}/streaks/", max_queries=5 + 1)
+    assert_simple_reads(client, f"/players/{pk(1)}/streaks/?tour={october}", max_queries=5 + 1)
 
 
 @pytest.mark.parametrize("sort", ["opponent", "-opponent"])

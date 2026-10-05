@@ -60,8 +60,7 @@ def settle(page: Page) -> None:
     Not `wait_for_load_state("networkidle")`: that state is reached once, at the first load, and later htmx requests
     don't reset it, so it returned at once and a control changed mid-swap was replaced unchanged (CI, 2026-10-05)."""
     page.wait_for_function(
-        "document.readyState === 'complete'"
-        " && !document.querySelector('.htmx-request, .htmx-swapping, .htmx-settling')"
+        "document.readyState === 'complete' && !document.querySelector('.htmx-request, .htmx-swapping, .htmx-settling')"
     )
 
 

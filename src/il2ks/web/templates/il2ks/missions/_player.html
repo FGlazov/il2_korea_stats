@@ -2,5 +2,6 @@
 {% load i18n %}{% comment %}
   missions/_player.html: a pilot's name, linked to the player page. A hidden player is anonymised and not linked (FR-ADM-3).
   Context: player (Player), name (the name to show, e.g. the name at the time of the sortie),
-  stretch (optional: make this the row's whole-row link, see "stretched-link" in the style guide).
-{% endcomment %}{% if player.is_hidden %}<span class="muted">{% translate "Hidden player" %}</span>{% else %}<a{% if stretch %} class="stretched-link"{% endif %} href="{% url 'web:player-detail' player.pk %}">{{ name }}</a>{% endif %}
+  stretch (optional: make this the row's whole-row link, see "stretched-link" in the style guide),
+  tour_q (optional: the scope to keep on the link, `?tour=<id>` or `?tour=all`, e.g. {{ tour|tour_qs }}; without it the link opens the current tour).
+{% endcomment %}{% if player.is_hidden %}<span class="muted">{% translate "Hidden player" %}</span>{% else %}<a{% if stretch %} class="stretched-link"{% endif %} href="{% url 'web:player-detail' player.pk %}{{ tour_q }}">{{ name }}</a>{% endif %}

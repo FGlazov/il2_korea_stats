@@ -23,7 +23,7 @@
       <tbody>
         {% for row in page_obj %}
           <tr>
-            <td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td>
+            <td><a href="{% url 'web:player-detail' row.player_id %}{{ tour_query }}">{{ row.player.current_name }}</a></td>
             <td class="nowrap">{% if row.mission.is_hidden %}{{ row.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' row.sortie_id %}">{{ row.earned_at|local_date }}</a>{% endif %}</td>
           </tr>
         {% empty %}{% empty_row 2 _("Nobody holds this tier yet.") %}{% endfor %}

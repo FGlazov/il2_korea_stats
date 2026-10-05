@@ -12,5 +12,5 @@
       {% for m in scope.list %}{% include "il2ks/achievements/_award.html" with link=False %}{% endfor %}
     </div>
   {% endfor %}
-  <p class="muted"><a href="{% url 'web:player-achievements' sortie.player_id %}">{% translate "All achievements of this pilot" %} →</a></p>
+  <p class="muted"><a href="{% url 'web:player-achievements' sortie.player_id %}{{ sortie.mission.tour_id|tour_qs }}">{% translate "All achievements of this pilot" %} →</a></p>
 </section>{% endif %}

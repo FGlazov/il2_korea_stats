@@ -22,7 +22,7 @@
         {% for row in ground_pilots %}
           <tr>
             <td class="num">{{ row.rank|num }}</td>
-            <td><a href="{% url 'web:player-detail' row.player.pk %}">{{ row.player.current_name }}</a></td>
+            <td><a href="{% url 'web:player-detail' row.player.pk %}{{ tour|tour_qs }}">{{ row.player.current_name }}</a></td>
             <td class="num"><strong>{{ row.per_hour|num:1 }}</strong></td>
             <td class="num">{{ row.stats.time_on_target_s|duration }}</td>
             <td class="num">{{ row.stats.attack_sorties|num }}</td>

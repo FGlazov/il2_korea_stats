@@ -23,7 +23,7 @@
         {% for row in elo_pilots %}
           <tr>
             <td class="num">{{ forloop.counter }}</td>
-            <td><a href="{% url 'web:player-detail' row.player_id %}">{{ row.player.current_name }}</a></td>
+            <td><a href="{% url 'web:player-detail' row.player_id %}{{ tour|tour_qs }}">{{ row.player.current_name }}</a></td>
             <td class="num"><strong>{{ row.elo|num }}</strong></td>
             <td class="num">{{ row.elo_games|num }}</td>
             <td class="num">{{ row.sorties|num }}</td>

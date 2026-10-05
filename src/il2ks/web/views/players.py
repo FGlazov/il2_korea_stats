@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import Counters, Player
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
-from il2ks.queries.tours import player_tour, tour_choice_from, tour_query
+from il2ks.queries.tours import absence_from_history, player_tour, tour_choice_from, tour_query
 from il2ks.web import columns, pve
 from il2ks.web.chart_data import player_charts
 from il2ks.web.ground import ground_breakdown
@@ -70,6 +70,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     choice = tour_choice_from(request.GET)  # `?tour=<id>`; unknown or absent = all time (TD-26)
     tour = choice.selected
     stats: Counters | None = player if tour is None else player_tour(player.pk, tour)
+    history = reads.tour_history(player) if player.sorties else []  # also names the tours of an absent pilot
+    absence = absence_from_history(tour, choice.tours, history) if stats is None else None
     context: dict[str, object] = {
         **choice.context,
         "tour_query": tour_query(tour),  # keeps the scope on the links to the achievement pages
@@ -89,6 +91,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "pve_losses": pve.loss_breakdown(stats) if stats else [],
         "gunner_only": reads.flies_as_gunner_only(player),  # all-time counters, so it holds in any tour view
         "recent": reads.recent_sorties(player, tour=tour),
-        "charts": player_charts(reads.tour_history(player)) if player.sorties else (),
+        "charts": player_charts(history) if player.sorties else (),
+        "absence": absence,  # the pilot flew nothing in the selected tour: offer All time and the tours he flew in
     }
     return render(request, "il2ks/players/detail.html", context)

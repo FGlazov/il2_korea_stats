@@ -67,7 +67,7 @@
           {% for s in group.rows %}
             <tr>
               <td class="num muted" title="{{ s.spawned_at|utc }}">{{ s.spawned_at|clock_since:mission.started_at }}</td>
-              <th scope="row"><span class="pilot-cell">{% include "il2ks/missions/_player.html" with player=s.player name=s.name_at_time %}{% if s.role == "gunner" %}{% badge _("Gunner") "purple" %}{% endif %}</span></th>
+              <th scope="row"><span class="pilot-cell">{% include "il2ks/missions/_player.html" with player=s.player name=s.name_at_time tour_q=mission.tour_id|tour_qs %}{% if s.role == "gunner" %}{% badge _("Gunner") "purple" %}{% endif %}</span></th>
               <td><span class="aircraft-cell">{% if s.role != "gunner" %}{% aircraft_icon s.aircraft %}{% endif %}{{ s.aircraft|object_name }}</span></td>
               <td>{% if s.combat_role %}{% role_badge s.combat_role %}{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{% outcome_badge s.outcome %}</td>
@@ -107,13 +107,13 @@
             <td class="num muted" title="{{ k.time|utc }}">{{ k.time|clock_since:mission.started_at }}</td>
             <td>
               <span class="kill-who">
-                <span>{% coalition_icon k.killer_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.killer_sortie.player name=k.killer_sortie.name_at_time %}</span>
+                <span>{% coalition_icon k.killer_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.killer_sortie.player name=k.killer_sortie.name_at_time tour_q=mission.tour_id|tour_qs %}</span>
                 <span class="muted">{{ k.killer_sortie.aircraft|object_name }}</span>
               </span>
             </td>
             <td>
               <span class="kill-who">
-                <span>{% coalition_icon k.victim_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.victim_sortie.player name=k.victim_sortie.name_at_time %}</span>
+                <span>{% coalition_icon k.victim_sortie.country %}{% include "il2ks/missions/_player.html" with player=k.victim_sortie.player name=k.victim_sortie.name_at_time tour_q=mission.tour_id|tour_qs %}</span>
                 <span class="muted">{{ k.victim_sortie.aircraft|object_name }}</span>
               </span>
             </td>

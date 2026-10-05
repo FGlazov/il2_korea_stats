@@ -14,6 +14,7 @@
     <p>{% blocktranslate with count=min_run %}Every run of {{ count }} or more consecutive sorties survived (no death, no capture; sorties that never took off are skipped), newest first, and how each one ended.{% endblocktranslate %}{% if tour %} {% translate "Inside the selected tour only: a streak does not carry over from an earlier tour." %}{% endif %}</p>
   </div>
   {% tour_select tours tour %}
+  {% if absence %}{% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
 
   {% results_region %}
     <div class="table-wrap">

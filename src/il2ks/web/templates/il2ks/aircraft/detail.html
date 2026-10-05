@@ -31,6 +31,7 @@
     {% mod_filter mod_filters %}
   {% endif %}
   <p class="muted">{% translate "Everything on this page follows the selected tour, role and modifications; choose all time to see every tour. Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was shot down." %}</p>
+  {% if absence %}{% blocktranslate asvar absent_message with name=aircraft|object_name tour=absence.tour|tour_title %}{{ name }} was not flown in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
 
   <div class="stat-tiles profile-tiles">
     {% blocktranslate with rate=survived|percent:tile.sorties asvar sub_sorties %}{{ rate }} survived{% endblocktranslate %}
@@ -88,7 +89,7 @@
         <tbody>
           {% for m in matchups.rows %}
             <tr>
-              <td class="aircraft-table__name">{% aircraft_icon m.enemy "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' m.enemy.pk %}">{{ m.enemy|object_name }}</a></td>
+              <td class="aircraft-table__name">{% aircraft_icon m.enemy "aircraft-table__icon" %} <a href="{% url 'web:aircraft-detail' m.enemy.pk %}{{ tour|tour_qs }}">{{ m.enemy|object_name }}</a></td>
               <td class="num">{{ m.kills|num }}</td>
               <td class="num">{{ m.losses|num }}</td>
               <td class="num">{{ m.encounters|num }}</td>

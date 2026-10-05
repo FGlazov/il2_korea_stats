@@ -5,7 +5,7 @@
 {% endcomment %}<header class="sortie-head">
   <div class="sortie-head__mark">{% aircraft_icon sortie.aircraft "sortie-head__icon" %}</div>
   <div class="sortie-head__main">
-    <h1><a href="{% url 'web:player-detail' sortie.player_id %}">{{ sortie.name_at_time }}</a></h1>
+    <h1><a href="{% url 'web:player-detail' sortie.player_id %}{{ sortie.mission.tour_id|tour_qs }}">{{ sortie.name_at_time }}</a></h1>
     <p class="sortie-head__craft">{% if sortie.role == "gunner" %}{{ sortie.aircraft|object_name }}{% else %}<a href="{% url 'web:aircraft-detail' sortie.aircraft_id %}?tour={% if sortie.mission.tour_id %}{{ sortie.mission.tour_id }}{% else %}all{% endif %}" title="{% translate 'Statistics of this aircraft' %}">{{ sortie.aircraft|object_name }}</a>{% endif %}{% if sortie.payload_name %} <small>· {{ sortie.payload_name }}</small>{% endif %}</p>
     <p class="sortie-head__badges">
       {% coalition_badge sortie.country %}

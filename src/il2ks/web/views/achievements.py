@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 
 from il2ks.queries import achievements as reads
 from il2ks.queries import players as player_reads
-from il2ks.queries.tours import tour_choice_from, tour_query
+from il2ks.queries.tours import pilot_absence, tour_choice_from, tour_query
 from il2ks.web import medals
 from il2ks.web.achievement_config import AchievementConfig
 from il2ks.web.context_processors import site_row
@@ -149,12 +149,13 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
         "player": player,
         "rows": rows,
         "earned": len(held),
+        "absence": None if held else pilot_absence(player.pk, choice),
         "tour_query": tour_query(choice.selected),
         **choice.context,
         "page_title": _("%(name)s: achievements") % {"name": player.current_name},
         "crumbs": [
             (_("Players"), reverse("web:player-search")),
-            (player.current_name, reverse("web:player-detail", args=[player.pk])),
+            (player.current_name, reverse("web:player-detail", args=[player.pk]) + tour_query(choice.selected)),
             (_("Achievements"), None),
         ],
     }
