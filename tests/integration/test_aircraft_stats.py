@@ -47,7 +47,16 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
     return {
         "stats": rows(AircraftStats),
         "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
-        "matchups": rows(AircraftMatchup),
+        "matchups": rows(
+            AircraftMatchup,
+            "killer_aircraft_id",
+            "victim_aircraft_id",
+            "tour_id",
+            "intercept",
+            "scoped_side",
+            "combat_role",
+            "mod_pattern",
+        ),
         "payloads": rows(AircraftPayload),
     }
 
