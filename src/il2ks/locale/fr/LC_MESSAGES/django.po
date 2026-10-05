@@ -459,6 +459,10 @@ msgid "A reprocess request is already waiting."
 msgstr "Une demande de retraitement est déjà en attente."
 
 # llm-draft
+msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
+msgstr "Une série ne passe jamais d’un tour au suivant ; le total toutes périodes montre le meilleur résultat des tours."
+
+# llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Une pensée pour l'ailier qui a pardonné. D'habitude, la rancune ne survit pas au débriefing."
 
@@ -699,16 +703,21 @@ msgstr[1] ""
 "%(games)s rencontres."
 
 # llm-draft
-msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Elo air-air des avions à réaction, d'après les victoires entre sorties de supériorité aérienne. Tous temps confondus."
+msgid ""
+"Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
+"pilot's best tour."
+msgstr ""
+"Elo air-air des avions à réaction, d'après les victoires entre sorties de supériorité aérienne. Chaque tour repart de"
+" zéro ; le classement général montre le meilleur tour de chaque pilote."
 
 # llm-draft
 msgid ""
-"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
-" counts double."
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
+"shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Elo air-air des avions à hélice, d'après les victoires entre sorties de supériorité aérienne. Tous temps confondus. "
-"Une victoire d'un avion à hélice sur un jet compte double."
+"Elo air-air des avions à hélice, d'après les victoires entre sorties de supériorité aérienne. Chaque tour repart de "
+"zéro ; le classement général montre le meilleur tour de chaque pilote. Une victoire d'un avion à hélice sur un "
+"réacteur compte double."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
@@ -1814,6 +1823,14 @@ msgstr ""
 # llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Toutes les sorties, les plus récentes d'abord. Sélectionnez-en une pour le rapport complet."
+
+# llm-draft
+msgid ""
+"Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, "
+"which add up across tours."
+msgstr ""
+"Chaque tour repart de zéro ; le total toutes périodes montre le meilleur résultat des tours, sauf les totaux comme "
+"les victoires et les heures de vol, qui s’additionnent d’un tour à l’autre."
 
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
@@ -4701,20 +4718,21 @@ msgstr "Cette page n'existe pas, ou le lien est périmé."
 msgid "That token is not right"
 msgstr "Ce jeton n'est pas le bon"
 
-# llm-draft
 #, python-format
 msgid ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority sortie"
-" in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sortie in it are listed, and the sorties are counted in the selection."
 msgid_plural ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority "
-"sorties in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sorties in it are listed, and the sorties are counted in the selection."
 msgstr[0] ""
-"L'Elo est le classement du pilote depuis toujours ; dans cette sélection, seuls les pilotes ayant au moins %(n)s "
-"sortie de supériorité aérienne y figurent, et les sorties sont comptées dans la sélection."
+"L'Elo est le classement du pilote dans le tour sélectionné (tous temps : celui de son meilleur tour) ; dans cette "
+"sélection, seuls les pilotes ayant au moins %(n)s sortie de supériorité aérienne y figurent, et les sorties sont "
+"comptées dans la sélection."
 msgstr[1] ""
-"L'Elo est le classement du pilote depuis toujours ; dans cette sélection, seuls les pilotes ayant au moins %(n)s "
-"sorties de supériorité aérienne y figurent, et les sorties sont comptées dans la sélection."
+"L'Elo est le classement du pilote dans le tour sélectionné (tous temps : celui de son meilleur tour) ; dans cette "
+"sélection, seuls les pilotes ayant au moins %(n)s sorties de supériorité aérienne y figurent, et les sorties sont "
+"comptées dans la sélection."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."

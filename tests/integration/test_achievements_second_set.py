@@ -256,28 +256,31 @@ def test_saving_a_mission_that_changes_elo_peaks_recounts_the_holders_once() -> 
     assert len(holder_reads) == 1
 
 
-def test_top_rated_is_an_all_time_medal_only(client: Client) -> None:
-    """The Elo is global: per tour, a pilot already above a tier would earn Top Rated with the first win of every new
-    tour. So `elo_peak` has all-time rows only (doc 17), and the tour pages leave it out."""
+def test_top_rated_is_a_medal_of_every_tour_and_all_time_is_the_best_of_them(client: Client) -> None:
+    """A new tour is a clean slate for achievements too (maintainer, 2026-10-05): `elo_peak` is no
+    longer all-time only. Each tour's rows follow the sorties' stored Elo peaks of that tour (the rating starts over
+    in every tour, so October needs two wins of its own to reach the first tier at 1530); all time = the max tier over
+    the tours, each tier earned where the first tour earned it."""
     save(*duel(8))
     save(
         mission(
             (
-                sortie(0, 1, combat_role="air_superiority", kills_air=1, kills_air_pvp=1),
+                sortie(0, 1, combat_role="air_superiority", kills_air=2, kills_air_pvp=2),
                 sortie(1, 40, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
+                sortie(2, 41, aircraft_type="F-86A-5", coalition=2, combat_role="air_superiority", is_death=True),
             ),
-            (kill(100, 0, 1),),
+            (kill(100, 0, 1), kill(110, 0, 2)),
         ),
         meta("october", STARTED_AT + timedelta(days=40)),
     )
     september, october = Tour.objects.order_by("started_at")
 
     assert held(1)["elo_peak"] >= 1  # all time
-    assert not PlayerAchievement.objects.filter(key="elo_peak", tour__isnull=False).exists()
-    assert not AchievementHolders.objects.filter(key="elo_peak", tour__isnull=False).exists()
-    assert PlayerAchievement.objects.filter(player_id=pk(1), tour=october, key="career_kills").exists()  # others stay
-    page = client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
-    assert "Top Rated" not in page
-    assert "Top Rated" in client.get(f"/players/{pk(1)}/achievements/?tour=all").content.decode()
-    assert "Top Rated" not in client.get(f"/achievements/?tour={october.pk}").content.decode()
-    assert september.pk != october.pk
+    assert PlayerAchievement.objects.filter(player_id=pk(1), tour=september, key="elo_peak").exists()
+    assert PlayerAchievement.objects.filter(player_id=pk(1), tour=october, key="elo_peak").exists()
+    first = PlayerAchievement.objects.get(player_id=pk(1), tour=september, key="elo_peak", tier=1)
+    all_time = PlayerAchievement.objects.get(player_id=pk(1), tour=None, key="elo_peak", tier=1)
+    assert (all_time.sortie_id, all_time.earned_at) == (first.sortie_id, first.earned_at)
+    assert AchievementHolders.objects.filter(key="elo_peak", tour=october).exists()
+    assert "Top Rated" in client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
+    assert "Top Rated" in client.get(f"/achievements/?tour={october.pk}").content.decode()

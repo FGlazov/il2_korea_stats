@@ -66,8 +66,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Home** (tour-aware: `/?tour=`, no `tour` = the current tour, `?tour=all` = all time, `[DECIDED]` maintainer, OQ-79): site description, player
   search, "Online now" (`/live/` fragment, always live), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills), the
   latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
-  interception, ground score per hour, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards are all time only, the
-  rest follow the tour; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
+  interception, ground score per hour, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards follow the tour like the rest since 2026-10-05, OQ-128: the tour's Elo, all time the best tour's; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
   every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
@@ -96,7 +95,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   the filtered sortie list, per-type Elo), PvE, "Other totals" (with strafed on the ground, which stays there for now; the maintainer reviews all pages later; `[DECIDED]` 2026-10-04, OQ-73; the sortie-page badge stays) and the per-tour charts. A part with no activity in the
   scope collapses to one muted line (`air_active` / `ground_active`; the type killboard still shows who shot the pilot down). Gunner-only players
   get a notice. **K/D, K/L and kills per sortie/hour use air kills only** (ground kills include fences; they get their own per-sortie figure),
-  OQ-38. Partials: `players/detail_*.html`, listed at the top of `players/detail.html`; scores follow the tour, Elo stays all time.
+  OQ-38. Partials: `players/detail_*.html`, listed at the top of `players/detail.html`; scores and Elo follow the tour (all time: the best tour's Elo, labelled).
 - **Sortie page** (FR-WEB-6, extended 2026-10-04): the pilot fate as Dead / Captured / Survived with the stored fate as a note (`pilot_fate_badge
   sortie detail=True`); the timeline table has a **Damage** column with the signed percent of each hit row (+ given, − taken, from the `hit_given` /
   `hit_taken` rows, doc 13 "Timeline hits") and the ammo of the nearest hit; the ammo table dashes "Left" after a loss and explains why (doc 13);
@@ -159,7 +158,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Killboard and ironman streaks** (FR-WEB-9 / FR-WEB-25, built 2026-10-03, extended 2026-10-04): level-2 `PlayerKillboard` (two mirror rows
   per pair: kills, deaths, assists, last encounter) and `PlayerTourKillboard` (the same per tour), `PlayerStreak` (current and best streak:
   sorties, air kills, flight time) and `PlayerBestStreak` (best streak by sorties survived, air kills and flight time, all time and per
-  tour; a tour streak counts only that tour's sorties), rebuilt per affected player in `recompute_players` (incremental == rebuild, checked
+  tour; **a streak never crosses a tour (clean slate, 2026-10-05): the rule runs per tour and the all-time rows are rolled up from the tour rows** `[PROPOSED]`: best = max over the tours' bests, runs = union of the tours' runs, `PlayerStreak.current_*` = the run in the newest tour (`current_tour`; zero for a pilot who has not flown in it)), rebuilt per affected player in `recompute_players` (incremental == rebuild, checked
   on 45 sample missions). Pure streak rule in `core/streaks.py`. Pages: profile sections (Ironman; **Killboard by aircraft** and Killboard, top 5 each way),
   `/players/<pk>/killboard/` (`?tour=`, `?sort=`; the by-aircraft tables of up to 60 enemy types sit above the player table), `/players/<pk>/streaks/` (the player's best streaks, a sub-page, `?tour=`), `/streaks/`
   (tour-aware, TD-26, built 2026-10-04: a tour dropdown; every visible pilot's best streak by sorties in the selected tour or all time from `PlayerBestStreak`, 20 per page as `page_best`, each row linking to `/players/<pk>/streaks/history/` with the same tour; below it the running streaks from `PlayerStreak`, `page_running`, shown on the current-tour and all-time views and hidden on a past tour because nothing is running in a finished tour `[PROPOSED]`), a home block of 5 whose "All streaks" button carries the block's tour (`?tour=`). The **killboard by aircraft type** (2026-10-04) is the level-2 `PlayerTypeKillboard` (per player, enemy
@@ -183,13 +182,13 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   `elo-jet`, `elo-prop`, `air` (air score), `interception` | `ground-hour`, `tank-busting`, `ground` (ground score). Routes: `/leaderboards/` (the
   air score board) and `/leaderboards/<board>/` with `?tour=` (current tour by default, `?tour=all`), `?aircraft=` (per-type rows; not on the Elo
   boards), `?pool=prop|jet` (from `PlayerPool` / `PlayerTourPool`; a chosen aircraft type overrides the pool), `?sort=`, `?page=`.
-  The Elo boards are all time with no tour, aircraft or pool filter. **No kills board**: `/leaderboards/kills/` is a permanent redirect to the
+  The Elo boards have the tour filter (the tour's final Elo from `PlayerTourPool`, OQ-128; all time the best tour's, from `Player`) and no aircraft or pool filter (their pools are the split; a `BoardRow` carries `rating` / `games` whichever table it comes from). **No kills board**: `/leaderboards/kills/` is a permanent redirect to the
   index. Hidden players never appear. **Switcher**: a `div role="navigation"` with a label above each group ("Air", "Ground") and one icon button
   per board (chess pieces for Elo, the role icons for the scores, `stat/interception`, `ground/tank`); a button keeps the tour, pool and aircraft
   choice only where the target board has that filter (`_tab_url`), and it works without JavaScript (the earlier `nav` element let the
   framework's nav rules overlap label and first button; a Playwright check covers four widths). The page note names the board's minimum
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
-  `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
+  `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores and Elo follow the selected tour; all-time Elo is the best tour's and labelled so). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
 - **Aircraft stats** (FR-WEB-8, 2026-10-03; per tour since 2026-10-04, maintainer, OQ-114; **every section follows tour, role and modification
   filter**, OQ-122, built 2026-10-04 on the scoped level-2 rows of migration 0057). `/aircraft/` lists the flown types of the selected tour
@@ -214,8 +213,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   - **hits to destroy** per ammo and the **ammunition mixes** (below): the kills OF this type, so the tour, role and modifications are those of
     the **destroyed aircraft's own sortie** (`MissionAircraftAmmo(Mix).combat_role` / `.weapon_mods`); an AI aircraft (`NO_MODS_RECORDED`, no
     role) counts for the every-role, unfiltered scope only;
-  - **top pilots** (hidden players left out): *by per-type Elo*, which is all time by nature (`PlayerAircraft.elo`, written by the global
-    replay); in a narrower scope a pilot must in addition have flown at least the leaderboard minimum of air superiority sorties within it
+  - **top pilots** (hidden players left out): *by per-type Elo*, which follows the tour (`PlayerTourAircraft.elo`; all time: `PlayerAircraft.elo`, the best tour's, OQ-128); in a narrower scope a pilot must in addition have flown at least the leaderboard minimum of air superiority sorties within it
     (`PlayerAircraftScope`), and the sorties shown are the scope's; *by ground score per hour on target* from the scope's own rows, under the
     ground-per-hour board's minimums. Types with an attack share of 50% or more list the ground ranking first (always, for `role=attack`).
   Level-2 `AircraftStats`, `TourAircraftStats`, `AircraftMatchup`, `AircraftPayload`, `AircraftMods`, `AircraftAmmoStats`,
@@ -232,7 +230,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next
   to: ≥ `[marks] min_sorties` (20) sorties for the ratios, air score and ground score; ≥ `min_elo_games` encounters in the pool for **Elo jet and
-  Elo prop** (all time only); ≥ the boards' time on target for **ground score per hour** and **tanks per hour**; ≥ the boards' air superiority
+  Elo prop** (all time: the best-tour ratings; per tour: that tour's, from `PlayerTourPool`, OQ-128); ≥ the boards' time on target for **ground score per hour** and **tanks per hour**; ≥ the boards' air superiority
   flight for **interception per hour** (the unit of that minimum is stored in `StatThreshold.min_sorties`, doc 13 "Stat marks");
   recomputed per saved mission (a few ms) and by rebuild-aggregates. Percentiles, not mean + 2σ: the ratios are skewed with a floor at 0
   and survival is capped at 100%. `{% stat_mark "key" %}` on the profile's ratio, score and rating lists: above p90 "Top 10%" (accent), above p75 "Top
@@ -248,9 +246,9 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   starts <local time>" line sits beside the dropdown (hidden in manual mode, and by JS once past). A tour
   without sorties shows the `tour_empty` flavor text. Views use `queries.tours.tour_choice_from(request.GET)` (one query); templates use
   `{% tour_select %}` (swaps `#main`, works without JS) or `{% tour_filter %}` on the list pages (the same dropdown). Titles are localised at display time
-  (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo stays
-  all-time. Choices: OQ-45..48, OQ-78..80.
-  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; the Elo boards are all time (see above). Achievements follow the tour now (OQ-105: the profile, `/players/<pk>/achievements/`,
+  (`tour_title`: "Month YYYY" via `YEAR_MONTH_FORMAT`, "Tour N" via gettext; anything else is an admin rename, shown as is). Elo follows
+  the tour (OQ-128). Choices: OQ-45..48, OQ-78..80.
+  **Pages without a tour dropdown (`[PROPOSED]`, release audit 2026-10-04):** the player search (`/players/`) is a name search, so a tour would filter nothing useful; the Elo boards have it (see above). Achievements follow the tour now (OQ-105: the profile, `/players/<pk>/achievements/`,
   `/achievements/` and `/achievements/<key>/`, plus the home page's "Recently earned" strip; doc 17). `/streaks/` follows the tour. A tour dropdown appears on a page
   only where its numbers exist per tour.
   **A pilot or aircraft type absent from the selected tour** (a new tour is a clean slate; maintainer 2026-10-05: "make sure your views still work when switching tours and suddenly the player is missing"; `[PROPOSED]`: the wording, the links and the extra read): every page answers 200 with the tour selector, and the profile, the player sub-pages (sorties, killboard, best streaks, streak history, achievements) and the aircraft page show `{% tour_absent %}`: "<name> did not fly in <tour>." / "<aircraft> was not flown in <tour>." with "Switch to:" All time and the tours the subject has rows in (`queries.tours.TourAbsence`; one extra read, only on an empty page; the profile reuses its tour-history read). Links to pilots and aircraft carry the tour of the page they sit on (`?tour=<id>`, `?tour=all` from all time; `tour_qs` filter); pages about a mission or sortie link their pilots with that mission's tour. Left bare on purpose: the player search and the online-now list (no tour context; they open the current tour and the notice offers the way out). Tests: `tests/integration/test_tour_robustness.py` (three tours, a pilot or type absent from each), `tests/e2e/test_flows_tours.py`.

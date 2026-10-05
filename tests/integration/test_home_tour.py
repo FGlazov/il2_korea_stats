@@ -97,7 +97,7 @@ def test_home_activity_follows_the_tour(client: Client) -> None:
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
-def test_home_boards_follow_the_tour_but_elo_stays_all_time(client: Client) -> None:
+def test_home_boards_follow_the_tour_elo_included(client: Client) -> None:
     september, _ = seed_two_tours()
     rebuild_aggregates()
 
@@ -108,7 +108,9 @@ def test_home_boards_follow_the_tour_but_elo_stays_all_time(client: Client) -> N
     assert october["play-time"] == ["Newbie"]  # Veteran did not fly in October
     assert all_time["play-time"] == ["Veteran", "Newbie"]  # 2 h before 1 h 10 min
     assert sept["play-time"] == ["Veteran", "Newbie"]
-    assert october["elo-jet"] == all_time["elo-jet"] == sept["elo-jet"]  # Elo is all time
+    # Elo resets every tour (OQ-128): nobody had a rated game in October, so its board is empty there
+    assert october["elo-jet"] == []
+    assert all_time["elo-jet"] == sept["elo-jet"] == ["Veteran", "Newbie"]
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)

@@ -336,8 +336,10 @@ class Player(Counters):
     first_seen = models.DateTimeField()
     last_seen = models.DateTimeField()
     is_hidden = models.BooleanField(default=False)
-    # Air-to-air Elo (OQ-28, FR-WEB-19). Order-dependent, so not a Counters sum: `ingest.ratings.recompute_ratings`
-    # replays all qualifying kills. Defaults are the config's `[ratings] start` and 0 games.
+    # All-time air-to-air Elo (OQ-28, FR-WEB-19, OQ-128): the best of the player's tours (the highest final rating of a
+    # tour, per pool) and the games summed over all tours. Ratings are replayed per tour (`PlayerTourPool.elo`) and
+    # reset at every new tour, so this is derived by `ingest.ratings.recompute_ratings`, never a Counters sum.
+    # Defaults are the config's `[ratings] start` and 0 games.
     elo_prop = models.FloatField(default=1500.0)
     elo_jet = models.FloatField(default=1500.0)
     elo_prop_games = models.PositiveIntegerField(default=0)
@@ -745,8 +747,8 @@ class PlayerAircraft(Counters):
 
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="aircraft_stats")
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="player_stats")
-    # The player's air-to-air Elo in this aircraft type (OQ-49): same games and rules as `Player.elo_*`, one rating per
-    # type. Order-dependent like them: written by `ingest.ratings.recompute_ratings`, not a Counters sum.
+    # The player's all-time air-to-air Elo in this aircraft type (OQ-49): the highest of their per-tour final ratings in
+    # it (`PlayerTourAircraft.elo`), games summed over tours. Written by `ingest.ratings.recompute_ratings`.
     elo = models.FloatField(default=1500.0)
     elo_games = models.PositiveIntegerField(default=0)
 
@@ -761,7 +763,8 @@ class PlayerAircraft(Counters):
 class PlayerTour(Counters):
     """A player's counters within one tour (TD-26): the sum of their `PlayerMission` rows of that tour's missions.
 
-    Rows exist only for players with a counted sortie in the tour. Elo is not per tour (all-time on `Player`)."""
+    Rows exist only for players with a counted sortie in the tour. The tour's Elo is on `PlayerTourPool` and
+    `PlayerTourAircraft`."""
 
     player_id: int
     tour_id: int
@@ -790,6 +793,9 @@ class PlayerTourAircraft(Counters):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_aircraft_stats")
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="aircraft_rows")
     aircraft = models.ForeignKey(GameObject, on_delete=models.PROTECT, related_name="tour_player_stats")
+    # The tour's final per-type Elo (OQ-49, OQ-128): everyone starts at `[ratings] start` at the tour start.
+    elo = models.FloatField(default=1500.0)
+    elo_games = models.PositiveIntegerField(default=0)
 
     class Meta(Counters.Meta):
         abstract = False
@@ -895,6 +901,10 @@ class PlayerTourPool(Counters):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="tour_pool_rows")
     tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name="pool_rows")
     propulsion = models.CharField(max_length=4, choices=Propulsion.choices)
+    # The tour's final air-to-air Elo in this pool (OQ-28, OQ-128): replayed from the tour's games alone, everyone
+    # starting at `[ratings] start` at the tour start. `Player.elo_*` is the best of these.
+    elo = models.FloatField(default=1500.0)
+    elo_games = models.PositiveIntegerField(default=0)
 
     class Meta(Counters.Meta):
         abstract = False
@@ -1261,9 +1271,10 @@ class StreakKind(models.TextChoices):
 
 class PlayerBestStreak(models.Model):
     """A player's best ironman streak by one criterion (FR-WEB-23): the run with the most survived sorties, the most
-    air kills, or the most flight time. `tour` null = all time; with a tour, the streak runs within that tour's
-    sorties only (a streak does not span tours there). `since` / `until` as in `core.streaks.Streak`. An `air_kills`
-    row exists only when the best such streak has at least one air kill. Level 2: `ingest.streaks`."""
+    air kills, or the most flight time. `tour` null = all time, the best over the tour rows (a streak never spans
+    two tours); with a tour, the streak runs within that tour's sorties only. `since` / `until` as in
+    `core.streaks.Streak`. An `air_kills` row exists only when the best such streak has at least one air kill.
+    Level 2: `ingest.streaks`."""
 
     player_id: int
     tour_id: int | None
@@ -1346,12 +1357,16 @@ class PlayerStreakRun(models.Model):
 class PlayerStreak(models.Model):
     """Ironman streaks (FR-WEB-23): current and best run of survived sorties, rule in `il2ks.core.streaks`.
 
-    A row exists for players with at least one survived sortie. All-time only. Level 2: recomputed per affected player
-    by `ingest.streaks`."""
+    A row exists for players with at least one survived sortie. `best_*` is the best run over all tours (a streak never
+    spans two tours); `current_*` is the run in the current (newest) tour, zero for a player who has not flown in it
+    (`current_tour` = that tour, null when the player has not). Level 2: recomputed per affected player by
+    `ingest.streaks`."""
 
     player_id: int
+    current_tour_id: int | None
 
     player = models.OneToOneField(Player, on_delete=models.CASCADE, related_name="streak")
+    current_tour = models.ForeignKey(Tour, null=True, on_delete=models.SET_NULL, related_name="+")
     current_sorties = models.PositiveIntegerField(default=0)
     current_kills_air = models.PositiveIntegerField(default=0)
     current_flight_time_s = models.FloatField(default=0.0)
@@ -1659,6 +1674,10 @@ class SiteSettings(models.Model):
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)
+    # A batched level-2 run (`ingest.batch`) is under way: `{"since": ISO time, "command": "ingest", "pid": N}`, empty =
+    # none. Set when the batch starts, cleared when its last level-2 pass or any rebuild committed. Still set at
+    # the next run = killed mid-batch (level 2 lags level 1): that run rebuilds first, and `doctor` warns.
+    level2_pending: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

@@ -457,6 +457,10 @@ msgid "A reprocess request is already waiting."
 msgstr "Ya hay una solicitud de reprocesado en espera."
 
 # llm-draft
+msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
+msgstr "Una racha nunca pasa de una temporada a la siguiente; el total histórico muestra lo mejor de las temporadas."
+
+# llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Una cerveza para el punto que se lo perdonó. A casi todos se les pasa el enfado, antes o después."
 
@@ -697,16 +701,20 @@ msgstr[1] ""
 "%(games)s encuentros."
 
 # llm-draft
-msgid "Air-to-air Elo of jets, from kills between air superiority sorties. All time."
-msgstr "Elo aire-aire de los jets, a partir de derribos entre salidas de superioridad aérea. Histórico."
+msgid ""
+"Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
+"pilot's best tour."
+msgstr ""
+"Elo aire-aire de los reactores, a partir de derribos entre salidas de superioridad aérea. Cada tour empieza de cero; "
+"el total histórico muestra el mejor tour de cada piloto."
 
 # llm-draft
 msgid ""
-"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. All time. A propeller kill on a jet"
-" counts double."
+"Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
+"shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Elo aire-aire de las aeronaves de hélice, a partir de derribos entre salidas de superioridad aérea. Histórico. "
-"Derribar un jet con una de hélice cuenta doble."
+"Elo aire-aire de los aviones de hélice, a partir de derribos entre salidas de superioridad aérea. Cada tour empieza "
+"de cero; el total histórico muestra el mejor tour de cada piloto. Un derribo de hélice a un reactor cuenta doble."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
@@ -1811,6 +1819,14 @@ msgstr ""
 # llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Todas las salidas, de la más reciente a la más antigua. Elige una para ver el informe completo."
+
+# llm-draft
+msgid ""
+"Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, "
+"which add up across tours."
+msgstr ""
+"Cada temporada empieza de cero; el total histórico muestra lo mejor de las temporadas, salvo los totales, como "
+"derribos y horas de vuelo, que se suman entre temporadas."
 
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."
@@ -4681,20 +4697,21 @@ msgstr "Esa página no existe, o el enlace está desactualizado."
 msgid "That token is not right"
 msgstr "Ese token no es correcto"
 
-# llm-draft
 #, python-format
 msgid ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority sortie"
-" in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sortie in it are listed, and the sorties are counted in the selection."
 msgid_plural ""
-"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority "
-"sorties in it are listed, and the sorties are counted in the selection."
+"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
+"at least %(n)s air superiority sorties in it are listed, and the sorties are counted in the selection."
 msgstr[0] ""
-"El Elo es la puntuación del piloto de todo el tiempo; en esta selección solo aparecen pilotos con al menos %(n)s "
-"salida de superioridad aérea en ella, y las salidas se cuentan dentro de la selección."
+"El Elo es la puntuación del piloto en la temporada seleccionada (histórico: la de su mejor temporada); en esta "
+"selección solo aparecen pilotos con al menos %(n)s salida de superioridad aérea en ella, y las salidas se cuentan "
+"dentro de la selección."
 msgstr[1] ""
-"El Elo es la puntuación del piloto de todo el tiempo; en esta selección solo aparecen pilotos con al menos %(n)s "
-"salidas de superioridad aérea en ella, y las salidas se cuentan dentro de la selección."
+"El Elo es la puntuación del piloto en la temporada seleccionada (histórico: la de su mejor temporada); en esta "
+"selección solo aparecen pilotos con al menos %(n)s salidas de superioridad aérea en ella, y las salidas se cuentan "
+"dentro de la selección."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."

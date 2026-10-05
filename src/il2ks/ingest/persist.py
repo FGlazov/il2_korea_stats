@@ -7,17 +7,16 @@ Order inside `save_mission` (the caller holds the transaction):
 3. upsert sorties by `(mission, account_uuid, spawn_tick)` (PKs kept), delete sorties that no longer exist
 4. upsert PvP `Kill` rows by `(victim_sortie, killer_sortie)`, `PlayerMission` rows (pilots only), mission counters
 5. rewrite the mission's `MissionAircraftAmmo` rows (gun hits per destroyed aircraft type, FR-WEB-18)
-6. recompute level 2 from level 1 for the mission's old and new players (`aggregates.recompute_players`), per-tour
-   rows only for the mission's old and new tour, for the aircraft types whose ammo rows changed
-   (`aggregates.recompute_aircraft_ammo`), plus the server-activity day(s) (`ingest.activity`)
-7. replay all air-to-air kills for the Elo ratings (`ratings.recompute_ratings`, order-dependent: not per player)
+6. level 2 for the mission's old and new tour (`aggregates.refresh_tours`, doc 14): per tour the rows from level 1 for
+   every player, type, pair and day of it, the tour's Elo replay (`ratings.recompute_ratings`), the tour's streaks and
+   medals, the all-time roll-ups; then the medal holder counts and the stat thresholds
 """
 
 import logging
 import uuid
 from collections.abc import Iterable
-from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 from django.db.models import Count
 
@@ -55,17 +54,9 @@ from il2ks.db.models import (
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
-from il2ks.ingest.aggregates import recompute_aircraft_ammo, recompute_players
-from il2ks.ingest.aircraft_stats import (
-    mission_aircraft,
-    mission_pairs,
-    recompute_aircraft_stats,
-    recompute_matchups,
-    recompute_payload_elo,
-)
+from il2ks.ingest.aggregates import refresh_tours
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
 from il2ks.ingest.dbutil import update_partial_rows, update_rows
-from il2ks.ingest.ratings import recompute_ratings
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import ensure_tour
@@ -92,30 +83,6 @@ class DuplicateSortieError(ValueError):
     log file holds the mission's text twice. The message says what to do; the runner records it without a traceback."""
 
 
-@dataclass(slots=True)
-class Touched:
-    """What a level-1 save changed, i.e. what level 2 must recompute (the mission's old and new players, tours, ...).
-    Provisional passes collect it until the next level-2 pass (`[live] aggregates_interval_s`, FR-ING-15)."""
-
-    players: set[int] = field(default_factory=set[int])
-    tours: set[int] = field(default_factory=set[int])
-    aircraft: set[int] = field(default_factory=set[int])  # for the per-aircraft stats
-    pairs: set[tuple[int, int]] = field(default_factory=set[tuple[int, int]])
-    ammo_aircraft: set[int] = field(default_factory=set[int])
-    days: set[date] = field(default_factory=set[date])
-
-    def update(self, other: "Touched") -> None:
-        self.players |= other.players
-        self.tours |= other.tours
-        self.aircraft |= other.aircraft
-        self.pairs |= other.pairs
-        self.ammo_aircraft |= other.ammo_aircraft
-        self.days |= other.days
-
-    def __bool__(self) -> bool:
-        return bool(self.players or self.tours or self.aircraft or self.pairs or self.ammo_aircraft or self.days)
-
-
 def save_mission(
     result: MissionResult,
     meta: MissionMeta,
@@ -129,13 +96,15 @@ def save_mission(
 
     Must run inside the caller's `transaction.atomic()`. Safe to call again for the same mission (re-ingest,
     reprocess): rows that no longer exist are deleted, PKs of rows that still exist are kept (FR-ING-9, FR-WEB-13), and
-    level 2 is recomputed for the mission's old players as well as the new ones, so players that dropped out are
-    corrected too. The Elo ratings are replayed from all kills afterwards (they depend on the order of games);
-    `ratings=None` skips that, and `marks=None` skips the stat thresholds (FR-WEB-22), for a caller that recomputes them
-    once after many missions (`reprocess`).
+    level 2 is refreshed for the whole tour (`refresh_tours`: every player, aircraft type, pair and day of it, so
+    players that dropped out are corrected too). Per tour the order is: the rows from level 1, the tour's Elo replay
+    (it depends on the order of games), the tour's streaks and medals, the all-time roll-ups, then the holder counts
+    and the stat thresholds; `ratings=None` skips the replay, and `marks=None` skips the thresholds (FR-WEB-22), for a
+    caller that recomputes them once after many missions (`reprocess`).
 
     The mission goes into the tour containing `meta.started_at` under the `[tours]` rules (TD-26); the per-tour level-2
-    rows are recomputed for that tour and, when a re-ingest moved the mission, the old one. Elo is all-time.
+    rows are recomputed for that tour and, when a re-ingest moved the mission, the old one. Elo, streaks and medals
+    start over in every tour; their all-time rows are rolled up from the tours' (OQ-128, doc 17).
     Each pilot sortie gets its air and ground score under the `[score]` rules (`score`, FR-WEB-7).
 
     `meta.live`: a provisional save of the running mission (`ingest.live`, FR-ING-15). The same rows by the same natural
@@ -143,35 +112,37 @@ def save_mission(
     separately (own intervals); this function with `meta.live` is the same thing in one go, without ratings (the Elo
     replay ignores the kills of a live mission anyway, `ratings._games`).
     """
-    mission, touched = save_level1(result, meta, catalog, tours, score)
-    # with ratings, `recompute_ratings` refreshes the loadout Elo, and the holder counts come once after it
-    apply_level2(touched, payload_elo=ratings is None, holders=ratings is None)
-    if ratings is not None:
-        recompute_ratings(ratings)  # may change medals (Elo peaks)
-        recompute_holders()  # FR-WEB-26: once, after every step that changes the medal rows
+    mission, touched_tours = save_level1(result, meta, catalog, tours, score)
+    apply_level2(touched_tours, ratings)
     if marks is not None:  # FR-WEB-22: after the player rows and the Elo replay (the Elo marks read the ratings)
-        recompute_thresholds(marks, touched.tours)
+        recompute_thresholds(marks, touched_tours)
     bump_data_version()  # TD-28: same transaction as the save
     return mission
 
 
-def apply_level2(touched: Touched, *, payload_elo: bool = True, holders: bool = True) -> None:
-    """Recompute level 2 from level 1 for what a save touched. Inside the caller's transaction.
+def apply_level2(
+    tour_ids: Iterable[int], ratings: RatingRules | None, *, payload_elo: bool = True, holders: bool = True
+) -> None:
+    """Level 2 from level 1 for the tours a save touched: the one level-2 path, a full refresh of those tours
+    (`aggregates.refresh_tours`, doc 14 "Level-2 refresh"), then the medal holder counts. Inside the caller's
+    transaction.
 
-    `payload_elo`: refresh the loadouts' and weapon-mod sets' average pilot Elo. `recompute_ratings` does it too, so a
-    save that replays the ratings afterwards passes False; a live pass (no ratings, FR-ING-15) needs it, or its new
-    loadout and mod rows would have no Elo until the final save. `holders`: the achievement holder counts, likewise
-    left to the caller when the ratings run afterwards (Elo peaks change medals; one count after both)."""
-    recompute_players(touched.players, touched.tours)
+    `ratings`: replay the Elo of these tours (before their streaks and medals, which read it); None for a live pass
+    (FR-ING-15: the Elo waits for the final save) and for a save whose caller replays once afterwards (`reprocess`).
+    `payload_elo`: refresh the loadouts' and weapon-mod sets' average pilot Elo (a live pass needs it, or its new
+    loadout rows would have none until the final save). `holders`: the achievement holder counts, which a batch's
+    intermediate passes leave to its end."""
+    refresh_tours(tour_ids, ratings, payload_elo=payload_elo)
     if holders:
         recompute_holders()  # FR-WEB-26: the overview counts, after the players' medal rows
-    recompute_aircraft_ammo(touched.ammo_aircraft)
-    # after the players' PlayerAircraft / PlayerTourAircraft rows
-    recompute_aircraft_stats(touched.aircraft, touched.tours)
-    if payload_elo:
-        recompute_payload_elo()
-    recompute_matchups(touched.pairs)
-    recompute_days(touched.days)
+
+
+def apply_batch_end(tour_ids: Iterable[int], all_tours: Iterable[int], ratings: RatingRules, marks: MarkRules) -> None:
+    """The end of a batched run (`ingest.batch`) or its repair: level 2 for the tours still pending (with their Elo
+    replay and the holder counts, the same steps in the same order as `save_mission` does per mission), then the stat
+    thresholds of every tour any save of the batch touched. Inside the caller's transaction."""
+    apply_level2(tour_ids, ratings)
+    recompute_thresholds(marks, all_tours)
 
 
 def save_level1(
@@ -180,30 +151,23 @@ def save_level1(
     catalog: Catalog,
     tours: TourRules = DEFAULT_TOUR_RULES,
     score: ScoreRules = DEFAULT_SCORE_RULES,
-) -> tuple[Mission, Touched]:
+) -> tuple[Mission, set[int]]:
     """The level-1 half of `save_mission`: mission, players, sorties, kills, PlayerMission rows, mission counters and
-    the per-mission ammo rows. Returns what level 2 has to recompute for it."""
+    the per-mission ammo rows. Returns the ids of the tours level 2 has to refresh: the mission's tour and, when a
+    re-ingest moved it, the old one."""
     clock = _Clock(meta.started_at)
     tour = ensure_tour(tours, meta.started_at)
     previous = (
         Mission.objects.filter(server_uid=meta.server_uid, mission_uid=meta.mission_uid)
-        .values_list("tour_id", "started_at")
+        .values_list("tour_id", flat=True)
         .first()
     )
-    old_tour_id, old_started_at = previous if previous else (None, None)
-    mission, created = Mission.objects.update_or_create(
+    old_tour_id = previous
+    mission, _ = Mission.objects.update_or_create(
         server_uid=meta.server_uid,
         mission_uid=meta.mission_uid,
         defaults={**_mission_fields(result, meta, clock), "tour": tour},
     )
-    old_player_ids: set[int] = set()
-    old_aircraft_ids: set[int] = set()
-    old_pairs: set[tuple[int, int]] = set()
-    if not created:
-        old_player_ids = set(PlayerSortie.objects.filter(mission=mission).values_list("player_id", flat=True))
-        old_aircraft_ids = mission_aircraft(mission.pk)
-        old_pairs = mission_pairs(mission.pk)
-
     objects = register_game_objects(_object_types(result), catalog)
     register_countries(result.mission.countries, catalog)
     players = _upsert_players(result.sorties, clock)
@@ -211,17 +175,8 @@ def save_level1(
     _replace_kills(mission, result.kills, clock, sorties)
     _upsert_player_missions(mission, result.sorties, players)
     _update_mission_counters(mission)
-    ammo_aircraft_ids = _replace_aircraft_ammo(mission, result.single_attacker_kills, objects, sorties)
-
-    touched = Touched(
-        players=old_player_ids | {p.pk for p in players.values()},
-        tours={tour.pk} | _ids(old_tour_id),
-        aircraft=old_aircraft_ids | mission_aircraft(mission.pk),
-        pairs=old_pairs | mission_pairs(mission.pk),
-        ammo_aircraft=ammo_aircraft_ids,
-        days={day_of(meta.started_at)} | ({day_of(old_started_at)} if old_started_at else set()),
-    )
-    return mission, touched
+    _replace_aircraft_ammo(mission, result.single_attacker_kills, objects, sorties)
+    return mission, {tour.pk} | _ids(old_tour_id)
 
 
 def discard_provisional_mission(mission: Mission) -> None:
@@ -229,21 +184,12 @@ def discard_provisional_mission(mission: Mission) -> None:
     sorties off) and bring level 2 back to what it was without it (FR-ING-15). Inside the caller's transaction.
     Players stay (never deleted); their counters are recomputed. Ratings need no work: live kills never counted."""
     assert mission.is_live, "only provisional missions are discarded this way"
-    player_ids = set(PlayerSortie.objects.filter(mission=mission).values_list("player_id", flat=True))
-    aircraft_ids = mission_aircraft(mission.pk)
-    pairs = mission_pairs(mission.pk)
-    ammo_ids = set(MissionAircraftAmmo.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
-    ammo_ids |= set(MissionAircraftAmmoMix.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
     tours = _ids(mission.tour_id)
     started = mission.started_at
     mission.delete()
-    recompute_players(player_ids, tours)
+    refresh_tours(tours, None)  # the mission's players keep their `PlayerTour` rows until this recomputes them
     recompute_holders()
-    recompute_aircraft_ammo(ammo_ids)
-    recompute_aircraft_stats(aircraft_ids, tours)
-    recompute_payload_elo()  # the live passes moved the loadouts' Elo; `recompute_aircraft_stats` leaves it
-    recompute_matchups(pairs)
-    recompute_days({day_of(started)})
+    recompute_days({day_of(started)})  # a mission without a tour belongs to no refresh that would find its day
     bump_data_version()
 
 
@@ -887,17 +833,13 @@ def _replace_aircraft_ammo(
     kills: Iterable[SingleAttackerKill],
     objects: dict[str, GameObject],
     sorties: dict[int, PlayerSortie],
-) -> set[int]:
-    """Rewrite the mission's `MissionAircraftAmmo` rows, per victim role and mods. Returns the aircraft ids whose
-    level-2 rows may change: the types the mission had before and the ones it has now."""
+) -> None:
+    """Rewrite the mission's `MissionAircraftAmmo` rows, per victim role and mods."""
     by_scope: dict[tuple[str, int], list[SingleAttackerKill]] = {}
     for kill in kills:
         by_scope.setdefault(_victim_scope(kill, sorties), []).append(kill)
-    old_ids = set(MissionAircraftAmmo.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
-    old_ids |= set(MissionAircraftAmmoMix.objects.filter(mission=mission).values_list("aircraft_id", flat=True))
     MissionAircraftAmmo.objects.filter(mission=mission).delete()
     MissionAircraftAmmoMix.objects.filter(mission=mission).delete()
-    new_ids: set[int] = set()
     single: list[MissionAircraftAmmo] = []
     mixed: list[MissionAircraftAmmoMix] = []
     for (role, mods), group in sorted(by_scope.items()):
@@ -913,7 +855,6 @@ def _replace_aircraft_ammo(
                     hits=hits,
                 )
             )
-            new_ids.add(objects[victim].pk)
         for (victim, mix, ammo), (n, hits) in sorted(aircraft_ammo_mix_totals(group).items()):
             mixed.append(
                 MissionAircraftAmmoMix(
@@ -927,7 +868,5 @@ def _replace_aircraft_ammo(
                     hits=hits,
                 )
             )
-            new_ids.add(objects[victim].pk)
     MissionAircraftAmmo.objects.bulk_create(single)
     MissionAircraftAmmoMix.objects.bulk_create(mixed)
-    return old_ids | new_ids

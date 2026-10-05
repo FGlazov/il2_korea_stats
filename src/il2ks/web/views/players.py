@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from il2ks.db.models import Counters, Player
+from il2ks.db.models import Counters
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import absence_from_history, player_tour, tour_choice_from, tour_query
@@ -36,11 +36,11 @@ def player_search(request: HttpRequest) -> HttpResponse:
     return render(request, "il2ks/players/search.html", context)
 
 
-def _air_active(player: Player, stats: Counters | None) -> bool:
-    """Whether the air-to-air part has anything to show: air kills, air assists or a rated Elo game (all time)."""
+def _air_active(elo: reads.EloShown, stats: Counters | None) -> bool:
+    """Whether the air-to-air part has anything to show: air kills, air assists or a rated Elo game (in the scope)."""
     if stats is None:
         return False
-    return bool(stats.kills_air or stats.assists_air or player.elo_prop_games or player.elo_jet_games)
+    return bool(stats.kills_air or stats.assists_air or elo.elo_prop_games or elo.elo_jet_games)
 
 
 def _ground_active(stats: Counters | None) -> bool:
@@ -58,7 +58,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     Template `il2ks/players/detail.html`. Context: `player`, `names` (PlayerName rows, newest first), `sort` (resolved),
     `aircraft` (PlayerAircraft rows), `survived` (sorties without a death), `ground` (ground_breakdown),
     `gunner_only`, `air_active` / `ground_active` (the part has anything to show in this scope; else it collapses to a
-    line), `recent` (PlayerSortie rows with mission and aircraft), `pve_kills` / `pve_losses` (web.pve rows of
+    line), `recent` (PlayerSortie rows with mission and aircraft), `elo` (queries.players.EloShown of the scope),
+    `pve_kills` / `pve_losses` (web.pve rows of
     `stats`, FR-WEB-21), `charts` (per-tour ChartSpecs, all tours, FR-WEB-16), `crumbs`, `page_title`.
     With `?tour=<id>` (queries.tours.tour_choice_from; unknown = all time): `tours`, `tour`, and `stats` is the
     PlayerTour row (None when the player flew nothing in that tour) instead of the Player; `marks` (stat thresholds
@@ -72,6 +73,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     stats: Counters | None = player if tour is None else player_tour(player.pk, tour)
     history = reads.tour_history(player) if player.sorties else []  # also names the tours of an absent pilot
     absence = absence_from_history(tour, choice.tours, history) if stats is None else None
+    elo = reads.elo_shown(player, tour)
     context: dict[str, object] = {
         **choice.context,
         "tour_query": tour_query(tour),  # keeps the scope on the links to the achievement pages
@@ -83,7 +85,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "names": reads.past_names(player),
         "sort": sort,
         "aircraft": reads.aircraft_rows(player, sort, tour),
-        "air_active": _air_active(player, stats),
+        "elo": elo,  # all time: the best tour's rating; in a tour: its final rating (OQ-128)
+        "air_active": _air_active(elo, stats),
         "ground_active": _ground_active(stats),
         "survived": max(stats.sorties - stats.deaths, 0) if stats else 0,
         "ground": ground_breakdown(stats) if stats else [],

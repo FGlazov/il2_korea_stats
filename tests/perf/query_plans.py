@@ -108,6 +108,20 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "ingest",
     ),
     QueryAllowance(
+        "il2ks_db_playertourpool",
+        '"elo_games" > %s AND "il2ks_db_playertourpool"."propulsion" = %s',
+        "the all-time Elo (the best tour's) is derived from every rated tour row; temporary: the roll-up is to be "
+        "limited to the players of the refreshed tours (doc 14)",
+        "ingest",
+    ),
+    QueryAllowance(
+        "il2ks_db_playertouraircraft",
+        '"elo_games" > %s',
+        "the all-time per-type Elo (the best tour's) is derived from every rated tour row; temporary: the roll-up is "
+        "to be limited to the players of the refreshed tours (doc 14)",
+        "ingest",
+    ),
+    QueryAllowance(
         "il2ks_db_player",
         '>= %s OR "il2ks_db_player"',
         "the stat thresholds (percentiles) are computed over every eligible pilot: a whole-population pass by "

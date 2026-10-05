@@ -393,7 +393,7 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
 - Upgraded databases: `ops/migrate.py::_backfill_interception` derives `kills_air_intercept` once from the stored sortie timelines (victim types and
   victim sortie roles), then rebuilds level 2 (marker `interception` in `SiteSettings.backfills_done`); `il2ks reprocess` gives the same.
 
-**Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` across all missions, doc 14):
+**Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` **per tour**, doc 14; "a new tour is a clean slate", maintainer 2026-10-05, OQ-128):
 - A **game** = one PvP kill credit (not an assist, not friendly) where killer and victim are both pilot sorties with role `air_superiority`.
   Kills by AI, AA or the environment have no `Kill` row and never count. A player killing their own other sortie is ignored.
 - Each player has a **prop** and a **jet** rating (pool = the propulsion of the aircraft flown in that sortie), starting at `start` (1500).
@@ -403,6 +403,17 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
 - **Prop kills jet**: the killer's prop rating and the victim's jet rating move by K × `cross_pool_weight` (2.0) × (1 − E), E from those two
   ratings.
 - Games are replayed in time order (mission start, then kill time), so the result doesn't depend on import order.
+- **Per tour, reset at every tour** (maintainer 2026-10-05; the first design replayed all missions in one go): every tour is replayed on its own
+  from `start`, nothing is carried over from the tour before and there are no checkpoints. The games of a tour are the kills of its missions
+  (`Mission.tour`); a mission without a tour has no games until the next rebuild gives it one. The tour's rating is its **final** rating (not the
+  in-tour peak; OQ-128, default, the maintainer may change it): stored per pool on `PlayerTourPool` (`elo`, `elo_games`) and per type on
+  `PlayerTourAircraft`. A late import into an old tour changes only that tour (and the all-time maxima).
+- **All time = the best tour** (maintainer): `Player.elo_prop` / `elo_jet` and `PlayerAircraft.elo` are the **highest final rating of any tour**;
+  their `*_games` are the games **summed over all tours** `[PROPOSED]` (the sample size the minimum-games rules and the "encounters" columns
+  read; the rating shown is that of one tour, the encounters those of all, so a pilot with three tours of 3 games each has 9 encounters and no
+  rating above the 5-game minimum in any single tour, by design: the tour boards have their own minimum). Tour boards show the tour's rows.
+- **`PlayerSortie.elo_peak`** (the "Top Rated" medal, doc 17) is the highest rating held after a win in the sortie, taken from the sortie's own tour
+  replay, so the medal's all-time value is the best in-tour peak and never drops `[PROPOSED]`; it is recomputed per tour, with that tour's medals.
 - Each pool alone isn't zero-sum: a prop-kills-jet game moves points from the jet pool into the prop pool (in the samples 36 such games
   moved ~1,050 points; prop players average +7, jet players −3.5). Intended: it's the reward for the impressive kill.
 - Samples: 807 games (164 prop-prop, 528 jet-jet, 36 prop-kills-jet, 79 jet-kills-prop that change nothing) out of 2,327 kill credits
@@ -410,7 +421,11 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
   change is 37 points.
 - **Per-type Elo** (OQ-49, built 2026-10-04, `[PROPOSED]`): the same games and the same replay also give a rating per (player, aircraft type),
   stored on `PlayerAircraft` (`elo`, `elo_games`). Each starts at `[ratings] start`; the opponent's rating is their rating in the type they flew
-  in that game. Pools still apply: a jet killing a prop changes nothing. A type's top pilots are ranked by it (FR-WEB-8).
+  in that game. Pools still apply: a jet killing a prop changes nothing. A type's top pilots are ranked by it (FR-WEB-8). Per tour like the pool
+  ratings (`PlayerTourAircraft`); all time = the best tour's rating, games summed.
+- The loadouts' and weapon-mod sets' **average pilot Elo** (`elo_avg`, aircraft page) exists all time only (their rows have no tour); it uses the
+  all-time Elo above (per-type where the pilot has games in the type, else the pool's). `[PROPOSED]` Per-tour rows of those tables would use the
+  tour's Elo the same way.
 
 ## Score (as built, 2026-10-04)
 
@@ -430,7 +445,7 @@ section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess
 A mark says where a figure stands among the pilots, by the percentiles stored in `StatThreshold` (strictly above p90 = "Top 10%", above p75 = "Top
 25%"; low values never marked; no distribution under 20 pilots). Which pilots form a metric's population follows the board the figure sits next to:
 the ratios and the air and ground scores need `[marks] min_sorties` (20) sorties; **Elo jet / Elo prop** need `min_elo_games` rated games in that pool
-(all time only, shown against the all-time population on a tour profile too); **ground score per hour and tanks per hour** need
+(all time: the best-tour ratings of `Player`; in a tour: that tour's final ratings from `PlayerTourPool`, against that tour's population, OQ-128); **ground score per hour and tanks per hour** need
 `min_time_on_target_s` on target; **interception per hour** needs `min_air_superiority_s` of air superiority flight. `StatThreshold.min_sorties`
 stores that minimum in the metric's own unit (sorties, games, seconds).
 

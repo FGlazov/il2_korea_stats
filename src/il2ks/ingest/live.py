@@ -55,7 +55,6 @@ from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.ingest.persist import (
     DuplicateSortieError,
     MissionMeta,
-    Touched,
     apply_level2,
     discard_provisional_mission,
     save_level1,
@@ -87,7 +86,7 @@ class _Running:
     last_persist: datetime | None = None  # the last provisional save of the sorties (or an attempt that did not save)
     saved_lines: int | None = None  # lines the replay had read at the last level-1 save: nothing new = no new save
     saving: bool = True  # False once the mission has a final save from another process: only online now goes on
-    pending: Touched = field(default_factory=Touched)  # touched by level-1 passes, not yet recomputed in level 2
+    pending: set[int] = field(default_factory=set[int])  # tours of level-1 passes not yet refreshed in level 2
     last_level2: datetime | None = None
 
 
@@ -230,7 +229,7 @@ class LiveTracker:
             running.saving = False
             self._flush_pending(running)
         else:
-            running.pending.update(touched)
+            running.pending |= touched
             running.saved_lines = running.replay.lines
         cost = self._cost_clock() - began
         log.debug("provisional level 1 of %s: %s, %.0f ms", running.uid, status, 1000 * cost)
@@ -254,7 +253,7 @@ class LiveTracker:
         except (LockBusyError, OperationalError):
             log.info("%s: level-2 update postponed", running.uid)
             return False
-        running.pending = Touched()
+        running.pending = set()
         return True
 
     def _sweep(self, following: str | None) -> None:
@@ -322,7 +321,7 @@ type ProvisionalStatus = Literal["saved", "final_exists", "waiting"]
 
 def save_provisional(
     cfg: Config, mission_uid: str, started_at: datetime, result: MissionResult, catalog: Catalog
-) -> tuple[ProvisionalStatus, Touched]:
+) -> tuple[ProvisionalStatus, set[int]]:
     """Level 1 of the running mission, upserted by its natural key under the writer lock (`LockBusyError` if it is
     taken). Returns what level 2 still has to recompute for it (`apply_provisional_level2`).
 
@@ -332,7 +331,7 @@ def save_provisional(
     discarded instead (it would otherwise block every later mission); its retry, if any, saves it again."""
     with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
         if Mission.objects.filter(server_uid=cfg.server_uid, mission_uid=mission_uid, is_live=False).exists():
-            return "final_exists", Touched()
+            return "final_exists", set()
         waiting = False
         for other in Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).exclude(mission_uid=mission_uid):
             newest = IngestRun.objects.filter(mission_uid=other.mission_uid).order_by("-started_at", "-id").first()
@@ -341,18 +340,18 @@ def save_provisional(
             else:
                 waiting = True
         if waiting:
-            return "waiting", Touched()
+            return "waiting", set()
         meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True)
         _, touched = save_level1(result, meta, catalog, cfg.tours, cfg.score)
         bump_data_version()
     return "saved", touched
 
 
-def apply_provisional_level2(cfg: Config, touched: Touched) -> None:
-    """Recompute level 2 for everything the provisional passes touched since the last time. No ratings, no stat
+def apply_provisional_level2(cfg: Config, touched: set[int]) -> None:
+    """Refresh level 2 for the tours the provisional passes touched since the last time. No ratings, no stat
     thresholds: they wait for the final save."""
     with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
-        apply_level2(touched)
+        apply_level2(touched, None)
         bump_data_version()
 
 

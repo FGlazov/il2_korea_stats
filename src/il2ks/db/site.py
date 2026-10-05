@@ -1,5 +1,9 @@
 """Singleton access for `SiteSettings` and `DataVersion` (TD-25, TD-28)."""
 
+import os
+from collections.abc import Iterable
+from datetime import UTC, datetime
+
 from django.db.models import F
 from django.db.models.functions import Now
 
@@ -10,6 +14,37 @@ def get_site_settings() -> SiteSettings:
     """The site's branding row, created with defaults on first use."""
     settings, _ = SiteSettings.objects.get_or_create(pk=1)
     return settings
+
+
+def level2_pending() -> dict[str, object]:
+    """The marker of a batched level-2 run that has not finished (`SiteSettings.level2_pending`); empty = none."""
+    row = SiteSettings.objects.filter(pk=1).values_list("level2_pending", flat=True).first()
+    return dict(row) if row else {}
+
+
+def set_level2_pending(command: str) -> None:
+    """A batched run starts: from now until `clear_level2_pending`, level 2 may lag (a hard kill leaves it)."""
+    get_site_settings()
+    marker: dict[str, object] = {
+        "since": datetime.now(UTC).isoformat(timespec="seconds"),
+        "command": command,
+        "pid": os.getpid(),
+    }
+    SiteSettings.objects.filter(pk=1).update(level2_pending=marker)
+
+
+def store_level2_pending_tours(tour_ids: Iterable[int]) -> None:
+    """Write the tours a running batch touched into its marker, so a repair after a hard kill refreshes just those."""
+    marker = level2_pending()
+    if not marker:
+        return
+    marker["tours"] = sorted(set(tour_ids))
+    SiteSettings.objects.filter(pk=1).update(level2_pending=marker)
+
+
+def clear_level2_pending() -> None:
+    """Level 2 is complete (the batch ended, or a rebuild recomputed everything). One cheap update, only when set."""
+    SiteSettings.objects.filter(pk=1).exclude(level2_pending={}).update(level2_pending={})
 
 
 def current_data_version() -> int:

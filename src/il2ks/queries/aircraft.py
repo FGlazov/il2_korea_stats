@@ -11,11 +11,13 @@
     significant_mods(aircraft) -> tuple[SignificantMod, ...]  # the mods the page can filter by (catalog, no query)
 
 The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
-volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
-by `ingest.ratings`) and, for attack work, the ground score per hour on target. Every section follows the page's scope
-(tour, role, modification filter; maintainer 2026-10-04), each from stored rows of that scope. The per-type Elo is all
-time by nature: in a narrower scope pilots are still ranked by it, but only those with enough air superiority sorties
-within the scope (the sorties column is the scope's); the ground score per hour is computed from the scope's own rows.
+volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerTourAircraft.elo` in a tour,
+all time the best tour's `PlayerAircraft.elo`; computed at ingest by `ingest.ratings`) and, for attack work, the
+ground score per hour on target. Every section follows the page's scope (tour, role, modification filter; maintainer
+2026-10-04), each from stored rows of that scope. The per-type Elo is the selected tour's (all time: the best
+tour's): in a narrower scope (role, modification filter) pilots are still ranked by it, but only those with enough
+air superiority sorties within the scope (the sorties column is the scope's); the ground score per hour is computed
+from the scope's own rows.
 """
 
 from collections.abc import Callable, Mapping
@@ -23,7 +25,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import Final
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 
 from il2ks.config import LeaderboardConfig
 from il2ks.core.catalog.loader import (
@@ -44,6 +46,7 @@ from il2ks.db.models import (
     Player,
     PlayerAircraft,
     PlayerAircraftScope,
+    PlayerTourAircraft,
     Tour,
     TourAircraftStats,
 )
@@ -263,7 +266,8 @@ def matchups(
 
 @dataclass(frozen=True, slots=True)
 class EloRow:
-    """A row of the top-Elo table: the pilot, their Elo and its encounters (all time), and the sorties in the scope."""
+    """A row of the top-Elo table: the pilot, their Elo and its encounters (the tour's, or the best tour's for all
+    time), and the sorties in the scope."""
 
     player: Player
     elo: float
@@ -275,11 +279,6 @@ class EloRow:
         return self.player.pk
 
 
-def is_alltime_scope(tour: Tour | None, role: AircraftRole, mod_pattern: str) -> bool:
-    """Whether the scope is all time, every role, no filter: the one `PlayerAircraft` itself covers."""
-    return tour is None and role == AircraftRole.ALL and not mod_pattern
-
-
 def top_elo(
     aircraft: GameObject,
     rules: LeaderboardConfig,
@@ -288,13 +287,19 @@ def top_elo(
     mod_pattern: str = "",
 ) -> list[EloRow]:
     """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first. The
-    Elo is all time by nature (`PlayerAircraft.elo`); in a narrower scope (tour, role, filter) a pilot must also have
-    flown at least the leaderboard minimum of air superiority sorties within it, and `sorties` are the scope's. One
-    query for the all-time scope, two for a narrower one (the scope's pilots, then their Elo)."""
+    Elo is the selected tour's final per-type Elo (`PlayerTourAircraft`, OQ-128), all time the best tour's
+    (`PlayerAircraft`); in a narrower scope (tour, role, filter) a pilot must also have flown at least the leaderboard
+    minimum of air superiority sorties within it, and `sorties` are the scope's. One query for the all-time scope and
+    the unfiltered tour, two for a narrower one (the scope's pilots, then their Elo)."""
     minimum = max(rules.min_elo_games, 1)
     order = ("-elo", "-elo_games", "player__name_lower", "pk")
-    rated = PlayerAircraft.objects.filter(aircraft=aircraft, player__is_hidden=False, elo_games__gte=minimum)
-    if is_alltime_scope(tour, role, mod_pattern):
+    rated: QuerySet[PlayerAircraft] | QuerySet[PlayerTourAircraft] = (
+        PlayerAircraft.objects.filter(aircraft=aircraft)
+        if tour is None
+        else PlayerTourAircraft.objects.filter(aircraft=aircraft, tour=tour)
+    )
+    rated = rated.filter(player__is_hidden=False, elo_games__gte=minimum)
+    if role == AircraftRole.ALL and not mod_pattern:
         return [
             EloRow(r.player, r.elo, r.elo_games, r.sorties)
             for r in rated.select_related("player").order_by(*order)[:TOP_PILOTS]

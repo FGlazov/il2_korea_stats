@@ -3,7 +3,7 @@
   Leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). View: il2ks.web.views.leaderboards.leaderboard.
   Context: board (the queries.leaderboards.Board), title, help, tab_groups ((group title, tab rows) pairs; a tab row is
   (key, title, url, current, icon name; the url keeps the tour / pool / aircraft choice)), pool_options ((value, label) pairs for the prop / jet filter), sort (resolved),
-  page_obj (Page of BoardRow: rank, player, stats, per_hour), tours / tour (the tour selector, TD-26: no ?tour = current tour, ?tour=all = all time; empty for the
+  page_obj (Page of BoardRow: rank, player, stats, per_hour, rating and games on the Elo boards), tours / tour (the tour selector, TD-26: no ?tour = current tour, ?tour=all = all time; empty for the
   all-time-only Elo boards), aircraft_options ((pk, name) pairs, empty where the board has no aircraft filter), rules
   (the minimum-activity thresholds).
   Blocks: head (page stylesheet), content. The table is leaderboards/table.html.

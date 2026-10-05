@@ -75,6 +75,7 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
 
 BACKFILL_TOURS = "tours"  # missions without a tour, per-tour rows, best streaks
 BACKFILL_SCORES = "scores"  # sortie scores (FR-WEB-7)
+BACKFILL_TOUR_ELO = "tour_elo"  # Elo per tour (reset at every tour, OQ-128)
 BACKFILL_TYPE_RATINGS = "type_ratings"  # per-type Elo and the prop / jet pools (OQ-49)
 BACKFILL_TYPE_KILLBOARD = "type_killboard"  # killboard by aircraft type, per-tour / intercept matchups
 BACKFILL_INTERCEPTION = "interception"  # kills of bombers / attackers per sortie, the skill boards' counters
@@ -90,6 +91,7 @@ BACKFILL_AIRCRAFT_ALIASES = "aircraft_aliases"  # `B 29` / `B-29` rows merged th
 BACKFILL_ACHIEVEMENTS = "achievements"  # medals (FR-WEB-26)
 BACKFILL_BUILDS = "builds"  # the favourite loadout rows
 BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rarity denominators (doc 17, OQ-105)
+BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -134,6 +136,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_TOURS, _check_tours),
         (BACKFILL_SCORES, _check_scores),
         (BACKFILL_TYPE_RATINGS, _check_type_ratings),
+        (BACKFILL_TOUR_ELO, _check_tour_elo),
         (BACKFILL_TYPE_KILLBOARD, _check_type_killboard),
         (BACKFILL_INTERCEPTION, _check_interception),
         (BACKFILL_ASSIST_SPLIT, _check_assist_split),
@@ -168,6 +171,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
             _backfill_achievements()  # after the rebuild, which computes the medals itself
         if only is None or BACKFILL_ACHIEVEMENT_TOURS in only:
             _backfill_achievement_tours()  # after the plain medals: no-op where they were just computed with tours
+        if only is None or BACKFILL_TOUR_CLEAN_SLATE in only:
+            _backfill_tour_clean_slate(rebuilt=rebuild)  # after `tour_elo`'s rebuild, which also reads the Elo peaks
 
 
 def _check_payload_names() -> bool:
@@ -562,6 +567,17 @@ def _check_type_ratings() -> bool:
     return rows.exists() and not (rows.filter(elo_games__gt=0).exists() or PlayerPool.objects.exists())
 
 
+def _check_tour_elo() -> bool:
+    """A database from before the Elo per tour (OQ-128) has rated games on `Player` but none on the per-tour pool rows:
+    level 2 must be rebuilt, which replays every tour alone and re-derives the all-time Elo from them."""
+    from django.db.models import Q
+
+    from il2ks.db.models import Player, PlayerTourPool
+
+    rated = Q(elo_prop_games__gt=0) | Q(elo_jet_games__gt=0)
+    return Player.objects.filter(rated).exists() and not PlayerTourPool.objects.filter(elo_games__gt=0).exists()
+
+
 def _check_scores() -> bool:
     """Sorties saved before the score existed have none: when there are pilot sorties and none has a score, level 2
     must be rebuilt, which computes every score from the stored columns (FR-WEB-7). Rule changes: `il2ks
@@ -612,6 +628,30 @@ def _backfill_achievements() -> None:
             log.info("computing medals")
             rebuild_achievements()
         _mark_done(BACKFILL_ACHIEVEMENTS)
+
+
+def _backfill_tour_clean_slate(*, rebuilt: bool = False) -> None:
+    """Streaks and medals used to run over a player's whole history for the all-time rows; since a new tour is a clean
+    slate the all-time rows are rolled up from the tour rows (doc 17). Recompute them once for every player, unless this
+    upgrade just rebuilt level 2 (`rebuilt`): the rebuild replays each tour's Elo first and then computes the streaks
+    and medals per tour, the same result."""
+    from django.db import transaction
+
+    from il2ks.db.models import Player, PlayerSortie, Role
+    from il2ks.ingest.achievements import rebuild_achievements
+    from il2ks.ingest.aggregates import CHUNK
+    from il2ks.ingest.streaks import recompute_streaks
+
+    if _already_done(BACKFILL_TOUR_CLEAN_SLATE):
+        return
+    with transaction.atomic():
+        if not rebuilt and PlayerSortie.objects.filter(role=Role.PILOT).exists():
+            log.info("recomputing streaks and medals per tour")
+            ids = sorted(Player.objects.values_list("pk", flat=True))
+            for start in range(0, len(ids), CHUNK):
+                recompute_streaks(ids[start : start + CHUNK])
+            rebuild_achievements()
+        _mark_done(BACKFILL_TOUR_CLEAN_SLATE)
 
 
 def _backfill_achievement_tours() -> None:

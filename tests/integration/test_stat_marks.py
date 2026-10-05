@@ -11,7 +11,7 @@ from django.test import Client
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.stat_marks import METRICS, MarkRules
-from il2ks.db.models import Player, StatThreshold, Tour
+from il2ks.db.models import Player, PlayerTourPool, StatThreshold, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.stat_marks import recompute_thresholds
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
@@ -26,20 +26,20 @@ TWO = MarkRules(min_sorties=2)
 def test_thresholds_are_computed_after_the_elo_replay(monkeypatch: pytest.MonkeyPatch) -> None:
     """QA 2026-10-04: the Elo percentiles were taken before the mission's ratings were written and lagged one mission
     behind a rebuild (the real sample's elo_jet p50 differed)."""
-    from il2ks.ingest import persist
+    from il2ks.ingest import aggregates, persist
 
     order: list[str] = []
-    real_ratings, real_marks = persist.recompute_ratings, persist.recompute_thresholds
+    real_ratings, real_marks = aggregates.recompute_ratings, persist.recompute_thresholds
 
-    def ratings(rules: RatingRules) -> int:
+    def ratings(rules: RatingRules, tour_ids: Iterable[int] | None = None, *, payload_elo: bool = True) -> int:
         order.append("ratings")
-        return real_ratings(rules)
+        return real_ratings(rules, tour_ids, payload_elo=payload_elo)
 
     def marks(rules: MarkRules, tour_ids: Iterable[int] | None = None) -> None:
         order.append("marks")
         real_marks(rules, tour_ids)
 
-    monkeypatch.setattr(persist, "recompute_ratings", ratings)
+    monkeypatch.setattr(aggregates, "recompute_ratings", ratings)
     monkeypatch.setattr(persist, "recompute_thresholds", marks)
 
     save(mission((sortie(0, 1),)), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)
@@ -168,6 +168,15 @@ def seed_scores_and_ratings() -> None:
             time_on_target_s=n * 100.0,
             score_ground_attack=n * 5.0 * n,
         )
+    september = tour("September 2026")
+    for n in range(1, 26):  # the tour's own pool rows hold the same ratings (a single tour, so best == final)
+        for propulsion, games in (("jet", n // 2), ("prop", n // 8)):
+            PlayerTourPool.objects.update_or_create(
+                player=Player.objects.get(account_uuid=account(n)),
+                tour=september,
+                propulsion=propulsion,
+                defaults={"elo": 1400.0 + 10 * n, "elo_games": games},
+            )
     recompute_thresholds(RULES)
 
 
@@ -185,13 +194,16 @@ def test_score_elo_and_ground_hour_populations() -> None:
     assert hour.p50 == pytest.approx(180.0 * 15.5)  # pilot n: 5 n * n score over n * 100 s = 180 n per hour
 
 
-def test_elo_thresholds_are_all_time_only_and_tours_have_the_other_scores() -> None:
+def test_elo_thresholds_per_tour_come_from_the_tours_pool_rows() -> None:
+    """OQ-128: a tour's Elo marks compare with that tour's ratings, all time with the best-tour ratings."""
     seed_scores_and_ratings()
-    september = StatThreshold.objects.filter(tour=tour("September 2026"))
-    assert not september.filter(metric__in=["elo_jet", "elo_prop"]).exists()
-    assert september.filter(metric="air_score").exists()  # PlayerTour carries the scores (zero here, still defined)
+    september = {r.metric: r for r in StatThreshold.objects.filter(tour=tour("September 2026"))}
+    assert (september["elo_jet"].population, september["elo_jet"].min_sorties) == (20, 3)
+    assert september["elo_jet"].p50 == pytest.approx(1400 + 10 * 15.5)
+    assert "elo_prop" not in september  # two pilots with enough rated games: too few for a distribution
+    assert september["air_score"]  # PlayerTour carries the scores (zero here, still defined)
     recompute_thresholds(RULES)  # again: the same rows, no churn
-    assert StatThreshold.objects.filter(metric="elo_jet").count() == 1
+    assert StatThreshold.objects.filter(metric="elo_jet").count() == 2  # all time and the tour
 
 
 def test_elo_mark_renders_on_all_time_and_tour_profiles(client: Client) -> None:

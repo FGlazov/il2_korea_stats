@@ -3,14 +3,14 @@
   home_block.html: the home page's compact leaderboards (OQ-64, OQ-79): Elo of the jet and prop pools, the skill boards and
   play time, a 3x2 grid (2 columns on a tablet, 1 on a phone). Context: boards (a list of HomeBoard: .key "elo-jet",
   "elo-prop", "interception", "ground-hour", "tank-busting" or "play-time", .title, .rows of BoardRow: rank, player,
-  stats, per_hour), tour (the selected tour or None), tour_query (the links' scope; Elo is all time and links with
-  ?tour=all). Links: web:player-detail, web:leaderboard, web:leaderboards.
+  stats, per_hour, rating for the Elo boards), tour (the selected tour or None), tour_query (the links' scope; the Elo
+  boards follow the tour like the others). Links: web:player-detail, web:leaderboard, web:leaderboards.
 {% endcomment %}<section aria-labelledby="home-boards-heading">
   <h2 id="home-boards-heading">{% translate "Top pilots" %}</h2>
   <div class="home-boards">
     {% for board in boards %}
       <div>
-        <h3><a href="{% url 'web:leaderboard' board.key %}{% if board.key != 'elo-jet' and board.key != 'elo-prop' %}{{ tour_query }}{% endif %}">{{ board.title }}</a>{% if tour and board.key == "elo-jet" or tour and board.key == "elo-prop" %} <small class="muted">({% translate "All time" %})</small>{% endif %}</h3>
+        <h3><a href="{% url 'web:leaderboard' board.key %}{{ tour_query }}">{{ board.title }}</a></h3>
         <table class="data-table data-table--compact board-table">
           <thead>
             <tr>
@@ -23,8 +23,8 @@
             {% for row in board.rows %}
               <tr>
                 <td class="num">{{ row.rank|num }}</td>
-                <td><a href="{% url 'web:player-detail' row.player.pk %}{% if board.key == 'elo-jet' or board.key == 'elo-prop' %}?tour=all{% else %}{{ tour_query }}{% endif %}">{{ row.player.current_name }}</a></td>
-                <td class="num"><strong>{% if board.key == "elo-jet" %}{{ row.stats.elo_jet|num }}{% elif board.key == "elo-prop" %}{{ row.stats.elo_prop|num }}{% elif board.key == "play-time" %}{{ row.stats.flight_time_s|duration }}{% elif board.key == "interception" or board.key == "tank-busting" %}{{ row.per_hour|num:2 }}{% else %}{{ row.per_hour|num:1 }}{% endif %}</strong></td>
+                <td><a href="{% url 'web:player-detail' row.player.pk %}{{ tour_query }}">{{ row.player.current_name }}</a></td>
+                <td class="num"><strong>{% if board.key == "elo-jet" or board.key == "elo-prop" %}{{ row.rating|num }}{% elif board.key == "play-time" %}{{ row.stats.flight_time_s|duration }}{% elif board.key == "interception" or board.key == "tank-busting" %}{{ row.per_hour|num:2 }}{% else %}{{ row.per_hour|num:1 }}{% endif %}</strong></td>
               </tr>
             {% empty %}
               {% empty_row 3 _("Nobody qualifies for this board yet.") %}

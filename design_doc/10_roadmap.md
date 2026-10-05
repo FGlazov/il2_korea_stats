@@ -237,7 +237,7 @@ decisions are made):
   "recompute achievements" button queued for `watch`), with a note that holders and rarity change. Custom conditions belong with the
   post-release scripting item.
 
-- 🔧 **Batched level 2 for long runs** (maintainer, 2026-10-04; ingest speed, not a gate): for batches of 20+ missions (a backlog
+- ✅ **Batched level 2 for long runs** (built 2026-10-05 on a worktree branch, how it works: doc 14 "Batched level 2"; maintainer, 2026-10-04; ingest speed, not a gate): for batches of 20+ missions (a backlog
   `ingest`, `reprocess`) collect one `Touched` set and apply level 2 at every 10% and at the end; ratings and thresholds once at the end in
   mission order. Today `reprocess` recomputes level 2 per mission and then rebuilds everything. Final state must equal a rebuild; small
   batches unchanged. Estimated 15-25% faster big batches. **Changed (maintainer, 2026-10-05):** no per-entity `Touched` tracking: a
@@ -245,6 +245,9 @@ decisions are made):
   (single missions, live passes, rebuilds; maintainer, 2026-10-05).
 - 🔧 **All-time stats = sum of the tour stats** (maintainer, 2026-10-05; doc 14): level 2 refreshed per tour, all-time rows built from
   the tour rows, so a recompute no longer grows with a player's whole history. Inventory and plan first (what sums, what can't).
+  **Merged 2026-10-05:** one level-2 path `refresh_tours(tour_ids, ratings)` with the per-tour order in doc 14 (rows from level 1, the tour's Elo,
+  its streaks and medals, then the all-time roll-ups of Elo, streaks and medals; Elo, streaks and medals start over in a tour); the
+  counters, killboards and aircraft rows are still recomputed from level 1 for the all-time scope.
 
 - ✅ **Aircraft page: every section follows every filter** (maintainer, OQ-122, 2026-10-04): tiles, Loadouts, Modifications, matchups,
   top pilots, hits to destroy and ammo mixes follow the tour (all time included), the role toggle and the significant-mods filter (for

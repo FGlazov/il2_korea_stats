@@ -290,8 +290,9 @@ def test_a_tour_without_missions_shows_flavor_text_not_the_filter_message(client
     assert "No missions match these filters." in filtered.content.decode()  # another filter: no quip
 
 
-def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(client: Client) -> None:
-    """The score block shows the tour's score next to the tour's other blocks; only Elo stays all time, and says so."""
+def test_profile_score_block_follows_the_selected_tour_elo_included(client: Client) -> None:
+    """The score block shows the tour's score next to the tour's other blocks; Elo too (a new tour is a clean slate,
+    doc 02), so the "all time" label is only on the all-time view."""
     seed()
     september = tour("September 2026")
 
@@ -300,4 +301,5 @@ def test_profile_score_block_follows_the_selected_tour_and_labels_elo_all_time(c
 
     assert "<dt>Ground score</dt><dd>12.0" in in_tour  # two tanks in September
     assert "<dt>Ground score</dt><dd>24.0" in all_time  # plus four vehicles in October
-    assert "Elo (prop) <small>all time</small>" in in_tour
+    assert "Elo (prop) <small>all time</small>" not in in_tour
+    assert "Elo (prop) <small>all time</small>" in all_time

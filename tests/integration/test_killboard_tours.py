@@ -182,11 +182,11 @@ def test_no_air_kills_means_no_air_kills_row_and_no_survival_means_no_rows() -> 
     assert streak_rows(2) == {}
 
 
-def test_a_streak_does_not_span_tours_in_the_per_tour_rows() -> None:
+def test_a_streak_does_not_span_tours_all_time_is_the_best_of_the_tours() -> None:
     save(mission((sortie(0, 1, kills_air=1), sortie(1, 1, kills_air=1))), meta("m1", STARTED_AT))
     save(mission((sortie(0, 1, kills_air=1),)), meta("m2", OCTOBER))
 
-    assert streak_rows(1)["sorties"][0] == 3  # all time: one run across the month
+    assert streak_rows(1)["sorties"][0] == 2  # all time: the best of the tours, never 3 across the boundary
     assert streak_rows(1, "September 2026")["sorties"][0] == 2
     assert streak_rows(1, "October 2026")["sorties"][0] == 1
 

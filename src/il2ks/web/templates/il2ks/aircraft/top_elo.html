@@ -1,12 +1,12 @@
 {# il2ks-template: templates/il2ks/aircraft/top_elo.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   top_elo.html: a type's best pilots by their Elo in it (OQ-49), on the aircraft detail page.
-  Context: elo_pilots (PlayerAircraft rows with .player, .elo, .elo_games), rules (min_elo_games), primary (show the
+  Context: elo_pilots (PlayerAircraft rows, or PlayerTourAircraft in a tour, with .player, .elo, .elo_games), rules (min_elo_games), primary (show the
   empty message when nobody qualifies; the secondary ranking is left out instead).
 {% endcomment %}{% if elo_pilots or primary %}<section>
   <h2>{% translate "Top pilots by Elo" %}</h2>
   <p class="muted">{% blocktranslate count games=rules.min_elo_games %}Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least {{ games }} encounter.{% plural %}Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least {{ games }} encounters.{% endblocktranslate %}</p>
-  {% if scoped %}<p class="muted">{% blocktranslate count n=rules.min_air_superiority_sorties %}The Elo is the pilot's rating over all time; in this selection only pilots with at least {{ n }} air superiority sortie in it are listed, and the sorties are counted in the selection.{% plural %}The Elo is the pilot's rating over all time; in this selection only pilots with at least {{ n }} air superiority sorties in it are listed, and the sorties are counted in the selection.{% endblocktranslate %}</p>{% endif %}
+  {% if scoped %}<p class="muted">{% blocktranslate count n=rules.min_air_superiority_sorties %}The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with at least {{ n }} air superiority sortie in it are listed, and the sorties are counted in the selection.{% plural %}The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with at least {{ n }} air superiority sorties in it are listed, and the sorties are counted in the selection.{% endblocktranslate %}</p>{% endif %}
   <div class="table-wrap table-wrap--flat">
     <table class="data-table">
       <thead>
