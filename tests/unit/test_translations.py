@@ -283,3 +283,11 @@ def test_the_shipped_catalogs_pass_msgfmt_check_format(directory: str) -> None:
         check=False,
     )
     assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+
+
+def test_the_french_medal_hint_has_a_no_break_space_before_the_colon() -> None:
+    """French typography: a no-break space (U+00A0) before `:`, so a tier name never ends one line with the colon
+    starting the next."""
+    message = translations.read_catalog("fr").get("%(tier)s: %(threshold)s.")
+    assert message is not None
+    assert message.string == "%(tier)s : %(threshold)s."

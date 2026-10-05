@@ -173,7 +173,7 @@ def _translations_command(ns: argparse.Namespace) -> int:
 
     try:
         from il2ks.devtools import translations
-    except ModuleNotFoundError as e:  # Babel is a development dependency: a wheel installed to run a site does not have it
+    except ModuleNotFoundError as e:  # Babel is a development dependency (not in a wheel installed to run a site)
         if not (e.name or "").startswith("babel"):
             raise  # another import broke: show it, do not blame Babel
         print(
