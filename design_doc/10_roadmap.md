@@ -271,6 +271,28 @@ decisions are made):
 - 🔧 **Docs describe only the released software** (maintainer, 2026-10-05): no "older versions" in docs/ (nothing was released yet);
   pre-release compatibility code goes with the migration squash.
 
+## Maintainer's view pass (2026-10-05, before the release)
+- 🔧 **Names and help texts**: "ground score per hour on target" is called **attack proficiency** everywhere; help texts for
+  self-explanatory things go (the maintainer's list plus any other where the context is enough); mission list intro text goes.
+- 🔧 **Extra columns**: the optional-columns control is called "Extra columns", a collapsible block with the choices as checkboxes on
+  the page (no dropdown scrolling); toggling keeps the table's horizontal scroll; the row's name column stays visible when scrolling right.
+- 🔧 **Layout**: home page: the longest ironman streak block moves to the leaderboards, "Recently earned" below the last mission,
+  "Online now" above it; the tour selector sits in the banner right of the player search on the home page and right-aligned on the
+  title line of every other page (the player page's selector was far too big).
+- 🔧 **Lists**: aircraft list defaults Aircraft, Sorties, K/L, Survival, Attack proficiency, Elo (the rest optional); player list
+  defaults Player, Flight time, Elo, Attack proficiency, K/L, longest kill streak, longest ground kill streak; ironman streaks become a
+  leaderboard with extra columns and ground kills by default.
+- 🔧 **Aircraft page**: hits to destroy and ammo mixes in one table, a mix shown as average hits per ammo type in its stored order
+  (e.g. 5.4 + 2.7); mixes, modifications and loadouts need at least 10 events; those three tables paginated; loadouts get an air
+  superiority / attack tab under "All" with only the columns of that mode; the maintainer's list of help texts removed, the loadout
+  text shortened per mode.
+- 🔧 **Player page**: all / air superiority / attack toggle; air-to-air and air-to-ground sections can be reordered; "Other totals"
+  condensed into about 4 columns.
+- 🔧 **Separate air and ground ironman**: losing an attack sortie doesn't end the air ironman life and the other way round (so air
+  pilots can ground-pound without fearing for their streak); on the player page and the leaderboards.
+- 🔧 **Bug report**: a pilot who is a tank buster in the current tour but not all time, after a full ingest: check the all-time
+  refresh at the end of a batch (or explain it: career medals have 5x all-time thresholds).
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
