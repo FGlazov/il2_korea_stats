@@ -14,6 +14,7 @@ import traceback
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
@@ -30,6 +31,7 @@ from il2ks.core.replay.result import MissionResult
 from il2ks.core.replay.state import run as replay_run
 from il2ks.db.models import IngestRun, IngestStatus, Mission
 from il2ks.db.site import bump_data_version
+from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import (
     ArchiveError,
     archive_matches,
@@ -37,7 +39,7 @@ from il2ks.ingest.archive import (
     dispose_originals,
     write_archive,
 )
-from il2ks.ingest.batch import Level2Batch, finish_quietly, is_batch
+from il2ks.ingest.batch import Level2Batch, finish_quietly, is_batch, repair_pending
 from il2ks.ingest.discover import (
     INGEST_DECISIONS,
     Decision,
@@ -163,10 +165,15 @@ def ingest_once(
     """Process everything that's ready, under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken."""
     opts = opts or IngestOptions()
     with WriterLock(cfg.data_dir, command, wait=opts.lock_wait):
-        return _ingest_locked(cfg, pipeline, opts, now)
+        return _ingest_locked(cfg, pipeline, opts, now, command)
 
 
-def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime]) -> IngestSummary:
+def _ingest_locked(
+    cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime], command: str = "ingest"
+) -> IngestSummary:
+    repair_pending(
+        partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board)
+    )
     summary = IngestSummary()
     is_import = opts.source is not None
     if opts.source is not None:
@@ -220,12 +227,14 @@ def _ingest_locked(cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Ca
 
     # Batched level 2 (doc 14): a long run saves level 1 only and applies level 2 at every 10% and at the end.
     batch = (
-        Level2Batch(len(todo), cfg.ratings, cfg.marks)
+        Level2Batch(len(todo), cfg.ratings, cfg.marks, command)
         if is_batch(len(todo)) and pipeline.save_level1 is not None
         else None
     )
     failing = True
     try:
+        if batch is not None:
+            batch.start()  # before the first save: a hard kill from here on leaves a marker (`repair_pending`)
         for item, decision, last in todo:
             outcome = ingest_mission(cfg, pipeline, item, decision, last, now=now, batch=batch)
             if outcome == "ok":

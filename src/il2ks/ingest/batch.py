@@ -11,12 +11,13 @@ Smaller batches keep the per-mission path unchanged (`ingest.persist.save_missio
 """
 
 import logging
+from collections.abc import Callable
 
 from django.db import transaction
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.stat_marks import MarkRules
-from il2ks.db.site import bump_data_version
+from il2ks.db.site import bump_data_version, clear_level2_pending, level2_pending, set_level2_pending
 from il2ks.ingest import persist
 from il2ks.ingest.persist import Touched
 
@@ -41,7 +42,9 @@ class Level2Batch:
     what is pending is applied then (`finish` is idempotent). A hard kill (power cut, `kill -9`) loses the pending set;
     `il2ks rebuild-aggregates` repairs that (doc 14)."""
 
-    def __init__(self, total: int, ratings: RatingRules, marks: MarkRules) -> None:
+    def __init__(self, total: int, ratings: RatingRules, marks: MarkRules, command: str = "ingest") -> None:
+        self.command = command
+        self.started = False
         self.total = total
         self.ratings = ratings
         self.marks = marks
@@ -50,6 +53,11 @@ class Level2Batch:
         self._pending = Touched()
         self._tours: set[int] = set()  # every tour any save touched: the thresholds are rewritten for them at the end
         self._saved = 0  # level-1 saves since the last `finish`
+
+    def start(self) -> None:
+        """Persist the "level 2 may lag" marker before the first save (a hard kill leaves it: `repair_pending`)."""
+        set_level2_pending(self.command)
+        self.started = True
 
     def add(self, touched: Touched) -> None:
         self._pending.update(touched)
@@ -78,14 +86,38 @@ class Level2Batch:
         """The last level-2 pass, then the Elo ratings, the holder counts and the thresholds, once, in one transaction.
         The ratings replay every kill in mission order, whatever order the missions were saved in."""
         if self._saved == 0:
+            if self.started:
+                self.started = False
+                clear_level2_pending()  # nothing was saved: nothing lags
             return
         log.info("level 2 for the last missions, then ratings and thresholds")
         with transaction.atomic():
             persist.apply_batch_end(self._pending, self._tours, self.ratings, self.marks)
             bump_data_version()
+            clear_level2_pending()  # in the same transaction: either both happen or the marker stays
+        self.started = False
         self._pending = Touched()
         self._tours = set()
         self._saved = 0
+
+
+def repair_pending(rebuild: Callable[[], None]) -> bool:
+    """Call first thing in a run that holds the writer lock: if an earlier batched run was killed (its marker is still
+    set), level 2 and the Elo ratings lag level 1, and re-running skips those missions as unchanged. Rebuild level 2
+    from level 1 (`rebuild`, which clears the marker) and say so. Returns whether it repaired anything."""
+    marker = level2_pending()
+    if not marker:
+        return False
+    log.warning(
+        "a batched %s run started %s (pid %s) never finished: rebuilding level 2 and the ratings first",
+        marker.get("command", "ingest"),
+        marker.get("since", "?"),
+        marker.get("pid", "?"),
+    )
+    with transaction.atomic():
+        rebuild()
+        clear_level2_pending()
+    return True
 
 
 def finish_quietly(batch: Level2Batch | None, *, failing: bool) -> None:

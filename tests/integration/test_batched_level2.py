@@ -265,11 +265,10 @@ def test_a_killed_batch_is_detected_by_doctor_and_repaired_by_the_next_run(
         ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
         assert diff_dumps(canonical_dump(), expected) != []
         [title] = _pending_findings(cfg, monkeypatch)
-        monkeypatch.undo()  # the restarted process: a normal one
-        assert "rebuild-aggregates" in " ".join(
+        assert "rebuild-aggregates" in "".join(
             f.fix for f in checks.ingestion_check(cfg) if "level 2" in f.title.lower()
         )
-
+        monkeypatch.undo()  # the restarted process: a normal one
         summary = ingest_once(cfg, default_pipeline(cfg), IngestOptions(source=_import_dir(tmp_path)))
         assert summary.ok == []  # every mission is unchanged: only the repair ran
         repaired = canonical_dump()

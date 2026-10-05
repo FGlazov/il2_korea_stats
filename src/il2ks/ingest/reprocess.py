@@ -30,9 +30,10 @@ from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import CompletionReason, IngestRun, IngestStatus
+from il2ks.db.site import clear_level2_pending, set_level2_pending
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
-from il2ks.ingest.batch import is_batch
+from il2ks.ingest.batch import is_batch, repair_pending
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
@@ -128,6 +129,10 @@ def reprocess(
     `on_start(total)` is called once the lock is held and the missions are chosen; `on_progress(summary)` after each
     mission (the admin's request row shows both)."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
+        run_rebuild = rebuild or partial(
+            rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
+        )
+        repair_pending(run_rebuild)  # an earlier batched run was killed: level 2 lags, so rebuild before anything else
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)
         wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}
@@ -139,9 +144,8 @@ def reprocess(
         pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
         queue = sorted(targets.values(), key=lambda r: r.mission_uid)
         batched = is_batch(len(targets)) and pipeline.save_level1 is not None
-        run_rebuild = rebuild or partial(
-            rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
-        )
+        if batched:
+            set_level2_pending("reprocess")  # cleared by the final rebuild; left behind by a hard kill
         # `with` order: the executor is shut down first, then the rebuild runs
         with _final_rebuild(summary, run_rebuild, interrupted_too=batched), executor_factory(n_workers) as executor:
             while queue or pending:
@@ -197,6 +201,7 @@ def _rebuild(run_rebuild: Callable[[], None]) -> None:
     log.info("rebuilding level-2 aggregates")
     with transaction.atomic():
         run_rebuild()
+        clear_level2_pending()
 
 
 def _progress(on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary) -> None:
@@ -279,3 +284,4 @@ def rebuild_all(
                 board=cfg.board,
             )
         )()
+        clear_level2_pending()

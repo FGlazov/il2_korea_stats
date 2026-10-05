@@ -52,7 +52,7 @@ from il2ks.db.models import (
     PlayerTourPool,
     Propulsion,
 )
-from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.db.site import bump_data_version, clear_level2_pending, get_site_settings
 from il2ks.ingest.achievements import adopt_wanted_rules, recompute_achievements, recompute_holders
 from il2ks.ingest.activity import rebuild_activity
 from il2ks.ingest.aircraft_stats import rebuild_aircraft_stats
@@ -142,6 +142,7 @@ def rebuild_aggregates(
     recompute_ratings(ratings)  # may change medals (Elo peaks)
     recompute_holders()  # once, after the medal rows are final
     recompute_thresholds(marks)
+    clear_level2_pending()  # everything was recomputed: whatever a killed batch left behind is repaired
     bump_data_version()  # TD-28: pages changed
 
 
