@@ -435,7 +435,7 @@ msgid ""
 " Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after"
 " the next rebuild, which the site starts in the background."
 msgstr ""
-"Eine Änderung eines Mindestwerts für Einsätze, Angriffseinsätze, Zeit am Ziel oder Luftüberlegenheit wirkt sofort: "
+"Eine Änderung eines Mindestwerts für Einsätze, Erdkampfeinsätze, Zeit am Ziel oder Luftüberlegenheit wirkt sofort: "
 "Die Ranglisten verwenden ihn beim nächsten Seitenaufruf, und die Markierungen Top 10 %% und Top 25 %% auf den "
 "Spielerseiten werden beim Speichern neu berechnet. Das Elo-Minimum ist die Ausnahme: Es bestimmt auch, aus welcher "
 "Tour die Gesamt-Elo eines Piloten stammt, und greift daher erst nach dem nächsten Neuaufbau, den die Seite im "
@@ -1134,7 +1134,7 @@ msgstr "Erdkampfstärke"
 
 # llm-draft
 msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
-msgstr "Angriffsleistung und Panzerjagd: Minuten am Ziel, die ein Pilot braucht"
+msgstr "Erdkampfstärke und Panzerjagd: Minuten am Ziel, die ein Pilot braucht"
 
 # llm-draft
 #, python-format
@@ -1142,8 +1142,8 @@ msgid ""
 "Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
 "target."
 msgstr ""
-"Angriffsleistung mit diesem Flugzeug. Piloten mit mindestens %(sorties)s Angriffseinsätzen und %(minutes)s Minuten am"
-" Ziel."
+"Erdkampfstärke mit diesem Flugzeug. Piloten mit mindestens %(sorties)s Erdkampfeinsätzen und %(minutes)s Minuten am "
+"Ziel."
 
 # llm-draft
 #, python-format
@@ -1152,7 +1152,7 @@ msgstr "Für die Erdkampfstärke brauchst du mindestens %(sorties)s Erdkampfeins
 
 # llm-draft
 msgid "Attack proficiency: attack sorties a pilot needs"
-msgstr "Angriffsleistung: Angriffseinsätze, die ein Pilot braucht"
+msgstr "Erdkampfstärke: Erdkampfeinsätze, die ein Pilot braucht"
 
 # llm-draft
 msgid "Attack sorties"
@@ -1412,7 +1412,7 @@ msgstr "Bomben"
 
 # llm-draft
 msgid "Bombs (mixed loadout)"
-msgstr "Bomben (gemischte Beladung)"
+msgstr "Bomben (gemischte Bewaffnung)"
 
 # llm-draft
 msgid "Bombs, rockets and napalm"
@@ -1885,16 +1885,16 @@ msgid ""
 "ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
 "Die längste Serie überlebter Lufteinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
-"Lufthoheitseinsätze; der Verlust eines Bodenangreifers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ "
-"zeigt die beste Tour."
+"Luftüberlegenheitseinsätze; der Verlust eines Bodenangreifers beendet sie nicht. Jede Tour beginnt von vorn; "
+"„Gesamtzeit“ zeigt die beste Tour."
 
 # llm-draft
 msgid ""
 "Each pilot's longest run of attack sorties survived: no death, no capture. Only attack sorties count; losing a "
 "fighter does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"Die längste Serie überlebter Angriffseinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
-"Angriffseinsätze; der Verlust eines Jägers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ zeigt die "
+"Die längste Serie überlebter Erdkampfeinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
+"Erdkampfeinsätze; der Verlust eines Jägers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ zeigt die "
 "beste Tour."
 
 # llm-draft
@@ -3715,7 +3715,7 @@ msgid ""
 "Off by default. Changing it moves the missions between tours; tours you renamed keep their names where their dates "
 "stay the same."
 msgstr ""
-"Standardmäßig aus. Eine Änderung verschiebt Missionen zwischen Touren; Touren, die Du umbenannt hast, behalten ihren "
+"Standardmäßig aus. Eine Änderung verschiebt Missionen zwischen Touren; Touren, die du umbenannt hast, behalten ihren "
 "Namen, solange ihre Zeiträume gleich bleiben."
 
 # llm-draft
@@ -4426,7 +4426,7 @@ msgstr "Raketen"
 
 # llm-draft
 msgid "Rockets (mixed loadout)"
-msgstr "Raketen (gemischte Beladung)"
+msgstr "Raketen (gemischte Bewaffnung)"
 
 # llm-draft
 msgid "Role"
@@ -5402,7 +5402,7 @@ msgid ""
 "The most ground kills in one run of attack sorties without a death or capture. Losing a fighter does not end it. "
 "Every tour starts afresh; this is the best tour."
 msgstr ""
-"Die meisten Bodenabschüsse in einer Serie von Angriffseinsätzen ohne Tod oder Gefangennahme. Der Verlust eines Jägers"
+"Die meisten Bodenabschüsse in einer Serie von Erdkampfeinsätzen ohne Tod oder Gefangennahme. Der Verlust eines Jägers"
 " beendet sie nicht. Jede Tour beginnt von vorn; hier steht die beste Tour."
 
 # llm-draft
@@ -5446,7 +5446,7 @@ msgid ""
 msgstr ""
 "Die besten Serien hintereinander überlebter Einsätze des Piloten (kein Tod, keine Gefangennahme; Einsätze ohne Abflug"
 " werden übersprungen), nach Einsätzen, nach Abschüssen und nach Flugzeit, getrennt für Lufteinsätze und für "
-"Angriffseinsätze (ein Tod in der einen Art von Einsatz beendet die Serie der anderen nicht)."
+"Erdkampfeinsätze (ein Tod in der einen Art von Einsatz beendet die Serie der anderen nicht)."
 
 # llm-draft
 #, python-format
@@ -6160,7 +6160,7 @@ msgid ""
 msgstr ""
 "Wer gewonnen hat, wird aus dem Missionsziel gelesen, das der Server am Missionsende protokolliert: Die Seite, die es "
 "allein erfüllt hat, hat gewonnen; beide Seiten oder keine ergeben ein Unentschieden. Missionen, die vor dieser "
-"Erfassung gespeichert wurden, zeigen kein Ergebnis, bis Du sie neu verarbeitest (il2ks reprocess)."
+"Erfassung gespeichert wurden, zeigen kein Ergebnis, bis du sie neu verarbeitest (il2ks reprocess)."
 
 # llm-draft
 msgid "Which sorties to count"

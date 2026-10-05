@@ -1138,7 +1138,7 @@ msgstr "Мастерство штурмовки"
 
 # llm-draft
 msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
-msgstr "Эффективность штурмовки и охота на танки: сколько минут на цели нужно пилоту"
+msgstr "Мастерство штурмовки и охота на танки: сколько минут на цели нужно пилоту"
 
 # llm-draft
 #, python-format
@@ -1146,8 +1146,8 @@ msgid ""
 "Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
 "target."
 msgstr ""
-"Эффективность штурмовки на этом самолёте. Пилоты не менее чем с %(sorties)s штурмовыми вылетами и %(minutes)s "
-"минутами на цели."
+"Мастерство штурмовки на этом самолёте. Пилоты не менее чем с %(sorties)s штурмовыми вылетами и %(minutes)s минутами "
+"на цели."
 
 # llm-draft
 #, python-format
@@ -1156,7 +1156,7 @@ msgstr "Для мастерства штурмовки нужно не мене�
 
 # llm-draft
 msgid "Attack proficiency: attack sorties a pilot needs"
-msgstr "Эффективность штурмовки: сколько штурмовых вылетов нужно пилоту"
+msgstr "Мастерство штурмовки: сколько штурмовых вылетов нужно пилоту"
 
 # llm-draft
 msgid "Attack sorties"
@@ -1174,7 +1174,7 @@ msgstr "Попытки"
 #, python-format
 msgid "Average Elo shows the pilots' skill as much as the loadout's. Rates need at least %(n)s air superiority sorties."
 msgstr ""
-"Средний Elo показывает мастерство пилотов не меньше, чем качество вооружения. Для показателей нужно не менее %(n)s "
+"Средний Эло показывает мастерство пилотов не меньше, чем качество вооружения. Для показателей нужно не менее %(n)s "
 "вылетов на господство в воздухе."
 
 # llm-draft
@@ -1207,7 +1207,7 @@ msgstr ""
 #. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
 #. their skill, not only the loadout)
 msgid "Average pilot Elo"
-msgstr "Средний Elo пилотов"
+msgstr "Средний Эло пилотов"
 
 # llm-draft
 msgid "BLUFOR"
@@ -1929,7 +1929,7 @@ msgstr "Эло (поршневые)"
 
 # llm-draft
 msgid "Elo boards: encounters a pilot needs"
-msgstr "Рейтинги Эло: нужно встреч у лётчика"
+msgstr "Рейтинги Эло: нужно столкновений у лётчика"
 
 # llm-draft
 msgid ""
@@ -2997,7 +2997,7 @@ msgstr "Последние 90 дней"
 
 # llm-draft
 msgid "Last encounter"
-msgstr "Последняя встреча"
+msgstr "Последнее столкновение"
 
 # llm-draft
 msgid "Last mission"

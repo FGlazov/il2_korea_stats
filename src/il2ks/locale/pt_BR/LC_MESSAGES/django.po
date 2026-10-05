@@ -437,8 +437,8 @@ msgid ""
 msgstr ""
 "Uma alteração no mínimo de surtidas, surtidas de ataque, tempo sobre o alvo ou superioridade aérea aparece na hora: "
 "os rankings passam a usá-la na próxima visualização da página, e as marcas Top 10 %% e Top 25 %% nas páginas dos "
-"pilotos são recalculadas quando você salva. O mínimo de Elo é a exceção: ele também define de qual tour vem o Elo "
-"geral de um piloto, então só vale depois da próxima reconstrução, que o site inicia em segundo plano."
+"pilotos são recalculadas quando você salva. O mínimo de Elo é a exceção: ele também define de qual temporada vem o "
+"Elo geral de um piloto, então só vale depois da próxima reconstrução, que o site inicia em segundo plano."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -735,7 +735,7 @@ msgstr "Abates aéreos em uma vida: tudo desde a última morte ou captura, inclu
 
 # llm-draft
 msgid "Air kills in one tour, all sorties together."
-msgstr "Abates aéreos em uma temporada, todas as saídas juntas."
+msgstr "Abates aéreos em uma temporada, todas as surtidas juntas."
 
 # llm-draft
 #. Translators: tooltip of the "Air kills" column header of a streak table
@@ -748,7 +748,7 @@ msgstr "Abates aéreos em um único dia (UTC)."
 
 # llm-draft
 msgid "Air kills over your career, all sorties together."
-msgstr "Abates aéreos ao longo da sua carreira, todas as saídas juntas."
+msgstr "Abates aéreos ao longo da sua carreira, todas as surtidas juntas."
 
 # llm-draft
 msgid "Air kills per flight hour"
@@ -815,16 +815,16 @@ msgid ""
 "Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; all time shows each "
 "pilot's best tour."
 msgstr ""
-"Elo ar-ar dos jatos, a partir de abates entre saídas de superioridade aérea. Cada tour recomeça do zero; o geral "
-"mostra o melhor tour de cada piloto."
+"Elo ar-ar dos jatos, a partir de abates entre surtidas de superioridade aérea. Cada temporada recomeça do zero; o "
+"geral mostra a melhor temporada de cada piloto."
 
 # llm-draft
 msgid ""
 "Air-to-air Elo of propeller aircraft, from kills between air superiority sorties. Every tour starts afresh; all time "
 "shows each pilot's best tour. A propeller kill on a jet counts double."
 msgstr ""
-"Elo ar-ar das aeronaves a hélice, a partir de abates entre saídas de superioridade aérea. Cada tour recomeça do zero;"
-" o geral mostra o melhor tour de cada piloto. Um abate de hélice sobre um jato vale em dobro."
+"Elo ar-ar das aeronaves a hélice, a partir de abates entre surtidas de superioridade aérea. Cada temporada recomeça "
+"do zero; o geral mostra a melhor temporada de cada piloto. Um abate de hélice sobre um jato vale em dobro."
 
 # llm-draft
 #. Translators: tooltip of the optional "Elo (jet)" column header
@@ -1125,14 +1125,16 @@ msgstr "Proficiência de ataque"
 
 # llm-draft
 msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
-msgstr "Eficiência de ataque e caça a tanques: minutos no alvo de que o piloto precisa"
+msgstr "Proficiência de ataque e caça a tanques: minutos no alvo de que o piloto precisa"
 
 # llm-draft
 #, python-format
 msgid ""
 "Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
 "target."
-msgstr "Eficiência de ataque neste avião. Pilotos com pelo menos %(sorties)s surtidas de ataque e %(minutes)s minutos no alvo."
+msgstr ""
+"Proficiência de ataque neste avião. Pilotos com pelo menos %(sorties)s surtidas de ataque e %(minutes)s minutos no "
+"alvo."
 
 # llm-draft
 #, python-format
@@ -1141,7 +1143,7 @@ msgstr "A proficiência de ataque exige pelo menos %(sorties)s surtidas de ataqu
 
 # llm-draft
 msgid "Attack proficiency: attack sorties a pilot needs"
-msgstr "Eficiência de ataque: surtidas de ataque de que o piloto precisa"
+msgstr "Proficiência de ataque: surtidas de ataque de que o piloto precisa"
 
 # llm-draft
 msgid "Attack sorties"
@@ -2060,9 +2062,9 @@ msgid ""
 "Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was "
 "shot down."
 msgstr ""
-"Tudo nesta página segue o tour, o papel e as modificações escolhidos; escolha “Todo o período” para ver todos os "
-"tours. Os confrontos usam o papel e as modificações da surtida deste avião; os acertos para destruir, os do avião "
-"abatido."
+"Tudo nesta página segue a temporada, a função e as modificações escolhidas; escolha “Todo o período” para ver todas "
+"as temporadas. Os confrontos usam a função e as modificações da surtida deste avião; os acertos para destruir, os do "
+"avião abatido."
 
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
@@ -2096,7 +2098,7 @@ msgstr "Carregadores cheios, vento de cauda e os números para provar."
 
 # llm-draft
 msgid "Favorite loadout"
-msgstr "Carga favorita"
+msgstr "Configuração de armamento favorita"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
@@ -2666,7 +2668,7 @@ msgstr "Horas no ar, e a carta meteorológica virou diário de bordo. Um pouso m
 
 # llm-draft
 msgid "Hours in the air in one tour, all sorties together."
-msgstr "Horas no ar em uma temporada, todas as saídas juntas."
+msgstr "Horas no ar em uma temporada, todas as surtidas juntas."
 
 # llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
@@ -2674,7 +2676,7 @@ msgstr "Horas no ar no tipo de aeronave que você mais voou."
 
 # llm-draft
 msgid "Hours in the air over your career, all sorties together."
-msgstr "Horas no ar ao longo da sua carreira, todas as saídas juntas."
+msgstr "Horas no ar ao longo da sua carreira, todas as surtidas juntas."
 
 # llm-draft
 msgid "How it ended"
@@ -3507,7 +3509,7 @@ msgstr "Sem resultado: %(unknown)s"
 
 # llm-draft
 msgid "No sorties in this role"
-msgstr "Nenhuma saída neste papel"
+msgstr "Nenhuma surtida nesta função"
 
 # llm-draft
 msgid "No sorties in this tour"
@@ -3600,8 +3602,8 @@ msgid ""
 "below for each hour it was airborne, as air score. Gunners get nothing."
 msgstr ""
 "Normalmente a pontuação aérea de um piloto vem só de abates aéreos e assistências, então uma patrulha longa em que "
-"nada acontece não rende nada. Aqui você pode ativar pontos pelo tempo no ar (sem contar o táxi): cada saída de piloto"
-" passa a receber a taxa abaixo por hora no ar, como pontuação aérea. Artilheiros não recebem nada."
+"nada acontece não rende nada. Aqui você pode ativar pontos pelo tempo no ar (sem contar o táxi): cada surtida de "
+"piloto passa a receber a taxa abaixo por hora no ar, como pontuação aérea. Artilheiros não recebem nada."
 
 # llm-draft
 msgid "Not a landing, not a crash: a firm disagreement with the ground."
@@ -5329,7 +5331,7 @@ msgstr ""
 
 # llm-draft
 msgid "The killboards below count every role."
-msgstr "Os placares de abates abaixo contam todos os papéis."
+msgstr "Os placares de abates abaixo contam todas as funções."
 
 # llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
@@ -5632,7 +5634,9 @@ msgstr "Esta página não é listada nem pesquisável. Só quem tem o link pode 
 
 # llm-draft
 msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
-msgstr "Este jogador não fez nenhuma saída do papel de combate escolhido no tour escolhido. Escolha outro papel acima."
+msgstr ""
+"Este jogador não fez nenhuma surtida da função de combate escolhida na temporada escolhida. Escolha outra função "
+"acima."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."
@@ -5841,7 +5845,7 @@ msgid "Tour Wrong Team"
 msgstr "Gol Contra da Temporada"
 
 msgid "Tour ended"
-msgstr "Tour encerrado"
+msgstr "Temporada encerrada"
 
 # llm-draft
 msgid "Tour options"
@@ -6166,7 +6170,7 @@ msgstr "Com"
 # llm-draft
 #, python-format
 msgid "With this option on, the missions so far would form this many tours: %(projected_tours)s"
-msgstr "Com esta opção ativada, as missões até agora formariam este número de tours: %(projected_tours)s"
+msgstr "Com esta opção ativada, as missões até agora formariam este número de temporadas: %(projected_tours)s"
 
 # llm-draft
 msgid "Without"
