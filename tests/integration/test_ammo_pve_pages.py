@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 import pytest
+from django.conf import settings
 from django.test import Client
 
 from il2ks.core.replay.result import (
@@ -77,6 +78,26 @@ def test_sortie_page_lists_hits_by_plain_name_without_damage_and_the_ordnance_ap
     assert "Unattributed" in body
     assert "explosion" not in body.lower()
     assert "Damage no hit could be blamed on" not in body
+
+
+def test_generic_mixed_loadout_ordnance_names_are_translated(client: Client) -> None:
+    """Pre-release QA, real data: "Bombs (mixed loadout)" is il2ks's own wording (the log can't name the store), so a
+    German page must not show it in English (TD-24)."""
+    attacker = replace(
+        sortie(0, 1, name="Alpha"),
+        ordnance=(
+            OrdnanceUse("bombs_mixed", released=2, detonations=2),
+            OrdnanceUse("rockets_mixed", released=4, detonations=4),
+        ),
+    )
+    save(mission((attacker,)))
+    client.cookies[settings.LANGUAGE_COOKIE_NAME] = "de"
+
+    body = client.get(f"/sorties/{pk_of(1)}/").content.decode()
+
+    assert "Bomben (gemischte Beladung)" in body
+    assert "Raketen (gemischte Beladung)" in body
+    assert "mixed loadout" not in body
 
 
 def test_sortie_page_without_ordnance_has_no_ordnance_section(client: Client) -> None:

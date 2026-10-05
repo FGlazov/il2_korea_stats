@@ -83,6 +83,25 @@ def test_current_streak_is_the_run_in_the_current_tour_and_a_new_tour_starts_at_
     assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 1
 
 
+def test_a_player_without_a_current_run_stops_pointing_at_an_older_tour() -> None:
+    """Pre-release QA, real data (new tour on every decisive mission): a pilot who died in the last sortie of the then
+    newest tour had a zero run but kept `current_tour` on it when a newer tour started, while a rebuild stores None
+    (the row says "no current run in the newest tour")."""
+    save(mission((*survived(2), died(2))), meta("m1", STARTED_AT))
+    assert PlayerStreak.objects.get(player=pk(1)).current_sorties == 0
+    save(mission(survived(1, player=2)), meta("m2", OCTOBER))  # player 1 does not fly in October
+
+    stored = list(
+        PlayerStreak.objects.order_by("player_id").values_list("player_id", "current_sorties", "current_tour")
+    )
+    rebuild_aggregates()
+
+    assert PlayerStreak.objects.get(player=pk(1)).current_tour is None
+    assert stored == list(
+        PlayerStreak.objects.order_by("player_id").values_list("player_id", "current_sorties", "current_tour")
+    )
+
+
 def test_types_flown_resets_per_tour_and_all_time_is_the_max() -> None:
     save(mission((sortie(0, 1), sortie(1, 1, aircraft_type="F-86A-5"))), meta("m1", STARTED_AT))
     save(
