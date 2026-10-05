@@ -109,6 +109,16 @@ BOARDS: Final[Mapping[str, Board]] = {
         },
         "-per_hour",
     ),
+    # The ironman boards (maintainer, 2026-10-05): every pilot's best run of survived sorties on one track, in the tour
+    # (or the best tour, all time). `kills` is the track's own kill count; the other one is an optional column.
+    "ironman-air": Board(
+        "ironman-air",
+        {**_IRONMAN, "kills": "kills_air"},
+        "-sorties",
+        per_aircraft=False,
+        per_pool=False,
+        streak_track="air",
+    ),
     "ground-hour": Board(
         "ground-hour",
         {
@@ -139,22 +149,6 @@ BOARDS: Final[Mapping[str, Board]] = {
         "-score",
         group="ground",
     ),
-    "play-time": Board(
-        "play-time",
-        {**_COMMON, "flight_time_s": "flight_time_s"},
-        "-flight_time_s",
-        group="general",
-    ),
-    # The ironman boards (maintainer, 2026-10-05): every pilot's best run of survived sorties on one track, in the tour
-    # (or the best tour, all time). `kills` is the track's own kill count; the other one is an optional column.
-    "ironman-air": Board(
-        "ironman-air",
-        {**_IRONMAN, "kills": "kills_air"},
-        "-sorties",
-        per_aircraft=False,
-        per_pool=False,
-        streak_track="air",
-    ),
     "ironman-ground": Board(
         "ironman-ground",
         {**_IRONMAN, "kills": "kills_ground"},
@@ -163,6 +157,12 @@ BOARDS: Final[Mapping[str, Board]] = {
         per_pool=False,
         group="ground",
         streak_track="ground",
+    ),
+    "play-time": Board(
+        "play-time",
+        {**_COMMON, "flight_time_s": "flight_time_s"},
+        "-flight_time_s",
+        group="general",
     ),
 }
 DEFAULT_BOARD: Final = "air"

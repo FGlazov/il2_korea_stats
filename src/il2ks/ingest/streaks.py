@@ -173,15 +173,18 @@ def rollup_streaks(chunk: list[int]) -> None:
     _sync_runs(chunk, None, wanted_runs, all_time=True)
     _sync_player_columns(chunk, wanted_best)
     if newest is not None:  # a newer tour exists: nobody's current run is still going in an older one
-        PlayerStreak.objects.filter(current_sorties__gt=0).exclude(current_tour_id=newest).update(
-            current_sorties=0,
-            current_kills_air=0,
-            current_kills_ground=0,
-            current_flight_time_s=0.0,
-            current_since=None,
-            current_until=None,
-            current_tour=None,
-        )
+        for track in Track:  # per track: the (track, -current_sorties) index serves each update
+            PlayerStreak.objects.filter(track=track.value, current_sorties__gt=0).exclude(
+                current_tour_id=newest
+            ).update(
+                current_sorties=0,
+                current_kills_air=0,
+                current_kills_ground=0,
+                current_flight_time_s=0.0,
+                current_since=None,
+                current_until=None,
+                current_tour=None,
+            )
 
 
 def _rank(track: str, kind: str, v: _BestValues) -> tuple[float, float, float]:

@@ -193,8 +193,8 @@ def test_the_switcher_has_the_new_boards_and_no_clipped_markup(client: Client) -
     context = client.get("/leaderboards/").context
     air = [t[1] for title, tabs in context["tab_groups"] if title == "Air" for t in tabs]
     ground = [t[1] for title, tabs in context["tab_groups"] if title == "Ground" for t in tabs]
-    assert [str(t) for t in air] == ["Elo (jet)", "Elo (prop)", "Air score", "Interception"]
-    assert [str(t) for t in ground] == ["Ground score per hour", "Tank busting", "Ground score"]
+    assert [str(t) for t in air] == ["Elo (jet)", "Elo (prop)", "Air score", "Interception", "Ironman"]
+    assert [str(t) for t in ground] == ["Ground score per hour", "Tank busting", "Ground score", "Ironman"]
     icons = {t[0]: t[4] for _title, tabs in context["tab_groups"] for t in tabs}
     assert icons["elo-jet"] != icons["elo-prop"]
     assert icons["interception"] == "stat/interception"
