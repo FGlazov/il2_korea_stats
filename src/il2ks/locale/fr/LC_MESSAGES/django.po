@@ -3109,14 +3109,6 @@ msgid "Logo"
 msgstr "Logo"
 
 # llm-draft
-msgid "Longest ironman streaks"
-msgstr "Plus longues séries Ironman"
-
-# llm-draft
-msgid "Longest ironman streaks in this tour"
-msgstr "Plus longues séries Ironman de ce tour"
-
-# llm-draft
 msgid "Loss cause"
 msgstr "Cause de la perte"
 

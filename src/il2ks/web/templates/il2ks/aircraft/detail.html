@@ -22,10 +22,10 @@
       {% if aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
       {% if stats.side %}{% coalition_badge stats.side %}{% endif %}
     </h1>
+    {% tour_select tours tour %}
     <p>{% blocktranslate with pilots=tile.pilots|num count n=tile.pilots %}Flown by {{ pilots }} pilot.{% plural %}Flown by {{ pilots }} pilots.{% endblocktranslate %}</p>
   </div>
 
-  {% tour_select tours tour %}
   {% role_toggle role %}
   {% if mod_filters %}
     {% mod_filter mod_filters %}

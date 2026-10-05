@@ -159,16 +159,25 @@ def test_the_home_etag_depends_on_the_full_url(client: Client) -> None:
     assert client.get("/?tour=all", HTTP_IF_NONE_MATCH=default["ETag"]).status_code == 200
 
 
-def test_home_streaks_follow_the_tour(client: Client) -> None:
-    september, _ = seed_two_tours()
+def test_home_has_no_streak_block_and_keeps_its_blocks_in_order(client: Client) -> None:
+    """The ironman streaks moved to the leaderboards; the home page runs: online now, last mission, recently earned."""
+    seed_two_tours()
 
-    sept = client.get(f"/?tour={september.pk}").content.decode()
-    octo = client.get("/").content.decode()
+    for url in ("/", "/?tour=all"):
+        html = client.get(url).content.decode()
+        assert "Longest ironman streaks" not in html
+        assert 'id="streaks-heading"' not in html
+        assert html.index('id="online-now-title"') < html.index('id="last-heading"')
 
-    assert "Longest ironman streaks in this tour" in octo
-    assert "Newbie" in octo
-    assert "Longest ironman streaks in this tour" in sept
-    assert "Longest ironman streaks in this tour" not in client.get("/?tour=all").content.decode()
+
+def test_home_tour_selector_sits_in_the_banner_next_to_the_search(client: Client) -> None:
+    seed_two_tours()
+
+    html = client.get("/").content.decode()
+    hero = html[html.index('class="hero"') : html.index("</section>", html.index('class="hero"'))]
+
+    assert 'role="search"' in hero
+    assert 'id="f-tour"' in hero
 
 
 # --- wording: Elo "games" are "encounters" ---------------------------------------------------------------------------

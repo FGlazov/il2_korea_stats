@@ -1,9 +1,10 @@
 {# il2ks-template: templates/il2ks/players/detail_header.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_header.html: name, first and last seen, the past nicknames in a collapsible list.
-  Context: player (current_name, first_seen, last_seen), names (PlayerName rows, newest first, including the current one).
+  Also the tour selector (right of the name). Context: tours, tour, player (current_name, first_seen, last_seen), names (PlayerName rows, newest first, including the current one).
 {% endcomment %}<header class="page-head profile-head">
   <h1>{{ player.current_name }}</h1>
+  {% tour_select tours tour %}
   <p>
     {% blocktranslate with first=player.first_seen|local_date last=player.last_seen|local_date %}First seen {{ first }} · last seen {{ last }}{% endblocktranslate %}
   </p>
