@@ -740,8 +740,8 @@ msgid "Air kills in one life: everything since the last death or capture, the fa
 msgstr "Воздушные победы за одну жизнь: всё с момента последней гибели или плена, включая вылет, который стал последним."
 
 # llm-draft
-msgid "Air kills in total, all sorties together."
-msgstr "Воздушные победы за всё время, по всем вылетам."
+msgid "Air kills in one tour, all sorties together."
+msgstr "Воздушные победы за один тур, все вылеты вместе."
 
 # llm-draft
 #. Translators: tooltip of the "Air kills" column header of a streak table
@@ -751,6 +751,10 @@ msgstr "Воздушные победы за время серии."
 # llm-draft
 msgid "Air kills on a single day (UTC)."
 msgstr "Воздушные победы за один день (UTC)."
+
+# llm-draft
+msgid "Air kills over your career, all sorties together."
+msgstr "Воздушные победы за всю вашу карьеру, все вылеты вместе."
 
 # llm-draft
 msgid "Air kills per flight hour"
@@ -877,8 +881,12 @@ msgid "Aircraft damage"
 msgstr "Повреждения самолёта"
 
 # llm-draft
-msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
-msgstr "Самолёты, уничтоженные на земле штурмовиком: не то место и не то время."
+msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
+msgstr "Самолёты, уничтоженные на земле штурмовиком, за один тур: не то место и не то время."
+
+# llm-draft
+msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
+msgstr "Самолёты, уничтоженные на земле штурмовиком, за всю вашу карьеру: не то место и не то время."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -2234,8 +2242,12 @@ msgid "Friendly-fire kills"
 msgstr "Огонь по своим: уничтожено"
 
 # llm-draft
-msgid "Friendly-fire kills. The markings are small and the sky is crowded."
-msgstr "Сбитые свои. Опознавательные знаки мелкие, а небо тесное."
+msgid "Friendly-fire kills in one tour. The markings are small and the sky is crowded."
+msgstr "Победы по своим за один тур. Опознавательные знаки мелкие, а небо тесное."
+
+# llm-draft
+msgid "Friendly-fire kills over your career. The markings are small and the sky is crowded."
+msgstr "Победы по своим за всю вашу карьеру. Опознавательные знаки мелкие, а небо тесное."
 
 # llm-draft
 #, python-format
@@ -2629,12 +2641,16 @@ msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a we
 msgstr "Часы в небе, а на карте погоды уже записи как в дневнике. Эта посадка заслужена."
 
 # llm-draft
+msgid "Hours in the air in one tour, all sorties together."
+msgstr "Часы в воздухе за один тур, все вылеты вместе."
+
+# llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
 msgstr "Часы в воздухе на том типе самолёта, на котором вы налетали больше всего."
 
 # llm-draft
-msgid "Hours in the air, all sorties together."
-msgstr "Часы в воздухе по всем вылетам вместе."
+msgid "Hours in the air over your career, all sorties together."
+msgstr "Часы в воздухе за всю вашу карьеру, все вылеты вместе."
 
 # llm-draft
 msgid "How it ended"
@@ -3663,6 +3679,16 @@ msgid "One detonation and one target that took damage."
 msgstr "Один взрыв и одна цель, получившая урон."
 
 # llm-draft
+#, python-format
+msgid "One-tour description in %(language)s"
+msgstr "Описание для тура (%(language)s)"
+
+# llm-draft
+#, python-format
+msgid "One-tour name in %(language)s"
+msgstr "Название для тура (%(language)s)"
+
+# llm-draft
 msgid "Online now"
 msgstr "Сейчас на сервере"
 
@@ -3780,12 +3806,20 @@ msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Обзор всех ваших переопределений: <code>il2ks custom list</code>"
 
 # llm-draft
+msgid "Own career name and description per language"
+msgstr "Своё название и описание карьерной медали для каждого языка"
+
+# llm-draft
 msgid "Own doing (terrain, overstress, accident)"
 msgstr "Собственная вина (земля, перегрузка, происшествие)"
 
 # llm-draft
 msgid "Own name and description per language"
 msgstr "Своё название и описание для каждого языка"
+
+# llm-draft
+msgid "Own one-tour name and description per language"
+msgstr "Своё название и описание медали за тур для каждого языка"
 
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
@@ -4929,8 +4963,12 @@ msgid "Tanks destroyed in attack sorties, moving or parked."
 msgstr "Танки, уничтоженные в штурмовых вылетах, в движении или на стоянке."
 
 # llm-draft
-msgid "Tanks destroyed in total."
-msgstr "Всего уничтожено танков."
+msgid "Tanks destroyed in one tour."
+msgstr "Танки, уничтоженные за один тур."
+
+# llm-draft
+msgid "Tanks destroyed over your career."
+msgstr "Танки, уничтоженные за всю вашу карьеру."
 
 # llm-draft
 msgid "Tanks destroyed per hour on target"
@@ -4961,8 +4999,12 @@ msgid "Taxi accidents"
 msgstr "Аварии при рулении"
 
 # llm-draft
-msgid "Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Аварии при рулении: самолёт потерян, так и не взлетев. Стоянка прощает."
+msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Аварии на рулении за один тур: самолёт потерян ещё до взлёта. Стоянка всё прощает."
+
+# llm-draft
+msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Аварии на рулении за всю вашу карьеру: самолёт потерян ещё до взлёта. Стоянка всё прощает."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -5409,6 +5451,18 @@ msgid "These are the tiers in one tour. The all-time view sums the tours and ask
 msgstr "Это ступени для одного тура. Зачёт «За всё время» суммирует туры и требует в %(factor)s раз больше: %(values)s."
 
 # llm-draft
+#, python-format
+msgid ""
+"These are the words of the all-time (career) medal, built in as \"%(title)s\". The one-tour medal has its own words "
+"below."
+msgstr "Это текст карьерной медали (за всё время), по умолчанию «%(title)s». У медали за один тур ниже свой текст."
+
+# llm-draft
+#, python-format
+msgid "These are the words of the medal in a tour, built in as \"%(title)s\": %(description)s"
+msgstr "Это текст медали за тур, по умолчанию «%(title)s»: %(description)s"
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Эти миссии закончились без события завершения; стоит проверить, не упал ли сервер посреди миссии."
 
@@ -5662,6 +5716,30 @@ msgstr "Тур"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Тур %(number)s"
+
+# llm-draft
+msgid "Tour Hours Aloft"
+msgstr "Налёт (тур)"
+
+# llm-draft
+msgid "Tour Ramp Rash"
+msgstr "Мастер парковки (тур)"
+
+# llm-draft
+msgid "Tour Sitting Duck"
+msgstr "Лёгкая добыча (тур)"
+
+# llm-draft
+msgid "Tour Sky Hunter"
+msgstr "Небесный охотник (тур)"
+
+# llm-draft
+msgid "Tour Tank Buster"
+msgstr "Гроза танков (тур)"
+
+# llm-draft
+msgid "Tour Wrong Team"
+msgstr "Свои! (тур)"
 
 msgid "Tour ended"
 msgstr "Тур закончился"

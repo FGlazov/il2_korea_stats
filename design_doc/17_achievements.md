@@ -42,7 +42,8 @@ change-site-settings permission), `ingest/achievements.py` (recompute). Storage:
 choices with the settings row they read anyway, no extra query:
 
 - `achievements` = what the admin **wants**: `{"off": [key], "thresholds": {key: [n, ...]}, "names": {key: {language: text}},
-  "descriptions": {key: {language: text}}}`, only what differs from the built-in registry. Parsed tolerantly (unknown keys, invalid or
+  "descriptions": {key: {language: text}}, "tour_names"/"tour_descriptions": {key: {language: text}} (the per-tour variant of the
+  six cumulative medals, see "Two names for a cumulative medal")}`, only what differs from the built-in registry. Parsed tolerantly (unknown keys, invalid or
   default-equal thresholds are dropped), so a hand-edited row cannot break a page.
 - `achievements_applied` = the **applied** rules, `{"off", "thresholds"}`: what the stored `PlayerAchievement` rows were last computed with. Written
   only by the recompute (never by the admin page).
@@ -269,6 +270,17 @@ tour achievements", and "also add tiered achievements for playing in X tours in 
   `info(..., all_time=)`, a `Medal` from an all-time row (`tour` null) shows the all-time number, so "Gold: 50" in a tour and
   "Gold: 250" all time are both true. The sortie page lists a tour tier and an all-time tier of the same number once only when their
   thresholds are the same, otherwise both are news ("the first kill of the tour" and "the fifth of the career").
+- **Two names for a cumulative medal** (maintainer 2026-10-05: "rename the tour variants slightly so this isn't so confusing"; a
+  pilot held "Tank Buster" in the tour, not all time, with 6 tanks: 5 needed in a tour, 25 all time). `[PROPOSED]` (PRODUCT): the
+  career (all-time) medal keeps today's name, the per-tour variant is **"Tour <name>"**: Tour Sky Hunter, Tour Tank Buster, Tour Hours
+  Aloft, Tour Ramp Rash, Tour Wrong Team, Tour Sitting Duck (translations put the tour word where it reads well: "(Tour)", "(тур)",
+  "de la Temporada"). The tour description says "in one tour", the career one "over your career" (`medals.TOUR_TEXTS` next to
+  `TEXTS`; `medals.words(config, key, all_time=)`; a `Medal` takes the variant from its row's scope, `info()` from the page's).
+  Every place a tour scope shows the medal uses the tour words (profile, list, overview, holders page, sortie page, home feed).
+  The other medals keep one name (their all-time tier is the best tour's, same thresholds). Admin: `SiteSettings.achievements` has
+  two more keys, `"tour_names"` and `"tour_descriptions"` (same shape, cumulative keys only); the admin page shows a second
+  "one-tour" name/description block (`tname-<key>-<lang>`, `tdesc-<key>-<lang>`) for those six; the old `names`/`descriptions`
+  are the career words (an existing override of such a name now applies to the career medal only). No migration (JSON).
 - **Tours in a row** (`tours_in_a_row`, **Old Hand**, medal, unit `tours`): tiers **2 / 3 / 6 / 12** consecutive tours. `[PROPOSED]`
   (PRODUCT): a tour counts for a pilot when they have a `PlayerTour` row with `takeoffs > 0` (the pilot flew at least once in it, consistent with "flown" above: a sortie that never
   took off does not count, unlike the pilot count of the rarity, which counts any sortie); the tours are

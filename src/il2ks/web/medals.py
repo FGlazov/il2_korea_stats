@@ -40,12 +40,12 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Air kills in one life: everything since the last death or capture, the fatal sortie included."),
     ),
     "sortie_kills": (gettext_lazy("Ace of the Sortie"), gettext_lazy("Air kills in a single sortie.")),
-    "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills in total, all sorties together.")),
+    "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills over your career, all sorties together.")),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
         gettext_lazy("Enemy bombers, attackers and transports flown by other pilots, shot down."),
     ),
-    "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed in total.")),
+    "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed over your career.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),
     "survivor": (
         gettext_lazy("Ironman"),
@@ -60,7 +60,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Calendar weeks in a row (Monday to Sunday, UTC) with at least one sortie."),
     ),
     "frequent_flyer": (gettext_lazy("Frequent Flyer"), gettext_lazy("Sorties flown: the aircraft took off.")),
-    "flight_hours": (gettext_lazy("Hours Aloft"), gettext_lazy("Hours in the air, all sorties together.")),
+    "flight_hours": (
+        gettext_lazy("Hours Aloft"),
+        gettext_lazy("Hours in the air over your career, all sorties together."),
+    ),
     "type_veteran": (
         gettext_lazy("Type Veteran"),
         gettext_lazy("Hours in the air in the one aircraft type flown most."),
@@ -97,15 +100,17 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     ),
     "shame_taxi": (
         gettext_lazy("Ramp Rash"),
-        gettext_lazy("Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."),
+        gettext_lazy(
+            "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
+        ),
     ),
     "shame_friendly": (
         gettext_lazy("Wrong Team"),
-        gettext_lazy("Friendly-fire kills. The markings are small and the sky is crowded."),
+        gettext_lazy("Friendly-fire kills over your career. The markings are small and the sky is crowded."),
     ),
     "shame_strafed": (
         gettext_lazy("Sitting Duck"),
-        gettext_lazy("Aircraft destroyed on the ground by an attacker: wrong place, wrong time."),
+        gettext_lazy("Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."),
     ),
     "shame_crashed": (
         gettext_lazy("Hard Landing"),
@@ -113,6 +118,29 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     ),
 }
 
+# The per-tour variants of the cumulative medals (doc 17, maintainer 2026-10-05: "rename the tour variants slightly so
+# this isn't so confusing"): the name is "Tour <career name>", the description says "in one tour". `TEXTS` holds the
+# career (all-time) words.
+TOUR_TEXTS: Mapping[str, tuple[Label, Label]] = {
+    "career_kills": (gettext_lazy("Tour Sky Hunter"), gettext_lazy("Air kills in one tour, all sorties together.")),
+    "tank_buster": (gettext_lazy("Tour Tank Buster"), gettext_lazy("Tanks destroyed in one tour.")),
+    "flight_hours": (
+        gettext_lazy("Tour Hours Aloft"),
+        gettext_lazy("Hours in the air in one tour, all sorties together."),
+    ),
+    "shame_taxi": (
+        gettext_lazy("Tour Ramp Rash"),
+        gettext_lazy("Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."),
+    ),
+    "shame_friendly": (
+        gettext_lazy("Tour Wrong Team"),
+        gettext_lazy("Friendly-fire kills in one tour. The markings are small and the sky is crowded."),
+    ),
+    "shame_strafed": (
+        gettext_lazy("Tour Sitting Duck"),
+        gettext_lazy("Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."),
+    ),
+}
 
 RARE_BELOW = 5.0
 """Percent of pilots below which a tier counts as rare (a ring)."""
@@ -260,17 +288,19 @@ class MedalSet:
         return bool(self.medals or self.ribbons or self.shame)
 
 
-def words(config: AchievementConfig, key: str) -> tuple[Label, Label]:
+def words(config: AchievementConfig, key: str, *, all_time: bool = True) -> tuple[Label, Label]:
     """The name and description of `key`: the admin's text for the active language when there is one (plain text, the
-    templates escape it), else the built-in translated text."""
-    name, description = TEXTS[key]
+    templates escape it), else the built-in translated text. A cumulative medal has two variants: the career one
+    (`all_time`, `TEXTS`) and the per-tour one (`TOUR_TEXTS`), each with its own admin override."""
+    tour = not all_time and key in TOUR_TEXTS
+    name, description = TOUR_TEXTS[key] if tour else TEXTS[key]
     language = get_language() or "en"
-    return config.name(key, language) or name, config.description(key, language) or description
+    return config.name(key, language, tour=tour) or name, config.description(key, language, tour=tour) or description
 
 
 def info(achievement: Achievement, config: AchievementConfig, *, all_time: bool = False) -> MedalInfo:
     """`achievement` as the overview shows it in a scope: `all_time` (no tour) shows the all-time tiers."""
-    name, description = words(config, achievement.key)
+    name, description = words(config, achievement.key, all_time=all_time)
     tiers = tuple(
         Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n, all_time=all_time))
         for n in range(1, achievement.top_tier + 1)
@@ -293,7 +323,7 @@ def _style(key: str) -> int:
 def _medal(
     row: PlayerAchievement, achievement: Achievement, holdings: Mapping[HoldingKey, Holding], config: AchievementConfig
 ) -> Medal:
-    name, description = words(config, achievement.key)
+    name, description = words(config, achievement.key, all_time=row.tour_id is None)
     return Medal(
         key=row.key,
         name=name,

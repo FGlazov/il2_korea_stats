@@ -1,11 +1,12 @@
 """The admin's Achievements page: the rows it shows and the parsing of its one form (FR-WEB-26, doc 17; doc 16).
 
 Form field names, per achievement `<key>`: `on-<key>` (checkbox), `name-<key>-<lang>` and `desc-<key>-<lang>` (custom
-text, blank = the built-in translated one), `thr-<key>-<n>` (threshold of tier n, all blank = the built-in ones), and
-`reset` (the "Reset to default" submit buttons, value = the key: that achievement goes back to the built-in switch,
-words and thresholds, whatever else was typed in its fields). Everything is plain text (the templates escape it);
-nothing is saved when anything is invalid (`parse_form` returns the errors and the typed thresholds, so the form
-comes back as typed)."""
+text, blank = the built-in translated one; a cumulative medal has a second pair, `tname-` and `tdesc-`, for its per-tour
+variant: `name-`/`desc-` are then the career (all-time) words), `thr-<key>-<n>` (threshold of tier n, all blank = the
+built-in ones), and `reset` (the "Reset to default" submit buttons, value = the key: that achievement goes back to the
+built-in switch, words and thresholds, whatever else was typed in its fields). Everything is plain text (the templates
+escape it); nothing is saved when anything is invalid (`parse_form` returns the errors and the typed thresholds, so
+the form comes back as typed)."""
 
 import re
 from collections.abc import Mapping
@@ -47,6 +48,9 @@ class AchievementRow:
     all_time_thresholds: tuple[int, ...]  # a cumulative medal's all-time tiers (the wanted ones x the factor)
     all_time_factor: int
     all_time_only: bool  # no tour view: its thresholds are the all-time ones
+    tour_title: str  # a cumulative medal's per-tour name (built-in, the admin's language); "" for the others
+    tour_default_description: str
+    tour_texts: tuple[LanguageText, ...]  # the admin's per-tour names and descriptions; () for the others
 
 
 def _clean(text: str) -> str:
@@ -72,6 +76,20 @@ def build_rows(config: AchievementConfig, typed: Mapping[str, tuple[str, ...]] |
             )
             for code, language in languages
         )
+        tour_words = medals.TOUR_TEXTS.get(a.key)
+        tour_texts = (
+            tuple(
+                LanguageText(
+                    code,
+                    language,
+                    config.tour_names.get(a.key, {}).get(code, ""),
+                    config.tour_descriptions.get(a.key, {}).get(code, ""),
+                )
+                for code, language in languages
+            )
+            if tour_words
+            else ()
+        )
         on = config.wanted.enabled(a.key)
         applied_on = config.applied.enabled(a.key)
         rows.append(
@@ -85,11 +103,16 @@ def build_rows(config: AchievementConfig, typed: Mapping[str, tuple[str, ...]] |
                 default_thresholds=a.thresholds,
                 thresholds=(typed or {}).get(a.key) or tuple(str(n) for n in wanted),
                 texts=texts,
-                customised=(not on or wanted != a.thresholds or any(t.name or t.description for t in texts)),
+                customised=(
+                    not on or wanted != a.thresholds or any(t.name or t.description for t in (*texts, *tour_texts))
+                ),
                 changes_rows=on != applied_on or config.applied.thresholds.get(a.key, a.thresholds) != wanted,
                 all_time_thresholds=tuple(ALL_TIME_FACTOR * n for n in wanted) if a.cumulative else (),
                 all_time_factor=ALL_TIME_FACTOR,
                 all_time_only=a.all_time_only,
+                tour_title=str(tour_words[0]) if tour_words else "",
+                tour_default_description=str(tour_words[1]) if tour_words else "",
+                tour_texts=tour_texts,
             )
         )
     return rows
@@ -122,13 +145,18 @@ def parse_form(
     thresholds: dict[str, tuple[int, ...]] = {}
     names: dict[str, dict[str, str]] = {}
     descriptions: dict[str, dict[str, str]] = {}
+    tour_names: dict[str, dict[str, str]] = {}
+    tour_descriptions: dict[str, dict[str, str]] = {}
     for a in ACHIEVEMENTS:
         if a.key in reset:
             continue
         title = str(medals.TEXTS[a.key][0])
         if not post.get(f"on-{a.key}"):
             off.add(a.key)
-        for field, store, limit in (("name", names, MAX_NAME), ("desc", descriptions, MAX_DESCRIPTION)):
+        fields = [("name", names, MAX_NAME), ("desc", descriptions, MAX_DESCRIPTION)]
+        if a.key in medals.TOUR_TEXTS:  # the per-tour variant of a cumulative medal
+            fields += [("tname", tour_names, MAX_NAME), ("tdesc", tour_descriptions, MAX_DESCRIPTION)]
+        for field, store, limit in fields:
             for code in languages:
                 text = _clean(post.get(f"{field}-{a.key}-{code}", ""))
                 if not text:
@@ -153,7 +181,14 @@ def parse_form(
             errors.append(_problem_text(problem, title))
         elif values != a.thresholds:
             thresholds[a.key] = values
-    config = AchievementConfig(Rules(frozenset(off), thresholds), current.applied, _texts(names), _texts(descriptions))
+    config = AchievementConfig(
+        Rules(frozenset(off), thresholds),
+        current.applied,
+        _texts(names),
+        _texts(descriptions),
+        _texts(tour_names),
+        _texts(tour_descriptions),
+    )
     return config, errors, typed if errors else {}
 
 
