@@ -52,12 +52,12 @@ from il2ks.db.models import (
 )
 from il2ks.db.site import bump_data_version
 from il2ks.ingest.counters import counted_sorties
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import sync_rows, update_rows
 from il2ks.ingest.lock import LockBusyError, WriterLock
 
 log = logging.getLogger(__name__)
 
-CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
+CHUNK = 2000  # players per batch: far below the bound-parameter limit (32766 on SQLite 3.32+); fewer, bigger queries
 STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER, ObjectClass.TRANSPORT)
 _FIELDS = ("earned_at", "sortie_id", "mission_id")
 
@@ -197,10 +197,12 @@ def rollup_achievements(
     active = {a.key: a for a in (applied_rules().active() if achievements is None else achievements)}
     rows = PlayerAchievement.objects.filter(player_id__in=chunk, tour__isnull=False, key__in=list(active))
     wanted: dict[_Key, _Value] = {}
-    for row in rows.order_by("earned_at", "sortie_id"):
-        key = (row.player_id, None, row.key, row.tier)
-        if key not in wanted and not active[row.key].cumulative:  # the earliest of the tours holding the tier
-            wanted[key] = (row.earned_at, row.sortie_id, row.mission_id)
+    for player_id, medal, tier, earned_at, sortie_id, mission_id in rows.order_by("earned_at", "sortie_id").values_list(
+        "player_id", "key", "tier", "earned_at", "sortie_id", "mission_id"
+    ):
+        key = (player_id, None, medal, tier)
+        if key not in wanted and not active[medal].cumulative:  # the earliest of the tours holding the tier
+            wanted[key] = (earned_at, sortie_id, mission_id)
     order = _tour_order()
     first = 0 if tour_ids is None else min((order.index(t) for t in set(tour_ids) if t in order), default=len(order))
     cumulative = [a for a in active.values() if a.cumulative]
@@ -373,24 +375,13 @@ def _sync(
         rows = rows.filter(tour__isnull=False)
         if tours is not None:
             rows = rows.filter(tour_id__in=tours)
-    existing = {(r.player_id, r.tour_id, r.key, r.tier): r for r in rows}
-    changed: list[PlayerAchievement] = []
-    new: list[PlayerAchievement] = []
-    for (pid, tour_id, key, tier), values in wanted.items():
-        row = existing.pop((pid, tour_id, key, tier), None)
-        if row is None:
-            new.append(
-                PlayerAchievement(
-                    player_id=pid, tour_id=tour_id, key=key, tier=tier, **dict(zip(_FIELDS, values, strict=True))
-                )
-            )
-        elif tuple(getattr(row, f) for f in _FIELDS) != values:
-            for field, value in zip(_FIELDS, values, strict=True):
-                setattr(row, field, value)
-            changed.append(row)
-    PlayerAchievement.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    update_rows(PlayerAchievement, changed, list(_FIELDS))
-    PlayerAchievement.objects.bulk_create(new)
+    sync_rows(
+        PlayerAchievement,
+        rows,
+        ("player_id", "tour_id", "key", "tier"),
+        _FIELDS,
+        {key: dict(zip(_FIELDS, values, strict=True)) for key, values in wanted.items()},
+    )
 
 
 def recompute_holders() -> None:

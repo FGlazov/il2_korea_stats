@@ -55,10 +55,12 @@ class _Cell:
 
 
 def _fold(sums: Totals, row: dict[str, object]) -> None:
+    """Add the counters of an aggregate row to `sums` (a NULL `Sum` adds nothing). Runs tens of thousands of times in a
+    refresh, once per (row, scope): a plain `None` test, since a counter is a number or NULL."""
     for name in COUNTER_FIELDS:
         value = row[name]
-        if isinstance(value, int | float):
-            sums[name] += value
+        if value is not None:
+            sums[name] += value  # pyright: ignore[reportOperatorIssue]
 
 
 def pattern_tour_stats(
