@@ -55,8 +55,14 @@ def header_name(label: str) -> re.Pattern[str]:
 
 
 def settle(page: Page) -> None:
-    """Wait until the htmx swap that follows a change has landed (the network is quiet), before reading a table."""
-    page.wait_for_load_state("networkidle")
+    """Wait until the htmx swap that follows a change has landed, before reading a table or changing the next control.
+
+    Not `wait_for_load_state("networkidle")`: that state is reached once, at the first load, and later htmx requests
+    don't reset it, so it returned at once and a control changed mid-swap was replaced unchanged (CI, 2026-10-05)."""
+    page.wait_for_function(
+        "document.readyState === 'complete'"
+        " && !document.querySelector('.htmx-request, .htmx-swapping, .htmx-settling')"
+    )
 
 
 def column_header(page: Page, label: str) -> Locator:
