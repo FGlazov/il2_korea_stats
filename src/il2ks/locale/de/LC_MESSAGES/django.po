@@ -5342,6 +5342,10 @@ msgstr ""
 "Windows-Dienst bzw. die systemd-Unit neu) und starte es wieder mit: il2ks run"
 
 # llm-draft
+msgid "The numbers may still change until it ends."
+msgstr "Die Zahlen können sich bis zum Ende noch ändern."
+
+# llm-draft
 msgid "The numbers on this page are provisional and can still be updated."
 msgstr "Die Zahlen auf dieser Seite sind vorläufig und können sich noch ändern."
 
@@ -5575,10 +5579,6 @@ msgstr "Dieser Ort ist keine gewöhnliche Datei."
 # llm-draft
 msgid "This mission is still running."
 msgstr "Diese Mission läuft noch."
-
-# llm-draft
-msgid "This mission is still running: these numbers may change when it ends."
-msgstr "Diese Mission läuft noch: Diese Zahlen können sich am Ende noch ändern."
 
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
