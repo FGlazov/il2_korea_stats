@@ -118,16 +118,16 @@ def test_attack_without_any_release_is_zero() -> None:
     assert _a(_strike()).time_on_target_s == 0.0
 
 
-def test_release_near_an_enemy_object_counts_the_lead_in() -> None:
+def test_release_near_an_enemy_object_counts_the_lead_in_and_the_trail() -> None:
     sc = _strike()
     _release(sc, 100)
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
 
 
 def test_rocket_salvo_counts_like_a_store() -> None:
     sc = _strike(bombs=0, rockets=6)
     _release(sc, 100, rocket=True)
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
 
 
 def test_release_far_from_every_enemy_object_does_not_count() -> None:
@@ -140,18 +140,18 @@ def test_altitude_is_ignored() -> None:
     """2.5 km up and 1.1 km to the side: 2.7 km away in 3D, but the rule is horizontal only (so is 4 km up)."""
     sc = _strike()
     _release(sc, 100, Pos(21_000.0, 4_000.0, 20_500.0))
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
 
 
 def test_radius_is_horizontal_and_a_config_value() -> None:
     near, outside = Pos(22_900.0, 800.0, 20_000.0), Pos(23_100.0, 800.0, 20_000.0)
-    for pos, expected in ((near, 60.0), (outside, 0.0)):
+    for pos, expected in ((near, 120.0), (outside, 0.0)):
         sc = _strike()
         _release(sc, 100, pos)
         assert _a(sc).time_on_target_s == expected
     sc = _strike()
     _release(sc, 100, outside)
-    assert _a(sc, ReplayRules(tot_target_radius_m=4_000.0)).time_on_target_s == 60.0
+    assert _a(sc, ReplayRules(tot_target_radius_m=4_000.0)).time_on_target_s == 120.0
 
 
 def test_target_in_the_next_grid_cell_is_found() -> None:
@@ -161,7 +161,7 @@ def test_target_in_the_next_grid_cell_is_found() -> None:
     _loadout(sc, bombs=2, rockets=0)
     sc.declare(0, 400, "Block_Test", 501, pos=Pos(2_999.0, 30.0, -2_999.0))
     _release(sc, 100, Pos(3_001.0, 900.0, -3_001.0))
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
 
 
 def test_friendly_objects_do_not_count() -> None:
@@ -180,7 +180,7 @@ def test_every_ground_class_is_a_target(kind: str) -> None:
     _loadout(sc, bombs=2, rockets=0)
     sc.declare(0, 400, kind, 501, pos=TARGET)
     _release(sc, 100)
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
 
 
 @pytest.mark.parametrize("kind", ["MiG-15bis", "BotPlanePilot_Test", "CParachute", "Unknown_Thing"])
@@ -207,7 +207,7 @@ def test_destroyed_target_does_not_count_but_a_live_one_did() -> None:
     _release(sc, 100)
     sc.kill(120, 100, 400, pos=TARGET)
     _release(sc, 140)  # the target is gone; the other enemy object is out of range
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 120.0
     sc = _strike()
     sc.kill(50, 100, 400, pos=TARGET)
     _release(sc, 100)
@@ -220,7 +220,7 @@ def test_target_that_appears_later_does_not_count_earlier_releases() -> None:
     _release(sc, 100, over_truck)
     sc.declare(200, 401, "Truck_Test", 501, pos=Pos(60_000.0, 30.0, 60_000.0))
     _release(sc, 250, over_truck)
-    assert _a(sc).time_on_target_s == 60.0  # only the second release has a target; its pass starts 60 s before
+    assert _a(sc).time_on_target_s == 120.0  # only the second release has a target: 60 s before and 60 s after
 
 
 def test_a_moving_target_is_where_the_last_damage_line_put_it() -> None:
@@ -231,14 +231,14 @@ def test_a_moving_target_is_where_the_last_damage_line_put_it() -> None:
     sc.damage(50, 100, 401, 0.2, pos=Pos(40_000.0, 30.0, 40_000.0))  # it drove 28 km
     _release(sc, 100, near_old)  # after: nothing there any more
     _release(sc, 400, near_new)
-    # first attack: takeoff (5 s) to 20 s; second, more than 300 s later: 60 s
-    assert _a(sc).time_on_target_s == 15.0 + 60.0
+    # first attack: takeoff (5 s) to 20 s + 60 s trail; second, more than 300 s later: 60 + 60 s
+    assert _a(sc).time_on_target_s == 15.0 + 60.0 + 120.0
 
 
 def test_lead_in_never_starts_before_the_takeoff() -> None:
     sc = _strike(up=20)
     _release(sc, 45)
-    assert _a(sc).time_on_target_s == 25.0
+    assert _a(sc).time_on_target_s == 85.0  # 20 s to 105 s
 
 
 def test_lead_in_is_not_taken_before_the_takeoff_of_a_resupplied_leg() -> None:
@@ -247,7 +247,7 @@ def test_lead_in_is_not_taken_before_the_takeoff_of_a_resupplied_leg() -> None:
     sc.land(200, 100)
     sc.takeoff(500, 100)
     _release(sc, 520)
-    assert _a(sc, end=700).time_on_target_s == 60.0 + 20.0
+    assert _a(sc, end=700).time_on_target_s == 120.0 + 80.0  # 40-160 s; 500-580 s (takeoff to release 20 s, trail 60 s)
 
 
 def test_air_start_lead_in_starts_at_the_spawn() -> None:
@@ -256,28 +256,28 @@ def test_air_start_lead_in_starts_at_the_spawn() -> None:
     sc.player(10, 100, 101, 1, in_air=0)
     _loadout(sc, bombs=2, rockets=0)
     _release(sc, 40)
-    assert _a(sc).time_on_target_s == 30.0
+    assert _a(sc).time_on_target_s == 90.0  # 10 s to 100 s
 
 
 def test_releases_close_together_are_one_attack() -> None:
     sc = _strike()
     _release(sc, 100)
     _release(sc, 250)  # 150 s later, within the 300 s gap
-    assert _a(sc).time_on_target_s == 210.0  # 40 s to 250 s
+    assert _a(sc).time_on_target_s == 270.0  # 40 s to 310 s
 
 
 def test_releases_further_apart_than_the_gap_are_two_attacks() -> None:
     sc = _strike()
     _release(sc, 100)
     _release(sc, 500)  # 400 s later
-    assert _a(sc).time_on_target_s == 120.0
+    assert _a(sc).time_on_target_s == 240.0
 
 
 def test_the_gap_is_a_config_value() -> None:
     sc = _strike()
     _release(sc, 100)
     _release(sc, 250)
-    assert _a(sc, ReplayRules(tot_pass_gap_s=100.0)).time_on_target_s == 120.0
+    assert _a(sc, ReplayRules(tot_pass_gap_s=100.0)).time_on_target_s == 240.0
 
 
 def test_lead_in_does_not_overlap_the_previous_attack() -> None:
@@ -285,7 +285,7 @@ def test_lead_in_does_not_overlap_the_previous_attack() -> None:
     sc = _strike()
     _release(sc, 400)
     _release(sc, 520)  # 120 s later: a new attack whose 300 s lead-in would reach back into the first one
-    assert _a(sc, rules).time_on_target_s == 300.0 + 120.0  # 100 s to 400 s, then 400 s to 520 s
+    assert _a(sc, rules).time_on_target_s == 300.0 + 180.0  # 100 s to 400 s (the trail stops where the next run-in starts), then 400 s to 580 s
 
 
 def test_far_releases_between_near_ones_do_not_bridge_a_gap() -> None:
@@ -293,7 +293,7 @@ def test_far_releases_between_near_ones_do_not_bridge_a_gap() -> None:
     _release(sc, 100)
     _release(sc, 300, FAR_FROM_TARGET)  # not counted, so it can't join the passes
     _release(sc, 500)
-    assert _a(sc).time_on_target_s == 120.0
+    assert _a(sc).time_on_target_s == 240.0
 
 
 def test_releases_after_the_aircraft_was_lost_do_not_count() -> None:
@@ -301,7 +301,7 @@ def test_releases_after_the_aircraft_was_lost_do_not_count() -> None:
     _release(sc, 100)
     sc.kill(110, 400, 100)  # shot down by an enemy object
     _release(sc, 130)
-    assert _a(sc).time_on_target_s == 60.0
+    assert _a(sc).time_on_target_s == 70.0  # 40 s to the loss at 110 s
 
 
 def test_releases_after_the_sortie_end_do_not_count() -> None:
@@ -309,4 +309,65 @@ def test_releases_after_the_sortie_end_do_not_count() -> None:
     _release(sc, 100)
     sc.end(200, 100, 101)
     _release(sc, 250)
-    assert by_acct(run(sc.events, _Catalog()), 1).time_on_target_s == 60.0
+    assert by_acct(run(sc.events, _Catalog()), 1).time_on_target_s == 120.0
+
+
+# --- the trail after the last release (maintainer, 2026-10-05) -------------------------------------------------------
+
+
+def test_a_single_release_counts_the_run_in_and_the_trail() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    assert _a(sc).time_on_target_s == 60.0 + 60.0
+
+
+def test_two_releases_30_s_apart_are_run_in_plus_gap_plus_trail() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    _release(sc, 130)
+    assert _a(sc).time_on_target_s == 60.0 + 30.0 + 60.0
+
+
+def test_the_trail_is_cut_at_the_loss() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    sc.kill(120, 400, 100)
+    assert _a(sc).time_on_target_s == 60.0 + 20.0
+
+
+def test_the_trail_is_cut_at_the_sortie_end() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    sc.end(130, 100, 101)
+    assert by_acct(run(sc.events, _Catalog()), 1).time_on_target_s == 60.0 + 30.0
+
+
+def test_the_trail_is_cut_at_the_landing() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    sc.land(125, 100)
+    assert _a(sc).time_on_target_s == 60.0 + 25.0
+
+
+def test_the_trail_is_a_config_value() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    assert _a(sc, ReplayRules(tot_trail_s=10.0)).time_on_target_s == 60.0 + 10.0
+    sc = _strike()
+    _release(sc, 100)
+    assert _a(sc, ReplayRules(tot_trail_s=0.0)).time_on_target_s == 60.0
+
+
+def test_attacks_400_s_apart_do_not_overlap() -> None:
+    sc = _strike()
+    _release(sc, 100)
+    _release(sc, 500)
+    assert _a(sc).time_on_target_s == 2 * (60.0 + 60.0)
+
+
+def test_a_trail_never_runs_into_the_next_run_in() -> None:
+    rules = ReplayRules(tot_trail_s=300.0, tot_lead_in_s=60.0, tot_pass_gap_s=100.0)
+    sc = _strike()
+    _release(sc, 100)
+    _release(sc, 300)  # 200 s later: a new attack, its run-in starts at 240 s
+    assert _a(sc, rules).time_on_target_s == (240 - 40) + (600 - 240)  # the first attack stops at 240 s; the second's trail hits the end
