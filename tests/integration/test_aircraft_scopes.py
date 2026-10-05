@@ -18,6 +18,7 @@ from il2ks.db.models import (
     AircraftMatchup,
     AircraftMods,
     AircraftPayload,
+    AircraftRole,
     GameObject,
     MissionAircraftAmmo,
     PlayerAircraftScope,
@@ -324,3 +325,19 @@ def test_page_sections_all_follow_the_filters(client: Client) -> None:
     assert without_suit["matchups"] == []  # the unmodified sortie was shot down by an AI aircraft
     air_suit_october = page(f"tour={october.pk}&role=air_superiority&mod5=with")
     assert (air_suit_october["tile"], air_suit_october["hits"]) == (1, "1")
+
+
+def test_a_scoped_self_pairing_takes_kills_from_the_killer_row_and_losses_from_the_victim_row() -> None:
+    """Two Sabres meeting: with a role filter both the killer-scoped and the victim-scoped row of the pair match the
+    type's page, and each must feed only its own column (the last row used to win both)."""
+    sabre = GameObject.objects.create(log_name="F-86F-30", display_name="F-86F", cls="fighter")
+    for side, kills in (("killer", 5), ("victim", 2)):
+        AircraftMatchup.objects.create(
+            killer_aircraft=sabre, victim_aircraft=sabre, scoped_side=side, combat_role=AIR, kills=kills
+        )
+
+    from il2ks.queries.aircraft import matchups
+
+    table = matchups(sabre, role=AircraftRole.AIR_SUPERIORITY)
+
+    assert [(m.enemy.pk, m.kills, m.losses) for m in table.rows] == [(sabre.pk, 5, 2)]
