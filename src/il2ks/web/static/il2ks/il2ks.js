@@ -110,4 +110,55 @@
   }
   window.addEventListener("resize", closeHints);
   document.addEventListener("scroll", closeHints, true);
+
+  // A list refresh by htmx (a ticked extra column, a sort, a filter) replaces the whole results region, and a new table
+  // starts scrolled to the left: the new columns come in on the right, so a visitor who scrolled over would lose the
+  // place. Remember each table's horizontal scroll and the focused extra-columns checkbox before the swap, put them back
+  // after it (same page only: another page's table has other columns).
+  var saved = null;
+  document.addEventListener("htmx:beforeSwap", function (event) {
+    var target = event.detail && event.detail.target;
+    if (!target || target.id !== "results") { saved = null; return; }
+    var active = document.activeElement;
+    var info = event.detail.pathInfo, same = true;
+    try { same = !info || new URL(info.finalRequestPath, window.location.href).pathname === window.location.pathname; } catch (e) { /* keep */ }
+    saved = {
+      same: same,
+      left: Array.prototype.map.call(target.querySelectorAll(".table-wrap"), function (box) { return box.scrollLeft; }),
+      focus: active && active.id && active.closest("#columns-picker") ? active.id : ""
+    };
+  });
+  document.addEventListener("htmx:afterSwap", function (event) {
+    var state = saved;
+    saved = null;
+    var region = document.getElementById("results");
+    if (!state || !region) { return; }
+    if (state.same) {
+      region.querySelectorAll(".table-wrap").forEach(function (box, index) {
+        if (state.left[index]) { box.scrollLeft = state.left[index]; }
+      });
+    }
+    if (state.focus) {
+      var again = document.getElementById(state.focus);
+      if (again && document.activeElement !== again) { again.focus({ preventScroll: true }); }
+    }
+  });
+
+  // Whole-row links (.stretched-link) cover the row with a pseudo-element, but a table's sticky first column is its own
+  // positioned box and only covers itself: a click elsewhere on the row follows the link too (not on another link or
+  // control, not when text is being selected, and with the usual modifier keys for a new tab).
+  document.addEventListener("click", function (event) {
+    var target = event.target;
+    if (!(target instanceof Element) || event.defaultPrevented || event.button !== 0) { return; }
+    var row = target.closest(".data-table tbody tr");
+    if (!row || target.closest("a, button, input, select, textarea, label, summary")) { return; }
+    var link = row.querySelector("a.stretched-link");
+    if (!link) { return; }
+    var selection = window.getSelection && window.getSelection();
+    if (selection && !selection.isCollapsed) { return; }
+    link.dispatchEvent(new MouseEvent("click", {
+      bubbles: true, cancelable: true, view: window,
+      ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey, altKey: event.altKey
+    }));
+  });
 })();

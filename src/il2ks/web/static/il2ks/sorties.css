@@ -62,8 +62,15 @@
 .timeline__row--kill td { background: color-mix(in srgb, var(--il2-green) 24%, transparent) !important; }
 .timeline__row--assist td { background: color-mix(in srgb, var(--il2-green) 12%, transparent) !important; }
 .timeline__row--death td { background: color-mix(in srgb, var(--il2-red) 24%, transparent) !important; }
-.timeline__row--kill td:first-child { box-shadow: inset 4px 0 0 var(--il2-green); }
-.timeline__row--death td:first-child { box-shadow: inset 4px 0 0 var(--il2-red); }
+.data-table .timeline__row--kill td:first-child { box-shadow: inset 4px 0 0 var(--il2-green), 1px 0 0 var(--il2-border-strong); }
+.data-table .timeline__row--death td:first-child { box-shadow: inset 4px 0 0 var(--il2-red), 1px 0 0 var(--il2-border-strong); }
+/* The sticky first cell (site.css) must be opaque: the row's tint is layered over the plain surface there. */
+.data-table .timeline__row--bad td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-red) 7%, transparent), color-mix(in srgb, var(--il2-red) 7%, transparent)), var(--il2-surface) !important; }
+.data-table .timeline__row--hit-given td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-green) 4%, transparent), color-mix(in srgb, var(--il2-green) 4%, transparent)), var(--il2-surface) !important; }
+.data-table .timeline__row--hit-taken td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-red) 4%, transparent), color-mix(in srgb, var(--il2-red) 4%, transparent)), var(--il2-surface) !important; }
+.data-table .timeline__row--kill td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-green) 24%, transparent), color-mix(in srgb, var(--il2-green) 24%, transparent)), var(--il2-surface) !important; }
+.data-table .timeline__row--assist td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-green) 12%, transparent), color-mix(in srgb, var(--il2-green) 12%, transparent)), var(--il2-surface) !important; }
+.data-table .timeline__row--death td:first-child { background: linear-gradient(color-mix(in srgb, var(--il2-red) 24%, transparent), color-mix(in srgb, var(--il2-red) 24%, transparent)), var(--il2-surface) !important; }
 .timeline__row--kill .timeline__event, .timeline__row--death .timeline__event { font-weight: 700; }
 /* muted text must stay readable (4.5:1) on the stronger tints */
 .timeline__row--kill, .timeline__row--assist, .timeline__row--death { --il2-muted: var(--il2-text); }

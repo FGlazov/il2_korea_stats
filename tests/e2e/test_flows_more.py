@@ -83,7 +83,7 @@ def test_two_optional_columns_sorted_in_turn_and_paged_keep_the_view_through_a_r
     """Players: add K/D and Air score, sort by one then the other, go to page 2; the address keeps both columns, the
     sort and the page, and a reload restores the view."""
     page.goto("/players/?q=")
-    page.get_by_text("Columns", exact=True).click()
+    page.get_by_text("Extra columns", exact=True).click()
     for label in ("K/D", "Air score"):
         page.get_by_role("checkbox", name=label, exact=True).check()
         expect(column_header(page, label)).to_be_visible()
@@ -159,7 +159,7 @@ def test_a_deep_link_restores_tour_sort_and_columns_for_someone_else(
     tour_select(page).select_option(label="All time")
     expect(page).to_have_url(re.compile(r"tour=all"))
     settle(page)
-    page.get_by_text("Columns", exact=True).click()
+    page.get_by_text("Extra columns", exact=True).click()
     for label in ("Bailouts", "Assists"):
         page.get_by_role("checkbox", name=label, exact=True).check()
         expect(column_header(page, label)).to_be_visible()

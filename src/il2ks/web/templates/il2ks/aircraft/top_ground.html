@@ -8,7 +8,7 @@
   <h2>{% translate "Top attack pilots" %}</h2>
   <p class="muted">{% blocktranslate with sorties=rules.min_attack_sorties minutes=rules.min_time_on_target_minutes|num %}Ground score per hour on target in this aircraft. Pilots with at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}</p>
   <div class="table-wrap table-wrap--flat">
-    <table class="data-table">
+    <table class="data-table data-table--sticky-2">
       <thead>
         <tr>
           <th scope="col" class="num">#</th>
