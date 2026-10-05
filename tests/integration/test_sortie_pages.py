@@ -20,6 +20,7 @@ from il2ks.core.replay.result import (
     TimelineEntry,
 )
 from il2ks.db.models import HEAVY_SORTIE_COLUMNS, GameObject, Kill, Mission, Player, PlayerSortie
+from il2ks.db.site import get_site_settings
 from il2ks.queries.missions import mission_sorties
 from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.players import recent_sorties
@@ -356,7 +357,7 @@ def test_the_header_shows_a_ram_badge_only_for_a_ram_sortie(client: Client) -> N
     head = html.split('<header class="sortie-head">')[1].split("</header>")[0]
     assert "Collided with" in head
     assert "Bravo" in head.split("Collided with")[1].split('"')[0]
-    assert "may occasionally be wrong" in html  # the note under the timeline
+    assert "within 0.5 s and 15 m" in html  # the note under the timeline, with the rules in force
 
     save(ram_duel(ram=False))
     assert "Collided with" not in detail(client, pk_of(1))
@@ -733,3 +734,12 @@ def test_a_sortie_without_damage_has_no_damage_section(client: Client) -> None:
     save(mission((sortie(0, 1),)))
 
     assert 'id="damage"' not in detail(client, pk_of(1))
+
+
+def test_the_ram_note_names_the_applied_thresholds(client: Client) -> None:
+    row = get_site_settings()
+    row.rule_settings_applied = {"rules.ram_window_s": 1.0, "rules.ram_distance_m": 25.0}
+    row.save()
+    save(ram_duel())
+
+    assert "within 1 s and 25 m" in detail(client, pk_of(1))

@@ -4294,12 +4294,13 @@ msgid "Rams"
 msgstr "Тараны"
 
 # llm-draft
+#, python-format
 msgid ""
-"Rams are detected from the log (two aircraft lost within half a second and 15 m of each other) and may occasionally "
-"be wrong."
+"Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) and may "
+"occasionally be wrong."
 msgstr ""
-"Тараны определяются по журналу (два самолёта потеряны с разницей не более полусекунды и в пределах 15 м друг от "
-"друга) и иногда могут быть определены ошибочно."
+"Тараны определяются по журналу (два самолёта потеряны с разницей не более %(seconds)s с и в пределах %(meters)s м "
+"друг от друга) и иногда могут быть определены ошибочно."
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."

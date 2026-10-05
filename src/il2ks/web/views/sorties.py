@@ -17,12 +17,16 @@ from django.urls import reverse
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
+from il2ks.config import RuleSet
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
 from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.stat_marks import sortie_thresholds
 from il2ks.queries.tours import is_quiet_tour, pilot_absence, tour_choice_from, tour_id_query, tour_query
+from il2ks.rule_settings import effective_rules
 from il2ks.web import columns, display, object_names
+from il2ks.web.admin_rules import base_rules
+from il2ks.web.context_processors import site_row
 from il2ks.web.sortie_view import (
     Lookup,
     build_detail,
@@ -107,6 +111,24 @@ def _og_description(sortie: PlayerSortie) -> str:
     return ", ".join(parts)
 
 
+def _plain(value: float) -> str:
+    """A rule number without trailing zeros, in the viewer's number format (0.5 -> "0.5" / "0,5", 15.0 -> "15")."""
+    return display.num(value, 0 if float(value).is_integer() else min(3, len(f"{value:.3f}".rstrip("0").split(".")[1])))
+
+
+def ram_note(request: HttpRequest) -> str:
+    """The line under the timeline of a sortie with a ram, with the thresholds in force (the admin's applied values
+    over the file's; the site row is already read for the page, no extra query)."""
+    rules: RuleSet = effective_rules(base_rules(), site_row(request).rule_settings_applied)
+    toggles = rules.replay.toggles
+    return _(
+        # Translators: note under the sortie timeline when the sortie had a mid-air collision (a "ram"); the two numbers
+        # are the admin-set limits: seconds (can be a fraction like 0.5) and meters between the two aircraft's losses
+        "Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) "
+        "and may occasionally be wrong."
+    ) % {"seconds": _plain(toggles.ram_window_s), "meters": _plain(toggles.ram_distance_m)}
+
+
 def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """`/sorties/<pk>/`: the core page. Context: sortie (with player, mission, aircraft), detail
     (`il2ks.web.sortie_view.Detail`), damage_page (20 rows a page, `?page_damage=`; OQ-96; the timeline is
@@ -148,6 +170,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "damage_param": DAMAGE_PARAM,
             "damage_open": DAMAGE_PARAM in request.GET,
             "sortie_marks": marks,
+            "ram_note": ram_note(request) if detail.has_ram else "",
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (

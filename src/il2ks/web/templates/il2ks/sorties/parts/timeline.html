@@ -7,5 +7,5 @@
   the burst; sorties processed before these rows existed simply have none.
 {% endcomment %}<h2 id="timeline">{% translate "Timeline" %}</h2>
 {% include "il2ks/sorties/parts/timeline_table.html" with rows=detail.timeline %}
-{% if detail.has_ram %}<p class="timeline-note muted"><small>{% translate "Rams are detected from the log (two aircraft lost within half a second and 15 m of each other) and may occasionally be wrong." %}</small></p>
+{% if detail.has_ram %}<p class="timeline-note muted"><small>{{ ram_note }}</small></p>
 {% endif %}<p class="timeline-note"><small>{% blocktranslate with n=detail.timeline_events|num %}{{ n }} events. Times count from the spawn; the time of day is shown next to them.{% endblocktranslate %}</small></p>

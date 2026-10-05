@@ -4302,11 +4302,12 @@ msgid "Rams"
 msgstr "Rammstöße"
 
 # llm-draft
+#, python-format
 msgid ""
-"Rams are detected from the log (two aircraft lost within half a second and 15 m of each other) and may occasionally "
-"be wrong."
+"Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) and may "
+"occasionally be wrong."
 msgstr ""
-"Rammstöße werden aus dem Log erkannt (zwei Flugzeuge, die innerhalb einer halben Sekunde und 15 m voneinander "
+"Rammstöße werden aus dem Log erkannt (zwei Flugzeuge, die innerhalb von %(seconds)s s und %(meters)s m voneinander "
 "verloren gehen) und können gelegentlich falsch sein."
 
 # llm-draft

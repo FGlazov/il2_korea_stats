@@ -4275,12 +4275,13 @@ msgid "Rams"
 msgstr "Colisões"
 
 # llm-draft
+#, python-format
 msgid ""
-"Rams are detected from the log (two aircraft lost within half a second and 15 m of each other) and may occasionally "
-"be wrong."
+"Rams are detected from the log (two aircraft lost within %(seconds)s s and %(meters)s m of each other) and may "
+"occasionally be wrong."
 msgstr ""
-"Os abalroamentos são detectados a partir do registro (duas aeronaves perdidas com menos de meio segundo e 15 m de "
-"distância entre si) e às vezes podem estar errados."
+"Os abalroamentos são detectados a partir do registro (duas aeronaves perdidas com menos de %(seconds)s s e %(meters)s"
+" m de distância entre si) e às vezes podem estar errados."
 
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
