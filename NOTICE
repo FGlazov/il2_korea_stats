@@ -87,3 +87,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ------------------------------------------------------------------------------
+
+Build-time dependencies (installed from PyPI, not copied into this repository): rjsmin and rcssmin by André Malo,
+Apache License 2.0, minify our own CSS and JavaScript when static files are collected for production.

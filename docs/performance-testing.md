@@ -121,7 +121,10 @@ Deterministic (no timing involved; they only change when a page, stylesheet or s
 
 - **page weight**: for each page of the e2e world, with a cold cache and waiting for the network to go quiet (htmx
   fragments included): number of requests, and decoded bytes of HTML, CSS, JS, fonts, images and in total. Numbers are
-  uncompressed (the dev server doesn't compress; WhiteNoise does in production, roughly a quarter of the size).
+  uncompressed (the dev server doesn't compress; WhiteNoise does in production, roughly a quarter of the size). The e2e
+  server is `il2ks web --dev`, which serves the readable CSS/JS; production minifies our own files first (`collectstatic`,
+  doc 16): own CSS 82 to 59 KB and own JS 17 to 9.7 KB (site.css 54 to 41 KB), so production pages weigh about 30 KB
+  less than the budgets measure; the budgets stay as they are.
 - **no third-party requests**: everything comes from our own origin (no CDN, web fonts or analytics).
 - **render-blocking**: in the `<head>`, only the theme script (`theme-init.js`, it must run before first paint) may block;
   at most 4 stylesheets; no inline scripts.
