@@ -50,18 +50,27 @@ class Level2Batch:
     (`finish` is idempotent). A hard kill (power cut, `kill -9`) loses the in-memory set, but the marker holds every
     tour of the batch: `repair_pending` refreshes those tours and replays the ratings (doc 14)."""
 
-    def __init__(self, total: int, ratings: RatingRules, marks: MarkRules, command: str = "ingest") -> None:
+    def __init__(
+        self, total: int, ratings: RatingRules, marks: MarkRules | Callable[[], MarkRules], command: str = "ingest"
+    ) -> None:
         self.command = command
         self.started = False
         self.total = total
         self.ratings = ratings
-        self.marks = marks
+        self._marks = (
+            marks  # a callable is read when the thresholds are computed (FR-ADM-7: the admin may save new ones)
+        )
         self.done = 0
         self.flushes = 0  # intermediate level-2 passes so far
         self._pending: set[int] = set()  # tours touched since the last level-2 pass
         self._tours: set[int] = set()  # every tour any save touched: the thresholds are rewritten for them at the end
         self._named: set[int] = set()  # the tours whose marker write is known to be committed
         self._saved = 0  # level-1 saves since the last `finish`
+
+    @property
+    def marks(self) -> MarkRules:
+        """The stat-mark rules to compute the thresholds with, as they are now."""
+        return self._marks() if callable(self._marks) else self._marks
 
     def start(self) -> None:
         """Persist the "level 2 may lag" marker before the first save (a hard kill leaves it: `repair_pending`)."""

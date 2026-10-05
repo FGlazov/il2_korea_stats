@@ -22,10 +22,10 @@
       {% if aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
       {% if stats.side %}{% coalition_badge stats.side %}{% endif %}
     </h1>
+    {% tour_select tours tour %}
     <p>{% blocktranslate with pilots=tile.pilots|num count n=tile.pilots %}Flown by {{ pilots }} pilot.{% plural %}Flown by {{ pilots }} pilots.{% endblocktranslate %}</p>
   </div>
 
-  {% tour_select tours tour %}
   {% role_toggle role %}
   {% if mod_filters %}
     {% mod_filter mod_filters %}
@@ -61,7 +61,6 @@
 
   <section>
     <h2>{% translate "Matchups" %}</h2>
-    <p class="muted">{% translate "Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy aircraft this one beats and which beat it." %}</p>
     {% if can_intercept %}
     <p class="tour-bar">
       <span class="tour-toggle" role="group" aria-label="{% translate 'Which kills and losses to count' %}">
@@ -71,10 +70,6 @@
     </p>
     {% endif %}
     {% if intercept %}<p class="muted">{% translate "Only kills where both pilots flew an air superiority sortie (fighter against fighter); attack sorties are left out." %}</p>{% endif %}
-    {% if matchups.best %}
-      <p>{% blocktranslate with enemy=matchups.best.enemy|object_name kills=matchups.best.kills|num losses=matchups.best.losses|num %}Best exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}
-        {% blocktranslate with enemy=matchups.worst.enemy|object_name kills=matchups.worst.kills|num losses=matchups.worst.losses|num %}Worst exchange: against {{ enemy }} ({{ kills }} kills, {{ losses }} losses).{% endblocktranslate %}</p>
-    {% endif %}
     {% results_region %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table aircraft-table">
@@ -104,7 +99,6 @@
       </table>
     </div>
     {% endresults_region %}
-    <p class="muted">{% blocktranslate with n=min_encounters %}K/L is kills per loss against that aircraft. It is shown from {{ n }} kills and losses on; with fewer, a single mission decides the number.{% endblocktranslate %}</p>
   </section>
 
   {% if ground_first %}
@@ -117,21 +111,28 @@
 
   <section>
     <h2>{% translate "Hits to destroy" %}</h2>
-    <p class="muted">{% translate "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted; bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once." %}</p>
+    <p class="muted">{% translate "Gun kills by a single attacker only." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
           <tr>
             <th scope="col">{% translate "Ammunition" %}</th>
-            {% col_th _("Kills") numeric=True hint="hits_instances" %}
+            {% col_th _("Kills") numeric=True hint="mix_instances" %}
             {% col_th _("Average hits") numeric=True hint="hits_average" %}
           </tr>
         </thead>
         <tbody>
           {% if hits.by_ammo %}
             <tr><th scope="row">{% translate "All gun ammunition" %}</th><td class="num">{{ hits.kills }}</td><td class="num">{{ hits.average }}</td></tr>
-            {% for ammo in hits.by_ammo %}
-              <tr><td>{% if ammo.designation %}<span title="{{ ammo.designation }}">{{ ammo.name }}</span>{% else %}{{ ammo.name }}{% endif %}</td><td class="num">{{ ammo.kills }}</td><td class="num">{{ ammo.average }}</td></tr>
+            {% for mix in ammo_mixes %}
+              <tr>
+                <td>{% for part in mix.parts %}{% if not forloop.first %} + {% endif %}{% if part.designation %}<span title="{{ part.designation }}">{{ part.name }}</span>{% else %}{{ part.name }}{% endif %}{% endfor %}</td>
+                <td class="num">{{ mix.instances }}</td>
+                <td class="num">{{ mix.averages }}</td>
+              </tr>
+            {% empty %}
+              {% blocktranslate asvar mixes_empty count n=min_events %}No ammunition mix with at least {{ n }} kill yet.{% plural %}No ammunition mix with at least {{ n }} kills yet.{% endblocktranslate %}
+              {% empty_row 3 mixes_empty %}
             {% endfor %}
           {% else %}
             {% empty_row 3 _("No kill of this aircraft by a single attacker yet.") %}
@@ -139,83 +140,81 @@
         </tbody>
       </table>
     </div>
-    {% if hits.mixes %}
-      <h3>{% translate "Ammunition mixes" %}</h3>
-      <p class="muted">{% translate "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix." %}</p>
-      <div class="table-wrap table-wrap--flat">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">{% translate "Ammunition mix" %}</th>
-              {% col_th _("Kills") numeric=True hint="mix_instances" %}
-              {% col_th _("Average hits") numeric=True hint="hits_average" %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for mix in hits.mixes %}{% include "il2ks/aircraft/parts/ammo_mix_row.html" %}{% endfor %}
-            {% if hits.more_mixes %}
-              <tr><td colspan="3">
-                <details>
-                  <summary>{% blocktranslate count n=hits.more_mixes|length %}Show {{ n }} more mix{% plural %}Show {{ n }} more mixes{% endblocktranslate %}</summary>
-                  <table class="data-table"><tbody>
-                    {% for mix in hits.more_mixes %}{% include "il2ks/aircraft/parts/ammo_mix_row.html" %}{% endfor %}
-                  </tbody></table>
-                </details>
-              </td></tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
+    <div hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true">
+      {% translate "Hits to destroy" as mixes_name %}{% blocktranslate asvar mixes_pages with name=mixes_name %}Pagination: {{ name }}{% endblocktranslate %}
+      {% pagination ammo_mixes param="page_mixes" label=mixes_pages %}
+    </div>
   </section>
 
   <section>
     <h2>{% translate "Loadouts" %}</h2>
-    <p class="muted">{% translate "Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
+    {% if loadout_tabs %}
+      <p class="tour-bar" hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true">
+        <span class="tour-toggle" role="group" aria-label="{% translate 'Which loadouts to show' %}">{% for tab in loadout_tabs %}
+          <a href="{{ tab.href }}" hx-get="{{ tab.href }}"{% if tab.current %} aria-current="true"{% endif %}>{{ tab.label }}</a>{% endfor %}
+        </span>
+      </p>
+    {% endif %}
+    {% if loadout_role == "attack" %}
+      <p class="muted">{% blocktranslate with sorties=rules.min_attack_sorties|num minutes=rules.min_time_on_target_minutes|num %}Attack proficiency needs at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}</p>
+    {% else %}
+      <p class="muted">{% blocktranslate with n=rules.min_air_superiority_sorties|num %}Average Elo shows the pilots' skill as much as the loadout's. Rates need at least {{ n }} air superiority sorties.{% endblocktranslate %}</p>
+    {% endif %}
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
           <tr>
             {% sort_th "loadout" _("Loadout") current=loadout_sort param="lsort" %}
             {% sort_th "sorties" _("Sorties") current=loadout_sort param="lsort" numeric=True %}
-            {% sort_th "kills_air" _("Air kills") current=loadout_sort param="lsort" numeric=True %}
-            {% sort_th "kills_ground" _("Ground kills") current=loadout_sort param="lsort" numeric=True %}
-            {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
-            {# Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects their skill, not only the loadout) #}
-            {% sort_th "elo" _("Average pilot Elo") current=loadout_sort param="lsort" numeric=True %}
-            {% sort_th "kills_per_sortie" _("Air kills per sortie") current=loadout_sort param="lsort" numeric=True %}
-            {# Translators: column header; player-versus-player air kills per death with this loadout #}
-            {% sort_th "kd" _("PvP K/D") current=loadout_sort param="lsort" numeric=True %}
-            {% sort_th "ground_hour" _("Ground score per hour on target") current=loadout_sort param="lsort" numeric=True %}
+            {% if loadout_role == "attack" %}
+              {% sort_th "kills_ground" _("Ground kills") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "ground_hour" _("Attack proficiency") current=loadout_sort param="lsort" numeric=True %}
+            {% else %}
+              {% sort_th "kills_air" _("Air kills") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
+              {# Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects their skill, not only the loadout) #}
+              {% sort_th "elo" _("Average pilot Elo") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "kills_per_sortie" _("Air kills per sortie") current=loadout_sort param="lsort" numeric=True %}
+              {# Translators: column header; player-versus-player air kills per death with this loadout #}
+              {% sort_th "kd" _("PvP K/D") current=loadout_sort param="lsort" numeric=True %}
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for row in loadouts %}
             {% with p=row.payload %}
             <tr>
-              <td>{% if p.payload_name %}{{ p.payload_name }}{% else %}<span class="muted">{% translate "Unknown loadout" %}</span>{% endif %}{% if role == "all" and p.combat_role %} {% role_badge p.combat_role %}{% endif %}</td>
+              <td>{% if p.payload_name %}{{ p.payload_name }}{% else %}<span class="muted">{% translate "Unknown loadout" %}</span>{% endif %}</td>
               <td class="num">{{ p.sorties|num }}</td>
-              <td class="num">{{ p.kills_air|num }}</td>
-              <td class="num">{{ p.kills_ground|num }}</td>
-              <td class="num">{{ p.deaths|num }}</td>
-              <td class="num">{{ row.elo|num }}</td>
-              <td class="num">{{ row.kills_per_sortie|num:2 }}</td>
-              <td class="num">{{ row.kd|num:2 }}</td>
-              <td class="num">{{ row.ground_hour|num:1 }}</td>
+              {% if loadout_role == "attack" %}
+                <td class="num">{{ p.kills_ground|num }}</td>
+                <td class="num">{{ p.deaths|num }}</td>
+                <td class="num">{{ row.ground_hour|num:1 }}</td>
+              {% else %}
+                <td class="num">{{ p.kills_air|num }}</td>
+                <td class="num">{{ p.deaths|num }}</td>
+                <td class="num">{{ row.elo|num }}</td>
+                <td class="num">{{ row.kills_per_sortie|num:2 }}</td>
+                <td class="num">{{ row.kd|num:2 }}</td>
+              {% endif %}
             </tr>
             {% endwith %}
           {% empty %}
-            {% empty_row 9 %}
+            {% blocktranslate asvar loadouts_empty count n=min_events %}No loadout with at least {{ n }} sortie yet.{% plural %}No loadout with at least {{ n }} sorties yet.{% endblocktranslate %}
+            {% if loadout_role == "attack" %}{% empty_row 5 loadouts_empty %}{% else %}{% empty_row 7 loadouts_empty %}{% endif %}
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="muted">{% blocktranslate with sorties=rules.min_air_superiority_sorties|num attack=rules.min_attack_sorties|num minutes=rules.min_time_on_target_minutes|num %}Rates are shown from {{ sorties }} air superiority sorties, or {{ attack }} attack sorties with {{ minutes }} minutes on target, as on the leaderboards.{% endblocktranslate %}</p>
+    <div hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true">
+      {% translate "Loadouts" as loadouts_name %}{% blocktranslate asvar loadouts_pages with name=loadouts_name %}Pagination: {{ name }}{% endblocktranslate %}
+      {% pagination loadouts param="page_loadouts" label=loadouts_pages %}
+    </div>
   </section>
 
   <section>
     <h2>{% translate "Modifications" %}</h2>
-    <p class="muted">{% translate "The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role. Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash means the measure does not apply or there are too few sorties." %}</p>
     <div class="table-wrap table-wrap--flat">
       <table class="data-table">
         <thead>
@@ -228,7 +227,7 @@
             {% sort_th "elo" _("Average pilot Elo") current=mod_sort param="msort" numeric=True %}
             {% sort_th "kills_per_sortie" _("Air kills per sortie") current=mod_sort param="msort" numeric=True %}
             {% sort_th "kd" _("PvP K/D") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "ground_hour" _("Ground score per hour on target") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "ground_hour" _("Attack proficiency") current=mod_sort param="msort" numeric=True %}
           </tr>
         </thead>
         <tbody>
@@ -247,10 +246,15 @@
             </tr>
             {% endwith %}
           {% empty %}
-            {% empty_row 9 %}
+            {% blocktranslate asvar mods_empty count n=min_events %}No modification set with at least {{ n }} sortie yet.{% plural %}No modification set with at least {{ n }} sorties yet.{% endblocktranslate %}
+            {% empty_row 9 mods_empty %}
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    <div hx-target="#main" hx-select="#main" hx-swap="outerHTML" hx-push-url="true">
+      {% translate "Modifications" as mods_name %}{% blocktranslate asvar mods_pages with name=mods_name %}Pagination: {{ name }}{% endblocktranslate %}
+      {% pagination mod_sets param="page_mods" label=mods_pages %}
     </div>
   </section>
 {% endblock %}

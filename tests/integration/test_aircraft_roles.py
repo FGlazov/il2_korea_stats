@@ -13,6 +13,7 @@ from il2ks.config import LeaderboardConfig
 from il2ks.db.models import (
     AircraftMatchup,
     AircraftPayload,
+    AircraftRole,
     AircraftStats,
     GameObject,
     Player,
@@ -22,11 +23,12 @@ from il2ks.db.models import (
     TourAircraftStats,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
+from il2ks.queries import aircraft as reads
 from il2ks.queries.aircraft import Loadout
 from tests.factories import STARTED_AT, kill, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 AIR = "air_superiority"
 ATTACK = "attack"
@@ -237,7 +239,10 @@ def test_detail_role_toggle_filters_tiles_pilots_and_loadouts_per_tour(client: C
     assert all_time_attack.context["tile"].sorties == 2
     assert [r.context["role"] for r in (everything, air, attack)] == ["all", "air_superiority", "attack"]
     # loadouts: every role, or only the loadouts of the role
-    assert {r.payload.payload_name for r in everything.context["loadouts"]} == {"Payload 1", "Payload 2"}
+    # under the role "all" the loadouts have a tab: the type's main role first, the other on request
+    assert {r.payload.payload_name for r in everything.context["loadouts"]} == {"Payload 2"}  # mostly attack sorties
+    other = client.get(f"{url}?tour={september.pk}&lrole=air_superiority")
+    assert {r.payload.payload_name for r in other.context["loadouts"]} == {"Payload 1"}
     assert {r.payload.payload_name for r in air.context["loadouts"]} == {"Payload 1"}
     assert {r.payload.payload_name for r in attack.context["loadouts"]} == {"Payload 2"}
     # the toggle links keep the tour, and the selector keeps the role
@@ -322,9 +327,12 @@ def test_hidden_players_count_in_role_totals() -> None:
 
 
 def loadouts_of(client: Client, log_name: str) -> dict[str, Loadout]:
-    with override_settings(IL2KS_LEADERBOARDS=SOME):
-        response = client.get(f"{detail(log_name)}?tour=all")
-    return {r.payload.payload_name: r for r in response.context["loadouts"]}
+    found: dict[str, Loadout] = {}
+    for mode in ("air_superiority", "attack"):  # under the role "all" a tab shows one role's loadouts at a time
+        with override_settings(IL2KS_LEADERBOARDS=SOME):
+            response = client.get(f"{detail(log_name)}?tour=all&lrole={mode}")
+        found |= {r.payload.payload_name: r for r in response.context["loadouts"]}
+    return found
 
 
 def test_loadout_measures_for_air_and_attack_loadouts(client: Client) -> None:
@@ -349,29 +357,34 @@ def test_loadout_rates_need_the_leaderboard_minimums(client: Client) -> None:
     history()
     strict = LeaderboardConfig(min_air_superiority_sorties=50, min_attack_sorties=50, min_time_on_target_minutes=999.0)
 
-    with override_settings(IL2KS_LEADERBOARDS=strict):
-        response = client.get(f"{detail('MiG-15bis')}?tour=all")
-    for row in response.context["loadouts"]:
-        assert (row.elo, row.kills_per_sortie, row.kd, row.ground_hour) == (None, None, None, None)
-    body = response.content.decode()
-    assert "Average Elo reflects the pilots' skill, not just the loadout's" in body or "pilots&#x27; skill" in body
+    for mode in ("air_superiority", "attack"):
+        with override_settings(IL2KS_LEADERBOARDS=strict):
+            response = client.get(f"{detail('MiG-15bis')}?tour=all&lrole={mode}")
+        assert response.context["loadouts"]
+        for row in response.context["loadouts"]:
+            assert (row.elo, row.kills_per_sortie, row.kd, row.ground_hour) == (None, None, None, None)
 
 
-def test_loadouts_sort_with_dashes_last_in_both_directions(client: Client) -> None:
+def test_loadouts_sort_with_dashes_last_in_both_directions() -> None:
     history()
-    url = f"{detail('MiG-15bis')}?tour=all"
+    mig = GameObject.objects.get(log_name="MiG-15bis")
 
-    def names(query: str) -> list[str]:
-        with override_settings(IL2KS_LEADERBOARDS=SOME):
-            response = client.get(url + query)
-        return [r.payload.payload_name for r in response.context["loadouts"]]
+    def names(sort: str) -> list[str]:  # the page shows one role's loadouts per tab; the read sorts both together
+        return [r.payload.payload_name for r in reads.payloads(mig, AircraftRole.ALL, SOME, sort)]
 
-    assert names("&lsort=ground_hour") == ["Payload 2", "Payload 1"]  # only the attack loadout has the measure
-    assert names("&lsort=-ground_hour") == ["Payload 2", "Payload 1"]  # a dash is last whichever way
-    assert names("&lsort=elo")[-1] == "Payload 2"
-    assert names("&lsort=loadout") == ["Payload 1", "Payload 2"]
-    assert names("&lsort=-loadout") == ["Payload 2", "Payload 1"]
-    assert names("&lsort=password") == names("")  # whitelist: the default (sorties)
+    assert names("ground_hour") == ["Payload 2", "Payload 1"]  # only the attack loadout has the measure
+    assert names("-ground_hour") == ["Payload 2", "Payload 1"]  # a dash is last whichever way
+    assert names("elo")[-1] == "Payload 2"
+    assert names("loadout") == ["Payload 1", "Payload 2"]
+    assert names("-loadout") == ["Payload 2", "Payload 1"]
+
+
+def test_an_unknown_loadout_sort_falls_back_to_the_default(client: Client) -> None:
+    history()
+    url = f"{detail('MiG-15bis')}?tour=all&lrole=attack"
+
+    assert client.get(url + "&lsort=password").context["loadout_sort"] == "-sorties"
+    assert client.get(url + "&lsort=ground_hour").context["loadout_sort"] == "ground_hour"
 
 
 def test_loadout_sort_links_keep_tour_and_role(client: Client) -> None:

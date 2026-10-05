@@ -415,12 +415,15 @@ def payloads(
     sort: str = DEFAULT_LOADOUT_SORT,
     mod_pattern: str = "",
     tour: Tour | None = None,
+    min_sorties: int = 0,
 ) -> list[Loadout]:
     """Loadouts flown in the type (in `tour`, None = all time; only those of `role` unless `all`; within the
     modification filter `mod_pattern`, '' = none) with their effectiveness measures, ordered by a resolved `sort` (a
     `LOADOUT_SORTS` name, `-` for descending; a dash measure sorts last either way, ties by sorties, then name). One
-    query."""
-    rows = AircraftPayload.objects.filter(aircraft=aircraft, tour=tour, mod_pattern=mod_pattern)
+    query. Loadouts flown fewer than `min_sorties` times are left out."""
+    rows = AircraftPayload.objects.filter(
+        aircraft=aircraft, tour=tour, mod_pattern=mod_pattern, sorties__gte=min_sorties
+    )
     if role != AircraftRole.ALL:
         rows = rows.filter(combat_role=role)
     used = rules or LeaderboardConfig()
@@ -463,10 +466,12 @@ def mod_sets(
     sort: str = DEFAULT_MOD_SORT,
     mod_pattern: str = "",
     tour: Tour | None = None,
+    min_sorties: int = 0,
 ) -> list[ModSet]:
     """The weapon-mod sets flown in the type, as `payloads` does for loadouts (same role, filter, measures and sort
-    rules; `sort` a `MOD_SORTS` name). One query; the names come from the shipped catalog."""
-    rows = AircraftMods.objects.filter(aircraft=aircraft, tour=tour, mod_pattern=mod_pattern)
+    rules; `sort` a `MOD_SORTS` name; sets flown fewer than `min_sorties` times are left out). One query; the names come
+    from the shipped catalog."""
+    rows = AircraftMods.objects.filter(aircraft=aircraft, tour=tour, mod_pattern=mod_pattern, sorties__gte=min_sorties)
     if role != AircraftRole.ALL:
         rows = rows.filter(combat_role=role)
     used = rules or LeaderboardConfig()

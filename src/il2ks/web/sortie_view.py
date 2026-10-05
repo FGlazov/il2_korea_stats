@@ -16,7 +16,7 @@ from typing import Literal, cast
 from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
 
-from il2ks.core.catalog.loader import GROUND_CATEGORIES
+from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie
 from il2ks.queries.ammo import GunAmmoRow, ammo_info, ordnance_name, parse_sortie_ammo
@@ -601,8 +601,15 @@ def ammo_table(sortie: PlayerSortie) -> AmmoTable:
 
 
 def _ordnance_label(key: str, english: str) -> str:
-    """The ordnance name; the one that is not a real ordnance (`unattributed`) is translated."""
-    return str(_("Unattributed")) if key == UNATTRIBUTED_ORDNANCE else english
+    """The ordnance name; the stand-ins that are not a real ordnance (`unattributed`, the mixed-loadout bombs and
+    rockets: il2ks's own wording, not a catalog name) are translated."""
+    if key == UNATTRIBUTED_ORDNANCE:
+        return str(_("Unattributed"))
+    if key == GENERIC_BOMBS:
+        return str(_("Bombs (mixed loadout)"))
+    if key == GENERIC_ROCKETS:
+        return str(_("Rockets (mixed loadout)"))
+    return english
 
 
 # --- timeline -----------------------------------------------------------------------------------------------------
@@ -660,7 +667,7 @@ def hit_ammo(entry: Json) -> tuple[str, str]:
     if not key:
         return "", ""
     if _str(entry.get("ammo_kind")) == "ordnance":
-        return ordnance_name(key), ""
+        return _ordnance_label(key, ordnance_name(key)), ""
     info = ammo_info(key)
     return info.name, info.designation
 

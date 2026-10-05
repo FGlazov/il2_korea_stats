@@ -951,6 +951,29 @@ class PlayerTourPool(Counters):
         return f"{self.player_id} / tour {self.tour_id} / {self.propulsion}"
 
 
+class PlayerRole(Counters):
+    """A copy of the player's counters per combat role (maintainer 2026-10-05: "two additional copies of the player
+    object, but with a role column"): one row per (player, tour, role) for the roles `air_superiority` and `attack`
+    the pilot flew in that tour, counted from the tour's counted sorties of that role (like `PlayerTourAircraft`); the
+    all-time rows (`tour` null) are the SUM of the player's tour rows (`ingest.rollup`). The every-role rows are
+    `PlayerTour` / `Player` themselves, which the leaderboards keep reading. The profile's `?role=` view reads one
+    row."""
+
+    player_id: int
+    tour_id: int | None
+
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="role_rows")
+    tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="+")
+    role = models.CharField(max_length=16, choices=CombatRole.choices)
+
+    class Meta(Counters.Meta):
+        abstract = False
+        constraints = scoped_unique("playerrole", ["player", "role"])
+
+    def __str__(self) -> str:
+        return f"{self.player_id} / {self.tour_id} / {self.role}"
+
+
 class AircraftAmmoStats(models.Model):
     """Level 2 (FR-WEB-18): hits to destroy per victim aircraft type and gun ammo, per scope of the aircraft page.
 

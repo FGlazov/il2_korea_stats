@@ -25,7 +25,7 @@ a tour (only before the first `rebuild-aggregates` assigned tours) count nowhere
 from collections.abc import Iterable
 from datetime import datetime
 
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from il2ks.core.streaks import RunEnd, Streak, StreakRun, StreakSortie, StreakSummary, Track, runs, summarize, track_of
 from il2ks.db.models import (
@@ -174,7 +174,9 @@ def rollup_streaks(chunk: list[int]) -> None:
     _sync_player_columns(chunk, wanted_best)
     if newest is not None:  # a newer tour exists: nobody's current run is still going in an older one
         for track in Track:  # per track: the (track, -current_sorties) index serves each update
-            PlayerStreak.objects.filter(track=track.value, current_sorties__gt=0).exclude(
+            PlayerStreak.objects.filter(
+                Q(current_sorties__gt=0) | Q(current_tour__isnull=False), track=track.value
+            ).exclude(
                 current_tour_id=newest
             ).update(
                 current_sorties=0,

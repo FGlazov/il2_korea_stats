@@ -11,6 +11,7 @@ from django.utils.translation import ngettext
 
 from il2ks.db.models import ActivityDay, PlayerTour
 from il2ks.queries.activity import ACTIVITY_DAYS
+from il2ks.queries.tours import tour_title
 from il2ks.web.charts import ChartSeries, ChartSpec
 
 MIN_TOURS = 2  # one tour is a single bar the profile tiles already show
@@ -21,7 +22,7 @@ def player_charts(rows: Sequence[PlayerTour]) -> tuple[ChartSpec, ...]:
     kills next to deaths per tour. Nothing for fewer than two tours."""
     if len(rows) < MIN_TOURS:
         return ()
-    tours = tuple(row.tour.title for row in rows)
+    tours = tuple(tour_title(row.tour.title) for row in rows)
     n = len(rows)
     desc = ngettext(
         "Bar chart over %(n)d tour. The numbers are in the table below.",

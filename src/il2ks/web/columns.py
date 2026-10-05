@@ -242,7 +242,7 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftCounters], ...] = (
     Column("score_ground", _("Ground score"), lambda a: display.num(a.score_ground)),
     Column(
         "ground_hour",
-        _("Ground score/h"),
+        _("Attack proficiency"),
         lambda a: display.per_hour(a.score_ground_attack, a.time_on_target_s, 1),
     ),
     Column(

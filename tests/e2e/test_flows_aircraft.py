@@ -17,6 +17,7 @@ from playwright.sync_api import Page, expect
 from tests.e2e import flow_helpers
 from tests.e2e.flow_helpers import (
     column_header,
+    header_name,
     names_in,
     number,
     row_for,
@@ -166,10 +167,10 @@ def test_sorting_the_rankings_by_several_columns_in_turn(page: Page, world: Worl
 
 
 def test_optional_columns_join_the_table_and_can_be_sorted_on(page: Page) -> None:
-    """Columns control: Bailouts and Assists appear (in place), the address lists both, Bailouts sorts, and a reload
+    """Extra columns: Bailouts and Assists appear (in place), the address lists both, Bailouts sorts, and a reload
     keeps all of it."""
     page.goto("/aircraft/?tour=all")
-    page.get_by_text("Columns", exact=True).click()
+    page.get_by_text("Extra columns", exact=True).click()
     for label in ("Bailouts", "Assists"):
         page.get_by_role("checkbox", name=label, exact=True).check()
         expect(column_header(page, label)).to_be_visible()
@@ -237,3 +238,31 @@ def test_the_weapon_mods_filter_follows_into_every_section_of_the_aircraft_page(
     group.get_by_role("link", name="Any", exact=True).click()
     expect(page).not_to_have_url(re.compile(r"[?&]mod\d+="))
     expect(group.get_by_role("link", name="Any", exact=True)).to_have_attribute("aria-current", "true")
+
+
+def test_the_loadouts_tab_swaps_the_columns_and_the_hits_table_is_one_table(page: Page) -> None:
+    """Aircraft page (maintainer's view pass 2026-10-05): the loadouts have an Air superiority | Attack tab under the
+    role "all", each mode with its own columns; hits to destroy is a single table of ammunition mixes."""
+    page.goto("/aircraft/?tour=all")
+    main_region(page).get_by_role("link", name=MIG, exact=True).first.click()
+    expect_heading(page, MIG, level=1)
+
+    expect_heading(page, "Hits to destroy", level=2)
+    expect(main_region(page).get_by_role("heading", name="Ammunition mixes")).to_have_count(0)  # folded into one table
+    ammunition = table_with(page, "Ammunition", "Kills", "Average hits")
+    expect(ammunition).to_be_visible()
+
+    tabs = main_region(page).get_by_role("group", name="Which loadouts to show")
+    attack = tabs.get_by_role("link", name="Attack", exact=True)
+    air = tabs.get_by_role("link", name="Air superiority", exact=True)
+    attack.click()
+    expect(page).to_have_url(re.compile(r"[?&]lrole=attack"))
+    expect(tabs.get_by_role("link", name="Attack", exact=True)).to_have_attribute("aria-current", "true")
+    loadouts = table_with(page, "Loadout", "Sorties", "Deaths")
+    expect(loadouts.get_by_role("columnheader", name=header_name("Attack proficiency"))).to_be_visible()
+    expect(loadouts.get_by_role("columnheader", name=header_name("Average pilot Elo"))).to_have_count(0)
+    air.click()
+    expect(page).to_have_url(re.compile(r"[?&]lrole=air_superiority"))
+    loadouts = table_with(page, "Loadout", "Sorties", "Deaths")
+    expect(loadouts.get_by_role("columnheader", name=header_name("Average pilot Elo"))).to_be_visible()
+    expect(loadouts.get_by_role("columnheader", name=header_name("Attack proficiency"))).to_have_count(0)

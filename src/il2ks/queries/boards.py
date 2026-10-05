@@ -33,7 +33,6 @@ PAGE_SIZE = ROW_PAGE_SIZE
 RUNS_PAGE_SIZE = ROW_PAGE_SIZE  # streak runs per page (OQ-82)
 TOP_OPPONENTS = 5
 TOP_TYPES = 5  # enemy aircraft types per direction in the profile block
-HOME_STREAKS = 5
 ACTIVE_DAYS = 30  # a "current" streak is listed while the player's last flown sortie is at most this old
 
 KILLBOARD_SORTS: Mapping[str, str] = {
@@ -172,20 +171,3 @@ def running_page(track: str, number: str | int, now: datetime) -> Page:
     kills = "-current_kills_ground" if track == StreakTrack.GROUND else "-current_kills_air"
     ordered = _running(now, track).order_by("-current_sorties", kills, "pk")
     return Paginator(ordered, PAGE_SIZE).get_page(number)
-
-
-def longest_tour_streaks(tour: Tour, limit: int = HOME_STREAKS) -> list[PlayerBestStreak]:
-    """The home page's short list for a tour (OQ-79): the longest air-track streaks by sorties inside that tour (a
-    streak does not span tours there), visible players only."""
-    return list(
-        PlayerBestStreak.objects.filter(
-            tour=tour, track=StreakTrack.AIR, kind=StreakKind.SORTIES, player__is_hidden=False
-        )
-        .select_related("player")
-        .order_by("-sorties", "-kills_air", "pk")[:limit]
-    )
-
-
-def longest_current_streaks(now: datetime, limit: int = HOME_STREAKS) -> list[PlayerStreak]:
-    """The home page's short list: the longest running air-track streaks."""
-    return list(_running(now).order_by("-current_sorties", "-current_kills_air", "pk")[:limit])

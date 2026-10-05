@@ -205,7 +205,7 @@ def validate(base: RuleSet, texts: Mapping[str, str]) -> tuple[dict[str, object]
             try:
                 overlay(base, {key: sent})
             except ConfigError as exc:
-                problems.append(str(exc))
+                problems.append(exc.localized())
                 continue
         try:
             clean[key] = canonical(field, text)
@@ -215,5 +215,5 @@ def validate(base: RuleSet, texts: Mapping[str, str]) -> tuple[dict[str, object]
         try:
             overlay(base, clean)
         except ConfigError as exc:
-            problems.append(str(exc))
+            problems.append(exc.localized())
     return clean, problems

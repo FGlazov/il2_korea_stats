@@ -13,9 +13,12 @@ from django.db.models.functions import Greatest
 
 from il2ks.db.models import (
     HEAVY_SORTIE_COLUMNS,
+    AircraftRole,
     Player,
     PlayerAircraft,
+    PlayerAircraftScope,
     PlayerName,
+    PlayerRole,
     PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
@@ -23,11 +26,14 @@ from il2ks.db.models import (
     Role,
     Tour,
 )
+from il2ks.queries import aircraft as aircraft_reads
 from il2ks.queries.paging import ROW_PAGE_SIZE
 from il2ks.queries.sorting import Computed, Rated, Ratio, SortSpec, order_by
 from il2ks.queries.tours import player_tour_aircraft
 
 PAGE_SIZE = ROW_PAGE_SIZE
+ROLE_PARAM = aircraft_reads.ROLE_PARAM
+parse_role = aircraft_reads.parse_role
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,13 +198,17 @@ def aircraft_rows(player: Player, sort: str, tour: Tour | None = None) -> Sequen
     return list(rows.order_by(_order(sort, AIRCRAFT_SORTS), "pk"))
 
 
-def recent_sorties(player: Player, limit: int = RECENT_SORTIES, tour: Tour | None = None) -> list[PlayerSortie]:
-    """The latest sorties by spawn time, any role (of `tour` when given); mission and aircraft come along in the same
-    query. Sorties of hidden missions are left out (FR-ADM-3)."""
+def recent_sorties(
+    player: Player, limit: int = RECENT_SORTIES, tour: Tour | None = None, role: AircraftRole = AircraftRole.ALL
+) -> list[PlayerSortie]:
+    """The latest sorties by spawn time, any combat role or only those of `role` (of `tour` when given); mission and
+    aircraft come along in the same query. Sorties of hidden missions are left out (FR-ADM-3)."""
     rows = PlayerSortie.objects.filter(player=player, mission__is_hidden=False).select_related("mission", "aircraft")
     rows = rows.defer(*HEAVY_SORTIE_COLUMNS)
     if tour is not None:
         rows = rows.filter(mission__tour=tour)
+    if role != AircraftRole.ALL:
+        rows = rows.filter(combat_role=role.value)
     return list(rows.order_by("-spawned_at", "-pk")[:limit])
 
 
@@ -215,3 +225,19 @@ def tour_history(player: Player, limit: int = TOUR_HISTORY) -> list[PlayerTour]:
     tours; the tour comes along in the same query."""
     rows = PlayerTour.objects.filter(player=player).select_related("tour").order_by("-tour__started_at")[:limit]
     return list(reversed(rows))
+
+
+def role_counters(player: Player, tour: Tour | None, role: AircraftRole) -> PlayerRole:
+    """The player's counters in the combat role `role` (air superiority or attack), all time (`tour` None) or in `tour`:
+    the `PlayerRole` row, or an unsaved all-zero one when he flew no sortie of that role there. One query."""
+    row = PlayerRole.objects.filter(player=player, tour=tour, role=role.value).first()
+    return row if row is not None else PlayerRole(player=player, tour=tour, role=role.value)
+
+
+def role_aircraft_rows(
+    player: Player, sort: str, tour: Tour | None, role: AircraftRole
+) -> Sequence[PlayerAircraftScope]:
+    """The per-aircraft table of a role view: the player's `PlayerAircraftScope` rows of that role (no modification
+    filter), all time or in `tour`, aircraft pre-loaded. One query."""
+    rows = PlayerAircraftScope.objects.filter(player=player, tour=tour, role=role.value, mod_pattern="")
+    return list(rows.select_related("aircraft").order_by(_order(sort, AIRCRAFT_SORTS), "pk"))

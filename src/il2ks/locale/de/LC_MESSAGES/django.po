@@ -73,6 +73,41 @@ msgstr "%(kills)s Abschüsse, %(hits)s Treffer"
 
 # llm-draft
 #, python-format
+msgid "%(label)s must be a finite number"
+msgstr "%(label)s muss eine endliche Zahl sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a number"
+msgstr "%(label)s muss eine Zahl sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be a whole number"
+msgstr "%(label)s muss eine ganze Zahl sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be at most %(max)s"
+msgstr "%(label)s darf höchstens %(max)s sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be greater than 0"
+msgstr "%(label)s muss größer als 0 sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must be true or false"
+msgstr "%(label)s muss „ja“ oder „nein“ sein"
+
+# llm-draft
+#, python-format
+msgid "%(label)s must not be negative"
+msgstr "%(label)s darf nicht negativ sein"
+
+# llm-draft
+#, python-format
 msgid "%(m)d min"
 msgstr "%(m)d Min."
 
@@ -390,11 +425,16 @@ msgstr ""
 # llm-draft
 #, python-format
 msgid ""
-"A change shows at once: the boards use it on the next page view, and the Top 10%% and Top 25%% marks on the player "
-"pages are computed again when you save."
+"A change to a minimum for sorties, attack sorties, time on target or air superiority shows at once: the boards use it"
+" on the next page view, and the Top 10%% and Top 25%% marks on the player pages are computed again when you save. The"
+" Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after"
+" the next rebuild, which the site starts in the background."
 msgstr ""
-"Eine Änderung wirkt sofort: Die Bestenlisten nutzen sie beim nächsten Seitenaufruf, und die Markierungen „Top 10 %%“ "
-"und „Top 25 %%“ auf den Spielerseiten werden beim Speichern neu berechnet."
+"Eine Änderung eines Mindestwerts für Einsätze, Angriffseinsätze, Zeit am Ziel oder Luftüberlegenheit wirkt sofort: "
+"Die Ranglisten verwenden ihn beim nächsten Seitenaufruf, und die Markierungen Top 10 %% und Top 25 %% auf den "
+"Spielerseiten werden beim Speichern neu berechnet. Das Elo-Minimum ist die Ausnahme: Es bestimmt auch, aus welcher "
+"Tour die Gesamt-Elo eines Piloten stammt, und greift daher erst nach dem nächsten Neuaufbau, den die Seite im "
+"Hintergrund startet."
 
 # llm-draft
 msgid "A clean sheet so far. The runway thanks you."
@@ -699,8 +739,8 @@ msgstr ""
 "tödlichen Ende eingeschlossen."
 
 # llm-draft
-msgid "Air kills in total, all sorties together."
-msgstr "Luftabschüsse insgesamt, alle Einsätze zusammen."
+msgid "Air kills in one tour, all sorties together."
+msgstr "Luftsiege in einer Tour, alle Einsätze zusammen."
 
 # llm-draft
 #. Translators: tooltip of the "Air kills" column header of a streak table
@@ -712,13 +752,12 @@ msgid "Air kills on a single day (UTC)."
 msgstr "Luftabschüsse an einem einzigen Tag (UTC)."
 
 # llm-draft
-msgid "Air kills per flight hour"
-msgstr "Luftsiege pro Flugstunde"
+msgid "Air kills over your career, all sorties together."
+msgstr "Luftsiege in deiner gesamten Karriere, alle Einsätze zusammen."
 
 # llm-draft
-#. Translators: tooltip of the optional "Air kills/h" column header of the aircraft list
-msgid "Air kills per hour of flight time."
-msgstr "Luftsiege pro Flugstunde."
+msgid "Air kills per flight hour"
+msgstr "Luftsiege pro Flugstunde"
 
 # llm-draft
 msgid "Air kills per sortie"
@@ -839,8 +878,12 @@ msgid "Aircraft damage"
 msgstr "Flugzeugschaden"
 
 # llm-draft
-msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time."
-msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge: falscher Ort, falsche Zeit."
+msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
+msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge in einer Tour: falscher Ort, falsche Zeit."
+
+# llm-draft
+msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
+msgstr "Am Boden von einem Angreifer zerstörte Flugzeuge in deiner gesamten Karriere: falscher Ort, falsche Zeit."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -861,23 +904,8 @@ msgid "Aircraft or objects of your own side that you destroyed. They do not coun
 msgstr "Flugzeuge oder Objekte deiner eigenen Seite, die du zerstört hast. Sie zählen nicht als Abschüsse und kosten Punkte."
 
 # llm-draft
-#. Translators: tooltip of the "Air" column header of a mission sortie table and the last mission top pilots
-msgid "Aircraft shot down (air kills)."
-msgstr "Abgeschossene Flugzeuge (Luftsiege)."
-
-# llm-draft
 msgid "Aircraft shot down most"
 msgstr "Am häufigsten abgeschossene Flugzeuge"
-
-# llm-draft
-#. Translators: tooltip of the "Air kills (PvP)" column header
-msgid "Aircraft shot down that were flown by other players."
-msgstr "Abgeschossene Flugzeuge, die von anderen Spielern geflogen wurden."
-
-# llm-draft
-#. Translators: tooltip of the "Air kills (AI)" column header
-msgid "Aircraft shot down that were flown by the server's AI."
-msgstr "Abgeschossene Flugzeuge, die von der KI des Servers geflogen wurden."
 
 # llm-draft
 msgid "Aircraft status"
@@ -971,14 +999,6 @@ msgstr "Getroffen durch"
 # llm-draft
 msgid "Ammunition left not recorded reliably"
 msgstr "Restmunition nicht verlässlich erfasst"
-
-# llm-draft
-msgid "Ammunition mix"
-msgstr "Munitionsmischung"
-
-# llm-draft
-msgid "Ammunition mixes"
-msgstr "Munitionsmischungen"
 
 # llm-draft
 msgid "Ammunition used unknown"
@@ -1105,7 +1125,29 @@ msgstr "Erdkampf, wenn das Flugzeug Bomben oder Raketen trug (oder ein reiner Er
 
 # llm-draft
 msgid "Attack proficiency"
-msgstr "Angriffsleistung"
+msgstr "Erdkampfstärke"
+
+# llm-draft
+msgid "Attack proficiency and tank busting: minutes on target a pilot needs"
+msgstr "Angriffsleistung und Panzerjagd: Minuten am Ziel, die ein Pilot braucht"
+
+# llm-draft
+#, python-format
+msgid ""
+"Attack proficiency in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s minutes on "
+"target."
+msgstr ""
+"Angriffsleistung mit diesem Flugzeug. Piloten mit mindestens %(sorties)s Angriffseinsätzen und %(minutes)s Minuten am"
+" Ziel."
+
+# llm-draft
+#, python-format
+msgid "Attack proficiency needs at least %(sorties)s attack sorties and %(minutes)s minutes on target."
+msgstr "Für die Erdkampfstärke brauchst du mindestens %(sorties)s Erdkampfeinsätze und %(minutes)s Minuten über dem Ziel."
+
+# llm-draft
+msgid "Attack proficiency: attack sorties a pilot needs"
+msgstr "Angriffsleistung: Angriffseinsätze, die ein Pilot braucht"
 
 # llm-draft
 msgid "Attack sorties"
@@ -1120,8 +1162,25 @@ msgid "Attempts"
 msgstr "Versuche"
 
 # llm-draft
+#, python-format
+msgid "Average Elo shows the pilots' skill as much as the loadout's. Rates need at least %(n)s air superiority sorties."
+msgstr ""
+"Die durchschnittliche Elo zeigt ebenso das Können der Piloten wie die Qualität der Bewaffnung. Die Raten brauchen "
+"mindestens %(n)s Luftüberlegenheitseinsätze."
+
+# llm-draft
 msgid "Average flight time per sortie"
 msgstr "Durchschnittliche Flugzeit pro Einsatz"
+
+# llm-draft
+#. Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table. "5.4 + 2.7"
+#. is an example: the numbers follow the order of the ammunition types named in the row.
+msgid ""
+"Average gun hits of each ammunition type that it took to shoot this aircraft down, in the order the types are named: "
+"5.4 + 2.7 is 5.4 hits of the first type and 2.7 of the second."
+msgstr ""
+"Durchschnittliche Anzahl Treffer jeder Munitionsart, die nötig waren, um dieses Flugzeug abzuschießen, in der "
+"Reihenfolge, in der die Arten genannt sind: 5.4 + 2.7 sind 5.4 Treffer der ersten Art und 2.7 der zweiten."
 
 # llm-draft
 msgid "Average hits"
@@ -1130,11 +1189,6 @@ msgstr "Durchschnittliche Treffer"
 # llm-draft
 msgid "Average number of gun hits that destroyed it"
 msgstr "Durchschnittliche Zahl der Bordwaffentreffer, die zur Zerstörung nötig waren"
-
-# llm-draft
-#. Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table
-msgid "Average number of gun hits that were needed to shoot this aircraft down."
-msgstr "Durchschnittliche Zahl der Bordwaffentreffer, die nötig waren, um dieses Flugzeug abzuschießen."
 
 # llm-draft
 #. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
@@ -1216,11 +1270,6 @@ msgstr "Beste Luftserie"
 # llm-draft
 msgid "Best by"
 msgstr "Beste nach"
-
-# llm-draft
-#, python-format
-msgid "Best exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
-msgstr "Bester Austausch: gegen %(enemy)s (%(kills)s Abschüsse, %(losses)s Verluste)."
 
 # llm-draft
 msgid "Best ground streak"
@@ -1350,6 +1399,10 @@ msgstr ""
 # llm-draft
 msgid "Bombs"
 msgstr "Bomben"
+
+# llm-draft
+msgid "Bombs (mixed loadout)"
+msgstr "Bomben (gemischte Beladung)"
 
 # llm-draft
 msgid "Bombs, rockets and napalm"
@@ -1516,10 +1569,6 @@ msgid "Colors"
 msgstr "Farben"
 
 # llm-draft
-msgid "Columns"
-msgstr "Spalten"
-
-# llm-draft
 msgid "Combat role"
 msgstr "Kampfrolle"
 
@@ -1553,14 +1602,10 @@ msgid "Controlled flight into a field. The farmer has questions, the pilot has a
 msgstr "Bauchlandung auf dem Acker. Der Landwirt ist verwirrt, der Pilot hat Stoff für den Stammtisch."
 
 # llm-draft
-#. Translators: tooltip of the "Kills" column header of an aircraft's "Ammunition mixes" table
-msgid "Counted kills of this aircraft in which exactly these ammunition types hit together."
-msgstr "Gezählte Abschüsse dieses Flugzeugs, bei denen genau diese Munitionsarten zusammen getroffen haben."
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table
-msgid "Counted kills of this aircraft in which this ammunition hit at least once."
-msgstr "Gezählte Abschüsse dieses Flugzeugs, bei denen diese Munition mindestens einmal getroffen hat."
+#. Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table. Each row is one
+#. mix of ammunition types (a single type is a mix of one).
+msgid "Counted kills of this aircraft in which exactly these ammunition types hit. The first row counts them all."
+msgstr "Gezählte Abschüsse dieses Flugzeugs, bei denen genau diese Munitionsarten getroffen haben. Die erste Zeile zählt alle."
 
 # llm-draft
 msgid "Counterpart"
@@ -1969,12 +2014,6 @@ msgid "Every language"
 msgstr "Alle Sprachen"
 
 # llm-draft
-msgid "Every mission played on the server, newest first. Empty missions (nobody flew) are hidden unless you ask for them."
-msgstr ""
-"Alle auf dem Server gespielten Missionen, die neuesten zuerst. Leere Missionen (in denen niemand flog) sind "
-"ausgeblendet, solange du sie nicht anforderst."
-
-# llm-draft
 msgid "Every pilot has bad days. These are the ones the server remembers."
 msgstr "Jeder hat mal einen schlechten Tag. Das hier sind die, an die sich der Server erinnert."
 
@@ -1986,10 +2025,6 @@ msgid ""
 msgstr ""
 "Alle Serien von %(count)s oder mehr überlebten Einsätzen in Folge (kein Tod, keine Gefangennahme; Einsätze ohne Start"
 " werden übersprungen), neueste zuerst, und wie jede endete."
-
-# llm-draft
-msgid "Every sortie, newest first. Select one for the full report."
-msgstr "Alle Einsätze, die neuesten zuerst. Wähle einen für den vollständigen Bericht."
 
 # llm-draft
 msgid ""
@@ -2024,6 +2059,10 @@ msgstr "Alles mit Motor, Rohr oder Dach hat etwas abbekommen. Gründliche Arbeit
 # llm-draft
 msgid "Exited on ground"
 msgstr "Am Boden ausgestiegen"
+
+# llm-draft
+msgid "Extra columns"
+msgstr "Zusätzliche Spalten"
 
 # llm-draft
 msgid "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), shown after the built-in ones."
@@ -2128,15 +2167,6 @@ msgid "Flight time added up over the streak's sorties."
 msgstr "Flugzeit, summiert über die Einsätze der Serie."
 
 # llm-draft
-#. Translators: tooltip of the "Air superiority flight time" column header of the interception leaderboard
-msgid "Flight time in air superiority sorties only."
-msgstr "Flugzeit nur in Luftüberlegenheitseinsätzen."
-
-# llm-draft
-msgid "Flight time: the time spent in the air in all sorties, air and ground."
-msgstr "Flugzeit: die Zeit in der Luft über alle Einsätze, Luft und Boden."
-
-# llm-draft
 #, python-format
 msgid "Flown by %(pilots)s pilot."
 msgid_plural "Flown by %(pilots)s pilots."
@@ -2233,8 +2263,12 @@ msgid "Friendly-fire kills"
 msgstr "Eigenbeschuss-Abschüsse"
 
 # llm-draft
-msgid "Friendly-fire kills. The markings are small and the sky is crowded."
-msgstr "Abschüsse durch Eigenbeschuss. Die Hoheitszeichen sind klein und der Himmel ist voll."
+msgid "Friendly-fire kills in one tour. The markings are small and the sky is crowded."
+msgstr "Abschüsse durch Eigenbeschuss in einer Tour. Die Hoheitszeichen sind klein und der Himmel ist voll."
+
+# llm-draft
+msgid "Friendly-fire kills over your career. The markings are small and the sky is crowded."
+msgstr "Abschüsse durch Eigenbeschuss in deiner gesamten Karriere. Die Hoheitszeichen sind klein und der Himmel ist voll."
 
 # llm-draft
 #, python-format
@@ -2376,11 +2410,6 @@ msgid "Ground kills: %(n)s"
 msgstr "Bodenziele: %(n)s"
 
 # llm-draft
-#. Translators: tooltip of the "Ground" column header of a mission sortie table and the last mission top pilots
-msgid "Ground objects destroyed (ground kills): vehicles, tanks, ships, buildings and so on."
-msgstr "Zerstörte Bodenobjekte (Bodenziele): Fahrzeuge, Panzer, Schiffe, Gebäude und so weiter."
-
-# llm-draft
 msgid "Ground score"
 msgstr "Bodenpunkte"
 
@@ -2389,12 +2418,7 @@ msgid "Ground score and attack sorties"
 msgstr "Bodenpunkte und Erdkampfeinsätze"
 
 # llm-draft
-#. Translators: tooltip of the "Attack ground score" column header of the ground-score-per-hour leaderboard
-msgid "Ground score earned in attack sorties only."
-msgstr "Bodenpunkte, die nur in Erdkampfeinsätzen erzielt wurden."
-
-# llm-draft
-#. Translators: tooltip of the "Score per hour" and "Ground score/h" column headers
+#. Translators: tooltip of the "Attack proficiency" and "Attack proficiency" column headers
 msgid ""
 "Ground score earned in attack sorties per hour spent on target. Only pilots with enough attack sorties and time on "
 "target are ranked."
@@ -2409,35 +2433,6 @@ msgstr "In Erdkampfeinsätzen erzielte Bodenpunkte pro Stunde über dem Ziel. An
 # llm-draft
 msgid "Ground score in total, all sorties together."
 msgstr "Bodenpunkte insgesamt, alle Einsätze zusammen."
-
-# llm-draft
-msgid "Ground score per hour"
-msgstr "Bodenpunkte pro Stunde"
-
-# llm-draft
-msgid "Ground score per hour and tank busting: minutes on target a pilot needs"
-msgstr "Bodenpunkte pro Stunde und Panzerjagd: nötige Minuten über dem Ziel eines Piloten"
-
-# llm-draft
-msgid "Ground score per hour on target"
-msgstr "Bodenpunkte pro Stunde über dem Ziel"
-
-# llm-draft
-#, python-format
-msgid ""
-"Ground score per hour on target in this aircraft. Pilots with at least %(sorties)s attack sorties and %(minutes)s "
-"minutes on target."
-msgstr ""
-"Bodenpunkte pro Stunde über dem Ziel mit diesem Flugzeug. Piloten mit mindestens %(sorties)s Erdkampfeinsätzen und "
-"%(minutes)s Minuten über dem Ziel."
-
-# llm-draft
-msgid "Ground score per hour: attack sorties a pilot needs"
-msgstr "Bodenpunkte pro Stunde: nötige Angriffseinsätze eines Piloten"
-
-# llm-draft
-msgid "Ground score/h"
-msgstr "Bodenpunkte/Std."
 
 # llm-draft
 msgid "Ground speed: modest. Damage: not modest. The wingtip has already filed a complaint."
@@ -2491,6 +2486,10 @@ msgstr ""
 # llm-draft
 msgid "Gun hits per round fired; a dash when the rounds fired are unknown"
 msgstr "Bordwaffen-Treffer pro abgefeuertem Schuss; ein Strich, wenn die Schusszahl unbekannt ist"
+
+# llm-draft
+msgid "Gun kills by a single attacker only."
+msgstr "Nur Abschüsse mit Bordwaffen durch einen einzelnen Angreifer."
 
 # llm-draft
 msgid "Gunner"
@@ -2642,16 +2641,6 @@ msgstr ""
 " Bomben oder Raketen, alle übrigen sind Luftüberlegenheitseinsätze."
 
 # llm-draft
-#. Translators: tooltip of the "Hits dealt" column header of a sortie's ammunition hit table
-msgid "Hits you scored with this ammunition."
-msgstr "Treffer, die du mit dieser Munition erzielt hast."
-
-# llm-draft
-#. Translators: tooltip of the "Hits taken" column header of a sortie's ammunition hit table
-msgid "Hits you took from this ammunition."
-msgstr "Treffer, die du von dieser Munition erlitten hast."
-
-# llm-draft
 msgid "Home"
 msgstr "Startseite"
 
@@ -2680,20 +2669,16 @@ msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a we
 msgstr "Stundenlang in der Luft, die Wetterkarte ist inzwischen ein Tagebuch. Diese Landung hat sich jemand verdient."
 
 # llm-draft
+msgid "Hours in the air in one tour, all sorties together."
+msgstr "Stunden in der Luft in einer Tour, alle Einsätze zusammen."
+
+# llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
 msgstr "Stunden in der Luft mit dem Flugzeugtyp, den du am häufigsten geflogen bist."
 
 # llm-draft
-msgid "Hours in the air, all sorties together."
-msgstr "Stunden in der Luft, alle Einsätze zusammen."
-
-# llm-draft
-msgid ""
-"How each aircraft type performs: sorties, kills, losses and ratios, in the selected tour or over all missions played."
-" Open a type for its matchups, best pilots and loadouts."
-msgstr ""
-"So schlägt sich jeder Flugzeugtyp: Einsätze, Abschüsse, Verluste und Verhältnisse, in der gewählten Tour oder über "
-"alle gespielten Missionen. Öffne einen Typ für seine Duelle, besten Piloten und Bewaffnungen."
+msgid "Hours in the air over your career, all sorties together."
+msgstr "Stunden in der Luft in deiner gesamten Karriere, alle Einsätze zusammen."
 
 # llm-draft
 msgid "How it ended"
@@ -2702,25 +2687,6 @@ msgstr "Wie sie endete"
 # llm-draft
 msgid "How long a tour lasts"
 msgstr "Wie lange eine Tour dauert"
-
-# llm-draft
-msgid ""
-"How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
-" bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once."
-msgstr ""
-"Wie viele Treffer mit Bordwaffen nötig sind, um dieses Flugzeug abzuschießen. Es zählen nur Abschüsse, bei denen ein "
-"einzelner Angreifer den ganzen Schaden verursacht hat; Bomben und Raketen sind nicht dabei. Abschüsse ist die Zahl "
-"der gezählten Abschüsse, in denen die Munition mindestens einmal getroffen hat."
-
-# llm-draft
-#. Translators: tooltip of the "Detonations" column header of a sortie's ordnance table
-msgid "How many of the released pieces exploded."
-msgstr "Wie viele der abgeworfenen Stücke explodiert sind."
-
-# llm-draft
-#. Translators: tooltip of the "Released" column header of a sortie's ordnance table (bombs, rockets, napalm)
-msgid "How many of this ordnance the aircraft dropped or fired."
-msgstr "Wie viele Stücke dieser Bewaffnung das Flugzeug abgeworfen oder abgefeuert hat."
 
 # llm-draft
 msgid ""
@@ -2898,15 +2864,6 @@ msgstr "K/L"
 #, python-format
 msgid "K/L %(value)s"
 msgstr "K/L %(value)s"
-
-# llm-draft
-#, python-format
-msgid ""
-"K/L is kills per loss against that aircraft. It is shown from %(n)s kills and losses on; with fewer, a single mission"
-" decides the number."
-msgstr ""
-"K/L sind Abschüsse pro Verlust gegen dieses Flugzeug. Es wird ab %(n)s Abschüssen und Verlusten angezeigt; bei "
-"weniger entscheidet eine einzelne Mission über den Wert."
 
 # llm-draft
 msgid "Key (AType:KEY)"
@@ -3164,14 +3121,6 @@ msgid "Longest ground kill streak"
 msgstr "Längste Bodenabschuss-Serie"
 
 # llm-draft
-msgid "Longest ironman streaks"
-msgstr "Längste Ironman-Serien"
-
-# llm-draft
-msgid "Longest ironman streaks in this tour"
-msgstr "Längste Ironman-Serien in dieser Tour"
-
-# llm-draft
 msgid "Longest kill streak"
 msgstr "Längste Abschuss-Serie"
 
@@ -3427,6 +3376,13 @@ msgid "No aircraft has flown yet."
 msgstr "Bisher ist noch kein Flugzeug geflogen."
 
 # llm-draft
+#, python-format
+msgid "No ammunition mix with at least %(n)s kill yet."
+msgid_plural "No ammunition mix with at least %(n)s kills yet."
+msgstr[0] "Noch keine Munitionsmischung mit mindestens %(n)s Abschuss."
+msgstr[1] "Noch keine Munitionsmischung mit mindestens %(n)s Abschüssen."
+
+# llm-draft
 msgid "No attacker (crash, terrain, accident)"
 msgstr "Kein Angreifer (Absturz, Gelände, Unfall)"
 
@@ -3455,6 +3411,13 @@ msgid "No landing"
 msgstr "Keine Landung"
 
 # llm-draft
+#, python-format
+msgid "No loadout with at least %(n)s sortie yet."
+msgid_plural "No loadout with at least %(n)s sorties yet."
+msgstr[0] "Noch keine Bewaffnung mit mindestens %(n)s Einsatz."
+msgstr[1] "Noch keine Bewaffnung mit mindestens %(n)s Einsätzen."
+
+# llm-draft
 msgid "No logo."
 msgstr "Kein Logo."
 
@@ -3473,6 +3436,13 @@ msgstr "Keine Missionen passen zu diesen Filtern."
 # llm-draft
 msgid "No missions yet."
 msgstr "Noch keine Missionen."
+
+# llm-draft
+#, python-format
+msgid "No modification set with at least %(n)s sortie yet."
+msgid_plural "No modification set with at least %(n)s sorties yet."
+msgstr[0] "Noch kein Modifikationssatz mit mindestens %(n)s Einsatz."
+msgstr[1] "Noch kein Modifikationssatz mit mindestens %(n)s Einsätzen."
 
 # llm-draft
 msgid "No modifications"
@@ -3549,6 +3519,10 @@ msgstr ""
 #, python-format
 msgid "No result: %(unknown)s"
 msgstr "Kein Ergebnis: %(unknown)s"
+
+# llm-draft
+msgid "No sorties in this role"
+msgstr "Keine Einsätze in dieser Rolle"
 
 # llm-draft
 msgid "No sorties in this tour"
@@ -3713,16 +3687,6 @@ msgid "Nothing to show yet."
 msgstr "Noch nichts anzuzeigen."
 
 # llm-draft
-#. Translators: tooltip of the "Hits taken" column header of a sortie's damage table
-msgid "Number of hits this counterpart landed on you."
-msgstr "Anzahl der Treffer, die dieses Gegenüber bei dir gelandet hat."
-
-# llm-draft
-#. Translators: tooltip of the "Hits dealt" column header of a sortie's damage table
-msgid "Number of hits you landed on this counterpart."
-msgstr "Anzahl der Treffer, die du bei diesem Gegenüber gelandet hast."
-
-# llm-draft
 msgid "OK"
 msgstr "OK"
 
@@ -3771,6 +3735,16 @@ msgstr "Auf dieser Seite"
 #. Translators: tooltip of the "Targets damaged" column header of a sortie's ordnance table
 msgid "One detonation and one target that took damage."
 msgstr "Eine Detonation und ein Ziel, das Schaden genommen hat."
+
+# llm-draft
+#, python-format
+msgid "One-tour description in %(language)s"
+msgstr "Beschreibung für die Tour auf %(language)s"
+
+# llm-draft
+#, python-format
+msgid "One-tour name in %(language)s"
+msgstr "Name für die Tour auf %(language)s"
 
 # llm-draft
 msgid "Online now"
@@ -3891,12 +3865,20 @@ msgid "Overview of all your overrides: <code>il2ks custom list</code>"
 msgstr "Übersicht aller deiner Überschreibungen: <code>il2ks custom list</code>"
 
 # llm-draft
+msgid "Own career name and description per language"
+msgstr "Eigener Name und eigene Beschreibung der Karriere-Medaille je Sprache"
+
+# llm-draft
 msgid "Own doing (terrain, overstress, accident)"
 msgstr "Eigenes Zutun (Gelände, Überlastung, Unfall)"
 
 # llm-draft
 msgid "Own name and description per language"
 msgstr "Eigener Name und eigene Beschreibung je Sprache"
+
+# llm-draft
+msgid "Own one-tour name and description per language"
+msgstr "Eigener Name und eigene Beschreibung der Tour-Medaille je Sprache"
 
 # llm-draft
 msgid "PNG, JPEG or WebP, up to 2 MB. The image is checked, re-encoded and scaled down; SVG is refused."
@@ -4076,14 +4058,6 @@ msgstr "Spieler"
 #. wording as the "Air kills (PvP)" / "Air kills (AI)" table columns
 msgid "Player aircraft"
 msgstr "Spielerflugzeuge"
-
-# llm-draft
-msgid ""
-"Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy "
-"aircraft this one beats and which beat it."
-msgstr ""
-"Luftabschüsse zwischen Spielern gegen jeden feindlichen Flugzeugtyp in der gewählten Auswahl. So siehst du, welche "
-"Gegner dieses Flugzeug schlägt und welche es schlagen."
 
 # llm-draft
 msgid ""
@@ -4270,8 +4244,8 @@ msgid "Radio log: nothing to report. The operator has gone through two crossword
 msgstr "Funker meldet: Funkstille. Die Zeitung ist durch, das Kreuzworträtsel auch."
 
 # llm-draft
-msgid "Ram: and this close in space (metres)"
-msgstr "Rammen: und so nah beieinander (Meter)"
+msgid "Ram: and this close in space (meters)"
+msgstr "Rammen: und so nah im Raum (Meter)"
 
 # llm-draft
 msgid "Ram: the two losses must be this close in time (seconds)"
@@ -4288,15 +4262,6 @@ msgstr "Rammstöße"
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
 msgstr "Aus den Berichten des Sicherheitsoffiziers über diesen Piloten ließe sich ein Buch binden. Mit ihm als Koautor."
-
-# llm-draft
-#, python-format
-msgid ""
-"Rates are shown from %(sorties)s air superiority sorties, or %(attack)s attack sorties with %(minutes)s minutes on "
-"target, as on the leaderboards."
-msgstr ""
-"Quoten werden ab %(sorties)s Luftüberlegenheitseinsätzen oder %(attack)s Erdkampfeinsätzen mit %(minutes)s Minuten am"
-" Ziel angezeigt, wie in den Ranglisten."
 
 # llm-draft
 msgid "Ratings"
@@ -4338,6 +4303,10 @@ msgstr "Kürzlich wegen Inaktivität abgeschlossen"
 # llm-draft
 msgid "Recently earned"
 msgstr "Zuletzt verdient"
+
+# llm-draft
+msgid "Recomputed in the background by the next rebuild"
+msgstr "Wird beim nächsten Neuaufbau im Hintergrund neu berechnet"
 
 # llm-draft
 msgid "Regular"
@@ -4420,6 +4389,10 @@ msgid "Rockets"
 msgstr "Raketen"
 
 # llm-draft
+msgid "Rockets (mixed loadout)"
+msgstr "Raketen (gemischte Beladung)"
+
+# llm-draft
 msgid "Role"
 msgstr "Rolle"
 
@@ -4482,10 +4455,6 @@ msgstr "Punkte- und Abschuss-Bestenlisten: nötige Einsätze eines Piloten"
 # llm-draft
 msgid "Score and rating"
 msgstr "Punkte und Wertung"
-
-# llm-draft
-msgid "Score per hour"
-msgstr "Punkte pro Stunde"
 
 # llm-draft
 msgid "Score points for flight time"
@@ -4603,13 +4572,6 @@ msgstr "Am häufigsten abgeschossen von"
 # llm-draft
 msgid "Shot down most"
 msgstr "Am häufigsten abgeschossen"
-
-# llm-draft
-#, python-format
-msgid "Show %(n)s more mix"
-msgid_plural "Show %(n)s more mixes"
-msgstr[0] "Noch %(n)s Mischung anzeigen"
-msgstr[1] "Noch %(n)s Mischungen anzeigen"
 
 # llm-draft
 msgid "Show assists in their own column of the killboard"
@@ -5065,8 +5027,12 @@ msgid "Tanks destroyed in attack sorties, moving or parked."
 msgstr "In Erdkampfeinsätzen zerstörte Panzer, fahrend oder geparkt."
 
 # llm-draft
-msgid "Tanks destroyed in total."
-msgstr "Zerstörte Panzer insgesamt."
+msgid "Tanks destroyed in one tour."
+msgstr "In einer Tour zerstörte Panzer."
+
+# llm-draft
+msgid "Tanks destroyed over your career."
+msgstr "In deiner gesamten Karriere zerstörte Panzer."
 
 # llm-draft
 msgid "Tanks destroyed per hour on target"
@@ -5097,8 +5063,12 @@ msgid "Taxi accidents"
 msgstr "Rollunfälle"
 
 # llm-draft
-msgid "Taxi accidents: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Rollunfälle: Die Maschine ging verloren, bevor sie je abgehoben hat. Das Vorfeld verzeiht."
+msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Rollunfälle in einer Tour: Das Flugzeug war weg, bevor es je abgehoben hat. Das Vorfeld verzeiht."
+
+# llm-draft
+msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
+msgstr "Rollunfälle in deiner gesamten Karriere: Das Flugzeug war weg, bevor es je abgehoben hat. Das Vorfeld verzeiht."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -5135,22 +5105,6 @@ msgstr "Diese Seite existiert nicht, oder der Link ist veraltet."
 # llm-draft
 msgid "That token is not right"
 msgstr "Dieses Token stimmt nicht"
-
-#, python-format
-msgid ""
-"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
-"at least %(n)s air superiority sortie in it are listed, and the sorties are counted in the selection."
-msgid_plural ""
-"The Elo is the pilot's rating in the selected tour (all time: their best tour's); in this selection only pilots with "
-"at least %(n)s air superiority sorties in it are listed, and the sorties are counted in the selection."
-msgstr[0] ""
-"Das Elo ist die Wertung des Piloten in der gewählten Tour (gesamte Zeit: in seiner besten Tour); aufgeführt sind nur "
-"Piloten mit mindestens %(n)s Luftüberlegenheitseinsatz in dieser Auswahl, und die Einsätze werden in der Auswahl "
-"gezählt."
-msgstr[1] ""
-"Das Elo ist die Wertung des Piloten in der gewählten Tour (gesamte Zeit: in seiner besten Tour); aufgeführt sind nur "
-"Piloten mit mindestens %(n)s Luftüberlegenheitseinsätzen in dieser Auswahl, und die Einsätze werden in der Auswahl "
-"gezählt."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
@@ -5370,6 +5324,10 @@ msgstr ""
 "auf der Seite zum Verarbeitungsstatus verfolgen."
 
 # llm-draft
+msgid "The killboards below count every role."
+msgstr "Die Abschussbilanzen unten zählen alle Rollen."
+
+# llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
 msgstr "Der Speicherort ist nicht erreichbar (ist die Netzwerkfreigabe oder das Laufwerk verfügbar?)."
 
@@ -5487,23 +5445,6 @@ msgstr ""
 "verschwinden nach dem Neustart."
 
 # llm-draft
-msgid "The same kills grouped by which ammunition types hit together, with the average hits of each type in that mix."
-msgstr ""
-"Dieselben Abschüsse, gruppiert danach, welche Munitionsarten zusammen getroffen haben, mit den durchschnittlichen "
-"Treffern jeder Art in dieser Mischung."
-
-# llm-draft
-msgid ""
-"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role."
-" Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons."
-" A dash means the measure does not apply or there are too few sorties."
-msgstr ""
-"Dieselben Kennzahlen für jede Kombination von Waffenmodifikationen, mit der Piloten dieses Flugzeug geflogen sind, in"
-" der gewählten Tour und Rolle. Das durchschnittliche Elo spiegelt das Können der Piloten wider, nicht nur die "
-"Modifikationen: Gute Piloten bevorzugen eine Kombination vielleicht aus anderen Gründen. Ein Strich heißt, dass die "
-"Kennzahl nicht passt oder es zu wenige Einsätze gibt."
-
-# llm-draft
 msgid "The server hit an error while building this page. Please try again in a moment."
 msgstr "Beim Erstellen dieser Seite ist auf dem Server ein Fehler aufgetreten. Versuch es gleich noch einmal."
 
@@ -5602,6 +5543,20 @@ msgstr ""
 "%(factor)s-Fache: %(values)s."
 
 # llm-draft
+#, python-format
+msgid ""
+"These are the words of the all-time (career) medal, built in as \"%(title)s\". The one-tour medal has its own words "
+"below."
+msgstr ""
+"Das sind die Texte der Karriere-Medaille (alle Zeit), standardmäßig „%(title)s“. Die Medaille für eine Tour hat unten"
+" eigene Texte."
+
+# llm-draft
+#, python-format
+msgid "These are the words of the medal in a tour, built in as \"%(title)s\": %(description)s"
+msgstr "Das sind die Texte der Medaille in einer Tour, standardmäßig „%(title)s“: %(description)s"
+
+# llm-draft
 msgid "These ended without a mission-end event; worth a look in case the server crashed mid-mission."
 msgstr "Diese endeten ohne Mission-Ende-Ereignis; ein Blick lohnt sich, falls der Server mitten in der Mission abgestürzt ist."
 
@@ -5674,6 +5629,12 @@ msgstr "Diese Mission läuft noch: Diese Zahlen können sich am Ende noch änder
 # llm-draft
 msgid "This page is not listed or searchable. Only people with the link can see it."
 msgstr "Diese Seite ist weder gelistet noch durchsuchbar. Nur Personen mit dem Link können sie sehen."
+
+# llm-draft
+msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
+msgstr ""
+"Dieser Spieler ist in der gewählten Tour keine Einsätze der gewählten Kampfrolle geflogen. Wähle oben eine andere "
+"Rolle."
 
 # llm-draft
 msgid "This player flies as a gunner only. Gunner stats come later."
@@ -5751,11 +5712,6 @@ msgid "Time"
 msgstr "Zeit"
 
 # llm-draft
-#. Translators: tooltip of the "Flight time" column header
-msgid "Time in the air, from takeoff until landing or until the aircraft was lost."
-msgstr "Zeit in der Luft, vom Start bis zur Landung oder bis zum Verlust des Flugzeugs."
-
-# llm-draft
 msgid "Time on target"
 msgstr "Zeit über dem Ziel"
 
@@ -5785,11 +5741,6 @@ msgstr "Zeitzone, in der eine Tour beginnt und endet"
 # llm-draft
 msgid "Timeline"
 msgstr "Zeitleiste"
-
-# llm-draft
-#. Translators: tooltip of the optional "Bailouts" column header of the aircraft list
-msgid "Times a pilot jumped out of this aircraft."
-msgstr "Wie oft ein Pilot aus diesem Flugzeug abgesprungen ist."
 
 # llm-draft
 msgid "Times are shown in UTC."
@@ -5869,6 +5820,30 @@ msgstr "Tour"
 #, python-format
 msgid "Tour %(number)s"
 msgstr "Tour %(number)s"
+
+# llm-draft
+msgid "Tour Hours Aloft"
+msgstr "Über den Wolken (Tour)"
+
+# llm-draft
+msgid "Tour Ramp Rash"
+msgstr "Parkrempler (Tour)"
+
+# llm-draft
+msgid "Tour Sitting Duck"
+msgstr "Leichte Beute (Tour)"
+
+# llm-draft
+msgid "Tour Sky Hunter"
+msgstr "Himmelsjäger (Tour)"
+
+# llm-draft
+msgid "Tour Tank Buster"
+msgstr "Panzerknacker (Tour)"
+
+# llm-draft
+msgid "Tour Wrong Team"
+msgstr "Eigentor (Tour)"
 
 msgid "Tour ended"
 msgstr "Tour beendet"
@@ -6122,16 +6097,6 @@ msgstr[1] ""
 "auch, aber das Menü bricht dann in eine zweite Zeile der Kopfzeile um."
 
 # llm-draft
-#. Translators: tooltip of the "Outcome" column header (what happened to the aircraft)
-msgid "What happened to the aircraft: landed, crashed, shot down and so on."
-msgstr "Was mit dem Flugzeug geschah: gelandet, abgestürzt, abgeschossen und so weiter."
-
-# llm-draft
-#. Translators: tooltip of the "Pilot fate" column header (what happened to the pilot)
-msgid "What happened to the pilot: survived, killed or captured. The badge names the exact state."
-msgstr "Was mit dem Piloten geschah: überlebt, getötet oder gefangen genommen. Das Abzeichen nennt den genauen Zustand."
-
-# llm-draft
 msgid "What was saved"
 msgstr "Was gespeichert wurde"
 
@@ -6148,19 +6113,8 @@ msgid "Which kills and losses to count"
 msgstr "Welche Abschüsse und Verluste gezählt werden"
 
 # llm-draft
-msgid ""
-"Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo"
-" of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per "
-"sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo"
-" reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means"
-" the measure does not apply or there are too few sorties."
-msgstr ""
-"Welche Bewaffnungen am besten funktionieren, in der gewählten Tour, Rolle und mit den gewählten Modifikationen. "
-"Luftüberlegenheits-Bewaffnungen zeigen das durchschnittliche Elo ihrer Piloten (pro Flugzeug, wenn sie darin "
-"gewertete Begegnungen haben, sonst das ihres Pools), Luftabschüsse pro Einsatz und K/D aus Luftabschüssen zwischen "
-"Spielern; Erdkampf-Bewaffnungen zeigen Bodenpunkte pro Stunde über dem Ziel. Das durchschnittliche Elo spiegelt das "
-"Können der Piloten wider, nicht nur die Bewaffnung: Gute Piloten bevorzugen eine Bewaffnung vielleicht aus anderen "
-"Gründen. Ein Strich heißt, dass die Kennzahl nicht passt oder es zu wenige Einsätze gibt."
+msgid "Which loadouts to show"
+msgstr "Welche Bewaffnungen angezeigt werden"
 
 # llm-draft
 msgid ""
@@ -6231,11 +6185,6 @@ msgstr "Von einer Seite gewonnen: %(won)s"
 # llm-draft
 msgid "Wore the convoy down beautifully, and the credit went to whoever fired last. A cruel bookkeeper."
 msgstr "Den Konvoi wunderbar zermürbt, und den Abschuss kriegt, wer zuletzt feuert. Ein gnadenloser Buchhalter."
-
-# llm-draft
-#, python-format
-msgid "Worst exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
-msgstr "Schlechtester Austausch: gegen %(enemy)s (%(kills)s Abschüsse, %(losses)s Verluste)."
 
 # llm-draft
 msgid "Wounded"

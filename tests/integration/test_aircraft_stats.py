@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 from django.db import connection, models
-from django.http import HttpResponse
 from django.test import Client, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -26,11 +25,12 @@ from il2ks.db.models import (
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.aircraft_stats import _sortie_groups  # pyright: ignore[reportPrivateUsage]
 from il2ks.web import object_names
+from tests.aircraft_pages import all_loadouts
 from tests.factories import STARTED_AT, kill, meta, mission, reindexed, save, sortie
 from tests.ops_helpers import make_instance
 from tests.simple_reads import assert_simple_reads
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 AIR = "air_superiority"
 MISSIONS = 5  # missions of the top-pilots seed
@@ -47,7 +47,16 @@ def snapshot() -> dict[str, list[dict[str, object]]]:
     return {
         "stats": rows(AircraftStats),
         "tour_stats": rows(TourAircraftStats, "aircraft_id", "tour_id", "role", "mod_pattern"),
-        "matchups": rows(AircraftMatchup),
+        "matchups": rows(
+            AircraftMatchup,
+            "killer_aircraft_id",
+            "victim_aircraft_id",
+            "tour_id",
+            "intercept",
+            "scoped_side",
+            "combat_role",
+            "mod_pattern",
+        ),
         "payloads": rows(AircraftPayload),
     }
 
@@ -324,14 +333,17 @@ def two_tours() -> tuple[Tour, Tour]:
             (
                 sortie(0, 1, kills_air=2, kills_air_pvp=2, payload_id=1, combat_role=AIR),
                 sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True),
-                sortie(2, 3, is_death=True, is_plane_lost=True, payload_id=2),
+                sortie(2, 3, is_death=True, is_plane_lost=True, payload_id=2, combat_role=AIR),
             ),
             (kill(100, 0, 1, victim_type="F-86A-5"), kill(200, 1, 2, killer_type="F-86A-5", victim_type="MiG-15bis")),
         )
     )
     save(
         mission(
-            (sortie(0, 1, kills_air=1, kills_air_pvp=1), sortie(1, 2, aircraft_type="F-51D", coalition=2)),
+            (
+                sortie(0, 1, kills_air=1, kills_air_pvp=1, combat_role=AIR),
+                sortie(1, 2, aircraft_type="F-51D", coalition=2),
+            ),
             (kill(100, 0, 1, victim_type="F-51D"),),
         ),
         meta("2026-10-29_22-00-00", OCTOBER),
@@ -340,10 +352,10 @@ def two_tours() -> tuple[Tour, Tour]:
     return september, october
 
 
-def loadout_sorties(response: HttpResponse) -> dict[str, int]:
+def loadout_sorties(client: Client, url: str) -> dict[str, int]:
     """Sorties per loadout name of a detail page (a loadout flown in two roles has a row per role)."""
     found: dict[str, int] = {}
-    for row in response.context["loadouts"]:
+    for row in all_loadouts(client, url):
         found[row.payload.payload_name] = found.get(row.payload.payload_name, 0) + row.payload.sorties
     return found
 
@@ -408,9 +420,10 @@ def test_detail_tiles_and_tables_follow_the_tour_and_all_time_stays_available(cl
     assert [r.context["tile"].kills_air for r in (in_september, in_october, all_time)] == [2, 1, 3]
     assert [in_september.context["survived"], in_october.context["survived"]] == [1, 1]  # 2 sorties 1 death; 1 and 0
     assert all_time.context["stats"].sorties == 3  # the all-time row is always loaded (side badge)
-    for response in (in_september, in_october, all_time):  # the loadouts follow the tour too (maintainer 2026-10-04)
-        assert sum(loadout_sorties(response).values()) == response.context["tile"].sorties
-    assert loadout_sorties(all_time) == {"Payload 1": 2, "Payload 2": 1}
+    for response, query in ((in_september, f"?tour={september.pk}"), (in_october, ""), (all_time, "?tour=all")):
+        # the loadouts follow the tour too (maintainer 2026-10-04)
+        assert sum(loadout_sorties(client, url + query).values()) == response.context["tile"].sorties
+    assert loadout_sorties(client, f"{url}?tour=all") == {"Payload 1": 2, "Payload 2": 1}
     # the matchups follow the same tour
     assert [m.enemy.log_name for m in in_september.context["matchups"].rows] == ["F-86A-5"]
     assert [m.enemy.log_name for m in in_october.context["matchups"].rows] == ["F-51D"]

@@ -130,10 +130,21 @@ def reprocess(
     `on_start(total)` is called once the lock is held and the missions are chosen; `on_progress(summary)` after each
     mission (the admin's request row shows both)."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
-        cfg = effective_config(cfg)  # the rules the admin applied (they win over the file)
-        run_rebuild = rebuild or partial(
-            rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board
-        )
+        file_cfg = cfg
+        cfg = effective_config(file_cfg)  # the rules the admin applied (they win over the file)
+
+        def rebuild_with_current_rules() -> None:
+            """The rules in force when the rebuild runs: the admin may save new mark minimums during a long run."""
+            now_cfg = effective_config(file_cfg)
+            rebuild_aggregates(
+                now_cfg.ratings,
+                now_cfg.tours,
+                marks=now_cfg.marks,
+                score=now_cfg.score,
+                board=now_cfg.board,
+            )
+
+        run_rebuild = rebuild or rebuild_with_current_rules
         repair_pending(run_rebuild, cfg.ratings, cfg.marks)  # a killed batched run left level 2 behind
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)

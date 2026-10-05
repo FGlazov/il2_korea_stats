@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0066_site_rule_settings"),
+        ("il2ks_db", "0067_player_role_totals"),
     ]
 
     operations = [

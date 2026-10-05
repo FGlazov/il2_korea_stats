@@ -750,12 +750,13 @@ def tour_filter(context: Context, tours: Iterable[Tour], selected: Tour | None =
 
 @register.inclusion_tag(COMPONENTS + "columns_picker.html", takes_context=True)
 def columns_picker(context: Context, available: Sequence[columns.Column[Never]]) -> dict[str, object]:
-    """{% columns_picker optional_columns %} inside {% filter_bar %}: the "Columns" dropdown of checkboxes (`?cols=`).
+    """{% columns_picker optional_columns %} inside {% filter_bar %}: the collapsible "Extra columns" (`?cols=`).
 
     `available` is the page's registry of optional columns (`il2ks.web.columns`); the checked ones are read from the
     query string, so the control and the table can never disagree."""
     wanted = columns.requested_keys(_params_of(context))
-    return {"options": [(column.key, column.label, column.description, column.key in wanted) for column in available]}
+    options = [(column.key, column.label, column.description, column.key in wanted) for column in available]
+    return {"options": options, "any_checked": any(option[3] for option in options)}
 
 
 @register.filter

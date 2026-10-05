@@ -239,7 +239,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `ingest/ratings.py::recompute_ratings(rules, tour_ids)` replays the kills of **each tour alone** (ordered by mission start, kill time, row id; a new
   tour is a clean slate, OQ-128) through the pure `core/ratings/elo.py` and writes only the rows that changed: the tour's `PlayerTourPool` and
   `PlayerTourAircraft` ratings and the tour's `PlayerSortie.elo_peak` (the medals that read them are refreshed right after, step 4 above). The
-  all-time ratings (`Player`, `PlayerAircraft`) are derived afterwards by `rollup_ratings` from the tour rows of the refreshed players only: the best final rating, games summed (doc 13). `tour_ids=None`
+  all-time ratings (`Player`, `PlayerAircraft`) are derived afterwards by `rollup_ratings` from the tour rows of the refreshed players only: the best final rating among the tours with at least `min_elo_games` rated games (`RatingRules.min_games`; the best tour with any game when none reaches it), games summed (doc 13; `best_of_tours`). `tour_ids=None`
   replays every tour (rebuild, `reprocess`'s end); every other refresh passes the tours it touched (old and new), since a tour's result never depends on another
   tour's games. It runs inside each mission save (same transaction), in every batch pass, and once at the end of `rebuild-aggregates` and `reprocess`. So a mission imported late
   lands in the right place in its tour's order and changes nothing in the other tours. Cost: about 0.02 s per mission at sample scale, bounded by the
@@ -382,7 +382,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   split from the timelines (`assist_split`), rounds fired and gun hits from the stored ammo (`accuracy`), the streak history (`streak_runs`),
   `TourAircraftStats` (`tour_aircraft`) and the favourite loadouts (`builds`), the achievement facts rams, first blood, multi-kills
   and Elo peaks (`achievement_facts`), the loadout names looked up again from the payload ids (`payload_names`) and medals (`achievements`, then
-  `achievement_tours` for the per-tour medals and rarity counts, after the rebuild; `streak_tracks` (the two ironman tracks, migration 0094: marks the one rebuild that fills `track`, the ground-kill counts, `Player.streak_kills_*` and the survivor / life-kills medals, FR-OPS-3); last `tour_clean_slate`, streaks and medals per tour with the all-time rows rolled up, which
+  `achievement_tours` for the per-tour medals and rarity counts, after the rebuild; `elo_min_games`, a rebuild for a database that stored the all-time Elo as the best of any tour before the minimum-games rule, once per database and folded into the same one rebuild; `streak_tracks` (the two ironman tracks, migration 0068: marks the one rebuild that fills `track`, the ground-kill counts, `Player.streak_kills_*` and the survivor / life-kills medals, FR-OPS-3); last `tour_clean_slate`, streaks and medals per tour with the all-time rows rolled up, which
   only records its marker when this upgrade just rebuilt, since the rebuild computes the same after `tour_elo`'s replay). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
   the level-1 sortie columns it owns (level 1) and returns whether level 2 needs a rebuild**; `rebuild_aggregates` then runs **at most once per
   upgrade** (it used to run once per step, up to three times) and all the markers are written together. Level-1 writes use `update_partial_rows`

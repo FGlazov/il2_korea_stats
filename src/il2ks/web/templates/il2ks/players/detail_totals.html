@@ -1,15 +1,16 @@
 {# il2ks-template: templates/il2ks/players/detail_totals.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_totals.html: the secondary all-time totals. Context: stats.
-{% endcomment %}<dl class="kv">
-  <dt>{% translate "Takeoffs" %}</dt><dd>{{ stats.takeoffs|num }}</dd>
-  <dt>{% translate "Landings" %}</dt><dd>{{ stats.landings|num }}</dd>
-  <dt>{% translate "Bailouts" %}</dt><dd>{{ stats.bailouts|num }}</dd>
-  <dt>{% translate "Suspected early bailouts" %}</dt><dd>{{ stats.suspected_early_bailouts|num }}</dd>
-  <dt>{% translate "Captures" %}</dt><dd>{{ stats.captures|num }}</dd>
-  <dt>{% translate "Attack sorties" %}</dt><dd>{{ stats.attack_sorties|num }}</dd>
-  <dt>{% translate "Time on target" %}</dt><dd>{{ stats.time_on_target_s|duration }}</dd>
-  <dt>{% translate "Strafed on the ground" %}</dt><dd>{{ stats.strafed_on_ground|num }}</dd>
-  <dt>{% translate "Friendly kills" %}</dt><dd>{{ stats.friendly_kills|num }}</dd>
-  <dt>{% translate "Friendly hits" %}</dt><dd>{{ stats.friendly_hits|num }}</dd>
+  detail_totals.html: the secondary totals, laid out as a grid of small label-over-value cells (4 columns on wide
+  screens, 2 on phones; players.css .totals-grid). Context: stats (the player, a tour row, or the role's summed rows).
+{% endcomment %}<dl class="totals-grid">
+  <div><dt>{% translate "Takeoffs" %}</dt><dd>{{ stats.takeoffs|num }}</dd></div>
+  <div><dt>{% translate "Landings" %}</dt><dd>{{ stats.landings|num }}</dd></div>
+  <div><dt>{% translate "Bailouts" %}</dt><dd>{{ stats.bailouts|num }}</dd></div>
+  <div><dt>{% translate "Suspected early bailouts" %}</dt><dd>{{ stats.suspected_early_bailouts|num }}</dd></div>
+  <div><dt>{% translate "Captures" %}</dt><dd>{{ stats.captures|num }}</dd></div>
+  <div><dt>{% translate "Attack sorties" %}</dt><dd>{{ stats.attack_sorties|num }}</dd></div>
+  <div><dt>{% translate "Time on target" %}</dt><dd>{{ stats.time_on_target_s|duration }}</dd></div>
+  <div><dt>{% translate "Strafed on the ground" %}</dt><dd>{{ stats.strafed_on_ground|num }}</dd></div>
+  <div><dt>{% translate "Friendly kills" %}</dt><dd>{{ stats.friendly_kills|num }}</dd></div>
+  <div><dt>{% translate "Friendly hits" %}</dt><dd>{{ stats.friendly_hits|num }}</dd></div>
 </dl>

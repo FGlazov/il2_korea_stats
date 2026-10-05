@@ -51,7 +51,8 @@ explained. (Environment variables such as `IL2KS_SCORE_AIR_KILL_PVP` set the fil
 | Re-scores every sortie | `[score]` points and penalties, `[ratings]`, `[killboard] assists`, the flight-time score | Shown as *pending*. The log watcher applies all pending changes together within a minute or so (one re-score and rebuild), or `il2ks rebuild-aggregates` does. Until then every page shows the old numbers, and new missions use the old rules too, so nothing is ever mixed. |
 | Moves missions into other tours | `[tours]`, "new tour after a decisive mission" | Shown as *pending*. The watcher reassigns the missions and rebuilds, or run `il2ks rebuild-aggregates --retour`. |
 | New missions at once | `[rules]`, `[replay]` | Used by the next mission that is ingested. Older missions keep their numbers until **Reprocess all missions** (Ingestion status page) or `il2ks reprocess`. |
-| Applies at once | The board minimums and `[marks]` | The boards use them on the next page view; the Top 10%/25% marks are computed again when you save. |
+| Applies at once | The board minimums `min_sorties`, `min_attack_sorties`, `min_time_on_target_minutes`, `min_air_superiority_sorties`, `min_air_superiority_minutes`, and `[marks]` | The boards use them on the next page view; the Top 10%/25% marks are computed again when you save. |
+| Recomputed by the next rebuild | `[score] min_elo_games` | Shown as *pending*, applied by the watcher's rebuild (or `il2ks rebuild-aggregates`) together with other pending changes. It re-scores nothing: it decides which tours the stored all-time Elo may come from (the best tour with at least that many games), and the Elo boards and Elo marks follow once it is applied. |
 
 ## The three steps
 
@@ -79,7 +80,8 @@ il2ks ignores, for example a misspelled key.
 | `[marks]` (the "Top 10%" marks) | `il2ks rebuild-aggregates` | Same. |
 | `[killboard] assists` | `il2ks rebuild-aggregates` | Same. |
 | `[tours]`: mode, start date or time zone | `il2ks rebuild-aggregates --retour` | Moves the old missions into the new tours. |
-| The board minimums in `[score]` (`min_sorties`, `min_elo_games`, ...) | nothing more (`il2ks rebuild-aggregates` for `min_elo_games`) | The boards use them at once. The marks pick them up at the next rebuild; so does the all-time Elo for `min_elo_games` (it is the best tour with at least that many games). |
+| The board minimums in `[score]` (`min_sorties`, `min_attack_sorties`, ...) | nothing more | The boards use them at once; the marks are computed again when you save in the admin (from the file: at the next rebuild). |
+| `[score] min_elo_games` | `il2ks rebuild-aggregates` | Picks the tours the all-time Elo comes from (the best tour with at least that many games), so the stored ratings, the Elo boards and the Elo marks change with the rebuild. |
 | `[logs]`, `[ingest]`, `[live]`, `[backup]`, `[web]`, `[https]` | nothing more | Restart is enough. |
 | Title, logo, colors, fonts, menu links, game object names | nothing, no restart | Done in the admin; shows at once. |
 
@@ -132,7 +134,7 @@ penalty_friendly_kill = 3.0
 
 After a change run `il2ks rebuild-aggregates`.
 
-The boards are: air score, ground score, ground score per hour, interception, tank busting, Elo (propeller and jet)
+The boards are: air score, ground score, attack proficiency, interception, tank busting, Elo (propeller and jet)
 and play time. The same `[score]` section sets how much a pilot must have done to appear on a board, so one lucky
 flight cannot top it: `min_sorties`, `min_elo_games`, `min_attack_sorties`, `min_time_on_target_minutes`,
 `min_air_superiority_sorties` and `min_air_superiority_minutes`. Lower them on a small server.

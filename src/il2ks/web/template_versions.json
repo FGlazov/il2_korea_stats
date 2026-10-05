@@ -3,7 +3,7 @@
   "files": {
     "static/il2ks/il2ks.js": {
       "version": 1,
-      "sha256": "7fec1879682540ae0ba8b406dbc0eb1625f61888a14c70af0db9837d4fe68131"
+      "sha256": "1ade31e77639baa6d618a19a6c9f26abf866f6c9cf22a78c25d6524cb95c7d60"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -15,11 +15,11 @@
     },
     "static/il2ks/missions.css": {
       "version": 1,
-      "sha256": "273f23cb81c3bd0866c915fca7acb0c4a8e54c9edb5709fdb1d27f5acfbdb170"
+      "sha256": "472b49d855414c81b539c9e54c4f90e543b5ae2f6f934ac813cd948ee7f2562f"
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "bc141868526b2535fe9882b9985f1d40a653d6da7321ab44baa98e428f3a79bd"
+      "sha256": "550c6eca6cd426ad8175c029ca9b9b9e5b2b12cf6614cf371cbce1ead5de01eb"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -31,11 +31,11 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "d36cc770e3746f86af90c64104a9caa2c6bf150086ac9a84ac0a2a852f4fd2e8"
+      "sha256": "4e060b8fb5399946d074d7a909b4bc3c438e2310eb9e59aa2fa38bc12ac816e3"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
-      "sha256": "c2c7002a9e3ae36d432730436add645d2f1ef39c6fd6754312ccd50a47c482bf"
+      "sha256": "f64597c55d1e4f4bf9e860fd3eff20ecaef9334e83815228565ad9f2415b280a"
     },
     "static/il2ks/theme-init.js": {
       "version": 1,
@@ -75,7 +75,7 @@
     },
     "templates/admin/il2ks_achievements.html": {
       "version": 1,
-      "sha256": "d022553a7a679bf6798188f519f39d169a41efe9a709a0efe298b026b3a09339"
+      "sha256": "657ed533157c77af341ea120401da94ab29493a9cdf0501567898c908425a8ee"
     },
     "templates/admin/il2ks_db/tour/change_list.html": {
       "version": 1,
@@ -91,7 +91,7 @@
     },
     "templates/admin/il2ks_leaderboards.html": {
       "version": 1,
-      "sha256": "4bf00750dbe90e215fa2af2110fe56c7da61620667671b2f26227a81ce90a7c3"
+      "sha256": "b2a2585946233540d2c12d961cd824899bf0715e6cb34282951752a04b5ecd26"
     },
     "templates/admin/il2ks_quips.html": {
       "version": 1,
@@ -127,7 +127,7 @@
     },
     "templates/il2ks/achievements/holders.html": {
       "version": 1,
-      "sha256": "668550032adda9eff1bb43ec89dc9d3622163d249c632e3e4d97295e6908ba78"
+      "sha256": "a3f19aec0f6c0528e66b655fcfd3c0d05a348b19167a07db29447808db337ade"
     },
     "templates/il2ks/achievements/home_feed.html": {
       "version": 1,
@@ -135,15 +135,15 @@
     },
     "templates/il2ks/achievements/overview.html": {
       "version": 1,
-      "sha256": "8ad7d09147bb09cb8eaa1c6c78856e0cd54669c200aa36af1e9562070e51a9ab"
+      "sha256": "eaaef322b947f648b52c588858cf83264917a944a2c8f63d5c78aa2d14f57632"
     },
     "templates/il2ks/aircraft/detail.html": {
       "version": 1,
-      "sha256": "5d4038b0cc3a82fb730d910922933f898f1ea315e10423ce21f5a686ba26dc8a"
+      "sha256": "13f5c5abce113ad790e0d27ed3fd9d280f21de53b4537efc1058b15d4e581183"
     },
     "templates/il2ks/aircraft/list.html": {
       "version": 1,
-      "sha256": "98dc9f0756b56713194c11a4d1eaae93d0d76eb6b592e3039602b22d47a6e5ca"
+      "sha256": "9c282b8a3b3c31a5f676429ec10f308d87b212fd4a1a54acc9578908c6ae00a7"
     },
     "templates/il2ks/aircraft/parts/ammo_mix_row.html": {
       "version": 1,
@@ -151,11 +151,11 @@
     },
     "templates/il2ks/aircraft/top_elo.html": {
       "version": 1,
-      "sha256": "e93a73eccf14fc5b0f40fa9f39c416e46f0a8a6283e29aeb9f798da24f9cf3e4"
+      "sha256": "5739d45d3dc4ed4acfdfc607ec739e256763c6666d50284c4aeec77390fc14a8"
     },
     "templates/il2ks/aircraft/top_ground.html": {
       "version": 1,
-      "sha256": "f3d35c7698b701424921ead52ca5a5a1c0d7d95299b2f98f7b8494f5159c25da"
+      "sha256": "538d3e16080317a5343b8f37124207c6d2c2500919c8dac3e553c0cf898bc324"
     },
     "templates/il2ks/base.html": {
       "version": 1,
@@ -187,7 +187,7 @@
     },
     "templates/il2ks/components/columns_picker.html": {
       "version": 1,
-      "sha256": "54d940104cf6c9bf1be15786b782ec15e175a8400e9297e3697b0448a3289a5f"
+      "sha256": "893d1056829eab56b514746ca065bf5eec92fdac40d2f536a1358a7eee920b3d"
     },
     "templates/il2ks/components/dropdown.html": {
       "version": 1,
@@ -279,11 +279,11 @@
     },
     "templates/il2ks/components/tour_select.html": {
       "version": 1,
-      "sha256": "b8240de0c793648740aadd67e6b746488f697b2c3a24c9678ea3e67f4bdf7fa7"
+      "sha256": "760cbd16091b3881fbc372b12e9d3dfc31396cdb576e983c497806281b6a8aa5"
     },
     "templates/il2ks/home.html": {
       "version": 1,
-      "sha256": "131fa7d61ba39abe2c1029e94d191c35f2dc5fc94594b97ffc30eea9ee796eac"
+      "sha256": "f37c54c1347d0ea69c377b6f41aa14a9e56c884101741a922b63fb50f6263179"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,
@@ -295,7 +295,7 @@
     },
     "templates/il2ks/leaderboards/home_block.html": {
       "version": 1,
-      "sha256": "007223f3c9999512905b8d274c1188bab9f0c4ffbe2028efaab77f26ef4a6283"
+      "sha256": "2f8f110fe627d4c745a7cbafc89605b136b76e1d0d33a625486ef3decea47224"
     },
     "templates/il2ks/leaderboards/ironman_running.html": {
       "version": 1,
@@ -303,11 +303,11 @@
     },
     "templates/il2ks/leaderboards/list.html": {
       "version": 1,
-      "sha256": "18b7c6fc9af1a9684c5d33b5148bbfd8d8f7f1b0fd7dfc4a1b3ab17b85a6600c"
+      "sha256": "26806c571d971aeb707c1cfab6e9c20b88fda05a74d79e986fa182c5123df67a"
     },
     "templates/il2ks/leaderboards/table.html": {
       "version": 1,
-      "sha256": "5e3e5ac92190f2054894c27fabd4e7283f20f28170c2299fe7b3b9e60124ce4c"
+      "sha256": "426fe3c6c9093d579903c700a1cf4108b65959080b486ef1fb9968ad93612957"
     },
     "templates/il2ks/missions/_player.html": {
       "version": 1,
@@ -319,11 +319,11 @@
     },
     "templates/il2ks/missions/detail.html": {
       "version": 1,
-      "sha256": "b473c4a07c95aac802fca227903fac7ae19e73617ec2860674a216d5085f79b3"
+      "sha256": "2c996a8c2c3e10fd7dcc7f11fd0c61cba599a74f55008352ea143b5729fbcd13"
     },
     "templates/il2ks/missions/list.html": {
       "version": 1,
-      "sha256": "cc4f2464f9d0ff6b6f81b277164a317b325d08923f9911123343c1de308d87f9"
+      "sha256": "6d1d24f3b1fe88f2d0c227c108e35c54d332d7b4e88425bd458bdc364ecc41fe"
     },
     "templates/il2ks/players/_killboard_rows.html": {
       "version": 1,
@@ -335,11 +335,11 @@
     },
     "templates/il2ks/players/achievements.html": {
       "version": 1,
-      "sha256": "ff713a6be373b8740f4b66b591c7abf40af59888a4120ff3483d9505d652a0bd"
+      "sha256": "9da73c39f6b5f9925b888cc8f0b2c9cafb6893e4c6dd23de60f8b958d960bd35"
     },
     "templates/il2ks/players/detail.html": {
       "version": 1,
-      "sha256": "ef5f280b3fd43bb7f3cb8b9b3b852b51c0918427c1e58c048f1b5aba704d11e1"
+      "sha256": "71eec4780f9bbe2cacf7556ff2667f1239f44531724795567d20cbd6531196c6"
     },
     "templates/il2ks/players/detail_achievements.html": {
       "version": 1,
@@ -347,7 +347,7 @@
     },
     "templates/il2ks/players/detail_air_section.html": {
       "version": 1,
-      "sha256": "8ef88febf370cc7b3727bb9b56ec16dc93cb77cf9c876461ced48d3c9430b9a1"
+      "sha256": "fbd9252a015b55e271161ad10148b647da46c8cbef8f54e25047d4410bf206d6"
     },
     "templates/il2ks/players/detail_air_split.html": {
       "version": 1,
@@ -359,7 +359,7 @@
     },
     "templates/il2ks/players/detail_aircraft.html": {
       "version": 1,
-      "sha256": "563d300f733cc8c9321b3cf965c113c4f74e887c57a1ccd3abcd179e7ec2fd3f"
+      "sha256": "42fd97507f16e149ec60a06c7a7666932408f7cb8bbc9161314f424b795fd121"
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
       "version": 1,
@@ -375,7 +375,7 @@
     },
     "templates/il2ks/players/detail_ground_scores.html": {
       "version": 1,
-      "sha256": "41d093ca071ab641eb1d950c480ec3a51973b5e236ad8c871821d72eb076ad44"
+      "sha256": "babfea37705509999b479a613658096983658833b881266b8abee793bea4a3e2"
     },
     "templates/il2ks/players/detail_ground_section.html": {
       "version": 1,
@@ -387,7 +387,7 @@
     },
     "templates/il2ks/players/detail_header.html": {
       "version": 1,
-      "sha256": "6503edf8535ee88826d380b12c81e4d523f71a5ff504056e5b5cd21baa069dbc"
+      "sha256": "f589cca2154057bd7116e84bf9c420d829d490c8be127c9a97715bc5ff8d622f"
     },
     "templates/il2ks/players/detail_killboard.html": {
       "version": 1,
@@ -395,11 +395,11 @@
     },
     "templates/il2ks/players/detail_nav.html": {
       "version": 1,
-      "sha256": "dac6c306eb839189d121ad44d3143544b71a58b0b84e9d25661b4b1577739c38"
+      "sha256": "ef29ddf372a72d02674cce630f969bdb7269771b5c88c1e0b6a18cbf75ce36d7"
     },
     "templates/il2ks/players/detail_overall.html": {
       "version": 1,
-      "sha256": "426b0d30a41500d1a466f666d458f80e71cd013b64e8908c3e356d69bf86a3f1"
+      "sha256": "59993a6f8b900e92ba922fdd2de87a0665b43ea4fadafc097cf7cc18d3c44e6b"
     },
     "templates/il2ks/players/detail_pve.html": {
       "version": 1,
@@ -411,11 +411,11 @@
     },
     "templates/il2ks/players/detail_recent.html": {
       "version": 1,
-      "sha256": "5cc790f3c550bf8354be6c90b572f5aa2b8f59b48ec762389250a11247e89931"
+      "sha256": "580cbe6e28cac2c4b1aca4f5de0aced184c72f42c4096130444e559e4d764138"
     },
     "templates/il2ks/players/detail_scores.html": {
       "version": 1,
-      "sha256": "e550d3ee3d9f1afe67a6d1cf4a664d74247ab06ddcdb14f110f799f22300f0bb"
+      "sha256": "bfde7bde3064dd266eb0a985699ce7ff3da69fb0c895741bdd8f2492e583585c"
     },
     "templates/il2ks/players/detail_shame.html": {
       "version": 1,
@@ -431,7 +431,7 @@
     },
     "templates/il2ks/players/detail_totals.html": {
       "version": 1,
-      "sha256": "b595e57a350297d52e125e209d72b1c934b8a53b9673d3651447135c02c115a5"
+      "sha256": "40498d12af549c8e23662ac880b2c7729a9a4427989979257cddf0f42a9b59e6"
     },
     "templates/il2ks/players/detail_type_killboard.html": {
       "version": 1,
@@ -439,7 +439,7 @@
     },
     "templates/il2ks/players/killboard.html": {
       "version": 1,
-      "sha256": "8d92ad44a48d3e4ac98bb191e8c68f48f0577586e119cb89ef8e898e0cfe480a"
+      "sha256": "5900284e67d8afcc1652fefd1fbc92857fcbfd447e37768dbc3c784c62896f42"
     },
     "templates/il2ks/players/search.html": {
       "version": 1,
@@ -451,11 +451,11 @@
     },
     "templates/il2ks/players/streak_runs.html": {
       "version": 1,
-      "sha256": "1cd69f51e17405468688805bcd137dd7b4cd1f989415dc63d026fcf8c36fa21e"
+      "sha256": "b01b5a427cbe0bf35651206829f9f8fcd49a6e7b11d00667a35261759f873799"
     },
     "templates/il2ks/players/streaks.html": {
       "version": 1,
-      "sha256": "2701d9edba6e7b1054788ab3dc1ee1a28d852e5024c133bfb85355b3e00fa797"
+      "sha256": "1fc31e6cc93168788322b6ee1219853ed0934373e26ac34f39c506bd9e63b352"
     },
     "templates/il2ks/setup.html": {
       "version": 1,
@@ -475,11 +475,11 @@
     },
     "templates/il2ks/sorties/list.html": {
       "version": 1,
-      "sha256": "66b5502561f0d7a02922c2b7ffa91de900025c6bbf868f6954f1c0e2489b7314"
+      "sha256": "210b0cac6f6b8923095de319ab21e4bdf779b6bfb694a5ddffa357474751aa08"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 1,
-      "sha256": "d9ac6835d380d726d379e9c1d1c7c9806459d11702b751a0743cdc1bc7458ac9"
+      "sha256": "c16ff3a3b940a10faf7cb465564cfdd630c0f30b44adfcf011aebbb38caf1d09"
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
@@ -487,7 +487,7 @@
     },
     "templates/il2ks/sorties/parts/damage_table.html": {
       "version": 1,
-      "sha256": "85ee372e3e7d927ae63d31fc753e4b0d3aab12c6036d22f2ac8e944f0958544f"
+      "sha256": "117c2eefb597d2e8925d1e03892290f9b89b1c3fdaa91816027f780c7680ef95"
     },
     "templates/il2ks/sorties/parts/header.html": {
       "version": 1,
@@ -536,10 +536,6 @@
     "templates/il2ks/sorties/parts/who.html": {
       "version": 1,
       "sha256": "2127bb9cfafd81cd55df6467ec39b53828afd3a08c2a8eb2c7e4e9149fa46383"
-    },
-    "templates/il2ks/streaks/home_block.html": {
-      "version": 1,
-      "sha256": "85c3b11d23fb68c4bd7e4f49dfb23ec983a5cdb337d8b2c82743b187640e5718"
     },
     "templates/il2ks/styleguide.html": {
       "version": 1,

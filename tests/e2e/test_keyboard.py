@@ -21,7 +21,7 @@ def tab_to(page: Page, selector: str, limit: int = 80) -> None:
 def test_column_picker_by_keyboard(page: Page) -> None:
     page.goto("/players/?q=")
     tab_to(page, "details.columns-picker > summary")
-    assert page.evaluate(FOCUS_RING), "the Columns summary shows no focus"
+    assert page.evaluate(FOCUS_RING), "the Extra columns summary shows no focus"
     page.keyboard.press("Enter")
     expect(page.locator("details.columns-picker")).to_have_attribute("open", "")
     page.keyboard.press("Tab")

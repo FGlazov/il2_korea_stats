@@ -51,6 +51,9 @@ class AchievementConfig:
     """What the stored rows were computed with."""
     names: Texts = field(default_factory=lambda: {})
     descriptions: Texts = field(default_factory=lambda: {})
+    tour_names: Texts = field(default_factory=lambda: {})
+    """The per-tour variant's name of a cumulative medal (`names` is its all-time/career one; doc 17, 2026-10-05)."""
+    tour_descriptions: Texts = field(default_factory=lambda: {})
 
     @staticmethod
     def from_row(row: SiteSettings) -> "AchievementConfig":
@@ -60,11 +63,19 @@ class AchievementConfig:
             Rules.from_json(row.achievements_applied),
             _texts(data.get("names"), MAX_NAME),
             _texts(data.get("descriptions"), MAX_DESCRIPTION),
+            _texts(data.get("tour_names"), MAX_NAME),
+            _texts(data.get("tour_descriptions"), MAX_DESCRIPTION),
         )
 
     def to_json(self) -> dict[str, object]:
         """What `SiteSettings.achievements` stores: only what differs from the built-in set."""
-        return {**self.wanted.to_json(), "names": self.names, "descriptions": self.descriptions}
+        return {
+            **self.wanted.to_json(),
+            "names": self.names,
+            "descriptions": self.descriptions,
+            "tour_names": self.tour_names,
+            "tour_descriptions": self.tour_descriptions,
+        }
 
     def enabled(self, key: str) -> bool:
         return self.wanted.enabled(key)
@@ -82,11 +93,12 @@ class AchievementConfig:
         """The switched-on achievements in registry order."""
         return [a for base in ACHIEVEMENTS if (a := self.achievement(base.key)) is not None]
 
-    def name(self, key: str, language: str) -> str:
-        return _lookup(self.names, key, language)
+    def name(self, key: str, language: str, *, tour: bool = False) -> str:
+        """The custom name; `tour`: that of the per-tour variant of a cumulative medal."""
+        return _lookup(self.tour_names if tour else self.names, key, language)
 
-    def description(self, key: str, language: str) -> str:
-        return _lookup(self.descriptions, key, language)
+    def description(self, key: str, language: str, *, tour: bool = False) -> str:
+        return _lookup(self.tour_descriptions if tour else self.descriptions, key, language)
 
 
 def _lookup(texts: Texts, key: str, language: str) -> str:

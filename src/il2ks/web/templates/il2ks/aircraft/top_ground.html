@@ -1,19 +1,19 @@
 {# il2ks-template: templates/il2ks/aircraft/top_ground.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  top_ground.html: a type's best attack pilots by ground score per hour on target (FR-WEB-20, OQ-49), on the aircraft
+  top_ground.html: a type's best attack pilots by attack proficiency (ground score per hour on target; FR-WEB-20, OQ-49), on the aircraft
   detail page. Context: ground_pilots (BoardRow: rank, player, stats, per_hour), rules (min_attack_sorties,
   min_time_on_target_minutes), primary (show the empty message when nobody qualifies; the secondary ranking is left
   out instead).
 {% endcomment %}{% if ground_pilots or primary %}<section>
   <h2>{% translate "Top attack pilots" %}</h2>
-  <p class="muted">{% blocktranslate with sorties=rules.min_attack_sorties minutes=rules.min_time_on_target_minutes|num %}Ground score per hour on target in this aircraft. Pilots with at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}</p>
+  <p class="muted">{% blocktranslate with sorties=rules.min_attack_sorties minutes=rules.min_time_on_target_minutes|num %}Attack proficiency in this aircraft. Pilots with at least {{ sorties }} attack sorties and {{ minutes }} minutes on target.{% endblocktranslate %}</p>
   <div class="table-wrap table-wrap--flat">
-    <table class="data-table">
+    <table class="data-table data-table--sticky-2">
       <thead>
         <tr>
           <th scope="col" class="num">#</th>
           <th scope="col">{% translate "Pilot" %}</th>
-          {% col_th _("Score per hour") numeric=True hint="score_per_hour" %}
+          {% col_th _("Attack proficiency") numeric=True hint="score_per_hour" %}
           {% col_th _("Time on target") numeric=True hint="time_on_target" %}
           {% col_th _("Attack sorties") numeric=True hint="attack_sorties" %}
         </tr>

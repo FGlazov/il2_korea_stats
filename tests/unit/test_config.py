@@ -178,6 +178,27 @@ def test_invalid_values_name_the_setting(tmp_path: Path, toml: str, message: str
         load_config(file, {"IL2KS_DATA_DIR": str(tmp_path / "d")})
 
 
+@pytest.mark.parametrize(
+    ("toml", "message"),
+    [
+        ("[score]\nair_kill_pvp = nan", "finite"),
+        ("[score]\nair_kill_pvp = inf", "finite"),
+        ("[score]\nmin_sorties = inf", "finite"),
+        ("[score]\nmin_sorties = 1e400", "finite"),
+        ('[score]\nmin_sorties = "inf"', "finite"),
+        ("[ratings]\nk = nan", "finite"),
+        ("[replay]\nbailout_min_distance_m = inf", "finite"),
+        ('[tours]\nmode = "days:999999999"\nstart = 2026-01-01', "3660"),
+    ],
+)
+def test_non_finite_numbers_and_huge_tour_lengths_are_config_errors(tmp_path: Path, toml: str, message: str) -> None:
+    """Review #12 item 3: a whole-number field read `inf` as OverflowError and a number field kept `nan`; `days:N`
+    with a huge N validated and then overflowed `period_for` on every tick. Every one is a ConfigError."""
+    file = write_toml(tmp_path / "il2ks.toml", toml)
+    with pytest.raises(ConfigError, match=message):
+        load_config(file, {"IL2KS_DATA_DIR": str(tmp_path / "d")})
+
+
 def test_server_uid_is_generated_once_and_then_kept(tmp_path: Path) -> None:
     env = {"IL2KS_DATA_DIR": str(tmp_path / "d")}
     first = load_config(None, env)

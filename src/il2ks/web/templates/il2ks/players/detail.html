@@ -5,10 +5,14 @@
   detail_recent (latest 5 sorties + "View all sorties"), detail_air_section (air-to-air: detail_air_tiles, detail_ratios,
   detail_scores, detail_air_split, detail_type_killboard, detail_killboard), detail_ground_section (air-to-ground: detail_ground_tiles, detail_ground,
   detail_ground_scores), detail_overall (detail_streaks, detail_aircraft, detail_pve, detail_totals, detail_charts).
-  An empty air or ground part collapses to one line (`air_active` / `ground_active`). The streaks and killboard follow the selected tour.
+  Role (`?role=air_superiority|attack`, {% role_toggle %} under the tour select, only for a pilot with sorties in the scope):
+  stats, aircraft, recent and the parts count only that role's sorties. The air and ground parts swap places when `ground_first`
+  (attack role, or a pilot who flies mostly attack). Not role-scoped, so left out in a role view: medals and ribbons, the per-aircraft
+  favourite loadouts and the per-tour charts; the ironman block and the killboards stay all-role (the latter with a note); Elo is
+  hidden for attack (`show_elo`). An empty air or ground part collapses to one line (`air_active` / `ground_active`). The streaks and killboard follow the selected tour.
   Tours (TD-26): `?tour=<id>` shows the counters of that tour (`stats` is the PlayerTour row, `aircraft` the per-tour rows,
   `recent` that tour's sorties). No `?tour` = the current tour (newest, queries.tours), `?tour=all` = all time (`stats` is the
-  Player). {% tour_select %} sits under the header.
+  Player). {% tour_select %} sits in the header, right of the name.
   Context: air_active, ground_active, player, stats (Player or PlayerTour, None when the tour has no sortie of theirs), tour, tours, names (PlayerName
   rows, newest first), sort (aircraft table sort, resolved), pve_kills / pve_losses (of `stats`), aircraft (PlayerAircraft / PlayerTourAircraft
   rows with .aircraft), survived (sorties without a death), ground (GroundRow list), gunner_only, recent (PlayerSortie
@@ -21,18 +25,25 @@
   {% breadcrumbs crumbs %}
 
   {% include "il2ks/players/detail_header.html" %}
-  {% tour_select tours tour %}
+  {% if has_sorties %}{% role_toggle role %}{% endif %}
 
   {% if stats.sorties %}
     {% include "il2ks/players/detail_nav.html" %}
     {% include "il2ks/players/detail_tiles.html" %}
-    {% player_medals player tour as medal_set %}
+    {% if role == "all" %}{% player_medals player tour as medal_set %}{% endif %}
     {% include "il2ks/players/detail_shame.html" %}
-    {% include "il2ks/players/detail_achievements.html" %}
+    {% if role == "all" %}{% include "il2ks/players/detail_achievements.html" %}{% endif %}
     {% include "il2ks/players/detail_recent.html" %}
-    {% include "il2ks/players/detail_air_section.html" %}
-    {% include "il2ks/players/detail_ground_section.html" %}
+    {% if ground_first %}
+      {% include "il2ks/players/detail_ground_section.html" %}
+      {% include "il2ks/players/detail_air_section.html" %}
+    {% else %}
+      {% include "il2ks/players/detail_air_section.html" %}
+      {% include "il2ks/players/detail_ground_section.html" %}
+    {% endif %}
     {% include "il2ks/players/detail_overall.html" %}
+  {% elif has_sorties %}
+    {% notice "info" _("No sorties in this role") %}{% translate "This player flew no sorties of the selected combat role in the selected tour. Choose another role above." %}{% endnotice %}
   {% else %}
     {% if gunner_only %}
       {% notice "info" _("Gunner only") %}{% translate "This player flies as a gunner only. Gunner stats come later." %}{% endnotice %}

@@ -194,7 +194,7 @@ def test_the_switcher_has_the_new_boards_and_no_clipped_markup(client: Client) -
     air = [t[1] for title, tabs in context["tab_groups"] if title == "Air" for t in tabs]
     ground = [t[1] for title, tabs in context["tab_groups"] if title == "Ground" for t in tabs]
     assert [str(t) for t in air] == ["Elo (jet)", "Elo (prop)", "Air score", "Interception"]
-    assert [str(t) for t in ground] == ["Ground score per hour", "Tank busting", "Ground score"]
+    assert [str(t) for t in ground] == ["Attack proficiency", "Tank busting", "Ground score"]
     general = [t[1] for title, tabs in context["tab_groups"] if title == "General" for t in tabs]
     assert [str(t) for t in general] == ["Flight time", "Ironman (air)", "Ironman (ground)"]
     icons = {t[0]: t[4] for _title, tabs in context["tab_groups"] for t in tabs}

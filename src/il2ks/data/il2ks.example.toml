@@ -204,9 +204,9 @@
 #min_sorties = 5
 # Encounters (kills between air superiority sorties that count for Elo) needed in a pool (propeller or jet) for the Elo boards.
 #min_elo_games = 5
-# Attack sorties needed for the ground-score-per-hour board.
+# Attack sorties needed for the attack proficiency board.
 #min_attack_sorties = 5
-# Minutes on target needed for the ground-score-per-hour and tank-busting boards.
+# Minutes on target needed for the attack proficiency and tank-busting boards.
 #min_time_on_target_minutes = 10.0
 # Air superiority sorties needed for the interception board (kills of bombers, attackers and transports per hour).
 #min_air_superiority_sorties = 5

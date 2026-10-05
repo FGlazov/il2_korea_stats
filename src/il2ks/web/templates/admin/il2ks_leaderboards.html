@@ -11,7 +11,7 @@
 {% block content %}
 <div id="content-main">
   <p>{% translate "How much a pilot must have done to appear on a leaderboard, so that one lucky flight cannot top it. Lower the numbers on a small server. A value you save here wins over the one in il2ks.toml; leave a field empty to use the file (or the built-in default) again." %}</p>
-  <p>{% translate "A change shows at once: the boards use it on the next page view, and the Top 10% and Top 25% marks on the player pages are computed again when you save." %}</p>
+  <p>{% translate "A change to a minimum for sorties, attack sorties, time on target or air superiority shows at once: the boards use it on the next page view, and the Top 10% and Top 25% marks on the player pages are computed again when you save. The Elo minimum is the exception: it also decides which tour a pilot's all-time Elo comes from, so it takes effect after the next rebuild, which the site starts in the background." %}</p>
   <form method="post">
     {% csrf_token %}
     {% include "admin/_rule_fields.html" %}

@@ -215,7 +215,7 @@ def test_the_first_upgrade_with_scoped_data_missing_rebuilds_once(monkeypatch: p
 def test_the_ironman_tracks_backfill_rebuilds_once_with_the_other_markers_set(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """FR-OPS-3, maintainer 2026-10-05: a database from before the two ironman tracks (migration 0094) has every marker
+    """FR-OPS-3, maintainer 2026-10-05: a database from before the two ironman tracks (migration 0068) has every marker
     but `streak_tracks`: level 2 is rebuilt once, the marker is written, and the next upgrade does not rebuild."""
     save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
     names = [

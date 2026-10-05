@@ -46,19 +46,19 @@
       <small class="muted">{{ group.page.paginator.count|num }}</small>
     </h3>
     <div class="table-wrap table-wrap--flat">
-      <table class="data-table data-table--compact sortie-table" style="--extra-cols: {{ columns|length }}">
+      <table class="data-table data-table--compact data-table--sticky-2 sortie-table" style="--extra-cols: {{ columns|length }}; --sticky-lead: 5rem">
         <thead>
           <tr>
             {% sort_th "time" _("Time") numeric=True first="asc" %}
             {% sort_th "pilot" _("Pilot") %}
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "role" _("Role") hint="role" %}
-            {% sort_th "outcome" _("Outcome") hint="outcome" %}
-            {% sort_th "fate" _("Pilot fate") first="desc" hint="fate" %}
-            {% sort_th "kills_air" _("Air") numeric=True hint="kills_air_short" %}
-            {% sort_th "kills_ground" _("Ground") numeric=True hint="kills_ground_short" %}
+            {% sort_th "outcome" _("Outcome") %}
+            {% sort_th "fate" _("Pilot fate") first="desc" %}
+            {% sort_th "kills_air" _("Air") numeric=True %}
+            {% sort_th "kills_ground" _("Ground") numeric=True %}
             {% sort_th "assists" _("Assists") numeric=True hint="assists" %}
-            {% sort_th "flight_time" _("Flight time") numeric=True hint="flight_time" %}
+            {% sort_th "flight_time" _("Flight time") numeric=True %}
             {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% endfor %}
             <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
           </tr>

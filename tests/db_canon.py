@@ -24,6 +24,10 @@ SKIP_MODELS = frozenset(
     }
 )
 VOLATILE = frozenset({"updated_at"})
+OBJECT_ID_KEYED = frozenset({"kills_with_counts", "deaths_in_counts"})
+"""JSON fields keyed by a GameObject primary key (a player's own aircraft type id -> count). The ids differ between two
+ways to the same data (Postgres sequences are not rolled back, SQLite reuses ids), so the keys are replaced by the
+described row, as the sortie ids are."""
 FLOAT_DIGITS = 6
 """Float columns are compared rounded: a SUM over the same rows in another order (Postgres does not promise one) differs
 in the last bits (256.53999999999996 vs 256.54), which is no difference in what the test checks."""
@@ -74,9 +78,16 @@ class Canon:
             if isinstance(field, models.ForeignKey):
                 target = cast(type[models.Model], field.related_model)  # pyright: ignore[reportUnknownMemberType]
                 out[field.name] = self.key(target, row[field.attname])
+            elif field.name in OBJECT_ID_KEYED:
+                out[field.name] = self._remap_object_keys(row[field.attname])
             else:
                 out[field.name] = self._remap_json(row[field.attname])
         return out
+
+    def _remap_object_keys(self, counts: dict[str, int]) -> dict[str, int]:
+        from il2ks.db.models import GameObject
+
+        return {self.key(GameObject, int(pk)): n for pk, n in counts.items()}
 
     def _remap_json(self, value: object) -> object:
         from il2ks.db.models import PlayerSortie

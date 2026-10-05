@@ -11,12 +11,12 @@
     {% for board in boards %}
       <div>
         <h3><a href="{% url 'web:leaderboard' board.key %}{{ tour_query }}">{{ board.title }}</a></h3>
-        <table class="data-table data-table--compact board-table">
+        <table class="data-table data-table--compact data-table--sticky-2 board-table">
           <thead>
             <tr>
               <th scope="col" class="num">#</th>
               <th scope="col">{% translate "Player" %}</th>
-              {% if board.key == "ground-hour" %}{% col_th _("Score per hour") numeric=True hint="score_per_hour" %}{% elif board.key == "interception" %}{% col_th _("Per hour") numeric=True hint="interception_rate" %}{% elif board.key == "tank-busting" %}{% col_th _("Per hour") numeric=True hint="tank_rate" %}{% elif board.key == "play-time" %}{% col_th _("Flight time") numeric=True hint="flight_time" %}{% else %}{% col_th _("Elo") numeric=True hint="elo" %}{% endif %}
+              {% if board.key == "ground-hour" %}{% col_th _("Attack proficiency") numeric=True hint="score_per_hour" %}{% elif board.key == "interception" %}{% col_th _("Per hour") numeric=True hint="interception_rate" %}{% elif board.key == "tank-busting" %}{% col_th _("Per hour") numeric=True hint="tank_rate" %}{% elif board.key == "play-time" %}{% col_th _("Flight time") numeric=True %}{% else %}{% col_th _("Elo") numeric=True hint="elo" %}{% endif %}
             </tr>
           </thead>
           <tbody>

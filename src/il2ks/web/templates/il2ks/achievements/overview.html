@@ -11,9 +11,9 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% translate "Achievements" %}</h1>
+    {% tour_select tours tour %}
     <p>{% translate "Achievements for what pilots do in the air and on the ground. Every achievement has tiers, from bronze up; a tier is earned once and kept. Medals are the harder ones, ribbons the simpler ones. Hover a tier to see how rare it is; the numbers show how many pilots hold it. Everything starts afresh with each tour." %}</p>
   </div>
-  {% tour_select tours tour %}
   <ul class="medal-list">
     {% for row in rows %}
       <li class="medal-list__item">

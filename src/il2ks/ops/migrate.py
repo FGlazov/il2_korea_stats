@@ -95,6 +95,8 @@ BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in 
 BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
 BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
 BACKFILL_STREAK_TRACKS = "streak_tracks"  # air and ground ironman tracks; the survivor and life-kills medals read them
+BACKFILL_ELO_MIN_GAMES = "elo_min_games"  # all-time Elo = best tour with at least min_elo_games games (doc 13)
+BACKFILL_PLAYER_ROLES = "player_roles"  # per-role copies of the player rows (`PlayerRole`, the profile role toggle)
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -158,6 +160,8 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
         (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
         (BACKFILL_STREAK_TRACKS, _check_streak_tracks),
+        (BACKFILL_ELO_MIN_GAMES, _check_elo_min_games),
+        (BACKFILL_PLAYER_ROLES, _check_player_roles),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -307,6 +311,17 @@ def _check_scoped_aircraft() -> bool:
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftScope.objects.exists()
 
 
+def _check_player_roles() -> bool:
+    """A database from before the per-role player rows (`PlayerRole`) has pilot sorties with a combat role but no such
+    row: level 2 must be rebuilt (it writes them with the tour rows and rolls them up)."""
+    from il2ks.db.models import PlayerRole, PlayerSortie, Role
+
+    return (
+        PlayerSortie.objects.filter(role=Role.PILOT, combat_role__isnull=False).exists()
+        and not PlayerRole.objects.exists()
+    )
+
+
 def _check_builds() -> bool:
     """A database from before the favourite loadout has pilot sorties but no `PlayerAircraftBuild` row: level 2 must be
     rebuilt."""
@@ -324,6 +339,16 @@ def _check_player_rollup() -> bool:
     return Mission.objects.filter(tour__isnull=True).exists() or (
         PlayerSortie.objects.exists() and not PlayerTourName.objects.exists()
     )
+
+
+def _check_elo_min_games() -> bool:
+    """The all-time Elo is now the best final rating among the tours with at least `min_elo_games` rated games (doc 13);
+    a database that stored it as the best of any tour keeps the lucky one-game tours until the ratings are recomputed.
+    Once per database (the marker): level 2 must be rebuilt if there are rated games, folded into the upgrade's one
+    rebuild. A database without rated games has nothing to recompute."""
+    from il2ks.db.models import PlayerTourPool
+
+    return PlayerTourPool.objects.filter(elo_games__gt=0).exists()
 
 
 def _check_tour_aircraft_sides() -> bool:

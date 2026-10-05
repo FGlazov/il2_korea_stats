@@ -44,6 +44,7 @@ from il2ks.db.models import (
     AircraftAmmoMixStats,
     AircraftAmmoStats,
     AircraftMatchup,
+    CombatRole,
     Mission,
     MissionAircraftAmmo,
     MissionAircraftAmmoMix,
@@ -51,6 +52,7 @@ from il2ks.db.models import (
     PlayerAircraft,
     PlayerMission,
     PlayerPool,
+    PlayerRole,
     PlayerSortie,
     PlayerTour,
     PlayerTourAircraft,
@@ -125,7 +127,8 @@ def recompute_player_tours(player_ids: Iterable[int], tour_ids: Iterable[int] | 
     """The per-tour rows of these players from the level-1 rows of `tour_ids` only (None = all tours):
 
     - `PlayerTour` = the sum of the player's `PlayerMission` rows per tour; `PlayerTourAircraft` = counted sorties per
-      tour and aircraft; `PlayerTourPool` = the same grouped by the aircraft's propulsion (prop / jet). Rows without
+      tour and aircraft; `PlayerTourPool` = the same grouped by the aircraft's propulsion (prop / jet); the tour
+      `PlayerRole` rows = the same grouped by combat role (air superiority / attack). Rows without
       anything left are deleted.
     - the per-tour loadouts (`recompute_builds`), identity rows (`ingest.identity`), killboards (`ingest.pairs`,
       `ingest.type_board`).
@@ -159,7 +162,8 @@ def rollup_players(
     """The all-time rows of these players as a roll-up of their per-tour rows (`ingest.rollup`; never level 1):
 
     - `Player` counters = SUM of `PlayerTour` (zero without a row, the identity stays), `PlayerAircraft` = SUM of
-      `PlayerTourAircraft`, `PlayerPool` = SUM of `PlayerTourPool`.
+      `PlayerTourAircraft`, `PlayerPool` = SUM of `PlayerTourPool`, the all-time `PlayerRole` rows = SUM of the tour
+      `PlayerRole` rows.
     - the loadouts, killboards and identity (`rollup_builds`, `rollup_killboard`, `rollup_type_killboard`,
       `rollup_identity`).
     - the streaks (best tour), the medals (highest tier of the tours, cumulative ones summed from the `PlayerTour`
@@ -192,6 +196,14 @@ def rollup_players(
             PlayerTourPool.objects.filter(player_id__in=chunk),
             key=("player_id", "propulsion"),
             sums=counters,
+        )
+        rollup(  # the per-role copies of the player row (tour null = all time)
+            PlayerRole,
+            PlayerRole.objects.filter(player_id__in=chunk, tour__isnull=True),
+            PlayerRole.objects.filter(player_id__in=chunk, tour__isnull=False),
+            key=("player_id", "role"),
+            sums=counters,
+            fixed={"tour": None},
         )
         rollup_builds(chunk)
         rollup_identity(chunk)
@@ -601,6 +613,16 @@ def _recompute_tours(chunk: list[int], tour_ids: list[int] | None) -> None:
         .annotate(**SORTIE_COUNTERS)
     }
     _sync(PlayerTourPool, ("player_id", "tour_id", "propulsion"), wanted_pools, pools)
+    roles = PlayerRole.objects.filter(player_id__in=chunk, tour__isnull=False)
+    if tour_ids is not None:
+        roles = roles.filter(tour_id__in=tour_ids)
+    wanted_roles = {
+        (row["player_id"], row["mission__tour_id"], row["combat_role"]): clean_counters(row)
+        for row in sorties.filter(combat_role__in=CombatRole.values)
+        .values("player_id", "mission__tour_id", "combat_role")
+        .annotate(**SORTIE_COUNTERS)
+    }
+    _sync(PlayerRole, ("player_id", "tour_id", "role"), wanted_roles, roles)
 
 
 def _sync[M: models.Model](
