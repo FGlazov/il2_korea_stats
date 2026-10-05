@@ -1,4 +1,4 @@
-"""Favourite loadout per player and aircraft type (`PlayerAircraftBuild`, FR-WEB-4, OQ-117): level 2 incremental ==
+"""Favorite loadout per player and aircraft type (`PlayerAircraftBuild`, FR-WEB-4, OQ-117): level 2 incremental ==
 rebuild, tour scoping, hidden rules, the profile section (the favourite loadout only) and its query budget."""
 
 import uuid
@@ -109,7 +109,7 @@ def test_profile_shows_the_favourite_loadout_only(client: Client) -> None:
 
     body = client.get(f"/players/{player_pk(1)}/?tour=all").content.decode()
 
-    assert "Favourite loadout" in body
+    assert "Favorite loadout" in body
     assert "Payload 1" in body
     assert "50%" in body
     assert "build-detail" not in body

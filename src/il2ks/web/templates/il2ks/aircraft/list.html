@@ -33,7 +33,7 @@
             {% sort_th "kills_air" _("Air kills") numeric=True %}
             {% sort_th "kills_ground" _("Ground kills") numeric=True %}
             {% sort_th "deaths" _("Deaths") numeric=True %}
-            {% sort_th "planes_lost" _("Planes lost") numeric=True hint="planes_lost" %}
+            {% sort_th "planes_lost" _("Aircraft lost") numeric=True hint="planes_lost" %}
             {% sort_th "kd" _("K/D") numeric=True hint="kd" %}
             {% sort_th "kl" _("K/L") numeric=True hint="kl" %}
             {% sort_th "survival" _("Survival") numeric=True hint="survival" %}
@@ -73,6 +73,6 @@
         </tbody>
       </table>
     </div>
-    <p class="muted">{% translate "Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are left out. Attack sorties: the rest are air-superiority sorties." %}</p>
+    <p class="muted">{% translate "Hits to destroy: counted over all time; only kills where one attacker did all the damage are included, and bombs and rockets are left out. Attack sorties: the share of sorties flown with bombs or rockets; the rest are air superiority sorties." %}</p>
   {% endresults_region %}
 {% endblock %}

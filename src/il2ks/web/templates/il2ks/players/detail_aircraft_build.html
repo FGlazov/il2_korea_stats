@@ -7,7 +7,7 @@
   {% with fav=build.loadouts.0 %}
   <tr class="aircraft-table__build">
     <td colspan="8">
-      <span class="muted">{% translate "Favourite loadout" %}:</span>
+      <span class="muted">{% translate "Favorite loadout" %}:</span>
       {% if fav.name %}{{ fav.name }}{% else %}<span class="muted">{% blocktranslate with id=fav.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}
       · {{ fav.percent }}%
     </td>

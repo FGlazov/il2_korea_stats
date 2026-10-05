@@ -86,7 +86,7 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
         _("Ground score/h"),
         lambda p: display.per_hour(p.score_ground_attack, p.time_on_target_s, 1),
     ),
-    Column("planes_lost", _("Planes lost"), lambda p: display.num(p.planes_lost)),
+    Column("planes_lost", _("Aircraft lost"), lambda p: display.num(p.planes_lost)),
     Column("assists", _("Assists"), lambda p: display.num(p.assists)),
     Column("assists_air", _("Air assists"), lambda p: display.num(p.assists_air)),
     Column("assists_ground", _("Ground assists"), lambda p: display.num(p.assists_ground)),
@@ -113,7 +113,7 @@ MISSION_COLUMNS: tuple[Column[Mission], ...] = (
     Column("ended", _("Ended"), lambda m: display.time_element(m.ended_at, "datetime")),
     Column("redfor_sorties", _("REDFOR sorties"), lambda m: display.num(m.redfor_sorties)),
     Column("blufor_sorties", _("BLUFOR sorties"), lambda m: display.num(m.blufor_sorties)),
-    Column("sorties_per_player", _("Sorties per player"), lambda m: display.ratio(m.sorties_total, m.players_total, 1)),
+    Column("sorties_per_player", _("Sorties per pilot"), lambda m: display.ratio(m.sorties_total, m.players_total, 1)),
 )
 
 
@@ -155,7 +155,7 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
             if s.combat_role == CombatRole.AIR_SUPERIORITY
             else display.DASH
         ),
-        _("Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"),
+        _("Gun hits on aircraft per round fired; air superiority sorties with known rounds only"),
     ),
     Column(
         "accuracy_ground",

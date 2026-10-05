@@ -367,7 +367,7 @@ class _Setup:
 
     def _ask_email(self) -> str:
         while True:
-            answer = self.io.ask("   E-mail for certificate notices (optional, Enter to skip)", "")
+            answer = self.io.ask("   Email for certificate notices (optional, Enter to skip)", "")
             try:
                 return normalize_email(answer)
             except ValueError as exc:

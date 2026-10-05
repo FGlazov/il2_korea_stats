@@ -119,7 +119,7 @@ def parse_form(post: QueryDict, current: QuipConfig) -> tuple[QuipConfig, list[s
             return
         if len(text) > quips.MAX_LEN:
             errors.append(
-                _("A quip is longer than %(max)d characters: %(start)s...") % {"max": quips.MAX_LEN, "start": text[:30]}
+                _("A quip is longer than %(max)d characters: %(start)s…") % {"max": quips.MAX_LEN, "start": text[:30]}
             )
         elif language and language not in languages:
             errors.append(_("Unknown language: %(code)s") % {"code": language})

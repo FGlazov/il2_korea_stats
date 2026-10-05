@@ -210,8 +210,8 @@ msgstr "На самолёте «%(name)s» не летали в туре «%(tou
 
 # llm-draft
 #, python-format
-msgid "%(name)s: a text is longer than %(max)d characters: %(start)s..."
-msgstr "%(name)s: текст длиннее %(max)d символов: %(start)s..."
+msgid "%(name)s: a text is longer than %(max)d characters: %(start)s…"
+msgstr "%(name)s: текст длиннее %(max)d символов: %(start)s…"
 
 # llm-draft
 #, python-format
@@ -340,7 +340,7 @@ msgid "%(value)s per sortie"
 msgstr "%(value)s за вылет"
 
 # llm-draft
-msgid "(site name, logo, colours, hiding players)."
+msgid "(site name, logo, colors, hiding players)."
 msgstr "(название сайта, логотип, цвета, скрытие игроков)."
 
 # llm-draft
@@ -455,8 +455,8 @@ msgstr "Тихая миссия. Все вернулись с полным бо�
 
 # llm-draft
 #, python-format
-msgid "A quip is longer than %(max)d characters: %(start)s..."
-msgstr "Шутка длиннее %(max)d символов: %(start)s..."
+msgid "A quip is longer than %(max)d characters: %(start)s…"
+msgstr "Шутка длиннее %(max)d символов: %(start)s…"
 
 # llm-draft
 msgid ""
@@ -652,7 +652,7 @@ msgstr ""
 
 # llm-draft
 #. Translators: tooltip of the "K/D" column header (kills per death)
-msgid "Air kills divided by deaths, a death being a sortie in which the pilot died. A dash with no deaths."
+msgid "Air kills divided by deaths, a death being a sortie in which the pilot died. A dash when there are no deaths."
 msgstr "Воздушные победы, делённые на гибели; гибель — это вылет, в котором пилот погиб. Прочерк, если гибелей не было."
 
 # llm-draft
@@ -764,7 +764,7 @@ msgstr ""
 #. Translators: tooltip of the optional "Elo (jet)" column header
 msgid ""
 "Air-to-air skill rating for jet aircraft, 1500 at the start, all time. It moves only when you and another player meet"
-" in air-superiority sorties."
+" in air superiority sorties."
 msgstr ""
 "Рейтинг воздушного боя для реактивных самолётов, вначале 1500, за всё время. Он меняется, только когда вы и другой "
 "игрок встречаетесь в вылетах на господство в воздухе."
@@ -773,7 +773,7 @@ msgstr ""
 #. Translators: tooltip of the optional "Elo (prop)" column header
 msgid ""
 "Air-to-air skill rating for propeller aircraft, 1500 at the start, all time. It moves only when you and another "
-"player meet in air-superiority sorties."
+"player meet in air superiority sorties."
 msgstr ""
 "Рейтинг воздушного боя для поршневых самолётов, вначале 1500, за всё время. Он меняется, только когда вы и другой "
 "игрок встречаетесь в вылетах на господство в воздухе."
@@ -782,7 +782,7 @@ msgstr ""
 #. Translators: tooltip of the "Elo" column header on the Elo leaderboards and an aircraft type's top pilots
 msgid ""
 "Air-to-air skill rating, 1500 at the start. It rises when you shoot down another player and falls when another player"
-" shoots you down. Only air-superiority sorties count; jets and propeller aircraft are rated separately."
+" shoots you down. Only air superiority sorties count; jets and propeller aircraft are rated separately."
 msgstr ""
 "Рейтинг воздушного боя, вначале 1500. Он растёт, когда вы сбиваете другого игрока, и падает, когда другой игрок "
 "сбивает вас. Учитываются только вылеты на господство в воздухе; реактивные и поршневые самолёты оцениваются отдельно."
@@ -810,7 +810,7 @@ msgid "Aircraft destroyed on the ground by an attacker: wrong place, wrong time.
 msgstr "Самолёты, уничтоженные на земле штурмовиком: не то место и не то время."
 
 # llm-draft
-#. Translators: tooltip of the "Planes lost" column header
+#. Translators: tooltip of the "Aircraft lost" column header
 msgid "Aircraft destroyed or lost, including those where the pilot survived, for example by bailing out."
 msgstr "Уничтоженные или потерянные самолёты, в том числе когда пилот выжил, например выпрыгнув с парашютом."
 
@@ -1283,7 +1283,7 @@ msgid "Bomber hunting is a craft, and this sortie was a masterclass."
 msgstr "Охота на бомберов — это ремесло, а этот вылет был мастер-классом."
 
 # llm-draft
-msgid "Bombers are not defenceless, and this one wanted it known."
+msgid "Bombers are not defenseless, and this one wanted it known."
 msgstr "Бомбардировщик не мишень, и этот экипаж решил об этом напомнить."
 
 msgid "Bombers, attackers and transports shot down"
@@ -1300,7 +1300,7 @@ msgstr ""
 # llm-draft
 #. Translators: tooltip of the "Kills per hour" column header of the interception board and its home block
 msgid ""
-"Bombers, attackers and transports shot down per hour of flight in air-superiority sorties. Players flying with bombs "
+"Bombers, attackers and transports shot down per hour of flight in air superiority sorties. Players flying with bombs "
 "or rockets count as well."
 msgstr ""
 "Сбитые бомбардировщики, штурмовики и транспортники за час полёта в вылетах на господство в воздухе. Игроки с бомбами "
@@ -1319,7 +1319,7 @@ msgid "Borders"
 msgstr "Границы"
 
 # llm-draft
-msgid "Brave enough to shoot first and sort out the colours afterwards. The mess salutes the nerve."
+msgid "Brave enough to shoot first and sort out the colors afterwards. The mess salutes the nerve."
 msgstr "Сначала стреляем, потом смотрим на звёзды на крыльях. В столовой такую смелость ценят."
 
 # llm-draft
@@ -1510,12 +1510,12 @@ msgid "Controlled flight into a field. The farmer has questions, the pilot has a
 msgstr "Посадка на брюхо прямо в поле. Фермер в недоумении, а у пилота будет что рассказать в столовой."
 
 # llm-draft
-#. Translators: tooltip of the "Instances" column header of an aircraft's "Ammunition mixes" table
+#. Translators: tooltip of the "Kills" column header of an aircraft's "Ammunition mixes" table
 msgid "Counted kills of this aircraft in which exactly these ammunition types hit together."
 msgstr "Учтённые победы над этим самолётом, в которых попали вместе именно эти типы боеприпасов."
 
 # llm-draft
-#. Translators: tooltip of the "Instances" column header of an aircraft's "Hits to destroy" table
+#. Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table
 msgid "Counted kills of this aircraft in which this ammunition hit at least once."
 msgstr "Учтённые победы над этим самолётом, в которых этот боеприпас попал хотя бы раз."
 
@@ -1524,8 +1524,8 @@ msgid "Counterpart"
 msgstr "Соперник"
 
 # llm-draft
-msgid "Counters (rebuilt by ingest)"
-msgstr "Счётчики (пересчитываются при обработке)"
+msgid "Counters (rebuilt automatically)"
+msgstr "Счётчики (пересчитываются автоматически)"
 
 # llm-draft
 msgid "Crashed"
@@ -1552,7 +1552,7 @@ msgstr ""
 # llm-draft
 #. Translators: tooltip of the "Bombers and attackers shot down" column header of the interception leaderboard
 msgid ""
-"Credited kills of AI bombers, attackers and transports, and of players flying with bombs or rockets, made in air-"
+"Credited kills of AI bombers, attackers and transports, and of players flying with bombs or rockets, made in air "
 "superiority sorties."
 msgstr ""
 "Засчитанные победы над бомбардировщиками, штурмовиками и транспортниками ИИ, а также над игроками с бомбами или "
@@ -1760,10 +1760,6 @@ msgstr ""
 "на части. Если новые туры должны начинаться только после побед, используйте ручной режим."
 
 # llm-draft
-msgid "E-mail for certificate notices (optional)"
-msgstr "Адрес e-mail для уведомлений о сертификате (необязательно)"
-
-# llm-draft
 msgid "Earned"
 msgstr "Получено"
 
@@ -1788,6 +1784,10 @@ msgid "Elo (prop)"
 msgstr "Эло (поршневые)"
 
 # llm-draft
+msgid "Email for certificate notices (optional)"
+msgstr "Адрес e-mail для уведомлений о сертификате (необязательно)"
+
+# llm-draft
 msgid "Empty missions"
 msgstr "Пустые миссии"
 
@@ -1798,7 +1798,7 @@ msgstr "Столкновения"
 
 # llm-draft
 #. Translators: tooltip of the "Encounters" column header of the Elo leaderboards (the number of rated games)
-msgid "Encounters: kills between two players in air-superiority sorties, counted for the killer and for the victim."
+msgid "Encounters: kills between two players in air superiority sorties, counted for the killer and for the victim."
 msgstr "Столкновения: победы одного игрока над другим в вылетах на господство в воздухе; считаются и победителю, и жертве."
 
 # llm-draft
@@ -1833,7 +1833,7 @@ msgid "Enter the location of the image file."
 msgstr "Укажите расположение файла изображения."
 
 # llm-draft
-msgid "Equal-opportunity gunnery: this pilot never plays favourites between sides."
+msgid "Equal-opportunity gunnery: this pilot never plays favorites between sides."
 msgstr "Равные права для всех: этот пилот не делит цели на своих и чужих."
 
 # llm-draft
@@ -1937,7 +1937,7 @@ msgid "Fair winds, full magazines and the numbers to prove it."
 msgstr "Полные магазины, попутный ветер и цифры, которые это подтверждают."
 
 # llm-draft
-msgid "Favourite loadout"
+msgid "Favorite loadout"
 msgstr "Любимая подвеска"
 
 # llm-draft
@@ -2014,8 +2014,12 @@ msgstr "Время в полёте, сложенное по всем вылет�
 
 # llm-draft
 #. Translators: tooltip of the "Air superiority flight time" column header of the interception leaderboard
-msgid "Flight time in air-superiority sorties only."
+msgid "Flight time in air superiority sorties only."
 msgstr "Время в полёте только в вылетах на господство в воздухе."
+
+# llm-draft
+msgid "Flight time: the time spent in the air in all sorties, air and ground."
+msgstr "Время в полёте: время в воздухе по всем вылетам, воздушным и наземным."
 
 # llm-draft
 #, python-format
@@ -2283,10 +2287,10 @@ msgstr "Попадания из пушек и пулемётов"
 
 # llm-draft
 #. Translators: tooltip of the optional "Air accuracy" column header of the player and aircraft lists
-msgid "Gun hits on aircraft per round fired, in air-superiority sorties where the rounds fired are known."
+msgid "Gun hits on aircraft per round fired, in air superiority sorties where the rounds fired are known."
 msgstr "Попадания по самолётам на один выпущенный снаряд в вылетах на господство в воздухе, где известно число выстрелов."
 
-msgid "Gun hits on aircraft per round fired; air-superiority sorties with known rounds only"
+msgid "Gun hits on aircraft per round fired; air superiority sorties with known rounds only"
 msgstr "Попадания по самолётам на один выстрел; только вылеты на господство в воздухе с известным числом выстрелов"
 
 # llm-draft
@@ -2438,16 +2442,8 @@ msgid "Hits dealt"
 msgstr "Нанесено попаданий"
 
 # llm-draft
-msgid "Hits given"
-msgstr "Нанесено попаданий"
-
-# llm-draft
 msgid "Hits needed to destroy each aircraft type"
 msgstr "Сколько попаданий нужно, чтобы уничтожить каждый тип самолёта"
-
-# llm-draft
-msgid "Hits received"
-msgstr "Получено попаданий"
 
 # llm-draft
 msgid "Hits taken"
@@ -2459,19 +2455,21 @@ msgstr "Попаданий до уничтожения"
 
 # llm-draft
 msgid ""
-"Hits to destroy: over all time, only kills where one attacker did all the damage are counted; bombs and rockets are "
-"left out. Attack sorties: the rest are air-superiority sorties."
+"Hits to destroy: counted over all time; only kills where one attacker did all the damage are included, and bombs and "
+"rockets are left out. Attack sorties: the share of sorties flown with bombs or rockets; the rest are air superiority "
+"sorties."
 msgstr ""
-"Попаданий до уничтожения: за всё время учитываются только победы, где весь урон нанёс один атакующий; бомбы и ракеты "
-"не входят. Штурмовые вылеты: остальные вылеты — на завоевание превосходства в воздухе."
+"Попаданий до уничтожения: считается за всё время; учитываются только победы, где весь урон нанёс один атакующий, "
+"бомбы и ракеты не входят. Штурмовые вылеты: доля вылетов с бомбами или ракетами, остальные — на завоевание "
+"превосходства в воздухе."
 
 # llm-draft
-#. Translators: tooltip of the "Hits given" column header of a sortie's ammunition hit table
+#. Translators: tooltip of the "Hits dealt" column header of a sortie's ammunition hit table
 msgid "Hits you scored with this ammunition."
 msgstr "Попадания, которых вы добились этим боеприпасом."
 
 # llm-draft
-#. Translators: tooltip of the "Hits received" column header of a sortie's ammunition hit table
+#. Translators: tooltip of the "Hits taken" column header of a sortie's ammunition hit table
 msgid "Hits you took from this ammunition."
 msgstr "Попадания, которые вы получили от этого боеприпаса."
 
@@ -2504,10 +2502,6 @@ msgid "Hours aloft and the weather chart is now mostly a diary. Landing was a we
 msgstr "Часы в небе, а на карте погоды уже записи как в дневнике. Эта посадка заслужена."
 
 # llm-draft
-msgid "Hours flown: the time spent in the air in all sorties, air and ground."
-msgstr "Налёт: время в воздухе по всем вылетам, воздушным и наземным."
-
-# llm-draft
 msgid "Hours in the air in the one aircraft type flown most."
 msgstr "Часы в воздухе на том типе самолёта, на котором вы налетали больше всего."
 
@@ -2530,10 +2524,10 @@ msgstr "Чем закончилась"
 # llm-draft
 msgid ""
 "How many gun hits it takes to shoot this aircraft down. Only kills where one attacker did all the damage are counted;"
-" bombs and rockets are left out. Instances are the counted kills in which the ammunition hit at least once."
+" bombs and rockets are left out. Kills is the number of counted kills in which the ammunition hit at least once."
 msgstr ""
 "Сколько попаданий из пушек и пулемётов нужно, чтобы сбить этот самолёт. Учитываются только победы, где весь урон "
-"нанёс один атакующий; бомбы и ракеты не входят. Случаи — это учтённые победы, в которых боеприпас попал хотя бы раз."
+"нанёс один атакующий; бомбы и ракеты не входят. Победы — число учтённых побед, в которых боеприпас попал хотя бы раз."
 
 # llm-draft
 #. Translators: tooltip of the "Detonations" column header of a sortie's ordnance table
@@ -2619,10 +2613,6 @@ msgstr "Состояние обработки"
 # llm-draft
 msgid "Inside the selected tour only: a streak does not carry over from an earlier tour."
 msgstr "Только внутри выбранного тура: серия не переходит из предыдущего тура."
-
-# llm-draft
-msgid "Instances"
-msgstr "Случаи"
 
 # llm-draft
 msgid "Intercept sorties only"
@@ -2790,7 +2780,7 @@ msgid "Landings"
 msgstr "Посадки"
 
 # llm-draft
-msgid "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+msgid "Landings in a row. A crash, a bailout or a death ends the run; sorties that never took off do not."
 msgstr "Посадки подряд. Серию прерывает авария, прыжок с парашютом или гибель; вылеты без взлёта её не прерывают."
 
 # llm-draft
@@ -3057,7 +3047,7 @@ msgid "More hole than airplane, and still back on the ground. Hats off."
 msgstr "Дырок больше, чем самолёта, а на земле. Шапки долой."
 
 # llm-draft
-msgid "Most dangerous part of the mission: the first hundred metres."
+msgid "Most dangerous part of the mission: the first hundred meters."
 msgstr "Самая опасная часть миссии: первые сто метров."
 
 # llm-draft
@@ -3120,7 +3110,7 @@ msgid "Neutral"
 msgstr "Нейтральная"
 
 # llm-draft
-msgid "Neutral (grey)"
+msgid "Neutral (gray)"
 msgstr "Нейтральный (серый)"
 
 # llm-draft
@@ -3795,19 +3785,11 @@ msgstr[1] "Пилоты минимум с %(sorties)s вылетами."
 msgstr[2] "Пилоты минимум с %(sorties)s вылетами."
 
 # llm-draft
-msgid "Planes lost"
-msgstr "Потеряно самолётов"
-
-# llm-draft
 msgid "Platinum"
 msgstr "Платина"
 
 msgid "Platinum medal"
 msgstr "Платиновая медаль"
-
-# llm-draft
-msgid "Play time"
-msgstr "Время игры"
 
 # llm-draft
 msgid "Player"
@@ -3852,7 +3834,7 @@ msgid "Please look at the marked answers below. Nothing was changed."
 msgstr "Посмотрите на отмеченные ниже ответы. Ничего не изменено."
 
 # llm-draft
-msgid "Plenty of clouds, plenty of fuel burnt, not a shot fired in anger. The weather won."
+msgid "Plenty of clouds, plenty of fuel burned, not a shot fired in anger. The weather won."
 msgstr "Топливо сожгли, облака пересчитали, а стрелять было не в кого. Счёт 1:0 в пользу погоды."
 
 # llm-draft
@@ -3996,7 +3978,7 @@ msgid "REDFOR won"
 msgstr "Победила REDFOR"
 
 # llm-draft
-msgid "Radio chatter, afterwards: 'Was that one of ours?' It was. The apologies are in the post."
+msgid "Radio chatter, afterwards: “Was that one of ours?” It was. The apologies are in the post."
 msgstr "После боя в эфире: «Слушайте, а это точно был не наш?» Точно наш. Извиняться придётся лично."
 
 # llm-draft
@@ -4582,10 +4564,6 @@ msgid "Sorties per pilot"
 msgstr "Вылетов на пилота"
 
 # llm-draft
-msgid "Sorties per player"
-msgstr "Вылетов на игрока"
-
-# llm-draft
 msgid "Sorties per side"
 msgstr "Вылетов по сторонам"
 
@@ -4904,7 +4882,7 @@ msgid "The airframe took a beating and handed one back."
 msgstr "Самолёт получил своё и отдал сполна."
 
 # llm-draft
-msgid "The armourer is already counting the missing rounds, and smiling while he does it."
+msgid "The armorer is already counting the missing rounds, and smiling while he does it."
 msgstr "Оружейник уже считает израсходованные патроны. И почему-то улыбается."
 
 # llm-draft
@@ -5020,7 +4998,7 @@ msgid "The gear stayed up and so did the pilot's spirits."
 msgstr "Шасси остались убраны, а настроение осталось на высоте."
 
 # llm-draft
-msgid "The ground below was well tended, and the harvest went to a neighbour's barn."
+msgid "The ground below was well tended, and the harvest went to a neighbor's barn."
 msgstr "Поле вспахал один, а урожай увезли в чужой амбар."
 
 # llm-draft
@@ -5298,8 +5276,8 @@ msgstr "Это достижение есть только в зачёте «За
 # llm-draft
 #. Translators: tooltip of the "K/L" column header of an aircraft's matchup table
 msgid ""
-"This aircraft's kills of that enemy aircraft divided by its losses to it. It says \"no losses\" if it was never lost "
-"to that aircraft, and shows a dash while kills plus losses are fewer than 10: too few for a reliable ratio."
+"This aircraft's kills of that enemy aircraft divided by its losses to it. It says “no losses” if it was never lost to"
+" that aircraft, and shows a dash while kills plus losses are fewer than 10: too few for a reliable ratio."
 msgstr ""
 "Победы этого самолёта над тем вражеским, делённые на потери от него. Пишется «без потерь», если он ни разу не был "
 "потерян из-за того самолёта, и прочерк, пока победы плюс потери меньше 10: слишком мало для надёжного отношения."
@@ -5491,7 +5469,7 @@ msgid "Top of the board. The rest of the sky took notes."
 msgstr "Первое место в таблице. Остальное небо взяло на заметку."
 
 # llm-draft
-msgid "Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honour."
+msgid "Top of the charts where no one aims to be. The mess bar has a tab open in this pilot's honor."
 msgstr "Первое место там, где никто не рвётся на пьедестал. В офицерской столовой на его имя уже открыт счёт."
 
 msgid "Top pilots"
@@ -5542,7 +5520,7 @@ msgid "Tower to pilot: the war is the other way, but thank you for the thorough 
 msgstr "Вышка — борту: фронт в той стороне. Впрочем, обзорную экскурсию по стоянке мы оценили."
 
 # llm-draft
-msgid "Tower: 'Say condition.' Pilot: 'Mostly air.' And with a good score on the board."
+msgid "Tower: “Say condition.” Pilot: “Mostly air.” And with a good score on the board."
 msgstr "Вышка: «Доложите состояние». Борт: «Состою преимущественно из воздуха». Зато с результатом."
 
 # llm-draft
@@ -5932,12 +5910,12 @@ msgid "after the pilot left the server"
 msgstr "после того как пилот покинул сервер"
 
 # llm-draft
-msgid "air kills per death"
-msgstr "воздушных побед на одну гибель"
+msgid "air kills per aircraft lost"
+msgstr "воздушных побед на один потерянный самолёт"
 
 # llm-draft
-msgid "air kills per plane lost"
-msgstr "воздушных побед на один потерянный самолёт"
+msgid "air kills per death"
+msgstr "воздушных побед на одну гибель"
 
 # llm-draft
 msgid "air start"
@@ -6029,12 +6007,12 @@ msgid "from a log event"
 msgstr "из события журнала"
 
 # llm-draft
-msgid "green badges"
-msgstr "зелёные значки"
+msgid "gray badges"
+msgstr "серые значки"
 
 # llm-draft
-msgid "grey badges"
-msgstr "серые значки"
+msgid "green badges"
+msgstr "зелёные значки"
 
 # llm-draft
 msgid "header menu text"

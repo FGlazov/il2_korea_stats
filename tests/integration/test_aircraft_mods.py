@@ -370,6 +370,6 @@ def test_profile_shows_no_mod_sets_any_more(client: Client) -> None:
 
     body = client.get(f"/players/{player.pk}/?tour=all").content.decode()
 
-    assert "Favourite loadout" in body
+    assert "Favorite loadout" in body
     assert "Anti-G suit" not in body
     assert "Set 33" not in body

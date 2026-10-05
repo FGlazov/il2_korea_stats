@@ -16,8 +16,8 @@ pytestmark = pytest.mark.e2e
 def list_pages(world: World) -> list[tuple[str, list[str]]]:
     """(path, three optional columns) of every page that has the control."""
     return [
-        ("/players/?q=", ["K/D", "Survival", "Planes lost"]),
-        ("/missions/", ["Friendly kills", "Ended", "Sorties per player"]),
+        ("/players/?q=", ["K/D", "Survival", "Aircraft lost"]),
+        ("/missions/", ["Friendly kills", "Ended", "Sorties per pilot"]),
         ("/aircraft/", ["Bailouts", "Assists", "Sortie length"]),
         (f"/players/{world.ace_pk}/sorties/", ["Takeoffs", "Landings", "Loadout"]),
         (f"/missions/{world.featured_mission_pk}/", ["Damage taken", "Takeoffs", "Landings"]),

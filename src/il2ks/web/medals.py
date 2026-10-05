@@ -87,7 +87,7 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "landing_streak": (
         gettext_lazy("Soft Touch"),
         gettext_lazy(
-            "Landings in a row. A crash, a bail-out or a death ends the run; sorties that never took off do not."
+            "Landings in a row. A crash, a bailout or a death ends the run; sorties that never took off do not."
         ),
     ),
     "ace_in_a_day": (gettext_lazy("Ace in a Day"), gettext_lazy("Air kills on a single day (UTC).")),

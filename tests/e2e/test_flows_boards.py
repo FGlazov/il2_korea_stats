@@ -96,8 +96,8 @@ def test_a_player_scans_the_boards_and_finds_himself_on_each(page: Page, world: 
     assert world.ace in players(page)
     assert number(row_for(board(page), world.ace, "Player")["Ground score"]) == 0
 
-    # Play time: Gunther (30 minutes a sortie) ahead of Ace
-    open_board(page, "Play time", "play-time")
+    # Flight time: Gunther (30 minutes a sortie) ahead of Ace
+    open_board(page, "Flight time", "play-time")
     names = players(page)
     assert names.index(world.gunther) < names.index(world.ace) < names.index(world.rival)
 

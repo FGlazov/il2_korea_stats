@@ -30,7 +30,7 @@
   {% endif %}
   <ul>
     {% if site_address %}<li>{% translate "The site, once it is back:" %} <a href="{{ site_address }}">{{ site_address }}</a></li>{% else %}<li><a href="{% url 'web:home' %}">{% translate "Open the site" %}</a></li>{% endif %}
-    <li><a href="{% url 'admin:login' %}">{% translate "Log in to the admin pages" %}</a> {% translate "(site name, logo, colours, hiding players)." %}</li>
+    <li><a href="{% url 'admin:login' %}">{% translate "Log in to the admin pages" %}</a> {% translate "(site name, logo, colors, hiding players)." %}</li>
     <li>{% translate "Back up your data now and then: il2ks backup" %}</li>
   </ul>
 

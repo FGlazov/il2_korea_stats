@@ -26,7 +26,7 @@ BOARD_TITLES = {
     "tank-busting": _("Tank busting"),
     "elo-prop": _("Elo (prop)"),
     "elo-jet": _("Elo (jet)"),
-    "play-time": _("Play time"),
+    "play-time": _("Flight time"),
 }
 GROUP_TITLES = {
     "air": _("Air"),
@@ -67,7 +67,7 @@ BOARD_HELP = {
         "Air-to-air Elo of jets, from kills between air superiority sorties. Every tour starts afresh; "
         "all time shows each pilot's best tour."
     ),
-    "play-time": _("Hours flown: the time spent in the air in all sorties, air and ground."),
+    "play-time": _("Flight time: the time spent in the air in all sorties, air and ground."),
 }
 
 
