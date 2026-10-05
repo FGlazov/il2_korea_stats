@@ -39,6 +39,8 @@ Principles (all `[DECIDED]`):
 Mission        id, server_uid, mission_uid (unique together), tour → Tour, mission_file (map/name), file_path,
                started_at (UTC), ended_at, duration_s, game_date, game_time, game_type, settings (json), countries (json, CNTRS), log_version,
                completed_cleanly (bool, AType 7 seen), winning_coalition (nullable), is_hidden,
+               is_live (bool, FR-ING-15: provisional rows `watch` saved while the mission still runs; the final save rewrites the same rows by
+               their natural keys and clears it) `[PROPOSED]`,
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
                players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills
 PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
@@ -50,7 +52,9 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                -- (pages show the pilot's fate as Dead / Captured / Survived, derived from is_death / is_captured at display time;
                --  the stored fate stays as the replay wrote it and is only the detail, OQ-106)
                pilot_status (healthy/wounded/dead/captured), suspected_early_bailout (bool)   -- FR-ING-14 rule v2
-               aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1), disconnected (bool),
+               aircraft_status (unharmed/damaged/destroyed), damage_taken (0..1; 1.0 when destroyed, OQ-115), disconnected (bool),
+               pilot_damage (float, nullable: the pilot's (gunner's) damage, 1.0 when dead, health = 1 - it; NULL = unknown, on sorties from before
+               migration 0050 that did not die, until `reprocess --all` fills it; the sortie page shows a gunner's health from it) `[PROPOSED]`,
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
@@ -76,13 +80,23 @@ Kill           id, mission, tick, time, killer_sortie → PlayerSortie, victim_s
                -- **PvP only** [DECIDED 2026-10-02]: both killer and victim are player sorties. Kills of or by AI, and AI vs AI,
                --    get no Kill rows. Player kills of AI and ground targets are counters on PlayerSortie and entries in its timeline.
 PlayerMission  player, mission, coalition, + counters     -- only for players with a pilot sortie in the mission
-SortieGunHits  sortie, ammo, hits                           -- one row per (pilot sortie, gun ammo) with a hit: the source of the ammo mix per type
-MissionAircraftAmmo  mission, aircraft, ammo, kills, hits  -- FR-WEB-18: gun hits that destroyed aircraft of a type in one mission;
-                                                           -- `TOTAL_AMMO` = all gun ammo together
+MissionAircraftAmmo  mission, aircraft, combat_role, weapon_mods, ammo, kills, hits
+               -- FR-WEB-18: gun hits that destroyed aircraft of a type in one mission, from kills where all the damage came from one attacker
+               -- (`SingleAttackerKill`; any victim and attacker, players or AI); `TOTAL_AMMO` ("*") = all gun ammo together. `combat_role` ('' =
+               -- none or not a player) and `weapon_mods` (`NO_MODS_RECORDED` = -1 when the destroyed aircraft was not a counted player sortie:
+               -- AI, or a row from before they were stored) are those of the DESTROYED aircraft's own sortie (migration 0057), so the aircraft
+               -- page's role and modification scopes can sum them. [PROPOSED]
+MissionAircraftAmmoMix  mission, aircraft, combat_role, weapon_mods, mix, ammo, kills, hits
+               -- the same kills grouped by the set of gun ammo that hit; mix = sorted ammo log names joined by "|"; one row per member ammo
+               -- plus a `TOTAL_AMMO` row; `kills` = instances of the mix (equal on all rows of one mix). Rewritten whenever the mission is saved
 ```
 
+`SortieGunHits` (one row per pilot sortie and gun ammo) is gone, **dropped in migration 0053**: the ammo mixes come from the single-attacker kills
+above, and `PlayerAircraftBuild` keeps only the favourite loadout. `[PROPOSED]` `Kill.credit` also admits `shared` in the schema (a check
+constraint), but nothing writes it today; only `kill` and `assist` occur.
+
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour`, `PlayerTourAircraft`,
-`PlayerPool`, `PlayerTourPool`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
+`PlayerPool`, `PlayerTourPool`, `PlayerAircraftScope`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
 suspected early bailouts, captures, takeoffs, landings, friendly kills, friendly hits, friendly damage, **taxi accidents, strafed on the
 ground, attack sorties, time on target** (2026-10-03, doc 13). Added since, all sums of sortie columns: the ground-kill categories and `kills_ground_static`
 (OQ-33), the PvE families `kills_air_pvp` / `kills_air_ai`, `deaths_by_<class>` and `planes_lost_by_<class>` (8 classes each, FR-WEB-21), and
@@ -112,9 +126,14 @@ PlayerAircraft player, aircraft, + all-time counters, elo, elo_games    -- per-a
 Tour           id, title, started_at, ended_at (null = current), mode snapshot   -- TD-26
 PlayerTour     player, tour, + same counters as PlayerMission
 PlayerTourAircraft player, tour, aircraft, + counters   -- a separate table, so all-time PlayerAircraft reads stay untouched
-PlayerAircraftBuild player, aircraft, tour (null = all time), kind (payload / mods / ammo), value, label, sorties, hits
-               -- the favourite loadout on the profile: payload = (`payload_id`, name), mods = the `WM` bitmask, ammo = (gun ammo log name, hit lines);
-               -- `sorties` counts the sorties with that payload / mods, or those that hit with that ammo. Recomputed per affected player
+PlayerAircraftScope player, aircraft, tour (null = all time), role (all / air_superiority / attack), mod_pattern, + counters
+               -- the aircraft page's top pilots in every scope of the page (migration 0057): one player's counters in one type in one tour, combat
+               -- role and modification-filter scope (pattern: see `TourAircraftStats`). Every scope has rows except all time + `all` + unfiltered,
+               -- which is `PlayerAircraft` itself. Counted from the sorties of each scope, hidden players too (the page leaves them out) [PROPOSED]
+PlayerAircraftBuild player, aircraft, tour (null = all time), kind (only `payload`), value, label, sorties
+               -- the favourite loadout on the profile: `value` = `payload_id`, `label` = its name ('' = unknown), `sorties` = counted sorties with
+               -- it. The kinds `mods` and `ammo` and the `hits` column are gone (OQ-117, migration 0053): mods and ammo are aircraft-page tables
+               -- now (`AircraftMods`, `AircraftAmmoStats`). Two partial unique constraints (tour set / null). Recomputed per affected player
 PlayerPool     player, propulsion (prop/jet), + counters         -- counters of the sorties in prop or jet aircraft: the leaderboards'
 PlayerTourPool player, tour, propulsion, + counters              -- `?pool=` filter; unknown propulsion is in no pool
 Mission.tour   FK (assigned at ingest by started_at in tours.timezone)
@@ -129,15 +148,34 @@ StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25
 AircraftStats  aircraft (1:1 → GameObject), pilots, side (redfor/blufor/''), + counters
                -- FR-WEB-8: all-time sum of the type's PlayerAircraft rows; no ratio is stored (OQ-98): K/D, K/L, survival and attack share come
                -- from the counters at read time and sort with `queries.sorting.Ratio`
-TourAircraftStats tour, aircraft, pilots, side, + counters   -- the same as AircraftStats within one tour (sum of the `PlayerTourAircraft` rows); the
-               -- aircraft list and detail follow `?tour=` (OQ-114); rows without a counted sortie are deleted
-AircraftMatchup killer_aircraft, victim_aircraft, tour (null = all time), intercept (bool), kills
+TourAircraftStats tour (null = all time), aircraft, role (all / air_superiority / attack), mod_pattern, pilots, side, + counters
+               -- AircraftStats within one scope (migration 0057): `role` `all` + no pattern in a tour = sum of the `PlayerTourAircraft` rows; the
+               -- role and pattern rows come from the counted sorties of that combat role / modification set (`pilots` = distinct players in that
+               -- scope). `tour` null is used only for a role or pattern row (check constraint); the all-time unfiltered `all` row is
+               -- `AircraftStats` itself, no duplicate. `mod_pattern` '' = unfiltered; a type with significant weapon mods (`weapon_mods.csv`)
+               -- has a row per filter pattern: one character per significant mod in ascending id order, `*` any, `+` with it, `-` without it
+               -- (`core.catalog.loader.mod_filter_patterns`), 3**n - 1 more scopes per tour and role; types without significant mods have none.
+               -- The aircraft list and detail follow `?tour=` (OQ-114); rows without a counted sortie are deleted [PROPOSED]
+AircraftMatchup killer_aircraft, victim_aircraft, tour (null = all time), intercept (bool), scoped_side ('' / killer / victim), combat_role, mod_pattern, kills
                -- PvP kill credits type vs type; a type's losses are the reversed pair. One row per scope: all time or one tour, all kills or only
-               -- `intercept` kills (both sorties air superiority), so a kill is counted in up to four rows (FR-WEB-8, OQ-110)
-AircraftPayload aircraft, payload_name ('' = unnamed), sorties, kills_air, kills_ground, deaths
-AircraftAmmoStats aircraft, ammo, kills, hits               -- FR-WEB-18: sum of MissionAircraftAmmo; average hits to destroy = hits / kills
-MissionAircraftAmmoMix mission, aircraft, mix, ammo, kills, hits -- level 1 per saved mission; mix = sorted ammo log names joined by "|"
-AircraftAmmoMixStats aircraft, mix, ammo, kills, hits       -- level 2 sum (all time); the aircraft page's ammo mixes (OQ-116)
+               -- `intercept` kills (both sorties air superiority), so a kill is counted in up to four rows (FR-WEB-8, OQ-110). Since 0057 also
+               -- the role / modification scopes: `scoped_side` '' = unscoped; 'killer' / 'victim' = only kills where THAT side's sortie had
+               -- `combat_role` and weapon mods matching `mod_pattern` (of that side's type). The page of type A reads its kills as the killer
+               -- side and its losses as the victim side of its own scope: the matchups scope THIS type's sortie only, the opponent is
+               -- unrestricted [PROPOSED]
+AircraftEffectiveness (abstract)  aircraft, tour (null = all time), combat_role ('' = none), mod_pattern, sorties, kills_air, kills_ground, deaths,
+               kills_air_pvp, flight_time_s, score_ground_attack, time_on_target_s, elo_avg (null)
+               -- the columns every "effectiveness by X" table of the aircraft page shares (doc 13); `elo_avg` = sortie-weighted average Elo of the
+               -- pilots who flew the group (air superiority groups; the pilot's per-type Elo where they have games in the type, else the pool's;
+               -- null = no rated pilot), written by `ingest.aircraft_stats.recompute_payload_elo` after `recompute_ratings` [PROPOSED]
+AircraftPayload (AircraftEffectiveness) + payload_name ('' = unnamed)   -- sorties per type, loadout, combat role and modification filter
+AircraftMods (AircraftEffectiveness) + weapon_mods (the WM bitmask as flown, base bit included)   -- the "Mods" table next to the payload table;
+               -- names come from `weapon_mods.csv` at read time
+AircraftAmmoStats aircraft, tour (null = all time), role, mod_pattern, ammo, kills, hits
+               -- FR-WEB-18: sum of `MissionAircraftAmmo` over the scope's missions; `role` (`all` = every destroyed aircraft, AI included) and
+               -- `mod_pattern` are those of the DESTROYED aircraft's sortie; average hits to destroy = hits / kills at read time. The all-time
+               -- `all` unfiltered rows are what the aircraft list reads
+AircraftAmmoMixStats aircraft, tour (null = all time), role, mod_pattern, mix, ammo, kills, hits   -- the same sum of `MissionAircraftAmmoMix`; the page's ammo mixes (OQ-116)
 PlayerKillboard player, opponent, kills, deaths, assists, assists_received, last_at, last_mission
                -- FR-WEB-9: two mirror rows per pair (one per perspective), so a board is one indexed read; `assists` is 0 unless
                -- `[killboard] assists` is on; a pair with only assists has kills = deaths = 0
@@ -169,18 +207,44 @@ GameObject     id, log_name (unique), display_name, name_overridden (bool: an ad
 Country        code (501...), display_name, coalition                                  -- admin-editable
 IngestRun      id, mission_uid, files (json), fingerprint, archive_path, archive_sha256, status (ok/failed/skipped),
                completion_reason (mission_end/newer_mission/idle/import/reprocess), attempts, next_retry_at, started_at, finished_at,
-               lines_total, lines_bad, log_version, unknown_atypes (json), unknown_keys (json), warnings (json), error
+               il2ks_version, lines_total, lines_bad, log_version, unknown_atypes (json), unknown_keys (json), warnings (json), error
 SiteSettings   singleton (TD-25): site_title, server_name, description, logo (path in media/, re-encoded raster), coalition names and emblems,
                theme (json: colour overrides per mode, validated #RRGGBB only), heading_font, body_font (keys), links (json: the published copy
                of the NavLink rows, so pages need no extra query),
                custom_fonts (json: up to 6 uploaded .woff2/.woff files `{file, label}`; a font is chosen by putting its key `up-<hash8>` in
                heading_font / body_font),
+               home_feature (none / image), feature_image_path (the configured file on the server; never served itself), feature_caption,
+               feature_alt, and the output of `web.feature_image.sync` (run by the admin save and a polling thread of the web process):
+               feature_image, feature_image_small (re-encoded, content-hashed copies under media/), feature_image_width / _height,
+               feature_image_updated, feature_source_sig (path, mtime, size of the last file looked at: unchanged = nothing to do), feature_error
+               ('' = fine). An `embed` (iframe) mode may come later. FR-ADM-2 [PROPOSED]
+               quips_enabled (bool, the global switch), quips (json `{"modes": {spot: mode}, "hidden": {spot: [english default text]},
+               "custom": [{spot, text, language, enabled}]}`, parsed and validated by `web.quips`; empty = every default quip on), FR-WEB-23,
+               achievements (json `{"off": [key], "thresholds": {key: [n]}, "names": {key: {language: text}}, "descriptions": {...}}`, the admin's
+               choice, `web.achievement_config`; empty = the built-in set), achievements_applied (json `{"off", "thresholds"}`: what the stored
+               `PlayerAchievement` rows were last computed with, written only by `ingest.achievements`; it differs from `achievements` while
+               a recompute is pending), doc 17,
+               show_live_sorties (bool, default on: `watch` saves the running mission provisionally and its sorties count, FR-ING-15),
                killboard_assists (bool; not branding: the `[killboard] assists` value the level-2 rows were last rebuilt with),
                backfills_done (json list: the one-time upgrade backfills that already ran, `ops/migrate.py`, FR-OPS-3)
+               -- all of it sits on the one settings row every page already reads, so quips, achievement texts and the feature image cost no query
 NavLink        site, label, url (http/https only), icon (built-in key or none), position   -- ordered inline of SiteSettings, at most 30
 DataVersion    singleton counter bumped with every page-visible change (TD-28)
-ReprocessRequest, LiveMission, LivePlayer   -- admin reprocess queue (doc 14) and the "online now" snapshot (FR-ING-12, outside the data version)
+ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error; at most one pending (partial unique)
+LiveMission    server_uid (unique), mission_uid, mission_file, started_at, game_date/time, elapsed_s, updated_at, interval_s, is_running   -- the running
+               -- mission as `watch` last saw it, one row per server; `updated_at` older than 3 x `interval_s` = stale
+LivePlayer     mission, player (null = unknown account), account_uuid, name, coalition, country, aircraft_type, aircraft_name, propulsion, state
+               (in_flight/on_ground/spawned/connected), sortie_started_at, flight_time_s, kills_air, kills_ground   -- replaced wholesale per snapshot
+               -- ("online now", FR-ING-12; outside the data version, TD-28)
 ```
+
+**Indexes (mostly migration 0058, `[PROPOSED]`, maintainer request 2026-10-04 "read-heavy, an index is cheap")**: partial / covering indexes so that
+every board and list orders by an indexed column (doc 16 "Query-plan test"): `Player` (one per all-time board: air score, ground score, play time, Elo
+jet, Elo prop, plus the player list's last seen and air kills; they carry the minimum-activity filter columns and `is_hidden`), `Mission`
+(newest first, all time and per tour), `PlayerBestStreak` (`bests_list`, and a partial `bests_alltime_list` for `tour IS NULL`), `PlayerStreakRun`
+(`streakruns_alltime`), `PlayerPool` by propulsion, `PlayerAchievement` (holders by tour/key/tier, the feed by tour/time), `AircraftMatchup` by
+killer, `PlayerAircraftScope` by aircraft and scope. Nullable-`tour` tables use **two partial unique constraints** (tour set / tour null), since SQL
+treats NULLs as distinct (`scoped_unique` in the models).
 
 ## Page → table map (every page is simple reads)
 
@@ -195,7 +259,7 @@ ReprocessRequest, LiveMission, LivePlayer   -- admin reprocess queue (doc 14) an
 | Home | `?tour=` filter (OQ-79; none = current tour, `all` = all time): `Mission` (latest; the last mission's top pilots via `PlayerSortie`), `ActivityDay`, streaks (`PlayerStreak` all time; `PlayerBestStreak` of the tour), top 5 of Elo jet, Elo prop (all time only), interception, ground per hour, tank busting and play time (`Player` / `PlayerTour`, one read each), `LiveMission` / `LivePlayer` (always live) |
 | Leaderboards | `Player` / `PlayerTour` (+ `PlayerPool` / `PlayerTourPool` for `?pool=`, `PlayerAircraft` / `PlayerTourAircraft` for `?aircraft=`; Elo boards from `Player.elo_*`; the per-hour skill boards divide two stored counters), `Tour` |
 | Aircraft list | `AircraftStats` (`TourAircraftStats` for `?tour=`) + `GameObject` |
-| Aircraft detail | `AircraftStats` / `TourAircraftStats`, `AircraftMatchup` (the chosen tour and intercept scope), `AircraftPayload`, `AircraftAmmoStats`, `AircraftAmmoMixStats`, top pilots from `PlayerAircraft` |
+| Aircraft detail | `AircraftStats` / `TourAircraftStats` (the chosen tour, role and mods scope), `AircraftMatchup` (the same scope plus intercept), `AircraftPayload`, `AircraftMods`, `AircraftAmmoStats`, `AircraftAmmoMixStats` (all in the scope), top pilots from `PlayerAircraft` (all-time, unfiltered) or `PlayerAircraftScope`, all-time per-type Elo from `PlayerAircraft` |
 | Killboard | `PlayerTypeKillboard` (by aircraft type), `PlayerKillboard` / `PlayerTourKillboard` where player; `SiteSettings.killboard_assists` |
 | Achievements | `PlayerAchievement` (profile medal row, `/players/<id>/achievements/`, holders page), `AchievementHolders` (`/achievements/`) |
 | Streaks | `PlayerBestStreak` of the selected tour or all time (best list) and `PlayerStreak` (running streaks, not on a past tour), `/streaks/`; a player's best streaks: `PlayerBestStreak` (`/players/<id>/streaks/`); all of a player's runs: `PlayerStreakRun` (`/players/<id>/streaks/history/`) |

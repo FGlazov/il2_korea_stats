@@ -33,7 +33,7 @@ How the website, the admin and the operations commands are built (iteration 1, p
   Migrations 0011 and 0027 run `SET CONSTRAINTS ALL IMMEDIATE` on Postgres after their data step (the only raw SQL in migrations; TD-19's
   exception, needed to fire deferred FK checks) and are atomic.
 - **Labels:** the sortie `disconnected` flag reads "Left the server"; "Destroyed" comes only from `aircraft_status`, never from
-  `damage_taken`.
+  `damage_taken`. A gunner sortie shows its turret type as plain text (no link to an aircraft page: a turret type has none, `[PROPOSED]`). The matchup K/L hint says "no losses" where the type was never lost to the enemy and shows a dash below 10 kills plus losses (`MIN_ENCOUNTERS`). Medal hover texts build the tier and threshold from one translatable pattern.
 - **Style guide** at `/_styleguide/` (only with DEBUG) shows every component; English-only by design.
 - **Placeholders** for every icon and image named in [15_visual_assets.md](15_visual_assets.md), under `web/static/il2ks/img/`.
 - **Free icon option** (research, 2026-10-03): Tabler Icons (MIT, outline, 24 px grid) covers almost every slot (tank, parachute, prison,
@@ -128,8 +128,8 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   player search, profile recent sorties and per-aircraft rows, player sortie list. Kill, damage and timeline tables have no single target
   and stay as they are.
 - **Flavor text** (FR-WEB-23, 2026-10-03): `web/flavor.py` `SPOTS` maps a spot to translatable variants; `{% flavor "spot" seed %}` picks
-  one by SHA-256 of `spot:seed` (stable across restarts and languages, so caching holds); `{% sortie_flavor %}` picks the sortie spot with `flavor.sortie_spot`, the first match of: taxi accident, friendly kills, captured, shot down
-  by an AI gunner, ditched, **strafed** (`sortie_strafed` parked, `sortie_strafed_landed` after a landing; doc 13 `[DECIDED]`, OQ-112), shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **ace** (3+
+  one by SHA-256 of `spot:seed` over the spot's effective list (stable across restarts, so caching holds; **not across languages** once an admin limits a custom quip to one language: the pool, and so the pick, then differs per language; the page cache varies by language anyway `[PROPOSED]`); `{% sortie_flavor %}` walks the spots of `flavor.sortie_spots(sortie, highlights)` in order and takes the first spot that **has a line**: a spot the admin switched off, or whose pool is empty in the page's language, **falls through to the next matching spot** (so a first-blood sortie with three kills whose first-blood spot is off still gets its ace line, `[PROPOSED]`). The order of matches is: taxi accident, friendly kills, captured, shot down
+  by an AI gunner, ditched, **strafed** (`sortie_strafed` parked, `sortie_strafed_landed` after a landing; doc 13 `[DECIDED]`, OQ-112), shot down by AA, **bomber hunter** (2+ air kills of bomber, attacker or transport class; `BOMBER_KILLS_MIN`), **first blood** (the sortie made the mission's first credited PvP air kill, `PlayerSortie.first_blood`, doc 17), **ace** (3+
   air kills), **stolen kills** (**air** assists: 2+ with no air kill, 3+ with one, 6+ with two, below the ace line; maintainer 2026-10-04, OQ-107
   resolved, the variants reworded to fit pilots with kills), **stolen targets** (5+ **ground** assists, at least the own ground kills, under 70
   ground kills; `[DECIDED]` as built, maintainer, OQ-111), **battered victor** (landed, 50%+ damage taken, 2+ kills), limped home (the same damage, fewer kills), **ground pounder** (70+ ground
@@ -142,6 +142,12 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   home top pilots (doesn't name the pilot), home "nobody scored", an empty tour. Quiet italic `.flavor` style. Two lines were replaced at the
   maintainer's request (2026-10-03; OQ-75): the POW "food" joke and "Ace-in-a-day territory" are gone, now "Out of the fight, but not out of the
   story." (sortie captured) and "Best showing of the mission. Well flown." (top pilot). Placement and wording: OQ-53, OQ-111, OQ-112.
+  **Admin-configurable** (roadmap "Admin-configurable quips", 2026-10-04; `web/quips.py`, `web/admin_quips.py`, `SiteSettings.quips_enabled` /
+  `.quips`): a global switch (on by default) and per spot a mode: `defaults`, `defaults_and_custom`, `custom_only` or `off`; single built-in lines can be
+  hidden (by their English text, so a reworded line is an "orphan" the admin page lists and can forget); custom quips are plain text (escaped
+  by the templates, at most 200 characters, 20 per spot, 300 per site), each for one language or every language, and can be disabled. A custom
+  quip with a language matches that language or its base (`pt` for `pt-br`). Nothing is saved when anything in the form is invalid. All
+  `[PROPOSED]` (limits and fall-through are agent choices).
 - **Sortie map** (FR-WEB-12, 2026-10-03; **not on main**: benched until after the release, OQ-54/55, the code stays on its branch): an accordion (open) on the sortie page with a server-rendered inline SVG of the key events
   from the stored timeline (+0 queries): numbered markers with the event icons, a faint dashed line in time order (labelled "not the
   flight path"), a km grid in absolute game coordinates, an N arrow, a legend, `<title>` tooltips; the timeline table is the textual
@@ -185,25 +191,44 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   (encounters, sorties, attack sorties and minutes on target, air superiority sorties and minutes). Links from the all-time home block carry
   `?tour=all` (TD-26). Profile block `players/detail_scores.html` (scores follow the selected tour; Elo stays all time, labelled). Values and
   product choices: OQ-62..64, OQ-67, OQ-84..86, OQ-102..104 (all `[DECIDED]`).
-- **Aircraft stats** (FR-WEB-8, 2026-10-03; OQ-122: every section follows tour, role and mod filter, built, scoped level-2 rows (migration 0057); Elo of top pilots stays all time, ranked among pilots with enough air superiority sorties in the scope; **per tour** since 2026-10-04, maintainer: `/aircraft/?tour=` and the detail page's tiles,
-  pilot count and matchups follow one selector above the tiles, from the level-2 `TourAircraftStats` (tour, aircraft) next to the all-time
-  `AircraftStats`, both on an abstract `AircraftCounters`; top pilots, hits to destroy, loadouts and the side badge stay all time and the
-  page says so; OQ-114): `/aircraft/` lists flown types (prop/jet, side, sorties, pilots, flight time, kills, deaths,
-  losses, K/D, K/L, survival, attack share, hits to destroy; sortable); `/aircraft/<pk>/` adds **matchups vs each enemy type** (below), **top pilots** (hidden
-  players left out; by per-type Elo, and ground score per hour on target for attack work, under the leaderboard minimums; types with an attack
-  share of 50% or more list the ground ranking first), hits to destroy per ammo, loadouts. Level-2 `AircraftStats` / `AircraftMatchup` /
-  `AircraftPayload`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **Matchups follow the tour selector** and a toggle "All fights /
-  Intercept flights only" (`?tour=`, `?intercept=1`; `AircraftMatchup.tour` / `.intercept`, an intercept fight being two air superiority sorties),
-  sortable by enemy, kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights
-  (`MIN_ENCOUNTERS`; `[DECIDED]` maintainer, OQ-110). Top pilots, hits to destroy and loadouts are all time (the tiles follow the tour, OQ-114). **No ratio is stored** (OQ-98):
-  the list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
+- **Aircraft stats** (FR-WEB-8, 2026-10-03; per tour since 2026-10-04, maintainer, OQ-114; **every section follows tour, role and modification
+  filter**, OQ-122, built 2026-10-04 on the scoped level-2 rows of migration 0057). `/aircraft/` lists the flown types of the selected tour
+  (`?tour=`, current tour by default, `?tour=all`) and, with `?role=air_superiority|attack`, only the sorties of that combat role: prop/jet, side,
+  sorties, pilots, flight time, kills, deaths, losses, K/D, K/L, survival, attack share, hits to destroy (always all time, always every role);
+  sortable, not paginated. `/aircraft/<pk>/` (404 for a type nobody flew) has three independent selectors above the tiles `[PROPOSED]`: the
+  **tour** (as everywhere), the **role** (`?role=`, default every role; the Elo table is hidden for `attack`, the ground table for
+  `air_superiority`) and, for a type with significant weapon modifications (`weapon_mods.csv`, `significant`), a with / without / any switch per
+  modification (`?mod<id>=with|without`). **Scope rules `[PROPOSED]`** (the stored rows carry every scope, so each section is still one simple
+  read, TD-22):
+  - the **tiles and pilot count**: `TourAircraftStats` (tour, role, mod pattern), or `AircraftStats` for all time, every role, no filter; the
+    side badge is the side most of the scope's sorties were flown for;
+  - **loadouts** and the **weapon-modification sets** tables: `AircraftPayload` / `AircraftMods` of the tour, role and filter, each with the
+    effectiveness measures (average pilot Elo `elo_avg`, air kills per sortie and K/D for air superiority, ground score per hour on target for
+    attack, each only above the leaderboard minimums of the row's role, a dash otherwise), sortable apart from the matchups (`?lsort=`,
+    `?msort=`; a dash sorts last either way);
+  - **matchups** vs each enemy type (`AircraftMatchup`): the role and the modifications scope **this type's own sortie** (the killer's for its
+    kills, the victim's for its losses; `scoped_side`), the enemy is unrestricted. The **intercept** toggle "All fights / Intercept flights only"
+    (`?intercept=1`, an intercept fight = two air superiority sorties) is **independent of the role** and combines with it. Sortable by enemy,
+    kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights (`MIN_ENCOUNTERS`;
+    `[DECIDED]` maintainer, OQ-110);
+  - **hits to destroy** per ammo and the **ammunition mixes** (below): the kills OF this type, so the tour, role and modifications are those of
+    the **destroyed aircraft's own sortie** (`MissionAircraftAmmo(Mix).combat_role` / `.weapon_mods`); an AI aircraft (`NO_MODS_RECORDED`, no
+    role) counts for the every-role, unfiltered scope only;
+  - **top pilots** (hidden players left out): *by per-type Elo*, which is all time by nature (`PlayerAircraft.elo`, written by the global
+    replay); in a narrower scope a pilot must in addition have flown at least the leaderboard minimum of air superiority sorties within it
+    (`PlayerAircraftScope`), and the sorties shown are the scope's; *by ground score per hour on target* from the scope's own rows, under the
+    ground-per-hour board's minimums. Types with an attack share of 50% or more list the ground ranking first (always, for `role=attack`).
+  Level-2 `AircraftStats`, `TourAircraftStats`, `AircraftMatchup`, `AircraftPayload`, `AircraftMods`, `AircraftAmmoStats`,
+  `AircraftAmmoMixStats`, `PlayerAircraftScope`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **No ratio is stored** (OQ-98): the
+  list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
 - **Ammunition mixes and loadouts** (FR-WEB-18, 2026-10-04, OQ-116; FR-WEB-4): the aircraft detail's hits-to-destroy table has an **Instances**
   column (counted kills in which the ammunition hit at least once) and below it **Ammunition mixes**: the same single-attacker kills grouped by
-  which gun ammo types hit together (`MissionAircraftAmmoMix` per mission, `AircraftAmmoMixStats` summed, all time) with the average hits of each
-  type in the mix. The player profile's per-aircraft table gets an extra row per type with the **favourite loadout** (its share of the pilot's
-  sorties) and a `<details>` with all loadouts, the weapon-modification sets and the gun ammo mix, all from `PlayerAircraftBuild` (one read;
-  all time or the selected tour; the log has no belt field, so ammo is what hit, not what was picked). The sortie page's summary has a
-  **Modifications** row (names from `weapon_mods.csv`, "Unknown modification (id k)" without a name, "None").
+  which gun ammo types hit together (`MissionAircraftAmmoMix` per mission, `AircraftAmmoMixStats` summed per scope) with the average hits of each
+  type in the mix; the first 10 mixes show, the rest sit in a `<details>`. The player profile's per-aircraft table gets an extra row per type with
+  the **favourite loadout** (its share of the pilot's sorties) (name and share only; no `<details>`), from `PlayerAircraftBuild` (one
+  read; all time or the selected tour; **loadout only** since OQ-117: the weapon-modification sets and the ammo mix are gone from the profile and
+  live on the aircraft page, where they follow the scope). The sortie page's summary has a **Modifications** row (names from `weapon_mods.csv`, "Unknown modification
+  (id k)" without a name, "None").
 - **Stat highlights** (FR-WEB-22, 2026-10-03; marks for Elo and the scores 2026-10-04): level-2 `StatThreshold` rows (p10/p25/p50/p75/p90,
   linear interpolation) per metric, all-time and per tour, only when ≥ 20 pilots qualify. The population follows the board the figure sits next
   to: ≥ `[marks] min_sorties` (20) sorties for the ratios, air score and ground score; ≥ `min_elo_games` encounters in the pool for **Elo jet and
@@ -239,7 +264,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   boards, the tour list of the selector, the online-now snapshot and the "Recently earned" feed, 2 reads), mission list 5, mission detail 5, player search 4 (also with every optional column), profile **16** all
   time (`PROFILE_READS_ALL_TIME`, incl. the medals with their rarity and the favourite loadout `PlayerAircraftBuild`) and **17** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
   player sortie list 7 (with or without optional columns; the column and fate tests allow 8), sortie detail **9** (+ the earned medals and their rarity), killboard 8, best streaks 5, streak history 6, streak list 8 (best + running, each with its count; 6 on a past tour, which has no running list),
-  leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 5 (+ the tours of the selector), aircraft detail **11** (9 + the tour's tiles + the ammo mixes), achievements: a player's list 6, the overview 4, a
+  leaderboards 6 (7 with tour + pool; the Elo boards 4), aircraft list 5 (+ the tours of the selector), aircraft detail **12** (11 + the scoped tiles + the mods table, `AIRCRAFT_DETAIL_READS`), achievements: a player's list 6, the overview 4, a
   holders page 6, live fragment 3 to 5. The `tests/perf/` suite (doc 08) has its own, looser per-page limits over a larger seeded world (N+1 guard);
   `uv run il2ks dev check --full` runs it, and CI runs it as the separate job `test-perf` (SQLite, then Postgres; OQ-97). On Postgres the perf
   database gets `ANALYZE` after seeding: without it stale planner statistics made the mission page take 59 s.

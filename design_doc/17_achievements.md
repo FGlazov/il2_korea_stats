@@ -35,6 +35,40 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
   (the feed rows and the rarity; one when nothing was earned), the three achievement pages three to five each (the tour list too).
   A full rebuild of 1,138 pilots takes about 2 s.
 
+## Admin configuration (built 2026-10-04, before the release)
+
+All `[PROPOSED]` (the maintainer asked for it "like the admin quips": switch achievements off, rename them, change thresholds; the details
+below are agent choices). Code: `core/achievement_rules.py` (pure rules and validation), `web/achievement_config.py` (storage, texts),
+`web/admin_achievements.py` (the form), `web/admin_site.py::achievements_view` (the admin page **Achievements**, admins with the
+change-site-settings permission), `ingest/achievements.py` (recompute). Storage: two JSON fields on `SiteSettings` (doc 06), so pages read the
+choices with the settings row they read anyway, no extra query:
+
+- `achievements` = what the admin **wants**: `{"off": [key], "thresholds": {key: [n, ...]}, "names": {key: {language: text}},
+  "descriptions": {key: {language: text}}}`, only what differs from the built-in registry. Parsed tolerantly (unknown keys, invalid or
+  default-equal thresholds are dropped), so a hand-edited row cannot break a page.
+- `achievements_applied` = the **applied** rules, `{"off", "thresholds"}`: what the stored `PlayerAchievement` rows were last computed with. Written
+  only by the recompute (never by the admin page).
+
+What the page offers, per achievement: an **on/off** switch; a **name** and a **description** per site language (blank = the built-in
+translated text; custom text is plain text, escaped by the templates, at most 60 / 300 characters; a language matches itself or its base,
+`pt` for `pt-br`); and the **tier thresholds** (as many as the built-in tiers, positive whole numbers, strictly increasing, at most 1,000,000;
+all blank = built-in); a "Reset to default" button per achievement. Nothing is saved when anything is invalid, and the form comes back as
+typed.
+
+Two kinds of choice, two effects:
+
+- **Words and the switch** apply at render time, at once (a bump of the data version refreshes the cached pages). A switched-off achievement
+  disappears from profiles, the sortie page, the overview, the holders page, the home feed and the rarity text; its rows stay in the database.
+- **Thresholds, and switching an achievement back on**, change which rows should exist, so they need a recompute. **Wanted vs applied**: while
+  `achievements` differs from `achievements_applied` a recompute is pending; the admin page says so, and until then the pages show the
+  thresholds the rows were computed with (the applied ones), so a medal never claims a threshold its holder did not meet.
+- **`watch` applies the change**: on every tick `recompute_with_wanted_rules` checks for a pending change and, under the writer lock, recomputes every
+  pilot's rows (all time and per tour) and the holder counts with the wanted rules, then in one transaction records them as applied and bumps the
+  data version. A busy lock or a crash leaves it pending and the next tick tries again. Without a running `watch`, the change waits.
+- **`il2ks rebuild-aggregates`** adopts the wanted rules first (`adopt_wanted_rules`) and computes every row with them; it runs as **one
+  transaction** under the writer lock (like every rebuild), so a failure leaves the old rows and the old applied rules.
+- Elo-based `elo_peak` stays all time only, whatever the thresholds.
+
 ## The first set (12 achievements)
 
 Sample counts: the 210 sample missions (September 2026, 1,138 pilots with at least one sortie): pilots holding **at least** that
@@ -248,13 +282,15 @@ Alternative designs:
 - **Per-tour medals**: built (see How it works): `earn_all` runs over a tour's sorties, with a `tour` column in `PlayerAchievement`.
   More rows (players x tours x tiers).
 - **Ribbons vs medals**: built as both (see Display): ribbons for the simple achievements, medals for the hard ones.
-- **Rarity percentage** on each tier ("held by 4% of pilots"): easy from `AchievementHolders` and the pilot count, but it needs a
-  denominator (pilots with at least a sortie, or active pilots) and changes with every ingest, which makes medals feel unstable.
-  A cheap middle way: show the holder count (done) and let the viewer judge.
+- **Rarity percentage** on each tier ("held by 4% of pilots"): built (see Display), from `AchievementHolders.holders / .pilots`, the
+  denominator being the visible pilots with at least one sortie in the scope. It does change with every ingest (the cost accepted by the
+  maintainer's decision, OQ-105).
 - **Progress to the next tier**: a bar "7 of 10 air kills in this life" on the full list. Needs the current value stored (a
   `PlayerAchievementProgress` or a `value` column on the top row) and for "in one life" the current life's count; the progress
   functions already return it, only the storage is missing.
 - **A global feed** ("recently earned", on the home page): built (see Display).
 - **Notifications / Discord post** when a gold tier is reached: out of scope (there is no outbound integration yet).
-- **Configurable thresholds** in `il2ks.toml` (`[achievements]`): the registry is code on purpose (tests pin tier behaviour);
-  a server with a few pilots may want lower thresholds. Possible later as scale factors per key.
+- **Configurable thresholds**: built, but in the admin, not in `il2ks.toml` (see "Admin configuration"): the registry stays code on purpose
+  (tests pin tier behaviour, the built-in thresholds are the defaults) and an admin overrides the thresholds, names, descriptions and the
+  on/off switch per achievement on a page; a change is applied by `watch` or `rebuild-aggregates`. A `[achievements]` section in the
+  config file does not exist. Scale factors per key and per-key new achievements defined by data stay ideas.

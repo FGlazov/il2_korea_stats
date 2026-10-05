@@ -156,20 +156,29 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `PlayerAircraft`; a test checks it matches the model.
 - **Save order** (`persist.save_mission`, one transaction, `[PROPOSED]`): the tour (`ensure_tour`), the `Mission` row, game objects and countries,
   `Player` rows, the sorties (each gets its air and ground score from `ingest.scoring.apply_score` under the `[score]` rules, as it is written),
-  `SortieGunHits` (the gun hit lines per sortie and ammo), the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo mix of each destroyed aircraft). Then level 2, always after the rows it reads:
+  the PvP `Kill` rows, `PlayerMission`, the mission's own counters, `MissionAircraftAmmo` and `MissionAircraftAmmoMix` (the ammo and ammo mix of each destroyed aircraft, with that aircraft's own combat role and weapon mods, migration 0057). Then level 2, always after the rows it reads:
   1. `recompute_players` for the mission's old and new players, limited to the touched tours: totals, `PlayerAircraft`, the prop/jet pools
-     (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: payloads, weapon mods, gun ammo; `ingest.builds`, from the sorties and `SortieGunHits`), identity and names, then the killboard rows (`PlayerKillboard` /
+     (`PlayerPool` / `PlayerTourPool`), `PlayerTour` / `PlayerTourAircraft`, the favourite loadout rows (`PlayerAircraftBuild`: the payload only since OQ-117; `ingest.builds`, from the sorties), identity and names, then the killboard rows (`PlayerKillboard` /
      `PlayerTourKillboard`, `ingest.pairs`; `PlayerTypeKillboard`, `ingest.type_board`), the streaks (`PlayerStreak` / `PlayerBestStreak`,
      `ingest.streaks`) and the medals (`PlayerAchievement`, `ingest.achievements`, doc 17; all time and per touched tour);
   1b. `recompute_holders` (`AchievementHolders` per scope with the pilot count, after the players' medal rows; counted in the database with `GROUP BY`, not in Python);
-  2. `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables);
-  3. `recompute_aircraft_stats` for the types involved (`AircraftStats`, `TourAircraftStats` for the touched tours, `AircraftPayload`; reads the players' `PlayerAircraft` rows, so it comes
-     after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the four scopes, all time and per tour, all kills
-     and intercept kills only);
+  2. `recompute_aircraft_ammo` (`AircraftAmmoStats` and `AircraftAmmoMixStats`, the sums of the two mission tables per tour, role and modification pattern);
+  3. `recompute_aircraft_stats` for the types involved (`AircraftStats`; `TourAircraftStats` per tour, role and modification pattern for the touched tours; `AircraftPayload` and `AircraftMods`; `PlayerAircraftScope`, the top-pilot rows of every scope; reads the players' `PlayerAircraft` rows, so it comes
+     after step 1) and `recompute_matchups` (`AircraftMatchup`: for each old and new type pair the scopes: all time and per tour, all kills and intercept kills only,
+     and, since 0057, the role / modification scopes of the killer's and of the victim's sortie, `scoped_side`);
   4. `recompute_days` (`ActivityDay`, the mission's old and new UTC day);
   5. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum; skipped by `reprocess`, which recomputes once at the end);
-  6. `recompute_ratings` (Elo per pool and per type, all kills replayed; same skip);
+  6. `recompute_ratings` (Elo per pool and per type, all kills replayed; then `recompute_payload_elo`, the average Elo of the pilots of each loadout and mod set, `elo_avg`; same skip);
   7. `bump_data_version` (TD-28).
+- **Provisional sorties of the running mission** (FR-ING-15, built 2026-10-04, `ingest/live.py`; all `[PROPOSED]` except the feature itself): the
+  `LiveTracker` that feeds "online now" also keeps a `LiveReplay` of the running mission and, every `[live] sorties_interval_s` (default 120 s),
+  saves it as a real `Mission` with `is_live = true` through `persist.save_mission`, upserting by the **same natural keys** as the final save, so
+  URLs stay the same until the mission ends. Level 1 is written every pass; level 2 (profiles, boards, aircraft pages) is recomputed for what was
+  touched every `[live] aggregates_interval_s` (default 300 s; 0 = only at the final save). **Elo ratings and stat thresholds wait for the final
+  save** (they depend on mission order; `ratings._games` skips live kills). The final save is the ordinary ingest of the complete mission: it
+  rewrites those rows and clears `is_live`. A mission whose files vanish without being ingested is deleted again, and so is every provisional mission when
+  the admin turns `SiteSettings.show_live_sorties` off (`discard_provisional_mission`). A provisional save takes the writer lock **without waiting**
+  (a held lock skips that pass), and bumps the data version in its own transaction; the `Live*` tables themselves still take no lock and never bump it.
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in
   `SiteSettings`.
 - **Level-2 updates = recompute the affected players from level 1** (maintainer, 2026-10-03; replaces "subtract old, add new"). After a
@@ -279,7 +288,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   each: tours (`tours`), sortie scores (`scores`), per-type Elo and the prop/jet pools (`type_ratings`), the killboard by aircraft type and the
   per-tour / intercept matchups (`type_killboard`), `kills_air_intercept` from the stored timelines (`interception`), the air / ground assist
   split from the timelines (`assist_split`), rounds fired and gun hits from the stored ammo (`accuracy`), the streak history (`streak_runs`),
-  `TourAircraftStats` (`tour_aircraft`), `SortieGunHits` and the favourite loadouts (`builds`), the achievement facts rams, first blood, multi-kills
+  `TourAircraftStats` (`tour_aircraft`) and the favourite loadouts (`builds`), the achievement facts rams, first blood, multi-kills
   and Elo peaks (`achievement_facts`), the loadout names looked up again from the payload ids (`payload_names`) and medals (`achievements`, then
   `achievement_tours` for the per-tour medals and rarity counts, after the rebuild). `_run_backfills` runs them in one transaction: **each `_check_*` fixes
   the level-1 sortie columns it owns (level 1) and returns whether level 2 needs a rebuild**; `rebuild_aggregates` then runs **at most once per
