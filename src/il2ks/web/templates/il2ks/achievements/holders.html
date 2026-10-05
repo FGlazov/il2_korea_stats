@@ -10,9 +10,9 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{{ info.name }}</h1>
+    {% tour_select tours tour %}
     <p>{{ info.description }}</p>
   </div>
-  {% tour_select tours tour %}
   <nav class="medal-tabs" aria-label="{% translate 'Tiers' %}">
     {% for t in tiers %}<a class="medal-tabs__tab medal-tabs__tab--{{ t.tier.slug }}" href="{% url 'web:achievement-holders' info.key %}{{ tour_query }}&amp;tier={{ t.tier.number }}"{% if t.tier.number == tier.number %} aria-current="page"{% endif %}>{{ t.tier.name }} · {{ t.tier.threshold }} <span class="muted">({{ t.holders|num }})</span></a>{% endfor %}
   </nav>

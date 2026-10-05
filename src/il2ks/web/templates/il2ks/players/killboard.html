@@ -13,9 +13,9 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% blocktranslate with name=player.current_name %}Killboard of {{ name }}{% endblocktranslate %}</h1>
+    {% tour_select tours tour %}
     <p>{% if site.killboard_assists %}{% translate "Who this pilot shot down and who shot them down: air kill credits between players. Assists are counted in their own column, not as kills." %}{% else %}{% translate "Who this pilot shot down and who shot them down: air kill credits between players. Assists are not counted." %}{% endif %}</p>
   </div>
-  {% tour_select tours tour %}
   {% if absence %}{% blocktranslate asvar absent_message with name=player.current_name tour=absence.tour|tour_title %}{{ name }} did not fly in {{ tour }}.{% endblocktranslate %}{% tour_absent absence absent_message %}{% endif %}
 
   {% type_killboard player tour 60 as types %}{% if types.victims or types.nemeses %}

@@ -265,7 +265,9 @@ h2 {
   font-size: 1.35rem; margin: 2.2rem 0 0.9rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--il2-border-strong);
 }
 h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; color: var(--il2-muted); }
-.page-head { margin-bottom: 1.25rem; }
+.page-head { margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1rem; }
+.page-head h1 { flex: 1 1 auto; margin-bottom: 0; }
+.page-head > p { flex: 1 0 100%; }
 .page-head p { margin: 0; color: var(--il2-muted); }
 .lead { font-size: 1.05rem; color: var(--il2-muted); max-width: 46rem; }
 small, .muted { color: var(--il2-muted); }
@@ -376,6 +378,13 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
    filter bar and everything below it do not jump (CLS). */
 .tour-next[hidden] { display: inline !important; visibility: hidden; } /* !important: Pico hides [hidden] with it */
 .has-htmx .filter-bar__apply { display: none; }
+/* Tour selector (components/tour_select.html): compact, right-aligned on the title line of the page head (wraps below the
+   title when it does not fit); in the home banner it sits right of the player search. */
+.tour-select { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.3rem 0.6rem; margin: 0 0 0 auto; }
+.tour-select__field { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 0.72rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--il2-muted); }
+.tour-select select { margin: 0; width: auto; min-width: 9rem; max-width: 100%; height: 2.3rem; padding-block: 0; padding-inline-end: 2.2rem; font-size: 0.9rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.tour-select .tour-next { align-self: center; flex: 0 0 auto; }
+.tour-select__apply { margin: 0; width: auto; height: 2.3rem; padding-block: 0; font-size: 0.85rem; }
 
 /* Pagination */
 .pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin: 0.25rem 0 1.5rem; font-size: 0.85rem; color: var(--il2-muted); }
@@ -487,6 +496,10 @@ details.dropdown.dropdown--right ul { right: 0; left: auto; }
   background-color: var(--il2-band); background-image: var(--il2-camo); background-size: 640px 200px;
   border-left: 4px solid var(--il2-accent); border-radius: var(--il2-radius);
 }
+.hero__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem; margin-top: 1.1rem; position: relative; }
+.hero__tools .home-search { margin: 0; flex: 1 1 22rem; }
+.hero .tour-select { margin: 0; justify-content: flex-start; }
+.hero .tour-select__field, .hero .tour-next { color: var(--il2-band-muted); }
 .hero h1 { font-size: 2.8rem; margin-bottom: 0.5rem; color: var(--il2-band-strong); }
 .hero .lead { margin-bottom: 0; color: var(--il2-band-muted); }
 .hero [role="button"].outline { color: var(--il2-band-text); border-color: var(--il2-band-border); background: transparent; }

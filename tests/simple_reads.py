@@ -36,7 +36,8 @@ HOME_EXTRA_READS = 10
 """The six compact boards (Elo jet and prop, interception, ground per hour, tank busting, play time: OQ-79 added the
 sixth, one more read), the tour list of the tour selector (OQ-79, one read), the online snapshot and the
 "Recently earned" feed (doc 17: the newest tiers, and their rarity: two reads, one when nothing was earned)."""
-HOME_READS_EMPTY = 5 + HOME_EXTRA_READS
-"""No missions: the site context (2), latest missions, streaks block, activity days, plus `HOME_EXTRA_READS`."""
-HOME_READS = 6 + HOME_EXTRA_READS
-"""With a last mission: the empty page's reads and the last mission's top pilots."""
+HOME_READS_EMPTY = 4 + HOME_EXTRA_READS
+"""No missions: the site context (2), latest missions, activity days, plus `HOME_EXTRA_READS`."""
+HOME_READS = 5 + HOME_EXTRA_READS
+"""With a last mission: the empty page's reads and the last mission's top pilots.
+The ironman streak block left the home page for the leaderboards: one read less than before."""
