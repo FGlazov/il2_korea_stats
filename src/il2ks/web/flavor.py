@@ -419,6 +419,7 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         flight_time_air_s=stats.flight_time_air_s,
         kills_intercept=stats.kills_intercept,
         kills_tank_attack=stats.kills_tank_attack,
+        attack_sorties=stats.attack_sorties,
     )
 
 

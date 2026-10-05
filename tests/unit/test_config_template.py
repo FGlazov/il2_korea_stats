@@ -63,6 +63,7 @@ def test_template_lists_every_config_key() -> None:
             "min_elo_games",
             "min_time_on_target_s",
             "min_air_superiority_s",
+            "min_attack_sorties",
         },  # taken from the [score] minimums of the boards (config.py)
         "score": {f.name for f in dataclasses.fields(ScoreRules)} - ADMIN_SCORE_FIELDS  # the admin's, not the file's
         | {f.name for f in dataclasses.fields(LeaderboardConfig)},

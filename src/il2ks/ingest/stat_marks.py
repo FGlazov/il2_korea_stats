@@ -23,7 +23,6 @@ from il2ks.core.stat_marks import (
     SortieMetric,
     Thresholds,
     Totals,
-    amount,
     histogram_thresholds,
     merge_histograms,
     metric_value,
@@ -49,6 +48,7 @@ _FIELDS = (
     "flight_time_air_s",
     "kills_intercept",
     "kills_tank_attack",
+    "attack_sorties",
 )
 _AMOUNT_FIELD: dict[Metric, str] = {  # the column `core.stat_marks.amount` compares with a metric's minimum
     "elo_prop": "elo_prop_games",
@@ -149,9 +149,9 @@ def _write(
     elo_pilots = _tour_elo_totals(tour_id) if tour_id is not None else []  # a tour's Elo marks: its pool rows
     wanted: dict[Metric, Thresholds] = {}
     for metric in metrics:
-        minimum = rules.minimum(metric)  # each metric has its own population: sorties, encounters or time on target
+        # each metric has its own population: sorties, encounters or time on target (rules.qualifies)
         population = elo_pilots if tour_id is not None and metric in ELO_METRICS else pilots
-        found = thresholds(metric_value(metric, totals) for totals in population if amount(metric, totals) >= minimum)
+        found = thresholds(metric_value(metric, totals) for totals in population if rules.qualifies(metric, totals))
         if found is not None:
             wanted[metric] = found
     existing = {row.metric: row for row in StatThreshold.objects.filter(tour_id=tour_id)}

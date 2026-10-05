@@ -179,7 +179,7 @@ def test_profile_and_full_killboard_show_the_types_and_keep_the_tour(client: Cli
     html = client.get(f"{profile}?tour=all").content.decode()
     assert "Killboard by aircraft" in html
     assert f"/players/{pk(1)}/killboard/?tour=all" in html
-    assert html.index("Killboard by aircraft") < html.index("<h2>Killboard</h2>")  # before the player table
+    assert html.index("Killboard by aircraft") < html.index("<h3>Killboard</h3>")  # before the player table
     assert (
         f"/players/{pk(1)}/killboard/?tour={october.pk}" in client.get(f"{profile}?tour={october.pk}").content.decode()
     )

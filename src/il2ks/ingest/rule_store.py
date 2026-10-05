@@ -30,6 +30,7 @@ MARK_KEYS = frozenset(
     {
         "marks.min_sorties",
         "score.min_time_on_target_minutes",
+        "score.min_attack_sorties",
         "score.min_air_superiority_minutes",
     }
 )

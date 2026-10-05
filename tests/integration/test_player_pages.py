@@ -345,8 +345,35 @@ def test_profile_without_ground_activity_collapses_the_ground_part(client: Clien
     assert response.context["ground_active"] is False
     assert 'id="ground"' in body
     assert "No air-to-ground activity yet" in body
-    assert "Attack proficiency" not in body
+    assert "not enough time on target yet" in body  # the star tile stays, muted (below the board minimum)
+    assert "Tanks destroyed per hour" not in body
     assert "Ground kills by category" not in body
+
+
+def test_star_tiles_follow_the_role_and_show_the_below_minimum_state(client: Client) -> None:
+    """Maintainer 2026-10-05: Elo (jet, prop) and attack proficiency are the first tiles; All shows all three, air
+    superiority the Elo tiles, attack the attack proficiency one; below the board minimum a dash and a muted line."""
+    seed()
+    pk = player_pk(3)
+    page = client.get(f"/players/{pk}/?tour=all").content.decode()
+    keys = ["elo-jet", "elo-prop", "attack"]
+    assert [k for k in keys if f'data-star="{k}"' in page] == keys
+    assert page.index('data-star="elo-jet"') < page.index('data-star="attack"') < page.index("Sorties</div>")
+    assert "not enough encounters yet" in page
+    assert "not enough time on target yet" in page
+    assert "stat-tile--muted" in page
+
+
+def test_star_tiles_in_the_role_views(client: Client) -> None:
+    seed_roles()
+    pk = player_pk(1)
+    air = client.get(f"/players/{pk}/?tour=all&role=air_superiority").content.decode()
+    assert 'data-star="elo-jet"' in air
+    assert 'data-star="elo-prop"' in air
+    assert 'data-star="attack"' not in air
+    attack = client.get(f"/players/{pk}/?tour=all&role=attack").content.decode()
+    assert 'data-star="attack"' in attack
+    assert 'data-star="elo-jet"' not in attack
 
 
 def test_profile_without_air_activity_collapses_the_air_part(client: Client) -> None:

@@ -1,16 +1,20 @@
 """Player search and profile (FR-WEB-3, FR-WEB-4). Simple reads from `il2ks.queries.players` (TD-22)."""
 
+from dataclasses import dataclass
+
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from il2ks.db.models import AircraftRole, Counters
+from il2ks.queries import leaderboards as board_reads
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
 from il2ks.queries.tours import pilot_absence, player_tour, tour_choice_from, tour_query
 from il2ks.web import columns, pve
 from il2ks.web.chart_data import player_charts
+from il2ks.web.context_processors import site_row
 from il2ks.web.ground import ground_breakdown
 from il2ks.web.views.aircraft import ATTACK_TYPE_SHARE
 
@@ -51,6 +55,40 @@ def _ground_active(stats: Counters | None) -> bool:
     if stats is None:
         return False
     return bool(stats.kills_ground or stats.assists_ground or stats.attack_sorties or stats.score_ground)
+
+
+SECONDS_PER_HOUR = 3600.0
+
+
+@dataclass(frozen=True, slots=True)
+class StarTiles:
+    """The three star metrics of the top tiles (maintainer 2026-10-05): which show in the role view, and whether the
+    pilot reaches each board minimum (below it the tile shows a dash and says what is missing). Minimums are the boards'
+    (`[score]`, the admin's saved values on top), read from the site row the page already has."""
+
+    show_elo: bool
+    show_attack: bool
+    elo_jet_enough: bool
+    elo_prop_enough: bool
+    attack_enough: bool
+    attack_hour: float
+
+
+def star_tiles(
+    role: AircraftRole, elo: reads.EloShown, stats: Counters, minimum: board_reads.LeaderboardConfig
+) -> StarTiles:
+    """The Elo tiles follow the air superiority view, the attack proficiency tile the attack view; All: all three."""
+    games = max(minimum.min_elo_games, 1)
+    enough_time = stats.time_on_target_s >= max(minimum.min_time_on_target_minutes * 60.0, 1.0)
+    attack_enough = stats.attack_sorties >= max(minimum.min_attack_sorties, 1) and enough_time
+    return StarTiles(
+        show_elo=role != AircraftRole.ATTACK,
+        show_attack=role != AircraftRole.AIR_SUPERIORITY,
+        elo_jet_enough=elo.elo_jet_games >= games,
+        elo_prop_enough=elo.elo_prop_games >= games,
+        attack_enough=attack_enough,
+        attack_hour=stats.score_ground_attack * SECONDS_PER_HOUR / stats.time_on_target_s if attack_enough else 0.0,
+    )
 
 
 def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
@@ -101,6 +139,7 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "show_elo": role != AircraftRole.ATTACK,
         "ground_first": ground_first,
         "stats": stats,
+        "star": star_tiles(role, elo, stats, board_reads.rules(site_row(request))) if stats else None,
         "marks": stat_thresholds(tour),  # FR-WEB-22: one query
         "page_title": player.current_name,
         "crumbs": [(_("Players"), reverse("web:player-search")), (player.current_name, None)],

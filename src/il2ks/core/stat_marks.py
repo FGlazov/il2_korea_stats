@@ -84,6 +84,7 @@ class MarkRules:
     min_elo_games: int = 5  # Elo marks: encounters in that pool (the `[score]` minimum of the Elo boards)
     min_time_on_target_s: float = 600.0  # ground score / tanks per hour: time on target (the boards' minimum)
     min_air_superiority_s: float = 3600.0  # interception per hour: air superiority flight time (the board's minimum)
+    min_attack_sorties: int = 5  # attack proficiency: attack sorties too (the board's minimum; with the time on target)
 
     def minimum(self, metric: Metric) -> int:
         """The minimum a pilot needs for `metric`, in its unit (see `unit`), as stored with the thresholds."""
@@ -96,6 +97,14 @@ class MarkRules:
                 return math.ceil(max(self.min_air_superiority_s, 1.0))
             case _:
                 return self.min_sorties
+
+    def qualifies(self, metric: Metric, totals: "Totals") -> bool:
+        """Whether a pilot is in the population of `metric`: the amount reaches the minimum, and for the attack
+        proficiency also the board's attack sorties (2026-10-05: without them a single lucky 10-minute sortie set the
+        thresholds, so the real attackers never reached a tier)."""
+        if amount(metric, totals) < self.minimum(metric):
+            return False
+        return metric != "ground_score_hour" or totals.attack_sorties >= max(self.min_attack_sorties, 1)
 
 
 DEFAULT_MARK_RULES = MarkRules()
@@ -124,6 +133,7 @@ class Totals:
     flight_time_air_s: float = 0.0  # flight time of air superiority sorties
     kills_intercept: int = 0  # air kills of bombers, attackers and transports in air superiority sorties
     kills_tank_attack: int = 0  # tanks destroyed in attack sorties
+    attack_sorties: int = 0
 
 
 type Unit = Literal["sorties", "games", "seconds", "flight_seconds"]

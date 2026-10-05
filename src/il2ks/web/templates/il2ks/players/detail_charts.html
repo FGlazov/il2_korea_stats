@@ -4,7 +4,7 @@
   Context: charts (ChartSpec tuple from il2ks.web.chart_data.player_charts, may be empty).
 {% endcomment %}{% if charts %}
   <section class="profile-charts" aria-labelledby="activity-heading">
-    <h2 id="activity-heading">{% translate "Activity by tour" %}</h2>
+    <h3 id="activity-heading">{% translate "Activity by tour" %}</h3>
     <div class="split">
       {% for spec in charts %}{% bar_chart spec %}{% endfor %}
     </div>

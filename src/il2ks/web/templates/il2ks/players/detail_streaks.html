@@ -9,7 +9,7 @@
   Context: player, tour (None = all time). Shows nothing for a player without a survived sortie (in that scope).
 {% endcomment %}{% if tour %}{% player_tour_streaks player tour as bests %}{% else %}{% player_streaks player as streaks %}{% endif %}{% if streaks or bests %}<section>
   <div class="section-head">
-    <h2>{% translate "Ironman" %}</h2>
+    <h3>{% translate "Ironman" %}</h3>
     <span><a href="{% url 'web:player-streaks' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Best streaks" %} →</a> · <a href="{% url 'web:leaderboard' 'ironman-all' %}?tour=all">{% translate "Running streaks" %} →</a></span>
   </div>
   <p class="muted">{% translate "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end the air run, and the other way round." %}</p>

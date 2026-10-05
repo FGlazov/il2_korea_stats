@@ -1,11 +1,9 @@
 {# il2ks-template: templates/il2ks/players/detail_ground_scores.html v1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_ground_scores.html: the air-to-ground figures: ground score, attack proficiency (needs time on target),
+  detail_ground_scores.html: the air-to-ground figures: ground score, (attack proficiency is a top tile now),
   ground kills per sortie, attack sorties, time on target. Context: stats, marks.
 {% endcomment %}<dl class="kv kv--compact kv--pairs">
   <dt>{% translate "Ground score" %}</dt><dd>{{ stats.score_ground|num:1 }}{% stat_mark "ground_score" %}</dd>
-  <dt>{% translate "Attack proficiency" %} <small>{% translate "attack sorties" %}</small></dt>
-  <dd>{{ stats.score_ground_attack|per_hour:stats.time_on_target_s }}{% stat_mark "ground_score_hour" %}</dd>
   <dt>{% translate "Tanks destroyed per hour on target" %} <small>{% translate "attack sorties" %}</small></dt>
   <dd>{{ stats.kills_tank_attack|per_hour:stats.time_on_target_s }}{% stat_mark "tank_hour" %}</dd>
   <dt>{% translate "Ground kills per sortie" %}</dt>

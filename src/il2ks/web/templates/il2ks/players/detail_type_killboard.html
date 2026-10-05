@@ -6,8 +6,8 @@
   tour's. Context: player, tour (None = all time). Shows nothing without a player-versus-player encounter.
 {% endcomment %}{% type_killboard player tour as types %}{% if types.victims or types.nemeses %}<section>
   <div class="section-head">
-    <h2>{% translate "Killboard by aircraft" %}</h2>
+    <h3>{% translate "Killboard by aircraft" %}</h3>
     <a href="{% url 'web:player-killboard' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Full killboard" %} →</a>
   </div>
-  {% include "il2ks/players/_type_killboard.html" %}
+  {% include "il2ks/players/_type_killboard.html" with level=4 %}
 </section>{% endif %}

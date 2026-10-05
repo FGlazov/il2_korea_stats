@@ -3,6 +3,7 @@
 September: 25 pilots with one sortie each, pilot n has n - 1 air kills (so p50 = 12, p90 = 21.6) and every fifth pilot
 dies. October: pilots 1-22 fly again without kills."""
 
+import re
 from collections.abc import Iterable
 from datetime import timedelta
 from pathlib import Path
@@ -12,7 +13,7 @@ from django.test import Client
 
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.stat_marks import METRICS, MarkRules
-from il2ks.db.models import Player, PlayerTourPool, SortieThreshold, StatThreshold, Tour
+from il2ks.db.models import Player, PlayerTour, PlayerTourPool, SortieThreshold, StatThreshold, Tour
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.stat_marks import recompute_thresholds
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
@@ -156,7 +157,7 @@ def test_pilots_under_the_minimum_get_a_note_instead_of_marks(client: Client) ->
     assert "from 2 sorties on" not in flown_twice
 
 
-RULES = MarkRules(min_sorties=1, min_elo_games=3, min_time_on_target_s=600.0)
+RULES = MarkRules(min_sorties=1, min_elo_games=3, min_time_on_target_s=600.0, min_attack_sorties=5)
 
 
 def seed_scores_and_ratings() -> None:
@@ -173,6 +174,7 @@ def seed_scores_and_ratings() -> None:
             elo_prop_games=n // 8,  # 3+ games from pilot 24: two pilots, too few for a distribution
             time_on_target_s=n * 100.0,
             score_ground_attack=n * 5.0 * n,
+            attack_sorties=5,
         )
     september = tour("September 2026")
     for n in range(1, 26):  # the tour's own pool rows hold the same ratings (a single tour, so best == final)
@@ -408,3 +410,70 @@ def test_sortie_page_marks_stay_within_the_read_budget(client: Client) -> None:
     # sortie populations: the one read the marks add (only for a pilot sortie with kills)
     assert_simple_reads(client, sortie_url(25), max_queries=2 + 8)
     assert_simple_reads(client, sortie_url(1), max_queries=2 + 7)  # no kills: no population read
+
+
+# --- the star metrics on the profile: Elo (jet, prop) and attack proficiency, per tour and all time (2026-10-05) -----
+def seed_attack_hours() -> None:
+    """`seed_scores_and_ratings` plus the same attack figures on the pilots' September PlayerTour rows."""
+    seed_scores_and_ratings()
+    september = tour("September 2026")
+    for n in range(1, 26):
+        PlayerTour.objects.filter(player__account_uuid=account(n), tour=september).update(
+            time_on_target_s=n * 100.0, score_ground_attack=n * 5.0 * n, attack_sorties=5
+        )
+    recompute_thresholds(RULES)
+
+
+def star_tile(page: str, key: str) -> str:
+    """The markup of one star-metric tile of the profile (`data-star` = elo-jet, elo-prop or attack)."""
+    found = re.search(rf'data-star="{key}".*?\n</div>', page, re.DOTALL)
+    assert found, f"no {key} tile"
+    return found.group(0)
+
+
+def scope_query(scope: str) -> str:
+    return "?tour=all" if scope == "all" else f"?tour={tour('September 2026').pk}"
+
+
+@pytest.mark.parametrize("scope", ["all", "tour"])
+def test_attack_proficiency_mark_shows_on_the_profile(client: Client, scope: str) -> None:
+    """Maintainer 2026-10-05: the attack proficiency (`ground_score_hour`) had no mark on the profile."""
+    seed_attack_hours()
+    best = star_tile(client.get(f"/players/{pk(25)}/{scope_query(scope)}").content.decode(), "attack")
+    assert "stat-mark--top1" in best, scope
+    low = star_tile(client.get(f"/players/{pk(2)}/{scope_query(scope)}").content.decode(), "attack")  # < 10 min
+    assert "stat-mark--" not in low
+    assert "time on target" in low
+
+
+@pytest.mark.parametrize("scope", ["all", "tour"])
+@pytest.mark.parametrize("pool", ["jet", "prop"])
+def test_elo_marks_show_all_four_tiers(client: Client, scope: str, pool: str) -> None:
+    seed_scores_and_ratings()
+    cuts = {"p10": 1000.0, "p25": 1100.0, "p50": 1200.0, "p75": 1300.0, "p90": 1400.0, "p95": 1500.0, "p99": 1600.0}
+    for tour_id in (None, tour("September 2026").pk):  # the pools are tiny in the seed: fix the cuts
+        StatThreshold.objects.update_or_create(
+            tour_id=tour_id, metric=f"elo_{pool}", defaults={"min_sorties": 3, "population": 20, **cuts}
+        )
+    player = Player.objects.get(account_uuid=account(25))
+    for rating, band in ((1650.0, "top1"), (1550.0, "top5"), (1450.0, "top10"), (1350.0, "top25"), (1250.0, None)):
+        Player.objects.filter(pk=player.pk).update(**{f"elo_{pool}": rating, f"elo_{pool}_games": 5})
+        PlayerTourPool.objects.filter(player=player, propulsion=pool).update(elo=rating, elo_games=5)
+        page = client.get(f"/players/{player.pk}/{scope_query(scope)}").content.decode()
+        marks = re.findall(r"stat-mark--(top\d+)", star_tile(page, f"elo-{pool}"))
+        assert marks == ([band] if band else []), (scope, pool, rating, marks)
+
+
+def test_attack_proficiency_population_needs_the_boards_attack_sorties() -> None:
+    """Root cause of the missing attack proficiency marks (2026-10-05): pilots with one lucky attack sortie of 10
+    minutes were in the population (the board needs `min_attack_sorties` too), their huge rates pushed every tier
+    out of reach."""
+    seed_scores_and_ratings()
+    Player.objects.filter(account_uuid=account(1)).update(
+        attack_sorties=1,
+        time_on_target_s=900.0,
+        score_ground_attack=9000.0,  # 36 000 per hour
+    )
+    recompute_thresholds(RULES)
+    hour = StatThreshold.objects.get(tour=None, metric="ground_score_hour")
+    assert (hour.population, hour.p99) == (20, pytest.approx(180.0 * 24.81))  # not 21, and not 36 000
