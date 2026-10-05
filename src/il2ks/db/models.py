@@ -1611,6 +1611,10 @@ class SiteSettings(models.Model):
     # Not branding either: the one-time upgrade backfills that already ran (`ops.migrate`), so a trigger that is also
     # true on a healthy database (e.g. every score 0 under percentage penalties) can't rebuild after every migration.
     backfills_done: models.JSONField[list[str]] = models.JSONField(default=list, blank=True)
+    # A batched level-2 run (`ingest.batch`) is under way: `{"since": ISO time, "command": "ingest", "pid": N}`, empty =
+    # none. Set when the batch starts, cleared when its last level-2 pass or any rebuild committed. Still set at
+    # the next run = killed mid-batch (level 2 lags level 1): that run rebuilds first, and `doctor` warns.
+    level2_pending: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

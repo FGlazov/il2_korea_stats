@@ -82,21 +82,6 @@ def matchup_kills() -> QuerySet[Kill]:
     )
 
 
-def mission_pairs(mission_id: int) -> set[Pair]:
-    """The (killer type, victim type) pairs of one mission's counted kills."""
-    rows = (
-        matchup_kills()
-        .filter(mission_id=mission_id)
-        .values_list("killer_sortie__aircraft_id", "victim_sortie__aircraft_id")
-    )
-    return set(rows)
-
-
-def mission_aircraft(mission_id: int) -> set[int]:
-    """The aircraft types of one mission's pilot sorties."""
-    return set(counted_sorties().filter(mission_id=mission_id).values_list("aircraft_id", flat=True))
-
-
 def recompute_aircraft_stats(aircraft_ids: Iterable[int], tour_ids: Iterable[int] | None) -> None:
     """`AircraftStats` and `AircraftPayload` for these types, and their `TourAircraftStats` (per tour in `tour_ids`,
     None = every tour; the all-time role rows always); rows of types without counted sorties are deleted. The payload
