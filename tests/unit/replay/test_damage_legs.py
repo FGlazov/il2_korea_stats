@@ -114,6 +114,18 @@ def test_an_ai_aircraft_takes_at_most_one_whole_health() -> None:
     assert entry.damage_dealt == pytest.approx(1.0)
 
 
+def test_an_ai_aircraft_with_turrets_never_takes_more_than_one_whole_health() -> None:
+    """The airframe and an AI turret were capped one by one and then folded into the aircraft: up to 200%."""
+    sc = _scenario()
+    sc.declare(0, 300, "MiG-15bis", 501)
+    sc.declare(0, 301, "Turret_B-29", 501, parent=300)
+    sc.damage(50, 100, 300, 0.9)
+    sc.damage(60, 100, 301, 0.9)
+    a = by_acct(_finish(sc), 1)
+    (entry,) = [e for e in a.damage if e.counterpart.sortie_index is None]
+    assert entry.damage_dealt == pytest.approx(0.9)  # the airframe's own lines only; turrets are left out
+
+
 # --- a landing repairs ----------
 
 

@@ -296,7 +296,7 @@ dropped, and a counterpart's several sorties are separate rows. No row came from
   landing still counts, it is strafing). Damage on the landing tick belongs to the leg that ends there.
 - **Dealt** to a counterpart is the same capped damage seen from the shooter: never more than 100% per leg of the victim's aircraft. A victim with several
   legs in the mission can total more than 100% in one row (the row sums over its legs; the column hint says so). The rows stay per sortie (one
-  aircraft), no per-leg split `[DECIDED, PRODUCT]`. AI and ground objects: each object is capped at 1.0 (no legs), crew bots excluded; the page still
+  aircraft), no per-leg split `[DECIDED, PRODUCT]`. AI and ground objects: each object is capped at 1.0 (no legs), crew bots excluded, and **AI aircraft turrets too** (only the airframe's own lines count, like a player aircraft, so a row against one AI aircraft never exceeds 100%; 2026-10-05, review #13) [DECIDED, PRODUCT]; the page still
   adds the objects of one type up in health units.
 - `damage_taken` of a sortie (list column, status "damaged", achievements) = the damage of the **last** leg at the end, 1 when destroyed; a repaired
   aircraft that flew on undamaged is "unharmed". `pilot_damage` is unchanged (the pilot is not repaired, summed and capped at 1).

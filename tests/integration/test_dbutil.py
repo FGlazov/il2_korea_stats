@@ -116,3 +116,35 @@ def test_sync_rows_reads_without_loading_models_and_writes_nothing_when_equal() 
     assert "UPDATE" not in statements
     assert len(queries) <= 2  # one read, one (empty-set) delete at most
     assert "kills_ground" not in queries[0]["sql"]  # the key and two counters, not the whole row
+
+
+SQLITE_VARIABLE_LIMIT = 32766
+
+
+def test_sync_rows_deletes_more_stale_rows_than_sqlite_has_variables() -> None:
+    """A shrinking big tour (`rebuild-aggregates --retour`) leaves tens of thousands of stale rows: one
+    `pk__in=[...]` delete would hit "too many SQL variables"."""
+    tour, players = _tour_rows(SQLITE_VARIABLE_LIMIT + 300)
+    PlayerTour.objects.bulk_create([PlayerTour(player=p, tour=tour, sorties=1) for p in players])
+    sync_rows(PlayerTour, PlayerTour.objects.filter(tour=tour), ("player_id", "tour_id"), ("sorties",), {})
+    assert not PlayerTour.objects.exists()
+
+
+def test_sync_best_deletes_more_stale_rows_than_sqlite_has_variables() -> None:
+    from il2ks.db.models import PlayerBestStreak, StreakKind, StreakTrack
+    from il2ks.ingest.streaks import _sync_best  # pyright: ignore[reportPrivateUsage]
+
+    tour, players = _tour_rows(6000)
+    kinds = list(StreakKind.values)
+    tracks = list(StreakTrack.values)
+    assert 6000 * len(kinds) * len(tracks) > SQLITE_VARIABLE_LIMIT
+    PlayerBestStreak.objects.bulk_create(
+        [
+            PlayerBestStreak(player=p, tour=tour, track=track, kind=kind, since=STARTED_AT, until=STARTED_AT)
+            for p in players
+            for track in tracks
+            for kind in kinds
+        ]
+    )
+    _sync_best([p.pk for p in players], None, {}, all_time=False)
+    assert not PlayerBestStreak.objects.exists()

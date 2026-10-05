@@ -25,7 +25,7 @@ from il2ks.core.stat_marks import (
     thresholds,
 )
 from il2ks.db.models import Player, PlayerTour, PlayerTourPool, StatThreshold, Tour
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import delete_pks, update_rows
 
 _FIELDS = (
     "sorties",
@@ -114,6 +114,6 @@ def _write(
             for name, value in values.items():
                 setattr(row, name, value)
             changed.append(row)
-    StatThreshold.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()  # too few pilots now
+    delete_pks(StatThreshold.objects, [row.pk for row in existing.values()])  # too few pilots now
     update_rows(StatThreshold, changed, ["min_sorties", "population", "p10", "p25", "p50", "p75", "p90"])
     StatThreshold.objects.bulk_create(new)

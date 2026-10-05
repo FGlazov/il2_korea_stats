@@ -57,7 +57,7 @@ from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.aggregates import refresh_tours
 from il2ks.ingest.counters import COUNTED_ROLES, COUNTER_FIELDS, SORTIE_COUNTERS, clean_counters, counted_sorties
-from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.dbutil import delete_pks, update_partial_rows, update_rows
 from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
@@ -398,7 +398,7 @@ def _upsert_player_missions(mission: Mission, sorties: Iterable[SortieResult], p
             for name, value in values.items():
                 setattr(row, name, value)
             changed.append(row)
-    PlayerMission.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()  # no pilot sortie any more
+    delete_pks(PlayerMission.objects, [row.pk for row in existing.values()])  # no pilot sortie any more
     update_rows(PlayerMission, changed, ["coalition", *COUNTER_FIELDS])
     PlayerMission.objects.bulk_create(new)
 
@@ -517,7 +517,7 @@ def _upsert_sorties(
         _fill_sortie(row, s, clock, catalog, objects[s.aircraft_type], players[s.account_uuid], score)
         rows[s.index] = row
     if existing:
-        PlayerSortie.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+        delete_pks(PlayerSortie.objects, [r.pk for r in existing.values()])
     PlayerSortie.objects.bulk_create(new)
 
     # JSON fields link counterpart sorties by PK, known only now that every row has one.
@@ -816,7 +816,7 @@ def _replace_kills(
         row.is_friendly = k.is_friendly
         row.via = k.via
         row.pos_x, row.pos_y, row.pos_z = (None, None, None) if pos is None else pos
-    Kill.objects.filter(pk__in=[k.pk for k in existing.values()]).delete()
+    delete_pks(Kill.objects, [k.pk for k in existing.values()])
     update_rows(Kill, changed, ["tick", "time", "credit", "is_friendly", "via", "pos_x", "pos_y", "pos_z"])
     Kill.objects.bulk_create(new)
 

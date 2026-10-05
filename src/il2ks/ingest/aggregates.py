@@ -83,7 +83,7 @@ from il2ks.ingest.aircraft_stats import (
 )
 from il2ks.ingest.builds import recompute_builds, rollup_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
-from il2ks.ingest.dbutil import sync_rows, update_rows
+from il2ks.ingest.dbutil import delete_pks, sync_rows, update_rows
 from il2ks.ingest.flight_score import adopt_wanted_flight_score, with_flight_score
 from il2ks.ingest.identity import recompute_tour_names, rollup_identity
 from il2ks.ingest.pairs import recompute_killboard, rollup_killboard
@@ -561,7 +561,7 @@ def _sync_ammo[M: models.Model](
             setattr(row, "kills", kills)  # noqa: B010
             setattr(row, "hits", hits)  # noqa: B010
             changed.append(row)
-    model.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
+    delete_pks(model.objects, [r.pk for r in existing.values()])
     update_rows(model, changed, ["kills", "hits"])
     model.objects.bulk_create(new)
 

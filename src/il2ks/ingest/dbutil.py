@@ -4,6 +4,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from operator import itemgetter
 
 from django.db import models
+from django.db.models.manager import BaseManager
 
 
 def _picker(fields: Sequence[str]) -> Callable[[Mapping[str, object]], tuple[object, ...]]:
@@ -12,6 +13,19 @@ def _picker(fields: Sequence[str]) -> Callable[[Mapping[str, object]], tuple[obj
         only = fields[0]
         return lambda values: (values[only],)
     return itemgetter(*fields)
+
+
+IN_BATCH = 900
+"""Primary keys per `... WHERE pk IN (...)`. Django does not batch a fast delete and SQLite allows 32,766 variables
+(999 before 3.32); a shrinking big tour leaves tens of thousands of stale rows."""
+
+
+def delete_pks[M: models.Model](objects: BaseManager[M], pks: Iterable[int]) -> None:
+    """Delete the rows with these primary keys, `IN_BATCH` per statement. `objects` is a model manager.
+    (`bulk_create` is safe already: Django sizes its batches from the backend's variable limit.)"""
+    ordered = list(pks)
+    for start in range(0, len(ordered), IN_BATCH):
+        objects.filter(pk__in=ordered[start : start + IN_BATCH]).delete()
 
 
 def sync_rows[M: models.Model, K: tuple[object, ...]](
@@ -45,7 +59,7 @@ def sync_rows[M: models.Model, K: tuple[object, ...]](
             new.append(model(**dict(zip(key_fields, key, strict=True)), **fixed, **values))
         elif found[1] != pick(values):
             changed.append(model(pk=found[0], **dict(zip(key_fields, key, strict=True)), **fixed, **values))
-    model._default_manager.filter(pk__in=[pk for pk, _ in existing.values()]).delete()
+    delete_pks(model._default_manager, [pk for pk, _ in existing.values()])
     update_rows(model, changed, value_fields)
     model._default_manager.bulk_create(new)
 
