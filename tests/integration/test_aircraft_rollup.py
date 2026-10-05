@@ -262,7 +262,9 @@ def test_upgrade_backfill_rebuilds_the_side_counters_of_an_old_database() -> Non
     for _, step in STEPS[:3]:
         step()
     expected = snapshot()
-    assert any(row["sorties_redfor"] or row["sorties_blufor"] for row in expected["TourAircraftStats"])
+    sides = sorted(TourAircraftStats.objects.values_list("pk", "sorties_redfor", "sorties_blufor"))
+    assert any(red or blue for _, red, blue in sides)
+    all_time = sorted(AircraftStats.objects.values_list("pk", "side"))
     TourAircraftStats.objects.update(sorties_redfor=0, sorties_blufor=0)
     AircraftStats.objects.update(side="")
     SiteSettings.objects.filter(pk=1).update(backfills_done=[])
@@ -271,4 +273,6 @@ def test_upgrade_backfill_rebuilds_the_side_counters_of_an_old_database() -> Non
     migrate._run_backfills(cfg, [migrate.BACKFILL_TOUR_AIRCRAFT_SIDES])  # pyright: ignore[reportPrivateUsage]
 
     assert snapshot() == expected
+    assert sorted(TourAircraftStats.objects.values_list("pk", "sorties_redfor", "sorties_blufor")) == sides
+    assert sorted(AircraftStats.objects.values_list("pk", "side")) == all_time
     assert migrate.BACKFILL_TOUR_AIRCRAFT_SIDES in SiteSettings.objects.get(pk=1).backfills_done
