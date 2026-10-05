@@ -79,7 +79,9 @@ def _build() -> tuple[RuleField, ...]:
         ("min_air_superiority_minutes", "number"),
     ]
     for name, kind in minimums:
-        fields.append(RuleField("score", name, kind, "display", "leaderboards"))
+        # the Elo minimum also picks the tours the stored all-time Elo may come from (`RatingRules.min_games`)
+        effect: Effect = "rescore" if name == "min_elo_games" else "display"
+        fields.append(RuleField("score", name, kind, effect, "leaderboards"))
     fields.append(RuleField("marks", "min_sorties", "positive_whole", "display", "leaderboards"))
     return tuple(fields)
 

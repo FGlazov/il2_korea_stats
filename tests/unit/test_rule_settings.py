@@ -152,7 +152,6 @@ def test_the_effect_of_each_field() -> None:
     assert all(fields_of(page) for page in ("scoring", "tours", "rules", "leaderboards"))
 
 
-@pytest.mark.xfail(strict=True, reason="min_elo_games is still classified display-only")
 def test_the_elo_minimum_changes_stored_ratings_so_it_needs_a_rebuild() -> None:
     """`min_elo_games` also picks the tours the all-time Elo may come from (`RatingRules.min_games`, stored on the
     players), so an admin change must be applied by a rebuild like the score values, not shown at once."""
