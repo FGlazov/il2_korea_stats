@@ -16,9 +16,10 @@ from typing import Literal, cast
 from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
 
+from il2ks.core import stat_marks
 from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
-from il2ks.db.models import GameObject, Kill, PlayerSortie
+from il2ks.db.models import GameObject, Kill, PlayerSortie, SortieThreshold
 from il2ks.queries.ammo import GunAmmoRow, ammo_info, ordnance_name, parse_sortie_ammo
 from il2ks.web import display, icons, object_names, pve
 from il2ks.web.flavor import Highlights
@@ -26,6 +27,10 @@ from il2ks.web.ground import GROUND_ICONS
 
 type Json = Mapping[str, object]
 type WhoKind = Literal["player", "hidden", "ai"]
+
+type SortieMarks = dict[str, tuple[stat_marks.Band, bool]]  # sortie metric -> (best tier, from the all-time population)
+_TIER_RANK: Mapping[stat_marks.Band, int] = {"top25": 1, "top10": 2, "top5": 3, "top1": 4}
+SORTIE_MARK_COLUMN: Mapping[stat_marks.SortieMetric, str] = {"air_kills": "kills_air", "ground_kills": "kills_ground"}
 
 TIMELINE_GROUP_MIN = 3  # consecutive ground kills folded into one row from this many on
 AIR_CLASSES = frozenset({"fighter", "attacker", "bomber", "transport"})
@@ -819,3 +824,28 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         timeline_events=len(sortie.timeline),
         highlights=build_highlights(sortie, lookup),
     )
+
+
+def sortie_marks(sortie: PlayerSortie, populations: Mapping[tuple[str, bool], SortieThreshold]) -> SortieMarks:
+    """The sortie page's marks (FR-WEB-22, 2026-10-05): for the sortie's air and ground kills, the better of its tier
+    among the counted pilot sorties of its tour and among all of them (the tour wins a tie). A gunner sortie, a
+    number of 0 and a population too small for percentiles (`populations` only holds the large enough ones) get none."""
+    found: SortieMarks = {}
+    if sortie.role != "pilot":
+        return found
+    for metric in stat_marks.SORTIE_METRICS:
+        value = getattr(sortie, SORTIE_MARK_COLUMN[metric])
+        if value <= 0:
+            continue
+        best: tuple[stat_marks.Band, bool] | None = None
+        for all_time in (False, True):
+            row = populations.get((metric, all_time))
+            if row is None:
+                continue
+            cuts = stat_marks.Thresholds(row.p10, row.p25, row.p50, row.p75, row.p90, row.p95, row.p99, row.population)
+            tier = stat_marks.band(value, cuts)
+            if tier is not None and (best is None or _TIER_RANK[tier] > _TIER_RANK[best[0]]):
+                best = (tier, all_time)
+        if best is not None:
+            found[metric] = best
+    return found

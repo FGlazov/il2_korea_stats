@@ -20,9 +20,16 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import sorties as reads
 from il2ks.queries.paging import ROW_PAGE_SIZE
+from il2ks.queries.stat_marks import sortie_thresholds
 from il2ks.queries.tours import is_quiet_tour, pilot_absence, tour_choice_from, tour_id_query, tour_query
 from il2ks.web import columns, display, object_names
-from il2ks.web.sortie_view import Lookup, build_detail, counterpart_object_types, counterpart_sortie_ids
+from il2ks.web.sortie_view import (
+    Lookup,
+    build_detail,
+    counterpart_object_types,
+    counterpart_sortie_ids,
+    sortie_marks,
+)
 
 DAMAGE_PARAM = "page_damage"
 OG_IMAGE = "il2ks/img/brand/og-default.png"
@@ -105,7 +112,12 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     (`il2ks.web.sortie_view.Detail`), damage_page (20 rows a page, `?page_damage=`; OQ-96; the timeline is
     not paginated: maintainer, 2026-10-04), og (title, description, url, image) for the `head` block, page_title.
 
-    Reads: sortie + joins (1), kills made (1), kills suffered (1), counterpart sorties (1), game objects (1)."""
+    `sortie_marks`: Top 1% / 5% / 10% / 25% badges of the sortie's air and ground kills (FR-WEB-22), read only for a
+    pilot sortie with kills (one more query, the stored sortie populations of its tour and of all time).
+    `damage_open`: the damage section is collapsed, unless a damage page was asked for.
+
+    Reads: sortie + joins (1), kills made (1), kills suffered (1), counterpart sorties (1), game objects (1),
+    sortie populations (1, only when the sortie has kills)."""
     sortie = reads.visible_sortie(pk)
     if sortie is None:
         raise Http404
@@ -116,6 +128,11 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
         reads.objects_by_log_name(counterpart_object_types(sortie)),
     )
     detail = build_detail(sortie, made, suffered, lookup)
+    marks = (
+        sortie_marks(sortie, sortie_thresholds(sortie.mission.tour_id))
+        if sortie.role == Role.PILOT and (sortie.kills_air or sortie.kills_ground)
+        else {}
+    )
     damage_page = Paginator(detail.damage, ROW_PAGE_SIZE).get_page(request.GET.get(DAMAGE_PARAM))
     outcome = display.badge_spec(display.OUTCOMES, sortie.outcome)[0]
     aircraft = object_names.name_of(sortie.aircraft, get_language() or "en")
@@ -129,6 +146,8 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "detail": detail,
             "damage_page": damage_page,
             "damage_param": DAMAGE_PARAM,
+            "damage_open": DAMAGE_PARAM in request.GET,
+            "sortie_marks": marks,
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (

@@ -10,21 +10,27 @@ Hidden players count (hiding is presentation only, FR-ADM-3). A scope with too f
 
 from collections.abc import Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Count, Q, QuerySet
 
 from il2ks.core.stat_marks import (
     DEFAULT_MARK_RULES,
     ELO_METRICS,
     METRICS,
+    SORTIE_METRICS,
+    Histogram,
     MarkRules,
     Metric,
+    SortieMetric,
     Thresholds,
     Totals,
     amount,
+    histogram_thresholds,
+    merge_histograms,
     metric_value,
     thresholds,
 )
-from il2ks.db.models import Player, PlayerTour, PlayerTourPool, StatThreshold, Tour
+from il2ks.db.models import Player, PlayerTour, PlayerTourPool, SortieThreshold, StatThreshold, Tour
+from il2ks.ingest.counters import counted_sorties
 from il2ks.ingest.dbutil import update_rows
 
 _FIELDS = (
@@ -60,6 +66,60 @@ def recompute_thresholds(rules: MarkRules = DEFAULT_MARK_RULES, tour_ids: Iterab
     ids = Tour.objects.values_list("pk", flat=True) if tour_ids is None else sorted(set(tour_ids))
     for tour_id in ids:
         _write(tour_id, rules, PlayerTour.objects.filter(tour_id=tour_id), _FIELDS)
+        _write_sortie_tour(tour_id)
+    _write_sortie_all_time()
+
+
+_SORTIE_COLUMN: dict[SortieMetric, str] = {"air_kills": "kills_air", "ground_kills": "kills_ground"}
+
+
+def _save_sortie_rows(tour_id: int | None, histograms: dict[SortieMetric, Histogram]) -> None:
+    """Make the `SortieThreshold` rows of one scope equal these histograms. Like `StatThreshold`, no row means too few
+    sorties for a distribution (`MIN_POPULATION`); a tour that small adds nothing to all time either (negligible)."""
+    existing = {row.metric: row for row in SortieThreshold.objects.filter(tour_id=tour_id)}
+    for metric, histogram in histograms.items():
+        found = histogram_thresholds(histogram)
+        if found is None:
+            continue
+        population = found.population
+        values = {
+            "population": population,
+            "histogram": {str(value): count for value, count in sorted(histogram.items())},
+            "p10": found.p10,
+            "p25": found.p25,
+            "p50": found.p50,
+            "p75": found.p75,
+            "p90": found.p90,
+            "p95": found.p95,
+            "p99": found.p99,
+        }
+        row = existing.pop(metric, None)
+        if row is None:
+            SortieThreshold.objects.create(tour_id=tour_id, metric=metric, **values)
+        elif any(getattr(row, name) != value for name, value in values.items()):
+            SortieThreshold.objects.filter(pk=row.pk).update(**values)
+    SortieThreshold.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
+
+
+def _write_sortie_tour(tour_id: int) -> None:
+    """The sortie populations of one tour (the sortie page's marks): one GROUP BY per metric over the tour's counted
+    pilot sorties, which are kept as histograms (value -> sorties) so that all time can be summed from them."""
+    histograms: dict[SortieMetric, Histogram] = {}
+    sorties = counted_sorties().filter(mission__tour_id=tour_id)
+    for metric in SORTIE_METRICS:
+        column = _SORTIE_COLUMN[metric]
+        rows = sorties.order_by().values_list(column).annotate(n=Count("pk"))
+        histograms[metric] = {int(value): int(count) for value, count in rows}
+    _save_sortie_rows(tour_id, histograms)
+
+
+def _write_sortie_all_time() -> None:
+    """The all-time sortie populations: the sum of the tours' stored histograms, exact, no sortie is read."""
+    stored = SortieThreshold.objects.filter(tour__isnull=False).order_by("tour_id").values_list("metric", "histogram")
+    parts: dict[str, list[Histogram]] = {}
+    for metric, histogram in stored:
+        parts.setdefault(metric, []).append({int(value): count for value, count in histogram.items()})
+    _save_sortie_rows(None, {metric: merge_histograms(parts.get(metric, [])) for metric in SORTIE_METRICS})
 
 
 def _tour_elo_totals(tour_id: int) -> list[Totals]:
@@ -107,6 +167,8 @@ def _write(
             "p50": found.p50,
             "p75": found.p75,
             "p90": found.p90,
+            "p95": found.p95,
+            "p99": found.p99,
         }
         if row is None:
             new.append(StatThreshold(tour_id=tour_id, metric=metric, **values))
@@ -115,5 +177,5 @@ def _write(
                 setattr(row, name, value)
             changed.append(row)
     StatThreshold.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()  # too few pilots now
-    update_rows(StatThreshold, changed, ["min_sorties", "population", "p10", "p25", "p50", "p75", "p90"])
+    update_rows(StatThreshold, changed, ["min_sorties", "population", "p10", "p25", "p50", "p75", "p90", "p95", "p99"])
     StatThreshold.objects.bulk_create(new)

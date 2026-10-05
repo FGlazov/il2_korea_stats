@@ -19,7 +19,7 @@
     },
     "static/il2ks/players.css": {
       "version": 1,
-      "sha256": "550c6eca6cd426ad8175c029ca9b9b9e5b2b12cf6614cf371cbce1ead5de01eb"
+      "sha256": "02ae704f17ab96d708b5322f14251c96ccf7a193f61a662d67323c9048bbb1fe"
     },
     "static/il2ks/setup.css": {
       "version": 1,
@@ -31,7 +31,11 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "cdd3f39853c64b8d243c641f3531b90421d292f4d95ee9448b50f92803a245fb"
+      "sha256": "6c81c2324a0f224cde82e5c82759e508786bb9b27787d4e58e46226368b44cba"
+    },
+    "static/il2ks/sortie.js": {
+      "version": 1,
+      "sha256": "0235033892288ca1bbece0429d274e7cb309ac41cf45b8417d8624b6d228c4cd"
     },
     "static/il2ks/sorties.css": {
       "version": 1,
@@ -255,7 +259,7 @@
     },
     "templates/il2ks/components/stat_mark.html": {
       "version": 1,
-      "sha256": "cde61d7510e780079489d96d575118c4bacf955b801b7501b5618e292b8aed46"
+      "sha256": "d2a12ef9fb301248e5a9bacf08941293fe57e25198d15391aaf4c0d4f104d6b6"
     },
     "templates/il2ks/components/stat_mark_note.html": {
       "version": 1,
@@ -263,7 +267,7 @@
     },
     "templates/il2ks/components/stat_tile.html": {
       "version": 1,
-      "sha256": "35019371b214c3f264a89fc1495fee6d676e917e6ce6c09402dd9665b906888b"
+      "sha256": "2e3caaad6fc1dd539fd56ed99ea7b7cdcd5ab04cda823ab82a8dc0e02e44d2c6"
     },
     "templates/il2ks/components/tour_absent.html": {
       "version": 1,
@@ -471,7 +475,7 @@
     },
     "templates/il2ks/sorties/detail.html": {
       "version": 1,
-      "sha256": "b0b5cc35bb971e597cec267386a5b67e6fba258b70dcc6fd952382c0d71789fd"
+      "sha256": "a1aac41a5e642a901cb4ae51c98d39ac697b69e684f8cbc1839ce30735788a98"
     },
     "templates/il2ks/sorties/list.html": {
       "version": 1,
@@ -483,7 +487,7 @@
     },
     "templates/il2ks/sorties/parts/damage.html": {
       "version": 1,
-      "sha256": "92f4aec9eaf740f196a41f29f97e9df9d98aaf27ba369c128e425ce46858934d"
+      "sha256": "5a745a63a78c82042caead12a3f6942877ac61ed0ea9826f7ba7d86f997ff2d1"
     },
     "templates/il2ks/sorties/parts/damage_table.html": {
       "version": 1,
@@ -491,7 +495,7 @@
     },
     "templates/il2ks/sorties/parts/header.html": {
       "version": 1,
-      "sha256": "2a0a088b81716239afc57624d37519a464eb81111cc70800e903934a9f3a3b16"
+      "sha256": "c6e0d95323af5c97acc2944274fb7827d97efe575b1452c06ddc6c88c6c963a1"
     },
     "templates/il2ks/sorties/parts/kill_table.html": {
       "version": 1,

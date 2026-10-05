@@ -13,14 +13,17 @@ from il2ks.core.stat_marks import (
     Totals,
     amount,
     band,
+    histogram_thresholds,
+    merge_histograms,
     metric_value,
     percentile,
     thresholds,
 )
-from il2ks.db.models import Player, PlayerTour, StatThreshold
+from il2ks.db.models import Player, PlayerSortie, PlayerTour, SortieThreshold, StatThreshold
 from il2ks.queries.players import EloShown
+from il2ks.web.sortie_view import sortie_marks
 
-LIMITS = Thresholds(p10=0.1, p25=0.2, p50=0.5, p75=0.7, p90=0.9, population=100)
+LIMITS = Thresholds(p10=0.1, p25=0.2, p50=0.5, p75=0.7, p90=0.9, p95=0.95, p99=0.99, population=100)
 
 
 # --- percentiles ---------------------------------------------------------------------------------------------------
@@ -41,7 +44,7 @@ def test_percentile_of_one_value_and_of_nothing() -> None:
 
 def test_all_equal_values_give_equal_thresholds() -> None:
     found = thresholds([0.5] * MIN_POPULATION)
-    assert found == Thresholds(0.5, 0.5, 0.5, 0.5, 0.5, MIN_POPULATION)
+    assert found == Thresholds(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, MIN_POPULATION)
 
 
 def test_ties_and_undefined_values() -> None:
@@ -96,7 +99,19 @@ def test_undefined_where_the_page_shows_a_dash() -> None:
 # --- bands ---------------------------------------------------------------------------------------------------------
 @pytest.mark.parametrize(
     ("value", "expected"),
-    [(0.95, "top"), (0.9, "high"), (0.8, "high"), (0.7, None), (0.5, None), (0.0, None), (None, None)],
+    [
+        (0.995, "top1"),
+        (0.99, "top5"),
+        (0.96, "top5"),
+        (0.95, "top10"),
+        (0.92, "top10"),
+        (0.9, "top25"),
+        (0.8, "top25"),
+        (0.7, None),
+        (0.5, None),
+        (0.0, None),
+        (None, None),
+    ],
 )
 def test_band_is_strictly_above_the_threshold(value: float | None, expected: str | None) -> None:
     """At the threshold itself nobody is marked: the claim "better than 9 in 10" must stay true with ties."""
@@ -110,7 +125,7 @@ def test_low_values_are_never_marked() -> None:
 
 # --- the template tag ----------------------------------------------------------------------------------------------
 def _threshold(metric: str, **overrides: float) -> StatThreshold:
-    values = {"p10": 0.1, "p25": 0.2, "p50": 0.5, "p75": 0.7, "p90": 0.9, **overrides}
+    values = {"p10": 0.1, "p25": 0.2, "p50": 0.5, "p75": 0.7, "p90": 0.9, "p95": 0.95, "p99": 0.99, **overrides}
     return StatThreshold(metric=metric, min_sorties=20, population=100, **values)
 
 
@@ -125,18 +140,21 @@ def _player(sorties: int, deaths: int) -> Player:
 MARKS = {"survival": _threshold("survival")}
 
 
-def test_top_band_renders_badge_with_text_and_tooltip() -> None:
-    html = _render('{% stat_mark "survival" %}', _player(sorties=100, deaths=2), MARKS)  # 98% survival
-    assert "stat-mark--top" in html
-    assert "Top 10%" in html
-    assert "Better than 9 in 10 pilots with at least 20 sorties" in html
-
-
-def test_high_band_renders_the_quieter_badge() -> None:
-    html = _render('{% stat_mark "survival" %}', _player(sorties=100, deaths=20), MARKS)  # 80%
-    assert "stat-mark--high" in html
-    assert "Top 25%" in html
-    assert "Better than 3 in 4 pilots" in html
+@pytest.mark.parametrize(
+    ("deaths", "tier", "text", "claim"),
+    [
+        (0, "top1", "Top 1%", "Better than 99 in 100."),  # 100% survival: above p99
+        (4, "top5", "Top 5%", "Better than 19 in 20."),  # 96%
+        (8, "top10", "Top 10%", "Better than 9 in 10."),  # 92%
+        (20, "top25", "Top 25%", "Better than 3 in 4."),  # 80%
+    ],
+)
+def test_each_tier_renders_its_own_badge_with_text_and_tooltip(deaths: int, tier: str, text: str, claim: str) -> None:
+    html = _render('{% stat_mark "survival" %}', _player(sorties=100, deaths=deaths), MARKS)
+    assert f"stat-mark--{tier}" in html
+    assert f">{text}<" in html
+    assert claim in html
+    assert "Compared with pilots who have at least 20 sorties." in html
 
 
 def test_middle_and_low_values_render_nothing() -> None:
@@ -207,7 +225,11 @@ def test_each_metric_has_its_own_minimum() -> None:
 
 
 def test_elo_mark_uses_the_elo_of_the_scope_also_when_stats_is_a_tour_row() -> None:
-    marks = {"elo_jet": _threshold("elo_jet", p10=1400.0, p25=1450.0, p50=1500.0, p75=1550.0, p90=1600.0)}
+    marks = {
+        "elo_jet": _threshold(
+            "elo_jet", p10=1400.0, p25=1450.0, p50=1500.0, p75=1550.0, p90=1600.0, p95=1750.0, p99=1800.0
+        )
+    }
     marks["elo_jet"].min_sorties = 5  # encounters for an Elo row
     elo = EloShown(elo_jet=1700.0, elo_jet_games=6)
     source = '{% load il2ks %}{% stat_mark "elo_jet" %}'
@@ -234,3 +256,92 @@ def test_note_ignores_elo_and_time_rows() -> None:
     elo.min_sorties = 5
     marks = {"elo_jet": elo, "air_score": _threshold("air_score")}
     assert "from 20 sorties on" in _render("{% stat_mark_note %}", _player(sorties=3, deaths=0), marks)
+
+
+# --- the Top 5% and Top 1% tiers (2026-10-05) ---------------------------------------------------------------------
+def test_four_tiers_sit_at_the_25_10_5_and_1_percent_cuts() -> None:
+    """Values 1..101: the type-7 percentile of q is 1 + 100 * q / 100, so the cuts are exactly 76, 91, 96 and 100."""
+    found = thresholds([float(i) for i in range(1, 102)])
+    assert found is not None
+    assert (found.p75, found.p90, found.p95, found.p99) == (76.0, 91.0, 96.0, 100.0)
+    assert [band(v, found) for v in (76.0, 77.0, 91.0, 92.0, 96.0, 97.0, 100.0, 101.0)] == [
+        None,
+        "top25",
+        "top25",
+        "top10",
+        "top10",
+        "top5",
+        "top5",
+        "top1",
+    ]
+
+
+def test_ties_at_a_cut_never_share_the_tier() -> None:
+    """Half the field on the maximum: the value equals every cut, so nobody gets a mark they would share with half the
+    pilots (strictly above, like the 10% and 25% tiers)."""
+    found = thresholds([0.0] * 10 + [5.0] * 10)
+    assert found is not None
+    assert (found.p75, found.p90, found.p95, found.p99) == (5.0, 5.0, 5.0, 5.0)
+    assert band(5.0, found) is None
+    assert band(6.0, found) == "top1"
+
+
+def test_histogram_thresholds_equal_the_sorted_value_thresholds() -> None:
+    values = [0.0] * 60 + [1.0] * 25 + [2.0] * 9 + [3.0] * 4 + [7.0] * 2
+    histogram: dict[int, int] = {}
+    for value in values:
+        histogram[int(value)] = histogram.get(int(value), 0) + 1
+    assert histogram_thresholds(histogram) == thresholds(values)
+    assert histogram_thresholds({0: MIN_POPULATION - 1}) is None
+    assert histogram_thresholds({}) is None
+
+
+def test_histograms_add_up_to_the_union_population() -> None:
+    tour_a, tour_b = {0: 30, 1: 5}, {0: 10, 2: 4}
+    merged = merge_histograms([tour_a, tour_b])
+    assert merged == {0: 40, 1: 5, 2: 4}
+    assert histogram_thresholds(merged) == thresholds([0.0] * 40 + [1.0] * 5 + [2.0] * 4)
+
+
+def _population(all_time: bool, metric: str, p75: float, p90: float, p95: float, p99: float) -> SortieThreshold:
+    return SortieThreshold(
+        tour_id=None if all_time else 1, metric=metric, population=500, p75=p75, p90=p90, p95=p95, p99=p99
+    )
+
+
+def test_sortie_marks_pick_the_better_tier_of_tour_and_all_time() -> None:
+    populations = {
+        ("air_kills", False): _population(False, "air_kills", 0, 0, 1, 3),
+        ("air_kills", True): _population(True, "air_kills", 0, 1, 2, 4),
+    }
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=2), populations) == {"air_kills": ("top5", False)}
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=4), populations) == {"air_kills": ("top1", False)}
+    # a tie between the scopes goes to the tour; a better all-time tier wins
+    populations["air_kills", False] = _population(False, "air_kills", 0, 1, 2, 5)
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=5), populations) == {"air_kills": ("top1", True)}
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=3), populations) == {"air_kills": ("top5", False)}
+    populations["air_kills", False] = _population(False, "air_kills", 9, 9, 9, 9)
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=3), populations) == {"air_kills": ("top5", True)}
+
+
+def test_sortie_marks_need_a_pilot_a_value_above_zero_and_a_population() -> None:
+    populations = {("air_kills", False): SortieThreshold(tour_id=1, metric="air_kills", population=500)}  # cuts 0
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=0), populations) == {}
+    assert sortie_marks(PlayerSortie(role="gunner", kills_air=3), populations) == {}
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=3), {}) == {}
+    assert sortie_marks(PlayerSortie(role="pilot", kills_air=1, kills_ground=9), populations) == {
+        "air_kills": ("top1", False)
+    }
+
+
+def test_sortie_mark_tag_names_the_tier_and_the_population() -> None:
+    source = '{% load il2ks %}{% sortie_mark marks "air_kills" %}'
+    tour = Template(source).render(Context({"marks": {"air_kills": ("top5", False)}}))
+    assert "stat-mark--top5" in tour
+    assert ">Top 5%<" in tour
+    assert "Better than 19 in 20. Compared with all counted pilot sorties of this tour." in tour
+    forever = Template(source).render(Context({"marks": {"air_kills": ("top1", True)}}))
+    assert "stat-mark--top1" in forever
+    assert "Compared with all counted pilot sorties of all time." in forever
+    assert Template(source).render(Context({"marks": {}})).strip() == ""
+    assert Template(source).render(Context({})).strip() == ""

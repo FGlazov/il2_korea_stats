@@ -4,6 +4,7 @@ Synthetic data only (tests/factories.py): never real player names."""
 
 import re
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from django.test import Client
@@ -29,8 +30,10 @@ from tests.simple_reads import assert_simple_reads
 pytestmark = pytest.mark.django_db
 
 DETAIL_BUDGET = (
-    2 + 7
-)  # site context + sortie, kills made, kills suffered, counterparts, game objects, medals, their rarity
+    2 + 8
+)  # site context + sortie, kills made, kills suffered, counterparts, game objects, sortie populations (the marks of a
+# pilot sortie with kills: one SELECT of the tour's and the all-time `SortieThreshold` rows, FR-WEB-22; a sortie
+# without kills skips it), medals, their rarity
 LIST_BUDGET = 2 + 5  # site context + player, aircraft choices, tours (selector), count, page
 
 
@@ -632,3 +635,48 @@ def test_a_gunner_sortie_does_not_link_to_an_aircraft_page_that_does_not_exist(c
     assert link not in listing.content.decode()
     pilot = PlayerSortie.objects.get(pk=pk_of(1))
     assert f'href="/aircraft/{pilot.aircraft_id}/' in detail(client, pilot.pk)
+
+
+# --- the damage section: collapsed, below the timeline (2026-10-05) -------------------------------------------------
+def test_damage_is_a_collapsed_details_below_the_timeline(client: Client) -> None:
+    save(duel())
+
+    html = detail(client, pk_of(1))
+
+    assert html.index('id="timeline"') < html.index('id="damage"')
+    section = re.search(
+        r'<details class="accordion damage-section" id="damage"([^>]*)>\s*<summary>(.*?)</summary>', html, re.S
+    )
+    assert section is not None
+    assert "open" not in section.group(1)  # collapsed by default
+    assert section.group(2).startswith("Damage")
+    assert "2 counterparts" in section.group(2)  # the short count (Bravo and the Patton)
+    assert not re.search(r"<h2[^>]*>\s*Damage\s*</h2>", html)  # the summary is the heading now
+
+
+def test_damage_section_opens_when_a_damage_page_is_asked_for(client: Client) -> None:
+    save(duel())
+
+    html = client.get(f"/sorties/{pk_of(1)}/?page_damage=1").content.decode()
+
+    assert re.search(r'<details class="accordion damage-section" id="damage" open>', html)
+    assert "Damage dealt" in html  # the table is there, only its section was closed
+
+
+def test_the_sortie_script_opens_the_damage_anchor(client: Client) -> None:
+    from django.contrib.staticfiles import finders
+
+    save(duel())
+
+    assert "il2ks/sortie.js" in detail(client, pk_of(1))
+    path = finders.find("il2ks/sortie.js")
+    assert isinstance(path, str)
+    source = Path(path).read_text(encoding="utf-8")
+    assert '"#damage"' in source
+    assert "hashchange" in source
+
+
+def test_a_sortie_without_damage_has_no_damage_section(client: Client) -> None:
+    save(mission((sortie(0, 1),)))
+
+    assert 'id="damage"' not in detail(client, pk_of(1))

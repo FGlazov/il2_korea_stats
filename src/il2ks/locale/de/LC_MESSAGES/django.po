@@ -152,6 +152,13 @@ msgstr "%(n)s Assists"
 
 # llm-draft
 #, python-format
+msgid "%(n)s counterpart"
+msgid_plural "%(n)s counterparts"
+msgstr[0] "%(n)s Gegenstelle"
+msgstr[1] "%(n)s Gegenstellen"
+
+# llm-draft
+#, python-format
 msgid "%(n)s death, %(aaa)s to anti-aircraft"
 msgid_plural "%(n)s deaths, %(aaa)s to anti-aircraft"
 msgstr[0] "%(n)s Tod, davon %(aaa)s durch Flak"
@@ -1303,60 +1310,20 @@ msgid "Best streaks of %(name)s"
 msgstr "Beste Serien von %(name)s"
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s encounter in this pool"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnung in dieser Gruppe"
-msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Begegnungen in dieser Gruppe"
+msgid "Better than 19 in 20."
+msgstr "Besser als 19 von 20."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s minute of air superiority flight"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes of air superiority flight"
-msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Minute Luftüberlegenheitsflug"
-msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Minuten Luftüberlegenheitsflug"
+msgid "Better than 3 in 4."
+msgstr "Besser als 3 von 4."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s minute on target"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s minutes on target"
-msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Minute am Ziel"
-msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Minuten am Ziel"
+msgid "Better than 9 in 10."
+msgstr "Besser als 9 von 10."
 
 # llm-draft
-#, python-format
-msgid "Better than 3 in 4 pilots with at least %(n)s sortie"
-msgid_plural "Better than 3 in 4 pilots with at least %(n)s sorties"
-msgstr[0] "Besser als 3 von 4 Piloten mit mindestens %(n)s Einsatz"
-msgstr[1] "Besser als 3 von 4 Piloten mit mindestens %(n)s Einsätzen"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s encounter in this pool"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s encounters in this pool"
-msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnung in dieser Gruppe"
-msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Begegnungen in dieser Gruppe"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s minute of air superiority flight"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes of air superiority flight"
-msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Minute Luftüberlegenheitsflug"
-msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Minuten Luftüberlegenheitsflug"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s minute on target"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s minutes on target"
-msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Minute am Ziel"
-msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Minuten am Ziel"
-
-# llm-draft
-#, python-format
-msgid "Better than 9 in 10 pilots with at least %(n)s sortie"
-msgid_plural "Better than 9 in 10 pilots with at least %(n)s sorties"
-msgstr[0] "Besser als 9 von 10 Piloten mit mindestens %(n)s Einsatz"
-msgstr[1] "Besser als 9 von 10 Piloten mit mindestens %(n)s Einsätzen"
+msgid "Better than 99 in 100."
+msgstr "Besser als 99 von 100."
 
 # llm-draft
 msgid "Blue"
@@ -1581,6 +1548,42 @@ msgstr "Farben"
 # llm-draft
 msgid "Combat role"
 msgstr "Kampfrolle"
+
+# llm-draft
+msgid "Compared with all counted pilot sorties of all time."
+msgstr "Verglichen mit allen gezählten Pilotensorties aller Zeiten."
+
+# llm-draft
+msgid "Compared with all counted pilot sorties of this tour."
+msgstr "Verglichen mit allen gezählten Pilotensorties dieser Tour."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s encounter in this pool."
+msgid_plural "Compared with pilots who have at least %(n)s encounters in this pool."
+msgstr[0] "Verglichen mit Piloten, die mindestens %(n)s Begegnung in diesem Pool haben."
+msgstr[1] "Verglichen mit Piloten, die mindestens %(n)s Begegnungen in diesem Pool haben."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s minute of air superiority flight."
+msgid_plural "Compared with pilots who have at least %(n)s minutes of air superiority flight."
+msgstr[0] "Verglichen mit Piloten, die mindestens %(n)s Minute Luftüberlegenheitsflug haben."
+msgstr[1] "Verglichen mit Piloten, die mindestens %(n)s Minuten Luftüberlegenheitsflug haben."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s minute on target."
+msgid_plural "Compared with pilots who have at least %(n)s minutes on target."
+msgstr[0] "Verglichen mit Piloten, die mindestens %(n)s Minute über dem Ziel waren."
+msgstr[1] "Verglichen mit Piloten, die mindestens %(n)s Minuten über dem Ziel waren."
+
+# llm-draft
+#, python-format
+msgid "Compared with pilots who have at least %(n)s sortie."
+msgid_plural "Compared with pilots who have at least %(n)s sorties."
+msgstr[0] "Verglichen mit Piloten, die mindestens %(n)s Einsatz geflogen sind."
+msgstr[1] "Verglichen mit Piloten, die mindestens %(n)s Einsätze geflogen sind."
 
 # llm-draft
 msgid "Condensed (default)"
@@ -5807,6 +5810,11 @@ msgstr "Gestartet"
 
 # llm-draft
 #, python-format
+msgid "Top 1%%"
+msgstr "Top 1 %%"
+
+# llm-draft
+#, python-format
 msgid "Top 10%%"
 msgstr "Top 10 %%"
 
@@ -5814,6 +5822,11 @@ msgstr "Top 10 %%"
 #, python-format
 msgid "Top 25%%"
 msgstr "Top 25 %%"
+
+# llm-draft
+#, python-format
+msgid "Top 5%%"
+msgstr "Top 5 %%"
 
 # llm-draft
 msgid "Top Rated"

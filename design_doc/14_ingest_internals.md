@@ -208,7 +208,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   grows with a player's sortie history, only with the number of tours; an all-time pair row still costs one read of every tour row of the players' pairs.
   The callers then add, once per call:
   8. `recompute_holders` (`AchievementHolders` per scope, after the medal rows are final; counted in the database with `GROUP BY`);
-  9. `recompute_thresholds` (`StatThreshold`, the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum, after the Elo it reads; skipped by `reprocess`, which recomputes once at the end);
+  9. `recompute_thresholds` (`StatThreshold` and, since 2026-10-05, `SortieThreshold`: one GROUP BY per metric over the touched tours' counted pilot sorties, all time summed from the tours' stored histograms; the touched tours and all time, one population per metric and board minimum, loading only the rows that reach at least one metric's minimum, after the Elo it reads; skipped by `reprocess`, which recomputes once at the end);
   10. `bump_data_version` (TD-28).
 - **Provisional sorties of the running mission** (FR-ING-15, built 2026-10-04, `ingest/live.py`; all `[PROPOSED]` except the feature itself): the
   `LiveTracker` that feeds "online now" also keeps a `LiveReplay` of the running mission and, every `[live] sorties_interval_s` (default 120 s),

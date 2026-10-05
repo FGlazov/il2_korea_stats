@@ -251,11 +251,11 @@ def test_marks_render_next_to_the_numbers(client: Client) -> None:
 
     assert "Interception per hour" in page
     assert "Tanks destroyed per hour on target" in page
-    assert "Better than 9 in 10 pilots with at least 60 minutes of air superiority flight" in page
-    assert "Better than 9 in 10 pilots with at least 10 minutes on target" in page
+    assert "Compared with pilots who have at least 60 minutes of air superiority flight." in page
+    assert "Compared with pilots who have at least 10 minutes on target." in page
     weak = Player.objects.get(account_uuid=account(2)).pk
     assert (
-        "pilots with at least 60 minutes of air superiority"
+        "pilots who have at least 60 minutes of air superiority"
         not in client.get(f"/players/{weak}/?tour=all").content.decode()
     )
 
