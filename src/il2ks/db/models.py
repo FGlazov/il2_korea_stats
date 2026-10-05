@@ -1233,6 +1233,12 @@ class PlayerBestStreak(models.Model):
             models.Index(fields=["player", "tour"], name="bests_by_player_tour"),
             # The best-streak list (`/streaks/`, the home page): one kind in one tour (or all time), longest first.
             models.Index(fields=["kind", "tour", "-sorties", "-kills_air"], name="bests_list"),
+            # The all-time list: Postgres cannot read `tour IS NULL` as a fixed prefix of `bests_list`, so it sorts.
+            models.Index(
+                fields=["kind", "-sorties", "-kills_air", "id"],
+                condition=models.Q(tour__isnull=True),
+                name="bests_alltime_list",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -1266,7 +1272,13 @@ class PlayerStreakRun(models.Model):
     ended_sortie = models.ForeignKey(PlayerSortie, null=True, on_delete=models.SET_NULL, related_name="+")
 
     class Meta:
-        indexes = [models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour")]
+        indexes = [
+            models.Index(fields=["player", "tour", "-since"], name="streakruns_by_player_tour"),
+            # The all-time history (`tour IS NULL`), newest first: see `bests_alltime_list` on PlayerBestStreak.
+            models.Index(
+                fields=["player", "-since", "-id"], condition=models.Q(tour__isnull=True), name="streakruns_alltime"
+            ),
+        ]
         constraints = [models.CheckConstraint(condition=models.Q(ended_by__in=StreakEnd.values), name="runs_end_valid")]
 
     def __str__(self) -> str:

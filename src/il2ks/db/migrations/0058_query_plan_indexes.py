@@ -74,6 +74,22 @@ class Migration(migrations.Migration):
             index=models.Index(fields=["kind", "tour", "-sorties", "-kills_air"], name="bests_list"),
         ),
         migrations.AddIndex(
+            model_name="playerbeststreak",
+            index=models.Index(
+                condition=models.Q(("tour__isnull", True)),
+                fields=["kind", "-sorties", "-kills_air", "id"],
+                name="bests_alltime_list",
+            ),
+        ),
+        migrations.AddIndex(
+            model_name="playerstreakrun",
+            index=models.Index(
+                condition=models.Q(("tour__isnull", True)),
+                fields=["player", "-since", "-id"],
+                name="streakruns_alltime",
+            ),
+        ),
+        migrations.AddIndex(
             model_name="playerpool",
             index=models.Index(fields=["propulsion"], name="playerpool_by_propulsion"),
         ),
