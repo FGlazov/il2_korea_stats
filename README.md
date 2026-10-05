@@ -3,7 +3,7 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: getting ready for the first public release.** The design lives in [design_doc/](design_doc/README.md).
+**Status: getting ready for the first public release.** The design lives in [design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
 
 ## What it does
 
@@ -23,25 +23,25 @@ Sturmovik: Korea servers.
 - **Six languages**: English, Russian, German, Spanish, French, Brazilian Portuguese. Visitors get their browser's
   language and can change it in the footer.
 - **Rules you can switch**: for example whether ramming earns a kill, how many points a kill is worth, and what a
-  death costs. See [Rules, scoring and tours](docs/settings.md).
+  death costs. See [Rules, scoring and tours](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md).
 - **Safe by default**: HTTPS with a free certificate, daily backups, a `doctor` command that checks your setup.
 
-Inspired by [IL2 stats](https://github.com/vaal-/il2_stats) by =FB=Vaal and =FB=Isay. See [NOTICE](NOTICE).
+Inspired by [IL2 stats](https://github.com/vaal-/il2_stats) by =FB=Vaal and =FB=Isay. See [NOTICE](https://github.com/FGlazov/il2_korea_stats/blob/main/NOTICE).
 
 ## For server admins
 
 Written for people who run a game server, not for programmers: short steps, copy-paste commands.
 On Windows, use the installer. On Linux, use Docker or the manual steps.
 
-- [Installing il2ks on Windows](docs/install-windows.md): the double-click installer (no terminal), service, upgrades.
-- [Installing il2ks by hand](docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
-- [Installing with Docker](docs/install-docker.md): one Compose file for Linux hosts (also DServer under Wine).
-- [Using your own proxy (nginx, IIS)](docs/reverse-proxy.md): when ports 80/443 are already taken.
-- [Rules, scoring and tours](docs/settings.md): change a rule or a score, and which command to run afterwards (`reprocess` or `rebuild-aggregates`); upgrading; the admin area.
-- [Customizing the site](docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
-- [Template versions and release notes](docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template.
-- [Translating il2ks](docs/translating.md): review or improve a language, keep translations in step, add a language.
-- [Performance testing](docs/performance-testing.md): timing and query budgets, front-end budgets and web vitals, Locust load test.
+- [Installing il2ks on Windows](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-windows.md): the double-click installer (no terminal), service, upgrades.
+- [Installing il2ks by hand](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md): Windows and Linux, HTTPS, start at boot, upgrading, troubleshooting with `il2ks doctor`.
+- [Installing with Docker](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-docker.md): one Compose file for Linux hosts (also DServer under Wine).
+- [Using your own proxy (nginx, IIS)](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/reverse-proxy.md): when ports 80/443 are already taken.
+- [Rules, scoring and tours](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md): change a rule or a score, and which command to run afterwards (`reprocess` or `rebuild-aggregates`); upgrading; the admin area.
+- [Customizing the site](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/customizing.md): branding in the admin, and replacing templates and files in `custom/`.
+- [Template versions and release notes](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/releasing.md): for developers; `il2ks dev bump-templates` after changing a template.
+- [Translating il2ks](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/translating.md): review or improve a language, keep translations in step, add a language.
+- [Performance testing](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/performance-testing.md): timing and query budgets, front-end budgets and web vitals, Locust load test.
 
 ## Development
 
@@ -57,7 +57,7 @@ uv run il2ks manage migrate   # create the local SQLite database
 uv run il2ks web --dev        # the site on plain http://127.0.0.1:8000 (debug mode; never for a public site)
 ```
 
-`uv run il2ks run` starts everything as an admin would (web + log watcher + Caddy); see [docs/install.md](docs/install.md).
+`uv run il2ks run` starts everything as an admin would (web + log watcher + Caddy); see [docs/install.md](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md).
 To publish a release: bump `__version__` in `src/il2ks/__init__.py`, tag `v<version>`, push the tag (`.github/workflows/release.yml`).
 
 Postgres is only used on the dev side: `docker compose -f docker/compose.dev.yaml up -d`, then `IL2KS_TEST_DB=postgres uv run pytest`.
@@ -77,4 +77,4 @@ text, so keep the words on the pages stable or update the tests with them.
 
 ## License
 
-MIT, see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+MIT, see [LICENSE](https://github.com/FGlazov/il2_korea_stats/blob/main/LICENSE) and [NOTICE](https://github.com/FGlazov/il2_korea_stats/blob/main/NOTICE).

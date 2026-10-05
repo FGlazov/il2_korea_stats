@@ -171,7 +171,14 @@ def _add_translation_parsers(dev: SubParsers) -> None:
 def _translations_command(ns: argparse.Namespace) -> int:
     import json
 
-    from il2ks.devtools import translations
+    try:
+        from il2ks.devtools import translations
+    except ImportError:  # Babel is a development dependency: a wheel installed to run a site does not have it
+        print(
+            "il2ks dev translations needs the development tools (Babel): run it in a checkout after `uv sync`",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
 
     try:
         match ns.translations_command:
