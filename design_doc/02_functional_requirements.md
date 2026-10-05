@@ -299,7 +299,7 @@ from iteration 1** (combat role, time on target, Elo), so pages needed no reproc
 | FR-ADM-6 | **Template and static overrides**: a `custom/` folder (in the data directory, so it survives upgrades) whose templates and static files take priority over the built-in ones. This is very important for some server owners. | v1 | `[DECIDED]` (TD-25) |
 | FR-ADM-9 | **Front-page image** (maintainer, 2026-10-04, before the release): an option, off by default (the home page is unchanged when off), to show a large image such as a map of the current situation dominating the home page. The admin sets a server file path; the site picks up changes within about 10 s (mtime polling, works on Windows, Linux and network shares). The file is validated and re-encoded like the logo (content-hash name), never served directly. An embed (iframe to an interactive map) mode is designed for but not built. | release | `[DECIDED]` (feature), `[PROPOSED]` (delivery) |
 | FR-ADM-7 | Edit scoring values. | later | `[DEFERRED]` (with the score concept) |
-| FR-ADM-8 | Start a new tour manually (when the tour mode is manual), and rename tours. | it2 | `[PROPOSED]` |
+| FR-ADM-8 | Start a new tour manually (when the tour mode is manual), and rename tours. **Option** (maintainer request 2026-10-05, "missions can end in a draw? a toggle that starts a new tour whenever a mission ends in a win or loss for one side; for dynamic campaign servers"): start a new tour when a mission is won by one side, **off by default**, an admin page (doc 16), on top of any tour mode (TD-26). Built 2026-10-05. | it2 | `[PROPOSED]` |
 
 ## Operations (FR-OPS)
 

@@ -5440,12 +5440,12 @@ msgid "Tour ended"
 msgstr "Tour terminé"
 
 # llm-draft
-msgid "Tour settings saved."
-msgstr "Réglages des tours enregistrés."
+msgid "Tour options"
+msgstr "Options des tours"
 
 # llm-draft
-msgid "Tours"
-msgstr "Tours"
+msgid "Tour settings saved."
+msgstr "Réglages des tours enregistrés."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

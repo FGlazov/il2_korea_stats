@@ -141,7 +141,7 @@ class Il2ksAdminSite(admin.AdminSite):
         won = Mission.objects.filter(winning_coalition__isnull=False).count()
         context = {
             **self.each_context(request),
-            "title": _("Tours"),
+            "title": _("Tour options"),
             "wanted": row.tour_on_win,
             "pending": row.tour_on_win != row.tour_on_win_applied,
             "won": won,

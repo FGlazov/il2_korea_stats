@@ -5419,12 +5419,12 @@ msgid "Tour ended"
 msgstr "Тур закончился"
 
 # llm-draft
-msgid "Tour settings saved."
-msgstr "Настройки туров сохранены."
+msgid "Tour options"
+msgstr "Параметры туров"
 
 # llm-draft
-msgid "Tours"
-msgstr "Туры"
+msgid "Tour settings saved."
+msgstr "Настройки туров сохранены."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."

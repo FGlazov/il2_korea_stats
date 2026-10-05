@@ -279,6 +279,11 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Hiding** (FR-ADM-3, `[DECIDED]`): bulk hide/unhide actions; presentation only. `Player.objects.visible()` / `Mission.objects.visible()`.
 - **Names** (FR-ADM-5): game object and country display names editable inline, with "reset to catalog default".
 - **Ingestion status** page `/admin/ingestion/` and a read-only run list (FR-ADM-4 as built).
+- **Tour options** page `/admin/tours/` (`admin_site.tours_view`, `admin/il2ks_tours.html`; maintainer request 2026-10-05, TD-26 "New tour after a decisive
+  mission"): one checkbox "Start a new tour when a mission is won by one side", **off by default**, plus how many missions have a result (won, draws, none).
+  Saving stores `SiteSettings.tour_on_win` and bumps the data version; the page says "a reassignment of the tours is pending" until `watch` (every tick,
+  `reprocess.recompute_tours_with_wanted_rule`) or `il2ks rebuild-aggregates --retour` applied it (`tour_on_win_applied`). The mission list and page show
+  "Draw" when a mission's objectives were reported with no sole winner (`winner_badge`, `Mission.result`); the winner filter is unchanged. `[PROPOSED]`
 - A small local generic subclass makes `ModelAdmin[Model]` work at runtime (django-types makes it generic for the checker only), instead
   of patching Django (TD-16).
 

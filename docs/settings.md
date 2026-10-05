@@ -118,6 +118,14 @@ timezone = ""      # where a tour begins and ends (midnight there); empty = the 
 With `mode = "manual"` you start the next tour yourself: admin, **Tours**, **Start a new tour now**. In any mode you can
 rename a tour there. After changing mode, start or time zone: `il2ks rebuild-aggregates --retour`.
 
+**New tour after a decisive mission.** On a dynamic campaign server it can take weeks until one side wins. In the admin,
+**Tour options**, tick *Start a new tour when a mission is won by one side* (off by default). From then on, a mission that
+ends with a win for one side ends the tour, and the next mission starts a new one (a monthly tour becomes "October 2026",
+"October 2026 (2)", ...). Draws, and missions without a result, change nothing. The mode above still applies: a win only
+cuts its tours into parts, so use `mode = "manual"` if only wins should start tours. The result is read from the mission
+log when a mission is processed: missions saved by an older version show none until `il2ks reprocess`. The `watch` process
+applies a changed option within a minute or so (or run `il2ks rebuild-aggregates --retour`).
+
 ## Other sections
 
 - `[logs]`: the log folder, and what happens to the originals afterwards (`after_archive` = `move`, `keep` or

@@ -5402,12 +5402,12 @@ msgid "Tour ended"
 msgstr "Tour encerrado"
 
 # llm-draft
-msgid "Tour settings saved."
-msgstr "Configurações de temporadas salvas."
+msgid "Tour options"
+msgstr "Opções de temporadas"
 
 # llm-draft
-msgid "Tours"
-msgstr "Temporadas"
+msgid "Tour settings saved."
+msgstr "Configurações de temporadas salvas."
 
 # llm-draft
 msgid "Tours start by themselves unless [tours] mode is manual."
