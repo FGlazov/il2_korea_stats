@@ -201,6 +201,24 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 )
 
 
+# --- the site-wide sortie list (`/sorties/`, FR-WEB-29) -------------------------------------------------------------
+# Default columns in `sorties/all.html`: date, pilot, aircraft, mission, outcome, pilot fate, air and ground kills and
+# flight time. Extras: the player list's, minus the mission (a default here), plus what that list shows by default.
+SITE_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
+    Column(
+        "combat_role",
+        _("Role"),
+        lambda s: display.badge_spec(display.ROLES, s.combat_role)[0] if s.combat_role else display.DASH,
+        "role",
+        numeric=False,
+        sortable=False,
+    ),
+    Column("damage_taken", _("Damage taken"), lambda s: f"{round(s.damage_taken * 100)}%"),
+    Column("assists", _("Assists"), lambda s: display.num(s.assists)),
+    *(column for column in SORTIE_COLUMNS if column.key != "mission"),
+)
+
+
 # --- the sortie tables of a mission page ---------------------------------------------------------------------------
 # The default columns (time, pilot, aircraft, role, outcome, fate, kills, assists, flight time) stay in the template;
 # these are the extras: the player sortie list's, minus the mission (this page), plus the damage taken (a default

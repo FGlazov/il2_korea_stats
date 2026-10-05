@@ -237,6 +237,8 @@ PAGES: dict[str, Resolve] = {
     "home": _const("/"),
     "missions": _const("/missions/"),
     "missions-all-tours": _const("/missions/?tour=all"),
+    "sorties": _const("/sorties/"),
+    "sorties-all-tours": _const("/sorties/?tour=all&cols=combat_role,damage_taken,payload,accuracy"),
     "mission": lambda page, world: f"/missions/{world.featured_mission_pk}/",
     "mission-real-log": lambda page, world: f"/missions/{world.logs_mission_pk}/",
     "players": _const("/players/"),

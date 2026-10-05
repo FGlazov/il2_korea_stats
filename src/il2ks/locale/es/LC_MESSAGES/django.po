@@ -2669,6 +2669,10 @@ msgid "High contrast (black and white)"
 msgstr "Alto contraste (blanco y negro)"
 
 # llm-draft
+msgid "History"
+msgstr "Historial"
+
+# llm-draft
 #. Translators: timeline rows for a burst of hits: the pilot hit an enemy (dealt) or was hit (taken)
 msgid "Hit (dealt)"
 msgstr "Impacto (causado)"

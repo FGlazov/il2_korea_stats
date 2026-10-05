@@ -146,6 +146,34 @@ def _variants() -> list[Variant]:
         )
     )
 
+    # the site-wide sortie list (`/sorties/`): newest first is the indexed order; every other sort is a rare one
+    found += _sorts(
+        "sortie-list",
+        lambda w: "/sorties/?tour=all&",
+        list(sortie_reads.SORT_FIELDS),
+        "all sorties all-time",
+        ("-date",),
+    )
+    found += _sorts(
+        "sortie-list", lambda w: "/sorties/?", list(sortie_reads.SORT_FIELDS), "all sorties current tour", ("-date",)
+    )
+    for query in (
+        "aircraft={aircraft}&tour=all",
+        "q=Pilot&tour=all",
+        "combat_role=attack&tour=all",
+        "seat=gunner&tour=all",
+        "seat=any&tour=all",
+        "outcome=landed&tour=all",
+        "outcome=landed",
+    ):
+        found.append(
+            _built(
+                "sortie-list",
+                lambda w, q=query: "/sorties/?" + q.format(aircraft=w.aircraft_pk),
+                "all sorties ?" + query.replace("{aircraft}", "<aircraft>"),
+            )
+        )
+
     def killboard(w: SeededWorld) -> str:
         return f"/players/{w.player_pk}/killboard/?"
 

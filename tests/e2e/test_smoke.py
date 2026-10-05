@@ -36,7 +36,7 @@ def test_home_page(page: Page) -> None:
     expect(link_or_button(page, "All missions")).to_be_visible()
     expect(page.get_by_role("main").get_by_role("searchbox", name="Find a player by name")).to_be_visible()
     expect(header_search(page)).to_be_visible()
-    expect(page.get_by_role("navigation", name="Main").get_by_role("link", name="Missions")).to_be_visible()
+    expect(page.get_by_role("navigation", name="Main").get_by_text("History", exact=True)).to_be_visible()
     expect(page.get_by_role("navigation", name="Main").get_by_role("link", name="Players")).to_be_visible()
 
 

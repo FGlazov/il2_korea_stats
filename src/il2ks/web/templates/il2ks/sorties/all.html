@@ -1,0 +1,50 @@
+{# il2ks-template: templates/il2ks/sorties/all.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
+  Every sortie of the site (FR-WEB-29), newest first. View: il2ks.web.views.sorties.all_sorties. Filters, sorting and paging work with and without htmx (results_region).
+  Context: tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), quiet_tour (a tour is picked and nothing is listed), page_obj (PlayerSortie rows, with player, mission and aircraft),
+  sort (the resolved ?sort= value), aircraft_options / outcome_options / seat_options / combat_role_options ((value, label) pairs), page_title,
+  optional_columns (the columns a visitor can add), columns (the chosen ones, ?cols=; sortable headers), colspan.
+  Blocks: head (page stylesheets), content; the row is `sorties/parts/all_row.html`.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/sorties.css' %}"><link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{% if tour %}{% blocktranslate with tour=tour|tour_title %}Sorties in {{ tour }}{% endblocktranslate %}{% else %}{% translate "Sorties" %}{% endif %}</h1>
+    {% tour_select tours tour %}
+  </div>
+
+  {% results_region %}
+    {% filter_bar %}
+      {% filter_text "q" _("Pilot") placeholder=_("Name contains…") live=True %}
+      {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
+      {% filter_select "combat_role" _("Combat role") combat_role_options all_label=_("Any role") %}
+      {% filter_select "outcome" _("Outcome") outcome_options all_label=_("Any outcome") %}
+      {% filter_select "seat" _("Seat") seat_options all_label=_("Pilot") %}
+      {% columns_picker optional_columns %}
+    {% endfilter_bar %}
+    <div class="table-wrap">
+      <table class="data-table data-table--compact sortie-list">
+        <thead>
+          <tr>
+            {% sort_th "date" _("Date") first="desc" %}
+            <th scope="col">{% translate "Pilot" %}</th>
+            {% sort_th "aircraft" _("Aircraft") %}
+            {% sort_th "mission" _("Mission") %}
+            {% sort_th "outcome" _("Outcome") %}
+            {% col_th _("Pilot fate") %}
+            {% sort_th "kills_air" _("Air kills") numeric=True %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+            {% sort_th "flight_time" _("Flight time") numeric=True %}
+            {% for column in columns %}{% if column.sortable %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% else %}{% col_th column.label numeric=column.numeric hint=column.description %}{% endif %}{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for sortie in page_obj %}{% include "il2ks/sorties/parts/all_row.html" %}
+          {% empty %}{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% empty_row colspan quiet_line %}{% else %}{% empty_row colspan _("No sorties match these filters.") %}{% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% pagination page_obj %}
+  {% endresults_region %}
+{% endblock %}

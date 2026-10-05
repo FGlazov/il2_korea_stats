@@ -32,6 +32,8 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("player-search", lambda w: "/players/?q=Pilot+0", 5),
     PageSpec("player-detail", lambda w: f"/players/{w.player_pk}/", PROFILE_READS_TOUR),  # incl. the medal row
     PageSpec("player-sorties", lambda w: f"/players/{w.player_pk}/sorties/", 8),
+    PageSpec("sortie-list", lambda w: "/sorties/", 6),  # site context (2), tours, aircraft choices, count, page
+    PageSpec("sortie-list", lambda w: "/sorties/?tour=all&page=3", 6),
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
     PageSpec("player-streaks", lambda w: f"/players/{w.player_pk}/streaks/", 8),
     PageSpec("player-streak-runs", lambda w: f"/players/{w.player_pk}/streaks/history/", 6),

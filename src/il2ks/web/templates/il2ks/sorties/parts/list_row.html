@@ -4,7 +4,7 @@
   after Flight time).
 {% endcomment %}<tr>
   <td class="nowrap"><a class="stretched-link" href="{% url 'web:sortie-detail' sortie.pk %}" title="{% translate 'Open the sortie report' %}">{{ sortie.spawned_at|local_short }}</a></td>
-  <td class="nowrap">{% aircraft_icon sortie.aircraft %} {% if sortie.role == "gunner" %}{{ sortie.aircraft|object_name }}{% else %}<a href="{% url 'web:aircraft-detail' sortie.aircraft_id %}?tour={% if sortie.mission.tour_id %}{{ sortie.mission.tour_id }}{% else %}all{% endif %}" title="{% translate 'Statistics of this aircraft' %}">{{ sortie.aircraft|object_name }}</a>{% endif %}</td>
+  <td class="nowrap">{% include "il2ks/sorties/parts/aircraft_cell.html" %}</td>
   <td>{% if sortie.role == "gunner" %}{% badge _("Gunner") "purple" %}{% elif sortie.combat_role %}{% role_badge sortie.combat_role %}{% endif %}</td>
   <td>{% outcome_badge sortie.outcome %}</td>
   <td>{% pilot_fate_badge sortie %}</td>

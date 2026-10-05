@@ -27,8 +27,8 @@ Changes show on the site at once. Not what you were looking for? Hiding players,
 
 Add as many links as you like under **Navigation links, in order**: a label, an address, an optional icon (Discord,
 forum, Patreon or a generic link chain) and a number that sets the order (lower numbers first; il2ks renumbers them 1, 2,
-3 ... when you save). They appear in the top menu **after** the built-in ones (Missions, Players, Aircraft,
-Leaderboards) and, as a plain list, in the footer. Only full `http://` and `https://` addresses are accepted
+3 ... when you save). They appear in the top menu **after** the built-in ones (Players, Aircraft, Leaderboards and the
+History menu with Missions and Sorties) and, as a plain list, in the footer. Only full `http://` and `https://` addresses are accepted
 (`javascript:`, `mailto:`, relative paths and the like are refused). The links open in a new tab, with `rel="noopener
 noreferrer"`, so the other site cannot reach back into yours or learn where the visitor came from; screen readers are
 told that the link opens a new tab. Tick **Delete** on a row to remove a link.

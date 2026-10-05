@@ -3,7 +3,7 @@
   "files": {
     "static/il2ks/il2ks.js": {
       "version": 1,
-      "sha256": "e33efeae115f0e38631ce7bc697a413a92c09adb27b52c51fe7f0bf736a18a3b"
+      "sha256": "1ed068a718e75b6e295727c0333ad576fb3bad811c0e46ec0aac43d1e52200c0"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -31,7 +31,7 @@
     },
     "static/il2ks/site.css": {
       "version": 1,
-      "sha256": "35a17e4464beb63c7255f6b3399a43a463b3a494a0c683806ff3dc394cea9c1d"
+      "sha256": "b66180932447b6bb521264916d2df055a4d5366639f44c5c3bfc0acd568b8721"
     },
     "static/il2ks/sortie.js": {
       "version": 1,
@@ -163,7 +163,7 @@
     },
     "templates/il2ks/base.html": {
       "version": 1,
-      "sha256": "dd96e6e945f5211f757b1945b8e2de267ccc3a2ece6a11bd8c631b5deb23821c"
+      "sha256": "0e743f4fec84ca0dff91cc3f73dcab4eb649e0d275f85b196628b5390473578c"
     },
     "templates/il2ks/components/accordion.html": {
       "version": 1,
@@ -477,6 +477,10 @@
       "version": 1,
       "sha256": "e0915cb5feec7f2b2a8b51f4919c898d3ff9b655a85e073b819d22d7b945ef62"
     },
+    "templates/il2ks/sorties/all.html": {
+      "version": 1,
+      "sha256": "fd466b6f081ed4311eeb6c360aac4da4a1a16c41216c0dce677241e7ff326f13"
+    },
     "templates/il2ks/sorties/detail.html": {
       "version": 1,
       "sha256": "a1aac41a5e642a901cb4ae51c98d39ac697b69e684f8cbc1839ce30735788a98"
@@ -484,6 +488,14 @@
     "templates/il2ks/sorties/list.html": {
       "version": 1,
       "sha256": "210b0cac6f6b8923095de319ab21e4bdf779b6bfb694a5ddffa357474751aa08"
+    },
+    "templates/il2ks/sorties/parts/aircraft_cell.html": {
+      "version": 1,
+      "sha256": "20ab14f5491fd98086d52ce3505801b827f0700f5e99c5687ec90aeb89ac600b"
+    },
+    "templates/il2ks/sorties/parts/all_row.html": {
+      "version": 1,
+      "sha256": "a44897607bb2bb7cfbbb4afd957b0076b01b592d88cd460c3c7ce5e604201ba6"
     },
     "templates/il2ks/sorties/parts/ammo.html": {
       "version": 1,
@@ -515,7 +527,7 @@
     },
     "templates/il2ks/sorties/parts/list_row.html": {
       "version": 1,
-      "sha256": "8a2d2a5e97db23f27606a4e1d236b219d01293410660b3f6b5d1b148315cd8b9"
+      "sha256": "7b2fd7f8517f0d242b6c8981fed9201a276c24732b0a14030448f645995382a0"
     },
     "templates/il2ks/sorties/parts/medals.html": {
       "version": 1,
