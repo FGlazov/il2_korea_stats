@@ -289,6 +289,17 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
     (242 ms) with the whole-history code, batched 5.5 s against 6.5 s: with ONE tour the roll-up is pure extra work (tour rows plus the sums), so the per-mission path is up to 1.9x slower there. All 210 samples with `days:3` tours
     (9 tours; first 200 missions batched, last 10 one by one): `refresh_tours` median 2.54 s wall / 0.88 s CPU against 3.57 s / 1.41 s with the whole-history code (-29% / -38%), and the gap grows with the history because the old code reads
     every sortie of the touched players.
+  - **Speed-up of the full-tour refresh** (2026-10-05, maintainer: keep the design, make the full refresh fast; "even 5 minutes per mission is alright, target 10 seconds at most"; `[PROPOSED]`, no semantics changed). All 210 samples in ONE monthly tour
+    (copied out of `sample_data/`, 200 batched), median of 3 `refresh_tours({tour}, ratings)` on a loaded machine: SQLite 8.6 s -> 5.4 s (a first run under heavier load: 10.9 s -> 6.9 s; process CPU 3.0-4.3 s -> 2.0-2.5 s),
+    Postgres 17 8.7 s -> 6.4 s; queries 411 -> 285. A real per-mission ingest of the last 10 samples after the 200 (parse and replay included): 8.0-9.8 s -> 5.0-7.5 s each. Dumps of the database
+    after a fresh ingest equal the earlier one row by row (primary keys of the killboard, medal and streak tables differ: the players are chunked differently now). Where the time was (SQLite, before): reading
+    the stored rows as model instances only to compare them (125,000 `Model.__init__` per refresh, 2.2 s), `clean_counters` and the counter fold (70 fields per row, tens of thousands of rows, 2-3 s with the
+    profiler), and the fixed cost of three 400-player chunks (every grouped query ran three times). Changes: `dbutil.sync_rows` (stored rows read as value tuples, a model is built only for a changed or new
+    row; used by the tour rows, the aircraft rows, the player aircraft scopes, the roll-ups, the medals), `clean_counters` / `aircraft_mods._fold` decide per field once, `CHUNK` 400 -> 2000 (fewer, bigger
+    queries: the SQLite time of the refresh halves), scores rounded without re-cleaning in `_recompute_player_scopes`. What is left (SQLite, wall): about 60% is the database computing the 70-counter
+    grouped sums (twelve scans of the tour's sorties at 80-190 ms, the 18,000-row `PlayerAircraftScope` roll-up read 0.5 s); the sorties of the tour are also read three times by medals and streaks
+    (`achievements._load`, its replay `_load_pairs`, `streaks._read` twice) for about 0.7 s; `recompute_payload_elo` reads every air superiority sortie of all history (0.1 s, not tour-bounded). Not done:
+    deriving `PlayerTourPool` / `PlayerRole` from one finer grouped query (floating sums would add in another order: not bit-identical), caching the loaded sorties between steps (global state for ~5%).
   - `il2ks dev bench-ingest` times the passes separately ("batched level 2 and ratings" in the header; their phases are added to the table).
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.

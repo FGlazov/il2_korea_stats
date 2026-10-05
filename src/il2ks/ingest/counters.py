@@ -100,17 +100,17 @@ def counted_sorties() -> QuerySet[PlayerSortie]:
     return PlayerSortie.objects.filter(role__in=COUNTED_ROLES)
 
 
-def zero_counters() -> CounterValues:
-    return {name: 0.0 if name in FLOAT_COUNTERS else 0 for name in COUNTER_FIELDS}
-
-
 def clean_counters(row: Mapping[str, object]) -> CounterValues:
-    """Pick the counter values out of an aggregate row, turning NULL (empty Sum) into 0."""
-    values = zero_counters()
-    for name in COUNTER_FIELDS:
+    """Pick the counter values out of an aggregate row, turning NULL (empty Sum) into 0. Called once per counter row of
+    a refresh (tens of thousands), so the per-field decisions (`_INT_NAMES`, `_FLOAT_NAMES`) are made once, not per
+    call. A value is an int, a float or None, as the database returns a `Sum` or a `Count`."""
+    values: CounterValues = {}
+    for name in _INT_NAMES:
         value = row.get(name)
-        if isinstance(value, int | float):
-            values[name] = _clean_float(name, value) if name in FLOAT_COUNTERS else int(value)
+        values[name] = int(value) if value else 0  # pyright: ignore[reportArgumentType]
+    for name in _FLOAT_NAMES:
+        value = row.get(name)
+        values[name] = _clean_float(name, value) if value else 0.0  # pyright: ignore[reportArgumentType]
     return values
 
 
@@ -118,6 +118,18 @@ SCORE_COUNTERS: frozenset[str] = frozenset({"score_air", "score_ground", "score_
 SCORE_DECIMALS = 4
 
 
+_FLOAT_NAMES = tuple(name for name in COUNTER_FIELDS if name in FLOAT_COUNTERS)
+_INT_NAMES = tuple(name for name in COUNTER_FIELDS if name not in FLOAT_COUNTERS)
+
+
 def _clean_float(name: str, value: float) -> float:
     """Scores are rounded so that float summation order can't make a rebuild differ from an incremental update."""
     return round(float(value), SCORE_DECIMALS) if name in SCORE_COUNTERS else float(value)
+
+
+def round_scores(totals: CounterValues) -> CounterValues:
+    """`totals` (every counter present and numeric, summed in Python: `aircraft_mods`) with the scores rounded, the one
+    thing `clean_counters` still does to such a row. Changes and returns `totals`."""
+    for name in SCORE_COUNTERS:
+        totals[name] = round(float(totals[name]), SCORE_DECIMALS)
+    return totals

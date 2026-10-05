@@ -155,6 +155,26 @@ uv run il2ks dev dump-db <data dir> before.jsonl      # every table, sorted by p
 then `diff before.jsonl after.jsonl` (columns that hold the time of the import itself are left out). A smoke test
 (`tests/integration/test_dev_bench.py`) runs both commands on the small fixture logs.
 
+### Timing one full-tour refresh (`aggregates.refresh_tours`)
+
+Every level-2 refresh redoes the touched tours completely, so its cost grows with the size of the tour (maintainer
+2026-10-05: 5 minutes per mission would still be fine, 10 seconds is the target). To measure the worst case, ingest every
+sample mission into ONE monthly tour in a throw-away data directory (copy the logs out of `sample_data/` first, never
+ingest from it), keep the data directory (`bench-ingest --data-dir`), and time `refresh_tours` on it in a script:
+
+```
+uv run il2ks dev bench-ingest <copy of the logs> --cpu --data-dir <new dir>
+# then, with IL2KS_DATA_DIR=<that dir> and django.setup():
+#   with transaction.atomic(): aggregates.refresh_tours({tour_pk}, DEFAULT_RULES)     # repeat 3 times, take the median
+```
+
+The refresh is idempotent, so repeating it on the same database measures the same work (every row is compared, none is
+written). What to look at: wrap the steps of `aggregates` (`_recompute_tour_scope`, `_recompute_all_time`, ...) for the
+per-step split; `cProfile` for the Python side; a `connection.execute_wrapper` for the number of queries. Time the rows
+a query returns, too: SQLite computes lazily while Python fetches, so `execute` alone hides half of the query time. For
+Postgres see the notes at the top of `tests/conftest.py` (`IL2KS_TEST_DB=postgres`, `IL2KS_PG_PORT`, `IL2KS_PG_NAME`:
+a database of its own, never one that other jobs use).
+
 ## 3. Load test with Locust (`loadtest/`)
 
 Locust is the right tool here: it is pure Python (installed with the dev group, nothing else to download), the flows are

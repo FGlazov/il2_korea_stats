@@ -95,8 +95,8 @@ def test_generic_mixed_loadout_ordnance_names_are_translated(client: Client) -> 
 
     body = client.get(f"/sorties/{pk_of(1)}/").content.decode()
 
-    assert "Bomben (gemischte Beladung)" in body
-    assert "Raketen (gemischte Beladung)" in body
+    assert "Bomben (gemischte Bewaffnung)" in body
+    assert "Raketen (gemischte Bewaffnung)" in body
     assert "mixed loadout" not in body
 
 

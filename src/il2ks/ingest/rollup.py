@@ -19,7 +19,7 @@ from typing import cast
 from django.db import models
 from django.db.models.manager import BaseManager
 
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import sync_rows, update_rows
 
 ROUND_DECIMALS = 4
 """Float totals (flight time, friendly damage, time on target, scores) are stored rounded to this many decimals."""
@@ -68,24 +68,38 @@ def rollup[M: models.Model, S: models.Model](
         grouped.setdefault(tuple(row[k] for k in key), []).append(row)
     wanted = {k: _fold(rows, sums, maxes, mins, derived) for k, rows in grouped.items()}
 
-    current = {tuple(getattr(r, f) for f in model_key): r for r in existing}
-    changed: list[M] = []
-    new: list[M] = []
     if update_only:
-        for k, row in current.items():
-            values = wanted.get(k) or dict.fromkeys(sums, 0)
-            if _assign(row, values):
-                changed.append(row)
+        _update_existing(model, existing, model_key, fields, sums, wanted)
     else:
-        for k, values in wanted.items():
-            row = current.pop(k, None)
-            if row is None:
-                new.append(model(**dict(zip(model_key, k, strict=True)), **fixed, **values))
-            elif _assign(row, values):
-                changed.append(row)
-        model._default_manager.filter(pk__in=[r.pk for r in current.values()]).delete()  # no tour row left
+        sync_rows(model, existing, model_key, fields, wanted, fixed=fixed)
+
+
+def _update_existing[M: models.Model](
+    model: type[M],
+    existing: models.QuerySet[M] | BaseManager[M],
+    model_key: Sequence[str],
+    fields: Sequence[str],
+    sums: Sequence[str],
+    wanted: Mapping[tuple[object, ...], Mapping[str, object]],
+) -> None:
+    """`update_only`: the rows of `existing` are never created or deleted; one without tour rows gets zero sums.
+    The rows are compared as value tuples and only the changed ones are loaded (complete, for `update_rows`)."""
+    zero = dict.fromkeys(sums, 0)
+    current = {
+        tuple(row[1 : 1 + len(model_key)]): (row[0], row[1 + len(model_key) :])
+        for row in existing.values_list("pk", *model_key, *fields)
+    }
+    new_values: dict[object, Mapping[str, object]] = {}
+    for key, (pk, values) in current.items():
+        target = wanted.get(key) or zero
+        if any(target.get(name, value) != value for name, value in zip(fields, values, strict=True)):
+            new_values[pk] = target
+    changed: list[M] = []
+    for row in model._default_manager.filter(pk__in=list(new_values)):
+        for name, value in new_values[row.pk].items():
+            setattr(row, name, value)
+        changed.append(row)
     update_rows(model, changed, fields)
-    model._default_manager.bulk_create(new)
 
 
 def _fold(
@@ -107,13 +121,3 @@ def _fold(
     for name, derive in derived.items():
         values[name] = derive(rows)
     return values
-
-
-def _assign(row: models.Model, values: Mapping[str, object]) -> bool:
-    """Set `values` on `row`; True if any differs."""
-    changed = False
-    for name, value in values.items():
-        if getattr(row, name) != value:
-            setattr(row, name, value)
-            changed = True
-    return changed

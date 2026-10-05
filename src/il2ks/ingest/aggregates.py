@@ -83,7 +83,7 @@ from il2ks.ingest.aircraft_stats import (
 )
 from il2ks.ingest.builds import recompute_builds, rollup_builds
 from il2ks.ingest.counters import COUNTER_FIELDS, SORTIE_COUNTERS, CounterValues, clean_counters, counted_sorties
-from il2ks.ingest.dbutil import update_rows
+from il2ks.ingest.dbutil import sync_rows, update_rows
 from il2ks.ingest.flight_score import adopt_wanted_flight_score, with_flight_score
 from il2ks.ingest.identity import recompute_tour_names, rollup_identity
 from il2ks.ingest.pairs import recompute_killboard, rollup_killboard
@@ -95,7 +95,7 @@ from il2ks.ingest.streaks import refresh_streak_tours, rollup_streaks
 from il2ks.ingest.tours import assign_missing, retour
 from il2ks.ingest.type_board import recompute_type_killboard, rollup_type_killboard
 
-CHUNK = 400  # players per batch: stays far below SQLite's bound-parameter limit
+CHUNK = 2000  # players per batch: far below the bound-parameter limit (32766 on SQLite 3.32+); fewer, bigger queries
 
 
 def recompute_players(
@@ -633,18 +633,7 @@ def _sync[M: models.Model](
 ) -> None:
     """Make the counter rows in `existing_rows` equal `wanted` (keyed by `key_fields`): insert missing rows, update
     changed values only, delete rows that are no longer wanted. Existing PKs are kept."""
-    existing = {tuple(getattr(r, f) for f in key_fields): r for r in existing_rows}
-    changed: list[M] = []
-    new: list[M] = []
-    for key, values in wanted.items():
-        row = existing.pop(key, None)
-        if row is None:
-            new.append(model(**dict(zip(key_fields, key, strict=True)), **values))
-        elif _assign(row, values):
-            changed.append(row)
-    model._default_manager.filter(pk__in=[r.pk for r in existing.values()]).delete()  # nothing counted left
-    update_rows(model, changed, list(COUNTER_FIELDS))
-    model._default_manager.bulk_create(new)
+    sync_rows(model, existing_rows, key_fields, COUNTER_FIELDS, wanted)
 
 
 def _assign(row: models.Model, values: CounterValues) -> bool:

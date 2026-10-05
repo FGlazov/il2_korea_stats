@@ -1,8 +1,53 @@
 """Small database helpers shared by the ingest modules."""
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from operator import itemgetter
 
 from django.db import models
+
+
+def _picker(fields: Sequence[str]) -> Callable[[Mapping[str, object]], tuple[object, ...]]:
+    """A function that returns the values of `fields` of a mapping as a tuple (`itemgetter`: C speed)."""
+    if len(fields) == 1:
+        only = fields[0]
+        return lambda values: (values[only],)
+    return itemgetter(*fields)
+
+
+def sync_rows[M: models.Model, K: tuple[object, ...]](
+    model: type[M],
+    existing_rows: models.QuerySet[M],
+    key_fields: Sequence[str],
+    value_fields: Sequence[str],
+    wanted: Mapping[K, Mapping[str, object]],
+    *,
+    fixed: Mapping[str, object] | None = None,
+) -> None:
+    """Make the rows in `existing_rows` equal `wanted` (key tuple -> values): missing rows are inserted, rows whose
+    `value_fields` differ are updated, rows no longer wanted are deleted. Existing primary keys are kept.
+
+    `key_fields` are the column names (attnames, `player_id`) of the key, `fixed` is set on inserted rows only. The
+    existing rows are read as plain value tuples, not model instances: hydrating tens of thousands of rows to compare a
+    few dozen numbers was the main cost of a full-tour refresh. Only the changed rows are built as models, complete
+    (key and values), for `update_rows`. Must run inside the caller's transaction."""
+    fixed = fixed or {}
+    width = len(key_fields)
+    existing = {
+        tuple(row[1 : 1 + width]): (row[0], row[1 + width :])
+        for row in existing_rows.values_list("pk", *key_fields, *value_fields)
+    }
+    pick = _picker(value_fields)
+    changed: list[M] = []
+    new: list[M] = []
+    for key, values in wanted.items():
+        found = existing.pop(key, None)
+        if found is None:
+            new.append(model(**dict(zip(key_fields, key, strict=True)), **fixed, **values))
+        elif found[1] != pick(values):
+            changed.append(model(pk=found[0], **dict(zip(key_fields, key, strict=True)), **fixed, **values))
+    model._default_manager.filter(pk__in=[pk for pk, _ in existing.values()]).delete()
+    update_rows(model, changed, value_fields)
+    model._default_manager.bulk_create(new)
 
 
 def update_rows[M: models.Model](model: type[M], rows: Iterable[M], fields: Sequence[str]) -> None:

@@ -43,7 +43,7 @@ A mission always has a tour (`save_mission` gives it one), so the tour rows cove
 is the whole history.
 """
 
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
 from django.db.models import Count, Q, QuerySet, Sum
@@ -51,7 +51,6 @@ from django.db.models import Count, Q, QuerySet, Sum
 from il2ks.core.catalog.loader import mod_filter_patterns, side_of_country
 from il2ks.core.ratings.elo import RatingRules, best_of_tours, compute_type_ratings
 from il2ks.db.models import (
-    AircraftCounters,
     AircraftEffectiveness,
     AircraftMatchup,
     AircraftMods,
@@ -79,11 +78,12 @@ from il2ks.ingest.counters import (
     SORTIE_COUNTERS,
     clean_counters,
     counted_sorties,
+    round_scores,
 )
-from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.ingest.dbutil import sync_rows, update_partial_rows, update_rows
 from il2ks.ingest.rating_games import rated_games
 
-CHUNK = 400
+CHUNK = 2000  # types per batch, as aggregates.CHUNK
 ELO_DECIMALS = 3  # averages are rounded so a rebuild can't differ by float noise
 PAIR_CHUNK = 60  # pairs per OR-ed query: far below SQLite's expression depth limit
 
@@ -213,6 +213,7 @@ ALL = AircraftRole.ALL.value
 _SUMS = {name: Sum(name) for name in COUNTER_FIELDS}
 _STAT_FIELDS = [*COUNTER_FIELDS, "pilots", "side"]
 _TOUR_STAT_FIELDS = [*_STAT_FIELDS, "sorties_redfor", "sorties_blufor"]
+_TOUR_KEY = ("aircraft_id", "tour_id", "role", "mod_pattern")
 
 
 def _side_of(redfor: int, blufor: int) -> str:
@@ -253,13 +254,13 @@ def _rollup_stats(chunk: list[int]) -> None:
         .annotate(n=Count("pk"))
         .order_by()
     }
-    wanted_all: _Wanted[int] = {}
+    wanted_all: _Wanted[tuple[int]] = {}
     wanted: _Wanted[_TourKey] = {}
     for row in tour_rows.values("aircraft_id", "role", "mod_pattern").annotate(**sums).order_by():
         aircraft, role, pattern = row["aircraft_id"], row["role"], row["mod_pattern"]
         red, blue = row["red"] or 0, row["blue"] or 0
         if role == ALL and not pattern:
-            wanted_all[aircraft] = {
+            wanted_all[(aircraft,)] = {
                 **clean_counters(row),
                 "pilots": pilots_all.get(aircraft, 0),
                 "side": _side_of(red, blue),
@@ -268,18 +269,15 @@ def _rollup_stats(chunk: list[int]) -> None:
             wanted[(aircraft, None, role, pattern)] = _tour_stat_values(
                 row, pilots_scope.get((aircraft, role, pattern), 0), red, blue
             )
-    existing_all = {row.aircraft_id: row for row in AircraftStats.objects.filter(aircraft_id__in=chunk)}
-    _sync_stats(AircraftStats, wanted_all, existing_all, lambda aircraft_id: {"aircraft_id": aircraft_id}, _STAT_FIELDS)
-    existing = {
-        (row.aircraft_id, row.tour_id, row.role, row.mod_pattern): row
-        for row in TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=True)
-    }
-    _sync_stats(
+    sync_rows(
+        AircraftStats, AircraftStats.objects.filter(aircraft_id__in=chunk), ("aircraft_id",), _STAT_FIELDS, wanted_all
+    )
+    sync_rows(
         TourAircraftStats,
-        wanted,
-        existing,
-        lambda key: {"aircraft_id": key[0], "tour_id": key[1], "role": key[2], "mod_pattern": key[3]},
+        TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=True),
+        _TOUR_KEY,
         _TOUR_STAT_FIELDS,
+        wanted,
     )
 
 
@@ -320,14 +318,7 @@ def _recompute_tour_stats(
         significant, tour_ids
     ).items():
         wanted[(aircraft, tour, role, pattern)] = _tour_stat_values(totals, pilots, red, blue)
-    existing = {(row.aircraft_id, row.tour_id, row.role, row.mod_pattern): row for row in existing_rows}
-    _sync_stats(
-        TourAircraftStats,
-        wanted,
-        existing,
-        lambda key: {"aircraft_id": key[0], "tour_id": key[1], "role": key[2], "mod_pattern": key[3]},
-        _TOUR_STAT_FIELDS,
-    )
+    sync_rows(TourAircraftStats, existing_rows, _TOUR_KEY, _TOUR_STAT_FIELDS, wanted)
 
 
 def _recompute_player_scopes(
@@ -339,7 +330,7 @@ def _recompute_player_scopes(
     existing_rows = PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
         existing_rows = existing_rows.filter(tour_id__in=tour_ids)
-    _sync_player_scopes({key: clean_counters(totals) for key, totals in wanted.items()}, existing_rows)
+    _sync_player_scopes({key: round_scores(totals) for key, totals in wanted.items()}, existing_rows)
 
 
 def _rollup_player_scopes(chunk: list[int]) -> None:
@@ -363,47 +354,13 @@ def _sync_player_scopes(
     wanted: Mapping[tuple[int, int, int | None, str, str], Mapping[str, int | float]],
     existing_rows: QuerySet[PlayerAircraftScope],
 ) -> None:
-    existing = {(r.aircraft_id, r.player_id, r.tour_id, r.role, r.mod_pattern): r for r in existing_rows}
-    changed: list[PlayerAircraftScope] = []
-    new: list[PlayerAircraftScope] = []
-    for key, values in wanted.items():
-        row = existing.pop(key, None)
-        if row is None:
-            new.append(
-                PlayerAircraftScope(
-                    aircraft_id=key[0], player_id=key[1], tour_id=key[2], role=key[3], mod_pattern=key[4], **values
-                )
-            )
-        elif any(getattr(row, name) != value for name, value in values.items()):
-            for name, value in values.items():
-                setattr(row, name, value)
-            changed.append(row)
-    PlayerAircraftScope.objects.filter(pk__in=[r.pk for r in existing.values()]).delete()
-    update_rows(PlayerAircraftScope, changed, list(COUNTER_FIELDS))
-    PlayerAircraftScope.objects.bulk_create(new)
-
-
-def _sync_stats[K, M: AircraftCounters](
-    model: type[M],
-    wanted: _Wanted[K],
-    existing: dict[K, M],
-    identity: Callable[[K], dict[str, int | str | None]],
-    fields: list[str],
-) -> None:
-    """Make the rows equal `wanted` (new ones created, changed ones updated, the others deleted)."""
-    changed: list[M] = []
-    new: list[M] = []
-    for key, values in wanted.items():
-        row = existing.pop(key, None)
-        if row is None:
-            new.append(model(**identity(key), **values))
-        elif any(getattr(row, name) != value for name, value in values.items()):
-            for name, value in values.items():
-                setattr(row, name, value)
-            changed.append(row)
-    model.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    update_rows(model, changed, fields)
-    model.objects.bulk_create(new)
+    sync_rows(
+        PlayerAircraftScope,
+        existing_rows,
+        ("aircraft_id", "player_id", "tour_id", "role", "mod_pattern"),
+        COUNTER_FIELDS,
+        wanted,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -548,23 +505,8 @@ def _sync_effectiveness[M: AircraftEffectiveness](
         # a fixed order (all time first): new rows get their ids in it
         for key, total in sorted(sums.items(), key=lambda item: (item[0][0], item[0][1] or 0, *item[0][2:]))
     }
-    existing = {
-        (r.aircraft_id, r.tour_id, getattr(r, name_field), r.combat_role, r.mod_pattern): r for r in existing_rows
-    }
-    changed: list[M] = []
-    new: list[M] = []
-    for key, values in wanted.items():
-        row = existing.pop(key, None)
-        if row is None:
-            identity = {"aircraft_id": key[0], "tour_id": key[1], name_field: key[2], "combat_role": key[3]}
-            new.append(model(**identity, mod_pattern=key[4], **values))
-        elif any(getattr(row, name) != value for name, value in values.items()):
-            for name, value in values.items():
-                setattr(row, name, value)
-            changed.append(row)
-    model.objects.filter(pk__in=[row.pk for row in existing.values()]).delete()
-    update_rows(model, changed, list(_EFFECTIVENESS_FIELDS))
-    model.objects.bulk_create(new)
+    key_fields = ("aircraft_id", "tour_id", name_field, "combat_role", "mod_pattern")
+    sync_rows(model, existing_rows, key_fields, _EFFECTIVENESS_FIELDS, wanted)
 
 
 @dataclass(frozen=True, slots=True)
