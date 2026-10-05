@@ -293,6 +293,13 @@ decisions are made):
 - ✅ **Bug report** (not a bug: the career medals had 5x all-time tiers; their tour variants now have their own names): a pilot who is a tank buster in the current tour but not all time, after a full ingest: check the all-time
   refresh at the end of a batch (or explain it: career medals have 5x all-time thresholds).
 
+## Maintainer's second view pass (2026-10-05, before the release)
+- 🔧 **Extra columns stand out**: the collapsible looks clickable (chevron, button styling, hover/focus colors).
+- 🔧 **Top 5% and Top 1% marks** next to Top 10% / 25% everywhere, and marks on the sortie page for the sortie's own numbers.
+- 🔧 **Ironman boards**: fixed columns Player, Sorties in a row, Air kills, Ground kills (no extra columns, no since/until); a third
+  ironman without a role filter (any loss ends it), on the boards and the player page.
+- 🔧 **Sortie page**: the damage section collapsed, below the timeline.
+
 **Not gates** (ship when ready, before or after the release): human review of the translations (LLM drafts are in, TD-24), README
 screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, stat marks, iteration 2 items) is required and built.
 
