@@ -174,7 +174,8 @@ def ingest_once(
 def _ingest_locked(
     cfg: Config, pipeline: Pipeline, opts: IngestOptions, now: Callable[[], datetime], command: str = "ingest"
 ) -> IngestSummary:
-    cfg = effective_config(cfg)  # the rules the admin applied win over the file
+    file_cfg = cfg
+    cfg = effective_config(file_cfg)  # the rules the admin applied win over the file
     repair_pending(
         partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
         cfg.ratings,
@@ -233,7 +234,8 @@ def _ingest_locked(
 
     # Batched level 2 (doc 14): a long run saves level 1 only and applies level 2 at every 10% and at the end.
     batch = (
-        Level2Batch(len(todo), cfg.ratings, cfg.marks, command)
+        # the marks are read when the thresholds are computed: the admin may save new minimums during a long run
+        Level2Batch(len(todo), cfg.ratings, lambda: effective_config(file_cfg).marks, command)
         if is_batch(len(todo)) and pipeline.save_level1 is not None
         else None
     )

@@ -336,18 +336,17 @@ def save_provisional(
         if Mission.objects.filter(server_uid=cfg.server_uid, mission_uid=mission_uid, is_live=False).exists():
             return "final_exists", set()
         waiting = False
+        rules = effective_config(cfg)  # what the admin applied wins over the file (also for a discard's tour rules)
         for other in Mission.objects.filter(server_uid=cfg.server_uid, is_live=True).exclude(mission_uid=mission_uid):
             newest = IngestRun.objects.filter(mission_uid=other.mission_uid).order_by("-started_at", "-id").first()
             if newest is not None and newest.status == IngestStatus.FAILED:
-                discard_provisional_mission(
-                    other, cfg.tours
-                )  # its final save failed: nothing will replace it, don't wait for it
+                # its final save failed: nothing will replace it, don't wait for it
+                discard_provisional_mission(other, rules.tours)
             else:
                 waiting = True
         if waiting:
             return "waiting", set()
         meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True)
-        rules = effective_config(cfg)  # what the admin applied wins over the file
         _, touched = save_level1(result, meta, catalog, rules.tours, rules.score)
         bump_data_version()
     return "saved", touched
@@ -380,8 +379,9 @@ def discard_stale_provisional(cfg: Config, *, keep: str | None) -> int:
     try:
         with WriterLock(cfg.data_dir, "watch (live sorties)"), transaction.atomic():
             missions = list(Mission.objects.filter(pk__in=[pk for pk, _ in candidates], is_live=True))
+            tours = effective_config(cfg).tours  # the admin's applied tour rules, not the file's
             for mission in missions:
-                discard_provisional_mission(mission, cfg.tours)
+                discard_provisional_mission(mission, tours)
     except LockBusyError:
         return 0
     return len(missions)
