@@ -43,8 +43,10 @@ as the change that needs it, and say why.
 
 The site is read-heavy, so an index costs little and a scan of a table that grows with play costs a lot. The rule: every
 SELECT a page runs (and every SELECT / UPDATE / DELETE **with a WHERE** the ingest runs) must be answerable through an
-index. SQLite only (`EXPLAIN QUERY PLAN`); Postgres plans from statistics, so a seq scan on a few thousand seeded rows says
-nothing there.
+index. Runs on SQLite (`EXPLAIN QUERY PLAN`) and on Postgres (`IL2KS_TEST_DB=postgres`, `EXPLAIN (FORMAT JSON)`): Postgres
+plans from statistics and would pick a seq scan on a few thousand seeded rows whatever the indexes, so the test sets
+`enable_seqscan` and `enable_sort` off (`SET LOCAL`: they add a huge cost, they do not forbid). A seq scan or a Sort node left in
+the plan then means no index can serve the statement. The Postgres run takes ~5 min.
 
 ```
 uv run pytest tests/perf/test_query_plans.py            # ~2 min: it seeds its own world (60 missions, like the timing tests)
@@ -65,6 +67,9 @@ What is checked (`tests/perf/query_plans.py`):
   statements with a LIMIT are checked (without one every row is returned anyway). The default sort of every list, and the
   few common ones, must be served by an index; the other `?sort=` columns of a list are *rare sorts* (a visitor clicking a
   column header): they may sort the scope (`Variant.rare_sort`, see `PLAYER_LIST_INDEXED` and the `indexed` tuples).
+
+Every table of the app must be read by some checked plan or be listed in `NOT_PLANNED_TABLES` with a reason (the last test
+of the file; it skips when the file is split over xdist workers). A table that is only written needs that entry.
 
 ### Reading a failure
 
