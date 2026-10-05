@@ -6,6 +6,7 @@
 {% endcomment %}{% if elo_pilots or primary %}<section>
   <h2>{% translate "Top pilots by Elo" %}</h2>
   <p class="muted">{% blocktranslate count games=rules.min_elo_games %}Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least {{ games }} encounter.{% plural %}Air-to-air Elo in this aircraft, from kills between air superiority sorties. Pilots with at least {{ games }} encounters.{% endblocktranslate %}</p>
+  {% if scoped %}<p class="muted">{% blocktranslate count n=rules.min_air_superiority_sorties %}The Elo is the pilot's rating over all time; in this selection only pilots with at least {{ n }} air superiority sortie in it are listed, and the sorties are counted in the selection.{% plural %}The Elo is the pilot's rating over all time; in this selection only pilots with at least {{ n }} air superiority sorties in it are listed, and the sorties are counted in the selection.{% endblocktranslate %}</p>{% endif %}
   <div class="table-wrap table-wrap--flat">
     <table class="data-table">
       <thead>

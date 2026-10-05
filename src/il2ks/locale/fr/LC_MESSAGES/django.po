@@ -1768,6 +1768,12 @@ msgstr "Tout le monde a déjà confondu un ailier avec un adversaire. Certains o
 msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."
 msgstr "sgstr \"Tout le monde a patrouillé en héros, l'ennemi aussi, mais dans un autre secteur. Ce sera pour la prochaine."
 
+msgid ""
+"Everything on this page follows the selected tour, role and modifications; choose all time to see every tour. "
+"Matchups use the role and modifications of this aircraft's sortie, hits to destroy those of the aircraft that was "
+"shot down."
+msgstr ""
+
 # llm-draft
 msgid "Everything with a motor, a barrel or a roof took a hit. Thorough work."
 msgstr "Tout ce qui avait un moteur, un canon ou un toit a pris sa part. Du travail soigné."
@@ -1804,11 +1810,6 @@ msgstr "Peu de pilotes connaissent le taxiway aussi bien que celui-ci. Il pourra
 
 #, python-format
 msgid "Filter by modification %(name)s"
-msgstr ""
-
-msgid ""
-"Filtered by modification: the totals, the pilot count, the loadouts and the mods follow it. Matchups, top pilots and "
-"hits to destroy still cover every modification."
 msgstr ""
 
 # llm-draft
@@ -3601,13 +3602,10 @@ msgstr "Joueur"
 msgid "Player aircraft"
 msgstr "Appareils de joueurs"
 
-# llm-draft
 msgid ""
-"Player-versus-player air kills against each enemy aircraft type, in the selected tour. Use it to see which enemy "
+"Player-versus-player air kills against each enemy aircraft type, in the selected scope. Use it to see which enemy "
 "aircraft this one beats and which beat it."
 msgstr ""
-"Victoires aériennes joueur contre joueur face à chaque type d'appareil ennemi, dans le tour choisi. Vous voyez ainsi "
-"quels appareils ennemis celui-ci bat, et lesquels le battent."
 
 # llm-draft
 msgid ""
@@ -4552,6 +4550,16 @@ msgstr "Cette page n'existe pas, ou le lien est périmé."
 msgid "That token is not right"
 msgstr "Ce jeton n'est pas le bon"
 
+#, python-format
+msgid ""
+"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority sortie"
+" in it are listed, and the sorties are counted in the selection."
+msgid_plural ""
+"The Elo is the pilot's rating over all time; in this selection only pilots with at least %(n)s air superiority "
+"sorties in it are listed, and the sorties are counted in the selection."
+msgstr[0] ""
+msgstr[1] ""
+
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
 msgstr ""
@@ -4838,10 +4846,6 @@ msgid "The record books call it a pattern. The squadron calls it character."
 msgstr "sgstr \"Dans le rapport, ça s'appelle une « récidive ». À l'escadrille, c'est une signature."
 
 # llm-draft
-msgid "The role filter does not apply to matchups: they show every kill and loss of this aircraft."
-msgstr "Le filtre de rôle ne s'applique pas aux duels : ils montrent toutes les victoires et pertes de cet appareil."
-
-# llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
 msgstr ""
 "Les mêmes vérifications que la commande il2ks doctor, appliquées aux nouveaux réglages. Certains avertissements "
@@ -4854,9 +4858,9 @@ msgstr ""
 "chaque type dans ce mélange."
 
 msgid ""
-"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected role. Average "
-"Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons. A dash "
-"means the measure does not apply or there are too few sorties."
+"The same measures for each set of weapon modifications pilots flew this aircraft with, in the selected tour and role."
+" Average Elo reflects the pilots' skill, not just the modifications': good pilots may favour a set for other reasons."
+" A dash means the measure does not apply or there are too few sorties."
 msgstr ""
 
 # llm-draft
@@ -4917,15 +4921,6 @@ msgstr "sgstr \"L'ordre disait « bombardiers », au pluriel. Le pilote a fait d
 # llm-draft
 msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "Le taxiway tient un dossier sur ces cas-là. Il est mince, mais bien écorné."
-
-# llm-draft
-msgid ""
-"The totals follow the selected tour and role; the matchups follow the tour. Top pilots, hits to destroy and loadouts "
-"cover all time, and hits to destroy always count every role (it is about kills of this aircraft)."
-msgstr ""
-"Les totaux suivent la tournée et le rôle choisis ; les duels suivent la tournée. Les meilleurs pilotes, les impacts "
-"pour détruire et les configurations d'emport couvrent toute la durée, et les impacts pour détruire comptent toujours "
-"tous les rôles (il s'agit des victoires contre cet appareil)."
 
 # llm-draft
 msgid "The two passwords differ."
@@ -5442,20 +5437,13 @@ msgstr "Où le trouver :"
 msgid "Which kills and losses to count"
 msgstr "Quelles victoires et pertes compter"
 
-# llm-draft
 msgid ""
-"Which loadouts work best, in the selected role. Air superiority loadouts show the average Elo of the pilots who flew "
-"them (per aircraft where they have rated games in it, else their pool's), air kills per sortie and K/D from player-"
-"versus-player air kills; attack loadouts show ground score per hour on target. Average Elo reflects the pilots' "
-"skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means the measure does not "
-"apply or there are too few sorties."
+"Which loadouts work best, in the selected tour, role and modifications. Air superiority loadouts show the average Elo"
+" of the pilots who flew them (per aircraft where they have rated games in it, else their pool's), air kills per "
+"sortie and K/D from player-versus-player air kills; attack loadouts show ground score per hour on target. Average Elo"
+" reflects the pilots' skill, not just the loadout's: good pilots may favour a loadout for other reasons. A dash means"
+" the measure does not apply or there are too few sorties."
 msgstr ""
-"Quelles configurations d'emport fonctionnent le mieux, dans le rôle choisi. Celles de supériorité aérienne montrent "
-"l'Elo moyen des pilotes qui les ont volées (dans l'appareil s'ils y ont des parties classées, sinon celui de leur "
-"groupe), les victoires aériennes par sortie et le K/D des victoires contre d'autres joueurs ; celles d'attaque "
-"montrent les points sol par heure sur cible. L'Elo moyen reflète le niveau des pilotes, pas seulement celui de la "
-"configuration : les bons pilotes peuvent préférer une configuration pour d'autres raisons. Un tiret signifie que la "
-"mesure ne s'applique pas ou que les sorties sont trop peu nombreuses."
 
 # llm-draft
 msgid "Which sorties to count"

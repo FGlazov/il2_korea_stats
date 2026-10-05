@@ -74,6 +74,7 @@ BACKFILL_ACCURACY = "accuracy"  # rounds fired and gun hits per sortie (from the
 BACKFILL_STREAK_RUNS = "streak_runs"  # the history of streak runs and assists received (OQ-81, OQ-82)
 BACKFILL_TOUR_AIRCRAFT = "tour_aircraft"  # aircraft stats per tour (FR-WEB-8, TD-26)
 BACKFILL_MOD_FILTERS = "mod_filters"  # weapon-mod sets and filter scopes of the aircraft stats (FR-WEB-8)
+BACKFILL_SCOPED_AIRCRAFT = "scoped_aircraft"  # every aircraft-page section per tour, role and mod filter (FR-WEB-8)
 BACKFILL_PAYLOAD_NAMES = "payload_names"  # loadout names from the stored payload ids and the current catalog table
 BACKFILL_AIRCRAFT_CASE = "aircraft_case"  # `Il-10` / `IL-10` rows merged into one GameObject
 BACKFILL_AIRCRAFT_ALIASES = "aircraft_aliases"  # `B 29` / `B-29` rows merged through object_aliases.csv (OQ-120)
@@ -136,6 +137,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_AIRCRAFT_CASE, _check_aircraft_case),
         (BACKFILL_AIRCRAFT_ALIASES, _check_aircraft_case),  # the same merge, now that the catalog knows aliases
         (BACKFILL_MOD_FILTERS, _check_mod_filters),
+        (BACKFILL_SCOPED_AIRCRAFT, _check_scoped_aircraft),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -229,6 +231,16 @@ def _check_mod_filters() -> bool:
     from il2ks.db.models import AircraftMods, PlayerSortie, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not AircraftMods.objects.exists()
+
+
+def _check_scoped_aircraft() -> bool:
+    """A database from before the aircraft page followed every filter has pilot sorties but no `PlayerAircraftScope`
+    row: level 2 must be rebuilt (loadouts and mods per tour, scoped matchups, top pilots and hits to destroy come
+    with it). The destroyed aircraft's role and mods of the hits-to-destroy rows are level 1 and need
+    `il2ks reprocess --all`; until then those rows count for every role without a modification filter only."""
+    from il2ks.db.models import PlayerAircraftScope, PlayerSortie, Role
+
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerAircraftScope.objects.exists()
 
 
 def _check_builds() -> bool:

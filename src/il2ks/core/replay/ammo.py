@@ -559,7 +559,13 @@ def single_attacker_kills(facts: MissionFacts) -> tuple[SingleAttackerKill, ...]
             if hit.attacker is not None and party_of(hit.attacker) is party_of(sole) and is_gun_ammo(hit.ammo):
                 per_ammo[hit.ammo] = per_ammo.get(hit.ammo, 0) + 1
         if per_ammo:
-            kills.append(SingleAttackerKill(victim.object_type, tuple(sorted(per_ammo.items()))))
+            kills.append(
+                SingleAttackerKill(
+                    victim.object_type,
+                    tuple(sorted(per_ammo.items())),
+                    None if victim.sortie is None else victim.sortie.index,
+                )
+            )
     return tuple(kills)
 
 

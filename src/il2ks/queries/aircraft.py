@@ -2,17 +2,20 @@
 
     stats_list(sort)         -> list[AircraftStats]      # one row per flown type; one query
     stats_for(aircraft_id)   -> AircraftStats | None     # one query
-    matchups(aircraft, tour, intercept, sort) -> MatchupTable  # kills and losses against each enemy type; one query
-    top_elo(aircraft, rules) -> list[PlayerAircraft]     # best pilots by per-type Elo (visible only); one query
-    top_ground(aircraft, rules) -> list[BoardRow]        # ... by ground score per hour on target; one query
+    matchups(aircraft, tour, intercept, sort, role, mod_pattern) -> MatchupTable  # kills and losses per enemy type
+    top_elo(aircraft, rules, tour, role, mod_pattern) -> list[EloRow]  # best pilots by per-type Elo (visible only)
+    top_ground(aircraft, rules, tour, role, mod_pattern) -> list[BoardRow]  # ... by ground score per hour on target
     scoped_stats(aircraft, tour, role, mod_pattern) -> TourAircraftStats  # a tour / role / mod filter scope; one query
-    payloads(aircraft, role, rules, sort, mod_pattern) -> list[Loadout]   # loadouts with effectiveness; one query
-    mod_sets(aircraft, role, rules, sort, mod_pattern) -> list[ModSet]    # weapon-mod sets, same measures; one query
+    payloads(aircraft, role, rules, sort, mod_pattern, tour) -> list[Loadout]  # loadouts with effectiveness; one query
+    mod_sets(aircraft, role, rules, sort, mod_pattern, tour) -> list[ModSet]   # weapon-mod sets, same measures
     significant_mods(aircraft) -> tuple[SignificantMod, ...]  # the mods the page can filter by (catalog, no query)
 
 The totals include hidden players; only the named top pilots leave them out. Top pilots are ranked by skill, not by
 volume (maintainer, OQ-49/50): the per-type Elo of fighter-vs-fighter combat (`PlayerAircraft.elo`, computed at ingest
-by `ingest.ratings`) and, for attack work, the ground score per hour on target.
+by `ingest.ratings`) and, for attack work, the ground score per hour on target. Every section follows the page's scope
+(tour, role, modification filter; maintainer 2026-10-04), each from stored rows of that scope. The per-type Elo is all
+time by nature: in a narrower scope pilots are still ranked by it, but only those with enough air superiority sorties
+within the scope (the sorties column is the scope's); the ground score per hour is computed from the scope's own rows.
 """
 
 from collections.abc import Callable, Mapping
@@ -38,7 +41,9 @@ from il2ks.db.models import (
     AircraftRole,
     AircraftStats,
     GameObject,
+    Player,
     PlayerAircraft,
+    PlayerAircraftScope,
     Tour,
     TourAircraftStats,
 )
@@ -207,13 +212,23 @@ class MatchupTable:
 
 
 def matchups(
-    aircraft: GameObject, tour: Tour | None = None, intercept: bool = False, sort: str = DEFAULT_MATCHUP_SORT
+    aircraft: GameObject,
+    tour: Tour | None = None,
+    intercept: bool = False,
+    sort: str = DEFAULT_MATCHUP_SORT,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
 ) -> MatchupTable:
     """Kills and losses against every enemy type met, in `tour` (None = all time), for all fights or only intercept
-    fights (both sorties air superiority, `AircraftMatchup.intercept`). `sort`: a `MATCHUP_SORTS` name, `-` for
-    descending; ties by name. One query."""
+    fights (both sorties air superiority, `AircraftMatchup.intercept`). `role` and `mod_pattern` are those of THIS
+    type's sortie: the killer's for its kills, the victim's for its losses (`AircraftMatchup.scoped_side`). `sort`: a
+    `MATCHUP_SORTS` name, `-` for descending; ties by name. One query."""
+    if role == AircraftRole.ALL and not mod_pattern:
+        sides = Q(killer_aircraft=aircraft, scoped_side="") | Q(victim_aircraft=aircraft, scoped_side="")
+    else:
+        sides = Q(killer_aircraft=aircraft, scoped_side="killer") | Q(victim_aircraft=aircraft, scoped_side="victim")
     rows = AircraftMatchup.objects.filter(
-        Q(killer_aircraft=aircraft) | Q(victim_aircraft=aircraft), tour=tour, intercept=intercept
+        sides, tour=tour, intercept=intercept, combat_role=role, mod_pattern=mod_pattern
     ).select_related("killer_aircraft", "victim_aircraft")
     kills: dict[int, tuple[GameObject, int]] = {}
     losses: dict[int, tuple[GameObject, int]] = {}
@@ -246,18 +261,67 @@ def matchups(
     return MatchupTable(found, best, worst)
 
 
-def top_elo(aircraft: GameObject, rules: LeaderboardConfig) -> list[PlayerAircraft]:
-    """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first."""
-    rows = PlayerAircraft.objects.filter(
-        aircraft=aircraft, player__is_hidden=False, elo_games__gte=max(rules.min_elo_games, 1)
-    ).select_related("player")
-    return list(rows.order_by("-elo", "-elo_games", "player__name_lower", "pk")[:TOP_PILOTS])
+@dataclass(frozen=True, slots=True)
+class EloRow:
+    """A row of the top-Elo table: the pilot, their Elo and its encounters (all time), and the sorties in the scope."""
+
+    player: Player
+    elo: float
+    elo_games: int
+    sorties: int
+
+    @property
+    def player_id(self) -> int:
+        return self.player.pk
 
 
-def top_ground(aircraft: GameObject, rules: LeaderboardConfig) -> list[BoardRow]:
-    """The type's best attack pilots by ground score per hour on target (FR-WEB-20), under the same minimums as the
-    ground-per-hour board."""
-    return top_rows(BOARDS["ground-hour"], rules, TOP_PILOTS, aircraft)
+def is_alltime_scope(tour: Tour | None, role: AircraftRole, mod_pattern: str) -> bool:
+    """Whether the scope is all time, every role, no filter: the one `PlayerAircraft` itself covers."""
+    return tour is None and role == AircraftRole.ALL and not mod_pattern
+
+
+def top_elo(
+    aircraft: GameObject,
+    rules: LeaderboardConfig,
+    tour: Tour | None = None,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
+) -> list[EloRow]:
+    """The type's best pilots by their Elo in it (OQ-49): visible players with enough rated games, the best first. The
+    Elo is all time by nature (`PlayerAircraft.elo`); in a narrower scope (tour, role, filter) a pilot must also have
+    flown at least the leaderboard minimum of air superiority sorties within it, and `sorties` are the scope's. One
+    query for the all-time scope, two for a narrower one (the scope's pilots, then their Elo)."""
+    minimum = max(rules.min_elo_games, 1)
+    order = ("-elo", "-elo_games", "player__name_lower", "pk")
+    rated = PlayerAircraft.objects.filter(aircraft=aircraft, player__is_hidden=False, elo_games__gte=minimum)
+    if is_alltime_scope(tour, role, mod_pattern):
+        return [
+            EloRow(r.player, r.elo, r.elo_games, r.sorties)
+            for r in rated.select_related("player").order_by(*order)[:TOP_PILOTS]
+        ]
+    in_scope = dict(
+        PlayerAircraftScope.objects.filter(
+            aircraft=aircraft,
+            tour=tour,
+            role=role,
+            mod_pattern=mod_pattern,
+            air_superiority_sorties__gte=max(rules.min_air_superiority_sorties, 1),
+        ).values_list("player_id", "sorties")
+    )
+    best = rated.filter(player_id__in=list(in_scope)).select_related("player").order_by(*order)[:TOP_PILOTS]
+    return [EloRow(r.player, r.elo, r.elo_games, in_scope[r.player_id]) for r in best]
+
+
+def top_ground(
+    aircraft: GameObject,
+    rules: LeaderboardConfig,
+    tour: Tour | None = None,
+    role: AircraftRole = AircraftRole.ALL,
+    mod_pattern: str = "",
+) -> list[BoardRow]:
+    """The type's best attack pilots by ground score per hour on target (FR-WEB-20) within the scope, under the same
+    minimums as the ground-per-hour board (counted from the scope's own sorties)."""
+    return top_rows(BOARDS["ground-hour"], rules, TOP_PILOTS, aircraft, tour, role, mod_pattern)
 
 
 LOADOUT_SORTS: tuple[str, ...] = (
@@ -334,11 +398,13 @@ def payloads(
     rules: LeaderboardConfig | None = None,
     sort: str = DEFAULT_LOADOUT_SORT,
     mod_pattern: str = "",
+    tour: Tour | None = None,
 ) -> list[Loadout]:
-    """Loadouts flown in the type (all time; only those of `role` unless `all`; within the modification filter
-    `mod_pattern`, '' = none) with their effectiveness measures, ordered by a resolved `sort` (a `LOADOUT_SORTS` name,
-    `-` for descending; a dash measure sorts last either way, ties by sorties, then name). One query."""
-    rows = AircraftPayload.objects.filter(aircraft=aircraft, mod_pattern=mod_pattern)
+    """Loadouts flown in the type (in `tour`, None = all time; only those of `role` unless `all`; within the
+    modification filter `mod_pattern`, '' = none) with their effectiveness measures, ordered by a resolved `sort` (a
+    `LOADOUT_SORTS` name, `-` for descending; a dash measure sorts last either way, ties by sorties, then name). One
+    query."""
+    rows = AircraftPayload.objects.filter(aircraft=aircraft, tour=tour, mod_pattern=mod_pattern)
     if role != AircraftRole.ALL:
         rows = rows.filter(combat_role=role)
     used = rules or LeaderboardConfig()
@@ -380,10 +446,11 @@ def mod_sets(
     rules: LeaderboardConfig | None = None,
     sort: str = DEFAULT_MOD_SORT,
     mod_pattern: str = "",
+    tour: Tour | None = None,
 ) -> list[ModSet]:
     """The weapon-mod sets flown in the type, as `payloads` does for loadouts (same role, filter, measures and sort
     rules; `sort` a `MOD_SORTS` name). One query; the names come from the shipped catalog."""
-    rows = AircraftMods.objects.filter(aircraft=aircraft, mod_pattern=mod_pattern)
+    rows = AircraftMods.objects.filter(aircraft=aircraft, tour=tour, mod_pattern=mod_pattern)
     if role != AircraftRole.ALL:
         rows = rows.filter(combat_role=role)
     used = rules or LeaderboardConfig()

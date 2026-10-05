@@ -101,6 +101,7 @@ class SingleAttackerKill:
 
     victim_type: str  # log name, e.g. "MiG-15bis"
     hits: tuple[tuple[str, int], ...]  # (gun ammo, hits), sorted by ammo
+    victim_sortie_index: int | None = None  # the victim's player sortie (its role and mods scope the stats); None = AI
 
 
 @dataclass(frozen=True, slots=True)
