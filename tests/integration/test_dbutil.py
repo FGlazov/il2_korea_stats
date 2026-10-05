@@ -6,8 +6,8 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
-from il2ks.db.models import Player
-from il2ks.ingest.dbutil import update_partial_rows, update_rows
+from il2ks.db.models import Player, PlayerTour, Tour
+from il2ks.ingest.dbutil import sync_rows, update_partial_rows, update_rows
 from tests.factories import STARTED_AT
 
 pytestmark = pytest.mark.django_db
@@ -71,3 +71,48 @@ def test_update_partial_rows_takes_rows_that_only_carry_their_fields() -> None:
     for stored in Player.objects.all():
         assert stored.kills_air == 5
         assert stored.current_name.startswith("Pilot ")
+
+
+def _tour_rows(count: int) -> tuple[Tour, list[Player]]:
+    tour = Tour.objects.create(
+        title="T", started_at=STARTED_AT, ended_at=STARTED_AT + timedelta(days=30), mode="monthly"
+    )
+    return tour, make_players(count)
+
+
+def test_sync_rows_inserts_updates_deletes_and_keeps_primary_keys() -> None:
+    """The full-tour refresh syncs rows as value tuples (doc 14 "Level-2 refresh"): a changed row keeps its pk, an
+    unchanged one is not written, a missing one is inserted, a row no longer wanted is deleted."""
+    tour, players = _tour_rows(4)
+    keep, change, drop, add = players
+    for player, sorties in ((keep, 1), (change, 2), (drop, 3)):
+        PlayerTour.objects.create(player=player, tour=tour, sorties=sorties, kills_air=sorties)
+    pks = {r.player_id: r.pk for r in PlayerTour.objects.all()}
+    wanted = {
+        (keep.pk, tour.pk): {"sorties": 1, "kills_air": 1},
+        (change.pk, tour.pk): {"sorties": 5, "kills_air": 2},
+        (add.pk, tour.pk): {"sorties": 7, "kills_air": 0},
+    }
+    sync_rows(
+        PlayerTour, PlayerTour.objects.filter(tour=tour), ("player_id", "tour_id"), ("sorties", "kills_air"), wanted
+    )
+    rows = {r.player_id: r for r in PlayerTour.objects.all()}
+    assert set(rows) == {keep.pk, change.pk, add.pk}
+    assert [(rows[p.pk].sorties, rows[p.pk].kills_air) for p in (keep, change, add)] == [(1, 1), (5, 2), (7, 0)]
+    assert [rows[p.pk].pk for p in (keep, change)] == [pks[keep.pk], pks[change.pk]]  # existing pks kept
+
+
+def test_sync_rows_reads_without_loading_models_and_writes_nothing_when_equal() -> None:
+    """Regression: hydrating every stored row to compare a few numbers was the cost of a full-tour refresh."""
+    tour, players = _tour_rows(30)
+    PlayerTour.objects.bulk_create([PlayerTour(player=p, tour=tour, sorties=2, kills_air=1) for p in players])
+    wanted = {(p.pk, tour.pk): {"sorties": 2, "kills_air": 1} for p in players}
+    with CaptureQueriesContext(connection) as queries:
+        sync_rows(
+            PlayerTour, PlayerTour.objects.filter(tour=tour), ("player_id", "tour_id"), ("sorties", "kills_air"), wanted
+        )
+    statements = [q["sql"].split()[0] for q in queries]
+    assert "INSERT" not in statements
+    assert "UPDATE" not in statements
+    assert len(queries) <= 2  # one read, one (empty-set) delete at most
+    assert "kills_ground" not in queries[0]["sql"]  # the key and two counters, not the whole row

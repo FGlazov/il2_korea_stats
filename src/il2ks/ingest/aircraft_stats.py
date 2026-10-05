@@ -78,6 +78,7 @@ from il2ks.ingest.counters import (
     SORTIE_COUNTERS,
     clean_counters,
     counted_sorties,
+    round_scores,
 )
 from il2ks.ingest.dbutil import sync_rows, update_partial_rows, update_rows
 from il2ks.ingest.rating_games import rated_games
@@ -329,7 +330,7 @@ def _recompute_player_scopes(
     existing_rows = PlayerAircraftScope.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     if tour_ids is not None:
         existing_rows = existing_rows.filter(tour_id__in=tour_ids)
-    _sync_player_scopes({key: clean_counters(totals) for key, totals in wanted.items()}, existing_rows)
+    _sync_player_scopes({key: round_scores(totals) for key, totals in wanted.items()}, existing_rows)
 
 
 def _rollup_player_scopes(chunk: list[int]) -> None:

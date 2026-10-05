@@ -109,7 +109,7 @@ def rollup_ratings(rules: RatingRules, player_ids: Iterable[int] | None = None) 
         _store_all_time(rules, ids[start : start + _CHUNK])
 
 
-_CHUNK = 400  # players per query: far below SQLite's bound-parameter limit
+_CHUNK = 2000  # players per query: far below the bound-parameter limit, as aggregates.CHUNK
 
 
 def _store_all_time(rules: RatingRules, player_ids: list[int] | None) -> None:

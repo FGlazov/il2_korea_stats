@@ -125,3 +125,11 @@ _INT_NAMES = tuple(name for name in COUNTER_FIELDS if name not in FLOAT_COUNTERS
 def _clean_float(name: str, value: float) -> float:
     """Scores are rounded so that float summation order can't make a rebuild differ from an incremental update."""
     return round(float(value), SCORE_DECIMALS) if name in SCORE_COUNTERS else float(value)
+
+
+def round_scores(totals: CounterValues) -> CounterValues:
+    """`totals` (every counter present and numeric, summed in Python: `aircraft_mods`) with the scores rounded, the one
+    thing `clean_counters` still does to such a row. Changes and returns `totals`."""
+    for name in SCORE_COUNTERS:
+        totals[name] = round(float(totals[name]), SCORE_DECIMALS)
+    return totals
