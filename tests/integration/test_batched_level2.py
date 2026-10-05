@@ -26,7 +26,7 @@ from il2ks.core.ratings.elo import DEFAULT_RULES, RatingRules
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES, MarkRules
 from il2ks.core.tours import TourRules
 from il2ks.db.models import Mission, SiteSettings, Tour
-from il2ks.db.site import level2_pending
+from il2ks.db.site import get_site_settings, level2_pending
 from il2ks.ingest import aggregates, persist, runner
 from il2ks.ingest import batch as batch_mod
 from il2ks.ingest.aggregates import rebuild_aggregates
@@ -460,3 +460,42 @@ def test_a_marker_without_tours_is_repaired_by_a_full_rebuild(tmp_path: Path, mo
         assert level2_pending() == {}
 
     assert diff_dumps(repaired, expected) == []
+
+
+def test_a_rolled_back_save_does_not_make_the_marker_skip_its_tour() -> None:
+    """The marker write is part of the save's transaction: when the save rolls back, the next save of the same tour
+    writes the marker again (the batch must not believe the tour is already named)."""
+    batch = Level2Batch(30, DEFAULT_RULES, DEFAULT_MARK_RULES)
+    batch.start()
+
+    def failing_save() -> None:
+        with transaction.atomic():
+            batch.add({7})
+            raise _Rollback
+
+    with pytest.raises(_Rollback):
+        failing_save()
+    assert not level2_pending().get("tours")  # rolled back with the save
+    with transaction.atomic():
+        batch.add({7})
+    assert level2_pending()["tours"] == [7]
+    batch.add({7})  # now stored: no second write needed, and still named
+    assert level2_pending()["tours"] == [7]
+
+
+def test_doctor_does_not_warn_while_a_batch_is_running(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The marker is set for the whole run of a healthy batch: while a live process holds the writer lock, doctor says
+    "a batch is running" (not a warning); once the lock is free the marker means the run was killed (warning)."""
+    from il2ks.ingest.lock import WriterLock
+
+    cfg = make_config(tmp_path / "data", None, after_archive="keep")
+    monkeypatch.setattr(checks, "applied_migrations", _no_migrations)
+    get_site_settings()  # creates the row
+    SiteSettings.objects.filter(pk=1).update(level2_pending={"command": "ingest", "since": "now", "pid": 1})
+    with WriterLock(cfg.data_dir, "ingest"):
+        findings = [
+            f for f in checks.ingestion_check(cfg) if "batch" in f.title.lower() or "level 2" in f.title.lower()
+        ]
+        assert [f.level for f in findings] == [Level.OK]
+        assert "running" in findings[0].title
+    assert len(_pending_findings(cfg, monkeypatch)) == 1
