@@ -104,7 +104,7 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({"role": "gunner", "kills_air": 9}, None),
     ],
 )
-def test_sortie_spot(fields: dict[str, object], spot: str | None) -> None:
+def test_sortie_spots(fields: dict[str, object], spot: str | None) -> None:
     assert _first_spot(sortie_with(**fields)) == spot
 
 
@@ -211,7 +211,7 @@ QUICK = Highlights(bomber_kills=0, first_kill_s=100.0)
     ],
 )
 def test_spot_precedence(fields: dict[str, object], highlights: Highlights, spot: str) -> None:
-    """Accidents and losses first, then the rarest achievements, then the broader ones (`flavor.sortie_spot`)."""
+    """Accidents and losses first, then the rarest achievements, then the broader ones (`flavor.sortie_spots`)."""
     assert _first_spot(sortie_with(**{**ACHIEVEMENTS, **fields}), highlights) == spot
 
 

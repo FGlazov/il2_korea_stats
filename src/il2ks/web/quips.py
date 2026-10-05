@@ -12,7 +12,7 @@ escaped by the templates), at most `MAX_LEN` characters, for one language or (bl
 same deterministic hash as `flavor.pick`, over the effective list.
 
 Future seam: scripted custom events (an admin-written condition over a sortie's fields) would add a spot defined by
-data instead of by `flavor.SPOTS`/`sortie_spot`; the `modes` / `custom` entries here are already keyed by spot name.
+data instead of by `flavor.SPOTS`/`sortie_spots`; the `modes` / `custom` entries here are already keyed by spot name.
 """
 
 import hashlib

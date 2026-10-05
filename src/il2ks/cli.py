@@ -173,7 +173,9 @@ def _translations_command(ns: argparse.Namespace) -> int:
 
     try:
         from il2ks.devtools import translations
-    except ImportError:  # Babel is a development dependency: a wheel installed to run a site does not have it
+    except ModuleNotFoundError as e:  # Babel is a development dependency: a wheel installed to run a site does not have it
+        if not (e.name or "").startswith("babel"):
+            raise  # another import broke: show it, do not blame Babel
         print(
             "il2ks dev translations needs the development tools (Babel): run it in a checkout after `uv sync`",
             file=sys.stderr,
