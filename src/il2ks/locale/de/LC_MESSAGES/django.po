@@ -682,6 +682,10 @@ msgid "Air accuracy"
 msgstr "Luft-Trefferquote"
 
 # llm-draft
+msgid "Air and ground kills"
+msgstr "Luft- und Bodensiege"
+
+# llm-draft
 msgid "Air assist (points)"
 msgstr "Luft-Assist (Punkte)"
 
@@ -967,6 +971,10 @@ msgstr "Alle Missionen"
 # llm-draft
 msgid "All roles"
 msgstr "Alle Rollen"
+
+# llm-draft
+msgid "All sorties"
+msgstr "Alle Einsätze"
 
 # llm-draft
 msgid "All sorties in this aircraft"
@@ -1592,12 +1600,13 @@ msgstr "Konfigurationsdatei"
 
 # llm-draft
 msgid ""
-"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
-"count separately: losing a ground attacker does not end the air run, and the other way round."
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts "
+"every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end "
+"the air run, and the other way round."
 msgstr ""
-"Hintereinander überlebte Einsätze: kein Tod, keine Gefangennahme. Einsätze, die nie abgehoben haben, werden "
-"übersprungen. Luft- und Bodeneinsätze zählen getrennt: Der Verlust eines Bodenangreifers beendet die Luftserie nicht,"
-" und umgekehrt."
+"Einsätze in Folge, die du überlebt hast: kein Tod, keine Gefangennahme. Einsätze, in denen du nie abgehoben bist, "
+"werden übersprungen. Die erste Serie zählt jeden Einsatz, und jeder Verlust beendet sie. Die Luft- und die Bodenserie"
+" zählen getrennt: Der Verlust eines Erdkämpfers beendet die Luftserie nicht, und umgekehrt."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1671,6 +1680,10 @@ msgstr "Aktuelle Bodenserie"
 # llm-draft
 msgid "Current logo"
 msgstr "Aktuelles Logo"
+
+# llm-draft
+msgid "Current streak"
+msgstr "Aktuelle Serie"
 
 # llm-draft
 msgid "Current tour"
@@ -1881,12 +1894,12 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
-"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+"Each pilot's longest run of air sorties survived: no death, no capture. Every sortie that is not an attack sortie "
+"counts; losing an attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
 msgstr ""
-"Die längste Serie überlebter Lufteinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
-"Luftüberlegenheitseinsätze; der Verlust eines Bodenangreifers beendet sie nicht. Jede Tour beginnt von vorn; "
-"„Gesamtzeit“ zeigt die beste Tour."
+"Die längste Serie überlebter Luft-Einsätze jedes Piloten: kein Tod, keine Gefangennahme. Jeder Einsatz außer einem "
+"Angriffseinsatz zählt; der Verlust eines Angreifers beendet sie nicht. Mit jeder neuen Tour fangen alle von vorn an; "
+"„Gesamt“ zeigt die beste Tour."
 
 # llm-draft
 msgid ""
@@ -1896,6 +1909,16 @@ msgstr ""
 "Die längste Serie überlebter Erdkampfeinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
 "Erdkampfeinsätze; der Verlust eines Jägers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ zeigt die "
 "beste Tour."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of sorties survived, whatever kind they were: no death, no capture. Attack and fighter "
+"sorties both count, and losing either one ends the run. A new tour starts everyone afresh; all time shows the best "
+"tour."
+msgstr ""
+"Die längste Serie überlebter Einsätze jedes Piloten, egal welcher Art: kein Tod, keine Gefangennahme. Angriffs- und "
+"Jagdeinsätze zählen beide, und der Verlust in einem von beiden beendet die Serie. Mit jeder neuen Tour fangen alle "
+"von vorn an; „Gesamt“ zeigt die beste Tour."
 
 # llm-draft
 msgid "Earned"
@@ -2422,7 +2445,7 @@ msgid "Ground kills by category"
 msgstr "Bodenziele nach Kategorie"
 
 # llm-draft
-#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+#. Translators: tooltip of the "Ground kills" column header of a streak table
 msgid "Ground kills made during the streak."
 msgstr "Bodenabschüsse während der Serie."
 
@@ -2936,17 +2959,6 @@ msgstr "Abschüsse und Assists"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Abschüsse nach Opfer"
-
-# llm-draft
-#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
-#. ground kills in a ground streak)
-msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
-msgstr "Abschüsse während der Serie: Luftabschüsse bei einer Luftserie, Bodenabschüsse bei einer Bodenserie."
-
-# llm-draft
-#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
-msgid "Kills of the other kind made in the sorties of this streak."
-msgstr "Abschüsse der anderen Art in den Einsätzen dieser Serie."
 
 # llm-draft
 msgid "Kills per hour"
@@ -5441,12 +5453,13 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
-"kind of sortie does not end the other's run)."
+"skipped), by sorties, by kills and by flight time, for all sorties together, and for air sorties and attack sorties "
+"separately (a death in one kind of sortie does not end the other kind's run, any death ends the first streak)."
 msgstr ""
-"Die besten Serien hintereinander überlebter Einsätze des Piloten (kein Tod, keine Gefangennahme; Einsätze ohne Abflug"
-" werden übersprungen), nach Einsätzen, nach Abschüssen und nach Flugzeit, getrennt für Lufteinsätze und für "
-"Erdkampfeinsätze (ein Tod in der einen Art von Einsatz beendet die Serie der anderen nicht)."
+"Die besten Serien überlebter Einsätze in Folge (kein Tod, keine Gefangennahme; Einsätze ohne Start werden "
+"übersprungen), nach Einsätzen, nach Siegen und nach Flugzeit: für alle Einsätze zusammen sowie getrennt für Luft- und"
+" Angriffseinsätze (ein Tod in einer Einsatzart beendet die Serie der anderen nicht, die erste Serie beendet jeder "
+"Tod)."
 
 # llm-draft
 #, python-format

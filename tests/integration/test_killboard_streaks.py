@@ -195,7 +195,7 @@ def test_streak_rules_over_missions() -> None:
         meta("m3", DAY3),
     )
 
-    streak = PlayerStreak.objects.get(player=pk(1))
+    streak = PlayerStreak.objects.get(player=pk(1), track="air")
     assert (streak.best_sorties, streak.best_kills_air, streak.best_flight_time_s) == (2, 3, 900.0)
     assert (streak.current_sorties, streak.current_kills_air) == (1, 4)  # the grounded sortie was skipped
     assert streak.best_since is not None
@@ -210,7 +210,7 @@ def test_capture_and_mission_end_cut_off() -> None:
     )
     save(mission((captured,)), meta("m2", DAY2))
 
-    assert PlayerStreak.objects.get(player=pk(2)).current_sorties == 3  # cut off and ditched but alive
+    assert PlayerStreak.objects.get(player=pk(2), track="air").current_sorties == 3  # cut off and ditched but alive
     assert not PlayerStreak.objects.filter(player=pk(1)).exists()  # captured: no survived sortie at all
 
 

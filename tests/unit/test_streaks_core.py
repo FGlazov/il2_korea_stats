@@ -197,3 +197,31 @@ def test_runs_are_per_track() -> None:
     assert [r.streak.sorties for r in runs(sorties, Track.AIR)] == [2]
     ground = runs(sorties, Track.GROUND)
     assert [(r.streak.sorties, r.end, r.ended_by_ref) for r in ground] == [(2, RunEnd.DEATH, 4)]
+
+
+# --- the all track: no filter (maintainer, 2026-10-05) --------------------------------------------------------------
+def test_the_all_track_run_spans_attack_and_air_sorties_and_ends_at_any_loss() -> None:
+    sorties = [
+        s(0),
+        s(1, track=Track.GROUND, ground_kills=2),
+        s(2, kills=1),
+        s(3, track=Track.GROUND, death=True),  # an attack death ends the all run (it left the air run alone)
+        s(4),
+        s(5, track=Track.GROUND, captured=True),
+        s(6, death=True),
+    ]
+
+    everything = summarize(sorties, Track.ALL)
+
+    assert (everything.best.sorties, everything.best.kills_air, everything.best.kills_ground) == (3, 1, 2)
+    assert everything.current.sorties == 0
+    assert [(r.streak.sorties, r.end, r.ended_by_ref) for r in runs(sorties, Track.ALL)] == [(3, RunEnd.DEATH, 3)]
+    assert summarize(sorties, Track.AIR).best.sorties == 3  # the air run went on through the attack death: 0, 2, 4
+
+
+def test_the_all_track_ranks_its_kills_by_air_plus_ground_kills() -> None:
+    sorties = [s(0, kills=1, ground_kills=1), s(1, death=True), s(2, track=Track.GROUND, ground_kills=3), s(3, kills=1)]
+
+    best = summarize(sorties, Track.ALL).best_kills
+
+    assert (best.sorties, best.kills_air, best.kills_ground, best.kills_of(Track.ALL)) == (2, 1, 3, 4)

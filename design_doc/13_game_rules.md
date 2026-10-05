@@ -546,7 +546,7 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   `ingest.ratings` (the highest pool Elo held after a win in the sortie).
 - Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).
 
-## Ironman streaks and the two tracks (`core/streaks.py`, FR-WEB-25, maintainer 2026-10-05)
+## Ironman streaks and the three tracks (`core/streaks.py`, FR-WEB-25, maintainer 2026-10-05)
 
 A **streak** is a run of a pilot's consecutive sorties without a death or capture, applied to the pilot (not gunner) sorties of one tour in
 chronological order (spawn time, then id; a streak never crosses a tour boundary, doc 14 "per-tour refresh"):
@@ -562,6 +562,12 @@ each track's sorties alone: a death, capture or fatal loss in an attack sortie e
 the air run, and a sortie of the other track neither extends nor breaks a run. The air track counts **air kills**, sorties and flight time, the
 ground track **ground kills**, sorties and flight time (each stored streak carries both kill counts; the "kills" criterion of a track is its own).
 
+**Third track, "all"** (maintainer, 2026-10-05: "add another one for ironman without a filter. So both attack and interceptor sorties count into
+this one") `[DECIDED]`: every counted pilot sortie (air superiority, attack, no combat role) belongs to it, and **any** death or capture ends it. It
+counts sorties, air kills, ground kills and flight time, and has the same rows as the other two (per-tour and all-time best, current run, run
+history, clean slate per tour, all time = max over the tours, incremental == rebuild). Its "kills" criterion (the best-by-kills streak, kind `kills`)
+is **air kills plus ground kills** `[PROPOSED]`. The medals still read the two role tracks (`survivor` the better of air and ground, as before).
+
 - **PRODUCT** A sortie with **no combat role** (unknown role: sorties stored before the role existed) counts for the **air** track, as the whole
   streak did before the split. Gunners are not pilot sorties and count nowhere.
 - **PRODUCT** Tanks are not a separate counter in a streak: the ground track's kills are all ground kills (the tank board has the tank figures).
@@ -569,12 +575,19 @@ ground track **ground kills**, sorties and flight time (each stored streak carri
   sorties, more flight time, the earlier) and by flight time (ties: more sorties, more of the track's kills, the earlier). A kills row exists only
   when the best such run has at least one kill of that kind. The current streak of a track is the run after its last broken sortie; the all-time rows
   are rolled up from the tour rows (best = max over the tours, runs = union), the current one is the run in the newest tour.
-- The history lists the runs of at least `MIN_LISTED_RUN` (2) survived sorties of one track (`?track=air|ground`, OQ-82).
+- The history lists the runs of at least `MIN_LISTED_RUN` (2) survived sorties of one track (`?track=all|air|ground`, default all, OQ-82).
+- **Upgrade**: migration `0101_streak_all_track` allows `track = all` and `kind = kills`; the backfill marker `streak_all` (`ops/migrate.py`) rebuilds level 2 once, in the same rebuild as the other markers (FR-OPS-3).
 - **Achievements** (doc 17): `life_kills` (Charmed Life) is the **air** life: air kills of the air-track sorties since the last air-track death
   or capture (attack sorties neither add to it nor end it) `[PROPOSED]`; `survivor` (Ironman medal) reads the **better of the two tracks'** survived
   runs `[PROPOSED]`; `landing_streak` stays a landing skill over every sortie (it is not an ironman run).
-- Pages: a player's profile block and best-streaks page show both tracks; the history has a track switch; the **ironman boards** of the
-  leaderboards (`/leaderboards/ironman-air/` and `/leaderboards/ironman-ground/`, both in the General tab group so the Air and Ground groups keep fitting side by side, tour-aware like the other
-  boards, columns picker for the other kill count and the run's dates, the running streaks below them) replace the old `/streaks/` list (which redirects);
+- Pages: a player's profile block and best-streaks page show all three tracks (all first); the history has a track switch (All / Air / Ground);
+  the **ironman boards** of the leaderboards (`/leaderboards/ironman-all/` titled "Ironman", `/leaderboards/ironman-air/` "Ironman (air)" and
+  `/leaderboards/ironman-ground/` "Ironman (ground)", in a tab group of their own called Ironman so the switcher keeps wrapping tidily, tour-aware
+  like the other boards, the running streaks below them) replace the old `/streaks/` list and the `/leaderboards/ironman/` alias (both redirect to
+  the all board). **Fixed columns** (maintainer, 2026-10-05: "Remove extra columns from the ironman leaderboard view ... always show player,
+  sorties in a row, air kills, and ground kills"): rank, player, sorties in a row, air kills, ground kills, sortable by those three (default
+  sorties), the same four in the running-streaks table; no Extra columns control, no Since / Until / flight time columns on the boards (the history
+  and best-streaks pages keep their dates and flight time). The air board's help says that **every sortie that is not an attack sortie** counts (a
+  sortie with no combat role is an air sortie);
   the player list's last two default columns are the best air run by air kills and the best ground run by ground kills (`Player.streak_kills_air` /
   `streak_kills_ground`, copied from the all-time best rows by `rollup_streaks`).

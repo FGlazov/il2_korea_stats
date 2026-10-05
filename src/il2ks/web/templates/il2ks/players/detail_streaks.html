@@ -1,24 +1,25 @@
 {# il2ks-template: templates/il2ks/players/detail_streaks.html v1 - copy this line along when you override #}
 {% load i18n il2ks il2ks_boards %}{% comment %}
   detail_streaks.html: the profile's ironman block (FR-WEB-23): current and best run of sorties without a death or a
-  capture on each of the two tracks (air: air superiority sorties, ground: attack sorties; maintainer 2026-10-05), with
-  the track's kills and flight time in the run, and a link to the player's best streaks page. All time it reads
-  {% player_streaks player as streaks %} (rows: .track, current_* and best_*); with a tour selected it shows that tour's longest
-  streak of each track only ({% player_tour_streaks player tour as bests %}; a current streak is not per tour).
+  capture on each of the three tracks (all: every sortie; air: every sortie that is not an attack sortie; ground: attack
+  sorties; maintainer 2026-10-05), with the run's air kills, ground kills and flight time, and a link to the player's
+  best streaks page. All time it reads {% player_streaks player as streaks %} (rows: .track, current_* and best_*, the
+  all track first); with a tour selected it shows that tour's longest streak of each track only
+  ({% player_tour_streaks player tour as bests %}; a current streak is not per tour).
   Context: player, tour (None = all time). Shows nothing for a player without a survived sortie (in that scope).
 {% endcomment %}{% if tour %}{% player_tour_streaks player tour as bests %}{% else %}{% player_streaks player as streaks %}{% endif %}{% if streaks or bests %}<section>
   <div class="section-head">
     <h2>{% translate "Ironman" %}</h2>
-    <span><a href="{% url 'web:player-streaks' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Best streaks" %} →</a> · <a href="{% url 'web:leaderboard' 'ironman-air' %}?tour=all">{% translate "Running streaks" %} →</a></span>
+    <span><a href="{% url 'web:player-streaks' player.pk %}?tour={% if tour %}{{ tour.pk }}{% else %}all{% endif %}">{% translate "Best streaks" %} →</a> · <a href="{% url 'web:leaderboard' 'ironman-all' %}?tour=all">{% translate "Running streaks" %} →</a></span>
   </div>
-  <p class="muted">{% translate "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties count separately: losing a ground attacker does not end the air run, and the other way round." %}</p>
+  <p class="muted">{% translate "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. The first streak counts every sortie, any loss ends it. The air and ground streaks count separately: losing a ground attacker does not end the air run, and the other way round." %}</p>
   <div class="table-wrap table-wrap--flat">
     <table class="data-table data-table--compact">
-      <thead><tr><th scope="col"><span class="visually-hidden">{% translate "Streak" %}</span></th>{% col_th _("Sorties") numeric=True hint="streak_sorties" %}{% col_th _("Kills") numeric=True hint="streak_run_kills" %}{% col_th _("Flight time") numeric=True hint="streak_time" %}<th scope="col">{% translate "Since" %}</th></tr></thead>
+      <thead><tr><th scope="col"><span class="visually-hidden">{% translate "Streak" %}</span></th>{% col_th _("Sorties") numeric=True hint="streak_sorties" %}{% col_th _("Air kills") numeric=True hint="streak_kills" %}{% col_th _("Ground kills") numeric=True hint="streak_kills_ground_run" %}{% col_th _("Flight time") numeric=True hint="streak_time" %}<th scope="col">{% translate "Since" %}</th></tr></thead>
       <tbody>
-        {% if tour %}{% for best in bests %}<tr><th scope="row">{% if best.track == "ground" %}{% translate "Best ground streak" %}{% else %}{% translate "Best air streak" %}{% endif %}</th><td class="num">{{ best.sorties|num }}</td><td class="num">{% if best.track == "ground" %}{{ best.kills_ground|num }}{% else %}{{ best.kills_air|num }}{% endif %}</td><td class="num">{{ best.flight_time_s|duration }}</td><td>{{ best.since|local_date }}</td></tr>{% endfor %}
-        {% else %}{% for streak in streaks %}<tr><th scope="row">{% if streak.track == "ground" %}{% translate "Current ground streak" %}{% else %}{% translate "Current air streak" %}{% endif %}</th><td class="num">{{ streak.current_sorties|num }}</td><td class="num">{% if streak.track == "ground" %}{{ streak.current_kills_ground|num }}{% else %}{{ streak.current_kills_air|num }}{% endif %}</td><td class="num">{{ streak.current_flight_time_s|duration }}</td><td>{% if streak.current_since %}{{ streak.current_since|local_date }}{% else %}–{% endif %}</td></tr>
-        <tr><th scope="row">{% if streak.track == "ground" %}{% translate "Best ground streak" %}{% else %}{% translate "Best air streak" %}{% endif %}</th><td class="num">{{ streak.best_sorties|num }}</td><td class="num">{% if streak.track == "ground" %}{{ streak.best_kills_ground|num }}{% else %}{{ streak.best_kills_air|num }}{% endif %}</td><td class="num">{{ streak.best_flight_time_s|duration }}</td><td>{% if streak.best_since %}{{ streak.best_since|local_date }}{% else %}–{% endif %}</td></tr>{% endfor %}{% endif %}
+        {% if tour %}{% for best in bests %}<tr><th scope="row">{% if best.track == "ground" %}{% translate "Best ground streak" %}{% elif best.track == "air" %}{% translate "Best air streak" %}{% else %}{% translate "Best streak" %}{% endif %}</th><td class="num">{{ best.sorties|num }}</td><td class="num">{{ best.kills_air|num }}</td><td class="num">{{ best.kills_ground|num }}</td><td class="num">{{ best.flight_time_s|duration }}</td><td>{{ best.since|local_date }}</td></tr>{% endfor %}
+        {% else %}{% for streak in streaks %}<tr><th scope="row">{% if streak.track == "ground" %}{% translate "Current ground streak" %}{% elif streak.track == "air" %}{% translate "Current air streak" %}{% else %}{% translate "Current streak" %}{% endif %}</th><td class="num">{{ streak.current_sorties|num }}</td><td class="num">{{ streak.current_kills_air|num }}</td><td class="num">{{ streak.current_kills_ground|num }}</td><td class="num">{{ streak.current_flight_time_s|duration }}</td><td>{% if streak.current_since %}{{ streak.current_since|local_date }}{% else %}–{% endif %}</td></tr>
+        <tr><th scope="row">{% if streak.track == "ground" %}{% translate "Best ground streak" %}{% elif streak.track == "air" %}{% translate "Best air streak" %}{% else %}{% translate "Best streak" %}{% endif %}</th><td class="num">{{ streak.best_sorties|num }}</td><td class="num">{{ streak.best_kills_air|num }}</td><td class="num">{{ streak.best_kills_ground|num }}</td><td class="num">{{ streak.best_flight_time_s|duration }}</td><td>{% if streak.best_since %}{{ streak.best_since|local_date }}{% else %}–{% endif %}</td></tr>{% endfor %}{% endif %}
       </tbody>
     </table>
   </div>

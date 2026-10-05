@@ -1345,12 +1345,15 @@ class StreakKind(models.TextChoices):
     AIR_KILLS = "air_kills"
     FLIGHT_TIME = "flight_time"
     GROUND_KILLS = "ground_kills"  # the ground track's kills criterion (`air_kills` is the air track's)
+    KILLS = "kills"  # the all track's kills criterion: air plus ground kills
 
 
 class StreakTrack(models.TextChoices):
-    """The two ironman tracks (maintainer, 2026-10-05): attack sorties are the ground track, the rest the air track.
-    Values match `core.streaks.Track`."""
+    """The three ironman tracks (maintainer, 2026-10-05): `all` takes every pilot sortie (any death or capture ends it),
+    attack sorties are the ground track, the rest the air track. Values match `core.streaks.Track`; `all` first (the
+    order every page shows them in)."""
 
+    ALL = "all"
     AIR = "air"
     GROUND = "ground"
 
@@ -1360,7 +1363,7 @@ class PlayerBestStreak(models.Model):
     air kills, or the most flight time. `tour` null = all time, the best over the tour rows (a streak never spans
     two tours); with a tour, the streak runs within that tour's sorties only. `since` / `until` as in
     `core.streaks.Streak`. A kills row (`air_kills` on the air track, `ground_kills` on the ground track) exists only
-    when the best such streak has at least one kill. `track` is the ironman track (air or ground, maintainer
+    when the best such streak has at least one kill. `track` is the ironman track (all, air or ground, maintainer
     2026-10-05): the streak counts the sorties of that track only and carries both kill counts. Level 2:
     `ingest.streaks`."""
 
@@ -1419,7 +1422,7 @@ class PlayerStreakRun(models.Model):
     """One ironman streak of a player (FR-WEB-25, OQ-82): a run of at least `core.streaks.MIN_LISTED_RUN` survived
     sorties, finished or still going, with what ended it. `tour` null = all time, else the run within that tour's
     sorties only. `ended_sortie` = the fatal or capturing sortie (null while `ended_by` is open). `track` = the ironman
-    track (air or ground). Level 2: recomputed per affected player by `ingest.streaks`."""
+    track (all, air or ground). Level 2: recomputed per affected player by `ingest.streaks`."""
 
     player_id: int
     tour_id: int | None
@@ -1459,7 +1462,7 @@ class PlayerStreakRun(models.Model):
 class PlayerStreak(models.Model):
     """Ironman streaks (FR-WEB-23): current and best run of survived sorties, rule in `il2ks.core.streaks`.
 
-    One row per player and track (`track`: air or ground, maintainer 2026-10-05); a row exists for players with at
+    One row per player and track (`track`: all, air or ground, maintainer 2026-10-05); a row exists for players with at
     least one survived sortie on the track. `best_*` is the best run over all tours (a streak never
     spans two tours); `current_*` is the run in the current (newest) tour, zero for a player who has not flown in it
     (`current_tour` = that tour, null when the player has not). Level 2: recomputed per affected player by

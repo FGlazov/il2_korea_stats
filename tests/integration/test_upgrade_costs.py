@@ -16,6 +16,7 @@ from il2ks.db.models import (
     Player,
     PlayerAchievement,
     PlayerSortie,
+    PlayerStreak,
     PlayerTour,
     SiteSettings,
     StatThreshold,
@@ -232,3 +233,32 @@ def test_the_ironman_tracks_backfill_rebuilds_once_with_the_other_markers_set(
 
     assert rebuilds == ["rebuild"]
     assert migrate.BACKFILL_STREAK_TRACKS in SiteSettings.objects.get(pk=1).backfills_done
+
+
+def test_the_all_track_backfill_rebuilds_once_and_builds_the_all_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-OPS-3, maintainer 2026-10-05: a database from before the all ironman track (migration 0101) has every marker
+    but `streak_all`: level 2 is rebuilt once (the all rows appear), the marker is written, and the next upgrade does
+    not rebuild."""
+    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
+    PlayerStreak.objects.filter(track="all").delete()
+    names = [
+        value
+        for key, value in vars(migrate).items()
+        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_STREAK_ALL
+    ]
+    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
+    rebuilds: list[str] = []
+    real = migrate._rebuild_all  # pyright: ignore[reportPrivateUsage]
+
+    def counting(cfg_: Config) -> None:
+        rebuilds.append("rebuild")
+        real(cfg_)
+
+    monkeypatch.setattr(migrate, "_rebuild_all", counting)
+
+    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
+
+    assert rebuilds == ["rebuild"]
+    assert PlayerStreak.objects.filter(track="all").exists()
+    assert migrate.BACKFILL_STREAK_ALL in SiteSettings.objects.get(pk=1).backfills_done
