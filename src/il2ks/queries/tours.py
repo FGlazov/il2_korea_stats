@@ -20,7 +20,7 @@ Elo is all-time only (`Player.elo_*`): don't offer it per tour.
 """
 
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
@@ -163,11 +163,6 @@ def pilot_absence(player_id: int, choice: TourChoice) -> TourAbsence | None:
         return None
     flown = set(PlayerTour.objects.filter(player_id=player_id).values_list("tour_id", flat=True))
     return _absence(choice.selected, choice.tours, flown)
-
-
-def absence_from_history(selected: Tour | None, tours: list[Tour], history: Iterable[PlayerTour]) -> TourAbsence | None:
-    """`pilot_absence` from the player's `PlayerTour` rows a page already loaded (the profile's tour history)."""
-    return _absence(selected, tours, {row.tour_id for row in history})
 
 
 def aircraft_absence(aircraft_id: int, choice: TourChoice) -> TourAbsence | None:

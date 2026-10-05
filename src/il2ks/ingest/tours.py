@@ -15,7 +15,8 @@ Level-2 rows per tour are not touched here: `ingest.aggregates` recomputes them 
 
 Decisive missions (the admin option "start a new tour when a mission is won by one side", `SiteSettings.tour_on_win`,
 `TourRules.on_win`) [PROPOSED] cut the period the mode draws (a calendar period, or the stretch between two manual
-boundaries) into parts: every mission with a winner (`Mission.winning_coalition`) ends its part at its own end
+boundaries) into parts: every mission won by one side (`Mission.result == "win"`; an old row with a winner but no result
+is not decisive until `il2ks reprocess` reads it) ends its part at its own end
 (`core.tours.win_cuts`), and the next mission starts a new `Tour` with `by_win` set. Which tour holds a mission is still
 a function of the missions alone: `resegment` rebuilds the parts of one period, `save_level1` calls it for the periods a
 saved mission touches and `retour` for every period, so incremental ingest (in any order), re-ingest and
@@ -26,10 +27,11 @@ assigned with (`tour_on_win_applied`). Ingest follows the applied value; a retou
 """
 
 import re
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from itertools import pairwise
 
 from django.db import transaction
@@ -178,7 +180,7 @@ def _missions_between(start: datetime | None, end: datetime | None) -> QuerySet[
 def _decisive_spans(start: datetime | None, end: datetime | None) -> list[MissionSpan]:
     """The decisive missions whose end could cut `[start, end)`: found by their end, which may lie in a later period
     than their start."""
-    rows = Mission.objects.filter(winning_coalition__isnull=False)
+    rows = Mission.objects.filter(result="win")  # not `winning_coalition`: old rows kept a winner without a result
     if start is not None:
         rows = rows.filter(ended_at__gt=start)
     if end is not None:
@@ -341,6 +343,37 @@ def _retour_manual(rules: TourRules) -> None:
         following = tours[index + 1].started_at if index + 1 < len(tours) else None
         stretch = _Stretch(None if index == 0 else tour.started_at, following, tour.title, tour, keep_empty_base=True)
         resegment(rules, stretch)
+
+
+@dataclass(frozen=True, slots=True)
+class OnWinProjection:
+    """What the Tours page shows before an admin turns the option on."""
+
+    tours: int  # about how many tours the missions so far would form (the stored tours' starts stand for the periods)
+    recent_wins: int  # missions won by one side that ended in the last `days` days
+    old_winners: int  # rows with a winner but no result (saved before results were read): not decisive until reprocess
+
+
+def on_win_projection(now: datetime | None = None, days: int = 30) -> OnWinProjection:
+    """The effect of the option, from three reads: the starts of the stored tours that are not parts (they stand for the
+    calendar periods or the admin's boundaries), every mission's start, end and result, and the old winners. The parts
+    a period would have are those of `core.tours.win_cuts`: a mission starting at or after a decisive end is in a later
+    part."""
+    since = (now or datetime.now(UTC)) - timedelta(days=days)
+    bases = list(Tour.objects.filter(by_win=False).order_by("started_at").values_list("started_at", flat=True))
+    missions = list(Mission.objects.order_by("started_at").values_list("started_at", "ended_at", "result"))
+    win_ends = sorted({ended for started, ended, result in missions if result == "win" and ended > started})
+    parts: set[tuple[int, int]] = set()  # (period, part) with a mission
+    for started, _, _ in missions:
+        period = max(bisect_right(bases, started) - 1, 0)
+        low = bases[period] if period > 0 else None  # the first period holds everything older
+        high = bases[period + 1] if period + 1 < len(bases) else None
+        first = 0 if low is None else bisect_right(win_ends, low)
+        last = len(win_ends) if high is None else bisect_left(win_ends, high)
+        parts.add((period, bisect_right(win_ends[first:last], started)))
+    recent = sum(1 for _, ended, result in missions if result == "win" and ended >= since)
+    old = Mission.objects.filter(result="unknown", winning_coalition__isnull=False).count()
+    return OnWinProjection(len(parts), recent, old)
 
 
 @dataclass(frozen=True, slots=True)

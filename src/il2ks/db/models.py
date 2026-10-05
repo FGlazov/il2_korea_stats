@@ -473,7 +473,8 @@ class Mission(models.Model):
     completed_cleanly = models.BooleanField()
     winning_coalition = models.IntegerField(null=True)
     # "win" (`winning_coalition` is the side), "draw" (objectives reported, no sole winner) or "unknown" (no report, or
-    # saved before this column existed until `il2ks reprocess`). Decisive = `winning_coalition` is not null.
+    # saved before this column existed until `il2ks reprocess`). Decisive = `result == "win"` (an "unknown" row with a
+    # winner is an old, unread one).
     result = models.CharField(max_length=8, default="unknown")
     is_hidden = models.BooleanField(default=False)
     # Provisional: the mission is still running and `watch` saved its sorties so far (FR-ING-15). The final save (the

@@ -99,7 +99,7 @@
     },
     "templates/admin/il2ks_tours.html": {
       "version": 1,
-      "sha256": "c2bd471f410a76b0a01793dae7271da18f5f3780112a7471758a52f75a8f54c1"
+      "sha256": "1ca00efac0d013b8523cf909fc2164066ca4e2b31dbced832af3f2cdeb6b723d"
     },
     "templates/il2ks/achievements/_award.html": {
       "version": 1,

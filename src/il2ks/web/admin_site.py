@@ -20,6 +20,7 @@ from il2ks.db.models import Mission, SiteSettings
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
+from il2ks.ingest.tours import on_win_projection
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
 from il2ks.web import admin_score as score_forms
@@ -177,7 +178,8 @@ class Il2ksAdminSite(admin.AdminSite):
             return HttpResponseRedirect(reverse(f"{self.name}:tours"))
         results = Mission.objects.values("result").annotate(n=Count("pk"))
         counts = {r["result"]: r["n"] for r in results}
-        won = Mission.objects.filter(winning_coalition__isnull=False).count()
+        projection = on_win_projection()
+        won = counts.get("win", 0)  # decisive = a recorded win; an old row's winner without a result is counted apart
         context = {
             **self.each_context(request),
             "title": _("Tour options"),
@@ -185,7 +187,10 @@ class Il2ksAdminSite(admin.AdminSite):
             "pending": row.tour_on_win != row.tour_on_win_applied,
             "won": won,
             "draws": counts.get("draw", 0),
-            "unknown": sum(counts.values()) - won - counts.get("draw", 0),
+            "old_winners": projection.old_winners,
+            "unknown": sum(counts.values()) - won - counts.get("draw", 0) - projection.old_winners,
+            "projected_tours": projection.tours,
+            "recent_wins": projection.recent_wins,
         }
         return TemplateResponse(request, "admin/il2ks_tours.html", context)
 

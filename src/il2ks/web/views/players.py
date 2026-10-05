@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 from il2ks.db.models import Counters
 from il2ks.queries import players as reads
 from il2ks.queries.stat_marks import stat_thresholds
-from il2ks.queries.tours import absence_from_history, player_tour, tour_choice_from, tour_query
+from il2ks.queries.tours import pilot_absence, player_tour, tour_choice_from, tour_query
 from il2ks.web import columns, pve
 from il2ks.web.chart_data import player_charts
 from il2ks.web.ground import ground_breakdown
@@ -71,8 +71,8 @@ def player_detail(request: HttpRequest, pk: int) -> HttpResponse:
     choice = tour_choice_from(request.GET)  # `?tour=<id>`; unknown or absent = all time (TD-26)
     tour = choice.selected
     stats: Counters | None = player if tour is None else player_tour(player.pk, tour)
-    history = reads.tour_history(player) if player.sorties else []  # also names the tours of an absent pilot
-    absence = absence_from_history(tour, choice.tours, history) if stats is None else None
+    history = reads.tour_history(player) if player.sorties else []
+    absence = pilot_absence(player.pk, choice) if stats is None else None  # every tour he flew in, not the charts' 12
     elo = reads.elo_shown(player, tour)
     context: dict[str, object] = {
         **choice.context,
