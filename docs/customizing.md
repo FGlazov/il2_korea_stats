@@ -201,6 +201,11 @@ the original looked like at that moment (kept in `custom/.il2ks-overrides.json`:
 [install.md](install.md#upgrading)). Template and static changes are picked up at start. Static files are collected and
 given a fingerprinted file name at start, so visitors' browsers fetch the new version straight away.
 
+Your own `.css` and `.js` files are minified when they are collected, like the built-in ones: the copy visitors get is
+smaller, your file in `custom/` stays as you wrote it (and `il2ks web --dev` serves it unminified). Ordinary `/* ... */`
+comments are removed from the served copy; a comment that must stay in it, such as a license or credit line, starts with
+`/*!`, for example `/*! Theme by Example Squadron, CC BY 4.0 */`.
+
 Other things you can do:
 
 - **Add a new file**, not replacing anything: put it in `custom/static/`, for example `custom/static/my-banner.png`,
