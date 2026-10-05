@@ -349,7 +349,9 @@ def refresh_tour_runs(chunk: list[int]) -> None:
     players whose run crosses a tour that was inserted or removed (the set of tours changed, no row of theirs did)."""
     runs = [a for a in applied_rules().active() if a.all_time_only]
     if runs:
-        _sync(chunk, None, _tour_run_rows(chunk, runs), all_time=True, keys={a.key for a in runs})
+        # the set of tours changed: every run is recomputed from the first tour (nothing kept from the store)
+        wanted = _tour_run_rows(chunk, runs, _tour_order(), 0, {})
+        _sync(chunk, None, wanted, all_time=True, keys={a.key for a in runs})
 
 
 def _sync(
