@@ -435,3 +435,25 @@ def test_a_table_row_link_opens_with_the_keyboard(page: Page, world: World) -> N
     expect(page).to_have_url(re.compile(r"/players/\d+/(\?.*)?$"))
     expect(page.get_by_role("heading", level=1)).to_be_visible()
     assert sortie_links(page).count() >= 1
+
+
+# --- the damage section: collapsed below the timeline, opened by its anchor (2026-10-05) ----------------------------
+def test_the_damage_section_is_collapsed_below_the_timeline_and_opens_for_its_anchor(page: Page, world: World) -> None:
+    """The dealt / taken breakdown is a native <details> after the timeline: closed by default, opened by a click or
+    the keyboard, and open when the page is reached through `#damage`."""
+    page.goto(f"/sorties/{world.logs_sortie_pk}/")
+    section = page.locator("details#damage")
+    expect(section).to_have_count(1)
+    assert section.evaluate("el => el.open") is False
+    timeline_y = page.locator("#timeline").bounding_box()
+    damage_y = section.bounding_box()
+    assert timeline_y is not None
+    assert damage_y is not None
+    assert timeline_y["y"] < damage_y["y"]  # below the timeline
+
+    section.locator("summary").focus()
+    page.keyboard.press("Enter")  # keyboard accessible: a native summary
+    assert section.evaluate("el => el.open") is True
+
+    page.goto(f"/sorties/{world.logs_sortie_pk}/#damage")
+    expect(section).to_have_js_property("open", True)

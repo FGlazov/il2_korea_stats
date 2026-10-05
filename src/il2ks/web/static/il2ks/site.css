@@ -421,8 +421,8 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 /* Stat marks (FR-WEB-22): a small badge after a number that is among the best. Text + tooltip, never colour alone. One
    family, four tiers: Top 25% is quiet, Top 10% tinted, Top 5% tinted stronger and bold, Top 1% a solid fill. */
 .stat-mark { display: inline-block; margin-inline-start: 0.6rem; padding: 0.05rem 0.5rem; border: 1px solid var(--il2-border-strong); border-radius: var(--il2-radius); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; line-height: 1.4; vertical-align: 0.1em; color: var(--il2-muted); cursor: help; }
-.stat-mark--top10 { color: var(--il2-primary); border-color: color-mix(in srgb, var(--il2-accent) 55%, transparent); background: color-mix(in srgb, var(--il2-accent) 16%, transparent); }
-.stat-mark--top5 { color: var(--il2-primary); font-weight: 700; border-color: var(--il2-primary); background: color-mix(in srgb, var(--il2-accent) 30%, var(--il2-surface)); }
+.stat-mark--top10 { color: color-mix(in srgb, var(--il2-primary) 55%, var(--il2-heading)); border-color: color-mix(in srgb, var(--il2-accent) 55%, transparent); background: color-mix(in srgb, var(--il2-accent) 16%, transparent); }
+.stat-mark--top5 { color: var(--il2-heading); font-weight: 700; border-color: var(--il2-primary); background: color-mix(in srgb, var(--il2-accent) 30%, var(--il2-surface)); }
 .stat-mark--top1 { color: var(--il2-surface); font-weight: 700; border-color: var(--il2-primary); background: var(--il2-primary); }
 .stat-tile__mark { margin-top: 0.3rem; }
 .stat-tile__mark .stat-mark { margin-inline-start: 0; }
