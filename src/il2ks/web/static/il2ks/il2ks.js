@@ -73,7 +73,11 @@
     var width = tip.offsetWidth || Math.min(320, window.innerWidth - 2 * margin);
     var left = Math.max(margin, Math.min(box.left, window.innerWidth - width - margin));
     tip.style.left = left + "px";
-    tip.style.top = Math.max(margin, box.bottom) + "px";
+    // Under the header; a header near the bottom of the screen gets it above instead, and never past either edge.
+    var height = tip.offsetHeight;
+    var top = box.bottom;
+    if (top + height > window.innerHeight - margin && box.top - height >= margin) { top = box.top - height; }
+    tip.style.top = Math.max(margin, Math.min(top, window.innerHeight - height - margin)) + "px";
   }
   function showHint(event) {
     var target = event.target;

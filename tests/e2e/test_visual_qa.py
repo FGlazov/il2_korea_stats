@@ -294,6 +294,15 @@ def test_public_page_layout(page: Page, world: World, name: str) -> None:
     assert not violations, f"{url}: screenshots in {shots}\n" + "\n".join(violations)
 
 
+def test_a_phone_timeline_time_cell_wraps_instead_of_spilling(page: Page, world: World) -> None:
+    """CI regression (2026-10-05): the sticky first column is capped at 40vw on a phone; the timeline's time cell
+    (nowrap, "+2:27:53 12:30:33 PM") was wider than that with Linux fonts and spilled. It may wrap."""
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.goto(f"/sorties/{world.logs_sortie_pk}/")
+    cell = page.locator("table.timeline tbody tr > td:first-child").first
+    assert cell.evaluate("el => getComputedStyle(el).whiteSpace") == "normal"
+
+
 def login(page: Page) -> None:
     page.goto("/admin/login/")
     page.get_by_label("Username").fill(QA_ADMIN[0])
