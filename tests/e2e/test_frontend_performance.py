@@ -94,7 +94,10 @@ HTML_BUDGET_KB_BY_PAGE = {"sortie from a real log": 90}
 no longer paginated (every event of the sortie is on the page) and the column headers carry descriptions; the real-log
 sortie measured 71 KB against the global 70. The global budget stays; only this page may be heavier."""
 MAX_SPRITE_KB = 50
-MAX_CSS_KB = 140
+MAX_CSS_KB = 160
+"""Raised from 140 on 2026-10-05: the e2e world measured 140.5 KB (pico 81, site 53, page sheets 6-7) after the marks
+moved into site.css, the Extra-columns button, sticky first columns and the row focus ring. A scan found no duplicated
+or dead rules to cut. Uncompressed; production serves it gzip/brotli (~5x smaller) and cached."""
 MAX_JS_KB = 75
 MAX_FONT_KB = 60
 MAX_IMAGE_KB = 20
