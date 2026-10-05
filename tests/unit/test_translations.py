@@ -254,3 +254,29 @@ def _po(catalog: Catalog) -> bytes:
     buffer = io.BytesIO()
     translations.write_po(buffer, catalog, width=120, no_location=True, sort_output=True, ignore_obsolete=True)
     return buffer.getvalue()
+
+
+# --- python-format flags ---------------------------------------------------------------------------------------------
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_no_message_is_flagged_python_format_without_a_placeholder(directory: str) -> None:
+    """Babel / xgettext flag `10% of pilots` as `python-format` (`% o` reads as an octal directive), and `msgfmt
+    --check-format` then rejects the translation (`10% пилотов`). A message with no real placeholder carries no flag."""
+    flagged = [
+        str(m.id)
+        for m in translations.messages_of(translations.read_catalog(directory))
+        if "python-format" in m.flags and not any(translations.placeholders(s) for s in _forms(m.id))
+    ]
+    assert not flagged, f"{directory}: {flagged}; {FIX}"
+
+
+@pytest.mark.parametrize("directory", DIRECTORIES)
+def test_the_shipped_catalogs_pass_msgfmt_check_format(directory: str) -> None:
+    msgfmt = shutil.which("msgfmt")
+    if msgfmt is None:
+        pytest.skip("msgfmt (GNU gettext) is not installed")
+    result = subprocess.run(
+        [msgfmt, "--check-format", "-o", "-", str(translations.po_path(directory))],
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
