@@ -280,7 +280,7 @@ def seed_two_tours() -> tuple[Tour, Tour]:
 def test_tours_start_afresh() -> None:
     september, october = seed_two_tours()
 
-    assert held(1)["life_kills"] == 1  # 3 + 3 = 6 in the one life, all time
+    assert "life_kills" not in held(1)  # 3 + 3 over two tours is no life of 6: a streak or life never crosses a tour
     assert "life_kills" not in held(1, september)  # only 3 in a tour
     assert "life_kills" not in held(1, october)
     assert held(1, september)["career_kills"] == 1
@@ -322,7 +322,8 @@ def test_profile_and_lists_follow_the_tour() -> None:
     in_october = client.get(f"/players/{pk(1)}/?tour={october.pk}").content.decode()
     listing = client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
 
-    assert "Charmed Life" in all_time
+    assert "Sky Hunter" in all_time
+    assert "Charmed Life" not in all_time  # a life never spans two tours
     assert "Charmed Life" not in in_october
     assert "Sky Hunter" in in_october
     assert "Charmed Life" in listing  # the list shows every achievement, earned or not

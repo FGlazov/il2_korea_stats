@@ -1,24 +1,30 @@
-"""Ironman streaks (`PlayerStreak`, `PlayerBestStreak`, FR-WEB-23): level 2, recomputed per player from their counted
-(pilot) sorties.
+"""Ironman streaks (`PlayerStreak`, `PlayerBestStreak`, `PlayerStreakRun`, FR-WEB-23): level 2, per player.
 
-The rule is `il2ks.core.streaks`; this module reads the sorties in chronological order (spawn time, then id) and writes
-the rows that changed. A player with no survived sortie has no row.
+A new tour is a clean slate (maintainer, 2026-10-05): a streak never crosses a tour boundary, so the rule
+(`il2ks.core.streaks`) runs over one tour's counted (pilot) sorties at a time, in chronological order (spawn time, then
+id). Two steps, both per chunk of players:
 
-- `PlayerStreak`: the current and the best (by sorties) streak over the player's whole history.
-- `PlayerBestStreak`: the best streak by sorties, by air kills and by flight time, over the whole history (`tour` null)
-  and within each tour (the tour's sorties only, so a streak never spans two tours there). One read of the sorties
-  fills both; `tour_ids` limits which tours' rows are rewritten (None = all), the all-time rows always are.
-- `PlayerStreakRun`: every run of at least `MIN_LISTED_RUN` survived sorties (OQ-82), all time and within each tour,
-  with the sortie that ended it; synced like the best rows (same read, same tour limit).
+1. `refresh_streak_tours(chunk, tour_ids)`: rewrite the per-tour rows of these tours (None = every tour of the players):
+   `PlayerBestStreak` (best by sorties, by air kills, by flight time) and `PlayerStreakRun` (every run of at least
+   `MIN_LISTED_RUN` survived sorties, OQ-82, with the sortie that ended it).
+2. `rollup_streaks(chunk)`: the all-time rows come from the tour rows alone (no read of the whole history) `[PROPOSED]`:
+   the all-time best (`tour` null) is the best over the tours' bests (a tie: the earlier one wins), the all-time run
+   list is the union of the tours' runs (never merged), and `PlayerStreak.best_*` is the all-time best by sorties.
+   `PlayerStreak.current_*` is the run in the *current* tour, the newest one (PRODUCT, `[PROPOSED]`): a new tour starts
+   everybody at zero, and a player who has not flown in it yet shows no current streak. `current_tour` says which tour
+   the current run belongs to; rows pointing at an older tour are zeroed when a newer tour exists.
+
+`recompute_streaks` does both. A player with no survived sortie has no `PlayerStreak` row. Sorties of a mission without
+a tour (only before the first `rebuild-aggregates` assigned tours) count nowhere.
 """
 
 from collections.abc import Iterable
 from datetime import datetime
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 
-from il2ks.core.streaks import Streak, StreakRun, StreakSortie, StreakSummary, runs, summarize
-from il2ks.db.models import Outcome, PlayerBestStreak, PlayerSortie, PlayerStreak, PlayerStreakRun, StreakKind
+from il2ks.core.streaks import RunEnd, Streak, StreakRun, StreakSortie, StreakSummary, runs, summarize
+from il2ks.db.models import Outcome, PlayerBestStreak, PlayerSortie, PlayerStreak, PlayerStreakRun, StreakKind, Tour
 from il2ks.ingest.counters import counted_sorties
 from il2ks.ingest.dbutil import update_rows
 
@@ -33,19 +39,29 @@ _FIELDS = (
     "best_flight_time_s",
     "best_since",
     "best_until",
+    "current_tour_id",
 )
 
 type _BestKey = tuple[int, int | None, str]  # player, tour (None = all time), kind
-type _BestValues = tuple[int, int, float, object, object]  # sorties, kills_air, flight_time_s, since, until
+type _BestValues = tuple[int, int, float, datetime, datetime]  # sorties, kills_air, flight_time_s, since, until
 
 
 def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
+    """Refresh the per-tour rows of `tour_ids` (None = all tours) for these players, then roll up the all-time rows."""
+    refresh_streak_tours(chunk, tour_ids)
+    rollup_streaks(chunk)
+
+
+def _read(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], list[StreakSortie]]:
+    """The counted sorties of the players per (player, tour), chronological; `tours` None = every tour."""
     sorties: QuerySet[PlayerSortie] = (
-        counted_sorties().filter(player_id__in=chunk).order_by("player_id", "spawned_at", "pk")
+        counted_sorties()
+        .filter(player_id__in=chunk, mission__tour_id__isnull=False)
+        .order_by("player_id", "spawned_at", "pk")
     )
-    tours = None if tour_ids is None else set(tour_ids)
-    by_player: dict[int, list[StreakSortie]] = {}
-    by_player_tour: dict[tuple[int, int], list[StreakSortie]] = {}
+    if tours is not None:
+        sorties = sorties.filter(mission__tour_id__in=tours)
+    found: dict[tuple[int, int], list[StreakSortie]] = {}
     for sortie_id, pid, tour_id, spawned, ended, kills, flight, death, captured, outcome in sorties.values_list(
         "pk",
         "player_id",
@@ -59,28 +75,75 @@ def recompute_streaks(chunk: list[int], tour_ids: Iterable[int] | None = None) -
         "outcome",
     ).iterator():
         row = StreakSortie(spawned, ended, kills, flight, death, captured, outcome == Outcome.NOT_TAKEN_OFF, sortie_id)
-        by_player.setdefault(pid, []).append(row)
-        if tour_id is not None and (tours is None or tour_id in tours):
-            by_player_tour.setdefault((pid, tour_id), []).append(row)
+        found.setdefault((pid, tour_id), []).append(row)
+    return found
 
-    wanted: dict[int, tuple[object, ...]] = {}
+
+def refresh_streak_tours(chunk: list[int], tour_ids: Iterable[int] | None = None) -> None:
+    """Make the per-tour best-streak and run rows of these players in `tour_ids` (None = all tours) equal what their
+    sorties of the tour say."""
+    tours = None if tour_ids is None else set(tour_ids)
     wanted_best: dict[_BestKey, _BestValues] = {}
     wanted_runs: dict[tuple[int, int | None], list[StreakRun]] = {}
-    for pid, rows in by_player.items():
-        summary = summarize(rows)
-        if summary.best.sorties:
-            wanted[pid] = (*_values(summary.current), *_values(summary.best))
-            wanted_best.update(_best_rows(pid, None, summary))
-            wanted_runs[(pid, None)] = runs(rows)
-    for (pid, tour_id), rows in by_player_tour.items():
+    for (pid, tour_id), rows in _read(chunk, tours).items():
         summary = summarize(rows)
         if summary.best.sorties:
             wanted_best.update(_best_rows(pid, tour_id, summary))
             wanted_runs[(pid, tour_id)] = runs(rows)
+    _sync_best(chunk, tours, wanted_best, all_time=False)
+    _sync_runs(chunk, tours, wanted_runs, all_time=False)
+
+
+def rollup_streaks(chunk: list[int]) -> None:
+    """Make the all-time rows of these players follow their per-tour rows (see the module docstring). Reads the tour
+    rows, and the sorties of the current tour only (for the current run)."""
+    best_rows = PlayerBestStreak.objects.filter(player_id__in=chunk, tour__isnull=False).order_by("since", "pk")
+    wanted_best: dict[_BestKey, _BestValues] = {}
+    for row in best_rows:  # chronological, strict improvement: the earlier of equals stays
+        key = (row.player_id, None, row.kind)
+        values = (row.sorties, row.kills_air, row.flight_time_s, row.since, row.until)
+        have = wanted_best.get(key)
+        if have is None or _rank(row.kind, values) > _rank(row.kind, have):
+            wanted_best[key] = values
+    wanted_runs: dict[tuple[int, int | None], list[StreakRun]] = {}
+    for run in PlayerStreakRun.objects.filter(player_id__in=chunk, tour__isnull=False).order_by("since", "pk"):
+        streak = Streak(run.sorties, run.kills_air, run.flight_time_s, run.since, run.until)
+        wanted_runs.setdefault((run.player_id, None), []).append(
+            StreakRun(streak, RunEnd(run.ended_by), run.ended_sortie_id)
+        )
+
+    newest = Tour.objects.order_by("-started_at").values_list("pk", flat=True).first()
+    current: dict[int, StreakSummary] = {}
+    if newest is not None:
+        current = {pid: summarize(rows) for (pid, _), rows in _read(chunk, {newest}).items()}
+    wanted: dict[int, tuple[object, ...]] = {}
+    for (pid, _, kind), values in wanted_best.items():
+        if kind == StreakKind.SORTIES.value:
+            here = current.get(pid)
+            wanted[pid] = (*_values(here.current if here else Streak()), *values, newest if here else None)
 
     _sync_streaks(chunk, wanted)
-    _sync_best(chunk, tours, wanted_best)
-    _sync_runs(chunk, tours, wanted_runs)
+    _sync_best(chunk, None, wanted_best, all_time=True)
+    _sync_runs(chunk, None, wanted_runs, all_time=True)
+    if newest is not None:  # a newer tour exists: nobody's current run is still going in an older one
+        PlayerStreak.objects.filter(current_sorties__gt=0).exclude(current_tour_id=newest).update(
+            current_sorties=0,
+            current_kills_air=0,
+            current_flight_time_s=0.0,
+            current_since=None,
+            current_until=None,
+            current_tour=None,
+        )
+
+
+def _rank(kind: str, v: _BestValues) -> tuple[float, float, float]:
+    """The comparison key of a best streak of `kind` (as `core.streaks`: the criterion first, then the other two)."""
+    sorties, kills, flight = float(v[0]), float(v[1]), v[2]
+    if kind == StreakKind.AIR_KILLS.value:
+        return (kills, sorties, flight)
+    if kind == StreakKind.FLIGHT_TIME.value:
+        return (flight, sorties, kills)
+    return (sorties, kills, flight)
 
 
 def _sync_streaks(chunk: list[int], wanted: dict[int, tuple[object, ...]]) -> None:
@@ -100,10 +163,18 @@ def _sync_streaks(chunk: list[int], wanted: dict[int, tuple[object, ...]]) -> No
     PlayerStreak.objects.bulk_create(new)
 
 
-def _sync_best(chunk: list[int], tours: set[int] | None, wanted: dict[_BestKey, _BestValues]) -> None:
+def _sync_best(
+    chunk: list[int], tours: set[int] | None, wanted: dict[_BestKey, _BestValues], *, all_time: bool
+) -> None:
+    """Make the chunk's best-streak rows of one scope equal `wanted`: the all-time rows (`all_time`), else the rows of
+    `tours` (None = every tour)."""
     rows = PlayerBestStreak.objects.filter(player_id__in=chunk)
-    if tours is not None:  # all-time rows (tour null) and the touched tours' rows
-        rows = rows.filter(Q(tour_id__isnull=True) | Q(tour_id__in=tours))
+    if all_time:
+        rows = rows.filter(tour__isnull=True)
+    else:
+        rows = rows.filter(tour__isnull=False)
+        if tours is not None:
+            rows = rows.filter(tour_id__in=tours)
     existing = {(r.player_id, r.tour_id, r.kind): r for r in rows}
     changed: list[PlayerBestStreak] = []
     new: list[PlayerBestStreak] = []
@@ -130,9 +201,14 @@ type _RunValues = tuple[
 
 
 def _sync_runs(
-    chunk: list[int], tours: set[int] | None, wanted_runs: dict[tuple[int, int | None], list[StreakRun]]
+    chunk: list[int],
+    tours: set[int] | None,
+    wanted_runs: dict[tuple[int, int | None], list[StreakRun]],
+    *,
+    all_time: bool,
 ) -> None:
-    """Make the `PlayerStreakRun` rows of the chunk (all-time and the touched tours) equal the runs found."""
+    """Make the `PlayerStreakRun` rows of the chunk in one scope (all-time, or `tours`: None = every tour) equal the
+    runs found."""
     fields = ("sorties", "kills_air", "flight_time_s", "until", "ended_by", "ended_sortie_id")
     wanted: dict[_RunKey, _RunValues] = {}
     for (pid, tour_id), found in wanted_runs.items():
@@ -147,8 +223,12 @@ def _sync_runs(
                 run.ended_by_ref,
             )
     rows = PlayerStreakRun.objects.filter(player_id__in=chunk)
-    if tours is not None:
-        rows = rows.filter(Q(tour_id__isnull=True) | Q(tour_id__in=tours))
+    if all_time:
+        rows = rows.filter(tour__isnull=True)
+    else:
+        rows = rows.filter(tour__isnull=False)
+        if tours is not None:
+            rows = rows.filter(tour_id__in=tours)
     existing: dict[_RunKey, PlayerStreakRun] = {(r.player_id, r.tour_id, r.since): r for r in rows}
     changed: list[PlayerStreakRun] = []
     new: list[PlayerStreakRun] = []
@@ -182,6 +262,8 @@ def _best_rows(player_id: int, tour_id: int | None, summary: StreakSummary) -> d
 
 
 def _best_values(s: Streak) -> _BestValues:
+    assert s.since is not None
+    assert s.until is not None
     return (s.sorties, s.kills_air, s.flight_time_s, s.since, s.until)
 
 

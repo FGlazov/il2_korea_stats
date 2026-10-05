@@ -7,7 +7,15 @@ from datetime import timedelta
 import pytest
 
 from il2ks.core.replay.result import SortieResult
-from il2ks.db.models import PlayerAchievement, PlayerBestStreak, PlayerStreak, PlayerStreakRun, Tour
+from il2ks.db.models import (
+    PlayerAchievement,
+    PlayerBestStreak,
+    PlayerSortie,
+    PlayerStreak,
+    PlayerStreakRun,
+    SiteSettings,
+    Tour,
+)
 from il2ks.ingest.aggregates import rebuild_aggregates
 from tests.factories import STARTED_AT, meta, mission, save, sortie
 from tests.integration.test_achievements import held, pk
@@ -60,7 +68,7 @@ def test_all_time_best_streak_is_the_max_of_the_tour_bests() -> None:
     assert best.best_sorties == 5
     assert PlayerBestStreak.objects.get(player=pk(1), tour=None, kind="sorties").sorties == 5
     assert PlayerBestStreak.objects.get(player=pk(1), tour=None, kind="flight_time").flight_time_s == 3000.0
-    assert PlayerStreakRun.objects.filter(player=pk(1), tour=None).count() == 3  # 3, 5, 2
+    assert PlayerStreakRun.objects.filter(player=pk(1), tour=None).count() == 4  # 2, 3, 5, 2
 
 
 def test_current_streak_is_the_run_in_the_current_tour_and_a_new_tour_starts_at_zero() -> None:
@@ -117,11 +125,9 @@ def test_a_cumulative_medal_crosses_its_threshold_across_two_tours() -> None:
     row = PlayerAchievement.objects.get(player_id=pk(1), tour=None, key="career_kills", tier=2)
     assert row.mission.mission_uid == "m2"
     in_tour = PlayerAchievement.objects.get(key="career_kills", tour=tours()[1], tier=1)
-    sorties = sorted(
-        row.mission.sortie_rows.filter(player_id=pk(1)).values_list("pk", "spawned_at"), key=lambda r: (r[1], r[0])
-    )
-    assert row.sortie_id == sorties[1][0]  # 6 + 3 = 9, then 6 + 6 = 12: the second October sortie
-    assert in_tour.sortie_id == sorties[0][0]  # the tour's own first kill
+    sorties = list(PlayerSortie.objects.filter(mission=row.mission_id, player_id=pk(1)).order_by("spawned_at", "pk"))
+    assert row.sortie_id == sorties[1].pk  # 6 + 3 = 9, then 6 + 6 = 12: the second October sortie
+    assert in_tour.sortie_id == sorties[0].pk  # the tour's own first kill
 
 
 def test_the_rows_are_the_same_incremental_and_rebuilt() -> None:
@@ -147,3 +153,28 @@ def test_a_late_import_into_an_old_tour_gives_the_rebuilt_rows() -> None:
     assert everything() == incremental
     row = PlayerAchievement.objects.get(player_id=pk(1), tour=None, key="career_kills", tier=2)
     assert row.mission.mission_uid == "m2"  # September's 6 come first now: 12 is reached in October
+
+
+def test_weeks_in_a_row_reset_per_tour_and_all_time_is_the_max() -> None:
+    for uid, days in (("w1", 0), ("w2", 7), ("w3", 14), ("w4", 21)):  # four consecutive weeks, two per tour
+        save(mission((sortie(0, 1),)), meta(uid, STARTED_AT + timedelta(days=days)))
+
+    assert held(1).get("regular") == 1  # two weeks in a row (the bronze tier) in each tour, never four
+    for tour in tours():
+        assert held(1, tour).get("regular") == 1
+
+
+def test_the_upgrade_backfill_rolls_the_old_all_time_rows_up_once() -> None:
+    from il2ks.ops import migrate
+
+    save(mission(survived(3)), meta("m1", STARTED_AT))
+    save(mission(survived(3)), meta("m2", OCTOBER))
+    good = everything()
+    PlayerStreak.objects.update(best_sorties=6, current_sorties=6, current_tour=None)  # what the old code stored
+    PlayerBestStreak.objects.filter(tour=None, kind="sorties").update(sorties=6)
+    PlayerAchievement.objects.filter(tour=None).delete()
+
+    migrate._backfill_tour_clean_slate()  # pyright: ignore[reportPrivateUsage]
+
+    assert everything() == good
+    assert migrate.BACKFILL_TOUR_CLEAN_SLATE in SiteSettings.objects.get(pk=1).backfills_done

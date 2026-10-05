@@ -449,6 +449,10 @@ msgid "A reprocess request is already waiting."
 msgstr "Запрос на повторную обработку уже ожидает."
 
 # llm-draft
+msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
+msgstr "Серия никогда не переходит из одного тура в другой; за всё время показан лучший результат среди туров."
+
+# llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Респект ведомому, который не обиделся. Обычно отходят, пусть и не сразу."
 
@@ -1806,6 +1810,14 @@ msgstr ""
 # llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Все вылеты, сначала новые. Выберите вылет, чтобы открыть полный отчёт."
+
+# llm-draft
+msgid ""
+"Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, "
+"which add up across tours."
+msgstr ""
+"Каждый тур начинается с нуля; за всё время показан лучший результат среди туров, кроме сумм вроде убийств и часов "
+"налёта, которые складываются по турам."
 
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."

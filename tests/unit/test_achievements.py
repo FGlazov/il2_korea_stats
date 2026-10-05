@@ -249,3 +249,27 @@ def test_a_shame_tier_is_never_emphasised_as_rare() -> None:
     assert rarity(Holding(1, 5000), shame=True).level == ""
     assert rarity(Holding(1, 5000), shame=True).text == "Held by less than 0.1% of pilots"
     assert rarity(Holding(1, 5000)).level == "epic"
+
+
+def test_earn_with_a_carried_in_total_reaches_the_tiers_sooner() -> None:
+    """A cumulative medal replayed over one tour with the earlier tours' total (clean slate: all time = the sum)."""
+    career = BY_KEY["career_kills"]
+    rows = [s(0, air=3), s(1, air=3), s(2, air=3)]
+
+    assert [(e.tier, e.index) for e in earn(career, rows)] == [(1, 0)]  # 9 kills: below the 10 of tier 2
+    assert [(e.tier, e.index) for e in earn(career, rows, carried_in=6.0)] == [(1, 0), (2, 1)]  # 6 + 3 + 3 = 12
+    assert earn(career, rows, carried_in=0.0) == earn(career, rows)
+
+
+def test_only_the_pure_running_totals_are_cumulative_and_the_elo_medal_is_per_tour() -> None:
+    cumulative = {a.key for a in ACHIEVEMENTS if a.cumulative}
+    assert cumulative == {
+        "career_kills",
+        "tank_buster",
+        "flight_hours",
+        "shame_taxi",
+        "shame_friendly",
+        "shame_strafed",
+    }
+    assert all(a.counter for a in ACHIEVEMENTS if a.cumulative)
+    assert "elo_peak" in {e.key for e in earn_all([replace(s(0), elo_peak=1600.0)])}

@@ -267,10 +267,9 @@ def info(achievement: Achievement, config: AchievementConfig) -> MedalInfo:
     )
 
 
-def all_info(config: AchievementConfig, *, in_tour: bool = False) -> list[MedalInfo]:
-    """Every switched-on achievement; `in_tour` (a tour is selected) leaves out the all-time-only ones (Top Rated,
-    doc 17)."""
-    return [info(a, config) for a in config.active() if not (in_tour and a.all_time_only)]
+def all_info(config: AchievementConfig) -> list[MedalInfo]:
+    """Every switched-on achievement (all of them are shown in every tour: the Elo medal is per tour too)."""
+    return [info(a, config) for a in config.active()]
 
 
 def _style(key: str) -> int:

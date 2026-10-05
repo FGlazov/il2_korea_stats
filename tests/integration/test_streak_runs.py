@@ -59,7 +59,7 @@ def test_runs_are_kept_per_tour_and_a_run_does_not_span_tours_there() -> None:
     save(mission((sortie(0, 1), sortie(1, 1))), meta("m1", STARTED_AT))  # September: 2
     save(mission((sortie(0, 1),)), meta("m2", OCTOBER))  # October: 1
 
-    assert runs_of(1) == [(3, 0, "open")]
+    assert runs_of(1) == [(2, 0, "open")]  # all time = the union of the tours' runs: October's single sortie is no run
     assert runs_of(1, "September 2026") == [(2, 0, "open")]
     assert runs_of(1, "October 2026") == []  # one sortie is below the minimum
 
@@ -228,7 +228,10 @@ def test_streak_list_lists_best_streaks_of_the_selected_tour_and_running_only_wh
     assert [(r.player_id, r.sorties) for r in past.context["best_page"]] == [(pk(1), 3), (pk(2), 2)]
     assert past.context["running_page"] is None  # nothing runs in a finished tour
     assert "Running streaks" not in past.content.decode()
-    assert [(r.player_id, r.sorties) for r in all_time.context["best_page"]] == [(pk(1), 5), (pk(2), 2)]
+    assert [(r.player_id, r.sorties) for r in all_time.context["best_page"]] == [
+        (pk(1), 3),
+        (pk(2), 2),
+    ]  # max over the tours
     assert all_time.context["running_page"] is not None
     assert f"/players/{pk(1)}/streaks/history/?tour={september.pk}" in past.content.decode()
     assert f"/players/{pk(1)}/streaks/history/?tour=all" in all_time.content.decode()

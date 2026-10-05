@@ -441,6 +441,10 @@ msgid "A reprocess request is already waiting."
 msgstr "Eine Neuverarbeitung ist bereits angefordert."
 
 # llm-draft
+msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
+msgstr "Eine Serie geht nie von einer Tour in die nächste über; „Gesamt“ zeigt das Beste der Touren."
+
+# llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Ein Bier für den Rottenflieger, der es verziehen hat. Die meisten kommen irgendwann drüber weg."
 
@@ -1795,6 +1799,14 @@ msgstr ""
 # llm-draft
 msgid "Every sortie, newest first. Select one for the full report."
 msgstr "Alle Einsätze, die neuesten zuerst. Wähle einen für den vollständigen Bericht."
+
+# llm-draft
+msgid ""
+"Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, "
+"which add up across tours."
+msgstr ""
+"Jede Tour beginnt bei null; „Gesamt“ zeigt das Beste der Touren, außer bei Summen wie Abschüssen und Flugstunden, die"
+" sich über die Touren addieren."
 
 # llm-draft
 msgid "Everybody gets a wingman mixed up once. Some just have a longer record."

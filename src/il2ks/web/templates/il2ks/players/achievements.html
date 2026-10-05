@@ -11,7 +11,7 @@
   {% breadcrumbs crumbs %}
   <div class="page-head">
     <h1>{% blocktranslate with name=player.current_name %}Achievements of {{ name }}{% endblocktranslate %}</h1>
-    <p>{% translate "Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is." %}</p>
+    <p>{% translate "Achievements are never taken back. Each one has tiers; the date and sortie show when a tier was first reached. Pick a tour to see what the pilot earned in it, or all time. Hover a tier to see how rare it is." %} {% translate "Every tour starts from zero; all time shows the best of the tours, except totals such as kills and flight hours, which add up across tours." %}</p>
   </div>
   {% tour_select tours tour %}
   <ul class="medal-list">
