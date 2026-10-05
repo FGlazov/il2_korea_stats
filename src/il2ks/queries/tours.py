@@ -16,7 +16,8 @@ or, inside a `{% filter_bar %}`, `{% tour_filter tours tour %}` (the same select
 Mission lists filter with `Mission.objects.visible().filter(tour=selected)`. Hidden players and missions are the
 page's job as everywhere else (`Player.objects.visible()`); `PlayerTour` rows of hidden players are not filtered here.
 Titles are localised at display time (`tour_title`, the `tour_title` filter): never show `Tour.title` raw.
-Elo is all-time only (`Player.elo_*`): don't offer it per tour.
+Elo is per tour (a new tour is a clean slate, `PlayerTourPool` / `PlayerTourAircraft`); `Player.elo_*` is the best
+tour's final rating, the all-time view.
 """
 
 import re

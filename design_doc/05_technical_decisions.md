@@ -335,7 +335,7 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
   `days:N` titles "Tour N" counted from `start` (gaps possible). Manual mode: the stored tours are the boundaries; "start a new tour now"
   in the admin closes the open one. `PlayerTour`, `PlayerTourAircraft`, `PlayerTourPool`, `PlayerTourKillboard` and the per-tour best streaks are
   recomputed from level 1 like all-time totals, limited to the touched tours; `rebuild-aggregates --retour` reassigns all missions after a
-  mode or timezone change (doctor warns when needed). Elo stays all-time. Missions without a tour are assigned automatically after
+  mode or timezone change (doctor warns when needed). Elo is per tour (a clean slate: each tour is replayed alone from the start rating; all time = the best tour's final rating). Missions without a tour are assigned automatically after
   migrations. Query helpers `il2ks.queries.tours` and a `{% tour_select %}` component serve the pages, which open on the current tour
   (doc 16, OQ-78..80). **Current tour** `[DECIDED]` (maintainer, 2026-10-04, OQ-79, OQ-80): the current tour is the default on every tour-aware page,
   **the home page included** (`/?tour=`; online-now stays live); a tour starts with its **first ingested mission**: the current tour is the newest

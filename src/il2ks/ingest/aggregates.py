@@ -7,17 +7,20 @@ Level 2 is always recomputed, never adjusted by deltas, in two layers (doc 14 "L
   identity, killboards) come from the level-1 rows of the tours a save touched only (`refresh_tours` gets the mission's
   new and old tour; `rebuild_aggregates`: every tour);
 - the all-time rows (`rollup_players`: `Player` counters, `PlayerAircraft`, `PlayerPool`, loadouts, killboards, identity
-  and the `PlayerName` history) are the SUM / MAX / MIN of the players' tour rows (`ingest.rollup`) and never read
-  level 1. So the cost of a refresh no longer grows with a player's history, only with the number of tours.
+  and the `PlayerName` history) are the SUM / MAX / MIN of the players' tour rows (`ingest.rollup`) and read no level 1
+  (known exceptions below). The goal: the cost of a refresh grows with the number of tours, not with a player's history.
 
 `refresh_tours` is the one code path (doc 14), so incremental == rebuild by construction. The counter list lives in
 `ingest.counters` so all paths use one definition (TD-16). Players are handled in chunks: a few queries per chunk, then
 writes only for rows whose values changed. Every mission has a tour (`rebuild_aggregates` assigns the missing ones): a
 sortie in no tour would be in no all-time row.
 
-Not rolled up yet: the ironman streaks (`ingest.streaks`) and the medals (`ingest.achievements`) still compute their
-all-time rows from the player's whole history in `recompute_player_tours`, and Elo stays all-time (it replays all
-kills, `ingest.ratings`). Server activity per day (`ingest.activity`) is rebuilt for all days.
+The streaks (`ingest.streaks`), the medals (`ingest.achievements`) and the Elo (`ingest.ratings`, replayed per tour, all
+time = the best tour's final rating) start over in every tour and roll up the same way. Known exceptions to "never
+read level 1": the cumulative medals replay the sorties of the tours where a tier is reached, and the tours-in-a-row
+medal reads the player's `PlayerTour` rows of every tour (and is rolled up on its own for the players whose run crosses
+a tour inserted in the past, `_roll_up_runs_across`). Server activity per day (`ingest.activity`) is refreshed for the
+touched days.
 
 A player without a tour row (a gunner-only player, or one whose sorties were all dropped) keeps the identity values they
 had; their counters are zero.

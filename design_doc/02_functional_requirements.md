@@ -254,7 +254,7 @@ people ask). The main use case is **a player reviewing their sortie**.
   selected tour gets a placeholder page with a way out (OQ-130, doc 16). Also: **weapon-mod names are translated** (dimensions), mission
   names are not (facts); damage percentages slightly over 100% from rounding are fine; friendly-fire penalties may make a score negative,
   but **an outcome penalty (death, capture, crash, plane lost) never improves a negative score**: a negative score is left as is (doc 13).
-- **A new tour is a clean slate** (maintainer, 2026-10-05; not built yet, roadmap "All-time stats = sum of the tour stats", doc 14):
+- **A new tour is a clean slate** (maintainer, 2026-10-05; built: Elo, streaks and medals per tour, all time rolled up from the tour rows, doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,
   the all-time best streak = the max over the tours; **counts of distinct things** (types flown, days, weeks in a row) reset every tour;
