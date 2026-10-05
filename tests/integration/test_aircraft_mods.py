@@ -24,10 +24,11 @@ from il2ks.db.models import (
     TourAircraftStats,
 )
 from il2ks.ingest.aggregates import rebuild_aggregates
+from tests.aircraft_pages import all_loadouts
 from tests.factories import STARTED_AT, meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 AIR = "air_superiority"
 ATTACK = "attack"
@@ -294,7 +295,7 @@ def test_detail_filter_scopes_tiles_tables_and_pilot_count(client: Client) -> No
     assert combined.context["tile"].sorties == 3
     assert nobody.context["tile"].sorties == 0  # a scope nobody flew: zero tiles, not an error
     # the tables follow the filter
-    assert sum(r.payload.sorties for r in with_suit.context["loadouts"]) == 4
+    assert sum(r.payload.sorties for r in all_loadouts(client, f"{url}?tour=all&mod5=with")) == 4
     assert {r.label or "-" for r in with_suit.context["mod_sets"]} == {"Anti-G suit", "NR-23 cannons + Anti-G suit"}
     assert {r.label or "-" for r in without_suit.context["mod_sets"]} == {"-"}
     assert {r.label or "-" for r in unfiltered.context["mod_sets"]} == {

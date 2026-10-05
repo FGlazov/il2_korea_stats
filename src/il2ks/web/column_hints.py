@@ -164,12 +164,17 @@ HINTS: dict[str, Label] = {
     "ord_targets": _("One detonation and one target that took damage."),
     # Translators: tooltip of the "Direct hits" column header of a sortie's ordnance table
     "ord_direct": _("Direct impacts logged with the ordnance named."),
-    # Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table
-    "hits_instances": _("Counted kills of this aircraft in which this ammunition hit at least once."),
-    # Translators: tooltip of the "Kills" column header of an aircraft's "Ammunition mixes" table
-    "mix_instances": _("Counted kills of this aircraft in which exactly these ammunition types hit together."),
-    # Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table
-    "hits_average": _("Average number of gun hits that were needed to shoot this aircraft down."),
+    # Translators: tooltip of the "Kills" column header of an aircraft's "Hits to destroy" table. Each row is one
+    # mix of ammunition types (a single type is a mix of one).
+    "mix_instances": _(
+        "Counted kills of this aircraft in which exactly these ammunition types hit. The first row counts them all."
+    ),
+    # Translators: tooltip of the "Average hits" column header of an aircraft's "Hits to destroy" table. "5.4 + 2.7"
+    # is an example: the numbers follow the order of the ammunition types named in the row.
+    "hits_average": _(
+        "Average gun hits of each ammunition type that it took to shoot this aircraft down, in the order the types "
+        "are named: 5.4 + 2.7 is 5.4 hits of the first type and 2.7 of the second."
+    ),
     # Translators: tooltip of the "Sorties" column header of a streak table
     "streak_sorties": _("Sorties in a row that the pilot survived."),
     # Translators: tooltip of the "Air kills" column header of a streak table

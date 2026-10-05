@@ -6,6 +6,8 @@ import pytest
 from django.utils import translation
 from pytest_django.fixtures import Settings
 
+from il2ks.queries import paging
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_DATA = REPO_ROOT / "sample_data"
 FIXTURE_LOGS = REPO_ROOT / "tests" / "fixtures" / "logs"
@@ -56,3 +58,10 @@ def _reset_active_language(settings: Settings) -> Iterator[None]:
     translation.activate(settings.LANGUAGE_CODE)
     yield
     translation.activate(settings.LANGUAGE_CODE)
+
+
+@pytest.fixture
+def list_every_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The aircraft page lists a mix, loadout or modification set from `paging.MIN_EVENTS_LISTED` kills / sorties on
+    (maintainer 2026-10-05); the fixtures of most tests hold a handful of sorties, so they list every row."""
+    monkeypatch.setattr(paging, "MIN_EVENTS_LISTED", 1)

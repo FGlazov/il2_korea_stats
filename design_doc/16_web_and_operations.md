@@ -71,7 +71,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,
   every other long list **20 rows** (a player's sorties, players, leaderboards, killboard, streaks, achievement holders). The mission page paginates
   each coalition's sorties and the kills separately (`page_redfor`, `page_blufor`, ...), the sortie page its damage rows
-  (`?page_damage=`); links keep every other parameter. **Not paginated, by design** (short or bounded lists): the aircraft list (one row per flown type) and the matchup, ammo and loadout tables on the aircraft page, the by-aircraft killboard tables (at most 60 enemy types), a player's best streaks and achievements pages and the achievements overview, the profile's fixed top-5 and latest-5 blocks, the sortie page's other tables, and the home page's blocks. **Exception** (maintainer, 2026-10-04): the sortie page's timeline is not paginated, every row is shown (a detail page, so it gets a higher server-time and query budget; the HTML stays lean because icons are a sprite). Real-log mission and sortie pages fell from 107-122 KB of HTML to
+  (`?page_damage=`); links keep every other parameter. **Not paginated, by design** (short or bounded lists): the aircraft list (one row per flown type) and the matchup table on the aircraft page (its ammo-mix, loadout and modification tables page since 2026-10-05, see below), the by-aircraft killboard tables (at most 60 enemy types), a player's best streaks and achievements pages and the achievements overview, the profile's fixed top-5 and latest-5 blocks, the sortie page's other tables, and the home page's blocks. **Exception** (maintainer, 2026-10-04): the sortie page's timeline is not paginated, every row is shown (a detail page, so it gets a higher server-time and query budget; the HTML stays lean because icons are a sprite). Real-log mission and sortie pages fell from 107-122 KB of HTML to
   87-95 KB (NFR-PERF-6).
 - **Mission list**: newest first, 10 per page, sortable; filters: name (live), period, winner, empty missions (hidden by default). Titles
   come from the mission file name ("The Sinuiju Bridges 1951").
@@ -208,13 +208,19 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   - **loadouts** and the **weapon-modification sets** tables: `AircraftPayload` / `AircraftMods` of the tour, role and filter, each with the
     effectiveness measures (average pilot Elo `elo_avg`, air kills per sortie and K/D for air superiority, ground score per hour on target for
     attack, each only above the leaderboard minimums of the row's role, a dash otherwise), sortable apart from the matchups (`?lsort=`,
-    `?msort=`; a dash sorts last either way);
+    `?msort=`; a dash sorts last either way). **Maintainer view pass 2026-10-05** `[DECIDED]`: a loadout, a modification set and an
+    ammunition mix is listed from **10** sorties (mixes: 10 kills) on (`queries.paging.MIN_EVENTS_LISTED`; the totals still count every one) and
+    the three tables page by 20 (`?page_loadouts=`, `?page_mods=`, `?page_mixes=`; htmx swaps `#main`). Under the role *all* the loadouts
+    have a tab **Air superiority | Attack** (`?lrole=`, default the role most of the type's sorties are flown in) that shows that role's
+    loadouts only, with the columns that fit it (air: air kills, deaths, average Elo, air kills per sortie, K/D; attack: ground kills,
+    deaths, attack proficiency); with a single role on the page the table follows it and has no tab. Loadouts of sorties without a combat
+    role (gunners) are therefore not listed under *all*. One short help line per mode replaces the long text;
   - **matchups** vs each enemy type (`AircraftMatchup`): the role and the modifications scope **this type's own sortie** (the killer's for its
     kills, the victim's for its losses; `scoped_side`), the enemy is unrestricted. The **intercept** toggle "All fights / Intercept flights only"
     (`?intercept=1`, an intercept fight = two air superiority sorties) is independent of the role and combines with it, except that the **attack role has no toggle** (an intercept fight is two air superiority sorties, so the table would always be empty; a stale `?intercept=1` is ignored). Sortable by enemy,
     kills, losses, encounters and ratio; a matchup shows its exchange share and can be named best or worst from **10** fights (`MIN_ENCOUNTERS`;
     `[DECIDED]` maintainer, OQ-110);
-  - **hits to destroy** per ammo and the **ammunition mixes** (below): the kills OF this type, so the tour, role and modifications are those of
+  - **hits to destroy**: one table of **ammunition mixes** (below; a single ammunition is a mix of one): the kills OF this type, so the tour, role and modifications are those of
     the **destroyed aircraft's own sortie** (`MissionAircraftAmmo(Mix).combat_role` / `.weapon_mods`); an AI aircraft (`NO_MODS_RECORDED`, no
     role) counts for the every-role, unfiltered scope only;
   - **top pilots** (hidden players left out): *by per-type Elo*, which follows the tour (`PlayerTourAircraft.elo`; all time: `PlayerAircraft.elo`, the best tour's, OQ-128); in a narrower scope a pilot must in addition have flown at least the leaderboard minimum of air superiority sorties within it
@@ -223,10 +229,12 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   Level-2 `AircraftStats`, `TourAircraftStats`, `AircraftMatchup`, `AircraftPayload`, `AircraftMods`, `AircraftAmmoStats`,
   `AircraftAmmoMixStats`, `PlayerAircraftScope`, built by `ingest/aircraft_stats.py` (incremental == rebuild). **No ratio is stored** (OQ-98): the
   list sorts K/D, K/L, survival and attack share with `queries.sorting.Ratio`. Optional columns: see above. Rules: OQ-65.
-- **Ammunition mixes and loadouts** (FR-WEB-18, 2026-10-04, OQ-116; FR-WEB-4): the aircraft detail's hits-to-destroy table has an **Instances**
-  column (counted kills in which the ammunition hit at least once) and below it **Ammunition mixes**: the same single-attacker kills grouped by
-  which gun ammo types hit together (`MissionAircraftAmmoMix` per mission, `AircraftAmmoMixStats` summed per scope) with the average hits of each
-  type in the mix; the first 10 mixes show, the rest sit in a `<details>`. The player profile's per-aircraft table gets an extra row per type with
+- **Ammunition mixes and loadouts** (FR-WEB-18, 2026-10-04, OQ-116; FR-WEB-4): the aircraft detail's hits-to-destroy section is **one table** (maintainer
+  2026-10-05, replacing the per-ammo table plus the mixes table): a summary row (all gun ammunition: counted kills, average hits), then one row per
+  ammo mix (the single-attacker kills grouped by which gun ammo types hit together, `MissionAircraftAmmoMix` per mission,
+  `AircraftAmmoMixStats` summed per scope; one ammunition is a mix of one), most kills first, with the kills and the **average hits of each type in
+  the stored order of the mix**, `5.4 + 2.7` (one decimal). Only mixes with 10 kills are listed and they page by 20; the per-ammo
+  `AircraftAmmoStats` rows stay (the aircraft list and the summary row read them). The player profile's per-aircraft table gets an extra row per type with
   the **favourite loadout** (its share of the pilot's sorties) (name and share only; no `<details>`), from `PlayerAircraftBuild` (one
   read; all time or the selected tour; **loadout only** since OQ-117: the weapon-modification sets and the ammo mix are gone from the profile and
   live on the aircraft page, where they follow the scope). The sortie page's summary has a **Modifications** row (names from `weapon_mods.csv`, "Unknown modification

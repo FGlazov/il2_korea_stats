@@ -4,9 +4,11 @@ The numbers cover every counted mission: hiding is presentation only (FR-ADM-3).
 the top-pilots table, which leaves hidden players out.
 """
 
-from dataclasses import dataclass
+from collections.abc import Sequence
+from dataclasses import dataclass, replace
 from urllib.parse import urlencode
 
+from django.core.paginator import Page, Paginator
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -17,6 +19,7 @@ from il2ks.db.models import AircraftRole
 from il2ks.queries import aircraft as reads
 from il2ks.queries import ammo as ammo_reads
 from il2ks.queries import leaderboards as board_reads
+from il2ks.queries import paging
 from il2ks.queries.aircraft import StatsRow
 from il2ks.queries.players import resolve_sort
 from il2ks.queries.tours import aircraft_absence, tour_choice_from
@@ -45,15 +48,16 @@ class MixPart:
 
 @dataclass(frozen=True, slots=True)
 class AmmoMixRow:
-    """An ammo mix: the ammunition that hit together, how often it destroyed the type, average hits per ammunition."""
+    """An ammo mix (a single ammunition is a mix of one): the ammunition that hit together, in the order the mix is
+    stored in, how often it destroyed the type, and the average hits of each ammunition in that order."""
 
     parts: tuple[MixPart, ...]
     instances: str
-    average: str  # all hits of the mix together
 
-
-MIX_ROWS_SHOWN = 10
-"""Ammo mixes listed before the "show all" fold (the rest sits in a `<details>`)."""
+    @property
+    def averages(self) -> str:
+        """`5.4 + 2.7`: the average hits of each ammunition, in the order of `parts`."""
+        return " + ".join(part.average for part in self.parts)
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,8 +67,6 @@ class HitsToDestroy:
     kills: str
     average: str
     by_ammo: tuple[AmmoHits, ...]
-    mixes: tuple[AmmoMixRow, ...] = ()
-    more_mixes: tuple[AmmoMixRow, ...] = ()  # beyond `MIX_ROWS_SHOWN`
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,8 +94,8 @@ def _mix_row(mix: ammo_reads.AmmoMix) -> AmmoMixRow:
     parts: list[MixPart] = []
     for part in mix.parts:
         info = ammo_reads.ammo_info(part.ammo)
-        parts.append(MixPart(info.name, info.designation, _average(part.average_hits)))
-    return AmmoMixRow(tuple(parts), display.num(mix.instances), _average(mix.average_hits))
+        parts.append(MixPart(info.name, info.designation, display.num(part.average_hits, 1)))
+    return AmmoMixRow(tuple(parts), display.num(mix.instances))
 
 
 def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
@@ -103,9 +105,51 @@ def _hits(found: ammo_reads.AircraftAmmo | None) -> HitsToDestroy:
         display.num(found.total.kills),
         _average(found.total.average_hits),
         tuple(_ammo_hits(a) for a in found.by_ammo),
-        tuple(_mix_row(m) for m in found.mixes[:MIX_ROWS_SHOWN]),
-        tuple(_mix_row(m) for m in found.mixes[MIX_ROWS_SHOWN:]),
     )
+
+
+def _page[T](rows: Sequence[T], request: HttpRequest, param: str) -> Page:
+    """One page of `rows` (the site's page size) for the table that pages by `?param=`."""
+    return Paginator(rows, paging.ROW_PAGE_SIZE).get_page(request.GET.get(param, 1))
+
+
+MIXES_PAGE_PARAM = "page_mixes"  # each table of the page pages apart (`page_*`, see `pagination`)
+LOADOUTS_PAGE_PARAM = "page_loadouts"
+MODS_PAGE_PARAM = "page_mods"
+LOADOUT_ROLE_PARAM = "lrole"  # the loadouts tab under the role "all": `air_superiority` or `attack`
+
+
+@dataclass(frozen=True, slots=True)
+class Tab:
+    """One option of the loadouts tab: its label, link and whether it is the shown one."""
+
+    label: str
+    href: str
+    current: bool
+
+
+def _loadout_role(request: HttpRequest, role: AircraftRole, attack_first: bool) -> AircraftRole:
+    """The combat role the loadouts table shows: the page's own role, else the tab (`?lrole=`), else the role most of
+    the type's sorties are flown in."""
+    if role != AircraftRole.ALL:
+        return role
+    chosen = request.GET.get(LOADOUT_ROLE_PARAM)
+    if chosen in {AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK}:
+        return AircraftRole(chosen)
+    return AircraftRole.ATTACK if attack_first else AircraftRole.AIR_SUPERIORITY
+
+
+def _loadout_tabs(request: HttpRequest, shown: AircraftRole) -> tuple[Tab, ...]:
+    """Air superiority | Attack links of the loadouts section; they keep every other parameter, a new tab starts at
+    page 1 and drops the loadout sort (its column may not exist in the other mode)."""
+    params = request.GET.copy()
+    for key in (LOADOUT_SORT_PARAM, LOADOUTS_PAGE_PARAM):
+        params.pop(key, None)
+    tabs: list[Tab] = []
+    for value in (AircraftRole.AIR_SUPERIORITY, AircraftRole.ATTACK):
+        params[LOADOUT_ROLE_PARAM] = value.value
+        tabs.append(Tab(str(display.ROLES[value.value][0]), f"{request.path}?{params.urlencode()}", value == shown))
+    return tuple(tabs)
 
 
 LOADOUT_SORT_PARAM = "lsort"  # the loadouts table sorts apart from the matchups table (`sort`)
@@ -126,9 +170,14 @@ def _query_url(request: HttpRequest, *, intercept: bool) -> str:
     """The page's own URL with the intercept filter set or cleared, keeping the tour and the matchup sort."""
     params: dict[str, str] = {}
     for key, value in request.GET.items():
-        if key in {"tour", "sort", reads.ROLE_PARAM, LOADOUT_SORT_PARAM, MOD_SORT_PARAM} or key.startswith(
-            reads.MOD_PARAM_PREFIX
-        ):
+        if key in {
+            "tour",
+            "sort",
+            reads.ROLE_PARAM,
+            LOADOUT_SORT_PARAM,
+            MOD_SORT_PARAM,
+            LOADOUT_ROLE_PARAM,
+        } or key.startswith(reads.MOD_PARAM_PREFIX):
             params[key] = value
     if intercept:
         params[INTERCEPT_PARAM] = "1"
@@ -187,19 +236,25 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
       (the killer's for kills, the victim's for losses), with the intercept toggle (both sorties air superiority);
     - top pilots: per-type Elo (all time by nature) among the pilots with enough air superiority sorties in the scope,
       and ground score per hour on target from the scope's own rows;
-    - hits to destroy and the ammunition mixes: the kills OF this type, the tour, role and modifications being those of
-      the destroyed aircraft's own sortie (an AI aircraft counts for every role without a modification filter only).
+    - hits to destroy: one table, a summary row (all counted kills) and one row per ammunition mix (a single ammunition
+      is a mix of one) with the average hits of each ammunition in the stored order ("5.4 + 2.7"): the kills OF this
+      type, the tour, role and modifications being those of the destroyed aircraft's own sortie (an AI aircraft counts
+      for every role without a modification filter only);
+    - the mixes, loadouts and modification sets need `paging.MIN_EVENTS_LISTED` kills / sorties to be listed and page
+      by `?page_mixes=`, `?page_loadouts=`, `?page_mods=` (20 rows); under the role "all" the loadouts have a tab
+      (`?lrole=air_superiority|attack`, default the role most sorties are flown in) that picks the loadouts of one
+      role and the columns that fit it; with a single role the table follows it.
     404 for a type nobody flew.
 
     Template `il2ks/aircraft/detail.html`. Context: stats (`AircraftStats`, all time), tile (the counters the tiles
-    show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived,
-    hits (`HitsToDestroy`), matchups (`queries.aircraft.MatchupTable`: rows, best, worst), sort (the matchup sort),
-    intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope), scoped (a role or modification
-    filter is set: narrows the top-Elo pilots), min_encounters, all_fights_url / intercept_url, show_elo /
-    show_ground, elo_pilots (`EloRow`s: with
-    .player), ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground
-    first), rules (the leaderboard minimums), loadouts (`queries.aircraft.Loadout` rows), loadout_sort, mod_filters,
-    mod_filtered, mod_sets, mod_sort, crumbs, page_title.
+    show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived, hits (`HitsToDestroy`:
+    the summary row), ammo_mixes (a `Page` of `AmmoMixRow`), min_events, matchups (`queries.aircraft.MatchupTable`),
+    sort (the matchup sort), intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope),
+    min_encounters, all_fights_url / intercept_url, show_elo / show_ground, elo_pilots (`EloRow`s: with .player),
+    ground_pilots (`BoardRow`s of the ground-per-hour board), ground_first (an attack type: list ground first), rules
+    (the leaderboard minimums), loadouts (a `Page` of `queries.aircraft.Loadout`), loadout_role (the role the table
+    shows), loadout_tabs (`Tab`s; empty with a single role), loadout_sort, mod_filters, mod_filtered, mod_sets (a
+    `Page`), mod_sort, crumbs, page_title.
     Reads: with a tour, role or filter selected and data in every section, nine queries (the type's all-time row, the
     scope's row, hits, ammo mixes, matchups, loadouts, mod sets, and one query per pilot board: Elo and ground
     both for every role, one for a single role), plus the tours, plus the 2 of the context processor: 12 at most,
@@ -235,6 +290,15 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     name = object_names.name_of(aircraft, get_language() or "en")
     show_elo = role != AircraftRole.ATTACK
     show_ground = role != AircraftRole.AIR_SUPERIORITY
+    ground_first = role == AircraftRole.ATTACK or (
+        role == AircraftRole.ALL and tile.sorties > 0 and tile.attack_sorties >= ATTACK_TYPE_SHARE * tile.sorties
+    )
+    min_events = paging.MIN_EVENTS_LISTED
+    ammo = ammo_reads.aircraft_ammo(aircraft, choice.selected, role, mod_pattern, min_events)
+    hits = _hits(ammo)
+    if ammo.total is not None:  # the mix rows show one decimal, so the total row does too
+        hits = replace(hits, average=display.num(ammo.total.average_hits, 1))
+    loadout_role = _loadout_role(request, role, ground_first)
     context = {
         "page_title": name,
         "crumbs": [(_("Aircraft"), reverse("web:aircraft-list")), (name, None)],
@@ -242,13 +306,14 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "tile": tile,
         "aircraft": aircraft,
         "survived": max(tile.sorties - tile.deaths, 0),
-        "hits": _hits(ammo_reads.aircraft_ammo(aircraft, choice.selected, role, mod_pattern)),
+        "hits": hits,
+        "ammo_mixes": _page([_mix_row(m) for m in ammo.mixes], request, MIXES_PAGE_PARAM),
+        "min_events": min_events,
         **choice.context,
         # nobody flew the type in the selected tour (a clean slate): only an empty tile pays the extra read
         "absence": aircraft_absence(aircraft.pk, choice) if tile.sorties == 0 else None,
         "role": role.value,
         "matchups": reads.matchups(aircraft, choice.selected, intercept, matchup_sort, role, mod_pattern),
-        "scoped": role != AircraftRole.ALL or bool(mod_pattern),
         "sort": matchup_sort,
         "intercept": intercept,
         "can_intercept": can_intercept,
@@ -259,14 +324,23 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "show_ground": show_ground,
         "elo_pilots": reads.top_elo(aircraft, rules, choice.selected, role, mod_pattern) if show_elo else [],
         "ground_pilots": reads.top_ground(aircraft, rules, choice.selected, role, mod_pattern) if show_ground else [],
-        "ground_first": role == AircraftRole.ATTACK
-        or (role == AircraftRole.ALL and tile.sorties > 0 and tile.attack_sorties >= ATTACK_TYPE_SHARE * tile.sorties),
+        "ground_first": ground_first,
         "rules": rules,
         "mod_filters": tuple(ModFilter(m.mod_id, m.name, state) for m, state in zip(significant, states, strict=True)),
         "mod_filtered": bool(mod_pattern),
-        "loadouts": reads.payloads(aircraft, role, rules, loadout_sort, mod_pattern, choice.selected),
+        "loadouts": _page(
+            reads.payloads(aircraft, loadout_role, rules, loadout_sort, mod_pattern, choice.selected, min_events),
+            request,
+            LOADOUTS_PAGE_PARAM,
+        ),
+        "loadout_role": loadout_role.value,
+        "loadout_tabs": _loadout_tabs(request, loadout_role) if role == AircraftRole.ALL else (),
         "loadout_sort": loadout_sort,
-        "mod_sets": reads.mod_sets(aircraft, role, rules, mod_sort, mod_pattern, choice.selected),
+        "mod_sets": _page(
+            reads.mod_sets(aircraft, role, rules, mod_sort, mod_pattern, choice.selected, min_events),
+            request,
+            MODS_PAGE_PARAM,
+        ),
         "mod_sort": mod_sort,
     }
     return render(request, "il2ks/aircraft/detail.html", context)

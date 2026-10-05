@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 import pytest
+from django.http import HttpResponse
 from django.test import Client
 
 from il2ks.core.replay.result import MissionResult, SingleAttackerKill
@@ -10,6 +11,7 @@ from il2ks.db.models import MIX_SEPARATOR, TOTAL_AMMO, AircraftAmmoMixStats, Gam
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import aircraft_ammo_mix_totals
 from il2ks.queries.ammo import aircraft_ammo
+from il2ks.queries.paging import MIN_EVENTS_LISTED
 from tests.factories import meta, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
@@ -92,29 +94,95 @@ def test_incremental_mixes_equal_a_rebuild_and_a_resave_replaces_them() -> None:
     assert mix_stats() == after
 
 
+def mix_page(client: Client, pk: int, query: str = "") -> HttpResponse:
+    response = client.get(f"/aircraft/{pk}/{query}")
+    assert response.status_code == 200
+    return response
+
+
+@pytest.mark.usefixtures("list_every_row")
 def test_aircraft_detail_lists_ammo_mixes_and_stays_cheap(client: Client) -> None:
     save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 3), (INC, 1)), ((API, 5),))))
     pk = GameObject.objects.get(log_name="MiG-15bis").pk
 
-    response = client.get(f"/aircraft/{pk}/")
+    response = mix_page(client, pk)
 
     body = response.content.decode()
-    assert "Kills" in body
     assert "Kills it hit in" not in body
-    hits = response.context["hits"]
-    assert [(m.instances, m.average, [(p.name, p.average) for p in m.parts]) for m in hits.mixes] == [
-        ("1", "5.00", [(".50 BMG API", "5.00")]),
-        ("1", "4.00", [(".50 BMG API", "3.00"), (".50 BMG INC", "1.00")]),
+    assert "Show 2 more mixes" not in body  # the fold is gone: the table pages
+    assert [(m.instances, m.averages, [p.name for p in m.parts]) for m in response.context["ammo_mixes"]] == [
+        ("1", "5.0", [".50 BMG API"]),  # a single ammunition is a mix of one: no separate per-ammo rows
+        ("1", "3.0 + 1.0", [".50 BMG API", ".50 BMG INC"]),
     ]
-    assert hits.more_mixes == ()
+    assert response.context["hits"].kills == "2"
+    assert "3.0 + 1.0" in body
     assert_simple_reads(client, f"/aircraft/{pk}/", max_queries=AIRCRAFT_DETAIL_READS)
 
 
-def test_mixes_beyond_the_top_ten_sit_in_the_fold(client: Client) -> None:
-    rows = tuple(((API, 1), (f"BULLET_X{i:02d}", 1)) for i in range(12))
+def test_ammo_mix_average_hits_read_5_4_plus_2_7_in_the_stored_order(client: Client) -> None:
+    """Ten kills where the API hit 54 times and the INC 27 times: the row reads 5.4 + 2.7, in the order of the mix."""
+    api_hits = (5, 5, 5, 5, 5, 5, 5, 5, 5, 9)  # 54
+    inc_hits = (3, 3, 3, 3, 3, 3, 3, 2, 2, 2)  # 27
+    rows = tuple(((API, a), (INC, i)) for a, i in zip(api_hits, inc_hits, strict=True))
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", *rows)))
+    mig = GameObject.objects.get(log_name="MiG-15bis")
+
+    response = mix_page(client, mig.pk)
+
+    rows = [(m.instances, m.averages) for m in response.context["ammo_mixes"]]
+    assert rows == [("10", "5.4 + 2.7")]
+    assert "5.4 + 2.7" in response.content.decode()
+
+
+def test_ammo_mix_parts_follow_the_order_the_mix_is_stored_in(client: Client) -> None:
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 1), (INC, 1)))))
+    mig = GameObject.objects.get(log_name="MiG-15bis")
+    stored = f"{SHELL}{MIX_SEPARATOR}{INC}{MIX_SEPARATOR}{API}"  # not alphabetical by name: stored order wins
+    for ammo, hits in ((TOTAL_AMMO, 100), (API, 20), (INC, 30), (SHELL, 50)):
+        AircraftAmmoMixStats.objects.create(aircraft=mig, mix=stored, ammo=ammo, kills=10, hits=hits)
+
+    found = aircraft_ammo(mig, min_mix_kills=10).mixes
+
+    assert [m.ammos for m in found] == [(SHELL, INC, API)]
+    assert [(p.ammo, p.average_hits) for p in found[0].parts] == [(SHELL, 5.0), (INC, 3.0), (API, 2.0)]
+    assert [m.averages for m in mix_page(client, mig.pk, "?tour=all").context["ammo_mixes"]] == ["5.0 + 3.0 + 2.0"]
+
+
+def test_ammo_mixes_need_ten_kills_to_be_listed(client: Client) -> None:
+    assert MIN_EVENTS_LISTED == 10
+    ten = tuple(((API, 2), (INC, 1)) for _ in range(10))
+    nine = tuple(((API, 1), (SHELL, 1)) for _ in range(9))
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", *ten, *nine)))
+    pk = GameObject.objects.get(log_name="MiG-15bis").pk
+
+    response = mix_page(client, pk)
+
+    assert [(m.instances, m.averages) for m in response.context["ammo_mixes"]] == [("10", "2.0 + 1.0")]
+    assert response.context["hits"].kills == "19"  # the summary row still counts every kill
+
+
+def test_a_type_without_a_mix_of_ten_kills_says_so(client: Client) -> None:
+    save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", ((API, 1),))))
+    pk = GameObject.objects.get(log_name="MiG-15bis").pk
+
+    response = mix_page(client, pk)
+
+    assert list(response.context["ammo_mixes"]) == []
+    assert "No ammunition mix with at least 10 kills yet." in response.content.decode()
+
+
+@pytest.mark.usefixtures("list_every_row")
+def test_ammo_mixes_page_by_twenty_with_their_own_parameter(client: Client) -> None:
+    rows = tuple(((API, 1), (f"BULLET_X{i:02d}", 1)) for i in range(25))
     save(with_kills(mission((sortie(0, 1),)), *kills("MiG-15bis", *rows)))
     pk = GameObject.objects.get(log_name="MiG-15bis").pk
 
-    hits = client.get(f"/aircraft/{pk}/").context["hits"]
+    first = mix_page(client, pk)
+    second = mix_page(client, pk, "?page_mixes=2&page_mods=7")
 
-    assert (len(hits.mixes), len(hits.more_mixes)) == (10, 2)
+    assert (len(first.context["ammo_mixes"]), len(second.context["ammo_mixes"])) == (20, 5)
+    assert second.context["ammo_mixes"].number == 2
+    body = second.content.decode()
+    assert "Showing 21\N{EN DASH}25 of 25" in body
+    assert 'aria-label="Pagination: Hits to destroy"' in body
+    assert 'hx-get="?page_mixes=2' in first.content.decode()

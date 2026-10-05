@@ -10,7 +10,7 @@ from il2ks.db.models import PlayerSortie
 from tests.factories import mission, save, sortie
 from tests.integration.test_aircraft_mods import detail, history
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("list_every_row")]
 
 
 def switch(client: Client, language: str) -> None:
