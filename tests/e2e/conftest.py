@@ -19,6 +19,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import cast
 
 import pytest
 from playwright.sync_api import ConsoleMessage, Page, expect
@@ -146,6 +147,40 @@ def set_branding(_e2e_data_dir: tuple[Path, World], base_url: str) -> Iterator[C
         yield apply
     finally:
         apply({})
+
+
+TweakData = Callable[[str, int | None, dict[str, object]], None]
+
+
+@pytest.fixture
+def tweak_data(_e2e_data_dir: tuple[Path, World], base_url: str) -> Iterator[TweakData]:
+    """`tweak_data("Mission", pk, {"is_live": True})` changes fields of one row of the running site (see
+    `tests.e2e.tweaks`: `Mission`, `PlayerSortie`, or `SiteSettings` with no pk); the old values are restored after
+    the test, last change first. `base_url` makes sure the server is up."""
+    data_dir = _e2e_data_dir[0]
+    undo: list[tuple[str, int | None, dict[str, object]]] = []
+
+    def run(model: str, pk: int | None, fields: dict[str, object]) -> dict[str, object]:
+        done = subprocess.run(
+            [sys.executable, "-m", "tests.e2e.tweaks", json.dumps({"model": model, "pk": pk, "fields": fields})],
+            cwd=data_dir.parent,
+            env=_child_env(data_dir),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=120,
+        )
+        assert done.returncode == 0, f"tweaking {model} {pk} failed:\n{done.stdout}\n{done.stderr}"
+        return cast("dict[str, object]", json.loads(done.stdout.strip().splitlines()[-1]))
+
+    def apply(model: str, pk: int | None, fields: dict[str, object]) -> None:
+        undo.append((model, pk, run(model, pk, fields)))
+
+    try:
+        yield apply
+    finally:
+        for model, pk, before in reversed(undo):
+            run(model, pk, before)
 
 
 @pytest.fixture(autouse=True)
