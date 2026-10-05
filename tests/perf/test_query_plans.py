@@ -143,6 +143,10 @@ def test_ingest_queries_use_an_index(big_world: SeededWorld, tmp_path: Path) -> 
 def test_the_sortie_list_of_the_current_tour_walks_the_tour_index(client: Client, big_world: SeededWorld) -> None:
     """`/sorties/` (current tour, newest first): the page and its COUNT both read `sortie_tour_recent`, no sort step
     (the tour lives on the sortie row, `PlayerSortie.tour`)."""
+    if connection.vendor != "sqlite":
+        pytest.skip(
+            "names the SQLite index; Postgres plans the seeded world by its statistics (the generic plan rules above apply)"
+        )
     _, statements = capture(lambda: client.get("/sorties/"))
     plans = {s.sql: qp.explain(s) for s in statements if "il2ks_db_playersortie" in s.sql}
     assert len(plans) == 2
