@@ -1,7 +1,8 @@
 """One level-2 path, three ways in (doc 14 "Level-2 refresh"): missions of three tours, a late import into an old tour
 and a re-ingest that moves a mission to another tour, saved one by one (`save_mission`), as one batch (`save_level1` +
 `Level2Batch`) and then rebuilt (`rebuild_aggregates`) must leave identical databases, including the per-tour Elo, the
-streaks and the medals with their all-time roll-ups (tests.db_canon: primary-key free, sorted, floats rounded)."""
+aircraft type Elo (per tour and all time), the streaks and the medals with their all-time roll-ups (tests.db_canon:
+primary-key free, sorted, floats rounded)."""
 
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
@@ -16,7 +17,15 @@ from il2ks.core.ratings.score import DEFAULT_SCORE_RULES
 from il2ks.core.replay.result import MissionResult
 from il2ks.core.stat_marks import DEFAULT_MARK_RULES
 from il2ks.core.tours import DEFAULT_TOUR_RULES
-from il2ks.db.models import PlayerAchievement, PlayerBestStreak, PlayerSortie, PlayerTourPool, Tour
+from il2ks.db.models import (
+    AircraftStats,
+    PlayerAchievement,
+    PlayerBestStreak,
+    PlayerSortie,
+    PlayerTourPool,
+    Tour,
+    TourAircraftStats,
+)
 from il2ks.ingest import persist
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.batch import Level2Batch
@@ -135,6 +144,8 @@ def test_the_scenario_has_something_in_every_part_it_compares() -> None:
         assert Tour.objects.count() == 3
         assert PlayerTourPool.objects.filter(elo_games__gt=0).count() >= 3  # an Elo per tour
         assert PlayerSortie.objects.filter(elo_peak__gt=0).exists()
+        assert TourAircraftStats.objects.filter(tour__isnull=False, elo_games__gt=0).count() >= 3  # a type Elo per tour
+        assert AircraftStats.objects.filter(elo_games__gt=0).exists()  # and its all-time roll-up
         assert PlayerBestStreak.objects.filter(tour__isnull=False).exists()
         assert PlayerBestStreak.objects.filter(tour__isnull=True).exists()  # the all-time roll-up
         assert PlayerAchievement.objects.filter(tour__isnull=False).exists()

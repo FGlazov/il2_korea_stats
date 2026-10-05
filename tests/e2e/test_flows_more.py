@@ -153,14 +153,14 @@ def test_a_shared_sortie_carries_open_graph_tags_that_match_the_page(page: Page,
 def test_a_deep_link_restores_tour_sort_and_columns_for_someone_else(
     page: Page, browser: Browser, base_url: str, world: World
 ) -> None:
-    """Set up a view (all time, sorted by Pilots, two extra columns), copy the address, open it in a fresh browser
+    """Set up a view (all time, sorted by Pilots, three extra columns), copy the address, open it in a fresh browser
     context (nobody's cookies, no stored choices): the same view comes up."""
     page.goto("/aircraft/")
     tour_select(page).select_option(label="All time")
     expect(page).to_have_url(re.compile(r"tour=all"))
     settle(page)
     page.get_by_text("Extra columns", exact=True).click()
-    for label in ("Bailouts", "Assists"):
+    for label in ("Bailouts", "Assists", "Pilots"):
         page.get_by_role("checkbox", name=label, exact=True).check()
         expect(column_header(page, label)).to_be_visible()
     column_header(page, "Pilots").get_by_role("link").click()
@@ -174,7 +174,7 @@ def test_a_deep_link_restores_tour_sort_and_columns_for_someone_else(
         theirs_page = other.new_page()
         theirs_page.goto(shared)
         expect(tour_select(theirs_page)).to_have_value("all")
-        for label in ("Bailouts", "Assists"):
+        for label in ("Bailouts", "Assists", "Pilots"):
             expect(column_header(theirs_page, label)).to_be_visible()
         expect(column_header(theirs_page, "Pilots")).to_have_attribute("aria-sort", "descending")
         assert rows_of(table_with(theirs_page, "Aircraft", "Pilots")) == mine

@@ -1054,6 +1054,10 @@ class AircraftStats(AircraftCounters):
     K/L, survival and the attack share are shown from the counters and sorted with `queries.sorting.Ratio`."""
 
     aircraft = models.OneToOneField(GameObject, on_delete=models.PROTECT, related_name="stats")
+    # The aircraft type's own Elo (maintainer, 2026-10-05; `ingest.aircraft_stats`): the best qualifying tour's final
+    # rating (`RatingRules.type_min_games`), the games of all tours summed. 1500 / 0 = no game (shown as a dash).
+    elo = models.FloatField(default=1500.0)
+    elo_games = models.PositiveIntegerField(default=0)
 
     class Meta(AircraftCounters.Meta):
         abstract = False
@@ -1087,6 +1091,11 @@ class TourAircraftStats(AircraftCounters):
     # name that sorts first), so an all-time row's side is the argmax of the summed tour rows (doc 14)
     sorties_redfor = models.PositiveIntegerField(default=0)
     sorties_blufor = models.PositiveIntegerField(default=0)
+    # The type's Elo within the tour (replayed from the tour's air superiority duels between types, a clean slate each
+    # tour), on the unfiltered `all` and `air_superiority` role rows only (the Elo is air superiority by definition);
+    # the all-time role row holds the best qualifying tour's. 1500 / 0 = no game.
+    elo = models.FloatField(default=1500.0)
+    elo_games = models.PositiveIntegerField(default=0)
 
     class Meta(AircraftCounters.Meta):
         abstract = False

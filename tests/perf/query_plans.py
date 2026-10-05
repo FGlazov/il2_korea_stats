@@ -110,6 +110,13 @@ SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
         "ingest",
     ),
     QueryAllowance(
+        "il2ks_db_playerstreak",
+        '"current_tour_id" IS NOT NU',
+        "a newer tour zeroes every pilot's current run in one UPDATE (`ingest.streaks.rollup_streaks`): one row per "
+        "pilot and track, not the history",
+        "ingest",
+    ),
+    QueryAllowance(
         "il2ks_db_player",
         '>= %s OR "il2ks_db_player"',
         "the stat thresholds (percentiles) are computed over every eligible pilot: a whole-population pass by "

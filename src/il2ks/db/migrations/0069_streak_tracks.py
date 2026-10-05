@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0067_player_role_totals"),
+        ("il2ks_db", "0068_aircraft_type_elo"),
     ]
 
     operations = [

@@ -112,7 +112,7 @@ def save_mission(
     `meta.live`: a provisional save of the running mission (`ingest.live`, FR-ING-15). The same rows by the same natural
     keys, so every URL stays the same until the final save. The live tracker uses `save_level1` and `apply_level2`
     separately (own intervals); this function with `meta.live` is the same thing in one go, without ratings (the Elo
-    replay ignores the kills of a live mission anyway, `ratings._games`).
+    replay ignores the kills of a live mission anyway, `rating_games.rated_games`).
     """
     mission, touched_tours = save_level1(result, meta, catalog, tours, score)
     apply_level2(touched_tours, ratings)

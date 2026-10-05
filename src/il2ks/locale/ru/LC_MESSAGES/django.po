@@ -61,6 +61,11 @@ msgstr[2] "%(games)s столкновений"
 
 # llm-draft
 #, python-format
+msgid "%(games)s games between types"
+msgstr "%(games)s игр между типами"
+
+# llm-draft
+#, python-format
 msgid "%(h)d h"
 msgstr "%(h)d ч"
 
@@ -1191,8 +1196,12 @@ msgid "Average hits"
 msgstr "Среднее число попаданий"
 
 # llm-draft
-msgid "Average number of gun hits that destroyed it"
-msgstr "Среднее число попаданий из пушек и пулемётов, которое потребовалось для уничтожения"
+msgid ""
+"Average number of gun hits that destroyed it, counted over all time. Only kills where one attacker did all the damage"
+" are included, and bombs and rockets are left out."
+msgstr ""
+"Среднее число попаданий из бортового оружия, которое потребовалось, чтобы его уничтожить, за всё время. Учитываются "
+"только победы, в которых весь урон нанёс один атакующий; бомбы и ракеты не в счёт."
 
 # llm-draft
 #. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
@@ -1918,6 +1927,16 @@ msgid "Elo boards: encounters a pilot needs"
 msgstr "Рейтинги Эло: нужно встреч у лётчика"
 
 # llm-draft
+msgid ""
+"Elo rates the aircraft types against each other: every kill between two players in air superiority sorties is a game "
+"won by the killer's type. Attack proficiency is the ground score per hour on target. More columns are under Extra "
+"columns."
+msgstr ""
+"Эло оценивает типы самолётов друг относительно друга: каждое сбитие одного игрока другим в вылетах на господство в "
+"воздухе — это партия, выигранная типом сбившего. Мастерство штурмовки — это очки за землю за час над целью. Остальные"
+" столбцы — в разделе «Дополнительные столбцы»."
+
+# llm-draft
 msgid "Elo ratings"
 msgstr "Рейтинг Эло"
 
@@ -2630,16 +2649,6 @@ msgstr "Принято попаданий"
 # llm-draft
 msgid "Hits to destroy"
 msgstr "Попаданий до уничтожения"
-
-# llm-draft
-msgid ""
-"Hits to destroy: counted over all time; only kills where one attacker did all the damage are included, and bombs and "
-"rockets are left out. Attack sorties: the share of sorties flown with bombs or rockets; the rest are air superiority "
-"sorties."
-msgstr ""
-"Попаданий до уничтожения: считается за всё время; учитываются только победы, где весь урон нанёс один атакующий, "
-"бомбы и ракеты не входят. Штурмовые вылеты: доля вылетов с бомбами или ракетами, остальные — на завоевание "
-"превосходства в воздухе."
 
 # llm-draft
 msgid "Home"
@@ -4257,6 +4266,17 @@ msgstr "Тараны"
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
 msgstr "Из отчётов офицера по безопасности об этом пилоте уже можно издавать сборник. Пилот, разумеется, соавтор."
+
+# llm-draft
+#. Translators: tooltip of the "Elo" column header of the aircraft list (the rating of an aircraft type, not a pilot)
+msgid ""
+"Rating of the aircraft type from air superiority duels between types. Every kill between two players in air "
+"superiority sorties is a game won by the killer's type, whoever flew it; 1500 at the start of a tour. All time counts"
+" the best tour with enough games."
+msgstr ""
+"Рейтинг типа самолёта по воздушным дуэлям между типами в вылетах на господство в воздухе. Каждое сбитие одного игрока"
+" другим — партия, выигранная типом сбившего, кто бы на нём ни летал; в начале тура — 1500. За всё время учитывается "
+"лучший тур с достаточным числом партий."
 
 # llm-draft
 msgid "Ratings"

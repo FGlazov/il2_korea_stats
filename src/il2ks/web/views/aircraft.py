@@ -75,6 +75,16 @@ class AircraftRow:
     hits: HitsToDestroy
     survived: int  # sorties without a death
 
+    @property
+    def hits_average(self) -> str:
+        """The average gun hits to destroy the type (the optional "Hits to destroy" column)."""
+        return self.hits.average
+
+    @property
+    def elo_text(self) -> str:
+        """The type's Elo, a dash while it has no rated duel (1500 / 0 games is only the starting value)."""
+        return display.num(self.stats.elo) if self.stats.elo_games else display.DASH
+
 
 ATTACK_TYPE_SHARE = 0.5
 """A type with at least this share of attack sorties lists its ground proficiency ranking before its Elo."""
@@ -193,6 +203,7 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
 
     Template `il2ks/aircraft/list.html`. Context: rows (`AircraftRow`), sort (resolved), role, tours / tour (the
     selector), page_title, optional_columns (every column a visitor can add) and columns (the ones `?cols=` chose).
+    The default columns are aircraft, sorties, Elo, K/L, survival and attack proficiency; the others are optional.
     Reads: three queries (the tours, the rows, the hits; plus the 2 of the context processor)."""
     choice = tour_choice_from(request.GET)
     role = reads.parse_role(request.GET.get(reads.ROLE_PARAM))
@@ -218,7 +229,7 @@ def aircraft_list(request: HttpRequest) -> HttpResponse:
         "page_title": _("Aircraft"),
         "optional_columns": columns.AIRCRAFT_COLUMNS,
         "columns": shown,
-        "colspan": 13 + len(shown),
+        "colspan": 6 + len(shown),
     }
     return render(request, "il2ks/aircraft/list.html", context)
 

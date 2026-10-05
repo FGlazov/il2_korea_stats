@@ -33,7 +33,10 @@ def headers(html: str) -> dict[str, str]:
         ("/leaderboards/ground-hour/", ["Attack proficiency", "Time on target"]),
         ("/leaderboards/interception/", ["Kills per hour", "Bombers, attackers and transports shot down"]),
         ("/leaderboards/tank-busting/", ["Tanks per hour", "Tanks destroyed", "Time on target"]),
-        ("/aircraft/?cols=accuracy_air,assists,ground_hour", ["K/L", "Survival", "Air accuracy", "Attack proficiency"]),
+        (
+            "/aircraft/?cols=accuracy_air,assists,hits",
+            ["Elo", "K/L", "Survival", "Attack proficiency", "Air accuracy", "Hits to destroy"],
+        ),
         ("/players/?q=&cols=elo_jet,kl,accuracy,assists_air,assists_ground", ["Elo (jet)", "K/L", "Gun accuracy"]),
         ("/players/?q=&cols=elo_prop,score_air,friendly_kills", ["Elo (prop)", "Air score", "Friendly kills"]),
         ("/missions/?cols=friendly_kills", ["Friendly kills"]),

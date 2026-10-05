@@ -58,6 +58,11 @@ msgstr[1] "%(games)s confrontos"
 
 # llm-draft
 #, python-format
+msgid "%(games)s games between types"
+msgstr "%(games)s partidas entre tipos"
+
+# llm-draft
+#, python-format
 msgid "%(h)d h"
 msgstr "%(h)d h"
 
@@ -1176,8 +1181,12 @@ msgid "Average hits"
 msgstr "Acertos em média"
 
 # llm-draft
-msgid "Average number of gun hits that destroyed it"
-msgstr "Média de acertos de armas que o destruíram"
+msgid ""
+"Average number of gun hits that destroyed it, counted over all time. Only kills where one attacker did all the damage"
+" are included, and bombs and rockets are left out."
+msgstr ""
+"Número médio de acertos de armas de bordo que foram necessários para destruí-lo, contado em todo o período. Só entram"
+" os abates em que um único atacante causou todo o dano; bombas e foguetes ficam de fora."
 
 # llm-draft
 #. Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects
@@ -1897,6 +1906,16 @@ msgid "Elo boards: encounters a pilot needs"
 msgstr "Classificações Elo: encontros de que um piloto precisa"
 
 # llm-draft
+msgid ""
+"Elo rates the aircraft types against each other: every kill between two players in air superiority sorties is a game "
+"won by the killer's type. Attack proficiency is the ground score per hour on target. More columns are under Extra "
+"columns."
+msgstr ""
+"O Elo avalia os tipos de aeronave uns contra os outros: cada abate entre dois jogadores em surtidas de superioridade "
+"aérea é uma partida vencida pelo tipo de quem abateu. A proficiência de ataque é a pontuação de solo por hora sobre o"
+" alvo. Você encontra mais colunas em “Colunas extras”."
+
+# llm-draft
 msgid "Elo ratings"
 msgstr "Classificação Elo"
 
@@ -2610,16 +2629,6 @@ msgstr "Acertos sofridos"
 # llm-draft
 msgid "Hits to destroy"
 msgstr "Acertos para destruir"
-
-# llm-draft
-msgid ""
-"Hits to destroy: counted over all time; only kills where one attacker did all the damage are included, and bombs and "
-"rockets are left out. Attack sorties: the share of sorties flown with bombs or rockets; the rest are air superiority "
-"sorties."
-msgstr ""
-"Acertos para destruir: contados em todo o período; só entram as vitórias em que um único atacante causou todo o dano,"
-" e bombas e foguetes ficam de fora. Surtidas de ataque: a parcela das surtidas com bombas ou foguetes; as demais são "
-"surtidas de superioridade aérea."
 
 # llm-draft
 msgid "Home"
@@ -4233,6 +4242,17 @@ msgstr "Colisões"
 # llm-draft
 msgid "Rarely does one pilot give the safety officer so much to write about. A true collaborator."
 msgstr "Os relatórios do oficial de segurança sobre este piloto já dão um livro. Com ele como coautor."
+
+# llm-draft
+#. Translators: tooltip of the "Elo" column header of the aircraft list (the rating of an aircraft type, not a pilot)
+msgid ""
+"Rating of the aircraft type from air superiority duels between types. Every kill between two players in air "
+"superiority sorties is a game won by the killer's type, whoever flew it; 1500 at the start of a tour. All time counts"
+" the best tour with enough games."
+msgstr ""
+"Avaliação do tipo de aeronave a partir dos duelos aéreos entre tipos em surtidas de superioridade aérea. Cada abate "
+"entre dois jogadores é uma partida vencida pelo tipo de quem abateu, não importa quem o pilotava; 1500 no início de "
+"uma temporada. No total geral conta a melhor temporada com partidas suficientes."
 
 # llm-draft
 msgid "Ratings"
