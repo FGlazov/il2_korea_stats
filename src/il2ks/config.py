@@ -15,9 +15,11 @@ the default). No file at all means defaults plus env. Relative paths in the file
 
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import ipaddress
 import logging
+import math
 import os
 import re
 import tomllib
@@ -50,6 +52,8 @@ SERVER_UID_FILE = "server_uid.txt"
 CONFIG_FILE = "il2ks.toml"
 DB_FILE = "il2ks.sqlite3"  # `settings.py` names the SQLite file the same way
 DEFAULT_LOG_KEEP_DAYS = 14
+MAX_WHOLE_NUMBER = 2_000_000_000
+"""The largest whole number a setting may have (it must fit a database integer column)."""
 
 
 class ConfigError(ValueError):
@@ -648,14 +652,20 @@ class _Reader:
     def _float(self, label: str, value: object) -> float:
         if isinstance(value, bool):
             raise ConfigError(f"{label} must be a number")
+        number: float | None = None
         if isinstance(value, int | float):
-            return float(value)
-        if isinstance(value, str):
             try:
-                return float(value)
-            except ValueError:
-                pass
-        raise ConfigError(f"{label} must be a number")
+                number = float(value)
+            except OverflowError:  # an integer beyond the range of a float
+                raise ConfigError(f"{label} must be a finite number") from None
+        elif isinstance(value, str):
+            with contextlib.suppress(ValueError):
+                number = float(value)
+        if number is None:
+            raise ConfigError(f"{label} must be a number")
+        if not math.isfinite(number):  # nan and inf (also "1e400"): they break integer fields, JSON and arithmetic
+            raise ConfigError(f"{label} must be a finite number")
+        return number
 
     def non_negative(self, section: str, key: str, default: float) -> float:
         value, _ = self._get(section, key)
@@ -667,10 +677,7 @@ class _Reader:
         return number
 
     def positive_int(self, section: str, key: str, default: int) -> int:
-        number = self.positive(section, key, float(default))
-        if number != int(number):
-            raise ConfigError(f"{self._label(section, key)} must be a whole number")
-        return int(number)
+        return self._whole(section, key, self.positive(section, key, float(default)))
 
     def positive(self, section: str, key: str, default: float) -> float:
         number = self.non_negative(section, key, default)
@@ -680,9 +687,15 @@ class _Reader:
 
     def whole_number(self, section: str, key: str, default: int) -> int:
         """An integer >= 0."""
-        number = self.non_negative(section, key, float(default))
+        return self._whole(section, key, self.non_negative(section, key, float(default)))
+
+    def _whole(self, section: str, key: str, number: float) -> int:
+        """`number` (finite: `_float` saw to it) as an int; a ConfigError when it has a fraction or is absurdly large (a
+        database column or a time span could not take it)."""
         if number != int(number):
             raise ConfigError(f"{self._label(section, key)} must be a whole number")
+        if number > MAX_WHOLE_NUMBER:
+            raise ConfigError(f"{self._label(section, key)} must be at most {MAX_WHOLE_NUMBER}")
         return int(number)
 
     def port(self, section: str, key: str, default: int) -> int:

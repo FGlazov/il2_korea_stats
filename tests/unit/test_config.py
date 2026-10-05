@@ -178,7 +178,6 @@ def test_invalid_values_name_the_setting(tmp_path: Path, toml: str, message: str
         load_config(file, {"IL2KS_DATA_DIR": str(tmp_path / "d")})
 
 
-@pytest.mark.xfail(strict=True, reason="review #12 item 3: the parser accepts nan, inf and an unbounded tour length")
 @pytest.mark.parametrize(
     ("toml", "message"),
     [

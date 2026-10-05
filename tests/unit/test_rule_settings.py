@@ -111,7 +111,6 @@ def test_invalid_input_is_rejected_with_the_message_of_the_config_parser(
     assert problems == [str(from_file.value).removeprefix(f"{file}: ")]
 
 
-@pytest.mark.xfail(strict=True, reason="review #12 item 3: inf and nan get through, or raise OverflowError")
 @pytest.mark.parametrize(
     ("key", "text"),
     [

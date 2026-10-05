@@ -64,6 +64,10 @@ class Period:
     title: str
 
 
+MAX_TOUR_DAYS = 3660
+"""The longest tour of the `days:<N>` mode (ten years): a larger N overflows the calendar arithmetic."""
+
+
 def parse_mode(text: str) -> tuple[TourMode, int]:
     """`"monthly"` -> ("monthly", 0), `"days:14"` -> ("days", 14), `"manual"` -> ("manual", 0). Raises ValueError."""
     value = text.strip().lower()
@@ -75,6 +79,8 @@ def parse_mode(text: str) -> tuple[TourMode, int]:
             days = int(number)
         except ValueError:
             days = 0
+        if days > MAX_TOUR_DAYS:
+            raise ValueError(f"days:<N> must have N of at most {MAX_TOUR_DAYS}, got {text!r}")
         if days >= 1:
             return "days", days
     raise ValueError(f"must be monthly, manual or days:<N> with a whole number N of at least 1, got {text!r}")
