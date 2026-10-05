@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from il2ks import logsetup
+from il2ks import devtools, logsetup
 from il2ks.cli import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE, PLANNED, main
 from il2ks.config import Config
 from il2ks.ingest import reprocess as reprocess_mod
@@ -262,6 +262,7 @@ def test_dev_translations_without_the_dev_dependencies_says_so_instead_of_a_trac
 ) -> None:
     """A wheel installed for running a site has no Babel: `il2ks dev translations ...` must not crash."""
     monkeypatch.delitem(sys.modules, "il2ks.devtools.translations", raising=False)
+    monkeypatch.delattr(devtools, "translations", raising=False)  # `from il2ks.devtools import translations` finds it
     monkeypatch.setitem(sys.modules, "babel", None)
     monkeypatch.setitem(sys.modules, "babel.messages", None)
     monkeypatch.setitem(sys.modules, "babel.messages.catalog", None)
