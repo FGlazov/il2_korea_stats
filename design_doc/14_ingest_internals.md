@@ -182,6 +182,32 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   `core/ratings/elo.py` and writes only the players whose rating changed (the per-pool ratings on `Player`, and the per-type ratings on `PlayerAircraft`, doc 13). It runs after each mission save (same transaction), and once at the
   end of `rebuild-aggregates` and `reprocess`. So a mission imported late lands in the right place in the order. Cost: about 0.02 s per mission
   at sample scale, growing with the total number of kills; if it ever matters, replay only from the earliest affected mission onward.
+- **Batched level 2 for long runs** (`ingest/batch.py`, roadmap item, 2026-10-05, `[PROPOSED]`). A run with `BATCH_MIN = 20` or more missions to do
+  (`ingest` after its classify pass, `reprocess` after choosing its targets) saves **level 1 only** per mission (`Pipeline.save_level1` =
+  `persist.save_level1` + `bump_data_version`; still one transaction per mission, the `IngestRun` row in it) and does level 2 later. Fewer than 20:
+  nothing changes (`Pipeline.save` = `save_mission`: level 2, ratings and thresholds per mission). A pipeline without `save_level1` (test fakes) never batches.
+  - **ingest**: a `Level2Batch` collects the `Touched` set of every committed save (`add`; a rolled-back mission adds nothing). After each mission
+    (saved or failed: progress counts missions) `mission_done()` applies `persist.apply_level2(pending, payload_elo=False, holders=False)` and
+    `bump_data_version` in its own transaction whenever `done * 10 // total` crossed the next line (9 passes at most; the last 10% is the end's). At the end,
+    in one transaction: the same pending set, then `recompute_ratings` once (it replays every kill ordered by mission start, so "in mission order" holds
+    whatever order the missions were saved in), `recompute_holders`, `recompute_thresholds` for the union of every touched tour: what `save_mission` does per mission,
+    in the same order (`persist.apply_batch_end`). Between passes the pages show the new level-1 rows (missions, sorties) with level 2 at most 10% behind;
+    the new loadouts' average Elo and the holder counts wait for the end.
+  - **reprocess** (`defer_ratings` pipelines, also the admin's request and `watch`): level 1 only per mission and **no 10% passes**: the final
+    `rebuild_aggregates` (unchanged: it also re-scores sorties and applies a changed `[score]`, `[tours]` or `[killboard]` config) recomputes every
+    level-2 table anyway, so per-mission or 10% passes were pure waste (they used to run per mission and the rebuild redid all of it). End state identical.
+  - **Crash safety**: the loop is in a `try/finally`. Ctrl-C, an exception or a failing pass in the middle still applies what is pending (ingest: `Level2Batch.finish`;
+    reprocess: the rebuild), so level 2 matches the saved missions. A pass failing inside that `finally` is logged ("run `il2ks rebuild-aggregates`"), not raised over the first error.
+    A **hard kill** (power cut, `kill -9`, OOM) loses the in-memory pending set: level 1 of the saved missions is committed, level 2 (and the Elo
+    ratings) lag by at most the last 10% (reprocess: by every mission so far). Nothing detects that automatically and a re-run skips the missions as `unchanged`:
+    `il2ks rebuild-aggregates` repairs it (tested: `test_a_killed_batch_is_repaired_by_rebuild_aggregates`). A `doctor` check for "level 2 behind level 1" is not built.
+  - **Equality** is tested table by table (`tests/integration/test_batched_level2.py`, `tests/db_canon.py`): batched ingest == per-mission ingest == after a rebuild,
+    and batched reprocess == per-mission reprocess.
+  - **Measured** (2026-10-05, `bench-ingest` on a copy of every 5th sample, 42 missions, machine loaded by other jobs, so wall clock and CPU swing 2x):
+    wall 88.4 s and 84.1 s per-mission path (`BATCH_MIN` forced high) against 65.7 s and 62.6 s batched, about 26% faster (level 2 plus ratings 22-25% of
+    the run before, 18-19% after; 11.7-13.6 s of it in the batched passes). First, quiet CPU-time run: 9.6 s before (level 2 2.8 s) against 6.5 s after (1.4 s).
+    The saving grows with the batch: a player in many missions is recomputed once per pass instead of once per mission.
+  - `il2ks dev bench-ingest` times the passes separately ("batched level 2 and ratings" in the header; their phases are added to the table).
 - **Identity fields** are recomputed, never summed: `first_seen` = earliest spawn, `last_seen` = latest sortie end, `current_name` = name on the
   latest spawn (so an old mission imported late never overwrites a newer name). `PlayerName` is rebuilt from the sorties.
 - **Players are never deleted**; one whose sorties disappear keeps the row and URL with zero counters. Players who only ever flew as gunner
