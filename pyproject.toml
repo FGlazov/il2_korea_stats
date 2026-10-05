@@ -73,7 +73,7 @@ exclude = ["sample_data", ".claude", ".il2ks-data"]
 line-length = 120
 target-version = "py313"
 src = ["src", "tests"]
-extend-exclude = ["design_doc", "sample_data", ".claude/worktrees"]
+extend-exclude = ["design_doc", "sample_data", ".claude/worktrees", "src/il2ks/serving/_vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
@@ -90,7 +90,7 @@ select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "ANN", "DJ", "PT"]
 [tool.pyright]
 include = ["src", "tests", "packaging"]
 extraPaths = ["src", "packaging/windows"]  # src: the default, lost once extraPaths is set; the other: installer build tooling
-exclude = ["src/il2ks/db/migrations"]
+exclude = ["src/il2ks/db/migrations", "src/il2ks/serving/_vendor"]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
 reportUnnecessaryTypeIgnoreComment = "error"
@@ -136,4 +136,5 @@ exclude = [
     "src/il2ks/db/migrations/",  # Django reads these by convention
     "src/il2ks/db/models.py",  # fields/choices/Meta are the DB schema, read by Django and the ORM
     "src/il2ks/settings.py",  # Django reads every setting by name
+    "src/il2ks/serving/_vendor/",  # third-party code, unmodified
 ]

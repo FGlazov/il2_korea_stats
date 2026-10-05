@@ -85,7 +85,9 @@ def measure(page: Page, url: str, base: str) -> Weight:
 # The sprite is a ~38 KB uncompressed (~9 KB gzipped) request, fetched once and cached for a year (`other` below).
 # The rest is the same on every page and mostly
 # vendored: CSS 113 KB (pico 81, site 28), JS 57 KB (htmx 51), fonts 22-44 KB, one image. Uncompressed: production
-# serves these gzip/brotli-compressed by WhiteNoise, roughly a quarter of the size.
+# serves these gzip/brotli-compressed by WhiteNoise, roughly a quarter of the size. This test runs against
+# `--dev`, which serves the readable files; production also minifies ours (2026-10-05: own CSS 82 to 59 KB, JS 17 to
+# 9.7 KB), so these numbers have ~30 KB extra headroom there.
 MAX_REQUESTS = 16
 MAX_TOTAL_KB = 390
 MAX_HTML_KB = 70
