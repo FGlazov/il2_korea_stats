@@ -37,6 +37,7 @@ from django.db.models import Count, F
 from il2ks.config import Config
 from il2ks.core.achievement_rules import Rules
 from il2ks.core.achievements import Achievement, AchievementSortie, earn, earn_all, earn_tours
+from il2ks.core.streaks import Track, track_of
 from il2ks.db.models import (
     AchievementHolders,
     Kill,
@@ -119,6 +120,7 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
             "friendly_kills",
             "ended_by_mission_end",
             "took_off_at",
+            "combat_role",
         )
     )
     if tours is not None:
@@ -155,6 +157,7 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
                 and r["took_off_at"] is not None
                 and not (r["taxi_accident"] or r["strafed_on_ground"]),
                 ended_by_mission_end=r["ended_by_mission_end"],
+                is_attack=track_of(r["combat_role"]) is Track.GROUND,
             )
         )
     return found

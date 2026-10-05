@@ -52,18 +52,30 @@ def snapshot() -> list[tuple[object, ...]]:
         "last_at",
         "last_mission_id",
     )
-    best = PlayerBestStreak.objects.order_by("player_id", "tour_id", "kind").values_list(
-        "player_id", "tour_id", "kind", "sorties", "kills_air", "flight_time_s", "since", "until"
-    )
-    st = PlayerStreak.objects.order_by("player_id").values_list(
+    best = PlayerBestStreak.objects.order_by("player_id", "tour_id", "track", "kind").values_list(
         "player_id",
+        "tour_id",
+        "track",
+        "kind",
+        "sorties",
+        "kills_air",
+        "kills_ground",
+        "flight_time_s",
+        "since",
+        "until",
+    )
+    st = PlayerStreak.objects.order_by("player_id", "track").values_list(
+        "player_id",
+        "track",
         "current_sorties",
         "current_kills_air",
+        "current_kills_ground",
         "current_flight_time_s",
         "current_since",
         "current_until",
         "best_sorties",
         "best_kills_air",
+        "best_kills_ground",
         "best_flight_time_s",
         "best_since",
         "best_until",
@@ -71,10 +83,21 @@ def snapshot() -> list[tuple[object, ...]]:
     types = PlayerTypeKillboard.objects.order_by("player_id", "tour_id", "enemy_aircraft_id").values_list(
         "player_id", "tour_id", "enemy_aircraft_id", "kills", "deaths", "kills_with_id", "deaths_in_id"
     )
-    runs = PlayerStreakRun.objects.order_by("player_id", "tour_id", "since").values_list(
-        "player_id", "tour_id", "sorties", "kills_air", "flight_time_s", "since", "until", "ended_by", "ended_sortie_id"
+    runs = PlayerStreakRun.objects.order_by("player_id", "tour_id", "track", "since").values_list(
+        "player_id",
+        "tour_id",
+        "track",
+        "sorties",
+        "kills_air",
+        "kills_ground",
+        "flight_time_s",
+        "since",
+        "until",
+        "ended_by",
+        "ended_sortie_id",
     )
-    return [*kb, *tour_kb, *types, *best, *st, *runs]
+    columns = Player.objects.order_by("pk").values_list("pk", "streak_kills_air", "streak_kills_ground")
+    return [*kb, *tour_kb, *types, *best, *st, *runs, *columns]
 
 
 def duel_mission() -> MissionResult:
@@ -211,7 +234,7 @@ def test_profile_shows_killboard_and_streak(client: Client) -> None:
     assert "Shot down most" in html
     assert "Player-2" in html
     assert f"/players/{pk(1)}/killboard/" in html
-    assert "Current streak" in html
+    assert "Current air streak" in html
 
 
 def test_profile_budget_and_killboard_page(client: Client) -> None:
@@ -223,7 +246,7 @@ def test_profile_budget_and_killboard_page(client: Client) -> None:
         client, f"/players/{pk(1)}/killboard/", max_queries=8
     )  # + tours selector, + killboard by aircraft type
     assert_simple_reads(client, f"/players/{pk(1)}/killboard/?sort=-last", max_queries=8)
-    assert_simple_reads(client, "/streaks/", max_queries=8)
+    assert_simple_reads(client, "/leaderboards/ironman-air/", max_queries=8)
 
 
 def test_killboard_sort_is_whitelisted_and_ordered(client: Client) -> None:
@@ -270,11 +293,13 @@ def test_streak_list_and_home_block_skip_hidden_and_stale(client: Client) -> Non
     save(mission((sortie(0, 4),)), meta("old", now - timedelta(days=90)))
     Player.objects.filter(pk=pk(2)).update(is_hidden=True)
 
-    for url in ("/streaks/", "/"):
+    for url in ("/leaderboards/ironman-air/", "/"):
         html = client.get(url).content.decode()
         assert "Player-1" in html
         assert "Player-3" in html
         assert "Player-2" not in html  # hidden
         assert "Player-4" not in html  # flew 90 days ago: not running
-    assert [r.player_id for r in client.get("/streaks/?tour=all").context["running_page"]] == sorted([pk(1), pk(3)])
-    assert client.get("/streaks/?sort=nonsense").status_code == 200
+    assert [r.player_id for r in client.get("/leaderboards/ironman-air/?tour=all").context["running_page"]] == sorted(
+        [pk(1), pk(3)]
+    )
+    assert client.get("/leaderboards/ironman-air/?sort=nonsense").status_code == 200

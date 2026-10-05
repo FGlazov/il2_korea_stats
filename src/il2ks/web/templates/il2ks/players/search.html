@@ -2,7 +2,7 @@
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Player search and the list of recently active players (FR-WEB-3). View: il2ks.web.views.players.player_search.
   Context: q (the trimmed query, '' for the plain list), sort (resolved, e.g. '-last_seen'), page_obj (a Page of
-  PlayerHit(player, matched_name)), page_title, optional_columns (the columns a visitor can add), columns (the chosen ones),
+  PlayerHit(player, matched_name)), page_title, default_columns, optional_columns (the columns a visitor can add), columns (the chosen ones),
   colspan.
   The filter bar is live (htmx submits while typing and swaps #results); without JS the form submits normally.
   Blocks of this page: content. The table is players/search_table.html.

@@ -76,13 +76,13 @@ them).
 
 | Key | Name | Rule | Tiers (bronze / silver / gold / platinum) | Sample pilots (B / S / G / P) |
 |---|---|---|---|---|
-| `life_kills` | Charmed Life | Air kills in one life: the kills of every sortie since the last death or capture, the fatal sortie included | 5 / 10 / 20 / 50 | 55 / 11 / 2 / 0 |
+| `life_kills` | Charmed Life | Air kills in one **air** life (the air ironman track, doc 13): the kills of the air-track sorties since the last air-track death or capture, the fatal sortie included; an attack sortie neither adds to it nor ends it | 5 / 10 / 20 / 50 | 55 / 11 / 2 / 0 |
 | `sortie_kills` | Ace of the Sortie | Most air kills in a single sortie | 2 / 3 / 5 / 7 | 162 / 52 / 5 / 0 |
 | `career_kills` | Sky Hunter | Air kills in total | 1 / 10 / 50 / 250 | 419 / 63 / 4 / 0 |
 | `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** flown by **other pilots** shot down (credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
 | `ground_sortie` | Target-Rich | Most ground kills in a single sortie (static objects count, like the profile's ground kills) | 20 / 50 / 100 / 200 | 271 / 123 / 57 / 13 |
-| `survivor` | Ironman | Sorties survived in a row: the ironman streak (`core/streaks.py`) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
+| `survivor` | Ironman | Sorties survived in a row on the better of the two ironman tracks (air or ground, `core/streaks.py`, doc 13) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
 | `damaged_landing` | Limping Home | Sorties with at least one kill that ended in a landing with `damage_taken` of 0.5 or more | 1 / 3 / 10 | 157 / 22 / 1 |
 | `regular` | Regular | Longest run of consecutive ISO weeks (Monday to Sunday, UTC) with at least one sortie | 2 / 4 / 8 / 16 weeks | 436 / 114 / 0 / 0 |
 | `frequent_flyer` | Frequent Flyer | Sorties flown (took off) | 10 / 50 / 200 / 1000 | 324 / 56 / 0 / 0 |
@@ -174,6 +174,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
   medals (they are in `kills_air`) but **not** for `strike_hunter`, which reads `Kill` rows between two pilots (AI victims have none).
 - **Rams**: `Contact Sport` counts the air kills credited to a ram of an enemy aircraft (`PlayerSortie.rams`). With `credit_rams` off
   there are none.
+- **Two ironman tracks** (maintainer 2026-10-05, doc 13) `[PROPOSED]` for the achievements: a death or capture in an attack sortie does not end the air life or the air run, and the other way round. `life_kills` follows the air track only; `survivor` is the maximum of the air and the ground track's survived runs; `landing_streak` is unchanged (a landing skill over every sortie, not an ironman run). The medals are recomputed by the one level-2 rebuild of the `streak_tracks` backfill.
 - **Death in the same sortie as the kills**: `life_kills` counts the fatal sortie's kills (a life ends with its last breath);
   `survivor` does not count the fatal sortie (the streak rule).
 - **Re-ingest / reprocess**: rows are recomputed from the sorties, so a medal built on a mission that is reprocessed with fewer

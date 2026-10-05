@@ -31,11 +31,13 @@ from il2ks.db.models import (
     Player,
     PlayerAircraft,
     PlayerAircraftScope,
+    PlayerBestStreak,
     PlayerPool,
     PlayerTour,
     PlayerTourAircraft,
     PlayerTourPool,
     SiteSettings,
+    StreakKind,
     Tour,
 )
 from il2ks.queries.paging import ROW_PAGE_SIZE
@@ -61,9 +63,18 @@ class Board:
     elo_pool: str | None = (
         None  # an Elo board: its propulsion pool (rows `Player` all time, `PlayerTourPool` in a tour)
     )
+    streak_track: str | None = None  # an ironman board: its track (rows `PlayerBestStreak`, the best run by sorties)
 
 
 _COMMON: Final[Mapping[str, str]] = {"sorties": "sorties", "name": "player__name_lower"}
+_IRONMAN: Final[Mapping[str, str]] = {  # the sort keys of the ironman boards (rows: `PlayerBestStreak`)
+    **_COMMON,
+    "flight_time_s": "flight_time_s",
+    "kills_air": "kills_air",
+    "kills_ground": "kills_ground",
+    "since": "since",
+    "until": "until",
+}
 
 BOARDS: Final[Mapping[str, Board]] = {
     "elo-jet": Board(
@@ -133,6 +144,25 @@ BOARDS: Final[Mapping[str, Board]] = {
         {**_COMMON, "flight_time_s": "flight_time_s"},
         "-flight_time_s",
         group="general",
+    ),
+    # The ironman boards (maintainer, 2026-10-05): every pilot's best run of survived sorties on one track, in the tour
+    # (or the best tour, all time). `kills` is the track's own kill count; the other one is an optional column.
+    "ironman-air": Board(
+        "ironman-air",
+        {**_IRONMAN, "kills": "kills_air"},
+        "-sorties",
+        per_aircraft=False,
+        per_pool=False,
+        streak_track="air",
+    ),
+    "ironman-ground": Board(
+        "ironman-ground",
+        {**_IRONMAN, "kills": "kills_ground"},
+        "-sorties",
+        per_aircraft=False,
+        per_pool=False,
+        group="ground",
+        streak_track="ground",
     ),
 }
 DEFAULT_BOARD: Final = "air"
@@ -204,6 +234,8 @@ def _apply_minimums[M: Model](board: Board, rows: QuerySet[M], rules: Leaderboar
     match board.key:
         case "elo-prop" | "elo-jet":
             return rows.filter(**{f"{_elo_columns(board, rows.model)[1]}__gte": rules.min_elo_games})
+        case "ironman-air" | "ironman-ground":
+            return rows  # no minimum: a run of one survived sortie is a streak too
         case "play-time":
             return rows.filter(flight_time_s__gt=0)  # no sortie minimum: the board is hours flown
         case "ground-hour" | "tank-busting":
@@ -292,6 +324,11 @@ def _source(
         if tour is not None:
             return _rows(PlayerTourPool.objects.filter(tour=tour, propulsion=board.elo_pool, player__is_hidden=False))
         return _rows(Player.objects.filter(is_hidden=False))
+    if board.streak_track is not None:
+        best = PlayerBestStreak.objects.filter(
+            track=board.streak_track, kind=StreakKind.SORTIES, player__is_hidden=False
+        )
+        return _rows(best.filter(tour=tour) if tour is not None else best.filter(tour__isnull=True))
     pool = pool if board.per_pool and aircraft is None else None
     if aircraft is not None:
         if role != AircraftRole.ALL or mod_pattern:

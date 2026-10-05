@@ -18,8 +18,9 @@ def player_search(request: HttpRequest) -> HttpResponse:
     """`/players/?q=&sort=&page=`: search by current or past nickname; the list of recently active players without `q`.
 
     Template `il2ks/players/search.html`. Context: `q` (the trimmed query), `sort` (resolved, e.g. '-last_seen'),
-    `page_obj` (a Django Page of `PlayerHit(player, matched_name)`), `page_title`, `optional_columns` (every column a
-    visitor can add) and `columns` (the ones `?cols=` chose, in that order; all-time values from the Player row)."""
+    `page_obj` (a Django Page of `PlayerHit(player, matched_name)`), `page_title`, `default_columns` (the ones
+    everybody sees after the name), `optional_columns` (every column a visitor can add) and `columns` (the ones
+    `?cols=` chose, in that order; all-time values from the Player row)."""
     query = request.GET.get("q", "").strip()[: reads.MAX_QUERY_LENGTH]
     sort = reads.resolve_sort(request.GET.get("sort", ""), reads.PLAYER_SORTS, reads.DEFAULT_PLAYER_SORT)
     page = reads.player_page(query, sort, request.GET.get("page", 1))
@@ -29,9 +30,10 @@ def player_search(request: HttpRequest) -> HttpResponse:
         "q": query,
         "sort": sort,
         "page_obj": page,
+        "default_columns": columns.PLAYER_DEFAULT_COLUMNS,
         "optional_columns": columns.PLAYER_COLUMNS,
         "columns": shown,
-        "colspan": 7 + len(shown),
+        "colspan": 1 + len(columns.PLAYER_DEFAULT_COLUMNS) + len(shown),
     }
     return render(request, "il2ks/players/search.html", context)
 

@@ -1104,6 +1104,10 @@ msgid "Attack if the aircraft carried bombs or rockets (or is a dedicated attack
 msgstr "Erdkampf, wenn das Flugzeug Bomben oder Raketen trug (oder ein reiner Erdkämpfer ist), sonst Luftüberlegenheit."
 
 # llm-draft
+msgid "Attack proficiency"
+msgstr "Angriffsleistung"
+
+# llm-draft
 msgid "Attack sorties"
 msgstr "Erdkampfeinsätze"
 
@@ -1206,6 +1210,10 @@ msgid "Before the Yalu, before the enemy, there was the apron. It won this round
 msgstr "Der Yalu, der Feind, das alles kam gar nicht mehr dran: Der Kampf endete auf dem Rollweg."
 
 # llm-draft
+msgid "Best air streak"
+msgstr "Beste Luftserie"
+
+# llm-draft
 msgid "Best by"
 msgstr "Beste nach"
 
@@ -1213,6 +1221,10 @@ msgstr "Beste nach"
 #, python-format
 msgid "Best exchange: against %(enemy)s (%(kills)s kills, %(losses)s losses)."
 msgstr "Bester Austausch: gegen %(enemy)s (%(kills)s Abschüsse, %(losses)s Verluste)."
+
+# llm-draft
+msgid "Best ground streak"
+msgstr "Beste Bodenserie"
 
 # llm-draft
 msgid "Best showing of the mission. Well flown."
@@ -1226,16 +1238,10 @@ msgstr "Beste Serie"
 msgid "Best streaks"
 msgstr "Beste Serien"
 
-msgid "Best streaks in this tour"
-msgstr "Beste Serien in dieser Tour"
-
 # llm-draft
 #, python-format
 msgid "Best streaks of %(name)s"
 msgstr "Beste Serien von %(name)s"
-
-msgid "Best streaks, all time"
-msgstr "Beste Serien aller Zeiten"
 
 # llm-draft
 #, python-format
@@ -1525,12 +1531,14 @@ msgstr "Schmal (Standard)"
 msgid "Configuration file"
 msgstr "Konfigurationsdatei"
 
-msgid "Consecutive sorties survived: no death and no capture."
-msgstr "Einsätze in Folge überlebt: kein Tod und keine Gefangennahme."
-
 # llm-draft
-msgid "Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped."
-msgstr "Einsätze in Folge überlebt: kein Tod, keine Gefangennahme. Einsätze ohne Start werden übersprungen."
+msgid ""
+"Consecutive sorties survived: no death, no capture. Sorties that never took off are skipped. Air and ground sorties "
+"count separately: losing a ground attacker does not end the air run, and the other way round."
+msgstr ""
+"Hintereinander überlebte Einsätze: kein Tod, keine Gefangennahme. Einsätze, die nie abgehoben haben, werden "
+"übersprungen. Luft- und Bodeneinsätze zählen getrennt: Der Verlust eines Bodenangreifers beendet die Luftserie nicht,"
+" und umgekehrt."
 
 # llm-draft
 msgid "Contact Sport"
@@ -1598,12 +1606,16 @@ msgstr ""
 "Raketen, erzielt in Luftüberlegenheitseinsätzen."
 
 # llm-draft
-msgid "Current logo"
-msgstr "Aktuelles Logo"
+msgid "Current air streak"
+msgstr "Aktuelle Luftserie"
 
 # llm-draft
-msgid "Current streak"
-msgstr "Aktuelle Serie"
+msgid "Current ground streak"
+msgstr "Aktuelle Bodenserie"
+
+# llm-draft
+msgid "Current logo"
+msgstr "Aktuelles Logo"
 
 # llm-draft
 msgid "Current tour"
@@ -1805,6 +1817,24 @@ msgstr ""
 "Missionen ohne Ergebnis ändern nichts. Die Touren, die der Modus oben vorgibt, gelten weiter: Eine entscheidende "
 "Mission teilt eine monatliche Tour, eine Tour von N Tagen oder eine manuelle Tour nur in Abschnitte. Nimm den "
 "manuellen Modus, wenn nur Siege Touren starten sollen."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties count; losing a "
+"ground attacker does not end it. A new tour starts everyone afresh; all time shows the best tour."
+msgstr ""
+"Die längste Serie überlebter Lufteinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
+"Lufthoheitseinsätze; der Verlust eines Bodenangreifers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ "
+"zeigt die beste Tour."
+
+# llm-draft
+msgid ""
+"Each pilot's longest run of attack sorties survived: no death, no capture. Only attack sorties count; losing a "
+"fighter does not end it. A new tour starts everyone afresh; all time shows the best tour."
+msgstr ""
+"Die längste Serie überlebter Angriffseinsätze jedes Piloten: kein Tod, keine Gefangennahme. Es zählen nur "
+"Angriffseinsätze; der Verlust eines Jägers beendet sie nicht. Jede Tour beginnt von vorn; „Gesamtzeit“ zeigt die "
+"beste Tour."
 
 # llm-draft
 msgid "Earned"
@@ -2332,6 +2362,11 @@ msgid "Ground kills by category"
 msgstr "Bodenziele nach Kategorie"
 
 # llm-draft
+#. Translators: tooltip of the "Ground kills" column header of a ground ironman table
+msgid "Ground kills made during the streak."
+msgstr "Bodenabschüsse während der Serie."
+
+# llm-draft
 msgid "Ground kills per sortie"
 msgstr "Bodenziele pro Einsatz"
 
@@ -2801,10 +2836,6 @@ msgid "Ironman"
 msgstr "Unkaputtbar"
 
 # llm-draft
-msgid "Ironman streaks"
-msgstr "Ironman-Serien"
-
-# llm-draft
 msgid "Is the game server on another computer? Give the folder that its logs are copied or shared to."
 msgstr ""
 "Läuft der Spieleserver auf einem anderen Rechner? Gib den Ordner an, in den seine Logs kopiert oder freigegeben "
@@ -2924,6 +2955,17 @@ msgstr "Abschüsse und Assists"
 # llm-draft
 msgid "Kills by victim"
 msgstr "Abschüsse nach Opfer"
+
+# llm-draft
+#. Translators: tooltip of the "Kills" column header of the profile's ironman table (air kills in an air streak,
+#. ground kills in a ground streak)
+msgid "Kills made during the streak: air kills for an air streak, ground kills for a ground streak."
+msgstr "Abschüsse während der Serie: Luftabschüsse bei einer Luftserie, Bodenabschüsse bei einer Bodenserie."
+
+# llm-draft
+#. Translators: tooltip of the optional kills column of the ironman boards (the kills of the other track)
+msgid "Kills of the other kind made in the sorties of this streak."
+msgstr "Abschüsse der anderen Art in den Einsätzen dieser Serie."
 
 # llm-draft
 msgid "Kills per hour"
@@ -3110,12 +3152,20 @@ msgid "Logo"
 msgstr "Logo"
 
 # llm-draft
+msgid "Longest ground kill streak"
+msgstr "Längste Bodenabschuss-Serie"
+
+# llm-draft
 msgid "Longest ironman streaks"
 msgstr "Längste Ironman-Serien"
 
 # llm-draft
 msgid "Longest ironman streaks in this tour"
 msgstr "Längste Ironman-Serien in dieser Tour"
+
+# llm-draft
+msgid "Longest kill streak"
+msgstr "Längste Abschuss-Serie"
 
 # llm-draft
 msgid "Loss cause"
@@ -3999,6 +4049,10 @@ msgstr[0] "Piloten mit mindestens %(sorties)s Einsatz."
 msgstr[1] "Piloten mit mindestens %(sorties)s Einsätzen."
 
 # llm-draft
+msgid "Pilots with at least one survived sortie on this track."
+msgstr "Piloten mit mindestens einem überlebten Einsatz auf dieser Strecke."
+
+# llm-draft
 msgid "Platinum"
 msgstr "Platin"
 
@@ -4780,6 +4834,10 @@ msgid "Sorties in %(tour)s"
 msgstr "Einsätze in %(tour)s"
 
 # llm-draft
+msgid "Sorties in a row"
+msgstr "Einsätze in Folge"
+
+# llm-draft
 #. Translators: tooltip of the "Sorties" column header of a streak table
 msgid "Sorties in a row that the pilot survived."
 msgstr "Aufeinanderfolgende Einsätze, die der Pilot überlebt hat."
@@ -5328,6 +5386,24 @@ msgid "The mission was young and the sky was quiet, until this pilot changed tha
 msgstr "Die Mission war jung, der Himmel ruhig. Bis dieser Pilot das änderte."
 
 # llm-draft
+#. Translators: tooltip of the "Longest kill streak" column header of the player list (air ironman run)
+msgid ""
+"The most air kills in one run of air sorties without a death or capture. Losing a ground attacker does not end it. "
+"Every tour starts afresh; this is the best tour."
+msgstr ""
+"Die meisten Luftabschüsse in einer Serie von Lufteinsätzen ohne Tod oder Gefangennahme. Der Verlust eines "
+"Bodenangreifers beendet sie nicht. Jede Tour beginnt von vorn; hier steht die beste Tour."
+
+# llm-draft
+#. Translators: tooltip of the "Longest ground kill streak" column header of the player list (ground ironman run)
+msgid ""
+"The most ground kills in one run of attack sorties without a death or capture. Losing a fighter does not end it. "
+"Every tour starts afresh; this is the best tour."
+msgstr ""
+"Die meisten Bodenabschüsse in einer Serie von Angriffseinsätzen ohne Tod oder Gefangennahme. Der Verlust eines Jägers"
+" beendet sie nicht. Jede Tour beginnt von vorn; hier steht die beste Tour."
+
+# llm-draft
 msgid ""
 "The name has to point at this computer (a DNS record at your domain provider), and ports 80 and 443 must be reachable"
 " from the internet. The certificate is then requested and renewed automatically."
@@ -5359,10 +5435,12 @@ msgstr ""
 # llm-draft
 msgid ""
 "The pilot's best runs of consecutive sorties survived (no death, no capture; sorties that never took off are "
-"skipped), by sorties, by air kills and by flight time."
+"skipped), by sorties, by kills and by flight time, for air sorties and for attack sorties separately (a death in one "
+"kind of sortie does not end the other's run)."
 msgstr ""
-"Die besten Serien des Piloten an überlebten Einsätzen in Folge (kein Tod, keine Gefangennahme; Einsätze ohne Start "
-"werden übersprungen), nach Einsätzen, Luftsiegen und Flugzeit."
+"Die besten Serien hintereinander überlebter Einsätze des Piloten (kein Tod, keine Gefangennahme; Einsätze ohne Abflug"
+" werden übersprungen), nach Einsätzen, nach Abschüssen und nach Flugzeit, getrennt für Lufteinsätze und für "
+"Angriffseinsätze (ein Tod in der einen Art von Einsatz beendet die Serie der anderen nicht)."
 
 # llm-draft
 #, python-format
@@ -5814,6 +5892,10 @@ msgstr "Tower: »Zustand?« Pilot: »Überwiegend Luft.« Aber mit ordentlicher 
 # llm-draft
 msgid "Tracers going the other way for once. The bomber crew will tell this one for years."
 msgstr "Die Leuchtspur kam diesmal von der anderen Seite. Die Bomberbesatzung erzählt das noch ihren Enkeln."
+
+# llm-draft
+msgid "Track"
+msgstr "Strecke"
 
 # llm-draft
 msgid "Trains"

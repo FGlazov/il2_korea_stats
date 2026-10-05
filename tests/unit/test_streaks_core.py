@@ -3,7 +3,7 @@
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
-from il2ks.core.streaks import RunEnd, StreakSortie, runs, summarize
+from il2ks.core.streaks import RunEnd, StreakSortie, Track, runs, summarize, track_of
 
 T0 = datetime(2026, 9, 1, tzinfo=UTC)
 
@@ -16,9 +16,13 @@ def s(
     death: bool = False,
     captured: bool = False,
     grounded: bool = False,
+    track: Track = Track.AIR,
+    ground_kills: int = 0,
 ) -> StreakSortie:
     start = T0 + timedelta(hours=n)
-    return StreakSortie(start, start + timedelta(minutes=30), kills, flight, death, captured, grounded)
+    return StreakSortie(
+        start, start + timedelta(minutes=30), kills, flight, death, captured, grounded, n, ground_kills, track
+    )
 
 
 def test_best_by_air_kills_and_by_flight_time_are_their_own_streaks() -> None:
@@ -36,7 +40,7 @@ def test_best_by_air_kills_and_by_flight_time_are_their_own_streaks() -> None:
     )
 
     assert (result.best.sorties, result.best.kills_air) == (3, 1)
-    assert (result.best_air_kills.sorties, result.best_air_kills.kills_air) == (2, 5)
+    assert (result.best_kills.sorties, result.best_kills.kills_air) == (2, 5)
     assert (result.best_flight_time.sorties, result.best_flight_time.flight_time_s) == (1, 7200.0)
 
 
@@ -44,16 +48,16 @@ def test_best_by_air_kills_breaks_ties_by_sorties_then_by_the_earlier_run() -> N
     longer = summarize([s(0, kills=2), s(1, death=True), s(2, kills=2), s(3), s(4)])
     full_tie = summarize([s(0, kills=1), s(1, death=True), s(2, kills=1)])
 
-    assert longer.best_air_kills.sorties == 3  # same kills, the longer run wins
-    assert longer.best_air_kills.since == s(2).spawned_at
-    assert full_tie.best_air_kills.since == s(0).spawned_at  # the earlier run keeps a full tie
+    assert longer.best_kills.sorties == 3  # same kills, the longer run wins
+    assert longer.best_kills.since == s(2).spawned_at
+    assert full_tie.best_kills.since == s(0).spawned_at  # the earlier run keeps a full tie
     assert full_tie.best_flight_time.since == s(0).spawned_at
 
 
 def test_no_survived_sortie_means_empty_bests() -> None:
     result = summarize([s(0, death=True)])
 
-    assert result.best_air_kills.sorties == 0 == result.best_flight_time.sorties
+    assert result.best_kills.sorties == 0 == result.best_flight_time.sorties
 
 
 def test_no_sorties_no_streak() -> None:
@@ -146,3 +150,50 @@ def test_runs_lists_every_run_of_two_or_more_with_how_it_ended() -> None:
     assert result[1].streak.flight_time_s == 600.0 * 2 + 100.0
     assert [r.streak.sorties for r in runs(flown, minimum=1)] == [2, 1, 3]
     assert runs([]) == []
+
+
+# --- the two tracks (maintainer, 2026-10-05) ------------------------------------------------------------------------
+def test_track_of_a_combat_role() -> None:
+    assert track_of("attack") is Track.GROUND
+    assert track_of("air_superiority") is Track.AIR
+    assert track_of(None) is Track.AIR  # no combat role known: the air track, as before the split
+
+
+def test_an_attack_sortie_death_ends_the_ground_run_only() -> None:
+    sorties = [s(0), s(1), s(2, track=Track.GROUND), s(3, track=Track.GROUND, death=True), s(4)]
+
+    air = summarize(sorties, Track.AIR)
+    ground = summarize(sorties, Track.GROUND)
+
+    assert (air.current.sorties, air.best.sorties) == (3, 3)  # the ground death did not touch the air run
+    assert (ground.current.sorties, ground.best.sorties) == (0, 1)
+
+
+def test_an_air_sortie_death_ends_the_air_run_only() -> None:
+    sorties = [s(0, track=Track.GROUND), s(1), s(2, death=True), s(3, track=Track.GROUND), s(4)]
+
+    assert summarize(sorties, Track.AIR).current.sorties == 1
+    assert summarize(sorties, Track.GROUND).current.sorties == 2  # the air death did not touch the ground run
+
+
+def test_the_ground_track_counts_ground_kills_and_ranks_by_them() -> None:
+    sorties = [
+        s(0, track=Track.GROUND, ground_kills=2, kills=1),
+        s(1, track=Track.GROUND, death=True),
+        s(2, track=Track.GROUND, ground_kills=5),
+        s(3, kills=9),
+    ]
+
+    ground = summarize(sorties, Track.GROUND)
+    air = summarize(sorties, Track.AIR)
+
+    assert (ground.best_kills.kills_ground, ground.best_kills.sorties) == (5, 1)
+    assert (air.best_kills.kills_air, air.best_kills.sorties) == (9, 1)  # only the air-track sortie counts for air
+
+
+def test_runs_are_per_track() -> None:
+    sorties = [s(0), s(1, track=Track.GROUND), s(2), s(3, track=Track.GROUND), s(4, track=Track.GROUND, death=True)]
+
+    assert [r.streak.sorties for r in runs(sorties, Track.AIR)] == [2]
+    ground = runs(sorties, Track.GROUND)
+    assert [(r.streak.sorties, r.end, r.ended_by_ref) for r in ground] == [(2, RunEnd.DEATH, 4)]

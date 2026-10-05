@@ -69,6 +69,9 @@ class AchievementSortie:
     crashed: bool = False
     """The sortie ended with outcome `crashed` after a take-off (not a taxi accident, not strafed on the ground)."""
     ended_by_mission_end: bool = False
+    is_attack: bool = False
+    """An attack sortie (combat role `attack`): the ground ironman track's; every other sortie is the air track's
+    (`core.streaks.track_of`)."""
 
     @property
     def is_broken(self) -> bool:
@@ -177,28 +180,41 @@ def _best_in_one(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
 
 
 def life_kills(sorties: Sequence[AchievementSortie]) -> list[float]:
-    """Air kills in one life: the kills of the sorties since the last death or capture, including the fatal sortie."""
+    """Air kills in one air life: the kills of the air-track sorties since the last air-track death or capture,
+    including the fatal sortie. Attack sorties neither add to it nor end it (the air ironman track, maintainer
+    2026-10-05: losing a ground attacker does not reset the air life)."""
     current = 0
     values: list[float] = []
     for s in sorties:
-        current += s.kills_air
+        if not s.is_attack:
+            current += s.kills_air
+            if s.is_broken:
+                values.append(float(current))
+                current = 0
+                continue
         values.append(float(current))
-        if s.is_broken:
-            current = 0
     return _running_max(values)
+
+
+def _survived_on_track(sorties: Sequence[AchievementSortie], *, attack: bool) -> list[float]:
+    current = 0
+    values: list[float] = []
+    for s in sorties:
+        if s.is_attack is attack:
+            if s.is_broken:
+                current = 0
+            elif s.counts:
+                current += 1
+        values.append(float(current))
+    return values
 
 
 def survived_in_a_row(sorties: Sequence[AchievementSortie]) -> list[float]:
-    """Sorties survived in a row (the ironman streak, `core.streaks`)."""
-    current = 0
-    values: list[float] = []
-    for s in sorties:
-        if s.is_broken:
-            current = 0
-        elif s.counts:
-            current += 1
-        values.append(float(current))
-    return _running_max(values)
+    """Sorties survived in a row on the better of the two ironman tracks (`core.streaks`): a death in an attack sortie
+    ends only the ground run, one in an air sortie only the air run (maintainer 2026-10-05)."""
+    air = _survived_on_track(sorties, attack=False)
+    ground = _survived_on_track(sorties, attack=True)
+    return _running_max([max(a, g) for a, g in zip(air, ground, strict=True)])
 
 
 def week_number(moment: datetime) -> int:

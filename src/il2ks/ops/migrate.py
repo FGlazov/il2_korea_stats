@@ -94,6 +94,7 @@ BACKFILL_ACHIEVEMENT_TOURS = "achievement_tours"  # per-tour medals and the rari
 BACKFILL_TOUR_CLEAN_SLATE = "tour_clean_slate"  # streaks and medals restart in every tour, all time rolled up (doc 17)
 BACKFILL_PLAYER_ROLLUP = "player_rollup"  # per-tour identity rows; every mission has a tour (all-time rows are sums)
 BACKFILL_TOUR_AIRCRAFT_SIDES = "tour_aircraft_sides"  # side counters of the tour aircraft rows (all-time side = argmax)
+BACKFILL_STREAK_TRACKS = "streak_tracks"  # air and ground ironman tracks; the survivor and life-kills medals read them
 BACKFILL_ACHIEVEMENT_FACTS = "achievement_facts"  # rams, first blood, multi-kills, Elo peaks (doc 17, OQ-105)
 
 
@@ -156,6 +157,7 @@ def _run_backfills(cfg: Config, only: Sequence[str] | None = None) -> None:
         (BACKFILL_SCOPED_AIRCRAFT, _check_scoped_aircraft),
         (BACKFILL_PLAYER_ROLLUP, _check_player_rollup),
         (BACKFILL_TOUR_AIRCRAFT_SIDES, _check_tour_aircraft_sides),
+        (BACKFILL_STREAK_TRACKS, _check_streak_tracks),
     ]
     wanted = [(name, check) for name, check in steps if (only is None or name in only) and not _already_done(name)]
     with transaction.atomic():
@@ -349,6 +351,16 @@ def _check_streak_runs() -> bool:
     from il2ks.db.models import PlayerSortie, PlayerStreakRun, Role
 
     return PlayerSortie.objects.filter(role=Role.PILOT).exists() and not PlayerStreakRun.objects.exists()
+
+
+def _check_streak_tracks() -> bool:
+    """A database from before the two ironman tracks (maintainer, 2026-10-05) has its streak rows, runs and the two
+    streak columns of the player list on the old single track, and its survivor / life-kills medals from the old rule:
+    level 2 must be rebuilt, once (the marker keeps it from running again; the same rebuild as every other step's, so an
+    upgrade never rebuilds twice, FR-OPS-3)."""
+    from il2ks.db.models import PlayerSortie, Role
+
+    return PlayerSortie.objects.filter(role=Role.PILOT).exists()
 
 
 def _close(a: tuple[float, float, float] | None, b: tuple[float, float, float] | None, metres: float) -> bool:

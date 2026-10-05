@@ -188,11 +188,11 @@ PlayerTypeKillboard player, tour (null = all time), enemy_aircraft, kills, death
                -- FR-WEB-9: the killboard by aircraft type; `kills` = the player's PvP air kill credits on that enemy type, `deaths` = the credits of
                -- pilots flying that type on the player's sorties; `kills_with` / `deaths_in` = the player's own type most used in those fights
                -- (ties: lowest id). Hidden opponents count; no assists. Built by `ingest.type_board`, recomputed per affected player
-PlayerStreak   player (1:1), current_tour, current_* and best_* (sorties, kills_air, flight_time_s, since, until)   -- FR-WEB-25: ironman streaks; best = over the tours, current = the run in the newest tour (zero if not flown in it)
-PlayerBestStreak player, tour (null = all time), kind (sorties / air_kills / flight_time), sorties, kills_air, flight_time_s, since, until
-               -- the best streak by each criterion; a tour row counts only that tour's sorties, the all-time row (tour null) is the best of the tour rows; an air_kills row exists only when the
-               -- best such streak has an air kill
-PlayerStreakRun player, tour (null = all time), sorties, kills_air, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
+PlayerStreak   player, track (air / ground; unique together), current_tour, current_* and best_* (sorties, kills_air, kills_ground, flight_time_s, since, until)   -- FR-WEB-25: ironman streaks, one row per player and track (maintainer 2026-10-05; doc 13); best = over the tours, current = the run in the newest tour (zero if not flown in it)
+PlayerBestStreak player, tour (null = all time), track, kind (sorties / air_kills / ground_kills / flight_time), sorties, kills_air, kills_ground, flight_time_s, since, until
+               -- the best streak of a track by each criterion; `air_kills` exists on the air track, `ground_kills` on the ground track; a tour row counts only that tour's sorties of the track, the all-time row (tour null) is the best of the tour rows; a kills row exists only when the
+               -- best such streak has a kill of its kind. Migration 0094 adds `track` (default air), the ground-kill counts and `Player.streak_kills_air` / `streak_kills_ground` (the player list's columns); the backfill `streak_tracks` rebuilds level 2 once
+PlayerStreakRun player, tour (null = all time), track, sorties, kills_air, kills_ground, flight_time_s, since, until, ended_by (death / captured / open), ended_sortie → PlayerSortie
                -- FR-WEB-25, OQ-82: every streak of at least `MIN_LISTED_RUN` survived sorties, finished or running; `ended_sortie` is the fatal or
                -- capturing sortie (null while open); `open` also covers a tour that ran out. A tour's runs stay inside the tour. Built by `ingest.streaks`
 PlayerAchievement player, tour (null = all time), key, tier, earned_at, sortie, mission   -- FR-WEB-26, doc 17: one row per earned tier, unique (player, tour, key, tier) as two conditional constraints (tour set / null); a tour's rows come from that tour's sorties only

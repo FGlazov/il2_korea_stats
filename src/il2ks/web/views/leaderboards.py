@@ -7,6 +7,8 @@ air boards, then the ground boards, and keeps the tour / pool / aircraft choice 
 The score boards can be split into propeller and jet pilots with `?pool=`. Hidden players are never listed
 (FR-ADM-3)."""
 
+from datetime import UTC, datetime
+
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -14,9 +16,10 @@ from django.utils.http import urlencode
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
+from il2ks.queries import boards as board_reads
 from il2ks.queries import leaderboards as reads
 from il2ks.queries import tours as tour_reads
-from il2ks.web import object_names
+from il2ks.web import columns, object_names
 from il2ks.web.context_processors import site_row
 
 BOARD_TITLES = {
@@ -28,6 +31,8 @@ BOARD_TITLES = {
     "elo-prop": _("Elo (prop)"),
     "elo-jet": _("Elo (jet)"),
     "play-time": _("Flight time"),
+    "ironman-air": _("Ironman"),
+    "ironman-ground": _("Ironman"),
 }
 GROUP_TITLES = {
     "air": _("Air"),
@@ -43,8 +48,11 @@ BOARD_ICONS = {  # the icon set (static/il2ks/img): chess pieces for the Elo boa
     "tank-busting": "ground/tank",
     "ground": "role/attack",
     "play-time": "stat/play-time",
+    "ironman-air": "medal/survivor",
+    "ironman-ground": "medal/survivor",
 }
 RETIRED_BOARDS = frozenset({"kills"})  # removed 2026-10-04; old links go to the index
+ALIASED_BOARDS = {"ironman": "ironman-air"}  # `/leaderboards/ironman/` is the air board
 POOL_OPTIONS = (("prop", _("Propeller")), ("jet", _("Jet")))
 BOARD_HELP = {
     "air": _("Points for air kills and assists, minus penalties for deaths, lost aircraft and friendly kills."),
@@ -69,6 +77,15 @@ BOARD_HELP = {
         "all time shows each pilot's best tour."
     ),
     "play-time": _("Flight time: the time spent in the air in all sorties, air and ground."),
+    "ironman-air": _(
+        "Each pilot's longest run of air sorties survived: no death, no capture. Only air superiority sorties "
+        "count; losing a ground attacker does not end it. A new tour starts everyone afresh; all time shows the "
+        "best tour."
+    ),
+    "ironman-ground": _(
+        "Each pilot's longest run of attack sorties survived: no death, no capture. Only attack sorties "
+        "count; losing a fighter does not end it. A new tour starts everyone afresh; all time shows the best tour."
+    ),
 }
 
 
@@ -97,9 +114,13 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
     label) pairs for the prop / jet filter, empty for the Elo boards), `sort` (resolved), `page_obj` (`BoardRow` page),
     `tours` / `tour` (the tour selector state; empty and None for all time and for boards without tours),
     `aircraft_options` ((pk, name) pairs, empty for boards without an aircraft filter), `rules` (the
-    minimum-activity thresholds), `page_title`."""
+    minimum-activity thresholds), `page_title`. The ironman boards (`ironman-air`, `ironman-ground`; rows are the best
+    run of each pilot) add `optional_columns` / `columns` (`?cols=`, `web.columns.IRONMAN_COLUMNS`), `running_page` (the
+    runs going right now; None in a past tour) and `active_days`."""
     if board in RETIRED_BOARDS:
         return redirect("web:leaderboards", permanent=True)
+    if board in ALIASED_BOARDS:
+        return redirect("web:leaderboard", ALIASED_BOARDS[board], permanent=True)
     spec = reads.BOARDS.get(board)
     if spec is None:
         raise Http404
@@ -112,6 +133,13 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
     selected_tour = choice.selected if choice else None
     page = reads.board_page(spec, sort, request.GET.get("page"), rules, selected_tour, aircraft, pool)
     language = get_language() or "en"
+    streak_track = spec.streak_track
+    shown = columns.chosen(request.GET, columns.IRONMAN_COLUMNS[streak_track]) if streak_track else []
+    running = (
+        board_reads.running_page(streak_track, request.GET.get("page_running", 1), datetime.now(UTC))
+        if streak_track and not (choice and choice.selected not in (None, choice.current))  # nobody runs in a past tour
+        else None
+    )
     tabs = [(key, BOARD_TITLES[key], _tab_url(key, request), key == board, BOARD_ICONS[key]) for key in reads.BOARDS]
     context: dict[str, object] = {
         "page_title": BOARD_TITLES[board],
@@ -127,5 +155,9 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
         "tour": choice.selected if choice else None,
         "aircraft_options": [(a.pk, object_names.name_of(a, language)) for a in planes],
         "rules": rules,
+        "optional_columns": columns.IRONMAN_COLUMNS[streak_track] if streak_track else [],
+        "columns": shown,
+        "running_page": running,
+        "active_days": board_reads.ACTIVE_DAYS,
     }
     return render(request, "il2ks/leaderboards/list.html", context)

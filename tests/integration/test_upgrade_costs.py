@@ -210,3 +210,25 @@ def test_the_first_upgrade_with_scoped_data_missing_rebuilds_once(monkeypatch: p
 
     assert rebuilds == ["rebuild"]
     assert not migrate.catalog_changed()
+
+
+def test_the_ironman_tracks_backfill_rebuilds_once_with_the_other_markers_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FR-OPS-3, maintainer 2026-10-05: a database from before the two ironman tracks (migration 0094) has every marker
+    but `streak_tracks`: level 2 is rebuilt exactly once, the marker is written, and the next upgrade does not rebuild."""
+    save(mission(tuple(sortie(i, i + 1, kills_air=1) for i in range(3))))
+    names = [
+        value
+        for key, value in vars(migrate).items()
+        if key.startswith("BACKFILL_") and value != migrate.BACKFILL_STREAK_TRACKS
+    ]
+    SiteSettings.objects.filter(pk=1).update(backfills_done=names)
+    rebuilds: list[str] = []
+    monkeypatch.setattr(migrate, "_rebuild_all", recording(rebuilds, "rebuild"))
+
+    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
+    migrate._run_backfills(cfg())  # pyright: ignore[reportPrivateUsage]
+
+    assert rebuilds == ["rebuild"]
+    assert migrate.BACKFILL_STREAK_TRACKS in SiteSettings.objects.get(pk=1).backfills_done

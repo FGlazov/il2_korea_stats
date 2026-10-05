@@ -18,7 +18,7 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerSortie
+from il2ks.db.models import AircraftCounters, CombatRole, Mission, Player, PlayerBestStreak, PlayerSortie
 from il2ks.queries.tours import tour_title
 from il2ks.web import column_hints, display
 from il2ks.web.display import Label
@@ -72,20 +72,50 @@ def _accuracy(hits: int, rounds: int) -> str:
     return display.percent(hits, rounds, 1)
 
 
+def best_elo(p: Player) -> float | None:
+    """The player's highest rated Elo over both pools, None while he has no rated game in either (maintainer
+    2026-10-05: the player list has one "Elo" column; the pools stay available as optional columns)."""
+    rated = [rating for rating, games in ((p.elo_jet, p.elo_jet_games), (p.elo_prop, p.elo_prop_games)) if games]
+    return max(rated) if rated else None
+
+
+# The default columns of the player list after the player's name (maintainer, 2026-10-05): flight time, Elo, attack
+# proficiency, K/L and the two longest kill streaks without a death. They are data-driven like the optional ones, so the
+# header, the sort key and the hint live in one place; the template loops over them.
+PLAYER_DEFAULT_COLUMNS: tuple[Column[Player], ...] = (
+    Column("flight_time_s", _("Flight time"), lambda p: display.duration(p.flight_time_s), "flight_time"),
+    Column("elo", _("Elo"), lambda p: display.num(best_elo(p))),
+    Column(
+        "ground_hour",
+        _("Attack proficiency"),
+        lambda p: display.per_hour(p.score_ground_attack, p.time_on_target_s, 1),
+    ),
+    Column("kl", _("K/L"), lambda p: display.ratio(p.kills_air, p.planes_lost)),
+    Column(
+        "streak_kills_air",
+        _("Longest kill streak"),
+        lambda p: display.num(p.streak_kills_air) if p.streak_kills_air else display.DASH,
+    ),
+    Column(
+        "streak_kills_ground",
+        _("Longest ground kill streak"),
+        lambda p: display.num(p.streak_kills_ground) if p.streak_kills_ground else display.DASH,
+    ),
+)
+
 PLAYER_COLUMNS: tuple[Column[Player], ...] = (
+    Column("sorties", _("Sorties"), lambda p: display.num(p.sorties)),
+    Column("kills_air", _("Air kills"), lambda p: display.num(p.kills_air)),
+    Column("kills_ground", _("Ground kills"), lambda p: display.num(p.kills_ground)),
+    Column("deaths", _("Deaths"), lambda p: display.num(p.deaths)),
+    Column("last_seen", _("Last seen"), lambda p: display.time_element(p.last_seen, "date")),
     Column("elo_jet", _("Elo (jet)"), lambda p: _elo(p.elo_jet, p.elo_jet_games)),
     Column("elo_prop", _("Elo (prop)"), lambda p: _elo(p.elo_prop, p.elo_prop_games)),
     Column("kd", _("K/D"), lambda p: display.ratio(p.kills_air, p.deaths)),
-    Column("kl", _("K/L"), lambda p: display.ratio(p.kills_air, p.planes_lost)),
     Column("survival", _("Survival"), lambda p: display.percent(max(p.sorties - p.deaths, 0), p.sorties)),
     Column("kills_air_pvp", _("Air kills (PvP)"), lambda p: display.num(p.kills_air_pvp)),
     Column("score_air", _("Air score"), lambda p: display.num(p.score_air)),
     Column("score_ground", _("Ground score"), lambda p: display.num(p.score_ground)),
-    Column(
-        "ground_hour",
-        _("Ground score/h"),
-        lambda p: display.per_hour(p.score_ground_attack, p.time_on_target_s, 1),
-    ),
     Column("planes_lost", _("Aircraft lost"), lambda p: display.num(p.planes_lost)),
     Column("assists", _("Assists"), lambda p: display.num(p.assists)),
     Column("assists_air", _("Air assists"), lambda p: display.num(p.assists_air)),
@@ -104,6 +134,29 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
     Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
 )
+
+
+# --- the ironman boards (maintainer 2026-10-05; rows: a pilot's best run on one track) --------------------------------
+# The default columns (pilot, sorties, the track's kills, flight time) stay in the template; these are the extras. The
+# other track's kills (what an air run killed on the ground, and the reverse) is one of them.
+_RUN_SINCE = Column[PlayerBestStreak](
+    "since", _("Since"), lambda r: display.time_element(r.since, "date"), numeric=False
+)
+_RUN_UNTIL = Column[PlayerBestStreak](
+    "until", _("Until"), lambda r: display.time_element(r.until, "date"), numeric=False
+)
+IRONMAN_COLUMNS: dict[str, tuple[Column[PlayerBestStreak], ...]] = {
+    "air": (
+        Column("kills_ground", _("Ground kills"), lambda r: display.num(r.kills_ground), "streak_other_kills"),
+        _RUN_SINCE,
+        _RUN_UNTIL,
+    ),
+    "ground": (
+        Column("kills_air", _("Air kills"), lambda r: display.num(r.kills_air), "streak_other_kills"),
+        _RUN_SINCE,
+        _RUN_UNTIL,
+    ),
+}
 
 
 # --- missions ------------------------------------------------------------------------------------------------------
