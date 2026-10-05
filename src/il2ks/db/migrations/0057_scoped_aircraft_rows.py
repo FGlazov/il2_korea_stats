@@ -18,7 +18,7 @@ def drop_scoped_rows(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("il2ks_db", "0055_sortie_pilot_damage"),
+        ("il2ks_db", "0056_site_achievements"),
     ]
 
     operations = [
