@@ -436,6 +436,8 @@ section, so a changed rule applies with `il2ks rebuild-aggregates`, no reprocess
 - **Outcome penalties are percentages** (`[score] penalty_*_pct`, in percent, clamped 0..100; the old flat keys `penalty_death` / `penalty_plane_lost` / `penalty_capture` are gone; a config that still sets them gets a warning at load (shown by `il2ks doctor`) and the new defaults, maintainer, OQ-100): **death 80%,
   capture 50%, aircraft lost without death or capture 20%**. The percentage comes off **both** the air and the ground score, only from a
   positive score (never below 0), and when several apply the **largest** one counts (OQ-67, decided with these defaults).
+  Maintainer, 2026-10-05: percentage outcome penalties never improve a negative score: a negative score is left as is. This holds because the
+  percentage is taken from the kill points (never negative) **before** the flat penalties come off; regression tests in `tests/unit/ratings/test_score.py`.
 - **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
   early bailout (5) and each friendly kill (3, up to 5 kills per sortie). A sortie with a flat penalty and no kills can be negative.
 - **Leaderboard minimums** (`[score] min_sorties` 5, `min_elo_games` 5, `min_attack_sorties` 5, `min_time_on_target_minutes` 10,
