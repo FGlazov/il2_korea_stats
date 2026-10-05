@@ -5,10 +5,12 @@ Each one compares the incremental state with a rebuild (`rebuild_aggregates(reas
 
 import random
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
+from django.contrib.auth.models import User
 from django.db import transaction
+from django.test import Client
 
 from il2ks.core.ratings.elo import DEFAULT_RULES
 from il2ks.core.replay.result import MissionResult
@@ -17,7 +19,7 @@ from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.persist import discard_provisional_mission, save_level1, save_mission
 from tests.db_canon import canonical_dump, diff_dumps
 from tests.factories import FakeCatalog, kill, meta, mission, sortie
-from tests.integration.test_achievements import held, snapshot
+from tests.integration.test_achievements import held, pk, snapshot
 from tests.integration.test_achievements_all_time import fly, month
 from tests.integration.test_tours import MONTHLY
 from tests.integration.test_tours_decisive import END_TICK, A, B, C, D, at, history, put, set_on_win, tour_titles
@@ -173,3 +175,72 @@ def test_shuffled_on_win_ingest_equals_rebuild() -> None:
     for i in order:
         save_final(i)
     assert_equals_rebuild()
+
+
+# --- 5. old winners: rows saved before results were read ---
+def old_winner(started_at: datetime) -> None:
+    """A mission as an old version saved it: a winner (possibly a false one), no result."""
+    put(started_at, winner=1)
+    Mission.objects.filter(started_at=started_at).update(result="unknown")
+
+
+def test_an_old_winner_without_a_result_is_not_a_cut() -> None:
+    set_on_win(wanted=True)
+    old_winner(A)
+    put(B)
+
+    assert tour_titles() == ["October 2026"]
+    assert_equals_rebuild()
+
+
+def test_the_tours_page_counts_old_winners_apart(admin: Client) -> None:
+    old_winner(A)
+    put(B, winner=2)
+    put(C, draw=True)
+    page = admin.get("/admin/tours/").content.decode()
+
+    assert "Won by one side: 1" in page
+    assert "Old winners without a result: 1" in page
+    assert "il2ks reprocess" in page.split("Old winners without a result: 1", 1)[1].split("</li>", 1)[0]
+    assert "No result: 0" in page
+
+
+# --- 6. what the option would do ---
+def test_the_projection_counts_the_tours_the_option_would_create() -> None:
+    history()  # the option off: one tour; wins at A and C, so B and D start parts
+
+    from il2ks.ingest.tours import on_win_projection
+
+    projection = on_win_projection(now=D + timedelta(days=1))
+
+    assert projection.tours == 3
+    assert projection.recent_wins == 2
+    assert on_win_projection(now=D + timedelta(days=40)).recent_wins == 0
+
+
+def test_the_tours_page_shows_the_projection(admin: Client) -> None:
+    now = datetime.now(UTC)
+    put(now - timedelta(minutes=50), winner=1)
+    put(now - timedelta(minutes=20))
+    page = admin.get("/admin/tours/").content.decode()
+
+    assert "would form this many tours:" in page
+    assert "Missions won by one side in the last 30 days: 1" in page
+
+
+# --- 7. the absence notice names every tour the pilot flew in ---
+def test_the_absence_notice_lists_all_the_tours_the_pilot_flew_in(client: Client) -> None:
+    for n in range(14):  # more tours than the profile charts show
+        fly(n)
+    fly(14, player=2)  # the pilot did not fly in the newest tour
+    first, newest = Tour.objects.order_by("started_at")[0], Tour.objects.order_by("-started_at")[0]
+    page = client.get(f"/players/{pk(1)}/?tour={newest.pk}").content.decode()
+
+    notice = page.split("tour-absent", 1)[1].split("</aside>", 1)[0]
+    assert f'?tour={first.pk}"' in notice
+
+
+@pytest.fixture
+def admin(client: Client) -> Client:
+    client.force_login(User.objects.create_superuser("boss", "boss@example.org", "x"))
+    return client
