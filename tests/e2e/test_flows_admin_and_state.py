@@ -79,7 +79,8 @@ def test_an_admin_renames_one_achievement_and_switches_another_off(
     """/admin/achievements/: rename one (name and description, English) and switch one off; the pilot's achievements,
     his profile and the overview show the new name, and the switched-off one is gone everywhere."""
     tweak_data("SiteSettings", None, {"achievements": {}})
-    achievements_url = f"/players/{world.ace_pk}/achievements/"
+    # the career names are the all-time ones; a tour shows "Tour Sky Hunter"
+    achievements_url = f"/players/{world.ace_pk}/achievements/?tour=all"
 
     page.goto(achievements_url)
     expect(main_region(page).get_by_text(BUILT_IN, exact=True).first).to_be_visible()
@@ -88,19 +89,19 @@ def test_an_admin_renames_one_achievement_and_switches_another_off(
     admin_login(page)
     page.goto("/admin/achievements/")
     renamed = page.locator("#achievement-career_kills")
-    renamed.get_by_text("Own name and description per language").click()
-    renamed.get_by_label("Name in English").fill(RENAMED)
-    renamed.get_by_label("Description in English").fill(RENAMED_DESCRIPTION)
+    renamed.get_by_text("Own career name and description per language").click()
+    renamed.get_by_label("Name in English", exact=True).fill(RENAMED)
+    renamed.get_by_label("Description in English", exact=True).fill(RENAMED_DESCRIPTION)
     page.locator("#achievement-regular").get_by_label("Switched on").uncheck()
     save_admin_form(page, "Achievements saved.")
     expect(page.locator("#achievement-career_kills").get_by_role("heading", level=2)).to_contain_text("changed")
 
-    for url in (achievements_url, "/achievements/"):
+    for url in (achievements_url, "/achievements/?tour=all"):
         page.goto(url)
         expect(main_region(page).get_by_text(RENAMED, exact=True).first).to_be_visible()
         expect(main_region(page).get_by_text(BUILT_IN, exact=True)).to_have_count(0)
         expect(main_region(page).get_by_text(SWITCHED_OFF, exact=True)).to_have_count(0)
-    page.goto("/achievements/")
+    page.goto("/achievements/?tour=all")
     expect(main_region(page).get_by_text(RENAMED_DESCRIPTION)).to_be_visible()
     page.goto(f"/players/{world.ace_pk}/")
     expect(main_region(page).get_by_text(SWITCHED_OFF, exact=True)).to_have_count(0)
