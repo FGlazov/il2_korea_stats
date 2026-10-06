@@ -391,6 +391,32 @@ The maintainer chose these from a brainstorm over the design docs. The features 
   cached, for uptime monitors), **sitemap and robots** (`sitemap.xml` of visible players, aircraft and missions, `robots.txt`; so pilots who
   search for their nickname find the server) and **`[backup] copy_to`**: a second folder (another drive or a share) that each backup is
   copied to, with an option to mirror the mission archive there too (the archive is the source of truth and the backups leave it out).
+- **Admin login protection** (maintainer, 2026-10-06; from the design review: the admin is a public HTTPS login with no lockout, and one
+  password gives uploads, custom quips and rule changes). `[PROPOSED]`: **django-axes** with its database handler (no cache service to run,
+  NFR-INS): lock an account **and** a client address after 5 failed attempts for 15 minutes (`[web] login_attempts` / `login_lockout_minutes`),
+  reset on success, a plain "try again in N minutes" page; the client address taken from the proxy header only in production behind
+  Caddy or an own proxy (the same trust rule as `SECURE_PROXY_SSL_HEADER`, so an attacker cannot spoof it); failed attempts and lockouts in the
+  structured log (TD-27); locked accounts listed in `il2ks doctor` and unlockable in the admin. Optional TOTP second factor later, if admins ask.
+- **Dependency updates and audit** (maintainer, 2026-10-06; NFR-SEC-5 was still only proposed). `.github/dependabot.yml` for the **uv lock
+  file** (`pip` ecosystem, weekly, minor and patch updates grouped into one PR, majors separate) and for **GitHub Actions**; a `pip-audit` step
+  over `uv.lock` (`uv export` then `pip-audit -r`) in CI on every push and on a weekly schedule, **blocking** (a known vulnerability fails the
+  job; a false positive gets an ignore with a dated reason in the workflow). The release checklist (`docs/releasing.md`) gets "audit clean".
+- **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by the polled Markdown source, roadmap item above, and by any later
+  webhook or update check). One helper, `serving/outbound.py` `[PROPOSED]`, that every outbound request goes through: http and https only;
+  the host is resolved first and every resolved address must be public (refuse loopback, private 10/8, 172.16/12, 192.168/16, link-local
+  169.254/16 incl. cloud metadata, multicast, `::1`, `fc00::/7`, `fe80::/10`, and IPv4-mapped IPv6 forms of those); the connection is made to
+  the checked address with the host name only in the TLS SNI and `Host` header (no second lookup, so DNS rebinding cannot swap the target);
+  redirects are followed at most 3 times, each target re-checked; a response size cap and a timeout; an allow-list in `il2ks.toml`
+  (`[outbound] allow_private = [...]`) for admins who really want a LAN source, off by default. Unit-tested with fake resolvers.
+- **Template versioning that tells breaking from cosmetic** (maintainer, 2026-10-06; since 0.1.0 every CSS or template edit raises a version
+  and shows every customizing owner a red banner, so the warning will be ignored). `[PROPOSED]` (TD-25): a two-part version `vN.M` in the header
+  line: **N** changes only when the override contract changes (a `{% block %}` added, removed or renamed; a context variable or an include that
+  the template reads; an element id or class that the built-in CSS or JS targets; a filter or tag removed), **M** for everything else (wording,
+  layout, colours, markup inside a block). An override on an older **N** is `outdated` (red banner, installer message box, doctor warning, as
+  today); an older **M** is `behind` (shown in `il2ks custom list` and on the admin's custom-overrides page, no banner, no pop-up).
+  `il2ks dev bump-templates` infers the part: it diffs the old and new template for block names, `{% include %}` targets, variables used and
+  ids / classes referenced from `site.css` and the scripts, and bumps N when any of them changed, else M; `--major` forces N for a change the
+  diff cannot see. The hash check stays as it is, so an edited file still needs a bump. Release notes list only the N bumps.
 - **Iteration 3 (maintainer, 2026-10-06: "probably also a good idea, maybe for iteration 3")**: outbound integrations and more APIs, see
   the iteration 3 section below.
 

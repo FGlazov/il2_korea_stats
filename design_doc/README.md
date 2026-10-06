@@ -113,3 +113,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-06 (roadmap "Next version" from the feature brainstorm: side balance per mission and player, notice banner, trend vs the previous
   tour flown, altitude on the timeline, engagement-distance research, small ops items; read API and opt-in outbound integrations in iteration 3;
   new OQ-134, OQ-135).
+  2026-10-06 (from the design review, next version: admin login lockout (NFR-SEC-8), Dependabot and a blocking pip-audit (NFR-SEC-5 decided),
+  an SSRF guard for outbound fetches (NFR-SEC-9), template versions that tell breaking from cosmetic changes (TD-25)).

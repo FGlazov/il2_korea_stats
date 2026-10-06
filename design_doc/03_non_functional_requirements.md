@@ -19,7 +19,9 @@
 | NFR-SEC-3 | Public pages are read-only. The only write paths are the Django admin and the ingester. | `[PROPOSED]` |
 | NFR-SEC-7 | **Uploads are untrusted**: only admin-uploaded raster images (logos). Type is checked by content, not extension. Re-encoded, size-limited, never SVG or HTML, and served with `nosniff` (FR-ADM-2). | `[PROPOSED]` |
 | NFR-SEC-4 | The SQLite database and archives sit in a data directory that the web server never serves. (Dev-only Postgres listens on localhost.) | `[PROPOSED]` |
-| NFR-SEC-5 | Automated dependency vulnerability checks in CI (for example `pip-audit` / `uv` audit, Dependabot). | `[PROPOSED]` |
+| NFR-SEC-5 | Automated dependency vulnerability checks in CI (for example `pip-audit` / `uv` audit, Dependabot). **Not built yet** (2026-10-06): no `dependabot.yml`, no audit step. Scheduled for the next version (roadmap "Next version": Dependabot for `uv.lock` and Actions, a blocking `pip-audit` job). | `[DECIDED]` (maintainer, 2026-10-06) |
+| NFR-SEC-8 | **Admin login lockout**: failed logins lock the account and the client address for a while (roadmap "Next version": django-axes, 5 attempts / 15 minutes proposed). The admin is a public HTTPS login and one password controls uploads, quips and rules. | `[DECIDED]` (maintainer, 2026-10-06), mechanism `[PROPOSED]` |
+| NFR-SEC-9 | **Outbound requests are guarded**: every fetch the server makes on an admin-supplied URL (polled Markdown sources, later webhooks) goes through one helper that refuses private, loopback and link-local targets and re-checks redirects (roadmap "Next version", SSRF guard). | `[DECIDED]` (maintainer, 2026-10-06), mechanism `[PROPOSED]` |
 | NFR-SEC-6 | **HTTPS only.** HTTP only redirects. HSTS and secure cookies are on. Certificates are obtained and renewed automatically (bundled Caddy), or TLS is terminated by the admin's own proxy (TD-23). | `[DECIDED]` (HTTPS only), `[PROPOSED]` (mechanism) |
 
 ## Offline and portability
