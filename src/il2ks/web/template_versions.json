@@ -2,8 +2,8 @@
   "format": 1,
   "files": {
     "static/il2ks/il2ks.js": {
-      "version": 1,
-      "sha256": "1ed068a718e75b6e295727c0333ad576fb3bad811c0e46ec0aac43d1e52200c0"
+      "version": 2,
+      "sha256": "c78759e898ff7ad93bbacf77c3c613a0e52ae14c703b6220e0cd93463666cd24"
     },
     "static/il2ks/leaderboards.css": {
       "version": 1,
@@ -30,8 +30,8 @@
       "sha256": "1e61c8f9c9aa3544a00ac7065ec1e9971873f9d5dd91ea80853cbce1f32a154e"
     },
     "static/il2ks/site.css": {
-      "version": 1,
-      "sha256": "c06c36fc2498e8dc36b134bffbc038755acf1720b394ec9bdcfdc1de73006ee6"
+      "version": 2,
+      "sha256": "f6c832403f180cb0d22b0e6f73402d00829b51ca4fceec941bd42eed978da784"
     },
     "static/il2ks/sortie.js": {
       "version": 1,

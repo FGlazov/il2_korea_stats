@@ -1,12 +1,14 @@
-/* il2ks-template: static/il2ks/il2ks.js v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/il2ks.js v2 - copy this line along when you override */
 /* Small progressive enhancements. Everything works without this file (and without htmx).
  * Loaded with `defer`, after vendor/htmx.min.js. */
 (function () {
   "use strict";
   var root = document.documentElement;
 
-  // htmx present: hide the "Apply" buttons of filter bars, the filters submit on change instead.
-  if (window.htmx) { root.classList.add("has-htmx"); }
+  // The "Apply" buttons of the filter bars are already hidden by the `js` class (theme-init.js, before first paint: the
+  // filters submit on change with htmx). Without htmx (blocked, a broken override) they must come back: `no-htmx`.
+  // `has-htmx` stays for stylesheets that key on it.
+  root.classList.add(window.htmx ? "has-htmx" : "no-htmx");
 
   // Theme toggle: flips between light and dark, starting from whatever is showing now; remembered in localStorage.
   function isDark() {

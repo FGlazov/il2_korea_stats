@@ -34,6 +34,13 @@ How the website, the admin and the operations commands are built (iteration 1, p
   exception, needed to fire deferred FK checks) and are atomic.
 - **Labels:** the sortie `disconnected` flag reads "Left the server"; "Destroyed" comes only from `aircraft_status`, never from
   `damage_taken`. A gunner sortie shows its turret type as plain text (no link to an aircraft page: a turret type has none, `[PROPOSED]`). The matchup K/L hint says "no losses" where the type was never lost to the enemy and shows a dash below 10 kills plus losses (`MIN_ENCOUNTERS`). Medal hover texts build the tier and threshold from one translatable pattern.
+- **The no-JS Apply buttons are hidden before first paint** (2026-10-06, CI flake on a docs-only commit: a 0.018 layout shift on the home
+  page's tour selector and search at 1280 px). The filter bars' and the tour selector's Apply button (`.filter-bar__apply`) is the fallback
+  without JavaScript; with htmx the filters submit on change. It used to be hidden by `has-htmx`, which the **deferred** `il2ks.js` sets, so
+  a slow machine painted the button, the hero's tour selector wrapped onto two lines, and the row snapped back when the script ran. Now the
+  `js` class that `theme-init.js` sets in the head (before any paint) hides it, and `il2ks.js` adds `no-htmx` (the button comes back) when
+  htmx is missing, or `has-htmx` as before (kept for stylesheets that key on it). `tests/e2e/test_apply_button_paint.py` stalls the deferred
+  scripts so first paint always comes first, watches every animation frame for a painted button, and checks the no-htmx and no-JS fallbacks.
 - **Style guide** at `/_styleguide/` (only with DEBUG) shows every component; English-only by design.
 - **Placeholders** for every icon and image named in [15_visual_assets.md](15_visual_assets.md), under `web/static/il2ks/img/`.
 - **Free icon option** (research, 2026-10-03): Tabler Icons (MIT, outline, 24 px grid) covers almost every slot (tank, parachute, prison,

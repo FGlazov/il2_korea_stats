@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v2 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -411,7 +411,10 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 /* localtime.js hides an ended tour's "next tour" line after first paint; keeping its box (visibility, not display) means the
    filter bar and everything below it do not jump (CLS). */
 .tour-next[hidden] { display: inline !important; visibility: hidden; } /* !important: Pico hides [hidden] with it */
-.has-htmx .filter-bar__apply { display: none; }
+/* The Apply button is the no-JS way to submit; with htmx the filters submit on change. It is hidden by the `js` class
+   that theme-init.js sets in the head, BEFORE first paint (hiding it from the deferred il2ks.js let a slow machine paint
+   it, wrap the hero's tour selector and snap back: a layout shift), and comes back when il2ks.js finds no htmx. */
+.js:not(.no-htmx) .filter-bar__apply, .has-htmx .filter-bar__apply { display: none; }
 /* Tour selector (components/tour_select.html): compact, right-aligned on the title line of the page head (wraps below the
    title when it does not fit); in the home banner it sits right of the player search. */
 .tour-select { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.3rem 0.6rem; margin: 0 0 0 auto; }
