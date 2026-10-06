@@ -336,6 +336,17 @@ through trusted publishing.
   before building: which rows count as admin settings besides `SiteSettings` and the game rules (hidden players and
   missions, object name overrides, manual tour names / periods, achievement settings); a backup first; a typed
   confirmation like other destructive actions.
+- **Markdown pages in the navigation** (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
+  internal page rendered from Markdown (server intro, flavour text, rules), several pages each with its own link. Design
+  `[PROPOSED]`: a `Page` model (slug, title, Markdown source, rendered HTML, source URL, last fetch and its error), served at
+  `/p/<slug>/` in the site layout; `NavLink` points at either a URL or a page. Rendering with `markdown-it-py`
+  (CommonMark, pure Python) and the HTML sanitized with `nh3` (allowlist of tags and attributes, only http/https/relative
+  links), done once on save or fetch, never per request; a new render bumps the data version (TD-28). Steps: (1) Markdown
+  typed in the admin with a preview; (2) a source URL (e.g. a raw GitHub file) that `watch` polls (configurable interval,
+  timeout, size cap, keeps the last good copy and shows the error in the admin); (3) images: admin-uploaded pictures
+  through the background-picture pipeline (decoded, re-encoded as WebP, served by the media view), referenced from the
+  Markdown by name; images on a polled source fetched and stored the same way (relative paths resolved against the source
+  URL), so pages never hotlink. Open: OQ-133.
 
 ## Right after the release: visual assets
 **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview

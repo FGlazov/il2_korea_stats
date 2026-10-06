@@ -19,6 +19,12 @@ Nothing waits for the maintainer's review.
 
 ## Lower impact (owner: maintainer, outside input)
 
+**OQ-133 Markdown pages: sources and images** (owner: maintainer; roadmap "Markdown pages in the navigation")
+Which sources should a page accept: Markdown typed in the admin, a polled http/https URL, a file on the server machine,
+or several of these? Should images on a remote source be copied to the server (proposed: yes, re-encoded, no hotlinking
+of third-party hosts) or linked as they are? Is one language per page enough, or does each page need a version per site
+language?
+
 **OQ-26 Live telemetry for positions (Tacview-style)**
 Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it
 reachable from the server machine, and can its object IDs be mapped to log object IDs? This only matters for a future flight-path map (TD-08).
