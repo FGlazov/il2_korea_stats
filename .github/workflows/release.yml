@@ -79,7 +79,7 @@ jobs:
           uv venv --python 3.13 smoke-venv
           if [ "$RUNNER_OS" = "Windows" ]; then BIN=smoke-venv/Scripts; else BIN=smoke-venv/bin; fi
           echo "BIN=$PWD/$BIN" >> "$GITHUB_ENV"
-          uv pip install --python "$BIN/python" dist/*.whl
+          uv pip install --python smoke-venv dist/*.whl  # the folder: `Scripts/python` without `.exe` fails on Windows
 
       - name: il2ks --help and --version
         run: |
