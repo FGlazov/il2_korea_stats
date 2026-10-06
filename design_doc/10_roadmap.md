@@ -347,6 +347,8 @@ through trusted publishing.
   through the background-picture pipeline (decoded, re-encoded as WebP, served by the media view), referenced from the
   Markdown by name; images on a polled source fetched and stored the same way (relative paths resolved against the source
   URL), so pages never hotlink. Open: OQ-133.
+- **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
+  https://github.com/FGlazov/il2_korea_stats; the link text stays inside the translated string.
 
 ## Right after the release: visual assets
 **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
