@@ -350,6 +350,50 @@ through trusted publishing.
 - **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
   https://github.com/FGlazov/il2_korea_stats; the link text stays inside the translated string.
 
+## Next version: maintainer picks from the feature brainstorm (2026-10-06)
+The maintainer chose these from a brainstorm over the design docs. The features are `[DECIDED]`; the details are `[PROPOSED]` unless marked.
+- **Side balance**, per mission and per player (maintainer, 2026-10-06).
+  - *Per mission*: the pilots per side (`Mission.redfor_players` / `blufor_players`, next to the sortie counts that exist) on the mission page
+    and as optional columns of the mission list; per tour and all time, the share of sorties flown per side (from the aircraft tour rows'
+    `sorties_redfor` / `sorties_blufor`, no new table) as one line on the home page's last-mission block and on the leaderboards.
+  - *Per player*: "how often do you fly each coalition" (`sorties_redfor` / `sorties_blufor` as counters, summed per tour and all time; the
+    profile's "Other totals" shows the split) and "how often do you fly for the side with fewer players" (`sorties_underdog`, shown as a share
+    of the counted sorties, with a stat mark like the ratios so a loyal underdog stands out). The underdog flag is decided **at spawn, in the
+    replay**: the pilot's side has strictly fewer pilots in open sorties than the other side at the spawn tick (equal = not underdog; gunners
+    count as their pilot's aircraft); stored on `PlayerSortie`, so old sorties need `il2ks reprocess --all`. The definition and the display
+    are OQ-134 (the alternative: compare the mission's totals, which is simpler but rewards joining a side that fills up later).
+- **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
+  rules change). `SiteSettings`: text (plain, escaped, at most 300 characters), level (`info` / `warning`, the notice component's styles),
+  optional expiry (hidden once past, like the next-tour line); a save bumps the data version (TD-28); empty = nothing shown. One text for every
+  language, written in the server's language `[PROPOSED]`; per-language texts can follow the custom-quip pattern if someone asks.
+- **Trend against the previous tour on the profile** (maintainer, 2026-10-06): the star tiles (Elo jet, Elo prop, attack proficiency) and the
+  K/D and survival ratios show an arrow with the change since **the previous tour the pilot flew in** (the newest earlier `PlayerTour` row with
+  a counted sortie, not the previous calendar tour; maintainer: "compare to the last tour(s) the player played"), the previous value in the
+  tooltip. Only on a tour view (all time has no "previous"); no arrow when either tour is below the board minimum. One extra read.
+- **Altitude in the sortie timeline** (maintainer, 2026-10-06): every timeline row with a position shows its altitude (the game's `y`, which
+  is **above sea level**: il2ks has no terrain data, OQ-39; the column hint says so). Units follow the sortie's side `[PROPOSED]`: BLUFOR in
+  feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
+  ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
+  show). Confirm the units: OQ-135. The sortie's positions are stored already, so no reprocess is needed for the column.
+- **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
+  flight time). What the log offers: a gun burst (AType 24) carries the **shooter's** position and tick, a hit line (AType 1) carries only the
+  tick, ammo, attacker and target, a damage line (AType 2) the **target's** position. Two estimates to compare on the sample missions
+  before anything is built: (a) **geometric**: the shooter's last burst position before the hit against the target's position from the damage
+  line on the hit tick (or the target's last known position); the shooter keeps moving between the burst and the hit (100-300 m in the 0.5-1.5 s
+  a round flies at 200 m/s), so pair the burst by tick rather than taking the raw distance; (b) **ballistic**, the maintainer's idea: the
+  ticks between the burst and the hit times the round's average velocity (muzzle velocity about 870 m/s for the .50 BMG, 690 m/s for the
+  23 mm NR-23, 700 m/s for the 37 mm N-37; drag lowers the average over 500-1000 m; one tick is 20 ms, about 15 m). Open before building:
+  does a burst event fire once per trigger press or once per segment of continuous fire (194k bursts against 12.9M hits suggests per press);
+  is the hit tick the impact time or the firing time (if the latter, (b) measures nothing). If (a) and (b) agree within about 20% on PvP gun
+  hits, store per sortie a median firing range per target class (air, ground) and show it on the sortie page and as a profile figure; if
+  they disagree, record why and drop the idea. Ordnance is out of scope (the release position is known, the impact point is not).
+- **Small ops items** (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
+  cached, for uptime monitors), **sitemap and robots** (`sitemap.xml` of visible players, aircraft and missions, `robots.txt`; so pilots who
+  search for their nickname find the server) and **`[backup] copy_to`**: a second folder (another drive or a share) that each backup is
+  copied to, with an option to mirror the mission archive there too (the archive is the source of truth and the backups leave it out).
+- **Iteration 3 (maintainer, 2026-10-06: "probably also a good idea, maybe for iteration 3")**: outbound integrations and more APIs, see
+  the iteration 3 section below.
+
 ## Right after the release: visual assets
 **Visual assets** ([15_visual_assets.md](15_visual_assets.md)): replace the placeholder icons, aircraft silhouettes, logo, link-preview
 image and illustrations with finished ones. Moved here (maintainer, 2026-10-03): the maintainer will work with a designer on a mostly
@@ -369,3 +413,9 @@ finished site and wants to release quickly. The site ships with placeholders und
 - A central instance that receives data from many servers. Each server gets an opt-in exporter (push, or pull through a
   read-only export endpoint), and identities merge through game account UUIDs and `server_uid` (TD-17).
 - This is the first time anything leaves the server machine, so it needs a privacy and consent design first.
+- **Read API and outbound integrations** (maintainer, 2026-10-06, from the feature brainstorm): a small **versioned read-only JSON API**
+  (players, sorties, missions, boards; the same simple reads as the pages, cached by the data version) and **CSV export** of a player's
+  or a mission's sorties, so the community can build Discord bots and stream overlays, and so the global-stats exporter above has a
+  proven base. **Opt-in outbound integrations**: Discord webhooks (mission results, new tours, rare medals), an "update available" check.
+  These conflict with NFR-OFF-1 / TD-13 as written; the polled Markdown source (OQ-133) already opens that door, so the decision to make
+  first is an explicit **opt-in outbound policy** (off by default, every destination configured by the admin, nothing automatic).

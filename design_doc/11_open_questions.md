@@ -19,6 +19,16 @@ Nothing waits for the maintainer's review.
 
 ## Lower impact (owner: maintainer, outside input)
 
+**OQ-134 Side balance: what is "the side with fewer players"?** (owner: maintainer; roadmap "Next version", side balance)
+Proposed: decided at spawn in the replay (the pilot's side has strictly fewer pilots in open sorties at that tick; equal = not underdog).
+Alternative: compare the mission's total pilots per side, which is simpler but rewards joining the side that fills up later. Also: should the
+underdog share get a stat mark and a quip, or stay a plain figure in "Other totals"?
+
+**OQ-135 Altitude units on the timeline** (owner: maintainer; roadmap "Next version", altitude)
+Proposed: BLUFOR in feet as "Angels N" (thousands of feet; exact feet in the tooltip), REDFOR in metres ("4 500 m"; Soviet altimeters were
+metric, kilometres only in speech, so not km). Confirm, or pick one unit for everyone (the viewer's language is another option: feet for
+English, metres elsewhere).
+
 **OQ-133 Markdown pages: sources and images** (owner: maintainer; roadmap "Markdown pages in the navigation")
 Which sources should a page accept: Markdown typed in the admin, a polled http/https URL, a file on the server machine,
 or several of these? Should images on a remote source be copied to the server (proposed: yes, re-encoded, no hotlinking

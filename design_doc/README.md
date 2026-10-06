@@ -110,3 +110,6 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-04 (open-question cleanup 2: OQ-79..113 answered by the maintainer removed from doc 11 except OQ-105; decisions folded into docs 02, 05, 07, 13, 15, 16, 17 and 03).
   2026-10-05 (doc sync 3: doc 06 brought up to the models (scoped aircraft rows, AircraftMods, loadout-only builds, SortieGunHits dropped, site settings, live fields, indexes), doc 17 admin configuration, aircraft page scope rules, sortie quip order with first blood, fall-through and per-language picks).
   2026-10-06 (roadmap: Markdown pages in the navigation, typed or polled from a URL, with images; new OQ-133).
+  2026-10-06 (roadmap "Next version" from the feature brainstorm: side balance per mission and player, notice banner, trend vs the previous
+  tour flown, altitude on the timeline, engagement-distance research, small ops items; read API and opt-in outbound integrations in iteration 3;
+  new OQ-134, OQ-135).
