@@ -41,6 +41,12 @@ How the website, the admin and the operations commands are built (iteration 1, p
   `js` class that `theme-init.js` sets in the head (before any paint) hides it, and `il2ks.js` adds `no-htmx` (the button comes back) when
   htmx is missing, or `has-htmx` as before (kept for stylesheets that key on it). `tests/e2e/test_apply_button_paint.py` stalls the deferred
   scripts so first paint always comes first, watches every animation frame for a painted button, and checks the no-htmx and no-JS fallbacks.
+  **Second mechanism, same day** (the stalled test still shifted at 360 px on CI's Linux fonts; the Playwright screencast showed the hero one line
+  shorter after the scripts): `localtime.js` rewrites the `<time>` of the "Next tour starts" line ("2026-10-01 00:00 UTC" becomes "Oct 1, 2026,
+  12:00 AM"), the line's width changed and with it whether it fit beside the tour select, so the `flex-wrap` row re-wrapped. The line now has a
+  width that does not depend on its text (`.tour-next`: `min-width: min(19rem, 100%)`, one line, ellipsis), so a text rewrite can never change
+  the wrap. The general case stays: a `<time>` rewrite elsewhere (table columns) reflows that table a little and is covered by the CLS budget of
+  the web-vitals test (0.1), while the header, the hero and the filter bars are held to zero.
 - **Style guide** at `/_styleguide/` (only with DEBUG) shows every component; English-only by design.
 - **Placeholders** for every icon and image named in [15_visual_assets.md](15_visual_assets.md), under `web/static/il2ks/img/`.
 - **Free icon option** (research, 2026-10-03): Tabler Icons (MIT, outline, 24 px grid) covers almost every slot (tank, parachute, prison,
