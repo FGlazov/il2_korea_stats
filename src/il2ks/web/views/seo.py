@@ -5,7 +5,7 @@ The sitemap lists the pages worth finding: the main lists, every aircraft type, 
 neither do sortie pages or filtered or paginated variants. The admin's Markdown pages (`/p/<slug>/`) are listed
 with the main pages (`/sitemap-site.xml`). URLs are absolute, from
 the configured public address (`[https] domain`, `settings.IL2KS_PUBLIC_URL`); with no domain set they take the host the
-request came in on.
+request came in on. The base URL is prefixed at response time.
 
 Size: one sitemap file holds at most `PAGE_SIZE` URLs (the protocol allows 50,000; smaller files are cheaper to build
 and to fetch). When everything fits, `/sitemap.xml` is that file. Otherwise it is a sitemap index pointing to
@@ -14,9 +14,8 @@ its own slice of rows (ordered by primary key, two columns each); the index cost
 
 Cached by the data version like every other page: `web.caching` answers a matching `If-None-Match` before the view runs,
 and a rendered file is kept in memory until the data version changes (a crawler asking for 100 files after one import
-builds each once). Only when `IL2KS_PUBLIC_URL` is set: without it the addresses come from the Host header, which
-any client chooses, so a cache keyed by it would grow with every made-up Host (review 0.2.0 M8); those requests
-render every time (ETag revalidation still answers a repeat visitor with a 304).
+builds each once). The cache holds files with relative paths, keyed by (kind, number) only: bounded by the number of
+files and independent of the Host header, which any client chooses (review 0.2.0 M8, L4).
 """
 
 import math
@@ -53,16 +52,14 @@ type Kind = Literal["missions", "players"]
 type Entry = tuple[str, datetime | None]  # (path, last change)
 
 _cache_lock = threading.Lock()
-_cache: dict[tuple[str, str], str] = {}
+_cache: dict[tuple[str, int], str] = {}
 _cache_version: int | None = None
 
 
-def _remembered(version: int, key: tuple[str, str], build: Callable[[], str]) -> str:
-    """The rendered file for this data version; a new version forgets everything older. Not kept (just built) while no
-    public address is configured: the key would hold a client-chosen Host."""
+def _remembered(version: int, key: tuple[str, int], build: Callable[[], str]) -> str:
+    """The rendered file (relative paths) for this data version; a new version forgets everything older. The key is
+    (kind, number) only, never the Host, so the cache is bounded by the number of files."""
     global _cache_version
-    if not settings.IL2KS_PUBLIC_URL:
-        return build()
     with _cache_lock:
         if _cache_version != version:
             _cache.clear()
@@ -77,24 +74,29 @@ def _remembered(version: int, key: tuple[str, str], build: Callable[[], str]) ->
     return text
 
 
+def _absolute(text: str, base: str) -> str:
+    """Prefix the base URL to every `<loc>/path` of a file rendered with relative paths."""
+    return text.replace("<loc>/", f"<loc>{escape(base)}/")
+
+
 def base_url(request: HttpRequest) -> str:
     """`https://domain[:port]` from the configuration; else the address this request came in on."""
     configured: str = settings.IL2KS_PUBLIC_URL
     return configured or request.build_absolute_uri("/").rstrip("/")
 
 
-def _urlset(base: str, entries: Iterable[Entry]) -> str:
+def _urlset(entries: Iterable[Entry]) -> str:
     lines = ['<?xml version="1.0" encoding="UTF-8"?>', f'<urlset xmlns="{SITEMAP_NS}">']
     for where, changed in entries:
         stamp = f"<lastmod>{changed.date().isoformat()}</lastmod>" if changed is not None else ""
-        lines.append(f"<url><loc>{escape(base + where)}</loc>{stamp}</url>")
+        lines.append(f"<url><loc>{escape(where)}</loc>{stamp}</url>")
     lines.append("</urlset>")
     return "\n".join(lines) + "\n"
 
 
-def _index(base: str, files: Iterable[str]) -> str:
+def _index(files: Iterable[str]) -> str:
     lines = ['<?xml version="1.0" encoding="UTF-8"?>', f'<sitemapindex xmlns="{SITEMAP_NS}">']
-    lines += [f"<sitemap><loc>{escape(base + name)}</loc></sitemap>" for name in files]
+    lines += [f"<sitemap><loc>{escape(name)}</loc></sitemap>" for name in files]
     lines.append("</sitemapindex>")
     return "\n".join(lines) + "\n"
 
@@ -149,25 +151,24 @@ def _xml(body: str) -> HttpResponse:
 @require_safe
 def sitemap_index(request: HttpRequest) -> HttpResponse:
     """`/sitemap.xml`: the whole sitemap when it fits one file, else the index of the files."""
-    base = base_url(request)
 
     def build() -> str:
         missions, players = _count("missions"), _count("players")
         site = _site_entries()
         if len(site) + missions + players <= PAGE_SIZE:
-            return _urlset(base, site + _entries("missions", 1) + _entries("players", 1))
+            return _urlset(site + _entries("missions", 1) + _entries("players", 1))
         names = ["/sitemap-site.xml"]
         names += [f"/sitemap-missions-{n}.xml" for n in range(1, _files(missions) + 1)]
         names += [f"/sitemap-players-{n}.xml" for n in range(1, _files(players) + 1)]
-        return _index(base, names)
+        return _index(names)
 
-    return _xml(_remembered(current_data_version(), ("index", base), build))
+    return _xml(_absolute(_remembered(current_data_version(), ("index", 0), build), base_url(request)))
 
 
 @require_safe
 def sitemap_site(request: HttpRequest) -> HttpResponse:
-    base = base_url(request)
-    return _xml(_remembered(current_data_version(), ("site", base), lambda: _urlset(base, _site_entries())))
+    text = _remembered(current_data_version(), ("site", 0), lambda: _urlset(_site_entries()))
+    return _xml(_absolute(text, base_url(request)))
 
 
 @require_safe
@@ -175,9 +176,8 @@ def sitemap_part(request: HttpRequest, kind: Kind, number: int) -> HttpResponse:
     """`/sitemap-<kind>-<n>.xml` (kind: missions or players, n from 1)."""
     if number < 1 or number > _files(_count(kind)):
         raise Http404
-    base = base_url(request)
-    key = (f"{kind}-{number}", base)
-    return _xml(_remembered(current_data_version(), key, lambda: _urlset(base, _entries(kind, number))))
+    text = _remembered(current_data_version(), (kind, number), lambda: _urlset(_entries(kind, number)))
+    return _xml(_absolute(text, base_url(request)))
 
 
 DISALLOWED = (

@@ -34,7 +34,7 @@ from il2ks.ingest.reprocess_requests import ReprocessFn, WipeFn, fail_interrupte
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once, utcnow
 from il2ks.ingest.score_apply import rescore_with_wanted
 from il2ks.ingest.wipe import resume_unfinished_wipe, wipe_and_reprocess
-from il2ks.ops.backup import backup_if_due
+from il2ks.ops.backup import backup_if_due, cancel_copy
 
 log = logging.getLogger(__name__)
 
@@ -129,46 +129,49 @@ def watch(
             live_tick()
             last_live = time.monotonic()
 
-    log.info("watching %s every %.0f s", cfg.logs.dir, cfg.ingest.watch_interval_s)
-    while not stop.is_set():
-        try:
-            # Reconcile once per process start (FR-ING-8), not every tick.
-            ingest_once(cfg, pipeline, IngestOptions(reconcile=not reconciled), now=now, command="watch")
-            reconciled = True
-        except LockBusyError as exc:
-            log.info("skipping this tick: %s", exc)
-        except Exception:
-            log.exception("ingest tick failed; retrying next tick")
-        if wipe_resume_waiting:
-            resume_wipe()
-        try:
-            run_pending_request(
-                cfg,
-                reprocess_pipeline,
-                reprocess_fn=reprocess_fn,
-                wipe_fn=wipe_fn,
-                now=now,
-                between=live_between_missions,
-            )
-        except Exception:
-            log.exception("reprocess request tick failed; retrying next tick")
-        try:
-            recompute_with_wanted_rules(cfg)  # the admin changed an achievement threshold or switch
-        except Exception:
-            log.exception("achievement recompute failed; retrying next tick")
-        try:
-            rescore_with_wanted(
-                cfg
-            )  # the admin changed a scoring or tour rule, the flight-time score or the tour switch
-        except Exception:
-            log.exception("rule change failed; retrying next tick")
-        backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
-        live_tick()
-        ticks += 1
-        if max_ticks is not None and ticks >= max_ticks:
-            break
-        if tracker is None:
-            _wait(stop, cfg.ingest.watch_interval_s)
-        else:
-            _wait_with_live(stop, cfg.ingest.watch_interval_s, cfg.live.interval_s, live_tick)
+    try:
+        log.info("watching %s every %.0f s", cfg.logs.dir, cfg.ingest.watch_interval_s)
+        while not stop.is_set():
+            try:
+                # Reconcile once per process start (FR-ING-8), not every tick.
+                ingest_once(cfg, pipeline, IngestOptions(reconcile=not reconciled), now=now, command="watch")
+                reconciled = True
+            except LockBusyError as exc:
+                log.info("skipping this tick: %s", exc)
+            except Exception:
+                log.exception("ingest tick failed; retrying next tick")
+            if wipe_resume_waiting:
+                resume_wipe()
+            try:
+                run_pending_request(
+                    cfg,
+                    reprocess_pipeline,
+                    reprocess_fn=reprocess_fn,
+                    wipe_fn=wipe_fn,
+                    now=now,
+                    between=live_between_missions,
+                )
+            except Exception:
+                log.exception("reprocess request tick failed; retrying next tick")
+            try:
+                recompute_with_wanted_rules(cfg)  # the admin changed an achievement threshold or switch
+            except Exception:
+                log.exception("achievement recompute failed; retrying next tick")
+            try:
+                rescore_with_wanted(
+                    cfg
+                )  # the admin changed a scoring or tour rule, the flight-time score or the tour switch
+            except Exception:
+                log.exception("rule change failed; retrying next tick")
+            backup_retry_at = daily_backup(cfg, now(), backup_retry_at)
+            live_tick()
+            ticks += 1
+            if max_ticks is not None and ticks >= max_ticks:
+                break
+            if tracker is None:
+                _wait(stop, cfg.ingest.watch_interval_s)
+            else:
+                _wait_with_live(stop, cfg.ingest.watch_interval_s, cfg.live.interval_s, live_tick)
+    finally:
+        cancel_copy()  # Ctrl+C or a service stop must not wait for a first archive mirror (hours)
     return ticks

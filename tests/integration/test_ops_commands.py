@@ -358,6 +358,27 @@ def test_backup_command_succeeds_even_when_the_second_folder_cannot_be_written(
     assert "COPY FAILED" in capsys.readouterr().out
 
 
+def test_backup_command_reports_a_crashed_copy_not_a_stale_ok(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Review 0.2.0 L5: a copy thread that died with an exception used to show the previous run's OK."""
+    second = tmp_path / "second"
+    cfg = make_instance(tmp_path / "with-copy", extra_toml=f'[backup]\ncopy_to = "{second.as_posix()}"\n')
+    assert cfg.source is not None
+    assert main(["--config", str(cfg.source), "backup"]) == EXIT_OK
+    assert "Copy:" in capsys.readouterr().out  # an OK status is now on disk
+
+    def boom(config: Config) -> None:
+        raise RuntimeError("share exploded")
+
+    monkeypatch.setattr(backup, "copy_to_second_folder", boom)
+    assert main(["--config", str(cfg.source), "backup"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "COPY FAILED" in out
+    assert "share exploded" in out
+    assert "Copy: " not in out.replace("COPY FAILED", "")
+
+
 def test_backup_command_without_a_database_is_an_error(
     tmp_path: Path, instance: Config, capsys: pytest.CaptureFixture[str]
 ) -> None:

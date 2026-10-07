@@ -28,6 +28,11 @@ def with_copy(tmp_path: Path, *, keep: int = 10, archive: bool = False) -> tuple
     return cfg, second
 
 
+@pytest.fixture(autouse=True)
+def _copy_not_cancelled() -> None:
+    backup._copy_cancel.clear()  # pyright: ignore[reportPrivateUsage]
+
+
 def names(folder: Path) -> list[str]:
     return sorted(p.name for p in folder.iterdir() if p.is_file())
 
@@ -315,3 +320,134 @@ def test_stale_tmp_files_in_the_second_folder_are_cleaned_up(tmp_path: Path) -> 
     backup.wait_for_copy()
     assert not stale.exists()
     assert fresh.exists()
+
+
+# --- review 0.2.0 L5 --------------------------------------------------------------------------------------------------
+
+
+def test_cancel_copy_stops_a_running_mirror_between_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ctrl+C on a standalone `il2ks watch` must not wait hours for the first archive mirror: the stop handler cancels
+    the copy, which ends at the next file (the next backup resumes: finished files are skipped)."""
+    cfg, second = with_copy(tmp_path, archive=True)
+    for n in range(20):
+        put_archive(cfg, f"2026/10/m{n}.txt.zip", b"log")
+    release = threading.Event()
+    started = _slow_copy(monkeypatch, release)
+    backup.request_copy(cfg, with_archive=True)
+    assert started.wait(5)
+    backup.cancel_copy()
+    release.set()
+    assert backup.wait_for_copy(5), "the copy thread kept running after cancel_copy"
+    mirrored = list((second / str(cfg.server_uid) / "archive").rglob("*.zip"))
+    assert len(mirrored) < 20
+
+
+def test_cancel_copy_interrupts_a_single_big_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cfg, second = with_copy(tmp_path, archive=True)
+    put_archive(cfg, "2026/10/big.txt.zip", b"x" * 4000)
+    monkeypatch.setattr(backup, "_CHUNK", 10)
+    seen = threading.Event()
+    real_cancelled = backup._copy_cancelled  # pyright: ignore[reportPrivateUsage]
+
+    def spy() -> bool:
+        seen.set()
+        time.sleep(0.01)
+        return real_cancelled()
+
+    monkeypatch.setattr(backup, "_copy_cancelled", spy)
+    backup.request_copy(cfg, with_archive=True)
+    assert seen.wait(5)
+    backup.cancel_copy()
+    assert backup.wait_for_copy(5)
+    mirror = second / str(cfg.server_uid) / "archive"
+    assert not list(mirror.rglob("big*"))  # neither the file nor a .tmp is left
+
+
+def test_the_standalone_watch_cancels_the_copy_when_it_ends(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from il2ks.ingest import watch as watch_mod
+
+    cancelled: list[bool] = []
+    monkeypatch.setattr(watch_mod, "cancel_copy", lambda: cancelled.append(True))
+    cfg, _ = with_copy(tmp_path)
+    stop = threading.Event()
+    stop.set()
+    watch_mod.watch(cfg, lambda *a, **k: None, stop=stop)  # type: ignore[arg-type]
+    assert cancelled
+
+
+def test_status_writes_from_several_processes_do_not_lose_each_other(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The per-process `_status_lock` does not cover the watch thread plus `il2ks backup`: simulate two processes (no
+    shared lock) hammering the status; both kinds must survive and the file must never be torn."""
+    import contextlib
+
+    cfg, _ = with_copy(tmp_path)
+    cfg.data_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(backup, "_status_lock", contextlib.nullcontext())
+    errors: list[BaseException] = []
+
+    def hammer(kind: str) -> None:
+        try:
+            for n in range(150):
+                backup._record(cfg, backup.CopyOutcome(kind, True, "t", f"{n}"))  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+        except BaseException as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=hammer, args=(k,)) for k in ("backups", "archive")]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert not errors
+    status = backup.read_copy_status(cfg)
+    assert status["backups"].detail == "149"
+    assert status["archive"].detail == "149"
+    assert not [p for p in cfg.data_dir.iterdir() if p.suffix == ".tmp"]
+
+
+def test_two_copies_of_the_same_file_do_not_share_a_tmp_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`watch`'s mirror and the CLI's can copy the same file at once: each gets its own `.tmp`."""
+    source = tmp_path / "src.zip"
+    source.write_bytes(b"data")
+    dest = tmp_path / "out" / "src.zip"
+    used: list[str] = []
+    arrived = threading.Semaphore(0)
+    real_replace = os.replace
+
+    def replace(a: object, b: object) -> None:
+        first = Path(str(a)).name not in used
+        used.append(Path(str(a)).name)
+        if first and len(used) <= 2:  # both copies are at the final step together
+            arrived.release()
+            arrived.acquire(timeout=5)
+            arrived.release()
+        real_replace(a, b)  # pyright: ignore[reportArgumentType]
+
+    monkeypatch.setattr(backup.os, "replace", replace)
+    threads = [threading.Thread(target=backup._copy_file, args=(source, dest)) for _ in range(2)]  # pyright: ignore
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len(set(used)) == 2, used
+    assert dest.read_bytes() == b"data"
+
+
+def test_a_long_copy_keeps_its_tmp_fresh_so_nobody_deletes_it(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An SMB share may update the mtime only when the file is closed: the writer touches it while it copies, or another
+    process (`_clean_partials`, one hour) would delete a long copy's .tmp."""
+    source = tmp_path / "src.zip"
+    source.write_bytes(b"x" * 100)
+    monkeypatch.setattr(backup, "_CHUNK", 10)
+    monkeypatch.setattr(backup, "_TOUCH_EVERY_S", 0.0)
+    touched: list[str] = []
+    real = os.utime
+
+    def utime(path: object, *a: object, **k: object) -> None:
+        touched.append(str(path))
+        real(path, *a, **k)  # pyright: ignore
+
+    monkeypatch.setattr(backup.os, "utime", utime)
+    backup._copy_file(source, tmp_path / "out" / "src.zip")  # pyright: ignore[reportPrivateUsage]
+    assert any(p.endswith(".tmp") for p in touched)

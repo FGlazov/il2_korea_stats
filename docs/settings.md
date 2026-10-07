@@ -235,7 +235,12 @@ copy_archive = true              # optional: mirror the mission archive there to
   mirror is never pruned: a file stays there even if it disappears from the archive.
 - The copy runs in a background thread, one copy at a time, so a slow or offline share (Windows can block 20-60 seconds
   per file operation) never holds up ingestion, the website or an admin action. `il2ks backup` waits for it and prints
-  the result. Half-copied `.tmp` files that a crash left behind are deleted after an hour.
+  the result (or the error, if the copy crashed). Ctrl+C on a standalone `il2ks watch` stops the copy at once; the next
+  backup resumes it (finished files are skipped). Half-copied `.tmp` files that a crash left behind are deleted after an
+  hour (a running copy keeps its `.tmp` fresh, and every copy uses its own `.tmp` name).
+- **Upgrading from a 0.2.0 pre-release?** Those copied straight into `<copy_to>` (`<copy_to>/*.zip` and `<copy_to>/archive`).
+  From the release on everything goes into `<copy_to>/<server ID>/`; the old flat copies are never touched or rotated
+  again, so delete `<copy_to>/*.zip` and `<copy_to>/archive` by hand to get the space back.
 - The copy never fails the backup. If the folder is missing or full, il2ks logs a warning, tries again with the next
   backup, and `il2ks doctor` shows "Backup copy ... failed". On the Windows service, the service account needs write
   access to the folder (a mapped drive letter is not visible to a service: use the `//server/share` form).
