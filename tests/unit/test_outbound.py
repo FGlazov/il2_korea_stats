@@ -605,6 +605,10 @@ def test_a_failed_connect_cancels_the_watchdog_timer() -> None:
     with pytest.raises(OutboundError, match="could not connect"):
         world.get("http://example.org/", timeout_s=30.0)
 
+    for _ in range(100):  # a cancelled timer thread needs a moment to wind down
+        if _timers() == before:
+            break
+        time.sleep(0.01)
     assert _timers() == before
 
 
@@ -625,7 +629,8 @@ def test_the_watchdog_only_shuts_the_socket_down_the_owner_closes_it() -> None:
 
     connection._expire()  # pyright: ignore[reportPrivateUsage]
 
-    assert shutdowns and not sock.closed
+    assert shutdowns
+    assert not sock.closed
     assert connection.expired.is_set()
     connection.finish()
     assert sock.closed

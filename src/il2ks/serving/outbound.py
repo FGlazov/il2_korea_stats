@@ -13,8 +13,10 @@ outbound request therefore goes through `fetch`:
 - at most `MAX_REDIRECTS` redirects, each target checked the same way (scheme, then resolve, then addresses);
 - a size cap on the body (`max_bytes`) and a timeout (`timeout_s`) for the whole call: connecting, the TLS handshake,
   the headers and the body. A watchdog timer shuts the socket at the deadline, so a server that sends one byte every
-  few seconds cannot hold the call. (Resolving the host name through the system resolver is the one step that cannot
-  be interrupted.)
+  few seconds cannot hold the call. The watchdog only shuts sockets down; the thread that owns the call closes them
+  (so a reused descriptor number is never touched from the timer thread). Answers that close the connection
+  (`Connection: close`, HTTP/1.0, a body that ends with the close) are read to the end like any other.
+  (Resolving the host name through the system resolver is the one step that cannot be interrupted.)
 - `[outbound] allow_private` (il2ks.toml): networks an admin explicitly allows (a source on the LAN). Off by default.
 
 Only the standard library is used. The resolver, the TCP connection and the TLS wrapping are parameters, so tests run
@@ -179,8 +181,14 @@ def _split(url: str) -> tuple[str, str, int, str]:
     return parts.scheme, host, port, target
 
 
-def _abort(sock: socket.socket) -> None:
-    """Shut a socket down from another thread: that wakes a `recv` that is blocked on it."""
+def _shutdown(sock: socket.socket) -> None:
+    """Shut a socket down (safe from another thread): that wakes a `recv` that is blocked on it. It does not close the
+    descriptor: only the thread that owns the socket does that, or the number could be reused under its feet."""
+    with contextlib.suppress(OSError):
+        sock.shutdown(socket.SHUT_RDWR)
+
+
+def _close(sock: socket.socket) -> None:
     with contextlib.suppress(OSError):
         sock.shutdown(socket.SHUT_RDWR)
     with contextlib.suppress(OSError):
@@ -191,8 +199,10 @@ class _PinnedConnection(http.client.HTTPConnection):
     """An `HTTPConnection` that connects to an address we checked and sends the host name in `Host` (and in the TLS
     handshake when `tls` is given). `http.client` never resolves anything itself here.
 
-    `start_watchdog(seconds)` makes the deadline hard: when it passes, every socket of the connection is shut down,
-    wherever the call is blocked (connect, handshake, headers, body)."""
+    `start_watchdog(seconds)` makes the deadline hard: when it passes, every socket of the connection is shut down
+    (not closed), wherever the call is blocked (connect, handshake, headers, body). `finish()` is the owner's clean-up:
+    cancel the timer, close everything. `close()` stays `http.client`'s own: `getresponse()` calls it for an answer that
+    will close (`Connection: close`, HTTP/1.0), and the body is still read from the socket afterwards."""
 
     def __init__(
         self,
@@ -221,12 +231,12 @@ class _PinnedConnection(http.client.HTTPConnection):
     def _expire(self) -> None:
         self.expired.set()
         for sock in list(self._open):
-            _abort(sock)
+            _shutdown(sock)
 
     def _track(self, sock: socket.socket) -> None:
         self._open.append(sock)
         if self.expired.is_set():  # the timer fired just before the socket was listed
-            _abort(sock)
+            _shutdown(sock)  # closed by `finish()`
             raise OutboundError("the request took too long")
 
     def connect(self) -> None:
@@ -245,18 +255,24 @@ class _PinnedConnection(http.client.HTTPConnection):
                     sock = wrapped
             except BaseException:
                 for opened in self._open:
-                    _abort(opened)  # a failed handshake must not leave the raw socket open
+                    _close(opened)  # a failed handshake must not leave the raw socket open
                 raise
             self.sock = sock
             return
         raise OutboundError(f"could not connect to {self.host!r}") from last
 
-    def close(self) -> None:
+    @property
+    def body_socket(self) -> socket.socket | None:
+        """The socket the answer is read from (`self.sock` is None once `http.client` has closed the connection)."""
+        return self._open[-1] if self._open else None
+
+    def finish(self) -> None:
+        """Cancel the watchdog and close every socket. Called by the thread that owns the connection."""
         if self._watchdog is not None:
             self._watchdog.cancel()
         super().close()
         for sock in self._open:
-            _abort(sock)
+            _close(sock)
 
 
 def fetch(
@@ -293,7 +309,8 @@ def fetch(
                 continue
             return Fetched(current, status, headers, _read_capped(response, connection, max_bytes, deadline, clock))
         finally:
-            connection.close()
+            response.close()
+            connection.finish()
     raise OutboundError(f"more than {max_redirects} redirects")
 
 
@@ -321,9 +338,9 @@ def _request(
         connection.putheader("Connection", "close")
         connection.endheaders()
         return connection.getresponse(), connection
-    except (OSError, http.client.HTTPException, ValueError) as exc:
+    except (OutboundError, OSError, http.client.HTTPException, ValueError) as exc:
         late = connection.expired.is_set() or isinstance(exc, TimeoutError)
-        connection.close()
+        connection.finish()
         if isinstance(exc, OutboundError):
             raise
         if late:
@@ -344,11 +361,13 @@ def _read_capped(
     body = bytearray()
     try:
         while True:
+            if response.isclosed():  # the whole body was read: `http.client` closed the socket behind the last byte
+                break
             left = deadline - clock()
             if left <= 0:
                 raise OutboundError("the request took too long")
-            if connection.sock is not None:
-                connection.sock.settimeout(left)  # one `recv` never waits longer than what is left of the call
+            if (body_socket := connection.body_socket) is not None:
+                body_socket.settimeout(left)  # one `recv` never waits longer than what is left of the call
             chunk = response.read1(min(_CHUNK, max_bytes + 1 - len(body)))
             if not chunk:
                 break
@@ -359,4 +378,6 @@ def _read_capped(
         if connection.expired.is_set() or isinstance(exc, TimeoutError):
             raise OutboundError("the request took too long") from exc
         raise OutboundError(f"reading the response failed: {exc}") from exc
+    if connection.expired.is_set():  # the watchdog's shutdown looks like the end of a close-delimited body
+        raise OutboundError("the request took too long")
     return bytes(body)
