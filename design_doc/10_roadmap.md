@@ -319,17 +319,18 @@ screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, st
 through trusted publishing.
 
 ## Version 0.2.0 Road map
-- **Doctor: are pages compressed?** (maintainer, 2026-10-05): with an own reverse proxy (nginx, IIS, Apache) the pages are
+Status legend as above. All items started 2026-10-07 (one Sonnet agent per group, orchestrated).
+- 🔧 **Doctor: are pages compressed?** (maintainer, 2026-10-05): with an own reverse proxy (nginx, IIS, Apache) the pages are
   only compressed when the proxy does it (`docs/reverse-proxy.md`, requirement 6; the bundled Caddy always does). A
   `doctor` check fetches a page through the public address and warns when it comes back without `Content-Encoding`. (Not
   Django's GZipMiddleware: it would compress in the single Python process on every hit and replace Caddy's zstd.)
-- **"Delete all data and reprocess" in the admin** (maintainer, 2026-10-05): a second button next to *Reprocess all*
+- 🔧 **"Delete all data and reprocess" in the admin** (maintainer, 2026-10-05): a second button next to *Reprocess all*
   that deletes every ingested row (missions, sorties, players, tours and everything derived from them) but keeps the admin
   settings, then reprocesses every archived mission, so the tours are cut again from the current tour settings. Open
   before building: which rows count as admin settings besides `SiteSettings` and the game rules (hidden players and
   missions, object name overrides, manual tour names / periods, achievement settings); a backup first; a typed
   confirmation like other destructive actions.
-- **Markdown pages in the navigation** (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
+- 🔧 **Markdown pages in the navigation** (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
   internal page rendered from Markdown (server intro, flavour text, rules), several pages each with its own link. Design
   `[PROPOSED]`: a `Page` model (slug, title, Markdown source, rendered HTML), served at `/p/<slug>/` in the site layout; `NavLink`
   points at either a URL or a page. Rendering with `markdown-it-py` (CommonMark, pure Python) and the HTML sanitized with `nh3`
@@ -340,30 +341,30 @@ through trusted publishing.
   translations for the site's other languages; a viewer whose language has no translation gets the base text; no language is forced.
   Later, if asked: a source URL that `watch` polls (through the SSRF guard below; interval, timeout, size cap, last good copy kept, the
   error shown in the admin) and admin-uploaded pictures through the background-picture pipeline.
-- **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
+- 🔧 **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
   https://github.com/FGlazov/il2_korea_stats; the link text stays inside the translated string.
-- **Small ops items** (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
+- 🔧 **Small ops items** (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
   cached, for uptime monitors), **sitemap and robots** (`sitemap.xml` of visible players, aircraft and missions, `robots.txt`; so pilots who
   search for their nickname find the server) and **`[backup] copy_to`**: a second folder (another drive or a share) that each backup is
   copied to, with an option to mirror the mission archive there too (the archive is the source of truth and the backups leave it out).
-- **Admin login protection** (maintainer, 2026-10-06; from the design review: the admin is a public HTTPS login with no lockout, and one
+- 🔧 **Admin login protection** (maintainer, 2026-10-06; from the design review: the admin is a public HTTPS login with no lockout, and one
   password gives uploads, custom quips and rule changes). `[PROPOSED]`: **django-axes** with its database handler (no cache service to run,
   NFR-INS): lock an account **and** a client address after 5 failed attempts for 15 minutes (`[web] login_attempts` / `login_lockout_minutes`),
   reset on success, a plain "try again in N minutes" page; the client address taken from the proxy header only in production behind
   Caddy or an own proxy (the same trust rule as `SECURE_PROXY_SSL_HEADER`, so an attacker cannot spoof it); failed attempts and lockouts in the
   structured log (TD-27); locked accounts listed in `il2ks doctor` and unlockable in the admin. Optional TOTP second factor later, if admins ask.
-- **Dependency updates and audit** (maintainer, 2026-10-06; NFR-SEC-5 was still only proposed). `.github/dependabot.yml` for the **uv lock
+- 🔧 **Dependency updates and audit** (maintainer, 2026-10-06; NFR-SEC-5 was still only proposed). `.github/dependabot.yml` for the **uv lock
   file** (`pip` ecosystem, weekly, minor and patch updates grouped into one PR, majors separate) and for **GitHub Actions**; a `pip-audit` step
   over `uv.lock` (`uv export` then `pip-audit -r`) in CI on every push and on a weekly schedule, **blocking** (a known vulnerability fails the
   job; a false positive gets an ignore with a dated reason in the workflow). The release checklist (`docs/releasing.md`) gets "audit clean".
-- **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by a later polled Markdown source, and by any later webhook or
+- 🔧 **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by a later polled Markdown source, and by any later webhook or
   update check; built now so the first outbound fetch has it). One helper, `serving/outbound.py` `[PROPOSED]`, that every outbound request goes through: http and https only;
   the host is resolved first and every resolved address must be public (refuse loopback, private 10/8, 172.16/12, 192.168/16, link-local
   169.254/16 incl. cloud metadata, multicast, `::1`, `fc00::/7`, `fe80::/10`, and IPv4-mapped IPv6 forms of those); the connection is made to
   the checked address with the host name only in the TLS SNI and `Host` header (no second lookup, so DNS rebinding cannot swap the target);
   redirects are followed at most 3 times, each target re-checked; a response size cap and a timeout; an allow-list in `il2ks.toml`
   (`[outbound] allow_private = [...]`) for admins who really want a LAN source, off by default. Unit-tested with fake resolvers.
-- **Template versioning that tells breaking from cosmetic** (maintainer, 2026-10-06; since 0.1.0 every CSS or template edit raises a version
+- 🔧 **Template versioning that tells breaking from cosmetic** (maintainer, 2026-10-06; since 0.1.0 every CSS or template edit raises a version
   and shows every customizing owner a red banner, so the warning will be ignored). `[PROPOSED]` (TD-25): a two-part version `vN.M` in the header
   line: **N** changes only when the override contract changes (a `{% block %}` added, removed or renamed; a context variable or an include that
   the template reads; an element id or class that the built-in CSS or JS targets; a filter or tag removed), **M** for everything else (wording,
@@ -372,7 +373,7 @@ through trusted publishing.
   `il2ks dev bump-templates` infers the part: it diffs the old and new template for block names, `{% include %}` targets, variables used and
   ids / classes referenced from `site.css` and the scripts, and bumps N when any of them changed, else M; `--major` forces N for a change the
   diff cannot see. The hash check stays as it is, so an edited file still needs a bump. Release notes list only the N bumps.
-- **Side balance**, per mission and per player (maintainer, 2026-10-06).
+- 🔧 **Side balance**, per mission and per player (maintainer, 2026-10-06).
   - *Per mission*: the pilots per side (`Mission.redfor_players` / `blufor_players`, next to the sortie counts that exist) on the mission page
     and as optional columns of the mission list; per tour and all time, the share of sorties flown per side (from the aircraft tour rows'
     `sorties_redfor` / `sorties_blufor`, no new table) as one line on the home page's last-mission block and on the leaderboards.
@@ -386,16 +387,16 @@ through trusted publishing.
     `[PROPOSED]`: the pilot is the underdog when, averaged over **the pilot's own sortie time** (spawn to end), the pilot's side had strictly fewer
     pilots spawned in than the other side (equal = not underdog), so a pilot who joins the smaller side and stays while it fills up is
     weighted by how long it was actually smaller. Computed in the replay, stored on `PlayerSortie`; old sorties need `il2ks reprocess --all`.
-- **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
+- 🔧 **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
   rules change). `SiteSettings`: text (plain, escaped, at most 300 characters), level (`info` / `warning`, the notice component's styles),
   optional expiry (hidden once past, like the next-tour line); a save bumps the data version (TD-28); empty = nothing shown. One text for every
   language, written in the server's language `[PROPOSED]`; per-language texts can follow the custom-quip pattern if someone asks.
-- **Altitude in the sortie timeline** (maintainer, 2026-10-06): every timeline row with a position shows its altitude (the game's `y`, which
+- 🔧 **Altitude in the sortie timeline** (maintainer, 2026-10-06): every timeline row with a position shows its altitude (the game's `y`, which
   is **above sea level**: il2ks has no terrain data, OQ-39; the column hint says so). Units follow the sortie's side `[PROPOSED]`: BLUFOR in
   feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
   ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
   show). Units confirmed by the maintainer (OQ-135, 2026-10-07). The sortie's positions are stored already, so no reprocess is needed for the column.
-- **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
+- 🔧 **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
   flight time). What the log offers: a gun burst (AType 24) carries the **shooter's** position and tick, a hit line (AType 1) carries only the
   tick, ammo, attacker and target, a damage line (AType 2) the **target's** position. Two estimates to compare on the sample missions
   before anything is built: (a) **geometric**: the shooter's last burst position before the hit against the target's position from the damage
