@@ -1,0 +1,19 @@
+# Dependency updates (NFR-SEC-5). Dependabot supports uv.lock through the `uv` ecosystem (generally available since
+# 2025), so it updates pyproject.toml and uv.lock together. Weekly; minor and patch updates of all packages go into ONE
+# pull request per ecosystem, a major update gets its own pull request (read the changelog before merging it).
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

@@ -51,7 +51,10 @@ Also mention renamed or removed `{% block %}`s and changed template variables: t
 1. Raise `__version__` in `src/il2ks/__init__.py` (the only place) and add a section for it at the top of
    `CHANGELOG.md`, with the template changes from above.
 2. Migrations ship as they are: never edit or squash a released one (`il2ks dev check-migrations` guards this).
-3. Commit, wait for CI to pass, then `git tag v<version>` and `git push origin v<version>`. The tag starts
+3. **Audit clean**: the `Dependency audit` workflow (`pip-audit` over `uv.lock`, also run weekly) is green on `main`. A
+   flagged package is updated (Dependabot opens the pull request), or, for a false positive, ignored in
+   `.github/workflows/audit.yml` with a dated reason. Merge the open Dependabot pull requests you trust first.
+4. Commit, wait for CI to pass, then `git tag v<version>` and `git push origin v<version>`. The tag starts
    `.github/workflows/release.yml` (build, smoke test on Linux and Windows, publish to PyPI with trusted publishing) and
    `.github/workflows/windows-installer.yml` (attaches the Windows installer to the GitHub release).
-4. Put the changelog section into the GitHub release's notes.
+5. Put the changelog section into the GitHub release's notes.
