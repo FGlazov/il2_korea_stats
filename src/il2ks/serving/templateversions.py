@@ -4,18 +4,23 @@ Server owners override built-in files by copying them into `<data dir>/custom/`.
 file, the copy silently keeps the old behaviour. To make that visible, every overridable built-in file carries a
 version in its first line:
 
-    {# il2ks-template: templates/il2ks/base.html v3 - copy this line along when you override #}      (templates)
-    /* il2ks-template: static/il2ks/site.css v2 - copy this line along when you override */           (CSS, JS)
+    {# il2ks-template: templates/il2ks/base.html v3.1 - copy this line along when you override #}    (templates)
+    /* il2ks-template: static/il2ks/site.css v2.0 - copy this line along when you override */         (CSS, JS)
+
+The version is two numbers, `vN.M`. **N** changes when the override contract changes: a block, an include, a context
+variable, a custom tag or filter, an id or class that the built-in CSS or JS targets (`templatecontract.py` has the
+exact rules). **M** is for everything else (wording, layout, colours, markup inside a block). An override on
+an older N is `outdated` (red banner, installer message box, doctor warning); one that is only on an older M is
+`behind` (shown in `il2ks custom list`). 0.1.0 shipped single numbers (`v3`): a header without `.M` reads as `vN.0`
+everywhere.
 
 The line travels with a copy, so an override says which version it is based on. `template_versions.json` (next to the
-templates, in the `il2ks.web` package) records, per file, the version and the SHA-256 of its content *without* that
-line. A test compares it with the files, so a developer who changes a template cannot forget to raise its version:
-`il2ks dev bump-templates` does the bookkeeping (adds missing headers, raises versions of changed files, rewrites the
-registry). This module is that bookkeeping plus the header parsing the detection in `il2ks.serving.custom` needs.
-
-Before the first public release nobody can have an override based on an older version, so the numbers would only be
-noise: while `FIRST_RELEASE_DONE` is False every file stays at v1 and `bump-templates` only refreshes the content
-hashes in the registry. The constant was flipped for the first release (0.1.0); since then versions count up.
+templates, in the `il2ks.web` package) records, per file, the version, the SHA-256 of its content *without* that line,
+and its contract fingerprint (what a changed file is compared with to tell N from M: stored there rather than read from
+git, so it works in a shallow clone, a sdist and an uncommitted branch). A test compares the registry with the files,
+so a developer who changes a template cannot forget to raise its version: `il2ks dev bump-templates` does the
+bookkeeping (adds missing headers, raises versions of changed files, rewrites the registry). This module is that
+bookkeeping plus the header parsing the detection in `il2ks.serving.custom` needs.
 
 Which files are versioned: HTML/TXT templates and CSS/JS static files of the `il2ks.web` package, except vendored
 libraries (`vendor/`). Images and fonts are replaced as a whole, so they have no versions.
@@ -24,15 +29,19 @@ libraries (`vendor/`). Images and fonts are replaced as a whole, so they have no
 import hashlib
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Literal, cast
+
+from il2ks.serving import templatecontract as contract_rules
+from il2ks.serving.templatecontract import Contract
 
 type Kind = Literal["templates", "static"]
 KINDS: tuple[Kind, ...] = ("templates", "static")
 
 REGISTRY_NAME = "template_versions.json"
-REGISTRY_FORMAT = 1
+REGISTRY_FORMAT = 2  # 1 (0.1.0): single-number versions, no fingerprints; still read
 HEADER_TAG = "il2ks-template"
 HEADER_NOTE = "copy this line along when you override"
 HEADER_SCAN_LINES = 5  # an override may have a few lines of its own on top; the built-in files start with it
@@ -42,29 +51,51 @@ STATIC_SUFFIXES = frozenset({".css", ".js"})
 COMMENT_SUFFIXES = frozenset({".css", ".js"})  # `/* */`; everything else uses Django's `{# #}`
 UNVERSIONED_DIRS = frozenset({"vendor"})
 
-_DJANGO_HEADER = re.compile(r"^\s*\{#\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?#\}\s*$")
-_C_HEADER = re.compile(r"^\s*/\*\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+v(?P<version>\d+)\b.*?\*/\s*$")
+_VERSION = r"v(?P<major>\d+)(?:\.(?P<minor>\d+))?\b"
+_DJANGO_HEADER = re.compile(r"^\s*\{#\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+" + _VERSION + r".*?#\}\s*$")
+_C_HEADER = re.compile(r"^\s*/\*\s*" + HEADER_TAG + r":\s*(?P<key>\S+)\s+" + _VERSION + r".*?\*/\s*$")
 
-# True since the first public release (0.1.0, docs/releasing.md); before it every built-in file stayed at version 1
-# and a changed file only got a new hash in the registry. An explicit constant rather than something
-# derived (a git tag, `il2ks.__version__`): tags are missing in shallow clones and sdists, `__version__` also moves for
-# pre-releases, and the switch should be a visible, reviewed change in the release commit.
+# Kept for `.github/workflows/release.yml`, which refuses a `v*` tag while it is False. It was flipped for 0.1.0; since
+# then versions count up and there is no "before the first release" mode any more.
 FIRST_RELEASE_DONE = True
 
-type ActionKind = Literal["register", "add-header", "bump", "fix-header", "rehash", "drop"]
+type ActionKind = Literal["register", "add-header", "bump", "fix-header", "drop"]
+type Part = Literal["major", "minor"]
+
+
+@dataclass(frozen=True, slots=True, order=True)
+class Version:
+    """`vN.M`. Ordered (N first). Written `3.1`; a 0.1.0 header `v3` is `3.0`."""
+
+    major: int
+    minor: int = 0
+
+    def __str__(self) -> str:
+        return f"{self.major}.{self.minor}"
+
+    def next(self, part: Part) -> "Version":
+        return Version(self.major + 1, 0) if part == "major" else Version(self.major, self.minor + 1)
+
+
+def parse_version(text: str) -> Version | None:
+    """`3`, `3.1`, `v3.1` -> Version; anything else (also `3.x`, an empty string) -> None."""
+    found = re.fullmatch(r"v?(\d+)(?:\.(\d+))?", text.strip())
+    return None if found is None else Version(int(found[1]), int(found[2] or 0))
 
 
 @dataclass(frozen=True, slots=True)
 class Header:
     key: str  # `templates/il2ks/base.html`, as written in the line
-    version: int
+    version: Version
     line: int  # 0-based line number inside the file
+    minor_given: bool = True  # False: an old `vN` header (0.1.0), read as `vN.0`
 
 
 @dataclass(frozen=True, slots=True)
 class Entry:
-    version: int
+    version: Version
     sha256: str
+    contract: Contract | None = None  # None: a format-1 registry, or a file never fingerprinted
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,9 +104,11 @@ class Action:
 
     key: str
     kind: ActionKind
-    old_version: int | None
-    new_version: int | None
+    old_version: Version | None
+    new_version: Version | None
     message: str
+    part: Part | None = None  # for "bump": which number was raised
+    reasons: tuple[str, ...] = ()  # for a major bump: what changed in the contract
 
 
 def web_root() -> Path:
@@ -98,7 +131,7 @@ def _pattern_for(rel: str) -> re.Pattern[str]:
     return _C_HEADER if PurePosixPath(rel).suffix.lower() in COMMENT_SUFFIXES else _DJANGO_HEADER
 
 
-def header_line(key: str, version: int) -> str:
+def header_line(key: str, version: Version) -> str:
     text = f"{HEADER_TAG}: {key} v{version} - {HEADER_NOTE}"
     return f"/* {text} */" if PurePosixPath(key).suffix.lower() in COMMENT_SUFFIXES else f"{{# {text} #}}"
 
@@ -109,7 +142,8 @@ def find_header(text: str, rel: str) -> Header | None:
     for number, line in enumerate(text.lstrip("﻿").splitlines()[:HEADER_SCAN_LINES]):
         found = pattern.match(line)
         if found:
-            return Header(found["key"], int(found["version"]), number)
+            minor = found["minor"]
+            return Header(found["key"], Version(int(found["major"]), int(minor or 0)), number, minor is not None)
     return None
 
 
@@ -128,7 +162,7 @@ def content_hash(body: str) -> str:
     return hashlib.sha256(body.replace("\r\n", "\n").encode("utf-8")).hexdigest()
 
 
-def with_header(text: str, key: str, version: int) -> str:
+def with_header(text: str, key: str, version: Version) -> str:
     """`text` with its version line set to `version`: replaced where it is, or added as the first line."""
     bom = "﻿" if text.startswith("﻿") else ""
     body = text.lstrip("﻿")
@@ -143,7 +177,7 @@ def with_header(text: str, key: str, version: int) -> str:
     return bom + "".join(lines)
 
 
-def version_of(path: Path) -> int | None:
+def version_of(path: Path) -> Version | None:
     """The version a file declares in its header (None: no header)."""
     header = find_header(path.read_text(encoding="utf-8", errors="replace"), path.name)
     return None if header is None else header.version
@@ -172,8 +206,18 @@ def load_registry(root: Path | None = None) -> dict[str, Entry]:
     return parse_registry(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
+def _parse_contract(value: object) -> Contract | None:
+    if not isinstance(value, dict):
+        return None
+    parsed: Contract = {}
+    for field, names in cast(dict[object, object], value).items():
+        if isinstance(field, str) and isinstance(names, list):
+            parsed[field] = tuple(str(n) for n in cast(list[object], names))
+    return parsed
+
+
 def parse_registry(text: str) -> dict[str, Entry]:
-    """Read registry JSON from text (also an old release's, from `git show <tag>:...`)."""
+    """Read registry JSON from text (also an old release's, from `git show <tag>:...`; format 1: integer versions)."""
     data: object = json.loads(text)
     files: object = cast(dict[str, object], data).get("files", {}) if isinstance(data, dict) else {}
     registry: dict[str, Entry] = {}
@@ -181,14 +225,20 @@ def parse_registry(text: str) -> dict[str, Entry]:
         for key, value in cast(dict[object, object], files).items():
             if isinstance(key, str) and isinstance(value, dict):
                 entry = cast(dict[str, object], value)
-                version, digest = entry.get("version"), entry.get("sha256")
-                if isinstance(version, int) and isinstance(digest, str):
-                    registry[key] = Entry(version, digest)
+                raw, digest = entry.get("version"), entry.get("sha256")
+                version = Version(raw) if isinstance(raw, int) else parse_version(raw) if isinstance(raw, str) else None
+                if version is not None and isinstance(digest, str):
+                    registry[key] = Entry(version, digest, _parse_contract(entry.get("contract")))
     return registry
 
 
 def save_registry(registry: dict[str, Entry], root: Path | None = None) -> None:
-    files = {key: {"version": e.version, "sha256": e.sha256} for key, e in sorted(registry.items())}
+    files: dict[str, dict[str, object]] = {}
+    for key, e in sorted(registry.items()):
+        item: dict[str, object] = {"version": str(e.version), "sha256": e.sha256}
+        if e.contract is not None:
+            item["contract"] = {field: list(names) for field, names in sorted(e.contract.items())}
+        files[key] = item
     document = {"format": REGISTRY_FORMAT, "files": files}
     registry_path(root).write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
 
@@ -200,71 +250,113 @@ class _Plan:
     entry: Entry
 
 
-def _plan_prerelease(key: str, text: str, entry: Entry | None, header: Header | None, digest: str) -> _Plan:
-    """Before the first release: the version is 1 for every file; only the hash follows the content."""
-    new_entry = Entry(1, digest)
-    new_text = None if header is not None and header.version == 1 else with_header(text, key, 1)
-    if entry is None:
-        kind: ActionKind = "register" if header is not None else "add-header"
-        return _Plan(Action(key, kind, None, 1, "new file, not in the registry"), new_text, new_entry)
-    if header is None:
-        return _Plan(Action(key, "add-header", None, 1, "the version line is missing"), new_text, new_entry)
-    if header.version != 1:
-        why = f"the version line says v{header.version}; versions stay at v1 until the first release"
-        return _Plan(Action(key, "fix-header", header.version, 1, why), new_text, new_entry)
-    if entry.version != 1 or entry.sha256 != digest:
-        why = "the content changed (versions stay at v1 before the first release)"
-        return _Plan(Action(key, "rehash", 1, 1, why), None, new_entry)
-    return _Plan(None, None, entry)
+@dataclass(frozen=True, slots=True)
+class _Read:
+    key: str
+    path: Path
+    text: str
+    header: Header | None
+    digest: str
+    contract: Contract
 
 
-def _plan_file(key: str, text: str, entry: Entry | None) -> _Plan:
+def _read(key: str, path: Path) -> _Read:
+    text = path.read_bytes().decode("utf-8")  # not read_text: that would turn CRLF into LF when written back
     header, body = split_header(text, key)
-    digest = content_hash(body)
-    if not FIRST_RELEASE_DONE:
-        return _plan_prerelease(key, text, entry, header, digest)
+    return _Read(key, path, text, header, content_hash(body), contract_rules.fingerprint(key, body))
+
+
+def _forced(key: str, major: Iterable[str] | None) -> bool:
+    """`--major` names: all changed files when the list is empty, else only those (full key, or the path inside
+    `templates/` / `static/`)."""
+    if major is None:
+        return False
+    names = [m.replace("\\", "/") for m in major]
+    return not names or any(key == n or key.partition("/")[2] == n for n in names)
+
+
+def _decide_part(
+    read: _Read, entry: Entry, targeted: frozenset[str], *, forced: bool
+) -> tuple[Part, tuple[str, ...], str]:
+    if forced:
+        return "major", (), "forced with --major"
+    if entry.contract is None:
+        return "major", (), "no stored fingerprint to compare with, so treated as breaking (use --major to be explicit)"
+    reasons = tuple(contract_rules.breaking_changes(read.key, entry.contract, read.contract, targeted))
+    if reasons:
+        return "major", reasons, "the override contract changed"
+    return "minor", (), "the content changed, the override contract did not"
+
+
+def _plan_file(read: _Read, entry: Entry | None, targeted: frozenset[str], *, forced: bool) -> _Plan:
+    key, header = read.key, read.header
     if entry is None:
-        version = header.version if header is not None else 1
+        version = header.version if header is not None else Version(1, 0)
         kind: ActionKind = "register" if header is not None else "add-header"
         why = "new file, not in the registry" if header is not None else "new file without a version line"
         action = Action(key, kind, None, version, why)
-        return _Plan(action, None if header is not None else with_header(text, key, version), Entry(version, digest))
-    if header is None:
-        version = entry.version if digest == entry.sha256 else entry.version + 1
-        action = Action(key, "add-header", None, version, "the version line is missing")
-        return _Plan(action, with_header(text, key, version), Entry(version, digest))
-    if digest == entry.sha256:
-        if header.version == entry.version:
+        needs_text = header is None or not header.minor_given
+        text = with_header(read.text, key, version) if needs_text else None
+        return _Plan(action, text, Entry(version, read.digest, read.contract))
+    if header is None or read.digest != entry.sha256:
+        old_header_bump = (
+            header is not None
+            and not header.minor_given
+            and header.version.major > entry.version.major
+            and entry.contract is not None
+        )  # an old (single-number) tool bumped it on a branch: judge the change again
+        if header is not None and header.version > entry.version and not old_header_bump:
+            # the developer raised the number by hand: believe it
+            text = with_header(read.text, key, header.version) if not header.minor_given else None
+            action = Action(
+                key, "register", entry.version, header.version, "version raised by hand, registry is behind"
+            )
+            return _Plan(action, text, Entry(header.version, read.digest, read.contract))
+        if read.digest == entry.sha256:  # only the line is missing
+            version = entry.version
+            action = Action(key, "add-header", None, version, "the version line is missing")
+            return _Plan(action, with_header(read.text, key, version), Entry(version, read.digest, read.contract))
+        part, reasons, why = _decide_part(read, entry, targeted, forced=forced)
+        version = entry.version.next(part)
+        action = Action(key, "bump", entry.version, version, why, part, reasons)
+        return _Plan(action, with_header(read.text, key, version), Entry(version, read.digest, read.contract))
+    # the content is as registered
+    if header.version == entry.version and header.minor_given:
+        if entry.contract == read.contract:
             return _Plan(None, None, entry)
-        why = f"the version line says v{header.version}, the registry says v{entry.version}"
-        action = Action(key, "fix-header", header.version, entry.version, why)
-        return _Plan(action, with_header(text, key, entry.version), entry)
-    if header.version > entry.version:  # the developer raised the number by hand: believe it
-        action = Action(key, "register", entry.version, header.version, "version raised by hand, registry is behind")
-        return _Plan(action, None, Entry(header.version, digest))
-    version = entry.version + 1
-    action = Action(key, "bump", entry.version, version, "the content changed")
-    return _Plan(action, with_header(text, key, version), Entry(version, digest))
+        return _Plan(
+            Action(key, "register", entry.version, entry.version, "contract fingerprint recorded"),
+            None,
+            Entry(entry.version, read.digest, read.contract),
+        )
+    why = f"the version line says v{header.version}, the registry says v{entry.version}"
+    if header.version == entry.version:
+        n = header.version.major
+        why = f"the version line has no minor number yet (0.1.0 style): v{n} is written v{n}.0"
+    action = Action(key, "fix-header", header.version, entry.version, why)
+    return _Plan(action, with_header(read.text, key, entry.version), Entry(entry.version, read.digest, read.contract))
 
 
-def bump_templates(root: Path | None = None, *, write: bool = True) -> list[Action]:
-    """Bring headers and registry in line with the files: add missing version lines (v1), raise the version of changed
-    files (before the first release: keep v1, only refresh the hash), add new files to the registry, drop vanished
-    ones. Unchanged files are left alone. Returns what was (or, with `write=False`, would be) done; an empty list
-    means everything is in order."""
+def bump_templates(root: Path | None = None, *, write: bool = True, major: Iterable[str] | None = None) -> list[Action]:
+    """Bring headers and registry in line with the files: add missing version lines (v1.0), raise the version of changed
+    files (N when the override contract changed or `major` forces it, else M), add new files to the registry, drop
+    vanished ones. Unchanged files are left alone. `major`: None = infer everywhere; an iterable = force N for the
+    changed files it names (empty: for every changed file). Returns what was (or, with `write=False`, would be) done;
+    an empty list means everything is in order."""
     registry = load_registry(root)
     updated = dict(registry)
     actions: list[Action] = []
     files = versioned_files(root)
-    for key, path in files.items():
-        text = path.read_bytes().decode("utf-8")  # not read_text: that would turn CRLF into LF when written back
-        plan = _plan_file(key, text, registry.get(key))
-        updated[key] = plan.entry
+    reads = [_read(key, path) for key, path in files.items()]
+    targeted = contract_rules.targeted_names({r.key: r.contract for r in reads})
+    for read in reads:
+        plan = _plan_file(read, registry.get(read.key), targeted, forced=_forced(read.key, major))
+        updated[read.key] = plan.entry
         if plan.action is None:
             continue
         actions.append(plan.action)
         if write and plan.new_text is not None:
-            path.write_bytes(plan.new_text.encode("utf-8"))
+            read.path.write_bytes(plan.new_text.encode("utf-8"))
     for key, entry in registry.items():
         if key not in files:
             del updated[key]
@@ -278,26 +370,31 @@ def describe(action: Action) -> str:
     versions = {
         "register": f"register v{action.new_version}",
         "add-header": f"add version line v{action.new_version}",
-        "bump": f"v{action.old_version} -> v{action.new_version}",
+        "bump": f"v{action.old_version} -> v{action.new_version} ({'BREAKING, N' if action.part == 'major' else 'M'})",
         "fix-header": f"set version line to v{action.new_version}",
-        "rehash": f"update the registry hash, stays v{action.new_version}",
         "drop": "remove from the registry",
     }[action.kind]
-    return f"{action.key}: {versions} ({action.message})"
+    text = f"{action.key}: {versions} ({action.message})"
+    return text + "".join(f"\n      - {reason}" for reason in action.reasons)
 
 
 # --- release notes --------------------------------------------------------------------------------------------------
 
 
-def registry_changes(old: dict[str, Entry], new: dict[str, Entry]) -> list[str]:
-    """Release-note lines: files whose version went up, files added, files removed (ignores unchanged ones)."""
+def registry_changes(old: dict[str, Entry], new: dict[str, Entry], *, everything: bool = False) -> list[str]:
+    """Release-note lines. Only what overrides must look at: files whose N went up, and removed files. `everything`
+    adds the M-only bumps and new files."""
     lines: list[str] = []
     for key in sorted(old.keys() | new.keys()):
         before, after = old.get(key), new.get(key)
         if before is None and after is not None:
-            lines.append(f"{key}: new (v{after.version})")
+            if everything:
+                lines.append(f"{key}: new (v{after.version})")
         elif before is not None and after is None:
             lines.append(f"{key}: removed")
         elif before is not None and after is not None and before.version != after.version:
-            lines.append(f"{key}: v{before.version} -> v{after.version}")
+            if after.version.major != before.version.major:
+                lines.append(f"{key}: v{before.version} -> v{after.version}")
+            elif everything:
+                lines.append(f"{key}: v{before.version} -> v{after.version} (minor)")
     return lines

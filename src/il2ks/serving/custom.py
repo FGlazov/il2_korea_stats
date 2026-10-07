@@ -7,7 +7,11 @@ How an override is judged (`scan`): built-in templates, stylesheets and scripts 
 line (`il2ks.serving.templateversions`), and it travels with a copy. Comparing the version in the override with the one
 in the built-in file gives the state: `current`, `outdated`, `newer`, `unversioned` (no version line), `orphan` (the
 built-in file is gone), `custom-only` (a new file that replaces nothing), `unchecked` (the built-in file has no
-version, like a vendored library). `custom/.il2ks-overrides.json` is extra evidence: `il2ks custom copy` records the
+version, like a vendored library). Versions are `vN.M` (`templateversions`): an older **N** is `outdated` (a problem:
+red banner, doctor, installer), an older **M** only `behind` (the built-in file changed in ways no override has to
+follow: shown by `il2ks custom list`, never a warning). A 0.1.0 header `vN` counts as `vN.0`.
+
+`custom/.il2ks-overrides.json` is extra evidence: `il2ks custom copy` records the
 SHA-256 of the original and its version, which tells a copy whose version line was deleted by hand ("copied from v2,
 then edited") from one nobody knows anything about.
 
@@ -22,6 +26,7 @@ import importlib.util
 import json
 import logging
 import shutil
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
@@ -31,14 +36,14 @@ from il2ks import __version__
 from il2ks.config import Config
 from il2ks.serving import templateversions
 from il2ks.serving.djsettings import INSTALLED_APPS
-from il2ks.serving.templateversions import KINDS, Kind
+from il2ks.serving.templateversions import KINDS, Kind, Version
 
 __all__ = ["KINDS", "Kind"]
 
 OVERRIDES_FILE = ".il2ks-overrides.json"
 RECORD_FORMAT = 1
 
-type State = Literal["current", "outdated", "newer", "unversioned", "orphan", "custom-only", "unchecked"]
+type State = Literal["current", "behind", "outdated", "newer", "unversioned", "orphan", "custom-only", "unchecked"]
 PROBLEM_STATES: frozenset[State] = frozenset({"outdated", "newer", "unversioned", "orphan"})
 
 
@@ -55,8 +60,8 @@ class OverrideCheck:
     state: State
     override: Path
     original: Path | None  # the built-in file now, None if there is none
-    override_version: int | None  # from the version line (or, failing that, from the copy record)
-    builtin_version: int | None
+    override_version: Version | None  # from the version line (or, failing that, from the copy record)
+    builtin_version: Version | None
     message: str  # what is the matter, one plain sentence (also for the good states)
     fix: str  # what to do about it; '' when nothing
 
@@ -237,7 +242,7 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
     declared = header.version if header is not None else None
 
     def result(
-        state: State, message: str, fix: str = "", *, mine: int | None = declared, built: int | None = None
+        state: State, message: str, fix: str = "", *, mine: Version | None = declared, built: Version | None = None
     ) -> OverrideCheck:
         return OverrideCheck(kind, rel, state, override, original, mine, built, message, fix)
 
@@ -267,17 +272,10 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
     if declared is None:
         if recorded_hash == sha256_of(original):
             return result("current", "No version line, but it was copied from the current built-in file.", built=built)
-        recorded_version = (
-            int(record["template_version"]) if record and record.get("template_version", "").isdigit() else None
-        )
+        recorded_version = templateversions.parse_version(record.get("template_version", "")) if record else None
         if recorded_version is not None:
-            return result(
-                "outdated",
-                f"Based on version {recorded_version} (from your copy record){copy_note}, but this il2ks has version "
-                f"{built}: the built-in file changed.",
-                _fix_update(key),
-                mine=recorded_version,
-                built=built,
+            return _compared(
+                result, key, recorded_version, built, f"Based on version {recorded_version} (from your copy record)"
             )
         return result(
             "unversioned",
@@ -287,7 +285,7 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
         )
     if declared == built:
         if recorded_hash is not None and recorded_hash != sha256_of(original):
-            # Same number, different content: before the first release every file is v1, so only the hash tells.
+            # Same number, different content: the built-in file changed without `bump-templates`; only the hash tells.
             return result(
                 "outdated",
                 f"The built-in file changed since you copied it{copy_note} (its version number is still {built}).",
@@ -295,17 +293,34 @@ def _judge(kind: Kind, rel: str, override: Path, record: dict[str, str] | None) 
                 built=built,
             )
         return result("current", f"Based on the current version ({built}).", built=built)
-    if declared < built:
+    return _compared(result, key, declared, built, f"Based on version {declared}")
+
+
+def _compared(
+    result: Callable[..., OverrideCheck], key: str, mine: Version, built: Version, based_on: str
+) -> OverrideCheck:
+    """The override is on version `mine`, the built-in file on `built` (different): outdated, behind or newer."""
+    if mine.major < built.major:
         return result(
             "outdated",
-            f"Based on version {declared}, but this il2ks has version {built}: the built-in file changed.",
+            f"{based_on}, but this il2ks has version {built}: the built-in file changed in a way you must follow.",
             _fix_update(key),
+            mine=mine,
+            built=built,
+        )
+    if mine < built:
+        return result(
+            "behind",
+            f"{based_on}, this il2ks has version {built}: only small changes (wording, layout, colours) that your copy "
+            "does not have to follow. Nothing breaks; `il2ks custom diff` shows them if you want them.",
+            mine=mine,
             built=built,
         )
     return result(
         "newer",
-        f"Based on version {declared}, but this il2ks only has version {built} (was il2ks downgraded?).",
+        f"{based_on}, but this il2ks only has version {built} (was il2ks downgraded?).",
         _fix_update(key),
+        mine=mine,
         built=built,
     )
 

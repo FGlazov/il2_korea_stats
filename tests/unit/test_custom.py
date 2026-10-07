@@ -13,13 +13,13 @@ from il2ks.exitcodes import EXIT_PROBLEMS
 from il2ks.ops import serving_checks
 from il2ks.ops.doctor import Level
 from il2ks.serving import custom, templateversions
-from il2ks.serving.templateversions import with_header
+from il2ks.serving.templateversions import Version, with_header
 
 HOME = "templates/il2ks/home.html"
 SITE_CSS = "static/css/site.css"
 
 
-def write_builtin(root: Path, key: str, body: str, version: int | None) -> Path:
+def write_builtin(root: Path, key: str, body: str, version: Version | None) -> Path:
     path = root / key.partition("/")[2]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body if version is None else with_header(body, key, version), encoding="utf-8")
@@ -33,8 +33,8 @@ def builtin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[cu
         "templates": tmp_path / "pkg" / "templates",
         "static": tmp_path / "pkg" / "static",
     }
-    write_builtin(roots["templates"], HOME, "<h1>home v1</h1>\n", 1)
-    write_builtin(roots["static"], SITE_CSS, "body {}\n", 1)
+    write_builtin(roots["templates"], HOME, "<h1>home v1</h1>\n", Version(1))
+    write_builtin(roots["static"], SITE_CSS, "body {}\n", Version(1))
     write_builtin(roots["static"], "static/vendor/lib.js", "var lib;\n", None)  # vendored: has no version
     (roots["templates"] / "both.txt").write_text("t", encoding="utf-8")
     (roots["static"] / "both.txt").write_text("s", encoding="utf-8")
@@ -64,8 +64,8 @@ def states(cfg: Config) -> dict[str, str]:
     return {c.key: c.state for c in custom.override_checks(cfg)}
 
 
-def upgrade_home(builtin: dict[custom.Kind, Path], version: int = 2) -> None:
-    write_builtin(builtin["templates"], HOME, f"<h1>home v{version}</h1>\n", version)
+def upgrade_home(builtin: dict[custom.Kind, Path], version: int = 2, minor: int = 0) -> None:
+    write_builtin(builtin["templates"], HOME, f"<h1>home v{version}</h1>\n", Version(version, minor))
 
 
 # --- copy ------------------------------------------------------------------------------------------------------------
@@ -75,12 +75,12 @@ def test_copy_a_template_by_bare_name_keeps_the_version_line(cfg: Config, builti
     placed = custom.copy_builtin(cfg, "il2ks/home.html")
     target = cfg.data_dir / "custom" / HOME
     assert placed.override == target
-    assert target.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1 ")
+    assert target.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1.0 ")
     assert target.read_bytes() == (builtin["templates"] / "il2ks" / "home.html").read_bytes()
     record = json.loads((cfg.data_dir / "custom" / ".il2ks-overrides.json").read_text(encoding="utf-8"))
     entry = record["overrides"][HOME]
     assert entry["original_sha256"] == custom.sha256_of(builtin["templates"] / "il2ks" / "home.html")
-    assert entry["template_version"] == "1"
+    assert entry["template_version"] == "1.0"
     assert entry["il2ks_version"]
 
 
@@ -130,9 +130,9 @@ def test_an_upgrade_makes_a_copy_outdated_and_names_both_versions(
     upgrade_home(builtin, 3)
     (check,) = custom.override_checks(cfg)
     assert check.state == "outdated"
-    assert (check.override_version, check.builtin_version) == (1, 3)
-    assert "version 1" in check.message
-    assert "version 3" in check.message
+    assert (check.override_version, check.builtin_version) == (Version(1), Version(3))
+    assert "version 1.0" in check.message
+    assert "version 3.0" in check.message
     assert "il2ks custom diff templates/il2ks/home.html" in check.fix
     assert check.is_problem
 
@@ -146,7 +146,7 @@ def test_your_own_edits_do_not_count_as_an_old_version(cfg: Config, builtin: dic
 def test_a_hand_copy_with_a_version_line_is_checked_without_any_record(
     cfg: Config, builtin: dict[custom.Kind, Path]
 ) -> None:
-    place(cfg, HOME, with_header("<h1>mine</h1>\n", HOME, 1))
+    place(cfg, HOME, with_header("<h1>mine</h1>\n", HOME, Version(1)))
     assert states(cfg) == {HOME: "current"}
     upgrade_home(builtin)
     assert states(cfg) == {HOME: "outdated"}
@@ -157,7 +157,7 @@ def test_a_file_without_a_version_line_is_unversioned(cfg: Config, builtin: dict
     (check,) = custom.override_checks(cfg)
     assert check.state == "unversioned"
     assert check.override_version is None
-    assert check.builtin_version == 1
+    assert check.builtin_version == Version(1)
     assert check.is_problem
 
 
@@ -177,7 +177,7 @@ def test_a_deleted_version_line_uses_the_version_from_the_copy_record(
     upgrade_home(builtin, 2)
     (check,) = custom.override_checks(cfg)
     assert check.state == "outdated"
-    assert (check.override_version, check.builtin_version) == (1, 2)
+    assert (check.override_version, check.builtin_version) == (Version(1), Version(2))
 
 
 def test_a_file_that_replaces_nothing_is_fine(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
@@ -189,14 +189,14 @@ def test_a_file_that_replaces_nothing_is_fine(cfg: Config, builtin: dict[custom.
 
 
 def test_a_copy_of_a_removed_built_in_file_is_an_orphan(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    place(cfg, "templates/il2ks/gone.html", with_header("<p>old</p>", "templates/il2ks/gone.html", 2))
+    place(cfg, "templates/il2ks/gone.html", with_header("<p>old</p>", "templates/il2ks/gone.html", Version(2)))
     custom.copy_builtin(cfg, "css/site.css")
     (builtin["static"] / "css" / "site.css").unlink()
     assert states(cfg) == {SITE_CSS: "orphan", "templates/il2ks/gone.html": "orphan"}
 
 
 def test_a_newer_version_than_the_built_in_one_is_flagged(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    place(cfg, HOME, with_header("x", HOME, 5))
+    place(cfg, HOME, with_header("x", HOME, Version(5)))
     (check,) = custom.override_checks(cfg)
     assert check.state == "newer"
     assert "downgraded" in check.message
@@ -220,7 +220,7 @@ def test_a_built_in_file_that_has_no_version_line_yet_is_not_judged(
 
 
 def test_a_damaged_record_file_does_not_hide_the_version_check(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
-    place(cfg, HOME, with_header("x", HOME, 1))
+    place(cfg, HOME, with_header("x", HOME, Version(1)))
     (cfg.data_dir / "custom" / ".il2ks-overrides.json").write_text("{not json", encoding="utf-8")
     upgrade_home(builtin)
     assert states(cfg) == {HOME: "outdated"}
@@ -239,7 +239,7 @@ def test_accept_sets_the_version_line_and_keeps_your_edits(cfg: Config, builtin:
     assert states(cfg) == {HOME: "outdated"}
     custom.accept_original(cfg, "il2ks/home.html")
     text = placed.override.read_text(encoding="utf-8")
-    assert text.startswith("{# il2ks-template: templates/il2ks/home.html v2 ")
+    assert text.startswith("{# il2ks-template: templates/il2ks/home.html v2.0 ")
     assert "home v1" in text
     assert "<p>mine</p>" in text
     assert states(cfg) == {HOME: "current"}
@@ -264,17 +264,17 @@ def test_with_every_version_at_v1_a_changed_original_is_found_by_its_hash(
     cfg: Config, builtin: dict[custom.Kind, Path]
 ) -> None:
     placed = custom.copy_builtin(cfg, "il2ks/home.html")
-    write_builtin(builtin["templates"], HOME, "<h1>home, changed</h1>\n", 1)  # new content, still v1
+    write_builtin(builtin["templates"], HOME, "<h1>home, changed</h1>\n", Version(1))  # new content, still v1
     (check,) = custom.override_checks(cfg)
     assert check.state == "outdated"
-    assert (check.override_version, check.builtin_version) == (1, 1)
+    assert (check.override_version, check.builtin_version) == (Version(1), Version(1))
     assert check.is_problem
     assert "changed since you copied it" in check.message
     assert "il2ks custom diff templates/il2ks/home.html" in check.fix
     assert "home, changed" in custom.diff_override(cfg, "il2ks/home.html")
     custom.accept_original(cfg, "il2ks/home.html")  # refreshes the record
     assert states(cfg) == {HOME: "current"}
-    assert placed.override.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1 ")
+    assert placed.override.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1.0 ")
 
 
 def test_with_every_version_at_v1_an_untouched_original_stays_current(
@@ -296,8 +296,8 @@ def test_diff_shows_your_file_against_the_built_in_one(cfg: Config, builtin: dic
     upgrade_home(builtin, 2)
     out = custom.diff_override(cfg, "il2ks/home.html")
     assert "outdated" not in out  # the explanation is plain words, not the state name
-    assert "version 1" in out
-    assert "version 2" in out
+    assert "version 1.0" in out
+    assert "version 2.0" in out
     assert "-<h1>my home</h1>" in out
     assert "+<h1>home v2</h1>" in out
     assert "does not keep old versions" in out
@@ -319,7 +319,7 @@ def test_diff_needs_an_override(cfg: Config, builtin: dict[custom.Kind, Path]) -
 
 def test_the_startup_scan_is_computed_once(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     root = cfg.data_dir / "custom"
-    place(cfg, HOME, with_header("x", HOME, 1))
+    place(cfg, HOME, with_header("x", HOME, Version(1)))
     assert custom.startup_problems(root) == []
     upgrade_home(builtin)  # would be a problem now, but a running site doesn't look again
     assert custom.startup_problems(root) == []
@@ -376,8 +376,8 @@ def test_doctor_is_ok_for_a_current_copy_and_warns_after_an_upgrade(
 
 def test_doctor_warns_per_file(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
     place(cfg, HOME, "by hand")
-    place(cfg, "templates/il2ks/gone.html", with_header("x", "templates/il2ks/gone.html", 1))
-    place(cfg, SITE_CSS, with_header("x", SITE_CSS, 1))
+    place(cfg, "templates/il2ks/gone.html", with_header("x", "templates/il2ks/gone.html", Version(1)))
+    place(cfg, SITE_CSS, with_header("x", SITE_CSS, Version(1)))
     titles = [f.title for f in serving_checks.custom_overrides(cfg) if f.level is Level.WARN]
     assert len(titles) == 2
     assert any("no version line" in t for t in titles)
@@ -413,14 +413,14 @@ def test_cli_copy_list_diff_accept(
     assert "--force" in capsys.readouterr().err
 
     assert main(["custom", "list"]) == EXIT_OK
-    assert "up to date   templates/il2ks/home.html  (yours: v1, built-in: v1)" in capsys.readouterr().out
+    assert "up to date   templates/il2ks/home.html  (yours: v1.0, built-in: v1.0)" in capsys.readouterr().out
 
     upgrade_home(builtin, 2)
     assert main(["custom", "list"]) == EXIT_OK
     listing = capsys.readouterr().out
     assert "OUT OF DATE  templates/il2ks/home.html" in listing
-    assert "version 1" in listing
-    assert "version 2" in listing
+    assert "version 1.0" in listing
+    assert "version 2.0" in listing
 
     assert main(["custom", "diff", "templates/il2ks/home.html"]) == EXIT_OK
     assert "+<h1>home v2</h1>" in capsys.readouterr().out
@@ -470,7 +470,7 @@ def test_cli_list_problems_json_and_fail_on_problems(
     assert item["key"] == "templates/il2ks/home.html"
     assert item["state"] == "outdated"
     assert item["is_problem"] is True
-    assert (item["override_version"], item["builtin_version"]) == (1, 2)
+    assert (item["override_version"], item["builtin_version"]) == ("1.0", "2.0")
     assert "il2ks custom accept templates/il2ks/home.html" in item["fix"]
 
     # --json without --problems also lists the good ones
@@ -480,3 +480,95 @@ def test_cli_list_problems_json_and_fail_on_problems(
     document = json.loads(capsys.readouterr().out)
     assert document["problems"] == 0
     assert [i["state"] for i in document["overrides"]] == ["current"]
+
+
+# --- two-part versions: outdated (older N) against behind (older M) ------------------------------------------------
+
+
+def test_a_cosmetic_upgrade_makes_a_copy_behind_not_outdated(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    upgrade_home(builtin, 1, 3)  # v1.0 -> v1.3: same N
+    (check,) = custom.override_checks(cfg)
+    assert check.state == "behind"
+    assert (check.override_version, check.builtin_version) == (Version(1, 0), Version(1, 3))
+    assert not check.is_problem
+    assert check.fix == ""
+    assert "Nothing breaks" in check.message
+    assert custom.startup_problems(custom.custom_dir(cfg)) == []
+
+
+def test_a_new_n_makes_a_copy_outdated_even_when_m_is_higher_in_the_old_one(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    place(cfg, HOME, with_header("mine", HOME, Version(1, 9)))
+    upgrade_home(builtin, 2, 0)
+    assert states(cfg) == {HOME: "outdated"}
+
+
+def test_a_copy_with_a_higher_m_than_the_built_in_file_is_newer(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    place(cfg, HOME, with_header("mine", HOME, Version(1, 4)))
+    upgrade_home(builtin, 1, 2)
+    assert states(cfg) == {HOME: "newer"}
+
+
+def test_a_0_1_0_header_without_a_minor_number_counts_as_n_dot_0(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    old_line = "{# il2ks-template: templates/il2ks/home.html v1 - copy this line along when you override #}\n"
+    place(cfg, HOME, old_line + "<h1>mine</h1>\n")
+    assert states(cfg) == {HOME: "current"}  # built-in v1.0
+    upgrade_home(builtin, 1, 2)
+    (check,) = custom.override_checks(cfg)
+    assert (check.state, check.override_version) == ("behind", Version(1, 0))
+    upgrade_home(builtin, 2, 0)
+    assert states(cfg) == {HOME: "outdated"}
+
+
+def test_a_0_1_0_copy_record_with_a_single_number_is_read_as_n_dot_0(
+    cfg: Config, builtin: dict[custom.Kind, Path]
+) -> None:
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    record_file = cfg.data_dir / "custom" / ".il2ks-overrides.json"
+    record = json.loads(record_file.read_text(encoding="utf-8"))
+    record["overrides"][HOME]["template_version"] = "1"  # what 0.1.0 wrote
+    record_file.write_text(json.dumps(record), encoding="utf-8")
+    place(cfg, HOME, "<h1>version line deleted by hand</h1>\n")
+    upgrade_home(builtin, 1, 2)
+    (check,) = custom.override_checks(cfg)
+    assert (check.state, check.override_version) == ("behind", Version(1, 0))
+    upgrade_home(builtin, 2, 0)
+    assert states(cfg) == {HOME: "outdated"}
+
+
+def test_accept_takes_over_the_minor_number_too(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    placed = custom.copy_builtin(cfg, "il2ks/home.html")
+    upgrade_home(builtin, 1, 3)
+    custom.accept_original(cfg, "il2ks/home.html")
+    assert placed.override.read_text(encoding="utf-8").startswith("{# il2ks-template: templates/il2ks/home.html v1.3 ")
+    assert states(cfg) == {HOME: "current"}
+
+
+def test_doctor_stays_green_for_a_behind_copy_and_mentions_it(cfg: Config, builtin: dict[custom.Kind, Path]) -> None:
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    upgrade_home(builtin, 1, 1)
+    (finding,) = serving_checks.custom_overrides(cfg)
+    assert finding.level is Level.OK
+    assert "1 behind" in finding.detail
+
+
+def test_cli_list_shows_behind_and_problems_leaves_it_out(
+    cfg: Config,
+    builtin: dict[custom.Kind, Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("IL2KS_DATA_DIR", str(cfg.data_dir))
+    monkeypatch.delenv("IL2KS_CONFIG", raising=False)
+    custom.copy_builtin(cfg, "il2ks/home.html")
+    upgrade_home(builtin, 1, 2)
+    assert main(["custom", "list"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "behind       templates/il2ks/home.html  (yours: v1.0, built-in: v1.2)" in out
+    assert main(["custom", "list", "--problems", "--fail-on-problems"]) == EXIT_OK  # the installer's call: no pop-up
+    assert "no override needs attention" in capsys.readouterr().out
+    assert main(["custom", "list", "--json"]) == EXIT_OK
+    [item] = json.loads(capsys.readouterr().out)["overrides"]
+    assert (item["state"], item["is_problem"], item["builtin_version"]) == ("behind", False, "1.2")

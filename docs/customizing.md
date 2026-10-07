@@ -238,20 +238,29 @@ Other things you can do:
 ### When il2ks is upgraded
 
 An upgrade may change a page you replaced. Your copy then keeps the old behaviour: the page may break, or silently miss
-new content. To make this visible, **every built-in template, stylesheet and script has a version number** in its first
-line, and the number goes up whenever the file changes (from the first public release on; before it every file is `v1`,
-and il2ks then also compares a fingerprint of the original that `il2ks custom copy` recorded, so a changed file is still
-noticed):
+new content. To make this visible, **every built-in template, stylesheet and script has a version** in its first
+line:
 
 ```
-{# il2ks-template: templates/il2ks/base.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v3.1 - copy this line along when you override #}
 ```
 
 (Stylesheets and scripts use `/* ... */` instead of `{# ... #}`. Images are replaced as a whole, so they have no
-version.) The line is copied along with the file, so your override says which version it is based on. When il2ks
-starts, it compares that number with the number in the file it ships now.
+version. A line like `v3`, from il2ks 0.1.0, means `v3.0`.) The line is copied along with the file, so your override
+says which version it is based on. When il2ks starts, it compares that version with the one in the file it ships now.
 
-**The red banner.** If any override is based on an older version, on an unknown one, or on a file that no longer
+The version has two numbers, **N.M**. The first one, **N**, goes up when a change can **break your copy**: a
+`{% block %}` was added, removed or renamed, the page gets or needs another variable or include, or an element id or
+class that the built-in stylesheet or scripts rely on changed. The second, **M**, goes up for everything else: wording,
+colours, spacing, markup inside a block. Your copy keeps working after an M change, it just does not have the
+improvement.
+
+- Based on an older **N**: the override is **out of date**. This is the red banner below, the pop-up of the Windows
+  installer and the warning of `il2ks doctor`. Look at the file.
+- Based on the right N but an older **M**: the override is **behind**. No banner, no pop-up, no warning. It is listed
+  by `il2ks custom list` (and `il2ks custom diff` shows what is new) for the day you want the small improvements.
+
+**The red banner.** If any override is based on an older N, on an unknown version, or on a file that no longer
 exists, every page of the admin (`/admin/`, only visible to people who can log in there) shows a red box that lists
 the files and what to do. Visitors never see it. The same list is written to the log and printed when `il2ks run`
 starts, `il2ks doctor` lists each file as a warning, and `il2ks custom list` shows a state for every file:
@@ -259,16 +268,17 @@ starts, `il2ks doctor` lists each file as a warning, and `il2ks custom list` sho
 | State | Meaning |
 |---|---|
 | `up to date` | Based on the version il2ks ships now. |
-| `OUT OF DATE` | Based on an older version (both numbers are shown). The built-in page changed: yours may break or hide new things. |
+| `behind` | Same N, older M: small changes since you copied the file. Nothing breaks; no warning anywhere but this list. |
+| `OUT OF DATE` | Based on an older N (both versions are shown). The built-in page changed in a way that may break yours or hide new things. |
 | `NO VERSION` | The version line is missing (a hand-made copy, or you deleted it), so il2ks can't tell. Treated like out of date. |
 | `NEWER` | Based on a newer version than this il2ks has (il2ks was downgraded). |
 | `ORPHAN` | il2ks no longer has a built-in file of that name. The override probably does nothing now: delete it, or keep it if it is deliberate. |
 | `yours only` | A new file of your own that replaces nothing. Nothing to worry about. |
 | `unchecked` | Replaces a built-in file that has no version (a vendored library, Django's own admin files), so il2ks can't tell. |
 
-To see only the files that need attention, run `il2ks custom list --problems`. For scripts, `--json` prints the same
-as machine-readable text, and `--fail-on-problems` ends with exit code 4 when something needs attention (the Windows
-installer uses this at the end of an upgrade).
+To see only the files that need attention, run `il2ks custom list --problems` (`behind` files are not among them). For
+scripts, `--json` prints the same as machine-readable text (versions as `"3.1"`), and `--fail-on-problems` ends with
+exit code 4 when something needs attention (the Windows installer uses this at the end of an upgrade).
 
 **Bringing an override up to date**:
 
@@ -278,14 +288,14 @@ installer uses this at the end of an upgrade).
    use any "compare files" tool (VS Code, WinMerge) on the two paths `il2ks custom list` shows.
 2. Bring over what you want into your file.
 3. Tell il2ks you are done: `il2ks custom accept templates/il2ks/base.html`. It sets the version line of your file to the
-   current number (and nothing else in it). You can also edit the number by hand.
+   current version (and nothing else in it). You can also edit the number by hand.
 4. Restart il2ks. The warning is gone until the next time the built-in file changes.
 
 If you don't have any edits you want to keep: `il2ks custom copy --force <path>` throws your file away and copies the
 new built-in one.
 
 Template names, their `{% block %}` areas and the variables they receive are the "API" of customizing. They change
-rarely and the release notes list every file whose version went up, but this is the reason to override as little as possible: one small
+rarely and the release notes list every file whose N went up (the breaking changes), but this is the reason to override as little as possible: one small
 template that fills a block is easier to keep up to date than a copy of a whole page.
 
 ### What you can override

@@ -576,6 +576,7 @@ def _service_schtasks(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
 
 _STATE_LABEL: dict[custom.State, str] = {
     "current": "up to date",
+    "behind": "behind",
     "outdated": "OUT OF DATE",
     "newer": "NEWER",
     "unversioned": "NO VERSION",
@@ -623,8 +624,8 @@ def _list_overrides(cfg: Config, ns: argparse.Namespace) -> int:
                     "key": c.key,
                     "state": c.state,
                     "is_problem": c.is_problem,
-                    "override_version": c.override_version,
-                    "builtin_version": c.builtin_version,
+                    "override_version": None if c.override_version is None else str(c.override_version),
+                    "builtin_version": None if c.builtin_version is None else str(c.builtin_version),
                     "message": c.message,
                     "fix": c.fix,
                 }
