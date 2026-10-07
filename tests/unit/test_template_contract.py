@@ -152,23 +152,25 @@ def test_a_renamed_block_is_a_major_bump_and_resets_the_minor(web: Path) -> None
     assert action.reasons == ("block added: page_footer", "block removed: footer")
 
 
-def test_an_added_variable_is_a_major_bump(web: Path) -> None:
+def test_an_added_variable_or_include_is_minor_an_override_without_it_still_renders(web: Path) -> None:
     edit(web, BASE_FILE, "{{ title }}", "{{ title }} {{ subtitle }}")
     action = bumped(web)
-    assert (action.part, action.reasons) == ("major", ("variable added: subtitle",))
+    assert (action.part, action.reasons) == ("minor", ())
+    edit(web, BASE_FILE, "{{ title }}", "{{ title }}{% include 'il2ks/more.html' %}{{ more }}")
+    assert bumped(web).part == "minor"
 
 
 def test_a_removed_variable_and_a_changed_include_are_major(web: Path) -> None:
     edit(web, BASE_FILE, "{{ title }}", "")
     assert bumped(web).reasons == ("variable removed: title",)
     edit(web, BASE_FILE, "il2ks/f.html", "il2ks/g.html")
-    assert bumped(web).reasons == ("include added: il2ks/g.html", "include removed: il2ks/f.html")
+    assert bumped(web).reasons == ("include removed: il2ks/f.html",)  # the new one is only missing in an override
 
 
 def test_a_removed_il2ks_tag_or_filter_is_major_an_added_one_is_not(web: Path) -> None:
     edit(web, BASE_FILE, "{{ title }}", "{{ title|object_name }}{% tour_select tours %}")
     action = bumped(web)
-    assert action.part == "major"  # `tours` is a new variable
+    assert action.part == "minor"  # `tours` is a new variable: an override without it still renders
     edit(web, BASE_FILE, "{% tour_select tours %}", "")
     assert bumped(web).reasons == ("variable removed: tours", "tag removed: tour_select")
     edit(web, BASE_FILE, "|object_name", "")
@@ -231,13 +233,13 @@ def test_major_without_names_forces_every_changed_file(web: Path) -> None:
 
 
 def test_a_dry_run_reports_the_part_and_writes_nothing(web: Path) -> None:
-    edit(web, BASE_FILE, "{{ title }}", "{{ title }}{{ more }}")
+    edit(web, BASE_FILE, "{{ title }}", "")
     before = (web / BASE_FILE).read_bytes()
     (action,) = tv.bump_templates(web, write=False)
     assert action.part == "major"
     assert (web / BASE_FILE).read_bytes() == before
     assert "BREAKING" in tv.describe(action)
-    assert "variable added: more" in tv.describe(action)
+    assert "variable removed: title" in tv.describe(action)
 
 
 # --- the 0.1.0 compatibility ------------------------------------------------------------------------------------------
@@ -324,3 +326,38 @@ def test_the_real_templates_have_fingerprints_and_a_stable_registry() -> None:
     assert registry["templates/il2ks/base.html"].contract is not None
     assert "content" in dict(registry["templates/il2ks/base.html"].contract or {}).get("blocks", ())
     assert "#main" in dict(registry["templates/il2ks/base.html"].contract or {}).get("markers", ())
+
+
+def test_url_names_and_static_paths_are_in_the_fingerprint() -> None:
+    found = contract(
+        '{% load static %}<a href="{% url \'web:player\' player.pk %}">{% url "home" as h %}{% url dyn %}</a>'
+        '<link href="{% static \'il2ks/site.css\' %}"><img src="{% static "il2ks/a.svg" %}">'
+    )
+    assert found["urls"] == ("home", "web:player")
+    assert found["static"] == ("il2ks/a.svg", "il2ks/site.css")
+
+
+def test_a_removed_or_renamed_url_name_is_major_an_added_one_is_minor(web: Path) -> None:
+    edit(web, BASE_FILE, "<p", "<a href=\"{% url 'web:home' %}\"></a><p")
+    assert bumped(web).part == "minor"
+    edit(web, BASE_FILE, "<p", "<a href=\"{% url 'web:about' %}\"></a><p")
+    assert bumped(web).part == "minor"
+    edit(web, BASE_FILE, "'web:home'", "'web:start'")
+    action = bumped(web)
+    assert (action.part, action.reasons) == ("major", ("url name removed: web:home",))
+
+
+def test_a_removed_or_renamed_static_path_is_major_an_added_one_is_minor(web: Path) -> None:
+    edit(web, BASE_FILE, "<p", "<img src=\"{% static 'il2ks/a.svg' %}\"><p")
+    assert bumped(web).part == "minor"
+    edit(web, BASE_FILE, "il2ks/a.svg", "il2ks/b.svg")
+    action = bumped(web)
+    assert (action.part, action.reasons) == ("major", ("static file removed: il2ks/a.svg",))
+
+
+def test_a_marker_removed_from_the_template_and_the_css_in_one_change_is_still_major(web: Path) -> None:
+    edit(web, BASE_FILE, ' id="main"', "")
+    edit(web, "static/il2ks/site.css", " #main { margin: 0; }", "")
+    actions = {a.key: a for a in tv.bump_templates(web)}
+    assert actions[BASE_KEY].reasons == ("id/class used by CSS or script removed: #main",)
+    assert actions["static/il2ks/site.css"].reasons == ("style removed: #main",)

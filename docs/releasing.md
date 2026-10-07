@@ -15,7 +15,7 @@ What counts as a contract change (`src/il2ks/serving/templatecontract.py` is the
 
 | File | N goes up when ... | Otherwise M |
 |---|---|---|
-| Template | a `{% block %}`, `{% extends %}` or `{% include %}` target is added, removed or renamed; a context variable (root name, like `player` of `{{ player.name }}`) is added or removed; an il2ks tag or filter is **removed**; an id, class or `data-` attribute that **any built-in stylesheet or script targets** is added or removed in the markup | wording, markup, classes nothing targets, Django's own tags and filters |
+| Template | a `{% block %}` or `{% extends %}` target is added, removed or renamed; an `{% include %}` target, a context variable (root name, like `player` of `{{ player.name }}`), a `{% url 'name' %}` name or a `{% static 'path' %}` path is **removed** or renamed (an override still using it crashes); an il2ks tag or filter is **removed**; an id, class or `data-` attribute that **any built-in stylesheet or script targets** is added or removed in the markup | wording, markup, classes nothing targets, Django's own tags and filters, an **added** include, variable, URL name or static path (an override without it still renders) |
 | Stylesheet | a class, id, `data-` attribute selector or `--custom-property` is added or removed (a copy of the CSS lacks what newer templates use) | values, colours, spacing |
 | Script | an id, class or `data-` attribute it looks up (`getElementById`, `querySelector`, `closest`, `classList`, `dataset`) is added or removed | logic |
 
@@ -43,6 +43,12 @@ single number (`v4`) is judged again too; a header you raised by hand with a min
 different meaning of a variable): `bump-templates --major il2ks/home.html` (a path inside `templates/` or `static/`; without
 a name it applies to every changed file). Use it on the first run for the file; a file already bumped can be raised by
 hand: edit the header to the next N, `v5.0`, and run the tool, which believes a hand-raised version.
+
+**What the fingerprint does not see** (use `--major` for these): a changed signature of a custom tag or filter (new or
+renamed arguments), an attribute renamed on a context object (`player.nick` became `player.name`: only the root name
+`player` is recorded), a variable given to `{% url %}` instead of a literal name, a CSS class assembled in a script, and
+any change of what a variable *means*. An id, class or `data-` attribute removed from a template and from the CSS/JS in
+the same change is still caught: the tool also looks at the markers the stored (old) fingerprints targeted.
 
 A test (`tests/unit/test_template_versions.py`) fails when you forget: a file without a version line, a file missing from
 the registry, or a file whose content changed while its version did not. Images (`.svg`, `.png`, fonts) and vendored

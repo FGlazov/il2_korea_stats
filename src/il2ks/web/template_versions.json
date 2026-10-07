@@ -657,6 +657,10 @@
         "tags": [
           "icon"
         ],
+        "urls": [
+          "web:home",
+          "web:mission-list"
+        ],
         "variables": [
           "site"
         ]
@@ -673,6 +677,11 @@
           ".error-page__code",
           ".lead",
           ".page"
+        ],
+        "static": [
+          "il2ks/site.css",
+          "il2ks/theme-init.js",
+          "il2ks/vendor/pico.min.css"
         ],
         "tags": [
           "icon"
@@ -712,6 +721,9 @@
         "markers": [
           ".il2ks-override-warning"
         ],
+        "static": [
+          "il2ks_admin/override_warning.css"
+        ],
         "variables": [
           "custom_problems"
         ]
@@ -740,6 +752,9 @@
           ".submit-row",
           ".vCheckboxLabel"
         ],
+        "urls": [
+          "admin:index"
+        ],
         "variables": [
           "max_description",
           "max_name",
@@ -757,6 +772,10 @@
         ],
         "extends": [
           "admin/change_form.html"
+        ],
+        "static": [
+          "il2ks/admin-pages.css",
+          "il2ks/admin-pages.js"
         ]
       }
     },
@@ -772,6 +791,9 @@
         ],
         "markers": [
           ".button"
+        ],
+        "urls": [
+          "admin:il2ks_db_tour_start"
         ],
         "variables": [
           "can_start_tour"
@@ -796,6 +818,15 @@
           ".changelink",
           ".module",
           ".viewlink"
+        ],
+        "urls": [
+          "admin:achievements",
+          "admin:ingest-status",
+          "admin:leaderboards",
+          "admin:quips",
+          "admin:rules",
+          "admin:score",
+          "admin:tours"
         ],
         "variables": [
           "app_list",
@@ -834,6 +865,17 @@
           ".sub",
           ".value"
         ],
+        "static": [
+          "il2ks_admin/ingest_status.css"
+        ],
+        "urls": [
+          "admin:il2ks_db_gameobject_change",
+          "admin:il2ks_db_ingestrun_change",
+          "admin:il2ks_db_ingestrun_changelist",
+          "admin:index",
+          "admin:reprocess-all",
+          "admin:wipe-reprocess"
+        ],
         "variables": [
           "overview",
           "perms",
@@ -860,6 +902,9 @@
           ".breadcrumbs",
           ".default",
           ".submit-row"
+        ],
+        "urls": [
+          "admin:index"
         ]
       }
     },
@@ -879,6 +924,9 @@
         ],
         "tags": [
           "plural"
+        ],
+        "urls": [
+          "admin:login"
         ],
         "variables": [
           "minutes"
@@ -911,6 +959,9 @@
         "tags": [
           "plural"
         ],
+        "urls": [
+          "admin:index"
+        ],
         "variables": [
           "enabled",
           "languages",
@@ -940,6 +991,9 @@
         "tags": [
           "plural"
         ],
+        "urls": [
+          "admin:index"
+        ],
         "variables": [
           "missions_stored",
           "status_url"
@@ -965,6 +1019,9 @@
           ".breadcrumbs",
           ".default",
           ".submit-row"
+        ],
+        "urls": [
+          "admin:index"
         ]
       }
     },
@@ -995,6 +1052,9 @@
           ".module",
           ".submit-row",
           ".vCheckboxLabel"
+        ],
+        "urls": [
+          "admin:index"
         ],
         "variables": [
           "ai_kill",
@@ -1034,6 +1094,9 @@
           ".submit-row",
           ".vCheckboxLabel"
         ],
+        "urls": [
+          "admin:index"
+        ],
         "variables": [
           "draws",
           "old_winners",
@@ -1066,6 +1129,9 @@
         ],
         "tags": [
           "plural"
+        ],
+        "urls": [
+          "admin:index"
         ],
         "variables": [
           "missions_stored",
@@ -1150,11 +1216,20 @@
           ".page-head",
           ".table-wrap"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "empty_row",
           "pagination",
           "tour_select"
+        ],
+        "urls": [
+          "web:achievement-holders",
+          "web:achievements",
+          "web:player-detail",
+          "web:sortie-detail"
         ],
         "variables": [
           "crumbs",
@@ -1197,6 +1272,10 @@
           "icon",
           "recent_medals"
         ],
+        "urls": [
+          "web:achievements",
+          "web:player-detail"
+        ],
         "variables": [
           "tour",
           "tour_query"
@@ -1226,11 +1305,17 @@
           ".tier-list",
           ".tier-list__item"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "icon",
           "plural",
           "tour_select"
+        ],
+        "urls": [
+          "web:achievement-holders"
         ],
         "variables": [
           "crumbs",
@@ -1284,6 +1369,9 @@
           ".tour-bar",
           ".tour-toggle"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "aircraft_icon",
           "badge",
@@ -1301,6 +1389,9 @@
           "stat_tile",
           "tour_absent",
           "tour_select"
+        ],
+        "urls": [
+          "web:aircraft-detail"
         ],
         "variables": [
           "absence",
@@ -1364,6 +1455,9 @@
           ".stretched-link",
           ".table-wrap"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "aircraft_icon",
           "badge",
@@ -1376,6 +1470,9 @@
           "role_toggle",
           "sort_th",
           "tour_filter"
+        ],
+        "urls": [
+          "web:aircraft-detail"
         ],
         "variables": [
           "colspan",
@@ -1422,6 +1519,9 @@
           "empty_row",
           "plural"
         ],
+        "urls": [
+          "web:player-detail"
+        ],
         "variables": [
           "elo_pilots",
           "primary",
@@ -1450,6 +1550,9 @@
         "tags": [
           "col_th",
           "empty_row"
+        ],
+        "urls": [
+          "web:player-detail"
         ],
         "variables": [
           "ground_pilots",
@@ -1505,9 +1608,26 @@
           "[data-local-text]",
           "[data-theme-toggle]"
         ],
+        "static": [
+          "il2ks/il2ks.js",
+          "il2ks/img/brand/favicon.svg",
+          "il2ks/localtime.js",
+          "il2ks/site.css",
+          "il2ks/theme-init.js",
+          "il2ks/vendor/htmx.min.js",
+          "il2ks/vendor/pico.min.css"
+        ],
         "tags": [
           "icon",
           "language_menu"
+        ],
+        "urls": [
+          "web:aircraft-list",
+          "web:home",
+          "web:leaderboards",
+          "web:mission-list",
+          "web:player-search",
+          "web:sortie-list"
         ],
         "variables": [
           "apple_touch_icon_url",
@@ -1808,6 +1928,9 @@
           ".online-now",
           ".online-now__body"
         ],
+        "urls": [
+          "web:live"
+        ],
         "variables": [
           "live"
         ]
@@ -1839,6 +1962,9 @@
           "live_state_badge",
           "notice",
           "plural"
+        ],
+        "urls": [
+          "web:player-detail"
         ],
         "variables": [
           "live"
@@ -2165,6 +2291,10 @@
           ".stat-tiles",
           ".table-wrap"
         ],
+        "static": [
+          "il2ks/leaderboards.css",
+          "il2ks/missions.css"
+        ],
         "tags": [
           "coalition_badge",
           "coalition_icon",
@@ -2175,6 +2305,11 @@
           "stat_tile",
           "tour_select",
           "winner_badge"
+        ],
+        "urls": [
+          "web:mission-detail",
+          "web:mission-list",
+          "web:player-search"
         ],
         "variables": [
           "home_bg",
@@ -2247,6 +2382,11 @@
           "col_th",
           "empty_row"
         ],
+        "urls": [
+          "web:leaderboard",
+          "web:leaderboards",
+          "web:player-detail"
+        ],
         "variables": [
           "boards",
           "tour_query"
@@ -2270,6 +2410,9 @@
         "tags": [
           "col_th",
           "empty_row"
+        ],
+        "urls": [
+          "web:player-detail"
         ],
         "variables": [
           "running_page",
@@ -2302,6 +2445,9 @@
           ".board-tabs__group",
           ".board-tabs__label",
           ".page-head"
+        ],
+        "static": [
+          "il2ks/leaderboards.css"
         ],
         "tags": [
           "filter_bar",
@@ -2347,6 +2493,10 @@
           "empty_row",
           "sort_th"
         ],
+        "urls": [
+          "web:player-detail",
+          "web:player-streak-runs"
+        ],
         "variables": [
           "board",
           "page_obj",
@@ -2361,6 +2511,9 @@
         "markers": [
           ".muted",
           ".stretched-link"
+        ],
+        "urls": [
+          "web:player-detail"
         ],
         "variables": [
           "name",
@@ -2398,6 +2551,9 @@
           "badge",
           "empty_row",
           "winner_badge"
+        ],
+        "urls": [
+          "web:mission-detail"
         ],
         "variables": [
           "colspan",
@@ -2455,6 +2611,9 @@
           ".table-wrap--flat",
           ".visually-hidden"
         ],
+        "static": [
+          "il2ks/missions.css"
+        ],
         "tags": [
           "aircraft_icon",
           "badge",
@@ -2474,6 +2633,9 @@
           "sort_th",
           "stat_tile",
           "winner_badge"
+        ],
+        "urls": [
+          "web:sortie-detail"
         ],
         "variables": [
           "colspan",
@@ -2511,6 +2673,9 @@
           ".sides-head",
           ".sides__sep",
           ".table-wrap"
+        ],
+        "static": [
+          "il2ks/missions.css"
         ],
         "tags": [
           "coalition_icon",
@@ -2552,6 +2717,9 @@
           ".md-page",
           ".page-head"
         ],
+        "static": [
+          "il2ks/pages.css"
+        ],
         "variables": [
           "body",
           "text_language",
@@ -2575,6 +2743,9 @@
           ".muted",
           ".nowrap",
           ".num"
+        ],
+        "urls": [
+          "web:mission-detail"
         ],
         "variables": [
           "row",
@@ -2604,6 +2775,9 @@
         "tags": [
           "aircraft_icon",
           "empty_row"
+        ],
+        "urls": [
+          "web:aircraft-detail"
         ],
         "variables": [
           "level",
@@ -2642,11 +2816,19 @@
           ".tier-list__item",
           ".tier-list__item--open"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "icon",
           "tour_absent",
           "tour_select"
+        ],
+        "urls": [
+          "web:achievements",
+          "web:player-detail",
+          "web:sortie-detail"
         ],
         "variables": [
           "absence",
@@ -2683,6 +2865,9 @@
           "il2ks/players/detail_shame.html",
           "il2ks/players/detail_tiles.html"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "flavor",
@@ -2718,6 +2903,10 @@
           ".medals",
           ".ribbon-rack",
           ".section-head"
+        ],
+        "urls": [
+          "web:achievements",
+          "web:player-achievements"
         ],
         "variables": [
           "medal_set",
@@ -2821,6 +3010,9 @@
           "player_builds",
           "results_region",
           "sort_th"
+        ],
+        "urls": [
+          "web:player-sorties"
         ],
         "variables": [
           "aircraft",
@@ -3007,6 +3199,9 @@
           "empty_row",
           "killboard_top"
         ],
+        "urls": [
+          "web:player-killboard"
+        ],
         "variables": [
           "player",
           "site",
@@ -3134,6 +3329,10 @@
           "outcome_badge",
           "pilot_fate_badge"
         ],
+        "urls": [
+          "web:player-sorties",
+          "web:sortie-detail"
+        ],
         "variables": [
           "player",
           "recent"
@@ -3240,6 +3439,10 @@
           "player_streaks",
           "player_tour_streaks"
         ],
+        "urls": [
+          "web:leaderboard",
+          "web:player-streaks"
+        ],
         "variables": [
           "player",
           "tour"
@@ -3309,6 +3512,9 @@
         "tags": [
           "type_killboard"
         ],
+        "urls": [
+          "web:player-killboard"
+        ],
         "variables": [
           "player",
           "tour"
@@ -3337,6 +3543,9 @@
           ".data-table",
           ".page-head",
           ".table-wrap"
+        ],
+        "static": [
+          "il2ks/players.css"
         ],
         "tags": [
           "breadcrumbs",
@@ -3375,6 +3584,9 @@
         "markers": [
           ".page-head"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "columns_picker",
           "filter_bar",
@@ -3406,6 +3618,9 @@
         "tags": [
           "empty_row",
           "sort_th"
+        ],
+        "urls": [
+          "web:player-detail"
         ],
         "variables": [
           "colspan",
@@ -3442,6 +3657,9 @@
           ".tour-bar",
           ".tour-toggle"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "col_th",
@@ -3450,6 +3668,10 @@
           "results_region",
           "tour_absent",
           "tour_select"
+        ],
+        "urls": [
+          "web:player-streaks",
+          "web:sortie-detail"
         ],
         "variables": [
           "absence",
@@ -3487,12 +3709,19 @@
           ".page-head",
           ".table-wrap"
         ],
+        "static": [
+          "il2ks/players.css"
+        ],
         "tags": [
           "breadcrumbs",
           "col_th",
           "empty_row",
           "tour_absent",
           "tour_select"
+        ],
+        "urls": [
+          "web:player-detail",
+          "web:player-streak-runs"
         ],
         "variables": [
           "absence",
@@ -3532,9 +3761,16 @@
           ".setup-status--warn",
           "[data-guessed]"
         ],
+        "static": [
+          "il2ks/setup.css",
+          "il2ks/setup.js"
+        ],
         "tags": [
           "notice",
           "plural"
+        ],
+        "urls": [
+          "web:setup"
         ],
         "variables": [
           "candidates",
@@ -3572,10 +3808,17 @@
           ".setup-finding",
           ".setup-findings"
         ],
+        "static": [
+          "il2ks/setup.css"
+        ],
         "tags": [
           "badge",
           "notice",
           "plural"
+        ],
+        "urls": [
+          "admin:login",
+          "web:home"
         ],
         "variables": [
           "backup",
@@ -3612,6 +3855,9 @@
         "tags": [
           "notice"
         ],
+        "urls": [
+          "web:setup"
+        ],
         "variables": [
           "problem",
           "state",
@@ -3642,6 +3888,10 @@
           ".page-head",
           ".sortie-list",
           ".table-wrap"
+        ],
+        "static": [
+          "il2ks/missions.css",
+          "il2ks/sorties.css"
         ],
         "tags": [
           "col_th",
@@ -3698,6 +3948,10 @@
           ".flavor",
           ".flavor--sortie"
         ],
+        "static": [
+          "il2ks/sortie.js",
+          "il2ks/sorties.css"
+        ],
         "tags": [
           "breadcrumbs",
           "results_region",
@@ -3735,6 +3989,9 @@
           ".table-wrap",
           ".visually-hidden"
         ],
+        "static": [
+          "il2ks/sorties.css"
+        ],
         "tags": [
           "breadcrumbs",
           "col_th",
@@ -3748,6 +4005,9 @@
           "sort_th",
           "tour_absent",
           "tour_filter"
+        ],
+        "urls": [
+          "web:player-streak-runs"
         ],
         "variables": [
           "absence",
@@ -3775,6 +4035,9 @@
         ],
         "tags": [
           "aircraft_icon"
+        ],
+        "urls": [
+          "web:aircraft-detail"
         ],
         "variables": [
           "sortie"
@@ -3808,6 +4071,10 @@
           "outcome_badge",
           "pilot_fate_badge"
         ],
+        "urls": [
+          "web:mission-detail",
+          "web:sortie-detail"
+        ],
         "variables": [
           "columns",
           "sortie"
@@ -3832,6 +4099,9 @@
         "tags": [
           "accordion",
           "col_th"
+        ],
+        "urls": [
+          "web:aircraft-list"
         ],
         "variables": [
           "detail"
@@ -3918,6 +4188,11 @@
           "role_badge",
           "sortie_mark",
           "stat_tile"
+        ],
+        "urls": [
+          "web:aircraft-detail",
+          "web:mission-detail",
+          "web:player-detail"
         ],
         "variables": [
           "detail",
@@ -4031,6 +4306,9 @@
           "pilot_fate_badge",
           "role_badge"
         ],
+        "urls": [
+          "web:sortie-detail"
+        ],
         "variables": [
           "columns",
           "sortie"
@@ -4055,6 +4333,9 @@
         ],
         "tags": [
           "sortie_medals"
+        ],
+        "urls": [
+          "web:player-achievements"
         ],
         "variables": [
           "sortie"
@@ -4194,6 +4475,10 @@
         "tags": [
           "icon"
         ],
+        "urls": [
+          "web:player-detail",
+          "web:sortie-detail"
+        ],
         "variables": [
           "sortie",
           "who"
@@ -4286,6 +4571,10 @@
           "sortie_flavor",
           "stat_tile",
           "status_badge"
+        ],
+        "urls": [
+          "web:player-detail",
+          "web:sortie-detail"
         ],
         "variables": [
           "aircraft_options",
