@@ -170,8 +170,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "3.0",
-      "sha256": "28b8fa595edb3d1a3f16a890979e7927fb70cc0b63313956d99b0456d1d0eba6",
+      "version": "3.1",
+      "sha256": "fb75af636aa811974c993633c21882e27eb73ccc8e00ae410d5c3de5e00feac8",
       "contract": {
         "defines": [
           "--icon",

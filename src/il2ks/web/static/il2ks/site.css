@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v3.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v3.1 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -82,12 +82,15 @@
   --il2-font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* font-display: optional, not swap: the fallback ("Arial Narrow" is missing on Linux, DejaVu Sans is far wider) wraps the hero
+   title onto more lines than Barlow Condensed does, so a late swap re-flowed the whole hero after first paint (layout shift, CI
+   2026-10-07, home at 360 px). With optional the browser keeps whichever font it had at first paint for this page view. */
 @font-face {
-  font-family: "Barlow Condensed"; font-weight: 600; font-style: normal; font-display: swap;
+  font-family: "Barlow Condensed"; font-weight: 600; font-style: normal; font-display: optional;
   src: url("vendor/BarlowCondensed-600.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Barlow Condensed"; font-weight: 700; font-style: normal; font-display: swap;
+  font-family: "Barlow Condensed"; font-weight: 700; font-style: normal; font-display: optional;
   src: url("vendor/BarlowCondensed-700.woff2") format("woff2");
 }
 
