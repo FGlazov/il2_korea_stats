@@ -25,6 +25,7 @@ pytestmark = pytest.mark.django_db
 
 LOGIN = "/admin/login/"
 LIMIT = 5  # [web] login_attempts default
+ADDRESS_LIMIT = 3 * LIMIT  # one address, any accounts: looser, because many people can share an address
 MINUTES = 15  # [web] login_lockout_minutes default
 GOOD = "right-password-123"
 
@@ -50,7 +51,7 @@ def test_a_good_password_passes_the_validators() -> None:
     validate_password("correct horse battery staple", User(username="boss"))
 
 
-def test_five_wrong_passwords_lock_account_and_address(client: Client, boss: User) -> None:
+def test_five_wrong_passwords_lock_the_account_at_that_address(client: Client, boss: User) -> None:
     for _ in range(LIMIT - 1):
         assert attempt(client, "wrong").status_code == 200
 
@@ -63,20 +64,40 @@ def test_five_wrong_passwords_lock_account_and_address(client: Client, boss: Use
     assert "_auth_user_id" not in client.session
 
 
-def test_the_account_stays_locked_from_another_address(client: Client, boss: User) -> None:
+def test_a_stranger_cannot_lock_the_admin_out_from_every_address(client: Client, boss: User) -> None:
+    """H3: the lock is the pair (account, address); wrong passwords from one address never lock the admin elsewhere."""
     for _ in range(LIMIT):
         attempt(client, "wrong", forwarded="203.0.113.5")
+    assert attempt(client, GOOD, forwarded="203.0.113.5").status_code == 429  # the pair is locked
 
-    assert attempt(client, GOOD, forwarded="198.51.100.9").status_code == 429
+    assert attempt(client, GOOD, forwarded="198.51.100.9").status_code == 302
 
 
-def test_the_address_stays_locked_for_another_account(client: Client, boss: User) -> None:
+def test_a_stranger_rotating_addresses_still_cannot_lock_the_account(client: Client, boss: User) -> None:
+    for i in range(3 * LIMIT):
+        attempt(client, "wrong", forwarded=f"203.0.113.{i + 1}")
+
+    assert attempt(client, GOOD, forwarded="198.51.100.9").status_code == 302
+
+
+def test_one_address_is_locked_after_the_looser_address_limit_for_any_accounts(client: Client, boss: User) -> None:
     User.objects.create_superuser("deputy", "deputy@example.org", GOOD)
-    for _ in range(LIMIT):
-        attempt(client, "wrong", username="nobody", forwarded="203.0.113.5")
+    for i in range(ADDRESS_LIMIT - 1):
+        assert attempt(client, "wrong", username=f"guess{i}", forwarded="203.0.113.5").status_code == 200
+    assert attempt(client, GOOD, username="deputy", forwarded="203.0.113.5").status_code == 302
+    client.logout()
 
+    assert attempt(client, "wrong", username="guess-last", forwarded="203.0.113.5").status_code == 429
     assert attempt(client, GOOD, username="deputy", forwarded="203.0.113.5").status_code == 429
     assert attempt(client, GOOD, username="deputy", forwarded="198.51.100.9").status_code == 302
+
+
+def test_a_few_failures_for_several_accounts_do_not_lock_the_address(client: Client, boss: User) -> None:
+    """Five wrong passwords for several accounts from one address stay below the address limit: nobody is locked."""
+    for i in range(LIMIT):
+        assert attempt(client, "wrong", username=f"guess{i}", forwarded="203.0.113.5").status_code == 200
+
+    assert attempt(client, GOOD, forwarded="203.0.113.5").status_code == 302
 
 
 def test_a_successful_login_resets_the_count(client: Client, boss: User) -> None:
@@ -117,7 +138,7 @@ def test_the_limit_comes_from_the_settings(client: Client, boss: User, settings:
 
 def test_a_client_cannot_dodge_the_lockout_by_inventing_a_forwarded_for_header(client: Client, boss: User) -> None:
     """Only the last entry (the one our proxy appended) counts."""
-    for i in range(LIMIT):
+    for i in range(ADDRESS_LIMIT):
         attempt(client, "wrong", username=f"guess{i}", forwarded=f"10.0.0.{i}, 203.0.113.5")
 
     assert attempt(client, "wrong", username="other", forwarded="10.9.9.9, 203.0.113.5").status_code == 429
@@ -127,7 +148,7 @@ def test_forwarded_for_is_ignored_unless_the_connection_is_from_loopback(client:
     """A client that reaches the web server directly must not choose its address with its own X-Forwarded-For."""
     client.defaults["REMOTE_ADDR"] = "198.51.100.7"  # a direct connection, not via the proxy
 
-    for i in range(LIMIT):
+    for i in range(ADDRESS_LIMIT):
         client.post(LOGIN, {"username": f"guess{i}", "password": "wrong"}, headers={"X-Forwarded-For": f"10.0.0.{i}"})
 
     locked = client.post(LOGIN, {"username": "another", "password": "x"}, headers={"X-Forwarded-For": "10.1.1.1"})
@@ -139,7 +160,7 @@ def test_forwarded_for_is_ignored_when_the_site_is_not_behind_a_proxy(
 ) -> None:
     """Development (`debug`): there is no proxy, so even a loopback connection's header is the visitor's own."""
     settings.IL2KS_TRUST_FORWARDED_FOR = False
-    for i in range(LIMIT):
+    for i in range(ADDRESS_LIMIT):
         attempt(client, "wrong", username=f"guess{i}", forwarded=f"10.0.0.{i}")
 
     assert attempt(client, "wrong", username="another", forwarded="10.9.9.9").status_code == 429
@@ -188,15 +209,45 @@ def test_failures_and_lockouts_are_logged_with_fields(
     assert ("admin_login_locked", "boss", "203.0.113.5") in events
 
 
-def test_current_lockouts_lists_locked_accounts_and_addresses(client: Client, boss: User) -> None:
+def test_current_lockouts_lists_locked_pairs_and_addresses(client: Client, boss: User) -> None:
     for _ in range(LIMIT):
         attempt(client, "wrong", forwarded="203.0.113.5")
     attempt(client, "wrong", username="other", forwarded="198.51.100.9")  # one failure: not locked
+    for i in range(ADDRESS_LIMIT):
+        attempt(client, "wrong", username=f"guess{i}", forwarded="192.0.2.77")
 
     locks = login_protection.current_lockouts()
 
-    assert [(lock.kind, lock.name) for lock in locks] == [("account", "boss"), ("address", "203.0.113.5")]
+    assert [(lock.kind, lock.name) for lock in locks] == [
+        ("account", "boss from 203.0.113.5"),
+        ("address", "192.0.2.77"),
+    ]
     assert all(1 <= lock.minutes_left <= MINUTES for lock in locks)
+
+
+def test_unlock_by_account_address_or_everything(client: Client, boss: User) -> None:
+    for address in ("203.0.113.5", "198.51.100.9"):
+        for _ in range(LIMIT):
+            attempt(client, "wrong", forwarded=address)
+
+    assert login_protection.unlock(ip="203.0.113.5") == 1
+    assert [lock.name for lock in login_protection.current_lockouts()] == ["boss from 198.51.100.9"]
+    assert login_protection.unlock(username="boss", ip="198.51.100.9") == 1
+    assert login_protection.current_lockouts() == []
+    attempt(client, "wrong", forwarded="203.0.113.5")
+    assert login_protection.unlock(username="boss") == 1
+    attempt(client, "wrong", forwarded="203.0.113.5")
+    assert login_protection.unlock() == 1  # nothing given: everything
+    assert AccessAttempt.objects.count() == 0
+
+
+def test_the_lockout_page_counts_the_pair_not_unrelated_attempts(client: Client, boss: User) -> None:
+    for _ in range(LIMIT):
+        attempt(client, "wrong", forwarded="203.0.113.5")
+    AccessAttempt.objects.update(attempt_time=timezone.now() - timedelta(minutes=10))
+    attempt(client, "wrong", username="nobody", forwarded="198.51.100.9")  # a fresh attempt of someone else
+
+    assert "Try again in 5 minutes" in attempt(client, GOOD, forwarded="203.0.113.5").content.decode()
 
 
 def test_an_admin_unlocks_by_deleting_the_attempt_rows(client: Client, boss: User) -> None:
