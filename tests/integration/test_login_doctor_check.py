@@ -44,3 +44,15 @@ def test_a_locked_account_at_an_address_is_listed_with_the_way_to_unlock(client:
     assert "Access attempts" not in finding.fix
     AccessAttempt.objects.all().delete()
     assert next(iter(login_lockout_check(CFG))).level is Level.OK
+
+
+def test_an_ipv6_lock_is_listed_with_its_64_bucket(client: Client) -> None:
+    User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
+    for _ in range(5):
+        client.post(
+            "/admin/login/", {"username": "boss", "password": "wrong"}, headers={"X-Forwarded-For": "2001:DB8:1:2::7"}
+        )
+
+    [finding] = list(login_lockout_check(CFG))
+
+    assert "account boss from 2001:db8:1:2::/64" in finding.detail
