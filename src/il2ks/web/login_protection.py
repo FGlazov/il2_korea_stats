@@ -70,11 +70,23 @@ def _is_loopback(address: str) -> bool:
         return False
 
 
+def _without_port(entry: str) -> str:
+    """IIS ARR appends the client port to X-Forwarded-For: `1.2.3.4:51234` and `[2001:db8::1]:51234`."""
+    if entry.startswith("["):
+        host, _, rest = entry[1:].partition("]")
+    elif entry.count(":") == 1:  # an IPv4 address with a port; a bare IPv6 address has several colons
+        host, _, rest = entry.partition(":")
+        rest = ":" + rest
+    else:
+        return entry
+    return host if rest == "" or (rest.startswith(":") and rest[1:].isdigit()) else entry
+
+
 def client_address(request: HttpRequest) -> str:
     remote = request.META.get("REMOTE_ADDR", "")
     if not getattr(settings, "IL2KS_TRUST_FORWARDED_FOR", False) or not _is_loopback(remote):
         return remote
-    last = request.META.get("HTTP_X_FORWARDED_FOR", "").rsplit(",", 1)[-1].strip()
+    last = _without_port(request.META.get("HTTP_X_FORWARDED_FOR", "").rsplit(",", 1)[-1].strip())
     try:
         return str(ipaddress.ip_address(last)) if last else remote
     except ValueError:
