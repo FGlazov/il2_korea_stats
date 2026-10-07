@@ -31,6 +31,7 @@ from il2ks.core.replay.result import MissionResult
 from il2ks.core.replay.state import run as replay_run
 from il2ks.db.models import IngestRun, IngestStatus, Mission
 from il2ks.db.site import bump_data_version
+from il2ks.ingest import wipe_state
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import (
     ArchiveError,
@@ -176,6 +177,7 @@ def _ingest_locked(
 ) -> IngestSummary:
     file_cfg = cfg
     cfg = effective_config(file_cfg)  # the rules the admin applied win over the file
+    wipe_state.resume(file_cfg)  # a wipe that never finished: new rows get its keys and marks
     repair_pending(
         partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
         cfg.ratings,

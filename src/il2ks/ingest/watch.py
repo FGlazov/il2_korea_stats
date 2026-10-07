@@ -33,7 +33,7 @@ from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.reprocess_requests import ReprocessFn, WipeFn, fail_interrupted_requests, run_pending_request
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once, utcnow
 from il2ks.ingest.score_apply import rescore_with_wanted
-from il2ks.ingest.wipe import wipe_and_reprocess
+from il2ks.ingest.wipe import resume_unfinished_wipe, wipe_and_reprocess
 from il2ks.ops.backup import backup_if_due
 
 log = logging.getLogger(__name__)
@@ -91,6 +91,10 @@ def watch(
         fail_interrupted_requests(now())
     except Exception:
         log.exception("could not check for interrupted reprocess requests")
+    try:
+        resume_unfinished_wipe(cfg)  # the marks of a "delete all data" that was killed half way
+    except Exception:
+        log.exception("could not apply the marks of an interrupted wipe")
     reconciled = False
     backup_retry_at: datetime | None = None
     ticks = 0

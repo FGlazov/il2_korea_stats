@@ -61,7 +61,10 @@ class WipeFn(Protocol):
 def fail_interrupted_requests(now: datetime) -> int:
     """Requests left `running` by a process that died. Call once when `watch` starts (nothing else runs requests)."""
     return ReprocessRequest.objects.filter(status=ReprocessStatus.RUNNING).update(
-        status=ReprocessStatus.FAILED, finished_at=now, error="interrupted: the process stopped before it finished"
+        status=ReprocessStatus.FAILED,
+        phase="",
+        finished_at=now,
+        error="interrupted: the process stopped before it finished",
     )
 
 
