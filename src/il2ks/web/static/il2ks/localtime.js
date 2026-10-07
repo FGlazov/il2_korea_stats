@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/localtime.js v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/localtime.js v1.0 - copy this line along when you override */
 /* Shows real-world times in the viewer's own time zone and the viewer's own date/time conventions (FR-WEB-17, TD-15).
  *
  * The server renders <time datetime="2026-09-19T22:34:00Z" data-il2-time="datetime">2026-09-19 22:34 UTC</time>

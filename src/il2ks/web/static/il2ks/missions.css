@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/missions.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/missions.css v1.0 - copy this line along when you override */
 /* Mission pages (home, list, detail): the few styles the shared theme does not cover. Tokens come from site.css. */
 .mission-when { display: block; margin-top: 0.1rem; font-weight: 400; font-size: 0.78rem; }
 .data-table tr.is-empty { color: var(--il2-muted); } /* not opacity: a sticky first cell must stay opaque */

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks_admin/theme_editor.js v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks_admin/theme_editor.js v1.0 - copy this line along when you override */
 // Adds a colour picker and a "reset to default" button next to every colour box of the site settings form. The text
 // boxes stay the source of truth (they are what gets submitted), so the form also works without this script.
 document.addEventListener("DOMContentLoaded", function () {
