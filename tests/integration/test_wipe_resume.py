@@ -261,7 +261,12 @@ def test_db_copy_refuses_while_a_wipe_state_is_pending(
     assert cfg.source is not None
     wipe_state.save(cfg, _state(players={"a": 1}))
     copied: list[str] = []
-    monkeypatch.setattr("il2ks.db.copy.copy_all", lambda s, t: copied.append(t) or {})
+
+    def fake_copy(_source: str, target: str) -> dict[str, int]:
+        copied.append(target)
+        return {}
+
+    monkeypatch.setattr("il2ks.db.copy.copy_all", fake_copy)
 
     code = main(["--config", str(cfg.source), "db", "copy", "--to", "other"])
 
@@ -309,3 +314,9 @@ def test_a_resume_blocked_by_a_busy_lock_is_retried_by_the_next_tick(
         holder.join()
 
     assert len(calls) >= 2
+
+
+def test_restore_and_wipe_state_agree_on_the_file_name() -> None:
+    from il2ks.ops import backup
+
+    assert backup.WIPE_STATE_NAME == wipe_state.STATE_NAME

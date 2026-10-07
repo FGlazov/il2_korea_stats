@@ -462,7 +462,21 @@ def _main(argv: Sequence[str] | None) -> int:
     if command == "db" and ns.db_command == "copy":
         _django_setup()
         from il2ks.db.copy import copy_all
+        from il2ks.ingest import wipe_state
 
+        try:
+            copy_cfg = load_config(ns.config)
+        except ConfigError as exc:
+            print(f"il2ks: configuration error: {exc}", file=sys.stderr)
+            return EXIT_USAGE
+        if wipe_state.pending(copy_cfg):
+            print(
+                "il2ks: a 'Delete all data and reprocess' was interrupted; its saved state is still in the data folder "
+                f"({wipe_state.state_path(copy_cfg)}). Run `il2ks reprocess` to finish it first: a copy would hand out "
+                "the saved primary keys again.",
+                file=sys.stderr,
+            )
+            return EXIT_FAILED
         counts = copy_all(ns.source, ns.target)
         for table, n in counts.items():
             print(f"{table}: {n}")

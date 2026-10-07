@@ -91,10 +91,18 @@ def watch(
         fail_interrupted_requests(now())
     except Exception:
         log.exception("could not check for interrupted reprocess requests")
-    try:
-        resume_unfinished_wipe(cfg)  # the marks of a "delete all data" that was killed half way
-    except Exception:
-        log.exception("could not apply the marks of an interrupted wipe")
+    wipe_resume_waiting = False
+
+    def resume_wipe() -> None:
+        """Resume a "delete all data" that was killed half way; tried on every tick while the lock was busy."""
+        nonlocal wipe_resume_waiting
+        try:
+            wipe_resume_waiting = resume_unfinished_wipe(cfg) == "busy"
+        except Exception:
+            wipe_resume_waiting = False
+            log.exception("could not apply the marks of an interrupted wipe")
+
+    resume_wipe()
     reconciled = False
     backup_retry_at: datetime | None = None
     ticks = 0
@@ -131,6 +139,8 @@ def watch(
             log.info("skipping this tick: %s", exc)
         except Exception:
             log.exception("ingest tick failed; retrying next tick")
+        if wipe_resume_waiting:
+            resume_wipe()
         try:
             run_pending_request(
                 cfg,

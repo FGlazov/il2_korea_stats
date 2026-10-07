@@ -21,8 +21,9 @@ public URLs keep working; at the end the marks are applied once more (`AdminMark
   recreated before the reprocess when the effective mode is still manual, because in manual mode the stored tours ARE
   the periods.
 A wipe that is killed half way leaves the saved file: `watch` and the next `reprocess` pick it up
-(`resume_unfinished_wipe`). Primary keys kept: players, missions, sorties and tours with the same start; a tour the
-current settings cut differently gets a new key.
+(`resume_unfinished_wipe`; rows that are back are left alone, the manual boundaries missing are recreated).
+Primary keys kept: players, missions, sorties and tours with the same start; a tour the current settings cut
+differently gets a new key.
 The admin's chosen game rules, achievement settings and flight-time option are adopted as applied before the wipe
 (a full rebuild computes with them anyway), so the new rows follow what is chosen now.
 """
@@ -34,13 +35,14 @@ from concurrent.futures import Executor
 from datetime import date
 from enum import StrEnum
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
 
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS, models, transaction
 from django.db.models import F
 
 from il2ks.config import Config
+from il2ks.core.tours import TourRules
 from il2ks.db.models import IngestRun, Mission, Player, SiteSettings, Tour
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest import wipe_state
@@ -147,8 +149,11 @@ def restore_manual_boundaries(marks: AdminMarks, mode: str, label: str) -> int:
     if mode != "manual":
         return 0
     boundaries = [t for t in marks.tours if t.mode == "manual" and not t.by_win]
+    have = set(Tour.objects.values_list("started_at", flat=True))
     with transaction.atomic():
         for index, mark in enumerate(boundaries):
+            if mark.started_at in have:
+                continue  # a resume after the first run got that far
             following = boundaries[index + 1].started_at if index + 1 < len(boundaries) else None
             Tour.objects.create(title=mark.title, started_at=mark.started_at, ended_at=following, mode=label)
     return len(boundaries)
@@ -192,36 +197,65 @@ def _relink_runs(runs: tuple[tuple[int, str, str], ...]) -> None:
             IngestRun.objects.filter(pk=run_pk, mission__isnull=True).update(mission_id=mission_pk)
 
 
-def resume_unfinished_wipe(cfg: Config) -> bool:
-    """`watch` start: a wipe that never finished left its marks and keys on disk. Activate them (the rows that come back
-    later are hidden and keep their keys) and hide what is back already. Skipped when the writer lock is taken (the
-    running job resumes it itself). Returns whether a saved wipe was found."""
+type ResumeResult = Literal["none", "resumed", "busy"]
+
+
+def resume_unfinished_wipe(cfg: Config) -> ResumeResult:
+    """A wipe that never finished left its marks and keys on disk. Activate them (the rows that come back later are
+    hidden, named and keyed at creation) and bring back what the killed run did not: the manual tour boundaries and
+    the links of the ingest history. Nothing the admin changed since is touched: the rows that are back already keep
+    what they have. Returns "none" (no saved wipe), "resumed", or "busy" when the writer lock is taken (the caller
+    tries again on a later tick)."""
     if not wipe_state.pending(cfg):
-        return False
+        return "none"
     try:
         with WriterLock(cfg.data_dir, "watch", wait=0):
             state = wipe_state.resume(cfg)
             if state is not None:
-                restore_marks(state.marks)
+                restore_missing_boundaries(effective_config(cfg).tours, state.marks)
+                apply_resume_marks(state.marks)
                 _clear_if_complete(cfg, state)
     except LockBusyError:
-        log.info("a saved wipe is waiting; the job holding the lock will resume it")
-    return True
+        log.info("a saved wipe is waiting; it is resumed on the first tick that gets the writer lock")
+        return "busy"
+    return "resumed"
 
 
-def finish_resumed(cfg: Config) -> None:
-    """The end of a plain reprocess or ingest that found the saved state of an unfinished wipe."""
+def restore_missing_boundaries(rules: TourRules, marks: AdminMarks) -> None:
+    """The first run died after the wipe, before the manual boundaries were recreated: recreate those missing."""
+    restore_manual_boundaries(marks, rules.mode, rules.label)
+
+
+def apply_resume_marks(marks: AdminMarks) -> None:
+    """What a resume applies: the run links only. Hiding and tour names were given to the rows when they were created
+    (`wipe_state` receivers), so a player the admin unhid or a tour the admin renamed since stays as it is."""
+    with transaction.atomic():
+        _relink_runs(marks.runs)
+        bump_data_version()
+
+
+def finish_resumed(cfg: Config, *, whole: bool = True) -> None:
+    """The end of a plain reprocess or ingest that found the saved state of an unfinished wipe. A reprocess of
+    everything is the end of the wipe: the state is dropped even when some mission never came back (no usable
+    archive, or it keeps failing) and the keys not used are logged. A narrowed one keeps the state while missions
+    are missing."""
     state = wipe_state.active()
     if state is not None:
-        restore_marks(state.marks)
-        _clear_if_complete(cfg, state)
+        apply_resume_marks(state.marks)
+        _clear_if_complete(cfg, state, force=whole)
 
 
-def _clear_if_complete(cfg: Config, state: WipeState) -> None:
-    """The saved state is done with when every mission the wipe deleted is back."""
-    if wipe_state.unfinished_missions(state) == 0:
+def _clear_if_complete(cfg: Config, state: WipeState, *, force: bool = False) -> None:
+    """The saved state is done with when every mission the wipe deleted is back (or `force`)."""
+    missing = wipe_state.unfinished_missions(state)
+    if missing == 0 or force:
         wipe_state.clear(cfg)
-        log.info("the interrupted wipe is complete: its saved state is removed")
+        if missing:
+            log.warning(
+                "the interrupted wipe is over; %d mission(s) never came back, their saved keys are dropped", missing
+            )
+        else:
+            log.info("the interrupted wipe is complete: its saved state is removed")
 
 
 def adopt_current_settings() -> None:
@@ -316,9 +350,8 @@ def wipe_and_reprocess(
         on_progress=on_progress,
         prepare=prepare,
         finish=finish,
+        after=lambda: wipe_state.clear(cfg),  # under the writer lock: no other process can load the file meanwhile
         work=work,
         executor_factory=executor_factory,
     )
-    if "marks" in state:  # the run came to its end (an exception leaves the saved state for the next start)
-        wipe_state.clear(cfg)
     return result

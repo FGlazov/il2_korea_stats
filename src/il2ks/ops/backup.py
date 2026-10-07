@@ -19,6 +19,7 @@ import re
 import shutil
 import socket
 import sqlite3
+import sys
 import tempfile
 import threading
 import time
@@ -573,11 +574,25 @@ def restore_backup(
                     f"Stop it and try again.{where}"
                 ) from exc
             _bump_data_version(cfg.db_path, previous_version, now())
+            _drop_wipe_state(data_dir)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
     _verify(cfg, manifest)
     configured = None if written is None else _configured_data_dir(written)
     return RestoreResult(manifest, safety, written, configured is not None and configured != data_dir.resolve())
+
+
+WIPE_STATE_NAME = "wipe-state.json"  # ingest.wipe_state.STATE_NAME (a test keeps the two in step)
+
+
+def _drop_wipe_state(data_dir: Path) -> None:
+    """The saved keys of an interrupted wipe belong to the database that was replaced: with another database they would
+    hand out primary keys that were never used here (a lower sequence: `/players/<pk>` names another player)."""
+    for name in (WIPE_STATE_NAME, WIPE_STATE_NAME + ".tmp"):
+        (data_dir / name).unlink(missing_ok=True)
+    wipe_state = sys.modules.get("il2ks.ingest.wipe_state")
+    if wipe_state is not None:
+        wipe_state.deactivate()
 
 
 DATA_VERSION_TABLE = "il2ks_db_dataversion"  # db.models.DataVersion (a test keeps the two in step)
