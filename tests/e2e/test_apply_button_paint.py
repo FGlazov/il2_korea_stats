@@ -89,3 +89,31 @@ def test_without_javascript_the_apply_button_shows(
         assert no_js.evaluate("document.documentElement.className") == ""
     finally:
         context.close()
+
+
+def widen_fallback_font(route: Route) -> None:
+    """Serve site.css with a wide fallback behind Barlow Condensed (CI Linux has no "Arial Narrow": DejaVu Sans)."""
+    response = route.fetch()
+    css = response.text().replace(
+        '"Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui', '"Barlow Condensed", Georgia, serif'
+    )
+    route.fulfill(response=response, body=css)
+
+
+def test_a_late_web_font_does_not_reflow_the_hero(page: Page) -> None:
+    """The heading font arrives after first paint and the fallback is wider (more title lines): the hero must not move.
+
+    CI, 2026-10-07: home at 360 px, a 0.027 layout shift of `div.hero__tools` when Barlow Condensed replaced DejaVu Sans
+    (`font-display: swap`). The face is `font-display: optional` now: the page keeps the font it had at first paint."""
+    page.set_viewport_size({"width": 360, "height": 900})
+    page.route(lambda url: url.endswith("il2ks/site.css"), widen_fallback_font)
+    page.route(lambda url: url.endswith(".woff2"), stall)
+    page.add_init_script(OBSERVERS)
+    page.add_init_script(SHIFT_SOURCES)
+    page.goto("/")
+    wait_until_settled(page)
+    page.wait_for_timeout(300)
+
+    assert page.evaluate("window.__shifted.filter(s => /\\.hero/.test(s.node))") == [], (
+        "the hero moved after first paint"
+    )
