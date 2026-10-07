@@ -28,7 +28,9 @@ from il2ks.serving import procutil
 PLANNED: dict[str, tuple[str, str]] = {}
 """Subcommands that exist only as stubs: name -> (requirement that plans it, one-line description)."""
 
-OPS_COMMANDS = frozenset({"setup", "createadmin", "doctor", "backup", "restore"})  # handlers: il2ks.ops.commands
+OPS_COMMANDS = frozenset(
+    {"setup", "createadmin", "admin", "doctor", "backup", "restore"}
+)  # handlers: il2ks.ops.commands
 
 log = logging.getLogger("il2ks.cli")
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -118,6 +120,22 @@ def _add_ops_parsers(sub: SubParsers) -> None:
     admin_parser.add_argument(
         "--wait", type=float, default=30.0, metavar="SECONDS", help="how long to wait for another writer"
     )
+
+    admin_tools = sub.add_parser("admin", help="admin account tools").add_subparsers(
+        dest="admin_command", required=True
+    )
+    unlock = admin_tools.add_parser(
+        "unlock",
+        help="end admin login lockouts at once (after wrong passwords)",
+        description=(
+            "Forget the wrong passwords the admin login has counted, which ends the lockouts. Give --user and/or --ip "
+            "to unlock only what matches (both: that account at that address), or --all for everything. "
+            "`il2ks doctor` lists what is locked now. Works while the site runs."
+        ),
+    )
+    unlock.add_argument("--all", action="store_true", help="unlock every account and address")
+    unlock.add_argument("--user", help="unlock this account name (at every address)")
+    unlock.add_argument("--ip", help="unlock this client address (for every account)")
 
     sub.add_parser(
         "doctor",
@@ -457,6 +475,7 @@ def _main(argv: Sequence[str] | None) -> int:
         handlers: dict[str, Callable[[argparse.Namespace], int]] = {
             "setup": commands.cmd_setup,
             "createadmin": commands.cmd_createadmin,
+            "admin": commands.cmd_admin,
             "doctor": commands.cmd_doctor,
             "backup": commands.cmd_backup,
             "restore": commands.cmd_restore,

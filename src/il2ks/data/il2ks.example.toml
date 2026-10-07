@@ -301,10 +301,11 @@
 # Django's secret key (signs login cookies). "" = generated on first start and kept in <data dir>/secret_key.txt.
 # Keep that file private; deleting it only logs everybody out.
 #secret_key = ""
-# Admin login protection: this many wrong passwords lock the account AND the visitor's address ...
+# Admin login protection: this many wrong passwords for one account lock it at the visitor's address (the account
+# stays open from other addresses; one address alone locks at three times as many) ...
 #login_attempts = 5
-# ... for this many minutes. A correct login clears the count. Locked accounts show in `il2ks doctor`, and you can
-# unlock them in the admin (Access attempts: delete the row).
+# ... for this many minutes. A correct login clears the count. Locked accounts show in `il2ks doctor`; unlock them
+# at once with `il2ks admin unlock --all`.
 #login_lockout_minutes = 15
 
 # --- Outbound requests (NFR-SEC-9) ---------------------------------------------------------------------------------------

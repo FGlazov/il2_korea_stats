@@ -14,7 +14,7 @@ def login_lockout_check(cfg: Config) -> Iterable[Finding]:
 
     title = "Admin login protection"
     attempts, minutes = cfg.web.login_attempts, cfg.web.login_lockout_minutes
-    rule = f"{attempts} wrong passwords lock the account and the address for {minutes} minutes"
+    rule = f"{attempts} wrong passwords for one account lock it at that address for {minutes} minutes"
     try:
         locks = current_lockouts()
     except DatabaseError:  # not migrated yet: the database check says so
@@ -27,6 +27,6 @@ def login_lockout_check(cfg: Config) -> Iterable[Finding]:
         Level.WARN,
         "Admin logins are locked after wrong passwords",
         f"{rule}. Locked now: {listing}.",
-        "If this was you, wait, or delete the row under Access attempts in the admin (Axes > Access attempts). "
+        "If this was you, wait, or run `il2ks admin unlock --all` (or `--user NAME` / `--ip ADDRESS`). "
         "Repeated locks you did not cause mean somebody is guessing passwords: use a long password.",
     )

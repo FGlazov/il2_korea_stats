@@ -193,10 +193,12 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
 - `[live]`: the "online now" box. `enabled = false` switches it off.
 - `[backup]`: how many backups to keep and whether to make one a day.
 - `[web]`, `[https]`: ports, domain, certificate. See the install guides.
-- `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords at the admin
-  login, the account **and** the visitor's address are locked for that long, and the visitor sees "try again in N minutes".
-  A correct login clears the count. `il2ks doctor` lists what is locked now; to unlock at once, sign in from another address
-  and delete the row under **Axes > Access attempts** in the admin (or, if you are locked out of everything, wait).
+- `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords for one account
+  at the admin login, that account is locked **at that visitor address** for that long, and the visitor sees "try again in N
+  minutes". The same account stays open from every other address, so a stranger guessing passwords cannot lock the real admin
+  out. One address on its own is locked after three times as many wrong passwords for any accounts. A correct login
+  clears the count. `il2ks doctor` lists what is locked now; to unlock at once run `il2ks admin unlock --all` (or
+  `--user NAME`, `--ip ADDRESS`, both together for one account at one address); it works while the site runs. Or wait.
   Behind your own proxy the lockout needs the proxy's `X-Forwarded-For` header, see [reverse-proxy.md](reverse-proxy.md).
 - `[outbound]` `allow_private`: when il2ks fetches a web address an admin typed (no feature does yet), it refuses addresses
   that are not on the public internet: this machine, your LAN, cloud metadata addresses. List addresses or networks

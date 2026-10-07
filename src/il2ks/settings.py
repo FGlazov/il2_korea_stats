@@ -140,8 +140,8 @@ DATABASES = _databases()
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # The admin account is the one thing on the site worth guessing: Django's standard four password checks apply to every
-# password set through the admin and `il2ks createadmin`. Failed logins lock the account and the client address
-# (django-axes, database handler, NFR-SEC-8; code in `il2ks.web.login_protection`).
+# password set through the admin and `il2ks createadmin`. Failed logins lock the account at that client address and,
+# looser, the address (django-axes, database handler, NFR-SEC-8; code in `il2ks.web.login_protection`).
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -152,7 +152,11 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = ["axes.backends.AxesStandaloneBackend", "django.contrib.auth.backends.ModelBackend"]
 AXES_FAILURE_LIMIT = _CFG.web.login_attempts  # [web] login_attempts
 AXES_COOLOFF_TIME = timedelta(minutes=_CFG.web.login_lockout_minutes)  # [web] login_lockout_minutes
-AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]  # either one over the limit locks: the account, or the address
+# One account at one address locks at the limit; an address on its own (any accounts) at IL2KS_LOGIN_ADDRESS_FACTOR
+# times the limit. A lock on the account alone would let any stranger lock the real admin out from every address.
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"], "ip_address"]
+AXES_HANDLER = "il2ks.web.login_protection.LoginHandler"
+IL2KS_LOGIN_ADDRESS_FACTOR = 3
 AXES_RESET_ON_SUCCESS = True
 AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = (
     False  # a lock ends N minutes after it began, however long somebody keeps trying

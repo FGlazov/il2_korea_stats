@@ -1,10 +1,14 @@
 """Admin login protection (NFR-SEC-8): django-axes with its database handler does the counting and the locking.
 
-Settings (`il2ks.settings`): after `[web] login_attempts` wrong passwords (default 5) the account **and** the client
-address are locked for `[web] login_lockout_minutes` (default 15). The lock is a row in axes's `AccessAttempt` table,
-so it survives restarts and needs no cache service, and deleting the row in the admin ("Access attempts") unlocks.
+Settings (`il2ks.settings`): after `[web] login_attempts` wrong passwords (default 5) for one account from one
+address, that **pair** is locked for `[web] login_lockout_minutes` (default 15): the same account is still open from
+every other address, so a stranger cannot lock the real admin out. A looser lock covers one address on its own: after
+`IL2KS_LOGIN_ADDRESS_FACTOR` (3) times that many wrong passwords from it, for any accounts, the address is locked
+(somebody trying many account names). The lock is a row in axes's `AccessAttempt` table, so it survives restarts and
+needs no cache service; `il2ks admin unlock` (or deleting the row in the admin, "Access attempts") unlocks.
 A correct login clears the count. This module adds what axes does not do for us:
 
+- `LoginHandler`: axes's database handler with the two different limits (axes has only one).
 - `client_address`: who the client is. The socket's address, except when the connection comes from this machine and
   the site runs in production (the bundled Caddy, or the admin's own proxy on the same machine; the web server
   listens on 127.0.0.1 there, docs/reverse-proxy.md): then the last `X-Forwarded-For` entry, which is the one that
@@ -21,13 +25,15 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
+from axes.handlers.database import AxesDatabaseHandler  # pyright: ignore[reportMissingTypeStubs]
 from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
 from axes.signals import user_locked_out  # pyright: ignore[reportMissingTypeStubs]
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.signals import user_login_failed
+from django.db.models import QuerySet, Sum
 from django.dispatch import receiver
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
@@ -37,6 +43,24 @@ log = logging.getLogger(__name__)
 
 LOCKED_TEMPLATE = "admin/il2ks_login_locked.html"
 MAX_LOGGED_NAME = 150
+
+
+ADDRESS_FACTOR_DEFAULT = 3
+
+
+def address_factor() -> int:
+    return int(getattr(settings, "IL2KS_LOGIN_ADDRESS_FACTOR", ADDRESS_FACTOR_DEFAULT))
+
+
+class LoginHandler(AxesDatabaseHandler):
+    """axes counts each lockout parameter group (`AXES_LOCKOUT_PARAMETERS`: the pair, then the address) and locks at
+    one shared limit. Here the address group has to reach `address_factor()` times the limit: its count is scaled
+    down, so the shared comparison `failures >= AXES_FAILURE_LIMIT` means the right thing for both."""
+
+    def get_failures(self, request: HttpRequest, credentials: dict[str, Any] | None = None) -> int:
+        groups = cast("list[QuerySet[AccessAttempt]]", self.get_user_attempts(request, credentials))  # pyright: ignore[reportUnknownMemberType]
+        pair, address = (int(group.aggregate(total=Sum("failures_since_start"))["total"] or 0) for group in groups)
+        return max(pair, address // address_factor())
 
 
 def _is_loopback(address: str) -> bool:
@@ -75,12 +99,11 @@ def lockout_response(
 ) -> HttpResponse:
     """axes calls this when the request is locked out. A plain page, status 429 (`Retry-After` in seconds)."""
     now = timezone.now()
-    name = (credentials or {}).get("username")
     attempts = AccessAttempt.objects.filter(attempt_time__gt=now - _cool_off())
     mine = attempts.filter(ip_address=client_address(request))
-    if name:
-        mine = mine | attempts.filter(username=name)
-    newest = mine.order_by("-attempt_time").values_list("attempt_time", flat=True).first()
+    name = (credentials or {}).get("username")
+    pair = mine.filter(username=name) if name else mine.none()
+    newest = (pair or mine).order_by("-attempt_time").values_list("attempt_time", flat=True).first()
     left = (
         minutes_left(newest + _cool_off(), now) if newest is not None else math.ceil(_cool_off().total_seconds() / 60)
     )
@@ -127,27 +150,39 @@ def log_lockout(
 
 @dataclass(frozen=True, slots=True)
 class Lock:
-    kind: str  # "account" or "address"
+    kind: str  # "account" (one account at one address) or "address" (one address, any accounts)
     name: str
     minutes_left: int
 
 
 def current_lockouts(now: datetime | None = None) -> list[Lock]:
-    """Accounts and addresses that are locked right now: their failures inside the lock window reach the limit."""
+    """What is locked right now: failures inside the lock window reach the limit (see `LoginHandler`)."""
     now = now or timezone.now()
     window = _cool_off()
+    limit = settings.AXES_FAILURE_LIMIT
     failures: dict[tuple[str, str], int] = defaultdict(int)
     newest: dict[tuple[str, str], datetime] = {}
     for attempt in AccessAttempt.objects.filter(attempt_time__gt=now - window):
-        for kind, name in (("account", attempt.username), ("address", attempt.ip_address)):
-            if not name:
-                continue
-            key = (kind, name)
+        keys = [("address", attempt.ip_address or "")]
+        if attempt.username:
+            keys.append(("account", f"{attempt.username} from {attempt.ip_address}"))
+        for key in keys:
             failures[key] += attempt.failures_since_start
             newest[key] = max(newest.get(key, attempt.attempt_time), attempt.attempt_time)
     locks = [
         Lock(kind, name, minutes_left(newest[kind, name] + window, now))
         for (kind, name), count in failures.items()
-        if count >= settings.AXES_FAILURE_LIMIT
+        if count >= (limit if kind == "account" else limit * address_factor())
     ]
     return sorted(locks, key=lambda lock: (lock.kind, lock.name))
+
+
+def unlock(*, username: str | None = None, ip: str | None = None) -> int:
+    """Delete the failure counts that match (both, when both are given; everything when neither): the locks end.
+    Returns the number of rows removed."""
+    attempts = AccessAttempt.objects.all()
+    if username:
+        attempts = attempts.filter(username=username)
+    if ip:
+        attempts = attempts.filter(ip_address=ip)
+    return attempts.delete()[0]

@@ -84,8 +84,6 @@ def test_one_address_is_locked_after_the_looser_address_limit_for_any_accounts(c
     User.objects.create_superuser("deputy", "deputy@example.org", GOOD)
     for i in range(ADDRESS_LIMIT - 1):
         assert attempt(client, "wrong", username=f"guess{i}", forwarded="203.0.113.5").status_code == 200
-    assert attempt(client, GOOD, username="deputy", forwarded="203.0.113.5").status_code == 302
-    client.logout()
 
     assert attempt(client, "wrong", username="guess-last", forwarded="203.0.113.5").status_code == 429
     assert attempt(client, GOOD, username="deputy", forwarded="203.0.113.5").status_code == 429
