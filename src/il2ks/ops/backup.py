@@ -231,7 +231,6 @@ def backup_if_due(cfg: Config, now: datetime) -> Path | None:
 
 # --- the second copy (`[backup] copy_to`) --------------------------------------------------------------------------
 
-COPY_STATUS_FILE = "backup_copy_status.json"
 ARCHIVE_COPY_NAME = "archive"
 _MAX_ARCHIVE_FAILURES = 3  # a share that went away fails every file: give up after a few, the next backup retries
 _status_lock = threading.Lock()

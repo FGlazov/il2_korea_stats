@@ -390,7 +390,7 @@ def test_status_writes_from_several_processes_do_not_lose_each_other(
     def hammer(kind: str) -> None:
         try:
             for n in range(150):
-                backup._record(cfg, backup.CopyOutcome(kind, True, "t", f"{n}"))  # type: ignore[arg-type]  # pyright: ignore
+                backup._record(cfg, backup.CopyOutcome(kind, True, "t", f"{n}"))  # pyright: ignore[reportPrivateUsage, reportArgumentType]
         except BaseException as exc:
             errors.append(exc)
 
