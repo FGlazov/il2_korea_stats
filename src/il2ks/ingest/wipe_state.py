@@ -8,8 +8,10 @@ Two kinds of things live on ingested rows and would go with them:
   -> pk. The wipe rebuilds the rows from the archives, so the same stable keys come back; they are given their old pk.
 
 The state is one JSON file in the data dir, written (and flushed) before the first row is deleted and removed when the
-reprocess is over. A wipe that is killed half way leaves it: `watch` and the next `reprocess` / `ingest` find it, hide
-what is back again and go on giving the old keys to the rows that come back later.
+reprocess is over. A wipe that is killed half way leaves it: `watch` and the next `reprocess` / `ingest` find it and go
+on giving the old keys, hiding and tour names to the rows that come back later. What is back already is never touched
+again (an admin's unhide or rename since is final); a full resumed reprocess removes the state even if some mission
+never came back.
 
 While a state is *active* (in this process), three `pre_save` receivers give every new `Player`, `Mission` and `Tour`
 its old pk and hide it when the admin had hidden it, so there is no moment when a hidden player or mission is public.
@@ -109,10 +111,16 @@ def capture_state() -> WipeState:
 def merge(old: WipeState, new: WipeState) -> WipeState:
     """A wipe started while an earlier one never finished: nothing the earlier one saved may be lost, and what is in the
     database now (rows that came back) is the newer truth for the keys."""
+    # Rows that came back are in `new` and the database is their truth: an admin who unhid a player or renamed a tour
+    # after the interruption must not be reverted. What is not back yet (`old` only) is still waiting for its row.
+    tours = {_tour_key(t): t for t in old.marks.tours}
+    tours.update({_tour_key(t): t for t in new.marks.tours})
     marks = AdminMarks(
-        hidden_players=old.marks.hidden_players | new.marks.hidden_players,
-        hidden_missions=old.marks.hidden_missions | new.marks.hidden_missions,
-        tours=new.marks.tours or old.marks.tours,
+        hidden_players=frozenset(a for a in old.marks.hidden_players if a not in new.players)
+        | new.marks.hidden_players,
+        hidden_missions=frozenset(m for m in old.marks.hidden_missions if m not in new.missions)
+        | new.marks.hidden_missions,
+        tours=tuple(sorted(tours.values(), key=lambda t: t.started_at)),
         runs=tuple({run[0]: run for run in (*old.marks.runs, *new.marks.runs)}.values()),
     )
     merged = WipeState(marks, {**old.players, **new.players}, {**old.missions, **new.missions})
@@ -120,6 +128,10 @@ def merge(old: WipeState, new: WipeState) -> WipeState:
     for key in {*old.sorties, *new.sorties}:
         merged.sorties[key] = {**old.sorties.get(key, {}), **new.sorties.get(key, {})}
     return merged
+
+
+def _tour_key(mark: TourMark) -> tuple[datetime, str, bool]:
+    return (mark.started_at, mark.mode, mark.by_win)
 
 
 # --- the file ---
@@ -233,9 +245,9 @@ def deactivate() -> None:
 def resume(cfg: Config) -> WipeState | None:
     """Activate the saved state of a wipe that never finished (once per process; later calls return the active one)."""
     if _active is not None:
-        if _active_dir == cfg.data_dir:
+        if _active_dir == cfg.data_dir and pending(cfg):
             return _active
-        deactivate()  # left over from another data dir (a test, a second install in one process)
+        deactivate()  # another data dir (a test, a second install), or the file is gone (another process finished it)
     state = load(cfg)
     if state is not None:
         log.warning("a wipe was interrupted: its saved marks and keys are applied to the rows that come back")
@@ -283,6 +295,9 @@ def _new_tour(sender: type[models.Model], instance: models.Model, **_kwargs: obj
     old = state.tours.get(instance.started_at)
     if instance.pk is None and old is not None and _free(Tour, old):
         instance.pk = old
+    for mark in state.marks.tours:  # the admin's name, given once at creation: a later rename is never reverted
+        if _tour_key(mark) == (instance.started_at, instance.mode, instance.by_win):
+            instance.title = mark.title
 
 
 def reserved_sortie_pks(

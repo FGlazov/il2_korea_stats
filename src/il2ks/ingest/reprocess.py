@@ -124,6 +124,7 @@ def reprocess(
     on_progress: Callable[[ReprocessSummary], None] | None = None,
     prepare: Callable[[Mapping[str, IngestRun]], None] | None = None,
     finish: Callable[[], None] | None = None,
+    after: Callable[[], None] | None = None,
 ) -> ReprocessSummary:
     """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken.
 
@@ -136,8 +137,10 @@ def reprocess(
     `prepare(targets)` runs with the lock held, the missions chosen and nothing saved yet (the wipe of "Delete all data
     and reprocess", `ingest.wipe`); an exception from it ends the run before anything was processed. `finish()` runs
     after the final rebuild, also when the run failed (an error in it then only gets logged), but only once `prepare`
-    has returned. A reprocess without `prepare` that finds the saved state of a wipe that never finished
-    (`ingest.wipe_state`) gives the rows that come back their old keys and marks."""
+    has returned. `after()` runs last, still under the lock, only when the run came to its end (the wipe removes its
+    saved state there, so no other process can load it in between). A reprocess without `prepare` that finds the
+    saved state of a wipe that never finished (`ingest.wipe_state`) gives the rows that come back their old keys
+    and marks."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         file_cfg = cfg
         cfg = effective_config(file_cfg)  # the rules the admin applied (they win over the file)
@@ -154,7 +157,12 @@ def reprocess(
             )
 
         run_rebuild = rebuild or rebuild_with_current_rules
-        resumed = prepare is None and wipe_state.resume(file_cfg) is not None  # a wipe that never finished
+        resumed_state = None if prepare is not None else wipe_state.resume(file_cfg)  # a wipe that never finished
+        resumed = resumed_state is not None
+        if resumed_state is not None:
+            from il2ks.ingest.wipe import restore_missing_boundaries  # (wipe imports this module)
+
+            restore_missing_boundaries(cfg.tours, resumed_state.marks)
         repair_pending(run_rebuild, cfg.ratings, cfg.marks)  # a killed batched run left level 2 behind
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)
@@ -181,10 +189,12 @@ def reprocess(
             raise
         if prepare is not None and finish is not None:
             finish()
+            if after is not None:
+                after()
         elif resumed:
             from il2ks.ingest.wipe import finish_resumed  # (wipe imports this module)
 
-            finish_resumed(file_cfg)
+            finish_resumed(file_cfg, whole=mission_uids is None and since is None and until is None)
         return summary
 
 

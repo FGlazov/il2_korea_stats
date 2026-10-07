@@ -105,7 +105,8 @@ Good to know:
   no archive. The site keeps running, but shows little or nothing until the missions are back.
   Hidden players and missions stay hidden the whole time, even if the process is killed half way: the marks are saved to
   `wipe-state.json` in the data folder before anything is deleted, and `watch` or the next `reprocess` picks up a wipe that
-  never finished. Links to players, missions, sorties and tours (`?tour=`) keep working, because the rebuilt rows get their
+  never finished (what is back already is left as it is, so unhiding a player or renaming a tour afterwards sticks;
+  `il2ks restore` removes the file, and `il2ks db copy` refuses while it exists: run `il2ks reprocess` first). Links to players, missions, sorties and tours (`?tour=`) keep working, because the rebuilt rows get their
   old numbers; only a tour that the current tour settings cut differently gets a new number.
 
 ## Rules

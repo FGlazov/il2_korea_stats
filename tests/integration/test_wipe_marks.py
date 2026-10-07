@@ -126,20 +126,22 @@ def test_a_wipe_killed_between_two_missions_keeps_its_marks(tmp_path: Path, monk
     assert "The September tour" in [t.title for t in Tour.objects.all()]
 
 
-def test_watch_start_applies_the_marks_of_a_wipe_that_never_finished(
+def test_watch_start_activates_the_state_of_a_wipe_that_never_finished(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """The marks are given to the rows when they come back (receivers); what is back already is left as it is, so an
+    admin's unhide is not reverted (review 2, M1: see test_wipe_resume.py)."""
     cfg = _ingest(tmp_path)
-    accounts, uids = _hide_some(FIXTURES["typical"], [FIXTURES["typical"]])
+    _hide_some(FIXTURES["typical"], [FIXTURES["typical"]])
 
     _killed_wipe(cfg, monkeypatch)
-    Player.objects.update(is_hidden=False)  # whatever lost the marks on the rows that came back
-    Mission.objects.update(is_hidden=False)
+    wipe_state.deactivate()  # the process died
+    assert wipe_state.active() is None
 
     watch(cfg, default_pipeline(cfg), max_ticks=1)
 
-    assert not Player.objects.filter(account_uuid__in=accounts, is_hidden=False).exists()
-    assert not Mission.objects.filter(mission_uid__in=uids, is_hidden=False).exists()
+    assert wipe_state.active() is not None
+    assert wipe_state.pending(cfg)  # missions are still missing
 
 
 # --- H2 ---

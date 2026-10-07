@@ -177,7 +177,11 @@ def _ingest_locked(
 ) -> IngestSummary:
     file_cfg = cfg
     cfg = effective_config(file_cfg)  # the rules the admin applied win over the file
-    wipe_state.resume(file_cfg)  # a wipe that never finished: new rows get its keys and marks
+    resumed_state = wipe_state.resume(file_cfg)  # a wipe that never finished: new rows get its keys and marks
+    if resumed_state is not None:
+        from il2ks.ingest.wipe import restore_missing_boundaries  # (wipe imports this module)
+
+        restore_missing_boundaries(cfg.tours, resumed_state.marks)
     repair_pending(
         partial(rebuild_aggregates, cfg.ratings, cfg.tours, marks=cfg.marks, score=cfg.score, board=cfg.board),
         cfg.ratings,
