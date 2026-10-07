@@ -40,7 +40,7 @@ def test_incremental_equals_rebuild_over_overlapping_missions() -> None:
     """Key aggregate test: several missions, overlapping players, renames, a re-ingest, an out-of-order mission."""
     m1 = mission(
         (
-            sortie(0, 1, kills_air=2, flight_time_s=1234.56),
+            sortie(0, 1, kills_air=2, flight_time_s=1234.56, underdog=True),
             sortie(1, 2, aircraft_type="F-86A-5", coalition=2, is_death=True, is_plane_lost=True, outcome="shot_down"),
             sortie(2, 3, aircraft_type="Turret_IL10", role="gunner"),
             sortie(3, 1, aircraft_type="IL-10", kills_ground=3, flight_time_s=777.7),
@@ -50,7 +50,7 @@ def test_incremental_equals_rebuild_over_overlapping_missions() -> None:
         (
             sortie(0, 1, name="Player-1-renamed", assists=1, assists_ground=2, flight_time_s=333.3),
             sortie(1, 2, aircraft_type="F-86A-5", coalition=2, pilot_fate="bailed_out", outcome="crashed"),
-            sortie(2, 4, aircraft_type="Brand-New Jet", coalition=2, kills_air=1, flight_time_s=0.02),
+            sortie(2, 4, aircraft_type="Brand-New Jet", coalition=2, kills_air=1, flight_time_s=0.02, underdog=True),
         )
     )
     m3 = mission(

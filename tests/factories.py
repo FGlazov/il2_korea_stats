@@ -161,6 +161,7 @@ def sortie(
     rams: int = 0,
     first_blood: bool = False,
     multi_kill: int = 0,
+    underdog: bool = False,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
 ) -> SortieResult:
@@ -253,6 +254,7 @@ def sortie(
         rams=rams,
         first_blood=first_blood,
         multi_kill=multi_kill,
+        underdog=underdog,
     )
 
 
@@ -295,6 +297,8 @@ def mission(
     countries: dict[int, int] | None = None,
     winner: int | None = None,
     draw: bool = False,
+    redfor_players: float = 0.0,
+    blufor_players: float = 0.0,
 ) -> MissionResult:
     """A mission holding `sorties` (their `index` must match their position) and `kills`."""
     assert [s.index for s in sorties] == list(range(len(sorties))), "sortie.index must equal its position"
@@ -314,6 +318,8 @@ def mission(
             completed_cleanly=True,
             winning_coalition=winner,
             result="win" if winner is not None else "draw" if draw else "unknown",
+            redfor_players=redfor_players,
+            blufor_players=blufor_players,
         ),
         sorties=sorties,
         kills=kills,

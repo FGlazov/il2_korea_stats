@@ -214,7 +214,7 @@ type _TourKey = tuple[int, int | None, str, str]  # aircraft, tour (None = all t
 ALL = AircraftRole.ALL.value
 _SUMS = {name: Sum(name) for name in COUNTER_FIELDS}
 _STAT_FIELDS = [*COUNTER_FIELDS, "pilots", "side"]
-_TOUR_STAT_FIELDS = [*_STAT_FIELDS, "sorties_redfor", "sorties_blufor"]
+_TOUR_STAT_FIELDS = _STAT_FIELDS
 _TOUR_KEY = ("aircraft_id", "tour_id", "role", "mod_pattern")
 
 
@@ -239,7 +239,6 @@ def _tour_stat_values(
 
 def _rollup_stats(chunk: list[int]) -> None:
     """`AircraftStats` and the all-time `TourAircraftStats` rows of these types = sums of their tour rows."""
-    sums = {**_SUMS, "red": Sum("sorties_redfor"), "blue": Sum("sorties_blufor")}
     tour_rows = TourAircraftStats.objects.filter(aircraft_id__in=chunk, tour__isnull=False)
     pilots_all = dict(
         PlayerAircraft.objects.filter(aircraft_id__in=chunk)
@@ -258,9 +257,9 @@ def _rollup_stats(chunk: list[int]) -> None:
     }
     wanted_all: _Wanted[tuple[int]] = {}
     wanted: _Wanted[_TourKey] = {}
-    for row in tour_rows.values("aircraft_id", "role", "mod_pattern").annotate(**sums).order_by():
+    for row in tour_rows.values("aircraft_id", "role", "mod_pattern").annotate(**_SUMS).order_by():
         aircraft, role, pattern = row["aircraft_id"], row["role"], row["mod_pattern"]
-        red, blue = row["red"] or 0, row["blue"] or 0
+        red, blue = row["sorties_redfor"] or 0, row["sorties_blufor"] or 0
         if role == ALL and not pattern:
             wanted_all[(aircraft,)] = {
                 **clean_counters(row),

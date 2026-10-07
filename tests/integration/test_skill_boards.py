@@ -204,9 +204,9 @@ def test_the_switcher_has_the_new_boards_and_no_clipped_markup(client: Client) -
 def test_budgets(client: Client) -> None:
     seed()
 
-    assert_simple_reads(client, "/leaderboards/interception/", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/tank-busting/?pool=prop&sort=name", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/interception/?tour=all", max_queries=6)
+    assert_simple_reads(client, "/leaderboards/interception/", max_queries=7)
+    assert_simple_reads(client, "/leaderboards/tank-busting/?pool=prop&sort=name", max_queries=7)
+    assert_simple_reads(client, "/leaderboards/interception/?tour=all", max_queries=7)
 
 
 # --- stat marks ------------------------------------------------------------------------------------------------------

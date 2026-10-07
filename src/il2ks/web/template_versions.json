@@ -1907,6 +1907,26 @@
         ]
       }
     },
+    "templates/il2ks/components/side_share.html": {
+      "version": "2.0",
+      "sha256": "d2309d5483d949bef6edb7b2a2b7fe4989ee1f59e4f527ec9106f5bead324ac1",
+      "contract": {
+        "filters": [
+          "percent"
+        ],
+        "markers": [
+          ".meta-line",
+          ".num",
+          ".side-share"
+        ],
+        "tags": [
+          "coalition_badge"
+        ],
+        "variables": [
+          "share"
+        ]
+      }
+    },
     "templates/il2ks/components/sort_th.html": {
       "version": "1.0",
       "sha256": "20b7083639ca442c70871548355e2e5b905ed228d8aca5d128295dfffd38a56f",
@@ -2072,8 +2092,8 @@
       }
     },
     "templates/il2ks/home.html": {
-      "version": "1.0",
-      "sha256": "077bcb35c1aa01bf239311593760811807c7a7731b8a4a369c523dde553ed807",
+      "version": "2.0",
+      "sha256": "7c004e41f4aa28a72dab1df4545ff80ee8f7af012f789d81916f2f58adfab859",
       "contract": {
         "blocks": [
           "content",
@@ -2090,6 +2110,7 @@
         ],
         "includes": [
           "il2ks/achievements/home_feed.html",
+          "il2ks/components/side_share.html",
           "il2ks/home_activity.html",
           "il2ks/home_feature.html",
           "il2ks/leaderboards/home_block.html",
@@ -2138,6 +2159,7 @@
           "last_mission",
           "latest",
           "pilots",
+          "side_share",
           "site",
           "tour",
           "tour_query",
@@ -2234,8 +2256,8 @@
       }
     },
     "templates/il2ks/leaderboards/list.html": {
-      "version": "1.0",
-      "sha256": "b8b2a0a36024bf438d2a2bc9011bb336cd01e894241af8c38ae3017f3cfc6144",
+      "version": "2.0",
+      "sha256": "08f8302116c3b7d1923d862c064d1db5bed17f2448b65b921aa05c52e1f9da40",
       "contract": {
         "blocks": [
           "content",
@@ -2248,6 +2270,7 @@
           "num"
         ],
         "includes": [
+          "il2ks/components/side_share.html",
           "il2ks/leaderboards/ironman_running.html",
           "il2ks/leaderboards/table.html"
         ],
@@ -2276,6 +2299,7 @@
           "pool_options",
           "rules",
           "running_page",
+          "side_share",
           "tab_groups",
           "tour",
           "tours"
@@ -2362,8 +2386,8 @@
       }
     },
     "templates/il2ks/missions/detail.html": {
-      "version": "1.0",
-      "sha256": "c77296cb24a3b04f78ebc651dd702263c6754190f6fc9d174b4152dbb9806e80",
+      "version": "1.1",
+      "sha256": "636cede856d11b3724fe3395eeb4b924ff864037e419e4eec09ad4f66145639a",
       "contract": {
         "blocks": [
           "content",
@@ -3230,15 +3254,20 @@
       }
     },
     "templates/il2ks/players/detail_totals.html": {
-      "version": "1.0",
-      "sha256": "40498d12af549c8e23662ac880b2c7729a9a4427989979257cddf0f42a9b59e6",
+      "version": "1.1",
+      "sha256": "e4697e7deb603b09ae55cb8d6d79d78553c667cadd7311fbc2cc30983ae0aecf",
       "contract": {
         "filters": [
           "duration",
-          "num"
+          "num",
+          "percent"
         ],
         "markers": [
           ".totals-grid"
+        ],
+        "tags": [
+          "side",
+          "stat_mark"
         ],
         "variables": [
           "stats"

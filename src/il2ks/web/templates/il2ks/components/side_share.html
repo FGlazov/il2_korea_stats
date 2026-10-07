@@ -1,0 +1,9 @@
+{# il2ks-template: templates/il2ks/components/side_share.html v2.0 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  side_share.html: one line with the share of the sorties flown per side (OQ-134), for the tour or all time that the page
+  shows. Include with `share` (queries.missions.SideShare or None; None renders nothing).
+{% endcomment %}{% if share %}<p class="meta-line side-share">
+  <span>{% translate "Sorties per side" %}:</span>
+  <span>{% coalition_badge "redfor" %} <strong class="num">{{ share.redfor|percent:share.total }}</strong></span>
+  <span>{% coalition_badge "blufor" %} <strong class="num">{{ share.blufor|percent:share.total }}</strong></span>
+</p>{% endif %}

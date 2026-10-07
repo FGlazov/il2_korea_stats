@@ -38,6 +38,7 @@ sixth, one more read), the tour list of the tour selector (OQ-79, one read), the
 "Recently earned" feed (doc 17: the newest tiers, and their rarity: two reads, one when nothing was earned)."""
 HOME_READS_EMPTY = 4 + HOME_EXTRA_READS
 """No missions: the site context (2), latest missions, activity days, plus `HOME_EXTRA_READS`."""
-HOME_READS = 5 + HOME_EXTRA_READS
+HOME_READS = 6 + HOME_EXTRA_READS
 """With a last mission: the empty page's reads and the last mission's top pilots.
-The ironman streak block left the home page for the leaderboards: one read less than before."""
+The ironman streak block left the home page for the leaderboards: one read less than before. Plus the sorties per side
+of the tour (side balance, OQ-134), read only when there is a last mission."""

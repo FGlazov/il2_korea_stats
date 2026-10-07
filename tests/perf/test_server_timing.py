@@ -72,7 +72,9 @@ def test_full_render_time(client: Client, big_world: SeededWorld, spec: PageSpec
     assert elapsed < spec.max_ms, f"{spec.url(big_world)}: median {elapsed:.0f} ms (budget {spec.max_ms:.0f} ms)"
 
 
-@pytest.mark.parametrize("spec", [s for s in PAGES if s.url_name not in {"live", "healthz"}], ids=_id)  # healthz: never cached
+@pytest.mark.parametrize(
+    "spec", [s for s in PAGES if s.url_name not in {"live", "healthz"}], ids=_id
+)  # healthz: never cached
 def test_revalidation_is_cheap(client: Client, big_world: SeededWorld, spec: PageSpec) -> None:
     """Cache enabled: a returning visitor's conditional GET is a 304 with exactly one query (TD-28)."""
     url = spec.url(big_world)

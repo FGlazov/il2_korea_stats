@@ -84,6 +84,7 @@ def home(request: HttpRequest) -> HttpResponse:
         "activity": activity_chart(activity_reads.recent_activity(tour=choice.selected)),
         "boards": _home_boards(choice.selected, site_row(request)),
         "tour_query": tour_query(choice.selected),
+        "side_share": reads.side_share(choice.selected) if last is not None else None,
         **choice.context,
     }
     return render(request, "il2ks/home.html", context)

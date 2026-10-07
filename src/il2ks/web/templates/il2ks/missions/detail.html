@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v1.1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None, .rows = this page's
   PlayerSortie rows with .player and .aircraft; .page and .page_param for the pagination; 20 per side, OQ-96), kills (a Page of
@@ -24,9 +24,10 @@
 
   {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
   {% blocktranslate asvar sides_sub with red=mission.redfor_sorties blue=mission.blufor_sorties %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}
+  {% if mission.redfor_players or mission.blufor_players %}{% blocktranslate asvar pilots_sub with red=mission.redfor_players|num:1 blue=mission.blufor_players|num:1 %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}{% endif %}
   <div class="stat-tiles">
     {% stat_tile mission.duration_s|duration _("Duration") icon="stat/flight-time" %}
-    {% stat_tile mission.players_total|num _("Players") %}
+    {% stat_tile mission.players_total|num _("Players") sub=pilots_sub|default:"" %}
     {% stat_tile mission.sorties_total|num _("Sorties") sub=sides_sub icon="stat/sorties" %}
     {% stat_tile mission.kills_air|num _("Air kills") icon="stat/air-kills" %}
     {% stat_tile mission.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}

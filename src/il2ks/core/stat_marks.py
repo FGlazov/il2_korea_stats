@@ -49,6 +49,7 @@ type Metric = Literal[
     "elo_jet",
     "interception_hour",
     "tank_hour",
+    "underdog_share",
 ]
 type Band = Literal["top1", "top5", "top10", "top25"]
 type SortieMetric = Literal["air_kills", "ground_kills"]
@@ -69,6 +70,7 @@ METRICS: Final[tuple[Metric, ...]] = (
     "elo_jet",
     "interception_hour",
     "tank_hour",
+    "underdog_share",
 )
 SORTIE_METRICS: Final[tuple[SortieMetric, ...]] = ("air_kills", "ground_kills")
 ELO_METRICS: Final[tuple[Metric, ...]] = ("elo_prop", "elo_jet")  # a tour's marks use the tour's Elo, all time the best
@@ -134,6 +136,7 @@ class Totals:
     kills_intercept: int = 0  # air kills of bombers, attackers and transports in air superiority sorties
     kills_tank_attack: int = 0  # tanks destroyed in attack sorties
     attack_sorties: int = 0
+    sorties_underdog: int = 0  # counted sorties flown for the side with fewer pilots spawned in (OQ-134)
 
 
 type Unit = Literal["sorties", "games", "seconds", "flight_seconds"]
@@ -196,6 +199,8 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return _div(totals.kills_intercept * SECONDS_PER_HOUR, totals.flight_time_air_s)
         case "tank_hour":
             return _div(totals.kills_tank_attack * SECONDS_PER_HOUR, totals.time_on_target_s)
+        case "underdog_share":
+            return _div(totals.sorties_underdog, totals.sorties)
         case "elo_prop":
             return totals.elo_prop if totals.elo_prop_games > 0 else None
         case "elo_jet":
