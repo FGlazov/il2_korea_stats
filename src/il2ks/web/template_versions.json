@@ -658,6 +658,10 @@
         "tags": [
           "icon"
         ],
+        "url_args": [
+          "web:home/0",
+          "web:mission-list/0"
+        ],
         "urls": [
           "web:home",
           "web:mission-list"
@@ -753,6 +757,9 @@
           ".submit-row",
           ".vCheckboxLabel"
         ],
+        "url_args": [
+          "admin:index/0"
+        ],
         "urls": [
           "admin:index"
         ],
@@ -793,6 +800,9 @@
         "markers": [
           ".button"
         ],
+        "url_args": [
+          "admin:il2ks_db_tour_start/0"
+        ],
         "urls": [
           "admin:il2ks_db_tour_start"
         ],
@@ -819,6 +829,15 @@
           ".changelink",
           ".module",
           ".viewlink"
+        ],
+        "url_args": [
+          "admin:achievements/0",
+          "admin:ingest-status/0",
+          "admin:leaderboards/0",
+          "admin:quips/0",
+          "admin:rules/0",
+          "admin:score/0",
+          "admin:tours/0"
         ],
         "urls": [
           "admin:achievements",
@@ -869,6 +888,14 @@
         "static": [
           "il2ks_admin/ingest_status.css"
         ],
+        "url_args": [
+          "admin:il2ks_db_gameobject_change/1",
+          "admin:il2ks_db_ingestrun_change/1",
+          "admin:il2ks_db_ingestrun_changelist/0",
+          "admin:index/0",
+          "admin:reprocess-all/0",
+          "admin:wipe-reprocess/0"
+        ],
         "urls": [
           "admin:il2ks_db_gameobject_change",
           "admin:il2ks_db_ingestrun_change",
@@ -904,6 +931,9 @@
           ".default",
           ".submit-row"
         ],
+        "url_args": [
+          "admin:index/0"
+        ],
         "urls": [
           "admin:index"
         ]
@@ -925,6 +955,9 @@
         ],
         "tags": [
           "plural"
+        ],
+        "url_args": [
+          "admin:login/0"
         ],
         "urls": [
           "admin:login"
@@ -960,6 +993,9 @@
         "tags": [
           "plural"
         ],
+        "url_args": [
+          "admin:index/0"
+        ],
         "urls": [
           "admin:index"
         ],
@@ -992,6 +1028,9 @@
         "tags": [
           "plural"
         ],
+        "url_args": [
+          "admin:index/0"
+        ],
         "urls": [
           "admin:index"
         ],
@@ -1020,6 +1059,9 @@
           ".breadcrumbs",
           ".default",
           ".submit-row"
+        ],
+        "url_args": [
+          "admin:index/0"
         ],
         "urls": [
           "admin:index"
@@ -1053,6 +1095,9 @@
           ".module",
           ".submit-row",
           ".vCheckboxLabel"
+        ],
+        "url_args": [
+          "admin:index/0"
         ],
         "urls": [
           "admin:index"
@@ -1095,6 +1140,9 @@
           ".submit-row",
           ".vCheckboxLabel"
         ],
+        "url_args": [
+          "admin:index/0"
+        ],
         "urls": [
           "admin:index"
         ],
@@ -1130,6 +1178,9 @@
         ],
         "tags": [
           "plural"
+        ],
+        "url_args": [
+          "admin:index/0"
         ],
         "urls": [
           "admin:index"
@@ -1226,6 +1277,12 @@
           "pagination",
           "tour_select"
         ],
+        "url_args": [
+          "web:achievement-holders/1",
+          "web:achievements/0",
+          "web:player-detail/1",
+          "web:sortie-detail/1"
+        ],
         "urls": [
           "web:achievement-holders",
           "web:achievements",
@@ -1273,6 +1330,10 @@
           "icon",
           "recent_medals"
         ],
+        "url_args": [
+          "web:achievements/0",
+          "web:player-detail/1"
+        ],
         "urls": [
           "web:achievements",
           "web:player-detail"
@@ -1314,6 +1375,9 @@
           "icon",
           "plural",
           "tour_select"
+        ],
+        "url_args": [
+          "web:achievement-holders/1"
         ],
         "urls": [
           "web:achievement-holders"
@@ -1390,6 +1454,9 @@
           "stat_tile",
           "tour_absent",
           "tour_select"
+        ],
+        "url_args": [
+          "web:aircraft-detail/1"
         ],
         "urls": [
           "web:aircraft-detail"
@@ -1472,6 +1539,9 @@
           "sort_th",
           "tour_filter"
         ],
+        "url_args": [
+          "web:aircraft-detail/1"
+        ],
         "urls": [
           "web:aircraft-detail"
         ],
@@ -1520,6 +1590,9 @@
           "empty_row",
           "plural"
         ],
+        "url_args": [
+          "web:player-detail/1"
+        ],
         "urls": [
           "web:player-detail"
         ],
@@ -1551,6 +1624,9 @@
         "tags": [
           "col_th",
           "empty_row"
+        ],
+        "url_args": [
+          "web:player-detail/1"
         ],
         "urls": [
           "web:player-detail"
@@ -1621,6 +1697,14 @@
         "tags": [
           "icon",
           "language_menu"
+        ],
+        "url_args": [
+          "web:aircraft-list/0",
+          "web:home/0",
+          "web:leaderboards/0",
+          "web:mission-list/0",
+          "web:player-search/0",
+          "web:sortie-list/0"
         ],
         "urls": [
           "web:aircraft-list",
@@ -1929,6 +2013,9 @@
           ".online-now",
           ".online-now__body"
         ],
+        "url_args": [
+          "web:live/0"
+        ],
         "urls": [
           "web:live"
         ],
@@ -1963,6 +2050,9 @@
           "live_state_badge",
           "notice",
           "plural"
+        ],
+        "url_args": [
+          "web:player-detail/1"
         ],
         "urls": [
           "web:player-detail"
@@ -2307,6 +2397,11 @@
           "tour_select",
           "winner_badge"
         ],
+        "url_args": [
+          "web:mission-detail/1",
+          "web:mission-list/0",
+          "web:player-search/0"
+        ],
         "urls": [
           "web:mission-detail",
           "web:mission-list",
@@ -2383,6 +2478,11 @@
           "col_th",
           "empty_row"
         ],
+        "url_args": [
+          "web:leaderboard/1",
+          "web:leaderboards/0",
+          "web:player-detail/1"
+        ],
         "urls": [
           "web:leaderboard",
           "web:leaderboards",
@@ -2411,6 +2511,9 @@
         "tags": [
           "col_th",
           "empty_row"
+        ],
+        "url_args": [
+          "web:player-detail/1"
         ],
         "urls": [
           "web:player-detail"
@@ -2494,6 +2597,10 @@
           "empty_row",
           "sort_th"
         ],
+        "url_args": [
+          "web:player-detail/1",
+          "web:player-streak-runs/1"
+        ],
         "urls": [
           "web:player-detail",
           "web:player-streak-runs"
@@ -2512,6 +2619,9 @@
         "markers": [
           ".muted",
           ".stretched-link"
+        ],
+        "url_args": [
+          "web:player-detail/1"
         ],
         "urls": [
           "web:player-detail"
@@ -2552,6 +2662,9 @@
           "badge",
           "empty_row",
           "winner_badge"
+        ],
+        "url_args": [
+          "web:mission-detail/1"
         ],
         "urls": [
           "web:mission-detail"
@@ -2634,6 +2747,9 @@
           "sort_th",
           "stat_tile",
           "winner_badge"
+        ],
+        "url_args": [
+          "web:sortie-detail/1"
         ],
         "urls": [
           "web:sortie-detail"
@@ -2745,6 +2861,9 @@
           ".nowrap",
           ".num"
         ],
+        "url_args": [
+          "web:mission-detail/1"
+        ],
         "urls": [
           "web:mission-detail"
         ],
@@ -2776,6 +2895,9 @@
         "tags": [
           "aircraft_icon",
           "empty_row"
+        ],
+        "url_args": [
+          "web:aircraft-detail/1"
         ],
         "urls": [
           "web:aircraft-detail"
@@ -2825,6 +2947,11 @@
           "icon",
           "tour_absent",
           "tour_select"
+        ],
+        "url_args": [
+          "web:achievements/0",
+          "web:player-detail/1",
+          "web:sortie-detail/1"
         ],
         "urls": [
           "web:achievements",
@@ -2904,6 +3031,10 @@
           ".medals",
           ".ribbon-rack",
           ".section-head"
+        ],
+        "url_args": [
+          "web:achievements/0",
+          "web:player-achievements/1"
         ],
         "urls": [
           "web:achievements",
@@ -3011,6 +3142,9 @@
           "player_builds",
           "results_region",
           "sort_th"
+        ],
+        "url_args": [
+          "web:player-sorties/1"
         ],
         "urls": [
           "web:player-sorties"
@@ -3200,6 +3334,9 @@
           "empty_row",
           "killboard_top"
         ],
+        "url_args": [
+          "web:player-killboard/1"
+        ],
         "urls": [
           "web:player-killboard"
         ],
@@ -3330,6 +3467,10 @@
           "outcome_badge",
           "pilot_fate_badge"
         ],
+        "url_args": [
+          "web:player-sorties/1",
+          "web:sortie-detail/1"
+        ],
         "urls": [
           "web:player-sorties",
           "web:sortie-detail"
@@ -3440,6 +3581,10 @@
           "player_streaks",
           "player_tour_streaks"
         ],
+        "url_args": [
+          "web:leaderboard/1",
+          "web:player-streaks/1"
+        ],
         "urls": [
           "web:leaderboard",
           "web:player-streaks"
@@ -3512,6 +3657,9 @@
         ],
         "tags": [
           "type_killboard"
+        ],
+        "url_args": [
+          "web:player-killboard/1"
         ],
         "urls": [
           "web:player-killboard"
@@ -3620,6 +3768,9 @@
           "empty_row",
           "sort_th"
         ],
+        "url_args": [
+          "web:player-detail/1"
+        ],
         "urls": [
           "web:player-detail"
         ],
@@ -3669,6 +3820,10 @@
           "results_region",
           "tour_absent",
           "tour_select"
+        ],
+        "url_args": [
+          "web:player-streaks/1",
+          "web:sortie-detail/1"
         ],
         "urls": [
           "web:player-streaks",
@@ -3720,6 +3875,10 @@
           "tour_absent",
           "tour_select"
         ],
+        "url_args": [
+          "web:player-detail/1",
+          "web:player-streak-runs/1"
+        ],
         "urls": [
           "web:player-detail",
           "web:player-streak-runs"
@@ -3770,6 +3929,9 @@
           "notice",
           "plural"
         ],
+        "url_args": [
+          "web:setup/0"
+        ],
         "urls": [
           "web:setup"
         ],
@@ -3817,6 +3979,10 @@
           "notice",
           "plural"
         ],
+        "url_args": [
+          "admin:login/0",
+          "web:home/0"
+        ],
         "urls": [
           "admin:login",
           "web:home"
@@ -3855,6 +4021,9 @@
         ],
         "tags": [
           "notice"
+        ],
+        "url_args": [
+          "web:setup/0"
         ],
         "urls": [
           "web:setup"
@@ -4007,6 +4176,9 @@
           "tour_absent",
           "tour_filter"
         ],
+        "url_args": [
+          "web:player-streak-runs/1"
+        ],
         "urls": [
           "web:player-streak-runs"
         ],
@@ -4036,6 +4208,9 @@
         ],
         "tags": [
           "aircraft_icon"
+        ],
+        "url_args": [
+          "web:aircraft-detail/1"
         ],
         "urls": [
           "web:aircraft-detail"
@@ -4072,6 +4247,10 @@
           "outcome_badge",
           "pilot_fate_badge"
         ],
+        "url_args": [
+          "web:mission-detail/1",
+          "web:sortie-detail/1"
+        ],
         "urls": [
           "web:mission-detail",
           "web:sortie-detail"
@@ -4100,6 +4279,9 @@
         "tags": [
           "accordion",
           "col_th"
+        ],
+        "url_args": [
+          "web:aircraft-list/0"
         ],
         "urls": [
           "web:aircraft-list"
@@ -4189,6 +4371,11 @@
           "role_badge",
           "sortie_mark",
           "stat_tile"
+        ],
+        "url_args": [
+          "web:aircraft-detail/1",
+          "web:mission-detail/1",
+          "web:player-detail/1"
         ],
         "urls": [
           "web:aircraft-detail",
@@ -4307,6 +4494,9 @@
           "pilot_fate_badge",
           "role_badge"
         ],
+        "url_args": [
+          "web:sortie-detail/1"
+        ],
         "urls": [
           "web:sortie-detail"
         ],
@@ -4334,6 +4524,9 @@
         ],
         "tags": [
           "sortie_medals"
+        ],
+        "url_args": [
+          "web:player-achievements/1"
         ],
         "urls": [
           "web:player-achievements"
@@ -4476,6 +4669,10 @@
         "tags": [
           "icon"
         ],
+        "url_args": [
+          "web:player-detail/1",
+          "web:sortie-detail/1"
+        ],
         "urls": [
           "web:player-detail",
           "web:sortie-detail"
@@ -4572,6 +4769,10 @@
           "sortie_flavor",
           "stat_tile",
           "status_badge"
+        ],
+        "url_args": [
+          "web:player-detail/1",
+          "web:sortie-detail/1"
         ],
         "urls": [
           "web:player-detail",

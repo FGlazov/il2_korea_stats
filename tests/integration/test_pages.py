@@ -1,6 +1,8 @@
 """Markdown pages in the navigation (roadmap 0.2.0, OQ-133): the admin saves and renders once, the page view prints the
 stored HTML in the viewer's language, a navigation link opens it."""
 
+import re
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import Client
@@ -364,7 +366,8 @@ def test_the_page_only_runs_scripts_from_the_site_itself(client: Client) -> None
     make_page()
     response = client.get("/p/rules/")
     assert "script-src 'self'" in response["Content-Security-Policy"]
-    assert "<script>" not in response.content.decode()  # the layout has no inline script (the policy would block it)
+    inline = re.findall(r"<script(?![^>]*src\s*=)[^>]*>", response.content.decode(), re.IGNORECASE)
+    assert inline == []  # the layout has no inline script (the policy would block it)
 
 
 # --- http images: they will not load (the policy allows https only), so the admin is told ---

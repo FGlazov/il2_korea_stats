@@ -44,7 +44,9 @@ different meaning of a variable): `bump-templates --major il2ks/home.html` (a pa
 a name it applies to every changed file). Use it on the first run for the file; a file already bumped can be raised by
 hand: edit the header to the next N, `v5.0`, and run the tool, which believes a hand-raised version.
 
-**What the fingerprint does not see** (use `--major` for these): a changed signature of a custom tag or filter (new or
+**What the fingerprint does not see** (use `--major` for these): a URL pattern in `web/urls.py` whose parameters change
+(`<int:pk>` became `<slug:slug>`) while the built-in templates keep their `{% url %}` calls (a changed argument count *in a
+template* is seen; the pattern side is not, so run `--major` on the templates that use that URL name), a changed signature of a custom tag or filter (new or
 renamed arguments), an attribute renamed on a context object (`player.nick` became `player.name`: only the root name
 `player` is recorded), a variable given to `{% url %}` instead of a literal name, a CSS class assembled in a script, and
 any change of what a variable *means*. An id, class or `data-` attribute removed from a template and from the CSS/JS in
