@@ -10,7 +10,9 @@ list of wiped ones: whoever adds a model has to decide which kind it is (a new a
 goes into `KEEP_MODELS`).
 
 Settings that live ON an ingested row cannot survive the deletion of the row, so they are captured by a stable key
-before the wipe and applied again after the reprocess (`AdminMarks`):
+and saved to disk before anything is deleted (`ingest.wipe_state`: durable across a crash). The rows that come back
+are hidden at creation (no moment when a hidden player or mission is public) and get their old primary keys, so the
+public URLs keep working; at the end the marks are applied once more (`AdminMarks`):
 - `Player.is_hidden`: by game account UUID;
 - `Mission.is_hidden`: by (server UID, mission UID), the log file's timestamp;
 - a tour's title (an admin's rename): by its start, when the new tour has the same start, mode and kind (a part cut
@@ -18,6 +20,9 @@ before the wipe and applied again after the reprocess (`AdminMarks`):
 - manual mode's tour boundaries (their starts and titles): the tours of mode `manual` that are not `by_win` are
   recreated before the reprocess when the effective mode is still manual, because in manual mode the stored tours ARE
   the periods.
+A wipe that is killed half way leaves the saved file: `watch` and the next `reprocess` pick it up
+(`resume_unfinished_wipe`). Primary keys kept: players, missions, sorties and tours with the same start; a tour the
+current settings cut differently gets a new key.
 The admin's chosen game rules, achievement settings and flight-time option are adopted as applied before the wipe
 (a full rebuild computes with them anyway), so the new rows follow what is chosen now.
 """
@@ -26,8 +31,7 @@ import logging
 from collections import defaultdict
 from collections.abc import Callable, Mapping
 from concurrent.futures import Executor
-from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 from enum import StrEnum
 from pathlib import Path
 from typing import cast
@@ -39,13 +43,16 @@ from django.db.models import F
 from il2ks.config import Config
 from il2ks.db.models import IngestRun, Mission, Player, SiteSettings, Tour
 from il2ks.db.site import bump_data_version, get_site_settings
+from il2ks.ingest import wipe_state
 from il2ks.ingest.achievements import adopt_wanted_rules, recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.archive import archive_matches
 from il2ks.ingest.flight_score import adopt_wanted_flight_score
+from il2ks.ingest.lock import LockBusyError, WriterLock
 from il2ks.ingest.reprocess import ReprocessSummary, WorkFn, default_executor, reprocess
 from il2ks.ingest.rule_store import adopt_overrides, effective_config, rebuild_overrides
 from il2ks.ingest.runner import Pipeline
+from il2ks.ingest.wipe_state import AdminMarks, WipeState
 from il2ks.ingest.worker import parse_and_replay
 
 log = logging.getLogger(__name__)
@@ -120,9 +127,9 @@ def _clear_links_into(wiped: list[type[models.Model]]) -> None:
                 model._default_manager.exclude(**{f"{field.name}__isnull": True}).update(**{field.name: None})
 
 
-def wipe_ingested_data() -> dict[str, int]:
+def wipe_ingested_data(order: list[type[models.Model]] | None = None) -> dict[str, int]:
     """Delete every row of every wiped model in one transaction; returns the rows deleted per model."""
-    order = wiped_models()
+    order = wiped_models() if order is None else order
     deleted: dict[str, int] = {}
     with transaction.atomic():
         _clear_links_into(order)
@@ -131,36 +138,6 @@ def wipe_ingested_data() -> dict[str, int]:
             deleted[model.__name__] = rows._raw_delete(using=DEFAULT_DB_ALIAS)  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
         bump_data_version()
     return deleted
-
-
-@dataclass(frozen=True, slots=True)
-class TourMark:
-    started_at: datetime
-    ended_at: datetime | None
-    title: str
-    mode: str
-    by_win: bool
-
-
-@dataclass(frozen=True, slots=True)
-class AdminMarks:
-    """The admin's settings that live on ingested rows, by their stable keys."""
-
-    hidden_players: frozenset[str]  # account UUIDs
-    hidden_missions: frozenset[tuple[str, str]]  # (server UID, mission UID)
-    tours: tuple[TourMark, ...]
-
-
-def capture_marks() -> AdminMarks:
-    return AdminMarks(
-        hidden_players=frozenset(Player.objects.hidden().values_list("account_uuid", flat=True)),
-        hidden_missions=frozenset(
-            (str(server), uid) for server, uid in Mission.objects.hidden().values_list("server_uid", "mission_uid")
-        ),
-        tours=tuple(
-            TourMark(t.started_at, t.ended_at, t.title, t.mode, t.by_win) for t in Tour.objects.order_by("started_at")
-        ),
-    )
 
 
 def restore_manual_boundaries(marks: AdminMarks, mode: str, label: str) -> int:
@@ -191,7 +168,7 @@ def restore_marks(marks: AdminMarks) -> None:
                 days.add(day_of(mission.started_at))
         recompute_days(days)
         recompute_holders()  # the medal counts cover visible players only (FR-WEB-26)
-        _relink_runs()
+        _relink_runs(marks.runs)
         wanted = {(t.started_at, t.mode, t.by_win): t.title for t in marks.tours}
         for tour in Tour.objects.all():
             title = wanted.get((tour.started_at, tour.mode, tour.by_win))
@@ -200,13 +177,49 @@ def restore_marks(marks: AdminMarks) -> None:
         bump_data_version()
 
 
-def _relink_runs() -> None:
-    """The ingest history kept its runs while their missions were deleted (the link was cleared): point them at the
-    rebuilt missions again, so the status page and `Mission.ingest_runs` show the whole history."""
-    by_uid = {uid: pk for pk, uid in Mission.objects.values_list("pk", "mission_uid")}
-    for uid in IngestRun.objects.filter(mission__isnull=True).values_list("mission_uid", flat=True).distinct():
-        if uid in by_uid:
-            IngestRun.objects.filter(mission__isnull=True, mission_uid=uid).update(mission_id=by_uid[uid])
+def _relink_runs(runs: tuple[tuple[int, str, str], ...]) -> None:
+    """The ingest history kept its runs while their missions were deleted (the link was cleared): point each at the
+    rebuilt mission of the same server and mission UID again, so the status page and `Mission.ingest_runs` show the
+    whole history. A run whose mission has not come back stays unlinked."""
+    by_key = {
+        (str(server), uid): pk for pk, server, uid in Mission.objects.values_list("pk", "server_uid", "mission_uid")
+    }
+    for run_pk, server, uid in runs:
+        mission_pk = by_key.get((server, uid))
+        if mission_pk is not None:
+            IngestRun.objects.filter(pk=run_pk, mission__isnull=True).update(mission_id=mission_pk)
+
+
+def resume_unfinished_wipe(cfg: Config) -> bool:
+    """`watch` start: a wipe that never finished left its marks and keys on disk. Activate them (the rows that come back
+    later are hidden and keep their keys) and hide what is back already. Skipped when the writer lock is taken (the
+    running job resumes it itself). Returns whether a saved wipe was found."""
+    if not wipe_state.pending(cfg):
+        return False
+    try:
+        with WriterLock(cfg.data_dir, "watch", wait=0):
+            state = wipe_state.resume(cfg)
+            if state is not None:
+                restore_marks(state.marks)
+                _clear_if_complete(cfg, state)
+    except LockBusyError:
+        log.info("a saved wipe is waiting; the job holding the lock will resume it")
+    return True
+
+
+def finish_resumed(cfg: Config) -> None:
+    """The end of a plain reprocess or ingest that found the saved state of an unfinished wipe."""
+    state = wipe_state.active()
+    if state is not None:
+        restore_marks(state.marks)
+        _clear_if_complete(cfg, state)
+
+
+def _clear_if_complete(cfg: Config, state: WipeState) -> None:
+    """The saved state is done with when every mission the wipe deleted is back."""
+    if wipe_state.unfinished_missions(state) == 0:
+        wipe_state.clear(cfg)
+        log.info("the interrupted wipe is complete: its saved state is removed")
 
 
 def adopt_current_settings() -> None:
@@ -262,7 +275,7 @@ def wipe_and_reprocess(
         return None
 
     phase = on_phase or no_phase
-    state: dict[str, AdminMarks] = {}
+    state: dict[str, AdminMarks] = {}  # the marks, once captured
 
     def prepare(targets: Mapping[str, IngestRun]) -> None:
         phase(WipePhase.CHECK)
@@ -274,19 +287,25 @@ def wipe_and_reprocess(
             raise WipeError(f"the backup failed, so nothing was deleted: {exc}") from exc
         log.info("backup before the wipe: %s", path)
         phase(WipePhase.WIPE)
+        order = wiped_models()  # first: a model cycle must be found before anything is changed
         adopt_current_settings()
-        state["marks"] = marks = capture_marks()
+        captured = wipe_state.capture_state()
+        earlier = wipe_state.load(cfg)  # a wipe that never finished: keep what it saved
+        saved = wipe_state.merge(earlier, captured) if earlier is not None else captured
+        wipe_state.save(cfg, saved)  # durable before the first row goes
+        wipe_state.activate(saved, cfg.data_dir)
+        state["marks"] = saved.marks
         rules = effective_config(cfg).tours
-        deleted = wipe_ingested_data()
+        deleted = wipe_ingested_data(order)
         log.info("wiped %d rows in %d tables", sum(deleted.values()), len(deleted))
-        restore_manual_boundaries(marks, rules.mode, rules.label)
+        restore_manual_boundaries(saved.marks, rules.mode, rules.label)
         phase(WipePhase.REPROCESS)
 
     def finish() -> None:
         if "marks" in state:
             restore_marks(state["marks"])
 
-    return reprocess(
+    result = reprocess(
         cfg,
         pipeline,
         workers=workers,
@@ -298,3 +317,6 @@ def wipe_and_reprocess(
         work=work,
         executor_factory=executor_factory,
     )
+    if "marks" in state:  # the run came to its end (an exception leaves the saved state for the next start)
+        wipe_state.clear(cfg)
+    return result

@@ -31,6 +31,7 @@ from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
 from il2ks.db.models import CompletionReason, IngestRun, IngestStatus
 from il2ks.db.site import clear_level2_pending, set_level2_pending
+from il2ks.ingest import wipe_state
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.archive import archive_matches, file_sha256
 from il2ks.ingest.batch import is_batch, repair_pending
@@ -134,7 +135,9 @@ def reprocess(
 
     `prepare(targets)` runs with the lock held, the missions chosen and nothing saved yet (the wipe of "Delete all data
     and reprocess", `ingest.wipe`); an exception from it ends the run before anything was processed. `finish()` runs
-    after the final rebuild, also when the run failed, but only once `prepare` has returned."""
+    after the final rebuild, also when the run failed (an error in it then only gets logged), but only once `prepare`
+    has returned. A reprocess without `prepare` that finds the saved state of a wipe that never finished
+    (`ingest.wipe_state`) gives the rows that come back their old keys and marks."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         file_cfg = cfg
         cfg = effective_config(file_cfg)  # the rules the admin applied (they win over the file)
@@ -151,6 +154,7 @@ def reprocess(
             )
 
         run_rebuild = rebuild or rebuild_with_current_rules
+        resumed = prepare is None and wipe_state.resume(file_cfg) is not None  # a wipe that never finished
         repair_pending(run_rebuild, cfg.ratings, cfg.marks)  # a killed batched run left level 2 behind
         summary = ReprocessSummary()
         targets = archived_targets(cfg, mission_uids, since, until)
@@ -159,7 +163,7 @@ def reprocess(
         if prepare is not None:
             prepare(targets)
         try:
-            return _process(
+            summary = _process(
                 cfg,
                 pipeline,
                 targets,
@@ -172,9 +176,26 @@ def reprocess(
                 on_start,
                 on_progress,
             )
-        finally:
-            if prepare is not None and finish is not None:
-                finish()
+        except BaseException:
+            _finish_quietly(finish if prepare is not None else None)
+            raise
+        if prepare is not None and finish is not None:
+            finish()
+        elif resumed:
+            from il2ks.ingest.wipe import finish_resumed  # (wipe imports this module)
+
+            finish_resumed(file_cfg)
+        return summary
+
+
+def _finish_quietly(finish: Callable[[], None] | None) -> None:
+    """`finish()` after a failed run: its own error is logged and never replaces the one being raised."""
+    if finish is None:
+        return
+    try:
+        finish()
+    except Exception:
+        log.exception("the end of the run (applying the saved marks) failed after the run's own error")
 
 
 def _process(

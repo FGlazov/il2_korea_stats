@@ -103,6 +103,10 @@ Good to know:
   object and country names, hidden players and missions, manual tour names and boundaries. It asks you to type
   `DELETE` (the command asks for `delete all data`; `--yes` skips that). Nothing is deleted when a stored mission has
   no archive. The site keeps running, but shows little or nothing until the missions are back.
+  Hidden players and missions stay hidden the whole time, even if the process is killed half way: the marks are saved to
+  `wipe-state.json` in the data folder before anything is deleted, and `watch` or the next `reprocess` picks up a wipe that
+  never finished. Links to players, missions, sorties and tours (`?tour=`) keep working, because the rebuilt rows get their
+  old numbers; only a tour that the current tour settings cut differently gets a new number.
 
 ## Rules
 

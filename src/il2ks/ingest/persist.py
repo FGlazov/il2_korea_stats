@@ -62,6 +62,7 @@ from il2ks.ingest.flight_score import with_applied_flight_score
 from il2ks.ingest.scoring import apply_score
 from il2ks.ingest.stat_marks import recompute_thresholds
 from il2ks.ingest.tours import delete_empty_tours, effective_rules, ensure_tour, move_missions, resegment_around
+from il2ks.ingest.wipe_state import reserved_sortie_pks
 
 log = logging.getLogger(__name__)
 
@@ -520,6 +521,12 @@ def _upsert_sorties(
         rows[s.index] = row
     if existing:
         delete_pks(PlayerSortie.objects, [r.pk for r in existing.values()])
+    # after a wipe the rows come back under their old keys, so the sortie URLs keep working (`ingest.wipe_state`)
+    reserved = reserved_sortie_pks(
+        mission.server_uid, mission.mission_uid, [(r.account_uuid, r.spawn_tick) for r in new]
+    )
+    for row in new:
+        row.pk = reserved.get((row.account_uuid, row.spawn_tick))
     PlayerSortie.objects.bulk_create(new)
 
     # JSON fields link counterpart sorties by PK, known only now that every row has one.

@@ -2,6 +2,7 @@
 crash (H1), the URL keys of players, missions, sorties and tours survive (H2), and the small ones (LOW)."""
 
 import uuid
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,7 @@ from il2ks.db.models import (
     Tour,
 )
 from il2ks.db.reprocess_requests import request_reprocess
-from il2ks.ingest import wipe
+from il2ks.ingest import wipe, wipe_state
 from il2ks.ingest.reprocess import reprocess
 from il2ks.ingest.reprocess_requests import fail_interrupted_requests
 from il2ks.ingest.runner import default_pipeline
@@ -27,9 +28,16 @@ from il2ks.ingest.watch import watch
 from il2ks.ingest.wipe import WipeError, wipe_and_reprocess
 from tests.db_canon import canonical_dump, diff_dumps
 from tests.integration.test_ingest_runner import threads
-from tests.integration.test_wipe import FIXTURES, _ingest, _wipe
+from tests.integration.test_wipe import FIXTURES, _ingest, _wipe  # pyright: ignore[reportPrivateUsage]
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _no_active_wipe_state() -> Iterator[None]:
+    """A killed wipe leaves its state active in the process (as in production); a test must not leak it."""
+    yield
+    wipe_state.deactivate()
 
 
 def _hidden_keys() -> tuple[set[str], set[str]]:
@@ -153,7 +161,10 @@ def test_player_mission_sortie_and_tour_keys_survive_the_wipe(tmp_path: Path) ->
     missions = dict(Mission.objects.values_list("mission_uid", "pk"))
     sorties = _sortie_keys()
     tours = dict(Tour.objects.values_list("started_at", "pk"))
-    assert players and missions and sorties and tours
+    assert players
+    assert missions
+    assert sorties
+    assert tours
 
     _wipe(cfg)
 
@@ -161,10 +172,12 @@ def test_player_mission_sortie_and_tour_keys_survive_the_wipe(tmp_path: Path) ->
     assert dict(Mission.objects.values_list("mission_uid", "pk")) == missions
     assert _sortie_keys() == sorties
     assert dict(Tour.objects.values_list("started_at", "pk")) == tours
+    sortie = PlayerSortie.objects.order_by("pk").select_related("mission").first()
+    assert sortie is not None
     client = Client()
-    assert client.get(f"/players/{min(players.values())}/").status_code == 200
-    assert client.get(f"/missions/{min(missions.values())}/").status_code == 200
-    assert client.get(f"/sorties/{min(sorties.values())}/").status_code == 200
+    assert client.get(f"/players/{sortie.player_id}/").status_code == 200
+    assert client.get(f"/missions/{sortie.mission_id}/").status_code == 200
+    assert client.get(f"/sorties/{sortie.pk}/").status_code == 200
 
 
 def test_sorties_named_inside_a_sortie_are_the_same_after_the_wipe(tmp_path: Path) -> None:
