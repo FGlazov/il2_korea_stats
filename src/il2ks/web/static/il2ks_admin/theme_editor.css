@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks_admin/theme_editor.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks_admin/theme_editor.css v1.0 - copy this line along when you override */
 .il2-theme { display: flex; flex-wrap: wrap; gap: 16px; }
 .il2-theme__group { width: auto; min-width: 360px; flex: 1 1 360px; }
 .il2-theme__group caption { text-align: left; font-weight: 600; }

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/setup.js v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/setup.js v1.0 - copy this line along when you override */
 /* First-run setup page: a small convenience; the page works without it.
  * Windows cannot tell il2ks the name of its time zone, but the browser on this very computer can, so if the time zone
  * is only a guess ("data-guessed"), preselect the browser's IANA name (when the list has it). */

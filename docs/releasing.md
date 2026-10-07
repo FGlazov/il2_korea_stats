@@ -4,47 +4,71 @@ Server owners override built-in templates, stylesheets and scripts through `cust
 To warn them when an upgrade changes a file they copied, every such file carries a version line and the repository keeps
 a registry of versions (TD-25).
 
-## Versions count from the first release
+## Versions: vN.M
 
-Every built-in file started at v1 in the first public release (0.1.0): before it, nobody could have an override based on
-an older version, so the numbers stayed at v1 (the switch is `FIRST_RELEASE_DONE` in
-`src/il2ks/serving/templateversions.py`, now True). `il2ks custom copy` also records the hash of the original, so an
-override is flagged `OUT OF DATE` whenever the built-in file changes after it was copied.
+Every built-in file carries `vN.M` in its first line (0.1.0 shipped `vN`; a header without `.M` reads as `vN.0` everywhere,
+in the tool, in `il2ks custom` and in the admin banner). **N** is the override contract: it goes up when an owner's copy of
+the file can break or hide new content. **M** is everything else. An older N makes an override `outdated` (red banner,
+installer message box, doctor warning), an older M only `behind` (shown by `il2ks custom list`).
 
-**Merging branches that touched templates:** if `template_versions.json` conflicts, take either side and re-run
-`uv run il2ks dev bump-templates`: it recomputes every hash from the merged files. If both branches raised the same file's
-version, keep the higher number.
+What counts as a contract change (`src/il2ks/serving/templatecontract.py` is the authority; it reads files lexically):
+
+| File | N goes up when ... | Otherwise M |
+|---|---|---|
+| Template | a `{% block %}`, `{% extends %}` or `{% include %}` target is added, removed or renamed; a context variable (root name, like `player` of `{{ player.name }}`) is added or removed; an il2ks tag or filter is **removed**; an id, class or `data-` attribute that **any built-in stylesheet or script targets** is added or removed in the markup | wording, markup, classes nothing targets, Django's own tags and filters |
+| Stylesheet | a class, id, `data-` attribute selector or `--custom-property` is added or removed (a copy of the CSS lacks what newer templates use) | values, colours, spacing |
+| Script | an id, class or `data-` attribute it looks up (`getElementById`, `querySelector`, `closest`, `classList`, `dataset`) is added or removed | logic |
+
+`il2ks dev bump-templates` stores a **fingerprint** of every file's contract in `src/il2ks/web/template_versions.json`
+(next to the version and the content hash) and compares a changed file with it. We chose the stored fingerprint over
+reading the old file from git (HEAD): it works in a shallow clone, in an sdist, on an uncommitted branch, and after a
+merge, whereas "the file in HEAD" is wrong as soon as someone commits without bumping. The price: after a change to the
+extractor itself, the tool says "contract fingerprint recorded" once; run it and commit.
+
+**Merging branches that touched templates:** if `template_versions.json` conflicts, take the side of the branch you merge
+into (main) and re-run `uv run il2ks dev bump-templates`: it compares every merged file with that side's fingerprint,
+so the part (N or M) is judged again for the merged result. A file whose header a branch raised with the 0.1.0-style
+single number (`v4`) is judged again too; a header you raised by hand with a minor number (`v4.0`) is believed.
 
 ## When you change a built-in template, CSS or JS file
 
 1. Edit the file.
-2. Run `uv run il2ks dev bump-templates`. It adds the version line to new files (`v1`), raises the version of changed
-   files, adds new files to `src/il2ks/web/template_versions.json` and removes deleted ones. Files you did not change
-   are left alone. (`--check` changes nothing and exits 1 when something is out of date.)
+2. Run `uv run il2ks dev bump-templates`. It adds the version line to new files (`v1.0`), raises the version of changed
+   files (and says in a line for each whether it was **BREAKING, N** and why, or M), adds new files to
+   `src/il2ks/web/template_versions.json` and removes deleted ones. Files you did not change are left alone.
+   (`--check` changes nothing and exits 1 when something is out of date.)
 3. Commit the file together with `template_versions.json`.
+
+`--major` forces N for a change the diff cannot see (a behaviour change that overrides must follow, for instance a
+different meaning of a variable): `bump-templates --major il2ks/home.html` (a path inside `templates/` or `static/`; without
+a name it applies to every changed file). Use it on the first run for the file; a file already bumped can be raised by
+hand: edit the header to the next N, `v5.0`, and run the tool, which believes a hand-raised version.
 
 A test (`tests/unit/test_template_versions.py`) fails when you forget: a file without a version line, a file missing from
 the registry, or a file whose content changed while its version did not. Images (`.svg`, `.png`, fonts) and vendored
 libraries (`static/**/vendor/`) have no versions.
 
-Every content change bumps, even a comment or whitespace: the registry compares content, not intent. Make all your
-edits to a file before running the command (several edits between two releases still end up as one visible change, but
-each run raises the number once more, so don't run it after every small edit).
+Every content change bumps (M at least), even a comment or whitespace: the registry compares content, not intent. Make all
+your edits to a file before running the command (each run raises M once more, so don't run it after every small edit).
 
 ## Release notes
 
-Template version bumps belong in the release notes: server owners with overrides need to look at exactly those files.
-List them with:
+The release notes list **only the N bumps** (and removed files): those are the files whose overrides need a look. M
+bumps are noise. Get the list with:
 
 ```
 uv run il2ks dev template-changes v0.2.0      # the previous release tag (or any commit)
+uv run il2ks dev template-changes v0.2.0 --all   # also the M-only bumps and new files
 ```
 
-It compares `template_versions.json` at that tag with the current one and prints one line per file: `v2 -> v3`, `new`,
-`removed`. Paste the result under a heading such as "Templates changed (check your custom/ overrides)". Without the
-command, `git diff v0.2.0 -- src/il2ks/web/template_versions.json` shows the same thing.
+It compares `template_versions.json` at that tag with the current one and prints one line per file, like
+`templates/il2ks/home.html: v2.0 -> v3.0`, and `removed`. A tag from 0.1.0 has single numbers, read as `N.0`, so the
+list is exact for the first upgrade too. Paste the result under a heading such as "Templates changed (check your
+custom/ overrides)". Without the command, `git diff v0.2.0 -- src/il2ks/web/template_versions.json` shows the same thing.
 
-Also mention renamed or removed `{% block %}`s and changed template variables: they break overrides even more directly.
+For the details of a bump (which block was renamed, which variable added), run `uv run il2ks dev bump-templates` when you
+change the file: it prints the reasons next to the file name. Put the important ones into the CHANGELOG: renamed or removed
+`{% block %}`s and changed template variables break overrides most directly.
 
 ## Making a release
 

@@ -296,10 +296,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="after editing built-in templates/CSS/JS: add version lines, raise versions, rewrite the registry",
     )
     bump.add_argument("--check", action="store_true", help="change nothing; exit 1 if something would change")
+    bump.add_argument(
+        "--major",
+        nargs="*",
+        default=None,
+        metavar="PATH",
+        help="force N (a breaking bump) for the changed files named, like il2ks/home.html; no names = every changed "
+        "file. Use it before the first bump of the file: the part is otherwise inferred by diffing the contract",
+    )
     changes = dev.add_parser(
         "template-changes", help="template versions that changed since a release tag (release notes)"
     )
     changes.add_argument("old_tag", help="a git tag or commit, like v0.2.0")
+    changes.add_argument("--all", action="store_true", help="also list minor (M) bumps and new files")
     bench = dev.add_parser("bench-ingest", help="time an import of a log folder, split by phase (throw-away data dir)")
     bench.add_argument("source", type=Path, help="folder with mission logs (.txt / .txt.zip)")
     bench.add_argument("--limit", type=int, metavar="N", help="only the first N missions")
@@ -400,7 +409,7 @@ def _main(argv: Sequence[str] | None) -> int:
     if command == "dev" and ns.dev_command == "bump-templates":
         from il2ks.devtools.templates import bump_templates
 
-        return bump_templates(check=ns.check)
+        return bump_templates(check=ns.check, major=ns.major)
     if command == "dev" and ns.dev_command == "assets":
         _django_setup()
         from il2ks.devtools.assets import run as run_assets
@@ -409,7 +418,7 @@ def _main(argv: Sequence[str] | None) -> int:
     if command == "dev" and ns.dev_command == "template-changes":
         from il2ks.devtools.templates import template_changes
 
-        return template_changes(ns.old_tag)
+        return template_changes(ns.old_tag, everything=ns.all)
     if command == "dev" and ns.dev_command == "check":
         from il2ks.devtools.check import Tier, check
 

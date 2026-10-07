@@ -12,6 +12,7 @@ import pytest
 from il2ks.cli import EXIT_OK, main
 from il2ks.devtools import templates as dev_templates
 from il2ks.serving import templateversions as tv
+from il2ks.serving.templateversions import Version
 
 # --- header parsing --------------------------------------------------------------------------------------------------
 
@@ -19,7 +20,7 @@ from il2ks.serving import templateversions as tv
 def test_html_header() -> None:
     text = "{# il2ks-template: templates/il2ks/base.html v12 - copy this line along when you override #}\n<p>x</p>\n"
     header = tv.find_header(text, "il2ks/base.html")
-    assert header == tv.Header("templates/il2ks/base.html", 12, 0)
+    assert header == tv.Header("templates/il2ks/base.html", Version(12), 0, minor_given=False)
 
 
 @pytest.mark.parametrize("name", ["site.css", "il2ks.js"])
@@ -27,7 +28,7 @@ def test_css_and_js_header(name: str) -> None:
     text = f"/* il2ks-template: static/il2ks/{name} v3 - copy this line along when you override */\nbody {{}}\n"
     header = tv.find_header(text, name)
     assert header is not None
-    assert header.version == 3
+    assert header.version == Version(3)
     assert header.key == f"static/il2ks/{name}"
 
 
@@ -39,14 +40,14 @@ def test_header_style_follows_the_file_type() -> None:
 
 def test_header_is_found_a_few_lines_down_but_not_in_the_middle_of_a_file() -> None:
     text = "{# my own note #}\n{# il2ks-template: templates/a.html v2 #}\n<p>x</p>"
-    assert tv.find_header(text, "a.html") == tv.Header("templates/a.html", 2, 1)
+    assert tv.find_header(text, "a.html") == tv.Header("templates/a.html", Version(2), 1, minor_given=False)
     far = "\n" * tv.HEADER_SCAN_LINES + "{# il2ks-template: templates/a.html v2 #}"
     assert tv.find_header(far, "a.html") is None
 
 
 def test_header_survives_a_byte_order_mark_and_crlf() -> None:
     text = "﻿{# il2ks-template: templates/a.html v4 - x #}\r\n<p>x</p>\r\n"
-    assert tv.find_header(text, "a.html") == tv.Header("templates/a.html", 4, 0)
+    assert tv.find_header(text, "a.html") == tv.Header("templates/a.html", Version(4), 0, minor_given=False)
 
 
 @pytest.mark.parametrize(
@@ -57,22 +58,22 @@ def test_no_header(text: str) -> None:
 
 
 def test_with_header_adds_replaces_and_keeps_newline_style() -> None:
-    added = tv.with_header("<p>x</p>\n", "templates/a.html", 1)
-    assert added == "{# il2ks-template: templates/a.html v1 - copy this line along when you override #}\n<p>x</p>\n"
-    replaced = tv.with_header(added, "templates/a.html", 7)
-    assert replaced.splitlines()[0].startswith("{# il2ks-template: templates/a.html v7 ")
+    added = tv.with_header("<p>x</p>\n", "templates/a.html", Version(1))
+    assert added == "{# il2ks-template: templates/a.html v1.0 - copy this line along when you override #}\n<p>x</p>\n"
+    replaced = tv.with_header(added, "templates/a.html", Version(7, 2))
+    assert replaced.splitlines()[0].startswith("{# il2ks-template: templates/a.html v7.2 ")
     assert replaced.endswith("<p>x</p>\n")
     assert replaced.count("il2ks-template") == 1
-    crlf = tv.with_header("<p>x</p>\r\n", "templates/a.html", 1)
+    crlf = tv.with_header("<p>x</p>\r\n", "templates/a.html", Version(1))
     assert crlf.count("\r\n") == 2
     assert "\n" not in crlf.replace("\r\n", "")
-    css = tv.with_header("a {}\n", "static/a.css", 2)
-    assert css.startswith("/* il2ks-template: static/a.css v2 - ")
+    css = tv.with_header("a {}\n", "static/a.css", Version(2))
+    assert css.startswith("/* il2ks-template: static/a.css v2.0 - ")
 
 
 def test_the_hash_ignores_the_header_and_line_endings() -> None:
     body = "<p>x</p>\n<p>y</p>\n"
-    header, stripped = tv.split_header(tv.with_header(body, "templates/a.html", 5), "a.html")
+    header, stripped = tv.split_header(tv.with_header(body, "templates/a.html", Version(5)), "a.html")
     assert header is not None
     assert stripped == body
     assert tv.content_hash(stripped) == tv.content_hash(body)
@@ -124,7 +125,10 @@ def test_the_registry_file_is_sorted_json_with_a_format_number() -> None:
     document = json.loads(tv.registry_path().read_text(encoding="utf-8"))
     assert document["format"] == tv.REGISTRY_FORMAT
     assert list(document["files"]) == sorted(document["files"])
-    assert all(e["version"] >= 1 and len(e["sha256"]) == 64 for e in document["files"].values())
+    assert all(
+        tv.parse_version(e["version"]) is not None and len(e["sha256"]) == 64 for e in document["files"].values()
+    )
+    assert all(isinstance(e.get("contract", {}), dict) for e in document["files"].values())
 
 
 # --- bump-templates on a scratch copy -----------------------------------------------------------------------------
@@ -144,18 +148,6 @@ def web(tmp_path: Path) -> Path:
     return root
 
 
-@pytest.fixture
-def released(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The behaviour after the first public release: changed files get a higher version."""
-    monkeypatch.setattr(tv, "FIRST_RELEASE_DONE", True)
-
-
-@pytest.fixture
-def prerelease(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The behaviour before the first public release: every file stays at v1, only the hash moves."""
-    monkeypatch.setattr(tv, "FIRST_RELEASE_DONE", False)
-
-
 def test_first_run_adds_headers_at_v1_and_registers_everything_versioned(web: Path) -> None:
     actions = tv.bump_templates(web)
     assert {a.key for a in actions} == {
@@ -163,19 +155,19 @@ def test_first_run_adds_headers_at_v1_and_registers_everything_versioned(web: Pa
         "templates/il2ks/b.html",
         "static/il2ks/site.css",
     }
-    assert all(a.kind == "add-header" and a.new_version == 1 for a in actions)
+    assert all(a.kind == "add-header" and a.new_version == Version(1) for a in actions)
     assert (
         (web / "templates" / "il2ks" / "a.html")
         .read_text(encoding="utf-8")
-        .startswith("{# il2ks-template: templates/il2ks/a.html v1 ")
+        .startswith("{# il2ks-template: templates/il2ks/a.html v1.0 ")
     )
     assert (web / "static" / "il2ks" / "site.css").read_text(encoding="utf-8").startswith("/* il2ks-template: ")
     assert (web / "static" / "il2ks" / "vendor" / "lib.js").read_text(encoding="utf-8") == "var lib;\n"
     assert (web / "static" / "il2ks" / "img" / "icon.svg").read_text(encoding="utf-8") == "<svg/>"
     assert {k: e.version for k, e in tv.load_registry(web).items()} == {
-        "templates/il2ks/a.html": 1,
-        "templates/il2ks/b.html": 1,
-        "static/il2ks/site.css": 1,
+        "templates/il2ks/a.html": Version(1),
+        "templates/il2ks/b.html": Version(1),
+        "static/il2ks/site.css": Version(1),
     }
 
 
@@ -186,7 +178,6 @@ def test_a_second_run_changes_nothing(web: Path) -> None:
     assert {p: p.read_bytes() for p in web.rglob("*") if p.is_file()} == before
 
 
-@pytest.mark.usefixtures("released")
 def test_a_changed_file_is_bumped_and_the_others_are_left_alone(web: Path) -> None:
     tv.bump_templates(web)
     a, b = web / "templates" / "il2ks" / "a.html", web / "templates" / "il2ks" / "b.html"
@@ -194,42 +185,40 @@ def test_a_changed_file_is_bumped_and_the_others_are_left_alone(web: Path) -> No
     a.write_text(a.read_text(encoding="utf-8") + "<p>more</p>\n", encoding="utf-8")
 
     assert [(x.key, x.kind, x.old_version, x.new_version) for x in tv.bump_templates(web, write=False)] == [
-        ("templates/il2ks/a.html", "bump", 1, 2)
+        ("templates/il2ks/a.html", "bump", Version(1), Version(1, 1))
     ]
-    assert "v1" in a.read_text(encoding="utf-8").splitlines()[0]  # a dry run writes nothing
+    assert "v1.0" in a.read_text(encoding="utf-8").splitlines()[0]  # a dry run writes nothing
 
     actions = tv.bump_templates(web)
-    assert [(x.key, x.new_version) for x in actions] == [("templates/il2ks/a.html", 2)]
-    assert a.read_text(encoding="utf-8").splitlines()[0].startswith("{# il2ks-template: templates/il2ks/a.html v2 ")
+    assert [(x.key, x.new_version) for x in actions] == [("templates/il2ks/a.html", Version(1, 1))]
+    assert a.read_text(encoding="utf-8").splitlines()[0].startswith("{# il2ks-template: templates/il2ks/a.html v1.1 ")
     assert b.read_bytes() == b_before
-    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 2
-    assert tv.load_registry(web)["templates/il2ks/b.html"].version == 1
+    assert tv.load_registry(web)["templates/il2ks/a.html"].version == Version(1, 1)
+    assert tv.load_registry(web)["templates/il2ks/b.html"].version == Version(1)
     assert tv.bump_templates(web) == []  # and a third change bumps again, once
     a.write_text(a.read_text(encoding="utf-8") + "x\n", encoding="utf-8")
-    assert [x.new_version for x in tv.bump_templates(web)] == [3]
+    assert [x.new_version for x in tv.bump_templates(web)] == [Version(1, 2)]
 
 
-@pytest.mark.usefixtures("released")
 def test_a_version_raised_by_hand_is_not_bumped_twice(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"
-    text = tv.with_header(a.read_text(encoding="utf-8") + "<p>more</p>\n", "templates/il2ks/a.html", 5)
+    text = tv.with_header(a.read_text(encoding="utf-8") + "<p>more</p>\n", "templates/il2ks/a.html", Version(5))
     a.write_text(text, encoding="utf-8")
     tv.bump_templates(web)
-    assert tv.version_of(a) == 5
-    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 5
+    assert tv.version_of(a) == Version(5)
+    assert tv.load_registry(web)["templates/il2ks/a.html"].version == Version(5)
     assert tv.bump_templates(web) == []
 
 
-@pytest.mark.usefixtures("released")
 def test_a_lost_header_is_restored_at_the_registered_version(web: Path) -> None:
     tv.bump_templates(web)
     a = web / "templates" / "il2ks" / "a.html"
     a.write_text(a.read_text(encoding="utf-8") + "<p>2</p>\n", encoding="utf-8")
-    tv.bump_templates(web)  # v2
+    tv.bump_templates(web)  # v1.1
     a.write_text("<p>a</p>\n<p>2</p>\n", encoding="utf-8")  # header deleted, content as registered
     assert [x.kind for x in tv.bump_templates(web)] == ["add-header"]
-    assert tv.version_of(a) == 2
+    assert tv.version_of(a) == Version(1, 1)
 
 
 def test_new_and_removed_files_update_the_registry(web: Path) -> None:
@@ -251,60 +240,6 @@ def test_crlf_files_keep_their_line_endings(web: Path) -> None:
     assert tv.bump_templates(web) == []
 
 
-# --- before the first release: everything stays at v1 -----------------------------------------------------------------
-
-
-def test_the_real_files_are_all_at_v1_until_the_first_release() -> None:
-    if tv.FIRST_RELEASE_DONE:
-        pytest.skip("versions count up after the first release")
-    assert {e.version for e in tv.load_registry().values()} == {1}
-    assert {tv.version_of(path) for path in tv.versioned_files().values()} == {1}
-
-
-@pytest.mark.usefixtures("prerelease")
-def test_a_changed_file_stays_at_v1_and_only_its_hash_moves(web: Path) -> None:
-    tv.bump_templates(web)
-    a, b = web / "templates" / "il2ks" / "a.html", web / "templates" / "il2ks" / "b.html"
-    b_before = b.read_bytes()
-    old_hash = tv.load_registry(web)["templates/il2ks/a.html"].sha256
-    a.write_text(a.read_text(encoding="utf-8") + "<p>more</p>\n", encoding="utf-8")
-
-    assert [(x.key, x.kind, x.new_version) for x in tv.bump_templates(web, write=False)] == [
-        ("templates/il2ks/a.html", "rehash", 1)
-    ]
-    assert [x.kind for x in tv.bump_templates(web)] == ["rehash"]
-    assert tv.version_of(a) == 1
-    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 1
-    assert tv.load_registry(web)["templates/il2ks/a.html"].sha256 != old_hash
-    assert b.read_bytes() == b_before
-    assert tv.bump_templates(web) == []
-
-
-@pytest.mark.usefixtures("prerelease")
-def test_higher_versions_are_reset_to_v1_before_the_first_release(web: Path) -> None:
-    tv.bump_templates(web)
-    a = web / "templates" / "il2ks" / "a.html"
-    a.write_text(tv.with_header(a.read_text(encoding="utf-8"), "templates/il2ks/a.html", 4), encoding="utf-8")
-    registry = tv.load_registry(web)
-    registry["templates/il2ks/a.html"] = tv.Entry(4, registry["templates/il2ks/a.html"].sha256)
-    tv.save_registry(registry, web)
-
-    assert [x.kind for x in tv.bump_templates(web)] == ["fix-header"]
-    assert tv.version_of(a) == 1
-    assert tv.load_registry(web)["templates/il2ks/a.html"].version == 1
-    assert tv.bump_templates(web) == []
-
-
-@pytest.mark.usefixtures("prerelease")
-def test_a_lost_header_comes_back_as_v1_before_the_first_release(web: Path) -> None:
-    tv.bump_templates(web)
-    a = web / "templates" / "il2ks" / "a.html"
-    a.write_text("<p>a</p>\n<p>2</p>\n", encoding="utf-8")
-    assert [x.kind for x in tv.bump_templates(web)] == ["add-header"]
-    assert tv.version_of(a) == 1
-    assert tv.bump_templates(web) == []
-
-
 # --- the dev commands -------------------------------------------------------------------------------------------------
 
 
@@ -323,10 +258,26 @@ def test_the_real_cli_check_passes(capsys: pytest.CaptureFixture[str]) -> None:
     assert "in order" in capsys.readouterr().out
 
 
-def test_registry_changes_for_the_release_notes() -> None:
-    old = {"a": tv.Entry(1, "x"), "b": tv.Entry(2, "y"), "gone": tv.Entry(1, "z")}
-    new = {"a": tv.Entry(1, "x2"), "b": tv.Entry(4, "y2"), "fresh": tv.Entry(1, "w")}
-    assert tv.registry_changes(old, new) == ["b: v2 -> v4", "fresh: new (v1)", "gone: removed"]
+def test_registry_changes_for_the_release_notes_list_only_n_bumps_and_removals() -> None:
+    old = {
+        "a": tv.Entry(Version(1), "x"),
+        "b": tv.Entry(Version(2), "y"),
+        "minor": tv.Entry(Version(3, 1), "m"),
+        "gone": tv.Entry(Version(1), "z"),
+    }
+    new = {
+        "a": tv.Entry(Version(1), "x2"),
+        "b": tv.Entry(Version(4), "y2"),
+        "minor": tv.Entry(Version(3, 4), "m2"),
+        "fresh": tv.Entry(Version(1), "w"),
+    }
+    assert tv.registry_changes(old, new) == ["b: v2.0 -> v4.0", "gone: removed"]
+    assert tv.registry_changes(old, new, everything=True) == [
+        "b: v2.0 -> v4.0",
+        "fresh: new (v1.0)",
+        "gone: removed",
+        "minor: v3.1 -> v3.4 (minor)",
+    ]
     assert tv.registry_changes(new, new) == []
 
 
@@ -337,7 +288,11 @@ def test_parse_registry_reads_the_saved_format(web: Path) -> None:
     assert tv.parse_registry('{"format": 1}') == {}
 
 
-@pytest.mark.usefixtures("released")
+def test_a_0_1_0_registry_with_single_numbers_is_read_as_n_dot_0() -> None:
+    text = '{"format": 1, "files": {"templates/x.html": {"version": 3, "sha256": "abc"}}}'
+    assert tv.parse_registry(text) == {"templates/x.html": tv.Entry(Version(3, 0), "abc", None)}
+
+
 def test_template_changes_compares_with_the_registry_at_a_tag(
     web: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -356,8 +311,10 @@ def test_template_changes_compares_with_the_registry_at_a_tag(
     assert dev_templates.template_changes("v0.1.0", root=web) == 0
     assert asked == [["git", "show", "v0.1.0:src/il2ks/web/template_versions.json"]]
     out = capsys.readouterr().out
-    assert "- templates/il2ks/a.html: v1 -> v2" in out
-    assert "b.html" not in out
+    assert "a.html" not in out  # a minor bump is not listed
+    assert "no template or stylesheet changed its override contract" in out
+    assert dev_templates.template_changes("v0.1.0", root=web, everything=True) == 0
+    assert "- templates/il2ks/a.html: v1.0 -> v1.1 (minor)" in capsys.readouterr().out
 
 
 def test_template_changes_explains_a_tag_without_a_registry(

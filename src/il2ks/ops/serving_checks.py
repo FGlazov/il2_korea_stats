@@ -223,8 +223,12 @@ def custom_overrides(cfg: Config) -> Iterable[Finding]:
     if problems:
         return
     overrides = [c for c in checks if c.state != "custom-only"]
+    behind = [c for c in overrides if c.state == "behind"]
     if overrides:
-        yield Finding(Level.OK, "custom/ overrides", f"{len(overrides)} replacing a built-in file, none out of date")
+        note = f"; {len(behind)} behind by small changes you need not follow (`il2ks custom list`)" if behind else ""
+        yield Finding(
+            Level.OK, "custom/ overrides", f"{len(overrides)} replacing a built-in file, none out of date{note}"
+        )
     elif checks:
         yield Finding(Level.OK, "custom/ overrides", "only new files, nothing replaces a built-in file")
 

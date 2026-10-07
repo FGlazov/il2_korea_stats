@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks_admin/override_warning.css v1 - copy this line along when you override */
+/* il2ks-template: static/il2ks_admin/override_warning.css v1.0 - copy this line along when you override */
 /* The red banner shown on every admin page while a file in custom/ is based on an old or unknown template version. */
 .il2ks-override-warning { margin: 0 0 20px; padding: 14px 18px; border: 3px solid #b00020; border-radius: 6px; background: #fdecea; color: #5f0010; font-size: 14px; }
 .il2ks-override-warning h2 { margin: 0 0 6px; font-size: 20px; color: #b00020; }
