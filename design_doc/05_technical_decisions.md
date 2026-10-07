@@ -139,6 +139,14 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 ### TD-13 No cloud dependency — `[DECIDED]`
 - Everything runs on the server machine. No external calls at runtime.
 - **The one exception:** certificate issuance and renewal for HTTPS (ACME, TD-23). It's a certificate authority, and none of our data leaves the machine.
+- **Outbound requests, guarded** (0.2.0, NFR-SEC-9; `serving/outbound.py` `fetch()`): any later fetch of an admin-supplied URL (a polled Markdown source, a webhook, an
+  update check) goes through this one helper, so there is a single place that is safe. It accepts only `http` and `https` without user info in the URL, resolves the
+  name first and requires **public** addresses (loopback, private, link-local incl. the cloud metadata address, multicast and the IPv4-mapped, NAT64 and 6to4 forms
+  of those are refused), connects to the checked address with the name only as SNI and `Host` (no second lookup, so DNS rebinding cannot swap the target), follows at
+  most 3 redirects and checks each, and caps the size and the time. GET only, `User-Agent: il2ks`. `[outbound] allow_private = [...]` in `il2ks.toml` lets an
+  admin allow a LAN source; it is empty by default. **Nothing calls it yet**; the doctor's compression check fetches the admin's own address and is the one
+  deliberate exception (doc 16). Being fixed (review 2026-10-07): one deadline for the whole call including the response headers, and `fec0::/10`.
+  The general opt-in outbound policy (roadmap iteration 3) is still to be decided.
 
 ### TD-14 Packaging and distribution: Windows-native first — `[DECIDED]` (target), `[PROPOSED]` (mechanism)
 - Target hosts run **Windows**, and admins **have admin rights**, so installing Windows services and opening firewall ports are allowed
@@ -318,16 +326,24 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
 - **Consequence:** template names, `{% block %}`s, and context variables become a **semi-public API**. Keep templates small, with named
   blocks, and document their context. Mention breaking template changes in release notes. `il2ks doctor` warns when an overridden
   template's original has changed since the override was made (hash comparison).
-- **Versioned templates** `[DECIDED]` (maintainer, 2026-10-03; mechanism `[PROPOSED]`): every built-in template, stylesheet and script
-  carries a version in a header line (`{# il2ks-template: <path> vN #}`), bumped whenever the file changes (a test enforces it; `il2ks dev
-  bump-templates` does the bump). The header travels with a copied override, so il2ks can tell an override based on an **old** version
-  even when it was copied by hand, and shows a **big warning** to the admin: a red banner on every admin page, a log warning at start-up,
-  `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff <path>` shows what changed. Never on public pages.
-  **Before the first release** (maintainer, 2026-10-04): every version stays at **v1**; `bump-templates` only refreshes the hashes
-  (`FIRST_RELEASE_DONE = False` in `serving/templateversions.py`, a constant flipped at the first release; docs/releasing.md has the
-  checklist). An override whose recorded original hash differs from the built-in file counts as `outdated` even at the same version.
-  The first release's baseline is v1 for every file. `release.yml` fails on a `v*` tag while the switch is still off,
-  so the flip can't be forgotten `[PROPOSED]`.
+- **Versioned templates** `[DECIDED]` (maintainer, 2026-10-03; as built in 0.2.0: doc 16 "Customization", `docs/customizing.md`, `docs/releasing.md`): every
+  built-in template, stylesheet and script carries a **two-part version `vN.M`** in a header line (`{# il2ks-template: <path> vN.M #}`), bumped whenever the
+  file changes (a test enforces it; `il2ks dev bump-templates` does the bump). The header travels with a copied override, so il2ks can tell an override based on
+  an **old** version even when it was copied by hand. Since 0.1.0 every change raises the version; the two parts keep the warning meaningful.
+  - **N changes when the override contract changes** (breaking): `extends` or `{% block %}` names (any change); the removal or rename of an `{% include %}`
+    target, a context variable (root name), a `{% url %}` name, a `{% static %}` path, or an il2ks tag or filter; any change of an id, class or `data-` attribute that
+    the built-in CSS or JS targets (old and new compared); in a stylesheet, a defined selector or `--custom-property` added or removed; in a script, a selector it
+    looks up. **M is everything else**: wording, layout, colours, markup inside a block, and **added** includes, variables, URL names and static paths (an override
+    that lacks them still renders). Whether added blocks and added CSS/JS selectors should count as M too is OQ-141.
+  - `bump-templates` infers the part from the **contract fingerprint** stored in `template_versions.json` (`serving/templatecontract.py`; format 2, format 1 is still
+    read), so it works in a shallow clone, an sdist and an uncommitted branch. `--major [PATH...]` forces N for what a lexical fingerprint cannot see: a changed
+    signature of a custom tag or filter, an attribute renamed on a context object, `{% url var %}`, classes built in a script, a changed meaning of a variable.
+    Old `vN` headers read as `vN.0`.
+  - **Override states**: `outdated` (older N) gives the big warning: a red banner on every admin page, a log warning at start-up, an `il2ks doctor` warning and the
+    installer's message box; `behind` (older M only) is quiet: `il2ks custom list` (and `--json`) and one doctor OK line ("k behind by small changes"); `newer`
+    and the rest as before. Never on public pages. `il2ks custom diff <path>` shows what changed. There is no admin page for overrides; "behind" is CLI-only.
+  - **Release notes** list only the N bumps and the removed files (`il2ks dev template-changes <tag>`; `--all` lists everything). `FIRST_RELEASE_DONE` in
+    `serving/templateversions.py` stays only because `release.yml` reads it.
 
 ### TD-26 Tours with configurable length, in iteration 2 — `[DECIDED]` (tours, it2), `[PROPOSED]` (modes)
 - **As built** (2026-10-03, pulled forward by the maintainer): `[tours] mode` (`monthly` / `days:<N>` with `start` / `manual`), `timezone`

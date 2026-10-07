@@ -63,6 +63,13 @@ read-only, a named volume for data, and `restart: unless-stopped`.
   Windows Server. It's still a terminal workflow, and bind-mounting Windows paths trips people up.
 - **No browser setup page in the image** `[DECIDED]` (maintainer, 2026-10-04, OQ-70): a container never sees a loopback peer, so the image sets
   `IL2KS_SETUP_PAGE=off`, the logs explain `il2ks createadmin` while no admin exists, and `docs/install-docker.md` documents it (doc 16 "Setup page").
+- **Health check** (0.2.0): the image's `HEALTHCHECK` calls `/healthz` on the web port from inside the container (every 30 s, a 120 s start period), which answers `200 ok`
+  after a one-row database read and `503` when the database is unavailable (doc 16 "Serving"). Any uptime monitor can use the same URL.
+- **Second copy of the backups** (0.2.0, FR-OPS-6): `[backup] copy_to` is a second folder (another drive or a share) that every backup is
+  copied to, and `copy_archive = true` mirrors the mission archive there too, because the backups leave the archive out. The copy never fails a backup; `il2ks doctor`
+  (`backup_copy_check`) reports the last outcome. Doc 16 "Operations".
+- **Doctor checks added in 0.2.0**: `pages_compressed` (fetches the public address and warns when the pages come back without `Content-Encoding`, which matters with an own
+  reverse proxy, `docs/reverse-proxy.md`; skipped for the bundled Caddy), `backup_copy_check` and `login_lockout_check` (doc 16).
 - **`il2ks restore` refuses while the site runs** `[DECIDED]` (maintainer, 2026-10-04, OQ-71): it swaps the database, the config, `custom/`
   (template overrides), `media/`, the server ID and the secret key, so it exits with code 3 when `il2ks run` holds its lock or the web port
   answers; `--force` overrides (scripts that restored against a live site need it). Doc 16 "Backups".

@@ -47,6 +47,9 @@ How the website, the admin and the operations commands are built (iteration 1, p
   width that does not depend on its text (`.tour-next`: `min-width: min(19rem, 100%)`, one line, ellipsis), so a text rewrite can never change
   the wrap. The general case stays: a `<time>` rewrite elsewhere (table columns) reflows that table a little and is covered by the CLS budget of
   the web-vitals test (0.1), while the header, the hero and the filter bars are held to zero.
+- **Font loading** (0.2.0): the built-in Barlow Condensed uses `font-display: optional`. With `swap`, a late font swap re-wrapped the home hero's title
+  on a slow Linux CI machine and moved the page (a layout shift); `optional` uses the font only if it is there at first paint, so nothing moves
+  afterwards. Fonts the admin uploads keep `swap` (Branding). Possible later: preload the font in `base.html`.
 - **Style guide** at `/_styleguide/` (only with DEBUG) shows every component; English-only by design.
 - **Placeholders** for every icon and image named in [15_visual_assets.md](15_visual_assets.md), under `web/static/il2ks/img/`.
 - **Free icon option** (research, 2026-10-03): Tabler Icons (MIT, outline, 24 px grid) covers almost every slot (tank, parachute, prison,
@@ -81,6 +84,13 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
   interception, attack proficiency, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards follow the tour like the rest since 2026-10-05, OQ-128: the tour's Elo, all time the best tour's; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
+- **Side balance on pages** (0.2.0, FR-WEB-1/2/4/7, rules in doc 13 "Side balance"; the counters are in doc 06): the mission page's *Players* tile has the
+  sub-line "REDFOR x.x · BLUFOR y.y" (the time-weighted pilots); the mission list has two **optional columns**, "REDFOR pilots" and "BLUFOR pilots" (a dash for
+  missions ingested before 0.2.0); `components/side_share.html` shows one line "Sorties per side: x% y%" under the home page's last-mission block and above the
+  table of **every leaderboard** (the Elo boards included), following the tour selector (a tour or all time); the profile's "Other totals" has "Sorties per
+  side" and "Underdog sorties: N (x%)", the second with the stat mark `underdog_share` (a high share is rewarded; no quip). Query budgets: the home page
+  has one more read when there is a last mission, a leaderboard one more. A 0/0 split before the first reprocess shows as a line of zeros (being fixed, review
+  2026-10-07: it will be hidden). The wording and the mark direction are `[PROPOSED]`: OQ-138.
 - **Navigation** (maintainer request 2026-10-05, `[DECIDED]` structure, label `[PROPOSED]`): the top level is **Players, Aircraft, Leaderboards** and a
   **"History"** dropdown holding **Missions** and **Sorties** (alternatives considered: "Other facts", the maintainer's first idea, which says little
   about what is inside; "Archive", which suggests the data is closed; "Records", which promises record lists; "More", which says nothing; "Browse" and
@@ -133,7 +143,11 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   sortie detail=True`); the timeline table has a **Damage** column with the signed percent of each hit row (+ given, − taken, from the `hit_given` /
   `hit_taken` rows, doc 13 "Timeline hits") and the ammo of the nearest hit; the ammo table dashes "Left" after a loss and explains why (doc 13);
   "Earned in this sortie" lists the medals (+1 query); the quip (below). Timeline **hit rows are tinted**: light green for a hit given, light red for a
-  hit taken (a 9% mix of the `--il2-green` / `--il2-red` theme tokens in `sorties.css`, so both themes work). Air and ground assists are listed apart.
+  hit taken (a 9% mix of the `--il2-green` / `--il2-red` theme tokens in `sorties.css`, so both themes work). Air and ground assists are listed apart. **Altitude column** (0.2.0, maintainer OQ-135): the timeline has a numeric "Altitude" column between *Details* and
+  *Damage* for every row with a position; the game's `y` is **above sea level** (il2ks has no terrain data, OQ-39) and the column hint says so. Units follow the
+  sortie's side: BLUFOR "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip; on the ground "Angels 0"), REDFOR "4 500 m" (whole metres, locale
+  digit grouping, a no-break space before "m", no tooltip), a side that is neither: metres. Rows without a position stay blank. The positions were stored already,
+  so no reprocess is needed. The clock tooltip of a row now shows x/z only. The Russian draft translates "Angels" (OQ-140).
 - **Aircraft list columns** (maintainer, 2026-10-05): the default columns are Aircraft, Sorties, **Elo** (the aircraft type's own rating, doc 13 "Aircraft type
   Elo"; sortable, a dash while the type has no rated duel, tooltip "rating of the aircraft type from air-superiority duels between types"), K/L, Survival and
   **Attack proficiency** (ground score per hour on target; the `ground_hour` sort key). Every other column the list had (pilots, flight time, air and ground kills,
@@ -317,7 +331,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   check, guesses counted, then locked out). On submit it writes the config via `ops.setup.complete_web_setup`, creates the admin and deletes the
   token; from then on 404. The image disables it (`IL2KS_SETUP_PAGE=off`; the logs explain `il2ks createadmin` when no admin exists, documented in `docs/install-docker.md`; `[DECIDED]` maintainer, 2026-10-04, OQ-70). Code: `web/views/setup.py`, `serving/setup_token.py`.
 - **Query budgets** (TD-22; a test per page, shared constants in `tests/simple_reads.py`; every number includes the 2 context-processor reads;
-  never raise one without a reason in the test). Home **16** (15 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 10 extras are the six compact
+  never raise one without a reason in the test). Home **16** (14 with no missions; `HOME_READS`, `HOME_READS_EMPTY`: the 10 extras are the six compact
   boards, the tour list of the selector, the online-now snapshot and the "Recently earned" feed, 2 reads), mission list 5, **sortie list `/sorties/` 6**, mission detail 5, player search 4 (also with every optional column), profile **16** all
   time (`PROFILE_READS_ALL_TIME`, incl. the medals with their rarity and the favourite loadout `PlayerAircraftBuild`) and **17** for a tour, which includes the default current tour (`PROFILE_READS_TOUR`: + the `PlayerTour` row),
   player sortie list 7 (with or without optional columns; the column and fate tests allow 8), sortie detail **9** (+ the earned medals and their rarity), killboard 8, best streaks 5 (6 when empty: the absence notice reads the pilot's tours), streak history 6, ironman boards 8 (best + running, each with its count; 6 on a past tour, which has no running list),
@@ -337,6 +351,11 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **Hiding** (FR-ADM-3, `[DECIDED]`): bulk hide/unhide actions; presentation only. `Player.objects.visible()` / `Mission.objects.visible()`.
 - **Names** (FR-ADM-5): game object and country display names editable inline, with "reset to catalog default".
 - **Ingestion status** page `/admin/ingestion/` and a read-only run list (FR-ADM-4 as built).
+- **Delete all data and reprocess** (0.2.0, FR-ADM-4, the job itself in doc 14): a second button next to *Reprocess all missions* on the ingestion status page,
+  **superusers only**. It opens a confirmation page where the admin types `DELETE` (this word is not translated), which files a `ReprocessRequest` with
+  `wipe = true`; the status page names the phase while it checks the archives, makes the backup and deletes. The CLI twin is `il2ks reprocess --all --wipe`.
+  The pages are empty or partial while it runs and carry no public notice. `[PROPOSED]`: OQ-137.
+- **Markdown pages** and the **notice** fieldset: sections below.
 - **Tour options** page `/admin/tours/` (`admin_site.tours_view`, `admin/il2ks_tours.html`; maintainer request 2026-10-05, TD-26 "New tour after a decisive
   mission"): one checkbox "Start a new tour when a mission is won by one side", **off by default**, plus how many missions have a result (won, draws, none).
   Saving stores `SiteSettings.tour_on_win` and bumps the data version; the page says "a reassignment of the tours is pending" until `watch` (every tick,
@@ -348,7 +367,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 ## Branding (TD-25, FR-ADM-2) `[PROPOSED]`
 
 Branding is data, not code. Server admins edit in Site settings: title, server name, description, logo, heading and body fonts, a color theme,
-and an ordered list of extra navigation links. Navigation links are `NavLink` rows (label, http/https URL, optional built-in icon, position)
+and an ordered list of extra navigation links. Navigation links are `NavLink` rows (label, http/https URL **or an internal page**, optional built-in icon, position)
 edited inline; the save renumbers them and publishes a copy into `SiteSettings.links` (no extra query). The old "Links" setting is folded in
 and migrated. Links open in a new tab with `rel="noopener noreferrer"`. The menu wraps instead of overflowing; we recommend at most 3
 short-labelled links (measured: 3 fit at >= 1280 px, 5 at 768 px, 2 at 360 px). Every color in the CSS is a `--il2-*` token in `site.css`
@@ -364,6 +383,37 @@ shown, escaped), served like the logo by the media view (`nosniff`, strict CSP, 
 `@font-face` (`font-display: swap`) per uploaded font and a font is selected by its key `up-<hash8>` in the heading or body choice
 (`SiteSettings.custom_fonts`, readers re-validate). **Background pictures and tab icon** (2026-10-05, `web/branding_images.py`, migration 0110): two optional uploads, the home hero's and the header's background (PNG/JPEG/WebP by content, 4 MB, 25 megapixels, decoded, re-encoded as WebP without metadata, at most 2560 x 1200, `branding/bg-<home|header>-<hash16>.webp`, served by the media view with a year of immutable caching), each with a focus (whitelist center/left/right/top/bottom -> `background-position`) and a darkening 0..80 % (the band colour laid over the picture, so text keeps its contrast in both themes); a `<style>:root{--il2-home-bg...}` is built server-side from validated parts (names re-matched against a strict pattern at read time). `site.css` applies them with `background-size: cover`, so there is no layout shift and nothing changes the box size; without an upload the camo and aircraft mark stay. The logo also becomes the tab icon: 32 px and 180 px square PNGs (transparent padding, not cropped, transparent margins trimmed), `branding/icon-<hash16>-<size>.png`, linked as `rel=icon` and `apple-touch-icon` in `base.html`; an explicitly uploaded icon wins; with neither the built-in `favicon.svg` stays. There is no web manifest, so no 192/512 px renditions. The settings page's sections run: texts, logo and tab icon, header background, home banner background, colors, fonts, front page image, running mission, coalitions, navigation links (last: Django renders the inline rows after the last fieldset, so the links' description sits directly above its rows). Guide for admins: `docs/customizing.md`. Every branding save bumps the data version (TD-28). Product
 choices (`[DECIDED]`, maintainer, 2026-10-04): navigation link URLs up to 2000 characters (detail pages), new tab, 3 recommended (OQ-87); **Default** is the original military theme, a theme can be built from scratch (every token editable), the contrast check stays a simple warning after save (OQ-88).
+
+## Markdown pages (FR-ADM-2, TD-25; 0.2.0)
+
+A navigation link can open an internal page the admin wrote in Markdown (server intro, flavour text, rules). Models: `Page` and `PageTranslation`, and
+`NavLink.page` (doc 06). A navigation link has either an address or a page, never both (checked on save).
+
+- **Served** at `/p/<slug>/` (url name `web:page`), template `il2ks/page.html`, in the site layout; the view reads one row (`Page.translations` is the published
+  copy of the translations), query budget 3. A navigation link to a page opens in the **same tab**; the footer lists the page links too. The page title is the
+  `h1`; headings inside the text are not demoted. `[PROPOSED]`: OQ-139.
+- **Rendering, once on save** (`web/pages.py`, never per request): `markdown-it-py` (CommonMark plus tables and strikethrough; raw HTML is passed on to the
+  sanitiser), then an `nh3` allow-list: headings, `p`, lists, tables, `code`/`pre`, `blockquote`, `a`, `img`, `details`/`summary`, `kbd`, `abbr`, `sub`/`sup`,
+  `b`/`i`/`em`/`strong`/`s`/`del`, `br`, `hr`; no `style`, `class`, `id`, `on*` or `data-` attributes; links only http, https or relative; images get
+  `loading="lazy"` and `referrerpolicy="no-referrer"`. The source is capped at 100,000 characters. A save or a delete bumps the data version (TD-28).
+  The admin form has a **Preview** button (staff only, CSRF protected) that returns the sanitised HTML. Images are hotlinked (`![](https://...)`); nothing is
+  uploaded or polled in 0.2.0.
+- **Languages**: the text in the viewer's language (a code such as `pt-br` as it is, otherwise the part before the dash), else the base text; the article carries a
+  `lang` attribute. `base_language` (default English) says which language the base text is written in; it is the admin's choice.
+- **Content security policy on `/p/` only**: `img-src 'self' https: data:; object-src 'none'; base-uri 'self'; form-action 'self'`. Other pages have none.
+- **Being fixed** (review 2026-10-07): a renderer version with a re-render after upgrades, `script-src` in the policy, and a warning for `http` images.
+- The wipe keeps `Page` and `PageTranslation` (doc 14).
+
+## Notice banner and footer (0.2.0)
+
+- **Notice**: `SiteSettings.notice_text` (plain text, at most 300 characters, one line, stripped), `notice_level` (`info` / `warning`) and `notice_until` (an aware
+  datetime; edited in UTC). `components/site_notice.html` is included by `base.html` right under the header. The text is escaped; the title word is the notice
+  component's default ("Note" / "Warning"). The context processor hides the notice after its expiry; because a cached page cannot, the banner also carries
+  `data-il2-until` and `localtime.js` hides it in the browser once the time has passed, and the space collapses. Admin: a fieldset **Notice** ("Notice text",
+  "Notice style", "Hide the notice after (UTC)") before "Running mission"; a save bumps the data version. One text for every language. Wording and placement
+  `[PROPOSED]`: OQ-140.
+- **Footer**: "Powered by <a href="https://github.com/FGlazov/il2_korea_stats" rel="noopener">il2ks</a> %(version)s"; the link sits inside the translated string,
+  so each language can place it. The footer wording per language is a draft, like the other translations.
 
 ## Caching (TD-28)
 
@@ -393,15 +443,47 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   API off, never touches the machine's trust store, and keeps its state in the data dir (so certificates are backed up). Lookup:
   `caddy_path`, then PATH, then `<data dir>/bin/caddy(.exe)`. `il2ks caddyfile` prints it.
 - **Own proxy** (`external`): sample nginx, IIS (URL Rewrite + ARR) and Apache configs in `docs/reverse-proxy.md`.
+- **`/healthz`** (0.2.0): for uptime monitors, no login. `200 ok` after a one-row read of the data-version row, else `503 database unavailable`. `Cache-Control:
+  no-store`, no ETag, no cookie; POST gives 405. It is left out of the page cache (TD-28) and of the HTTPS redirect, and the Docker `HEALTHCHECK` calls it
+  (doc 07). `/healthz/` answers the same.
+- **`sitemap.xml` and `robots.txt`** (0.2.0, `web/views/seo.py`; so pilots who search for their nickname find the server): the sitemap lists the list pages, the
+  aircraft (`AircraftStats`), the visible missions that have a sortie, and the visible players. A file holds 10,000 URLs; beyond that `sitemap.xml` is an
+  index of `sitemap-site.xml`, `sitemap-missions-N.xml` and `sitemap-players-N.xml`. URLs are absolute, from `settings.IL2KS_PUBLIC_URL` (`https://domain[:port]`)
+  or the request host. It has the data version as ETag and an in-memory cache. `robots.txt` disallows `/admin/`, `/setup/`, `/live/`, `/language/` and the
+  `?sort=`, `?cols=`, `?q=` and `?page` variants of the lists, and ends with a `Sitemap:` line. Being fixed (review 2026-10-07): a bound on the cache, and the
+  `/p/` pages in the sitemap.
+- **Admin login lockout** (NFR-SEC-8, 0.2.0): `django-axes` with its database handler (no cache service). `[web] login_attempts` (5) and `login_lockout_minutes`
+  (15). A locked login gets a plain page with status 429 and a `Retry-After` header ("Too many wrong passwords. Try again in N minute(s)."); failures during a lock
+  do not extend it. The JSON log (TD-27) has `admin_login_failed` and `admin_login_locked` lines, and `il2ks doctor` lists active locks (check
+  `login_lockout_check`, WARN). **Client address**: the last `X-Forwarded-For` entry, and only when it can be trusted (production and a loopback `REMOTE_ADDR`, the
+  rule of `SECURE_PROXY_SSL_HEADER`; `djsettings.trust_forwarded_for`), so an attacker cannot choose it. The earlier cache-based throttle (`web/throttle.py`) is
+  gone. Being fixed (review 2026-10-07): the lock was "account **or** address", so a stranger could lock the admin out from everywhere; it becomes the pair
+  (account and address) plus a separate per-address lock, with a CLI unlock; the IIS sample adds a port to `X-Forwarded-For`, which the reader must strip.
+- **Outbound requests** (NFR-SEC-9, 0.2.0; `serving/outbound.py`, `fetch()`): the one helper for fetching an admin-supplied URL, described in doc 05 TD-13.
+  **Nothing calls it yet.**
 
 ## Customization (TD-25, FR-ADM-6)
 
-**Template versions** (as built): every built-in template, stylesheet and script starts with `{# il2ks-template: <path> vN ... #}` (CSS/JS:
-`/* ... */`); `src/il2ks/web/template_versions.json` records version + content hash; a test fails on a change without a bump; `il2ks dev
-bump-templates` bumps; `il2ks dev template-changes <tag>` lists bumps for release notes (`docs/releasing.md`). Override states: current,
-outdated, newer, unversioned, orphan, custom-only, unchecked (no version: images, vendored, Django's own). Problems appear as a red banner
-on every admin page (staff only, never public), a start-up warning, `il2ks doctor`, and `il2ks custom list`; `il2ks custom diff` and
-`custom accept` help update. `il2ks.web` is first in `INSTALLED_APPS` so its `admin/base_site.html` wins.
+**Template versions** (as built, TD-25 `[DECIDED]`; `docs/customizing.md` and `docs/releasing.md` have the details): every built-in template, stylesheet and
+script starts with `{# il2ks-template: <path> vN.M ... #}` (CSS/JS: `/* ... */`); `src/il2ks/web/template_versions.json` records the version, the content hash
+and the file's **contract fingerprint** (format 2; format 1 is still read); a test fails on a change without a bump; `il2ks dev bump-templates` bumps. Old `vN`
+headers read as `vN.0` everywhere. **N** (breaking) changes when the override contract changes, **M** for everything else; `bump-templates` decides by comparing
+the stored fingerprint with the new one (`serving/templatecontract.py`), and `--major [PATH...]` forces N for a change the fingerprint cannot see.
+
+- *Templates*: **N** for any change of `extends` or the `{% block %}` names; **removal or rename** of an `{% include %}` target, a context variable (root name
+  that the template reads), a `{% url %}` name or a `{% static %}` path, or of an il2ks tag or filter. **Adding** an include, variable, URL name or static path
+  is **M**: an override without it renders fine and only lacks the content (OQ-141 asks whether added blocks and selectors should be M as well). Any
+  change of an id, class or `data-` attribute that the built-in CSS or JS targets is N (the old and the new fingerprint are compared, so a removed marker counts).
+- *Stylesheets*: N when a defined selector (class, id, data attribute) or a `--custom-property` is added or removed. *Scripts*: N when a selector they look up changes.
+- *Not seen by the fingerprint* (use `--major`): a changed signature of a custom tag or filter, an attribute renamed on a context object, `{% url var %}`,
+  classes built in a script, a variable whose meaning changed.
+
+Override states: current, **behind** (only older by M: shown in `il2ks custom list` and `--json`, and as the doctor line "k behind by small changes"; no banner,
+no pop-up), **outdated** (older by N: the red banner on every admin page (staff only, never public), a start-up warning, a `il2ks doctor` warning and the
+installer's message box), newer, unversioned, orphan, custom-only, unchecked (no version: images, vendored, Django's own). "Behind" is CLI-only; there is no
+admin page for custom overrides. `il2ks custom diff` and `custom accept` help update. `il2ks dev template-changes <tag>` lists only the N bumps and the removed
+files for the release notes (`--all` lists everything). `FIRST_RELEASE_DONE` stays only because `release.yml` reads it. `il2ks.web` is first in `INSTALLED_APPS`
+so its `admin/base_site.html` wins.
 
 `custom/templates` and `custom/static` are always first in the lookup (created by `web`). `il2ks custom copy <path>` copies a built-in file
 and records the original's hash in `custom/.il2ks-overrides.json`; `custom list` and `custom accept` complete it. Doctor warns when an
@@ -430,14 +512,26 @@ only two rules (scrollable-region-focusable on narrow tables, landmark-unique fo
 - **`il2ks doctor [--json]`**: read-only checks grouped ERROR / WARN / OK, each with a fix. Exit 0 all OK, 1 warnings, 2 errors. Checks:
   config, data dir, database and migrations, log folder (and the text-log hint, OQ-1), Windows timezone, server UID, disk space (WARN < 1
   GiB, ERROR < 200 MiB), ingestion health, backups, secret key, debug, domain, Caddy, ports 80/443/web (ours via `run.json` is fine),
-  static files, external-mode hints, `custom/` overrides.
+  static files, external-mode hints, `custom/` overrides, and (0.2.0) **`pages_compressed`**, **`backup_copy_check`** and **`login_lockout_check`**.
+  `pages_compressed` (`ops/compression_check.py`) fetches the site's public address with `Accept-Encoding: gzip, br, zstd` (5 s timeout) and warns when the answer
+  has no `Content-Encoding` or the fetch fails; with the bundled Caddy (which always compresses) or without a domain it prints an info line instead. It uses
+  plain `urllib` because it fetches the admin's **own** address: a deliberate exception to "every outbound request goes through the SSRF helper".
+  `backup_copy_check` reports the last copy to `[backup] copy_to` (below); `login_lockout_check` lists active admin lockouts (WARN).
 - **Backups** (FR-OPS-6): `il2ks backup` → `<data dir>/backups/il2ks-backup-YYYYMMDD-HHMMSS.zip` (UTC) with a SQLite online-backup
   snapshot, the config, `server_uid.txt`, `secret_key.txt`, `custom/`, `media/` and a manifest; not the mission archives (large, kept
-  forever, back them up separately). Keeps `[backup] keep` (10). Automatic **before pending migrations** (no migration if the backup fails)
+  forever, back them up separately). Keeps `[backup] keep` (10). **Second copy** (0.2.0): `[backup] copy_to` names another folder (another drive or a share) that every backup is copied to; `copy_archive = true` also mirrors the mission archive there (next bullet). Automatic **before pending migrations** (no migration if the backup fails)
   and **daily** from `watch` (`[backup] daily = true`; a failure retries an hour later). `il2ks restore <zip>` validates, refuses while a
   writer holds the lock (`il2ks run`) or the web port answers (exit code 3; `--force` overrides) and when a newer il2ks made the backup, takes a
   safety backup, swaps in the database, config, `custom/`, `media/`, server ID and secret key, verifies. SQLite only. `[DECIDED]` (maintainer,
   2026-10-04, OQ-71: restore refuses while the site runs; scripts need `--force`).
+- **Second copy of the backups** (`[backup] copy_to`, `copy_archive`; `ops/backup.py`, 0.2.0): each backup is copied once `create_backup` has rotated, so the
+  pre-migration and pre-restore backups are copied too. The copy goes through a `.tmp` name and a rename, the folder must not be the backup folder itself, and it
+  keeps the newest `[backup] keep` backups like the main one. `copy_archive` mirrors the mission archive into `<copy_to>/archive`: only `*.zip`, a file is copied
+  when it is missing or differs in size or modified time (2 s slack); the mirror is **never pruned** (the archive is the source of truth, a file missing from it is a
+  mistake the mirror should survive). The archive mirror runs after the writer lock is released and gives up after 3 failed files. A failure never fails the
+  backup: it is logged and written to `<data dir>/backup_copy_status.json`, which `backup_copy_check` reads; `il2ks backup` prints `Copy:` or `COPY FAILED (the
+  backup itself is fine)`. Being fixed (review 2026-10-07): the copy moves off the `watch` loop, and the files go to `copy_to/<server_uid>/` so two installs can share
+  one share.
 - **Autostart for the manual path**: `il2ks service systemd` (Linux unit) and `il2ks service schtasks` (Windows task XML with restart on
   failure) print or write the definition; only `--install` changes the machine. A real Windows service is the installer's job.
 - **Exit codes** (all commands): 0 ok, 1 partial failure / warnings, 2 usage or config error, 3 lock held.

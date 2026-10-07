@@ -556,6 +556,26 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   `ingest.ratings` (the highest pool Elo held after a win in the sortie).
 - Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).
 
+## Side balance (`core/replay/balance.py`, as built 2026-10-07, OQ-134) `[DECIDED]` (time weighting: maintainer), details `[PROPOSED]`
+
+How many pilots flew for each side, and who flew for the side that had fewer. The original `il2_stats` has no time weighting: it
+flags a player's coalition preference (`coal_pref`, more than 60% of the sorties on one side) and counts active pilots per side. The time
+weighting is the maintainer's refinement; the per-side sortie counters are borrowed from it.
+
+- **Strength** of a side at a tick = the number of **open pilot sorties** of that side (spawn to the sortie's end). Gunners add nobody. The side comes
+  from the sortie's country (`side_of_country`: 5xx REDFOR, 6xx BLUFOR); a country that is neither counts for neither side.
+- **Per mission** (`Mission.redfor_players` / `blufor_players`): the average strength per side over `[0, mission end]`, rounded to one decimal.
+- **Per sortie** (`PlayerSortie.underdog`): the pilot is the underdog when, averaged over **the pilot's own spawn-to-end time**, the pilot's side
+  had strictly fewer pilots than the other side. Equal is not underdog. A sortie of zero length compares the two strengths at its spawn tick. A gunner's
+  sortie takes its pilot's flag. A pilot who joins the smaller side and stays while it fills up is weighted by how long it was actually smaller.
+- All arithmetic is on integer ticks (exact areas under a step function), so two equal averages compare equal.
+- **Counters** (doc 06): `sorties_redfor`, `sorties_blufor`, `sorties_underdog` on every level-2 table, rolled up like every counter (all time = sum
+  of the tours). Pages: doc 16 "Side balance".
+- **Upgrade**: sorties and missions ingested before 0.2.0 need `il2ks reprocess --all` (underdog flags, mission averages); the counters come with the
+  rebuild that the reprocess runs.
+- **Sanity check** on 14 sample missions: an outnumbered side has nearly all its sorties flagged, balanced missions split both ways, and 33% of all
+  sorties are underdog sorties.
+
 ## Ironman streaks and the three tracks (`core/streaks.py`, FR-WEB-25, maintainer 2026-10-05)
 
 A **streak** is a run of a pilot's consecutive sorties without a death or capture, applied to the pilot (not gunner) sorties of one tour in

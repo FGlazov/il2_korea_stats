@@ -15,9 +15,34 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
-Nothing waits for the maintainer's review.
+**OQ-137 "Delete all data and reprocess": defaults applied** (doc 14 "Delete all data and reprocess", FR-ADM-4)
+Applied until you decide: (1) only **superusers** may start it (staff with the reprocess permission may not); (2) while it runs the public pages are empty or partial and
+show **no notice** (use the notice banner by hand if you want one); (3) a hidden player or hidden mission whose archive is gone is **dropped** from the hidden lists after
+the wipe; (4) a **tour rename survives only when the new
+tour has the same start, mode and kind** (a part cut by a decisive mission or not); a tour that moved gets its automatic name. Should any of these change?
+
+**OQ-138 Side balance: wording, placement and the underdog mark** (doc 13 "Side balance", doc 16 "Pages")
+Applied: the "Sorties per side" share line is on **every** leaderboard, the Elo boards too, and under the home page's last mission; the list columns are called "REDFOR pilots" /
+"BLUFOR pilots"; the profile line is "Underdog sorties"; the stat mark `underdog_share` **rewards a high share** (a loyal underdog stands out as good). Alternatives: leave the
+line off the Elo boards, call the flag something other than "underdog", or show the share neutrally without a good/bad mark.
+
+**OQ-139 Markdown pages: small product choices** (doc 16 "Markdown pages", FR-ADM-2)
+Applied: a page link opens in the **same tab** (external links keep the new tab); a navigation link has **either** an address **or** a page; the language of the base text is
+the admin's choice (default English); the page title is the `h1` and headings in the text are **not demoted**; tables and strikethrough are on; the footer lists the page
+links too. Should any of these differ (for example a page link in a new tab, or only some pages in the footer)?
+
+**OQ-141 Template versions: should added blocks and added CSS/JS selectors be cosmetic?** (doc 05 TD-25, doc 16 "Customization")
+Applied: an **added** include, context variable, URL name or static path is cosmetic (M), because an override without it still renders. But an **added `{% block %}`** and an
+**added CSS or JS selector** (a class, id, data attribute or custom property) still count as breaking (N): an override of `base.html` that lacks a new block silently loses
+what the block carries, and a copied stylesheet lacks the style a new template needs. Should those be M as well, so that fewer owners see the red banner, at the price of
+overrides that quietly miss new things? The alternative keeps N for them and relies on `--major` only for what the fingerprint cannot see.
 
 ## Lower impact (owner: maintainer, outside input)
+
+**OQ-140 Notice banner, footer and altitude: wording** (doc 16 "Notice banner and footer", "Pages")
+Applied: the notice sits right under the header with the notice component's words "Note" / "Warning" and one text for every language; the footer reads "Powered by il2ks <version>"
+with the link inside the translated string, worded per language by a draft translation; the altitude column hint says "above sea level, no terrain data"; the Russian draft
+translates "Angels" (BLUFOR altitude), the other languages keep it. Is that fine, or should "Angels" stay untranslated everywhere?
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
 Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it

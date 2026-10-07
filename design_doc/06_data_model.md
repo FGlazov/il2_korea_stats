@@ -42,7 +42,9 @@ Mission        id, server_uid, mission_uid (unique together), tour → Tour, mis
                is_live (bool, FR-ING-15: provisional rows `watch` saved while the mission still runs; the final save rewrites the same rows by
                their natural keys and clears it) `[PROPOSED]`,
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
-               players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills
+               players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills,
+               redfor_players, blufor_players (float, one decimal: the **time-weighted average number of pilots spawned in** per side over
+               [0, mission end], doc 13 "Side balance"; 0 on missions ingested before 0.2.0 until `reprocess --all`)
 PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
                tour → Tour (maintainer 2026-10-05; null only while the mission has none: ALWAYS equal to `mission.tour`, a denormalisation of 4-8 bytes per sortie so a tour's
                sorties can be filtered and sorted from one index without joining the mission: `sortie_tour_recent` (tour, -spawned_at, -id, role, mission, player) serves the site-wide
@@ -68,6 +70,8 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                is_death, is_plane_lost, is_captured (bool: rules resolved once in replay, level 2 only sums them, doc 13)
                loss_class (who is behind the loss; '' = nothing lost), kills_air_pvp, kills_air_ai   -- FR-WEB-21, doc 13
                kills_ground_<category> (9 categories) + kills_ground_static                           -- they sum to kills_ground (OQ-33)
+               underdog (bool: the pilot's side had strictly fewer pilots spawned in than the other, averaged over the pilot's own sortie
+                                                   -- time; doc 13 "Side balance"; a gunner's row takes its pilot's flag)
                air_points, ground_points (float)   -- the sortie's score under the `[score]` rules (FR-WEB-7, doc 13); a changed rule
                                                    -- applies with `rebuild-aggregates`, no reprocess
                kills_air, kills_ground, assists (= assists_air + assists_ground), assists_air, assists_ground (2026-10-04; only air assists score), friendly_kills, friendly_hits, friendly_damage  -- FR-ING-23
@@ -111,7 +115,9 @@ attackers made in air superiority sorties; from `PlayerSortie.kills_air_intercep
 Interception per hour = `kills_intercept / flight_time_air_s`, tank busting = `kills_tank_attack / time_on_target_s`, both computed at read time.
 For accuracy (2026-10-04, doc 13): **`accuracy_rounds`, `accuracy_hits`** (rounds fired and gun hits of the same sorties, those with a known number of rounds),
 **`accuracy_air_rounds`, `accuracy_air_hits`** (air superiority sorties), **`accuracy_ground_rounds`, `accuracy_ground_hits`** (attack sorties) and the
-exact **`gun_hits_air`, `gun_hits_ground`** (all sorties; from `PlayerSortie.gun_hits_*`); the ratios are computed at read time. Only
+exact **`gun_hits_air`, `gun_hits_ground`** (all sorties; from `PlayerSortie.gun_hits_*`); the ratios are computed at read time. Side balance
+(0.2.0, doc 13): **`sorties_redfor`, `sorties_blufor`** (counted sorties per side; `TourAircraftStats` had the first two on its own, now from the shared list) and
+**`sorties_underdog`** (sorties flown for the side with fewer pilots, from `PlayerSortie.underdog`); the shares are computed at read time. Only
 **pilot** sorties are counted; gunner sorties are recorded (`role = gunner`) but get no counters or dedicated
 pages until gunner stats exist (FR-WEB-14).
 
@@ -239,11 +245,19 @@ SiteSettings   singleton (TD-25): site_title, server_name, description, logo (pa
                a recompute is pending), doc 17,
                show_live_sorties (bool, default on: `watch` saves the running mission provisionally and its sorties count, FR-ING-15),
                killboard_assists (bool; not branding: the `[killboard] assists` value the level-2 rows were last rebuilt with),
+               notice_text (char(300), one line, plain text, empty = no notice), notice_level (info / warning), notice_until (aware datetime,
+               null = until cleared; the banner is hidden once past, doc 16 "Notice banner"),
                catalog_fingerprint (char(16): the hash of the shipped catalog files the stored rows were last brought in line with, `ops/migrate.py`, FR-OPS-3)
                -- all of it sits on the one settings row every page already reads, so quips, achievement texts and the feature image cost no query
-NavLink        site, label, url (http/https only), icon (built-in key or none), position   -- ordered inline of SiteSettings, at most 30
+NavLink        site, label, url (http/https only; blank when `page` is set), page → Page (nullable; exactly one of url and page is set, checked in `clean`), icon (built-in
+               key or none), position   -- ordered inline of SiteSettings, at most 30
+Page           slug (unique), title, base_language (default "en"), source (Markdown, at most 100,000 characters), html (rendered and sanitised on save),
+               translations (json `{language: {title, html}}`: the published copy of the PageTranslation rows, so the page view reads one row),
+               updated_at   -- the admin's Markdown pages at `/p/<slug>/` (FR-ADM-2, doc 16 "Markdown pages")
+PageTranslation page → Page, language (unique together), title (blank = the base title), source, html
 DataVersion    singleton counter bumped with every page-visible change (TD-28)
-ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error; at most one pending (partial unique)
+ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error; at most one pending (partial unique),
+               wipe (bool: "Delete all data and reprocess", doc 14 "Delete all data and reprocess"), phase (check/backup/wipe/reprocess while a wipe runs, else blank)
 LiveMission    server_uid (unique), mission_uid, mission_file, started_at, game_date/time, elapsed_s, updated_at, interval_s, is_running   -- the running
                -- mission as `watch` last saw it, one row per server; `updated_at` older than 3 x `interval_s` = stale
 LivePlayer     mission, player (null = unknown account), account_uuid, name, coalition, country, aircraft_type, aircraft_name, propulsion, state
