@@ -29,7 +29,7 @@ def test_nothing_locked_is_ok() -> None:
     assert "15 minutes" in finding.detail
 
 
-def test_a_locked_account_and_address_are_listed_with_the_way_to_unlock(client: Client) -> None:
+def test_a_locked_account_at_an_address_is_listed_with_the_way_to_unlock(client: Client) -> None:
     User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
     for _ in range(5):
         client.post(
@@ -39,8 +39,8 @@ def test_a_locked_account_and_address_are_listed_with_the_way_to_unlock(client: 
     [finding] = list(login_lockout_check(CFG))
 
     assert finding.level is Level.WARN
-    assert "account boss" in finding.detail
-    assert "address 203.0.113.5" in finding.detail
-    assert "Access attempts" in finding.fix
+    assert "account boss from 203.0.113.5" in finding.detail
+    assert "il2ks admin unlock" in finding.fix
+    assert "Access attempts" not in finding.fix
     AccessAttempt.objects.all().delete()
     assert next(iter(login_lockout_check(CFG))).level is Level.OK

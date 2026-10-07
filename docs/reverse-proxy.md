@@ -22,12 +22,13 @@ port = 8000
 3. Send the header **`X-Forwarded-Proto: https`**. Without it il2ks thinks the visit is plain http and redirects
    forever ("too many redirects"). il2ks only trusts this header, so keep port 8000 closed to the outside.
 4. Send **`X-Forwarded-For`** with the visitor's address (nginx `$proxy_add_x_forwarded_for`; Apache's `mod_proxy` and
-   IIS ARR add it by default). The admin-login lockout (5 wrong passwords lock the account and the visitor's address for 15 minutes, see
-   [settings.md](settings.md#other-sections)) counts failed passwords per visitor address. il2ks believes
+   IIS ARR add it by default). The admin-login lockout (5 wrong passwords for an account lock that account **at that visitor address** for 15
+   minutes, see [settings.md](settings.md#other-sections)) counts failed passwords per visitor address. il2ks believes
    this header only when the connection comes from the same machine (127.0.0.1 / ::1), so the web server must stay on
-   `host = "127.0.0.1"`: if it were reachable from outside, a visitor could invent the header. Without the header from
-   your proxy, all visitors share one address (five wrong passwords from anyone lock that address for everybody, for 15
-   minutes; the account lock still protects the password).
+   `host = "127.0.0.1"`: if it were reachable from outside, a visitor could invent the header. A port after the address
+   (`1.2.3.4:51234`, `[2001:db8::1]:51234`; IIS ARR adds it) is ignored. Without the header from your proxy, all
+   visitors share one address: five wrong passwords from anyone lock the account `admin` for everybody for 15 minutes
+   (the password stays protected, you can unlock with `il2ks admin unlock`).
 5. Keep the original **`Host`** header (recommended) so links and the admin login work.
 6. **Compress the pages** (gzip or better). il2ks already sends its stylesheets, scripts and icons compressed, but the
    pages themselves come uncompressed, and the bundled Caddy normally compresses them. Pages with long tables shrink

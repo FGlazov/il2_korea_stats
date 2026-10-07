@@ -647,3 +647,29 @@ def test_the_plan_is_checked_again_under_the_lock(instance: Config, monkeypatch:
     monkeypatch.setattr(management, "call_command", recording(applied, "migrate"))
     assert migrate.migrate_if_needed(instance, "web", wait=None) is None
     assert applied == []
+
+
+# --- admin unlock ---------------------------------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_admin_unlock_removes_the_locks(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
+
+    for name, address in (("boss", "203.0.113.5"), ("boss", "198.51.100.9"), ("deputy", "203.0.113.5")):
+        AccessAttempt.objects.create(username=name, ip_address=address, failures_since_start=5)
+
+    assert main(["admin", "unlock", "--ip", "198.51.100.9"]) == EXIT_OK
+    assert "1 " in capsys.readouterr().out
+    assert AccessAttempt.objects.count() == 2
+    assert main(["admin", "unlock", "--user", "deputy"]) == EXIT_OK
+    assert sorted(AccessAttempt.objects.values_list("username", flat=True)) == ["boss"]
+    assert main(["admin", "unlock", "--all"]) == EXIT_OK
+    assert AccessAttempt.objects.count() == 0
+    assert main(["admin", "unlock", "--all"]) == EXIT_OK
+    assert "nothing" in capsys.readouterr().out.lower()
+
+
+def test_admin_unlock_needs_to_be_told_what_to_unlock(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["admin", "unlock"]) == EXIT_USAGE
+    assert "--all" in capsys.readouterr().err

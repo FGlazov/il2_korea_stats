@@ -1,4 +1,4 @@
-"""The handlers of `il2ks setup`, `createadmin`, `doctor`, `backup` and `restore` (FR-OPS-1, FR-OPS-6).
+"""The handlers of `il2ks setup`, `createadmin`, `admin unlock`, `doctor`, `backup` and `restore` (FR-OPS-1, FR-OPS-6).
 
 `cli.py` parses the arguments and calls these; each returns the exit code. Prompts and file locations come from the
 arguments and the environment, nothing is read at import time.
@@ -136,6 +136,37 @@ def cmd_createadmin(ns: argparse.Namespace, env: Mapping[str, str] | None = None
         return EXIT_FAILED
     discard_token(cfg.data_dir)  # an admin exists: the browser setup page is closed for good
     print(f"Admin account {username!r}: {outcome}. Log in at /admin/ on your site.")
+    return EXIT_OK
+
+
+# --- admin unlock ----------------------------------------------------------------------------------------------------
+
+
+def cmd_admin(ns: argparse.Namespace) -> int:
+    """`il2ks admin unlock [--all | --user NAME | --ip ADDRESS]` (NFR-SEC-8)."""
+    if not (ns.all or ns.user or ns.ip):
+        _say_error("admin unlock", "say what to unlock: --all, --user NAME and/or --ip ADDRESS")
+        return EXIT_USAGE
+    if ns.all and (ns.user or ns.ip):
+        _say_error("admin unlock", "--all cannot be combined with --user or --ip")
+        return EXIT_USAGE
+    cfg = _load(ns, "admin unlock")
+    if cfg is None:
+        return EXIT_USAGE
+    _prepare_django(cfg)
+    from django.db import DatabaseError
+
+    from il2ks.web.login_protection import unlock
+
+    try:
+        removed = unlock(username=ns.user, ip=ns.ip)
+    except DatabaseError as exc:
+        _say_error("admin unlock", f"the database could not be used ({exc}); run il2ks doctor")
+        return EXIT_FAILED
+    if removed:
+        print(f"Unlocked: {removed} failed-login record{'s' if removed != 1 else ''} removed.")
+    else:
+        print("Nothing to unlock: no failed logins are recorded for that.")
     return EXIT_OK
 
 

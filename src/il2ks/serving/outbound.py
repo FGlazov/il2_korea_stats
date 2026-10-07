@@ -11,17 +11,22 @@ outbound request therefore goes through `fetch`:
 - the connection goes to the address that was checked. The host name only appears in the TLS SNI (and certificate check)
   and the `Host` header, and nothing resolves a second time, so DNS rebinding cannot swap the target after the check;
 - at most `MAX_REDIRECTS` redirects, each target checked the same way (scheme, then resolve, then addresses);
-- a size cap on the body (`max_bytes`) and a timeout (`timeout_s`, for the whole call);
+- a size cap on the body (`max_bytes`) and a timeout (`timeout_s`) for the whole call: connecting, the TLS handshake,
+  the headers and the body. A watchdog timer shuts the socket at the deadline, so a server that sends one byte every
+  few seconds cannot hold the call. (Resolving the host name through the system resolver is the one step that cannot
+  be interrupted.)
 - `[outbound] allow_private` (il2ks.toml): networks an admin explicitly allows (a source on the LAN). Off by default.
 
 Only the standard library is used. The resolver, the TCP connection and the TLS wrapping are parameters, so tests run
 without a network.
 """
 
+import contextlib
 import http.client
 import ipaddress
 import socket
 import ssl
+import threading
 import time
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
@@ -83,6 +88,10 @@ def is_public(address: IPAddress) -> bool:
         inner = _embedded_v4(address)
         if inner is not None:
             return is_public(inner)
+    if (
+        isinstance(address, ipaddress.IPv6Address) and address.is_site_local
+    ):  # fec0::/10, deprecated but routable inside
+        return False
     return not (
         address.is_loopback
         or address.is_private
@@ -170,9 +179,20 @@ def _split(url: str) -> tuple[str, str, int, str]:
     return parts.scheme, host, port, target
 
 
+def _abort(sock: socket.socket) -> None:
+    """Shut a socket down from another thread: that wakes a `recv` that is blocked on it."""
+    with contextlib.suppress(OSError):
+        sock.shutdown(socket.SHUT_RDWR)
+    with contextlib.suppress(OSError):
+        sock.close()
+
+
 class _PinnedConnection(http.client.HTTPConnection):
     """An `HTTPConnection` that connects to an address we checked and sends the host name in `Host` (and in the TLS
-    handshake when `tls` is given). `http.client` never resolves anything itself here."""
+    handshake when `tls` is given). `http.client` never resolves anything itself here.
+
+    `start_watchdog(seconds)` makes the deadline hard: when it passes, every socket of the connection is shut down,
+    wherever the call is blocked (connect, handshake, headers, body)."""
 
     def __init__(
         self,
@@ -188,6 +208,26 @@ class _PinnedConnection(http.client.HTTPConnection):
         self._addresses = addresses
         self._connector = connector
         self._tls = tls
+        self._watchdog: threading.Timer | None = None
+        self._open: list[socket.socket] = []  # the raw socket during the handshake, then the TLS one
+        self.expired = threading.Event()
+
+    def start_watchdog(self, seconds: float) -> None:
+        timer = threading.Timer(max(seconds, 0.0), self._expire)
+        timer.daemon = True
+        self._watchdog = timer
+        timer.start()
+
+    def _expire(self) -> None:
+        self.expired.set()
+        for sock in list(self._open):
+            _abort(sock)
+
+    def _track(self, sock: socket.socket) -> None:
+        self._open.append(sock)
+        if self.expired.is_set():  # the timer fired just before the socket was listed
+            _abort(sock)
+            raise OutboundError("the request took too long")
 
     def connect(self) -> None:
         last: OSError | None = None
@@ -197,9 +237,26 @@ class _PinnedConnection(http.client.HTTPConnection):
             except OSError as exc:
                 last = exc
                 continue
-            self.sock = self._tls(sock, self.host) if self._tls is not None else sock
+            try:
+                self._track(sock)
+                if self._tls is not None:
+                    wrapped = self._tls(sock, self.host)
+                    self._track(wrapped)
+                    sock = wrapped
+            except BaseException:
+                for opened in self._open:
+                    _abort(opened)  # a failed handshake must not leave the raw socket open
+                raise
+            self.sock = sock
             return
         raise OutboundError(f"could not connect to {self.host!r}") from last
+
+    def close(self) -> None:
+        if self._watchdog is not None:
+            self._watchdog.cancel()
+        super().close()
+        for sock in self._open:
+            _abort(sock)
 
 
 def fetch(
@@ -234,7 +291,7 @@ def fetch(
             if status in _REDIRECT_STATUSES and "location" in headers:
                 current = urljoin(current, headers["location"])
                 continue
-            return Fetched(current, status, headers, _read_capped(response, max_bytes, deadline, clock))
+            return Fetched(current, status, headers, _read_capped(response, connection, max_bytes, deadline, clock))
         finally:
             connection.close()
     raise OutboundError(f"more than {max_redirects} redirects")
@@ -249,12 +306,13 @@ def _request(
     timeout: float,
     connector: Connector,
     tls: TlsWrapper | None,
-) -> tuple[http.client.HTTPResponse, http.client.HTTPConnection]:
+) -> tuple[http.client.HTTPResponse, _PinnedConnection]:
     default_port = 443 if scheme == "https" else 80
     host_header = host if port == default_port else f"{host}:{port}"
     if ":" in host:  # an IPv6 literal
         host_header = f"[{host}]" + ("" if port == default_port else f":{port}")
     connection = _PinnedConnection(host, port, addresses=addresses, timeout=timeout, connector=connector, tls=tls)
+    connection.start_watchdog(timeout)
     try:
         connection.putrequest("GET", target, skip_host=True, skip_accept_encoding=True)
         connection.putheader("Host", host_header)
@@ -263,27 +321,42 @@ def _request(
         connection.putheader("Connection", "close")
         connection.endheaders()
         return connection.getresponse(), connection
-    except (OSError, http.client.HTTPException, ssl.SSLError) as exc:
+    except (OSError, http.client.HTTPException, ValueError) as exc:
+        late = connection.expired.is_set() or isinstance(exc, TimeoutError)
         connection.close()
         if isinstance(exc, OutboundError):
             raise
+        if late:
+            raise OutboundError("the request took too long") from exc
         raise OutboundError(f"the request to {host!r} failed: {exc}") from exc
 
 
 def _read_capped(
-    response: http.client.HTTPResponse, max_bytes: int, deadline: float, clock: Callable[[], float]
+    response: http.client.HTTPResponse,
+    connection: _PinnedConnection,
+    max_bytes: int,
+    deadline: float,
+    clock: Callable[[], float],
 ) -> bytes:
     declared = response.getheader("Content-Length")
     if declared is not None and declared.isdigit() and int(declared) > max_bytes:
         raise OutboundError(f"the response is larger than {max_bytes} bytes")
     body = bytearray()
     try:
-        while chunk := response.read(min(_CHUNK, max_bytes + 1 - len(body))):
+        while True:
+            left = deadline - clock()
+            if left <= 0:
+                raise OutboundError("the request took too long")
+            if connection.sock is not None:
+                connection.sock.settimeout(left)  # one `recv` never waits longer than what is left of the call
+            chunk = response.read1(min(_CHUNK, max_bytes + 1 - len(body)))
+            if not chunk:
+                break
             body += chunk
             if len(body) > max_bytes:
                 raise OutboundError(f"the response is larger than {max_bytes} bytes")
-            if clock() > deadline:
-                raise OutboundError("the request took too long")
-    except (OSError, http.client.HTTPException) as exc:
+    except (OSError, http.client.HTTPException, ValueError) as exc:
+        if connection.expired.is_set() or isinstance(exc, TimeoutError):
+            raise OutboundError("the request took too long") from exc
         raise OutboundError(f"reading the response failed: {exc}") from exc
     return bytes(body)
