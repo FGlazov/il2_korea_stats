@@ -13,7 +13,7 @@ from django.test import Client
 from django.test.utils import CaptureQueriesContext
 from pytest_django.fixtures import Settings
 
-from il2ks.db.models import AircraftStats, DataVersion, GameObject, Mission, ObjectClass, Player
+from il2ks.db.models import AircraftStats, DataVersion, GameObject, Mission, ObjectClass, Page, Player
 from il2ks.db.site import bump_data_version
 from il2ks.serving.djsettings import security_settings
 from il2ks.web.views import seo
@@ -158,7 +158,6 @@ def test_sitemap_lists_visible_players_missions_and_aircraft_with_absolute_urls(
     assert "/sorties/" not in joined.replace(
         "https://stats.example.com/sorties/\n", ""
     )  # the list only, no sortie page
-    assert "/p/" not in joined  # Markdown pages are not built yet
     assert all(u.startswith("https://stats.example.com/") for u in found)
 
 
@@ -243,6 +242,33 @@ def test_sitemap_query_budget_does_not_grow_with_the_number_of_rows(client: Clie
     assert len(queries) <= 8, [q["sql"] for q in queries.captured_queries]
     for q in queries.captured_queries:
         assert "GROUP BY" not in q["sql"].upper()
+
+
+def test_markdown_pages_are_in_the_sitemap(client: Client) -> None:
+    """Review 0.2.0 M8: the admin's pages (`/p/<slug>/`) are public and worth finding; lastmod is the last save."""
+    page = Page.objects.create(slug="rules", title="Server rules", html="<p>Be nice</p>")
+    found = locs(client.get("/sitemap.xml"))
+    assert "https://stats.example.com/p/rules/" in found
+    body = client.get("/sitemap.xml").content.decode()
+    assert f"/p/rules/</loc><lastmod>{page.updated_at.date().isoformat()}</lastmod>" in body
+    assert "https://stats.example.com/p/rules/" in locs(client.get("/sitemap-site.xml"))
+
+
+def test_without_a_configured_address_the_sitemap_cache_stays_empty(client: Client, settings: Settings) -> None:
+    """Review 0.2.0 M8: ALLOWED_HOSTS is * then and the base URL comes from the Host header: caching one rendered file
+    per distinct Host would let anybody fill the memory."""
+    settings.IL2KS_PUBLIC_URL = ""
+    make_player(1)
+    for n in range(50):
+        found = locs(client.get("/sitemap.xml", headers={"Host": f"h{n}.example"}))
+        assert f"http://h{n}.example/" in found
+    assert seo._cache == {}  # pyright: ignore[reportPrivateUsage]
+
+
+def test_with_a_configured_address_the_sitemap_is_cached(client: Client) -> None:
+    make_player(1)
+    client.get("/sitemap.xml")
+    assert seo._cache  # pyright: ignore[reportPrivateUsage]
 
 
 # --- robots.txt -----------------------------------------------------------------------------------------------------
