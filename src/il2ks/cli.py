@@ -254,6 +254,15 @@ def _build_parser() -> argparse.ArgumentParser:
     reprocess.add_argument(
         "--all", action="store_true", help="reprocess every mission (explicit, can take a long time)"
     )
+    reprocess.add_argument(
+        "--wipe",
+        action="store_true",
+        help=(
+            "with --all: first back up, then DELETE every ingested row (missions, players, tours, statistics) but keep "
+            "the admin's settings, then reprocess every archive, so the tours are cut again from the current settings"
+        ),
+    )
+    reprocess.add_argument("--yes", action="store_true", help="with --wipe: do not ask for the typed confirmation")
     reprocess.add_argument("--mission", action="append", metavar="UID", help="only this mission (repeatable)")
     span_note = "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive."
     reprocess.add_argument(
@@ -448,8 +457,39 @@ def _main(argv: Sequence[str] | None) -> int:
     return EXIT_USAGE
 
 
+WIPE_CONFIRMATION = "delete all data"
+
+
+def _confirm_wipe() -> bool:
+    """The typed confirmation of `reprocess --all --wipe` (`--yes` skips it; without a terminal it is required)."""
+    from il2ks.ops.prompt import Cancelled, ConsolePrompter, interactive_terminal
+
+    if not interactive_terminal():
+        print("il2ks: --wipe needs a terminal to confirm in, or --yes", file=sys.stderr)
+        return False
+    io = ConsolePrompter()
+    io.say(
+        "This backs up, then DELETES every mission, player, tour and statistic, and rebuilds them from the archives."
+    )
+    io.say("Settings (branding, rules, hidden players and missions, names, quips, links) are kept.")
+    try:
+        answer = io.ask(f'Type "{WIPE_CONFIRMATION}" to continue')
+    except (Cancelled, KeyboardInterrupt):
+        answer = ""
+    if answer != WIPE_CONFIRMATION:
+        print("il2ks: not confirmed, nothing was deleted", file=sys.stderr)
+        return False
+    return True
+
+
 def _writer_command(command: str, ns: argparse.Namespace) -> int:
     """Commands that write the DB: config, logging, writer lock, migrations, then the job."""
+    if ns.command == "reprocess" and ns.wipe and not ns.all:
+        print("il2ks: --wipe needs --all (it rebuilds every mission from its archive)", file=sys.stderr)
+        return EXIT_USAGE
+    if ns.command == "reprocess" and ns.yes and not ns.wipe:
+        print("il2ks: --yes only goes with --wipe", file=sys.stderr)
+        return EXIT_USAGE
     if ns.command == "reprocess" and not (ns.all or ns.mission or ns.since is not None or ns.until is not None):
         ns.reprocess_parser.print_help(sys.stderr)
         print(
@@ -459,6 +499,8 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
         return EXIT_USAGE
     if ns.command == "reprocess" and ns.all and (ns.mission or ns.since is not None or ns.until is not None):
         print("il2ks: --all cannot be combined with --mission, --since or --until", file=sys.stderr)
+        return EXIT_USAGE
+    if ns.command == "reprocess" and ns.wipe and not ns.yes and not _confirm_wipe():
         return EXIT_USAGE
     if ns.command == "reprocess" and ns.since is not None and ns.until is not None and ns.since > ns.until:
         print(f"il2ks: --since {ns.since} is after --until {ns.until}", file=sys.stderr)
@@ -517,6 +559,18 @@ def _run_job(command: str, ns: argparse.Namespace, cfg: Config, source: Path | N
         watch_mod.watch(cfg, runner.default_pipeline(cfg))
         return EXIT_OK
     if command == "reprocess":
+        if ns.wipe:
+            from il2ks.ingest.wipe import WipeError, wipe_and_reprocess
+
+            try:
+                result = wipe_and_reprocess(
+                    cfg, runner.default_pipeline(cfg, defer_ratings=True), workers=ns.workers, lock_wait=wait
+                )
+            except WipeError as exc:
+                print(f"il2ks reprocess: {exc}", file=sys.stderr)
+                return EXIT_FAILED
+            print(result.describe())
+            return EXIT_FAILED if (result.failed or result.missing) else EXIT_OK
         result = reprocess_mod.reprocess(
             cfg,
             runner.default_pipeline(cfg, defer_ratings=True),

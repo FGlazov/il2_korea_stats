@@ -15,15 +15,18 @@ class AlreadyPendingError(Exception):
 
 
 def request_reprocess(
-    requested_by: str, now: datetime, *, since: date | None = None, until: date | None = None
+    requested_by: str, now: datetime, *, since: date | None = None, until: date | None = None, wipe: bool = False
 ) -> ReprocessRequest:
-    """File a request (every mission unless `since` / `until` narrow it). Raises `AlreadyPendingError` if one waits."""
+    """File a request (every mission unless `since` / `until` narrow it). Raises `AlreadyPendingError` if one waits.
+    `wipe`: "Delete all data and reprocess" (every mission, so no span)."""
+    if wipe and (since is not None or until is not None):
+        raise ValueError("a wipe reprocesses every mission")
     try:
         with transaction.atomic():  # the partial unique index also stops two concurrent requests
             if ReprocessRequest.objects.filter(status=ReprocessStatus.PENDING).exists():
                 raise AlreadyPendingError
             return ReprocessRequest.objects.create(
-                requested_at=now, requested_by=requested_by[:150], since=since, until=until
+                requested_at=now, requested_by=requested_by[:150], since=since, until=until, wipe=wipe
             )
     except IntegrityError as exc:
         raise AlreadyPendingError from exc

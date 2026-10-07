@@ -33,6 +33,9 @@ from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, re
 from il2ks.web.ingest_status import build_overview
 from il2ks.web.quips import QuipConfig
 
+WIPE_WORD = "DELETE"
+"""What the admin types to confirm "Delete all data and reprocess"."""
+
 
 class Il2ksAdminSite(admin.AdminSite):
     index_template = "admin/il2ks_index.html"
@@ -60,6 +63,7 @@ class Il2ksAdminSite(admin.AdminSite):
             path("rules/", self.admin_view(self.rules_view), name="rules"),
             path("leaderboards/", self.admin_view(self.leaderboards_view), name="leaderboards"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
+            path("ingestion/wipe/", self.admin_view(self.wipe_view), name="wipe-reprocess"),
         ]
         return [*extra, *super().get_urls()]
 
@@ -100,6 +104,40 @@ class Il2ksAdminSite(admin.AdminSite):
             "status_url": status_url,
         }
         return TemplateResponse(request, "admin/il2ks_reprocess_confirm.html", context)
+
+    def wipe_view(self, request: HttpRequest) -> HttpResponse:
+        """ "Delete all data and reprocess": the confirmation page (GET) and the request (POST, with the typed word).
+        Superusers only (it deletes every statistic). Nothing runs here: the `watch` loop backs up, deletes and
+        reprocesses (`ingest.wipe`)."""
+        if not (request.user.is_superuser and request.user.has_perm("il2ks_db.add_reprocessrequest")):
+            raise PermissionDenied
+        status_url = reverse(f"{self.name}:ingest-status")
+        overview = build_overview(timezone.now())
+        if request.method == "POST":
+            if request.POST.get("confirmation", "").strip() != WIPE_WORD:
+                messages.error(request, _("The confirmation did not match, so nothing was requested."))
+            else:
+                try:
+                    request_reprocess(request.user.get_username(), timezone.now(), wipe=True)
+                except AlreadyPendingError:
+                    messages.warning(request, _("A reprocess request is already waiting."))
+                else:
+                    messages.success(
+                        request,
+                        _("Deleting all data and reprocessing is requested. It starts at the next watch tick."),
+                    )
+                return HttpResponseRedirect(status_url)
+        elif not overview.can_request_reprocess:
+            messages.warning(request, _("A reprocess request is already waiting or running."))
+            return HttpResponseRedirect(status_url)
+        context = {
+            **self.each_context(request),
+            "title": _("Delete all data and reprocess"),
+            "missions_stored": overview.missions_stored,
+            "status_url": status_url,
+            "word": WIPE_WORD,
+        }
+        return TemplateResponse(request, "admin/il2ks_wipe_confirm.html", context)
 
     def achievements_view(self, request: HttpRequest) -> HttpResponse:
         """The Achievements page (FR-WEB-26): switch, words and thresholds of every achievement. Words and switches

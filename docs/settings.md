@@ -96,6 +96,13 @@ Good to know:
   read. The default keeps them in the data folder.
 - A changed rule only touches **new** missions until you reprocess. That is on purpose.
 - Want to be careful? `il2ks backup` first.
+- **Delete all data and reprocess** (Ingestion status page, administrators only; or `il2ks reprocess --all --wipe`) starts
+  from scratch: it makes a backup (if that fails, nothing is deleted), deletes every mission, player, tour and statistic,
+  and builds them again from the archived logs, so the tours are cut again from the current tour settings. Your admin
+  settings stay: site texts and branding, game rules, achievement and flight-time settings, quips, navigation links,
+  object and country names, hidden players and missions, manual tour names and boundaries. It asks you to type
+  `DELETE` (the command asks for `delete all data`; `--yes` skips that). Nothing is deleted when a stored mission has
+  no archive. The site keeps running, but shows little or nothing until the missions are back.
 
 ## Rules
 

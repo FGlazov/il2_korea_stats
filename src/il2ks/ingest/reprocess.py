@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import os
 import traceback
-from collections.abc import Callable, Generator, Sequence
+from collections.abc import Callable, Generator, Mapping, Sequence
 from concurrent.futures import FIRST_COMPLETED as _FIRST_COMPLETED
 from concurrent.futures import Executor, Future, ProcessPoolExecutor, wait
 from contextlib import contextmanager
@@ -121,6 +121,8 @@ def reprocess(
     lock_wait: float | None = None,
     on_start: Callable[[int], None] | None = None,
     on_progress: Callable[[ReprocessSummary], None] | None = None,
+    prepare: Callable[[Mapping[str, IngestRun]], None] | None = None,
+    finish: Callable[[], None] | None = None,
 ) -> ReprocessSummary:
     """Re-run missions from their archives under the writer lock (FR-ING-20). Raises `LockBusyError` if it's taken.
 
@@ -128,7 +130,11 @@ def reprocess(
     A requested UID outside the date span is simply not selected; one inside it without an archive is `missing`.
 
     `on_start(total)` is called once the lock is held and the missions are chosen; `on_progress(summary)` after each
-    mission (the admin's request row shows both)."""
+    mission (the admin's request row shows both).
+
+    `prepare(targets)` runs with the lock held, the missions chosen and nothing saved yet (the wipe of "Delete all data
+    and reprocess", `ingest.wipe`); an exception from it ends the run before anything was processed. `finish()` runs
+    after the final rebuild, also when the run failed, but only once `prepare` has returned."""
     with WriterLock(cfg.data_dir, "reprocess", wait=lock_wait):
         file_cfg = cfg
         cfg = effective_config(file_cfg)  # the rules the admin applied (they win over the file)
@@ -150,42 +156,76 @@ def reprocess(
         targets = archived_targets(cfg, mission_uids, since, until)
         wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}
         summary.missing = sorted(wanted - set(targets))
-        if on_start is not None:
-            on_start(len(targets))
-        n_workers = workers or default_workers()
-        window = n_workers * 2  # bound the results waiting in memory for the single writer
-        pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
-        queue = sorted(targets.values(), key=lambda r: r.mission_uid)
-        batched = is_batch(len(targets)) and pipeline.save_level1 is not None
-        if batched:
-            set_level2_pending("reprocess")  # cleared by the final rebuild; left behind by a hard kill
-        # `with` order: the executor is shut down first, then the rebuild runs
-        with _final_rebuild(summary, run_rebuild, interrupted_too=batched), executor_factory(n_workers) as executor:
-            while queue or pending:
-                while queue and len(pending) < window:
-                    prev = queue.pop(0)
-                    archive = cfg.data_dir / prev.archive_path
-                    if not archive_matches(archive, prev.archive_sha256):
-                        _record(
-                            cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now, batched
-                        )
-                        _progress(on_progress, summary)
-                        continue
-                    pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
-                if not pending:
-                    continue
-                done, _ = wait(pending, return_when=_FIRST_COMPLETED)
-                for future in done:
-                    prev = pending.pop(future)
-                    try:
-                        outcome = future.result()
-                    except Exception:
-                        _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now, batched)
-                    else:
-                        _record(cfg, pipeline, prev, outcome, "", summary, now, batched)
+        if prepare is not None:
+            prepare(targets)
+        try:
+            return _process(
+                cfg,
+                pipeline,
+                targets,
+                summary,
+                work,
+                executor_factory,
+                run_rebuild,
+                now,
+                workers,
+                on_start,
+                on_progress,
+            )
+        finally:
+            if prepare is not None and finish is not None:
+                finish()
+
+
+def _process(
+    cfg: Config,
+    pipeline: Pipeline,
+    targets: dict[str, IngestRun],
+    summary: ReprocessSummary,
+    work: WorkFn,
+    executor_factory: Callable[[int], Executor],
+    run_rebuild: Callable[[], None],
+    now: Callable[[], datetime],
+    workers: int | None,
+    on_start: Callable[[int], None] | None,
+    on_progress: Callable[[ReprocessSummary], None] | None,
+) -> ReprocessSummary:
+    if on_start is not None:
+        on_start(len(targets))
+    n_workers = workers or default_workers()
+    window = n_workers * 2  # bound the results waiting in memory for the single writer
+    pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
+    queue = sorted(targets.values(), key=lambda r: r.mission_uid)
+    batched = is_batch(len(targets)) and pipeline.save_level1 is not None
+    if batched:
+        set_level2_pending("reprocess")  # cleared by the final rebuild; left behind by a hard kill
+    # `with` order: the executor is shut down first, then the rebuild runs
+    with _final_rebuild(summary, run_rebuild, interrupted_too=batched), executor_factory(n_workers) as executor:
+        while queue or pending:
+            while queue and len(pending) < window:
+                prev = queue.pop(0)
+                archive = cfg.data_dir / prev.archive_path
+                if not archive_matches(archive, prev.archive_sha256):
+                    _record(
+                        cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now, batched
+                    )
                     _progress(on_progress, summary)
-        log.info("%s", summary.describe())
-        return summary
+                    continue
+                pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
+            if not pending:
+                continue
+            done, _ = wait(pending, return_when=_FIRST_COMPLETED)
+            for future in done:
+                prev = pending.pop(future)
+                try:
+                    outcome = future.result()
+                except Exception:
+                    _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now, batched)
+                else:
+                    _record(cfg, pipeline, prev, outcome, "", summary, now, batched)
+                _progress(on_progress, summary)
+    log.info("%s", summary.describe())
+    return summary
 
 
 @contextmanager

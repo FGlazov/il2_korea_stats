@@ -1,4 +1,4 @@
-{# il2ks-template: templates/admin/il2ks_ingest_status.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/admin/il2ks_ingest_status.html v2 - copy this line along when you override #}
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
@@ -51,6 +51,7 @@
     {% if overview.reprocess_running %}
       {% with job=overview.reprocess_running %}
       <p><strong class="state-ok">{% translate "Running" %}</strong>
+        {% if job.wipe %}({% translate "delete all data and reprocess" %}{% if job.phase == 'check' %}: {% translate "checking the archives" %}{% elif job.phase == 'backup' %}: {% translate "making a backup" %}{% elif job.phase == 'wipe' %}: {% translate "deleting the data" %}{% endif %}){% endif %}
         {% blocktranslate with started=job.started_at|date:"Y-m-d H:i" done=job.missions_ok failed=job.missions_failed total=job.missions_total %}since {{ started }}: {{ done }} of {{ total }} missions done, {{ failed }} failed.{% endblocktranslate %}</p>
       {% endwith %}
     {% elif overview.reprocess_pending %}
@@ -68,7 +69,8 @@
     {% endif %}
     {% if perms.il2ks_db.add_reprocessrequest %}
       {% if overview.can_request_reprocess %}
-      <p><a class="button" href="{% url 'admin:reprocess-all' %}">{% translate "Reprocess all missions…" %}</a></p>
+      <p><a class="button" href="{% url 'admin:reprocess-all' %}">{% translate "Reprocess all missions…" %}</a>
+        {% if user.is_superuser %}<a class="button" href="{% url 'admin:wipe-reprocess' %}">{% translate "Delete all data and reprocess…" %}</a>{% endif %}</p>
       {% endif %}
     {% endif %}
   </div>
