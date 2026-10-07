@@ -254,15 +254,25 @@ def test_markdown_pages_are_in_the_sitemap(client: Client) -> None:
     assert "https://stats.example.com/p/rules/" in locs(client.get("/sitemap-site.xml"))
 
 
-def test_without_a_configured_address_the_sitemap_cache_stays_empty(client: Client, settings: Settings) -> None:
-    """Review 0.2.0 M8: ALLOWED_HOSTS is * then and the base URL comes from the Host header: caching one rendered file
-    per distinct Host would let anybody fill the memory."""
+def test_without_a_configured_address_the_sitemap_is_cached_once_whatever_the_host(
+    client: Client, settings: Settings
+) -> None:
+    """Review 0.2.0 L4: the cache holds relative paths (the base URL is prefixed per response), so it is bounded and
+    Host-independent: made-up Hosts neither grow it nor rebuild the file."""
     settings.IL2KS_PUBLIC_URL = ""
     make_player(1)
-    for n in range(50):
-        found = locs(client.get("/sitemap.xml", headers={"Host": f"h{n}.example"}))
+    first = locs(client.get("/sitemap.xml", headers={"Host": "h0.example"}))
+    assert "http://h0.example/" in first
+    size = len(seo._cache)  # pyright: ignore[reportPrivateUsage]
+    assert size >= 1
+    for n in range(1, 30):
+        with CaptureQueriesContext(connection) as queries:
+            found = locs(client.get("/sitemap.xml", headers={"Host": f"h{n}.example"}))
         assert f"http://h{n}.example/" in found
-    assert seo._cache == {}  # pyright: ignore[reportPrivateUsage]
+        assert not [q for q in queries.captured_queries if "il2ks_db_player" in q["sql"]]
+        assert all(loc.startswith(f"http://h{n}.example/") for loc in found)
+    assert len(seo._cache) == size  # pyright: ignore[reportPrivateUsage]
+    assert not any("example" in str(key) for key in seo._cache)  # pyright: ignore[reportPrivateUsage]
 
 
 def test_with_a_configured_address_the_sitemap_is_cached(client: Client) -> None:
