@@ -10,6 +10,7 @@ selected with IL2KS_TEST_DB=postgres (TD-04, TD-19).
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from il2ks.config import RuleSet, load_config
@@ -24,6 +25,7 @@ from il2ks.serving.djsettings import (
     csrf_trusted_origins,
     security_settings,
     staticfiles_backend,
+    trust_forwarded_for,
 )
 from il2ks.serving.secret import secret_key_for
 
@@ -61,7 +63,6 @@ SECURE_REDIRECT_EXEMPT = list(_SECURITY.redirect_exempt)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "il2ks.web.throttle.LoginThrottleMiddleware",  # locks an address out after repeated failed admin logins
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "axes.middleware.AxesMiddleware",  # the lockout page (last, as django-axes asks)
 ]
 
 ROOT_URLCONF = "il2ks.urls"
@@ -138,13 +140,27 @@ DATABASES = _databases()
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # The admin account is the one thing on the site worth guessing: Django's standard four password checks apply to every
-# password set through the admin and `il2ks createadmin`. Failed logins are throttled by `il2ks.web.throttle`.
+# password set through the admin and `il2ks createadmin`. Failed logins lock the account and the client address
+# (django-axes, database handler, NFR-SEC-8; code in `il2ks.web.login_protection`).
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+AUTHENTICATION_BACKENDS = ["axes.backends.AxesStandaloneBackend", "django.contrib.auth.backends.ModelBackend"]
+AXES_FAILURE_LIMIT = _CFG.web.login_attempts  # [web] login_attempts
+AXES_COOLOFF_TIME = timedelta(minutes=_CFG.web.login_lockout_minutes)  # [web] login_lockout_minutes
+AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]  # either one over the limit locks: the account, or the address
+AXES_RESET_ON_SUCCESS = True
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = (
+    False  # a lock ends N minutes after it began, however long somebody keeps trying
+)
+AXES_ONLY_ADMIN_SITE = True
+AXES_CLIENT_IP_CALLABLE = "il2ks.web.login_protection.client_address"
+AXES_LOCKOUT_CALLABLE = "il2ks.web.login_protection.lockout_response"
+IL2KS_TRUST_FORWARDED_FOR = trust_forwarded_for(_CFG)  # same rule as SECURE_PROXY_SSL_HEADER; see client_address
 
 LANGUAGE_CODE = "en"
 LANGUAGES = _LANGUAGES  # en + ru, de, es, fr, pt-br (TD-24)

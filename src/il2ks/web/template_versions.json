@@ -97,6 +97,10 @@
       "version": 1,
       "sha256": "f0bc20377f01e753ea72e689fff486edb927a72b46455082e0936befab4889fd"
     },
+    "templates/admin/il2ks_login_locked.html": {
+      "version": 1,
+      "sha256": "14ab53c01825c9656b86f65511d8cb54b2db5ad9b5f0d525ecb871f02ee2a016"
+    },
     "templates/admin/il2ks_quips.html": {
       "version": 1,
       "sha256": "8a055997e4cfde74f984798a7dc2a16ebbe2c52ee41ca6a4f112a1d57f6fc244"

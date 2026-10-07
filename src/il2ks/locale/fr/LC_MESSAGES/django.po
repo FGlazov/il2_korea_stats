@@ -1267,6 +1267,10 @@ msgid "BLUFOR won"
 msgstr "BLUFOR a gagné"
 
 # llm-draft
+msgid "Back to the login page"
+msgstr "Retour à la page de connexion"
+
+# llm-draft
 msgid "Back to the profile"
 msgstr "Retour au profil"
 
@@ -5957,8 +5961,11 @@ msgstr ""
 "installation."
 
 # llm-draft
-msgid "Too many failed login attempts. Try again in a few minutes."
-msgstr "Trop de tentatives de connexion échouées. Réessayez dans quelques minutes."
+#, python-format
+msgid "Too many wrong passwords. Try again in %(n)s minute."
+msgid_plural "Too many wrong passwords. Try again in %(n)s minutes."
+msgstr[0] "Trop de mots de passe incorrects. Réessayez dans %(n)s minute."
+msgstr[1] "Trop de mots de passe incorrects. Réessayez dans %(n)s minutes."
 
 # llm-draft
 msgid "Too many wrong tokens"

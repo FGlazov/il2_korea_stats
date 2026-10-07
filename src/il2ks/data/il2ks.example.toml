@@ -301,6 +301,19 @@
 # Django's secret key (signs login cookies). "" = generated on first start and kept in <data dir>/secret_key.txt.
 # Keep that file private; deleting it only logs everybody out.
 #secret_key = ""
+# Admin login protection: this many wrong passwords lock the account AND the visitor's address ...
+#login_attempts = 5
+# ... for this many minutes. A correct login clears the count. Locked accounts show in `il2ks doctor`, and you can
+# unlock them in the admin (Access attempts: delete the row).
+#login_lockout_minutes = 15
+
+# --- Outbound requests (NFR-SEC-9) ---------------------------------------------------------------------------------------
+# When il2ks fetches a web address you typed in the admin, it refuses addresses that are not on the public internet
+# (this machine, your LAN, cloud metadata).
+#[outbound]
+# Allow your own LAN source here: addresses or networks, like ["192.168.1.0/24"]. Leave it empty unless you really
+# need it.
+#allow_private = []
 
 # --- HTTPS (TD-23, NFR-SEC-6) -----------------------------------------------------------------------------------------
 # The site is served over HTTPS only. By default `il2ks run` starts Caddy, which gets and renews the certificate

@@ -16,6 +16,7 @@ from il2ks.config import (
     LeaderboardConfig,
     LiveConfig,
     LogsConfig,
+    OutboundConfig,
     WebConfig,
     load_config,
 )
@@ -73,6 +74,7 @@ def test_template_lists_every_config_key() -> None:
         "server": SERVER_KEYS,
         "web": {f.name for f in dataclasses.fields(WebConfig)},
         "https": {f.name for f in dataclasses.fields(HttpsConfig)},
+        "outbound": {f.name for f in dataclasses.fields(OutboundConfig)},
     }
     top = {k for k, v in raw.items() if not isinstance(v, dict)}
     assert top == TOP_LEVEL_KEYS
@@ -89,6 +91,7 @@ def test_config_fields_are_all_covered_by_the_template() -> None:
         "debug",
         "web",
         "https",
+        "outbound",
         "logs",
         "ingest",
         "live",

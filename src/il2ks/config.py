@@ -147,6 +147,17 @@ class WebConfig:
     threads: int = 4  # request threads per worker
     allowed_hosts: tuple[str, ...] = ()  # extra Host names Django accepts besides [https] domain and localhost
     secret_key: str = field(default="", repr=False)  # "" = generated into <data dir>/secret_key.txt (NFR-SEC-2)
+    login_attempts: int = 5  # failed admin logins before the account and the client address are locked (NFR-SEC-8)
+    login_lockout_minutes: int = 15  # how long that lock lasts
+
+
+@dataclass(frozen=True, slots=True)
+class OutboundConfig:
+    """Requests the server makes on a URL an admin typed (NFR-SEC-9, `il2ks.serving.outbound`)."""
+
+    allow_private: tuple[
+        str, ...
+    ] = ()  # addresses or networks (192.168.1.0/24) that may be fetched although not public
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,6 +197,7 @@ class Config:
     debug: bool = False  # developer switch: Django DEBUG, plain-http cookies, dev secret key. Never on a public site
     web: WebConfig = field(default_factory=WebConfig)
     https: HttpsConfig = field(default_factory=HttpsConfig)
+    outbound: OutboundConfig = field(default_factory=OutboundConfig)
     logs: LogsConfig = field(default_factory=LogsConfig)
     ingest: IngestConfig = field(default_factory=IngestConfig)
     live: LiveConfig = field(default_factory=LiveConfig)
@@ -279,6 +291,7 @@ def load_config(
     debug = reader.bool_("", "debug", False)
     web = _load_web(reader)
     https = _load_https(reader)
+    outbound = _load_outbound(reader)
 
     after = reader.str_("logs", "after_archive", "move")
     if after not in AFTER_ARCHIVE_VALUES:
@@ -334,6 +347,7 @@ def load_config(
         debug=debug,
         web=web,
         https=https,
+        outbound=outbound,
         logs=logs,
         ingest=ingest,
         live=live,
@@ -444,7 +458,21 @@ def _load_web(reader: _Reader) -> WebConfig:
         threads=reader.positive_int("web", "threads", defaults.threads),
         allowed_hosts=reader.str_list("web", "allowed_hosts", defaults.allowed_hosts),
         secret_key=reader.str_("web", "secret_key", "").strip(),
+        login_attempts=reader.positive_int("web", "login_attempts", defaults.login_attempts),
+        login_lockout_minutes=reader.positive_int("web", "login_lockout_minutes", defaults.login_lockout_minutes),
     )
+
+
+def _load_outbound(reader: _Reader) -> OutboundConfig:
+    entries = reader.str_list("outbound", "allow_private", OutboundConfig().allow_private)
+    for entry in entries:
+        try:
+            ipaddress.ip_network(entry, strict=False)
+        except ValueError as exc:
+            raise ConfigError(
+                f"outbound.allow_private: {entry!r} is not an address or network like 192.168.1.0/24"
+            ) from exc
+    return OutboundConfig(allow_private=entries)
 
 
 _DNS_NAME = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.?")

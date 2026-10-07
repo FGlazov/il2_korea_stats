@@ -1271,6 +1271,10 @@ msgid "BLUFOR won"
 msgstr "Победила BLUFOR"
 
 # llm-draft
+msgid "Back to the login page"
+msgstr "Вернуться на страницу входа"
+
+# llm-draft
 msgid "Back to the profile"
 msgstr "Назад к профилю"
 
@@ -5919,8 +5923,12 @@ msgid "To make sure it is really you, setup needs the one-time token that il2ks 
 msgstr "Чтобы убедиться, что это действительно вы, настройке нужен одноразовый токен, который il2ks создал для этой установки."
 
 # llm-draft
-msgid "Too many failed login attempts. Try again in a few minutes."
-msgstr "Слишком много неудачных попыток входа. Повторите через несколько минут."
+#, python-format
+msgid "Too many wrong passwords. Try again in %(n)s minute."
+msgid_plural "Too many wrong passwords. Try again in %(n)s minutes."
+msgstr[0] "Слишком много неверных паролей. Повторите попытку через %(n)s минуту."
+msgstr[1] "Слишком много неверных паролей. Повторите попытку через %(n)s минуты."
+msgstr[2] "Слишком много неверных паролей. Повторите попытку через %(n)s минут."
 
 # llm-draft
 msgid "Too many wrong tokens"
