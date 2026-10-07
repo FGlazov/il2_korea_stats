@@ -1843,6 +1843,18 @@ msgid "Delete"
 msgstr "Удалить"
 
 # llm-draft
+msgid "Delete all data and reprocess"
+msgstr "Удалить все данные и обработать заново"
+
+# llm-draft
+msgid "Delete all data and reprocess…"
+msgstr "Удалить все данные и обработать заново…"
+
+# llm-draft
+msgid "Deleting all data and reprocessing is requested. It starts at the next watch tick."
+msgstr "Запрошено удаление всех данных и повторная обработка. Она начнётся на следующем такте watch."
+
+# llm-draft
 msgid "Describe the image in a few words; screen readers read this text."
 msgstr "Опишите изображение в нескольких словах; этот текст читают программы экранного доступа."
 
@@ -2945,6 +2957,14 @@ msgstr ""
 "Новые миссии снова обрабатываются, когда всё закончится."
 
 # llm-draft
+msgid ""
+"It can take minutes to hours on a big archive. The site keeps running, but its pages show little or nothing until the"
+" missions are back. New missions are ingested again once it is over."
+msgstr ""
+"На большом архиве это может занять от минут до часов. Сайт продолжает работать, но его страницы почти пусты, пока "
+"миссии не вернутся. Новые миссии снова загружаются после завершения."
+
+# llm-draft
 msgid "It still flew, mostly out of politeness. Well landed."
 msgstr "Ещё летел, скорее из вежливости. Хорошая посадка."
 
@@ -3329,6 +3349,16 @@ msgstr "Сохранено миссий"
 #, python-format
 msgid "Missions won by one side in the last 30 days: %(recent_wins)s"
 msgstr "Миссии, выигранные одной стороной, за последние 30 дней: %(recent_wins)s"
+
+# llm-draft
+msgid ""
+"Missions, sorties, players, tours and all statistics are deleted. Your settings stay: site branding and texts, game "
+"rules, achievement and flight-time settings, quips, navigation links, hidden players and missions, name changes, and "
+"manual tour names and boundaries."
+msgstr ""
+"Миссии, вылеты, игроки, туры и вся статистика удаляются. Ваши настройки сохраняются: оформление и тексты сайта, "
+"правила игры, настройки достижений и налёта, фразы, ссылки навигации, скрытые игроки и миссии, изменённые имена, а "
+"также названия и границы ручных туров."
 
 # llm-draft
 msgid "Modifications"
@@ -5353,6 +5383,10 @@ msgid "The configuration does not load"
 msgstr "Настройки не загружаются"
 
 # llm-draft
+msgid "The confirmation did not match, so nothing was requested."
+msgstr "Подтверждение не совпало, поэтому ничего не запрошено."
+
+# llm-draft
 msgid "The crew chief will have opinions about this one."
 msgstr "У бригадира на этот счёт будет своё мнение."
 
@@ -5773,6 +5807,18 @@ msgstr ""
 "потерян из-за того самолёта, и прочерк, пока победы плюс потери меньше 10: слишком мало для надёжного отношения."
 
 # llm-draft
+#, python-format
+msgid ""
+"This deletes everything built from the logs, the %(n)s stored mission included, and builds it again from the archived"
+" logs."
+msgid_plural ""
+"This deletes everything built from the logs, all %(n)s stored missions included, and builds it again from the "
+"archived logs."
+msgstr[0] "Это удалит всё, что построено по логам, включая %(n)s сохранённую миссию, и построит заново из архивных логов."
+msgstr[1] "Это удалит всё, что построено по логам, включая %(n)s сохранённые миссии, и построит заново из архивных логов."
+msgstr[2] "Это удалит всё, что построено по логам, включая все %(n)s сохранённых миссий, и построит заново из архивных логов."
+
+# llm-draft
 msgid "This is not a PNG, JPEG or WebP image (SVG is not accepted)."
 msgstr "Это не изображение PNG, JPEG или WebP (SVG не принимается)."
 
@@ -5915,6 +5961,11 @@ msgid "Times are shown in your time zone (%(zone)s)."
 msgstr "Время указано в вашем часовом поясе (%(zone)s)."
 
 # llm-draft
+#, python-format
+msgid "To confirm, type %(word)s here:"
+msgstr "Для подтверждения введите здесь %(word)s:"
+
+# llm-draft
 msgid "To make sure it is really you, setup needs the one-time token that il2ks created for this installation."
 msgstr "Чтобы убедиться, что это действительно вы, настройке нужен одноразовый токен, который il2ks создал для этой установки."
 
@@ -6024,6 +6075,14 @@ msgstr "Параметры туров"
 # llm-draft
 msgid "Tour settings saved."
 msgstr "Настройки туров сохранены."
+
+# llm-draft
+msgid ""
+"Tours are cut again from the current tour settings. A backup is made first; if it fails, nothing is deleted. Nothing "
+"is deleted either when a stored mission has no archive."
+msgstr ""
+"Туры нарезаются заново по текущим настройкам туров. Сначала создаётся резервная копия; если она не удалась, ничего не"
+" удаляется. Ничего не удаляется и тогда, когда у сохранённой миссии нет архива."
 
 # llm-draft
 msgid "Tours in a row in which you flew at least once. A tour you skip ends the run."
@@ -6484,6 +6543,10 @@ msgid "chart series 2"
 msgstr "ряд диаграммы 2"
 
 # llm-draft
+msgid "checking the archives"
+msgstr "проверка архивов"
+
+# llm-draft
 msgid "created"
 msgstr "создан"
 
@@ -6498,6 +6561,14 @@ msgstr "тёмная"
 # llm-draft
 msgid "dark mode"
 msgstr "тёмная тема"
+
+# llm-draft
+msgid "delete all data and reprocess"
+msgstr "удалить все данные и обработать заново"
+
+# llm-draft
+msgid "deleting the data"
+msgstr "удаление данных"
 
 # llm-draft
 msgid "exited on ground"
@@ -6583,6 +6654,10 @@ msgstr "ссылки на карточках и в таблицах"
 # llm-draft
 msgid "links on the page background"
 msgstr "ссылки на фоне страницы"
+
+# llm-draft
+msgid "making a backup"
+msgstr "создание резервной копии"
 
 # llm-draft
 msgid "monthly, days:14 (blocks of 14 days counted from the first day) or manual"

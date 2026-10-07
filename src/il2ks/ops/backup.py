@@ -42,7 +42,7 @@ from il2ks.ops.dbfile import (
 
 log = logging.getLogger(__name__)
 
-type BackupReason = Literal["manual", "daily", "pre-migrate", "pre-restore"]
+type BackupReason = Literal["manual", "daily", "pre-migrate", "pre-restore", "pre-wipe"]
 
 FORMAT_VERSION = 1
 MANIFEST = "manifest.json"

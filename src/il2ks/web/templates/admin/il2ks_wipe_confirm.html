@@ -1,0 +1,27 @@
+{# il2ks-template: templates/admin/il2ks_wipe_confirm.html v1 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> ›
+  <a href="{{ status_url }}">{% translate "Ingestion status" %}</a> › {% translate "Delete all data and reprocess" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p><strong>{% blocktranslate count n=missions_stored %}This deletes everything built from the logs, the {{ n }} stored mission included, and builds it again from the archived logs.{% plural %}This deletes everything built from the logs, all {{ n }} stored missions included, and builds it again from the archived logs.{% endblocktranslate %}</strong></p>
+  <p>{% translate "Missions, sorties, players, tours and all statistics are deleted. Your settings stay: site branding and texts, game rules, achievement and flight-time settings, quips, navigation links, hidden players and missions, name changes, and manual tour names and boundaries." %}</p>
+  <p>{% translate "Tours are cut again from the current tour settings. A backup is made first; if it fails, nothing is deleted. Nothing is deleted either when a stored mission has no archive." %}</p>
+  <p>{% translate "It can take minutes to hours on a big archive. The site keeps running, but its pages show little or nothing until the missions are back. New missions are ingested again once it is over." %}</p>
+  <p>{% translate "The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion status page." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <p><label for="id_confirmation">{% blocktranslate %}To confirm, type {{ word }} here:{% endblocktranslate %}</label>
+      <input type="text" name="confirmation" id="id_confirmation" autocomplete="off" required></p>
+    <input type="submit" value="{% translate 'Delete all data and reprocess' %}">
+    <a href="{{ status_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+</div>
+{% endblock %}

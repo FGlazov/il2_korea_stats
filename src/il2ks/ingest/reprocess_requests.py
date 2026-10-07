@@ -20,6 +20,7 @@ from il2ks.db.reprocess_requests import pending_request
 from il2ks.ingest.lock import LockBusyError
 from il2ks.ingest.reprocess import ReprocessSummary, reprocess
 from il2ks.ingest.runner import Pipeline, utcnow
+from il2ks.ingest.wipe import WipeError, WipePhase, wipe_and_reprocess
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +43,21 @@ class ReprocessFn(Protocol):
     ) -> ReprocessSummary: ...
 
 
+class WipeFn(Protocol):
+    """`wipe.wipe_and_reprocess` as the request runner uses it (tests pass a fake)."""
+
+    def __call__(
+        self,
+        cfg: Config,
+        pipeline: Pipeline,
+        /,
+        *,
+        on_phase: Callable[[WipePhase], None],
+        on_start: Callable[[int], None],
+        on_progress: Callable[[ReprocessSummary], None],
+    ) -> ReprocessSummary: ...
+
+
 def fail_interrupted_requests(now: datetime) -> int:
     """Requests left `running` by a process that died. Call once when `watch` starts (nothing else runs requests)."""
     return ReprocessRequest.objects.filter(status=ReprocessStatus.RUNNING).update(
@@ -54,6 +70,7 @@ def run_pending_request(
     pipeline_factory: Callable[[], Pipeline],
     *,
     reprocess_fn: ReprocessFn = reprocess,
+    wipe_fn: WipeFn = wipe_and_reprocess,
     now: Callable[[], datetime] = utcnow,
     between: Callable[[], None] | None = None,
 ) -> ReprocessRequest | None:
@@ -68,9 +85,16 @@ def run_pending_request(
 
     def started(total: int) -> None:  # the writer lock is held now
         request.status = ReprocessStatus.RUNNING
-        request.started_at = now()
+        request.started_at = request.started_at or now()
         request.missions_total = total
         request.save(update_fields=["status", "started_at", "missions_total"])
+
+    def phase(step: WipePhase) -> None:
+        request.phase = step.value
+        if request.status == ReprocessStatus.PENDING:  # the first step: the job is under way (lock held)
+            request.status = ReprocessStatus.RUNNING
+            request.started_at = now()
+        request.save(update_fields=["phase", "status", "started_at"])
 
     def progress(summary: ReprocessSummary) -> None:
         request.missions_ok = len(summary.ok)
@@ -80,12 +104,23 @@ def run_pending_request(
             between()
 
     try:
-        summary = reprocess_fn(
-            cfg, pipeline_factory(), since=request.since, until=request.until, on_start=started, on_progress=progress
-        )
+        if request.wipe:
+            summary = wipe_fn(cfg, pipeline_factory(), on_phase=phase, on_start=started, on_progress=progress)
+        else:
+            summary = reprocess_fn(
+                cfg,
+                pipeline_factory(),
+                since=request.since,
+                until=request.until,
+                on_start=started,
+                on_progress=progress,
+            )
     except LockBusyError as exc:
         log.info("reprocess request #%s waits: %s", request.pk, exc)
         return None
+    except WipeError as exc:  # nothing was deleted: say why (no archive, no backup)
+        log.warning("reprocess request #%s: %s", request.pk, exc)
+        return _finish(request, now(), ReprocessStatus.FAILED, error=str(exc)[-ERROR_MAX_CHARS:])
     except Exception:
         log.exception("reprocess request #%s failed", request.pk)
         return _finish(request, now(), ReprocessStatus.FAILED, error=traceback.format_exc()[-ERROR_MAX_CHARS:])
@@ -97,6 +132,7 @@ def run_pending_request(
 
 def _finish(request: ReprocessRequest, at: datetime, status: ReprocessStatus, *, error: str) -> ReprocessRequest:
     request.status = status
+    request.phase = ""
     request.finished_at = at
     request.error = error
     with transaction.atomic():

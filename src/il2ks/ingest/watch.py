@@ -30,9 +30,10 @@ from il2ks.ingest.achievements import recompute_with_wanted_rules
 from il2ks.ingest.live import LiveTracker
 from il2ks.ingest.lock import LockBusyError
 from il2ks.ingest.reprocess import reprocess
-from il2ks.ingest.reprocess_requests import ReprocessFn, fail_interrupted_requests, run_pending_request
+from il2ks.ingest.reprocess_requests import ReprocessFn, WipeFn, fail_interrupted_requests, run_pending_request
 from il2ks.ingest.runner import IngestOptions, Pipeline, default_pipeline, ingest_once, utcnow
 from il2ks.ingest.score_apply import rescore_with_wanted
+from il2ks.ingest.wipe import wipe_and_reprocess
 from il2ks.ops.backup import backup_if_due
 
 log = logging.getLogger(__name__)
@@ -81,6 +82,7 @@ def watch(
     now: Callable[[], datetime] = utcnow,
     reprocess_pipeline: Callable[[], Pipeline] | None = None,
     reprocess_fn: ReprocessFn = reprocess,
+    wipe_fn: WipeFn = wipe_and_reprocess,
 ) -> int:
     """Loop until `stop` is set, `max_ticks` ticks ran, or Ctrl+C (KeyboardInterrupt propagates). Returns ticks run."""
     stop = stop or threading.Event()
@@ -127,7 +129,12 @@ def watch(
             log.exception("ingest tick failed; retrying next tick")
         try:
             run_pending_request(
-                cfg, reprocess_pipeline, reprocess_fn=reprocess_fn, now=now, between=live_between_missions
+                cfg,
+                reprocess_pipeline,
+                reprocess_fn=reprocess_fn,
+                wipe_fn=wipe_fn,
+                now=now,
+                between=live_between_missions,
             )
         except Exception:
             log.exception("reprocess request tick failed; retrying next tick")

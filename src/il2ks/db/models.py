@@ -1738,6 +1738,10 @@ class ReprocessRequest(models.Model):
     missions_ok = models.PositiveIntegerField(default=0)
     missions_failed = models.PositiveIntegerField(default=0)
     missions_missing = models.PositiveIntegerField(default=0)
+    # "Delete all data and reprocess": back up, delete every ingested row (`ingest.wipe`), then reprocess every mission.
+    # `phase` says which step a running request is in (`ingest.wipe.WipePhase`; empty for a plain reprocess).
+    wipe = models.BooleanField(default=False)
+    phase = models.CharField(max_length=16, blank=True, default="")
     error = models.TextField(blank=True)
 
     class Meta:
