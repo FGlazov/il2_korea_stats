@@ -3,7 +3,10 @@
 import io
 import ipaddress
 import socket
-from collections.abc import Sequence
+import ssl
+import threading
+import time
+from collections.abc import Callable, Sequence
 
 import pytest
 
@@ -20,6 +23,14 @@ class FakeSocket:
     def __init__(self, response: bytes) -> None:
         self.response = response
         self.sent = b""
+        self.closed = False
+        self.timeouts: list[float | None] = []
+
+    def settimeout(self, value: float | None) -> None:
+        self.timeouts.append(value)
+
+    def shutdown(self, how: int) -> None:
+        pass
 
     def sendall(self, data: bytes) -> None:
         self.sent += data
@@ -28,7 +39,7 @@ class FakeSocket:
         return io.BytesIO(self.response)
 
     def close(self) -> None:
-        pass
+        self.closed = True
 
 
 def http(status: str = "200 OK", body: bytes = b"hello", **headers: str) -> bytes:
@@ -93,6 +104,8 @@ class World:
         "fd12:3456::1",
         "fe80::1",
         "ff02::1",
+        "fec0::1",  # site-local (deprecated, but still not the public internet)
+        "feff::1",
         "::ffff:127.0.0.1",  # IPv4-mapped forms of the above
         "::ffff:10.0.0.5",
         "::ffff:169.254.169.254",
@@ -385,3 +398,132 @@ def test_the_system_resolver_reports_failure_in_plain_words(monkeypatch: pytest.
 
     with pytest.raises(OutboundError, match="could not be resolved"):
         outbound.system_resolver("nowhere.invalid", 80)
+
+
+def test_a_failed_tls_handshake_closes_the_raw_socket() -> None:
+    """M4: the raw socket used to be left open until the garbage collector found it."""
+    raw = FakeSocket(b"")
+
+    def tls(sock: socket.socket, host: str) -> socket.socket:
+        raise ssl.SSLError("handshake failed")
+
+    with pytest.raises(OutboundError, match="failed"):
+        fetch(
+            "https://a.example/",
+            resolver=lambda h, p: [PUBLIC],
+            connector=lambda address, port, timeout: raw,  # type: ignore[arg-type,return-value]
+            tls=tls,
+        )
+
+    assert raw.closed
+
+
+# --- the whole-call deadline against a real, slow server (no internet: a socket on this machine) -----------------
+
+LOOPBACK = parse_allow_list(["127.0.0.0/8"])
+
+
+type Script = Callable[[socket.socket, threading.Event], None]
+
+
+class SlowServer:
+    """Accepts one connection and answers `script(connection, stop)`; stops after `give_up_s` at the latest."""
+
+    def __init__(self, script: Script) -> None:
+        self.listener = socket.socket()
+        self.listener.bind(("127.0.0.1", 0))
+        self.listener.listen(5)
+        self.port: int = self.listener.getsockname()[1]
+        self.stop = threading.Event()
+        self.script = script
+        self.thread = threading.Thread(target=self._serve, daemon=True)
+
+    def _serve(self) -> None:
+        try:
+            connection, _ = self.listener.accept()
+        except OSError:
+            return
+        with connection:
+            connection.settimeout(1)
+            try:
+                connection.recv(4096)
+                self.script(connection, self.stop)
+            except OSError:
+                pass
+
+    def __enter__(self) -> "SlowServer":
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.stop.set()
+        self.listener.close()
+        self.thread.join(5)
+
+
+def trickle(data: bytes, every_s: float, give_up_s: float = 6.0) -> Script:
+    def run(connection: socket.socket, stop: threading.Event) -> None:
+        end = time.monotonic() + give_up_s
+        for i in range(len(data)):
+            if stop.is_set() or time.monotonic() > end:
+                return
+            connection.sendall(data[i : i + 1])
+            time.sleep(every_s)
+
+    return run
+
+
+def local_fetch(server: SlowServer, timeout_s: float) -> float:
+    """Seconds `fetch` needs to fail with 'took too long' (the test fails when it ends otherwise or late)."""
+    start = time.monotonic()
+    with pytest.raises(OutboundError, match="took too long"):
+        fetch(
+            f"http://localhost.example:{server.port}/",
+            timeout_s=timeout_s,
+            allow_private=LOOPBACK,
+            resolver=lambda h, p: ["127.0.0.1"],
+        )
+    return time.monotonic() - start
+
+
+def test_a_server_trickling_the_headers_cannot_hold_the_call_past_the_deadline() -> None:
+    """M4: header reading had no deadline; one byte every 0.4 s kept the call alive for as long as the server liked."""
+    head = http(body=b"", X_Slow="a" * 200)
+    with SlowServer(trickle(head, 0.4)) as server:
+        assert local_fetch(server, 1.0) < 3.0
+
+
+def test_a_server_trickling_the_body_cannot_hold_the_call_past_the_deadline() -> None:
+    head = http(body=b"", Content_Length="1000")
+    body = b"x" * 1000
+
+    def script(connection: socket.socket, stop: threading.Event) -> None:
+        connection.sendall(head)
+        trickle(body, 0.4)(connection, stop)
+
+    with SlowServer(script) as server:
+        assert local_fetch(server, 1.0) < 3.0
+
+
+def test_a_server_that_never_answers_is_cut_off_at_the_deadline() -> None:
+    def silent(connection: socket.socket, stop: threading.Event) -> None:
+        stop.wait(6)
+
+    with SlowServer(silent) as server:
+        assert local_fetch(server, 1.0) < 3.0
+
+
+def test_a_fast_local_server_still_works_through_the_real_sockets() -> None:
+    answer = http(body=b"hello", Content_Length="5")
+
+    def script(connection: socket.socket, stop: threading.Event) -> None:
+        connection.sendall(answer)
+
+    with SlowServer(script) as server:
+        result = fetch(
+            f"http://localhost.example:{server.port}/",
+            allow_private=LOOPBACK,
+            resolver=lambda h, p: ["127.0.0.1"],
+        )
+
+    assert (result.status, result.body) == (200, b"hello")
