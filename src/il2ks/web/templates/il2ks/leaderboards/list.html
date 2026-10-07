@@ -1,11 +1,11 @@
-{# il2ks-template: templates/il2ks/leaderboards/list.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/list.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Leaderboards (FR-WEB-7, FR-WEB-19, FR-WEB-20). View: il2ks.web.views.leaderboards.leaderboard.
   Context: board (the queries.leaderboards.Board), title, help, tab_groups ((group title, tab rows) pairs; a tab row is
   (key, title, url, current, icon name; the url keeps the tour / pool / aircraft choice)), pool_options ((value, label) pairs for the prop / jet filter), sort (resolved),
   page_obj (Page of BoardRow: rank, player, stats, per_hour, rating and games on the Elo boards), tours / tour (the tour selector, TD-26: no ?tour = current tour, ?tour=all = all time; empty for the
   all-time-only Elo boards), aircraft_options ((pk, name) pairs, empty where the board has no aircraft filter), rules
-  (the minimum-activity thresholds). The ironman boards also get running_page (the runs going right now, None in
+  (the minimum-activity thresholds), side_share (the sorties per side of the shown tour or all time, or None). The ironman boards also get running_page (the runs going right now, None in
   a past tour) and active_days.
   Blocks: head (page stylesheet), content. The table is leaderboards/table.html.
 {% endcomment %}
@@ -37,6 +37,7 @@
         {% if aircraft_options %}{% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}{% endif %}
       {% endfilter_bar %}
     {% endif %}
+    {% include "il2ks/components/side_share.html" with share=side_share %}
     {% include "il2ks/leaderboards/table.html" %}
     <p class="board-note">
       {% if board.key == "elo-prop" or board.key == "elo-jet" %}

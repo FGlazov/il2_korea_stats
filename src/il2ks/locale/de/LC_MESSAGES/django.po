@@ -1259,6 +1259,10 @@ msgid "BLUFOR labels"
 msgstr "BLUFOR-Beschriftungen"
 
 # llm-draft
+msgid "BLUFOR pilots"
+msgstr "BLUFOR-Piloten"
+
+# llm-draft
 msgid "BLUFOR sorties"
 msgstr "BLUFOR-Einsätze"
 
@@ -4133,6 +4137,18 @@ msgstr "Statistiken zu Piloten, Einsätzen und Missionen von unserem IL-2-Sturmo
 msgid "Pilots"
 msgstr "Piloten"
 
+# llm-draft
+msgid "Pilots spawned in for BLUFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr ""
+"Durchschnittliche Zahl der Piloten im Spiel für BLUFOR, über die Missionsdauer gemittelt. Ein Strich bei Missionen, "
+"die vor dieser Zählung gespeichert wurden."
+
+# llm-draft
+msgid "Pilots spawned in for REDFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr ""
+"Durchschnittliche Zahl der Piloten im Spiel für REDFOR, über die Missionsdauer gemittelt. Ein Strich bei Missionen, "
+"die vor dieser Zählung gespeichert wurden."
+
 #, python-format
 msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
@@ -4354,6 +4370,10 @@ msgstr "REDFOR"
 # llm-draft
 msgid "REDFOR labels"
 msgstr "REDFOR-Beschriftungen"
+
+# llm-draft
+msgid "REDFOR pilots"
+msgstr "REDFOR-Piloten"
 
 # llm-draft
 msgid "REDFOR sorties"
@@ -4955,6 +4975,12 @@ msgid "Sorties"
 msgstr "Einsätze"
 
 # llm-draft
+#. Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of
+#. all sorties
+msgid "Sorties flown for the side that had fewer pilots spawned in while the pilot flew"
+msgstr "Einsätze für die Seite, die während des Fluges weniger Piloten im Spiel hatte"
+
+# llm-draft
 #. Translators: tooltip of the "Attack sorties" column header
 msgid "Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."
 msgstr "Einsätze mit Bomben oder Raketen an Bord oder in einem reinen Erdkämpfer wie der IL-10."
@@ -5006,6 +5032,7 @@ msgid "Sorties per pilot"
 msgstr "Einsätze pro Pilot"
 
 # llm-draft
+#. Translators: profile total: how many of the pilot's sorties were flown for each side (REDFOR / BLUFOR)
 msgid "Sorties per side"
 msgstr "Einsätze pro Seite"
 
@@ -6109,6 +6136,10 @@ msgstr "Passwort noch einmal eingeben"
 # llm-draft
 msgid "Unattributed"
 msgstr "Nicht zugeordnet"
+
+# llm-draft
+msgid "Underdog sorties"
+msgstr "Einsätze für die kleinere Seite"
 
 # llm-draft
 msgid "Unharmed"

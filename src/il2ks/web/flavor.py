@@ -418,6 +418,7 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         kills_intercept=stats.kills_intercept,
         kills_tank_attack=stats.kills_tank_attack,
         attack_sorties=stats.attack_sorties,
+        sorties_underdog=stats.sorties_underdog,
     )
 
 

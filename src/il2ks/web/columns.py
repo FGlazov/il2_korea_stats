@@ -140,6 +140,11 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
 
 
 # --- missions ------------------------------------------------------------------------------------------------------
+def _pilots(m: Mission, average: float) -> str:
+    """The average pilots spawned in for one side, one decimal; the dash for a mission saved before it was counted."""
+    return display.num(average, 1) if m.redfor_players or m.blufor_players else display.DASH
+
+
 MISSION_COLUMNS: tuple[Column[Mission], ...] = (
     Column("friendly_kills", _("Friendly kills"), lambda m: display.num(m.friendly_kills)),
     Column("tour", _("Tour"), lambda m: tour_title(m.tour.title) if m.tour is not None else display.DASH),
@@ -147,6 +152,24 @@ MISSION_COLUMNS: tuple[Column[Mission], ...] = (
     Column("redfor_sorties", _("REDFOR sorties"), lambda m: display.num(m.redfor_sorties)),
     Column("blufor_sorties", _("BLUFOR sorties"), lambda m: display.num(m.blufor_sorties)),
     Column("sorties_per_player", _("Sorties per pilot"), lambda m: display.ratio(m.sorties_total, m.players_total, 1)),
+    Column(
+        "redfor_players",
+        _("REDFOR pilots"),
+        lambda m: _pilots(m, m.redfor_players),
+        _(
+            "Pilots spawned in for REDFOR, averaged over the mission's time; "
+            "a dash for missions saved before this was counted."
+        ),
+    ),
+    Column(
+        "blufor_players",
+        _("BLUFOR pilots"),
+        lambda m: _pilots(m, m.blufor_players),
+        _(
+            "Pilots spawned in for BLUFOR, averaged over the mission's time; "
+            "a dash for missions saved before this was counted."
+        ),
+    ),
 )
 
 

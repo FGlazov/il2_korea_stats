@@ -22,9 +22,9 @@ class PageSpec:
 
 PAGES: tuple[PageSpec, ...] = (
     PageSpec("home", lambda w: "/", HOME_READS),
-    PageSpec("leaderboards", lambda w: "/leaderboards/", 8),
-    PageSpec("leaderboard", lambda w: "/leaderboards/interception/?tour=all", 8),
-    PageSpec("leaderboard", lambda w: "/leaderboards/tank-busting/?pool=prop", 8),
+    PageSpec("leaderboards", lambda w: "/leaderboards/", 9),
+    PageSpec("leaderboard", lambda w: "/leaderboards/interception/?tour=all", 9),
+    PageSpec("leaderboard", lambda w: "/leaderboards/tank-busting/?pool=prop", 9),
     PageSpec("mission-list", lambda w: "/missions/", 6),
     PageSpec("mission-list", lambda w: "/missions/?page=3", 6),
     PageSpec("mission-detail", lambda w: f"/missions/{w.mission_pk}/", 6, max_ms=600.0),
@@ -37,10 +37,10 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("player-killboard", lambda w: f"/players/{w.player_pk}/killboard/", 7),
     PageSpec("player-streaks", lambda w: f"/players/{w.player_pk}/streaks/", 8),
     PageSpec("player-streak-runs", lambda w: f"/players/{w.player_pk}/streaks/history/", 6),
-    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-all/", 8),  # the best runs + the running ones
-    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-air/", 8),
-    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-ground/?tour=all", 8),
-    PageSpec("leaderboard", lambda w: "/leaderboards/air/", 8),
+    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-all/", 9),  # the best runs + the running ones
+    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-air/", 9),
+    PageSpec("leaderboard", lambda w: "/leaderboards/ironman-ground/?tour=all", 9),
+    PageSpec("leaderboard", lambda w: "/leaderboards/air/", 9),
     PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 8),  # + earned medals and their rarity (FR-WEB-26)
     PageSpec("player-achievements", lambda w: f"/players/{w.player_pk}/achievements/", 6),
     PageSpec("achievements", lambda w: "/achievements/", 5),

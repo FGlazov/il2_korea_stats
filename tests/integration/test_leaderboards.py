@@ -243,10 +243,10 @@ def test_the_navigation_links_to_the_leaderboards(client: Client) -> None:
 def test_boards_are_simple_reads_within_budget(client: Client) -> None:
     seed()
     # context processors 2, tours, aircraft options, count, rows (Elo boards have no tour or aircraft reads)
-    assert_simple_reads(client, "/leaderboards/", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/ground-hour/?sort=-score", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/ground/?sort=name", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/elo-prop/", max_queries=4)
+    assert_simple_reads(client, "/leaderboards/", max_queries=7)
+    assert_simple_reads(client, "/leaderboards/ground-hour/?sort=-score", max_queries=7)
+    assert_simple_reads(client, "/leaderboards/ground/?sort=name", max_queries=7)
+    assert_simple_reads(client, "/leaderboards/elo-prop/", max_queries=5)
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)
@@ -397,10 +397,10 @@ def test_home_boards_show_a_message_when_nobody_qualifies(client: Client) -> Non
 def test_pool_and_group_pages_stay_simple_reads(client: Client) -> None:
     seed()
 
-    assert_simple_reads(client, "/leaderboards/air/?pool=jet", max_queries=6)
-    assert_simple_reads(client, "/leaderboards/ground-hour/?pool=prop&sort=name", max_queries=6)
+    assert_simple_reads(client, "/leaderboards/air/?pool=jet", max_queries=8)
+    assert_simple_reads(client, "/leaderboards/ground-hour/?pool=prop&sort=name", max_queries=7)
     tour = Tour.objects.get()
-    assert_simple_reads(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet", max_queries=7)
+    assert_simple_reads(client, f"/leaderboards/air/?tour={tour.pk}&pool=jet", max_queries=8)
 
 
 @override_settings(IL2KS_LEADERBOARDS=LOW)

@@ -49,6 +49,7 @@ _FIELDS = (
     "kills_intercept",
     "kills_tank_attack",
     "attack_sorties",
+    "sorties_underdog",
 )
 _AMOUNT_FIELD: dict[Metric, str] = {  # the column `core.stat_marks.amount` compares with a metric's minimum
     "elo_prop": "elo_prop_games",

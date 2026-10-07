@@ -1263,6 +1263,10 @@ msgid "BLUFOR labels"
 msgstr "подписи BLUFOR"
 
 # llm-draft
+msgid "BLUFOR pilots"
+msgstr "Пилоты BLUFOR"
+
+# llm-draft
 msgid "BLUFOR sorties"
 msgstr "Вылеты BLUFOR"
 
@@ -4122,6 +4126,18 @@ msgstr "Статистика пилотов, вылетов и миссий на
 msgid "Pilots"
 msgstr "Пилоты"
 
+# llm-draft
+msgid "Pilots spawned in for BLUFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr ""
+"Сколько пилотов BLUFOR в среднем было в игре за время миссии. Прочерк у миссий, сохранённых до появления этого "
+"подсчёта."
+
+# llm-draft
+msgid "Pilots spawned in for REDFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr ""
+"Сколько пилотов REDFOR в среднем было в игре за время миссии. Прочерк у миссий, сохранённых до появления этого "
+"подсчёта."
+
 #, python-format
 msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
@@ -4345,6 +4361,10 @@ msgstr "REDFOR"
 # llm-draft
 msgid "REDFOR labels"
 msgstr "подписи REDFOR"
+
+# llm-draft
+msgid "REDFOR pilots"
+msgstr "Пилоты REDFOR"
 
 # llm-draft
 msgid "REDFOR sorties"
@@ -4947,6 +4967,12 @@ msgid "Sorties"
 msgstr "Вылеты"
 
 # llm-draft
+#. Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of
+#. all sorties
+msgid "Sorties flown for the side that had fewer pilots spawned in while the pilot flew"
+msgstr "Вылеты за сторону, у которой в игре было меньше пилотов, пока пилот летал"
+
+# llm-draft
 #. Translators: tooltip of the "Attack sorties" column header
 msgid "Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."
 msgstr "Вылеты с бомбами или ракетами на борту или на специальном штурмовике, например Ил-10."
@@ -4998,6 +5024,7 @@ msgid "Sorties per pilot"
 msgstr "Вылетов на пилота"
 
 # llm-draft
+#. Translators: profile total: how many of the pilot's sorties were flown for each side (REDFOR / BLUFOR)
 msgid "Sorties per side"
 msgstr "Вылетов по сторонам"
 
@@ -6080,6 +6107,10 @@ msgstr "Введите пароль ещё раз"
 # llm-draft
 msgid "Unattributed"
 msgstr "Без указания виновника"
+
+# llm-draft
+msgid "Underdog sorties"
+msgstr "Вылеты за меньшую сторону"
 
 # llm-draft
 msgid "Unharmed"

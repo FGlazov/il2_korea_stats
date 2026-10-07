@@ -80,6 +80,13 @@ def test_metric_values_follow_the_page_ratios() -> None:
     assert metric_value("ground_per_sortie", TOTALS) == 1.5
 
 
+def test_underdog_share_is_per_counted_sortie() -> None:
+    """Side balance (OQ-134): the share of the counted sorties flown for the side with fewer pilots."""
+    assert metric_value("underdog_share", replace(TOTALS, sorties=20, sorties_underdog=5)) == 0.25
+    assert metric_value("underdog_share", Totals(0, 0, 0, 0, 0, 0.0)) is None
+    assert amount("underdog_share", replace(TOTALS, sorties=20)) == 20
+
+
 def test_incident_rates_are_per_sortie() -> None:
     assert metric_value("taxi_per_sortie", TOTALS) == 0.0
     busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_kills=2)

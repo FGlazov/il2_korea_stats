@@ -1249,6 +1249,10 @@ msgid "BLUFOR labels"
 msgstr "rótulos da BLUFOR"
 
 # llm-draft
+msgid "BLUFOR pilots"
+msgstr "Pilotos BLUFOR"
+
+# llm-draft
 msgid "BLUFOR sorties"
 msgstr "Surtidas BLUFOR"
 
@@ -4104,6 +4108,14 @@ msgstr "Estatísticas de pilotos, surtidas e missões do nosso servidor de IL-2 
 msgid "Pilots"
 msgstr "Pilotos"
 
+# llm-draft
+msgid "Pilots spawned in for BLUFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr "Média de pilotos da BLUFOR em jogo ao longo da missão. Um traço nas missões salvas antes de esse número ser contado."
+
+# llm-draft
+msgid "Pilots spawned in for REDFOR, averaged over the mission's time; a dash for missions saved before this was counted."
+msgstr "Média de pilotos da REDFOR em jogo ao longo da missão. Um traço nas missões salvas antes de esse número ser contado."
+
 #, python-format
 msgid "Pilots still alive after the most consecutive sorties. Only pilots who flew in the last %(days)s days are listed."
 msgstr ""
@@ -4327,6 +4339,10 @@ msgstr "REDFOR"
 # llm-draft
 msgid "REDFOR labels"
 msgstr "rótulos da REDFOR"
+
+# llm-draft
+msgid "REDFOR pilots"
+msgstr "Pilotos REDFOR"
 
 # llm-draft
 msgid "REDFOR sorties"
@@ -4928,6 +4944,12 @@ msgid "Sorties"
 msgstr "Surtidas"
 
 # llm-draft
+#. Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of
+#. all sorties
+msgid "Sorties flown for the side that had fewer pilots spawned in while the pilot flew"
+msgstr "Surtidas pelo lado que tinha menos pilotos em jogo enquanto o piloto voava"
+
+# llm-draft
 #. Translators: tooltip of the "Attack sorties" column header
 msgid "Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."
 msgstr "Surtidas com bombas ou foguetes a bordo, ou em um avião de ataque dedicado como o IL-10."
@@ -4979,6 +5001,7 @@ msgid "Sorties per pilot"
 msgstr "Surtidas por piloto"
 
 # llm-draft
+#. Translators: profile total: how many of the pilot's sorties were flown for each side (REDFOR / BLUFOR)
 msgid "Sorties per side"
 msgstr "Surtidas por lado"
 
@@ -6075,6 +6098,10 @@ msgstr "Digite a senha de novo"
 # llm-draft
 msgid "Unattributed"
 msgstr "Sem autoria"
+
+# llm-draft
+msgid "Underdog sorties"
+msgstr "Surtidas pelo lado menor"
 
 # llm-draft
 msgid "Unharmed"

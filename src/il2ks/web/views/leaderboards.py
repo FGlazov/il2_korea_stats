@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 
 from il2ks.queries import boards as board_reads
 from il2ks.queries import leaderboards as reads
+from il2ks.queries import missions as mission_reads
 from il2ks.queries import tours as tour_reads
 from il2ks.web import object_names
 from il2ks.web.context_processors import site_row
@@ -164,5 +165,6 @@ def leaderboard(request: HttpRequest, board: str = reads.DEFAULT_BOARD) -> HttpR
         "rules": rules,
         "running_page": running,
         "active_days": board_reads.ACTIVE_DAYS,
+        "side_share": mission_reads.side_share(selected_tour),
     }
     return render(request, "il2ks/leaderboards/list.html", context)

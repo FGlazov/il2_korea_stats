@@ -253,6 +253,10 @@
       "version": 1,
       "sha256": "5bbf274f1ba21076bfa0ea7fc8735715d564ae66c869fe7df3a7d3b0a8e1ebcb"
     },
+    "templates/il2ks/components/side_share.html": {
+      "version": 2,
+      "sha256": "d2309d5483d949bef6edb7b2a2b7fe4989ee1f59e4f527ec9106f5bead324ac1"
+    },
     "templates/il2ks/components/sort_th.html": {
       "version": 1,
       "sha256": "20b7083639ca442c70871548355e2e5b905ed228d8aca5d128295dfffd38a56f"
@@ -286,8 +290,8 @@
       "sha256": "760cbd16091b3881fbc372b12e9d3dfc31396cdb576e983c497806281b6a8aa5"
     },
     "templates/il2ks/home.html": {
-      "version": 1,
-      "sha256": "077bcb35c1aa01bf239311593760811807c7a7731b8a4a369c523dde553ed807"
+      "version": 2,
+      "sha256": "7c004e41f4aa28a72dab1df4545ff80ee8f7af012f789d81916f2f58adfab859"
     },
     "templates/il2ks/home_activity.html": {
       "version": 1,
@@ -306,8 +310,8 @@
       "sha256": "348f0c568271e459a4b9907cd13266666bb8530344a18b3ec72c120c36ed606f"
     },
     "templates/il2ks/leaderboards/list.html": {
-      "version": 1,
-      "sha256": "b8b2a0a36024bf438d2a2bc9011bb336cd01e894241af8c38ae3017f3cfc6144"
+      "version": 2,
+      "sha256": "08f8302116c3b7d1923d862c064d1db5bed17f2448b65b921aa05c52e1f9da40"
     },
     "templates/il2ks/leaderboards/table.html": {
       "version": 1,
@@ -322,8 +326,8 @@
       "sha256": "68d0ea977bccfecee5e4fb7207337c700b5e4418d476a20bfd88c769a5c02bd7"
     },
     "templates/il2ks/missions/detail.html": {
-      "version": 1,
-      "sha256": "c77296cb24a3b04f78ebc651dd702263c6754190f6fc9d174b4152dbb9806e80"
+      "version": 2,
+      "sha256": "636cede856d11b3724fe3395eeb4b924ff864037e419e4eec09ad4f66145639a"
     },
     "templates/il2ks/missions/list.html": {
       "version": 1,
@@ -438,8 +442,8 @@
       "sha256": "be6c324440ad94e9d8b31d0001cdaad194d7002fff08eb1fdd259670c77ab72d"
     },
     "templates/il2ks/players/detail_totals.html": {
-      "version": 1,
-      "sha256": "40498d12af549c8e23662ac880b2c7729a9a4427989979257cddf0f42a9b59e6"
+      "version": 3,
+      "sha256": "e4697e7deb603b09ae55cb8d6d79d78553c667cadd7311fbc2cc30983ae0aecf"
     },
     "templates/il2ks/players/detail_type_killboard.html": {
       "version": 1,

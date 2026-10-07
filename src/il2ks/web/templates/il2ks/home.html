@@ -1,10 +1,11 @@
-{# il2ks-template: templates/il2ks/home.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_live %}{% comment %}
   Home page (OQ-79: tour-aware, no ?tour = the current tour, ?tour=all = all time; online now is live). Context: tours / tour
   (the tour selector), tour_query ("?tour=<id>" or "?tour=all", for links that keep the scope),
   latest (the newest missions that have sorties, in the tour), last_mission (the first of them, or None),
   activity (ChartSpec or None), boards (HomeBoard: .key, .title, .rows of BoardRow: rank, player, stats, per_hour),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
+  side_share (queries.missions.SideShare or None: the sorties per side in the tour or all time, one line under the last mission).
   The "Recently earned" strip (achievements/home_feed.html, doc 17) reads its own rows for the scope.
   Order: hero (title, player search, tour selector), the front page image (if set), online now, last mission, recently earned, boards, activity, latest missions.
   Blocks: head (page stylesheet), content.
@@ -49,6 +50,7 @@
             <span>{% coalition_badge "redfor" %} <strong class="num">{{ last_mission.redfor_sorties|num }}</strong> {% translate "sorties" %}</span>
             <span>{% coalition_badge "blufor" %} <strong class="num">{{ last_mission.blufor_sorties|num }}</strong> {% translate "sorties" %}</span>
           </p>
+          {% include "il2ks/components/side_share.html" with share=side_share %}
         </div>
         <div class="last-mission__pilots">
           <h3>{% translate "Top pilots by kills" %}</h3>

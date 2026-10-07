@@ -13,7 +13,16 @@ from django.db.models import Case, CharField, Expression, IntegerField, Q, Query
 from django.db.models.functions import Lower, NullIf
 from django.http import QueryDict
 
-from il2ks.db.models import HEAVY_SORTIE_COLUMNS, Kill, Mission, PlayerMission, PlayerSortie, Tour
+from il2ks.db.models import (
+    HEAVY_SORTIE_COLUMNS,
+    AircraftRole,
+    Kill,
+    Mission,
+    PlayerMission,
+    PlayerSortie,
+    Tour,
+    TourAircraftStats,
+)
 from il2ks.queries import sorties as sortie_reads
 from il2ks.queries.sorting import Computed, Ratio, SortSpec, order_by
 
@@ -34,6 +43,8 @@ SORT_FIELDS: Final[dict[str, SortSpec]] = {
     "redfor_sorties": "redfor_sorties",
     "blufor_sorties": "blufor_sorties",
     "sorties_per_player": Ratio("sorties_total", "players_total"),
+    "redfor_players": "redfor_players",
+    "blufor_players": "blufor_players",
 }
 DEFAULT_SORT: Final = "-date"
 PERIOD_DAYS: Final = (7, 30, 90)
@@ -99,6 +110,31 @@ def latest_missions(limit: int, tour: Tour | None = None) -> list[Mission]:
     if tour is not None:
         missions = missions.filter(tour=tour)
     return list(missions.order_by("-started_at", "-pk")[:limit])
+
+
+@dataclass(frozen=True, slots=True)
+class SideShare:
+    """The sorties flown per side in a tour (all tours without one), for the one-line balance on the home page and the
+    leaderboards (OQ-134)."""
+
+    redfor: int
+    blufor: int
+
+    @property
+    def total(self) -> int:
+        return self.redfor + self.blufor
+
+
+def side_share(tour: Tour | None) -> SideShare | None:
+    """The counted sorties per side of `tour` (every tour without one): the sums of the aircraft types' tour rows
+    without a role or mod filter (`sorties_redfor` / `sorties_blufor`; hidden players count like in every aircraft
+    figure). None when no sortie has a side. One read."""
+    rows = TourAircraftStats.objects.filter(role=AircraftRole.ALL, mod_pattern="", tour__isnull=False)
+    if tour is not None:
+        rows = rows.filter(tour=tour)
+    pairs = rows.values_list("sorties_redfor", "sorties_blufor")  # a few dozen rows: summed here (TD-22: no SQL SUM)
+    share = SideShare(sum(red for red, _ in pairs), sum(blue for _, blue in pairs))
+    return share if share.total else None
 
 
 def top_pilots(mission: Mission, limit: int) -> list[PlayerMission]:
