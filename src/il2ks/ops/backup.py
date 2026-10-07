@@ -25,7 +25,7 @@ import time
 import tomllib
 import zipfile
 from collections.abc import Callable
-from contextlib import closing
+from contextlib import closing, suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -249,55 +249,104 @@ class CopyOutcome:
     detail: str  # what was copied, or why it failed
 
 
-def _status_path(cfg: Config) -> Path:
-    return cfg.data_dir / COPY_STATUS_FILE
+def _status_path(cfg: Config, kind: str) -> Path:
+    """One file per kind (`backup_copy_status.<kind>.json`): every writer owns the whole file of its kind, so two
+    processes (watch's thread and `il2ks backup`) never read-modify-write the same file and lose an update."""
+    return cfg.data_dir / f"backup_copy_status.{kind}.json"
 
 
 def read_copy_status(cfg: Config) -> dict[str, CopyOutcome]:
-    """The last copy outcomes by kind (`backups`, `archive`); empty when nothing was copied yet or the file is bad."""
-    try:
-        raw = cast(object, json.loads(_status_path(cfg).read_text(encoding="utf-8")))
-    except (OSError, ValueError):
-        return {}
+    """The last copy outcomes by kind (`backups`, `archive`); empty when nothing was copied yet or a file is bad."""
     found: dict[str, CopyOutcome] = {}
-    if isinstance(raw, dict):
-        for kind, entry in cast(dict[str, object], raw).items():
-            if kind in {"backups", "archive"} and isinstance(entry, dict):
-                fields = cast(dict[str, object], entry)
-                found[kind] = CopyOutcome(
-                    cast(Literal["backups", "archive"], kind),
-                    fields.get("ok") is True,
-                    str(fields.get("at", "")),
-                    str(fields.get("detail", "")),
-                )
+    kinds: tuple[Literal["backups", "archive"], ...] = ("backups", "archive")
+    for kind in kinds:
+        try:
+            raw = cast(object, json.loads(_status_path(cfg, kind).read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            continue
+        if isinstance(raw, dict):
+            fields = cast(dict[str, object], raw)
+            found[kind] = CopyOutcome(
+                kind,
+                fields.get("ok") is True,
+                str(fields.get("at", "")),
+                str(fields.get("detail", "")),
+            )
     return found
 
 
+def _unique_tmp(dest: Path) -> Path:
+    """A temp name next to `dest` that no other process or thread uses (two mirrors can copy the same file)."""
+    return dest.with_name(f"{dest.name}.{os.getpid()}-{threading.get_ident()}.tmp")
+
+
 def _record(cfg: Config, outcome: CopyOutcome) -> None:
-    with _status_lock:  # the copy thread and an `il2ks backup` mirror in the same process share the file
-        status = read_copy_status(cfg)
-        status[outcome.kind] = outcome
-        payload = {k: {"ok": v.ok, "at": v.at, "detail": v.detail} for k, v in status.items()}
+    """Write the status of `outcome.kind` atomically (temp file, then replace; a reader never sees half of it)."""
+    path = _status_path(cfg, outcome.kind)
+    payload = json.dumps({"ok": outcome.ok, "at": outcome.at, "detail": outcome.detail}, indent=2)
+    partial = _unique_tmp(path)
+    with _status_lock:
         try:
-            _status_path(cfg).write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            partial.write_text(payload, encoding="utf-8")
+            for attempt in range(5):
+                try:
+                    os.replace(partial, path)
+                    return
+                except PermissionError:  # Windows: a reader has the file open for a moment
+                    if attempt == 4:
+                        raise
+                    time.sleep(0.02 * (attempt + 1))
         except OSError as exc:
-            log.warning("could not write %s: %s", _status_path(cfg), exc)
+            log.warning("could not write %s: %s", path, exc)
+            partial.unlink(missing_ok=True)
+
+
+class CopyCancelledError(Exception):
+    """The copy was cancelled (`cancel_copy`); not a failure."""
+
+
+_CHUNK = 1 << 20
+_TOUCH_EVERY_S = 60.0  # a share may only update the mtime when the file is closed: keep the .tmp looking alive
 
 
 def _copy_file(source: Path, dest: Path) -> None:
-    """Copy through a temporary name next to the destination, so a reader never sees half a file."""
+    """Copy through a unique temporary name next to the destination, so a reader never sees half a file.
+
+    Copies in chunks: stops at the next chunk when the copy is cancelled, and touches the .tmp every minute so another
+    process's `_clean_partials` (stale after an hour) never deletes a long copy."""
     dest.parent.mkdir(parents=True, exist_ok=True)
-    partial = dest.with_name(dest.name + ".tmp")
+    partial = _unique_tmp(dest)
     try:
-        shutil.copyfile(source, partial)
+        with source.open("rb") as src, partial.open("wb") as out:
+            touched = time.monotonic()
+            while chunk := src.read(_CHUNK):
+                if _copy_cancelled():
+                    raise CopyCancelledError
+                out.write(chunk)
+                if time.monotonic() - touched >= _TOUCH_EVERY_S:
+                    touched = time.monotonic()
+                    with suppress(OSError):
+                        os.utime(partial)
         try:
             shutil.copystat(source, partial)
         except OSError as exc:  # NAS shares refuse times and attributes on a file that was written fine
             log.debug("backup copy: could not copy the file times to %s (%s); the data is complete", partial, exc)
-        os.replace(partial, dest)
+        _replace(partial, dest)
     except BaseException:
         partial.unlink(missing_ok=True)
         raise
+
+
+def _replace(partial: Path, dest: Path) -> None:
+    """`os.replace`, retried: on Windows it fails for a moment while another copy of the same file replaces it too."""
+    for attempt in range(6):
+        try:
+            os.replace(partial, dest)
+            return
+        except PermissionError:
+            if attempt == 5:
+                raise
+            time.sleep(0.05 * (attempt + 1))
 
 
 def second_dir(cfg: Config) -> Path | None:
@@ -322,11 +371,46 @@ def _clean_partials(folder: Path, *, recursive: bool) -> None:
 # a single call on an offline SMB share blocks 20-60 s on Windows, longer than any budget could cut, and a budget
 # would have to be checked between those calls. A thread costs the writer lock and the watch loop nothing, and a
 # request that arrives while it is busy is merged with the waiting one (the copy catches up on everything anyway).
-# The thread is not a daemon: `il2ks backup` and `il2ks migrate` end only after their copy is done.
+# The thread is not a daemon: `il2ks backup` and `il2ks migrate` end only after their copy is done. A standalone
+# `il2ks watch` calls `cancel_copy` when it ends (Ctrl+C included), so it never waits hours for a first archive
+# mirror: the copy stops at the next chunk and the next backup resumes it (finished files are skipped).
 
 _copy_lock = threading.Lock()
 _copy_wanted: dict[Path, tuple[Config, bool]] = {}  # data dir -> (config, with the archive mirror)
 _copy_thread: threading.Thread | None = None
+_copy_cancel = threading.Event()
+
+
+@dataclass(frozen=True, slots=True)
+class CopyReport:
+    """What the copy thread's last run for a data folder did: its own outcomes, or the exception that killed it."""
+
+    outcomes: tuple[CopyOutcome, ...]
+    crashed: str | None = None
+
+
+_copy_reports: dict[Path, CopyReport] = {}
+
+
+def _copy_cancelled() -> bool:
+    return _copy_cancel.is_set()
+
+
+def _check_cancelled() -> None:
+    if _copy_cancel.is_set():
+        raise CopyCancelledError
+
+
+def cancel_copy() -> None:
+    """Stop the background copy at its next chunk or file (Ctrl+C on a standalone watch). A later `request_copy` starts
+    a new thread and clears the cancellation."""
+    _copy_cancel.set()
+
+
+def copy_report(cfg: Config) -> CopyReport | None:
+    """The result of the copy thread's last run for this install (None if it has not run in this process)."""
+    with _copy_lock:
+        return _copy_reports.get(cfg.data_dir)
 
 
 def request_copy(cfg: Config, *, with_archive: bool = False) -> None:
@@ -338,6 +422,7 @@ def request_copy(cfg: Config, *, with_archive: bool = False) -> None:
         before = _copy_wanted.get(cfg.data_dir)
         _copy_wanted[cfg.data_dir] = (cfg, with_archive or (before is not None and before[1]))
         if _copy_thread is None:
+            _copy_cancel.clear()
             _copy_thread = threading.Thread(target=_copy_worker, name="il2ks-backup-copy")
             _copy_thread.start()
 
@@ -346,16 +431,31 @@ def _copy_worker() -> None:
     global _copy_thread
     while True:
         with _copy_lock:
-            if not _copy_wanted:
+            if not _copy_wanted or _copy_cancel.is_set():
+                _copy_wanted.clear()
                 _copy_thread = None
                 return
             cfg, with_archive = _copy_wanted.pop(next(iter(_copy_wanted)))
+        outcomes: list[CopyOutcome] = []
+        crashed: str | None = None
+        stage: Literal["backups", "archive"] = "backups"
         try:
-            copy_to_second_folder(cfg)
+            first = copy_to_second_folder(cfg)
+            if first is not None:
+                outcomes.append(first)
             if with_archive:
-                mirror_archive(cfg)
-        except Exception:
+                stage = "archive"
+                mirrored = mirror_archive(cfg)
+                if mirrored is not None:
+                    outcomes.append(mirrored)
+        except CopyCancelledError:
+            log.info("[backup] copy_to: the copy was cancelled; the next backup resumes it")
+        except Exception as exc:
             log.exception("[backup] copy_to: the background copy failed")
+            crashed = f"{type(exc).__name__}: {exc}"
+            _record(cfg, CopyOutcome(stage, False, utcnow().isoformat(timespec="seconds"), f"crashed: {crashed}"))
+        with _copy_lock:
+            _copy_reports[cfg.data_dir] = CopyReport(tuple(outcomes), crashed)
 
 
 def wait_for_copy(timeout: float | None = None) -> bool:
@@ -382,7 +482,8 @@ def _fail(cfg: Config, kind: Literal["backups", "archive"], message: str) -> Cop
 def copy_to_second_folder(cfg: Config) -> CopyOutcome | None:
     """Copy the backups that the second folder lacks and rotate it with the same `[backup] keep`; None if not set up.
 
-    Never raises: a failure is logged and recorded for doctor. Every backup of the main folder the copy lacks is copied
+    Never raises (but `CopyCancelledError` after `cancel_copy`): a failure is logged and recorded for doctor.
+    Every backup of the main folder the copy lacks is copied
     (newest `keep` only), so a share that was offline for a few days catches up with the next backup."""
     base, second = cfg.backup.copy_to, second_dir(cfg)
     if base is None or second is None:
@@ -394,6 +495,7 @@ def copy_to_second_folder(cfg: Config) -> CopyOutcome | None:
         _clean_partials(second, recursive=False)
         copied = 0
         for path in list_backups(cfg.backup_dir)[-cfg.backup.keep :]:
+            _check_cancelled()
             dest = second / path.name
             if not dest.is_file() or dest.stat().st_size != path.stat().st_size:
                 _copy_file(path, dest)
@@ -421,7 +523,9 @@ def mirror_archive(cfg: Config) -> CopyOutcome | None:
     """Mirror the mission archive into `<copy_to>/<server uid>/archive`, copying only new or changed files; None if off.
 
     Nothing is ever deleted from the mirror (the archive is the source of truth and never loses files on its own, so a
-    file missing in the main archive is a mistake the mirror should survive). Never raises, like the backup copy."""
+    file missing in the main archive is a mistake the mirror should survive). Never raises, like the backup copy.
+
+    Resumable: finished files are skipped next time, so `cancel_copy` (Ctrl+C on watch) loses at most one file."""
     second = second_dir(cfg)
     if second is None or not cfg.backup.copy_archive:
         return None
@@ -437,6 +541,7 @@ def mirror_archive(cfg: Config) -> CopyOutcome | None:
     except OSError as exc:
         return _fail(cfg, "archive", f"could not read the archive folder {source_root}: {exc}")
     for path in files:
+        _check_cancelled()
         dest = mirror / path.relative_to(source_root)
         try:
             if _needs_copy(path, dest):

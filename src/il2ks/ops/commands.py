@@ -222,7 +222,7 @@ def cmd_backup(ns: argparse.Namespace) -> int:
     if cfg is None:
         return EXIT_USAGE
     try:
-        path = backup.create_backup(cfg, "manual")
+        path = backup.create_backup(cfg, "manual", with_archive=True)
     except (backup.BackupError, OSError) as exc:
         _say_error("backup", str(exc))
         return EXIT_USAGE
@@ -234,9 +234,12 @@ def cmd_backup(ns: argparse.Namespace) -> int:
     if cfg.backup.copy_to is not None:
         print(f"Copying to {cfg.backup.copy_to} (this can take a while on a network share) ...")
         backup.wait_for_copy()
-        for outcome in (backup.read_copy_status(cfg).get("backups"), backup.mirror_archive(cfg)):
-            if outcome is not None:
-                print(("Copy: " if outcome.ok else "COPY FAILED (the backup itself is fine): ") + outcome.detail)
+        report = backup.copy_report(cfg)  # what the copy thread itself did, never a status left by an earlier run
+        if report is None or report.crashed is not None:
+            why = "the copy did not run" if report is None else report.crashed
+            print(f"COPY FAILED (the backup itself is fine): {why}")
+        for outcome in () if report is None else report.outcomes:
+            print(("Copy: " if outcome.ok else "COPY FAILED (the backup itself is fine): ") + outcome.detail)
     return EXIT_OK
 
 

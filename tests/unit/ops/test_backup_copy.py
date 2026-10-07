@@ -28,6 +28,11 @@ def with_copy(tmp_path: Path, *, keep: int = 10, archive: bool = False) -> tuple
     return cfg, second
 
 
+@pytest.fixture(autouse=True)
+def _copy_not_cancelled() -> None:
+    backup._copy_cancel.clear()  # pyright: ignore[reportPrivateUsage]
+
+
 def names(folder: Path) -> list[str]:
     return sorted(p.name for p in folder.iterdir() if p.is_file())
 
@@ -407,12 +412,16 @@ def test_two_copies_of_the_same_file_do_not_share_a_tmp_name(tmp_path: Path, mon
     source.write_bytes(b"data")
     dest = tmp_path / "out" / "src.zip"
     used: list[str] = []
-    gate = threading.Barrier(2, timeout=5)
+    arrived = threading.Semaphore(0)
     real_replace = os.replace
 
     def replace(a: object, b: object) -> None:
+        first = Path(str(a)).name not in used
         used.append(Path(str(a)).name)
-        gate.wait()
+        if first and len(used) <= 2:  # both copies are at the final step together
+            arrived.release()
+            arrived.acquire(timeout=5)
+            arrived.release()
         real_replace(a, b)  # pyright: ignore[reportArgumentType]
 
     monkeypatch.setattr(backup.os, "replace", replace)

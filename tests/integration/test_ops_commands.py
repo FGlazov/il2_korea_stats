@@ -361,7 +361,7 @@ def test_backup_command_succeeds_even_when_the_second_folder_cannot_be_written(
 def test_backup_command_reports_a_crashed_copy_not_a_stale_ok(
     tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Review 0.2.0 L5: when the copy thread dies with an exception the command used to print the previous run's status."""
+    """Review 0.2.0 L5: a copy thread that died with an exception used to show the previous run's OK."""
     second = tmp_path / "second"
     cfg = make_instance(tmp_path / "with-copy", extra_toml=f'[backup]\ncopy_to = "{second.as_posix()}"\n')
     assert cfg.source is not None
