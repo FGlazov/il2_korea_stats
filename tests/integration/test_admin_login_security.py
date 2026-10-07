@@ -295,9 +295,9 @@ def test_axes_tables_come_with_the_migrations_that_setup_and_upgrades_run() -> N
     [
         ("1.2.3.4:51234", "1.2.3.4"),
         ("9.9.9.9, 1.2.3.4:51234", "1.2.3.4"),
-        ("[2001:db8::1]:51234", "2001:db8::1"),
-        ("[2001:db8::1]", "2001:db8::1"),
-        ("2001:db8::1", "2001:db8::1"),
+        ("[2001:db8::1]:51234", "2001:db8::"),
+        ("[2001:db8::1]", "2001:db8::"),
+        ("2001:db8::1", "2001:db8::"),
         ("1.2.3.4:port", "127.0.0.1"),
     ],
 )
@@ -308,3 +308,108 @@ def test_client_address_drops_the_port_iis_arr_appends(
     settings.IL2KS_TRUST_FORWARDED_FOR = True
 
     assert client_address(rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR=header)) == expected
+
+
+# --- IPv6 /64 buckets, per-username warning, Retry-After of the lock that applies (review 2: M4, L7) ----------
+
+
+def test_client_address_buckets_ipv6_to_its_64_and_keeps_ipv4(rf: RequestFactory, settings: SettingsWrapper) -> None:
+    settings.IL2KS_TRUST_FORWARDED_FOR = False
+    assert client_address(rf.get("/", REMOTE_ADDR="2001:DB8:1:2:3:4:5:6")) == "2001:db8:1:2::"
+    assert client_address(rf.get("/", REMOTE_ADDR="2001:db8:1:2:ffff:ffff:ffff:ffff")) == "2001:db8:1:2::"
+    assert client_address(rf.get("/", REMOTE_ADDR="::ffff:203.0.113.5")) == "203.0.113.5"
+    assert client_address(rf.get("/", REMOTE_ADDR="203.0.113.5")) == "203.0.113.5"
+    settings.IL2KS_TRUST_FORWARDED_FOR = True
+    forwarded = rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR="[2001:db8:1:2::9]:5000")
+    assert client_address(forwarded) == "2001:db8:1:2::"
+
+
+def test_one_ipv6_64_shares_the_lock_whatever_address_inside_it_is_used(client: Client, boss: User) -> None:
+    for i in range(LIMIT):
+        attempt(client, "wrong", forwarded=f"2001:db8:1:2::{i + 1:x}")
+
+    assert attempt(client, GOOD, forwarded="2001:db8:1:2:aaaa::1").status_code == 429
+    assert attempt(client, GOOD, forwarded="2001:db8:1:3::1").status_code == 302  # another /64 is another client
+
+
+def test_current_lockouts_names_the_ipv6_bucket(client: Client, boss: User) -> None:
+    for _ in range(LIMIT):
+        attempt(client, "wrong", forwarded="2001:DB8:1:2::7")
+
+    [lock] = login_protection.current_lockouts()
+
+    assert lock.name == "boss from 2001:db8:1:2::/64"
+
+
+@pytest.mark.parametrize("given", ["2001:DB8:1:2::99", "2001:db8:1:2:0:0:0:5", "2001:db8:1:2::/64", "2001:DB8:1:2::"])
+def test_unlock_normalises_the_address_like_the_lockout(client: Client, boss: User, given: str) -> None:
+    for _ in range(LIMIT):
+        attempt(client, "wrong", forwarded="2001:db8:1:2::7")
+
+    assert login_protection.unlock(ip=given) == 1
+
+
+def test_unlock_maps_ipv4_mapped_ipv6_to_the_ipv4(client: Client, boss: User) -> None:
+    for _ in range(LIMIT):
+        attempt(client, "wrong", forwarded="203.0.113.5")
+
+    assert login_protection.unlock(ip="::FFFF:203.0.113.5") == 1
+
+
+def test_unlock_ignores_a_junk_address_instead_of_matching_everything(client: Client, boss: User) -> None:
+    attempt(client, "wrong", forwarded="203.0.113.5")
+
+    with pytest.raises(ValueError, match="not an IP address"):
+        login_protection.unlock(ip="not an address")
+    assert AccessAttempt.objects.count() == 1
+
+
+def test_the_log_keeps_the_full_address_next_to_the_bucket(
+    client: Client, boss: User, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.WARNING, logger=login_protection.__name__):
+        attempt(client, "wrong", forwarded="2001:DB8:1:2::7")
+
+    [record] = [r for r in caplog.records if r.__dict__.get("event") == "admin_login_failed"]
+    assert record.__dict__["ip_address"] == "2001:db8:1:2::"
+    assert record.__dict__["client_address"] == "2001:db8:1:2::7"
+
+
+def test_one_account_failing_from_many_addresses_logs_a_warning_but_is_not_locked(
+    client: Client, boss: User, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.WARNING, logger=login_protection.__name__):
+        for i in range(ADDRESS_LIMIT):
+            attempt(client, "wrong", forwarded=f"203.0.113.{i + 1}")
+
+    events = [r.__dict__["event"] for r in caplog.records if "event" in r.__dict__]
+    assert "admin_login_account_targeted" in events
+    assert attempt(client, GOOD, forwarded="198.51.100.1").status_code == 302
+
+
+def test_a_few_failures_across_addresses_do_not_warn_about_the_account(
+    client: Client, boss: User, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.WARNING, logger=login_protection.__name__):
+        for i in range(LIMIT):
+            attempt(client, "wrong", forwarded=f"203.0.113.{i + 1}")
+
+    assert "admin_login_account_targeted" not in [r.__dict__.get("event") for r in caplog.records]
+
+
+def test_the_address_lock_counts_down_to_when_the_address_total_drops_below_the_limit(
+    client: Client, boss: User
+) -> None:
+    address = "203.0.113.5"
+    for name in ("x", "y", "z"):  # 15 failures for other accounts, 10 minutes ago: the address is locked
+        AccessAttempt.objects.create(username=name, ip_address=address, failures_since_start=LIMIT)
+    AccessAttempt.objects.update(attempt_time=timezone.now() - timedelta(minutes=10))
+    AccessAttempt.objects.filter(username="z").update(attempt_time=timezone.now() - timedelta(minutes=2))
+    AccessAttempt.objects.create(username="boss", ip_address=address, failures_since_start=1)  # fresh, but not locked
+
+    page = attempt(client, GOOD, forwarded=address)
+
+    # The oldest rows (x, y: 10 minutes old) expire in 5 minutes; then the total is 5 + 1 < 15. Not 15 from boss's row.
+    assert page.status_code == 429
+    assert "Try again in 5 minutes" in page.content.decode()
+    assert page["Retry-After"] == "300"

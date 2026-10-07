@@ -201,8 +201,12 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   at the admin login, that account is locked **at that visitor address** for that long, and the visitor sees "try again in N
   minutes". The same account stays open from every other address, so a stranger guessing passwords cannot lock the real admin
   out. One address on its own is locked after three times as many wrong passwords for any accounts. A correct login
-  clears the count. `il2ks doctor` lists what is locked now; to unlock at once run `il2ks admin unlock --all` (or
-  `--user NAME`, `--ip ADDRESS`, both together for one account at one address); it works while the site runs. Or wait.
+  clears the count. An IPv6 visitor counts as its whole /64 network (a single host can use billions of addresses), shown as
+  `2001:db8:1:2::/64`; an IPv4-mapped IPv6 address counts as the IPv4. `il2ks doctor` lists what is locked now; to unlock
+  at once run `il2ks admin unlock --all` (or
+  `--user NAME`, `--ip ADDRESS` in any spelling, an IPv6 address unlocks its whole /64; both together for one account at one
+  address); it works while the site runs. Or wait. One account failing from many addresses is never locked (a stranger could
+  lock you out), but the log says `admin_login_account_targeted` once the failures reach the address limit.
   Behind your own proxy the lockout needs the proxy's `X-Forwarded-For` header, see [reverse-proxy.md](reverse-proxy.md).
 - `[outbound]` `allow_private`: when il2ks fetches a web address an admin typed (no feature does yet), it refuses addresses
   that are not on the public internet: this machine, your LAN, cloud metadata addresses. List addresses or networks

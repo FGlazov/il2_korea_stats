@@ -670,6 +670,22 @@ def test_admin_unlock_removes_the_locks(sandbox: Path, capsys: pytest.CaptureFix
     assert "nothing" in capsys.readouterr().out.lower()
 
 
+@pytest.mark.django_db
+def test_admin_unlock_ip_is_normalised_like_the_lockout(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
+
+    AccessAttempt.objects.create(username="boss", ip_address="2001:db8:1:2::", failures_since_start=5)
+    AccessAttempt.objects.create(username="boss", ip_address="203.0.113.5", failures_since_start=5)
+
+    assert main(["admin", "unlock", "--ip", "2001:DB8:1:2::99"]) == EXIT_OK
+    assert AccessAttempt.objects.count() == 1
+    assert main(["admin", "unlock", "--ip", "::ffff:203.0.113.5"]) == EXIT_OK
+    assert AccessAttempt.objects.count() == 0
+    capsys.readouterr()
+    assert main(["admin", "unlock", "--ip", "banana"]) == EXIT_USAGE
+    assert "banana" in capsys.readouterr().err
+
+
 def test_admin_unlock_needs_to_be_told_what_to_unlock(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["admin", "unlock"]) == EXIT_USAGE
     assert "--all" in capsys.readouterr().err

@@ -164,6 +164,7 @@ AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = (
     False  # a lock ends N minutes after it began, however long somebody keeps trying
 )
 AXES_ONLY_ADMIN_SITE = True
+# The lockout key of the client: IPv4 as is, IPv6 cut to its /64 (one host rotates 2^64 addresses), see `bucket`.
 AXES_CLIENT_IP_CALLABLE = "il2ks.web.login_protection.client_address"
 AXES_LOCKOUT_CALLABLE = "il2ks.web.login_protection.lockout_response"
 IL2KS_TRUST_FORWARDED_FOR = trust_forwarded_for(_CFG)  # same rule as SECURE_PROXY_SSL_HEADER; see client_address

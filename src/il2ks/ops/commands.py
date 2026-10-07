@@ -160,6 +160,9 @@ def cmd_admin(ns: argparse.Namespace) -> int:
 
     try:
         removed = unlock(username=ns.user, ip=ns.ip)
+    except ValueError as exc:
+        _say_error("admin unlock", f"--ip: {exc}")
+        return EXIT_USAGE
     except DatabaseError as exc:
         _say_error("admin unlock", f"the database could not be used ({exc}); run il2ks doctor")
         return EXIT_FAILED
