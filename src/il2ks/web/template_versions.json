@@ -576,10 +576,11 @@
       }
     },
     "static/il2ks_admin/ingest_status.css": {
-      "version": "1.0",
-      "sha256": "bd5dc7b08450f1bc32688d0f643c8880a2321d1f2edbb6428994bac328563e6c",
+      "version": "2.0",
+      "sha256": "310f4dc146789da3d0d8c1c27b08ff045adff5b7abb2a1d98e38eda7e39201de",
       "contract": {
         "defines": [
+          ".ingest-actions",
           ".ingest-card",
           ".ingest-cards",
           ".ingest-empty",
@@ -606,8 +607,8 @@
       }
     },
     "static/il2ks_admin/theme_editor.css": {
-      "version": "1.0",
-      "sha256": "23cf7e1894c7ea66d8a9e4b8621dd0f77341a5c0fa765b9c008ce40a02bed949",
+      "version": "2.0",
+      "sha256": "1b58ebe6494a5f55d44e603a340eefa8d9d4aa512d535dc6d0a9583d0b9769ef",
       "contract": {
         "defines": [
           ".field-theme",
@@ -618,7 +619,9 @@
           ".il2-theme__input",
           ".il2-theme__picker",
           ".il2-theme__reset",
-          ".is-default"
+          ".inline-group",
+          ".is-default",
+          ".tabular"
         ]
       }
     },
@@ -836,8 +839,8 @@
       }
     },
     "templates/admin/il2ks_ingest_status.html": {
-      "version": "2.0",
-      "sha256": "d00474ae721db57338324f91af50187bab2b8b651d76dbf01da6f100ab6c95e2",
+      "version": "3.0",
+      "sha256": "39204633a4ab583a78dac678d8ba5abf56b4fd63f15a95f22fdb7df6f8d608d0",
       "contract": {
         "blocks": [
           "breadcrumbs",
@@ -852,6 +855,7 @@
           "#reprocess",
           ".breadcrumbs",
           ".button",
+          ".ingest-actions",
           ".ingest-card",
           ".ingest-cards",
           ".ingest-empty",
