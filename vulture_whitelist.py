@@ -80,6 +80,7 @@ _.clean_accent_color  # ModelForm clean_<field> hooks
 _.clean_links_text
 _.clean_logo_upload
 _.clean_favicon_upload
+_.clean_notice_level
 _.clean_home_bg_upload
 _.clean_header_bg_upload
 _.clean_font_upload
@@ -299,3 +300,4 @@ _.attack_hour  # star tiles: attack proficiency value
 _.is_ram  # Kill.is_ram: written at ingest, read by the sortie page through the stored timeline
 _.ram_with  # sortie_view.Detail: read by sorties/parts/header.html
 _.has_ram  # sortie_view.Detail: read by sorties/parts/header.html and timeline.html
+_.altitude_title  # sortie_view.TimelineRow: read by sorties/parts/timeline_table.html (the exact feet)

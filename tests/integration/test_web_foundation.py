@@ -84,9 +84,20 @@ def test_base_renders_without_a_site_settings_row(client: Client) -> None:
     assert "IL-2 Korea stats" in html
     assert "vendor/htmx.min.js" in html
     assert "vendor/pico.min.css" in html
-    assert "Powered by il2ks" in html
+    assert (
+        'Powered by <a href="https://github.com/FGlazov/il2_korea_stats" rel="noopener">il2ks</a>' in html
+    )  # the link stays inside the translated string
     assert "Data updated" not in html
     assert SiteSettings.objects.count() == 0  # a GET never creates the row
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("language", ["de", "fr", "ru", "es", "pt-br"])
+def test_the_footer_link_stays_inside_the_translated_string(client: Client, language: str) -> None:
+    html = client.get("/", headers={"accept-language": language}).content.decode()
+
+    assert '<a href="https://github.com/FGlazov/il2_korea_stats" rel="noopener">il2ks</a>' in html
+    assert "Powered by" not in html  # translated, the link included
 
 
 @pytest.mark.django_db

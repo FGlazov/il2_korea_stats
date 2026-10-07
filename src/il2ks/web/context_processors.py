@@ -14,10 +14,11 @@ from typing import cast
 from django.conf import settings as django_settings
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest
+from django.utils import timezone
 from django.utils.safestring import SafeString
 
 from il2ks import __version__
-from il2ks.db.models import NavIcon, SiteSettings
+from il2ks.db.models import NavIcon, NoticeLevel, SiteSettings
 from il2ks.db.validators import validate_http_url
 from il2ks.web.branding_images import background_css, has_background, icon_urls
 from il2ks.web.caching import request_data_version
@@ -56,6 +57,25 @@ def nav_items(raw: object) -> list[NavItem]:
     return items
 
 
+@dataclass(frozen=True, slots=True)
+class SiteNotice:
+    """The site-wide notice banner as the templates see it: `level` is the notice component's kind, `until` the ISO
+    expiry for `localtime.js` ('' = none; the cached page cannot hide itself when the moment passes)."""
+
+    text: str
+    level: str
+    until: str
+
+
+def site_notice(row: SiteSettings, now: datetime) -> SiteNotice | None:
+    """The banner to show, or None: no text (whitespace only counts as none) or the expiry already past."""
+    text = row.notice_text.strip()
+    if not text or (row.notice_until is not None and row.notice_until <= now):
+        return None
+    level = row.notice_level if row.notice_level in NoticeLevel.values else NoticeLevel.INFO.value
+    return SiteNotice(text, level, row.notice_until.isoformat() if row.notice_until is not None else "")
+
+
 _SITE_ATTR = "_il2ks_site_row"
 
 
@@ -74,6 +94,7 @@ def site(request: HttpRequest) -> dict[str, object]:
 
     - `site`: the `SiteSettings` row (unsaved defaults when none exists yet): site_title, server_name, description,
       logo, redfor_name, blufor_name, ...
+    - `site_notice`: the notice banner (`SiteNotice(text, level, until)`) or None (no text, or expired).
     - `logo_url`: where the logo is served (MEDIA_URL + SiteSettings.logo), '' when there is none.
     - `nav_links`: the admin's extra navigation links, as `NavItem(label, url, icon)` in their order.
     - `site_links`: the same links as (label, url) pairs (the footer lists them).
@@ -109,6 +130,7 @@ def site(request: HttpRequest) -> dict[str, object]:
         "icon_url": icons[0] if icons else "",
         "apple_touch_icon_url": icons[1] if icons else "",
         "site": row,
+        "site_notice": site_notice(row, timezone.now()),
         "home_feature": feature,
         "logo_url": logo_url,
         "nav_links": links,

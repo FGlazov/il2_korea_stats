@@ -143,6 +143,12 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "Damage taken" column header of a sortie's damage table
     "damage_taken_from": _("Damage this counterpart did to you, measured as in the column Damage dealt."),
+    # Translators: tooltip of the "Altitude" column header of a sortie's timeline. Angels = thousands of feet, as US
+    # fighter controllers say it; metres on the Soviet side.
+    "timeline_altitude": _(
+        "Height above sea level where it happened, not above the ground (the logs have no terrain data). BLUFOR "
+        "sorties show Angels (thousands of feet; hover for the exact feet), REDFOR sorties metres."
+    ),
     # Translators: tooltip of the "Damage" column header of a sortie's timeline
     "timeline_damage": _(
         "Damage of a significant hit, as a percentage of the object's health: plus if you dealt it, minus if you "

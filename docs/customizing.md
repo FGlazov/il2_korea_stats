@@ -139,6 +139,18 @@ looks as before).
 - **Windows service**: the service runs as `NT SERVICE\il2ks`, which needs read access to the file (and to a network share
   it can use without your login). Grant it with `icacls "D:\maps" /grant "NT SERVICE\il2ks:(OI)(CI)R"`.
 
+### A notice for everybody
+
+Under **Notice** you can show one line under the top banner on every public page: an event tonight, planned maintenance,
+a rules change. Empty text (the default) shows nothing.
+
+- **Notice text**: plain text, at most 300 characters (no formatting or links; anything like `<b>` is shown as typed). It
+  is the same in every language, so write it in your server's language.
+- **Notice style**: *Information* (a plain note) or *Warning* (highlighted in red).
+- **Hide the notice after (UTC)** (optional): the notice disappears by itself after that moment, even on pages a visitor's
+  browser kept; without a date it stays until you clear the text.
+- Saving takes effect for all visitors within moments.
+
 ### Quips
 
 The site shows a short, light-hearted line ("quip") at a few highlight spots: the hall of shame on a pilot's profile, a
@@ -304,7 +316,7 @@ template that fills a block is easier to keep up to date than a copy of a whole 
 Variables available on every page: `site` (your site settings: `site.site_title`, `site.server_name`, `site.description`,
 `site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `nav_links` (your navigation links: `label`, `url`, `icon`; the
 default `nav` block lists them after the built-in ones), `site_links` (the same as label/URL pairs, used by the footer),
-`theme_css` (the color and font overrides of the admin as `@font-face` rules for uploaded fonts plus one `:root{...}` rule, already safe: print it inside
+`site_notice` (the notice banner: `text`, `level`, `until`; `None` when there is none or it expired; shown by `il2ks/components/site_notice.html`), `theme_css` (the color and font overrides of the admin as `@font-face` rules for uploaded fonts plus one `:root{...}` rule, already safe: print it inside
 `<style>`), `data_updated` (when the stats last changed), `il2ks_version`, and `page_title`.
 
 **Small building blocks** — `il2ks/components/*.html`: tables, badges, stat tiles, filters, pagination, notices. Each file

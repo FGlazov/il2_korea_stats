@@ -1,10 +1,10 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Timeline rows as a table. Context: rows (sortie_view.TimelineRow: kind, icon, label, tone, clock, utc, place, text,
-  who, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element, the first 20 listed (OQ-96).
+  who, altitude, altitude_title, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element, the first 20 listed (OQ-96).
 {% endcomment %}<div class="table-wrap table-wrap--flat">
   <table class="data-table data-table--compact timeline">
-    <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Event" %}</th><th scope="col">{% translate "Details" %}</th>{% col_th _("Damage") numeric=True hint="timeline_damage" %}</tr></thead>
+    <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Event" %}</th><th scope="col">{% translate "Details" %}</th>{% col_th _("Altitude") numeric=True hint="timeline_altitude" %}{% col_th _("Damage") numeric=True hint="timeline_damage" %}</tr></thead>
     <tbody>
       {% for row in rows %}
         <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}{% if row.kind == "hit_given" %} timeline__row--hit-given{% elif row.kind == "hit_taken" %} timeline__row--hit-taken{% elif row.kind == "kill" or row.kind == "kill_group" %} timeline__row--kill{% elif row.kind == "assist" %} timeline__row--assist{% elif row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" or row.kind == "captured" %} timeline__row--death{% endif %}">
@@ -22,6 +22,7 @@
               {% if row.ammo %}<small class="timeline__ammo"{% if row.ammo_title %} title="{{ row.ammo_title }}"{% endif %}>{{ row.ammo }}</small>{% endif %}
             {% endif %}
           </td>
+          <td class="num nowrap timeline__alt">{% if row.altitude %}<span{% if row.altitude_title %} title="{{ row.altitude_title }}"{% endif %}>{{ row.altitude }}</span>{% endif %}</td>
           <td class="num nowrap">{% if row.damage %}<span class="timeline__damage timeline__damage--{% if row.kind == "hit_given" %}given{% else %}taken{% endif %}">{{ row.damage }}</span>{% endif %}</td>
         </tr>
       {% endfor %}

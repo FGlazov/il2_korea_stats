@@ -215,6 +215,16 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
             },
         ),
         (
+            _("Notice"),
+            {
+                "fields": ("notice_text", "notice_level", "notice_until"),
+                "description": _(
+                    "A short message under the top banner on every public page. Saving changes it for all visitors "
+                    "within moments."
+                ),
+            },
+        ),
+        (
             _("Running mission"),
             {
                 "fields": ("show_live_sorties",),

@@ -589,6 +589,12 @@ msgid "A reprocess request is already waiting."
 msgstr "Eine Neuverarbeitung ist bereits angefordert."
 
 # llm-draft
+msgid "A short message under the top banner on every public page. Saving changes it for all visitors within moments."
+msgstr ""
+"Eine kurze Nachricht unter dem oberen Banner auf jeder öffentlichen Seite. Nach dem Speichern sehen sie alle Besucher"
+" innerhalb weniger Augenblicke."
+
+# llm-draft
 msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
 msgstr "Eine Serie geht nie von einer Tour in die nächste über; „Gesamt“ zeigt das Beste der Touren."
 
@@ -1038,6 +1044,10 @@ msgid "Alternative text"
 msgstr "Alternativtext"
 
 # llm-draft
+msgid "Altitude"
+msgstr "Höhe"
+
+# llm-draft
 msgid "Ammunition"
 msgstr "Munition"
 
@@ -1072,6 +1082,11 @@ msgstr "Ein Botschafter des Chaos, am Boden und in der Luft. Die Staffel würde 
 # llm-draft
 msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Ein Langstreckenflug: Das Sitzkissen verdient eine Erwähnung im Bericht."
+
+# llm-draft
+#, python-format
+msgid "Angels %(n)s"
+msgstr "Angels %(n)s"
 
 # llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
@@ -2686,6 +2701,16 @@ msgid "Healthy"
 msgstr "Unverletzt"
 
 # llm-draft
+#. Translators: tooltip of the "Altitude" column header of a sortie's timeline. Angels = thousands of feet, as US
+#. fighter controllers say it; metres on the Soviet side.
+msgid ""
+"Height above sea level where it happened, not above the ground (the logs have no terrain data). BLUFOR sorties show "
+"Angels (thousands of feet; hover for the exact feet), REDFOR sorties metres."
+msgstr ""
+"Höhe über dem Meeresspiegel, nicht über Grund (die Logs enthalten keine Geländedaten). BLUFOR-Einsätze zeigen Angels "
+"(tausend Fuß; mit der Maus darüber für die genauen Fuß), REDFOR-Einsätze Meter."
+
+# llm-draft
 #, python-format
 msgid "Held by %(share)s%% of pilots"
 msgstr "Von %(share)s%% der Piloten erreicht"
@@ -2718,6 +2743,10 @@ msgstr "Ausgewählte Missionen auf den öffentlichen Seiten ausblenden"
 # llm-draft
 msgid "Hide selected players from public pages"
 msgstr "Ausgewählte Spieler auf den öffentlichen Seiten ausblenden"
+
+# llm-draft
+msgid "Hide the notice after (UTC)"
+msgstr "Hinweis ausblenden nach (UTC)"
 
 # llm-draft
 msgid "High contrast (black and white)"
@@ -2884,6 +2913,12 @@ msgid "In the window where il2ks runs: it printed a web address with the token a
 msgstr ""
 "Im Fenster, in dem il2ks läuft: Dort wurde eine Webadresse mit dem Token darin ausgegeben. Öffne stattdessen diese "
 "Adresse."
+
+# llm-draft
+msgid "Information is a plain note; Warning is highlighted in red. Only used while there is a text."
+msgstr ""
+"Information ist ein schlichter Hinweis, Warnung ist rot hervorgehoben. Wird nur verwendet, solange ein Text vorhanden"
+" ist."
 
 # llm-draft
 msgid "Ingested"
@@ -3804,6 +3839,18 @@ msgid "Nothing to show yet."
 msgstr "Noch nichts anzuzeigen."
 
 # llm-draft
+msgid "Notice"
+msgstr "Hinweis"
+
+# llm-draft
+msgid "Notice style"
+msgstr "Stil des Hinweises"
+
+# llm-draft
+msgid "Notice text"
+msgstr "Text des Hinweises"
+
+# llm-draft
 msgid "OK"
 msgstr "OK"
 
@@ -3847,6 +3894,16 @@ msgstr "Am Boden"
 # llm-draft
 msgid "On this page"
 msgstr "Auf dieser Seite"
+
+# llm-draft
+msgid ""
+"One line shown under the top banner on every page, for example an event tonight or planned maintenance. Plain text, "
+"at most 300 characters; it is the same in every language, so write it in your server's language. Leave it empty to "
+"show no notice."
+msgstr ""
+"Eine Zeile, die auf jeder Seite unter dem oberen Banner steht, zum Beispiel ein Event heute Abend oder geplante "
+"Wartung. Reiner Text, höchstens 300 Zeichen; er ist in allen Sprachen derselbe, schreibe ihn also in der Sprache "
+"deines Servers. Leer lassen, um keinen Hinweis anzuzeigen."
 
 # llm-draft
 #, python-format
@@ -3907,6 +3964,14 @@ msgstr "Optionales Bild hinter dem oberen Banner. Ohne Bild bleibt die eingebaut
 # llm-draft
 msgid "Optional title shown under the image."
 msgstr "Optionaler Titel unter dem Bild."
+
+# llm-draft
+msgid ""
+"Optional, in UTC (like the times on the pages). The notice disappears by itself after this moment; empty = it stays "
+"until you clear the text."
+msgstr ""
+"Optional, in UTC (wie die Zeiten auf den Seiten). Der Hinweis verschwindet nach diesem Zeitpunkt von selbst; leer = "
+"er bleibt, bis du den Text löschst."
 
 # llm-draft
 msgid ""
@@ -4269,8 +4334,8 @@ msgstr "Mögliches Strukturversagen"
 
 # llm-draft
 #, python-format
-msgid "Powered by il2ks %(version)s"
-msgstr "Betrieben mit il2ks %(version)s"
+msgid "Powered by <a href=\"https://github.com/FGlazov/il2_korea_stats\" rel=\"noopener\">il2ks</a> %(version)s"
+msgstr "Betrieben mit <a href=\"https://github.com/FGlazov/il2_korea_stats\" rel=\"noopener\">il2ks</a> %(version)s"
 
 # llm-draft
 msgid "Previous"
@@ -6759,8 +6824,8 @@ msgstr "hochgeladen"
 
 # llm-draft
 #, python-format
-msgid "x %(x)s, z %(z)s, altitude %(y)s m"
-msgstr "x %(x)s, z %(z)s, Höhe %(y)s m"
+msgid "x %(x)s, z %(z)s"
+msgstr "x %(x)s, z %(z)s"
 
 # llm-draft
 msgid "your own web server"

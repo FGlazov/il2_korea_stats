@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v3 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v4 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -775,3 +775,6 @@ a.ribbon:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .feed__pilot { font-weight: 650; }
 .feed__meta { font-size: 0.8rem; }
 @media (max-width: 640px) { .feed__item:nth-child(n+5) { display: none; } }
+/* Site notice banner (components/site_notice.html): under the header, above the page; localtime.js hides it once its expiry has passed. */
+.site-notice { padding-top: 1rem; }
+.site-notice .notice { margin: 0; }
