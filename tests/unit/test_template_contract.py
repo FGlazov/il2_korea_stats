@@ -349,7 +349,8 @@ def test_a_removed_or_renamed_url_name_is_major_an_added_one_is_minor(web: Path)
 
 def test_url_calls_are_recorded_with_their_argument_count() -> None:
     found = contract(
-        "{% url 'home' %}{% url 'web:player' player.pk %}{% url 'web:x' a b as link %}{% url 'web:k' pk=3 %}{% url dyn 1 %}"
+        "{% url 'home' %}{% url 'web:player' player.pk %}{% url 'web:x' a b as link %}"
+        "{% url 'web:k' pk=3 %}{% url dyn 1 %}"
     )
     assert found["url_args"] == ("home/0", "web:k/1", "web:player/1", "web:x/2")
 

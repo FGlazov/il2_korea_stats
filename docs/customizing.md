@@ -282,7 +282,7 @@ says which version it is based on. When il2ks starts, it compares that version w
 
 The version has two numbers, **N.M**. The first one, **N**, goes up when a change can **break your copy**: a
 `{% block %}` was added, removed or renamed, the page no longer gets a variable or include your copy uses, a page
-address (`{% url %}` name) or a static file that your copy refers to was removed or renamed, or an element id or
+address (`{% url %}` name) that your copy refers to was removed, renamed or now takes other arguments, a static file that your copy refers to was removed or renamed, or an element id or
 class that the built-in stylesheet or scripts rely on changed. A new variable or include does not count: your copy
 simply lacks the new feature. The second, **M**, goes up for everything else: wording,
 colours, spacing, markup inside a block. Your copy keeps working after an M change, it just does not have the

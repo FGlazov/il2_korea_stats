@@ -17,6 +17,9 @@ Fingerprint of a **template** (`.html`, `.txt`):
 - `urls`, `static`: the names of `{% url 'name' %}` and the paths of `{% static 'path' %}` (string literals only).
   Removal only: an override that still reverses a removed or renamed URL name crashes (NoReverseMatch, a 500), one that
   still points at a removed static file crashes with the manifest storage. A new one is simply missing in the override.
+- `url_args`: `name/count` of every `{% url 'name' a b %}` literal (count = arguments before `as`). A call with a
+  changed argument count (`name/1` gone while the name is still used) is N: an override with the old arguments
+  raises NoReverseMatch.
 - `tags`, `filters`: tags and filters that are not Django's own (il2ks's `{% tour_select %}`, `|object_name`). Removal
   only: an override that still uses a removed one breaks, an added one is simply missing in the override.
 - `markers`: every `#id`, `.class` and `[data-attribute]` the template writes. They count only when the built-in CSS or
@@ -29,8 +32,9 @@ the markup it works on is part of the contract.
 
 Honest limits: this is a lexical reading, not Django's parser. A variable the template builds through a custom tag's
 `as` is seen as local; a CSS class built by string concatenation in a script is not seen; `{% url %}` with a variable
-instead of a literal name is not seen. Not covered at all: a changed signature of a custom tag or filter (arguments), an
-attribute renamed on a context object (`player.nick` -> `player.name`). `--major` is the escape hatch.
+instead of a literal name is not seen. Not covered at all: a URL pattern in `web/urls.py` whose parameters change
+(`<int:pk>` -> `<slug:slug>`) while the templates stay as they are; a changed signature of a custom tag or filter
+(arguments), an attribute renamed on a context object (`player.nick` -> `player.name`). `--major` is the escape hatch.
 """
 
 import functools
@@ -119,6 +123,7 @@ class _Reader:
         self.blocks: set[str] = set()
         self.includes: set[str] = set()
         self.urls: set[str] = set()
+        self.url_args: set[str] = set()
         self.statics: set[str] = set()
         self.extends: set[str] = set()
         self.variables: set[str] = set()
@@ -181,6 +186,11 @@ class _Reader:
             return
         if name in {"url", "static"} and args and args[0][0] in "\"'":
             (self.urls if name == "url" else self.statics).add(args[0].strip("\"'"))
+            if name == "url":
+                rest = args[1:]
+                if "as" in rest:
+                    rest = rest[: rest.index("as")]
+                self.url_args.add(f"{args[0].strip(chr(34) + chr(39))}/{len(rest)}")
         if name not in libraries[0]:
             self.tags.add(name)
         self._arguments(args, binds=name in {"with", "blocktranslate", "blocktrans"})
@@ -236,6 +246,7 @@ def _template_fingerprint(text: str) -> Contract:
             "blocks": reader.blocks,
             "includes": reader.includes,
             "urls": reader.urls,
+            "url_args": reader.url_args,
             "static": reader.statics,
             "variables": variables,
             "tags": {t for t in reader.tags if t not in libraries[0]},
@@ -375,6 +386,10 @@ def breaking_changes(key: str, old: Contract, new: Contract, targeted: frozenset
         removed("includes", "include")
         removed("variables", "variable")
         removed("urls", "url name")
+        still_used = set(new.get("urls", ()))
+        for name in sorted(set(old.get("url_args", ())) - set(new.get("url_args", ()))):
+            if name.rpartition("/")[0] in still_used:  # a removed name is reported above
+                reasons.append(f"url arguments removed: {name}")
         removed("static", "static file")
         removed("tags", "tag")
         removed("filters", "filter")
