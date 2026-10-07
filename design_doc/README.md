@@ -119,3 +119,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   depend on its text, doc 16 "Web foundation"; regression e2e test that stalls the deferred scripts).
   2026-10-07 (roadmap "Version 0.2.0" set by the maintainer; OQ-133..135 answered: Markdown pages typed in the admin with hotlinked
   images and optional per-language texts, side balance weighted by time, altitude units confirmed; folded into docs 02 and 10).
+  2026-10-07 (doc sync for 0.2.0: wipe and reprocess (14), side balance (13, 14, 06), Markdown pages, notice banner, footer link, altitude column, healthz, sitemap and robots,
+  login lockout, outbound helper, backup copy, template versions vN.M (05, 16), doctor checks, security (03), roadmap statuses; new OQ-137..141).

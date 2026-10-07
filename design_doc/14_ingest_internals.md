@@ -138,6 +138,25 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
   `--mission UID` (repeatable) and **`--since DATE` / `--until DATE`** (inclusive, by the mission UID's server-local date; maintainer use case:
   "scoring changed, reprocess the last 6 months"). Parse and replay run in low-priority worker processes; the main process is the only writer.
   A reprocess failure leaves the previous rows in place and never schedules a retry.
+- **Delete all data and reprocess** (`ingest/wipe.py`, 0.2.0, FR-ADM-4): a second button next to "Reprocess all missions" on the ingestion status
+  page, for superusers only, then a confirmation page where the admin types `DELETE` (the word is not translated). The CLI twin is
+  `il2ks reprocess --all --wipe`: it asks for the typed words "delete all data" (`--yes` skips the question; without a terminal `--yes` is required;
+  `--wipe` needs `--all`). Both go through the same code, `wipe_and_reprocess`, and the web one files a `ReprocessRequest` with `wipe = true`
+  that `watch` runs under the writer lock, one hold for everything. Steps, in order (the status page names the first three phases; the reprocess shows its usual progress):
+  1. **check**: every stored mission needs a usable archive (the file is there and its hash matches); one without aborts the job and nothing is deleted;
+  2. **backup** with the reason `pre-wipe`; a failed backup aborts, nothing deleted;
+  3. **wipe**: the admin's settings that live on ingested rows are captured, then every ingested row is deleted (raw deletes in dependency order;
+     links from kept rows into wiped ones are set to null);
+  4. **reprocess** of every archived mission, as a normal `reprocess --all` (one level-2 rebuild at the end);
+  5. **re-apply** the captured settings, also when the reprocess failed half way (what was rebuilt keeps the admin's hiding and tour names).
+- **What the wipe keeps** is decided in one place, `KEEP_MODELS` in `ingest/wipe.py`, each model with a reason: `SiteSettings`, `NavLink`, `Page`,
+  `PageTranslation`, `DataVersion`, `GameObject` (catalog and name overrides), `Country`, `IngestRun` (the history tells the reprocess which archive
+  to use; its mission link is cleared and set again afterwards, by mission UID), `ReprocessRequest`, `LiveMission`, `LivePlayer`. **Every other
+  `il2ks_db` model is wiped**; other apps (auth, axes) are untouched. A test fails when a model is in neither list, so whoever adds one has to decide.
+- **Settings on ingested rows**, captured before and applied after: hidden players (by account UUID), hidden missions (by server UID and mission UID),
+  tour renames (only when the new tour has the same start, mode and kind), and the manual tour boundaries, which are recreated before the reprocess when
+  the mode is still manual (the stored tours are the periods there). The admin's chosen rules, tour option, achievement and flight-time settings are
+  adopted as applied before the wipe, since a full rebuild computes with them anyway. `[PROPOSED]` defaults: OQ-137.
 - `setup`, `web`, `run`, `doctor`, `createadmin`, `backup` and `restore` are built (doc 16). Tools under `il2ks dev` (`check`, `bench-ingest`, `dump-db`, `bump-templates`, `translations`, `assets`, ...) are for contributors (doc 08).
 
 **Log files** (`logsetup.py`, TD-27): JSON lines with `time` (UTC), `level`, `logger`, `message`, `process`, **`server_uid`**, extras,
@@ -234,6 +253,10 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   mission's level-1 rows are written, every player who had or has a sortie in it gets their totals, per-aircraft rows and identity fields
   recomputed from their level-1 rows. `rebuild-aggregates` uses the same code for all players. Why: no delta arithmetic to get wrong, and a
   re-ingest can't drift from a rebuild. Superseded 2026-10-05 by the tour-level refresh below: the per-tour rows are recomputed from level 1, the all-time rows are summed from them.
+- **Side balance in the replay** (0.2.0, rules in doc 13 "Side balance"): `core/replay/balance.py` runs in `resolve` over the finished sorties and their end
+  ticks, so it needs no extra log reading. It puts `redfor_players` / `blufor_players` on `MissionInfo` and the `underdog` flag on each `SortieResult`;
+  `ingest` stores both, and `ingest/counters.py` turns the flag and the sortie's side into `sorties_redfor` / `sorties_blufor` / `sorties_underdog`. The
+  counters then travel through the tour-level refresh below like any other counter.
 - **Tour-level refresh, all time = sum of the tours** (maintainer, 2026-10-05, restating an earlier requirement that was not recorded
   here): to bound complexity as the history grows, level 2 is refreshed per tour, and the all-time stats are built on top of the sum of
   the tour stats rather than by re-reading a player's whole level-1 history (the goal; known exceptions: the cumulative medals replay the sorties of the tours where a tier is reached, and Old Hand reads the player's `PlayerTour` rows of every tour, rolled up on its own for the players whose run crosses a tour inserted in the past). Batches (20+ missions) track only the tours they touched and
