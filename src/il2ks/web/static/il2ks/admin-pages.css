@@ -1,4 +1,5 @@
-/* il2ks-template: static/il2ks/admin-pages.css v2.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/admin-pages.css v3.1 - copy this line along when you override */
 /* The Markdown preview box under a text in the pages admin. */
 .md-preview { border: 1px solid var(--hairline-color); border-radius: 4px; padding: 0.5rem 1rem; margin: 0.5rem 0; max-width: 46rem; overflow-wrap: anywhere; }
 .md-preview img { max-width: 100%; height: auto; }
+.md-warning { padding: 0.25rem 0.75rem; margin: 0 0 0.5rem; background: var(--message-warning-bg); border-radius: 4px; }

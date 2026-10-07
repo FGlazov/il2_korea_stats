@@ -1088,6 +1088,14 @@ msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Un vol d'endurance : le coussin du siège mérite une mention dans le rapport."
 
 # llm-draft
+msgid ""
+"An image on this page has an http:// address. Pages only load images over https, so it will not load; use the "
+"https:// address of the image."
+msgstr ""
+"Une image de cette page a une adresse http://. Les pages ne chargent les images qu'en https, elle ne s'affichera donc"
+" pas ; utilisez l'adresse https:// de l'image."
+
+# llm-draft
 #, python-format
 msgid "Angels %(n)s"
 msgstr "Angels %(n)s"

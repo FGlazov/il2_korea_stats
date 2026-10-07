@@ -1969,6 +1969,9 @@ class Page(models.Model):
     translations: models.JSONField[dict[str, dict[str, str]]] = models.JSONField(
         default=dict, blank=True, editable=False
     )
+    renderer_version = models.PositiveSmallIntegerField(
+        default=0, editable=False
+    )  # `web.pages.RENDERER_VERSION` of `html`
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -1987,6 +1990,7 @@ class PageTranslation(models.Model):
     title = models.CharField(max_length=120, blank=True)  # blank = the base title
     source = models.TextField(blank=True)
     html = models.TextField(blank=True, editable=False)
+    renderer_version = models.PositiveSmallIntegerField(default=0, editable=False)  # as on `Page`
 
     class Meta:
         ordering = ["language"]

@@ -304,3 +304,85 @@ def test_a_nav_link_needs_exactly_one_target(admin: Client, both: bool) -> None:
     response = admin.post("/admin/il2ks_db/sitesettings/1/change/", data)
     assert response.status_code == 200
     assert not NavLink.objects.exists()
+
+
+# --- renderer version: an upgrade re-renders stored pages (review 0.2.0, LOW pages) ---
+
+
+def test_a_page_rendered_by_an_older_renderer_is_rendered_again_after_the_upgrade() -> None:
+    from il2ks.ops import migrate
+    from il2ks.web.pages import RENDERER_VERSION
+
+    page = Page.objects.create(
+        slug="old", title="Old", source="**bold**", html="<script>x</script>", renderer_version=0
+    )
+    PageTranslation.objects.create(page=page, language="de", source="*fett*", html="<script>y</script>")
+    link_to(page)
+    before = current_data_version()
+
+    assert migrate.refresh_stale_pages() is True
+
+    page.refresh_from_db()
+    row = PageTranslation.objects.get(page=page)
+    assert page.html.strip() == "<p><strong>bold</strong></p>"
+    assert row.html.strip() == "<p><em>fett</em></p>"
+    assert page.translations["de"]["html"].strip() == "<p><em>fett</em></p>"
+    assert page.renderer_version == row.renderer_version == RENDERER_VERSION
+    assert current_data_version() == before + 1
+    assert SiteSettings.objects.get(pk=1).links[0]["url"] == "/p/old/"
+
+
+def test_pages_rendered_by_the_current_renderer_are_left_alone() -> None:
+    from il2ks.ops import migrate
+
+    page = make_page()
+    Page.objects.filter(pk=page.pk).update(html="<p>edited in the database</p>")
+    before = current_data_version()
+
+    assert migrate.refresh_stale_pages() is False
+
+    assert Page.objects.get(pk=page.pk).html == "<p>edited in the database</p>"
+    assert current_data_version() == before
+
+
+def test_a_stale_translation_alone_re_renders_its_page() -> None:
+    from il2ks.ops import migrate
+
+    page = make_page()
+    translate(page, "de", "*fett*")
+    PageTranslation.objects.filter(page=page).update(renderer_version=0, html="")
+
+    assert migrate.refresh_stale_pages() is True
+
+    assert PageTranslation.objects.get(page=page).html.strip() == "<p><em>fett</em></p>"
+
+
+# --- the page's content security policy ---
+
+
+def test_the_page_only_runs_scripts_from_the_site_itself(client: Client) -> None:
+    make_page()
+    response = client.get("/p/rules/")
+    assert "script-src 'self'" in response["Content-Security-Policy"]
+    assert "<script>" not in response.content.decode()  # the layout has no inline script (the policy would block it)
+
+
+# --- http images: they will not load (the policy allows https only), so the admin is told ---
+
+
+def test_the_preview_warns_about_http_images(admin: Client) -> None:
+    response = admin.post("/admin/il2ks_db/page/preview/", {"source": "![m](http://img.example/m.png)"})
+    html = response.content.decode()
+    assert 'class="md-warning"' in html
+    assert 'src="http://img.example/m.png"' in html  # not rewritten
+
+
+def test_the_preview_of_https_images_has_no_warning(admin: Client) -> None:
+    response = admin.post("/admin/il2ks_db/page/preview/", {"source": "![m](https://img.example/m.png)"})
+    assert "md-warning" not in response.content.decode()
+
+
+def test_saving_a_page_with_http_images_warns_and_keeps_the_address(admin: Client) -> None:
+    response = admin.post("/admin/il2ks_db/page/add/", page_form(source="![m](http://img.example/m.png)"), follow=True)
+    assert "will not load" in response.content.decode()
+    assert 'src="http://img.example/m.png"' in Page.objects.get(slug="rules").html

@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from django.db import models
     from django.db.migrations.executor import MigrationExecutor
 
+    from il2ks.db.models import Page
+
 log = logging.getLogger(__name__)
 
 
@@ -52,10 +54,11 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
     from il2ks.ops.backup import backup_before_migration
 
     if not _pending(MigrationExecutor):
-        if catalog_changed():
+        if catalog_changed() or pages_stale():
             try:
                 with WriterLock(cfg.data_dir, command, wait=wait):
                     refresh_for_catalog_change(cfg, backup=True)
+                    refresh_stale_pages()
             except LockBusyError:  # a writer is running (and did or will do this itself): `web` must still start
                 log.info("the catalog files changed; the next writer refreshes the stored rows")
         return None
@@ -68,7 +71,44 @@ def migrate_if_needed(cfg: Config, command: str, wait: float | None) -> Path | N
         log.info("applying database migrations")
         call_command("migrate", interactive=False, verbosity=0)
         refresh_for_catalog_change(cfg)  # a fresh database only records the fingerprint; an upgrade refreshes once
+        refresh_stale_pages()
         return backup
+
+
+def _stale_pages() -> models.QuerySet[Page]:
+    from django.db.models import Q
+
+    from il2ks.db.models import Page
+    from il2ks.web.pages import RENDERER_VERSION
+
+    return Page.objects.filter(
+        Q(renderer_version__lt=RENDERER_VERSION) | Q(page_translations__renderer_version__lt=RENDERER_VERSION)
+    ).distinct()
+
+
+def pages_stale() -> bool:
+    """Whether a Markdown page (or one of its translations) was rendered by an older renderer. Two cheap reads."""
+    return _stale_pages().exists()
+
+
+def refresh_stale_pages() -> bool:
+    """Render the Markdown pages again whose stored HTML comes from an older renderer (`RENDERER_VERSION`), so a
+    tightened allowlist reaches pages saved before the upgrade; re-publishes their navigation links and bumps the data
+    version (TD-28). Returns whether anything was rendered. The caller holds the writer lock."""
+    from django.db import transaction
+
+    from il2ks.db.site import bump_data_version
+    from il2ks.web.pages import publish_page
+
+    pages = list(_stale_pages())
+    if not pages:
+        return False
+    with transaction.atomic():
+        for page in pages:
+            publish_page(page)
+        bump_data_version()
+    log.info("rendered %d Markdown page(s) again after an update of the renderer", len(pages))
+    return True
 
 
 def _rebuild_all(cfg: Config) -> None:

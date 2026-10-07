@@ -314,3 +314,4 @@ _.ram_with  # sortie_view.Detail: read by sorties/parts/header.html
 _.has_ram  # sortie_view.Detail: read by sorties/parts/header.html and timeline.html
 FIRST_RELEASE_DONE  # read by .github/workflows/release.yml (refuses a v* tag while False); templateversions.py
 _.altitude_title  # sortie_view.TimelineRow: read by sorties/parts/timeline_table.html (the exact feet)
+_.renderer_version  # Page/PageTranslation: written when rendered, read by the stale-page query (ops.migrate)
