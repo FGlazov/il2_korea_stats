@@ -308,3 +308,5 @@ _.is_ram  # Kill.is_ram: written at ingest, read by the sortie page through the 
 _.ram_with  # sortie_view.Detail: read by sorties/parts/header.html
 _.has_ram  # sortie_view.Detail: read by sorties/parts/header.html and timeline.html
 FIRST_RELEASE_DONE  # read by .github/workflows/release.yml (refuses a v* tag while False); templateversions.py
+LoginHandler  # settings.AXES_HANDLER: axes imports it by name (web.login_protection)
+get_failures  # LoginHandler overrides axes's method: axes calls it
