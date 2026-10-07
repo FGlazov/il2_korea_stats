@@ -1,0 +1,6 @@
+{# il2ks-template: templates/il2ks/components/site_notice.html v1.0 - copy this line along when you override #}
+{% load il2ks %}{% comment %}
+  site_notice.html: the admin's notice banner under the header (included by base.html). Context: site_notice (text, level, until;
+  None = nothing shown). `until` is the expiry: localtime.js hides the banner once it has passed, because a cached page
+  cannot (like the "next tour starts" line).
+{% endcomment %}{% if site_notice %}<div class="page site-notice"{% if site_notice.until %} data-il2-until="{{ site_notice.until }}"{% endif %}>{% notice site_notice.level %}{{ site_notice.text }}{% endnotice %}</div>{% endif %}

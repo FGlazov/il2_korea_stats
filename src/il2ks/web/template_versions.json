@@ -200,8 +200,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "3.1",
-      "sha256": "fb75af636aa811974c993633c21882e27eb73ccc8e00ae410d5c3de5e00feac8",
+      "version": "4.0",
+      "sha256": "adefd16179509c8451e9e73ec29e4fa77cec4ea5bd7d3164553a3390193cbf13",
       "contract": {
         "defines": [
           "--icon",
@@ -470,6 +470,7 @@
           ".site-header--image",
           ".site-header__inner",
           ".site-nav",
+          ".site-notice",
           ".site-search",
           ".site-search__icon",
           ".skip-link",
@@ -524,8 +525,8 @@
       }
     },
     "static/il2ks/sorties.css": {
-      "version": "1.0",
-      "sha256": "f64597c55d1e4f4bf9e860fd3eff20ecaef9334e83815228565ad9f2415b280a",
+      "version": "2.0",
+      "sha256": "87b7a985a2c3747ad3d4ca8ce8c2d3429c5a56534e0f7c1d4bedc4b0dc92ce48",
       "contract": {
         "defines": [
           "--il2-muted",
@@ -542,6 +543,7 @@
           ".sortie-head__where",
           ".sortie-list",
           ".timeline-note",
+          ".timeline__alt",
           ".timeline__ammo",
           ".timeline__damage",
           ".timeline__damage--given",
@@ -1458,8 +1460,8 @@
       }
     },
     "templates/il2ks/base.html": {
-      "version": "1.1",
-      "sha256": "3d610828f8f26038d697405559c559027eef9b0b52a70fd5e40c387cee21cb4c",
+      "version": "2.0",
+      "sha256": "4f30bb5a7f01618bb558622eefb2ba5498c437fe73f60b15bd34718d95320592",
       "contract": {
         "blocks": [
           "content",
@@ -1471,6 +1473,9 @@
         ],
         "filters": [
           "local_time"
+        ],
+        "includes": [
+          "il2ks/components/site_notice.html"
         ],
         "markers": [
           "#main",
@@ -1924,6 +1929,23 @@
         ],
         "variables": [
           "share"
+        ]
+      }
+    },
+    "templates/il2ks/components/site_notice.html": {
+      "version": "1.0",
+      "sha256": "ca8cb0239f92230b55f1ccc092042453dac4cef7f84ae36d702f40f4e598d042",
+      "contract": {
+        "markers": [
+          ".page",
+          ".site-notice",
+          "[data-il2-until]"
+        ],
+        "tags": [
+          "notice"
+        ],
+        "variables": [
+          "site_notice"
         ]
       }
     },
@@ -4112,8 +4134,8 @@
       }
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
-      "version": "1.0",
-      "sha256": "3ceaa3a9d294d97bcf6c30f05f238f5c23cce96c4ef4b8fa86a7413820be2c0a",
+      "version": "2.0",
+      "sha256": "fc58d0e221b4fe5e52ddb4d80d8fd4bd36605535f42ba9ee548f8e93aefb147f",
       "contract": {
         "filters": [
           "local_clock",
@@ -4133,6 +4155,7 @@
           ".table-wrap--flat",
           ".taken",
           ".timeline",
+          ".timeline__alt",
           ".timeline__ammo",
           ".timeline__damage",
           ".timeline__damage--",

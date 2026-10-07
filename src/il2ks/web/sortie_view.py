@@ -17,7 +17,7 @@ from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
 
 from il2ks.core import stat_marks
-from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES
+from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES, Side
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie, SortieThreshold
 from il2ks.queries.ammo import GunAmmoRow, ammo_info, ordnance_name, parse_sortie_ammo
@@ -160,13 +160,41 @@ def _str(value: object) -> str:
     return value if isinstance(value, str) else ""
 
 
-def _pos(value: object) -> str:
-    """'x 12,345  z -6,789  alt 900 m' for a stored [x, y, z], or ''."""
+def _coords(value: object) -> tuple[float, float, float] | None:
+    """The stored [x, y, z] as numbers, or None (no position, or not three numbers)."""
     coords = _list(value)
     if len(coords) != 3:
-        return ""
+        return None
     x, y, z = (_float(c) for c in coords)
-    return _("x %(x)s, z %(z)s, altitude %(y)s m") % {"x": display.num(x), "z": display.num(z), "y": display.num(y)}
+    return x, y, z
+
+
+def _pos(value: object) -> str:
+    """'x 12,345, z -6,789' for a stored [x, y, z] (the clock's tooltip; the altitude has its own column), or ''."""
+    coords = _coords(value)
+    if coords is None:
+        return ""
+    return _("x %(x)s, z %(z)s") % {"x": display.num(coords[0]), "z": display.num(coords[2])}
+
+
+FEET_PER_METRE = 3.28084
+NBSP = "\N{NO-BREAK SPACE}"
+
+
+def altitude(value: object, side: Side | None) -> tuple[str, str]:
+    """(text, tooltip) of the altitude above sea level for a stored [x, y, z]; empty strings without a position.
+
+    The game's `y` is metres above sea level (il2ks has no terrain data, so never above ground). BLUFOR reads in feet,
+    as 'Angels 15' (thousands of feet, rounded; the exact feet in the tooltip); REDFOR (and a side that is neither) in
+    metres, '4 500 m' with the locale's digit grouping. Units follow the sortie's side (OQ-135)."""
+    coords = _coords(value)
+    if coords is None:
+        return "", ""
+    metres = coords[1]
+    if side == "blufor":
+        feet = metres * FEET_PER_METRE
+        return _("Angels %(n)s") % {"n": display.num(feet / 1000)}, f"{display.num(feet)}{NBSP}ft"
+    return f"{display.num(metres)}{NBSP}m", ""
 
 
 def _when(value: object) -> datetime | None:
@@ -632,7 +660,8 @@ class TimelineRow:
     """One line of the timeline; a run of ground kills is one row with `children` (rendered folded).
 
     kind: the stored kind ('kill', 'takeoff', ...); tone: "good", "bad", "warn" or ''; clock: time since spawn;
-    at: when it happened (viewer's time zone); place: tooltip with the position; text: detail sentence ('' when none);
+    at: when it happened (viewer's time zone); place: tooltip with the position; altitude / altitude_title: the altitude
+    column (`altitude()`); text: detail sentence ('' when none);
     who: the counterpart;
     count: how many events a grouped row stands for (1 otherwise);
     damage: "+12.5%" (hit given) or "-12.5%" with a minus sign (hit taken), empty on other rows and old rows
@@ -647,6 +676,8 @@ class TimelineRow:
     place: str = ""
     text: str = ""
     who: Who | None = None
+    altitude: str = ""  # above sea level in the sortie side's unit ('Angels 15' or '4 500 m'), '' without a position
+    altitude_title: str = ""  # BLUFOR: the exact feet
     count: int = 1
     summary: str = ""
     damage: str = ""
@@ -706,6 +737,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         if kind == "kill" and not _is_air_object(lookup, detail):
             icon, label = "event/kill-ground", str(_("Ground kill"))
     ammo, ammo_title = hit_ammo(entry)
+    height, height_title = altitude(entry.get("pos"), display.side_of(sortie.country))
     return TimelineRow(
         kind,
         icon,
@@ -716,6 +748,8 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
         _pos(entry.get("pos")),
         _("Pilot / crew") if _str(entry.get("target_role")) == "crew" else timeline_text(sortie, kind, detail),
         who,
+        altitude=height,
+        altitude_title=height_title,
         damage=hit_damage(kind, entry),
         ammo=ammo,
         ammo_title=ammo_title,

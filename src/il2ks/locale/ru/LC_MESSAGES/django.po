@@ -598,6 +598,12 @@ msgid "A reprocess request is already waiting."
 msgstr "Запрос на повторную обработку уже ожидает."
 
 # llm-draft
+msgid "A short message under the top banner on every public page. Saving changes it for all visitors within moments."
+msgstr ""
+"Короткое сообщение под верхним баннером на каждой публичной странице. После сохранения его увидят все посетители в "
+"течение нескольких мгновений."
+
+# llm-draft
 msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
 msgstr "Серия никогда не переходит из одного тура в другой; за всё время показан лучший результат среди туров."
 
@@ -1047,6 +1053,10 @@ msgid "Alternative text"
 msgstr "Альтернативный текст"
 
 # llm-draft
+msgid "Altitude"
+msgstr "Высота"
+
+# llm-draft
 msgid "Ammunition"
 msgstr "Боекомплект"
 
@@ -1081,6 +1091,11 @@ msgstr "Посол хаоса на земле и в воздухе. Эскадр
 # llm-draft
 msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Выносливый полёт: подушка сиденья заслуживает упоминания в рапорте."
+
+# llm-draft
+#, python-format
+msgid "Angels %(n)s"
+msgstr "Ангелы %(n)s"
 
 # llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
@@ -2716,6 +2731,16 @@ msgid "Healthy"
 msgstr "Здоров"
 
 # llm-draft
+#. Translators: tooltip of the "Altitude" column header of a sortie's timeline. Angels = thousands of feet, as US
+#. fighter controllers say it; metres on the Soviet side.
+msgid ""
+"Height above sea level where it happened, not above the ground (the logs have no terrain data). BLUFOR sorties show "
+"Angels (thousands of feet; hover for the exact feet), REDFOR sorties metres."
+msgstr ""
+"Высота над уровнем моря в этом месте, а не над землёй (в логах нет данных о рельефе). Вылеты BLUFOR показывают "
+"«ангелов» (тысячи футов; наведите курсор, чтобы увидеть точные футы), вылеты REDFOR — метры."
+
+# llm-draft
 #, python-format
 msgid "Held by %(share)s%% of pilots"
 msgstr "Есть у %(share)s%% пилотов"
@@ -2748,6 +2773,10 @@ msgstr "Скрыть выбранные миссии на публичных с�
 # llm-draft
 msgid "Hide selected players from public pages"
 msgstr "Скрыть выбранных игроков на публичных страницах"
+
+# llm-draft
+msgid "Hide the notice after (UTC)"
+msgstr "Скрыть объявление после (UTC)"
 
 # llm-draft
 msgid "High contrast (black and white)"
@@ -2910,6 +2939,10 @@ msgstr "В лобби"
 # llm-draft
 msgid "In the window where il2ks runs: it printed a web address with the token already in it. Open that address instead."
 msgstr "В окне, где запущен il2ks: там выведен веб-адрес, в котором токен уже указан. Откройте этот адрес."
+
+# llm-draft
+msgid "Information is a plain note; Warning is highlighted in red. Only used while there is a text."
+msgstr "Информация — обычная заметка, предупреждение выделено красным. Используется, только пока есть текст."
 
 # llm-draft
 msgid "Ingested"
@@ -3852,6 +3885,18 @@ msgid "Nothing to show yet."
 msgstr "Пока нечего показывать."
 
 # llm-draft
+msgid "Notice"
+msgstr "Объявление"
+
+# llm-draft
+msgid "Notice style"
+msgstr "Вид объявления"
+
+# llm-draft
+msgid "Notice text"
+msgstr "Текст объявления"
+
+# llm-draft
 msgid "OK"
 msgstr "OK"
 
@@ -3895,6 +3940,16 @@ msgstr "На земле"
 # llm-draft
 msgid "On this page"
 msgstr "На этой странице"
+
+# llm-draft
+msgid ""
+"One line shown under the top banner on every page, for example an event tonight or planned maintenance. Plain text, "
+"at most 300 characters; it is the same in every language, so write it in your server's language. Leave it empty to "
+"show no notice."
+msgstr ""
+"Одна строка под верхним баннером на каждой странице, например про событие сегодня вечером или плановые работы. "
+"Простой текст, не больше 300 символов; он один на все языки, поэтому пишите его на языке вашего сервера. Оставьте "
+"пустым, чтобы объявления не было."
 
 # llm-draft
 #, python-format
@@ -3955,6 +4010,14 @@ msgstr "Необязательная картинка за верхним бан
 # llm-draft
 msgid "Optional title shown under the image."
 msgstr "Необязательный заголовок под изображением."
+
+# llm-draft
+msgid ""
+"Optional, in UTC (like the times on the pages). The notice disappears by itself after this moment; empty = it stays "
+"until you clear the text."
+msgstr ""
+"Необязательно, в UTC (как время на страницах). После этого момента объявление исчезнет само; пусто = оно остаётся, "
+"пока вы не сотрёте текст."
 
 # llm-draft
 msgid ""
@@ -4330,8 +4393,8 @@ msgstr "Возможно, разрушение конструкции"
 
 # llm-draft
 #, python-format
-msgid "Powered by il2ks %(version)s"
-msgstr "Работает на il2ks %(version)s"
+msgid "Powered by <a href=\"https://github.com/FGlazov/il2_korea_stats\" rel=\"noopener\">il2ks</a> %(version)s"
+msgstr "Работает на <a href=\"https://github.com/FGlazov/il2_korea_stats\" rel=\"noopener\">il2ks</a> %(version)s"
 
 # llm-draft
 msgid "Preview"
@@ -6902,8 +6965,8 @@ msgstr "загружен"
 
 # llm-draft
 #, python-format
-msgid "x %(x)s, z %(z)s, altitude %(y)s m"
-msgstr "x %(x)s, z %(z)s, высота %(y)s м"
+msgid "x %(x)s, z %(z)s"
+msgstr "x %(x)s, z %(z)s"
 
 # llm-draft
 msgid "your own web server"

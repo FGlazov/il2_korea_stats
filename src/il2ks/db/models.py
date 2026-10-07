@@ -1799,6 +1799,15 @@ class HomeFeature(models.TextChoices):
     IMAGE = "image", "A large image from a file on the server"
 
 
+class NoticeLevel(models.TextChoices):
+    """Look of the site-wide notice banner (`SiteSettings.notice_level`): the notice component's `info` / `warning`."""
+
+    INFO = "info", "Information"
+    WARNING = "warning", "Warning"
+
+
+NOTICE_MAX_LENGTH = 300
+
 SHADE_VALIDATORS = [MinValueValidator(0), MaxValueValidator(80)]  # `web.branding_images.MAX_SHADE`
 
 
@@ -1913,6 +1922,11 @@ class SiteSettings(models.Model):
     # none. Set when the batch starts, cleared when its last level-2 pass or any rebuild committed. Still set at
     # the next run = killed mid-batch (level 2 lags level 1): that run rebuilds first, and `doctor` warns.
     level2_pending: models.JSONField[dict[str, object]] = models.JSONField(default=dict, blank=True)
+    # Site-wide notice banner under the header (event tonight, maintenance): plain text (escaped when shown), one text
+    # for every language; empty = nothing shown. `notice_until` hides it once past (null = until the admin clears it).
+    notice_text = models.CharField(max_length=NOTICE_MAX_LENGTH, blank=True)
+    notice_level = models.CharField(max_length=10, choices=NoticeLevel.choices, default=NoticeLevel.INFO)
+    notice_until = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

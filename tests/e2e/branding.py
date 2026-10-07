@@ -3,13 +3,15 @@
 `python -m tests.e2e.branding '{"links": [["Discord", "https://d.example/", "discord"]], "site_title": "X"}'`
 Keys: `links` ([label, url, icon] triples), `site_title`, `server_name`, `theme`, `heading_font`, `body_font`,
 `font_files` ({"heading": path, "body": path} of .woff2 files to upload as custom fonts and select),
-`feature_image` ({"path", "alt", "caption"}: the large front-page image, produced right away), `home_bg` / `header_bg`
+`feature_image` ({"path", "alt", "caption"}: the large front-page image, produced right away),
+`notice` ({"text", "level", "until": an ISO time or nothing}: the site-wide notice banner), `home_bg` / `header_bg`
 ({"file", "position", "shade"}: a background picture, processed like an admin upload). Missing keys are
 reset to the default, so `{}` restores the shipped look. The data version is bumped (TD-28).
 """
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import cast
 
@@ -58,6 +60,10 @@ def main() -> None:
     row.feature_caption = feature.get("caption", "") if feature else ""
     row.feature_source_sig = ""
     row.feature_image = row.feature_image_small = row.feature_error = ""
+    notice = cast("dict[str, str] | None", spec.get("notice"))
+    row.notice_text = notice["text"] if notice else ""
+    row.notice_level = notice.get("level", "info") if notice else "info"
+    row.notice_until = datetime.fromisoformat(notice["until"]) if notice and notice.get("until") else None
     row.save()
     if feature:
         from il2ks.web.feature_image import sync

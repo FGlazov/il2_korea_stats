@@ -188,13 +188,16 @@ def test_a_reviewer_removing_the_draft_comment_counts_as_reviewed(locale: Path) 
     assert row.untranslated == row.total - 2
 
 
+POWERED_BY = 'Powered by <a href="https://github.com/FGlazov/il2_korea_stats" rel="noopener">il2ks</a> %(version)s'
+
+
 def test_import_rejects_translations_that_break_a_placeholder(locale: Path) -> None:
     translations.update([DE])
 
     with pytest.raises(translations.TranslationError, match="placeholders"):
-        translations.import_drafts("de", {"Powered by il2ks %(version)s": "Betrieben mit il2ks"})
+        translations.import_drafts("de", {POWERED_BY: "Betrieben mit il2ks"})
     with pytest.raises(translations.TranslationError, match="placeholders"):
-        translations.import_drafts("de", {"Powered by il2ks %(version)s": "il2ks %(versions)s"})
+        translations.import_drafts("de", {POWERED_BY: "il2ks %(versions)s"})
     with pytest.raises(translations.TranslationError, match="unknown language"):
         translations.import_drafts("tlh", {})
 
@@ -246,7 +249,7 @@ def test_missing_lists_the_untranslated_strings_as_import_input(locale: Path) ->
 def test_templates_and_python_are_both_extracted() -> None:
     ids = {key for _context, key in keys_of(translations.extract_catalog())}
     assert "Skip to content" in ids  # {% translate %} in base.html
-    assert "Powered by il2ks %(version)s" in ids  # {% blocktranslate %}
+    assert POWERED_BY in ids  # {% blocktranslate %}
     assert "Attack sorties" in ids  # _("...") inside a {% stat_tile %} tag
     assert "Air superiority" in ids  # gettext_lazy in web/display.py
 

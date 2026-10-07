@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 
-from il2ks.db.models import HomeFeature, SiteSettings
+from il2ks.db.models import HomeFeature, NoticeLevel, SiteSettings
 from il2ks.web.branding_images import (
     MAX_BACKGROUND_BYTES,
     BackgroundKind,
@@ -249,8 +249,12 @@ class SiteSettingsForm(forms.ModelForm):
             "redfor_emblem",
             "blufor_emblem",
             "show_live_sorties",
+            "notice_text",
+            "notice_level",
+            "notice_until",
         ]
         widgets = {
+            "notice_text": forms.TextInput(attrs={"size": 70}),
             "description": forms.Textarea(attrs={"rows": 4, "cols": 70}),
             "feature_image_path": forms.TextInput(attrs={"size": 70}),
             "feature_caption": forms.TextInput(attrs={"size": 70}),
@@ -259,6 +263,9 @@ class SiteSettingsForm(forms.ModelForm):
         labels = {
             "home_feature": _("Large image on the front page"),
             "feature_image_path": _("Image file on the server"),
+            "notice_text": _("Notice text"),
+            "notice_level": _("Notice style"),
+            "notice_until": _("Hide the notice after (UTC)"),
             "feature_caption": _("Caption"),
             "feature_alt": _("Alternative text"),
             "home_bg_position": _("Focus of the picture"),
@@ -267,6 +274,18 @@ class SiteSettingsForm(forms.ModelForm):
             "header_bg_shade": _("Darkening (0 to 80 %)"),
         }
         help_texts = {
+            "notice_text": _(
+                "One line shown under the top banner on every page, for example an event tonight or planned "
+                "maintenance. Plain text, at most 300 characters; it is the same in every language, so write it in "
+                "your server's language. Leave it empty to show no notice."
+            ),
+            "notice_level": _(
+                "Information is a plain note; Warning is highlighted in red. Only used while there is a text."
+            ),
+            "notice_until": _(
+                "Optional, in UTC (like the times on the pages). The notice disappears by itself after this moment; "
+                "empty = it stays until you clear the text."
+            ),
             "home_feature": _("Off by default: the front page then looks as usual."),
             "feature_image_path": _(
                 "Full path of a PNG, JPEG or WebP file on the machine that runs il2ks, for example a map that "
@@ -294,6 +313,7 @@ class SiteSettingsForm(forms.ModelForm):
         for name in ("home_bg_position", "home_bg_shade", "header_bg_position", "header_bg_shade"):
             self.fields[name].required = False  # a post without them keeps the current choice
         self.fields["home_feature"].required = False  # a post without it keeps the current choice
+        self.fields["notice_level"].required = False
         self.processed_font: ProcessedFont | None = None
         self.processed_feature: tuple[Source, ProcessedFeature] | None = None
         self.stored_fonts: list[CustomFont] = clean_fonts(self.instance.custom_fonts)
@@ -315,6 +335,9 @@ class SiteSettingsForm(forms.ModelForm):
         if new is not None and all(font.file != new.file for font in fonts):
             fonts.append(new)
         return fonts
+
+    def clean_notice_level(self) -> str:
+        return str(self.cleaned_data.get("notice_level") or self.instance.notice_level or NoticeLevel.INFO.value)
 
     def clean_home_feature(self) -> str:
         return str(self.cleaned_data.get("home_feature") or self.instance.home_feature or HomeFeature.NONE.value)

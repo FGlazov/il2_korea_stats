@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v2.0 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -69,6 +69,7 @@
       </button>
     </div>
   </header>
+  {% include "il2ks/components/site_notice.html" %}
 
   <main id="main" class="page">{% block content %}{% endblock %}</main>
 
@@ -85,7 +86,7 @@
           {% blocktranslate with zone="__TZ__" asvar tz_local %}Times are shown in your time zone ({{ zone }}).{% endblocktranslate %}
           <span data-il2-tz-note data-local-text="{{ tz_local }}">{% translate "Times are shown in UTC." %}</span>
           {% if data_updated %}<span>{% blocktranslate with when=data_updated|local_time %}Data updated {{ when }}{% endblocktranslate %}</span>{% endif %}
-          <span>{% blocktranslate with version=il2ks_version %}Powered by il2ks {{ version }}{% endblocktranslate %}</span>
+          <span>{% blocktranslate with version=il2ks_version %}Powered by <a href="https://github.com/FGlazov/il2_korea_stats" rel="noopener">il2ks</a> {{ version }}{% endblocktranslate %}</span>
           <span class="site-footer__language">{% language_menu %}</span>
         </div>
       {% endblock %}
