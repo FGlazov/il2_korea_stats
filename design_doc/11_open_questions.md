@@ -4,7 +4,7 @@ Only **unanswered** questions live here, ordered by how much each one blocks or 
 When a question is answered, write the answer into the relevant doc (requirement, decision, or format doc) and
 **delete it from this file**. If it's partly answered, cut it down to the part that's still open.
 IDs are never reused or renumbered, so gaps are expected. **Answer by ID.**
-Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113, OQ-114..123 and OQ-124..132 right after it, each with the doc that holds the rule).
+Answered IDs are not kept here: grep the ID in the spec docs (OQ-38..66 are summarised in [02](02_functional_requirements.md) "Maintainer decisions", OQ-68..78, OQ-79..113, OQ-114..123, OQ-124..132 and OQ-133..135 right after it, each with the doc that holds the rule).
 
 
 ## Needs outside input
@@ -18,22 +18,6 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 Nothing waits for the maintainer's review.
 
 ## Lower impact (owner: maintainer, outside input)
-
-**OQ-134 Side balance: what is "the side with fewer players"?** (owner: maintainer; roadmap "Next version", side balance)
-Proposed: decided at spawn in the replay (the pilot's side has strictly fewer pilots in open sorties at that tick; equal = not underdog).
-Alternative: compare the mission's total pilots per side, which is simpler but rewards joining the side that fills up later. Also: should the
-underdog share get a stat mark and a quip, or stay a plain figure in "Other totals"?
-
-**OQ-135 Altitude units on the timeline** (owner: maintainer; roadmap "Next version", altitude)
-Proposed: BLUFOR in feet as "Angels N" (thousands of feet; exact feet in the tooltip), REDFOR in metres ("4 500 m"; Soviet altimeters were
-metric, kilometres only in speech, so not km). Confirm, or pick one unit for everyone (the viewer's language is another option: feet for
-English, metres elsewhere).
-
-**OQ-133 Markdown pages: sources and images** (owner: maintainer; roadmap "Markdown pages in the navigation")
-Which sources should a page accept: Markdown typed in the admin, a polled http/https URL, a file on the server machine,
-or several of these? Should images on a remote source be copied to the server (proposed: yes, re-encoded, no hotlinking
-of third-party hosts) or linked as they are? Is one language per page enough, or does each page need a version per site
-language?
 
 **OQ-26 Live telemetry for positions (Tacview-style)**
 Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it

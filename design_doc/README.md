@@ -117,3 +117,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   an SSRF guard for outbound fetches (NFR-SEC-9), template versions that tell breaking from cosmetic changes (TD-25)).
   2026-10-06 (CI flake fixed: the no-JS Apply buttons are hidden before first paint and the "Next tour starts" line keeps a width that does not
   depend on its text, doc 16 "Web foundation"; regression e2e test that stalls the deferred scripts).
+  2026-10-07 (roadmap "Version 0.2.0" set by the maintainer; OQ-133..135 answered: Markdown pages typed in the admin with hotlinked
+  images and optional per-language texts, side balance weighted by time, altitude units confirmed; folded into docs 02 and 10).

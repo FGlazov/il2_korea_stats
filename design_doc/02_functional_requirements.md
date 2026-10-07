@@ -263,6 +263,10 @@ people ask). The main use case is **a player reviewing their sortie**.
   Players, Aircraft and Leaderboards; the list shows counted pilot sorties by default (a Seat filter adds gunner sorties); hidden
   players and hidden missions are left out; the pilot search matches the name flown under in that sortie; every sortie carries
   its mission's tour (denormalized, kept in sync) so a tour's list walks an index.
+- **Accepted 2026-10-07** (maintainer answers to OQ-133..135, roadmap "Version 0.2.0"): Markdown pages start with Markdown typed in the
+  admin; images may be hotlinked from other hosts; a page may have a text per site language but needn't, the base text (English by
+  default) is shown otherwise (OQ-133). Side balance counts the pilots spawned in per side **weighted by time**, after the original IL-2
+  stats (OQ-134). Altitude on the timeline: "Angels N" for BLUFOR, metres for REDFOR (OQ-135).
 - **A new tour is a clean slate** (maintainer, 2026-10-05; built: Elo, streaks and medals per tour, all time rolled up from the tour rows, doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,

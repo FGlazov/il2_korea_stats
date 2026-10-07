@@ -318,14 +318,7 @@ screenshots. Everything else the maintainer listed on 2026-10-04 (ammo names, st
 **Released** as the public beta **0.1.0** on 2026-10-05 (maintainer): migrations squashed, template versions counting, PyPI
 through trusted publishing.
 
-## After the release: reminders
-- Revisit the charts (which charts help; maintainer, OQ-59).
-- Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
-- Per-ammo damage attribution analysis (follow-up damage is hard to attribute; OQ-52).
-- Yearly or quarterly aggregates next to tours (OQ-45).
-- **Scripted custom quip events** (maintainer, 2026-10-04): admin-written conditions over a sortie's fields, evaluated by a small
-  whitelisted expression parser (never Python `eval`) and validated on save.
-- Bailout height arm once heightmaps arrive (OQ-39).
+## Version 0.2.0 Road map
 - **Doctor: are pages compressed?** (maintainer, 2026-10-05): with an own reverse proxy (nginx, IIS, Apache) the pages are
   only compressed when the proxy does it (`docs/reverse-proxy.md`, requirement 6; the bundled Caddy always does). A
   `doctor` check fetches a page through the public address and warns when it comes back without `Content-Encoding`. (Not
@@ -338,55 +331,17 @@ through trusted publishing.
   confirmation like other destructive actions.
 - **Markdown pages in the navigation** (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
   internal page rendered from Markdown (server intro, flavour text, rules), several pages each with its own link. Design
-  `[PROPOSED]`: a `Page` model (slug, title, Markdown source, rendered HTML, source URL, last fetch and its error), served at
-  `/p/<slug>/` in the site layout; `NavLink` points at either a URL or a page. Rendering with `markdown-it-py`
-  (CommonMark, pure Python) and the HTML sanitized with `nh3` (allowlist of tags and attributes, only http/https/relative
-  links), done once on save or fetch, never per request; a new render bumps the data version (TD-28). Steps: (1) Markdown
-  typed in the admin with a preview; (2) a source URL (e.g. a raw GitHub file) that `watch` polls (configurable interval,
-  timeout, size cap, keeps the last good copy and shows the error in the admin); (3) images: admin-uploaded pictures
-  through the background-picture pipeline (decoded, re-encoded as WebP, served by the media view), referenced from the
-  Markdown by name; images on a polled source fetched and stored the same way (relative paths resolved against the source
-  URL), so pages never hotlink. Open: OQ-133.
+  `[PROPOSED]`: a `Page` model (slug, title, Markdown source, rendered HTML), served at `/p/<slug>/` in the site layout; `NavLink`
+  points at either a URL or a page. Rendering with `markdown-it-py` (CommonMark, pure Python) and the HTML sanitized with `nh3`
+  (allowlist of tags and attributes, only http/https/relative links), done once on save, never per request; a new render bumps the
+  data version (TD-28). **Scope for 0.2.0 (maintainer, OQ-133, 2026-10-07): Markdown typed in the admin** (with a preview), nothing
+  polled and no file on the server. **Images may be hotlinked**: `![](https://...)` stays a link to the remote host (the page's
+  content security policy allows https images). **Languages**: a page has one base text, shown in English by default, plus optional
+  translations for the site's other languages; a viewer whose language has no translation gets the base text; no language is forced.
+  Later, if asked: a source URL that `watch` polls (through the SSRF guard below; interval, timeout, size cap, last good copy kept, the
+  error shown in the admin) and admin-uploaded pictures through the background-picture pipeline.
 - **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
   https://github.com/FGlazov/il2_korea_stats; the link text stays inside the translated string.
-
-## Next version: maintainer picks from the feature brainstorm (2026-10-06)
-The maintainer chose these from a brainstorm over the design docs. The features are `[DECIDED]`; the details are `[PROPOSED]` unless marked.
-- **Side balance**, per mission and per player (maintainer, 2026-10-06).
-  - *Per mission*: the pilots per side (`Mission.redfor_players` / `blufor_players`, next to the sortie counts that exist) on the mission page
-    and as optional columns of the mission list; per tour and all time, the share of sorties flown per side (from the aircraft tour rows'
-    `sorties_redfor` / `sorties_blufor`, no new table) as one line on the home page's last-mission block and on the leaderboards.
-  - *Per player*: "how often do you fly each coalition" (`sorties_redfor` / `sorties_blufor` as counters, summed per tour and all time; the
-    profile's "Other totals" shows the split) and "how often do you fly for the side with fewer players" (`sorties_underdog`, shown as a share
-    of the counted sorties, with a stat mark like the ratios so a loyal underdog stands out). The underdog flag is decided **at spawn, in the
-    replay**: the pilot's side has strictly fewer pilots in open sorties than the other side at the spawn tick (equal = not underdog; gunners
-    count as their pilot's aircraft); stored on `PlayerSortie`, so old sorties need `il2ks reprocess --all`. The definition and the display
-    are OQ-134 (the alternative: compare the mission's totals, which is simpler but rewards joining a side that fills up later).
-- **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
-  rules change). `SiteSettings`: text (plain, escaped, at most 300 characters), level (`info` / `warning`, the notice component's styles),
-  optional expiry (hidden once past, like the next-tour line); a save bumps the data version (TD-28); empty = nothing shown. One text for every
-  language, written in the server's language `[PROPOSED]`; per-language texts can follow the custom-quip pattern if someone asks.
-- **Trend against the previous tour on the profile** (maintainer, 2026-10-06): the star tiles (Elo jet, Elo prop, attack proficiency) and the
-  K/D and survival ratios show an arrow with the change since **the previous tour the pilot flew in** (the newest earlier `PlayerTour` row with
-  a counted sortie, not the previous calendar tour; maintainer: "compare to the last tour(s) the player played"), the previous value in the
-  tooltip. Only on a tour view (all time has no "previous"); no arrow when either tour is below the board minimum. One extra read.
-- **Altitude in the sortie timeline** (maintainer, 2026-10-06): every timeline row with a position shows its altitude (the game's `y`, which
-  is **above sea level**: il2ks has no terrain data, OQ-39; the column hint says so). Units follow the sortie's side `[PROPOSED]`: BLUFOR in
-  feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
-  ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
-  show). Confirm the units: OQ-135. The sortie's positions are stored already, so no reprocess is needed for the column.
-- **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
-  flight time). What the log offers: a gun burst (AType 24) carries the **shooter's** position and tick, a hit line (AType 1) carries only the
-  tick, ammo, attacker and target, a damage line (AType 2) the **target's** position. Two estimates to compare on the sample missions
-  before anything is built: (a) **geometric**: the shooter's last burst position before the hit against the target's position from the damage
-  line on the hit tick (or the target's last known position); the shooter keeps moving between the burst and the hit (100-300 m in the 0.5-1.5 s
-  a round flies at 200 m/s), so pair the burst by tick rather than taking the raw distance; (b) **ballistic**, the maintainer's idea: the
-  ticks between the burst and the hit times the round's average velocity (muzzle velocity about 870 m/s for the .50 BMG, 690 m/s for the
-  23 mm NR-23, 700 m/s for the 37 mm N-37; drag lowers the average over 500-1000 m; one tick is 20 ms, about 15 m). Open before building:
-  does a burst event fire once per trigger press or once per segment of continuous fire (194k bursts against 12.9M hits suggests per press);
-  is the hit tick the impact time or the firing time (if the latter, (b) measures nothing). If (a) and (b) agree within about 20% on PvP gun
-  hits, store per sortie a median firing range per target class (air, ground) and show it on the sortie page and as a profile figure; if
-  they disagree, record why and drop the idea. Ordnance is out of scope (the release position is known, the impact point is not).
 - **Small ops items** (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
   cached, for uptime monitors), **sitemap and robots** (`sitemap.xml` of visible players, aircraft and missions, `robots.txt`; so pilots who
   search for their nickname find the server) and **`[backup] copy_to`**: a second folder (another drive or a share) that each backup is
@@ -401,8 +356,8 @@ The maintainer chose these from a brainstorm over the design docs. The features 
   file** (`pip` ecosystem, weekly, minor and patch updates grouped into one PR, majors separate) and for **GitHub Actions**; a `pip-audit` step
   over `uv.lock` (`uv export` then `pip-audit -r`) in CI on every push and on a weekly schedule, **blocking** (a known vulnerability fails the
   job; a false positive gets an ignore with a dated reason in the workflow). The release checklist (`docs/releasing.md`) gets "audit clean".
-- **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by the polled Markdown source, roadmap item above, and by any later
-  webhook or update check). One helper, `serving/outbound.py` `[PROPOSED]`, that every outbound request goes through: http and https only;
+- **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by a later polled Markdown source, and by any later webhook or
+  update check; built now so the first outbound fetch has it). One helper, `serving/outbound.py` `[PROPOSED]`, that every outbound request goes through: http and https only;
   the host is resolved first and every resolved address must be public (refuse loopback, private 10/8, 172.16/12, 192.168/16, link-local
   169.254/16 incl. cloud metadata, multicast, `::1`, `fc00::/7`, `fe80::/10`, and IPv4-mapped IPv6 forms of those); the connection is made to
   the checked address with the host name only in the TLS SNI and `Host` header (no second lookup, so DNS rebinding cannot swap the target);
@@ -417,6 +372,57 @@ The maintainer chose these from a brainstorm over the design docs. The features 
   `il2ks dev bump-templates` infers the part: it diffs the old and new template for block names, `{% include %}` targets, variables used and
   ids / classes referenced from `site.css` and the scripts, and bumps N when any of them changed, else M; `--major` forces N for a change the
   diff cannot see. The hash check stays as it is, so an edited file still needs a bump. Release notes list only the N bumps.
+- **Side balance**, per mission and per player (maintainer, 2026-10-06).
+  - *Per mission*: the pilots per side (`Mission.redfor_players` / `blufor_players`, next to the sortie counts that exist) on the mission page
+    and as optional columns of the mission list; per tour and all time, the share of sorties flown per side (from the aircraft tour rows'
+    `sorties_redfor` / `sorties_blufor`, no new table) as one line on the home page's last-mission block and on the leaderboards.
+  - *Per player*: "how often do you fly each coalition" (`sorties_redfor` / `sorties_blufor` as counters, summed per tour and all time; the
+    profile's "Other totals" shows the split) and "how often do you fly for the side with fewer players" (`sorties_underdog`, shown as a share
+    of the counted sorties, with a stat mark like the ratios so a loyal underdog stands out; no quip).
+  - *Counting the sides* (maintainer, OQ-134, 2026-10-07: "see the original IL-2 stats for inspiration; count the players per side spawned
+    in at any time and weight it by time"): a side's strength is the **time-weighted number of pilots spawned in** (open pilot sorties, from
+    spawn to the sortie's end; gunners count with their pilot's aircraft). Per mission: the average over the mission's time per side
+    (`Mission.redfor_players` / `blufor_players` become these averages, one decimal, next to the plain sortie counts). Per sortie
+    `[PROPOSED]`: the pilot is the underdog when, averaged over **the pilot's own sortie time** (spawn to end), the pilot's side had strictly fewer
+    pilots spawned in than the other side (equal = not underdog), so a pilot who joins the smaller side and stays while it fills up is
+    weighted by how long it was actually smaller. Computed in the replay, stored on `PlayerSortie`; old sorties need `il2ks reprocess --all`.
+- **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
+  rules change). `SiteSettings`: text (plain, escaped, at most 300 characters), level (`info` / `warning`, the notice component's styles),
+  optional expiry (hidden once past, like the next-tour line); a save bumps the data version (TD-28); empty = nothing shown. One text for every
+  language, written in the server's language `[PROPOSED]`; per-language texts can follow the custom-quip pattern if someone asks.
+- **Altitude in the sortie timeline** (maintainer, 2026-10-06): every timeline row with a position shows its altitude (the game's `y`, which
+  is **above sea level**: il2ks has no terrain data, OQ-39; the column hint says so). Units follow the sortie's side `[PROPOSED]`: BLUFOR in
+  feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
+  ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
+  show). Units confirmed by the maintainer (OQ-135, 2026-10-07). The sortie's positions are stored already, so no reprocess is needed for the column.
+- **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
+  flight time). What the log offers: a gun burst (AType 24) carries the **shooter's** position and tick, a hit line (AType 1) carries only the
+  tick, ammo, attacker and target, a damage line (AType 2) the **target's** position. Two estimates to compare on the sample missions
+  before anything is built: (a) **geometric**: the shooter's last burst position before the hit against the target's position from the damage
+  line on the hit tick (or the target's last known position); the shooter keeps moving between the burst and the hit (100-300 m in the 0.5-1.5 s
+  a round flies at 200 m/s), so pair the burst by tick rather than taking the raw distance; (b) **ballistic**, the maintainer's idea: the
+  ticks between the burst and the hit times the round's average velocity (muzzle velocity about 870 m/s for the .50 BMG, 690 m/s for the
+  23 mm NR-23, 700 m/s for the 37 mm N-37; drag lowers the average over 500-1000 m; one tick is 20 ms, about 15 m). Open before building:
+  does a burst event fire once per trigger press or once per segment of continuous fire (194k bursts against 12.9M hits suggests per press);
+  is the hit tick the impact time or the firing time (if the latter, (b) measures nothing). If (a) and (b) agree within about 20% on PvP gun
+  hits, store per sortie a median firing range per target class (air, ground) and show it on the sortie page and as a profile figure; if
+  they disagree, record why and drop the idea. Ordnance is out of scope (the release position is known, the impact point is not).
+
+## After the release: reminders
+- Revisit the charts (which charts help; maintainer, OQ-59).
+- Interactive sortie map, after asking the dev community what data is available (OQ-54/55).
+- Yearly or quarterly aggregates next to tours (OQ-45).
+- **Scripted custom quip events** (maintainer, 2026-10-04): admin-written conditions over a sortie's fields, evaluated by a small
+  whitelisted expression parser (never Python `eval`) and validated on save.
+- Bailout height arm once heightmaps arrive (OQ-39).
+
+## Next version: maintainer picks from the feature brainstorm (2026-10-06)
+The maintainer chose these from a brainstorm over the design docs. The features are `[DECIDED]`; the details are `[PROPOSED]` unless marked.
+
+- **Trend against the previous tour on the profile** (maintainer, 2026-10-06): the star tiles (Elo jet, Elo prop, attack proficiency) and the
+  K/D and survival ratios show an arrow with the change since **the previous tour the pilot flew in** (the newest earlier `PlayerTour` row with
+  a counted sortie, not the previous calendar tour; maintainer: "compare to the last tour(s) the player played"), the previous value in the
+  tooltip. Only on a tour view (all time has no "previous"); no arrow when either tour is below the board minimum. One extra read.
 - **Iteration 3 (maintainer, 2026-10-06: "probably also a good idea, maybe for iteration 3")**: outbound integrations and more APIs, see
   the iteration 3 section below.
 
