@@ -1,0 +1,7 @@
+/* il2ks-template: static/il2ks/pages.css v1.0 - copy this line along when you override */
+/* Markdown pages of the navigation (/p/<slug>/): the admin's text, already sanitized. Tokens come from site.css. */
+.md-page { max-width: 46rem; overflow-wrap: anywhere; }
+.md-page img { max-width: 100%; height: auto; }
+.md-page table { display: block; max-width: 100%; overflow-x: auto; }
+.md-page blockquote { border-inline-start: 3px solid var(--il2-muted); margin-inline: 0; padding-inline: 1rem; color: var(--il2-muted); }
+.md-page pre { overflow-x: auto; }

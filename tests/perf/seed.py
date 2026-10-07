@@ -38,6 +38,7 @@ class SeededWorld:
     sortie_pks: list[int]
     aircraft_pks: list[int]
     player_names: list[str]
+    page_slug: str = "rules"
 
 
 def fill(
@@ -103,6 +104,10 @@ def fill(
     sortie = PlayerSortie.objects.filter(player=busiest).order_by("pk").first()
     assert sortie is not None
     aircraft_pks = list(GameObject.objects.filter(log_name__in=AIRCRAFT).values_list("pk", flat=True))
+    from il2ks.db.models import Page
+    from il2ks.web.pages import publish_page
+
+    publish_page(Page.objects.create(slug="rules", title="Server rules", source="# Rules\n\n" + "- be nice\n" * 50))
     return SeededWorld(
         mission_pk=latest.pk,
         player_pk=busiest.pk,

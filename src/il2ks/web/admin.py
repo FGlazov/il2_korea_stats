@@ -47,6 +47,7 @@ from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
 from il2ks.ingest.tours import start_manual_tour
+from il2ks.web.admin_pages import PageAdmin as PageAdmin
 from il2ks.web.admin_rules import tour_mode
 from il2ks.web.branding_images import (
     ICON_SIZES,
@@ -60,6 +61,7 @@ from il2ks.web.feature_image import prune_feature_files, store_result
 from il2ks.web.fonts import RECOMMENDED_FONT_BYTES, clean_fonts, font_face_css, prune_fonts
 from il2ks.web.logo import prune_logos, store_bytes, store_logo
 from il2ks.web.object_names import default_catalog
+from il2ks.web.pages import publish_nav_links
 from il2ks.web.site_forms import MAX_NAV_LINKS, RECOMMENDED_NAV_LINKS, NavLinkFormSet, SiteSettingsForm
 from il2ks.web.theme import ContrastWarning, contrast_warnings
 
@@ -104,7 +106,7 @@ class NavLinkInline(admin.TabularInline):  # pyright: ignore[reportMissingTypeAr
     formset = NavLinkFormSet
     extra = 2
     max_num = MAX_NAV_LINKS
-    fields = ("label", "url", "icon", "position")
+    fields = ("label", "url", "page", "icon", "position")
     verbose_name = _("navigation link")
     verbose_name_plural = _("Links, in order")
 
@@ -333,7 +335,10 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
                 "Extra links for the top navigation bar (Discord, a forum, Patreon, ...), "
                 "shown after the built-in ones."
             ),
-            _("Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."),
+            _(
+                "Lower numbers come first. A web address (only http:// and https:// are accepted) opens in a new tab; "
+                "or choose one of your pages (under Pages) instead of an address: it opens on this site."
+            ),
             ngettext(
                 "We recommend at most %(n)d extra link with a short label (one or two words): more still work, "
                 "but the menu then wraps onto a second row of the header.",
@@ -349,13 +354,11 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         # Number the links 1..n in the order shown and publish them into the settings row (pages read that copy).
         site = form.instance
         assert isinstance(site, SiteSettings)
-        links = list(NavLink.objects.filter(site=site))
-        for number, link in enumerate(links, start=1):
+        for number, link in enumerate(NavLink.objects.filter(site=site), start=1):
             if link.position != number:
                 link.position = number
                 link.save(update_fields=["position"])
-        site.links = [{"label": link.label, "url": link.url, "icon": link.icon} for link in links]
-        site.save(update_fields=["links", "updated_at"])
+        publish_nav_links(site)
         bump_data_version()
 
     def save_model(self, request: HttpRequest, obj: SiteSettings, form: ModelForm, change: bool) -> None:

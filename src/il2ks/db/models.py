@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import ClassVar, Self
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from il2ks.db.validators import NAV_URL_MAX_LENGTH, validate_http_url
 
@@ -1929,13 +1931,58 @@ class NavIcon(models.TextChoices):
     LINK = "link", "Generic link"
 
 
+class Page(models.Model):
+    """A page the admin wrote in Markdown, served at `/p/<slug>/` in the site layout and linked from the navigation
+    (a `NavLink` that points at it). The Markdown is rendered and sanitized once, on save (`web.pages`), never per
+    request: `html` is what the page shows. `translations` is a published copy of the `PageTranslation` rows
+    (`{language: {"title", "html"}}`), so the page view reads one row. `base_language` only says which language the
+    base text is written in (English by default); a viewer whose language has no translation gets the base text."""
+
+    slug = models.SlugField(max_length=60, unique=True)
+    title = models.CharField(max_length=120)
+    base_language = models.CharField(max_length=10, default="en")
+    source = models.TextField(blank=True)
+    html = models.TextField(blank=True, editable=False)
+    translations: models.JSONField[dict[str, dict[str, str]]] = models.JSONField(
+        default=dict, blank=True, editable=False
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["title", "id"]
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class PageTranslation(models.Model):
+    """The text of a `Page` in one more language (optional; one per language)."""
+
+    page_id: int
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="page_translations")
+    language = models.CharField(max_length=10)
+    title = models.CharField(max_length=120, blank=True)  # blank = the base title
+    source = models.TextField(blank=True)
+    html = models.TextField(blank=True, editable=False)
+
+    class Meta:
+        ordering = ["language"]
+        constraints = [models.UniqueConstraint(fields=["page", "language"], name="il2ks_pagetranslation_unique")]
+
+    def __str__(self) -> str:
+        return f"{self.page_id}/{self.language}"
+
+
 class NavLink(models.Model):
     """One extra link in the site's top navigation, after the built-in ones (TD-25). Edited as an ordered inline of
     `SiteSettings`; the admin publishes the list into `SiteSettings.links` when it saves."""
 
+    page_id: int | None
     site = models.ForeignKey(SiteSettings, on_delete=models.CASCADE, related_name="nav_links")
     label = models.CharField(max_length=60)
-    url = models.CharField(max_length=NAV_URL_MAX_LENGTH, validators=[validate_http_url])
+    # An external address, or (when `page` is set) blank: the link then opens that internal page.
+    url = models.CharField(max_length=NAV_URL_MAX_LENGTH, blank=True, validators=[validate_http_url])
+    page = models.ForeignKey(Page, null=True, blank=True, on_delete=models.CASCADE, related_name="nav_links")
     icon = models.CharField(max_length=10, choices=NavIcon.choices, blank=True, default=NavIcon.NONE)
     position = models.PositiveSmallIntegerField(default=0)
 
@@ -1944,6 +1991,10 @@ class NavLink(models.Model):
 
     def __str__(self) -> str:
         return self.label
+
+    def clean(self) -> None:
+        if bool(self.url) == (self.page_id is not None):
+            raise ValidationError(_("Give either a web address or a page, not both and not neither."), code="target")
 
 
 class DataVersion(models.Model):

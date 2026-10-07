@@ -29,7 +29,11 @@ tb  # context manager protocol (__exit__ signature, ingest.lock)
 _.formset  # InlineModelAdmin option (NavLinkInline)
 _.max_num  # InlineModelAdmin option
 _.verbose_name_plural  # InlineModelAdmin option
-_.inlines  # ModelAdmin option (SiteSettingsAdmin)
+_.inlines  # ModelAdmin option (SiteSettingsAdmin, PageAdmin)
+PageAdmin  # @admin.register (web.admin_pages)
+_.prepopulated_fields  # ModelAdmin option (PageAdmin)
+_.change_form_template  # ModelAdmin option (PageAdmin)
+_.language_list  # ModelAdmin list_display column (PageAdmin)
 _.nav_links_help  # ModelAdmin readonly field (SiteSettingsAdmin.readonly_fields)
 _.value_from_datadict  # Django Widget hook (site_forms.ThemeWidget)
 _.attrs  # Django Widget.render signature (site_forms.ThemeWidget)

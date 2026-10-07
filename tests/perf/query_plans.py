@@ -42,7 +42,9 @@ or every player). A new entry needs a reason that says why the table stays small
 belongs here."""
 
 
-NOT_PLANNED_TABLES: dict[str, str] = {}
+NOT_PLANNED_TABLES: dict[str, str] = {
+    "il2ks_db_pagetranslation": "read only when the admin saves a page (published as JSON onto the page row)",
+}
 """`{table: reason}`: tables no checked page or ingest query reads (only written, or read by something the test cannot
 reach). The coverage test lists every other table that no plan touched, so a new table cannot dodge the check."""
 
@@ -71,6 +73,18 @@ _PER_HOUR = (
 )
 
 SCAN_ALLOWANCES: tuple[QueryAllowance, ...] = (
+    QueryAllowance(
+        "il2ks_db_mission",
+        'NOT "il2ks_db_mission"."is_hidden" AND "il2ks_db_mission"."sorties_total" >',
+        "the sitemap lists every visible mission in primary-key order, 10,000 a file: it walks the table by its key "
+        "anyway, cached per data version",
+    ),
+    QueryAllowance(
+        "il2ks_db_player",
+        'WHERE NOT "il2ks_db_player"."is_hidden" ORDER BY 1 ASC LIMIT',
+        "the sitemap lists every visible player in primary-key order, 10,000 a file: it walks the table by its key "
+        "anyway, cached per data version",
+    ),
     QueryAllowance(
         "il2ks_db_playername",
         "LIKE",

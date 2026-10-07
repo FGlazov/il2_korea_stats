@@ -22,6 +22,7 @@ settings** you can change:
 - **Fonts**: one for headings and one for the text (see below),
 - **Colors**: every color of the site, separately for the light and the dark theme (see below),
 - **Navigation links**: your own links (Discord, forum, Patreon, ...) in the top menu (see below),
+- **Pages**: your own pages written in Markdown (server rules, an introduction), each with its own link in the menu (see below),
 - **Coalition names and emblems**: what "REDFOR" and "BLUFOR" are called on your pages, and which emblem each side shows (neutral by default).
 
 Changes show on the site at once. Not what you were looking for? Hiding players, renaming tours and game objects are in
@@ -33,7 +34,7 @@ Add as many links as you like under **Navigation links, in order**: a label, an 
 forum, Patreon or a generic link chain) and a number that sets the order (lower numbers first; il2ks renumbers them 1, 2,
 3 ... when you save). They appear in the top menu **after** the built-in ones (Players, Aircraft, Leaderboards and the
 History menu with Missions and Sorties) and, as a plain list, in the footer. Only full `http://` and `https://` addresses are accepted
-(`javascript:`, `mailto:`, relative paths and the like are refused). The links open in a new tab, with `rel="noopener
+(`javascript:`, `mailto:`, relative paths and the like are refused; to link to a page of your own see Pages below). The links open in a new tab, with `rel="noopener
 noreferrer"`, so the other site cannot reach back into yours or learn where the visitor came from; screen readers are
 told that the link opens a new tab. Tick **Delete** on a row to remove a link.
 
@@ -48,6 +49,24 @@ and 1920 px wide (the page content is at most 1240 px wide, so 1920 looks like 1
 
 So we recommend **at most 3 links with short labels (one or two words)**; longer labels fit fewer. The admin form says
 the same. More links still work, they just make the header two or three rows tall.
+
+### Pages
+
+For text that belongs on your site (an introduction, the server rules, how to join), open **Pages** in the admin and add
+a page: a title, a short name (the address becomes `/p/<short name>/`) and the text in
+[Markdown](https://commonmark.org/help/) (headings with `#`, `**bold**`, lists, links, tables, `![description](address)` for
+a picture). **Preview** under each text box shows what visitors will see, without saving. To put the page in the menu,
+add a navigation link and choose the page in its **Page** column instead of typing an address: a page link opens in the
+same tab (an address still opens in a new one). You can have as many pages as you like, each with its own link.
+
+- The text is checked and converted once, when you save; the page is then served as it is. Scripts, `javascript:` links,
+  inline styles and the like are removed for safety, and only `http://`, `https://` and relative links are kept.
+- **Pictures** can be linked from other sites (`![](https://example.org/map.png)`); the visitor's browser loads them from
+  there, so they must be on an `https://` address. There is no upload; a link that stops working shows no picture.
+- **Languages**: the main text is shown to everybody (English unless you change **Language of the base text**). Under
+  **Translations** you can add a text for any of the site's languages; a visitor whose language has one sees it, everybody
+  else sees the main text. Nothing is forced: no translation is needed. A translation may leave its title empty to keep the main title.
+- Deleting a page also removes the navigation links that pointed at it.
 
 ### Colors
 
@@ -312,7 +331,7 @@ template that fills a block is easier to keep up to date than a copy of a whole 
 | `scripts` | Extra scripts at the end of the page |
 
 Variables available on every page: `site` (your site settings: `site.site_title`, `site.server_name`, `site.description`,
-`site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `nav_links` (your navigation links: `label`, `url`, `icon`; the
+`site.redfor_name`, `site.blufor_name`, ...), `logo_url`, `nav_links` (your navigation links: `label`, `url`, `icon`, `internal` for a link to one of your pages; the
 default `nav` block lists them after the built-in ones), `site_links` (the same as label/URL pairs, used by the footer),
 `theme_css` (the color and font overrides of the admin as `@font-face` rules for uploaded fonts plus one `:root{...}` rule, already safe: print it inside
 `<style>`), `data_updated` (when the stats last changed), `il2ks_version`, and `page_title`.

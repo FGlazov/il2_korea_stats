@@ -13,6 +13,7 @@ from il2ks.web.views import (
     leaderboards,
     live,
     missions,
+    pages,
     players,
     seo,
     setup,
@@ -49,6 +50,7 @@ urlpatterns: list[URLPattern] = [
     path("sitemap-site.xml", seo.sitemap_site, name="sitemap-site"),
     path("sitemap-missions-<int:number>.xml", seo.sitemap_part, {"kind": "missions"}, name="sitemap-missions"),
     path("sitemap-players-<int:number>.xml", seo.sitemap_part, {"kind": "players"}, name="sitemap-players"),
+    path("p/<slug:slug>/", pages.page, name="page"),  # a Markdown page of the navigation (`web.pages`, OQ-133)
     path("sprite.svg", sprite.icon_sprite, name="sprite"),  # all icons as <symbol>s, long-cached by ?v=<hash>
     path("language/", language.set_language, name="set-language"),  # ?language=<code>&next=<local url> (TD-24)
     path("live/", live.live_fragment, name="live"),  # HTMX fragment: online now, its own max-age (FR-ING-12)

@@ -55,6 +55,8 @@ APP_LABEL = "il2ks_db"
 KEEP_MODELS: Mapping[str, str] = {
     "SiteSettings": "branding, quips, achievements, game rules, flight-time and tour options, picture names",
     "NavLink": "the navigation links",
+    "Page": "the admin's Markdown pages of the navigation",
+    "PageTranslation": "the pages' texts in other languages",
     "DataVersion": "the page-cache counter (bumped by the wipe)",
     "GameObject": "the catalog and the admin's name overrides (`name_overridden`)",
     "Country": "the catalog and the admin's country names",

@@ -1,0 +1,9 @@
+{# il2ks-template: templates/admin/il2ks_db/page/change_form.html v2.0 - copy this line along when you override #}
+{% extends "admin/change_form.html" %}{% load static %}{% comment %}
+  The page editor: the Preview buttons of the Markdown boxes (`il2ks/admin-pages.js`, styled by `il2ks/admin-pages.css`).
+{% endcomment %}
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'il2ks/admin-pages.css' %}">
+  <script src="{% static 'il2ks/admin-pages.js' %}" defer></script>
+{% endblock %}

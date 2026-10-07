@@ -50,6 +50,13 @@ PAGES: tuple[PageSpec, ...] = (
         "aircraft-detail", lambda w: f"/aircraft/{w.aircraft_pk}/", 12
     ),  # + the tour tiles, the ammo mixes, the mods table
     PageSpec("live", lambda w: "/live/", 4, max_ms=250.0),
+    PageSpec("page", lambda w: f"/p/{w.page_slug}/", 3, max_ms=250.0),  # settings, data version, the page row
+    PageSpec("healthz", lambda w: "/healthz", 1, max_ms=100.0),  # the one-row database read, nothing else
+    PageSpec("robots", lambda w: "/robots.txt", 3, max_ms=100.0),
+    PageSpec("sitemap", lambda w: "/sitemap.xml", 8),
+    PageSpec("sitemap-site", lambda w: "/sitemap-site.xml", 8),
+    PageSpec("sitemap-missions", lambda w: "/sitemap-missions-1.xml", 8),
+    PageSpec("sitemap-players", lambda w: "/sitemap-players-1.xml", 8),
 )
 
 NOT_PUBLIC_PAGES = frozenset({"set-language", "setup", "sprite", "styleguide", "streak-list"})

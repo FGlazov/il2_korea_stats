@@ -1,4 +1,5 @@
-# il2ks translations. Machine-drafted entries carry the comment `llm-draft`; delete that line once a human has
+# il2ks translations. Machine-drafted entries carry the comment `llm-draft`;
+# delete that line once a human has
 # reviewed the translation (docs/translating.md).
 msgid ""
 msgstr ""
@@ -700,6 +701,10 @@ msgid "Add a line"
 msgstr "Добавить строку"
 
 # llm-draft
+msgid "Address"
+msgstr "Адрес"
+
+# llm-draft
 msgid "Admin account"
 msgstr "Учётная запись администратора"
 
@@ -1321,6 +1326,10 @@ msgstr[2] "Столбчатая диаграмма по %(n)d турам. Чис
 # llm-draft
 msgid "Barely off the runway and already on the scoreboard. That is a fast start."
 msgstr "От полосы едва оторвался, а победа уже в таблице. Вот это старт."
+
+# llm-draft
+msgid "Base text (Markdown)"
+msgstr "Основной текст (Markdown)"
 
 # llm-draft
 msgid "Before the Yalu, before the enemy, there was the apron. It won this round."
@@ -2442,6 +2451,10 @@ msgid "General"
 msgstr "Общее"
 
 # llm-draft
+msgid "Give either a web address or a page, not both and not neither."
+msgstr "Укажите либо веб-адрес, либо страницу: не оба сразу и не пусто."
+
+# llm-draft
 msgid "Given up"
 msgstr "Отброшены"
 
@@ -3091,6 +3104,10 @@ msgid "Language"
 msgstr "Язык"
 
 # llm-draft
+msgid "Language of the base text"
+msgstr "Язык основного текста"
+
+# llm-draft
 msgid "Large image on the front page"
 msgstr "Большое изображение на главной странице"
 
@@ -3288,8 +3305,12 @@ msgstr ""
 "%(minimum)s:1."
 
 # llm-draft
-msgid "Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."
-msgstr "Меньшие номера идут первыми. Ссылки открываются в новой вкладке; допустимы только адреса http:// и https://."
+msgid ""
+"Lower numbers come first. A web address (only http:// and https:// are accepted) opens in a new tab; or choose one of"
+" your pages (under Pages) instead of an address: it opens on this site."
+msgstr ""
+"Меньшие числа идут первыми. Веб-адрес (принимаются только http:// и https://) открывается в новой вкладке; вместо "
+"адреса можно выбрать одну из ваших страниц (в разделе «Pages»): она откроется на этом сайте."
 
 # llm-draft
 msgid "Machine-gun rounds"
@@ -3354,7 +3375,6 @@ msgstr "Сохранено миссий"
 msgid "Missions won by one side in the last 30 days: %(recent_wins)s"
 msgstr "Миссии, выигранные одной стороной, за последние 30 дней: %(recent_wins)s"
 
-# llm-draft
 msgid ""
 "Missions, sorties, players, tours and all statistics are deleted. Your settings stay: site branding and texts, game "
 "rules, achievement and flight-time settings, quips, navigation links, hidden players and missions, name changes, and "
@@ -4296,6 +4316,10 @@ msgstr "Возможно, разрушение конструкции"
 #, python-format
 msgid "Powered by il2ks %(version)s"
 msgstr "Работает на il2ks %(version)s"
+
+# llm-draft
+msgid "Preview"
+msgstr "Предпросмотр"
 
 # llm-draft
 msgid "Previous"
@@ -5288,6 +5312,10 @@ msgid "Text"
 msgstr "Текст"
 
 # llm-draft
+msgid "Text (Markdown)"
+msgstr "Текст (Markdown)"
+
+# llm-draft
 msgid "Text on the accent"
 msgstr "Текст на акценте"
 
@@ -5306,6 +5334,10 @@ msgstr "Такой страницы не существует, или ссылк
 # llm-draft
 msgid "That token is not right"
 msgstr "Этот токен неверен"
+
+# llm-draft
+msgid "The address is /p/ and the short name, once saved. Link to it from the navigation links."
+msgstr "Адрес страницы: /p/ и короткое имя, после сохранения. Добавьте ссылку на неё в навигацию."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
@@ -5352,6 +5384,14 @@ msgstr "Самолёт получил своё и отдал сполна."
 # llm-draft
 msgid "The armorer is already counting the missing rounds, and smiling while he does it."
 msgstr "Оружейник уже считает израсходованные патроны. И почему-то улыбается."
+
+# llm-draft
+msgid ""
+"The base text is shown to every visitor whose language has no translation below. English unless you write it in "
+"another language."
+msgstr ""
+"Основной текст видят все посетители, для чьего языка ниже нет перевода. Английский, если вы не написали его на другом"
+" языке."
 
 # llm-draft
 msgid "The big, slow ones had a bad day, and this pilot had a good one."
@@ -5638,6 +5678,10 @@ msgid ""
 msgstr ""
 "Настройки очков, штрафов, Эло и журнала побед ниже начинаются со значений из il2ks.toml. Сохранённое здесь значение "
 "важнее файла; пустое поле снова берёт значение из файла (или встроенное)."
+
+# llm-draft
+msgid "The preview could not be loaded."
+msgstr "Не удалось загрузить предпросмотр."
 
 # llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
@@ -6119,6 +6163,14 @@ msgstr "Дорожка"
 # llm-draft
 msgid "Trains"
 msgstr "Поезда"
+
+# llm-draft
+msgid "Translations"
+msgstr "Переводы"
+
+# llm-draft
+msgid "Translations (optional)"
+msgstr "Переводы (необязательно)"
 
 # llm-draft
 msgid "Trouble on the ramp and in the air. At least this pilot is consistent."
@@ -6806,6 +6858,10 @@ msgstr "текст на акцентных кнопках"
 # llm-draft
 msgid "text on secondary buttons"
 msgstr "текст на второстепенных кнопках"
+
+# llm-draft
+msgid "translation"
+msgstr "перевод"
 
 # llm-draft
 #. Translators: a short suffix in the heading/body font drop-down, after the font's name: "Fira Sans (uploaded)"
