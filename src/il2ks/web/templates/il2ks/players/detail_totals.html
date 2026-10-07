@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_totals.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_totals.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_totals.html: the secondary totals, laid out as a grid of small label-over-value cells (4 columns on wide
   screens, 2 on phones; players.css .totals-grid). Context: stats (the player, a tour row, or the role's summed rows).
@@ -13,10 +13,13 @@
   <div><dt>{% translate "Strafed on the ground" %}</dt><dd>{{ stats.strafed_on_ground|num }}</dd></div>
   <div><dt>{% translate "Friendly kills" %}</dt><dd>{{ stats.friendly_kills|num }}</dd></div>
   <div><dt>{% translate "Friendly hits" %}</dt><dd>{{ stats.friendly_hits|num }}</dd></div>
-  {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
-  {% blocktranslate asvar by_side with red=stats.sorties_redfor|num blue=stats.sorties_blufor|num %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}
-  {# Translators: profile total: how many of the pilot's sorties were flown for each side (REDFOR / BLUFOR) #}
-  <div><dt>{% translate "Sorties per side" %}</dt><dd>{{ by_side }}</dd></div>
-  {# Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of all sorties #}
-  <div><dt title="{% translate 'Sorties flown for the side that had fewer pilots spawned in while the pilot flew' %}">{% translate "Underdog sorties" %}</dt><dd>{{ stats.sorties_underdog|num }} ({{ stats.sorties_underdog|percent:stats.sorties }}){% stat_mark "underdog_share" %}</dd></div>
+  {# Until `il2ks reprocess --all` has counted the sides (0 and 0) the two lines would say "0 · 0": hide them. #}
+  {% if stats.sorties_redfor or stats.sorties_blufor %}
+    {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
+    {% blocktranslate asvar by_side with red=stats.sorties_redfor|num blue=stats.sorties_blufor|num %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}
+    {# Translators: profile total: how many of the pilot's sorties were flown for each side (REDFOR / BLUFOR) #}
+    <div><dt>{% translate "Sorties per side" %}</dt><dd>{{ by_side }}</dd></div>
+    {# Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of all sorties #}
+    <div><dt title="{% translate 'Sorties flown for the side that had fewer pilots spawned in while the pilot flew' %}">{% translate "Underdog sorties" %}</dt><dd>{{ stats.sorties_underdog|num }} ({{ stats.sorties_underdog|percent:stats.sorties }}){% stat_mark "underdog_share" %}</dd></div>
+  {% endif %}
 </dl>

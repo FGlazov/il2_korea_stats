@@ -5,7 +5,17 @@ from datetime import timedelta
 import pytest
 from django.test.client import Client
 
-from il2ks.db.models import Mission, Player, PlayerAircraft, PlayerSortie, PlayerTour, TourAircraftStats
+from il2ks.db.models import (
+    Mission,
+    Player,
+    PlayerAircraft,
+    PlayerAircraftScope,
+    PlayerSortie,
+    PlayerTour,
+    PlayerTourAircraft,
+    PlayerTourPool,
+    TourAircraftStats,
+)
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.counters import COUNTER_FIELDS
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
@@ -126,3 +136,20 @@ def test_profile_other_totals_show_the_sides_and_the_underdog_share(client: Clie
     html = _page(client, f"/players/{pk}/?tour=all")
     assert "Underdog sorties" in html
     assert "1 (50%)" in html
+
+
+def test_profile_hides_the_side_lines_until_reprocess_has_counted_them(client: Client) -> None:
+    """Review 0.2.0: before `il2ks reprocess --all` the new counters are 0/0; "REDFOR 0 · BLUFOR 0" would be a lie."""
+    save(mission((sortie(0, 1, underdog=True), sortie(1, 1, coalition=2, aircraft_type="F-86A-5"))))
+    pk = Player.objects.get(account_uuid=account(1)).pk
+    fields = {"sorties_redfor": 0, "sorties_blufor": 0, "sorties_underdog": 0}
+    Player.objects.filter(pk=pk).update(**fields)
+    PlayerTour.objects.filter(player_id=pk).update(**fields)
+    for model in (PlayerAircraft, PlayerTourAircraft, PlayerAircraftScope, PlayerTourPool):
+        model.objects.filter(player_id=pk).update(**fields)
+
+    html = _page(client, f"/players/{pk}/?tour=all")
+    assert "Takeoffs" in html  # the totals are there
+    assert "Sorties per side" not in html
+    assert "Underdog sorties" not in html
+    assert "REDFOR 0" not in html

@@ -341,8 +341,8 @@ def test_backup_command_copies_to_the_second_folder_and_mirrors_the_archive(
     (cfg.archive_dir / "2026" / "10" / "m.txt.zip").write_bytes(b"log")
     assert main(["--config", str(cfg.source), "backup"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert len(backup.list_backups(second)) == 1
-    assert (second / "archive" / "2026" / "10" / "m.txt.zip").read_bytes() == b"log"
+    assert len(backup.list_backups(second / str(cfg.server_uid))) == 1
+    assert (second / str(cfg.server_uid) / "archive" / "2026" / "10" / "m.txt.zip").read_bytes() == b"log"
     assert "Copy:" in out
 
 
