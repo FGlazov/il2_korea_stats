@@ -527,3 +527,105 @@ def test_a_fast_local_server_still_works_through_the_real_sockets() -> None:
         )
 
     assert (result.status, result.body) == (200, b"hello")
+
+
+# --- `Connection: close` answers (H1): http.client closes the connection itself when the response will close ---
+
+
+def serve_once(answer: bytes) -> Script:
+    def script(connection: socket.socket, stop: threading.Event) -> None:
+        connection.sendall(answer)
+
+    return script
+
+
+def local_get(server: SlowServer, max_bytes: int) -> outbound.Fetched:
+    return fetch(
+        f"http://localhost.example:{server.port}/",
+        allow_private=LOOPBACK,
+        resolver=lambda h, p: ["127.0.0.1"],
+        max_bytes=max_bytes,
+    )
+
+
+def test_a_connection_close_answer_with_a_content_length_arrives_whole() -> None:
+    """H1: getresponse() closed the connection, the override aborted the socket the body is read from."""
+    body = bytes(range(256)) * 400  # 100 KB
+    answer = http(body=body, Content_Length=str(len(body)), Connection="close")
+    with SlowServer(serve_once(answer)) as server:
+        result = local_get(server, 200_000)
+
+    assert (result.status, result.body) == (200, body)
+
+
+def test_a_chunked_connection_close_answer_arrives_whole() -> None:
+    body = b"y" * 100_000
+    chunked = f"{len(body):x}\r\n".encode() + body + b"\r\n0\r\n\r\n"
+    answer = http(body=chunked, Transfer_Encoding="chunked", Connection="close")
+    with SlowServer(serve_once(answer)) as server:
+        result = local_get(server, 200_000)
+
+    assert result.body == body
+
+
+def test_a_close_delimited_http_1_0_body_is_not_truncated() -> None:
+    body = b"z" * 100_000
+    answer = b"HTTP/1.0 200 OK\r\n\r\n" + body  # no length: the end of the body is the close
+    with SlowServer(serve_once(answer)) as server:
+        result = local_get(server, 200_000)
+
+    assert result.body == body
+
+
+def test_a_trickled_connection_close_body_still_hits_the_deadline() -> None:
+    """H1: with the connection closed early `connection.sock` was None and the body had no timeout at all."""
+    head = http(body=b"", Connection="close")  # close-delimited: the server never says how long
+
+    def script(connection: socket.socket, stop: threading.Event) -> None:
+        connection.sendall(head)
+        trickle(b"x" * 1000, 0.4)(connection, stop)
+
+    with SlowServer(script) as server:
+        assert local_fetch(server, 1.0) < 3.0
+
+
+# --- clean-up after failures (L3) ----------------------------------------------------------------
+
+
+def _timers() -> int:
+    return sum(isinstance(t, threading.Timer) and t.is_alive() for t in threading.enumerate())
+
+
+def test_a_failed_connect_cancels_the_watchdog_timer() -> None:
+    """L3: the OutboundError from connect() skipped `connection.close()`, so the timer ran on to its deadline."""
+    world = World({"example.org": [PUBLIC]}, [])
+    world.refuse = {PUBLIC}
+    before = _timers()
+
+    with pytest.raises(OutboundError, match="could not connect"):
+        world.get("http://example.org/", timeout_s=30.0)
+
+    assert _timers() == before
+
+
+def test_the_watchdog_only_shuts_the_socket_down_the_owner_closes_it() -> None:
+    """L3: closing a descriptor from the timer thread while the owner sits in recv() can hit a reused fd."""
+    sock = FakeSocket(b"")
+    shutdowns: list[int] = []
+    sock.shutdown = shutdowns.append  # type: ignore[method-assign]
+    connection = outbound._PinnedConnection(  # pyright: ignore[reportPrivateUsage]
+        "example.org",
+        80,
+        addresses=[PUBLIC],
+        timeout=5.0,
+        connector=lambda a, p, t: sock,  # type: ignore[arg-type,return-value]
+        tls=None,
+    )
+    connection.connect()
+
+    connection._expire()  # pyright: ignore[reportPrivateUsage]
+
+    assert shutdowns and not sock.closed
+    assert connection.expired.is_set()
+    connection.finish()
+    assert sock.closed
