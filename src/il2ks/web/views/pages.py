@@ -20,9 +20,11 @@ PAGE_CSP = "script-src 'self'; img-src 'self' https: data:; object-src 'none'; b
 
 
 def page(request: HttpRequest, slug: str) -> HttpResponse:
-    row = Page.objects.filter(slug=slug).first()
-    if row is None:
-        raise Http404
+    # `slug` is unique: `.get()` has no ORDER BY (`.first()` would add `Page.Meta.ordering`, a temp B-tree in the plan).
+    try:
+        row = Page.objects.get(slug=slug)
+    except Page.DoesNotExist:
+        raise Http404 from None
     text = pick_text(row, get_language() or "en")
     context = {
         "page_title": text.title,

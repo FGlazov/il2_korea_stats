@@ -154,6 +154,11 @@ def test_pictures_keep_layout_text_and_axe_clean(
 def test_a_picture_moves_nothing(page: Page, set_branding: SetBranding, pictures: dict[str, Path], width: int) -> None:
     """Same box sizes with and without the pictures, and no layout shift while it loads."""
     page.set_viewport_size({"width": width, "height": 900})
+    # The heading font is `font-display: optional`: a cold first load can keep the fallback (much wider on Linux), a
+    # later one uses the cached Barlow Condensed and wraps the hero title differently (CI 2026-10-07, 360 px: 49 px).
+    # Load the page once to warm the cache, so "before" and "after" use the same font and only the pictures differ.
+    page.goto("/")
+    wait_until_settled(page)
     page.goto("/")
     wait_until_settled(page)
     before = page.evaluate(BOXES_JS)
