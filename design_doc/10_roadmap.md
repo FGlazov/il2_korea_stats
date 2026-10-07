@@ -396,19 +396,25 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
   ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
   show). Units confirmed by the maintainer (OQ-135, 2026-10-07). The sortie's positions are stored already, so no reprocess is needed for the column.
-- 🔧 **Opening range** (research "engagement distance"; maintainer, 2026-10-06/07). First pass 2026-10-07 on 9 missions: a gun burst
-  (AType 24) is logged at most once per ~20 s per aircraft, so it marks the **start of an attack**, not each trigger press; the hit tick
-  is the **impact** time (doc 12 "Position data"). The ballistic estimate (burst-to-hit ticks times the round's speed) holds aiming time and
-  later shots, so it is not used. **Maintainer (2026-10-07, was OQ-136): the first distance between you and the enemy is what is wanted**
-  ("one of the most informative numbers in a dogfight or interception"), plus a plausibility check that the logs line up with how
-  dogfights go. Second pass (53 missions, 1,101 first hits after a burst): the lower edge of burst-to-hit time against distance follows the
-  rounds' flight-time curves (no hit arrives faster than the round could fly); implied flight time median 0.77 s; opening distance median
-  ~550 m (.50 BMG 595 m, 23 mm 446 m), peak 250-450 m; the burst-to-hit time overshoots the distance-based time for 80% of .50 hits, the
-  lower 20% being tail chases where the shooter closes after the burst (head-on passes are ~7% of the hits whose target heading is known).
-  Plots in `sample_data/plots/` (local only). Running: aspect angle (lead vs deflection vs head-on) and the link to pilot skill (Elo).
-  Design `[PROPOSED]`, after the check: per pilot (tour and all time), the median distance from the shooter's burst position to the
-  target at the **first PvP gun hit within 1-2 s of a burst**; too few pairs per sortie for a per-sortie figure (about 20 per mission
-  across all pilots). Ordnance out of scope.
+- ⏸️ **Opening range** (research "engagement distance"; maintainer, 2026-10-06/07). **On hold: research only. Do not implement until
+  the maintainer gives an explicit go** (maintainer, 2026-10-07: "we're still figuring out if it's correct"). Wanted: the first distance
+  between you and the enemy ("one of the most informative numbers in a dogfight or interception"; was OQ-136).
+  - *What the log gives* (doc 12 "Position data"): a gun burst (AType 24) is logged at most once per ~20 s per aircraft, so it marks the
+    **start of an attack**, not each trigger press; the hit tick is the **impact** time.
+  - *Plausibility check so far* (2026-10-07, 53 missions, ~2,150 first hits after a burst, plots in `sample_data/plots/`, local only):
+    on **ground** targets (static, exact position) the time-based range (burst-to-first-hit ticks through a drag model) and the geometric
+    one (burst position to target) agree within 20% for 81% of .50 hits with a gap of at most 1 s, and the burst-to-hit time never drops
+    below the round's flight time (pre-firing only adds to it). Air: implied flight time median 0.77 s, opening distance median ~550 m.
+    By pilot skill (air K/D terciles): fewer head-on hits (8% -> 1%), slightly more deflection hits (30% -> 39%), shorter opening distance
+    (580 -> 447 m), more attacks with a hit; the maintainer finds these plausible (skilled pilots avoid head-ons, get into position and
+    hold fire until they will hit).
+  - *Maintainer's rules for the figure*: shots beyond ~1000 m are mostly luck and low energy, so they are dropped; the 20 s burst throttle
+    is a known limit.
+  - *Still open before a go*: does the skill trend survive per aircraft type (23 mm MiGs open closer than .50 anyway; jets close faster);
+    drag constants fitted from ground hits per shooter aircraft instead of guessed (23 / 37 mm implied closing speeds look too high).
+  - *Sketch* `[PROPOSED]`, only after a go: per pilot (tour and all time), the median time-based range of the first PvP gun hit within
+    1 s of a burst, at most 1000 m, with a minimum number of hits, plus the share of attacks with a hit within 1 s (so a pilot who opens
+    fire far out and only hits later is not flattered); no per-sortie figure (too few pairs). Ordnance out of scope.
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).
