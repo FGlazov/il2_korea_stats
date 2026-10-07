@@ -31,7 +31,12 @@ type Check = Callable[[Config], Iterable[Finding]]
 
 _CHECKS: list[Check] = []
 
-CHECK_MODULES: tuple[str, ...] = ("il2ks.ops.checks", "il2ks.ops.serving_checks", "il2ks.ops.login_checks")
+CHECK_MODULES: tuple[str, ...] = (
+    "il2ks.ops.checks",
+    "il2ks.ops.serving_checks",
+    "il2ks.ops.login_checks",
+    "il2ks.ops.compression_check",
+)
 """Modules whose import registers checks (each agent/area adds its module here)."""
 
 

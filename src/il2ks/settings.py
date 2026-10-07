@@ -23,6 +23,7 @@ from il2ks.serving.djsettings import (
 from il2ks.serving.djsettings import (
     allowed_hosts,
     csrf_trusted_origins,
+    public_base_url,
     security_settings,
     staticfiles_backend,
     trust_forwarded_for,
@@ -41,6 +42,7 @@ IL2KS_TOUR_MODE = (
 
 IL2KS_RULES = RuleSet.of(_CFG)  # the file's game rules: the admin's saved values go on top (`il2ks.rule_settings`)
 IL2KS_LEADERBOARDS = _CFG.leaderboards  # minimum activity for the leaderboards (FR-WEB-7)
+IL2KS_PUBLIC_URL = public_base_url(_CFG)  # "https://domain[:port]" or "": absolute URLs in the sitemap and robots.txt
 
 DEBUG = _CFG.debug
 SECRET_KEY = secret_key_for(_CFG)  # the dev placeholder when none exists yet; `il2ks web` refuses to serve with it

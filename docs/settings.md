@@ -191,7 +191,7 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   stopped changing for `[ingest] stable_seconds`.
 - `[ingest]`: when a mission counts as finished (`idle_minutes`) and how often to look (`watch_interval_s`).
 - `[live]`: the "online now" box. `enabled = false` switches it off.
-- `[backup]`: how many backups to keep and whether to make one a day.
+- `[backup]`: how many backups to keep, whether to make one a day, and an optional second folder for copies, see [Copying backups elsewhere](#copying-backups-elsewhere).
 - `[web]`, `[https]`: ports, domain, certificate. See the install guides.
 - `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords at the admin
   login, the account **and** the visitor's address are locked for that long, and the visitor sees "try again in N minutes".
@@ -203,6 +203,34 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   (`["192.168.1.0/24"]`) here to allow a source on your own LAN. Leave it empty unless you need it.
 
 Every setting can also be an environment variable: `[web] threads` is `IL2KS_WEB_THREADS`. Variables win over the file.
+
+### Copying backups elsewhere
+
+A backup next to the database does not survive a dead disk. `[backup] copy_to` names a second folder (another drive, or a
+network share) that every backup is copied to right after it is written:
+
+```toml
+[backup]
+copy_to = "E:/il2ks-backups"     # or "//nas/backups/il2ks"; "" = off
+copy_archive = true              # optional: mirror the mission archive there too
+```
+
+- **Retention is the same** `keep` as the main folder: the second folder also holds the newest `keep` backups.
+- A backup the second folder missed (the share was offline) is copied with the next one.
+- `copy_archive = true` copies the mission archive (the logs the statistics are rebuilt from, which backups leave out)
+  into `<copy_to>/archive`. Only new or changed files are copied, so after the first (long) run it takes seconds. The
+  mirror is never pruned: a file stays there even if it disappears from the archive.
+- The copy never fails the backup. If the folder is missing or full, il2ks logs a warning, tries again with the next
+  backup, and `il2ks doctor` shows "Backup copy ... failed". On the Windows service, the service account needs write
+  access to the folder (a mapped drive letter is not visible to a service: use the `//server/share` form).
+
+## Search engines
+
+`/robots.txt` allows the public pages and asks crawlers to skip the admin and the filtered or sorted variants of a page.
+`/sitemap.xml` lists the main pages, every aircraft type, every public mission and every public player (hidden players
+and missions are left out), with absolute addresses built from `[https] domain`, so set it. A big site gets a sitemap
+index with files of 10,000 addresses each. Submit `https://<your domain>/sitemap.xml` in the search engines' webmaster
+tools if you want to be found faster. `/healthz` is for uptime monitors, see [reverse-proxy.md](reverse-proxy.md#monitoring-healthz).
 
 ## Upgrading
 

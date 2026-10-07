@@ -135,6 +135,8 @@ class BackupConfig:
 
     keep: int = 10
     daily: bool = True
+    copy_to: Path | None = None  # a second folder (another drive or a share) every backup is copied to
+    copy_archive: bool = False  # also mirror the mission archive into `copy_to/archive` (new and changed files only)
 
 
 @dataclass(frozen=True, slots=True)
@@ -333,6 +335,8 @@ def load_config(
     backup = BackupConfig(
         keep=reader.positive_int("backup", "keep", backup_defaults.keep),
         daily=reader.bool_("backup", "daily", backup_defaults.daily),
+        copy_to=reader.path("backup", "copy_to"),
+        copy_archive=reader.bool_("backup", "copy_archive", backup_defaults.copy_archive),
     )
 
     uid_text = reader.str_("server", "uid", "")

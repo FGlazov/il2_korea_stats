@@ -200,6 +200,10 @@ def cmd_backup(ns: argparse.Namespace) -> int:
     print("Contains the database, il2ks.toml, custom/, media/ and the server ID. The archived mission logs are NOT")
     print(f"included ({cfg.archive_dir}): copy that folder yourself if you want it elsewhere. Keep a copy of the")
     print("backup on another disk too.")
+    if cfg.backup.copy_to is not None:
+        for outcome in (backup.read_copy_status(cfg).get("backups"), backup.mirror_archive(cfg)):
+            if outcome is not None:
+                print(("Copy: " if outcome.ok else "COPY FAILED (the backup itself is fine): ") + outcome.detail)
     return EXIT_OK
 
 

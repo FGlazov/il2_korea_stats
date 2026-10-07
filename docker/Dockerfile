@@ -67,9 +67,10 @@ EXPOSE 80 443
 
 # The web server answers on loopback (Django believes the proxy header, so ask as the proxy would). Caddy and the
 # ingester are restarted by `il2ks run` itself when they crash; this check is about the web server, which is the
-# one thing a visitor needs. The long start period covers the first database migration.
+# one thing a visitor needs; `/healthz` also reads one row of the database. The long start period covers the first
+# database migration.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD ["python", "-c", "import os, urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:' + os.environ.get('IL2KS_WEB_PORT', '8000') + '/', headers={'X-Forwarded-Proto': 'https'}), timeout=8)"]
+    CMD ["python", "-c", "import os, urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:' + os.environ.get('IL2KS_WEB_PORT', '8000') + '/healthz', headers={'X-Forwarded-Proto': 'https'}), timeout=8)"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["run"]

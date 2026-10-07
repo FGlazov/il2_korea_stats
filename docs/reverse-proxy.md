@@ -141,3 +141,31 @@ AddOutputFilterByType DEFLATE text/html text/css application/javascript applicat
 If the proxy runs on another machine, set `[web] host = "0.0.0.0"` (or that machine's LAN address) and **firewall the
 port** so only the proxy can connect. `il2ks doctor` warns about this on purpose: anyone who can reach the port can
 bypass your HTTPS.
+
+## Monitoring: `/healthz`
+
+For an uptime monitor (Uptime Kuma, UptimeRobot, a Docker or Kubernetes health check, a plain `curl` in cron) the site has
+`/healthz`:
+
+- **200** with the body `ok` when il2ks can read its database, **503** with `database unavailable` when it cannot.
+- No login, no cookies, `Cache-Control: no-store`: never cached by il2ks, your proxy should not cache it either.
+- It reads one row of the database, nothing else, so it is cheap enough to ask every few seconds. It tells you that the
+  web server is up and the database opens; it does not tell you that the statistics are fresh (check the "Data updated"
+  line in the page footer, or `il2ks doctor`, for that).
+
+Two places to ask, depending on what you want to know:
+
+| Address | What it proves |
+|---|---|
+| `https://stats.example.com/healthz` | the whole chain: DNS, certificate, proxy, web server, database |
+| `http://127.0.0.1:8000/healthz` (from the same machine) | web server and database only. Plain http works here: `/healthz` is the one page that is never redirected to https |
+
+The bundled Caddy forwards `/healthz` like any other page. With your own proxy, make sure no rule in front of the
+site (a login, a cache, a "maintenance" redirect) swallows it.
+
+## Are the pages compressed?
+
+`il2ks doctor` fetches the home page through your public address (`[https] domain`), asking for `gzip, br, zstd`, and
+warns when the answer has no `Content-Encoding` header: your proxy is not compressing (requirement 6 above). It skips
+the check when no domain is set or when the bundled Caddy is used (it always compresses). A fetch that fails (the machine
+cannot reach its own public address, a certificate this machine does not trust) is only a warning, never an error.

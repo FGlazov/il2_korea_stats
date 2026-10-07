@@ -188,6 +188,7 @@ def create_backup(cfg: Config, reason: BackupReason = "manual", *, now: Callable
         raise
     deleted = rotate(backup_dir, cfg.backup.keep)
     log.info("backup written: %s (%s); %d old backup(s) removed", target, reason, len(deleted))
+    copy_to_second_folder(cfg)
     return target
 
 
@@ -212,9 +213,159 @@ def backup_if_due(cfg: Config, now: datetime) -> Path | None:
         return None
     try:
         with WriterLock(cfg.data_dir, "backup"):
-            return create_backup(cfg, "daily", now=lambda: now)
+            made = create_backup(cfg, "daily", now=lambda: now)
     except LockBusyError:
         return None
+    mirror_archive(cfg)  # after the lock is released: the first mirror of a big archive takes a while
+    return made
+
+
+# --- the second copy (`[backup] copy_to`) --------------------------------------------------------------------------
+
+COPY_STATUS_FILE = "backup_copy_status.json"
+ARCHIVE_COPY_NAME = "archive"
+_MAX_ARCHIVE_FAILURES = 3  # a share that went away fails every file: give up after a few, the next backup retries
+_MTIME_SLACK_S = 2  # FAT and some shares store modification times with 2 s granularity
+
+
+@dataclass(frozen=True, slots=True)
+class CopyOutcome:
+    """What the last attempt to copy to `[backup] copy_to` did, kept in `<data dir>/backup_copy_status.json` so
+    `il2ks doctor` can show it (the copy never fails the backup itself)."""
+
+    kind: Literal["backups", "archive"]
+    ok: bool
+    at: str  # ISO time
+    detail: str  # what was copied, or why it failed
+
+
+def _status_path(cfg: Config) -> Path:
+    return cfg.data_dir / COPY_STATUS_FILE
+
+
+def read_copy_status(cfg: Config) -> dict[str, CopyOutcome]:
+    """The last copy outcomes by kind (`backups`, `archive`); empty when nothing was copied yet or the file is bad."""
+    try:
+        raw = cast(object, json.loads(_status_path(cfg).read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return {}
+    found: dict[str, CopyOutcome] = {}
+    if isinstance(raw, dict):
+        for kind, entry in cast(dict[str, object], raw).items():
+            if kind in {"backups", "archive"} and isinstance(entry, dict):
+                fields = cast(dict[str, object], entry)
+                found[kind] = CopyOutcome(
+                    cast(Literal["backups", "archive"], kind),
+                    fields.get("ok") is True,
+                    str(fields.get("at", "")),
+                    str(fields.get("detail", "")),
+                )
+    return found
+
+
+def _record(cfg: Config, outcome: CopyOutcome) -> None:
+    status = read_copy_status(cfg)
+    status[outcome.kind] = outcome
+    payload = {k: {"ok": v.ok, "at": v.at, "detail": v.detail} for k, v in status.items()}
+    try:
+        _status_path(cfg).write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    except OSError as exc:
+        log.warning("could not write %s: %s", _status_path(cfg), exc)
+
+
+def _copy_file(source: Path, dest: Path) -> None:
+    """Copy through a temporary name next to the destination, so a reader never sees half a file."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    partial = dest.with_name(dest.name + ".tmp")
+    try:
+        shutil.copyfile(source, partial)
+        shutil.copystat(source, partial)
+        os.replace(partial, dest)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+
+
+def _fail(cfg: Config, kind: Literal["backups", "archive"], message: str) -> CopyOutcome:
+    log.warning("[backup] copy_to: %s", message)
+    outcome = CopyOutcome(kind, False, utcnow().isoformat(timespec="seconds"), message)
+    _record(cfg, outcome)
+    return outcome
+
+
+def copy_to_second_folder(cfg: Config) -> CopyOutcome | None:
+    """Copy the backups that the second folder lacks and rotate it with the same `[backup] keep`; None if not set up.
+
+    Never raises: a failure is logged and recorded for doctor. Every backup of the main folder the copy lacks is copied
+    (newest `keep` only), so a share that was offline for a few days catches up with the next backup."""
+    second = cfg.backup.copy_to
+    if second is None:
+        return None
+    try:
+        if second.resolve() == cfg.backup_dir.resolve():
+            return _fail(cfg, "backups", f"copy_to ({second}) is the backup folder itself; choose another folder")
+        second.mkdir(parents=True, exist_ok=True)
+        copied = 0
+        for path in list_backups(cfg.backup_dir)[-cfg.backup.keep :]:
+            dest = second / path.name
+            if not dest.is_file() or dest.stat().st_size != path.stat().st_size:
+                _copy_file(path, dest)
+                copied += 1
+        deleted = rotate(second, cfg.backup.keep)
+    except OSError as exc:
+        return _fail(cfg, "backups", f"could not copy the backup to {second}: {exc}")
+    detail = f"{copied} backup(s) copied to {second}, {len(deleted)} old one(s) removed there"
+    log.info("backup copy: %s", detail)
+    outcome = CopyOutcome("backups", True, utcnow().isoformat(timespec="seconds"), detail)
+    _record(cfg, outcome)
+    return outcome
+
+
+def _needs_copy(source: Path, dest: Path) -> bool:
+    try:
+        have = dest.stat()
+    except FileNotFoundError:
+        return True
+    now = source.stat()
+    return have.st_size != now.st_size or now.st_mtime - have.st_mtime > _MTIME_SLACK_S
+
+
+def mirror_archive(cfg: Config) -> CopyOutcome | None:
+    """Mirror the mission archive into `<copy_to>/archive`, copying only new or changed files; None if not switched on.
+
+    Nothing is ever deleted from the mirror (the archive is the source of truth and never loses files on its own, so a
+    file missing in the main archive is a mistake the mirror should survive). Never raises, like the backup copy."""
+    second = cfg.backup.copy_to
+    if second is None or not cfg.backup.copy_archive:
+        return None
+    source_root = cfg.archive_dir
+    if not source_root.is_dir():
+        return None
+    mirror = second / ARCHIVE_COPY_NAME
+    copied = failed = 0
+    first_error = ""
+    try:
+        files = sorted(p for p in source_root.rglob("*.zip") if p.is_file())
+    except OSError as exc:
+        return _fail(cfg, "archive", f"could not read the archive folder {source_root}: {exc}")
+    for path in files:
+        dest = mirror / path.relative_to(source_root)
+        try:
+            if _needs_copy(path, dest):
+                _copy_file(path, dest)
+                copied += 1
+        except OSError as exc:
+            failed += 1
+            first_error = first_error or f"{path.name}: {exc}"
+            if failed >= _MAX_ARCHIVE_FAILURES:
+                break
+    if failed:
+        return _fail(cfg, "archive", f"archive mirror to {mirror} failed after {copied} file(s): {first_error}")
+    detail = f"{copied} new or changed archive file(s) copied to {mirror}"
+    log.info("backup copy: %s", detail)
+    outcome = CopyOutcome("archive", True, utcnow().isoformat(timespec="seconds"), detail)
+    _record(cfg, outcome)
+    return outcome
 
 
 # --- restore -------------------------------------------------------------------------------------------------------
