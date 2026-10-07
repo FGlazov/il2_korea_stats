@@ -7,20 +7,27 @@ page and bumps the data version (TD-28). Deleting a page removes the navigation 
 from typing import TYPE_CHECKING
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import models
 from django.forms import ModelForm
 from django.forms.models import BaseModelFormSet
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, path, reverse
 from django.utils.html import format_html
-from django.utils.safestring import SafeString
+from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from il2ks.db.models import Page, PageTranslation, SiteSettings
 from il2ks.db.site import bump_data_version
-from il2ks.web.pages import MAX_SOURCE_LENGTH, publish_nav_links, publish_page, render_markdown, site_languages
+from il2ks.web.pages import (
+    MAX_SOURCE_LENGTH,
+    has_http_images,
+    publish_nav_links,
+    publish_page,
+    render_markdown,
+    site_languages,
+)
 
 if TYPE_CHECKING:
     from django.contrib.admin import ModelAdmin
@@ -29,6 +36,11 @@ else:
     class ModelAdmin[M: models.Model](admin.ModelAdmin):
         pass
 
+
+HTTP_IMAGES_WARNING = _(
+    "An image on this page has an http:// address. Pages only load images over https, so it will not load; "
+    "use the https:// address of the image."
+)
 
 PREVIEW_URL_NAME = "admin:il2ks_db_page_preview"
 
@@ -132,7 +144,10 @@ class PageAdmin(ModelAdmin[Page]):
         """POST `source`: the sanitised HTML the public page would show (nothing is saved)."""
         if request.method != "POST" or not (self.has_add_permission(request) or self.has_change_permission(request)):
             return HttpResponse(status=405)
-        response = HttpResponse(render_markdown(str(request.POST.get("source", ""))))
+        html = render_markdown(str(request.POST.get("source", "")))
+        if has_http_images(html):
+            html = format_html('<p class="md-warning" role="alert">{}</p>{}', HTTP_IMAGES_WARNING, mark_safe(html))
+        response = HttpResponse(html)
         response["Content-Security-Policy"] = "default-src 'none'; img-src https: data:"
         return response
 
@@ -142,6 +157,9 @@ class PageAdmin(ModelAdmin[Page]):
         assert isinstance(instance, Page)
         publish_page(instance)
         bump_data_version()
+        texts = [instance.html, *(row.html for row in PageTranslation.objects.filter(page=instance))]
+        if any(has_http_images(text) for text in texts):
+            self.message_user(request, HTTP_IMAGES_WARNING, messages.WARNING)
 
     def delete_model(self, request: HttpRequest, obj: Page) -> None:
         sites = list(SiteSettings.objects.filter(nav_links__page=obj).distinct())

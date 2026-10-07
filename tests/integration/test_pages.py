@@ -313,7 +313,9 @@ def test_a_page_rendered_by_an_older_renderer_is_rendered_again_after_the_upgrad
     from il2ks.ops import migrate
     from il2ks.web.pages import RENDERER_VERSION
 
-    page = Page.objects.create(slug="old", title="Old", source="**bold**", html="<script>x</script>", renderer_version=0)
+    page = Page.objects.create(
+        slug="old", title="Old", source="**bold**", html="<script>x</script>", renderer_version=0
+    )
     PageTranslation.objects.create(page=page, language="de", source="*fett*", html="<script>y</script>")
     link_to(page)
     before = current_data_version()

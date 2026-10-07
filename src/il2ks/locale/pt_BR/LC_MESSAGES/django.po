@@ -1068,6 +1068,14 @@ msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Voo de resistência: a almofada do assento merece menção no relatório."
 
 # llm-draft
+msgid ""
+"An image on this page has an http:// address. Pages only load images over https, so it will not load; use the "
+"https:// address of the image."
+msgstr ""
+"Uma imagem desta página tem um endereço http://. As páginas só carregam imagens por https, então ela não será "
+"exibida; use o endereço https:// da imagem."
+
+# llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
 msgstr "De novo no topo. Vão ter que ampliar a parede do hangar."
 

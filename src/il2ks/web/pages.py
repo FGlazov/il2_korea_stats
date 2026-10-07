@@ -3,12 +3,14 @@
 The admin types Markdown; `render_markdown` turns it into HTML **once, on save**, and the page view only prints the
 stored HTML (never per request). The output is sanitised with nh3 (an allowlist of tags and attributes; only http(s)
 and relative links): a `<script>`, an `onclick=`, a `javascript:` or `data:` link never reaches a visitor, whatever the
-admin pasted. Images may be hotlinked (`![](https://...)` stays a link to the remote host).
+admin pasted. Images may be hotlinked (`![](https://...)` stays a link to the remote host); `http://` images do not
+load under the page's policy, and the admin is warned (`has_http_images`).
 
 `published_translations` builds the per-language copy kept on the `Page` row so the view reads one row.
 `pick_text` chooses what a viewer sees: their language's text if there is one, else the base text. Nothing is forced.
 """
 
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Final
@@ -21,6 +23,9 @@ from markdown_it import MarkdownIt
 from il2ks.db.models import NavLink, Page, PageTranslation, SiteSettings
 
 MAX_SOURCE_LENGTH: Final = 100_000
+RENDERER_VERSION: Final = 1
+"""Raise it whenever `render_markdown` would give other HTML for the same source (a tightened allowlist, a new
+markdown option): the next start re-renders every stored page whose `renderer_version` is lower (`ops.migrate`)."""
 
 # CommonMark plus tables and strikethrough; raw HTML in the source is allowed through the parser and then filtered by
 # the allowlist below, so `<details>` or `<kbd>` work but `<script>` does not.
@@ -58,6 +63,15 @@ def render_markdown(source: str) -> str:
     )
 
 
+_HTTP_IMAGE: Final = re.compile(r"<img\b[^>]*\ssrc=[\"']http://", re.IGNORECASE)
+
+
+def has_http_images(html: str) -> bool:
+    """Whether sanitised `html` has an image with an `http://` address: the page's policy only loads https images, so
+    such an image stays blank. The address is not rewritten (the host may not serve https); the admin is told."""
+    return _HTTP_IMAGE.search(html) is not None
+
+
 def site_languages() -> list[tuple[str, str]]:
     """The site's languages as (code, own-language name)."""
     return [(str(code), str(name)) for code, name in settings.LANGUAGES]
@@ -71,12 +85,14 @@ def publish_page(page: Page) -> None:
     """Re-render every text of `page` and store them (the page row and its translation rows); the caller bumps the
     data version. Also refreshes the navigation links that point at the page (its slug may have changed)."""
     page.html = render_markdown(page.source)
+    page.renderer_version = RENDERER_VERSION
     rows = list(PageTranslation.objects.filter(page=page))
     for row in rows:
         row.html = render_markdown(row.source)
-        row.save(update_fields=["html"])
+        row.renderer_version = RENDERER_VERSION
+        row.save(update_fields=["html", "renderer_version"])
     page.translations = published_translations(rows)
-    page.save(update_fields=["html", "translations", "updated_at"])
+    page.save(update_fields=["html", "renderer_version", "translations", "updated_at"])
     for site in SiteSettings.objects.filter(nav_links__page=page).distinct():
         publish_nav_links(site)
 

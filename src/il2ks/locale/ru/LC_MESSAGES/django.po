@@ -1083,6 +1083,14 @@ msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Выносливый полёт: подушка сиденья заслуживает упоминания в рапорте."
 
 # llm-draft
+msgid ""
+"An image on this page has an http:// address. Pages only load images over https, so it will not load; use the "
+"https:// address of the image."
+msgstr ""
+"У одной из картинок на этой странице адрес http://. Страницы загружают картинки только по https, поэтому она не "
+"отобразится; используйте адрес картинки с https://."
+
+# llm-draft
 msgid "Another night, another name at the top. The hangar wall is running out of space for it."
 msgstr "Опять на вершине таблицы: стену ангара под такие имена придётся наращивать."
 

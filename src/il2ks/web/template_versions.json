@@ -2,11 +2,12 @@
   "format": 2,
   "files": {
     "static/il2ks/admin-pages.css": {
-      "version": "2.0",
-      "sha256": "b8d494fbd8d7d45edbff8492131a321481878f5fc306a3a1b640726e45805888",
+      "version": "3.1",
+      "sha256": "f741b5885fd4ac90206ba7323de4468a4350fd88d70537e75496d834bc054213",
       "contract": {
         "defines": [
-          ".md-preview"
+          ".md-preview",
+          ".md-warning"
         ]
       }
     },
