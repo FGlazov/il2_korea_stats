@@ -396,15 +396,19 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
   ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
   show). Units confirmed by the maintainer (OQ-135, 2026-10-07). The sortie's positions are stored already, so no reprocess is needed for the column.
-- ✅ **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06). **Done 2026-10-07,
-  outcome: not built** (OQ-136). Measured on 9 sample missions (~2,400 PvP gun hits on aircraft, doc 12 "Position data"): a gun burst
-  (AType 24) is logged at most once per ~20 s per aircraft, so it marks the start of an attack, not each trigger press; the hit tick is the
-  impact time. The ballistic estimate (ticks from burst to hit times the round's speed) runs about twice the geometric one (median ratio
-  1.6-2.0; within 20% for only 9-26% of hits), because the gap holds aiming time as well as flight time; even for first hits within 1 s
-  only 43-45% agree. The geometric estimate pairs the shooter's position at the start of fire with the target's at impact, an error as
-  large as the range itself. Only ~43% of hits are within 2 s of a burst and most sorties have 1-3 pairable hits, too few for a
-  per-sortie figure. The only defensible form would be a coarse per-pilot "range at the start of an attack" (first hit within 1 s of a
-  burst, geometric); not recommended either. Revisit if the game logs every shot.
+- 🔧 **Opening range** (research "engagement distance"; maintainer, 2026-10-06/07). First pass 2026-10-07 on 9 missions: a gun burst
+  (AType 24) is logged at most once per ~20 s per aircraft, so it marks the **start of an attack**, not each trigger press; the hit tick
+  is the **impact** time (doc 12 "Position data"). The ballistic estimate (burst-to-hit ticks times the round's speed) holds aiming time and
+  later shots, so it is not used. **Maintainer (2026-10-07, was OQ-136): the first distance between you and the enemy is what is wanted**
+  ("one of the most informative numbers in a dogfight or interception"), plus a plausibility check that the logs line up with how
+  dogfights go. Second pass (53 missions, 1,101 first hits after a burst): the lower edge of burst-to-hit time against distance follows the
+  rounds' flight-time curves (no hit arrives faster than the round could fly); implied flight time median 0.77 s; opening distance median
+  ~550 m (.50 BMG 595 m, 23 mm 446 m), peak 250-450 m; the burst-to-hit time overshoots the distance-based time for 80% of .50 hits, the
+  lower 20% being tail chases where the shooter closes after the burst (head-on passes are ~7% of the hits whose target heading is known).
+  Plots in `sample_data/plots/` (local only). Running: aspect angle (lead vs deflection vs head-on) and the link to pilot skill (Elo).
+  Design `[PROPOSED]`, after the check: per pilot (tour and all time), the median distance from the shooter's burst position to the
+  target at the **first PvP gun hit within 1-2 s of a burst**; too few pairs per sortie for a per-sortie figure (about 20 per mission
+  across all pilots). Ordnance out of scope.
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).
