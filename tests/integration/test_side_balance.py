@@ -5,7 +5,17 @@ from datetime import timedelta
 import pytest
 from django.test.client import Client
 
-from il2ks.db.models import Mission, Player, PlayerAircraft, PlayerSortie, PlayerTour, TourAircraftStats
+from il2ks.db.models import (
+    Mission,
+    Player,
+    PlayerAircraft,
+    PlayerAircraftScope,
+    PlayerSortie,
+    PlayerTour,
+    PlayerTourAircraft,
+    PlayerTourPool,
+    TourAircraftStats,
+)
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.ingest.counters import COUNTER_FIELDS
 from tests.factories import STARTED_AT, account, meta, mission, save, sortie
@@ -135,8 +145,8 @@ def test_profile_hides_the_side_lines_until_reprocess_has_counted_them(client: C
     fields = {"sorties_redfor": 0, "sorties_blufor": 0, "sorties_underdog": 0}
     Player.objects.filter(pk=pk).update(**fields)
     PlayerTour.objects.filter(player_id=pk).update(**fields)
-    TourAircraftStats.objects.filter(player_id=pk).update(**fields)
-    PlayerAircraft.objects.filter(player_id=pk).update(**fields)
+    for model in (PlayerAircraft, PlayerTourAircraft, PlayerAircraftScope, PlayerTourPool):
+        model.objects.filter(player_id=pk).update(**fields)
 
     html = _page(client, f"/players/{pk}/?tour=all")
     assert "Takeoffs" in html  # the totals are there

@@ -3254,8 +3254,8 @@
       }
     },
     "templates/il2ks/players/detail_totals.html": {
-      "version": "1.1",
-      "sha256": "e4697e7deb603b09ae55cb8d6d79d78553c667cadd7311fbc2cc30983ae0aecf",
+      "version": "1.2",
+      "sha256": "fd92eca5333b8865bee8760a6e4403b776e70c3c45eb7d7a7b4e6a8a7ae5777b",
       "contract": {
         "filters": [
           "duration",
