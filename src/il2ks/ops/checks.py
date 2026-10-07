@@ -20,7 +20,7 @@ from typing import cast
 from il2ks.config import SERVER_UID_FILE, Config
 from il2ks.core.logparse.files import mission_uid_from_name
 from il2ks.ingest.lock import LOCK_FILE, is_locked
-from il2ks.ops.backup import list_backups, newest_backup_time
+from il2ks.ops.backup import list_backups, newest_backup_time, read_copy_status
 from il2ks.ops.dbfile import applied_migrations
 from il2ks.ops.doctor import Finding, Level, check
 
@@ -550,3 +550,35 @@ def front_page_image_check(cfg: Config) -> Iterable[Finding]:
         )
     else:
         yield Finding(Level.OK, "Front-page image is fine", detail)
+
+
+@check
+def backup_copy_check(cfg: Config) -> Iterable[Finding]:
+    """`[backup] copy_to`: whether the last copy to the second folder worked (the copy never fails a backup, so this is
+    where the admin finds out). Silent while no second folder is configured."""
+    second = cfg.backup.copy_to
+    if second is None:
+        return
+    status = read_copy_status(cfg)
+    fix = (
+        f"Check that {second} exists or can be created and is writable by the account that runs il2ks (a network "
+        "share must be reachable by the Windows service account), then run il2ks backup."
+    )
+    wanted = ("backups", "archive") if cfg.backup.copy_archive else ("backups",)
+    if not status.get("backups") and not status.get("archive"):
+        yield Finding(
+            Level.WARN,
+            "No backup has been copied to the second folder yet",
+            f"[backup] copy_to = {second}; nothing has been copied so far.",
+            "Run il2ks backup (a backup is made automatically once a day with il2ks watch or run).",
+        )
+        return
+    for kind in wanted:
+        outcome = status.get(kind)
+        label = "Backup copy" if kind == "backups" else "Archive mirror"
+        if outcome is None:
+            yield Finding(Level.WARN, f"{label}: not done yet", f"[backup] copy_to = {second}", "Run il2ks backup.")
+        elif not outcome.ok:
+            yield Finding(Level.WARN, f"{label} to {second} failed", f"{outcome.at}: {outcome.detail}", fix)
+        else:
+            yield Finding(Level.OK, f"{label} to {second}", f"{outcome.at}: {outcome.detail}")

@@ -329,6 +329,35 @@ def test_backup_command_writes_a_zip_and_says_what_it_leaves_out(
     assert "mission logs" in out
 
 
+def test_backup_command_copies_to_the_second_folder_and_mirrors_the_archive(
+    tmp_path: Path, instance: Config, capsys: pytest.CaptureFixture[str]
+) -> None:
+    second = tmp_path / "second"
+    cfg = make_instance(
+        tmp_path / "with-copy", extra_toml=f'[backup]\ncopy_to = "{second.as_posix()}"\ncopy_archive = true\n'
+    )
+    assert cfg.source is not None
+    (cfg.archive_dir / "2026" / "10").mkdir(parents=True)
+    (cfg.archive_dir / "2026" / "10" / "m.txt.zip").write_bytes(b"log")
+    assert main(["--config", str(cfg.source), "backup"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert len(backup.list_backups(second)) == 1
+    assert (second / "archive" / "2026" / "10" / "m.txt.zip").read_bytes() == b"log"
+    assert "Copy:" in out
+
+
+def test_backup_command_succeeds_even_when_the_second_folder_cannot_be_written(
+    tmp_path: Path, instance: Config, capsys: pytest.CaptureFixture[str]
+) -> None:
+    blocked = tmp_path / "blocked"
+    blocked.write_text("a file, not a folder", encoding="utf-8")
+    cfg = make_instance(tmp_path / "with-copy", extra_toml=f'[backup]\ncopy_to = "{blocked.as_posix()}"\n')
+    assert cfg.source is not None
+    assert main(["--config", str(cfg.source), "backup"]) == EXIT_OK
+    assert len(backup.list_backups(cfg.backup_dir)) == 1
+    assert "COPY FAILED" in capsys.readouterr().out
+
+
 def test_backup_command_without_a_database_is_an_error(
     tmp_path: Path, instance: Config, capsys: pytest.CaptureFixture[str]
 ) -> None:
