@@ -288,3 +288,23 @@ def test_axes_tables_come_with_the_migrations_that_setup_and_upgrades_run() -> N
     executor = MigrationExecutor(connection)
     assert any(app == "axes" for app, _name in executor.loader.graph.leaf_nodes())
     assert "axes_accessattempt" in connection.introspection.table_names()
+
+
+@pytest.mark.parametrize(
+    ("header", "expected"),
+    [
+        ("1.2.3.4:51234", "1.2.3.4"),
+        ("9.9.9.9, 1.2.3.4:51234", "1.2.3.4"),
+        ("[2001:db8::1]:51234", "2001:db8::1"),
+        ("[2001:db8::1]", "2001:db8::1"),
+        ("2001:db8::1", "2001:db8::1"),
+        ("1.2.3.4:port", "127.0.0.1"),
+    ],
+)
+def test_client_address_drops_the_port_iis_arr_appends(
+    rf: RequestFactory, settings: SettingsWrapper, header: str, expected: str
+) -> None:
+    """M5: IIS ARR sends `X-Forwarded-For: 1.2.3.4:51234`; without this everybody shared one bucket (127.0.0.1)."""
+    settings.IL2KS_TRUST_FORWARDED_FOR = True
+
+    assert client_address(rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR=header)) == expected
