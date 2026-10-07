@@ -151,6 +151,7 @@ def _xml(body: str) -> HttpResponse:
 @require_safe
 def sitemap_index(request: HttpRequest) -> HttpResponse:
     """`/sitemap.xml`: the whole sitemap when it fits one file, else the index of the files."""
+
     def build() -> str:
         missions, players = _count("missions"), _count("players")
         site = _site_entries()
