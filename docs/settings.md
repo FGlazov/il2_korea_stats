@@ -215,11 +215,16 @@ copy_to = "E:/il2ks-backups"     # or "//nas/backups/il2ks"; "" = off
 copy_archive = true              # optional: mirror the mission archive there too
 ```
 
+- **Each install gets its own subfolder**, `<copy_to>/<server ID>/` (the ID in `server_uid.txt`; the archive mirror is
+  `<copy_to>/<server ID>/archive`). Two installs can share one `copy_to` without rotating each other's backups.
 - **Retention is the same** `keep` as the main folder: the second folder also holds the newest `keep` backups.
 - A backup the second folder missed (the share was offline) is copied with the next one.
 - `copy_archive = true` copies the mission archive (the logs the statistics are rebuilt from, which backups leave out)
-  into `<copy_to>/archive`. Only new or changed files are copied, so after the first (long) run it takes seconds. The
+  into `<copy_to>/<server ID>/archive`. Only new or changed files are copied, so after the first (long) run it takes seconds. The
   mirror is never pruned: a file stays there even if it disappears from the archive.
+- The copy runs in a background thread, one copy at a time, so a slow or offline share (Windows can block 20-60 seconds
+  per file operation) never holds up ingestion, the website or an admin action. `il2ks backup` waits for it and prints
+  the result. Half-copied `.tmp` files that a crash left behind are deleted after an hour.
 - The copy never fails the backup. If the folder is missing or full, il2ks logs a warning, tries again with the next
   backup, and `il2ks doctor` shows "Backup copy ... failed". On the Windows service, the service account needs write
   access to the folder (a mapped drive letter is not visible to a service: use the `//server/share` form).

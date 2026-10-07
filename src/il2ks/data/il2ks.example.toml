@@ -277,7 +277,7 @@
 # `keep` applies there. A failed copy is logged and shown by `il2ks doctor`; it never fails the backup itself.
 # "" = off. Example: "E:/il2ks-backups" or "//nas/backups/il2ks".
 #copy_to = ""
-# true = also mirror the archived mission logs into <copy_to>/archive (only new or changed files are copied;
+# true = also mirror the archived mission logs into <copy_to>/<server ID>/archive (only new or changed files are copied;
 # nothing is ever deleted there). The archive is what the statistics are rebuilt from.
 #copy_archive = false
 

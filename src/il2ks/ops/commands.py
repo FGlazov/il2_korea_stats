@@ -201,6 +201,8 @@ def cmd_backup(ns: argparse.Namespace) -> int:
     print(f"included ({cfg.archive_dir}): copy that folder yourself if you want it elsewhere. Keep a copy of the")
     print("backup on another disk too.")
     if cfg.backup.copy_to is not None:
+        print(f"Copying to {cfg.backup.copy_to} (this can take a while on a network share) ...")
+        backup.wait_for_copy()
         for outcome in (backup.read_copy_status(cfg).get("backups"), backup.mirror_archive(cfg)):
             if outcome is not None:
                 print(("Copy: " if outcome.ok else "COPY FAILED (the backup itself is fine): ") + outcome.detail)

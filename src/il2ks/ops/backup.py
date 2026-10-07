@@ -20,6 +20,8 @@ import shutil
 import socket
 import sqlite3
 import tempfile
+import threading
+import time
 import tomllib
 import zipfile
 from collections.abc import Callable
@@ -137,11 +139,20 @@ def _tree_files(root: Path) -> list[Path]:
     return sorted(p for p in root.rglob("*") if p.is_file())
 
 
-def create_backup(cfg: Config, reason: BackupReason = "manual", *, now: Callable[[], datetime] = utcnow) -> Path:
+def create_backup(
+    cfg: Config,
+    reason: BackupReason = "manual",
+    *,
+    now: Callable[[], datetime] = utcnow,
+    with_archive: bool = False,
+) -> Path:
     """Write one backup zip and rotate. Raises `BackupError` if there is no database yet to protect.
 
     The database is copied with SQLite's online backup API into a temporary file first, so the zip holds a consistent
-    snapshot even while `watch` or the website write to the live file."""
+    snapshot even while `watch` or the website write to the live file.
+
+    The copy to `[backup] copy_to` (and, with `with_archive`, the archive mirror) is only requested here and done by a
+    background thread (`request_copy`): callers hold the writer lock, and a share can block for a minute per call."""
     migrations = applied_migrations(cfg.db_path)
     if migrations is None:
         raise BackupError(f"there is no database to back up yet ({cfg.db_path}); run il2ks setup first")
@@ -188,7 +199,7 @@ def create_backup(cfg: Config, reason: BackupReason = "manual", *, now: Callable
         raise
     deleted = rotate(backup_dir, cfg.backup.keep)
     log.info("backup written: %s (%s); %d old backup(s) removed", target, reason, len(deleted))
-    copy_to_second_folder(cfg)
+    request_copy(cfg, with_archive=with_archive)
     return target
 
 
@@ -213,11 +224,9 @@ def backup_if_due(cfg: Config, now: datetime) -> Path | None:
         return None
     try:
         with WriterLock(cfg.data_dir, "backup"):
-            made = create_backup(cfg, "daily", now=lambda: now)
+            return create_backup(cfg, "daily", now=lambda: now, with_archive=True)
     except LockBusyError:
         return None
-    mirror_archive(cfg)  # after the lock is released: the first mirror of a big archive takes a while
-    return made
 
 
 # --- the second copy (`[backup] copy_to`) --------------------------------------------------------------------------
@@ -225,6 +234,7 @@ def backup_if_due(cfg: Config, now: datetime) -> Path | None:
 COPY_STATUS_FILE = "backup_copy_status.json"
 ARCHIVE_COPY_NAME = "archive"
 _MAX_ARCHIVE_FAILURES = 3  # a share that went away fails every file: give up after a few, the next backup retries
+_status_lock = threading.Lock()
 _MTIME_SLACK_S = 2  # FAT and some shares store modification times with 2 s granularity
 
 
@@ -264,13 +274,14 @@ def read_copy_status(cfg: Config) -> dict[str, CopyOutcome]:
 
 
 def _record(cfg: Config, outcome: CopyOutcome) -> None:
-    status = read_copy_status(cfg)
-    status[outcome.kind] = outcome
-    payload = {k: {"ok": v.ok, "at": v.at, "detail": v.detail} for k, v in status.items()}
-    try:
-        _status_path(cfg).write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    except OSError as exc:
-        log.warning("could not write %s: %s", _status_path(cfg), exc)
+    with _status_lock:  # the copy thread and an `il2ks backup` mirror in the same process share the file
+        status = read_copy_status(cfg)
+        status[outcome.kind] = outcome
+        payload = {k: {"ok": v.ok, "at": v.at, "detail": v.detail} for k, v in status.items()}
+        try:
+            _status_path(cfg).write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except OSError as exc:
+            log.warning("could not write %s: %s", _status_path(cfg), exc)
 
 
 def _copy_file(source: Path, dest: Path) -> None:
@@ -279,11 +290,86 @@ def _copy_file(source: Path, dest: Path) -> None:
     partial = dest.with_name(dest.name + ".tmp")
     try:
         shutil.copyfile(source, partial)
-        shutil.copystat(source, partial)
+        try:
+            shutil.copystat(source, partial)
+        except OSError as exc:  # NAS shares refuse times and attributes on a file that was written fine
+            log.debug("backup copy: could not copy the file times to %s (%s); the data is complete", partial, exc)
         os.replace(partial, dest)
     except BaseException:
         partial.unlink(missing_ok=True)
         raise
+
+
+def second_dir(cfg: Config) -> Path | None:
+    """Where this install's copies go: `<copy_to>/<server uid>`. Two installs may share one `copy_to`; their backups
+    and archives differ, and rotating a shared folder would delete the other install's backups (review 0.2.0 M6)."""
+    base = cfg.backup.copy_to
+    return None if base is None else base / str(cfg.server_uid)
+
+
+def _clean_partials(folder: Path, *, recursive: bool) -> None:
+    """Delete `.tmp` files a crashed copy left behind (older than an hour: another process may be writing one now)."""
+    try:
+        for path in list(folder.rglob("*.tmp") if recursive else folder.glob("*.tmp")):
+            _remove_stale(path)
+    except OSError as exc:
+        log.debug("backup copy: could not look for stale .tmp files in %s (%s)", folder, exc)
+
+
+# --- the copy thread -----------------------------------------------------------------------------------------------
+#
+# One background thread, one copy at a time, for the whole process. Why a thread and not a time budget per watch tick:
+# a single call on an offline SMB share blocks 20-60 s on Windows, longer than any budget could cut, and a budget
+# would have to be checked between those calls. A thread costs the writer lock and the watch loop nothing, and a
+# request that arrives while it is busy is merged with the waiting one (the copy catches up on everything anyway).
+# The thread is not a daemon: `il2ks backup` and `il2ks migrate` end only after their copy is done.
+
+_copy_lock = threading.Lock()
+_copy_wanted: dict[Path, tuple[Config, bool]] = {}  # data dir -> (config, with the archive mirror)
+_copy_thread: threading.Thread | None = None
+
+
+def request_copy(cfg: Config, *, with_archive: bool = False) -> None:
+    """Ask for the copy to `[backup] copy_to` (and the archive mirror) and return at once (no-op without one)."""
+    global _copy_thread
+    if cfg.backup.copy_to is None:
+        return
+    with _copy_lock:
+        before = _copy_wanted.get(cfg.data_dir)
+        _copy_wanted[cfg.data_dir] = (cfg, with_archive or (before is not None and before[1]))
+        if _copy_thread is None:
+            _copy_thread = threading.Thread(target=_copy_worker, name="il2ks-backup-copy")
+            _copy_thread.start()
+
+
+def _copy_worker() -> None:
+    global _copy_thread
+    while True:
+        with _copy_lock:
+            if not _copy_wanted:
+                _copy_thread = None
+                return
+            cfg, with_archive = _copy_wanted.pop(next(iter(_copy_wanted)))
+        try:
+            copy_to_second_folder(cfg)
+            if with_archive:
+                mirror_archive(cfg)
+        except Exception:
+            log.exception("[backup] copy_to: the background copy failed")
+
+
+def wait_for_copy(timeout: float | None = None) -> bool:
+    """Wait until the background copy is idle (`il2ks backup` reports its result; tests); False if `timeout` ran out."""
+    deadline = None if timeout is None else time.monotonic() + timeout
+    while True:
+        with _copy_lock:
+            thread = _copy_thread
+        if thread is None:
+            return True
+        thread.join(None if deadline is None else max(0.0, deadline - time.monotonic()))
+        if deadline is not None and time.monotonic() >= deadline:
+            with _copy_lock:
+                return _copy_thread is None
 
 
 def _fail(cfg: Config, kind: Literal["backups", "archive"], message: str) -> CopyOutcome:
@@ -298,13 +384,14 @@ def copy_to_second_folder(cfg: Config) -> CopyOutcome | None:
 
     Never raises: a failure is logged and recorded for doctor. Every backup of the main folder the copy lacks is copied
     (newest `keep` only), so a share that was offline for a few days catches up with the next backup."""
-    second = cfg.backup.copy_to
-    if second is None:
+    base, second = cfg.backup.copy_to, second_dir(cfg)
+    if base is None or second is None:
         return None
     try:
-        if second.resolve() == cfg.backup_dir.resolve():
-            return _fail(cfg, "backups", f"copy_to ({second}) is the backup folder itself; choose another folder")
+        if base.resolve() == cfg.backup_dir.resolve():
+            return _fail(cfg, "backups", f"copy_to ({base}) is the backup folder itself; choose another folder")
         second.mkdir(parents=True, exist_ok=True)
+        _clean_partials(second, recursive=False)
         copied = 0
         for path in list_backups(cfg.backup_dir)[-cfg.backup.keep :]:
             dest = second / path.name
@@ -331,17 +418,18 @@ def _needs_copy(source: Path, dest: Path) -> bool:
 
 
 def mirror_archive(cfg: Config) -> CopyOutcome | None:
-    """Mirror the mission archive into `<copy_to>/archive`, copying only new or changed files; None if not switched on.
+    """Mirror the mission archive into `<copy_to>/<server uid>/archive`, copying only new or changed files; None if off.
 
     Nothing is ever deleted from the mirror (the archive is the source of truth and never loses files on its own, so a
     file missing in the main archive is a mistake the mirror should survive). Never raises, like the backup copy."""
-    second = cfg.backup.copy_to
+    second = second_dir(cfg)
     if second is None or not cfg.backup.copy_archive:
         return None
     source_root = cfg.archive_dir
     if not source_root.is_dir():
         return None
     mirror = second / ARCHIVE_COPY_NAME
+    _clean_partials(mirror, recursive=True)
     copied = failed = 0
     first_error = ""
     try:
