@@ -89,8 +89,8 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   missions ingested before 0.2.0); `components/side_share.html` shows one line "Sorties per side: x% y%" under the home page's last-mission block and above the
   table of **every leaderboard** (the Elo boards included), following the tour selector (a tour or all time); the profile's "Other totals" has "Sorties per
   side" and "Underdog sorties: N (x%)", the second with the stat mark `underdog_share` (a high share is rewarded; no quip). Query budgets: the home page
-  has one more read when there is a last mission, a leaderboard one more. A 0/0 split before the first reprocess shows as a line of zeros (being fixed, review
-  2026-10-07: it will be hidden). The wording and the mark direction are `[PROPOSED]`: OQ-138.
+  has one more read when there is a last mission, a leaderboard one more. Both profile lines are hidden while the pilot has no sortie counted for either side
+  (before the first reprocess, or only side-neutral sorties). The wording and the mark direction are `[PROPOSED]`: OQ-138.
 - **Navigation** (maintainer request 2026-10-05, `[DECIDED]` structure, label `[PROPOSED]`): the top level is **Players, Aircraft, Leaderboards** and a
   **"History"** dropdown holding **Missions** and **Sorties** (alternatives considered: "Other facts", the maintainer's first idea, which says little
   about what is inside; "Archive", which suggests the data is closed; "Records", which promises record lists; "More", which says nothing; "Browse" and
@@ -400,8 +400,12 @@ A navigation link can open an internal page the admin wrote in Markdown (server 
   uploaded or polled in 0.2.0.
 - **Languages**: the text in the viewer's language (a code such as `pt-br` as it is, otherwise the part before the dash), else the base text; the article carries a
   `lang` attribute. `base_language` (default English) says which language the base text is written in; it is the admin's choice.
-- **Content security policy on `/p/` only**: `img-src 'self' https: data:; object-src 'none'; base-uri 'self'; form-action 'self'`. Other pages have none.
-- **Being fixed** (review 2026-10-07): a renderer version with a re-render after upgrades, `script-src` in the policy, and a warning for `http` images.
+- **Content security policy on `/p/` only**: `script-src 'self'; img-src 'self' https: data:; object-src 'none'; base-uri 'self'; form-action 'self'`. No
+  `style-src`: the layout prints the theme and background as inline `<style>` blocks. An inline script in a `custom/` override of the layout would be blocked on
+  `/p/`. Other pages have no policy.
+- **Renderer version**: each rendered text stores `renderer_version`; `RENDERER_VERSION` in `web/pages.py` is raised whenever the rendered output changes
+  (allowlist, Markdown options), and pages with an older version are re-rendered once after `migrate` (or at the next writer start), bumping the data version.
+- **`http://` images** are kept as written but cannot load (the policy allows https only): the admin preview and the save show a warning (`[PROPOSED]`, OQ-139).
 - The wipe keeps `Page` and `PageTranslation` (doc 14).
 
 ## Notice banner and footer (0.2.0)
@@ -450,15 +454,18 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   aircraft (`AircraftStats`), the visible missions that have a sortie, and the visible players. A file holds 10,000 URLs; beyond that `sitemap.xml` is an
   index of `sitemap-site.xml`, `sitemap-missions-N.xml` and `sitemap-players-N.xml`. URLs are absolute, from `settings.IL2KS_PUBLIC_URL` (`https://domain[:port]`)
   or the request host. It has the data version as ETag and an in-memory cache. `robots.txt` disallows `/admin/`, `/setup/`, `/live/`, `/language/` and the
-  `?sort=`, `?cols=`, `?q=` and `?page` variants of the lists, and ends with a `Sitemap:` line. Being fixed (review 2026-10-07): a bound on the cache, and the
-  `/p/` pages in the sitemap.
+  `?sort=`, `?cols=`, `?q=` and `?page` variants of the lists, and ends with a `Sitemap:` line. The in-memory copy is kept only when the public address is configured
+  (`IL2KS_PUBLIC_URL`), so made-up `Host` headers cannot grow it; the Markdown pages (`/p/<slug>/`, `updated_at` as lastmod) are in the site part.
 - **Admin login lockout** (NFR-SEC-8, 0.2.0): `django-axes` with its database handler (no cache service). `[web] login_attempts` (5) and `login_lockout_minutes`
   (15). A locked login gets a plain page with status 429 and a `Retry-After` header ("Too many wrong passwords. Try again in N minute(s)."); failures during a lock
   do not extend it. The JSON log (TD-27) has `admin_login_failed` and `admin_login_locked` lines, and `il2ks doctor` lists active locks (check
   `login_lockout_check`, WARN). **Client address**: the last `X-Forwarded-For` entry, and only when it can be trusted (production and a loopback `REMOTE_ADDR`, the
   rule of `SECURE_PROXY_SSL_HEADER`; `djsettings.trust_forwarded_for`), so an attacker cannot choose it. The earlier cache-based throttle (`web/throttle.py`) is
-  gone. Being fixed (review 2026-10-07): the lock was "account **or** address", so a stranger could lock the admin out from everywhere; it becomes the pair
-  (account and address) plus a separate per-address lock, with a CLI unlock; the IIS sample adds a port to `X-Forwarded-For`, which the reader must strip.
+  gone. The lock is per **account and address pair** (`login_attempts`), plus a looser lock of one address at 3x that number
+  (`IL2KS_LOGIN_ADDRESS_FACTOR`, a custom axes handler in `web/login_protection.py`), so a stranger guessing passwords cannot lock the admin out from other
+  addresses; behind a proxy that sends no `X-Forwarded-For` everyone shares one address, which the docs warn about. `il2ks admin unlock [--all | --user NAME |
+  --ip ADDR]` lifts locks while the site runs; doctor shows "account X from IP" and "address IP". A port in an `X-Forwarded-For` entry (IIS ARR adds one) is
+  stripped before parsing.
 - **Outbound requests** (NFR-SEC-9, 0.2.0; `serving/outbound.py`, `fetch()`): the one helper for fetching an admin-supplied URL, described in doc 05 TD-13.
   **Nothing calls it yet.**
 
@@ -530,8 +537,10 @@ only two rules (scrollable-region-focusable on narrow tables, landmark-unique fo
   when it is missing or differs in size or modified time (2 s slack); the mirror is **never pruned** (the archive is the source of truth, a file missing from it is a
   mistake the mirror should survive). The archive mirror runs after the writer lock is released and gives up after 3 failed files. A failure never fails the
   backup: it is logged and written to `<data dir>/backup_copy_status.json`, which `backup_copy_check` reads; `il2ks backup` prints `Copy:` or `COPY FAILED (the
-  backup itself is fine)`. Being fixed (review 2026-10-07): the copy moves off the `watch` loop, and the files go to `copy_to/<server_uid>/` so two installs can share
-  one share.
+  backup itself is fine)`. Both copies run in one background thread per process (requests while it is busy are merged), never under the writer lock or in
+  the `watch` loop, because an offline SMB share can block a call for a minute; the thread is not a daemon, so `il2ks backup` and `migrate` finish their copy.
+  Files go to `copy_to/<server_uid>/` (archive mirror in `.../archive`), so two installs can share one folder; a failing `copystat` after the data is written is
+  ignored, and `.tmp` files older than an hour are cleaned up.
 - **Autostart for the manual path**: `il2ks service systemd` (Linux unit) and `il2ks service schtasks` (Windows task XML with restart on
   failure) print or write the definition; only `--install` changes the machine. A real Windows service is the installer's job.
 - **Exit codes** (all commands): 0 ok, 1 partial failure / warnings, 2 usage or config error, 3 lock held.

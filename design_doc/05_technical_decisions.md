@@ -145,7 +145,7 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
   of those are refused), connects to the checked address with the name only as SNI and `Host` (no second lookup, so DNS rebinding cannot swap the target), follows at
   most 3 redirects and checks each, and caps the size and the time. GET only, `User-Agent: il2ks`. `[outbound] allow_private = [...]` in `il2ks.toml` lets an
   admin allow a LAN source; it is empty by default. **Nothing calls it yet**; the doctor's compression check fetches the admin's own address and is the one
-  deliberate exception (doc 16). Being fixed (review 2026-10-07): one deadline for the whole call including the response headers, and `fec0::/10`.
+  deliberate exception (doc 16). The deadline covers the whole call (a watchdog timer closes the sockets; body reads use `read1` with the remaining time), connect, TLS, headers and body included; only the system resolver cannot be interrupted. `fec0::/10` is refused too.
   The general opt-in outbound policy (roadmap iteration 3) is still to be decided.
 
 ### TD-14 Packaging and distribution: Windows-native first — `[DECIDED]` (target), `[PROPOSED]` (mechanism)

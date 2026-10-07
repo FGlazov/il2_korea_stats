@@ -153,9 +153,16 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
   `PageTranslation`, `DataVersion`, `GameObject` (catalog and name overrides), `Country`, `IngestRun` (the history tells the reprocess which archive
   to use; its mission link is cleared and set again afterwards, by mission UID), `ReprocessRequest`, `LiveMission`, `LivePlayer`. **Every other
   `il2ks_db` model is wiped**; other apps (auth, axes) are untouched. A test fails when a model is in neither list, so whoever adds one has to decide.
-- **Settings on ingested rows**, captured before and applied after: hidden players (by account UUID), hidden missions (by server UID and mission UID),
-  tour renames (only when the new tour has the same start, mode and kind), and the manual tour boundaries, which are recreated before the reprocess when
-  the mode is still manual (the stored tours are the periods there). The admin's chosen rules, tour option, achievement and flight-time settings are
+- **Settings on ingested rows**, captured before the first row is deleted: hidden players (by account UUID), hidden missions (by server UID and mission
+  UID), tour renames (only when the new tour has the same start, mode and kind), and the manual tour boundaries, which are recreated before the reprocess when
+  the mode is still manual (the stored tours are the periods there).
+- **Saved wipe state** (`ingest/wipe_state.py`, review fix 2026-10-07): before deleting, the wipe writes `<data dir>/wipe-state.json` (fsync, atomic
+  rename) with those marks, the old primary keys and the old ingest-run links. While it exists, `pre_save` receivers hide a `Player` or `Mission` the moment
+  it is created and give `Player` (account UUID), `Mission` (server UID + mission UID) and `Tour` (start) their old keys; `persist` reuses the old
+  `PlayerSortie` keys (mission, account, spawn tick). So a hidden player or mission is never public during the run, and `/players/`, `/missions/`,
+  `/sorties/` and `?tour=` links survive (a tour that the current settings cut differently gets a new key). A wipe that never finished (crash, killed
+  service) is picked up by `watch` start, `reprocess` and `ingest`; the file is removed when the wipe completes, or after a resumed reprocess once every
+  deleted mission is back. A new wipe over an unfinished one merges the hidden sets. The admin's chosen rules, tour option, achievement and flight-time settings are
   adopted as applied before the wipe, since a full rebuild computes with them anyway. `[PROPOSED]` defaults: OQ-137.
 - `setup`, `web`, `run`, `doctor`, `createadmin`, `backup` and `restore` are built (doc 16). Tools under `il2ks dev` (`check`, `bench-ingest`, `dump-db`, `bump-templates`, `translations`, `assets`, ...) are for contributors (doc 08).
 

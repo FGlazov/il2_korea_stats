@@ -325,14 +325,14 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   `doctor` check fetches a page through the public address and warns when it comes back without `Content-Encoding`. (Not
   Django's GZipMiddleware: it would compress in the single Python process on every hit and replace Caddy's zstd.)
   - *As built*: the doctor check `pages_compressed`: doc 16 "Operations", doc 07.
-- ✅ **"Delete all data and reprocess" in the admin** (review fixes 2026-10-07 in progress) (maintainer, 2026-10-05): a second button next to *Reprocess all*
+- ✅ **"Delete all data and reprocess" in the admin** (maintainer, 2026-10-05): a second button next to *Reprocess all*
   that deletes every ingested row (missions, sorties, players, tours and everything derived from them) but keeps the admin
   settings, then reprocesses every archived mission, so the tours are cut again from the current tour settings. Open
   before building: which rows count as admin settings besides `SiteSettings` and the game rules (hidden players and
   missions, object name overrides, manual tour names / periods, achievement settings); a backup first; a typed
   confirmation like other destructive actions.
-  - *As built*: doc 14 "Delete all data and reprocess", doc 16 "Admin", FR-ADM-4. Pending fixes: the marks are persisted and the primary keys stay stable. Defaults: OQ-137.
-- ✅ **Markdown pages in the navigation** (review fixes 2026-10-07 in progress) (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
+  - *As built*: doc 14 "Delete all data and reprocess", doc 16 "Admin", FR-ADM-4. Review fixes (2026-10-07): the marks are saved before the wipe (`wipe-state.json`) and applied as rows come back, so hidden players and missions are never public, also after a crash; player, mission, sortie and tour keys are kept, so links survive. Defaults: OQ-137.
+- ✅ **Markdown pages in the navigation** (maintainer, 2026-10-06): besides an external URL, a navigation link can open an
   internal page rendered from Markdown (server intro, flavour text, rules), several pages each with its own link. Design
   `[PROPOSED]`: a `Page` model (slug, title, Markdown source, rendered HTML), served at `/p/<slug>/` in the site layout; `NavLink`
   points at either a URL or a page. Rendering with `markdown-it-py` (CommonMark, pure Python) and the HTML sanitized with `nh3`
@@ -343,35 +343,35 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   translations for the site's other languages; a viewer whose language has no translation gets the base text; no language is forced.
   Later, if asked: a source URL that `watch` polls (through the SSRF guard below; interval, timeout, size cap, last good copy kept, the
   error shown in the admin) and admin-uploaded pictures through the background-picture pipeline.
-  - *As built*: doc 16 "Markdown pages", doc 06 (`Page`, `PageTranslation`, `NavLink.page`), FR-ADM-2. Pending fixes: renderer version with a re-render after upgrades, CSP `script-src`, a warning for `http` images. Defaults: OQ-139.
+  - *As built*: doc 16 "Markdown pages", doc 06 (`Page`, `PageTranslation`, `NavLink.page`), FR-ADM-2. Review fixes (2026-10-07): a renderer version with a re-render after upgrades, `script-src 'self'` on `/p/`, a warning for `http` images. Defaults: OQ-139.
 - ✅ **"Powered by il2ks" links to GitHub** (maintainer, 2026-10-06, next version): the footer line (`base.html`) links "il2ks" to
   https://github.com/FGlazov/il2_korea_stats; the link text stays inside the translated string.
   - *As built*: doc 16 "Notice banner and footer".
-- ✅ **Small ops items** (review fixes 2026-10-07 in progress) (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
+- ✅ **Small ops items** (maintainer, 2026-10-06): a **health endpoint** (`/healthz`: 200 with a one-row database read, no auth, never
   cached, for uptime monitors), **sitemap and robots** (`sitemap.xml` of visible players, aircraft and missions, `robots.txt`; so pilots who
   search for their nickname find the server) and **`[backup] copy_to`**: a second folder (another drive or a share) that each backup is
   copied to, with an option to mirror the mission archive there too (the archive is the source of truth and the backups leave it out).
-  - *As built*: doc 16 "Serving" (`/healthz`, sitemap, robots) and "Operations" (`copy_to`), doc 07. The sitemap also lists the `/p/` pages once the fix lands. Pending fixes: the backup copy runs off the watch loop into `copy_to/<server_uid>/`, a bound on the sitemap cache.
-- ✅ **Admin login protection** (review fixes 2026-10-07 in progress) (maintainer, 2026-10-06; from the design review: the admin is a public HTTPS login with no lockout, and one
+  - *As built*: doc 16 "Serving" (`/healthz`, sitemap, robots) and "Operations" (`copy_to`), doc 07. Review fixes (2026-10-07): the sitemap lists the `/p/` pages and caches only with a public address; the backup copy runs in a background thread into `copy_to/<server_uid>/`.
+- ✅ **Admin login protection** (maintainer, 2026-10-06; from the design review: the admin is a public HTTPS login with no lockout, and one
   password gives uploads, custom quips and rule changes). `[PROPOSED]`: **django-axes** with its database handler (no cache service to run,
   NFR-INS): lock an account **and** a client address after 5 failed attempts for 15 minutes (`[web] login_attempts` / `login_lockout_minutes`),
   reset on success, a plain "try again in N minutes" page; the client address taken from the proxy header only in production behind
   Caddy or an own proxy (the same trust rule as `SECURE_PROXY_SSL_HEADER`, so an attacker cannot spoof it); failed attempts and lockouts in the
   structured log (TD-27); locked accounts listed in `il2ks doctor` and unlockable in the admin. Optional TOTP second factor later, if admins ask.
-  - *As built*: NFR-SEC-8, doc 16 "Serving". **Differs from the item**: locked accounts are listed in `il2ks doctor`, but there is no unlock in the admin (a CLI unlock is part of the fix); the lock was "account or address" and becomes the pair plus a per-address lock; the IIS sample sends a port in `X-Forwarded-For`.
+  - *As built*: NFR-SEC-8, doc 16 "Serving". **Differs from the item**: locked accounts are listed in `il2ks doctor`, unlocking is `il2ks admin unlock` on the command line (an admin page cannot help while the admin is locked out); the lock is per account and address pair plus a looser per-address lock (review fix 2026-10-07; the first build locked "account or address"); a port in `X-Forwarded-For` (IIS) is stripped.
 - ✅ **Dependency updates and audit** (maintainer, 2026-10-06; NFR-SEC-5 was still only proposed). `.github/dependabot.yml` for the **uv lock
   file** (`pip` ecosystem, weekly, minor and patch updates grouped into one PR, majors separate) and for **GitHub Actions**; a `pip-audit` step
   over `uv.lock` (`uv export` then `pip-audit -r`) in CI on every push and on a weekly schedule, **blocking** (a known vulnerability fails the
   job; a false positive gets an ignore with a dated reason in the workflow). The release checklist (`docs/releasing.md`) gets "audit clean".
   - *As built*: NFR-SEC-5. **Differs from the item**: the Dependabot ecosystem is `uv` (not `pip`); the audit is its own workflow, `.github/workflows/audit.yml`.
-- ✅ **SSRF guard for outbound fetches** (review fixes 2026-10-07 in progress) (maintainer, 2026-10-06; needed by a later polled Markdown source, and by any later webhook or
+- ✅ **SSRF guard for outbound fetches** (maintainer, 2026-10-06; needed by a later polled Markdown source, and by any later webhook or
   update check; built now so the first outbound fetch has it). One helper, `serving/outbound.py` `[PROPOSED]`, that every outbound request goes through: http and https only;
   the host is resolved first and every resolved address must be public (refuse loopback, private 10/8, 172.16/12, 192.168/16, link-local
   169.254/16 incl. cloud metadata, multicast, `::1`, `fc00::/7`, `fe80::/10`, and IPv4-mapped IPv6 forms of those); the connection is made to
   the checked address with the host name only in the TLS SNI and `Host` header (no second lookup, so DNS rebinding cannot swap the target);
   redirects are followed at most 3 times, each target re-checked; a response size cap and a timeout; an allow-list in `il2ks.toml`
   (`[outbound] allow_private = [...]`) for admins who really want a LAN source, off by default. Unit-tested with fake resolvers.
-  - *As built*: NFR-SEC-9, doc 05 TD-13, `serving/outbound.py`. Nothing calls it yet. Pending fixes: one deadline for the whole call including the response headers, and `fec0::/10`.
+  - *As built*: NFR-SEC-9, doc 05 TD-13, `serving/outbound.py`. Nothing calls it yet. Review fixes (2026-10-07): one deadline for the whole call including the headers, `fec0::/10` refused.
 - ✅ **Template versioning that tells breaking from cosmetic** (maintainer, 2026-10-06; since 0.1.0 every CSS or template edit raises a version
   and shows every customizing owner a red banner, so the warning will be ignored). `[PROPOSED]` (TD-25): a two-part version `vN.M` in the header
   line: **N** changes only when the override contract changes (a `{% block %}` added, removed or renamed; a context variable or an include that
@@ -382,7 +382,7 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   ids / classes referenced from `site.css` and the scripts, and bumps N when any of them changed, else M; `--major` forces N for a change the
   diff cannot see. The hash check stays as it is, so an edited file still needs a bump. Release notes list only the N bumps.
   - *As built*: doc 05 TD-25, doc 16 "Customization". **Differs from the item**: there is no admin page for custom overrides (the "behind" state is CLI-only); includes and variables count only when removed, and the contract also covers URL names and static paths. Whether added blocks and selectors should be M: OQ-141.
-- ✅ **Side balance** (review fixes 2026-10-07 in progress), per mission and per player (maintainer, 2026-10-06).
+- ✅ **Side balance**, per mission and per player (maintainer, 2026-10-06).
   - *Per mission*: the pilots per side (`Mission.redfor_players` / `blufor_players`, next to the sortie counts that exist) on the mission page
     and as optional columns of the mission list; per tour and all time, the share of sorties flown per side (from the aircraft tour rows'
     `sorties_redfor` / `sorties_blufor`, no new table) as one line on the home page's last-mission block and on the leaderboards.
@@ -396,7 +396,7 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
     `[PROPOSED]`: the pilot is the underdog when, averaged over **the pilot's own sortie time** (spawn to end), the pilot's side had strictly fewer
     pilots spawned in than the other side (equal = not underdog), so a pilot who joins the smaller side and stays while it fills up is
     weighted by how long it was actually smaller. Computed in the replay, stored on `PlayerSortie`; old sorties need `il2ks reprocess --all`.
-  - *As built*: doc 13 "Side balance", doc 14, doc 06, doc 16 "Pages". Pending fix: hide a 0/0 split before the first reprocess. Defaults: OQ-138.
+  - *As built*: doc 13 "Side balance", doc 14, doc 06, doc 16 "Pages". Review fix (2026-10-07): the profile hides an empty side split. Defaults: OQ-138.
 - ✅ **Notice banner** (maintainer, 2026-10-06): a site-wide one-line notice under the header on every public page (event tonight, maintenance,
   rules change). `SiteSettings`: text (plain, escaped, at most 300 characters), level (`info` / `warning`, the notice component's styles),
   optional expiry (hidden once past, like the next-tour line); a save bumps the data version (TD-28); empty = nothing shown. One text for every
