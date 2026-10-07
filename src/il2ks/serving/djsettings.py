@@ -37,10 +37,11 @@ must match `devtools.translations.TARGET_LANGUAGES` (a test checks). Language na
 LOCAL_HOSTS = ("localhost", "127.0.0.1", "[::1]")
 PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 """Django believes this header from the proxy (Caddy sets it itself; nginx and IIS must, see docs/reverse-proxy.md)."""
-SSL_REDIRECT_EXEMPT = (r"^setup/$", r"^static/")
+SSL_REDIRECT_EXEMPT = (r"^setup/$", r"^static/", r"^healthz/?$")
 """The first-run setup page is opened on `http://localhost:<port>/setup/` before HTTPS exists: not redirected,
 and neither are its styles and scripts (`static/`, public files anyway). It is safe: the view only answers local,
-token-carrying requests while setup is pending (`il2ks.web.views.setup`)."""
+token-carrying requests while setup is pending (`il2ks.web.views.setup`). `healthz` is the uptime monitor's
+URL: a monitor on the same machine asks the web server directly over plain http and must get its 200, not a redirect."""
 STATIC_BACKEND_DEV = "django.contrib.staticfiles.storage.StaticFilesStorage"
 STATIC_BACKEND_PROD = "il2ks.serving.storage.LenientManifestStorage"
 
@@ -128,3 +129,15 @@ def security_settings(cfg: Config) -> SecuritySettings:
 def staticfiles_backend(cfg: Config) -> str:
     """Hashed, compressed file names in production (TD-28); plain files in development (no `collectstatic` needed)."""
     return STATIC_BACKEND_DEV if cfg.debug else STATIC_BACKEND_PROD
+
+
+def public_base_url(cfg: Config) -> str:
+    """The site's public address as `https://host[:port]` without a trailing slash; "" when no `[https] domain` is set.
+
+    The port appears only for the bundled Caddy on a port other than 443 (with an own proxy the visitor's port is the
+    proxy's business, and il2ks cannot know it). Used for absolute URLs (the sitemap, robots.txt) and by doctor."""
+    if not cfg.https.domain:
+        return ""
+    host = host_for_url(cfg.https.domain)
+    port = cfg.https.https_port
+    return f"https://{host}" + (f":{port}" if cfg.https.mode == "caddy" and port != 443 else "")
