@@ -8,10 +8,15 @@ difference means N, none means M. Storing the fingerprint (instead of asking git
 clone, in a sdist, on a branch that is not committed yet, and after a merge.
 
 Fingerprint of a **template** (`.html`, `.txt`):
-- `extends`, `blocks`, `includes`: the `{% extends %}` / `{% block %}` / `{% include %}` names. Any change.
+- `extends`, `blocks`: the `{% extends %}` / `{% block %}` names. Any change.
+- `includes`: the `{% include %}` names. Removal only: an override still including a file that is gone breaks, an
+  override without a new include renders fine and only lacks its content.
 - `variables`: root names of the context variables the template reads (`player` of `{{ player.name }}`), without names
-  the template binds itself (`{% for x in ... %}`, `{% with y=... %}`, `as z`). Any change: an added variable is missing
-  in an override, a removed one may no longer be supplied by the view.
+  the template binds itself (`{% for x in ... %}`, `{% with y=... %}`, `as z`). Removal only: a removed one may no
+  longer be supplied by the view, an override that does not use a new one renders fine.
+- `urls`, `static`: the names of `{% url 'name' %}` and the paths of `{% static 'path' %}` (string literals only).
+  Removal only: an override that still reverses a removed or renamed URL name crashes (NoReverseMatch, a 500), one that
+  still points at a removed static file crashes with the manifest storage. A new one is simply missing in the override.
 - `tags`, `filters`: tags and filters that are not Django's own (il2ks's `{% tour_select %}`, `|object_name`). Removal
   only: an override that still uses a removed one breaks, an added one is simply missing in the override.
 - `markers`: every `#id`, `.class` and `[data-attribute]` the template writes. They count only when the built-in CSS or
@@ -23,7 +28,9 @@ Fingerprint of a **script**: `selectors` = the ids, classes and data attributes 
 the markup it works on is part of the contract.
 
 Honest limits: this is a lexical reading, not Django's parser. A variable the template builds through a custom tag's
-`as` is seen as local; a CSS class built by string concatenation in a script is not seen. `--major` is the escape hatch.
+`as` is seen as local; a CSS class built by string concatenation in a script is not seen; `{% url %}` with a variable
+instead of a literal name is not seen. Not covered at all: a changed signature of a custom tag or filter (arguments), an
+attribute renamed on a context object (`player.nick` -> `player.name`). `--major` is the escape hatch.
 """
 
 import functools
@@ -111,6 +118,8 @@ class _Reader:
     def __init__(self) -> None:
         self.blocks: set[str] = set()
         self.includes: set[str] = set()
+        self.urls: set[str] = set()
+        self.statics: set[str] = set()
         self.extends: set[str] = set()
         self.variables: set[str] = set()
         self.locals: set[str] = set()
@@ -170,6 +179,8 @@ class _Reader:
             return
         if name == "load":
             return
+        if name in {"url", "static"} and args and args[0][0] in "\"'":
+            (self.urls if name == "url" else self.statics).add(args[0].strip("\"'"))
         if name not in libraries[0]:
             self.tags.add(name)
         self._arguments(args, binds=name in {"with", "blocktranslate", "blocktrans"})
@@ -224,6 +235,8 @@ def _template_fingerprint(text: str) -> Contract:
             "extends": reader.extends,
             "blocks": reader.blocks,
             "includes": reader.includes,
+            "urls": reader.urls,
+            "static": reader.statics,
             "variables": variables,
             "tags": {t for t in reader.tags if t not in libraries[0]},
             "filters": {f for f in reader.filters if f not in libraries[1]},
@@ -322,11 +335,12 @@ def fingerprint(rel: str, text: str) -> Contract:
     return _template_fingerprint(text)
 
 
-def targeted_names(fingerprints: dict[str, Contract]) -> frozenset[str]:
+def targeted_names(*fingerprint_sets: dict[str, Contract]) -> frozenset[str]:
     """`#id` / `.class` / `[data-x]` names that the built-in stylesheets and scripts refer to (the markers of templates
-    that matter). `fingerprints` maps file keys (`static/il2ks/site.css`) to their fingerprints."""
+    that matter). Each argument maps file keys (`static/il2ks/site.css`) to fingerprints; pass the new ones and the
+    stored (old) ones: a name removed from the template *and* from the CSS/JS in one change is only in the old set."""
     names: set[str] = set()
-    for key, contract in fingerprints.items():
+    for key, contract in (item for fingerprints in fingerprint_sets for item in fingerprints.items()):
         suffix = PurePosixPath(key).suffix.lower()
         if suffix == ".css":
             names.update(n for n in contract.get("defines", ()) if not n.startswith("--"))
@@ -358,8 +372,10 @@ def breaking_changes(key: str, old: Contract, new: Contract, targeted: frozenset
     else:
         both("extends", "parent template")
         both("blocks", "block")
-        both("includes", "include")
-        both("variables", "variable")
+        removed("includes", "include")
+        removed("variables", "variable")
+        removed("urls", "url name")
+        removed("static", "static file")
         removed("tags", "tag")
         removed("filters", "filter")
         both("markers", "id/class used by CSS or script", only=targeted)

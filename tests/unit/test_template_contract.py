@@ -233,13 +233,13 @@ def test_major_without_names_forces_every_changed_file(web: Path) -> None:
 
 
 def test_a_dry_run_reports_the_part_and_writes_nothing(web: Path) -> None:
-    edit(web, BASE_FILE, "{{ title }}", "{{ title }}{{ more }}")
+    edit(web, BASE_FILE, "{{ title }}", "")
     before = (web / BASE_FILE).read_bytes()
     (action,) = tv.bump_templates(web, write=False)
     assert action.part == "major"
     assert (web / BASE_FILE).read_bytes() == before
     assert "BREAKING" in tv.describe(action)
-    assert "variable added: more" in tv.describe(action)
+    assert "variable removed: title" in tv.describe(action)
 
 
 # --- the 0.1.0 compatibility ------------------------------------------------------------------------------------------
@@ -330,8 +330,8 @@ def test_the_real_templates_have_fingerprints_and_a_stable_registry() -> None:
 
 def test_url_names_and_static_paths_are_in_the_fingerprint() -> None:
     found = contract(
-        "{% load static %}<a href=\"{% url 'web:player' player.pk %}\">{% url \"home\" as h %}{% url dyn %}</a>"
-        "<link href=\"{% static 'il2ks/site.css' %}\"><img src=\"{% static \"il2ks/a.svg\" %}\">"
+        '{% load static %}<a href="{% url \'web:player\' player.pk %}">{% url "home" as h %}{% url dyn %}</a>'
+        '<link href="{% static \'il2ks/site.css\' %}"><img src="{% static "il2ks/a.svg" %}">'
     )
     assert found["urls"] == ("home", "web:player")
     assert found["static"] == ("il2ks/a.svg", "il2ks/site.css")

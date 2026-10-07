@@ -348,7 +348,9 @@ def bump_templates(root: Path | None = None, *, write: bool = True, major: Itera
     actions: list[Action] = []
     files = versioned_files(root)
     reads = [_read(key, path) for key, path in files.items()]
-    targeted = contract_rules.targeted_names({r.key: r.contract for r in reads})
+    targeted = contract_rules.targeted_names(
+        {r.key: r.contract for r in reads}, {k: e.contract for k, e in registry.items() if e.contract is not None}
+    )
     for read in reads:
         plan = _plan_file(read, registry.get(read.key), targeted, forced=_forced(read.key, major))
         updated[read.key] = plan.entry
