@@ -2,9 +2,11 @@
 
 from collections import Counter
 from collections.abc import Mapping
+from dataclasses import replace
 
 from il2ks.core.replay.ammo import EMPTY_SORTIE_AMMO, AmmoAnalysis, analyse, merge_ammo_hits, rounds_fired
 from il2ks.core.replay.attack import GroundTargets, combat_role, is_interception_victim, time_on_target_s
+from il2ks.core.replay.balance import mission_balance, underdog_sorties
 from il2ks.core.replay.breakdown import Breakdown, FriendlyFire, breakdowns, friendly_fire, timeline
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.fate import ticks, was_resupplied
@@ -66,6 +68,7 @@ def _build_sortie(
     ammo: AmmoAnalysis,
     roles: Mapping[int, CombatRole | None],
     first_blood: int | None,
+    underdog: frozenset[int],
 ) -> SortieResult:
     role = combat_role(sortie)
     sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
@@ -170,6 +173,7 @@ def _build_sortie(
         store_releases=sortie_ammo.store_releases,
         rocket_salvos=sortie_ammo.rocket_salvos,
         ammo_unattributed=sortie_ammo.unattributed,
+        underdog=sortie.index in underdog,
         damage=breakdown[0],
         timeline=timeline(sortie, verdict, kills, hit_entries(sortie_ammo.damage_events, rules)),
         friendly_kills=friendly.kills,
@@ -196,6 +200,8 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
     ammo = analyse(facts, verdicts, kills, rules)
     roles: dict[int, CombatRole | None] = {sortie.index: combat_role(sortie) for sortie in facts.sorties}
     first_blood = first_blood_sortie(kills, frozenset(s.index for s in facts.sorties if s.role == "pilot"))
+    end_ticks = {v_sortie.index: verdict.end_tick for v_sortie, verdict in zip(facts.sorties, verdicts, strict=True)}
+    underdog = underdog_sorties(facts.sorties, end_ticks)
     sorties = tuple(
         _build_sortie(
             sortie,
@@ -208,16 +214,23 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
             ammo,
             roles,
             first_blood,
+            underdog,
         )
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )
     seen = frozenset(t for t in facts.types_seen if not is_bot_type(t))
     unknown = frozenset(t for t, known in facts.types_seen.items() if not known and not is_bot_type(t))
     return MissionResult(
-        mission=_mission_info(facts),
+        mission=_with_balance(_mission_info(facts), facts, end_ticks),
         sorties=sorties,
         kills=tuple(kills),
         object_types_seen=seen,
         unknown_object_types=unknown,
         single_attacker_kills=ammo.single_attacker_kills,
     )
+
+
+def _with_balance(info: MissionInfo, facts: MissionFacts, end_ticks: Mapping[int, int]) -> MissionInfo:
+    """`info` with the time-weighted pilots per side (OQ-134)."""
+    balance = mission_balance(facts.sorties, end_ticks, info.end_tick)
+    return replace(info, redfor_players=balance.redfor_players, blufor_players=balance.blufor_players)

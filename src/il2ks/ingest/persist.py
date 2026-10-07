@@ -321,6 +321,8 @@ def _mission_fields(result: MissionResult, meta: MissionMeta, clock: _Clock) -> 
         "completed_cleanly": info.completed_cleanly,
         "winning_coalition": info.winning_coalition,
         "result": info.result,
+        "redfor_players": info.redfor_players,
+        "blufor_players": info.blufor_players,
         "is_live": meta.live,
     }
 
@@ -475,6 +477,7 @@ _SORTIE_FIELDS = [
     "rams",
     "first_blood",
     "multi_kill",
+    "underdog",
     "air_points",
     "ground_points",
     "ammo",
@@ -609,6 +612,7 @@ def _fill_sortie(
     row.rams = s.rams
     row.first_blood = s.first_blood
     row.multi_kill = s.multi_kill
+    row.underdog = s.underdog
     apply_score(row, score)
     row.ammo = _ammo_json(s)
     row.pos_spawn_x, row.pos_spawn_y, row.pos_spawn_z = s.spawn_pos

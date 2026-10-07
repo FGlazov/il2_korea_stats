@@ -76,6 +76,10 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         ),
         "gun_hits_air": Sum("gun_hits_air"),
         "gun_hits_ground": Sum("gun_hits_ground"),
+        # Side balance (OQ-134): by the sortie's country (`side_of_country`: 5xx REDFOR, 6xx BLUFOR)
+        "sorties_redfor": Count("pk", filter=Q(country__gte=500, country__lt=600)),
+        "sorties_blufor": Count("pk", filter=Q(country__gte=600, country__lt=700)),
+        "sorties_underdog": Count("pk", filter=Q(underdog=True)),
     }
 )
 

@@ -252,6 +252,9 @@ class SortieResult:
     # Ordnance breakdown and unattributed damage (FR-WEB-18): pilot sorties; empty / zero otherwise.
     ordnance: tuple[OrdnanceUse, ...] = ()
     ammo_unattributed: UnattributedDamage = UnattributedDamage()
+    # Side balance (OQ-134, `core.replay.balance`): the pilot's side had strictly fewer pilots spawned in than
+    # the other, averaged over this sortie's own time; a gunner takes its pilot's verdict.
+    underdog: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -295,6 +298,9 @@ class MissionInfo:
     completed_cleanly: bool  # AType 7 seen
     winning_coalition: int | None
     result: MissionOutcome = "unknown"  # win (`winning_coalition` is set), draw (reported, no sole winner), unknown
+    # Pilots spawned in per side, averaged over the mission's time (`core.replay.balance`), one decimal
+    redfor_players: float = 0.0
+    blufor_players: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)

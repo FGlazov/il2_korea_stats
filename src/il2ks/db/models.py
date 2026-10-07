@@ -320,6 +320,11 @@ class Counters(models.Model):
     accuracy_ground_hits = models.PositiveIntegerField(default=0)
     gun_hits_air = models.PositiveIntegerField(default=0)
     gun_hits_ground = models.PositiveIntegerField(default=0)
+    # Side balance (OQ-134): counted sorties per side (by the sortie's country; a third country is in neither) and
+    # the sorties flown for the side that had fewer pilots spawned in (`PlayerSortie.underdog`)
+    sorties_redfor = models.PositiveIntegerField(default=0)
+    sorties_blufor = models.PositiveIntegerField(default=0)
+    sorties_underdog = models.PositiveIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -494,6 +499,10 @@ class Mission(models.Model):
     sorties_total = models.PositiveIntegerField(default=0)
     redfor_sorties = models.PositiveIntegerField(default=0)
     blufor_sorties = models.PositiveIntegerField(default=0)
+    # Pilots spawned in per side, averaged over the mission's time (OQ-134, `core.replay.balance`), one decimal; 0 until
+    # the mission is reprocessed
+    redfor_players = models.FloatField(default=0.0)
+    blufor_players = models.FloatField(default=0.0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
     friendly_kills = models.PositiveIntegerField(default=0)
@@ -614,6 +623,8 @@ class PlayerSortie(models.Model):
     rams = models.PositiveIntegerField(default=0)
     first_blood = models.BooleanField(default=False)
     multi_kill = models.PositiveIntegerField(default=0)
+    # The pilot's side had strictly fewer pilots spawned in than the other over this sortie's time (OQ-134)
+    underdog = models.BooleanField(default=False)
     elo_peak = models.FloatField(default=0.0)
     # Air and ground score of this sortie (pilots; gunners 0). Named `*_points` so the counters `score_*` can sum them.
     # Computed from the columns above and the `[score]` rules; a changed rule is applied by `il2ks rebuild-aggregates`.
@@ -1149,10 +1160,8 @@ class TourAircraftStats(AircraftCounters):
     tour = models.ForeignKey(Tour, null=True, on_delete=models.CASCADE, related_name="aircraft_stats")
     role = models.CharField(max_length=16, choices=AircraftRole.choices, default=AircraftRole.ALL)
     mod_pattern = models.CharField(max_length=16, blank=True, default="")
-    # the row's counted sorties per side (a country that is neither: in neither): `side` is the larger one (ties: the
+    # `sorties_redfor` / `sorties_blufor` (Counters) count the row's sorties per side: `side` is the larger (ties: the
     # name that sorts first), so an all-time row's side is the argmax of the summed tour rows (doc 14)
-    sorties_redfor = models.PositiveIntegerField(default=0)
-    sorties_blufor = models.PositiveIntegerField(default=0)
     # The type's Elo within the tour (replayed from the tour's air superiority duels between types, a clean slate each
     # tour), on the unfiltered `all` and `air_superiority` role rows only (the Elo is air superiority by definition);
     # the all-time role row holds the best qualifying tour's. 1500 / 0 = no game.
