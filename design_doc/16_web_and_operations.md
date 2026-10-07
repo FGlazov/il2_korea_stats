@@ -454,8 +454,9 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   aircraft (`AircraftStats`), the visible missions that have a sortie, and the visible players. A file holds 10,000 URLs; beyond that `sitemap.xml` is an
   index of `sitemap-site.xml`, `sitemap-missions-N.xml` and `sitemap-players-N.xml`. URLs are absolute, from `settings.IL2KS_PUBLIC_URL` (`https://domain[:port]`)
   or the request host. It has the data version as ETag and an in-memory cache. `robots.txt` disallows `/admin/`, `/setup/`, `/live/`, `/language/` and the
-  `?sort=`, `?cols=`, `?q=` and `?page` variants of the lists, and ends with a `Sitemap:` line. The in-memory copy is kept only when the public address is configured
-  (`IL2KS_PUBLIC_URL`), so made-up `Host` headers cannot grow it; the Markdown pages (`/p/<slug>/`, `updated_at` as lastmod) are in the site part.
+  `?sort=`, `?cols=`, `?q=` and `?page` variants of the lists, and ends with a `Sitemap:` line. The in-memory copy holds each file with relative paths, keyed by file (kind
+  and number) and cleared when the data version changes; the base URL is put in front per response, so the cache is bounded and made-up `Host` headers
+  cannot grow it; the Markdown pages (`/p/<slug>/`, `updated_at` as lastmod) are in the site part.
 - **Admin login lockout** (NFR-SEC-8, 0.2.0): `django-axes` with its database handler (no cache service). `[web] login_attempts` (5) and `login_lockout_minutes`
   (15). A locked login gets a plain page with status 429 and a `Retry-After` header ("Too many wrong passwords. Try again in N minute(s)."); failures during a lock
   do not extend it. The JSON log (TD-27) has `admin_login_failed` and `admin_login_locked` lines, and `il2ks doctor` lists active locks (check
@@ -465,7 +466,10 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   (`IL2KS_LOGIN_ADDRESS_FACTOR`, a custom axes handler in `web/login_protection.py`), so a stranger guessing passwords cannot lock the admin out from other
   addresses; behind a proxy that sends no `X-Forwarded-For` everyone shares one address, which the docs warn about. `il2ks admin unlock [--all | --user NAME |
   --ip ADDR]` lifts locks while the site runs; doctor shows "account X from IP" and "address IP". A port in an `X-Forwarded-For` entry (IIS ARR adds one) is
-  stripped before parsing.
+  stripped before parsing. **IPv6 clients are keyed by their /64** (one home or VPS connection owns a whole /64), IPv4-mapped IPv6 by the IPv4; `unlock
+  --ip` and doctor use the same normalisation (doctor shows `.../64`); the log keeps the full address next to the bucket. The minutes on the lockout page and
+  `Retry-After` come from the lock that actually applies. A failure count of one account across several addresses reaching the address limit logs
+  `admin_login_account_targeted` (a warning only, no lock).
 - **Outbound requests** (NFR-SEC-9, 0.2.0; `serving/outbound.py`, `fetch()`): the one helper for fetching an admin-supplied URL, described in doc 05 TD-13.
   **Nothing calls it yet.**
 
@@ -535,12 +539,14 @@ only two rules (scrollable-region-focusable on narrow tables, landmark-unique fo
   pre-migration and pre-restore backups are copied too. The copy goes through a `.tmp` name and a rename, the folder must not be the backup folder itself, and it
   keeps the newest `[backup] keep` backups like the main one. `copy_archive` mirrors the mission archive into `<copy_to>/archive`: only `*.zip`, a file is copied
   when it is missing or differs in size or modified time (2 s slack); the mirror is **never pruned** (the archive is the source of truth, a file missing from it is a
-  mistake the mirror should survive). The archive mirror runs after the writer lock is released and gives up after 3 failed files. A failure never fails the
-  backup: it is logged and written to `<data dir>/backup_copy_status.json`, which `backup_copy_check` reads; `il2ks backup` prints `Copy:` or `COPY FAILED (the
-  backup itself is fine)`. Both copies run in one background thread per process (requests while it is busy are merged), never under the writer lock or in
-  the `watch` loop, because an offline SMB share can block a call for a minute; the thread is not a daemon, so `il2ks backup` and `migrate` finish their copy.
-  Files go to `copy_to/<server_uid>/` (archive mirror in `.../archive`), so two installs can share one folder; a failing `copystat` after the data is written is
-  ignored, and `.tmp` files older than an hour are cleaned up.
+  mistake the mirror should survive). The mirror gives up after 3 failed files. Both copies run in one background thread per process (requests while it is
+  busy are merged), never under the writer lock or in the `watch` loop, because an offline SMB share can block a call for a minute. The thread is not a
+  daemon, so `il2ks backup` and `migrate` finish their copy, but `watch` cancels it when it stops (Ctrl+C, service stop): the copy stops between files and
+  1 MiB chunks and the next backup resumes, skipping finished files. Files go to `copy_to/<server_uid>/` (archive mirror in `.../archive`), so two installs
+  can share one folder. Each copy writes `<name>.<pid>-<thread>.tmp`, touched every minute, then replaces the target; `.tmp` files untouched for an hour are
+  cleaned up; a failing `copystat` after the data is written is ignored. A failure never fails the backup: it is logged and written atomically to
+  `<data dir>/backup_copy_status.<kind>.json` (one file per kind, so two processes don't overwrite each other), which `backup_copy_check` reads.
+  `il2ks backup` reports the copy thread's own result: `Copy:` or `COPY FAILED (the backup itself is fine): <error>`, also when the thread crashed.
 - **Autostart for the manual path**: `il2ks service systemd` (Linux unit) and `il2ks service schtasks` (Windows task XML with restart on
   failure) print or write the definition; only `--install` changes the machine. A real Windows service is the installer's job.
 - **Exit codes** (all commands): 0 ok, 1 partial failure / warnings, 2 usage or config error, 3 lock held.

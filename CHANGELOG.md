@@ -56,6 +56,8 @@
    - `static/il2ks/il2ks.js`
    - `static/il2ks/site.css`
    - `static/il2ks/sorties.css`
+   - `static/il2ks_admin/ingest_status.css`
+   - `static/il2ks_admin/theme_editor.css`
    - `templates/admin/il2ks_ingest_status.html`
    - `templates/il2ks/base.html`
    - `templates/il2ks/home.html`
