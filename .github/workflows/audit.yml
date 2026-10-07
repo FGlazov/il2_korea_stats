@@ -1,0 +1,22 @@
+name: Dependency audit
+
+# Known-vulnerability check of everything in uv.lock (NFR-SEC-5): blocking, on every push and pull request (Dependabot's
+# included) and once a week, because new advisories appear for versions that were clean when they were locked.
+# A false positive gets an `--ignore-vuln <id>` below with a dated reason; never ignore silently.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 5 * * 1"  # Mondays 05:17 UTC
+  workflow_dispatch:
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      # All groups (the dev tools run in CI too). The export is fully pinned with hashes, so pip-audit installs nothing.
+      - run: uv export --locked --no-emit-project --format requirements-txt -o audit-requirements.txt
+      - run: uvx pip-audit -r audit-requirements.txt --disable-pip

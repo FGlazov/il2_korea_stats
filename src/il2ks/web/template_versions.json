@@ -819,6 +819,28 @@
         ]
       }
     },
+    "templates/admin/il2ks_login_locked.html": {
+      "version": "1.0",
+      "sha256": "14ab53c01825c9656b86f65511d8cb54b2db5ad9b5f0d525ecb871f02ee2a016",
+      "contract": {
+        "blocks": [
+          "breadcrumbs",
+          "content"
+        ],
+        "extends": [
+          "admin/base_site.html"
+        ],
+        "markers": [
+          "#content-main"
+        ],
+        "tags": [
+          "plural"
+        ],
+        "variables": [
+          "minutes"
+        ]
+      }
+    },
     "templates/admin/il2ks_quips.html": {
       "version": "1.0",
       "sha256": "8a055997e4cfde74f984798a7dc2a16ebbe2c52ee41ca6a4f112a1d57f6fc244",

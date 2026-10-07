@@ -14,7 +14,7 @@ from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.tours import TourRules
 from il2ks.rule_settings import BY_KEY, FIELDS, base_value, effective_rules, fields_of, overlay, sanitize, validate
 
-MACHINE_SECTIONS = {"", "logs", "ingest", "live", "backup", "server", "web", "https"}  # il2ks.toml only
+MACHINE_SECTIONS = {"", "logs", "ingest", "live", "backup", "server", "web", "https", "outbound"}  # il2ks.toml only
 RULE_SECTIONS = {"replay", "rules", "ratings", "score", "marks", "killboard", "tours"}
 
 

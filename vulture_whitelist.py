@@ -10,7 +10,15 @@ WebConfig  # INSTALLED_APPS entry (il2ks.web.apps)
 _.default_auto_field  # Django AppConfig option
 _.verbose_name  # Django AppConfig option (db.apps)
 urlpatterns  # Django URLconf (il2ks.urls, il2ks.web.urls)
-LoginThrottleMiddleware  # MIDDLEWARE entry (il2ks.settings)
+AxesMiddleware  # MIDDLEWARE entry (il2ks.settings)
+_.ready  # AppConfig hook (il2ks.web.apps connects the login log receivers)
+lockout_response  # AXES_LOCKOUT_CALLABLE (il2ks.settings)
+log_failed_login  # signal receiver (web.login_protection, @receiver)
+log_lockout  # signal receiver (web.login_protection, @receiver)
+sender  # signal receiver signature (web.login_protection)
+trust_forwarded_for  # il2ks.settings (IL2KS_TRUST_FORWARDED_FOR; settings.py is not scanned)
+fetch  # serving.outbound: the SSRF-guarded fetch has no caller yet; the polled Markdown source and webhooks will use it
+parse_allow_list  # serving.outbound: turns `[outbound] allow_private` into networks for `fetch` (no caller yet)
 _.app_name  # Django URLconf namespace
 application  # WSGI entry point (il2ks.wsgi, used by granian/gunicorn)
 _.format  # logging.Formatter override (logsetup.JsonFormatter)

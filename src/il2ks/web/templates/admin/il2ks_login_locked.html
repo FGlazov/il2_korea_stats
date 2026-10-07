@@ -1,0 +1,12 @@
+{# il2ks-template: templates/admin/il2ks_login_locked.html v1.0 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>{% blocktranslate count n=minutes %}Too many wrong passwords. Try again in {{ n }} minute.{% plural %}Too many wrong passwords. Try again in {{ n }} minutes.{% endblocktranslate %}</p>
+  <p><a href="{% url 'admin:login' %}">{% translate "Back to the login page" %}</a></p>
+</div>
+{% endblock %}

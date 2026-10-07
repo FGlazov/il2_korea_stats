@@ -88,6 +88,9 @@ def test_the_secret_key_never_appears_in_the_repr(tmp_path: Path) -> None:
         ("[web]\nworkers = 0", "web.workers"),
         ('[web]\nhost = ""', "web.host"),
         ("[web]\nallowed_hosts = [1]", "web.allowed_hosts"),
+        ("[web]\nlogin_attempts = 0", "web.login_attempts"),
+        ("[web]\nlogin_lockout_minutes = 0", "web.login_lockout_minutes"),
+        ('[outbound]\nallow_private = ["not-a-network"]', "outbound.allow_private"),
         ('[https]\nmode = "nginx"', "https.mode"),
         ('[https]\ncert = "self"', "https.cert"),
         ("[https]\nhttps_port = 99999", "https.https_port"),
@@ -124,3 +127,18 @@ def test_invalid_values_name_the_setting(tmp_path: Path, toml: str, message: str
 )
 def test_normalize_domain(text: str, expected: str) -> None:
     assert normalize_domain(text) == expected
+
+
+def test_login_lockout_and_outbound_settings(tmp_path: Path) -> None:
+    """NFR-SEC-8 / NFR-SEC-9: the defaults, the file and the environment."""
+    defaults = cfg_from(tmp_path)
+    assert (defaults.web.login_attempts, defaults.web.login_lockout_minutes) == (5, 15)
+    assert defaults.outbound.allow_private == ()
+
+    cfg = cfg_from(
+        tmp_path,
+        '[web]\nlogin_attempts = 3\n[outbound]\nallow_private = ["192.168.1.0/24"]',
+        {"IL2KS_WEB_LOGIN_LOCKOUT_MINUTES": "30"},
+    )
+    assert (cfg.web.login_attempts, cfg.web.login_lockout_minutes) == (3, 30)
+    assert cfg.outbound.allow_private == ("192.168.1.0/24",)

@@ -90,8 +90,7 @@ def test_etag_varies_with_path_query_language_and_htmx() -> None:
 
 
 def test_admin_is_excluded(client: Client) -> None:
-    User.objects.create_superuser("boss", "boss@example.org", "x")
-    client.login(username="boss", password="x")
+    client.force_login(User.objects.create_superuser("boss", "boss@example.org", "x"))
 
     for url in ("/admin/login/", "/admin/", "/admin/il2ks_db/sitesettings/1/change/"):
         response = client.get(url, follow=True)

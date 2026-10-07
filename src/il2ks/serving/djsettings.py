@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "il2ks.db",
+    "axes",  # admin login lockout (NFR-SEC-8): its tables are created by `migrate`, like ours
 ]
 """Order matters twice: Django looks for templates and static files in this order, and `il2ks custom` follows it."""
 
@@ -123,6 +124,13 @@ def security_settings(cfg: Config) -> SecuritySettings:
         referrer_policy="same-origin",
         redirect_exempt=SSL_REDIRECT_EXEMPT if https else (),
     )
+
+
+def trust_forwarded_for(cfg: Config) -> bool:
+    """Whether the proxy's `X-Forwarded-For` may name the client: the same rule as `SECURE_PROXY_SSL_HEADER`
+    (production, where the web server sits behind Caddy or the admin's own proxy). `il2ks.web.login_protection` also
+    wants the connection itself to come from this machine: only then the header is the proxy's, not the visitor's."""
+    return security_settings(cfg).proxy_ssl_header is not None
 
 
 def staticfiles_backend(cfg: Config) -> str:

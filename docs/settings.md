@@ -35,7 +35,7 @@ Settings are of two kinds:
 | `data_dir`, `log_level`, `log_keep_days`, `debug` | file only | |
 | `[logs]`, `[ingest]` (folders, when a mission is finished, how often to look) | file only | |
 | `[live]` (timers of the "online now" box; its on/off for visitors' sorties is an admin switch in Site settings) | file only | |
-| `[backup]`, `[web]`, `[https]` | file only | |
+| `[backup]`, `[web]`, `[https]`, `[outbound]` | file only | |
 | `[server]` `timezone`, `uid` (the server's identity: it decides when a mission started) | file only | |
 
 **How an admin value relates to the file.** Every game-rule field in the admin starts empty and shows what the file says
@@ -193,6 +193,14 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
 - `[live]`: the "online now" box. `enabled = false` switches it off.
 - `[backup]`: how many backups to keep and whether to make one a day.
 - `[web]`, `[https]`: ports, domain, certificate. See the install guides.
+- `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords at the admin
+  login, the account **and** the visitor's address are locked for that long, and the visitor sees "try again in N minutes".
+  A correct login clears the count. `il2ks doctor` lists what is locked now; to unlock at once, sign in from another address
+  and delete the row under **Axes > Access attempts** in the admin (or, if you are locked out of everything, wait).
+  Behind your own proxy the lockout needs the proxy's `X-Forwarded-For` header, see [reverse-proxy.md](reverse-proxy.md).
+- `[outbound]` `allow_private`: when il2ks fetches a web address an admin typed (no feature does yet), it refuses addresses
+  that are not on the public internet: this machine, your LAN, cloud metadata addresses. List addresses or networks
+  (`["192.168.1.0/24"]`) here to allow a source on your own LAN. Leave it empty unless you need it.
 
 Every setting can also be an environment variable: `[web] threads` is `IL2KS_WEB_THREADS`. Variables win over the file.
 

@@ -315,9 +315,9 @@ def test_a_wipe_cannot_have_a_span() -> None:
 
 
 def _login(superuser: bool = True) -> Client:
-    User.objects.create_user("boss", "b@example.org", "pw", is_staff=True, is_superuser=superuser)
+    user = User.objects.create_user("boss", "b@example.org", "pw", is_staff=True, is_superuser=superuser)
     client = Client()
-    assert client.login(username="boss", password="pw")
+    client.force_login(user)
     return client
 
 

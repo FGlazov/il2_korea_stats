@@ -1,0 +1,289 @@
+"""The one door for requests the server makes on a URL somebody typed (NFR-SEC-9): an SSRF-guarded GET.
+
+Without a guard, "fetch this URL" lets an admin (or whoever steals the admin's password) point the server at its
+own loopback services, the LAN or a cloud metadata address (169.254.169.254) and read the answer back. Every
+outbound request therefore goes through `fetch`:
+
+- only `http` and `https`; no user name or password inside the URL;
+- the host name is resolved first, and **every** address it resolves to must be public (see `is_public`). Loopback,
+  private, link-local (cloud metadata), shared (100.64/10), multicast, reserved and unspecified addresses are refused,
+  and so are IPv4-mapped / NAT64 / 6to4 IPv6 forms of those;
+- the connection goes to the address that was checked. The host name only appears in the TLS SNI (and certificate check)
+  and the `Host` header, and nothing resolves a second time, so DNS rebinding cannot swap the target after the check;
+- at most `MAX_REDIRECTS` redirects, each target checked the same way (scheme, then resolve, then addresses);
+- a size cap on the body (`max_bytes`) and a timeout (`timeout_s`, for the whole call);
+- `[outbound] allow_private` (il2ks.toml): networks an admin explicitly allows (a source on the LAN). Off by default.
+
+Only the standard library is used. The resolver, the TCP connection and the TLS wrapping are parameters, so tests run
+without a network.
+"""
+
+import http.client
+import ipaddress
+import socket
+import ssl
+import time
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
+from urllib.parse import urljoin, urlsplit
+
+MAX_REDIRECTS = 3
+DEFAULT_MAX_BYTES = 1_048_576
+DEFAULT_TIMEOUT_S = 10.0
+USER_AGENT = "il2ks"
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+_CHUNK = 16_384
+
+type IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
+type IPNetwork = ipaddress.IPv4Network | ipaddress.IPv6Network
+type Resolver = Callable[[str, int], Sequence[str]]
+"""`(host, port) -> addresses` as text. Tests pass a fake."""
+type Connector = Callable[[str, int, float], socket.socket]
+"""`(address, port, timeout) -> connected socket`. Tests pass a fake."""
+type TlsWrapper = Callable[[socket.socket, str], socket.socket]
+"""`(connected socket, host name) -> TLS socket`: certificate checked against the name, name sent as SNI."""
+
+
+class OutboundError(Exception):
+    """The request was refused or failed. The message is in plain words and safe to show to the admin."""
+
+
+class BlockedAddressError(OutboundError):
+    """The URL resolves to an address that is not public (and not allowed by `[outbound] allow_private`)."""
+
+
+@dataclass(frozen=True, slots=True)
+class Fetched:
+    url: str  # the final URL, after redirects
+    status: int
+    headers: dict[str, str]  # names lower-cased
+    body: bytes
+
+
+# --- address rules -------------------------------------------------------------------------------
+
+_NAT64 = ipaddress.ip_network("64:ff9b::/96")
+_SIX_TO_FOUR = ipaddress.ip_network("2002::/16")
+
+
+def _embedded_v4(address: ipaddress.IPv6Address) -> ipaddress.IPv4Address | None:
+    """The IPv4 address hidden inside an IPv6 one (IPv4-mapped `::ffff:a.b.c.d`, NAT64, 6to4), else None."""
+    if address.ipv4_mapped is not None:
+        return address.ipv4_mapped
+    if address in _NAT64:
+        return ipaddress.IPv4Address(int(address) & 0xFFFFFFFF)
+    if address in _SIX_TO_FOUR:
+        return ipaddress.IPv4Address((int(address) >> 80) & 0xFFFFFFFF)
+    return None
+
+
+def is_public(address: IPAddress) -> bool:
+    """Whether a server may connect to `address` without special permission."""
+    if isinstance(address, ipaddress.IPv6Address):
+        inner = _embedded_v4(address)
+        if inner is not None:
+            return is_public(inner)
+    return not (
+        address.is_loopback
+        or address.is_private
+        or address.is_link_local
+        or address.is_multicast
+        or address.is_reserved
+        or address.is_unspecified
+        or not address.is_global
+    )
+
+
+def parse_allow_list(entries: Iterable[str]) -> tuple[IPNetwork, ...]:
+    """`[outbound] allow_private` entries (address or network, `192.168.1.0/24`) as networks; ValueError on junk."""
+    return tuple(ipaddress.ip_network(entry.strip(), strict=False) for entry in entries)
+
+
+def _allowed(address: IPAddress, allow: Sequence[IPNetwork]) -> bool:
+    candidates: list[IPAddress] = [address]
+    if isinstance(address, ipaddress.IPv6Address) and (inner := _embedded_v4(address)) is not None:
+        candidates.append(inner)  # `::ffff:192.168.1.5` is allowed by an entry for 192.168.1.0/24
+    return any(c.version == net.version and c in net for c in candidates for net in allow)
+
+
+# --- default plumbing ----------------------------------------------------------------------------
+
+
+def system_resolver(host: str, port: int) -> list[str]:
+    try:
+        infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise OutboundError(f"the host name {host!r} could not be resolved") from exc
+    return list(dict.fromkeys(str(info[4][0]) for info in infos))
+
+
+def system_connector(address: str, port: int, timeout: float) -> socket.socket:
+    return socket.create_connection((address, port), timeout)
+
+
+def system_tls(sock: socket.socket, host: str) -> socket.socket:
+    return ssl.create_default_context().wrap_socket(sock, server_hostname=host)
+
+
+# --- the guarded request -------------------------------------------------------------------------
+
+
+def checked_addresses(host: str, port: int, *, resolver: Resolver, allow: Sequence[IPNetwork] = ()) -> list[str]:
+    """Resolve `host` once; its addresses, or `BlockedAddressError` unless every one is public or allowed."""
+    try:
+        literal = ipaddress.ip_address(host)
+    except ValueError:
+        names = list(resolver(host, port))
+    else:
+        names = [str(literal)]
+    if not names:
+        raise OutboundError(f"the host name {host!r} has no address")
+    addresses: list[str] = []
+    for name in names:
+        try:
+            address = ipaddress.ip_address(name.split("%", 1)[0])  # drop an IPv6 zone id
+        except ValueError as exc:
+            raise OutboundError(f"the resolver gave {name!r} for {host!r}, which is not an address") from exc
+        if not is_public(address) and not _allowed(address, allow):
+            raise BlockedAddressError(f"{host!r} points to {address}, which is not a public address")
+        addresses.append(str(address))
+    return addresses
+
+
+def _split(url: str) -> tuple[str, str, int, str]:
+    """`(scheme, host, port, request target)` of an http(s) URL without credentials."""
+    parts = urlsplit(url)
+    if parts.scheme not in {"http", "https"}:
+        raise OutboundError(f"only http and https addresses are allowed, not {parts.scheme or 'none'!r}")
+    if parts.username is not None or parts.password is not None:
+        raise OutboundError("the address must not contain a user name or password")
+    host = parts.hostname
+    if not host:
+        raise OutboundError("the address has no host name")
+    try:
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+    except ValueError as exc:
+        raise OutboundError("the address has an invalid port") from exc
+    target = parts.path or "/"
+    if parts.query:
+        target += "?" + parts.query
+    return parts.scheme, host, port, target
+
+
+class _PinnedConnection(http.client.HTTPConnection):
+    """An `HTTPConnection` that connects to an address we checked and sends the host name in `Host` (and in the TLS
+    handshake when `tls` is given). `http.client` never resolves anything itself here."""
+
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        *,
+        addresses: Sequence[str],
+        timeout: float,
+        connector: Connector,
+        tls: TlsWrapper | None,
+    ) -> None:
+        super().__init__(host, port, timeout=timeout)
+        self._addresses = addresses
+        self._connector = connector
+        self._tls = tls
+
+    def connect(self) -> None:
+        last: OSError | None = None
+        for address in self._addresses:
+            try:
+                sock = self._connector(address, self.port or 0, self.timeout or 0.0)
+            except OSError as exc:
+                last = exc
+                continue
+            self.sock = self._tls(sock, self.host) if self._tls is not None else sock
+            return
+        raise OutboundError(f"could not connect to {self.host!r}") from last
+
+
+def fetch(
+    url: str,
+    *,
+    allow_private: Sequence[IPNetwork] = (),
+    max_bytes: int = DEFAULT_MAX_BYTES,
+    timeout_s: float = DEFAULT_TIMEOUT_S,
+    max_redirects: int = MAX_REDIRECTS,
+    resolver: Resolver = system_resolver,
+    connector: Connector = system_connector,
+    tls: TlsWrapper = system_tls,
+    clock: Callable[[], float] = time.monotonic,
+) -> Fetched:
+    """GET `url` through the guard. Raises `OutboundError` (a `BlockedAddressError` for a non-public target) when the
+    request is refused, fails, takes longer than `timeout_s` in total, redirects more than `max_redirects` times, or the
+    body is larger than `max_bytes`. A status like 404 is returned, not raised: the caller decides."""
+    deadline = clock() + timeout_s
+    current = url
+    for _hop in range(max_redirects + 1):
+        scheme, host, port, target = _split(current)
+        addresses = checked_addresses(host, port, resolver=resolver, allow=allow_private)
+        remaining = deadline - clock()
+        if remaining <= 0:
+            raise OutboundError("the request took too long")
+        response, connection = _request(
+            scheme, host, port, target, addresses, remaining, connector, tls if scheme == "https" else None
+        )
+        try:
+            status = response.status
+            headers = {name.lower(): value for name, value in response.getheaders()}
+            if status in _REDIRECT_STATUSES and "location" in headers:
+                current = urljoin(current, headers["location"])
+                continue
+            return Fetched(current, status, headers, _read_capped(response, max_bytes, deadline, clock))
+        finally:
+            connection.close()
+    raise OutboundError(f"more than {max_redirects} redirects")
+
+
+def _request(
+    scheme: str,
+    host: str,
+    port: int,
+    target: str,
+    addresses: Sequence[str],
+    timeout: float,
+    connector: Connector,
+    tls: TlsWrapper | None,
+) -> tuple[http.client.HTTPResponse, http.client.HTTPConnection]:
+    default_port = 443 if scheme == "https" else 80
+    host_header = host if port == default_port else f"{host}:{port}"
+    if ":" in host:  # an IPv6 literal
+        host_header = f"[{host}]" + ("" if port == default_port else f":{port}")
+    connection = _PinnedConnection(host, port, addresses=addresses, timeout=timeout, connector=connector, tls=tls)
+    try:
+        connection.putrequest("GET", target, skip_host=True, skip_accept_encoding=True)
+        connection.putheader("Host", host_header)
+        connection.putheader("User-Agent", USER_AGENT)
+        connection.putheader("Accept-Encoding", "identity")
+        connection.putheader("Connection", "close")
+        connection.endheaders()
+        return connection.getresponse(), connection
+    except (OSError, http.client.HTTPException, ssl.SSLError) as exc:
+        connection.close()
+        if isinstance(exc, OutboundError):
+            raise
+        raise OutboundError(f"the request to {host!r} failed: {exc}") from exc
+
+
+def _read_capped(
+    response: http.client.HTTPResponse, max_bytes: int, deadline: float, clock: Callable[[], float]
+) -> bytes:
+    declared = response.getheader("Content-Length")
+    if declared is not None and declared.isdigit() and int(declared) > max_bytes:
+        raise OutboundError(f"the response is larger than {max_bytes} bytes")
+    body = bytearray()
+    try:
+        while chunk := response.read(min(_CHUNK, max_bytes + 1 - len(body))):
+            body += chunk
+            if len(body) > max_bytes:
+                raise OutboundError(f"the response is larger than {max_bytes} bytes")
+            if clock() > deadline:
+                raise OutboundError("the request took too long")
+    except (OSError, http.client.HTTPException) as exc:
+        raise OutboundError(f"reading the response failed: {exc}") from exc
+    return bytes(body)
