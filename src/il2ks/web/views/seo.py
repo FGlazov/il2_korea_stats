@@ -2,7 +2,8 @@
 
 The sitemap lists the pages worth finding: the main lists, every aircraft type, every visible mission that has sorties
 (the mission list's own rule) and every visible player. Hidden players and hidden missions never appear (FR-ADM-3), and
-neither do sortie pages, filtered or paginated variants, or `/p/<slug>/` pages (not built yet). URLs are absolute, from
+neither do sortie pages or filtered or paginated variants. The admin's Markdown pages (`/p/<slug>/`) are listed
+with the main pages (`/sitemap-site.xml`). URLs are absolute, from
 the configured public address (`[https] domain`, `settings.IL2KS_PUBLIC_URL`); with no domain set they take the host the
 request came in on.
 
@@ -13,7 +14,9 @@ its own slice of rows (ordered by primary key, two columns each); the index cost
 
 Cached by the data version like every other page: `web.caching` answers a matching `If-None-Match` before the view runs,
 and a rendered file is kept in memory until the data version changes (a crawler asking for 100 files after one import
-builds each once).
+builds each once). Only when `IL2KS_PUBLIC_URL` is set: without it the addresses come from the Host header, which
+any client chooses, so a cache keyed by it would grow with every made-up Host (review 0.2.0 M8); those requests
+render every time (ETag revalidation still answers a repeat visitor with a 304).
 """
 
 import math
@@ -29,7 +32,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.urls import reverse
 from django.views.decorators.http import require_safe
 
-from il2ks.db.models import AircraftStats, Mission, Player
+from il2ks.db.models import AircraftStats, Mission, Page, Player
 from il2ks.db.site import current_data_version
 
 PAGE_SIZE = 10_000
@@ -55,8 +58,11 @@ _cache_version: int | None = None
 
 
 def _remembered(version: int, key: tuple[str, str], build: Callable[[], str]) -> str:
-    """The rendered file for this data version; a new version forgets everything older."""
+    """The rendered file for this data version; a new version forgets everything older. Not kept (just built) while no
+    public address is configured: the key would hold a client-chosen Host."""
     global _cache_version
+    if not settings.IL2KS_PUBLIC_URL:
+        return build()
     with _cache_lock:
         if _cache_version != version:
             _cache.clear()
@@ -113,7 +119,9 @@ def _files(count: int) -> int:
 def _site_entries() -> list[Entry]:
     pages: list[Entry] = [(reverse(name), None) for name in STATIC_PAGES]
     aircraft = AircraftStats.objects.order_by("aircraft_id").values_list("aircraft_id", flat=True)
-    return pages + [(reverse("web:aircraft-detail", args=[pk]), None) for pk in aircraft]
+    aircraft_pages: list[Entry] = [(reverse("web:aircraft-detail", args=[pk]), None) for pk in aircraft]
+    written = Page.objects.order_by("slug").values_list("slug", "updated_at")
+    return pages + aircraft_pages + [(reverse("web:page", args=[slug]), changed) for slug, changed in written]
 
 
 def _entries(kind: Kind, number: int) -> list[Entry]:
@@ -131,10 +139,6 @@ def _entries(kind: Kind, number: int) -> list[Entry]:
     return [(reverse("web:player-detail", args=[pk]), changed) for pk, changed in player_rows]
 
 
-def _everything() -> list[Entry]:
-    return _site_entries() + _entries("missions", 1) + _entries("players", 1)
-
-
 # --- views ---------------------------------------------------------------------------------------------------------
 
 
@@ -149,8 +153,9 @@ def sitemap_index(request: HttpRequest) -> HttpResponse:
 
     def build() -> str:
         missions, players = _count("missions"), _count("players")
-        if len(STATIC_PAGES) + AircraftStats.objects.count() + missions + players <= PAGE_SIZE:
-            return _urlset(base, _everything())
+        site = _site_entries()
+        if len(site) + missions + players <= PAGE_SIZE:
+            return _urlset(base, site + _entries("missions", 1) + _entries("players", 1))
         names = ["/sitemap-site.xml"]
         names += [f"/sitemap-missions-{n}.xml" for n in range(1, _files(missions) + 1)]
         names += [f"/sitemap-players-{n}.xml" for n in range(1, _files(players) + 1)]
