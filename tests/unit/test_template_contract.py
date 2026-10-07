@@ -347,6 +347,21 @@ def test_a_removed_or_renamed_url_name_is_major_an_added_one_is_minor(web: Path)
     assert (action.part, action.reasons) == ("major", ("url name removed: web:home",))
 
 
+def test_url_calls_are_recorded_with_their_argument_count() -> None:
+    found = contract(
+        "{% url 'home' %}{% url 'web:player' player.pk %}{% url 'web:x' a b as link %}{% url 'web:k' pk=3 %}{% url dyn 1 %}"
+    )
+    assert found["url_args"] == ("home/0", "web:k/1", "web:player/1", "web:x/2")
+
+
+def test_a_changed_argument_count_of_a_url_is_major(web: Path) -> None:
+    edit(web, BASE_FILE, "<p", "<a href=\"{% url 'web:player' player.pk %}\"></a><p")
+    assert bumped(web).part == "minor"
+    edit(web, BASE_FILE, "'web:player' player.pk", "'web:player' player.slug extra")
+    action = bumped(web)
+    assert (action.part, action.reasons) == ("major", ("url arguments removed: web:player/1",))
+
+
 def test_a_removed_or_renamed_static_path_is_major_an_added_one_is_minor(web: Path) -> None:
     edit(web, BASE_FILE, "<p", "<img src=\"{% static 'il2ks/a.svg' %}\"><p")
     assert bumped(web).part == "minor"
