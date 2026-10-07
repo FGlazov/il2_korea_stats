@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v2 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -53,7 +53,7 @@
                 <li><a href="{% url 'web:sortie-list' %}"{% if route == 'sortie-list' %} aria-current="page"{% endif %}>{% translate "Sorties" %}</a></li>
               </ul>
             </details></li>
-            {% for link in nav_links %}<li><a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a></li>{% endfor %}
+            {% for link in nav_links %}<li>{% if link.internal %}<a href="{{ link.url }}"{% if request.path == link.url %} aria-current="page"{% endif %}>{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}</a>{% else %}<a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a>{% endif %}</li>{% endfor %}
           </ul>
           {% endwith %}
         {% endblock %}

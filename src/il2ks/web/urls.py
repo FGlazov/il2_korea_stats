@@ -12,6 +12,7 @@ from il2ks.web.views import (
     leaderboards,
     live,
     missions,
+    pages,
     players,
     setup,
     sorties,
@@ -40,6 +41,7 @@ urlpatterns: list[URLPattern] = [
     path("sorties/<int:pk>/", sorties.sortie_detail, name="sortie-detail"),
     path("aircraft/", aircraft.aircraft_list, name="aircraft-list"),  # ?sort=: per-type stats (FR-WEB-8)
     path("aircraft/<int:pk>/", aircraft.aircraft_detail, name="aircraft-detail"),  # pk = GameObject pk
+    path("p/<slug:slug>/", pages.page, name="page"),  # a Markdown page of the navigation (`web.pages`, OQ-133)
     path("sprite.svg", sprite.icon_sprite, name="sprite"),  # all icons as <symbol>s, long-cached by ?v=<hash>
     path("language/", language.set_language, name="set-language"),  # ?language=<code>&next=<local url> (TD-24)
     path("live/", live.live_fragment, name="live"),  # HTMX fragment: online now, its own max-age (FR-ING-12)

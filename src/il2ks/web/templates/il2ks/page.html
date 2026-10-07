@@ -1,0 +1,12 @@
+{# il2ks-template: templates/il2ks/page.html v1 - copy this line along when you override #}
+{% extends "il2ks/base.html" %}{% load i18n static %}{% comment %}
+  A Markdown page of the navigation (/p/<slug>/). Context: page_title and title (in the viewer's language when the page has that translation, else the base text), body (the stored, already sanitized HTML: printed as is), text_language (the language the shown text is written in; the lang attribute).
+  Blocks: head (page stylesheet), content.
+{% endcomment %}
+{% block head %}<link rel="stylesheet" href="{% static 'il2ks/pages.css' %}">{% endblock %}
+{% block content %}
+  <article class="md-page" lang="{{ text_language }}">
+    <div class="page-head"><h1>{{ title }}</h1></div>
+    {{ body }}
+  </article>
+{% endblock %}

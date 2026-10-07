@@ -32,11 +32,13 @@ class NavItem:
     label: str
     url: str
     icon: str
+    internal: bool = False  # a Markdown page of this site: opens in the same tab
 
 
 def nav_items(raw: object) -> list[NavItem]:
     """The custom links from `SiteSettings.links`, in stored order. Malformed rows and any URL that is not a full
-    http(s) address are dropped (the stored data was validated on save; this guards against a hand-edited row)."""
+    http(s) address (or, for a page link, an address under /p/) are dropped (the stored data was validated on save;
+    this guards against a hand-edited row)."""
     if not isinstance(raw, list):
         return []
     items: list[NavItem] = []
@@ -47,12 +49,17 @@ def nav_items(raw: object) -> list[NavItem]:
         label, url, icon = fields.get("label"), fields.get("url"), fields.get("icon", "")
         if not isinstance(label, str) or not isinstance(url, str) or not isinstance(icon, str):
             continue
-        try:
-            validate_http_url(url.strip())
-        except ValidationError:
-            continue
+        internal = bool(fields.get("page"))
+        if internal:
+            if not url.startswith("/p/") or "//" in url or any(c.isspace() or ord(c) < 32 for c in url):
+                continue
+        else:
+            try:
+                validate_http_url(url.strip())
+            except ValidationError:
+                continue
         known = icon in NavIcon.values and icon != ""
-        items.append(NavItem(label.strip() or url.strip(), url.strip(), f"nav/{icon}" if known else ""))
+        items.append(NavItem(label.strip() or url.strip(), url.strip(), f"nav/{icon}" if known else "", internal))
     return items
 
 

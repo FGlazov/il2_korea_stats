@@ -688,6 +688,10 @@ msgid "Add a line"
 msgstr "Adicionar uma linha"
 
 # llm-draft
+msgid "Address"
+msgstr "Endereço"
+
+# llm-draft
 msgid "Admin account"
 msgstr "Conta de administrador"
 
@@ -1302,6 +1306,10 @@ msgstr[1] "Gráfico de barras de %(n)d temporadas. Os números estão na tabela 
 # llm-draft
 msgid "Barely off the runway and already on the scoreboard. That is a fast start."
 msgstr "Mal saiu da pista e já está no placar. Largada de foguete."
+
+# llm-draft
+msgid "Base text (Markdown)"
+msgstr "Texto base (Markdown)"
 
 # llm-draft
 msgid "Before the Yalu, before the enemy, there was the apron. It won this round."
@@ -2414,6 +2422,10 @@ msgid "General"
 msgstr "Geral"
 
 # llm-draft
+msgid "Give either a web address or a page, not both and not neither."
+msgstr "Informe um endereço web ou uma página, não os dois e não nenhum."
+
+# llm-draft
 msgid "Given up"
 msgstr "Desistidas"
 
@@ -3051,6 +3063,10 @@ msgid "Language"
 msgstr "Idioma"
 
 # llm-draft
+msgid "Language of the base text"
+msgstr "Idioma do texto base"
+
+# llm-draft
 msgid "Large image on the front page"
 msgstr "Imagem grande na página inicial"
 
@@ -3248,8 +3264,12 @@ msgstr ""
 "%(minimum)s:1 para manter a leitura confortável."
 
 # llm-draft
-msgid "Lower numbers come first. Links open in a new tab; only http:// and https:// addresses are accepted."
-msgstr "Números menores aparecem primeiro. Os links abrem em uma nova aba; só são aceitos endereços http:// e https://."
+msgid ""
+"Lower numbers come first. A web address (only http:// and https:// are accepted) opens in a new tab; or choose one of"
+" your pages (under Pages) instead of an address: it opens on this site."
+msgstr ""
+"Números menores vêm primeiro. Um endereço web (só http:// e https:// são aceitos) abre em uma nova aba; ou escolha "
+"uma das suas páginas (em “Pages”) no lugar do endereço: ela abre neste site."
 
 # llm-draft
 msgid "Machine-gun rounds"
@@ -4246,6 +4266,10 @@ msgid "Powered by il2ks %(version)s"
 msgstr "Desenvolvido com il2ks %(version)s"
 
 # llm-draft
+msgid "Preview"
+msgstr "Pré-visualização"
+
+# llm-draft
 msgid "Previous"
 msgstr "Anterior"
 
@@ -5235,6 +5259,10 @@ msgid "Text"
 msgstr "Texto"
 
 # llm-draft
+msgid "Text (Markdown)"
+msgstr "Texto (Markdown)"
+
+# llm-draft
 msgid "Text on the accent"
 msgstr "Texto sobre o destaque"
 
@@ -5253,6 +5281,10 @@ msgstr "Essa página não existe, ou o link está desatualizado."
 # llm-draft
 msgid "That token is not right"
 msgstr "Esse token não está certo"
+
+# llm-draft
+msgid "The address is /p/ and the short name, once saved. Link to it from the navigation links."
+msgstr "O endereço é /p/ mais o nome curto, depois de salvar a página. Coloque o link dela na navegação."
 
 # llm-draft
 msgid "The admin account opens the admin pages (site name and look, hiding players, ingestion history)."
@@ -5299,6 +5331,14 @@ msgstr "O avião apanhou e devolveu na mesma moeda."
 # llm-draft
 msgid "The armorer is already counting the missing rounds, and smiling while he does it."
 msgstr "O armeiro já está contando a munição que sumiu. E sorrindo."
+
+# llm-draft
+msgid ""
+"The base text is shown to every visitor whose language has no translation below. English unless you write it in "
+"another language."
+msgstr ""
+"O texto base aparece para todo visitante cujo idioma não tenha tradução abaixo. É inglês, a menos que você o escreva "
+"em outro idioma."
 
 # llm-draft
 msgid "The big, slow ones had a bad day, and this pilot had a good one."
@@ -5582,6 +5622,10 @@ msgid ""
 msgstr ""
 "As configurações de pontos, penalidades, Elo e placar de abates abaixo partem dos valores do il2ks.toml. Um valor "
 "salvo aqui vale mais que o arquivo; um campo vazio volta a usar o arquivo (ou o padrão embutido)."
+
+# llm-draft
+msgid "The preview could not be loaded."
+msgstr "Não foi possível carregar a pré-visualização."
 
 # llm-draft
 #. Translators: preview text for a font; use a pangram of the target language (every letter of the alphabet)
@@ -6047,6 +6091,14 @@ msgstr "Pista"
 # llm-draft
 msgid "Trains"
 msgstr "Trens"
+
+# llm-draft
+msgid "Translations"
+msgstr "Traduções"
+
+# llm-draft
+msgid "Translations (optional)"
+msgstr "Traduções (opcionais)"
 
 # llm-draft
 msgid "Trouble on the ramp and in the air. At least this pilot is consistent."
@@ -6716,6 +6768,10 @@ msgstr "texto nos botões de destaque"
 # llm-draft
 msgid "text on secondary buttons"
 msgstr "texto nos botões secundários"
+
+# llm-draft
+msgid "translation"
+msgstr "tradução"
 
 # llm-draft
 #. Translators: a short suffix in the heading/body font drop-down, after the font's name: "Fira Sans (uploaded)"
