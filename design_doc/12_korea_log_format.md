@@ -242,7 +242,12 @@ or when the newest part's mtime was more than **120 s** old, polling every 30 s,
   position in all 76k damage lines checked); on stores and rockets (25/26) it's the **carrier aircraft's** (within ~13 m of its nearest gun
   burst). `y` is altitude (statics sit around 30 m, ordnance at release ~1,000 m); horizontal distances use x and z.
 - **Loadout in the ammo counts**: AType 10 `BOMB` counts napalm tanks too and `RCT` counts every rocket type; drop tanks give `BOMB:0 RCT:0`.
-- So an aircraft's position is known densely during combat (gun bursts, damage) and **not at all** while cruising. Gaps of several minutes
+- **Gun bursts are throttled; hits carry the impact time** (measured 2026-10-07 on 9 missions, engagement-distance research): a player
+  aircraft's AType 24 fires at most about once per **20 s** (minimum gap ~1,000 ticks for every type; median 1,800-4,000 ticks): it marks
+  the first fire after a quiet window, not every trigger press (the IL-10 turret and AA guns fire bursts a few ticks apart). 13% of
+  player hits have no earlier burst by their shooter. The AType 1 hit tick is the **impact** time (the burst-to-hit gap tracks distance at a
+  plausible round speed; no pair breaks causality); the target's damage line trails the hit by a median 2 ticks.
+- So an aircraft's position is known during combat only at its damage and kill events and one burst per 20 s, and **not at all** while cruising. Gaps of several minutes
   are normal. A continuous flight track can't be rebuilt. **Decision (2026-10-02): store positions only on the key events we keep**
   (spawn, takeoff, landing, kills, deaths, bailout, sortie end), and don't keep a breadcrumb track.
 - Continuous tracks may later come from a separate live telemetry source (for example Tacview-style), stored separately (TD-08, OQ-26).

@@ -396,18 +396,15 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   feet, written "Angels 15" (thousands of feet, rounded; the exact feet in the tooltip) as US fighter controllers did; REDFOR in **metres**
   ("4 500 m"), because Soviet altimeters and procedures were metric (kilometres appear only in casual speech, so km is not the unit to
   show). Units confirmed by the maintainer (OQ-135, 2026-10-07). The sortie's positions are stored already, so no reprocess is needed for the column.
-- 🔧 **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06, worried about the round's
-  flight time). What the log offers: a gun burst (AType 24) carries the **shooter's** position and tick, a hit line (AType 1) carries only the
-  tick, ammo, attacker and target, a damage line (AType 2) the **target's** position. Two estimates to compare on the sample missions
-  before anything is built: (a) **geometric**: the shooter's last burst position before the hit against the target's position from the damage
-  line on the hit tick (or the target's last known position); the shooter keeps moving between the burst and the hit (100-300 m in the 0.5-1.5 s
-  a round flies at 200 m/s), so pair the burst by tick rather than taking the raw distance; (b) **ballistic**, the maintainer's idea: the
-  ticks between the burst and the hit times the round's average velocity (muzzle velocity about 870 m/s for the .50 BMG, 690 m/s for the
-  23 mm NR-23, 700 m/s for the 37 mm N-37; drag lowers the average over 500-1000 m; one tick is 20 ms, about 15 m). Open before building:
-  does a burst event fire once per trigger press or once per segment of continuous fire (194k bursts against 12.9M hits suggests per press);
-  is the hit tick the impact time or the firing time (if the latter, (b) measures nothing). If (a) and (b) agree within about 20% on PvP gun
-  hits, store per sortie a median firing range per target class (air, ground) and show it on the sortie page and as a profile figure; if
-  they disagree, record why and drop the idea. Ordnance is out of scope (the release position is known, the impact point is not).
+- ✅ **Research: engagement distance** ("how far away was the enemy when I hit him?"; maintainer, 2026-10-06). **Done 2026-10-07,
+  outcome: not built** (OQ-136). Measured on 9 sample missions (~2,400 PvP gun hits on aircraft, doc 12 "Position data"): a gun burst
+  (AType 24) is logged at most once per ~20 s per aircraft, so it marks the start of an attack, not each trigger press; the hit tick is the
+  impact time. The ballistic estimate (ticks from burst to hit times the round's speed) runs about twice the geometric one (median ratio
+  1.6-2.0; within 20% for only 9-26% of hits), because the gap holds aiming time as well as flight time; even for first hits within 1 s
+  only 43-45% agree. The geometric estimate pairs the shooter's position at the start of fire with the target's at impact, an error as
+  large as the range itself. Only ~43% of hits are within 2 s of a burst and most sorties have 1-3 pairable hits, too few for a
+  per-sortie figure. The only defensible form would be a coarse per-pilot "range at the start of an attack" (first hit within 1 s of a
+  burst, geometric); not recommended either. Revisit if the game logs every shot.
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).

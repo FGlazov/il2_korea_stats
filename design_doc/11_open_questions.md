@@ -19,6 +19,11 @@ Nothing waits for the maintainer's review.
 
 ## Lower impact (owner: maintainer, outside input)
 
+**OQ-136 Engagement distance: drop it?** (owner: maintainer; roadmap "Version 0.2.0", research: engagement distance)
+Default applied: **not built**. The research (2026-10-07) found neither estimate reliable enough for a per-sortie figure (bursts are
+logged once per ~20 s, the ballistic and geometric estimates disagree by about 2x, too few pairable hits per sortie). Agree to drop it,
+or should a coarse per-pilot "range at the start of an attack" (geometric, first hit within 1 s of a burst; noisy, biased to opening shots) be built anyway?
+
 **OQ-26 Live telemetry for positions (Tacview-style)**
 Does the IL-2 Korea DServer (or the client) offer a live telemetry feed or recording, such as Tacview real-time telemetry or ACMI export? Is it
 reachable from the server machine, and can its object IDs be mapped to log object IDs? This only matters for a future flight-path map (TD-08).
