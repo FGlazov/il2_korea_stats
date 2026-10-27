@@ -38,15 +38,30 @@
   that page view, so the layout no longer jumps.
 - The login throttle was replaced by the lockout above.
 
+### Security
+
+- **Pillow 13.0.0** (image handling): fixes several published vulnerabilities in 12.x. The Windows installer and the
+  Docker image pin it; a PyPI install now requires it.
+- **Windows installer:** bundled Python 3.13.18 (was 3.13.16). HTTPS trust on Windows comes from the Windows certificate
+  store, which Windows Update keeps current (for example after the October 2026 eMudhra CA compromise).
+- **Docker:** Caddy 2.11.7 (fixes a crash in 2.11.6 when proxying over HTTP/2). The image is now based on Debian 13
+  (trixie, was 12) and takes Debian's newest CA certificates when it is built. Upgrade with `build --pull` (see the upgrade
+  notes) so a rebuild also picks up Debian's security updates.
+- All other dependencies updated to their latest versions.
+
 ### Project
 
-- Dependabot (weekly, uv lock file and GitHub Actions) and a blocking `pip-audit` check on every push and weekly.
+- Dependabot (weekly, uv lock file, GitHub Actions and the Docker images, with a 7-day cooldown) and a blocking
+  `pip-audit` check on every push and weekly.
+- CI hardened: every GitHub Action pinned to a commit SHA, read-only tokens by default, no persisted git credentials,
+  and a blocking zizmor check of the workflows.
 - A guarded helper for outbound web requests (private and internal addresses are refused). Nothing uses it yet; the
   optional `[outbound] allow_private` list is for later features that fetch from a LAN.
 
 ### Upgrade notes
 
-1. Update il2ks as usual. Database migrations run automatically.
+1. Update il2ks as usual. Database migrations run automatically. **Docker:** rebuild with
+   `docker compose -f docker/compose.yaml build --pull`, then `up -d` (the base image moved to Debian 13).
 2. Run `il2ks reprocess --all` once. Old sorties have no side balance data, so the underdog flags and the mission
    averages stay empty until you do. (Skip it if you use "Delete all data and reprocess".)
 3. New settings in `il2ks.toml`, all optional with defaults: `[web] login_attempts` (5) and `login_lockout_minutes` (15);

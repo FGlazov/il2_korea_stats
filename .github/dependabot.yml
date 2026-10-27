@@ -1,6 +1,10 @@
 # Dependency updates (NFR-SEC-5). Dependabot supports uv.lock through the `uv` ecosystem (generally available since
 # 2025), so it updates pyproject.toml and uv.lock together. Weekly; minor and patch updates of all packages go into ONE
 # pull request per ecosystem, a major update gets its own pull request (read the changelog before merging it).
+# Cooldown: a version update waits until the release is a week old, so a hijacked release is usually pulled before we
+# take it. Security updates ignore the cooldown. GitHub Actions are pinned to commit SHAs; Dependabot moves SHA and
+# version comment together. Docker: the Caddy and uv images in docker/Dockerfile (the Python base floats on purpose).
+# Not covered here: packaging/windows/pins.toml (bundled Python, Caddy, WinSW): check those at every release.
 version: 2
 updates:
   - package-ecosystem: uv
@@ -10,6 +14,8 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    cooldown:
+      default-days: 7
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -17,3 +23,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    cooldown:
+      default-days: 7
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

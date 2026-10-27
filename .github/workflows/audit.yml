@@ -1,6 +1,6 @@
 name: Dependency audit
 
-# Known-vulnerability check of everything in uv.lock (NFR-SEC-5): blocking, on every push and pull request (Dependabot's
+# Known-vulnerability check of everything in uv.lock (NFR-SEC-5), and a security lint of these workflows (zizmor): blocking, on every push and pull request (Dependabot's
 # included) and once a week, because new advisories appear for versions that were clean when they were locked.
 # A false positive gets an `--ignore-vuln <id>` below with a dated reason; never ignore silently.
 on:
@@ -11,12 +11,31 @@ on:
     - cron: "17 5 * * 1"  # Mondays 05:17 UTC
   workflow_dispatch:
 
+# Least privilege: the token can only read the repository (no job here writes anything to GitHub).
+permissions:
+  contents: read
+
 jobs:
   pip-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       # All groups (the dev tools run in CI too). The export is fully pinned with hashes, so pip-audit installs nothing.
       - run: uv export --locked --no-emit-project --format requirements-txt -o audit-requirements.txt
       - run: uvx pip-audit -r audit-requirements.txt --disable-pip
+
+  workflows:
+    # zizmor: actions pinned to a commit SHA, least-privilege tokens, no template injection, no persisted credentials.
+    # The online audits (known-vulnerable actions, impostor commits) use the read-only job token.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - run: uvx zizmor@1.31.1 --format github .github/workflows
+        env:
+          GH_TOKEN: ${{ github.token }}

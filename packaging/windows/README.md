@@ -59,7 +59,7 @@ the CI job `service-test` does that.
 
 | Input | Version now | Where to get the hash | Notes |
 |---|---|---|---|
-| python-build-standalone CPython | 3.13.16 (release 20261003) | `SHA256SUMS` in the release <https://github.com/astral-sh/python-build-standalone/releases> | file `cpython-<ver>+<release>-x86_64-pc-windows-msvc-install_only_stripped.tar.gz`; keep it >= `requires-python` |
+| python-build-standalone CPython | 3.13.18 (release 20261026) | `SHA256SUMS` in the release <https://github.com/astral-sh/python-build-standalone/releases> | file `cpython-<ver>+<release>-x86_64-pc-windows-msvc-install_only_stripped.tar.gz`; keep it >= `requires-python` |
 | Caddy | 2.11.7 | upstream gives SHA-512 (`caddy_<ver>_checksums.txt`); check that, then `Get-FileHash -Algorithm SHA256` | `caddy_<ver>_windows_amd64.zip`; read Caddy's release notes for ACME changes |
 | WinSW | 2.12.0 (x64, needs .NET Framework 4.6.1+) | none published: `Get-FileHash` the download | stay on a 2.x release; 3.x is alpha |
 | Inno Setup (build tool) | 6.7.3 | `Get-FileHash` | the script avoids 7.x-only features |

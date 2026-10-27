@@ -21,7 +21,7 @@ dependencies = [
     "granian>=2.0",
     "markdown-it-py>=4.2.0",
     "nh3>=0.3.7",
-    "pillow>=12.3.0",
+    "pillow>=13.0.0",
     "tzdata>=2024.1",  # zoneinfo needs it on Windows (TD-15)
     "whitenoise>=6.7",
 ]

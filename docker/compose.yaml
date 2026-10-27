@@ -2,7 +2,8 @@
 # (docker/compose.dev.yaml is something else: a Postgres for developers running the test suite.)
 #
 #   cp docker/.env.example docker/.env      # then edit docker/.env
-#   docker compose -f docker/compose.yaml up -d --build
+#   docker compose -f docker/compose.yaml build --pull     # --pull: newest Python/Debian base (security updates)
+#   docker compose -f docker/compose.yaml up -d
 #
 # All settings come from docker/.env; every il2ks.toml setting can also be added below as IL2KS_<SECTION>_<KEY>.
 name: il2ks

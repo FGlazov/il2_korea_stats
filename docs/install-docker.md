@@ -146,8 +146,12 @@ somewhere else from time to time.
 
 ```bash
 git pull
-docker compose -f docker/compose.yaml up -d --build
+docker compose -f docker/compose.yaml build --pull
+docker compose -f docker/compose.yaml up -d
 ```
+
+`--pull` fetches the newest Python/Debian base image, so security fixes in it (and the current certificate authorities)
+reach your container. Run these two commands now and then even without a new il2ks version.
 
 The database is migrated at start, after an automatic backup, and what the new version needs is filled in from your data
 (a few minutes on a big database). The volume is untouched. Old missions are not recalculated by themselves: if the release

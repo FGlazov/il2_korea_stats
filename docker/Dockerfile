@@ -3,16 +3,15 @@
 # Build from the repository root:   docker build -f docker/Dockerfile -t il2ks:local .
 # Admin guide: docs/install-docker.md. Nothing here is pushed anywhere; the image is built on the admin's machine.
 #
-# Pinned on purpose: the Python base, uv, and Caddy (the official image's binary, tag and digest). Python dependencies
-# come from uv.lock with hashes, so a build in a year installs what CI tested today.
+# Pinned on purpose: uv and Caddy (the official images, tag and digest; Dependabot proposes updates for both), and the
+# Python base's minor version and Debian release. The base tag itself floats, so `build --pull` picks up Debian's security
+# updates. Python dependencies come from uv.lock with hashes, so a build in a year installs what CI tested today.
 
-ARG PYTHON_IMAGE=python:3.13-slim-bookworm
-ARG UV_VERSION=0.12.22
+ARG PYTHON_IMAGE=python:3.13-slim-trixie
+
 # Caddy 2.10+ is needed for IP-address certificates (design doc 16). Bump tag and digest together.
-ARG CADDY_IMAGE=caddy:2.11.6@sha256:907efba736324e43f891ccb9d760fe5abe545e313419b3d18d63d4ec670dad8d
-
-FROM ${CADDY_IMAGE} AS caddy
-FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+FROM caddy:2.11.7@sha256:504a44d7d74bd2bc28a66afc4774912fc21223ca8a67734af1c54ab2f999b489 AS caddy
+FROM ghcr.io/astral-sh/uv:0.13.6@sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0 AS uv
 
 FROM ${PYTHON_IMAGE} AS build
 COPY --from=uv /uv /usr/local/bin/uv
@@ -37,6 +36,10 @@ LABEL org.opencontainers.image.title="il2ks" \
       org.opencontainers.image.description="Stats website for IL-2 Sturmovik: Korea dedicated servers" \
       org.opencontainers.image.source="https://github.com/FGlazov/il2_korea_stats" \
       org.opencontainers.image.licenses="MIT"
+
+# The CA bundle is what Caddy (ACME, certificates) and Python's ssl trust: take Debian's latest, not the one the base
+# image was built with, so a distrusted CA is gone after a rebuild even when the base tag has not been republished yet.
+RUN apt-get update  && apt-get install --yes --no-install-recommends --only-upgrade ca-certificates  && rm -rf /var/lib/apt/lists/*
 
 # Non-root. UID/GID 1000 is the usual first Linux user, which is also who usually owns a Wine prefix: matching it lets
 # il2ks read (and, with after_archive = "move" or "delete", change) the game's log folder. Override with `user:`.

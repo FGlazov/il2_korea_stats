@@ -85,7 +85,12 @@ change the file: it prints the reasons next to the file name. Put the important 
 2. Migrations ship as they are: never edit or squash a released one (`il2ks dev check-migrations` guards this).
 3. **Audit clean**: the `Dependency audit` workflow (`pip-audit` over `uv.lock`, also run weekly) is green on `main`. A
    flagged package is updated (Dependabot opens the pull request), or, for a false positive, ignored in
-   `.github/workflows/audit.yml` with a dated reason. Merge the open Dependabot pull requests you trust first.
+   `.github/workflows/audit.yml` with a dated reason. Merge the open Dependabot pull requests you trust first. The same
+   workflow runs zizmor over the workflows (actions pinned to commit SHAs, least-privilege tokens): keep it green too.
+   **Bundled components current**: Dependabot does not see `packaging/windows/pins.toml`. Compare the Windows
+   installer's Python (python-build-standalone), Caddy and WinSW with their latest releases and bump them (version,
+   URL and SHA-256 together, see `packaging/windows/README.md`). The Docker image's Caddy and uv come from Dependabot;
+   its Python base tag floats, so nothing to do there.
 4. Commit, wait for CI to pass, then `git tag v<version>` and `git push origin v<version>`. The tag starts
    `.github/workflows/release.yml` (build, smoke test on Linux and Windows, publish to PyPI with trusted publishing) and
    `.github/workflows/windows-installer.yml` (attaches the Windows installer to the GitHub release).
