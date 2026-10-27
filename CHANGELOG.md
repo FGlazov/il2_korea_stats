@@ -12,6 +12,10 @@
 - **Home page:** the "Sorties per side" share moved from the last-mission block to under the Server activity chart. It is
   the share for the selected tour (or all time), not for that mission, and read as the mission's split there.
 
+### Docs
+
+- The README has an **Upgrade** section: the steps for the Windows installer, uv and Docker in one place.
+
 ### Templates changed (check your custom/ overrides)
 
 - `il2ks/home.html`: v2.0 -> v3.0 (the share line moved to `il2ks/home_activity.html`).

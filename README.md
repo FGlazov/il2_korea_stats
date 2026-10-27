@@ -15,6 +15,25 @@ please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/is
   [Installing il2ks by hand](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md).
 - **Docker**: [Installing with Docker](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-docker.md).
 
+## Upgrade
+
+Your data, settings and `custom/` files are kept. A backup is made and the database is updated by itself when il2ks starts.
+
+- **Windows installer**: download the newer `il2ks-setup-<version>.exe` from the
+  [latest release](https://github.com/FGlazov/il2_korea_stats/releases/latest) and run it over the old install. It stops
+  the service, makes a backup, upgrades and starts it again.
+- **Installed with uv**: stop il2ks, run `uv tool upgrade il2ks`, start it again.
+  - Windows (scheduled task): `schtasks /End /TN il2ks`, upgrade, `schtasks /Run /TN il2ks`
+  - Linux (systemd): `sudo systemctl stop il2ks`, upgrade, `sudo systemctl start il2ks`
+  - In a terminal window: Ctrl+C, upgrade, `il2ks run`
+- **Docker**: `git pull`, then `docker compose -f docker/compose.yaml build --pull` and
+  `docker compose -f docker/compose.yaml up -d`.
+
+Then run `il2ks doctor`. Old missions are not recalculated by themselves: if the
+[changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md) says a rule or score changed, see
+[what to run after a change](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md#what-to-run-after-a-change).
+Details: [upgrading by hand](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md#upgrading).
+
 ## What it does
 
 il2ks reads the text mission logs your DServer writes and builds a stats website from them. It is made for IL-2
