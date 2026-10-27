@@ -17,22 +17,27 @@ please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/is
 
 ## Upgrade
 
-Your data, settings and `custom/` files are kept. A backup is made and the database is updated by itself when il2ks starts.
+How you upgrade depends on how you installed. Every way keeps your data, settings and `custom/` files, makes a backup,
+and updates the database by itself when il2ks starts again.
 
 - **Windows installer**: download the newer `il2ks-setup-<version>.exe` from the
   [latest release](https://github.com/FGlazov/il2_korea_stats/releases/latest) and run it over the old install. It stops
-  the service, makes a backup, upgrades and starts it again.
-- **Installed with uv**: stop il2ks, run `uv tool upgrade il2ks`, start it again.
+  the service, makes a backup, upgrades and starts it again. Then use **Run doctor** from the Start menu.
+  [Details](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-windows.md#upgrading).
+- **Installed with uv**: stop il2ks first, then `uv tool upgrade il2ks`, then start it again and run `il2ks doctor`.
   - Windows (scheduled task): `schtasks /End /TN il2ks`, upgrade, `schtasks /Run /TN il2ks`
-  - Linux (systemd): `sudo systemctl stop il2ks`, upgrade, `sudo systemctl start il2ks`
+  - Linux (systemd): `sudo systemctl stop il2ks`, upgrade, `sudo systemctl start il2ks`; doctor as the service user:
+    `sudo -u il2ks il2ks doctor`
   - In a terminal window: Ctrl+C, upgrade, `il2ks run`
-- **Docker**: `git pull`, then `docker compose -f docker/compose.yaml build --pull` and
-  `docker compose -f docker/compose.yaml up -d`.
 
-Then run `il2ks doctor`. Old missions are not recalculated by themselves: if the
+  [Details](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md#upgrading).
+- **Docker**: in the il2ks folder, `git pull`, then `docker compose -f docker/compose.yaml build --pull` and
+  `docker compose -f docker/compose.yaml up -d`; then `docker compose -f docker/compose.yaml run --rm il2ks doctor`.
+  [Details](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install-docker.md).
+
+Old missions are not recalculated by themselves: if the
 [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md) says a rule or score changed, see
 [what to run after a change](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md#what-to-run-after-a-change).
-Details: [upgrading by hand](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md#upgrading).
 
 ## What it does
 
