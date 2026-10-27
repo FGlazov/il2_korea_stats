@@ -33,6 +33,13 @@ def test_connected_players_are_online_until_they_disconnect() -> None:
     assert {p.account_uuid for p in live.snapshot().players} == {B}
 
 
+def test_the_servers_own_connect_at_tick_0_is_not_a_player() -> None:
+    """DServer logs its own account connecting at T:0 of every mission; it never spawns or disconnects."""
+    live = LiveReplay(load_default_catalog())
+    live.feed_lines([connect(0, A), connect(10, B)])
+    assert {p.account_uuid for p in live.snapshot().players} == {B}
+
+
 def test_feeding_in_pieces_equals_feeding_at_once() -> None:
     lines = fixture_lines()[: mission_end_index(fixture_lines())]
     once = LiveReplay(load_default_catalog())
@@ -54,7 +61,7 @@ def test_online_players_are_those_connected_or_spawned_and_not_disconnected(name
 
     online: set[str] = set()
     for event in parse_lines(lines[:cut], ParseStats()):
-        if isinstance(event, PlayerConnectEvent):
+        if isinstance(event, PlayerConnectEvent) and event.tick > 0:  # T:0 is the server's own login
             online.add(event.account_uuid)
         elif isinstance(event, PlayerDisconnectEvent):
             online.discard(event.account_uuid)

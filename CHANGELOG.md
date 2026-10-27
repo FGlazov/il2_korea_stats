@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 (2026-10-27)
+
+### Fixed
+
+- **Online now** no longer lists a "Joining…" player that never goes away. It was the dedicated server's own login, which
+  the log records as a player connecting at the start of every mission; it was also counted in "players online".
+
 ## 0.2.0 (2026-10-27)
 
 ### New

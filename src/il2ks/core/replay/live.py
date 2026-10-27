@@ -6,7 +6,8 @@ follows who is connected (AType 20 and 21), because a player who sits in the lob
 but has no open sortie. It is pure Python: reading files and writing the database are `ingest.live`'s job.
 
 Limits, by nature of the log: a player who joined the server before this mission started has no AType 20 in it, so
-they show up only once they spawn; and a player whose AType 21 never arrives stays listed until the mission ends.
+they show up only once they spawn; and a player whose AType 21 never arrives stays listed until the mission ends. The
+AType 20 at tick 0 is the dedicated server's own login (every mission, never a spawn or an AType 21), so it is skipped.
 """
 
 from collections import defaultdict
@@ -98,6 +99,8 @@ class LiveReplay:
     def _feed(self, event: LogEvent) -> None:
         self._replay.feed(event)
         match event:
+            case PlayerConnectEvent() if event.tick == 0:
+                pass  # DServer's own account, logged at T:0 of every mission; it never spawns or leaves
             case PlayerConnectEvent():
                 self._online.setdefault(event.account_uuid, _Presence(event.profile_uuid))
             case PlayerDisconnectEvent():

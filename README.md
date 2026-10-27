@@ -3,7 +3,7 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: public beta, version 0.2.0.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
+**Status: public beta, version 0.2.1.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
 please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/issues). The design lives in
 [design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
 
