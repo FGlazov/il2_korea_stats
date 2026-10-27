@@ -1,10 +1,12 @@
-{# il2ks-template: templates/il2ks/home_activity.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home_activity.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   home_activity.html: server activity per day for the home page (FR-WEB-16). Context: activity (a ChartSpec from
-  il2ks.web.chart_data.activity_chart, or None before any mission).
+  il2ks.web.chart_data.activity_chart, or None before any mission) and side_share (the tour's or all time's sorties per
+  side, under the chart; it follows the tour like the chart, so it is not under the last mission).
 {% endcomment %}{% if activity %}
   <section aria-labelledby="activity-heading">
     <h2 id="activity-heading">{% translate "Server activity" %}</h2>
     {% bar_chart activity %}
+    {% include "il2ks/components/side_share.html" with share=side_share %}
   </section>
 {% endif %}

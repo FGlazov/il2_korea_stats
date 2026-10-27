@@ -2335,8 +2335,8 @@
       }
     },
     "templates/il2ks/home.html": {
-      "version": "2.1",
-      "sha256": "f772d9bb77f2583d8b1fce650c1432bb1c2f13307f57720838686b61b41f86fa",
+      "version": "3.0",
+      "sha256": "78eae707b8455da700146ccf32328e049a008f3f931dd42526325f0357502c9d",
       "contract": {
         "blocks": [
           "content",
@@ -2353,7 +2353,6 @@
         ],
         "includes": [
           "il2ks/achievements/home_feed.html",
-          "il2ks/components/side_share.html",
           "il2ks/home_activity.html",
           "il2ks/home_feature.html",
           "il2ks/leaderboards/home_block.html",
@@ -2417,7 +2416,6 @@
           "last_mission",
           "latest",
           "pilots",
-          "side_share",
           "site",
           "tour",
           "tour_query",
@@ -2426,9 +2424,12 @@
       }
     },
     "templates/il2ks/home_activity.html": {
-      "version": "1.0",
-      "sha256": "343830337a5b4cfb7c02549486cc4529c0b88c617e8d9c1236e95a474a949c6b",
+      "version": "1.1",
+      "sha256": "a1e779fd54593527b0e9d98870f7e2a8d47b4dab54db7efd5addb6e3d59334ef",
       "contract": {
+        "includes": [
+          "il2ks/components/side_share.html"
+        ],
         "markers": [
           "#activity-heading"
         ],
@@ -2436,7 +2437,8 @@
           "bar_chart"
         ],
         "variables": [
-          "activity"
+          "activity",
+          "side_share"
         ]
       }
     },

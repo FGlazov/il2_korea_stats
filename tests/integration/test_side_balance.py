@@ -125,6 +125,12 @@ def test_home_and_leaderboards_show_the_sorties_per_side(client: Client) -> None
     assert "side-share" in home
     assert "67%" in home  # two of three sorties for REDFOR
     assert "33%" in home
+    # The share is the tour's (or all time's), not the mission's: a tester read it under the last mission as that
+    # mission's split. It sits with the server activity, which follows the tour too.
+    start = home.index('class="last-mission"')
+    mission_block = home[start : home.index("</section>", start)]
+    assert "side-share" not in mission_block
+    assert home.index("activity-heading") < home.index("side-share")
     assert "side-share" in _page(client, "/leaderboards/")
     assert "side-share" in _page(client, "/leaderboards/air/?tour=all")
 

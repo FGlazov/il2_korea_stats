@@ -80,13 +80,13 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 ## Pages (as built, 2026-10-03)
 
 - **Home** (tour-aware: `/?tour=`, no `tour` = the current tour, `?tour=all` = all time, `[DECIDED]` maintainer, OQ-79): site description, player
-  search, "Online now" (`/live/` fragment, always live), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills), the
+  search, "Online now" (`/live/` fragment, always live), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills; while a mission runs with live sorties on, it is that mission, titled "Current mission" with the Live badge instead of the winner, maintainer 2026-10-27), the
   latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
   interception, attack proficiency, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards follow the tour like the rest since 2026-10-05, OQ-128: the tour's Elo, all time the best tour's; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).
 - **Side balance on pages** (0.2.0, FR-WEB-1/2/4/7, rules in doc 13 "Side balance"; the counters are in doc 06): the mission page's *Players* tile has the
   sub-line "REDFOR x.x · BLUFOR y.y" (the time-weighted pilots); the mission list has two **optional columns**, "REDFOR pilots" and "BLUFOR pilots" (a dash for
-  missions ingested before 0.2.0); `components/side_share.html` shows one line "Sorties per side: x% y%" under the home page's last-mission block and above the
+  missions ingested before 0.2.0); `components/side_share.html` shows one line "Sorties per side: x% y%" under the home page's activity chart (moved from under the last mission, maintainer 2026-10-27: it is the tour's share, not the mission's) and above the
   table of **every leaderboard** (the Elo boards included), following the tour selector (a tour or all time); the profile's "Other totals" has "Sorties per
   side" and "Underdog sorties: N (x%)", the second with the stat mark `underdog_share` (a high share is rewarded; no quip). Query budgets: the home page
   has one more read when there is a last mission, a leaderboard one more. Both profile lines are hidden while the pilot has no sortie counted for either side

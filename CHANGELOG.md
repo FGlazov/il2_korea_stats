@@ -9,11 +9,12 @@
 - **Home page:** while a mission is running (and "Show sorties of the running mission" is on), the block under Online now
   is titled **Current mission** and shows the Live badge instead of a winner. It used to say "Last mission", which read as
   the previous mission. Once the mission ends, or with the setting off, it is the last finished mission as before.
+- **Home page:** the "Sorties per side" share moved from the last-mission block to under the Server activity chart. It is
+  the share for the selected tour (or all time), not for that mission, and read as the mission's split there.
 
 ### Templates changed (check your custom/ overrides)
 
-None with a breaking change. `il2ks/home.html` went to v2.1 (the heading and badge above); an override of it keeps
-saying "Last mission" until you copy the change.
+- `il2ks/home.html`: v2.0 -> v3.0 (the share line moved to `il2ks/home_activity.html`).
 
 ## 0.2.0 (2026-10-27)
 

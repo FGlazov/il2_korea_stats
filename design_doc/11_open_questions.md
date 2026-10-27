@@ -22,7 +22,7 @@ the wipe; (4) a **tour rename survives only when the new
 tour has the same start, mode and kind** (a part cut by a decisive mission or not); a tour that moved gets its automatic name. Should any of these change?
 
 **OQ-138 Side balance: wording, placement and the underdog mark** (doc 13 "Side balance", doc 16 "Pages")
-Applied: the "Sorties per side" share line is on **every** leaderboard, the Elo boards too, and under the home page's last mission; the list columns are called "REDFOR pilots" /
+Applied: the "Sorties per side" share line is on **every** leaderboard, the Elo boards too, and on the home page under the activity chart (maintainer 2026-10-27: not under the last mission, where it read as that mission's split); the list columns are called "REDFOR pilots" /
 "BLUFOR pilots"; the profile line is "Underdog sorties"; the stat mark `underdog_share` **rewards a high share** (a loyal underdog stands out as good). Alternatives: leave the
 line off the Elo boards, call the flag something other than "underdog", or show the share neutrally without a good/bad mark.
 
