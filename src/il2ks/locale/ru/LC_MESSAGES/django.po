@@ -1783,6 +1783,9 @@ msgstr "Текущий фон баннера главной страницы"
 msgid "Current logo"
 msgstr "Текущий логотип"
 
+msgid "Current mission"
+msgstr "Текущая миссия"
+
 # llm-draft
 msgid "Current streak"
 msgstr "Текущая серия"

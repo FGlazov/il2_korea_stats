@@ -1775,6 +1775,9 @@ msgstr "Fondo actual del banner de inicio"
 msgid "Current logo"
 msgstr "Logotipo actual"
 
+msgid "Current mission"
+msgstr "Misión en curso"
+
 # llm-draft
 msgid "Current streak"
 msgstr "Racha actual"

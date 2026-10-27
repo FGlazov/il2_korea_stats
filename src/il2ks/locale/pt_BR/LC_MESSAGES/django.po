@@ -1764,6 +1764,9 @@ msgstr "Plano de fundo atual do banner da página inicial"
 msgid "Current logo"
 msgstr "Logotipo atual"
 
+msgid "Current mission"
+msgstr "Missão em andamento"
+
 # llm-draft
 msgid "Current streak"
 msgstr "Sequência atual"

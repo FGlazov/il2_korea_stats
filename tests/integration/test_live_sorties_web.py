@@ -64,6 +64,29 @@ def test_the_lists_mark_a_running_mission_live(client: Client) -> None:
     assert ">Live<" in client.get(reverse("web:home")).content.decode()
 
 
+def last_mission_block(client: Client) -> str:
+    html = client.get(reverse("web:home")).content.decode()
+    return html[html.index('class="last-mission"') : html.index("last-mission__pilots")]
+
+
+def test_the_home_page_calls_a_running_mission_current_and_marks_it_live(client: Client) -> None:
+    """A tester read "Last mission" over the running one as the previous mission shown twice."""
+    seed(live=True)
+    block = last_mission_block(client)
+    assert "Current mission" in block
+    assert "Last mission" not in block
+    assert ">Live<" in block
+    assert "Winner" not in block  # no winner before it ends
+
+
+def test_the_home_page_shows_a_finished_mission_as_the_last_one(client: Client) -> None:
+    seed(live=False)
+    block = last_mission_block(client)
+    assert "Last mission" in block
+    assert ">Live<" not in block
+    assert "Winner" in block
+
+
 def test_a_running_mission_costs_no_extra_queries(client: Client) -> None:
     mission_pk, sortie_pk = seed(live=False)
     urls = [

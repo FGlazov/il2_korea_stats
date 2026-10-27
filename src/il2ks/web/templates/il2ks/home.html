@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/home.html v2.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/home.html v2.1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks il2ks_live %}{% comment %}
   Home page (OQ-79: tour-aware, no ?tour = the current tour, ?tour=all = all time; online now is live). Context: tours / tour
   (the tour selector), tour_query ("?tour=<id>" or "?tour=all", for links that keep the scope),
-  latest (the newest missions that have sorties, in the tour), last_mission (the first of them, or None),
+  latest (the newest missions that have sorties, in the tour), last_mission (the first of them, or None; a running one,
+  `is_live`, is titled "Current mission" with the Live badge instead of the winner),
   activity (ChartSpec or None), boards (HomeBoard: .key, .title, .rows of BoardRow: rank, player, stats, per_hour),
   pilots (TopPilot: .row is a PlayerMission with .player, .side is "redfor", "blufor" or None).
   side_share (queries.missions.SideShare or None: the sorties per side in the tour or all time, one line under the last mission).
@@ -31,14 +32,14 @@
 
   {% if last_mission %}
     <section aria-labelledby="last-heading" class="last-mission">
-      <h2 id="last-heading" style="margin-top:0">{% translate "Last mission" %}</h2>
+      <h2 id="last-heading" style="margin-top:0">{% if last_mission.is_live %}{% translate "Current mission" %}{% else %}{% translate "Last mission" %}{% endif %}</h2>
       <article class="last-mission__card">
         <div class="last-mission__summary">
           <h3><a href="{% url 'web:mission-detail' last_mission.pk %}">{{ last_mission|mission_title }}</a></h3>
           <p class="meta-line">
             <span>{{ last_mission.started_at|local_time }}</span>
             <span>{{ last_mission.duration_s|duration }}</span>
-            <span>{% translate "Winner" %}: {% winner_badge last_mission %}</span>
+            {% if last_mission.is_live %}<span>{% badge _("Live") "green" title=_("This mission is still running.") %}</span>{% else %}<span>{% translate "Winner" %}: {% winner_badge last_mission %}</span>{% endif %}
           </p>
           <div class="stat-tiles">
             {% stat_tile last_mission.players_total|num _("Players") %}

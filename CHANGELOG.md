@@ -6,6 +6,14 @@
 
 - **Online now** no longer lists a "Joining…" player that never goes away. It was the dedicated server's own login, which
   the log records as a player connecting at the start of every mission; it was also counted in "players online".
+- **Home page:** while a mission is running (and "Show sorties of the running mission" is on), the block under Online now
+  is titled **Current mission** and shows the Live badge instead of a winner. It used to say "Last mission", which read as
+  the previous mission. Once the mission ends, or with the setting off, it is the last finished mission as before.
+
+### Templates changed (check your custom/ overrides)
+
+None with a breaking change. `il2ks/home.html` went to v2.1 (the heading and badge above); an override of it keeps
+saying "Last mission" until you copy the change.
 
 ## 0.2.0 (2026-10-27)
 

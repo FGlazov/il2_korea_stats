@@ -2335,8 +2335,8 @@
       }
     },
     "templates/il2ks/home.html": {
-      "version": "2.0",
-      "sha256": "7c004e41f4aa28a72dab1df4545ff80ee8f7af012f789d81916f2f58adfab859",
+      "version": "2.1",
+      "sha256": "f772d9bb77f2583d8b1fce650c1432bb1c2f13307f57720838686b61b41f86fa",
       "contract": {
         "blocks": [
           "content",
@@ -2391,6 +2391,7 @@
           "il2ks/missions.css"
         ],
         "tags": [
+          "badge",
           "coalition_badge",
           "coalition_icon",
           "col_th",
