@@ -91,12 +91,14 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   side" and "Underdog sorties: N (x%)", the second with the stat mark `underdog_share` (a high share is rewarded; no quip). Query budgets: the home page
   has one more read when there is a last mission, a leaderboard one more. Both profile lines are hidden while the pilot has no sortie counted for either side
   (before the first reprocess, or only side-neutral sorties). The wording and the mark direction are `[PROPOSED]`: OQ-138.
-- **Navigation** (maintainer request 2026-10-05, `[DECIDED]` structure, label `[PROPOSED]`): the top level is **Players, Aircraft, Leaderboards** and a
-  **"History"** dropdown holding **Missions** and **Sorties** (alternatives considered: "Other facts", the maintainer's first idea, which says little
+- **Navigation** (maintainer request 2026-10-05, `[DECIDED]` structure, label `[PROPOSED]`): the top level is **Players, Aircraft** and a
+  **"History"** dropdown holding **Missions**, **Sorties** and **Leaderboards** (Leaderboards moved in from the top level, maintainer 2026-10-28, 0.3.0:
+  the admin's own links wrapped to a second header row on a real server, and the boards need not be that prominent; the home page still has its
+  leaderboard block and "All leaderboards") (alternatives considered: "Other facts", the maintainer's first idea, which says little
   about what is inside; "Archive", which suggests the data is closed; "Records", which promises record lists; "More", which says nothing; "Browse" and
   "Flights", which are vague or clash with the Sorties page). It is a native `<details class="dropdown">` like the language menu (no JavaScript
   needed; `il2ks.js` closes it on an outside click and on Escape and returns the focus to the summary), the summary carries `aria-current="page"` on the
-  missions, mission and sortie list pages (and so does the current link inside), and the menu wraps with the other items on a phone. The admin's own
+  missions, mission, sortie list and leaderboard pages (and so does the current link inside), and the menu wraps with the other items on a phone. The admin's own
   links come after it. The old URLs are unchanged; the home page's "All missions" still goes to `/missions/`. The sortie detail page keeps highlighting
   Players (a sortie belongs to a pilot).
 - **Pagination** `[DECIDED]` (maintainer, 2026-10-04, OQ-96: "100% paginate"; `queries/paging.py`): the mission list shows **10 missions** a page,

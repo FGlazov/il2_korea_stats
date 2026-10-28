@@ -146,7 +146,7 @@ def test_nav_links_follow_the_built_in_ones_in_order_and_open_safely(client: Cli
     )
     html = client.get("/").content.decode()
     nav = html[html.index('class="site-nav"') : html.index("</nav>")]
-    assert nav.index("Leaderboards") < nav.index("Discord") < nav.index("Forum &lt;b&gt;")
+    assert nav.index("History") < nav.index("Discord") < nav.index("Forum &lt;b&gt;")
     assert 'href="https://discord.example/x" target="_blank" rel="noopener noreferrer"' in nav
     assert nav.count('<svg class="icon"') == 1  # only the Discord link has an icon
     assert "<b>" not in nav

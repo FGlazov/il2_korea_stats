@@ -259,8 +259,8 @@ people ask). The main use case is **a player reviewing their sortie**.
   both or neither is a draw; cuts on top of the tour mode; "(2)", "(3)" part titles; one campaign per site); flight-time score defaults
   (1 point per hour, fractional rates allowed, prorated by the time in the air: 20 minutes at 1 point per hour = 0.333 points; every
   pilot sortie; reduced by the outcome percentage like kill points).
-- **Accepted 2026-10-05** (all sorties page, FR-WEB-29): the navigation dropdown is called "History" (Missions, Sorties) after
-  Players, Aircraft and Leaderboards; the list shows counted pilot sorties by default (a Seat filter adds gunner sorties); hidden
+- **Accepted 2026-10-05** (all sorties page, FR-WEB-29): the navigation dropdown is called "History" (Missions, Sorties; Leaderboards
+  joined it on 2026-10-28) after Players and Aircraft; the list shows counted pilot sorties by default (a Seat filter adds gunner sorties); hidden
   players and hidden missions are left out; the pilot search matches the name flown under in that sortie; every sortie carries
   its mission's tour (denormalized, kept in sync) so a tour's list walks an index.
 - **Accepted 2026-10-07** (maintainer answers to OQ-133..135, roadmap "Version 0.2.0"): Markdown pages start with Markdown typed in the

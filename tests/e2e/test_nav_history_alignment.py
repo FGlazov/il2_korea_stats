@@ -15,9 +15,11 @@ MEASURE = """() => {
   const nav = document.querySelector('.site-nav');
   const out = {};
   const probe = (key, el) => {
-    // the text box, not the padded box: a range over the element's contents
+    // the text box, not the padded box: a range over the label's text (an icon or the hidden "opens in a new tab" of a
+    // custom link would stretch a range over all the contents)
     const range = document.createRange();
-    range.selectNodeContents(el);
+    const label = [...el.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+    range.selectNodeContents(label || el);
     const text = range.getBoundingClientRect();
     const box = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
@@ -29,7 +31,7 @@ MEASURE = """() => {
   };
   const links = [...nav.querySelectorAll(':scope > ul > li > a')];
   probe('players', links[0]);
-  probe('leaderboards', links[1]);
+  probe('aircraft', links[1]);
   if (links[2]) probe('custom', links[2]);
   probe('history', nav.querySelector('details.nav-history > summary'));
   return out;
@@ -55,7 +57,7 @@ def test_history_aligns_with_the_other_nav_links(
         page.wait_for_timeout(500)  # the links' colour transitions finish before the colours are compared
     got = page.evaluate(MEASURE)
     history = got["history"]
-    for other in ("players", "leaderboards", "custom"):
+    for other in ("players", "aircraft", "custom"):
         ref = got[other]
         for prop in PROPS:
             assert ref[prop] == history[prop], (other, prop, got)

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v4.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v5.0 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -650,6 +650,8 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
   .site-nav { order: 3; flex-basis: 100%; }
   .site-search { margin-inline-start: auto; }
   .site-search input[type="search"] { width: 10rem; }
+  /* History is the third item of the first nav row, so a menu opening rightwards ran off a phone (0.3.0, Leaderboards in it). */
+  .site-nav details.nav-history > ul { left: auto; right: 0; }
 }
 
 /* Whole-row link (FR-WEB-24): put class="stretched-link" on the row's main <a>. Its ::after covers the row, so a click

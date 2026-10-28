@@ -201,8 +201,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "4.0",
-      "sha256": "adefd16179509c8451e9e73ec29e4fa77cec4ea5bd7d3164553a3390193cbf13",
+      "version": "5.0",
+      "sha256": "1df1f690b03c73c6b5e92cee1385ece4b33c7c5cc04b923b2c63592e4e674c28",
       "contract": {
         "defines": [
           "--icon",
@@ -425,6 +425,7 @@
           ".medal__tier",
           ".mono",
           ".muted",
+          ".nav-history",
           ".no-htmx",
           ".notice",
           ".notice--changing",
@@ -1644,8 +1645,8 @@
       }
     },
     "templates/il2ks/base.html": {
-      "version": "2.0",
-      "sha256": "4f30bb5a7f01618bb558622eefb2ba5498c437fe73f60b15bd34718d95320592",
+      "version": "2.1",
+      "sha256": "18aec76108e3529f45aba41d55598833a5f5b196161be61fefa25b5e4d7e1596",
       "contract": {
         "blocks": [
           "content",

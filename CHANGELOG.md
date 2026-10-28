@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (2026-10-28)
+
+### Changed
+
+- **Navigation:** Leaderboards moved from the top bar into the **History** menu (Missions, Sorties, Leaderboards), which
+  leaves room for your own links in the header (with a few of them it used to wrap to a second row). The home
+  page still shows its leaderboard block with "All leaderboards". On a phone the History menu opens leftwards so it
+  stays on screen.
+
 ## 0.2.1 (2026-10-27)
 
 ### Fixed

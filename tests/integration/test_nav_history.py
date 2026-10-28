@@ -1,6 +1,7 @@
-"""The header navigation: "History" holds Missions and Sorties (maintainer request 2026-10-05, FR-WEB-29).
+"""The header navigation: "History" holds Missions, Sorties and Leaderboards (maintainer requests 2026-10-05, FR-WEB-29,
+and 2026-10-28: Leaderboards moved in to leave room for the admin's links).
 
-Players, Aircraft and Leaderboards stay top level; the dropdown is a native <details> (no JS needed); the admin's own
+Players and Aircraft stay top level; the dropdown is a native <details> (no JS needed); the admin's own
 links come after it. Synthetic data only."""
 
 import re
@@ -31,26 +32,29 @@ def opening_tag(markup: str, pattern: str) -> str:
     return found.group(0)
 
 
-def test_nav_has_players_aircraft_leaderboards_then_the_history_dropdown_then_the_admin_links(client: Client) -> None:
+def test_nav_has_players_aircraft_then_the_history_dropdown_then_the_admin_links(client: Client) -> None:
     SiteSettings.objects.create(pk=1, links=[{"label": "Discord", "url": "https://discord.example/x", "icon": ""}])
 
     nav = nav_of(client, "/")
 
-    assert nav.index(">Players<") < nav.index(">Aircraft<") < nav.index(">Leaderboards<") < nav.index(">History<")
+    assert nav.index(">Players<") < nav.index(">Aircraft<") < nav.index(">History<")
     assert nav.index(">History<") < nav.index("Discord")
     top_level = re.sub(r"<details.*?</details>", "", nav, flags=re.S)
     assert ">Missions<" not in top_level
     assert ">Sorties<" not in top_level
+    assert ">Leaderboards<" not in top_level
     menu = nav[nav.index("<details") : nav.index("</details>")]
     assert re.search(r"<summary[^>]*>History</summary>", menu)
-    assert menu.index('href="/missions/"') < menu.index('href="/sorties/"')
+    assert menu.index('href="/missions/"') < menu.index('href="/sorties/"') < menu.index('href="/leaderboards/"')
     assert ">Missions<" in menu
     assert ">Sorties<" in menu
     assert " open" not in opening_tag(menu, r"<details[^>]*>")
 
 
-@pytest.mark.parametrize(("url", "other"), [("/missions/", "/sorties/"), ("/sorties/", "/missions/")])
-def test_the_dropdown_and_its_link_are_current_on_the_missions_and_sorties_pages(
+@pytest.mark.parametrize(
+    ("url", "other"), [("/missions/", "/sorties/"), ("/sorties/", "/missions/"), ("/leaderboards/", "/missions/")]
+)
+def test_the_dropdown_and_its_link_are_current_on_the_missions_sorties_and_leaderboards_pages(
     client: Client, url: str, other: str
 ) -> None:
     seed()
@@ -62,11 +66,11 @@ def test_the_dropdown_and_its_link_are_current_on_the_missions_and_sorties_pages
     assert "aria-current" not in opening_tag(menu, rf'<a href="{other}"[^>]*>')
 
 
-def test_the_dropdown_is_current_on_a_mission_page_and_only_there(client: Client) -> None:
+def test_the_dropdown_is_current_on_a_mission_page_and_not_elsewhere(client: Client) -> None:
     pk = seed()
 
     assert 'aria-current="page"' in opening_tag(nav_of(client, f"/missions/{pk}/"), r"<summary[^>]*>")
-    for url in ("/", "/players/", "/aircraft/", "/leaderboards/"):
+    for url in ("/", "/players/", "/aircraft/"):
         assert "aria-current" not in opening_tag(nav_of(client, url), r"<summary[^>]*>"), url
 
 

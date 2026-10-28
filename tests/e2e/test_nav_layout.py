@@ -67,6 +67,10 @@ MEASURE = """() => {
 }"""
 
 
+# Players, Aircraft and the History menu (Leaderboards moved into it in 0.3.0)
+BUILT_IN = 3
+
+
 def measure(page: Page, width: int) -> dict[str, int]:
     page.set_viewport_size({"width": width, "height": 900})
     page.goto("/")
@@ -77,7 +81,7 @@ def measure(page: Page, width: int) -> dict[str, int]:
 
 def check_invariants(got: dict[str, int], count: int, width: int) -> None:
     where = f"{count} links at {width}px: {got}"
-    assert got["items"] >= 4 + count, where
+    assert got["items"] >= BUILT_IN + count, where
     assert got["scrollOverflow"] <= 0, f"horizontal scrollbar, {where}"
     assert got["minLeft"] >= 0, f"a link is off screen, {where}"
     assert got["maxRight"] <= width, f"a link is off screen, {where}"
@@ -93,7 +97,7 @@ def test_header_holds_up_with_one_to_six_custom_links(
         set_branding({"links": labels[:count]})
         for width in WIDTHS:
             got = measure(page, width)
-            assert got["items"] == 4 + count
+            assert got["items"] == BUILT_IN + count
             check_invariants(got, count, width)
 
 
