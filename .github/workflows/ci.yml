@@ -67,6 +67,8 @@ jobs:
     # the functional jobs so a slow runner never fails them. SQLite first (what ships), then the Postgres service:
     # Postgres plans queries differently and is where a slow query shows up.
     runs-on: ubuntu-latest
+    # Both passes take about 10 minutes; a bad plan while seeding once made it 20 to 110 (tests/perf/seed.py, ANALYZE_EVERY).
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:17

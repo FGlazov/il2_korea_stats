@@ -20,6 +20,19 @@ SIDE_OF = {"MiG-15bis": 1, "IL-10": 1, "F-86A-5": 2, "F-51D": 2}
 DEFAULT_MISSIONS = 60
 DEFAULT_PLAYERS = 250
 DEFAULT_SORTIES_PER_MISSION = 30
+ANALYZE_EVERY = 5
+"""Missions between two `ANALYZE`s on Postgres while seeding. The tests seed inside a transaction they roll back, so
+autovacuum never sees the rows and the planner keeps the statistics of empty tables (rows=1): the ingest queries of
+`save_mission` then ran as nested loops with join filters, and the second seeding of a run took 20 to 140 minutes in CI
+and locally instead of about one (the first one is fast only by luck of the leftover statistics)."""
+
+
+def _analyze_on_postgres() -> None:
+    from django.db import connection
+
+    if connection.vendor == "postgresql":
+        with connection.cursor() as cursor:
+            cursor.execute("ANALYZE")
 
 
 @dataclass(frozen=True)
@@ -95,6 +108,8 @@ def fill(
         )
         uid = started.strftime("%Y-%m-%d_%H-%M-%S")
         f.save(f.mission(tuple(sorties), kills), f.meta(uid, started))
+        if m % ANALYZE_EVERY == 0:
+            _analyze_on_postgres()
 
     # The player with the most sorties: the heaviest per-player pages.
     busiest = Player.objects.annotate(n=Count("sortie_rows")).order_by("-n", "pk").first()
