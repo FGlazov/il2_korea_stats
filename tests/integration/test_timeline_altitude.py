@@ -38,7 +38,7 @@ def page(client: Client, coalition: int, language: str = "en") -> str:
 
 def altitude_cells(html: str) -> list[str]:
     cells = re.findall(r'<td class="num nowrap timeline__alt">(.*?)</td>', html, flags=re.S)
-    return [re.sub(r"<[^>]+>", "", cell).strip() for cell in cells]
+    return [re.sub(r"<[^>]+>", "", re.sub(r"<span class=\"col-tip.*?</span>", "", cell)).strip() for cell in cells]
 
 
 def test_a_redfor_sortie_shows_metres_with_grouping_and_blanks_a_row_without_position(client: Client) -> None:
@@ -53,8 +53,9 @@ def test_a_blufor_sortie_shows_angels_with_the_exact_feet_in_the_tooltip(client:
 
     # 4500.4 m = 14,765 ft -> Angels 15; 4572 m = 15,000 ft -> Angels 15
     assert altitude_cells(html) == ["Angels 15", "Angels 15", ""]
-    assert f'title="14,765{NBSP}ft"' in html
-    assert f'title="15,000{NBSP}ft"' in html
+    assert f'role="tooltip">14,765{NBSP}ft</span>' in html
+    assert f'role="tooltip">15,000{NBSP}ft</span>' in html
+    assert "title=" not in html[: html.index("</table>")]  # a native title shows too late, never on touch
 
 
 def test_the_altitude_column_header_says_above_sea_level(client: Client) -> None:

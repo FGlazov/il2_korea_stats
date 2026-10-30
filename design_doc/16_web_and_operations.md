@@ -73,7 +73,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   No nested interactive elements; ids are `hint-<hash of the text>-<n>`, numbered per render, so a full page and an htmx region never clash.
 - **Showing it**: CSS shows it on `:hover` and `:focus-within`; the tooltip is `position: fixed` (the scrolling `.table-wrap` would clip an
   absolute one) and `il2ks.js` places it under the header, clamped to the viewport (so it never causes sideways page scroll at 360 px).
-  A tap on the marker toggles it (a tap on a sort link sorts); Escape hides it; a scroll or resize closes a tapped one. Colours are
+  Timeline cells use the same tooltip through `{% cell_hint %}` (time: x/z, altitude: exact feet, ammo: designation; 2026-10-30, maintainer: the native `title` showed too late; a tap on the value toggles it, no tab stop since a long timeline would have hundreds). A tap on the marker toggles it (a tap on a sort link sorts); Escape hides it; a scroll or resize closes a tapped one. Colours are
   tokens, so both themes work. Tests: `tests/integration/test_column_hints.py`, `tests/e2e/test_column_hints.py`.
 - Adding a column: use `hint=` with a new `HINTS` key (or name the optional column's key in `HINTS`), then `il2ks dev translations update`.
 

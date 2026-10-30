@@ -7,6 +7,7 @@ import pytest
 from playwright.sync_api import Page, expect
 
 from tests.e2e.flow_helpers import no_horizontal_scroll
+from tests.e2e.test_column_hints import expect_inside_viewport
 from tests.e2e.world import World
 
 type SetBranding = Callable[[dict[str, object]], None]
@@ -62,3 +63,34 @@ def test_the_timeline_shows_an_altitude_column_without_overflowing_a_phone(page:
     header = page.locator("table.timeline thead th", has_text="Altitude")
     expect(header).to_be_visible()
     assert no_horizontal_scroll(page)
+
+
+@pytest.mark.parametrize("width", [1280, 360])
+def test_a_timeline_cell_shows_its_tooltip_on_hover_and_tap_unclipped(page: Page, world: World, width: int) -> None:
+    """Regression (maintainer, 2026-10-30): the timeline's native `title` tooltips took so long to appear that they
+    looked broken, and a touch screen has none. Its cells use the site's own tooltip now, which must stay inside the
+    viewport and on top of the sticky first column of the rows below it."""
+    page.set_viewport_size({"width": width, "height": 800})
+    page.goto(f"/sorties/{world.logs_sortie_pk}/")
+    hint = page.locator("table.timeline tbody td:first-child .cell-hint").first
+    tip = hint.get_by_role("tooltip")
+    expect(tip).to_be_hidden()
+
+    hint.hover()
+    expect(tip).to_be_visible()
+    expect_inside_viewport(page, tip)
+    on_top = """t => {
+        const box = t.getBoundingClientRect();
+        return document.elementFromPoint(box.x + 4, box.bottom - 4) === t;
+    }"""
+    assert tip.evaluate(on_top)
+
+    page.mouse.move(0, 0)
+    expect(tip).to_be_hidden()
+
+    hint.click()  # what a tap does
+    page.mouse.move(0, 0)
+    expect(tip).to_be_visible()
+    expect_inside_viewport(page, tip)
+    page.get_by_role("heading", level=1).click()
+    expect(tip).to_be_hidden()

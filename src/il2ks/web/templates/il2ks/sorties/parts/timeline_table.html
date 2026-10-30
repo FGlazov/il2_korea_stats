@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v2.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v2.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Timeline rows as a table. Context: rows (sortie_view.TimelineRow: kind, icon, label, tone, clock, utc, place, text,
   who, altitude, altitude_title, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element, the first 20 listed (OQ-96).
@@ -8,7 +8,7 @@
     <tbody>
       {% for row in rows %}
         <tr class="timeline__row{% if row.tone %} timeline__row--{{ row.tone }}{% endif %}{% if row.kind == "hit_given" %} timeline__row--hit-given{% elif row.kind == "hit_taken" %} timeline__row--hit-taken{% elif row.kind == "kill" or row.kind == "kill_group" %} timeline__row--kill{% elif row.kind == "assist" %} timeline__row--assist{% elif row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" or row.kind == "captured" %} timeline__row--death{% endif %}">
-          <td class="nowrap"><span{% if row.place %} title="{{ row.place }}"{% endif %}>{{ row.clock }}</span> <small>{{ row.at|local_clock }}</small></td>
+          <td class="nowrap">{% cell_hint row.clock row.place %} <small>{{ row.at|local_clock }}</small></td>
           <td class="nowrap"><span class="timeline__event">{% icon row.icon %}{{ row.label }}</span></td>
           <td>
             {% if row.children %}
@@ -19,10 +19,10 @@
             {% else %}
               {% if row.ram %}<span class="timeline__ram">{% badge _("Ram") "orange" icon="event/ram" %}</span> {% endif %}{% if row.text %}{{ row.text }}{% endif %}
               {% if row.who %}{% if row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" %}<span class="muted">{% translate "by" %}</span> {% elif row.kind == "friendly_fire" %}{% badge _("Friendly") "red" %} {% endif %}{% include "il2ks/sorties/parts/who.html" with who=row.who %}{% endif %}
-              {% if row.ammo %}<small class="timeline__ammo"{% if row.ammo_title %} title="{{ row.ammo_title }}"{% endif %}>{{ row.ammo }}</small>{% endif %}
+              {% if row.ammo %}<small class="timeline__ammo">{% cell_hint row.ammo row.ammo_title %}</small>{% endif %}
             {% endif %}
           </td>
-          <td class="num nowrap timeline__alt">{% if row.altitude %}<span{% if row.altitude_title %} title="{{ row.altitude_title }}"{% endif %}>{{ row.altitude }}</span>{% endif %}</td>
+          <td class="num nowrap timeline__alt">{% if row.altitude %}{% cell_hint row.altitude row.altitude_title %}{% endif %}</td>
           <td class="num nowrap">{% if row.damage %}<span class="timeline__damage timeline__damage--{% if row.kind == "hit_given" %}given{% else %}taken{% endif %}">{{ row.damage }}</span>{% endif %}</td>
         </tr>
       {% endfor %}

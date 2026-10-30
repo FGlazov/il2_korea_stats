@@ -571,6 +571,21 @@ def _hint_context(context: Context, hint: object) -> dict[str, object]:
     return {"hint": text, "hint_id": f"hint-{digest}-{seen[digest]}"}
 
 
+@register.simple_tag
+def cell_hint(text: object, hint: object = "") -> str:
+    """{% cell_hint row.altitude row.altitude_title %}: a value with the site's tooltip, shown at once on hover and on
+    a tap, where a native `title` shows late and a touch screen has none (il2ks.js places it like a column description,
+    components/col_th.html). No tab stop: a long timeline would have hundreds. Just the text without a `hint`."""
+    if not hint:
+        return format_html("{}", text)
+    return format_html(
+        '<span class="has-hint cell-hint"><span class="col-hint__label">{}</span>'
+        '<span class="col-tip" role="tooltip">{}</span></span>',
+        text,
+        hint,
+    )
+
+
 @register.inclusion_tag(COMPONENTS + "col_th.html", takes_context=True)
 def col_th(context: Context, label: object, numeric: bool = False, hint: object = "") -> dict[str, object]:
     """{% col_th _("Elo") numeric=True hint="elo" %}: a plain (not sortable) <th> with an optional description.

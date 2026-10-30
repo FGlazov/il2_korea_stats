@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/il2ks.js v2.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/il2ks.js v3.0 - copy this line along when you override */
 /* Small progressive enhancements. Everything works without this file (and without htmx).
  * Loaded with `defer`, after vendor/htmx.min.js. */
 (function () {
@@ -42,7 +42,7 @@
         menu.removeAttribute("open");
       });
       // Column descriptions: Escape hides the open one until the pointer or focus comes back.
-      document.querySelectorAll("th.has-hint").forEach(function (th) {
+      document.querySelectorAll(".has-hint").forEach(function (th) {
         th.removeAttribute("data-hint-open");
         th.classList.remove("is-open");
         if (th.matches(":hover, :focus-within")) { th.setAttribute("data-hint-dismissed", ""); }
@@ -69,7 +69,8 @@
 
   // Column descriptions (components/col_th.html): the tooltip is position: fixed (a scrolling .table-wrap would clip an
   // absolute one); place it under its header, inside the viewport. CSS shows it on hover and focus; a tap or click on
-  // the marker (the only way on a touch screen, a tap on a sort link sorts) toggles .is-open.
+  // the marker (the only way on a touch screen, a tap on a sort link sorts) toggles .is-open. A table cell's tooltip
+  // ({% cell_hint %}) works the same, a tap on the value itself toggling it.
   function placeHint(th) {
     var tip = th.querySelector(".col-tip");
     if (!tip) { return; }
@@ -87,7 +88,7 @@
   }
   function showHint(event) {
     var target = event.target;
-    var th = target instanceof Element ? target.closest("th.has-hint") : null;
+    var th = target instanceof Element ? target.closest(".has-hint") : null;
     if (th) {
       th.setAttribute("data-hint-open", "");  // measure with the tooltip displayed, then place it
       placeHint(th);
@@ -96,7 +97,7 @@
   }
   function hideHint(event) {
     var target = event.target;
-    var th = target instanceof Element ? target.closest("th.has-hint") : null;
+    var th = target instanceof Element ? target.closest(".has-hint") : null;
     if (th && !th.matches(":hover, :focus-within")) { th.removeAttribute("data-hint-dismissed"); }
   }
   document.addEventListener("pointerover", showHint);
@@ -105,9 +106,9 @@
   document.addEventListener("focusout", hideHint);
   document.addEventListener("click", function (event) {
     var target = event.target;
-    var marker = target instanceof Element ? target.closest(".col-hint__marker") : null;
-    var open = marker ? marker.closest("th.has-hint") : null;
-    document.querySelectorAll("th.has-hint.is-open").forEach(function (th) { if (th !== open) { th.classList.remove("is-open"); } });
+    var marker = target instanceof Element ? target.closest(".col-hint__marker, .cell-hint") : null;
+    var open = marker ? marker.closest(".has-hint") : null;
+    document.querySelectorAll(".has-hint.is-open").forEach(function (th) { if (th !== open) { th.classList.remove("is-open"); } });
     if (open) {
       var show = !open.classList.contains("is-open");
       open.classList.toggle("is-open", show);
@@ -116,7 +117,7 @@
   });
   // A scroll or resize moves the header away from its fixed tooltip: close it.
   function closeHints() {
-    document.querySelectorAll("th.has-hint.is-open").forEach(function (th) { th.classList.remove("is-open"); });
+    document.querySelectorAll(".has-hint.is-open").forEach(function (th) { th.classList.remove("is-open"); });
   }
   window.addEventListener("resize", closeHints);
   document.addEventListener("scroll", closeHints, true);

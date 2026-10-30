@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v5.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v6.0 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -387,6 +387,8 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 }
 .has-hint:hover .col-tip, .has-hint:focus-within .col-tip, .has-hint.is-open .col-tip, .has-hint[data-hint-open] .col-tip { display: block; }
 .has-hint[data-hint-dismissed] .col-tip { display: none; }
+/* A cell's tooltip ({% cell_hint %}): the sticky first column is a stacking context, the next row's would cover it. */
+.data-table tbody td:has(.cell-hint:hover, .cell-hint.is-open) { z-index: 6; }
 
 /* ---- 7. Components ----------------------------------------------------------------------------------------- */
 /* Results region: filters + table + pagination swapped as one unit by htmx. */

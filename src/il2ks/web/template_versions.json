@@ -24,12 +24,13 @@
       }
     },
     "static/il2ks/il2ks.js": {
-      "version": "2.0",
-      "sha256": "c78759e898ff7ad93bbacf77c3c613a0e52ae14c703b6220e0cd93463666cd24",
+      "version": "3.0",
+      "sha256": "0130daaa10a7028fb9bd7e33554f516f225127b756cb2768cb7ce621a8d8b19e",
       "contract": {
         "selectors": [
           "#columns-picker",
           "#results",
+          ".cell-hint",
           ".col-hint__marker",
           ".col-tip",
           ".columns-picker__count",
@@ -79,8 +80,8 @@
       }
     },
     "static/il2ks/missions.css": {
-      "version": "1.0",
-      "sha256": "472b49d855414c81b539c9e54c4f90e543b5ae2f6f934ac813cd948ee7f2562f",
+      "version": "1.1",
+      "sha256": "135a03c599a71fa15169732503d74ce4fa65f5461f2e0f41d284649a2edffef9",
       "contract": {
         "defines": [
           ".aircraft-cell",
@@ -201,8 +202,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "5.0",
-      "sha256": "1df1f690b03c73c6b5e92cee1385ece4b33c7c5cc04b923b2c63592e4e674c28",
+      "version": "6.0",
+      "sha256": "3d2c1790609e0198163f23da98078f43a989297e60a40fe2f47274e4de040075",
       "contract": {
         "defines": [
           "--icon",
@@ -344,6 +345,7 @@
           ".button-row",
           ".button-row--center",
           ".card",
+          ".cell-hint",
           ".chart",
           ".chart__axis",
           ".chart__bar",
@@ -4617,8 +4619,8 @@
       }
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
-      "version": "2.0",
-      "sha256": "fc58d0e221b4fe5e52ddb4d80d8fd4bd36605535f42ba9ee548f8e93aefb147f",
+      "version": "2.1",
+      "sha256": "6f4fe0446651b35d5d6c236497d85eeb24b339e3ec36c6a799782d5e10be20ee",
       "contract": {
         "filters": [
           "local_clock",
@@ -4654,6 +4656,7 @@
         ],
         "tags": [
           "badge",
+          "cell_hint",
           "col_th",
           "icon"
         ],

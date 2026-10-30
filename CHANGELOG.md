@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.1 (2026-10-30)
+
+### Fixed
+
+- **Sortie timeline:** the exact feet, the map position and the ammunition's designation now appear as soon as you hover
+  the value (dotted underline), and on a phone when you tap it. They were browser tooltips, which take a while to show
+  and don't exist on a touch screen.
+- **Mission page:** the sortie tables no longer cut off "Ground" and the help marker of "Assists". Long column names, as
+  in the translations, wrap instead of running under the next column.
+
+### Templates changed (check your custom/ overrides)
+
+- `static/il2ks/il2ks.js`: v2.0 -> v3.0, `static/il2ks/site.css`: v5.0 -> v6.0 (`.cell-hint`; column description tooltips
+  no longer need to sit in a `th`).
+
 ## 0.3.0 (2026-10-28)
 
 ### Changed
