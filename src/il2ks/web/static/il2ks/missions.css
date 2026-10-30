@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/missions.css v2.1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/missions.css v2.2 - copy this line along when you override */
 /* Mission pages (home, list, detail): the few styles the shared theme does not cover. Tokens come from site.css. */
 .mission-when { display: block; margin-top: 0.1rem; font-weight: 400; font-size: 0.78rem; }
 .data-table tr.is-empty { color: var(--il2-muted); } /* not opacity: a sticky first cell must stay opaque */
@@ -44,10 +44,10 @@
 /* Sortie tables of one mission page share column widths so the two sides line up. */
 .sortie-table { table-layout: fixed; min-width: calc(66rem + var(--extra-cols, 0) * 6.5rem); } /* narrower: the wrapper scrolls instead of crushing the cells */
 .sortie-table th:nth-child(1) { width: 5rem; }
-.sortie-table th:nth-child(2) { width: 12%; }
-.sortie-table th:nth-child(3) { width: 12%; }
+.sortie-table th:nth-child(2) { width: 11.5%; }
+.sortie-table th:nth-child(3) { width: 11.5%; }
 .sortie-table th:nth-child(4) { width: 14%; }
-.sortie-table th:nth-child(5) { width: 12%; }
+.sortie-table th:nth-child(5) { width: 13%; }
 .sortie-table th:nth-child(6) { width: 11%; }
 .sortie-table th:nth-child(7), .sortie-table th:nth-child(8) { width: 5.25rem; }
 .sortie-table th:nth-child(9) { width: 7.25rem; }
@@ -59,7 +59,7 @@
 .sortie-table th:nth-child(n+11) { width: 6.5rem; } /* the optional (?cols=) columns */
 .sortie-table th:last-child { width: 3rem; } /* Details */
 .sortie-table tbody th { overflow-wrap: anywhere; }
-.sortie-table td .badge { white-space: normal; } /* "Господство в воздухе" is wider than its column */
+.sortie-table td .badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; } /* never into the next column, on any font: "Господство в воздухе", "Abgeschossen" */
 
 /* "On this page" links (Pico lays a <nav> out with space-between). */
 .jump-links { justify-content: flex-start; gap: 0.4rem 1.6rem; margin: 0 0 0.25rem; }

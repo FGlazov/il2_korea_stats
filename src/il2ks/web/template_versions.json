@@ -80,8 +80,8 @@
       }
     },
     "static/il2ks/missions.css": {
-      "version": "2.1",
-      "sha256": "f7ff3e37801e0d3144ca32fe7bb003cb3cf2f811b0f504ee83c3c5abbae137c9",
+      "version": "2.2",
+      "sha256": "2dac7a14d0d6a94889b9880d880c764145c946b13d1609b79f835bf7bb09e4ea",
       "contract": {
         "defines": [
           ".aircraft-cell",

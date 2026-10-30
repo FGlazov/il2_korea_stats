@@ -15,7 +15,7 @@
 
 - `static/il2ks/il2ks.js`: v2.0 -> v3.0, `static/il2ks/site.css`: v5.0 -> v6.0 (`.cell-hint`; column description tooltips
   no longer need to sit in a `th`).
-- `static/il2ks/missions.css`: v1.0 -> v2.1 (the sortie table's column widths and padding; wrapping badges).
+- `static/il2ks/missions.css`: v1.0 -> v2.2 (the sortie table's column widths and padding; wrapping badges).
 
 ## 0.3.0 (2026-10-28)
 
