@@ -7,13 +7,15 @@
 - **Sortie timeline:** the exact feet, the map position and the ammunition's designation now appear as soon as you hover
   the value (dotted underline), and on a phone when you tap it. They were browser tooltips, which take a while to show
   and don't exist on a touch screen.
-- **Mission page:** the sortie tables no longer cut off "Ground" and the help marker of "Assists". Long column names, as
-  in the translations, wrap instead of running under the next column.
+- **Mission page:** the sortie tables no longer cut off "Ground" and the help marker of "Assists", and the Russian role
+  badge no longer runs over the outcome. Long column names and badges, as in the translations, wrap instead of running
+  into the next column.
 
 ### Templates changed (check your custom/ overrides)
 
 - `static/il2ks/il2ks.js`: v2.0 -> v3.0, `static/il2ks/site.css`: v5.0 -> v6.0 (`.cell-hint`; column description tooltips
   no longer need to sit in a `th`).
+- `static/il2ks/missions.css`: v1.0 -> v2.1 (the sortie table's column widths and padding; wrapping badges).
 
 ## 0.3.0 (2026-10-28)
 

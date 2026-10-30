@@ -97,20 +97,22 @@ def test_a_plain_header_shows_its_description_on_focus_and_tap(page: Page, world
 
 @pytest.mark.parametrize("language", ["en", "de", "fr", "es", "pt-br", "ru"])
 def test_the_mission_sortie_table_fits_its_fixed_columns(page: Page, world: World, language: str) -> None:
-    """Regression (maintainer, 2026-10-30): `.sortie-table` has fixed widths (both sides line up), and "Ground" with its
-    sort arrow ran under the next header, as did the marker of "Assists". Nothing in a cell may leave its box."""
-    page.set_viewport_size({"width": 1280, "height": 800})
+    """Regression (maintainer, 2026-10-30): `.sortie-table` has fixed widths (both sides line up): "Ground" with its
+    sort arrow ran under the next header, as did the marker of "Assists", and the Russian role badge over the outcome.
+    Nothing in a cell may leave its box. The real log's mission is the one with role badges."""
+    page.set_viewport_size({"width": 1228, "height": 800})
     page.set_extra_http_headers({"Accept-Language": language})
-    page.goto(f"/missions/{world.featured_mission_pk}/")
 
-    overflowing = page.evaluate(
-        """() => [...document.querySelectorAll('.sortie-table th, .sortie-table td')].flatMap(cell => {
-            const edge = cell.getBoundingClientRect().right;
-            return [...cell.querySelectorAll('a, .col-hint__marker, .badge')]
-                .filter(part => part.getBoundingClientRect().right > edge + 0.5
-                    || part.scrollWidth > part.clientWidth + 1)
-                .map(part => cell.textContent.trim().slice(0, 30));
-        })"""
-    )
-
-    assert overflowing == []
+    for mission in (world.featured_mission_pk, world.logs_mission_pk):
+        page.goto(f"/missions/{mission}/")
+        overflowing = page.evaluate(
+            """() => [...document.querySelectorAll('.sortie-table th, .sortie-table td')].flatMap(cell => {
+                const edge = cell.getBoundingClientRect().right;
+                return [...cell.querySelectorAll('a, .col-hint__marker, .badge')]
+                    .filter(part => part.getBoundingClientRect().right > edge + 0.5
+                        || part.scrollWidth > part.clientWidth + 1)
+                    .map(part => `${cell.textContent.trim().slice(0, 30)}: ${part.scrollWidth}`);
+            })"""
+        )
+        assert overflowing == []
+    expect(page.locator(".sortie-table td:nth-child(4) .badge").first).to_be_visible()
