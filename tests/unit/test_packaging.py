@@ -38,6 +38,11 @@ MUST_SHIP = [
 ]
 
 
+def test_the_readme_states_the_current_version() -> None:
+    """The maintainer's rule: every release updates the status line (it still said 0.4.0 at 0.5.2)."""
+    assert f"public beta, version {__version__}." in (REPO / "README.md").read_text(encoding="utf-8")
+
+
 def pyproject(*keys: str) -> object:
     """A value from pyproject.toml by key path."""
     data: object = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))

@@ -3,7 +3,7 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: public beta, version 0.4.0.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
+**Status: public beta, version 0.5.2.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
 please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/issues). The design lives in
 [design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
 
@@ -97,7 +97,7 @@ uv run il2ks web --dev        # the site on plain http://127.0.0.1:8000 (debug m
 ```
 
 `uv run il2ks run` starts everything as an admin would (web + log watcher + Caddy); see [docs/install.md](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md).
-To publish a release: bump `__version__` in `src/il2ks/__init__.py`, tag `v<version>`, push the tag (`.github/workflows/release.yml`).
+To publish a release: bump `__version__` in `src/il2ks/__init__.py`, update the status line at the top of this file, tag `v<version>`, push the tag (`.github/workflows/release.yml`).
 
 Postgres is only used on the dev side: `docker compose -f docker/compose.dev.yaml up -d`, then `IL2KS_TEST_DB=postgres uv run pytest`.
 

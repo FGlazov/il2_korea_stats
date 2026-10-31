@@ -81,7 +81,8 @@ change the file: it prints the reasons next to the file name. Put the important 
 ## Making a release
 
 1. Raise `__version__` in `src/il2ks/__init__.py` (the only place) and add a section for it at the top of
-   `CHANGELOG.md`, with the template changes from above.
+   `CHANGELOG.md`, with the template changes from above. Update the status line at the top of `README.md` too (a test
+   checks it). A README fix after the tag only needs `main`: the GitHub page is what counts.
 2. Migrations ship as they are: never edit or squash a released one (`il2ks dev check-migrations` guards this).
 3. **Audit clean**: the `Dependency audit` workflow (`pip-audit` over `uv.lock`, also run weekly) is green on `main`. A
    flagged package is updated (Dependabot opens the pull request), or, for a false positive, ignored in
