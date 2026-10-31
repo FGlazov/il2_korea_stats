@@ -466,6 +466,7 @@ def live_check(cfg: Config) -> Iterable[Finding]:
             Level.OK,
             "Sorties of the running mission are shown while it runs",
             f"saved every {cfg.live.sorties_interval_s:.0f} s by il2ks watch"
+            + (f", {cfg.live.delay_minutes:g} min behind the game" if cfg.live.delayed else "")
             + (f"; {running} running mission(s) are in the statistics now" if running else ""),
         )
     else:

@@ -69,6 +69,10 @@
 # Seconds between two updates of the totals those sorties feed (player profiles, leaderboards, aircraft pages). This is
 # the heavier part, so it runs less often. 0 = only when the mission ends. Ratings are always worked out at the end.
 #aggregates_interval_s = 300.0
+# Minutes the stats of a running mission lag behind the game, so nobody can use them to gain an advantage in a fight:
+# sides, aircraft, flight times, kills, sorties and totals. Who is on the server is always up to date. The website says
+# there is a delay, but not how long. 0 = no delay.
+#delay_minutes = 10.0
 
 # --- Game rules for the replay (FR-ING-14, FR-ING-17, FR-ING-21, FR-ING-22) ----------------------------------------
 # A changed rule only affects missions ingested afterwards; run `il2ks reprocess --all` (or --since DATE) to apply

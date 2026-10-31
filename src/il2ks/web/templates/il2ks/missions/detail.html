@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v1.2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None, .rows = this page's
   PlayerSortie rows with .player and .aircraft; .page and .page_param for the pagination; 20 per side, OQ-96), kills (a Page of
@@ -20,7 +20,7 @@
     </p>
   </div>
 
-  {% if mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "The numbers may still change until it ends." %}{% endnotice %}{% endif %}
+  {% if mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "The numbers may still change until it ends." %}{% if mission.live_delayed %} {% translate "Sorties appear here with a delay, so the stats give nobody an advantage in the game." %}{% endif %}{% endnotice %}{% endif %}
 
   {% side "redfor" as red_name %}{% side "blufor" as blue_name %}
   {% blocktranslate asvar sides_sub with red=mission.redfor_sorties blue=mission.blufor_sorties %}{{ red_name }} {{ red }} · {{ blue_name }} {{ blue }}{% endblocktranslate %}

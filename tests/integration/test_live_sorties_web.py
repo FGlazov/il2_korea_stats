@@ -1,6 +1,8 @@
 """What the pages show of a provisional (still running) mission (FR-ING-15): a notice on the mission and the sortie
 page, a "Live" badge in the lists, and no extra queries (TD-22). Synthetic data only."""
 
+import re
+
 import pytest
 from django.db import connection
 from django.test import Client
@@ -8,12 +10,14 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from il2ks.db.models import Mission, PlayerSortie
+from il2ks.db.site import bump_data_version
 from tests.factories import mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
 pytestmark = pytest.mark.django_db
 
 NOTICE = "The numbers may still change until it ends."
+DELAY_NOTICE = "Sorties appear here with a delay"
 
 
 def seed(*, live: bool) -> tuple[int, int]:
@@ -46,6 +50,20 @@ def test_the_mission_and_sortie_pages_of_a_running_mission_show_the_notice(clien
     assert ">Live<" in header_html
     assert "Log incomplete" not in mission_html  # a running mission is not "incomplete"
     assert "badge--green" in mission_html
+
+
+def test_a_delayed_mission_says_so_without_saying_how_long(client: Client) -> None:
+    """FR-ING-25: the pages say there is a delay, never its length; a running mission without one stays silent."""
+    mission_pk, sortie_pk = seed(live=True)
+    urls = [reverse("web:mission-detail", args=[mission_pk]), reverse("web:sortie-detail", args=[sortie_pk])]
+    assert all(DELAY_NOTICE not in client.get(url).content.decode() for url in urls)
+
+    Mission.objects.filter(pk=mission_pk).update(live_delayed=True)
+    bump_data_version()
+    for url in urls:
+        html = client.get(url).content.decode()
+        line = next(s for s in html.splitlines() if DELAY_NOTICE in s)
+        assert not re.search(r"\d|minute", line)
 
 
 def test_a_finished_mission_has_no_notice_and_no_badge(client: Client) -> None:

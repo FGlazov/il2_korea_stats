@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.0 (2026-10-31)
+
+### Added
+
+- **Stats delay:** the stats of a running mission now lag the game, so nobody can use the site to gain an advantage in a
+  fight. Sides, aircraft, flight times, kills, sorties and the totals they feed are held back; how many players are online
+  and their names stay up to date. Set the time with `delay_minutes` under `[live]` in `il2ks.toml`. **The default is 10
+  minutes**; `0` switches it off and gives the old behaviour.
+- The online now box and the pages of a running mission tell visitors there is a delay, but not how long.
+
+### Changed
+
+- **A mission that ends is published at once:** its complete stats appear within one look at the log (30 s by default)
+  instead of waiting for the final save, which follows as before.
+
+### Upgrading
+
+- One new database migration; it runs by itself as usual.
+
+### Templates changed (check your custom/ overrides)
+
+- `components/online_now_body.html`, `missions/detail.html` and `sorties/parts/header.html` show the delay notice. These are
+  cosmetic version bumps, so nothing breaks, but an override of them won't show the notice until you add it.
+
 ## 0.4.0 (2026-10-31)
 
 ### Added

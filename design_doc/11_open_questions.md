@@ -15,6 +15,10 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-143 Stats delay: what counts as a detail** (doc 02 FR-ING-25, doc 14 "Stats delay")
+Applied: the **side** is held back like the aircraft, so the red/blue counts in online now lag too and a player who joined within the delay has no side yet (a live count per side would show reinforcements).
+A name still appears the moment an unknown player first spawns, because the name comes from that line. `delay_minutes` is set in `il2ks.toml` only, not in the admin. The wording of the two notices is a first draft. Fine, or change any of these?
+
 **OQ-142 End a tour and resume the same tour later** (doc 14 "Delete a tour or missions", TD-26; maintainer 2026-10-31: delete only for now)
 A tour is one unbroken time range and a mission belongs to the tour holding its start, so a test tour that pauses while a real tour runs and then continues needs a tour with
 several time spans (manual mode only; the calendar modes end by the date). That extends TD-26 and touches the activity chart, the wipe's manual boundaries and `retour`. For

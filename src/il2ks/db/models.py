@@ -493,6 +493,7 @@ class Mission(models.Model):
     # Provisional: the mission is still running and `watch` saved its sorties so far (FR-ING-15). The final save (the
     # normal ingest once the mission is complete) rewrites the same rows by the same natural keys and clears this.
     is_live = models.BooleanField(default=False)
+    live_delayed = models.BooleanField(default=False)  # provisional, and behind the game on purpose (FR-ING-25)
     # The tour containing `started_at` (TD-26). Null only for missions saved before tours existed, until the next
     # `rebuild-aggregates`.
     tour = models.ForeignKey("Tour", on_delete=models.PROTECT, null=True, related_name="missions")
@@ -2089,6 +2090,7 @@ class LiveMission(models.Model):
     elapsed_s = models.FloatField(default=0.0)  # mission time passed at the snapshot
     updated_at = models.DateTimeField()
     interval_s = models.FloatField(default=30.0)  # `[live] interval_s` when written: lets readers judge staleness
+    delayed = models.BooleanField(default=False)  # the players' details lag the game (FR-ING-25): the website says so
     is_running = models.BooleanField(default=True)
 
     def __str__(self) -> str:

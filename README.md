@@ -51,7 +51,8 @@ Sturmovik: Korea servers.
   tour.
 - **Leaderboards**: air score, ground score, attack proficiency, interception, tank busting, Elo (propeller and jet)
   and play time. Scoring is yours to tune, including optional points for time in the air, so a quiet patrol counts too.
-- **Live data**: sorties and stats update while the mission is still running.
+- **Live data**: sorties and stats update while the mission is still running, a configurable time behind the game so they
+  give nobody an advantage in a fight.
 - **Aircraft pages**: how each type does, its best loadouts and modifications, and who it beats and loses to, filtered
   by tour, role and modification.
 - **Achievements**, streaks, killboards (who shot whom), accuracy, assists, and Top 25% / 10% / 5% / 1% marks on a

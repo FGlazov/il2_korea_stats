@@ -46,7 +46,7 @@ class Live:
         self.logs = tmp_path / "logs"
         self.logs.mkdir(parents=True)
         base = make_config(tmp_path / "data", self.logs)
-        self.cfg: Config = replace(base, live=live or LiveConfig(enabled=True, interval_s=30.0))
+        self.cfg: Config = replace(base, live=live or LiveConfig(delay_minutes=0.0, enabled=True, interval_s=30.0))
         # These tests are about online now only; saving the running mission provisionally (FR-ING-15) has its own
         # tests (test_live_sorties.py).
         SiteSettings.objects.update_or_create(pk=1, defaults={"show_live_sorties": False})
@@ -288,7 +288,7 @@ def watch_cfg(live: Live, *, interval_s: float = 30.0, enabled: bool = True) -> 
     return replace(
         live.cfg,
         ingest=replace(live.cfg.ingest, watch_interval_s=0.01),
-        live=LiveConfig(enabled=enabled, interval_s=interval_s),
+        live=LiveConfig(delay_minutes=0.0, enabled=enabled, interval_s=interval_s),
     )
 
 

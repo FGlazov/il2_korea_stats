@@ -71,7 +71,10 @@ class Scenario:
         base = make_config(tmp_path / "data", self.logs, after_archive="keep")
         self.cfg: Config = replace(
             base,
-            live=live or LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=1.0),
+            live=live
+            or LiveConfig(
+                delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=1.0
+            ),
         )
         self.lines = fixture_lines(fixture)
         self.end_at = mission_end_index(self.lines) if any(" AType:7" in line for line in self.lines) else None
@@ -286,7 +289,9 @@ def test_level_two_in_the_middle_of_a_live_mission_equals_a_rebuild(tmp_path: Pa
         tmp_path / "live",
         fixture="most_bailouts",
         uid="2026-09-19_21-00-00",
-        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=100.0, aggregates_interval_s=100000.0),
+        live=LiveConfig(
+            delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=100.0, aggregates_interval_s=100000.0
+        ),
     )
     live.cfg = replace(live.cfg, data_dir=earlier.cfg.data_dir)
     live.tracker = LiveTracker(live.cfg, cost_clock=free_clock)
@@ -368,7 +373,9 @@ def test_switching_the_toggle_off_removes_the_provisional_mission(scenario: Scen
 def test_level_one_and_level_two_run_on_their_own_intervals(tmp_path: Path) -> None:
     scenario = Scenario(
         tmp_path / "live",
-        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=400.0),
+        live=LiveConfig(
+            delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=400.0
+        ),
     )
     scenario.write(2)
     scenario.tick()  # the first pass does both
@@ -391,7 +398,9 @@ def test_level_one_and_level_two_run_on_their_own_intervals(tmp_path: Path) -> N
 def test_level_two_only_at_the_end_when_the_interval_is_zero(tmp_path: Path) -> None:
     scenario = Scenario(
         tmp_path / "live",
-        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=0.0),
+        live=LiveConfig(
+            delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=0.0
+        ),
     )
     scenario.write(3)
     scenario.tick()
@@ -566,7 +575,9 @@ def test_the_cpu_cap_follows_the_measured_cost_not_the_speed_of_the_machine(scen
 
 
 def test_the_sorties_interval_is_not_the_online_interval(tmp_path: Path) -> None:
-    scenario = Scenario(tmp_path / "live", live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=600.0))
+    scenario = Scenario(
+        tmp_path / "live", live=LiveConfig(delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=600.0)
+    )
     scenario.write(3)
     scenario.tick()
     saved_at = scenario.mission().ended_at
@@ -597,7 +608,7 @@ def test_watch_saves_the_running_mission_and_the_next_tick_after_the_end_finaliz
 
 
 def test_live_disabled_in_the_config_saves_nothing(tmp_path: Path) -> None:
-    scenario = Scenario(tmp_path / "live", live=LiveConfig(enabled=False))
+    scenario = Scenario(tmp_path / "live", live=LiveConfig(delay_minutes=0.0, enabled=False))
     scenario.write(3)
     cfg = replace(scenario.cfg, ingest=replace(scenario.cfg.ingest, watch_interval_s=0.01))
     watch(cfg, make_pipeline(FakeSteps()), max_ticks=1, now=lambda: scenario.clock)
@@ -676,7 +687,9 @@ def test_a_final_save_by_another_process_stops_the_saves_but_not_online_now(scen
 def test_pending_level_two_work_is_applied_when_the_mission_ends(tmp_path: Path) -> None:
     scenario = Scenario(
         tmp_path / "live",
-        live=LiveConfig(enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=100000.0),
+        live=LiveConfig(
+            delay_minutes=0.0, enabled=True, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=100000.0
+        ),
     )
     scenario.write(2)
     scenario.tick()
@@ -751,3 +764,61 @@ def test_a_doubled_log_stops_the_provisional_saves_but_not_online_now(
     assert not Mission.objects.exists()
     assert LivePlayer.objects.exists()
     assert sum("same sortie twice" in r.getMessage() for r in caplog.records) == 1  # said once, not every pass
+
+
+# --- the delay (FR-ING-25) -----------------------------------------------------------------------------------------
+
+
+DELAYED = LiveConfig(
+    enabled=True, delay_minutes=10.0, interval_s=30.0, sorties_interval_s=120.0, aggregates_interval_s=1.0
+)
+
+
+def test_the_delay_holds_back_the_sorties_but_not_who_is_online(tmp_path: Path) -> None:
+    open_view = Scenario(tmp_path / "open")
+    open_view.write(3)
+    open_view.tick()
+    current = set(LivePlayer.objects.values_list("account_uuid", flat=True))
+    newest_open = PlayerSortie.objects.order_by("-spawn_tick").values_list("spawn_tick", flat=True).first()
+    assert newest_open is not None
+    sorties = PlayerSortie.objects.count()
+    Mission.objects.all().delete()
+    LiveMission.objects.all().delete()
+
+    delayed = Scenario(tmp_path / "delayed", live=DELAYED)
+    delayed.write(3)
+    delayed.tick()
+
+    assert set(LivePlayer.objects.values_list("account_uuid", flat=True)) == current
+    assert PlayerSortie.objects.count() < sorties
+    mission = delayed.mission()
+    assert mission.is_live
+    assert mission.live_delayed
+    assert LiveMission.objects.get().delayed
+    assert LiveMission.objects.get().elapsed_s * 50 >= newest_open  # the mission clock itself is not held back
+
+
+def test_the_mission_end_publishes_everything_at_once(tmp_path: Path) -> None:
+    """The end of the mission ends the delay: the tick that reads AType 7 saves it all, even on an exhausted CPU budget,
+    and the final save after `settle_seconds` still gives what a one-shot ingest gives."""
+    reference = one_shot_dump(tmp_path, parts=4)
+    scenario = Scenario(tmp_path / "live", live=DELAYED)
+    scenario.tracker = LiveTracker(scenario.cfg, cost_clock=SteppingClock(50.0))  # a pass "costs" most of an hour
+    scenario.write(3)
+    scenario.tick()
+    held = PlayerSortie.objects.count()
+
+    scenario.write(len(scenario.parts))
+    scenario.tick(timedelta(seconds=30))
+
+    mission = scenario.mission()
+    assert mission.is_live  # the final save is still to come
+    assert mission.completed_cleanly
+    assert not mission.live_delayed
+    assert PlayerSortie.objects.count() > held
+    assert not LiveMission.objects.get().is_running
+    assert Player.objects.filter(sorties__gt=0).exists()
+
+    scenario.finish()
+    assert not scenario.mission().is_live
+    assert diff_dumps(canonical_dump(), reference) == []

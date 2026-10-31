@@ -34,7 +34,7 @@ Settings are of two kinds:
 | The flight-time score (not in the file) and "new tour after a decisive mission" (not in the file) | admin only | Scoring, Tours |
 | `data_dir`, `log_level`, `log_keep_days`, `debug` | file only | |
 | `[logs]`, `[ingest]` (folders, when a mission is finished, how often to look) | file only | |
-| `[live]` (timers of the "online now" box; its on/off for visitors' sorties is an admin switch in Site settings) | file only | |
+| `[live]` (timers of the "online now" box, the stats delay; its on/off for visitors' sorties is an admin switch in Site settings) | file only | |
 | `[backup]`, `[web]`, `[https]`, `[outbound]` | file only | |
 | `[server]` `timezone`, `uid` (the server's identity: it decides when a mission started) | file only | |
 
@@ -204,7 +204,10 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   `delete`). With `remote = true` (logs are copied in from another machine) a file counts as complete once it has
   stopped changing for `[ingest] stable_seconds`.
 - `[ingest]`: when a mission counts as finished (`idle_minutes`) and how often to look (`watch_interval_s`).
-- `[live]`: the "online now" box. `enabled = false` switches it off.
+- `[live]`: the "online now" box. `enabled = false` switches it off. `delay_minutes` (default 10, 0 = off) keeps the stats of a
+  running mission behind the game, so nobody can use them to gain an advantage in a fight: sides, aircraft, flight times, kills,
+  sorties and totals. How many players are online and their names stay up to date. The site says there is a delay, not how
+  long, and a mission that ends is published at once.
 - `[backup]`: how many backups to keep, whether to make one a day, and an optional second folder for copies, see [Copying backups elsewhere](#copying-backups-elsewhere).
 - `[web]`, `[https]`: ports, domain, certificate. See the install guides.
 - `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords for one account

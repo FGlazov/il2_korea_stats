@@ -215,6 +215,8 @@ decisions are made):
 - ✅ **Column descriptions** (maintainer, 2026-10-04): every column whose meaning is not obvious explains itself on hover (and on
   focus / tap).
 
+- ✅ **Stats delay** (FR-ING-25, 0.5.0; maintainer, 2026-10-31): `[live] delay_minutes`, default 10; who is online stays current, the site says there is a delay without the
+  length, and a mission that ended is published at once.
 - ✅ **Live sorties** (FR-ING-15; maintainer, 2026-10-04: "killer feature", before the release, well tested): one live pipeline feeds the
   online-now list and provisional sorties of a running mission; sortie and mission pages say the stats may still change; an admin toggle,
   on by default. Defaults (provisional rows count in boards right away, Elo at the final pass, about 2 min between passes) are OQs.

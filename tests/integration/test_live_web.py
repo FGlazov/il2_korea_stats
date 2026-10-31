@@ -1,5 +1,6 @@
 """Online now, web side: `/live/`, the component and the read helper (FR-ING-12, FR-WEB-15, TD-28)."""
 
+import re
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -19,7 +20,9 @@ NOW = datetime(2026, 9, 19, 21, 30, tzinfo=UTC)
 SERVER = uuid.UUID("11111111-2222-3333-4444-555555555555")
 
 
-def make_mission(*, updated: datetime | None = None, running: bool = True, interval_s: float = 30.0) -> LiveMission:
+def make_mission(
+    *, updated: datetime | None = None, running: bool = True, interval_s: float = 30.0, delayed: bool = False
+) -> LiveMission:
     return LiveMission.objects.create(
         server_uid=SERVER,
         mission_uid="2026-09-19_21-00-00",
@@ -30,6 +33,7 @@ def make_mission(*, updated: datetime | None = None, running: bool = True, inter
         elapsed_s=1830.0,
         updated_at=updated or datetime.now(UTC),
         interval_s=interval_s,
+        delayed=delayed,
         is_running=running,
     )
 
@@ -315,3 +319,24 @@ def test_home_page_embeds_online_now_and_the_fragment_stays_outside_the_data_ver
     assert "Alpha" in fragment.content.decode()
     assert "max-age=15" in fragment["Cache-Control"]
     assert not fragment.has_header("ETag")
+
+
+DELAY_NOTICE = "shown with a delay"
+
+
+def test_a_delayed_snapshot_says_so_without_saying_how_long(client: Client) -> None:
+    """FR-ING-25: the visitor learns that there is a delay, never its length."""
+    make_player(make_mission(delayed=True), "Pilot")
+    html = client.get("/live/").content.decode()
+    line = next(s for s in html.splitlines() if DELAY_NOTICE in s)
+    assert not re.search(r"\d|minute", line)
+
+
+def test_no_delay_no_notice(client: Client) -> None:
+    make_player(make_mission(), "Pilot")
+    assert DELAY_NOTICE not in client.get("/live/").content.decode()
+
+
+def test_the_delay_notice_goes_with_the_mission(client: Client) -> None:
+    make_mission(delayed=True, running=False)
+    assert DELAY_NOTICE not in client.get("/live/").content.decode()

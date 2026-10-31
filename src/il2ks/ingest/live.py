@@ -23,6 +23,11 @@ The final save is the ordinary ingest of the complete mission: it rewrites those
 whose files vanish without being ingested, and every provisional mission when the admin switches
 `SiteSettings.show_live_sorties` off, are deleted again (`discard_provisional_mission`).
 
+Delay (FR-ING-25): with `[live] delay_minutes` the replay holds its events back, so the sides, aircraft, flight times
+and kills of online now, the provisional sorties and the totals they feed all lag the game by that long. Only who is on
+the server stays current. The moment AType 7 is read nothing is held back: that tick saves the whole mission, whatever
+the intervals and the CPU budget say, so its stats are out at once and don't wait for the final save (`settle_seconds`).
+
 Locking: the `Live*` writes take **no writer lock**: a normal ingest of a completed mission never waits for a live
 snapshot (each is one short transaction) and the reverse is bounded by SQLite's busy timeout. They never bump the data
 version (TD-28: live data is outside that scheme). A provisional save writes level 2 like any ingest, so it takes the
@@ -85,7 +90,7 @@ class _Running:
     started_at: datetime
     last_snapshot: datetime | None = None
     last_persist: datetime | None = None  # the last provisional save of the sorties (or an attempt that did not save)
-    saved_lines: int | None = None  # lines the replay had read at the last level-1 save: nothing new = no new save
+    saved_events: int | None = None  # events the replay had applied at the last level-1 save: none new = no new save
     saving: bool = True  # False once the mission has a final save from another process: only online now goes on
     pending: set[int] = field(default_factory=set[int])  # tours of level-1 passes not yet refreshed in level 2
     last_level2: datetime | None = None
@@ -160,22 +165,26 @@ class LiveTracker:
             lines = running.tail.read_new(mission.files) or []
         running.replay.feed_lines(lines)
         self._sweep(running.uid)
-        if self._quiet_until is not None and now < self._quiet_until:
+        over = running.replay.over  # the mission just ended: publish it now, no interval or CPU budget applies
+        if not over and self._quiet_until is not None and now < self._quiet_until:
             return
         live = self._cfg.live
-        online_due = running.last_snapshot is None or now - running.last_snapshot >= timedelta(
-            seconds=live.interval_s * SNAPSHOT_DUE_FRACTION
+        online_due = (
+            over
+            or running.last_snapshot is None
+            or now - running.last_snapshot >= timedelta(seconds=live.interval_s * SNAPSHOT_DUE_FRACTION)
         )
         persist_due = running.saving and (
-            running.last_persist is None
+            over
+            or running.last_persist is None
             or now - running.last_persist >= timedelta(seconds=live.sorties_interval_s * SNAPSHOT_DUE_FRACTION)
         )
         if persist_due and not sorties_enabled():
             persist_due = False
             running.last_persist = now  # asked again after one more interval, not at every tick
-            running.saved_lines = None  # switched back on later: saved again, even without new lines
+            running.saved_events = None  # switched back on later: saved again, even without new events
             discard_stale_provisional(self._cfg, keep="")  # the switch is off: no provisional mission stays
-        if persist_due and running.saved_lines == running.replay.lines:
+        if persist_due and running.saved_events == running.replay.applied:
             persist_due = False  # nothing new since the last save: no rewrite, no new data version (TD-28)
             running.last_persist = now
         if not (online_due or persist_due or self._level2_due(running, now)):
@@ -187,6 +196,8 @@ class LiveTracker:
             spent += self._cost_clock() - began
             running.last_snapshot = now
             if view.ended:
+                if persist_due:
+                    spent += self._persist_sorties(running, view, now)
                 self._finished.add(running.uid)
                 self._running = None
                 self._flush_pending(running)
@@ -231,7 +242,7 @@ class LiveTracker:
             self._flush_pending(running)
         else:
             running.pending |= touched
-            running.saved_lines = running.replay.lines
+            running.saved_events = running.replay.applied
         cost = self._cost_clock() - began
         log.debug("provisional level 1 of %s: %s, %.0f ms", running.uid, status, 1000 * cost)
         return cost
@@ -274,9 +285,9 @@ class LiveTracker:
         started = resolve_mission_start(mission.mission_uid, self._cfg.timezone, hint).started_at
         if self._running is not None:
             self._flush_pending(self._running)  # work owed to level 2 is not dropped with the old replay
-        self._running = _Running(
-            mission.mission_uid, PartTail(), LiveReplay(self.catalog, effective_config(self._cfg).replay), started
-        )
+        delay_ticks = round(self._cfg.live.delay_minutes * 60 * TICKS_PER_SECOND)
+        replay = LiveReplay(self.catalog, effective_config(self._cfg).replay, delay_ticks=delay_ticks)
+        self._running = _Running(mission.mission_uid, PartTail(), replay, started)
 
     def _stop(self) -> None:
         """Nothing is running (any more): forget the replay and tell the database, once."""
@@ -346,7 +357,8 @@ def save_provisional(
                 waiting = True
         if waiting:
             return "waiting", set()
-        meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True)
+        delayed = cfg.live.delayed and not result.mission.completed_cleanly  # an ended mission holds nothing back
+        meta = MissionMeta(cfg.server_uid, mission_uid, started_at, "", live=True, live_delayed=delayed)
         _, touched = save_level1(result, meta, catalog, rules.tours, rules.score)
         bump_data_version()
     return "saved", touched
@@ -420,6 +432,7 @@ def store_snapshot(
                 "elapsed_s": view.tick / TICKS_PER_SECOND,
                 "updated_at": now,
                 "interval_s": cfg.live.interval_s,
+                "delayed": cfg.live.delayed,
                 "is_running": not view.ended,
             },
         )

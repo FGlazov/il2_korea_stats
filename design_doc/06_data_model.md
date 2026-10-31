@@ -39,6 +39,7 @@ Principles (all `[DECIDED]`):
 Mission        id, server_uid, mission_uid (unique together), tour → Tour, mission_file (map/name), file_path,
                started_at (UTC), ended_at, duration_s, game_date, game_time, game_type, settings (json), countries (json, CNTRS), log_version,
                completed_cleanly (bool, AType 7 seen), winning_coalition (nullable), result (win|draw|unknown, doc 12 "Mission result"), is_hidden,
+               live_delayed (bool, FR-ING-25: provisional and behind the game on purpose, the pages say so),
                is_live (bool, FR-ING-15: provisional rows `watch` saved while the mission still runs; the final save rewrites the same rows by
                their natural keys and clears it) `[PROPOSED]`,
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
@@ -259,7 +260,7 @@ DataVersion    singleton counter bumped with every page-visible change (TD-28)
 RemovedMission     mission_uid (unique), tour_title, removed_at, removed_by: a mission an admin deleted; ingest and reprocess leave it out (doc 14), kept by the wipe
 ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error, wipe, remove_tour_id / remove_tour_title / remove_tour_missions, remove_mission_ids; at most one pending (partial unique),
                wipe (bool: "Delete all data and reprocess", doc 14 "Delete all data and reprocess"), phase (check/backup/wipe/reprocess while a wipe runs, else blank)
-LiveMission    server_uid (unique), mission_uid, mission_file, started_at, game_date/time, elapsed_s, updated_at, interval_s, is_running   -- the running
+LiveMission    server_uid (unique), mission_uid, mission_file, started_at, game_date/time, elapsed_s, updated_at, interval_s, delayed, is_running   -- the running
                -- mission as `watch` last saw it, one row per server; `updated_at` older than 3 x `interval_s` = stale
 LivePlayer     mission, player (null = unknown account), account_uuid, name, coalition, country, aircraft_type, aircraft_name, propulsion, state
                (in_flight/on_ground/spawned/connected), sortie_started_at, flight_time_s, kills_air, kills_ground   -- replaced wholesale per snapshot

@@ -251,6 +251,17 @@ def test_live_defaults_toml_and_env(tmp_path: Path) -> None:
     assert load_config(file, env).live.interval_s == 45.0
 
 
+def test_live_delay(tmp_path: Path) -> None:
+    """FR-ING-25: ten minutes by default, 0 = no delay, never negative."""
+    data = {"IL2KS_DATA_DIR": str(tmp_path / "data")}
+    assert load_config(None, data).live.delay_minutes == 10.0
+    assert load_config(None, data).live.delayed
+    file = write_toml(tmp_path / "il2ks.toml", "[live]\ndelay_minutes = 0\n")
+    assert not load_config(file, data).live.delayed
+    with pytest.raises(ConfigError, match=r"live\.delay_minutes"):
+        load_config(None, {**data, "IL2KS_LIVE_DELAY_MINUTES": "-1"})
+
+
 def test_live_sorties_intervals(tmp_path: Path) -> None:
     """FR-ING-15: level 1 every 120 s and level 2 every 300 s by default; 0 = level 2 only at the final save."""
     data = {"IL2KS_DATA_DIR": str(tmp_path / "data")}

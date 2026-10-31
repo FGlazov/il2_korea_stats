@@ -2130,8 +2130,8 @@
       }
     },
     "templates/il2ks/components/online_now_body.html": {
-      "version": "1.0",
-      "sha256": "bfe456adf27c4acc6d8a3145e9a08bcb9304228b8365d32fd1fcda38c5f4bf2f",
+      "version": "1.1",
+      "sha256": "8030b9d0a742ff7d61ebbe00a257aee8f3e6232e2fbb9f281714a5337360add9",
       "contract": {
         "filters": [
           "duration",
@@ -2786,8 +2786,8 @@
       }
     },
     "templates/il2ks/missions/detail.html": {
-      "version": "1.1",
-      "sha256": "636cede856d11b3724fe3395eeb4b924ff864037e419e4eec09ad4f66145639a",
+      "version": "1.2",
+      "sha256": "bc0d6b085d7eabb8a5e6d83bff2b94ee0e2ce98101a0867ea5654570fdda171e",
       "contract": {
         "blocks": [
           "content",
@@ -4449,8 +4449,8 @@
       }
     },
     "templates/il2ks/sorties/parts/header.html": {
-      "version": "1.0",
-      "sha256": "f49ef277d9c174e1d21b2df6a10fdc331f74887b6230698ff1d759a98172bc3e",
+      "version": "1.1",
+      "sha256": "c212ba9f85afa33af818eb32cd8d14d47898fe88eb03d6235eb047d12ee8c814",
       "contract": {
         "filters": [
           "accuracy",

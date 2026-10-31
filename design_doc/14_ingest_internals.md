@@ -273,6 +273,14 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   (a held lock skips that pass), and bumps the data version in its own transaction; the `Live*` tables themselves still take no lock and never bump it.
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in
   `SiteSettings`.
+- **Stats delay** (FR-ING-25, 0.5.0, `core/replay/live.py`, `ingest/live.py`): one replay, no second pipeline. `LiveReplay` parses every line at once and follows AType 20/21 and
+  spawns (who is online, their names) in real time, but queues the events and gives the `Replay` only those at least `delay_ticks` older than the newest tick read. So every
+  snapshot is the mission as it stood that long ago with the current list of players on top, and the provisional sorties, level 2 and online-now details need no rule of their
+  own. A player who joined within the delay shows no side, aircraft or kills yet. `[PROPOSED]` choices: the hold follows the **log's clock**, not the wall clock (a restarted `watch` re-reads the mission and lands on the
+  same state, nothing has to be persisted; the cost is at most the held minutes of parsed events in memory); tick-0 events always pass (the mission header, so the name shows from
+  the start). **AType 7 ends the delay** (FR-ING-25): the queue is emptied, and that tick saves the whole mission provisionally and refreshes level 2, whatever the intervals and the CPU budget say. The final save
+  still waits for `settle_seconds` or a newer mission (cleanup lines follow AType 7; the maintainer set 300 s) and then rewrites the rows; until then the mission keeps its Live badge.
+  `LiveMission.delayed` and `Mission.live_delayed` tell the pages to show the notice; neither holds the length, which never reaches a page. The web process doesn't read `il2ks.toml`, so the flags are written by `watch`.
 - **Level-2 updates = recompute the affected players from level 1** (maintainer, 2026-10-03; replaces "subtract old, add new"). After a
   mission's level-1 rows are written, every player who had or has a sortie in it gets their totals, per-aircraft rows and identity fields
   recomputed from their level-1 rows. `rebuild-aggregates` uses the same code for all players. Why: no delta arithmetic to get wrong, and a

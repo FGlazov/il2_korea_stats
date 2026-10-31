@@ -5264,6 +5264,10 @@ msgid "Sorties"
 msgstr "Вылеты"
 
 # llm-draft
+msgid "Sorties appear here with a delay, so the stats give nobody an advantage in the game."
+msgstr "Вылеты появляются здесь с задержкой, чтобы статистика никому не давала преимущества в игре."
+
+# llm-draft
 #. Translators: profile total: sorties flown for the side that had fewer pilots spawned in at the time, with its share of
 #. all sorties
 msgid "Sorties flown for the side that had fewer pilots spawned in while the pilot flew"
@@ -6730,6 +6734,14 @@ msgid ""
 msgstr ""
 "Пока миссия идёт, её вылеты уже видны на страницах и входят в статистику, с пометкой «ещё идёт». Рейтинги считаются "
 "только после конца миссии."
+
+# llm-draft
+msgid ""
+"Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody"
+" an advantage in the game."
+msgstr ""
+"Список игроков на сервере актуален. Стороны, самолёты, время в полёте и победы показываются с задержкой, чтобы "
+"статистика никому не давала преимущества в игре."
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

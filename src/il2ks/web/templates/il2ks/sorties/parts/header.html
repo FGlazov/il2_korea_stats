@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/header.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
   Discord screenshot). Context: sortie (player, mission, aircraft), detail, sortie_marks (badges after the air and ground kills). A running mission's notice sits between the header and the tiles.
@@ -24,7 +24,7 @@
   </div>
 </header>
 
-{% if sortie.mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "The numbers may still change until it ends." %}{% endnotice %}{% endif %}
+{% if sortie.mission.is_live %}{% notice "changing" title=_("Mission still running") %}{% translate "The numbers may still change until it ends." %}{% if sortie.mission.live_delayed %} {% translate "Sorties appear here with a delay, so the stats give nobody an advantage in the game." %}{% endif %}{% endnotice %}{% endif %}
 <div class="stat-tiles">
   {% sortie_mark sortie_marks "air_kills" as air_mark %}{% sortie_mark sortie_marks "ground_kills" as ground_mark %}
   {% stat_tile sortie.kills_air|num _("Air kills") icon="stat/air-kills" mark=air_mark %}

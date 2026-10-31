@@ -79,6 +79,7 @@ class MissionMeta:
     started_at: datetime  # UTC, resolved from the local-time file name (TD-15)
     archive_path: str
     live: bool = False  # a provisional save of the running mission (FR-ING-15); the final save leaves it False
+    live_delayed: bool = False  # ... which lags the game on purpose (FR-ING-25)
 
 
 class DuplicateSortieError(ValueError):
@@ -325,6 +326,7 @@ def _mission_fields(result: MissionResult, meta: MissionMeta, clock: _Clock) -> 
         "redfor_players": info.redfor_players,
         "blufor_players": info.blufor_players,
         "is_live": meta.live,
+        "live_delayed": meta.live_delayed,
     }
 
 

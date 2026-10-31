@@ -51,7 +51,8 @@ class OnlineNow:
     rows: tuple[OnlineRow, ...] = ()
     redfor: int = 0
     blufor: int = 0
-    unassigned: int = 0  # online but no side yet (connected, nothing spawned in this mission)
+    unassigned: int = 0  # online but no side yet (connected, nothing spawned in this mission, or still held back)
+    delayed: bool = False  # sides, aircraft, flight times and kills lag the game on purpose (FR-ING-25)
     poll_s: int = DEFAULT_POLL_S
 
     @property
@@ -110,5 +111,6 @@ def current(now: datetime | None = None) -> OnlineNow:
         redfor=sum(1 for r in rows if r.side == "redfor"),
         blufor=sum(1 for r in rows if r.side == "blufor"),
         unassigned=sum(1 for r in rows if r.side is None),
+        delayed=mission.delayed,
         poll_s=poll_s,
     )
