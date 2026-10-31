@@ -201,3 +201,20 @@ def test_only_a_released_event_counts_as_new() -> None:
     assert live.applied == 0
     live.feed_lines([connect(10 + DELAY, B)])
     assert live.applied == 1
+
+
+def test_a_sortie_still_going_has_no_end_in_its_timeline() -> None:
+    """stats.yalu.info/sorties/267/: "Sortie ended · In flight" on a pilot who was still in the air."""
+    replay = Replay(load_default_catalog())
+    for event in parse_lines(running_mission(), ParseStats()):
+        replay.feed(event)
+    snap = replay.snapshot()
+
+    going = 0
+    for sortie in snap.sorties:
+        has_end = any(entry.kind == "sortie_end" for entry in sortie.timeline)
+        still_going = sortie.index in snap.open_sorties and sortie.outcome in ("in_flight", "landed", "not_taken_off")
+        going += still_going
+        assert has_end != still_going, sortie.index
+    assert going
+    assert all(any(e.kind == "sortie_end" for e in s.timeline) for s in replay.finish().sorties)

@@ -1,11 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.5.1 (2026-10-31)
+
+### Fixed
+
+- **Sorties of a running mission:** a pilot who is still flying no longer gets a "Sortie ended" row in the timeline or an end
+  time on the sortie page. Statuses such as Survived and Healthy stay as they were.
 
 ### Changed
 
 - **Online now:** the player table on the front page is collapsed at first; open it under **Players**. The player count and
   the sides stay visible, and an opened list stays open while the box refreshes.
+
+### Templates changed (check your custom/ overrides)
+
+- `static/il2ks/il2ks.js`: v3.0 -> v4.0 (keeps the player table open across refreshes).
+- `components/online_now_body.html` and `sorties/parts/summary.html` have cosmetic version bumps. An override of them keeps
+  working, but shows the player table open and the end time of a sortie still going.
 
 ## 0.5.0 (2026-10-31)
 

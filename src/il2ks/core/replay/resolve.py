@@ -69,6 +69,8 @@ def _build_sortie(
     roles: Mapping[int, CombatRole | None],
     first_blood: int | None,
     underdog: frozenset[int],
+    *,
+    final: bool,
 ) -> SortieResult:
     role = combat_role(sortie)
     sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
@@ -175,7 +177,7 @@ def _build_sortie(
         ammo_unattributed=sortie_ammo.unattributed,
         underdog=sortie.index in underdog,
         damage=breakdown[0],
-        timeline=timeline(sortie, verdict, kills, hit_entries(sortie_ammo.damage_events, rules)),
+        timeline=timeline(sortie, verdict, kills, hit_entries(sortie_ammo.damage_events, rules), final=final),
         friendly_kills=friendly.kills,
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,
@@ -215,6 +217,7 @@ def resolve_mission(facts: MissionFacts, rules: ReplayRules, *, final: bool) -> 
             roles,
             first_blood,
             underdog,
+            final=final,
         )
         for sortie, verdict in zip(facts.sorties, verdicts, strict=True)
     )

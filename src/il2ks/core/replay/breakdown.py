@@ -175,10 +175,22 @@ def counterpart_of(party: Party) -> Counterpart:
     return Counterpart(party.object_type, None, party.coalition)
 
 
+STILL_GOING = frozenset({"in_flight", "landed", "not_taken_off"})
+"""The outcomes of an open sortie that is not over: a landed pilot can take off again."""
+
+
 def timeline(
-    sortie: SortieState, verdict: Verdict, kills: list[KillResult], hits: Sequence[TimelineEntry] = ()
+    sortie: SortieState,
+    verdict: Verdict,
+    kills: list[KillResult],
+    hits: Sequence[TimelineEntry] = (),
+    *,
+    final: bool = True,
 ) -> tuple[TimelineEntry, ...]:
-    """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion."""
+    """Key events with positions (no flight track, TD-08). Ordered by tick, then by insertion.
+
+    Not `final`: a sortie that is still going has no `sortie_end` yet (FR-ING-15). One that is lost keeps it, even if
+    the log hasn't closed it yet: it ended."""
     airframe = sortie.airframe
     # The hits come right after the spawn, so on one tick a hit sorts before the kill or loss it led to.
     entries: list[TimelineEntry] = [TimelineEntry(sortie.spawn_tick, "spawn", sortie.spawn_type, sortie.spawn_pos)]
@@ -241,10 +253,11 @@ def timeline(
                 verdict.disconnect_tick if verdict.disconnect_tick is not None else end, "disconnect", pos=airframe.pos
             )
         )
-    end_pos = sortie.end_pos or sortie.bot.removed_pos
-    entries.append(
-        TimelineEntry(end, "sortie_end", "mission_end" if verdict.ended_by_mission_end else verdict.outcome, end_pos)
-    )
+    going = not final and sortie.is_open and not verdict.ended_by_mission_end and verdict.outcome in STILL_GOING
+    if not going:
+        end_pos = sortie.end_pos or sortie.bot.removed_pos
+        detail = "mission_end" if verdict.ended_by_mission_end else verdict.outcome
+        entries.append(TimelineEntry(end, "sortie_end", detail, end_pos))
     return tuple(sorted(entries, key=lambda e: e.tick))  # sorted() is stable
 
 

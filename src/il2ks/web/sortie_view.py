@@ -822,6 +822,7 @@ class Detail:
     timeline_events: int
     highlights: Highlights
     ram_with: str = ""  # the aircraft this sortie collided with ("" when it had no ram), for the header badge
+    ended: bool = True  # False for a sortie still going in a running mission: `ended_at` is only the last pass then
     has_ram: bool = False
 
 
@@ -877,6 +878,7 @@ def build_detail(sortie: PlayerSortie, made: Sequence[Kill], suffered: Sequence[
         ammo=ammo_table(sortie),
         lost_to=pve.loss_label(sortie.loss_class),
         timeline=timeline,
+        ended=not sortie.mission.is_live or any(row.kind == "sortie_end" for row in timeline),
         timeline_events=len(sortie.timeline),
         highlights=build_highlights(sortie, lookup),
         ram_with=partner or "",

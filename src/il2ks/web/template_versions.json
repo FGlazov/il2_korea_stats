@@ -4670,8 +4670,8 @@
       }
     },
     "templates/il2ks/sorties/parts/summary.html": {
-      "version": "1.0",
-      "sha256": "a78fe1fc596f26da99e5d9d91fe860ee663cb19e904cf752f934fffdbe739d45",
+      "version": "1.1",
+      "sha256": "481d1f63d4c42c4c407149378866d1f388b3835f124b1ff2b591618609b662ea",
       "contract": {
         "filters": [
           "duration",

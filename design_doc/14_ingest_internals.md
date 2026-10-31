@@ -268,7 +268,7 @@ fields (groups, store and rocket IDs: later squadron and ordnance stats), and fr
   URLs stay the same until the mission ends. Level 1 is written every pass; level 2 (profiles, boards, aircraft pages) is recomputed for what was
   touched every `[live] aggregates_interval_s` (default 300 s; 0 = only at the final save). **Elo ratings and stat thresholds wait for the final
   save** (they depend on mission order; `ratings._games` skips live kills). The final save is the ordinary ingest of the complete mission: it
-  rewrites those rows and clears `is_live`. A mission whose files vanish without being ingested is deleted again, and so is every provisional mission when
+  rewrites those rows and clears `is_live`. A sortie still going in such a pass has no `sortie_end` timeline entry and the sortie page shows no end time; a lost one keeps both, its log line may just be late. A mission whose files vanish without being ingested is deleted again, and so is every provisional mission when
   the admin turns `SiteSettings.show_live_sorties` off (`discard_provisional_mission`). A provisional save takes the writer lock **without waiting**
   (a held lock skips that pass), and bumps the data version in its own transaction; the `Live*` tables themselves still take no lock and never bump it.
   `rebuild-aggregates` runs the same functions for everything, after re-scoring the sorties, and also stores `[killboard] assists` in

@@ -117,3 +117,21 @@ def test_a_running_mission_costs_no_extra_queries(client: Client) -> None:
     assert [count_queries(client, url) for url in urls] == normal
     for url, budget in zip(urls, normal, strict=True):
         assert_simple_reads(client, url, max_queries=budget)
+
+
+ENDED = "<dt>Sortie ended</dt>"
+
+
+def test_a_sortie_still_going_shows_no_end(client: Client) -> None:
+    """stats.yalu.info/sorties/267/: the snapshot's time was shown as the end of a sortie still in the air."""
+    _, sortie_pk = seed(live=True)
+    PlayerSortie.objects.filter(pk=sortie_pk).update(timeline=[])
+    assert ENDED not in client.get(reverse("web:sortie-detail", args=[sortie_pk])).content.decode()
+
+
+def test_a_sortie_that_ended_in_a_running_mission_shows_its_end(client: Client) -> None:
+    _, sortie_pk = seed(live=True)
+    PlayerSortie.objects.filter(pk=sortie_pk).update(
+        timeline=[{"tick": 5000, "kind": "sortie_end", "detail": "landed"}]
+    )
+    assert ENDED in client.get(reverse("web:sortie-detail", args=[sortie_pk])).content.decode()
