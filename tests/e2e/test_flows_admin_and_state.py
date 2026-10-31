@@ -8,7 +8,7 @@ restored the same way (the whole site settings value is put back).
 """
 
 import pytest
-from playwright.sync_api import Browser, Page, expect
+from playwright.sync_api import Browser, Page, Route, expect
 
 from tests.e2e import flow_helpers
 from tests.e2e.conftest import TweakData
@@ -201,3 +201,39 @@ def test_a_tap_opens_a_column_description_on_a_phone_and_a_tap_elsewhere_closes_
         expect(tip).to_be_hidden()
     finally:
         context.close()
+
+
+def test_the_online_player_list_stays_as_the_visitor_left_it_across_the_polls(page: Page) -> None:
+    """The poll replaces the list, which starts closed. Each answer differs, so a swap really happened."""
+    polls = 0
+
+    def answer(route: Route) -> None:
+        nonlocal polls
+        polls += 1
+        body = f'<details class="accordion"><summary>Players</summary><div id="poll">poll {polls}</div></details>'
+        route.fulfill(body=body, content_type="text/html")
+
+    def poll_again() -> None:
+        before = polls
+        page.evaluate("htmx.ajax('GET', '/live/', {target: '.online-now__body', swap: 'innerHTML'})")
+        expect(page.locator("#poll")).to_have_text(f"poll {before + 1}")
+
+    page.route("**/live/", answer)
+    page.goto("/")
+    players = page.locator(".online-now__body details")
+    expect(players).to_have_count(1)
+    expect(players).not_to_have_attribute("open", "")
+
+    poll_again()
+    expect(players).not_to_have_attribute("open", "")
+
+    players.locator("summary").click()
+    expect(players).to_have_attribute("open", "")
+    poll_again()
+    poll_again()
+    expect(players).to_have_attribute("open", "")
+
+    players.locator("summary").click()
+    expect(players).not_to_have_attribute("open", "")
+    poll_again()
+    expect(players).not_to_have_attribute("open", "")

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/il2ks.js v3.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/il2ks.js v4.0 - copy this line along when you override */
 /* Small progressive enhancements. Everything works without this file (and without htmx).
  * Loaded with `defer`, after vendor/htmx.min.js. */
 (function () {
@@ -121,6 +121,19 @@
   }
   window.addEventListener("resize", closeHints);
   document.addEventListener("scroll", closeHints, true);
+
+  // The online-now poll replaces the player list, which starts closed: one the visitor opened stays open.
+  var onlineListOpen = false;
+  document.addEventListener("htmx:beforeSwap", function (event) {
+    var target = event.detail && event.detail.target;
+    var list = target && target.matches(".online-now__body") ? target.querySelector("details") : null;
+    onlineListOpen = !!list && list.open;
+  });
+  document.addEventListener("htmx:afterSwap", function (event) {
+    if (!onlineListOpen) { return; }
+    var list = event.detail.target.querySelector("details");
+    if (list) { list.open = true; }
+  });
 
   // A list refresh by htmx (a ticked extra column, a sort, a filter) replaces the whole results region, and a new table
   // starts scrolled to the left: the new columns come in on the right, so a visitor who scrolled over would lose the

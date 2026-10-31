@@ -340,3 +340,14 @@ def test_no_delay_no_notice(client: Client) -> None:
 def test_the_delay_notice_goes_with_the_mission(client: Client) -> None:
     make_mission(delayed=True, running=False)
     assert DELAY_NOTICE not in client.get("/live/").content.decode()
+
+
+def test_the_player_list_starts_collapsed_and_the_count_and_the_notice_stay_outside_it(client: Client) -> None:
+    make_player(make_mission(delayed=True), "Pilot")
+    html = client.get("/live/").content.decode()
+
+    opening = html.index("<details")
+    assert html[opening : html.index(">", opening)] == '<details class="accordion"'
+    assert opening < html.index("Pilot") < html.index("</details>")  # in the page, for no-JS and for search
+    assert html.index("player online") < opening
+    assert html.index("</details>") < html.index(DELAY_NOTICE)

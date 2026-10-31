@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Online now:** the player table on the front page is collapsed at first; open it under **Players**. The player count and
+  the sides stay visible, and an opened list stays open while the box refreshes.
+
 ## 0.5.0 (2026-10-31)
 
 ### Added

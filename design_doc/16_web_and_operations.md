@@ -80,7 +80,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 ## Pages (as built, 2026-10-03)
 
 - **Home** (tour-aware: `/?tour=`, no `tour` = the current tour, `?tour=all` = all time, `[DECIDED]` maintainer, OQ-79): site description, player
-  search, "Online now" (`/live/` fragment, always live), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills; while a mission runs with live sorties on, it is that mission, titled "Current mission" with the Live badge instead of the winner, maintainer 2026-10-27), the
+  search, "Online now" (`/live/` fragment, always live; the player table starts collapsed and stays open across the polls once opened, maintainer 2026-10-31), the last mission (tiles, sorties per side, top 5 pilots by air then ground kills; while a mission runs with live sorties on, it is that mission, titled "Current mission" with the Live badge instead of the winner, maintainer 2026-10-27), the
   latest 8 missions (empty missions left out), **six boards in a 3x2 grid** (2 columns on a tablet, 1 on a phone), the top 5 of **Elo jet, Elo prop,
   interception, attack proficiency, tank busting and play time** (`[DECIDED]` maintainer, OQ-64, OQ-104; the Elo boards follow the tour like the rest since 2026-10-05, OQ-128: the tour's Elo, all time the best tour's; titles and player names link with the page's scope, `?tour=<id>` or `?tour=all`), a streaks block of 5 (the longest streaks
   inside the tour) and the activity chart (the tour's own days). Elo games are called **encounters** in the UI (maintainer, 2026-10-04).

@@ -1,8 +1,9 @@
-{# il2ks-template: templates/il2ks/components/online_now_body.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/components/online_now_body.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks il2ks_live %}{% comment %}
   online_now_body.html: what /live/ returns and what online_now.html shows inside its section.
   Context: live (il2ks.queries.live.OnlineNow: running, mission_name, elapsed_s, updated_at, rows, redfor, blufor,
   unassigned, total, delayed), site (SiteSettings, for the coalition names).
+  The player table starts closed; il2ks.js keeps it open across the polls once a visitor opened it.
   Hidden players show as "Hidden player"; a stale or missing snapshot shows "No mission running" and when it was last seen.
 {% endcomment %}{% if live.running %}
 <p class="online-now__summary">
@@ -13,6 +14,7 @@
   {% endif %}
   <small>{% blocktranslate with name=live.mission_name running=live.elapsed_s|duration %}Mission {{ name }}, running for {{ running }}{% endblocktranslate %}</small>
 </p>
+{% accordion _("Players") %}
 <div class="table-wrap table-wrap--flat">
   <table class="data-table data-table--compact online-now__table">
     <thead>
@@ -41,6 +43,7 @@
     </tbody>
   </table>
 </div>
+{% endaccordion %}
 {% if live.delayed %}<p><small>{% translate "Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody an advantage in the game." %}</small></p>{% endif %}
 {% if live.updated_at %}<p><small>{% blocktranslate with when=live.updated_at|utc %}Updated {{ when }}{% endblocktranslate %}</small></p>{% endif %}
 {% else %}

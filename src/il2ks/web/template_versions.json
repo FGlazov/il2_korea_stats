@@ -24,8 +24,8 @@
       }
     },
     "static/il2ks/il2ks.js": {
-      "version": "3.0",
-      "sha256": "0130daaa10a7028fb9bd7e33554f516f225127b756cb2768cb7ce621a8d8b19e",
+      "version": "4.0",
+      "sha256": "7ed6911c57efc02059eac43751d332ea81bfe59a5d4aa9503e56ccba451c312f",
       "contract": {
         "selectors": [
           "#columns-picker",
@@ -41,6 +41,7 @@
           ".has-htmx",
           ".is-open",
           ".no-htmx",
+          ".online-now__body",
           ".stretched-link",
           ".table-wrap",
           "[data-hint-dismissed]",
@@ -2130,8 +2131,8 @@
       }
     },
     "templates/il2ks/components/online_now_body.html": {
-      "version": "1.1",
-      "sha256": "8030b9d0a742ff7d61ebbe00a257aee8f3e6232e2fbb9f281714a5337360add9",
+      "version": "1.2",
+      "sha256": "4ce8cc6b34991a1ec3087f35233b59d98caa4a3bb998ca7b59849e7506d9e079",
       "contract": {
         "filters": [
           "duration",
@@ -2149,6 +2150,7 @@
           ".table-wrap--flat"
         ],
         "tags": [
+          "accordion",
           "aircraft_icon",
           "coalition_badge",
           "empty_row",
