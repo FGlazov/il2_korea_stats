@@ -1,4 +1,4 @@
-{# il2ks-template: templates/admin/il2ks_ingest_status.html v3.0 - copy this line along when you override #}
+{# il2ks-template: templates/admin/il2ks_ingest_status.html v3.1 - copy this line along when you override #}
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
@@ -51,18 +51,23 @@
     {% if overview.reprocess_running %}
       {% with job=overview.reprocess_running %}
       <p><strong class="state-ok">{% translate "Running" %}</strong>
-        {% if job.wipe %}({% translate "delete all data and reprocess" %}{% if job.phase == 'check' %}: {% translate "checking the archives" %}{% elif job.phase == 'backup' %}: {% translate "making a backup" %}{% elif job.phase == 'wipe' %}: {% translate "deleting the data" %}{% endif %}){% endif %}
-        {% blocktranslate with started=job.started_at|date:"Y-m-d H:i" done=job.missions_ok failed=job.missions_failed total=job.missions_total %}since {{ started }}: {{ done }} of {{ total }} missions done, {{ failed }} failed.{% endblocktranslate %}</p>
+        {% if job.is_removal %}{% include "admin/il2ks_removal_label.html" %}{% if job.phase == 'backup' %}: {% translate "making a backup" %}{% endif %}
+        {% else %}{% if job.wipe %}({% translate "delete all data and reprocess" %}{% if job.phase == 'check' %}: {% translate "checking the archives" %}{% elif job.phase == 'backup' %}: {% translate "making a backup" %}{% elif job.phase == 'wipe' %}: {% translate "deleting the data" %}{% endif %}){% endif %}
+        {% blocktranslate with started=job.started_at|date:"Y-m-d H:i" done=job.missions_ok failed=job.missions_failed total=job.missions_total %}since {{ started }}: {{ done }} of {{ total }} missions done, {{ failed }} failed.{% endblocktranslate %}{% endif %}</p>
       {% endwith %}
     {% elif overview.reprocess_pending %}
       <p><strong>{% translate "Waiting" %}</strong>
+        {% if overview.reprocess_pending.is_removal %}{% include "admin/il2ks_removal_label.html" with job=overview.reprocess_pending %}:{% endif %}
         {% blocktranslate with at=overview.reprocess_pending.requested_at|date:"Y-m-d H:i" who=overview.reprocess_pending.requested_by %}requested {{ at }} by {{ who }}; it starts at the next watch tick.{% endblocktranslate %}</p>
     {% endif %}
     {% if overview.reprocess_last %}
       {% with job=overview.reprocess_last %}
       <p>{% translate "Last request" %}:
         <strong class="{% if job.status == 'done' %}state-ok{% else %}state-bad{% endif %}">{{ job.get_status_display }}</strong>,
-        {{ job.finished_at|date:"Y-m-d H:i" }}{% if job.status == 'done' %}:
+        {{ job.finished_at|date:"Y-m-d H:i" }}{% if job.is_removal %},
+        {% include "admin/il2ks_removal_label.html" %}{% if job.status == 'done' %}:
+        {% blocktranslate count n=job.missions_ok %}{{ n }} mission deleted.{% plural %}{{ n }} missions deleted.{% endblocktranslate %}{% endif %}
+        {% elif job.status == 'done' %}:
         {% blocktranslate with ok=job.missions_ok failed=job.missions_failed missing=job.missions_missing %}{{ ok }} missions reprocessed, {{ failed }} failed, {{ missing }} without an archive.{% endblocktranslate %}{% endif %}
         {% if job.error %}<span class="mono">{{ job.error|truncatechars:200 }}</span>{% endif %}</p>
       {% endwith %}

@@ -110,6 +110,17 @@ def start_manual_tour(now: datetime | None = None, title: str = "") -> Tour:
         return Tour.objects.create(title=title or f"Tour {number}", started_at=moment, ended_at=None, mode="manual")
 
 
+def tour_taking_over(tour: Tour, mode: str) -> Tour | None:
+    """The tour a deleted tour's missions can join: the boundary before it, else the one after. Only a manual boundary
+    can leave its missions behind: in the calendar modes a period is its tour, and a `by_win` part is cut by its
+    missions (`ingest.removal`)."""
+    if mode != "manual" or tour.by_win:
+        return None
+    others = Tour.objects.filter(by_win=False).exclude(pk=tour.pk)
+    before = others.filter(started_at__lt=tour.started_at).order_by("-started_at").first()
+    return before or others.order_by("started_at").first()
+
+
 def move_missions(mission_ids: Iterable[int], tour_id: int) -> int:
     """Put missions into a tour and their sorties with them: the only writer of `Mission.tour` besides a mission's own
     save (`PlayerSortie.tour` is always the mission's, doc 14 "The sortie's tour"). Returns the missions changed."""
@@ -129,7 +140,7 @@ def assign_missing(rules: TourRules) -> int:
     rules = effective_rules(rules)
     if rules.on_win and Mission.objects.filter(tour__isnull=True).exists():
         missing = Mission.objects.filter(tour__isnull=True).count()
-        _retour_all(rules)  # the parts a decisive mission cuts depend on the other missions: assign them all
+        retour_all(rules)  # the parts a decisive mission cuts depend on the other missions: assign them all
         return missing
     ids_by_tour: defaultdict[int, list[int]] = defaultdict(list)
     for pk, started_at in (
@@ -152,11 +163,11 @@ def retour(rules: TourRules) -> RetourSummary:
     parts follow what the admin ticked. The caller rebuilds the level-2 rows afterwards (`rebuild_aggregates`, which
     `rebuild-aggregates --retour` does)."""
     SiteSettings.objects.filter(pk=1).update(tour_on_win_applied=F("tour_on_win"))
-    _retour_all(effective_rules(rules))
+    retour_all(effective_rules(rules))
     return RetourSummary(Mission.objects.filter(tour__isnull=False).count(), Tour.objects.count())
 
 
-def _retour_all(rules: TourRules) -> None:
+def retour_all(rules: TourRules) -> None:
     if rules.mode == "manual":
         _retour_manual(rules)
     else:

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 (2026-10-31)
+
+### Added
+
+- **Delete tours:** **Admin > Tours** has a **Delete…** link on every tour (administrators only). With manual tours that
+  have a neighbour it asks what happens to the missions: delete them too, or keep them in the tour next to it. Monthly
+  and N-day tours are their time period, so their missions always go with them.
+- **Delete missions:** select missions under **Admin > Missions** and choose **Delete selected missions…**. A tour that
+  loses its last mission goes as well, unless tours are started by hand.
+- Deleted missions stay deleted: the archived logs stay on disk, but no later ingest or reprocess brings them back, also
+  not **Delete all data and reprocess**. Pilots who flew nowhere else go with them, and all totals, ratings, medals and
+  leaderboards are worked out again. A backup is made first. **Admin > Removed missions** lists them: delete a row and
+  reprocess all missions to bring a mission back, or run `il2ks reprocess --mission <uid>`.
+
+### Upgrading
+
+- One new database migration; it runs by itself as usual.
+
 ## 0.3.2 (2026-10-31)
 
 ### Added

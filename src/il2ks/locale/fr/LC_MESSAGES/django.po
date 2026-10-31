@@ -197,6 +197,13 @@ msgstr "%(n)s h"
 
 # llm-draft
 #, python-format
+msgid "%(n)s mission deleted."
+msgid_plural "%(n)s missions deleted."
+msgstr[0] "%(n)s mission supprimée."
+msgstr[1] "%(n)s missions supprimées."
+
+# llm-draft
+#, python-format
 msgid "%(n)s mission report file found"
 msgid_plural "%(n)s mission report files found"
 msgstr[0] "%(n)s rapport de mission trouvé"
@@ -213,6 +220,27 @@ msgid "%(n)s pilot"
 msgid_plural "%(n)s pilots"
 msgstr[0] "%(n)s pilote"
 msgstr[1] "%(n)s pilotes"
+
+# llm-draft
+#, python-format
+msgid "%(n)s pilot who flew nowhere else"
+msgid_plural "%(n)s pilots who flew nowhere else"
+msgstr[0] "%(n)s pilote qui n'a volé nulle part ailleurs"
+msgstr[1] "%(n)s pilotes qui n'ont volé nulle part ailleurs"
+
+# llm-draft
+#, python-format
+msgid "%(n)s sortie"
+msgid_plural "%(n)s sorties"
+msgstr[0] "%(n)s sortie"
+msgstr[1] "%(n)s sorties"
+
+# llm-draft
+#, python-format
+msgid "%(n)s sortie goes too"
+msgid_plural "%(n)s sorties go too"
+msgstr[0] "%(n)s sortie est aussi supprimée"
+msgstr[1] "%(n)s sorties sont aussi supprimées"
 
 # llm-draft
 #, python-format
@@ -422,6 +450,14 @@ msgstr ""
 " depuis votre propre site ; rien n'est chargé depuis d'autres sites."
 
 # llm-draft
+msgid ""
+"A backup is made first; if it fails, nothing is deleted. The job runs in the watch process (not in this page) and "
+"starts at its next tick. You can follow it on the ingestion status page."
+msgstr ""
+"Une sauvegarde est d'abord créée ; si elle échoue, rien n'est supprimé. La tâche s'exécute dans le processus watch "
+"(pas sur cette page) et démarre à son prochain cycle. Vous pouvez la suivre sur la page d'état de l'ingestion."
+
+# llm-draft
 msgid "A big formation, a long chase, and not much left of the formation. Textbook interception."
 msgstr "Une grosse formation, une longue poursuite, et à la fin, plus grand-chose. Interception comme à l'école."
 
@@ -522,6 +558,10 @@ msgid "A low pass by the other side, uninvited. The ramp is not a place for opin
 msgstr "Des visiteurs inattendus, à basse altitude et sans carton d'invitation. Le parking n'était pas prêt."
 
 # llm-draft
+msgid "A mission of this tour is still running."
+msgstr "Une mission de ce tour est encore en cours."
+
+# llm-draft
 msgid ""
 "A picture behind the title and player search on the home page. PNG, JPEG or WebP, up to 4 MB; about 1600 × 500 pixels"
 " is a good size. It is cropped to fit at every screen width. The image is checked and re-encoded; SVG is refused."
@@ -590,6 +630,10 @@ msgid "A reprocess request is already waiting."
 msgstr "Une demande de retraitement est déjà en attente."
 
 # llm-draft
+msgid "A selected mission is still running."
+msgstr "Une mission sélectionnée est encore en cours."
+
+# llm-draft
 msgid "A short message under the top banner on every public page. Saving changes it for all visitors within moments."
 msgstr ""
 "Un court message sous la bannière du haut sur chaque page publique. Après l'enregistrement, tous les visiteurs le "
@@ -602,6 +646,10 @@ msgstr "Une série ne passe jamais d’un tour au suivant ; le total toutes pé
 # llm-draft
 msgid "A tip of the hat to the wingman who forgave it. Most of them do, eventually."
 msgstr "Une pensée pour l'ailier qui a pardonné. D'habitude, la rancune ne survit pas au débriefing."
+
+# llm-draft
+msgid "A tour here is its time period, so its missions cannot stay: they would bring the tour straight back."
+msgstr "Ici, un tour correspond à sa période : ses missions ne peuvent donc pas rester, elles recréeraient aussitôt le tour."
 
 # llm-draft
 msgid ""
@@ -1042,6 +1090,18 @@ msgstr "Toutes les séries de %(name)s"
 # llm-draft
 msgid "All time"
 msgstr "Tous temps"
+
+# llm-draft
+msgid "All totals, ratings, medals and leaderboards are worked out again."
+msgstr "Tous les totaux, classements Elo, médailles et classements sont recalculés."
+
+# llm-draft
+msgid ""
+"All totals, ratings, medals and leaderboards are worked out again. A tour that loses its last mission goes as well, "
+"unless tours are started by hand."
+msgstr ""
+"Tous les totaux, classements Elo, médailles et classements sont recalculés. Un tour qui perd sa dernière mission est "
+"aussi supprimé, sauf si les tours sont démarrés à la main."
 
 # llm-draft
 msgid "Also known as"
@@ -1599,6 +1659,10 @@ msgid "Check that you copied all of it. After several wrong tries this page lock
 msgstr "Vérifiez que vous l'avez copié en entier. Après plusieurs essais ratés, cette page se verrouille un moment."
 
 # llm-draft
+msgid "Choose what happens to the missions of this tour."
+msgstr "Choisissez ce que deviennent les missions de ce tour."
+
+# llm-draft
 msgid "Class"
 msgstr "Classe"
 
@@ -1886,6 +1950,13 @@ msgid "Delete"
 msgstr "Supprimer"
 
 # llm-draft
+#, python-format
+msgid "Delete %(n)s mission from the site?"
+msgid_plural "Delete %(n)s missions from the site?"
+msgstr[0] "Supprimer %(n)s mission du site ?"
+msgstr[1] "Supprimer %(n)s missions du site ?"
+
+# llm-draft
 msgid "Delete all data and reprocess"
 msgstr "Supprimer toutes les données et retraiter"
 
@@ -1894,8 +1965,55 @@ msgid "Delete all data and reprocess…"
 msgstr "Supprimer toutes les données et retraiter…"
 
 # llm-draft
+#, python-format
+msgid "Delete it too: %(n)s mission"
+msgid_plural "Delete them too: %(n)s missions"
+msgstr[0] "La supprimer aussi : %(n)s mission"
+msgstr[1] "Les supprimer aussi : %(n)s missions"
+
+# llm-draft
+msgid "Delete missions"
+msgstr "Supprimer les missions"
+
+# llm-draft
+msgid "Delete selected missions…"
+msgstr "Supprimer les missions sélectionnées…"
+
+# llm-draft
+#, python-format
+msgid "Delete the tour “%(title)s”?"
+msgstr "Supprimer le tour « %(title)s » ?"
+
+# llm-draft
+msgid "Delete tour"
+msgstr "Supprimer le tour"
+
+# llm-draft
+msgid ""
+"Deleted missions stay in the log archive, but they are left out of every later reprocess, also of “Delete all data "
+"and reprocess”, so they do not come back. To bring one back, delete it from the list of removed missions and "
+"reprocess all missions."
+msgstr ""
+"Les missions supprimées restent dans l'archive des journaux, mais sont exclues de tout retraitement ultérieur, y "
+"compris de « Supprimer toutes les données et retraiter » : elles ne reviennent donc pas. Pour en récupérer une, "
+"supprimez-la de la liste des missions retirées et retraitez toutes les missions."
+
+# llm-draft
+msgid "Delete…"
+msgstr "Supprimer…"
+
+# llm-draft
+#, python-format
+msgid "Deleting %(title)s is requested. It starts at the next watch tick."
+msgstr "La suppression de %(title)s est demandée. Elle démarre au prochain cycle de watch."
+
+# llm-draft
 msgid "Deleting all data and reprocessing is requested. It starts at the next watch tick."
 msgstr "La suppression de toutes les données et le retraitement sont demandés. Ils démarrent au prochain cycle de watch."
+
+# llm-draft
+msgid "Deleting the missions is requested. It starts at the next watch tick."
+msgstr "La suppression des missions est demandée. Elle démarre au prochain cycle de watch."
 
 # llm-draft
 msgid "Describe the image in a few words; screen readers read this text."
@@ -2935,6 +3053,12 @@ msgid "Icon for the browser tab"
 msgstr "Icône pour l’onglet du navigateur"
 
 # llm-draft
+msgid "If a new mission is flown in this tour's period, the tour starts again with that mission, under its automatic name."
+msgstr ""
+"Si une nouvelle mission est jouée pendant la période de ce tour, le tour recommence avec cette mission, sous son nom "
+"automatique."
+
+# llm-draft
 msgid "Image file on the server"
 msgstr "Fichier image sur le serveur"
 
@@ -3053,6 +3177,13 @@ msgid "It was a very good shot at the wrong target. The aim is not the problem h
 msgstr "En plein dans le mille, mais sur la mauvaise cible."
 
 # llm-draft
+#, python-format
+msgid "Its %(n)s mission goes too"
+msgid_plural "Its %(n)s missions go too"
+msgstr[0] "Sa %(n)s mission est aussi supprimée"
+msgstr[1] "Ses %(n)s missions sont aussi supprimées"
+
+# llm-draft
 msgid "Jet"
 msgstr "À réaction"
 
@@ -3077,6 +3208,11 @@ msgstr "K/L"
 #, python-format
 msgid "K/L %(value)s"
 msgstr "K/L %(value)s"
+
+# llm-draft
+#, python-format
+msgid "Keep them: they join the tour “%(title)s”"
+msgstr "Les garder : elles rejoignent le tour « %(title)s »"
 
 # llm-draft
 msgid "Key (AType:KEY)"
@@ -3686,6 +3822,10 @@ msgid ""
 msgstr ""
 "Plus de nouvelles tentatives automatiques. Elles sont relancées quand leurs fichiers ou la version d'il2ks changent, "
 "ou lancez `il2ks reprocess --mission UID` après avoir corrigé la cause."
+
+# llm-draft
+msgid "No other tour can take these missions over, so they cannot stay."
+msgstr "Aucun autre tour ne peut reprendre ces missions, elles ne peuvent donc pas rester."
 
 # llm-draft
 msgid "No picture yet."
@@ -5919,6 +6059,14 @@ msgid "The taxiway keeps a file on these. It is a thin, well-thumbed file."
 msgstr "Le taxiway tient un dossier sur ces cas-là. Il est mince, mais bien écorné."
 
 # llm-draft
+msgid ""
+"The time of this tour goes to the tour before it. If this is the newest tour, the tour before it becomes the running "
+"one."
+msgstr ""
+"Le temps de ce tour revient au tour précédent. S'il s'agit du tour le plus récent, le tour précédent devient le tour "
+"en cours."
+
+# llm-draft
 msgid "The two passwords differ."
 msgstr "Les deux mots de passe ne correspondent pas."
 
@@ -6088,6 +6236,10 @@ msgstr[0] ""
 msgstr[1] ""
 "Cela rejoue les %(n)s missions stockées depuis leurs archives avec les règles actuelles, puis reconstruit toutes les "
 "statistiques et tous les classements."
+
+# llm-draft
+msgid "This tour has no missions."
+msgstr "Ce tour n'a aucune mission."
 
 # llm-draft
 msgid "Those little black clouds were not decorative."
@@ -6296,6 +6448,10 @@ msgstr "Options des tours"
 # llm-draft
 msgid "Tour settings saved."
 msgstr "Réglages des tours enregistrés."
+
+# llm-draft
+msgid "Tours"
+msgstr "Tours"
 
 # llm-draft
 msgid ""
@@ -6570,6 +6726,10 @@ msgstr[1] ""
 "fonctionne aussi, mais le menu passe alors sur une deuxième ligne de l'en-tête."
 
 # llm-draft
+msgid "What should happen to the missions of this tour?"
+msgstr "Que faire des missions de ce tour ?"
+
+# llm-draft
 msgid "What was saved"
 msgstr "Ce qui a été enregistré"
 
@@ -6806,8 +6966,20 @@ msgid "delete all data and reprocess"
 msgstr "supprimer toutes les données et retraiter"
 
 # llm-draft
+#, python-format
+msgid "deleting %(n)s mission"
+msgid_plural "deleting %(n)s missions"
+msgstr[0] "suppression de %(n)s mission"
+msgstr[1] "suppression de %(n)s missions"
+
+# llm-draft
 msgid "deleting the data"
 msgstr "suppression des données"
+
+# llm-draft
+#, python-format
+msgid "deleting the tour “%(title)s”"
+msgstr "suppression du tour « %(title)s »"
 
 # llm-draft
 msgid "exited on ground"

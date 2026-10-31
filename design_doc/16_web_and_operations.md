@@ -348,7 +348,11 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 ## Admin (FR-ADM-1..5)
 
 - The admin lives in the `web` app (`web/admin.py`): models stay in `db/`. Rows that ingest owns (players, missions, sorties, counters,
-  runs) are read-only apart from `is_hidden`; nothing ingested can be added or deleted there.
+  runs) are read-only apart from `is_hidden`; nothing ingested can be added there, and Django's own delete is off.
+- **Delete a tour or missions** (0.4.0, FR-ADM-8, the job in doc 14, `[PROPOSED]`): superusers only. A *Delete…* link per row of the tour list and the mission action
+  *Delete selected missions…* open a confirmation page that counts what goes (missions, sorties, pilots who flew nowhere else) and asks for the typed word `DELETE`. For a manual
+  tour with a neighbour it asks whether the missions go too or join that tour (a required radio; otherwise the page says why they go). The ingestion status page shows the
+  request. *Removed missions* lists the deleted missions; deleting a row lets a mission back at the next reprocess of everything.
 - **Site settings** singleton (branding below; REDFOR / BLUFOR names and emblems; logo upload, FR-ADM-2 has the upload rules as built).
 - **Hiding** (FR-ADM-3, `[DECIDED]`): bulk hide/unhide actions; presentation only. `Player.objects.visible()` / `Mission.objects.visible()`.
 - **Names** (FR-ADM-5): game object and country display names editable inline, with "reset to catalog default".

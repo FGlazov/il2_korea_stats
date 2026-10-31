@@ -44,6 +44,7 @@ belongs here."""
 
 NOT_PLANNED_TABLES: dict[str, str] = {
     "il2ks_db_pagetranslation": "read only when the admin saves a page (published as JSON onto the page row)",
+    "il2ks_db_removedmission": "a short list of what admins deleted: read whole, once per ingest or reprocess run",
 }
 """`{table: reason}`: tables no checked page or ingest query reads (only written, or read by something the test cannot
 reach). The coverage test lists every other table that no plan touched, so a new table cannot dodge the check."""

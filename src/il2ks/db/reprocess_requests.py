@@ -7,7 +7,7 @@ from datetime import date, datetime
 
 from django.db import IntegrityError, transaction
 
-from il2ks.db.models import ReprocessRequest, ReprocessStatus
+from il2ks.db.models import ReprocessRequest, ReprocessStatus, Tour
 
 
 class AlreadyPendingError(Exception):
@@ -21,13 +21,28 @@ def request_reprocess(
     `wipe`: "Delete all data and reprocess" (every mission, so no span)."""
     if wipe and (since is not None or until is not None):
         raise ValueError("a wipe reprocesses every mission")
+    return _file(requested_by, now, since=since, until=until, wipe=wipe)
+
+
+def request_tour_removal(requested_by: str, now: datetime, tour: Tour, *, keep_missions: bool) -> ReprocessRequest:
+    """File "Delete tour" (`ingest.removal`): one queue, so it never runs alongside a reprocess. Raises
+    `AlreadyPendingError` if a request waits."""
+    return _file(
+        requested_by, now, remove_tour_id=tour.pk, remove_tour_title=tour.title, remove_tour_missions=not keep_missions
+    )
+
+
+def request_mission_removal(requested_by: str, now: datetime, mission_ids: list[int]) -> ReprocessRequest:
+    """File "Delete missions" (`ingest.removal`). Raises `AlreadyPendingError` if a request waits."""
+    return _file(requested_by, now, remove_mission_ids=mission_ids)
+
+
+def _file(requested_by: str, now: datetime, **fields: date | bool | int | str | list[int] | None) -> ReprocessRequest:
     try:
         with transaction.atomic():  # the partial unique index also stops two concurrent requests
             if ReprocessRequest.objects.filter(status=ReprocessStatus.PENDING).exists():
                 raise AlreadyPendingError
-            return ReprocessRequest.objects.create(
-                requested_at=now, requested_by=requested_by[:150], since=since, until=until, wipe=wipe
-            )
+            return ReprocessRequest.objects.create(requested_at=now, requested_by=requested_by[:150], **fields)
     except IntegrityError as exc:
         raise AlreadyPendingError from exc
 

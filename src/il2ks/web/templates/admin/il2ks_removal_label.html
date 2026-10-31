@@ -1,0 +1,2 @@
+{# il2ks-template: templates/admin/il2ks_removal_label.html v1.0 - copy this line along when you override #}
+{% load i18n %}{% if job.remove_tour_id is not None %}{% blocktranslate with title=job.remove_tour_title %}deleting the tour “{{ title }}”{% endblocktranslate %}{% else %}{% blocktranslate count n=job.remove_mission_ids|length %}deleting {{ n }} mission{% plural %}deleting {{ n }} missions{% endblocktranslate %}{% endif %}

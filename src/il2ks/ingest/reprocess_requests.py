@@ -8,7 +8,7 @@ with a mission count, then done (with how many succeeded, failed or had no archi
 
 import logging
 import traceback
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date, datetime
 from typing import Protocol
 
@@ -18,6 +18,7 @@ from il2ks.config import Config
 from il2ks.db.models import ReprocessRequest, ReprocessStatus
 from il2ks.db.reprocess_requests import pending_request
 from il2ks.ingest.lock import LockBusyError
+from il2ks.ingest.removal import RemovalError, RemovalPhase, remove_missions, remove_tour
 from il2ks.ingest.reprocess import ReprocessSummary, reprocess
 from il2ks.ingest.runner import Pipeline, utcnow
 from il2ks.ingest.wipe import WipeError, WipePhase, wipe_and_reprocess
@@ -58,6 +59,29 @@ class WipeFn(Protocol):
     ) -> ReprocessSummary: ...
 
 
+class RemoveTourFn(Protocol):
+    """`removal.remove_tour` as the request runner uses it (tests pass a fake)."""
+
+    def __call__(
+        self,
+        cfg: Config,
+        tour_id: int,
+        removed_by: str,
+        /,
+        *,
+        keep_missions: bool,
+        on_phase: Callable[[RemovalPhase], None],
+    ) -> int: ...
+
+
+class RemoveMissionsFn(Protocol):
+    """`removal.remove_missions` as the request runner uses it (tests pass a fake)."""
+
+    def __call__(
+        self, cfg: Config, mission_ids: Sequence[int], removed_by: str, /, *, on_phase: Callable[[RemovalPhase], None]
+    ) -> int: ...
+
+
 def fail_interrupted_requests(now: datetime) -> int:
     """Requests left `running` by a process that died. Call once when `watch` starts (nothing else runs requests)."""
     return ReprocessRequest.objects.filter(status=ReprocessStatus.RUNNING).update(
@@ -74,6 +98,8 @@ def run_pending_request(
     *,
     reprocess_fn: ReprocessFn = reprocess,
     wipe_fn: WipeFn = wipe_and_reprocess,
+    remove_tour_fn: RemoveTourFn = remove_tour,
+    remove_missions_fn: RemoveMissionsFn = remove_missions,
     now: Callable[[], datetime] = utcnow,
     between: Callable[[], None] | None = None,
 ) -> ReprocessRequest | None:
@@ -92,7 +118,7 @@ def run_pending_request(
         request.missions_total = total
         request.save(update_fields=["status", "started_at", "missions_total"])
 
-    def phase(step: WipePhase) -> None:
+    def phase(step: WipePhase | RemovalPhase) -> None:
         request.phase = step.value
         if request.status == ReprocessStatus.PENDING:  # the first step: the job is under way (lock held)
             request.status = ReprocessStatus.RUNNING
@@ -107,6 +133,20 @@ def run_pending_request(
             between()
 
     try:
+        if request.remove_tour_id is not None:
+            request.missions_ok = remove_tour_fn(
+                cfg,
+                request.remove_tour_id,
+                request.requested_by,
+                keep_missions=not request.remove_tour_missions,
+                on_phase=phase,
+            )
+            return _finish(request, now(), ReprocessStatus.DONE, error="")
+        if request.remove_mission_ids:
+            request.missions_ok = remove_missions_fn(
+                cfg, request.remove_mission_ids, request.requested_by, on_phase=phase
+            )
+            return _finish(request, now(), ReprocessStatus.DONE, error="")
         if request.wipe:
             summary = wipe_fn(cfg, pipeline_factory(), on_phase=phase, on_start=started, on_progress=progress)
         else:
@@ -121,7 +161,7 @@ def run_pending_request(
     except LockBusyError as exc:
         log.info("reprocess request #%s waits: %s", request.pk, exc)
         return None
-    except WipeError as exc:  # nothing was deleted: say why (no archive, no backup)
+    except (WipeError, RemovalError) as exc:  # nothing was deleted: say why (no archive, no backup, ...)
         log.warning("reprocess request #%s: %s", request.pk, exc)
         return _finish(request, now(), ReprocessStatus.FAILED, error=str(exc)[-ERROR_MAX_CHARS:])
     except Exception:

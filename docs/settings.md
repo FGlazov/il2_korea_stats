@@ -96,6 +96,15 @@ Good to know:
   read. The default keeps them in the data folder.
 - A changed rule only touches **new** missions until you reprocess. That is on purpose.
 - Want to be careful? `il2ks backup` first.
+- **Delete a tour or missions** (administrators only): a full wipe cannot remove anything, because it builds everything
+  again from the same archived logs. To really remove a test tour, use **Delete…** in the tour list, or select missions
+  in the mission list and choose **Delete selected missions…**. You confirm by typing `DELETE`; the `watch` process then
+  makes a backup, deletes, and works out all totals again. With manual tours that have a neighbour you choose whether the
+  missions go too or join the tour next to it; a monthly or N-day tour is its time period, so its missions always go
+  (a new mission in that period starts the tour again). Moving log files away does not do this: the archive check stops
+  a wipe when a stored mission has no archive. The archives stay on disk and the missions are listed under
+  **Removed missions**: delete a row there and reprocess all missions to bring one back, or run
+  `il2ks reprocess --mission <uid>`.
 - **Delete all data and reprocess** (Ingestion status page, administrators only; or `il2ks reprocess --all --wipe`) starts
   from scratch: it makes a backup (if that fails, nothing is deleted), deletes every mission, player, tour and statistic,
   and builds them again from the archived logs, so the tours are cut again from the current tour settings. Your admin

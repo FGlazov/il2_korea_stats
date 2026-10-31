@@ -29,7 +29,7 @@ from il2ks.core.logparse.files import MissionLog, MissionLogKind, group_mission_
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.result import MissionResult
 from il2ks.core.replay.state import run as replay_run
-from il2ks.db.models import IngestRun, IngestStatus, Mission
+from il2ks.db.models import IngestRun, IngestStatus, Mission, RemovedMission
 from il2ks.db.site import bump_data_version
 from il2ks.ingest import wipe_state
 from il2ks.ingest.aggregates import rebuild_aggregates
@@ -220,9 +220,14 @@ def _ingest_locked(
     complete = [f for f in found if f.complete is not None]
     summary.incomplete.extend(f.mission_uid for f in found if f.complete is None)
     last_runs = latest_runs([f.mission_uid for f in complete])
+    removed = set(RemovedMission.objects.values_list("mission_uid", flat=True))  # deleted with their tour: stay out
 
     todo: list[tuple[Found, Decision, IngestRun | None]] = []
     for item in complete:
+        if item.mission_uid in removed:
+            summary.skip("removed", item.mission_uid)
+            _dispose(item, mode, cfg, summary)
+            continue
         last = last_runs.get(item.mission_uid)
         decision = classify(item.fingerprint, _as_last_run(last), version=__version__, now=now())
         if decision == "unchanged" and last is not None and opts.reconcile and not _archive_present(cfg, last):

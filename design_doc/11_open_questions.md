@@ -15,6 +15,11 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-142 End a tour and resume the same tour later** (doc 14 "Delete a tour or missions", TD-26; maintainer 2026-10-31: delete only for now)
+A tour is one unbroken time range and a mission belongs to the tour holding its start, so a test tour that pauses while a real tour runs and then continues needs a tour with
+several time spans (manual mode only; the calendar modes end by the date). That extends TD-26 and touches the activity chart, the wipe's manual boundaries and `retour`. For
+repeated tests until then: delete the test tour and start a fresh one. Build it, or is that enough?
+
 **OQ-137 "Delete all data and reprocess": defaults applied** (doc 14 "Delete all data and reprocess", FR-ADM-4)
 Applied until you decide: (1) only **superusers** may start it (staff with the reprocess permission may not); (2) while it runs the public pages are empty or partial and
 show **no notice** (use the notice banner by hand if you want one); (3) a hidden player or hidden mission whose archive is gone is **dropped** from the hidden lists after

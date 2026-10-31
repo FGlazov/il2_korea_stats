@@ -4,7 +4,8 @@ Lives in the web app (the admin is presentation; models stay in `il2ks.db`). Rul
 
 - Rows that ingest owns (players, missions, sorties, counters, tours, ingestion runs) are read-only apart from
   `is_hidden` (and a tour's title):
-  anything else would be overwritten by the next ingest or rebuild. They can't be added or deleted here.
+  anything else would be overwritten by the next ingest or rebuild. They can't be added here, and a tour or mission is
+  deleted only through a request the `watch` loop runs (`ingest.removal`), never by Django's own delete.
 - Every save or action on a page-visible model bumps the data version in the same transaction (TD-28), so cached pages
   are revalidated. (`changeform_view` and the changelist's `list_editable` save run inside a transaction; the bulk
   actions open their own.)
@@ -23,8 +24,10 @@ from django.db import models, transaction
 from django.forms import ModelForm
 from django.forms.models import BaseModelFormSet
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import URLPattern, path, reverse
+from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext, ngettext
@@ -39,14 +42,23 @@ from il2ks.db.models import (
     Mission,
     NavLink,
     Player,
+    PlayerSortie,
     PlayerTour,
+    RemovedMission,
     SiteSettings,
     Tour,
+)
+from il2ks.db.reprocess_requests import (
+    AlreadyPendingError,
+    pending_request,
+    request_mission_removal,
+    request_tour_removal,
+    running_request,
 )
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.activity import day_of, recompute_days
-from il2ks.ingest.tours import start_manual_tour
+from il2ks.ingest.tours import start_manual_tour, tour_taking_over
 from il2ks.web.admin_pages import PageAdmin as PageAdmin
 from il2ks.web.admin_rules import tour_mode
 from il2ks.web.branding_images import (
@@ -436,6 +448,27 @@ class SiteSettingsAdmin(ModelAdmin[SiteSettings]):
         transaction.on_commit(partial(prune_fonts, media_root, [font.file for font in fonts]))
 
 
+# --- Deleting tours and missions (FR-ADM-3, FR-ADM-8): only filed here, the `watch` loop runs it (`ingest.removal`) ---
+
+DELETE_WORD = "DELETE"  # not translated, like the wipe's word
+SHOWN_MISSIONS = 20  # listed by name on the confirmation of "Delete missions"
+
+
+def _can_delete(request: HttpRequest) -> bool:
+    """Superusers only, as with "Delete all data and reprocess"."""
+    return request.user.is_superuser and request.user.has_perm("il2ks_db.add_reprocessrequest")
+
+
+def _job_under_way() -> bool:
+    return pending_request() is not None or running_request() is not None
+
+
+def _pilots_only_in(sorties: models.QuerySet[PlayerSortie]) -> int:
+    """How many players have no sortie outside `sorties`: they go with them."""
+    elsewhere = PlayerSortie.objects.exclude(pk__in=sorties.values("pk")).values("player_id")
+    return Player.objects.filter(pk__in=sorties.values("player_id")).exclude(pk__in=elsewhere).count()
+
+
 # --- Players and missions: read-only apart from hiding (FR-ADM-3) ---
 
 
@@ -518,7 +551,7 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
     list_filter = ("is_hidden", "completed_cleanly", "tour", "started_at")
     search_fields = ("mission_uid", "mission_file")
     ordering = ("-started_at",)
-    actions = ("hide_selected", "unhide_selected")
+    actions = ("hide_selected", "unhide_selected", "remove_selected")
     fieldsets = (
         (
             None,
@@ -571,13 +604,64 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
     def unhide_selected(self, request: HttpRequest, queryset: models.QuerySet[Mission]) -> None:
         _set_hidden(self, request, queryset, False)
 
+    def has_remove_permission(self, request: HttpRequest) -> bool:
+        return _can_delete(request)
+
+    @admin.action(description=_("Delete selected missions…"), permissions=["remove"])
+    def remove_selected(self, request: HttpRequest, queryset: models.QuerySet[Mission]) -> HttpResponse | None:
+        """The confirmation page; its form posts to `remove_view`."""
+        if _job_under_way():
+            self.message_user(request, _("A reprocess request is already waiting or running."), messages.WARNING)
+            return None
+        if queryset.filter(is_live=True).exists():
+            self.message_user(request, _("A selected mission is still running."), messages.ERROR)
+            return None
+        sorties = PlayerSortie.objects.filter(mission__in=queryset)
+        context = {
+            **self.admin_site.each_context(request),
+            "title": _("Delete missions"),
+            "ids": list(queryset.values_list("pk", flat=True)),
+            "shown": list(queryset.order_by("-started_at")[:SHOWN_MISSIONS]),
+            "missions": queryset.count(),
+            "sorties": sorties.count(),
+            "pilots": _pilots_only_in(sorties),
+            "changelist_url": reverse("admin:il2ks_db_mission_changelist"),
+            "word": DELETE_WORD,
+        }
+        return TemplateResponse(request, "admin/il2ks_mission_delete_confirm.html", context)
+
+    def get_urls(self) -> list[URLPattern]:
+        remove = path("remove/", self.admin_site.admin_view(self.remove_view), name="il2ks_db_mission_remove")
+        return [remove, *super().get_urls()]
+
+    def remove_view(self, request: HttpRequest) -> HttpResponseRedirect:
+        """POST with the typed word: file the request."""
+        if request.method != "POST" or not _can_delete(request):
+            raise PermissionDenied
+        changelist = reverse("admin:il2ks_db_mission_changelist")
+        posted = [int(x) for x in request.POST.getlist("ids") if x.isascii() and x.isdecimal() and len(x) <= 18]
+        ids = list(Mission.objects.filter(pk__in=posted, is_live=False).values_list("pk", flat=True))
+        if request.POST.get("confirmation", "").strip() != DELETE_WORD or not ids:
+            self.message_user(request, _("The confirmation did not match, so nothing was requested."), messages.ERROR)
+            return HttpResponseRedirect(changelist)
+        try:
+            request_mission_removal(request.user.get_username(), timezone.now(), ids)
+        except AlreadyPendingError:
+            self.message_user(request, _("A reprocess request is already waiting."), messages.WARNING)
+        else:
+            self.message_user(
+                request, _("Deleting the missions is requested. It starts at the next watch tick."), messages.SUCCESS
+            )
+        return HttpResponseRedirect(reverse("admin:ingest-status"))
+
 
 # --- Tours (FR-ADM-8, TD-26) ---
 
 
 @admin.register(Tour)
 class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
-    """Rename tours; in manual mode, start the next one. Boundaries and mode are the ingester's."""
+    """Rename tours; in manual mode, start the next one; delete a tour with its missions (superusers, the `watch` loop
+    runs it). Boundaries and mode are the ingester's."""
 
     editable = ("title",)
     list_display = ("title", "started_at", "ended_at", "mode", "missions_count")
@@ -592,6 +676,14 @@ class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
     def missions_count(self, obj: Tour) -> int:
         return int(getattr(obj, "missions_n", 0))
 
+    @admin.display(description=_("Delete"))
+    def delete_link(self, obj: Tour) -> str:
+        return format_html('<a href="{}">{}</a>', reverse("admin:il2ks_db_tour_remove", args=[obj.pk]), _("Delete…"))
+
+    def get_list_display(self, request: HttpRequest) -> Sequence[str]:
+        shown = super().get_list_display(request)
+        return [*shown, "delete_link"] if _can_delete(request) else shown
+
     def changelist_view(self, request: HttpRequest, extra_context: dict[str, str] | None = None) -> TemplateResponse:
         manual = tour_mode() == "manual"
         can_start = "1" if manual and self.has_change_permission(request) else ""
@@ -599,7 +691,62 @@ class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
 
     def get_urls(self) -> list[URLPattern]:
         start = path("start/", self.admin_site.admin_view(self.start_view), name="il2ks_db_tour_start")
-        return [start, *super().get_urls()]
+        remove = path(
+            "<int:tour_id>/remove/", self.admin_site.admin_view(self.remove_view), name="il2ks_db_tour_remove"
+        )
+        return [start, remove, *super().get_urls()]
+
+    def remove_view(self, request: HttpRequest, tour_id: int) -> HttpResponse:
+        """ "Delete tour": the confirmation page (GET) and the request (POST, with the typed word). Superusers only, as
+        with "Delete all data and reprocess". Nothing runs here: the `watch` loop does it (`ingest.removal`)."""
+        if not _can_delete(request):
+            raise PermissionDenied
+        tour = get_object_or_404(Tour, pk=tour_id)
+        changelist = reverse("admin:il2ks_db_tour_changelist")
+        status_url = reverse("admin:ingest-status")
+        if _job_under_way():
+            self.message_user(request, _("A reprocess request is already waiting or running."), messages.WARNING)
+            return HttpResponseRedirect(status_url)
+        missions = Mission.objects.filter(tour=tour)
+        taking_over = tour_taking_over(tour, tour_mode()) if missions.exists() else None
+        if request.method == "POST":
+            choice = request.POST.get("missions", "") if taking_over is not None else "delete"
+            if request.POST.get("confirmation", "").strip() != DELETE_WORD:
+                self.message_user(
+                    request, _("The confirmation did not match, so nothing was requested."), messages.ERROR
+                )
+            elif choice not in ("delete", "keep"):
+                self.message_user(request, _("Choose what happens to the missions of this tour."), messages.ERROR)
+            elif choice == "delete" and missions.filter(is_live=True).exists():
+                self.message_user(request, _("A mission of this tour is still running."), messages.ERROR)
+            else:
+                try:
+                    request_tour_removal(
+                        request.user.get_username(), timezone.now(), tour, keep_missions=choice == "keep"
+                    )
+                except AlreadyPendingError:
+                    self.message_user(request, _("A reprocess request is already waiting."), messages.WARNING)
+                else:
+                    self.message_user(
+                        request,
+                        _("Deleting %(title)s is requested. It starts at the next watch tick.") % {"title": tour.title},
+                        messages.SUCCESS,
+                    )
+                return HttpResponseRedirect(status_url)
+        sorties = PlayerSortie.objects.filter(tour=tour)
+        context = {
+            **self.admin_site.each_context(request),
+            "title": _("Delete tour"),
+            "tour": tour,
+            "missions": missions.count(),
+            "sorties": sorties.count(),
+            "pilots": _pilots_only_in(sorties),
+            "taking_over": taking_over,
+            "manual": tour_mode() == "manual",
+            "changelist_url": changelist,
+            "word": DELETE_WORD,
+        }
+        return TemplateResponse(request, "admin/il2ks_tour_delete_confirm.html", context)
 
     def start_view(self, request: HttpRequest) -> HttpResponseRedirect:
         """POST: close the open tour and start a new one now (manual mode only)."""
@@ -614,6 +761,23 @@ class TourAdmin(ReadOnlyIngestedAdmin[Tour]):
             bump_data_version()
         self.message_user(request, _("Started %(title)s.") % {"title": tour.title}, messages.SUCCESS)
         return HttpResponseRedirect(changelist)
+
+
+@admin.register(RemovedMission)
+class RemovedMissionAdmin(ModelAdmin[RemovedMission]):
+    """The deleted missions (`ingest.removal`). Deleting a row here lets the mission back at the next reprocess of
+    everything; there is nothing else to edit."""
+
+    list_display = ("mission_uid", "tour_title", "removed_at", "removed_by")
+    list_filter = ("tour_title",)
+    search_fields = ("mission_uid",)
+    ordering = ("-removed_at", "-mission_uid")
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: RemovedMission | None = None) -> bool:
+        return False
 
 
 @admin.register(PlayerTour)

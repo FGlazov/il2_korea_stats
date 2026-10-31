@@ -71,6 +71,7 @@ KEEP_MODELS: Mapping[str, str] = {
     "Country": "the catalog and the admin's country names",
     "IngestRun": "the history that tells `reprocess` which archive to use (its `mission` link is cleared)",
     "ReprocessRequest": "the running job's own row",
+    "RemovedMission": "the missions of deleted tours: the reprocess must leave them out",
     "LiveMission": "the running mission as `watch` saw it (not an ingested row)",
     "LivePlayer": "online now (its `player` link is cleared)",
 }

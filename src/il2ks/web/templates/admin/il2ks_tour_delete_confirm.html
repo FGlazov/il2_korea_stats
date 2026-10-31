@@ -1,0 +1,43 @@
+{# il2ks-template: templates/admin/il2ks_tour_delete_confirm.html v1.0 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> ›
+  <a href="{{ changelist_url }}">{% translate "Tours" %}</a> › {% translate "Delete tour" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p><strong>{% blocktranslate with title=tour.title %}Delete the tour “{{ title }}”?{% endblocktranslate %}</strong></p>
+  <form method="post">
+    {% csrf_token %}
+    {% if taking_over %}
+    <p>{% translate "What should happen to the missions of this tour?" %}</p>
+    <p><label><input type="radio" name="missions" value="delete" required> {% blocktranslate count n=missions %}Delete it too: {{ n }} mission{% plural %}Delete them too: {{ n }} missions{% endblocktranslate %}, {% blocktranslate count n=sorties %}{{ n }} sortie{% plural %}{{ n }} sorties{% endblocktranslate %}, {% blocktranslate count n=pilots %}{{ n }} pilot who flew nowhere else{% plural %}{{ n }} pilots who flew nowhere else{% endblocktranslate %}</label></p>
+    <p><label><input type="radio" name="missions" value="keep" required> {% blocktranslate with title=taking_over.title %}Keep them: they join the tour “{{ title }}”{% endblocktranslate %}</label></p>
+    {% elif missions %}
+    <p>{% blocktranslate count n=missions %}Its {{ n }} mission goes too{% plural %}Its {{ n }} missions go too{% endblocktranslate %}, {% blocktranslate count n=sorties %}{{ n }} sortie{% plural %}{{ n }} sorties{% endblocktranslate %}, {% blocktranslate count n=pilots %}{{ n }} pilot who flew nowhere else{% plural %}{{ n }} pilots who flew nowhere else{% endblocktranslate %}.</p>
+    <p>{% if manual %}{% translate "No other tour can take these missions over, so they cannot stay." %}{% else %}{% translate "A tour here is its time period, so its missions cannot stay: they would bring the tour straight back." %}{% endif %}</p>
+    {% else %}
+    <p>{% translate "This tour has no missions." %}</p>
+    {% endif %}
+    {% if missions %}
+    <p>{% translate "All totals, ratings, medals and leaderboards are worked out again." %}</p>
+    <p>{% translate "Deleted missions stay in the log archive, but they are left out of every later reprocess, also of “Delete all data and reprocess”, so they do not come back. To bring one back, delete it from the list of removed missions and reprocess all missions." %}</p>
+    {% endif %}
+    {% if manual %}
+    <p>{% translate "The time of this tour goes to the tour before it. If this is the newest tour, the tour before it becomes the running one." %}</p>
+    {% elif missions %}
+    <p>{% translate "If a new mission is flown in this tour's period, the tour starts again with that mission, under its automatic name." %}</p>
+    {% endif %}
+    <p>{% translate "A backup is made first; if it fails, nothing is deleted. The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion status page." %}</p>
+    <p><label for="id_confirmation">{% blocktranslate %}To confirm, type {{ word }} here:{% endblocktranslate %}</label>
+      <input type="text" name="confirmation" id="id_confirmation" autocomplete="off" required></p>
+    <input type="submit" value="{% translate 'Delete tour' %}">
+    <a href="{{ changelist_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+</div>
+{% endblock %}

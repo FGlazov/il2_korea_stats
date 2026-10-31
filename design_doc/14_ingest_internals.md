@@ -138,6 +138,17 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
   `--mission UID` (repeatable) and **`--since DATE` / `--until DATE`** (inclusive, by the mission UID's server-local date; maintainer use case:
   "scoring changed, reprocess the last 6 months"). Parse and replay run in low-priority worker processes; the main process is the only writer.
   A reprocess failure leaves the previous rows in place and never schedules a retry.
+- **Delete a tour or missions** (`ingest/removal.py`, 0.4.0, FR-ADM-8, maintainer 2026-10-31; the mechanics `[PROPOSED]`): the wipe cannot remove anything, it reads the
+  same archives back, and moving an archive away makes `check_archives` refuse it. So the admin files a `ReprocessRequest` (`remove_tour_id` or `remove_mission_ids`,
+  one queue with the reprocess) and `watch` runs it under the writer lock: a backup (`pre-tour-delete`; a failure deletes nothing), then in one transaction the missions and
+  sorties go, each mission gets a `RemovedMission` row, the players left without any sortie go (a reader would otherwise find empty pilots), the tour row goes, manual mode
+  and the decisive-tour option redraw through `retour_all`, and level 2 is rebuilt whole (rare, and the one path that cannot drift: the tests compare with a fresh ingest of
+  what is left). A mission of a calendar tour left without missions takes the tour with it (`delete_empty_tours`); a manual tour stays, it is the admin's boundary.
+  **`RemovedMission`** is what keeps a mission away: the archive stays on disk, `archived_targets` and the ingest loop skip the UID (decision `removed`), and the wipe keeps
+  the table (`KEEP_MODELS`). A reprocess that names the UID (`il2ks reprocess --mission`) brings the mission back and drops the row; deleting the row in the admin lets the
+  next reprocess of everything bring it back. **Keeping the missions** of a deleted tour exists only for a manual boundary with another boundary to take over
+  (`tours.tour_taking_over`: the one before, else the one after): a calendar period is its tour and a `by_win` part is cut by its missions, so missions left behind would bring
+  the tour straight back. A running (`is_live`) mission refuses the request, because its final save would bring it back. `[PROPOSED]`: superusers only, as with the wipe.
 - **Delete all data and reprocess** (`ingest/wipe.py`, 0.2.0, FR-ADM-4): a second button next to "Reprocess all missions" on the ingestion status
   page, for superusers only, then a confirmation page where the admin types `DELETE` (the word is not translated). The CLI twin is
   `il2ks reprocess --all --wipe`: it asks for the typed words "delete all data" (`--yes` skips the question; without a terminal `--yes` is required;
@@ -151,7 +162,7 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
   5. **re-apply** the captured settings, also when the reprocess failed half way (what was rebuilt keeps the admin's hiding and tour names).
 - **What the wipe keeps** is decided in one place, `KEEP_MODELS` in `ingest/wipe.py`, each model with a reason: `SiteSettings`, `NavLink`, `Page`,
   `PageTranslation`, `DataVersion`, `GameObject` (catalog and name overrides), `Country`, `IngestRun` (the history tells the reprocess which archive
-  to use; its mission link is cleared and set again afterwards, by mission UID), `ReprocessRequest`, `LiveMission`, `LivePlayer`. **Every other
+  to use; its mission link is cleared and set again afterwards, by mission UID), `ReprocessRequest`, `LiveMission`, `LivePlayer`, `RemovedMission` (deleted missions stay deleted). **Every other
   `il2ks_db` model is wiped**; other apps (auth, axes) are untouched. A test fails when a model is in neither list, so whoever adds one has to decide.
 - **Settings on ingested rows**, captured before the first row is deleted: hidden players (by account UUID), hidden missions (by server UID and mission
   UID), tour renames (only when the new tour has the same start, mode and kind), and the manual tour boundaries, which are recreated before the reprocess when

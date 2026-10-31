@@ -29,7 +29,7 @@ from il2ks.core.logparse.files import mission_uid_from_name
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
-from il2ks.db.models import CompletionReason, IngestRun, IngestStatus
+from il2ks.db.models import CompletionReason, IngestRun, IngestStatus, RemovedMission
 from il2ks.db.site import clear_level2_pending, set_level2_pending
 from il2ks.ingest import wipe_state
 from il2ks.ingest.aggregates import rebuild_aggregates
@@ -84,18 +84,23 @@ def archived_targets(
 
     The newest archive-writing `IngestRun` of each mission. Archives on disk with no run at all (a lost or rebuilt
     database, FR-ING-9: "rebuild the DB from archived logs") are adopted as unsaved runs, so `reprocess` can bring
-    a mission back from its archive alone."""
+    a mission back from its archive alone.
+
+    The missions of a deleted tour (`RemovedMission`) are left out unless they are asked for by UID."""
     runs = IngestRun.objects.exclude(archive_sha256="")
     if mission_uids:
         runs = runs.filter(mission_uid__in=list(mission_uids))
+    wanted = set(mission_uids or ())
+    removed = set(RemovedMission.objects.values_list("mission_uid", flat=True)) - wanted
     targets: dict[str, IngestRun] = {}
     for run in runs.order_by("mission_uid", "-started_at", "-id"):
-        if mission_in_span(run.mission_uid, since, until):
+        if run.mission_uid not in removed and mission_in_span(run.mission_uid, since, until):
             targets.setdefault(run.mission_uid, run)
-    wanted = set(mission_uids or ())
     for path in sorted(cfg.archive_dir.glob("*/*/*.txt.zip")):
         uid = mission_uid_from_name(path.name)
-        if uid is None or uid in targets or (wanted and uid not in wanted) or not mission_in_span(uid, since, until):
+        if uid is None or uid in targets or uid in removed:
+            continue
+        if (wanted and uid not in wanted) or not mission_in_span(uid, since, until):
             continue
         if IngestRun.objects.filter(mission_uid=uid).exists():
             continue  # has runs, none of which wrote this archive: not ours to adopt
@@ -168,6 +173,7 @@ def reprocess(
         targets = archived_targets(cfg, mission_uids, since, until)
         wanted = {uid for uid in mission_uids or () if mission_in_span(uid, since, until)}
         summary.missing = sorted(wanted - set(targets))
+        RemovedMission.objects.filter(mission_uid__in=wanted & set(targets)).delete()  # asked for by UID: it is back
         if prepare is not None:
             prepare(targets)
         try:

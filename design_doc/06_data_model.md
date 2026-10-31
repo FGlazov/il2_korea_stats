@@ -256,7 +256,8 @@ Page           slug (unique), title, base_language (default "en"), source (Markd
                updated_at   -- the admin's Markdown pages at `/p/<slug>/` (FR-ADM-2, doc 16 "Markdown pages")
 PageTranslation page → Page, language (unique together), title (blank = the base title), source, html
 DataVersion    singleton counter bumped with every page-visible change (TD-28)
-ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error; at most one pending (partial unique),
+RemovedMission     mission_uid (unique), tour_title, removed_at, removed_by: a mission an admin deleted; ingest and reprocess leave it out (doc 14), kept by the wipe
+ReprocessRequest   requested_at/by, since, until (both empty = all), status (pending/running/done/failed), counts, error, wipe, remove_tour_id / remove_tour_title / remove_tour_missions, remove_mission_ids; at most one pending (partial unique),
                wipe (bool: "Delete all data and reprocess", doc 14 "Delete all data and reprocess"), phase (check/backup/wipe/reprocess while a wipe runs, else blank)
 LiveMission    server_uid (unique), mission_uid, mission_file, started_at, game_date/time, elapsed_s, updated_at, interval_s, is_running   -- the running
                -- mission as `watch` last saw it, one row per server; `updated_at` older than 3 x `interval_s` = stale

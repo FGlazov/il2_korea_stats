@@ -1752,6 +1752,12 @@ class ReprocessRequest(models.Model):
     # "Delete all data and reprocess": back up, delete every ingested row (`ingest.wipe`), then reprocess every mission.
     # `phase` says which step a running request is in (`ingest.wipe.WipePhase`; empty for a plain reprocess).
     wipe = models.BooleanField(default=False)
+    # "Delete tour" and "Delete missions" (`ingest.removal`), no reprocess: the tour's id and title for the status page
+    # (a plain id: the tour is gone when the request is shown afterwards), whether its missions go too, or the missions.
+    remove_tour_id = models.PositiveBigIntegerField(null=True)
+    remove_tour_title = models.CharField(max_length=100, blank=True, default="")
+    remove_tour_missions = models.BooleanField(default=True)
+    remove_mission_ids: models.JSONField[list[int]] = models.JSONField(default=list)
     phase = models.CharField(max_length=16, blank=True, default="")
     error = models.TextField(blank=True)
 
@@ -1774,6 +1780,26 @@ class ReprocessRequest(models.Model):
     @property
     def is_all(self) -> bool:
         return self.since is None and self.until is None
+
+    @property
+    def is_removal(self) -> bool:
+        """A "Delete tour" or "Delete missions" request, not a reprocess."""
+        return self.remove_tour_id is not None or bool(self.remove_mission_ids)
+
+
+class RemovedMission(models.Model):
+    """A mission an admin deleted, alone or with its tour (FR-ADM-3, FR-ADM-8, `ingest.removal`). The archive stays on
+    disk; this row keeps the mission out of every later ingest and reprocess, so it stays deleted through a "Delete all
+    data and reprocess". `il2ks reprocess --mission <uid>` brings a mission back and drops its row; deleting the row in
+    the admin lets the next reprocess of everything bring it back."""
+
+    mission_uid = models.CharField(max_length=32, unique=True)
+    tour_title = models.CharField(max_length=100, blank=True)
+    removed_at = models.DateTimeField()
+    removed_by = models.CharField(max_length=150, blank=True)
+
+    def __str__(self) -> str:
+        return self.mission_uid
 
 
 class RedforEmblem(models.TextChoices):

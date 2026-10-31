@@ -21,6 +21,7 @@ SKIP_MODELS = frozenset(
         "SiteSettings",
         "NavLink",
         "ReprocessRequest",
+        "RemovedMission",
     }
 )
 VOLATILE = frozenset({"updated_at"})

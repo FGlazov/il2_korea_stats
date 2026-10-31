@@ -862,8 +862,8 @@
       }
     },
     "templates/admin/il2ks_ingest_status.html": {
-      "version": "3.0",
-      "sha256": "39204633a4ab583a78dac678d8ba5abf56b4fd63f15a95f22fdb7df6f8d608d0",
+      "version": "3.1",
+      "sha256": "02ae8f5897bd9c7e4604f9d3b9a1454511219c817116b5d1007c916e2f764954",
       "contract": {
         "blocks": [
           "breadcrumbs",
@@ -872,6 +872,9 @@
         ],
         "extends": [
           "admin/base_site.html"
+        ],
+        "includes": [
+          "admin/il2ks_removal_label.html"
         ],
         "markers": [
           "#content-main",
@@ -895,6 +898,9 @@
         ],
         "static": [
           "il2ks_admin/ingest_status.css"
+        ],
+        "tags": [
+          "plural"
         ],
         "url_args": [
           "admin:il2ks_db_gameobject_change/1",
@@ -975,6 +981,46 @@
         ]
       }
     },
+    "templates/admin/il2ks_mission_delete_confirm.html": {
+      "version": "1.0",
+      "sha256": "a18869bdbf378380230f9c865d3adf67d3c4e7bef621138423bb54272c302466",
+      "contract": {
+        "blocks": [
+          "breadcrumbs",
+          "content"
+        ],
+        "extends": [
+          "admin/base_site.html"
+        ],
+        "markers": [
+          "#content-main",
+          "#id_confirmation",
+          ".breadcrumbs",
+          ".button",
+          ".cancel-link"
+        ],
+        "tags": [
+          "plural"
+        ],
+        "url_args": [
+          "admin:il2ks_db_mission_remove/0",
+          "admin:index/0"
+        ],
+        "urls": [
+          "admin:il2ks_db_mission_remove",
+          "admin:index"
+        ],
+        "variables": [
+          "changelist_url",
+          "ids",
+          "missions",
+          "pilots",
+          "shown",
+          "sorties",
+          "word"
+        ]
+      }
+    },
     "templates/admin/il2ks_quips.html": {
       "version": "1.0",
       "sha256": "8a055997e4cfde74f984798a7dc2a16ebbe2c52ee41ca6a4f112a1d57f6fc244",
@@ -1013,6 +1059,18 @@
           "max_length",
           "mode_options",
           "rows"
+        ]
+      }
+    },
+    "templates/admin/il2ks_removal_label.html": {
+      "version": "1.0",
+      "sha256": "8500da70ffe0590d14b4ac1c5e01c5b0d7f1fead8571e7c0e797376b1592d77b",
+      "contract": {
+        "tags": [
+          "plural"
+        ],
+        "variables": [
+          "job"
         ]
       }
     },
@@ -1118,6 +1176,45 @@
           "pending",
           "per_hour",
           "pvp_kill"
+        ]
+      }
+    },
+    "templates/admin/il2ks_tour_delete_confirm.html": {
+      "version": "1.0",
+      "sha256": "f8ed1e72a188506804ba0716a1495d21ba707bd6fc5e3a8a6dedc4d9e9d59bc6",
+      "contract": {
+        "blocks": [
+          "breadcrumbs",
+          "content"
+        ],
+        "extends": [
+          "admin/base_site.html"
+        ],
+        "markers": [
+          "#content-main",
+          "#id_confirmation",
+          ".breadcrumbs",
+          ".button",
+          ".cancel-link"
+        ],
+        "tags": [
+          "plural"
+        ],
+        "url_args": [
+          "admin:index/0"
+        ],
+        "urls": [
+          "admin:index"
+        ],
+        "variables": [
+          "changelist_url",
+          "manual",
+          "missions",
+          "pilots",
+          "sorties",
+          "taking_over",
+          "tour",
+          "word"
         ]
       }
     },

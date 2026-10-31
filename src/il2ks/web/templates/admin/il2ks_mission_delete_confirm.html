@@ -1,0 +1,32 @@
+{# il2ks-template: templates/admin/il2ks_mission_delete_confirm.html v1.0 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> ›
+  <a href="{{ changelist_url }}">{% translate "Missions" %}</a> › {% translate "Delete missions" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p><strong>{% blocktranslate count n=missions %}Delete {{ n }} mission from the site?{% plural %}Delete {{ n }} missions from the site?{% endblocktranslate %}</strong></p>
+  <ul>
+    {% for mission in shown %}<li>{{ mission.mission_uid }}</li>{% endfor %}
+    {% if missions > shown|length %}<li>…</li>{% endif %}
+  </ul>
+  <p>{% blocktranslate count n=sorties %}{{ n }} sortie goes too{% plural %}{{ n }} sorties go too{% endblocktranslate %}, {% blocktranslate count n=pilots %}{{ n }} pilot who flew nowhere else{% plural %}{{ n }} pilots who flew nowhere else{% endblocktranslate %}.</p>
+  <p>{% translate "All totals, ratings, medals and leaderboards are worked out again. A tour that loses its last mission goes as well, unless tours are started by hand." %}</p>
+  <p>{% translate "Deleted missions stay in the log archive, but they are left out of every later reprocess, also of “Delete all data and reprocess”, so they do not come back. To bring one back, delete it from the list of removed missions and reprocess all missions." %}</p>
+  <p>{% translate "A backup is made first; if it fails, nothing is deleted. The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion status page." %}</p>
+  <form method="post" action="{% url 'admin:il2ks_db_mission_remove' %}">
+    {% csrf_token %}
+    {% for id in ids %}<input type="hidden" name="ids" value="{{ id }}">{% endfor %}
+    <p><label for="id_confirmation">{% blocktranslate %}To confirm, type {{ word }} here:{% endblocktranslate %}</label>
+      <input type="text" name="confirmation" id="id_confirmation" autocomplete="off" required></p>
+    <input type="submit" value="{% translate 'Delete missions' %}">
+    <a href="{{ changelist_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+</div>
+{% endblock %}

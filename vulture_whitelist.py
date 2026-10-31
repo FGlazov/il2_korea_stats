@@ -317,3 +317,7 @@ _.altitude_title  # sortie_view.TimelineRow: read by sorties/parts/timeline_tabl
 _.renderer_version  # Page/PageTranslation: written when rendered, read by the stale-page query (ops.migrate)
 LoginHandler  # settings.AXES_HANDLER: axes imports it by name (web.login_protection)
 get_failures  # LoginHandler overrides axes's method: axes calls it
+_.has_remove_permission  # MissionAdmin: found by name for @admin.action(permissions=["remove"])
+_.remove_selected  # MissionAdmin.actions, by name
+_.delete_link  # TourAdmin.get_list_display, by name
+RemovedMissionAdmin  # @admin.register: Django finds it through the admin site
