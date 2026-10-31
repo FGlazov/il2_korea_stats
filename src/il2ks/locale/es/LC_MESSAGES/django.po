@@ -170,6 +170,11 @@ msgstr "%(n)s eventos. Los tiempos cuentan desde la aparición; al lado se indic
 
 # llm-draft
 #, python-format
+msgid "%(n)s fences"
+msgstr "%(n)s vallas"
+
+# llm-draft
+#, python-format
 msgid "%(n)s file, newest %(newest)s"
 msgid_plural "%(n)s files, newest %(newest)s"
 msgstr[0] "%(n)s archivo, el más reciente: %(newest)s"
@@ -2363,6 +2368,14 @@ msgstr "Cargadores llenos, viento de cola y los números para demostrarlo."
 # llm-draft
 msgid "Favorite loadout"
 msgstr "Configuración de armamento favorita"
+
+# llm-draft
+msgid "Fence destroyed"
+msgstr "Valla destruida"
+
+# llm-draft
+msgid "Fences destroyed"
+msgstr "Vallas destruidas"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."

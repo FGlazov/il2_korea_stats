@@ -137,6 +137,11 @@ def language_chain(language: str) -> tuple[str, ...]:
     return (code,) if base == code else (code, base)
 
 
+def is_fence(log_name: str) -> bool:
+    """A fence is shown as destroyed but is no ground kill (maintainer 2026-10-31): 13% of the "kills" were fences."""
+    return log_name.startswith("Fence ")
+
+
 @dataclass(frozen=True, slots=True)
 class ObjectInfo:
     log_name: str  # as written in the log (TYPE), original case
@@ -154,6 +159,10 @@ class ObjectInfo:
     @property
     def is_static(self) -> bool:
         return self.cls == "static"
+
+    @property
+    def is_fence(self) -> bool:
+        return is_fence(self.log_name)
 
 
 type OrdnanceKind = Literal["bomb", "rocket", "napalm", "flare", "tank", "inert"]

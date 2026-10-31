@@ -282,8 +282,9 @@ from iteration 1** (combat role, time on target, Elo), so pages needed no reproc
 [13_game_rules.md](13_game_rules.md#combat-role-time-on-target-and-ratings).
 - **Two scores, not one**: an **air score** (air-to-air) and a **ground score** (ground attack). A good ground pounder and a good dogfighter
   are different skills.
-- **Ground kills keep every class**, including static objects (fences, storage stacks, parked vehicles: most server vehicles are static for
-  performance). Each class gets its own score value, with trivial statics like fences worth very little. The kill breakdown by class is shown.
+- **Ground kills keep every class but fences**, including static objects (storage stacks, parked vehicles: most server vehicles are static for
+  performance). Each class gets its own score value. The kill breakdown by class is shown. A destroyed **fence** is no ground kill, assist or
+  score (maintainer 2026-10-31: 13% of the local "kills" were fences); the timeline still shows it, as destroyed. It does stay a friendly kill.
 - **Combat role per sortie** `[DECIDED]` (OQ-27): by loadout. A sortie carrying bombs, rockets or napalm is an **attack** sortie; guns only
   (drop tanks allowed) is **air superiority**; the IL-10 is always attack. Several types fly both roles (F-51D, F-80C, F-84E, sometimes
   MiG-15bis and F-86A-5), so a fixed role per aircraft type would be wrong.

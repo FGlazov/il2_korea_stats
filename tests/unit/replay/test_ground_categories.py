@@ -67,3 +67,23 @@ def test_assists_and_friendly_kills_are_not_in_the_ground_breakdown() -> None:
 def assert_consistent(sortie: SortieResult) -> None:
     assert sum(sortie.kills_ground_by_category.values()) == sortie.kills_ground
     assert sortie.kills_ground_static <= sortie.kills_ground
+
+
+def test_a_fence_is_on_the_timeline_but_no_ground_kill() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    kill_ground(sc, 10, 401, "M46 Patton")
+    kill_ground(sc, 20, 402, "Fence wire 200m")
+    kill_ground(sc, 30, 403, "Fence concrete 5m")
+    sc.declare(0, 404, "Fence wire 100m", 501)  # an assist on a fence: someone else finishes it
+    sc.damage(40, 100, 404, 0.5)
+    sc.damage(41, 300, 404, 1.0)
+    sc.kill(42, 300, 404)
+    sc.end(200, 100, 101)
+    a = by_acct(sc.result(), 1)
+
+    assert a.kills_ground == 1
+    assert dict(a.kills_ground_by_category) == {"tank": 1}
+    assert a.kills_ground_static == 0
+    assert (a.assists, a.assists_ground) == (0, 0)
+    assert [e.detail for e in a.timeline if e.kind == "kill"] == ["M46 Patton", "Fence wire 200m", "Fence concrete 5m"]

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.2 (2026-10-31)
+## 0.5.2 (2026-11-01)
 
 ### Added
 
@@ -10,8 +10,11 @@
 
 - **Bomber Hunter** now also counts AI bombers, attackers and transports, not only those flown by other pilots.
 - **Type Collector** now tops out at 8 types: the game has no more than that, so the 12-type tier could not be reached.
-- Run `il2ks rebuild-aggregates` once after the upgrade to apply these two to the missions you already have. Otherwise they apply
-  from the next mission a pilot flies, for that pilot's touched tours.
+- **Fences are no longer ground kills:** destroying one gives no kill, assist or points. The timeline still shows it, as "Fence
+  destroyed". Friendly-fire kills are counted as before.
+- **Run `il2ks reprocess --all` once after the upgrade** to apply all this to the missions you already have (it rebuilds the
+  aggregates too, and needs your archived logs). Until then old missions keep their fence kills, and the medal changes apply
+  from the next mission a pilot flies. Ground kills, scores and leaderboards go down by the fences a pilot had.
 
 ### Removed
 
@@ -21,6 +24,8 @@
 
 ### Templates changed (check your custom/ overrides)
 
+- `sorties/parts/timeline_table.html` has a new row for destroyed fences. An override keeps working, but calls a group of fences
+  "ground targets".
 - `players/detail_shame.html`: v1.0 -> v2.0 (the ribbons under the tiles are gone; `medal_set.shame` no longer exists, so an
   override that still reads it just shows nothing there).
 

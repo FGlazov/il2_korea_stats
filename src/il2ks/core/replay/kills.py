@@ -119,6 +119,7 @@ def _result(
     return KillResult(
         victim_ground_category=(info.ground_category or "other") if is_ground else None,
         victim_is_static=is_ground and info.is_static,
+        victim_is_fence=is_ground and info.is_fence,
         victim_class=None if is_ground else info.cls,
         tick=victim.tick,
         victim_object_id=victim.obj.object_id,

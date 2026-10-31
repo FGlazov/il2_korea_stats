@@ -250,9 +250,11 @@ Was the aircraft lost (is_plane_lost)?
 - **Ground-kill categories** `[DECIDED]` (OQ-33, 2026-10-03): every ground object in the catalog has a category, shown as a collapsible
   breakdown next to the total: `tank`, `vehicle` (trucks, cars, halftracks, tractors, rocket launchers), `artillery`, `aaa` (incl. flak
   cars), `ship` (incl. static ships and boats), `train` (locomotives, wagons, static wagons), `building` (barracks, hangars, warehouses,
-  factories, bridges, towers, radars, depots, storage tanks), `parked_aircraft`, `other` (fences, crate and barrel yards, logs, camo nets,
+  factories, bridges, towers, radars, depots, storage tanks), `parked_aircraft`, `other` (crate and barrel yards, logs, camo nets,
   small fuel tanks, carts, equipment, decorations). **Static vs. moving is a separate axis**: a static truck is a `vehicle` and static.
-  Unknown ground types count as `other`, not static. The categories always sum to the ground-kill total (tested), and
+  Fences (`ObjectInfo.is_fence`, any `Fence ...` type) have no ground kill at all since 0.5.2: `KillResult.victim_is_fence` leaves them
+  out of `kills_ground`, the categories, the assists and the score, and the sortie page shows their stored `kill` rows as "Fence
+  destroyed", folded apart from the ground kills, also on old timelines (maintainer 2026-10-31). Unknown ground types count as `other`, not static. The categories always sum to the ground-kill total (tested), and
   `kills_ground_static` counts the static ones. Samples: other 50.8%, building 27.6%, vehicle 13.0%, aaa 3.5%, train 2.8%, parked aircraft
   0.8%, tank 0.6%, ship 0.6%, artillery 0.2%; **91.6% of ground kills are static objects** (the top player: 6,990 ground kills, 6,673
   static). Judgement calls to review: ammo storage is `other`, storage tanks and cisterns are `building`.

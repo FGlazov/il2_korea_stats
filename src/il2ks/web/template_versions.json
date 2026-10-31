@@ -4714,8 +4714,8 @@
       }
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
-      "version": "2.2",
-      "sha256": "f080c6919b5ac513423da374b0c6b50f691512acbd1ceac6e820aade0f004653",
+      "version": "2.3",
+      "sha256": "16d54febdd854463d723d20ddd4b613423481315dadb4c4ffaaf1e8c2bfe6d8a",
       "contract": {
         "filters": [
           "local_clock",

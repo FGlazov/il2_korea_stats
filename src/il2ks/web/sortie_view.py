@@ -17,7 +17,7 @@ from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
 
 from il2ks.core import stat_marks
-from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES, Side
+from il2ks.core.catalog.loader import GENERIC_BOMBS, GENERIC_ROCKETS, GROUND_CATEGORIES, Side, is_fence
 from il2ks.core.replay.result import UNATTRIBUTED_ORDNANCE
 from il2ks.db.models import GameObject, Kill, PlayerSortie, SortieThreshold
 from il2ks.queries.ammo import GunAmmoRow, ammo_info, ordnance_name, parse_sortie_ammo
@@ -657,9 +657,10 @@ def _ordnance_label(key: str, english: str) -> str:
 # --- timeline -----------------------------------------------------------------------------------------------------
 @dataclass(frozen=True, slots=True)
 class TimelineRow:
-    """One line of the timeline; a run of ground kills is one row with `children` (rendered folded).
+    """One line of the timeline; a run of ground kills or of fences is one row with `children` (rendered folded).
 
-    kind: the stored kind ('kill', 'takeoff', ...); tone: "good", "bad", "warn" or ''; clock: time since spawn;
+    kind: the stored kind ('kill', 'takeoff', ...), or 'fence' for a stored kill of a fence, which is no ground kill;
+    tone: "good", "bad", "warn" or ''; clock: time since spawn;
     at: when it happened (viewer's time zone); place: tooltip with the position; altitude / altitude_title: the altitude
     column (`altitude()`); text: detail sentence ('' when none);
     who: the counterpart;
@@ -734,7 +735,9 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
     who = lookup.counterpart(entry.get("counterpart"))
     if kind in ("kill", "assist", "friendly_fire") and detail and (who is None or who.kind == "ai"):
         who = lookup.who(None, detail)  # an AI or ground victim (a friendly victim has no counterpart)
-        if kind == "kill" and not _is_air_object(lookup, detail):
+        if kind == "kill" and is_fence(detail):
+            kind, icon, label = "fence", EVENT_ICONS["destroyed"], str(_("Fence destroyed"))
+        elif kind == "kill" and not _is_air_object(lookup, detail):
             icon, label = "event/kill-ground", str(_("Ground kill"))
     ammo, ammo_title = hit_ammo(entry)
     height, height_title = altitude(entry.get("pos"), display.side_of(sortie.country))
@@ -758,7 +761,8 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
 
 
 def _group(rows: Sequence[TimelineRow]) -> TimelineRow:
-    """A run of consecutive ground kills as one row: a count and the commonest victims, the single kills folded."""
+    """A run of consecutive ground kills or fences as one row: a count and the commonest victims, the single rows
+    folded."""
     names: dict[str, int] = {}
     for row in rows:
         name = row.who.name if row.who is not None else ""
@@ -769,11 +773,12 @@ def _group(rows: Sequence[TimelineRow]) -> TimelineRow:
         summary += _(", and more")
     first, last = rows[0], rows[-1]
     clock = first.clock if first.clock == last.clock else f"{first.clock} \N{EN DASH} {last.clock}"
+    fences = first.kind == "fence"
     return TimelineRow(
-        "kill_group",
+        "fence_group" if fences else "kill_group",
         first.icon,
-        _("Ground kills"),
-        "good",
+        _("Fences destroyed") if fences else _("Ground kills"),
+        "" if fences else "good",
         clock,
         first.at,
         count=len(rows),
@@ -783,7 +788,8 @@ def _group(rows: Sequence[TimelineRow]) -> TimelineRow:
 
 
 def timeline_rows(sortie: PlayerSortie, lookup: Lookup) -> list[TimelineRow]:
-    """The timeline in order, runs of `TIMELINE_GROUP_MIN` or more consecutive ground kills folded into one row."""
+    """The timeline in order, runs of `TIMELINE_GROUP_MIN` or more consecutive ground kills, or fences, folded into one
+    row each."""
     rows = [_timeline_row(sortie, entry, lookup) for entry in timeline_entries(sortie)]
     out: list[TimelineRow] = []
     run: list[TimelineRow] = []
@@ -796,7 +802,9 @@ def timeline_rows(sortie: PlayerSortie, lookup: Lookup) -> list[TimelineRow]:
         run.clear()
 
     for row in rows:
-        if row.kind == "kill" and row.icon == "event/kill-ground":
+        if row.kind == "fence" or (row.kind == "kill" and row.icon == "event/kill-ground"):
+            if run and run[0].kind != row.kind:
+                flush()
             run.append(row)
         else:
             flush()

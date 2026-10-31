@@ -176,6 +176,11 @@ msgstr "Событий: %(n)s. Время отсчитывается от поя
 
 # llm-draft
 #, python-format
+msgid "%(n)s fences"
+msgstr "заборов: %(n)s"
+
+# llm-draft
+#, python-format
 msgid "%(n)s file, newest %(newest)s"
 msgid_plural "%(n)s files, newest %(newest)s"
 msgstr[0] "%(n)s файл, самый новый: %(newest)s"
@@ -2366,6 +2371,14 @@ msgstr "Полные магазины, попутный ветер и цифры
 # llm-draft
 msgid "Favorite loadout"
 msgstr "Любимая подвеска"
+
+# llm-draft
+msgid "Fence destroyed"
+msgstr "Забор уничтожен"
+
+# llm-draft
+msgid "Fences destroyed"
+msgstr "Заборы уничтожены"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."

@@ -170,6 +170,11 @@ msgstr "%(n)s Ereignisse. Die Zeiten laufen ab dem Spawn; daneben steht die Uhrz
 
 # llm-draft
 #, python-format
+msgid "%(n)s fences"
+msgstr "%(n)s Zäune"
+
+# llm-draft
+#, python-format
 msgid "%(n)s file, newest %(newest)s"
 msgid_plural "%(n)s files, newest %(newest)s"
 msgstr[0] "%(n)s Datei, neueste: %(newest)s"
@@ -2363,6 +2368,14 @@ msgstr "Volle Magazine, Rückenwind und die Zahlen, die das belegen."
 # llm-draft
 msgid "Favorite loadout"
 msgstr "Lieblings-Bewaffnung"
+
+# llm-draft
+msgid "Fence destroyed"
+msgstr "Zaun zerstört"
+
+# llm-draft
+msgid "Fences destroyed"
+msgstr "Zäune zerstört"
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."

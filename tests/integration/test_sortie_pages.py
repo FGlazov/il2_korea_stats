@@ -381,6 +381,23 @@ def long_timeline(ground_kills: int, singles: int) -> SortieResult:
     )
 
 
+def test_fences_show_as_destroyed_and_apart_from_the_ground_kills(client: Client) -> None:
+    def killed(tick: int, object_type: str) -> TimelineEntry:
+        return TimelineEntry(tick, "kill", object_type, None, Counterpart(object_type))
+
+    fences = [killed(1100 + n, "Fence wire 5m") for n in range(4)]
+    timeline = (TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)), *fences, killed(1200, "GAZ_63"))
+    row = replace(sortie(0, 1, kills_ground=1, ground_by_category={"vehicle": 1}), timeline=timeline)
+    save(mission((row,), extra_types=frozenset({"GAZ_63", "Fence wire 5m"})))
+
+    html = detail(client, pk_of(1))
+
+    assert "Fences destroyed" in html
+    assert "4 fences" in html
+    assert "Ground kill" in html  # the truck, on its own
+    assert "ground targets" not in html
+
+
 def test_consecutive_ground_kills_fold_into_one_row(client: Client) -> None:
     save(mission((long_timeline(ground_kills=300, singles=0),), extra_types=frozenset({"GAZ_63"})))
     pk = pk_of(1)

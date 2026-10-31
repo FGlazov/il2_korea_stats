@@ -76,11 +76,11 @@ def _build_sortie(
     sortie_ammo = ammo.sorties.get(sortie.index, EMPTY_SORTIE_AMMO)
     mine = [k for k in kills if k.killer_sortie_index == sortie.index and not k.is_friendly]
     credited = [k for k in mine if k.credit == "kill"]
-    ground = [k for k in credited if k.victim_kind == "ground"]
+    ground = [k for k in credited if k.victim_kind == "ground" and not k.victim_is_fence]
     air = [k for k in credited if k.victim_kind == "air"]
     assisted = [k for k in mine if k.credit == "assist"]
     assists_air = [k for k in assisted if k.victim_kind == "air"]
-    assists_ground = [k for k in assisted if k.victim_kind == "ground"]
+    assists_ground = [k for k in assisted if k.victim_kind == "ground" and not k.victim_is_fence]
     airframe = sortie.airframe
     takeoffs = [t for t, _ in airframe.takeoffs if sortie.spawn_tick <= t <= verdict.active_end_tick]
     landings = [t for t, _ in airframe.landings if sortie.spawn_tick <= t <= verdict.active_end_tick]
