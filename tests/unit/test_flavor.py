@@ -216,6 +216,40 @@ def test_spot_precedence(fields: dict[str, object], highlights: Highlights, spot
     assert _first_spot(sortie_with(**{**ACHIEVEMENTS, **fields}), highlights) == spot
 
 
+CRASH: dict[str, object] = {"outcome": "crashed", "loss_cause": "self", "takeoffs": 1}
+
+
+@pytest.mark.parametrize(
+    ("fields", "highlights", "spot"),
+    [
+        (CRASH, Highlights(), "sortie_crashed"),
+        ({**CRASH, "pilot_fate": "bailed_out"}, Highlights(), "sortie_crashed"),  # the lines fit a pilot who got out
+        # OQ-112: a shot-up aircraft that fails its landing is crashed / self too, but it is not all the pilot's doing
+        (CRASH, Highlights(damaged_by_others=True), None),
+        ({**CRASH, "loss_cause": "attacker"}, Highlights(), None),
+        ({**CRASH, "outcome": "shot_down"}, Highlights(), None),
+        (CRASH, None, None),  # without the timeline facts nobody knows who else did damage
+        ({**CRASH, "role": "gunner"}, Highlights(), None),
+        ({**CRASH, "taxi_accident": True}, Highlights(), "sortie_taxi"),
+    ],
+)
+def test_crash_spot_is_for_a_loss_that_is_only_the_pilots_doing(
+    fields: dict[str, object], highlights: Highlights | None, spot: str | None
+) -> None:
+    assert _first_spot(sortie_with(**fields), highlights) == spot
+
+
+def test_a_taxi_accident_never_falls_through_to_the_crash_line() -> None:
+    sortie = sortie_with(**{**CRASH, "taxi_accident": True})
+    assert "sortie_crashed" not in flavor.sortie_spots(sortie, Highlights())
+
+
+def test_the_crash_line_comes_with_the_losses_before_the_achievements() -> None:
+    assert _first_spot(sortie_with(**CRASH, kills_air=3), Highlights()) == "sortie_crashed"
+    spots = list(flavor.sortie_spots(sortie_with(**CRASH, kills_air=3), Highlights()))
+    assert spots == ["sortie_crashed", "sortie_ace"]  # the ace line is still there when an admin switches it off
+
+
 def test_templates_only_use_known_spots() -> None:
     root = Path(flavor.__file__).parent / "templates"
     used = {m for p in root.rglob("*.html") for m in re.findall(r'\{% flavor "(\w+)"', p.read_text(encoding="utf-8"))}

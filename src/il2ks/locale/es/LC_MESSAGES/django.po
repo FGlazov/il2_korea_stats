@@ -636,6 +636,10 @@ msgid "Accent, links and buttons"
 msgstr "Acento, enlaces y botones"
 
 # llm-draft
+msgid "Accident report. Enemy involvement: none. Terrain involvement: total."
+msgstr "Informe del accidente. Participación enemiga: ninguna. Participación del terreno: total."
+
+# llm-draft
 msgid "Ace in a Day"
 msgstr "As en un Día"
 
@@ -2499,6 +2503,10 @@ msgid "Good (green)"
 msgstr "Bueno (verde)"
 
 # llm-draft
+msgid "Gravity: undefeated since the dawn of aviation, and still on nobody's kill list."
+msgstr "La gravedad: invicta desde los inicios de la aviación, y aun así en ninguna lista de derribos."
+
+# llm-draft
 msgid "Ground"
 msgstr "Tierra"
 
@@ -3598,6 +3606,10 @@ msgid "No attacker is credited: the aircraft was lost by its own doing (terrain,
 msgstr "No se acredita a ningún atacante: la aeronave se perdió por su propia culpa (terreno, sobreesfuerzo o accidente)."
 
 # llm-draft
+msgid "No enemy was involved, and the enemy would like that on the record."
+msgstr "El enemigo no tuvo nada que ver, y quiere que conste en acta."
+
+# llm-draft
 msgid "No file location is set."
 msgstr "No se ha indicado ninguna ubicación de archivo."
 
@@ -3768,6 +3780,10 @@ msgstr "Sin ganador"
 # llm-draft
 msgid "No, take me back"
 msgstr "No, volver"
+
+# llm-draft
+msgid "Nobody fired a shot. The terrain did not need them to."
+msgstr "Nadie disparó un solo tiro. El terreno se las arregló sin ellos."
 
 # llm-draft
 msgid "Nobody flew for this side."
@@ -5031,6 +5047,10 @@ msgid "Sortie: an hour or more in the air"
 msgstr "Salida: una hora o más en el aire"
 
 # llm-draft
+msgid "Sortie: crashed by the pilot's own doing, nobody else damaged the aircraft"
+msgstr "Salida: accidente por culpa del propio piloto, nadie más dañó el avión"
+
+# llm-draft
 msgid "Sortie: destroyed on the ramp before takeoff"
 msgstr "Salida: destruido en la plataforma antes del despegue"
 
@@ -5634,6 +5654,10 @@ msgid "The ground crew and the squadron both have a file on this one. The files 
 msgstr "Los mecánicos y la escuadrilla tienen un expediente de este piloto. Los expedientes ya se han presentado."
 
 # llm-draft
+msgid "The ground crew asks that the next one come back in one piece. They are not fussy which way up."
+msgstr "Los mecánicos piden que el próximo vuelva de una pieza. Les da igual boca arriba o boca abajo."
+
+# llm-draft
 msgid "The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."
 msgstr "En el taller hay una punta de ala con el nombre de este piloto grabado. Los mecánicos son previsores."
 
@@ -5644,6 +5668,10 @@ msgstr "Los mecánicos lloran al avión y, en silencio, sacan brillo al siguient
 # llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
 msgstr "Los del otro bando saben perfectamente de quién fue el trabajo, aunque el registro no lo diga."
+
+# llm-draft
+msgid "The ground was exactly where the map said it would be."
+msgstr "El suelo estaba exactamente donde decía el mapa."
 
 # llm-draft
 msgid "The gun camera footage on this one would be a good watch."

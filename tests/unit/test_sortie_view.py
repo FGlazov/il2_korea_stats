@@ -125,3 +125,16 @@ def test_a_row_stored_with_more_than_100_percent_is_shown_capped() -> None:
     """Rows stored before the cap (a pilot and its aircraft summed: 2.0001) never show over 100%."""
     assert hit_damage("hit_given", {"damage": 2.0001}) == "+100.0%"
     assert hit_damage("hit_taken", {"damage": 1.0001}) == "\N{MINUS SIGN}100.0%"
+
+
+@pytest.mark.parametrize(
+    ("exchange", "expected"),
+    [
+        ({"damage_taken": 0.02, "hits_taken": 0}, True),
+        ({"damage_taken": 0.0, "hits_taken": 1}, True),  # a hit without a damage line
+        ({"damage_taken": 0.0, "hits_taken": 0, "damage_dealt": 0.5}, False),  # only damage the sortie did itself
+    ],
+)
+def test_highlights_know_whether_anybody_else_damaged_the_aircraft(exchange: dict[str, float], expected: bool) -> None:
+    sortie = PlayerSortie(spawned_at=datetime(2026, 9, 19, tzinfo=UTC), timeline=[], damage_breakdown=[exchange])
+    assert build_highlights(sortie, Lookup({}, {})).damaged_by_others is expected

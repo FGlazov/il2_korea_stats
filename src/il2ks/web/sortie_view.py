@@ -826,8 +826,9 @@ class Detail:
 
 
 def build_highlights(sortie: PlayerSortie, lookup: Lookup) -> Highlights:
-    """The facts flavor text needs from the timeline: air kills on bomber-type aircraft (bomber, attacker, transport)
-    and the seconds from takeoff (the spawn of an air start) to the first air kill."""
+    """The facts flavor text needs from the heavy columns: air kills on bomber-type aircraft (bomber, attacker,
+    transport), the seconds from takeoff (the spawn of an air start) to the first air kill, and whether anybody else hit
+    or damaged the aircraft (the environment is no counterpart)."""
     start = sortie.took_off_at or (sortie.spawned_at if sortie.air_start else None)
     bombers = 0
     first: float | None = None
@@ -845,7 +846,11 @@ def build_highlights(sortie: PlayerSortie, lookup: Lookup) -> Highlights:
         at = _when(entry.get("at"))
         if first is None and at is not None and start is not None:
             first = max(0.0, (at - start).total_seconds())
-    return Highlights(bombers, first)
+    others = any(
+        _float(_dict(entry).get("damage_taken")) > 0 or (_int(_dict(entry).get("hits_taken")) or 0) > 0
+        for entry in sortie.damage_breakdown
+    )
+    return Highlights(bombers, first, others)
 
 
 def ram_partner(rows: Sequence[TimelineRow]) -> str | None:

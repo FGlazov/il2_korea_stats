@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 (2026-10-31)
+
+### Added
+
+- **Crash quips:** a sortie that ends in a crash that was only the pilot's doing, with no damage or hit from anybody else,
+  gets its own line on the sortie page. Six lines, in every language. You can switch the new spot off or edit it under
+  **Admin > Site texts > Quips**.
+
 ## 0.3.1 (2026-10-30)
 
 ### Fixed

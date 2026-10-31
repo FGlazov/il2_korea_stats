@@ -44,10 +44,12 @@ GROUND_KILLS_MIN = 70  # ground kills in one sortie: 2.0%
 @dataclass(frozen=True, slots=True)
 class Highlights:
     """What a sortie's spots need beyond its own columns, read from its timeline (`sortie_view.build_highlights`):
-    air kills on bomber-type aircraft, and seconds from takeoff (or the spawn of an air start) to the first air kill."""
+    air kills on bomber-type aircraft, seconds from takeoff (or the spawn of an air start) to the first air kill, and
+    whether anybody else hit or damaged the aircraft (read from `damage_breakdown`)."""
 
     bomber_kills: int = 0
     first_kill_s: float | None = None
+    damaged_by_others: bool = False
 
 
 SPOTS: Mapping[str, tuple[Label, ...]] = {
@@ -157,6 +159,16 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Controlled flight into a field. The farmer has questions, the pilot has a story."),
         gettext_lazy("Aircraft, meet meadow. Meadow, aircraft. It was short, but the introductions were firm."),
         gettext_lazy("A forced landing is still a landing. The log says so, and the log is never wrong."),
+    ),
+    # Lost by the pilot's own doing. Shown on one sortie in seven, also to pilots who bailed out or left: about the
+    # terrain and the aircraft, never the pilot's fate.
+    "sortie_crashed": (
+        gettext_lazy("The ground was exactly where the map said it would be."),
+        gettext_lazy("No enemy was involved, and the enemy would like that on the record."),
+        gettext_lazy("Gravity: undefeated since the dawn of aviation, and still on nobody's kill list."),
+        gettext_lazy("Nobody fired a shot. The terrain did not need them to."),
+        gettext_lazy("Accident report. Enemy involvement: none. Terrain involvement: total."),
+        gettext_lazy("The ground crew asks that the next one come back in one piece. They are not fussy which way up."),
     ),
     # Destroyed on the ground by an attacker: never took off (parked) ...
     "sortie_strafed": (
@@ -316,6 +328,7 @@ SPOT_DESCRIPTIONS: Mapping[str, Label] = {
     "tour_empty": gettext_lazy("Lists of a tour without sorties: fresh start"),
     "sortie_captured": gettext_lazy("Sortie: the pilot was captured"),
     "sortie_ditched": gettext_lazy("Sortie: ditched (forced landing)"),
+    "sortie_crashed": gettext_lazy("Sortie: crashed by the pilot's own doing, nobody else damaged the aircraft"),
     "sortie_strafed": gettext_lazy("Sortie: destroyed on the ramp before takeoff"),
     "sortie_strafed_landed": gettext_lazy("Sortie: landed, then destroyed on the ground"),
     "sortie_aa": gettext_lazy("Sortie: shot down by flak"),
@@ -350,11 +363,11 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
     its ace line. The order (accidents and losses first, then the rarest achievements, then the broader ones):
 
     taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground (after a landing
-    or before takeoff), flak, bomber hunter, first blood, ace, stolen kills,
+    or before takeoff), flak, crashed, bomber hunter, first blood, ace, stolen kills,
     stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
 
-    `highlights` carries what only the timeline knows (bomber kills, time to the first kill); without it those two
-    spots are skipped."""
+    `highlights` carries what only the heavy columns know (bomber kills, time to the first kill, damage by others);
+    without it those three spots are skipped."""
     if sortie.role == "gunner":
         return
     if sortie.taxi_accident:
@@ -371,6 +384,10 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
         yield "sortie_strafed_landed" if sortie.landings else "sortie_strafed"
     if sortie.outcome == "shot_down" and sortie.loss_class == "aaa":
         yield "sortie_aa"
+    # `loss_cause` alone is not enough: a shot-up aircraft that fails its landing is crashed / self too (OQ-112)
+    crash = sortie.outcome == "crashed" and sortie.loss_cause == "self" and not sortie.taxi_accident
+    if crash and highlights is not None and not highlights.damaged_by_others:
+        yield "sortie_crashed"
     if highlights is not None and highlights.bomber_kills >= BOMBER_KILLS_MIN:
         yield "sortie_bomber_hunter"
     if sortie.first_blood:

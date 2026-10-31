@@ -646,6 +646,10 @@ msgid "Accent, links and buttons"
 msgstr "Акцент, ссылки и кнопки"
 
 # llm-draft
+msgid "Accident report. Enemy involvement: none. Terrain involvement: total."
+msgstr "Акт о происшествии. Участие противника: нет. Участие рельефа: полное."
+
+# llm-draft
 msgid "Ace in a Day"
 msgstr "Ас одного дня"
 
@@ -2500,6 +2504,10 @@ msgid "Good (green)"
 msgstr "Хорошо (зелёный)"
 
 # llm-draft
+msgid "Gravity: undefeated since the dawn of aviation, and still on nobody's kill list."
+msgstr "Гравитация: ни одного поражения с первых дней авиации, а в списках побед её всё равно нет."
+
+# llm-draft
 msgid "Ground"
 msgstr "Земля"
 
@@ -3597,6 +3605,10 @@ msgid "No attacker is credited: the aircraft was lost by its own doing (terrain,
 msgstr "Атаковавший не указан: самолёт потерян по собственной вине (столкновение с землёй, перегрузка или происшествие)."
 
 # llm-draft
+msgid "No enemy was involved, and the enemy would like that on the record."
+msgstr "Противник тут ни при чём и просит занести это в протокол."
+
+# llm-draft
 msgid "No file location is set."
 msgstr "Расположение файла не задано."
 
@@ -3769,6 +3781,10 @@ msgstr "Победителя нет"
 # llm-draft
 msgid "No, take me back"
 msgstr "Нет, вернуться назад"
+
+# llm-draft
+msgid "Nobody fired a shot. The terrain did not need them to."
+msgstr "Никто не сделал ни выстрела. Рельеф справился и без этого."
 
 # llm-draft
 msgid "Nobody flew for this side."
@@ -5031,6 +5047,10 @@ msgid "Sortie: an hour or more in the air"
 msgstr "Вылет: час и более в воздухе"
 
 # llm-draft
+msgid "Sortie: crashed by the pilot's own doing, nobody else damaged the aircraft"
+msgstr "Вылет: авария по вине самого пилота, больше никто самолёт не повреждал"
+
+# llm-draft
 msgid "Sortie: destroyed on the ramp before takeoff"
 msgstr "Вылет: уничтожен на стоянке до взлёта"
 
@@ -5635,6 +5655,10 @@ msgid "The ground crew and the squadron both have a file on this one. The files 
 msgstr "И техники, и эскадрилья ведут на этого пилота досье. Папки уже успели познакомиться."
 
 # llm-draft
+msgid "The ground crew asks that the next one come back in one piece. They are not fussy which way up."
+msgstr "Механики просят следующий вернуть целиком. Какой стороной вверх, им уже не принципиально."
+
+# llm-draft
 msgid "The ground crew keeps a spare wingtip with this pilot's name on it. Just in case."
 msgstr "В ангаре у техников для этого пилота лежит запасная законцовка крыла. Именная."
 
@@ -5645,6 +5669,10 @@ msgstr "Техники скорбят по самолёту и тихо поли
 # llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
 msgstr "Те, кто внизу, прекрасно знают, чья это работа, даже если журнал об этом молчит."
+
+# llm-draft
+msgid "The ground was exactly where the map said it would be."
+msgstr "Земля оказалась ровно там, где и обещала карта."
 
 # llm-draft
 msgid "The gun camera footage on this one would be a good watch."
