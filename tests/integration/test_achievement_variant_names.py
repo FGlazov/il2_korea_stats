@@ -21,9 +21,6 @@ CAREER = {
     "career_kills": "Sky Hunter",
     "tank_buster": "Tank Buster",
     "flight_hours": "Hours Aloft",
-    "shame_taxi": "Ramp Rash",
-    "shame_friendly": "Wrong Team",
-    "shame_strafed": "Sitting Duck",
 }
 
 
@@ -121,7 +118,7 @@ def test_the_admin_page_renders_the_tour_fields(client: Client) -> None:
     client.force_login(User.objects.create_superuser("boss", "boss@example.org", "x"))
     body = client.get("/admin/achievements/").content.decode()
     assert 'name="tname-career_kills-en"' in body
-    assert 'name="tdesc-shame_taxi-de"' in body
+    assert 'name="tdesc-flight_hours-de"' in body
     assert 'name="tname-life_kills-en"' not in body
 
 

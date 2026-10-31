@@ -715,13 +715,13 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Achievements are the medals, ribbons and hall-of-shame entries pilots earn. They are all on by default with the "
-"built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or "
-"change the number each tier needs."
+"Achievements are the medals and ribbons pilots earn. They are all on by default with the built-in names and "
+"thresholds. Here you can switch one off, give it your own name and description per language, or change the number "
+"each tier needs."
 msgstr ""
-"Les succès sont les médailles, rubans et entrées du mur de la honte que gagnent les pilotes. Ils sont tous activés "
-"par défaut, avec les noms et seuils intégrés. Ici, vous pouvez en désactiver un, lui donner votre propre nom et "
-"description par langue, ou changer le nombre requis pour chaque niveau."
+"Les succès sont les médailles et rubans que gagnent les pilotes. Ils sont tous activés par défaut, avec les noms et "
+"seuils intégrés. Ici, vous pouvez en désactiver un, lui donner votre propre nom et description par langue, ou changer"
+" le nombre requis pour chaque niveau."
 
 # llm-draft
 msgid ""
@@ -981,14 +981,6 @@ msgstr "Appareil"
 # llm-draft
 msgid "Aircraft damage"
 msgstr "Dégâts de l'avion"
-
-# llm-draft
-msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
-msgstr "Avions détruits au sol par un attaquant en un tour : mauvais endroit, mauvais moment."
-
-# llm-draft
-msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
-msgstr "Avions détruits au sol par un attaquant sur toute votre carrière : mauvais endroit, mauvais moment."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -1762,10 +1754,6 @@ msgstr ""
 "comptées séparément : perdre un avion d’attaque ne met pas fin à la série aérienne, et inversement."
 
 # llm-draft
-msgid "Contact Sport"
-msgstr "Sport de Contact"
-
-# llm-draft
 msgid "Continue"
 msgstr "Continuer"
 
@@ -2252,11 +2240,12 @@ msgid "Enemy aircraft"
 msgstr "Appareils ennemis"
 
 # llm-draft
-msgid "Enemy aircraft downed by ramming them."
-msgstr "Appareils ennemis abattus en les percutant."
+msgid "Enemy bombers, attackers and transports shot down."
+msgstr "Bombardiers, avions d'attaque et transports ennemis abattus."
 
-msgid "Enemy bombers, attackers and transports flown by other pilots, shot down."
-msgstr "Bombardiers, avions d'attaque et avions de transport ennemis pilotés par d'autres joueurs, abattus."
+# llm-draft
+msgid "Enemy jets shot down from a propeller aircraft."
+msgstr "Jets ennemis abattus depuis un avion à hélice."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -2554,14 +2543,6 @@ msgid "Friendly-fire kills"
 msgstr "Victimes de tirs fratricides"
 
 # llm-draft
-msgid "Friendly-fire kills in one tour. The markings are small and the sky is crowded."
-msgstr "Victoires par tir ami en un tour. Les cocardes sont petites et le ciel est bondé."
-
-# llm-draft
-msgid "Friendly-fire kills over your career. The markings are small and the sky is crowded."
-msgstr "Victoires par tir ami sur toute votre carrière. Les cocardes sont petites et le ciel est bondé."
-
-# llm-draft
 #, python-format
 msgid ""
 "From 0 to %(max_rate)s. The default, %(default_rate)s, keeps an hour of patrol worth less than any air kill (an AI "
@@ -2823,10 +2804,6 @@ msgstr "Tout le travail, la moitié du crédit. L'officier des homologations rec
 # llm-draft
 msgid "Hall of shame"
 msgstr "Mur de la honte"
-
-# llm-draft
-msgid "Hard Landing"
-msgstr "Atterrissage Musclé"
 
 # llm-draft
 msgid "Header background"
@@ -3186,6 +3163,10 @@ msgstr[1] "Ses %(n)s missions sont aussi supprimées"
 # llm-draft
 msgid "Jet"
 msgstr "À réaction"
+
+# llm-draft
+msgid "Jet Hunter"
+msgstr "Chasseur de Jets"
 
 # llm-draft
 msgid "Joining…"
@@ -4704,10 +4685,6 @@ msgid "Ram: the two losses must be this close in time (seconds)"
 msgstr "Collision : les deux pertes doivent être aussi proches dans le temps (secondes)"
 
 # llm-draft
-msgid "Ramp Rash"
-msgstr "Créneau Raté"
-
-# llm-draft
 msgid "Rams"
 msgstr "Collisions"
 
@@ -5121,10 +5098,6 @@ msgid "Site texts"
 msgstr "Textes du site"
 
 # llm-draft
-msgid "Sitting Duck"
-msgstr "Cible Facile"
-
-# llm-draft
 msgid "Skip to content"
 msgstr "Aller au contenu"
 
@@ -5357,10 +5330,6 @@ msgid "Sorties survived in a row: no death, no capture. Sorties that never took 
 msgstr "Sorties survivées d'affilée : ni mort ni capture. Les sorties sans décollage sont ignorées."
 
 # llm-draft
-msgid "Sorties that took off and ended in a crash. The ground always wins."
-msgstr "Sorties qui ont décollé et fini en crash. Le sol gagne toujours."
-
-# llm-draft
 msgid "Sorties with at least one kill in which the aircraft made a landing badly damaged."
 msgstr "Sorties avec au moins une victoire où l'appareil s'est posé gravement endommagé."
 
@@ -5571,14 +5540,6 @@ msgstr "Accident au roulage"
 # llm-draft
 msgid "Taxi accidents"
 msgstr "Accidents au roulage"
-
-# llm-draft
-msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Accidents au roulage en un tour : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
-
-# llm-draft
-msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Accidents au roulage sur toute votre carrière : l'avion était perdu avant même d'avoir décollé. Le parking pardonne."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -6423,24 +6384,12 @@ msgid "Tour Hours Aloft"
 msgstr "Heures de Vol (Tour)"
 
 # llm-draft
-msgid "Tour Ramp Rash"
-msgstr "Créneau Raté (Tour)"
-
-# llm-draft
-msgid "Tour Sitting Duck"
-msgstr "Cible Facile (Tour)"
-
-# llm-draft
 msgid "Tour Sky Hunter"
 msgstr "Chasseur du Ciel (Tour)"
 
 # llm-draft
 msgid "Tour Tank Buster"
 msgstr "Casseur de Chars (Tour)"
-
-# llm-draft
-msgid "Tour Wrong Team"
-msgstr "Contre son Camp (Tour)"
 
 msgid "Tour ended"
 msgstr "Tour terminé"
@@ -6836,10 +6785,6 @@ msgstr "Convoi magnifiquement ébranlé, et le mérite va à celui qui a tiré e
 # llm-draft
 msgid "Wounded"
 msgstr "Blessé"
-
-# llm-draft
-msgid "Wrong Team"
-msgstr "Contre son Camp"
 
 # llm-draft
 msgid "Wrong target, right enthusiasm. The debrief will be lively."

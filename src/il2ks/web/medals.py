@@ -43,8 +43,9 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills over your career, all sorties together.")),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
-        gettext_lazy("Enemy bombers, attackers and transports flown by other pilots, shot down."),
+        gettext_lazy("Enemy bombers, attackers and transports shot down."),
     ),
+    "jet_hunter": (gettext_lazy("Jet Hunter"), gettext_lazy("Enemy jets shot down from a propeller aircraft.")),
     "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed over your career.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),
     "survivor": (
@@ -73,7 +74,6 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("The highest Elo rating reached, in the prop or the jet pool."),
     ),
     "ground_score": (gettext_lazy("Ground Pounder"), gettext_lazy("Ground score in total, all sorties together.")),
-    "ram": (gettext_lazy("Contact Sport"), gettext_lazy("Enemy aircraft downed by ramming them.")),
     "first_blood": (
         gettext_lazy("First Blood"),
         gettext_lazy("Missions in which you made the first air kill against a player."),
@@ -98,24 +98,6 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Old Hand"),
         gettext_lazy("Tours in a row in which you flew at least once. A tour you skip ends the run."),
     ),
-    "shame_taxi": (
-        gettext_lazy("Ramp Rash"),
-        gettext_lazy(
-            "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
-        ),
-    ),
-    "shame_friendly": (
-        gettext_lazy("Wrong Team"),
-        gettext_lazy("Friendly-fire kills over your career. The markings are small and the sky is crowded."),
-    ),
-    "shame_strafed": (
-        gettext_lazy("Sitting Duck"),
-        gettext_lazy("Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."),
-    ),
-    "shame_crashed": (
-        gettext_lazy("Hard Landing"),
-        gettext_lazy("Sorties that took off and ended in a crash. The ground always wins."),
-    ),
 }
 
 # The per-tour variants of the cumulative medals (doc 17, maintainer 2026-10-05: "rename the tour variants slightly so
@@ -127,18 +109,6 @@ TOUR_TEXTS: Mapping[str, tuple[Label, Label]] = {
     "flight_hours": (
         gettext_lazy("Tour Hours Aloft"),
         gettext_lazy("Hours in the air in one tour, all sorties together."),
-    ),
-    "shame_taxi": (
-        gettext_lazy("Tour Ramp Rash"),
-        gettext_lazy("Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."),
-    ),
-    "shame_friendly": (
-        gettext_lazy("Tour Wrong Team"),
-        gettext_lazy("Friendly-fire kills in one tour. The markings are small and the sky is crowded."),
-    ),
-    "shame_strafed": (
-        gettext_lazy("Tour Sitting Duck"),
-        gettext_lazy("Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."),
     ),
 }
 
@@ -168,10 +138,9 @@ class Rarity:
 NO_RARITY = Rarity(None, "", "")
 
 
-def rarity(holding: Holding | None, *, shame: bool = False) -> Rarity:
+def rarity(holding: Holding | None) -> Rarity:
     """The rarity of a tier from its holder row. Unknown (no row, or a row from before the pilot counts existed) gives
-    `NO_RARITY`: no text, no emphasis. A hall-of-shame entry keeps the text but never gets the ring or glow (a rare
-    shame tier is not a trophy)."""
+    `NO_RARITY`: no text, no emphasis."""
     if holding is None or holding.pilots <= 0 or holding.holders <= 0:
         return NO_RARITY
     share = 100 * holding.holders / holding.pilots
@@ -180,7 +149,7 @@ def rarity(holding: Holding | None, *, shame: bool = False) -> Rarity:
     else:
         text = _("Held by %(share)s%% of pilots") % {"share": number_format(share, decimal_pos=1 if share < 10 else 0)}
     level: RarityLevel = ""
-    if holding.pilots >= MIN_PILOTS_FOR_RARITY and not shame:
+    if holding.pilots >= MIN_PILOTS_FOR_RARITY:
         level = "epic" if share < EPIC_BELOW else "rare" if share < RARE_BELOW else ""
     return Rarity(share, level, text)
 
@@ -228,7 +197,6 @@ class MedalInfo:
     icon: str
     tiers: tuple[Tier, ...]
     kind: Kind = "medal"
-    shame: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,7 +218,6 @@ class Medal:
     mission_id: int
     mission_hidden: bool
     kind: Kind
-    shame: bool
     scope: int | None
     style: int
     rarity: Rarity
@@ -278,14 +245,13 @@ class Medal:
 
 @dataclass(frozen=True, slots=True)
 class MedalSet:
-    """What a profile shows, in three groups: medals, the ribbon rack and the hall-of-shame ribbons."""
+    """What a profile shows, in two groups: medals and the ribbon rack."""
 
     medals: list[Medal]
     ribbons: list[Medal]
-    shame: list[Medal]
 
     def __bool__(self) -> bool:
-        return bool(self.medals or self.ribbons or self.shame)
+        return bool(self.medals or self.ribbons)
 
 
 def words(config: AchievementConfig, key: str, *, all_time: bool = True) -> tuple[Label, Label]:
@@ -305,9 +271,7 @@ def info(achievement: Achievement, config: AchievementConfig, *, all_time: bool 
         Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n, all_time=all_time))
         for n in range(1, achievement.top_tier + 1)
     )
-    return MedalInfo(
-        achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind, achievement.shame
-    )
+    return MedalInfo(achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind)
 
 
 def all_info(config: AchievementConfig, *, all_time: bool = False) -> list[MedalInfo]:
@@ -339,10 +303,9 @@ def _medal(
         mission_id=row.mission_id,
         mission_hidden=row.mission.is_hidden,
         kind=achievement.kind,
-        shame=achievement.shame,
         scope=row.tour_id,
         style=_style(row.key),
-        rarity=rarity(holdings.get((row.tour_id, row.key, row.tier)), shame=achievement.shame),
+        rarity=rarity(holdings.get((row.tour_id, row.key, row.tier))),
     )
 
 
@@ -371,10 +334,9 @@ def medals_of(
 def medal_set(
     rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding], config: AchievementConfig
 ) -> MedalSet:
-    """A profile's best tier of each achievement split into medals, ribbons and hall-of-shame ribbons."""
+    """A profile's best tier of each achievement split into medals and ribbons."""
     best = medals_of(rows, holdings, config, highest_only=True)
     return MedalSet(
-        medals=[m for m in best if m.kind == "medal" and not m.shame],
-        ribbons=[m for m in best if m.kind == "ribbon" and not m.shame],
-        shame=[m for m in best if m.shame],
+        medals=[m for m in best if m.kind == "medal"],
+        ribbons=[m for m in best if m.kind == "ribbon"],
     )

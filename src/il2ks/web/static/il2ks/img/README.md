@@ -84,6 +84,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/sortie-kills.svg` | `target-arrow` |
 | `medal/career-kills.svg` | `crosshair` |
 | `medal/strike-hunter.svg` | `plane-off` |
+| `medal/jet-hunter.svg` | `rocket` |
 | `medal/tank-buster.svg` | `tank` |
 | `medal/ground-sortie.svg` | `flame` |
 | `medal/survivor.svg` | `shield-check` |
@@ -94,7 +95,6 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/type-veteran.svg` | `award` |
 | `medal/elo-peak.svg` | `trending-up` |
 | `medal/ground-score.svg` | `chart-bar` |
-| `medal/ram.svg` | `arrows-diagonal-minimize-2` |
 | `medal/first-blood.svg` | `droplet` |
 | `medal/multi-kill.svg` | `chevrons-right` |
 | `medal/types-flown.svg` | `stack-2` |
@@ -102,10 +102,6 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/landing-streak.svg` | `plane-arrival` |
 | `medal/ace-in-a-day.svg` | `sun` |
 | `medal/tours-in-a-row.svg` | `repeat` |
-| `medal/shame-taxi.svg` | `traffic-cone` |
-| `medal/shame-friendly.svg` | `user-x` |
-| `medal/shame-strafed.svg` | `flame` |
-| `medal/shame-crashed.svg` | `alert-triangle` |
 
 ## Flags (MIT)
 

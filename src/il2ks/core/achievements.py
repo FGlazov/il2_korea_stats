@@ -47,7 +47,7 @@ class AchievementSortie:
     kills_ground: int
     kills_ground_tank: int
     kills_strike_air: int
-    """Bombers, attackers and transports shot down (credited kills of other pilots' aircraft of those classes)."""
+    """Bombers, attackers and transports shot down (credited kills, AI aircraft included)."""
     landing_damage: float
     """The most damage the aircraft carried into a landing, a repaired one included (doc 13, damage per flight leg)."""
     landed: bool
@@ -55,20 +55,15 @@ class AchievementSortie:
     is_captured: bool
     not_taken_off: bool
     # Facts of the second set (doc 17); defaults keep the first set's callers valid.
+    kills_jet_from_prop: int = 0
+    """Jets shot down from a propeller aircraft (credited kills, AI aircraft included)."""
     ground_points: float = 0.0
     elo_peak: float = 0.0
     """The highest Elo (prop or jet) held after a win in this sortie; 0 when it had none (`ingest.ratings`)."""
-    rams: int = 0
-    """Air kills by ramming an enemy aircraft (a part of `kills_air`)."""
     first_blood: bool = False
     """The sortie made the first credited PvP air kill of its mission."""
     multi_kill: int = 0
     """The most air kills within `core.replay.kills.BURST_WINDOW_S` seconds."""
-    taxi_accident: bool = False
-    strafed_on_ground: bool = False
-    friendly_kills: int = 0
-    crashed: bool = False
-    """The sortie ended with outcome `crashed` after a take-off (not a taxi accident, not strafed on the ground)."""
     ended_by_mission_end: bool = False
     is_attack: bool = False
     """An attack sortie (combat role `attack`): the ground ironman track's; every other sortie is the air track's
@@ -96,14 +91,12 @@ class Achievement:
     kind: Kind = "medal"
     """`ribbon`: a simple, common achievement shown as a compact ribbon (doc 17, Display); `medal`: the harder ones."""
     cumulative: bool = False
-    """A pure running total of a counter (kills, hours, taxi accidents): a new tour starts it at zero like every
+    """A pure running total of a counter (kills, hours): a new tour starts it at zero like every
     medal, but the all-time medal counts the *sum* of the tours' totals, so career tiers stay reachable (maintainer,
     2026-10-05, OQ-128 default; `[PROPOSED]`). Every other medal is, all time, the best of the tours (max tier).
     `earn(..., carried_in=n)` replays a tour with the total of the earlier tours already in. `counter` names the
     `PlayerTour` counter holding a tour's total (the all-time tier is found from those without reading the sorties)."""
     counter: str = ""
-    shame: bool = False
-    """A hall-of-shame entry: shown with the hall of shame, never in the medal row, the ribbon rack or the home feed."""
     all_time_only: bool = False
     """No per-tour meaning (tours in a row): no tour rows, no tour view; its all-time rows come straight from the
     `PlayerTour` rows (`ingest.achievements.rollup_achievements`) and `progress` is unused."""
@@ -153,20 +146,6 @@ def _cumulative(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
         out: list[float] = []
         for s in sorties:
             total += per_sortie(s) if s.counts else 0.0
-            out.append(total)
-        return out
-
-    return progress
-
-
-def _total(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
-    """Like `_cumulative`, but a sortie that never took off counts too (a taxi accident happens before take-off)."""
-
-    def progress(sorties: Sequence[AchievementSortie]) -> list[float]:
-        total = 0.0
-        out: list[float] = []
-        for s in sorties:
-            total += per_sortie(s)
             out.append(total)
         return out
 
@@ -358,6 +337,7 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
         counter="kills_air",
     ),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
+    Achievement("jet_hunter", (1, 3, 5, 10), "count", _cumulative(lambda s: s.kills_jet_from_prop)),
     Achievement(
         "tank_buster",
         (3, 10, 25, 100),
@@ -384,7 +364,6 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     # The second set (doc 17, OQ-105).
     Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
-    Achievement("ram", (1, 2, 3, 5), "count", _cumulative(lambda s: s.rams)),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
     Achievement("multi_kill", (2, 3, 4, 5), "count", _best_in_one(lambda s: s.multi_kill)),
     Achievement("types_flown", (3, 5, 8, 12), "count", types_flown, kind="ribbon"),
@@ -393,35 +372,6 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("ace_in_a_day", (5, 8, 12, 20), "count", kills_in_a_day),
     # All time only: it reads the tours the pilot flew in, never the sorties (doc 17, OQ-128).
     Achievement("tours_in_a_row", (2, 3, 6, 12), "tours", _never, all_time_only=True),
-    # Hall of shame (tongue in cheek, shown with the hall of shame).
-    Achievement(
-        "shame_taxi",
-        (1, 5, 10),
-        "count",
-        _total(lambda s: 1.0 if s.taxi_accident else 0.0),
-        shame=True,
-        cumulative=True,
-        counter="taxi_accidents",
-    ),
-    Achievement(
-        "shame_friendly",
-        (1, 5, 20),
-        "count",
-        _total(lambda s: s.friendly_kills),
-        shame=True,
-        cumulative=True,
-        counter="friendly_kills",
-    ),
-    Achievement(
-        "shame_strafed",
-        (1, 2, 3),
-        "count",
-        _total(lambda s: 1.0 if s.strafed_on_ground else 0.0),
-        shame=True,
-        cumulative=True,
-        counter="strafed_on_ground",
-    ),
-    Achievement("shame_crashed", (3, 10, 25), "count", _total(lambda s: 1.0 if s.crashed else 0.0), shame=True),
 )
 BY_KEY: dict[str, Achievement] = {a.key: a for a in ACHIEVEMENTS}
 

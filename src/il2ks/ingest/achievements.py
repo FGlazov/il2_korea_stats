@@ -5,12 +5,13 @@ A new tour is a clean slate (maintainer, 2026-10-05): every medal starts over in
 `il2ks.core.achievements`; two steps, both per chunk of players:
 
 1. `refresh_achievement_tours(chunk, tour_ids, rules=)`: run the definitions over each tour's counted sorties alone
-   (chronological: spawn time, then id; plus the one fact the sortie row does not hold, bombers, attackers and
-   transports shot down, from the `Kill` rows) and rewrite the per-tour rows of `tour_ids` (None = every tour).
+   (chronological: spawn time, then id; plus the facts the sortie row does not hold, bombers, attackers and
+   transports shot down and jets shot down from a propeller aircraft, from the `Kill` rows and, for AI aircraft, which
+   have none, the timelines) and rewrite the per-tour rows of `tour_ids` (None = every tour).
 2. `rollup_achievements(chunk, rules=)`: the all-time rows (`tour` null) come from the tour rows (`[PROPOSED]`):
    - a medal that is not `cumulative`: the all-time tier is the **max over the tours**; the row of each tier is the
      earliest one earned in any tour (`earned_at`, sortie and mission are those of that tour's row);
-   - a `cumulative` medal (a pure running total: career kills, tank kills, flight hours, the shame counters): the
+   - a `cumulative` medal (a pure running total: career kills, tank kills, flight hours): the
      all-time total is the **sum of the tours' totals** (`PlayerTour` counters, which `recompute_players` refreshes
      first), so career tiers stay reachable. A tier is earned in the first tour whose running sum crosses the
      threshold, at the sortie where it does: that one tour's sorties are replayed with the earlier tours' total carried
@@ -30,13 +31,16 @@ population-level, unaffected by all this.
 import logging
 from collections import Counter
 from collections.abc import Iterable, Sequence
+from functools import cache
+from typing import cast
 
 from django.db import transaction
-from django.db.models import Count, F
+from django.db.models import Count, F, Q
 
 from il2ks.config import Config
 from il2ks.core.achievement_rules import Rules
 from il2ks.core.achievements import Achievement, AchievementSortie, earn, earn_all, earn_tours
+from il2ks.core.catalog.loader import Catalog, load_default_catalog
 from il2ks.core.streaks import Track, track_of
 from il2ks.db.models import (
     AchievementHolders,
@@ -47,6 +51,7 @@ from il2ks.db.models import (
     Player,
     PlayerAchievement,
     PlayerTour,
+    Propulsion,
     Role,
     SiteSettings,
     Tour,
@@ -60,23 +65,32 @@ log = logging.getLogger(__name__)
 
 CHUNK = 2000  # players per batch: far below the bound-parameter limit (32766 on SQLite 3.32+); fewer, bigger queries
 STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER, ObjectClass.TRANSPORT)
+STRIKE_KILL = Q(victim_sortie__aircraft__cls__in=STRIKE_CLASSES)
+JET_FROM_PROP = Q(
+    killer_sortie__aircraft__propulsion=Propulsion.PROP, victim_sortie__aircraft__propulsion=Propulsion.JET
+)
 _FIELDS = ("earned_at", "sortie_id", "mission_id")
 
 type _Key = tuple[int, int | None, str, int]  # player, tour (None = all time), achievement key, tier
 type _Value = tuple[object, int, int]  # earned_at, sortie, mission
 
 
-def _strike_kills(chunk: list[int], tours: set[int] | None) -> Counter[int]:
-    """Per killer sortie id: credited kills of other pilots' bombers, attackers and transports (not friendly, not own
+@cache
+def _catalog() -> Catalog:
+    return load_default_catalog()
+
+
+def _pilot_kills(chunk: list[int], tours: set[int] | None, which: Q) -> Counter[int]:
+    """Per killer sortie id: credited kills of other pilots' aircraft that match `which` (not friendly, not own
     aircraft)."""
     kills = (
         Kill.objects.filter(
+            which,
             killer_sortie__player_id__in=chunk,
             credit=KillCredit.KILL,
             is_friendly=False,
             killer_sortie__role=Role.PILOT,
             victim_sortie__role=Role.PILOT,
-            victim_sortie__aircraft__cls__in=STRIKE_CLASSES,
         )
         .exclude(killer_sortie__player_id=F("victim_sortie__player_id"))
         .values_list("killer_sortie_id", flat=True)
@@ -86,10 +100,34 @@ def _strike_kills(chunk: list[int], tours: set[int] | None) -> Counter[int]:
     return Counter(kills.iterator())
 
 
+def _ai_kills(chunk: list[int], tours: set[int] | None) -> tuple[Counter[int], Counter[int]]:
+    """Per killer sortie id: the AI bombers, attackers and transports shot down, and the AI jets shot down from a
+    propeller aircraft. An AI victim has no `Kill` row; the timeline names it, in the log's spelling ("B 29"), which the
+    catalog resolves."""
+    strike: Counter[int] = Counter()
+    jets: Counter[int] = Counter()
+    rows = counted_sorties().filter(player_id__in=chunk, kills_air_ai__gt=0)
+    if tours is not None:
+        rows = rows.filter(tour_id__in=tours)
+    for pk, timeline, propulsion in rows.values_list("pk", "timeline", "aircraft__propulsion").iterator():
+        for entry in timeline:
+            counterpart = entry.get("counterpart")
+            if entry["kind"] != "kill" or not isinstance(counterpart, dict):
+                continue
+            victim = cast("dict[str, object]", counterpart)
+            if victim.get("sortie_id") is None:
+                info = _catalog().lookup(str(victim["object_type"]))
+                strike[pk] += info.cls in STRIKE_CLASSES
+                jets[pk] += info.propulsion == Propulsion.JET and propulsion == Propulsion.PROP
+    return strike, jets
+
+
 def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], list[AchievementSortie]]:
     """The counted sorties of each player in `chunk` per tour (of their mission; sorties outside every tour are left
     out), in chronological order (spawn time, then id). `tours` None = every tour."""
-    strike = _strike_kills(chunk, tours)
+    strike = _pilot_kills(chunk, tours, STRIKE_KILL)
+    jets = _pilot_kills(chunk, tours, JET_FROM_PROP)
+    ai_strike, ai_jets = _ai_kills(chunk, tours)
     rows = (
         counted_sorties()
         .filter(player_id__in=chunk, tour_id__isnull=False)
@@ -112,14 +150,9 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
             "is_captured",
             "ground_points",
             "elo_peak",
-            "rams",
             "first_blood",
             "multi_kill",
-            "taxi_accident",
-            "strafed_on_ground",
-            "friendly_kills",
             "ended_by_mission_end",
-            "took_off_at",
             "combat_role",
         )
     )
@@ -139,7 +172,8 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
                 kills_air=r["kills_air"],
                 kills_ground=r["kills_ground"],
                 kills_ground_tank=r["kills_ground_tank"],
-                kills_strike_air=strike[r["pk"]],
+                kills_strike_air=strike[r["pk"]] + ai_strike[r["pk"]],
+                kills_jet_from_prop=jets[r["pk"]] + ai_jets[r["pk"]],
                 landing_damage=r["landing_damage"],
                 landed=outcome == Outcome.LANDED,
                 is_death=r["is_death"],
@@ -147,15 +181,8 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
                 not_taken_off=outcome == Outcome.NOT_TAKEN_OFF,
                 ground_points=r["ground_points"],
                 elo_peak=r["elo_peak"],
-                rams=r["rams"],
                 first_blood=r["first_blood"],
                 multi_kill=r["multi_kill"],
-                taxi_accident=r["taxi_accident"],
-                strafed_on_ground=r["strafed_on_ground"],
-                friendly_kills=r["friendly_kills"],
-                crashed=outcome == Outcome.CRASHED
-                and r["took_off_at"] is not None
-                and not (r["taxi_accident"] or r["strafed_on_ground"]),
                 ended_by_mission_end=r["ended_by_mission_end"],
                 is_attack=track_of(r["combat_role"]) is Track.GROUND,
             )

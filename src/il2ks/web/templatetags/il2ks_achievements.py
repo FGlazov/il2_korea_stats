@@ -50,9 +50,7 @@ def player_medals(context: Context, player: Player, tour: Tour | None = None) ->
 def sortie_medals(context: Context, sortie: PlayerSortie) -> list[medals.Medal]:
     rows = reads.sortie_rows(sortie)
     holdings = reads.holdings({r.tour_id for r in rows}) if rows else {}
-    found = [
-        m for m in medals.medals_of(rows, holdings, achievement_config(context), highest_only=False) if not m.shame
-    ]  # shame: hall of shame only
+    found = medals.medals_of(rows, holdings, achievement_config(context), highest_only=False)
     all_time = {(m.key, m.tier, m.threshold) for m in found if m.scope is None}
     # The same tier in the tour is the same news (the first tour starts with the server): list it once. A cumulative
     # medal's all-time tier asks five times as much as the tour's (another threshold): that is other news.

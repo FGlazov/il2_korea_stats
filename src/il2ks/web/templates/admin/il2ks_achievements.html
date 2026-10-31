@@ -1,4 +1,4 @@
-{# il2ks-template: templates/admin/il2ks_achievements.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/admin/il2ks_achievements.html v1.1 - copy this line along when you override #}
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 
@@ -10,7 +10,7 @@
 
 {% block content %}
 <div id="content-main">
-  <p>{% translate "Achievements are the medals, ribbons and hall-of-shame entries pilots earn. They are all on by default with the built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or change the number each tier needs." %}</p>
+  <p>{% translate "Achievements are the medals and ribbons pilots earn. They are all on by default with the built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or change the number each tier needs." %}</p>
   <p>{% blocktranslate %}Names, descriptions and the on/off switch apply to the pages at once. An achievement that is switched off disappears from profiles, sortie pages, the overview, the holder lists, the home feed and the rarity figures. Your own texts are plain text (no HTML), at most {{ max_name }} characters for a name and {{ max_description }} for a description; leave a language blank to show the built-in text translated into it.{% endblocktranslate %}</p>
   <p>{% translate "Thresholds are different: who holds which tier is worked out when sorties are ingested. After you change a threshold, or switch an achievement back on, the site recomputes every pilot's achievements in the background (the watch process does it within a minute or so, or the next rebuild-aggregates does). Until then the pages keep showing the old thresholds, and afterwards the holders, the dates and the rarity percentages change. Every tier needs a number: increasing, whole numbers, as many tiers as the built-in achievement has." %}</p>
   {% if pending %}

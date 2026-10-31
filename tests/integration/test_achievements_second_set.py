@@ -109,18 +109,16 @@ def test_stored_facts_feed_the_medals() -> None:
     save(
         mission(
             (
-                sortie(0, 1, kills_air=3, kills_air_pvp=1, rams=1, first_blood=True, multi_kill=3),
+                sortie(0, 1, kills_air=3, kills_air_pvp=1, first_blood=True, multi_kill=3),
                 sortie(1, 2, kills_air=1, multi_kill=1),
             )
         ),
         meta("m1", STARTED_AT),
     )
 
-    assert held(1)["ram"] == 1
     assert held(1)["first_blood"] == 1
     assert held(1)["multi_kill"] == 2  # a triple: bronze (double) and silver
     assert "multi_kill" not in held(2)
-    assert "ram" not in held(2)
 
 
 def test_gunner_sorties_earn_nothing_from_the_new_facts() -> None:
@@ -128,36 +126,12 @@ def test_gunner_sorties_earn_nothing_from_the_new_facts() -> None:
         mission(
             (
                 sortie(0, 1),
-                sortie(1, 4, role="gunner", aircraft_type="Turret_IL10", rams=1, first_blood=True, multi_kill=4),
+                sortie(1, 4, role="gunner", aircraft_type="Turret_IL10", first_blood=True, multi_kill=4),
             )
         )
     )
 
     assert not PlayerAchievement.objects.filter(player_id=pk(4)).exists()
-
-
-def test_shame_medals_and_hidden_missions() -> None:
-    save(
-        mission(
-            (
-                *(
-                    sortie(i, 1, outcome="not_taken_off", flight_time_s=0.0, taxi_accident=True, is_plane_lost=True)
-                    for i in range(5)  # all time asks 5 taxi accidents (5 x 1, OQ-128)
-                ),
-                sortie(5, 2, outcome="crashed", is_death=True, friendly_kills=5),
-                sortie(6, 2, outcome="crashed", is_death=True),
-                sortie(7, 2, outcome="crashed", is_death=True),
-            )
-        ),
-        meta("m1", STARTED_AT),
-    )
-
-    assert held(1) == {"shame_taxi": 2}  # a taxi accident is not a "crash after take-off"; in the tour 5 are silver
-    all_time = PlayerAchievement.objects.filter(player_id=pk(1), tour=None, key="shame_taxi")
-    assert [r.tier for r in all_time] == [1]  # ... and all time, with its x5 thresholds (5, 25, 50), bronze
-    assert held(2)["shame_friendly"] == 2  # 5 friendly kills: silver in the tour, bronze all time (5 x 1)
-    assert held(2)["shame_crashed"] == 1  # three crashes after take-off
-    assert AchievementHolders.objects.get(key="shame_taxi", tier=1, tour=None).holders == 1
 
 
 def test_landing_streak_and_types_are_stored_nothing_extra() -> None:

@@ -72,11 +72,11 @@ def holders_page(key: str, tier: int, number: str | int, tour: Tour | None) -> P
 
 
 def recent_rows(tour: Tour | None, achievements: Iterable[Achievement]) -> list[PlayerAchievement]:
-    """The newest tiers earned in the scope by visible players (the home feed's candidates, one query): no hall-of-shame
-    entry, and ribbons only from `FEED_MIN_RIBBON_TIER`; only the given (switched-on) achievements. The caller drops the
-    common ones (it knows the rarity)."""
-    medal_keys = [a.key for a in achievements if not a.shame and a.kind == "medal"]
-    ribbon_keys = [a.key for a in achievements if not a.shame and a.kind == "ribbon"]
+    """The newest tiers earned in the scope by visible players (the home feed's candidates, one query): ribbons only
+    from `FEED_MIN_RIBBON_TIER`; only the given (switched-on) achievements. The caller drops the common ones (it knows
+    the rarity)."""
+    medal_keys = [a.key for a in achievements if a.kind == "medal"]
+    ribbon_keys = [a.key for a in achievements if a.kind == "ribbon"]
     wanted = Q(key__in=medal_keys) | Q(key__in=ribbon_keys, tier__gte=FEED_MIN_RIBBON_TIER)
     return list(
         PlayerAchievement.objects.filter(wanted, tour=tour, player__is_hidden=False)

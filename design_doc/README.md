@@ -124,3 +124,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-31 (0.4.0: delete tours and missions, `RemovedMission` (02, 06, 14, 16); resume a tour: new OQ-142).
   2026-10-31 (0.5.0: stats delay FR-ING-25 (02, 06, 10, 14); new OQ-143; a wrong server zone is detected and warned about (05, 14); timeline names link to the sortie).
   2026-10-31 (0.5.1: a sortie still going has no end in a running mission (14); online now list collapsed (16)).
+  2026-10-31 (0.5.2: Jet Hunter; AI aircraft count for Bomber Hunter; no negative medals, no ram medal (17)).

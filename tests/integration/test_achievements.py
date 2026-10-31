@@ -318,9 +318,8 @@ def test_rarity_is_hover_text_and_screen_reader_text() -> None:
     assert "rarity--" not in html  # a three-pilot server does not glow
 
 
-def test_the_sortie_page_lists_a_tier_once_and_leaves_shame_to_the_hall_of_shame() -> None:
-    """QA 2026-10-04: all time and the first tour reached the same tiers, so the sortie page listed everything twice;
-    a hall-of-shame tier showed up there as a shiny award."""
+def test_the_sortie_page_lists_a_tier_once() -> None:
+    """QA 2026-10-04: all time and the first tour reached the same tiers, so the sortie page listed everything twice."""
     from il2ks.web.templatetags.il2ks_achievements import sortie_medals
 
     seed_two_tours()
@@ -333,7 +332,6 @@ def test_the_sortie_page_lists_a_tier_once_and_leaves_shame_to_the_hall_of_shame
     in_second = [(m.key, m.tier, m.scope is not None) for m in sortie_medals(Context(), second)]
     assert ("career_kills", 1, True) in in_second  # the first kill of the second tour ...
     assert ("career_kills", 1, False) in in_second  # ... and the fifth of the career: other news, both listed
-    assert all(not m.shame for m in sortie_medals(Context(), first))
 
 
 def test_a_medal_row_and_a_ribbon_rack_split_by_kind() -> None:
@@ -390,32 +388,6 @@ def test_the_home_feed_lists_the_newest_uncommon_tiers_and_never_links_a_hidden_
     assert "Target-Rich" not in client.get("/?tour=all").content.decode()
 
 
-def test_hall_of_shame_entries_stay_out_of_the_feed_and_the_medal_row(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A `shame` achievement is shown with the hall of shame only (doc 17)."""
-    from dataclasses import replace
-
-    from il2ks.core import achievement_rules as rules_mod
-    from il2ks.core import achievements as core
-    from il2ks.web import achievement_config, medals
-
-    shamed = tuple(replace(a, shame=True) if a.key == "ground_sortie" else a for a in core.ACHIEVEMENTS)
-    by_key = {a.key: a for a in shamed}
-    for module in (core, achievement_config, medals, rules_mod):
-        monkeypatch.setattr(module, "ACHIEVEMENTS", shamed)
-    for module in (core, achievement_config, rules_mod):
-        monkeypatch.setattr(module, "BY_KEY", by_key)
-    seed()
-    client = Client()
-
-    feed = client.get("/?tour=all").content.decode()
-    profile = client.get(f"/players/{pk(1)}/?tour=all").content.decode()
-
-    assert "Target-Rich" not in feed
-    shame_part = profile[profile.index('class="shame"') :]
-    assert "Target-Rich" in shame_part
-    assert profile.index("Target-Rich") > profile.index('class="shame"')  # not in the medal row above it
-
-
 def test_the_home_feed_leaves_out_every_tier_a_fifth_of_the_pilots_hold() -> None:
     """Doc 17: not only bronze; a silver that 20% or more of the pilots hold is too common for the feed too."""
     seed()
@@ -457,3 +429,81 @@ def test_damaged_landing_incremental_equals_rebuild() -> None:
 
     assert snapshot() == incremental
     assert any(row[2] == "damaged_landing" for row in incremental)
+
+
+def test_a_jet_shot_down_from_a_prop_counts_for_jet_hunter() -> None:
+    save(
+        mission(
+            (
+                sortie(0, 1, aircraft_type="F-51D"),
+                sortie(1, 2),
+                sortie(2, 3),  # a jet killing a jet
+                sortie(3, 4),
+                sortie(4, 5, aircraft_type="F-51D"),  # a prop killing a prop
+                sortie(5, 6, aircraft_type="IL-10"),
+                sortie(6, 7, aircraft_type="IL-10"),  # a prop killing a jet on its own side
+                sortie(7, 8),
+            ),
+            (
+                kill(100, 0, 1, killer_type="F-51D"),
+                kill(200, 2, 3),
+                kill(300, 4, 5, killer_type="F-51D", victim_type="IL-10"),
+                kill(400, 6, 7, killer_type="IL-10", is_friendly=True),
+            ),
+        )
+    )
+
+    assert [n for n in range(1, 9) if "jet_hunter" in held(n)] == [1]
+
+
+def timeline_kill(object_type: str, sortie_id: int | None = None) -> dict[str, object]:
+    counterpart = {"object_type": object_type, "coalition": 2, "sortie_id": sortie_id}
+    return {"tick": 100, "kind": "kill", "detail": object_type, "counterpart": counterpart}
+
+
+def test_ai_aircraft_count_for_bomber_hunter_and_jet_hunter() -> None:
+    """Kill rows are PvP only, so an AI victim comes from the timeline; "B 29" is how the log spells a B-29."""
+    save(
+        mission(
+            (
+                sortie(0, 1, aircraft_type="F-51D", kills_air_ai=2),
+                sortie(1, 2, kills_air_ai=1),  # a jet killing an AI jet
+                sortie(
+                    2, 3, kills_air_ai=1
+                ),  # its AI kill was a fighter, the bomber is a pilot's (counted from `Kill`)
+            )
+        )
+    )
+    timelines = {
+        1: [timeline_kill("B 29"), timeline_kill("MiG-15bis")],
+        2: [timeline_kill("F-86A-5")],
+        3: [timeline_kill("F-51D"), timeline_kill("B-29", sortie_id=999)],
+    }
+    for n, timeline in timelines.items():
+        PlayerSortie.objects.filter(player_id=pk(n)).update(timeline=timeline)
+
+    rebuild_aggregates()
+
+    assert held(1)["strike_hunter"] == 1
+    assert held(1)["jet_hunter"] == 1
+    assert not {"strike_hunter", "jet_hunter"} & (set(held(2)) | set(held(3)))
+
+
+def test_the_upgrade_removes_the_negative_medals_and_the_ram_medal() -> None:
+    from importlib import import_module
+
+    from django.apps import apps
+
+    seed()
+    kept = PlayerAchievement.objects.count()
+    row = PlayerAchievement.objects.earliest("pk")
+    for key in ("ram", "shame_taxi", "shame_friendly", "shame_strafed", "shame_crashed"):
+        row.pk = None
+        row.key = key
+        row.save()
+        AchievementHolders.objects.create(tour=None, key=key, tier=1, holders=1, pilots=1)
+
+    import_module("il2ks.db.migrations.0009_no_negative_medals").forwards(apps, None)
+
+    assert PlayerAchievement.objects.count() == kept
+    assert not AchievementHolders.objects.filter(key__in=("ram", "shame_taxi")).exists()

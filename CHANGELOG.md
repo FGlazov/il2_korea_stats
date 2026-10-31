@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.2 (2026-10-31)
+
+### Added
+
+- **Jet Hunter:** a new medal for shooting down jets from a propeller aircraft (1 / 3 / 5 / 10).
+
+### Changed
+
+- **Bomber Hunter** now also counts AI bombers, attackers and transports, not only those flown by other pilots.
+- Run `il2ks rebuild-aggregates` once after the upgrade to apply these two to the missions you already have. Otherwise they apply
+  from the next mission a pilot flies, for that pilot's touched tours.
+
+### Removed
+
+- **Negative medals:** Ramp Rash, Wrong Team, Sitting Duck and Hard Landing are gone, with their tour variants, so nobody has a
+  reason to hunt them. **Contact Sport** (ramming) goes for the same reason. The upgrade removes the ones already earned. The hall
+  of shame on the profile stays, with its numbers and quips.
+
+### Templates changed (check your custom/ overrides)
+
+- `players/detail_shame.html`: v1.0 -> v2.0 (the ribbons under the tiles are gone; `medal_set.shame` no longer exists, so an
+  override that still reads it just shows nothing there).
+
 ## 0.5.1 (2026-10-31)
 
 ### Fixed

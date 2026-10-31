@@ -727,13 +727,13 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Achievements are the medals, ribbons and hall-of-shame entries pilots earn. They are all on by default with the "
-"built-in names and thresholds. Here you can switch one off, give it your own name and description per language, or "
-"change the number each tier needs."
+"Achievements are the medals and ribbons pilots earn. They are all on by default with the built-in names and "
+"thresholds. Here you can switch one off, give it your own name and description per language, or change the number "
+"each tier needs."
 msgstr ""
-"Достижения — это медали, ленточки и записи на доске позора, которые зарабатывают пилоты. По умолчанию все включены, "
-"со встроенными названиями и порогами. Здесь можно отключить достижение, задать своё название и описание для каждого "
-"языка или изменить число, нужное для каждого уровня."
+"Достижения — это медали и ленточки, которые зарабатывают пилоты. По умолчанию все включены, со встроенными названиями"
+" и порогами. Здесь можно отключить достижение, задать своё название и описание для каждого языка или изменить число, "
+"нужное для каждого уровня."
 
 # llm-draft
 msgid ""
@@ -992,14 +992,6 @@ msgstr "Самолёт"
 # llm-draft
 msgid "Aircraft damage"
 msgstr "Повреждения самолёта"
-
-# llm-draft
-msgid "Aircraft destroyed on the ground by an attacker, in one tour: wrong place, wrong time."
-msgstr "Самолёты, уничтоженные на земле штурмовиком, за один тур: не то место и не то время."
-
-# llm-draft
-msgid "Aircraft destroyed on the ground by an attacker, over your career: wrong place, wrong time."
-msgstr "Самолёты, уничтоженные на земле штурмовиком, за всю вашу карьеру: не то место и не то время."
 
 # llm-draft
 #. Translators: tooltip of the "Aircraft lost" column header
@@ -1775,10 +1767,6 @@ msgstr ""
 "прерывает воздушную серию, и наоборот."
 
 # llm-draft
-msgid "Contact Sport"
-msgstr "Таранщик"
-
-# llm-draft
 msgid "Continue"
 msgstr "Продолжить"
 
@@ -2258,11 +2246,12 @@ msgid "Enemy aircraft"
 msgstr "Самолёты противника"
 
 # llm-draft
-msgid "Enemy aircraft downed by ramming them."
-msgstr "Вражеские самолёты, сбитые тараном."
+msgid "Enemy bombers, attackers and transports shot down."
+msgstr "Сбитые вражеские бомбардировщики, штурмовики и транспортники."
 
-msgid "Enemy bombers, attackers and transports flown by other pilots, shot down."
-msgstr "Сбитые вражеские бомбардировщики, штурмовики и транспортные самолёты, которыми управляли другие пилоты."
+# llm-draft
+msgid "Enemy jets shot down from a propeller aircraft."
+msgstr "Вражеские реактивные самолёты, сбитые на поршневом самолёте."
 
 # llm-draft
 msgid "Engines are warm and the sky is waiting. Start the first sortie of the tour!"
@@ -2559,14 +2548,6 @@ msgid "Friendly-fire kills"
 msgstr "Огонь по своим: уничтожено"
 
 # llm-draft
-msgid "Friendly-fire kills in one tour. The markings are small and the sky is crowded."
-msgstr "Победы по своим за один тур. Опознавательные знаки мелкие, а небо тесное."
-
-# llm-draft
-msgid "Friendly-fire kills over your career. The markings are small and the sky is crowded."
-msgstr "Победы по своим за всю вашу карьеру. Опознавательные знаки мелкие, а небо тесное."
-
-# llm-draft
 #, python-format
 msgid ""
 "From 0 to %(max_rate)s. The default, %(default_rate)s, keeps an hour of patrol worth less than any air kill (an AI "
@@ -2824,10 +2805,6 @@ msgstr "Работы на все сто, а в зачёт половина. Оф
 # llm-draft
 msgid "Hall of shame"
 msgstr "Доска позора"
-
-# llm-draft
-msgid "Hard Landing"
-msgstr "Жёсткая посадка"
 
 # llm-draft
 msgid "Header background"
@@ -3184,6 +3161,10 @@ msgstr[2] "Вместе с ним удаляются %(n)s миссий"
 # llm-draft
 msgid "Jet"
 msgstr "Реактивные"
+
+# llm-draft
+msgid "Jet Hunter"
+msgstr "Охотник на реактивных"
 
 # llm-draft
 msgid "Joining…"
@@ -4692,10 +4673,6 @@ msgid "Ram: the two losses must be this close in time (seconds)"
 msgstr "Таран: две потери должны произойти так близко по времени (секунд)"
 
 # llm-draft
-msgid "Ramp Rash"
-msgstr "Мастер парковки"
-
-# llm-draft
 msgid "Rams"
 msgstr "Тараны"
 
@@ -5108,10 +5085,6 @@ msgid "Site texts"
 msgstr "Тексты сайта"
 
 # llm-draft
-msgid "Sitting Duck"
-msgstr "Лёгкая добыча"
-
-# llm-draft
 msgid "Skip to content"
 msgstr "Перейти к содержимому"
 
@@ -5342,10 +5315,6 @@ msgid "Sorties survived in a row: no death, no capture. Sorties that never took 
 msgstr "Вылеты подряд без гибели и плена. Вылеты, в которых самолёт не взлетел, не считаются."
 
 # llm-draft
-msgid "Sorties that took off and ended in a crash. The ground always wins."
-msgstr "Вылеты, которые после взлёта закончились аварией. Земля всегда побеждает."
-
-# llm-draft
 msgid "Sorties with at least one kill in which the aircraft made a landing badly damaged."
 msgstr "Вылеты хотя бы с одной победой, в которых самолёт сел с тяжёлыми повреждениями."
 
@@ -5556,14 +5525,6 @@ msgstr "Авария при рулении"
 # llm-draft
 msgid "Taxi accidents"
 msgstr "Аварии при рулении"
-
-# llm-draft
-msgid "Taxi accidents in one tour: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Аварии на рулении за один тур: самолёт потерян ещё до взлёта. Стоянка всё прощает."
-
-# llm-draft
-msgid "Taxi accidents over your career: the aircraft was lost before it ever took off. The ramp forgives."
-msgstr "Аварии на рулении за всю вашу карьеру: самолёт потерян ещё до взлёта. Стоянка всё прощает."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -6386,24 +6347,12 @@ msgid "Tour Hours Aloft"
 msgstr "Налёт (тур)"
 
 # llm-draft
-msgid "Tour Ramp Rash"
-msgstr "Мастер парковки (тур)"
-
-# llm-draft
-msgid "Tour Sitting Duck"
-msgstr "Лёгкая добыча (тур)"
-
-# llm-draft
 msgid "Tour Sky Hunter"
 msgstr "Небесный охотник (тур)"
 
 # llm-draft
 msgid "Tour Tank Buster"
 msgstr "Гроза танков (тур)"
-
-# llm-draft
-msgid "Tour Wrong Team"
-msgstr "Свои! (тур)"
 
 msgid "Tour ended"
 msgstr "Тур закончился"
@@ -6794,10 +6743,6 @@ msgstr "Колонну потрепали на славу, а победа уш�
 # llm-draft
 msgid "Wounded"
 msgstr "Ранен"
-
-# llm-draft
-msgid "Wrong Team"
-msgstr "Свои!"
 
 # llm-draft
 msgid "Wrong target, right enthusiasm. The debrief will be lively."

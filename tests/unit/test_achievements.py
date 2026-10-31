@@ -132,6 +132,11 @@ def test_career_kills_and_hours_and_sorties_are_cumulative() -> None:
     assert tiers("flight_hours", [s(flight_h=0.6), s(flight_h=0.6)]) == {1: 1}
 
 
+def test_jet_hunter_sums_the_jets_shot_down_from_a_prop() -> None:
+    rows = [replace(s(), kills_jet_from_prop=n) for n in (1, 2, 2, 5)]
+    assert tiers("jet_hunter", rows) == {1: 0, 2: 1, 3: 2, 4: 3}
+
+
 def test_strike_hunter_and_tank_buster_sum_their_counters() -> None:
     assert tiers("strike_hunter", [s(strike=1), s(strike=4), s(strike=10)]) == {1: 0, 2: 1, 3: 2}
     assert tiers("tank_buster", [s(tanks=2), s(tanks=1), s(tanks=7)]) == {1: 1, 2: 2}
@@ -231,7 +236,6 @@ def test_progress_is_monotone_and_has_one_value_per_sortie(a: Achievement) -> No
 # --- ribbons and rarity (doc 17, OQ-105) -----------------------------------------------------------------------
 def test_definitions_default_to_medals_and_the_simple_ones_are_ribbons() -> None:
     assert Achievement("x", (1,), "count", life_kills).kind == "medal"
-    assert not Achievement("x", (1,), "count", life_kills).shame
     ribbons = {a.key for a in ACHIEVEMENTS if a.kind == "ribbon"}
     assert {"frequent_flyer", "regular", "flight_hours", "career_kills"} <= ribbons
     assert BY_KEY["life_kills"].kind == "medal"
@@ -250,16 +254,6 @@ def test_rarity_text_and_emphasis_follow_the_share_of_pilots() -> None:
     assert rarity(Holding(40, 200)).text == "Held by 20% of pilots"
     assert rarity(Holding(1, 10)).level == ""  # too few pilots to call anything rare
     assert rarity(Holding(1, 5000)).text == "Held by less than 0.1% of pilots"
-
-
-def test_a_shame_tier_is_never_emphasised_as_rare() -> None:
-    """A rare Hard Landing is not a trophy: the text stays, the ring and glow do not (doc 17, QA 2026-10-04)."""
-    from il2ks.queries.achievements import Holding
-    from il2ks.web.medals import rarity
-
-    assert rarity(Holding(1, 5000), shame=True).level == ""
-    assert rarity(Holding(1, 5000), shame=True).text == "Held by less than 0.1% of pilots"
-    assert rarity(Holding(1, 5000)).level == "epic"
 
 
 def test_the_medal_hint_punctuation_is_translatable() -> None:
@@ -283,7 +277,6 @@ def test_the_medal_hint_punctuation_is_translatable() -> None:
         mission_id=1,
         mission_hidden=False,
         kind="medal",
-        shame=False,
         scope=None,
         style=0,
         rarity=medals.NO_RARITY,
@@ -310,9 +303,6 @@ def test_only_the_pure_running_totals_are_cumulative_and_the_elo_medal_is_per_to
         "career_kills",
         "tank_buster",
         "flight_hours",
-        "shame_taxi",
-        "shame_friendly",
-        "shame_strafed",
     }
     assert all(a.counter for a in ACHIEVEMENTS if a.cumulative)
     assert "elo_peak" in {e.key for e in earn_all([replace(s(0), elo_peak=1600.0)])}

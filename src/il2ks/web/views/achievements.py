@@ -62,7 +62,7 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
         )
         for info in medals.all_info(config, all_time=choice.selected is None)
     ]
-    rows.sort(key=lambda r: (r.info.shame, r.info.kind == "ribbon"))
+    rows.sort(key=lambda r: r.info.kind == "ribbon")
     context = {
         "rows": rows,
         "tour_query": tour_query(choice.selected),
@@ -77,7 +77,7 @@ def _overview_tier(
     info: medals.MedalInfo, tier: medals.Tier, counts: dict[tuple[str, int], reads.Holding]
 ) -> OverviewTier:
     holding = counts.get((info.key, tier.number))
-    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding, shame=info.shame))
+    return OverviewTier(tier, holding.holders if holding else 0, medals.rarity(holding))
 
 
 def achievement_holders(request: HttpRequest, key: str) -> HttpResponse:
@@ -138,12 +138,12 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
             ListTier(
                 t,
                 held.get((info.key, t.number)),
-                medals.rarity(holdings.get((scope, info.key, t.number)), shame=info.shame),
+                medals.rarity(holdings.get((scope, info.key, t.number))),
             )
             for t in info.tiers
         )
         rows.append(ListRow(info, tiers, max((t.tier.number for t in tiers if t.earned), default=0)))
-    rows.sort(key=lambda r: (r.info.shame, r.info.kind == "ribbon"))
+    rows.sort(key=lambda r: r.info.kind == "ribbon")
     context = {
         "player": player,
         "rows": rows,

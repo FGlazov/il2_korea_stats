@@ -78,7 +78,8 @@ them).
 | `life_kills` | Charmed Life | Air kills in one **air** life (the air ironman track, doc 13): the kills of the air-track sorties since the last air-track death or capture, the fatal sortie included; an attack sortie neither adds to it nor ends it | 5 / 10 / 20 / 50 | 55 / 11 / 2 / 0 |
 | `sortie_kills` | Ace of the Sortie | Most air kills in a single sortie | 2 / 3 / 5 / 7 | 162 / 52 / 5 / 0 |
 | `career_kills` | Sky Hunter | Air kills in total | 1 / 10 / 50 / 250 | 419 / 63 / 4 / 0 |
-| `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** flown by **other pilots** shot down (credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
+| `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** shot down, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
+| `jet_hunter` | Jet Hunter | Jets shot down from a propeller aircraft, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly; tiers `[PROPOSED]` from the local data) | 1 / 3 / 5 / 10 | 86 / 13 / 6 / 1 |
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
 | `ground_sortie` | Target-Rich | Most ground kills in a single sortie (static objects count, like the profile's ground kills) | 20 / 50 / 100 / 200 | 271 / 123 / 57 / 13 |
 | `survivor` | Ironman | Sorties survived in a row on the better of the two ironman tracks (air or ground, `core/streaks.py`, doc 13) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
@@ -95,13 +96,12 @@ single-digit thresholds a third of all pilots would hold it.
 
 All `[DECIDED]` by the maintainer in the review below; names, rules and thresholds are `[PROPOSED]`. Measured on the same 210
 sample missions (1,138 pilots), pilots holding **at least** the tier. The registry has two new flags (`Achievement.kind`:
-`medal` / `ribbon`, `Achievement.shame`: hall-of-shame medals), set on the entries below only. Shame medals have three tiers.
+`medal` / `ribbon`), set on the entries below only.
 
 | Key | Name | Rule | Tiers (bronze / silver / gold / platinum) | Sample pilots (B / S / G / P) |
 |---|---|---|---|---|
 | `elo_peak` | Top Rated | The highest Elo reached, prop or jet pool (one achievement over both). Per tour like the others since 2026-10-05 (all time = max over the tours). Needs a stored per-sortie fact, see below | 1530 / 1560 / 1600 / 1700 | 77 / 25 / 11 / 2 |
 | `ground_score` | Ground Pounder | Ground score in total (sum of the sorties' `ground_points`; a penalty can lower the total, the medal never drops) | 100 / 500 / 2000 / 5000 | 156 / 40 / 10 / 1 |
-| `ram` | Contact Sport | Enemy aircraft downed by ramming them (`credit_rams`; a part of the air kills) | 1 / 2 / 3 / 5 | 18 / 2 / 0 / 0 |
 | `first_blood` | First Blood | Missions in which the pilot made the first credited PvP air kill (by tick) | 1 / 3 / 5 / 10 | 107 / 15 / 1 / 0 |
 | `multi_kill` | Hot Streak | Most air kills within 120 s in one sortie (a double, triple, quad) | 2 / 3 / 4 / 5 | 61 / 4 / 1 / 0 |
 | `types_flown` | Type Collector (**ribbon**) | Different aircraft types flown (took off) | 3 / 5 / 8 / 12 | 390 / 132 / 9 / 0 |
@@ -109,10 +109,6 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 | `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
 | `ace_in_a_day` | Ace in a Day | Most air kills in one UTC day (the day the sortie spawned on) | 5 / 8 / 12 / 20 | 53 / 17 / 4 / 0 |
 | `tours_in_a_row` | Old Hand | Longest run of consecutive tours in which the pilot flew at least once (a take-off); all time only, 2 / 3 / 6 / 12 tours | 2 / 3 / 6 / 12 tours | n/a (one month of sample data) |
-| `shame_taxi` | Ramp Rash (shame) | Taxi accidents | 1 / 5 / 10 | 361 / 36 / 4 |
-| `shame_friendly` | Wrong Team (shame) | Friendly-fire kills (aircraft and ground objects, `friendly_kills`) | 1 / 5 / 20 | 125 / 38 / 15 |
-| `shame_strafed` | Sitting Duck (shame) | Aircraft destroyed on the ground by an attacker | 1 / 2 / 3 | 25 / 1 / 1 |
-| `shame_crashed` | Hard Landing (shame) | Sorties that took off and ended with outcome `crashed` (not a taxi accident, not strafed on the ground) | 3 / 10 / 25 | 229 / 47 / 3 |
 
 `[PROPOSED]` rule choices and what the measurements said:
 
@@ -261,7 +257,7 @@ tour achievements", and "also add tiered achievements for playing in X tours in 
 
 - **Cumulative medals have their own all-time tiers**, `ALL_TIME_FACTOR = 5` times the per-tour ones (`Achievement.all_time_thresholds`,
   `thresholds_for(all_time=)`): Sky Hunter 5 / 50 / 250 / 1250 kills, Tank Buster 15 / 50 / 125 / 500, Hours Aloft 5 / 50 / 250 / 1000 h,
-  Ramp Rash 5 / 25 / 50, Wrong Team 5 / 25 / 100, Sitting Duck 5 / 10 / 15 (a tour keeps 1 / 10 / 50 / 250 and so on). Every other medal is the
+  (a tour keeps 1 / 10 / 50 / 250 and so on). Every other medal is the
   best tour's tier (max), with the same thresholds in both views. `[PROPOSED]` (TECHNICAL): the factor is a constant, not an admin
   field, and it scales **whatever per-tour thresholds are in force**: an admin who changes Sky Hunter to 2 / 20 / 100 / 500 gets
   10 / 100 / 500 / 2500 all time, so there is one set of numbers to edit and the all-time view cannot fall below the tour's. The admin
@@ -274,7 +270,7 @@ tour achievements", and "also add tiered achievements for playing in X tours in 
 - **Two names for a cumulative medal** (maintainer 2026-10-05: "rename the tour variants slightly so this isn't so confusing"; a
   pilot held "Tank Buster" in the tour, not all time, with 6 tanks: 5 needed in a tour, 25 all time). `[PROPOSED]` (PRODUCT): the
   career (all-time) medal keeps today's name, the per-tour variant is **"Tour <name>"**: Tour Sky Hunter, Tour Tank Buster, Tour Hours
-  Aloft, Tour Ramp Rash, Tour Wrong Team, Tour Sitting Duck (translations put the tour word where it reads well: "(Tour)", "(тур)",
+  Aloft (translations put the tour word where it reads well: "(Tour)", "(тур)",
   "de la Temporada"). The tour description says "in one tour", the career one "over your career" (`medals.TOUR_TEXTS` next to
   `TEXTS`; `medals.words(config, key, all_time=)`; a `Medal` takes the variant from its row's scope, `info()` from the page's).
   Every place a tour scope shows the medal uses the tour words (profile, list, overview, holders page, sortie page, home feed).
@@ -338,3 +334,12 @@ Alternative designs:
   (tests pin tier behaviour, the built-in thresholds are the defaults) and an admin overrides the thresholds, names, descriptions and the
   on/off switch per achievement on a page; a change is applied by `watch` or `rebuild-aggregates`. A `[achievements]` section in the
   config file does not exist. Scale factors per key and per-key new achievements defined by data stay ideas.
+
+- **No negative medals** (maintainer 2026-10-31: "i dont want people to hunt negative achievements", "only hall of shame should be there
+  for negative achievements but no actual achievements"): Ramp Rash, Wrong Team, Sitting Duck, Hard Landing and Contact Sport (ramming)
+  are removed, with `Achievement.shame`, their icons and, by migration 0009, their rows. The hall of shame on the profile stays: its
+  tiles, stored counters and quips are not achievements. Notes above that name those medals are history.
+- **AI aircraft count for Bomber Hunter and Jet Hunter** (maintainer 2026-10-31: "remove requirement that they are player flown").
+  `Kill` is PvP only, so an AI victim comes from the timelines of the sorties with `kills_air_ai` (`ingest.achievements._ai_kills`): the
+  entry's log name goes through the catalog, which resolves spellings such as `B 29`. No new column, so `rebuild-aggregates` is enough
+  for the missions already stored. This replaces the note that AI victims don't count for `strike_hunter`.

@@ -68,11 +68,7 @@ def tiers(key: str, rows: list[AchievementSortie]) -> dict[int, int]:
 
 def test_registry_flags() -> None:
     assert BY_KEY["life_kills"].kind == "medal"
-    assert not BY_KEY["life_kills"].shame
     assert BY_KEY["types_flown"].kind == "ribbon"
-    shame = {a.key for a in ACHIEVEMENTS if a.shame}
-    assert shame == {"shame_taxi", "shame_friendly", "shame_strafed", "shame_crashed"}
-    assert all(BY_KEY[k].top_tier == 3 for k in shame)
 
 
 def test_elo_is_the_highest_peak_so_far() -> None:
@@ -92,13 +88,6 @@ def test_ground_score_adds_up_and_never_drops() -> None:
 
     assert ground_score(rows) == [80.0, 110.0, 110.0, 110.0]
     assert tiers("ground_score", rows) == {1: 1}
-
-
-def test_ram_counts_the_rams_of_each_sortie() -> None:
-    rows = [s(air=1, rams=1), s(air=2), s(air=1, rams=1, death=True), s(air=1, rams=1)]
-
-    assert tiers("ram", rows) == {1: 0, 2: 2, 3: 3}
-    assert tiers("ram", [s(grounded=True, rams=1)]) == {}  # a sortie that never took off counts for nothing
 
 
 def test_first_blood_counts_missions() -> None:
@@ -223,16 +212,6 @@ def test_ace_in_a_day_sums_the_utc_day() -> None:
     assert tiers("ace_in_a_day", [s(0, air=3), s(1, air=2, death=True)]) == {1: 1}  # the fatal sortie's kills count
 
 
-def test_shame_medals_count_incidents_even_before_take_off() -> None:
-    rows = [s(grounded=True, taxi_accident=True), s(), s(grounded=True, taxi_accident=True)]
-    assert tiers("shame_taxi", rows) == {1: 0}
-    assert tiers("shame_friendly", [s(friendly_kills=1), s(friendly_kills=4)]) == {1: 0, 2: 1}
-    assert tiers("shame_strafed", [s(strafed_on_ground=True, grounded=True), s(strafed_on_ground=True)]) == {1: 0, 2: 1}
-    crashes = [s(crashed=True, landed=False) for _ in range(3)]
-    assert tiers("shame_crashed", crashes) == {1: 2}
-    assert tiers("shame_crashed", [s(), s(landed=False)]) == {}  # only a crash counts, not every non-landing
-
-
-@pytest.mark.parametrize("a", [a for a in ACHIEVEMENTS if a.shame or a.kind == "ribbon"], ids=lambda a: a.key)
-def test_no_sorties_no_shame_and_no_ribbon(a: Achievement) -> None:
+@pytest.mark.parametrize("a", [a for a in ACHIEVEMENTS if a.kind == "ribbon"], ids=lambda a: a.key)
+def test_no_sorties_no_ribbon(a: Achievement) -> None:
     assert earn(a, []) == []

@@ -37,7 +37,7 @@ class AchievementRow:
     key: str
     title: str  # the built-in name in the admin's language
     default_description: str
-    kind: str  # "medal", "ribbon" or "shame" (the group it is shown in)
+    kind: str  # "medal" or "ribbon" (the group it is shown in)
     unit: str
     on: bool
     default_thresholds: tuple[int, ...]
@@ -97,7 +97,7 @@ def build_rows(config: AchievementConfig, typed: Mapping[str, tuple[str, ...]] |
                 key=a.key,
                 title=str(name),
                 default_description=str(description),
-                kind="shame" if a.shame else a.kind,
+                kind=a.kind,
                 unit=a.unit,
                 on=on,
                 default_thresholds=a.thresholds,

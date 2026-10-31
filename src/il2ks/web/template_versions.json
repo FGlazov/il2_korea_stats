@@ -743,8 +743,8 @@
       }
     },
     "templates/admin/il2ks_achievements.html": {
-      "version": "1.0",
-      "sha256": "657ed533157c77af341ea120401da94ab29493a9cdf0501567898c908425a8ee",
+      "version": "1.1",
+      "sha256": "4802ae6f8be9b49c21610d421fbb2ed7e41c16cfbac03774bede7c88dc70205f",
       "contract": {
         "blocks": [
           "breadcrumbs",
@@ -1409,8 +1409,8 @@
       }
     },
     "templates/il2ks/achievements/home_feed.html": {
-      "version": "1.0",
-      "sha256": "de8106fa41d60f0c2231f386951450eecce7d4229518c5773837349545da7a4e",
+      "version": "1.1",
+      "sha256": "36c57982e5e165169c5fc4f36b08f99aff18f28526da4627f440a76cd2738d87",
       "contract": {
         "filters": [
           "local_date"
@@ -1451,8 +1451,8 @@
       }
     },
     "templates/il2ks/achievements/overview.html": {
-      "version": "1.0",
-      "sha256": "eaaef322b947f648b52c588858cf83264917a944a2c8f63d5c78aa2d14f57632",
+      "version": "1.1",
+      "sha256": "2acf9fba808e6258851d64a28e2c01fb4db9c8e58e80b85b3a8f64eb53179c82",
       "contract": {
         "blocks": [
           "content",
@@ -3079,8 +3079,8 @@
       }
     },
     "templates/il2ks/players/detail.html": {
-      "version": "1.0",
-      "sha256": "71eec4780f9bbe2cacf7556ff2667f1239f44531724795567d20cbd6531196c6",
+      "version": "1.1",
+      "sha256": "1386c24fa346ce26ae38b169c2927f41adfa365dd7de7808e0f553937e958635",
       "contract": {
         "blocks": [
           "content",
@@ -3128,8 +3128,8 @@
       }
     },
     "templates/il2ks/players/detail_achievements.html": {
-      "version": "1.0",
-      "sha256": "32df4592f100ed4c81453d5207994163032cff4546af8d4ad5d7b18ad8787b65",
+      "version": "1.1",
+      "sha256": "80a8caf29d429a02bfa613a21017b7d730f8f4a6f62dcbaa06ee3ae97418719b",
       "contract": {
         "includes": [
           "il2ks/achievements/_medal.html",
@@ -3613,17 +3613,13 @@
       }
     },
     "templates/il2ks/players/detail_shame.html": {
-      "version": "1.0",
-      "sha256": "cb3ac1eac2294eeb43949b975b9eabd7facf0cb844df624d7dc2c14a4270df89",
+      "version": "2.0",
+      "sha256": "ca1382b3474f250c334594676d906a034b424c93e687222a9976b377d4303e11",
       "contract": {
         "filters": [
           "num"
         ],
-        "includes": [
-          "il2ks/achievements/_ribbon.html"
-        ],
         "markers": [
-          ".ribbon-rack",
           ".shame",
           ".shame__quip",
           ".shame__tiles",
@@ -3634,7 +3630,6 @@
           "stat_tile"
         ],
         "variables": [
-          "medal_set",
           "player",
           "stats"
         ]

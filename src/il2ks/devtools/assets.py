@@ -281,6 +281,7 @@ def build_manifest() -> list[Asset]:
         ("sortie-kills", "Ace of the Sortie: air kills in one sortie"),
         ("career-kills", "Sky Hunter: air kills in total"),
         ("strike-hunter", "Bomber Hunter: bombers, attackers and transports shot down"),
+        ("jet-hunter", "Jet Hunter: jets shot down from a propeller aircraft"),
         ("tank-buster", "Tank Buster: tanks destroyed"),
         ("ground-sortie", "Target-Rich: ground targets in one sortie"),
         ("survivor", "Ironman: sorties survived in a row"),
@@ -291,7 +292,6 @@ def build_manifest() -> list[Asset]:
         ("type-veteran", "Type Veteran: flight time in one aircraft type"),
         ("elo-peak", "Top Rated: the highest Elo reached"),
         ("ground-score", "Ground Pounder: the ground score in total"),
-        ("ram", "Contact Sport: enemy aircraft rammed"),
         ("first-blood", "First Blood: first air kill of a mission"),
         ("multi-kill", "Hot Streak: several air kills within two minutes"),
         ("types-flown", "Type Collector: different aircraft types flown"),
@@ -299,10 +299,6 @@ def build_manifest() -> list[Asset]:
         ("landing-streak", "Soft Touch: landings in a row"),
         ("ace-in-a-day", "Ace in a Day: air kills in one day"),
         ("tours-in-a-row", "Old Hand: tours flown in a row (all time only)"),
-        ("shame-taxi", "Ramp Rash (hall of shame): taxi accidents"),
-        ("shame-friendly", "Wrong Team (hall of shame): friendly-fire kills"),
-        ("shame-strafed", "Sitting Duck (hall of shame): destroyed on the ground by an attacker"),
-        ("shame-crashed", "Hard Landing (hall of shame): crashed after take-off"),
     ):
         add(
             f"medal/{name}.svg",
