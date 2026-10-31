@@ -366,7 +366,8 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
     Achievement("multi_kill", (2, 3, 4, 5), "count", _best_in_one(lambda s: s.multi_kill)),
-    Achievement("types_flown", (3, 5, 8, 12), "count", types_flown, kind="ribbon"),
+    # The top tiers of these two are the number of playable aircraft: raise them when the game gets more (maintainer).
+    Achievement("types_flown", (3, 5, 8), "count", types_flown, kind="ribbon"),
     Achievement("types_with_kills", (2, 4, 6, 8), "count", types_with_kills),
     Achievement("landing_streak", (3, 6, 10, 20), "count", landings_in_a_row),
     Achievement("ace_in_a_day", (5, 8, 12, 20), "count", kills_in_a_day),

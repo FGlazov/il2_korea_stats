@@ -1,11 +1,14 @@
 """The second set of achievements (doc 17, OQ-105): Elo, ground score, rams, first blood, multi-kills, types, landing
 streak, ace in a day and the hall-of-shame medals. Pure functions, no database."""
 
+import csv
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
+from il2ks.core import catalog
 from il2ks.core.achievements import (
     ACHIEVEMENTS,
     BY_KEY,
@@ -167,6 +170,16 @@ def test_types_flown_counts_distinct_types_that_took_off() -> None:
         3.0,
     ]  # the grounded spawn in type 2 did not count, the later one did
     assert tiers("types_flown", [s(aircraft=n) for n in range(3)]) == {1: 2}
+
+
+def test_the_type_medals_top_out_at_the_number_of_playable_aircraft() -> None:
+    """Maintainer 2026-10-31: 8 types for now. New aircraft in the catalog: raise the top tiers of these two medals."""
+    objects = Path(catalog.__file__).parent / "data" / "objects.csv"
+    with objects.open(encoding="utf-8", newline="") as rows:
+        aircraft = [r for r in csv.DictReader(rows) if r["is_playable"] == "true" and r["cls"] != "gunner"]
+
+    assert BY_KEY["types_flown"].thresholds[-1] == len(aircraft)
+    assert BY_KEY["types_with_kills"].thresholds[-1] == len(aircraft)
 
 
 def test_types_with_kills_needs_an_air_kill_in_the_type() -> None:

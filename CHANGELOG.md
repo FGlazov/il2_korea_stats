@@ -9,6 +9,7 @@
 ### Changed
 
 - **Bomber Hunter** now also counts AI bombers, attackers and transports, not only those flown by other pilots.
+- **Type Collector** now tops out at 8 types: the game has no more than that, so the 12-type tier could not be reached.
 - Run `il2ks rebuild-aggregates` once after the upgrade to apply these two to the missions you already have. Otherwise they apply
   from the next mission a pilot flies, for that pilot's touched tours.
 

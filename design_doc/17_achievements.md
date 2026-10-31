@@ -104,7 +104,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 | `ground_score` | Ground Pounder | Ground score in total (sum of the sorties' `ground_points`; a penalty can lower the total, the medal never drops) | 100 / 500 / 2000 / 5000 | 156 / 40 / 10 / 1 |
 | `first_blood` | First Blood | Missions in which the pilot made the first credited PvP air kill (by tick) | 1 / 3 / 5 / 10 | 107 / 15 / 1 / 0 |
 | `multi_kill` | Hot Streak | Most air kills within 120 s in one sortie (a double, triple, quad) | 2 / 3 / 4 / 5 | 61 / 4 / 1 / 0 |
-| `types_flown` | Type Collector (**ribbon**) | Different aircraft types flown (took off) | 3 / 5 / 8 / 12 | 390 / 132 / 9 / 0 |
+| `types_flown` | Type Collector (**ribbon**) | Different aircraft types flown (took off) | 3 / 5 / 8 | 390 / 132 / 9 |
 | `types_with_kills` | Versatile Hunter | Different aircraft types with at least one air kill | 2 / 4 / 6 / 8 | 186 / 34 / 6 / 0 |
 | `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
 | `ace_in_a_day` | Ace in a Day | Most air kills in one UTC day (the day the sortie spawned on) | 5 / 8 / 12 / 20 | 53 / 17 / 4 / 0 |
@@ -343,3 +343,6 @@ Alternative designs:
   `Kill` is PvP only, so an AI victim comes from the timelines of the sorties with `kills_air_ai` (`ingest.achievements._ai_kills`): the
   entry's log name goes through the catalog, which resolves spellings such as `B 29`. No new column, so `rebuild-aggregates` is enough
   for the missions already stored. This replaces the note that AI victims don't count for `strike_hunter`.
+- **Type Collector tops out at 8** (maintainer 2026-10-31: "max it out at 8 types, there aren't more types in the game yet"): the 12 tier
+  was out of reach with 8 playable aircraft, so it is dropped. The tiers below it are unchanged, so no row changes. To be raised when new
+  aircraft come out, in a year or two (maintainer); a test fails when `objects.csv` gains a playable type, so the bump isn't forgotten.
