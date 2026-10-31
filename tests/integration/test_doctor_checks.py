@@ -17,10 +17,12 @@ from django.db.migrations.loader import MigrationLoader
 
 from il2ks.cli import main
 from il2ks.config import BackupConfig, Config, LogsConfig
-from il2ks.db.models import IngestRun, IngestStatus
+from il2ks.db.models import IngestRun, IngestStatus, Mission
 from il2ks.ops import backup, checks
 from il2ks.ops.doctor import Check, Finding, Level, run_checks
 from il2ks.ops.report import exit_code, render_json, render_text, use_color
+from tests.factories import mission, save, sortie
+from tests.live_helpers import write_part
 from tests.ops_helpers import make_instance, returning, write_db
 
 NOW = datetime.now(UTC)
@@ -207,6 +209,33 @@ def test_other_systems_detect_the_timezone_and_are_ok(tmp_path: Path, monkeypatc
     assert cfg.source is not None
     cfg.source.write_text('data_dir = "x"\n', encoding="utf-8")
     assert only(checks.timezone_check, cfg).level is Level.OK
+
+
+@pytest.mark.django_db
+def test_mission_files_that_disagree_with_the_clock_are_a_warning(ingest_cfg: Config, tmp_path: Path) -> None:
+    """TD-15: the file name of a running mission says 19:00, the file was written at 18:00 UTC."""
+    logs = tmp_path / "logs"
+    written = datetime(2026, 10, 31, 18, 0, 31, tzinfo=UTC)
+    part = write_part(logs, "2026-10-31_19-00-21", 0, ["T:0 AType:15 VER:17"], written)
+    finding = only(checks.mission_clock_check, replace(ingest_cfg, logs=LogsConfig(dir=logs)))
+    assert finding.level is Level.WARN
+    assert part.name in finding.detail
+    assert "1 h" in finding.detail
+    assert "[server] timezone" in finding.fix
+
+
+@pytest.mark.django_db
+def test_a_mission_in_the_future_is_a_warning_even_without_its_files(ingest_cfg: Config) -> None:
+    save(mission((sortie(0, 1),)))
+    Mission.objects.update(server_uid=ingest_cfg.server_uid, started_at=datetime(2099, 1, 1, tzinfo=UTC))
+    finding = only(checks.mission_clock_check, ingest_cfg)
+    assert finding.level is Level.WARN
+    assert "future" in finding.title
+
+
+@pytest.mark.django_db
+def test_mission_times_that_agree_with_the_clock_say_nothing(ingest_cfg: Config) -> None:
+    assert list(checks.mission_clock_check(ingest_cfg)) == []
 
 
 def test_server_uid_present_in_the_config_or_the_file_is_ok(tmp_path: Path) -> None:

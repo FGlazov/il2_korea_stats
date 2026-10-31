@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v2.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/timeline_table.html v2.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Timeline rows as a table. Context: rows (sortie_view.TimelineRow: kind, icon, label, tone, clock, utc, place, text,
   who, altitude, altitude_title, count, summary, damage, ammo, ammo_title, children). A grouped row (kind "kill_group") folds its children in a details element, the first 20 listed (OQ-96).
@@ -14,11 +14,11 @@
             {% if row.children %}
               <details class="timeline__group">
                 <summary>{% blocktranslate with n=row.count|num %}{{ n }} ground targets{% endblocktranslate %}: <small>{{ row.summary }}</small></summary>
-                <ul>{% for child in row.children|slice:":20" %}<li><small class="nowrap">{{ child.clock }}</small> {% include "il2ks/sorties/parts/who.html" with who=child.who %}</li>{% endfor %}{% if row.count > 20 %}<li class="muted">{% blocktranslate with n=row.count|add:"-20"|num %}…and {{ n }} more (the breakdown by target type above counts them all){% endblocktranslate %}</li>{% endif %}</ul>
+                <ul>{% for child in row.children|slice:":20" %}<li><small class="nowrap">{{ child.clock }}</small> {% include "il2ks/sorties/parts/who.html" with who=child.who to_sortie=True %}</li>{% endfor %}{% if row.count > 20 %}<li class="muted">{% blocktranslate with n=row.count|add:"-20"|num %}…and {{ n }} more (the breakdown by target type above counts them all){% endblocktranslate %}</li>{% endif %}</ul>
               </details>
             {% else %}
               {% if row.ram %}<span class="timeline__ram">{% badge _("Ram") "orange" icon="event/ram" %}</span> {% endif %}{% if row.text %}{{ row.text }}{% endif %}
-              {% if row.who %}{% if row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" %}<span class="muted">{% translate "by" %}</span> {% elif row.kind == "friendly_fire" %}{% badge _("Friendly") "red" %} {% endif %}{% include "il2ks/sorties/parts/who.html" with who=row.who %}{% endif %}
+              {% if row.who %}{% if row.kind == "shot_down" or row.kind == "destroyed" or row.kind == "killed" or row.kind == "died" %}<span class="muted">{% translate "by" %}</span> {% elif row.kind == "friendly_fire" %}{% badge _("Friendly") "red" %} {% endif %}{% include "il2ks/sorties/parts/who.html" with who=row.who to_sortie=True %}{% endif %}
               {% if row.ammo %}<small class="timeline__ammo">{% cell_hint row.ammo row.ammo_title %}</small>{% endif %}
             {% endif %}
           </td>

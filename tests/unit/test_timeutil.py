@@ -97,3 +97,30 @@ def test_malformed_uid_raises(uid: str) -> None:
 
 def test_parse_mission_uid() -> None:
     assert parse_mission_uid("2026-09-19_22-34-13") == datetime(2026, 9, 19, 22, 34, 13)
+
+
+def test_a_file_written_a_whole_hour_from_its_name_warns_about_the_timezone() -> None:
+    """stats.yalu.info, 2026-10-31: DServer's clock ran at UTC+1 and il2ks read the file names as UTC, so every sortie
+    was an hour in the future. The file's modification time is the real clock, and it gives the mistake away."""
+    r = resolve_mission_start("2026-10-31_19-00-21", ZoneInfo("UTC"), hint_utc=utc(2026, 10, 31, 18, 0, 26))
+    assert r.started_at == utc(2026, 10, 31, 19, 0, 21)  # only a warning: a reprocess could not repeat a correction
+    assert len(r.warnings) == 1
+    assert "[server] timezone" in r.warnings[0]
+    assert "1 h" in r.warnings[0]
+
+
+def test_a_clock_behind_the_file_names_warns_too() -> None:
+    r = resolve_mission_start("2026-10-31_13-00-00", ZoneInfo("UTC"), hint_utc=utc(2026, 10, 31, 18, 0, 5))
+    assert "5 h" in r.warnings[0]
+
+
+@pytest.mark.parametrize(
+    "written",
+    [
+        utc(2026, 10, 31, 19, 0, 40),  # a part is written seconds after the start
+        utc(2026, 10, 31, 19, 41, 0),  # no time zone is 41 minutes away: a part that stayed open, or a copied file
+        utc(2026, 3, 1, 19, 0, 21),  # months away: a copy, not a clock
+    ],
+)
+def test_other_file_times_say_nothing_about_the_timezone(written: datetime) -> None:
+    assert resolve_mission_start("2026-10-31_19-00-21", ZoneInfo("UTC"), hint_utc=written).warnings == ()

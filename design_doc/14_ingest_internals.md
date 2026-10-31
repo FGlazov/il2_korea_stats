@@ -89,8 +89,8 @@ How iteration 1 actually parses, catalogs, discovers, archives and stores missio
   `<data dir>/il2ks.toml`. Relative paths resolve against the file's folder.
 - A fully commented `il2ks.toml` template with every key and default ships in the package (for `il2ks setup`); a test keeps it equal to the
   code defaults.
-- **Server timezone** (TD-15): `[server] timezone` (optional, default unset) → `TZ` env → `/etc/localtime` → UTC. Windows has no IANA name, so
-  Windows admins set it (or run DServer on UTC); `il2ks doctor` should warn.
+- **Server timezone** (TD-15): `[server] timezone` (optional, default unset) → `TZ` env → Windows' zone (`tzlocal`) → `/etc/localtime` → UTC. A wrong zone is caught from the
+  file times (TD-15 "A wrong zone").
 - **Server UID** (TD-17): `[server] uid`, else `<data dir>/server_uid.txt` (generated once).
 - **Ratings** (FR-WEB-19): `[ratings] start` (1500), `k` (32), `cross_pool_weight` (2.0). First guesses, to tune once real ratings exist
   (maintainer, 2026-10-03); a change takes effect with `il2ks rebuild-aggregates`, no reprocess needed.

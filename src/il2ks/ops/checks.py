@@ -221,11 +221,11 @@ def log_folder_check(cfg: Config) -> Iterable[Finding]:
 @check
 def timezone_check(cfg: Config) -> Iterable[Finding]:
     configured = _server_setting(cfg, "timezone")
-    if _is_windows() and not configured:
+    if _is_windows() and not configured and cfg.timezone_name == "UTC":
         yield Finding(
             Level.WARN,
             "Server timezone is not set",
-            "Windows does not tell il2ks the timezone by name, so it assumes UTC. DServer names its log files in the "
+            "il2ks could not read the timezone from Windows, so it assumes UTC. DServer names its log files in the "
             "machine's local time, so mission times would be wrong unless the machine runs on UTC.",
             'Add the machine\'s timezone to il2ks.toml, for example [server] timezone = "Europe/Berlin" or '
             '"Asia/Seoul" (IANA names), or set the machine\'s clock to UTC.',
@@ -233,6 +233,56 @@ def timezone_check(cfg: Config) -> Iterable[Finding]:
         return
     how = "set in the config" if configured else "detected"
     yield Finding(Level.OK, f"Server timezone is {cfg.timezone_name}", how)
+
+
+ZONE_FIX = (
+    "Set [server] timezone in il2ks.toml (IL2KS_SERVER_TIMEZONE with Docker) to the game server's IANA zone, for "
+    'example "Europe/Berlin". Then run il2ks reprocess --all and il2ks rebuild-aggregates --retour.'
+)
+
+
+@check
+def mission_clock_check(cfg: Config) -> Iterable[Finding]:
+    """TD-15: DServer names its logs in its own clock. Does `[server] timezone` read those names right? The newest
+    raw `[0]` part shows it either way, a mission that starts in the future shows it without any file."""
+    from django.db import DatabaseError
+
+    from il2ks.core.logparse.files import group_mission_files
+    from il2ks.db.models import Mission
+    from il2ks.ingest.discover import list_log_files
+    from il2ks.ingest.timeutil import clock_skew, describe_skew, resolve_mission_start
+
+    logs_dir = cfg.logs.dir
+    if logs_dir is not None and logs_dir.is_dir():
+        parts = [m for m in group_mission_files(list_log_files(logs_dir), txt_as="parts") if m.kind == "parts"]
+        first = parts[-1].files[0] if parts else None
+        if first is not None and first.name.endswith("[0].txt"):
+            written = datetime.fromtimestamp(first.stat().st_mtime, UTC)
+            start = resolve_mission_start(parts[-1].mission_uid, cfg.timezone, written).started_at
+            skew = clock_skew(start, written)
+            if skew is not None:
+                yield Finding(
+                    Level.WARN,
+                    "Mission times are off",
+                    f"{first.name} was written at {written:%Y-%m-%d %H:%M} UTC, so the file names "
+                    f"{describe_skew(skew)} {cfg.timezone_name}.",
+                    ZONE_FIX,
+                )
+                return
+    if applied_migrations(cfg.db_path) is None:
+        return
+    soon = datetime.now(UTC) + timedelta(minutes=5)
+    try:
+        ahead = Mission.objects.filter(server_uid=cfg.server_uid, started_at__gt=soon).count()
+    except DatabaseError:
+        return  # an old database: the database check says to migrate
+    if ahead:
+        yield Finding(
+            Level.WARN,
+            "Missions start in the future",
+            f"{ahead} mission(s) start later than now, read as {cfg.timezone_name}.",
+            ZONE_FIX,
+        )
 
 
 @check

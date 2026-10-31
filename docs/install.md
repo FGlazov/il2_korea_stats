@@ -82,8 +82,9 @@ email = "you@example.com"         # optional: the certificate authority warns yo
 
 Use forward slashes (`/`) in paths, also on Windows. Write the name only: no `https://`, no port.
 
-**Time zone:** DServer names its logs in its own local time. On Windows, set `[server] timezone = "Europe/Berlin"`
-(your IANA zone name) unless the machine runs on UTC.
+**Time zone:** DServer names its logs in its own local time, and il2ks reads the zone from the system. If il2ks runs on
+another machine than DServer, or in a container, set `[server] timezone = "Europe/Berlin"` (the game server's IANA zone
+name). A wrong zone puts every mission hours off; `il2ks doctor` warns when the file times show it.
 
 ### Prefer a web page to the terminal?
 

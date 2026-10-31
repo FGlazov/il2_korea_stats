@@ -23,7 +23,7 @@ Set at least these (the file explains every line):
 | Setting | What |
 |---|---|
 | `IL2KS_HTTPS_DOMAIN` | your domain. Empty gives a self-signed test certificate (browsers warn) |
-| `IL2KS_SERVER_TIMEZONE` | the time zone of the game server, like `Europe/Berlin` or `UTC`. DServer names its logs in its local time |
+| `IL2KS_SERVER_TIMEZONE` | the time zone of the game server, like `Europe/Berlin` or `UTC`. DServer names its logs in its local time, and a container can't see that zone: leave it at `UTC` on a server that isn't and every mission is hours off |
 | `IL2KS_LOGS_HOST_DIR` | DServer's text log folder on this machine, the one holding `missionReport(...)[0].txt` ([Wine](#dserver-under-wine)) |
 | `IL2KS_ADMIN_USERNAME`, `IL2KS_ADMIN_PASSWORD` | the admin account, created on the first start |
 

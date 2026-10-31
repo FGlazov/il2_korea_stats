@@ -12,6 +12,9 @@ from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 _UID = re.compile(r"(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})")
+ZONE_STEP = timedelta(minutes=15)  # every UTC offset in use is a whole number of these
+MAX_ZONE_QUARTERS = 26 * 4  # no two zones are further apart
+ZONE_SLACK = timedelta(minutes=2)
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,13 +40,48 @@ def _round_trips(local: datetime) -> bool:
     return back.replace(tzinfo=None, fold=0) == local.replace(tzinfo=None, fold=0)
 
 
+def clock_skew(started_at: datetime, written: datetime) -> timedelta | None:
+    """How far `started_at` (from a file name) is off the time the file was really written, when that looks like a
+    wrong time zone: a whole number of quarter hours, none of it explained by the seconds until DServer closes the part.
+    None otherwise: a copied file has any time at all, so the rest says nothing (TD-15)."""
+    gap = written - started_at
+    quarters = round(gap / ZONE_STEP)
+    if not 2 <= abs(quarters) <= MAX_ZONE_QUARTERS or abs(gap - quarters * ZONE_STEP) > ZONE_SLACK:
+        return None
+    return quarters * ZONE_STEP
+
+
+def describe_skew(skew: timedelta) -> str:
+    """ "run 1 h ahead of": `skew` as `clock_skew` gives it, read from the file names' side."""
+    return f"run {_fmt(abs(skew))} {'ahead of' if skew < timedelta(0) else 'behind'}"
+
+
 def resolve_mission_start(mission_uid: str, tz: ZoneInfo, hint_utc: datetime | None = None) -> ResolvedStart:
     """mission_uid "2026-09-19_22-34-13" is server-local time in `tz`. Ambiguous (fall-back) times pick the candidate
     closest to `hint_utc` (the [0] part's mtime or the zip entry time), else fold=0 with a warning. Nonexistent
     (spring-forward) times shift forward by the gap, with a warning. Raises ValueError on a malformed uid.
 
-    A naive `hint_utc` is taken to be UTC.
+    A naive `hint_utc` is taken to be UTC. A `hint_utc` that shows `tz` is the wrong zone adds a warning; the time stays
+    as `tz` says, because an archived mission has no hint and a reprocess could not repeat a correction.
     """
+    resolved = _in_zone(mission_uid, tz, hint_utc)
+    hint = None if hint_utc is None else _as_utc(hint_utc)
+    skew = None if hint is None else clock_skew(resolved.started_at, hint)
+    if skew is None:
+        return resolved
+    warning = (
+        f"mission uid {mission_uid} reads as {resolved.started_at:%Y-%m-%d %H:%M} UTC in {tz.key}, but its file was "
+        f"written at {hint:%Y-%m-%d %H:%M} UTC: the file names {describe_skew(skew)} {tz.key}. "
+        "Set [server] timezone to the game server's zone"
+    )
+    return ResolvedStart(resolved.started_at, (*resolved.warnings, warning))
+
+
+def _as_utc(value: datetime) -> datetime:
+    return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+
+def _in_zone(mission_uid: str, tz: ZoneInfo, hint_utc: datetime | None) -> ResolvedStart:
     naive = parse_mission_uid(mission_uid)
     early = naive.replace(tzinfo=tz, fold=0)
     late = naive.replace(tzinfo=tz, fold=1)
@@ -69,7 +107,7 @@ def resolve_mission_start(mission_uid: str, tz: ZoneInfo, hint_utc: datetime | N
 
     # Fall-back hour: two real instants share this wall time.
     if hint_utc is not None:
-        hint = hint_utc.replace(tzinfo=UTC) if hint_utc.tzinfo is None else hint_utc.astimezone(UTC)
+        hint = _as_utc(hint_utc)
         chosen = min((early_utc, late_utc), key=lambda c: (abs(c - hint), c))
         return ResolvedStart(chosen, ())
     return ResolvedStart(

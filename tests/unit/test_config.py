@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from il2ks.config import SERVER_UID_FILE, ConfigError, LeaderboardConfig, load_config
+from il2ks import config as config_module
+from il2ks.config import SERVER_UID_FILE, ConfigError, LeaderboardConfig, detect_os_timezone, load_config
 from il2ks.core.ratings.elo import RatingRules
 from il2ks.core.ratings.score import ScoreRules
 from il2ks.core.replay.config import ReplayRules
@@ -279,3 +280,20 @@ def test_live_interval_must_be_a_positive_number(tmp_path: Path, value: str) -> 
     env = {"IL2KS_DATA_DIR": str(tmp_path / "data"), "IL2KS_LIVE_INTERVAL_S": value}
     with pytest.raises(ConfigError, match=r"live\.interval_s"):
         load_config(None, env)
+
+
+def test_windows_tells_the_timezone_by_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TD-15: without this every unset Windows server read its log names as UTC."""
+    monkeypatch.setattr(config_module, "_windows_timezone", lambda: "Europe/Berlin")
+    assert detect_os_timezone({}) == "Europe/Berlin"
+    assert detect_os_timezone({"TZ": "Asia/Seoul"}) == "Asia/Seoul"
+
+
+def no_symlink(_path: Path) -> bool:
+    return False
+
+
+def test_an_unknown_windows_timezone_falls_back_to_utc(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(config_module, "_windows_timezone", lambda: None)
+    monkeypatch.setattr(Path, "is_symlink", no_symlink)
+    assert detect_os_timezone({}) == "UTC"

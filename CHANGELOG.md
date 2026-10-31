@@ -15,14 +15,30 @@
 - **A mission that ends is published at once:** its complete stats appear within one look at the log (30 s by default)
   instead of waiting for the final save, which follows as before.
 
+- **Sortie timeline:** a player's name now links to that player's sortie, where the event happened. The other tables on
+  the page still link to the profile.
+
+### Fixed
+
+- **Mission times hours off, sorties "in the future":** DServer names its logs in its own clock, and il2ks read those names
+  as UTC when it didn't know the zone. Windows servers without `[server] timezone` now get the zone from Windows. When a log
+  file's real time disagrees with its name by a time zone's worth, ingest and `il2ks doctor` say so, and doctor also
+  flags missions that start in the future. A container can't see its host's zone, so with Docker check
+  `IL2KS_SERVER_TIMEZONE` in `.env`.
+
 ### Upgrading
 
 - One new database migration; it runs by itself as usual.
+- **Mission times wrong?** Run `il2ks doctor`, set `[server] timezone` to the game server's zone if it says so, then
+  `il2ks reprocess --all` and `il2ks rebuild-aggregates --retour` to correct the missions you already have.
+- A Windows server without `[server] timezone` now reads new missions in its real zone. Run the same two commands to
+  bring older missions in line.
 
 ### Templates changed (check your custom/ overrides)
 
 - `components/online_now_body.html`, `missions/detail.html` and `sorties/parts/header.html` show the delay notice. These are
   cosmetic version bumps, so nothing breaks, but an override of them won't show the notice until you add it.
+- `sorties/parts/timeline_table.html` and `sorties/parts/who.html`: the timeline's new link.
 
 ## 0.4.0 (2026-10-31)
 

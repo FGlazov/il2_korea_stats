@@ -4717,8 +4717,8 @@
       }
     },
     "templates/il2ks/sorties/parts/timeline_table.html": {
-      "version": "2.1",
-      "sha256": "6f4fe0446651b35d5d6c236497d85eeb24b339e3ec36c6a799782d5e10be20ee",
+      "version": "2.2",
+      "sha256": "f080c6919b5ac513423da374b0c6b50f691512acbd1ceac6e820aade0f004653",
       "contract": {
         "filters": [
           "local_clock",
@@ -4764,8 +4764,8 @@
       }
     },
     "templates/il2ks/sorties/parts/who.html": {
-      "version": "1.0",
-      "sha256": "2127bb9cfafd81cd55df6467ec39b53828afd3a08c2a8eb2c7e4e9149fa46383",
+      "version": "1.1",
+      "sha256": "eba052954ba2f8bdd360edef651a8c3253689e6d140a96b2e996a27621f0e2cc",
       "contract": {
         "filters": [
           "tour_qs"
@@ -4788,6 +4788,7 @@
         ],
         "variables": [
           "sortie",
+          "to_sortie",
           "who"
         ]
       }

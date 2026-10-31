@@ -282,12 +282,14 @@ class LiveTracker:
     def _begin(self, mission: MissionLog) -> None:
         first = mission.files[0] if mission.files else None
         hint = datetime.fromtimestamp(first.stat().st_mtime, UTC) if first is not None and first.exists() else None
-        started = resolve_mission_start(mission.mission_uid, self._cfg.timezone, hint).started_at
+        resolved = resolve_mission_start(mission.mission_uid, self._cfg.timezone, hint)
+        for warning in resolved.warnings:
+            log.warning("%s", warning)
         if self._running is not None:
             self._flush_pending(self._running)  # work owed to level 2 is not dropped with the old replay
         delay_ticks = round(self._cfg.live.delay_minutes * 60 * TICKS_PER_SECOND)
         replay = LiveReplay(self.catalog, effective_config(self._cfg).replay, delay_ticks=delay_ticks)
-        self._running = _Running(mission.mission_uid, PartTail(), replay, started)
+        self._running = _Running(mission.mission_uid, PartTail(), replay, resolved.started_at)
 
     def _stop(self) -> None:
         """Nothing is running (any more): forget the replay and tell the database, once."""

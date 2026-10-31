@@ -122,4 +122,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-10-07 (doc sync for 0.2.0: wipe and reprocess (14), side balance (13, 14, 06), Markdown pages, notice banner, footer link, altitude column, healthz, sitemap and robots,
   login lockout, outbound helper, backup copy, template versions vN.M (05, 16), doctor checks, security (03), roadmap statuses; new OQ-137..141).
   2026-10-31 (0.4.0: delete tours and missions, `RemovedMission` (02, 06, 14, 16); resume a tour: new OQ-142).
-  2026-10-31 (0.5.0: stats delay FR-ING-25 (02, 06, 10, 14); new OQ-143).
+  2026-10-31 (0.5.0: stats delay FR-ING-25 (02, 06, 10, 14); new OQ-143; a wrong server zone is detected and warned about (05, 14); timeline names link to the sortie).

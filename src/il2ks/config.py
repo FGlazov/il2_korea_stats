@@ -598,14 +598,29 @@ def stored_server_uid(data_dir: Path, *, create: bool) -> uuid.UUID:
     return new
 
 
-def detect_os_timezone(env: Mapping[str, str]) -> str:
-    """The OS timezone as an IANA name when it can be found with the stdlib, else "UTC" (TD-15).
+def _windows_timezone() -> str | None:
+    """The zone Windows is set to, by IANA name; None off Windows or when it has none (`tzlocal` knows the names)."""
+    if os.name != "nt":
+        return None
+    from tzlocal import get_localzone_name
 
-    `TZ` env var, then the `/etc/localtime` symlink (Linux). Windows has no IANA name without extra packages,
-    so Windows admins set `[server] timezone` (or run DServer on UTC, as doc 07 recommends)."""
+    try:
+        return get_localzone_name()
+    except (LookupError, OSError, ValueError):
+        return None
+
+
+def detect_os_timezone(env: Mapping[str, str]) -> str:
+    """The OS timezone as an IANA name, else "UTC" (TD-15).
+
+    `TZ` env var, then Windows' own setting by way of `tzlocal`, then the `/etc/localtime` symlink (Linux). A container
+    is on UTC whatever its host is, so Docker installs set `IL2KS_SERVER_TIMEZONE`."""
     tz = env.get("TZ", "").lstrip(":")
     if tz:
         return tz
+    windows = _windows_timezone()
+    if windows:
+        return windows
     localtime = Path("/etc/localtime")
     if localtime.is_symlink():
         target = str(localtime.resolve())

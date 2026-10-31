@@ -437,6 +437,20 @@ def test_timeline_rows_carry_icons_and_both_clocks(client: Client) -> None:
     assert html.count("<svg") > 10
 
 
+def test_a_player_in_the_timeline_links_to_that_players_sortie(client: Client) -> None:
+    """https://stats.yalu.info/sorties/33/: the name went to the profile, the other tables keep doing that."""
+    entries = (
+        TimelineEntry(2000, "hit_given", counterpart=Counterpart("MiG-15bis", sortie_index=1), damage=0.1, lines=2),
+    )
+    save(mission((replace(sortie(0, 1), timeline=entries), sortie(1, 2, name="Bravo"))))
+
+    html = detail(client, pk_of(1))
+
+    timeline = html[html.index("timeline__damage--given") - 2000 : html.index("timeline__damage--given") + 2000]
+    assert f'<a href="/sorties/{pk_of(2)}/">Bravo</a>' in timeline
+    assert "/players/" not in timeline
+
+
 def test_hit_rows_show_damage_given_and_taken_with_the_ammo(client: Client) -> None:
     entries = (
         TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)),

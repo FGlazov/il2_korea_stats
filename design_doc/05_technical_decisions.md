@@ -166,6 +166,9 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
     use the zip entry's timestamp, then fall back to the earlier candidate (`fold=0`) and log a warning.
   - Nonexistent times (spring-forward gap) shift forward by the gap, with a warning.
   - Recommend (don't require) running DServer machines on UTC in the install docs, which avoids all of this.
+- **A wrong zone** `[PROPOSED]` (2026-10-31, stats.yalu.info: every sortie an hour in the future, the file names ran at UTC+1 and were read as UTC): the zone is detected on Windows too
+  (`tzlocal`), and a `[0]` part's mtime a whole number of quarter hours from what its name says warns at ingest (`IngestRun.warnings`), in the watch log and in doctor, which also flags
+  missions that start in the future. It warns and doesn't correct: archived missions have no mtime, so a reprocess could not repeat the correction. A container can't see its host's zone, so Docker stays on `IL2KS_SERVER_TIMEZONE`.
 - **Display in the viewer's local time** (FR-WEB-17, moved before the public release by the maintainer, 2026-10-03). `[PROPOSED]` mechanism for later: templates render every real-world timestamp as
   `<time datetime="2026-09-19T20:34:13Z">2026-09-19 20:34 UTC</time>`, and a few lines of vendored JS convert all `<time>` elements to the
   browser's timezone with `Intl.DateTimeFormat` (also after HTMX swaps). Why this way: no cookie, no account, nothing for the server to know,
