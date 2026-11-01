@@ -284,7 +284,7 @@ from iteration 1** (combat role, time on target, Elo), so pages needed no reproc
   are different skills.
 - **Ground kills keep every class but fences**, including static objects (storage stacks, parked vehicles: most server vehicles are static for
   performance). Each class gets its own score value. The kill breakdown by class is shown. A destroyed **fence** is no ground kill, assist or
-  score (maintainer 2026-10-31: 13% of the local "kills" were fences); the timeline still shows it, as destroyed. It does stay a friendly kill.
+  score (maintainer 2026-10-31: 13% of the local "kills" were fences); the timeline still shows it, as destroyed. A fence of your own side is no friendly kill, hit or damage either (maintainer 2026-11-01).
 - **Combat role per sortie** `[DECIDED]` (OQ-27): by loadout. A sortie carrying bombs, rockets or napalm is an **attack** sortie; guns only
   (drop tanks allowed) is **air superiority**; the IL-10 is always attack. Several types fly both roles (F-51D, F-80C, F-84E, sometimes
   MiG-15bis and F-86A-5), so a fixed role per aircraft type would be wrong.

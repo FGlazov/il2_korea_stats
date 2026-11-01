@@ -269,7 +269,8 @@ Was the aircraft lost (is_plane_lost)?
     aircraft.
 - **Friendly fire** (FR-ING-23): killer and victim in the same non-zero coalition → `is_friendly`. Not counted as kills or assists; counted as
   friendly kills, plus friendly hits and damage per sortie; timeline entry `friendly_fire`. Friendly kills include own-side AI and static
-  objects (a friendly fence counts), so expect them to look high until the breakdown by class (FR-WEB-21) is on the page. Friendly hits and
+  objects, so expect them to look high until the breakdown by class (FR-WEB-21) is on the page. Fences are left out of the friendly kills,
+  hits and damage (since 0.5.3); the sortie page shows their stored `friendly_fire` rows as "Fence destroyed", also on old timelines. Friendly hits and
   damage stop at the shooter's sortie end and exclude the sortie's own aircraft and crew.
 
 ## Breakdowns and timeline

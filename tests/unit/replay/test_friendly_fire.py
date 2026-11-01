@@ -125,3 +125,15 @@ def test_timeline_shot_down_counterpart_carries_the_killers_coalition() -> None:
     assert enemy.counterpart is not None
     assert (enemy.counterpart.sortie_index, enemy.counterpart.coalition) == (by_acct(result, 2).index, 1)
     assert enemy.counterpart.coalition != a.coalition
+
+
+def test_a_friendly_fence_is_no_friendly_fire() -> None:
+    sc = _scenario()
+    sc.declare(0, 302, "Fence wire 100m", 601)
+    sc.hit(100, 100, 302)
+    sc.damage(100.1, 100, 302, 1.0)
+    sc.kill(101, 100, 302)
+    sc.end(200, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.friendly_kills, a.friendly_hits, a.friendly_damage) == (0, 0, 0.0)
+    assert [e.detail for e in a.timeline if e.kind == "friendly_fire"] == ["Fence wire 100m"]

@@ -148,15 +148,18 @@ def _friendly_shooter(
 def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[KillResult]) -> dict[int, FriendlyFire]:
     """Friendly kills, hits and damage per player sortie (index -> totals), apart from the normal counters.
 
-    Hits and damage count up to the shooter's end tick like `breakdowns` does for hits and damage dealt."""
+    Hits and damage count up to the shooter's end tick like `breakdowns` does for hits and damage dealt. A fence is no
+    friendly fire, like it is no ground kill."""
     ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
     n_kills = {i: 0 for i in ends}
     n_hits = {i: 0 for i in ends}
     damage = {i: 0.0 for i in ends}
     for k in kills:
-        if k.is_friendly and k.credit == "kill" and k.killer_sortie_index in n_kills:
+        if k.is_friendly and k.credit == "kill" and not k.victim_is_fence and k.killer_sortie_index in n_kills:
             n_kills[k.killer_sortie_index] += 1
     for obj in facts.objects:
+        if obj.info.is_fence:
+            continue
         target = party_of(obj)
         for record in obj.damage_log:
             shooter = _friendly_shooter(record.attacker, target, record.tick, ends)

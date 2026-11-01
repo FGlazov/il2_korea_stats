@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.3 (2026-11-01)
+
+### Changed
+
+- **Fences of your own side are no longer friendly fire:** destroying one gives no friendly kill and no score penalty, and hits
+  and damage on it are not counted as friendly either. The timeline shows it as "Fence destroyed".
+- Run `il2ks reprocess --all` once after the upgrade to apply this to the missions you already have (it rebuilds the aggregates
+  too, and needs your archived logs). Coming from 0.5.1 or older, this one run covers 0.5.2 as well.
+
 ## 0.5.2 (2026-11-01)
 
 ### Added

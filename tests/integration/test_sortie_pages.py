@@ -398,6 +398,17 @@ def test_fences_show_as_destroyed_and_apart_from_the_ground_kills(client: Client
     assert "ground targets" not in html
 
 
+def test_a_friendly_fence_shows_as_destroyed_and_not_as_friendly_fire(client: Client) -> None:
+    fence = TimelineEntry(1100, "friendly_fire", "Fence wire 5m")
+    row = replace(sortie(0, 1), timeline=(TimelineEntry(1000, "spawn", "parking", Pos(1, 2, 3)), fence))
+    save(mission((row,), extra_types=frozenset({"Fence wire 5m"})))
+
+    html = detail(client, pk_of(1))
+
+    assert "Fence destroyed" in html
+    assert "Friendly fire" not in html
+
+
 def test_consecutive_ground_kills_fold_into_one_row(client: Client) -> None:
     save(mission((long_timeline(ground_kills=300, singles=0),), extra_types=frozenset({"GAZ_63"})))
     pk = pk_of(1)

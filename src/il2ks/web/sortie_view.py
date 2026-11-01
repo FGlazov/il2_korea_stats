@@ -659,7 +659,8 @@ def _ordnance_label(key: str, english: str) -> str:
 class TimelineRow:
     """One line of the timeline; a run of ground kills or of fences is one row with `children` (rendered folded).
 
-    kind: the stored kind ('kill', 'takeoff', ...), or 'fence' for a stored kill of a fence, which is no ground kill;
+    kind: the stored kind ('kill', 'takeoff', ...), or 'fence' for a stored kill of a fence, which is no ground or
+    friendly kill;
     tone: "good", "bad", "warn" or ''; clock: time since spawn;
     at: when it happened (viewer's time zone); place: tooltip with the position; altitude / altitude_title: the altitude
     column (`altitude()`); text: detail sentence ('' when none);
@@ -735,7 +736,7 @@ def _timeline_row(sortie: PlayerSortie, entry: Json, lookup: Lookup) -> Timeline
     who = lookup.counterpart(entry.get("counterpart"))
     if kind in ("kill", "assist", "friendly_fire") and detail and (who is None or who.kind == "ai"):
         who = lookup.who(None, detail)  # an AI or ground victim (a friendly victim has no counterpart)
-        if kind == "kill" and is_fence(detail):
+        if kind in ("kill", "friendly_fire") and is_fence(detail):
             kind, icon, label = "fence", EVENT_ICONS["destroyed"], str(_("Fence destroyed"))
         elif kind == "kill" and not _is_air_object(lookup, detail):
             icon, label = "event/kill-ground", str(_("Ground kill"))
