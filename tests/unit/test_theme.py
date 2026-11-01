@@ -73,6 +73,20 @@ def test_every_colour_in_the_css_is_a_token() -> None:
     assert not offenders, f"colours outside the :root tokens (add a token and use var()): {offenders}"
 
 
+def test_a_tier_colour_is_not_overruled_by_a_default_on_the_same_element() -> None:
+    """Doc 17: a badge and its rarity ring take the tier colour. `.medal--gold` has the specificity of any other class
+    on its element, so a `--medal` default written after the tier rules wins, and the badge turns grey (the home page's
+    "Recently earned" did in 0.5.3)."""
+    css = re.sub(r"/\*.*?\*/", "", SITE_CSS, flags=re.DOTALL)
+    last_tier_rule = css.index(".medal--platinum")
+    set_later = {m.group(1) for m in re.finditer(r"\.([\w-]+)\s*\{[^{}]*--medal:", css) if m.start() > last_tier_rule}
+    beside_a_tier: set[str] = set()
+    for template in (CSS_DIR.parents[1] / "templates").rglob("*.html"):
+        for classes in re.findall(r'class="([^"]*\bmedal--[^"]*)"', template.read_text(encoding="utf-8")):
+            beside_a_tier |= set(re.sub(r"\{[{%].*?[%}]\}", " ", classes).split())
+    assert not set_later & beside_a_tier, "a --medal default after the tier rules overrules them on the same element"
+
+
 # `:root` variables that hold a colour but are mixed from tokens (no colour literal of their own): the admin changes
 # them through their base token.
 DERIVED_COLOURS = {"--il2-shadow-color", "--il2-band-hover", "--il2-band-border"}

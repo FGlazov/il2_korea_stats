@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.4 (2026-11-01)
+
+### Fixed
+
+- **Medals in "Recently earned" on the home page have their tier colours again:** bronze, silver, gold and platinum badges, and the
+  rings around rare tiers, showed in grey there. Nothing to run after the upgrade.
+
+### Templates changed (check your custom/ overrides)
+
+- `site.css`: v6.0 -> v6.1. An override keeps working, but stays grey until you delete the `--medal` line under `.feed__item`.
+
 ## 0.5.3 (2026-11-01)
 
 ### Changed

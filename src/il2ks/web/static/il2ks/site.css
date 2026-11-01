@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v6.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v6.1 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -773,7 +773,6 @@ a.ribbon:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
 .feed > li { list-style: none; }
 .feed__item {
-  --medal: var(--il2-border-strong);
   display: flex; align-items: center; gap: 0.7rem; min-width: 0; padding: 0.4rem 0.7rem 0.4rem 0.4rem;
   background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius);
 }

@@ -76,6 +76,26 @@ def test_the_achievement_overview_leads_to_the_holders_of_a_tier(page: Page, wor
     expect_heading(page, name, level=1)
 
 
+def test_a_medal_in_the_home_feed_has_the_colour_of_its_tier(page: Page) -> None:
+    """Doc 17: "Recently earned" tints a badge like every other medal, not in the strip's grey. Compared with an element
+    painted in the tier's token, so the test follows the token and the colour scheme."""
+    page.goto("/")
+    entries = main_region(page).locator(".feed__item:has(.medal__badge)")
+    assert entries.count() >= 1
+    for entry in entries.all():
+        painted, token = entry.evaluate(
+            """item => {
+                const tier = [...item.classList].find(c => c.startsWith('medal--')).slice('medal--'.length);
+                const probe = item.appendChild(document.createElement('span'));
+                probe.style.color = `var(--il2-medal-${tier})`;
+                const colours = [item.querySelector('.medal__badge'), probe].map(el => getComputedStyle(el).color);
+                probe.remove();
+                return colours;
+            }"""
+        )
+        assert painted == token
+
+
 # --- 5. several optional columns, sorted, paged -----------------------------------------------------------------------
 
 

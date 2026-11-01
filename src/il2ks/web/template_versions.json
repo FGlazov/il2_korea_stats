@@ -204,8 +204,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "6.0",
-      "sha256": "3d2c1790609e0198163f23da98078f43a989297e60a40fe2f47274e4de040075",
+      "version": "6.1",
+      "sha256": "bfb44010fafe9ddab0935bde4295376d81c636d872c127be52b609e897425a27",
       "contract": {
         "defines": [
           "--icon",
