@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/players.css v2.2 - copy this line along when you override */
+/* il2ks-template: static/il2ks/players.css v4.0 - copy this line along when you override */
 /* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
 
 /* Search */
@@ -29,14 +29,21 @@
 
 /* Hall of shame */
 .shame > h2 { margin-top: 2.2rem; }
-.shame__tiles { align-items: stretch; }
+/* Four tiles: 2 x 2 on narrow screens, one row of four from 900px; never 3 + 1. */
+.shame__tiles { align-items: stretch; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 1rem; }
+@media (min-width: 900px) {
+  .shame__tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.shame .stat-tile__label, .shame .stat-tile__sub, .shame .stat-tile__value { overflow-wrap: anywhere; }
 .shame .stat-tile { border-style: dashed; }
 .shame .stat-tile__value { color: var(--il2-primary); }
-.shame__quip { display: flex; align-items: center; margin: 0; font-style: italic; color: var(--il2-muted); grid-column: span 2; }
+.shame__quip { margin: 0 0 1.5rem; font-style: italic; color: var(--il2-muted); }
 
 /* Tables with an aircraft icon */
 .aircraft-table__icon { width: 1.6em; height: 1.6em; margin-inline-end: 0.35rem; vertical-align: -0.45em; color: var(--il2-muted); }
 .aircraft-table__name { font-weight: 500; white-space: nowrap; }
+.aircraft-table__identity { display: inline-flex; align-items: center; gap: 0.6rem; }
+.aircraft-table__identity .aircraft-table__icon { margin-inline-end: 0; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
@@ -84,10 +91,9 @@
 
 @media (max-width: 700px) {
   .ground-table__bar { display: none; }
-  .shame__quip { grid-column: auto; }
 }
 
-.stat-mark-note { margin: -0.25rem 0 1rem; color: var(--il2-muted); font-size: 0.8rem; }
+.stat-mark-note { margin: 0.5rem 0 1rem; color: var(--il2-muted); font-size: 0.8rem; }
 
 /* Part tiles: as many as fit, none wider than 17rem (two tiles must not stretch over the whole page). */
 .profile-tiles--part { grid-template-columns: repeat(auto-fit, minmax(10.5rem, 17rem)); }

@@ -13,12 +13,12 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import URLPattern, URLResolver, path, reverse
 from django.utils import timezone
-from django.utils.translation import get_language
+from django.utils.translation import get_language, ngettext
 from django.utils.translation import gettext as _
 
 from il2ks.core.ratings.score import DEFAULT_SCORE_RULES, MAX_FLIGHT_POINTS_PER_HOUR
 from il2ks.db.models import Mission, SiteSettings
-from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
+from il2ks.db.reprocess_requests import AlreadyPendingError, archived_missions_in_span, request_reprocess
 from il2ks.db.site import bump_data_version, get_site_settings
 from il2ks.ingest.flight_score import flight_score_pending, wanted_flight_score
 from il2ks.ingest.rule_store import pending_fields, save_overrides
@@ -30,6 +30,7 @@ from il2ks.web import admin_rules, quips
 from il2ks.web import admin_score as score_forms
 from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig
 from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
+from il2ks.web.admin_reprocess import ReprocessSpanForm
 from il2ks.web.ingest_status import build_overview
 from il2ks.web.quips import QuipConfig
 
@@ -63,6 +64,7 @@ class Il2ksAdminSite(admin.AdminSite):
             path("rules/", self.admin_view(self.rules_view), name="rules"),
             path("leaderboards/", self.admin_view(self.leaderboards_view), name="leaderboards"),
             path("ingestion/reprocess/", self.admin_view(self.reprocess_all_view), name="reprocess-all"),
+            path("ingestion/reprocess/span/", self.admin_view(self.reprocess_span_view), name="reprocess-span"),
             path("ingestion/wipe/", self.admin_view(self.wipe_view), name="wipe-reprocess"),
         ]
         return [*extra, *super().get_urls()]
@@ -104,6 +106,44 @@ class Il2ksAdminSite(admin.AdminSite):
             "status_url": status_url,
         }
         return TemplateResponse(request, "admin/il2ks_reprocess_confirm.html", context)
+
+    def reprocess_span_view(self, request: HttpRequest) -> HttpResponse:
+        """The span (GET), the number of missions in it (POST), the request itself (POST with `confirmed`). The same
+        permission as "Reprocess all missions"; nothing runs here either."""
+        if not request.user.has_perm("il2ks_db.add_reprocessrequest"):
+            raise PermissionDenied
+        status_url = reverse(f"{self.name}:ingest-status")
+        if not build_overview(timezone.now()).can_request_reprocess:
+            messages.warning(request, _("A reprocess request is already waiting or running."))
+            return HttpResponseRedirect(status_url)
+        form = ReprocessSpanForm(request.POST if request.method == "POST" else None)
+        missions = 0
+        if form.is_valid():
+            since, until = form.span()
+            missions = archived_missions_in_span(since, until)
+            if missions == 0:
+                form.add_error(None, _("No archived mission started in this span."))
+            elif "confirmed" in request.POST:
+                try:
+                    request_reprocess(request.user.get_username(), timezone.now(), since=since, until=until)
+                except AlreadyPendingError:
+                    messages.warning(request, _("A reprocess request is already waiting."))
+                else:
+                    text = ngettext(
+                        "Reprocessing of %(n)d mission is requested. It starts at the next watch tick.",
+                        "Reprocessing of %(n)d missions is requested. It starts at the next watch tick.",
+                        missions,
+                    )
+                    messages.success(request, text % {"n": missions})
+                return HttpResponseRedirect(status_url)
+        context = {
+            **self.each_context(request),
+            "title": _("Reprocess a time span"),
+            "form": form,
+            "missions": missions,
+            "status_url": status_url,
+        }
+        return TemplateResponse(request, "admin/il2ks_reprocess_span.html", context)
 
     def wipe_view(self, request: HttpRequest) -> HttpResponse:
         """ "Delete all data and reprocess": the confirmation page (GET) and the request (POST, with the typed word).

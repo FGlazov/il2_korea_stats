@@ -137,3 +137,34 @@ def test_a_friendly_fence_is_no_friendly_fire() -> None:
     a = by_acct(sc.result(), 1)
     assert (a.friendly_kills, a.friendly_hits, a.friendly_damage) == (0, 0, 0.0)
     assert [e.detail for e in a.timeline if e.kind == "friendly_fire"] == ["Fence wire 100m"]
+
+
+def test_friendly_kills_are_split_by_what_the_victim_was() -> None:
+    sc = _scenario()
+    sc.declare(0, 402, "GAZ_63", 601)  # an own-side truck
+    sc.declare(0, 403, "M46 Patton", 601)
+    sc.declare(0, 302, "Fence wire 100m", 601)
+    for t, victim in ((100, 301), (110, 402), (120, 403), (130, 302)):
+        sc.damage(t, 100, victim, 1.0)
+        sc.kill(t + 1, 100, victim)
+    sc.end(200, 100, 101)
+    a = by_acct(sc.result(), 1)
+    assert (a.friendly_kills_air, a.friendly_kills_ground) == (1, 2)  # the fence counts in neither
+    assert a.friendly_kills == a.friendly_kills_air + a.friendly_kills_ground == 3
+    assert (a.kills_air, a.kills_ground) == (0, 0)
+
+
+def test_an_assist_on_a_friendly_counts_in_neither_part() -> None:
+    sc = _scenario()
+    sc.declare(0, 402, "GAZ_63", 601)
+    sc.fly(500, 501, 3)  # C: same side as A
+    for victim in (301, 402):
+        sc.damage(100, 100, victim, 0.3)
+        sc.damage(100.5, 500, victim, 0.7)
+        sc.kill(101, 500, victim)
+    sc.end(200, 100, 101)
+    sc.end(200, 500, 501)
+    result = sc.result()
+    a, c = by_acct(result, 1), by_acct(result, 3)
+    assert (a.friendly_kills, a.friendly_kills_air, a.friendly_kills_ground) == (0, 0, 0)
+    assert (c.friendly_kills_air, c.friendly_kills_ground) == (1, 1)

@@ -9,12 +9,13 @@ with a mission count, then done (with how many succeeded, failed or had no archi
 import logging
 import traceback
 from collections.abc import Callable, Sequence
-from datetime import date, datetime
+from datetime import datetime
 from typing import Protocol
 
 from django.db import transaction
 
 from il2ks.config import Config
+from il2ks.core.logparse.files import SpanBound
 from il2ks.db.models import ReprocessRequest, ReprocessStatus
 from il2ks.db.reprocess_requests import pending_request
 from il2ks.ingest.lock import LockBusyError
@@ -37,8 +38,8 @@ class ReprocessFn(Protocol):
         pipeline: Pipeline,
         /,
         *,
-        since: date | None,
-        until: date | None,
+        since: SpanBound | None,
+        until: SpanBound | None,
         on_start: Callable[[int], None],
         on_progress: Callable[[ReprocessSummary], None],
     ) -> ReprocessSummary: ...
@@ -153,8 +154,8 @@ def run_pending_request(
             summary = reprocess_fn(
                 cfg,
                 pipeline_factory(),
-                since=request.since,
-                until=request.until,
+                since=request.span_since,
+                until=request.span_until,
                 on_start=started,
                 on_progress=progress,
             )

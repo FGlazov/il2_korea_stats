@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_ground.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_ground.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_ground.html: the ground-kill breakdown (FR-WEB-4, OQ-33) in a collapsed accordion right under the stat tiles, so a
   total inflated by fences and crates stays honest. Nine categories (they add up to kills_ground) with icon, count and
@@ -20,7 +20,7 @@
           {% endfor %}
         </tbody>
         <tfoot>
-          <tr><td>{% translate "Total" %}</td><td class="num">{{ stats.kills_ground|num }}</td><td class="num">100%</td><td></td></tr>
+          <tr><td>{% translate "Total" %}</td><td class="num">{{ stats.kills_ground|num }}</td><td class="num">{{ 100|percent:100 }}</td><td></td></tr>
           <tr><td>{% translate "of them static objects" %}</td><td class="num">{{ stats.kills_ground_static|num }}</td><td class="num">{{ stats.kills_ground_static|percent:stats.kills_ground }}</td><td></td></tr>
         </tfoot>
       </table>

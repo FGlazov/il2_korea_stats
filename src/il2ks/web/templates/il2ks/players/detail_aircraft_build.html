@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_aircraft_build.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_aircraft_build.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_aircraft_build.html: the extra row under one row of the per-aircraft table (detail_aircraft.html): the favourite
   loadout with its share of the player's sorties in the type (OQ-117: nothing else, no weapon mods or ammo).
@@ -9,7 +9,7 @@
     <td colspan="8">
       <span class="muted">{% translate "Favorite loadout" %}:</span>
       {% if fav.name %}{{ fav.name }}{% else %}<span class="muted">{% blocktranslate with id=fav.payload_id %}Unknown payload (id {{ id }}){% endblocktranslate %}</span>{% endif %}
-      · {{ fav.percent }}%
+      · {{ fav.percent|percent:100 }}
     </td>
   </tr>
   {% endwith %}

@@ -98,6 +98,10 @@ _.clean_header_bg_upload
 _.clean_font_upload
 _.initial  # form field attribute
 links_text  # declared form fields of SiteSettingsForm, listed in the admin fieldsets
+since_date  # declared form field of ReprocessSpanForm, read by name in clean() (web.admin_reprocess)
+since_time  # declared form field of ReprocessSpanForm, read by name in clean() (web.admin_reprocess)
+until_date  # declared form field of ReprocessSpanForm, read by name in clean() (web.admin_reprocess)
+until_time  # declared form field of ReprocessSpanForm, read by name in clean() (web.admin_reprocess)
 logo_upload
 remove_logo
 favicon_upload  # branding pictures (web.branding_images), declared form fields

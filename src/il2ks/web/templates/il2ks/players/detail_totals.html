@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_totals.html v1.3 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_totals.html v1.4 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_totals.html: the secondary totals, laid out as a grid of small label-over-value cells (4 columns on wide
   screens, 2 on phones; players.css .totals-grid). Context: stats (the player, a tour row, or the role's summed rows).
@@ -13,7 +13,8 @@
   <div><dt>{% translate "Attack sorties" %}</dt><dd>{{ stats.attack_sorties|num }}</dd></div>
   <div><dt>{% translate "Time on target" %}</dt><dd>{{ stats.time_on_target_s|duration }}</dd></div>
   <div><dt>{% translate "Strafed on the ground" %}</dt><dd>{{ stats.strafed_on_ground|num }}</dd></div>
-  <div><dt>{% translate "Friendly kills" %}</dt><dd>{{ stats.friendly_kills|num }}</dd></div>
+  <div><dt>{% translate "Friendly-fire air kills" %}</dt><dd>{{ stats.friendly_kills_air|num }}</dd></div>
+  <div><dt>{% translate "Friendly-fire ground kills" %}</dt><dd>{{ stats.friendly_kills_ground|num }}</dd></div>
   <div><dt>{% translate "Friendly hits" %}</dt><dd>{{ stats.friendly_hits|num }}</dd></div>
   {# Until `il2ks reprocess --all` has counted the sides (0 and 0) the two lines would say "0 · 0": hide them. #}
   {% if stats.sorties_redfor or stats.sorties_blufor %}

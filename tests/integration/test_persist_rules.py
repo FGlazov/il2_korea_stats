@@ -8,8 +8,20 @@ import pytest
 from django.db import IntegrityError, transaction
 
 from il2ks.core.replay.result import AmmoCounts, KillResult, MissionResult
-from il2ks.db.models import Country, GameObject, Kill, Mission, Player, PlayerAircraft, PlayerMission, PlayerSortie
+from il2ks.db.models import (
+    AircraftStats,
+    Country,
+    GameObject,
+    Kill,
+    Mission,
+    Player,
+    PlayerAircraft,
+    PlayerMission,
+    PlayerSortie,
+    PlayerTour,
+)
 from il2ks.ingest import persist
+from il2ks.ingest.aggregates import rebuild_aggregates
 from tests.factories import STARTED_AT, FakeCatalog, account, kill, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
@@ -130,9 +142,9 @@ def test_friendly_fire_flows_into_every_counter_table() -> None:
     save(
         mission(
             (
-                sortie(0, 1, friendly_kills=1, friendly_hits=5, friendly_damage=0.75),
+                sortie(0, 1, friendly_kills_air=1, friendly_hits=5, friendly_damage=0.75),
                 sortie(1, 1, aircraft_type="IL-10", friendly_hits=2, friendly_damage=0.25),
-                sortie(2, 2, friendly_kills=2, coalition=2),
+                sortie(2, 2, friendly_kills_ground=2, coalition=2),
                 sortie(3, 3, aircraft_type="Turret_IL10", role="gunner", friendly_hits=40, friendly_damage=9.0),
             )
         )
@@ -148,6 +160,58 @@ def test_friendly_fire_flows_into_every_counter_table() -> None:
     assert (mig.friendly_kills, mig.friendly_hits, mig.friendly_damage) == (1, 5, 0.75)
     assert Mission.objects.get().friendly_kills == 3  # the gunner's numbers feed nothing (FR-WEB-14)
     assert Player.objects.get(account_uuid=account(3)).friendly_hits == 0
+
+
+def test_friendly_kills_and_jet_hunter_reach_every_table() -> None:
+    """The two parts of the friendly kills and the jet kills from a prop: sortie -> PlayerMission, Player, PlayerTour,
+    PlayerAircraft, AircraftStats; the Mission gets the friendly parts only. The total stays air + ground."""
+    save(
+        mission(
+            (
+                sortie(0, 1, friendly_kills_air=1, friendly_kills_ground=2, kills_jet_from_prop=3),
+                sortie(1, 1, friendly_kills_air=2, kills_jet_from_prop=1),
+                sortie(2, 2, aircraft_type="F-86A-5", coalition=2, friendly_kills_ground=4),
+            )
+        )
+    )
+    rebuild_aggregates()
+
+    def parts(row: object) -> tuple[int, int, int, int]:
+        return tuple(
+            getattr(row, f)
+            for f in ("friendly_kills", "friendly_kills_air", "friendly_kills_ground", "kills_jet_from_prop")
+        )
+
+    p1 = Player.objects.get(account_uuid=account(1))
+    assert parts(p1) == (5, 3, 2, 4)
+    assert parts(PlayerMission.objects.get(player=p1)) == (5, 3, 2, 4)
+    assert parts(PlayerTour.objects.get(player=p1)) == (5, 3, 2, 4)
+    assert parts(PlayerAircraft.objects.get(player=p1, aircraft__log_name="MiG-15bis")) == (5, 3, 2, 4)
+    assert parts(AircraftStats.objects.get(aircraft__log_name="MiG-15bis")) == (5, 3, 2, 4)
+    assert parts(AircraftStats.objects.get(aircraft__log_name="F-86A-5")) == (4, 0, 4, 0)
+    m = Mission.objects.get()
+    assert (m.friendly_kills, m.friendly_kills_air, m.friendly_kills_ground) == (9, 3, 6)
+
+
+def test_the_score_penalty_still_uses_the_total_of_friendly_kills() -> None:
+    save(
+        mission(
+            (
+                sortie(0, 1, friendly_kills_air=3),
+                sortie(1, 2, friendly_kills_air=1, friendly_kills_ground=2, coalition=2),
+            )
+        )
+    )
+
+    one, two = (PlayerSortie.objects.get(account_uuid=account(n)) for n in (1, 2))
+    assert one.air_points < 0
+    assert (one.air_points, one.ground_points) == (two.air_points, two.ground_points)
+
+
+def test_the_best_ground_burst_is_stored_on_the_sortie() -> None:
+    save(mission((sortie(0, 1, kills_ground=5, multi_kill_ground=4),)))
+
+    assert PlayerSortie.objects.get().multi_kill_ground == 4
 
 
 # --- object classes ---

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/list.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/list.html v1.1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission list (FR-WEB-1). Context: page_obj (Page of Mission), quiet_tour (a tour is picked and nothing is listed: the empty-tour flavor line replaces the message), missions (the page's rows), sort (whitelisted ?sort=),
   tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), period_options, winner_options, empty_options ((value, label) pairs for the filters),
@@ -30,10 +30,10 @@
             {% sort_th "players" _("Players") numeric=True %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
             <th scope="col" class="num"><span class="sides-head" title="{% translate 'Sorties per side' %}">{% coalition_icon "redfor" %}<span class="sides__sep">/</span>{% coalition_icon "blufor" %}</span></th>
-            {% sort_th "air_kills" _("Air kills") numeric=True %}
-            {% sort_th "ground_kills" _("Ground kills") numeric=True %}
+            {% sort_th "air_kills" _("Air kills") numeric=True hint="kills_air" %}
+            {% sort_th "ground_kills" _("Ground kills") numeric=True hint="kills_ground" %}
             <th scope="col">{% translate "Winner" %}</th>
-            {% for column in columns %}{% sort_th column.key column.label numeric=True hint=column.description %}{% endfor %}
+            {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% endfor %}
           </tr>
         </thead>
         <tbody>{% if quiet_tour %}{% flavor "tour_empty" tour.pk as quiet_line %}{% include "il2ks/missions/_rows.html" with empty_message=quiet_line columns=columns colspan=colspan %}{% else %}{% include "il2ks/missions/_rows.html" with columns=columns colspan=colspan %}{% endif %}</tbody>

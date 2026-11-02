@@ -210,6 +210,8 @@ class SortieResult:
     timeline: tuple[TimelineEntry, ...] = ()
     # Friendly fire, tracked apart from kills_*/assists (same non-zero coalition, never the sortie's own objects)
     friendly_kills: int = 0  # `kill` credits (not assists) on friendly objects, from KillResult.is_friendly
+    friendly_kills_air: int = 0  # the two parts of friendly_kills, by what the victim was
+    friendly_kills_ground: int = 0
     friendly_hits: int = 0  # non-explosion hit lines this sortie put on friendly objects
     friendly_damage: float = 0.0  # sum of the damage this sortie did to friendly objects
     resupplied: bool = False  # FR-ING-24: a landing followed by another takeoff, and `ReplayRules.resupply_allowed`
@@ -247,6 +249,8 @@ class SortieResult:
     rams: int = 0
     first_blood: bool = False
     multi_kill: int = 0
+    multi_kill_ground: int = 0  # the same burst for ground kills
+    kills_jet_from_prop: int = 0  # jets shot down from a propeller aircraft, AI jets included, own aircraft not
     # The server force-ended the sortie at mission end (doc 12, 13): `outcome` then says what state the aircraft was in
     # when the mission ended (`airborne`, `landed`, `ditched`, `not_taken_off`) and the pilot fate is `in_aircraft`.
     ended_by_mission_end: bool = False
@@ -284,6 +288,8 @@ class KillResult:
         False  # on the timeline, but no ground kill, assist or friendly kill (`ObjectInfo.is_fence`)
     )
     victim_class: ObjectClass | None = None  # air victims: the catalog class (bomber, attacker, fighter, ...)
+    victim_is_jet: bool = False
+    victim_account_uuid: str | None = None  # a player's sortie: tells a kill of one's own earlier aircraft
 
 
 @dataclass(frozen=True, slots=True)

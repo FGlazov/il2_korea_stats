@@ -38,8 +38,14 @@ def headers(html: str) -> dict[str, str]:
             ["Elo", "K/L", "Survival", "Attack proficiency", "Air accuracy", "Hits to destroy"],
         ),
         ("/players/?q=&cols=elo_jet,kl,accuracy,assists_air,assists_ground", ["Elo (jet)", "K/L", "Gun accuracy"]),
-        ("/players/?q=&cols=elo_prop,score_air,friendly_kills", ["Elo (prop)", "Air score", "Friendly kills"]),
-        ("/missions/?cols=friendly_kills", ["Friendly kills"]),
+        (
+            "/players/?q=&cols=elo_prop,score_air,friendly_kills_air,friendly_kills_ground",
+            ["Elo (prop)", "Air score", "Friendly-fire air kills", "Friendly-fire ground kills"],
+        ),
+        (
+            "/missions/?cols=friendly_kills_air,friendly_kills_ground",
+            ["Friendly-fire air kills", "Friendly-fire ground kills"],
+        ),
     ],
 )
 def test_non_obvious_headers_carry_a_description(client: Client, path: str, labels: list[str]) -> None:
@@ -74,11 +80,104 @@ def test_every_registered_description_is_plain_text_and_every_optional_column_re
         "planes_lost",
     }
     described |= {"assists", "assists_air", "assists_ground", "accuracy", "accuracy_air", "accuracy_ground"}
-    described |= {"friendly_kills", "damage_taken", "time_on_target"}
+    described |= {"friendly_kills_air", "friendly_kills_ground", "damage_taken", "time_on_target"}
     for registry in registries:
         for column in registry:
             if column.key in described:
                 assert column.description, column.key
+
+
+REGISTRIES = (
+    columns.PLAYER_COLUMNS,
+    columns.MISSION_COLUMNS,
+    columns.AIRCRAFT_COLUMNS,
+    columns.SORTIE_COLUMNS,
+    columns.SITE_SORTIE_COLUMNS,
+    columns.MISSION_SORTIE_COLUMNS,
+)
+OBVIOUS = {"sorties", "mission", "tour"}  # the label says it all, and a header without a description stays plain
+
+
+def test_no_column_shows_its_key_for_a_description() -> None:
+    """Maintainer 2026-11-02: half of the tooltips of a sortie list read `air_points` and the like: a column without a
+    description fell back to its own key."""
+    for registry in REGISTRIES:
+        for column in registry:
+            assert column.description != column.key
+
+
+def test_every_column_describes_itself_unless_the_label_says_it_all() -> None:
+    for registry in REGISTRIES:
+        for column in registry:
+            assert column.description or column.key in OBVIOUS, column.key
+
+
+@pytest.mark.parametrize(
+    ("path", "labels"),
+    [
+        ("/leaderboards/air/", ["Air kills", "Deaths"]),
+        ("/leaderboards/ground/", ["Ground kills"]),
+        ("/leaderboards/ground-hour/", ["Attack ground score"]),
+        ("/leaderboards/play-time/", ["Flight time"]),
+        ("/missions/", ["Air kills", "Ground kills"]),
+    ],
+)
+def test_the_default_headers_explain_the_counts_too(client: Client, path: str, labels: list[str]) -> None:
+    """The audit of 2026-11-02: optional columns had descriptions the same column lacked as a default."""
+    got = headers(client.get(path).content.decode())
+
+    for label in labels:
+        assert got.get(label), f"{path}: the header {label!r} has no description (headers: {sorted(got)})"
+
+
+def test_the_air_board_describes_assists_on_aircraft() -> None:
+    """Its number is air assists alone: the general text says ground objects count too."""
+    client = Client()
+    got = headers(client.get("/leaderboards/air/").content.decode())
+
+    assert got["Assists"] == str(column_hints.HINTS["assists_air"])
+
+
+def test_a_header_is_right_aligned_only_over_numbers() -> None:
+    """ "Tour" holds a title, the one optional mission column that is no number."""
+    tour = next(column for column in columns.MISSION_COLUMNS if column.key == "tour")
+    assert not tour.numeric
+
+    html = Client().get("/missions/?cols=tour").content.decode()
+    header = next(head for head in re.findall(r"<th\b[^>]*>.*?</th>", html, re.S) if ">Tour<" in head)
+    assert 'class="num' not in header
+
+
+def test_the_descriptions_say_what_the_rules_do() -> None:
+    """The audit of 2026-11-02 read every description against doc 13 and the code."""
+    hint = column_hints.HINTS
+    assert "a minute after the last" in str(hint["time_on_target"])
+    assert "jet" in str(hint["elo_games"])
+    assert "jet" in str(hint["elo_aircraft"]).lower()
+    assert "flight-time points" in str(hint["air_points"])
+    assert "ranked" not in str(hint["ground_hour"])  # aircraft tables rank nobody
+    assert "gunners" in str(hint["sorties_per_player"])
+    for key in ("friendly_kills_air", "friendly_kills_ground"):  # lists of many pilots, no "you" to speak to
+        assert "you" not in str(hint[key]).lower().split()
+
+
+def test_the_attack_share_of_an_aircraft_says_it_is_a_share() -> None:
+    share = next(column for column in columns.AIRCRAFT_COLUMNS if column.key == "attack_share")
+
+    assert str(share.label) == "Share of attack sorties"
+    assert str(share.description).startswith("Share of")
+
+
+def test_attack_proficiency_shows_one_decimal_everywhere() -> None:
+    """As on its board and in the optional player column; the aircraft pages showed two."""
+    assert render("{{ 1234|attack_rate:10800 }}") == "411.3"
+    assert render("{{ 1234|attack_rate:0 }}") == render("{{ 1234|per_hour:0 }}")
+
+
+def test_the_default_columns_of_the_sortie_lists_are_described() -> None:
+    """The hints the templates name: a key that is not registered would show as the text."""
+    for key in ("outcome", "pilot_fate", "kills_air", "kills_ground", "flight_time"):
+        assert key in column_hints.HINTS
 
 
 def render(source: str) -> str:

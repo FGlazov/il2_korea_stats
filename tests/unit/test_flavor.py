@@ -270,54 +270,136 @@ def _limits(metric: str, p90: float, min_sorties: int = 20) -> StatThreshold:
 # 5% of sorties end in a taxi accident / a friendly kill at the 90th percentile.
 MARKS = {
     "taxi_per_sortie": _limits("taxi_per_sortie", 0.05),
-    "friendly_kill_rate": _limits("friendly_kill_rate", 0.05),
+    "friendly_air_rate": _limits("friendly_air_rate", 0.05),
+    "friendly_ground_rate": _limits("friendly_ground_rate", 0.05),
     "botched_per_sortie": _limits("botched_per_sortie", 0.05),
 }
 
+# The sixteen cases (taxi, friendly air, friendly ground, botched landing) and their plain spot.
+CASES = {
+    (False, False, False, False): "shame_clean",
+    (True, False, False, False): "shame_taxi",
+    (False, True, False, False): "shame_friendly",
+    (False, False, True, False): "shame_own_ground",
+    (False, False, False, True): "shame_landing",
+    (True, True, False, False): "shame_both",
+    (True, False, True, False): "shame_taxi_own_ground",
+    (True, False, False, True): "shame_taxi_landing",
+    (False, True, True, False): "shame_friendly_own_ground",
+    (False, True, False, True): "shame_friendly_landing",
+    (False, False, True, True): "shame_own_ground_landing",
+    (True, True, True, False): "shame_both_own_ground",
+    (True, True, False, True): "shame_taxi_friendly_landing",
+    (True, False, True, True): "shame_taxi_own_ground_landing",
+    (False, True, True, True): "shame_friendly_own_ground_landing",
+    (True, True, True, True): "shame_all",
+}
+KINDS = ("taxi_accidents", "friendly_kills_air", "friendly_kills_ground", "botched_landings")
+
+
+def _stats(kinds: tuple[bool, ...], count: int, sorties: int = 50) -> Player:
+    return Player(sorties=sorties, **{k: count if on else 0 for k, on in zip(KINDS, kinds, strict=True)})
+
+
+@pytest.mark.parametrize(("kinds", "spot"), list(CASES.items()))
+def test_every_combination_has_its_spot(kinds: tuple[bool, ...], spot: str) -> None:
+    assert flavor.shame_spot(_stats(kinds, 1), MARKS) == spot  # 2%: under the p90
+    if any(kinds):
+        assert flavor.shame_spot(_stats(kinds, 3), MARKS) == f"{spot}_p90"  # 6%: all above the p90
+
+
+def test_the_sixteen_cases_are_all_covered() -> None:
+    assert len(CASES) == 16
+    assert {k: v for k, v in CASES.items() if any(k)} == dict(flavor.SHAME_SPOTS)
+
+
+def test_every_shame_spot_has_a_label_and_six_quips() -> None:
+    spots = [*flavor.SHAME_SPOTS.values(), "shame_clean"]
+    spots += [f"{s}_p90" for s in flavor.SHAME_SPOTS.values()]
+    assert len(spots) == 31
+    for spot in spots:
+        assert str(flavor.SPOT_DESCRIPTIONS[spot]), spot
+        assert len(flavor.SPOTS[spot]) == 6, spot
+    quips = [str(q) for s in spots for q in flavor.SPOTS[s]]
+    assert len(quips) == len(set(quips))
+
+
+def test_the_labels_say_what_each_spot_means() -> None:
+    label = {s: str(flavor.SPOT_DESCRIPTIONS[s]) for s in flavor.SHAME_SPOTS.values()}
+    for kinds, spot in flavor.SHAME_SPOTS.items():
+        named = (
+            "taxi" in label[spot],
+            "friendly air" in label[spot] or "air and ground" in label[spot],
+            "ground kills" in label[spot],
+            "botched" in label[spot],
+        )
+        assert named == kinds, spot
+
 
 @pytest.mark.parametrize(
-    ("sorties", "taxi", "friendly", "marks", "spot"),
+    ("sorties", "taxi", "air", "ground", "marks", "spot"),
     [
-        (50, 0, 0, MARKS, "shame_clean"),
-        (50, 1, 0, MARKS, "shame_taxi"),  # 2%: not above the p90
-        (50, 0, 1, MARKS, "shame_friendly"),
-        (50, 1, 1, MARKS, "shame_both"),
-        (50, 3, 0, MARKS, "shame_taxi_p90"),  # 6%
-        (50, 0, 3, MARKS, "shame_friendly_p90"),
-        (50, 3, 3, MARKS, "shame_both_p90"),
-        (50, 3, 1, MARKS, "shame_taxi_p90"),  # only the elevated kind is named
-        (50, 1, 3, MARKS, "shame_friendly_p90"),
-        (50, 0, 0, {}, "shame_clean"),
-        (50, 5, 5, {}, "shame_both"),  # no thresholds (too few pilots): no p90 spot
-        (10, 5, 5, MARKS, "shame_both"),  # under the minimum sorties: never "top"
-        (50, 0, 0, {"taxi_per_sortie": _limits("taxi_per_sortie", 0.0)}, "shame_clean"),  # zero is not above a p90 of 0
-        (50, 3, 0, {"taxi_per_sortie": _limits("taxi_per_sortie", 0.05, min_sorties=60)}, "shame_taxi"),
+        (50, 0, 0, 0, MARKS, "shame_clean"),
+        (50, 1, 0, 0, MARKS, "shame_taxi"),  # 2%: not above the p90
+        (50, 0, 1, 0, MARKS, "shame_friendly"),
+        (50, 0, 0, 1, MARKS, "shame_own_ground"),
+        (50, 1, 1, 0, MARKS, "shame_both"),
+        (50, 3, 0, 0, MARKS, "shame_taxi_p90"),  # 6%
+        (50, 0, 3, 0, MARKS, "shame_friendly_p90"),
+        (50, 0, 0, 3, MARKS, "shame_own_ground_p90"),
+        (50, 3, 3, 0, MARKS, "shame_both_p90"),
+        (50, 3, 1, 0, MARKS, "shame_taxi_p90"),  # only the elevated kind is named
+        (50, 1, 3, 0, MARKS, "shame_friendly_p90"),
+        (50, 1, 1, 3, MARKS, "shame_own_ground_p90"),
+        (50, 1, 3, 3, MARKS, "shame_friendly_own_ground_p90"),
+        (50, 0, 0, 0, {}, "shame_clean"),
+        (50, 5, 5, 0, {}, "shame_both"),  # no thresholds (too few pilots): no p90 spot
+        (50, 0, 0, 5, {}, "shame_own_ground"),
+        (10, 5, 5, 5, MARKS, "shame_both_own_ground"),  # under the minimum sorties: never "top"
+        (
+            50,
+            0,
+            0,
+            0,
+            {"taxi_per_sortie": _limits("taxi_per_sortie", 0.0)},
+            "shame_clean",
+        ),  # zero is not above a p90 of 0
+        (50, 3, 0, 0, {"taxi_per_sortie": _limits("taxi_per_sortie", 0.05, min_sorties=60)}, "shame_taxi"),
     ],
 )
-def test_shame_spot(sorties: int, taxi: int, friendly: int, marks: dict[str, StatThreshold], spot: str) -> None:
-    stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_kills=friendly)
+def test_shame_spot(sorties: int, taxi: int, air: int, ground: int, marks: dict[str, StatThreshold], spot: str) -> None:
+    stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_kills_air=air, friendly_kills_ground=ground)
     assert flavor.shame_spot(stats, marks) == spot
     assert spot in flavor.SPOTS
 
 
 @pytest.mark.parametrize(
-    ("taxi", "friendly", "botched", "spot"),
+    ("taxi", "air", "ground", "botched", "spot"),
     [
-        (0, 0, 1, "shame_landing"),
-        (1, 0, 1, "shame_taxi_landing"),
-        (0, 1, 1, "shame_friendly_landing"),
-        (1, 1, 1, "shame_all"),
-        (0, 0, 3, "shame_landing_p90"),
-        (3, 0, 3, "shame_taxi_landing_p90"),
-        (0, 3, 3, "shame_friendly_landing_p90"),
-        (3, 3, 3, "shame_all_p90"),
-        (1, 1, 3, "shame_landing_p90"),  # only the elevated kind is named
-        (3, 1, 1, "shame_taxi_p90"),
-        (3, 3, 1, "shame_both_p90"),
+        (0, 0, 0, 1, "shame_landing"),
+        (1, 0, 0, 1, "shame_taxi_landing"),
+        (0, 1, 0, 1, "shame_friendly_landing"),
+        (0, 0, 1, 1, "shame_own_ground_landing"),
+        (1, 1, 1, 1, "shame_all"),
+        (0, 0, 0, 3, "shame_landing_p90"),
+        (3, 0, 0, 3, "shame_taxi_landing_p90"),
+        (0, 3, 0, 3, "shame_friendly_landing_p90"),
+        (0, 0, 3, 3, "shame_own_ground_landing_p90"),
+        (3, 3, 3, 3, "shame_all_p90"),
+        (1, 1, 1, 3, "shame_landing_p90"),  # only the elevated kind is named
+        (3, 1, 1, 1, "shame_taxi_p90"),
+        (3, 3, 1, 1, "shame_both_p90"),
+        (1, 3, 3, 1, "shame_friendly_own_ground_p90"),
     ],
 )
-def test_shame_spot_with_botched_landings(taxi: int, friendly: int, botched: int, spot: str) -> None:
-    stats = Player(sorties=50, taxi_accidents=taxi, friendly_kills=friendly, botched_landings=botched)
+def test_shame_spot_with_botched_landings(taxi: int, air: int, ground: int, botched: int, spot: str) -> None:
+    stats = Player(
+        sorties=50,
+        taxi_accidents=taxi,
+        friendly_kills_air=air,
+        friendly_kills_ground=ground,
+        botched_landings=botched,
+    )
     assert flavor.shame_spot(stats, MARKS) == spot
 
 
@@ -329,7 +411,7 @@ def test_every_shame_case_has_its_spot_and_its_p90_variant() -> None:
 
 def test_shame_spot_on_a_tour_row() -> None:
     """The profile shows a PlayerTour with `?tour=`: the same counters, so the same rules."""
-    stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_kills=0)
+    stats = PlayerTour(sorties=50, taxi_accidents=3, friendly_kills_air=0, friendly_kills_ground=0)
     assert flavor.shame_spot(stats, MARKS) == "shame_taxi_p90"
 
 

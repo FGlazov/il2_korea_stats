@@ -46,25 +46,35 @@ def _options(values: Sequence[str], labels: Mapping[str, display.BadgeSpec]) -> 
     return [(value, display.badge_spec(labels, value)[0]) for value in values]
 
 
+def _incident_options() -> list[tuple[str, str]]:
+    """The `?incident=` choices (value, label), in the order of `reads.INCIDENT_FLAGS`."""
+    labels = {
+        "taxi": _("Taxi/takeoff accident"),
+        "botched": _("Botched landing"),
+        "strafed": _("Strafed on the ground"),
+    }
+    return [(value, labels[value]) for value in reads.INCIDENT_FLAGS]
+
+
 def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
     """`/players/<pk>/sorties/`: newest first, sortable, filterable by aircraft, outcome, role and combat role.
 
     Query parameters: `tour` (Tour pk, TD-26; unknown = all time), `aircraft` (GameObject pk of one of the player's
-    aircraft), `outcome`, `role`, `combat_role`,
+    aircraft), `outcome`, `role`, `combat_role`, `incident` (`taxi`, `botched`, `strafed`),
     `sort` (one of `reads.SORT_FIELDS`, '-' prefix = descending), `page`. Unknown values are ignored.
 
     Context: player, tours, tour (None = all time), quiet_tour, page_obj (PlayerSortie rows with mission
     and aircraft), sort (resolved),
     aircraft_options,
-    outcome_options, role_options, combat_role_options ((value, label) pairs), crumbs, page_title, optional_columns
-    (every column a visitor can add) and columns (the ones `?cols=` chose; all sortable)."""
+    outcome_options, role_options, combat_role_options, incident_options ((value, label) pairs), crumbs, page_title,
+    optional_columns (every column a visitor can add) and columns (the ones `?cols=` chose; all sortable)."""
     player = get_object_or_404(Player.objects.visible(), pk=pk)
     aircraft = reads.player_aircraft(player)
     language = get_language() or "en"
     choice = tour_choice_from(request.GET)
     filters = replace(
         reads.parse_filters(
-            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "role", "combat_role")},
+            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "role", "combat_role", "incident")},
             {row.aircraft_id for row in aircraft},
         ),
         tour=choice.selected,
@@ -95,6 +105,7 @@ def player_sorties(request: HttpRequest, pk: int) -> HttpResponse:
             "outcome_options": _options(Outcome.values, display.OUTCOMES),
             "role_options": [(Role.PILOT.value, _("Pilot")), (Role.GUNNER.value, _("Gunner"))],
             "combat_role_options": _options(CombatRole.values, display.ROLES),
+            "incident_options": _incident_options(),
             "crumbs": crumbs,
             "page_title": _("%(name)s: sorties") % {"name": player.current_name},
         },
@@ -105,21 +116,23 @@ def all_sorties(request: HttpRequest) -> HttpResponse:
     """`/sorties/`: every counted sortie of the site, newest first (maintainer request 2026-10-05, FR-WEB-29).
 
     Query parameters: `tour` (TD-26: none = the current tour, `all` = all time), `q` (pilot name contains), `aircraft`
-    (GameObject pk of a playable aircraft), `combat_role`, `outcome`, `seat` (none = pilot sorties, like the statistics;
+    (GameObject pk of a playable aircraft), `combat_role`, `outcome`, `incident` (`taxi`,
+    `botched`, `strafed`), `seat` (none = pilot sorties, like the statistics;
     `gunner`; `any`), `sort` (one of `reads.SORT_FIELDS`, '-' prefix = descending), `cols`
     (`columns.SITE_SORTIE_COLUMNS`),
     `page`. Unknown values are ignored. Hidden players and hidden missions are left out (their sortie page is a 404).
 
     Context: tours, tour (None = all time), quiet_tour, page_obj (PlayerSortie rows with player, mission and
     aircraft), sort, seat (the parsed seat value for the filter), aircraft_options, outcome_options, seat_options,
-    combat_role_options, optional_columns, columns, colspan, page_title.
+    combat_role_options, incident_options, optional_columns, columns, colspan, page_title.
     Reads: site context (2), tours, aircraft choices, count, page."""
     planes = aircraft_reads.aircraft_options()
     language = get_language() or "en"
     choice = tour_choice_from(request.GET)
     filters = replace(
         reads.parse_filters(
-            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "combat_role")}, {p.pk for p in planes}
+            {name: request.GET.get(name, "") for name in ("aircraft", "outcome", "combat_role", "incident")},
+            {p.pk for p in planes},
         ),
         tour=choice.selected,
         role=reads.parse_seat(request.GET.get("seat", "")),
@@ -143,6 +156,7 @@ def all_sorties(request: HttpRequest) -> HttpResponse:
             "outcome_options": _options(Outcome.values, display.OUTCOMES),
             "seat_options": [(Role.GUNNER.value, _("Gunner")), (reads.SEAT_ANY, _("Pilot or gunner"))],
             "combat_role_options": _options(CombatRole.values, display.ROLES),
+            "incident_options": _incident_options(),
             "page_title": _("Sorties"),
         },
     )
@@ -178,6 +192,40 @@ def ram_note(request: HttpRequest) -> str:
     ) % {"seconds": _plain(toggles.ram_window_s), "meters": _plain(toggles.ram_distance_m)}
 
 
+def penalty_notes(request: HttpRequest, sortie: PlayerSortie) -> list[tuple[str, str]]:
+    """(title, text) of each flat penalty of a pilot sortie, with the points in force and the score they came off
+    (`core.ratings.score.flat_penalty`: the score of the sortie's role). No query: the site row is already read."""
+    if sortie.role != Role.PILOT:
+        return []
+    score = effective_rules(base_rules(), site_row(request).rule_settings_applied).score
+    ground = sortie.combat_role == CombatRole.ATTACK
+    notes: list[tuple[str, str]] = []
+    if sortie.suspected_early_bailout and score.penalty_early_bailout > 0:
+        text = (
+            _(
+                "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
+                "kill. This is a guess from the log and can be wrong, for example after an engine failure. "
+                "Ground score: \u2212%(points)s."
+            )
+            if ground
+            else _(
+                "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
+                "kill. This is a guess from the log and can be wrong, for example after an engine failure. Air score: "
+                "\u2212%(points)s."
+            )
+        )
+        notes.append((_("Early bailout penalty"), text % {"points": _plain(score.penalty_early_bailout)}))
+    penalised = min(sortie.friendly_kills, score.penalty_friendly_kill_cap)
+    if penalised > 0 and score.penalty_friendly_kill > 0:
+        text = (
+            _("Friendly kills cost points. Ground score: \u2212%(points)s.")
+            if ground
+            else _("Friendly kills cost points. Air score: \u2212%(points)s.")
+        )
+        notes.append((_("Friendly fire penalty"), text % {"points": _plain(score.penalty_friendly_kill * penalised)}))
+    return notes
+
+
 def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """`/sorties/<pk>/`: the core page. Context: sortie (with player, mission, aircraft), detail
     (`il2ks.web.sortie_view.Detail`), damage_page (20 rows a page, `?page_damage=`; OQ-96; the timeline is
@@ -186,6 +234,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
     `sortie_marks`: Top 1% / 5% / 10% / 25% badges of the sortie's air and ground kills (FR-WEB-22), read only for a
     pilot sortie with kills (one more query, the stored sortie populations of its tour and of all time).
     `damage_open`: the damage section is collapsed, unless a damage page was asked for.
+    `penalty_notes`: why the sortie lost points (`penalty_notes`).
 
     Reads: sortie + joins (1), kills made (1), kills suffered (1), counterpart sorties (1), game objects (1),
     sortie populations (1, only when the sortie has kills)."""
@@ -220,6 +269,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "damage_open": DAMAGE_PARAM in request.GET,
             "sortie_marks": marks,
             "ram_note": ram_note(request) if detail.has_ram else "",
+            "penalty_notes": penalty_notes(request, sortie),
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (

@@ -143,7 +143,8 @@ def sortie(
     payload_id: int = 1,
     weapon_mods: int = 0,
     country: int | None = None,
-    friendly_kills: int = 0,
+    friendly_kills_air: int = 0,
+    friendly_kills_ground: int = 0,
     friendly_hits: int = 0,
     friendly_damage: float = 0.0,
     resupplied: bool = False,
@@ -162,6 +163,8 @@ def sortie(
     rams: int = 0,
     first_blood: bool = False,
     multi_kill: int = 0,
+    multi_kill_ground: int = 0,
+    kills_jet_from_prop: int = 0,
     underdog: bool = False,
     ammo_loaded: AmmoCounts = AmmoCounts(bullets=400),  # noqa: B008 - frozen dataclass
     ammo_left: AmmoCounts | None = AmmoCounts(bullets=200),  # noqa: B008
@@ -240,7 +243,9 @@ def sortie(
         rounds_fired=rounds_fired if role == "pilot" else None,
         gun_hits_air=gun_hits_air,
         gun_hits_ground=gun_hits_ground,
-        friendly_kills=friendly_kills,
+        friendly_kills=friendly_kills_air + friendly_kills_ground,
+        friendly_kills_air=friendly_kills_air,
+        friendly_kills_ground=friendly_kills_ground,
         friendly_hits=friendly_hits,
         friendly_damage=friendly_damage,
         resupplied=resupplied,
@@ -256,6 +261,8 @@ def sortie(
         rams=rams,
         first_blood=first_blood,
         multi_kill=multi_kill,
+        multi_kill_ground=multi_kill_ground,
+        kills_jet_from_prop=kills_jet_from_prop,
         underdog=underdog,
     )
 

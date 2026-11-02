@@ -147,9 +147,21 @@ def per_hour(count: object, seconds: object) -> str:
 
 
 @register.filter
+def attack_rate(score: object, seconds: object) -> str:
+    """{{ s.score_ground_attack|attack_rate:s.time_on_target_s }} -> attack proficiency, 1 decimal as on its board."""
+    return display.per_hour(score, seconds, 1)
+
+
+@register.filter
 def percent(part: object, whole: object) -> str:
     """{{ landed|percent:sorties }} -> '87%', or the dash when `whole` is 0."""
     return display.percent(part, whole)
+
+
+@register.filter
+def incident_share(part: object, whole: object) -> str:
+    """{{ row.taxi_accidents|incident_share:row.sorties }} -> '1.23%': rare, so two decimals; the dash if 0 sorties."""
+    return display.percent(part, whole, 2)
 
 
 @register.filter

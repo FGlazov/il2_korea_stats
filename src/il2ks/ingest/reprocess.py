@@ -4,7 +4,8 @@ Reprocess re-runs missions from their archives (the source of truth): parse + re
 priority, one writer (this process) upserting each mission in place, then a single `rebuild_aggregates()` at the end
 (level 2 and the Elo ratings; the CLI's pipeline defers the ratings until then). Missions are picked from `IngestRun`
 history (the newest run that wrote an archive), so failed missions with an archive can be forced too (`--mission`,
-FR-ING-19). `--since/--until` pick missions by date, e.g. "the last 6 months" after a rule change (FR-ING-9, FR-ING-14).
+FR-ING-19). `--since/--until` pick missions by date and time, e.g. "the last 6 months" after a rule change (FR-ING-9,
+FR-ING-14).
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from concurrent.futures import FIRST_COMPLETED as _FIRST_COMPLETED
 from concurrent.futures import Executor, Future, ProcessPoolExecutor, wait
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 
@@ -25,7 +26,7 @@ from django.db import transaction
 
 from il2ks import __version__
 from il2ks.config import Config
-from il2ks.core.logparse.files import mission_uid_from_name
+from il2ks.core.logparse.files import SpanBound, mission_in_span, mission_uid_from_name
 from il2ks.core.logparse.parser import ParseStats
 from il2ks.core.replay.config import ReplayRules
 from il2ks.core.replay.result import MissionResult
@@ -65,18 +66,8 @@ class ReprocessSummary:
         return text + (f", no archive for {len(self.missing)}: {', '.join(self.missing)}" if self.missing else "")
 
 
-def mission_in_span(mission_uid: str, since: date | None, until: date | None) -> bool:
-    """Is the mission's date within `since..until` (both inclusive, either may be None)?
-
-    The date is the one in the mission UID (`YYYY-MM-DD_HH-MM-SS`), i.e. the server's local time, which is how admins
-    think about "missions since 1 April". It is not `Mission.started_at` (UTC): near midnight the two can differ by a
-    day. ISO dates compare correctly as text, so no parsing is needed."""
-    day = mission_uid[:10]
-    return (since is None or day >= since.isoformat()) and (until is None or day <= until.isoformat())
-
-
 def archived_targets(
-    cfg: Config, mission_uids: Sequence[str] | None, since: date | None = None, until: date | None = None
+    cfg: Config, mission_uids: Sequence[str] | None, since: SpanBound | None = None, until: SpanBound | None = None
 ) -> dict[str, IngestRun]:
     """What to reprocess, per mission UID (all missions, or just the given ones), limited to `since..until`.
 
@@ -117,8 +108,8 @@ def reprocess(
     pipeline: Pipeline,
     mission_uids: Sequence[str] | None = None,
     *,
-    since: date | None = None,
-    until: date | None = None,
+    since: SpanBound | None = None,
+    until: SpanBound | None = None,
     workers: int | None = None,
     work: WorkFn = parse_and_replay,
     executor_factory: Callable[[int], Executor] = default_executor,
@@ -227,13 +218,15 @@ def _process(
     on_start: Callable[[int], None] | None,
     on_progress: Callable[[ReprocessSummary], None] | None,
 ) -> ReprocessSummary:
+    total = len(targets)
+    log.info("reprocessing %d missions", total)
     if on_start is not None:
-        on_start(len(targets))
+        on_start(total)
     n_workers = workers or default_workers()
     window = n_workers * 2  # bound the results waiting in memory for the single writer
     pending: dict[Future[tuple[MissionResult, ParseStats]], IngestRun] = {}
     queue = sorted(targets.values(), key=lambda r: r.mission_uid)
-    batched = is_batch(len(targets)) and pipeline.save_level1 is not None
+    batched = is_batch(total) and pipeline.save_level1 is not None
     if batched:
         set_level2_pending("reprocess")  # cleared by the final rebuild; left behind by a hard kill
     # `with` order: the executor is shut down first, then the rebuild runs
@@ -246,7 +239,7 @@ def _process(
                     _record(
                         cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now, batched
                     )
-                    _progress(on_progress, summary)
+                    _progress(on_progress, summary, prev.mission_uid, total)
                     continue
                 pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
             if not pending:
@@ -260,7 +253,7 @@ def _process(
                     _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now, batched)
                 else:
                     _record(cfg, pipeline, prev, outcome, "", summary, now, batched)
-                _progress(on_progress, summary)
+                _progress(on_progress, summary, prev.mission_uid, total)
     log.info("%s", summary.describe())
     return summary
 
@@ -294,7 +287,11 @@ def _rebuild(run_rebuild: Callable[[], None]) -> None:
         clear_level2_pending()
 
 
-def _progress(on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary) -> None:
+def _progress(
+    on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary, uid: str, total: int
+) -> None:
+    done = len(summary.ok) + len(summary.failed)
+    log.info("%s: %d of %d missions done, %d left", uid, done, total, total - done)
     if on_progress is not None:
         on_progress(summary)
 

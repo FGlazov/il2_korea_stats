@@ -22,7 +22,7 @@ weeks played in a row, shown prominently on the profile). Reviewed by the mainta
 - Incremental == rebuild: both run the same pure function over the same ordered sorties (tested). `rebuild_aggregates` fills the
   tables.
 - Display: see "Display" below. In short: the profile shows the **highest tier of each earned achievement**, medals first and
-  the ribbon rack after them, each linking to the sortie that reached that tier; a per-player list `/players/<pk>/achievements/`
+  the ribbon rack after them, each by tier, best first, then glow, ring, neither, then newest (maintainer 2026-11-02: the share alone put a platinum after a silver, and it is only hover text), each linking to the sortie that reached that tier; a per-player list `/players/<pk>/achievements/`
   (every tier with its date, open tiers dimmed), an overview `/achievements/` (tiers and holder counts), a holders page
   `/achievements/<key>/?tier=N` (visible pilots, newest first), "Earned in this sortie" on the sortie page and "Recently earned"
   on the home page. All of them follow the tour choice (TD-26). Medal icons are placeholder Tabler SVGs in `static/il2ks/img/medal/`
@@ -79,11 +79,11 @@ them).
 | `sortie_kills` | Ace of the Sortie | Most air kills in a single sortie | 2 / 3 / 5 / 7 | 162 / 52 / 5 / 0 |
 | `career_kills` | Sky Hunter | Air kills in total | 1 / 10 / 50 / 250 | 419 / 63 / 4 / 0 |
 | `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** shot down, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
-| `jet_hunter` | Jet Hunter | Jets shot down from a propeller aircraft, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly; tiers `[PROPOSED]` from the local data) | 1 / 3 / 5 / 10 | 86 / 13 / 6 / 1 |
+| `jet_hunter` | Jet Hunter | Jets shot down from a propeller aircraft, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly; tiers `[PROPOSED]` from the local data). Cumulative since 2026-11-02 (OQ-149): the table's tiers are the **Tour Jet Hunter**, the all-time Jet Hunter counts the sum of the tours (`kills_jet_from_prop`, a stored sortie and `PlayerTour` counter) against 5 / 15 / 25 / 50 | 1 / 3 / 5 / 10 | 86 / 13 / 6 / 1 |
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
 | `ground_sortie` | Target-Rich | Most ground kills in a single sortie (static objects count, like the profile's ground kills) | 20 / 50 / 100 / 200 | 271 / 123 / 57 / 13 |
 | `survivor` | Ironman | Sorties survived in a row on the better of the two ironman tracks (air or ground, `core/streaks.py`, doc 13) | 5 / 10 / 25 / 50 | 193 / 40 / 2 / 0 |
-| `damaged_landing` | Limping Home | Sorties with at least one kill in which some landing carried `landing_damage` of 0.5 or more (a repaired landing counts, maintainer 2026-10-05) | 1 / 3 / 10 | 157 / 22 / 1 |
+| `damaged_landing` | Limping Home | Sorties with at least one kill in which some landing carried `landing_damage` of 0.5 or more (a repaired landing counts, maintainer 2026-10-05). A fourth tier since 2026-11-02 (OQ-153), so it has a platinum like the others | 1 / 3 / 5 / 10 | 157 / 23 / 5 / 1 |
 | `regular` | Regular | Longest run of consecutive ISO weeks (Monday to Sunday, UTC) with at least one sortie | 2 / 4 / 8 / 16 weeks | 436 / 114 / 0 / 0 |
 | `frequent_flyer` | Frequent Flyer | Sorties flown (took off) | 10 / 50 / 200 / 1000 | 324 / 56 / 0 / 0 |
 | `flight_hours` | Hours Aloft | Flight hours in total | 1 / 10 / 50 / 200 h | 610 / 103 / 3 / 0 |
@@ -104,6 +104,9 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 | `ground_score` | Ground Pounder | Ground score in total (sum of the sorties' `ground_points`; a penalty can lower the total, the medal never drops) | 100 / 500 / 2000 / 5000 | 156 / 40 / 10 / 1 |
 | `first_blood` | First Blood | Missions in which the pilot made the first credited PvP air kill (by tick) | 1 / 3 / 5 / 10 | 107 / 15 / 1 / 0 |
 | `multi_kill` | Hot Streak | Most air kills within 120 s in one sortie (a double, triple, quad) | 2 / 3 / 4 / 5 | 61 / 4 / 1 / 0 |
+| `multi_kill_ground` | Firestorm | Most ground kills within 120 s in one sortie (statics count, fences and friendly kills do not; maintainer 2026-11-02, OQ-150; tiers `[PROPOSED]` from the local data) | 10 / 25 / 50 / 100 | 346 / 201 / 90 / 32 |
+| `life_kills_ground` | Flak Dodger | `life_kills` on the ground track (doc 13): the ground kills of the attack sorties since the last death or capture in one, the fatal sortie included; a sortie of another role neither adds to it nor ends it (maintainer 2026-11-02, OQ-152; tiers `[PROPOSED]` from the local data) | 100 / 250 / 500 / 1000 | 78 / 23 / 9 / 0 |
+| `attack_rate_peak` | Surgical Strike | The highest attack proficiency reached: ground score of attack sorties per hour on target, the number of the `ground-hour` board, from 10 minutes on target in the tour (`MIN_TIME_ON_TARGET_S`, the board's default; a server's own `[score] min_time_on_target_minutes` does not move it; maintainer 2026-11-02, OQ-151; tiers `[PROPOSED]`) | 300 / 600 / 1000 / 2500 pts/h | 142 / 57 / 15 / 0 |
 | `types_flown` | Type Collector (**ribbon**) | Different aircraft types flown (took off) | 3 / 5 / 8 | 390 / 132 / 9 |
 | `types_with_kills` | Versatile Hunter | Different aircraft types with at least one air kill | 2 / 4 / 6 / 8 | 186 / 34 / 6 / 0 |
 | `landing_streak` | Soft Touch | Landings in a row (outcome `landed`) | 3 / 6 / 10 / 20 | 187 / 54 / 5 / 0 |
@@ -172,7 +175,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
   medals (they are in `kills_air`) but **not** for `strike_hunter`, which reads `Kill` rows between two pilots (AI victims have none).
 - **Rams**: `Contact Sport` counts the air kills credited to a ram of an enemy aircraft (`PlayerSortie.rams`). With `credit_rams` off
   there are none.
-- **Two ironman tracks** (maintainer 2026-10-05, doc 13) `[PROPOSED]` for the achievements: a death or capture in an attack sortie does not end the air life or the air run, and the other way round. `life_kills` follows the air track only; `survivor` is the maximum of the air and the ground track's survived runs; `landing_streak` is unchanged (a landing skill over every sortie, not an ironman run).
+- **Two ironman tracks** (maintainer 2026-10-05, doc 13) `[PROPOSED]` for the achievements: a death or capture in an attack sortie does not end the air life or the air run, and the other way round. `life_kills` follows the air track only, `life_kills_ground` the ground track only; `survivor` is the maximum of the air and the ground track's survived runs; `landing_streak` is unchanged (a landing skill over every sortie, not an ironman run).
 - **Death in the same sortie as the kills**: `life_kills` counts the fatal sortie's kills (a life ends with its last breath);
   `survivor` does not count the fatal sortie (the streak rule).
 - **Re-ingest / reprocess**: rows are recomputed from the sorties, so a medal built on a mission that is reprocessed with fewer
@@ -183,7 +186,7 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 
 ## Decisions (for review)
 
-- **PRODUCT** Names are warm and short ("Charmed Life", "Bomber Hunter", "Limping Home", "Target-Rich"); none demeaning. Tier names
+- **PRODUCT** Names are warm and short ("Charmed Life", "Bomber Hunter", "Limping Home", "Target-Rich"); none demeaning. A ground medal gets a name of its own, not an air medal's with "Ground" in front (maintainer 2026-11-02: that reads as a second-class citizen). Tier names
   Bronze, Silver, Gold, Platinum (three-tier achievements stop at gold).
 - **PRODUCT** Thresholds as in the table; `life_kills` is the maintainer's 5/10/20/50.
 - **PRODUCT** The profile shows only the best tier per achievement, in registry order (not by rarity), after the hall of shame; a
@@ -224,7 +227,7 @@ the current tour, `?tour=all` all time, `{% tour_select %}` on the achievement p
   `damaged_landing`, `type_veteran` and the second set's other medals); the **simple, common** ones are **ribbons** (`career_kills`, `frequent_flyer`, `flight_hours`, `types_flown`,
   `regular`): things that mostly need time. A ribbon is a small bar of CSS stripes (a colour pair from the status tokens, one of four
   patterns per achievement) with one pip per tier reached, tinted in the tier colour, plus the name: no new colour tokens. The
-  profile shows the medals first and the ribbon rack under them; the lists and the overview show medals first, then ribbons.
+  profile shows the medals first and the ribbon rack under them; the lists and the overview show medals first, then a **Ribbons** section with the ribbon bar instead of the medal badge (maintainer 2026-11-02: ribbons read as medals there, and "ribbons should be below all the medals").
   New definitions pick their kind with `kind="medal" | "ribbon"`.
 - **Hall of shame** `[DECIDED]`: a definition with `shame=True` is a tongue-in-cheek entry. It renders as a ribbon inside the hall
   of shame block of the profile, never in the medal row or the ribbon rack, and never in the home feed. The overview and the full
@@ -270,7 +273,7 @@ tour achievements", and "also add tiered achievements for playing in X tours in 
 - **Two names for a cumulative medal** (maintainer 2026-10-05: "rename the tour variants slightly so this isn't so confusing"; a
   pilot held "Tank Buster" in the tour, not all time, with 6 tanks: 5 needed in a tour, 25 all time). `[PROPOSED]` (PRODUCT): the
   career (all-time) medal keeps today's name, the per-tour variant is **"Tour <name>"**: Tour Sky Hunter, Tour Tank Buster, Tour Hours
-  Aloft (translations put the tour word where it reads well: "(Tour)", "(тур)",
+  Aloft, Tour Jet Hunter (translations put the tour word where it reads well: "(Tour)", "(тур)",
   "de la Temporada"). The tour description says "in one tour", the career one "over your career" (`medals.TOUR_TEXTS` next to
   `TEXTS`; `medals.words(config, key, all_time=)`; a `Medal` takes the variant from its row's scope, `info()` from the page's).
   Every place a tour scope shows the medal uses the tour words (profile, list, overview, holders page, sortie page, home feed).

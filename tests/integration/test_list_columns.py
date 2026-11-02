@@ -344,14 +344,20 @@ def mission_order(client: Client, sort: str, cols: str) -> list[int]:
 
 
 def test_mission_columns_sort_including_zero_players(client: Client) -> None:
-    lively = make_mission(1, sorties_total=12, players_total=3, friendly_kills=1)  # 4 sorties per player
-    quiet = make_mission(2, sorties_total=3, players_total=3, friendly_kills=5)  # 1 per player
+    lively = make_mission(
+        1, sorties_total=12, players_total=3, friendly_kills_air=1, friendly_kills_ground=5
+    )  # 4 sorties per player
+    quiet = make_mission(
+        2, sorties_total=3, players_total=3, friendly_kills_air=5, friendly_kills_ground=1
+    )  # 1 per player
     empty = make_mission(3, sorties_total=0, players_total=0)  # undefined, last both ways
 
     assert mission_order(client, "-sorties_per_player", "sorties_per_player") == [lively.pk, quiet.pk, empty.pk]
     assert mission_order(client, "sorties_per_player", "sorties_per_player") == [quiet.pk, lively.pk, empty.pk]
-    assert mission_order(client, "-friendly_kills", "friendly_kills")[0] == quiet.pk
-    assert mission_order(client, "friendly_kills", "friendly_kills")[0] == empty.pk
+    assert mission_order(client, "-friendly_kills_air", "friendly_kills_air")[0] == quiet.pk
+    assert mission_order(client, "friendly_kills_air", "friendly_kills_air")[0] == empty.pk
+    assert mission_order(client, "-friendly_kills_ground", "friendly_kills_ground")[0] == lively.pk
+    assert mission_order(client, "friendly_kills_ground", "friendly_kills_ground")[0] == empty.pk
 
 
 @pytest.mark.parametrize("column", [c.key for c in columns.MISSION_COLUMNS])

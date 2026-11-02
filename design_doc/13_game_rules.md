@@ -141,7 +141,13 @@ ground" proxy (lowest known ground sample nearby) was too weak (2% false at 500 
 height arm waits for heightmaps (OQ-39). Left: a pilot shot under the canopy after ejecting keeps fate `in_aircraft` (2 cases).
 
 **Suspected early bailout** adds: no hits or damage on aircraft or pilot from any attacker (environment and the sortie's own objects don't
-count), no disconnect, and the sortie didn't end within 60 s before the first AType 7.
+count), no disconnect, the sortie didn't end within 60 s before the first AType 7, and the aircraft was **sound**: under 20% damage from any source
+in its last flight before its AType 3 (`EARLY_BAILOUT_DAMAGE`; maintainer 2026-11-02: the penalty is there to stop pilots leaving a sound aircraft to deny a kill, so a pilot who wrecked or
+damaged the aircraft themselves is not early; OQ-154). The ideal test is "left before any damage", but **the log has no event at the moment of leaving**: on 210 missions the
+aircraft's AType 3 came first in every bailout, 1.8 to 135 s before the ejection spawn, which is written with the teardown, also after enemy hits. So the damage counts up to the AType 3, without the line on that tick
+(273 of 294 suspected bailouts have a full self-damage line there, also 256 of 808 after enemy hits: it says nothing about a crash). Of the 296 suspected bailouts, 134 had no damage at all before
+the AType 3 and 105 only tiny lines (at most 0.16, as when the canopy goes); the other 57 had 0.49 or more, with nothing in between, and are no longer suspected. Whether the descent between AType 3 and teardown is a
+parachute's does not separate the groups.
 
 `disconnected` (the flag, not the fate) = an AType 21 within ±30 s of the sortie end, or removal without AType 4. A player who lands, despawns
 and then leaves has `disconnected = true` but fate `in_aircraft`.
@@ -295,7 +301,8 @@ Was the aircraft lost (is_plane_lost)?
     killed). It is **not** a separate kill for the attacker, who already gets the aircraft. A gunner's flight state comes from the parent
     aircraft.
 - **Friendly fire** (FR-ING-23): killer and victim in the same non-zero coalition → `is_friendly`. Not counted as kills or assists; counted as
-  friendly kills, plus friendly hits and damage per sortie; timeline entry `friendly_fire`. Friendly kills include own-side AI and static
+  friendly kills, apart by what the victim was (`friendly_kills_air`, `friendly_kills_ground`, maintainer 2026-11-02; `friendly_kills` is their sum and the score
+  penalty reads it), plus friendly hits and damage per sortie; timeline entry `friendly_fire`. Friendly kills include own-side AI and static
   objects, so expect them to look high until the breakdown by class (FR-WEB-21) is on the page. Fences are left out of the friendly kills,
   hits and damage (since 0.5.3); the sortie page shows their stored `friendly_fire` rows as "Fence destroyed", also on old timelines. Friendly hits and
   damage stop at the shooter's sortie end and exclude the sortie's own aircraft and crew.
@@ -584,7 +591,7 @@ The ram toggle (`[DECIDED]`, OQ-89) applies via `il2ks reprocess --all` (it chan
   always a death. An `il2ks.toml` that still sets it gets a warning at load (the key is ignored).
 - **Achievement facts per sortie** (OQ-105, doc 17; changing one needs a reprocess): `rams` = the air kills credited to a ram (`KillResult.ram`);
   `first_blood` = the sortie made the mission's earliest credited, non-friendly PvP air kill of a player's aircraft (`kills.first_blood_sortie`; AI victims,
-  assists and gunners do not count); `multi_kill` = the most air kills within `BURST_WINDOW_S` (120 s) in the sortie; `elo_peak` is not a replay fact but written by
+  assists and gunners do not count); `multi_kill` = the most air kills within `BURST_WINDOW_S` (120 s) in the sortie, `multi_kill_ground` the same for ground kills (no fences, doc 17); `kills_jet_from_prop` = credited air kills of jets, AI jets included, from a propeller aircraft, not the pilot's own aircraft; `elo_peak` is not a replay fact but written by
   `ingest.ratings` (the highest pool Elo held after a win in the sortie).
 - Product choices behind them: OQ-89, OQ-90, OQ-92, OQ-99 (all maintainer decisions).
 

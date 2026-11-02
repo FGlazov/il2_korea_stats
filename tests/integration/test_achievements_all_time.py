@@ -225,3 +225,17 @@ def test_tours_in_a_row_can_be_switched_off_and_its_thresholds_changed(tmp_path:
     configure(off=["tours_in_a_row"])
     assert recompute_with_wanted_rules(cfg)
     assert "tours_in_a_row" not in held(1)
+
+
+def test_jet_hunter_all_time_sums_the_stored_jet_kills_of_two_tours_against_5_15_25_50() -> None:
+    save(mission((sortie(0, 1, kills_jet_from_prop=3),)), meta("j0", month(0)))
+    assert held(1, tours()[0])["jet_hunter"] == 2  # 3 in the tour: 1 and 3
+    assert "jet_hunter" not in held(1)  # all time needs 5
+
+    save(mission((sortie(0, 1, kills_jet_from_prop=13),)), meta("j1", month(1)))
+    assert held(1)["jet_hunter"] == 2  # 3 + 13 = 16: 5 and 15
+    assert all_time_row(1, "jet_hunter", 2).mission.mission_uid == "j1"
+
+    save(mission((sortie(0, 1, kills_jet_from_prop=9),)), meta("j2", month(2)))
+    assert held(1)["jet_hunter"] == 3  # 25 reached, 50 not
+    assert held(1, tours()[1])["jet_hunter"] == 4  # 13 in the tour: 1, 3, 5 and 10

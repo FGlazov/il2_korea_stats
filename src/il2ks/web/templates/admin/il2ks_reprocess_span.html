@@ -1,0 +1,35 @@
+{# il2ks-template: templates/admin/il2ks_reprocess_span.html v1.0 - copy this line along when you override #}
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a> ›
+  <a href="{{ status_url }}">{% translate "Ingestion status" %}</a> › {% translate "Reprocess a time span" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  {% if missions %}
+  <p>{% blocktranslate count n=missions %}This re-runs {{ n }} mission from its archive with the current rules, then rebuilds all statistics and ratings.{% plural %}This re-runs {{ n }} missions from their archives with the current rules, then rebuilds all statistics and ratings.{% endblocktranslate %}</p>
+  <p>{% translate "The job runs in the watch process (not in this page) and starts at its next tick. You can follow it on the ingestion status page." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}{{ field.as_hidden }}{% endfor %}
+    <input type="hidden" name="confirmed" value="1">
+    <input type="submit" value="{% translate 'Yes, reprocess these missions' %}">
+    <a href="{{ status_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+  {% else %}
+  <p>{% translate "Re-runs the missions that started in this span from their archives with the current rules, then rebuilds all statistics and ratings." %}</p>
+  <p>{% translate "Dates and times are the game server's local time, as in the name of the mission's log file. Without a time the whole day counts; a time counts to the minute. Both ends are included, and one end may stay empty." %}</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="{% translate 'Continue' %}">
+    <a href="{{ status_url }}" class="button cancel-link">{% translate "No, take me back" %}</a>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

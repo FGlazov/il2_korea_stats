@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/_rows.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/_rows.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   missions/_rows.html: <tbody> rows of a mission table (home page and mission list); same columns as the list header.
   Context: missions (an iterable of Mission), columns (optional: the extra columns chosen with ?cols= on the mission
@@ -15,6 +15,6 @@
   <td class="num">{{ m.kills_air|num }}</td>
   <td class="num">{{ m.kills_ground|num }}</td>
   <td>{% winner_badge m %}</td>
-  {% for column in columns %}<td class="num">{{ column|cell:m }}</td>{% endfor %}
+  {% for column in columns %}<td{% if column.numeric %} class="num"{% endif %}>{{ column|cell:m }}</td>{% endfor %}
 </tr>{% empty %}
 {% empty_row colspan|default:9 empty_message|default:_("No missions match these filters.") %}{% endfor %}

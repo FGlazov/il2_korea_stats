@@ -1,8 +1,8 @@
-{# il2ks-template: templates/il2ks/sorties/list.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/list.html v1.2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   A player's sortie list (FR-WEB-5), newest first. Filters, sorting and paging work with and without htmx (results_region).
   Context: player, tours / tour (the selector, TD-26: no ?tour = the current tour, ?tour=all = all time), page_obj (PlayerSortie rows, with mission and aircraft), sort (the resolved ?sort= value),
-  aircraft_options / outcome_options / role_options / combat_role_options ((value, label) pairs), crumbs, page_title,
+  aircraft_options / outcome_options / role_options / combat_role_options / incident_options ((value, label) pairs), crumbs, page_title,
   optional_columns (the columns a visitor can add), columns (the chosen ones, ?cols=; sortable headers).
   Blocks: content only; the row is `sorties/parts/list_row.html`.
 {% endcomment %}
@@ -19,6 +19,7 @@
       {% tour_filter tours tour %}
       {% filter_select "aircraft" _("Aircraft") aircraft_options all_label=_("All aircraft") %}
       {% filter_select "outcome" _("Outcome") outcome_options all_label=_("Any outcome") %}
+      {% filter_select "incident" _("Incident") incident_options all_label=_("All sorties") %}
       {% filter_select "role" _("Seat") role_options all_label=_("Pilot or gunner") %}
       {% filter_select "combat_role" _("Combat role") combat_role_options all_label=_("Any role") %}
       {% columns_picker optional_columns %}
@@ -31,13 +32,13 @@
             {% sort_th "date" _("Date") first="desc" %}
             {% sort_th "aircraft" _("Aircraft") %}
             {% col_th _("Role") hint="role" %}
-            {% sort_th "outcome" _("Outcome") %}
-            {% col_th _("Pilot fate") %}
+            {% sort_th "outcome" _("Outcome") hint="outcome" %}
+            {% col_th _("Pilot fate") hint="pilot_fate" %}
             {% sort_th "damage_taken" _("Damage taken") numeric=True hint="damage_taken" %}
-            {% sort_th "kills_air" _("Air kills") numeric=True %}
-            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+            {% sort_th "kills_air" _("Air kills") numeric=True hint="kills_air" %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True hint="kills_ground" %}
             {% sort_th "assists" _("Assists") numeric=True hint="assists" %}
-            {% sort_th "flight_time" _("Flight time") numeric=True %}
+            {% sort_th "flight_time" _("Flight time") numeric=True hint="flight_time" %}
             {% for column in columns %}{% sort_th column.key column.label numeric=column.numeric hint=column.description %}{% endfor %}
             <th scope="col"><span class="visually-hidden">{% translate "Details" %}</span></th>
           </tr>

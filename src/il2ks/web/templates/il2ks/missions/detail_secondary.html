@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/missions/detail_secondary.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail_secondary.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_secondary.html: the figures under the tiles of a mission page, in the plain style of the profile's ratios: the
   incidents of the hall of shame and the other totals, so the page has everything the mission list offers as a column.
@@ -7,9 +7,10 @@
   <section>
     <h2 class="stat-columns__title">{% translate "Hall of shame" %}</h2>
     <dl class="kv kv--compact">
-      <dt>{% translate "Taxi/takeoff accidents" %}</dt><dd>{{ mission.taxi_accidents|num }}</dd>
-      <dt>{% translate "Botched landings" %}</dt><dd>{{ mission.botched_landings|num }}</dd>
-      <dt>{% translate "Friendly-fire kills" %}</dt><dd>{{ mission.friendly_kills|num }}</dd>
+      <dt>{% translate "Taxi/takeoff accidents" %}</dt><dd>{{ mission.taxi_accidents|num }} <small>{{ mission.taxi_accidents|incident_share:mission.sorties_total }}</small></dd>
+      <dt>{% translate "Botched landings" %}</dt><dd>{{ mission.botched_landings|num }} <small>{{ mission.botched_landings|incident_share:mission.sorties_total }}</small></dd>
+      <dt>{% translate "Friendly-fire air kills" %}</dt><dd>{{ mission.friendly_kills_air|num }}</dd>
+      <dt>{% translate "Friendly-fire ground kills" %}</dt><dd>{{ mission.friendly_kills_ground|num }}</dd>
     </dl>
   </section>
   <section>

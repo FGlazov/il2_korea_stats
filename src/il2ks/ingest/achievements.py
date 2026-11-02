@@ -51,7 +51,6 @@ from il2ks.db.models import (
     Player,
     PlayerAchievement,
     PlayerTour,
-    Propulsion,
     Role,
     SiteSettings,
     Tour,
@@ -66,9 +65,6 @@ log = logging.getLogger(__name__)
 CHUNK = 2000  # players per batch: far below the bound-parameter limit (32766 on SQLite 3.32+); fewer, bigger queries
 STRIKE_CLASSES = (ObjectClass.BOMBER, ObjectClass.ATTACKER, ObjectClass.TRANSPORT)
 STRIKE_KILL = Q(victim_sortie__aircraft__cls__in=STRIKE_CLASSES)
-JET_FROM_PROP = Q(
-    killer_sortie__aircraft__propulsion=Propulsion.PROP, victim_sortie__aircraft__propulsion=Propulsion.JET
-)
 _FIELDS = ("earned_at", "sortie_id", "mission_id")
 
 type _Key = tuple[int, int | None, str, int]  # player, tour (None = all time), achievement key, tier
@@ -100,34 +96,29 @@ def _pilot_kills(chunk: list[int], tours: set[int] | None, which: Q) -> Counter[
     return Counter(kills.iterator())
 
 
-def _ai_kills(chunk: list[int], tours: set[int] | None) -> tuple[Counter[int], Counter[int]]:
-    """Per killer sortie id: the AI bombers, attackers and transports shot down, and the AI jets shot down from a
-    propeller aircraft. An AI victim has no `Kill` row; the timeline names it, in the log's spelling ("B 29"), which the
-    catalog resolves."""
+def _ai_strike_kills(chunk: list[int], tours: set[int] | None) -> Counter[int]:
+    """Per killer sortie id: the AI bombers, attackers and transports shot down. An AI victim has no `Kill` row; the
+    timeline names it, in the log's spelling ("B 29"), which the catalog resolves."""
     strike: Counter[int] = Counter()
-    jets: Counter[int] = Counter()
     rows = counted_sorties().filter(player_id__in=chunk, kills_air_ai__gt=0)
     if tours is not None:
         rows = rows.filter(tour_id__in=tours)
-    for pk, timeline, propulsion in rows.values_list("pk", "timeline", "aircraft__propulsion").iterator():
+    for pk, timeline in rows.values_list("pk", "timeline").iterator():
         for entry in timeline:
             counterpart = entry.get("counterpart")
             if entry["kind"] != "kill" or not isinstance(counterpart, dict):
                 continue
             victim = cast("dict[str, object]", counterpart)
             if victim.get("sortie_id") is None:
-                info = _catalog().lookup(str(victim["object_type"]))
-                strike[pk] += info.cls in STRIKE_CLASSES
-                jets[pk] += info.propulsion == Propulsion.JET and propulsion == Propulsion.PROP
-    return strike, jets
+                strike[pk] += _catalog().lookup(str(victim["object_type"])).cls in STRIKE_CLASSES
+    return strike
 
 
 def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], list[AchievementSortie]]:
     """The counted sorties of each player in `chunk` per tour (of their mission; sorties outside every tour are left
     out), in chronological order (spawn time, then id). `tours` None = every tour."""
     strike = _pilot_kills(chunk, tours, STRIKE_KILL)
-    jets = _pilot_kills(chunk, tours, JET_FROM_PROP)
-    ai_strike, ai_jets = _ai_kills(chunk, tours)
+    ai_strike = _ai_strike_kills(chunk, tours)
     rows = (
         counted_sorties()
         .filter(player_id__in=chunk, tour_id__isnull=False)
@@ -144,6 +135,7 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
             "kills_air",
             "kills_ground",
             "kills_ground_tank",
+            "kills_jet_from_prop",
             "landing_damage",
             "outcome",
             "is_death",
@@ -152,8 +144,10 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
             "elo_peak",
             "first_blood",
             "multi_kill",
+            "multi_kill_ground",
             "ended_by_mission_end",
             "combat_role",
+            "time_on_target_s",
         )
     )
     if tours is not None:
@@ -173,7 +167,7 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
                 kills_ground=r["kills_ground"],
                 kills_ground_tank=r["kills_ground_tank"],
                 kills_strike_air=strike[r["pk"]] + ai_strike[r["pk"]],
-                kills_jet_from_prop=jets[r["pk"]] + ai_jets[r["pk"]],
+                kills_jet_from_prop=r["kills_jet_from_prop"],
                 landing_damage=r["landing_damage"],
                 landed=outcome == Outcome.LANDED,
                 is_death=r["is_death"],
@@ -183,7 +177,9 @@ def _load(chunk: list[int], tours: set[int] | None) -> dict[tuple[int, int], lis
                 elo_peak=r["elo_peak"],
                 first_blood=r["first_blood"],
                 multi_kill=r["multi_kill"],
+                multi_kill_ground=r["multi_kill_ground"],
                 ended_by_mission_end=r["ended_by_mission_end"],
+                time_on_target_s=r["time_on_target_s"] or 0.0,  # NULL when the sortie has no attack time
                 is_attack=track_of(r["combat_role"]) is Track.GROUND,
             )
         )

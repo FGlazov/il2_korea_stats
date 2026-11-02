@@ -220,7 +220,15 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         fate_source=source,
         bailout=bailout,
         suspected_early_bailout=suspected_early_bailout(
-            sortie, facts, rules, bailout=bailout, upto_tick=cutoff, disconnected=disc_tick is not None
+            sortie,
+            facts,
+            rules,
+            bailout=bailout,
+            upto_tick=cutoff,
+            disconnected=disc_tick is not None,
+            damage_before_loss=damage_at_end(
+                counted_damage(airframe, damage_cutoff if loss is None else loss.tick - 1, repairs), repairs
+            ),
         ),
         disconnected=disconnected,
         disconnect_death=disc_death,

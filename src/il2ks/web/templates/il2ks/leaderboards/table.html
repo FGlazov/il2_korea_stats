@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/leaderboards/table.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/leaderboards/table.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   table.html: the table of a leaderboard. Context: board, sort, page_obj (Page of BoardRow: rank, player, stats, per_hour).
   Per-hour boards: ground-hour, interception, tank-busting. The ironman boards (ironman-all, ironman-air, ironman-ground) list each pilot's best run: `stats` is
@@ -11,13 +11,13 @@
         {% sort_th "name" _("Player") %}
         {% if board.key == "air" %}
           {% sort_th "score" _("Air score") numeric=True hint="score_air" %}
-          {% sort_th "kills_air" _("Air kills") numeric=True %}
-          {% sort_th "assists" _("Assists") numeric=True hint="assists" %}
-          {% sort_th "deaths" _("Deaths") numeric=True %}
+          {% sort_th "kills_air" _("Air kills") numeric=True hint="kills_air" %}
+          {% sort_th "assists" _("Assists") numeric=True hint="assists_air" %}
+          {% sort_th "deaths" _("Deaths") numeric=True hint="deaths" %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
         {% elif board.key == "ground" %}
           {% sort_th "score" _("Ground score") numeric=True hint="score_ground" %}
-          {% sort_th "kills_ground" _("Ground kills") numeric=True %}
+          {% sort_th "kills_ground" _("Ground kills") numeric=True hint="kills_ground" %}
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True hint="attack_sorties" %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
         {% elif board.key == "interception" %}
@@ -32,11 +32,11 @@
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True hint="attack_sorties" %}
         {% elif board.key == "ground-hour" %}
           {% sort_th "per_hour" _("Attack proficiency") numeric=True hint="score_per_hour" %}
-          {% sort_th "score" _("Attack ground score") numeric=True %}
+          {% sort_th "score" _("Attack ground score") numeric=True hint="attack_score" %}
           {% sort_th "time_on_target_s" _("Time on target") numeric=True hint="time_on_target" %}
           {% sort_th "attack_sorties" _("Attack sorties") numeric=True hint="attack_sorties" %}
         {% elif board.key == "play-time" %}
-          {% sort_th "flight_time_s" _("Flight time") numeric=True %}
+          {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
           {% sort_th "sorties" _("Sorties") numeric=True %}
         {% elif board.streak_track %}
           {% sort_th "sorties" _("Sorties in a row") numeric=True hint="streak_sorties" %}

@@ -1,9 +1,10 @@
 """The admin's "reprocess all missions" request (doc 14): filed by the web, worked off by a `watch` tick under the
 writer lock, with the status page and the permissions around it."""
 
+import re
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,7 @@ from django.test import Client
 from django.utils import timezone
 
 from il2ks.config import Config
-from il2ks.db.models import ReprocessRequest, ReprocessStatus
+from il2ks.db.models import IngestRun, IngestStatus, RemovedMission, ReprocessRequest, ReprocessStatus
 from il2ks.db.reprocess_requests import AlreadyPendingError, request_reprocess
 from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.reprocess import ReprocessSummary, reprocess
@@ -155,6 +156,21 @@ def test_a_request_with_a_date_span_only_reprocesses_that_span(env: Env) -> None
     assert not row.is_all
 
 
+def test_a_request_keeps_the_times_of_its_span_and_uses_them(env: Env) -> None:
+    request = request_reprocess("boss", env.now(), since=datetime(2026, 4, 1, 18, 30), until=date(2026, 4, 30))
+
+    row = ReprocessRequest.objects.get(pk=request.pk)
+    assert (row.since, row.since_time) == (date(2026, 4, 1), time(18, 30))
+    assert (row.until, row.until_time) == (date(2026, 4, 30), None)
+    assert (row.span_since, row.span_until) == (datetime(2026, 4, 1, 18, 30), date(2026, 4, 30))
+    assert (row.since_text, row.until_text) == ("2026-04-01 18:30", "2026-04-30")
+
+    tick(env)
+
+    row = ReprocessRequest.objects.get(pk=request.pk)
+    assert (row.status, row.missions_total) == (ReprocessStatus.DONE, 1)  # the 2026-04-01 10:00 one is too early
+
+
 def test_missions_that_fail_are_counted_and_the_request_is_still_done(env: Env) -> None:
     request = request_reprocess("boss", env.now())
 
@@ -282,6 +298,93 @@ def test_the_status_page_shows_progress_and_the_last_result(boss: Client) -> Non
     assert "40 missions reprocessed, 2 failed, 1 without an archive" in page
 
 
+SPAN_URL = "/admin/ingestion/reprocess/span/"
+EVENING = "2026-04-15_18-30-00"
+NIGHT = "2026-04-15_23-10-00"
+DELETED = "2026-04-15_20-00-00"
+
+
+@pytest.fixture
+def archived() -> None:
+    for uid in (EVENING, NIGHT, DELETED):
+        IngestRun.objects.create(
+            mission_uid=uid, archive_path="a.zip", archive_sha256="x", status=IngestStatus.OK, started_at=timezone.now()
+        )
+    IngestRun.objects.create(mission_uid="2026-04-20_12-00-00", status=IngestStatus.FAILED, started_at=timezone.now())
+    RemovedMission.objects.create(mission_uid=DELETED, removed_at=timezone.now())
+
+
+@pytest.mark.usefixtures("archived")
+def test_a_span_is_chosen_then_confirmed_with_the_number_of_missions(boss: Client) -> None:
+    assert SPAN_URL in boss.get("/admin/ingestion/").content.decode()
+    form = boss.get(SPAN_URL).content.decode()
+    assert 'type="date"' in form
+    assert 'type="time"' in form
+
+    span = {"since_date": "2026-04-15", "since_time": "18:00", "until_date": "2026-04-15", "until_time": "22:00"}
+    page = boss.post(SPAN_URL, span).content.decode()
+    assert "1 mission" in page  # the night is too late, the deleted one stays deleted, the failed one has no archive
+    assert not ReprocessRequest.objects.exists()
+
+    response = boss.post(SPAN_URL, {**span, "confirmed": "1"})
+    assert response.status_code == 302
+    row = ReprocessRequest.objects.get()
+    assert (row.span_since, row.span_until) == (datetime(2026, 4, 15, 18, 0), datetime(2026, 4, 15, 22, 0))
+    assert (row.requested_by, row.status, row.is_all) == ("boss", ReprocessStatus.PENDING, False)
+    assert "2026-04-15 18:00" in boss.get("/admin/ingestion/").content.decode()
+
+
+@pytest.mark.usefixtures("archived")
+def test_the_confirmation_hands_the_span_back_through_its_hidden_fields(boss: Client) -> None:
+    span = {"since_date": "2026-04-15", "since_time": "18:00", "until_date": "2026-04-15", "until_time": "22:00"}
+    page = boss.post(SPAN_URL, span).content.decode()
+    hidden = dict(re.findall(r'<input type="hidden" name="(\w+)"(?: value="([^"]*)")?', page))
+    hidden.pop("csrfmiddlewaretoken", None)
+    assert hidden == {**span, "confirmed": "1"}
+
+    boss.post(SPAN_URL, hidden)
+
+    row = ReprocessRequest.objects.get()
+    assert (row.span_since, row.span_until) == (datetime(2026, 4, 15, 18, 0), datetime(2026, 4, 15, 22, 0))
+
+
+@pytest.mark.usefixtures("archived")
+def test_dates_alone_mean_whole_days_and_one_end_may_stay_open(boss: Client) -> None:
+    assert "2 missions" in boss.post(SPAN_URL, {"since_date": "2026-04-15"}).content.decode()
+    boss.post(SPAN_URL, {"until_date": "2026-04-15", "confirmed": "1"})
+    row = ReprocessRequest.objects.get()
+    assert (row.span_since, row.span_until) == (None, date(2026, 4, 15))
+
+
+@pytest.mark.usefixtures("archived")
+@pytest.mark.parametrize(
+    ("posted", "error"),
+    [
+        ({}, "Enter a start date, an end date or both."),
+        ({"since_time": "18:00", "until_date": "2026-04-15"}, "A time needs a date."),
+        ({"since_date": "2026-04-16", "until_date": "2026-04-15"}, "The start is after the end."),
+        (
+            {"since_date": "2026-04-15", "since_time": "20:00", "until_date": "2026-04-15", "until_time": "19:00"},
+            "The start is after the end.",
+        ),
+        ({"since_date": "2026-05-01"}, "No archived mission started in this span."),
+    ],
+)
+def test_a_bad_span_is_refused_on_the_form(boss: Client, posted: dict[str, str], error: str) -> None:
+    for extra in ({}, {"confirmed": "1"}):
+        assert error in boss.post(SPAN_URL, posted | extra).content.decode()
+    assert not ReprocessRequest.objects.exists()
+
+
+@pytest.mark.usefixtures("archived")
+def test_no_span_while_a_request_waits(boss: Client) -> None:
+    request_reprocess("other", timezone.now())
+    assert SPAN_URL not in boss.get("/admin/ingestion/").content.decode()
+    assert boss.get(SPAN_URL).status_code == 302
+    assert boss.post(SPAN_URL, {"since_date": "2026-04-15", "confirmed": "1"}).status_code == 302
+    assert ReprocessRequest.objects.count() == 1
+
+
 def test_staff_without_the_permission_cannot_request_a_reprocess(client: Client) -> None:
     clerk = User.objects.create_user("clerk", password="x", is_staff=True)
     clerk.user_permissions.add(Permission.objects.get(codename="view_ingestrun"))
@@ -290,6 +393,8 @@ def test_staff_without_the_permission_cannot_request_a_reprocess(client: Client)
     assert "/admin/ingestion/reprocess/" not in client.get("/admin/ingestion/").content.decode()
     assert client.get("/admin/ingestion/reprocess/").status_code == 403
     assert client.post("/admin/ingestion/reprocess/").status_code == 403
+    assert client.get(SPAN_URL).status_code == 403
+    assert client.post(SPAN_URL, {"since_date": "2026-04-15", "confirmed": "1"}).status_code == 403
     assert ReprocessRequest.objects.count() == 0
 
 

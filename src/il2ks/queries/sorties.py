@@ -76,7 +76,8 @@ SORT_FIELDS: dict[str, SortSpec] = {
     # the optional columns (`?cols=`, `web.columns.SORTIE_COLUMNS`; a test keeps the two in step)
     "kills_air_pvp": "kills_air_pvp",
     "kills_air_ai": "kills_air_ai",
-    "friendly_kills": "friendly_kills",
+    "friendly_kills_air": "friendly_kills_air",
+    "friendly_kills_ground": "friendly_kills_ground",
     "air_points": "air_points",
     "ground_points": "ground_points",
     "time_on_target": Rated("time_on_target_s", "time_on_target_s"),  # NULL / 0 (not an attack sortie) sorts last
@@ -96,15 +97,20 @@ def resolve_sort(raw: str) -> str:
     return raw if field in SORT_FIELDS else DEFAULT_SORT
 
 
+INCIDENT_FLAGS = {"taxi": "taxi_accident", "botched": "botched_landing", "strafed": "strafed_on_ground"}
+"""`?incident=` value -> the `PlayerSortie` flag it selects (each has a partial index, `sortie_*_recent`)."""
+
+
 @dataclass(frozen=True, slots=True)
 class SortieFilters:
-    """The validated `?aircraft=`, `?outcome=`, `?role=`, `?combat_role=` of the list ('' = no filter) and the chosen
-    tour (`?tour=`, resolved by `queries.tours.tour_choice_from`; None = all time)."""
+    """The validated `?aircraft=`, `?outcome=`, `?role=`, `?combat_role=`, `?incident=` of the list ('' = no filter)
+    and the chosen tour (`?tour=`, resolved by `queries.tours.tour_choice_from`; None = all time)."""
 
     aircraft: int | None = None
     outcome: str = ""
     role: str = ""
     combat_role: str = ""
+    incident: str = ""
     tour: Tour | None = None
     pilot: str = ""
     """The site-wide list's pilot search: the name the pilot flew under (`name_at_time`) contains it, any case."""
@@ -118,6 +124,7 @@ def parse_filters(raw: dict[str, str], aircraft_ids: Collection[int]) -> SortieF
         outcome=raw.get("outcome", "") if raw.get("outcome", "") in Outcome.values else "",
         role=raw.get("role", "") if raw.get("role", "") in Role.values else "",
         combat_role=raw.get("combat_role", "") if raw.get("combat_role", "") in CombatRole.values else "",
+        incident=raw.get("incident", "") if raw.get("incident", "") in INCIDENT_FLAGS else "",
     )
 
 
@@ -159,6 +166,8 @@ def _page(rows: QuerySet[PlayerSortie], filters: SortieFilters, sort: str, numbe
         rows = rows.filter(role=filters.role)
     if filters.combat_role:
         rows = rows.filter(combat_role=filters.combat_role)
+    if filters.incident:
+        rows = rows.filter(**{INCIDENT_FLAGS[filters.incident]: True})
     if filters.pilot:
         rows = rows.filter(name_at_time__icontains=filters.pilot)
     rows = rows.order_by(order_by(SORT_FIELDS[sort.removeprefix("-")], sort), "-pk" if sort.startswith("-") else "pk")

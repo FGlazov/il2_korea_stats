@@ -116,6 +116,95 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The ground crew, the squadron and the fire brigade all know this callsign by heart."),
         gettext_lazy("Nobody can say this pilot specializes. The incident log is a model of variety."),
     ),
+    # New hall-of-shame cases with friendly ground kills (the pilot's own side's tents, trucks, depots).
+    "shame_own_ground": (
+        gettext_lazy(
+            "The quartermaster has stopped ordering tents in bulk. He orders them one at a time, with a sigh."
+        ),
+        gettext_lazy("Strictly speaking, the camp was on our side. Nobody told the guns."),
+        gettext_lazy("The fuel dump has filed a complaint. It has also filed an evacuation plan."),
+        gettext_lazy("The supply sergeant counts the trucks every morning, and again after this pilot's sorties."),
+        gettext_lazy("The enemy has a supply line to protect. This pilot has apparently adopted ours."),
+        gettext_lazy(
+            "Base commander to pilot: the ammo dump was a fine shot, and also ours. Please see the paperwork."
+        ),
+    ),
+    "shame_friendly_own_ground": (
+        gettext_lazy("The wingmen fly wide and the quartermaster keeps a spare tent handy. A well-organized airfield."),
+        gettext_lazy("Aircraft, ammo dumps, as long as they are ours: this pilot is firm about the choice of target."),
+        gettext_lazy("The squadron and the supply depot have compared notes. The notes are unflattering, but fond."),
+        gettext_lazy("Wingmen in the sky, tents on the ground: nobody on our side is out of range."),
+        gettext_lazy("One apology to the wingman, one invoice to the supply sergeant. The mail is busy."),
+        gettext_lazy(
+            "The base commander has stopped asking whom the shots were meant for and now only asks what it cost."
+        ),
+    ),
+    "shame_taxi_own_ground": (
+        gettext_lazy(
+            "The ramp, the tents, the fuel tanks: this pilot never strays far from the airfield, nor do the incidents."
+        ),
+        gettext_lazy("The airfield is this pilot's whole theater of operations. The quartermaster is keeping score."),
+        gettext_lazy("Every incident happens on our own ground, which does make the cleanup convenient."),
+        gettext_lazy("The ground crew and the supply sergeant share a file on this pilot, and a bench to sigh on."),
+        gettext_lazy("Never leaves the base and still makes the evening report. A homebody with flair."),
+        gettext_lazy("Base commander's memo: please keep the airfield intact. All of it, including the huts."),
+    ),
+    "shame_own_ground_landing": (
+        gettext_lazy("The runway came up hard and the supply dump went up higher. A busy day for the base commander."),
+        gettext_lazy("Out with the quartermaster's stock, back with the runway's patience."),
+        gettext_lazy("The camp and the runway both have a damage report with this callsign on it."),
+        gettext_lazy(
+            "The fire crew is on first-name terms with the supply sergeant, and both have this pilot to thank."
+        ),
+        gettext_lazy(
+            "The supply sergeant counts the tents, the crew chief counts the landing gear. Both are working overtime."
+        ),
+        gettext_lazy("Trucks on the way out, runway on the way in: the base has seen it all."),
+    ),
+    "shame_both_own_ground": (
+        gettext_lazy(
+            "The ramp, the formation and the supply depot: three departments, one pilot, no shortage of paperwork."
+        ),
+        gettext_lazy(
+            "The taxiway, the wingmen and the tents have all had their turn. Nobody on this airfield is out of range."
+        ),
+        gettext_lazy("Whatever is on our side of the line has had its moment with this pilot."),
+        gettext_lazy("The ground crew, the squadron and the quartermaster have a standing meeting about one pilot."),
+        gettext_lazy(
+            "The safety officer has opened a third folder: ramp, wingmen, supplies. The folders are getting heavy."
+        ),
+        gettext_lazy("A thorough pilot: the apron, the wingmen and the fuel dump have all had a visit."),
+    ),
+    "shame_friendly_own_ground_landing": (
+        gettext_lazy("The wingmen, the tents and the runway: everybody on our side has had a surprise."),
+        gettext_lazy("Wingmen overhead, supplies underneath and the runway at the end. A full tour of the home front."),
+        gettext_lazy("The squadron leader, the quartermaster and the crew chief share one coffee pot and one subject."),
+        gettext_lazy("Between the formation, the camp and the landing, no day is dull for the safety office."),
+        gettext_lazy(
+            "The friendly side of the map has seen a lot of this pilot, from the sky to the camp to the runway."
+        ),
+        gettext_lazy("Everything on our side has had a visit, and the runway has had the last word."),
+    ),
+    "shame_taxi_own_ground_landing": (
+        gettext_lazy("Takeoff, landing and the supply camp on the side: this pilot keeps the whole airfield busy."),
+        gettext_lazy(
+            "The ground crew, the fire crew and the quartermaster rarely sit at the same table. This pilot manages it."
+        ),
+        gettext_lazy("The ramp at the start, the runway at the end, and a few tents along the way."),
+        gettext_lazy("The airfield is a very busy place, mostly thanks to one callsign."),
+        gettext_lazy(
+            "The base commander says the enemy has never caused as much trouble at this airfield as this pilot."
+        ),
+        gettext_lazy("Chocks, tents, touchdown: the incident log stays on the airfield side of the fence."),
+    ),
+    "shame_taxi_friendly_landing": (
+        gettext_lazy("The ramp, the formation and the runway: this pilot keeps three departments on their toes."),
+        gettext_lazy("Takeoff trouble, a wingman mix-up and a hard landing: nothing is routine here."),
+        gettext_lazy("Tower, squadron and fire crew all know this callsign, and none of them is surprised."),
+        gettext_lazy("From the chocks to the touchdown, with a stop at a wingman on the way."),
+        gettext_lazy("The safety officer's binder has a tab for this pilot at every phase, wingmen included."),
+        gettext_lazy("The ground crew sighs, the wingmen duck and the runway braces, in that order."),
+    ),
     # Above the 90th percentile of pilots with enough sorties: gentle ribbing, nobody is shamed.
     "shame_taxi_p90": (
         gettext_lazy("Few pilots know the taxiway as intimately as this one. It could give guided tours."),
@@ -180,6 +269,106 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
             "A true all-rounder. The squadron would be quieter without this pilot, and far less entertaining."
         ),
         gettext_lazy("They write training manuals about pilots like this one. Mostly the chapters on what to avoid."),
+    ),
+    "shame_own_ground_p90": (
+        gettext_lazy(
+            "The motor pool parks out of sight whenever this callsign takes off. Prudent, and also affectionate."
+        ),
+        gettext_lazy(
+            "A loyal customer of the supply office: every requisition for tents has this pilot's name somewhere on it."
+        ),
+        gettext_lazy(
+            "Our own fuel tanks have never been so thoroughly tested. The base commander is grateful, in his way."
+        ),
+        gettext_lazy("The camp is rebuilt so often that the carpenters have named a hut after this pilot."),
+        gettext_lazy(
+            "Nobody keeps the quartermaster employed like this pilot. A fine contribution to the local economy."
+        ),
+        gettext_lazy("Equal-opportunity demolition: the enemy's depots and our own huts get the same enthusiasm."),
+    ),
+    "shame_friendly_own_ground_p90": (
+        gettext_lazy("Equal reach, equal enthusiasm: the wingmen and the supply depot get the same dedication."),
+        gettext_lazy("The squadron flies wide and the motor pool parks far away. Everyone has learned something."),
+        gettext_lazy(
+            "A pilot of broad horizons: our side's aircraft and our side's trucks are both well within range."
+        ),
+        gettext_lazy(
+            "The mess toasts this pilot for keeping the wingmen and the supply sergeant equally on their toes."
+        ),
+        gettext_lazy("Somewhere a quartermaster and a wingman are sharing a coffee and a very long story."),
+        gettext_lazy("The incident log has one section for the sky and one for the camp. Both carry this callsign."),
+    ),
+    "shame_taxi_own_ground_p90": (
+        gettext_lazy("The airfield sees more of this pilot than the enemy does, and shows the marks to prove it."),
+        gettext_lazy(
+            "The ground crew and the quartermaster named a hut after this pilot. It is the one still standing."
+        ),
+        gettext_lazy("A home-front specialist: the ramp, the fuel dump and the tents all know this callsign."),
+        gettext_lazy("Base defense is excellent. Base demolition is, apparently, this pilot's department."),
+        gettext_lazy("The airfield budget has a line item for this pilot. It is not a small line."),
+        gettext_lazy("Few pilots give the base so much character, or the carpenters so much work."),
+    ),
+    "shame_own_ground_landing_p90": (
+        gettext_lazy(
+            "The quartermaster restocks the huts, the crew chief restocks the landing gear. Thanks to this pilot."
+        ),
+        gettext_lazy(
+            "The fire crew and the supply office hold a joint meeting every week. This callsign is a standing item."
+        ),
+        gettext_lazy("The runway has a dent, the camp has a gap, and the base commander has a favorite name for both."),
+        gettext_lazy("A pilot who gives the base a reason to rebuild and a reason to repave."),
+        gettext_lazy(
+            "The carpenters and the runway crew compare notes at lunch. The notes are mostly about this pilot."
+        ),
+        gettext_lazy(
+            "Nobody keeps the maintenance budget moving like this one: the huts and the landing gear, week after week."
+        ),
+    ),
+    "shame_both_own_ground_p90": (
+        gettext_lazy(
+            "A friend to every part of the base, in the sense that every part of it has had a close encounter."
+        ),
+        gettext_lazy(
+            "The ramp, the wingmen and the camp all have a story about this pilot, and the mess has heard them all."
+        ),
+        gettext_lazy(
+            "The quartermaster, the crew chief and the squadron leader formed a committee. This pilot chairs it."
+        ),
+        gettext_lazy("Top of the charts across the board, and the board is our own airfield."),
+        gettext_lazy("Rarely has one pilot given so many departments so much to talk about over coffee."),
+        gettext_lazy("The tower, the formation and the motor pool all flinch a little when this callsign comes up."),
+    ),
+    "shame_friendly_own_ground_landing_p90": (
+        gettext_lazy("A pilot of remarkable range: wingmen, camp and runway have all had the full experience."),
+        gettext_lazy("The squadron flies wide, the motor pool parks far off and the fire crew keeps the engine warm."),
+        gettext_lazy(
+            "Wingmen, camp and runway each have a plaque with this pilot's name, and a shelf of repair receipts."
+        ),
+        gettext_lazy("The base commander has stopped asking which one it was this time."),
+        gettext_lazy(
+            "The quartermaster, the crew chief and the squadron all ask for a heads-up when this callsign is scheduled."
+        ),
+        gettext_lazy("A rare all-round performance, in the sense that everything friendly has been involved."),
+    ),
+    "shame_taxi_own_ground_landing_p90": (
+        gettext_lazy("Few pilots give the airfield so much attention, from the ramp to the runway to the supply dump."),
+        gettext_lazy(
+            "The ground crew, the fire crew and the supply sergeant send this pilot a joint holiday card every year."
+        ),
+        gettext_lazy(
+            "Everything on this base has a story with this pilot in it, and the carpenters have the receipts."
+        ),
+        gettext_lazy("A faithful visitor to every corner of the airfield: ramp, runway and fuel tank."),
+        gettext_lazy("The airfield would be quiet without this pilot, and a good deal cheaper to run."),
+        gettext_lazy("If the base ever gets a museum, this pilot gets three rooms."),
+    ),
+    "shame_taxi_friendly_landing_p90": (
+        gettext_lazy("A pilot of rare range: the ramp, the wingmen and the runway have each earned a story."),
+        gettext_lazy("The tower puts down its coffee, the wingmen fly wide and the fire crew warms up the engine."),
+        gettext_lazy("Nobody has given the ramp, the formation and the runway so much to talk about."),
+        gettext_lazy("The mess raises a glass to this pilot every time. The ground crew raises an eyebrow."),
+        gettext_lazy("Departures, arrivals and everything with wings in between: all have a tale with this callsign."),
+        gettext_lazy("Every phase of the sortie has a plaque, and the wingmen have a standing joke."),
     ),
     # Player profile, hall of shame (nothing on record).
     "shame_clean": (
@@ -398,30 +587,74 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
 
 # Where each spot shows, for the admin's Quips page (plain words; translatable). Every spot of SPOTS needs one (a test).
 SPOT_DESCRIPTIONS: Mapping[str, Label] = {
-    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents only"),
-    "shame_friendly": gettext_lazy("Pilot profile, hall of shame: friendly fire only"),
+    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi/takeoff accidents only"),
+    "shame_friendly": gettext_lazy("Pilot profile, hall of shame: friendly air kills only"),
     "shame_landing": gettext_lazy("Pilot profile, hall of shame: botched landings only"),
-    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire"),
-    "shame_taxi_landing": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents and botched landings"),
-    "shame_friendly_landing": gettext_lazy("Pilot profile, hall of shame: friendly fire and botched landings"),
+    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi/takeoff accidents and friendly air kills"),
+    "shame_taxi_landing": gettext_lazy("Pilot profile, hall of shame: taxi/takeoff accidents and botched landings"),
+    "shame_friendly_landing": gettext_lazy("Pilot profile, hall of shame: friendly air kills and botched landings"),
     "shame_all": gettext_lazy(
-        "Pilot profile, hall of shame: taxi or takeoff accidents, friendly fire and botched landings"
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly air and ground kills, botched landings"
     ),
-    "shame_taxi_p90": gettext_lazy(
-        "Pilot profile, hall of shame: taxi or takeoff accidents among the top 10% of pilots"
+    "shame_own_ground": gettext_lazy("Pilot profile, hall of shame: friendly ground kills only"),
+    "shame_friendly_own_ground": gettext_lazy(
+        "Pilot profile, hall of shame: friendly air kills and friendly ground kills"
     ),
-    "shame_friendly_p90": gettext_lazy("Pilot profile, hall of shame: friendly fire among the top 10% of pilots"),
+    "shame_taxi_own_ground": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents and friendly ground kills"
+    ),
+    "shame_own_ground_landing": gettext_lazy(
+        "Pilot profile, hall of shame: friendly ground kills and botched landings"
+    ),
+    "shame_both_own_ground": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly air kills and friendly ground kills"
+    ),
+    "shame_friendly_own_ground_landing": gettext_lazy(
+        "Pilot profile, hall of shame: friendly air kills, friendly ground kills, botched landings"
+    ),
+    "shame_taxi_own_ground_landing": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly ground kills, botched landings"
+    ),
+    "shame_taxi_friendly_landing": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly air kills and botched landings"
+    ),
+    "shame_taxi_p90": gettext_lazy("Pilot profile, hall of shame: taxi/takeoff accidents among the top 10% of pilots"),
+    "shame_friendly_p90": gettext_lazy("Pilot profile, hall of shame: friendly air kills among the top 10% of pilots"),
     "shame_landing_p90": gettext_lazy("Pilot profile, hall of shame: botched landings among the top 10% of pilots"),
     "shame_both_p90": gettext_lazy(
-        "Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire, both among the top 10% of pilots"
+        "Pilot profile, hall of shame: taxi/takeoff accidents and friendly air kills, both in the top 10%"
     ),
     "shame_taxi_landing_p90": gettext_lazy(
-        "Pilot profile, hall of shame: taxi or takeoff accidents and botched landings, both among the top 10% of pilots"
+        "Pilot profile, hall of shame: taxi/takeoff accidents and botched landings, both in the top 10%"
     ),
     "shame_friendly_landing_p90": gettext_lazy(
-        "Pilot profile, hall of shame: friendly fire and botched landings, both among the top 10% of pilots"
+        "Pilot profile, hall of shame: friendly air kills and botched landings, both in the top 10%"
     ),
-    "shame_all_p90": gettext_lazy("Pilot profile, hall of shame: all three, among the top 10% of pilots"),
+    "shame_all_p90": gettext_lazy("Pilot profile, hall of shame: all four, among the top 10% of pilots"),
+    "shame_own_ground_p90": gettext_lazy(
+        "Pilot profile, hall of shame: friendly ground kills among the top 10% of pilots"
+    ),
+    "shame_friendly_own_ground_p90": gettext_lazy(
+        "Pilot profile, hall of shame: friendly air kills and friendly ground kills, both in the top 10%"
+    ),
+    "shame_taxi_own_ground_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents and friendly ground kills, both in the top 10%"
+    ),
+    "shame_own_ground_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: friendly ground kills and botched landings, both in the top 10%"
+    ),
+    "shame_both_own_ground_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly air and ground kills, in the top 10%"
+    ),
+    "shame_friendly_own_ground_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: friendly air kills, friendly ground kills and botched landings, in the top 10%"
+    ),
+    "shame_taxi_own_ground_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly ground kills, botched landings, in the top 10%"
+    ),
+    "shame_taxi_friendly_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi/takeoff accidents, friendly air kills and botched landings, in the top 10%"
+    ),
     "shame_clean": gettext_lazy("Pilot profile, hall of shame: clean sheet"),
     "top_pilot": gettext_lazy("Home page: under the top pilots of the last mission"),
     "nobody_scored": gettext_lazy("Home page: the last mission had no kills"),
@@ -529,7 +762,8 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         flight_time_s=stats.flight_time_s,
         taxi_accidents=stats.taxi_accidents,
         botched_landings=stats.botched_landings,
-        friendly_kills=stats.friendly_kills,
+        friendly_kills_air=stats.friendly_kills_air,
+        friendly_kills_ground=stats.friendly_kills_ground,
         time_on_target_s=stats.time_on_target_s,
         # Player and PlayerTour rows carry the scores, other Counters rows don't
         score_air=getattr(stats, "score_air", 0.0),
@@ -556,28 +790,40 @@ def _is_top(metric: stat_marks.Metric, stats: Counters, marks: Mapping[str, Stat
     return stat_marks.band(value, found) in ("top1", "top5", "top10")  # above p90
 
 
-# The hall-of-shame spot of each set of incident kinds: (taxi, friendly fire, botched landing).
-SHAME_SPOTS: Mapping[tuple[bool, bool, bool], str] = {
-    (True, False, False): "shame_taxi",
-    (False, True, False): "shame_friendly",
-    (False, False, True): "shame_landing",
-    (True, True, False): "shame_both",
-    (True, False, True): "shame_taxi_landing",
-    (False, True, True): "shame_friendly_landing",
-    (True, True, True): "shame_all",
+# The hall-of-shame spot of each set of incident kinds: (taxi, friendly air kills, friendly ground kills, botched
+# landing). The older keys without "ground" mean friendly AIR kills only (stored admin choices go by key).
+SHAME_SPOTS: Mapping[tuple[bool, bool, bool, bool], str] = {
+    (True, False, False, False): "shame_taxi",
+    (False, True, False, False): "shame_friendly",
+    (False, False, False, True): "shame_landing",
+    (True, True, False, False): "shame_both",
+    (True, False, False, True): "shame_taxi_landing",
+    (False, True, False, True): "shame_friendly_landing",
+    (True, True, True, True): "shame_all",
+    (False, False, True, False): "shame_own_ground",
+    (False, True, True, False): "shame_friendly_own_ground",
+    (True, False, True, False): "shame_taxi_own_ground",
+    (False, False, True, True): "shame_own_ground_landing",
+    (True, True, True, False): "shame_both_own_ground",
+    (False, True, True, True): "shame_friendly_own_ground_landing",
+    (True, False, True, True): "shame_taxi_own_ground_landing",
+    (True, True, False, True): "shame_taxi_friendly_landing",
 }
 
 
 def shame_spot(stats: Counters, marks: Mapping[str, StatThreshold]) -> str:
-    """The profile's hall-of-shame spot (doc 13): which incidents the pilot has (taxi accidents, friendly-fire kills,
-    botched landings: `SHAME_SPOTS`), and a separate, gentler `_p90` spot for those whose rate per sortie is above the
-    p90 of the pilots with enough sorties (`marks`, the thresholds of the scope `stats` belongs to). Only the incident
-    kinds the pilot is in the top 10% for are named in a p90 spot."""
-    taxi, friendly, botched = stats.taxi_accidents > 0, stats.friendly_kills > 0, stats.botched_landings > 0
-    kinds = (taxi, friendly, botched)
+    """The profile's hall-of-shame spot (doc 13): which incidents the pilot has (taxi accidents, friendly aircraft shot
+    down, friendly ground kills, botched landings: 16 cases, `SHAME_SPOTS` and the clean sheet), and a
+    separate, gentler `_p90` spot for those whose rate per sortie is above the p90 of the pilots with enough sorties
+    (`marks`, the thresholds of the scope `stats` belongs to). Only the incident kinds the pilot is in the top 10% for
+    are named in a p90 spot."""
+    taxi, air, ground = stats.taxi_accidents > 0, stats.friendly_kills_air > 0, stats.friendly_kills_ground > 0
+    botched = stats.botched_landings > 0
+    kinds = (taxi, air, ground, botched)
     top = (
         taxi and _is_top("taxi_per_sortie", stats, marks),
-        friendly and _is_top("friendly_kill_rate", stats, marks),
+        air and _is_top("friendly_air_rate", stats, marks),
+        ground and _is_top("friendly_ground_rate", stats, marks),
         botched and _is_top("botched_per_sortie", stats, marks),
     )
     if any(top):

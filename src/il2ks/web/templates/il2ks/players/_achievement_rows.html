@@ -1,0 +1,26 @@
+{# il2ks-template: templates/il2ks/players/_achievement_rows.html v1.0 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _achievement_rows.html: one list of achievements with the player's tiers (the medals, then again the ribbons).
+  Included by players/achievements.html. Context: rows (ListRow), tour_query.
+{% endcomment %}
+<ul class="medal-list">
+  {% for row in rows %}
+    <li class="medal-list__item{% if not row.best %} medal-list__item--none{% endif %}">
+      <div class="medal-list__head">
+        {% if row.info.kind == "ribbon" %}<span class="ribbon ribbon--bare ribbon--s{{ row.info.style }}{% for t in row.tiers %}{% if t.tier.number == row.best %} ribbon--{{ t.tier.slug }}{% endif %}{% endfor %}"><span class="ribbon__bar" aria-hidden="true">{% for t in row.tiers %}{% if t.earned %}<i class="ribbon__pip"></i>{% endif %}{% endfor %}</span></span>{% else %}<span class="medal medal--{% if row.best %}{% for t in row.tiers %}{% if t.tier.number == row.best %}{{ t.tier.slug }}{% endif %}{% endfor %}{% else %}locked{% endif %}"><span class="medal__badge">{% icon row.info.icon %}</span></span>{% endif %}
+        <div>
+          <h2>{{ row.info.name }}</h2>
+          <p class="muted">{{ row.info.description }}</p>
+        </div>
+      </div>
+      <ol class="tier-list">
+        {% for t in row.tiers %}
+          <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if not t.earned %} tier-list__item--open{% endif %}{% if t.earned and t.rarity.level %} rarity--{{ t.rarity.level }}{% endif %}">
+            <strong>{{ t.tier.name }}</strong> <span>{{ t.tier.threshold }}</span>
+            {% if t.earned %}<span class="muted">{% if t.earned.mission_hidden %}{{ t.earned.earned_at|local_date }}{% else %}<a href="{% url 'web:sortie-detail' t.earned.sortie_id %}">{{ t.earned.earned_at|local_date }}</a>{% endif %}{% if t.rarity.text %} · {{ t.rarity.text }}{% endif %}</span>{% else %}<span class="muted">{% translate "not yet" %}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </li>
+  {% endfor %}
+</ul>

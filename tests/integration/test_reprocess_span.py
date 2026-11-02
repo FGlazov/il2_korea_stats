@@ -1,11 +1,14 @@
 """`il2ks reprocess --since/--until`: pick missions by their (server-local) date (FR-ING-9, FR-ING-14)."""
 
+import logging
+import re
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
 
+from il2ks.core.logparse.files import SpanBound, span_is_reversed
 from il2ks.db.models import IngestRun, Mission
 from il2ks.ingest.reprocess import ReprocessSummary, archived_targets, mission_in_span, reprocess
 from tests.integration.test_ingest_runner import Env, fake_work, threads
@@ -30,7 +33,7 @@ def env(tmp_path: Path) -> Env:
 
 
 def run(
-    env: Env, uids: list[str] | None = None, *, since: date | None = None, until: date | None = None
+    env: Env, uids: list[str] | None = None, *, since: SpanBound | None = None, until: SpanBound | None = None
 ) -> ReprocessSummary:
     return reprocess(
         env.cfg,
@@ -44,6 +47,17 @@ def run(
         rebuild=lambda: None,
         now=env.now,
     )
+
+
+def test_the_run_says_how_many_missions_are_left(env: Env, caplog: pytest.LogCaptureFixture) -> None:
+    """Maintainer 2026-11-02: `ingest` reports every mission, a reprocess in the terminal said nothing until the end."""
+    with caplog.at_level(logging.INFO, logger="il2ks.ingest.reprocess"):
+        run(env, since=date(2026, 4, 1), until=date(2026, 4, 30))
+
+    lines = [r.getMessage() for r in caplog.records]
+    assert "reprocessing 3 missions" in lines
+    counts = [m.groups() for m in (re.search(r"(\d) of 3 missions done, (\d) left", line) for line in lines) if m]
+    assert counts == [("1", "2"), ("2", "1"), ("3", "0")]
 
 
 @pytest.mark.parametrize(
@@ -63,6 +77,48 @@ def run(
 )
 def test_mission_in_span(uid: str, since: date | None, until: date | None, expected: bool) -> None:
     assert mission_in_span(uid, since, until) is expected
+
+
+@pytest.mark.parametrize(
+    ("uid", "since", "until", "expected"),
+    [
+        (MIDDLE, datetime(2026, 4, 15, 12, 0), None, True),  # the start counts by its minute
+        (MIDDLE, datetime(2026, 4, 15, 12, 1), None, False),
+        (MIDDLE, None, datetime(2026, 4, 15, 12, 0), True),
+        (MIDDLE, None, datetime(2026, 4, 15, 11, 59), False),
+        ("2026-04-15_12-00-59", None, datetime(2026, 4, 15, 12, 0), True),  # the whole last minute
+        (MIDDLE, date(2026, 4, 15), datetime(2026, 4, 15, 12, 0), True),  # one end with a time, one without
+        (MIDDLE, datetime(2026, 4, 15, 12, 0), date(2026, 4, 15), True),
+        (MIDDLE, datetime(2026, 4, 14, 23, 0), datetime(2026, 4, 15, 1, 0), False),
+    ],
+)
+def test_a_time_narrows_the_span_to_the_minute(
+    uid: str, since: SpanBound | None, until: SpanBound | None, expected: bool
+) -> None:
+    assert mission_in_span(uid, since, until) is expected
+
+
+@pytest.mark.parametrize(
+    ("since", "until", "expected"),
+    [
+        (date(2026, 4, 2), date(2026, 4, 1), True),
+        (date(2026, 4, 1), date(2026, 4, 1), False),
+        (datetime(2026, 4, 1, 18, 0), datetime(2026, 4, 1, 17, 59), True),
+        (datetime(2026, 4, 1, 18, 0), datetime(2026, 4, 1, 18, 0), False),
+        (datetime(2026, 4, 1, 18, 0), date(2026, 4, 1), False),  # a date is the whole day, so it holds that time
+        (date(2026, 4, 1), datetime(2026, 4, 1, 0, 0), False),
+        (date(2026, 4, 2), datetime(2026, 4, 1, 23, 59), True),
+        (None, date(2026, 4, 1), False),
+        (date(2026, 4, 1), None, False),
+    ],
+)
+def test_a_reversed_span(since: SpanBound | None, until: SpanBound | None, expected: bool) -> None:
+    assert span_is_reversed(since, until) is expected
+
+
+def test_a_span_with_times_picks_the_missions_of_those_minutes(env: Env) -> None:
+    summary = run(env, since=datetime(2026, 4, 15, 12, 0), until=datetime(2026, 4, 30, 23, 59))
+    assert sorted(summary.ok) == [MIDDLE, LAST]
 
 
 def test_since_and_until_are_inclusive(env: Env) -> None:

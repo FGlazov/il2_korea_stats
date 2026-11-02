@@ -441,6 +441,8 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
   sortie quip and badge; "Taxi/takeoff accidents" as the display name; mission counters; plain sections on the aircraft and mission pages holding every optional list column, the
   vulched count on all three levels; the profile gained total assists and gun accuracy (OQ-144, OQ-145).
 - ✅ **No lone items, header on a first visit** (maintainer, 2026-11-02; unreleased): `text-wrap` for text and link rows, the heading font preloaded (doc 16 "No lone items", "Font loading").
+- ✅ **Reprocess a time span, list and filter additions** (maintainer, 2026-11-02; unreleased): the admin form with dates and optional times (doc 14), two decimals and per-language percent signs,
+  incident columns and the incident filter with its partial indexes (OQ-147), friendly fire split into air and ground, four hall-of-shame tiles and 2^4 quip cases (OQ-148), the all-time Jet Hunter (OQ-149), Firestorm (OQ-150), Surgical Strike (OQ-151), Flak Dodger (OQ-152), a platinum Limping Home (OQ-153), ribbons in their own section.
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).

@@ -45,7 +45,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Bomber Hunter"),
         gettext_lazy("Enemy bombers, attackers and transports shot down."),
     ),
-    "jet_hunter": (gettext_lazy("Jet Hunter"), gettext_lazy("Enemy jets shot down from a propeller aircraft.")),
+    "jet_hunter": (
+        gettext_lazy("Jet Hunter"),
+        gettext_lazy("Enemy jets shot down from a propeller aircraft over your career."),
+    ),
     "tank_buster": (gettext_lazy("Tank Buster"), gettext_lazy("Tanks destroyed over your career.")),
     "ground_sortie": (gettext_lazy("Target-Rich"), gettext_lazy("Ground targets destroyed in a single sortie.")),
     "survivor": (
@@ -73,6 +76,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
         gettext_lazy("Top Rated"),
         gettext_lazy("The highest Elo rating reached, in the prop or the jet pool."),
     ),
+    "attack_rate_peak": (
+        gettext_lazy("Surgical Strike"),
+        gettext_lazy("The highest ground score per hour on target reached, with at least 10 minutes on target."),
+    ),
     "ground_score": (gettext_lazy("Ground Pounder"), gettext_lazy("Ground score in total, all sorties together.")),
     "first_blood": (
         gettext_lazy("First Blood"),
@@ -81,6 +88,17 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     "multi_kill": (
         gettext_lazy("Hot Streak"),
         gettext_lazy("Air kills within two minutes in one sortie: a double, a triple, a quad."),
+    ),
+    "multi_kill_ground": (
+        gettext_lazy("Firestorm"),
+        gettext_lazy("Ground targets destroyed within two minutes in one sortie."),
+    ),
+    "life_kills_ground": (
+        gettext_lazy("Flak Dodger"),
+        gettext_lazy(
+            "Ground kills in one life of attack sorties: everything since the last death or capture in one, "
+            "the fatal sortie included."
+        ),
     ),
     "types_flown": (gettext_lazy("Type Collector"), gettext_lazy("Different aircraft types flown.")),
     "types_with_kills": (
@@ -105,6 +123,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
 # career (all-time) words.
 TOUR_TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Tour Sky Hunter"), gettext_lazy("Air kills in one tour, all sorties together.")),
+    "jet_hunter": (
+        gettext_lazy("Tour Jet Hunter"),
+        gettext_lazy("Enemy jets shot down from a propeller aircraft in one tour."),
+    ),
     "tank_buster": (gettext_lazy("Tour Tank Buster"), gettext_lazy("Tanks destroyed in one tour.")),
     "flight_hours": (
         gettext_lazy("Tour Hours Aloft"),
@@ -136,6 +158,7 @@ class Rarity:
 
 
 NO_RARITY = Rarity(None, "", "")
+_LEVEL_ORDER: Mapping[RarityLevel, int] = {"epic": 0, "rare": 1, "": 2}
 
 
 def rarity(holding: Holding | None) -> Rarity:
@@ -176,6 +199,8 @@ def threshold_text(achievement: Achievement, tier: int, *, all_time: bool = Fals
         return ngettext("%(n)s tour", "%(n)s tours", n) % {"n": n}
     if achievement.unit == "weeks":
         return ngettext("%(n)s week", "%(n)s weeks", n) % {"n": n}
+    if achievement.unit == "points_hour":
+        return _("%(n)s pts/h") % {"n": n}
     return str(n)
 
 
@@ -197,6 +222,7 @@ class MedalInfo:
     icon: str
     tiers: tuple[Tier, ...]
     kind: Kind = "medal"
+    style: int = 0  # the ribbon's stripe pattern (see `RIBBON_STYLES`)
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,7 +297,9 @@ def info(achievement: Achievement, config: AchievementConfig, *, all_time: bool 
         Tier(n, tier_name(n), tier_slug(n), threshold_text(achievement, n, all_time=all_time))
         for n in range(1, achievement.top_tier + 1)
     )
-    return MedalInfo(achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind)
+    return MedalInfo(
+        achievement.key, name, description, icon_name(achievement.key), tiers, achievement.kind, _style(achievement.key)
+    )
 
 
 def all_info(config: AchievementConfig, *, all_time: bool = False) -> list[MedalInfo]:
@@ -331,11 +359,17 @@ def medals_of(
     return medals
 
 
+def _best_first(medal: Medal) -> tuple[int, int, float]:
+    """The profile's order, as the eye reads it: the highest tier first, within a tier the glow, the ring, then neither,
+    the newest first among equals. The share itself is hover text, so it does not order them."""
+    return (-medal.tier, _LEVEL_ORDER[medal.rarity.level], -medal.earned_at.timestamp())
+
+
 def medal_set(
     rows: Iterable[PlayerAchievement], holdings: Mapping[HoldingKey, Holding], config: AchievementConfig
 ) -> MedalSet:
-    """A profile's best tier of each achievement split into medals and ribbons."""
-    best = medals_of(rows, holdings, config, highest_only=True)
+    """A profile's best tier of each achievement split into medals and ribbons, each in `_best_first` order."""
+    best = sorted(medals_of(rows, holdings, config, highest_only=True), key=_best_first)
     return MedalSet(
         medals=[m for m in best if m.kind == "medal"],
         ribbons=[m for m in best if m.kind == "ribbon"],

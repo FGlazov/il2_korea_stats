@@ -47,6 +47,38 @@ def test_abandoned_aircraft_destroyed_long_after_the_sortie_end_is_still_credite
     assert by_acct(result, 1).aircraft_status == "destroyed"
 
 
+def test_a_pilot_who_left_a_damaged_aircraft_is_no_early_bailout() -> None:
+    """Maintainer 2026-11-02: the penalty stops pilots bailing out of a sound aircraft to deny a kill, so an aircraft
+    the pilot damaged themselves does not count, as after a collision (self damage is `NO` attacker)."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.damage(100, NO, 100, 0.5)
+    _bailout(sc)
+    a = by_acct(sc.result(), 1)
+    assert a.pilot_fate == "bailed_out"
+    assert not a.suspected_early_bailout
+
+
+def test_the_line_that_destroys_the_aircraft_is_no_damage_before_the_bailout() -> None:
+    """Most bailouts log a full self-damage line on the tick of the AType 3: it says nothing about a crash."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.damage(100, NO, 100, 1.0)
+    sc.kill(100, NO, 100)
+    _bailout(sc, aircraft_destroyed_after=None)
+    assert by_acct(sc.result(), 1).suspected_early_bailout
+
+
+def test_damage_repaired_before_the_last_flight_is_no_reason_to_leave() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.damage(50, NO, 100, 0.5)
+    sc.land(60, 100)
+    sc.takeoff(90, 100)
+    _bailout(sc)
+    assert by_acct(sc.result(), 1).suspected_early_bailout
+
+
 def test_suspected_early_bailout_without_attacker_damage() -> None:
     sc = Scenario()
     sc.fly_a()

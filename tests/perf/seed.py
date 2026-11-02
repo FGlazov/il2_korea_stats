@@ -92,6 +92,9 @@ def fill(
                     is_death=lost and fate >= 0.2,
                     flight_time_s=300.0 + rng.randrange(3000),
                     damage_taken=1.0 if lost else 0.0,
+                    taxi_accident=lost and i % 11 == 0,
+                    strafed_on_ground=lost and i % 13 == 0,
+                    botched_landing=not lost and i % 17 == 0,
                 )
             )
         count = len(sorties)

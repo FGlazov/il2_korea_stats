@@ -14,11 +14,12 @@ import os
 import re
 import sys
 from collections.abc import Callable, Sequence
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from il2ks import __version__
 from il2ks.config import Config, ConfigError, load_config
+from il2ks.core.logparse.files import SpanBound, span_is_reversed
 from il2ks.exitcodes import EXIT_FAILED, EXIT_LOCKED, EXIT_OK, EXIT_USAGE
 from il2ks.ops.migrate import migrate_if_needed
 from il2ks.ops.setup import HTTPS_MODES
@@ -34,6 +35,7 @@ OPS_COMMANDS = frozenset(
 
 log = logging.getLogger("il2ks.cli")
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+_DATE_TIME_RE = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}")
 
 
 def _django_setup() -> None:
@@ -55,14 +57,16 @@ def _setup_pending() -> bool:
         return False
 
 
-def _iso_date(text: str) -> date:
-    """argparse type for `YYYY-MM-DD` (strictly: not `20260401` or `2026-W14-3`)."""
+def _span_bound(text: str) -> SpanBound:
+    """argparse type for `YYYY-MM-DD`, or `YYYY-MM-DD HH:MM` (strictly: not `20260401` or `2026-W14-3`)."""
     try:
+        if _DATE_TIME_RE.fullmatch(text) is not None:
+            return datetime.fromisoformat(text)
         if _DATE_RE.fullmatch(text) is None:
             raise ValueError(text)
         return date.fromisoformat(text)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"{text!r} is not a date, expected YYYY-MM-DD") from None
+        raise argparse.ArgumentTypeError(f"{text!r} is not a date, expected YYYY-MM-DD or 'YYYY-MM-DD HH:MM'") from None
 
 
 type SubParsers = argparse._SubParsersAction[argparse.ArgumentParser]  # pyright: ignore[reportPrivateUsage]
@@ -282,12 +286,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     reprocess.add_argument("--yes", action="store_true", help="with --wipe: do not ask for the typed confirmation")
     reprocess.add_argument("--mission", action="append", metavar="UID", help="only this mission (repeatable)")
-    span_note = "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive."
-    reprocess.add_argument(
-        "--since", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or after this date. {span_note}"
+    span_note = (
+        "The date is the one in the mission UID, i.e. the server's local time (not UTC). Inclusive. "
+        "With a time ('YYYY-MM-DD HH:MM', in quotes) it counts to the minute."
     )
     reprocess.add_argument(
-        "--until", type=_iso_date, metavar="YYYY-MM-DD", help=f"only missions on or before this date. {span_note}"
+        "--since", type=_span_bound, metavar="YYYY-MM-DD", help=f"only missions on or after this date. {span_note}"
+    )
+    reprocess.add_argument(
+        "--until", type=_span_bound, metavar="YYYY-MM-DD", help=f"only missions on or before this date. {span_note}"
     )
     reprocess.add_argument("--workers", type=int, help="parse/replay worker processes (default: CPUs - 1)")
     reprocess.add_argument("--wait", type=float, metavar="SECONDS", help=wait_help)
@@ -544,7 +551,7 @@ def _writer_command(command: str, ns: argparse.Namespace) -> int:
         return EXIT_USAGE
     if ns.command == "reprocess" and ns.wipe and not ns.yes and not _confirm_wipe():
         return EXIT_USAGE
-    if ns.command == "reprocess" and ns.since is not None and ns.until is not None and ns.since > ns.until:
+    if ns.command == "reprocess" and span_is_reversed(ns.since, ns.until):
         print(f"il2ks: --since {ns.since} is after --until {ns.until}", file=sys.stderr)
         return EXIT_USAGE
     try:

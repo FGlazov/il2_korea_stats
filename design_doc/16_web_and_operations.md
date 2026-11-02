@@ -70,7 +70,9 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
 - **One mechanism**: `{% sort_th ... hint=X %}` and `{% col_th label numeric=True hint=X %}` (`templatetags/il2ks.py`, components `col_th.html`,
   `col_hint.html`). `X` is a key of `web/column_hints.py::HINTS` (the single place with the wording, with `Translators:` comments) or a ready
   text. Optional columns (`web/columns.py`) use `Column.description`: the column's own `hint`, else the `HINTS` entry with the same key as
-  the column; the picker's tooltip and the header show the same text. Obvious columns (Name, Date, Aircraft, Sorties...) get none.
+  the column; the picker's tooltip and the header show the same text. Obvious columns (Name, Date, Aircraft, Sorties...) get none. A default header and the optional column of the same number carry the same key, so
+  a table does not explain a count only when it is optional (audit of all tables, 2026-11-02). A key that names a text a table cannot honour gets its own entry: the aircraft tables use
+  `ground_hour`, not `score_per_hour`, which speaks of who is ranked. The killboard's Deaths (deaths to one opponent) stay plain.
 - **Rendering**: the header gets class `has-hint`, a dotted underline on the label and a small `?` marker. The text is a `role="tooltip"`
   element inside the `<th>`; the label (a plain header: a `tabindex=0` span, a sortable one: the sort link itself) has `aria-describedby` to
   it, so a screen reader reads it as the description and the link's name stays "Kills". The marker is `aria-hidden` and only serves pointers.
@@ -121,7 +123,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   `?seat=any` both (a Gunner badge marks them). Hidden players' sorties and hidden missions are left out (the sortie page answers 404 for them, so a
   row would be a dead link; the mission page still lists a hidden player anonymised). Whole-row link to the sortie (the date), pilot, aircraft and
   mission links keep working. Shares the player list's filter parsing, sort whitelist, page code and aircraft cell. Indexes (migration 0112):
-  `sortie_recent` (`-spawned_at, -id, role, mission, player`: the newest-first walk and a covering COUNT) and `sortie_aircraft_recent`. A tour-scoped view
+  `sortie_recent` (`-spawned_at, -id, role, mission, player`: the newest-first walk and a covering COUNT) and `sortie_aircraft_recent`. **Incident filter** (`?incident=taxi|botched|strafed`, maintainer 2026-11-02, OQ-147): one select on both sortie lists; the flags are rare, so each has a partial index (`sortie_taxi_recent`, `sortie_botched_recent`, `sortie_strafed_recent`: `-spawned_at, -id` where the flag is set) that serves the page and its COUNT. The incident columns of the mission, aircraft and player lists are ordinary optional columns: rare sorts on small tables, no index. A tour-scoped view
   sorts the tour's sorties (a month of play) because the tour lives on the mission, not the sortie row (allowance in `tests/perf/query_plans.py`).
   Budget 6 (site context 2, tours, aircraft choices, count, page).
 - **Mission detail**: tiles, **plain figures** (`missions/detail_secondary.html`, no highlight, styled like the profile's ratios: hall of shame incidents; other totals with
@@ -195,7 +197,7 @@ Table headers whose meaning isn't obvious (Elo, time on target, accuracy, K/L, a
   kills), **quick first kill** (within 7 minutes of takeoff or an air start's spawn), **marathon** (1 hour or more of flight); none for gunners or
   ordinary sorties. The bomber and first-kill facts come from the timeline (`sortie_view.build_highlights`, `Highlights`); without it those two
   spots are skipped. Thresholds were read off the September 2026 archive (15,245 pilot sorties; each spot fires on 0.2% to 2% of them). Other
-  spots: hall of shame (every combination of taxi/takeoff accidents, friendly fire and botched landings, 2^3 cases: 3-6 variants each, and a separate warmer variant when a rate per sortie is
+  spots: hall of shame (every combination of taxi/takeoff accidents, friendly-fire air kills, friendly-fire ground kills and botched landings, 2^4 cases (`flavor.SHAME_SPOTS`; the older keys keep their stored admin choices and mean friendly air kills, the `own_ground` keys are new): 3-6 variants each, and a separate warmer variant when a rate per sortie is
   strictly above the 90th percentile of pilots with at least `[marks] min_sorties` sorties in the same scope, all time or the selected tour; only
   the elevated kind is named, no ranking; `[DECIDED]` maintainer, 2026-10-04, OQ-74, wording still to be reviewed in `src/il2ks/web/flavor.py`),
   home top pilots (doesn't name the pilot), home "nobody scored", an empty tour. Quiet italic `.flavor` style. Two lines were replaced at the

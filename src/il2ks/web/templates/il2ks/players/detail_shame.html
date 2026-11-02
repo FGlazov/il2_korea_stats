@@ -1,15 +1,17 @@
-{# il2ks-template: templates/il2ks/players/detail_shame.html v2.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_shame.html v2.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
-  detail_shame.html: the light-hearted "hall of shame" (doc 13): taxi and takeoff accidents, botched landings and
-  friendly-fire kills (friendly objects the pilot destroyed; OQ-72). Being strafed on the ground is no shame: that one is
-  under "Other totals". Context: player, stats, marks (stat thresholds of the scope, FR-WEB-22). The quip is flavor
-  text (FR-WEB-23), stable per player; it depends on which incidents the pilot has and whether their rate is in the top 10%.
+  detail_shame.html: the light-hearted "hall of shame" (doc 13): four tiles, taxi and takeoff accidents, botched
+  landings, friendly-fire air kills and friendly-fire ground kills (friendly objects the pilot destroyed; OQ-72). Being
+  strafed on the ground is no shame: that one is under "Other totals". Context: player, stats, marks (stat thresholds
+  of the scope, FR-WEB-22). The quip, full width under the tiles, is flavor text (FR-WEB-23), stable per player; it
+  depends on which of the four incidents the pilot has (16 cases) and whether their rate is in the top 10%.
 {% endcomment %}<section class="shame">
   <h2>{% translate "Hall of shame" %}</h2>
   <div class="stat-tiles shame__tiles">
     {% stat_tile stats.taxi_accidents|num _("Taxi/takeoff accidents") sub=_("Lost before the wheels left the ground, by their own doing") icon="stat/taxi-accidents" %}
     {% stat_tile stats.botched_landings|num _("Botched landings") sub=_("Crashed or badly damaged it landing at an airfield, by their own doing") icon="stat/botched-landing" %}
-    {% stat_tile stats.friendly_kills|num _("Friendly-fire kills") sub=_("Friendly aircraft and ground objects they destroyed") icon="stat/friendly-fire" %}
-    {% shame_flavor stats player.pk as shame_quip %}{% if shame_quip %}<p class="shame__quip">{{ shame_quip }}</p>{% endif %}
+    {% stat_tile stats.friendly_kills_air|num _("Friendly-fire air kills") sub=_("Friendly aircraft they shot down") icon="stat/friendly-fire" %}
+    {% stat_tile stats.friendly_kills_ground|num _("Friendly-fire ground kills") sub=_("Friendly ground objects they destroyed") icon="stat/friendly-fire" %}
   </div>
+  {% shame_flavor stats player.pk as shame_quip %}{% if shame_quip %}<p class="shame__quip">{{ shame_quip }}</p>{% endif %}
 </section>

@@ -119,6 +119,69 @@ def test_filters(client: Client) -> None:
     )  # unknown values are ignored
 
 
+def flag_incidents() -> None:
+    """Maverick's September sortie taxied into trouble, Goose botched his landing, Cora was strafed on the ground."""
+    PlayerSortie.objects.filter(name_at_time="Maverick", aircraft__log_name="MiG-15bis").update(taxi_accident=True)
+    PlayerSortie.objects.filter(name_at_time="Goose").update(botched_landing=True)
+    PlayerSortie.objects.filter(name_at_time="Cora").update(strafed_on_ground=True)
+
+
+def test_incident_filter_each_value_and_an_unknown_one(client: Client) -> None:
+    seed()
+    flag_incidents()
+
+    assert names(client, "?tour=all&incident=taxi") == ["Maverick"]
+    assert names(client, "?tour=all&incident=botched") == ["Goose"]
+    assert names(client, "?tour=all&incident=strafed") == ["Cora"]
+    assert names(client, "?incident=strafed") == ["Cora"]  # the current tour
+    assert names(client, "?incident=taxi") == []
+    assert sorted(names(client, "?tour=all&incident=bogus")) == sorted(names(client, "?tour=all"))  # ignored
+    assert names(client, "?tour=all&incident=taxi&outcome=shot_down") == []
+    assert names(client, "?tour=all&incident=taxi&outcome=landed") == ["Maverick"]
+    body = client.get("/sorties/?tour=all").content.decode()
+    assert 'name="incident"' in body
+    assert "Taxi/takeoff accident" in body
+    assert "Botched landing" in body
+    assert "Strafed on the ground" in body
+
+
+def test_incident_filter_on_a_players_list(client: Client) -> None:
+    seed()
+    flag_incidents()
+    maverick = Player.objects.get(account_uuid=account(1)).pk
+    cora = Player.objects.get(account_uuid=account(5)).pk
+
+    def rows(pk: int, query: str) -> list[str]:
+        response = client.get(f"/players/{pk}/sorties/?tour=all{query}")
+        assert response.status_code == 200
+        return [row.aircraft.log_name for row in response.context["page_obj"]]
+
+    assert rows(maverick, "&incident=taxi") == ["MiG-15bis"]
+    assert rows(maverick, "&incident=botched") == []
+    assert rows(maverick, "&incident=taxi&outcome=shot_down") == []
+    assert rows(maverick, "&incident=bogus") == ["IL-10", "MiG-15bis"]
+    assert rows(cora, "&incident=strafed") == ["MiG-15bis"]
+    body = client.get(f"/players/{maverick}/sorties/?tour=all&incident=taxi").content.decode()
+    assert 'name="incident"' in body
+    assert "Strafed on the ground" in body
+
+
+def test_incident_filter_survives_paging_and_sorting(client: Client) -> None:
+    save(
+        mission(tuple(sortie(i, i + 1, name=f"P{i:02d}") for i in range(ROW_PAGE_SIZE + 5))),
+        meta("2026-10-02_10-00-00", STARTED_AT),
+    )
+    PlayerSortie.objects.update(botched_landing=True)
+
+    first = client.get("/sorties/?incident=botched&sort=-kills_air")
+
+    assert first.context["page_obj"].paginator.count == ROW_PAGE_SIZE + 5
+    links = re.findall(r'href="([^"]*page=2[^"]*)"', first.content.decode())
+    assert links
+    assert all("incident=botched" in link and "sort=-kills_air" in link for link in links)
+    assert len(client.get("/sorties/?incident=botched&page=2").context["page_obj"]) == 5
+
+
 def test_sorts(client: Client) -> None:
     seed()
 

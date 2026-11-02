@@ -50,7 +50,7 @@ explained. (Environment variables such as `IL2KS_SCORE_AIR_KILL_PVP` set the fil
 |---|---|---|
 | Re-scores every sortie | `[score]` points and penalties, `[ratings]`, `[killboard] assists`, the flight-time score | Shown as *pending*. The log watcher applies all pending changes together within a minute or so (one re-score and rebuild), or `il2ks rebuild-aggregates` does. Until then every page shows the old numbers, and new missions use the old rules too, so nothing is ever mixed. |
 | Moves missions into other tours | `[tours]`, "new tour after a decisive mission" | Shown as *pending*. The watcher reassigns the missions and rebuilds, or run `il2ks rebuild-aggregates --retour`. |
-| New missions at once | `[rules]`, `[replay]` | Used by the next mission that is ingested. Older missions keep their numbers until **Reprocess all missions** (Ingestion status page) or `il2ks reprocess`. |
+| New missions at once | `[rules]`, `[replay]` | Used by the next mission that is ingested. Older missions keep their numbers until **Reprocess all missions** or **Reprocess a time span** (Ingestion status page) or `il2ks reprocess`. |
 | Applies at once | The board minimums `min_sorties`, `min_attack_sorties`, `min_time_on_target_minutes`, `min_air_superiority_sorties`, `min_air_superiority_minutes`, and `[marks]` | The boards use them on the next page view; the Top 10%/25% marks are computed again when you save. |
 | Recomputed by the next rebuild | `[score] min_elo_games` | Shown as *pending*, applied by the watcher's rebuild (or `il2ks rebuild-aggregates`) together with other pending changes. It re-scores nothing: it decides which tours the stored all-time Elo may come from (the best tour with at least that many games), and the Elo boards and Elo marks follow once it is applied. |
 
@@ -88,7 +88,8 @@ il2ks ignores, for example a misspelled key.
 Good to know:
 
 - `reprocess` must be told what to do: `--all` for every mission, or `--since 2026-09-01` and/or `--until 2026-09-30`
-  for a range of days (the server's local days), or `--mission UID` for one. It can take a long time on a big archive.
+  for a range of days (the server's local days; add a time to the minute with `'2026-09-01 18:00'`), or `--mission UID` for one. The Ingestion status page has the same
+  time span in a form. It can take a long time on a big archive.
 - If another il2ks job holds the database (the log watcher is ingesting), the command stops with a message. Add
   `--wait 600` to wait up to ten minutes instead.
 - `rebuild-aggregates` is quick. Both commands also refresh the ratings, achievements and tours.

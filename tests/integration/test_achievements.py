@@ -6,9 +6,13 @@ import pytest
 from django.template import Context
 from django.test import Client
 
+from il2ks.core.achievements import ACHIEVEMENTS
 from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, Tour
+from il2ks.db.site import get_site_settings
 from il2ks.ingest.achievements import recompute_holders
 from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
+from il2ks.queries import achievements as reads
+from il2ks.web import medals
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
 from tests.simple_reads import PROFILE_READS_ALL_TIME, assert_simple_reads
 
@@ -345,6 +349,33 @@ def test_a_medal_row_and_a_ribbon_rack_split_by_kind() -> None:
     assert html.index("Charmed Life") < html.index("Sky Hunter")  # medals first, then the ribbon rack
 
 
+def test_the_profile_lists_the_best_tier_first_then_the_rarest_then_the_newest() -> None:
+    """Maintainer 2026-11-02: best first, then the time achieved. The share of pilots alone put a platinum after a
+    silver, and the share is only hover text: the tier colour first, then the glow and the ring (`Rarity.level`)."""
+    seed()
+    config = medals.AchievementConfig.from_row(get_site_settings())
+    rows = {r.key: r for r in reads.player_rows(pk(1), None)}
+    common, rare_older, rare_newer, gold, epic_bronze = [
+        rows[m.key] for m in medals.medal_set(list(rows.values()), {}, config).medals[:5]
+    ]
+    for row, tier in ((common, 2), (rare_older, 2), (rare_newer, 2), (gold, 3), (epic_bronze, 1)):
+        row.tier = tier
+    rare_older.earned_at = STARTED_AT
+    rare_newer.earned_at = STARTED_AT + timedelta(days=1)
+    holdings: dict[reads.HoldingKey, reads.Holding] = {
+        (None, common.key, 2): reads.Holding(50, 100),
+        (None, rare_older.key, 2): reads.Holding(2, 100),
+        (None, rare_newer.key, 2): reads.Holding(2, 100),
+        (None, gold.key, 3): reads.Holding(50, 100),
+        (None, epic_bronze.key, 1): reads.Holding(1, 200),
+    }
+
+    chosen = [common, rare_older, rare_newer, gold, epic_bronze]
+    shown = medals.medal_set(chosen, holdings, config).medals
+
+    assert [m.key for m in shown] == [gold.key, rare_newer.key, rare_older.key, common.key, epic_bronze.key]
+
+
 def test_the_sortie_page_shows_both_scopes() -> None:
     seed_two_tours()
     first = PlayerSortie.objects.get(player_id=pk(1), mission__mission_uid="t1")
@@ -412,7 +443,7 @@ def test_a_repaired_damaged_landing_earns_the_damaged_landing_medal() -> None:
     damaged_landing_world(0.7)
 
     assert PlayerSortie.objects.filter(landing_damage=0.7).count() == 5
-    assert held(1)["damaged_landing"] == 2  # 5 landings reach the second tier (3), not the third (10)
+    assert held(1)["damaged_landing"] == 3  # 5 landings reach the third tier (5), not the fourth (10)
 
 
 def test_an_undamaged_landing_earns_no_damaged_landing_medal() -> None:
@@ -431,29 +462,23 @@ def test_damaged_landing_incremental_equals_rebuild() -> None:
     assert any(row[2] == "damaged_landing" for row in incremental)
 
 
-def test_a_jet_shot_down_from_a_prop_counts_for_jet_hunter() -> None:
+def test_jets_shot_down_from_a_prop_count_for_jet_hunter_from_the_stored_column() -> None:
+    """The replay stores the fact (`PlayerSortie.kills_jet_from_prop`, AI jets and a friendly one decided there)."""
     save(
         mission(
             (
-                sortie(0, 1, aircraft_type="F-51D"),
+                sortie(0, 1, aircraft_type="F-51D", kills_jet_from_prop=1),
                 sortie(1, 2),
-                sortie(2, 3),  # a jet killing a jet
-                sortie(3, 4),
-                sortie(4, 5, aircraft_type="F-51D"),  # a prop killing a prop
-                sortie(5, 6, aircraft_type="IL-10"),
-                sortie(6, 7, aircraft_type="IL-10"),  # a prop killing a jet on its own side
-                sortie(7, 8),
-            ),
-            (
-                kill(100, 0, 1, killer_type="F-51D"),
-                kill(200, 2, 3),
-                kill(300, 4, 5, killer_type="F-51D", victim_type="IL-10"),
-                kill(400, 6, 7, killer_type="IL-10", is_friendly=True),
+                sortie(2, 3, aircraft_type="F-51D", kills_jet_from_prop=3),
             ),
         )
     )
 
-    assert [n for n in range(1, 9) if "jet_hunter" in held(n)] == [1]
+    tour = Tour.objects.get()  # one tour: its tiers are 1 / 3 / 5 / 10 (all time they are five times as many)
+    assert held(1, tour)["jet_hunter"] == 1
+    assert "jet_hunter" not in held(2, tour)
+    assert held(3, tour)["jet_hunter"] == 2
+    assert "jet_hunter" not in held(3)  # 3 jets all time: five are needed
 
 
 def timeline_kill(object_type: str, sortie_id: int | None = None) -> dict[str, object]:
@@ -461,13 +486,13 @@ def timeline_kill(object_type: str, sortie_id: int | None = None) -> dict[str, o
     return {"tick": 100, "kind": "kill", "detail": object_type, "counterpart": counterpart}
 
 
-def test_ai_aircraft_count_for_bomber_hunter_and_jet_hunter() -> None:
+def test_ai_aircraft_count_for_bomber_hunter() -> None:
     """Kill rows are PvP only, so an AI victim comes from the timeline; "B 29" is how the log spells a B-29."""
     save(
         mission(
             (
                 sortie(0, 1, aircraft_type="F-51D", kills_air_ai=2),
-                sortie(1, 2, kills_air_ai=1),  # a jet killing an AI jet
+                sortie(1, 2, kills_air_ai=1),
                 sortie(
                     2, 3, kills_air_ai=1
                 ),  # its AI kill was a fighter, the bomber is a pilot's (counted from `Kill`)
@@ -485,8 +510,7 @@ def test_ai_aircraft_count_for_bomber_hunter_and_jet_hunter() -> None:
     rebuild_aggregates()
 
     assert held(1)["strike_hunter"] == 1
-    assert held(1)["jet_hunter"] == 1
-    assert not {"strike_hunter", "jet_hunter"} & (set(held(2)) | set(held(3)))
+    assert "strike_hunter" not in set(held(2)) | set(held(3))
 
 
 def test_the_upgrade_removes_the_negative_medals_and_the_ram_medal() -> None:
@@ -507,3 +531,54 @@ def test_the_upgrade_removes_the_negative_medals_and_the_ram_medal() -> None:
 
     assert PlayerAchievement.objects.count() == kept
     assert not AchievementHolders.objects.filter(key__in=("ram", "shame_taxi")).exists()
+
+
+def split_at_ribbons(client: Client, url: str) -> tuple[str, str]:
+    """The page, split at the "Ribbons" heading: (medal part, ribbon part)."""
+    html = client.get(url).content.decode()
+    head = '<h2 class="medal-section">Ribbons</h2>'
+    assert html.count(head) == 1
+    before, after = html.split(head)
+    return before, after
+
+
+@pytest.mark.parametrize("page", ["overview", "player"])
+def test_a_ribbon_is_drawn_as_a_ribbon_and_a_medal_as_a_medal(client: Client, page: str) -> None:
+    seed()
+    url = "/achievements/?tour=all" if page == "overview" else f"/players/{pk(1)}/achievements/?tour=all"
+    before, after = split_at_ribbons(client, url)
+    assert "medal__badge" in before
+    assert "ribbon__bar" not in before
+    assert "ribbon__bar" in after
+    assert "medal__badge" not in after
+
+
+@pytest.mark.parametrize("page", ["overview", "player"])
+def test_every_active_ribbon_is_listed_after_the_last_medal_under_a_ribbons_heading(client: Client, page: str) -> None:
+    seed()
+    url = "/achievements/?tour=all" if page == "overview" else f"/players/{pk(1)}/achievements/?tour=all"
+    before, after = split_at_ribbons(client, url)
+
+    ribbons = [a for a in ACHIEVEMENTS if a.kind == "ribbon"]
+    assert ribbons
+    for a in ACHIEVEMENTS:
+        marker = f">{medals.TEXTS[a.key][0]}<"
+        if a.kind == "ribbon":
+            assert marker in after, a.key
+            assert marker not in before, a.key
+        else:
+            assert marker in before, a.key
+            assert marker not in after, a.key
+
+
+@pytest.mark.parametrize("page", ["overview", "player"])
+def test_the_ribbons_heading_is_left_out_when_every_ribbon_is_switched_off(client: Client, page: str) -> None:
+    seed()
+    row = get_site_settings()
+    row.achievements = {"off": [a.key for a in ACHIEVEMENTS if a.kind == "ribbon"]}
+    row.save()
+    url = "/achievements/?tour=all" if page == "overview" else f"/players/{pk(1)}/achievements/?tour=all"
+    html = client.get(url).content.decode()
+
+    assert "Ribbons</h2>" not in html
+    assert "medal-list" in html

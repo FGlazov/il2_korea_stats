@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v7.3 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v8.0 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -721,9 +721,10 @@ a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .medal__tier { font-size: 0.8rem; color: var(--il2-muted); }
 .medal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 1rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
 .medal-list__item { padding: 1rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
-.medal-list__item--none .medal__badge { opacity: 0.6; } /* dim the badge, never the text (contrast) */
+.medal-list__item--none .medal__badge, .medal-list__item--none .ribbon__bar { opacity: 0.6; } /* dim the badge, never the text (contrast) */
 .medal-list__head { display: flex; gap: 0.8rem; align-items: flex-start; }
 .medal-list__head .medal { padding: 0; border: 0; background: none; }
+.medal-list__head .ribbon--bare { flex: none; margin-top: 0.15rem; padding: 0; border: 0; background: none; }
 .medal-list__head h2 { margin: 0; font-size: 1.15rem; }
 .medal-list__head p { margin: 0.2rem 0 0; font-size: 0.88rem; }
 .tier-list { margin: 0.8rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.25rem; }

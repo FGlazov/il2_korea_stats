@@ -112,7 +112,11 @@ PLAYER_SORTS: Mapping[str, SortSpec] = {
     "accuracy": Ratio("accuracy_hits", "accuracy_rounds"),
     "accuracy_air": Ratio("accuracy_air_hits", "accuracy_air_rounds"),
     "accuracy_ground": Ratio("accuracy_ground_hits", "accuracy_ground_rounds"),
-    "friendly_kills": "friendly_kills",
+    "friendly_kills_air": "friendly_kills_air",
+    "friendly_kills_ground": "friendly_kills_ground",
+    "taxi_accidents": "taxi_accidents",
+    "botched_landings": "botched_landings",
+    "strafed_on_ground": "strafed_on_ground",
     "first_seen": "first_seen",
 }
 DEFAULT_PLAYER_SORT = "-last_seen"

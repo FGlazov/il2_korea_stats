@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/summary.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/summary.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Summary: the flight (left) and the result (right). Context: sortie, detail (lost_to: who is behind the loss, FR-WEB-21).
   Labels follow doc 13: "left the server" is the `disconnected` flag (also set after a landing), never "disconnected in
@@ -26,14 +26,14 @@
     {% if not sortie.is_death and not sortie.is_captured and sortie.pilot_status != "dead" and sortie.pilot_status != "captured" %}<dt>{% translate "Pilot status" %}</dt><dd>{% status_badge sortie.pilot_status %}</dd>{% endif %}
     <dt>{% translate "Aircraft status" %}</dt><dd>{% aircraft_badge sortie.aircraft_status %}</dd>
     {# translators: damage the aircraft took in the sortie, 100% when it was destroyed #}
-    <dt>{% translate "Aircraft damage" %}</dt><dd>{% widthratio sortie.damage_taken 1 100 %}%</dd>
+    <dt>{% translate "Aircraft damage" %}</dt><dd>{{ sortie.damage_taken|percent:1 }}</dd>
     {% if sortie.pilot_health is not None %}
       {# translators: health left of the pilot at the end of the sortie, 0% when the pilot died #}
-      <dt>{% if sortie.role == "gunner" %}{% translate "Gunner health" %}{% else %}{% translate "Pilot health" %}{% endif %}</dt><dd>{% widthratio sortie.pilot_health 1 100 %}%</dd>
+      <dt>{% if sortie.role == "gunner" %}{% translate "Gunner health" %}{% else %}{% translate "Pilot health" %}{% endif %}</dt><dd>{{ sortie.pilot_health|percent:1 }}</dd>
     {% endif %}
     <dt>{% translate "Loss cause" %}</dt><dd>{% if sortie.loss_cause == "attacker" %}{% translate "Enemy action" %}{% elif sortie.loss_cause == "self" %}{% translate "Own doing (terrain, overstress, accident)" %}{% else %}<span class="muted">{% translate "Nothing lost" %}</span>{% endif %}</dd>
     {% if detail.lost_to %}<dt>{% translate "Lost to" %}</dt><dd>{{ detail.lost_to }}</dd>{% endif %}
     {% if sortie.disconnected %}<dt>{% translate "Left the server" %}</dt><dd>{% translate "Yes" %}</dd>{% endif %}
-    {% if sortie.friendly_kills or sortie.friendly_hits %}<dt>{% translate "Friendly fire" %}</dt><dd>{% blocktranslate with kills=sortie.friendly_kills|num hits=sortie.friendly_hits|num %}{{ kills }} kills, {{ hits }} hits{% endblocktranslate %}</dd>{% endif %}
+    {% if sortie.friendly_kills or sortie.friendly_hits %}<dt>{% translate "Friendly fire" %}</dt><dd>{% blocktranslate with air=sortie.friendly_kills_air|num ground=sortie.friendly_kills_ground|num hits=sortie.friendly_hits|num %}{{ air }} air kills, {{ ground }} ground kills, {{ hits }} hits{% endblocktranslate %}</dd>{% endif %}
   </dl>
 </div>

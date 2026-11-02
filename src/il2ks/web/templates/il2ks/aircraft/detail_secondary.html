@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail_secondary.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail_secondary.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_secondary.html: the figures under the tiles of an aircraft page, in the plain style of the profile's ratios: the
   ratios, the hall of shame and the other totals, so the page has everything the aircraft list offers as a column.
@@ -18,7 +18,7 @@
       <dt>{% translate "Ground kills per sortie" %}</dt>
       <dd>{{ tile.kills_ground|ratio:tile.sorties }}</dd>
       <dt>{% translate "Attack proficiency" %}</dt>
-      <dd>{{ tile.score_ground_attack|per_hour:tile.time_on_target_s }}</dd>
+      <dd>{{ tile.score_ground_attack|attack_rate:tile.time_on_target_s }}</dd>
       <dt>{% translate "Survival rate" %} <small>{% translate "sorties without a death" %}</small></dt>
       <dd>{{ survived|percent:tile.sorties }}</dd>
     </dl>
@@ -27,11 +27,13 @@
     <h2 class="stat-columns__title">{% translate "Hall of shame" %}</h2>
     <dl class="kv kv--compact">
       <dt>{% translate "Taxi/takeoff accidents" %} <small>{% translate "lost before the wheels left the ground, by their own doing" %}</small></dt>
-      <dd>{{ tile.taxi_accidents|num }} <small>{{ tile.taxi_accidents|percent:tile.sorties }}</small></dd>
+      <dd>{{ tile.taxi_accidents|num }} <small>{{ tile.taxi_accidents|incident_share:tile.sorties }}</small></dd>
       <dt>{% translate "Botched landings" %} <small>{% translate "crashed or badly damaged it landing at an airfield, by their own doing" %}</small></dt>
-      <dd>{{ tile.botched_landings|num }} <small>{{ tile.botched_landings|percent:tile.sorties }}</small></dd>
-      <dt>{% translate "Friendly-fire kills" %} <small>{% translate "friendly aircraft and ground objects they destroyed" %}</small></dt>
-      <dd>{{ tile.friendly_kills|num }}</dd>
+      <dd>{{ tile.botched_landings|num }} <small>{{ tile.botched_landings|incident_share:tile.sorties }}</small></dd>
+      <dt>{% translate "Friendly-fire air kills" %} <small>{% translate "friendly aircraft they shot down" %}</small></dt>
+      <dd>{{ tile.friendly_kills_air|num }}</dd>
+      <dt>{% translate "Friendly-fire ground kills" %} <small>{% translate "friendly ground objects they destroyed" %}</small></dt>
+      <dd>{{ tile.friendly_kills_ground|num }}</dd>
     </dl>
   </section>
   <section>

@@ -15,6 +15,34 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-154 Early bailout: how much damage makes a bailout fair** (doc 13; maintainer 2026-11-02: the penalty is for bailing out "WITHOUT having taken damage", to prevent denying air kills, and "if ejection happens before any damage should probably be the trigger")
+Applied: a suspected early bailout now needs under 20% damage from any source before the aircraft is logged destroyed. The log has no event at the moment the pilot leaves, so that is the closest the data allows. Of 296 suspected bailouts 57 are cleared, all at 49% damage or more; the other 239 had none or only tiny lines. Between 16% and 49% no sortie changes, so the exact number hardly matters. One limit: a wing torn off in a single moment logs no damage before the loss, so it looks like a sound aircraft and stays suspected. Fine?
+
+**OQ-153 Limping Home: the platinum tier** (doc 17; maintainer 2026-11-02: "why does limping home not have a platinum version?")
+Applied: it was the only medal with three tiers, for no reason beyond its first definition. Tiers are now 1 / 3 / 5 / 10 (157 / 23 / 5 / 1 of the local pilots), the same as Jet Hunter and First Blood, so ten landings moved from gold to platinum and five is the new gold. No pilot passes ten in a tour. Fine, or keep 10 as gold with a platinum above it?
+
+**OQ-152 Flak Dodger: name and tiers** (doc 17; maintainer 2026-11-02: "charmed life in a ground version would also be a good idea", and a name of its own)
+Applied: the ground kills of attack sorties in one life, tiers 100 / 250 / 500 / 1000 (78 / 23 / 9 / 0 of the 1,150 local pilots, the best at 893), about the shape of Charmed Life's 55 / 11 / 2 / 0. Attack sorties alone count: a fighter's strafing adds nothing, as an attack sortie adds nothing to Charmed Life. Do the name and the tiers suit?
+
+**OQ-151 Surgical Strike: name, tiers and minimum** (doc 17; maintainer 2026-11-02: "maybe also top rated for ground efficiency instead of elo?", and a name of its own, not "Top Rated Attacker")
+Applied: a new medal next to Top Rated, reading attack proficiency, with tiers of 300 / 600 / 1000 / 2500 points per hour on target (142 / 57 / 15 / 0 of the 1,150 local pilots; the best is at 2,143) and at
+least 10 minutes on target in the tour. Is this the "ground efficiency" you meant, and do the name and tiers suit?
+
+**OQ-150 Firestorm: name and tiers** (doc 17; a name of its own, not "Ground Hot Streak"; maintainer 2026-11-02: "maybe also do something like a 'ground hot streak'?")
+Applied: most ground kills within 120 s in one sortie, tiers 10 / 25 / 50 / 100 (346 / 201 / 90 / 32 of the 1,150 local pilots). Ground kills come in bunches, so the tiers are far above Hot Streak's 2 / 3 / 4 / 5,
+and bronze is common. Static objects count, as they do for the other ground medals. Fine, or higher?
+
+**OQ-149 All-time Jet Hunter: tiers** (doc 17; maintainer 2026-11-02: an all-time Jet Hunter with higher margins)
+Applied: the rule of the other career medals, five times the tour tiers, so all time 5 / 15 / 25 / 50 counted over all tours, and the tour medal is now called Tour Jet Hunter. Fine, or other tiers?
+
+**OQ-147 Incident columns and filter: where they apply** (doc 16; maintainer 2026-11-02: "add everything in the details to the extra columns", "filters for taxi accidents/botched landings/getting vulched")
+Applied: taxi/takeoff accidents, botched landings and strafed on the ground are optional columns on the mission, aircraft and player lists (the message did not name the list). The filter is one
+"Incident" select on the two sortie lists, so one incident at a time and no friendly-fire option. The shares in the summaries have two decimals; the friendly-fire rows stay plain counts. Fine, or change any of these?
+
+**OQ-148 Friendly fire split: what replaced what** (doc 13, doc 16; maintainer 2026-11-02: "split friendly fire kills ... everywhere")
+Applied: the total column and tile are gone in favor of "Friendly-fire air kills" and "Friendly-fire ground kills"; the total stays stored for the score penalty, which treats both the same. The sortie
+quip stays one spot, and the hall of shame's top-10% variants read two new metrics, one per kind. Should a friendly ground kill keep costing as much as a friendly air kill? Local data: 59 air against 1,033 ground.
+
 **OQ-143 Stats delay: what counts as a detail** (doc 02 FR-ING-25, doc 14 "Stats delay")
 Applied: the **side** is held back like the aircraft, so the red/blue counts in online now lag too and a player who joined within the delay has no side yet (a live count per side would show reinforcements).
 A name still appears the moment an unknown player first spawns, because the name comes from that line. `delay_minutes` is set in `il2ks.toml` only, not in the admin. The wording of the two notices is a first draft. Fine, or change any of these?

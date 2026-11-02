@@ -505,7 +505,7 @@ def _damage(amount: float, who: Who) -> str:
         return display.DASH
     if who.kind == "ai":
         return display.num(amount, 1)
-    return _("<1%") if amount < 0.005 else display.num(amount * 100) + "%"
+    return _("<1%") if amount < 0.005 else display.percent(amount, 1)
 
 
 # --- ammo ---------------------------------------------------------------------------------------------------------
@@ -708,7 +708,7 @@ def timeline_text(sortie: PlayerSortie, kind: str, detail: str) -> str:
 def damage_percent(fraction: float) -> str:
     """A damage fraction as a percentage: two decimals under 1% (`0.35%`), one from there (`12.5%`)."""
     percent = fraction * 100
-    return f"{display.num(percent, 2 if percent < 1 else 1)}%"
+    return display.with_percent_sign(display.num(percent, 2 if percent < 1 else 1))
 
 
 def hit_ammo(entry: Json) -> tuple[str, str]:

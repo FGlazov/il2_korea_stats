@@ -1,9 +1,12 @@
 """Display helpers behind the template tags (TD-22: ratios and durations are computed at read time)."""
 
+import re
 from datetime import UTC, datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
+from django.utils import translation
 
 from il2ks.web import display, icons
 
@@ -57,6 +60,35 @@ def test_per_hour_and_percent() -> None:
     assert display.percent(87, 100) == "87%"
     assert display.percent(1, 3, 1) == "33.3%"
     assert display.percent(1, 0) == display.DASH
+
+
+@pytest.mark.parametrize(
+    ("language", "expected"),
+    [
+        ("en", "33.33%"),
+        ("pt-br", "33,33%"),
+        ("de", "33,33\u00a0%"),  # a no-break space: the sign never wraps away from its number
+        ("fr", "33,33\u00a0%"),
+        ("es", "33,33\u00a0%"),
+        ("ru", "33,33\u00a0%"),
+    ],
+)
+def test_percent_is_written_the_way_the_language_writes_it(language: str, expected: str) -> None:
+    with translation.override(language):
+        assert display.percent(1, 3, 2) == expected
+
+
+def test_no_template_writes_a_percent_sign_by_hand() -> None:
+    """Numbers get their sign from `percent`, so de, es, fr and ru get the space before it."""
+    root = Path(display.__file__).parent / "templates"
+    by_hand = re.compile(r"(?:\}\}|%\}|>\s*\d+(?:[.,]\d+)?)%")
+    found = [
+        f"{path.relative_to(root)}:{n}"
+        for path in root.rglob("*.html")
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+        if by_hand.search(re.sub(r"\{%\s*(?:translate|blocktranslate).*?%\}|\{#.*?#\}", "", line))
+    ]
+    assert found == []
 
 
 @pytest.mark.parametrize(

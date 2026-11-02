@@ -301,6 +301,7 @@ def test_only_the_pure_running_totals_are_cumulative_and_the_elo_medal_is_per_to
     cumulative = {a.key for a in ACHIEVEMENTS if a.cumulative}
     assert cumulative == {
         "career_kills",
+        "jet_hunter",
         "tank_buster",
         "flight_hours",
     }

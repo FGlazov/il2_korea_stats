@@ -14,8 +14,8 @@ from django.utils.formats import number_format
 from django.utils.functional import Promise
 from django.utils.html import format_html
 from django.utils.safestring import SafeString
+from django.utils.translation import get_language, gettext_lazy
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
 
 from il2ks.core.catalog.loader import Side, side_of_country
 
@@ -126,12 +126,20 @@ def per_hour(count: object, seconds: object, places: int = 2) -> str:
     return num(top / (secs / 3600), places)
 
 
+_SPACE_BEFORE_PERCENT = frozenset({"de", "es", "fr", "ru"})
+
+
+def with_percent_sign(number: str) -> str:
+    """'1.23' -> '1.23%', or '1,23 %' with a no-break space in the languages that write it so."""
+    return f"{number}\u00a0%" if (get_language() or "").split("-")[0] in _SPACE_BEFORE_PERCENT else f"{number}%"
+
+
 def percent(part: object, whole: object, places: int = 0) -> str:
     """part / whole as a percentage ('87%'); the dash when whole is 0."""
     top, bottom = to_float(part), to_float(whole)
     if top is None or bottom is None or bottom == 0:
         return DASH
-    return num(top / bottom * 100, places) + "%"
+    return with_percent_sign(num(top / bottom * 100, places))
 
 
 # --- coalitions ---------------------------------------------------------------------------------------------------

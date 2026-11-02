@@ -18,7 +18,8 @@ HINTS: dict[str, Label] = {
     "elo_aircraft": _(
         "Rating of the aircraft type from air superiority duels between types. Every kill between two players in "
         "air superiority sorties is a game won by the killer's type, whoever flew it; 1500 at the start of a tour. "
-        "All time counts the best tour with enough games."
+        "A jet type beating a propeller type, and kills between two aircraft of one type, do not count. All time "
+        "counts the best tour with enough games."
     ),
     # Translators: tooltip of the "Elo" column header on the Elo leaderboards and an aircraft type's top pilots
     "elo": _(
@@ -28,7 +29,8 @@ HINTS: dict[str, Label] = {
     ),
     # Translators: tooltip of the "Encounters" column header of the Elo leaderboards (the number of rated games)
     "elo_games": _(
-        "Encounters: kills between two players in air superiority sorties, counted for the killer and for the victim."
+        "Encounters: kills between two players in air superiority sorties, counted for the killer and for the "
+        "victim, except a jet shooting down a propeller aircraft."
     ),
     # Translators: tooltip of the "Kills + losses" column header of an aircraft's matchup table
     "kills_plus_losses": _(
@@ -72,7 +74,7 @@ HINTS: dict[str, Label] = {
         "Points for ground kills (each kind of target has its own value, fences very little), with the same "
         "penalties as the air score. Air kills are scored separately."
     ),
-    # Translators: tooltip of the "Attack proficiency" and "Attack proficiency" column headers
+    # Translators: tooltip of the "Attack proficiency" column header of its leaderboard and home block
     "score_per_hour": _(
         "Ground score earned in attack sorties per hour spent on target. Only pilots with enough attack sorties and "
         "time on target are ranked."
@@ -80,11 +82,15 @@ HINTS: dict[str, Label] = {
     # Translators: tooltip of the "Time on target" column header
     "time_on_target": _(
         "Time spent attacking enemy ground targets in attack sorties: from a minute before the first bomb or rocket "
-        "released within 3 km of a target until the last such release. Releases far from any target count for "
-        "nothing. Not the same as flight time."
+        "released within 3 km of a target until a minute after the last such release. Releases far from any target "
+        "count for nothing. Not the same as flight time."
     ),
     # Translators: tooltip of the "Attack sorties" column header
     "attack_sorties": _("Sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."),
+    # Translators: tooltip of the optional "Share of attack sorties" column header of the aircraft list
+    "attack_share": _(
+        "Share of the sorties flown with bombs or rockets on board, or in a dedicated attacker such as the IL-10."
+    ),
     # Translators: tooltip of the "Air superiority sorties" column header
     "air_superiority_sorties": _("Sorties flown without bombs or rockets: guns only, with or without drop tanks."),
     # Translators: tooltip of the "Kills per hour" column header of the interception board and its home block
@@ -110,10 +116,21 @@ HINTS: dict[str, Label] = {
     "assists_air": _("Assists on aircraft. They earn score points."),
     # Translators: tooltip of the "Ground assists" column header
     "assists_ground": _("Assists on ground objects. They are counted but earn no score points."),
-    # Translators: tooltip of the "Friendly kills" column header
-    "friendly_kills": _(
-        "Aircraft or objects of your own side that you destroyed. They do not count as kills and cost score points."
+    # Translators: tooltip of the "Friendly-fire air kills" column header
+    "friendly_kills_air": _(
+        "Aircraft of the shooter's own side that were shot down. They do not count as kills and cost score points."
     ),
+    # Translators: tooltip of the "Friendly-fire ground kills" column header
+    "friendly_kills_ground": _(
+        "Vehicles, guns, buildings and other ground objects of the shooter's own side that were destroyed. "
+        "They do not count as kills and cost score points."
+    ),
+    # Translators: tooltip of the "Taxi/takeoff accidents" column header
+    "taxi_accidents": _("Aircraft lost before the wheels left the ground, by the pilot's own doing."),
+    # Translators: tooltip of the "Botched landings" column header
+    "botched_landings": _("Aircraft crashed or badly damaged landing at an airfield, by the pilot's own doing."),
+    # Translators: tooltip of the "Strafed on the ground" column header
+    "strafed_on_ground": _("Aircraft destroyed by the enemy while on the ground."),
     # Translators: tooltip of the "Aircraft lost" column header
     "planes_lost": _(
         "Aircraft destroyed or lost, including those where the pilot survived, for example by bailing out."
@@ -204,8 +221,77 @@ HINTS: dict[str, Label] = {
     "accuracy_ground": _(
         "Gun hits on ground targets per round fired, in attack sorties where the rounds fired are known."
     ),
+    # Translators: tooltip of the "Outcome" column header of the sortie tables
+    "outcome": _("How the sortie ended for the aircraft: landed, shot down, crashed and so on."),
+    # Translators: tooltip of the "Pilot fate" column header of the sortie tables
+    "pilot_fate": _("What became of the pilot: survived, bailed out, captured or dead."),
+    # Translators: tooltip of the "Air kills" column header
+    "kills_air": _("Aircraft shot down, players and AI together. Assists are counted separately."),
+    # Translators: tooltip of the "Ground kills" column header
+    "kills_ground": _("Ground targets destroyed, static objects included. Fences do not count."),
+    # Translators: tooltip of the "Flight time" column header
+    "flight_time": _("Time in the air. Taxiing does not count."),
+    # Translators: tooltip of the "Air kills (PvP)" column header
+    "kills_air_pvp": _("Aircraft flown by other players that were shot down."),
+    # Translators: tooltip of the "Air kills (AI)" column header
+    "kills_air_ai": _("AI aircraft that were shot down."),
+    # Translators: tooltip of the "Air score" column header of a sortie table: the score of that one sortie
+    "air_points": _(
+        "What this sortie added to the air score: points for air kills and assists and flight-time points if the "
+        "server enables them, minus its penalties. The sortie page says what a penalty was for."
+    ),
+    # Translators: tooltip of the "Ground score" column header of a sortie table: the score of that one sortie
+    "ground_points": _(
+        "What this sortie added to the ground score: points for ground kills, minus its penalties. The sortie page "
+        "says what a penalty was for."
+    ),
+    # Translators: tooltip of the "Loadout" column header (what the aircraft was armed with)
+    "payload": _("What the aircraft was armed with."),
+    # Translators: tooltip of the "Takeoffs" column header of a sortie table
+    "takeoffs": _("Takeoffs in this sortie. An aircraft can land, rearm and fly on."),
+    # Translators: tooltip of the "Landings" column header of a sortie table
+    "landings": _("Landings in this sortie. An aircraft can land, rearm and fly on."),
+    # Translators: tooltip of the "Deaths" column header
+    "deaths": _("Sorties that ended with the pilot dead."),
+    # Translators: tooltip of the "Bailouts" column header
+    "bailouts": _("Sorties in which the pilot bailed out."),
+    # Translators: tooltip of the "Pilots" column header of the aircraft list
+    "pilots": _("Different pilots who flew this aircraft."),
+    # Translators: tooltip of the "Air kills/h" column header of the aircraft list
+    "kills_per_hour": _("Aircraft shot down per hour in the air."),
+    # Translators: tooltip of the "Sorties per pilot" column header of the aircraft list
+    "sorties_per_pilot": _("Average number of sorties each pilot flew in this aircraft."),
+    # Translators: tooltip of the "Sorties per pilot" column header of the mission list
+    "sorties_per_player": _("Average number of sorties each player flew in this mission, gunners counted as players."),
+    # Translators: tooltip of the "REDFOR sorties" column header of the mission list
+    "redfor_sorties": _("Sorties flown for REDFOR in this mission."),
+    # Translators: tooltip of the "BLUFOR sorties" column header of the mission list
+    "blufor_sorties": _("Sorties flown for BLUFOR in this mission."),
+    # Translators: tooltip of the "Ended" column header of the mission list
+    "ended": _("When the mission ended."),
+    # Translators: tooltip of the "First seen" column header of the player list
+    "first_seen": _("When this pilot first flew here."),
+    # Translators: tooltip of the "Last seen" column header of the player list
+    "last_seen": _("When this pilot last flew here."),
+    # Translators: tooltip of the "Attack proficiency" column header of the player and aircraft tables (no ranking)
+    "ground_hour": _("Ground score earned in attack sorties per hour spent on target."),
+    # Translators: tooltip of the "Attack ground score" column header of the attack proficiency leaderboard
+    "attack_score": _("Ground score earned in attack sorties only."),
+    # Translators: tooltip of the "Average pilot Elo" column header of an aircraft's loadout and modification tables
+    "average_elo": _(
+        "Average Elo of the pilots behind these sorties, one vote per sortie: a pilot's rating in this aircraft type "
+        "if they have one, else their jet or propeller rating. Pilots without a rating are left out."
+    ),
+    # Translators: tooltip of the "Share" column header of the profile's "Caused by" table
+    "pve_death_share": _("This cause's share of all the pilot's deaths."),
+    # Translators: tooltip of the "Share" column header of the profile's "Victim" table
+    "pve_kill_share": _("This victim's share of all the pilot's kills."),
 }
-HINTS["ground_hour"] = HINTS["score_per_hour"]  # the optional "Attack proficiency" column (its key is its sort key)
+
+
+def registered(key: str) -> str:
+    """The description registered under `key`, "" without one. A key is never text to show (see `hint_text`)."""
+    return str(HINTS[key]) if key in HINTS else ""
 
 
 def hint_text(hint: object) -> str:

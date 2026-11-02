@@ -146,6 +146,22 @@ def _variants() -> list[Variant]:
         )
     )
 
+    for incident in sortie_reads.INCIDENT_FLAGS:
+        found.append(
+            _built(
+                "player-sorties",
+                lambda w, i=incident: sorties(w) + f"incident={i}&tour=all",
+                f"sorties incident={incident}",
+            )
+        )
+        found.append(
+            _built(
+                "player-sorties",
+                lambda w, i=incident: sorties(w) + f"incident={i}",
+                f"sorties current tour incident={incident}",
+            )
+        )
+
     # the site-wide sortie list (`/sorties/`): newest first is the indexed order; every other sort is a rare one
     found += _sorts(
         "sortie-list",
@@ -157,6 +173,9 @@ def _variants() -> list[Variant]:
     found += _sorts(
         "sortie-list", lambda w: "/sorties/?", list(sortie_reads.SORT_FIELDS), "all sorties current tour", ("-date",)
     )
+    for incident in sortie_reads.INCIDENT_FLAGS:
+        for scope in ("&tour=all", ""):
+            found.append(_fixed("sortie-list", f"/sorties/?incident={incident}{scope}"))
     for query in (
         "aircraft={aircraft}&tour=all",
         "q=Pilot&tour=all",

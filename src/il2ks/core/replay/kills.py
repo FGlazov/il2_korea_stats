@@ -121,6 +121,8 @@ def _result(
         victim_is_static=is_ground and info.is_static,
         victim_is_fence=is_ground and info.is_fence,
         victim_class=None if is_ground else info.cls,
+        victim_is_jet=info.propulsion == "jet",
+        victim_account_uuid=victim.sortie.account_uuid if victim.sortie is not None else None,
         tick=victim.tick,
         victim_object_id=victim.obj.object_id,
         victim_type=victim.obj.object_type,

@@ -6,6 +6,7 @@ player `account_uuid`. Rows are upserted by them so PKs (and URLs) survive `repr
 
 from __future__ import annotations
 
+from datetime import date, datetime, time
 from typing import ClassVar, Self
 
 from django.core.exceptions import ValidationError
@@ -13,6 +14,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from il2ks.core.logparse.files import SpanBound
 from il2ks.db.validators import NAV_URL_MAX_LENGTH, validate_http_url
 
 
@@ -260,7 +262,9 @@ class Counters(models.Model):
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
     # Friendly fire is tracked apart from the counters above (never in kills_*, assists)
-    friendly_kills = models.PositiveIntegerField(default=0)
+    friendly_kills = models.PositiveIntegerField(default=0)  # = friendly_kills_air + friendly_kills_ground
+    friendly_kills_air = models.PositiveIntegerField(default=0)
+    friendly_kills_ground = models.PositiveIntegerField(default=0)
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
     # Ground losses, combat role and time on target (FR-WEB-19/20)
@@ -270,6 +274,7 @@ class Counters(models.Model):
     attack_sorties = models.PositiveIntegerField(default=0)
     time_on_target_s = models.FloatField(default=0.0)
     # Ground kills by category (they sum to kills_ground) and how many of those were static objects (OQ-33, doc 13)
+    kills_jet_from_prop = models.PositiveIntegerField(default=0)  # Jet Hunter (all time: the sum of the tours)
     kills_tank_attack = models.PositiveIntegerField(default=0)  # tanks in attack sorties (tank busting)
     kills_ground_tank = models.PositiveIntegerField(default=0)
     kills_ground_vehicle = models.PositiveIntegerField(default=0)
@@ -509,7 +514,9 @@ class Mission(models.Model):
     blufor_players = models.FloatField(default=0.0)
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
-    friendly_kills = models.PositiveIntegerField(default=0)
+    friendly_kills = models.PositiveIntegerField(default=0)  # = friendly_kills_air + friendly_kills_ground
+    friendly_kills_air = models.PositiveIntegerField(default=0)
+    friendly_kills_ground = models.PositiveIntegerField(default=0)
     # The mission page's plain sections (OQ-145); 0 until the mission is reprocessed
     taxi_accidents = models.PositiveIntegerField(default=0)
     botched_landings = models.PositiveIntegerField(default=0)
@@ -592,7 +599,9 @@ class PlayerSortie(models.Model):
     assists_ground = models.PositiveIntegerField(default=0)
     takeoffs = models.PositiveIntegerField(default=0)
     landings = models.PositiveIntegerField(default=0)
-    friendly_kills = models.PositiveIntegerField(default=0)
+    friendly_kills = models.PositiveIntegerField(default=0)  # = friendly_kills_air + friendly_kills_ground
+    friendly_kills_air = models.PositiveIntegerField(default=0)
+    friendly_kills_ground = models.PositiveIntegerField(default=0)
     friendly_hits = models.PositiveIntegerField(default=0)
     friendly_damage = models.FloatField(default=0.0)
     resupplied = models.BooleanField(default=False)  # FR-ING-24: a landing followed by another takeoff
@@ -632,6 +641,8 @@ class PlayerSortie(models.Model):
     rams = models.PositiveIntegerField(default=0)
     first_blood = models.BooleanField(default=False)
     multi_kill = models.PositiveIntegerField(default=0)
+    multi_kill_ground = models.PositiveIntegerField(default=0)
+    kills_jet_from_prop = models.PositiveIntegerField(default=0)
     # The pilot's side had strictly fewer pilots spawned in than the other over this sortie's time (OQ-134)
     underdog = models.BooleanField(default=False)
     elo_peak = models.FloatField(default=0.0)
@@ -684,6 +695,17 @@ class PlayerSortie(models.Model):
             models.Index(fields=["aircraft", "-spawned_at", "-id"], name="sortie_aircraft_recent"),  # ... of one type
             # ... of one tour (the default view: the current tour), covering like `sortie_recent`
             models.Index(fields=["tour", "-spawned_at", "-id", "role", "mission", "player"], name="sortie_tour_recent"),
+            # the incident filter of the sortie lists (`?incident=`): rare flags, so without these a page of them would
+            # walk most of the table, and its COUNT all of it
+            models.Index(
+                fields=["-spawned_at", "-id"], condition=models.Q(taxi_accident=True), name="sortie_taxi_recent"
+            ),
+            models.Index(
+                fields=["-spawned_at", "-id"], condition=models.Q(botched_landing=True), name="sortie_botched_recent"
+            ),
+            models.Index(
+                fields=["-spawned_at", "-id"], condition=models.Q(strafed_on_ground=True), name="sortie_strafed_recent"
+            ),
         ]
 
     def __str__(self) -> str:
@@ -1739,6 +1761,14 @@ class ReprocessStatus(models.TextChoices):
     FAILED = "failed"  # the job itself crashed (individual failed missions still end as `done`, with counts)
 
 
+def _span_bound(day: date | None, moment: time | None) -> SpanBound | None:
+    return datetime.combine(day, moment) if day is not None and moment is not None else day
+
+
+def _span_text(day: date | None, moment: time | None) -> str:
+    return "" if day is None else f"{day.isoformat()} {moment:%H:%M}" if moment is not None else day.isoformat()
+
+
 class ReprocessRequest(models.Model):
     """An admin's request to reprocess missions (doc 14). The web process only writes this row; the `watch` loop
     (also run by `il2ks run`) picks it up at its next tick and runs the reprocess under the writer lock.
@@ -1749,6 +1779,8 @@ class ReprocessRequest(models.Model):
     requested_by = models.CharField(max_length=150, blank=True)
     since = models.DateField(null=True)  # server-local mission dates, inclusive (as `il2ks reprocess --since`)
     until = models.DateField(null=True)
+    since_time = models.TimeField(null=True)  # to the minute, on those dates; empty means the whole day
+    until_time = models.TimeField(null=True)
     status = models.CharField(max_length=8, choices=ReprocessStatus.choices, default=ReprocessStatus.PENDING)
     started_at = models.DateTimeField(null=True)
     finished_at = models.DateTimeField(null=True)
@@ -1787,6 +1819,22 @@ class ReprocessRequest(models.Model):
     @property
     def is_all(self) -> bool:
         return self.since is None and self.until is None
+
+    @property
+    def span_since(self) -> SpanBound | None:
+        return _span_bound(self.since, self.since_time)
+
+    @property
+    def span_until(self) -> SpanBound | None:
+        return _span_bound(self.until, self.until_time)
+
+    @property
+    def since_text(self) -> str:
+        return _span_text(self.since, self.since_time)
+
+    @property
+    def until_text(self) -> str:
+        return _span_text(self.until, self.until_time)
 
     @property
     def is_removal(self) -> bool:

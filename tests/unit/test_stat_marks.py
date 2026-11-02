@@ -89,10 +89,12 @@ def test_underdog_share_is_per_counted_sortie() -> None:
 
 def test_incident_rates_are_per_sortie() -> None:
     assert metric_value("taxi_per_sortie", TOTALS) == 0.0
-    busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_kills=2)
+    busy = Totals(40, 0, 0, 0, 0, 0.0, taxi_accidents=4, friendly_kills_air=2, friendly_kills_ground=1)
     assert metric_value("taxi_per_sortie", busy) == 0.1
-    assert metric_value("friendly_kill_rate", busy) == 0.05
-    assert metric_value("friendly_kill_rate", Totals(0, 0, 0, 0, 0, 0.0)) is None
+    assert metric_value("friendly_air_rate", busy) == 0.05
+    assert metric_value("friendly_ground_rate", busy) == 0.025
+    for metric in ("friendly_air_rate", "friendly_ground_rate"):
+        assert metric_value(metric, Totals(0, 0, 0, 0, 0, 0.0)) is None
 
 
 def test_undefined_where_the_page_shows_a_dash() -> None:

@@ -1,8 +1,8 @@
 """The profile's hall of shame (doc 13): the tiles, the quip by incident kind, the p90 variant, tours.
 
-September: 25 pilots, one sortie each. Pilots 1-4 have a taxi accident, 3, 5, 6 and 8 killed a friendly. October: pilots
-4 and 8 fly again, pilot 4 killing a friendly. All-time, pilots 1-3 have a taxi rate of 1 against a p90 of 0.8, pilot 4
-one of 0.5; in September all four taxi pilots are at 1 = the p90, so none is above it."""
+September: 25 pilots, one sortie each. Pilots 1-4 have a taxi accident, 3, 5, 6 and 8 shot down a friendly aircraft.
+October: pilots 4 and 8 fly again, pilot 4 shooting down a friendly. All-time, pilots 1-3 have a taxi rate of 1
+against a p90 of 0.8, pilot 4 one of 0.5; in September all four taxi pilots are at 1 = the p90, so none is above it."""
 
 from datetime import timedelta
 
@@ -27,12 +27,12 @@ def seed() -> None:
             i,
             i + 1,
             taxi_accident=i + 1 in {1, 2, 3, 4},
-            friendly_kills=1 if i + 1 in {3, 5, 6, 8} else 0,
+            friendly_kills_air=1 if i + 1 in {3, 5, 6, 8} else 0,
         )
         for i in range(25)
     )
     save(mission(september), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)
-    october = (sortie(0, 4, friendly_kills=1), sortie(1, 8))
+    october = (sortie(0, 4, friendly_kills_air=1), sortie(1, 8))
     save(mission(october), meta("2026-10-02_10-00-00", STARTED_AT + timedelta(days=13)), marks=ONE)
 
 
@@ -73,7 +73,9 @@ def test_tiles_show_the_incidents_of_the_pilot_not_strafings(client: Client) -> 
     shame = body[start : body.index("</section>", start)]
     assert "Taxi/takeoff accidents" in shame
     assert "Botched landings" in shame
-    assert "Friendly-fire kills" in shame
+    assert "Friendly-fire air kills" in shame
+    assert "Friendly-fire ground kills" in shame
+    assert shame.index("</div>") < shame.index('<p class="shame__quip">')  # the quip is under the tiles
     assert "Strafed on the ground" not in shame
     assert "Strafed on the ground" in body  # now under "Other totals"
 
@@ -86,10 +88,22 @@ def test_a_botched_landing_gets_its_quip(client: Client) -> None:
 
 
 def test_friendly_kills_are_summed_per_pilot() -> None:
-    sorties = (sortie(0, 1, friendly_kills=3), sortie(1, 1, friendly_kills=1), sortie(2, 1))
+    sorties = (
+        sortie(0, 1, friendly_kills_air=3),
+        sortie(1, 1, friendly_kills_air=1, friendly_kills_ground=2),
+        sortie(2, 1),
+    )
     save(mission(sorties), meta("2026-09-19_22-34-13", STARTED_AT))
     p = Player.objects.get()
-    assert p.friendly_kills == 4
+    assert (p.friendly_kills_air, p.friendly_kills_ground, p.friendly_kills) == (4, 2, 6)
+
+
+def test_friendly_ground_kills_get_their_own_quip(client: Client) -> None:
+    sorties = tuple(sortie(i, i + 1, friendly_kills_ground=1 if i == 0 else 0) for i in range(25))
+    save(mission(sorties), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)
+    body = page(client, 1)
+    assert quip("shame_own_ground_p90", 1) in body
+    assert quip("shame_friendly_p90", 1) not in body
 
 
 def test_the_quip_follows_the_selected_tour(client: Client) -> None:

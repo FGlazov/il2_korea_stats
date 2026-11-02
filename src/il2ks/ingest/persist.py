@@ -340,6 +340,8 @@ def _update_mission_counters(mission: Mission) -> None:
         "kills_air",
         "kills_ground",
         "friendly_kills",
+        "friendly_kills_air",
+        "friendly_kills_ground",
         "taxi_accidents",
         "botched_landings",
         "strafed_on_ground",
@@ -357,6 +359,8 @@ def _update_mission_counters(mission: Mission) -> None:
     mission.kills_air = int(totals["kills_air"])
     mission.kills_ground = int(totals["kills_ground"])
     mission.friendly_kills = int(totals["friendly_kills"])
+    mission.friendly_kills_air = int(totals["friendly_kills_air"])
+    mission.friendly_kills_ground = int(totals["friendly_kills_ground"])
     mission.taxi_accidents = int(totals["taxi_accidents"])
     mission.botched_landings = int(totals["botched_landings"])
     mission.strafed_on_ground = int(totals["strafed_on_ground"])
@@ -369,6 +373,8 @@ def _update_mission_counters(mission: Mission) -> None:
             "kills_air",
             "kills_ground",
             "friendly_kills",
+            "friendly_kills_air",
+            "friendly_kills_ground",
             "taxi_accidents",
             "botched_landings",
             "strafed_on_ground",
@@ -466,6 +472,8 @@ _SORTIE_FIELDS = [
     "takeoffs",
     "landings",
     "friendly_kills",
+    "friendly_kills_air",
+    "friendly_kills_ground",
     "friendly_hits",
     "friendly_damage",
     "resupplied",
@@ -495,6 +503,8 @@ _SORTIE_FIELDS = [
     "rams",
     "first_blood",
     "multi_kill",
+    "multi_kill_ground",
+    "kills_jet_from_prop",
     "underdog",
     "air_points",
     "ground_points",
@@ -615,6 +625,8 @@ def _fill_sortie(
     row.takeoffs = s.takeoffs
     row.landings = s.landings
     row.friendly_kills = s.friendly_kills
+    row.friendly_kills_air = s.friendly_kills_air
+    row.friendly_kills_ground = s.friendly_kills_ground
     row.friendly_hits = s.friendly_hits
     row.friendly_damage = s.friendly_damage
     row.resupplied = s.resupplied
@@ -637,6 +649,8 @@ def _fill_sortie(
     row.rams = s.rams
     row.first_blood = s.first_blood
     row.multi_kill = s.multi_kill
+    row.multi_kill_ground = s.multi_kill_ground
+    row.kills_jet_from_prop = s.kills_jet_from_prop
     row.underdog = s.underdog
     apply_score(row, score)
     row.ammo = _ammo_json(s)

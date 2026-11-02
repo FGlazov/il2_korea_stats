@@ -125,9 +125,14 @@ def breakdowns(facts: MissionFacts, verdicts: list[Verdict]) -> dict[int, Breakd
 class FriendlyFire:
     """What one sortie did to its own side. Added to `SortieResult` as `friendly_*`."""
 
-    kills: int = 0
+    kills_air: int = 0
+    kills_ground: int = 0
     hits: int = 0
     damage: float = 0.0
+
+    @property
+    def kills(self) -> int:
+        return self.kills_air + self.kills_ground
 
 
 def _friendly_shooter(
@@ -151,12 +156,13 @@ def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[Kill
     Hits and damage count up to the shooter's end tick like `breakdowns` does for hits and damage dealt. A fence is no
     friendly fire, like it is no ground kill."""
     ends = {s.index: v.end_tick for s, v in zip(facts.sorties, verdicts, strict=True)}
-    n_kills = {i: 0 for i in ends}
+    n_air = {i: 0 for i in ends}
+    n_ground = {i: 0 for i in ends}
     n_hits = {i: 0 for i in ends}
     damage = {i: 0.0 for i in ends}
     for k in kills:
-        if k.is_friendly and k.credit == "kill" and not k.victim_is_fence and k.killer_sortie_index in n_kills:
-            n_kills[k.killer_sortie_index] += 1
+        if k.is_friendly and k.credit == "kill" and not k.victim_is_fence and k.killer_sortie_index in ends:
+            (n_air if k.victim_kind == "air" else n_ground)[k.killer_sortie_index] += 1
     for obj in facts.objects:
         if obj.info.is_fence:
             continue
@@ -169,7 +175,7 @@ def friendly_fire(facts: MissionFacts, verdicts: list[Verdict], kills: list[Kill
             shooter = _friendly_shooter(hit.attacker, target, hit.tick, ends)
             if shooter is not None:
                 n_hits[shooter.index] += 1
-    return {i: FriendlyFire(n_kills[i], n_hits[i], damage[i]) for i in ends}
+    return {i: FriendlyFire(n_air[i], n_ground[i], n_hits[i], damage[i]) for i in ends}
 
 
 def counterpart_of(party: Party) -> Counterpart:

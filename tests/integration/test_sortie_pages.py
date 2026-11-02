@@ -144,14 +144,17 @@ def test_damage_lists_players_first_and_sums_ai_targets_in_health_units(client: 
 def test_friendly_fire_is_marked_and_not_counted(client: Client) -> None:
     result = mission(
         (
-            sortie(0, 1, name="Alpha", friendly_kills=1),
+            sortie(0, 1, name="Alpha", friendly_kills_air=1, friendly_kills_ground=2),
             sortie(1, 2, name="Bravo", aircraft_type="F-86A-5", outcome="shot_down", is_plane_lost=True),
         ),
         (kill(3000, 0, 1, victim_type="F-86A-5", is_friendly=True),),
     )
     save(result)
 
-    assert "Friendly fire" in detail(client, pk_of(1))
+    html = detail(client, pk_of(1))
+    assert "Friendly fire" in html
+    assert "1 friendly aircraft and 2 friendly ground targets destroyed in this sortie" in html
+    assert "1 air kills, 2 ground kills" in html
     assert "Friendly fire" in detail(client, pk_of(2))  # as the credit against the victim, marked
 
 
@@ -271,9 +274,39 @@ def test_flag_notices_are_neutral(client: Client) -> None:
 
     html = detail(client, pk_of(1))
 
-    assert "Possible early bailout" in html
+    assert "Early bailout penalty" in html
     assert "can be wrong" in html
     assert "Possible structural failure" in html
+
+
+def test_the_sortie_says_why_it_lost_points(client: Client) -> None:
+    """Maintainer 2026-11-02: the penalty must be marked on the sortie, with the score it came off."""
+    save(mission((sortie(0, 1),)))
+    PlayerSortie.objects.update(suspected_early_bailout=True, friendly_kills=2)
+
+    html = detail(client, pk_of(1))
+
+    assert "Early bailout penalty" in html
+    assert "Air score: \u22125." in html
+    assert "Friendly fire penalty" in html
+    assert "Air score: \u22126." in html
+
+    PlayerSortie.objects.update(combat_role="attack")  # the flat penalties come off the score of the role
+
+    assert "Ground score: \u22125." in detail(client, pk_of(1))
+
+
+def test_a_sortie_without_a_penalty_mentions_none(client: Client) -> None:
+    save(mission((sortie(0, 1),)))
+
+    assert "penalty" not in detail(client, pk_of(1))
+
+
+def test_a_gunner_loses_no_points_so_the_page_claims_none(client: Client) -> None:
+    save(mission((sortie(0, 1),)))
+    PlayerSortie.objects.update(role="gunner", suspected_early_bailout=True, friendly_kills=1)
+
+    assert "penalty" not in detail(client, pk_of(1))
 
 
 def test_destroyed_status_is_not_derived_from_damage_taken(client: Client) -> None:

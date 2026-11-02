@@ -17,6 +17,7 @@ import zipfile
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 from typing import IO, Literal
 
@@ -24,6 +25,8 @@ from il2ks.core.logparse.events import LogEvent
 from il2ks.core.logparse.parser import ParseStats, parse_lines
 
 type MissionLogKind = Literal["parts", "archive"]
+type SpanBound = date | datetime
+"""One end of a span of missions: a date is the whole day, a datetime counts to the minute."""
 
 LOG_ENCODING = "utf-8"
 """Logs are ASCII in practice (doc 12). Read as UTF-8 and replace undecodable bytes, so a stray byte never stops a
@@ -50,6 +53,37 @@ def mission_uid_from_name(name: str) -> str | None:
     """`missionReport(2026-09-19_22-34-13)[3].txt` -> `2026-09-19_22-34-13`; None if the name doesn't match."""
     m = _NAME_RE.fullmatch(name)
     return None if m is None else m.group(1)
+
+
+def _span_key(bound: SpanBound) -> str:
+    """The start of a mission UID that a span's end compares with: `2026-09-19`, or `2026-09-19_22-34` with a time."""
+    return bound.strftime("%Y-%m-%d_%H-%M") if isinstance(bound, datetime) else bound.isoformat()
+
+
+def mission_in_span(mission_uid: str, since: SpanBound | None, until: SpanBound | None) -> bool:
+    """Did the mission start within `since..until` (both inclusive, either may be None)?
+
+    The time is the one in the mission UID (`YYYY-MM-DD_HH-MM-SS`), i.e. the server's local time, which is how admins
+    think about "missions since 1 April". It is not `Mission.started_at` (UTC): near midnight the two can differ by a
+    day. ISO dates compare correctly as text, so no parsing is needed."""
+    if since is not None:
+        key = _span_key(since)
+        if mission_uid[: len(key)] < key:
+            return False
+    if until is not None:
+        key = _span_key(until)
+        if mission_uid[: len(key)] > key:
+            return False
+    return True
+
+
+def span_is_reversed(since: SpanBound | None, until: SpanBound | None) -> bool:
+    """Can no mission be in the span? Compared at the coarser end: a date is a whole day, so it holds any time of it."""
+    if since is None or until is None:
+        return False
+    first, last = _span_key(since), _span_key(until)
+    length = min(len(first), len(last))
+    return first[:length] > last[:length]
 
 
 def group_mission_files(paths: Iterable[Path], *, txt_as: MissionLogKind = "parts") -> list[MissionLog]:

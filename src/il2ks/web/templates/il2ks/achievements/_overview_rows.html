@@ -1,0 +1,26 @@
+{# il2ks-template: templates/il2ks/achievements/_overview_rows.html v1.0 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  _overview_rows.html: one list of achievements with their tiers and holder counts (the medals, then again the ribbons).
+  Included by achievements/overview.html. Context: rows (OverviewRow), tour_query.
+{% endcomment %}
+<ul class="medal-list">
+  {% for row in rows %}
+    <li class="medal-list__item">
+      <div class="medal-list__head">
+        {% if row.info.kind == "ribbon" %}<span class="ribbon ribbon--bare ribbon--gold ribbon--s{{ row.info.style }}"><span class="ribbon__bar" aria-hidden="true">{% for t in row.tiers %}<i class="ribbon__pip"></i>{% endfor %}</span></span>{% else %}<span class="medal medal--gold"><span class="medal__badge">{% icon row.info.icon %}</span></span>{% endif %}
+        <div>
+          <h2><a href="{% url 'web:achievement-holders' row.info.key %}{{ tour_query }}">{{ row.info.name }}</a></h2>
+          <p class="muted">{{ row.info.description }}</p>
+        </div>
+      </div>
+      <ol class="tier-list">
+        {% for t in row.tiers %}
+          <li class="tier-list__item tier-list__item--{{ t.tier.slug }}{% if t.rarity.level %} rarity--{{ t.rarity.level }}{% endif %}">
+            <strong>{{ t.tier.name }}</strong> <span>{{ t.tier.threshold }}</span>
+            <span class="muted">{% if t.holders %}<a href="{% url 'web:achievement-holders' row.info.key %}{{ tour_query }}&amp;tier={{ t.tier.number }}">{% blocktranslate count n=t.holders %}{{ n }} pilot{% plural %}{{ n }} pilots{% endblocktranslate %}</a>{% if t.rarity.text %} · {{ t.rarity.text }}{% endif %}{% else %}{% translate "nobody yet" %}{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ol>
+    </li>
+  {% endfor %}
+</ul>

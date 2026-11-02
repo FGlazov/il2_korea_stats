@@ -10,7 +10,7 @@ from django.test.utils import CaptureQueriesContext
 
 from il2ks.core.replay.result import CombatRole, KillResult, MissionResult
 from il2ks.db.models import AchievementHolders, Player, PlayerAchievement, PlayerSortie, Tour
-from il2ks.ingest.aggregates import rebuild_aggregates
+from il2ks.ingest.aggregates import rebuild_aggregates, recompute_players
 from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.ratings import recompute_ratings
 from tests.factories import STARTED_AT, account, kill, meta, mission, save, sortie
@@ -197,3 +197,36 @@ def test_top_rated_is_a_medal_of_every_tour_and_all_time_is_the_best_of_them(cli
     assert AchievementHolders.objects.filter(key="elo_peak", tour=october).exists()
     assert "Top Rated" in client.get(f"/players/{pk(1)}/achievements/?tour={october.pk}").content.decode()
     assert "Top Rated" in client.get(f"/achievements/?tour={october.pk}").content.decode()
+
+
+def test_ground_hot_streak_comes_from_the_stored_fact() -> None:
+    save(
+        mission(
+            (
+                sortie(0, 1, kills_ground=40, multi_kill_ground=30),
+                sortie(1, 2, kills_ground=5, multi_kill_ground=5),
+            )
+        ),
+        meta("m1", STARTED_AT),
+    )
+
+    assert held(1)["multi_kill_ground"] == 2  # 10 and 25 reached, 50 not
+    assert "multi_kill_ground" not in held(2)
+
+
+def test_top_rated_attacker_needs_attack_time_and_attack_sorties() -> None:
+    save(
+        mission((sortie(0, 1), sortie(1, 2), sortie(2, 3))),
+        meta("m1", STARTED_AT),
+    )
+    # player 1: 700 points in 20 minutes = 2100 per hour; player 2: the same rate, but only 5 minutes on target;
+    # player 3: 700 points in 20 minutes, flown in an air sortie
+    for n, role, seconds in ((1, "attack", 1200.0), (2, "attack", 300.0), (3, "air_superiority", 1200.0)):
+        PlayerSortie.objects.filter(player_id=pk(n)).update(
+            combat_role=role, ground_points=700.0 if n != 2 else 175.0, time_on_target_s=seconds
+        )
+    recompute_players([pk(1), pk(2), pk(3)])  # not a rebuild: that would score the sorties again from their kills
+
+    assert held(1)["attack_rate_peak"] == 3  # 2100 / h: 300, 600, 1000 reached, 2500 not
+    assert "attack_rate_peak" not in held(2)
+    assert "attack_rate_peak" not in held(3)

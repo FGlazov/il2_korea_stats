@@ -10,7 +10,7 @@ from django.test import Client
 from django.urls import reverse
 from django.utils.html import strip_tags
 
-from il2ks.db.models import AircraftStats, GameObject, Mission, Player
+from il2ks.db.models import AircraftStats, GameObject, Mission, Player, PlayerSortie
 from il2ks.ingest.aggregates import rebuild_aggregates
 from il2ks.web.columns import AIRCRAFT_COLUMNS, MISSION_COLUMNS, PLAYER_COLUMNS, Column
 from tests.factories import kill, mission, save, sortie
@@ -22,8 +22,8 @@ AIR = "air_superiority"
 
 
 def incidents() -> Mission:
-    """Six MiG sorties: a taxi accident, two botched landings, one strafed, one friendly kill, and one clean landing; a
-    Sabre sortie is clean, a gunner's botched landing counts for nobody."""
+    """Six MiG sorties: a taxi accident, two botched landings, one strafed, one friendly-fire pilot (one aircraft, two
+    ground objects) and one clean landing; a Sabre sortie is clean, a gunner's botched landing counts for nobody."""
     return save(
         mission(
             (
@@ -31,7 +31,7 @@ def incidents() -> Mission:
                 sortie(1, 2, botched_landing=True, outcome="crashed", is_plane_lost=True),
                 sortie(2, 3, botched_landing=True),
                 sortie(3, 4, strafed_on_ground=True, outcome="shot_down", is_plane_lost=True),
-                sortie(4, 5, friendly_kills=1),
+                sortie(4, 5, friendly_kills_air=1, friendly_kills_ground=2),
                 sortie(5, 6),
                 sortie(6, 7, aircraft_type="F-86A-5", coalition=2),
                 sortie(7, 8, aircraft_type="Turret_IL10", role="gunner", botched_landing=True),
@@ -87,14 +87,31 @@ def test_the_mission_page_shows_the_incidents_plainly_and_vulching_outside_the_s
     saved = incidents()
     body = get(client, f"/missions/{saved.pk}/")
     assert section(body, "Hall of shame") == {
-        "Taxi/takeoff accidents": "1",
-        "Botched landings": "2",
-        "Friendly-fire kills": "1",
+        "Taxi/takeoff accidents": "1 14.29%",  # of the 7 pilot sorties
+        "Botched landings": "2 28.57%",
+        "Friendly-fire air kills": "1",
+        "Friendly-fire ground kills": "2",
     }
     other = section(body, "Other totals")
     assert other["Strafed on the ground"] == "1"
     assert "Tour" in other
     assert body.count("Botched landings") == 1  # no tile: only the plain list
+
+
+def test_the_shares_follow_the_language(client: Client) -> None:
+    saved = incidents()
+    client.cookies["django_language"] = "de"
+    assert "16,67\u00a0%" in get(client, aircraft_url("MiG-15bis"))
+    assert "14,29\u00a0%" in get(client, f"/missions/{saved.pk}/")
+
+
+@pytest.mark.parametrize("url", ["/missions/", "/aircraft/", "/players/"])
+def test_the_lists_offer_the_incidents_as_extra_columns(client: Client, url: str) -> None:
+    incidents()
+    keys = ("taxi_accidents", "botched_landings", "strafed_on_ground")
+    body = get(client, f"{url}?cols={','.join(keys)}&sort=-botched_landings")
+    for label in ("Taxi/takeoff accidents", "Botched landings", "Strafed on the ground"):
+        assert re.search(rf"<th[^>]*>.*?{label}", body, re.DOTALL), label
 
 
 def test_a_running_mission_shows_no_end_time(client: Client) -> None:
@@ -109,9 +126,10 @@ def test_the_aircraft_page_shows_ratios_shame_and_totals_plainly(client: Client)
     body = get(client, aircraft_url("MiG-15bis"))
     assert list(section(body, "Ratios"))[:2] == ["K/D", "K/L"]
     assert section(body, "Hall of shame") == {
-        "Taxi/takeoff accidents": "1 17%",
-        "Botched landings": "2 33%",
-        "Friendly-fire kills": "1",
+        "Taxi/takeoff accidents": "1 16.67%",
+        "Botched landings": "2 33.33%",
+        "Friendly-fire air kills": "1",
+        "Friendly-fire ground kills": "2",
     }
     other = section(body, "Other totals")
     assert other["Strafed on the ground"] == "1"
@@ -127,7 +145,6 @@ def test_the_new_figures_cost_no_extra_query(client: Client) -> None:
 # A column whose detail page says it in other words; None: it is in the sub-line of a tile or the page head.
 PLAYER_LABELS: dict[str, str | None] = {
     "survival": "Survival rate",
-    "friendly_kills": "Friendly-fire kills",
     "elo_jet": "Elo",
     "elo_prop": "Elo",
     "assists_air": None,
@@ -136,13 +153,12 @@ PLAYER_LABELS: dict[str, str | None] = {
     "first_seen": None,
 }
 AIRCRAFT_LABELS: dict[str, str | None] = {
-    "friendly_kills": "Friendly-fire kills",
+    "attack_share": "Attack sorties",
     "kills_per_hour": "Air kills per flight hour",
     "accuracy_air": None,
     "accuracy_ground": None,
 }
 MISSION_LABELS: dict[str, str | None] = {
-    "friendly_kills": "Friendly-fire kills",
     "redfor_sorties": None,
     "blufor_sorties": None,
     "redfor_players": None,
@@ -171,3 +187,23 @@ def test_every_optional_player_column_is_on_the_profile(client: Client, label: s
     attacker = sortie(1, 1, kills_ground=2, assists_ground=1, gun_hits_ground=5, combat_role="attack")
     save(mission((fighter, attacker)))
     assert label in get(client, f"/players/{Player.objects.get().pk}/?tour=all")
+
+
+def test_the_friendly_fire_kills_are_split_in_air_and_ground_everywhere(client: Client) -> None:
+    saved = incidents()
+    row = PlayerSortie.objects.get(friendly_kills_air=1)
+    pages = {
+        "mission": f"/missions/{saved.pk}/",
+        "aircraft": aircraft_url("MiG-15bis"),
+        "player": f"/players/{row.player_id}/?tour=all",
+    }
+    for name, url in pages.items():
+        body = get(client, url)
+        pairs = dict(
+            re.findall(r"<dt>(Friendly-fire (?:air|ground) kills)(?: <small>.*?</small>)?</dt>\s*<dd>(.*?)</dd>", body)
+        )
+        assert pairs == {"Friendly-fire air kills": "1", "Friendly-fire ground kills": "2"}, name
+        assert "Friendly-fire kills" not in body, name
+    body = get(client, f"/sorties/{row.pk}/")
+    assert "1 friendly aircraft and 2 friendly ground targets destroyed in this sortie" in body
+    assert "1 air kills, 2 ground kills" in body

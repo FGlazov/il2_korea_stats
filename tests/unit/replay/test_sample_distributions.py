@@ -37,7 +37,7 @@ def test_sample_distributions_stay_in_expected_bands() -> None:
             counts["unknown_fate"] += sortie.pilot_fate == "unknown"
     took_off = counts["took_off"]
     assert 0.10 <= counts["bailout"] / took_off <= 0.15  # doc 12: 12.6%
-    assert 0.02 <= counts["early"] / took_off <= 0.04  # doc 12: 2.7%
+    assert 0.015 <= counts["early"] / took_off <= 0.03  # doc 12: 2.7%, a fifth less with the sound-aircraft condition
     assert 0.06 <= counts["mission_ended"] / counts["pilot"] <= 0.12  # doc 12: about 10%
     lost = counts["attacker"] + counts["self"]
     assert 0.4 <= counts["attacker"] / lost <= 0.6  # FR-ING-17: about 50/50

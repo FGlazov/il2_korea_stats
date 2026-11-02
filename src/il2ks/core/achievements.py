@@ -21,13 +21,18 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
 
-type Unit = Literal["count", "hours", "weeks", "tours", "points", "elo"]
+type Unit = Literal["count", "hours", "weeks", "tours", "points", "elo", "points_hour"]
 type Kind = Literal["medal", "ribbon"]
 
 ALL_TIME_FACTOR = 5
 """The all-time tiers of a `cumulative` medal are this many times its per-tour thresholds (maintainer, 2026-10-05,
 OQ-128: "if it's multi tour then we should increase the thresholds, maybe 5x"). It scales the thresholds in force (the
 admin's too), so changing a per-tour tier moves the all-time one with it."""
+
+MIN_TIME_ON_TARGET_S = 600.0
+"""Time on target (seconds) a pilot needs before `attack_rate_peak` counts a rate. It mirrors the default of the
+`[score] min_time_on_target_minutes` setting (10) of the attack-proficiency board and does not follow a server's own
+value: the medal's rule is fixed in code (doc 17)."""
 
 BADLY_DAMAGED = 0.5
 """`landing_damage` (0 to 1) from which a landing counts as "badly damaged" (`damaged_landing`)."""
@@ -63,8 +68,11 @@ class AchievementSortie:
     first_blood: bool = False
     """The sortie made the first credited PvP air kill of its mission."""
     multi_kill: int = 0
+    multi_kill_ground: int = 0
     """The most air kills within `core.replay.kills.BURST_WINDOW_S` seconds."""
     ended_by_mission_end: bool = False
+    time_on_target_s: float = 0.0
+    """Seconds on target (the attack-proficiency board's denominator)."""
     is_attack: bool = False
     """An attack sortie (combat role `attack`): the ground ironman track's; every other sortie is the air track's
     (`core.streaks.track_of`)."""
@@ -159,21 +167,31 @@ def _best_in_one(per_sortie: Callable[[AchievementSortie], float]) -> Progress:
     return progress
 
 
-def life_kills(sorties: Sequence[AchievementSortie]) -> list[float]:
-    """Air kills in one air life: the kills of the air-track sorties since the last air-track death or capture,
-    including the fatal sortie. Attack sorties neither add to it nor end it (the air ironman track, maintainer
-    2026-10-05: losing a ground attacker does not reset the air life)."""
+def _life_on_track(sorties: Sequence[AchievementSortie], *, attack: bool) -> list[float]:
     current = 0
     values: list[float] = []
     for s in sorties:
-        if not s.is_attack:
-            current += s.kills_air
+        if s.is_attack is attack:
+            current += s.kills_ground if attack else s.kills_air
             if s.is_broken:
                 values.append(float(current))
                 current = 0
                 continue
         values.append(float(current))
     return _running_max(values)
+
+
+def life_kills(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """Air kills in one air life: the kills of the air-track sorties since the last air-track death or capture,
+    including the fatal sortie. Attack sorties neither add to it nor end it (the air ironman track, maintainer
+    2026-10-05: losing a ground attacker does not reset the air life)."""
+    return _life_on_track(sorties, attack=False)
+
+
+def life_kills_ground(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """`life_kills` on the ground track: the ground kills of the attack sorties since the last death or capture in one.
+    A fighter's strafing adds nothing and losing a fighter ends nothing."""
+    return _life_on_track(sorties, attack=True)
 
 
 def _survived_on_track(sorties: Sequence[AchievementSortie], *, attack: bool) -> list[float]:
@@ -245,6 +263,21 @@ def ground_score(sorties: Sequence[AchievementSortie]) -> list[float]:
     for s in sorties:
         total += s.ground_points
         values.append(total)
+    return _running_max(values)
+
+
+def attack_rate(sorties: Sequence[AchievementSortie]) -> list[float]:
+    """The highest ground score per hour on target reached, a running maximum: the ground points and the time on
+    target of the attack sorties added up (the `ground-hour` board's number); a rate counts once the time on target
+    reaches `MIN_TIME_ON_TARGET_S`, 0 before."""
+    points = 0.0
+    seconds = 0.0
+    values: list[float] = []
+    for s in sorties:
+        if s.is_attack:
+            points += s.ground_points
+            seconds += s.time_on_target_s
+        values.append(points * 3600 / seconds if seconds >= MIN_TIME_ON_TARGET_S else 0.0)
     return _running_max(values)
 
 
@@ -337,7 +370,14 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
         counter="kills_air",
     ),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
-    Achievement("jet_hunter", (1, 3, 5, 10), "count", _cumulative(lambda s: s.kills_jet_from_prop)),
+    Achievement(
+        "jet_hunter",
+        (1, 3, 5, 10),
+        "count",
+        _cumulative(lambda s: s.kills_jet_from_prop),
+        cumulative=True,
+        counter="kills_jet_from_prop",
+    ),
     Achievement(
         "tank_buster",
         (3, 10, 25, 100),
@@ -348,7 +388,9 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     ),
     Achievement("ground_sortie", (20, 50, 100, 200), "count", _best_in_one(lambda s: s.kills_ground)),
     Achievement("survivor", (5, 10, 25, 50), "count", survived_in_a_row),
-    Achievement("damaged_landing", (1, 3, 10), "count", _cumulative(lambda s: 1.0 if _is_damaged_landing(s) else 0.0)),
+    Achievement(
+        "damaged_landing", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if _is_damaged_landing(s) else 0.0)
+    ),
     Achievement("regular", (2, 4, 8, 16), "weeks", consecutive_weeks, kind="ribbon"),
     Achievement("frequent_flyer", (10, 50, 200, 1000), "count", _cumulative(lambda s: 1.0), kind="ribbon"),
     Achievement(
@@ -363,9 +405,12 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
     # The second set (doc 17, OQ-105).
     Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
+    Achievement("attack_rate_peak", (300, 600, 1000, 2500), "points_hour", attack_rate),
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
     Achievement("multi_kill", (2, 3, 4, 5), "count", _best_in_one(lambda s: s.multi_kill)),
+    Achievement("multi_kill_ground", (10, 25, 50, 100), "count", _best_in_one(lambda s: s.multi_kill_ground)),
+    Achievement("life_kills_ground", (100, 250, 500, 1000), "count", life_kills_ground),
     # The top tiers of these two are the number of playable aircraft: raise them when the game gets more (maintainer).
     Achievement("types_flown", (3, 5, 8), "count", types_flown, kind="ribbon"),
     Achievement("types_with_kills", (2, 4, 6, 8), "count", types_with_kills),

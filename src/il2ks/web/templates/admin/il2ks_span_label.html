@@ -1,0 +1,4 @@
+{# il2ks-template: templates/admin/il2ks_span_label.html v1.0 - copy this line along when you override #}
+{% load i18n %}{% comment %}
+  The span of a reprocess request on the ingestion status page; nothing for a request without one. Context: job.
+{% endcomment %}{% if job.since %} {% blocktranslate with when=job.since_text %}from {{ when }}{% endblocktranslate %}{% endif %}{% if job.until %} {% blocktranslate with when=job.until_text %}to {{ when }}{% endblocktranslate %}{% endif %}

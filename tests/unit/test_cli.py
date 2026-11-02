@@ -209,6 +209,32 @@ def test_reprocess_passes_the_date_span_and_missions_through(
     ]
 
 
+@pytest.mark.django_db
+def test_reprocess_takes_a_time_behind_a_date(
+    setup: tuple[Path, Path, FakeSteps], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    calls: list[tuple[object, object]] = []
+
+    def fake_reprocess(
+        cfg: Config,
+        pipeline: runner.Pipeline,
+        mission_uids: Sequence[str] | None = None,
+        *,
+        since: object = None,
+        until: object = None,
+        workers: int | None = None,
+        lock_wait: float | None = None,
+    ) -> reprocess_mod.ReprocessSummary:
+        calls.append((since, until))
+        return reprocess_mod.ReprocessSummary()
+
+    monkeypatch.setattr(reprocess_mod, "reprocess", fake_reprocess)
+    assert main(["reprocess", "--since", "2026-04-01 18:30", "--until", "2026-04-02"]) == EXIT_OK
+    assert calls == [(datetime(2026, 4, 1, 18, 30), date(2026, 4, 2))]
+    assert main(["reprocess", "--since", "2026-04-02 10:00", "--until", "2026-04-01"]) == EXIT_USAGE
+    assert "is after --until" in capsys.readouterr().err
+
+
 def test_reprocess_since_after_until_is_a_usage_error(
     setup: tuple[Path, Path, FakeSteps], capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -216,7 +242,9 @@ def test_reprocess_since_after_until_is_a_usage_error(
     assert "--since 2026-05-01 is after --until 2026-04-01" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("text", ["yesterday", "2026-13-01", "20260401", "2026-4-1", "2026-W14-3", ""])
+@pytest.mark.parametrize(
+    "text", ["yesterday", "2026-13-01", "20260401", "2026-4-1", "2026-W14-3", "", "2026-04-01 25:00", "2026-04-01 18"]
+)
 def test_reprocess_rejects_anything_but_yyyy_mm_dd(text: str, capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as info:
         main(["reprocess", "--since", text])

@@ -12,8 +12,10 @@ from il2ks.core import catalog
 from il2ks.core.achievements import (
     ACHIEVEMENTS,
     BY_KEY,
+    MIN_TIME_ON_TARGET_S,
     Achievement,
     AchievementSortie,
+    attack_rate,
     earn,
     ground_score,
     highest_elo,
@@ -228,3 +230,66 @@ def test_ace_in_a_day_sums_the_utc_day() -> None:
 @pytest.mark.parametrize("a", [a for a in ACHIEVEMENTS if a.kind == "ribbon"], ids=lambda a: a.key)
 def test_no_sorties_no_ribbon(a: Achievement) -> None:
     assert earn(a, []) == []
+
+
+def test_ground_hot_streak_is_the_best_ground_burst_of_one_sortie() -> None:
+    rows = [s(multi_kill_ground=12), s(multi_kill_ground=30), s(multi_kill_ground=5), s(multi_kill_ground=100)]
+
+    assert BY_KEY["multi_kill_ground"].thresholds == (10, 25, 50, 100)
+    assert tiers("multi_kill_ground", rows) == {1: 0, 2: 1, 3: 3, 4: 3}
+    assert tiers("multi_kill_ground", [s(multi_kill_ground=9)]) == {}
+
+
+def attack(n: int, points: float, seconds: float) -> AchievementSortie:
+    return s(n, ground_points=points, time_on_target_s=seconds, is_attack=True)
+
+
+def test_attack_rate_is_points_per_hour_on_target_once_the_minimum_time_is_there() -> None:
+    assert MIN_TIME_ON_TARGET_S == 600.0
+    # 100 points in 5 minutes: not enough time on target, the rate does not count yet (0)
+    rows = [attack(0, 100, 300), attack(1, 100, 300), attack(2, 0, 3600)]
+
+    # (200 / 600 s = 1200 / h), then (200 / 4200 s = about 171 / h): the running maximum keeps the best
+    assert attack_rate(rows) == pytest.approx([0.0, 1200.0, 1200.0])
+
+
+def test_attack_rate_reads_attack_sorties_only_and_never_falls() -> None:
+    air = s(0, ground_points=5000.0, time_on_target_s=3600.0)  # an air sortie: neither points nor time count
+    rows = [air, attack(1, 400, 1200), attack(2, -300, 1200)]
+
+    assert attack_rate(rows) == pytest.approx([0.0, 1200.0, 1200.0])
+    assert tiers("attack_rate_peak", rows) == {1: 1, 2: 1, 3: 1}
+    assert tiers("attack_rate_peak", [attack(0, 100, 599.0)]) == {}
+    assert BY_KEY["attack_rate_peak"].thresholds == (300, 600, 1000, 2500)
+
+
+# --- life_kills_ground (maintainer 2026-11-02: Charmed Life in a ground version, Flak Dodger) ---
+
+
+def attack_life(n: int, ground: int, *, death: bool = False, captured: bool = False) -> AchievementSortie:
+    return s(n, is_attack=True, kills_ground=ground, death=death, captured=captured)
+
+
+def test_flak_dodger_adds_up_the_ground_kills_of_one_life() -> None:
+    assert BY_KEY["life_kills_ground"].thresholds == (100, 250, 500, 1000)
+    assert tiers("life_kills_ground", [attack_life(0, 60), attack_life(1, 60), attack_life(2, 140)]) == {1: 1, 2: 2}
+
+
+def test_flak_dodger_counts_the_fatal_sortie_then_starts_over() -> None:
+    rows = [attack_life(0, 60), attack_life(1, 40, death=True), attack_life(2, 60)]
+    assert tiers("life_kills_ground", rows) == {1: 1}
+    assert tiers("life_kills_ground", [attack_life(0, 90, captured=True), attack_life(1, 90)]) == {}
+
+
+def test_flak_dodger_follows_the_ground_track_alone() -> None:
+    """A fighter's strafing adds nothing and losing a fighter ends nothing: Charmed Life the other way round."""
+    rows = [attack_life(0, 60), s(1, kills_ground=500, death=True), attack_life(2, 40)]
+    assert tiers("life_kills_ground", rows) == {1: 2}
+
+
+def test_charmed_life_is_untouched_by_flak_dodger() -> None:
+    assert tiers("life_kills", [s(0, air=3), attack_life(1, 500, death=True), s(2, air=2)]) == {1: 2}
+
+
+def test_limping_home_has_a_platinum_tier() -> None:
+    assert BY_KEY["damaged_landing"].thresholds == (1, 3, 5, 10)

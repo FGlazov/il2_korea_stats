@@ -95,9 +95,12 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/flight-hours.svg` | `clock` |
 | `medal/type-veteran.svg` | `award` |
 | `medal/elo-peak.svg` | `trending-up` |
+| `medal/attack-rate-peak.svg` | `stopwatch` |
 | `medal/ground-score.svg` | `chart-bar` |
 | `medal/first-blood.svg` | `droplet` |
 | `medal/multi-kill.svg` | `chevrons-right` |
+| `medal/multi-kill-ground.svg` | `chevrons-down` |
+| `medal/life-kills-ground.svg` | `clover-2` |
 | `medal/types-flown.svg` | `stack-2` |
 | `medal/types-with-kills.svg` | `list-check` |
 | `medal/landing-streak.svg` | `plane-arrival` |

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_aircraft.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_aircraft.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks il2ks_boards %}{% comment %}
   detail_aircraft.html: the per-aircraft table from PlayerAircraft, sortable with ?sort= (a whitelist in the view). It is the
   page's one results_region, so the sort links swap just this table with htmx. Each row links to the player's sortie
@@ -13,10 +13,10 @@
           <tr>
             {% sort_th "aircraft" _("Aircraft") %}
             {% sort_th "sorties" _("Sorties") numeric=True %}
-            {% sort_th "flight_time_s" _("Flight time") numeric=True %}
-            {% sort_th "kills_air" _("Air kills") numeric=True %}
-            {% sort_th "kills_ground" _("Ground kills") numeric=True %}
-            {% sort_th "deaths" _("Deaths") numeric=True %}
+            {% sort_th "flight_time_s" _("Flight time") numeric=True hint="flight_time" %}
+            {% sort_th "kills_air" _("Air kills") numeric=True hint="kills_air" %}
+            {% sort_th "kills_ground" _("Ground kills") numeric=True hint="kills_ground" %}
+            {% sort_th "deaths" _("Deaths") numeric=True hint="deaths" %}
             {% col_th _("K/D") numeric=True hint="kd" %}
             {% col_th _("K/L") numeric=True hint="kl" %}
           </tr>

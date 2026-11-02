@@ -160,6 +160,10 @@ def _build_sortie(
         rams=sum(1 for k in air if k.ram),
         first_blood=sortie.index == first_blood,
         multi_kill=max_burst([k.tick for k in air]),
+        multi_kill_ground=max_burst([k.tick for k in ground]),
+        kills_jet_from_prop=sum(1 for k in air if k.victim_is_jet and k.victim_account_uuid != sortie.account_uuid)
+        if sortie.role == "pilot" and airframe.info.propulsion == "prop"  # a gunner sits in the parent's aircraft
+        else 0,
         kills_ground=len(ground),
         kills_ground_by_category=dict(Counter(k.victim_ground_category or "other" for k in ground)),
         kills_ground_static=sum(1 for k in ground if k.victim_is_static),
@@ -180,6 +184,8 @@ def _build_sortie(
         damage=breakdown[0],
         timeline=timeline(sortie, verdict, kills, hit_entries(sortie_ammo.damage_events, rules), final=final),
         friendly_kills=friendly.kills,
+        friendly_kills_air=friendly.kills_air,
+        friendly_kills_ground=friendly.kills_ground,
         friendly_hits=friendly.hits,
         friendly_damage=friendly.damage,
         resupplied=resupplied,

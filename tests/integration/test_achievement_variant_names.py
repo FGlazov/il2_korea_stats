@@ -1,4 +1,4 @@
-"""The six cumulative medals read as two achievements (FR-WEB-26, doc 17, maintainer 2026-10-05: "rename the tour
+"""The seven cumulative medals read as two achievements (FR-WEB-26, doc 17, maintainer 2026-10-05: "rename the tour
 variants slightly so this isn't so confusing"): the tour scope shows "Tour <name>", all time the career name, and the
 admin renames the two variants independently."""
 
@@ -19,6 +19,7 @@ pytestmark = pytest.mark.django_db
 
 CAREER = {
     "career_kills": "Sky Hunter",
+    "jet_hunter": "Jet Hunter",
     "tank_buster": "Tank Buster",
     "flight_hours": "Hours Aloft",
 }

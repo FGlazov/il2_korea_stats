@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/list.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/list.html v3.0 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Aircraft (FR-WEB-8, FR-WEB-18): one row per aircraft type flown in the selected tour (?tour=, default the current
   tour, `all` = all time; context tours / tour), sortable with ?sort= (a whitelist in the view). View:
@@ -40,17 +40,17 @@
           {% for row in rows %}
             {% with stats=row.stats %}
               <tr>
-                <td class="aircraft-table__name">
+                <td class="aircraft-table__name"><span class="aircraft-table__identity">
                   {% aircraft_icon stats.aircraft "aircraft-table__icon" %}
                   <a href="{% url 'web:aircraft-detail' stats.aircraft_id %}{{ tour|tour_qs }}" class="stretched-link">{{ stats.aircraft|object_name }}</a>
                   {% if stats.aircraft.propulsion == "jet" %}{% badge _("Jet") "purple" %}{% elif stats.aircraft.propulsion == "prop" %}{% badge _("Prop") "teal" %}{% endif %}
                   {% if stats.side %}{% coalition_icon stats.side %}{% endif %}
-                </td>
+                </span></td>
                 <td class="num">{{ stats.sorties|num }}</td>
                 <td class="num">{{ row.elo_text }}</td>
                 <td class="num">{{ stats.kills_air|ratio:stats.planes_lost }}</td>
                 <td class="num">{{ row.survived|percent:stats.sorties }}</td>
-                <td class="num">{{ stats.score_ground_attack|per_hour:stats.time_on_target_s }}</td>
+                <td class="num">{{ stats.score_ground_attack|attack_rate:stats.time_on_target_s }}</td>
                 {% for column in columns %}<td class="num">{{ column|cell:row }}</td>{% endfor %}
               </tr>
             {% endwith %}

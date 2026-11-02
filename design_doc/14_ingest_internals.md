@@ -130,7 +130,7 @@ A second writer exits with code 3 naming the holder, or waits with `--wait`. `wa
 - Exit codes: 0 ok, 1 some missions failed, 2 usage/config error, 3 lock held.
 - **`il2ks reprocess` needs an explicit selection** (2026-10-03): `--all`, `--mission`, or `--since/--until`; bare `reprocess` prints help
   and exits 2, so nobody reprocesses a year of logs by accident. The admin's ingestion status page has a **"Reprocess all missions"**
-  button (with confirmation, `add_reprocessrequest` permission): it files a `ReprocessRequest` row (one pending at a time) that the `watch`
+  button and a **"Reprocess a time span…"** form (dates with optional times to the minute, `web/admin_reprocess.py`; both with confirmation, `add_reprocessrequest` permission): each files a `ReprocessRequest` row (one pending at a time) that the `watch`
   loop (also under `il2ks run`) runs at its next tick under the writer lock, updating progress and the result on the status page; a busy
   lock leaves it pending, a crash marks it failed, a request left running by a dead process is marked failed at the next watch start. New
   missions wait while it runs.

@@ -96,3 +96,13 @@ def test_the_per_tour_rules_never_earn_an_all_time_only_achievement() -> None:
     assert {a.key for a in ACHIEVEMENTS if a.all_time_only} == {"tours_in_a_row"}
     assert earn_all([s(0, air=3)], achievements=[BY_KEY["tours_in_a_row"]]) == []
     assert earn(BY_KEY["tours_in_a_row"], [replace(s(0), kills_air=9)]) == []
+
+
+def test_jet_hunter_all_time_counts_five_times_the_tour_tiers() -> None:
+    jet = BY_KEY["jet_hunter"]
+    assert jet.cumulative
+    assert jet.thresholds == (1, 3, 5, 10)
+    assert jet.all_time_thresholds == (5, 15, 25, 50)
+    rows = [replace(s(0), kills_jet_from_prop=4)]
+    # a second tour with 4 more (8 in total) reaches 5 all time, at its first sortie, and not the 15
+    assert {e.tier: e.index for e in earn(jet, rows, carried_in=4, all_time=True)} == {1: 0}

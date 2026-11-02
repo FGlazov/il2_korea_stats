@@ -50,8 +50,9 @@ class ListRow:
 def achievement_overview(request: HttpRequest) -> HttpResponse:
     """`/achievements/`: every achievement with its tiers and how many pilots hold each.
 
-    Template `il2ks/achievements/overview.html`. Context: `rows` (OverviewRow), `tours`, `tour`, `tour_query`,
-    `page_title`. Medals first, then ribbons, then the hall-of-shame ribbons (each group in registry order)."""
+    Template `il2ks/achievements/overview.html`. Context: `medal_rows` and `ribbon_rows` (OverviewRow, each in registry
+    order; the ribbons are their own list under a heading, after every medal, and empty when the admin switched them
+    all off), `tours`, `tour`, `tour_query`, `page_title`."""
     choice = tour_choice_from(request.GET)
     config = AchievementConfig.from_row(site_row(request))
     counts = reads.holder_counts(choice.selected)
@@ -62,9 +63,9 @@ def achievement_overview(request: HttpRequest) -> HttpResponse:
         )
         for info in medals.all_info(config, all_time=choice.selected is None)
     ]
-    rows.sort(key=lambda r: r.info.kind == "ribbon")
     context = {
-        "rows": rows,
+        "medal_rows": [r for r in rows if r.info.kind == "medal"],
+        "ribbon_rows": [r for r in rows if r.info.kind == "ribbon"],
         "tour_query": tour_query(choice.selected),
         "page_title": _("Achievements"),
         "crumbs": [(_("Achievements"), None)],
@@ -119,8 +120,9 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
     """`/players/<pk>/achievements/`: every achievement with the player's tiers (earned ones dated) and the next ones
     still to earn. 404 for a missing or hidden player.
 
-    Template `il2ks/players/achievements.html`. Context: `player`, `rows` (ListRow), `earned` (tiers held), `tours`,
-    `tour`, `tour_query`, `crumbs`, `page_title`."""
+    Template `il2ks/players/achievements.html`. Context: `player`, `medal_rows` and `ribbon_rows` (ListRow, each in
+    registry order; the ribbons are their own list under a heading, after every medal, and empty when the admin
+    switched them all off), `earned` (tiers held), `tours`, `tour`, `tour_query`, `crumbs`, `page_title`."""
     player = player_reads.visible_player(pk)
     if player is None:
         raise Http404
@@ -143,10 +145,10 @@ def player_achievements(request: HttpRequest, pk: int) -> HttpResponse:
             for t in info.tiers
         )
         rows.append(ListRow(info, tiers, max((t.tier.number for t in tiers if t.earned), default=0)))
-    rows.sort(key=lambda r: r.info.kind == "ribbon")
     context = {
         "player": player,
-        "rows": rows,
+        "medal_rows": [r for r in rows if r.info.kind == "medal"],
+        "ribbon_rows": [r for r in rows if r.info.kind == "ribbon"],
         "earned": len(held),
         "absence": None if held else pilot_absence(player.pk, choice),
         "tour_query": tour_query(choice.selected),

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_recent.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_recent.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_recent.html: the five latest sorties (any role) near the top of the profile, with the "View all sorties" button to the full list (keeps the tour scope: ?tour=<id> or ?tour=all). Context: player, recent
   (PlayerSortie rows with .mission and .aircraft). Links: web:sortie-detail, web:mission-detail, web:player-sorties.
@@ -12,11 +12,11 @@
         <tr>
           <th scope="col">{% translate "Date" %}</th>
           <th scope="col">{% translate "Aircraft" %}</th>
-          {% col_th _("Outcome") %}
-          {% col_th _("Pilot fate") %}
+          {% col_th _("Outcome") hint="outcome" %}
+          {% col_th _("Pilot fate") hint="pilot_fate" %}
           <th scope="col" class="num">{% translate "Air kills" %}</th>
           <th scope="col" class="num">{% translate "Ground kills" %}</th>
-          {% col_th _("Flight time") numeric=True %}
+          {% col_th _("Flight time") numeric=True hint="flight_time" %}
         </tr>
       </thead>
       <tbody>

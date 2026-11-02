@@ -53,7 +53,7 @@ class ScoreRules:
     penalty_death_pct: float = 80.0  # percent of the sortie's score lost when the pilot died (0 to 100)
     penalty_capture_pct: float = 50.0  # ... when the pilot was captured
     penalty_plane_lost_pct: float = 20.0  # ... when the aircraft was lost without a death or capture
-    penalty_early_bailout: float = 5.0  # suspected early bailout: left an aircraft nobody had hit
+    penalty_early_bailout: float = 5.0  # suspected early bailout: left a sound aircraft, which denies a kill
     penalty_friendly_kill: float = 3.0  # per friendly kill (statics count: bombing your own base is a mistake too)
     penalty_friendly_kill_cap: float = 5.0  # at most this many friendly kills are penalised per sortie
 

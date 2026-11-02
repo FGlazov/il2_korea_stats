@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/kills.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/kills.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   Kills and assists made by this sortie. Context: sortie, detail (air_kills, ground, assists, friendly).
   Air kills: player victims (Kill rows) and AI aircraft (timeline). Ground kills: the total and the collapsible
@@ -46,6 +46,6 @@
 {% endif %}
 
 {% if detail.friendly %}
-  {% notice "warning" title=_("Friendly fire") %}{% blocktranslate with n=sortie.friendly_kills|num %}{{ n }} friendly kills in this sortie. They do not count as kills.{% endblocktranslate %}{% endnotice %}
+  {% notice "warning" title=_("Friendly fire") %}{% blocktranslate with air=sortie.friendly_kills_air|num ground=sortie.friendly_kills_ground|num %}{{ air }} friendly aircraft and {{ ground }} friendly ground targets destroyed in this sortie. They do not count as kills.{% endblocktranslate %}{% endnotice %}
   {% translate "Friendly victim" as victim_label %}{% include "il2ks/sorties/parts/kill_table.html" with rows=detail.friendly victim_label=victim_label %}
 {% endif %}

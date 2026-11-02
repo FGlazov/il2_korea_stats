@@ -47,7 +47,7 @@ class Column[T]:
     def description(self) -> str:
         """The text shown for the column (picker tooltip and header): its own `hint`, else the shared description
         registered under its key in `web.column_hints` (so `elo_jet`, `kd`... need no `hint` here), else nothing."""
-        return column_hints.hint_text(self.hint) or column_hints.hint_text(self.key)
+        return column_hints.hint_text(self.hint) or column_hints.registered(self.key)
 
 
 def requested_keys(params: QueryDict) -> frozenset[str]:
@@ -134,7 +134,11 @@ PLAYER_COLUMNS: tuple[Column[Player], ...] = (
         _("Ground accuracy"),
         lambda p: _accuracy(p.accuracy_ground_hits, p.accuracy_ground_rounds),
     ),
-    Column("friendly_kills", _("Friendly kills"), lambda p: display.num(p.friendly_kills)),
+    Column("friendly_kills_air", _("Friendly-fire air kills"), lambda p: display.num(p.friendly_kills_air)),
+    Column("friendly_kills_ground", _("Friendly-fire ground kills"), lambda p: display.num(p.friendly_kills_ground)),
+    Column("taxi_accidents", _("Taxi/takeoff accidents"), lambda p: display.num(p.taxi_accidents)),
+    Column("botched_landings", _("Botched landings"), lambda p: display.num(p.botched_landings)),
+    Column("strafed_on_ground", _("Strafed on the ground"), lambda p: display.num(p.strafed_on_ground)),
     Column("first_seen", _("First seen"), lambda p: display.time_element(p.first_seen, "date")),
 )
 
@@ -146,8 +150,14 @@ def _pilots(m: Mission, average: float) -> str:
 
 
 MISSION_COLUMNS: tuple[Column[Mission], ...] = (
-    Column("friendly_kills", _("Friendly kills"), lambda m: display.num(m.friendly_kills)),
-    Column("tour", _("Tour"), lambda m: tour_title(m.tour.title) if m.tour is not None else display.DASH),
+    Column("friendly_kills_air", _("Friendly-fire air kills"), lambda m: display.num(m.friendly_kills_air)),
+    Column("friendly_kills_ground", _("Friendly-fire ground kills"), lambda m: display.num(m.friendly_kills_ground)),
+    Column("taxi_accidents", _("Taxi/takeoff accidents"), lambda m: display.num(m.taxi_accidents)),
+    Column("botched_landings", _("Botched landings"), lambda m: display.num(m.botched_landings)),
+    Column("strafed_on_ground", _("Strafed on the ground"), lambda m: display.num(m.strafed_on_ground)),
+    Column(
+        "tour", _("Tour"), lambda m: tour_title(m.tour.title) if m.tour is not None else display.DASH, numeric=False
+    ),
     Column("ended", _("Ended"), lambda m: display.time_element(m.ended_at, "datetime")),
     Column("redfor_sorties", _("REDFOR sorties"), lambda m: display.num(m.redfor_sorties)),
     Column("blufor_sorties", _("BLUFOR sorties"), lambda m: display.num(m.blufor_sorties)),
@@ -186,7 +196,8 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
     Column("kills_air_ai", _("Air kills (AI)"), lambda s: display.num(s.kills_air_ai)),
     Column("assists_air", _("Air assists"), lambda s: display.num(s.assists_air)),
     Column("assists_ground", _("Ground assists"), lambda s: display.num(s.assists_ground)),
-    Column("friendly_kills", _("Friendly kills"), lambda s: display.num(s.friendly_kills)),
+    Column("friendly_kills_air", _("Friendly-fire air kills"), lambda s: display.num(s.friendly_kills_air)),
+    Column("friendly_kills_ground", _("Friendly-fire ground kills"), lambda s: display.num(s.friendly_kills_ground)),
     Column("air_points", _("Air score"), lambda s: display.num(s.air_points)),
     Column("ground_points", _("Ground score"), lambda s: display.num(s.ground_points)),
     Column(
@@ -201,7 +212,7 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
         "accuracy",
         _("Gun accuracy"),
         lambda s: _accuracy(s.gun_hits_air + s.gun_hits_ground, s.rounds_fired or 0),
-        _("Gun hits per round fired; a dash when the rounds fired are unknown"),
+        _("Gun hits per round fired; a dash when the rounds fired are unknown."),
     ),
     Column(
         "accuracy_air",
@@ -211,7 +222,7 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
             if s.combat_role == CombatRole.AIR_SUPERIORITY
             else display.DASH
         ),
-        _("Gun hits on aircraft per round fired; air superiority sorties with known rounds only"),
+        _("Gun hits on aircraft per round fired; air superiority sorties with known rounds only."),
     ),
     Column(
         "accuracy_ground",
@@ -219,7 +230,7 @@ SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
         lambda s: (
             _accuracy(s.gun_hits_ground, s.rounds_fired or 0) if s.combat_role == CombatRole.ATTACK else display.DASH
         ),
-        _("Gun hits on ground targets per round fired; attack sorties with known rounds only"),
+        _("Gun hits on ground targets per round fired; attack sorties with known rounds only."),
     ),
 )
 
@@ -236,7 +247,7 @@ SITE_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
         numeric=False,
         sortable=False,
     ),
-    Column("damage_taken", _("Damage taken"), lambda s: f"{round(s.damage_taken * 100)}%"),
+    Column("damage_taken", _("Damage taken"), lambda s: display.percent(s.damage_taken, 1)),
     Column("assists", _("Assists"), lambda s: display.num(s.assists)),
     *(column for column in SORTIE_COLUMNS if column.key != "mission"),
 )
@@ -247,7 +258,7 @@ SITE_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 # these are the extras: the player sortie list's, minus the mission (this page), plus the damage taken (a default
 # column there).
 MISSION_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
-    Column("damage_taken", _("Damage taken"), lambda s: f"{round(s.damage_taken * 100)}%"),
+    Column("damage_taken", _("Damage taken"), lambda s: display.percent(s.damage_taken, 1)),
     *(column for column in SORTIE_COLUMNS if column.key != "mission"),
 )
 
@@ -276,9 +287,9 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftListRow], ...] = (
     Column("kd", _("K/D"), lambda a: display.ratio(a.stats.kills_air, a.stats.deaths)),
     Column(
         "attack_share",
-        _("Attack sorties"),
+        _("Share of attack sorties"),
         lambda a: display.percent(a.stats.attack_sorties, a.stats.sorties),
-        "attack_sorties",
+        "attack_share",
     ),
     Column(
         "hits",
@@ -294,7 +305,13 @@ AIRCRAFT_COLUMNS: tuple[Column[AircraftListRow], ...] = (
     Column("kills_per_hour", _("Air kills/h"), lambda a: display.per_hour(a.stats.kills_air, a.stats.flight_time_s)),
     Column("assists", _("Assists"), lambda a: display.num(a.stats.assists)),
     Column("bailouts", _("Bailouts"), lambda a: display.num(a.stats.bailouts)),
-    Column("friendly_kills", _("Friendly kills"), lambda a: display.num(a.stats.friendly_kills)),
+    Column("friendly_kills_air", _("Friendly-fire air kills"), lambda a: display.num(a.stats.friendly_kills_air)),
+    Column(
+        "friendly_kills_ground", _("Friendly-fire ground kills"), lambda a: display.num(a.stats.friendly_kills_ground)
+    ),
+    Column("taxi_accidents", _("Taxi/takeoff accidents"), lambda a: display.num(a.stats.taxi_accidents)),
+    Column("botched_landings", _("Botched landings"), lambda a: display.num(a.stats.botched_landings)),
+    Column("strafed_on_ground", _("Strafed on the ground"), lambda a: display.num(a.stats.strafed_on_ground)),
     Column("score_air", _("Air score"), lambda a: display.num(a.stats.score_air)),
     Column("score_ground", _("Ground score"), lambda a: display.num(a.stats.score_ground)),
     Column(

@@ -7,20 +7,43 @@
 - **Botched landings in the hall of shame:** a pilot who crashes or badly damages a sound aircraft landing at an airfield, by their
   own doing. On the profile, the aircraft and mission pages, and the sortie page with a badge and a quip of its own. The airfield
   distance and damage limits are in the `[replay]` section of `il2ks.toml` (`botched_landing_*`).
-- **The hall of shame quips cover every combination** of taxi/takeoff accidents, friendly fire and botched landings, each with its
-  warmer variant for the pilots who do it most.
+- **The hall of shame quips cover every combination** of taxi/takeoff accidents, friendly-fire air kills, friendly-fire ground kills
+  and botched landings, each with its warmer variant for the pilots who do it most.
 - **Aircraft pages show more figures:** a plain section under the tiles with the ratios, the hall of shame and every other figure
   the list offers as a column.
 - **Mission pages show the hall of shame incidents** and the other figures of the list in a plain section under the tiles.
 - **Times strafed on the ground is now on aircraft and mission pages too**, as a plain total: it is no shame.
 - The profile's "Other totals" show total assists and gun accuracy.
+- **Reprocess a time span in the admin:** the Ingestion status page has a form for a start and an end, each a date with an optional time
+  to the minute, and shows how many missions that covers before it starts. `il2ks reprocess --since` and `--until` take a time too, as
+  in `--since '2026-09-01 18:00'`.
+- **Filter the sortie lists by incident:** taxi/takeoff accidents, botched landings or being strafed on the ground, on the site-wide list
+  and a player's list.
+- **The incidents as extra columns:** taxi/takeoff accidents, botched landings and strafed on the ground on the mission, aircraft and
+  player lists.
+- **Three new ground medals:** Firestorm, for ground targets destroyed within two minutes in one sortie, Flak Dodger, for ground kills in one
+  life of attack sorties, and Surgical Strike, for the highest ground score per hour on target.
+- **An all-time Jet Hunter:** it counts all your tours against tiers of 5, 15, 25 and 50. The one-tour medal is now Tour Jet Hunter.
 
 ### Changed
 
 - **"Taxi accidents" are now "Taxi/takeoff accidents":** the crash can happen on the takeoff run, before the wheels leave the ground.
   Only the wording changes.
-- Run `il2ks reprocess --all` once after the upgrade: it finds the botched landings in the missions you already have and fills the
-  new mission counters (it rebuilds the aggregates too, and needs your archived logs).
+- **Friendly-fire kills are split into air and ground** everywhere: the profile, the lists, and the aircraft, mission and sortie pages.
+  The score penalty is unchanged. A saved link that shows the old "Friendly kills" column simply leaves it out.
+- **The hall of shame has four tiles across the full width,** with the quip under them.
+- **A profile lists achievements best first:** the highest tier, within it the rarest, then the newest, instead of in a fixed order.
+- **The early bailout penalty only applies to a sound aircraft:** it is there to stop pilots bailing out to deny a kill, so a pilot who damaged the
+  aircraft themselves first (20% or more) no longer pays it. Takes effect with `il2ks reprocess --all`.
+- **A sortie page says why it lost points:** a notice names the early bailout or friendly-fire penalty, with the points and the score they came
+  off.
+- **The Jet and Prop tags on the aircraft list** sit level with the name, with more room around them.
+- **Limping Home has a platinum tier:** the tiers are 1, 3, 5 and 10, so five landings earn gold and ten earn platinum.
+- **Ribbons have their own section below all the medals** on the achievements pages, drawn as ribbons instead of medals.
+- **The summaries on aircraft and mission pages give incident shares with two decimals,** like 1.23%.
+- Run `il2ks reprocess --all` once after the upgrade: it finds the botched landings in the missions you already have, splits their
+  friendly-fire kills, fills the new mission counters and awards the new medals (it rebuilds the aggregates too, and needs your archived
+  logs). Until then the new figures read 0, and Jet Hunter medals drop away at the first rebuild and return with the run.
 
 ### Fixed
 
@@ -29,14 +52,39 @@
 - **No more lone items:** the menu, the profile links and the board and medal tabs no longer leave one link alone on a last row, and text
   no longer ends on a line of one word.
 - **A backup on Windows no longer fails** when the copy to the second folder is still reading an old backup that rotation wants to delete.
+- **Tooltips of the columns:** a column without a description showed its internal name, as in `air_points`. Every column that needs one now has
+  a real description, also the default columns of the sortie lists, leaderboards, mission and aircraft tables.
+- **Column descriptions match the rules:** time on target ends a minute after the last release, a jet shooting down a propeller aircraft is no
+  encounter and no duel between types, and the Assists column of the air board counts assists on aircraft only.
+- **Attack proficiency shows one decimal on the aircraft pages too,** as on its board.
+- **The optional Attack sorties column of the aircraft list is called Share of attack sorties,** as it shows a percentage.
+- **The optional Tour column of the mission list is left-aligned,** like other text.
+- **The note under the profile's ratios no longer touches their box.**
+- **`il2ks reprocess` reports its progress:** a line per mission says how many are done and how many are left, as `il2ks ingest` reports each
+  mission.
+- **The percent sign follows the language:** German, Spanish, French and Russian write a no-break space before it (1,23 %).
 
 ### Templates changed (check your custom/ overrides)
 
-- `site.css`: v6.1 -> v7.3 and `players.css`: v1.0 -> v2.2 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
-  `site.css` gained `.stat-columns` and `.stat-columns__title`. A copied `site.css` needs these styles, or the new sections show unstyled.
-- `aircraft/detail.html`: v1.0 -> v1.1 and `missions/detail.html`: v1.2 -> v1.3: they include the new `aircraft/detail_secondary.html` and
-  `missions/detail_secondary.html` (both new).
-- `players/detail_shame.html`: v2.0 -> v2.1 (the new tile), `players/detail_totals.html`: v1.2 -> v1.3 (assists, gun accuracy),
+- `site.css`: v6.1 -> v8.0 and `players.css`: v1.0 -> v4.0 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
+  `site.css` gained `.stat-columns`, `.stat-columns__title` and `.ribbon--bare`. A copied `site.css` needs these styles, or the new sections
+  show unstyled.
+- `achievements/overview.html`: v1.1 -> v2.0 and `players/achievements.html`: v1.0 -> v2.0 (breaking). Their rows moved to the new
+  `achievements/_overview_rows.html` and `players/_achievement_rows.html`, and the views pass `medal_rows` and `ribbon_rows` instead of `rows`.
+- `aircraft/list.html`: v1.0 -> v3.0 (breaking): the name cell is wrapped in `.aircraft-table__identity`, so the tag sits level with the name, and
+  attack proficiency uses the new `attack_rate` filter (one decimal).
+- `sorties/all.html` and `sorties/list.html`: v1.0 -> v1.2 (the incident filter, column descriptions). `admin/il2ks_ingest_status.html`: v3.1 -> v3.2 (the time span
+  button), with the new `admin/il2ks_reprocess_span.html` and `admin/il2ks_span_label.html`.
+- Friendly-fire kills split, or percent signs by language: `aircraft/detail_secondary.html`: v1.0 -> v1.2, `missions/detail_secondary.html`:
+  v1.1 -> v1.2, `players/detail_aircraft_build.html` and `players/detail_ground.html`: v1.0 -> v1.1, `sorties/parts/kills.html` and
+  `sorties/parts/list_row.html`: v1.0 -> v1.1, `sorties/parts/summary.html`: v1.1 -> v1.2. An override keeps working, with the old wording.
+- `aircraft/detail.html`: v1.0 -> v1.2 and `missions/detail.html`: v1.2 -> v1.4: they include the new `aircraft/detail_secondary.html` and
+  `missions/detail_secondary.html` (both new), and more headers have a description.
+- More headers with a description: `home.html`: v3.0 -> v3.1, `leaderboards/home_block.html`, `leaderboards/table.html`, `missions/_rows.html`,
+  `missions/list.html`, `players/detail_aircraft.html`, `players/detail_pve.html` and `players/detail_recent.html`: v1.0 -> v1.1. An override
+  keeps working, without them. `sorties/parts/notices.html`: v1.0 -> v1.1 (the penalty notices).
+- `players/detail_shame.html`: v2.0 -> v2.2 (four tiles, the quip under them), `players/detail_totals.html`: v1.2 -> v1.4 (assists, gun accuracy,
+  friendly-fire kills split),
   `sorties/parts/header.html`: v1.1 -> v1.2 (the new badge).
 - `il2ks/base.html`: v2.1 -> v2.2 (the font preload, one space between menu items) and `leaderboards.css`: v1.0 -> v1.1. An override keeps
   working, without the preload or the balanced rows.

@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v1.2 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
@@ -175,14 +175,14 @@
             {% sort_th "loadout" _("Loadout") current=loadout_sort param="lsort" %}
             {% sort_th "sorties" _("Sorties") current=loadout_sort param="lsort" numeric=True %}
             {% if loadout_role == "attack" %}
-              {% sort_th "kills_ground" _("Ground kills") current=loadout_sort param="lsort" numeric=True %}
-              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
-              {% sort_th "ground_hour" _("Attack proficiency") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "kills_ground" _("Ground kills") current=loadout_sort param="lsort" numeric=True hint="kills_ground" %}
+              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True hint="deaths" %}
+              {% sort_th "ground_hour" _("Attack proficiency") current=loadout_sort param="lsort" numeric=True hint="ground_hour" %}
             {% else %}
-              {% sort_th "kills_air" _("Air kills") current=loadout_sort param="lsort" numeric=True %}
-              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "kills_air" _("Air kills") current=loadout_sort param="lsort" numeric=True hint="kills_air" %}
+              {% sort_th "deaths" _("Deaths") current=loadout_sort param="lsort" numeric=True hint="deaths" %}
               {# Translators: column header; the sortie-weighted average Elo rating of the pilots who flew this loadout (it reflects their skill, not only the loadout) #}
-              {% sort_th "elo" _("Average pilot Elo") current=loadout_sort param="lsort" numeric=True %}
+              {% sort_th "elo" _("Average pilot Elo") current=loadout_sort param="lsort" numeric=True hint="average_elo" %}
               {% sort_th "kills_per_sortie" _("Air kills per sortie") current=loadout_sort param="lsort" numeric=True %}
               {# Translators: column header; player-versus-player air kills per death with this loadout #}
               {% sort_th "kd" _("PvP K/D") current=loadout_sort param="lsort" numeric=True %}
@@ -229,13 +229,13 @@
           <tr>
             {% sort_th "mods" _("Modifications") current=mod_sort param="msort" %}
             {% sort_th "sorties" _("Sorties") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "kills_air" _("Air kills") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "kills_ground" _("Ground kills") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "deaths" _("Deaths") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "elo" _("Average pilot Elo") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "kills_air" _("Air kills") current=mod_sort param="msort" numeric=True hint="kills_air" %}
+            {% sort_th "kills_ground" _("Ground kills") current=mod_sort param="msort" numeric=True hint="kills_ground" %}
+            {% sort_th "deaths" _("Deaths") current=mod_sort param="msort" numeric=True hint="deaths" %}
+            {% sort_th "elo" _("Average pilot Elo") current=mod_sort param="msort" numeric=True hint="average_elo" %}
             {% sort_th "kills_per_sortie" _("Air kills per sortie") current=mod_sort param="msort" numeric=True %}
             {% sort_th "kd" _("PvP K/D") current=mod_sort param="msort" numeric=True %}
-            {% sort_th "ground_hour" _("Attack proficiency") current=mod_sort param="msort" numeric=True %}
+            {% sort_th "ground_hour" _("Attack proficiency") current=mod_sort param="msort" numeric=True hint="ground_hour" %}
           </tr>
         </thead>
         <tbody>

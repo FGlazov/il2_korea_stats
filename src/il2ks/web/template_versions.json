@@ -127,12 +127,13 @@
       }
     },
     "static/il2ks/players.css": {
-      "version": "2.2",
-      "sha256": "67c9f6e4ceb056ba913e28471937c45e48d69585b4c62851fc9c1f0c6421fa67",
+      "version": "4.0",
+      "sha256": "be33a4752454ff8ed4ab662158f2efa97c778a6c8cd007b9620ae1b73643f7d5",
       "contract": {
         "defines": [
           ".aircraft-table__build",
           ".aircraft-table__icon",
+          ".aircraft-table__identity",
           ".aircraft-table__name",
           ".empty-row",
           ".empty-row__mark",
@@ -163,6 +164,7 @@
           ".stat-tile",
           ".stat-tile--muted",
           ".stat-tile__icon",
+          ".stat-tile__label",
           ".stat-tile__sub",
           ".stat-tile__value",
           ".totals-grid",
@@ -202,8 +204,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "7.3",
-      "sha256": "efa855e42dd0d73f02ca7f45c5d2d6e2d05fcc9b1ce05015784ae022de4f1696",
+      "version": "8.0",
+      "sha256": "900fe749709a8d4653a86cfa9c5c1e38950f28eab0f62a3a13bc7c6367d225e1",
       "contract": {
         "defines": [
           "--icon",
@@ -445,6 +447,7 @@
           ".recent-awards",
           ".results-region",
           ".ribbon",
+          ".ribbon--bare",
           ".ribbon--bronze",
           ".ribbon--gold",
           ".ribbon--platinum",
@@ -864,8 +867,8 @@
       }
     },
     "templates/admin/il2ks_ingest_status.html": {
-      "version": "3.1",
-      "sha256": "02ae8f5897bd9c7e4604f9d3b9a1454511219c817116b5d1007c916e2f764954",
+      "version": "3.2",
+      "sha256": "cbb6c47681f58615f1117d65217b7ce91fa49ac745864d45d1b5edd59b059844",
       "contract": {
         "blocks": [
           "breadcrumbs",
@@ -876,7 +879,8 @@
           "admin/base_site.html"
         ],
         "includes": [
-          "admin/il2ks_removal_label.html"
+          "admin/il2ks_removal_label.html",
+          "admin/il2ks_span_label.html"
         ],
         "markers": [
           "#content-main",
@@ -910,6 +914,7 @@
           "admin:il2ks_db_ingestrun_changelist/0",
           "admin:index/0",
           "admin:reprocess-all/0",
+          "admin:reprocess-span/0",
           "admin:wipe-reprocess/0"
         ],
         "urls": [
@@ -918,6 +923,7 @@
           "admin:il2ks_db_ingestrun_changelist",
           "admin:index",
           "admin:reprocess-all",
+          "admin:reprocess-span",
           "admin:wipe-reprocess"
         ],
         "variables": [
@@ -1108,6 +1114,39 @@
         ]
       }
     },
+    "templates/admin/il2ks_reprocess_span.html": {
+      "version": "1.0",
+      "sha256": "8dc3f21198fe73f7b2d6e5387758124bb5b88e01ae27e8f42d434fd2e2c46fba",
+      "contract": {
+        "blocks": [
+          "breadcrumbs",
+          "content"
+        ],
+        "extends": [
+          "admin/base_site.html"
+        ],
+        "markers": [
+          "#content-main",
+          ".breadcrumbs",
+          ".button",
+          ".cancel-link"
+        ],
+        "tags": [
+          "plural"
+        ],
+        "url_args": [
+          "admin:index/0"
+        ],
+        "urls": [
+          "admin:index"
+        ],
+        "variables": [
+          "form",
+          "missions",
+          "status_url"
+        ]
+      }
+    },
     "templates/admin/il2ks_rules.html": {
       "version": "1.0",
       "sha256": "742406f4685e6474cda7cab0c0e0022d34972a1228158015708d2c1b6974564a",
@@ -1178,6 +1217,15 @@
           "pending",
           "per_hour",
           "pvp_kill"
+        ]
+      }
+    },
+    "templates/admin/il2ks_span_label.html": {
+      "version": "1.0",
+      "sha256": "41a9da980dd3b4dd8869aa18b9bf69bb53983c7413bb2112a2427bb9f9aa1131",
+      "contract": {
+        "variables": [
+          "job"
         ]
       }
     },
@@ -1334,6 +1382,42 @@
         ]
       }
     },
+    "templates/il2ks/achievements/_overview_rows.html": {
+      "version": "1.0",
+      "sha256": "5e28a41602e83c937bc01b6941bcea01f08f0ab6b6b75bd30fcdf2f35f150690",
+      "contract": {
+        "markers": [
+          ".medal",
+          ".medal--gold",
+          ".medal-list",
+          ".medal-list__head",
+          ".medal-list__item",
+          ".medal__badge",
+          ".muted",
+          ".ribbon",
+          ".ribbon--bare",
+          ".ribbon--gold",
+          ".ribbon__bar",
+          ".ribbon__pip",
+          ".tier-list",
+          ".tier-list__item"
+        ],
+        "tags": [
+          "icon",
+          "plural"
+        ],
+        "url_args": [
+          "web:achievement-holders/1"
+        ],
+        "urls": [
+          "web:achievement-holders"
+        ],
+        "variables": [
+          "rows",
+          "tour_query"
+        ]
+      }
+    },
     "templates/il2ks/achievements/_ribbon.html": {
       "version": "1.0",
       "sha256": "491a873f948d1184ec9617e5a6fdf50b678a73e9def30bb58873e562d1687faf",
@@ -1452,8 +1536,8 @@
       }
     },
     "templates/il2ks/achievements/overview.html": {
-      "version": "1.1",
-      "sha256": "2acf9fba808e6258851d64a28e2c01fb4db9c8e58e80b85b3a8f64eb53179c82",
+      "version": "2.0",
+      "sha256": "eec8aa1427066a9fc590415c8dcb1e544f40f388efc684245e77a0b55ace5f8a",
       "contract": {
         "blocks": [
           "content",
@@ -1462,45 +1546,32 @@
         "extends": [
           "il2ks/base.html"
         ],
+        "includes": [
+          "il2ks/achievements/_overview_rows.html"
+        ],
         "markers": [
-          ".medal",
-          ".medal--gold",
-          ".medal-list",
-          ".medal-list__head",
-          ".medal-list__item",
-          ".medal__badge",
-          ".muted",
-          ".page-head",
-          ".tier-list",
-          ".tier-list__item"
+          ".medal-section",
+          ".page-head"
         ],
         "static": [
           "il2ks/players.css"
         ],
         "tags": [
           "breadcrumbs",
-          "icon",
-          "plural",
           "tour_select"
-        ],
-        "url_args": [
-          "web:achievement-holders/1"
-        ],
-        "urls": [
-          "web:achievement-holders"
         ],
         "variables": [
           "crumbs",
-          "rows",
+          "medal_rows",
+          "ribbon_rows",
           "tour",
-          "tour_query",
           "tours"
         ]
       }
     },
     "templates/il2ks/aircraft/detail.html": {
-      "version": "1.1",
-      "sha256": "88bba9ab32565848af6725bf1d418aea0bb0a96ba5b97f124d4a0933d257e349",
+      "version": "1.2",
+      "sha256": "2498afe51404a7c7a32dbc5a6b32790ecfc7b2d59fd494837e5cae5dc0c688f7",
       "contract": {
         "blocks": [
           "content",
@@ -1602,10 +1673,12 @@
       }
     },
     "templates/il2ks/aircraft/detail_secondary.html": {
-      "version": "1.0",
-      "sha256": "cc4d11f27851343bc8d90902de054ffa435b1fbe36b345cf45695db666cd1b18",
+      "version": "1.2",
+      "sha256": "3bc1558c2319fcefa5560ecde54ca72e2fbae3b0b52346de2c413f7ab9d0ae01",
       "contract": {
         "filters": [
+          "attack_rate",
+          "incident_share",
           "num",
           "per_hour",
           "percent",
@@ -1626,8 +1699,8 @@
       }
     },
     "templates/il2ks/aircraft/list.html": {
-      "version": "1.0",
-      "sha256": "307fe8a664b990292feea5b9867a2483d630fb2d3e11435db8ff9ae32f3ac6ee",
+      "version": "3.0",
+      "sha256": "30213036a8898bf9cc12c37ce7dfa47c4b13d842c30d5f4f5774c0c97ac1af49",
       "contract": {
         "blocks": [
           "content",
@@ -1637,16 +1710,17 @@
           "il2ks/base.html"
         ],
         "filters": [
+          "attack_rate",
           "cell",
           "num",
           "object_name",
-          "per_hour",
           "percent",
           "ratio",
           "tour_qs"
         ],
         "markers": [
           ".aircraft-table",
+          ".aircraft-table__identity",
           ".aircraft-table__name",
           ".data-table",
           ".muted",
@@ -2465,8 +2539,8 @@
       }
     },
     "templates/il2ks/home.html": {
-      "version": "3.0",
-      "sha256": "78eae707b8455da700146ccf32328e049a008f3f931dd42526325f0357502c9d",
+      "version": "3.1",
+      "sha256": "94404627a4531c822d503c90626f39b8354cee7e2c54f025352875fd09e11213",
       "contract": {
         "blocks": [
           "content",
@@ -2592,8 +2666,8 @@
       }
     },
     "templates/il2ks/leaderboards/home_block.html": {
-      "version": "1.0",
-      "sha256": "2f8f110fe627d4c745a7cbafc89605b136b76e1d0d33a625486ef3decea47224",
+      "version": "1.1",
+      "sha256": "f5c328a22ff12220b355e147d3c0c505352bb4bfef20fb6374fd5aeb8481d6dc",
       "contract": {
         "filters": [
           "duration",
@@ -2716,8 +2790,8 @@
       }
     },
     "templates/il2ks/leaderboards/table.html": {
-      "version": "1.0",
-      "sha256": "c3667977e04656e84bebe4abaac63337273cff0283ceb960a2762efd6067bb10",
+      "version": "1.1",
+      "sha256": "38e3b4be0a25bb54e98955fdbcc504e5ba4c2ae4726ad95609a6429a70f63720",
       "contract": {
         "filters": [
           "duration",
@@ -2772,8 +2846,8 @@
       }
     },
     "templates/il2ks/missions/_rows.html": {
-      "version": "1.0",
-      "sha256": "68d0ea977bccfecee5e4fb7207337c700b5e4418d476a20bfd88c769a5c02bd7",
+      "version": "1.1",
+      "sha256": "acda370cc173b60f983c991ef33af1f09522c625cbb1b9940a0b5d949015ff1b",
       "contract": {
         "filters": [
           "cell",
@@ -2815,8 +2889,8 @@
       }
     },
     "templates/il2ks/missions/detail.html": {
-      "version": "1.3",
-      "sha256": "334d2333adc2b558fe37f58f3a7046c0c2396a52c6418fb4cd341afb49a1cebc",
+      "version": "1.4",
+      "sha256": "1378f0c036430e1ebd33dde5e3439d5f25f7db029a188b8936d2d16e029f9af4",
       "contract": {
         "blocks": [
           "content",
@@ -2905,10 +2979,11 @@
       }
     },
     "templates/il2ks/missions/detail_secondary.html": {
-      "version": "1.1",
-      "sha256": "e614ba1bed5b609550416bd2bd4391d3da884a6c70c0cd37558d76d6daa0998a",
+      "version": "1.2",
+      "sha256": "bc61cfa2860aaea9a76b10560f49865a6c7f757381f9d41bb0bed312d6e58242",
       "contract": {
         "filters": [
+          "incident_share",
           "local_time",
           "num",
           "tour_title"
@@ -2926,8 +3001,8 @@
       }
     },
     "templates/il2ks/missions/list.html": {
-      "version": "1.0",
-      "sha256": "6d1d24f3b1fe88f2d0c227c108e35c54d332d7b4e88425bd458bdc364ecc41fe",
+      "version": "1.1",
+      "sha256": "7e6df75d00c6de03e908af8ab22bb45bd314b31c6c96a163c7c320d49d772550",
       "contract": {
         "blocks": [
           "content",
@@ -3003,6 +3078,45 @@
         ]
       }
     },
+    "templates/il2ks/players/_achievement_rows.html": {
+      "version": "1.0",
+      "sha256": "eb1f575206b68f71cb7898544266562b48a128d6c3fdecc82a182e71a9666189",
+      "contract": {
+        "filters": [
+          "local_date"
+        ],
+        "markers": [
+          ".locked",
+          ".medal",
+          ".medal--",
+          ".medal-list",
+          ".medal-list__head",
+          ".medal-list__item",
+          ".medal-list__item--none",
+          ".medal__badge",
+          ".muted",
+          ".ribbon",
+          ".ribbon--bare",
+          ".ribbon__bar",
+          ".ribbon__pip",
+          ".tier-list",
+          ".tier-list__item",
+          ".tier-list__item--open"
+        ],
+        "tags": [
+          "icon"
+        ],
+        "url_args": [
+          "web:sortie-detail/1"
+        ],
+        "urls": [
+          "web:sortie-detail"
+        ],
+        "variables": [
+          "rows"
+        ]
+      }
+    },
     "templates/il2ks/players/_killboard_rows.html": {
       "version": "1.0",
       "sha256": "8bb8cd341aa74e21da31e2e8ad4a0b4dc428be4ba899883c99483a44446cfedb",
@@ -3069,8 +3183,8 @@
       }
     },
     "templates/il2ks/players/achievements.html": {
-      "version": "1.0",
-      "sha256": "9da73c39f6b5f9925b888cc8f0b2c9cafb6893e4c6dd23de60f8b958d960bd35",
+      "version": "2.0",
+      "sha256": "0b27aebba8d6e96a900c4e0a21e74712f41ef2eed6d9eebdf6c090e9753af06e",
       "contract": {
         "blocks": [
           "content",
@@ -3080,48 +3194,37 @@
           "il2ks/base.html"
         ],
         "filters": [
-          "local_date",
           "tour_title"
         ],
+        "includes": [
+          "il2ks/players/_achievement_rows.html"
+        ],
         "markers": [
-          ".locked",
-          ".medal",
-          ".medal--",
-          ".medal-list",
-          ".medal-list__head",
-          ".medal-list__item",
-          ".medal-list__item--none",
-          ".medal__badge",
-          ".muted",
-          ".page-head",
-          ".tier-list",
-          ".tier-list__item",
-          ".tier-list__item--open"
+          ".medal-section",
+          ".page-head"
         ],
         "static": [
           "il2ks/players.css"
         ],
         "tags": [
           "breadcrumbs",
-          "icon",
           "tour_absent",
           "tour_select"
         ],
         "url_args": [
           "web:achievements/0",
-          "web:player-detail/1",
-          "web:sortie-detail/1"
+          "web:player-detail/1"
         ],
         "urls": [
           "web:achievements",
-          "web:player-detail",
-          "web:sortie-detail"
+          "web:player-detail"
         ],
         "variables": [
           "absence",
           "crumbs",
+          "medal_rows",
           "player",
-          "rows",
+          "ribbon_rows",
           "tour_query",
           "tours"
         ]
@@ -3272,8 +3375,8 @@
       }
     },
     "templates/il2ks/players/detail_aircraft.html": {
-      "version": "1.0",
-      "sha256": "f90515166d92d7ed382e084c42140c6bf32f971631586e8c93dbc7f580527c1f",
+      "version": "1.1",
+      "sha256": "b252b7caddf6f7b51d6004ea43def4d42016c66e3135c610ca4848973ba22f1c",
       "contract": {
         "filters": [
           "build_of",
@@ -3317,9 +3420,12 @@
       }
     },
     "templates/il2ks/players/detail_aircraft_build.html": {
-      "version": "1.0",
-      "sha256": "6aff852b9fd227bbf281d9870d13c73cd320f50c89fa5c7bf9ea4fd525851f6d",
+      "version": "1.1",
+      "sha256": "87677e212c20135398a38ec0ee8bcbd60e9640900b7631ea1a6168ea8b7913a6",
       "contract": {
+        "filters": [
+          "percent"
+        ],
         "markers": [
           ".aircraft-table__build",
           ".muted"
@@ -3347,8 +3453,8 @@
       }
     },
     "templates/il2ks/players/detail_ground.html": {
-      "version": "1.0",
-      "sha256": "4f8179a01aef9859f48f49a62ff9a9228a9b0aa1f1fbefc340569a33a42ffb59",
+      "version": "1.1",
+      "sha256": "d58d3ac540aef6b19baed4e04e125c9eafb8cb460e47a5e6483645b8aa512558",
       "contract": {
         "filters": [
           "num",
@@ -3541,8 +3647,8 @@
       }
     },
     "templates/il2ks/players/detail_pve.html": {
-      "version": "1.0",
-      "sha256": "59dbb81afe5355f60b2e7e7b1028a95634f6691f2cd8b3e41853439869004904",
+      "version": "1.1",
+      "sha256": "25be3f578e1059c30131591b4ea711d5e6cc44fc5f5762ec82d3e30c3b1ea5ef",
       "contract": {
         "filters": [
           "num",
@@ -3594,8 +3700,8 @@
       }
     },
     "templates/il2ks/players/detail_recent.html": {
-      "version": "1.0",
-      "sha256": "580cbe6e28cac2c4b1aca4f5de0aced184c72f42c4096130444e559e4d764138",
+      "version": "1.1",
+      "sha256": "9e359545bc8244123cf26bb6efa1067cc5592799f960489c76c69320b331e1ed",
       "contract": {
         "filters": [
           "duration",
@@ -3662,8 +3768,8 @@
       }
     },
     "templates/il2ks/players/detail_shame.html": {
-      "version": "2.1",
-      "sha256": "2b49420a8cd9a74729442ed6750cff440633ac16510c397fb34763a8665aa83e",
+      "version": "2.2",
+      "sha256": "93ac9cb25fd020f82e6a9e7b229ebd9e7d7a54419799c35b7b6036a8936497f1",
       "contract": {
         "filters": [
           "num"
@@ -3779,8 +3885,8 @@
       }
     },
     "templates/il2ks/players/detail_totals.html": {
-      "version": "1.3",
-      "sha256": "5edfe11d3876cc7bff6b7090737baf031b49a0cf8c110fb5ebc4a461512061d6",
+      "version": "1.4",
+      "sha256": "ffee5ad87662a385bcd1015e513dc9bbb68c28e0e8440452d92079cd39c8f8a1",
       "contract": {
         "filters": [
           "accuracy",
@@ -4191,8 +4297,8 @@
       }
     },
     "templates/il2ks/sorties/all.html": {
-      "version": "1.0",
-      "sha256": "fd466b6f081ed4311eeb6c360aac4da4a1a16c41216c0dce677241e7ff326f13",
+      "version": "1.2",
+      "sha256": "6b481ae17ed4634d6aa4445880029e82a48f57ac6b7d917a0f68ba08732984cb",
       "contract": {
         "blocks": [
           "content",
@@ -4236,6 +4342,7 @@
           "colspan",
           "columns",
           "combat_role_options",
+          "incident_options",
           "optional_columns",
           "outcome_options",
           "page_obj",
@@ -4290,8 +4397,8 @@
       }
     },
     "templates/il2ks/sorties/list.html": {
-      "version": "1.0",
-      "sha256": "210b0cac6f6b8923095de319ab21e4bdf779b6bfb694a5ddffa357474751aa08",
+      "version": "1.2",
+      "sha256": "1c48671264914100dbed66d6979618f65a53144ad6e914c572e73c462dcf8123",
       "contract": {
         "blocks": [
           "content",
@@ -4344,6 +4451,7 @@
           "columns",
           "combat_role_options",
           "crumbs",
+          "incident_options",
           "optional_columns",
           "outcome_options",
           "page_obj",
@@ -4596,8 +4704,8 @@
       }
     },
     "templates/il2ks/sorties/parts/kills.html": {
-      "version": "1.0",
-      "sha256": "bc4c6418283b6828333646b5e0d5782b2212855ce3b6811be65b36266b10eeed",
+      "version": "1.1",
+      "sha256": "0055d20785b7ba0c82c1700c92e4e0b947edb3c6842ef09b5f6da5b309805bc4",
       "contract": {
         "filters": [
           "num"
@@ -4626,14 +4734,15 @@
       }
     },
     "templates/il2ks/sorties/parts/list_row.html": {
-      "version": "1.0",
-      "sha256": "7b2fd7f8517f0d242b6c8981fed9201a276c24732b0a14030448f645995382a0",
+      "version": "1.1",
+      "sha256": "16f25428fb0f7a3f55440e401bcf588ca5db85eb4edce58655610b7a809bad70",
       "contract": {
         "filters": [
           "cell",
           "duration",
           "local_short",
-          "num"
+          "num",
+          "percent"
         ],
         "includes": [
           "il2ks/sorties/parts/aircraft_cell.html"
@@ -4702,26 +4811,28 @@
       }
     },
     "templates/il2ks/sorties/parts/notices.html": {
-      "version": "1.0",
-      "sha256": "bb55bcd706b4613ce2a4c6af1a91993f894486c8ed7d7fb236c1804d894a7500",
+      "version": "1.1",
+      "sha256": "d52d5918bd8202fa3877efde4127afc8a41c193ed8b1ae24491bb70747076106",
       "contract": {
         "tags": [
           "notice"
         ],
         "variables": [
           "detail",
+          "penalty_notes",
           "sortie"
         ]
       }
     },
     "templates/il2ks/sorties/parts/summary.html": {
-      "version": "1.1",
-      "sha256": "481d1f63d4c42c4c407149378866d1f388b3835f124b1ff2b591618609b662ea",
+      "version": "1.2",
+      "sha256": "ac78c3fa55e95c19ba3252e5a6a47f2bc3de237ac38e950f950d113f996240c1",
       "contract": {
         "filters": [
           "duration",
           "local_time",
           "num",
+          "percent",
           "weapon_mods"
         ],
         "markers": [

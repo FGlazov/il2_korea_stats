@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/players/detail_pve.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/players/detail_pve.html v1.1 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_pve.html: the PvE breakdown (FR-WEB-21, doc 13) in a collapsed accordion under the ground-kill one: who killed this
   player (deaths and lost aircraft by counterpart class, so "how often does AA get me?" has an answer) and whom they killed
@@ -13,7 +13,7 @@
         <h3>{% translate "Deaths and lost aircraft by cause" %}</h3>
         <div class="table-wrap table-wrap--flat">
           <table class="data-table data-table--compact pve-table">
-            <thead><tr><th scope="col">{% translate "Caused by" %}</th><th scope="col" class="num">{% translate "Deaths" %}</th><th scope="col" class="num">{% translate "Share" %}</th>{% col_th _("Aircraft lost") numeric=True hint="pve_lost" %}</tr></thead>
+            <thead><tr><th scope="col">{% translate "Caused by" %}</th>{% col_th _("Deaths") numeric=True hint="deaths" %}{% col_th _("Share") numeric=True hint="pve_death_share" %}{% col_th _("Aircraft lost") numeric=True hint="pve_lost" %}</tr></thead>
             <tbody>
               {% for row in pve_losses %}
                 <tr{% if not row.deaths and not row.planes_lost %} class="is-zero"{% endif %}>
@@ -32,7 +32,7 @@
         <h3>{% translate "Kills by victim" %}</h3>
         <div class="table-wrap table-wrap--flat">
           <table class="data-table data-table--compact pve-table">
-            <thead><tr><th scope="col">{% translate "Victim" %}</th><th scope="col" class="num">{% translate "Kills" %}</th><th scope="col" class="num">{% translate "Share" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% translate "Victim" %}</th><th scope="col" class="num">{% translate "Kills" %}</th>{% col_th _("Share") numeric=True hint="pve_kill_share" %}</tr></thead>
             <tbody>
               {% for row in pve_kills %}
                 <tr{% if not row.count %} class="is-zero"{% endif %}>
