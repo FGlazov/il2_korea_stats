@@ -443,12 +443,11 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
 ## Serving (TD-10, TD-11, TD-23)
 
 - **Settings come from the config** (`il2ks.toml` + `IL2KS_<SECTION>_<KEY>` env), loaded by `settings.py` itself; the rules are pure
-  functions in `serving/djsettings.py`. Keys: top-level `debug`; `[web] host` (127.0.0.1), `port` (8000), `workers` (1; Windows supports
-  only 1), `threads` (4), `allowed_hosts`, `secret_key`; `[https] mode` (`caddy` / `external`), `domain`, `email`, `cert` (`auto` /
+  functions in `serving/djsettings.py`. Keys: top-level `debug`; `[web] host` (127.0.0.1), `port` (8000), `workers` (1),
+  `threads` (4), `allowed_hosts`, `secret_key`; `[https] mode` (`caddy` / `external`), `domain`, `email`, `cert` (`auto` /
   `internal`), `caddy_path`, `http_port`, `https_port`, `hsts_seconds` (86400).
-- **Scaling out** `[DECIDED]` (maintainer, 2026-11-02): one worker is enough for now, so nothing is built. On Linux and in Docker a
-  server scales with `[web] workers`. Granian runs one worker on Windows and has no plan to change that, so a Windows server that needs
-  more moves to Docker or Linux, or we add uvicorn, which ran 4 workers on Windows at 3.8 times one (not wired in). Measurements:
+- **Scaling out** `[DECIDED]` (maintainer, 2026-11-02): one worker by default, more through `[web] workers` on every platform. Real
+  workers are tested in `tests/integration/test_multi_worker.py`; the first-run setup page always stays on one. Measurements:
   `docs/performance-testing.md`, Serving capacity.
 - **Database connections** `[PROPOSED]`: `CONN_MAX_AGE` is unset, so each request opens a SQLite connection, which took a `304` from
   1 ms to 10 ms and cost pages 20 to 40% of their rate. Keeping connections open would win that back. Not done yet: first check what
@@ -460,7 +459,7 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   Static files: WhiteNoise compressed manifest storage (hashed names), lenient so a missing file is a 404, `collectstatic` at web start.
   **Minified** there (`serving.storage`, `rjsmin` + `rcssmin`, both Apache-2.0, vendored unmodified in `serving/_vendor/` so wheel-only and offline installs need no build): after `collectstatic` copied a `.js`/`.css` file to `STATIC_ROOT`, the copy is minified (`/*!` comments kept) before it is hashed, so the manifest hash is of the minified bytes; ours go from 98 KB to 69 KB (site.css 54 to 41 KB, il2ks.js 9.6 to 5.6 KB). Skipped: `*.min.*`, `vendor/` folders, Django's `admin/` files. Files in `custom/static` are minified too (the admin's file is not touched, only the served copy). Repo sources and the debug server stay readable.
 - **Debug** (`debug = true`, `IL2KS_DEBUG=1` or `il2ks web --dev`): plain http, `runserver`, WhiteNoise reads source folders.
-- **`il2ks web`**: granian (WSGI) on `[web] host:port`; migrates first (with the pre-migration backup), then `collectstatic`. A changed catalog (`catalog:` fingerprint, `CATALOG_FILES`, doc 14) is refreshed on this start like a migration (backed up first, once; if an `ingest` holds the writer lock the web start goes on and the writer refreshes).
+- **`il2ks web`**: hypercorn (TD-10) on `[web] host:port`; migrates first (with the pre-migration backup), then `collectstatic`. A changed catalog (`catalog:` fingerprint, `CATALOG_FILES`, doc 14) is refreshed on this start like a migration (backed up first, once; if an `ingest` holds the writer lock the web start goes on and the writer refreshes).
 - **`il2ks run`**: migrates once, then supervises `web`, `watch` (when a log folder is set) and Caddy (not in `external` mode or debug),
   restarting crashed children with 1→60 s backoff and stopping them politely (Ctrl+Break in a separate process group on Windows, then a
   15 s grace period). A second `run` for the same data dir exits with code 3. On Windows a plain signal handler can't interrupt an untimed

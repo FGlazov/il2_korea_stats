@@ -82,6 +82,23 @@ On Windows, use the installer. On Linux, use Docker or the manual steps.
 - [Translating il2ks](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/translating.md): review or improve a language, keep translations in step, add a language.
 - [Performance testing](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/performance-testing.md): timing and query budgets, front-end budgets and web vitals, Locust load test.
 
+## Common issues
+
+### The site is slow
+
+By default il2ks runs one web worker, which serves about 30 pages a second and is plenty for most servers. If pages get
+slow while many people are on the site, add workers: about one per free processor core, up to the number of cores.
+
+In `il2ks.toml`:
+
+```toml
+[web]
+workers = 2
+```
+
+With Docker, set `IL2KS_WEB_WORKERS: 2` under `environment:` instead. Then restart il2ks. Each worker uses about 80 MB of
+memory. More threads (`[web] threads`) do not make the site faster.
+
 ## Development
 
 Requires [uv](https://docs.astral.sh/uv/).

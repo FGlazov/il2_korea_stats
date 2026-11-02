@@ -254,15 +254,18 @@ that, per second:
 | Player page | 20 | 12 |
 | Home page | 15 | 12 |
 
-The whole server over HTTP on localhost, 8 clients asking for the sortie, player and home pages in turn:
+The whole server over HTTP on localhost, 8 clients asking for the sortie, player and home pages in turn, in rounds of
+12 seconds. Hypercorn and uvicorn serve the WSGI app through a2wsgi (`il2ks.asgi`):
 
-| Server | Pages per second | Requests per process |
-|---|---|---|
-| granian WSGI, 1 worker, 4 threads | 23.2 | 287 |
-| uvicorn ASGI, 1 worker | 20.7 | 253 |
-| uvicorn ASGI, 4 workers | 77.9 | 239, 238, 235, 233 |
+| Server | Pages per second |
+|---|---|
+| granian, 1 worker (the server before hypercorn) | 23 to 32 |
+| hypercorn, 1 worker | 32 |
+| hypercorn, 2 workers | 61 |
+| hypercorn, 4 workers | 70 to 100 |
+| uvicorn, 2 workers | 48 to 64 |
 
-Threads on one granian worker, two runs each on a quieter machine:
+Threads on one granian worker, two runs each on a quieter machine (measured before the move to hypercorn):
 
 | `[web] threads` | Pages per second |
 |---|---|
@@ -279,17 +282,27 @@ What follows from these numbers:
 - **More threads do not scale it.** Python's GIL lets one thread of a process run Python code at a time, and most of a
   page is Python code. Threads only help while another one waits on the database or the network: going from 1 to 4
   gains about 20%, and from 4 to 16 almost nothing. More CPU takes more processes, so 4 stays the default.
-- **On Linux and in Docker, scale with `[web] workers`** (`IL2KS_WEB_WORKERS`), about one per free processor core. Each
-  worker is one more process of about 80 MB. Several granian workers were not measured here: Windows cannot run them.
-- **On Windows, granian runs one worker whatever the setting says.** It falls back to 1 with a warning (2.8.7 still
-  does): `accept` on a shared non-blocking socket can block there, which the tokio listener cannot work around
-  ([granian #74](https://github.com/emmett-framework/granian/issues/74), locked to 1 worker in #91). There is no plan to
-  lift this. Two ways out, should a Windows server ever need more: tell the server admin to move to Docker or Linux, or
-  serve with uvicorn, which ran 4 workers on Windows at 3.8 times one worker, at about 10% less per worker. uvicorn is
-  not wired in: it needs an `il2ks/asgi.py`, a dependency, and a way to start it from `il2ks web` and `il2ks run`.
+- **Scale with `[web] workers`** (`IL2KS_WEB_WORKERS`), on Windows, on Linux and in Docker: about one per free processor
+  core, and each one is one more process of about 80 MB. The default stays 1: 30 pages a second is plenty for a site
+  with about 10 people on it at once. `tests/integration/test_multi_worker.py` runs real workers.
+- **Why hypercorn (TD-10).** Granian runs one worker on Windows whatever the setting says, and has no plan to change
+  that: `accept` on a shared non-blocking socket can block there
+  ([granian #74](https://github.com/emmett-framework/granian/issues/74), locked to 1 worker in #91). uvicorn ran 4
+  workers on Windows, but stops a worker with `os.kill(pid, CTRL_BREAK_EVENT)`. Its workers are no process groups of
+  their own, so the event reaches every process on the console: it killed the shell that ran our tests, and under
+  `il2ks run` it would hit Caddy, `watch` and `run` itself. Hypercorn stops its workers with a shared event.
+- **A dead worker ends the server.** Hypercorn does not start a new worker: it stops the others and exits, usually with
+  code 0 because it loses the worker's code. `il2ks run` restarts it whatever the code, and so does Docker's
+  `unless-stopped`. A plain `il2ks web` under your own service manager needs a restart rule that covers exit code 0.
+- **A hang was seen once.** With 2 workers on Windows, one request ran into the client's 30 second timeout. More than
+  8,000 requests at full load on 2 and 4 workers did not repeat it, with a worst time under 0.5 s, nor did light and
+  bursty traffic. The bug behind granian's limit could be the cause, but that is not proven. The maintainer accepts
+  this: a visitor reloads after a few seconds. One worker has no shared socket to fight over.
 - **Several workers share what matters.** Login lockouts and sessions are in the database, there is no server-side
-  cache, and the workers of one start share their ETag boot id. Per process, and harmless: the sitemap cache (keyed by
-  the data version), the setup attempt limiter, and the front-page image poller (`sync` is safe from several processes).
+  cache, what is cached per process is shipped data that never changes, and the workers of one start share their ETag
+  boot id. Per process, and harmless: the sitemap cache (keyed by the data version) and the front-page image poller
+  (`sync` is safe from several processes). The first-run setup page always runs on one worker, because its finish lock
+  and its attempt limiter live in one process.
 
 ## Adding a page
 

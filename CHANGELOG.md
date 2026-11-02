@@ -27,8 +27,15 @@
   times the tiers.
 - **An all-time Jet Hunter:** it counts all your tours against tiers of 5, 15, 25 and 50. The one-tour medal is now Tour Jet Hunter.
 
+- **Several web workers now work on Windows too:** set `[web] workers` to use more processor cores (about 60 pages a
+  second with 2 workers, about 100 with 4, in our tests). The default stays at 1. The README has a new "Common issues"
+  section for a slow site.
+
 ### Changed
 
+- **The web server is now hypercorn instead of granian**, because granian runs one worker on Windows. Upgrading needs no
+  change: the settings, the port and the logs stay the same. If a worker dies, the whole web server stops and `il2ks run`
+  starts it again. If you run plain `il2ks web` under your own service manager, make sure it also restarts on exit code 0.
 - **Long runs update one line:** from 200 missions, `il2ks ingest` and `il2ks reprocess` on a terminal show `Mission 50/210 ETA: 1m 22s` in
   place, with the last warnings and errors under it. The estimate stops at the last mission: the rebuild after it logs as usual. The log file
   keeps every line, and a pipe, a service or a shorter run prints as before.

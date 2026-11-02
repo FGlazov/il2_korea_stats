@@ -23,7 +23,7 @@ differs from `pins.toml` is refused. Nothing is installed on the build machine: 
 The installer ships `python\` (python-build-standalone 3.13, "install_only_stripped") with il2ks and its dependencies installed into
 it at build time by `uv pip install --require-hashes` from the exact versions and hashes in `uv.lock`. `il2ks` runs as
 `python.exe -m il2ks`. Why not PyInstaller or Nuitka: Django discovers apps, templates, static files, migrations and locale files
-by path at run time; granian and Pillow are native extensions; `il2ks run` starts its children as `<this python> -m il2ks`, which
+by path at run time; Pillow is a native extension; `il2ks run` starts its children as `<this python> -m il2ks`, which
 a frozen exe makes awkward; and `il2ks custom copy` shows the admin real template files. A plain Python tree has none of these
 problems, the pieces are the same ones developers run (so "works on my machine" is the packaged result), and an upgrade replaces
 one folder. Cost: about 140 MB unpacked, 45 to 50 MB compressed.
@@ -51,8 +51,9 @@ priority below normal, restart after a crash (5 s, 10 s, 30 s, then every 60 s),
 **How the service stops** (`il2ks.serving.procutil`, `supervisor`): WinSW attaches to the console of `il2ks run` and sends Ctrl+C.
 `il2ks run` stops its children (it sends CTRL_BREAK to each, they share the console) and exits; after `stoptimeout` WinSW kills the
 process tree. Verified on a Windows 11 machine by reproducing WinSW's exact call sequence (`AttachConsole`,
-`GenerateConsoleCtrlEvent(CTRL_C_EVENT)`) against `il2ks run` started without a window: web (granian and its worker) and watch
-stopped cleanly in 0.9 s, no process was left, `run.json` was removed. Not verified against a real Windows service on a clean machine:
+`GenerateConsoleCtrlEvent(CTRL_C_EVENT)`) against `il2ks run` started without a window: web and watch
+stopped cleanly in 0.9 s, no process was left, `run.json` was removed (checked with granian, the server then;
+`tests/integration/test_multi_worker.py` covers how hypercorn stops). Not verified against a real Windows service on a clean machine:
 the CI job `service-test` does that.
 
 ## Inputs (`pins.toml`) and how to bump them

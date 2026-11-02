@@ -51,6 +51,7 @@ class Calls:
     def __init__(self) -> None:
         self.events: list[str] = []
         self.served: list[tuple[str, str | int, str | int]] = []
+        self.workers: list[int] = []
 
     def migrate(self, cfg: Config, name: str, wait: float | None) -> None:
         self.events.append(f"migrate:{name}")
@@ -63,16 +64,17 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> Calls:
     def collectstatic(*args: object, **kwargs: object) -> None:
         recorded.events.append(f"call_command:{args[0]}")
 
-    def granian(cfg: Config, host: str, port: int) -> None:
-        recorded.events.append("serve_granian")
-        recorded.served.append(("granian", host, port))
+    def hypercorn(cfg: Config, host: str, port: int, *, workers: int) -> None:
+        recorded.events.append("serve_hypercorn")
+        recorded.served.append(("hypercorn", host, port))
+        recorded.workers.append(workers)
 
     def dev(host: str, port: int, *, reload: bool) -> None:
         recorded.events.append("serve_dev")
         recorded.served.append(("dev", host, port))
 
     monkeypatch.setattr("django.core.management.call_command", collectstatic)
-    monkeypatch.setattr(webserver, "serve_granian", granian)
+    monkeypatch.setattr(webserver, "serve_hypercorn", hypercorn)
     monkeypatch.setattr(webserver, "serve_dev", dev)
     return recorded
 
@@ -149,7 +151,7 @@ def test_web_creates_the_secret_key_file_before_django_starts(env: Path, calls: 
 
 
 def test_web_exports_one_boot_id_for_its_workers(env: Path, calls: Calls, settings: Settings) -> None:
-    """TD-28: ETags carry the boot id; granian's workers inherit it, so they all answer a revalidation alike."""
+    """TD-28: ETags carry the boot id; hypercorn's workers inherit it, so they all answer a revalidation alike."""
     settings.DEBUG = False
     settings.SECRET_KEY = "a-real-key-for-this-test"
     assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
@@ -165,8 +167,8 @@ def test_web_migrates_then_collects_static_then_serves(env: Path, calls: Calls, 
     settings.DEBUG = False
     settings.SECRET_KEY = "a-real-key-for-this-test"
     assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
-    assert calls.events == ["migrate:web", "call_command:collectstatic", "serve_granian"]
-    assert calls.served == [("granian", "127.0.0.1", 8000)]
+    assert calls.events == ["migrate:web", "call_command:collectstatic", "serve_hypercorn"]
+    assert calls.served == [("hypercorn", "127.0.0.1", 8000)]
     assert (env / "data" / "custom" / "templates").is_dir()  # custom/ folders exist for the admin
     assert (env / "data" / "custom" / "static").is_dir()
 
@@ -175,7 +177,7 @@ def test_web_host_and_port_options_override_the_config(env: Path, calls: Calls, 
     settings.DEBUG = False
     settings.SECRET_KEY = "a-real-key-for-this-test"
     commands.dispatch(parse(["web", "--host", "0.0.0.0", "--port", "9100"]), hooks_for(calls))
-    assert calls.served == [("granian", "0.0.0.0", 9100)]
+    assert calls.served == [("hypercorn", "0.0.0.0", 9100)]
 
 
 def test_web_dev_is_plain_http_debug_without_collectstatic_or_secret_file(
@@ -215,11 +217,32 @@ def test_web_ctrl_c_is_a_clean_stop(
     settings.DEBUG = False
     settings.SECRET_KEY = "a-real-key-for-this-test"
 
-    def interrupted(cfg: Config, host: str, port: int) -> None:
+    def interrupted(cfg: Config, host: str, port: int, *, workers: int) -> None:
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(webserver, "serve_granian", interrupted)
+    monkeypatch.setattr(webserver, "serve_hypercorn", interrupted)
     assert commands.dispatch(parse(["web"]), hooks_for(calls)) == EXIT_OK
+
+
+def test_web_serves_one_worker_unless_the_config_asks_for_more(env: Path, calls: Calls, settings: Settings) -> None:
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    config_file = env / "il2ks.toml"
+    config_file.write_text("", encoding="utf-8")
+    commands.dispatch(parse(["--config", str(config_file), "web"]), hooks_for(calls))
+    config_file.write_text("[web]\nworkers = 3\n", encoding="utf-8")
+    commands.dispatch(parse(["--config", str(config_file), "web"]), hooks_for(calls))
+    assert calls.workers == [1, 3]
+
+
+def test_the_setup_page_stays_on_one_worker(env: Path, calls: Calls, settings: Settings) -> None:
+    """Its finish lock and attempt limiter live in one process: a double click must not finish setup twice."""
+    settings.DEBUG = False
+    settings.SECRET_KEY = "a-real-key-for-this-test"
+    config_file = env / "il2ks.toml"
+    config_file.write_text("[web]\nworkers = 3\n", encoding="utf-8")
+    commands.dispatch(parse(["--config", str(config_file), "web"]), pending_hooks(calls, pending=True))
+    assert calls.workers == [1]
 
 
 def test_the_config_is_exported_for_settings_and_children(env: Path, calls: Calls, settings: Settings) -> None:
@@ -605,7 +628,7 @@ def test_web_prints_the_setup_address_and_writes_the_token_while_no_admin_exists
     out = capsys.readouterr().out
     assert f"http://127.0.0.1:8000/setup/?token={token}" in out
     assert "ON THIS COMPUTER" in out
-    assert calls.events == ["migrate:web", "call_command:collectstatic", "serve_granian"]  # then it serves as usual
+    assert calls.events == ["migrate:web", "call_command:collectstatic", "serve_hypercorn"]  # then it serves as usual
 
 
 def test_a_restart_keeps_the_same_setup_token(env: Path, calls: Calls, settings: Settings) -> None:

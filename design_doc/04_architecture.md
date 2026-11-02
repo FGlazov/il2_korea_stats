@@ -24,7 +24,7 @@
                                                     ▼
  ┌──────────────┐  HTTPS   ┌────────────┐  HTTP    ┌───────────────────────────┐
  │ Browser      │ ◄──────► │ Caddy      │ ◄──────► │ WEB (Django + HTMX)       │
- │ (players)    │  :443    │ TLS, certs │ localhost│ granian, static files     │
+ │ (players)    │  :443    │ TLS, certs │ localhost│ hypercorn, static files   │
  └──────────────┘          └────────────┘          └───────────────────────────┘
 ```
 
@@ -104,7 +104,7 @@ on exception: record IngestRun(failed, traceback, next_retry_at); continue to ne
 
 - `il2ks ingest`: one shot. Process everything that's ready, then exit. Suits Windows Task Scheduler or cron.
 - `il2ks watch`: a loop that runs `ingest` every N seconds (default 30) until stopped.
-- `il2ks web`: granian (TD-10) serving Django (WSGI) and static files.
+- `il2ks web`: hypercorn (TD-10) serving Django (WSGI through a2wsgi) and static files.
 - `il2ks run`: a small supervisor that starts `web`, `watch`, and the bundled Caddy (unless `https.mode = "external"`) as child
   processes and restarts them if they crash. **This is what installers and Docker call**, so admins have only one thing to run.
 - Later (it2): live reading of the in-progress mission for "online now" (FR-ING-12). That's part of `watch`, using the same parser and replay.

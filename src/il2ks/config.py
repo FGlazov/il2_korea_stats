@@ -146,11 +146,11 @@ class BackupConfig:
 
 @dataclass(frozen=True, slots=True)
 class WebConfig:
-    """`il2ks web`: the granian server behind the HTTPS proxy (TD-10, NFR-INS-5)."""
+    """`il2ks web`: the hypercorn server behind the HTTPS proxy (TD-10, NFR-INS-5)."""
 
     host: str = "127.0.0.1"  # localhost only: the proxy is the public face (TD-10)
     port: int = 8000
-    workers: int = 1  # worker processes; Windows supports only 1 (granian), one is plenty for a small box
+    workers: int = 1  # worker processes: more CPU for the site, about 80 MB each; one is plenty for a small box
     threads: int = 4  # request threads per worker
     allowed_hosts: tuple[str, ...] = ()  # extra Host names Django accepts besides [https] domain and localhost
     secret_key: str = field(default="", repr=False)  # "" = generated into <data dir>/secret_key.txt (NFR-SEC-2)

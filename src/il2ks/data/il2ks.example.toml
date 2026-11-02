@@ -319,9 +319,10 @@
 #host = "127.0.0.1"
 # The port to listen on. Change it if something else already uses 8000 (and point an external proxy at it).
 #port = 8000
-# Worker processes. 1 is plenty for a small machine; Windows supports only 1 (a higher value falls back to 1).
+# Worker processes. 1 is plenty for a small machine; if the site gets slow under load, use about one per free
+# processor core. Each one uses about 80 MB of memory. See "The site is slow" in the README.
 #workers = 1
-# Request threads per worker.
+# Request threads per worker. More of them do not make the site faster: more workers do.
 #threads = 4
 # Extra host names the site may be reached under, besides [https] domain and localhost. Rarely needed.
 #allowed_hosts = []

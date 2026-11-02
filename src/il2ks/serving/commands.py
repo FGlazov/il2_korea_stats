@@ -56,7 +56,7 @@ type SubParsers = "argparse._SubParsersAction[argparse.ArgumentParser]"  # pyrig
 
 
 def add_parsers(sub: SubParsers) -> None:
-    web = sub.add_parser("web", help="serve the website (granian; --dev for plain-http development)")
+    web = sub.add_parser("web", help="serve the website (hypercorn; --dev for plain-http development)")
     web.add_argument("--dev", action="store_true", help="development: debug mode, plain http, Django's own server")
     web.add_argument("--reload", action="store_true", help="with --dev: restart when the code changes")
     web.add_argument("--migrate-only", action="store_true", help="apply pending database migrations, then exit")
@@ -201,7 +201,9 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
             log.info("development mode: DEBUG on, http only, http://%s:%d/", host, port)
             webserver.serve_dev(host, port, reload=ns.reload)
         else:
-            webserver.serve_granian(cfg, host, port)
+            # The setup page keeps its finish lock and its attempt limiter in one process.
+            workers = 1 if setup_token.read_token(cfg.data_dir) else cfg.web.workers
+            webserver.serve_hypercorn(cfg, host, port, workers=workers)
     except LockBusyError as exc:
         print(f"il2ks web: {exc}", file=sys.stderr)
         return EXIT_LOCKED

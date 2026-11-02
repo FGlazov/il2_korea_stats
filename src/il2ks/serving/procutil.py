@@ -147,7 +147,7 @@ def on_windows_console_stop(
     """Windows only: call `callback` (on another thread) on Ctrl+Break, console close, logoff and shutdown.
 
     Why not `signal.signal(SIGBREAK, ...)`: Python runs a signal handler only when the main thread executes bytecode,
-    and a main thread blocked in an untimed `Event.wait()` (granian's main loop) never does on Windows, so Ctrl+Break
+    and a main thread blocked in an untimed `Event.wait()` never does on Windows, so Ctrl+Break
     would be ignored. The callback only has to *wake* the main thread, e.g. by setting an event.
 
     On close/logoff/shutdown, Windows ends the process as soon as this handler returns, so with `finished` it blocks

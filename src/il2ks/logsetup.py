@@ -200,7 +200,7 @@ def dict_config(
 ) -> dict[str, object]:
     """The same setup as `configure_logging`, as a `logging.config.dictConfig` dict.
 
-    For servers that configure logging themselves in every worker process they spawn (granian passes this dict to each
+    For servers that configure logging themselves in every worker process they spawn (hypercorn passes this dict to each
     worker), so the workers write the same daily JSON file."""
     log_dir.mkdir(parents=True, exist_ok=True)
     return {

@@ -20,7 +20,7 @@ trust_forwarded_for  # il2ks.settings (IL2KS_TRUST_FORWARDED_FOR; settings.py is
 fetch  # serving.outbound: the SSRF-guarded fetch has no caller yet; the polled Markdown source and webhooks will use it
 parse_allow_list  # serving.outbound: turns `[outbound] allow_private` into networks for `fetch` (no caller yet)
 _.app_name  # Django URLconf namespace
-application  # WSGI entry point (il2ks.wsgi, used by granian/gunicorn)
+application  # WSGI and ASGI entry points (il2ks.wsgi, il2ks.asgi: used by hypercorn/gunicorn)
 _.format  # logging.Formatter override (logsetup.JsonFormatter)
 exc_type  # context manager protocol (__exit__ signature, ingest.lock)
 tb  # context manager protocol (__exit__ signature, ingest.lock)
@@ -189,6 +189,17 @@ _.pos_z
 # --- stdlib attribute assignment ---------------------------------------------------------------------------------
 _.baseFilename  # logging.FileHandler reads it when it opens the file (logsetup._DailyFileHandler)
 _.compress_type  # zipfile.ZipInfo.compress_type, read by zipfile when writing (ingest.archive)
+
+# --- hypercorn.config.Config options, read by hypercorn (serving.webserver.hypercorn_config) ---------------------
+_.application_path
+_.bind
+_.logconfig_dict
+_.loglevel
+_.errorlog
+_.accesslog
+_.include_server_header
+_.keep_alive_timeout
+_.graceful_timeout
 
 # --- parsed log fields kept for completeness (doc 12): event dataclass fields nobody reads yet ------------------
 _.mission_id  # AType 0 MID

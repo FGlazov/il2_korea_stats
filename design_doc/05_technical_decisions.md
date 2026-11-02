@@ -101,12 +101,17 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 - **Decision:** Compressed archive per mission (zip or zstd), **kept forever by default** (retention stays configurable). Logs
   compress roughly 15×, so a busy server's year is about 1–2 GB. `il2ks reprocess` rebuilds from the archive (backfill after stats changes).
 
-### TD-10 Production web server: granian — `[DECIDED]` (2026-10-02)
-- **Decision (maintainer):** **granian** (Rust-based, cross-platform including Windows, ships as a Python wheel so uv installs it)
-  serves Django through its WSGI interface. **WhiteNoise** serves static files from the same process. It listens on **localhost only**,
-  behind the HTTPS proxy (TD-23).
-- **Alternative considered:** waitress (pure Python, used by the old system). It's slower, and was kept only as a fallback idea.
-- **Not gunicorn**, because it doesn't run on Windows.
+### TD-10 Production web server: hypercorn — `[DECIDED]` (maintainer, 2026-11-02; was granian from 2026-10-02)
+- **Decision (maintainer):** **hypercorn** serves Django, so that a server can run several worker processes on every platform,
+  Windows included. The default stays one worker. **a2wsgi** (`il2ks.asgi`) keeps the app plain WSGI on a thread pool sized by
+  `[web] threads`. **WhiteNoise** serves static files from the same process. It listens on **localhost only**, behind the HTTPS
+  proxy (TD-23).
+- **Not granian** (the server until 2026-11-02): it runs one worker on Windows and has no plan to change that.
+- **Not uvicorn**, which was built first and passed the load test: on Windows it stops a worker with a Ctrl+Break that reaches
+  every process on the console (Caddy, `watch`, `il2ks run`).
+- **Not Django's ASGI handler:** the views are synchronous, and it reads a whole static file into memory per request.
+- **Not gunicorn**, because it doesn't run on Windows. **Not waitress** (used by the old system): one process only.
+- Numbers and the behaviour of a dead worker: `docs/performance-testing.md`, Serving capacity.
 
 ### TD-11 Configuration — `[PROPOSED]`
 - **Decision:** One `il2ks.toml` (commented, created by `il2ks setup`), with environment variable overrides (`IL2KS_*`)
