@@ -258,7 +258,8 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
     404 for a type nobody flew.
 
     Template `il2ks/aircraft/detail.html`. Context: stats (`AircraftStats`, all time), tile (the counters the tiles
-    show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived, hits (`HitsToDestroy`:
+    show: a `TourAircraftStats` for a scope, or `stats`), aircraft (its GameObject), survived, sortie_length and
+    sorties_per_pilot (the text of those two figures), hits (`HitsToDestroy`:
     the summary row), ammo_mixes (a `Page` of `AmmoMixRow`), min_events, matchups (`queries.aircraft.MatchupTable`),
     sort (the matchup sort), intercept, role ("all", "air_superiority", "attack"), tours / tour (the tour scope),
     min_encounters, all_fights_url / intercept_url, show_elo / show_ground, elo_pilots (`EloRow`s: with .player),
@@ -317,6 +318,8 @@ def aircraft_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "tile": tile,
         "aircraft": aircraft,
         "survived": max(tile.sorties - tile.deaths, 0),
+        "sortie_length": display.duration(tile.flight_time_s / tile.sorties) if tile.sorties else display.DASH,
+        "sorties_per_pilot": display.ratio(tile.sorties, tile.pilots, 1),
         "hits": hits,
         "ammo_mixes": _page([_mix_row(m) for m in ammo.mixes], request, MIXES_PAGE_PARAM),
         "min_events": min_events,

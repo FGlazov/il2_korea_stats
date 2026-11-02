@@ -127,8 +127,8 @@
       }
     },
     "static/il2ks/players.css": {
-      "version": "1.0",
-      "sha256": "ba2b2f623f1b0282c6a623941b70b11d73d2fde2537fbc3b3a5bd35c1848091d",
+      "version": "2.1",
+      "sha256": "28541d3e4a7b57ed21adccf7efe995cb46a9363058e66087df560d36873f42db",
       "contract": {
         "defines": [
           ".aircraft-table__build",
@@ -142,7 +142,6 @@
           ".heading-link",
           ".is-zero",
           ".kv",
-          ".kv--compact",
           ".kv--pairs",
           ".medals",
           ".player-table__alias",
@@ -160,7 +159,6 @@
           ".shame",
           ".shame__quip",
           ".shame__tiles",
-          ".stat-mark",
           ".stat-mark-note",
           ".stat-tile",
           ".stat-tile--muted",
@@ -204,8 +202,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "6.1",
-      "sha256": "bfb44010fafe9ddab0935bde4295376d81c636d872c127be52b609e897425a27",
+      "version": "7.1",
+      "sha256": "fe4c545334f2b80dc0619cb63e8731fecf15283096cbabb48ec95497d497adfb",
       "contract": {
         "defines": [
           "--icon",
@@ -402,6 +400,7 @@
           ".is-open",
           ".js",
           ".kv",
+          ".kv--compact",
           ".language-menu",
           ".language-menu__flag",
           ".lead",
@@ -483,6 +482,8 @@
           ".sortable",
           ".split",
           ".stack",
+          ".stat-columns",
+          ".stat-columns__title",
           ".stat-mark",
           ".stat-mark--top1",
           ".stat-mark--top10",
@@ -1498,8 +1499,8 @@
       }
     },
     "templates/il2ks/aircraft/detail.html": {
-      "version": "1.0",
-      "sha256": "0b057dff1f66840e7b33926c9bad820228d41106f98946d48f709cdaa311a57c",
+      "version": "1.1",
+      "sha256": "88bba9ab32565848af6725bf1d418aea0bb0a96ba5b97f124d4a0933d257e349",
       "contract": {
         "blocks": [
           "content",
@@ -1519,6 +1520,7 @@
           "tour_title"
         ],
         "includes": [
+          "il2ks/aircraft/detail_secondary.html",
           "il2ks/aircraft/top_elo.html",
           "il2ks/aircraft/top_ground.html"
         ],
@@ -1596,6 +1598,30 @@
           "survived",
           "tile",
           "tours"
+        ]
+      }
+    },
+    "templates/il2ks/aircraft/detail_secondary.html": {
+      "version": "1.0",
+      "sha256": "cc4d11f27851343bc8d90902de054ffa435b1fbe36b345cf45695db666cd1b18",
+      "contract": {
+        "filters": [
+          "num",
+          "per_hour",
+          "percent",
+          "ratio"
+        ],
+        "markers": [
+          ".kv",
+          ".kv--compact",
+          ".stat-columns",
+          ".stat-columns__title"
+        ],
+        "variables": [
+          "sortie_length",
+          "sorties_per_pilot",
+          "survived",
+          "tile"
         ]
       }
     },
@@ -2788,8 +2814,8 @@
       }
     },
     "templates/il2ks/missions/detail.html": {
-      "version": "1.2",
-      "sha256": "bc0d6b085d7eabb8a5e6d83bff2b94ee0e2ce98101a0867ea5654570fdda171e",
+      "version": "1.3",
+      "sha256": "334d2333adc2b558fe37f58f3a7046c0c2396a52c6418fb4cd341afb49a1cebc",
       "contract": {
         "blocks": [
           "content",
@@ -2811,7 +2837,8 @@
           "utc"
         ],
         "includes": [
-          "il2ks/missions/_player.html"
+          "il2ks/missions/_player.html",
+          "il2ks/missions/detail_secondary.html"
         ],
         "markers": [
           "#kills",
@@ -2873,6 +2900,27 @@
           "kills_param",
           "mission",
           "optional_columns"
+        ]
+      }
+    },
+    "templates/il2ks/missions/detail_secondary.html": {
+      "version": "1.1",
+      "sha256": "e614ba1bed5b609550416bd2bd4391d3da884a6c70c0cd37558d76d6daa0998a",
+      "contract": {
+        "filters": [
+          "local_time",
+          "num",
+          "tour_title"
+        ],
+        "markers": [
+          ".kv",
+          ".kv--compact",
+          ".stat-columns",
+          ".stat-columns__title"
+        ],
+        "variables": [
+          "mission",
+          "sorties_per_pilot"
         ]
       }
     },
@@ -3613,8 +3661,8 @@
       }
     },
     "templates/il2ks/players/detail_shame.html": {
-      "version": "2.0",
-      "sha256": "ca1382b3474f250c334594676d906a034b424c93e687222a9976b377d4303e11",
+      "version": "2.1",
+      "sha256": "2b49420a8cd9a74729442ed6750cff440633ac16510c397fb34763a8665aa83e",
       "contract": {
         "filters": [
           "num"
@@ -3730,10 +3778,11 @@
       }
     },
     "templates/il2ks/players/detail_totals.html": {
-      "version": "1.2",
-      "sha256": "fd92eca5333b8865bee8760a6e4403b776e70c3c45eb7d7a7b4e6a8a7ae5777b",
+      "version": "1.3",
+      "sha256": "5edfe11d3876cc7bff6b7090737baf031b49a0cf8c110fb5ebc4a461512061d6",
       "contract": {
         "filters": [
+          "accuracy",
           "duration",
           "num",
           "percent"
@@ -4446,8 +4495,8 @@
       }
     },
     "templates/il2ks/sorties/parts/header.html": {
-      "version": "1.1",
-      "sha256": "c212ba9f85afa33af818eb32cd8d14d47898fe88eb03d6235eb047d12ee8c814",
+      "version": "1.2",
+      "sha256": "ec17b499078bec77792a2361b56a1833604896aa84d692e34158cae5fa255db5",
       "contract": {
         "filters": [
           "accuracy",

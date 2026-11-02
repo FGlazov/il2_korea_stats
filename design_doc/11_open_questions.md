@@ -15,6 +15,24 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-146 Elo: attack sorties and the two minimums** (doc 13 "Elo", maintainer's question about stats.yalu.info, 2026-11-02)
+Not a bug, as built: an Elo game needs a PvP kill with **both** sorties `air_superiority`, and a jet killing a prop gives no game. A fighter carrying bombs or rockets is an `attack`
+sortie, so its loss is no game for the killer: in the one big mission on that site 66 kills gave 17 games (38 kills involved an attack sortie, 11 were jet on prop). So pilots with
+5+ air kills can have no Elo. Should a loaded fighter's loss count as a game? Second: the list column shows Elo from 1 game, while the profile tile asks for `min_elo_games` (5) and
+says "not enough encounters yet". Should both use one minimum, and which? Unchanged until decided.
+
+**OQ-145 Plain figures on aircraft and mission pages: labels and placement** (doc 16, FR-WEB-2, FR-WEB-8)
+Applied: the sections sit right under the tiles. "Vulched" keeps the site's existing label **"Strafed on the ground"** on every page, under "Other totals", never in the hall of
+shame. The aircraft hall of shame shows counts with a share of sorties; the mission one only counts. The mission "Tour" and "Ended" are in the plain list. The new stats are **not**
+added as optional columns of the lists (only the reverse was asked). Should "Vulched" be the visible word, or should the lists offer the new stats too?
+
+**OQ-144 Botched landing: definition and thresholds** (doc 13 "Botched landings")
+Applied, from the samples: **2 km** from the airfield's point instead of the suggested 600 m, because that point is the parking spot and 600 m misses 61% of real landings;
+at most 100 m above the field; at least 120 s of flight; others did under 10% of the damage; a landing the aircraft survives counts when it did itself 10% or more. Three
+effects to confirm: (1) 40 sorties near a field crash with an enemy scratch under 10%; they count as botched yet stay **shot down**, with the kill credited as the rules give it.
+(2) A rough landing can be flagged on a sortie that flies on after repair. (3) About 89 crashes in the first 120 s after takeoff are in **neither** the taxi/takeoff stat (it stops at the
+first AType 5) nor this one; they could go to the taxi/takeoff stat, whose name now suggests them. On the samples: 292 botched landings, 2.6% of takeoffs.
+
 **OQ-143 Stats delay: what counts as a detail** (doc 02 FR-ING-25, doc 14 "Stats delay")
 Applied: the **side** is held back like the aircraft, so the red/blue counts in online now lag too and a player who joined within the delay has no side yet (a live count per side would show reinforcements).
 A name still appears the moment an unknown player first spawns, because the name comes from that line. `delay_minutes` is set in `il2ks.toml` only, not in the admin. The wording of the two notices is a first draft. Fine, or change any of these?

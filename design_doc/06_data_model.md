@@ -44,6 +44,7 @@ Mission        id, server_uid, mission_uid (unique together), tour → Tour, mis
                their natural keys and clears it) `[PROPOSED]`,
                -- pre-aggregated for list/detail pages (pilot sorties only; REDFOR/BLUFOR by country code, doc 14):
                players_total (any role), sorties_total, redfor_sorties, blufor_sorties, kills_air, kills_ground, friendly_kills,
+               taxi_accidents, botched_landings, strafed_on_ground (2026-11-02; sums of the counted sorties, migration 0010),
                redfor_players, blufor_players (float, one decimal: the **time-weighted average number of pilots spawned in** per side over
                [0, mission end], doc 13 "Side balance"; 0 on missions ingested before 0.2.0 until `reprocess --all`)
 PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natural key), name_at_time, profile_uuid,
@@ -64,6 +65,7 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                until `reprocess --all` fills it; the sortie page shows a gunner's health from it) `[PROPOSED]`,
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
                taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
+               botched_landing (bool: wrecked or badly damaged a sound aircraft at an airfield, doc 13; 2026-11-02)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
                rams, first_blood (bool), multi_kill, elo_peak   -- achievement facts (doc 17): air kills by ramming, first credited PvP air kill of the mission,
                                                    -- most air kills in one burst window, highest Elo held after a win in the sortie (`ingest.ratings`)
@@ -107,7 +109,7 @@ constraint), but nothing writes it today; only `kill` and `assist` occur.
 **Counters** `[DECIDED]` (2026-10-03), one list shared by `PlayerMission`, `Player`, `PlayerAircraft`, `PlayerTour`, `PlayerTourAircraft`,
 `PlayerPool`, `PlayerTourPool`, `PlayerRole`, `PlayerAircraftScope`, `AircraftStats` and `TourAircraftStats`: sorties, flight time, air kills, ground kills, assists (with `assists_air` / `assists_ground`, 2026-10-04), deaths, planes lost, bailouts,
 suspected early bailouts, captures, takeoffs, landings, friendly kills, friendly hits, friendly damage, **taxi accidents, strafed on the
-ground, attack sorties, time on target** (2026-10-03, doc 13). Added since, all sums of sortie columns: the ground-kill categories and `kills_ground_static`
+ground, attack sorties, time on target** (2026-10-03, doc 13), **botched landings** (2026-11-02). Added since, all sums of sortie columns: the ground-kill categories and `kills_ground_static`
 (OQ-33), the PvE families `kills_air_pvp` / `kills_air_ai`, `deaths_by_<class>` and `planes_lost_by_<class>` (8 classes each, FR-WEB-21), and
 **`score_air`, `score_ground`, `score_ground_attack`** (sums of the sorties' `air_points` / `ground_points`; the last is the part earned in
 attack sorties, which divided by `time_on_target_s` gives the ground proficiency, FR-WEB-20). For the skill boards (2026-10-04, doc 13):
@@ -157,7 +159,7 @@ StatThreshold  tour (null = all time), metric, min_sorties, population, p10, p25
 SortieThreshold tour (null = all time), metric (air_kills, ground_kills), population, histogram {value: sorties}, p10..p99
                -- the sortie page's marks (2026-10-05): counted pilot sorties of a tour; all time = the tours' histograms summed; unique per (tour, metric)
                -- FR-WEB-22: percentiles of one metric over the pilots who meet that metric's minimum; no row = too few pilots for a distribution.
-               -- Metrics: survival, kd, kl, air/ground kills per sortie and hour, taxi/friendly-fire per sortie (never badged), air_score,
+               -- Metrics: survival, kd, kl, air/ground kills per sortie and hour, taxi/friendly-fire/botched-landing per sortie (never badged), air_score,
                -- ground_score, ground_score_hour, elo_prop, elo_jet (all time only), interception_hour, tank_hour. `min_sorties` holds the
                -- minimum in the metric's unit: sorties (`[marks] min_sorties`), encounters (Elo games), seconds on target or of air superiority
                -- flight (the boards' minimums), so a population follows the board it sits next to

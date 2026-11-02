@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/sorties/parts/header.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/sorties/parts/header.html v1.2 - copy this line along when you override #}
 {% load i18n il2ks il2ks_sorties %}{% comment %}
   Report header: who flew what, for which side, in which mission, and the result at a glance (the part that fits a
   Discord screenshot). Context: sortie (player, mission, aircraft), detail, sortie_marks (badges after the air and ground kills). A running mission's notice sits between the header and the tiles.
@@ -13,7 +13,8 @@
       {% outcome_badge sortie.outcome %}
       {% if detail.has_ram %}{% if detail.ram_with %}{% blocktranslate with enemy=detail.ram_with asvar ram_tip %}Collided with {{ enemy }}: counts as a kill for both pilots. Ram detection can occasionally be wrong.{% endblocktranslate %}{% else %}{% translate "Collided with another aircraft: counts as a kill for both pilots. Ram detection can occasionally be wrong." as ram_tip %}{% endif %}{% badge _("Ram") "orange" title=ram_tip icon="event/ram" %}{% endif %}
       {% if sortie.mission.is_live %}{% badge _("Live") "green" title=_("This mission is still running.") %}{% endif %}
-      {% if sortie.taxi_accident %}{% badge _("Taxi accident") "orange" icon="stat/taxi-accidents" %}{% endif %}
+      {% if sortie.taxi_accident %}{% badge _("Taxi/takeoff accident") "orange" icon="stat/taxi-accidents" %}{% endif %}
+      {% if sortie.botched_landing %}{% badge _("Botched landing") "orange" icon="stat/botched-landing" %}{% endif %}
       {% if sortie.strafed_on_ground %}{% badge _("Strafed on the ground") "orange" icon="stat/strafed" %}{% endif %}
     </p>
     <p class="sortie-head__where">

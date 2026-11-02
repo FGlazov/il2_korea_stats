@@ -90,6 +90,9 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({}, None),
         ({"kills_air": 2}, None),
         ({"taxi_accident": True, "outcome": "not_taken_off"}, "sortie_taxi"),
+        ({"botched_landing": True, "outcome": "crashed", "loss_cause": "self"}, "sortie_botched_landing"),
+        ({"botched_landing": True}, "sortie_botched_landing"),  # a rough one: flown home, the aircraft a wreck
+        ({"botched_landing": True, "friendly_kills": 1}, "sortie_botched_landing"),
         ({"friendly_kills": 1, "kills_air": 5}, "sortie_friendly_fire"),
         ({"is_captured": True, "pilot_fate": "bailed_out"}, "sortie_captured"),
         ({"outcome": "ditched"}, "sortie_ditched"),
@@ -268,6 +271,7 @@ def _limits(metric: str, p90: float, min_sorties: int = 20) -> StatThreshold:
 MARKS = {
     "taxi_per_sortie": _limits("taxi_per_sortie", 0.05),
     "friendly_kill_rate": _limits("friendly_kill_rate", 0.05),
+    "botched_per_sortie": _limits("botched_per_sortie", 0.05),
 }
 
 
@@ -294,6 +298,33 @@ def test_shame_spot(sorties: int, taxi: int, friendly: int, marks: dict[str, Sta
     stats = Player(sorties=sorties, taxi_accidents=taxi, friendly_kills=friendly)
     assert flavor.shame_spot(stats, marks) == spot
     assert spot in flavor.SPOTS
+
+
+@pytest.mark.parametrize(
+    ("taxi", "friendly", "botched", "spot"),
+    [
+        (0, 0, 1, "shame_landing"),
+        (1, 0, 1, "shame_taxi_landing"),
+        (0, 1, 1, "shame_friendly_landing"),
+        (1, 1, 1, "shame_all"),
+        (0, 0, 3, "shame_landing_p90"),
+        (3, 0, 3, "shame_taxi_landing_p90"),
+        (0, 3, 3, "shame_friendly_landing_p90"),
+        (3, 3, 3, "shame_all_p90"),
+        (1, 1, 3, "shame_landing_p90"),  # only the elevated kind is named
+        (3, 1, 1, "shame_taxi_p90"),
+        (3, 3, 1, "shame_both_p90"),
+    ],
+)
+def test_shame_spot_with_botched_landings(taxi: int, friendly: int, botched: int, spot: str) -> None:
+    stats = Player(sorties=50, taxi_accidents=taxi, friendly_kills=friendly, botched_landings=botched)
+    assert flavor.shame_spot(stats, MARKS) == spot
+
+
+def test_every_shame_case_has_its_spot_and_its_p90_variant() -> None:
+    for spot in flavor.SHAME_SPOTS.values():
+        assert spot in flavor.SPOTS
+        assert f"{spot}_p90" in flavor.SPOTS
 
 
 def test_shame_spot_on_a_tour_row() -> None:

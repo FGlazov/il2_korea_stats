@@ -173,11 +173,11 @@ a rules change. Empty text (the default) shows nothing.
 ### Quips
 
 The site shows a short, light-hearted line ("quip") at a few highlight spots: the hall of shame on a pilot's profile, a
-notable sortie (taxi accident, many kills, a long flight), the top pilots of the last mission, an empty tour. They are
+notable sortie (taxi or takeoff accident, botched landing, many kills, a long flight), the top pilots of the last mission, an empty tour. They are
 **on by default** and you change nothing until you edit them. Open **Admin > Site texts > Quips**:
 
 - **Show quips on the site** is the master switch. Untick it and no quip appears anywhere.
-- Every spot has a description of when it shows (for example "Sortie: taxi accident"), and a choice:
+- Every spot has a description of when it shows (for example "Sortie: taxi or takeoff accident"), and a choice:
   *Built-in quips only* (the default), *Built-in and my own*, *My own only*, or *No quip here*.
 - Each built-in line has a **Hide** box. A page picks one line of the remaining ones, always the same line for the same
   pilot, sortie or mission (so a page does not change when reloaded).

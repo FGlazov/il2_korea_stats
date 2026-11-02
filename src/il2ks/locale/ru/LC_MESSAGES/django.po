@@ -528,6 +528,10 @@ msgstr ""
 "датой сохранится."
 
 # llm-draft
+msgid "A connoisseur of the arrival. Each one is different, and none of them is gentle."
+msgstr "Ценитель прибытий. Каждая посадка не похожа на другую, и ни одна не мягкая."
+
+# llm-draft
 msgid "A creative arrival. The airframe will be remembered fondly."
 msgstr "Творческий заход на посадку. Машину будут вспоминать тепло."
 
@@ -561,6 +565,10 @@ msgid "A hidden built-in line that no longer exists (it was reworded in an updat
 msgstr ""
 "Встроенной строки, которую вы скрыли, больше нет (её переписали при обновлении), так что скрытие ни на что не влияет:"
 " %(key)s"
+
+# llm-draft
+msgid "A landing is a controlled crash, they say. This one skipped the controlled part."
+msgstr "Говорят, посадка — это управляемое падение. В этот раз управляемость пропустили."
 
 # llm-draft
 msgid "A large image, for example a map of the current situation, shown on the front page below the title and player search."
@@ -611,6 +619,10 @@ msgstr "Тихая миссия. Все вернулись с полным бо�
 #, python-format
 msgid "A quip is longer than %(max)d characters: %(start)s…"
 msgstr "Шутка длиннее %(max)d символов: %(start)s…"
+
+# llm-draft
+msgid "A rare talent: this pilot makes both ends of every flight the exciting part."
+msgstr "Редкий талант: у этого пилота интересно и в начале полёта, и в конце, а середина так, для проформы."
 
 # llm-draft
 msgid ""
@@ -677,6 +689,10 @@ msgstr ""
 "Тур — это период миссий со своими рейтингами. Как начинаются туры, задаётся здесь (ежемесячно, каждые N дней или "
 "вручную) и отталкивается от значений из il2ks.toml: сохранённое здесь значение важнее файла, а пустое поле снова "
 "берёт значение из файла. Сверху можно добавить ещё одно правило."
+
+# llm-draft
+msgid "A true all-rounder. The squadron would be quieter without this pilot, and far less entertaining."
+msgstr "Универсал на все руки. Без этого пилота в эскадрилье было бы тише, но и скучнее в разы."
 
 # llm-draft
 msgid "A very busy day for the ground crews on the other side."
@@ -1158,6 +1174,10 @@ msgid "An endurance flight: the seat cushion deserves a mention in the report."
 msgstr "Выносливый полёт: подушка сиденья заслуживает упоминания в рапорте."
 
 # llm-draft
+msgid "An equal-opportunity hazard: wingmen in the air, landing gear on the ground. The mess adores it."
+msgstr "Опасен для всех поровну: в воздухе для ведомых, на земле для шасси. В столовой в восторге."
+
+# llm-draft
 msgid ""
 "An image on this page has an http:// address. Pages only load images over https, so it will not load; use the "
 "https:// address of the image."
@@ -1183,6 +1203,10 @@ msgid "Any"
 msgstr "Любой"
 
 # llm-draft
+msgid "Any landing you can walk away from, the saying goes. This one is testing the saying."
+msgstr "Любая посадка, после которой уходишь на своих, — хорошая посадка. Эта проверяет поговорку на прочность."
+
+# llm-draft
 msgid "Any outcome"
 msgstr "Любой исход"
 
@@ -1201,6 +1225,10 @@ msgstr "Применить"
 # llm-draft
 msgid "Artillery"
 msgstr "Артиллерия"
+
+# llm-draft
+msgid "Ask the tower who runs this airfield and they will name this pilot, with a sigh."
+msgstr "Спросите на вышке, кто тут хозяин аэродрома, и вам со вздохом назовут этого пилота."
 
 # llm-draft
 msgid "Assist"
@@ -1473,6 +1501,10 @@ msgid "Better than 99 in 100."
 msgstr "Лучше, чем 99 из 100."
 
 # llm-draft
+msgid "Between the debrief about the friendly and the report on the landing, the evenings are full."
+msgstr "Разбор «по своим», потом рапорт о посадке: вечера у этого пилота расписаны."
+
+# llm-draft
 msgid "Blue"
 msgstr "Синий"
 
@@ -1535,6 +1567,14 @@ msgstr "Бомбы, ракеты и напалм"
 # llm-draft
 msgid "Borders"
 msgstr "Границы"
+
+# llm-draft
+msgid "Botched landing"
+msgstr "Авария при посадке"
+
+# llm-draft
+msgid "Botched landings"
+msgstr "Аварии при посадке"
 
 # llm-draft
 msgid "Brave enough to shoot first and sort out the colors afterwards. The mess salutes the nerve."
@@ -1798,8 +1838,16 @@ msgid "Crashed"
 msgstr "Разбился"
 
 # llm-draft
-msgid "Crashed while taxiing, before takeoff"
-msgstr "Разбился при рулении, до взлёта"
+msgid "Crashed before takeoff, taxiing or on the takeoff run"
+msgstr "Авария до взлёта: при рулении или на разбеге"
+
+# llm-draft
+msgid "Crashed landing at an airfield"
+msgstr "Авария при посадке на аэродроме"
+
+# llm-draft
+msgid "Crashed or badly damaged it landing at an airfield, by their own doing"
+msgstr "Самолёт разбит или сильно повреждён при посадке на аэродроме по вине самого пилота"
 
 # llm-draft
 #. Translators: how the kill is credited to the attacker (sole kill, shared kill, assist), a short column header
@@ -2017,6 +2065,10 @@ msgstr "Запрошено удаление всех данных и повто�
 # llm-draft
 msgid "Deleting the missions is requested. It starts at the next watch tick."
 msgstr "Удаление миссий запрошено. Оно начнётся при следующем такте watch."
+
+# llm-draft
+msgid "Departures, arrivals: the runway knows this pilot from both directions."
+msgstr "Взлёты, посадки: полоса знает этого пилота с обеих сторон."
 
 # llm-draft
 msgid "Describe the image in a few words; screen readers read this text."
@@ -2295,6 +2347,10 @@ msgid "Event type (AType)"
 msgstr "Тип события (AType)"
 
 # llm-draft
+msgid "Every department on the airfield has a file on this pilot, and a favorite story."
+msgstr "В каждой службе аэродрома на этого пилота заведено досье и припасена любимая история."
+
+# llm-draft
 msgid "Every hole in it is a story, and the scoreboard backs up the better ones."
 msgstr "У каждой дырки есть своя история, но табло лучший свидетель."
 
@@ -2379,6 +2435,14 @@ msgstr "Забор уничтожен"
 # llm-draft
 msgid "Fences destroyed"
 msgstr "Заборы уничтожены"
+
+# llm-draft
+msgid "Few pilots have inspected the runway at such close range, so often."
+msgstr "Мало кто так часто и так близко изучал полосу. Чуть ли не носом."
+
+# llm-draft
+msgid "Few pilots have shared so much with both their squadron and their undercarriage."
+msgstr "Мало кто делил столько невзгод и с эскадрильей, и с собственным шасси."
 
 # llm-draft
 msgid "Few pilots know the taxiway as intimately as this one. It could give guided tours."
@@ -2477,6 +2541,10 @@ msgid "Flown most"
 msgstr "Чаще всего на"
 
 # llm-draft
+msgid "Flying is the easy part, as this pilot keeps demonstrating at the very end."
+msgstr "Лететь проще всего. Этот пилот регулярно доказывает это в самом конце полёта."
+
+# llm-draft
 msgid "Focus of the picture"
 msgstr "Фокус изображения"
 
@@ -2515,6 +2583,10 @@ msgstr "Частый гость"
 # llm-draft
 msgid "Fresh paint, full tanks, an empty chalkboard. The briefing room awaits its first pilot."
 msgstr "Краска ещё пахнет, баки полные, на доске пусто. На инструктаж никто не опоздал, потому что никого нет."
+
+# llm-draft
+msgid "Friend or foe, runway or not: precision is a journey."
+msgstr "Свой, чужой, полоса, не полоса: точность — это путь."
 
 # llm-draft
 msgid "Friendly"
@@ -2570,6 +2642,10 @@ msgstr ""
 "победы (самолёт ИИ стоит %(ai_kill)s очка, самолёт игрока — %(pvp_kill)s)."
 
 # llm-draft
+msgid "From chocks to touchdown, no part of a sortie has been left unexplored."
+msgstr "От колодок до касания: ни один участок вылета не остался неизведанным."
+
+# llm-draft
 msgid "Front page image"
 msgstr "Изображение на главной"
 
@@ -2601,6 +2677,14 @@ msgstr "Правила игры"
 # llm-draft
 msgid "General"
 msgstr "Общее"
+
+# llm-draft
+msgid "Generous with the ammunition, and generous with the spare parts budget."
+msgstr "Щедр на патроны и ещё щедрее на статью расходов «запчасти»."
+
+# llm-draft
+msgid "Getting off the ground and getting back onto it: this pilot keeps both exciting."
+msgstr "Оторваться от земли и вернуться на неё: и то и другое у этого пилота получается с огоньком."
 
 # llm-draft
 msgid "Give either a web address or a page, not both and not neither."
@@ -2820,6 +2904,10 @@ msgid "Hall of shame"
 msgstr "Доска позора"
 
 # llm-draft
+msgid "Hard on the wingmen, hard on the undercarriage. Nobody is safe, least of all the runway."
+msgstr "Жёсток к ведомым, жёсток к шасси. Никто не в безопасности, а полоса тем более."
+
+# llm-draft
 msgid "Header background"
 msgstr "Фон шапки"
 
@@ -2965,6 +3053,10 @@ msgid "Home page: under the top pilots of the last mission"
 msgstr "Главная страница: под лучшими пилотами прошлой миссии"
 
 # llm-draft
+msgid "Home, on the airfield, and not quite in one piece. Two out of three is not nothing."
+msgstr "Дома, на аэродроме, но не совсем целиком. Два из трёх — тоже результат."
+
+# llm-draft
 msgid "Hot Streak"
 msgstr "В ударе"
 
@@ -3043,6 +3135,10 @@ msgstr "Значок для вкладки браузера"
 # llm-draft
 msgid "If a new mission is flown in this tour's period, the tour starts again with that mission, under its automatic name."
 msgstr "Если в период этого тура пройдёт новая миссия, тур начнётся снова с этой миссии, под автоматическим названием."
+
+# llm-draft
+msgid "If the runway ever writes its memoirs, this pilot gets a chapter at each end."
+msgstr "Если полоса напишет мемуары, этому пилоту достанется по главе на каждом конце."
 
 # llm-draft
 msgid "Image file on the server"
@@ -3392,6 +3488,10 @@ msgid "Legend has it the tower flinches whenever this callsign comes over the ra
 msgstr "По слухам, у диспетчера дёргается глаз, когда в эфире слышится этот позывной."
 
 # llm-draft
+msgid "Legend says the runway has a dent in the shape of this pilot's aircraft. Several, in fact."
+msgstr "Говорят, на полосе есть вмятина в форме самолёта этого пилота. Даже не одна."
+
+# llm-draft
 msgid "Light mode"
 msgstr "Светлая тема"
 
@@ -3475,8 +3575,8 @@ msgid "Losses"
 msgstr "Потери"
 
 # llm-draft
-msgid "Lost before the first takeoff, by their own doing"
-msgstr "Потеряны до первого взлёта по собственной вине"
+msgid "Lost before the wheels left the ground, by their own doing"
+msgstr "Потерян до отрыва от земли по вине самого пилота"
 
 # llm-draft
 msgid "Lost to"
@@ -3922,6 +4022,14 @@ msgid "No, take me back"
 msgstr "Нет, вернуться назад"
 
 # llm-draft
+msgid "Nobody can say this pilot specializes. The incident log is a model of variety."
+msgstr "Про этого пилота не скажешь, что он узкий специалист. Журнал происшествий — образец разнообразия."
+
+# llm-draft
+msgid "Nobody else touched the aircraft. The ground did all the work."
+msgstr "Самолёт никто не трогал. Всю работу сделала земля."
+
+# llm-draft
 msgid "Nobody fired a shot. The terrain did not need them to."
 msgstr "Никто не сделал ни выстрела. Рельеф справился и без этого."
 
@@ -3944,6 +4052,10 @@ msgstr "Сейчас ни у кого нет серии."
 # llm-draft
 msgid "Nobody is on the server right now."
 msgstr "Сейчас на сервере никого нет."
+
+# llm-draft
+msgid "Nobody keeps the airfield awake like this one, coming or going."
+msgstr "Так не даёт спать аэродрому только этот пилот: что на взлёте, что на посадке."
 
 # llm-draft
 msgid "Nobody qualifies for this board yet."
@@ -4102,6 +4214,10 @@ msgstr "Включена"
 # llm-draft
 msgid "On the ground"
 msgstr "На земле"
+
+# llm-draft
+msgid "On the ramp, in the air, back on the ramp. A career of admirable thoroughness."
+msgstr "На стоянке, в воздухе, снова на стоянке. Карьера, достойная своей обстоятельности."
 
 # llm-draft
 msgid "On this page"
@@ -4370,8 +4486,16 @@ msgid "Pilot or gunner"
 msgstr "Пилот или стрелок"
 
 # llm-draft
-msgid "Pilot profile, hall of shame: both, among the top 10% of pilots"
-msgstr "Профиль пилота, доска позора: оба случая, среди лучших 10% пилотов"
+msgid "Pilot profile, hall of shame: all three, among the top 10% of pilots"
+msgstr "Профиль пилота, доска позора: все три вида, среди худшей десятой части пилотов"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: botched landings among the top 10% of pilots"
+msgstr "Профиль пилота, доска позора: аварии при посадке, среди худшей десятой части пилотов"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: botched landings only"
+msgstr "Профиль пилота, доска позора: только аварии при посадке"
 
 # llm-draft
 msgid "Pilot profile, hall of shame: clean sheet"
@@ -4382,20 +4506,46 @@ msgid "Pilot profile, hall of shame: friendly fire among the top 10% of pilots"
 msgstr "Профиль пилота, доска позора: огонь по своим, среди лучших 10% пилотов"
 
 # llm-draft
+msgid "Pilot profile, hall of shame: friendly fire and botched landings"
+msgstr "Профиль пилота, доска позора: огонь по своим и аварии при посадке"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: friendly fire and botched landings, both among the top 10% of pilots"
+msgstr "Профиль пилота, доска позора: огонь по своим и аварии при посадке, оба среди худшей десятой части пилотов"
+
+# llm-draft
 msgid "Pilot profile, hall of shame: friendly fire only"
 msgstr "Профиль пилота, доска позора: только огонь по своим"
 
 # llm-draft
-msgid "Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"
-msgstr "Профиль пилота, доска позора: аварии при рулении, среди лучших 10% пилотов"
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents among the top 10% of pilots"
+msgstr "Профиль пилота, доска позора: аварии на рулении или взлёте, среди худшей десятой части пилотов"
 
 # llm-draft
-msgid "Pilot profile, hall of shame: taxi accidents and friendly fire"
-msgstr "Профиль пилота, доска позора: аварии при рулении и огонь по своим"
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents and botched landings"
+msgstr "Профиль пилота, доска позора: аварии на рулении или взлёте и аварии при посадке"
 
 # llm-draft
-msgid "Pilot profile, hall of shame: taxi accidents only"
-msgstr "Профиль пилота, доска позора: только аварии при рулении"
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents and botched landings, both among the top 10% of pilots"
+msgstr ""
+"Профиль пилота, доска позора: аварии на рулении или взлёте и аварии при посадке, оба среди худшей десятой части "
+"пилотов"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire"
+msgstr "Профиль пилота, доска позора: аварии на рулении или взлёте и огонь по своим"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire, both among the top 10% of pilots"
+msgstr "Профиль пилота, доска позора: аварии на рулении или взлёте и огонь по своим, оба среди худшей десятой части пилотов"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents only"
+msgstr "Профиль пилота, доска позора: только аварии на рулении или взлёте"
+
+# llm-draft
+msgid "Pilot profile, hall of shame: taxi or takeoff accidents, friendly fire and botched landings"
+msgstr "Профиль пилота, доска позора: аварии на рулении или взлёте, огонь по своим и аварии при посадке"
 
 # llm-draft
 msgid "Pilot status"
@@ -4895,6 +5045,10 @@ msgid "Safe on the ground, then a late guest at the party. The tower would have 
 msgstr "Только сел, только выдохнул, а тут гости на огонёк. Вышку тоже не предупредили."
 
 # llm-draft
+msgid "Safely in the air is where this pilot shines. Getting there and back is more of a group effort."
+msgstr "В воздухе этот пилот блистает. А вот добраться туда и вернуться обратно — это уже коллективная работа."
+
+# llm-draft
 msgid "Save"
 msgstr "Сохранить"
 
@@ -5110,6 +5264,10 @@ msgid "Slab serif"
 msgstr "Брусковый шрифт"
 
 # llm-draft
+msgid "So close to a quiet evening. The fire crew sends its regards."
+msgstr "Так близко к тихому вечеру. Пожарный расчёт передаёт привет."
+
+# llm-draft
 msgid "So many assists, so few credits. The kill counter is a cruel bookkeeper."
 msgstr "Столько ассистов, а побед нет. Счётчик побед — бухгалтер жестокий."
 
@@ -5154,6 +5312,10 @@ msgid "Somewhere a quartermaster is sighing, and he is not even sure which incid
 msgstr "Где-то вздыхает старшина со склада: чем именно этот пилот ему насолил, он уже и не вспомнит."
 
 # llm-draft
+msgid "Somewhere between the wingman's complaint and the landing report, a legend is taking shape."
+msgstr "Где-то между жалобой ведомого и рапортом о посадке рождается легенда."
+
+# llm-draft
 msgid "Sortie details"
 msgstr "Подробности вылета"
 
@@ -5176,6 +5338,10 @@ msgstr "Вылет: 70 и более наземных целей"
 # llm-draft
 msgid "Sortie: an hour or more in the air"
 msgstr "Вылет: час и более в воздухе"
+
+# llm-draft
+msgid "Sortie: botched landing"
+msgstr "Вылет: авария при посадке"
 
 # llm-draft
 msgid "Sortie: crashed by the pilot's own doing, nobody else damaged the aircraft"
@@ -5226,8 +5392,8 @@ msgid "Sortie: shot down by flak"
 msgstr "Вылет: сбит зенитным огнём"
 
 # llm-draft
-msgid "Sortie: taxi accident"
-msgstr "Вылет: авария при рулении"
+msgid "Sortie: taxi or takeoff accident"
+msgstr "Вылет: авария на рулении или взлёте"
 
 # llm-draft
 msgid "Sortie: the first kill of the mission"
@@ -5532,12 +5698,16 @@ msgid "Targets it damaged: a target damaged by two bombs counts twice."
 msgstr "Поражённые цели: цель, повреждённая двумя бомбами, считается дважды."
 
 # llm-draft
-msgid "Taxi accident"
-msgstr "Авария при рулении"
+msgid "Taxi/takeoff accident"
+msgstr "Авария на рулении/взлёте"
 
 # llm-draft
-msgid "Taxi accidents"
-msgstr "Аварии при рулении"
+msgid "Taxi/takeoff accidents"
+msgstr "Аварии на рулении/взлёте"
+
+# llm-draft
+msgid "Taxiway, formation, final approach: this pilot has left a mark on every phase of flight."
+msgstr "Рулёжка, строй, глиссада: этот пилот оставил след на каждом этапе полёта."
 
 # llm-draft
 msgid "Taxiway, formation, it makes no difference: wherever this pilot goes, there is a story."
@@ -5614,8 +5784,16 @@ msgstr ""
 " этого продолжал падать. Возможно, он развалился от перегрузки; это догадка по журналу."
 
 # llm-draft
+msgid "The airfield has never had a more frequent, or more memorable, guest."
+msgstr "Более частого и более запоминающегося гостя у аэродрома не бывало."
+
+# llm-draft
 msgid "The airfield is also part of the mission. Some pilots just take that very seriously."
 msgstr "Аэродром тоже часть задания. Некоторые просто воспринимают это слишком буквально."
+
+# llm-draft
+msgid "The airfield keeps one form for arrivals and one for departures. This pilot uses both."
+msgstr "На аэродроме есть бланк для прилётов и бланк для вылетов. Этот пилот заполняет оба."
 
 # llm-draft
 msgid "The airframe came home smelling of cordite and looking like a colander. Mission accomplished."
@@ -5640,6 +5818,10 @@ msgstr ""
 # llm-draft
 msgid "The big, slow ones had a bad day, and this pilot had a good one."
 msgstr "У больших и медленных день не задался, а у этого пилота задался."
+
+# llm-draft
+msgid "The bit in the middle has been mastered. The two ends are still in development."
+msgstr "Середина полёта освоена. Оба конца пока в разработке."
 
 # llm-draft
 msgid "The brakes and the pilot had a difference of opinion. Brakes: 1, pilot: 0."
@@ -5673,6 +5855,10 @@ msgstr "Настройки не загружаются"
 # llm-draft
 msgid "The confirmation did not match, so nothing was requested."
 msgstr "Подтверждение не совпало, поэтому ничего не запрошено."
+
+# llm-draft
+msgid "The crew chief has stopped asking how the flight went and simply inspects the gear."
+msgstr "Техник перестал спрашивать, как прошёл полёт, и сразу идёт смотреть шасси."
 
 # llm-draft
 msgid "The crew chief will have opinions about this one."
@@ -5716,12 +5902,24 @@ msgid "The file is larger than 4 MB."
 msgstr "Файл больше 4 МБ."
 
 # llm-draft
+msgid "The fire crew keeps the engine warm whenever this callsign joins the circuit."
+msgstr "Как только этот позывной входит в круг, пожарная машина прогревает мотор."
+
+# llm-draft
+msgid "The first and last minutes of a sortie are the dangerous ones. This pilot has the receipts."
+msgstr "Самые опасные минуты вылета — первые и последние. У этого пилота есть справки."
+
+# llm-draft
 msgid "The first kill of the night, and it was this one. Everybody else is playing catch-up."
 msgstr "Первый сбитый за вечер, и он на счету этого пилота. Остальные догоняют."
 
 # llm-draft
 msgid "The flak had the final say."
 msgstr "Последнее слово осталось за зенитками."
+
+# llm-draft
+msgid "The flying went fine. The arrival will need a word."
+msgstr "Полёт прошёл нормально. А вот с прибытием надо бы поговорить."
 
 # llm-draft
 #, python-format
@@ -5743,6 +5941,10 @@ msgstr ""
 # llm-draft
 msgid "The font file is damaged or truncated."
 msgstr "Файл шрифта повреждён или обрезан."
+
+# llm-draft
+msgid "The full set. The safety officer has asked for a dedicated filing cabinet."
+msgstr "Полный комплект. Инспектор по безопасности просит выделить отдельный шкаф для папок."
 
 # llm-draft
 msgid "The game server names its log files in its own computer's local time, so il2ks has to know that time zone."
@@ -5790,6 +5992,10 @@ msgid "The ground crew mourns the airframe, and quietly polishes the next one."
 msgstr "Техники скорбят по самолёту и тихо полируют следующий."
 
 # llm-draft
+msgid "The ground crew, the squadron and the fire brigade all know this callsign by heart."
+msgstr "Техники, эскадрилья и пожарные знают этот позывной наизусть."
+
+# llm-draft
 msgid "The ground crews on the other side know exactly whose work this was, even if the log does not."
 msgstr "Те, кто внизу, прекрасно знают, чья это работа, даже если журнал об этом молчит."
 
@@ -5831,6 +6037,10 @@ msgid "The killboards below count every role."
 msgstr "Списки побед и поражений ниже учитывают все роли."
 
 # llm-draft
+msgid "The landing gear has requested a transfer. The squadron would miss the stories."
+msgstr "Шасси подало рапорт о переводе. Эскадрилье будет не хватать этих историй."
+
+# llm-draft
 msgid "The location cannot be reached (is the network share or drive available?)."
 msgstr "Не удаётся получить доступ к этому расположению (доступен ли сетевой ресурс или диск?)."
 
@@ -5849,6 +6059,10 @@ msgstr ""
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
 msgstr "Опознавательные знаки мелкие, а небо тесное. С лучшими случается."
+
+# llm-draft
+msgid "The medic and the fire chief have both asked for a copy of this pilot's schedule."
+msgstr "Врач и начальник пожарной команды попросили копию расписания полётов этого пилота."
 
 # llm-draft
 msgid "The mission was young and the sky was quiet, until this pilot changed that."
@@ -5945,11 +6159,27 @@ msgid "The ramp crew has named a bollard after this pilot. Fondly."
 msgstr "Техники назвали в честь этого пилота один из столбиков. С любовью."
 
 # llm-draft
+msgid "The ramp, the formation, the runway: each one has a plaque with this pilot's name on it."
+msgstr "Стоянка, строй, полоса: на каждой висит табличка с именем этого пилота."
+
+# llm-draft
 msgid "The rear gunner had the last word, and it was a loud one."
 msgstr "Последнее слово осталось за хвостовым стрелком, и прозвучало оно громко."
 
 msgid "The record books call it a pattern. The squadron calls it character."
 msgstr "В рапортах это называют «систематическим нарушением», в эскадрилье — «фирменным почерком»."
+
+# llm-draft
+msgid "The runway was right there. That was rather the problem."
+msgstr "Полоса была прямо под носом. В этом, собственно, и вся беда."
+
+# llm-draft
+msgid "The runway was there the whole time. It would like that noted."
+msgstr "Полоса была на месте всё это время. Просила занести в протокол."
+
+# llm-draft
+msgid "The safety officer's retirement speech will be mostly about this pilot."
+msgstr "Прощальная речь инспектора по безопасности будет в основном про этого пилота."
 
 # llm-draft
 msgid "The same checks as the command il2ks doctor, run on the new settings. Some warnings clear up after the restart."
@@ -5996,6 +6226,14 @@ msgstr "Небо тесное, а звёзды на крыльях мелкие.
 # llm-draft
 msgid "The sky was empty of drama. The tea stayed hot."
 msgstr "В небе обошлось без драмы. Чай в диспетчерской не остыл."
+
+# llm-draft
+msgid "The squadron ducks on the way out and the fire crew runs on the way back."
+msgstr "На вылете эскадрилья пригибается, на возвращении пожарные бегут к машине."
+
+# llm-draft
+msgid "The squadron flies wide, the fire crew stands by, and the stories at the bar have never been better."
+msgstr "Эскадрилья обходит стороной, пожарные наготове, а байки в баре ещё никогда не были так хороши."
 
 # llm-draft
 msgid "The squadron has learned to fly a little wider. Bold of them, and well chosen."
@@ -6049,6 +6287,10 @@ msgid "The wheels were still folding when the first kill reached the log."
 msgstr "Шасси ещё убирались, а первая победа уже легла в журнал."
 
 # llm-draft
+msgid "The wingmen fly wide and the ground crew stands well back. Everyone stays on their toes."
+msgstr "Ведомые держатся подальше, техники отходят на безопасное расстояние. Все начеку."
+
+# llm-draft
 msgid "There is no file at this location (the server could not find it)."
 msgstr "По этому пути нет файла (сервер его не нашёл)."
 
@@ -6098,6 +6340,10 @@ msgstr ""
 "Эти правила определяют, что произошло в вылете: получают ли оба лётчика победу при столкновении, как далеко от "
 "обломков должен приземлиться выпрыгнувший, сколько урона даёт содействие, и многое другое. Сохранённое здесь значение"
 " важнее значения из il2ks.toml. Пустое поле снова берёт значение из файла (или встроенное)."
+
+# llm-draft
+msgid "They write training manuals about pilots like this one. Mostly the chapters on what to avoid."
+msgstr "О таких пилотах пишут учебники. В основном главы «Чего избегать»."
 
 # llm-draft
 msgid "This achievement exists in the all-time view only (there is no tour view of it)."
@@ -6150,6 +6396,10 @@ msgid "This page is not listed or searchable. Only people with the link can see 
 msgstr "Эта страница не отображается в списках и поиске. Её видят только те, у кого есть ссылка."
 
 # llm-draft
+msgid "This pilot's name is on the roster, the spare parts bin and one of the bollards."
+msgstr "Имя этого пилота есть в списке личного состава, на ящике с запчастями и на одном из столбиков у стоянки."
+
+# llm-draft
 msgid "This player flew no sorties of the selected combat role in the selected tour. Choose another role above."
 msgstr "Этот игрок не совершал вылетов выбранной боевой роли в выбранном туре. Выберите другую роль выше."
 
@@ -6192,6 +6442,10 @@ msgstr "Эти чёрные облачка были не для красоты."
 # llm-draft
 msgid "Three or more in one go? The MiG Alley regulars would have raised an eyebrow, and then a glass."
 msgstr "Три и больше за вылет? Старожилы «МиГовой аллеи» подняли бы бровь, а потом бокал."
+
+# llm-draft
+msgid "Three points of contact were planned. The airfield counted rather more."
+msgstr "Касаний планировалось три. Аэродром насчитал заметно больше."
 
 # llm-draft
 msgid ""
@@ -6324,6 +6578,10 @@ msgid "Top attack pilots"
 msgstr "Лучшие штурмовики"
 
 # llm-draft
+msgid "Top of every list no one wants to top. A rare and complete achievement."
+msgstr "Первое место во всех списках, где никто не хочет быть первым. Редкое и полное достижение."
+
+# llm-draft
 msgid "Top of the board. The rest of the sky took notes."
 msgstr "Первое место в таблице. Остальное небо взяло на заметку."
 
@@ -6399,6 +6657,10 @@ msgid "Tours start by themselves unless [tours] mode is manual."
 msgstr "Туры начинаются сами, если только [tours] mode не задан как manual."
 
 # llm-draft
+msgid "Tower to pilot: the ground is the flat part. You found it, in a way."
+msgstr "Вышка пилоту: земля — это та, что внизу и ровная. Вы её нашли, в некотором смысле."
+
+# llm-draft
 msgid "Tower to pilot: the war is the other way, but thank you for the thorough survey of the apron."
 msgstr "Вышка — борту: фронт в той стороне. Впрочем, обзорную экскурсию по стоянке мы оценили."
 
@@ -6433,6 +6695,10 @@ msgstr "Неприятности и на стоянке, и в воздухе. �
 # llm-draft
 msgid "Two departments, one pilot. The paperwork is going to need a bigger folder."
 msgstr "Один пилот, а работают по нему сразу два отдела. Пора менять папку на архивный шкаф."
+
+# llm-draft
+msgid "Two letters of apology this month: one to a wingman, one to the landing gear."
+msgstr "Два письма с извинениями за месяц: одно ведомому, другое шасси."
 
 # llm-draft
 msgid "Type"
@@ -6664,6 +6930,10 @@ msgid "Wheels down, engine barely cooling, and then the enemy arrived. Rotten lu
 msgstr "Шасси на земле, мотор ещё тёплый, и тут нагрянул враг. Не повезло так не повезло."
 
 # llm-draft
+msgid "When this pilot calls final, the tower puts down its coffee. Experience is a fine teacher."
+msgstr "Когда этот пилот докладывает «на прямой», вышка откладывает кофе. Опыт — хороший учитель."
+
+# llm-draft
 msgid "Where to find it:"
 msgstr "Где его найти:"
 
@@ -6834,6 +7104,10 @@ msgid "automatic"
 msgstr "автоматически"
 
 # llm-draft
+msgid "average flight time per sortie"
+msgstr "среднее время в полёте за вылет"
+
+# llm-draft
 msgid "bailed out"
 msgstr "выпрыгнул с парашютом"
 
@@ -6871,6 +7145,10 @@ msgstr "ряд диаграммы 2"
 # llm-draft
 msgid "checking the archives"
 msgstr "проверка архивов"
+
+# llm-draft
+msgid "crashed or badly damaged it landing at an airfield, by their own doing"
+msgstr "самолёт разбит или сильно повреждён при посадке на аэродроме по вине самого пилота"
 
 # llm-draft
 msgid "created"
@@ -6917,6 +7195,10 @@ msgstr "покинул самолёт на земле"
 #, python-format
 msgid "flight time %(t)s"
 msgstr "время в полёте %(t)s"
+
+# llm-draft
+msgid "friendly aircraft and ground objects they destroyed"
+msgstr "уничтоженные своими самолёты и наземные объекты"
 
 # llm-draft
 msgid "from a log event"
@@ -6993,6 +7275,10 @@ msgstr "ссылки на карточках и в таблицах"
 # llm-draft
 msgid "links on the page background"
 msgstr "ссылки на фоне страницы"
+
+# llm-draft
+msgid "lost before the wheels left the ground, by their own doing"
+msgstr "потерян до отрыва от земли по вине самого пилота"
 
 # llm-draft
 msgid "making a backup"

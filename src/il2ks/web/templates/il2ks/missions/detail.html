@@ -1,9 +1,9 @@
-{# il2ks-template: templates/il2ks/missions/detail.html v1.2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/missions/detail.html v1.3 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   Mission page (FR-WEB-2). Context: mission (Mission), groups (SideSorties: .side 'redfor'/'blufor'/None, .rows = this page's
   PlayerSortie rows with .player and .aircraft; .page and .page_param for the pagination; 20 per side, OQ-96), kills (a Page of
   Kill rows with both sorties' player and aircraft; kills_param its query parameter), sortie_count, sort (the resolved ?sort=, orders all the sortie tables, not the kills), optional_columns / columns
-  (the optional sortie columns and the chosen ones, ?cols=), colspan.
+  (the optional sortie columns and the chosen ones, ?cols=), colspan, sorties_per_pilot (the text of that figure).
   Crumbs: breadcrumbs. Blocks: head (page stylesheet), content. Hidden players are anonymised through missions/_player.html (FR-ADM-3).
 {% endcomment %}
 {% block head %}<link rel="stylesheet" href="{% static 'il2ks/missions.css' %}">{% endblock %}
@@ -32,6 +32,8 @@
     {% stat_tile mission.kills_air|num _("Air kills") icon="stat/air-kills" %}
     {% stat_tile mission.kills_ground|num _("Ground kills") icon="stat/ground-kills" %}
   </div>
+
+  {% include "il2ks/missions/detail_secondary.html" %}
 
   <nav class="meta-line jump-links" aria-label="{% translate 'On this page' %}">
     {% for group in groups %}{% if group.side %}{% side group.side as jump_name %}{% else %}{% translate "Other" as jump_name %}{% endif %}<a href="#sorties-{{ group.side|default:"other" }}">{{ jump_name }} ({{ group.page.paginator.count|num }})</a>{% endfor %}

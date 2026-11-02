@@ -80,6 +80,42 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Two departments, one pilot. The paperwork is going to need a bigger folder."),
         gettext_lazy("Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."),
     ),
+    # ... botched landings only.
+    "shame_landing": (
+        gettext_lazy("Any landing you can walk away from, the saying goes. This one is testing the saying."),
+        gettext_lazy("The runway was there the whole time. It would like that noted."),
+        gettext_lazy("Three points of contact were planned. The airfield counted rather more."),
+        gettext_lazy("Flying is the easy part, as this pilot keeps demonstrating at the very end."),
+        gettext_lazy("Tower to pilot: the ground is the flat part. You found it, in a way."),
+        gettext_lazy("The crew chief has stopped asking how the flight went and simply inspects the gear."),
+    ),
+    # ... taxi or takeoff accidents and botched landings.
+    "shame_taxi_landing": (
+        gettext_lazy("Getting off the ground and getting back onto it: this pilot keeps both exciting."),
+        gettext_lazy("The first and last minutes of a sortie are the dangerous ones. This pilot has the receipts."),
+        gettext_lazy("The bit in the middle has been mastered. The two ends are still in development."),
+        gettext_lazy("Departures, arrivals: the runway knows this pilot from both directions."),
+        gettext_lazy("The airfield keeps one form for arrivals and one for departures. This pilot uses both."),
+        gettext_lazy("Safely in the air is where this pilot shines. Getting there and back is more of a group effort."),
+    ),
+    # ... friendly fire and botched landings.
+    "shame_friendly_landing": (
+        gettext_lazy("Hard on the wingmen, hard on the undercarriage. Nobody is safe, least of all the runway."),
+        gettext_lazy("The squadron ducks on the way out and the fire crew runs on the way back."),
+        gettext_lazy("Between the debrief about the friendly and the report on the landing, the evenings are full."),
+        gettext_lazy("Friend or foe, runway or not: precision is a journey."),
+        gettext_lazy("Two letters of apology this month: one to a wingman, one to the landing gear."),
+        gettext_lazy("The wingmen fly wide and the ground crew stands well back. Everyone stays on their toes."),
+    ),
+    # ... all three.
+    "shame_all": (
+        gettext_lazy("Taxiway, formation, final approach: this pilot has left a mark on every phase of flight."),
+        gettext_lazy("The full set. The safety officer has asked for a dedicated filing cabinet."),
+        gettext_lazy("From chocks to touchdown, no part of a sortie has been left unexplored."),
+        gettext_lazy("On the ramp, in the air, back on the ramp. A career of admirable thoroughness."),
+        gettext_lazy("The ground crew, the squadron and the fire brigade all know this callsign by heart."),
+        gettext_lazy("Nobody can say this pilot specializes. The incident log is a model of variety."),
+    ),
     # Above the 90th percentile of pilots with enough sorties: gentle ribbing, nobody is shamed.
     "shame_taxi_p90": (
         gettext_lazy("Few pilots know the taxiway as intimately as this one. It could give guided tours."),
@@ -106,6 +142,44 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("The record books call it a pattern. The squadron calls it character."),
         gettext_lazy("Legend has it the tower flinches whenever this callsign comes over the radio."),
         gettext_lazy("Rarely does one pilot give the safety officer so much to write about. A true collaborator."),
+    ),
+    "shame_landing_p90": (
+        gettext_lazy("Few pilots have inspected the runway at such close range, so often."),
+        gettext_lazy("The fire crew keeps the engine warm whenever this callsign joins the circuit."),
+        gettext_lazy("A connoisseur of the arrival. Each one is different, and none of them is gentle."),
+        gettext_lazy("The landing gear has requested a transfer. The squadron would miss the stories."),
+        gettext_lazy("Legend says the runway has a dent in the shape of this pilot's aircraft. Several, in fact."),
+        gettext_lazy("When this pilot calls final, the tower puts down its coffee. Experience is a fine teacher."),
+    ),
+    "shame_taxi_landing_p90": (
+        gettext_lazy("A rare talent: this pilot makes both ends of every flight the exciting part."),
+        gettext_lazy("The airfield has never had a more frequent, or more memorable, guest."),
+        gettext_lazy("This pilot's name is on the roster, the spare parts bin and one of the bollards."),
+        gettext_lazy("Nobody keeps the airfield awake like this one, coming or going."),
+        gettext_lazy("Ask the tower who runs this airfield and they will name this pilot, with a sigh."),
+        gettext_lazy("If the runway ever writes its memoirs, this pilot gets a chapter at each end."),
+    ),
+    "shame_friendly_landing_p90": (
+        gettext_lazy(
+            "An equal-opportunity hazard: wingmen in the air, landing gear on the ground. The mess adores it."
+        ),
+        gettext_lazy(
+            "The squadron flies wide, the fire crew stands by, and the stories at the bar have never been better."
+        ),
+        gettext_lazy("Generous with the ammunition, and generous with the spare parts budget."),
+        gettext_lazy("Somewhere between the wingman's complaint and the landing report, a legend is taking shape."),
+        gettext_lazy("Few pilots have shared so much with both their squadron and their undercarriage."),
+        gettext_lazy("The medic and the fire chief have both asked for a copy of this pilot's schedule."),
+    ),
+    "shame_all_p90": (
+        gettext_lazy("Top of every list no one wants to top. A rare and complete achievement."),
+        gettext_lazy("The safety officer's retirement speech will be mostly about this pilot."),
+        gettext_lazy("The ramp, the formation, the runway: each one has a plaque with this pilot's name on it."),
+        gettext_lazy("Every department on the airfield has a file on this pilot, and a favorite story."),
+        gettext_lazy(
+            "A true all-rounder. The squadron would be quieter without this pilot, and far less entertaining."
+        ),
+        gettext_lazy("They write training manuals about pilots like this one. Mostly the chapters on what to avoid."),
     ),
     # Player profile, hall of shame (nothing on record).
     "shame_clean": (
@@ -205,6 +279,14 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("Radio chatter, afterwards: “Was that one of ours?” It was. The apologies are in the post."),
         gettext_lazy("In the heat of the moment every enemy looks the same, until it turns out to be a squadron-mate."),
         gettext_lazy("It was a very good shot at the wrong target. The aim is not the problem here."),
+    ),
+    "sortie_botched_landing": (
+        gettext_lazy("The flying went fine. The arrival will need a word."),
+        gettext_lazy("Home, on the airfield, and not quite in one piece. Two out of three is not nothing."),
+        gettext_lazy("A landing is a controlled crash, they say. This one skipped the controlled part."),
+        gettext_lazy("The runway was right there. That was rather the problem."),
+        gettext_lazy("So close to a quiet evening. The fire crew sends its regards."),
+        gettext_lazy("Nobody else touched the aircraft. The ground did all the work."),
     ),
     "sortie_taxi": (
         gettext_lazy("The war was waiting. The taxiway had other ideas."),
@@ -316,12 +398,30 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
 
 # Where each spot shows, for the admin's Quips page (plain words; translatable). Every spot of SPOTS needs one (a test).
 SPOT_DESCRIPTIONS: Mapping[str, Label] = {
-    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi accidents only"),
+    "shame_taxi": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents only"),
     "shame_friendly": gettext_lazy("Pilot profile, hall of shame: friendly fire only"),
-    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi accidents and friendly fire"),
-    "shame_taxi_p90": gettext_lazy("Pilot profile, hall of shame: taxi accidents among the top 10% of pilots"),
+    "shame_landing": gettext_lazy("Pilot profile, hall of shame: botched landings only"),
+    "shame_both": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire"),
+    "shame_taxi_landing": gettext_lazy("Pilot profile, hall of shame: taxi or takeoff accidents and botched landings"),
+    "shame_friendly_landing": gettext_lazy("Pilot profile, hall of shame: friendly fire and botched landings"),
+    "shame_all": gettext_lazy(
+        "Pilot profile, hall of shame: taxi or takeoff accidents, friendly fire and botched landings"
+    ),
+    "shame_taxi_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi or takeoff accidents among the top 10% of pilots"
+    ),
     "shame_friendly_p90": gettext_lazy("Pilot profile, hall of shame: friendly fire among the top 10% of pilots"),
-    "shame_both_p90": gettext_lazy("Pilot profile, hall of shame: both, among the top 10% of pilots"),
+    "shame_landing_p90": gettext_lazy("Pilot profile, hall of shame: botched landings among the top 10% of pilots"),
+    "shame_both_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi or takeoff accidents and friendly fire, both among the top 10% of pilots"
+    ),
+    "shame_taxi_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: taxi or takeoff accidents and botched landings, both among the top 10% of pilots"
+    ),
+    "shame_friendly_landing_p90": gettext_lazy(
+        "Pilot profile, hall of shame: friendly fire and botched landings, both among the top 10% of pilots"
+    ),
+    "shame_all_p90": gettext_lazy("Pilot profile, hall of shame: all three, among the top 10% of pilots"),
     "shame_clean": gettext_lazy("Pilot profile, hall of shame: clean sheet"),
     "top_pilot": gettext_lazy("Home page: under the top pilots of the last mission"),
     "nobody_scored": gettext_lazy("Home page: the last mission had no kills"),
@@ -333,7 +433,8 @@ SPOT_DESCRIPTIONS: Mapping[str, Label] = {
     "sortie_strafed_landed": gettext_lazy("Sortie: landed, then destroyed on the ground"),
     "sortie_aa": gettext_lazy("Sortie: shot down by flak"),
     "sortie_friendly_fire": gettext_lazy("Sortie: friendly fire"),
-    "sortie_taxi": gettext_lazy("Sortie: taxi accident"),
+    "sortie_taxi": gettext_lazy("Sortie: taxi or takeoff accident"),
+    "sortie_botched_landing": gettext_lazy("Sortie: botched landing"),
     "sortie_ace": gettext_lazy("Sortie: three or more air kills"),
     "sortie_ai_gunner": gettext_lazy("Sortie: shot down by a bomber's AI gunner"),
     "sortie_bomber_hunter": gettext_lazy("Sortie: two or more bomber kills"),
@@ -362,8 +463,8 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
     left its pool empty, FR-WEB-23) falls through to the next one, so a first-blood sortie with three kills still gets
     its ace line. The order (accidents and losses first, then the rarest achievements, then the broader ones):
 
-    taxi accident, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground (after a landing
-    or before takeoff), flak, crashed, bomber hunter, first blood, ace, stolen kills,
+    taxi accident, botched landing, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground
+    (after a landing or before takeoff), flak, crashed, bomber hunter, first blood, ace, stolen kills,
     stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
 
     `highlights` carries what only the heavy columns know (bomber kills, time to the first kill, damage by others);
@@ -372,6 +473,8 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
         return
     if sortie.taxi_accident:
         yield "sortie_taxi"
+    if sortie.botched_landing:
+        yield "sortie_botched_landing"
     if sortie.friendly_kills:
         yield "sortie_friendly_fire"
     if sortie.is_captured or sortie.pilot_status == "captured":
@@ -425,6 +528,7 @@ def stat_marks_totals(stats: Counters) -> stat_marks.Totals:
         kills_ground=stats.kills_ground,
         flight_time_s=stats.flight_time_s,
         taxi_accidents=stats.taxi_accidents,
+        botched_landings=stats.botched_landings,
         friendly_kills=stats.friendly_kills,
         time_on_target_s=stats.time_on_target_s,
         # Player and PlayerTour rows carry the scores, other Counters rows don't
@@ -452,25 +556,30 @@ def _is_top(metric: stat_marks.Metric, stats: Counters, marks: Mapping[str, Stat
     return stat_marks.band(value, found) in ("top1", "top5", "top10")  # above p90
 
 
+# The hall-of-shame spot of each set of incident kinds: (taxi, friendly fire, botched landing).
+SHAME_SPOTS: Mapping[tuple[bool, bool, bool], str] = {
+    (True, False, False): "shame_taxi",
+    (False, True, False): "shame_friendly",
+    (False, False, True): "shame_landing",
+    (True, True, False): "shame_both",
+    (True, False, True): "shame_taxi_landing",
+    (False, True, True): "shame_friendly_landing",
+    (True, True, True): "shame_all",
+}
+
+
 def shame_spot(stats: Counters, marks: Mapping[str, StatThreshold]) -> str:
-    """The profile's hall-of-shame spot (doc 13): which incidents the pilot has (taxi accidents, friendly-fire
-    sorties), and a separate, gentler spot for those whose rate per sortie is above the p90 of the pilots with enough
-    sorties (`marks`, the thresholds of the scope `stats` belongs to). Only the incident kinds the pilot is in the top
-    10% for are named in a p90 spot."""
-    taxi = stats.taxi_accidents > 0
-    friendly = stats.friendly_kills > 0
-    top_taxi = taxi and _is_top("taxi_per_sortie", stats, marks)
-    top_friendly = friendly and _is_top("friendly_kill_rate", stats, marks)
-    if top_taxi and top_friendly:
-        return "shame_both_p90"
-    if top_taxi:
-        return "shame_taxi_p90"
-    if top_friendly:
-        return "shame_friendly_p90"
-    if taxi and friendly:
-        return "shame_both"
-    if taxi:
-        return "shame_taxi"
-    if friendly:
-        return "shame_friendly"
-    return "shame_clean"
+    """The profile's hall-of-shame spot (doc 13): which incidents the pilot has (taxi accidents, friendly-fire kills,
+    botched landings: `SHAME_SPOTS`), and a separate, gentler `_p90` spot for those whose rate per sortie is above the
+    p90 of the pilots with enough sorties (`marks`, the thresholds of the scope `stats` belongs to). Only the incident
+    kinds the pilot is in the top 10% for are named in a p90 spot."""
+    taxi, friendly, botched = stats.taxi_accidents > 0, stats.friendly_kills > 0, stats.botched_landings > 0
+    kinds = (taxi, friendly, botched)
+    top = (
+        taxi and _is_top("taxi_per_sortie", stats, marks),
+        friendly and _is_top("friendly_kill_rate", stats, marks),
+        botched and _is_top("botched_per_sortie", stats, marks),
+    )
+    if any(top):
+        return f"{SHAME_SPOTS[top]}_p90"
+    return SHAME_SPOTS.get(kinds, "shame_clean")

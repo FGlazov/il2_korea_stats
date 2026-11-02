@@ -64,3 +64,11 @@ def at_friendly_airfield(pos: Pos, coalition: int, airfields: list[Airfield]) ->
     if not airfields:
         return True
     return any(math.hypot(a.pos.x - pos.x, a.pos.z - pos.z) <= AIRFIELD_RADIUS_M for a in friendly)
+
+
+def nearest_airfield(pos: Pos, airfields: list[Airfield], radius_m: float) -> Airfield | None:
+    """The closest airfield of any coalition within `radius_m` (horizontal), or None."""
+    closest = min(airfields, key=lambda a: math.hypot(a.pos.x - pos.x, a.pos.z - pos.z), default=None)
+    if closest is None or math.hypot(closest.pos.x - pos.x, closest.pos.z - pos.z) > radius_m:
+        return None
+    return closest

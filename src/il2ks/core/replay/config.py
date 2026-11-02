@@ -33,6 +33,18 @@ class ReplayRules:
     # Strafed on the ground (OQ-112): a landed aircraft counts as strafed only when other objects did at least this
     # fraction of its DMG after the landing; a damaged aircraft that fails its landing is a crash.
     strafed_min_damage: float = 0.05
+    # Botched landing (doc 13, OQ-144; measured on the 210 samples). The airfield's logged point is where the aircraft
+    # park, so the radius has to cover the runway: 98.7% of the touchdowns are within it. `max_height_m` above the
+    # airfield keeps out an aircraft lost in the air near the field, `min_flight_s` (per flight leg) a failed takeoff.
+    # Others may have done less than `max_damage` of it; a landing it survives needs `min_damage` of its own making
+    # from `before_s` before to `after_s` after the touchdown (there it is under 15% or over 45%, nothing between).
+    botched_landing_radius_m: float = 2000.0
+    botched_landing_max_height_m: float = 100.0
+    botched_landing_min_flight_s: float = 120.0
+    botched_landing_max_damage: float = 0.10
+    botched_landing_min_damage: float = 0.10
+    botched_landing_before_s: float = 5.0
+    botched_landing_after_s: float = 30.0
     # Resupply (FR-ING-24): a landing (AType 6) followed by another takeoff (AType 5) in the same sortie means the
     # aircraft may have been rearmed (no log event says so). True = treat it as resupplied, so ammo "used" is unknown,
     # and as repaired: the aircraft's damage taken starts from 0 again at that landing (`damage.py`). False = no

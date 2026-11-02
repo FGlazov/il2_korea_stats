@@ -1,9 +1,10 @@
-{# il2ks-template: templates/il2ks/aircraft/detail.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail.html v1.1 - copy this line along when you override #}
 {% extends "il2ks/base.html" %}{% load i18n static il2ks %}{% comment %}
   One aircraft type (FR-WEB-8, FR-WEB-18). View: il2ks.web.views.aircraft.aircraft_detail.
   Context: stats (AircraftStats, all time: the side badge), tile (the counters of the tiles and the pilot count: the
   selected tour's `TourAircraftStats`, an empty one when nobody flew the type in it, or `stats` for all time), aircraft
-  (GameObject), survived (tile's sorties without a death), hits (HitsToDestroy: kills,
+  (GameObject), survived (tile's sorties without a death), sortie_length / sorties_per_pilot (the text of those two
+  figures), hits (HitsToDestroy: kills,
   average, by_ammo (AmmoHits: name, kills, average), mixes / more_mixes (AmmoMixRow: parts (MixPart: name, designation, average), instances, average))), matchups (MatchupTable: rows (Matchup: enemy, kills, losses, rated), best, worst), tours / tour (the scope of the tiles and the matchups), role ("all", "air_superiority", "attack": filters every section with the tour and the modification filter), show_elo / show_ground (which top-pilots tables), intercept, can_intercept (false for the attack role: no toggle), min_encounters, all_fights_url, intercept_url, sort, elo_pilots (PlayerAircraft rows
   with .player and .elo; visible players only), ground_pilots (BoardRow: rank, player, stats, per_hour), ground_first
   (an attack type), rules (the leaderboard minimums), loadouts (Loadout: payload (AircraftPayload), elo, kills_per_sortie, kd,
@@ -63,6 +64,8 @@
       {% stat_tile tile.accuracy_hits|accuracy:tile.accuracy_rounds _("Gun accuracy") sub=sub_accuracy icon="stat/accuracy" %}
     {% endif %}
   </div>
+
+  {% include "il2ks/aircraft/detail_secondary.html" %}
 
   <section>
     <h2>{% translate "Matchups" %}</h2>

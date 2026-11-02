@@ -237,7 +237,15 @@ def timeline(
         counterpart = None
     if loss is not None:
         kind = "shot_down" if verdict.loss_cause == "attacker" else "destroyed"
-        detail = "taxi_accident" if verdict.taxi_accident else "strafed" if verdict.strafed_on_ground else ""
+        detail = (
+            "taxi_accident"
+            if verdict.taxi_accident
+            else "strafed"
+            if verdict.strafed_on_ground
+            else "botched_landing"
+            if verdict.crash_landing
+            else ""
+        )
         entries.append(TimelineEntry(loss.tick, kind, detail, loss.pos, counterpart, ram=rammed))
     elif verdict.died_tick is not None:  # the crew member died but the aircraft wasn't lost
         crew = crew_death(sortie)

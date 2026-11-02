@@ -266,6 +266,7 @@ class Counters(models.Model):
     # Ground losses, combat role and time on target (FR-WEB-19/20)
     taxi_accidents = models.PositiveIntegerField(default=0)
     strafed_on_ground = models.PositiveIntegerField(default=0)
+    botched_landings = models.PositiveIntegerField(default=0)
     attack_sorties = models.PositiveIntegerField(default=0)
     time_on_target_s = models.FloatField(default=0.0)
     # Ground kills by category (they sum to kills_ground) and how many of those were static objects (OQ-33, doc 13)
@@ -509,6 +510,10 @@ class Mission(models.Model):
     kills_air = models.PositiveIntegerField(default=0)
     kills_ground = models.PositiveIntegerField(default=0)
     friendly_kills = models.PositiveIntegerField(default=0)
+    # The mission page's plain sections (OQ-145); 0 until the mission is reprocessed
+    taxi_accidents = models.PositiveIntegerField(default=0)
+    botched_landings = models.PositiveIntegerField(default=0)
+    strafed_on_ground = models.PositiveIntegerField(default=0)
 
     objects: ClassVar[HideableManager[Mission]] = HideableManager()  # pyright: ignore[reportIncompatibleVariableOverride]
 
@@ -598,6 +603,7 @@ class PlayerSortie(models.Model):
     gun_hits_ground = models.PositiveIntegerField(default=0)
     taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
     strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
+    botched_landing = models.BooleanField(default=False)  # wrecked or badly damaged at an airfield by its own doing
     ended_by_mission_end = models.BooleanField(
         default=False
     )  # the server force-ended it; outcome = state at that moment

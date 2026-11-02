@@ -106,7 +106,7 @@ Used in the collapsible ground-kill breakdown (profile and sortie page). P2.
 ### Stat tiles (`stat/`)
 Summary tiles on the player profile (big number + label + icon). P2.
 `sorties`, `flight-time`, `air-kills`, `ground-kills`, `assists`, `deaths`, `planes-lost`, `bailouts`, `captures`, and two deliberately
-**humorous** "hall of shame" ones: `taxi-accidents` (crashed before even taking off) and `strafed` (destroyed while parked on the ground), plus `friendly-fire` (hall of shame).
+**humorous** "hall of shame" ones: `taxi-accidents` (crashed before even taking off) and `botched-landing` (crashed or wrecked the aircraft landing it), plus `friendly-fire` (hall of shame) and `strafed` (destroyed on the ground; a plain total, no shame).
 Later: `elo-prop`, `elo-jet` (ratings, P3).
 
 ### Textures and illustrations (`pattern/`, `illustration/`)
@@ -127,7 +127,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 139 files in 13 groups; 114 shipped as placeholders (1 of them not used by any page yet), 25 planned.
+Total: 140 files in 13 groups; 115 shipped as placeholders (1 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -241,7 +241,7 @@ Total: 139 files in 13 groups; 114 shipped as placeholders (1 of them not used b
 | `role/air-superiority.svg` | Sortie role badge (guns only) | SVG 24 x 24, currentColor | Tabler `swords` | yes | P2 | shipped |
 | `role/attack.svg` | Sortie role badge (bombs / rockets / napalm) | SVG 24 x 24, currentColor | Tabler `bomb` | yes | P2 | shipped |
 
-### Stat tiles (`stat/`): 18 files (18 shipped)
+### Stat tiles (`stat/`): 19 files (19 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
@@ -256,7 +256,8 @@ Total: 139 files in 13 groups; 114 shipped as placeholders (1 of them not used b
 | `stat/bailouts.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `parachute` | yes | P2 | shipped |
 | `stat/captures.svg` | Profile tile (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `prison` | yes | P2 | shipped |
 | `stat/taxi-accidents.svg` | Profile hall of shame (humorous): crashed before taking off (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `car-crash` | yes | P2 | shipped |
-| `stat/strafed.svg` | Profile hall of shame (humorous): destroyed while parked (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `target-arrow` | yes | P2 | shipped |
+| `stat/botched-landing.svg` | Profile hall of shame (humorous): crashed or wrecked the aircraft landing it (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `plane-arrival` | yes | P2 | shipped |
+| `stat/strafed.svg` | Sortie badge and plain totals: destroyed on the ground (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `target-arrow` | yes | P2 | shipped |
 | `stat/friendly-fire.svg` | Profile hall of shame: friendly-fire kills (friendly aircraft and ground objects destroyed) (`stat_tile ... icon=`) | SVG 24 x 24, currentColor | Tabler `friends-off` | yes | P2 | shipped |
 | `stat/elo-prop.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-queen` | yes | P2 | shipped |
 | `stat/elo-jet.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `chess-knight` | yes | P2 | shipped |

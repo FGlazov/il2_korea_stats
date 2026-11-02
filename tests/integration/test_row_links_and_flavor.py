@@ -6,6 +6,7 @@ import pytest
 from django.test import Client
 
 from il2ks.db.models import Mission, Player, PlayerSortie, Tour
+from il2ks.web import icons
 from tests.factories import account, kill, mission, save, sortie
 
 pytestmark = pytest.mark.django_db
@@ -23,6 +24,17 @@ def seed() -> Mission:
             (kill(3000, 0, 1),),
         )
     )
+
+
+def seed_botched() -> Mission:
+    return save(mission((sortie(0, 1, botched_landing=True, outcome="crashed"),)))
+
+
+def test_a_botched_landing_shows_on_the_sortie_page() -> None:
+    client = Client()
+    html = get(client, f"/sorties/{PlayerSortie.objects.get(mission=seed_botched()).pk}/")
+    assert "Botched landing" in html
+    assert icons.icon_markup("stat/botched-landing") in html
 
 
 def get(client: Client, url: str) -> str:

@@ -1,0 +1,24 @@
+{# il2ks-template: templates/il2ks/missions/detail_secondary.html v1.1 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  detail_secondary.html: the figures under the tiles of a mission page, in the plain style of the profile's ratios: the
+  incidents of the hall of shame and the other totals, so the page has everything the mission list offers as a column.
+  Context: mission (with its tour), sorties_per_pilot.
+{% endcomment %}<div class="stat-columns">
+  <section>
+    <h2 class="stat-columns__title">{% translate "Hall of shame" %}</h2>
+    <dl class="kv kv--compact">
+      <dt>{% translate "Taxi/takeoff accidents" %}</dt><dd>{{ mission.taxi_accidents|num }}</dd>
+      <dt>{% translate "Botched landings" %}</dt><dd>{{ mission.botched_landings|num }}</dd>
+      <dt>{% translate "Friendly-fire kills" %}</dt><dd>{{ mission.friendly_kills|num }}</dd>
+    </dl>
+  </section>
+  <section>
+    <h2 class="stat-columns__title">{% translate "Other totals" %}</h2>
+    <dl class="kv kv--compact">
+      <dt>{% translate "Strafed on the ground" %}</dt><dd>{{ mission.strafed_on_ground|num }}</dd>
+      <dt>{% translate "Sorties per pilot" %}</dt><dd>{{ sorties_per_pilot }}</dd>
+      {% if mission.tour %}<dt>{% translate "Tour" %}</dt><dd>{{ mission.tour|tour_title }}</dd>{% endif %}
+      {% if not mission.is_live %}<dt>{% translate "Ended" %}</dt><dd>{{ mission.ended_at|local_time }}</dd>{% endif %}
+    </dl>
+  </section>
+</div>

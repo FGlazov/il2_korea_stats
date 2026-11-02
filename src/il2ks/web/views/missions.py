@@ -156,5 +156,6 @@ def mission_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "optional_columns": columns.MISSION_SORTIE_COLUMNS,
         "columns": shown,
         "colspan": 11 + len(shown),
+        "sorties_per_pilot": display.ratio(mission.sorties_total, mission.players_total, 1),
     }
     return render(request, "il2ks/missions/detail.html", context)

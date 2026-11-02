@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v6.1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v7.1 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -476,6 +476,19 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .kv dt { color: var(--il2-muted); font-size: 0.85rem; }
 .kv dd { font-variant-numeric: tabular-nums; }
 .kv dt:last-of-type, .kv dd:last-of-type { border-bottom: 0; }
+.kv dt small { margin-inline-start: 0.4rem; font-size: 0.78rem; }
+/* Compact key-value boxes (profile parts, the plain figures of the aircraft and mission pages): label left, number
+   right-aligned in a narrow column so the figures line up; the hint sits small under the label. */
+.kv--compact { grid-template-columns: minmax(0, 1fr) auto; gap: 0; padding: 0.1rem 1rem; margin-bottom: 0; }
+.kv--compact dt, .kv--compact dd { padding: 0.4rem 0; }
+.kv--compact dd { padding-inline-start: 1rem; text-align: end; white-space: nowrap; }
+.kv--compact dt small { display: block; margin-inline-start: 0; font-size: 0.74rem; line-height: 1.25; }
+.kv--compact dd small { font-size: 0.74rem; color: var(--il2-muted); }
+.kv--compact .stat-mark { margin-inline-start: 0.4rem; }
+/* Secondary figures under the tiles of the aircraft and mission pages: plain lists, no highlight. */
+.stat-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr)); gap: 0 1.25rem; align-items: start; margin-bottom: 1.5rem; }
+.stat-columns > section { min-width: 0; }
+.stat-columns__title { margin: 0 0 0.5rem; font-size: 1.05rem; }
 
 /* Badges: --tone drives text, tint and border. */
 .badge {

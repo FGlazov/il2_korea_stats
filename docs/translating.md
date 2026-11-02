@@ -44,7 +44,7 @@ msgstr "Daten aktualisiert: %(when)s"
 - An empty `msgstr ""` is not an error: the English text is shown until someone translates it.
 
 Terms used in the game are chosen on purpose: *sortie* (one flight from take-off to landing or loss), *bailed out*,
-*shot down*, *ditched*, *strafed*, *taxi accident*. Use the word your community uses for these. **REDFOR and BLUFOR
+*shot down*, *ditched*, *strafed*, *taxi/takeoff accident*, *botched landing*. Use the word your community uses for these. **REDFOR and BLUFOR
 stay as they are** (the server owner can rename them in the admin), and so do aircraft type names (F-86A, MiG-15bis).
 Page text is read by pilots, not by lawyers: short and plain beats formal.
 

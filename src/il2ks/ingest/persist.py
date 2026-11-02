@@ -335,7 +335,15 @@ def _update_mission_counters(mission: Mission) -> None:
     `players_total` counts every player with a sortie of any role. REDFOR/BLUFOR sorties are split by the sortie's
     country code (`side_of_country`), not by coalition number."""
     counted = counted_sorties().filter(mission=mission)
-    names = ("sorties", "kills_air", "kills_ground", "friendly_kills")
+    names = (
+        "sorties",
+        "kills_air",
+        "kills_ground",
+        "friendly_kills",
+        "taxi_accidents",
+        "botched_landings",
+        "strafed_on_ground",
+    )
     totals = clean_counters(counted.aggregate(**{k: SORTIE_COUNTERS[k] for k in names}))
     by_side: dict[str, int] = {}
     for row in counted.values("country").annotate(n=Count("pk")):
@@ -349,6 +357,9 @@ def _update_mission_counters(mission: Mission) -> None:
     mission.kills_air = int(totals["kills_air"])
     mission.kills_ground = int(totals["kills_ground"])
     mission.friendly_kills = int(totals["friendly_kills"])
+    mission.taxi_accidents = int(totals["taxi_accidents"])
+    mission.botched_landings = int(totals["botched_landings"])
+    mission.strafed_on_ground = int(totals["strafed_on_ground"])
     mission.save(
         update_fields=[
             "players_total",
@@ -358,6 +369,9 @@ def _update_mission_counters(mission: Mission) -> None:
             "kills_air",
             "kills_ground",
             "friendly_kills",
+            "taxi_accidents",
+            "botched_landings",
+            "strafed_on_ground",
         ]
     )
 
@@ -460,6 +474,7 @@ _SORTIE_FIELDS = [
     "gun_hits_ground",
     "taxi_accident",
     "strafed_on_ground",
+    "botched_landing",
     "ended_by_mission_end",
     "combat_role",
     "time_on_target_s",
@@ -608,6 +623,7 @@ def _fill_sortie(
     row.gun_hits_ground = s.gun_hits_ground
     row.taxi_accident = s.taxi_accident
     row.strafed_on_ground = s.strafed_on_ground
+    row.botched_landing = s.botched_landing
     row.ended_by_mission_end = s.ended_by_mission_end
     row.combat_role = s.combat_role
     row.time_on_target_s = s.time_on_target_s

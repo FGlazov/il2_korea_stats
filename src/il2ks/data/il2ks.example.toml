@@ -110,6 +110,22 @@
 # the landing (0.05 = 5%); a damaged aircraft that fails its landing is a crash, not a strafing. 0 means "any damage
 # after the landing" (no damage at all never counts).
 #strafed_min_damage = 0.05
+# Botched landing (hall of shame): the pilot crashed, or badly damaged the aircraft landing it, near an airfield, and
+# others had done less than `botched_landing_max_damage` of it (0.10 = 10%). "Near" is within this distance of the point
+# the log gives for the airfield. That point is where the aircraft park, so the distance has to cover the runway too.
+#botched_landing_radius_m = 2000.0
+# An aircraft lost higher than this above the airfield was not landing.
+#botched_landing_max_height_m = 100.0
+# A crash or a rough landing this soon after a takeoff (seconds in the air) is a failed takeoff, not a landing.
+#botched_landing_min_flight_s = 120.0
+# Others may have done less than this much of the damage (0.10 = 10%) in the flight leg before the landing.
+#botched_landing_max_damage = 0.10
+# A landing the aircraft survives needs at least this much damage of its own making (0.10 = 10%).
+#botched_landing_min_damage = 0.10
+# That damage counts from this many seconds before the touchdown ...
+#botched_landing_before_s = 5.0
+# ... to this many seconds after it.
+#botched_landing_after_s = 30.0
 # Resupply (FR-ING-24): the server may let a player rearm after landing and take off again in the same sortie, and no
 # log event says so. true = a sortie with a landing followed by another takeoff counts as resupplied, and the ammo
 # it "used" is then unknown, and the aircraft counts as repaired at that landing: the damage it took starts from 0 again

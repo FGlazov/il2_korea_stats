@@ -224,6 +224,7 @@ class SortieResult:
     # Ground losses (doc 13, OQ-32 answer): the aircraft was lost on the ground, by the sortie itself or by an attacker.
     taxi_accident: bool = False  # lost before its first takeoff, loss_cause "self"
     strafed_on_ground: bool = False  # lost on the ground (before takeoff, or parked after landing) to an attacker
+    botched_landing: bool = False  # wrecked or badly damaged a sound aircraft at an airfield, by its own doing (OQ-144)
     # Sortie role from the loadout (FR-WEB-19/20, doc 13): None for gunners.
     combat_role: CombatRole | None = None
     # Time on target (FR-WEB-20, doc 13): attack sorties only (None otherwise); 0.0 when no release was near a target.

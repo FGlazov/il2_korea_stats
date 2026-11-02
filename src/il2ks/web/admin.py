@@ -571,6 +571,9 @@ class MissionAdmin(ReadOnlyIngestedAdmin[Mission]):
                     "kills_air",
                     "kills_ground",
                     "friendly_kills",
+                    "taxi_accidents",
+                    "botched_landings",
+                    "strafed_on_ground",
                 )
             },
         ),

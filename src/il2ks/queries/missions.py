@@ -150,7 +150,7 @@ def top_pilots(mission: Mission, limit: int) -> list[PlayerMission]:
 
 def visible_mission(pk: int) -> Mission | None:
     """The mission, or None when it does not exist or is hidden (the page answers 404 for both, FR-ADM-3)."""
-    return Mission.objects.visible().filter(pk=pk).first()
+    return Mission.objects.visible().filter(pk=pk).select_related("tour").first()
 
 
 def _pilot_name(prefix: str) -> Expression:

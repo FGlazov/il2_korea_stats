@@ -6,8 +6,9 @@ Everything reads recorded facts, so the same code serves `snapshot()` and `finis
 from dataclasses import dataclass
 
 from il2ks.core.logparse.events import TICKS_PER_SECOND, Pos
+from il2ks.core.replay.areas import nearest_airfield
 from il2ks.core.replay.config import ReplayRules
-from il2ks.core.replay.credit import credit_kill, damage_records, hit_records, unit_objects
+from il2ks.core.replay.credit import credit_kill, damage_records, hit_records, is_self_attack, unit_objects
 from il2ks.core.replay.model import MissionFacts, Party, SortieState, TrackedObject, distance, party_of
 from il2ks.core.replay.result import LossCause, PilotFate, PilotFateSource
 
@@ -215,6 +216,106 @@ def failed_landing(
     landed_at = landing_before(sortie, loss.tick) or loss.tick
     ejected = ejection_spawn_tick(sortie, loss.tick, rules)
     return not left_before(sortie, landed_at) and not (ejected is not None and ejected <= landed_at)
+
+
+def damage_by_others(sortie: SortieState, repairs: tuple[int, ...], upto_tick: int) -> float:
+    """Damage others did to the aircraft in the flight leg that reaches `upto_tick`: a landing repairs (`damage.py`)."""
+    since = max((tick for tick in repairs if tick < upto_tick), default=-1)
+    records = damage_records(sortie.airframe, sortie, upto_tick, attackers_only=True)
+    return sum(r.amount for r in records if r.tick > since)
+
+
+def damage_around_touchdown(sortie: SortieState, touchdown: int, cutoff_tick: int, rules: ReplayRules) -> float:
+    """Damage of the aircraft's own making around a landing, up to `cutoff_tick`."""
+    airframe = sortie.airframe
+    start = touchdown - ticks(rules.botched_landing_before_s)
+    end = min(touchdown + ticks(rules.botched_landing_after_s), cutoff_tick)
+    return sum(
+        r.amount for r in airframe.damage_log if start <= r.tick <= end and is_self_attack(r.attacker, airframe, sortie)
+    )
+
+
+def pilot_at_controls(sortie: SortieState, tick: int, disconnect_tick: int | None, rules: ReplayRules) -> bool:
+    """False when the aircraft came down on its own at `tick`: someone else killed the pilot, or the pilot was gone from
+    the aircraft (bailout, ejection, bot removed) or from the server. A pilot dead by their own crash still counts: the
+    log can have the pilot die on the first impact, seconds before the wreck."""
+    bot = sortie.bot
+    killer = bot.destroyed_by
+    killed = bot.destroyed_tick is not None and bot.destroyed_tick <= tick
+    if killed and killer is not None and not is_self_attack(killer, sortie.airframe, sortie):
+        return False
+    if disconnect_tick is not None and disconnect_tick < tick:
+        return False
+    ejected = ejection_spawn_tick(sortie, tick, rules)
+    return not left_before(sortie, tick) and not (ejected is not None and ejected <= tick)
+
+
+def leg_flight_s(sortie: SortieState, tick: int) -> float:
+    """Seconds in the air from the last takeoff up to `tick`; 0 for an aircraft that has not left the ground."""
+    airframe = sortie.airframe
+    takeoffs = [t for t, airborne in airframe.flight_changes if airborne and sortie.spawn_tick < t <= tick]
+    if takeoffs:
+        return (tick - max(takeoffs)) / TICKS_PER_SECOND
+    return (tick - sortie.spawn_tick) / TICKS_PER_SECOND if airframe.airborne_at(sortie.spawn_tick) else 0.0
+
+
+def pilot_landing(sortie: SortieState, tick: int, disconnect_tick: int | None, rules: ReplayRules) -> bool:
+    """The pilot could be landing at `tick`. Never a gunner (their flight state is the parent's), and not in the first
+    `min_flight_s` of a flight leg: that is a failed takeoff, which neither this nor a taxi accident counts (a taxi
+    accident is before the first takeoff)."""
+    return (
+        sortie.role == "pilot"
+        and leg_flight_s(sortie, tick) >= rules.botched_landing_min_flight_s
+        and pilot_at_controls(sortie, tick, disconnect_tick, rules)
+    )
+
+
+def crashed_landing(
+    sortie: SortieState,
+    facts: MissionFacts,
+    rules: ReplayRules,
+    *,
+    loss: Loss | None,
+    own_crash: bool,
+    fate: PilotFate,
+    repairs: tuple[int, ...],
+    disconnect_tick: int | None,
+) -> bool:
+    """Botched landing (doc 13, OQ-144), the crash: a self-inflicted loss on or just above an airfield, of an aircraft
+    nobody else had damaged much. `own_crash`: nobody finished the aircraft. It only labels the sortie: the outcome and
+    any kill credit stay what they were (`crashed`, or `shot_down` when an old scratch makes it the attacker's loss). A
+    pilot who bailed out left the aircraft on purpose. Without a logged airfield nothing can be said."""
+    if loss is None or not own_crash or fate == "bailed_out" or loss.pos is None:
+        return False
+    if not pilot_landing(sortie, loss.tick, disconnect_tick, rules):
+        return False
+    if damage_by_others(sortie, repairs, loss.tick) >= rules.botched_landing_max_damage:
+        return False
+    field = nearest_airfield(loss.pos, list(facts.airfields.values()), rules.botched_landing_radius_m)
+    return field is not None and loss.pos.y - field.pos.y <= rules.botched_landing_max_height_m
+
+
+def rough_landing(
+    sortie: SortieState,
+    facts: MissionFacts,
+    rules: ReplayRules,
+    *,
+    repairs: tuple[int, ...],
+    disconnect_tick: int | None,
+    active_end: int,
+    cutoff_tick: int,
+) -> bool:
+    """Botched landing (doc 13, OQ-144), the aircraft survives: a landing at an airfield that did a sound aircraft real
+    damage of its own making (it may fly on after a repair; the outcome stays `landed`)."""
+    airfields = list(facts.airfields.values())
+    return any(
+        sortie.spawn_tick <= tick <= active_end
+        and pilot_landing(sortie, tick, disconnect_tick, rules)
+        and nearest_airfield(pos, airfields, rules.botched_landing_radius_m) is not None
+        and damage_by_others(sortie, repairs, tick) < rules.botched_landing_max_damage
+        and damage_around_touchdown(sortie, tick, cutoff_tick, rules) >= rules.botched_landing_min_damage
+        for tick, pos in sortie.airframe.landings
+    )
 
 
 def was_resupplied(takeoff_ticks: list[int], landing_ticks: list[int], rules: ReplayRules) -> bool:

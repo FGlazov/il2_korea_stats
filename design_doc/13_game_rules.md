@@ -183,9 +183,10 @@ A pilot who crashes into a mountain with no attacker involvement is `crashed`, `
 recorded (a kill entry with no killer).
 
 **Losses on the ground** (`fate.ground_loss`, OQ-32, 2026-10-03). A crash before takeoff **counts as a death and an aircraft lost like any
-other** (option a: "we want to encourage players to taxi well"). Two extra flags feed a "hall of shame" on the profile:
+other** (option a: "we want to encourage players to taxi well"). Two extra flags: `taxi_accident` feeds the "hall of shame" on the profile; `strafed_on_ground` is a plain total, no shame (maintainer, 2026-11-02):
 ```
 taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
+                    (shown as "Taxi/takeoff accident": most are taxi and takeoff-run crashes; the field keeps its name)
 strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss, and either
                     (a) it never took off (strafed whatever hit it), or
                     (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and other objects did
@@ -206,6 +207,30 @@ both false for gunners; derived from the final is_plane_lost / loss_cause, so a 
 Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
 not parked aircraft) and **27 strafed** (10 parked, 17 after landing). The damage after a landing splits cleanly: 33 landed losses had at most 0.13% and 16 had at
 least 14.8%, so any threshold from 1% to 14% gives the same result. The OQ-112 rule moved 24 losses from shot down to crashed. The timeline's `destroyed` / `shot_down` entry says which.
+
+**Botched landings** (`fate.botched_landing`, maintainer 2026-11-02, thresholds `[PROPOSED]`, OQ-144). The third entry of the hall of shame: a pilot wrecked or badly
+damaged a sound aircraft at an airfield, by their own doing. The flag only labels the sortie; outcome, death and kill credit stay what the rules above say.
+```
+botched_landing = pilot sortie, and either
+                  (a) a crash: the aircraft was lost, nobody finished it (loss_cause self, or an attacker's old damage without a direct
+                      kill or ram), the pilot did not bail out, the loss is within botched_landing_radius_m (2,000 m) of an airfield
+                      and at most botched_landing_max_height_m (100 m) above it, and others did less than
+                      botched_landing_max_damage (10%) in this flight leg; or
+                  (b) a rough landing: a landing (AType 6) within the radius, others did less than 10% in this flight leg, and the
+                      aircraft did itself at least botched_landing_min_damage (10%) from 5 s before to 30 s after the touchdown
+                  both at a moment (the loss, the touchdown) at least botched_landing_min_flight_s (120 s) after the last takeoff,
+                  with the pilot at the controls: nobody else killed the pilot, and the pilot had not bailed out, ejected, been
+                  removed or left the server before it. A pilot killed by the crash itself still counts: the log can have the pilot
+                  die on the first impact, before the wreck is destroyed.
+```
+The timeline calls the loss "Crashed landing at an airfield" only for (a): after a rough landing the sortie can fly on and be lost elsewhere.
+Reasons, from the 210 samples (15,245 pilot sorties, 11,364 took off, 3,859 landings). The log has airfields (AType 9, one point each), but that point is the **parking spot**:
+all 14,923 ground spawns are within 135 m of it. Touchdowns are a median of 743 m from it (p90 1,421 m, p99 2,048 m), so the 600 m first asked for would catch 39% of
+landings; 2 km catches 98.7%, and crashes per 500 m ring fall away at 2 km (79, 56, 28, 18, 5, 10). The height test keeps out an aircraft shot up over the field: nearly all
+crashes in the radius are within 25 m of the field's height, with stragglers up to 7,000 m. Crashes pile up in the first 30 s after takeoff and are sparse after, so 120 s of flight
+since the last takeoff tells a failed landing from a failed takeoff (measured per flight leg: no sample sortie lost to that, so bounces are safe). A landed aircraft's own damage splits at 15% and 45% (171, 15, 4 sorties in the first 5% bins, then none until 76 sorties at 45-70%).
+**Result: 292 botched landings** (2.6% of takeoffs): 182 `crashed`, 70 `landed` with a wreck, 40 `shot_down` (a scratch under 10% makes any crash an attacker's loss, which still
+credits the kill; the crash was the pilot's own). About 89 crashes under 120 s after takeoff are in neither stat (OQ-144).
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).

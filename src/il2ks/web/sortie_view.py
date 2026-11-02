@@ -694,7 +694,9 @@ def timeline_text(sortie: PlayerSortie, kind: str, detail: str) -> str:
         return str(SPAWN_LABELS.get(detail, detail))
     if kind in ("shot_down", "destroyed"):
         if detail == "taxi_accident":
-            return _("Crashed while taxiing, before takeoff")
+            return _("Crashed before takeoff, taxiing or on the takeoff run")
+        if detail == "botched_landing":
+            return _("Crashed landing at an airfield")
         if detail == "strafed":
             return _("Destroyed on the ground")
     if kind == "sortie_end":  # the outcome and the pilot's displayed fate: "Landed · Survived"

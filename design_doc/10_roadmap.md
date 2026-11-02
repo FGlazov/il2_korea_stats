@@ -437,6 +437,10 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
     1 s of a burst, at most 1000 m, with a minimum number of hits, plus the share of attacks with a hit within 1 s (so a pilot who opens
     fire far out and only hits later is not flattered); no per-sortie figure (too few pairs). Ordnance out of scope.
 
+- ✅ **Botched landings, plain figures** (maintainer, 2026-11-02; unreleased, the maintainer tests it first): a third hall-of-shame stat, 2^3 quip cases with the p90 variants, a
+  sortie quip and badge; "Taxi/takeoff accidents" as the display name; mission counters; plain sections on the aircraft and mission pages holding every optional list column, the
+  vulched count on all three levels; the profile gained total assists and gun accuracy (OQ-144, OQ-145).
+
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).
 - Interactive sortie map, after asking the dev community what data is available (OQ-54/55).

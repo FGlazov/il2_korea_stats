@@ -17,8 +17,8 @@ Rules:
   the population of counted pilot sorties of a tour or of all time. Kill counts are integers with most sorties at 0, so
   the population is stored as a histogram (`histogram_thresholds`): the same percentiles, exactly, and the all-time
   histogram is the sum of the tours' histograms, no history is read to build it. Only a value above 0 is marked.
-- `taxi_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the profile's hall of
-  shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
+- `taxi_per_sortie`, `botched_per_sortie` and `friendly_kill_rate` are no "better" metrics and never get a badge: the
+  profile's hall of shame only picks a gentler quip for a pilot above their p90 (`web.flavor.shame_spot`).
 - The score and Elo marks (2026-10-04) have their own populations, the same as the boards they sit next to: scores
   and ratios need `min_sorties` sorties; Elo needs `min_elo_games` encounters in that pool (all time: the best
   tour's rating, games over all tours; in a tour: that tour's final rating, games and population, OQ-128); ground
@@ -41,6 +41,7 @@ type Metric = Literal[
     "air_per_hour",
     "ground_per_sortie",
     "taxi_per_sortie",
+    "botched_per_sortie",
     "friendly_kill_rate",
     "air_score",
     "ground_score",
@@ -62,6 +63,7 @@ METRICS: Final[tuple[Metric, ...]] = (
     "air_per_hour",
     "ground_per_sortie",
     "taxi_per_sortie",
+    "botched_per_sortie",
     "friendly_kill_rate",
     "air_score",
     "ground_score",
@@ -123,6 +125,7 @@ class Totals:
     kills_ground: int
     flight_time_s: float
     taxi_accidents: int = 0
+    botched_landings: int = 0
     friendly_kills: int = 0
     score_air: float = 0.0
     score_ground: float = 0.0
@@ -187,6 +190,8 @@ def metric_value(metric: Metric, totals: Totals) -> float | None:
             return _div(totals.kills_ground, totals.sorties)
         case "taxi_per_sortie":
             return _div(totals.taxi_accidents, totals.sorties)
+        case "botched_per_sortie":
+            return _div(totals.botched_landings, totals.sorties)
         case "friendly_kill_rate":
             return _div(totals.friendly_kills, totals.sorties)
         case "air_score":

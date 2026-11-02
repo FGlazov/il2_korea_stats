@@ -59,6 +59,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `stat/bailouts.svg` | `parachute` |
 | `stat/captures.svg` | `prison` |
 | `stat/taxi-accidents.svg` | `car-crash` |
+| `stat/botched-landing.svg` | `plane-arrival` |
 | `stat/strafed.svg` | `target-arrow` |
 | `stat/elo-jet.svg` | `chess-knight` |
 | `stat/elo-prop.svg` | `chess-queen` |

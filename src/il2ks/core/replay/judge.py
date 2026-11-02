@@ -12,6 +12,7 @@ from il2ks.core.replay.fate import (
     aircraft_loss,
     attacker_involved,
     bailout_v3,
+    crashed_landing,
     disconnect_death,
     disconnect_tick_of,
     failed_landing,
@@ -24,6 +25,7 @@ from il2ks.core.replay.fate import (
     pilot_death_tick,
     pilot_fate_of,
     pilot_final_pos,
+    rough_landing,
     sortie_end_tick,
     structural_failure,
     suspected_early_bailout,
@@ -62,6 +64,8 @@ class Verdict:
     structural_failure: bool
     taxi_accident: bool  # OQ-32: lost before the first takeoff to nobody but itself
     strafed_on_ground: bool  # OQ-32: lost on the ground to an attacker
+    botched_landing: bool  # OQ-144: wrecked or badly damaged a sound aircraft at an airfield, by its own doing
+    crash_landing: bool  # the same, and `loss` is that crash (a rough landing can come long before the loss)
     outcome: Outcome
     pilot_status: PilotStatus
     aircraft_status: AircraftStatus
@@ -181,6 +185,25 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
     pilot_status: PilotStatus = "dead" if dead else "captured" if captured else "wounded" if bot_damage else "healthy"
     aircraft_status: AircraftStatus = "destroyed" if loss is not None else "damaged" if damage_taken > 0 else "unharmed"
 
+    crash_landing = crashed_landing(
+        sortie,
+        facts,
+        rules,
+        loss=loss,
+        own_crash=loss_cause == "self" or not (shot_down_directly or rammer is not None),
+        fate=fate,
+        repairs=repairs,
+        disconnect_tick=disc_tick,
+    )
+    botched = crash_landing or rough_landing(
+        sortie,
+        facts,
+        rules,
+        repairs=repairs,
+        disconnect_tick=disc_tick,
+        active_end=active_end,
+        cutoff_tick=damage_cutoff,
+    )
     outcome = _outcome(sortie, facts, end, lost=lost, attacker_cause=attacker_cause, off=off, forced=forced)
     # Maintainer 2026-10-05: a landing made with damage counts for the damaged-landing medal and quips even when a
     # repair and more flying follow. The final landing carries the damage the sortie ends with.
@@ -211,6 +234,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         structural_failure=structural,
         taxi_accident=taxi,
         strafed_on_ground=strafed,
+        botched_landing=botched,
+        crash_landing=crash_landing,
         outcome=outcome,
         pilot_status=pilot_status,
         aircraft_status=aircraft_status,

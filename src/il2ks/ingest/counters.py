@@ -40,6 +40,7 @@ SORTIE_COUNTERS: Mapping[str, Aggregate] = MappingProxyType(
         "friendly_damage": Sum("friendly_damage"),
         "taxi_accidents": Count("pk", filter=Q(taxi_accident=True)),
         "strafed_on_ground": Count("pk", filter=Q(strafed_on_ground=True)),
+        "botched_landings": Count("pk", filter=Q(botched_landing=True)),
         "attack_sorties": Count("pk", filter=Q(combat_role=CombatRole.ATTACK)),
         "time_on_target_s": Sum("time_on_target_s"),
         "kills_tank_attack": Sum("kills_ground_tank", filter=Q(combat_role=CombatRole.ATTACK)),

@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Botched landings in the hall of shame:** a pilot who crashes or badly damages a sound aircraft landing at an airfield, by their
+  own doing. On the profile, the aircraft and mission pages, and the sortie page with a badge and a quip of its own. The airfield
+  distance and damage limits are in the `[replay]` section of `il2ks.toml` (`botched_landing_*`).
+- **The hall of shame quips cover every combination** of taxi/takeoff accidents, friendly fire and botched landings, each with its
+  warmer variant for the pilots who do it most.
+- **Aircraft pages show more figures:** a plain section under the tiles with the ratios, the hall of shame and every other figure
+  the list offers as a column.
+- **Mission pages show the hall of shame incidents** and the other figures of the list in a plain section under the tiles.
+- **Times strafed on the ground is now on aircraft and mission pages too**, as a plain total: it is no shame.
+- The profile's "Other totals" show total assists and gun accuracy.
+
+### Changed
+
+- **"Taxi accidents" are now "Taxi/takeoff accidents":** the crash can happen on the takeoff run, before the wheels leave the ground.
+  Only the wording changes.
+- Run `il2ks reprocess --all` once after the upgrade: it finds the botched landings in the missions you already have and fills the
+  new mission counters (it rebuilds the aggregates too, and needs your archived logs).
+
+### Templates changed (check your custom/ overrides)
+
+- `site.css`: v6.1 -> v7.1 and `players.css`: v1.0 -> v2.1 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
+  `site.css` gained `.stat-columns` and `.stat-columns__title`. A copied `site.css` needs these styles, or the new sections show unstyled.
+- `aircraft/detail.html`: v1.0 -> v1.1 and `missions/detail.html`: v1.2 -> v1.3: they include the new `aircraft/detail_secondary.html` and
+  `missions/detail_secondary.html` (both new).
+- `players/detail_shame.html`: v2.0 -> v2.1 (the new tile), `players/detail_totals.html`: v1.2 -> v1.3 (assists, gun accuracy),
+  `sorties/parts/header.html`: v1.1 -> v1.2 (the new badge).
+
 ## 0.5.4 (2026-11-01)
 
 ### Fixed

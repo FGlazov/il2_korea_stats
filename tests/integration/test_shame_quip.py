@@ -1,4 +1,4 @@
-"""The profile's hall of shame (doc 13): the two tiles, the quip by incident kind, the p90 variant, tours.
+"""The profile's hall of shame (doc 13): the tiles, the quip by incident kind, the p90 variant, tours.
 
 September: 25 pilots, one sortie each. Pilots 1-4 have a taxi accident, 3, 5, 6 and 8 killed a friendly. October: pilots
 4 and 8 fly again, pilot 4 killing a friendly. All-time, pilots 1-3 have a taxi rate of 1 against a p90 of 0.8, pilot 4
@@ -66,15 +66,23 @@ def test_the_quip_follows_the_incidents_all_time(client: Client, pilot: int, spo
     assert '<p class="shame__quip">' in body
 
 
-def test_tiles_show_taxi_accidents_and_friendly_fire_not_strafings(client: Client) -> None:
+def test_tiles_show_the_incidents_of_the_pilot_not_strafings(client: Client) -> None:
     seed()
     body = page(client, 3)
     start = body.index('class="shame"')
     shame = body[start : body.index("</section>", start)]
-    assert "Taxi accidents" in shame
+    assert "Taxi/takeoff accidents" in shame
+    assert "Botched landings" in shame
     assert "Friendly-fire kills" in shame
     assert "Strafed on the ground" not in shame
     assert "Strafed on the ground" in body  # now under "Other totals"
+
+
+def test_a_botched_landing_gets_its_quip(client: Client) -> None:
+    sorties = tuple(sortie(i, i + 1, botched_landing=i == 0) for i in range(25))
+    save(mission(sorties), meta("2026-09-19_22-34-13", STARTED_AT), marks=ONE)
+    assert Player.objects.get(account_uuid=account(1)).botched_landings == 1
+    assert quip("shame_landing_p90", 1) in page(client, 1)
 
 
 def test_friendly_kills_are_summed_per_pilot() -> None:
