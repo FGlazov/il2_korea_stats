@@ -19,6 +19,7 @@ pytestmark = pytest.mark.django_db
 
 CAREER = {
     "career_kills": "Sky Hunter",
+    "career_ground": "Mud Mover",
     "jet_hunter": "Jet Hunter",
     "tank_buster": "Tank Buster",
     "flight_hours": "Hours Aloft",

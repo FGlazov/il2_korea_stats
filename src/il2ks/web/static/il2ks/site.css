@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v8.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v8.1 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -330,7 +330,7 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
   vertical-align: middle;
 }
 .data-table thead th {
-  position: sticky; top: 0; z-index: 2; background: var(--il2-surface-2); border-bottom: 1px solid var(--il2-border-strong);
+  position: sticky; top: 0; z-index: 3; background: var(--il2-surface-2); border-bottom: 1px solid var(--il2-border-strong);
   font-size: 0.72rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--il2-muted);
   white-space: nowrap; text-align: left;
 }
@@ -342,17 +342,18 @@ button, [role="button"], input[type="submit"] { font-weight: 600; }
 .data-table tfoot td, .data-table tfoot th { background: var(--il2-surface-2); border-top: 1px solid var(--il2-border-strong); font-weight: 600; }
 /* The first column (the pilot, aircraft, mission... the row is about) stays in view when a wide table scrolls sideways.
    The cell needs an opaque background that follows the row (stripe, hover, focused row link), a thin edge, and z-index
-   above the cells that slide under it; the header corner sits above the sticky header row. A table that leads with a
+   above what slides under it, the lifted links of a row with a whole-row link included (z-index 1); the sticky header row
+   sits above the cell (3), and the header corner above that row (4). A table that leads with a
    rank or time column (.data-table--sticky-2; --sticky-lead is that column's width) keeps its second column in view too. */
-.data-table tr > :first-child:not([colspan]) { position: sticky; left: 0; z-index: 1; background: var(--il2-surface); box-shadow: 1px 0 0 var(--il2-border-strong); }
-.data-table thead tr > :first-child:not([colspan]) { z-index: 3; background: var(--il2-surface-2); }
+.data-table tr > :first-child:not([colspan]) { position: sticky; left: 0; z-index: 2; background: var(--il2-surface); box-shadow: 1px 0 0 var(--il2-border-strong); }
+.data-table thead tr > :first-child:not([colspan]) { z-index: 4; background: var(--il2-surface-2); }
 .data-table tbody tr:nth-child(even) > :first-child:not([colspan]) { background: var(--row-even); }
 .data-table tbody tr:hover > :first-child:not([colspan]), .data-table tbody tr:has(.stretched-link:focus-visible) > :first-child:not([colspan]) { background: var(--il2-surface-hover); }
 .data-table tfoot tr > :first-child:not([colspan]) { background: var(--il2-surface-2); }
 .data-table--sticky-2 { --sticky-lead: 3rem; }
 .data-table--sticky-2 tr > :first-child:not([colspan]) { width: var(--sticky-lead); min-width: var(--sticky-lead); max-width: var(--sticky-lead); box-shadow: none; }
-.data-table--sticky-2 tr > :nth-child(2) { position: sticky; left: var(--sticky-lead); z-index: 1; background: var(--il2-surface); box-shadow: 1px 0 0 var(--il2-border-strong); }
-.data-table--sticky-2 thead tr > :nth-child(2) { z-index: 3; background: var(--il2-surface-2); }
+.data-table--sticky-2 tr > :nth-child(2) { position: sticky; left: var(--sticky-lead); z-index: 2; background: var(--il2-surface); box-shadow: 1px 0 0 var(--il2-border-strong); }
+.data-table--sticky-2 thead tr > :nth-child(2) { z-index: 4; background: var(--il2-surface-2); }
 .data-table--sticky-2 tbody tr:nth-child(even) > :nth-child(2) { background: var(--row-even); }
 .data-table--sticky-2 tbody tr:hover > :nth-child(2), .data-table--sticky-2 tbody tr:has(.stretched-link:focus-visible) > :nth-child(2) { background: var(--il2-surface-hover); }
 .data-table--sticky-2 tfoot tr > :nth-child(2) { background: var(--il2-surface-2); }

@@ -41,6 +41,12 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
     ),
     "sortie_kills": (gettext_lazy("Ace of the Sortie"), gettext_lazy("Air kills in a single sortie.")),
     "career_kills": (gettext_lazy("Sky Hunter"), gettext_lazy("Air kills over your career, all sorties together.")),
+    # Translators: a title, not a translation job: old pilots' slang for a ground-attack crew. Any title a pilot would
+    # be proud of will do, without the word "ground" (the ground medals are no lesser versions of the air ones).
+    "career_ground": (
+        gettext_lazy("Mud Mover"),
+        gettext_lazy("Ground targets destroyed over your career, all sorties together."),
+    ),
     "strike_hunter": (
         gettext_lazy("Bomber Hunter"),
         gettext_lazy("Enemy bombers, attackers and transports shot down."),
@@ -123,6 +129,10 @@ TEXTS: Mapping[str, tuple[Label, Label]] = {
 # career (all-time) words.
 TOUR_TEXTS: Mapping[str, tuple[Label, Label]] = {
     "career_kills": (gettext_lazy("Tour Sky Hunter"), gettext_lazy("Air kills in one tour, all sorties together.")),
+    "career_ground": (
+        gettext_lazy("Tour Mud Mover"),
+        gettext_lazy("Ground targets destroyed in one tour, all sorties together."),
+    ),
     "jet_hunter": (
         gettext_lazy("Tour Jet Hunter"),
         gettext_lazy("Enemy jets shot down from a propeller aircraft in one tour."),

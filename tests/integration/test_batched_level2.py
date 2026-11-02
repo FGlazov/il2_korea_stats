@@ -6,6 +6,7 @@ back after the dump is taken, so one test can compare several ways of reaching t
 `tests.db_canon` (primary-key free, sorted, floats rounded: Postgres returns rows in any order and SUM order differs).
 """
 
+import logging
 import shutil
 from collections.abc import Callable, Generator, Iterable
 from concurrent.futures import Executor, ThreadPoolExecutor
@@ -499,3 +500,21 @@ def test_doctor_does_not_warn_while_a_batch_is_running(tmp_path: Path, monkeypat
         assert [f.level for f in findings] == [Level.OK]
         assert "running" in findings[0].title
     assert len(_pending_findings(cfg, monkeypatch)) == 1
+
+
+def test_a_pass_of_level_2_shows_on_the_live_line(
+    caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A pass can take a while: the line must not look stuck on a mission."""
+
+    def no_pass(*_args: object, **_kwargs: object) -> None:
+        pass
+
+    monkeypatch.setattr(persist, "apply_level2", no_pass)
+    batch = Level2Batch(30, DEFAULT_RULES, DEFAULT_MARK_RULES)
+    batch.add({1})
+
+    with caplog.at_level(logging.INFO, logger="il2ks.ingest.batch"):
+        batch.flush()
+
+    assert [getattr(record, "phase", False) for record in caplog.records] == [True]

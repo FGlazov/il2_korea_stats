@@ -204,14 +204,12 @@ def penalty_notes(request: HttpRequest, sortie: PlayerSortie) -> list[tuple[str,
         text = (
             _(
                 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
-                "kill. This is a guess from the log and can be wrong, for example after an engine failure. "
-                "Ground score: \u2212%(points)s."
+                "kill. This is a guess. Ground score: \u2212%(points)s."
             )
             if ground
             else _(
                 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
-                "kill. This is a guess from the log and can be wrong, for example after an engine failure. Air score: "
-                "\u2212%(points)s."
+                "kill. This is a guess. Air score: \u2212%(points)s."
             )
         )
         notes.append((_("Early bailout penalty"), text % {"points": _plain(score.penalty_early_bailout)}))
@@ -270,6 +268,7 @@ def sortie_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "sortie_marks": marks,
             "ram_note": ram_note(request) if detail.has_ram else "",
             "penalty_notes": penalty_notes(request, sortie),
+            "figure_groups": columns.SORTIE_FIGURES,
             "crumbs": [
                 (_("Players"), reverse("web:player-search")),
                 (

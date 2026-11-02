@@ -293,3 +293,15 @@ def test_charmed_life_is_untouched_by_flak_dodger() -> None:
 
 def test_limping_home_has_a_platinum_tier() -> None:
     assert BY_KEY["damaged_landing"].thresholds == (1, 3, 5, 10)
+
+
+def test_mud_mover_is_sky_hunter_on_the_ground() -> None:
+    """Maintainer 2026-11-02: "add tour ground hunter (better name?) on top of tour sky hunter"."""
+    mud, sky = BY_KEY["career_ground"], BY_KEY["career_kills"]
+
+    assert (mud.kind, mud.cumulative) == (sky.kind, sky.cumulative)
+    assert mud.counter == "kills_ground"
+    assert mud.thresholds == (50, 250, 1000, 2500)
+    assert mud.all_time_thresholds == (250, 1250, 5000, 12500)
+    assert tiers("career_ground", [s(0, kills_ground=30), s(1, kills_ground=30)]) == {1: 1}
+    assert tiers("career_ground", [s(kills_ground=49)]) == {}

@@ -13,13 +13,16 @@ import json
 import logging
 import sys
 import uuid
+from collections.abc import Generator
+from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import TextIO
+from typing import Protocol, TextIO
 
 from il2ks.config import DEFAULT_LOG_KEEP_DAYS
 
 _STDOUT_FORMAT = "%(asctime)s %(levelname)-8s %(name)s: %(message)s"
+_FEED_FORMATTER = logging.Formatter("%(levelname)s %(message)s")
 
 # Attributes every LogRecord has; anything else on a record came from `extra=` and goes into the JSON line.
 _RECORD_ATTRS = frozenset(vars(logging.makeLogRecord({})).keys()) | {"message", "asctime", "taskName"}
@@ -72,8 +75,34 @@ class _DailyFileHandler(logging.FileHandler, _Il2ksHandler):
         super().emit(record)
 
 
+class LiveDisplay(Protocol):
+    """What takes over the console while a long run shows its progress in place (`il2ks.progress`)."""
+
+    def feed(self, text: str) -> None: ...
+
+    def phase(self, text: str) -> None: ...
+
+
+def _one_line(text: str) -> str:
+    """The first line and the last, which for a traceback are the message and its cause."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return " ".join(lines[:1] + lines[1:][-1:])
+
+
 class _StdoutHandler(logging.StreamHandler[TextIO], _Il2ksHandler):
-    pass
+    """Human-readable stdout. While a `display` is attached (`live_stdout`) a line of its own would break the display:
+    warnings and errors go to it as one line, a record logged with `extra={"phase": True}` goes to it as what the run
+    is doing, and the rest stays out of the console."""
+
+    display: LiveDisplay | None = None
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if self.display is None:
+            super().emit(record)
+        elif record.levelno >= logging.WARNING:
+            self.display.feed(_one_line(_FEED_FORMATTER.format(record)))
+        elif getattr(record, "phase", False):
+            self.display.phase(record.getMessage())
 
 
 class JsonFormatter(logging.Formatter):
@@ -136,6 +165,19 @@ def configure_logging(
     root.addHandler(file_handler)
     root.addHandler(stdout_handler)
     root.setLevel(numeric)
+
+
+@contextmanager
+def live_stdout(display: LiveDisplay) -> Generator[None]:
+    """Hands the console to `display` for the block. The log file keeps getting every record."""
+    handlers = [h for h in logging.getLogger().handlers if isinstance(h, _StdoutHandler)]
+    for handler in handlers:
+        handler.display = display
+    try:
+        yield
+    finally:
+        for handler in handlers:
+            handler.display = None
 
 
 def make_file_handler(log_dir: str, process: str, keep_days: int) -> logging.Handler:

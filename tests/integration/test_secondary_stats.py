@@ -12,7 +12,7 @@ from django.utils.html import strip_tags
 
 from il2ks.db.models import AircraftStats, GameObject, Mission, Player, PlayerSortie
 from il2ks.ingest.aggregates import rebuild_aggregates
-from il2ks.web.columns import AIRCRAFT_COLUMNS, MISSION_COLUMNS, PLAYER_COLUMNS, Column
+from il2ks.web.columns import AIRCRAFT_COLUMNS, MISSION_COLUMNS, PLAYER_COLUMNS, SITE_SORTIE_COLUMNS, Column
 from tests.factories import kill, mission, save, sortie
 from tests.simple_reads import assert_simple_reads
 
@@ -166,6 +166,15 @@ MISSION_LABELS: dict[str, str | None] = {
 }
 
 
+SORTIE_LABELS: dict[str, str | None] = {
+    "combat_role": None,
+    "damage_taken": "Aircraft damage",
+    "payload": "Payload",
+    "takeoffs": "Takeoffs / landings",
+    "landings": "Takeoffs / landings",
+}
+
+
 def labels(columns: Iterable[Column[Any]], renamed: dict[str, str | None]) -> list[str]:
     return [text for c in columns if (text := renamed.get(c.key, str(c.label))) is not None]
 
@@ -187,6 +196,24 @@ def test_every_optional_player_column_is_on_the_profile(client: Client, label: s
     attacker = sortie(1, 1, kills_ground=2, assists_ground=1, gun_hits_ground=5, combat_role="attack")
     save(mission((fighter, attacker)))
     assert label in get(client, f"/players/{Player.objects.get().pk}/?tour=all")
+
+
+@pytest.mark.parametrize("label", labels(SITE_SORTIE_COLUMNS, SORTIE_LABELS))
+def test_every_optional_sortie_column_is_on_the_sortie_page(client: Client, label: str) -> None:
+    """Maintainer 2026-11-02: "ground and air score are missing from the sortie detail page"."""
+    save(mission((sortie(0, 1, kills_ground=2, combat_role="attack", time_on_target_s=120),)))
+    assert label in get(client, f"/sorties/{PlayerSortie.objects.get().pk}/")
+
+
+def test_a_sortie_lists_its_scores_in_the_plain_figures(client: Client) -> None:
+    save(mission((sortie(0, 1, kills_air=2, combat_role=AIR),)))
+    PlayerSortie.objects.update(air_points=12, ground_points=-3)
+    body = get(client, f"/sorties/{PlayerSortie.objects.get().pk}/")
+
+    pairs = dict(re.findall(r"<dt>([^<]+)</dt>\s*<dd>(.*?)</dd>", body))
+    assert pairs["Air score"] == "12"
+    assert pairs["Ground score"] == "-3"
+    assert body.index("Aircraft status") < body.index("Air score")  # under the summary
 
 
 def test_the_friendly_fire_kills_are_split_in_air_and_ground_everywhere(client: Client) -> None:

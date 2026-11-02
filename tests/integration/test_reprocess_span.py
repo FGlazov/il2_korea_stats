@@ -2,6 +2,8 @@
 
 import logging
 import re
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -10,6 +12,7 @@ import pytest
 
 from il2ks.core.logparse.files import SpanBound, span_is_reversed
 from il2ks.db.models import IngestRun, Mission
+from il2ks.ingest import reprocess as reprocess_module
 from il2ks.ingest.reprocess import ReprocessSummary, archived_targets, mission_in_span, reprocess
 from tests.integration.test_ingest_runner import Env, fake_work, threads
 
@@ -47,6 +50,23 @@ def run(
         rebuild=lambda: None,
         now=env.now,
     )
+
+
+def test_the_live_line_follows_the_missions(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Closed before the last rebuild, which logs what it does to the console again."""
+    seen: list[object] = []
+
+    @contextmanager
+    def recording(total: int) -> Generator[Callable[[int], None]]:
+        seen.append(("start", total))
+        yield seen.append
+        seen.append("end")
+
+    monkeypatch.setattr(reprocess_module, "live_progress", recording)
+
+    run(env, since=date(2026, 4, 1), until=date(2026, 4, 30))
+
+    assert seen == [("start", 3), 1, 2, 3, "end"]
 
 
 def test_the_run_says_how_many_missions_are_left(env: Env, caplog: pytest.LogCaptureFixture) -> None:

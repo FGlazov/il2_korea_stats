@@ -127,7 +127,7 @@ Medals and awards (FR-WEB-11), rank insignia, tour banners (it2), a map style fo
 
 Generated from the code by `uv run il2ks dev assets --write`; a unit test fails when it drifts from the templates, the Python icon maps, the CSS or the files in `static/il2ks/img/`. Paths are relative to `src/il2ks/web/static/il2ks/img/`. **Release**: *yes* = the page needs the file (a placeholder is enough), *no* = optional or later. **State**: *shipped* = a placeholder file exists, *unused* = shipped but no page uses it yet, *planned* = not drawn and not (fully) wired yet; the site works without it. The uploaded server logo is not a static file: it is re-encoded to PNG (at most 256 px high) and served from `/media/branding/`.
 
-Total: 143 files in 13 groups; 118 shipped as placeholders (1 of them not used by any page yet), 25 planned.
+Total: 144 files in 13 groups; 119 shipped as placeholders (1 of them not used by any page yet), 25 planned.
 
 ### Brand (`brand/`): 6 files (2 shipped)
 
@@ -265,13 +265,14 @@ Total: 143 files in 13 groups; 118 shipped as placeholders (1 of them not used b
 | `stat/ground-hour.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `clock-bolt` | yes | P2 | shipped |
 | `stat/play-time.svg` | Leaderboard switcher button (chess pieces for the Elo boards) | SVG 24 x 24, currentColor | Tabler `hourglass` | yes | P2 | shipped |
 
-### Achievement medals (`medal/`): 25 files (25 shipped)
+### Achievement medals (`medal/`): 26 files (26 shipped)
 
 | File | Used in | Size / format | Placeholder source | Release | Prio | State |
 |---|---|---|---|---|---|---|
 | `medal/life-kills.svg` | Medal row (profile, achievement pages, sortie page): Charmed Life: air kills in one life; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `clover` | yes | P2 | shipped |
 | `medal/sortie-kills.svg` | Medal row (profile, achievement pages, sortie page): Ace of the Sortie: air kills in one sortie; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `target-arrow` | yes | P2 | shipped |
 | `medal/career-kills.svg` | Medal row (profile, achievement pages, sortie page): Sky Hunter: air kills in total; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `crosshair` | yes | P2 | shipped |
+| `medal/career-ground.svg` | Medal row (profile, achievement pages, sortie page): Mud Mover: ground targets destroyed in total; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `shovel` | yes | P2 | shipped |
 | `medal/strike-hunter.svg` | Medal row (profile, achievement pages, sortie page): Bomber Hunter: bombers, attackers and transports shot down; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `plane-off` | yes | P2 | shipped |
 | `medal/jet-hunter.svg` | Medal row (profile, achievement pages, sortie page): Jet Hunter: jets shot down from a propeller aircraft; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `rocket` | yes | P2 | shipped |
 | `medal/tank-buster.svg` | Medal row (profile, achievement pages, sortie page): Tank Buster: tanks destroyed; CSS tints it by tier | SVG 24 x 24, currentColor | Tabler `tank` | yes | P2 | shipped |

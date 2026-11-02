@@ -253,6 +253,32 @@ SITE_SORTIE_COLUMNS: tuple[Column[PlayerSortie], ...] = (
 )
 
 
+def _figures(*keys: str) -> tuple[Column[PlayerSortie], ...]:
+    by_key = {column.key: column for column in SITE_SORTIE_COLUMNS}
+    return tuple(by_key[key] for key in keys)
+
+
+# The plain figures of the sortie page (`sorties/parts/figures.html`; maintainer 2026-11-02: every optional column has a
+# place on the detail page of its row). The other optional columns are in the page's head, tiles and summary.
+SORTIE_FIGURES: tuple[tuple[Label, tuple[Column[PlayerSortie], ...]], ...] = (
+    # Translators: heading of the sortie page's air score and ground score
+    (_("Score"), _figures("air_points", "ground_points")),
+    (
+        _("Kills and assists"),
+        _figures(
+            "kills_air_pvp",
+            "kills_air_ai",
+            "assists_air",
+            "assists_ground",
+            "friendly_kills_air",
+            "friendly_kills_ground",
+        ),
+    ),
+    # Translators: heading of the sortie page's gun, air and ground accuracy
+    (_("Accuracy"), _figures("accuracy", "accuracy_air", "accuracy_ground")),
+)
+
+
 # --- the sortie tables of a mission page ---------------------------------------------------------------------------
 # The default columns (time, pilot, aircraft, role, outcome, fate, kills, assists, flight time) stay in the template;
 # these are the extras: the player sortie list's, minus the mission (this page), plus the damage taken (a default

@@ -119,7 +119,8 @@ def fill(
     assert busiest is not None
     latest = Mission.objects.order_by("-pk").first()
     assert latest is not None
-    sortie = PlayerSortie.objects.filter(player=busiest).order_by("pk").first()
+    # With a kill: the page then also looks up the aircraft on the other side.
+    sortie = PlayerSortie.objects.filter(player=busiest, kills_made__isnull=False).order_by("pk").first()
     assert sortie is not None
     aircraft_pks = list(GameObject.objects.filter(log_name__in=AIRCRAFT).values_list("pk", flat=True))
     from il2ks.db.models import Page

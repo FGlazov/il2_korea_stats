@@ -1,0 +1,16 @@
+{# il2ks-template: templates/il2ks/sorties/parts/figures.html v1.0 - copy this line along when you override #}
+{% load i18n il2ks %}{% comment %}
+  figures.html: the plain figures under the summary, in the style of the aircraft and mission pages, so the page has
+  every optional column of the sortie lists (maintainer 2026-11-02). Context: sortie, figure_groups (title, columns:
+  `web.columns.SORTIE_FIGURES`).
+{% endcomment %}<div class="stat-columns">
+  {% for title, figures in figure_groups %}
+    <section>
+      <h2 class="stat-columns__title">{{ title }}</h2>
+      <dl class="kv kv--compact">
+        {% for column in figures %}<dt>{{ column.label }}</dt><dd>{{ column|cell:sortie }}</dd>
+        {% endfor %}
+      </dl>
+    </section>
+  {% endfor %}
+</div>

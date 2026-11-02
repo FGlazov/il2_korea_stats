@@ -204,8 +204,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "8.0",
-      "sha256": "900fe749709a8d4653a86cfa9c5c1e38950f28eab0f62a3a13bc7c6367d225e1",
+      "version": "8.1",
+      "sha256": "e52bee0000d80fa522a4a2b65a302da8405d8830234f9aa498fa507c8227726f",
       "contract": {
         "defines": [
           "--icon",
@@ -4353,8 +4353,8 @@
       }
     },
     "templates/il2ks/sorties/detail.html": {
-      "version": "1.0",
-      "sha256": "a1aac41a5e642a901cb4ae51c98d39ac697b69e684f8cbc1839ce30735788a98",
+      "version": "1.1",
+      "sha256": "7babab565b8cdc1121cc531d4ed98182d4f88b02b7e35450597ff53cc5ad9033",
       "contract": {
         "blocks": [
           "content",
@@ -4367,6 +4367,7 @@
         "includes": [
           "il2ks/sorties/parts/ammo.html",
           "il2ks/sorties/parts/damage.html",
+          "il2ks/sorties/parts/figures.html",
           "il2ks/sorties/parts/header.html",
           "il2ks/sorties/parts/killed_by.html",
           "il2ks/sorties/parts/kills.html",
@@ -4600,6 +4601,25 @@
         ],
         "variables": [
           "rows"
+        ]
+      }
+    },
+    "templates/il2ks/sorties/parts/figures.html": {
+      "version": "1.0",
+      "sha256": "45d66082f7d9394577731cb12b4d31fa20e342e9cd94c4d7af0e86ca060a9762",
+      "contract": {
+        "filters": [
+          "cell"
+        ],
+        "markers": [
+          ".kv",
+          ".kv--compact",
+          ".stat-columns",
+          ".stat-columns__title"
+        ],
+        "variables": [
+          "figure_groups",
+          "sortie"
         ]
       }
     },

@@ -15,6 +15,9 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-155 Mud Mover: name and tiers** (doc 17; maintainer 2026-11-02: "add tour ground hunter (better name?) on top of tour sky hunter")
+Built as Mud Mover and Tour Mud Mover (pilots' slang for ground-attack crews), a ribbon like Sky Hunter, counting ground kills. Tiers per tour 50 / 250 / 1000 / 2500, five times that all time: in the local data 204, 63, 14 and 3 pilots reach them. Static objects count, as on the profile, which is why the numbers are this high. Fine?
+
 **OQ-154 Early bailout: how much damage makes a bailout fair** (doc 13; maintainer 2026-11-02: the penalty is for bailing out "WITHOUT having taken damage", to prevent denying air kills, and "if ejection happens before any damage should probably be the trigger")
 Applied: a suspected early bailout now needs under 20% damage from any source before the aircraft is logged destroyed. The log has no event at the moment the pilot leaves, so that is the closest the data allows. Of 296 suspected bailouts 57 are cleared, all at 49% damage or more; the other 239 had none or only tiny lines. Between 16% and 49% no sortie changes, so the exact number hardly matters. One limit: a wing torn off in a single moment logs no damage before the loss, so it looks like a sound aircraft and stays suspected. Fine?
 

@@ -55,6 +55,7 @@ from il2ks.ingest.lock import WriterLock
 from il2ks.ingest.persist import DuplicateSortieError, MissionMeta, save_level1, save_mission
 from il2ks.ingest.rule_store import effective_config
 from il2ks.ingest.timeutil import ResolvedStart, resolve_mission_start
+from il2ks.progress import live_progress
 
 log = logging.getLogger(__name__)
 
@@ -254,15 +255,17 @@ def _ingest_locked(
     try:
         if batch is not None:
             batch.start()  # before the first save: a hard kill from here on leaves a marker (`repair_pending`)
-        for item, decision, last in todo:
-            outcome = ingest_mission(cfg, pipeline, item, decision, last, now=now, batch=batch)
-            if outcome == "ok":
-                summary.ok.append(item.mission_uid)
-                _dispose(item, mode, cfg, summary)
-            else:
-                summary.failed.append(item.mission_uid)
-            if batch is not None:
-                batch.mission_done()
+        with live_progress(len(todo)) as advance:
+            for done, (item, decision, last) in enumerate(todo, 1):
+                outcome = ingest_mission(cfg, pipeline, item, decision, last, now=now, batch=batch)
+                if outcome == "ok":
+                    summary.ok.append(item.mission_uid)
+                    _dispose(item, mode, cfg, summary)
+                else:
+                    summary.failed.append(item.mission_uid)
+                if batch is not None:
+                    batch.mission_done()
+                advance(done)
         failing = False
     finally:  # also on Ctrl-C and on an error of the level-2 pass itself: what is pending is applied, not lost
         finish_quietly(batch, failing=failing)

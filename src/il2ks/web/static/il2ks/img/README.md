@@ -97,6 +97,7 @@ the empty bounding path are removed (the `{% icon %}` tag adds its own class). S
 | `medal/elo-peak.svg` | `trending-up` |
 | `medal/attack-rate-peak.svg` | `stopwatch` |
 | `medal/ground-score.svg` | `chart-bar` |
+| `medal/career-ground.svg` | `shovel` |
 | `medal/first-blood.svg` | `droplet` |
 | `medal/multi-kill.svg` | `chevrons-right` |
 | `medal/multi-kill-ground.svg` | `chevrons-down` |

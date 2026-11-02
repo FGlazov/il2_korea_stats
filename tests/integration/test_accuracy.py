@@ -84,7 +84,7 @@ def test_sortie_page_shows_accuracy_or_says_the_rounds_are_unknown(client: Clien
     assert "10 on aircraft, 2 on the ground, of 200 rounds" in html
     html = client.get(f"/sorties/{unknown.pk}/").content.decode()
     assert "rounds fired unknown" in html
-    assert "Gun accuracy" not in html
+    assert "<dt>Gun accuracy</dt><dd>—</dd>" in html
 
 
 def test_optional_columns_sort_by_accuracy(client: Client) -> None:

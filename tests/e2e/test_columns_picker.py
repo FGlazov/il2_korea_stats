@@ -86,6 +86,26 @@ def scroll_left(page: Page) -> float:
     return page.evaluate("document.querySelector('#results .table-wrap').scrollLeft")
 
 
+def test_a_link_in_a_row_slides_under_the_sticky_first_column(page: Page, world: World) -> None:
+    """Maintainer 2026-11-02: the links of a row with a whole-row link are lifted over that link, which put them over
+    the sticky date as well: the mission's name and the date were drawn on top of each other."""
+    page.set_viewport_size({"width": 480, "height": 900})
+    page.goto("/sorties/?cols=landings&cols=ground_points&cols=takeoffs")
+    covered = page.evaluate(
+        """() => {
+            const wrap = document.querySelector('#results .table-wrap');
+            const row = wrap.querySelector('tbody tr');
+            row.scrollIntoView({block: 'center'});
+            const first = row.querySelector('td'), link = row.querySelector('td:nth-child(4) a');
+            wrap.scrollLeft = link.getBoundingClientRect().left - first.getBoundingClientRect().left;
+            const box = link.getBoundingClientRect(), cell = first.getBoundingClientRect();
+            const x = Math.max(box.left, cell.left) + 2, y = box.top + box.height / 2;
+            return {overlap: box.left < cell.right, onTop: first.contains(document.elementFromPoint(x, y))};
+        }"""
+    )
+    assert covered == {"overlap": True, "onTop": True}
+
+
 def test_extra_columns_is_a_collapsible_with_every_choice_on_the_page(page: Page, world: World) -> None:
     """Closed until used; opening shows every checkbox at once (no inner scrolling) in a multi-column grid."""
     page.goto("/players/?q=")

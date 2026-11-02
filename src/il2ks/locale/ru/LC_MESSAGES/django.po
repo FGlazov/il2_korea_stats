@@ -777,6 +777,11 @@ msgid "Accident report. Enemy involvement: none. Terrain involvement: total."
 msgstr "Акт о происшествии. Участие противника: нет. Участие рельефа: полное."
 
 # llm-draft
+#. Translators: heading of the sortie page's gun, air and ground accuracy
+msgid "Accuracy"
+msgstr "Меткость"
+
+# llm-draft
 msgid "Ace in a Day"
 msgstr "Ас одного дня"
 
@@ -3076,6 +3081,14 @@ msgid "Ground targets destroyed in a single sortie."
 msgstr "Уничтожено наземных целей за один вылет."
 
 # llm-draft
+msgid "Ground targets destroyed in one tour, all sorties together."
+msgstr "Наземные цели, уничтоженные за один тур, все вылеты вместе."
+
+# llm-draft
+msgid "Ground targets destroyed over your career, all sorties together."
+msgstr "Наземные цели, уничтоженные за всю вашу карьеру, все вылеты вместе."
+
+# llm-draft
 msgid "Ground targets destroyed within two minutes in one sortie."
 msgstr "Наземные цели, уничтоженные в течение двух минут за один вылет."
 
@@ -3976,6 +3989,10 @@ msgstr "Самая опасная часть миссии: первые сто �
 # llm-draft
 msgid "Moves the missions into other tours in the background"
 msgstr "Переносит миссии в другие туры в фоне"
+
+# llm-draft
+msgid "Mud Mover"
+msgstr "Землекоп"
 
 # llm-draft
 msgid "My own only"
@@ -5485,6 +5502,11 @@ msgstr ""
 "обработанные за это время, тоже используют старые настройки, так что ничего не смешивается."
 
 # llm-draft
+#. Translators: heading of the sortie page's air score and ground score
+msgid "Score"
+msgstr "Очки"
+
+# llm-draft
 msgid "Score and kill boards: sorties a pilot needs"
 msgstr "Рейтинги очков и побед: нужно вылетов у лётчика"
 
@@ -6700,19 +6722,19 @@ msgstr "Часть картинки, которая остаётся видим�
 #, python-format
 msgid ""
 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess from the log and can be wrong, for example after an engine failure. Air score: −%(points)s."
+"guess. Air score: −%(points)s."
 msgstr ""
-"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение по "
-"журналу, оно может быть неверным, например после отказа двигателя. Воздушные очки: −%(points)s."
+"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение. "
+"Воздушные очки: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess from the log and can be wrong, for example after an engine failure. Ground score: −%(points)s."
+"guess. Ground score: −%(points)s."
 msgstr ""
-"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение по "
-"журналу, оно может быть неверным, например после отказа двигателя. Очки за землю: −%(points)s."
+"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение. "
+"Очки за землю: −%(points)s."
 
 # llm-draft
 msgid ""
@@ -7347,6 +7369,10 @@ msgstr "Налёт (тур)"
 # llm-draft
 msgid "Tour Jet Hunter"
 msgstr "Охотник на реактивных (тур)"
+
+# llm-draft
+msgid "Tour Mud Mover"
+msgstr "Землекоп (тур)"
 
 # llm-draft
 msgid "Tour Sky Hunter"

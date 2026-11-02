@@ -78,6 +78,7 @@ them).
 | `life_kills` | Charmed Life | Air kills in one **air** life (the air ironman track, doc 13): the kills of the air-track sorties since the last air-track death or capture, the fatal sortie included; an attack sortie neither adds to it nor ends it | 5 / 10 / 20 / 50 | 55 / 11 / 2 / 0 |
 | `sortie_kills` | Ace of the Sortie | Most air kills in a single sortie | 2 / 3 / 5 / 7 | 162 / 52 / 5 / 0 |
 | `career_kills` | Sky Hunter | Air kills in total | 1 / 10 / 50 / 250 | 419 / 63 / 4 / 0 |
+| `career_ground` | Mud Mover | Ground kills in total, a ribbon like Sky Hunter (maintainer 2026-11-02; thresholds `[PROPOSED]`, OQ-155). Static objects count, as on the profile, so the tiers are far above the air ones; tiers per tour, 5x all time | 50 / 250 / 1000 / 2500 | 204 / 63 / 14 / 3 (per tour, 587 pilots with a ground kill, local data 2026-11-02) |
 | `strike_hunter` | Bomber Hunter | Bombers, attackers and **transports** shot down, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly, not own earlier sortie); transports added to match interception and the bomber-hunter quip `[PROPOSED]` | 1 / 3 / 7 / 20 | 88 / 15 / 3 / 0 |
 | `jet_hunter` | Jet Hunter | Jets shot down from a propeller aircraft, AI aircraft included (maintainer 2026-10-31; credited kills, not friendly; tiers `[PROPOSED]` from the local data). Cumulative since 2026-11-02 (OQ-149): the table's tiers are the **Tour Jet Hunter**, the all-time Jet Hunter counts the sum of the tours (`kills_jet_from_prop`, a stored sortie and `PlayerTour` counter) against 5 / 15 / 25 / 50 | 1 / 3 / 5 / 10 | 86 / 13 / 6 / 1 |
 | `tank_buster` | Tank Buster | Tanks destroyed in total | 3 / 10 / 25 / 100 | 38 / 4 / 2 / 1 |
@@ -259,7 +260,7 @@ The maintainer's answer to OQ-128: "If it's multi tour then we should increase t
 tour achievements", and "also add tiered achievements for playing in X tours in a row". Built the same day.
 
 - **Cumulative medals have their own all-time tiers**, `ALL_TIME_FACTOR = 5` times the per-tour ones (`Achievement.all_time_thresholds`,
-  `thresholds_for(all_time=)`): Sky Hunter 5 / 50 / 250 / 1250 kills, Tank Buster 15 / 50 / 125 / 500, Hours Aloft 5 / 50 / 250 / 1000 h,
+  `thresholds_for(all_time=)`): Sky Hunter 5 / 50 / 250 / 1250 kills, Mud Mover 250 / 1250 / 5000 / 12500, Tank Buster 15 / 50 / 125 / 500, Hours Aloft 5 / 50 / 250 / 1000 h,
   (a tour keeps 1 / 10 / 50 / 250 and so on). Every other medal is the
   best tour's tier (max), with the same thresholds in both views. `[PROPOSED]` (TECHNICAL): the factor is a constant, not an admin
   field, and it scales **whatever per-tour thresholds are in force**: an admin who changes Sky Hunter to 2 / 20 / 100 / 500 gets

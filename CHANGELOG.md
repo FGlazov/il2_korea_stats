@@ -23,10 +23,17 @@
   player lists.
 - **Three new ground medals:** Firestorm, for ground targets destroyed within two minutes in one sortie, Flak Dodger, for ground kills in one
   life of attack sorties, and Surgical Strike, for the highest ground score per hour on target.
+- **Mud Mover and Tour Mud Mover:** the ground side of Sky Hunter, a ribbon for the ground targets destroyed in a tour, and all time at five
+  times the tiers.
 - **An all-time Jet Hunter:** it counts all your tours against tiers of 5, 15, 25 and 50. The one-tour medal is now Tour Jet Hunter.
 
 ### Changed
 
+- **Long runs update one line:** from 200 missions, `il2ks ingest` and `il2ks reprocess` on a terminal show `Mission 50/210 ETA: 1m 22s` in
+  place, with the last warnings and errors under it. The estimate stops at the last mission: the rebuild after it logs as usual. The log file
+  keeps every line, and a pipe, a service or a shorter run prints as before.
+- **The sortie page has every figure of the extra columns:** air and ground score, kills by players and AI, assists, friendly fire and
+  accuracy sit in a plain block under the summary.
 - **"Taxi accidents" are now "Taxi/takeoff accidents":** the crash can happen on the takeoff run, before the wheels leave the ground.
   Only the wording changes.
 - **Friendly-fire kills are split into air and ground** everywhere: the profile, the lists, and the aircraft, mission and sortie pages.
@@ -60,19 +67,21 @@
 - **The optional Attack sorties column of the aircraft list is called Share of attack sorties,** as it shows a percentage.
 - **The optional Tour column of the mission list is left-aligned,** like other text.
 - **The note under the profile's ratios no longer touches their box.**
+- **Scrolling a table sideways no longer draws links over the pinned column:** on the sortie lists a mission name showed through the date.
 - **`il2ks reprocess` reports its progress:** a line per mission says how many are done and how many are left, as `il2ks ingest` reports each
   mission.
 - **The percent sign follows the language:** German, Spanish, French and Russian write a no-break space before it (1,23 %).
 
 ### Templates changed (check your custom/ overrides)
 
-- `site.css`: v6.1 -> v8.0 and `players.css`: v1.0 -> v4.0 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
+- `site.css`: v6.1 -> v8.1 and `players.css`: v1.0 -> v4.0 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
   `site.css` gained `.stat-columns`, `.stat-columns__title` and `.ribbon--bare`. A copied `site.css` needs these styles, or the new sections
   show unstyled.
 - `achievements/overview.html`: v1.1 -> v2.0 and `players/achievements.html`: v1.0 -> v2.0 (breaking). Their rows moved to the new
   `achievements/_overview_rows.html` and `players/_achievement_rows.html`, and the views pass `medal_rows` and `ribbon_rows` instead of `rows`.
 - `aircraft/list.html`: v1.0 -> v3.0 (breaking): the name cell is wrapped in `.aircraft-table__identity`, so the tag sits level with the name, and
   attack proficiency uses the new `attack_rate` filter (one decimal).
+- `sorties/detail.html`: v1.0 -> v1.1 and `sorties/parts/figures.html` (new): the plain figures. An override of the page keeps working, without them.
 - `sorties/all.html` and `sorties/list.html`: v1.0 -> v1.2 (the incident filter, column descriptions). `admin/il2ks_ingest_status.html`: v3.1 -> v3.2 (the time span
   button), with the new `admin/il2ks_reprocess_span.html` and `admin/il2ks_span_label.html`.
 - Friendly-fire kills split, or percent signs by language: `aircraft/detail_secondary.html`: v1.0 -> v1.2, `missions/detail_secondary.html`:

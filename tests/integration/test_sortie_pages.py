@@ -275,7 +275,8 @@ def test_flag_notices_are_neutral(client: Client) -> None:
     html = detail(client, pk_of(1))
 
     assert "Early bailout penalty" in html
-    assert "can be wrong" in html
+    assert "This is a guess." in html
+    assert "engine failure" not in html
     assert "Possible structural failure" in html
 
 

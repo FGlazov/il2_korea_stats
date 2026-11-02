@@ -369,6 +369,15 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
         cumulative=True,
         counter="kills_air",
     ),
+    Achievement(
+        "career_ground",
+        (50, 250, 1000, 2500),
+        "count",
+        _cumulative(lambda s: s.kills_ground),
+        kind="ribbon",
+        cumulative=True,
+        counter="kills_ground",
+    ),
     Achievement("strike_hunter", (1, 3, 7, 20), "count", _cumulative(lambda s: s.kills_strike_air)),
     Achievement(
         "jet_hunter",

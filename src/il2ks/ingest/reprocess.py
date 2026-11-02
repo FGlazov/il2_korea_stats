@@ -41,6 +41,7 @@ from il2ks.ingest.persist import MissionMeta
 from il2ks.ingest.rule_store import adopt_overrides, config_with, effective_config, rebuild_overrides
 from il2ks.ingest.runner import Pipeline, fill_counters, utcnow
 from il2ks.ingest.worker import lower_priority, parse_and_replay
+from il2ks.progress import live_progress
 
 log = logging.getLogger(__name__)
 
@@ -230,7 +231,11 @@ def _process(
     if batched:
         set_level2_pending("reprocess")  # cleared by the final rebuild; left behind by a hard kill
     # `with` order: the executor is shut down first, then the rebuild runs
-    with _final_rebuild(summary, run_rebuild, interrupted_too=batched), executor_factory(n_workers) as executor:
+    with (
+        _final_rebuild(summary, run_rebuild, interrupted_too=batched),
+        live_progress(total) as advance,
+        executor_factory(n_workers) as executor,
+    ):
         while queue or pending:
             while queue and len(pending) < window:
                 prev = queue.pop(0)
@@ -239,7 +244,7 @@ def _process(
                     _record(
                         cfg, pipeline, prev, None, f"archive {archive} is missing or changed", summary, now, batched
                     )
-                    _progress(on_progress, summary, prev.mission_uid, total)
+                    _progress(on_progress, advance, summary, prev.mission_uid, total)
                     continue
                 pending[executor.submit(work, prev.mission_uid, archive, cfg.replay)] = prev
             if not pending:
@@ -253,7 +258,7 @@ def _process(
                     _record(cfg, pipeline, prev, None, traceback.format_exc(), summary, now, batched)
                 else:
                     _record(cfg, pipeline, prev, outcome, "", summary, now, batched)
-                _progress(on_progress, summary, prev.mission_uid, total)
+                _progress(on_progress, advance, summary, prev.mission_uid, total)
     log.info("%s", summary.describe())
     return summary
 
@@ -288,10 +293,15 @@ def _rebuild(run_rebuild: Callable[[], None]) -> None:
 
 
 def _progress(
-    on_progress: Callable[[ReprocessSummary], None] | None, summary: ReprocessSummary, uid: str, total: int
+    on_progress: Callable[[ReprocessSummary], None] | None,
+    advance: Callable[[int], None],
+    summary: ReprocessSummary,
+    uid: str,
+    total: int,
 ) -> None:
     done = len(summary.ok) + len(summary.failed)
     log.info("%s: %d of %d missions done, %d left", uid, done, total, total - done)
+    advance(done)
     if on_progress is not None:
         on_progress(summary)
 

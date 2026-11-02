@@ -1,7 +1,8 @@
 """The ingest runner with fake parse/replay/persist steps (doc 04 pipeline, FR-ING-5, 8, 10, 18, 19, 20, NFR-REL-3)."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from concurrent.futures import Executor, ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -69,6 +70,28 @@ class Env:
 @pytest.fixture
 def env(tmp_path: Path) -> Env:
     return Env(tmp_path)
+
+
+def test_the_live_line_counts_the_missions_to_do_not_the_ones_skipped(
+    env: Env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    env.add(A)
+    env.ingest()
+    env.add(B)
+    env.add(C)
+    seen: list[object] = []
+
+    @contextmanager
+    def recording(total: int) -> Generator[Callable[[int], None]]:
+        seen.append(("start", total))
+        yield seen.append
+        seen.append("end")
+
+    monkeypatch.setattr(runner, "live_progress", recording)
+
+    env.ingest()
+
+    assert seen == [("start", 2), 1, 2, "end"]
 
 
 def test_ok_run_is_archived_saved_recorded_and_originals_moved(env: Env) -> None:

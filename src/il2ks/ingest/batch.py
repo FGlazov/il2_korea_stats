@@ -101,7 +101,7 @@ class Level2Batch:
         The pending set is cleared only after the pass committed, so a failed pass is retried by the next one."""
         if not self._pending:
             return
-        log.info("level 2 for %d/%d missions", self.done, self.total)
+        log.info("level 2 for %d/%d missions", self.done, self.total, extra={"phase": True})
         with transaction.atomic():
             persist.apply_level2(self._pending, self.ratings, payload_elo=False, holders=False)
             bump_data_version()

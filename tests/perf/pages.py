@@ -41,7 +41,7 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("leaderboard", lambda w: "/leaderboards/ironman-air/", 9),
     PageSpec("leaderboard", lambda w: "/leaderboards/ironman-ground/?tour=all", 9),
     PageSpec("leaderboard", lambda w: "/leaderboards/air/", 9),
-    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 8),  # + earned medals and their rarity (FR-WEB-26)
+    PageSpec("sortie-detail", lambda w: f"/sorties/{w.sortie_pk}/", 10),  # + earned medals, their rarity, named objects
     PageSpec("player-achievements", lambda w: f"/players/{w.player_pk}/achievements/", 6),
     PageSpec("achievements", lambda w: "/achievements/", 5),
     PageSpec("achievement-holders", lambda w: "/achievements/flight_hours/", 7),

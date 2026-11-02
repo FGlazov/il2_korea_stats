@@ -226,6 +226,71 @@ config and point `--host` at it.
 On GitHub: Actions, "Load test", "Run workflow" (users, duration, missions as inputs); the table and Locust's HTML report
 are attached to the run as an artifact.
 
+## Serving capacity
+
+Measured 2026-11-02 on a copy of a real database (210 missions, 1,150 players, 15,349 sorties), on Windows 11 with 16
+logical processors, while the machine was busy with other long jobs. Read the numbers as lower bounds and compare them
+with each other: the same page came out at 68/s and at 39/s in two runs, depending on what else was running.
+
+One process, Django's test client, `DEBUG` off (cached templates), no network and no TLS:
+
+| Read | Per second | Each |
+|---|---|---|
+| Raw SQL, one row by primary key | 14,421 | 0.07 ms |
+| ORM, one row by primary key | 911 | 1.1 ms |
+| ORM, 25 rows on an indexed page | 195 | 5.1 ms |
+| Sortie page, full render | 68 | 15 ms |
+| Sortie list, full render | 41 | 24 ms |
+| Player page, full render | 26 | 38 ms |
+| Home page, full render | 21 | 47 ms |
+
+`CONN_MAX_AGE` is not set, so a real server opens a new SQLite connection per request. The same run with and without
+that, per second:
+
+| Page | Connection kept open | New connection per request |
+|---|---|---|
+| Sortie page, `304` revalidation | 998 | 104 |
+| Sortie page | 39 | 26 |
+| Player page | 20 | 12 |
+| Home page | 15 | 12 |
+
+The whole server over HTTP on localhost, 8 clients asking for the sortie, player and home pages in turn:
+
+| Server | Pages per second | Requests per process |
+|---|---|---|
+| granian WSGI, 1 worker, 4 threads | 23.2 | 287 |
+| uvicorn ASGI, 1 worker | 20.7 | 253 |
+| uvicorn ASGI, 4 workers | 77.9 | 239, 238, 235, 233 |
+
+Threads on one granian worker, two runs each on a quieter machine:
+
+| `[web] threads` | Pages per second |
+|---|---|
+| 1 | 24.6, 22.6 |
+| 4 | 28.7, 28.0 |
+| 16 | 29.7, 29.1 |
+
+What follows from these numbers:
+
+- **The time goes to Python, not to SQLite.** A row costs about 15 times more through the ORM than as raw SQL, and a
+  page spends most of its time in the ORM and the templates. Moving to another database would not make pages faster.
+- **One worker is enough for now.** 23 pages a second is about 2 million page views a day, before the browser
+  revalidation (TD-28) answers repeat visits.
+- **More threads do not scale it.** Python's GIL lets one thread of a process run Python code at a time, and most of a
+  page is Python code. Threads only help while another one waits on the database or the network: going from 1 to 4
+  gains about 20%, and from 4 to 16 almost nothing. More CPU takes more processes, so 4 stays the default.
+- **On Linux and in Docker, scale with `[web] workers`** (`IL2KS_WEB_WORKERS`), about one per free processor core. Each
+  worker is one more process of about 80 MB. Several granian workers were not measured here: Windows cannot run them.
+- **On Windows, granian runs one worker whatever the setting says.** It falls back to 1 with a warning (2.8.7 still
+  does): `accept` on a shared non-blocking socket can block there, which the tokio listener cannot work around
+  ([granian #74](https://github.com/emmett-framework/granian/issues/74), locked to 1 worker in #91). There is no plan to
+  lift this. Two ways out, should a Windows server ever need more: tell the server admin to move to Docker or Linux, or
+  serve with uvicorn, which ran 4 workers on Windows at 3.8 times one worker, at about 10% less per worker. uvicorn is
+  not wired in: it needs an `il2ks/asgi.py`, a dependency, and a way to start it from `il2ks web` and `il2ks run`.
+- **Several workers share what matters.** Login lockouts and sessions are in the database, there is no server-side
+  cache, and the workers of one start share their ETag boot id. Per process, and harmless: the sitemap cache (keyed by
+  the data version), the setup attempt limiter, and the front-page image poller (`sync` is safe from several processes).
+
 ## Adding a page
 
 1. A row in `tests/perf/pages.py` (the completeness test makes you).

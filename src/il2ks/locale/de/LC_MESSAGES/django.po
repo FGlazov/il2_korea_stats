@@ -770,6 +770,11 @@ msgid "Accident report. Enemy involvement: none. Terrain involvement: total."
 msgstr "Unfallbericht. Feindbeteiligung: keine. Geländebeteiligung: vollständig."
 
 # llm-draft
+#. Translators: heading of the sortie page's gun, air and ground accuracy
+msgid "Accuracy"
+msgstr "Trefferquote"
+
+# llm-draft
 msgid "Ace in a Day"
 msgstr "Tagesass"
 
@@ -3078,6 +3083,14 @@ msgid "Ground targets destroyed in a single sortie."
 msgstr "Zerstörte Bodenziele in einem einzigen Einsatz."
 
 # llm-draft
+msgid "Ground targets destroyed in one tour, all sorties together."
+msgstr "In einer Tour zerstörte Bodenziele, alle Einsätze zusammen."
+
+# llm-draft
+msgid "Ground targets destroyed over your career, all sorties together."
+msgstr "In deiner gesamten Karriere zerstörte Bodenziele, alle Einsätze zusammen."
+
+# llm-draft
 msgid "Ground targets destroyed within two minutes in one sortie."
 msgstr "Bodenziele, die in einem Einsatz innerhalb von zwei Minuten zerstört wurden."
 
@@ -3985,6 +3998,10 @@ msgstr "Der gefährlichste Teil der Mission: die ersten hundert Meter."
 # llm-draft
 msgid "Moves the missions into other tours in the background"
 msgstr "Verschiebt die Missionen im Hintergrund in andere Touren"
+
+# llm-draft
+msgid "Mud Mover"
+msgstr "Schlammschieber"
 
 # llm-draft
 msgid "My own only"
@@ -5483,6 +5500,11 @@ msgstr ""
 "Einstellungen, es wird also nie etwas vermischt."
 
 # llm-draft
+#. Translators: heading of the sortie page's air score and ground score
+msgid "Score"
+msgstr "Punkte"
+
+# llm-draft
 msgid "Score and kill boards: sorties a pilot needs"
 msgstr "Punkte- und Abschuss-Bestenlisten: nötige Einsätze eines Piloten"
 
@@ -6699,21 +6721,19 @@ msgstr "Der Teil des Bildes, der sichtbar bleibt, wenn es für einen schmalen Bi
 #, python-format
 msgid ""
 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess from the log and can be wrong, for example after an engine failure. Air score: −%(points)s."
+"guess. Air score: −%(points)s."
 msgstr ""
 "Der Pilot hat das Flugzeug im Flug verlassen, obwohl es unbeschädigt war, und dem Gegner so den Abschuss verwehrt. "
-"Das ist eine Vermutung aus dem Log und kann falsch sein, zum Beispiel nach einem Triebwerksausfall. Luftpunkte: "
-"−%(points)s."
+"Das ist eine Vermutung. Luftpunkte: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
 "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess from the log and can be wrong, for example after an engine failure. Ground score: −%(points)s."
+"guess. Ground score: −%(points)s."
 msgstr ""
 "Der Pilot hat das Flugzeug im Flug verlassen, obwohl es unbeschädigt war, und dem Gegner so den Abschuss verwehrt. "
-"Das ist eine Vermutung aus dem Log und kann falsch sein, zum Beispiel nach einem Triebwerksausfall. Bodenpunkte: "
-"−%(points)s."
+"Das ist eine Vermutung. Bodenpunkte: −%(points)s."
 
 # llm-draft
 msgid ""
@@ -7375,6 +7395,10 @@ msgstr "Über den Wolken (Tour)"
 # llm-draft
 msgid "Tour Jet Hunter"
 msgstr "Düsenjäger-Schreck (Tour)"
+
+# llm-draft
+msgid "Tour Mud Mover"
+msgstr "Schlammschieber (Tour)"
 
 # llm-draft
 msgid "Tour Sky Hunter"
