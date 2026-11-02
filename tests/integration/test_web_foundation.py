@@ -153,6 +153,20 @@ def test_nav_links_follow_the_built_in_ones_in_order_and_open_safely(client: Cli
 
 
 @pytest.mark.django_db
+def test_the_heading_font_is_preloaded_unless_another_one_is_chosen(client: Client) -> None:
+    """`font-display: optional` keeps the fallback for the whole page view when the font comes late, and the wider
+    fallback wrapped the header on a first visit only: the home page had two rows and the next page one
+    (maintainer 2026-11-02)."""
+    head = client.get("/").content.decode().split("</head>")[0]
+    assert 'rel="preload"' in head
+    assert "BarlowCondensed-700" in head
+    assert 'as="font" type="font/woff2" crossorigin' in head
+
+    SiteSettings.objects.create(pk=1, heading_font="system")
+    assert 'rel="preload"' not in client.get("/").content.decode().split("</head>")[0]
+
+
+@pytest.mark.django_db
 def test_fonts_are_chosen_by_key_only(client: Client) -> None:
     SiteSettings.objects.create(pk=1, heading_font="serif", body_font="mono")
     html = client.get("/").content.decode()

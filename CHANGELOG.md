@@ -22,14 +22,24 @@
 - Run `il2ks reprocess --all` once after the upgrade: it finds the botched landings in the missions you already have and fills the
   new mission counters (it rebuilds the aggregates too, and needs your archived logs).
 
+### Fixed
+
+- **The header no longer changes between pages on a first visit:** the page often painted before the heading font arrived, so the wider
+  fallback font wrapped the menu onto a second row until the next page. The heading font now loads first.
+- **No more lone items:** the menu, the profile links and the board and medal tabs no longer leave one link alone on a last row, and text
+  no longer ends on a line of one word.
+- **A backup on Windows no longer fails** when the copy to the second folder is still reading an old backup that rotation wants to delete.
+
 ### Templates changed (check your custom/ overrides)
 
-- `site.css`: v6.1 -> v7.1 and `players.css`: v1.0 -> v2.1 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
+- `site.css`: v6.1 -> v7.3 and `players.css`: v1.0 -> v2.2 (breaking). The `.kv--compact` styles moved from `players.css` to `site.css`, and
   `site.css` gained `.stat-columns` and `.stat-columns__title`. A copied `site.css` needs these styles, or the new sections show unstyled.
 - `aircraft/detail.html`: v1.0 -> v1.1 and `missions/detail.html`: v1.2 -> v1.3: they include the new `aircraft/detail_secondary.html` and
   `missions/detail_secondary.html` (both new).
 - `players/detail_shame.html`: v2.0 -> v2.1 (the new tile), `players/detail_totals.html`: v1.2 -> v1.3 (assists, gun accuracy),
   `sorties/parts/header.html`: v1.1 -> v1.2 (the new badge).
+- `il2ks/base.html`: v2.1 -> v2.2 (the font preload, one space between menu items) and `leaderboards.css`: v1.0 -> v1.1. An override keeps
+  working, without the preload or the balanced rows.
 
 ## 0.5.4 (2026-11-01)
 

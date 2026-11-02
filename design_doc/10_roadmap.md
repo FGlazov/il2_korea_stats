@@ -440,6 +440,7 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
 - ✅ **Botched landings, plain figures** (maintainer, 2026-11-02; unreleased, the maintainer tests it first): a third hall-of-shame stat, 2^3 quip cases with the p90 variants, a
   sortie quip and badge; "Taxi/takeoff accidents" as the display name; mission counters; plain sections on the aircraft and mission pages holding every optional list column, the
   vulched count on all three levels; the profile gained total assists and gun accuracy (OQ-144, OQ-145).
+- ✅ **No lone items, header on a first visit** (maintainer, 2026-11-02; unreleased): `text-wrap` for text and link rows, the heading font preloaded (doc 16 "No lone items", "Font loading").
 
 ## After the release: reminders
 - Revisit the charts (which charts help; maintainer, OQ-59).

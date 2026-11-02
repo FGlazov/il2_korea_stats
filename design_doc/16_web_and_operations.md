@@ -49,7 +49,11 @@ How the website, the admin and the operations commands are built (iteration 1, p
   the web-vitals test (0.1), while the header, the hero and the filter bars are held to zero.
 - **Font loading** (0.2.0): the built-in Barlow Condensed uses `font-display: optional`. With `swap`, a late font swap re-wrapped the home hero's title
   on a slow Linux CI machine and moved the page (a layout shift); `optional` uses the font only if it is there at first paint, so nothing moves
-  afterwards. Fonts the admin uploads keep `swap` (Branding). Possible later: preload the font in `base.html`.
+  afterwards. Fonts the admin uploads keep `swap` (Branding). `base.html` preloads the 700 weight unless another heading font is chosen: without it a first visit
+  often painted before the font came, the wider fallback wrapped the header, and the next page, with the font cached, had one row less (stats.yalu.info, maintainer 2026-11-02).
+- **No lone items** (maintainer 2026-11-02): body text is `text-wrap-style: pretty` and h1 to h3 `balance`, so no last line holds one word. Rows of 4 or more short links (site menu, profile
+  links, board tabs, medal tabs) are inline blocks with `text-wrap: balance`, because balance does not reach flex items. Firefox and Chrome balance up to 10 and 6 lines; `pretty` is ignored
+  where it is unsupported. Left as they are: rows of 3 (a wrap always leaves one), and galleries and aligned grids (stat tiles, medals, filter fields), where a short last row keeps the columns.
 - **Style guide** at `/_styleguide/` (only with DEBUG) shows every component; English-only by design.
 - **Placeholders** for every icon and image named in [15_visual_assets.md](15_visual_assets.md), under `web/static/il2ks/img/`.
 - **Free icon option** (research, 2026-10-03): Tabler Icons (MIT, outline, 24 px grid) covers almost every slot (tank, parachute, prison,

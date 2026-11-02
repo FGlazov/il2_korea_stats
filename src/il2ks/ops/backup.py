@@ -88,11 +88,20 @@ def newest_backup_time(backup_dir: Path) -> datetime | None:
 
 
 def rotate(backup_dir: Path, keep: int) -> list[Path]:
-    """Delete all but the newest `keep` backups; returns what was deleted."""
+    """Delete all but the newest `keep` backups; returns what was deleted.
+
+    A file in use stays for the next rotation: Windows refuses to delete an open file, and the copy to the second folder
+    may be reading it. The copy rotates again when it is done, and the new backup has already succeeded either way."""
     doomed = list_backups(backup_dir)[:-keep] if keep > 0 else []
+    deleted: list[Path] = []
     for path in doomed:
-        path.unlink(missing_ok=True)
-    return doomed
+        try:
+            path.unlink(missing_ok=True)
+        except PermissionError as exc:
+            log.info("old backup %s stays for now, it is in use: %s", path, exc)
+        else:
+            deleted.append(path)
+    return deleted
 
 
 # --- making a backup -----------------------------------------------------------------------------------------------
@@ -501,6 +510,7 @@ def copy_to_second_folder(cfg: Config) -> CopyOutcome | None:
                 _copy_file(path, dest)
                 copied += 1
         deleted = rotate(second, cfg.backup.keep)
+        rotate(cfg.backup_dir, cfg.backup.keep)  # what a rotation could not delete while this copy was reading it
     except OSError as exc:
         return _fail(cfg, "backups", f"could not copy the backup to {second}: {exc}")
     detail = f"{copied} backup(s) copied to {second}, {len(deleted)} old one(s) removed there"

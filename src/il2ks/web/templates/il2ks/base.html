@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/base.html v2.1 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/base.html v2.2 - copy this line along when you override #}
 {% load i18n static il2ks %}{% comment %}
   The site layout. Server owners may override this file or any block through <data dir>/custom/templates (TD-25).
   Blocks (keep this list short and stable):
@@ -21,6 +21,7 @@
   {% if icon_url %}<link rel="icon" href="{{ icon_url }}" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="{{ apple_touch_icon_url }}">{% else %}<link rel="icon" href="{% static 'il2ks/img/brand/favicon.svg' %}" type="image/svg+xml">{% endif %}
   <title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}{{ site.site_title }}{% endblock %}</title>
+  {% if not site.heading_font %}<link rel="preload" href="{% static 'il2ks/vendor/BarlowCondensed-700.woff2' %}" as="font" type="font/woff2" crossorigin>{% endif %}
   <link rel="stylesheet" href="{% static 'il2ks/vendor/pico.min.css' %}">
   <link rel="stylesheet" href="{% static 'il2ks/site.css' %}">
   {% if theme_css %}<style>{{ theme_css }}</style>{% endif %}
@@ -53,7 +54,8 @@
                 <li><a href="{% url 'web:leaderboards' %}"{% if route == 'leaderboards' or route == 'leaderboard' %} aria-current="page"{% endif %}>{% translate "Leaderboards" %}</a></li>
               </ul>
             </details></li>
-            {% for link in nav_links %}<li>{% if link.internal %}<a href="{{ link.url }}"{% if request.path == link.url %} aria-current="page"{% endif %}>{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}</a>{% else %}<a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a>{% endif %}</li>{% endfor %}
+            {% for link in nav_links %}<li>{% if link.internal %}<a href="{{ link.url }}"{% if request.path == link.url %} aria-current="page"{% endif %}>{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}</a>{% else %}<a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% if link.icon %}{% icon link.icon %}{% endif %}{{ link.label }}<span class="visually-hidden"> ({% translate "opens in a new tab" %})</span></a>{% endif %}</li>
+            {% endfor %}
           </ul>
           {% endwith %}
         {% endblock %}

@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/players.css v2.1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/players.css v2.2 - copy this line along when you override */
 /* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
 
 /* Search */
@@ -61,7 +61,9 @@
 }
 
 /* In-page navigation and the air / ground / overall parts */
-.profile-nav { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.4rem 1.2rem; margin: 0.5rem 0 1rem; font-size: 0.9rem; }
+/* Inline items, not flex: `text-wrap: balance` only reaches inline content, and it keeps a lone link off the last row. */
+.profile-nav { display: block; margin: 0.3rem 0 0.8rem; font-size: 0.9rem; text-wrap: balance; }
+.profile-nav > a { display: inline-block; margin: 0.2rem 1rem 0.2rem 0; }
 .profile-part { margin-top: 3rem; scroll-margin-top: 1rem; }
 .profile-recent { scroll-margin-top: 1rem; }
 /* Two levels (maintainer 2026-10-05): the parts of the page (Recent sorties, Hall of shame, Achievements, Air-to-air,

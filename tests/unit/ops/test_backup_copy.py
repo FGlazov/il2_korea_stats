@@ -80,6 +80,30 @@ def test_retention_applies_to_the_copy_too(tmp_path: Path) -> None:
     assert names(cfg.backup_dir) == names(second / str(cfg.server_uid))
 
 
+def test_a_backup_in_use_does_not_fail_the_new_backup_and_goes_after_the_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Windows refuses to delete an open file, and the copy thread may be reading the backup that rotation wants gone.
+    The new backup has succeeded by then (`dev check` 2026-11-02: WinError 32 out of `create_backup`)."""
+    cfg, _ = with_copy(tmp_path, keep=1)
+    first = backup.create_backup(cfg, now=lambda: T)
+    backup.wait_for_copy()
+    unlink = Path.unlink
+
+    def in_use(path: Path, missing_ok: bool = False) -> None:
+        if path == first:
+            raise PermissionError(32, "The process cannot access the file", str(path))
+        unlink(path, missing_ok=missing_ok)
+
+    with monkeypatch.context() as patched:
+        patched.setattr(Path, "unlink", in_use)
+        again = backup.create_backup(cfg, now=lambda: T + timedelta(hours=1))
+        backup.wait_for_copy()
+        assert names(cfg.backup_dir) == sorted([first.name, again.name])
+    backup.copy_to_second_folder(cfg)
+    assert names(cfg.backup_dir) == [again.name]
+
+
 def test_a_second_folder_that_was_offline_catches_up_with_the_next_backup(tmp_path: Path) -> None:
     cfg, second = with_copy(tmp_path)
     second.write_text("a file where the folder should be", encoding="utf-8")  # the "share" is broken

@@ -53,8 +53,8 @@
       }
     },
     "static/il2ks/leaderboards.css": {
-      "version": "1.0",
-      "sha256": "4c513a8689a1fba0cbec1dc20bdce245600defc4e136db526f0669df7c90fac3",
+      "version": "1.1",
+      "sha256": "63cd0e4fd1b13d4ca7da46f96eb42d212d18d19a7841de991c861258ef01e5b5",
       "contract": {
         "defines": [
           ".board-note",
@@ -127,8 +127,8 @@
       }
     },
     "static/il2ks/players.css": {
-      "version": "2.1",
-      "sha256": "28541d3e4a7b57ed21adccf7efe995cb46a9363058e66087df560d36873f42db",
+      "version": "2.2",
+      "sha256": "67c9f6e4ceb056ba913e28471937c45e48d69585b4c62851fc9c1f0c6421fa67",
       "contract": {
         "defines": [
           ".aircraft-table__build",
@@ -202,8 +202,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "7.1",
-      "sha256": "fe4c545334f2b80dc0619cb63e8731fecf15283096cbabb48ec95497d497adfb",
+      "version": "7.3",
+      "sha256": "efa855e42dd0d73f02ca7f45c5d2d6e2d05fcc9b1ce05015784ae022de4f1696",
       "contract": {
         "defines": [
           "--icon",
@@ -1772,8 +1772,8 @@
       }
     },
     "templates/il2ks/base.html": {
-      "version": "2.1",
-      "sha256": "18aec76108e3529f45aba41d55598833a5f5b196161be61fefa25b5e4d7e1596",
+      "version": "2.2",
+      "sha256": "b0c35d8a1c4ec93ac2d862bd82037d1283da92b7cea2e35f62f7faf261ae5bc3",
       "contract": {
         "blocks": [
           "content",
@@ -1823,6 +1823,7 @@
           "il2ks/localtime.js",
           "il2ks/site.css",
           "il2ks/theme-init.js",
+          "il2ks/vendor/BarlowCondensed-700.woff2",
           "il2ks/vendor/htmx.min.js",
           "il2ks/vendor/pico.min.css"
         ],
