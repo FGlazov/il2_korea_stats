@@ -268,6 +268,9 @@ people ask). The main use case is **a player reviewing their sortie**.
   admin; images may be hotlinked from other hosts; a page may have a text per site language but needn't, the base text (English by
   default) is shown otherwise (OQ-133). Side balance counts the pilots spawned in per side **weighted by time**, after the original IL-2
   stats (OQ-134). Altitude on the timeline: "Angels N" for BLUFOR, metres for REDFOR (OQ-135).
+- **Accepted 2026-11-02** (maintainer answers to OQ-144..146): botched landings as built, thresholds and effects included (OQ-144, doc 13). The plain figures on aircraft and mission
+  pages as built: right under the tiles, the label stays "Strafed on the ground", the new stats are not optional list columns (OQ-145, doc 16). Elo as built: a loaded
+  fighter's loss is no game, and the list column and the profile tile keep their different minimums (OQ-146, doc 13).
 - **A new tour is a clean slate** (maintainer, 2026-10-05; built: Elo, streaks and medals per tour, all time rolled up from the tour rows, doc 14):
   every level-2 refresh is a full refresh of the touched tours, and **all time is built from the tours**: counters are the sum of the
   tours; **Elo** is computed per tour and resets at every new tour, all-time Elo = the max of the tours' Elo; **streaks** reset every tour,

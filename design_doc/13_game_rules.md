@@ -208,7 +208,7 @@ Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn
 not parked aircraft) and **27 strafed** (10 parked, 17 after landing). The damage after a landing splits cleanly: 33 landed losses had at most 0.13% and 16 had at
 least 14.8%, so any threshold from 1% to 14% gives the same result. The OQ-112 rule moved 24 losses from shot down to crashed. The timeline's `destroyed` / `shot_down` entry says which.
 
-**Botched landings** (`fate.botched_landing`, maintainer 2026-11-02, thresholds `[PROPOSED]`, OQ-144). The third entry of the hall of shame: a pilot wrecked or badly
+**Botched landings** (`fate.botched_landing`, maintainer 2026-11-02, `[DECIDED]`, OQ-144). The third entry of the hall of shame: a pilot wrecked or badly
 damaged a sound aircraft at an airfield, by their own doing. The flag only labels the sortie; outcome, death and kill credit stay what the rules above say.
 ```
 botched_landing = pilot sortie, and either
@@ -230,7 +230,9 @@ landings; 2 km catches 98.7%, and crashes per 500 m ring fall away at 2 km (79, 
 crashes in the radius are within 25 m of the field's height, with stragglers up to 7,000 m. Crashes pile up in the first 30 s after takeoff and are sparse after, so 120 s of flight
 since the last takeoff tells a failed landing from a failed takeoff (measured per flight leg: no sample sortie lost to that, so bounces are safe). A landed aircraft's own damage splits at 15% and 45% (171, 15, 4 sorties in the first 5% bins, then none until 76 sorties at 45-70%).
 **Result: 292 botched landings** (2.6% of takeoffs): 182 `crashed`, 70 `landed` with a wreck, 40 `shot_down` (a scratch under 10% makes any crash an attacker's loss, which still
-credits the kill; the crash was the pilot's own). About 89 crashes under 120 s after takeoff are in neither stat (OQ-144).
+credits the kill; the crash was the pilot's own). About 89 crashes under 120 s after takeoff are in neither stat. The height is measured from the field's logged point, not the
+terrain under the crash, so no heightmap is needed. Decided (OQ-144): these thresholds; a scratched crash counts as botched and stays shot down; a rough landing is flagged on a
+sortie that flies on after repair; those 89 crashes stay out of both stats.
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).
@@ -458,7 +460,9 @@ OQ-102, OQ-103). Both are per-hour rates of stored counters, computed at read ti
 
 **Air-to-air Elo** (`core/ratings/elo.py`, computed in `ingest/ratings.py` **per tour**, doc 14; "a new tour is a clean slate", maintainer 2026-10-05, OQ-128):
 - A **game** = one PvP kill credit (not an assist, not friendly) where killer and victim are both pilot sorties with role `air_superiority`.
-  Kills by AI, AA or the environment have no `Kill` row and never count. A player killing their own other sortie is ignored.
+  Kills by AI, AA or the environment have no `Kill` row and never count. A player killing their own other sortie is ignored. So a fighter carrying bombs or rockets (an `attack`
+  sortie) gives no game for its killer, and a pilot with 5+ air kills can have no Elo. The list column shows Elo from 1 game while the profile tile asks for `min_elo_games`. Both are
+  intended (maintainer 2026-11-02, OQ-146).
 - Each player has a **prop** and a **jet** rating (pool = the propulsion of the aircraft flown in that sortie), starting at `start` (1500).
 - Same pool: standard Elo. Expected E = 1 / (1 + 10^((R_loser − R_winner) / 400)); the winner gains K × (1 − E) and the loser loses the same
   (K = `k`, 32).
