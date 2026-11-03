@@ -110,6 +110,9 @@
 # the landing (0.05 = 5%); a damaged aircraft that fails its landing is a crash, not a strafing. 0 means "any damage
 # after the landing" (no damage at all never counts).
 #strafed_min_damage = 0.05
+# Taxi/takeoff accident: an aircraft the pilot lost on their own within this many seconds after a takeoff counts, as does
+# one lost before taking off. 0 counts only the losses before taking off.
+#takeoff_accident_s = 60.0
 # Botched landing (hall of shame): the pilot crashed, or badly damaged the aircraft landing it, near an airfield, and
 # others had done less than `botched_landing_max_damage` of it (0.10 = 10%). "Near" is within this distance of the point
 # the log gives for the airfield. That point is where the aircraft park, so the distance has to cover the runway too.

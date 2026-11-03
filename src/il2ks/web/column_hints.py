@@ -126,7 +126,7 @@ HINTS: dict[str, Label] = {
         "They do not count as kills and cost score points."
     ),
     # Translators: tooltip of the "Taxi/takeoff accidents" column header
-    "taxi_accidents": _("Aircraft lost before the wheels left the ground, by the pilot's own doing."),
+    "taxi_accidents": _("Aircraft lost by the pilot's own doing, before takeoff or within a minute after it."),
     # Translators: tooltip of the "Botched landings" column header
     "botched_landings": _("Aircraft crashed or badly damaged landing at an airfield, by the pilot's own doing."),
     # Translators: tooltip of the "Strafed on the ground" column header

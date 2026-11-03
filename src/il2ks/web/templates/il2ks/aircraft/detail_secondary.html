@@ -1,4 +1,4 @@
-{# il2ks-template: templates/il2ks/aircraft/detail_secondary.html v1.2 - copy this line along when you override #}
+{# il2ks-template: templates/il2ks/aircraft/detail_secondary.html v1.3 - copy this line along when you override #}
 {% load i18n il2ks %}{% comment %}
   detail_secondary.html: the figures under the tiles of an aircraft page, in the plain style of the profile's ratios: the
   ratios, the hall of shame and the other totals, so the page has everything the aircraft list offers as a column.
@@ -26,7 +26,7 @@
   <section>
     <h2 class="stat-columns__title">{% translate "Hall of shame" %}</h2>
     <dl class="kv kv--compact">
-      <dt>{% translate "Taxi/takeoff accidents" %} <small>{% translate "lost before the wheels left the ground, by their own doing" %}</small></dt>
+      <dt>{% translate "Taxi/takeoff accidents" %} <small>{% translate "lost by their own doing, before takeoff or within a minute after it" %}</small></dt>
       <dd>{{ tile.taxi_accidents|num }} <small>{{ tile.taxi_accidents|incident_share:tile.sorties }}</small></dd>
       <dt>{% translate "Botched landings" %} <small>{% translate "crashed or badly damaged it landing at an airfield, by their own doing" %}</small></dt>
       <dd>{{ tile.botched_landings|num }} <small>{{ tile.botched_landings|incident_share:tile.sorties }}</small></dd>

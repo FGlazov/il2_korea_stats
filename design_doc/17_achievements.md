@@ -147,8 +147,8 @@ sample missions (1,138 pilots), pilots holding **at least** the tier. The regist
 - **Ace in a Day**: "ace" is five kills, hence bronze at 5. It overlaps little with "Ace of the Sortie" (`sortie_kills`): of the 53
   pilots with 5 kills in a day only 6 did it in one sortie (the others spread it over several sorties), so **no rename**.
 - **Hall of shame**: tongue-in-cheek names (Ramp Rash, Wrong Team, Sitting Duck, Hard Landing), no tier names beyond the usual,
-  descriptions in the tone of the hall-of-shame spots (`web/flavor.py`). Taxi accidents and strafed-on-the-ground count sorties that
-  never took off (the incident is before the take-off); they use the existing sortie flags (`taxi_accident`, `strafed_on_ground`,
+  descriptions in the tone of the hall-of-shame spots (`web/flavor.py`). Taxi accidents count sorties lost before the take-off or
+  within a minute after one, strafed-on-the-ground sorties that never took off or had landed; they use the existing sortie flags (`taxi_accident`, `strafed_on_ground`,
   `friendly_kills`) and need no new column. "Crashed landings" is the stored outcome `crashed` after a take-off (`took_off_at` set),
   without the two ground cases above. Thresholds are higher than the positive medals because the incidents are common: 361 pilots
   have a taxi accident, 635 a crash.

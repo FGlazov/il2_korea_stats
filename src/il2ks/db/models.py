@@ -610,7 +610,7 @@ class PlayerSortie(models.Model):
     rounds_fired = models.PositiveIntegerField(null=True, blank=True)
     gun_hits_air = models.PositiveIntegerField(default=0)
     gun_hits_ground = models.PositiveIntegerField(default=0)
-    taxi_accident = models.BooleanField(default=False)  # lost before the first takeoff to its own doing
+    taxi_accident = models.BooleanField(default=False)  # lost to its own doing before or just after a takeoff
     strafed_on_ground = models.BooleanField(default=False)  # destroyed on the ground by an attacker
     botched_landing = models.BooleanField(default=False)  # wrecked or badly damaged at an airfield by its own doing
     ended_by_mission_end = models.BooleanField(

@@ -64,7 +64,7 @@ PlayerSortie   id, mission, player → Player, account_uuid + spawn_tick (natura
                pilot_damage (float, nullable: the pilot's (gunner's) damage, 1.0 when dead, health = 1 - it; NULL = unknown,
                until `reprocess --all` fills it; the sortie page shows a gunner's health from it) `[PROPOSED]`,
                loss_cause (attacker/self/none), suspected_structural_failure (bool)          -- FR-ING-17
-               taxi_accident, strafed_on_ground (bool: aircraft lost on the ground, doc 13)
+               taxi_accident, strafed_on_ground (bool: aircraft lost on the ground or, for taxi_accident, just after a takeoff, doc 13)
                botched_landing (bool: wrecked or badly damaged a sound aircraft at an airfield, doc 13; 2026-11-02)
                combat_role (air_superiority/attack; null for gunners), time_on_target_s (null unless attack)  -- FR-WEB-19/20
                rams, first_blood (bool), multi_kill, multi_kill_ground, kills_jet_from_prop, elo_peak   -- achievement facts (doc 17): air kills by ramming, first credited PvP air kill of the mission,

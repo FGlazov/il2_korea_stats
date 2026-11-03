@@ -29,6 +29,7 @@ from il2ks.core.replay.fate import (
     sortie_end_tick,
     structural_failure,
     suspected_early_bailout,
+    takeoff_accident,
     took_off,
 )
 from il2ks.core.replay.model import MissionFacts, Party, SortieState
@@ -62,7 +63,7 @@ class Verdict:
     loss_cause: LossCause
     killer: Party | None  # who gets the kill for the loss or crew death; None unless `loss_cause` is `attacker`
     structural_failure: bool
-    taxi_accident: bool  # OQ-32: lost before the first takeoff to nobody but itself
+    taxi_accident: bool  # OQ-32: lost to nobody but itself before the first takeoff or just after a takeoff
     strafed_on_ground: bool  # OQ-32: lost on the ground to an attacker
     botched_landing: bool  # OQ-144: wrecked or badly damaged a sound aircraft at an airfield, by its own doing
     crash_landing: bool  # the same, and `loss` is that crash (a rough landing can come long before the loss)
@@ -155,6 +156,8 @@ def judge(sortie: SortieState, facts: MissionFacts, rules: ReplayRules, *, final
         killed_by_attacker=shot_down_directly,
         strafed_min_damage=rules.strafed_min_damage,
     )
+    # Before a failed landing can make an attacker's loss "self": a takeoff accident needs nobody else involved at all
+    taxi = taxi or (loss_cause == "self" and takeoff_accident(sortie, loss, disc_tick, rules))
     if (
         attacker_cause
         and rammer is None

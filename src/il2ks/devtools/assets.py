@@ -266,7 +266,7 @@ def build_manifest() -> list[Asset]:
         "planes-lost": "Profile and aircraft tiles",
         "bailouts": "Profile tile",
         "captures": "Profile tile",
-        "taxi-accidents": "Profile hall of shame (humorous): crashed before taking off",
+        "taxi-accidents": "Profile hall of shame (humorous): crashed before taking off or just after",
         "botched-landing": "Profile hall of shame (humorous): crashed or wrecked the aircraft landing it",
         "strafed": "Sortie badge and plain totals: destroyed on the ground",
         "friendly-fire": "Profile hall of shame: friendly-fire kills (friendly aircraft and ground objects destroyed)",

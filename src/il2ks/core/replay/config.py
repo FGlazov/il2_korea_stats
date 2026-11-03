@@ -33,6 +33,9 @@ class ReplayRules:
     # Strafed on the ground (OQ-112): a landed aircraft counts as strafed only when other objects did at least this
     # fraction of its DMG after the landing; a damaged aircraft that fails its landing is a crash.
     strafed_min_damage: float = 0.05
+    # Taxi/takeoff accident (maintainer, 2026-11-03): a crash of its own making this soon after a takeoff counts too
+    # (off the ground, then into the trees or a hill).
+    takeoff_accident_s: float = 60.0
     # Botched landing (doc 13, OQ-144; measured on the 210 samples). The airfield's logged point is where the aircraft
     # park, so the radius has to cover the runway: 98.7% of the touchdowns are within it. `max_height_m` above the
     # airfield keeps out an aircraft lost in the air near the field, `min_flight_s` (per flight leg) a failed takeoff.

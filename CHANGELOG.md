@@ -33,6 +33,10 @@
 
 ### Changed
 
+- **Taxi/takeoff accidents include crashes just after takeoff:** an aircraft that leaves the ground and crashes within a minute, with
+  nobody else involved and the pilot still at the controls, counts too (into the trees or a hill). In our sample of 210 missions that adds
+  127 to the 768 before. The window is `takeoff_accident_s` in the `[replay]` section of `il2ks.toml`. Run `il2ks reprocess --all` to
+  apply it to past missions.
 - **The web server is now hypercorn instead of granian**, because granian runs one worker on Windows. Upgrading needs no
   change: the settings, the port and the logs stay the same. If a worker dies, the whole web server stops and `il2ks run`
   starts it again. If you run plain `il2ks web` under your own service manager, make sure it also restarts on exit code 0.

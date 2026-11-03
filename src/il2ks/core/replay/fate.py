@@ -154,7 +154,7 @@ def ground_loss(
     count as deaths and losses; these two flags only label them). `cutoff_tick` is the loss, else the sortie end.
 
     - taxi accident: the aircraft never took off and nobody else is to blame (`loss_cause` self). Air starts never
-      qualify.
+      qualify. `takeoff_accident` adds the crashes just after a takeoff.
     - strafed on the ground: an attacker is to blame and the aircraft was on the ground at the loss.
       - It never took off (parked): strafed, whatever hit it.
       - It had landed (an AType 6 strictly before the loss) and not taken off again: strafed only if another object
@@ -185,6 +185,19 @@ def ground_loss(
         return False, False  # attacker damage in the log, but not enough after the landing: it failed its landing
     after = [r.tick for r in hit_records(airframe, sortie, cutoff_tick, attackers_only=True) if r.tick > landed_at]
     return False, killed_by_attacker or bool(after)
+
+
+def takeoff_accident(sortie: SortieState, loss: Loss | None, disconnect_tick: int | None, rules: ReplayRules) -> bool:
+    """A taxi/takeoff accident in the air (maintainer, 2026-11-03): the aircraft crashed at most `takeoff_accident_s`
+    after a takeoff, any takeoff of the sortie, with the pilot at the controls (no bailout). The caller checks that
+    nobody else is to blame (`loss_cause` self). An air start has no takeoff."""
+    if loss is None or sortie.role != "pilot":
+        return False
+    airframe = sortie.airframe
+    takeoffs = [t for t, airborne in airframe.flight_changes if airborne and sortie.spawn_tick < t <= loss.tick]
+    if not takeoffs or loss.tick - max(takeoffs) > ticks(rules.takeoff_accident_s):
+        return False
+    return pilot_at_controls(sortie, loss.tick, disconnect_tick, rules)
 
 
 def landing_before(sortie: SortieState, cutoff_tick: int) -> int | None:

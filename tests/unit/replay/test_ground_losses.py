@@ -45,15 +45,72 @@ def test_crash_before_takeoff_with_no_attacker_is_a_taxi_accident() -> None:
     assert destroyed.detail == "taxi_accident"
 
 
-def test_crash_after_takeoff_is_not_a_taxi_accident() -> None:
+def _crash_after_takeoff(seconds: float, rules: ReplayRules | None = None) -> SortieResult:
+    """A takes off at 5 s and crashes on its own `seconds` later."""
     sc = Scenario()
     sc.fly_a()
-    sc.kill(60, NO, 100, pos=FAR)
-    sc.end(60.1, 100, 101, FAR)
-    a = by_acct(sc.result(), 1)
+    sc.kill(5 + seconds, NO, 100, pos=FAR)
+    sc.end(5 + seconds + 0.1, 100, 101, FAR)
+    return by_acct(sc.result(rules), 1)
+
+
+def test_crash_in_the_first_minute_after_takeoff_is_a_taxi_accident() -> None:
+    """Maintainer, 2026-11-03: off the ground, then into the trees or a hill, with nobody else involved."""
+    for seconds in (2, 30, 60):
+        a = _crash_after_takeoff(seconds)
+        assert (a.outcome, a.loss_cause, a.takeoffs) == ("crashed", "self", 1), seconds
+        assert _flags(a) == (True, False), seconds
+        assert next(e for e in a.timeline if e.kind == "destroyed").detail == "taxi_accident"
+
+
+def test_crash_more_than_a_minute_after_takeoff_is_not_a_taxi_accident() -> None:
+    a = _crash_after_takeoff(61)
     assert (a.outcome, a.loss_cause) == ("crashed", "self")
     assert _flags(a) == (False, False)
     assert next(e for e in a.timeline if e.kind == "destroyed").detail == ""
+
+
+def test_the_window_after_takeoff_is_a_rule() -> None:
+    assert _flags(_crash_after_takeoff(90, ReplayRules(takeoff_accident_s=120.0))) == (True, False)
+    assert _flags(_crash_after_takeoff(30, ReplayRules(takeoff_accident_s=0.0))) == (False, False)
+
+
+def test_crash_soon_after_takeoff_with_attacker_damage_is_not_a_taxi_accident() -> None:
+    sc = Scenario()
+    sc.fly_a()
+    sc.fly_b()
+    sc.damage(20, 200, 100, 0.3)
+    sc.kill(30, NO, 100, pos=FAR)
+    sc.end(30.1, 100, 101, FAR)
+    a = by_acct(sc.result(), 1)
+    assert a.loss_cause == "attacker"
+    assert _flags(a) == (False, False)
+
+
+def test_bailout_soon_after_takeoff_is_not_a_taxi_accident() -> None:
+    """The pilot left the aircraft: it did not crash with them at the controls."""
+    sc = Scenario()
+    sc.fly_a()
+    _eject(sc, 30)
+    sc.end(30.5, 0, 101)
+    sc.remove_bot(31, 101, FAR)
+    sc.kill(40, NO, 100, pos=FAR)
+    a = by_acct(sc.result(), 1)
+    assert (a.pilot_fate, a.loss_cause) == ("bailed_out", "self")
+    assert _flags(a) == (False, False)
+
+
+def test_crash_soon_after_a_takeoff_from_a_resupply_is_a_taxi_accident() -> None:
+    """Every takeoff of the sortie counts, not only the first."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.land(300, 100)
+    sc.takeoff(400, 100)
+    sc.kill(430, NO, 100, pos=FAR)
+    sc.end(430.1, 100, 101, FAR)
+    a = by_acct(sc.result(), 1)
+    assert (a.loss_cause, a.takeoffs) == ("self", 2)
+    assert _flags(a) == (True, False)
 
 
 def test_air_start_crash_is_not_a_taxi_accident() -> None:

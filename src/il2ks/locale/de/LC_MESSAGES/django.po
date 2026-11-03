@@ -1097,8 +1097,8 @@ msgstr "Verlorene Flugzeuge"
 
 # llm-draft
 #. Translators: tooltip of the "Taxi/takeoff accidents" column header
-msgid "Aircraft lost before the wheels left the ground, by the pilot's own doing."
-msgstr "Flugzeuge, die verloren gingen, bevor die Räder den Boden verlassen hatten, durch eigenes Verschulden des Piloten."
+msgid "Aircraft lost by the pilot's own doing, before takeoff or within a minute after it."
+msgstr "Flugzeuge, die durch eigenes Verschulden des Piloten verloren gingen, vor dem Start oder in der ersten Minute danach."
 
 # llm-draft
 msgid "Aircraft lost without a death or capture: share of the score lost (percent)"
@@ -3879,8 +3879,8 @@ msgid "Losses"
 msgstr "Verluste"
 
 # llm-draft
-msgid "Lost before the wheels left the ground, by their own doing"
-msgstr "Verloren, bevor die Räder abhoben, durch eigenes Verschulden"
+msgid "Lost by their own doing, before takeoff or within a minute after it"
+msgstr "Durch eigenes Verschulden verloren, vor dem Start oder in der ersten Minute danach"
 
 # llm-draft
 msgid "Lost to"
@@ -8148,8 +8148,8 @@ msgid "links on the page background"
 msgstr "Links auf dem Seitenhintergrund"
 
 # llm-draft
-msgid "lost before the wheels left the ground, by their own doing"
-msgstr "verloren, bevor die Räder abhoben, durch eigenes Verschulden"
+msgid "lost by their own doing, before takeoff or within a minute after it"
+msgstr "durch eigenes Verschulden verloren, vor dem Start oder in der ersten Minute danach"
 
 # llm-draft
 msgid "making a backup"

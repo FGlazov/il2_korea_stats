@@ -191,8 +191,12 @@ recorded (a kill entry with no killer).
 **Losses on the ground** (`fate.ground_loss`, OQ-32, 2026-10-03). A crash before takeoff **counts as a death and an aircraft lost like any
 other** (option a: "we want to encourage players to taxi well"). Two extra flags: `taxi_accident` feeds the "hall of shame" on the profile; `strafed_on_ground` is a plain total, no shame (maintainer, 2026-11-02):
 ```
-taxi_accident     = plane lost, loss_cause self, and no takeoff (AType 5) and no air start before the loss
-                    (shown as "Taxi/takeoff accident": most are taxi and takeoff-run crashes; the field keeps its name)
+taxi_accident     = plane lost, loss_cause self, and either
+                    (a) no takeoff (AType 5) and no air start before the loss, or
+                    (b) the aircraft crashed at most takeoff_accident_s (60 s) after a takeoff, any takeoff of the sortie,
+                        with the pilot at the controls (no bailout, ejection or disconnect before it): off the ground, then
+                        into the trees or a hill (maintainer, 2026-11-03, `[DECIDED]`)
+                    (shown as "Taxi/takeoff accident"; the field keeps its name)
 strafed_on_ground = plane lost, loss_cause attacker, the aircraft on the ground at the loss, and either
                     (a) it never took off (strafed whatever hit it), or
                     (b) it landed (an AType 6 strictly before the loss) and has not taken off since, and other objects did
@@ -210,8 +214,9 @@ are never flagged and have no strafing evidence of their own); and in **PvE** (n
 like any crash.
 both false for gunners; derived from the final is_plane_lost / loss_cause, so a disconnect death on the ground can be a taxi accident
 ```
-Samples (15,245 pilot sorties): **767 taxi accidents** (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
-not parked aircraft) and **27 strafed** (10 parked, 17 after landing). The damage after a landing splits cleanly: 33 landed losses had at most 0.13% and 16 had at
+Samples (15,245 pilot sorties): **767 taxi accidents** before takeoff (median 207 s after spawn, ~1 km from the spawn point: taxi and takeoff-run crashes,
+not parked aircraft); the 60 s after a takeoff add **127** (11,364 sorties took off; 45 in the first 10 s, 35 in the next 10, then 16, 14, 8, 9
+per 10 s), 895 in all; and **27 strafed** (10 parked, 17 after landing). The damage after a landing splits cleanly: 33 landed losses had at most 0.13% and 16 had at
 least 14.8%, so any threshold from 1% to 14% gives the same result. The OQ-112 rule moved 24 losses from shot down to crashed. The timeline's `destroyed` / `shot_down` entry says which.
 
 **Botched landings** (`fate.botched_landing`, maintainer 2026-11-02, `[DECIDED]`, OQ-144). The third entry of the hall of shame: a pilot wrecked or badly
@@ -236,9 +241,9 @@ landings; 2 km catches 98.7%, and crashes per 500 m ring fall away at 2 km (79, 
 crashes in the radius are within 25 m of the field's height, with stragglers up to 7,000 m. Crashes pile up in the first 30 s after takeoff and are sparse after, so 120 s of flight
 since the last takeoff tells a failed landing from a failed takeoff (measured per flight leg: no sample sortie lost to that, so bounces are safe). A landed aircraft's own damage splits at 15% and 45% (171, 15, 4 sorties in the first 5% bins, then none until 76 sorties at 45-70%).
 **Result: 292 botched landings** (2.6% of takeoffs): 182 `crashed`, 70 `landed` with a wreck, 40 `shot_down` (a scratch under 10% makes any crash an attacker's loss, which still
-credits the kill; the crash was the pilot's own). About 89 crashes under 120 s after takeoff are in neither stat. The height is measured from the field's logged point, not the
+credits the kill; the crash was the pilot's own). About 89 crashes under 120 s after takeoff are in neither stat; since 2026-11-03 those in the first 60 s are taxi/takeoff accidents. The height is measured from the field's logged point, not the
 terrain under the crash, so no heightmap is needed. Decided (OQ-144): these thresholds; a scratched crash counts as botched and stays shot down; a rough landing is flagged on a
-sortie that flies on after repair; those 89 crashes stay out of both stats.
+sortie that flies on after repair; those 89 crashes stay out of both stats (later: the first 60 s became taxi/takeoff accidents).
 
 **Structural failure** (FR-ING-17 v2) uses the first `AID:-1` damage line on the aircraft and the first wheels-on / landing after the AType 3
 (none = not flagged).
