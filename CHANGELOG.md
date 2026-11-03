@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 (2026-11-03)
+
+Run `il2ks reprocess --all` once after the upgrade (it needs your archived logs and rebuilds the aggregates too). It finds the botched
+landings and the takeoff crashes in the missions you already have, splits their friendly-fire kills, applies the new bailout rule, fills
+the new mission counters and awards the new medals. Until then the new figures read 0, and Jet Hunter medals drop away at the first
+rebuild and return with the run.
 
 ### Added
 
@@ -26,17 +31,16 @@
 - **Mud Mover and Tour Mud Mover:** the ground side of Sky Hunter, a ribbon for the ground targets destroyed in a tour, and all time at five
   times the tiers.
 - **An all-time Jet Hunter:** it counts all your tours against tiers of 5, 15, 25 and 50. The one-tour medal is now Tour Jet Hunter.
-
 - **Several web workers now work on Windows too:** set `[web] workers` to use more processor cores (about 60 pages a
   second with 2 workers, about 100 with 4, in our tests). The default stays at 1. The README has a new "Common issues"
   section for a slow site.
 
 ### Changed
 
-- **Taxi/takeoff accidents include crashes just after takeoff:** an aircraft that leaves the ground and crashes within a minute, with
-  nobody else involved and the pilot still at the controls, counts too (into the trees or a hill). In our sample of 210 missions that adds
-  127 to the 768 before. The window is `takeoff_accident_s` in the `[replay]` section of `il2ks.toml`. Run `il2ks reprocess --all` to
-  apply it to past missions.
+- **"Taxi accidents" are now "Taxi/takeoff accidents" and include crashes just after takeoff:** an aircraft that leaves the ground
+  and crashes within a minute, with nobody else involved and the pilot still at the controls, counts too (into the trees or a hill). In
+  our sample of 210 missions that adds 127 to the 768 before. The window is `takeoff_accident_s` in the `[replay]` section of
+  `il2ks.toml`.
 - **The web server is now hypercorn instead of granian**, because granian runs one worker on Windows. Upgrading needs no
   change: the settings, the port and the logs stay the same. If a worker dies, the whole web server stops and `il2ks run`
   starts it again. If you run plain `il2ks web` under your own service manager, make sure it also restarts on exit code 0.
@@ -45,23 +49,18 @@
   keeps every line, and a pipe, a service or a shorter run prints as before.
 - **The sortie page has every figure of the extra columns:** air and ground score, kills by players and AI, assists, friendly fire and
   accuracy sit in a plain block under the summary.
-- **"Taxi accidents" are now "Taxi/takeoff accidents":** the crash can happen on the takeoff run, before the wheels leave the ground.
-  Only the wording changes.
 - **Friendly-fire kills are split into air and ground** everywhere: the profile, the lists, and the aircraft, mission and sortie pages.
   The score penalty is unchanged. A saved link that shows the old "Friendly kills" column simply leaves it out.
 - **The hall of shame has four tiles across the full width,** with the quip under them.
 - **A profile lists achievements best first:** the highest tier, within it the rarest, then the newest, instead of in a fixed order.
 - **The early bailout penalty only applies to a sound aircraft:** it is there to stop pilots bailing out to deny a kill, so a pilot who damaged the
-  aircraft themselves first (20% or more) no longer pays it. Takes effect with `il2ks reprocess --all`.
+  aircraft themselves first (20% or more) no longer pays it.
 - **A sortie page says why it lost points:** a notice names the early bailout or friendly-fire penalty, with the points and the score they came
   off.
 - **The Jet and Prop tags on the aircraft list** sit level with the name, with more room around them.
 - **Limping Home has a platinum tier:** the tiers are 1, 3, 5 and 10, so five landings earn gold and ten earn platinum.
 - **Ribbons have their own section below all the medals** on the achievements pages, drawn as ribbons instead of medals.
 - **The summaries on aircraft and mission pages give incident shares with two decimals,** like 1.23%.
-- Run `il2ks reprocess --all` once after the upgrade: it finds the botched landings in the missions you already have, splits their
-  friendly-fire kills, fills the new mission counters and awards the new medals (it rebuilds the aggregates too, and needs your archived
-  logs). Until then the new figures read 0, and Jet Hunter medals drop away at the first rebuild and return with the run.
 
 ### Fixed
 
@@ -95,15 +94,14 @@
 - `sorties/detail.html`: v1.0 -> v1.1 and `sorties/parts/figures.html` (new): the plain figures. An override of the page keeps working, without them.
 - `sorties/all.html` and `sorties/list.html`: v1.0 -> v1.2 (the incident filter, column descriptions). `admin/il2ks_ingest_status.html`: v3.1 -> v3.2 (the time span
   button), with the new `admin/il2ks_reprocess_span.html` and `admin/il2ks_span_label.html`.
-- Friendly-fire kills split, or percent signs by language: `aircraft/detail_secondary.html`: v1.0 -> v1.2, `missions/detail_secondary.html`:
-  v1.1 -> v1.2, `players/detail_aircraft_build.html` and `players/detail_ground.html`: v1.0 -> v1.1, `sorties/parts/kills.html` and
+- Friendly-fire kills split, or percent signs by language: `players/detail_aircraft_build.html` and `players/detail_ground.html`: v1.0 -> v1.1, `sorties/parts/kills.html` and
   `sorties/parts/list_row.html`: v1.0 -> v1.1, `sorties/parts/summary.html`: v1.1 -> v1.2. An override keeps working, with the old wording.
 - `aircraft/detail.html`: v1.0 -> v1.2 and `missions/detail.html`: v1.2 -> v1.4: they include the new `aircraft/detail_secondary.html` and
   `missions/detail_secondary.html` (both new), and more headers have a description.
 - More headers with a description: `home.html`: v3.0 -> v3.1, `leaderboards/home_block.html`, `leaderboards/table.html`, `missions/_rows.html`,
   `missions/list.html`, `players/detail_aircraft.html`, `players/detail_pve.html` and `players/detail_recent.html`: v1.0 -> v1.1. An override
   keeps working, without them. `sorties/parts/notices.html`: v1.0 -> v1.1 (the penalty notices).
-- `players/detail_shame.html`: v2.0 -> v2.2 (four tiles, the quip under them), `players/detail_totals.html`: v1.2 -> v1.4 (assists, gun accuracy,
+- `players/detail_shame.html`: v2.0 -> v2.3 (four tiles, the quip under them), `players/detail_totals.html`: v1.2 -> v1.4 (assists, gun accuracy,
   friendly-fire kills split),
   `sorties/parts/header.html`: v1.1 -> v1.2 (the new badge).
 - `il2ks/base.html`: v2.1 -> v2.2 (the font preload, one space between menu items) and `leaderboards.css`: v1.0 -> v1.1. An override keeps
