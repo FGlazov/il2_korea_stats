@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0 (2026-11-03)
+
+An accessibility release. Nothing to run after the upgrade, and the stats don't change.
+
+### Changed
+
+- **The admin warns when a custom accent colour makes keyboard focus hard to see.** The accent draws the outline that shows keyboard
+  users where they are (a table row, a menu, a scrolling table). The contrast warning after you save a theme now also checks it, at
+  3:1 against the page, the cards and a highlighted row. The built-in themes all pass.
+- **Admin pages work better with a screen reader.** Each box in the navigation-links table and the notice's date and time boxes now
+  have a name of their own ("Url, link 2"). Before, a screen reader announced them without one. The admin login page has a heading, and
+  the admin's breadcrumb links are underlined, not told apart by colour alone.
+- **Player profiles and the achievements pages fit a small phone** (320 px wide, or a desktop window zoomed to 400%). Before, the whole
+  page scrolled sideways a little: the medal cards were too wide, and long section headings and their "All achievements →" links
+  wouldn't wrap.
+- **Wider automatic accessibility checks** (WCAG 2.1 AA) in the tests: the error pages, the admin pages and the streak history are
+  checked too, and every page at 320 px wide.
+
+### Templates changed (check your custom/ overrides)
+
+- `il2ks/site.css`: v8.1 -> v8.2 and `il2ks/players.css`: v4.0 -> v4.1 (the phone layout above).
+- `admin/base_site.html`: v1.0 -> v1.1 (loads the new `il2ks_admin/admin.css`). An override keeps working, without the underlined
+  breadcrumbs.
+- New: `admin/login.html` v1.0 and `il2ks_admin/admin.css` v1.0.
+
 ## 0.6.1 (2026-11-03)
 
 Run `il2ks reprocess --all` after the upgrade, also if you already ran it for 0.6.0: the early bailout rule changed. Without it, only
