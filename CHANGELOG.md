@@ -14,6 +14,8 @@ rebuild and return with the run.
   distance and damage limits are in the `[replay]` section of `il2ks.toml` (`botched_landing_*`).
 - **The hall of shame quips cover every combination** of taxi/takeoff accidents, friendly-fire air kills, friendly-fire ground kills
   and botched landings, each with its warmer variant for the pilots who do it most.
+- **The sortie quips for friendly fire depend on what was hit:** a friendly aircraft, friendly ground targets, or both, each with
+  lines of its own. Your choices for the old friendly-fire quips now apply to friendly aircraft.
 - **Aircraft pages show more figures:** a plain section under the tiles with the ratios, the hall of shame and every other figure
   the list offers as a column.
 - **Mission pages show the hall of shame incidents** and the other figures of the list in a plain section under the tiles.

@@ -44,7 +44,7 @@ Applied: taxi/takeoff accidents, botched landings and strafed on the ground are 
 
 **OQ-148 Friendly fire split: what replaced what** (doc 13, doc 16; maintainer 2026-11-02: "split friendly fire kills ... everywhere")
 Applied: the total column and tile are gone in favor of "Friendly-fire air kills" and "Friendly-fire ground kills"; the total stays stored for the score penalty, which treats both the same. The sortie
-quip stays one spot, and the hall of shame's top-10% variants read two new metrics, one per kind. Should a friendly ground kill keep costing as much as a friendly air kill? Local data: 59 air against 1,033 ground.
+quip has three spots since 2026-11-03 (maintainer: aircraft, ground targets, both), and the hall of shame's top-10% variants read two new metrics, one per kind. Should a friendly ground kill keep costing as much as a friendly air kill? Local data: 59 air against 1,033 ground.
 
 **OQ-143 Stats delay: what counts as a detail** (doc 02 FR-ING-25, doc 14 "Stats delay")
 Applied: the **side** is held back like the aircraft, so the red/blue counts in online now lag too and a player who joined within the delay has no side yet (a live count per side would show reinforcements).

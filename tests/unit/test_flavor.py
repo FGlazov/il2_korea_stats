@@ -93,7 +93,11 @@ def sortie_with(**fields: object) -> PlayerSortie:
         ({"botched_landing": True, "outcome": "crashed", "loss_cause": "self"}, "sortie_botched_landing"),
         ({"botched_landing": True}, "sortie_botched_landing"),  # a rough one: flown home, the aircraft a wreck
         ({"botched_landing": True, "friendly_kills": 1}, "sortie_botched_landing"),
-        ({"friendly_kills": 1, "kills_air": 5}, "sortie_friendly_fire"),
+        ({"friendly_kills": 1, "kills_air": 5}, "sortie_friendly_fire"),  # not reprocessed since the split: no kind
+        ({"friendly_kills": 1, "friendly_kills_air": 1}, "sortie_friendly_fire"),
+        ({"friendly_kills": 3, "friendly_kills_ground": 3}, "sortie_friendly_ground"),
+        ({"friendly_kills": 2, "friendly_kills_air": 1, "friendly_kills_ground": 1}, "sortie_friendly_both"),
+        ({"botched_landing": True, "friendly_kills": 1, "friendly_kills_ground": 1}, "sortie_botched_landing"),
         ({"is_captured": True, "pilot_fate": "bailed_out"}, "sortie_captured"),
         ({"outcome": "ditched"}, "sortie_ditched"),
         ({"outcome": "shot_down", "strafed_on_ground": True, "takeoffs": 0}, "sortie_strafed"),

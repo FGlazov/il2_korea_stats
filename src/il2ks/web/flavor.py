@@ -469,6 +469,25 @@ SPOTS: Mapping[str, tuple[Label, ...]] = {
         gettext_lazy("In the heat of the moment every enemy looks the same, until it turns out to be a squadron-mate."),
         gettext_lazy("It was a very good shot at the wrong target. The aim is not the problem here."),
     ),
+    # Friendly ground kills only: the own side's trucks, tents, guns and depots. ("sortie_friendly_fire" above keeps its
+    # key for the aircraft, so stored admin choices still apply.)
+    "sortie_friendly_ground": (
+        gettext_lazy("Lovely grouping on those trucks. Pity about the stars on their doors."),
+        gettext_lazy("The troops asked for close air support. Not quite this close."),
+        gettext_lazy("Somewhere below, a supply sergeant is counting the trucks and coming up short."),
+        gettext_lazy("Bombs right on target, if the target was our own depot. The supply office has questions."),
+        gettext_lazy("Our own lines took a pounding today. The infantry would like a word, from a safe distance."),
+        gettext_lazy("The map has two sides for a reason. The tents down there were on ours."),
+    ),
+    # ... and both: aircraft and ground targets of the own side.
+    "sortie_friendly_both": (
+        gettext_lazy("A squadron-mate and a supply column in one sortie. The debrief will need a bigger room."),
+        gettext_lazy("Air or ground, our own side had the worst of it today. The enemy may send a thank-you note."),
+        gettext_lazy("Nothing on our side was safe today, up there or down below."),
+        gettext_lazy("Even-handed, in the worst way: friendly aircraft and friendly trucks alike."),
+        gettext_lazy("The enemy could hardly have done better, and they were trying all day."),
+        gettext_lazy("Something for everyone back home: the squadron and the motor pool both want a word."),
+    ),
     "sortie_botched_landing": (
         gettext_lazy("The flying went fine. The arrival will need a word."),
         gettext_lazy("Home, on the airfield, and not quite in one piece. Two out of three is not nothing."),
@@ -665,7 +684,9 @@ SPOT_DESCRIPTIONS: Mapping[str, Label] = {
     "sortie_strafed": gettext_lazy("Sortie: destroyed on the ramp before takeoff"),
     "sortie_strafed_landed": gettext_lazy("Sortie: landed, then destroyed on the ground"),
     "sortie_aa": gettext_lazy("Sortie: shot down by flak"),
-    "sortie_friendly_fire": gettext_lazy("Sortie: friendly fire"),
+    "sortie_friendly_fire": gettext_lazy("Sortie: shot down a friendly aircraft"),
+    "sortie_friendly_ground": gettext_lazy("Sortie: destroyed friendly ground targets"),
+    "sortie_friendly_both": gettext_lazy("Sortie: destroyed friendly aircraft and ground targets"),
     "sortie_taxi": gettext_lazy("Sortie: taxi or takeoff accident"),
     "sortie_botched_landing": gettext_lazy("Sortie: botched landing"),
     "sortie_ace": gettext_lazy("Sortie: three or more air kills"),
@@ -696,9 +717,10 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
     left its pool empty, FR-WEB-23) falls through to the next one, so a first-blood sortie with three kills still gets
     its ace line. The order (accidents and losses first, then the rarest achievements, then the broader ones):
 
-    taxi accident, botched landing, friendly fire, captured, shot down by an AI gunner, ditched, strafed on the ground
-    (after a landing or before takeoff), flak, crashed, bomber hunter, first blood, ace, stolen kills,
-    stolen ground targets, battered victor, limped home, ground pounder, quick first kill, marathon.
+    taxi accident, botched landing, friendly fire (aircraft, ground targets or both), captured, shot down by an AI
+    gunner, ditched, strafed on the ground (after a landing or before takeoff), flak, crashed, bomber hunter, first
+    blood, ace, stolen kills, stolen ground targets, battered victor, limped home, ground pounder, quick first kill,
+    marathon.
 
     `highlights` carries what only the heavy columns know (bomber kills, time to the first kill, damage by others);
     without it those three spots are skipped."""
@@ -708,7 +730,11 @@ def sortie_spots(sortie: PlayerSortie, highlights: Highlights | None = None) -> 
         yield "sortie_taxi"
     if sortie.botched_landing:
         yield "sortie_botched_landing"
-    if sortie.friendly_kills:
+    if sortie.friendly_kills_air and sortie.friendly_kills_ground:
+        yield "sortie_friendly_both"
+    elif sortie.friendly_kills_ground:
+        yield "sortie_friendly_ground"
+    elif sortie.friendly_kills:  # aircraft, or a sortie not reprocessed since the split (no kind known)
         yield "sortie_friendly_fire"
     if sortie.is_captured or sortie.pilot_status == "captured":
         yield "sortie_captured"

@@ -700,6 +700,10 @@ msgstr ""
 "voient en quelques instants."
 
 # llm-draft
+msgid "A squadron-mate and a supply column in one sortie. The debrief will need a bigger room."
+msgstr "Un équipier et une colonne de ravitaillement en une seule sortie. Le débriefing va demander une plus grande salle."
+
+# llm-draft
 msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
 msgstr "Une série ne passe jamais d’un tour au suivant ; le total toutes périodes montre le meilleur résultat des tours."
 
@@ -962,6 +966,12 @@ msgstr "Victoires aériennes/h"
 #, python-format
 msgid "Air kills: %(n)s"
 msgstr "Victoires aériennes : %(n)s"
+
+# llm-draft
+msgid "Air or ground, our own side had the worst of it today. The enemy may send a thank-you note."
+msgstr ""
+"En l'air comme au sol, c'est notre camp qui a le plus trinqué aujourd'hui. L'ennemi enverra peut-être un mot de "
+"remerciement."
 
 # llm-draft
 msgid "Air score"
@@ -1680,6 +1690,10 @@ msgstr "Bombes"
 # llm-draft
 msgid "Bombs (mixed loadout)"
 msgstr "Bombes (emport mixte)"
+
+# llm-draft
+msgid "Bombs right on target, if the target was our own depot. The supply office has questions."
+msgstr "Bombes en plein dans le mille, si la cible était notre propre dépôt. L'intendance a quelques questions."
 
 # llm-draft
 msgid "Bombs, rockets and napalm"
@@ -2505,6 +2519,10 @@ msgid ""
 msgstr ""
 "Estimation : au moins une bombe ou une roquette a été larguée ou tirée, et les munitions restantes ont été "
 "enregistrées après la perte de l'appareil ; toute la charge est donc comptée comme utilisée."
+
+# llm-draft
+msgid "Even-handed, in the worst way: friendly aircraft and friendly trucks alike."
+msgstr "Impartial, au pire sens du terme. Avions amis et camions amis, même traitement."
 
 # llm-draft
 msgid "Event"
@@ -3882,6 +3900,10 @@ msgid "Lost to"
 msgstr "Perdu face à"
 
 # llm-draft
+msgid "Lovely grouping on those trucks. Pity about the stars on their doors."
+msgstr "Joli groupement sur ces camions. Dommage pour les étoiles peintes sur leurs portières."
+
+# llm-draft
 msgid "Low and slow near the gun line is the oldest mistake in the book. It is a very long book."
 msgstr "Bas et lent près de la DCA : tout le monde essaie une fois. Rares sont ceux qui recommencent."
 
@@ -4481,6 +4503,10 @@ msgid "Nothing lost"
 msgstr "Rien de perdu"
 
 # llm-draft
+msgid "Nothing on our side was safe today, up there or down below."
+msgstr "Rien de notre côté n'était à l'abri aujourd'hui, ni en haut ni en bas."
+
+# llm-draft
 msgid "Nothing to see here, which is the best thing to see."
 msgstr "Rien à signaler, et c'est le plus beau des rapports."
 
@@ -4693,6 +4719,10 @@ msgid "Our own fuel tanks have never been so thoroughly tested. The base command
 msgstr ""
 "Nos réservoirs de carburant n'ont jamais été aussi bien testés. Le commandant de la base est reconnaissant, à sa "
 "manière."
+
+# llm-draft
+msgid "Our own lines took a pounding today. The infantry would like a word, from a safe distance."
+msgstr "Nos propres lignes ont pris cher aujourd'hui. L'infanterie aimerait vous dire deux mots, à bonne distance."
 
 # llm-draft
 msgid "Out of the fight, but not out of the story."
@@ -5777,6 +5807,10 @@ msgid "Someone had a very good night at the office."
 msgstr "Quelqu'un a passé une très bonne soirée au bureau."
 
 # llm-draft
+msgid "Something for everyone back home: the squadron and the motor pool both want a word."
+msgstr "Il y en a pour tout le monde à la base. L'escadrille et le parc auto veulent tous deux vous voir."
+
+# llm-draft
 msgid "Something went wrong"
 msgstr "Une erreur s'est produite"
 
@@ -5787,6 +5821,10 @@ msgstr "Quelque part, un intendant et un équipier partagent un café et une tr�
 # llm-draft
 msgid "Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."
 msgstr "Quelque part, le magasinier soupire : il ne sait plus quel formulaire remplir en premier."
+
+# llm-draft
+msgid "Somewhere below, a supply sergeant is counting the trucks and coming up short."
+msgstr "Quelque part en bas, un sergent de l'intendance compte ses camions, et le compte n'y est pas."
 
 # llm-draft
 msgid "Somewhere between the wingman's complaint and the landing report, a legend is taking shape."
@@ -5825,6 +5863,14 @@ msgid "Sortie: crashed by the pilot's own doing, nobody else damaged the aircraf
 msgstr "Sortie : crash de son propre fait, personne d'autre n'a endommagé l'appareil"
 
 # llm-draft
+msgid "Sortie: destroyed friendly aircraft and ground targets"
+msgstr "Sortie : avions et objectifs au sol amis détruits"
+
+# llm-draft
+msgid "Sortie: destroyed friendly ground targets"
+msgstr "Sortie : objectifs au sol amis détruits"
+
+# llm-draft
 msgid "Sortie: destroyed on the ramp before takeoff"
 msgstr "Sortie : détruit sur le parking avant le décollage"
 
@@ -5835,10 +5881,6 @@ msgstr "Sortie : atterrissage forcé"
 # llm-draft
 msgid "Sortie: first kill within seven minutes of takeoff"
 msgstr "Sortie : première victoire dans les sept minutes après le décollage"
-
-# llm-draft
-msgid "Sortie: friendly fire"
-msgstr "Sortie : tir fratricide"
 
 # llm-draft
 msgid "Sortie: landed badly damaged"
@@ -5859,6 +5901,10 @@ msgstr "Sortie : beaucoup d'assistances aériennes, peu de victoires"
 # llm-draft
 msgid "Sortie: many ground assists, few ground kills"
 msgstr "Sortie : beaucoup d'assistances au sol, peu de cibles au sol"
+
+# llm-draft
+msgid "Sortie: shot down a friendly aircraft"
+msgstr "Sortie : avion ami abattu"
 
 # llm-draft
 msgid "Sortie: shot down by a bomber's AI gunner"
@@ -6433,6 +6479,10 @@ msgid "The database is busy. Nothing was saved; try again in a moment."
 msgstr "La base de données est occupée. Rien n'a été enregistré ; réessayez dans un instant."
 
 # llm-draft
+msgid "The enemy could hardly have done better, and they were trying all day."
+msgstr "L'ennemi n'aurait guère fait mieux, et pourtant il a essayé toute la journée."
+
+# llm-draft
 msgid "The enemy had just finished its own takeoff checklist. A pity, really."
 msgstr "L'adversaire venait de finir sa check-list de décollage. Dommage."
 
@@ -6675,6 +6725,10 @@ msgid ""
 msgstr ""
 "Les munitions restantes enregistrées ne correspondent pas à ce qui était chargé, par exemple parce qu'une charge est "
 "comptée dans des unités différentes au chargement et à la fin (bombes à sous-munitions)."
+
+# llm-draft
+msgid "The map has two sides for a reason. The tents down there were on ours."
+msgstr "La carte a deux camps, ce n'est pas pour rien. Les tentes en bas étaient dans le nôtre."
 
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
@@ -7010,6 +7064,10 @@ msgstr "La tour pose son café, les équipiers s'écartent et les pompiers chauf
 # llm-draft
 msgid "The tower, the formation and the motor pool all flinch a little when this callsign comes up."
 msgstr "La tour, la formation et le parc automobile tressaillent un peu quand cet indicatif est annoncé."
+
+# llm-draft
+msgid "The troops asked for close air support. Not quite this close."
+msgstr "La troupe avait demandé un appui aérien rapproché. Pas à ce point-là."
 
 # llm-draft
 msgid "The two passwords differ."

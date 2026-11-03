@@ -710,6 +710,10 @@ msgstr ""
 "течение нескольких мгновений."
 
 # llm-draft
+msgid "A squadron-mate and a supply column in one sortie. The debrief will need a bigger room."
+msgstr "Однополчанин и колонна снабжения за один вылет. Для разбора полётов понадобится зал побольше."
+
+# llm-draft
 msgid "A streak never carries over from one tour to the next; all time shows the best of the tours."
 msgstr "Серия никогда не переходит из одного тура в другой; за всё время показан лучший результат среди туров."
 
@@ -969,6 +973,10 @@ msgstr "Воздушные победы/ч"
 #, python-format
 msgid "Air kills: %(n)s"
 msgstr "Воздушные победы: %(n)s"
+
+# llm-draft
+msgid "Air or ground, our own side had the worst of it today. The enemy may send a thank-you note."
+msgstr "В воздухе или на земле, сегодня больше всех досталось своим. Противник, пожалуй, пришлёт благодарственное письмо."
 
 # llm-draft
 msgid "Air score"
@@ -1687,6 +1695,10 @@ msgstr "Бомбы"
 # llm-draft
 msgid "Bombs (mixed loadout)"
 msgstr "Бомбы (смешанное вооружение)"
+
+# llm-draft
+msgid "Bombs right on target, if the target was our own depot. The supply office has questions."
+msgstr "Бомбы точно в цель, если целью был наш собственный склад. У службы снабжения есть вопросы."
 
 # llm-draft
 msgid "Bombs, rockets and napalm"
@@ -2511,6 +2523,10 @@ msgid ""
 msgstr ""
 "Оценка: сброшена хотя бы одна бомба или выпущена хотя бы одна ракета, а остаток боезапаса записан уже после потери "
 "самолёта, поэтому весь боекомплект считается израсходованным."
+
+# llm-draft
+msgid "Even-handed, in the worst way: friendly aircraft and friendly trucks alike."
+msgstr "Беспристрастно, в худшем смысле слова: и свои самолёты, и свои грузовики."
 
 # llm-draft
 msgid "Event"
@@ -3878,6 +3894,10 @@ msgid "Lost to"
 msgstr "Потеряно из-за"
 
 # llm-draft
+msgid "Lovely grouping on those trucks. Pity about the stars on their doors."
+msgstr "Отличная кучность по грузовикам. Жаль только звёзды на их дверцах."
+
+# llm-draft
 msgid "Low and slow near the gun line is the oldest mistake in the book. It is a very long book."
 msgstr "Низко и медленно мимо зениток: каждый пробует один раз. Повторить удаётся не всем."
 
@@ -4474,6 +4494,10 @@ msgid "Nothing lost"
 msgstr "Потерь нет"
 
 # llm-draft
+msgid "Nothing on our side was safe today, up there or down below."
+msgstr "Сегодня ничто на нашей стороне не было в безопасности, ни в небе, ни на земле."
+
+# llm-draft
 msgid "Nothing to see here, which is the best thing to see."
 msgstr "Смотреть тут не на что, а это лучшее, на что можно смотреть."
 
@@ -4681,6 +4705,10 @@ msgstr "Прочие итоги"
 # llm-draft
 msgid "Our own fuel tanks have never been so thoroughly tested. The base commander is grateful, in his way."
 msgstr "Наши собственные топливные баки ещё никогда не проверяли так тщательно. Командир базы благодарен, по-своему."
+
+# llm-draft
+msgid "Our own lines took a pounding today. The infantry would like a word, from a safe distance."
+msgstr "Сегодня крепко досталось нашим же позициям. Пехота хотела бы поговорить, с безопасного расстояния."
 
 # llm-draft
 msgid "Out of the fight, but not out of the story."
@@ -5753,6 +5781,10 @@ msgid "Someone had a very good night at the office."
 msgstr "Кто-то сегодня отлично потрудился."
 
 # llm-draft
+msgid "Something for everyone back home: the squadron and the motor pool both want a word."
+msgstr "Досталось всем своим: и эскадрилья, и автобат хотят поговорить."
+
+# llm-draft
 msgid "Something went wrong"
 msgstr "Что-то пошло не так"
 
@@ -5763,6 +5795,10 @@ msgstr "Где-то интендант и ведомый пьют кофе и д
 # llm-draft
 msgid "Somewhere a quartermaster is sighing, and he is not even sure which incident it was for."
 msgstr "Где-то вздыхает старшина со склада: чем именно этот пилот ему насолил, он уже и не вспомнит."
+
+# llm-draft
+msgid "Somewhere below, a supply sergeant is counting the trucks and coming up short."
+msgstr "Где-то внизу старшина пересчитывает грузовики, и счёт не сходится."
 
 # llm-draft
 msgid "Somewhere between the wingman's complaint and the landing report, a legend is taking shape."
@@ -5801,6 +5837,14 @@ msgid "Sortie: crashed by the pilot's own doing, nobody else damaged the aircraf
 msgstr "Вылет: авария по вине самого пилота, больше никто самолёт не повреждал"
 
 # llm-draft
+msgid "Sortie: destroyed friendly aircraft and ground targets"
+msgstr "Вылет: уничтожены свои самолёты и наземные цели"
+
+# llm-draft
+msgid "Sortie: destroyed friendly ground targets"
+msgstr "Вылет: уничтожены свои наземные цели"
+
+# llm-draft
 msgid "Sortie: destroyed on the ramp before takeoff"
 msgstr "Вылет: уничтожен на стоянке до взлёта"
 
@@ -5811,10 +5855,6 @@ msgstr "Вылет: вынужденная посадка"
 # llm-draft
 msgid "Sortie: first kill within seven minutes of takeoff"
 msgstr "Вылет: первая победа в течение семи минут после взлёта"
-
-# llm-draft
-msgid "Sortie: friendly fire"
-msgstr "Вылет: огонь по своим"
 
 # llm-draft
 msgid "Sortie: landed badly damaged"
@@ -5835,6 +5875,10 @@ msgstr "Вылет: много содействий в воздухе, мало 
 # llm-draft
 msgid "Sortie: many ground assists, few ground kills"
 msgstr "Вылет: много содействий по земле, мало наземных целей"
+
+# llm-draft
+msgid "Sortie: shot down a friendly aircraft"
+msgstr "Вылет: сбит свой самолёт"
 
 # llm-draft
 msgid "Sortie: shot down by a bomber's AI gunner"
@@ -6407,6 +6451,10 @@ msgid "The database is busy. Nothing was saved; try again in a moment."
 msgstr "База данных занята. Ничего не сохранено; попробуйте ещё раз через минуту."
 
 # llm-draft
+msgid "The enemy could hardly have done better, and they were trying all day."
+msgstr "Противник вряд ли справился бы лучше, а ведь он старался весь день."
+
+# llm-draft
 msgid "The enemy had just finished its own takeoff checklist. A pity, really."
 msgstr "Противник как раз дочитывал карту контрольных проверок перед взлётом. Не повезло."
 
@@ -6647,6 +6695,10 @@ msgid ""
 msgstr ""
 "Записанный в журнале остаток боекомплекта не сходится с загруженным, например потому, что боевая нагрузка при "
 "загрузке и в конце считается в разных единицах (кассетные боеприпасы)."
+
+# llm-draft
+msgid "The map has two sides for a reason. The tents down there were on ours."
+msgstr "На карте две стороны не просто так. Палатки внизу стояли на нашей."
 
 # llm-draft
 msgid "The markings are small and the sky is crowded. It happens to the best squadrons."
@@ -6966,6 +7018,10 @@ msgstr "Вышка откладывает кофе, ведомые обходя�
 # llm-draft
 msgid "The tower, the formation and the motor pool all flinch a little when this callsign comes up."
 msgstr "Вышка, строй и автопарк слегка вздрагивают, когда звучит этот позывной."
+
+# llm-draft
+msgid "The troops asked for close air support. Not quite this close."
+msgstr "Пехота просила непосредственную авиаподдержку. Но не настолько непосредственную."
 
 # llm-draft
 msgid "The two passwords differ."
