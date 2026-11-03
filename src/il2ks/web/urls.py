@@ -56,4 +56,5 @@ urlpatterns: list[URLPattern] = [
     path("live/", live.live_fragment, name="live"),  # HTMX fragment: online now, its own max-age (FR-ING-12)
     path("setup/", setup.setup, name="setup"),  # first run only: local, token-gated, 404 once setup is done
     path("_styleguide/", styleguide.styleguide, name="styleguide"),  # DEBUG only: 404 otherwise
+    path("_errors/<int:code>/", styleguide.error_preview, name="error-preview"),  # DEBUG only: the real 404/500 pages
 ]

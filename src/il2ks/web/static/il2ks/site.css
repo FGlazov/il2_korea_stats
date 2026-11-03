@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/site.css v8.1 - copy this line along when you override */
+/* il2ks-template: static/il2ks/site.css v8.2 - copy this line along when you override */
 /*
  * il2ks site theme, layered on Pico CSS v2 (vendor/pico.min.css).
  *
@@ -694,7 +694,7 @@ pre.sg-code { font-size: 0.8rem; margin: 0 0 1rem; padding: 0.7rem 1rem; }
 /* Flavor text (FR-WEB-23): an italic aside, deliberately quiet. */
 .flavor { font-style: italic; color: var(--il2-muted); }
 p.flavor--sortie { margin: 0 0 1rem; }
-.section-head h2 a.heading-link { color: inherit; text-decoration: none; }
+.section-head h2 a.heading-link { color: inherit; text-decoration: none; white-space: normal; } /* a heading wraps on a phone (players.css keeps the side links on one line) */
 .section-head h2 a.heading-link:hover { text-decoration: underline; }
 
 /* Medals (FR-WEB-26): a round badge per achievement, tinted by tier through these tokens (placeholder icons, the
@@ -720,7 +720,7 @@ a.medal:hover { background: var(--il2-surface-hover); text-decoration: none; }
 .medal__text { display: grid; line-height: 1.2; }
 .medal__name { font-weight: 650; color: var(--il2-heading); }
 .medal__tier { font-size: 0.8rem; color: var(--il2-muted); }
-.medal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: 1rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.medal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(19rem, 100%), 1fr)); gap: 1rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
 .medal-list__item { padding: 1rem; background: var(--il2-surface); border: 1px solid var(--il2-border); border-radius: var(--il2-radius); }
 .medal-list__item--none .medal__badge, .medal-list__item--none .ribbon__bar { opacity: 0.6; } /* dim the badge, never the text (contrast) */
 .medal-list__head { display: flex; gap: 0.8rem; align-items: flex-start; }

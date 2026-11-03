@@ -127,8 +127,8 @@
       }
     },
     "static/il2ks/players.css": {
-      "version": "4.0",
-      "sha256": "be33a4752454ff8ed4ab662158f2efa97c778a6c8cd007b9620ae1b73643f7d5",
+      "version": "4.1",
+      "sha256": "c690b6416a511e0d11cc789919739ee5c343c9eab9df8dc03540f8e38d3722ff",
       "contract": {
         "defines": [
           ".aircraft-table__build",
@@ -204,8 +204,8 @@
       }
     },
     "static/il2ks/site.css": {
-      "version": "8.1",
-      "sha256": "e52bee0000d80fa522a4a2b65a302da8405d8830234f9aa498fa507c8227726f",
+      "version": "8.2",
+      "sha256": "ab60a63159befae123c1fe2d1823401e2d01c0f46484a2b9cb2f3df0264e31bf",
       "contract": {
         "defines": [
           "--icon",
@@ -584,6 +584,15 @@
         ]
       }
     },
+    "static/il2ks_admin/admin.css": {
+      "version": "1.0",
+      "sha256": "1a41d2aa82aae146cd33c7dd7949ad010b915904ce30f9355dbc44bd331e1cfd",
+      "contract": {
+        "defines": [
+          ".breadcrumbs"
+        ]
+      }
+    },
     "static/il2ks_admin/ingest_status.css": {
       "version": "2.0",
       "sha256": "310f4dc146789da3d0d8c1c27b08ff045adff5b7abb2a1d98e38eda7e39201de",
@@ -725,8 +734,8 @@
       }
     },
     "templates/admin/base_site.html": {
-      "version": "1.0",
-      "sha256": "f506e890239ed3d35ea7509447170a24f084257c130aecf61c1f4f6f5f58078e",
+      "version": "1.1",
+      "sha256": "f05ecdbd0dc8374f8d1341a00f179b5f96b16ff6513790102994aba01b55969a",
       "contract": {
         "blocks": [
           "extrastyle",
@@ -739,6 +748,7 @@
           ".il2ks-override-warning"
         ],
         "static": [
+          "il2ks_admin/admin.css",
           "il2ks_admin/override_warning.css"
         ],
         "variables": [
@@ -1344,6 +1354,21 @@
           "missions_stored",
           "status_url",
           "word"
+        ]
+      }
+    },
+    "templates/admin/login.html": {
+      "version": "1.0",
+      "sha256": "fade9d48003255fb94a4a735f385d14e5fd4bd9cd9b06beb4a6be0b5dbf38531",
+      "contract": {
+        "blocks": [
+          "content_title"
+        ],
+        "extends": [
+          "admin/login.html"
+        ],
+        "variables": [
+          "title"
         ]
       }
     },

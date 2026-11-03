@@ -249,6 +249,7 @@ PAGES: dict[str, Resolve] = {
     "player-sorties": _ace("sorties/"),
     "player-killboard": _ace("killboard/"),
     "player-streaks": _ace("streaks/"),
+    "player-streak-history": _ace("streaks/history/"),
     "player-achievements": _ace("achievements/"),
     "ironman": _const("/leaderboards/ironman-all/"),
     "ironman-air": _const("/leaderboards/ironman-air/"),

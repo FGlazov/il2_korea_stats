@@ -523,17 +523,32 @@ so its `admin/base_site.html` wins.
 and records the original's hash in `custom/.il2ks-overrides.json`; `custom list` and `custom accept` complete it. Doctor warns when an
 original changed since it was copied, disappeared, or when a hand-placed file shadows a built-in one it can't check.
 
-## Accessibility `[PROPOSED]`
+## Accessibility (NFR-UI-3) `[DECIDED]` (target, maintainer 2026-11-03), `[PROPOSED]` (mechanism)
 
-Target: WCAG 2.1 AA for every public page, in light and dark, at phone and desktop width. `tests/e2e/test_accessibility.py` runs
-axe-core (tags wcag2a/2aa/21a/21aa + best-practice; the bundled `axe.min.js` of the dev-only `axe-playwright-python`, injected by the
-test, never shipped, no CDN) on every page of `test_visual_qa.PAGES` (menus opened too) and on home/leaderboards/mission in each language
-(also checks `<html lang>`); its waiver list `ALLOWED` is empty. `tests/e2e/test_keyboard.py` drives the column picker, tour select,
-board switcher and pagination with the keyboard only. Conventions the tests protect: icons are `aria-hidden` and always sit beside text
-or inside a control with an `aria-label`; several paginations on one page get distinct names (`{% pagination ... label=%}`); a scrolling
-`.table-wrap` gets `tabindex="0"` from `il2ks.js` (only while it overflows) so its columns are reachable by keyboard. The first run found
-only two rules (scrollable-region-focusable on narrow tables, landmark-unique for the second pagination on a page); contrast, labels and
-`lang` were already clean. Not covered by axe (needs a person): reading order with a screen reader, zoom to 200 %, the admin pages.
+Target: WCAG 2.1 AA for every public page, the error pages and the admin pages, in light and dark, from 320 px to desktop width.
+`tests/e2e/test_accessibility.py` runs axe-core (tags wcag2a/2aa/21a/21aa + best-practice; the bundled `axe.min.js` of the dev-only
+`axe-playwright-python`, injected by the test, never shipped, no CDN) on every page of `test_visual_qa.PAGES` (menus opened too), on
+home/leaderboards/mission in each language (also checks `<html lang>`), on 404.html and 500.html through the DEBUG-only preview
+`/_errors/<code>/` (with DEBUG an unknown address shows Django's technical page), and on the admin login and the admin pages il2ks adds
+or styles. Each page is checked at 320 px (WCAG 1.4.10 reflow, a 1280 px window at 400 %: the page itself must not scroll sideways; a
+wide table scrolls in its own wrapper, which the criterion allows) and 1280 px. The public waiver list `ALLOWED` is empty; the admin's
+`ADMIN_ALLOWED` has one entry: Django's tabular inline leaves its "original" column header empty (minor, best-practice; fixing it means
+copying Django's template). `tests/e2e/test_keyboard.py` drives the column picker, tour select, board switcher and pagination with the
+keyboard only.
+
+Conventions the tests protect: icons are `aria-hidden` and always sit beside text or inside a control with an `aria-label`; several
+paginations on one page get distinct names (`{% pagination ... label=%}`); a scrolling `.table-wrap` gets `tabindex="0"` from `il2ks.js`
+(only while it overflows) so its columns are reachable by keyboard; every focus ring is drawn in the accent colour, so the theme
+contrast check (`theme.CONTRAST_CHECKS`, admin warning after save) holds the accent to 3:1 against the page background, the cards and a
+hovered row (WCAG 1.4.11); admin boxes that Django leaves without a label of their own (the navigation-link table, the notice's date and
+time) get an `aria-label` ("Url, link 2"); the admin login has an `<h1>` (`admin/login.html`) and admin breadcrumb links are underlined
+(`il2ks_admin/admin.css`).
+
+History: the first run (0.2.0) found two rules on the public pages (scrollable-region-focusable on narrow tables, landmark-unique for
+the second pagination on a page). Extending it to the error and admin pages (0.7.0) found 12 unnamed admin boxes, the login page without
+`<h1>` and the breadcrumbs told apart by colour only; at 320 px the profile and achievements pages scrolled sideways (medal cards with a
+19rem minimum, now `min(19rem, 100%)`; `.section-head` did not wrap and its heading link was `nowrap`). Not covered by automation (needs a person):
+reading order and announcements with a screen reader (NVDA on Windows is free), text-only zoom to 200 %, and the WCAG text-spacing check.
 
 ## Operations (FR-OPS-1, 2, 6)
 

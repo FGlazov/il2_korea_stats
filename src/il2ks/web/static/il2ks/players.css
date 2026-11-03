@@ -1,4 +1,4 @@
-/* il2ks-template: static/il2ks/players.css v4.0 - copy this line along when you override */
+/* il2ks-template: static/il2ks/players.css v4.1 - copy this line along when you override */
 /* Player pages (search and profile). Loaded by templates/il2ks/players/*.html; colours come from the tokens in site.css. */
 
 /* Search */
@@ -8,7 +8,7 @@
 .profile-head { margin-bottom: 0.9rem; }
 .profile-split h2:first-child { margin-top: 0; }
 .profile-split .kv { margin-bottom: 0.5rem; }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 1rem; } /* the side links drop below the heading on a phone */
 .section-head a { font-size: 0.9rem; white-space: nowrap; }
 
 /* Ground-kill breakdown */

@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.defaults import page_not_found, server_error
 
 from il2ks.web import display
 from il2ks.web.charts import ChartSeries, ChartSpec
@@ -104,6 +105,19 @@ def sample_charts() -> list[ChartSpec]:
 def resolve_sort(raw: str) -> str:
     """The whitelisted sort for a ?sort= value: unknown fields fall back to the default, never an error."""
     return raw if raw.removeprefix("-") in SORT_FIELDS else DEFAULT_SORT
+
+
+def error_preview(request: HttpRequest, code: int) -> HttpResponse:
+    """The real 404 and 500 pages at /_errors/<code>/, as Django's handlers render them without DEBUG (with DEBUG, an
+    unknown address shows Django's technical page instead): for looking at them, and for the axe check in
+    tests/e2e/test_accessibility.py. 404 unless DEBUG."""
+    if not settings.DEBUG:
+        raise Http404
+    if code == 404:
+        return page_not_found(request, Http404())
+    if code == 500:
+        return server_error(request)
+    raise Http404
 
 
 def styleguide(request: HttpRequest) -> HttpResponse:

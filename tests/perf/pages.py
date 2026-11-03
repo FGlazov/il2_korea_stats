@@ -59,6 +59,6 @@ PAGES: tuple[PageSpec, ...] = (
     PageSpec("sitemap-players", lambda w: "/sitemap-players-1.xml", 8),
 )
 
-NOT_PUBLIC_PAGES = frozenset({"set-language", "setup", "sprite", "styleguide", "streak-list"})
-"""URL names that are not pages a visitor reads: a form target, the first-run wizard, the DEBUG-only style guide, the
-old `/streaks/` URL (a permanent redirect to the ironman board, which has its own rows)."""
+NOT_PUBLIC_PAGES = frozenset({"set-language", "setup", "sprite", "styleguide", "error-preview", "streak-list"})
+"""URL names that are not pages a visitor reads: a form target, the first-run wizard, the DEBUG-only style guide and
+error page preview, the old `/streaks/` URL (a permanent redirect to the ironman board, which has its own rows)."""

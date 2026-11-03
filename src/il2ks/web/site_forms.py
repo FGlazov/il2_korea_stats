@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from typing import cast
 
 from django import forms
+from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.core.files.uploadedfile import UploadedFile
 from django.template.loader import render_to_string
 from django.utils.safestring import SafeString
@@ -314,6 +315,13 @@ class SiteSettingsForm(forms.ModelForm):
             self.fields[name].required = False  # a post without them keeps the current choice
         self.fields["home_feature"].required = False  # a post without it keeps the current choice
         self.fields["notice_level"].required = False
+        until = self.fields["notice_until"]
+        if isinstance(until.widget, forms.MultiWidget):  # the admin's date and time boxes: one label for two inputs
+            # Translators: what a screen reader calls the two boxes of the notice's end: "Hide the notice after (UTC),
+            # date" and "..., time". %(field)s is that field's label.
+            parts = (_("%(field)s, date"), _("%(field)s, time"))
+            for part, name in zip(until.widget.widgets, parts, strict=False):
+                part.attrs["aria-label"] = name % {"field": until.label}
         self.processed_font: ProcessedFont | None = None
         self.processed_feature: tuple[Source, ProcessedFeature] | None = None
         self.stored_fonts: list[CustomFont] = clean_fonts(self.instance.custom_fonts)
@@ -484,6 +492,25 @@ class SiteSettingsForm(forms.ModelForm):
 
 class NavLinkFormSet(forms.BaseInlineFormSet):
     """The ordered list of extra navigation links; at most `MAX_NAV_LINKS`."""
+
+    def add_fields(self, form: forms.BaseForm, index: int | None) -> None:
+        """The admin's table names each column only in its header, so every box gets its own name for screen readers
+        (WCAG 1.3.1, 4.1.2): "URL, link 2"."""
+        super().add_fields(form, index)
+        for field in form.fields.values():
+            if field.widget.is_hidden or field.label is None:
+                continue
+            # The admin wraps the page select (the "+" and pencil links); a copied wrapper's `attrs` is still the
+            # original select's, shared by every row, so the name goes on this row's own select.
+            widget = field.widget.widget if isinstance(field.widget, RelatedFieldWidgetWrapper) else field.widget
+            if index is None:
+                widget.attrs["aria-label"] = str(field.label)
+            else:
+                # Translators: the name a screen reader gives one box in the table of navigation links: "URL, link 2".
+                widget.attrs["aria-label"] = _("%(field)s, link %(number)d") % {
+                    "field": field.label,
+                    "number": index + 1,
+                }
 
     def clean(self) -> None:
         super().clean()

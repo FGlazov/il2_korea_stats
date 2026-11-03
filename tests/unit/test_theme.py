@@ -214,6 +214,13 @@ def test_a_pale_accent_warns_about_the_link_colour_and_the_button_text_is_automa
     assert ("accent-contrast", "accent") not in found  # the text colour flips to dark by itself
 
 
+def test_a_pale_accent_warns_about_the_focus_rings() -> None:
+    """The accent draws every keyboard focus ring (a focused table row, a scrolling table, the column picker): WCAG
+    1.4.11 asks 3:1 against what it sits on (light surface #F9F8F3: 1.6:1)."""
+    found = {(w.foreground, w.background) for w in contrast_warnings({"light": {"accent": "#E0C080"}})}
+    assert {("accent", "surface"), ("accent", "surface-hover"), ("accent", "bg")} <= found
+
+
 @pytest.mark.parametrize("key", sorted(PRESETS))
 def test_presets_are_valid_and_readable(key: str) -> None:
     _label, theme = PRESETS[key]

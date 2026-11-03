@@ -61,6 +61,24 @@ msgstr[0] "%(counter)s Spitzname"
 msgstr[1] "%(counter)s Spitznamen"
 
 # llm-draft
+#. Translators: what a screen reader calls the two boxes of the notice's end: "Hide the notice after (UTC),
+#. date" and "..., time". %(field)s is that field's label.
+#, python-format
+msgid "%(field)s, date"
+msgstr "%(field)s, Datum"
+
+# llm-draft
+#. Translators: the name a screen reader gives one box in the table of navigation links: "URL, link 2".
+#, python-format
+msgid "%(field)s, link %(number)d"
+msgstr "%(field)s, Link %(number)d"
+
+# llm-draft
+#, python-format
+msgid "%(field)s, time"
+msgstr "%(field)s, Uhrzeit"
+
+# llm-draft
 #, python-format
 msgid "%(games)s encounter"
 msgid_plural "%(games)s encounters"
@@ -8192,6 +8210,14 @@ msgid "inferred from the log"
 msgstr "aus dem Log abgeleitet"
 
 # llm-draft
+msgid "keyboard focus rings on cards and tables"
+msgstr "Tastatur-Fokusrahmen auf Karten und Tabellen"
+
+# llm-draft
+msgid "keyboard focus rings on the page background"
+msgstr "Tastatur-Fokusrahmen auf dem Seitenhintergrund"
+
+# llm-draft
 msgid "left the server"
 msgstr "hat den Server verlassen"
 
@@ -8358,6 +8384,10 @@ msgstr "Text auf Akzent-Schaltflächen"
 # llm-draft
 msgid "text on secondary buttons"
 msgstr "Text auf sekundären Schaltflächen"
+
+# llm-draft
+msgid "the keyboard focus ring around a table row"
+msgstr "der Tastatur-Fokusrahmen um eine Tabellenzeile"
 
 # llm-draft
 #, python-format

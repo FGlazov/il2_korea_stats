@@ -1,0 +1,6 @@
+/* il2ks-template: static/il2ks_admin/admin.css v1.0 - copy this line along when you override */
+/* Loaded on every admin page (admin/base_site.html). */
+
+/* Django tells a breadcrumb link from the text beside it by colour alone (white on pale blue, 1.4:1); WCAG 1.4.1 and
+   axe's link-in-text-block want more than colour. */
+div.breadcrumbs a { text-decoration: underline; }

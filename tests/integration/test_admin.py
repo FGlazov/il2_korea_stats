@@ -190,6 +190,22 @@ def test_the_form_lists_the_links_and_recommends_a_number(admin: Client) -> None
     assert "We recommend at most 3 extra links" in body
 
 
+def test_every_box_without_a_label_of_its_own_gets_a_name(admin: Client) -> None:
+    """axe (tests/e2e/test_accessibility.py) found 12 unnamed boxes: Django's link table names its columns only in the
+    header, and the notice's date and time boxes share one label that points at neither."""
+    get_site_settings()
+
+    body = admin.get(settings_url()).content.decode()
+
+    assert 'aria-label="Url, link 1"' in body  # the column header's own wording (the model field's name)
+    assert 'aria-label="Icon, link 2"' in body
+    # the page select sits in Django's wrapper, whose copies share one attrs dict: each row still names its own
+    assert body.count('aria-label="Page, link 1"') == 1
+    assert body.count('aria-label="Page, link 2"') == 1
+    assert 'aria-label="Hide the notice after (UTC), date"' in body
+    assert 'aria-label="Hide the notice after (UTC), time"' in body
+
+
 def test_links_are_reordered_and_renumbered(admin: Client) -> None:
     site = get_site_settings()
     NavLink.objects.create(site=site, label="A", url="https://a.example/", position=1)

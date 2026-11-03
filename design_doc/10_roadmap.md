@@ -451,6 +451,8 @@ Status legend as above. All items started 2026-10-07 (one Sonnet agent per group
 - **Scripted custom quip events** (maintainer, 2026-10-04): admin-written conditions over a sortie's fields, evaluated by a small
   whitelisted expression parser (never Python `eval`) and validated on save.
 - Bailout height arm once heightmaps arrive (OQ-39).
+- **Accessibility by hand** (NFR-UI-3; the automated part shipped in 0.7.0): one pass with a screen reader (NVDA) over home, a board,
+  a profile, a sortie and the branding editor; text-only zoom to 200 %; the WCAG text-spacing check (doc 16 "Accessibility").
 
 ## Next version: maintainer picks from the feature brainstorm (2026-10-06)
 The maintainer chose these from a brainstorm over the design docs. The features are `[DECIDED]`; the details are `[PROPOSED]` unless marked.

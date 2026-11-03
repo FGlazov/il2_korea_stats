@@ -85,3 +85,4 @@ games, `reprocess` 191 s; DB 62 MB. Far inside NFR-PERF-1; nothing to optimise y
 |---|---|---|
 | NFR-UI-1 | Desktop-first, table-heavy layout (Pico CSS). Mobile-friendly layout is a stretch goal, not a requirement. | `[DECIDED]` |
 | NFR-UI-2 | Server owners can rebrand in the admin without touching files, and override any template or static file through `custom/` without forking (TD-25). | `[DECIDED]` |
+| NFR-UI-3 | **Accessibility: WCAG 2.1 AA** on every public page, the error pages and the admin pages, in light and dark, from a 320 px phone (400% zoom) to the desktop, in every language. Guarded by axe-core and keyboard tests in CI; the shipped presets and every admin-made theme are contrast-checked, focus rings included. Mechanism and what still needs a person: doc 16 "Accessibility". | `[DECIDED]` (maintainer, 2026-11-03) |

@@ -194,6 +194,24 @@ def test_styleguide_is_404_unless_debug(client: Client) -> None:
 
 
 @pytest.mark.django_db
+def test_error_previews_show_the_real_error_pages_in_debug_only(client: Client) -> None:
+    """With DEBUG an unknown address shows Django's technical 404, so /_errors/<code>/ is how a browser (and the axe
+    check) gets the site's own 404.html and 500.html."""
+    with override_settings(DEBUG=False):
+        assert client.get("/_errors/404/").status_code == 404
+        assert "Something went wrong" not in client.get("/_errors/500/").content.decode()
+    with override_settings(DEBUG=True):
+        missing = client.get("/_errors/404/")
+        assert missing.status_code == 404
+        assert "Page not found" in missing.content.decode()
+        assert "site-header" in missing.content.decode()
+        broken = client.get("/_errors/500/")
+        assert broken.status_code == 500
+        assert "Something went wrong" in broken.content.decode()
+        assert client.get("/_errors/403/").status_code == 404
+
+
+@pytest.mark.django_db
 def test_styleguide_renders_every_component_in_debug(client: Client) -> None:
     with override_settings(DEBUG=True):
         response = client.get("/_styleguide/?aircraft=Yak-9P&sort=-deaths&page=2")

@@ -59,6 +59,24 @@ msgstr[0] "%(counter)s apelido"
 msgstr[1] "%(counter)s apelidos"
 
 # llm-draft
+#. Translators: what a screen reader calls the two boxes of the notice's end: "Hide the notice after (UTC),
+#. date" and "..., time". %(field)s is that field's label.
+#, python-format
+msgid "%(field)s, date"
+msgstr "%(field)s, data"
+
+# llm-draft
+#. Translators: the name a screen reader gives one box in the table of navigation links: "URL, link 2".
+#, python-format
+msgid "%(field)s, link %(number)d"
+msgstr "%(field)s, link %(number)d"
+
+# llm-draft
+#, python-format
+msgid "%(field)s, time"
+msgstr "%(field)s, hora"
+
+# llm-draft
 #, python-format
 msgid "%(games)s encounter"
 msgid_plural "%(games)s encounters"
@@ -8157,6 +8175,14 @@ msgid "inferred from the log"
 msgstr "deduzido do log"
 
 # llm-draft
+msgid "keyboard focus rings on cards and tables"
+msgstr "contornos de foco do teclado em cartões e tabelas"
+
+# llm-draft
+msgid "keyboard focus rings on the page background"
+msgstr "contornos de foco do teclado no fundo da página"
+
+# llm-draft
 msgid "left the server"
 msgstr "saiu do servidor"
 
@@ -8323,6 +8349,10 @@ msgstr "texto nos botões de destaque"
 # llm-draft
 msgid "text on secondary buttons"
 msgstr "texto nos botões secundários"
+
+# llm-draft
+msgid "the keyboard focus ring around a table row"
+msgstr "o contorno de foco do teclado em volta de uma linha da tabela"
 
 # llm-draft
 #, python-format
