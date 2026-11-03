@@ -260,7 +260,7 @@ def test_attack_rate_reads_attack_sorties_only_and_never_falls() -> None:
     assert attack_rate(rows) == pytest.approx([0.0, 1200.0, 1200.0])
     assert tiers("attack_rate_peak", rows) == {1: 1, 2: 1, 3: 1}
     assert tiers("attack_rate_peak", [attack(0, 100, 599.0)]) == {}
-    assert BY_KEY["attack_rate_peak"].thresholds == (300, 600, 1000, 2500)
+    assert BY_KEY["attack_rate_peak"].thresholds == (300, 600, 1000, 2000)  # maintainer 2026-11-03, OQ-151
 
 
 # --- life_kills_ground (maintainer 2026-11-02: Charmed Life in a ground version, Flak Dodger) ---

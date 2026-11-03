@@ -448,11 +448,12 @@ def bailout_v3(
     return Bailout(detected, known, False)
 
 
-EARLY_BAILOUT_DAMAGE = 0.2
-"""Damage from which leaving an aircraft is no early bailout, whatever caused it (maintainer 2026-11-02: the penalty is
-there to stop pilots leaving a sound aircraft to deny a kill). The log has no event at the moment a pilot leaves (the
-ejection spawn comes with the teardown), so the damage counts up to the aircraft's AType 3. On 296 suspected bailouts
-it was either under 0.17 (tiny lines, as when the canopy goes) or from 0.49 up: nothing in between (doc 13)."""
+EARLY_BAILOUT_DAMAGE = 0.05
+"""Damage above which leaving an aircraft is no early bailout, whatever caused it (maintainer 2026-11-02: the penalty is
+there to stop pilots leaving a sound aircraft to deny a kill; 2026-11-03, OQ-154: over 5%, as a pilot in a death spiral
+may bail out early with little damage). The log has no event at the moment a pilot leaves (the ejection spawn comes
+with the teardown), so the damage counts up to the aircraft's AType 3. Of 302 bailouts suspected apart from this test,
+219 are at 5% or less (179 under 1%), 20 between 5% and 17%, none from 17% to 49%, 63 from 49% up (doc 13)."""
 
 
 def attacker_involved(sortie: SortieState, upto_tick: int) -> bool:
@@ -478,8 +479,8 @@ def suspected_early_bailout(
     damage_before_loss: float,
 ) -> bool:
     """FR-ING-14 conditions 5-7: nobody attacked, no disconnect, not at mission end, and the aircraft was sound:
-    `damage_before_loss` (any source, this flight, without the line that destroys it) below `EARLY_BAILOUT_DAMAGE`."""
-    if not bailout or disconnected or damage_before_loss >= EARLY_BAILOUT_DAMAGE:
+    `damage_before_loss` (any source, this flight, without the line that destroys it) at most `EARLY_BAILOUT_DAMAGE`."""
+    if not bailout or disconnected or damage_before_loss > EARLY_BAILOUT_DAMAGE:
         return False
     if attacker_involved(sortie, upto_tick):
         return False

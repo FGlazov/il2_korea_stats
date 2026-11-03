@@ -59,6 +59,16 @@ def test_a_pilot_who_left_a_damaged_aircraft_is_no_early_bailout() -> None:
     assert not a.suspected_early_bailout
 
 
+@pytest.mark.parametrize(("damage", "suspected"), [(0.03, True), (0.05, True), (0.051, False), (0.1, False)])
+def test_more_than_5_percent_damage_makes_a_bailout_fair(damage: float, suspected: bool) -> None:
+    """Maintainer 2026-11-03 (OQ-154): over 5%. A pilot in a death spiral can bail out early with little damage."""
+    sc = Scenario()
+    sc.fly_a()
+    sc.damage(100, NO, 100, damage)
+    _bailout(sc)
+    assert by_acct(sc.result(), 1).suspected_early_bailout is suspected
+
+
 def test_the_line_that_destroys_the_aircraft_is_no_damage_before_the_bailout() -> None:
     """Most bailouts log a full self-damage line on the tick of the AType 3: it says nothing about a crash."""
     sc = Scenario()

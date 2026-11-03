@@ -15,8 +15,9 @@ Two scores, because air-to-air and ground attack are different skills (maintaine
   several outcomes apply (a death, a capture, a lost aircraft) only the **largest** one counts.
 - **Flat penalties** are subtracted afterwards, from the score of the sortie's combat role (an `attack` sortie pays
   from its ground score, every other sortie from its air score): a suspected early bailout (the pilot left an aircraft
-  nobody had touched) and each friendly kill (up to a cap per sortie: a base bombed by mistake isn't a hundred
-  offences). A sortie with a flat penalty and no kills has a negative score, and totals can go negative.
+  nobody had touched) and each friendly kill, a ground kill costing less than an air kill (up to a cap per sortie:
+  a base bombed by mistake isn't a hundred offences). A sortie with a flat penalty and no kills has a negative score,
+  and totals can go negative.
 
 Everything is computed from the stored sortie columns, so a changed `[score]` section is applied by `il2ks
 rebuild-aggregates` without reprocessing any mission. The values are first guesses to tune with data (product
@@ -54,8 +55,10 @@ class ScoreRules:
     penalty_capture_pct: float = 50.0  # ... when the pilot was captured
     penalty_plane_lost_pct: float = 20.0  # ... when the aircraft was lost without a death or capture
     penalty_early_bailout: float = 5.0  # suspected early bailout: left a sound aircraft, which denies a kill
-    penalty_friendly_kill: float = 3.0  # per friendly kill (statics count: bombing your own base is a mistake too)
-    penalty_friendly_kill_cap: float = 5.0  # at most this many friendly kills are penalised per sortie
+    penalty_friendly_kill: float = 3.0  # per friendly air kill (the name is from before the split into air and ground)
+    # per friendly ground kill: own trucks, guns and statics, a cheaper mistake (maintainer 2026-11-03, OQ-148)
+    penalty_friendly_ground_kill: float = 1.0
+    penalty_friendly_kill_cap: float = 5.0  # at most this many friendly kills are penalised per sortie, air kills first
 
 
 DEFAULT_SCORE_RULES: Final = ScoreRules()
@@ -102,7 +105,8 @@ class SortieFacts:
     is_plane_lost: bool
     is_captured: bool
     suspected_early_bailout: bool
-    friendly_kills: int
+    friendly_kills: int  # air and ground; the air kills are the rest (also a sortie not reprocessed since the split)
+    friendly_kills_ground: int
     flight_time_s: float = 0.0  # time in the air (not taxiing); scores only when the admin switched it on
 
 
@@ -146,10 +150,19 @@ def outcome_fraction(rules: ScoreRules, facts: SortieFacts) -> float:
     return min(percent, 100.0) / 100.0
 
 
+def friendly_kill_penalty(rules: ScoreRules, friendly_kills: int, friendly_kills_ground: int) -> float:
+    """The points taken off for friendly kills (a positive number): up to the cap, the costlier air kills first. Kills
+    of no known kind (`friendly_kills` beyond the ground ones) cost as air kills."""
+    ground = min(friendly_kills_ground, friendly_kills)
+    air = min(friendly_kills - ground, rules.penalty_friendly_kill_cap)
+    ground = min(ground, max(rules.penalty_friendly_kill_cap - air, 0.0))
+    return rules.penalty_friendly_kill * air + rules.penalty_friendly_ground_kill * ground
+
+
 def flat_penalty(rules: ScoreRules, facts: SortieFacts) -> float:
     """The points taken off for a suspected early bailout and for friendly kills (a positive number)."""
-    return rules.penalty_early_bailout * facts.suspected_early_bailout + rules.penalty_friendly_kill * min(
-        facts.friendly_kills, rules.penalty_friendly_kill_cap
+    return rules.penalty_early_bailout * facts.suspected_early_bailout + friendly_kill_penalty(
+        rules, facts.friendly_kills, facts.friendly_kills_ground
     )
 
 

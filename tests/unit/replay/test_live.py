@@ -156,22 +156,19 @@ def test_who_is_online_stays_current_while_the_details_are_held_back() -> None:
     held = replay_of(lines, DELAY).snapshot()
     past = {p.account_uuid: p for p in replay_of(log_until(lines, cutoff)).snapshot().players}
 
-    assert [(p.account_uuid, p.name) for p in held.players] == [(p.account_uuid, p.name) for p in now.players]
+    # The side is current too (maintainer 2026-11-03, OQ-143): the game shows it anyway
+    side_now = [(p.account_uuid, p.name, p.coalition, p.country) for p in now.players]
+    assert [(p.account_uuid, p.name, p.coalition, p.country) for p in held.players] == side_now
+    assert any(p.coalition != 0 and p.account_uuid not in past for p in held.players)  # joined within the delay
     assert held.tick == now.tick  # "running for" is no secret
     for player in held.players:
         before = past.get(player.account_uuid)
-        details = (player.coalition, player.country, player.aircraft_type, player.state, player.flight_time_s)
-        if before is None:  # joined within the delay: nothing about them shows yet
-            assert details == (0, 0, "", "connected", 0.0)
+        details = (player.aircraft_type, player.state, player.flight_time_s)
+        if before is None:  # joined within the delay: nothing but the side shows yet
+            assert details == ("", "connected", 0.0)
             assert (player.kills_air, player.kills_ground) == (0, 0)
         else:
-            assert details == (
-                before.coalition,
-                before.country,
-                before.aircraft_type,
-                before.state,
-                before.flight_time_s,
-            )
+            assert details == (before.aircraft_type, before.state, before.flight_time_s)
             assert (player.kills_air, player.kills_ground) == (before.kills_air, before.kills_ground)
 
 

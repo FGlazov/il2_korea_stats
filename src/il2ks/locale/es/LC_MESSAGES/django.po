@@ -2814,6 +2814,10 @@ msgid "Friendly"
 msgstr "Aliado"
 
 # llm-draft
+msgid "Friendly air kill: points taken off for each"
+msgstr "Derribo aéreo aliado: puntos que se restan por cada uno"
+
+# llm-draft
 msgid "Friendly aircraft they shot down"
 msgstr "Aviones aliados que derribó"
 
@@ -2834,16 +2838,16 @@ msgid "Friendly fire: proof that the guns work."
 msgstr "Fuego amigo: la prueba de que las armas funcionan."
 
 # llm-draft
+msgid "Friendly ground kill: points taken off for each"
+msgstr "Objetivo terrestre aliado destruido: puntos que se restan por cada uno"
+
+# llm-draft
 msgid "Friendly ground objects they destroyed"
 msgstr "Objetos terrestres aliados que destruyó"
 
 # llm-draft
 msgid "Friendly hits"
 msgstr "Impactos a aliados"
-
-# llm-draft
-msgid "Friendly kill: points taken off for each"
-msgstr "Derribo aliado: puntos que se restan por cada uno"
 
 # llm-draft
 #, python-format
@@ -6796,20 +6800,20 @@ msgstr "La parte de la imagen que sigue visible cuando se recorta para una panta
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Air score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Air score: −%(points)s."
 msgstr ""
-"El piloto abandonó el avión en vuelo sin que hubiera recibido daños, lo que priva al enemigo del derribo. Es una "
-"suposición. Puntos aéreos: −%(points)s."
+"El piloto abandonó el avión en vuelo casi sin daños, lo que priva al enemigo del derribo. Es una suposición. Puntos "
+"aéreos: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Ground score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Ground score: −%(points)s."
 msgstr ""
-"El piloto abandonó el avión en vuelo sin que hubiera recibido daños, lo que priva al enemigo del derribo. Es una "
-"suposición. Puntos de tierra: −%(points)s."
+"El piloto abandonó el avión en vuelo casi sin daños, lo que priva al enemigo del derribo. Es una suposición. Puntos "
+"de tierra: −%(points)s."
 
 # llm-draft
 msgid ""
@@ -7891,11 +7895,11 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody"
-" an advantage in the game."
+"Who is online and on which side is up to date. Aircraft, flight times and kills are shown with a delay, so the stats "
+"give nobody an advantage in the game."
 msgstr ""
-"Quién está en línea se muestra al momento. Bandos, aeronaves, tiempos de vuelo y derribos se muestran con retraso, "
-"para que las estadísticas no den ventaja a nadie en el juego."
+"Quién está en línea y en qué bando se muestra al momento. Aeronaves, tiempos de vuelo y derribos se muestran con "
+"retraso, para que las estadísticas no den ventaja a nadie en el juego."
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

@@ -1,11 +1,25 @@
 # Changelog
 
-## Unreleased
+## 0.6.1 (2026-11-03)
+
+Run `il2ks reprocess --all` after the upgrade, also if you already ran it for 0.6.0: the early bailout rule changed. Without it, only
+the scores and medals change (at the next rebuild).
 
 ### Changed
 
+- **A friendly ground kill costs 1 point, a friendly air kill still 3.** At most 5 friendly kills cost points in a sortie, the air kills
+  first. The new value is `penalty_friendly_ground_kill` in the `[score]` section of `il2ks.toml`, and on the admin's game rules page.
+- **An early bailout needs at most 5% damage** (was under 20%): a pilot who bails out of an aircraft with more damage is not penalised, as a
+  pilot in a death spiral may leave early with little damage. In our sample of 210 missions, 20 of 239 suspected bailouts are cleared.
+- **Sides are shown at once during the stats delay:** online now shows each player's side straight away, as the game does. Aircraft, flight
+  times and kills are still delayed.
+- **Surgical Strike's platinum tier is 2000 points per hour** (was 2500).
 - **Smaller CSS and JavaScript downloads:** il2ks now installs `brotli`, so the static files are also stored Brotli-compressed and
   browsers download about 12% less than with gzip (the stylesheets and htmx the most). Nothing to configure.
+
+### Templates changed (check your custom/ overrides)
+
+- `components/online_now_body.html`: v1.2 -> v1.3 (the delay notice). An override keeps working, with the old wording.
 
 ## 0.6.0 (2026-11-03)
 

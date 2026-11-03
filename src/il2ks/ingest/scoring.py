@@ -27,6 +27,7 @@ FACT_COLUMNS: tuple[str, ...] = (
     "is_captured",
     "suspected_early_bailout",
     "friendly_kills",
+    "friendly_kills_ground",
     "flight_time_s",  # only scores when the admin switched flight-time points on
 )
 """The `PlayerSortie` columns the score reads: nothing else may influence it (a test checks that)."""
@@ -49,6 +50,7 @@ def facts_of(values: Mapping[str, object]) -> SortieFacts:
         is_captured=bool(values["is_captured"]),
         suspected_early_bailout=bool(values["suspected_early_bailout"]),
         friendly_kills=_count(values["friendly_kills"]),
+        friendly_kills_ground=_count(values["friendly_kills_ground"]),
         flight_time_s=float(cast(float, values["flight_time_s"])),
     )
 

@@ -193,7 +193,8 @@ def test_friendly_kills_and_jet_hunter_reach_every_table() -> None:
     assert (m.friendly_kills, m.friendly_kills_air, m.friendly_kills_ground) == (9, 3, 6)
 
 
-def test_the_score_penalty_still_uses_the_total_of_friendly_kills() -> None:
+def test_a_friendly_ground_kill_costs_less_than_a_friendly_air_kill() -> None:
+    """Maintainer 2026-11-03 (OQ-148): 3 points per friendly aircraft, 1 per friendly ground target."""
     save(
         mission(
             (
@@ -204,8 +205,8 @@ def test_the_score_penalty_still_uses_the_total_of_friendly_kills() -> None:
     )
 
     one, two = (PlayerSortie.objects.get(account_uuid=account(n)) for n in (1, 2))
-    assert one.air_points < 0
-    assert (one.air_points, one.ground_points) == (two.air_points, two.ground_points)
+    assert (one.air_points, one.ground_points) == (-9.0, 0.0)
+    assert (two.air_points, two.ground_points) == (-5.0, 0.0)
 
 
 def test_the_best_ground_burst_is_stored_on_the_sortie() -> None:

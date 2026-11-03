@@ -414,7 +414,7 @@ ACHIEVEMENTS: tuple[Achievement, ...] = (
     Achievement("type_veteran", (2, 10, 30, 100), "hours", type_veteran),
     # The second set (doc 17, OQ-105).
     Achievement("elo_peak", (1530, 1560, 1600, 1700), "elo", highest_elo),
-    Achievement("attack_rate_peak", (300, 600, 1000, 2500), "points_hour", attack_rate),
+    Achievement("attack_rate_peak", (300, 600, 1000, 2000), "points_hour", attack_rate),
     Achievement("ground_score", (100, 500, 2000, 5000), "points", ground_score),
     Achievement("first_blood", (1, 3, 5, 10), "count", _cumulative(lambda s: 1.0 if s.first_blood else 0.0)),
     Achievement("multi_kill", (2, 3, 4, 5), "count", _best_in_one(lambda s: s.multi_kill)),

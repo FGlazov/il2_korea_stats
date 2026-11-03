@@ -2815,6 +2815,10 @@ msgid "Friendly"
 msgstr "Свой"
 
 # llm-draft
+msgid "Friendly air kill: points taken off for each"
+msgstr "Сбит свой самолёт: снимается очков за каждый"
+
+# llm-draft
 msgid "Friendly aircraft they shot down"
 msgstr "Сбитые свои самолёты"
 
@@ -2835,16 +2839,16 @@ msgid "Friendly fire: proof that the guns work."
 msgstr "Огонь по своим: зато пушки точно исправны."
 
 # llm-draft
+msgid "Friendly ground kill: points taken off for each"
+msgstr "Уничтожена своя наземная цель: снимается очков за каждую"
+
+# llm-draft
 msgid "Friendly ground objects they destroyed"
 msgstr "Уничтоженные свои наземные объекты"
 
 # llm-draft
 msgid "Friendly hits"
 msgstr "Попадания по своим"
-
-# llm-draft
-msgid "Friendly kill: points taken off for each"
-msgstr "Победа над своим: снимается очков за каждую"
 
 # llm-draft
 #, python-format
@@ -6773,20 +6777,20 @@ msgstr "Часть картинки, которая остаётся видим�
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Air score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Air score: −%(points)s."
 msgstr ""
-"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение. "
-"Воздушные очки: −%(points)s."
+"Пилот покинул самолёт в полёте, хотя тот был почти не повреждён, и тем самым лишил противника победы. Это "
+"предположение. Воздушные очки: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Ground score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Ground score: −%(points)s."
 msgstr ""
-"Пилот покинул самолёт в полёте, хотя тот не был повреждён, и тем самым лишил противника победы. Это предположение. "
-"Очки за землю: −%(points)s."
+"Пилот покинул самолёт в полёте, хотя тот был почти не повреждён, и тем самым лишил противника победы. Это "
+"предположение. Очки за землю: −%(points)s."
 
 # llm-draft
 msgid ""
@@ -7846,10 +7850,10 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody"
-" an advantage in the game."
+"Who is online and on which side is up to date. Aircraft, flight times and kills are shown with a delay, so the stats "
+"give nobody an advantage in the game."
 msgstr ""
-"Список игроков на сервере актуален. Стороны, самолёты, время в полёте и победы показываются с задержкой, чтобы "
+"Список игроков на сервере и их стороны актуальны. Самолёты, время в полёте и победы показываются с задержкой, чтобы "
 "статистика никому не давала преимущества в игре."
 
 # llm-draft

@@ -2798,6 +2798,10 @@ msgid "Friendly"
 msgstr "Aliado"
 
 # llm-draft
+msgid "Friendly air kill: points taken off for each"
+msgstr "Abate aéreo amigo: pontos descontados por cada um"
+
+# llm-draft
 msgid "Friendly aircraft they shot down"
 msgstr "Aeronaves aliadas que abateram"
 
@@ -2818,16 +2822,16 @@ msgid "Friendly fire: proof that the guns work."
 msgstr "Fogo amigo: prova de que as armas funcionam."
 
 # llm-draft
+msgid "Friendly ground kill: points taken off for each"
+msgstr "Alvo terrestre amigo destruído: pontos descontados por cada um"
+
+# llm-draft
 msgid "Friendly ground objects they destroyed"
 msgstr "Objetos terrestres aliados que destruíram"
 
 # llm-draft
 msgid "Friendly hits"
 msgstr "Acertos em aliados"
-
-# llm-draft
-msgid "Friendly kill: points taken off for each"
-msgstr "Abate amigo: pontos descontados por cada um"
 
 # llm-draft
 #, python-format
@@ -6747,19 +6751,19 @@ msgstr "A parte da imagem que continua visível quando ela é recortada para uma
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Air score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Air score: −%(points)s."
 msgstr ""
-"O piloto abandonou a aeronave em voo, embora ela não tivesse sofrido dano, o que tira o abate do inimigo. É um "
+"O piloto abandonou a aeronave em voo, embora ela quase não tivesse sofrido dano, o que tira o abate do inimigo. É um "
 "palpite. Pontos aéreos: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Ground score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Ground score: −%(points)s."
 msgstr ""
-"O piloto abandonou a aeronave em voo, embora ela não tivesse sofrido dano, o que tira o abate do inimigo. É um "
+"O piloto abandonou a aeronave em voo, embora ela quase não tivesse sofrido dano, o que tira o abate do inimigo. É um "
 "palpite. Pontos de solo: −%(points)s."
 
 # llm-draft
@@ -7840,11 +7844,11 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody"
-" an advantage in the game."
+"Who is online and on which side is up to date. Aircraft, flight times and kills are shown with a delay, so the stats "
+"give nobody an advantage in the game."
 msgstr ""
-"A lista de quem está online é atualizada na hora. Lados, aeronaves, tempos de voo e abates aparecem com atraso, para "
-"que as estatísticas não deem vantagem a ninguém no jogo."
+"A lista de quem está online, e de que lado, é atualizada na hora. Aeronaves, tempos de voo e abates aparecem com "
+"atraso, para que as estatísticas não deem vantagem a ninguém no jogo."
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

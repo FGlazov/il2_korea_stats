@@ -2821,6 +2821,10 @@ msgid "Friendly"
 msgstr "Eigene"
 
 # llm-draft
+msgid "Friendly air kill: points taken off for each"
+msgstr "Eigenabschuss in der Luft: abgezogene Punkte für jeden"
+
+# llm-draft
 msgid "Friendly aircraft they shot down"
 msgstr "Eigene Flugzeuge, die er abgeschossen hat"
 
@@ -2841,16 +2845,16 @@ msgid "Friendly fire: proof that the guns work."
 msgstr "Eigenbeschuss: der Beweis, dass die Bordwaffen funktionieren."
 
 # llm-draft
+msgid "Friendly ground kill: points taken off for each"
+msgstr "Eigenes Bodenziel zerstört: abgezogene Punkte für jedes"
+
+# llm-draft
 msgid "Friendly ground objects they destroyed"
 msgstr "Eigene Bodenobjekte, die er zerstört hat"
 
 # llm-draft
 msgid "Friendly hits"
 msgstr "Treffer auf Eigene"
-
-# llm-draft
-msgid "Friendly kill: points taken off for each"
-msgstr "Eigenabschuss: abgezogene Punkte für jeden"
 
 # llm-draft
 #, python-format
@@ -6776,20 +6780,20 @@ msgstr "Der Teil des Bildes, der sichtbar bleibt, wenn es für einen schmalen Bi
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Air score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Air score: −%(points)s."
 msgstr ""
-"Der Pilot hat das Flugzeug im Flug verlassen, obwohl es unbeschädigt war, und dem Gegner so den Abschuss verwehrt. "
-"Das ist eine Vermutung. Luftpunkte: −%(points)s."
+"Der Pilot hat das Flugzeug im Flug verlassen, obwohl es kaum beschädigt war, und dem Gegner so den Abschuss verwehrt."
+" Das ist eine Vermutung. Luftpunkte: −%(points)s."
 
 # llm-draft
 #, python-format
 msgid ""
-"The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the kill. This is a "
-"guess. Ground score: −%(points)s."
+"The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy the kill. This "
+"is a guess. Ground score: −%(points)s."
 msgstr ""
-"Der Pilot hat das Flugzeug im Flug verlassen, obwohl es unbeschädigt war, und dem Gegner so den Abschuss verwehrt. "
-"Das ist eine Vermutung. Bodenpunkte: −%(points)s."
+"Der Pilot hat das Flugzeug im Flug verlassen, obwohl es kaum beschädigt war, und dem Gegner so den Abschuss verwehrt."
+" Das ist eine Vermutung. Bodenpunkte: −%(points)s."
 
 # llm-draft
 msgid ""
@@ -7875,11 +7879,11 @@ msgstr ""
 
 # llm-draft
 msgid ""
-"Who is online is up to date. Sides, aircraft, flight times and kills are shown with a delay, so the stats give nobody"
-" an advantage in the game."
+"Who is online and on which side is up to date. Aircraft, flight times and kills are shown with a delay, so the stats "
+"give nobody an advantage in the game."
 msgstr ""
-"Wer online ist, ist immer aktuell. Seiten, Flugzeuge, Flugzeiten und Abschüsse erscheinen mit Verzögerung, damit die "
-"Statistik niemandem einen Vorteil im Spiel verschafft."
+"Wer online ist und auf welcher Seite, ist immer aktuell. Flugzeuge, Flugzeiten und Abschüsse erscheinen mit "
+"Verzögerung, damit die Statistik niemandem einen Vorteil im Spiel verschafft."
 
 # llm-draft
 msgid "Who kills you, and whom you kill"

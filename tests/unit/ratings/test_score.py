@@ -18,6 +18,7 @@ def facts(
     is_captured: bool = False,
     suspected_early_bailout: bool = False,
     friendly_kills: int = 0,
+    friendly_kills_ground: int = 0,
     flight_time_s: float = 0.0,
 ) -> SortieFacts:
     return SortieFacts(
@@ -31,6 +32,7 @@ def facts(
         is_captured=is_captured,
         suspected_early_bailout=suspected_early_bailout,
         friendly_kills=friendly_kills,
+        friendly_kills_ground=friendly_kills_ground,
         flight_time_s=flight_time_s,
     )
 
@@ -102,6 +104,27 @@ def test_friendly_kills_are_penalised_up_to_the_cap() -> None:
     assert score_sortie(facts(friendly_kills=159)).air == -(5 * 3)
     assert score_sortie(facts(friendly_kills=2)).air == -6
     assert score_sortie(facts(friendly_kills=159), ScoreRules(penalty_friendly_kill_cap=10)).air == -30
+
+
+def test_a_friendly_ground_kill_costs_less_than_an_air_kill() -> None:
+    """Maintainer 2026-11-03 (OQ-148): a friendly ground kill costs 1, a friendly air kill stays at 3."""
+    assert score_sortie(facts(friendly_kills=4, friendly_kills_ground=4)).air == -4
+    assert score_sortie(facts(friendly_kills=4, friendly_kills_ground=4, attack=True)).ground == -4
+    assert score_sortie(facts(friendly_kills=3, friendly_kills_ground=2)).air == -(3 + 2)
+    custom = ScoreRules(penalty_friendly_ground_kill=2.5)
+    assert score_sortie(facts(friendly_kills=2, friendly_kills_ground=2), custom).air == -5
+
+
+def test_the_cap_counts_friendly_air_kills_first() -> None:
+    """At most `penalty_friendly_kill_cap` friendly kills cost points in a sortie, the costlier air kills first."""
+    assert score_sortie(facts(friendly_kills=11, friendly_kills_ground=10)).air == -(3 + 4 * 1)
+    assert score_sortie(facts(friendly_kills=160, friendly_kills_ground=153)).air == -(5 * 3)
+    assert score_sortie(facts(friendly_kills=159, friendly_kills_ground=159)).air == -(5 * 1)
+
+
+def test_friendly_kills_of_no_known_kind_cost_as_air_kills() -> None:
+    """A sortie not reprocessed since the split has the total only: it keeps the penalty it had."""
+    assert score_sortie(facts(friendly_kills=2)).air == -6
 
 
 def test_ground_assists_score_nothing() -> None:

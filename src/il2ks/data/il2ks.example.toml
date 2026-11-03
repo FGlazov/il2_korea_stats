@@ -220,9 +220,11 @@
 #penalty_plane_lost_pct = 20.0
 # Points taken off for a suspected early bailout (the pilot left an aircraft that nobody had hit).
 #penalty_early_bailout = 5.0
-# Points taken off for each friendly kill (friendly ground objects count too).
+# Points taken off for each friendly aircraft shot down.
 #penalty_friendly_kill = 3.0
-# At most this many friendly kills are penalised per sortie.
+# Points taken off for each friendly ground target destroyed (vehicles, guns, buildings and other objects).
+#penalty_friendly_ground_kill = 1.0
+# At most this many friendly kills are penalised per sortie, friendly aircraft first.
 #penalty_friendly_kill_cap = 5.0
 # Leaderboard minimums, so that one lucky sortie doesn't top a board. They change what the boards show at once (nothing
 # to rebuild). Pilot sorties needed for the score and kill boards.

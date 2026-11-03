@@ -151,7 +151,8 @@ penalty_death_pct = 80.0     # percent of the flight's score lost when the pilot
 penalty_capture_pct = 50.0
 penalty_plane_lost_pct = 20.0
 penalty_early_bailout = 5.0  # flat points, not percent
-penalty_friendly_kill = 3.0
+penalty_friendly_kill = 3.0  # each friendly aircraft shot down
+penalty_friendly_ground_kill = 1.0  # each friendly ground target
 ```
 
 After a change run `il2ks rebuild-aggregates`.

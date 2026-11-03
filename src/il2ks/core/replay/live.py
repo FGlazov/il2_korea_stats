@@ -6,7 +6,8 @@ follows who is connected (AType 20 and 21), because a player who sits in the lob
 but has no open sortie. It is pure Python: reading files and writing the database are `ingest.live`'s job.
 
 `delay_ticks` keeps the published stats behind the game, so nobody can use them in a fight (FR-ING-25): who is connected
-follows the log at once, everything else reaches the `Replay` only when the log is that far past it. A snapshot is then
+and their side (the latest spawn's country; the game shows sides anyway, maintainer 2026-11-03, OQ-143) follow the log
+at once, everything else reaches the `Replay` only when the log is that far past it. A snapshot is then
 the mission as it stood that long ago, with today's list of players. The hold follows the log's own clock, not the wall
 clock, so a restarted `watch` that re-reads the whole mission lands on the same state. AType 7 lets go of everything: a
 finished mission protects nothing.
@@ -26,6 +27,7 @@ from il2ks.core.logparse.events import (
     AccountUuid,
     LogEvent,
     MissionEndEvent,
+    MissionStartEvent,
     PlayerConnectEvent,
     PlayerDisconnectEvent,
     PlayerSpawnEvent,
@@ -71,6 +73,7 @@ class LiveView:
 class _Presence:
     profile_uuid: ProfileUuid
     name: str = ""
+    country: int = 0  # of the latest spawn, 0 = never spawned in this mission
 
 
 def _state_of(sortie: SortieResult, is_open: bool) -> LiveState:
@@ -93,6 +96,7 @@ class LiveReplay:
     def __init__(self, catalog: Catalog, rules: ReplayRules | None = None, *, delay_ticks: int = 0) -> None:
         self._replay = Replay(catalog, rules)
         self._online: dict[AccountUuid, _Presence] = {}
+        self._countries: dict[int, int] = {}  # country -> coalition, from the mission start (CNTRS)
         self._delay_ticks = delay_ticks
         self._held: deque[LogEvent] = deque()  # read, but not in the `Replay` yet
         self._last_tick = 0
@@ -122,6 +126,8 @@ class LiveReplay:
 
     def _follow_presence(self, event: LogEvent) -> None:
         match event:
+            case MissionStartEvent():
+                self._countries = dict(event.countries)
             case PlayerConnectEvent() if event.tick == 0:
                 pass  # DServer's own account, logged at T:0 of every mission; it never spawns or leaves
             case PlayerConnectEvent():
@@ -132,6 +138,7 @@ class LiveReplay:
                 presence = self._online.setdefault(event.account_uuid, _Presence(event.profile_uuid))
                 presence.name = event.name
                 presence.profile_uuid = event.profile_uuid
+                presence.country = event.country
             case _:
                 pass
 
@@ -154,8 +161,8 @@ class LiveReplay:
                     account_uuid=account,
                     profile_uuid=presence.profile_uuid,
                     name=presence.name or (current.name if current is not None else ""),
-                    coalition=current.coalition if current is not None else 0,
-                    country=current.country if current is not None else 0,
+                    coalition=self._countries.get(presence.country, 0) if presence.country else 0,
+                    country=presence.country,
                     aircraft_type=current.aircraft_type if current is not None and flying else "",
                     state=state,
                     sortie_spawn_tick=current.spawn_tick if current is not None and flying else None,

@@ -141,12 +141,12 @@ ground" proxy (lowest known ground sample nearby) was too weak (2% false at 500 
 height arm waits for heightmaps (OQ-39). Left: a pilot shot under the canopy after ejecting keeps fate `in_aircraft` (2 cases).
 
 **Suspected early bailout** adds: no hits or damage on aircraft or pilot from any attacker (environment and the sortie's own objects don't
-count), no disconnect, the sortie didn't end within 60 s before the first AType 7, and the aircraft was **sound**: under 20% damage from any source
-in its last flight before its AType 3 (`EARLY_BAILOUT_DAMAGE`; maintainer 2026-11-02: the penalty is there to stop pilots leaving a sound aircraft to deny a kill, so a pilot who wrecked or
+count), no disconnect, the sortie didn't end within 60 s before the first AType 7, and the aircraft was **sound**: at most 5% damage from any source
+in its last flight before its AType 3 (`EARLY_BAILOUT_DAMAGE`; maintainer 2026-11-03, `[DECIDED]`: over 5% makes a bailout fair, as a pilot in a death spiral may leave early with little damage; 2026-11-02: the penalty is there to stop pilots leaving a sound aircraft to deny a kill, so a pilot who wrecked or
 damaged the aircraft themselves is not early; OQ-154). The ideal test is "left before any damage", but **the log has no event at the moment of leaving**: on 210 missions the
 aircraft's AType 3 came first in every bailout, 1.8 to 135 s before the ejection spawn, which is written with the teardown, also after enemy hits. So the damage counts up to the AType 3, without the line on that tick
 (273 of 294 suspected bailouts have a full self-damage line there, also 256 of 808 after enemy hits: it says nothing about a crash). Of the 296 suspected bailouts, 134 had no damage at all before
-the AType 3 and 105 only tiny lines (at most 0.16, as when the canopy goes); the other 57 had 0.49 or more, with nothing in between, and are no longer suspected. Whether the descent between AType 3 and teardown is a
+the AType 3 and 105 only tiny lines (at most 0.16, as when the canopy goes); the other 57 had 0.49 or more, with nothing in between, and are no longer suspected. At 5% (2026-11-03, 302 bailouts on the same missions): 219 stay suspected (129 with no damage, 50 under 1%), 20 between 5% and 17% are cleared too, 63 from 49% up. Whether the descent between AType 3 and teardown is a
 parachute's does not separate the groups.
 
 `disconnected` (the flag, not the fate) = an AType 21 within ±30 s of the sortie end, or removal without AType 4. A player who lands, despawns
@@ -541,7 +541,7 @@ section and the admin's flight-time option, so a changed rule applies with `il2k
   lock (`ingest.score_apply.rescore_with_wanted`), or any `il2ks rebuild-aggregates` does it. Missions ingested meanwhile use the applied setting,
   so incremental == rebuild. The air score column hint says "plus flight-time points if the server enables them".
 - **Flat penalties** come off afterwards, from the score of the sortie's combat role (attack: ground score; otherwise air score): a suspected
-  early bailout (5) and each friendly kill (3, up to 5 kills per sortie). A sortie with a flat penalty and no kills can be negative.
+  early bailout (5), each friendly air kill (3) and each friendly ground kill (1; maintainer 2026-11-03, OQ-148), up to 5 friendly kills per sortie, the air kills first. A sortie with a flat penalty and no kills can be negative.
 - **Leaderboard minimums** (`[score] min_sorties` 5, `min_elo_games` 5, `min_attack_sorties` 5, `min_time_on_target_minutes` 10,
   `min_air_superiority_sorties` 5, `min_air_superiority_minutes` 60) apply at read time. Old flat penalty keys warn at load (FR-OPS-2).
 

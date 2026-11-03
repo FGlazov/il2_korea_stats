@@ -19,6 +19,7 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from il2ks.config import RuleSet
+from il2ks.core.ratings.score import friendly_kill_penalty
 from il2ks.db.models import CombatRole, Outcome, Player, PlayerSortie, Role
 from il2ks.queries import leaderboards as aircraft_reads
 from il2ks.queries import sorties as reads
@@ -203,24 +204,24 @@ def penalty_notes(request: HttpRequest, sortie: PlayerSortie) -> list[tuple[str,
     if sortie.suspected_early_bailout and score.penalty_early_bailout > 0:
         text = (
             _(
-                "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
-                "kill. This is a guess. Ground score: \u2212%(points)s."
+                "The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy "
+                "the kill. This is a guess. Ground score: \u2212%(points)s."
             )
             if ground
             else _(
-                "The pilot left the aircraft in flight although it had taken no damage, which denies the enemy the "
-                "kill. This is a guess. Air score: \u2212%(points)s."
+                "The pilot left the aircraft in flight although it had taken next to no damage, which denies the enemy "
+                "the kill. This is a guess. Air score: \u2212%(points)s."
             )
         )
         notes.append((_("Early bailout penalty"), text % {"points": _plain(score.penalty_early_bailout)}))
-    penalised = min(sortie.friendly_kills, score.penalty_friendly_kill_cap)
-    if penalised > 0 and score.penalty_friendly_kill > 0:
+    points = friendly_kill_penalty(score, sortie.friendly_kills, sortie.friendly_kills_ground)
+    if points > 0:
         text = (
             _("Friendly kills cost points. Ground score: \u2212%(points)s.")
             if ground
             else _("Friendly kills cost points. Air score: \u2212%(points)s.")
         )
-        notes.append((_("Friendly fire penalty"), text % {"points": _plain(score.penalty_friendly_kill * penalised)}))
+        notes.append((_("Friendly fire penalty"), text % {"points": _plain(points)}))
     return notes
 
 

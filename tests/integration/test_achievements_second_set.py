@@ -227,6 +227,6 @@ def test_top_rated_attacker_needs_attack_time_and_attack_sorties() -> None:
         )
     recompute_players([pk(1), pk(2), pk(3)])  # not a rebuild: that would score the sorties again from their kills
 
-    assert held(1)["attack_rate_peak"] == 3  # 2100 / h: 300, 600, 1000 reached, 2500 not
+    assert held(1)["attack_rate_peak"] == 4  # 2100 / h: every tier, platinum at 2000 (maintainer 2026-11-03, OQ-151)
     assert "attack_rate_peak" not in held(2)
     assert "attack_rate_peak" not in held(3)

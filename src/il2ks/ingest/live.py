@@ -23,10 +23,11 @@ The final save is the ordinary ingest of the complete mission: it rewrites those
 whose files vanish without being ingested, and every provisional mission when the admin switches
 `SiteSettings.show_live_sorties` off, are deleted again (`discard_provisional_mission`).
 
-Delay (FR-ING-25): with `[live] delay_minutes` the replay holds its events back, so the sides, aircraft, flight times
+Delay (FR-ING-25): with `[live] delay_minutes` the replay holds its events back, so the aircraft, flight times
 and kills of online now, the provisional sorties and the totals they feed all lag the game by that long. Only who is on
-the server stays current. The moment AType 7 is read nothing is held back: that tick saves the whole mission, whatever
-the intervals and the CPU budget say, so its stats are out at once and don't wait for the final save (`settle_seconds`).
+the server and on which side stays current (OQ-143). The moment AType 7 is read nothing is held back: that tick saves
+the whole mission, whatever the intervals and the CPU budget say, so its stats are out at once and don't wait for the
+final save (`settle_seconds`).
 
 Locking: the `Live*` writes take **no writer lock**: a normal ingest of a completed mission never waits for a live
 snapshot (each is one short transaction) and the reverse is bounded by SQLite's busy timeout. They never bump the data
