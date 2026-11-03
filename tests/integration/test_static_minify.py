@@ -1,7 +1,9 @@
 """Production static collection minifies our own CSS and JS before hashing (doc 16); the sources stay readable."""
 
 import json
+import re
 import shutil
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -64,6 +66,19 @@ def test_an_override_in_custom_static_is_minified_and_keeps_its_marker_comment(c
     text = (collected / _manifest(collected)["il2ks/mine.css"]).read_text(encoding="utf-8")
     assert text.startswith("/*! il2ks-template: static/il2ks/site.css v1 */")
     assert "body{color:red}" in text
+
+
+def test_brotli_copies_are_written_next_to_the_gzip_ones(collected: Path) -> None:
+    """Without the `brotli` package WhiteNoise silently writes `.gz` only, and browsers get gzip (~12% bigger)."""
+    for name in ["il2ks/site.css", "il2ks/il2ks.js", "il2ks/vendor/htmx.min.js"]:
+        hashed = collected / _manifest(collected)[name]
+        assert Path(f"{hashed}.br").stat().st_size < Path(f"{hashed}.gz").stat().st_size
+
+
+def test_brotli_is_a_runtime_dependency() -> None:
+    """It reached the dev environment only through locust, so the test above passed while production had no `.br`."""
+    project = tomllib.loads((Path(__file__).resolve().parents[2] / "pyproject.toml").read_text(encoding="utf-8"))
+    assert any(re.match(r"brotli\b", req, re.IGNORECASE) for req in project["project"]["dependencies"])
 
 
 def test_collecting_twice_is_stable(collected: Path, settings: Settings) -> None:

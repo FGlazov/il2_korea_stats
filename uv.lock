@@ -884,6 +884,7 @@ name = "il2ks"
 source = { editable = "." }
 dependencies = [
     { name = "a2wsgi" },
+    { name = "brotli" },
     { name = "django" },
     { name = "django-axes" },
     { name = "hypercorn" },
@@ -918,6 +919,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "a2wsgi", specifier = ">=1.10" },
+    { name = "brotli", specifier = ">=1.1" },
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "django-axes", specifier = ">=8.3.1" },
     { name = "hypercorn", specifier = ">=0.17" },

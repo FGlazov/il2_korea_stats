@@ -56,7 +56,7 @@ PRUNE = (
     "DLLs/tk86t.dll",
 )
 MAX_WORK_PATH = 120  # the longest file below stage/ is about 130 characters deep; Windows' limit is 260
-SMOKE_IMPORTS = "import sqlite3, ssl, zoneinfo, django, hypercorn, a2wsgi, PIL, whitenoise, tzdata, il2ks"
+SMOKE_IMPORTS = "import sqlite3, ssl, zoneinfo, django, hypercorn, a2wsgi, PIL, whitenoise, brotli, tzdata, il2ks"
 
 
 class BuildError(RuntimeError):

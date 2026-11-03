@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Smaller CSS and JavaScript downloads:** il2ks now installs `brotli`, so the static files are also stored Brotli-compressed and
+  browsers download about 12% less than with gzip (the stylesheets and htmx the most). Nothing to configure.
+
 ## 0.6.0 (2026-11-03)
 
 Run `il2ks reprocess --all` once after the upgrade (it needs your archived logs and rebuilds the aggregates too). It finds the botched
