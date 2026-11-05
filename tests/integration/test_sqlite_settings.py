@@ -46,6 +46,31 @@ def test_sqlite_runs_in_wal_mode_with_immediate_transactions(tmp_path: Path) -> 
         connections.close_all()
 
 
+def test_a_connection_outlives_the_request_for_ten_minutes(tmp_path: Path) -> None:
+    """Kept connections (doc 16, Serving): opening one per request cost ~2.4 ms, a 304 ran at a third of the rate.
+
+    `close_if_unusable_or_obsolete` is what Django runs at the start and end of every request."""
+    for alias in settings.DATABASES:
+        assert settings.DATABASES[alias]["CONN_MAX_AGE"] == 600
+        assert settings.DATABASES[alias]["CONN_HEALTH_CHECKS"] is True
+    connections = sqlite_connections(tmp_path / "kept.sqlite3")
+    try:
+        conn = connections["default"]
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        raw = conn.connection
+        conn.close_if_unusable_or_obsolete()  # request finished
+        conn.close_if_unusable_or_obsolete()  # next request started
+        assert raw is not None
+        assert conn.connection is raw
+        assert conn.close_at is not None
+        conn.close_at -= 601  # ten minutes later
+        conn.close_if_unusable_or_obsolete()
+        assert conn.connection is None
+    finally:
+        connections.close_all()
+
+
 def test_a_reader_is_not_blocked_by_an_open_write_transaction(tmp_path: Path) -> None:
     db_file = tmp_path / "wal.sqlite3"
     writer_side = sqlite_connections(db_file)

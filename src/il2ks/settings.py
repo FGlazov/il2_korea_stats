@@ -116,12 +116,20 @@ SQLITE_OPTIONS: dict[str, object] = {
     "timeout": 20,
 }
 
+# Kept connections (doc 16, Serving): a web thread keeps its database connection for up to 10 minutes instead of opening
+# one per request. Opening one (the file plus the PRAGMAs above) cost ~2.4 ms a request: on the real server a 304 went
+# from 237/s to 662/s and full pages gained ~13% (docs/performance-testing.md). There is no pool to size: Django keeps
+# one connection per thread, so a worker holds `[web] threads` of them. The health check replaces a broken one.
+CONN_MAX_AGE = 600
+
 
 def _databases() -> dict[str, dict[str, object]]:
     sqlite: dict[str, object] = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": DATA_DIR / "il2ks.sqlite3",
         "OPTIONS": SQLITE_OPTIONS,
+        "CONN_MAX_AGE": CONN_MAX_AGE,
+        "CONN_HEALTH_CHECKS": True,
     }
     if os.environ.get("IL2KS_TEST_DB") != "postgres":
         return {"default": sqlite}
@@ -132,6 +140,8 @@ def _databases() -> dict[str, dict[str, object]]:
         "PASSWORD": os.environ.get("IL2KS_PG_PASSWORD", "il2ks"),
         "HOST": os.environ.get("IL2KS_PG_HOST", "127.0.0.1"),
         "PORT": os.environ.get("IL2KS_PG_PORT", "5432"),
+        "CONN_MAX_AGE": CONN_MAX_AGE,
+        "CONN_HEALTH_CHECKS": True,
     }
     # Postgres is the default under test; SQLite stays available as "sqlite" for the transfer test (TD-19). Its test
     # database is built from the models, not by running the migrations: data migrations query through the default

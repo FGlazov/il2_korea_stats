@@ -12,9 +12,9 @@ sha256 = "7369f7a35f261222a6ac8b3a87c1c88eeebee8af945d85346202591a64038dd3"
 # Caddy: the bundled HTTPS proxy (TD-23). Upstream publishes SHA-512 (caddy_<version>_checksums.txt); the SHA-256 below
 # was computed from the file after checking its SHA-512 against that list.
 [caddy]
-version = "2.11.7"
-url = "https://github.com/caddyserver/caddy/releases/download/v2.11.7/caddy_2.11.7_windows_amd64.zip"
-sha256 = "0a1edc0b799512051c57071ce0e798d3f2cf67dc98171366f1d2b326072e3b06"
+version = "2.11.9"
+url = "https://github.com/caddyserver/caddy/releases/download/v2.11.9/caddy_2.11.9_windows_amd64.zip"
+sha256 = "ad93112d335ee687100c4c9f11bced16ca590377976b7fe7883882b9e797e472"
 
 # WinSW: wraps `il2ks run` as a Windows service. The x64 build needs .NET Framework 4.6.1+ (part of Windows 10/Server 2016 and later).
 # Upstream publishes no checksums: the hash below is of the file as downloaded when this version was chosen.

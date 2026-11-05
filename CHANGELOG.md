@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.1 (2026-11-05)
+
+A speed-up for the website. Nothing to run after the upgrade, and the stats don't change.
+
+### Changed
+
+- **The website keeps its database connections open** for up to 10 minutes. Before, every request opened a new one, about
+  2.4 ms each time. A browser revalidating a page it already has (the `304` answer) is now answered almost three times as fast
+  (237 to 662 a second on one worker), and full pages about 13% faster. Each web thread keeps one connection, so the default of
+  one worker with 4 threads holds 4.
+- **Stop the website before `il2ks restore --force`**, as the restore already asks. On Linux a forced restore under a running
+  site now leaves it showing the old data until you restart it. On Windows the restore fails cleanly and nothing changes.
+- **Windows installer:** Caddy 2.11.9 (security and bug fixes; none of the breaking changes touch the il2ks setup).
+
 ## 0.7.0 (2026-11-03)
 
 An accessibility release. Nothing to run after the upgrade, and the stats don't change.

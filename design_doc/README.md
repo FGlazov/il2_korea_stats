@@ -128,4 +128,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-11-03 (0.6.1: OQ-142, 143, 147..155 answered (02, 11, 13, 14, 17): no tour resume, sides current during the stats delay, a friendly ground kill costs 1, Surgical Strike platinum 2000, early bailout at most 5% damage).
   2026-11-03 (0.7.0: accessibility target WCAG 2.1 AA decided, NFR-UI-3 in 03; doc 16 "Accessibility": axe also on the error and admin
   pages and at 320 px, focus-ring contrast in the theme check, admin labels).
+  2026-11-05 (0.7.1: kept database connections, `CONN_MAX_AGE` 10 minutes, decided (16, Serving)).
   2026-10-31 (0.5.2: Jet Hunter; AI aircraft count for Bomber Hunter; no negative medals, no ram medal (17); fences are no ground kills (02, 13)); 2026-11-01 (0.5.3: nor friendly kills (02, 13)); 2026-11-01 (0.5.4: medals in "Recently earned" keep their tier colour again, no decision changed).

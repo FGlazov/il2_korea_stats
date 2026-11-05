@@ -244,8 +244,8 @@ One process, Django's test client, `DEBUG` off (cached templates), no network an
 | Player page, full render | 26 | 38 ms |
 | Home page, full render | 21 | 47 ms |
 
-`CONN_MAX_AGE` is not set, so a real server opens a new SQLite connection per request. The same run with and without
-that, per second:
+Until 0.7.0 `CONN_MAX_AGE` was not set, so a real server opened a new SQLite connection per request. The same run with
+and without that, per second:
 
 | Page | Connection kept open | New connection per request |
 |---|---|---|
@@ -253,6 +253,18 @@ that, per second:
 | Sortie page | 39 | 26 |
 | Player page | 20 | 12 |
 | Home page | 15 | 12 |
+
+Measured again 2026-11-05 on the real server (`il2ks web`, hypercorn, 1 worker, 4 threads) over the seeded perf world
+(`tests.perf.seed`, 60 missions), one keep-alive client, six rounds alternating the two settings, medians:
+
+| Load | `CONN_MAX_AGE = 600` | New connection per request |
+|---|---|---|
+| Sortie, player and home page in turn | 35.8/s (p50 30 ms) | 31.6/s (p50 33 ms) |
+| Sortie page, `304` revalidation | 662/s (p50 1.4 ms) | 237/s (p50 3.8 ms) |
+
+About 2.4 ms per request, the same for every page, so the cheap answers gain most. With 8 clients on the 4 threads the
+full pages queue on the GIL and the difference drowns in noise (27 to 33/s either way); the `304`s still doubled. Since
+0.7.1 connections are kept for 10 minutes (doc 16, Serving).
 
 The whole server over HTTP on localhost, 8 clients asking for the sortie, player and home pages in turn, in rounds of
 12 seconds. Hypercorn and uvicorn serve the WSGI app through a2wsgi (`il2ks.asgi`):
