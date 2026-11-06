@@ -228,9 +228,9 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   leaderboards, in every sort, filter and language a visitor asks for. The next visitor gets the kept copy without the
   database work. Mission, player and sortie pages are not kept, nor name searches, nor pages for a logged-in admin.
   A new mission, a rebuild and every admin change (a notice, the theme, a hidden player) show on the very next request:
-  the kept copies of the old data are never served again. `auto` keeps them in memory with one worker and as shared
-  files in `<data dir>/cache/pages` with more (emptied at each start); `tiered` uses both, each worker's memory in front
-  of the shared files; `memory`, `files`, `tiered` or `off` choose yourself.
+  the kept copies of the old data are never served again. `auto` keeps them in memory with one worker and `tiered` with
+  more: shared files in `<data dir>/cache/pages` (emptied at each start) with each worker's memory in front of them.
+  `memory`, `files`, `tiered` or `off` choose yourself.
   `page_cache_minutes` is the longest a copy is served even when nothing changed. With `page_cache_warm` each worker
   renders the pages again a few seconds after a change, so the first visitor gets them fast too. Responses say
   `X-Il2ks-Cache: hit` or `miss`.

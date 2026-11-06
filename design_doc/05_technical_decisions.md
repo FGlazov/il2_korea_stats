@@ -431,7 +431,7 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
     searches (`?q=`), requests with a session cookie. Key: the ETag of step 1 plus the Host, so anything that makes a 304 right makes
     the copy right; admin edits show on the next request (maintainer, 2026-11-06: everything an admin changes must be immediate).
     TTL `[web] page_cache_minutes` (10). Backends through Django's cache framework, `[web] page_cache`: `auto` (memory with one
-    worker, files with more), `memory` (LocMem, per worker), `files` (FileBased in `<data dir>/cache/pages`, shared, emptied at each
+    worker, tiered with more: maintainer, 2026-11-06, after tiered measured at least as fast as files), `memory` (LocMem, per worker), `files` (FileBased in `<data dir>/cache/pages`, shared, emptied at each
     web start), `tiered` (both: the worker's memory in front of the shared files, a files hit is copied into memory; keys never
     change meaning, so the tiers cannot disagree; each entry carries its expiry, so a copy keeps the remaining lifetime), `off`;
     never under DEBUG. Database and Redis/memcached backends stay out (the writer lock; one more service).

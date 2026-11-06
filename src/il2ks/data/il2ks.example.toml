@@ -331,8 +331,8 @@
 #threads = 4
 # Keep the rendered list pages (front page, missions, players, sorties, aircraft, leaderboards) so the next visitor
 # gets them without the database work. A new mission or an admin change shows at once all the same.
-# "auto" = in memory with one worker, as shared files in <data dir>/cache/pages with more. "tiered" = both: each
-# worker's memory in front of the shared files. "memory", "files", "tiered" or "off" choose yourself.
+# "auto" = "memory" with one worker, "tiered" with more. "tiered" = shared files in <data dir>/cache/pages with each
+# worker's memory in front of them. "memory", "files", "tiered" or "off" choose yourself.
 #page_cache = "auto"
 # The longest a kept page is served, in minutes, even when nothing changed.
 #page_cache_minutes = 10

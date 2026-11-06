@@ -166,9 +166,10 @@ class WebConfig:
 
     @property
     def page_cache_backend(self) -> PageCacheBackend:
-        """What "auto" means here: one worker keeps the pages in its memory, several share them as files."""
+        """What "auto" means here: one worker keeps the pages in its memory; several share them as files, each with its
+        memory in front (tiered: as fast as memory per hit, docs/performance-testing.md)."""
         if self.page_cache == "auto":
-            return "memory" if self.workers == 1 else "files"
+            return "memory" if self.workers == 1 else "tiered"
         return self.page_cache
 
 

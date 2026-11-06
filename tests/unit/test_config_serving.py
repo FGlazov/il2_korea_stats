@@ -148,7 +148,8 @@ def test_login_lockout_and_outbound_settings(tmp_path: Path) -> None:
 
 
 def test_page_cache_settings(tmp_path: Path) -> None:
-    """TD-28: "auto" keeps pages in memory with one worker and shares them as files with more."""
+    """TD-28: "auto" keeps pages in memory with one worker; with more, each worker's memory in front of shared files
+    (tiered: as fast as memory per hit, measured 2026-11-06; maintainer's choice)."""
     defaults = cfg_from(tmp_path)
     assert (defaults.web.page_cache, defaults.web.page_cache_minutes, defaults.web.page_cache_warm) == (
         "auto",
@@ -156,7 +157,7 @@ def test_page_cache_settings(tmp_path: Path) -> None:
         True,
     )
     assert defaults.web.page_cache_backend == "memory"
-    assert cfg_from(tmp_path, "[web]\nworkers = 3").web.page_cache_backend == "files"
+    assert cfg_from(tmp_path, "[web]\nworkers = 3").web.page_cache_backend == "tiered"
     assert cfg_from(tmp_path, '[web]\nworkers = 3\npage_cache = "memory"').web.page_cache_backend == "memory"
     assert cfg_from(tmp_path, '[web]\npage_cache = "files"').web.page_cache_backend == "files"
     assert cfg_from(tmp_path, '[web]\npage_cache = "tiered"').web.page_cache_backend == "tiered"

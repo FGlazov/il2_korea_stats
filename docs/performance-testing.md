@@ -349,6 +349,8 @@ yet and every mode renders (40 to 57 ms; one tiered run with 4 workers took 167 
   the list) and the variants of the last few visitors' host and language. Median 0.3 to 0.65 s per warm-up, at most
   1.1 s. With the file tier the workers of one start take turns: one claims the warm-up, the others read its files. It
   warms again at 0.9 of the lifetime, so the default pages stay hot.
+- **What `auto` picks:** `memory` with one worker, `tiered` with more (since 2026-11-06; before, `files`). Tiered answers
+  as fast as memory and still shares one warm-up between the workers.
 - **Size.** A compressed page is about 7 KB; at most 2,000 entries per tier, so about 14 MB in memory per worker.
 - **What is not cached:** player, sortie and mission pages (unbounded), searches (`?q=`), anything for a signed-in
   admin, and `DEBUG`.
