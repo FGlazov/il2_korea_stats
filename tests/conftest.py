@@ -51,6 +51,13 @@ def _plain_http_in_tests(settings: Settings) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _no_page_cache(settings: Settings) -> None:
+    """The server-side page cache (`il2ks.web.page_cache`) is keyed on the data version, and every test database starts
+    from the same versions: a page cached in one test would be served in the next. Its own tests switch it on."""
+    settings.IL2KS_PAGE_CACHE = "off"
+
+
+@pytest.fixture(autouse=True)
 def _reset_active_language(settings: Settings) -> Iterator[None]:
     """`LocaleMiddleware` activates the request's language on the thread and never switches it off (each real request
     activates its own, so production is fine), so a test client call with `Accept-Language: de` would leave German

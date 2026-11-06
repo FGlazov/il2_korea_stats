@@ -17,6 +17,7 @@ log_failed_login  # signal receiver (web.login_protection, @receiver)
 log_lockout  # signal receiver (web.login_protection, @receiver)
 sender  # signal receiver signature (web.login_protection)
 trust_forwarded_for  # il2ks.settings (IL2KS_TRUST_FORWARDED_FOR; settings.py is not scanned)
+_.page_cache_backend  # il2ks.settings (IL2KS_PAGE_CACHE; settings.py is not scanned)
 fetch  # serving.outbound: the SSRF-guarded fetch has no caller yet; the polled Markdown source and webhooks will use it
 parse_allow_list  # serving.outbound: turns `[outbound] allow_private` into networks for `fetch` (no caller yet)
 _.app_name  # Django URLconf namespace

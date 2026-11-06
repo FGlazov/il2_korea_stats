@@ -424,6 +424,22 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
     start ID (so a restart after editing `custom/` templates invalidates too), full path with query and `HX-Request`. Responses that set
     cookies or their own `Cache-Control` are left alone. Bumps: inside each mission save, at the end of rebuilds, and on every admin save or
     action on a page-visible model.
+  - **Step 2 as built** `[PROPOSED]` (2026-11-06, maintainer asked for it; adoption pending the measurements in
+    `docs/performance-testing.md`, "Page cache"): `web/page_cache.py`. Cached: the front page, the mission, player and sortie lists,
+    the aircraft list and each aircraft page, the leaderboards, in every variant asked for (query, language, HTMX). Not cached:
+    mission, player and sortie detail pages (a first step bounded by the number of list variants; recent details may follow), name
+    searches (`?q=`), requests with a session cookie. Key: the ETag of step 1 plus the Host, so anything that makes a 304 right makes
+    the copy right; admin edits show on the next request (maintainer, 2026-11-06: everything an admin changes must be immediate).
+    TTL `[web] page_cache_minutes` (10). Backends through Django's cache framework, `[web] page_cache`: `auto` (memory with one
+    worker, files with more), `memory` (LocMem, per worker), `files` (FileBased in `<data dir>/cache/pages`, shared, emptied at each
+    web start), `tiered` (both: the worker's memory in front of the shared files, a files hit is copied into memory; keys never
+    change meaning, so the tiers cannot disagree; each entry carries its expiry, so a copy keeps the remaining lifetime), `off`;
+    never under DEBUG. Database and Redis/memcached backends stay out (the writer lock; one more service).
+    **Warming** (`[web] page_cache_warm`): a thread per worker polls the data version (2 s), waits until it has held 5 s (a
+    `reprocess` bumps it every mission), then renders the default variant of every cached page (default sort only, maintainer
+    2026-11-06) through the WSGI app for the public host in the default language and the last visitors' host and language; it
+    warms again before the TTL runs out (its requests always render, so that refreshes the entries). With shared files, one
+    worker per start claims each warm-up (the start ID is in the claim: a leftover process of an earlier start must not take it).
 - **Why:** correct by construction (a new version can't show stale data, and hiding a cheater takes effect at once), zero setup for admins,
   and pages are already simple reads (TD-22), so step 2 may never be needed.
 - **Live data later** (online now, FR-ING-12; live sorties, FR-ING-15): those fragments change every few seconds or minutes. They're HTMX

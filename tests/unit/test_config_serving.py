@@ -90,6 +90,9 @@ def test_the_secret_key_never_appears_in_the_repr(tmp_path: Path) -> None:
         ("[web]\nallowed_hosts = [1]", "web.allowed_hosts"),
         ("[web]\nlogin_attempts = 0", "web.login_attempts"),
         ("[web]\nlogin_lockout_minutes = 0", "web.login_lockout_minutes"),
+        ('[web]\npage_cache = "redis"', "web.page_cache"),
+        ("[web]\npage_cache_minutes = 0", "web.page_cache_minutes"),
+        ('[web]\npage_cache_warm = "sometimes"', "web.page_cache_warm"),
         ('[outbound]\nallow_private = ["not-a-network"]', "outbound.allow_private"),
         ('[https]\nmode = "nginx"', "https.mode"),
         ('[https]\ncert = "self"', "https.cert"),
@@ -142,3 +145,20 @@ def test_login_lockout_and_outbound_settings(tmp_path: Path) -> None:
     )
     assert (cfg.web.login_attempts, cfg.web.login_lockout_minutes) == (3, 30)
     assert cfg.outbound.allow_private == ("192.168.1.0/24",)
+
+
+def test_page_cache_settings(tmp_path: Path) -> None:
+    """TD-28: "auto" keeps pages in memory with one worker and shares them as files with more."""
+    defaults = cfg_from(tmp_path)
+    assert (defaults.web.page_cache, defaults.web.page_cache_minutes, defaults.web.page_cache_warm) == (
+        "auto",
+        10,
+        True,
+    )
+    assert defaults.web.page_cache_backend == "memory"
+    assert cfg_from(tmp_path, "[web]\nworkers = 3").web.page_cache_backend == "files"
+    assert cfg_from(tmp_path, '[web]\nworkers = 3\npage_cache = "memory"').web.page_cache_backend == "memory"
+    assert cfg_from(tmp_path, '[web]\npage_cache = "files"').web.page_cache_backend == "files"
+    assert cfg_from(tmp_path, '[web]\npage_cache = "tiered"').web.page_cache_backend == "tiered"
+    cfg = cfg_from(tmp_path, "", {"IL2KS_WEB_PAGE_CACHE": "OFF", "IL2KS_WEB_PAGE_CACHE_WARM": "false"})
+    assert (cfg.web.page_cache_backend, cfg.web.page_cache_warm) == ("off", False)

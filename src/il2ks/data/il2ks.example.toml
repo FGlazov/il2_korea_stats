@@ -329,6 +329,15 @@
 #workers = 1
 # Request threads per worker. More of them do not make the site faster: more workers do.
 #threads = 4
+# Keep the rendered list pages (front page, missions, players, sorties, aircraft, leaderboards) so the next visitor
+# gets them without the database work. A new mission or an admin change shows at once all the same.
+# "auto" = in memory with one worker, as shared files in <data dir>/cache/pages with more. "tiered" = both: each
+# worker's memory in front of the shared files. "memory", "files", "tiered" or "off" choose yourself.
+#page_cache = "auto"
+# The longest a kept page is served, in minutes, even when nothing changed.
+#page_cache_minutes = 10
+# Render those pages again in the background right after each change, so even the first visitor gets them fast.
+#page_cache_warm = true
 # Extra host names the site may be reached under, besides [https] domain and localhost. Rarely needed.
 #allowed_hosts = []
 # Django's secret key (signs login cookies). "" = generated on first start and kept in <data dir>/secret_key.txt.

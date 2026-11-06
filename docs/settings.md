@@ -223,6 +223,17 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   address); it works while the site runs. Or wait. One account failing from many addresses is never locked (a stranger could
   lock you out), but the log says `admin_login_account_targeted` once the failures reach the address limit.
   Behind your own proxy the lockout needs the proxy's `X-Forwarded-For` header, see [reverse-proxy.md](reverse-proxy.md).
+- `[web]` `page_cache` (default `auto`), `page_cache_minutes` (10) and `page_cache_warm` (true): the website keeps the
+  pages it renders most, the front page, the mission, player, sortie and aircraft lists, each aircraft's page and the
+  leaderboards, in every sort, filter and language a visitor asks for. The next visitor gets the kept copy without the
+  database work. Mission, player and sortie pages are not kept, nor name searches, nor pages for a logged-in admin.
+  A new mission, a rebuild and every admin change (a notice, the theme, a hidden player) show on the very next request:
+  the kept copies of the old data are never served again. `auto` keeps them in memory with one worker and as shared
+  files in `<data dir>/cache/pages` with more (emptied at each start); `tiered` uses both, each worker's memory in front
+  of the shared files; `memory`, `files`, `tiered` or `off` choose yourself.
+  `page_cache_minutes` is the longest a copy is served even when nothing changed. With `page_cache_warm` each worker
+  renders the pages again a few seconds after a change, so the first visitor gets them fast too. Responses say
+  `X-Il2ks-Cache: hit` or `miss`.
 - `[outbound]` `allow_private`: when il2ks fetches a web address an admin typed (no feature does yet), it refuses addresses
   that are not on the public internet: this machine, your LAN, cloud metadata addresses. List addresses or networks
   (`["192.168.1.0/24"]`) here to allow a source on your own LAN. Leave it empty unless you need it.

@@ -150,6 +150,32 @@ def _databases() -> dict[str, dict[str, object]]:
 
 
 DATABASES = _databases()
+
+# Server-side page cache (TD-28, `il2ks.web.page_cache`): `[web] page_cache` "auto" is memory with one worker and shared
+# files with more, "tiered" both (each worker's memory in front of the shared files); never under DEBUG (templates
+# reload there). Both caches are always defined; `page_cache` picks which ones are used. "default" stays Django's.
+IL2KS_PAGE_CACHE = "off" if DEBUG else _CFG.web.page_cache_backend
+IL2KS_PAGE_CACHE_SECONDS = _CFG.web.page_cache_minutes * 60
+IL2KS_PAGE_CACHE_WARM = _CFG.web.page_cache_warm
+_PAGE_CACHE_ENTRIES = 2000  # compressed pages, about 10 to 30 KB each
+
+
+_PAGE_CACHE_OPTIONS = {"MAX_ENTRIES": _PAGE_CACHE_ENTRIES, "CULL_FREQUENCY": 4}
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "pages_memory": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "il2ks-pages",
+        "TIMEOUT": IL2KS_PAGE_CACHE_SECONDS,
+        "OPTIONS": _PAGE_CACHE_OPTIONS,
+    },
+    "pages_files": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": _CFG.page_cache_dir,  # created on the first write only
+        "TIMEOUT": IL2KS_PAGE_CACHE_SECONDS,
+        "OPTIONS": _PAGE_CACHE_OPTIONS,
+    },
+}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # The admin account is the one thing on the site worth guessing: Django's standard four password checks apply to every

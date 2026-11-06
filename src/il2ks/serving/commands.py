@@ -10,6 +10,7 @@ import dataclasses
 import json
 import logging
 import os
+import shutil
 import sys
 import threading
 import time
@@ -197,6 +198,8 @@ def cmd_web(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
             from django.core.management import call_command
 
             call_command("collectstatic", interactive=False, verbosity=0)
+            # Shared page-cache files of the last run can never be hit again (the start ID is in their key, TD-28)
+            shutil.rmtree(cfg.page_cache_dir, ignore_errors=True)
         if dev:
             log.info("development mode: DEBUG on, http only, http://%s:%d/", host, port)
             webserver.serve_dev(host, port, reload=ns.reload)

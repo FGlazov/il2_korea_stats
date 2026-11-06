@@ -44,6 +44,9 @@ type HttpsMode = Literal["caddy", "external"]
 HTTPS_MODES: tuple[HttpsMode, ...] = ("caddy", "external")
 type CertSource = Literal["auto", "internal"]
 CERT_SOURCES: tuple[CertSource, ...] = ("auto", "internal")
+type PageCacheMode = Literal["auto", "memory", "files", "tiered", "off"]
+PAGE_CACHE_MODES: tuple[PageCacheMode, ...] = ("auto", "memory", "files", "tiered", "off")
+type PageCacheBackend = Literal["memory", "files", "tiered", "off"]
 
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 SERVER_UID_FILE = "server_uid.txt"
@@ -156,6 +159,17 @@ class WebConfig:
     secret_key: str = field(default="", repr=False)  # "" = generated into <data dir>/secret_key.txt (NFR-SEC-2)
     login_attempts: int = 5  # failed admin logins before the account and the client address are locked (NFR-SEC-8)
     login_lockout_minutes: int = 15  # how long that lock lasts
+    # Server-side page cache (TD-28, `il2ks.web.page_cache`): "auto" = memory with one worker, files with more
+    page_cache: PageCacheMode = "auto"
+    page_cache_minutes: float = 10.0  # the longest an entry lives; a data change replaces it sooner
+    page_cache_warm: bool = True  # render the cached pages again right after each data change
+
+    @property
+    def page_cache_backend(self) -> PageCacheBackend:
+        """What "auto" means here: one worker keeps the pages in its memory, several share them as files."""
+        if self.page_cache == "auto":
+            return "memory" if self.workers == 1 else "files"
+        return self.page_cache
 
 
 @dataclass(frozen=True, slots=True)
@@ -243,6 +257,11 @@ class Config:
     @property
     def move_to(self) -> Path:
         return self.logs.move_to or self.data_dir / "ingested-logs"
+
+    @property
+    def page_cache_dir(self) -> Path:
+        """The shared page cache of `[web] page_cache = "files"` (`il2ks.web.page_cache`); emptied at each web start."""
+        return self.data_dir / "cache" / "pages"
 
     @property
     def log_dir(self) -> Path:
@@ -461,6 +480,9 @@ def _load_web(reader: _Reader) -> WebConfig:
     host = reader.str_("web", "host", defaults.host).strip()
     if not host:
         raise ConfigError("web.host must not be empty")
+    page_cache = reader.str_("web", "page_cache", defaults.page_cache).strip().lower()
+    if page_cache not in PAGE_CACHE_MODES:
+        raise ConfigError(f"web.page_cache must be one of {', '.join(PAGE_CACHE_MODES)}, got {page_cache!r}")
     return WebConfig(
         host=host,
         port=reader.port("web", "port", defaults.port),
@@ -470,6 +492,9 @@ def _load_web(reader: _Reader) -> WebConfig:
         secret_key=reader.str_("web", "secret_key", "").strip(),
         login_attempts=reader.positive_int("web", "login_attempts", defaults.login_attempts),
         login_lockout_minutes=reader.positive_int("web", "login_lockout_minutes", defaults.login_lockout_minutes),
+        page_cache=page_cache,
+        page_cache_minutes=reader.positive("web", "page_cache_minutes", defaults.page_cache_minutes),
+        page_cache_warm=reader.bool_("web", "page_cache_warm", defaults.page_cache_warm),
     )
 
 

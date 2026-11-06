@@ -310,11 +310,45 @@ What follows from these numbers:
   8,000 requests at full load on 2 and 4 workers did not repeat it, with a worst time under 0.5 s, nor did light and
   bursty traffic. The bug behind granian's limit could be the cause, but that is not proven. The maintainer accepts
   this: a visitor reloads after a few seconds. One worker has no shared socket to fight over.
-- **Several workers share what matters.** Login lockouts and sessions are in the database, there is no server-side
-  cache, what is cached per process is shipped data that never changes, and the workers of one start share their ETag
-  boot id. Per process, and harmless: the sitemap cache (keyed by the data version) and the front-page image poller
+- **Several workers share what matters.** Login lockouts and sessions are in the database, the page cache keys every
+  entry on the ETag (so a worker never serves another version's page), what else is cached per process is shipped data
+  that never changes, and the workers of one start share their ETag boot id. Per process, and harmless: the sitemap cache (keyed by the data version) and the front-page image poller
   (`sync` is safe from several processes). The first-run setup page always runs on one worker, because its finish lock
   and its attempt limiter live in one process.
+
+### Page cache (TD-28 step 2)
+
+The list pages (home, missions, players, sorties, aircraft, an aircraft's page, the leaderboards) are kept rendered on
+the server, keyed by host and ETag, so a data change or an admin save is a new key and shows on the next request
+(`[web] page_cache`, docs/settings.md). Measured 2026-11-06 on the real server (`il2ks web`, hypercorn, 4 threads per
+worker) over the seeded perf world, `IL2KS_SETUP_PAGE=off`, keep-alive clients asking for 6 cached list pages in turn,
+pages per second:
+
+| Workers | Clients | `off` | `memory` | `files` | `tiered` |
+|---|---|---|---|---|---|
+| 1 | 1 | 62 | 517 | 403 | 585 |
+| 1 | 8 | 59 | 675 | 598 | 705 |
+| 2 | 1 | 48 | 455 | 463 | 571 |
+| 2 | 8 | 113 | 1,195 | 1,127 | 1,190 |
+| 4 | 1 | 57 | 535 | 449 | 471 |
+| 4 | 8 | 159 | 1,970 | 1,588 | 2,158 |
+
+The first request for `/` 12 seconds after a data change, once the warmer had run: about 3 ms from memory (or tiered
+with 1 and 2 workers), 11 ms from files, 38 to 48 ms with the cache off. Right after the change the warmer has not run
+yet and every mode renders (40 to 57 ms; one tiered run with 4 workers took 167 ms).
+
+- **A hit costs about 1.7 ms of Python** (the middleware, the WSGI and ASGI layers), so one worker tops out near 600 a
+  second whatever the clients do, and the gain from more clients comes from more workers. Reading the file tier adds
+  about 0.3 ms per hit (open, unpickle, decompress).
+- **The warmer** is a background thread in each web worker (`il2ks.web.page_cache.Warmer`, started in `il2ks.asgi`). It
+  checks the data version every 2 s, waits until it has held for 5 s (an ingest bumps it several times), then renders
+  the 21 default pages (each list page in its default sort and every leaderboard board, plus each aircraft linked from
+  the list) and the variants of the last few visitors' host and language. Median 0.3 to 0.65 s per warm-up, at most
+  1.1 s. With the file tier the workers of one start take turns: one claims the warm-up, the others read its files. It
+  warms again at 0.9 of the lifetime, so the default pages stay hot.
+- **Size.** A compressed page is about 7 KB; at most 2,000 entries per tier, so about 14 MB in memory per worker.
+- **What is not cached:** player, sortie and mission pages (unbounded), searches (`?q=`), anything for a signed-in
+  admin, and `DEBUG`.
 
 ## Adding a page
 

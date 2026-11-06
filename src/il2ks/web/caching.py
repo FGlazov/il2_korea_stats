@@ -7,6 +7,8 @@ of those bumps `DataVersion` (`il2ks.db.site.bump_data_version`). So for public 
   `HX-Request`; under DEBUG also the icon sprite's hash, so an edited icon shows up),
 - answers a matching `If-None-Match` with `304` **before the view runs** (`process_view`): the whole cost of a
   revalidation is one tiny query for the version,
+- otherwise serves the list pages from the server-side page cache under the same ETag (`web.page_cache`), and keeps
+  the ones it renders there,
 - adds that ETag, `Cache-Control: max-age=0, must-revalidate` and `Vary: HX-Request, Accept-Language` to 200 responses
   (plus `Cookie` when the request carries the language cookie). Browsers keep the page but ask before every reuse, so
   hiding a cheater or editing the branding shows up at once (TD-28); the question costs one tiny query.
@@ -34,10 +36,11 @@ from django.utils.translation import get_language
 from il2ks import __version__
 from il2ks.db.models import DataVersion
 from il2ks.serving.bootid import current_boot_id
-from il2ks.web import icons
+from il2ks.web import icons, page_cache
 
 VARY = ("HX-Request", "Accept-Language")
 _ETAG_ATTR = "_il2ks_etag"
+_STORE_ATTR = "_il2ks_page_cache_store"
 # Changes per `il2ks web` start, the same in all its workers (`serving.bootid`). Template and static overrides in
 # custom/ (TD-25) only take effect after a restart (templates are cached in production), and a restart must also
 # invalidate what browsers revalidate.
@@ -108,6 +111,8 @@ class DataVersionCacheMiddleware:
             and not response.has_header("ETag")
         ):
             _decorate(request, response, etag)
+            if getattr(request, _STORE_ATTR, False):
+                page_cache.store(request, etag, response)
         return response
 
     def process_view(
@@ -116,10 +121,19 @@ class DataVersionCacheMiddleware:
         if request.method not in {"GET", "HEAD"} or request.path.startswith(_excluded_prefixes()):
             return None
         row = request_data_version(request)
-        etag = make_etag(request, row.version if row is not None else 0)
+        version = row.version if row is not None else 0
+        etag = make_etag(request, version)
         setattr(request, _ETAG_ATTR, etag)
         if _matches(request.headers.get("If-None-Match", ""), etag):
             response = HttpResponseNotModified()
             _decorate(request, response, etag)
             return response
+        if page_cache.cacheable(request):  # the server-side copy (`web.page_cache`), on the same ETag
+            page_cache.note_version(version)
+            page_cache.note_visitor(request)
+            hit = page_cache.lookup(request, etag)
+            if hit is not None:
+                _decorate(request, hit, etag)
+                return hit
+            setattr(request, _STORE_ATTR, True)
         return None

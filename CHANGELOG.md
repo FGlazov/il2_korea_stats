@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The website keeps its list pages ready on the server**: the home page, missions, players, sorties, aircraft (and each
+  aircraft's page) and the leaderboards. A cached page is answered about ten times as fast (about 60 to about 600 a second on
+  one worker). New stats and anything you save in the admin (a notice, the theme, the title) still show on the next request,
+  and a few seconds after an import the server renders the default pages in the background, so the first visitor gets them
+  fast too. Player, sortie and mission pages and searches are not cached. `[web] page_cache` picks where pages are kept:
+  `auto` (the default: in memory with one worker, as shared files with more), `memory`, `files`, `tiered` or `off`
+  (docs/settings.md).
+
 ## 0.7.1 (2026-11-05)
 
 A speed-up for the website. Nothing to run after the upgrade, and the stats don't change.
