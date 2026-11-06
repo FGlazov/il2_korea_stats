@@ -47,15 +47,18 @@ def memory_cache(settings: Settings, tmp_path: Path) -> Iterator[None]:
     caches[MEMORY].clear()
 
 
-@pytest.fixture(autouse=True)
-def keep_the_test_connection() -> Iterator[None]:
-    """The warmer calls the WSGI app itself: like Django's test client, keep `request_finished` from closing the
-    connection that holds the test's transaction (it does on Postgres)."""
+def warm_now() -> tuple[int, float]:
+    """`page_cache.warm` without closing the test's connection: the warmer calls the WSGI app itself, whose
+    `request_started` / `request_finished` run `close_old_connections`, and in a test transaction that closes the
+    connection on Postgres. Django's test client disconnects them per request and connects them again after it, so this
+    does the same around the warm-up (a fixture would be undone by the first client request)."""
     for signal in (request_started, request_finished):
         signal.disconnect(close_old_connections)
-    yield
-    for signal in (request_started, request_finished):
-        signal.connect(close_old_connections)
+    try:
+        return page_cache.warm(application)
+    finally:
+        for signal in (request_started, request_finished):
+            signal.connect(close_old_connections)
 
 
 @pytest.fixture
@@ -199,7 +202,7 @@ def test_the_file_backend_serves_what_another_worker_stored(client: Client, sett
 def test_the_warmer_fills_the_cache_for_the_default_variant(client: Client) -> None:
     save(mission((sortie(0, 1),)))
 
-    pages, _seconds = page_cache.warm(application)
+    pages, _seconds = warm_now()
 
     assert pages >= len(page_cache.page_paths()) + 1  # the lists, the boards and at least one aircraft
     for path in ("/", "/missions/", "/players/", "/leaderboards/", "/aircraft/"):
@@ -210,7 +213,7 @@ def test_the_warmer_also_warms_recent_visitors_variants(client: Client) -> None:
     client.get("/missions/", headers={"Accept-Language": "de"})
     caches[MEMORY].clear()
 
-    page_cache.warm(application)
+    warm_now()
 
     assert client.get("/leaderboards/", headers={"Accept-Language": "de"})[HEADER] == "hit"
 
@@ -299,18 +302,20 @@ def test_the_warmers_requests_always_render(client: Client, monkeypatch: pytest.
         original(request, etag, response)
 
     monkeypatch.setattr(page_cache, "store", counting)
-    page_cache.warm(application)
+    warm_now()
     first = len(stored)
-    page_cache.warm(application)
+    warm_now()
 
     assert first > 0
     assert len(stored) == 2 * first
 
 
-def test_warming_keeps_the_test_transactions_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_warming_keeps_the_test_transactions_connection(client: Client, monkeypatch: pytest.MonkeyPatch) -> None:
     """Regression (CI, Postgres): `render` calls the WSGI app, whose `request_started` and `request_finished` run
     `close_old_connections`, and inside a test transaction that closes the connection (SQLite's in-memory test database
-    ignores the close, so only Postgres failed). Django's test client disconnects that receiver; these tests do too."""
+    ignores the close, so only Postgres failed). A fixture that disconnected them was undone by the test client, which
+    connects them again after each of its own requests; `warm_now` disconnects them for the warm-up itself."""
+    client.get("/")  # as a test does before warming: the client connects the receivers again afterwards
     closed: list[str] = []
     real_close = connection.close
 
@@ -319,5 +324,5 @@ def test_warming_keeps_the_test_transactions_connection(monkeypatch: pytest.Monk
         real_close()
 
     monkeypatch.setattr(connection, "close", close)
-    page_cache.warm(application)
+    warm_now()
     assert closed == []
