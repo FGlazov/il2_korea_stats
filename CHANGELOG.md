@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Security
+
+- **Django 5.2.19** (from 5.2.18): fixes a way to make the server buffer a whole upload in memory (CVE-2026-108147: a
+  multipart form with base64-encoded parts, which any POST accepts before the login or CSRF check). il2ks now requires
+  at least 5.2.19, so `pip install -U il2ks` / `uv tool upgrade il2ks` updates Django too. The other four fixes of that
+  release concern GeoDjango and Django's own cache middleware, which il2ks does not use.
+- **Docker image: Caddy 2.11.9** (from 2.11.7), with the security fixes of 2.11.8 and 2.11.9 (none of the PHP/FastCGI and
+  file-server issues touch the il2ks setup, which only proxies to the web workers). The Windows installer has had 2.11.9
+  since 0.7.1.
+- sqlparse 0.6.1 (used by Django; its only security fix is for an output format il2ks does not use).
+
 ### Changed
 
 - **With more than one web worker, the page cache keeps pages in each worker's memory as well as in the shared files**
