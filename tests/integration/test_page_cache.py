@@ -1,7 +1,6 @@
 """The server-side page cache (TD-28 step 2, `il2ks.web.page_cache`): what is cached, what makes it fresh again, and
 the warmer."""
 
-import threading
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -9,8 +8,9 @@ from pathlib import Path
 import pytest
 from django.contrib.auth.models import User
 from django.core.cache import caches
+from django.core.signals import request_finished, request_started
 from django.core.wsgi import get_wsgi_application
-from django.db import connection
+from django.db import close_old_connections, connection
 from django.http import HttpRequest, HttpResponse
 from django.test import Client
 from django.test.utils import CaptureQueriesContext
@@ -45,6 +45,17 @@ def memory_cache(settings: Settings, tmp_path: Path) -> Iterator[None]:
     page_cache._memory_version = None  # pyright: ignore[reportPrivateUsage]
     yield
     caches[MEMORY].clear()
+
+
+@pytest.fixture(autouse=True)
+def keep_the_test_connection() -> Iterator[None]:
+    """The warmer calls the WSGI app itself: like Django's test client, keep `request_finished` from closing the
+    connection that holds the test's transaction (it does on Postgres)."""
+    for signal in (request_started, request_finished):
+        signal.disconnect(close_old_connections)
+    yield
+    for signal in (request_started, request_finished):
+        signal.connect(close_old_connections)
 
 
 @pytest.fixture
@@ -296,7 +307,17 @@ def test_the_warmers_requests_always_render(client: Client, monkeypatch: pytest.
     assert len(stored) == 2 * first
 
 
-def test_these_tests_start_no_background_thread() -> None:
-    """Regression: importing `il2ks.wsgi` here started the front-page image poller in the test process, and the
-    poller's own test then found one already running. The warmer renders through a plain Django WSGI app."""
-    assert "il2ks-feature-image" not in {thread.name for thread in threading.enumerate()}
+def test_warming_keeps_the_test_transactions_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression (CI, Postgres): `render` calls the WSGI app, whose `request_started` and `request_finished` run
+    `close_old_connections`, and inside a test transaction that closes the connection (SQLite's in-memory test database
+    ignores the close, so only Postgres failed). Django's test client disconnects that receiver; these tests do too."""
+    closed: list[str] = []
+    real_close = connection.close
+
+    def close() -> None:
+        closed.append("close")
+        real_close()
+
+    monkeypatch.setattr(connection, "close", close)
+    page_cache.warm(application)
+    assert closed == []

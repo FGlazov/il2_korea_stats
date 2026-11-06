@@ -214,7 +214,29 @@ def test_a_missing_file_is_an_error_not_a_crash(tmp_path: Path, media_root: Path
     assert SiteSettings.objects.get(pk=1).feature_error == result.error
 
 
-def test_the_poller_thread_calls_sync_repeatedly() -> None:
+def own_poller_slot(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The test process may already run a poller (an earlier test's, or one started by importing `il2ks.wsgi`): these
+    tests start theirs in an empty slot."""
+    monkeypatch.setattr(feature_image, "_poller", None)
+
+
+def test_a_poller_from_elsewhere_in_the_process_does_not_hide_the_tests_own(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression: a page cache test imported `il2ks.wsgi`, which started the real poller, and the poller test below
+    then got `None` (one thread per process), depending on the order the tests ran in."""
+    done = threading.Event()
+    elsewhere = threading.Thread(target=done.wait, daemon=True)
+    elsewhere.start()
+    monkeypatch.setattr(feature_image, "_poller", elsewhere)
+    try:
+        own_poller_slot(monkeypatch)
+        thread = start_poller(3600, sync_fn=lambda: feature_image.SyncResult(False, ""))
+        assert thread is not None
+    finally:
+        done.set()
+
+
+def test_the_poller_thread_calls_sync_repeatedly(monkeypatch: pytest.MonkeyPatch) -> None:
+    own_poller_slot(monkeypatch)
     called = threading.Event()
 
     def fake_sync() -> feature_image.SyncResult:
