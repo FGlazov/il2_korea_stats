@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.2 (2026-11-06)
+
+A speed-up for the website. Nothing to run after the upgrade, and the stats don't change.
 
 ### Added
 
@@ -11,6 +13,8 @@
   fast too. Player, sortie and mission pages and searches are not cached. `[web] page_cache` picks where pages are kept:
   `auto` (the default: in memory with one worker, as shared files with more), `memory`, `files`, `tiered` or `off`
   (docs/settings.md).
+  The files go to `<data dir>/cache/pages` and are emptied at every start. If a page ever looks out of date, `page_cache =
+  "off"` turns it off (and please report it).
 
 ## 0.7.1 (2026-11-05)
 

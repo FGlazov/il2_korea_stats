@@ -424,8 +424,8 @@ To keep "switch SQLite ↔ Postgres" cheap and *proven*:
     start ID (so a restart after editing `custom/` templates invalidates too), full path with query and `HX-Request`. Responses that set
     cookies or their own `Cache-Control` are left alone. Bumps: inside each mission save, at the end of rebuilds, and on every admin save or
     action on a page-visible model.
-  - **Step 2 as built** `[PROPOSED]` (2026-11-06, maintainer asked for it; adoption pending the measurements in
-    `docs/performance-testing.md`, "Page cache"): `web/page_cache.py`. Cached: the front page, the mission, player and sortie lists,
+  - **Step 2 as built** `[DECIDED]` (2026-11-06, maintainer adopted it after the measurements in
+    `docs/performance-testing.md`, "Page cache"; shipped in 0.7.2): `web/page_cache.py`. Cached: the front page, the mission, player and sortie lists,
     the aircraft list and each aircraft page, the leaderboards, in every variant asked for (query, language, HTMX). Not cached:
     mission, player and sortie detail pages (a first step bounded by the number of list variants; recent details may follow), name
     searches (`?q=`), requests with a session cookie. Key: the ETag of step 1 plus the Host, so anything that makes a 304 right makes

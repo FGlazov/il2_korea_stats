@@ -129,5 +129,6 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-11-03 (0.7.0: accessibility target WCAG 2.1 AA decided, NFR-UI-3 in 03; doc 16 "Accessibility": axe also on the error and admin
   pages and at 320 px, focus-ring contrast in the theme check, admin labels).
   2026-11-05 (0.7.1: kept database connections, `CONN_MAX_AGE` 10 minutes, decided (16, Serving)).
-  2026-11-06 (unreleased: server-side page cache with warming, TD-28 step 2 as built, `[PROPOSED]` (05, 16)).
+  2026-11-06 (0.7.2: server-side page cache with warming, TD-28 step 2 as built, decided (05, 16); HTML budget 13 KB
+  compressed, the first round trip).
   2026-10-31 (0.5.2: Jet Hunter; AI aircraft count for Bomber Hunter; no negative medals, no ram medal (17); fences are no ground kills (02, 13)); 2026-11-01 (0.5.3: nor friendly kills (02, 13)); 2026-11-01 (0.5.4: medals in "Recently earned" keep their tier colour again, no decision changed).
