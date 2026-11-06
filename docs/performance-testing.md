@@ -125,6 +125,9 @@ Deterministic (no timing involved; they only change when a page, stylesheet or s
   server is `il2ks web --dev`, which serves the readable CSS/JS; production minifies our own files first (`collectstatic`,
   doc 16): own CSS 82 to 59 KB and own JS 17 to 9.7 KB (site.css 54 to 41 KB), so production pages weigh about 30 KB
   less than the budgets measure; the budgets stay as they are.
+- **HTML on the wire**: the page's HTML compressed the way Caddy sends it must stay within 13 KB, so it arrives in the
+  first round trip (see "Page size and the first round trip" below). `tests/perf` checks the same for every page over
+  the seeded world; this one covers the anonymized real log (its sortie page is the biggest, 8.4 KB on 2026-11-06).
 - **no third-party requests**: everything comes from our own origin (no CDN, web fonts or analytics).
 - **render-blocking**: in the `<head>`, only the theme script (`theme-init.js`, it must run before first paint) may block;
   at most 4 stylesheets; no inline scripts.
@@ -349,6 +352,24 @@ yet and every mode renders (40 to 57 ms; one tiered run with 4 workers took 167 
 - **Size.** A compressed page is about 7 KB; at most 2,000 entries per tier, so about 14 MB in memory per worker.
 - **What is not cached:** player, sortie and mission pages (unbounded), searches (`?q=`), anything for a signed-in
   admin, and `DEBUG`.
+
+### Page size and the first round trip
+
+A new connection does not know how fast the path is, so TCP starts with a burst of 10 packets (about 14 KB,
+[RFC 6928](https://www.rfc-editor.org/rfc/rfc6928)) and doubles it after every round trip. A page that fits in the
+first burst arrives one round trip after the request; a bigger one waits one more round trip per doubling, about 100 ms
+each across a continent. Good introductions: [Why your website should be under 14kB in
+size](https://endtimes.dev/why-your-website-should-be-under-14kb-in-size/) and [High Performance Browser Networking,
+"Building Blocks of TCP"](https://hpbn.co/building-blocks-of-tcp/) (slow start).
+
+The budget is 13 KB of compressed HTML (`tests/wire_size.py`: gzip at level 5, Caddy's default; Caddy prefers zstd,
+which comes out a little smaller), checked by `tests/perf` for every HTML page and by the e2e weight test. Measured
+2026-11-06: the player page 7.9 to 8.0 KB, the real log's sortie page 8.4 KB, the home page 6.5 KB, every list 3.9 to
+5.3 KB. CSS, JS, fonts and the icon sprite are separate requests the browser keeps cached, so they don't count.
+
+A new visitor pays the DNS lookup and three round trips (TCP, TLS 1.3, the request) plus the server time; every later
+click on the open connection pays one round trip plus the server time. Measured from a desktop line against a server about
+100 ms away: TCP 100 ms, TLS 115 ms, the request 140 ms, of which about 40 ms was the server.
 
 ## Adding a page
 

@@ -6,6 +6,8 @@ real target is ~300 ms on a normal machine; the budgets only catch order-of-magn
 - cache disabled: a plain GET, so the whole view and template run;
 - cache enabled: a revalidation with `If-None-Match` (TD-28), answered 304 before the view runs.
 
+And the size on the wire: every HTML page, compressed, fits the first round trip (`tests.wire_size`).
+
 The world is `tests.perf.seed`: a few thousand sorties, so lists paginate, and the query budgets double as N+1 guards
 (a page that runs a query per row blows its budget here but might pass on the tiny worlds of the other tests).
 Set `IL2KS_PERF_REPORT=1` (with `-s`) to print the measured medians."""
@@ -22,6 +24,7 @@ from django.urls import URLPattern, get_resolver
 from tests.perf.pages import NOT_PUBLIC_PAGES, PAGES, PageSpec
 from tests.perf.seed import SeededWorld
 from tests.simple_reads import assert_simple_reads
+from tests.wire_size import WIRE_MAX_KB, wire_bytes
 
 pytestmark = pytest.mark.django_db
 
@@ -103,3 +106,21 @@ def test_every_public_page_has_a_budget() -> None:
     assert names == covered, (
         f"without a performance budget: {sorted(names - covered)}; stale: {sorted(covered - names)}"
     )
+
+
+WIRE_BUDGET_KB_BY_URL_NAME: dict[str, int] = {}
+"""Pages allowed past `WIRE_MAX_KB` (`tests.wire_size`), each with the reason."""
+NOT_HTML = frozenset({"healthz", "robots", "sitemap", "sitemap-site", "sitemap-missions", "sitemap-players"})
+"""Not read by people in a browser: a crawler or a monitor does not wait on the first round trip."""
+
+
+@pytest.mark.parametrize("spec", [s for s in PAGES if s.url_name not in NOT_HTML], ids=_id)
+def test_the_compressed_page_fits_the_first_round_trip(client: Client, big_world: SeededWorld, spec: PageSpec) -> None:
+    response = client.get(spec.url(big_world))
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("text/html")
+    size = wire_bytes(response.content)
+    if REPORT:
+        print(f"WIRE {spec.url(big_world)} {size / 1024:.1f} KB gzip ({len(response.content) / 1024:.1f} KB raw)")
+    budget = WIRE_BUDGET_KB_BY_URL_NAME.get(spec.url_name, WIRE_MAX_KB)
+    assert size <= budget * 1024, f"{spec.url(big_world)}: {size / 1024:.1f} KB compressed (budget {budget} KB)"

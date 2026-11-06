@@ -27,6 +27,7 @@ from playwright.sync_api import Browser, Page, Request, Response
 from tests.e2e.helpers import wait_until_settled
 from tests.e2e.test_smoke import PUBLIC_PAGES
 from tests.e2e.world import World
+from tests.wire_size import WIRE_MAX_KB, wire_bytes
 
 pytestmark = pytest.mark.perf
 
@@ -43,6 +44,8 @@ class Weight:
     bytes_by_type: dict[str, int] = field(default_factory=dict[str, int])
     foreign: list[str] = field(default_factory=list[str])
     failed: list[str] = field(default_factory=list[str])
+    document_wire: int = 0
+    """The HTML compressed as Caddy sends it (`tests.wire_size`); the e2e server itself does not compress."""
 
     def total(self) -> int:
         return sum(self.bytes_by_type.values())
@@ -67,14 +70,18 @@ def measure(page: Page, url: str, base: str) -> Weight:
         if not request.url.startswith(base):
             weight.foreign.append(request.url)
         try:
-            size = len(response.body())
+            body = response.body()
         except Exception:
-            size = 0
+            body = b""
+        size = len(body)
         kind = request.resource_type
+        if kind == "document":
+            weight.document_wire += wire_bytes(body)
         weight.bytes_by_type[kind] = weight.bytes_by_type.get(kind, 0) + size
     if REPORT:
         parts = ", ".join(f"{k} {v / KB:.1f} KB" for k, v in sorted(weight.bytes_by_type.items()))
         print(f"WEIGHT {url}: {weight.requests} requests, {weight.total() / KB:.1f} KB ({parts})")
+        print(f"WIRE {url}: HTML {weight.document_wire / KB:.1f} KB compressed")
     return weight
 
 
@@ -119,6 +126,9 @@ def test_page_weight_budget(page: Page, world: World, base_url: str, name: str) 
     assert weight.total() <= MAX_TOTAL_KB * KB, f"{weight.total() / KB:.0f} KB in total (budget {MAX_TOTAL_KB} KB)"
     html_budget = HTML_BUDGET_KB_BY_PAGE.get(name, MAX_HTML_KB)
     assert weight.of("document") <= html_budget * KB, f"HTML {weight.of('document') / KB:.0f} KB (budget {html_budget})"
+    assert weight.document_wire <= WIRE_MAX_KB * KB, (
+        f"HTML {weight.document_wire / KB:.1f} KB compressed (budget {WIRE_MAX_KB} KB: the first round trip)"
+    )
     assert weight.of("other") <= MAX_SPRITE_KB * KB, (
         f"icon sprite {weight.of('other') / KB:.0f} KB (budget {MAX_SPRITE_KB})"
     )
