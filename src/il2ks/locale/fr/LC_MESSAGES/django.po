@@ -1858,6 +1858,15 @@ msgid "Check that you copied all of it. After several wrong tries this page lock
 msgstr "Vérifiez que vous l'avez copié en entier. Après plusieurs essais ratés, cette page se verrouille un moment."
 
 # llm-draft
+#, python-format
+msgid ""
+"Checked at %(time)s; the server checks again every hour. Run <code>il2ks doctor</code> to check again now, after a "
+"fix."
+msgstr ""
+"Vérifié le %(time)s ; le serveur vérifie à nouveau toutes les heures. Après une correction, lancez <code>il2ks "
+"doctor</code> pour vérifier tout de suite."
+
+# llm-draft
 msgid "Chocks, tents, touchdown: the incident log stays on the airfield side of the fence."
 msgstr "Cales, tentes, toucher des roues : le registre des incidents reste de ce côté de la clôture."
 
@@ -2598,6 +2607,10 @@ msgstr "Tout le monde a déjà confondu un ailier avec un adversaire. Certains o
 # llm-draft
 msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."
 msgstr "Tout le monde a patrouillé en héros, l'ennemi aussi, mais dans un autre secteur. Ce sera pour la prochaine."
+
+# llm-draft
+msgid "Everything is fine."
+msgstr "Tout va bien."
 
 # llm-draft
 msgid "Everything on our side has had a visit, and the runway has had the last word."
@@ -5640,6 +5653,10 @@ msgid "Server activity"
 msgstr "Activité du serveur"
 
 # llm-draft
+msgid "Server checks"
+msgstr "Vérifications du serveur"
+
+# llm-draft
 msgid "Setup finished"
 msgstr "Configuration terminée"
 
@@ -6474,6 +6491,11 @@ msgstr "Les charpentiers et l'équipe de piste comparent leurs notes à la canti
 # llm-draft
 msgid "The certificate authority writes here before a certificate would expire. Only used with the bundled Caddy."
 msgstr "L'autorité de certification écrit ici avant l'expiration d'un certificat. Utilisé uniquement avec le Caddy fourni."
+
+# llm-draft
+#, python-format
+msgid "The checks of <code>il2ks doctor</code>, run by the server at %(time)s and every hour."
+msgstr "Les vérifications de <code>il2ks doctor</code>, faites par le serveur le %(time)s puis toutes les heures."
 
 # llm-draft
 #, python-format
@@ -7817,6 +7839,13 @@ msgstr "Avertissement"
 # llm-draft
 msgid "Warning: some of your custom files are out of date"
 msgstr "Attention : certains de vos fichiers personnalisés sont périmés"
+
+# llm-draft
+#, python-format
+msgid "Warning: the server checks found %(n)s problem"
+msgid_plural "Warning: the server checks found %(n)s problems"
+msgstr[0] "Attention : les vérifications du serveur ont trouvé %(n)s problème"
+msgstr[1] "Attention : les vérifications du serveur ont trouvé %(n)s problèmes"
 
 # llm-draft
 msgid "Warnings"

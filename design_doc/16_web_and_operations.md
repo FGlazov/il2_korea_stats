@@ -573,6 +573,15 @@ reading order and announcements with a screen reader (NVDA on Windows is free), 
   has no `Content-Encoding` or the fetch fails; with the bundled Caddy (which always compresses) or without a domain it prints an info line instead. It uses
   plain `urllib` because it fetches the admin's **own** address: a deliberate exception to "every outbound request goes through the SSRF helper".
   `backup_copy_check` reports the last copy to `[backup] copy_to` (below); `login_lockout_check` lists active admin lockouts (WARN).
+  **`caddy_version`** (maintainer, 2026-11-07): runs `caddy version` (10 s timeout, no window) and compares it with `caddy.BUNDLED_VERSION`, the Caddy the
+  Windows installer pins (a test keeps them equal and the Docker image at least as new). Older is an urgent WARN ("may miss security fixes", with the
+  upgrade command per install method; Debian's own package is years behind); older than 2.10 with an IP-address domain is an ERROR (no certificate);
+  unreadable output is a plain WARN. Offline on purpose: the minimum moves with il2ks releases, a Caddy fix between releases is not seen.
+- **Doctor in the web server** (maintainer, 2026-11-07; `web/server_checks.py`): every web worker runs the doctor checks in a daemon thread 30 s after
+  it starts and hourly, keeps the newest result in memory and logs alerts when they change. **Alerts** (`Finding.alert`: every ERROR, plus warnings a
+  check marks `urgent`: debug mode, an old Caddy) are a red banner on every admin page (staff only, the `custom/` banner's style); the admin home page
+  lists every ERROR and WARN with its fix and the time of the run. A request only reads the stored result. Left out: `ports` (a running server holds
+  its own ports). `IL2KS_NO_POLLER=1` keeps the thread off, as for the front-page image poller. `[PROPOSED]` (interval, which warnings are urgent).
 - **Backups** (FR-OPS-6): `il2ks backup` → `<data dir>/backups/il2ks-backup-YYYYMMDD-HHMMSS.zip` (UTC) with a SQLite online-backup
   snapshot, the config, `server_uid.txt`, `secret_key.txt`, `custom/`, `media/` and a manifest; not the mission archives (large, kept
   forever, back them up separately). Keeps `[backup] keep` (10). **Second copy** (0.2.0): `[backup] copy_to` names another folder (another drive or a share) that every backup is copied to; `copy_archive = true` also mirrors the mission archive there (next bullet). Automatic **before pending migrations** (no migration if the backup fails)

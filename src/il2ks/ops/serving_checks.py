@@ -5,6 +5,7 @@ Each check returns findings in plain words with a `fix` the admin can follow (se
 
 import socket
 from collections.abc import Callable, Iterable
+from pathlib import Path
 
 from il2ks.config import Config
 from il2ks.ops.doctor import Finding, Level, check
@@ -62,6 +63,7 @@ def debug_mode(cfg: Config) -> Iterable[Finding]:
             "Debug mode is on",
             "`debug = true` (or IL2KS_DEBUG): plain http, error pages show internals, no HTTPS protections.",
             "Turn it off (remove `debug` from il2ks.toml) for any site other people can reach.",
+            urgent=True,
         )
 
 
@@ -130,6 +132,61 @@ def caddy_binary(cfg: Config) -> Iterable[Finding]:
         f"Not on the PATH and not in {cfg.data_dir / 'bin'}.",
         "Install it: Windows `winget install CaddyServer.Caddy`, Linux see caddyserver.com/docs/install "
         '(docs/install.md). Or run your own proxy and set [https] mode = "external".',
+    )
+
+
+caddy_version_reader: Callable[[Path], caddy.Version | None] = caddy.installed_version
+"""Replaced in tests; the real one runs `caddy version`."""
+
+
+@check
+def caddy_version(cfg: Config) -> Iterable[Finding]:
+    """An older Caddy than the one il2ks ships may miss security fixes; before 2.10 it cannot certify an IP address.
+    Owners who installed Caddy themselves (winget, apt, a download) are the ones who fall behind: the installer and the
+    Docker image bring theirs along with every il2ks update."""
+    if cfg.https.mode != "caddy" or cfg.debug:
+        return
+    found = caddy.find_caddy(cfg)
+    if found is None:
+        return  # caddy_binary reports it
+    version = caddy_version_reader(found)
+    bundled = caddy.format_version(caddy.BUNDLED_VERSION)
+    if version is None:
+        yield Finding(
+            Level.WARN,
+            "Caddy's version could not be read",
+            f"`{found} version` did not print a version number.",
+            "Run that command yourself to see what is wrong. If it fails, install Caddy again " + _upgrade_hint(cfg),
+        )
+        return
+    shown = caddy.format_version(version)
+    if caddy.cert_plan(cfg) == "public-ip" and version < caddy.IP_CERTIFICATE_VERSION:
+        yield Finding(
+            Level.ERROR,
+            f"Caddy {shown} cannot get a certificate for an IP address",
+            f"[https] domain = {cfg.https.domain} is an IP address; Caddy can order those from version 2.10 on. "
+            f"Caddy: {found}",
+            f"Update Caddy to {bundled} or newer " + _upgrade_hint(cfg),
+        )
+    elif version < caddy.BUNDLED_VERSION:
+        yield Finding(
+            Level.WARN,
+            f"Caddy {shown} is out of date",
+            f"{found} is older than {bundled}, the version this il2ks ships and is tested with. Older versions may "
+            "miss security fixes.",
+            f"Update Caddy to {bundled} or newer " + _upgrade_hint(cfg),
+            urgent=True,
+        )
+    else:
+        yield Finding(Level.OK, f"Caddy {shown}", str(found))
+
+
+def _upgrade_hint(cfg: Config) -> str:
+    return (
+        "the way you installed it: `winget upgrade CaddyServer.Caddy`, `scoop update caddy`, `choco upgrade caddy`, "
+        "`sudo apt update && sudo apt upgrade caddy` (Debian's and Ubuntu's own package is old: use Caddy's "
+        "repository, docs/install.md), or the newest file from caddyserver.com/download into "
+        f"{cfg.data_dir / 'bin'}. With the Windows installer or Docker, update il2ks instead. Then restart il2ks."
     )
 
 

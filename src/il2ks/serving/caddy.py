@@ -15,7 +15,10 @@ Certificate plans, in the order TD-23 gives them:
 
 import ipaddress
 import os
+import re
 import shutil
+import subprocess
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,10 +27,19 @@ from typing import Literal
 from il2ks.config import Config
 
 type CertPlan = Literal["public", "public-ip", "internal", "internal-no-domain"]
+type Version = tuple[int, int, int]
 
 CADDYFILE_NAME = "Caddyfile"
 ACCESS_LOG_NAME = "caddy-access.log"
 CADDY_ACCESS_LOG_MIB = 10
+
+BUNDLED_VERSION: Version = (2, 11, 9)
+"""The Caddy the Windows installer bundles (`packaging/windows/pins.toml`); the Docker image has it or newer. `il2ks
+doctor` warns about an older one, which may miss security fixes. Raise it with the installer's pin (a test checks)."""
+IP_CERTIFICATE_VERSION: Version = (2, 10, 0)
+"""The first Caddy that can order certificates for an IP address (the `shortlived` ACME profile)."""
+VERSION_TIMEOUT_S = 10.0
+_VERSION = re.compile(r"\bv?(\d+)\.(\d+)\.(\d+)")
 
 
 def caddy_dir(cfg: Config) -> Path:
@@ -55,6 +67,39 @@ def find_caddy(cfg: Config, *, path_lookup: str | None = None) -> Path | None:
         return Path(found)
     bundled = cfg.data_dir / "bin" / caddy_binary_name()
     return bundled if bundled.is_file() else None
+
+
+def parse_version(text: str) -> Version | None:
+    """The first `vX.Y.Z` in `caddy version` output ("v2.11.9 h1:..."); None when there is none (a custom build)."""
+    match = _VERSION.search(text)
+    if match is None:
+        return None
+    major, minor, patch = (int(part) for part in match.groups())
+    return (major, minor, patch)
+
+
+def format_version(version: Version) -> str:
+    return ".".join(str(part) for part in version)
+
+
+def installed_version(binary: Path) -> Version | None:
+    """Run `caddy version` (no window on Windows, a short timeout); None when it fails or prints no version."""
+    flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    try:
+        done = subprocess.run(
+            [str(binary), "version"],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=VERSION_TIMEOUT_S,
+            check=False,
+            creationflags=flags,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return parse_version(done.stdout) if done.returncode == 0 else None
 
 
 def is_ip_address(text: str) -> bool:

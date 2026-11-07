@@ -90,7 +90,8 @@ change the file: it prints the reasons next to the file name. Put the important 
    workflow runs zizmor over the workflows (actions pinned to commit SHAs, least-privilege tokens): keep it green too.
    **Bundled components current**: Dependabot does not see `packaging/windows/pins.toml`. Compare the Windows
    installer's Python (python-build-standalone), Caddy and WinSW with their latest releases and bump them (version,
-   URL and SHA-256 together, see `packaging/windows/README.md`). The Docker image's Caddy and uv come from Dependabot;
+   URL and SHA-256 together, see `packaging/windows/README.md`). A new Caddy also raises `BUNDLED_VERSION` in
+   `src/il2ks/serving/caddy.py`, the version `il2ks doctor` asks for (a test fails until it matches the pin). The Docker image's Caddy and uv come from Dependabot;
    its Python base tag floats, so nothing to do there.
 4. Commit, wait for CI to pass, then `git tag v<version>` and `git push origin v<version>`. The tag starts
    `.github/workflows/release.yml` (build, smoke test on Linux and Windows, publish to PyPI with trusted publishing) and

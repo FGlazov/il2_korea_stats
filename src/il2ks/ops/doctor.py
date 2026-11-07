@@ -25,6 +25,16 @@ class Finding:
     title: str  # one line, e.g. "Log folder has no mission reports"
     detail: str = ""  # what was checked / found
     fix: str = ""  # what the admin should do; empty for OK
+    urgent: bool = False  # a warning that also gets the admin's red banner (an ERROR always does)
+
+    @property
+    def alert(self) -> bool:
+        """Shown as a red banner on every admin page by the web server's own checks (`il2ks.web.server_checks`)."""
+        return self.level is Level.ERROR or (self.urgent and self.level is Level.WARN)
+
+    @property
+    def is_error(self) -> bool:
+        return self.level is Level.ERROR
 
 
 type Check = Callable[[Config], Iterable[Finding]]
@@ -46,12 +56,15 @@ def check(fn: Check) -> Check:
     return fn
 
 
-def run_checks(cfg: Config) -> list[Finding]:
-    """Import the check modules, run every check, and turn a crashing check into an ERROR finding."""
+def run_checks(cfg: Config, *, skip: frozenset[str] = frozenset()) -> list[Finding]:
+    """Import the check modules, run every check (but those named in `skip`), and turn a crashing check into an ERROR
+    finding."""
     for name in CHECK_MODULES:
         importlib.import_module(name)
     findings: list[Finding] = []
     for fn in _CHECKS:
+        if fn.__name__ in skip:
+            continue
         try:
             findings.extend(fn(cfg))
         except Exception as exc:  # a broken check must not hide the others

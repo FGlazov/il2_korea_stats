@@ -1,11 +1,24 @@
-{# il2ks-template: templates/admin/base_site.html v1.1 - copy this line along when you override #}
+{# il2ks-template: templates/admin/base_site.html v1.2 - copy this line along when you override #}
 {% extends "admin/base_site.html" %}{% load i18n static %}{% comment %}
-  Django's admin frame plus a warning banner (TD-25). `custom_problems` comes from Il2ksAdminSite.each_context: a list of
-  overrides in custom/ that are based on an old or unknown template version, only filled for staff. This file extends
-  the template of the same name from django.contrib.admin (Django allows that), so the rest of the admin is untouched.
+  Django's admin frame plus two warning banners. `custom_problems` comes from Il2ksAdminSite.each_context: a list of
+  overrides in custom/ that are based on an old or unknown template version (TD-25). `doctor_alerts`: the errors and
+  urgent warnings of the doctor checks the web server runs in the background (FR-OPS-1, il2ks.web.server_checks). Both
+  are only filled for staff. This file extends the template of the same name from django.contrib.admin (Django allows
+  that), so the rest of the admin is untouched.
 {% endcomment %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'il2ks_admin/admin.css' %}">{% if custom_problems %}<link rel="stylesheet" href="{% static 'il2ks_admin/override_warning.css' %}">{% endif %}{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'il2ks_admin/admin.css' %}">{% if custom_problems or doctor_alerts %}<link rel="stylesheet" href="{% static 'il2ks_admin/override_warning.css' %}">{% endif %}{% endblock %}
 {% block messages %}
+{% if doctor_alerts %}
+<div class="il2ks-override-warning" role="alert">
+  <h2>{% blocktranslate count n=doctor_alerts|length %}Warning: the server checks found {{ n }} problem{% plural %}Warning: the server checks found {{ n }} problems{% endblocktranslate %}</h2>
+  <ul>
+    {% for finding in doctor_alerts %}
+    <li><strong>{{ finding.title }}</strong>{% if finding.detail %}: {{ finding.detail }}{% endif %}{% if finding.fix %}<br>{{ finding.fix }}{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <p>{% blocktranslate with time=server_checks.at|date:"DATETIME_FORMAT" %}Checked at {{ time }}; the server checks again every hour. Run <code>il2ks doctor</code> to check again now, after a fix.{% endblocktranslate %}</p>
+</div>
+{% endif %}
 {% if custom_problems %}
 <div class="il2ks-override-warning" role="alert">
   <h2>{% translate "Warning: some of your custom files are out of date" %}</h2>

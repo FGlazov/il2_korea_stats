@@ -1863,6 +1863,15 @@ msgid "Check that you copied all of it. After several wrong tries this page lock
 msgstr "Проверьте, что скопировали токен целиком. После нескольких неверных попыток эта страница на время блокируется."
 
 # llm-draft
+#, python-format
+msgid ""
+"Checked at %(time)s; the server checks again every hour. Run <code>il2ks doctor</code> to check again now, after a "
+"fix."
+msgstr ""
+"Проверено: %(time)s; сервер повторяет проверку каждый час. Чтобы проверить сразу после исправления, выполните "
+"<code>il2ks doctor</code>."
+
+# llm-draft
 msgid "Chocks, tents, touchdown: the incident log stays on the airfield side of the fence."
 msgstr "Колодки, палатки, касание: журнал происшествий не выходит за ограду аэродрома."
 
@@ -2602,6 +2611,10 @@ msgstr "Ведомого со вражеским путал каждый. У к�
 # llm-draft
 msgid "Everyone patrolled bravely, and the enemy patrolled somewhere else. Maybe next time."
 msgstr "Все героически барражировали, противник тоже, но в другом квадрате."
+
+# llm-draft
+msgid "Everything is fine."
+msgstr "Всё в порядке."
 
 # llm-draft
 msgid "Everything on our side has had a visit, and the runway has had the last word."
@@ -5615,6 +5628,10 @@ msgid "Server activity"
 msgstr "Активность сервера"
 
 # llm-draft
+msgid "Server checks"
+msgstr "Проверки сервера"
+
+# llm-draft
 msgid "Setup finished"
 msgstr "Настройка завершена"
 
@@ -6446,6 +6463,11 @@ msgstr "Плотники и команда по полосе сверяют за
 # llm-draft
 msgid "The certificate authority writes here before a certificate would expire. Only used with the bundled Caddy."
 msgstr "Центр сертификации пишет сюда перед истечением срока сертификата. Используется только со встроенным Caddy."
+
+# llm-draft
+#, python-format
+msgid "The checks of <code>il2ks doctor</code>, run by the server at %(time)s and every hour."
+msgstr "Проверки <code>il2ks doctor</code>: сервер выполнил их %(time)s и повторяет каждый час."
 
 # llm-draft
 #, python-format
@@ -7746,6 +7768,14 @@ msgstr "Предупреждение"
 # llm-draft
 msgid "Warning: some of your custom files are out of date"
 msgstr "Внимание: некоторые ваши файлы в custom/ устарели"
+
+# llm-draft
+#, python-format
+msgid "Warning: the server checks found %(n)s problem"
+msgid_plural "Warning: the server checks found %(n)s problems"
+msgstr[0] "Внимание: проверка сервера нашла %(n)s проблему"
+msgstr[1] "Внимание: проверка сервера нашла %(n)s проблемы"
+msgstr[2] "Внимание: проверка сервера нашла %(n)s проблем"
 
 # llm-draft
 msgid "Warnings"

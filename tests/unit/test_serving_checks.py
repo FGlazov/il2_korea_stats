@@ -140,6 +140,63 @@ def test_no_caddy_check_for_external_mode_or_debug(tmp_path: Path, no_caddy_on_p
     assert run(serving_checks.caddy_binary, make(tmp_path, debug=True)) == []
 
 
+def caddy_reports(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, version: caddy.Version | None) -> Path:
+    """A Caddy at the configured path whose `caddy version` gives `version` (None: no version number)."""
+    binary = tmp_path / "caddy.exe"
+    binary.write_bytes(b"")
+
+    def reader(_path: Path) -> caddy.Version | None:
+        return version
+
+    monkeypatch.setattr(serving_checks, "caddy_version_reader", reader)
+    return binary
+
+
+def test_the_shipped_caddy_or_newer_is_fine(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    for version in (caddy.BUNDLED_VERSION, (2, 12, 0), (3, 0, 0)):
+        binary = caddy_reports(monkeypatch, tmp_path, version)
+        findings = run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary))
+        assert [f.level for f in findings] == [Level.OK]
+
+
+def test_an_older_caddy_is_an_urgent_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    binary = caddy_reports(monkeypatch, tmp_path, (2, 8, 4))
+    findings = run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary, domain="stats.example.com"))
+    assert [f.level for f in findings] == [Level.WARN]
+    assert findings[0].alert  # the admin's red banner
+    assert findings[0].title == "Caddy 2.8.4 is out of date"
+    assert caddy.format_version(caddy.BUNDLED_VERSION) in findings[0].detail
+    assert "winget upgrade CaddyServer.Caddy" in findings[0].fix
+    assert "Caddy's repository" in findings[0].fix  # Debian's own package is years behind
+
+
+def test_a_caddy_too_old_for_ip_certificates_is_an_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    binary = caddy_reports(monkeypatch, tmp_path, (2, 9, 1))
+    findings = run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary, domain="203.0.113.7"))
+    assert [f.level for f in findings] == [Level.ERROR]
+    assert "IP address" in findings[0].title
+
+
+def test_an_unreadable_caddy_version_is_a_plain_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    binary = caddy_reports(monkeypatch, tmp_path, None)
+    findings = run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary))
+    assert [f.level for f in findings] == [Level.WARN]
+    assert not findings[0].alert
+
+
+def test_no_version_check_without_caddy_or_in_external_mode(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, no_caddy_on_path: None
+) -> None:
+    binary = caddy_reports(monkeypatch, tmp_path, (1, 0, 0))
+    assert run(serving_checks.caddy_version, make(tmp_path)) == []  # caddy_binary reports the missing one
+    assert run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary, mode="external")) == []
+    assert run(serving_checks.caddy_version, make(tmp_path, caddy_path=binary, debug=True)) == []
+
+
+def test_debug_mode_is_an_alert(tmp_path: Path) -> None:
+    assert [f.alert for f in run(serving_checks.debug_mode, make(tmp_path, debug=True))] == [True]
+
+
 # --- ports ------------------------------------------------------------------------------------------------------------
 
 

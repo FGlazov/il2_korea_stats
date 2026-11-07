@@ -19,7 +19,7 @@ logsetup.configure_logging(
     "web", _cfg.log_dir, _cfg.log_level, server_uid=_cfg.server_uid, keep_days=_cfg.log_keep_days
 )
 
-from il2ks.web import page_cache  # noqa: E402 - after the logging setup, like the app
+from il2ks.web import page_cache, server_checks  # noqa: E402 - after the logging setup, like the app
 from il2ks.wsgi import application as wsgi_application  # noqa: E402 - logs from its start must reach the file
 
 application = WSGIMiddleware(
@@ -28,5 +28,7 @@ application = WSGIMiddleware(
 )
 
 page_cache.start_warmer(wsgi_application)
+if server_checks.enabled():
+    server_checks.start(_cfg)  # the admin's banner (`il2ks doctor` in the background)
 
 logging.getLogger("il2ks.web").info("web worker %d started", os.getpid())

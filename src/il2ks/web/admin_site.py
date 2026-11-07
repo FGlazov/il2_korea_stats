@@ -26,7 +26,7 @@ from il2ks.ingest.tours import on_win_pending, on_win_projection
 from il2ks.rule_settings import effective_rules
 from il2ks.serving import custom
 from il2ks.web import admin_achievements as achievement_forms
-from il2ks.web import admin_rules, quips
+from il2ks.web import admin_rules, quips, server_checks
 from il2ks.web import admin_score as score_forms
 from il2ks.web.achievement_config import MAX_DESCRIPTION, MAX_NAME, AchievementConfig
 from il2ks.web.admin_quips import Draft, build_rows, mode_labels, parse_form, rejected_drafts
@@ -52,6 +52,11 @@ class Il2ksAdminSite(admin.AdminSite):
         # TD-25: staff see a red banner on every admin page while a file in custom/ is based on an old or unknown
         # template version. Computed once per process (overrides only change at a restart); never on public pages.
         context["custom_problems"] = custom.startup_problems(Path(settings.CUSTOM_DIR)) if request.user.is_staff else []
+        # FR-OPS-1: the web server runs the doctor checks in the background; alerts get a red banner, the home page
+        # lists every warning. Only read here, never run.
+        checks = server_checks.latest() if request.user.is_staff else None
+        context["server_checks"] = checks
+        context["doctor_alerts"] = checks.alerts if checks is not None else []
         return context
 
     def get_urls(self) -> list[URLPattern | URLResolver]:  # pyright: ignore[reportIncompatibleMethodOverride]

@@ -137,6 +137,7 @@ _.more_mixes  # web.views.aircraft.HitsToDestroy: the "show more mixes" fold of 
 _.style  # web.medals.Medal: the ribbon stripe pattern (ribbon--sN class) read by _ribbon.html and the home feed
 _.tier_range  # web.medals.Medal: one pip per tier, looped over by _ribbon.html and the home feed
 _.player_name  # web.templatetags.il2ks_achievements.FeedItem: shown by achievements/home_feed.html
+_.is_error  # ops.doctor.Finding: read by the admin home page's server checks (il2ks_index.html)
 _.missions_stored  # web.ingest_status.IngestOverview: fields are read by the admin template il2ks_ingest_status.html
 _.last_run
 _.last_ok

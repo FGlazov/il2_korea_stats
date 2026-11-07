@@ -148,7 +148,8 @@ sudo systemctl disable --now caddy
 (Or download the single `caddy` file from <https://caddyserver.com/download>, `chmod +x caddy`, and put it into the
 `bin` folder of your data folder, as on Windows.)
 
-Check with `il2ks doctor`: it reports where it found Caddy. If you keep Caddy somewhere unusual, set
+Check with `il2ks doctor`: it reports where it found Caddy and warns when it is older than the version il2ks ships
+(older versions may miss security fixes; update it the way you installed it). If you keep Caddy somewhere unusual, set
 `[https] caddy_path = "C:/tools/caddy.exe"` in `il2ks.toml`.
 
 ## 4. Domain, ports and firewall
@@ -244,7 +245,9 @@ Database migrations run by themselves at start, after an automatic backup, and s
 from your existing data (a few minutes on a big database). Your data folder (database, logs, `custom/`) is untouched.
 
 After an upgrade run `il2ks doctor`: it tells you if a template you customized has changed
-([customizing.md](customizing.md)).
+([customizing.md](customizing.md)), and if your own Caddy is now older than the one this il2ks expects. The website
+runs the same checks every hour by itself: errors and urgent warnings show as a red banner in the admin, and the admin
+home page lists every warning.
 
 Old missions are **not** recalculated by themselves. If the release notes say a rule or score changed, run
 `il2ks reprocess --all` (or `il2ks rebuild-aggregates` for scores). Which command fits which change:

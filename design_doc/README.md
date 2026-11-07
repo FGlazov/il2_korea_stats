@@ -132,4 +132,5 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-11-06 (0.7.2: server-side page cache with warming, TD-28 step 2 as built, decided (05, 16); HTML budget 13 KB
   compressed, the first round trip).
   2026-11-07 (0.7.3: page cache `auto` = tiered with more than one worker (05); Django 5.2.19, security only).
+  2026-11-07 (doctor checks Caddy's version; the web server runs doctor hourly, alerts as a red admin banner (16, Operations)).
   2026-10-31 (0.5.2: Jet Hunter; AI aircraft count for Bomber Hunter; no negative medals, no ram medal (17); fences are no ground kills (02, 13)); 2026-11-01 (0.5.3: nor friendly kills (02, 13)); 2026-11-01 (0.5.4: medals in "Recently earned" keep their tier colour again, no decision changed).

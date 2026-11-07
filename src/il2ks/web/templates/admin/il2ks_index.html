@@ -1,8 +1,24 @@
-{# il2ks-template: templates/admin/il2ks_index.html v1.0 - copy this line along when you override #}
+{# il2ks-template: templates/admin/il2ks_index.html v1.1 - copy this line along when you override #}
 {% extends "admin/index.html" %}
 {% load i18n %}
 {% block content %}
 <div id="content-main">
+  {% if server_checks %}
+  <div class="module il2ks-server-checks">
+    <table>
+      <caption>{% translate "Server checks" %}</caption>
+      {% for finding in server_checks.problems %}
+      <tr>
+        <th scope="row">{% if finding.is_error %}{% translate "Error" %}{% else %}{% translate "Warning" %}{% endif %}</th>
+        <td><strong>{{ finding.title }}</strong>{% if finding.detail %}<br>{{ finding.detail }}{% endif %}{% if finding.fix %}<br><em>{{ finding.fix }}</em>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td>{% translate "Everything is fine." %}</td></tr>
+      {% endfor %}
+    </table>
+    <p class="help">{% blocktranslate with time=server_checks.at|date:"DATETIME_FORMAT" %}The checks of <code>il2ks doctor</code>, run by the server at {{ time }} and every hour.{% endblocktranslate %}</p>
+  </div>
+  {% endif %}
   {% if perms.il2ks_db.view_ingestrun %}
   <div class="module">
     <table>

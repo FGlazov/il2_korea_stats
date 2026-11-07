@@ -2,6 +2,7 @@
 
 import dataclasses
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -212,3 +213,48 @@ def test_prepare_writes_the_caddyfile_and_builds_the_command(tmp_path: Path) -> 
     assert setup.command == [str(Path("/opt/caddy")), "run", "--config", str(path), "--adapter", "caddyfile"]
     assert setup.plan == "public"
     assert (tmp_path / "data" / "logs").is_dir()
+
+
+# --- version (doctor: `caddy_version`) --------------------------------------------------------------------------------
+
+REPO = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize(
+    ("output", "expected"),
+    [
+        ("v2.11.9 h1:0zN6r/1PUMk6x1MqEvvtvt7qJeJSo7eZn+2r9+UzZ/A=\n", (2, 11, 9)),
+        ("v2.10.0", (2, 10, 0)),
+        ("v2.12.0-beta.1 h1:abc", (2, 12, 0)),
+        ("(devel)", None),
+        ("", None),
+    ],
+)
+def test_parse_version(output: str, expected: caddy.Version | None) -> None:
+    assert caddy.parse_version(output) == expected
+
+
+def test_the_bundled_version_is_the_installers_pin() -> None:
+    """Raising the installer's Caddy raises the version doctor asks for; the Docker image must not be older."""
+    pins = (REPO / "packaging" / "windows" / "pins.toml").read_text(encoding="utf-8")
+    pinned = re.search(r'\[caddy\]\s*\nversion = "([\d.]+)"', pins)
+    assert pinned is not None
+    assert caddy.format_version(caddy.BUNDLED_VERSION) == pinned.group(1)
+    dockerfile = (REPO / "docker" / "Dockerfile").read_text(encoding="utf-8")
+    tag = re.search(r"^FROM caddy:([\d.]+)@", dockerfile, re.MULTILINE)
+    assert tag is not None
+    in_image = caddy.parse_version(tag.group(1))
+    assert in_image is not None
+    assert in_image >= caddy.BUNDLED_VERSION
+
+
+def test_installed_version_of_a_program_that_is_not_caddy(tmp_path: Path) -> None:
+    assert caddy.installed_version(tmp_path / "missing" / caddy.caddy_binary_name()) is None
+
+
+def test_installed_version_of_the_real_caddy() -> None:
+    """Only when a Caddy binary is at hand: IL2KS_TEST_CADDY=<path>, or `caddy` on the PATH."""
+    binary = os.environ.get("IL2KS_TEST_CADDY") or shutil.which("caddy")
+    if not binary:
+        pytest.skip("no Caddy binary (set IL2KS_TEST_CADDY)")
+    assert caddy.installed_version(Path(binary)) is not None

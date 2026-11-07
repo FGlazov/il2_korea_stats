@@ -734,8 +734,8 @@
       }
     },
     "templates/admin/base_site.html": {
-      "version": "1.1",
-      "sha256": "f05ecdbd0dc8374f8d1341a00f179b5f96b16ff6513790102994aba01b55969a",
+      "version": "1.2",
+      "sha256": "22358b6f8e716c21c5c868c25e196324509489621ded07226e65d79caddab804",
       "contract": {
         "blocks": [
           "extrastyle",
@@ -751,8 +751,13 @@
           "il2ks_admin/admin.css",
           "il2ks_admin/override_warning.css"
         ],
+        "tags": [
+          "plural"
+        ],
         "variables": [
-          "custom_problems"
+          "custom_problems",
+          "doctor_alerts",
+          "server_checks"
         ]
       }
     },
@@ -834,8 +839,8 @@
       }
     },
     "templates/admin/il2ks_index.html": {
-      "version": "1.0",
-      "sha256": "a2b83818ac2585c31b33e5d8a9fc21e2d71257ecda1984317ca7f95a45689de7",
+      "version": "1.1",
+      "sha256": "ebcfbfef55a0761e170e525ab870b651a05ec00ec33c9e572e7ee23e3e8604b0",
       "contract": {
         "blocks": [
           "content"
@@ -849,6 +854,8 @@
         "markers": [
           "#content-main",
           ".changelink",
+          ".help",
+          ".il2ks-server-checks",
           ".module",
           ".viewlink"
         ],
@@ -872,7 +879,8 @@
         ],
         "variables": [
           "app_list",
-          "perms"
+          "perms",
+          "server_checks"
         ]
       }
     },

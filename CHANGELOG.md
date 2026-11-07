@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Problems show up in the admin.** The web server runs the `il2ks doctor` checks by itself, 30 seconds after it
+  starts and then every hour. Errors (almost no disk space, missions il2ks gave up on, a broken front-page image, ...)
+  and a few urgent warnings appear as a red banner on every admin page; the admin home page lists every warning with its
+  fix. Run `il2ks doctor` after a fix to check again right away.
+- **`il2ks doctor` checks Caddy's version.** A Caddy older than the one il2ks ships (2.11.9) is an urgent warning, since
+  it may miss security fixes; the fix names the update command for winget, scoop, Chocolatey and apt. This matters
+  when you installed Caddy yourself: the Windows installer and the Docker image bring theirs along with every update.
+
 ## 0.7.3 (2026-11-07)
 
 A security update (Django 5.2.19). Nothing to run after the upgrade, and the stats don't change.
