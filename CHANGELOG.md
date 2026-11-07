@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.7.4 (2026-11-07)
+
+The admin now warns about server problems by itself, and `il2ks doctor` checks Caddy's version. Nothing to run
+after the upgrade, and the stats don't change.
 
 ### Added
 
@@ -11,6 +14,12 @@
 - **`il2ks doctor` checks Caddy's version.** A Caddy older than the one il2ks ships (2.11.9) is an urgent warning, since
   it may miss security fixes; the fix names the update command for winget, scoop, Chocolatey and apt. This matters
   when you installed Caddy yourself: the Windows installer and the Docker image bring theirs along with every update.
+
+### Templates changed (check your custom/ overrides)
+
+- `admin/base_site.html`: v1.1 -> v1.2 (the red banner for server problems). An override keeps working, without
+  the banner.
+- `admin/il2ks_index.html`: v1.0 -> v1.1 (the "Server checks" box). An override keeps working, without the box.
 
 ## 0.7.3 (2026-11-07)
 

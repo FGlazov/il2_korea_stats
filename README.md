@@ -3,7 +3,7 @@
 Self-hosted statistics website for IL-2 Sturmovik: Korea dedicated servers. It parses the server's mission logs into a database
 and serves mission, player and sortie stats as a server-rendered website.
 
-**Status: public beta, version 0.7.3.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
+**Status: public beta, version 0.7.4.** Changes are listed in the [changelog](https://github.com/FGlazov/il2_korea_stats/blob/main/CHANGELOG.md);
 please report problems in [Issues](https://github.com/FGlazov/il2_korea_stats/issues). The design lives in
 [design_doc/](https://github.com/FGlazov/il2_korea_stats/blob/main/design_doc/README.md).
 
@@ -63,7 +63,7 @@ Sturmovik: Korea servers.
   language and can change it in the footer.
 - **Rules you can switch**: for example whether ramming earns a kill, how many points a kill is worth, and what a
   death costs. See [Rules, scoring and tours](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/settings.md).
-- **Safe by default**: HTTPS with a free certificate, daily backups, a `doctor` command that checks your setup.
+- **Safe by default**: HTTPS with a free certificate, daily backups, a `doctor` command that checks your setup (the admin shows its warnings too).
 
 Inspired by [IL2 stats](https://github.com/vaal-/il2_stats) by =FB=Vaal and =FB=Isay. See [NOTICE](https://github.com/FGlazov/il2_korea_stats/blob/main/NOTICE).
 
