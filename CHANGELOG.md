@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.3 (2026-11-07)
+
+A security update (Django 5.2.19). Nothing to run after the upgrade, and the stats don't change.
 
 ### Security
 
