@@ -99,6 +99,23 @@ workers = 2
 With Docker, set `IL2KS_WEB_WORKERS: 2` under `environment:` instead. Then restart il2ks. Each worker uses about 80 MB of
 memory. More threads (`[web] threads`) do not make the site faster.
 
+### "Caddy is out of date"
+
+`il2ks doctor` and the admin warn when Caddy (the program behind HTTPS) is older than the version il2ks ships, because an
+old Caddy may miss security fixes. Update it the way you installed it:
+
+- **Windows installer or Docker**: Caddy comes with il2ks, so [upgrade il2ks](#upgrade).
+- **winget**: `winget upgrade CaddyServer.Caddy`
+- **scoop**: `scoop update caddy`
+- **Chocolatey**: `choco upgrade caddy`
+- **Linux (apt)**: `sudo apt update && sudo apt install --only-upgrade caddy`. Debian's and Ubuntu's own Caddy package is
+  years behind: if it stays old, switch to Caddy's repository ([docs/install.md, step 3](https://github.com/FGlazov/il2_korea_stats/blob/main/docs/install.md#3-install-caddy-the-https-part)).
+- **Downloaded by hand**: download the new one from <https://caddyserver.com/download> and replace the file in the `bin`
+  folder of your il2ks data folder (or wherever `[https] caddy_path` points).
+
+Then restart il2ks and run `il2ks doctor`. The admin's warning goes away about 30 seconds after the restart, when the
+server checks again.
+
 ## Development
 
 Requires [uv](https://docs.astral.sh/uv/).
