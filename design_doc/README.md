@@ -134,3 +134,4 @@ Real sample logs live in `../sample_data/`. They're gitignored and contain playe
   2026-11-07 (0.7.3: page cache `auto` = tiered with more than one worker (05); Django 5.2.19, security only).
   2026-11-07 (0.7.4: doctor checks Caddy's version; the web server runs doctor hourly, alerts as a red admin banner (16, Operations)).
   2026-10-31 (0.5.2: Jet Hunter; AI aircraft count for Bomber Hunter; no negative medals, no ram medal (17); fences are no ground kills (02, 13)); 2026-11-01 (0.5.3: nor friendly kills (02, 13)); 2026-11-01 (0.5.4: medals in "Recently earned" keep their tier colour again, no decision changed).
+  2026-11-14 (0.7.5, security audit: systemd unit never root by default, hardened (16, OQ-156); `[web] trusted_proxies` and the shared-address warning (03, 16); spawn lines with keys in the nickname are bad lines (12, OQ-157); Django stays on 5.2 LTS, Dependabot ignores 6.0/6.1 (05); release gate on the `pypi` environment (03 NFR-SEC-5)).

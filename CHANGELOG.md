@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.7.5 (2026-11-14)
+
+Fixes from a security review. **Linux owners who installed the service with `sudo il2ks service systemd --install`
+should install it again** (below): until now that service ran as root. Nothing else to run after the upgrade, and the
+stats don't change.
+
+### Security
+
+- **Linux: the systemd service no longer runs as root.** `sudo il2ks service systemd --install` wrote a unit with
+  `User=root`, because under `sudo` the current user is root. A bug in the site would then have owned the whole
+  machine. The service now runs as the account that called `sudo`; logged in as root itself, the command asks for
+  `--user NAME`. The unit also limits what the site may touch (`NoNewPrivileges`, read-only system folders), and Python
+  no longer imports code from the data folder. **An upgrade does not change an installed service.** `il2ks doctor` and
+  the admin's server checks warn "il2ks is running as root"; to fix it:
+  `sudo "$(which il2ks)" service systemd --install`, then `sudo chown -R "$USER": <your data folder>` and
+  `sudo systemctl restart il2ks`. The Windows installer and the Docker image were never affected.
+- **Your own HTTPS proxy on another machine or container: `[web] trusted_proxies`.** The admin login counts wrong
+  passwords per visitor address, which it learns from the proxy's `X-Forwarded-For` header. il2ks believed that header
+  only from a proxy on the same machine, so with a proxy elsewhere every visitor counted as the proxy, and five wrong
+  passwords from anyone locked the admin login for everybody, as often as they liked. List the proxy's address (or a
+  network like `"172.18.0.0/16"`) in `[web] trusted_proxies` and each visitor is counted alone again. A proxy on the
+  same machine and the bundled Caddy need nothing.
+- **A warning when the admin login cannot tell visitors apart.** If a failed login arrives with the proxy's own address
+  (the proxy sends no `X-Forwarded-For`, or is not listed), `il2ks doctor` and the admin's server checks now say so and
+  how to fix the proxy, and the log gets an `admin_login_no_visitor_address` line.
+- **A nickname can no longer rewrite its own sortie.** A nickname or skin name shaped like part of a log line (for
+  example `Bob TYPE:F-86A-5 COUNTRY:101 ...`) could replace the aircraft, side and airfield of that player's own sortie.
+  It never touched the account or other players. Such a spawn line is now refused as a bad line, so that sortie is not
+  counted and shows as a parse warning on the admin's ingestion page. Whether the game allows such a nickname at all
+  is not known; no real log so far has one.
+- **django-axes 9.0** (the login lockout library, from 8.3.1): it no longer stores a password typed into a form field
+  with a prefix, and handles over-long account names consistently. il2ks now requires at least 9.0.
+
+### Changed
+
+- Django stays on the 5.2 long-term-support line (5.2.19, the newest, with no known open issue).
+
 ## 0.7.4 (2026-11-07)
 
 The admin now warns about server problems by itself, and `il2ks doctor` checks Caddy's version. Nothing to run
