@@ -675,7 +675,7 @@ def test_the_plan_is_checked_again_under_the_lock(instance: Config, monkeypatch:
 
 @pytest.mark.django_db
 def test_admin_unlock_removes_the_locks(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
+    from axes.models import AccessAttempt
 
     for name, address in (("boss", "203.0.113.5"), ("boss", "198.51.100.9"), ("deputy", "203.0.113.5")):
         AccessAttempt.objects.create(username=name, ip_address=address, failures_since_start=5)
@@ -693,7 +693,7 @@ def test_admin_unlock_removes_the_locks(sandbox: Path, capsys: pytest.CaptureFix
 
 @pytest.mark.django_db
 def test_admin_unlock_ip_is_normalised_like_the_lockout(sandbox: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
+    from axes.models import AccessAttempt
 
     AccessAttempt.objects.create(username="boss", ip_address="2001:db8:1:2::", failures_since_start=5)
     AccessAttempt.objects.create(username="boss", ip_address="203.0.113.5", failures_since_start=5)

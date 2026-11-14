@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "django>=5.2.19,<5.3",  # 5.2.19: security fixes (multipart memory, CVE-2026-108147)
-    "django-axes>=8.3.1",
+    "django-axes>=9.0.0",  # 9.0 ships type information (no pyright ignores) and redacts prefixed password fields
     "hypercorn>=0.17",
     "a2wsgi>=1.10",
     "brotli>=1.2.1",  # WhiteNoise writes .br copies of the static files only when it is installed (doc 16); 1.2.1 fixes CVE-2026-111497

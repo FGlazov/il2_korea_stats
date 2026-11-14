@@ -33,9 +33,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, cast
 
-from axes.handlers.database import AxesDatabaseHandler  # pyright: ignore[reportMissingTypeStubs]
-from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
-from axes.signals import user_locked_out  # pyright: ignore[reportMissingTypeStubs]
+from axes.handlers.database import AxesDatabaseHandler
+from axes.models import AccessAttempt
+from axes.signals import user_locked_out
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.signals import user_login_failed

@@ -921,7 +921,7 @@ requires-dist = [
     { name = "a2wsgi", specifier = ">=1.10" },
     { name = "brotli", specifier = ">=1.2.1" },
     { name = "django", specifier = ">=5.2.19,<5.3" },
-    { name = "django-axes", specifier = ">=8.3.1" },
+    { name = "django-axes", specifier = ">=9.0.0" },
     { name = "hypercorn", specifier = ">=0.17" },
     { name = "markdown-it-py", specifier = ">=4.2.0" },
     { name = "nh3", specifier = ">=0.3.7" },

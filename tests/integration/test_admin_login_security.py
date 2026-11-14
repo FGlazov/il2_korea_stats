@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from axes.models import AccessAttempt  # pyright: ignore[reportMissingTypeStubs]
+from axes.models import AccessAttempt
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
