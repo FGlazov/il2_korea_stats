@@ -10,7 +10,7 @@ import os
 import shlex
 import subprocess
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -25,8 +25,11 @@ type CommandRunner = Callable[[Sequence[str]], int]
 
 
 def run_command(cfg: Config, python: str | None = None) -> list[str]:
-    """The command line that starts the whole site: this Python (the one il2ks is installed in) and `il2ks run`."""
-    argv = [python or sys.executable, "-m", "il2ks"]
+    """The command line that starts the whole site: this Python (the one il2ks is installed in) and `il2ks run`.
+
+    `-P`: Python does not import from the working directory. A service starts in the data folder, which the site
+    itself writes, so a file dropped there must never become code (security audit 2026-11-14)."""
+    argv = [python or sys.executable, "-P", "-m", "il2ks"]
     if cfg.source is not None:
         argv += ["--config", str(cfg.source.resolve())]
     return [*argv, "run"]
@@ -42,6 +45,30 @@ def _systemd_quote(word: str) -> str:
     if word and not any(c in word for c in " \t\"'\\"):
         return word
     return '"' + word.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def default_systemd_user(environ: Mapping[str, str] | None = None, getuser: Callable[[], str] | None = None) -> str:
+    """Who the unit runs as when `--user` is not given: the person at the keyboard. `--install` needs root, so it runs
+    under sudo, where the current user is root: sudo's `SUDO_USER` names who called it. Before 0.7.5 the documented
+    `sudo il2ks service systemd --install` therefore wrote `User=root` (security audit 2026-11-14)."""
+    env = os.environ if environ is None else environ
+    return env.get("SUDO_USER", "").strip() or (getuser or getpass.getuser)()
+
+
+def is_root(user: str) -> bool:
+    return user.strip() in {"root", "0"}
+
+
+SYSTEMD_HARDENING = (
+    "NoNewPrivileges=yes",  # no setuid program can give the site more rights than its user has
+    "ProtectSystem=full",  # /usr, /boot and /etc are read-only for it
+    "ProtectKernelTunables=yes",
+    "ProtectKernelModules=yes",
+    "ProtectControlGroups=yes",
+    "RestrictSUIDSGID=yes",
+)
+"""Limits that cost a stats site nothing. Not `ProtectSystem=strict` / `ProtectHome`: the data folder, the game's log
+folder (reports are moved away from it) and the backup copy folder can be anywhere, often under /home."""
 
 
 def needs_low_ports(cfg: Config) -> bool:
@@ -73,6 +100,7 @@ def render_systemd_unit(
         "RestartSec=5",
         "KillSignal=SIGTERM",
         "TimeoutStopSec=30",
+        *SYSTEMD_HARDENING,
     ]
     if needs_low_ports(cfg):
         lines.append("AmbientCapabilities=CAP_NET_BIND_SERVICE")  # Caddy listens on 80 and 443 without root

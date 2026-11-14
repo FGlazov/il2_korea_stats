@@ -413,3 +413,86 @@ def test_the_address_lock_counts_down_to_when_the_address_total_drops_below_the_
     assert page.status_code == 429
     assert "Try again in 5 minutes" in page.content.decode()
     assert page["Retry-After"] == "300"
+
+
+# --- security audit 2026-11-14: a proxy on another machine made every visitor one address -----------------------------
+
+PROXY = "10.0.0.5"
+
+
+def test_a_listed_proxy_on_another_machine_names_the_visitor(rf: RequestFactory, settings: SettingsWrapper) -> None:
+    settings.IL2KS_TRUST_FORWARDED_FOR = True
+    settings.IL2KS_TRUSTED_PROXIES = (PROXY, "172.18.0.0/16", "2001:db8:aa::/48")
+    assert client_address(rf.get("/", REMOTE_ADDR=PROXY, HTTP_X_FORWARDED_FOR="203.0.113.5")) == "203.0.113.5"
+    assert client_address(rf.get("/", REMOTE_ADDR="172.18.0.3", HTTP_X_FORWARDED_FOR="203.0.113.5")) == "203.0.113.5"
+    assert (
+        client_address(rf.get("/", REMOTE_ADDR="2001:db8:aa::1", HTTP_X_FORWARDED_FOR="203.0.113.5")) == "203.0.113.5"
+    )
+    assert (
+        client_address(rf.get("/", REMOTE_ADDR=f"::ffff:{PROXY}", HTTP_X_FORWARDED_FOR="203.0.113.5")) == "203.0.113.5"
+    )
+    # Not listed: the header is the visitor's own text.
+    assert client_address(rf.get("/", REMOTE_ADDR="10.0.0.6", HTTP_X_FORWARDED_FOR="203.0.113.5")) == "10.0.0.6"
+    # Listed, but the site is not in production: nothing is behind a proxy.
+    settings.IL2KS_TRUST_FORWARDED_FOR = False
+    assert client_address(rf.get("/", REMOTE_ADDR=PROXY, HTTP_X_FORWARDED_FOR="203.0.113.5")) == PROXY
+
+
+def test_a_chain_of_proxies_gives_the_last_address_that_is_not_a_proxy(
+    rf: RequestFactory, settings: SettingsWrapper
+) -> None:
+    settings.IL2KS_TRUST_FORWARDED_FOR = True
+    settings.IL2KS_TRUSTED_PROXIES = (PROXY,)
+    chain = (
+        f"6.6.6.6, 203.0.113.5, {PROXY}"  # visitor's own text, the visitor as the outer proxy saw it, the outer proxy
+    )
+    assert client_address(rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR=chain)) == "203.0.113.5"
+    # Only proxies, or junk before a real address is found: the shared address, never a visitor-chosen one.
+    assert (
+        client_address(rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR=f"{PROXY}, 127.0.0.1")) == "127.0.0.1"
+    )
+    assert (
+        client_address(rf.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR=f"6.6.6.6, junk, {PROXY}"))
+        == "127.0.0.1"
+    )
+
+
+def test_behind_a_listed_proxy_a_stranger_cannot_lock_the_admin_out(
+    client: Client, boss: User, settings: SettingsWrapper
+) -> None:
+    """Before `[web] trusted_proxies` every visitor behind such a proxy was the proxy's address: five wrong passwords
+    from anyone locked the admin out for everybody, again and again."""
+    settings.IL2KS_TRUSTED_PROXIES = (PROXY,)
+    client.defaults["REMOTE_ADDR"] = PROXY
+    for _ in range(ADDRESS_LIMIT):
+        attempt(client, "wrong", forwarded="203.0.113.66")
+    assert attempt(client, "wrong", forwarded="203.0.113.66").status_code == 429
+
+    assert attempt(client, GOOD, forwarded="198.51.100.2").status_code == 302
+
+
+def test_a_failed_login_without_a_visitor_address_is_logged_as_such(
+    client: Client, boss: User, caplog: pytest.LogCaptureFixture
+) -> None:
+    """The proxy sent no X-Forwarded-For: all visitors share this machine's address, and the log says what to do."""
+    with caplog.at_level(logging.WARNING, logger=login_protection.__name__):
+        attempt(client, "wrong")
+        attempt(client, "wrong", forwarded="203.0.113.5")
+
+    events = [r.__dict__["event"] for r in caplog.records if "event" in r.__dict__]
+    assert events.count("admin_login_no_visitor_address") == 1
+    text = next(r.getMessage() for r in caplog.records if r.__dict__.get("event") == "admin_login_no_visitor_address")
+    assert "X-Forwarded-For" in text
+
+
+def test_shared_address_attempts_counts_what_came_without_a_visitor_address(
+    client: Client, boss: User, settings: SettingsWrapper
+) -> None:
+    settings.IL2KS_TRUSTED_PROXIES = (PROXY,)
+    assert login_protection.shared_address_attempts() == 0
+    attempt(client, "wrong", forwarded="203.0.113.5")
+    assert login_protection.shared_address_attempts() == 0
+    attempt(client, "wrong")  # from 127.0.0.1, no header
+    other = Client(REMOTE_ADDR=PROXY)
+    attempt(other, "wrong")  # the listed proxy, no header
+    assert login_protection.shared_address_attempts() == 2

@@ -6,7 +6,9 @@ name: Release
 # One-time setup on pypi.org: Your projects -> il2ks -> Publishing -> add a trusted publisher
 #   owner: FGlazov   repository: il2_korea_stats   workflow: release.yml   environment: pypi
 # (for the very first release, add it as a "pending publisher" under Your account -> Publishing).
-# And in GitHub: Settings -> Environments -> New environment "pypi" (optionally require a reviewer there).
+# And in GitHub: Settings -> Environments -> environment "pypi": the maintainer is a required reviewer and only `v*` tags
+# may deploy (security audit 2026-11-14), so the publish job waits for one click on the run's page. Rulesets keep `v*`
+# tags from being moved or deleted and `main` from being force-pushed; the build refuses a tag that is not on main.
 #
 # Release steps: bump __version__ in src/il2ks/__init__.py (the only place), commit, `git tag v<version>`, push the tag.
 
@@ -24,8 +26,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0 # the whole history, for "the tag must be a commit on main"
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - run: uv sync --locked
+
+      - name: The tag must be a commit on main
+        run: |
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "Tag ${GITHUB_REF_NAME} (${GITHUB_SHA}) is not on main: refusing to release it" >&2
+            exit 1
+          fi
 
       - name: The tag must match the package version
         run: |

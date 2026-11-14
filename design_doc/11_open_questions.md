@@ -15,6 +15,16 @@ Rufus's rule checks the pilot's teardown height against a heightmap; il2ks has n
 
 ## Needs the maintainer's review
 
+**OQ-156 `il2ks service systemd` and root** (doc 16 "Operations", security audit 2026-11-14)
+Applied in 0.7.5: without `--user` the unit runs as the account that called `sudo`; when that is root (logged in as root, no sudo) the command stops and
+asks for `--user NAME`; `--user root` typed out still works, with a warning. Should root be refused outright, or is the explicit escape right for
+owners whose VPS only has a root account? Existing units with `User=root` are not changed by an upgrade: doctor warns and the docs say how to re-install.
+
+**OQ-157 A nickname or skin name that looks like log keys drops the sortie** (doc 12 "Known problems", security audit 2026-11-14)
+Applied in 0.7.5: a player spawn whose nickname, aircraft type or skin name contains a key of its own log line (` TYPE:`, ` COUNTRY:`, ` SKIN:` ...) is a
+bad line, so that sortie does not appear in the stats (it shows as a parse warning on the ingestion page). The alternative is to keep the sortie and
+guess the reading, which is what let a nickname choose its own aircraft and side. Is dropping right, and do you know what DServer allows in a nickname?
+
 **OQ-137 "Delete all data and reprocess": defaults applied** (doc 14 "Delete all data and reprocess", FR-ADM-4)
 Applied until you decide: (1) only **superusers** may start it (staff with the reprocess permission may not); (2) while it runs the public pages are empty or partial and
 show **no notice** (use the notice banner by hand if you want one); (3) a hidden player or hidden mission whose archive is gone is **dropped** from the hidden lists after

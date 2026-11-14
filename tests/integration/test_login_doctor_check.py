@@ -56,3 +56,28 @@ def test_an_ipv6_lock_is_listed_with_its_64_bucket(client: Client) -> None:
     [finding] = list(login_lockout_check(CFG))
 
     assert "account boss from 2001:db8:1:2::/64" in finding.detail
+
+
+def test_logins_without_a_visitor_address_are_a_warning_with_the_proxy_fix(client: Client) -> None:
+    """Security audit 2026-11-14: when the HTTPS proxy sends no X-Forwarded-For (or is not listed), every visitor is
+    one address and anybody can keep the admin locked out. Doctor says so as soon as such a login was seen."""
+    User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
+    client.post("/admin/login/", {"username": "boss", "password": "wrong"})  # from 127.0.0.1, no X-Forwarded-For
+
+    findings = list(login_lockout_check(CFG))
+
+    warning = next(f for f in findings if "tell visitors apart" in f.title)
+    assert warning.level is Level.WARN
+    assert "X-Forwarded-For" in warning.fix
+    assert "trusted_proxies" in warning.fix
+
+
+def test_in_debug_mode_a_local_login_is_just_a_local_login(client: Client) -> None:
+    import dataclasses
+
+    User.objects.create_superuser("boss", "boss@example.org", "right-password-123")
+    client.post("/admin/login/", {"username": "boss", "password": "wrong"})
+
+    findings = list(login_lockout_check(dataclasses.replace(CFG, debug=True)))
+
+    assert not any("tell visitors apart" in f.title for f in findings)

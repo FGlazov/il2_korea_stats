@@ -35,7 +35,7 @@ def test_systemd_unit_runs_il2ks_run_with_restart_and_low_port_capability(tmp_pa
     assert "[Service]" in lines
     assert "[Install]" in lines
     exec_start = next(line for line in lines if line.startswith("ExecStart="))
-    assert exec_start.startswith(f"ExecStart={PY} -m il2ks --config ")
+    assert exec_start.startswith(f"ExecStart={PY} -P -m il2ks --config ")
     assert exec_start.endswith(" run")
     assert "User=stats" in lines
     assert "Restart=on-failure" in lines
@@ -65,7 +65,7 @@ def test_paths_with_spaces_are_quoted_for_systemd(tmp_path: Path) -> None:
         for line in service.render_systemd_unit(cfg, python="/opt/my env/bin/python").splitlines()
         if line.startswith("ExecStart=")
     )
-    assert exec_line.startswith('ExecStart="/opt/my env/bin/python" -m il2ks --config "')
+    assert exec_line.startswith('ExecStart="/opt/my env/bin/python" -P -m il2ks --config "')
 
 
 def test_percent_signs_are_escaped_for_systemd() -> None:
@@ -79,7 +79,7 @@ def test_schtasks_command_runs_at_startup_as_the_user_and_asks_for_the_password(
     assert args[args.index("/RU") + 1] == "PC\\admin"
     assert args[args.index("/RP") + 1] == "*"
     task_run = args[args.index("/TR") + 1]
-    assert task_run.startswith("C:\\il2ks\\python.exe -m il2ks --config ")
+    assert task_run.startswith("C:\\il2ks\\python.exe -P -m il2ks --config ")
     assert task_run.endswith(" run")
     assert args[-1] == "/F"
 
@@ -99,7 +99,7 @@ def test_task_xml_is_valid_and_restarts_on_failure(tmp_path: Path) -> None:
     assert root.findtext("t:Actions/t:Exec/t:Command", namespaces=ns) == "C:\\il2ks\\python.exe"
     arguments = root.findtext("t:Actions/t:Exec/t:Arguments", namespaces=ns)
     assert arguments is not None
-    assert arguments.startswith("-m il2ks --config ")
+    assert arguments.startswith("-P -m il2ks --config ")
     assert arguments.endswith(" run")
 
 
@@ -182,6 +182,61 @@ def test_service_systemd_install_reports_a_failing_command(env: Path, monkeypatc
     monkeypatch.setattr(service, "SYSTEMD_DIR", env)
     monkeypatch.setattr(os, "geteuid", lambda: 0, raising=False)
     assert run_service(["service", "systemd", "--install"], Recorder(code=1), monkeypatch) == EXIT_FAILED
+
+
+# --- security audit 2026-11-14: the documented `sudo il2ks service systemd --install` made a unit with User=root ------
+
+
+def test_under_sudo_the_default_user_is_the_one_who_called_sudo_not_root() -> None:
+    assert service.default_systemd_user({"SUDO_USER": "stats", "USER": "root"}, lambda: "root") == "stats"
+    assert service.default_systemd_user({}, lambda: "stats") == "stats"
+    assert service.default_systemd_user({"SUDO_USER": "  "}, lambda: "root") == "root"
+
+
+def test_service_systemd_under_sudo_writes_the_callers_name(
+    env: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("SUDO_USER", "stats")
+    monkeypatch.setattr(service.getpass, "getuser", lambda: "root")
+    assert main(["service", "systemd"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "User=stats" in out
+    assert "User=root" not in out
+
+
+@pytest.mark.parametrize("install", [False, True])
+def test_service_systemd_refuses_to_default_to_root(
+    env: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], install: bool
+) -> None:
+    monkeypatch.delenv("SUDO_USER", raising=False)
+    monkeypatch.setattr(service.getpass, "getuser", lambda: "root")
+    monkeypatch.setattr(service, "SYSTEMD_DIR", env)
+    monkeypatch.setattr(os, "geteuid", lambda: 0, raising=False)
+    runner = Recorder()
+    argv = ["service", "systemd", *(["--install"] if install else [])]
+    assert run_service(argv, runner, monkeypatch) == EXIT_USAGE
+    out = capsys.readouterr()
+    assert "User=root" not in out.out
+    assert "--user" in out.err
+    assert runner.calls == []
+    assert not (env / "il2ks.service").exists()
+
+
+def test_service_systemd_root_only_when_asked_for_by_name(
+    env: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["service", "systemd", "--user", "root"]) == EXIT_OK
+    out = capsys.readouterr()
+    assert "User=root" in out.out
+    assert "root" in out.err  # and a warning with it
+
+
+def test_systemd_unit_limits_what_the_service_can_do(tmp_path: Path) -> None:
+    lines = service.render_systemd_unit(make(tmp_path), user="stats", python=PY).splitlines()
+    assert "NoNewPrivileges=yes" in lines
+    assert "ProtectSystem=full" in lines
+    # -P: the working directory (the data folder, which the site writes) is not a place Python imports from.
+    assert next(line for line in lines if line.startswith("ExecStart=")).split()[1] == "-P"
 
 
 def test_service_schtasks_prints_the_command_and_runs_nothing(env: Path, capsys: pytest.CaptureFixture[str]) -> None:

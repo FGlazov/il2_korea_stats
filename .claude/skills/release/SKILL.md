@@ -20,7 +20,9 @@ description: Publish an il2ks release (patch, minor or major). Use it whenever t
 6. **Commit and push**: explicit paths, on `main`. Then watch CI (`watch-ci`): every job green, Postgres and e2e included.
 7. **Tag the commit CI passed, by SHA**, not whatever HEAD is by then:
    `git tag v<version> <sha>` and `git push origin v<version>`. Never tag a red or unfinished run.
-8. **Watch the tag's runs**: `release.yml` (PyPI) and `windows-installer.yml` (the `.exe` on the GitHub release).
+8. **Watch the tag's runs**: `release.yml` (PyPI) and `windows-installer.yml` (the `.exe` on the GitHub release). The PyPI
+   publish job **waits for the maintainer's approval** (environment `pypi`, required reviewer since 2026-11-14): tell the
+   maintainer to open the run and press "Review deployments" → approve. Don't approve it through the API yourself.
 9. **Notes**: put the changelog section into the GitHub release with `gh release edit v<version> --notes-file <file>`. Write that
    file from Python with `encoding="utf-8"`, not from PowerShell, which can add a BOM or mangle the text.
 10. **Report**: what shipped, what server owners must do, and anything left open (translations still llm-draft, open OQs).

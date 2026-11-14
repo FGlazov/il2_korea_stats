@@ -13,11 +13,16 @@ A correct login clears the count. This module adds what axes does not do for us:
   its /64 (one host or home network owns 2^64 addresses, so the full address would give an attacker endless fresh
   counters; the bucket is stored as the network address, `2001:db8:1:2::`, shown as `2001:db8:1:2::/64`), and an
   IPv4-mapped IPv6 address (`::ffff:1.2.3.4`) as the IPv4. `raw_client_address` is the socket's address, except when
-  the connection comes from this machine and
-  the site runs in production (the bundled Caddy, or the admin's own proxy on the same machine; the web server
-  listens on 127.0.0.1 there, docs/reverse-proxy.md): then the last `X-Forwarded-For` entry, which is the one that
-  proxy appended and the client cannot choose. From any other socket address, or in development, the header is
-  client-controlled and ignored.
+  the connection comes from a proxy and the site runs in production. A proxy is this machine (the bundled Caddy, or
+  the admin's own proxy on the same machine; the web server listens on 127.0.0.1 there, docs/reverse-proxy.md) or an
+  address in `[web] trusted_proxies` (a proxy on another machine or container). Then it is the last `X-Forwarded-For`
+  entry that is not itself a proxy: the entries are read from the right, where each proxy appended what it saw, so
+  the visitor cannot choose it. From any other socket address, or in development, the header is client-controlled
+  and ignored.
+- the shared address: when the proxy sends no usable header (or a proxy on another machine is not listed), every
+  visitor is the proxy's address, and five wrong passwords from anyone lock the admin out for everybody (security
+  audit 2026-11-14). That cannot be repaired from here, only made loud: `visitor_unknown` marks such a login in
+  the log and `shared_address_attempts` lets `il2ks doctor` (and the admin's server checks) say how to fix the proxy.
 - `lockout_response`: the plain "try again in N minutes" page, in the admin's look and the visitor's language.
 - structured log lines for failed attempts and lockouts (TD-27): the JSON log carries `event`, `username`,
   `ip_address` (the bucket) and
@@ -25,6 +30,7 @@ A correct login clears the count. This module adds what axes does not do for us:
 - `current_lockouts`: what `il2ks doctor` lists.
 """
 
+import functools
 import ipaddress
 import logging
 import math
@@ -70,11 +76,26 @@ class LoginHandler(AxesDatabaseHandler):
         return max(pair, address // address_factor())
 
 
-def _is_loopback(address: str) -> bool:
+type _Network = ipaddress.IPv4Network | ipaddress.IPv6Network
+
+
+@functools.lru_cache(maxsize=8)
+def _networks(entries: tuple[str, ...]) -> tuple[_Network, ...]:
+    return tuple(ipaddress.ip_network(entry, strict=False) for entry in entries)
+
+
+def _is_proxy(address: str) -> bool:
+    """This machine, or an address in `[web] trusted_proxies`: a peer whose X-Forwarded-For entry is its own."""
     try:
-        return ipaddress.ip_address(address.strip("[]")).is_loopback
+        parsed = ipaddress.ip_address(address.strip().strip("[]"))
     except ValueError:
         return False
+    if isinstance(parsed, ipaddress.IPv6Address) and parsed.ipv4_mapped is not None:
+        parsed = parsed.ipv4_mapped
+    if parsed.is_loopback:
+        return True
+    listed = _networks(tuple(getattr(settings, "IL2KS_TRUSTED_PROXIES", ())))
+    return any(parsed.version == network.version and parsed in network for network in listed)
 
 
 def _without_port(entry: str) -> str:
@@ -123,13 +144,32 @@ def client_address(request: HttpRequest) -> str:
 
 def raw_client_address(request: HttpRequest) -> str:
     remote = request.META.get("REMOTE_ADDR", "")
-    if not getattr(settings, "IL2KS_TRUST_FORWARDED_FOR", False) or not _is_loopback(remote):
+    if not getattr(settings, "IL2KS_TRUST_FORWARDED_FOR", False) or not _is_proxy(remote):
         return remote
-    last = _without_port(request.META.get("HTTP_X_FORWARDED_FOR", "").rsplit(",", 1)[-1].strip())
-    try:
-        return str(ipaddress.ip_address(last)) if last else remote
-    except ValueError:
-        return remote  # junk from a broken proxy: one shared bucket, never a client-chosen one
+    for entry in reversed(request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")):
+        try:
+            address = str(ipaddress.ip_address(_without_port(entry.strip())))
+        except ValueError:
+            return remote  # nothing, or junk from a broken proxy: one shared bucket, never a client-chosen one
+        if not _is_proxy(address):
+            return address
+    return remote  # only proxies in the list
+
+
+def visitor_unknown(request: HttpRequest) -> bool:
+    """The request came through a proxy that did not say who the visitor is: its address is the proxy's, shared by
+    everybody (see the module docstring)."""
+    remote = request.META.get("REMOTE_ADDR", "")
+    return (
+        bool(getattr(settings, "IL2KS_TRUST_FORWARDED_FOR", False))
+        and _is_proxy(remote)
+        and raw_client_address(request) == remote
+    )
+
+
+def shared_address_attempts() -> int:
+    """How many counted wrong-password rows carry a proxy's address instead of a visitor's (for `il2ks doctor`)."""
+    return sum(1 for address in AccessAttempt.objects.values_list("ip_address", flat=True) if _is_proxy(address or ""))
 
 
 def minutes_left(until: datetime, now: datetime) -> int:
@@ -199,6 +239,14 @@ def log_failed_login(
         full,
         extra={"event": "admin_login_failed", "username": name, "ip_address": bucket(full), "client_address": full},
     )
+    if request is not None and visitor_unknown(request):
+        log.warning(
+            "admin login attempt without a visitor address: the HTTPS proxy sent no usable X-Forwarded-For, so all "
+            "visitors count as %s and wrong passwords from anyone lock the admin login for everybody. Make the proxy "
+            "send X-Forwarded-For (docs/reverse-proxy.md)",
+            full,
+            extra={"event": "admin_login_no_visitor_address", "username": name, "ip_address": bucket(full)},
+        )
     if name:
         _warn_if_account_is_targeted(name)
 

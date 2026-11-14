@@ -28,7 +28,13 @@ port = 8000
    `host = "127.0.0.1"`: if it were reachable from outside, a visitor could invent the header. A port after the address
    (`1.2.3.4:51234`, `[2001:db8::1]:51234`; IIS ARR adds it) is ignored. Without the header from your proxy, all
    visitors share one address: five wrong passwords from anyone lock the account `admin` for everybody for 15 minutes
-   (the password stays protected, you can unlock with `il2ks admin unlock`).
+   (the password stays protected, you can unlock with `il2ks admin unlock`). `il2ks doctor` and the admin's start page
+   warn ("The admin login cannot tell visitors apart") as soon as a failed login arrives that way.
+   **Proxy on another machine or in another container?** Then the connection does not come from 127.0.0.1, and you
+   list the proxy so its header is believed: `[web] trusted_proxies = ["10.0.0.5"]` (addresses or networks like
+   `"172.18.0.0/16"`), with `[web] host` set to an address the proxy can reach and a firewall that lets only the proxy
+   through to port 8000. With several proxies in a row (a CDN in front of your proxy), list each one: il2ks takes the
+   last address in the header that is not a listed proxy.
 5. Keep the original **`Host`** header (recommended) so links and the admin login work.
 6. **Compress the pages** (gzip or better). il2ks already sends its stylesheets, scripts and icons compressed, but the
    pages themselves come uncompressed, and the bundled Caddy normally compresses them. Pages with long tables shrink

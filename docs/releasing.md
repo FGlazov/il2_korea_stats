@@ -96,4 +96,6 @@ change the file: it prints the reasons next to the file name. Put the important 
 4. Commit, wait for CI to pass, then `git tag v<version>` and `git push origin v<version>`. The tag starts
    `.github/workflows/release.yml` (build, smoke test on Linux and Windows, publish to PyPI with trusted publishing) and
    `.github/workflows/windows-installer.yml` (attaches the Windows installer to the GitHub release).
+   The publish job then **waits for you**: open the Release run on GitHub and approve it under "Review deployments"
+   (environment `pypi`). The tag must be a commit on `main`, and `v*` tags cannot be moved or deleted afterwards.
 5. Put the changelog section into the GitHub release's notes.

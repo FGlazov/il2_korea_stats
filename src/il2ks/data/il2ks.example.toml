@@ -349,6 +349,11 @@
 # ... for this many minutes. A correct login clears the count. Locked accounts show in `il2ks doctor`; unlock them
 # at once with `il2ks admin unlock --all`.
 #login_lockout_minutes = 15
+# Only when your own HTTPS proxy runs on ANOTHER machine or in another container ([https] mode = "external"): its
+# address, or a network like "172.18.0.0/16". il2ks then believes that proxy's X-Forwarded-For header, so the login
+# protection counts wrong passwords per visitor. Without it all visitors look like the proxy, and wrong passwords from
+# anyone lock the admin login for everybody. A proxy on this machine (and the bundled Caddy) needs no entry.
+#trusted_proxies = []
 
 # --- Outbound requests (NFR-SEC-9) ---------------------------------------------------------------------------------------
 # When il2ks fetches a web address you typed in the admin, it refuses addresses that are not on the public internet

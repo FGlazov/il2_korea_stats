@@ -270,6 +270,14 @@ def fake_caddy(tmp_path: Path) -> Path:
     return binary
 
 
+def test_children_of_a_service_started_with_safe_path_get_it_too(tmp_path: Path) -> None:
+    """Security audit 2026-11-14: the services start `python -P -m il2ks run` in the data folder; the web server and
+    the watcher it starts must not import from that folder either."""
+    cfg = make_cfg(tmp_path, "")
+    assert commands.il2ks_command(cfg, "web", python="py", safe_path=True)[:4] == ["py", "-P", "-m", "il2ks"]
+    assert commands.il2ks_command(cfg, "web", python="py", safe_path=False)[:3] == ["py", "-m", "il2ks"]
+
+
 def test_child_specs_are_web_watch_and_caddy(tmp_path: Path) -> None:
     logs = tmp_path / "logs"
     cfg = make_cfg(tmp_path, f'[logs]\ndir = "{logs.as_posix()}"\n[https]\ndomain = "stats.example.com"')

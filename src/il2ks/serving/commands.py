@@ -73,7 +73,7 @@ def add_parsers(sub: SubParsers) -> None:
     kinds = svc.add_subparsers(dest="service_kind", required=True)
     systemd = kinds.add_parser("systemd", help="Linux: print a systemd unit")
     systemd.add_argument("--name", default=service.DEFAULT_NAME, help="service name (default: il2ks)")
-    systemd.add_argument("--user", help="Linux user to run as (default: you)")
+    systemd.add_argument("--user", help="Linux user to run as (default: you, also under sudo; never root)")
     systemd.add_argument("--write", type=Path, metavar="FILE", help="save the unit to FILE instead of printing it")
     systemd.add_argument(
         "--install", action="store_true", help="REALLY install it (needs root): write the unit and enable it"
@@ -259,8 +259,12 @@ CADDY_HELP = (
 )
 
 
-def il2ks_command(cfg: Config, *args: str, python: str | None = None) -> list[str]:
-    argv = [python or sys.executable, "-m", "il2ks"]
+def il2ks_command(cfg: Config, *args: str, python: str | None = None, safe_path: bool | None = None) -> list[str]:
+    """`python -m il2ks ...` for a child process. A parent started with `-P` (the services do: the working directory,
+    the data folder, is no place to import code from) hands the flag on, since Python does not inherit it."""
+    if safe_path is None:
+        safe_path = bool(sys.flags.safe_path)
+    argv = [python or sys.executable, *(["-P"] if safe_path else []), "-m", "il2ks"]
     if cfg.source is not None:
         argv += ["--config", str(cfg.source)]
     return [*argv, *args]
@@ -519,10 +523,22 @@ def cmd_service(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
 
 
 def _service_systemd(cfg: Config, ns: argparse.Namespace, hooks: Hooks) -> int:
-    import getpass
-
     name: str = ns.name
-    unit = service.render_systemd_unit(cfg, name=name, user=ns.user or getpass.getuser())
+    user: str = ns.user or service.default_systemd_user()
+    if service.is_root(user):
+        if not ns.user:
+            print(
+                "il2ks service systemd: this would run the site as root, so a bug in the site would own the machine. "
+                "Give the account to run as: --user NAME (an ordinary user that owns the data folder "
+                f"{cfg.data_dir}; create one with `useradd --system --create-home NAME` if there is none).",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        print(
+            "il2ks service systemd: warning: the site will run as root. An ordinary account is safer (--user NAME).",
+            file=sys.stderr,
+        )
+    unit = service.render_systemd_unit(cfg, name=name, user=user)
     if ns.install:
         if sys.platform != "win32" and os.geteuid() != 0:
             print("il2ks service systemd --install: needs root. Run it with sudo.", file=sys.stderr)

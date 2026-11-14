@@ -205,6 +205,7 @@ AXES_ONLY_ADMIN_SITE = True
 AXES_CLIENT_IP_CALLABLE = "il2ks.web.login_protection.client_address"
 AXES_LOCKOUT_CALLABLE = "il2ks.web.login_protection.lockout_response"
 IL2KS_TRUST_FORWARDED_FOR = trust_forwarded_for(_CFG)  # same rule as SECURE_PROXY_SSL_HEADER; see client_address
+IL2KS_TRUSTED_PROXIES = _CFG.web.trusted_proxies  # [web] trusted_proxies: proxies on other machines, see client_address
 
 LANGUAGE_CODE = "en"
 LANGUAGES = _LANGUAGES  # en + ru, de, es, fr, pt-br (TD-24)

@@ -49,6 +49,7 @@ from il2ks.core.logparse.parser import (
     ParseError,
     ParseStats,
     WarningKind,
+    _parse,  # pyright: ignore[reportPrivateUsage]
     parse_line,
     parse_lines,
     tokenize,
@@ -347,6 +348,44 @@ def test_player_names_with_spaces_commas_and_colons_anchor_on_next_key() -> None
     assert isinstance(event, PlayerSpawnEvent)
     assert event.name == "[JG]  Ace, the: Pilot "
     assert event.skin == "f86a5/my skin, v2#1.dds"
+    assert event.aircraft_type == "F-80C-10"
+
+
+_FORGED_TAIL = "TYPE:F-86A-5 COUNTRY:101 FORM:0 FIELD:9 INAIR:0 PARENT:-1 ISPL:1 ISTSTART:1 PAYLOAD:0 FUEL:1.0000 SKIN:"
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        # The whole tail of the line inside the nickname: the real fields would end up in SKIN.
+        SPAWN_LINE.replace("NAME:Test Pilot", f"NAME:Test Pilot {_FORGED_TAIL}"),
+        # A single key in the nickname: the real TYPE would become part of the forged one.
+        SPAWN_LINE.replace("NAME:Test Pilot", "NAME:Test Pilot TYPE:MiG-15bis"),
+        # Keys the nickname cannot use to end itself early, but that make the line ambiguous all the same.
+        SPAWN_LINE.replace("NAME:Test Pilot", "NAME:Test Pilot COUNTRY:101"),
+        SPAWN_LINE.replace("NAME:Test Pilot", "NAME:Test Pilot SKIN:x"),
+        # The same from the skin name, the other free text a player chooses.
+        SPAWN_LINE.replace("SKIN: WM", f"SKIN:a {_FORGED_TAIL}b WM"),
+        SPAWN_LINE.replace("SKIN: WM", "SKIN:a WM:1 b WM"),
+    ],
+    ids=["whole-tail", "type", "country", "skin-key", "skin-tail", "skin-wm"],
+)
+@pytest.mark.parametrize("fast", [True, False])
+def test_a_player_spawn_whose_free_text_holds_a_log_key_is_a_bad_line(line: str, fast: bool) -> None:
+    """Security audit 2026-11-14: a nickname (or skin name) such as `Bob TYPE:F-86 COUNTRY:601 ... SKIN:` replaced the
+    aircraft, side and airfield of the player's own sortie, because a free-text value ends at the next known key.
+    Which of the two readings is the real one cannot be told, so such a line is refused."""
+    with pytest.raises(ParseError) as caught:
+        _parse(line, fast=fast)
+    # "skin-wm" never parsed (text after the first WM); the others parsed into a forged spawn before the fix.
+    assert caught.value.kind in {WarningKind.BAD_VALUE, WarningKind.MALFORMED_TOKEN}
+
+
+def test_a_nickname_may_still_hold_colons_and_words_that_are_not_keys_of_the_line() -> None:
+    line = SPAWN_LINE.replace("NAME:Test Pilot", "NAME:TYPE:x type: A COUNTRY Type:1 ID:5 AID:7")
+    event = parse_line(line)
+    assert isinstance(event, PlayerSpawnEvent)
+    assert event.name == "TYPE:x type: A COUNTRY Type:1 ID:5 AID:7"
     assert event.aircraft_type == "F-80C-10"
 
 

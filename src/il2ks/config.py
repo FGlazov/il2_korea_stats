@@ -159,6 +159,9 @@ class WebConfig:
     secret_key: str = field(default="", repr=False)  # "" = generated into <data dir>/secret_key.txt (NFR-SEC-2)
     login_attempts: int = 5  # failed admin logins before the account and the client address are locked (NFR-SEC-8)
     login_lockout_minutes: int = 15  # how long that lock lasts
+    # HTTPS proxies on OTHER machines or containers (addresses or networks) whose X-Forwarded-For names the visitor;
+    # a proxy on this machine needs no entry (`il2ks.web.login_protection`)
+    trusted_proxies: tuple[str, ...] = ()
     # Server-side page cache (TD-28, `il2ks.web.page_cache`): "auto" = memory with one worker, files with more
     page_cache: PageCacheMode = "auto"
     page_cache_minutes: float = 10.0  # the longest an entry lives; a data change replaces it sooner
@@ -493,22 +496,26 @@ def _load_web(reader: _Reader) -> WebConfig:
         secret_key=reader.str_("web", "secret_key", "").strip(),
         login_attempts=reader.positive_int("web", "login_attempts", defaults.login_attempts),
         login_lockout_minutes=reader.positive_int("web", "login_lockout_minutes", defaults.login_lockout_minutes),
+        trusted_proxies=_networks(reader, "web", "trusted_proxies", defaults.trusted_proxies),
         page_cache=page_cache,
         page_cache_minutes=reader.positive("web", "page_cache_minutes", defaults.page_cache_minutes),
         page_cache_warm=reader.bool_("web", "page_cache_warm", defaults.page_cache_warm),
     )
 
 
-def _load_outbound(reader: _Reader) -> OutboundConfig:
-    entries = reader.str_list("outbound", "allow_private", OutboundConfig().allow_private)
+def _networks(reader: _Reader, section: str, key: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    """A list of IP addresses or networks, as written."""
+    entries = reader.str_list(section, key, default)
     for entry in entries:
         try:
             ipaddress.ip_network(entry, strict=False)
         except ValueError as exc:
-            raise ConfigError(
-                f"outbound.allow_private: {entry!r} is not an address or network like 192.168.1.0/24"
-            ) from exc
-    return OutboundConfig(allow_private=entries)
+            raise ConfigError(f"{section}.{key}: {entry!r} is not an address or network like 192.168.1.0/24") from exc
+    return entries
+
+
+def _load_outbound(reader: _Reader) -> OutboundConfig:
+    return OutboundConfig(allow_private=_networks(reader, "outbound", "allow_private", OutboundConfig().allow_private))
 
 
 _DNS_NAME = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.?")

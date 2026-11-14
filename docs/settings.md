@@ -212,6 +212,10 @@ applies a changed option within a minute or so (or run `il2ks rebuild-aggregates
   long, and a mission that ends is published at once.
 - `[backup]`: how many backups to keep, whether to make one a day, and an optional second folder for copies, see [Copying backups elsewhere](#copying-backups-elsewhere).
 - `[web]`, `[https]`: ports, domain, certificate. See the install guides.
+- `[web]` `trusted_proxies` (default none): only for your own HTTPS proxy on **another machine or container**. Its address, or a
+  network like `"172.18.0.0/16"`; il2ks then takes the visitor's address from that proxy's `X-Forwarded-For` header, which the
+  admin login protection below needs. A proxy on the same machine and the bundled Caddy need no entry. See
+  [reverse-proxy.md](reverse-proxy.md).
 - `[web]` `login_attempts` (default 5) and `login_lockout_minutes` (default 15): after that many wrong passwords for one account
   at the admin login, that account is locked **at that visitor address** for that long, and the visitor sees "try again in N
   minutes". The same account stays open from every other address, so a stranger guessing passwords cannot lock the real admin

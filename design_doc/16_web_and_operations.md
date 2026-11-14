@@ -494,7 +494,12 @@ See TD-28 "as built": a 304 before the view runs, ETag from data version + langu
   rule of `SECURE_PROXY_SSL_HEADER`; `djsettings.trust_forwarded_for`), so an attacker cannot choose it. The earlier cache-based throttle (`web/throttle.py`) is
   gone. The lock is per **account and address pair** (`login_attempts`), plus a looser lock of one address at 3x that number
   (`IL2KS_LOGIN_ADDRESS_FACTOR`, a custom axes handler in `web/login_protection.py`), so a stranger guessing passwords cannot lock the admin out from other
-  addresses; behind a proxy that sends no `X-Forwarded-For` everyone shares one address, which the docs warn about. `il2ks admin unlock [--all | --user NAME |
+  addresses; behind a proxy that sends no `X-Forwarded-For` everyone shares one address, which the docs warn about. **Since 0.7.5** (security audit 2026-11-14,
+  `[PROPOSED]`): `[web] trusted_proxies` lists proxies on other machines or containers (addresses or networks) whose header is believed like the loopback
+  proxy's, and the client is the last `X-Forwarded-For` entry that is not itself a proxy (read from the right), so a proxy that is not on this machine no
+  longer makes every visitor one address. The shared address itself cannot be repaired from the web server, so it is made loud: a failed login that arrives
+  with a proxy's own address logs `admin_login_no_visitor_address`, and `login_lockout_check` adds the WARN "The admin login cannot tell visitors apart"
+  (also in the admin's server checks) with the proxy fix; `external_proxy` names `trusted_proxies` when the web server listens beyond loopback. `il2ks admin unlock [--all | --user NAME |
   --ip ADDR]` lifts locks while the site runs; doctor shows "account X from IP" and "address IP". A port in an `X-Forwarded-For` entry (IIS ARR adds one) is
   stripped before parsing. **IPv6 clients are keyed by their /64** (one home or VPS connection owns a whole /64), IPv4-mapped IPv6 by the IPv4; `unlock
   --ip` and doctor use the same normalisation (doctor shows `.../64`); the log keeps the full address next to the bucket. The minutes on the lockout page and
@@ -603,6 +608,12 @@ reading order and announcements with a screen reader (NVDA on Windows is free), 
   `il2ks backup` reports the copy thread's own result: `Copy:` or `COPY FAILED (the backup itself is fine): <error>`, also when the thread crashed.
 - **Autostart for the manual path**: `il2ks service systemd` (Linux unit) and `il2ks service schtasks` (Windows task XML with restart on
   failure) print or write the definition; only `--install` changes the machine. A real Windows service is the installer's job.
+  **The systemd unit never defaults to root** (0.7.5, security audit 2026-11-14): `--install` needs sudo, where the current user is root, so up to 0.7.4 the
+  documented command wrote `User=root`. The default user is now `SUDO_USER` (else the current user); when that is root the command stops and asks for
+  `--user NAME`, and an explicit `--user root` works with a warning (OQ-156). The unit carries `NoNewPrivileges`, `ProtectSystem=full`,
+  `ProtectKernelTunables/Modules/ControlGroups` and `RestrictSUIDSGID` (`[PROPOSED]`; not `strict`/`ProtectHome`: data, game-log and backup-copy folders
+  can be anywhere), and every service command line is `python -P -m il2ks`, handed on to the web and watch children: the working directory is the data
+  folder, which must never be an import path. Doctor check `root_user` warns "il2ks is running as root" with the way to re-install the unit.
 - **Exit codes** (all commands): 0 ok, 1 partial failure / warnings, 2 usage or config error, 3 lock held.
 
 ## Packaging and release (TD-14)

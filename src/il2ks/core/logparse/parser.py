@@ -492,7 +492,28 @@ def _objective(t: int, f: _Fields, x: Extra) -> MissionObjectiveEvent:
     )
 
 
+_SPAWN_FREE_TEXT = ("NAME", "TYPE", "SKIN")
+_SPAWN_KEY_IN_TEXT = re.compile(
+    r" (?:IDS|LOGIN|NAME|TYPE|COUNTRY|FORM|FIELD|INAIR|PARENT|ISPL|ISTSTART|PAYLOAD|FUEL|SKIN|WM)[:(]"
+)
+"""A key of the AType 10 line inside one of its free-text values, written the way the tokenizer would read it."""
+
+
+def _refuse_keys_in_spawn_text(f: _Fields) -> None:
+    """The nickname and the skin name are the player's own text, and a free-text value ends at the next known key. A
+    nickname such as `Bob TYPE:F-86 COUNTRY:601 ... SKIN:` therefore gave the line two readings: the forged aircraft,
+    side and airfield came first and the real ones ended up inside SKIN (security audit 2026-11-14). The log cannot
+    tell which reading is real, so a spawn whose free text holds a key of its own line is a bad line (doc 12)."""
+    for key in _SPAWN_FREE_TEXT:
+        found = _SPAWN_KEY_IN_TEXT.search(f.raw(key))
+        if found is not None:
+            raise ParseError(
+                WarningKind.BAD_VALUE, f"{key}: holds the log key {found.group().strip(' :(')!r} (ambiguous line)"
+            )
+
+
 def _player_spawn(t: int, f: _Fields, x: Extra) -> PlayerSpawnEvent:
+    _refuse_keys_in_spawn_text(f)
     return PlayerSpawnEvent(
         tick=t,
         extra=x,

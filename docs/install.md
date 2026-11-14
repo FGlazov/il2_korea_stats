@@ -224,13 +224,20 @@ sudo "$(which il2ks)" service systemd --install   # writes /etc/systemd/system/i
 journalctl -u il2ks -f            # follow the log
 ```
 
-(`sudo` may not find a tool installed by uv; `$(which il2ks)` hands it the full path.) The unit lets Caddy use ports 80
-and 443 without running as root.
+(`sudo` may not find a tool installed by uv; `$(which il2ks)` hands it the full path.) The service runs as **you**, the
+account that called `sudo` (the `User=` line of the unit), never as root: that account must own the data folder. To run it
+as another account add `--user NAME`; logged in as root itself, `--user` is required. The unit lets Caddy use ports 80 and
+443 without running as root, and limits what the site may touch (`NoNewPrivileges`, read-only system folders).
 
-Run every other `il2ks` command (`doctor`, `backup`, `manage ...`) **as the service user**, e.g.
-`sudo -u il2ks il2ks doctor`, not with plain `sudo`. The database runs in WAL mode; a command run as root can leave
+**Installed the service with il2ks 0.7.4 or older?** That unit says `User=root` (`il2ks doctor` warns "il2ks is running as
+root"). Install it again and hand the data folder to the account:
+`sudo "$(which il2ks)" service systemd --install`, then `sudo chown -R "$USER": <your data folder>` and
+`sudo systemctl restart il2ks`.
+
+Run every other `il2ks` command (`doctor`, `backup`, `manage ...`) **as the service user** (the `User=` line), e.g.
+`sudo -u NAME il2ks doctor`, not with plain `sudo`. The database runs in WAL mode; a command run as root can leave
 root-owned `-wal` / `-shm` files next to it, and the service then fails with "attempt to write a readonly database".
-(If that already happened: stop the service and `sudo chown -R il2ks: <your data folder>`.)
+(If that already happened: stop the service and `sudo chown -R NAME: <your data folder>`.)
 
 ## Upgrading
 

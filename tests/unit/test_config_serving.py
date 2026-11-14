@@ -89,6 +89,8 @@ def test_the_secret_key_never_appears_in_the_repr(tmp_path: Path) -> None:
         ('[web]\nhost = ""', "web.host"),
         ("[web]\nallowed_hosts = [1]", "web.allowed_hosts"),
         ("[web]\nlogin_attempts = 0", "web.login_attempts"),
+        ('[web]\ntrusted_proxies = ["my-proxy"]', "web.trusted_proxies"),
+        ("[web]\ntrusted_proxies = [1]", "web.trusted_proxies"),
         ("[web]\nlogin_lockout_minutes = 0", "web.login_lockout_minutes"),
         ('[web]\npage_cache = "redis"', "web.page_cache"),
         ("[web]\npage_cache_minutes = 0", "web.page_cache_minutes"),
@@ -163,3 +165,14 @@ def test_page_cache_settings(tmp_path: Path) -> None:
     assert cfg_from(tmp_path, '[web]\npage_cache = "tiered"').web.page_cache_backend == "tiered"
     cfg = cfg_from(tmp_path, "", {"IL2KS_WEB_PAGE_CACHE": "OFF", "IL2KS_WEB_PAGE_CACHE_WARM": "false"})
     assert (cfg.web.page_cache_backend, cfg.web.page_cache_warm) == ("off", False)
+
+
+def test_trusted_proxies_are_addresses_or_networks(tmp_path: Path) -> None:
+    """`[web] trusted_proxies` (security audit 2026-11-14): proxies on other machines whose X-Forwarded-For counts."""
+    path = tmp_path / "il2ks.toml"
+    path.write_text('[web]\ntrusted_proxies = ["10.0.0.5", "172.18.0.0/16", "2001:db8::/32"]\n', encoding="utf-8")
+    cfg = load_config(path, {"IL2KS_DATA_DIR": str(tmp_path / "data")}, create_server_uid=False)
+    assert cfg.web.trusted_proxies == ("10.0.0.5", "172.18.0.0/16", "2001:db8::/32")
+    assert (
+        load_config(None, {"IL2KS_DATA_DIR": str(tmp_path / "data")}, create_server_uid=False).web.trusted_proxies == ()
+    )

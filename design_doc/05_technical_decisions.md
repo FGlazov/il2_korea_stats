@@ -17,6 +17,7 @@ Version numbers were checked against what was current as of 2026-10. Re-check th
 
 ### TD-03 Web framework: Django — `[DECIDED]` (Django) / `[PROPOSED]` (version)
 - **Decision:** Start on **Django 5.2 LTS** (supported until April 2028). Move to the next LTS (6.2, expected around April 2027) once it's out.
+  Confirmed by the maintainer 2026-11-14: Dependabot's 6.1 pull request (#10) was closed again, and `.github/dependabot.yml` now ignores Django 6.0 and 6.1.
 - **Why Django:** The ORM and migrations, a free admin for the server owner (FR-ADM), mature templates and i18n,
   template overriding (TD-25), and continuity with the old system.
 - **Alternatives:** FastAPI + Jinja. It's lighter, but has no admin, no migrations story, and needs more glue. Rejected.

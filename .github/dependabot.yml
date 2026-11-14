@@ -16,6 +16,11 @@ updates:
         update-types: [minor, patch]
     cooldown:
       default-days: 7
+    ignore:
+      # TD-03: il2ks stays on the Django LTS line (5.2 until 6.2 LTS is out). 6.0 and 6.1 are not LTS, so no pull
+      # requests for them (they were opened and closed three times). Security fixes for 5.2 still arrive.
+      - dependency-name: django
+        versions: [">=6.0,<6.2"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

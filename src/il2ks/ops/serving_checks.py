@@ -3,6 +3,7 @@
 Each check returns findings in plain words with a `fix` the admin can follow (see `il2ks.ops.doctor`).
 """
 
+import os
 import socket
 from collections.abc import Callable, Iterable
 from pathlib import Path
@@ -261,8 +262,27 @@ def external_proxy(cfg: Config) -> Iterable[Finding]:
             Level.WARN,
             f"The web server listens on {cfg.web.host}, not only on this machine",
             "Anyone who can reach that port can bypass your proxy's HTTPS.",
-            'Set [web] host = "127.0.0.1", unless your proxy runs on another machine and a firewall protects the port.',
+            'Set [web] host = "127.0.0.1". If your proxy runs on another machine or container, keep the port behind '
+            "a firewall and list the proxy's address in [web] trusted_proxies: without that the admin login lockout "
+            "sees one address for all visitors, and anyone can lock you out.",
         )
+
+
+@check
+def root_user(cfg: Config) -> Iterable[Finding]:
+    """Security audit 2026-11-14: before 0.7.5 `sudo il2ks service systemd --install` wrote a unit with `User=root`."""
+    geteuid = getattr(os, "geteuid", None)  # POSIX only
+    if geteuid is None or geteuid() != 0:
+        return
+    yield Finding(
+        Level.WARN,
+        "il2ks is running as root",
+        "A bug in the site would then own the whole machine. A service installed with `sudo il2ks service systemd "
+        "--install` before version 0.7.5 runs this way.",
+        'Install the service again for an ordinary account: `sudo "$(which il2ks)" service systemd --install '
+        f"--user NAME`, then `sudo chown -R NAME: {cfg.data_dir}` and `sudo systemctl restart il2ks`. If only this "
+        "command ran as root (sudo il2ks doctor), run it as the service's user instead.",
+    )
 
 
 @check

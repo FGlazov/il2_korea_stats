@@ -296,6 +296,18 @@ def test_external_mode_hints_and_the_listening_address(tmp_path: Path) -> None:
     assert "docs/reverse-proxy.md" in findings[0].detail
     open_host = make(tmp_path, mode="external", web=WebConfig(host="0.0.0.0"))
     assert [f.level for f in run(serving_checks.external_proxy, open_host)] == [Level.OK, Level.WARN]
+    # A proxy on another machine must be listed, or the admin login lockout sees one address for everybody.
+    assert "trusted_proxies" in run(serving_checks.external_proxy, open_host)[1].fix
+
+
+def test_running_as_root_is_a_warning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Security audit 2026-11-14: `sudo il2ks service systemd --install` before 0.7.5 made the service run as root."""
+    monkeypatch.setattr(serving_checks.os, "geteuid", lambda: 1000, raising=False)
+    assert run(serving_checks.root_user, make(tmp_path)) == []
+    monkeypatch.setattr(serving_checks.os, "geteuid", lambda: 0, raising=False)
+    [finding] = run(serving_checks.root_user, make(tmp_path))
+    assert finding.level is Level.WARN
+    assert "--user" in finding.fix
 
 
 # --- registered with the doctor ---------------------------------------------------------------------------------------

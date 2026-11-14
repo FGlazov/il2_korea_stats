@@ -115,6 +115,17 @@ no takeoff: 10 b10 31 [28] 12 b12 4 b4 b16
 
 ## Known problems
 
+### Player-chosen text can look like log keys (security audit 2026-11-14)
+
+AType 10 carries two texts the player chooses, `NAME` (nickname) and `SKIN`, unquoted and in the middle of the line. A free-text value ends at the
+next known key, so a nickname like `Bob TYPE:F-86A-5 COUNTRY:101 ... FUEL:1.0 SKIN:` gave the line two readings: the parser took the forged aircraft,
+side and airfield, and the real fields ended up inside `SKIN`. The account and profile UUIDs come before `NAME`, so identity was never affected: a player
+could only falsify their own sortie. **We don't know what the game allows in a nickname or skin name** (length, spaces, colons; nothing like it is in the
+210 samples), so the parser assumes the worst: an AType 10 line whose `NAME`, `TYPE` or `SKIN` contains ` KEY:` or ` KEY(` for a key of that line is a
+**bad line** (`bad value`), because which reading is real cannot be told. The spawn is dropped, so that sortie is not counted (OQ-157). A nickname may
+still contain colons and words that are not keys of the line. A **line break** inside a nickname would start a new, forged record and cannot be detected
+by the parser; no sample has one, and it stays an assumption that DServer never writes one.
+
 ### No pilot bailout / ejection event (AType 18) for players
 - Verified: **0 of 15,349** player sorties have an AType 18 for the player's pilot. All 799 AType 18 events belong to gunners or
   AI. The other developer hopes it's a game bug that'll be fixed.
