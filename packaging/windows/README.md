@@ -40,7 +40,7 @@ stopped the way WinSW stops a service (see below) with a clean exit in under a s
     bin\caddy.exe              the HTTPS proxy; reaches il2ks through PATH (service XML, il2ks.cmd), not through config
     service\il2ks-service.exe  WinSW; il2ks-service.xml is rendered at build time (winsw.py)
     il2ks.cmd                  `il2ks ...` on the command line (sets PATH and IL2KS_CONFIG)
-    il2ks-admin.cmd            elevates, then runs il2ks.cmd (Start menu: doctor, command prompt)
+    il2ks-admin.cmd            elevates, then runs il2ks.cmd (Start menu: doctor, command prompt, restart / stop / start the service)
     licenses\, BUILD-INFO.txt
 %ProgramData%\il2ks\           the admin's: il2ks.toml, database, secret key, logs\, backups\, custom\ (kept on uninstall)
 ```

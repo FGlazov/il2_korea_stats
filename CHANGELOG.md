@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.7.6 (2026-11-17)
+
+Mostly for the Windows installer, plus one new doctor check for everybody who uses the bundled Caddy. Nothing to run
+after the upgrade, and the stats don't change.
+
+### Windows installer: Start menu
+
+- **"Restart il2ks service".** It asks for administrator rights, then stops and starts the site, which is what a change
+  in `il2ks.toml` needs. Until now that took an administrator command prompt and `net stop il2ks`, `net start il2ks`.
+- **"Stop il2ks service" and "Start il2ks service".** A site you stop this way stays off: Windows does not start it
+  at the next boot, and an il2ks upgrade leaves it off too. "Start" (or "Restart") turns it on again, and from then on
+  it starts with Windows as before.
+- **"Settings and data folder".** Opens `C:\ProgramData\il2ks`, where `il2ks.toml`, the database
+  (`il2ks.sqlite3`), the backups and your custom pages are. Windows asks once for permission, because the folder is
+  private to administrators.
+- **"View logs" is now called "il2ks site logs"**: these are the logs of the stats site, not the game server's mission
+  logs.
+
+### Doctor
+
+- **A warning when the site has no HTTPS certificate.** With a domain set, Caddy needs the certificate authority to
+  reach your machine from the internet on ports 80 and 443. When the router does not forward those ports (or the name
+  points somewhere else), no certificate arrives and no browser can open the site, while every doctor check was green.
+  `il2ks doctor` and the admin's server checks now say "No HTTPS certificate for <your domain> yet" and what to check.
+  Doctor cannot test the port forwarding itself (that needs a look from outside your network), so it asks Caddy
+  whether the certificate arrived. Only for the bundled Caddy with a domain name; not for an IP address as the domain,
+  `cert = "internal"`, or your own proxy.
+
 ## 0.7.5 (2026-11-14)
 
 Fixes from a security review. **Linux owners who installed the service with `sudo il2ks service systemd --install`

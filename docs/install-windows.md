@@ -53,15 +53,20 @@ If a step fails, a message says which, and what to do (usually: run **Run doctor
 The Start menu folder **il2ks** has:
 
 - **Open stats site** and **Open admin**: your site and its admin area (`https://your-domain/`, or `https://localhost/` without a domain).
-- **View logs**: the folder with il2ks's log files.
+- **il2ks site logs**: the folder with the log files of the stats site itself (not the game server's mission logs).
+- **Settings and data folder**: `C:\ProgramData\il2ks`, with `il2ks.toml` (the settings), the database, backups and your custom
+  pages. Windows asks once for permission to open it, because the folder is private to administrators.
+- **Restart il2ks service**: asks for administrator rights, then stops and starts the site. Do this after a change in `il2ks.toml`.
+- **Stop il2ks service** and **Start il2ks service**: turn the site off and on. A site you stopped this way stays off, also
+  after a reboot and after an il2ks upgrade, until you start (or restart) it again.
 - **Run doctor (check the setup)**: asks for administrator rights, then checks configuration, ports, Caddy, the log folder and the
   database, and says what to fix.
 - **il2ks command prompt**: a prompt where the `il2ks` command works (`il2ks backup`, `il2ks createadmin`, ...), run as administrator.
 - **Uninstall il2ks**.
 
 The site needs 10 to 30 seconds after a start (and after a reboot the service waits about two minutes: it starts "delayed" so the
-game server comes up first). To see the service: Start menu, **Services**, entry **il2ks stats site**. From an administrator
-command prompt: `net stop il2ks` and `net start il2ks`.
+game server comes up first). To see the service: Start menu, **Services**, entry **il2ks stats site**. To restart it: **Restart il2ks
+service** in the Start menu, or `net stop il2ks` and `net start il2ks` from an administrator command prompt.
 
 Now check the DNS, router and firewall points in [install.md, step 4](install.md#4-domain-ports-and-firewall) if the site is not
 reachable from outside.

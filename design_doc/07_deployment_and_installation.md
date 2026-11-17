@@ -82,7 +82,11 @@ An installer (Inno Setup or WiX) that bundles:
 - **one Windows service** for `il2ks run` (through a service wrapper such as WinSW, or `pywin32`), starting on boot.
 - **Caddy** for HTTPS (TD-23), plus firewall rules for ports 80 and 443.
 - a setup page that asks for the **game server folder** (auto-detected where possible), the **domain name** (for the certificate), and creates the admin account.
-- Start menu shortcuts: "Open stats site", "Open admin", "View logs".
+- Start menu shortcuts: "Open stats site", "Open admin", "il2ks site logs" (called "View logs" before 0.7.6). Since 0.7.6 (maintainer, 2026-11-17) also
+  "Settings and data folder" (`%ProgramData%\il2ks`, where `il2ks.toml` and the database are), "Restart il2ks service" (for after a settings change), and
+  "Stop il2ks service" / "Start il2ks service". All three go through the elevated `il2ks-admin.cmd`. **Stop is sticky** `[PROPOSED]`: it sets the service's
+  start type to manual (`sc config il2ks start= demand`), so Windows does not start it at boot, and an upgrade that finds a manual service registers the
+  new one as manual and does not start it; Start and Restart set it back to delayed automatic start.
 - **Upgrade check for `custom/` overrides** `[DECIDED]` (maintainer, 2026-10-04, OQ-93; TD-25): on an upgrade (not a fresh install) the installer runs `il2ks custom list
   --problems --fail-on-problems` (exit code 4 = an override needs attention; `custom list --json` is the machine-readable form). Interactive installs show
   a message box (OK button only; every problem state triggers it: outdated, newer, unversioned, orphan) that lists the templates to check, names the `il2ks custom diff` / `custom accept` workflow, points to `il2ks doctor` and `docs/customizing.md`; silent installs

@@ -74,9 +74,15 @@ Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs c
 ; An upgrade must not leave the old Python, packages or Caddy behind: two versions of a package side by side break imports.
 Type: filesandordirs; Name: "{app}\python"
 Type: filesandordirs; Name: "{app}\bin"
+; Renamed in 0.7.6 to "il2ks site logs": the name said nothing about whose logs.
+Type: files; Name: "{autoprograms}\il2ks\View logs.lnk"
 
 [Icons]
-Name: "{autoprograms}\il2ks\View logs"; Filename: "{commonappdata}\il2ks\logs"
+Name: "{autoprograms}\il2ks\il2ks site logs"; Filename: "{commonappdata}\il2ks\logs"; Comment: "Log files of the stats site itself (not the game server's mission logs)"
+Name: "{autoprograms}\il2ks\Settings and data folder"; Filename: "{commonappdata}\il2ks"; Comment: "il2ks.toml (the settings), the database, backups and custom pages"
+Name: "{autoprograms}\il2ks\Restart il2ks service"; Filename: "{app}\il2ks-admin.cmd"; Parameters: "restart"; WorkingDir: "{app}"; Comment: "Stops and starts the stats site, for example after a change in il2ks.toml"
+Name: "{autoprograms}\il2ks\Stop il2ks service"; Filename: "{app}\il2ks-admin.cmd"; Parameters: "stop"; WorkingDir: "{app}"; Comment: "Turns the stats site off. It stays off, also after a reboot, until you start it again"
+Name: "{autoprograms}\il2ks\Start il2ks service"; Filename: "{app}\il2ks-admin.cmd"; Parameters: "start"; WorkingDir: "{app}"; Comment: "Turns the stats site on again; it then starts with Windows as before"
 Name: "{autoprograms}\il2ks\Run doctor (check the setup)"; Filename: "{app}\il2ks-admin.cmd"; Parameters: "doctor"; WorkingDir: "{app}"; Comment: "Checks the configuration, ports, Caddy and the log folder"
 Name: "{autoprograms}\il2ks\il2ks command prompt"; Filename: "{app}\il2ks-admin.cmd"; Parameters: "shell"; WorkingDir: "{app}"; Comment: "A command prompt where the il2ks command works"
 Name: "{autoprograms}\il2ks\Uninstall il2ks"; Filename: "{uninstallexe}"
@@ -105,6 +111,7 @@ var
   Progress: TOutputProgressWizardPage;
   HaveConfig: Boolean;
   Finished: Boolean;
+  ServiceWasManual: Boolean;  // stopped with "Stop il2ks service" (start type manual): an upgrade leaves it stopped
   LogFolderChosen: String;  // the game log folder the service account is given rights on (GrantServiceAccount)
 
 // Every program the installer starts with the installed Python gets -P first: the current folder (and the folder of a
@@ -253,6 +260,14 @@ var
 begin
   RunCaptured(ExpandConstant('{sys}\sc.exe'), 'query ' + ServiceId, Output);
   Result := (Pos('STOPPED', Output) > 0) or (Pos('1060', Output) > 0);
+end;
+
+// "Stop il2ks service" in the Start menu (il2ks-admin.cmd stop) sets the start type to manual, so the site stays off.
+function ServiceStartIsManual: Boolean;
+var
+  Output: String;
+begin
+  Result := (RunCaptured(ExpandConstant('{sys}\sc.exe'), 'qc ' + ServiceId, Output) = 0) and (Pos('DEMAND_START', Output) > 0);
 end;
 
 procedure StopService;
@@ -533,6 +548,13 @@ begin
     Exit;
   end;
   GrantServiceAccount;
+  if ServiceWasManual then
+  begin
+    // The owner turned the site off on purpose: keep it off, and keep it from starting at boot.
+    Code := RunCaptured(ExpandConstant('{sys}\sc.exe'), 'config ' + ServiceId + ' start= demand', Output);
+    Log('The service was stopped with "Stop il2ks service": left stopped (sc config start= demand: ' + IntToStr(Code) + ')');
+    Exit;
+  end;
   Code := RunCaptured(ServiceExe, 'start', Output);
   Log('il2ks-service start: ' + IntToStr(Code) + #13#10 + Output);
   Result := Code = 0;
@@ -763,6 +785,7 @@ begin
   Result := '';
   if ServiceExists then
   begin
+    ServiceWasManual := ServiceStartIsManual;
     WizardForm.StatusLabel.Caption := 'Stopping the il2ks service...';
     StopService;
   end;

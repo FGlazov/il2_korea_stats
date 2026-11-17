@@ -287,6 +287,51 @@ def test_batch_files_use_safe_python_and_quote_safely() -> None:
     assert not any(line.rstrip().endswith("(") or line.strip() == ")" for line in code_lines)  # no (...) blocks
 
 
+def test_start_menu_can_restart_the_service_and_open_the_settings_folder() -> None:
+    """A changed il2ks.toml needs a service restart: the Start menu has an entry for it (elevated through
+    il2ks-admin.cmd, which must know the `restart` mode) and one that opens the folder with il2ks.toml."""
+    icons = ISS_TEXT.split("[Icons]", 1)[1].split("[UninstallDelete]", 1)[0]
+    restart = next(line for line in icons.splitlines() if "Restart il2ks service" in line)
+    assert 'Filename: "{app}\\il2ks-admin.cmd"; Parameters: "restart"' in restart
+    assert 'Name: "{autoprograms}\\il2ks\\Settings and data folder"; Filename: "{commonappdata}\\il2ks";' in icons
+    admin = (PACKAGING / "files" / "il2ks-admin.cmd").read_text(encoding="utf-8")
+    assert 'if /i "%~1"=="restart" goto :restart' in admin
+    body = admin.split("\n:restart\n", 1)[1]
+    assert body.index("net stop il2ks") < body.index("net start il2ks")
+    assert "pause" in body  # the window stays open, so a start that failed can be read
+
+
+def test_stopping_from_the_start_menu_is_sticky_until_started_again() -> None:
+    """Stop sets the start type to manual, so neither a reboot nor an upgrade brings the site back; Start and Restart
+    set it to delayed automatic start again (the start type in the WinSW definition)."""
+    icons = ISS_TEXT.split("[Icons]", 1)[1].split("[UninstallDelete]", 1)[0]
+    for mode in ("stop", "start"):
+        assert f'Filename: "{{app}}\\il2ks-admin.cmd"; Parameters: "{mode}"' in icons
+        assert f'if /i "%~1"=="{mode}" goto :{mode}' in (PACKAGING / "files" / "il2ks-admin.cmd").read_text(
+            encoding="utf-8"
+        )
+    admin = (PACKAGING / "files" / "il2ks-admin.cmd").read_text(encoding="utf-8")
+    stop = admin.split("\n:stop\n", 1)[1]
+    assert stop.index("sc.exe config il2ks start= demand") < stop.index("net stop il2ks")
+    start = admin.split("\n:start_service\n", 1)[1].split("\n:start_failed\n", 1)[0]
+    assert start.index("sc.exe config il2ks start= delayed-auto") < start.index("net start il2ks")
+    for label in (":restart", ":start"):
+        assert "goto :start_service" in admin.split(f"\n{label}\n", 1)[1].split("\n\n", 1)[0]
+    # the upgrade: remembered before the old service is stopped and removed, applied instead of starting the new one
+    assert ISS_TEXT.index("ServiceWasManual := ServiceStartIsManual;") < ISS_TEXT.index(
+        "    StopService;\n  end;\n  if FileExists(ConfigPath)"
+    )
+    install = ISS_TEXT.split("function InstallAndStartService: Boolean;", 1)[1].split("\nend;\n", 1)[0]
+    assert install.index("if ServiceWasManual then") < install.index("RunCaptured(ServiceExe, 'start', Output)")
+    assert "start= demand" in install
+
+
+def test_the_logs_shortcut_says_whose_logs_and_the_old_name_is_removed_on_upgrade() -> None:
+    assert 'Name: "{autoprograms}\\il2ks\\il2ks site logs"; Filename: "{commonappdata}\\il2ks\\logs"' in ISS_TEXT
+    install_delete = ISS_TEXT.split("[InstallDelete]", 1)[1].split("[Icons]", 1)[0]
+    assert 'Name: "{autoprograms}\\il2ks\\View logs.lnk"' in install_delete
+
+
 def test_windows_batch_files_have_no_unix_line_endings_after_the_build_step() -> None:
     for name in ("il2ks.cmd", "il2ks-admin.cmd"):
         text = (PACKAGING / "files" / name).read_text(encoding="utf-8")

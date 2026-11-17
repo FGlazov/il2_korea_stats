@@ -262,6 +262,73 @@ def test_external_mode_and_debug_only_check_the_web_port(tmp_path: Path, monkeyp
     assert asked == [8000, 8000]
 
 
+# --- the certificate --------------------------------------------------------------------------------------------------
+
+
+def certificate_findings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, served: bool, running: bool = True, **config: object
+) -> tuple[list[Finding], list[tuple[str, int]]]:
+    asked: list[tuple[str, int]] = []
+
+    def probe(name: str, port: int) -> bool:
+        asked.append((name, port))
+        return served
+
+    monkeypatch.setattr(serving_checks, "certificate_probe", probe)
+    probe_returning(monkeypatch, {8000, 80, 443} if running else set())
+    cfg = make(tmp_path, **config)  # pyright: ignore[reportArgumentType]
+    cfg.data_dir.mkdir(parents=True)
+    if not running:
+        return run(serving_checks.https_certificate, cfg), asked
+    with procutil.run_lock(cfg.data_dir):  # this test process counts as the running il2ks
+        return run(serving_checks.https_certificate, cfg), asked
+
+
+def test_a_running_caddy_without_a_certificate_for_the_domain_is_a_warning(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Seen 2026-11-17: the router forwarded no ports, Let's Encrypt could not reach the machine, the site was
+    unreachable, and doctor showed everything OK."""
+    findings, asked = certificate_findings(tmp_path, monkeypatch, served=False, domain="stats.example.com")
+    assert asked == [("stats.example.com", 443)]
+    [finding] = findings
+    assert finding.level is Level.WARN
+    assert "stats.example.com" in finding.title
+    assert "80 and 443" in finding.fix
+    assert "run-*.log" in finding.fix
+
+
+def test_a_certificate_for_the_domain_is_ok(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    findings, _ = certificate_findings(tmp_path, monkeypatch, served=True, domain="stats.example.com")
+    assert [f.level for f in findings] == [Level.OK]
+
+
+def test_the_certificate_is_only_asked_for_when_caddy_runs_with_a_public_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    quiet: list[dict[str, object]] = [
+        {"domain": "stats.example.com", "running": False},  # il2ks is not running: nothing to ask
+        {"domain": ""},  # the self-signed test certificate (the domain check says so)
+        {"domain": "stats.lan", "cert": "internal"},
+        {"domain": "203.0.113.7"},  # tied to the public address, which a local handshake cannot name
+        {"domain": "stats.example.com", "mode": "external"},  # the owner's proxy has the certificate
+        {"domain": "stats.example.com", "debug": True},
+    ]
+    for number, config in enumerate(quiet):
+        findings, asked = certificate_findings(tmp_path / str(number), monkeypatch, served=False, **config)  # pyright: ignore[reportArgumentType]
+        assert findings == [], config
+        assert asked == [], config
+
+
+def test_the_real_certificate_probe_says_no_when_nothing_speaks_tls() -> None:
+    import socket
+
+    with socket.socket() as server:
+        server.bind(("127.0.0.1", 0))
+        port: int = server.getsockname()[1]
+    assert not serving_checks.certificate_served("stats.example.com", port)  # closed port
+
+
 def test_the_real_probe_sees_a_listening_socket() -> None:
     import socket
 

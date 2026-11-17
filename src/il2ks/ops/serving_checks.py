@@ -5,6 +5,7 @@ Each check returns findings in plain words with a `fix` the admin can follow (se
 
 import os
 import socket
+import ssl
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
@@ -229,6 +230,52 @@ def _port_fix(cfg: Config, port: int) -> str:
 
 def _who(port: int) -> str:
     return f"`netstat -ano | findstr :{port}` on Windows, `ss -ltnp 'sport = :{port}'` on Linux"
+
+
+def certificate_served(domain: str, port: int) -> bool:
+    """Whether the proxy on this machine completes a TLS handshake for `domain`. Caddy refuses the handshake while it
+    has no certificate for the name. Nothing is verified and nothing is sent: the only question is whether a
+    certificate is there."""
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    try:
+        with (
+            socket.create_connection(("127.0.0.1", port), timeout=3) as raw,
+            context.wrap_socket(raw, server_hostname=domain),
+        ):
+            return True
+    except OSError:  # ssl.SSLError is one: the handshake was refused
+        return False
+
+
+certificate_probe: Callable[[str, int], bool] = certificate_served
+"""Replaced in tests; the real probe above makes a TLS handshake with 127.0.0.1."""
+
+
+@check
+def https_certificate(cfg: Config) -> Iterable[Finding]:
+    """A domain is set and Caddy runs, but the certificate authority never reached this machine (ports 80/443 not
+    forwarded by the router, DNS pointing elsewhere): every other check is green and no browser can open the site.
+    Doctor cannot look at this machine from the internet, but it can ask Caddy whether the certificate arrived."""
+    if cfg.https.mode != "caddy" or cfg.debug or caddy.cert_plan(cfg) != "public":
+        return  # a certificate for an IP address is tied to that address, which 127.0.0.1 cannot ask for
+    port = cfg.https.https_port
+    if procutil.running_stack(cfg.data_dir) is None or not port_probe(port):
+        return  # nothing to ask while il2ks is not running
+    name = cfg.https.domain
+    if certificate_probe(name, port):
+        yield Finding(Level.OK, "HTTPS certificate", f"Caddy has a certificate for {name}")
+        return
+    yield Finding(
+        Level.WARN,
+        f"No HTTPS certificate for {name} yet",
+        "Caddy is running but has no certificate for that name, so browsers cannot open the site. The certificate "
+        "authority has to reach this machine from the internet on ports 80 and 443 to issue one; Caddy keeps trying.",
+        "If il2ks started less than a minute ago, wait and run doctor again. Otherwise check that the name points at "
+        "this machine's public address and that your router and firewall let TCP ports 80 and 443 through to this "
+        f"machine (docs/install.md, step 4). The reason is in the `caddy` lines of {cfg.log_dir / 'run-*.log'}.",
+    )
 
 
 @check

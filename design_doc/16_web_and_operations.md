@@ -578,6 +578,9 @@ reading order and announcements with a screen reader (NVDA on Windows is free), 
   has no `Content-Encoding` or the fetch fails; with the bundled Caddy (which always compresses) or without a domain it prints an info line instead. It uses
   plain `urllib` because it fetches the admin's **own** address: a deliberate exception to "every outbound request goes through the SSRF helper".
   `backup_copy_check` reports the last copy to `[backup] copy_to` (below); `login_lockout_check` lists active admin lockouts (WARN).
+  **`https_certificate`** `[PROPOSED]` (0.7.6, 2026-11-17): with the bundled Caddy, a domain name (not an IP address, not `cert = "internal"`) and `il2ks run` holding the https port, doctor makes a
+  TLS handshake with `127.0.0.1` for that name (nothing verified, nothing sent, 3 s timeout) and warns "No HTTPS certificate for <domain> yet" when Caddy refuses it: the usual reason is a
+  router that does not forward ports 80/443, which doctor cannot test from inside the network. Not urgent (no admin banner): without a certificate the admin is unreachable anyway.
   **`caddy_version`** (maintainer, 2026-11-07): runs `caddy version` (10 s timeout, no window) and compares it with `caddy.BUNDLED_VERSION`, the Caddy the
   Windows installer pins (a test keeps them equal and the Docker image at least as new). Older is an urgent WARN ("may miss security fixes", with the
   upgrade command per install method; Debian's own package is years behind); older than 2.10 with an IP-address domain is an ERROR (no certificate);
