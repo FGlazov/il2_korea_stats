@@ -23,7 +23,9 @@ from markdown_it import MarkdownIt
 from il2ks.db.models import NavLink, Page, PageTranslation, SiteSettings
 
 MAX_SOURCE_LENGTH: Final = 100_000
-RENDERER_VERSION: Final = 1
+RENDERER_VERSION: Final = (
+    2  # 2: markdown-it-py 4.3.0 (0.7.7) renders image alt text, HTML blocks and some code spans differently
+)
 """Raise it whenever `render_markdown` would give other HTML for the same source (a tightened allowlist, a new
 markdown option): the next start re-renders every stored page whose `renderer_version` is lower (`ops.migrate`)."""
 

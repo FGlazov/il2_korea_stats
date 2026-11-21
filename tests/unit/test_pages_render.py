@@ -80,3 +80,24 @@ def test_tables_work() -> None:
     html = render_markdown("| a | b |\n|---|---|\n| 1 | 2 |\n")
     assert "<table>" in html
     assert "<td>1</td>" in html
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        # ammonia 4.2.5: mutation XSS from combining MathML and SVG (nh3 0.3.8, release 0.7.7)
+        '<math><mtext><svg><style><img src=x onerror="alert(1)"></style></svg></mtext></math>',
+        '<svg><mtext><math><annotation-xml encoding="text/html"><img src=x onerror="alert(1)"></annotation-xml></math>',
+        # ammonia 4.1.3 / CVE-2026-63430: `annotation-xml` encoding strip
+        '<math><annotation-xml encoding="TEXT/HTML"><script>alert(1)</script></annotation-xml></math>',
+        # ammonia 4.2.3 / 4.2.4: CSS url() escaping and case
+        '<p style="background:URL(&quot;javascript:alert(1)&quot;)">x</p>',
+    ],
+)
+def test_mathml_and_svg_mutation_xss_payloads_leave_nothing_active(payload: str) -> None:
+    """Neither `<svg>` nor `<math>` is on the allowlist, and the sanitiser (nh3, carrying ammonia) is kept at a version
+    with the mutation-XSS fixes of ammonia 4.2.3..4.2.5. Whatever shape the payload has, nothing that a browser could
+    re-parse into a script or a handler survives."""
+    html = render_markdown(payload)
+    for forbidden in ("<svg", "<math", "<style", "<script", "onerror", "annotation-xml", "javascript:", "style="):
+        assert forbidden not in html.lower(), (forbidden, html)

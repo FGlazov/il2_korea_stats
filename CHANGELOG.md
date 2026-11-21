@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.7.7 (2026-11-21)
+
+Dependency security updates. Nothing to run after the upgrade, and the stats don't change. The custom Markdown pages
+are rendered again once at the first start (the Markdown library changed; see below).
+
+### Security
+
+- **nh3 0.3.8, the HTML sanitiser of the custom pages.** nh3 bundles the Rust library ammonia, and ammonia has fixed
+  three mutation-XSS bugs since the version il2ks shipped (4.2.3, 4.2.4 and 4.2.5, the last one on 2026-11-13). The
+  weekly dependency audit cannot see them: the library is compiled into the nh3 wheel and no advisory names nh3 itself.
+  The exposure in il2ks was small: only the admin writes Markdown pages, and the allowlist of tags has neither `<svg>`
+  nor `<math>`, which these bugs need. Updated anyway: the sanitiser is what stands between an admin's paste and every
+  visitor, so it should be the current one. A regression test feeds the published payload shapes through
+  `render_markdown`.
+- **markdown-it-py 4.3.0.** Fixes two parsing paths where a few hundred kilobytes of crafted input stalled the renderer
+  for seconds to minutes. In il2ks the input is the admin's own page source, capped at 100 KB and rendered once on save,
+  so nobody else could trigger it.
+- **Windows installer: Python 3.13.18 from the 2026-11-10 build** of python-build-standalone. Same Python; the bundled
+  C libraries are newer (expat 2.10.0, zlib 1.4, libffi 3.4.4). Caddy 2.11.9 and WinSW 2.12.0 stay: both are the
+  current stable releases (WinSW 2.13.0 is marked experimental by its authors and drops .NET Framework 4.6.1).
+- Docker image: uv 0.13.9. Development tools: import-linter 2.17, ruff 0.17.4.
+
+### Markdown pages
+
+- **Rendered again once at the first start.** markdown-it-py 4.3.0 gives slightly different HTML for a few edge cases
+  (backslash escapes and code spans inside image alt text are kept, a lowercase `<!doctype>` starts an HTML block, a
+  code span after an unclosed link label renders as code), so the renderer version went up and every stored page is
+  rendered from its source again. Nothing to do; the sources are untouched.
+
 ## 0.7.6 (2026-11-17)
 
 Mostly for the Windows installer, plus one new doctor check for everybody who uses the bundled Caddy. Nothing to run

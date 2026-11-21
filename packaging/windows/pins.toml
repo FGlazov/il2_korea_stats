@@ -6,8 +6,8 @@
 # Hashes: SHA256SUMS in the same GitHub release. Must satisfy `requires-python` in pyproject.toml.
 [python]
 version = "3.13.18"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.13.18%2B20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
-sha256 = "7369f7a35f261222a6ac8b3a87c1c88eeebee8af945d85346202591a64038dd3"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261110/cpython-3.13.18%2B20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+sha256 = "2e0fed09d48989f64c9305da9ff2d37a41c0d13ab2aa6283405b2b620dfbf805"
 
 # Caddy: the bundled HTTPS proxy (TD-23). Upstream publishes SHA-512 (caddy_<version>_checksums.txt); the SHA-256 below
 # was computed from the file after checking its SHA-512 against that list.
