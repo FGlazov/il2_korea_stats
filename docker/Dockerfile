@@ -10,7 +10,7 @@
 ARG PYTHON_IMAGE=python:3.13-slim-trixie
 
 # Caddy 2.10+ is needed for IP-address certificates (design doc 16). Bump tag and digest together.
-FROM caddy:2.11.9@sha256:0c2243efcf437ab7f7a978f1027fcf0d4f9be8a75df27b1b3fbc5dbe0ffa8cf0 AS caddy
+FROM caddy:2.11.9@sha256:4851e54a46b206517c574821bb5cc67f170d2156041e9fbc4c9193b45e84a75b AS caddy
 FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
 
 FROM ${PYTHON_IMAGE} AS build
